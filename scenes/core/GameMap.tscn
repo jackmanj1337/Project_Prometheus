@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
+[ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
+[ext_resource type="Script" path="res://scripts/core/MapCursor.gd" id="3_cursor"]
+[ext_resource type="TileSet" path="res://assets/terrain_tileset.tres" id="4_terrain"]
+[ext_resource type="TileSet" path="res://assets/overlay_tileset.tres" id="5_overlay"]
+[ext_resource type="Texture2D" path="res://assets/sprites/cursor/cursor.png" id="6_cursor_tex"]
+
+[node name="GameMap" type="Node2D"]
+script = ExtResource("1_gamemap")
+
+[node name="TileMapLayer_Terrain" type="TileMapLayer" parent="."]
+tile_set = ExtResource("4_terrain")
+
+[node name="TileMapLayer_Overlay" type="TileMapLayer" parent="."]
+tile_set = ExtResource("5_overlay")
+
+[node name="UnitsContainer" type="Node2D" parent="."]
+
+[node name="MapCursor" type="Node2D" parent="."]
+script = ExtResource("3_cursor")
+
+[node name="Sprite2D" type="Sprite2D" parent="MapCursor"]
+texture = ExtResource("6_cursor_tex")
+centered = false
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = false
+
+[node name="GridManager" type="Node" parent="."]
+script = ExtResource("2_grid")
