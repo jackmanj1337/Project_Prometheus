@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Run all GDScript tests; exit 1 if any fail
+cd "$(dirname "$0")"
+TESTS=(
+  test_data_layer
+  test_grid_manager
+  test_map_grid
+  test_game_map_scene
+  test_unit_stats
+  test_unit_selection
+)
+fail_count=0
+for t in "${TESTS[@]}"; do
+  out=$(godot --headless --path . --script "res://scripts/tests/$t.gd" 2>&1 | grep "Results")
+  echo "$t: $out"
+  if [[ "$out" == *"failed"* && ! "$out" == *"0 failed"* ]]; then
+    fail_count=$((fail_count + 1))
+  fi
+done
+echo ""
+if [[ $fail_count -gt 0 ]]; then
+  echo "FAIL: $fail_count suite(s) failed"
+  exit 1
+fi
+echo "PASS: all suites green"
