@@ -374,3 +374,87 @@ func reset_appearance() -> void:
 		return
 	# Restore the team color (set in _apply_initial_state)
 	_apply_initial_state()
+
+
+# ---- Progression ----
+
+# Adds EXP; triggers level_up() and carries overflow when crossing 100.
+# Handles the case where a single combat awards more than 100 EXP (multiple
+# level-ups queued in sequence).
+func add_exp(amount: int) -> void:
+	if data == null or amount <= 0:
+		return
+	data.exp += amount
+	while data.exp >= 100:
+		data.exp -= 100
+		level_up()
+
+
+# Rolls stat increases per the unit's class growth rates and applies them.
+# Each stat: roll 1..100; if roll <= growth_rate, that stat increases by 1.
+# Emits unit_leveled_up with the dictionary of changes for the level-up screen.
+const _GROWTH_STATS := ["hp", "str", "mag", "def", "res", "skl", "spd", "luk"]
+
+func level_up() -> void:
+	if data == null:
+		return
+	data.level += 1
+	data.effective_level += 1
+	var class_data := _get_class_data()
+	if class_data == null:
+		return
+	var rates: Dictionary = class_data.growth_rates
+	var changes: Dictionary = {}
+	for stat in _GROWTH_STATS:
+		var rate: int = int(rates.get(stat, 0))
+		var roll: int = (randi() % 100) + 1  # 1..100 inclusive
+		if roll <= rate:
+			_increment_stat(stat)
+			changes[stat] = 1
+	var bus := _bus()
+	if bus:
+		bus.unit_leveled_up.emit(self, changes)
+
+
+func _increment_stat(stat: String) -> void:
+	match stat:
+		"hp":
+			data.max_hp += 1
+			data.hp += 1  # current HP also increases on level up
+		"str": data.str += 1
+		"mag": data.mag += 1
+		"def": data.def += 1
+		"res": data.res += 1
+		"skl": data.skl += 1
+		"spd": data.spd += 1
+		"luk": data.luk += 1
+
+
+# Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit
+# must already have an entry for this weapon type (set at class creation).
+# Returns true if a rank-up occurred.
+func add_wexp(weapon_type: String, amount: int) -> bool:
+	if data == null or amount <= 0:
+		return false
+	if not data.proficiencies.has(weapon_type):
+		return false
+	var prof: Dictionary = data.proficiencies[weapon_type]
+	prof["wexp"] = prof.get("wexp", 0) + amount
+	var ranked_up := false
+	while prof["wexp"] >= 100:
+		var current_rank: String = prof.get("rank", "E")
+		var next_rank := _next_rank(current_rank)
+		if next_rank == current_rank:
+			# Already at S — cap wexp at 100
+			prof["wexp"] = 100
+			break
+		prof["rank"] = next_rank
+		prof["wexp"] -= 100
+		ranked_up = true
+	data.proficiencies[weapon_type] = prof
+	return ranked_up
+
+
+func _next_rank(rank: String) -> String:
+	const NEXT := {"E": "D", "D": "C", "C": "B", "B": "A", "A": "S", "S": "S"}
+	return NEXT.get(rank, rank)

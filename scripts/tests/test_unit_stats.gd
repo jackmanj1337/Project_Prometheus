@@ -155,6 +155,64 @@ func _init() -> void:
 		print("FAIL snap_to_tile: tile=%s pos=%s" % [unit.tile_position, unit.position])
 		failed += 1
 
+	# --- EXP and leveling ---
+	soldier_data.level = 1
+	soldier_data.exp = 0
+	unit.add_exp(30)
+	if soldier_data.exp == 30 and soldier_data.level == 1:
+		print("OK  add_exp(30) without level up")
+		passed += 1
+	else:
+		print("FAIL exp: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
+		failed += 1
+
+	unit.add_exp(75)  # 30+75 = 105 → level up, 5 overflow
+	if soldier_data.level == 2 and soldier_data.exp == 5:
+		print("OK  add_exp carries overflow correctly")
+		passed += 1
+	else:
+		print("FAIL overflow: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
+		failed += 1
+
+	# Multiple level-ups in one call (250 EXP → 2 level-ups)
+	soldier_data.level = 1
+	soldier_data.exp = 0
+	unit.add_exp(250)
+	if soldier_data.level == 3 and soldier_data.exp == 50:
+		print("OK  add_exp(250) triggers 2 level-ups")
+		passed += 1
+	else:
+		print("FAIL multi level-up: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
+		failed += 1
+
+	# --- Weapon EXP and rank-up ---
+	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 50}}
+	unit.add_wexp("lance", 30)
+	if soldier_data.proficiencies["lance"]["wexp"] == 80 and soldier_data.proficiencies["lance"]["rank"] == "D":
+		print("OK  add_wexp accumulates without rank-up")
+		passed += 1
+	else:
+		print("FAIL wexp accumulate: %s" % soldier_data.proficiencies)
+		failed += 1
+
+	var ranked := unit.add_wexp("lance", 30)  # 80+30 = 110 → rank up to C, 10 carry
+	if ranked and soldier_data.proficiencies["lance"]["rank"] == "C" and soldier_data.proficiencies["lance"]["wexp"] == 10:
+		print("OK  add_wexp triggers rank-up D→C")
+		passed += 1
+	else:
+		print("FAIL rank up: %s ranked=%s" % [soldier_data.proficiencies, ranked])
+		failed += 1
+
+	# S rank cap
+	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 95}}
+	unit.add_wexp("lance", 100)
+	if soldier_data.proficiencies["lance"]["rank"] == "S" and soldier_data.proficiencies["lance"]["wexp"] == 100:
+		print("OK  wexp caps at 100 when already S-rank")
+		passed += 1
+	else:
+		print("FAIL S-cap: %s" % soldier_data.proficiencies)
+		failed += 1
+
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()
