@@ -146,6 +146,15 @@ func _init() -> void:
 		print("FAIL weapon not removed: %s" % soldier_data.inventory)
 		failed += 1
 
+	# --- snap_to_tile ---
+	unit.snap_to_tile(Vector2i(5, 7))
+	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5*64, 7*64):
+		print("OK  snap_to_tile sets tile and world position")
+		passed += 1
+	else:
+		print("FAIL snap_to_tile: tile=%s pos=%s" % [unit.tile_position, unit.position])
+		failed += 1
+
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()

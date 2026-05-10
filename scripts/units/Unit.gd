@@ -311,3 +311,66 @@ func can_equip(weapon_data: WeaponData) -> bool:
 	if data == null or weapon_data == null:
 		return false
 	return _can_equip_rank(weapon_data)
+
+
+# ---- Movement / Visuals ----
+
+# Animates this unit along the path (Vector2i tile list) using a Tween. The
+# first tile in path should be the starting tile and is skipped. Per-tile
+# duration comes from SettingsManager so the player can change movement speed
+# without code changes. Emits unit_moved on completion. await this call to
+# block until movement finishes.
+func move_along_path(path: Array[Vector2i]) -> void:
+	if path.size() <= 1:
+		return
+	_original_tile = tile_position
+	var seconds_per_tile := _get_per_tile_seconds()
+	# "Instant" speed: no tween, just snap to the destination
+	if seconds_per_tile <= 0.0:
+		snap_to_tile(path[-1])
+		_emit_moved(_original_tile, path[-1])
+		return
+	var tween := create_tween()
+	# Each tile is one tween segment; chain them sequentially
+	for i in range(1, path.size()):
+		var dest_world := Vector2(path[i].x * GridManager.TILE_SIZE,
+			path[i].y * GridManager.TILE_SIZE)
+		tween.tween_property(self, "position", dest_world, seconds_per_tile)
+	await tween.finished
+	tile_position = path[-1]
+	_emit_moved(_original_tile, tile_position)
+
+
+func _get_per_tile_seconds() -> float:
+	if is_inside_tree():
+		var sm := get_node_or_null("/root/SettingsManager")
+		if sm:
+			return sm.get_movement_speed_seconds()
+	return 0.12  # default
+
+
+func _emit_moved(from_tile: Vector2i, to_tile: Vector2i) -> void:
+	var bus := _bus()
+	if bus:
+		bus.unit_moved.emit(self, from_tile, to_tile)
+
+
+# Instant position change. Used by AI when animations are off and by undo_move.
+func snap_to_tile(tile: Vector2i) -> void:
+	tile_position = tile
+	position = Vector2(tile.x * GridManager.TILE_SIZE,
+		tile.y * GridManager.TILE_SIZE)
+
+
+# Visual state for "this unit has acted this turn" (DONE in TurnManager).
+# Uses sprite modulate to darken; restored each new player phase.
+func set_done_appearance() -> void:
+	if _sprite:
+		_sprite.modulate = _sprite.modulate.darkened(0.4)
+
+
+func reset_appearance() -> void:
+	if _sprite == null:
+		return
+	# Restore the team color (set in _apply_initial_state)
+	_apply_initial_state()
