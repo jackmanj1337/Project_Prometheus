@@ -118,5 +118,36 @@ func _init() -> void:
 	else:
 		print("SKIP unit spawn checks (GameState autoload not present in --script mode)")
 
+	# TurnManager wiring
+	var tm: TurnManager = instance.get_node("TurnManager")
+	if tm and tm._map_data != null and tm._map_data.id == "map_001":
+		print("OK  TurnManager.start_map called with map_001")
+		passed += 1
+	else:
+		print("FAIL TurnManager not initialized")
+		failed += 1
+
+	# All player units should be READY at start
+	if gs:
+		var all_ready := true
+		for u in gs.get_living_player_units():
+			if tm.get_unit_state(u) != TurnManager.UnitState.READY:
+				all_ready = false
+				break
+		if all_ready:
+			print("OK  all player units start as READY")
+			passed += 1
+		else:
+			print("FAIL units not READY at start")
+			failed += 1
+
+		# Turn number is 1 at start
+		if gs.turn_number == 1:
+			print("OK  turn_number = 1 at start")
+			passed += 1
+		else:
+			print("FAIL turn_number = %d at start" % gs.turn_number)
+			failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

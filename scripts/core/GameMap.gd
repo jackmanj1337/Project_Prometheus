@@ -61,6 +61,7 @@ const MAP_001: Array[String] = [
 @onready var _grid: GridManager = $GridManager
 @onready var _cursor: MapCursor = $MapCursor
 @onready var _camera: Camera2D = $Camera2D
+@onready var _turn_manager: TurnManager = $TurnManager
 
 var map_data: MapData = null
 
@@ -85,6 +86,8 @@ func _ready() -> void:
 	if gs:
 		gs.map_data = map_data
 		gs.take_map_snapshot()
+	# Kick off the first player phase
+	_turn_manager.start_map(map_data)
 
 
 func _load_map_data() -> void:
