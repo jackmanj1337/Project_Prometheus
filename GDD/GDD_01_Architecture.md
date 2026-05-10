@@ -342,6 +342,10 @@ func _ready() -> void:
 func load_settings() -> void
     # Reads user://settings.cfg via ConfigFile.
     # Falls back to defaults for any missing key.
+    # IMPORTANT: do NOT read or write GameState from here — SettingsManager
+    # autoloads BEFORE GameState (per the registration order), so the GameState
+    # node may not exist yet. GameState._ready() pulls the relevant values
+    # (permadeath_enabled, leveling_method) from SettingsManager instead.
 
 func save() -> void
     # Writes all current values to user://settings.cfg.
@@ -357,6 +361,8 @@ func _apply_audio() -> void
     # Converts 0–100 int values to decibel gains and sets each AudioServer bus.
     # Formula: AudioServer.set_bus_volume_db(bus_idx, linear_to_db(volume / 100.0))
     # Bus indices: Master = 0, Music = 1, SFX = 2
+    # Guard each set with `AudioServer.bus_count > N` — Music and SFX buses must be
+    # added via the editor's Audio panel; only Master exists in a fresh headless build.
 
 func _apply_keybindings() -> void
     # Iterates keybindings dict and calls InputMap.action_erase_events() +
@@ -401,7 +407,8 @@ func _ready() -> void:
     _load_directory("res://data/skills/", _skills)
 
 func _load_directory(path: String, target: Dictionary) -> void
-func get_class(id: String) -> ClassData
+func get_class_data(id: String) -> ClassData   # named *_data, not get_class, to avoid
+                                                # Godot's built-in Object.get_class() override warning
 func get_weapon(id: String) -> WeaponData
 func get_item(id: String) -> ItemData
 func get_skill(id: String) -> SkillData
@@ -438,7 +445,7 @@ signal map_defeat()
 ```gdscript
 extends Node
 
-const TILE_SIZE: int = 32
+const TILE_SIZE: int = 64   # matches GDD_06 tile size and 64x64 placeholder sprites
 var map_width: int = 0
 var map_height: int = 0
 var _tilemap: TileMapLayer
@@ -454,8 +461,10 @@ func tile_to_world(tile: Vector2i) -> Vector2   # Returns top-left corner of til
 # Movement
 func get_movement_range(unit: Node) -> Array[Vector2i]
     # BFS/Dijkstra from unit's tile; respects move costs and blocking
-func get_path_to(unit: Node, target_tile: Vector2i) -> Array[Vector2i]
-    # Ordered path for animation; empty array if unreachable
+func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]
+    # Ordered path for animation; empty array if unreachable.
+    # Named *_path, not get_path_to, because Godot's Node.get_path_to(node, bool) -> NodePath
+    # is a built-in that would override-warning here.
 func get_move_cost(tile: Vector2i, unit: Node) -> int
     # 1 for plain/fort; 2 for forest/sea/desert (standard);
     # 3 for mountain; 3 for armoured/mounted on desert; 999 for wall
@@ -626,9 +635,13 @@ Display/Window/Stretch/Aspect:        keep
 Rendering/2D/Snap/Snap 2D Vertices To Pixel: ON
 ```
 
-Tile size: **32 × 32 pixels**
-Visible tiles at native resolution: approximately **40 × 22**
+Tile size: **64 × 64 pixels** (matches GDD_06 tileset spec)
+Visible tiles at native resolution: approximately **20 × 11**
 Camera clamps to map bounds so empty space is never shown.
+
+> **Note:** earlier drafts of this document specified 32×32 tiles. The project
+> standardized on 64×64 to match the GDD_06 tileset spec and the placeholder
+> sprite sizes in the checklist. `GridManager.TILE_SIZE = 64` is authoritative.
 
 ---
 
@@ -937,3 +950,90 @@ func _apply_zoom() -> void
     # Re-applies camera clamp limits adjusted for current zoom
     # [PLACEHOLDER — implement in Phase 2]
 ```
+
+---
+
+## Implementation Notes
+
+Decisions made during initial implementation that affect future work. These do
+not change the design but document non-obvious choices a fresh contributor would
+otherwise repeat as bugs.
+
+### Method names that collide with Godot built-ins
+
+GDScript prints a warning (treated as error by default) when a class method
+shadows a `Node` or `Object` built-in with a different signature. Two such
+collisions came up; both were renamed:
+
+- `DataManager.get_class(id)` → **`get_class_data(id)`** (collides with `Object.get_class() -> String`)
+- `GridManager.get_path_to(...)` → **`get_movement_path(...)`** (collides with `Node.get_path_to(Node, bool) -> NodePath`)
+
+When adding new methods to nodes, sanity-check against the engine docs.
+Common at-risk names include `damage` (Node has none — fine to use as a method
+on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
+
+### Autoload load order
+
+Project registration order is `EventBus → SettingsManager → GameState → DataManager`.
+Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
+must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
+settings from disk but does not push values to GameState; GameState pulls them
+in its own `_ready()` instead.
+
+### .tres files in headless mode
+
+When `.tres` files are created via the editor, their header reads
+`[gd_resource type="ClassData" ...]` (using the `class_name` of the custom
+class). Godot resolves "ClassData" through the global class registry, which is
+populated by `class_name`-bearing scripts.
+
+In **headless `--script` runs**, the global class registry is not initialized.
+A `.tres` with `type="ClassData"` then fails to load with "Cannot get class
+'ClassData'". The fix used in this project: write `.tres` files with
+`type="Resource"` and let the `script = ExtResource(...)` line in the resource
+body assign the actual class. Custom-typed properties (e.g. `Array[Vector2i]`)
+still serialize correctly because the script defines the property types.
+
+The editor will rewrite the type to the proper class name on first save,
+which is fine — both forms load correctly.
+
+### Autoloads inside test scripts
+
+A script run via `godot --headless --path <project> --script <script>` does
+**not** parse identifiers like `GameState`, `EventBus`, etc. at compile time —
+those identifiers are resolved by the editor at parse time, but `--script` mode
+skips that step. Scripts that may run in test mode (anything in `scripts/core/`
+or `scripts/units/`) must access autoloads via runtime lookup:
+
+```gdscript
+if is_inside_tree():
+    var bus := get_node_or_null("/root/EventBus")
+    if bus:
+        bus.cursor_moved.emit(tile)
+```
+
+This pattern works in both runtime and test mode. The autoloads do load at
+runtime even when test scripts are executed via `--script` — only the
+**parse-time identifier resolution** fails. Runtime `get_node_or_null` works.
+
+### Map painting is data-driven
+
+`GameMap.gd` paints `TileMapLayer_Terrain` at runtime from a string grid
+(`MAP_001` constant). This means new maps are added by writing a new constant
+grid + a new MapData `.tres`, with no editor painting required. The string
+grid format is documented in `GDD_06` map section.
+
+`_validate_map()` asserts row count, row length, and that every char is a
+known terrain on `_ready` — transcription bugs fail loud at map load.
+
+### Test infrastructure
+
+All tests live under `scripts/tests/test_*.gd` and run via
+`./run_tests.sh` (a bash wrapper) or per-suite via
+`godot --headless --path . --script res://scripts/tests/<name>.gd`.
+
+Each test extends `SceneTree`, prints `OK`/`FAIL` lines, and exits with code
+0/1 for green/red.
+
+Tool scripts (`scripts/tools/`) regenerate placeholder assets and tilesets
+deterministically — re-run them after sprite or terrain changes.

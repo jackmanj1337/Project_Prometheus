@@ -17,10 +17,15 @@ Maps are self-contained — adding a new map never requires code changes.
 ### TileSet Configuration
 Create a single shared `TileSet` resource used by all maps.
 
-- **Tile size:** 64 × 64 pixels
+- **Tile size:** 64 × 64 pixels (authoritative — `GridManager.TILE_SIZE = 64`)
 - **Tile source:** [PLACEHOLDER] spritesheet with all terrain tiles
 - Each tile in the TileSet must have a **Custom Data Layer** named `terrain_type` (type: String)
 - Valid `terrain_type` values: `"plain"`, `"forest"`, `"mountain"`, `"fort"`, `"sea"`, `"desert"`, `"wall"`
+
+> The shared `terrain_tileset.tres` and `overlay_tileset.tres` are generated
+> programmatically by `scripts/tools/generate_tilesets.gd` for the MVP placeholder
+> art. Re-run that tool after sprite changes; the script also creates the
+> `terrain_type` custom data layer and assigns each tile's value.
 
 ### TileMapLayer Setup Per Map
 Each map scene contains two TileMapLayers as children of `GameMap`:
@@ -155,7 +160,7 @@ class_name MapData extends Resource
 - **Size:** 42 × 26 tiles
 - **Objective:** Rout (defeat all 8 enemies)
 - **Player units:** 6 (auto-deployed from default roster)
-- **Visible area at 32px:** 40×22 tiles — map is larger in both dimensions,
+- **Visible area at 64px:** ~20×11 tiles — map is much larger than the viewport,
   forcing camera scrolling in all directions
 - **Turn limit:** None
 - **Reward:** 500 gold
@@ -316,6 +321,22 @@ Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 
 ## Adding a New Map (Checklist)
 
+Two approaches are supported:
+
+### Data-driven (used for MVP `map_001`)
+The map layout lives as a string-grid constant in `GameMap.gd`. No editor
+painting is required — the script paints the TileMap at runtime. To add a map
+this way:
+- [ ] Add a new constant string grid (one row per `String`, each row exactly
+      `MAP_WIDTH` chars) using the legend `. F M T S D W`
+- [ ] Update `GameMap.gd` to choose the right grid based on `map_data.id`
+      (or move the grids into MapData itself)
+- [ ] Create `MapData.tres` with `objective_type`, `player_start_tiles`,
+      and `enemy_placements`
+- [ ] Create enemy `UnitData` `.tres` files
+- [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
+
+### Editor-painted (heavier maps in Phase 2+)
 - [ ] Create folder `res://data/maps/map_XXX_name/`
 - [ ] Build TileMap scene in Godot editor using shared TileSet
 - [ ] Verify every tile has correct `terrain_type` custom data set

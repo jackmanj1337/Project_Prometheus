@@ -13,6 +13,23 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
+## Status Snapshot (last updated 2026-05-10)
+
+| Milestone | Status | Notes |
+|---|---|---|
+| M0 — Project Setup | ✅ Complete | project.godot, autoloads, folder structure, .gitignore |
+| M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files (classes, weapons, items, skills, roster, enemies, map_001) |
+| M2 — Grid and Map Rendering | ✅ Complete | TileSets via tool script, GridManager (Dijkstra + pathfinding), MapCursor, GameMap.tscn, map_001 data-driven paint |
+| M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap unit spawning, TurnManager, MapCursor selection |
+| M4 — Combat System | ⏳ Next | CombatResolver, SkillHandler, weapon durability rules, EXP/wEXP awards, staff/item use |
+| M5 — HUD and UI | — | After M4 |
+| M6 — Enemy AI | — | After M5 |
+| M7 — Full MVP Playthrough | — | Integration of all above |
+
+**Tests:** 130 passing across 6 suites. Run `./run_tests.sh`.
+
+---
+
 ## Milestone 0 — Project Setup
 
 **Goal:** Empty Godot project with correct structure, settings, and version control.
