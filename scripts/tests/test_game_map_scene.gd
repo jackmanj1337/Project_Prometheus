@@ -80,5 +80,43 @@ func _init() -> void:
 		print("FAIL camera limits: %d x %d" % [cam.limit_right, cam.limit_bottom])
 		failed += 1
 
+	# Verify units spawned (6 player + 8 enemy = 14 total) if GameState is available
+	var gs := root.get_node_or_null("GameState")
+	if gs:
+		var units_container: Node2D = instance.get_node("UnitsContainer")
+		var unit_count := units_container.get_child_count()
+		if unit_count == 14:
+			print("OK  spawned 14 units (6 player + 8 enemy)")
+			passed += 1
+		else:
+			print("FAIL unit count: got %d, want 14" % unit_count)
+			failed += 1
+		# Player Unit_01 should be at tile (1,9)
+		var soldier: Unit = null
+		for child in units_container.get_children():
+			if child.data and child.data.unit_name == "Unit_01":
+				soldier = child
+				break
+		if soldier and soldier.tile_position == Vector2i(1, 9) and soldier.team == "player":
+			print("OK  Unit_01 spawned at (1,9) as player")
+			passed += 1
+		else:
+			print("FAIL Unit_01 placement: " + str(soldier))
+			failed += 1
+		# Boss enemy E8 should be at (39, 12)
+		var boss: Unit = null
+		for child in units_container.get_children():
+			if child.data and child.data.unit_name == "E8_Boss":
+				boss = child
+				break
+		if boss and boss.tile_position == Vector2i(39, 12) and boss.team == "enemy":
+			print("OK  E8_Boss spawned at (39,12) as enemy")
+			passed += 1
+		else:
+			print("FAIL E8_Boss placement: " + str(boss))
+			failed += 1
+	else:
+		print("SKIP unit spawn checks (GameState autoload not present in --script mode)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
