@@ -53,10 +53,8 @@ func load_settings() -> void:
 	leveling_method   = cfg.get_value("gameplay", "leveling_method",   leveling_method)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
-
-	# Sync permadeath bool to GameState
-	GameState.permadeath_enabled = (permadeath == "on")
-	GameState.leveling_method = leveling_method
+	# GameState sync happens in GameState._ready() — at this point GameState autoload
+	# hasn't loaded yet (autoload order: EventBus, SettingsManager, GameState, DataManager)
 
 
 func save() -> void:
@@ -99,11 +97,14 @@ func reset_section_to_defaults(section: String) -> void:
 	save()
 
 
-# Formula per GDD_01: linear_to_db(volume / 100.0)
+# Formula per GDD_01: linear_to_db(volume / 100.0).
+# Bus indices may not all exist yet (Music/SFX must be added in editor's Audio panel),
+# so guard each set with a bus count check.
 func _apply_audio() -> void:
-	AudioServer.set_bus_volume_db(0, linear_to_db(master_volume / 100.0))
-	AudioServer.set_bus_volume_db(1, linear_to_db(music_volume  / 100.0))
-	AudioServer.set_bus_volume_db(2, linear_to_db(sfx_volume    / 100.0))
+	var bus_count := AudioServer.bus_count
+	if bus_count > 0: AudioServer.set_bus_volume_db(0, linear_to_db(master_volume / 100.0))
+	if bus_count > 1: AudioServer.set_bus_volume_db(1, linear_to_db(music_volume  / 100.0))
+	if bus_count > 2: AudioServer.set_bus_volume_db(2, linear_to_db(sfx_volume    / 100.0))
 
 
 func _apply_keybindings() -> void:

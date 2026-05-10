@@ -39,8 +39,10 @@ func _load_directory(path: String, target: Dictionary) -> void:
 		if fname.ends_with(".tres"):
 			var res_path := path + fname
 			var res := load(res_path)
-			if res and res.has_method("get") and res.get("id") != null:
-				target[res.id] = res
+			# All our content resources have a non-empty 'id' field; warn on others
+			var rid: Variant = res.get("id") if res else null
+			if rid != null and rid != "":
+				target[rid] = res
 			else:
 				push_warning("DataManager: resource at %s has no 'id' field" % res_path)
 		fname = dir.get_next()

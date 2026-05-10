@@ -24,6 +24,14 @@ var player_roster: Array[UnitData] = []
 var _map_start_snapshot: Array[Dictionary] = []
 
 
+# Pulls initial values from SettingsManager. Done here (not in SettingsManager.load_settings)
+# because GameState autoload runs after SettingsManager — by now SettingsManager._ready()
+# has finished and its values are valid.
+func _ready() -> void:
+	permadeath_enabled = (SettingsManager.permadeath == "on")
+	leveling_method = SettingsManager.leveling_method
+
+
 func register_unit(unit: Node) -> void:
 	all_units.append(unit)
 	if unit.team == "player":
@@ -43,12 +51,21 @@ func set_phase(new_phase: Phase) -> void:
 	EventBus.phase_changed.emit(new_phase)
 
 
+# filter() returns generic Array, so build Array[Node] explicitly
 func get_living_player_units() -> Array[Node]:
-	return player_units.filter(func(u): return u.data.hp > 0)
+	var result: Array[Node] = []
+	for u in player_units:
+		if u.data.hp > 0:
+			result.append(u)
+	return result
 
 
 func get_living_enemy_units() -> Array[Node]:
-	return enemy_units.filter(func(u): return u.data.hp > 0)
+	var result: Array[Node] = []
+	for u in enemy_units:
+		if u.data.hp > 0:
+			result.append(u)
+	return result
 
 
 func is_player_turn() -> bool:
