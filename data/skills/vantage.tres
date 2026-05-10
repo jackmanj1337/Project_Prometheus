@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "vantage"
+display_name = "Vantage"
+description = "Always attack first in combat, even when defending."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "vantage"
+effect_params = {}
+is_player_activated = false

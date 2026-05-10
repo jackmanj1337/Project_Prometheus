@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mercenary"
+display_name = "Mercenary"
+description = "An accurate, fast melee fighter with a sword."
+base_hp = 18
+base_str = 7
+base_mag = 0
+base_def = 5
+base_res = 2
+base_skl = 8
+base_spd = 7
+base_luk = 4
+base_mov = 6
+base_con = 8
+base_los = 4
+proficiencies = ["sword"]
+starting_skills = []
+special_qualities = []
+promotes_to = ["hero", "sentinel"]
+promotion_stat_increases = {}
+promotion_skill = ""
+occult_skill = ""
+growth_rates = {"hp": 60, "str": 50, "mag": 5, "def": 35, "res": 20, "skl": 65, "spd": 60, "luk": 35}
+sprite_id = ""

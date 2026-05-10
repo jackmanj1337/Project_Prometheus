@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "soldier"
+display_name = "Soldier"
+description = "A balanced frontline fighter proficient with lances."
+base_hp = 17
+base_str = 7
+base_mag = 0
+base_def = 6
+base_res = 3
+base_skl = 6
+base_spd = 6
+base_luk = 6
+base_mov = 6
+base_con = 8
+base_los = 4
+proficiencies = ["lance"]
+starting_skills = []
+special_qualities = []
+promotes_to = ["commander", "halberdier"]
+promotion_stat_increases = {}
+promotion_skill = ""
+occult_skill = ""
+growth_rates = {"hp": 75, "str": 50, "mag": 5, "def": 45, "res": 25, "skl": 50, "spd": 45, "luk": 40}
+sprite_id = ""

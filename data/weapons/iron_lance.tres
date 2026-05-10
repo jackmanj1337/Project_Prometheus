@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_lance"
+display_name = "Iron Lance"
+weapon_type = "lance"
+rank = "E"
+mt = 7
+hit = 80
+crit = 0
+range_min = 1
+range_max = 1
+wt = 8
+uses = 45
+cost = 450
+wexp = 1
+effect_tags = []
+uses_mag = false
+magic_triangle_type = ""

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "thunder"
+display_name = "Thunder"
+weapon_type = "thunder"
+rank = "E"
+mt = 5
+hit = 75
+crit = 0
+range_min = 1
+range_max = 2
+wt = 3
+uses = 40
+cost = 700
+wexp = 1
+effect_tags = ["effective_dragon"]
+uses_mag = true
+magic_triangle_type = ""

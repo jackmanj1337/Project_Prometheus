@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "miracle"
+display_name = "Miracle"
+description = "LUK% chance to halve a fatal blow."
+trigger = "on_damaged"
+activation_chance_stat = "luk"
+activation_divisor = 1
+effect_id = "miracle"
+effect_params = {}
+is_player_activated = false

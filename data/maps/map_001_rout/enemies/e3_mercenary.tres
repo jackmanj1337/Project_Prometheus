@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "E3_Mercenary"
+class_id = "mercenary"
+level = 3
+exp = 0
+is_promoted = false
+effective_level = 3
+max_hp = 19
+hp = 19
+str = 8
+mag = 0
+def = 5
+res = 2
+skl = 9
+spd = 8
+luk = 4
+mov = 6
+con = 8
+los = 4
+proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+skills = []
+inventory = [{"type": "weapon", "weapon_id": "iron_sword", "uses_remaining": 45, "forged_mods": {}}]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

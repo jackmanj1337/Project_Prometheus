@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "E5_Archer"
+class_id = "archer"
+level = 3
+exp = 0
+is_promoted = false
+effective_level = 3
+max_hp = 18
+hp = 18
+str = 6
+mag = 0
+def = 4
+res = 3
+skl = 10
+spd = 8
+luk = 5
+mov = 6
+con = 6
+los = 4
+proficiencies = {"bow": {"rank": "D", "wexp": 0}}
+skills = []
+inventory = [{"type": "weapon", "weapon_id": "iron_bow", "uses_remaining": 45, "forged_mods": {}}]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

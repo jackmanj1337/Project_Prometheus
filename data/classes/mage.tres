@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mage"
+display_name = "Mage"
+description = "A magical attacker that targets RES. Primary: Fire (D); secondary: Thunder (E)."
+base_hp = 15
+base_str = 1
+base_mag = 7
+base_def = 1
+base_res = 8
+base_skl = 8
+base_spd = 6
+base_luk = 5
+base_mov = 6
+base_con = 5
+base_los = 4
+proficiencies = ["fire", "thunder", "wind"]
+starting_skills = []
+special_qualities = []
+promotes_to = ["mage_knight", "sage"]
+promotion_stat_increases = {}
+promotion_skill = ""
+occult_skill = ""
+growth_rates = {"hp": 50, "str": 5, "mag": 65, "def": 15, "res": 60, "skl": 60, "spd": 50, "luk": 40}
+sprite_id = ""

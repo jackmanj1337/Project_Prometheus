@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "elfire"
+display_name = "Elfire"
+weapon_type = "fire"
+rank = "D"
+mt = 5
+hit = 70
+crit = 5
+range_min = 1
+range_max = 2
+wt = 4
+uses = 30
+cost = 900
+wexp = 1
+effect_tags = ["effective_beast"]
+uses_mag = true
+magic_triangle_type = ""

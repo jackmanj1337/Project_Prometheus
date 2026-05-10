@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "knight"
+display_name = "Knight"
+description = "A heavily armoured tank with very high DEF. Slow movement."
+base_hp = 21
+base_str = 9
+base_mag = 0
+base_def = 12
+base_res = 0
+base_skl = 5
+base_spd = 3
+base_luk = 2
+base_mov = 5
+base_con = 15
+base_los = 4
+proficiencies = ["lance"]
+starting_skills = []
+special_qualities = ["armoured"]
+promotes_to = ["general", "great_knight"]
+promotion_stat_increases = {}
+promotion_skill = ""
+occult_skill = ""
+growth_rates = {"hp": 70, "str": 55, "mag": 0, "def": 65, "res": 15, "skl": 45, "spd": 25, "luk": 25}
+sprite_id = ""

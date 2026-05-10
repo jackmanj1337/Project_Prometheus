@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_sword"
+display_name = "Iron Sword"
+weapon_type = "sword"
+rank = "E"
+mt = 6
+hit = 85
+crit = 0
+range_min = 1
+range_max = 1
+wt = 7
+uses = 45
+cost = 460
+wexp = 1
+effect_tags = []
+uses_mag = false
+magic_triangle_type = ""

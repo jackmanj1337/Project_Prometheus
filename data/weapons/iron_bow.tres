@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_bow"
+display_name = "Iron Bow"
+weapon_type = "bow"
+rank = "E"
+mt = 6
+hit = 85
+crit = 0
+range_min = 2
+range_max = 2
+wt = 5
+uses = 45
+cost = 540
+wexp = 1
+effect_tags = ["effective_flying"]
+uses_mag = false
+magic_triangle_type = ""

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "renewal"
+display_name = "Renewal"
+description = "Restore 10% of max HP at the start of each turn."
+trigger = "start_of_turn"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "renewal"
+effect_params = {}
+is_player_activated = false

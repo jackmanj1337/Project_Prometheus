@@ -16,5 +16,5 @@ export_credentials.cfg
 data_*/
 mono_crash.*.json
 
-CLAUDE/
+# Claude Code tool config (local only)
 .claude

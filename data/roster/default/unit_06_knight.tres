@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Unit_06"
+class_id = "knight"
+level = 1
+exp = 0
+is_promoted = false
+effective_level = 1
+max_hp = 21
+hp = 21
+str = 9
+mag = 0
+def = 12
+res = 0
+skl = 5
+spd = 3
+luk = 2
+mov = 5
+con = 15
+los = 4
+proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+skills = []
+inventory = [{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 45, "forged_mods": {}}, {"type": "item", "item_id": "vulnerary", "uses_remaining": 3}]
+conditions = []
+gold = 1000
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = true

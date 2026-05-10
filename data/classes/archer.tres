@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "archer"
+display_name = "Archer"
+description = "A ranged physical attacker. Cannot attack adjacent (range 1) targets."
+base_hp = 17
+base_str = 6
+base_mag = 0
+base_def = 4
+base_res = 3
+base_skl = 9
+base_spd = 7
+base_luk = 5
+base_mov = 6
+base_con = 6
+base_los = 4
+proficiencies = ["bow"]
+starting_skills = []
+special_qualities = []
+promotes_to = ["ranger", "sniper"]
+promotion_stat_increases = {}
+promotion_skill = ""
+occult_skill = ""
+growth_rates = {"hp": 60, "str": 45, "mag": 5, "def": 30, "res": 20, "skl": 70, "spd": 55, "luk": 40}
+sprite_id = ""

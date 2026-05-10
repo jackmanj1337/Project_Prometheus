@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "wind"
+display_name = "Wind"
+weapon_type = "wind"
+rank = "E"
+mt = 3
+hit = 85
+crit = 0
+range_min = 1
+range_max = 2
+wt = 1
+uses = 40
+cost = 500
+wexp = 1
+effect_tags = ["effective_flying"]
+uses_mag = true
+magic_triangle_type = ""

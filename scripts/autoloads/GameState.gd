@@ -1,0 +1,152 @@
+extends Node
+
+enum Phase { PLAYER, ENEMY }
+
+# Settings (kept in sync with SettingsManager)
+var permadeath_enabled: bool = false
+var leveling_method: String = "growth_rates"
+var max_skills: int = 4
+var max_inventory: int = 8
+
+# Current map state
+var current_phase: Phase = Phase.PLAYER
+var turn_number: int = 1
+var all_units: Array[Node] = []
+var player_units: Array[Node] = []
+var enemy_units: Array[Node] = []
+var selected_unit: Node = null
+var map_data: MapData = null
+
+# Persists between maps — the live roster
+var player_roster: Array[UnitData] = []
+
+# Deep copy taken at map start; used by the Retry button to restore state
+var _map_start_snapshot: Array[Dictionary] = []
+
+
+func register_unit(unit: Node) -> void:
+	all_units.append(unit)
+	if unit.team == "player":
+		player_units.append(unit)
+	else:
+		enemy_units.append(unit)
+
+
+func unregister_unit(unit: Node) -> void:
+	all_units.erase(unit)
+	player_units.erase(unit)
+	enemy_units.erase(unit)
+
+
+func set_phase(new_phase: Phase) -> void:
+	current_phase = new_phase
+	EventBus.phase_changed.emit(new_phase)
+
+
+func get_living_player_units() -> Array[Node]:
+	return player_units.filter(func(u): return u.data.hp > 0)
+
+
+func get_living_enemy_units() -> Array[Node]:
+	return enemy_units.filter(func(u): return u.data.hp > 0)
+
+
+func is_player_turn() -> bool:
+	return current_phase == Phase.PLAYER
+
+
+func reset_map_state() -> void:
+	all_units.clear()
+	player_units.clear()
+	enemy_units.clear()
+	selected_unit = null
+	map_data = null
+	turn_number = 1
+	current_phase = Phase.PLAYER
+
+
+# Loads the 6 default roster UnitData .tres files into player_roster.
+# Called by MainMenu on "New Game" for MVP.
+func load_default_roster() -> void:
+	player_roster.clear()
+	var roster_path := "res://data/roster/default/"
+	var dir := DirAccess.open(roster_path)
+	if dir == null:
+		push_error("GameState: cannot open roster directory: " + roster_path)
+		return
+	# Load in filename order so slot numbering stays consistent
+	var files: Array[String] = []
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if fname.ends_with(".tres"):
+			files.append(fname)
+		fname = dir.get_next()
+	dir.list_dir_end()
+	files.sort()
+	for f in files:
+		var res: UnitData = load(roster_path + f)
+		if res:
+			player_roster.append(res)
+	print("GameState: loaded %d roster units" % player_roster.size())
+
+
+# Deep-copies all player UnitData fields into _map_start_snapshot.
+# Call once immediately after units are spawned on the map.
+func take_map_snapshot() -> void:
+	_map_start_snapshot.clear()
+	for unit_data in player_roster:
+		_map_start_snapshot.append(_snapshot_unit_data(unit_data))
+
+
+# Restores player_roster UnitData from snapshot, then reloads the current scene.
+# Called by GameOverScreen's Retry button.
+func restore_map_snapshot() -> void:
+	for i in player_roster.size():
+		if i < _map_start_snapshot.size():
+			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
+	reset_map_state()
+	get_tree().reload_current_scene()
+
+
+func _snapshot_unit_data(data: UnitData) -> Dictionary:
+	# Snapshot only the fields that can change during a map
+	return {
+		"hp": data.hp,
+		"max_hp": data.max_hp,
+		"str": data.str,
+		"mag": data.mag,
+		"def": data.def,
+		"res": data.res,
+		"skl": data.skl,
+		"spd": data.spd,
+		"luk": data.luk,
+		"exp": data.exp,
+		"level": data.level,
+		"effective_level": data.effective_level,
+		"proficiencies": data.proficiencies.duplicate(true),
+		"inventory": data.inventory.duplicate(true),
+		"conditions": data.conditions.duplicate(true),
+		"skills": data.skills.duplicate(),
+		"is_incapacitated": data.is_incapacitated,
+	}
+
+
+func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
+	data.hp = snap.hp
+	data.max_hp = snap.max_hp
+	data.str = snap.str
+	data.mag = snap.mag
+	data.def = snap.def
+	data.res = snap.res
+	data.skl = snap.skl
+	data.spd = snap.spd
+	data.luk = snap.luk
+	data.exp = snap.exp
+	data.level = snap.level
+	data.effective_level = snap.effective_level
+	data.proficiencies = snap.proficiencies.duplicate(true)
+	data.inventory = snap.inventory.duplicate(true)
+	data.conditions = snap.conditions.duplicate(true)
+	data.skills = snap.skills.duplicate()
+	data.is_incapacitated = snap.is_incapacitated

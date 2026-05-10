@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+unit_name = "Unit_05"
+class_id = "cleric"
+level = 1
+exp = 0
+is_promoted = false
+effective_level = 1
+max_hp = 16
+hp = 16
+str = 1
+mag = 5
+def = 3
+res = 9
+skl = 5
+spd = 6
+luk = 6
+mov = 6
+con = 6
+los = 4
+proficiencies = {"staff": {"rank": "D", "wexp": 0}, "light": {"rank": "E", "wexp": 0}}
+skills = []
+inventory = [{"type": "weapon", "weapon_id": "heal_staff", "uses_remaining": 40, "forged_mods": {}}, {"type": "item", "item_id": "vulnerary", "uses_remaining": 3}]
+conditions = []
+gold = 1000
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = true

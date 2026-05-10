@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nihil"
+display_name = "Nihil"
+description = "Negate all enemy battle skills for this combat exchange."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "nihil"
+effect_params = {}
+is_player_activated = false
