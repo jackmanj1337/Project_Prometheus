@@ -121,7 +121,12 @@ func _set_tile(tile: Vector2i) -> void:
 	current_tile = tile
 	position = _grid.tile_to_world(current_tile)
 	_scroll_camera_if_needed()
-	EventBus.cursor_moved.emit(current_tile)
+	# Emit only when running inside a tree with EventBus loaded;
+	# tests that load this script via --script don't have autoloads available.
+	if is_inside_tree():
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.cursor_moved.emit(current_tile)
 
 
 # Hooks for the action system — actual logic lives in GameMap / TurnManager
