@@ -114,9 +114,132 @@ func is_passable(tile: Vector2i, unit: Node) -> bool:
 	return true
 
 
-# Linear scan of GameState.all_units for the given tile. Returns null if empty.
+# Resolves to GameState.all_units when this node is in the scene tree.
+# Returns [] in --script test mode where the autoload isn't registered.
+# Decoupling like this lets us test GridManager without spinning up GameState.
+func _get_units() -> Array:
+	if is_inside_tree():
+		var gs := get_node_or_null("/root/GameState")
+		if gs:
+			return gs.all_units
+	return []
+
+
+# Linear scan of all units for the given tile. Returns null if empty.
 func get_unit_at(tile: Vector2i) -> Node:
-	for u in GameState.all_units:
+	for u in _get_units():
 		if u.tile_position == tile:
 			return u
 	return null
+
+
+# 4-direction adjacency (no diagonals per GDD_02)
+const _DIRS: Array[Vector2i] = [
+	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
+]
+
+
+# Dijkstra over move costs from unit's tile, capped at unit.data.mov.
+# Tiles with enemy units occupying are NOT included even if reachable
+# (you can't end your move on an enemy). Allies don't block traversal.
+func get_movement_range(unit: Node) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if unit == null:
+		return result
+	var max_cost: int = unit.data.mov
+	var start: Vector2i = unit.tile_position
+
+	# Best known cost-to-reach for each tile
+	var costs: Dictionary = {start: 0}
+	# Open set: priority by lowest accumulated cost
+	var frontier: Array[Vector2i] = [start]
+
+	while not frontier.is_empty():
+		# Pop the lowest-cost tile (small N, simple linear scan is fine for MVP)
+		var best_idx := 0
+		for i in frontier.size():
+			if costs[frontier[i]] < costs[frontier[best_idx]]:
+				best_idx = i
+		var current: Vector2i = frontier[best_idx]
+		frontier.remove_at(best_idx)
+		var current_cost: int = costs[current]
+
+		for d in _DIRS:
+			var next: Vector2i = current + d
+			if get_terrain_at(next) == "wall":
+				continue
+			# Enemy units block traversal
+			var occupant := get_unit_at(next)
+			if occupant != null and occupant != unit and "team" in occupant and occupant.team != unit.team:
+				continue
+			var step_cost := get_move_cost(next, unit)
+			var total: int = current_cost + step_cost
+			if total > max_cost:
+				continue
+			if not costs.has(next) or total < costs[next]:
+				costs[next] = total
+				frontier.append(next)
+
+	# Build the result list: any reachable tile not currently occupied by another unit
+	for tile in costs.keys():
+		var occ := get_unit_at(tile)
+		if occ == null or occ == unit:
+			result.append(tile)
+	return result
+
+
+# BFS-style traceback using move costs. Returns ordered tile list from unit's
+# current tile to target_tile inclusive. Empty if unreachable.
+func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	if unit == null:
+		return path
+	var max_cost: int = unit.data.mov
+	var start: Vector2i = unit.tile_position
+	if start == target_tile:
+		path.append(start)
+		return path
+
+	var costs: Dictionary = {start: 0}
+	var came_from: Dictionary = {}
+	var frontier: Array[Vector2i] = [start]
+	var found := false
+
+	while not frontier.is_empty():
+		var best_idx := 0
+		for i in frontier.size():
+			if costs[frontier[i]] < costs[frontier[best_idx]]:
+				best_idx = i
+		var current: Vector2i = frontier[best_idx]
+		frontier.remove_at(best_idx)
+		if current == target_tile:
+			found = true
+			break
+		var current_cost: int = costs[current]
+
+		for d in _DIRS:
+			var next: Vector2i = current + d
+			if get_terrain_at(next) == "wall":
+				continue
+			var occupant := get_unit_at(next)
+			if occupant != null and occupant != unit and "team" in occupant and occupant.team != unit.team:
+				continue
+			var step_cost := get_move_cost(next, unit)
+			var total: int = current_cost + step_cost
+			if total > max_cost:
+				continue
+			if not costs.has(next) or total < costs[next]:
+				costs[next] = total
+				came_from[next] = current
+				frontier.append(next)
+
+	if not found:
+		return path
+
+	# Reconstruct path from target back to start
+	var node: Vector2i = target_tile
+	path.append(node)
+	while came_from.has(node):
+		node = came_from[node]
+		path.push_front(node)
+	return path
