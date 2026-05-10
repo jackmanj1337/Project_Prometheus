@@ -78,6 +78,58 @@ attackable player unit and attack it.
    c. Do not attack; end turn
 ```
 
+### `CombatResolver.preview_combat()` (read-only)
+
+The AI scoring function calls `CombatResolver.preview_combat(attacker, defender)`
+to evaluate potential attacks without applying any side effects (no HP changes,
+no durability loss, no EXP gain). It returns a summary dictionary.
+
+```gdscript
+# In CombatResolver.gd
+# Returns a read-only combat summary. No state is modified.
+func preview_combat(attacker: Node, defender: Node) -> Dictionary:
+    var weapon_a = attacker.get_equipped_weapon()
+    var weapon_d = defender.get_equipped_weapon()
+    var dist = GridManager.manhattan_distance(attacker.tile_position, defender.tile_position)
+
+    # Resolve attack sequence (same logic as resolve_combat, but no mutation)
+    var attacker_attacks := 1
+    var defender_attacks := 0
+    if weapon_d != null and dist >= weapon_d.range_min and dist <= weapon_d.range_max:
+        defender_attacks = 1
+
+    var spd_a = _battle_speed(attacker, weapon_a)
+    var spd_d = _battle_speed(defender, weapon_d) if weapon_d else 0
+    if spd_a - spd_d >= 4:
+        attacker_attacks = 2
+    elif spd_d - spd_a >= 4:
+        defender_attacks = min(defender_attacks + 1, 2)
+
+    var hit_a  = clamp(_to_hit(attacker, defender, weapon_a), 0, 100)
+    var dmg_a  = max(0, _damage(attacker, defender, weapon_a))
+    var hit_d  = 0
+    var dmg_d  = 0
+    if defender_attacks > 0 and weapon_d != null:
+        hit_d = clamp(_to_hit(defender, attacker, weapon_d), 0, 100)
+        dmg_d = max(0, _damage(defender, attacker, weapon_d))
+
+    return {
+        "attacker_attacks":  attacker_attacks,
+        "attacker_hit":      hit_a,
+        "attacker_dmg":      dmg_a,      # damage per hit if it connects
+        "defender_attacks":  defender_attacks,
+        "defender_hit":      hit_d,
+        "defender_dmg":      dmg_d,
+        "can_counter":       defender_attacks > 0,
+    }
+```
+
+> `preview_combat()` is **pure** — it must never call `unit.take_damage()`,
+> `unit.add_exp()`, or any other mutating method. It is safe to call multiple
+> times per AI turn without side effects.
+
+---
+
 ### Scoring Targets
 
 When multiple targets are attackable, the AI scores each and picks the highest.

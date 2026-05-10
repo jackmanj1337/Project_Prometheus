@@ -31,8 +31,10 @@ Use Godot's `Vector2i` for all tile positions. `(0, 0)` = top-left corner.
 
 Terrain bonuses apply to **defending units only**. Attackers receive no terrain bonus.
 
-Flying units ignore movement cost penalties and can cross most terrain types
-(GM/designer discretion per map).
+Flying units ignore movement cost penalties and can cross most terrain types.
+For MVP, **wall tiles remain impassable to all units including flying**. Per-map
+exceptions (e.g. flying units crossing walls on specific maps) can be designated
+in Phase 2 via a flag in `MapData`.
 
 ---
 
@@ -167,6 +169,7 @@ For each individual attack:
 ### Weapon Durability
 - **Melee and thrown weapons**: lose 1 use only on a **successful hit**
 - **Bows, tomes, staves**: lose 1 use on **any use**, hit or miss
+- Durability is consumed whether the attack is made as the **initiator or as a counterattacker** — the same rules apply in both directions
 - When a weapon's uses reach 0 it is **destroyed** and removed from inventory
 - Units with no usable weapon in their equipped slot cannot attack
   (they can still counterattack if they have another weapon in inventory — Phase 2+)
@@ -197,14 +200,14 @@ Some actions end the turn; some do not.
 | **Attack** | Yes | Must have a valid target in weapon range |
 | **Use Item** | Yes | Consumes one use of a healing/utility item |
 | **Equip Weapon** | No | Switch active weapon; does not consume turn |
-| **Trade** | No* | Swap items with adjacent ally; turn ends unless unit hasn't moved |
+| **Trade** | No* | Swap items with adjacent ally; if unit has already moved, trading ends their turn; if unit has not yet moved, they may still take an action after trading |
 | **Shove** | Yes | Push adjacent non-mounted ally 1 tile |
 | **Wait** | Yes | End turn without acting |
 | **Seize** | Yes | Map objective action on specific tile |
 | **Escape** | Yes | Map objective action on specific tile |
 | **Class Ability** | Yes | If the ability requires an action |
 
-> *Trade: after trading, unit may still act if they haven't moved; otherwise turn ends.
+> *Trade: after trading, the unit may still act if they have not yet moved this turn; otherwise the trade ends their turn.
 
 ### Mounted / Flying Unit Exception
 After any turn-ending action (other than Wait), a **mounted or flying unit** may move
@@ -219,7 +222,10 @@ At 100 EXP, the unit levels up and resets to 0 (carrying over any excess).
 
 ### Combat EXP Table
 
-| Level Difference (Player vs Enemy) | EXP for Kill | EXP for Damage Only |
+Level difference = **player unit's level minus enemy's level**. Positive values mean
+the player unit is higher level; negative values mean the enemy is higher level.
+
+| Level Difference (Player minus Enemy) | EXP for Kill | EXP for Damage Only |
 |---|---|---|
 | 6+ levels lower | 59 | 20 |
 | 5 lower | 57 | 19 |

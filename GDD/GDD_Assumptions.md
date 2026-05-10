@@ -81,7 +81,7 @@ it affects.
 
 | # | Assumption | Rationale | Affects |
 |---|---|---|---|
-| 36 | MVP map is 20×15 tiles (Rout objective, 8 enemies) | Small enough for quick testing, large enough to feel like a real map | GDD_06 |
+| 36 | MVP map is **42×26 tiles** (Rout objective, 8 enemies) | Larger than originally noted; forces camera scrolling in all directions and creates space for the river crossing and terrain variety defined in GDD_06. Updated from earlier 20×15 placeholder. | GDD_06 |
 | 37 | The MVP map has no doors, chests, or fog of war | Keeps scope minimal; these are Phase 2 features | GDD_06 |
 | 38 | Player start tiles are fixed; no pre-battle deployment screen for MVP | Deployment screen is Phase 2; auto-placement keeps MVP simpler | GDD_06 |
 | 39 | The boss (E8) sits on a Throne tile and heals each turn | Creates a natural urgency for the player to push forward | GDD_06 |

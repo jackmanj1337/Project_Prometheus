@@ -164,7 +164,7 @@ HP: 60, STR: 45, MAG: 5, DEF: 30, RES: 20, SKL: 70, SPD: 55, LUK: 40
 | CON | 5 |
 | LoS | 4 |
 
-**Proficiencies:** Choose 2 from (Fire, Thunder, Wind) — both start at E  
+**Proficiencies:** Choose 2 from (Fire, Thunder, Wind). One chosen proficiency starts at **D rank** (primary); the other starts at **E rank**. This follows the general rule in GDD_02: a class's primary weapon type starts at D, additional proficiencies start at E.  
 **Starting Skills:** —  
 **Special Qualities:** —
 
@@ -345,7 +345,7 @@ directly by `GameState` without generating them in code.
 - Unit_01 (Soldier): Lance D
 - Unit_02 (Mercenary): Sword D
 - Unit_03 (Archer): Bow D
-- Unit_04 (Mage): Fire E (one Anima proficiency starts at E; Mage picks two — assign Fire E and Thunder E)
+- Unit_04 (Mage): Fire D (primary), Thunder E (additional)
 - Unit_05 (Cleric): Staff D, Light E
 - Unit_06 (Knight): Lance D
 
@@ -354,12 +354,12 @@ Units are placed at player start tiles in slot order (Slot 1 → tile index 0, e
 
 | Unit | Start Tile |
 |---|---|
-| Unit_01 (Soldier) | (1, 5) |
-| Unit_02 (Mercenary) | (1, 6) |
-| Unit_03 (Archer) | (1, 7) |
-| Unit_04 (Mage) | (1, 8) |
-| Unit_05 (Cleric) | (2, 6) |
-| Unit_06 (Knight) | (2, 7) |
+| Unit_01 (Soldier) | (1, 9) |
+| Unit_02 (Mercenary) | (1, 10) |
+| Unit_03 (Archer) | (1, 11) |
+| Unit_04 (Mage) | (2, 9) |
+| Unit_05 (Cleric) | (2, 10) |
+| Unit_06 (Knight) | (2, 11) |
 
 > These names, classes, and positions are intentionally generic.
 > Replace with named characters when a story and character creation screen
