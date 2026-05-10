@@ -243,3 +243,155 @@ func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]:
 		node = came_from[node]
 		path.push_front(node)
 	return path
+
+
+# Reads the unit's currently equipped weapon's range. Returns (1, 1) when the
+# unit has no usable weapon — get_attackable_enemies_from_tile then returns []
+# but the caller can still query "what tiles would I threaten if armed".
+func _get_weapon_range(unit: Node) -> Vector2i:
+	if unit == null or not unit.has_method("get_equipped_weapon"):
+		return Vector2i(1, 1)
+	var weapon = unit.get_equipped_weapon()
+	if weapon == null:
+		return Vector2i(1, 1)
+	return Vector2i(weapon.range_min, weapon.range_max)
+
+
+# Manhattan-distance ring at distances [range_min, range_max] from a tile.
+func _tiles_in_range(center: Vector2i, range_min: int, range_max: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for dx in range(-range_max, range_max + 1):
+		for dy in range(-range_max, range_max + 1):
+			var dist := absi(dx) + absi(dy)
+			if dist >= range_min and dist <= range_max:
+				out.append(center + Vector2i(dx, dy))
+	return out
+
+
+# All tiles attackable from any tile in from_tiles, excluding from_tiles themselves.
+# Used to draw the red attack overlay around the blue movement overlay.
+func get_attack_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]:
+	var wrange := _get_weapon_range(unit)
+	var seen: Dictionary = {}
+	var from_set: Dictionary = {}
+	for t in from_tiles:
+		from_set[t] = true
+	for src in from_tiles:
+		for tile in _tiles_in_range(src, wrange.x, wrange.y):
+			if not from_set.has(tile) and not seen.has(tile):
+				seen[tile] = true
+	var out: Array[Vector2i] = []
+	for k in seen.keys():
+		out.append(k)
+	return out
+
+
+# Union of from_tiles and all attackable tiles. Used by AI scoring.
+func get_all_attack_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]:
+	var wrange := _get_weapon_range(unit)
+	var seen: Dictionary = {}
+	for src in from_tiles:
+		seen[src] = true
+		for tile in _tiles_in_range(src, wrange.x, wrange.y):
+			seen[tile] = true
+	var out: Array[Vector2i] = []
+	for k in seen.keys():
+		out.append(k)
+	return out
+
+
+# Enemies the unit could hit from `tile`, given its equipped weapon's range.
+func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]:
+	var out: Array[Node] = []
+	if unit == null:
+		return out
+	var wrange := _get_weapon_range(unit)
+	for target in _get_units():
+		if "team" in target and target.team == unit.team:
+			continue
+		if target.data.hp <= 0:
+			continue
+		var dist: int = absi(target.tile_position.x - tile.x) + absi(target.tile_position.y - tile.y)
+		if dist >= wrange.x and dist <= wrange.y:
+			out.append(target)
+	return out
+
+
+func can_attack_from_tile(attacker: Node, at_tile: Vector2i, target: Node) -> bool:
+	if attacker == null or target == null:
+		return false
+	var wrange := _get_weapon_range(attacker)
+	var dist: int = absi(target.tile_position.x - at_tile.x) + absi(target.tile_position.y - at_tile.y)
+	return dist >= wrange.x and dist <= wrange.y
+
+
+# Allies within staff range whose HP is below max. Used for staff target selection.
+# Reads the unit's equipped weapon range — if it's a staff, that's the heal range.
+func get_healable_allies(unit: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	if unit == null:
+		return out
+	var wrange := _get_weapon_range(unit)
+	for ally in _get_units():
+		if not ("team" in ally) or ally.team != unit.team:
+			continue
+		if ally == unit:
+			continue
+		if ally.data.hp >= ally.data.max_hp:
+			continue
+		var dist: int = absi(ally.tile_position.x - unit.tile_position.x) + absi(ally.tile_position.y - unit.tile_position.y)
+		if dist >= wrange.x and dist <= wrange.y:
+			out.append(ally)
+	return out
+
+
+# Overlay tile source IDs (assigned to overlay TileMapLayer in editor):
+#   0: Blue (movement), 1: Red (attack), 2: Green (heal), 3: Dark red (danger)
+const OVERLAY_BLUE := 0
+const OVERLAY_RED := 1
+const OVERLAY_GREEN := 2
+const OVERLAY_DARK_RED := 3
+
+
+func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:
+	if _overlay == null:
+		return
+	for t in tiles:
+		_overlay.set_cell(t, source_id, Vector2i.ZERO)
+
+
+func show_movement_overlay(tiles: Array[Vector2i]) -> void:
+	_paint_overlay(tiles, OVERLAY_BLUE)
+
+
+func show_attack_overlay(tiles: Array[Vector2i]) -> void:
+	_paint_overlay(tiles, OVERLAY_RED)
+
+
+func show_heal_overlay(tiles: Array[Vector2i]) -> void:
+	_paint_overlay(tiles, OVERLAY_GREEN)
+
+
+# Paints union of every enemy unit's attack range so the player can see threats.
+# Triggered by Q key / middle mouse via MapCursor.
+func show_enemy_danger_zone() -> void:
+	if _overlay == null:
+		return
+	var seen: Dictionary = {}
+	for u in _get_units():
+		if not ("team" in u) or u.team != "enemy":
+			continue
+		if u.data.hp <= 0:
+			continue
+		var wrange := _get_weapon_range(u)
+		for t in _tiles_in_range(u.tile_position, wrange.x, wrange.y):
+			seen[t] = true
+	for tile in seen.keys():
+		_overlay.set_cell(tile, OVERLAY_DARK_RED, Vector2i.ZERO)
+
+
+# Clears every painted overlay tile. Called between selection states and at phase change.
+func clear_overlays() -> void:
+	if _overlay == null:
+		return
+	_overlay.clear()
