@@ -1,0 +1,99 @@
+extends SceneTree
+# Run with: godot --headless --path /workspace --script res://scripts/tests/test_unit_stats.gd
+# Verifies Unit.gd combat stat formulas against GDD_02 math.
+
+func _init() -> void:
+	print("=== Unit Combat Stats Test ===")
+	var passed := 0
+	var failed := 0
+
+	# Build a Soldier with an Iron Lance
+	var soldier_data: UnitData = load("res://data/roster/default/unit_01_soldier.tres").duplicate(true)
+	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
+
+	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
+	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
+	# Battle Speed = SPD - max(0, Wt - STR) = 6 - max(0, 8-7) = 6 - 1 = 5
+	# Accuracy     = SKL*2 + LUK + weapon.Hit = 12 + 6 + 80 = 98
+	# Dodge        = battle_speed*2 + LUK = 10 + 6 = 16
+	# Damage       = STR + Mt = 7 + 7 = 14
+	# Crit         = floor(SKL/2) + weapon.Crit = 3 + 0 = 3
+	# Crit Avoid   = LUK = 6
+
+	# Construct a Unit node without going through scene instantiation
+	var unit := Unit.new()
+	unit.data = soldier_data
+	# Manually populate equipped weapon by injecting into inventory
+	soldier_data.inventory = [
+		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 45, "forged_mods": {}}
+	]
+	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+
+	var checks := [
+		["battle_speed", unit.battle_speed(iron_lance), 5],
+		["accuracy",     unit.accuracy(iron_lance),     98],
+		["dodge",        unit.dodge(),                   16],
+		["damage",       unit.damage(iron_lance),        14],
+		["crit_rate",    unit.crit_rate(iron_lance),     3],
+		["crit_avoid",   unit.crit_avoid(),              6],
+	]
+	for c in checks:
+		var label: String = c[0]
+		var got: int = c[1]
+		var want: int = c[2]
+		if got == want:
+			print("OK  %s = %d" % [label, got])
+			passed += 1
+		else:
+			print("FAIL %s: got %d, want %d" % [label, got, want])
+			failed += 1
+
+	# --- S-rank bonus ---
+	# At S-rank: +10 Hit, +5 Crit, +1 Damage
+	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 0}}
+	var srank_checks := [
+		["S-rank accuracy",  unit.accuracy(iron_lance),  108],  # 98 + 10
+		["S-rank damage",    unit.damage(iron_lance),    15],   # 14 + 1
+		["S-rank crit_rate", unit.crit_rate(iron_lance), 8],    # 3 + 5
+	]
+	for c in srank_checks:
+		var label: String = c[0]
+		var got: int = c[1]
+		var want: int = c[2]
+		if got == want:
+			print("OK  %s = %d" % [label, got])
+			passed += 1
+		else:
+			print("FAIL %s: got %d, want %d" % [label, got, want])
+			failed += 1
+
+	# --- Magic weapon uses MAG, not STR ---
+	# Build a Mage with Fire tome: STR 1, MAG 7; Fire: Mt 4 (uses_mag=true)
+	# Damage = MAG + Mt = 7 + 4 = 11
+	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
+	var fire: WeaponData = load("res://data/weapons/fire.tres")
+	var mage := Unit.new()
+	mage.data = mage_data
+	mage_data.proficiencies = {"fire": {"rank": "D", "wexp": 0}}
+	if mage.damage(fire) == 11:
+		print("OK  mage damage with Fire = 11 (uses MAG, not STR)")
+		passed += 1
+	else:
+		print("FAIL mage damage: got %d, want 11" % mage.damage(fire))
+		failed += 1
+
+	# --- No weapon = 0 damage ---
+	mage_data.inventory = []
+	if mage.damage() == 0:
+		print("OK  no weapon = 0 damage")
+		passed += 1
+	else:
+		print("FAIL unarmed damage")
+		failed += 1
+
+	# Cleanup
+	unit.queue_free()
+	mage.queue_free()
+
+	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
+	quit(0 if failed == 0 else 1)

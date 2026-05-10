@@ -159,3 +159,76 @@ func _get_grid_manager() -> GridManager:
 			return g
 		n = n.get_parent()
 	return null
+
+
+# ---- Combat Stats ----
+# All formulas from GDD_02. Each accepts an optional weapon override so callers
+# can preview "what if I equip X instead." Default = currently equipped weapon.
+
+func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
+	return weapon if weapon != null else get_equipped_weapon()
+
+
+# Returns true when the unit has reached S-rank in this weapon type.
+# S-rank bonus: +10 Hit, +5 Crit, +1 Damage (GDD_04).
+func _has_s_rank(weapon: WeaponData) -> bool:
+	if weapon == null or data == null:
+		return false
+	if not data.proficiencies.has(weapon.weapon_type):
+		return false
+	return data.proficiencies[weapon.weapon_type].get("rank", "E") == "S"
+
+
+# Battle Speed = SPD - max(0, Wt - STR)
+func battle_speed(weapon: WeaponData = null) -> int:
+	var w := _weapon_or_equipped(weapon)
+	if w == null:
+		return data.spd
+	var penalty: int = max(0, w.wt - data.str)
+	return data.spd - penalty
+
+
+# Accuracy = SKL*2 + LUK + weapon.Hit (+10 at S-rank)
+func accuracy(weapon: WeaponData = null) -> int:
+	var w := _weapon_or_equipped(weapon)
+	var acc: int = data.skl * 2 + data.luk
+	if w != null:
+		acc += w.hit
+		if _has_s_rank(w):
+			acc += 10
+	return acc
+
+
+# Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
+func dodge() -> int:
+	return battle_speed() * 2 + data.luk
+
+
+# Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
+# OFFENSIVE side of the equation only (caller subtracts defender's def/res).
+# Effective-against weapon tags are handled in CombatResolver, not here.
+func damage(weapon: WeaponData = null) -> int:
+	var w := _weapon_or_equipped(weapon)
+	if w == null:
+		return 0
+	var base_stat: int = data.mag if w.uses_mag else data.str
+	var dmg: int = base_stat + w.mt
+	if _has_s_rank(w):
+		dmg += 1
+	return dmg
+
+
+# Critical rate = floor(SKL/2) + weapon.Crit (+5 at S-rank)
+func crit_rate(weapon: WeaponData = null) -> int:
+	var w := _weapon_or_equipped(weapon)
+	var c: int = data.skl / 2  # GDScript int division is floor
+	if w != null:
+		c += w.crit
+		if _has_s_rank(w):
+			c += 5
+	return c
+
+
+# Crit Avoid = LUK
+func crit_avoid() -> int:
+	return data.luk
