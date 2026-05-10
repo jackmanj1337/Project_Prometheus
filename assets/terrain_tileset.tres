@@ -1,0 +1,63 @@
+[gd_resource type="TileSet" load_steps=15 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/plain.png" id="1_vm65q"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/forest.png" id="2_3r37p"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/mountain.png" id="3_wtu2p"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/fort.png" id="4_2lkvl"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/sea.png" id="5_vmcla"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/desert.png" id="6_gso0c"]
+[ext_resource type="Texture2D" path="res://assets/sprites/terrain/wall.png" id="7_dwsk5"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_bbgvo"]
+texture = ExtResource("1_vm65q")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "plain"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q3nxl"]
+texture = ExtResource("2_3r37p")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "forest"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_y13ay"]
+texture = ExtResource("3_wtu2p")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "mountain"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wwiqo"]
+texture = ExtResource("4_2lkvl")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "fort"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_aauud"]
+texture = ExtResource("5_vmcla")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "sea"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_jfljk"]
+texture = ExtResource("6_gso0c")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "desert"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3gvde"]
+texture = ExtResource("7_dwsk5")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "wall"
+
+[resource]
+tile_size = Vector2i(64, 64)
+custom_data_layer_0/name = "terrain_type"
+custom_data_layer_0/type = 4
+sources/0 = SubResource("TileSetAtlasSource_bbgvo")
+sources/1 = SubResource("TileSetAtlasSource_q3nxl")
+sources/2 = SubResource("TileSetAtlasSource_y13ay")
+sources/3 = SubResource("TileSetAtlasSource_wwiqo")
+sources/4 = SubResource("TileSetAtlasSource_aauud")
+sources/5 = SubResource("TileSetAtlasSource_jfljk")
+sources/6 = SubResource("TileSetAtlasSource_3gvde")
