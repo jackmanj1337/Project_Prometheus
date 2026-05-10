@@ -91,6 +91,61 @@ func _init() -> void:
 		print("FAIL unarmed damage")
 		failed += 1
 
+	# --- HP changes ---
+	# Restore soldier's setup and run HP tests on it
+	soldier_data.hp = soldier_data.max_hp  # full HP
+	unit.take_damage(5)
+	if soldier_data.hp == soldier_data.max_hp - 5:
+		print("OK  take_damage(5) reduces HP correctly")
+		passed += 1
+	else:
+		print("FAIL take_damage: hp=%d" % soldier_data.hp)
+		failed += 1
+
+	unit.take_damage(9999)
+	if soldier_data.hp == 0:
+		print("OK  take_damage clamps to 0")
+		passed += 1
+	else:
+		print("FAIL clamp: hp=%d" % soldier_data.hp)
+		failed += 1
+
+	unit.heal(10)
+	if soldier_data.hp == 10:
+		print("OK  heal(10) increases HP")
+		passed += 1
+	else:
+		print("FAIL heal: hp=%d" % soldier_data.hp)
+		failed += 1
+
+	unit.heal(9999)
+	if soldier_data.hp == soldier_data.max_hp:
+		print("OK  heal clamps to max_hp")
+		passed += 1
+	else:
+		print("FAIL heal clamp: hp=%d (max=%d)" % [soldier_data.hp, soldier_data.max_hp])
+		failed += 1
+
+	# --- Weapon durability ---
+	soldier_data.inventory = [
+		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 2, "forged_mods": {}}
+	]
+	unit.use_weapon_durability()
+	if soldier_data.inventory[0]["uses_remaining"] == 1:
+		print("OK  use_weapon_durability decrements")
+		passed += 1
+	else:
+		print("FAIL durability: %s" % soldier_data.inventory)
+		failed += 1
+
+	unit.use_weapon_durability()
+	if soldier_data.inventory.size() == 0:
+		print("OK  weapon removed at 0 uses")
+		passed += 1
+	else:
+		print("FAIL weapon not removed: %s" % soldier_data.inventory)
+		failed += 1
+
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()

@@ -232,3 +232,82 @@ func crit_rate(weapon: WeaponData = null) -> int:
 # Crit Avoid = LUK
 func crit_avoid() -> int:
 	return data.luk
+
+
+# ---- HP / Death ----
+
+# Safe EventBus accessor; returns null in tests where the autoload isn't live
+func _bus() -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/EventBus")
+	return null
+
+
+# Decrements HP (clamped to 0), updates the bar, and emits unit_damaged.
+# Does NOT trigger handle_death; CombatResolver decides when death checks happen.
+func take_damage(amount: int) -> void:
+	if data == null or amount <= 0:
+		return
+	data.hp = max(0, data.hp - amount)
+	if _hp_bar:
+		_hp_bar.value = data.hp
+	var bus := _bus()
+	if bus:
+		bus.unit_damaged.emit(self, amount)
+
+
+# Increments HP (clamped to max_hp), updates the bar, and emits unit_healed.
+func heal(amount: int) -> void:
+	if data == null or amount <= 0:
+		return
+	data.hp = min(data.max_hp, data.hp + amount)
+	if _hp_bar:
+		_hp_bar.value = data.hp
+	var bus := _bus()
+	if bus:
+		bus.unit_healed.emit(self, amount)
+
+
+# Called when HP reaches 0. If permadeath is on (per GameState), flags the
+# UnitData as incapacitated so the unit cannot be redeployed; otherwise the
+# data is preserved for the next map. Either way the scene node is freed.
+func handle_death() -> void:
+	if data == null:
+		return
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs and gs.permadeath_enabled:
+		data.is_incapacitated = true
+	var bus := _bus()
+	if bus:
+		bus.unit_died.emit(self)
+	queue_free()
+
+
+# ---- Inventory / Durability ----
+
+# Decrements uses on the currently equipped weapon. Removes the entry when uses
+# reach 0. Caller must follow GDD_02 durability rules: melee/thrown only on hit;
+# bows/tomes/staves always (this method doesn't enforce — it just decrements).
+func use_weapon_durability() -> void:
+	if data == null:
+		return
+	for i in data.inventory.size():
+		var entry: Dictionary = data.inventory[i]
+		if entry.get("type", "") != "weapon":
+			continue
+		if entry.get("uses_remaining", 0) <= 0:
+			continue
+		# First usable weapon == currently equipped (see get_equipped_weapon_entry)
+		entry["uses_remaining"] -= 1
+		if entry["uses_remaining"] <= 0:
+			data.inventory.remove_at(i)
+		return
+
+
+# Whether the unit's proficiency in this weapon's type allows equipping it.
+# Same logic as the rank check inside get_equipped_weapon_entry but exposed
+# so callers (e.g. trade UI) can preview equip eligibility.
+func can_equip(weapon_data: WeaponData) -> bool:
+	if data == null or weapon_data == null:
+		return false
+	return _can_equip_rank(weapon_data)
