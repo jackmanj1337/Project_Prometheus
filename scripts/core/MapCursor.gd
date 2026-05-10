@@ -16,11 +16,16 @@ const DEFAULT_ZOOM_INDEX: int = 1
 var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
 var _camera: Camera2D = null
+var _turn: TurnManager = null
 var _zoom_index: int = DEFAULT_ZOOM_INDEX
 
 # State machine — see GDD_01 MapCursor section
 # "free" | "unit_selected" | "unit_moved" | "targeting" | "locked"
 var _state: String = "free"
+
+# Currently selected unit and the tiles it could move to (set on selection)
+var _selected_unit: Unit = null
+var _movement_tiles: Array[Vector2i] = []
 
 # Key-repeat timer state
 var _held_dir: Vector2i = Vector2i.ZERO
@@ -28,9 +33,10 @@ var _held_timer: float = 0.0
 var _held_initial: bool = true
 
 
-func setup(grid: GridManager, camera: Camera2D) -> void:
+func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void:
 	_grid = grid
 	_camera = camera
+	_turn = turn
 	position = _grid.tile_to_world(current_tile)
 
 
@@ -129,15 +135,88 @@ func _set_tile(tile: Vector2i) -> void:
 			bus.cursor_moved.emit(current_tile)
 
 
-# Hooks for the action system — actual logic lives in GameMap / TurnManager
+# Selection state machine.
+# free  →(confirm on player unit)→ unit_selected (movement overlay shown)
+# unit_selected →(confirm on movement tile)→ unit_moved (committed; for MVP
+#                                                        immediately DONE)
+# unit_selected →(cancel)→ free (deselect)
+# unit_moved   →(cancel)→ unit_selected (undo move; not yet wired — needs M4)
 func _on_confirm() -> void:
-	# Placeholder; populated when Milestone 3+ adds unit selection
-	pass
+	match _state:
+		"free":
+			_try_select_unit_at_cursor()
+		"unit_selected":
+			_try_move_selected_to_cursor()
 
 
 func _on_cancel() -> void:
-	# Placeholder; populated when Milestone 3+ adds undo / deselect
-	pass
+	match _state:
+		"unit_selected":
+			_deselect()
+
+
+func _try_select_unit_at_cursor() -> void:
+	if _grid == null:
+		return
+	var unit := _grid.get_unit_at(current_tile)
+	if unit == null:
+		return
+	if not ("team" in unit) or unit.team != "player":
+		return
+	# Can't select if the unit has already acted this turn
+	if _turn != null and not _turn.can_unit_act(unit):
+		return
+	_selected_unit = unit
+	_movement_tiles = _grid.get_movement_range(unit)
+	_grid.show_movement_overlay(_movement_tiles)
+	# Attack overlay on tiles adjacent to the movement range
+	_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, _movement_tiles))
+	_state = "unit_selected"
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.unit_selected.emit(unit)
+
+
+func _try_move_selected_to_cursor() -> void:
+	if _selected_unit == null:
+		return
+	# Only allow moving to a tile in the unit's movement range
+	if not (current_tile in _movement_tiles):
+		return
+	# Don't allow moving onto another unit's tile
+	if _grid.get_unit_at(current_tile) != null and _grid.get_unit_at(current_tile) != _selected_unit:
+		return
+	# Record original tile for potential undo
+	if _turn != null:
+		_turn.record_move_start(_selected_unit)
+	var path := _grid.get_movement_path(_selected_unit, current_tile)
+	_grid.clear_overlays()
+	_state = "locked"  # block input during the move animation
+	await _selected_unit.move_along_path(path)
+	_state = "unit_moved"
+	# MVP: no ActionMenu yet, immediately commit to DONE
+	if _turn != null:
+		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
+	_finish_action()
+
+
+func _deselect() -> void:
+	if _grid != null:
+		_grid.clear_overlays()
+	_selected_unit = null
+	_movement_tiles.clear()
+	_state = "free"
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.unit_deselected.emit()
+
+
+func _finish_action() -> void:
+	if _grid != null:
+		_grid.clear_overlays()
+	_selected_unit = null
+	_movement_tiles.clear()
+	_state = "free"
 
 
 func lock() -> void:

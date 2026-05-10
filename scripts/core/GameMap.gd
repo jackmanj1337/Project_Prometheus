@@ -70,7 +70,7 @@ func _ready() -> void:
 	_validate_map()
 	_paint_terrain()
 	_grid.setup(_terrain_layer, _overlay_layer, MAP_WIDTH, MAP_HEIGHT)
-	_cursor.setup(_grid, _camera)
+	_cursor.setup(_grid, _camera, _turn_manager)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
 	_camera.limit_right = MAP_WIDTH * GridManager.TILE_SIZE
