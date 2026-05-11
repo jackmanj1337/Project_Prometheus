@@ -22,6 +22,8 @@ EventBus="*res://scripts/autoloads/EventBus.gd"
 SettingsManager="*res://scripts/autoloads/SettingsManager.gd"
 GameState="*res://scripts/autoloads/GameState.gd"
 DataManager="*res://scripts/autoloads/DataManager.gd"
+SkillHandler="*res://scripts/skills/SkillHandler.gd"
+CombatResolver="*res://scripts/core/CombatResolver.gd"
 
 [display]
 
