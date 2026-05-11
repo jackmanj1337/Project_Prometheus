@@ -324,8 +324,7 @@ func _begin_staff_targeting() -> void:
 	if _heal_tiles.is_empty():
 		_show_action_menu()
 		return
-	# Reuse the movement (green) overlay colour for heal targets
-	_grid.show_movement_overlay(_heal_tiles)
+	_grid.show_heal_overlay(_heal_tiles)
 	current_tile = _heal_tiles[0]
 	position = _grid.tile_to_world(current_tile)
 	_state = "staff_targeting"

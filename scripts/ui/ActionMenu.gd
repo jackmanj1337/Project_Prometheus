@@ -33,13 +33,13 @@ func show_for(unit: Node, grid: Node) -> void:
 
 	if grid:
 		# Enemies reachable from unit's current tile
-		var attackable := grid.get_attackable_enemies_from_tile(unit, unit.tile_position)
+		var attackable: Array = grid.get_attackable_enemies_from_tile(unit, unit.tile_position)
 		has_enemies = has_weapon and attackable.size() > 0
 
 		# Staff check: equipped weapon is a staff with the heal tag
 		var staff_weapon = unit.get_equipped_weapon()
 		if staff_weapon and staff_weapon.weapon_type == "staff":
-			var allies := grid.get_healable_allies(unit)
+			var allies: Array = grid.get_healable_allies(unit)
 			has_heal_targets = allies.size() > 0
 
 	# Items: any inventory entry of type "item" with uses remaining
