@@ -1,10 +1,11 @@
 extends SceneTree
 # Run once with:
 #   godot --headless --path /workspace --script res://scripts/tools/generate_placeholder_assets.gd
-# Generates 64x64 solid-color PNGs for terrain and overlay tiles, plus unit/cursor sprites.
+# Generates solid-color PNGs for terrain and overlay tiles, plus unit/cursor sprites.
 # Re-running overwrites — safe to invoke after edits.
 
-const TILE_SIZE: int = 64
+# Preload instead of autoload access — _init() runs before autoloads are live.
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
 # Terrain palette (subjective; readable on a default editor background)
 const TERRAIN_COLORS := {
@@ -46,7 +47,7 @@ func _init() -> void:
 
 
 func _save_solid_png(path: String, color: Color) -> void:
-	var img := Image.create(TILE_SIZE, TILE_SIZE, false, Image.FORMAT_RGBA8)
+	var img := Image.create(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE, false, Image.FORMAT_RGBA8)
 	img.fill(color)
 	var abs_path := ProjectSettings.globalize_path(path)
 	img.save_png(abs_path)
@@ -54,12 +55,12 @@ func _save_solid_png(path: String, color: Color) -> void:
 
 # Hollow 4-pixel-thick white outline; transparent center
 func _save_cursor_png(path: String) -> void:
-	var img := Image.create(TILE_SIZE, TILE_SIZE, false, Image.FORMAT_RGBA8)
+	var img := Image.create(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	var border: int = 3
-	for x in TILE_SIZE:
-		for y in TILE_SIZE:
-			if x < border or x >= TILE_SIZE - border or y < border or y >= TILE_SIZE - border:
+	for x in GameConstants.TILE_SIZE:
+		for y in GameConstants.TILE_SIZE:
+			if x < border or x >= GameConstants.TILE_SIZE - border or y < border or y >= GameConstants.TILE_SIZE - border:
 				img.set_pixel(x, y, Color(1, 1, 1, 1))
 	var abs_path := ProjectSettings.globalize_path(path)
 	img.save_png(abs_path)

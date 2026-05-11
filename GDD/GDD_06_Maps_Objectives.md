@@ -17,7 +17,7 @@ Maps are self-contained — adding a new map never requires code changes.
 ### TileSet Configuration
 Create a single shared `TileSet` resource used by all maps.
 
-- **Tile size:** 64 × 64 pixels (authoritative — `GridManager.TILE_SIZE = 64`)
+- **Tile size:** 64 × 64 pixels (authoritative — `GameConstants.TILE_SIZE = 64`, defined in `scripts/shared/GameConstants.gd`)
 - **Tile source:** [PLACEHOLDER] spritesheet with all terrain tiles
 - Each tile in the TileSet must have a **Custom Data Layer** named `terrain_type` (type: String)
 - Valid `terrain_type` values: `"plain"`, `"forest"`, `"mountain"`, `"fort"`, `"sea"`, `"desert"`, `"wall"`
@@ -58,8 +58,8 @@ The `Camera2D` node is a child of `GameMap`. It follows the `MapCursor` position
 # Camera clamp settings — set after map loads based on map dimensions
 camera.limit_left   = 0
 camera.limit_top    = 0
-camera.limit_right  = map_width  * GridManager.TILE_SIZE
-camera.limit_bottom = map_height * GridManager.TILE_SIZE
+camera.limit_right  = map_width  * GameConstants.TILE_SIZE
+camera.limit_bottom = map_height * GameConstants.TILE_SIZE
 ```
 
 Camera scrolling behavior:

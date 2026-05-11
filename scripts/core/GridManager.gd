@@ -3,10 +3,6 @@ class_name GridManager extends Node
 # range, pathfinding, and attack range. Reads terrain from an assigned TileMapLayer
 # so that terrain is data-driven (painted in the editor, not hardcoded).
 
-# GDD discrepancy note: GDD_01 specifies TILE_SIZE = 32, GDD_06 specifies 64x64
-# tiles. Using 64 to match GDD_06's tileset spec and the placeholder sprite sizes.
-const TILE_SIZE: int = 64
-
 var map_width: int = 0
 var map_height: int = 0
 
@@ -74,12 +70,12 @@ func set_terrain_fallback(tile: Vector2i, terrain: String) -> void:
 
 
 func world_to_tile(world_pos: Vector2) -> Vector2i:
-	return Vector2i(int(world_pos.x) / TILE_SIZE, int(world_pos.y) / TILE_SIZE)
+	return Vector2i(int(world_pos.x) / GameConstants.TILE_SIZE, int(world_pos.y) / GameConstants.TILE_SIZE)
 
 
 # Returns the top-left corner of the tile in world space.
 func tile_to_world(tile: Vector2i) -> Vector2:
-	return Vector2(tile.x * TILE_SIZE, tile.y * TILE_SIZE)
+	return Vector2(tile.x * GameConstants.TILE_SIZE, tile.y * GameConstants.TILE_SIZE)
 
 
 # Move cost factors in unit special qualities per GDD_02 desert rule.

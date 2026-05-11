@@ -73,8 +73,8 @@ func _ready() -> void:
 	_cursor.setup(_grid, _camera, _turn_manager)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
-	_camera.limit_right = MAP_WIDTH * GridManager.TILE_SIZE
-	_camera.limit_bottom = MAP_HEIGHT * GridManager.TILE_SIZE
+	_camera.limit_right = MAP_WIDTH * GameConstants.TILE_SIZE
+	_camera.limit_bottom = MAP_HEIGHT * GameConstants.TILE_SIZE
 	_camera.position_smoothing_enabled = false
 	# Center on the player start area (Unit_01 at tile 1,9)
 	_camera.position = _grid.tile_to_world(Vector2i(1, 9))

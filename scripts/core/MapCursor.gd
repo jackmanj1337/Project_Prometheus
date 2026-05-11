@@ -234,8 +234,8 @@ func _scroll_camera_if_needed() -> void:
 		return
 	var viewport := get_viewport().get_visible_rect().size
 	# How many tiles fit on screen at current zoom
-	var tiles_w: int = int(viewport.x / GridManager.TILE_SIZE)
-	var tiles_h: int = int(viewport.y / GridManager.TILE_SIZE)
+	var tiles_w: int = int(viewport.x / GameConstants.TILE_SIZE)
+	var tiles_h: int = int(viewport.y / GameConstants.TILE_SIZE)
 	var cam_tile := _grid.world_to_tile(_camera.position)
 
 	# If cursor is too close to the visible edge, recenter the camera by 1 tile

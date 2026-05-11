@@ -445,7 +445,7 @@ signal map_defeat()
 ```gdscript
 extends Node
 
-const TILE_SIZE: int = 64   # matches GDD_06 tile size and 64x64 placeholder sprites
+# TILE_SIZE lives in GameConstants.gd (autoload) — edit there to change project-wide
 var map_width: int = 0
 var map_height: int = 0
 var _tilemap: TileMapLayer
@@ -641,7 +641,8 @@ Camera clamps to map bounds so empty space is never shown.
 
 > **Note:** earlier drafts of this document specified 32×32 tiles. The project
 > standardized on 64×64 to match the GDD_06 tileset spec and the placeholder
-> sprite sizes in the checklist. `GridManager.TILE_SIZE = 64` is authoritative.
+> sprite sizes in the checklist. `GameConstants.TILE_SIZE = 64` is authoritative
+> (defined in `scripts/shared/GameConstants.gd`).
 
 ---
 

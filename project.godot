@@ -17,6 +17,7 @@ buses/default_bus_layout="res://default_bus_layout.tres"
 
 [autoload]
 
+GameConstants="*res://scripts/shared/GameConstants.gd"
 EventBus="*res://scripts/autoloads/EventBus.gd"
 SettingsManager="*res://scripts/autoloads/SettingsManager.gd"
 GameState="*res://scripts/autoloads/GameState.gd"

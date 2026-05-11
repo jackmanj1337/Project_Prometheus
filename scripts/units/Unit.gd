@@ -48,8 +48,8 @@ func _apply_initial_state() -> void:
 	_hp_bar.max_value = data.max_hp
 	_hp_bar.value = data.hp
 	# Snap world position to tile (TILE_SIZE px per tile)
-	position = Vector2(tile_position.x * GridManager.TILE_SIZE,
-		tile_position.y * GridManager.TILE_SIZE)
+	position = Vector2(tile_position.x * GameConstants.TILE_SIZE,
+		tile_position.y * GameConstants.TILE_SIZE)
 
 
 # True if the unit's class has the given quality (per ClassData.special_qualities)
@@ -333,8 +333,8 @@ func move_along_path(path: Array[Vector2i]) -> void:
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
 	for i in range(1, path.size()):
-		var dest_world := Vector2(path[i].x * GridManager.TILE_SIZE,
-			path[i].y * GridManager.TILE_SIZE)
+		var dest_world := Vector2(path[i].x * GameConstants.TILE_SIZE,
+			path[i].y * GameConstants.TILE_SIZE)
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
 	tile_position = path[-1]
@@ -358,8 +358,8 @@ func _emit_moved(from_tile: Vector2i, to_tile: Vector2i) -> void:
 # Instant position change. Used by AI when animations are off and by undo_move.
 func snap_to_tile(tile: Vector2i) -> void:
 	tile_position = tile
-	position = Vector2(tile.x * GridManager.TILE_SIZE,
-		tile.y * GridManager.TILE_SIZE)
+	position = Vector2(tile.x * GameConstants.TILE_SIZE,
+		tile.y * GameConstants.TILE_SIZE)
 
 
 # Visual state for "this unit has acted this turn" (DONE in TurnManager).
