@@ -12,11 +12,13 @@ var _original_tiles: Dictionary = {}
 var _combat_lock: bool = false
 
 var _map_data: MapData = null
+var _grid: GridManager = null
 
 
 # Called by GameMap after units have spawned.
-func start_map(map_data: MapData) -> void:
+func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	_map_data = map_data
+	_grid = grid
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.turn_number = 1
@@ -30,6 +32,21 @@ func start_map(map_data: MapData) -> void:
 	start_player_phase()
 
 
+# Heals units standing on fort/throne tiles by 10% max HP (GDD_02 terrain table).
+# Called at the start of each phase (player and enemy) so both sides benefit.
+func _apply_fort_healing(units: Array[Node]) -> void:
+	if _grid == null:
+		return
+	for u in units:
+		if not is_instance_valid(u) or u.data == null:
+			continue
+		if u.data.hp <= 0 or u.data.hp >= u.data.max_hp:
+			continue
+		if _grid.get_terrain_at(u.tile_position) == "fort":
+			var heal_amount: int = ceili(u.data.max_hp * 0.10)
+			u.heal(heal_amount)
+
+
 # Resets all player units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
@@ -37,6 +54,7 @@ func start_player_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.PLAYER)
+		_apply_fort_healing(gs.get_living_player_units())
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u) and u.team == "player":
 			_unit_states[u] = UnitState.READY
@@ -59,6 +77,7 @@ func start_enemy_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.ENEMY)
+		_apply_fort_healing(gs.get_living_enemy_units())
 	# TODO M6: EnemyAI.run_enemy_phase() — for now immediately end the phase
 	call_deferred("start_player_phase")
 

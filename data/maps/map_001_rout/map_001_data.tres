@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "map_001"
 display_name = "First Battle"
-tilemap_scene_path = "res://data/maps/map_001_rout/map_001.tscn"
+tilemap_scene_path = ""
 objective_type = "rout"
 objective_params = {}
 turn_limit = 0
@@ -24,3 +24,4 @@ enemy_placements = [
 required_survivor_names = []
 reward_gold = 500
 reward_items = []
+grid = ["WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", "W...............SSS..MM..................W", "W..FF...........SSS.MMM....FF............W", "W..FF...........SSS.MMM....FF............W", "W..........FF...SSS..MM...............WWWW", "W..........FF...SSS...................WWWW", "W......T.........SS.........FF...........W", "W................SS.........FF.....FF....W", "W................SS................FF....W", "W............FF..SS....FF.............T..W", "W............FF...S....FF................W", "W.................S......................W", "W.................S....................T.W", "W.................SS.....................W", "W..................S.....................W", "W.....FF...........S.....................W", "W.....FF...........SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W...................DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........................................W", "W........................................W", "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"]

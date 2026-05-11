@@ -25,5 +25,5 @@ promotes_to = ["mage_knight", "sage"]
 promotion_stat_increases = {}
 promotion_skill = ""
 occult_skill = ""
-growth_rates = {"hp": 50, "str": 5, "mag": 65, "def": 15, "res": 60, "skl": 60, "spd": 50, "luk": 40}
+growth_rates = {"hp": 50, "strength": 5, "mag": 65, "def": 15, "res": 60, "skl": 60, "spd": 50, "luk": 40}
 sprite_id = ""

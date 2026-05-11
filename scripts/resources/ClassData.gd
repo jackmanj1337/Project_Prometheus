@@ -29,7 +29,7 @@ class_name ClassData extends Resource
 @export var promotion_skill: String = ""
 @export var occult_skill: String = ""
 
-# Keys: "hp","str","mag","def","res","skl","spd","luk" — values 0–100
+# Keys: "hp","strength","mag","def","res","skl","spd","luk" — values 0–100
 @export var growth_rates: Dictionary = {}
 
 # [PLACEHOLDER] links to sprite sheet row

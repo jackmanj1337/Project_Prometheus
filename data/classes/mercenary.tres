@@ -25,5 +25,5 @@ promotes_to = ["hero", "sentinel"]
 promotion_stat_increases = {}
 promotion_skill = ""
 occult_skill = ""
-growth_rates = {"hp": 60, "str": 50, "mag": 5, "def": 35, "res": 20, "skl": 65, "spd": 60, "luk": 35}
+growth_rates = {"hp": 60, "strength": 50, "mag": 5, "def": 35, "res": 20, "skl": 65, "spd": 60, "luk": 35}
 sprite_id = ""

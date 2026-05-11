@@ -75,20 +75,30 @@ func _init() -> void:
 		print("FAIL move: tile=%s" % (unit_01.tile_position if unit_01 else "null"))
 		failed += 1
 
-	# After moving, unit should be DONE
-	if turn.get_unit_state(unit_01) == TurnManager.UnitState.DONE:
-		print("OK  Unit_01 state = DONE after move")
+	# BUG-06 fix: cursor rests in unit_moved waiting for confirm (Wait) or cancel (undo).
+	# Unit stays READY until the player commits with Wait.
+	if cursor._state == "unit_moved":
+		print("OK  cursor in 'unit_moved' awaiting action")
 		passed += 1
 	else:
-		print("FAIL state after move: %s" % turn.get_unit_state(unit_01))
+		print("FAIL cursor not in unit_moved after move: %s" % cursor._state)
 		failed += 1
 
-	# Cursor state should be back to free
-	if cursor._state == "free":
-		print("OK  cursor returned to 'free' state")
+	# Confirm again to commit Wait — marks unit DONE and returns cursor to free.
+	cursor._on_confirm()
+
+	if turn.get_unit_state(unit_01) == TurnManager.UnitState.DONE:
+		print("OK  Unit_01 state = DONE after Wait confirm")
 		passed += 1
 	else:
-		print("FAIL cursor state: %s" % cursor._state)
+		print("FAIL state after Wait: %s" % turn.get_unit_state(unit_01))
+		failed += 1
+
+	if cursor._state == "free":
+		print("OK  cursor returned to 'free' after Wait")
+		passed += 1
+	else:
+		print("FAIL cursor state after Wait: %s" % cursor._state)
 		failed += 1
 
 	# --- Cannot reselect a DONE unit ---

@@ -2,6 +2,7 @@ extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_grid_manager.gd
 # Tests GridManager movement range and pathfinding using a fallback terrain grid.
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const SoldierData := preload("res://data/classes/soldier.tres")
 
 # Mock unit that GridManager methods can read from
@@ -29,14 +30,15 @@ func _init() -> void:
 	var grid := GridManager.new()
 
 	# --- Tile/world conversion ---
-	if grid.world_to_tile(Vector2(64, 128)) == Vector2i(1, 2):
-		print("OK  world_to_tile(64,128) = (1,2)")
+	var ts := GameConstants.TILE_SIZE
+	if grid.world_to_tile(Vector2(ts, ts * 2)) == Vector2i(1, 2):
+		print("OK  world_to_tile(%d,%d) = (1,2)" % [ts, ts * 2])
 		passed += 1
 	else:
 		print("FAIL world_to_tile")
 		failed += 1
-	if grid.tile_to_world(Vector2i(3, 4)) == Vector2(192, 256):
-		print("OK  tile_to_world(3,4) = (192,256)")
+	if grid.tile_to_world(Vector2i(3, 4)) == Vector2(3 * ts, 4 * ts):
+		print("OK  tile_to_world(3,4) = (%d,%d)" % [3 * ts, 4 * ts])
 		passed += 1
 	else:
 		print("FAIL tile_to_world")

@@ -2,6 +2,8 @@ extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_unit_stats.gd
 # Verifies Unit.gd combat stat formulas against GDD_02 math.
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
 	var passed := 0
@@ -32,7 +34,7 @@ func _init() -> void:
 	var checks := [
 		["battle_speed", unit.battle_speed(iron_lance), 5],
 		["accuracy",     unit.accuracy(iron_lance),     98],
-		["dodge",        unit.dodge(),                   16],
+		["dodge",        unit.dodge(iron_lance),          16],
 		["damage",       unit.damage(iron_lance),        14],
 		["crit_rate",    unit.crit_rate(iron_lance),     3],
 		["crit_avoid",   unit.crit_avoid(),              6],
@@ -148,7 +150,7 @@ func _init() -> void:
 
 	# --- snap_to_tile ---
 	unit.snap_to_tile(Vector2i(5, 7))
-	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5*64, 7*64):
+	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE):
 		print("OK  snap_to_tile sets tile and world position")
 		passed += 1
 	else:

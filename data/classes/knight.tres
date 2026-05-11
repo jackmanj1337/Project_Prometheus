@@ -25,5 +25,5 @@ promotes_to = ["general", "great_knight"]
 promotion_stat_increases = {}
 promotion_skill = ""
 occult_skill = ""
-growth_rates = {"hp": 70, "str": 55, "mag": 0, "def": 65, "res": 15, "skl": 45, "spd": 25, "luk": 25}
+growth_rates = {"hp": 70, "strength": 55, "mag": 0, "def": 65, "res": 15, "skl": 45, "spd": 25, "luk": 25}
 sprite_id = ""

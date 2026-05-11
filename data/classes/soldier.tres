@@ -25,5 +25,5 @@ promotes_to = ["commander", "halberdier"]
 promotion_stat_increases = {}
 promotion_skill = ""
 occult_skill = ""
-growth_rates = {"hp": 75, "str": 50, "mag": 5, "def": 45, "res": 25, "skl": 50, "spd": 45, "luk": 40}
+growth_rates = {"hp": 75, "strength": 50, "mag": 5, "def": 45, "res": 25, "skl": 50, "spd": 45, "luk": 40}
 sprite_id = ""

@@ -99,8 +99,9 @@ func _input(event: InputEvent) -> void:
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	if _camera == null:
 		return
-	# Convert mouse screen pos -> world via the camera, then to tile
-	var world := _camera.get_global_transform().affine_inverse() * event.position
+	# canvas_transform maps world → screen; its inverse converts screen pixels to world coords.
+	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
+	var world := get_viewport().canvas_transform.affine_inverse() * event.position
 	var tile := _grid.world_to_tile(world)
 	if tile != current_tile:
 		_set_tile(tile)
@@ -136,23 +137,27 @@ func _set_tile(tile: Vector2i) -> void:
 
 
 # Selection state machine.
-# free  →(confirm on player unit)→ unit_selected (movement overlay shown)
-# unit_selected →(confirm on movement tile)→ unit_moved (committed; for MVP
-#                                                        immediately DONE)
-# unit_selected →(cancel)→ free (deselect)
-# unit_moved   →(cancel)→ unit_selected (undo move; not yet wired — needs M4)
+# free           →(confirm on player unit)→ unit_selected (movement overlay shown)
+# unit_selected  →(confirm on movement tile)→ unit_moved (waiting for action)
+# unit_selected  →(cancel)→ free (deselect)
+# unit_moved     →(confirm)→ free (Wait — unit marked DONE, MVP no ActionMenu)
+# unit_moved     →(cancel)→ unit_selected (undo move, re-show overlays)
 func _on_confirm() -> void:
 	match _state:
 		"free":
 			_try_select_unit_at_cursor()
 		"unit_selected":
 			_try_move_selected_to_cursor()
+		"unit_moved":
+			_commit_wait()
 
 
 func _on_cancel() -> void:
 	match _state:
 		"unit_selected":
 			_deselect()
+		"unit_moved":
+			_undo_move_and_reselect()
 
 
 func _try_select_unit_at_cursor() -> void:
@@ -184,7 +189,8 @@ func _try_move_selected_to_cursor() -> void:
 	if not (current_tile in _movement_tiles):
 		return
 	# Don't allow moving onto another unit's tile
-	if _grid.get_unit_at(current_tile) != null and _grid.get_unit_at(current_tile) != _selected_unit:
+	var occupant := _grid.get_unit_at(current_tile)
+	if occupant != null and occupant != _selected_unit:
 		return
 	# Record original tile for potential undo
 	if _turn != null:
@@ -193,11 +199,8 @@ func _try_move_selected_to_cursor() -> void:
 	_grid.clear_overlays()
 	_state = "locked"  # block input during the move animation
 	await _selected_unit.move_along_path(path)
+	# Rest in unit_moved: confirm = Wait (DONE), cancel = undo move
 	_state = "unit_moved"
-	# MVP: no ActionMenu yet, immediately commit to DONE
-	if _turn != null:
-		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
-	_finish_action()
 
 
 func _deselect() -> void:
@@ -209,6 +212,25 @@ func _deselect() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
+
+
+# Confirm from unit_moved: commit the move as a Wait action (no ActionMenu in MVP).
+func _commit_wait() -> void:
+	if _turn != null and _selected_unit != null:
+		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
+	_finish_action()
+
+
+# Cancel from unit_moved: snap the unit back to its pre-move tile and re-enter selection.
+func _undo_move_and_reselect() -> void:
+	if _turn != null and _selected_unit != null:
+		_turn.undo_move(_selected_unit)
+	# Recompute and redisplay overlays so the player can pick a different destination.
+	if _grid != null and _selected_unit != null:
+		_movement_tiles = _grid.get_movement_range(_selected_unit)
+		_grid.show_movement_overlay(_movement_tiles)
+		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(_selected_unit, _movement_tiles))
+	_state = "unit_selected"
 
 
 func _finish_action() -> void:

@@ -11,7 +11,7 @@ class_name UnitData extends Resource
 # Stats
 @export var max_hp: int = 0
 @export var hp: int = 0
-@export var str: int = 0
+@export var strength: int = 0
 @export var mag: int = 0
 @export var def: int = 0
 @export var res: int = 0

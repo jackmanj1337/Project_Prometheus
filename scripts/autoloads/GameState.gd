@@ -33,6 +33,9 @@ func _ready() -> void:
 
 
 func register_unit(unit: Node) -> void:
+	if unit in all_units:
+		push_error("GameState.register_unit: %s already registered" % unit)
+		return
 	all_units.append(unit)
 	if unit.team == "player":
 		player_units.append(unit)
@@ -131,7 +134,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 	return {
 		"hp": data.hp,
 		"max_hp": data.max_hp,
-		"str": data.str,
+		"strength": data.strength,
 		"mag": data.mag,
 		"def": data.def,
 		"res": data.res,
@@ -152,7 +155,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.hp = snap.hp
 	data.max_hp = snap.max_hp
-	data.str = snap.str
+	data.strength = snap.strength
 	data.mag = snap.mag
 	data.def = snap.def
 	data.res = snap.res

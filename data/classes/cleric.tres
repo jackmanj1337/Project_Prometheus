@@ -25,5 +25,5 @@ promotes_to = ["bishop", "paragon"]
 promotion_stat_increases = {}
 promotion_skill = ""
 occult_skill = ""
-growth_rates = {"hp": 55, "str": 10, "mag": 55, "def": 20, "res": 70, "skl": 45, "spd": 45, "luk": 55}
+growth_rates = {"hp": 55, "strength": 10, "mag": 55, "def": 20, "res": 70, "skl": 45, "spd": 45, "luk": 55}
 sprite_id = ""

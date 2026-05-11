@@ -1,18 +1,18 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_map_grid.gd
-# Validates the MAP_001 string grid: row count, row length, and char set.
+# Validates the map_001 string grid: row count, row length, and char set.
+
+# Preload MapData directly — GameMap constants were moved into the resource (DESIGN-03).
+const _MapData_001 = preload("res://data/maps/map_001_rout/map_001_data.tres")
 
 func _init() -> void:
 	print("=== Map Grid Test ===")
 	var passed := 0
 	var failed := 0
 
-	# Pull the constants from GameMap class. We can't instantiate GameMap (it
-	# extends Node2D and would complain about missing children) but we can
-	# read its constants statically via the class.
-	var rows: Array = GameMap.MAP_001
-	var width: int = GameMap.MAP_WIDTH
-	var height: int = GameMap.MAP_HEIGHT
+	var rows: Array = _MapData_001.grid
+	var height: int = rows.size()
+	var width: int = rows[0].length() if rows.size() > 0 else 0
 
 	if rows.size() == height:
 		print("OK  row count: %d" % rows.size())
@@ -42,8 +42,8 @@ func _init() -> void:
 	# Spot checks of named terrain features per GDD_06
 	var spot_checks := [
 		[Vector2i(7, 6), "T", "player-side fort"],
-		[Vector2i(38, 9), "T", "sub-boss fort"],
-		[Vector2i(38, 12), "T", "boss throne fort"],
+		[Vector2i(38, 9), "T", "E7 fort"],
+		[Vector2i(39, 12), "T", "boss throne fort"],
 		[Vector2i(0, 0), "W", "NW corner"],
 		[Vector2i(41, 25), "W", "SE corner"],
 		[Vector2i(20, 20), "D", "desert center"],

@@ -11,9 +11,6 @@ var data: UnitData
 var tile_position: Vector2i = Vector2i.ZERO
 var team: String = "player"  # "player" | "enemy"
 
-# Stored when a unit starts moving so `undo_move` can restore the position
-var _original_tile: Vector2i = Vector2i.ZERO
-
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
 
@@ -21,13 +18,11 @@ var _original_tile: Vector2i = Vector2i.ZERO
 # Called by GameMap right after scene instancing. Must be invoked before _ready
 # can finish using the data, so the spawner uses call_deferred carefully or sets
 # the values before adding to the tree.
+# Call this before add_child(). _ready() then fires _apply_initial_state() once nodes exist.
 func initialize(unit_data: UnitData, start_tile: Vector2i, unit_team: String) -> void:
 	data = unit_data
 	tile_position = start_tile
 	team = unit_team
-	# Visual position is set after _ready when nodes are available
-	if is_inside_tree():
-		_apply_initial_state()
 
 
 func _ready() -> void:
@@ -66,15 +61,10 @@ func has_quality(quality: String) -> bool:
 func _get_class_data() -> ClassData:
 	if data == null:
 		return null
-	# Use runtime lookup so this works in --script test mode without DataManager
 	if is_inside_tree():
 		var dm := get_node_or_null("/root/DataManager")
 		if dm:
 			return dm.get_class_data(data.class_id)
-	# Fallback: load directly. Slower per-call but tests don't need DataManager.
-	var path := "res://data/classes/%s.tres" % data.class_id
-	if ResourceLoader.exists(path):
-		return load(path)
 	return null
 
 
@@ -113,9 +103,6 @@ func _load_weapon(id: String) -> WeaponData:
 		var dm := get_node_or_null("/root/DataManager")
 		if dm:
 			return dm.get_weapon(id)
-	var path := "res://data/weapons/%s.tres" % id
-	if ResourceLoader.exists(path):
-		return load(path)
 	return null
 
 
@@ -184,7 +171,7 @@ func battle_speed(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
 		return data.spd
-	var penalty: int = max(0, w.wt - data.str)
+	var penalty: int = max(0, w.wt - data.strength)
 	return data.spd - penalty
 
 
@@ -200,8 +187,8 @@ func accuracy(weapon: WeaponData = null) -> int:
 
 
 # Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
-func dodge() -> int:
-	return battle_speed() * 2 + data.luk
+func dodge(weapon: WeaponData = null) -> int:
+	return battle_speed(weapon) * 2 + data.luk
 
 
 # Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
@@ -211,7 +198,7 @@ func damage(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
 		return 0
-	var base_stat: int = data.mag if w.uses_mag else data.str
+	var base_stat: int = data.mag if w.uses_mag else data.strength
 	var dmg: int = base_stat + w.mt
 	if _has_s_rank(w):
 		dmg += 1
@@ -323,12 +310,12 @@ func can_equip(weapon_data: WeaponData) -> bool:
 func move_along_path(path: Array[Vector2i]) -> void:
 	if path.size() <= 1:
 		return
-	_original_tile = tile_position
+	var origin: Vector2i = tile_position
 	var seconds_per_tile := _get_per_tile_seconds()
 	# "Instant" speed: no tween, just snap to the destination
 	if seconds_per_tile <= 0.0:
 		snap_to_tile(path[-1])
-		_emit_moved(_original_tile, path[-1])
+		_emit_moved(origin, path[-1])
 		return
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
@@ -338,7 +325,7 @@ func move_along_path(path: Array[Vector2i]) -> void:
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
 	tile_position = path[-1]
-	_emit_moved(_original_tile, tile_position)
+	_emit_moved(origin, tile_position)
 
 
 func _get_per_tile_seconds() -> float:
@@ -384,22 +371,31 @@ func reset_appearance() -> void:
 func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
+	if data.level >= GameConstants.MAX_LEVEL:
+		return  # EXP discarded at cap; promotion (Phase 2) will unlock further levelling
 	data.exp += amount
 	while data.exp >= 100:
 		data.exp -= 100
 		level_up()
+		if data.level >= GameConstants.MAX_LEVEL:
+			data.exp = 0  # no overflow past the cap
+			break
 
 
 # Rolls stat increases per the unit's class growth rates and applies them.
 # Each stat: roll 1..100; if roll <= growth_rate, that stat increases by 1.
 # Emits unit_leveled_up with the dictionary of changes for the level-up screen.
-const _GROWTH_STATS := ["hp", "str", "mag", "def", "res", "skl", "spd", "luk"]
+const _GROWTH_STATS := ["hp", "strength", "mag", "def", "res", "skl", "spd", "luk"]
 
 func level_up() -> void:
 	if data == null:
 		return
 	data.level += 1
 	data.effective_level += 1
+	# GDD-02: only growth_rates is implemented; warn if any other method is active.
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs and gs.leveling_method != "growth_rates":
+		push_warning("Unit.level_up: leveling_method '%s' is not implemented; falling back to growth_rates" % gs.leveling_method)
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
@@ -421,7 +417,7 @@ func _increment_stat(stat: String) -> void:
 		"hp":
 			data.max_hp += 1
 			data.hp += 1  # current HP also increases on level up
-		"str": data.str += 1
+		"strength": data.strength += 1
 		"mag": data.mag += 1
 		"def": data.def += 1
 		"res": data.res += 1

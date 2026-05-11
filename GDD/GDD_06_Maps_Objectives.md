@@ -225,7 +225,7 @@ D = Desert     (+5 Dodge, move cost 2; cost 3 for armoured/mounted)
 | **Mountain N** | (21–22, 1–3) and (20–22, 2–3) | North mountain wall; forces sea crossing |
 | **Mountain S** | (9–10, 21–22) | Southern mountain cluster |
 | **Fort (player-side)** | (7, 6) | Players can use for HP recovery mid-map |
-| **Fort (sub-boss)** | (38, 9) | Enemy E7 starts here |
+| **Fort (E7)** | (38, 9) | Enemy E7 starts here |
 | **Fort / Throne (boss)** | (39, 12) | Enemy E8 (boss) starts here; heals every turn |
 | **Desert belt** | Cols 20–36 rows 16–22 | Slows armoured and mounted units; thief/mage unaffected |
 | **Walled corner** | Cols 38–41 rows 4–5 | Impassable cliff; blocks northeast shortcut |
@@ -252,7 +252,7 @@ Auto-deployed in slot order (Unit_01 first):
 | E4 | `e4_knight.tres` | (27, 15) | Knight | 3 | Iron Lance | — | basic | Slow central defender |
 | E5 | `e5_archer.tres` | (35, 8) | Archer | 3 | Iron Bow | — | basic | Far east forest; covers approach |
 | E6 | `e6_soldier.tres` | (30, 18) | Soldier | 4 | Iron Lance | — | basic | Desert patrol; slowed if mounted nearby |
-| E7 | `e7_knight_sub.tres` | (38, 9) | Knight | 4 | Iron Lance | Vulnerary | basic | Sub-boss on Fort; heals each turn |
+| E7 | `e7_knight_sub.tres` | (38, 9) | Knight | 4 | Iron Lance | Vulnerary | basic | Standard enemy on Fort; heals each turn; `is_boss=false` |
 | E8 | `e8_knight_boss.tres` | (39, 12) | Knight | 5 | Iron Lance | Vulnerary | basic | Boss on Fort; highest stats; heals each turn |
 
 ### Enemy UnitData Stats (Level-based formula)

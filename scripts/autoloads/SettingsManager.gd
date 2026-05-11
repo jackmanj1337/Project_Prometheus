@@ -98,13 +98,15 @@ func reset_section_to_defaults(section: String) -> void:
 
 
 # Formula per GDD_01: linear_to_db(volume / 100.0).
-# Bus indices may not all exist yet (Music/SFX must be added in editor's Audio panel),
-# so guard each set with a bus count check.
+# Look up by name so bus order in the editor doesn't matter.
+# Buses that don't exist yet (Music/SFX must be added in editor) are silently skipped.
 func _apply_audio() -> void:
-	var bus_count := AudioServer.bus_count
-	if bus_count > 0: AudioServer.set_bus_volume_db(0, linear_to_db(master_volume / 100.0))
-	if bus_count > 1: AudioServer.set_bus_volume_db(1, linear_to_db(music_volume  / 100.0))
-	if bus_count > 2: AudioServer.set_bus_volume_db(2, linear_to_db(sfx_volume    / 100.0))
+	var master_idx := AudioServer.get_bus_index("Master")
+	var music_idx  := AudioServer.get_bus_index("Music")
+	var sfx_idx    := AudioServer.get_bus_index("SFX")
+	if master_idx >= 0: AudioServer.set_bus_volume_db(master_idx, linear_to_db(master_volume / 100.0))
+	if music_idx  >= 0: AudioServer.set_bus_volume_db(music_idx,  linear_to_db(music_volume  / 100.0))
+	if sfx_idx    >= 0: AudioServer.set_bus_volume_db(sfx_idx,    linear_to_db(sfx_volume    / 100.0))
 
 
 func _apply_keybindings() -> void:
