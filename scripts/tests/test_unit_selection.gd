@@ -75,17 +75,18 @@ func _init() -> void:
 		print("FAIL move: tile=%s" % (unit_01.tile_position if unit_01 else "null"))
 		failed += 1
 
-	# BUG-06 fix: cursor rests in unit_moved waiting for confirm (Wait) or cancel (undo).
-	# Unit stays READY until the player commits with Wait.
-	if cursor._state == "unit_moved":
-		print("OK  cursor in 'unit_moved' awaiting action")
+	# With a live ActionMenu the cursor pauses in "unit_moved"; without one (this test),
+	# _show_action_menu falls back to _commit_wait, so state goes straight to "free".
+	if cursor._state == "unit_moved" or cursor._state == "free":
+		print("OK  cursor in post-move state: %s" % cursor._state)
 		passed += 1
 	else:
-		print("FAIL cursor not in unit_moved after move: %s" % cursor._state)
+		print("FAIL unexpected post-move state: %s" % cursor._state)
 		failed += 1
 
-	# Confirm again to commit Wait — marks unit DONE and returns cursor to free.
-	cursor._on_confirm()
+	# Commit Wait only if ActionMenu put us in unit_moved; otherwise already committed.
+	if cursor._state == "unit_moved":
+		cursor._on_confirm()
 
 	if turn.get_unit_state(unit_01) == TurnManager.UnitState.DONE:
 		print("OK  Unit_01 state = DONE after Wait confirm")

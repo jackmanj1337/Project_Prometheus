@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ActionMenu.gd" id="1_actionmenu"]
+
+[node name="ActionMenu" type="Control"]
+script = ExtResource("1_actionmenu")
+visible = false
+custom_minimum_size = Vector2(128, 0)
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+
+[node name="BtnAttack" type="Button" parent="Panel/VBox"]
+text = "Attack"
+focus_mode = 2
+
+[node name="BtnStaff" type="Button" parent="Panel/VBox"]
+text = "Staff"
+focus_mode = 2
+
+[node name="BtnItem" type="Button" parent="Panel/VBox"]
+text = "Item"
+focus_mode = 2
+
+[node name="BtnWait" type="Button" parent="Panel/VBox"]
+text = "Wait"
+focus_mode = 2

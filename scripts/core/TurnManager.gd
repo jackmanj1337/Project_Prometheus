@@ -47,6 +47,16 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 			u.heal(heal_amount)
 
 
+# Fires SkillHandler.start_of_turn trigger for each unit (e.g. Renewal healing).
+func _apply_start_of_turn_skills(units: Array[Node]) -> void:
+	var sh := get_node_or_null("/root/SkillHandler")
+	if sh == null:
+		return
+	for u in units:
+		if is_instance_valid(u):
+			sh.apply_trigger(u, "start_of_turn", {"unit": u})
+
+
 # Resets all player units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
@@ -55,6 +65,7 @@ func start_player_phase() -> void:
 	if gs:
 		gs.set_phase(gs.Phase.PLAYER)
 		_apply_fort_healing(gs.get_living_player_units())
+		_apply_start_of_turn_skills(gs.get_living_player_units())
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u) and u.team == "player":
 			_unit_states[u] = UnitState.READY

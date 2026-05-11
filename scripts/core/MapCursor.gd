@@ -20,17 +20,31 @@ var _turn: TurnManager = null
 var _zoom_index: int = DEFAULT_ZOOM_INDEX
 
 # State machine — see GDD_01 MapCursor section
-# "free" | "unit_selected" | "unit_moved" | "targeting" | "locked"
+# "free" | "unit_selected" | "unit_moved" | "targeting" | "staff_targeting" | "locked"
 var _state: String = "free"
 
 # Currently selected unit and the tiles it could move to (set on selection)
 var _selected_unit: Unit = null
 var _movement_tiles: Array[Vector2i] = []
 
+# Tiles valid for the current targeting mode (attack or staff heal)
+var _attack_tiles: Array[Vector2i] = []
+var _heal_tiles: Array[Vector2i] = []
+
 # Key-repeat timer state
 var _held_dir: Vector2i = Vector2i.ZERO
 var _held_timer: float = 0.0
 var _held_initial: bool = true
+
+# Assign this in the editor — the ActionMenu Control node that lives in the HUD layer.
+# Typed as Node so the script compiles in headless test mode where class_name lookup fails.
+@export var action_menu: Node = null
+
+
+func _ready() -> void:
+	if action_menu:
+		action_menu.action_chosen.connect(_on_action_chosen)
+		action_menu.hidden_by_cancel.connect(_on_action_menu_cancelled)
 
 
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void:
@@ -136,12 +150,19 @@ func _set_tile(tile: Vector2i) -> void:
 			bus.cursor_moved.emit(current_tile)
 
 
-# Selection state machine.
-# free           →(confirm on player unit)→ unit_selected (movement overlay shown)
-# unit_selected  →(confirm on movement tile)→ unit_moved (waiting for action)
-# unit_selected  →(cancel)→ free (deselect)
-# unit_moved     →(confirm)→ free (Wait — unit marked DONE, MVP no ActionMenu)
-# unit_moved     →(cancel)→ unit_selected (undo move, re-show overlays)
+# State transitions:
+# free             →(confirm on player unit)→  unit_selected
+# unit_selected    →(confirm on move tile) →  unit_moved  (ActionMenu shown)
+# unit_selected    →(cancel)              →  free
+# unit_moved       →[ActionMenu: attack]  →  targeting
+# unit_moved       →[ActionMenu: staff]   →  staff_targeting
+# unit_moved       →[ActionMenu: item]    →  free  (item used, no target required)
+# unit_moved       →[ActionMenu: wait]    →  free
+# unit_moved       →[ActionMenu: cancel]  →  unit_selected  (undo move)
+# targeting        →(confirm on enemy)    →  free  (combat resolved)
+# targeting        →(cancel)             →  unit_moved  (back to ActionMenu)
+# staff_targeting  →(confirm on ally)     →  free  (heal applied)
+# staff_targeting  →(cancel)             →  unit_moved  (back to ActionMenu)
 func _on_confirm() -> void:
 	match _state:
 		"free":
@@ -149,7 +170,11 @@ func _on_confirm() -> void:
 		"unit_selected":
 			_try_move_selected_to_cursor()
 		"unit_moved":
-			_commit_wait()
+			pass  # ActionMenu drives confirms here; fallback in _show_action_menu when menu is null
+		"targeting":
+			_execute_attack()
+		"staff_targeting":
+			_execute_staff_heal()
 
 
 func _on_cancel() -> void:
@@ -157,7 +182,20 @@ func _on_cancel() -> void:
 		"unit_selected":
 			_deselect()
 		"unit_moved":
-			_undo_move_and_reselect()
+			# ActionMenu._input fires first and emits hidden_by_cancel → _on_action_menu_cancelled.
+			# This is a safety fallback for when action_menu is null.
+			if action_menu == null:
+				_undo_move_and_reselect()
+		"targeting":
+			_grid.clear_overlays()
+			_attack_tiles.clear()
+			_state = "unit_moved"
+			_show_action_menu()
+		"staff_targeting":
+			_grid.clear_overlays()
+			_heal_tiles.clear()
+			_state = "unit_moved"
+			_show_action_menu()
 
 
 func _try_select_unit_at_cursor() -> void:
@@ -199,8 +237,8 @@ func _try_move_selected_to_cursor() -> void:
 	_grid.clear_overlays()
 	_state = "locked"  # block input during the move animation
 	await _selected_unit.move_along_path(path)
-	# Rest in unit_moved: confirm = Wait (DONE), cancel = undo move
 	_state = "unit_moved"
+	_show_action_menu()
 
 
 func _deselect() -> void:
@@ -214,7 +252,123 @@ func _deselect() -> void:
 		bus.unit_deselected.emit()
 
 
-# Confirm from unit_moved: commit the move as a Wait action (no ActionMenu in MVP).
+func _show_action_menu() -> void:
+	if action_menu == null:
+		# No menu wired up — fall back to Wait so the unit can always complete its turn
+		_commit_wait()
+		return
+	# Place the menu just right of the unit's tile in screen space
+	var world_pos := _grid.tile_to_world(_selected_unit.tile_position)
+	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
+	action_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+	action_menu.show_for(_selected_unit, _grid)
+
+
+# Fired when ActionMenu's cancel key is pressed while the menu is open
+func _on_action_menu_cancelled() -> void:
+	_undo_move_and_reselect()
+
+
+# Route the player's chosen action to the appropriate handler
+func _on_action_chosen(action: String) -> void:
+	match action:
+		"attack":
+			_begin_attack_targeting()
+		"staff":
+			_begin_staff_targeting()
+		"item":
+			_use_item()
+		"wait":
+			_commit_wait()
+
+
+func _begin_attack_targeting() -> void:
+	if _grid == null or _selected_unit == null:
+		return
+	var enemies := _grid.get_attackable_enemies_from_tile(_selected_unit, _selected_unit.tile_position)
+	_attack_tiles.clear()
+	for enemy in enemies:
+		_attack_tiles.append(enemy.tile_position)
+	if _attack_tiles.is_empty():
+		# Shouldn't happen if ActionMenu disabled the button correctly, but handle gracefully
+		_show_action_menu()
+		return
+	_grid.show_attack_overlay(_attack_tiles)
+	# Snap cursor to the first valid target
+	current_tile = _attack_tiles[0]
+	position = _grid.tile_to_world(current_tile)
+	_state = "targeting"
+
+
+func _execute_attack() -> void:
+	var target := _grid.get_unit_at(current_tile)
+	# Guard: only proceed if there is an enemy at the cursor
+	if target == null or target.team == "player":
+		return
+	_grid.clear_overlays()
+	_attack_tiles.clear()
+	var cr := get_node_or_null("/root/CombatResolver")
+	if cr:
+		var result: Dictionary = cr.resolve_combat(_selected_unit, target)
+		cr.apply_combat_result(result, _selected_unit, target)
+	_finish_action()
+
+
+func _begin_staff_targeting() -> void:
+	if _grid == null or _selected_unit == null:
+		return
+	var allies := _grid.get_healable_allies(_selected_unit)
+	_heal_tiles.clear()
+	for ally in allies:
+		_heal_tiles.append(ally.tile_position)
+	if _heal_tiles.is_empty():
+		_show_action_menu()
+		return
+	# Reuse the movement (green) overlay colour for heal targets
+	_grid.show_movement_overlay(_heal_tiles)
+	current_tile = _heal_tiles[0]
+	position = _grid.tile_to_world(current_tile)
+	_state = "staff_targeting"
+
+
+func _execute_staff_heal() -> void:
+	var target := _grid.get_unit_at(current_tile)
+	if target == null or target.team != "player":
+		return
+	_grid.clear_overlays()
+	_heal_tiles.clear()
+	# Heal formula: 10 + mag, capped at max_hp (GDD_02)
+	var heal_amount: int = 10 + _selected_unit.data.mag
+	target.data.hp = mini(target.data.hp + heal_amount, target.data.max_hp)
+	# Consume one staff use and award wEXP
+	_selected_unit.use_weapon_durability()
+	var weapon: WeaponData = _selected_unit.get_equipped_weapon()
+	if weapon != null and _selected_unit.has_method("add_wexp"):
+		_selected_unit.add_wexp(weapon.weapon_type, weapon.wexp)
+	# Flat 10 EXP per staff use (GDD_02)
+	_selected_unit.add_exp(10)
+	_finish_action()
+
+
+func _use_item() -> void:
+	# [Phase 2: show item submenu] — for now consume the first valid item automatically
+	if _selected_unit == null or _selected_unit.data == null:
+		_show_action_menu()
+		return
+	for entry in _selected_unit.data.inventory:
+		if entry.get("type", "") == "item" and entry.get("uses_remaining", 0) > 0:
+			var power: int = entry.get("power", 20)
+			match entry.get("effect", ""):
+				"heal_flat":
+					_selected_unit.data.hp = mini(_selected_unit.data.hp + power, _selected_unit.data.max_hp)
+				"heal_full":
+					_selected_unit.data.hp = _selected_unit.data.max_hp
+			entry["uses_remaining"] -= 1
+			break
+	_finish_action()
+
+
+# Commit the move as a Wait action — unit is marked DONE, no combat.
 func _commit_wait() -> void:
 	if _turn != null and _selected_unit != null:
 		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
@@ -238,6 +392,8 @@ func _finish_action() -> void:
 		_grid.clear_overlays()
 	_selected_unit = null
 	_movement_tiles.clear()
+	_attack_tiles.clear()
+	_heal_tiles.clear()
 	_state = "free"
 
 
