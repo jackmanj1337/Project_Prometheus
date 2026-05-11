@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ItemMenu.gd" id="1_itemmenu"]
+
+[node name="ItemMenu" type="Control"]
+script = ExtResource("1_itemmenu")
+visible = false
+custom_minimum_size = Vector2(160, 0)
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0

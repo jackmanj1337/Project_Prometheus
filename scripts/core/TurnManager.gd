@@ -82,15 +82,18 @@ func end_player_phase() -> void:
 	start_enemy_phase()
 
 
-# Enemy phase. AI runs in M6; for now this is a stub that flips back to player
-# phase on the next idle frame (call_deferred avoids recursion through start_*).
+# Enemy phase: fort healing, then AI moves each enemy, then player phase resumes.
+# EnemyAI.run_enemy_phase() is awaited; without the autoload it falls back instantly.
 func start_enemy_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.ENEMY)
 		_apply_fort_healing(gs.get_living_enemy_units())
-	# TODO M6: EnemyAI.run_enemy_phase() — for now immediately end the phase
-	call_deferred("start_player_phase")
+	var ai := get_node_or_null("/root/EnemyAI")
+	if ai:
+		await ai.run_enemy_phase(_grid, self)
+	else:
+		call_deferred("start_player_phase")
 
 
 func set_unit_state(unit: Node, state: UnitState) -> void:

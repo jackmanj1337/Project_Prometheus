@@ -36,15 +36,31 @@ var _held_dir: Vector2i = Vector2i.ZERO
 var _held_timer: float = 0.0
 var _held_initial: bool = true
 
-# Assign this in the editor — the ActionMenu Control node that lives in the HUD layer.
+# Assign these in the editor — the menu nodes that live in the HUD layer.
 # Typed as Node so the script compiles in headless test mode where class_name lookup fails.
 @export var action_menu: Node = null
+@export var item_menu: Node = null
 
 
 func _ready() -> void:
 	if action_menu:
 		action_menu.action_chosen.connect(_on_action_chosen)
 		action_menu.hidden_by_cancel.connect(_on_action_menu_cancelled)
+	if item_menu:
+		item_menu.item_chosen.connect(_on_item_chosen)
+		item_menu.cancelled.connect(_on_item_menu_cancelled)
+	# Lock cursor during enemy phase; unlock when player phase starts
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.phase_changed.connect(_on_phase_changed)
+
+
+func _on_phase_changed(new_phase: int) -> void:
+	# GameState.Phase: 0 = PLAYER, 1 = ENEMY
+	if new_phase == 1:
+		lock()
+	else:
+		unlock()
 
 
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void:
@@ -350,21 +366,46 @@ func _execute_staff_heal() -> void:
 
 
 func _use_item() -> void:
-	# [Phase 2: show item submenu] — for now consume the first valid item automatically
 	if _selected_unit == null or _selected_unit.data == null:
 		_show_action_menu()
 		return
+	if item_menu != null:
+		# Show the item submenu; result arrives via _on_item_chosen / _on_item_menu_cancelled
+		var world_pos := _grid.tile_to_world(_selected_unit.tile_position)
+		var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
+		item_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+		item_menu.show_for(_selected_unit)
+		return
+	# Fallback when ItemMenu is not wired: consume first valid item automatically
 	for entry in _selected_unit.data.inventory:
 		if entry.get("type", "") == "item" and entry.get("uses_remaining", 0) > 0:
-			var power: int = entry.get("power", 20)
-			match entry.get("effect", ""):
-				"heal_flat":
-					_selected_unit.data.hp = mini(_selected_unit.data.hp + power, _selected_unit.data.max_hp)
-				"heal_full":
-					_selected_unit.data.hp = _selected_unit.data.max_hp
-			entry["uses_remaining"] -= 1
+			_apply_item_effect(entry)
 			break
 	_finish_action()
+
+
+func _on_item_chosen(entry: Dictionary) -> void:
+	if _selected_unit == null:
+		_finish_action()
+		return
+	_apply_item_effect(entry)
+	_finish_action()
+
+
+func _on_item_menu_cancelled() -> void:
+	_show_action_menu()
+
+
+func _apply_item_effect(entry: Dictionary) -> void:
+	if _selected_unit == null or _selected_unit.data == null:
+		return
+	var power: int = entry.get("power", 20)
+	match entry.get("effect", ""):
+		"heal_flat":
+			_selected_unit.data.hp = mini(_selected_unit.data.hp + power, _selected_unit.data.max_hp)
+		"heal_full":
+			_selected_unit.data.hp = _selected_unit.data.max_hp
+	entry["uses_remaining"] -= 1
 
 
 # Commit the move as a Wait action — unit is marked DONE, no combat.

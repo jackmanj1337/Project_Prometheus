@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -8,6 +8,9 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/cursor/cursor.png" id="6_cursor_tex"]
 [ext_resource type="Script" path="res://scripts/core/TurnManager.gd" id="7_turn"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ActionMenu.tscn" id="8_actionmenu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ItemMenu.tscn" id="9_itemmenu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/LevelUpScreen.tscn" id="10_levelup"]
+[ext_resource type="Script" path="res://scripts/ui/CombatHUD.gd" id="11_combathud"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -23,6 +26,7 @@ tile_set = ExtResource("5_overlay")
 [node name="MapCursor" type="Node2D" parent="."]
 script = ExtResource("3_cursor")
 action_menu = NodePath("../HUDLayer/ActionMenu")
+item_menu = NodePath("../HUDLayer/ItemMenu")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapCursor"]
 texture = ExtResource("6_cursor_tex")
@@ -41,3 +45,14 @@ script = ExtResource("7_turn")
 layer = 1
 
 [node name="ActionMenu" parent="HUDLayer" instance=ExtResource("8_actionmenu")]
+
+[node name="ItemMenu" parent="HUDLayer" instance=ExtResource("9_itemmenu")]
+
+[node name="LevelUpLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="LevelUpScreen" parent="LevelUpLayer" instance=ExtResource("10_levelup")]
+
+[node name="CombatHUDLayer" type="CanvasLayer" parent="."]
+layer = 5
+script = ExtResource("11_combathud")
