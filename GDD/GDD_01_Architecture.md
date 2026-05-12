@@ -434,6 +434,36 @@ signal phase_changed(new_phase: GameState.Phase)
 signal cursor_moved(tile: Vector2i)
 signal map_victory()
 signal map_defeat()
+# Amendment A1 — added when ConditionManager is implemented in M8:
+# signal condition_applied(unit: Node, condition_type: String)
+# signal condition_removed(unit: Node, condition_type: String)
+# Amendment M12 — Laguz system:
+# signal shift_gauge_changed(unit: Node, new_value: int)
+# signal unit_shifted(unit: Node, is_animal_form: bool)
+```
+
+### `ConditionManager.gd` (Amendment A1 — stub until M8)
+
+Registered as autoload after `DataManager`. All methods are no-ops in MVP.
+Full implementation in Milestone 8.
+
+```gdscript
+extends Node
+
+const CONDITION_POISON   := "poison"
+const CONDITION_SLEEP    := "sleep"
+const CONDITION_SILENCE  := "silence"
+const CONDITION_BERSERK  := "berserk"
+const CONDITION_STUN     := "stun"
+
+func apply_condition(unit: Node, condition_type: String, duration: int) -> void
+func remove_condition(unit: Node, condition_type: String) -> void
+func tick_conditions(unit: Node) -> void
+    # Called by TurnManager at the start of each unit's activation.
+    # Applies per-turn effects (e.g. Poison damage) and decrements durations.
+func has_condition(unit: Node, condition_type: String) -> bool
+func clear_all_conditions(unit: Node) -> void
+    # Called by Restore staff and Panacea item.
 ```
 
 ---
@@ -568,10 +598,30 @@ func has_quality(quality: String) -> bool
 func get_terrain_def_bonus() -> int
 func get_terrain_dodge_bonus() -> int
 
-# Combat stats (all account for equipped weapon unless overridden)
+# Stat access — Amendment A2
+func get_effective_stat(stat_name: String) -> int
+    # Base stat value + sum of active_modifiers matching stat_name. Clamped ≥ 0.
+    # stat_name must match a UnitData property name exactly (e.g. "strength", "spd").
+func has_skill(skill_id: String) -> bool
+func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int
+func consume_skill_use(effect_id: String) -> void
+
+# Modifier lifecycle — Amendment A2
+func add_modifier(stat: String, delta: int, source: String,
+                  duration: int, duration_type: String) -> void
+func remove_modifier(source: String) -> void
+func tick_modifiers(duration_type: String) -> void
+    # "turn" at unit's own turn start; "map_turn" once per full round.
+func clear_combat_modifiers() -> void
+    # Called by CombatResolver after each combat resolves.
+func reset_map_state() -> void
+    # Clears active_modifiers, skill_use_counters, damage_taken_this_map.
+    # Call before GameState.take_map_snapshot().
+
+# Combat stats (all read through get_effective_stat so modifiers apply)
 func battle_speed(weapon: WeaponData = null) -> int
 func accuracy(weapon: WeaponData = null) -> int
-func dodge() -> int
+func dodge(weapon: WeaponData = null) -> int
 func damage(weapon: WeaponData = null) -> int
 func crit_rate(weapon: WeaponData = null) -> int
 func crit_avoid() -> int
@@ -711,7 +761,7 @@ class_name UnitData extends Resource
 # Stats
 @export var max_hp: int = 0
 @export var hp: int = 0                   # current HP
-@export var str: int = 0
+@export var strength: int = 0
 @export var mag: int = 0
 @export var def: int = 0
 @export var res: int = 0
@@ -743,6 +793,26 @@ class_name UnitData extends Resource
 @export var is_incapacitated: bool = false  # permadeath flag
 @export var ai_profile: String = "basic"
 @export var is_default_roster: bool = false
+
+# ── Phase 2 runtime state (Amendment A1) ─────────────────────────────────────
+# All default to safe empty/zero values. Serializable for mid-battle suspend saves.
+
+# Active temporary stat modifiers. Each entry:
+#   { "stat": String, "delta": int, "source": String, "duration": int,
+#     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
+# "duration" = -1 or "permanent" type = never auto-removed.
+@export var active_modifiers: Array[Dictionary] = []
+
+# Per-map skill use counters. Keys = effect_id, values = times used this map.
+@export var skill_use_counters: Dictionary = {}
+
+# Cumulative damage taken this map (used by Vengeance skill — M9).
+@export var damage_taken_this_map: int = 0
+
+# Laguz fields — safe defaults for all Beorc units, ignored until M12.
+@export var shift_gauge: int = 0
+@export var is_shifted: bool = false
+@export var shift_profile_id: String = ""
 ```
 
 ### Inventory Entry Format
@@ -802,6 +872,14 @@ class_name WeaponData extends Resource
 @export var magic_triangle_type: String = ""
     # Only for hybrid weapons (e.g. Bolt Axe uses "thunder" triangle).
     # Leave empty for standard weapons and tomes.
+
+# ── Amendment A1 fields ───────────────────────────────────────────────────────
+@export var strikes_per_attack: int = 1
+    # Set to 2 for all Brave weapons. Attacker fires this many times before
+    # the defender counters. Handled by CombatResolver multi-strike loop (M4/A3).
+@export var is_natural_weapon: bool = false
+    # True for Laguz Fang/Claw/Beak/Talon. No cost, no uses consumed.
+    # Unit.get_equipped_weapon() returns this automatically when is_shifted = true.
 ```
 
 **Staff note:** Staves are `WeaponData` resources with `weapon_type = "staff"`.
@@ -842,6 +920,19 @@ class_name ClassData extends Resource
     # { "hp": 70, "str": 50, "mag": 5, "def": 40,
     #   "res": 20, "skl": 60, "spd": 50, "luk": 35 }
 @export var sprite_id: String = ""        # [PLACEHOLDER] links to sprite sheet row
+
+# ── Laguz gauge parameters (Amendment A1) ────────────────────────────────────
+# All default to 0/false/"" for Beorc classes — safe to ignore until M12.
+@export var is_laguz: bool = false
+@export var max_shift_gauge: int = 0
+@export var shift_gauge_start: int = 0
+@export var shift_gain_per_turn_humanoid: int = 0
+@export var shift_gain_per_turn_animal: int = 0
+@export var shift_gain_per_combat_humanoid: int = 0
+@export var shift_gain_per_combat_animal: int = 0
+@export var animal_stat_bonus_pct: float = 0.5    # +50%; reduced to +25% with Feral Instincts
+@export var natural_weapon_type: String = ""       # "fang"|"claw"|"beak"|"talon"|"" for Beorc
+@export var animal_con_bonus_pct: float = 0.75     # CON ~+75% in animal form
 ```
 
 ### `ItemData.gd`
@@ -872,12 +963,22 @@ class_name SkillData extends Resource
     # "passive" | "start_of_turn" | "on_attack" | "on_defend" | "on_hit"
     # | "on_kill" | "on_damaged" | "on_combat_start" | "on_combat_end"
     # | "on_move" | "on_level_up" | "player_activated"
+    # Phase 2 triggers (Amendment A1): "on_combat_apply_modifiers" | "on_ally_attacked"
+    # | "on_enemy_leaves_adjacent" | "on_map_start" | "on_shift"
 @export var activation_chance_stat: String = ""
     # e.g. "skl" — empty string if always triggers
 @export var activation_divisor: int = 2   # e.g. 2 for SKL/2%
 @export var effect_id: String = ""
 @export var effect_params: Dictionary = {}
 @export var is_player_activated: bool = false
+
+# ── Amendment A1 fields ───────────────────────────────────────────────────────
+@export var max_uses_per_map: int = -1
+    # -1 = unlimited. Checked against UnitData.skill_use_counters[effect_id].
+    # Examples: Rise = 3, Challenge = 3, Favoured = 1.
+@export var max_uses_per_combat: int = -1
+    # -1 = unlimited. Counter cleared after each combat resolves.
+    # Examples: Strike True = 1.
 ```
 
 ### `MapData.gd`
@@ -975,11 +1076,14 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order is `EventBus → SettingsManager → GameState → DataManager`.
+Project registration order is `EventBus → SettingsManager → GameState → DataManager → ConditionManager`.
 Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
 must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
 settings from disk but does not push values to GameState; GameState pulls them
 in its own `_ready()` instead.
+
+`ConditionManager` (added in Amendment A1) is a stub until M8. It must be
+registered now so other systems can call into it without `get_node_or_null` guards.
 
 ### .tres files in headless mode
 

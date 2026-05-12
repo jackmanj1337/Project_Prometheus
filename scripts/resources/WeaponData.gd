@@ -24,3 +24,10 @@ class_name WeaponData extends Resource
 @export var uses_mag: bool = false
 # For hybrid weapons only (e.g. Bolt Axe); leave empty for standard weapons
 @export var magic_triangle_type: String = ""
+
+# Set to 2 for all Brave weapons — attacker fires this many times before defender counters.
+@export var strikes_per_attack: int = 1
+
+# True for Laguz natural weapons (Fang/Claw/Beak/Talon). No cost, no uses consumed.
+# Unit.get_equipped_weapon() returns this automatically when unit.data.is_shifted = true.
+@export var is_natural_weapon: bool = false

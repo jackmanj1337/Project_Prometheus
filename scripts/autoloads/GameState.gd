@@ -130,7 +130,9 @@ func restore_map_snapshot() -> void:
 
 
 func _snapshot_unit_data(data: UnitData) -> Dictionary:
-	# Snapshot only the fields that can change during a map
+	# Snapshot only the fields that can change during a map.
+	# Phase 2 runtime state (modifiers, conditions, counters) is included so a
+	# mid-battle suspend save can serialize everything without scene tree traversal.
 	return {
 		"hp": data.hp,
 		"max_hp": data.max_hp,
@@ -149,6 +151,12 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(),
 		"is_incapacitated": data.is_incapacitated,
+		# Phase 2 runtime state
+		"active_modifiers": data.active_modifiers.duplicate(true),
+		"skill_use_counters": data.skill_use_counters.duplicate(true),
+		"damage_taken_this_map": data.damage_taken_this_map,
+		"shift_gauge": data.shift_gauge,
+		"is_shifted": data.is_shifted,
 	}
 
 
@@ -170,3 +178,9 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.conditions = snap.conditions.duplicate(true)
 	data.skills = snap.skills.duplicate()
 	data.is_incapacitated = snap.is_incapacitated
+	# Phase 2 runtime state
+	data.active_modifiers = snap.active_modifiers.duplicate(true)
+	data.skill_use_counters = snap.skill_use_counters.duplicate(true)
+	data.damage_taken_this_map = snap.damage_taken_this_map
+	data.shift_gauge = snap.shift_gauge
+	data.is_shifted = snap.is_shifted

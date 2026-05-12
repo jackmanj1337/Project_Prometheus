@@ -148,9 +148,95 @@ func _get_grid_manager() -> GridManager:
 	return null
 
 
+# ---- Stat Access (modifier-aware) ----
+
+# Returns the base stat value plus the sum of all active_modifiers that target
+# stat_name. stat_name must match a UnitData property name exactly (e.g. "strength",
+# "mag", "spd"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
+func get_effective_stat(stat_name: String) -> int:
+	if data == null:
+		return 0
+	var base = data.get(stat_name)
+	var total: int = int(base) if base != null else 0
+	for mod in data.active_modifiers:
+		if mod["stat"] == stat_name:
+			total += mod["delta"]
+	return max(0, total)
+
+
+# Returns true if the unit has the given skill effect_id in their skills list.
+func has_skill(skill_id: String) -> bool:
+	if data == null:
+		return false
+	return skill_id in data.skills
+
+
+# Returns how many uses of this skill remain this map. -1 = unlimited.
+func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int:
+	if max_per_map == -1:
+		return -1
+	var used: int = data.skill_use_counters.get(effect_id, 0)
+	return max(0, max_per_map - used)
+
+
+func consume_skill_use(effect_id: String) -> void:
+	data.skill_use_counters[effect_id] = data.skill_use_counters.get(effect_id, 0) + 1
+
+
+# ---- Modifier Lifecycle ----
+
+# Adds a temporary stat modifier. Replaces any existing modifier from the same source
+# so re-applying the same skill refreshes duration rather than stacking.
+# duration_type: "turn" decrements at this unit's turn start; "map_turn" at top of
+# player phase; "combat" cleared after each combat; "permanent" never auto-removed.
+# duration = -1 also means never auto-removed.
+func add_modifier(stat: String, delta: int, source: String,
+		duration: int, duration_type: String) -> void:
+	remove_modifier(source)
+	data.active_modifiers.append({
+		"stat": stat, "delta": delta, "source": source,
+		"duration": duration, "duration_type": duration_type
+	})
+
+
+# Removes all modifiers whose source matches (e.g. on condition cure, on unshift).
+func remove_modifier(source: String) -> void:
+	data.active_modifiers = data.active_modifiers.filter(
+		func(m): return m["source"] != source
+	)
+
+
+# Decrements modifiers of the given duration_type and removes those that hit 0.
+# Called by TurnManager: "turn" at unit's own turn start; "map_turn" once per round.
+func tick_modifiers(duration_type: String) -> void:
+	for mod in data.active_modifiers:
+		if mod["duration_type"] == duration_type and mod["duration"] > 0:
+			mod["duration"] -= 1
+	data.active_modifiers = data.active_modifiers.filter(
+		func(m): return m["duration"] != 0
+	)
+
+
+# Removes modifiers with duration_type "combat". Called by CombatResolver after each
+# combat resolves so one-fight buffs don't carry over.
+func clear_combat_modifiers() -> void:
+	data.active_modifiers = data.active_modifiers.filter(
+		func(m): return m["duration_type"] != "combat"
+	)
+
+
+# Resets all per-map runtime state. Call before GameState.take_map_snapshot() so
+# the snapshot captures a clean slate, not carry-over from a previous map.
+func reset_map_state() -> void:
+	data.active_modifiers.clear()
+	data.skill_use_counters.clear()
+	data.damage_taken_this_map = 0
+
+
 # ---- Combat Stats ----
 # All formulas from GDD_02. Each accepts an optional weapon override so callers
 # can preview "what if I equip X instead." Default = currently equipped weapon.
+# All reads go through get_effective_stat() so active modifiers are included.
 
 func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
 	return weapon if weapon != null else get_equipped_weapon()
@@ -170,15 +256,15 @@ func _has_s_rank(weapon: WeaponData) -> bool:
 func battle_speed(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
-		return data.spd
-	var penalty: int = max(0, w.wt - data.strength)
-	return data.spd - penalty
+		return get_effective_stat("spd")
+	var penalty: int = max(0, w.wt - get_effective_stat("strength"))
+	return get_effective_stat("spd") - penalty
 
 
 # Accuracy = SKL*2 + LUK + weapon.Hit (+10 at S-rank)
 func accuracy(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var acc: int = data.skl * 2 + data.luk
+	var acc: int = get_effective_stat("skl") * 2 + get_effective_stat("luk")
 	if w != null:
 		acc += w.hit
 		if _has_s_rank(w):
@@ -188,7 +274,7 @@ func accuracy(weapon: WeaponData = null) -> int:
 
 # Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
 func dodge(weapon: WeaponData = null) -> int:
-	return battle_speed(weapon) * 2 + data.luk
+	return battle_speed(weapon) * 2 + get_effective_stat("luk")
 
 
 # Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
@@ -198,7 +284,7 @@ func damage(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
 		return 0
-	var base_stat: int = data.mag if w.uses_mag else data.strength
+	var base_stat: int = get_effective_stat("mag") if w.uses_mag else get_effective_stat("strength")
 	var dmg: int = base_stat + w.mt
 	if _has_s_rank(w):
 		dmg += 1
@@ -208,7 +294,7 @@ func damage(weapon: WeaponData = null) -> int:
 # Critical rate = floor(SKL/2) + weapon.Crit (+5 at S-rank)
 func crit_rate(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var c: int = data.skl / 2  # GDScript int division is floor
+	var c: int = get_effective_stat("skl") / 2
 	if w != null:
 		c += w.crit
 		if _has_s_rank(w):
@@ -218,7 +304,7 @@ func crit_rate(weapon: WeaponData = null) -> int:
 
 # Crit Avoid = LUK
 func crit_avoid() -> int:
-	return data.luk
+	return get_effective_stat("luk")
 
 
 # ---- HP / Death ----

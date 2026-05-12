@@ -1,6 +1,27 @@
 extends Node
-# Central dispatcher for skill effects. Called by CombatResolver, TurnManager, etc.
-# All skill logic lives here; callers pass a context dict and receive it back modified.
+# Central dispatcher for skill effects. Called by CombatResolver, TurnManager,
+# GridManager, etc. All skill logic lives here; callers pass a context dict and
+# receive it back modified.
+
+# ---- Movement Override Stubs (A4 — implement in M9) ----
+
+# Returns an override move cost if a skill applies, -1 if no override active.
+# Checked by GridManager.get_move_cost() before the terrain table.
+# Skills: Acrobat (all non-wall → 1), Swiftfoot (penalized terrain → 1), Nimble (Cat).
+func get_move_cost_override(_unit: Node, _terrain: String) -> int:
+	return -1  # [STUB — implement in M9]
+
+
+# Returns true if the unit has the Pass skill (Trickster occult), allowing
+# movement through enemy-occupied tiles (but still can't end turn on them).
+func can_pass_through_enemies(_unit: Node) -> bool:
+	return false  # [STUB — implement in M9]
+
+
+# Returns true if the unit has the Phasing skill (Sage promotion), allowing
+# movement through wall tiles once per turn.
+func can_phase_through(_unit: Node, _terrain: String) -> bool:
+	return false  # [STUB — implement in M9]
 
 # Called at trigger points (on_combat_start, passive, on_damaged, start_of_turn, etc.)
 # Iterates the unit's skill list and fires every matching skill.

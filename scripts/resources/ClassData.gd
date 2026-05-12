@@ -34,3 +34,18 @@ class_name ClassData extends Resource
 
 # [PLACEHOLDER] links to sprite sheet row
 @export var sprite_id: String = ""
+
+# ── Laguz gauge parameters (all default to 0/false/"" for Beorc — safe to ignore) ──
+@export var is_laguz: bool = false
+@export var max_shift_gauge: int = 0
+@export var shift_gauge_start: int = 0
+@export var shift_gain_per_turn_humanoid: int = 0
+@export var shift_gain_per_turn_animal: int = 0
+@export var shift_gain_per_combat_humanoid: int = 0
+@export var shift_gain_per_combat_animal: int = 0
+# +50% stats in animal form for standard Laguz; reduced to +25% with Feral Instincts
+@export var animal_stat_bonus_pct: float = 0.5
+# "fang"|"claw"|"beak"|"talon" etc. Empty string for all Beorc classes.
+@export var natural_weapon_type: String = ""
+# CON increases ~75% in animal form
+@export var animal_con_bonus_pct: float = 0.75

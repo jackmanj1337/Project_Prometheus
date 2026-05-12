@@ -13,20 +13,29 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-10)
+## Status Snapshot (last updated 2026-05-12)
 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 — Project Setup | ✅ Complete | project.godot, autoloads, folder structure, .gitignore |
-| M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files (classes, weapons, items, skills, roster, enemies, map_001) |
-| M2 — Grid and Map Rendering | ✅ Complete | TileSets via tool script, GridManager (Dijkstra + pathfinding), MapCursor, GameMap.tscn, map_001 data-driven paint |
-| M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap unit spawning, TurnManager, MapCursor selection |
-| M4 — Combat System | ⏳ Next | CombatResolver, SkillHandler, weapon durability rules, EXP/wEXP awards, staff/item use |
+| M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files; Amendment A1 fields added |
+| Amendment A1 — Data Layer | ⏳ Pending | New fields in code; ConditionManager stub created; needs autoload registration |
+| M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap.tscn; Amendment A4 hooks added |
+| Amendment A4 — Grid System | ✅ Code done | Skill override stubs in GridManager + SkillHandler; can_end_on_tile() added |
+| M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap, TurnManager, MapCursor |
+| Amendment A2 — Unit Script | ✅ Code done | get_effective_stat(), modifier lifecycle, has_skill(); combat stats refactored |
+| M4 — Combat System | ⏳ Next | CombatResolver, SkillHandler effects; Amendment A3 applies here |
+| Amendment A3 — Combat Resolver | ⏳ Pending | Context pipeline + multi-strike; complete alongside M4 |
 | M5 — HUD and UI | — | After M4 |
 | M6 — Enemy AI | — | After M5 |
 | M7 — Full MVP Playthrough | — | Integration of all above |
 
 **Tests:** 130 passing across 6 suites. Run `./run_tests.sh`.
+
+> **Note on Amendments:** A1–A4 are architectural extensions from `GDD_updates.md` that
+> must be in place before or alongside the MVP milestones they modify. Code for A2 and A4
+> is complete. A1 requires manual autoload registration in Godot (see checklist below).
+> A3 is implemented as part of M4.
 
 ---
 
@@ -156,6 +165,37 @@ Create `.tres` resources in `data/weapons/` using `WeaponData`:
 - [ ] `resolve.tres` — trigger = "passive"; effect_id = "resolve"
 - [ ] `miracle.tres` — trigger = "on_damaged"; effect_id = "miracle"
 - [ ] `wrath.tres` — trigger = "passive"; effect_id = "wrath"
+
+### Amendment A1 — Data Layer Extensions
+These fields extend the MVP resource classes for Phase 2 compatibility. Safe defaults
+mean all existing `.tres` files load without changes. **Complete before closing M1.**
+
+#### UnitData.gd
+- [x] Add `active_modifiers: Array[Dictionary] = []` — serializable per-map modifier list
+- [x] Add `skill_use_counters: Dictionary = {}` — per-map skill use tracking
+- [x] Add `damage_taken_this_map: int = 0` — for Vengeance skill (M9)
+- [x] Add `shift_gauge`, `is_shifted`, `shift_profile_id` — Laguz stubs (M12)
+- [x] Update `GameState.take_map_snapshot()` / `_restore_unit_data()` to include new fields
+
+#### ClassData.gd
+- [x] Add Laguz gauge fields (`is_laguz`, `max_shift_gauge`, `shift_gain_*`, etc.) — safe defaults for Beorc
+
+#### WeaponData.gd
+- [x] Add `strikes_per_attack: int = 1` — set to 2 for all Brave weapons
+- [x] Add `is_natural_weapon: bool = false` — for Laguz natural weapons (M12)
+
+#### SkillData.gd
+- [x] Add `max_uses_per_map: int = -1`
+- [x] Add `max_uses_per_combat: int = -1`
+- [x] Update trigger docstring with 5 new Phase 2 trigger strings
+
+#### ConditionManager (stub autoload)
+- [x] Create `scripts/autoloads/ConditionManager.gd` with stub methods (all no-ops)
+- [ ] **ACTION REQUIRED:** Register `ConditionManager` as autoload in Godot Project Settings
+      (after `DataManager`). The file exists; only the project.godot registration is pending.
+- [ ] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
+
+---
 
 ### Default Roster Files (6 UnitData files)
 Create `data/roster/default/` and add one `UnitData` `.tres` per unit per GDD_03.
@@ -298,6 +338,45 @@ phase (enemies stand still for now). New player phase restores unit colors.
 - [ ] Verify: unit state transitions work correctly (READY → MOVED → DONE)
 - [ ] Verify: undo move works (cancel after moving returns unit)
 
+### Amendment A2 — Unit Script (modifier-aware stats)
+These extend `Unit.gd` so all combat stat reads go through the modifier system.
+**Complete before M4 begins.**
+
+- [x] Add `get_effective_stat(stat_name)` — base stat + active_modifiers sum, clamped ≥ 0
+- [x] Add `has_skill(skill_id)` — convenience check on data.skills array
+- [x] Add `get_skill_uses_remaining()` and `consume_skill_use()` — per-map skill limits
+- [x] Add `add_modifier()`, `remove_modifier()`, `tick_modifiers()`, `clear_combat_modifiers()`, `reset_map_state()`
+- [x] Refactor `battle_speed()` to use `get_effective_stat()`
+- [x] Refactor `accuracy()` to use `get_effective_stat()`
+- [x] Refactor `dodge()` to use `get_effective_stat()`
+- [x] Refactor `damage()` to use `get_effective_stat()`
+- [x] Refactor `crit_rate()` to use `get_effective_stat()`
+- [x] Refactor `crit_avoid()` to use `get_effective_stat()`
+- [ ] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each player unit and each enemy turn start
+- [ ] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` once per full round
+- [ ] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
+- [ ] Hook `reset_map_state()` into `GameMap._ready()` for all units before snapshot
+- [ ] Verify: existing unit stat tests still pass (all 130 green ✅)
+- [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("strength")` return base + 5
+- [ ] Verify: a "turn" duration modifier expires after the correct number of turns
+
+### Amendment A4 — Grid System (movement skill hooks)
+These add skill override entry points to `GridManager` so movement skills can be added
+in M9 without touching pathfinding core logic. **Complete before M4 begins.**
+
+- [x] Add `SkillHandler.get_move_cost_override()` stub (returns -1)
+- [x] Add `SkillHandler.can_pass_through_enemies()` stub (returns false)
+- [x] Add `SkillHandler.can_phase_through()` stub (returns false)
+- [x] Modify `GridManager.get_move_cost()` to call `get_move_cost_override()` first
+- [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` and `can_phase_through()`
+- [x] Add `GridManager.can_end_on_tile()` — separates "can move through" from "can stop here"
+- [ ] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
+- [ ] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before committing move
+- [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass (✅)
+- [ ] Verify: path through an ally tile is still walkable but not stoppable
+
+---
+
 ### MapCursor Unit Selection Logic
 - [ ] Implement `_on_confirm()` — select unit if cursor on player unit tile
 - [ ] Show movement/attack overlays on selection
@@ -314,6 +393,23 @@ Weapons lose durability. EXP and wEXP are awarded. Units die and are removed.
 **Test:** Manually verify combat math against handbook formulas. Attack a unit at
 weapon triangle advantage and disadvantage. Kill an enemy. Level up a unit.
 Equip an archer and verify they cannot attack adjacent targets.
+
+### Amendment A3 — Combat Resolver (context pipeline)
+Restructures `CombatResolver` around a modifier pipeline so all future skill effects
+plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
+
+- [ ] Add `_build_combat_context(attacker, defender)` — constructs initial context dict with zero mods
+- [ ] Add `_collect_combat_modifiers(context)` — applies UnitData modifiers + calls SkillHandler aura triggers
+- [ ] Add `_get_effectiveness_multiplier(weapon, target, context)` — returns 1.0/3.0/4.0 with Nullify check
+- [ ] Refactor `resolve_combat()` to use context dict, multi-strike loop, and vantage flag
+- [ ] Refactor `preview_combat()` to use same context pipeline (no RNG, no side effects)
+- [ ] Add `_resolve_single_attack()` extracting per-hit logic from the exchange loop
+- [ ] Add `_skill_available()` and `_consume_skill()` helpers
+- [ ] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
+- [ ] Ensure `clear_combat_modifiers()` called on both units after `resolve_combat()` returns
+- [ ] Verify: Brave Sword (strikes_per_attack = 2) fires two attacker strikes before counter
+- [ ] Verify: effectiveness multiplier (e.g. iron bow vs flying unit) triples Mt correctly
+- [ ] Verify: `preview_combat()` returns identical base numbers to `resolve_combat()` (pre-RNG)
 
 ### CombatResolver
 - [ ] Create `scripts/core/CombatResolver.gd`

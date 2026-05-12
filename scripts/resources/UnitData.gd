@@ -44,3 +44,25 @@ class_name UnitData extends Resource
 @export var ai_profile: String = "basic"
 # True for the 6 auto-generated MVP starter units
 @export var is_default_roster: bool = false
+
+# ── Phase 2 runtime state ─────────────────────────────────────────────────────
+# All default to safe empty/zero values. Beorc units never write to the Laguz fields.
+# These are serialized for mid-battle suspend saves (no scene tree traversal needed).
+
+# Active temporary stat modifiers. Each entry:
+#   { "stat": String, "delta": int, "source": String, "duration": int,
+#     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
+# "duration" = -1 means never auto-removed. "permanent" type is never decremented.
+@export var active_modifiers: Array[Dictionary] = []
+
+# Per-map use counters for limited skills. Keys = effect_id, values = times used.
+# Reset to {} by Unit.reset_map_state() at map load.
+@export var skill_use_counters: Dictionary = {}
+
+# Cumulative damage taken this map (used by the Vengeance skill — M9).
+@export var damage_taken_this_map: int = 0
+
+# Laguz shift gauge — safe for all Beorc units (ignored until M12).
+@export var shift_gauge: int = 0
+@export var is_shifted: bool = false
+@export var shift_profile_id: String = ""

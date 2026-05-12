@@ -79,8 +79,18 @@ func tile_to_world(tile: Vector2i) -> Vector2:
 
 
 # Move cost factors in unit special qualities per GDD_02 desert rule.
+# Checks SkillHandler for movement overrides (Acrobat, Pass, Nimble) first.
 func get_move_cost(tile: Vector2i, unit: Node) -> int:
 	var terrain := get_terrain_at(tile)
+
+	# Skill override check (stubs return -1 until M9 skills are implemented)
+	if unit != null and is_inside_tree():
+		var sh := get_node_or_null("/root/SkillHandler")
+		if sh:
+			var override: int = sh.get_move_cost_override(unit, terrain)
+			if override != -1:
+				return override
+
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 
 	# Desert exception: armoured/mounted cost 3; magic-using line cost 1
@@ -95,19 +105,39 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 	return base
 
 
-# Wall tiles are impassable to all (MVP — flying does not bypass walls per GDD_02).
-# Tiles occupied by enemy units block movement (allies can be passed through).
+# Wall tiles are impassable to all units unless the Phasing skill is active.
+# Enemy-occupied tiles block movement unless the Pass skill is active.
 func is_passable(tile: Vector2i, unit: Node) -> bool:
 	var terrain := get_terrain_at(tile)
 	if terrain == "wall":
+		# Phasing skill (Sage promotion) can pass through walls — stub returns false
+		if unit != null and is_inside_tree():
+			var sh := get_node_or_null("/root/SkillHandler")
+			if sh and sh.can_phase_through(unit, terrain):
+				return true
 		return false
 	var occupant := get_unit_at(tile)
 	if occupant != null and occupant != unit:
 		# Enemy units block; same-team allies can be passed through during movement
 		if unit != null and unit.has_method("get") and "team" in unit and "team" in occupant:
 			if unit.team != occupant.team:
+				# Pass skill (Trickster) allows moving through enemies — stub returns false
+				if is_inside_tree():
+					var sh := get_node_or_null("/root/SkillHandler")
+					if sh and sh.can_pass_through_enemies(unit):
+						return true
 				return false
 	return true
+
+
+# Separate from is_passable: can the unit END their move on this tile?
+# A unit with Pass can move through enemy tiles but cannot stop on one.
+func can_end_on_tile(tile: Vector2i, unit: Node) -> bool:
+	var occupant := get_unit_at(tile)
+	if occupant == null or occupant == unit:
+		return true
+	# Cannot stack on allies OR end on enemies (even with Pass)
+	return false
 
 
 # Resolves to GameState.all_units when this node is in the scene tree.
