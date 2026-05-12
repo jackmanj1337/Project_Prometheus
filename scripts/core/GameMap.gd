@@ -27,6 +27,7 @@ const _CHAR_TO_SOURCE := {
 @onready var _cursor: MapCursor = $MapCursor
 @onready var _camera: Camera2D = $Camera2D
 @onready var _turn_manager: TurnManager = $TurnManager
+@onready var _hud: Control = $HUDMainLayer/HUD
 
 var map_data: MapData = null
 
@@ -57,6 +58,9 @@ func _ready() -> void:
 	if gs:
 		gs.map_data = map_data
 		gs.take_map_snapshot()
+	# Wire persistent HUD
+	if _hud and _hud.has_method("setup"):
+		_hud.setup(_grid, _turn_manager)
 	# Kick off the first player phase
 	_turn_manager.start_map(map_data, _grid)
 

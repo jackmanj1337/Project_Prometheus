@@ -1,0 +1,76 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1_hud"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_hud")
+
+[node name="PhaseLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 300.0
+offset_bottom = 36.0
+text = "PLAYER PHASE"
+
+[node name="TurnLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 980.0
+offset_top = 8.0
+offset_right = 1272.0
+offset_bottom = 36.0
+horizontal_alignment = 2
+text = "Turn 1"
+
+[node name="UnitInfoPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 610.0
+offset_right = 308.0
+offset_bottom = 712.0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="UnitInfoPanel"]
+layout_mode = 2
+
+[node name="UnitName" type="Label" parent="UnitInfoPanel/VBox"]
+layout_mode = 2
+text = "Name"
+
+[node name="UnitClass" type="Label" parent="UnitInfoPanel/VBox"]
+layout_mode = 2
+text = "Class"
+
+[node name="UnitHP" type="Label" parent="UnitInfoPanel/VBox"]
+layout_mode = 2
+text = "HP -- / --"
+
+[node name="UnitWeapon" type="Label" parent="UnitInfoPanel/VBox"]
+layout_mode = 2
+text = "--"
+
+[node name="TerrainInfoPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 1100.0
+offset_top = 632.0
+offset_right = 1272.0
+offset_bottom = 712.0
+
+[node name="VBox" type="VBoxContainer" parent="TerrainInfoPanel"]
+layout_mode = 2
+
+[node name="TerrainName" type="Label" parent="TerrainInfoPanel/VBox"]
+layout_mode = 2
+text = "Plain"
+
+[node name="TerrainDef" type="Label" parent="TerrainInfoPanel/VBox"]
+layout_mode = 2
+text = "DEF  +0"
+
+[node name="TerrainDodge" type="Label" parent="TerrainInfoPanel/VBox"]
+layout_mode = 2
+text = "DODGE +0"

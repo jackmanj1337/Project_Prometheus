@@ -2,6 +2,8 @@ class_name TurnManager extends Node
 # Authority on phase progression and per-unit action state. The cursor and
 # action menu read from here to know what's selectable and when input is locked.
 
+signal turn_changed(turn_number: int)
+
 enum UnitState { READY, MOVED, DONE }
 
 # Node -> UnitState
@@ -79,6 +81,7 @@ func end_player_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.turn_number += 1
+		turn_changed.emit(gs.turn_number)
 	start_enemy_phase()
 
 
