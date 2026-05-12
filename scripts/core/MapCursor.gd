@@ -40,6 +40,10 @@ var _held_initial: bool = true
 # Typed as Node so the script compiles in headless test mode where class_name lookup fails.
 @export var action_menu: Node = null
 @export var item_menu: Node = null
+@export var map_menu: Node = null
+
+# Whether the danger zone overlay is currently displayed
+var _danger_zone_shown: bool = false
 
 
 func _ready() -> void:
@@ -49,6 +53,9 @@ func _ready() -> void:
 	if item_menu:
 		item_menu.item_chosen.connect(_on_item_chosen)
 		item_menu.cancelled.connect(_on_item_menu_cancelled)
+	if map_menu:
+		map_menu.end_turn_requested.connect(_on_end_turn_requested)
+		map_menu.menu_closed.connect(_on_map_menu_closed)
 	# Lock cursor during enemy phase; unlock when player phase starts
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -104,6 +111,10 @@ func _handle_key_press(event: InputEventKey) -> void:
 		_on_confirm()
 	elif event.is_action_pressed("cancel"):
 		_on_cancel()
+	elif event.is_action_pressed("next_unit"):
+		_cycle_to_next_unit()
+	elif event.is_action_pressed("open_menu") and _state == "free":
+		_open_map_menu()
 
 
 func _direction_from_event(event: InputEventKey) -> Vector2i:
@@ -114,16 +125,36 @@ func _direction_from_event(event: InputEventKey) -> Vector2i:
 	return Vector2i.ZERO
 
 
-# Reset key-repeat when the held key is released
+# Reset key-repeat when the held key is released; handle danger zone hold
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and not event.pressed:
-		var dir := Vector2i.ZERO
-		if event.is_action_released("cursor_up"):    dir = Vector2i(0, -1)
-		elif event.is_action_released("cursor_down"):  dir = Vector2i(0, 1)
-		elif event.is_action_released("cursor_left"):  dir = Vector2i(-1, 0)
-		elif event.is_action_released("cursor_right"): dir = Vector2i(1, 0)
-		if dir != Vector2i.ZERO and _held_dir == dir:
-			_held_dir = Vector2i.ZERO
+	if event is InputEventKey:
+		if not event.pressed:
+			var dir := Vector2i.ZERO
+			if event.is_action_released("cursor_up"):    dir = Vector2i(0, -1)
+			elif event.is_action_released("cursor_down"):  dir = Vector2i(0, 1)
+			elif event.is_action_released("cursor_left"):  dir = Vector2i(-1, 0)
+			elif event.is_action_released("cursor_right"): dir = Vector2i(1, 0)
+			if dir != Vector2i.ZERO and _held_dir == dir:
+				_held_dir = Vector2i.ZERO
+			if event.is_action_released("show_danger_zone") and _danger_zone_shown:
+				if _grid != null:
+					_grid.clear_overlays()
+				_danger_zone_shown = false
+		elif event.pressed and not event.echo:
+			if event.is_action_pressed("show_danger_zone") and _state == "free":
+				if _grid != null:
+					_grid.show_enemy_danger_zone()
+					_danger_zone_shown = true
+	elif event is InputEventMouseButton:
+		if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
+			if not _danger_zone_shown:
+				if _grid != null:
+					_grid.show_enemy_danger_zone()
+					_danger_zone_shown = true
+		elif not event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE and _danger_zone_shown:
+			if _grid != null:
+				_grid.clear_overlays()
+			_danger_zone_shown = false
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
@@ -435,6 +466,45 @@ func _finish_action() -> void:
 	_attack_tiles.clear()
 	_heal_tiles.clear()
 	_state = "free"
+
+
+# Cycles cursor to the next READY player unit (Tab key). Wraps around.
+func _cycle_to_next_unit() -> void:
+	if _state != "free" or _turn == null:
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	var ready_units: Array[Node] = []
+	for u in gs.get_living_player_units():
+		if _turn.get_unit_state(u) == TurnManager.UnitState.READY:
+			ready_units.append(u)
+	if ready_units.is_empty():
+		return
+	# Find the next unit after the one currently under the cursor
+	var current_idx: int = -1
+	for i in ready_units.size():
+		if ready_units[i].tile_position == current_tile:
+			current_idx = i
+			break
+	var next_unit: Node = ready_units[(current_idx + 1) % ready_units.size()]
+	_set_tile(next_unit.tile_position)
+
+
+func _open_map_menu() -> void:
+	if map_menu == null:
+		return
+	lock()
+	map_menu.open()
+
+
+func _on_end_turn_requested() -> void:
+	if _turn != null:
+		_turn.end_player_phase()
+
+
+func _on_map_menu_closed() -> void:
+	unlock()
 
 
 func lock() -> void:
