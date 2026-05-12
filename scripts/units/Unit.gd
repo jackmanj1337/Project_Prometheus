@@ -348,8 +348,10 @@ func handle_death() -> void:
 	if data == null:
 		return
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	if gs and gs.permadeath_enabled:
-		data.is_incapacitated = true
+	if gs:
+		if gs.permadeath_enabled:
+			data.is_incapacitated = true
+		gs.unregister_unit(self)
 	var bus := _bus()
 	if bus:
 		bus.unit_died.emit(self)

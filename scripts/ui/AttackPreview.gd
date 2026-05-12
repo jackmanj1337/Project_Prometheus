@@ -24,14 +24,14 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		return
 	var p: Dictionary = cr.preview_combat(attacker, defender)
 
-	_atk_name.text = attacker.unit_name if "unit_name" in attacker else "???"
-	_atk_hp.text = "HP %d" % (attacker.current_hp if "current_hp" in attacker else 0)
+	_atk_name.text = attacker.data.unit_name if attacker.data else "???"
+	_atk_hp.text = "HP %d" % (attacker.data.hp if attacker.data else 0)
 	_atk_dmg.text = "Dmg  %d×%d" % [p["attacker_damage"], p["attacker_attacks"]]
 	_atk_hit.text = "Hit  %d%%" % p["attacker_hit"]
 	_atk_crit.text = "Crit %d%%" % p["attacker_crit"]
 
-	_def_name.text = defender.unit_name if "unit_name" in defender else "???"
-	_def_hp.text = "HP %d" % (defender.current_hp if "current_hp" in defender else 0)
+	_def_name.text = defender.data.unit_name if defender.data else "???"
+	_def_hp.text = "HP %d" % (defender.data.hp if defender.data else 0)
 	if p["can_counter"]:
 		_def_dmg.text = "Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]]
 		_def_hit.text = "Hit  %d%%" % p["defender_hit"]

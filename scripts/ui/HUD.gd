@@ -58,16 +58,14 @@ func _on_cursor_moved(tile: Vector2i) -> void:
 
 
 func _show_unit(unit: Node) -> void:
-	if unit == null:
+	if unit == null or unit.data == null:
 		_unit_panel.hide()
 		return
-	_unit_name.text = unit.unit_name if "unit_name" in unit else "???"
-	_unit_class.text = unit.unit_class if "unit_class" in unit else ""
-	var hp: int = unit.current_hp if "current_hp" in unit else 0
-	var max_hp: int = unit.max_hp() if unit.has_method("max_hp") else 0
-	_unit_hp.text = "HP %d / %d" % [hp, max_hp]
+	_unit_name.text = unit.data.unit_name
+	_unit_class.text = unit.data.class_id
+	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]
 	var wpn := unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
-	_unit_weapon.text = wpn.weapon_name if wpn != null else "--"
+	_unit_weapon.text = wpn.display_name if wpn != null else "--"
 	_unit_panel.show()
 
 

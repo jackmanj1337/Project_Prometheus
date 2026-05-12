@@ -58,7 +58,7 @@ func set_phase(new_phase: Phase) -> void:
 func get_living_player_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in player_units:
-		if u.data.hp > 0:
+		if is_instance_valid(u) and u.data.hp > 0:
 			result.append(u)
 	return result
 
@@ -66,7 +66,7 @@ func get_living_player_units() -> Array[Node]:
 func get_living_enemy_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in enemy_units:
-		if u.data.hp > 0:
+		if is_instance_valid(u) and u.data.hp > 0:
 			result.append(u)
 	return result
 
@@ -105,7 +105,7 @@ func load_default_roster() -> void:
 	dir.list_dir_end()
 	files.sort()
 	for f in files:
-		var res: UnitData = load(roster_path + f)
+		var res: UnitData = load(roster_path + f).duplicate(true)
 		if res:
 			player_roster.append(res)
 	print("GameState: loaded %d roster units" % player_roster.size())
@@ -126,7 +126,7 @@ func restore_map_snapshot() -> void:
 		if i < _map_start_snapshot.size():
 			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
 	reset_map_state()
-	get_tree().reload_current_scene()
+	# Caller is responsible for reloading the scene after this returns.
 
 
 func _snapshot_unit_data(data: UnitData) -> Dictionary:

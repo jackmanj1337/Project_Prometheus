@@ -8,6 +8,8 @@ TESTS=(
   test_game_map_scene
   test_unit_stats
   test_unit_selection
+  test_combat
+  test_enemy_ai
 )
 fail_count=0
 for t in "${TESTS[@]}"; do

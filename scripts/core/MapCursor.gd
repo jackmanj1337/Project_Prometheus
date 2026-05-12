@@ -417,9 +417,9 @@ func _execute_staff_heal() -> void:
 		return
 	_grid.clear_overlays()
 	_heal_tiles.clear()
-	# Heal formula: 10 + mag, capped at max_hp (GDD_02)
+	# Heal formula: 10 + mag (GDD_02)
 	var heal_amount: int = 10 + _selected_unit.data.magic
-	target.data.hp = mini(target.data.hp + heal_amount, target.data.max_hp)
+	target.heal(heal_amount)
 	# Consume one staff use and award wEXP
 	_selected_unit.use_weapon_durability()
 	var weapon: WeaponData = _selected_unit.get_equipped_weapon()
@@ -467,9 +467,9 @@ func _apply_item_effect(entry: Dictionary) -> void:
 	var power: int = entry.get("power", 20)
 	match entry.get("effect", ""):
 		"heal_flat":
-			_selected_unit.data.hp = mini(_selected_unit.data.hp + power, _selected_unit.data.max_hp)
+			_selected_unit.heal(power)
 		"heal_full":
-			_selected_unit.data.hp = _selected_unit.data.max_hp
+			_selected_unit.heal(_selected_unit.data.max_hp)
 	entry["uses_remaining"] -= 1
 
 
