@@ -11,8 +11,14 @@ class_name WeaponData extends Resource
 # For staves: 0; healing always lands, no hit roll
 @export var hit: int = 0
 @export var crit: int = 0
-@export var range_min: int = 1
-@export var range_max: int = 1
+
+# Range as formula strings so dynamic ranges (e.g. Physic "MAG/2") work uniformly.
+# Supported: integer literals ("1", "2"), stat/divisor ("MAG/2").
+# Static weapons store integer strings ("1", "2") — the effective value is identical.
+# Always use get_range_min(unit) / get_range_max(unit) instead of reading these directly.
+@export var range_min_formula: String = "1"
+@export var range_max_formula: String = "1"
+
 @export var wt: int = 0
 @export var uses: int = 1
 @export var cost: int = 0
@@ -31,3 +37,42 @@ class_name WeaponData extends Resource
 # True for Laguz natural weapons (Fang/Claw/Beak/Talon). No cost, no uses consumed.
 # Unit.get_equipped_weapon() returns this automatically when unit.data.is_shifted = true.
 @export var is_natural_weapon: bool = false
+
+
+func get_range_min(unit: Node = null) -> int:
+	return _eval_formula(range_min_formula, unit)
+
+
+func get_range_max(unit: Node = null) -> int:
+	return _eval_formula(range_max_formula, unit)
+
+
+# Parses a formula string against the given unit's stats.
+# Supported: integer literals ("1"), stat/divisor ("MAG/2"). Returns 1 on error.
+static func _eval_formula(formula: String, unit: Node) -> int:
+	var f := formula.strip_edges()
+	if f.is_valid_int():
+		return f.to_int()
+	var parts := f.split("/")
+	if parts.size() == 2 and parts[1].strip_edges().is_valid_int():
+		var divisor := parts[1].strip_edges().to_int()
+		if divisor <= 0:
+			return 1
+		return _stat_value(parts[0].strip_edges().to_upper(), unit) / divisor
+	push_warning("WeaponData: unrecognised range formula '%s'" % formula)
+	return 1
+
+
+static func _stat_value(stat_name: String, unit: Node) -> int:
+	if unit == null or not "data" in unit or unit.data == null:
+		return 0
+	match stat_name:
+		"MAG": return unit.data.magic
+		"STR": return unit.data.strength
+		"SKL": return unit.data.skill
+		"LUK": return unit.data.luck
+		"SPD": return unit.data.speed
+		"DEF": return unit.data.defense
+		"RES": return unit.data.resistance
+		"HP":  return unit.data.hp
+	return 0

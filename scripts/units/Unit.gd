@@ -49,6 +49,10 @@ func _apply_initial_state() -> void:
 
 # True if the unit's class has the given quality (per ClassData.special_qualities)
 # OR the unit has been granted it via skill/item. For MVP only class qualities apply.
+# [DEFERRED — Laguz] Beast and Laguz qualities are marked "*" (animal form only) in
+# the GDD. This method does not check is_shifted, so effectiveness checks against
+# "beast" or "dragon" will incorrectly fire in humanoid form. Fix when Laguz shift
+# mechanics are fully implemented.
 func has_quality(quality: String) -> bool:
 	if data == null:
 		return false

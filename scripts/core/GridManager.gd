@@ -280,7 +280,7 @@ func _get_weapon_range(unit: Node) -> Vector2i:
 	var weapon = unit.get_equipped_weapon()
 	if weapon == null:
 		return Vector2i(1, 1)
-	return Vector2i(weapon.range_min, weapon.range_max)
+	return Vector2i(weapon.get_range_min(unit), weapon.get_range_max(unit))
 
 
 # Manhattan-distance ring at distances [range_min, range_max] from a tile.

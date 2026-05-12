@@ -49,6 +49,8 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 		"wrath":      return _apply_wrath(skill, unit, context)
 		"miracle":    return _apply_miracle(skill, unit, context)
 		"stat_bonus": return _apply_stat_bonus(skill, unit, context)
+		"faire":     return _apply_faire(skill, unit, context)
+		"breaker":   return _apply_breaker(skill, unit, context)
 		_:
 			push_warning("SkillHandler: unknown effect_id '%s'" % skill.effect_id)
 	return context
@@ -110,6 +112,30 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var luk: int = unit.data.luck if unit.data else 0
 	if (randi() % 100) < luk:
 		context["damage"] = maxi(1, dmg / 2)
+	return context
+
+
+# +N damage (default 5) when attacking with the weapon type in effect_params.weapon_type.
+func _apply_faire(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	var w: WeaponData = context.get("weapon", null)
+	if w == null:
+		return context
+	if w.weapon_type != skill.effect_params.get("weapon_type", ""):
+		return context
+	context["damage_bonus"] = context.get("damage_bonus", 0) + skill.effect_params.get("bonus", 5)
+	return context
+
+
+# +N hit (default 50) when opponent is wielding the weapon type in effect_params.weapon_type.
+# Note: the matching +50 dodge vs that weapon type (defender side) is deferred — implementing
+# it requires passing defender bonuses into compute_hit_pct, which needs an API change.
+func _apply_breaker(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	var opp_w: WeaponData = context.get("opponent_weapon", null)
+	if opp_w == null:
+		return context
+	if opp_w.weapon_type != skill.effect_params.get("weapon_type", ""):
+		return context
+	context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + skill.effect_params.get("hit", 50)
 	return context
 
 

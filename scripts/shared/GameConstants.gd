@@ -19,6 +19,10 @@ const TAG_HEAL_PLUS_MAG      := "heal_10_plus_mag"
 
 # Weapon triangle — single source of truth for DataManager and CombatResolver.
 # "advantage" = +10 Hit +2 Dmg; "disadvantage" = -10 Hit -2 Dmg.
+# ID collision prevention: weapon IDs and skill effect_ids share the same string namespace
+# in DataManager lookups. Use distinct names when a skill and weapon share a common name.
+# Convention: if a skill effect_id would collide with a weapon id, suffix the weapon id
+# with "_tome" or "_weapon" (e.g. "luna_tome" for the dark tome, "luna" for the skill).
 const WEAPON_TRIANGLE: Dictionary = {
 	"sword":   {"axe": "advantage",    "lance": "disadvantage"},
 	"axe":     {"lance": "advantage",  "sword": "disadvantage"},

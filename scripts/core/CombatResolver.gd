@@ -119,7 +119,7 @@ func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool:
 		return false
 	var dist: int = absi(defender.tile_position.x - attacker_tile.x) \
 		+ absi(defender.tile_position.y - attacker_tile.y)
-	return dist >= w.range_min and dist <= w.range_max
+	return dist >= w.get_range_min(defender) and dist <= w.get_range_max(defender)
 
 
 # Returns the unit with a follow-up attack (battle speed diff ≥ 4), or null.
@@ -151,16 +151,18 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var dw: WeaponData = defender.get_equipped_weapon()
 	var can_counter := can_counterattack(defender, attacker.tile_position)
 	var follow_up := get_follow_up_attacker(attacker, defender)
+	var atk_strikes: int = aw.strikes_per_attack if aw else 1
+	var def_strikes: int = dw.strikes_per_attack if dw else 1
 	return {
 		"attacker_hit":     compute_hit_pct(attacker, defender, aw),
 		"attacker_damage":  compute_damage(attacker, defender, aw),
 		"attacker_crit":    compute_crit_pct(attacker, defender, aw),
-		"attacker_attacks": 2 if follow_up == attacker else 1,
+		"attacker_attacks": (2 if follow_up == attacker else 1) * atk_strikes,
 		"can_counter":      can_counter,
 		"defender_hit":     compute_hit_pct(defender, attacker, dw) if can_counter else 0,
 		"defender_damage":  compute_damage(defender, attacker, dw) if can_counter else 0,
 		"defender_crit":    compute_crit_pct(defender, attacker, dw) if can_counter else 0,
-		"defender_attacks": (2 if follow_up == defender else 1) if can_counter else 0,
+		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
 		"attacker_weapon":  aw,
 		"defender_weapon":  dw,
 	}
@@ -172,12 +174,15 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 # Returns dict with accuracy_bonus, damage_bonus, crit_bonus.
 func _get_skill_bonuses(unit: Node, weapon: WeaponData, context: Dictionary) -> Dictionary:
 	var sh: Node = get_node_or_null("/root/SkillHandler")
+	var is_attacker: bool = (unit == context.get("attacker"))
+	# Pass opponent weapon so Breaker skills know what they're fighting against.
+	var opponent: Node = context.get("defender") if is_attacker else context.get("attacker")
+	var opp_w: WeaponData = opponent.get_equipped_weapon() \
+		if opponent and opponent.has_method("get_equipped_weapon") else null
 	var bonuses := {"accuracy_bonus": 0, "damage_bonus": 0, "crit_bonus": 0,
-		"weapon": weapon, "unit": unit}
+		"weapon": weapon, "unit": unit, "opponent_weapon": opp_w}
 	if sh == null:
 		return bonuses
-	# Check which unit this is so we know which blocked flag to honour
-	var is_attacker: bool = (unit == context.get("attacker"))
 	var blocked_key := "attacker_skills_blocked" if is_attacker else "defender_skills_blocked"
 	if context.get(blocked_key, false):
 		return bonuses
@@ -188,6 +193,20 @@ func _get_skill_bonuses(unit: Node, weapon: WeaponData, context: Dictionary) -> 
 func _resolve_one_attack(atk: Node, def_unit: Node, context: Dictionary) -> Dictionary:
 	var weapon: WeaponData = atk.get_equipped_weapon()
 	var sk_bonus := _get_skill_bonuses(atk, weapon, context)
+
+	# Merge aura bonuses stored in context by _apply_aura_bonuses().
+	# is_main_atk = true when atk is the initiating attacker (not the counter-attacker).
+	var is_main_atk: bool = (atk == context.get("attacker"))
+	sk_bonus["accuracy_bonus"] += context.get("attacker_aura_hit", 0) if is_main_atk \
+		else context.get("defender_aura_hit", 0)
+	# Defending unit's dodge aura is subtracted from the current attacker's accuracy.
+	sk_bonus["accuracy_bonus"] -= context.get("defender_aura_dodge", 0) if is_main_atk \
+		else context.get("attacker_aura_dodge", 0)
+	sk_bonus["damage_bonus"] += context.get("attacker_aura_damage", 0) if is_main_atk \
+		else context.get("defender_aura_damage", 0)
+	sk_bonus["crit_bonus"] += context.get("attacker_aura_crit", 0) if is_main_atk \
+		else context.get("defender_aura_crit", 0)
+
 	var hit_pct  := compute_hit_pct(atk, def_unit, weapon, sk_bonus)
 	var crit_pct := compute_crit_pct(atk, def_unit, weapon, sk_bonus)
 	var base_dmg := compute_damage(atk, def_unit, weapon, sk_bonus)
@@ -231,18 +250,31 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var can_counter: bool    = can_counterattack(defender, attacker.tile_position)
 	var follow_up: Node      = get_follow_up_attacker(attacker, defender)
 
+	# --- Aura skills (Charm, Anathema, Daunt) from nearby units ---
+	_apply_aura_bonuses(attacker, defender, context)
+
 	# --- Build attack sequence (all upfront per GDD_02) ---
-	# Vantage: if defender has it and is the vantage_unit, they go first
+	# Brave weapons fire strikes_per_attack times before the other side responds.
+	# Vantage: if defender has it and is the vantage_unit, they go first.
 	var seq_atk:  Array[Node] = []
 	var seq_def:  Array[Node] = []
 
+	var aw: WeaponData = attacker.get_equipped_weapon()
+	var dw: WeaponData = defender.get_equipped_weapon() if can_counter else null
+	var atk_strikes: int = aw.strikes_per_attack if aw else 1
+	var def_strikes: int = dw.strikes_per_attack if dw else 1
+
 	if vantage_unit == defender and can_counter:
-		seq_atk.append(defender);  seq_def.append(attacker)
-		seq_atk.append(attacker);  seq_def.append(defender)
-	else:
-		seq_atk.append(attacker);  seq_def.append(defender)
-		if can_counter:
+		for _i in def_strikes:
 			seq_atk.append(defender); seq_def.append(attacker)
+		for _i in atk_strikes:
+			seq_atk.append(attacker); seq_def.append(defender)
+	else:
+		for _i in atk_strikes:
+			seq_atk.append(attacker); seq_def.append(defender)
+		if can_counter:
+			for _i in def_strikes:
+				seq_atk.append(defender); seq_def.append(attacker)
 
 	if follow_up != null:
 		seq_atk.append(follow_up)
@@ -339,3 +371,63 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)
+
+
+# ---- Aura Helpers ----
+
+func _manhattan(a: Vector2i, b: Vector2i) -> int:
+	return absi(a.x - b.x) + absi(a.y - b.y)
+
+
+# Scans all living units for aura skills and accumulates their effects into
+# the main combat context. Keys written: attacker_aura_hit, attacker_aura_dodge,
+# attacker_aura_damage, attacker_aura_crit (and defender_ equivalents).
+# Aura logic lives here rather than SkillHandler because it requires direct
+# access to both combatants and the tile distances simultaneously.
+func _apply_aura_bonuses(attacker: Node, defender: Node, context: Dictionary) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	var dm := get_node_or_null("/root/DataManager")
+	if gs == null or dm == null:
+		return
+	for u in gs.all_units:
+		if not is_instance_valid(u) or u.data == null or u.data.hp <= 0:
+			continue
+		if u == attacker or u == defender:
+			continue
+		var d_atk := _manhattan(u.tile_position, attacker.tile_position)
+		var d_def := _manhattan(u.tile_position, defender.tile_position)
+		for skill_id in u.data.skills:
+			var skill: SkillData = dm.get_skill(skill_id)
+			if skill == null or skill.trigger != "aura":
+				continue
+			var radius: int = skill.effect_params.get("radius", 3)
+			_apply_one_aura(skill, u, attacker, defender, d_atk, d_def, radius, context)
+
+
+func _apply_one_aura(skill: SkillData, u: Node, attacker: Node, defender: Node,
+		d_atk: int, d_def: int, radius: int, context: Dictionary) -> void:
+	match skill.effect_id:
+		"charm":
+			# Allies within radius get +10 hit and +10 dodge during combat.
+			if u.team == attacker.team and d_atk <= radius:
+				context["attacker_aura_hit"]   = context.get("attacker_aura_hit", 0) + 10
+				context["attacker_aura_dodge"] = context.get("attacker_aura_dodge", 0) + 10
+			if u.team == defender.team and d_def <= radius:
+				context["defender_aura_hit"]   = context.get("defender_aura_hit", 0) + 10
+				context["defender_aura_dodge"] = context.get("defender_aura_dodge", 0) + 10
+		"anathema":
+			# Enemies within radius suffer -10 hit and -10 dodge during combat.
+			if u.team != attacker.team and d_atk <= radius:
+				context["attacker_aura_hit"]   = context.get("attacker_aura_hit", 0) - 10
+				context["attacker_aura_dodge"] = context.get("attacker_aura_dodge", 0) - 10
+			if u.team != defender.team and d_def <= radius:
+				context["defender_aura_hit"]   = context.get("defender_aura_hit", 0) - 10
+				context["defender_aura_dodge"] = context.get("defender_aura_dodge", 0) - 10
+		"daunt":
+			# Enemies within radius suffer -10 hit and -10 crit during combat.
+			if u.team != attacker.team and d_atk <= radius:
+				context["attacker_aura_hit"]  = context.get("attacker_aura_hit", 0) - 10
+				context["attacker_aura_crit"] = context.get("attacker_aura_crit", 0) - 10
+			if u.team != defender.team and d_def <= radius:
+				context["defender_aura_hit"]  = context.get("defender_aura_hit", 0) - 10
+				context["defender_aura_crit"] = context.get("defender_aura_crit", 0) - 10
