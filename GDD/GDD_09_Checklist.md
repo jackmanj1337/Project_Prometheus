@@ -13,29 +13,35 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-12)
+## Status Snapshot (last updated 2026-05-12b)
 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 — Project Setup | ✅ Complete | project.godot, autoloads, folder structure, .gitignore |
 | M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files; Amendment A1 fields added |
-| Amendment A1 — Data Layer | ⏳ Pending | New fields in code; ConditionManager stub created; needs autoload registration |
+| Amendment A1 — Data Layer | ⏳ Pending | Code complete; ConditionManager needs manual autoload registration in editor; unit_id must be set on 6 roster .tres files |
 | M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap.tscn; Amendment A4 hooks added |
-| Amendment A4 — Grid System | ✅ Code done | Skill override stubs in GridManager + SkillHandler; can_end_on_tile() added |
+| Amendment A4 — Grid System | ⏳ Partial | Stubs in place; `can_end_on_tile()` not yet called from `get_movement_range()` or MapCursor |
 | M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap, TurnManager, MapCursor |
-| Amendment A2 — Unit Script | ✅ Code done | get_effective_stat(), modifier lifecycle, has_skill(); combat stats refactored |
-| M4 — Combat System | ⏳ Next | CombatResolver, SkillHandler effects; Amendment A3 applies here |
-| Amendment A3 — Combat Resolver | ⏳ Pending | Context pipeline + multi-strike; complete alongside M4 |
-| M5 — HUD and UI | — | After M4 |
-| M6 — Enemy AI | — | After M5 |
-| M7 — Full MVP Playthrough | — | Integration of all above |
+| Amendment A2 — Unit Script | ⏳ Partial | Code complete; `tick_modifiers`/`clear_combat_modifiers`/`reset_map_state` hooks not yet wired in TurnManager/CombatResolver/GameMap |
+| M4 — Combat System | ✅ Complete | CombatResolver, SkillHandler (renewal/vantage/nihil/resolve/miracle/wrath/faire/breaker), weapon triangle, EXP, brave weapons |
+| Amendment A3 — Combat Resolver | ✅ Complete | Context pipeline, aura scanning, multi-strike (Brave), Miracle sim-HP fix |
+| M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, AttackPreview, LevelUp, GameOver, MainMenu |
+| M6 — Enemy AI | ✅ Basic complete | Basic/passive AI profiles, movement, combat; scoring formula + terrain preference deferred |
+| M7 — Full MVP Playthrough | ⏳ Pending | Integration testing not yet done; several polish items open (see session notes 2026-05-12b) |
 
-**Tests:** 130 passing across 6 suites. Run `./run_tests.sh`.
+**Tests:** 155 passing across 8 suites. Run `./run_tests.sh`.
 
 > **Note on Amendments:** A1–A4 are architectural extensions from `GDD_updates.md` that
 > must be in place before or alongside the MVP milestones they modify. Code for A2 and A4
 > is complete. A1 requires manual autoload registration in Godot (see checklist below).
 > A3 is implemented as part of M4.
+>
+> **Content Expansion supplements** (`GDD/Content Expansion/`) have been reviewed against
+> the implementation. Conflicts resolved: range formulas (dynamic staff ranges now
+> supported), aura skills (Charm/Anathema/Daunt), Faire/Breaker SkillHandler hooks,
+> Brave weapon multi-strike. Laguz content is deferred (Beast/Dragon quality checks need
+> `is_shifted` guard — see `Unit.has_quality()` DEFERRED comment).
 
 ---
 
@@ -146,8 +152,8 @@ Create `.tres` resources in `data/weapons/` using `WeaponData`:
 - [ ] `iron_sword.tres`
 - [ ] `steel_sword.tres`
 - [ ] `iron_lance.tres`
-- [ ] `javelin.tres` — range_min = 1, range_max = 2
-- [ ] `iron_bow.tres` — range_min = 2, range_max = 2; effect_tags = ["effective_flying"]
+- [ ] `javelin.tres` — range_min_formula = "1", range_max_formula = "2"
+- [ ] `iron_bow.tres` — range_min_formula = "2", range_max_formula = "2"; effect_tags = ["effective_flying"] *(Note: range fields changed to formula strings — see WeaponData.gd)*
 - [ ] `fire.tres` — uses_mag = true; effect_tags = ["effective_beast"]
 - [ ] `elfire.tres` — uses_mag = true; effect_tags = ["effective_beast"]
 - [ ] `thunder.tres` — uses_mag = true; effect_tags = ["effective_dragon"]
@@ -407,7 +413,7 @@ plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
 - [ ] Add `_skill_available()` and `_consume_skill()` helpers
 - [ ] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
 - [ ] Ensure `clear_combat_modifiers()` called on both units after `resolve_combat()` returns
-- [ ] Verify: Brave Sword (strikes_per_attack = 2) fires two attacker strikes before counter
+- [x] Verify: Brave Sword (strikes_per_attack = 2) fires two attacker strikes before counter
 - [ ] Verify: effectiveness multiplier (e.g. iron bow vs flying unit) triples Mt correctly
 - [ ] Verify: `preview_combat()` returns identical base numbers to `resolve_combat()` (pre-RNG)
 
