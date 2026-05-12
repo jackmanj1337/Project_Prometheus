@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/AttackPreview.gd" id="1_preview"]
+
+[node name="AttackPreview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_preview")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 280.0
+offset_top = 620.0
+offset_right = 1000.0
+offset_bottom = 712.0
+
+[node name="HBox" type="HBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="AttackerBox" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+
+[node name="AtkName" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = "Attacker"
+
+[node name="AtkHP" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = "HP 0"
+
+[node name="AtkDmg" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = "Dmg  0×1"
+
+[node name="AtkHit" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = "Hit  0%%"
+
+[node name="AtkCrit" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = "Crit 0%%"
+
+[node name="DefenderBox" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+
+[node name="DefName" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = "Defender"
+
+[node name="DefHP" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = "HP 0"
+
+[node name="DefDmg" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = "No counter"
+
+[node name="DefHit" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = ""
+
+[node name="DefCrit" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = ""

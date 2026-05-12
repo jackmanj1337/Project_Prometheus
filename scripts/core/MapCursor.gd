@@ -41,9 +41,12 @@ var _held_initial: bool = true
 @export var action_menu: Node = null
 @export var item_menu: Node = null
 @export var map_menu: Node = null
+@export var attack_preview: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
+# Target cached while preview is shown
+var _preview_target: Node = null
 
 
 func _ready() -> void:
@@ -219,7 +222,9 @@ func _on_confirm() -> void:
 		"unit_moved":
 			pass  # ActionMenu drives confirms here; fallback in _show_action_menu when menu is null
 		"targeting":
-			_execute_attack()
+			_show_attack_preview()
+		"previewing":
+			_execute_attack_confirmed()
 		"staff_targeting":
 			_execute_staff_heal()
 
@@ -238,6 +243,8 @@ func _on_cancel() -> void:
 			_attack_tiles.clear()
 			_state = "unit_moved"
 			_show_action_menu()
+		"previewing":
+			_dismiss_attack_preview()
 		"staff_targeting":
 			_grid.clear_overlays()
 			_heal_tiles.clear()
@@ -347,10 +354,37 @@ func _begin_attack_targeting() -> void:
 	_state = "targeting"
 
 
-func _execute_attack() -> void:
+func _show_attack_preview() -> void:
 	var target := _grid.get_unit_at(current_tile)
-	# Guard: only proceed if there is an enemy at the cursor
 	if target == null or target.team == "player":
+		return
+	_preview_target = target
+	if attack_preview and attack_preview.has_method("show_preview"):
+		attack_preview.show_preview(_selected_unit, target)
+		_state = "previewing"
+	else:
+		# No preview node wired — resolve immediately
+		_do_resolve_attack(target)
+
+
+func _dismiss_attack_preview() -> void:
+	if attack_preview and attack_preview.has_method("hide_preview"):
+		attack_preview.hide_preview()
+	_preview_target = null
+	_state = "targeting"
+
+
+func _execute_attack_confirmed() -> void:
+	var target: Node = _preview_target
+	if attack_preview and attack_preview.has_method("hide_preview"):
+		attack_preview.hide_preview()
+	_preview_target = null
+	_do_resolve_attack(target)
+
+
+func _do_resolve_attack(target: Node) -> void:
+	if target == null:
+		_finish_action()
 		return
 	_grid.clear_overlays()
 	_attack_tiles.clear()
