@@ -15,18 +15,7 @@ const _ALWAYS_USE_DURABILITY: Array[String] = [
 	"bow", "fire", "thunder", "wind", "light", "dark", "staff",
 ]
 
-# Triangle table embedded here so CombatResolver works without DataManager (e.g. headless tests).
-# Must stay in sync with DataManager._weapon_triangle.
-const _WEAPON_TRIANGLE: Dictionary = {
-	"sword":   {"axe": "advantage",   "lance": "disadvantage"},
-	"axe":     {"lance": "advantage", "sword": "disadvantage"},
-	"lance":   {"sword": "advantage", "axe":   "disadvantage"},
-	"dark":    {"fire": "advantage",  "thunder": "advantage", "wind": "advantage",  "light": "disadvantage"},
-	"light":   {"dark": "advantage",  "fire": "disadvantage", "thunder": "disadvantage", "wind": "disadvantage"},
-	"fire":    {"light": "advantage", "dark": "disadvantage"},
-	"thunder": {"light": "advantage", "dark": "disadvantage"},
-	"wind":    {"light": "advantage", "dark": "disadvantage"},
-}
+# Weapon triangle sourced from GameConstants — single definition shared with DataManager.
 
 
 # ---- Weapon Triangle ----
@@ -36,8 +25,8 @@ func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 		return "neutral"
 	var atype: String = aw.magic_triangle_type if aw.magic_triangle_type != "" else aw.weapon_type
 	var dtype: String = dw.magic_triangle_type if dw.magic_triangle_type != "" else dw.weapon_type
-	if _WEAPON_TRIANGLE.has(atype):
-		var row: Dictionary = _WEAPON_TRIANGLE[atype]
+	if GameConstants.WEAPON_TRIANGLE.has(atype):
+		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[atype]
 		if row.has(dtype):
 			return row[dtype]
 	return "neutral"
@@ -278,10 +267,12 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 
 		if exchange["hit"]:
 			var dmg: int = exchange["damage"]
-			# Miracle: check on_damaged for defender of this exchange
+			# Miracle: check on_damaged for defender of this exchange.
+			# current_sim_hp is the defender's remaining HP in the simulation (not real HP),
+			# so Miracle triggers correctly in multi-hit combats where prior hits landed.
 			if sh and dmg >= d_hp:
 				var miracle_ctx := {"attacker": a, "defender": d, "damage": dmg,
-					"unit": d, "weapon": exchange["weapon"]}
+					"unit": d, "weapon": exchange["weapon"], "current_sim_hp": d_hp}
 				var is_d_attacker: bool = (d == attacker)
 				if not context.get("attacker_skills_blocked" if is_d_attacker else "defender_skills_blocked", false):
 					miracle_ctx = sh.apply_trigger(d, "on_damaged", miracle_ctx)

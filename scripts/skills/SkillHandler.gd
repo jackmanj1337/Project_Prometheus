@@ -103,8 +103,9 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var dmg: int = context.get("damage", 0)
 	if dmg <= 0:
 		return context
-	# Only activates if the hit would be fatal
-	if dmg < unit.data.hp:
+	# Use simulated HP so Miracle fires correctly in multi-hit combats.
+	var sim_hp: int = context.get("current_sim_hp", unit.data.hp)
+	if dmg < sim_hp:
 		return context
 	var luk: int = unit.data.luck if unit.data else 0
 	if (randi() % 100) < luk:

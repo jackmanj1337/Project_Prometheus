@@ -7,18 +7,7 @@ var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
 
-# Weapon triangle: [attacker_type][defender_type] -> "advantage"|"disadvantage"|"neutral"
-# Only advantage/disadvantage pairs are listed; everything else is "neutral".
-const _weapon_triangle: Dictionary = {
-	"sword":   { "axe": "advantage",    "lance": "disadvantage" },
-	"axe":     { "lance": "advantage",  "sword": "disadvantage" },
-	"lance":   { "sword": "advantage",  "axe":   "disadvantage" },
-	"dark":    { "fire":  "advantage",  "thunder": "advantage",  "wind": "advantage",  "light": "disadvantage" },
-	"light":   { "dark":  "advantage",  "fire": "disadvantage",  "thunder": "disadvantage", "wind": "disadvantage" },
-	"fire":    { "light": "advantage",  "dark": "disadvantage" },
-	"thunder": { "light": "advantage",  "dark": "disadvantage" },
-	"wind":    { "light": "advantage",  "dark": "disadvantage" },
-}
+# Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
 
 func _ready() -> void:
@@ -80,8 +69,8 @@ func get_skill(id: String) -> SkillData:
 
 # Returns "advantage", "disadvantage", or "neutral"
 func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String:
-	if _weapon_triangle.has(attacker_type):
-		var row: Dictionary = _weapon_triangle[attacker_type]
+	if GameConstants.WEAPON_TRIANGLE.has(attacker_type):
+		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[attacker_type]
 		if row.has(defender_type):
 			return row[defender_type]
 	return "neutral"

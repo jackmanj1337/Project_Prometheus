@@ -21,3 +21,7 @@ class_name MapData extends Resource
 # Terrain string grid: one String per row, each char a terrain code (see GameMap._CHAR_TO_SOURCE).
 # Height = grid.size(), width = grid[0].length(). Leave empty for scene-painted maps (Phase 2).
 @export var grid: Array[String] = []
+
+# Where to center the camera on map load. Vector2i(-1,-1) = not set; falls back
+# to the centroid of player_start_tiles.
+@export var camera_start_tile: Vector2i = Vector2i(-1, -1)

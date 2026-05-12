@@ -49,8 +49,7 @@ func _ready() -> void:
 	_camera.limit_right = map_width * GameConstants.TILE_SIZE
 	_camera.limit_bottom = map_height * GameConstants.TILE_SIZE
 	_camera.position_smoothing_enabled = false
-	# Center on the player start area (Unit_01 at tile 1,9)
-	_camera.position = _grid.tile_to_world(Vector2i(1, 9))
+	_camera.position = _get_camera_start()
 
 	_spawn_units()
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
@@ -63,6 +62,21 @@ func _ready() -> void:
 		_hud.setup(_grid, _turn_manager)
 	# Kick off the first player phase
 	_turn_manager.start_map(map_data, _grid)
+
+
+# Returns the world-space camera start position. Uses map_data.camera_start_tile when
+# explicitly set; otherwise computes the centroid of player_start_tiles.
+func _get_camera_start() -> Vector2:
+	if map_data.camera_start_tile != Vector2i(-1, -1):
+		return _grid.tile_to_world(map_data.camera_start_tile)
+	if map_data.player_start_tiles.is_empty():
+		return Vector2.ZERO
+	var sum := Vector2i.ZERO
+	for t in map_data.player_start_tiles:
+		sum += t
+	var centroid := Vector2i(sum.x / map_data.player_start_tiles.size(),
+		sum.y / map_data.player_start_tiles.size())
+	return _grid.tile_to_world(centroid)
 
 
 func _load_map_data() -> void:

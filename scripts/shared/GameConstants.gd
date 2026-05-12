@@ -16,3 +16,16 @@ const TAG_EFFECTIVE_MOUNTED  := "effective_mounted"
 const TAG_EFFECTIVE_DRAGON   := "effective_dragon"
 const TAG_EFFECTIVE_BEAST    := "effective_beast"
 const TAG_HEAL_PLUS_MAG      := "heal_10_plus_mag"
+
+# Weapon triangle — single source of truth for DataManager and CombatResolver.
+# "advantage" = +10 Hit +2 Dmg; "disadvantage" = -10 Hit -2 Dmg.
+const WEAPON_TRIANGLE: Dictionary = {
+	"sword":   {"axe": "advantage",    "lance": "disadvantage"},
+	"axe":     {"lance": "advantage",  "sword": "disadvantage"},
+	"lance":   {"sword": "advantage",  "axe":   "disadvantage"},
+	"dark":    {"fire": "advantage",   "thunder": "advantage", "wind": "advantage",  "light": "disadvantage"},
+	"light":   {"dark": "advantage",   "fire": "disadvantage", "thunder": "disadvantage", "wind": "disadvantage"},
+	"fire":    {"light": "advantage",  "dark": "disadvantage"},
+	"thunder": {"light": "advantage",  "dark": "disadvantage"},
+	"wind":    {"light": "advantage",  "dark": "disadvantage"},
+}
