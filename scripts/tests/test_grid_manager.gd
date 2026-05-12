@@ -17,7 +17,7 @@ class MockUnit extends Node:
 	func _init(tile: Vector2i, mov: int = 6, class_id: String = "soldier") -> void:
 		tile_position = tile
 		var d := UnitData.new()
-		d.mov = mov
+		d.movement = mov
 		d.class_id = class_id
 		data = d
 

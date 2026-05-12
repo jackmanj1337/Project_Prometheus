@@ -137,12 +137,12 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"hp": data.hp,
 		"max_hp": data.max_hp,
 		"strength": data.strength,
-		"mag": data.mag,
-		"def": data.def,
-		"res": data.res,
-		"skl": data.skl,
-		"spd": data.spd,
-		"luk": data.luk,
+		"magic": data.magic,
+		"defense": data.defense,
+		"resistance": data.resistance,
+		"skill": data.skill,
+		"speed": data.speed,
+		"luck": data.luck,
 		"exp": data.exp,
 		"level": data.level,
 		"effective_level": data.effective_level,
@@ -164,12 +164,12 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.hp = snap.hp
 	data.max_hp = snap.max_hp
 	data.strength = snap.strength
-	data.mag = snap.mag
-	data.def = snap.def
-	data.res = snap.res
-	data.skl = snap.skl
-	data.spd = snap.spd
-	data.luk = snap.luk
+	data.magic = snap.magic
+	data.defense = snap.defense
+	data.resistance = snap.resistance
+	data.skill = snap.skill
+	data.speed = snap.speed
+	data.luck = snap.luck
 	data.exp = snap.exp
 	data.level = snap.level
 	data.effective_level = snap.effective_level

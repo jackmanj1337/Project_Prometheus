@@ -104,11 +104,11 @@ func compute_damage(attacker: Node, defender: Node,
 	# Effective weapons triple Mt (GBA FE convention: base_stat + mt*3 vs base_stat + mt)
 	var effective := _is_effective(w, defender)
 	var mt: int = w.mt * 3 if effective else w.mt
-	var base_stat: int = attacker.data.mag if w.uses_mag else attacker.data.strength
+	var base_stat: int = attacker.data.magic if w.uses_mag else attacker.data.strength
 	# S-rank +1 damage (from Unit._has_s_rank, replicated here to avoid calling damage())
 	var s_bonus: int = 1 if (attacker.has_method("_has_s_rank") and attacker._has_s_rank(w)) else 0
 	var atk: int = base_stat + mt + s_bonus + _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
-	var def_stat: int = defender.data.res if w.uses_mag else defender.data.def
+	var def_stat: int = defender.data.resistance if w.uses_mag else defender.data.defense
 	var def_bonus: int = defender.get_terrain_def_bonus()
 	return maxi(0, atk - def_stat - def_bonus)
 

@@ -897,16 +897,16 @@ class_name ClassData extends Resource
 @export var display_name: String = ""
 @export var description: String = ""
 @export var base_hp: int = 0
-@export var base_str: int = 0
-@export var base_mag: int = 0
-@export var base_def: int = 0
-@export var base_res: int = 0
-@export var base_skl: int = 0
-@export var base_spd: int = 0
-@export var base_luk: int = 0
-@export var base_mov: int = 0
-@export var base_con: int = 0
-@export var base_los: int = 4
+@export var base_strength: int = 0
+@export var base_magic: int = 0
+@export var base_defense: int = 0
+@export var base_resistance: int = 0
+@export var base_skill: int = 0
+@export var base_speed: int = 0
+@export var base_luck: int = 0
+@export var base_movement: int = 0
+@export var base_constitution: int = 0
+@export var base_line_of_sight: int = 4
 @export var proficiencies: Array[String] = []
     # Weapon type strings for starting proficiencies.
     # First entry starts at D rank; remaining start at E rank.

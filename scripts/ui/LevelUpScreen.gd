@@ -9,8 +9,8 @@ class_name LevelUpScreen extends Control
 
 # Human-readable names for each growth stat (matches Unit._GROWTH_STATS order)
 const _STAT_NAMES: Dictionary = {
-	"hp": "HP", "strength": "Str", "mag": "Mag", "def": "Def",
-	"res": "Res", "skl": "Skl", "spd": "Spd", "luk": "Luk",
+	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
+	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
 }
 
 var _queue: Array[Dictionary] = []

@@ -67,8 +67,8 @@ alone — no scene tree traversal required. **Complete before closing M1.**
 @export var active_modifiers: Array[Dictionary] = []
 # Each entry:
 # {
-#   "stat":          String,  # "str" | "mag" | "def" | "res" | "skl" | "spd"
-#                            # | "luk" | "mov" | "accuracy" | "dodge" | "crit"
+#   "stat":          String,  # "strength" | "magic" | "defense" | "resistance" | "skill" | "speed"
+#                            # | "luck" | "movement" | "accuracy" | "dodge" | "crit"
 #                            # | "crit_avoid" | "damage" | "damage_taken_pct"
 #   "delta":         int,     # positive = buff, negative = debuff
 #   "source":        String,  # effect_id of the skill/item that applied it (for stacking rules)
@@ -213,7 +213,7 @@ the refactor. **Complete before M4 begins.**
 
 func get_effective_stat(stat_name: String) -> int:
     # Returns base stat + sum of all active_modifiers matching stat_name.
-    # For "str", "mag", "def", "res", "skl", "spd", "luk", "mov":
+    # For "strength", "magic", "defense", "resistance", "skill", "speed", "luck", "movement":
     #   reads the corresponding data field, then applies all deltas.
     # Result is clamped to minimum 0 for all stats.
     var base: int = data.get(stat_name)
@@ -281,21 +281,21 @@ func reset_map_state() -> void:
 
 # ── Refactored combat stat functions ─────────────────────────────────────────
 # All existing functions below must be updated to use get_effective_stat()
-# instead of reading data.str, data.spd, etc. directly. Examples:
+# instead of reading data.strength, data.speed, etc. directly. Examples:
 
 func battle_speed(weapon: WeaponData = null) -> int:
     var w: WeaponData = weapon if weapon else get_equipped_weapon()
     if not w:
-        return get_effective_stat("spd")
-    return get_effective_stat("spd") - max(0, w.wt - get_effective_stat("str"))
+        return get_effective_stat("speed")
+    return get_effective_stat("speed") - max(0, w.wt - get_effective_stat("strength"))
 
 func accuracy(weapon: WeaponData = null) -> int:
     var w: WeaponData = weapon if weapon else get_equipped_weapon()
     var hit_bonus: int = w.hit if w else 0
-    return get_effective_stat("skl") * 2 + get_effective_stat("luk") + hit_bonus
+    return get_effective_stat("skill") * 2 + get_effective_stat("luck") + hit_bonus
 
 func dodge() -> int:
-    return battle_speed() * 2 + get_effective_stat("luk")
+    return battle_speed() * 2 + get_effective_stat("luck")
 
 # ... and so on for damage(), crit_rate(), crit_avoid()
 ```
@@ -321,7 +321,7 @@ func dodge() -> int:
 - [ ] Hook `reset_map_state()` into `GameMap._ready()` for all units, *before*
       `GameState.take_map_snapshot()` is called
 - [ ] Verify: all existing unit stat tests still pass after refactor
-- [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("str")` return base + 5
+- [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("strength")` return base + 5
 - [ ] Verify: a "turn" duration modifier expires after the correct number of turns
 - [ ] Verify: `has_skill("nihil")` returns true iff the skill id is in the unit's skills array
 
@@ -814,7 +814,7 @@ or defender, then adds to `context.atk_mod` or `context.def_mod`.
       in that attack. Call `attacker.heal(floor(damage * 0.5))`
 - [ ] Implement `"luna"`: `on_attack` SKL/2%; set `context.flags.attacker_ignores_def = 0.5`
       for that attack
-- [ ] Implement `"ignis"`: `on_attack` SKL/2%; if physical attack, add `floor(attacker.get_effective_stat("mag") / 2)` to damage (vs DEF); if magical, add `floor(STR/2)` to damage (vs RES)
+- [ ] Implement `"ignis"`: `on_attack` SKL/2%; if physical attack, add `floor(attacker.get_effective_stat("magic") / 2)` to damage (vs DEF); if magical, add `floor(STR/2)` to damage (vs RES)
 - [ ] Implement `"aether"`: `on_attack` SKL/2%; simultaneously triggers Sol and Luna effects
 - [ ] Implement `"vengeance"`: `on_attack` SKL/2%; add `floor(attacker.data.damage_taken_this_map / 2)` to damage
 - [ ] Implement `"lifetaker"`: `on_kill`; attacker heals `floor(killing_blow_damage / 2)`
@@ -840,7 +840,7 @@ or defender, then adds to `context.atk_mod` or `context.def_mod`.
       by attacker's level
 - [ ] Implement `"drain"` (Warlock): `on_hit` on crit; attacker heals 50% of crit damage
 - [ ] Implement `"cripple"` (Warrior occult): `on_hit` on crit; apply −50% STR modifier to
-      defender for 2 turns (`add_modifier("str", -floor(str * 0.5), "cripple", 2, "map_turn")`)
+      defender for 2 turns (`add_modifier("strength", -floor(strength * 0.5), "cripple", 2, "map_turn")`)
 - [ ] Implement `"reaper"` (Assassin): `on_combat_apply_modifiers`; if weapon type is
       "knife" or "dagger", double effective SKL for crit calculation
 - [ ] Implement `"nihil"`: `on_combat_start`; set `context.flags.nihil = true` preventing
@@ -886,7 +886,7 @@ or defender, then adds to `context.atk_mod` or `context.def_mod`.
       floors final damage to 0
 - [ ] Implement `"iote_shield"` (Awakening, flying only): `on_combat_start`; set
       `skip_effectiveness = true` for all flying-effective weapons against this unit
-- [ ] Implement `"aegis"` (Mage Knight): passive `get_effective_stat("def")` adds 25% of
+- [ ] Implement `"aegis"` (Mage Knight): passive `get_effective_stat("defense")` adds 25% of
       RES to DEF. Handle as a dynamic modifier in `get_effective_stat()` rather than
       a stored modifier, since RES can change
 - [ ] Implement `"charge"` (Great Knight occult): `on_combat_apply_modifiers`; if unit
@@ -1075,9 +1075,9 @@ func _execute_canto(canto_unit: Node) -> void:
     # Show target selection UI filtered to adjacent DONE allies
     # On confirm per target:
     if canto_unit.has_skill("battle_cry"):
-        target.add_modifier("str", 3, "battle_cry", 1, "combat")
-        target.add_modifier("mag", 3, "battle_cry_mag", 1, "combat")
-        target.add_modifier("spd", 3, "battle_cry_spd", 1, "combat")
+        target.add_modifier("strength", 3, "battle_cry", 1, "combat")
+        target.add_modifier("magic", 3, "battle_cry_mag", 1, "combat")
+        target.add_modifier("speed", 3, "battle_cry_spd", 1, "combat")
     TurnManager.grant_extra_turn(target)
     # After max_targets resolved, canto_unit is set to DONE
     TurnManager.set_unit_state(canto_unit, TurnManager.UnitState.DONE)
@@ -1259,9 +1259,9 @@ errors. Verify every class, weapon, and skill appears correctly in the editor In
 - [ ] Create `ItemData.tres` for other items (Light Rune, Pure Water, Torch)
 - [ ] Implement Light Rune: places a blocked-tile marker like Bastion (see M9) but
       uses 1 of the item's remaining uses per placement
-- [ ] Implement Pure Water and Ward staff: apply `add_modifier("res", 7, "pure_water", -1, "map_turn")`
+- [ ] Implement Pure Water and Ward staff: apply `add_modifier("resistance", 7, "pure_water", -1, "map_turn")`
       where duration counts down by 1 each full round until reaching 0
-- [ ] Implement Torch: `add_modifier("los", 4, "torch", -1, "map_turn")` with same countdown
+- [ ] Implement Torch: `add_modifier("line_of_sight", 4, "torch", -1, "map_turn")` with same countdown
 - [ ] Verify: no item causes a crash if used when the relevant Phase 2 system is not yet
       fully implemented — all stub paths must print a warning and no-op gracefully
 
@@ -1332,14 +1332,14 @@ func _shift(unit: Node) -> void:
     # Applies animal form stat bonuses as active_modifiers with duration = -1, source = "shift".
     var class_data: ClassData = DataManager.get_class_data(unit.data.shift_profile_id)
     var pct: float = class_data.animal_stat_bonus_pct  # 0.5 normally; 0.25 with Feral Instincts
-    for stat in ["str", "mag", "def", "res", "skl", "spd"]:
+    for stat in ["strength", "magic", "defense", "resistance", "skill", "speed"]:
         var base: int = unit.data.get(stat)
         unit.add_modifier(stat, floor(base * pct), "shift", -1, "permanent")
     # CON boost:
-    unit.add_modifier("con", floor(unit.data.con * class_data.animal_con_bonus_pct),
+    unit.add_modifier("constitution", floor(unit.data.constitution * class_data.animal_con_bonus_pct),
                        "shift_con", -1, "permanent")
     # MOV +2:
-    unit.add_modifier("mov", 2, "shift_mov", -1, "permanent")
+    unit.add_modifier("movement", 2, "shift_mov", -1, "permanent")
     unit.data.is_shifted = true
     SkillHandler.apply_trigger(unit, "on_shift", {})
     EventBus.unit_shifted.emit(unit, true)
@@ -1411,7 +1411,7 @@ Add a flag check in `GameMap._ready()` after spawning units.
 ### Laguz-specific skills — full implementation
 
 - [ ] Implement `"feral_instincts"`: reduces bonus to 25% (`pct = 0.25` in `_shift()`);
-      reduces MOV bonus by 1 (`add_modifier("mov", 1, ...)` instead of 2); allows
+      reduces MOV bonus by 1 (`add_modifier("movement", 1, ...)` instead of 2); allows
       shifting at any gauge level; EXP gain is halved while shifted (check in `Unit.add_exp()`)
 - [ ] Implement `"wildheart"`: add 5 to `unit.data.shift_gauge` at map start (can stack;
       check count of "wildheart" in skills array and multiply)
@@ -1441,7 +1441,7 @@ Add a flag check in `GameMap._ready()` after spawning units.
       inflict Stun on defender (requires M8)
 - [ ] Implement `"beastbane"` (Taguel): +50 Hit/Dodge vs Beast, Mounted, or Armoured units
 - [ ] Implement `"stoneborn"` (Taguel occult): `start_of_turn` while shifted; SKL/2%;
-      choose 1 enemy within 2 spaces; apply `add_modifier("def", -4, "stoneborn", 1, "turn")`
+      choose 1 enemy within 2 spaces; apply `add_modifier("defense", -4, "stoneborn", 1, "turn")`
       and same for RES
 - [ ] Implement `"dragonskin"` (Manakete): already specced in M9; activate here
 - [ ] Implement `"wyrmsbane"` (Manakete occult): +50 Hit/Dodge vs Dragon, Mounted, Armoured

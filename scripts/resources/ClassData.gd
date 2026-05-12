@@ -6,16 +6,16 @@ class_name ClassData extends Resource
 
 # Base stats copied to UnitData at unit creation
 @export var base_hp: int = 0
-@export var base_str: int = 0
-@export var base_mag: int = 0
-@export var base_def: int = 0
-@export var base_res: int = 0
-@export var base_skl: int = 0
-@export var base_spd: int = 0
-@export var base_luk: int = 0
-@export var base_mov: int = 0
-@export var base_con: int = 0
-@export var base_los: int = 4
+@export var base_strength: int = 0
+@export var base_magic: int = 0
+@export var base_defense: int = 0
+@export var base_resistance: int = 0
+@export var base_skill: int = 0
+@export var base_speed: int = 0
+@export var base_luck: int = 0
+@export var base_movement: int = 0
+@export var base_constitution: int = 0
+@export var base_line_of_sight: int = 4
 
 # First entry = primary weapon type (starts at D rank); rest start at E rank
 @export var proficiencies: Array[String] = []
@@ -29,7 +29,7 @@ class_name ClassData extends Resource
 @export var promotion_skill: String = ""
 @export var occult_skill: String = ""
 
-# Keys: "hp","strength","mag","def","res","skl","spd","luk" — values 0–100
+# Keys: "hp","strength","magic","defense","resistance","skill","speed","luck" — values 0–100
 @export var growth_rates: Dictionary = {}
 
 # [PLACEHOLDER] links to sprite sheet row

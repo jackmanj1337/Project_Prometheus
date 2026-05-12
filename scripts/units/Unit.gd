@@ -152,7 +152,7 @@ func _get_grid_manager() -> GridManager:
 
 # Returns the base stat value plus the sum of all active_modifiers that target
 # stat_name. stat_name must match a UnitData property name exactly (e.g. "strength",
-# "mag", "spd"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
+# "magic", "speed"). Result is clamped to 0 minimum so negative modifiers can't go below zero.
 func get_effective_stat(stat_name: String) -> int:
 	if data == null:
 		return 0
@@ -256,15 +256,15 @@ func _has_s_rank(weapon: WeaponData) -> bool:
 func battle_speed(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
-		return get_effective_stat("spd")
+		return get_effective_stat("speed")
 	var penalty: int = max(0, w.wt - get_effective_stat("strength"))
-	return get_effective_stat("spd") - penalty
+	return get_effective_stat("speed") - penalty
 
 
 # Accuracy = SKL*2 + LUK + weapon.Hit (+10 at S-rank)
 func accuracy(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var acc: int = get_effective_stat("skl") * 2 + get_effective_stat("luk")
+	var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
 	if w != null:
 		acc += w.hit
 		if _has_s_rank(w):
@@ -274,7 +274,7 @@ func accuracy(weapon: WeaponData = null) -> int:
 
 # Dodge = Battle Speed * 2 + LUK (+ terrain dodge bonus, applied at combat time)
 func dodge(weapon: WeaponData = null) -> int:
-	return battle_speed(weapon) * 2 + get_effective_stat("luk")
+	return battle_speed(weapon) * 2 + get_effective_stat("luck")
 
 
 # Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
@@ -284,7 +284,7 @@ func damage(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
 		return 0
-	var base_stat: int = get_effective_stat("mag") if w.uses_mag else get_effective_stat("strength")
+	var base_stat: int = get_effective_stat("magic") if w.uses_mag else get_effective_stat("strength")
 	var dmg: int = base_stat + w.mt
 	if _has_s_rank(w):
 		dmg += 1
@@ -294,7 +294,7 @@ func damage(weapon: WeaponData = null) -> int:
 # Critical rate = floor(SKL/2) + weapon.Crit (+5 at S-rank)
 func crit_rate(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
-	var c: int = get_effective_stat("skl") / 2
+	var c: int = get_effective_stat("skill") / 2
 	if w != null:
 		c += w.crit
 		if _has_s_rank(w):
@@ -304,7 +304,7 @@ func crit_rate(weapon: WeaponData = null) -> int:
 
 # Crit Avoid = LUK
 func crit_avoid() -> int:
-	return get_effective_stat("luk")
+	return get_effective_stat("luck")
 
 
 # ---- HP / Death ----
@@ -471,7 +471,7 @@ func add_exp(amount: int) -> void:
 # Rolls stat increases per the unit's class growth rates and applies them.
 # Each stat: roll 1..100; if roll <= growth_rate, that stat increases by 1.
 # Emits unit_leveled_up with the dictionary of changes for the level-up screen.
-const _GROWTH_STATS := ["hp", "strength", "mag", "def", "res", "skl", "spd", "luk"]
+const _GROWTH_STATS := ["hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"]
 
 func level_up() -> void:
 	if data == null:
@@ -504,12 +504,12 @@ func _increment_stat(stat: String) -> void:
 			data.max_hp += 1
 			data.hp += 1  # current HP also increases on level up
 		"strength": data.strength += 1
-		"mag": data.mag += 1
-		"def": data.def += 1
-		"res": data.res += 1
-		"skl": data.skl += 1
-		"spd": data.spd += 1
-		"luk": data.luk += 1
+		"magic": data.magic += 1
+		"defense": data.defense += 1
+		"resistance": data.resistance += 1
+		"skill": data.skill += 1
+		"speed": data.speed += 1
+		"luck": data.luck += 1
 
 
 # Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit

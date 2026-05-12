@@ -84,10 +84,10 @@ func _apply_resolve(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 		return context  # not at threshold
 	var w: WeaponData = context.get("weapon", null)
 	# Damage bonus: +50% of STR or MAG
-	var base_stat: int = unit.data.mag if (w != null and w.uses_mag) else unit.data.strength
+	var base_stat: int = unit.data.magic if (w != null and w.uses_mag) else unit.data.strength
 	context["damage_bonus"] = context.get("damage_bonus", 0) + floori(base_stat * 0.5)
 	# Accuracy bonus: SKL portion × 2 (since accuracy uses SKL×2)
-	context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + floori(unit.data.skl * 0.5) * 2
+	context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + floori(unit.data.skill * 0.5) * 2
 	return context
 
 
@@ -106,7 +106,7 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	# Only activates if the hit would be fatal
 	if dmg < unit.data.hp:
 		return context
-	var luk: int = unit.data.luk if unit.data else 0
+	var luk: int = unit.data.luck if unit.data else 0
 	if (randi() % 100) < luk:
 		context["damage"] = maxi(1, dmg / 2)
 	return context

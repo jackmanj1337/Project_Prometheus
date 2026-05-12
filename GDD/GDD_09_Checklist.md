@@ -464,7 +464,7 @@ plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
 ### Staff Healing
 - [ ] Add "Staff" option to `ActionMenu`
 - [ ] Implement staff target selection (green overlay; ally list)
-- [ ] Implement healing: `target.heal(10 + unit.data.mag)`
+- [ ] Implement healing: `target.heal(10 + unit.data.magic)`
 - [ ] Decrement staff uses after each use (bows/tomes/staves always lose durability)
 - [ ] Award EXP after staff use per GDD_02 table
 

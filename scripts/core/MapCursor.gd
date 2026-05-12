@@ -418,7 +418,7 @@ func _execute_staff_heal() -> void:
 	_grid.clear_overlays()
 	_heal_tiles.clear()
 	# Heal formula: 10 + mag, capped at max_hp (GDD_02)
-	var heal_amount: int = 10 + _selected_unit.data.mag
+	var heal_amount: int = 10 + _selected_unit.data.magic
 	target.data.hp = mini(target.data.hp + heal_amount, target.data.max_hp)
 	# Consume one staff use and award wEXP
 	_selected_unit.use_weapon_durability()

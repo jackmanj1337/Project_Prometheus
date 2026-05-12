@@ -165,14 +165,14 @@ const _DIRS: Array[Vector2i] = [
 ]
 
 
-# Dijkstra over move costs from unit's tile, capped at unit.data.mov.
+# Dijkstra over move costs from unit's tile, capped at unit.data.movement.
 # Tiles with enemy units occupying are NOT included even if reachable
 # (you can't end your move on an enemy). Allies don't block traversal.
 func get_movement_range(unit: Node) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	if unit == null:
 		return result
-	var max_cost: int = unit.data.mov
+	var max_cost: int = unit.data.movement
 	var start: Vector2i = unit.tile_position
 
 	# Best known cost-to-reach for each tile
@@ -220,7 +220,7 @@ func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]:
 	var path: Array[Vector2i] = []
 	if unit == null:
 		return path
-	var max_cost: int = unit.data.mov
+	var max_cost: int = unit.data.movement
 	var start: Vector2i = unit.tile_position
 	if start == target_tile:
 		path.append(start)

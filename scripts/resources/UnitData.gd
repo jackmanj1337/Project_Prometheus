@@ -12,15 +12,15 @@ class_name UnitData extends Resource
 @export var max_hp: int = 0
 @export var hp: int = 0
 @export var strength: int = 0
-@export var mag: int = 0
-@export var def: int = 0
-@export var res: int = 0
-@export var skl: int = 0
-@export var spd: int = 0
-@export var luk: int = 0
-@export var mov: int = 0
-@export var con: int = 0
-@export var los: int = 4
+@export var magic: int = 0
+@export var defense: int = 0
+@export var resistance: int = 0
+@export var skill: int = 0
+@export var speed: int = 0
+@export var luck: int = 0
+@export var movement: int = 0
+@export var constitution: int = 0
+@export var line_of_sight: int = 4
 
 # Format: { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
