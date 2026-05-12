@@ -4,24 +4,21 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        GODOT_VERSION: "4.3"   # Change to e.g. "4.2" or "3.5" if needed
+        GODOT_VERSION: "4.3"
         NODE_MAJOR: "20"
     image: godot-claude-code:latest
     container_name: godot-claude-dev
 
-    # ── Mount your project & persist Claude auth ─────────────
     volumes:
-      - .:/workspace                         # Your game project
-      - claude-auth:/home/developer/.claude  # Persist login session
+      - .:/workspace
+      - developer-home:/home/developer
 
-    # ── Keep stdin open for interactive terminal ─────────────
     stdin_open: true
     tty: true
 
     working_dir: /workspace
 
-    # ── Restart policy ───────────────────────────────────────
     restart: unless-stopped
 
 volumes:
-  claude-auth:   # Named volume so auth survives container restarts
+  developer-home:
