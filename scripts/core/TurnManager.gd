@@ -11,8 +11,6 @@ var _unit_states: Dictionary = {}
 # Saved tile when a unit starts moving so undo_move can restore it
 var _original_tiles: Dictionary = {}
 # True while combat or movement animations are playing — input is suppressed
-var _combat_lock: bool = false
-
 var _map_data: MapData = null
 var _grid: GridManager = null
 
@@ -73,6 +71,7 @@ func start_player_phase() -> void:
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
+	check_victory_conditions()
 
 
 # Called by the End Turn button or by auto-end when all player units are DONE.
@@ -97,6 +96,7 @@ func start_enemy_phase() -> void:
 		await ai.run_enemy_phase(_grid, self)
 	else:
 		call_deferred("start_player_phase")
+	check_victory_conditions()
 
 
 func set_unit_state(unit: Node, state: UnitState) -> void:
@@ -154,19 +154,24 @@ func check_victory_conditions() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if gs == null or bus == null:
 		return
+	# Turn limit defeat (0 = no limit)
+	if _map_data.turn_limit > 0 and gs.turn_number > _map_data.turn_limit:
+		bus.map_defeat.emit()
+		return
 	# MVP supports rout only
 	if _map_data.objective_type == "rout":
 		if gs.get_living_enemy_units().is_empty():
 			bus.map_victory.emit()
 			return
-	# Defeat: any required survivor dead, OR all player units dead
+	# Defeat: all player units dead
 	if gs.get_living_player_units().is_empty():
 		bus.map_defeat.emit()
 		return
-	for required_name in _map_data.required_survivor_names:
+	# Defeat: a required survivor was killed (matched by unit_id)
+	for required_id in _map_data.required_survivor_ids:
 		var alive := false
 		for u in gs.get_living_player_units():
-			if u.data and u.data.unit_name == required_name:
+			if u.data and u.data.unit_id == required_id:
 				alive = true
 				break
 		if not alive:

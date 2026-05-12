@@ -1,5 +1,6 @@
 class_name UnitData extends Resource
 
+@export var unit_id: String = ""   # unique identifier; used by survivor checks and save/load
 @export var unit_name: String = ""
 @export var class_id: String = ""
 @export var level: int = 1

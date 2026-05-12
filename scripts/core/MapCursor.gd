@@ -388,11 +388,12 @@ func _do_resolve_attack(target: Node) -> void:
 		return
 	_grid.clear_overlays()
 	_attack_tiles.clear()
+	_state = "locked"  # block input during combat resolution
 	var cr := get_node_or_null("/root/CombatResolver")
 	if cr:
 		var result: Dictionary = cr.resolve_combat(_selected_unit, target)
 		cr.apply_combat_result(result, _selected_unit, target)
-	_finish_action()
+	_finish_action()  # resets _state to "free"
 
 
 func _begin_staff_targeting() -> void:

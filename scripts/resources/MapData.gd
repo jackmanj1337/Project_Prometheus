@@ -13,7 +13,7 @@ class_name MapData extends Resource
 #               "is_boss":bool, "required_survivor":bool }
 @export var enemy_placements: Array[Dictionary] = []
 # Player unit names that trigger defeat if killed
-@export var required_survivor_names: Array[String] = []
+@export var required_survivor_ids: Array[String] = []
 @export var reward_gold: int = 0
 # Item IDs given at map completion
 @export var reward_items: Array[String] = []
