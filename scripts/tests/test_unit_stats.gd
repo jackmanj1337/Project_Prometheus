@@ -274,6 +274,29 @@ func _init() -> void:
 		print("FAIL growth_random rate-250: got min_gain=%d (expected ≥ 2)" % min_gain)
 		failed += 1
 
+	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
+	# Regression for MapCursor._execute_staff_heal ordering bug: fetching get_equipped_weapon()
+	# after use_weapon_durability() on a 1-use weapon returns null/wrong weapon.
+	var dur_unit := Unit.new()
+	var dur_data := UnitData.new()
+	dur_data.inventory = [
+		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 1, "forged_mods": {}}
+	]
+	dur_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+	dur_unit.data = dur_data
+	var pre_weapon: WeaponData = iron_lance  # captured BEFORE use (the correct ordering)
+	dur_unit.use_weapon_durability()
+	var entry_removed: bool = dur_data.inventory.is_empty()
+	dur_unit.add_wexp(pre_weapon.weapon_type, pre_weapon.wexp)
+	var wexp_ok: bool = dur_data.proficiencies["lance"]["wexp"] == pre_weapon.wexp
+	if entry_removed and wexp_ok:
+		print("OK  last-use weapon removed; pre-captured wexp reference awards correctly")
+		passed += 1
+	else:
+		print("FAIL last-use wexp: entry_removed=%s wexp_ok=%s" % [entry_removed, wexp_ok])
+		failed += 1
+	dur_unit.queue_free()
+
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()
