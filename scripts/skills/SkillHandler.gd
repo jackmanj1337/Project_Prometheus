@@ -5,26 +5,20 @@ extends Node
 
 # ---- Movement Override Stubs (A4 — implement in M9) ----
 
-# Returns an override move cost if a skill applies, -1 if no override active.
-# Checked by GridManager.get_move_cost() before the terrain table.
-# Skills: Acrobat (all non-wall → 1), Swiftfoot (penalized terrain → 1), Nimble (Cat).
 func get_move_cost_override(_unit: Node, _terrain: String) -> int:
 	return -1  # [STUB — implement in M9]
 
 
-# Returns true if the unit has the Pass skill (Trickster occult), allowing
-# movement through enemy-occupied tiles (but still can't end turn on them).
 func can_pass_through_enemies(_unit: Node) -> bool:
 	return false  # [STUB — implement in M9]
 
 
-# Returns true if the unit has the Phasing skill (Sage promotion), allowing
-# movement through wall tiles once per turn.
 func can_phase_through(_unit: Node, _terrain: String) -> bool:
 	return false  # [STUB — implement in M9]
 
-# Called at trigger points (on_combat_start, passive, on_damaged, start_of_turn, etc.)
-# Iterates the unit's skill list and fires every matching skill.
+
+# Called at trigger points (on_combat_start, on_combat_apply_modifiers, on_damaged,
+# start_of_turn, etc.). Iterates the unit's skill list and fires every matching skill.
 func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictionary:
 	if unit == null or unit.data == null:
 		return context
@@ -49,8 +43,11 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 		"wrath":      return _apply_wrath(skill, unit, context)
 		"miracle":    return _apply_miracle(skill, unit, context)
 		"stat_bonus": return _apply_stat_bonus(skill, unit, context)
-		"faire":     return _apply_faire(skill, unit, context)
-		"breaker":   return _apply_breaker(skill, unit, context)
+		"faire":      return _apply_faire(skill, unit, context)
+		"breaker":    return _apply_breaker(skill, unit, context)
+		"charm":      return _apply_charm(skill, unit, context)
+		"anathema":   return _apply_anathema(skill, unit, context)
+		"daunt":      return _apply_daunt(skill, unit, context)
 		_:
 			push_warning("SkillHandler: unknown effect_id '%s'" % skill.effect_id)
 	return context
@@ -58,20 +55,21 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 
 # ---- Individual skill implementations ----
 
-# Restore 10% max HP at start of turn.
 func _apply_renewal(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var amount: int = maxi(1, floori(unit.data.max_hp * 0.10))
 	unit.heal(amount)
 	return context
 
 
-# This unit attacks first in combat (even when defending).
+# Defender attacks first this combat. Only fires for the defending unit.
 func _apply_vantage(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	context["vantage_unit"] = unit
+	if unit != context.get("defender"):
+		return context
+	context["flags"]["vantage"] = true
 	return context
 
 
-# Negate all battle-related skills on the opponent for this combat.
+# Negate the opponent's battle skills this combat.
 func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	if unit == context.get("attacker"):
 		context["defender_skills_blocked"] = true
@@ -80,23 +78,25 @@ func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 	return context
 
 
-# +50% STR/MAG/SKL/SPD when HP ≤ 50% (passive, applied per-attack in CombatResolver).
+# +50% STR/MAG/SKL when HP ≤ 50%. Writes to atk_mod or def_mod based on role.
 func _apply_resolve(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	if unit.data.hp * 2 > unit.data.max_hp:
-		return context  # not at threshold
-	var w: WeaponData = context.get("weapon", null)
-	# Damage bonus: +50% of STR or MAG
+		return context
+	var is_atk: bool = (unit == context.get("attacker"))
+	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
+	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
 	var base_stat: int = unit.data.magic if (w != null and w.uses_mag) else unit.data.strength
-	context["damage_bonus"] = context.get("damage_bonus", 0) + floori(base_stat * 0.5)
-	# Accuracy bonus: SKL portion × 2 (since accuracy uses SKL×2)
-	context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + floori(unit.data.skill * 0.5) * 2
+	mod["damage"]   += floori(base_stat * 0.5)
+	mod["accuracy"] += floori(unit.data.skill * 0.5) * 2
 	return context
 
 
-# +50 Critical when HP ≤ 50% (passive).
+# +50 Critical when HP ≤ 50%. Writes to atk_mod or def_mod based on role.
 func _apply_wrath(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	if unit.data.hp * 2 <= unit.data.max_hp:
-		context["crit_bonus"] = context.get("crit_bonus", 0) + 50
+	if unit.data.hp * 2 > unit.data.max_hp:
+		return context
+	var mod: Dictionary = context["atk_mod"] if (unit == context.get("attacker")) else context["def_mod"]
+	mod["crit"] += 50
 	return context
 
 
@@ -105,7 +105,6 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var dmg: int = context.get("damage", 0)
 	if dmg <= 0:
 		return context
-	# Use simulated HP so Miracle fires correctly in multi-hit combats.
 	var sim_hp: int = context.get("current_sim_hp", unit.data.hp)
 	if dmg < sim_hp:
 		return context
@@ -115,34 +114,94 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	return context
 
 
-# +N damage (default 5) when attacking with the weapon type in effect_params.weapon_type.
-func _apply_faire(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	var w: WeaponData = context.get("weapon", null)
-	if w == null:
+# +N damage when attacking with the matching weapon type.
+func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var is_atk: bool = (unit == context.get("attacker"))
+	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
+	if w == null or w.weapon_type != skill.effect_params.get("weapon_type", ""):
 		return context
-	if w.weapon_type != skill.effect_params.get("weapon_type", ""):
-		return context
-	context["damage_bonus"] = context.get("damage_bonus", 0) + skill.effect_params.get("bonus", 5)
+	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
+	mod["damage"] += skill.effect_params.get("bonus", 5)
 	return context
 
 
-# +N hit (default 50) when opponent is wielding the weapon type in effect_params.weapon_type.
-# Note: the matching +50 dodge vs that weapon type (defender side) is deferred — implementing
-# it requires passing defender bonuses into compute_hit_pct, which needs an API change.
-func _apply_breaker(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	var opp_w: WeaponData = context.get("opponent_weapon", null)
-	if opp_w == null:
+# +N hit when opponent is wielding the matching weapon type.
+func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var is_atk: bool = (unit == context.get("attacker"))
+	var opp_w: WeaponData = context.get("defender_weapon") if is_atk else context.get("attacker_weapon")
+	if opp_w == null or opp_w.weapon_type != skill.effect_params.get("weapon_type", ""):
 		return context
-	if opp_w.weapon_type != skill.effect_params.get("weapon_type", ""):
-		return context
-	context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + skill.effect_params.get("hit", 50)
+	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
+	mod["accuracy"] += skill.effect_params.get("hit", 50)
 	return context
 
 
-# Generic stat bonus (for stat_bonus effect_id with effect_params dict).
-func _apply_stat_bonus(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	var params: Dictionary = skill.effect_params
-	if params.has("hit"):  context["accuracy_bonus"] = context.get("accuracy_bonus", 0) + int(params["hit"])
-	if params.has("crit"): context["crit_bonus"]     = context.get("crit_bonus", 0)     + int(params["crit"])
-	if params.has("str"):  context["damage_bonus"]   = context.get("damage_bonus", 0)   + int(params["str"])
+# Generic stat bonus applied from effect_params.
+func _apply_stat_bonus(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var mod: Dictionary = context["atk_mod"] if (unit == context.get("attacker")) else context["def_mod"]
+	var p: Dictionary = skill.effect_params
+	if p.has("hit"):  mod["accuracy"] += int(p["hit"])
+	if p.has("crit"): mod["crit"]     += int(p["crit"])
+	if p.has("str"):  mod["damage"]   += int(p["str"])
+	return context
+
+
+# ---- Aura skills (on_combat_apply_modifiers) ----
+# These fire once per nearby unit before combat; unit is the aura bearer.
+
+func _manhattan(a: Vector2i, b: Vector2i) -> int:
+	return absi(a.x - b.x) + absi(a.y - b.y)
+
+
+# +10 hit and +10 dodge to allies within radius.
+func _apply_charm(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var attacker: Node = context.get("attacker")
+	var defender: Node = context.get("defender")
+	if attacker == null or defender == null:
+		return context
+	var radius: int = skill.effect_params.get("radius", 3)
+	if unit.team == attacker.team \
+			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
+		context["atk_mod"]["accuracy"] += 10
+		context["atk_mod"]["dodge"]    += 10
+	if unit.team == defender.team \
+			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
+		context["def_mod"]["accuracy"] += 10
+		context["def_mod"]["dodge"]    += 10
+	return context
+
+
+# -10 hit and -10 dodge to enemies within radius.
+func _apply_anathema(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var attacker: Node = context.get("attacker")
+	var defender: Node = context.get("defender")
+	if attacker == null or defender == null:
+		return context
+	var radius: int = skill.effect_params.get("radius", 3)
+	if unit.team != attacker.team \
+			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
+		context["atk_mod"]["accuracy"] -= 10
+		context["atk_mod"]["dodge"]    -= 10
+	if unit.team != defender.team \
+			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
+		context["def_mod"]["accuracy"] -= 10
+		context["def_mod"]["dodge"]    -= 10
+	return context
+
+
+# -10 hit and -10 crit to enemies within radius.
+func _apply_daunt(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var attacker: Node = context.get("attacker")
+	var defender: Node = context.get("defender")
+	if attacker == null or defender == null:
+		return context
+	var radius: int = skill.effect_params.get("radius", 3)
+	if unit.team != attacker.team \
+			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
+		context["atk_mod"]["accuracy"] -= 10
+		context["atk_mod"]["crit"]     -= 10
+	if unit.team != defender.team \
+			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
+		context["def_mod"]["accuracy"] -= 10
+		context["def_mod"]["crit"]     -= 10
 	return context

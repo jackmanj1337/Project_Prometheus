@@ -1,9 +1,8 @@
 extends Node
-# Stateless combat math engine. All methods are pure functions — no fields are
-# written here. Apply changes via apply_combat_result() only.
+# Stateless combat math engine. resolve_combat() returns a result dict; no unit
+# fields are written until apply_combat_result() is called.
 
 # EXP table from GDD_02: index = clamp(attacker_level - defender_level + 6, 0, 12)
-# Each row: [kill_exp, damage_only_exp]
 const _EXP_TABLE: Array = [
 	[59, 20], [57, 19], [53, 18], [47, 16], [41, 14], [35, 12],
 	[30, 10],  # index 6 = equal level
@@ -15,10 +14,89 @@ const _ALWAYS_USE_DURABILITY: Array[String] = [
 	"bow", "fire", "thunder", "wind", "light", "dark", "staff",
 ]
 
-# Weapon triangle sourced from GameConstants — single definition shared with DataManager.
+
+# ── Context Construction ─────────────────────────────────────────────────────
+
+# Builds the initial context dict with zero modifiers and default flags.
+# Both resolve_combat() and preview_combat() call this first.
+func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
+	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
+	var can_ctr := can_counterattack(defender, attacker.tile_position)
+	var dw: WeaponData = defender.get_equipped_weapon() if (defender and can_ctr) else null
+	var gs := get_node_or_null("/root/GameState")
+	return {
+		"attacker":            attacker,
+		"defender":            defender,
+		"attacker_weapon":     aw,
+		"defender_weapon":     dw,
+		"is_player_initiated": attacker != null and attacker.team == "player",
+		"turn_number":         gs.turn_number if gs else 0,
+		"atk_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
+			"dodge": 0, "strikes": 0, "damage_multiplier": 1.0},
+		"def_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
+			"dodge": 0, "strikes": 0, "damage_multiplier": 1.0},
+		"flags": {
+			"nihil":                false,
+			"vantage":              false,
+			"skip_effectiveness":   false,
+			"attacker_ignores_def": 0.0,
+			"attacker_ignores_res": 0.0,
+			"defender_ignores_def": 0.0,
+			"defender_ignores_res": 0.0,
+			"lifesteal_pct":        0.0,
+			"vengeance_bonus":      0,
+		}
+	}
 
 
-# ---- Weapon Triangle ----
+# Populates atk_mod/def_mod/flags from all sources before the first attack.
+# Steps: (1) UnitData.active_modifiers; (2) aura skills from all other units;
+# (3) equip-type inventory items; (4) on_combat_start triggers.
+func _collect_combat_modifiers(context: Dictionary) -> void:
+	var attacker: Node = context["attacker"]
+	var defender: Node = context["defender"]
+	_apply_unit_data_modifiers(attacker, context["atk_mod"])
+	_apply_unit_data_modifiers(defender, context["def_mod"])
+	var sh := get_node_or_null("/root/SkillHandler")
+	var gs := get_node_or_null("/root/GameState")
+	# Aura skills from every other living unit on the map
+	if sh and gs:
+		for u in gs.all_units:
+			if is_instance_valid(u) and u.data != null and u.data.hp > 0 \
+					and u != attacker and u != defender:
+				sh.apply_trigger(u, "on_combat_apply_modifiers", context)
+	_apply_equip_item_modifiers(attacker, context["atk_mod"])
+	_apply_equip_item_modifiers(defender, context["def_mod"])
+	if sh:
+		sh.apply_trigger(attacker, "on_combat_start", context)
+		if not context.get("defender_skills_blocked", false):
+			sh.apply_trigger(defender, "on_combat_start", context)
+
+
+func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
+	if unit == null or unit.data == null:
+		return
+	for m in unit.data.active_modifiers:
+		match m.get("stat", ""):
+			"accuracy": mod_dict["accuracy"] += m.get("value", 0)
+			"damage":   mod_dict["damage"]   += m.get("value", 0)
+			"crit":     mod_dict["crit"]     += m.get("value", 0)
+			"dodge":    mod_dict["dodge"]    += m.get("value", 0)
+
+
+func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
+	if unit == null or unit.data == null:
+		return
+	for entry in unit.data.inventory:
+		if entry.get("type", "") != "equip":
+			continue
+		mod_dict["accuracy"] += entry.get("accuracy", 0)
+		mod_dict["damage"]   += entry.get("damage", 0)
+		mod_dict["crit"]     += entry.get("crit", 0)
+		mod_dict["dodge"]    += entry.get("dodge", 0)
+
+
+# ── Weapon Triangle ──────────────────────────────────────────────────────────
 
 func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 	if aw == null or dw == null:
@@ -46,73 +124,84 @@ func _triangle_damage(attacker: Node, defender: Node) -> int:
 	return 2 if result == "advantage" else (-2 if result == "disadvantage" else 0)
 
 
-# ---- Effectiveness ----
+# ── Effectiveness ────────────────────────────────────────────────────────────
 
-# True when the weapon has an effective tag matching the target's class qualities.
+# Returns true when the weapon has an effectiveness tag matching a target quality.
+# Used as a fallback when compute_damage is called without a context dict.
 func _is_effective(weapon: WeaponData, target: Node) -> bool:
 	if weapon == null or target == null or not target.has_method("has_quality"):
 		return false
 	for tag in weapon.effect_tags:
 		match tag:
-			GameConstants.TAG_EFFECTIVE_FLYING:
-				if target.has_quality("flying"):    return true
-			GameConstants.TAG_EFFECTIVE_ARMOURED:
-				if target.has_quality("armoured"):  return true
-			GameConstants.TAG_EFFECTIVE_MOUNTED:
-				if target.has_quality("mounted"):   return true
-			GameConstants.TAG_EFFECTIVE_DRAGON:
-				if target.has_quality("dragon"):    return true
-			GameConstants.TAG_EFFECTIVE_BEAST:
-				if target.has_quality("beast"):     return true
+			GameConstants.TAG_EFFECTIVE_FLYING:   if target.has_quality("flying"):   return true
+			GameConstants.TAG_EFFECTIVE_ARMOURED: if target.has_quality("armoured"): return true
+			GameConstants.TAG_EFFECTIVE_MOUNTED:  if target.has_quality("mounted"):  return true
+			GameConstants.TAG_EFFECTIVE_DRAGON:   if target.has_quality("dragon"):   return true
+			GameConstants.TAG_EFFECTIVE_BEAST:    if target.has_quality("beast"):    return true
 	return false
 
 
-# ---- Core Stat Computations ----
+# Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.
+# Returns 1.0 if context.flags.skip_effectiveness is set (Dragonskin / Nullify).
+func _get_effectiveness_multiplier(weapon: WeaponData, target: Node,
+		context: Dictionary) -> float:
+	if context["flags"]["skip_effectiveness"]:
+		return 1.0
+	if not _is_effective(weapon, target):
+		return 1.0
+	var attacker: Node = context["attacker"]
+	if attacker != null and attacker.has_method("has_skill") and attacker.has_skill("giantkiller"):
+		return 4.0
+	return 3.0
 
-# To-Hit % for one attack, factoring triangle and defender's terrain dodge.
-# context can carry "accuracy_bonus" from skills (Resolve, stat_bonus).
+
+# ── Core Stat Computations ───────────────────────────────────────────────────
+# context keys read: "accuracy_bonus" (+hit), "dodge_bonus" (+defender dodge)
+
 func compute_hit_pct(attacker: Node, defender: Node,
 		weapon: WeaponData = null, context: Dictionary = {}) -> int:
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
 	if w == null:
 		return 0
-	var acc: int = attacker.accuracy(w)
-	acc += _triangle_accuracy(attacker, defender)
-	acc += context.get("accuracy_bonus", 0)
-	var dodge: int = defender.dodge() + defender.get_terrain_dodge_bonus()
+	var acc: int = attacker.accuracy(w) + _triangle_accuracy(attacker, defender) \
+		+ context.get("accuracy_bonus", 0)
+	var dodge: int = defender.dodge() + defender.get_terrain_dodge_bonus() \
+		+ context.get("dodge_bonus", 0)
 	return clampi(acc - dodge, 0, 100)
 
 
-# Damage per hit (before crit multiplier), factoring triangle, effectiveness, terrain def.
-# context can carry "damage_bonus" from skills (Resolve).
+# context keys read: "damage_bonus", "effectiveness_mult" (default: auto-computed),
+# "ignore_def_fraction" (0.0–1.0, for Luna etc.)
 func compute_damage(attacker: Node, defender: Node,
 		weapon: WeaponData = null, context: Dictionary = {}) -> int:
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
 	if w == null:
 		return 0
-	# Effective weapons triple Mt (GBA FE convention: base_stat + mt*3 vs base_stat + mt)
-	var effective := _is_effective(w, defender)
-	var mt: int = w.mt * 3 if effective else w.mt
+	# Use provided effectiveness or compute from tags (backward compat for direct test calls)
+	var eff_mult: float = context.get("effectiveness_mult",
+		3.0 if _is_effective(w, defender) else 1.0)
+	var mt: int = int(w.mt * eff_mult)
 	var base_stat: int = attacker.data.magic if w.uses_mag else attacker.data.strength
-	# S-rank +1 damage (from Unit._has_s_rank, replicated here to avoid calling damage())
 	var s_bonus: int = 1 if (attacker.has_method("_has_s_rank") and attacker._has_s_rank(w)) else 0
-	var atk: int = base_stat + mt + s_bonus + _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
+	var atk: int = base_stat + mt + s_bonus \
+		+ _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
 	var def_stat: int = defender.data.resistance if w.uses_mag else defender.data.defense
+	var ignore_frac: float = context.get("ignore_def_fraction", 0.0)
+	var effective_def: int = int(def_stat * (1.0 - ignore_frac))
 	var def_bonus: int = defender.get_terrain_def_bonus()
-	return maxi(0, atk - def_stat - def_bonus)
+	return maxi(0, atk - effective_def - def_bonus)
 
 
-# Critical hit % for one attack.
-# context can carry "crit_bonus" from skills (Wrath, Finesse).
+# context keys read: "crit_bonus" (net modifier, attacker crit mod minus defender crit_avoid mod)
 func compute_crit_pct(attacker: Node, defender: Node,
 		weapon: WeaponData = null, context: Dictionary = {}) -> int:
 	var w: WeaponData = weapon if weapon else (attacker.get_equipped_weapon() if attacker else null)
-	return clampi(attacker.crit_rate(w) - defender.crit_avoid() + context.get("crit_bonus", 0), 0, 100)
+	return clampi(attacker.crit_rate(w) - defender.crit_avoid() \
+		+ context.get("crit_bonus", 0), 0, 100)
 
 
-# ---- Sequence Logic ----
+# ── Sequence Logic ───────────────────────────────────────────────────────────
 
-# True if defender can reach attacker's tile with their equipped weapon.
 func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool:
 	var w: WeaponData = defender.get_equipped_weapon()
 	if w == null:
@@ -122,7 +211,6 @@ func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool:
 	return dist >= w.get_range_min(defender) and dist <= w.get_range_max(defender)
 
 
-# Returns the unit with a follow-up attack (battle speed diff ≥ 4), or null.
 func get_follow_up_attacker(a: Node, b: Node) -> Node:
 	if a == null or b == null:
 		return null
@@ -135,187 +223,215 @@ func get_follow_up_attacker(a: Node, b: Node) -> Node:
 	return null
 
 
-# ---- EXP ----
+# ── EXP ─────────────────────────────────────────────────────────────────────
 
-# EXP awarded to attacker after a combat exchange.
 func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int:
 	var diff: int = attacker.data.level - defender.data.level
 	var idx: int = clampi(diff + 6, 0, 12)
 	return _EXP_TABLE[idx][0] if killed else _EXP_TABLE[idx][1]
 
 
-# ---- Preview (no RNG, no side effects) ----
+# ── Single-Attack Resolution ─────────────────────────────────────────────────
 
-func preview_combat(attacker: Node, defender: Node) -> Dictionary:
-	var aw: WeaponData = attacker.get_equipped_weapon()
-	var dw: WeaponData = defender.get_equipped_weapon()
-	var can_counter := can_counterattack(defender, attacker.tile_position)
-	var follow_up := get_follow_up_attacker(attacker, defender)
-	var atk_strikes: int = aw.strikes_per_attack if aw else 1
-	var def_strikes: int = dw.strikes_per_attack if dw else 1
-	return {
-		"attacker_hit":     compute_hit_pct(attacker, defender, aw),
-		"attacker_damage":  compute_damage(attacker, defender, aw),
-		"attacker_crit":    compute_crit_pct(attacker, defender, aw),
-		"attacker_attacks": (2 if follow_up == attacker else 1) * atk_strikes,
-		"can_counter":      can_counter,
-		"defender_hit":     compute_hit_pct(defender, attacker, dw) if can_counter else 0,
-		"defender_damage":  compute_damage(defender, attacker, dw) if can_counter else 0,
-		"defender_crit":    compute_crit_pct(defender, attacker, dw) if can_counter else 0,
-		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
-		"attacker_weapon":  aw,
-		"defender_weapon":  dw,
+# Resolves one attack roll. is_counter=true means actor is the defending side.
+# target_sim_hp is needed for Miracle to check whether the blow is lethal.
+# Returns { attacker, defender, weapon, hit, crit, damage, loses_durability, is_counter }
+func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
+		is_counter: bool, target_sim_hp: int) -> Dictionary:
+	var sh := get_node_or_null("/root/SkillHandler")
+	var weapon: WeaponData = context["defender_weapon"] if is_counter else context["attacker_weapon"]
+	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
+	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
+	var blocked_key: String = "defender_skills_blocked" if is_counter else "attacker_skills_blocked"
+
+	if sh and not context.get(blocked_key, false):
+		sh.apply_trigger(actor, "on_attack", context)
+
+	var hit_ctx := {
+		"accuracy_bonus": actor_mod["accuracy"],
+		"dodge_bonus":    target_mod["dodge"],
+	}
+	var eff_mult: float = _get_effectiveness_multiplier(weapon, target, context)
+	var ignore_key: String = "defender_ignores_def" if is_counter else "attacker_ignores_def"
+	var dmg_ctx := {
+		"damage_bonus":       actor_mod["damage"],
+		"effectiveness_mult": eff_mult,
+		"ignore_def_fraction": context["flags"].get(ignore_key, 0.0),
+	}
+	var crit_ctx := {
+		"crit_bonus": actor_mod["crit"] - target_mod["crit_avoid"],
 	}
 
-
-# ---- Full RNG Resolution ----
-
-# Collects passive skill bonuses from SkillHandler for one attacker.
-# Returns dict with accuracy_bonus, damage_bonus, crit_bonus.
-func _get_skill_bonuses(unit: Node, weapon: WeaponData, context: Dictionary) -> Dictionary:
-	var sh: Node = get_node_or_null("/root/SkillHandler")
-	var is_attacker: bool = (unit == context.get("attacker"))
-	# Pass opponent weapon so Breaker skills know what they're fighting against.
-	var opponent: Node = context.get("defender") if is_attacker else context.get("attacker")
-	var opp_w: WeaponData = opponent.get_equipped_weapon() \
-		if opponent and opponent.has_method("get_equipped_weapon") else null
-	var bonuses := {"accuracy_bonus": 0, "damage_bonus": 0, "crit_bonus": 0,
-		"weapon": weapon, "unit": unit, "opponent_weapon": opp_w}
-	if sh == null:
-		return bonuses
-	var blocked_key := "attacker_skills_blocked" if is_attacker else "defender_skills_blocked"
-	if context.get(blocked_key, false):
-		return bonuses
-	return sh.apply_trigger(unit, "passive", bonuses)
-
-
-# Resolves a single attack roll. Returns a result dict (no unit state changed).
-func _resolve_one_attack(atk: Node, def_unit: Node, context: Dictionary) -> Dictionary:
-	var weapon: WeaponData = atk.get_equipped_weapon()
-	var sk_bonus := _get_skill_bonuses(atk, weapon, context)
-
-	# Merge aura bonuses stored in context by _apply_aura_bonuses().
-	# is_main_atk = true when atk is the initiating attacker (not the counter-attacker).
-	var is_main_atk: bool = (atk == context.get("attacker"))
-	sk_bonus["accuracy_bonus"] += context.get("attacker_aura_hit", 0) if is_main_atk \
-		else context.get("defender_aura_hit", 0)
-	# Defending unit's dodge aura is subtracted from the current attacker's accuracy.
-	sk_bonus["accuracy_bonus"] -= context.get("defender_aura_dodge", 0) if is_main_atk \
-		else context.get("attacker_aura_dodge", 0)
-	sk_bonus["damage_bonus"] += context.get("attacker_aura_damage", 0) if is_main_atk \
-		else context.get("defender_aura_damage", 0)
-	sk_bonus["crit_bonus"] += context.get("attacker_aura_crit", 0) if is_main_atk \
-		else context.get("defender_aura_crit", 0)
-
-	var hit_pct  := compute_hit_pct(atk, def_unit, weapon, sk_bonus)
-	var crit_pct := compute_crit_pct(atk, def_unit, weapon, sk_bonus)
-	var base_dmg := compute_damage(atk, def_unit, weapon, sk_bonus)
+	var hit_pct  := compute_hit_pct(actor, target, weapon, hit_ctx)
+	var crit_pct := compute_crit_pct(actor, target, weapon, crit_ctx)
+	var base_dmg := compute_damage(actor, target, weapon, dmg_ctx)
 
 	var did_hit: bool  = (randi() % 100) < hit_pct
 	var did_crit: bool = false
 	var damage: int    = 0
 
 	if did_hit:
+		if sh and not context.get(blocked_key, false):
+			sh.apply_trigger(actor, "on_hit", context)
 		did_crit = (randi() % 100) < crit_pct
 		damage = base_dmg * 3 if did_crit else base_dmg
+		var dmg_mult: float = actor_mod["damage_multiplier"]
+		if dmg_mult != 1.0:
+			damage = maxi(0, int(damage * dmg_mult))
 
-	# Durability rule: bows/tomes/staves lose use on any use; others only on hit
+		# on_damaged trigger (Miracle uses current_sim_hp to detect lethal hits)
+		if sh:
+			var is_target_blocked: bool = context.get(
+				"attacker_skills_blocked" if is_counter else "defender_skills_blocked", false)
+			if not is_target_blocked:
+				var dmg_ctx2 := {
+					"damage": damage, "current_sim_hp": target_sim_hp,
+					"unit": target, "attacker": actor, "defender": target, "weapon": weapon,
+				}
+				dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2)
+				damage = dmg_ctx2.get("damage", damage)
+
+	# on_kill
+	if did_hit and damage >= target_sim_hp and sh and not context.get(blocked_key, false):
+		sh.apply_trigger(actor, "on_kill", context)
+
 	var loses_use: bool = false
 	if weapon != null:
 		loses_use = (weapon.weapon_type in _ALWAYS_USE_DURABILITY) or did_hit
 
 	return {
-		"attacker": atk,
-		"defender": def_unit,
-		"weapon":   weapon,
-		"hit":      did_hit,
-		"crit":     did_crit,
-		"damage":   damage,
+		"attacker":        actor,
+		"defender":        target,
+		"weapon":          weapon,
+		"hit":             did_hit,
+		"crit":            did_crit,
+		"damage":          damage,
 		"loses_durability": loses_use,
+		"is_counter":      is_counter,
 	}
 
 
-# Full combat resolution with RNG. Returns result dict; does NOT modify any unit.
+# ── Skill Counter Helpers ────────────────────────────────────────────────────
+
+func _skill_available(unit: Node, skill: SkillData) -> bool:
+	if skill.max_uses_per_map == -1:
+		return true
+	return unit.get_skill_uses_remaining(skill.effect_id, skill.max_uses_per_map) > 0
+
+
+func _consume_skill(unit: Node, skill: SkillData) -> void:
+	if skill.max_uses_per_map != -1:
+		unit.consume_skill_use(skill.effect_id)
+
+
+# ── Preview (no RNG, no side effects) ────────────────────────────────────────
+
+func preview_combat(attacker: Node, defender: Node) -> Dictionary:
+	var context := _build_combat_context(attacker, defender)
+	_collect_combat_modifiers(context)
+	var aw: WeaponData = context["attacker_weapon"]
+	var dw: WeaponData = context["defender_weapon"]
+	var can_counter: bool = dw != null
+	var follow_up := get_follow_up_attacker(attacker, defender)
+	var atk_strikes: int = (aw.strikes_per_attack if aw else 1) + context["atk_mod"]["strikes"]
+	var def_strikes: int = ((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) \
+		if can_counter else 0
+
+	var eff_atk: float = _get_effectiveness_multiplier(aw, defender, context)
+	var eff_def: float = _get_effectiveness_multiplier(dw, attacker, context) if can_counter else 1.0
+
+	var atk_hit_ctx  := {"accuracy_bonus": context["atk_mod"]["accuracy"],
+		"dodge_bonus": context["def_mod"]["dodge"]}
+	var def_hit_ctx  := {"accuracy_bonus": context["def_mod"]["accuracy"],
+		"dodge_bonus": context["atk_mod"]["dodge"]}
+	var atk_dmg_ctx  := {"damage_bonus": context["atk_mod"]["damage"], "effectiveness_mult": eff_atk}
+	var def_dmg_ctx  := {"damage_bonus": context["def_mod"]["damage"], "effectiveness_mult": eff_def}
+	var atk_crit_ctx := {"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"]}
+	var def_crit_ctx := {"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"]}
+
+	return {
+		"attacker_hit":     compute_hit_pct(attacker, defender, aw, atk_hit_ctx),
+		"attacker_damage":  compute_damage(attacker, defender, aw, atk_dmg_ctx),
+		"attacker_crit":    compute_crit_pct(attacker, defender, aw, atk_crit_ctx),
+		"attacker_attacks": (2 if follow_up == attacker else 1) * atk_strikes,
+		"can_counter":      can_counter,
+		"defender_hit":     compute_hit_pct(defender, attacker, dw, def_hit_ctx) if can_counter else 0,
+		"defender_damage":  compute_damage(defender, attacker, dw, def_dmg_ctx) if can_counter else 0,
+		"defender_crit":    compute_crit_pct(defender, attacker, dw, def_crit_ctx) if can_counter else 0,
+		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
+		"attacker_weapon":  aw,
+		"defender_weapon":  dw,
+	}
+
+
+# ── Full RNG Resolution ──────────────────────────────────────────────────────
+
 func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
+	var context := _build_combat_context(attacker, defender)
+	_collect_combat_modifiers(context)
 	var sh := get_node_or_null("/root/SkillHandler")
 
-	# --- on_combat_start skills ---
-	var context: Dictionary = {"attacker": attacker, "defender": defender}
-	if sh:
-		context = sh.apply_trigger(attacker, "on_combat_start", context)
-		if not context.get("defender_skills_blocked", false):
-			context = sh.apply_trigger(defender, "on_combat_start", context)
+	var aw: WeaponData = context["attacker_weapon"]
+	var dw: WeaponData = context["defender_weapon"]
+	var can_counter: bool = dw != null
+	var atk_strikes: int = (aw.strikes_per_attack if aw else 1) + context["atk_mod"]["strikes"]
+	var def_strikes: int = ((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) \
+		if can_counter else 0
+	var follow_up: Node = get_follow_up_attacker(attacker, defender)
 
-	var vantage_unit: Node   = context.get("vantage_unit", null)
-	var can_counter: bool    = can_counterattack(defender, attacker.tile_position)
-	var follow_up: Node      = get_follow_up_attacker(attacker, defender)
-
-	# --- Aura skills (Charm, Anathema, Daunt) from nearby units ---
-	_apply_aura_bonuses(attacker, defender, context)
-
-	# --- Build attack sequence (all upfront per GDD_02) ---
-	# Brave weapons fire strikes_per_attack times before the other side responds.
-	# Vantage: if defender has it and is the vantage_unit, they go first.
-	var seq_atk:  Array[Node] = []
-	var seq_def:  Array[Node] = []
-
-	var aw: WeaponData = attacker.get_equipped_weapon()
-	var dw: WeaponData = defender.get_equipped_weapon() if can_counter else null
-	var atk_strikes: int = aw.strikes_per_attack if aw else 1
-	var def_strikes: int = dw.strikes_per_attack if dw else 1
-
-	if vantage_unit == defender and can_counter:
-		for _i in def_strikes:
-			seq_atk.append(defender); seq_def.append(attacker)
-		for _i in atk_strikes:
-			seq_atk.append(attacker); seq_def.append(defender)
-	else:
-		for _i in atk_strikes:
-			seq_atk.append(attacker); seq_def.append(defender)
-		if can_counter:
-			for _i in def_strikes:
-				seq_atk.append(defender); seq_def.append(attacker)
-
-	if follow_up != null:
-		seq_atk.append(follow_up)
-		seq_def.append(defender if follow_up == attacker else attacker)
-
-	# --- Resolve each attack, stopping if either unit dies ---
 	var exchanges: Array = []
 	var atk_sim_hp: int = attacker.data.hp
 	var def_sim_hp: int = defender.data.hp
 
-	for i in seq_atk.size():
-		var a: Node = seq_atk[i]
-		var d: Node = seq_def[i]
-		# Stop if either combatant is already dead in the simulation
-		var a_hp: int = atk_sim_hp if a == attacker else def_sim_hp
-		var d_hp: int = def_sim_hp if d == defender else atk_sim_hp
-		if a_hp <= 0 or d_hp <= 0:
+	# Vantage: defender attacks first (set by _apply_vantage in _collect_combat_modifiers)
+	if context["flags"]["vantage"] and can_counter:
+		for _i in def_strikes:
+			if atk_sim_hp <= 0:
+				break
+			var ex := _resolve_single_attack(defender, attacker, context, true, atk_sim_hp)
+			if ex["hit"]:
+				atk_sim_hp -= ex["damage"]
+			exchanges.append(ex)
+		def_strikes = 0  # defender's attacks are spent
+
+	# Attacker's strikes
+	for _i in atk_strikes:
+		if def_sim_hp <= 0:
 			break
+		var ex := _resolve_single_attack(attacker, defender, context, false, def_sim_hp)
+		if ex["hit"]:
+			def_sim_hp -= ex["damage"]
+		exchanges.append(ex)
 
-		var exchange := _resolve_one_attack(a, d, context)
-		exchange["is_follow_up"] = (follow_up != null and i == seq_atk.size() - 1 and a == follow_up)
+	# Defender counter (skipped if Vantage already used all counter strikes)
+	if can_counter and def_strikes > 0 and atk_sim_hp > 0:
+		for _i in def_strikes:
+			if atk_sim_hp <= 0:
+				break
+			var ex := _resolve_single_attack(defender, attacker, context, true, atk_sim_hp)
+			if ex["hit"]:
+				atk_sim_hp -= ex["damage"]
+			exchanges.append(ex)
 
-		if exchange["hit"]:
-			var dmg: int = exchange["damage"]
-			# Miracle: check on_damaged for defender of this exchange.
-			# current_sim_hp is the defender's remaining HP in the simulation (not real HP),
-			# so Miracle triggers correctly in multi-hit combats where prior hits landed.
-			if sh and dmg >= d_hp:
-				var miracle_ctx := {"attacker": a, "defender": d, "damage": dmg,
-					"unit": d, "weapon": exchange["weapon"], "current_sim_hp": d_hp}
-				var is_d_attacker: bool = (d == attacker)
-				if not context.get("attacker_skills_blocked" if is_d_attacker else "defender_skills_blocked", false):
-					miracle_ctx = sh.apply_trigger(d, "on_damaged", miracle_ctx)
-					dmg = miracle_ctx.get("damage", dmg)
-			exchange["damage"] = dmg
+	# Follow-up
+	if follow_up != null:
+		var fu_target: Node = defender if follow_up == attacker else attacker
+		var fu_sim_hp: int  = atk_sim_hp if follow_up == attacker else def_sim_hp
+		var tgt_sim_hp: int = def_sim_hp if follow_up == attacker else atk_sim_hp
+		if fu_sim_hp > 0 and tgt_sim_hp > 0:
+			var is_fu_counter: bool = (follow_up == defender)
+			var ex := _resolve_single_attack(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp)
+			ex["is_follow_up"] = true
+			if ex["hit"]:
+				if follow_up == attacker:
+					def_sim_hp -= ex["damage"]
+				else:
+					atk_sim_hp -= ex["damage"]
+			exchanges.append(ex)
 
-			if d == defender:
-				def_sim_hp -= dmg
-			else:
-				atk_sim_hp -= dmg
-		exchanges.append(exchange)
+	if sh:
+		sh.apply_trigger(attacker, "on_combat_end", context)
+		sh.apply_trigger(defender, "on_combat_end", context)
 
 	var defender_died: bool = def_sim_hp <= 0
 	var attacker_died: bool = atk_sim_hp <= 0
@@ -332,36 +448,33 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	}
 
 
+# ── Apply Combat Result ──────────────────────────────────────────────────────
+
 # Applies the result from resolve_combat: HP changes, durability, EXP, wEXP, death.
 func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void:
 	var bus := get_node_or_null("/root/EventBus") if is_inside_tree() else null
-
 	if bus:
 		bus.combat_started.emit(attacker, defender)
 
 	for exchange in result["exchanges"]:
-		var atk: Node        = exchange["attacker"]
-		var def_unit: Node   = exchange["defender"]
+		var atk: Node          = exchange["attacker"]
+		var def_unit: Node     = exchange["defender"]
 		var weapon: WeaponData = exchange.get("weapon", null)
 
-		# Durability
 		if exchange["loses_durability"] and atk.has_method("use_weapon_durability"):
 			atk.use_weapon_durability()
 
 		if exchange["hit"]:
-			# wEXP per successful hit
 			if weapon != null and atk.has_method("add_wexp"):
 				atk.add_wexp(weapon.weapon_type, weapon.wexp)
-
-			# Apply HP damage
 			def_unit.take_damage(exchange["damage"])
-
-			# Death check
+			# Track cumulative damage for Vengeance and similar skills
+			if def_unit.data:
+				def_unit.data.damage_taken_this_map += exchange["damage"]
 			if def_unit.data.hp <= 0 and def_unit.has_method("handle_death"):
 				def_unit.handle_death()
-				break  # stop further processing
+				break
 
-	# Award EXP (only to survivors)
 	if attacker.is_inside_tree() and result.get("attacker_exp", 0) > 0 \
 			and not result["attacker_died"]:
 		attacker.add_exp(result["attacker_exp"])
@@ -377,63 +490,3 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)
-
-
-# ---- Aura Helpers ----
-
-func _manhattan(a: Vector2i, b: Vector2i) -> int:
-	return absi(a.x - b.x) + absi(a.y - b.y)
-
-
-# Scans all living units for aura skills and accumulates their effects into
-# the main combat context. Keys written: attacker_aura_hit, attacker_aura_dodge,
-# attacker_aura_damage, attacker_aura_crit (and defender_ equivalents).
-# Aura logic lives here rather than SkillHandler because it requires direct
-# access to both combatants and the tile distances simultaneously.
-func _apply_aura_bonuses(attacker: Node, defender: Node, context: Dictionary) -> void:
-	var gs := get_node_or_null("/root/GameState")
-	var dm := get_node_or_null("/root/DataManager")
-	if gs == null or dm == null:
-		return
-	for u in gs.all_units:
-		if not is_instance_valid(u) or u.data == null or u.data.hp <= 0:
-			continue
-		if u == attacker or u == defender:
-			continue
-		var d_atk := _manhattan(u.tile_position, attacker.tile_position)
-		var d_def := _manhattan(u.tile_position, defender.tile_position)
-		for skill_id in u.data.skills:
-			var skill: SkillData = dm.get_skill(skill_id)
-			if skill == null or skill.trigger != "aura":
-				continue
-			var radius: int = skill.effect_params.get("radius", 3)
-			_apply_one_aura(skill, u, attacker, defender, d_atk, d_def, radius, context)
-
-
-func _apply_one_aura(skill: SkillData, u: Node, attacker: Node, defender: Node,
-		d_atk: int, d_def: int, radius: int, context: Dictionary) -> void:
-	match skill.effect_id:
-		"charm":
-			# Allies within radius get +10 hit and +10 dodge during combat.
-			if u.team == attacker.team and d_atk <= radius:
-				context["attacker_aura_hit"]   = context.get("attacker_aura_hit", 0) + 10
-				context["attacker_aura_dodge"] = context.get("attacker_aura_dodge", 0) + 10
-			if u.team == defender.team and d_def <= radius:
-				context["defender_aura_hit"]   = context.get("defender_aura_hit", 0) + 10
-				context["defender_aura_dodge"] = context.get("defender_aura_dodge", 0) + 10
-		"anathema":
-			# Enemies within radius suffer -10 hit and -10 dodge during combat.
-			if u.team != attacker.team and d_atk <= radius:
-				context["attacker_aura_hit"]   = context.get("attacker_aura_hit", 0) - 10
-				context["attacker_aura_dodge"] = context.get("attacker_aura_dodge", 0) - 10
-			if u.team != defender.team and d_def <= radius:
-				context["defender_aura_hit"]   = context.get("defender_aura_hit", 0) - 10
-				context["defender_aura_dodge"] = context.get("defender_aura_dodge", 0) - 10
-		"daunt":
-			# Enemies within radius suffer -10 hit and -10 crit during combat.
-			if u.team != attacker.team and d_atk <= radius:
-				context["attacker_aura_hit"]  = context.get("attacker_aura_hit", 0) - 10
-				context["attacker_aura_crit"] = context.get("attacker_aura_crit", 0) - 10
-			if u.team != defender.team and d_def <= radius:
-				context["defender_aura_hit"]  = context.get("defender_aura_hit", 0) - 10
-				context["defender_aura_crit"] = context.get("defender_aura_crit", 0) - 10
