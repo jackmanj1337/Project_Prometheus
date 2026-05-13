@@ -4,7 +4,7 @@ enum Phase { PLAYER, ENEMY }
 
 # Settings (kept in sync with SettingsManager)
 var permadeath_enabled: bool = false
-var leveling_method: String = "growth_rates"
+var leveling_method: String = "growth_random"
 var max_skills: int = 4
 var max_inventory: int = 8
 
@@ -154,6 +154,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"active_modifiers": data.active_modifiers.duplicate(true),
 		"skill_use_counters": data.skill_use_counters.duplicate(true),
 		"damage_taken_this_map": data.damage_taken_this_map,
+		"growth_accumulators": data.growth_accumulators.duplicate(true),
 		"shift_gauge": data.shift_gauge,
 		"is_shifted": data.is_shifted,
 	}
@@ -181,5 +182,6 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.active_modifiers = snap.active_modifiers.duplicate(true)
 	data.skill_use_counters = snap.skill_use_counters.duplicate(true)
 	data.damage_taken_this_map = snap.damage_taken_this_map
+	data.growth_accumulators = snap.growth_accumulators.duplicate(true)
 	data.shift_gauge = snap.shift_gauge
 	data.is_shifted = snap.is_shifted

@@ -479,7 +479,8 @@ func add_exp(amount: int) -> void:
 
 
 # Rolls stat increases per the unit's class growth rates and applies them.
-# Each stat: roll 1..100; if roll <= growth_rate, that stat increases by 1.
+# Two methods: growth_random (RNG-based, rate > 100 gives guaranteed gains)
+# and growth_fixed (deterministic accumulator, always predictable progression).
 # Emits unit_leveled_up with the dictionary of changes for the level-up screen.
 const _GROWTH_STATS := ["hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"]
 
@@ -488,24 +489,53 @@ func level_up() -> void:
 		return
 	data.level += 1
 	data.effective_level += 1
-	# GDD-02: only growth_rates is implemented; warn if any other method is active.
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	if gs and gs.leveling_method != "growth_rates":
-		push_warning("Unit.level_up: leveling_method '%s' is not implemented; falling back to growth_rates" % gs.leveling_method)
+	var method: String = gs.leveling_method if gs else "growth_random"
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
 	var rates: Dictionary = class_data.growth_rates
 	var changes: Dictionary = {}
-	for stat in _GROWTH_STATS:
-		var rate: int = int(rates.get(stat, 0))
-		var roll: int = (randi() % 100) + 1  # 1..100 inclusive
-		if roll <= rate:
-			_increment_stat(stat)
-			changes[stat] = 1
+	match method:
+		"growth_fixed":
+			changes = _level_up_fixed(rates)
+		_:  # "growth_random" and any unknown value
+			changes = _level_up_random(rates)
 	var bus := _bus()
 	if bus:
 		bus.unit_leveled_up.emit(self, changes)
+
+
+# Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
+func _level_up_random(rates: Dictionary) -> Dictionary:
+	var changes: Dictionary = {}
+	for stat in _GROWTH_STATS:
+		var rate: int = int(rates.get(stat, 0))
+		var guaranteed: int = rate / 100
+		var remainder: int  = rate % 100
+		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
+		if gain > 0:
+			for _i in gain:
+				_increment_stat(stat)
+			changes[stat] = gain
+	return changes
+
+
+# Deterministic: accumulates rate each level; +1 per full 100 accumulated.
+# Carry persists in data.growth_accumulators so gains are perfectly predictable.
+# Rate 50 → +1 every 2 levels exactly. Rate 150 → +1 every level, +1 extra every other.
+func _level_up_fixed(rates: Dictionary) -> Dictionary:
+	var changes: Dictionary = {}
+	for stat in _GROWTH_STATS:
+		var rate: int = int(rates.get(stat, 0))
+		var acc: int = int(data.growth_accumulators.get(stat, 0)) + rate
+		var gain: int = acc / 100
+		data.growth_accumulators[stat] = acc % 100
+		if gain > 0:
+			for _i in gain:
+				_increment_stat(stat)
+			changes[stat] = gain
+	return changes
 
 
 func _increment_stat(stat: String) -> void:

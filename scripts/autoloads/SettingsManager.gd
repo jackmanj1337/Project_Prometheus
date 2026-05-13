@@ -20,8 +20,8 @@ var phase_banner: String = "show"
 var level_up_screen: String = "show"
 # "off"|"on"
 var permadeath: String = "off"
-# "growth_rates"|"point_buy"|"coin_flip"|"dice"
-var leveling_method: String = "growth_rates"
+# "growth_random"|"growth_fixed"
+var leveling_method: String = "growth_random"
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
@@ -92,7 +92,7 @@ func reset_section_to_defaults(section: String) -> void:
 			phase_banner      = "show"
 			level_up_screen   = "show"
 			permadeath        = "off"
-			leveling_method   = "growth_rates"
+			leveling_method   = "growth_random"
 		"controls":
 			keybindings = {}
 			_apply_keybindings()

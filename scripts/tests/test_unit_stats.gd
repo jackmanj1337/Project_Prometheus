@@ -215,9 +215,70 @@ func _init() -> void:
 		print("FAIL S-cap: %s" % soldier_data.proficiencies)
 		failed += 1
 
+	# --- growth_fixed: carry persists across calls ---
+	# Rate 50: should gain +1 on even levels only.
+	# Call _level_up_fixed directly via a fresh unit with controlled rates.
+	var fixed_unit := Unit.new()
+	var fixed_data := UnitData.new()
+	fixed_data.level = 1
+	fixed_data.hp = 20; fixed_data.max_hp = 20
+	fixed_data.strength = 5; fixed_data.magic = 0; fixed_data.defense = 0
+	fixed_data.resistance = 0; fixed_data.skill = 0; fixed_data.speed = 0; fixed_data.luck = 0
+	fixed_unit.data = fixed_data
+	var rates50 := {"hp": 0, "strength": 50, "magic": 0, "defense": 0, "resistance": 0,
+		"skill": 0, "speed": 0, "luck": 0}
+	var ch1 := fixed_unit._level_up_fixed(rates50)  # acc=50 → 0 gain, carry=50
+	var ch2 := fixed_unit._level_up_fixed(rates50)  # acc=100 → +1, carry=0
+	var ch3 := fixed_unit._level_up_fixed(rates50)  # acc=50 → 0 gain, carry=50
+	if not ch1.has("strength") and ch2.get("strength", 0) == 1 and not ch3.has("strength"):
+		print("OK  growth_fixed rate-50: gain only on every 2nd level")
+		passed += 1
+	else:
+		print("FAIL growth_fixed rate-50: ch1=%s ch2=%s ch3=%s" % [ch1, ch2, ch3])
+		failed += 1
+
+	# Rate 150: +1 guaranteed each level, +1 extra every other level.
+	var rates150 := {"hp": 0, "strength": 150, "magic": 0, "defense": 0, "resistance": 0,
+		"skill": 0, "speed": 0, "luck": 0}
+	fixed_data.growth_accumulators = {}
+	fixed_data.strength = 0
+	var r1 := fixed_unit._level_up_fixed(rates150)  # acc=150 → +1, carry=50
+	var r2 := fixed_unit._level_up_fixed(rates150)  # acc=200 → +2, carry=0
+	if r1.get("strength", 0) == 1 and r2.get("strength", 0) == 2:
+		print("OK  growth_fixed rate-150: +1 then +2 pattern")
+		passed += 1
+	else:
+		print("FAIL growth_fixed rate-150: r1=%s r2=%s" % [r1, r2])
+		failed += 1
+
+	# --- growth_random: rate > 100 gives guaranteed gains ---
+	# Rate 250 → guaranteed +2, 50% chance of +3. Test the guaranteed part by
+	# running 100 trials and checking the minimum gain is always ≥ 2.
+	var rates250 := {"hp": 0, "strength": 250, "magic": 0, "defense": 0, "resistance": 0,
+		"skill": 0, "speed": 0, "luck": 0}
+	var rand_unit := Unit.new()
+	rand_unit.data = fixed_data.duplicate(true)
+	rand_unit.data.growth_accumulators = {}
+	rand_unit.data.strength = 0
+	var min_gain := 9999
+	for _i in 100:
+		rand_unit.data.strength = 0
+		var res := rand_unit._level_up_random(rates250)
+		var gain: int = res.get("strength", 0)
+		if gain < min_gain:
+			min_gain = gain
+	if min_gain >= 2:
+		print("OK  growth_random rate-250: minimum gain ≥ 2 over 100 trials")
+		passed += 1
+	else:
+		print("FAIL growth_random rate-250: got min_gain=%d (expected ≥ 2)" % min_gain)
+		failed += 1
+
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()
+	fixed_unit.queue_free()
+	rand_unit.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -65,6 +65,10 @@ class_name UnitData extends Resource
 # Cumulative damage taken this map (used by the Vengeance skill — M9).
 @export var damage_taken_this_map: int = 0
 
+# Carry-over accumulators for growth_fixed leveling. Keys = stat name, values = remainder (0–99).
+# Persisted with unit data so Retry restores the exact carry state.
+@export var growth_accumulators: Dictionary = {}
+
 # Laguz shift gauge — safe for all Beorc units (ignored until M12).
 @export var shift_gauge: int = 0
 @export var is_shifted: bool = false
