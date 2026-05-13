@@ -325,6 +325,9 @@ func _show_action_menu() -> void:
 
 # Fired when ActionMenu's cancel key is pressed while the menu is open
 func _on_action_menu_cancelled() -> void:
+	# Ignore stale cancel signals that arrive while the move tween is still running.
+	if _state == State.LOCKED:
+		return
 	_undo_move_and_reselect()
 
 
@@ -573,6 +576,8 @@ func _on_map_menu_closed() -> void:
 func lock() -> void:
 	_state = State.LOCKED
 	_held_dir = Vector2i.ZERO
+	_held_timer = 0.0
+	_held_initial = true
 
 
 func unlock() -> void:

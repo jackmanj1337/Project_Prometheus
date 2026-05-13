@@ -70,6 +70,12 @@ func _tick_unit_modifiers(units: Array[Node], duration_type: String) -> void:
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
 func start_player_phase() -> void:
+	# Check victory/defeat first — if the map is already over (e.g. last enemy died
+	# during the enemy phase) we must not reset unit states or call start-of-turn effects
+	# on freed nodes.
+	check_victory_conditions()
+	if _map_over:
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.PLAYER)
@@ -83,7 +89,6 @@ func start_player_phase() -> void:
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
-	check_victory_conditions()
 
 
 # Called by the End Turn button or by auto-end when all player units are DONE.
