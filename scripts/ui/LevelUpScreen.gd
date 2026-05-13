@@ -59,8 +59,9 @@ func _show_next() -> void:
 	show()
 
 	if is_auto:
-		# Auto-dismiss after 1.5s; CONNECT_ONE_SHOT prevents stacking on repeated level-ups.
+		# SceneTreeTimer outlives nodes — guard against freed self on scene change.
 		get_tree().create_timer(1.5).timeout.connect(func():
+			if not is_instance_valid(self): return
 			hide()
 			_show_next()
 		, CONNECT_ONE_SHOT)

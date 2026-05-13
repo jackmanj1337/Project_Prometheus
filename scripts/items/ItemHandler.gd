@@ -26,6 +26,7 @@ func apply_item(unit: Node, entry: Dictionary) -> void:
 			unit.heal(unit.data.max_hp)
 		_:
 			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
+			return  # Don't consume the item if we can't apply its effect
 	entry["uses_remaining"] -= 1
 	if entry["uses_remaining"] <= 0:
 		unit.data.inventory.erase(entry)

@@ -87,11 +87,11 @@ func open() -> void:
 	_label_master.text   = "%d" % sm.master_volume
 	_label_music.text    = "%d" % sm.music_volume
 	_label_sfx.text      = "%d" % sm.sfx_volume
-	_opt_combat_anim.selected    = _COMBAT_ANIM_OPTIONS.find(sm.combat_animations)
-	_opt_movement_speed.selected = _MOVEMENT_SPEED_OPTIONS.find(sm.movement_speed)
-	_opt_phase_banner.selected   = _PHASE_BANNER_OPTIONS.find(sm.phase_banner)
-	_opt_level_up.selected       = _LEVEL_UP_OPTIONS.find(sm.level_up_screen)
-	_opt_permadeath.selected     = _PERMADEATH_OPTIONS.find(sm.permadeath)
+	_opt_combat_anim.selected    = maxi(0, _COMBAT_ANIM_OPTIONS.find(sm.combat_animations))
+	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.movement_speed))
+	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.phase_banner))
+	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.level_up_screen))
+	_opt_permadeath.selected     = maxi(0, _PERMADEATH_OPTIONS.find(sm.permadeath))
 	show()
 	_btn_back.grab_focus()
 
