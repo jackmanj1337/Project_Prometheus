@@ -9,15 +9,10 @@ const KEY_REPEAT_RATE: float = 0.10
 # Camera edge-scroll trigger: when cursor is within this many tiles of the edge
 const CAMERA_EDGE_BUFFER: int = 2
 
-# Phase-2 zoom architecture (per GDD_01) — placeholders for future implementation
-const ZOOM_LEVELS: Array[float] = [0.75, 1.0, 1.5]
-const DEFAULT_ZOOM_INDEX: int = 1
-
 var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
 var _camera: Camera2D = null
 var _turn: TurnManager = null
-var _zoom_index: int = DEFAULT_ZOOM_INDEX
 
 # State machine — see GDD_01 MapCursor section
 enum State {
@@ -585,12 +580,3 @@ func _scroll_camera_if_needed() -> void:
 	_camera.position = _grid.tile_to_world(cam_tile)
 
 
-# [PLACEHOLDER Phase 2] Three-step zoom levels: 0.75, 1.0, 1.5
-func _handle_zoom(direction: int) -> void:
-	_zoom_index = clamp(_zoom_index + direction, 0, ZOOM_LEVELS.size() - 1)
-	_apply_zoom()
-
-
-func _apply_zoom() -> void:
-	if _camera != null:
-		_camera.zoom = Vector2.ONE * ZOOM_LEVELS[_zoom_index]

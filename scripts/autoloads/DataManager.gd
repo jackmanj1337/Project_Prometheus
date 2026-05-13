@@ -25,6 +25,9 @@ func _load_directory(path: String, target: Dictionary) -> void:
 	dir.list_dir_begin()
 	var fname := dir.get_next()
 	while fname != "":
+		if dir.current_is_dir():
+			fname = dir.get_next()
+			continue
 		if fname.ends_with(".tres"):
 			var res_path := path + fname
 			var res := load(res_path)

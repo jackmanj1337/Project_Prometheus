@@ -34,8 +34,7 @@ func show_for(unit: Node) -> void:
 		btn.text = "%s  (%d)" % [entry.get("name", "Item"), uses]
 		btn.focus_mode = Control.FOCUS_ALL
 		_vbox.add_child(btn)
-		# Capture entry by value so the lambda closes over a copy
-		var captured: Dictionary = entry
+		var captured: Dictionary = entry  # reference to the inventory dict entry
 		btn.pressed.connect(func(): _on_item_pressed(captured))
 		_buttons.append(btn)
 

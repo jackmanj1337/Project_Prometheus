@@ -73,7 +73,9 @@ func save() -> void:
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
-	cfg.save(SETTINGS_PATH)
+	var err := cfg.save(SETTINGS_PATH)
+	if err != OK:
+		push_error("SettingsManager: failed to save settings: %s" % error_string(err))
 
 
 # Resets one section ("audio"|"controls"|"gameplay") to defaults and saves.
