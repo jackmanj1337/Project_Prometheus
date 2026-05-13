@@ -209,4 +209,5 @@ func _apply_victory_rewards(gs: Node) -> void:
 
 func _on_unit_died(unit: Node) -> void:
 	_unit_states.erase(unit)
+	_original_tiles.erase(unit)
 	check_victory_conditions()
