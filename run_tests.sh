@@ -10,6 +10,7 @@ TESTS=(
   test_unit_selection
   test_combat
   test_enemy_ai
+  test_skill_item_handler
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
