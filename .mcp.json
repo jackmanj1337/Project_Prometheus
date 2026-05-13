@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "godot-analyzer": {
+      "command": "python3",
+      "args": ["/workspace/tools/godot-analyzer-mcp/server.py", "/workspace"]
+    }
+  }
+}
