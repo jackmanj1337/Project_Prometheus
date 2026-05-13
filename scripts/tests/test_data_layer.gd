@@ -58,7 +58,9 @@ func _init() -> void:
 			failed += 1
 
 	# --- Skills ---
-	for sid in ["renewal", "vantage", "nihil", "resolve", "miracle", "wrath"]:
+	for sid in ["renewal", "vantage", "nihil", "resolve", "miracle", "wrath",
+			"swordfaire", "lancefaire", "bowfaire",
+			"swordbreaker", "lancebreaker", "bowbreaker"]:
 		var sk = load("res://data/skills/" + sid + ".tres")
 		if sk and sk is SkillData and sk.id == sid:
 			print("OK  skill: " + sid)

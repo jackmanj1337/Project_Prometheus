@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bowbreaker"
+display_name = "Bowbreaker"
+description = "+50 Hit when opponent is wielding a bow."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "breaker"
+effect_params = {"weapon_type": "bow", "hit": 50}
+max_uses_per_map = -1
+max_uses_per_combat = -1
+is_player_activated = false
