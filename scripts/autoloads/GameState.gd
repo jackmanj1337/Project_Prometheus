@@ -134,6 +134,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 	# Phase 2 runtime state (modifiers, conditions, counters) is included so a
 	# mid-battle suspend save can serialize everything without scene tree traversal.
 	return {
+		"tile_position": data.tile_position,
 		"hp": data.hp,
 		"max_hp": data.max_hp,
 		"strength": data.strength,
@@ -162,6 +163,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 
 
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
+	data.tile_position = snap.tile_position
 	data.hp = snap.hp
 	data.max_hp = snap.max_hp
 	data.strength = snap.strength

@@ -8,7 +8,12 @@ class_name Unit extends Node2D
 
 # Set by initialize()
 var data: UnitData
-var tile_position: Vector2i = Vector2i.ZERO
+# Pass-through to data.tile_position so callers use unit.tile_position unchanged.
+var tile_position: Vector2i:
+	get: return data.tile_position if data else Vector2i.ZERO
+	set(val):
+		if data:
+			data.tile_position = val
 var team: String = "player"  # "player" | "enemy"
 
 @onready var _sprite: Sprite2D = $Sprite2D
