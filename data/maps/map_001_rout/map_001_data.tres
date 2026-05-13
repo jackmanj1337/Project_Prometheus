@@ -12,16 +12,16 @@ objective_params = {}
 turn_limit = 0
 player_start_tiles = [Vector2i(1, 9), Vector2i(1, 10), Vector2i(1, 11), Vector2i(2, 9), Vector2i(2, 10), Vector2i(2, 11)]
 enemy_placements = [
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres", "tile": Vector2i(24, 2), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e2_archer.tres", "tile": Vector2i(28, 7), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e3_mercenary.tres", "tile": Vector2i(23, 11), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e4_knight.tres", "tile": Vector2i(27, 15), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e5_archer.tres", "tile": Vector2i(35, 8), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e6_soldier.tres", "tile": Vector2i(30, 18), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e7_knight_sub.tres", "tile": Vector2i(38, 9), "ai_profile": "basic", "is_boss": false, "required_survivor": false},
-{"unit_data_path": "res://data/maps/map_001_rout/enemies/e8_knight_boss.tres", "tile": Vector2i(39, 12), "ai_profile": "basic", "is_boss": true, "required_survivor": false}
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres", "tile": Vector2i(24, 2), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e2_archer.tres", "tile": Vector2i(28, 7), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e3_mercenary.tres", "tile": Vector2i(23, 11), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e4_knight.tres", "tile": Vector2i(27, 15), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e5_archer.tres", "tile": Vector2i(35, 8), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e6_soldier.tres", "tile": Vector2i(30, 18), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e7_knight_sub.tres", "tile": Vector2i(38, 9), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_001_rout/enemies/e8_knight_boss.tres", "tile": Vector2i(39, 12), "ai_profile": "basic", "is_boss": true}
 ]
-required_survivor_names = []
+required_survivor_ids = []
 reward_gold = 500
 reward_items = []
 grid = ["WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", "W...............SSS..MM..................W", "W..FF...........SSS.MMM....FF............W", "W..FF...........SSS.MMM....FF............W", "W..........FF...SSS..MM...............WWWW", "W..........FF...SSS...................WWWW", "W......T.........SS.........FF...........W", "W................SS.........FF.....FF....W", "W................SS................FF....W", "W............FF..SS....FF.............T..W", "W............FF...S....FF................W", "W.................S......................W", "W.................S....................T.W", "W.................SS.....................W", "W..................S.....................W", "W.....FF...........S.....................W", "W.....FF...........SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W...................DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........................................W", "W........................................W", "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"]

@@ -6,6 +6,8 @@ signal unit_deselected()
 signal unit_moved(unit: Node, from_tile: Vector2i, to_tile: Vector2i)
 signal unit_action_taken(unit: Node)
 signal combat_started(attacker: Node, defender: Node)
+# Emitted AFTER handle_death() has been called on any loser(s). Listeners MUST
+# use is_instance_valid() before dereferencing attacker/defender across frames.
 signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)

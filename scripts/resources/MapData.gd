@@ -9,8 +9,8 @@ class_name MapData extends Resource
 # 0 = no turn limit; defeat if exceeded
 @export var turn_limit: int = 0
 @export var player_start_tiles: Array[Vector2i] = []
-# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String,
-#               "is_boss":bool, "required_survivor":bool }
+# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String, "is_boss":bool }
+# required_survivor belongs on the top-level required_survivor_ids array, not per-placement.
 @export var enemy_placements: Array[Dictionary] = []
 # Player unit names that trigger defeat if killed
 @export var required_survivor_ids: Array[String] = []
