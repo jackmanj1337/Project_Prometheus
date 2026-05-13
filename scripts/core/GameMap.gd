@@ -137,13 +137,18 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 
 # Asserts all rows are the expected length and contain only known terrain chars.
 func _validate_map(grid: Array[String], width: int, height: int) -> void:
-	assert(grid.size() == height, "grid has %d rows, expected %d" % [grid.size(), height])
+	if grid.size() != height:
+		push_error("GameMap: grid has %d rows, expected %d" % [grid.size(), height])
+		return
 	for y in grid.size():
 		var row: String = grid[y]
-		assert(row.length() == width, "Row %d length %d, expected %d" % [y, row.length(), width])
+		if row.length() != width:
+			push_error("GameMap: row %d length %d, expected %d" % [y, row.length(), width])
+			return
 		for x in row.length():
 			var ch: String = row[x]
-			assert(_CHAR_TO_SOURCE.has(ch), "Row %d col %d: unknown char '%s'" % [y, x, ch])
+			if not _CHAR_TO_SOURCE.has(ch):
+				push_error("GameMap: row %d col %d: unknown terrain char '%s'" % [y, x, ch])
 
 
 func _paint_terrain(grid: Array[String], width: int, height: int) -> void:
