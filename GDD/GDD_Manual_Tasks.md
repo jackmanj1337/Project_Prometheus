@@ -10,7 +10,49 @@ Check items off as they are completed (`- [ ]` → `- [x]`).
 
 ## Priority: Must Do Before Next Coding Session
 
-*(No blocking manual tasks currently pending — all previous items are complete.)*
+### Create SettingsScreen.tscn in the editor
+
+`scripts/ui/SettingsScreen.gd` is complete. It expects the following scene structure
+(all node names must match exactly — the script uses `@onready` paths):
+
+```
+SettingsScreen  (Control, anchors = full rect)
+  Panel
+    VBox
+      Label         "Settings"
+      HBoxMaster    (HBoxContainer)
+        Label       "Master"
+        SliderMaster (HSlider, min=0, max=100, step=1)
+        LabelMaster  (Label, e.g. "80")
+      HBoxMusic     (HBoxContainer)
+        Label       "Music"
+        SliderMusic  (HSlider)
+        LabelMusic   (Label)
+      HBoxSFX       (HBoxContainer)
+        Label       "SFX"
+        SliderSFX    (HSlider)
+        LabelSFX     (Label)
+      HSeparator
+      OptCombatAnim    (OptionButton)
+      OptMovementSpeed (OptionButton)
+      OptPhaseBanner   (OptionButton)
+      OptLevelUpScreen (OptionButton)
+      OptPermadeath    (OptionButton)
+      HSeparator
+      BtnBack          (Button, text "Back")
+```
+
+Save the scene as `scenes/ui/SettingsScreen.tscn`.
+
+Then wire it from `MapMenu.tscn` and `MainMenu.tscn`:
+- Add a "Settings" button to both menus.
+- In each menu's `_on_settings_pressed()` handler, call `settings_screen.open()`.
+- Connect `SettingsScreen.back_pressed` to re-show the menu.
+
+**What breaks if skipped:** Settings Screen can't be opened by the player; all settings
+require direct file edits to `user://settings.cfg`.
+
+---
 
 ---
 

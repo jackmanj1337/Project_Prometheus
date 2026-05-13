@@ -50,6 +50,9 @@ var _held_initial: bool = true
 var _danger_zone_shown: bool = false
 # Target cached while preview is shown
 var _preview_target: Node = null
+# True while the "end turn with unacted units?" ConfirmationDialog is open.
+# Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
+var _awaiting_end_turn_confirm: bool = false
 
 
 func _ready() -> void:
@@ -535,12 +538,32 @@ func _open_map_menu() -> void:
 
 
 func _on_end_turn_requested() -> void:
-	if _turn != null:
+	if _turn == null:
+		return
+	if _turn.are_all_player_units_done():
 		_turn.end_player_phase()
+		return
+	# Some units haven't acted — keep cursor locked and ask for confirmation.
+	_awaiting_end_turn_confirm = true
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
+	dlg.confirmed.connect(func():
+		_awaiting_end_turn_confirm = false
+		_turn.end_player_phase()
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func():
+		_awaiting_end_turn_confirm = false
+		unlock()
+		dlg.queue_free()
+	)
+	add_child(dlg)
+	dlg.popup_centered()
 
 
 func _on_map_menu_closed() -> void:
-	unlock()
+	if not _awaiting_end_turn_confirm:
+		unlock()
 
 
 func lock() -> void:

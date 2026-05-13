@@ -179,6 +179,7 @@ func check_victory_conditions() -> void:
 	if _map_data.objective_type == "rout":
 		if gs.get_living_enemy_units().is_empty():
 			_map_over = true
+			_apply_victory_rewards(gs)
 			bus.map_victory.emit()
 			return
 	# Defeat: all player units dead
@@ -197,6 +198,13 @@ func check_victory_conditions() -> void:
 			_map_over = true
 			bus.map_defeat.emit()
 			return
+
+
+func _apply_victory_rewards(gs: Node) -> void:
+	if _map_data.reward_gold > 0:
+		gs.party_gold += _map_data.reward_gold
+	for item_id in _map_data.reward_items:
+		gs.party_items.append(item_id)
 
 
 func _on_unit_died(unit: Node) -> void:

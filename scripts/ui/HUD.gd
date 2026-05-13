@@ -16,6 +16,8 @@ extends Control
 
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
+var _unit_is_selected: bool = false  # true while a player unit is actively selected
+var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 
 
 func _ready() -> void:
@@ -46,15 +48,26 @@ func _on_turn_changed(turn_number: int) -> void:
 
 
 func _on_unit_selected(unit: Node) -> void:
+	_unit_is_selected = true
 	_show_unit(unit)
 
 
 func _on_unit_deselected() -> void:
-	_unit_panel.hide()
+	_unit_is_selected = false
+	# After deselection, show whatever unit the cursor is currently over (if any)
+	if _grid == null:
+		_grid = _find_grid()
+	_show_unit(_grid.get_unit_at(_cursor_tile) if _grid != null and _cursor_tile.x >= 0 else null)
 
 
 func _on_cursor_moved(tile: Vector2i) -> void:
+	_cursor_tile = tile
 	_update_terrain(tile)
+	# When no unit is actively selected, show info for whatever unit the cursor is over
+	if not _unit_is_selected:
+		if _grid == null:
+			_grid = _find_grid()
+		_show_unit(_grid.get_unit_at(tile) if _grid != null else null)
 
 
 func _show_unit(unit: Node) -> void:
@@ -64,7 +77,7 @@ func _show_unit(unit: Node) -> void:
 	_unit_name.text = unit.data.unit_name
 	_unit_class.text = unit.data.class_id
 	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]
-	var wpn := unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	var wpn: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
 	_unit_weapon.text = wpn.display_name if wpn != null else "--"
 	_unit_panel.show()
 

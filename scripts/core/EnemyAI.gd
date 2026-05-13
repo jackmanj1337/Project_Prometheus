@@ -39,7 +39,7 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 
-	# Attack the nearest targetable player from the new position
+	# Attack the nearest targetable player from the new position; fall back to staff heal.
 	if is_instance_valid(enemy):
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
@@ -49,6 +49,8 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 			if cr and is_instance_valid(target):
 				var result: Dictionary = cr.resolve_combat(enemy, target)
 				cr.apply_combat_result(result, enemy, target)
+		else:
+			_try_staff_heal(enemy, grid)
 
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
@@ -83,6 +85,32 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 			best_dist = d
 			best_move = tile
 	return best_move
+
+
+# Heals the most-injured ally in range if the enemy carries a staff. Mirrors the
+# player's _execute_staff_heal() formula: 10 + MAG, flat 10 EXP, consumes one use.
+func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
+	if not enemy.has_method("get_equipped_weapon"):
+		return
+	var weapon: WeaponData = enemy.get_equipped_weapon()
+	if weapon == null or weapon.weapon_type != "staff":
+		return
+	var heal_targets: Array[Node] = grid.get_healable_allies(enemy)
+	if heal_targets.is_empty():
+		return
+	# Pick most injured ally (lowest current HP)
+	var target: Node = heal_targets[0]
+	for t in heal_targets:
+		if is_instance_valid(t) and t.data.hp < target.data.hp:
+			target = t
+	if not is_instance_valid(target):
+		return
+	var heal_amount: int = 10 + enemy.data.magic
+	target.heal(heal_amount)
+	enemy.use_weapon_durability()
+	if enemy.has_method("add_wexp"):
+		enemy.add_wexp(weapon.weapon_type, weapon.wexp)
+	enemy.add_exp(10)
 
 
 # Returns the unit from `units` with the lowest real pathfinding cost from `from_unit`.

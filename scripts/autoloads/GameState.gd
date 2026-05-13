@@ -12,12 +12,14 @@ var max_inventory: int = 8
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
-var __player_units: Array[Node] = []
-var __enemy_units: Array[Node] = []
+var _player_units: Array[Node] = []
+var _enemy_units: Array[Node] = []
 var map_data: MapData = null
 
-# Persists between maps — the live roster
+# Persists between maps — the live roster and shared economy
 var player_roster: Array[UnitData] = []
+var party_gold: int = 0
+var party_items: Array[String] = []  # item IDs awarded by completed maps
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -54,7 +56,7 @@ func set_phase(new_phase: Phase) -> void:
 
 
 # filter() returns generic Array, so build Array[Node] explicitly
-func get_living__player_units() -> Array[Node]:
+func get_living_player_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in _player_units:
 		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
@@ -62,7 +64,7 @@ func get_living__player_units() -> Array[Node]:
 	return result
 
 
-func get_living__enemy_units() -> Array[Node]:
+func get_living_enemy_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in _enemy_units:
 		if is_instance_valid(u) and u.data != null and u.data.hp > 0:

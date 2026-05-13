@@ -126,14 +126,17 @@ func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> Dictiona
 	return context
 
 
-# +N hit when opponent is wielding the matching weapon type.
+# Attacker side: +N hit vs opponent weapon type. Defender side: +N dodge vs that type.
 func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var is_atk: bool = (unit == context.get("attacker"))
 	var opp_w: WeaponData = context.get("defender_weapon") if is_atk else context.get("attacker_weapon")
 	if opp_w == null or opp_w.weapon_type != skill.effect_params.get("weapon_type", ""):
 		return context
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
-	mod["accuracy"] += skill.effect_params.get("hit", 50)
+	if is_atk:
+		mod["accuracy"] += skill.effect_params.get("hit", 50)
+	else:
+		mod["dodge"] += skill.effect_params.get("dodge", 50)
 	return context
 
 
