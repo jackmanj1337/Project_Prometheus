@@ -181,7 +181,13 @@ func compute_damage(attacker: Node, defender: Node,
 	var eff_mult: float = context.get("effectiveness_mult",
 		3.0 if _is_effective(w, defender) else 1.0)
 	var mt: int = int(w.mt * eff_mult)
-	var base_stat: int = attacker.data.magic if w.uses_mag else attacker.data.strength
+	# Use get_effective_stat so temporary stat modifiers (e.g. Resolve) are reflected in damage.
+	var base_stat: int
+	if attacker.has_method("get_effective_stat"):
+		base_stat = attacker.get_effective_stat("magic") if w.uses_mag \
+			else attacker.get_effective_stat("strength")
+	else:
+		base_stat = attacker.data.magic if w.uses_mag else attacker.data.strength
 	var s_bonus: int = 1 if (attacker.has_method("_has_s_rank") and attacker._has_s_rank(w)) else 0
 	var atk: int = base_stat + mt + s_bonus \
 		+ _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
@@ -326,9 +332,34 @@ func _consume_skill(unit: Node, skill: SkillData) -> void:
 
 # ── Preview (no RNG, no side effects) ────────────────────────────────────────
 
+# Snapshot the mutable UnitData fields that any on_combat_start skill could touch.
+# Restored after _collect_combat_modifiers() so preview has zero side effects on live state.
+func _snapshot_unit_state(unit: Node) -> Dictionary:
+	if unit == null or unit.data == null:
+		return {}
+	return {
+		"hp":                  unit.data.hp,
+		"active_modifiers":    unit.data.active_modifiers.duplicate(true),
+		"skill_use_counters":  unit.data.skill_use_counters.duplicate(true),
+	}
+
+
+func _restore_unit_state(unit: Node, snap: Dictionary) -> void:
+	if unit == null or unit.data == null or snap.is_empty():
+		return
+	unit.data.hp                 = snap["hp"]
+	unit.data.active_modifiers   = snap["active_modifiers"]
+	unit.data.skill_use_counters = snap["skill_use_counters"]
+
+
 func preview_combat(attacker: Node, defender: Node) -> Dictionary:
+	var atk_snap := _snapshot_unit_state(attacker)
+	var def_snap := _snapshot_unit_state(defender)
 	var context := _build_combat_context(attacker, defender)
 	_collect_combat_modifiers(context)
+	# Restore immediately — preview must not leave any trace on live unit state.
+	_restore_unit_state(attacker, atk_snap)
+	_restore_unit_state(defender, def_snap)
 	var aw: WeaponData = context["attacker_weapon"]
 	var dw: WeaponData = context["defender_weapon"]
 	var can_counter: bool = dw != null

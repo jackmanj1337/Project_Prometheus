@@ -78,16 +78,16 @@ func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 	return context
 
 
-# +50% STR/MAG/SKL when HP ≤ 50%. Writes to atk_mod or def_mod based on role.
+# +50% STR, MAG, SKL, SPD when HP ≤ 50%. Applied as "combat" duration modifiers so they flow
+# through all stat functions (damage, accuracy, follow-up threshold) correctly and are
+# automatically cleared by CombatResolver.clear_combat_modifiers() after the fight.
 func _apply_resolve(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	if unit.data.hp * 2 > unit.data.max_hp:
 		return context
-	var is_atk: bool = (unit == context.get("attacker"))
-	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
-	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
-	var base_stat: int = unit.data.magic if (w != null and w.uses_mag) else unit.data.strength
-	mod["damage"]   += floori(base_stat * 0.5)
-	mod["accuracy"] += floori(unit.data.skill * 0.5) * 2
+	unit.add_modifier("strength",  floori(unit.data.strength * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("magic",     floori(unit.data.magic    * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("skill",     floori(unit.data.skill    * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("speed",     floori(unit.data.speed    * 0.5), "resolve", -1, "combat")
 	return context
 
 
