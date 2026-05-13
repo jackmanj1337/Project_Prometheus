@@ -8,12 +8,13 @@ Check items off as they are completed (`- [ ]` → `- [x]`).
 
 ---
 
-## Priority: Must Do Before Next Coding Session
+## MVP — Required (Settings menu, per 2026-05-13c review decision 4)
 
-### Create SettingsScreen.tscn in the editor
+Three editor tasks. Together they make the Settings menu reachable in‑game; tackle in order.
 
-`scripts/ui/SettingsScreen.gd` is complete. It expects the following scene structure
-(all node names must match exactly — the script uses `@onready` paths):
+### 1. Create `SettingsScreen.tscn`
+
+- [ ] `scripts/ui/SettingsScreen.gd` is complete. It expects the following scene structure (all node names must match exactly — the script uses `@onready` paths):
 
 ```
 SettingsScreen  (Control, anchors = full rect)
@@ -42,17 +43,22 @@ SettingsScreen  (Control, anchors = full rect)
       BtnBack          (Button, text "Back")
 ```
 
-Save the scene as `scenes/ui/SettingsScreen.tscn`.
+Save as `scenes/ui/SettingsScreen.tscn`.
 
-Then wire it from `MapMenu.tscn` and `MainMenu.tscn`:
-- Add a "Settings" button to both menus.
-- In each menu's `_on_settings_pressed()` handler, call `settings_screen.open()`.
-- Connect `SettingsScreen.back_pressed` to re-show the menu.
+### 2. Wire `SettingsScreen` into `MainMenu.tscn`
 
-**What breaks if skipped:** Settings Screen can't be opened by the player; all settings
-require direct file edits to `user://settings.cfg`.
+- [ ] Add a "Settings" Button to `Panel/VBox` (between `NewGameButton` and `QuitButton`).
+- [ ] Instance `SettingsScreen.tscn` as a child of MainMenu (or load on demand in the script).
+- [ ] In MainMenu.gd, connect the Settings button's `pressed` signal to a handler that calls `settings_screen.open()`.
+- [ ] Connect `SettingsScreen.back_pressed` to re‑show the MainMenu panel.
 
----
+### 3. Wire `SettingsScreen` into `MapMenu.tscn`
+
+- [ ] Add a "Settings" Button to `Panel/VBox` (between `EndTurnButton` and `CloseButton`).
+- [ ] Same instance/load pattern as MainMenu.
+- [ ] Connect the button to `settings_screen.open()`; connect `back_pressed` back to MapMenu's open state.
+
+**What breaks if skipped:** Settings Screen can't be opened by the player; all settings require direct file edits to `user://settings.cfg`.
 
 ---
 
