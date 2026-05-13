@@ -1,4 +1,9 @@
 extends Node
+# TODO save-system: the current snapshot (_map_start_snapshot) is in-memory only and
+# covers player UnitData. Suspend saves additionally need: (a) live enemy UnitData state
+# (enemies are re-spawned fresh today — see GameMap._spawn_units), and (b) live terrain
+# mutations if MapData.grid ever diverges at runtime. Neither is in scope until the
+# save-system milestone — see §0b N2 in code_review_2026-05-13c.
 
 enum Phase { PLAYER, ENEMY }
 
