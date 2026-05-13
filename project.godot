@@ -24,6 +24,7 @@ GameState="*res://scripts/autoloads/GameState.gd"
 DataManager="*res://scripts/autoloads/DataManager.gd"
 ConditionManager="*res://scripts/autoloads/ConditionManager.gd"
 SkillHandler="*res://scripts/skills/SkillHandler.gd"
+ItemHandler="*res://scripts/items/ItemHandler.gd"
 CombatResolver="*res://scripts/core/CombatResolver.gd"
 EnemyAI="*res://scripts/core/EnemyAI.gd"
 

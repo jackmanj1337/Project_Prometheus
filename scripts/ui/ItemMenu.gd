@@ -31,7 +31,11 @@ func show_for(unit: Node) -> void:
 			continue
 		var btn := Button.new()
 		var uses: int = entry.get("uses_remaining", 0)
-		btn.text = "%s  (%d)" % [entry.get("name", "Item"), uses]
+		var item_id: String = entry.get("item_id", "")
+		var dm := get_node_or_null("/root/DataManager")
+		var item := dm.get_item(item_id) if (dm and item_id != "") else null
+		var name_text: String = item.display_name if item else "Item"
+		btn.text = "%s  (%d)" % [name_text, uses]
 		btn.focus_mode = Control.FOCUS_ALL
 		_vbox.add_child(btn)
 		var captured: Dictionary = entry  # reference to the inventory dict entry

@@ -167,7 +167,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
-	if _camera == null:
+	if _camera == null or _grid == null:
 		return
 	# canvas_transform maps world → screen; its inverse converts screen pixels to world coords.
 	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
@@ -196,8 +196,9 @@ func _set_tile(tile: Vector2i) -> void:
 	if tile == current_tile:
 		return
 	current_tile = tile
-	position = _grid.tile_to_world(current_tile)
-	_scroll_camera_if_needed()
+	if _grid != null:
+		position = _grid.tile_to_world(current_tile)
+		_scroll_camera_if_needed()
 	# Emit only when running inside a tree with EventBus loaded;
 	# tests that load this script via --script don't have autoloads available.
 	if is_inside_tree():
@@ -467,15 +468,11 @@ func _on_item_menu_cancelled() -> void:
 
 
 func _apply_item_effect(entry: Dictionary) -> void:
-	if _selected_unit == null or _selected_unit.data == null:
-		return
-	var power: int = entry.get("power", 20)
-	match entry.get("effect", ""):
-		"heal_flat":
-			_selected_unit.heal(power)
-		"heal_full":
-			_selected_unit.heal(_selected_unit.data.max_hp)
-	entry["uses_remaining"] -= 1
+	var ih := get_node_or_null("/root/ItemHandler")
+	if ih:
+		ih.apply_item(_selected_unit, entry)
+	else:
+		push_warning("MapCursor: ItemHandler autoload not found")
 
 
 # Commit the move as a Wait action — unit is marked DONE, no combat.
@@ -562,8 +559,13 @@ func _on_end_turn_requested() -> void:
 
 
 func _on_map_menu_closed() -> void:
-	if not _awaiting_end_turn_confirm:
-		unlock()
+	if _awaiting_end_turn_confirm:
+		return
+	# Don't unlock during the enemy phase — the phase_changed listener handles that.
+	var gs := get_node_or_null("/root/GameState")
+	if gs and not gs.is_player_turn():
+		return
+	unlock()
 
 
 func lock() -> void:
