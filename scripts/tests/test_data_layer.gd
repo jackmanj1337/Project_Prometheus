@@ -96,5 +96,49 @@ func _init() -> void:
 		print("FAIL map_data: map_001_data.tres")
 		failed += 1
 
+	# --- Roster unit_id non-empty ---
+	for path in roster_files:
+		var u = load(path)
+		if u and u is UnitData and u.unit_id != "":
+			print("OK  unit_id: " + u.unit_id)
+			passed += 1
+		else:
+			print("FAIL unit_id empty in: " + path)
+			failed += 1
+
+	# --- Snapshot coverage: every mutable UnitData property must appear in the
+	# snapshot dict or in the explicit allowlist of intentionally-excluded fields.
+	# Fail if a new @export var is added to UnitData without updating the snapshot.
+	var snapshot_keys := [
+		"tile_position", "hp", "max_hp", "strength", "magic", "defense",
+		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
+		"proficiencies", "inventory", "conditions", "skills", "is_incapacitated",
+		"active_modifiers", "skill_use_counters", "damage_taken_this_map",
+		"growth_accumulators", "shift_gauge", "is_shifted",
+	]
+	# Properties intentionally excluded: static identity or between-map state only.
+	var snapshot_allowlist := [
+		"unit_id", "unit_name", "class_id", "is_promoted", "movement",
+		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
+		"shift_profile_id",
+	]
+	var sample_unit: UnitData = UnitData.new()
+	var snapshot_fail := false
+	for prop_dict in sample_unit.get_property_list():
+		var pname: String = prop_dict["name"]
+		var usage: int = prop_dict["usage"]
+		# Only check script-level properties (skips built-in Resource fields).
+		if not (usage & PROPERTY_USAGE_SCRIPT_VARIABLE):
+			continue
+		if pname in snapshot_keys or pname in snapshot_allowlist:
+			continue
+		print("FAIL snapshot_coverage: UnitData.%s not in snapshot or allowlist" % pname)
+		snapshot_fail = true
+	if snapshot_fail:
+		failed += 1
+	else:
+		print("OK  snapshot_coverage: all UnitData properties accounted for")
+		passed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
