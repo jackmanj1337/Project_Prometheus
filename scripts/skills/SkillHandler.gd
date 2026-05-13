@@ -19,6 +19,8 @@ func can_phase_through(_unit: Node, _terrain: String) -> bool:
 
 # Called at trigger points (on_combat_start, on_combat_apply_modifiers, on_damaged,
 # start_of_turn, etc.). Iterates the unit's skill list and fires every matching skill.
+# Rolls activation_chance_stat / activation_divisor before dispatching — a single
+# activation path used by all skills so per-skill duplicate rolls are not needed.
 func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictionary:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return context
@@ -29,8 +31,15 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictiona
 		var skill: SkillData = dm.get_skill(skill_id)
 		if skill == null:
 			continue
-		if skill.trigger == trigger:
-			context = _execute_skill(skill, unit, context)
+		if skill.trigger != trigger:
+			continue
+		# Roll activation chance from data if a stat is specified.
+		if skill.activation_chance_stat != "":
+			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
+			var chance: int = stat_val / max(1, skill.activation_divisor)
+			if (randi() % 100) >= chance:
+				continue  # skill did not proc this trigger
+		context = _execute_skill(skill, unit, context)
 	return context
 
 
@@ -100,7 +109,8 @@ func _apply_wrath(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 	return context
 
 
-# LUK% chance to survive a fatal blow at 1 HP (on_damaged trigger).
+# Survive a fatal blow at 1 HP (on_damaged trigger).
+# Activation roll is handled by apply_trigger — this function only runs when the proc succeeds.
 func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var dmg: int = context.get("damage", 0)
 	if dmg <= 0:
@@ -108,10 +118,8 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var sim_hp: int = context.get("current_sim_hp", unit.data.hp)
 	if dmg < sim_hp:
 		return context
-	var luk: int = unit.data.luck if unit.data else 0
 	# Guarantee survival: reduce damage to leave exactly 1 HP remaining.
-	if (randi() % 100) < luk:
-		context["damage"] = sim_hp - 1
+	context["damage"] = sim_hp - 1
 	return context
 
 

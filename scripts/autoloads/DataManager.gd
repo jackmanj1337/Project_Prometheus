@@ -15,9 +15,30 @@ func _ready() -> void:
 	_load_directory("res://data/weapons/", _weapons)
 	_load_directory("res://data/items/", _items)
 	_load_directory("res://data/skills/", _skills)
-	# Validate all loaded skills — surface bad data at startup rather than mid-game.
 	for skill in _skills.values():
 		skill.validate()
+	_validate_cross_references()
+
+
+# Validates id cross-references across all loaded catalogues.
+# Called once in _ready — surfaces bad data at startup instead of mid-game.
+func _validate_cross_references() -> void:
+	# Class starting_skills must resolve to known skills.
+	for cls in _classes.values():
+		for skill_id in cls.starting_skills:
+			assert(_skills.has(skill_id),
+				"DataManager: class '%s' starting_skill '%s' not found" % [cls.id, skill_id])
+		# promotes_to class ids are intentionally not validated — promoted classes are added in M7.
+		# When promotion data lands, add: assert(_classes.has(c), ...) for c in cls.promotes_to
+
+	# Skills: activation_chance_stat must be a known stat name if set.
+	const VALID_STATS := ["strength", "magic", "skill", "speed", "luck",
+						  "defense", "resistance", "hp"]
+	for skill in _skills.values():
+		if skill.activation_chance_stat != "":
+			assert(skill.activation_chance_stat in VALID_STATS,
+				"DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
+				% [skill.id, skill.activation_chance_stat])
 
 
 func _load_directory(path: String, target: Dictionary) -> void:
@@ -46,30 +67,22 @@ func _load_directory(path: String, target: Dictionary) -> void:
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
 func get_class_data(id: String) -> ClassData:
-	if not _classes.has(id):
-		push_error("DataManager: unknown class id '%s'" % id)
-		return null
+	assert(_classes.has(id), "DataManager: unknown class id '%s'" % id)
 	return _classes[id]
 
 
 func get_weapon(id: String) -> WeaponData:
-	if not _weapons.has(id):
-		push_error("DataManager: unknown weapon id '%s'" % id)
-		return null
+	assert(_weapons.has(id), "DataManager: unknown weapon id '%s'" % id)
 	return _weapons[id]
 
 
 func get_item(id: String) -> ItemData:
-	if not _items.has(id):
-		push_error("DataManager: unknown item id '%s'" % id)
-		return null
+	assert(_items.has(id), "DataManager: unknown item id '%s'" % id)
 	return _items[id]
 
 
 func get_skill(id: String) -> SkillData:
-	if not _skills.has(id):
-		push_error("DataManager: unknown skill id '%s'" % id)
-		return null
+	assert(_skills.has(id), "DataManager: unknown skill id '%s'" % id)
 	return _skills[id]
 
 
