@@ -61,6 +61,14 @@ class MockUnit extends Node:
 	func _has_s_rank(_w: Resource) -> bool:
 		return false
 
+	func get_effective_stat(stat_name: String) -> int:
+		var base = data.get(stat_name)
+		var total: int = int(base) if base != null else 0
+		for mod in data.active_modifiers:
+			if mod.get("stat", "") == stat_name:
+				total += mod.get("delta", 0)
+		return max(0, total)
+
 
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
@@ -71,10 +79,11 @@ func _make_weapon(p: Dictionary) -> Resource:
 	w.crit         = p.get("crit", 0)
 	w.range_min_formula = str(p.get("range_min", 1))
 	w.range_max_formula = str(p.get("range_max", 1))
-	w.wt           = p.get("wt", 5)
-	w.uses         = p.get("uses", 45)
-	w.wexp         = p.get("wexp", 1)
-	w.uses_mag     = p.get("uses_mag", false)
+	w.wt              = p.get("wt", 5)
+	w.uses            = p.get("uses", 45)
+	w.wexp            = p.get("wexp", 1)
+	w.uses_mag        = p.get("uses_mag", false)
+	w.strikes_per_attack = p.get("strikes_per_attack", 1)
 	w.effect_tags.assign(p.get("effect_tags", []))
 	w.magic_triangle_type = p.get("magic_triangle_type", "")
 	return w
@@ -308,6 +317,46 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL preview_combat missing keys")
+		failed += 1
+
+	# --- Mutual-kill: both attacker_died and defender_died can be true (BUG-01) ---
+	# Both units have 1 HP and deal far more than 1 damage — guaranteed mutual kill
+	# when both hit. Use 100% hit weapons to eliminate RNG.
+	var overkill_sword = _make_weapon({"id":"ok_sword","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
+	var overkill_lance = _make_weapon({"id":"ok_lance","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
+	var glass_atk = _make_unit({"name":"GlassAtk","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
+	var glass_def = _make_unit({"name":"GlassDef","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"team":"enemy","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var mk_result := cr.resolve_combat(glass_atk, glass_def)
+	if mk_result["attacker_died"] and mk_result["defender_died"]:
+		print("OK  mutual kill: both attacker_died and defender_died are true")
+		passed += 1
+	else:
+		print("FAIL mutual kill: attacker_died=%s defender_died=%s" % [mk_result["attacker_died"], mk_result["defender_died"]])
+		failed += 1
+
+	# --- Brave weapon follow-up fires full strike count (BUG-02) ---
+	# Fast attacker (SPD 15 vs 9, delta=6 ≥ 4) with Brave weapon (strikes=2).
+	# Defender has no weapon and enough HP to survive all hits.
+	# Expected: 2 initial strikes + 2 follow-up strikes = 4 exchanges total.
+	var brave_sword = _make_weapon({"id":"brave_sword","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1,"strikes_per_attack":2})
+	var brave_atk = _make_unit({"name":"BraveAtk","strength":5,"defense":0,"skill":10,"speed":15,"luck":0,"hp":30,"max_hp":30,"weapon":brave_sword})
+	var tanky_slow_def = _make_unit({"name":"TankySlow","strength":0,"defense":10,"skill":0,"speed":9,"luck":0,"hp":200,"max_hp":200,"team":"enemy","tile":Vector2i(1,0)})
+	var brave_result := cr.resolve_combat(brave_atk, tanky_slow_def)
+	var brave_exchanges: int = (brave_result["exchanges"] as Array).size()
+	if brave_exchanges == 4:
+		print("OK  brave follow-up: 4 exchanges")
+		passed += 1
+	else:
+		print("FAIL brave follow-up: got %d exchanges, want 4" % brave_exchanges)
+		failed += 1
+	# Verify the last two exchanges are marked as follow-up
+	var fu_marked: bool = brave_result["exchanges"][2].get("is_follow_up", false) \
+		and brave_result["exchanges"][3].get("is_follow_up", false)
+	if fu_marked:
+		print("OK  brave follow-up: exchanges [2] and [3] marked is_follow_up")
+		passed += 1
+	else:
+		print("FAIL brave follow-up: is_follow_up not set on follow-up exchanges")
 		failed += 1
 
 	cr.queue_free()

@@ -109,8 +109,9 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	if dmg < sim_hp:
 		return context
 	var luk: int = unit.data.luck if unit.data else 0
+	# Guarantee survival: reduce damage to leave exactly 1 HP remaining.
 	if (randi() % 100) < luk:
-		context["damage"] = maxi(1, dmg / 2)
+		context["damage"] = sim_hp - 1
 	return context
 
 

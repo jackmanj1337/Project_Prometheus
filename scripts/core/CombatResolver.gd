@@ -377,6 +377,8 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_strikes: int = (aw.strikes_per_attack if aw else 1) + context["atk_mod"]["strikes"]
 	var def_strikes: int = ((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) \
 		if can_counter else 0
+	# Save original before vantage may zero it — follow-up uses the original count.
+	var original_def_strikes: int = def_strikes
 	var follow_up: Node = get_follow_up_attacker(attacker, defender)
 
 	var exchanges: Array = []
@@ -413,21 +415,26 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 				atk_sim_hp -= ex["damage"]
 			exchanges.append(ex)
 
-	# Follow-up
+	# Follow-up — loops over all strikes so Brave weapons get their full count.
 	if follow_up != null:
-		var fu_target: Node = defender if follow_up == attacker else attacker
-		var fu_sim_hp: int  = atk_sim_hp if follow_up == attacker else def_sim_hp
-		var tgt_sim_hp: int = def_sim_hp if follow_up == attacker else atk_sim_hp
+		var fu_target: Node  = defender if follow_up == attacker else attacker
+		var fu_sim_hp: int   = atk_sim_hp if follow_up == attacker else def_sim_hp
+		var tgt_sim_hp: int  = def_sim_hp if follow_up == attacker else atk_sim_hp
+		var fu_strikes: int  = atk_strikes if follow_up == attacker else original_def_strikes
+		var is_fu_counter: bool = (follow_up == defender)
 		if fu_sim_hp > 0 and tgt_sim_hp > 0:
-			var is_fu_counter: bool = (follow_up == defender)
-			var ex := _resolve_single_attack(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp)
-			ex["is_follow_up"] = true
-			if ex["hit"]:
-				if follow_up == attacker:
-					def_sim_hp -= ex["damage"]
-				else:
-					atk_sim_hp -= ex["damage"]
-			exchanges.append(ex)
+			for _i in fu_strikes:
+				if tgt_sim_hp <= 0:
+					break
+				var ex := _resolve_single_attack(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp)
+				ex["is_follow_up"] = true
+				if ex["hit"]:
+					tgt_sim_hp -= ex["damage"]
+					if follow_up == attacker:
+						def_sim_hp = tgt_sim_hp
+					else:
+						atk_sim_hp = tgt_sim_hp
+				exchanges.append(ex)
 
 	if sh:
 		sh.apply_trigger(attacker, "on_combat_end", context)
@@ -469,10 +476,10 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 				atk.add_wexp(weapon.weapon_type, weapon.wexp)
 			def_unit.take_damage(exchange["damage"])
 			def_unit.data.damage_taken_this_map += exchange["damage"]
-			if def_unit.data.hp <= 0 and def_unit.has_method("handle_death"):
-				def_unit.handle_death()
-				break
+		# No break here — the full exchange list is iterated so both units can die
+		# in a mutual-kill scenario and both get handle_death() called below.
 
+	# Award EXP before calling handle_death (queue_free is deferred; nodes are still valid).
 	if attacker.is_inside_tree() and result.get("attacker_exp", 0) > 0 \
 			and not result["attacker_died"]:
 		attacker.add_exp(result["attacker_exp"])
@@ -485,6 +492,12 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		attacker.clear_combat_modifiers()
 	if defender.has_method("clear_combat_modifiers"):
 		defender.clear_combat_modifiers()
+
+	# Handle deaths after all exchanges — defender first so kill credit stays with attacker.
+	if result["defender_died"] and defender.has_method("handle_death"):
+		defender.handle_death()
+	if result["attacker_died"] and attacker.has_method("handle_death"):
+		attacker.handle_death()
 
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)

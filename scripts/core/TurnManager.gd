@@ -10,9 +10,10 @@ enum UnitState { READY, MOVED, DONE }
 var _unit_states: Dictionary = {}
 # Saved tile when a unit starts moving so undo_move can restore it
 var _original_tiles: Dictionary = {}
-# True while combat or movement animations are playing — input is suppressed
 var _map_data: MapData = null
 var _grid: GridManager = null
+# Latches true on first map_victory/map_defeat emit to prevent double-fire.
+var _map_over: bool = false
 
 
 # Called by GameMap after units have spawned.
@@ -108,7 +109,8 @@ func start_enemy_phase() -> void:
 		await ai.run_enemy_phase(_grid, self)
 	else:
 		call_deferred("start_player_phase")
-	check_victory_conditions()
+	# Victory/defeat during the enemy phase is caught by _on_unit_died (via signal).
+	# start_player_phase() covers the turn-limit check at the top of each new turn.
 
 
 func set_unit_state(unit: Node, state: UnitState) -> void:
@@ -160,7 +162,9 @@ func undo_move(unit: Node) -> void:
 # Called after every unit death (via EventBus.unit_died) and on enemy phase end.
 # Reads MapData.objective_type and emits map_victory/map_defeat accordingly.
 func check_victory_conditions() -> void:
-	if _map_data == null:
+	# _map_over prevents double-emit when this is called from both unit_died signal
+	# and phase-transition hooks in the same frame.
+	if _map_over or _map_data == null:
 		return
 	var gs := get_node_or_null("/root/GameState")
 	var bus := get_node_or_null("/root/EventBus")
@@ -168,15 +172,18 @@ func check_victory_conditions() -> void:
 		return
 	# Turn limit defeat (0 = no limit)
 	if _map_data.turn_limit > 0 and gs.turn_number > _map_data.turn_limit:
+		_map_over = true
 		bus.map_defeat.emit()
 		return
 	# MVP supports rout only
 	if _map_data.objective_type == "rout":
 		if gs.get_living_enemy_units().is_empty():
+			_map_over = true
 			bus.map_victory.emit()
 			return
 	# Defeat: all player units dead
 	if gs.get_living_player_units().is_empty():
+		_map_over = true
 		bus.map_defeat.emit()
 		return
 	# Defeat: a required survivor was killed (matched by unit_id)
@@ -187,6 +194,7 @@ func check_victory_conditions() -> void:
 				alive = true
 				break
 		if not alive:
+			_map_over = true
 			bus.map_defeat.emit()
 			return
 
