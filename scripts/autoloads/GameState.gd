@@ -106,7 +106,6 @@ func load_default_roster() -> void:
 		var res: UnitData = load(roster_path + f).duplicate(true)
 		if res:
 			player_roster.append(res)
-	print("GameState: loaded %d roster units" % player_roster.size())
 
 
 # Deep-copies all player UnitData fields into _map_start_snapshot.

@@ -412,6 +412,8 @@ func move_along_path(path: Array[Vector2i]) -> void:
 		snap_to_tile(path[-1])
 		_emit_moved(origin, path[-1])
 		return
+	# Update logical position before animation so grid queries are never stale mid-tween.
+	tile_position = path[-1]
 	var tween := create_tween()
 	# Each tile is one tween segment; chain them sequentially
 	for i in range(1, path.size()):
@@ -419,7 +421,6 @@ func move_along_path(path: Array[Vector2i]) -> void:
 			path[i].y * GameConstants.TILE_SIZE)
 		tween.tween_property(self, "position", dest_world, seconds_per_tile)
 	await tween.finished
-	tile_position = path[-1]
 	_emit_moved(origin, tile_position)
 
 
