@@ -16,8 +16,15 @@ func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	turn.start_player_phase()
 
 
-# One enemy's turn: find best move tile, move, attack if in range, mark DONE.
+# One enemy's turn: dispatch on ai_profile, then mark DONE.
 func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+	if enemy.data == null:
+		return
+	match enemy.data.ai_profile:
+		"passive": await _act_passive(enemy, grid, turn); return
+		"healer":  await _act_healer(enemy, grid, turn);  return
+		_: pass  # "basic" falls through to standard logic
+
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
@@ -54,6 +61,71 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
+
+
+# Passive: hold position; only attack if a player is already in attack range.
+func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+	if is_instance_valid(enemy):
+		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
+	if is_instance_valid(enemy):
+		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
+			enemy, enemy.tile_position)
+		if not targets.is_empty():
+			var target: Node = _find_nearest(enemy, targets)
+			var cr := get_node_or_null("/root/CombatResolver")
+			if cr and is_instance_valid(target):
+				var result: Dictionary = cr.resolve_combat(enemy, target)
+				cr.apply_combat_result(result, enemy, target)
+	if is_instance_valid(enemy):
+		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
+
+
+# Healer: move toward injured allies, heal the most-injured one in range.
+func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
+		return
+	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
+	var best_tile: Vector2i = _choose_heal_move_tile(enemy, move_tiles, grid, gs)
+	if best_tile != enemy.tile_position:
+		var path := grid.get_movement_path(enemy, best_tile)
+		if path.size() > 1:
+			turn.record_move_start(enemy)
+			await enemy.move_along_path(path)
+	if is_instance_valid(enemy):
+		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
+	if is_instance_valid(enemy):
+		_try_staff_heal(enemy, grid)
+	if is_instance_valid(enemy):
+		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
+
+
+# Pick the move tile that places the most-injured ally in staff range.
+# Tie-break: prefer tiles with higher terrain DEF+Dodge bonus (safer positioning).
+func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
+		grid: GridManager, gs: Node) -> Vector2i:
+	var best_tile: Vector2i = enemy.tile_position
+	var best_target_hp: int = 0x7FFFFFFF  # lower = more injured = higher priority
+	var best_terrain_bonus: int = -1
+	var allies: Array[Node] = gs.get_living_enemy_units()
+	for tile in move_tiles:
+		for ally in allies:
+			if not is_instance_valid(ally) or ally == enemy:
+				continue
+			if ally.data == null or ally.data.hp >= ally.data.max_hp:
+				continue
+			if not grid.can_attack_from_tile(enemy, tile, ally):
+				continue
+			var terrain: String = grid.get_terrain_at(tile)
+			var terrain_bonus: int = GridManager.TERRAIN_DEF_BONUS.get(terrain, 0) \
+				+ GridManager.TERRAIN_DODGE_BONUS.get(terrain, 0)
+			if ally.data.hp < best_target_hp or \
+					(ally.data.hp == best_target_hp and terrain_bonus > best_terrain_bonus):
+				best_target_hp = ally.data.hp
+				best_terrain_bonus = terrain_bonus
+				best_tile = tile
+	return best_tile
 
 
 # Among move_tiles, pick the tile from which the enemy can attack a player.
