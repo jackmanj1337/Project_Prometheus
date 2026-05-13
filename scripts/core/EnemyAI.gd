@@ -26,7 +26,7 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 
-	var nearest: Node = _find_nearest(enemy, players)
+	var nearest: Node = _find_nearest(enemy, players, grid)
 	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
 	var best_tile: Vector2i = _choose_move_tile(enemy, nearest, players, move_tiles, grid)
 
@@ -59,7 +59,7 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 		move_tiles: Array[Vector2i], grid: GridManager) -> Vector2i:
 	var best_attack_tile: Vector2i = enemy.tile_position
-	var best_attack_dist: int = 999999
+	var best_attack_dist: int = 0x7FFFFFFF
 	for tile in move_tiles:
 		for player in all_players:
 			if not is_instance_valid(player):
@@ -70,12 +70,12 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 				if d < best_attack_dist:
 					best_attack_dist = d
 					best_attack_tile = tile
-	if best_attack_dist < 999999:
+	if best_attack_dist < 0x7FFFFFFF:
 		return best_attack_tile
 
 	# No attack possible — move as close to nearest player as possible
 	var best_move: Vector2i = enemy.tile_position
-	var best_dist: int = 999999
+	var best_dist: int = 0x7FFFFFFF
 	for tile in move_tiles:
 		var d: int = absi(tile.x - nearest.tile_position.x) \
 			+ absi(tile.y - nearest.tile_position.y)
@@ -85,9 +85,32 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 	return best_move
 
 
-func _find_nearest(from_unit: Node, units: Array[Node]) -> Node:
+# Returns the unit from `units` with the lowest real pathfinding cost from `from_unit`.
+# Uses a Dijkstra flood from from_unit's tile — same algorithm as GridManager but we
+# only need the cost map, not the reachable set. Falls back to Manhattan distance if
+# grid is null (tests / edge cases).
+func _find_nearest(from_unit: Node, units: Array[Node], grid: GridManager = null) -> Node:
+	if grid == null:
+		return _find_nearest_manhattan(from_unit, units)
+	# Build cost map from the enemy's position with a large movement budget so we
+	# can reach any tile on the map, not just the unit's actual movement range.
+	var costs := _flood_costs(from_unit.tile_position, grid)
 	var nearest: Node = null
-	var min_dist: int = 999999
+	var min_cost: int = 0x7FFFFFFF
+	for u in units:
+		if not is_instance_valid(u):
+			continue
+		var c: int = costs.get(u.tile_position, 0x7FFFFFFF)
+		if c < min_cost:
+			min_cost = c
+			nearest = u
+	# If no target is reachable at all (fully walled off), fall back to Manhattan.
+	return nearest if nearest != null else _find_nearest_manhattan(from_unit, units)
+
+
+func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
+	var nearest: Node = null
+	var min_dist: int = 0x7FFFFFFF
 	for u in units:
 		if not is_instance_valid(u):
 			continue
@@ -97,3 +120,29 @@ func _find_nearest(from_unit: Node, units: Array[Node]) -> Node:
 			min_dist = d
 			nearest = u
 	return nearest
+
+
+# Dijkstra flood from `start` using terrain costs but ignoring unit movement cap.
+# Returns a Dictionary of tile → cost for all reachable non-wall tiles.
+func _flood_costs(start: Vector2i, grid: GridManager) -> Dictionary:
+	var costs: Dictionary = {start: 0}
+	var frontier: Array[Vector2i] = [start]
+	const DIRS: Array[Vector2i] = [Vector2i(0,-1), Vector2i(1,0), Vector2i(0,1), Vector2i(-1,0)]
+	while not frontier.is_empty():
+		var best_idx := 0
+		for i in frontier.size():
+			if costs[frontier[i]] < costs[frontier[best_idx]]:
+				best_idx = i
+		var current: Vector2i = frontier[best_idx]
+		frontier.remove_at(best_idx)
+		var current_cost: int = costs[current]
+		for d in DIRS:
+			var next: Vector2i = current + d
+			if grid.get_terrain_at(next) == "wall":
+				continue
+			var step: int = grid.get_move_cost(next, null)
+			var total: int = current_cost + step
+			if not costs.has(next) or total < costs[next]:
+				costs[next] = total
+				frontier.append(next)
+	return costs

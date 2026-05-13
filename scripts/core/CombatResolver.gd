@@ -480,7 +480,8 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 		"exchanges":     exchanges,
 		"attacker_died": attacker_died,
 		"defender_died": defender_died,
-		"attacker_exp":  calculate_exp(attacker, defender, defender_died) if atk_dealt or defender_died else 0,
+		# EXP only for actual contribution: attacker must have landed at least one hit.
+		"attacker_exp":  calculate_exp(attacker, defender, defender_died) if atk_dealt else 0,
 		"defender_exp":  calculate_exp(defender, attacker, attacker_died) if (def_dealt and not attacker_died) else 0,
 		"context":       context,
 	}
