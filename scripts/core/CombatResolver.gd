@@ -369,6 +369,12 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 			and not result["defender_died"]:
 		defender.add_exp(result["defender_exp"])
 
+	# Clear one-fight buffs from both sides after combat concludes.
+	if attacker.has_method("clear_combat_modifiers"):
+		attacker.clear_combat_modifiers()
+	if defender.has_method("clear_combat_modifiers"):
+		defender.clear_combat_modifiers()
+
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)
 

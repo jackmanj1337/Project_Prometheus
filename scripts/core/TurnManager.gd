@@ -57,6 +57,14 @@ func _apply_start_of_turn_skills(units: Array[Node]) -> void:
 			sh.apply_trigger(u, "start_of_turn", {"unit": u})
 
 
+# Ticks duration-based modifiers for a list of units. duration_type is "turn"
+# (per unit's own phase) or "map_turn" (once per full round for all units).
+func _tick_unit_modifiers(units: Array[Node], duration_type: String) -> void:
+	for u in units:
+		if is_instance_valid(u) and u.has_method("tick_modifiers"):
+			u.tick_modifiers(duration_type)
+
+
 # Resets all player units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
@@ -64,6 +72,9 @@ func start_player_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.PLAYER)
+		# map_turn ticks once per round (at the start of player phase, for all units)
+		_tick_unit_modifiers(gs.all_units, "map_turn")
+		_tick_unit_modifiers(gs.get_living_player_units(), "turn")
 		_apply_fort_healing(gs.get_living_player_units())
 		_apply_start_of_turn_skills(gs.get_living_player_units())
 	for u in _unit_states.keys():
@@ -90,6 +101,7 @@ func start_enemy_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.ENEMY)
+		_tick_unit_modifiers(gs.get_living_enemy_units(), "turn")
 		_apply_fort_healing(gs.get_living_enemy_units())
 	var ai := get_node_or_null("/root/EnemyAI")
 	if ai:

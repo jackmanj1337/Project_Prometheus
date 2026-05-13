@@ -206,10 +206,9 @@ func get_movement_range(unit: Node) -> Array[Vector2i]:
 				costs[next] = total
 				frontier.append(next)
 
-	# Build the result list: any reachable tile not currently occupied by another unit
+	# Only include tiles the unit can legally stop on (not occupied by anyone else).
 	for tile in costs.keys():
-		var occ := get_unit_at(tile)
-		if occ == null or occ == unit:
+		if can_end_on_tile(tile, unit):
 			result.append(tile)
 	return result
 

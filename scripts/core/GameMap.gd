@@ -55,6 +55,10 @@ func _ready() -> void:
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
+		# Clear any carry-over modifier state so the snapshot captures a clean map start.
+		for u in gs.all_units:
+			if u.has_method("reset_map_state"):
+				u.reset_map_state()
 		gs.map_data = map_data
 		gs.take_map_snapshot()
 	# Wire persistent HUD
