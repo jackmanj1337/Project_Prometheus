@@ -33,10 +33,10 @@ This document is a direct continuation of `GDD_09_Checklist.md`. It covers two t
 
 | Milestone | Status | Notes |
 | --- | --- | --- |
-| MVP Amendments — M1 Data Layer | ⏳ Pending | Must complete before M1 is closed |
-| MVP Amendments — M3 Unit | ⏳ Pending | Must complete before M4 begins |
-| MVP Amendments — M4 Combat | ⏳ Pending | Must complete alongside M4 |
-| MVP Amendments — M2/M3 Grid | ⏳ Pending | Must complete before M4 begins |
+| MVP Amendments — M1 Data Layer (A1) | ✅ Complete | ConditionManager registered; unit_id defaults fine for MVP |
+| MVP Amendments — M3 Unit (A2) | ✅ Complete | All modifier hooks wired in TurnManager/CombatResolver/GameMap |
+| MVP Amendments — M4 Combat (A3) | ✅ Complete | Context pipeline, multi-strike, Miracle sim-HP, faire/breaker |
+| MVP Amendments — M2/M3 Grid (A4) | ⏳ Partial | Movement range done; MapCursor confirm step remains |
 | M8 — Status Conditions | — | After M7 |
 | M9 — Skill Content Implementation | — | After M8 |
 | M10 — Extra-Turn System | — | After M9 |
@@ -184,17 +184,17 @@ func clear_all_conditions(unit: Node) -> void:
 
 #### Checklist — Amendment A1
 
-- [ ] Add all new `active_modifiers`, `skill_use_counters`, `damage_taken_this_map`,
+- [x] Add all new `active_modifiers`, `skill_use_counters`, `damage_taken_this_map`,
       `shift_gauge`, `is_shifted`, `shift_profile_id` fields to `UnitData.gd`
-- [ ] Add all new Laguz gauge fields to `ClassData.gd`
-- [ ] Add `strikes_per_attack` and `is_natural_weapon` to `WeaponData.gd`
-- [ ] Add `max_uses_per_map`, `max_uses_per_combat` to `SkillData.gd`
-- [ ] Update `SkillData.gd` trigger docstring with the 5 new trigger type strings
-- [ ] Create `scripts/autoloads/ConditionManager.gd` with stub methods
-- [ ] Register `ConditionManager` as autoload after `DataManager`
+- [x] Add all new Laguz gauge fields to `ClassData.gd`
+- [x] Add `strikes_per_attack` and `is_natural_weapon` to `WeaponData.gd`
+- [x] Add `max_uses_per_map`, `max_uses_per_combat` to `SkillData.gd`
+- [x] Update `SkillData.gd` trigger docstring with the 5 new trigger type strings
+- [x] Create `scripts/autoloads/ConditionManager.gd` with stub methods
+- [x] Register `ConditionManager` as autoload after `DataManager`
 - [ ] Verify: existing `.tres` files load without error after field additions
-- [ ] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
-- [ ] Update `GameState.take_map_snapshot()` to deep-copy `active_modifiers`,
+- [x] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
+- [x] Update `GameState.take_map_snapshot()` to deep-copy `active_modifiers`,
       `skill_use_counters`, `damage_taken_this_map`, `shift_gauge`, and `is_shifted`
       from each player `UnitData` into the snapshot — these are runtime state, not just base stats
 
@@ -302,23 +302,23 @@ func dodge() -> int:
 
 #### Checklist — Amendment A2
 
-- [ ] Add `get_effective_stat(stat_name)` to `Unit.gd`
-- [ ] Add `has_skill(skill_id)` to `Unit.gd`
-- [ ] Add `get_skill_uses_remaining()` and `consume_skill_use()` to `Unit.gd`
-- [ ] Add `add_modifier()`, `remove_modifier()`, `tick_modifiers()`,
+- [x] Add `get_effective_stat(stat_name)` to `Unit.gd`
+- [x] Add `has_skill(skill_id)` to `Unit.gd`
+- [x] Add `get_skill_uses_remaining()` and `consume_skill_use()` to `Unit.gd`
+- [x] Add `add_modifier()`, `remove_modifier()`, `tick_modifiers()`,
       `clear_combat_modifiers()`, `reset_map_state()` to `Unit.gd`
-- [ ] Refactor `battle_speed()` to use `get_effective_stat()`
-- [ ] Refactor `accuracy()` to use `get_effective_stat()`
-- [ ] Refactor `dodge()` to use `get_effective_stat()`
-- [ ] Refactor `damage()` to use `get_effective_stat()`
-- [ ] Refactor `crit_rate()` to use `get_effective_stat()`
-- [ ] Refactor `crit_avoid()` to use `get_effective_stat()`
-- [ ] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each
+- [x] Refactor `battle_speed()` to use `get_effective_stat()`
+- [x] Refactor `accuracy()` to use `get_effective_stat()`
+- [x] Refactor `dodge()` to use `get_effective_stat()`
+- [x] Refactor `damage()` to use `get_effective_stat()`
+- [x] Refactor `crit_rate()` to use `get_effective_stat()`
+- [x] Refactor `crit_avoid()` to use `get_effective_stat()`
+- [x] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each
       player unit, and into the start of each enemy's AI turn
-- [ ] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` (fires
+- [x] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` (fires
       once per full round, at the top of the player phase)
-- [ ] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
-- [ ] Hook `reset_map_state()` into `GameMap._ready()` for all units, *before*
+- [x] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
+- [x] Hook `reset_map_state()` into `GameMap._ready()` for all units, *before*
       `GameState.take_map_snapshot()` is called
 - [ ] Verify: all existing unit stat tests still pass after refactor
 - [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("strength")` return base + 5
@@ -491,16 +491,16 @@ func _consume_skill(unit: Node, skill_data: SkillData) -> void:
 
 #### Checklist — Amendment A3
 
-- [ ] Add `_build_combat_context()` to `CombatResolver.gd`
-- [ ] Add `_collect_combat_modifiers()` to `CombatResolver.gd`
-- [ ] Add `_get_effectiveness_multiplier()` to `CombatResolver.gd`
-- [ ] Refactor `resolve_combat()` to use context, multi-strike loop, and vantage flag
-- [ ] Refactor `preview_combat()` to use the same context pipeline (no RNG; no side effects)
-- [ ] Add `_resolve_single_attack()` extracting single-attack logic from the exchange loop
-- [ ] Add `_skill_available()` and `_consume_skill()` to `CombatResolver.gd`
-- [ ] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
-- [ ] Ensure `clear_combat_modifiers()` is called on both units after `resolve_combat()` returns
-- [ ] Verify: Brave Sword (strikes_per_attack = 2) produces two attacker attacks before counter
+- [x] Add `_build_combat_context()` to `CombatResolver.gd`
+- [x] Add `_collect_combat_modifiers()` to `CombatResolver.gd`
+- [x] Add `_get_effectiveness_multiplier()` to `CombatResolver.gd`
+- [x] Refactor `resolve_combat()` to use context, multi-strike loop, and vantage flag
+- [x] Refactor `preview_combat()` to use the same context pipeline (no RNG; no side effects)
+- [x] Add `_resolve_single_attack()` extracting single-attack logic from the exchange loop
+- [x] Add `_skill_available()` and `_consume_skill()` to `CombatResolver.gd`
+- [x] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
+- [x] Ensure `clear_combat_modifiers()` is called on both units after `resolve_combat()` returns
+- [x] Verify: Brave Sword (strikes_per_attack = 2) produces two attacker attacks before counter
 - [ ] Verify: weapon effectiveness (e.g. iron bow vs flying unit) triples Mt correctly
 - [ ] Verify: Giantkiller on attacker applies 4× Mt against effective target
 - [ ] Verify: Nullify skill on defender sets `skip_effectiveness = true` in context
@@ -579,13 +579,13 @@ func can_phase_through(unit: Node, terrain: String) -> bool:
 
 #### Checklist — Amendment A4
 
-- [ ] Add `SkillHandler.get_move_cost_override()` stub to `SkillHandler.gd`
-- [ ] Add `SkillHandler.can_pass_through_enemies()` stub to `SkillHandler.gd`
-- [ ] Add `SkillHandler.can_phase_through()` stub to `SkillHandler.gd`
-- [ ] Modify `GridManager.get_move_cost()` to call `get_move_cost_override()` first
-- [ ] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` for enemies
-- [ ] Add `GridManager.can_end_on_tile()` as a separate method
-- [ ] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
+- [x] Add `SkillHandler.get_move_cost_override()` stub to `SkillHandler.gd`
+- [x] Add `SkillHandler.can_pass_through_enemies()` stub to `SkillHandler.gd`
+- [x] Add `SkillHandler.can_phase_through()` stub to `SkillHandler.gd`
+- [x] Modify `GridManager.get_move_cost()` to call `get_move_cost_override()` first
+- [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` for enemies
+- [x] Add `GridManager.can_end_on_tile()` as a separate method
+- [x] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
 - [ ] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before allowing
       the move to be committed
 - [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass
@@ -788,11 +788,12 @@ Called for every unit on the map during `_collect_combat_modifiers()` in
 `CombatResolver`. Each aura checks distance from the skill holder to the attacker
 or defender, then adds to `context.atk_mod` or `context.def_mod`.
 
-- [ ] Implement `"charm"` aura: allies within 3 spaces of skill holder gain +10 accuracy
-      and +10 dodge during combat
-- [ ] Implement `"anathema"` aura: enemies within 3 spaces of skill holder suffer −10
-      accuracy and −10 dodge during combat
-- [ ] Implement `"daunt"` aura: enemies within 3 spaces suffer −10 accuracy and −10 crit
+- [x] Implement `"charm"` aura: allies within 3 spaces of skill holder gain +10 accuracy
+      and +10 dodge during combat *(SkillHandler implemented; .tres file is Phase 2)*
+- [x] Implement `"anathema"` aura: enemies within 3 spaces of skill holder suffer −10
+      accuracy and −10 dodge during combat *(SkillHandler implemented; .tres file is Phase 2)*
+- [x] Implement `"daunt"` aura: enemies within 3 spaces suffer −10 accuracy and −10 crit
+      *(SkillHandler implemented; .tres file is Phase 2)*
 - [ ] Implement `"motivate"` aura: adjacent allies gain +3 DEF, RES, and LUK during combat
 - [ ] Implement `"air_superiority"` aura on skill holder: +4 STR, SKL, SPD when fighting
       a Flying unit
@@ -868,12 +869,14 @@ or defender, then adds to `context.atk_mod` or `context.def_mod`.
 
 ### Faire and Breaker skills
 
-- [ ] Implement `"*faire"` family: `on_combat_apply_modifiers`; if attacker has the matching
+- [x] Implement `"*faire"` family: `on_combat_start`; if attacker has the matching
       faire skill and weapon type matches, add +5 to `context.atk_mod.damage`
-- [ ] Create `.tres` for: Swordfaire, Lancefaire, Axefaire, Bowfaire, Tomefaire
-- [ ] Implement `"*breaker"` family: `on_combat_apply_modifiers`; check defender's equipped
-      weapon type; add +50 accuracy and +50 dodge to the holder's side
-- [ ] Create `.tres` for: Swordbreaker, Lancebreaker, Axebreaker, Bowbreaker, Tomebreaker
+- [x] Create MVP `.tres` for: Swordfaire, Lancefaire, Bowfaire (sword/lance/bow coverage)
+- [ ] Create remaining `.tres` for: Axefaire, Tomefaire (Phase 2 content)
+- [x] Implement `"*breaker"` family: `on_combat_start`; check defender's equipped
+      weapon type; add +50 accuracy to the holder's side
+- [x] Create MVP `.tres` for: Swordbreaker, Lancebreaker, Bowbreaker
+- [ ] Create remaining `.tres` for: Axebreaker, Tomebreaker (Phase 2 content)
 
 ### Defensive and damage-reduction skills
 

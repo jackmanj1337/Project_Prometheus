@@ -13,17 +13,17 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-12b)
+## Status Snapshot (last updated 2026-05-13)
 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 — Project Setup | ✅ Complete | project.godot, autoloads, folder structure, .gitignore |
 | M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files; Amendment A1 fields added |
-| Amendment A1 — Data Layer | ⏳ Pending | Code complete; ConditionManager needs manual autoload registration in editor; unit_id must be set on 6 roster .tres files |
+| Amendment A1 — Data Layer | ⏳ Partial | ConditionManager registered; unit_id field exists but not set on roster files (safe default `""` for MVP) |
 | M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap.tscn; Amendment A4 hooks added |
-| Amendment A4 — Grid System | ⏳ Partial | Stubs in place; `can_end_on_tile()` not yet called from `get_movement_range()` or MapCursor |
+| Amendment A4 — Grid System | ⏳ Partial | `get_movement_range()` calls `can_end_on_tile()`; MapCursor move-confirm step still pending |
 | M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap, TurnManager, MapCursor |
-| Amendment A2 — Unit Script | ⏳ Partial | Code complete; `tick_modifiers`/`clear_combat_modifiers`/`reset_map_state` hooks not yet wired in TurnManager/CombatResolver/GameMap |
+| Amendment A2 — Unit Script | ✅ Complete | All hooks wired: tick_modifiers/clear_combat_modifiers/reset_map_state in TurnManager/CombatResolver/GameMap |
 | M4 — Combat System | ✅ Complete | CombatResolver, SkillHandler (renewal/vantage/nihil/resolve/miracle/wrath/faire/breaker), weapon triangle, EXP, brave weapons |
 | Amendment A3 — Combat Resolver | ✅ Complete | Context pipeline, aura scanning, multi-strike (Brave), Miracle sim-HP fix |
 | M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, AttackPreview, LevelUp, GameOver, MainMenu |
@@ -33,9 +33,9 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 **Tests:** 155 passing across 8 suites. Run `./run_tests.sh`.
 
 > **Note on Amendments:** A1–A4 are architectural extensions from `GDD_updates.md` that
-> must be in place before or alongside the MVP milestones they modify. Code for A2 and A4
-> is complete. A1 requires manual autoload registration in Godot (see checklist below).
-> A3 is implemented as part of M4.
+> must be in place before or alongside the MVP milestones they modify. A1 (data fields +
+> ConditionManager), A2 (modifier hooks), and A3 (combat context pipeline) are complete.
+> A4 is mostly done — only the MapCursor move-confirm `can_end_on_tile()` call remains.
 >
 > **Content Expansion supplements** (`GDD/Content Expansion/`) have been reviewed against
 > the implementation. Conflicts resolved: range formulas (dynamic staff ranges now
@@ -164,13 +164,19 @@ Create `.tres` resources in `data/weapons/` using `WeaponData`:
 - [ ] `vulnerary.tres` — effect_id = "heal_flat"; effect_params = {"amount": 20}
 - [ ] `elixir.tres` — effect_id = "heal_full"
 
-### MVP Data Files — Skills (6 files)
-- [ ] `renewal.tres` — trigger = "start_of_turn"; effect_id = "renewal"
-- [ ] `vantage.tres` — trigger = "on_combat_start"; effect_id = "vantage"
-- [ ] `nihil.tres` — trigger = "on_combat_start"; effect_id = "nihil"
-- [ ] `resolve.tres` — trigger = "passive"; effect_id = "resolve"
-- [ ] `miracle.tres` — trigger = "on_damaged"; effect_id = "miracle"
-- [ ] `wrath.tres` — trigger = "passive"; effect_id = "wrath"
+### MVP Data Files — Skills (12 files)
+- [x] `renewal.tres` — trigger = "start_of_turn"; effect_id = "renewal"
+- [x] `vantage.tres` — trigger = "on_combat_start"; effect_id = "vantage"
+- [x] `nihil.tres` — trigger = "on_combat_start"; effect_id = "nihil"
+- [x] `resolve.tres` — trigger = "on_combat_start"; effect_id = "resolve"
+- [x] `miracle.tres` — trigger = "on_damaged"; effect_id = "miracle"
+- [x] `wrath.tres` — trigger = "on_combat_start"; effect_id = "wrath"
+- [x] `swordfaire.tres` — trigger = "on_combat_start"; effect_id = "faire"; effect_params = {"weapon_type": "sword", "bonus": 5}
+- [x] `lancefaire.tres` — trigger = "on_combat_start"; effect_id = "faire"; effect_params = {"weapon_type": "lance", "bonus": 5}
+- [x] `bowfaire.tres` — trigger = "on_combat_start"; effect_id = "faire"; effect_params = {"weapon_type": "bow", "bonus": 5}
+- [x] `swordbreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "sword", "hit": 50}
+- [x] `lancebreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "lance", "hit": 50}
+- [x] `bowbreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "bow", "hit": 50}
 
 ### Amendment A1 — Data Layer Extensions
 These fields extend the MVP resource classes for Phase 2 compatibility. Safe defaults
@@ -197,23 +203,22 @@ mean all existing `.tres` files load without changes. **Complete before closing 
 
 #### ConditionManager (stub autoload)
 - [x] Create `scripts/autoloads/ConditionManager.gd` with stub methods (all no-ops)
-- [ ] **ACTION REQUIRED:** Register `ConditionManager` as autoload in Godot Project Settings
-      (after `DataManager`). The file exists; only the project.godot registration is pending.
-- [ ] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
+- [x] Register `ConditionManager` as autoload in Godot Project Settings (after `DataManager`)
+- [x] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
 
 ---
 
 ### Default Roster Files (6 UnitData files)
 Create `data/roster/default/` and add one `UnitData` `.tres` per unit per GDD_03.
-- [ ] `unit_01_soldier.tres` — name="Unit_01", class_id="soldier", inventory=[iron_lance, vulnerary], lance proficiency D
-- [ ] `unit_02_mercenary.tres` — name="Unit_02", class_id="mercenary", inventory=[iron_sword, vulnerary], sword proficiency D
-- [ ] `unit_03_archer.tres` — name="Unit_03", class_id="archer", inventory=[iron_bow, vulnerary], bow proficiency D
-- [ ] `unit_04_mage.tres` — name="Unit_04", class_id="mage", inventory=[fire, vulnerary], fire proficiency E, thunder proficiency E
-- [ ] `unit_05_cleric.tres` — name="Unit_05", class_id="cleric", inventory=[heal_staff, vulnerary], staff proficiency D, light proficiency E
-- [ ] `unit_06_knight.tres` — name="Unit_06", class_id="knight", inventory=[iron_lance, vulnerary], lance proficiency D
-- [ ] For all six: set level=1, exp=0, hp=base class hp, all stats=base class stats, is_default_roster=true, ai_profile="basic"
-- [ ] Implement `GameState.load_default_roster()` — loads all six `.tres` files into `player_roster`
-- [ ] Verify: calling `GameState.load_default_roster()` populates `player_roster` with 6 entries
+- [x] `unit_01_soldier.tres` — name="Unit_01", class_id="soldier", inventory=[iron_lance, vulnerary], lance proficiency D
+- [x] `unit_02_mercenary.tres` — name="Unit_02", class_id="mercenary", inventory=[iron_sword, vulnerary], sword proficiency D; skills=["vantage", "swordfaire"]
+- [x] `unit_03_archer.tres` — name="Unit_03", class_id="archer", inventory=[iron_bow, vulnerary], bow proficiency D; skills=["bowfaire"]
+- [x] `unit_04_mage.tres` — name="Unit_04", class_id="mage", inventory=[fire, vulnerary], fire proficiency E, thunder proficiency E; skills=["wrath"]
+- [x] `unit_05_cleric.tres` — name="Unit_05", class_id="cleric", inventory=[heal_staff, vulnerary], staff proficiency D, light proficiency E; skills=["renewal", "miracle"]
+- [x] `unit_06_knight.tres` — name="Unit_06", class_id="knight", inventory=[iron_lance, vulnerary], lance proficiency D; skills=["resolve"]
+- [x] For all six: set level=1, exp=0, hp=base class hp, all stats=base class stats, is_default_roster=true, ai_profile="basic"
+- [x] Implement `GameState.load_default_roster()` — loads all six `.tres` files into `player_roster`
+- [x] Verify: calling `GameState.load_default_roster()` populates `player_roster` with 6 entries
 
 ---
 
@@ -358,10 +363,10 @@ These extend `Unit.gd` so all combat stat reads go through the modifier system.
 - [x] Refactor `damage()` to use `get_effective_stat()`
 - [x] Refactor `crit_rate()` to use `get_effective_stat()`
 - [x] Refactor `crit_avoid()` to use `get_effective_stat()`
-- [ ] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each player unit and each enemy turn start
-- [ ] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` once per full round
-- [ ] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
-- [ ] Hook `reset_map_state()` into `GameMap._ready()` for all units before snapshot
+- [x] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each player unit and each enemy turn start
+- [x] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` once per full round
+- [x] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
+- [x] Hook `reset_map_state()` into `GameMap._ready()` for all units before snapshot
 - [ ] Verify: existing unit stat tests still pass (all 130 green ✅)
 - [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("strength")` return base + 5
 - [ ] Verify: a "turn" duration modifier expires after the correct number of turns
@@ -376,7 +381,7 @@ in M9 without touching pathfinding core logic. **Complete before M4 begins.**
 - [x] Modify `GridManager.get_move_cost()` to call `get_move_cost_override()` first
 - [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` and `can_phase_through()`
 - [x] Add `GridManager.can_end_on_tile()` — separates "can move through" from "can stop here"
-- [ ] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
+- [x] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
 - [ ] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before committing move
 - [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass (✅)
 - [ ] Verify: path through an ally tile is still walkable but not stoppable
@@ -404,15 +409,15 @@ Equip an archer and verify they cannot attack adjacent targets.
 Restructures `CombatResolver` around a modifier pipeline so all future skill effects
 plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
 
-- [ ] Add `_build_combat_context(attacker, defender)` — constructs initial context dict with zero mods
-- [ ] Add `_collect_combat_modifiers(context)` — applies UnitData modifiers + calls SkillHandler aura triggers
-- [ ] Add `_get_effectiveness_multiplier(weapon, target, context)` — returns 1.0/3.0/4.0 with Nullify check
-- [ ] Refactor `resolve_combat()` to use context dict, multi-strike loop, and vantage flag
-- [ ] Refactor `preview_combat()` to use same context pipeline (no RNG, no side effects)
-- [ ] Add `_resolve_single_attack()` extracting per-hit logic from the exchange loop
-- [ ] Add `_skill_available()` and `_consume_skill()` helpers
-- [ ] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
-- [ ] Ensure `clear_combat_modifiers()` called on both units after `resolve_combat()` returns
+- [x] Add `_build_combat_context(attacker, defender)` — constructs initial context dict with zero mods
+- [x] Add `_collect_combat_modifiers(context)` — applies UnitData modifiers + calls SkillHandler aura triggers
+- [x] Add `_get_effectiveness_multiplier(weapon, target, context)` — returns 1.0/3.0/4.0 with Nullify check
+- [x] Refactor `resolve_combat()` to use context dict, multi-strike loop, and vantage flag
+- [x] Refactor `preview_combat()` to use same context pipeline (no RNG, no side effects)
+- [x] Add `_resolve_single_attack()` extracting per-hit logic from the exchange loop
+- [x] Add `_skill_available()` and `_consume_skill()` helpers
+- [x] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
+- [x] Ensure `clear_combat_modifiers()` called on both units after `resolve_combat()` returns
 - [x] Verify: Brave Sword (strikes_per_attack = 2) fires two attacker strikes before counter
 - [ ] Verify: effectiveness multiplier (e.g. iron bow vs flying unit) triples Mt correctly
 - [ ] Verify: `preview_combat()` returns identical base numbers to `resolve_combat()` (pre-RNG)
@@ -439,18 +444,22 @@ plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
 - [ ] Verify: defender with out-of-range weapon cannot counterattack
 - [ ] Verify: damage cannot go below 0
 
-### SkillHandler (MVP skills only)
-- [ ] Create `scripts/skills/SkillHandler.gd`
-- [ ] Implement `apply_trigger(unit, trigger, context)` dispatcher
-- [ ] Implement `_execute_skill()` match block for MVP effect_ids
-- [ ] Implement `renewal` effect
-- [ ] Implement `vantage` effect — flag vantage unit in context
-- [ ] Implement `nihil` effect — set `skill_blocked = true` in context
-- [ ] Implement `resolve` effect — conditional stat boost at ≤50% HP
-- [ ] Implement `miracle` effect — LUK% chance to halve fatal damage
-- [ ] Implement `wrath` effect — +50 crit at ≤50% HP
-- [ ] Hook `apply_trigger()` calls into `CombatResolver` at correct points
-- [ ] Hook `start_of_turn` trigger into `TurnManager.start_player_phase()`
+### SkillHandler (MVP skills + faire/breaker/aura stubs)
+- [x] Create `scripts/skills/SkillHandler.gd`
+- [x] Implement `apply_trigger(unit, trigger, context)` dispatcher
+- [x] Implement `_execute_skill()` match block for MVP effect_ids
+- [x] Implement `renewal` effect
+- [x] Implement `vantage` effect — flag vantage unit in context
+- [x] Implement `nihil` effect — set `defender_skills_blocked = true` in context
+- [x] Implement `resolve` effect — conditional stat boost at ≤50% HP
+- [x] Implement `miracle` effect — LUK% chance to halve fatal damage
+- [x] Implement `wrath` effect — +50 crit at ≤50% HP
+- [x] Implement `faire` effect — +5 damage when using matching weapon type
+- [x] Implement `breaker` effect — +50 hit against matching weapon type
+- [x] Implement `charm`/`anathema`/`daunt` aura effects (trigger = "on_combat_apply_modifiers")
+- [x] Implement movement skill stubs: `get_move_cost_override()`, `can_pass_through_enemies()`, `can_phase_through()`
+- [x] Hook `apply_trigger()` calls into `CombatResolver` at correct points
+- [x] Hook `start_of_turn` trigger into `TurnManager.start_player_phase()`
 
 ### Weapon Durability and Inventory
 - [ ] Implement `Unit.use_weapon_durability()` — decrement uses; remove weapon if 0

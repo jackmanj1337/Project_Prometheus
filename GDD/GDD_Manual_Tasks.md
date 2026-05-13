@@ -10,34 +10,16 @@ Check items off as they are completed (`- [ ]` → `- [x]`).
 
 ## Priority: Must Do Before Next Coding Session
 
-### Register `ConditionManager` as an Autoload
+*(No blocking manual tasks currently pending — all previous items are complete.)*
 
-**Why:** `ConditionManager.gd` exists at `scripts/autoloads/ConditionManager.gd` but is
-not yet registered in `project.godot`. Any code that calls
-`get_node_or_null("/root/ConditionManager")` will get `null` until this is done.
-The node must exist now (even as a stub) so M8 can implement it without
-changing call sites.
+---
 
-**How:**
-1. Open the project in Godot.
-2. Go to **Project → Project Settings → Autoload** tab.
-3. Click the folder icon next to the **Path** field.
-4. Navigate to `res://scripts/autoloads/ConditionManager.gd` and select it.
-5. Set **Node Name** to `ConditionManager` (exact case).
-6. Click **Add**.
-7. In the autoload list, use the arrow buttons to move `ConditionManager` so it
-   appears **below** `DataManager` in the load order:
-   ```
-   EventBus
-   SettingsManager
-   GameState
-   DataManager
-   ConditionManager   ← add here
-   ```
-8. Close Project Settings. Godot will save `project.godot` automatically.
+## Completed Manual Tasks
 
-**Verify:** Run the project. Open the Remote inspector (Scene tab → Remote while game
-is running) and confirm a `ConditionManager` node exists under `/root/`.
+### ✅ Register `ConditionManager` as an Autoload — Done 2026-05-13
+
+`ConditionManager` is registered in `project.godot` after `DataManager` in the autoload
+order. This was done via direct file edit (no editor action needed).
 
 ---
 
