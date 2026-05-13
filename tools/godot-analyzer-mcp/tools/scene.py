@@ -1,22 +1,10 @@
 from pathlib import Path
+from parsers.paths import resolve, to_res
 from parsers.tscn import parse_tscn
 
 
-def _resolve(path_str: str, project_root: Path) -> Path:
-    if path_str.startswith("res://"):
-        return project_root / path_str[6:]
-    return Path(path_str)
-
-
-def _to_res(path: Path, project_root: Path) -> str:
-    try:
-        return "res://" + path.relative_to(project_root).as_posix()
-    except ValueError:
-        return str(path)
-
-
 def get_scene_nodes(scene_path: str, project_root: Path) -> str:
-    path = _resolve(scene_path, project_root)
+    path = resolve(scene_path, project_root)
     if not path.exists():
         return f"Error: file not found: {path}"
 
@@ -43,7 +31,7 @@ def find_scenes_with_script(script_path: str, project_root: Path) -> str:
     if not script_path.startswith("res://"):
         p = Path(script_path)
         if p.is_absolute():
-            script_path = _to_res(p, project_root)
+            script_path = to_res(p, project_root)
         else:
             script_path = "res://" + script_path.replace("\\", "/")
 
@@ -53,7 +41,7 @@ def find_scenes_with_script(script_path: str, project_root: Path) -> str:
         for node in scene["nodes"]:
             if node["script"] == script_path:
                 matches.append(
-                    f"  {_to_res(tscn, project_root):<60}  node: {node['name']}"
+                    f"  {to_res(tscn, project_root):<60}  node: {node['name']}"
                 )
                 break
 

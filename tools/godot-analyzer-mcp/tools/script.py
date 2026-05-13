@@ -1,23 +1,11 @@
 from pathlib import Path
 from parsers.gdscript import parse_onready_paths
+from parsers.paths import resolve, to_res
 from parsers.tscn import parse_tscn, resolve_node_path
 
 
-def _resolve(path_str: str, project_root: Path) -> Path:
-    if path_str.startswith("res://"):
-        return project_root / path_str[6:]
-    return Path(path_str)
-
-
-def _to_res(path: Path, project_root: Path) -> str:
-    try:
-        return "res://" + path.relative_to(project_root).as_posix()
-    except ValueError:
-        return str(path)
-
-
 def validate_onready_paths(script_path: str, project_root: Path) -> str:
-    path = _resolve(script_path, project_root)
+    path = resolve(script_path, project_root)
     if not path.exists():
         return f"Error: file not found: {path}"
 
@@ -25,7 +13,7 @@ def validate_onready_paths(script_path: str, project_root: Path) -> str:
     if not declarations:
         return f"No @onready $-path declarations found in {path.name}"
 
-    script_res = _to_res(path, project_root)
+    script_res = to_res(path, project_root)
 
     # Find all scenes that attach this script to a node
     scene_hits = []
@@ -48,7 +36,7 @@ def validate_onready_paths(script_path: str, project_root: Path) -> str:
         return "\n".join(lines)
 
     for tscn_path, attached_to, scene in scene_hits:
-        rel = _to_res(tscn_path, project_root)
+        rel = to_res(tscn_path, project_root)
         lines.append(f"Script: {path.name}")
         lines.append(f"Scene:  {rel}  (script attached to: {attached_to})")
         lines.append("")
