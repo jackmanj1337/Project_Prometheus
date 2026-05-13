@@ -58,7 +58,7 @@ func set_phase(new_phase: Phase) -> void:
 func get_living_player_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in player_units:
-		if is_instance_valid(u) and u.data.hp > 0:
+		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 			result.append(u)
 	return result
 
@@ -66,7 +66,7 @@ func get_living_player_units() -> Array[Node]:
 func get_living_enemy_units() -> Array[Node]:
 	var result: Array[Node] = []
 	for u in enemy_units:
-		if is_instance_valid(u) and u.data.hp > 0:
+		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 			result.append(u)
 	return result
 

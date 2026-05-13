@@ -78,10 +78,10 @@ func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 		return
 	for m in unit.data.active_modifiers:
 		match m.get("stat", ""):
-			"accuracy": mod_dict["accuracy"] += m.get("value", 0)
-			"damage":   mod_dict["damage"]   += m.get("value", 0)
-			"crit":     mod_dict["crit"]     += m.get("value", 0)
-			"dodge":    mod_dict["dodge"]    += m.get("value", 0)
+			"accuracy": mod_dict["accuracy"] += m.get("delta", 0)
+			"damage":   mod_dict["damage"]   += m.get("delta", 0)
+			"crit":     mod_dict["crit"]     += m.get("delta", 0)
+			"dodge":    mod_dict["dodge"]    += m.get("delta", 0)
 
 
 func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -468,9 +468,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 			if weapon != null and atk.has_method("add_wexp"):
 				atk.add_wexp(weapon.weapon_type, weapon.wexp)
 			def_unit.take_damage(exchange["damage"])
-			# Track cumulative damage for Vengeance and similar skills
-			if def_unit.data:
-				def_unit.data.damage_taken_this_map += exchange["damage"]
+			def_unit.data.damage_taken_this_map += exchange["damage"]
 			if def_unit.data.hp <= 0 and def_unit.has_method("handle_death"):
 				def_unit.handle_death()
 				break

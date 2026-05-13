@@ -334,7 +334,7 @@ func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
 	for target in _get_units():
 		if "team" in target and target.team == unit.team:
 			continue
-		if target.data.hp <= 0:
+		if target.data == null or target.data.hp <= 0:
 			continue
 		var dist: int = absi(target.tile_position.x - tile.x) + absi(target.tile_position.y - tile.y)
 		if dist >= wrange.x and dist <= wrange.y:
@@ -362,7 +362,7 @@ func get_healable_allies(unit: Node) -> Array[Node]:
 			continue
 		if ally == unit:
 			continue
-		if ally.data.hp >= ally.data.max_hp:
+		if ally.data == null or ally.data.hp >= ally.data.max_hp:
 			continue
 		var dist: int = absi(ally.tile_position.x - unit.tile_position.x) + absi(ally.tile_position.y - unit.tile_position.y)
 		if dist >= wrange.x and dist <= wrange.y:
@@ -406,7 +406,7 @@ func show_enemy_danger_zone() -> void:
 	for u in _get_units():
 		if not ("team" in u) or u.team != "enemy":
 			continue
-		if u.data.hp <= 0:
+		if u.data == null or u.data.hp <= 0:
 			continue
 		var wrange := _get_weapon_range(u)
 		for t in _tiles_in_range(u.tile_position, wrange.x, wrange.y):
