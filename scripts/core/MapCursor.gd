@@ -429,9 +429,10 @@ func _execute_staff_heal() -> void:
 	# Capture weapon before use_weapon_durability() — last-use removal would clear the entry
 	# and a subsequent get_equipped_weapon() could return null or the wrong weapon type.
 	var weapon: WeaponData = _selected_unit.get_equipped_weapon()
-	_selected_unit.use_weapon_durability()
-	if weapon != null and _selected_unit.has_method("add_wexp"):
-		_selected_unit.add_wexp(weapon.weapon_type, weapon.wexp)
+	if weapon != null:
+		_selected_unit.use_weapon_durability(weapon.id)
+		if _selected_unit.has_method("add_wexp"):
+			_selected_unit.add_wexp(weapon.weapon_type, weapon.wexp)
 	# Flat 10 EXP per staff use (GDD_02)
 	_selected_unit.add_exp(10)
 	_finish_action()

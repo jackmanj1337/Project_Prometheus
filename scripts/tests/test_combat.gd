@@ -73,6 +73,31 @@ class MockUnit extends Node:
 				total += mod.get("delta", 0)
 		return max(0, total)
 
+	# Tracks remaining uses for apply_combat_result tests. Default 99 = effectively unlimited.
+	var _weapon_uses: int = 99
+
+	func use_weapon_durability(weapon_id: String = "") -> bool:
+		if _weapon == null:
+			return false
+		if weapon_id != "" and _weapon.get("id") != weapon_id:
+			return false
+		if _weapon_uses <= 0:
+			return false
+		_weapon_uses -= 1
+		return _weapon_uses <= 0
+
+	func take_damage(amount: int) -> void:
+		data.hp = max(0, data.hp - amount)
+
+	func add_wexp(_type: String, _amount: int) -> bool:
+		return false
+
+	func clear_combat_modifiers() -> void:
+		pass
+
+	func handle_death() -> void:
+		pass
+
 
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
@@ -393,6 +418,25 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
+		failed += 1
+
+	# --- Mid-combat weapon break stops further attacks ---
+	# Brave sword (strikes=2) with 1 use left: first hit breaks it; all subsequent
+	# exchanges from the same attacker must be skipped by apply_combat_result.
+	# Attacker has SPD 20 vs defender SPD 5 → qualifies for a 2-strike follow-up too,
+	# so without the fix 4 hits would land; with the fix only 1 hit lands.
+	var break_brave = _make_weapon({"id":"break_brave","weapon_type":"sword","mt":5,"hit":100,"crit":0,"wt":1,"strikes_per_attack":2})
+	var break_atk = _make_unit({"name":"BreakAtk","strength":10,"defense":5,"skill":10,"speed":20,"luck":5,"hp":30,"max_hp":30,"weapon":break_brave})
+	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":3,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0)})
+	break_atk._weapon_uses = 1
+	var break_result := cr.resolve_combat(break_atk, break_def)
+	cr.apply_combat_result(break_result, break_atk, break_def)
+	# Damage per hit = STR(10) + mt(5) - DEF(0) = 15. Only 1 hit should land → HP = 35.
+	if break_def.data.hp == 35:
+		print("OK  mid-combat break: weapon breaking stops further attacks (hp=%d)" % break_def.data.hp)
+		passed += 1
+	else:
+		print("FAIL mid-combat break: expected hp=35, got %d" % break_def.data.hp)
 		failed += 1
 
 	cr.queue_free()

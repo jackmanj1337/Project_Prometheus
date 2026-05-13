@@ -179,7 +179,7 @@ func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
 		return
 	var heal_amount: int = 10 + enemy.data.magic
 	target.heal(heal_amount)
-	enemy.use_weapon_durability()
+	enemy.use_weapon_durability(weapon.id)
 	if enemy.has_method("add_wexp"):
 		enemy.add_wexp(weapon.weapon_type, weapon.wexp)
 	enemy.add_exp(10)

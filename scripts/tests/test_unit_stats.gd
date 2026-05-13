@@ -148,6 +148,55 @@ func _init() -> void:
 		print("FAIL weapon not removed: %s" % soldier_data.inventory)
 		failed += 1
 
+	# --- use_weapon_durability(weapon_id): return value and targeted decrement ---
+	# Returns false when weapon decremented but not broken.
+	soldier_data.inventory = [
+		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 2, "forged_mods": {}}
+	]
+	var did_break_no: bool = unit.use_weapon_durability("iron_lance")
+	if not did_break_no and soldier_data.inventory[0]["uses_remaining"] == 1:
+		print("OK  use_weapon_durability returns false when not broken")
+		passed += 1
+	else:
+		print("FAIL durability return false: broke=%s inv=%s" % [did_break_no, soldier_data.inventory])
+		failed += 1
+
+	# Returns true when weapon breaks.
+	var did_break_yes: bool = unit.use_weapon_durability("iron_lance")
+	if did_break_yes and soldier_data.inventory.is_empty():
+		print("OK  use_weapon_durability returns true when broken")
+		passed += 1
+	else:
+		print("FAIL durability return true: broke=%s inv=%s" % [did_break_yes, soldier_data.inventory])
+		failed += 1
+
+	# With two weapons, targeting a specific weapon_id never bleeds into the next one.
+	soldier_data.inventory = [
+		{"type": "weapon", "weapon_id": "javelin",    "uses_remaining": 1,  "forged_mods": {}},
+		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 40, "forged_mods": {}},
+	]
+	unit.use_weapon_durability("javelin")  # breaks javelin
+	var lance_intact: bool = soldier_data.inventory.size() == 1 \
+		and soldier_data.inventory[0].get("weapon_id") == "iron_lance" \
+		and soldier_data.inventory[0].get("uses_remaining") == 40
+	if lance_intact:
+		print("OK  use_weapon_durability(weapon_id) targets correct entry; iron_lance untouched")
+		passed += 1
+	else:
+		print("FAIL weapon_id targeting: inv=%s" % soldier_data.inventory)
+		failed += 1
+
+	# Calling again with the now-removed weapon_id is a no-op — doesn't touch iron_lance.
+	unit.use_weapon_durability("javelin")
+	var still_intact: bool = soldier_data.inventory.size() == 1 \
+		and soldier_data.inventory[0].get("uses_remaining") == 40
+	if still_intact:
+		print("OK  use_weapon_durability on already-broken weapon_id is a no-op")
+		passed += 1
+	else:
+		print("FAIL no-op check: inv=%s" % soldier_data.inventory)
+		failed += 1
+
 	# --- snap_to_tile ---
 	unit.snap_to_tile(Vector2i(5, 7))
 	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE):

@@ -502,13 +502,23 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	if bus:
 		bus.combat_started.emit(attacker, defender)
 
+	# Track broken weapons per unit so subsequent exchanges with the same weapon
+	# are skipped — a unit whose weapon broke mid-combat can't keep attacking.
+	var broken: Dictionary = {}  # Node -> weapon_id String
+
 	for exchange in result["exchanges"]:
 		var atk: Node          = exchange["attacker"]
 		var def_unit: Node     = exchange["defender"]
 		var weapon: WeaponData = exchange.get("weapon", null)
+		var weapon_id: String  = weapon.id if weapon != null else ""
+
+		# Weapon broke in an earlier exchange — skip this attack entirely.
+		if weapon_id != "" and broken.get(atk, "") == weapon_id:
+			continue
 
 		if exchange["loses_durability"] and atk.has_method("use_weapon_durability"):
-			atk.use_weapon_durability()
+			if atk.use_weapon_durability(weapon_id):
+				broken[atk] = weapon_id
 
 		if exchange["hit"]:
 			if weapon != null and atk.has_method("add_wexp"):

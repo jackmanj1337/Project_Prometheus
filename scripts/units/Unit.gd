@@ -367,23 +367,27 @@ func handle_death() -> void:
 
 # ---- Inventory / Durability ----
 
-# Decrements uses on the currently equipped weapon. Removes the entry when uses
-# reach 0. Caller must follow GDD_02 durability rules: melee/thrown only on hit;
-# bows/tomes/staves always (this method doesn't enforce — it just decrements).
-func use_weapon_durability() -> void:
+# Decrements uses on the weapon matching weapon_id. Pass the id captured before
+# combat starts so a mid-combat break can't bleed into the next weapon in inventory.
+# Returns true if the entry was removed (weapon broke), false otherwise.
+# Omit weapon_id to fall back to "first usable weapon" for non-combat callers.
+func use_weapon_durability(weapon_id: String = "") -> bool:
 	if data == null:
-		return
+		return false
 	for i in data.inventory.size():
 		var entry: Dictionary = data.inventory[i]
 		if entry.get("type", "") != "weapon":
 			continue
+		if weapon_id != "" and entry.get("weapon_id", "") != weapon_id:
+			continue
 		if entry.get("uses_remaining", 0) <= 0:
 			continue
-		# First usable weapon == currently equipped (see get_equipped_weapon_entry)
 		entry["uses_remaining"] -= 1
 		if entry["uses_remaining"] <= 0:
 			data.inventory.remove_at(i)
-		return
+			return true
+		return false
+	return false
 
 
 # Whether the unit's proficiency in this weapon's type allows equipping it.
