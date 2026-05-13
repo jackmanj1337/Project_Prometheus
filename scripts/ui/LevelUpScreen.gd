@@ -27,6 +27,9 @@ func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
 	# Only show level-up screen for player units; enemy level-ups are silent.
 	if not ("team" in unit) or unit.team != "player":
 		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.level_up_screen == "skip":
+		return
 	_queue.append({"unit": unit, "increases": stat_increases})
 	if not visible:
 		_show_next()
@@ -49,13 +52,26 @@ func _show_next() -> void:
 		if increases[stat] > 0:
 			stats_text += "%s  +%d\n" % [_STAT_NAMES.get(stat, stat), increases[stat]]
 	_label_stats.text = stats_text.strip_edges() if stats_text != "" else "(No stats increased)"
-	_label_prompt.text = "Press A to continue"
+
+	var sm := get_node_or_null("/root/SettingsManager")
+	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
+	_label_prompt.text = "" if is_auto else "Press A to continue"
 	show()
+
+	if is_auto:
+		# Auto-dismiss after 1.5s; CONNECT_ONE_SHOT prevents stacking on repeated level-ups.
+		get_tree().create_timer(1.5).timeout.connect(func():
+			hide()
+			_show_next()
+		, CONNECT_ONE_SHOT)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.level_up_screen == "auto":
+		return  # timer handles dismissal; player input ignored in auto mode
 	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		hide()
