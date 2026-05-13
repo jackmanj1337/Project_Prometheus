@@ -19,7 +19,7 @@ func _init() -> void:
 	# --- Selecting empty tile does nothing ---
 	cursor.current_tile = Vector2i(5, 5)
 	cursor._on_confirm()
-	if cursor._state == "free":
+	if cursor._state == MapCursor.State.FREE:
 		print("OK  confirm on empty tile stays 'free'")
 		passed += 1
 	else:
@@ -29,7 +29,7 @@ func _init() -> void:
 	# --- Select Unit_01 (at tile 1,9) ---
 	cursor.current_tile = Vector2i(1, 9)
 	cursor._on_confirm()
-	if cursor._state == "unit_selected" and cursor._selected_unit and cursor._selected_unit.data.unit_name == "Unit_01":
+	if cursor._state == MapCursor.State.UNIT_SELECTED and cursor._selected_unit and cursor._selected_unit.data.unit_name == "Unit_01":
 		print("OK  selected Unit_01 at (1,9)")
 		passed += 1
 	else:
@@ -46,7 +46,7 @@ func _init() -> void:
 
 	# --- Cancel deselects ---
 	cursor._on_cancel()
-	if cursor._state == "free" and cursor._selected_unit == null:
+	if cursor._state == MapCursor.State.FREE and cursor._selected_unit == null:
 		print("OK  cancel deselected")
 		passed += 1
 	else:
@@ -77,7 +77,7 @@ func _init() -> void:
 
 	# With a live ActionMenu the cursor pauses in "unit_moved"; without one (this test),
 	# _show_action_menu falls back to _commit_wait, so state goes straight to "free".
-	if cursor._state == "unit_moved" or cursor._state == "free":
+	if cursor._state == MapCursor.State.UNIT_MOVED or cursor._state == MapCursor.State.FREE:
 		print("OK  cursor in post-move state: %s" % cursor._state)
 		passed += 1
 	else:
@@ -85,7 +85,7 @@ func _init() -> void:
 		failed += 1
 
 	# Commit Wait only if ActionMenu put us in unit_moved; otherwise already committed.
-	if cursor._state == "unit_moved":
+	if cursor._state == MapCursor.State.UNIT_MOVED:
 		cursor._on_confirm()
 
 	if turn.get_unit_state(unit_01) == TurnManager.UnitState.DONE:
@@ -95,7 +95,7 @@ func _init() -> void:
 		print("FAIL state after Wait: %s" % turn.get_unit_state(unit_01))
 		failed += 1
 
-	if cursor._state == "free":
+	if cursor._state == MapCursor.State.FREE:
 		print("OK  cursor returned to 'free' after Wait")
 		passed += 1
 	else:
@@ -105,7 +105,7 @@ func _init() -> void:
 	# --- Cannot reselect a DONE unit ---
 	cursor.current_tile = Vector2i(3, 9)
 	cursor._on_confirm()
-	if cursor._state == "free":
+	if cursor._state == MapCursor.State.FREE:
 		print("OK  cannot reselect DONE unit")
 		passed += 1
 	else:
@@ -115,7 +115,7 @@ func _init() -> void:
 	# --- Cannot select enemy unit ---
 	cursor.current_tile = Vector2i(39, 12)  # boss tile
 	cursor._on_confirm()
-	if cursor._state == "free":
+	if cursor._state == MapCursor.State.FREE:
 		print("OK  cannot select enemy unit")
 		passed += 1
 	else:

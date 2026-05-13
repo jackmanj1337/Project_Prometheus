@@ -52,6 +52,7 @@ func show_for(unit: Node, grid: Node) -> void:
 	_btn_attack.disabled = not has_enemies
 	_btn_staff.disabled  = not has_heal_targets
 	_btn_item.disabled   = not has_items
+	_btn_wait.disabled   = false  # Wait is always available
 
 	# Focus first enabled button
 	_focused_idx = 0

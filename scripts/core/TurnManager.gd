@@ -199,5 +199,6 @@ func check_victory_conditions() -> void:
 			return
 
 
-func _on_unit_died(_unit: Node) -> void:
+func _on_unit_died(unit: Node) -> void:
+	_unit_states.erase(unit)
 	check_victory_conditions()

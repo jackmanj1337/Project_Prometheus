@@ -29,6 +29,8 @@ const WEAPON_TRIANGLE: Dictionary = {
 	"lance":   {"sword": "advantage",  "axe":   "disadvantage"},
 	"dark":    {"fire": "advantage",   "thunder": "advantage", "wind": "advantage",  "light": "disadvantage"},
 	"light":   {"dark": "advantage",   "fire": "disadvantage", "thunder": "disadvantage", "wind": "disadvantage"},
+	# Anima (fire/thunder/wind) are neutral to each other — intentional design decision.
+	# Only dark/light polarize the anima triangle; anima vs anima is always 0 Hit / 0 Dmg.
 	"fire":    {"light": "advantage",  "dark": "disadvantage"},
 	"thunder": {"light": "advantage",  "dark": "disadvantage"},
 	"wind":    {"light": "advantage",  "dark": "disadvantage"},

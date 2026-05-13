@@ -13,6 +13,7 @@ var team: String = "player"  # "player" | "enemy"
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
+var _grid_manager: GridManager = null  # cached on first use
 
 
 # Called by GameMap right after scene instancing. Must be invoked before _ready
@@ -140,14 +141,16 @@ func get_terrain_dodge_bonus() -> int:
 
 
 func _get_grid_manager() -> GridManager:
-	# Walk up the tree to find a sibling GridManager under GameMap
+	if _grid_manager != null and is_instance_valid(_grid_manager):
+		return _grid_manager
 	if not is_inside_tree():
 		return null
 	var n := get_parent()
 	while n:
 		var g := n.get_node_or_null("GridManager")
 		if g and g is GridManager:
-			return g
+			_grid_manager = g
+			return _grid_manager
 		n = n.get_parent()
 	return null
 

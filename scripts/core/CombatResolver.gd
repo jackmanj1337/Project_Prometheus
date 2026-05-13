@@ -36,7 +36,6 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"def_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
 			"dodge": 0, "strikes": 0, "damage_multiplier": 1.0},
 		"flags": {
-			"nihil":                false,
 			"vantage":              false,
 			"skip_effectiveness":   false,
 			"attacker_ignores_def": 0.0,

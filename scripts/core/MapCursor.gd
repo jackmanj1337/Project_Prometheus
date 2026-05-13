@@ -20,8 +20,16 @@ var _turn: TurnManager = null
 var _zoom_index: int = DEFAULT_ZOOM_INDEX
 
 # State machine — see GDD_01 MapCursor section
-# "free" | "unit_selected" | "unit_moved" | "targeting" | "staff_targeting" | "locked"
-var _state: String = "free"
+enum State {
+	FREE,            # default; cursor moves freely
+	UNIT_SELECTED,   # a player unit is highlighted; movement overlay shown
+	UNIT_MOVED,      # unit has moved; ActionMenu is open
+	TARGETING,       # player choosing an attack target
+	PREVIEWING,      # attack preview panel is shown; awaiting confirm/cancel
+	STAFF_TARGETING, # player choosing a heal target
+	LOCKED,          # input suppressed (animation, enemy phase)
+}
+var _state: State = State.FREE
 
 # Currently selected unit and the tiles it could move to (set on selection)
 var _selected_unit: Unit = null
@@ -81,7 +89,7 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> voi
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _state == "locked":
+	if _state == State.LOCKED:
 		return
 	if event is InputEventMouseMotion:
 		_handle_mouse_motion(event)
@@ -92,7 +100,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if _state == "locked" or _held_dir == Vector2i.ZERO:
+	if _state == State.LOCKED or _held_dir == Vector2i.ZERO:
 		return
 	# Held-key auto-repeat: initial 0.25s pause, then 0.10s per step
 	_held_timer -= delta
@@ -116,7 +124,7 @@ func _handle_key_press(event: InputEventKey) -> void:
 		_on_cancel()
 	elif event.is_action_pressed("next_unit"):
 		_cycle_to_next_unit()
-	elif event.is_action_pressed("open_menu") and _state == "free":
+	elif event.is_action_pressed("open_menu") and _state == State.FREE:
 		_open_map_menu()
 
 
@@ -144,7 +152,7 @@ func _input(event: InputEvent) -> void:
 					_grid.clear_overlays()
 				_danger_zone_shown = false
 		elif event.pressed and not event.echo:
-			if event.is_action_pressed("show_danger_zone") and _state == "free":
+			if event.is_action_pressed("show_danger_zone") and _state == State.FREE:
 				if _grid != null:
 					_grid.show_enemy_danger_zone()
 					_danger_zone_shown = true
@@ -215,40 +223,40 @@ func _set_tile(tile: Vector2i) -> void:
 # staff_targeting  →(cancel)             →  unit_moved  (back to ActionMenu)
 func _on_confirm() -> void:
 	match _state:
-		"free":
+		State.FREE:
 			_try_select_unit_at_cursor()
-		"unit_selected":
+		State.UNIT_SELECTED:
 			_try_move_selected_to_cursor()
-		"unit_moved":
+		State.UNIT_MOVED:
 			pass  # ActionMenu drives confirms here; fallback in _show_action_menu when menu is null
-		"targeting":
+		State.TARGETING:
 			_show_attack_preview()
-		"previewing":
+		State.PREVIEWING:
 			_execute_attack_confirmed()
-		"staff_targeting":
+		State.STAFF_TARGETING:
 			_execute_staff_heal()
 
 
 func _on_cancel() -> void:
 	match _state:
-		"unit_selected":
+		State.UNIT_SELECTED:
 			_deselect()
-		"unit_moved":
+		State.UNIT_MOVED:
 			# ActionMenu._input fires first and emits hidden_by_cancel → _on_action_menu_cancelled.
 			# This is a safety fallback for when action_menu is null.
 			if action_menu == null:
 				_undo_move_and_reselect()
-		"targeting":
+		State.TARGETING:
 			_grid.clear_overlays()
 			_attack_tiles.clear()
-			_state = "unit_moved"
+			_state = State.UNIT_MOVED
 			_show_action_menu()
-		"previewing":
+		State.PREVIEWING:
 			_dismiss_attack_preview()
-		"staff_targeting":
+		State.STAFF_TARGETING:
 			_grid.clear_overlays()
 			_heal_tiles.clear()
-			_state = "unit_moved"
+			_state = State.UNIT_MOVED
 			_show_action_menu()
 
 
@@ -268,7 +276,7 @@ func _try_select_unit_at_cursor() -> void:
 	_grid.show_movement_overlay(_movement_tiles)
 	# Attack overlay on tiles adjacent to the movement range
 	_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, _movement_tiles))
-	_state = "unit_selected"
+	_state = State.UNIT_SELECTED
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_selected.emit(unit)
@@ -287,9 +295,9 @@ func _try_move_selected_to_cursor() -> void:
 		_turn.record_move_start(_selected_unit)
 	var path := _grid.get_movement_path(_selected_unit, current_tile)
 	_grid.clear_overlays()
-	_state = "locked"  # block input during the move animation
+	_state = State.LOCKED  # block input during the move animation
 	await _selected_unit.move_along_path(path)
-	_state = "unit_moved"
+	_state = State.UNIT_MOVED
 	_show_action_menu()
 
 
@@ -298,7 +306,7 @@ func _deselect() -> void:
 		_grid.clear_overlays()
 	_selected_unit = null
 	_movement_tiles.clear()
-	_state = "free"
+	_state = State.FREE
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
@@ -349,7 +357,7 @@ func _begin_attack_targeting() -> void:
 	# Snap cursor to the first valid target
 	current_tile = _attack_tiles[0]
 	position = _grid.tile_to_world(current_tile)
-	_state = "targeting"
+	_state = State.TARGETING
 
 
 func _show_attack_preview() -> void:
@@ -359,7 +367,7 @@ func _show_attack_preview() -> void:
 	_preview_target = target
 	if attack_preview and attack_preview.has_method("show_preview"):
 		attack_preview.show_preview(_selected_unit, target)
-		_state = "previewing"
+		_state = State.PREVIEWING
 	else:
 		# No preview node wired — resolve immediately
 		_do_resolve_attack(target)
@@ -369,7 +377,7 @@ func _dismiss_attack_preview() -> void:
 	if attack_preview and attack_preview.has_method("hide_preview"):
 		attack_preview.hide_preview()
 	_preview_target = null
-	_state = "targeting"
+	_state = State.TARGETING
 
 
 func _execute_attack_confirmed() -> void:
@@ -386,7 +394,7 @@ func _do_resolve_attack(target: Node) -> void:
 		return
 	_grid.clear_overlays()
 	_attack_tiles.clear()
-	_state = "locked"  # block input during combat resolution
+	_state = State.LOCKED  # block input during combat resolution
 	var cr := get_node_or_null("/root/CombatResolver")
 	if cr:
 		var result: Dictionary = cr.resolve_combat(_selected_unit, target)
@@ -407,7 +415,7 @@ func _begin_staff_targeting() -> void:
 	_grid.show_heal_overlay(_heal_tiles)
 	current_tile = _heal_tiles[0]
 	position = _grid.tile_to_world(current_tile)
-	_state = "staff_targeting"
+	_state = State.STAFF_TARGETING
 
 
 func _execute_staff_heal() -> void:
@@ -488,7 +496,7 @@ func _undo_move_and_reselect() -> void:
 		_movement_tiles = _grid.get_movement_range(_selected_unit)
 		_grid.show_movement_overlay(_movement_tiles)
 		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(_selected_unit, _movement_tiles))
-	_state = "unit_selected"
+	_state = State.UNIT_SELECTED
 
 
 func _finish_action() -> void:
@@ -498,12 +506,12 @@ func _finish_action() -> void:
 	_movement_tiles.clear()
 	_attack_tiles.clear()
 	_heal_tiles.clear()
-	_state = "free"
+	_state = State.FREE
 
 
 # Cycles cursor to the next READY player unit (Tab key). Wraps around.
 func _cycle_to_next_unit() -> void:
-	if _state != "free" or _turn == null:
+	if _state != State.FREE or _turn == null:
 		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
@@ -541,12 +549,12 @@ func _on_map_menu_closed() -> void:
 
 
 func lock() -> void:
-	_state = "locked"
+	_state = State.LOCKED
 	_held_dir = Vector2i.ZERO
 
 
 func unlock() -> void:
-	_state = "free"
+	_state = State.FREE
 
 
 # When the cursor approaches the screen edge, pan the camera to keep it visible.

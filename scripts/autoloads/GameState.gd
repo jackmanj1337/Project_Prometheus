@@ -12,9 +12,8 @@ var max_inventory: int = 8
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
-var player_units: Array[Node] = []
-var enemy_units: Array[Node] = []
-var selected_unit: Node = null
+var __player_units: Array[Node] = []
+var __enemy_units: Array[Node] = []
 var map_data: MapData = null
 
 # Persists between maps — the live roster
@@ -38,15 +37,15 @@ func register_unit(unit: Node) -> void:
 		return
 	all_units.append(unit)
 	if unit.team == "player":
-		player_units.append(unit)
+		_player_units.append(unit)
 	else:
-		enemy_units.append(unit)
+		_enemy_units.append(unit)
 
 
 func unregister_unit(unit: Node) -> void:
 	all_units.erase(unit)
-	player_units.erase(unit)
-	enemy_units.erase(unit)
+	_player_units.erase(unit)
+	_enemy_units.erase(unit)
 
 
 func set_phase(new_phase: Phase) -> void:
@@ -55,17 +54,17 @@ func set_phase(new_phase: Phase) -> void:
 
 
 # filter() returns generic Array, so build Array[Node] explicitly
-func get_living_player_units() -> Array[Node]:
+func get_living__player_units() -> Array[Node]:
 	var result: Array[Node] = []
-	for u in player_units:
+	for u in _player_units:
 		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 			result.append(u)
 	return result
 
 
-func get_living_enemy_units() -> Array[Node]:
+func get_living__enemy_units() -> Array[Node]:
 	var result: Array[Node] = []
-	for u in enemy_units:
+	for u in _enemy_units:
 		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 			result.append(u)
 	return result
@@ -77,9 +76,8 @@ func is_player_turn() -> bool:
 
 func reset_map_state() -> void:
 	all_units.clear()
-	player_units.clear()
-	enemy_units.clear()
-	selected_unit = null
+	_player_units.clear()
+	_enemy_units.clear()
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
