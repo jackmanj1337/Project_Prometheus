@@ -20,3 +20,13 @@ class_name SkillData extends Resource
 @export var max_uses_per_map: int = -1
 # -1 = unlimited. Counter cleared after each combat resolves.
 @export var max_uses_per_combat: int = -1
+
+
+# Validates required fields. Called by DataManager after load; logs warnings for bad data.
+func validate() -> void:
+	if id.is_empty():
+		push_warning("SkillData: resource missing 'id' field")
+	if effect_id.is_empty():
+		push_warning("SkillData '%s': missing effect_id" % id)
+	if trigger.is_empty():
+		push_warning("SkillData '%s': missing trigger" % id)

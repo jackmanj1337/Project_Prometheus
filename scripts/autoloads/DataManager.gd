@@ -15,6 +15,9 @@ func _ready() -> void:
 	_load_directory("res://data/weapons/", _weapons)
 	_load_directory("res://data/items/", _items)
 	_load_directory("res://data/skills/", _skills)
+	# Validate all loaded skills — surface bad data at startup rather than mid-game.
+	for skill in _skills.values():
+		skill.validate()
 
 
 func _load_directory(path: String, target: Dictionary) -> void:

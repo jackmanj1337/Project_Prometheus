@@ -20,7 +20,7 @@ func can_phase_through(_unit: Node, _terrain: String) -> bool:
 # Called at trigger points (on_combat_start, on_combat_apply_modifiers, on_damaged,
 # start_of_turn, etc.). Iterates the unit's skill list and fires every matching skill.
 func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictionary:
-	if unit == null or unit.data == null:
+	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return context
 	var dm := get_node_or_null("/root/DataManager")
 	if dm == null:
@@ -163,6 +163,8 @@ func _apply_charm(skill: SkillData, unit: Node, context: Dictionary) -> Dictiona
 	var defender: Node = context.get("defender")
 	if attacker == null or defender == null:
 		return context
+	if not is_instance_valid(attacker) or not is_instance_valid(defender):
+		return context
 	var radius: int = skill.effect_params.get("radius", 3)
 	if unit.team == attacker.team \
 			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
@@ -181,6 +183,8 @@ func _apply_anathema(skill: SkillData, unit: Node, context: Dictionary) -> Dicti
 	var defender: Node = context.get("defender")
 	if attacker == null or defender == null:
 		return context
+	if not is_instance_valid(attacker) or not is_instance_valid(defender):
+		return context
 	var radius: int = skill.effect_params.get("radius", 3)
 	if unit.team != attacker.team \
 			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
@@ -198,6 +202,8 @@ func _apply_daunt(skill: SkillData, unit: Node, context: Dictionary) -> Dictiona
 	var attacker: Node = context.get("attacker")
 	var defender: Node = context.get("defender")
 	if attacker == null or defender == null:
+		return context
+	if not is_instance_valid(attacker) or not is_instance_valid(defender):
 		return context
 	var radius: int = skill.effect_params.get("radius", 3)
 	if unit.team != attacker.team \
