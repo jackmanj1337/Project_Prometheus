@@ -35,7 +35,8 @@ class_name WeaponData extends Resource
 @export var strikes_per_attack: int = 1
 
 # True for Laguz natural weapons (Fang/Claw/Beak/Talon). No cost, no uses consumed.
-# Unit.get_equipped_weapon() returns this automatically when unit.data.is_shifted = true.
+# [DEFERRED — Laguz] Unit.get_equipped_weapon() should auto-return this when is_shifted = true,
+# but that check is not yet implemented.
 @export var is_natural_weapon: bool = false
 
 
@@ -64,7 +65,20 @@ static func _eval_formula(formula: String, unit: Node) -> int:
 
 
 static func _stat_value(stat_name: String, unit: Node) -> int:
-	if unit == null or not "data" in unit or unit.data == null:
+	if unit == null:
+		return 0
+	# Prefer get_effective_stat so active modifiers (e.g. MAG buffs) affect dynamic range.
+	if unit.has_method("get_effective_stat"):
+		match stat_name:
+			"MAG": return unit.get_effective_stat("magic")
+			"STR": return unit.get_effective_stat("strength")
+			"SKL": return unit.get_effective_stat("skill")
+			"LUK": return unit.get_effective_stat("luck")
+			"SPD": return unit.get_effective_stat("speed")
+			"DEF": return unit.get_effective_stat("defense")
+			"RES": return unit.get_effective_stat("resistance")
+			"HP":  return unit.get_effective_stat("hp")
+	if not "data" in unit or unit.data == null:
 		return 0
 	match stat_name:
 		"MAG": return unit.data.magic

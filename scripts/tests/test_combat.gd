@@ -15,6 +15,7 @@ class MockUnit extends Node:
 	var team: String = "player"
 	var _weapon: Resource = null
 	var _qualities: Array = []
+	var _skills: Array = []
 
 	func setup(unit_data: Resource, tile: Vector2i, _team: String) -> void:
 		data = unit_data
@@ -30,6 +31,9 @@ class MockUnit extends Node:
 
 	func has_quality(q: String) -> bool:
 		return q in _qualities
+
+	func has_skill(s: String) -> bool:
+		return s in _skills
 
 	func battle_speed(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
@@ -357,6 +361,38 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL brave follow-up: is_follow_up not set on follow-up exchanges")
+		failed += 1
+
+	# --- H-2: defender stat modifier respected in compute_damage ---
+	# Defender with +3 DEF active modifier should take 3 less damage than base.
+	var h2_atk = _make_unit({"name":"H2Atk","strength":10,"weapon":iron_sword})
+	var h2_def_base = _make_unit({"name":"H2DefBase","defense":4,"team":"enemy","tile":Vector2i(1,0)})
+	var h2_def_buff = _make_unit({"name":"H2DefBuff","defense":4,"team":"enemy","tile":Vector2i(1,0)})
+	h2_def_buff.data.active_modifiers.append({"stat":"defense","delta":3,"duration_type":"turn","duration":1})
+	var dmg_base := cr.compute_damage(h2_atk, h2_def_base, iron_sword)
+	var dmg_buff := cr.compute_damage(h2_atk, h2_def_buff, iron_sword)
+	# base: atk=10+6=16; def=4; dmg=12. buffed: def=7; dmg=9
+	if dmg_base == 12 and dmg_buff == 9:
+		print("OK  H-2: defender DEF modifier reduces damage (%d→%d)" % [dmg_base, dmg_buff])
+		passed += 1
+	else:
+		print("FAIL H-2: expected 12→9, got %d→%d" % [dmg_base, dmg_buff])
+		failed += 1
+
+	# --- H-3: Giantkiller applies when the COUNTER-attacker has the skill ---
+	# Defender (counter-attacker) wields a bow (effective vs flying) and has Giantkiller.
+	# The attacker is a flying unit. preview_combat defender_damage should be 4x mt.
+	var gk_bow = _make_weapon({"id":"gk_bow","weapon_type":"bow","mt":6,"hit":100,"crit":0,"range_min":2,"range_max":2,"effect_tags":["effective_flying"]})
+	var gk_atk = _make_unit({"name":"GKAtk","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"qualities":["flying"],"weapon":iron_sword,"tile":Vector2i(0,2)})
+	var gk_def = _make_unit({"name":"GKDef","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"team":"enemy","tile":Vector2i(0,0),"weapon":gk_bow})
+	gk_def._skills = ["giantkiller"]
+	var gk_prev = cr.preview_combat(gk_atk, gk_def)
+	# Defender damage: mt=6*4=24 (effective 4× via giantkiller); atk=8+24=32; def_atk_def=3; dmg=29
+	if gk_prev["defender_damage"] == 29:
+		print("OK  H-3: counter-attacker Giantkiller gives 4× effectiveness damage: %d" % gk_prev["defender_damage"])
+		passed += 1
+	else:
+		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
 	cr.queue_free()

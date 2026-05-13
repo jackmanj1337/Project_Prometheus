@@ -142,14 +142,17 @@ func _is_effective(weapon: WeaponData, target: Node) -> bool:
 
 # Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.
 # Returns 1.0 if context.flags.skip_effectiveness is set (Dragonskin / Nullify).
+# actor is the unit firing this attack (may differ from context["attacker"] on counter).
 func _get_effectiveness_multiplier(weapon: WeaponData, target: Node,
-		context: Dictionary) -> float:
+		context: Dictionary, actor: Node = null) -> float:
 	if context["flags"]["skip_effectiveness"]:
 		return 1.0
 	if not _is_effective(weapon, target):
 		return 1.0
-	var attacker: Node = context["attacker"]
-	if attacker != null and attacker.has_method("has_skill") and attacker.has_skill("giantkiller"):
+	# Use the actual attacker in this exchange so a defending Giantkiller gets the 4× too.
+	var check_unit: Node = actor if actor != null else context["attacker"]
+	if check_unit != null and check_unit.has_method("has_skill") \
+			and check_unit.has_skill("giantkiller"):
 		return 4.0
 	return 3.0
 
@@ -190,7 +193,12 @@ func compute_damage(attacker: Node, defender: Node,
 	var s_bonus: int = 1 if (attacker.has_method("_has_s_rank") and attacker._has_s_rank(w)) else 0
 	var atk: int = base_stat + mt + s_bonus \
 		+ _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
-	var def_stat: int = defender.data.resistance if w.uses_mag else defender.data.defense
+	var def_stat: int
+	if defender.has_method("get_effective_stat"):
+		def_stat = defender.get_effective_stat("resistance") if w.uses_mag \
+			else defender.get_effective_stat("defense")
+	else:
+		def_stat = defender.data.resistance if w.uses_mag else defender.data.defense
 	var ignore_frac: float = context.get("ignore_def_fraction", 0.0)
 	var effective_def: int = int(def_stat * (1.0 - ignore_frac))
 	var def_bonus: int = defender.get_terrain_def_bonus()
@@ -256,7 +264,7 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 		"accuracy_bonus": actor_mod["accuracy"],
 		"dodge_bonus":    target_mod["dodge"],
 	}
-	var eff_mult: float = _get_effectiveness_multiplier(weapon, target, context)
+	var eff_mult: float = _get_effectiveness_multiplier(weapon, target, context, actor)
 	var ignore_key: String = "defender_ignores_def" if is_counter else "attacker_ignores_def"
 	var dmg_ctx := {
 		"damage_bonus":       actor_mod["damage"],
@@ -367,8 +375,8 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var def_strikes: int = ((dw.strikes_per_attack if dw else 1) + context["def_mod"]["strikes"]) \
 		if can_counter else 0
 
-	var eff_atk: float = _get_effectiveness_multiplier(aw, defender, context)
-	var eff_def: float = _get_effectiveness_multiplier(dw, attacker, context) if can_counter else 1.0
+	var eff_atk: float = _get_effectiveness_multiplier(aw, defender, context, attacker)
+	var eff_def: float = _get_effectiveness_multiplier(dw, attacker, context, defender) if can_counter else 1.0
 
 	var atk_hit_ctx  := {"accuracy_bonus": context["atk_mod"]["accuracy"],
 		"dodge_bonus": context["def_mod"]["dodge"]}
