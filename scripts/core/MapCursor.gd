@@ -280,9 +280,7 @@ func _try_move_selected_to_cursor() -> void:
 	# Only allow moving to a tile in the unit's movement range
 	if not (current_tile in _movement_tiles):
 		return
-	# Don't allow moving onto another unit's tile
-	var occupant := _grid.get_unit_at(current_tile)
-	if occupant != null and occupant != _selected_unit:
+	if not _grid.can_end_on_tile(current_tile, _selected_unit):
 		return
 	# Record original tile for potential undo
 	if _turn != null:

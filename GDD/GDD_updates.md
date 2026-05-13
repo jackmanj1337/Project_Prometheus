@@ -36,7 +36,7 @@ This document is a direct continuation of `GDD_09_Checklist.md`. It covers two t
 | MVP Amendments — M1 Data Layer (A1) | ✅ Complete | ConditionManager registered; unit_id defaults fine for MVP |
 | MVP Amendments — M3 Unit (A2) | ✅ Complete | All modifier hooks wired in TurnManager/CombatResolver/GameMap |
 | MVP Amendments — M4 Combat (A3) | ✅ Complete | Context pipeline, multi-strike, Miracle sim-HP, faire/breaker |
-| MVP Amendments — M2/M3 Grid (A4) | ⏳ Partial | Movement range done; MapCursor confirm step remains |
+| MVP Amendments — M2/M3 Grid (A4) | ✅ Complete | All stubs wired; MapCursor now calls `can_end_on_tile()` |
 | M8 — Status Conditions | — | After M7 |
 | M9 — Skill Content Implementation | — | After M8 |
 | M10 — Extra-Turn System | — | After M9 |
@@ -586,7 +586,7 @@ func can_phase_through(unit: Node, terrain: String) -> bool:
 - [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` for enemies
 - [x] Add `GridManager.can_end_on_tile()` as a separate method
 - [x] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
-- [ ] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before allowing
+- [x] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before allowing
       the move to be committed
 - [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass
 - [ ] Verify: path through an ally tile is still walkable but not stoppable

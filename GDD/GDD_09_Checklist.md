@@ -21,7 +21,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 | M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files; Amendment A1 fields added |
 | Amendment A1 — Data Layer | ⏳ Partial | ConditionManager registered; unit_id field exists but not set on roster files (safe default `""` for MVP) |
 | M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap.tscn; Amendment A4 hooks added |
-| Amendment A4 — Grid System | ⏳ Partial | `get_movement_range()` calls `can_end_on_tile()`; MapCursor move-confirm step still pending |
+| Amendment A4 — Grid System | ✅ Complete | All stubs wired; `can_end_on_tile()` called from both movement range and MapCursor |
 | M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap, TurnManager, MapCursor |
 | Amendment A2 — Unit Script | ✅ Complete | All hooks wired: tick_modifiers/clear_combat_modifiers/reset_map_state in TurnManager/CombatResolver/GameMap |
 | M4 — Combat System | ✅ Complete | CombatResolver, SkillHandler (renewal/vantage/nihil/resolve/miracle/wrath/faire/breaker), weapon triangle, EXP, brave weapons |
@@ -382,7 +382,7 @@ in M9 without touching pathfinding core logic. **Complete before M4 begins.**
 - [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` and `can_phase_through()`
 - [x] Add `GridManager.can_end_on_tile()` — separates "can move through" from "can stop here"
 - [x] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
-- [ ] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before committing move
+- [x] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before committing move
 - [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass (✅)
 - [ ] Verify: path through an ally tile is still walkable but not stoppable
 
