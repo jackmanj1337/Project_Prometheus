@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+unit_id = "unit_06_knight"
 unit_name = "Unit_06"
 class_id = "knight"
 level = 1

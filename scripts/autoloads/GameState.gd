@@ -107,6 +107,7 @@ func load_default_roster() -> void:
 	for f in files:
 		var res: UnitData = load(roster_path + f).duplicate(true)
 		if res:
+			assert(res.unit_id != "", "GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
 			player_roster.append(res)
 
 

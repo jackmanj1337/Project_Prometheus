@@ -123,6 +123,7 @@ func _spawn_units() -> void:
 			continue
 		var u_data: UnitData = load(path).duplicate(true)  # fresh copy per map
 		u_data.ai_profile = placement.get("ai_profile", "basic")
+		assert(u_data.unit_id != "", "GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 		_spawn_unit(u_data, tile, "enemy")
 
 

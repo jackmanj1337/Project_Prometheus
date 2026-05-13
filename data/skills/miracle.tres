@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "miracle"
 display_name = "Miracle"
-description = "LUK% chance to halve a fatal blow."
+description = "LUK% chance to survive a fatal blow at 1 HP."
 trigger = "on_damaged"
 activation_chance_stat = "luck"
 activation_divisor = 1

@@ -100,7 +100,7 @@ func _apply_wrath(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 	return context
 
 
-# LUK% chance to halve a fatal blow (on_damaged trigger).
+# LUK% chance to survive a fatal blow at 1 HP (on_damaged trigger).
 func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var dmg: int = context.get("damage", 0)
 	if dmg <= 0:
@@ -140,78 +140,30 @@ func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 	return context
 
 
-# Generic stat bonus applied from effect_params.
-func _apply_stat_bonus(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	var mod: Dictionary = context["atk_mod"] if (unit == context.get("attacker")) else context["def_mod"]
-	var p: Dictionary = skill.effect_params
-	if p.has("hit"):  mod["accuracy"] += int(p["hit"])
-	if p.has("crit"): mod["crit"]     += int(p["crit"])
-	if p.has("str"):  mod["damage"]   += int(p["str"])
-	return context
+# Generic stat bonus from effect_params (hit/crit/str keys).
+# No skill .tres uses this yet — implement fully in M9.
+func _apply_stat_bonus(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	return context  # [STUB — M9]
 
 
 # ---- Aura skills (on_combat_apply_modifiers) ----
 # These fire once per nearby unit before combat; unit is the aura bearer.
+# No skill .tres uses these yet — implement fully in M9 (also fix §2.1 charm double-count then).
 
 func _manhattan(a: Vector2i, b: Vector2i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y)
 
 
 # +10 hit and +10 dodge to allies within radius.
-func _apply_charm(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	var attacker: Node = context.get("attacker")
-	var defender: Node = context.get("defender")
-	if attacker == null or defender == null:
-		return context
-	if not is_instance_valid(attacker) or not is_instance_valid(defender):
-		return context
-	var radius: int = skill.effect_params.get("radius", 3)
-	if unit.team == attacker.team \
-			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
-		context["atk_mod"]["accuracy"] += 10
-		context["atk_mod"]["dodge"]    += 10
-	if unit.team == defender.team \
-			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
-		context["def_mod"]["accuracy"] += 10
-		context["def_mod"]["dodge"]    += 10
-	return context
+func _apply_charm(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	return context  # [STUB — M9]
 
 
 # -10 hit and -10 dodge to enemies within radius.
-func _apply_anathema(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	var attacker: Node = context.get("attacker")
-	var defender: Node = context.get("defender")
-	if attacker == null or defender == null:
-		return context
-	if not is_instance_valid(attacker) or not is_instance_valid(defender):
-		return context
-	var radius: int = skill.effect_params.get("radius", 3)
-	if unit.team != attacker.team \
-			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
-		context["atk_mod"]["accuracy"] -= 10
-		context["atk_mod"]["dodge"]    -= 10
-	if unit.team != defender.team \
-			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
-		context["def_mod"]["accuracy"] -= 10
-		context["def_mod"]["dodge"]    -= 10
-	return context
+func _apply_anathema(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	return context  # [STUB — M9]
 
 
 # -10 hit and -10 crit to enemies within radius.
-func _apply_daunt(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	var attacker: Node = context.get("attacker")
-	var defender: Node = context.get("defender")
-	if attacker == null or defender == null:
-		return context
-	if not is_instance_valid(attacker) or not is_instance_valid(defender):
-		return context
-	var radius: int = skill.effect_params.get("radius", 3)
-	if unit.team != attacker.team \
-			and _manhattan(unit.tile_position, attacker.tile_position) <= radius:
-		context["atk_mod"]["accuracy"] -= 10
-		context["atk_mod"]["crit"]     -= 10
-	if unit.team != defender.team \
-			and _manhattan(unit.tile_position, defender.tile_position) <= radius:
-		context["def_mod"]["accuracy"] -= 10
-		context["def_mod"]["crit"]     -= 10
-	return context
+func _apply_daunt(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	return context  # [STUB — M9]
