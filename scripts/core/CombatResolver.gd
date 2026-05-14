@@ -489,9 +489,10 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 		"exchanges":     exchanges,
 		"attacker_died": attacker_died,
 		"defender_died": defender_died,
-		# EXP only for actual contribution: attacker must have landed at least one hit.
-		"attacker_exp":  calculate_exp(attacker, defender, defender_died) if atk_dealt else 0,
-		"defender_exp":  calculate_exp(defender, attacker, attacker_died) if (def_dealt and not attacker_died) else 0,
+		# EXP and corrected death flags are filled in by apply_combat_result after
+		# filtering skipped exchanges (e.g. weapon broke mid-combat). Placeholder 0s here.
+		"attacker_exp":  0,
+		"defender_exp":  0,
 		"context":       context,
 	}
 
@@ -507,6 +508,8 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	# Track broken weapons per unit so subsequent exchanges with the same weapon
 	# are skipped — a unit whose weapon broke mid-combat can't keep attacking.
 	var broken: Dictionary = {}  # Node -> weapon_id String
+	var atk_hit := false
+	var def_hit := false
 
 	for exchange in result["exchanges"]:
 		var atk: Node          = exchange["attacker"]
@@ -523,6 +526,10 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 				broken[atk] = weapon_id
 
 		if exchange["hit"]:
+			if atk == attacker:
+				atk_hit = true
+			else:
+				def_hit = true
 			if weapon != null and atk.has_method("add_wexp"):
 				atk.add_wexp(weapon.weapon_type, weapon.wexp)
 			def_unit.take_damage(exchange["damage"])
@@ -530,13 +537,22 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		# No break here — the full exchange list is iterated so both units can die
 		# in a mutual-kill scenario and both get handle_death() called below.
 
+	# Recompute death and EXP from what actually landed — resolve_combat may have
+	# predicted hits that were skipped due to weapon breaks.
+	var defender_died: bool = defender.data.hp <= 0
+	var attacker_died: bool = attacker.data.hp <= 0
+	result["defender_died"] = defender_died
+	result["attacker_died"] = attacker_died
+	var atk_exp: int = calculate_exp(attacker, defender, defender_died) if atk_hit else 0
+	var def_exp: int = calculate_exp(defender, attacker, attacker_died) if (def_hit and not attacker_died) else 0
+	result["attacker_exp"] = atk_exp
+	result["defender_exp"] = def_exp
+
 	# Award EXP before calling handle_death (queue_free is deferred; nodes are still valid).
-	if attacker.is_inside_tree() and result.get("attacker_exp", 0) > 0 \
-			and not result["attacker_died"]:
-		attacker.add_exp(result["attacker_exp"])
-	if defender.is_inside_tree() and result.get("defender_exp", 0) > 0 \
-			and not result["defender_died"]:
-		defender.add_exp(result["defender_exp"])
+	if attacker.is_inside_tree() and atk_exp > 0 and not attacker_died:
+		attacker.add_exp(atk_exp)
+	if defender.is_inside_tree() and def_exp > 0 and not defender_died:
+		defender.add_exp(def_exp)
 
 	# Clear one-fight buffs from both sides after combat concludes.
 	if attacker.has_method("clear_combat_modifiers"):
@@ -545,9 +561,9 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		defender.clear_combat_modifiers()
 
 	# Handle deaths after all exchanges — defender first so kill credit stays with attacker.
-	if result["defender_died"] and defender.has_method("handle_death"):
+	if defender_died and defender.has_method("handle_death"):
 		defender.handle_death()
-	if result["attacker_died"] and attacker.has_method("handle_death"):
+	if attacker_died and attacker.has_method("handle_death"):
 		attacker.handle_death()
 
 	if bus:

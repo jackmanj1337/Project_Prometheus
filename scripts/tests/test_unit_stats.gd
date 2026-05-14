@@ -6,12 +6,57 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
-	var passed := 0
-	var failed := 0
 
-	# Build a Soldier with an Iron Lance
+	# ── Load resources ──
 	var soldier_data: UnitData = load("res://data/roster/default/unit_01_soldier.tres").duplicate(true)
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
+	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
+	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+
+	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
+	var fire: WeaponData = load("res://data/weapons/fire.tres")
+	mage_data.proficiencies = {"fire": {"rank": "D", "wexp": 0}}
+
+	var fixed_data := UnitData.new()
+	fixed_data.level = 1
+	fixed_data.hp = 20; fixed_data.max_hp = 20
+	fixed_data.strength = 5; fixed_data.magic = 0; fixed_data.defense = 0
+	fixed_data.resistance = 0; fixed_data.skill = 0; fixed_data.speed = 0; fixed_data.luck = 0
+
+	var dur_data := UnitData.new()
+	dur_data.inventory = [InventoryEntry.make_weapon("iron_lance", 1)]
+	dur_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+
+	# ── Instantiate from Unit.tscn so @onready vars are populated via _ready().
+	# Set data before add_child so _ready fires with it already assigned.
+	var unit_scene: PackedScene = preload("res://scenes/units/Unit.tscn")
+
+	var unit: Unit = unit_scene.instantiate()
+	unit.data = soldier_data
+	root.add_child(unit)
+
+	var mage: Unit = unit_scene.instantiate()
+	mage.data = mage_data
+	root.add_child(mage)
+
+	var fixed_unit: Unit = unit_scene.instantiate()
+	fixed_unit.data = fixed_data
+	root.add_child(fixed_unit)
+
+	var rand_unit: Unit = unit_scene.instantiate()
+	rand_unit.data = fixed_data.duplicate(true)
+	rand_unit.data.growth_accumulators = {}
+	rand_unit.data.strength = 0
+	root.add_child(rand_unit)
+
+	var dur_unit: Unit = unit_scene.instantiate()
+	dur_unit.data = dur_data
+	root.add_child(dur_unit)
+
+	await process_frame  # _ready fires for all five units
+
+	var passed := 0
+	var failed := 0
 
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
 	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
@@ -21,13 +66,6 @@ func _init() -> void:
 	# Damage       = STR + Mt = 7 + 7 = 14
 	# Crit         = floor(SKL/2) + weapon.Crit = 3 + 0 = 3
 	# Crit Avoid   = LUK = 6
-
-	# Construct a Unit node without going through scene instantiation
-	var unit := Unit.new()
-	unit.data = soldier_data
-	# Manually populate equipped weapon by injecting into inventory
-	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
-	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
 
 	var checks := [
 		["battle_speed", unit.battle_speed(iron_lance), 5],
@@ -70,11 +108,6 @@ func _init() -> void:
 	# --- Magic weapon uses MAG, not STR ---
 	# Build a Mage with Fire tome: STR 1, MAG 7; Fire: Mt 4 (uses_mag=true)
 	# Damage = MAG + Mt = 7 + 4 = 11
-	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
-	var fire: WeaponData = load("res://data/weapons/fire.tres")
-	var mage := Unit.new()
-	mage.data = mage_data
-	mage_data.proficiencies = {"fire": {"rank": "D", "wexp": 0}}
 	if mage.damage(fire) == 11:
 		print("OK  mage damage with Fire = 11 (uses MAG, not STR)")
 		passed += 1
@@ -260,14 +293,6 @@ func _init() -> void:
 
 	# --- growth_fixed: carry persists across calls ---
 	# Rate 50: should gain +1 on even levels only.
-	# Call _level_up_fixed directly via a fresh unit with controlled rates.
-	var fixed_unit := Unit.new()
-	var fixed_data := UnitData.new()
-	fixed_data.level = 1
-	fixed_data.hp = 20; fixed_data.max_hp = 20
-	fixed_data.strength = 5; fixed_data.magic = 0; fixed_data.defense = 0
-	fixed_data.resistance = 0; fixed_data.skill = 0; fixed_data.speed = 0; fixed_data.luck = 0
-	fixed_unit.data = fixed_data
 	var rates50 := {"hp": 0, "strength": 50, "magic": 0, "defense": 0, "resistance": 0,
 		"skill": 0, "speed": 0, "luck": 0}
 	var ch1 := fixed_unit._level_up_fixed(rates50)  # acc=50 → 0 gain, carry=50
@@ -299,10 +324,6 @@ func _init() -> void:
 	# running 100 trials and checking the minimum gain is always ≥ 2.
 	var rates250 := {"hp": 0, "strength": 250, "magic": 0, "defense": 0, "resistance": 0,
 		"skill": 0, "speed": 0, "luck": 0}
-	var rand_unit := Unit.new()
-	rand_unit.data = fixed_data.duplicate(true)
-	rand_unit.data.growth_accumulators = {}
-	rand_unit.data.strength = 0
 	var min_gain := 9999
 	for _i in 100:
 		rand_unit.data.strength = 0
@@ -320,11 +341,6 @@ func _init() -> void:
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
 	# Regression for MapCursor._execute_staff_heal ordering bug: fetching get_equipped_weapon()
 	# after use_weapon_durability() on a 1-use weapon returns null/wrong weapon.
-	var dur_unit := Unit.new()
-	var dur_data := UnitData.new()
-	dur_data.inventory = [InventoryEntry.make_weapon("iron_lance", 1)]
-	dur_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
-	dur_unit.data = dur_data
 	var pre_weapon: WeaponData = iron_lance  # captured BEFORE use (the correct ordering)
 	dur_unit.use_weapon_durability()
 	var entry_removed: bool = dur_data.inventory.is_empty()
@@ -336,13 +352,13 @@ func _init() -> void:
 	else:
 		print("FAIL last-use wexp: entry_removed=%s wexp_ok=%s" % [entry_removed, wexp_ok])
 		failed += 1
-	dur_unit.queue_free()
 
 	# Cleanup
 	unit.queue_free()
 	mage.queue_free()
 	fixed_unit.queue_free()
 	rand_unit.queue_free()
+	dur_unit.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

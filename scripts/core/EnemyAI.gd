@@ -223,27 +223,34 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 	return nearest
 
 
-# Dijkstra flood from `start` using terrain costs but ignoring unit movement cap.
-# Returns a Dictionary of tile → cost for all reachable non-wall tiles.
+# Dijkstra flood from `start` using terrain costs but ignoring unit movement cap
+# and unit occupants — intentional for path-distance estimation. The actual movement
+# calculation (GridManager.get_move_tiles) respects occupants; this only estimates
+# path cost to a location across a clear map.
+# Heap is an insertion-sorted Array of [cost, tile] pairs; pop_front always gives
+# the cheapest unvisited tile. Stale entries (cheaper path found later) are skipped.
 func _flood_costs(start: Vector2i, grid: GridManager) -> Dictionary:
 	var costs: Dictionary = {start: 0}
-	var frontier: Array[Vector2i] = [start]
+	var heap: Array = [[0, start]]
 	const DIRS: Array[Vector2i] = [Vector2i(0,-1), Vector2i(1,0), Vector2i(0,1), Vector2i(-1,0)]
-	while not frontier.is_empty():
-		var best_idx := 0
-		for i in frontier.size():
-			if costs[frontier[i]] < costs[frontier[best_idx]]:
-				best_idx = i
-		var current: Vector2i = frontier[best_idx]
-		frontier.remove_at(best_idx)
-		var current_cost: int = costs[current]
+	while not heap.is_empty():
+		var entry: Array = heap.pop_front()
+		var current_cost: int = entry[0]
+		var current: Vector2i = entry[1]
+		if current_cost > costs.get(current, GameConstants.INT_MAX):
+			continue  # stale entry — a shorter path was already settled
 		for d in DIRS:
 			var next: Vector2i = current + d
 			if grid.get_terrain_at(next) == "wall":
 				continue
 			var step: int = grid.get_move_cost(next, null)
 			var total: int = current_cost + step
-			if not costs.has(next) or total < costs[next]:
+			if total < costs.get(next, GameConstants.INT_MAX):
 				costs[next] = total
-				frontier.append(next)
+				var insert_idx := heap.size()
+				for i in heap.size():
+					if total <= heap[i][0]:
+						insert_idx = i
+						break
+				heap.insert(insert_idx, [total, next])
 	return costs
