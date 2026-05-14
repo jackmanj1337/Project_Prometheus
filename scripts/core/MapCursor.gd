@@ -454,13 +454,13 @@ func _use_item() -> void:
 		return
 	# Fallback when ItemMenu is not wired: consume first valid item automatically
 	for entry in _selected_unit.data.inventory:
-		if entry.get("type", "") == "item" and entry.get("uses_remaining", 0) > 0:
+		if entry.is_item() and entry.uses_remaining > 0:
 			_apply_item_effect(entry)
 			break
 	_finish_action()
 
 
-func _on_item_chosen(entry: Dictionary) -> void:
+func _on_item_chosen(entry: InventoryEntry) -> void:
 	if _selected_unit == null:
 		_finish_action()
 		return
@@ -472,7 +472,7 @@ func _on_item_menu_cancelled() -> void:
 	_show_action_menu()
 
 
-func _apply_item_effect(entry: Dictionary) -> void:
+func _apply_item_effect(entry: InventoryEntry) -> void:
 	var ih := get_node_or_null("/root/ItemHandler")
 	if ih:
 		ih.apply_item(_selected_unit, entry)

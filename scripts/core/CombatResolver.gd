@@ -87,12 +87,12 @@ func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 	if unit == null or unit.data == null:
 		return
 	for entry in unit.data.inventory:
-		if entry.get("type", "") != "equip":
+		if not entry.is_equip():
 			continue
-		mod_dict["accuracy"] += entry.get("accuracy", 0)
-		mod_dict["damage"]   += entry.get("damage", 0)
-		mod_dict["crit"]     += entry.get("crit", 0)
-		mod_dict["dodge"]    += entry.get("dodge", 0)
+		mod_dict["accuracy"] += entry.accuracy
+		mod_dict["damage"]   += entry.damage
+		mod_dict["crit"]     += entry.crit
+		mod_dict["dodge"]    += entry.dodge
 
 
 # ── Weapon Triangle ──────────────────────────────────────────────────────────

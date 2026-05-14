@@ -45,7 +45,7 @@ func show_for(unit: Node, grid: Node) -> void:
 	# Items: any inventory entry of type "item" with uses remaining
 	if unit.data:
 		for entry in unit.data.inventory:
-			if entry.get("type", "") == "item" and entry.get("uses_remaining", 0) > 0:
+			if entry.is_item() and entry.uses_remaining > 0:
 				has_items = true
 				break
 

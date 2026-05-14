@@ -199,14 +199,14 @@ func _init() -> void:
 	var vuln_unit := MockUnit.new()
 	vuln_unit.setup(vuln_data)
 	root.add_child(vuln_unit)
-	var vuln_entry := {"item_id": "vulnerary", "type": "item", "uses_remaining": 3}
+	var vuln_entry := InventoryEntry.make_item("vulnerary", 3)
 	vuln_data.inventory = [vuln_entry]
 	ih.apply_item(vuln_unit, vuln_entry)
 	if vuln_data.hp > 10:
 		print("OK  vulnerary heals HP"); passed += 1
 	else:
 		print("FAIL vulnerary: HP unchanged after use"); failed += 1
-	if vuln_entry["uses_remaining"] == 2:
+	if vuln_entry.uses_remaining == 2:
 		print("OK  vulnerary decrements uses"); passed += 1
 	else:
 		print("FAIL vulnerary: uses not decremented"); failed += 1
@@ -218,14 +218,14 @@ func _init() -> void:
 	var full_unit2 := MockUnit.new()
 	full_unit2.setup(full_data2)
 	root.add_child(full_unit2)
-	var vuln_entry2 := {"item_id": "vulnerary", "type": "item", "uses_remaining": 3}
+	var vuln_entry2 := InventoryEntry.make_item("vulnerary", 3)
 	full_data2.inventory = [vuln_entry2]
 	ih.apply_item(full_unit2, vuln_entry2)
 	if full_data2.hp == 17:
 		print("OK  vulnerary does not overheal"); passed += 1
 	else:
 		print("FAIL vulnerary: overhealed"); failed += 1
-	if vuln_entry2["uses_remaining"] == 2:
+	if vuln_entry2.uses_remaining == 2:
 		print("OK  vulnerary still consumed when already full"); passed += 1
 	else:
 		print("FAIL vulnerary: uses not consumed at full HP"); failed += 1
@@ -237,7 +237,7 @@ func _init() -> void:
 	var last_unit := MockUnit.new()
 	last_unit.setup(last_data)
 	root.add_child(last_unit)
-	var last_entry := {"item_id": "vulnerary", "type": "item", "uses_remaining": 1}
+	var last_entry := InventoryEntry.make_item("vulnerary", 1)
 	last_data.inventory = [last_entry]
 	ih.apply_item(last_unit, last_entry)
 	if last_data.inventory.is_empty():
@@ -250,10 +250,10 @@ func _init() -> void:
 	var skip_unit := MockUnit.new()
 	skip_unit.setup(skip_data)
 	root.add_child(skip_unit)
-	var skip_entry := {"item_id": "", "type": "item", "uses_remaining": 3}
+	var skip_entry := InventoryEntry.make_item("", 3)
 	skip_data.inventory = [skip_entry]
 	ih.apply_item(skip_unit, skip_entry)
-	if skip_entry["uses_remaining"] == 3:
+	if skip_entry.uses_remaining == 3:
 		print("OK  empty item_id is a no-op (uses not consumed)"); passed += 1
 	else:
 		print("FAIL empty item_id: uses were consumed"); failed += 1

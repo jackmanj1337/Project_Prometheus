@@ -84,28 +84,28 @@ func _get_class_data() -> ClassData:
 # - rank check (unit's proficiency rank >= weapon rank)
 func get_equipped_weapon() -> WeaponData:
 	var entry := get_equipped_weapon_entry()
-	if entry.is_empty():
+	if entry == null:
 		return null
-	return _load_weapon(entry["weapon_id"])
+	return _load_weapon(entry.weapon_id)
 
 
-# Same as get_equipped_weapon but returns the inventory dict (so callers can
+# Same as get_equipped_weapon but returns the InventoryEntry (so callers can
 # decrement uses_remaining or read forge mods).
-func get_equipped_weapon_entry() -> Dictionary:
+func get_equipped_weapon_entry() -> InventoryEntry:
 	if data == null:
-		return {}
+		return null
 	for entry in data.inventory:
-		if entry.get("type", "") != "weapon":
+		if not entry.is_weapon():
 			continue
-		if entry.get("uses_remaining", 0) <= 0:
+		if entry.uses_remaining <= 0:
 			continue
-		var weapon := _load_weapon(entry["weapon_id"])
+		var weapon := _load_weapon(entry.weapon_id)
 		if weapon == null:
 			continue
 		if not _can_equip_rank(weapon):
 			continue
 		return entry
-	return {}
+	return null
 
 
 func _load_weapon(id: String) -> WeaponData:
@@ -380,15 +380,15 @@ func use_weapon_durability(weapon_id: String = "") -> bool:
 	if data == null:
 		return false
 	for i in data.inventory.size():
-		var entry: Dictionary = data.inventory[i]
-		if entry.get("type", "") != "weapon":
+		var entry: InventoryEntry = data.inventory[i]
+		if not entry.is_weapon():
 			continue
-		if weapon_id != "" and entry.get("weapon_id", "") != weapon_id:
+		if weapon_id != "" and entry.weapon_id != weapon_id:
 			continue
-		if entry.get("uses_remaining", 0) <= 0:
+		if entry.uses_remaining <= 0:
 			continue
-		entry["uses_remaining"] -= 1
-		if entry["uses_remaining"] <= 0:
+		entry.uses_remaining -= 1
+		if entry.uses_remaining <= 0:
 			data.inventory.remove_at(i)
 			return true
 		return false

@@ -32,12 +32,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Array of skill ID strings referencing SkillData resources
 @export var skills: Array[String] = []
 
-# Array of Dicts; every entry has a "type" field ("weapon" or "item").
-# Weapon entry: { "type":"weapon", "weapon_id":String, "uses_remaining":int, "forged_mods":Dictionary }
-# Item entry:   { "type":"item",   "item_id":String,   "uses_remaining":int }
-# forged_mods is reserved for the forging system (ARCH-05); no code reads it yet.
-# TODO ARCH-05: migrate Array[Dictionary] to Array[InventoryEntry] resource class.
-@export var inventory: Array[Dictionary] = []
+@export var inventory: Array[InventoryEntry] = []
 
 # Array of Dicts: [{ "type": "poison", "turns_remaining": 3 }]
 @export var conditions: Array[Dictionary] = []

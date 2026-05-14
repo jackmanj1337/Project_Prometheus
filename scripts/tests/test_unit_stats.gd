@@ -26,9 +26,7 @@ func _init() -> void:
 	var unit := Unit.new()
 	unit.data = soldier_data
 	# Manually populate equipped weapon by injecting into inventory
-	soldier_data.inventory = [
-		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 45, "forged_mods": {}}
-	]
+	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
 	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
 
 	var checks := [
@@ -129,11 +127,9 @@ func _init() -> void:
 		failed += 1
 
 	# --- Weapon durability ---
-	soldier_data.inventory = [
-		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 2, "forged_mods": {}}
-	]
+	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 2)]
 	unit.use_weapon_durability()
-	if soldier_data.inventory[0]["uses_remaining"] == 1:
+	if soldier_data.inventory[0].uses_remaining == 1:
 		print("OK  use_weapon_durability decrements")
 		passed += 1
 	else:
@@ -150,11 +146,9 @@ func _init() -> void:
 
 	# --- use_weapon_durability(weapon_id): return value and targeted decrement ---
 	# Returns false when weapon decremented but not broken.
-	soldier_data.inventory = [
-		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 2, "forged_mods": {}}
-	]
+	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 2)]
 	var did_break_no: bool = unit.use_weapon_durability("iron_lance")
-	if not did_break_no and soldier_data.inventory[0]["uses_remaining"] == 1:
+	if not did_break_no and soldier_data.inventory[0].uses_remaining == 1:
 		print("OK  use_weapon_durability returns false when not broken")
 		passed += 1
 	else:
@@ -172,13 +166,13 @@ func _init() -> void:
 
 	# With two weapons, targeting a specific weapon_id never bleeds into the next one.
 	soldier_data.inventory = [
-		{"type": "weapon", "weapon_id": "javelin",    "uses_remaining": 1,  "forged_mods": {}},
-		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 40, "forged_mods": {}},
+		InventoryEntry.make_weapon("javelin", 1),
+		InventoryEntry.make_weapon("iron_lance", 40),
 	]
 	unit.use_weapon_durability("javelin")  # breaks javelin
 	var lance_intact: bool = soldier_data.inventory.size() == 1 \
-		and soldier_data.inventory[0].get("weapon_id") == "iron_lance" \
-		and soldier_data.inventory[0].get("uses_remaining") == 40
+		and soldier_data.inventory[0].weapon_id == "iron_lance" \
+		and soldier_data.inventory[0].uses_remaining == 40
 	if lance_intact:
 		print("OK  use_weapon_durability(weapon_id) targets correct entry; iron_lance untouched")
 		passed += 1
@@ -189,7 +183,7 @@ func _init() -> void:
 	# Calling again with the now-removed weapon_id is a no-op — doesn't touch iron_lance.
 	unit.use_weapon_durability("javelin")
 	var still_intact: bool = soldier_data.inventory.size() == 1 \
-		and soldier_data.inventory[0].get("uses_remaining") == 40
+		and soldier_data.inventory[0].uses_remaining == 40
 	if still_intact:
 		print("OK  use_weapon_durability on already-broken weapon_id is a no-op")
 		passed += 1
@@ -328,9 +322,7 @@ func _init() -> void:
 	# after use_weapon_durability() on a 1-use weapon returns null/wrong weapon.
 	var dur_unit := Unit.new()
 	var dur_data := UnitData.new()
-	dur_data.inventory = [
-		{"type": "weapon", "weapon_id": "iron_lance", "uses_remaining": 1, "forged_mods": {}}
-	]
+	dur_data.inventory = [InventoryEntry.make_weapon("iron_lance", 1)]
 	dur_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
 	dur_unit.data = dur_data
 	var pre_weapon: WeaponData = iron_lance  # captured BEFORE use (the correct ordering)

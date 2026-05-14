@@ -2,7 +2,7 @@ class_name ItemMenu extends Control
 # Item selection menu. Dynamically builds one button per usable inventory item.
 # Emits item_chosen(entry) when the player picks one, or cancelled when dismissed.
 
-signal item_chosen(entry: Dictionary)
+signal item_chosen(entry: InventoryEntry)
 signal cancelled()
 
 @onready var _vbox: VBoxContainer = $Panel/VBox
@@ -25,20 +25,18 @@ func show_for(unit: Node) -> void:
 		return
 
 	for entry in unit.data.inventory:
-		if entry.get("type", "") != "item":
+		if not entry.is_item():
 			continue
-		if entry.get("uses_remaining", 0) <= 0:
+		if entry.uses_remaining <= 0:
 			continue
 		var btn := Button.new()
-		var uses: int = entry.get("uses_remaining", 0)
-		var item_id: String = entry.get("item_id", "")
 		var dm := get_node_or_null("/root/DataManager")
-		var item := dm.get_item(item_id) if (dm and item_id != "") else null
+		var item := dm.get_item(entry.item_id) if (dm and entry.item_id != "") else null
 		var name_text: String = item.display_name if item else "Item"
-		btn.text = "%s  (%d)" % [name_text, uses]
+		btn.text = "%s  (%d)" % [name_text, entry.uses_remaining]
 		btn.focus_mode = Control.FOCUS_ALL
 		_vbox.add_child(btn)
-		var captured: Dictionary = entry  # reference to the inventory dict entry
+		var captured: InventoryEntry = entry
 		btn.pressed.connect(func(): _on_item_pressed(captured))
 		_buttons.append(btn)
 
@@ -50,7 +48,7 @@ func show_for(unit: Node) -> void:
 	show()
 
 
-func _on_item_pressed(entry: Dictionary) -> void:
+func _on_item_pressed(entry: InventoryEntry) -> void:
 	hide()
 	item_chosen.emit(entry)
 
