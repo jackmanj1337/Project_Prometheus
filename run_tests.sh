@@ -14,9 +14,11 @@ TESTS=(
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
-  out=$(godot --headless --path . --script "res://scripts/tests/$t.gd" 2>&1 | grep "Results")
-  echo "$t: $out"
-  if [[ "$out" == *"failed"* && ! "$out" == *"0 failed"* ]]; then
+  out=$(godot --headless --path . --script "res://scripts/tests/$t.gd" 2>&1)
+  exit_code=$?
+  summary=$(echo "$out" | grep "Results")
+  echo "$t: ${summary:-'(no summary)'}"
+  if [[ $exit_code -ne 0 ]]; then
     fail_count=$((fail_count + 1))
   fi
 done

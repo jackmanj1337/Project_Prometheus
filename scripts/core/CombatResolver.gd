@@ -63,13 +63,13 @@ func _collect_combat_modifiers(context: Dictionary) -> void:
 		for u in gs.all_units:
 			if is_instance_valid(u) and u.data != null and u.data.hp > 0 \
 					and u != attacker and u != defender:
-				sh.apply_trigger(u, "on_combat_apply_modifiers", context)
+				context = sh.apply_trigger(u, "on_combat_apply_modifiers", context)
 	_apply_equip_item_modifiers(attacker, context["atk_mod"])
 	_apply_equip_item_modifiers(defender, context["def_mod"])
 	if sh:
-		sh.apply_trigger(attacker, "on_combat_start", context)
+		context = sh.apply_trigger(attacker, "on_combat_start", context)
 		if not context.get("defender_skills_blocked", false):
-			sh.apply_trigger(defender, "on_combat_start", context)
+			context = sh.apply_trigger(defender, "on_combat_start", context)
 
 
 func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -345,18 +345,20 @@ func _snapshot_unit_state(unit: Node) -> Dictionary:
 	if unit == null or unit.data == null:
 		return {}
 	return {
-		"hp":                  unit.data.hp,
-		"active_modifiers":    unit.data.active_modifiers.duplicate(true),
-		"skill_use_counters":  unit.data.skill_use_counters.duplicate(true),
+		"hp":                   unit.data.hp,
+		"active_modifiers":     unit.data.active_modifiers.duplicate(true),
+		"skill_use_counters":   unit.data.skill_use_counters.duplicate(true),
+		"damage_taken_this_map": unit.data.damage_taken_this_map,
 	}
 
 
 func _restore_unit_state(unit: Node, snap: Dictionary) -> void:
 	if unit == null or unit.data == null or snap.is_empty():
 		return
-	unit.data.hp                 = snap["hp"]
-	unit.data.active_modifiers   = snap["active_modifiers"]
-	unit.data.skill_use_counters = snap["skill_use_counters"]
+	unit.data.hp                    = snap["hp"]
+	unit.data.active_modifiers      = snap["active_modifiers"]
+	unit.data.skill_use_counters    = snap["skill_use_counters"]
+	unit.data.damage_taken_this_map = snap["damage_taken_this_map"]
 
 
 func preview_combat(attacker: Node, defender: Node) -> Dictionary:

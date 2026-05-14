@@ -106,7 +106,7 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
 		grid: GridManager, gs: Node) -> Vector2i:
 	var best_tile: Vector2i = enemy.tile_position
-	var best_target_hp: int = 0x7FFFFFFF  # lower = more injured = higher priority
+	var best_injury_pct: float = -1.0  # higher = more injured = higher priority
 	var best_terrain_bonus: int = -1
 	var allies: Array[Node] = gs.get_living_enemy_units()
 	for tile in move_tiles:
@@ -120,9 +120,10 @@ func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
 			var terrain: String = grid.get_terrain_at(tile)
 			var terrain_bonus: int = GridManager.TERRAIN_DEF_BONUS.get(terrain, 0) \
 				+ GridManager.TERRAIN_DODGE_BONUS.get(terrain, 0)
-			if ally.data.hp < best_target_hp or \
-					(ally.data.hp == best_target_hp and terrain_bonus > best_terrain_bonus):
-				best_target_hp = ally.data.hp
+			var injury_pct: float = float(ally.data.max_hp - ally.data.hp) / float(ally.data.max_hp)
+			if injury_pct > best_injury_pct or \
+					(injury_pct == best_injury_pct and terrain_bonus > best_terrain_bonus):
+				best_injury_pct = injury_pct
 				best_terrain_bonus = terrain_bonus
 				best_tile = tile
 	return best_tile
@@ -133,7 +134,7 @@ func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
 func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 		move_tiles: Array[Vector2i], grid: GridManager) -> Vector2i:
 	var best_attack_tile: Vector2i = enemy.tile_position
-	var best_attack_dist: int = 0x7FFFFFFF
+	var best_attack_dist: int = GameConstants.INT_MAX
 	for tile in move_tiles:
 		for player in all_players:
 			if not is_instance_valid(player):
@@ -144,12 +145,12 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 				if d < best_attack_dist:
 					best_attack_dist = d
 					best_attack_tile = tile
-	if best_attack_dist < 0x7FFFFFFF:
+	if best_attack_dist < GameConstants.INT_MAX:
 		return best_attack_tile
 
 	# No attack possible — move as close to nearest player as possible
 	var best_move: Vector2i = enemy.tile_position
-	var best_dist: int = 0x7FFFFFFF
+	var best_dist: int = GameConstants.INT_MAX
 	for tile in move_tiles:
 		var d: int = absi(tile.x - nearest.tile_position.x) \
 			+ absi(tile.y - nearest.tile_position.y)
@@ -196,11 +197,11 @@ func _find_nearest(from_unit: Node, units: Array[Node], grid: GridManager = null
 	# can reach any tile on the map, not just the unit's actual movement range.
 	var costs := _flood_costs(from_unit.tile_position, grid)
 	var nearest: Node = null
-	var min_cost: int = 0x7FFFFFFF
+	var min_cost: int = GameConstants.INT_MAX
 	for u in units:
 		if not is_instance_valid(u):
 			continue
-		var c: int = costs.get(u.tile_position, 0x7FFFFFFF)
+		var c: int = costs.get(u.tile_position, GameConstants.INT_MAX)
 		if c < min_cost:
 			min_cost = c
 			nearest = u
@@ -210,7 +211,7 @@ func _find_nearest(from_unit: Node, units: Array[Node], grid: GridManager = null
 
 func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 	var nearest: Node = null
-	var min_dist: int = 0x7FFFFFFF
+	var min_dist: int = GameConstants.INT_MAX
 	for u in units:
 		if not is_instance_valid(u):
 			continue

@@ -7,3 +7,4 @@ func _ready() -> void:
 		get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
 	else:
 		push_error("Boot: MainMenu.tscn not found")
+		get_tree().quit(1)
