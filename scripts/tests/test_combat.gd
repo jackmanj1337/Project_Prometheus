@@ -3,10 +3,11 @@ extends SceneTree
 # Verifies CombatResolver math: hit, damage, crit, triangle, effective, EXP, counterattack, follow-up.
 # Uses mock unit objects so no scene tree is needed.
 
-const GameConst   = preload("res://scripts/shared/GameConstants.gd")
-const WeaponDataS = preload("res://scripts/resources/WeaponData.gd")
-const UnitDataS   = preload("res://scripts/resources/UnitData.gd")
-const CombatRes   = preload("res://scripts/core/CombatResolver.gd")
+const GameConst      = preload("res://scripts/shared/GameConstants.gd")
+const WeaponDataS    = preload("res://scripts/resources/WeaponData.gd")
+const UnitDataS      = preload("res://scripts/resources/UnitData.gd")
+const CombatRes      = preload("res://scripts/core/CombatResolver.gd")
+const InventoryEntry = preload("res://scripts/resources/InventoryEntry.gd")
 
 # ---------- Minimal mock unit (extends Node so it passes Node-typed params) ----------
 class MockUnit extends Node:
@@ -25,9 +26,13 @@ class MockUnit extends Node:
 	func get_equipped_weapon() -> Resource:
 		return _weapon
 
-	func get_equipped_weapon_entry() -> Dictionary:
-		if _weapon == null: return {}
-		return {"weapon_id": _weapon.get("id"), "type": "weapon", "uses_remaining": 99}
+	func get_equipped_weapon_entry():  # -> InventoryEntry | null
+		if _weapon == null: return null
+		var e := InventoryEntry.new()
+		e.entry_type = "weapon"
+		e.weapon_id = _weapon.get("id")
+		e.uses_remaining = 99
+		return e
 
 	func has_quality(q: String) -> bool:
 		return q in _qualities

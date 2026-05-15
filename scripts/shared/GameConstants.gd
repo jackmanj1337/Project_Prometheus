@@ -1,6 +1,10 @@
 extends Node
 # Central project constants. Registered as an autoload so any game script can access
 # directly. Tool scripts preload this file instead (autoloads aren't live during _init()).
+# [NOTE — M-7] This class has no instance state; only const fields. extends Node is
+# required because Godot 4 autoloads must be Node-derived (they're added to /root/).
+# Converting to a preloaded script would remove this overhead but requires updating
+# every caller — deferred to a dedicated cleanup milestone.
 
 # Tile pixel size. Edit here to resize all tiles project-wide.
 const TILE_SIZE: int = 64
@@ -19,6 +23,24 @@ const TAG_EFFECTIVE_MOUNTED  := "effective_mounted"
 const TAG_EFFECTIVE_DRAGON   := "effective_dragon"
 const TAG_EFFECTIVE_BEAST    := "effective_beast"
 const TAG_HEAL_PLUS_MAG      := "heal_10_plus_mag"
+
+# Staff heal formula constants (GDD_02)
+const STAFF_HEAL_BASE: int = 10  # base HP restored; full formula = STAFF_HEAL_BASE + healer MAG
+const STAFF_HEAL_EXP: int = 10   # flat EXP awarded to the healer per staff use
+
+# MapCursor key-repeat timings (GDD_01)
+const CURSOR_KEY_REPEAT_DELAY: float = 0.25  # initial hold delay before auto-repeat
+const CURSOR_KEY_REPEAT_RATE: float = 0.10   # per-step delay during auto-repeat
+const CURSOR_CAMERA_EDGE_BUFFER: int = 2     # tiles from viewport edge that trigger camera pan
+
+# Combat thresholds
+const FOLLOW_UP_SPEED_THRESHOLD: int = 4    # SPD advantage needed to attack twice (GDD_02)
+
+# Terrain healing (GDD_02)
+const FORT_HEAL_FRACTION: float = 0.10      # fraction of max HP healed per turn on fort/throne
+
+# Visual
+const DONE_APPEARANCE_DARKEN: float = 0.4   # darkening applied to sprites of acted units
 
 # Weapon triangle — single source of truth for DataManager and CombatResolver.
 # "advantage" = +10 Hit +2 Dmg; "disadvantage" = -10 Hit -2 Dmg.

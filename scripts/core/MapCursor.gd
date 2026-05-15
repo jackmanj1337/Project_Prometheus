@@ -1,13 +1,17 @@
 class_name MapCursor extends Node2D
 # The player's tile-position cursor. Handles keyboard, mouse, and camera scrolling.
 # Emits EventBus.cursor_moved on every tile change so HUD panels can react.
+#
+# [DEFERRED — D-1] This class is a ~600-line FSM. The full split into
+# MapCursorInput / MapCursorSelection / MapCursorTargeting is tracked for a
+# future refactor milestone to enable per-state unit testing.
+#
+# State machine: see State enum below and the transition diagram above _on_confirm().
 
-# Tween rate for held-key cursor movement (GDD_01: 0.25s initial delay, 0.10s repeat)
-const KEY_REPEAT_DELAY: float = 0.25
-const KEY_REPEAT_RATE: float = 0.10
-
-# Camera edge-scroll trigger: when cursor is within this many tiles of the edge
-const CAMERA_EDGE_BUFFER: int = 2
+# Key-repeat timings — source of truth is GameConstants; aliases kept here for readability.
+const KEY_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
+const KEY_REPEAT_RATE: float  = GameConstants.CURSOR_KEY_REPEAT_RATE
+const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
 
 var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
@@ -55,6 +59,8 @@ var _preview_target: Node = null
 var _awaiting_end_turn_confirm: bool = false
 
 
+# ── Setup & Lifecycle ──────────────────────────────────────────────────────
+
 func _ready() -> void:
 	if action_menu:
 		action_menu.action_chosen.connect(_on_action_chosen)
@@ -72,8 +78,7 @@ func _ready() -> void:
 
 
 func _on_phase_changed(new_phase: int) -> void:
-	# GameState.Phase: 0 = PLAYER, 1 = ENEMY
-	if new_phase == 1:
+	if new_phase == GameState.Phase.ENEMY:
 		lock()
 	else:
 		unlock()
@@ -85,6 +90,8 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> voi
 	_turn = turn
 	position = _grid.tile_to_world(current_tile)
 
+
+# ── Input Handling ──────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _state == State.LOCKED:
@@ -207,6 +214,8 @@ func _set_tile(tile: Vector2i) -> void:
 			bus.cursor_moved.emit(current_tile)
 
 
+# ── State Machine ──────────────────────────────────────────────────────────
+#
 # State transitions:
 # free             →(confirm on player unit)→  unit_selected
 # unit_selected    →(confirm on move tile) →  unit_moved  (ActionMenu shown)
@@ -259,6 +268,8 @@ func _on_cancel() -> void:
 			_show_action_menu()
 
 
+# ── State: FREE — unit selection ────────────────────────────────────────────
+
 func _try_select_unit_at_cursor() -> void:
 	if _grid == null:
 		return
@@ -280,6 +291,8 @@ func _try_select_unit_at_cursor() -> void:
 	if bus:
 		bus.unit_selected.emit(unit)
 
+
+# ── State: UNIT_SELECTED — movement ─────────────────────────────────────────
 
 func _try_move_selected_to_cursor() -> void:
 	if _selected_unit == null:
@@ -310,6 +323,8 @@ func _deselect() -> void:
 	if bus:
 		bus.unit_deselected.emit()
 
+
+# ── State: UNIT_MOVED — ActionMenu dispatch ──────────────────────────────────
 
 func _show_action_menu() -> void:
 	if action_menu == null:
@@ -343,6 +358,8 @@ func _on_action_chosen(action: String) -> void:
 		"wait":
 			_commit_wait()
 
+
+# ── State: TARGETING — attack target selection ───────────────────────────────
 
 func _begin_attack_targeting() -> void:
 	if _grid == null or _selected_unit == null:
@@ -404,6 +421,8 @@ func _do_resolve_attack(target: Node) -> void:
 	_finish_action()  # resets _state to "free"
 
 
+# ── State: STAFF_TARGETING — heal target selection ──────────────────────────
+
 func _begin_staff_targeting() -> void:
 	if _grid == null or _selected_unit == null:
 		return
@@ -427,19 +446,15 @@ func _execute_staff_heal() -> void:
 	_grid.clear_overlays()
 	_heal_tiles.clear()
 	# Heal formula: 10 + mag (GDD_02)
-	var heal_amount: int = 10 + _selected_unit.data.magic
-	target.heal(heal_amount)
-	# Capture weapon before use_weapon_durability() — last-use removal would clear the entry
+	# Capture weapon before perform_staff_heal — last-use removal would clear the entry
 	# and a subsequent get_equipped_weapon() could return null or the wrong weapon type.
 	var weapon: WeaponData = _selected_unit.get_equipped_weapon()
 	if weapon != null:
-		_selected_unit.use_weapon_durability(weapon.id)
-		if _selected_unit.has_method("add_wexp"):
-			_selected_unit.add_wexp(weapon.weapon_type, weapon.wexp)
-	# Flat 10 EXP per staff use (GDD_02)
-	_selected_unit.add_exp(10)
+		_selected_unit.perform_staff_heal(target, weapon)
 	_finish_action()
 
+
+# ── Item Use ────────────────────────────────────────────────────────────────
 
 func _use_item() -> void:
 	if _selected_unit == null or _selected_unit.data == null:
@@ -480,6 +495,8 @@ func _apply_item_effect(entry: InventoryEntry) -> void:
 		push_warning("MapCursor: ItemHandler autoload not found")
 
 
+# ── Shared Action Completion ─────────────────────────────────────────────────
+
 # Commit the move as a Wait action — unit is marked DONE, no combat.
 func _commit_wait() -> void:
 	if _turn != null and _selected_unit != null:
@@ -508,6 +525,8 @@ func _finish_action() -> void:
 	_heal_tiles.clear()
 	_state = State.FREE
 
+
+# ── Map Menu / End Turn ──────────────────────────────────────────────────────
 
 # Cycles cursor to the next READY player unit (Tab key). Wraps around.
 func _cycle_to_next_unit() -> void:
@@ -559,7 +578,7 @@ func _on_end_turn_requested() -> void:
 		unlock()
 		dlg.queue_free()
 	)
-	add_child(dlg)
+	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
 
 
@@ -573,6 +592,8 @@ func _on_map_menu_closed() -> void:
 	unlock()
 
 
+# ── Lock / Unlock ────────────────────────────────────────────────────────────
+
 func lock() -> void:
 	_state = State.LOCKED
 	_held_dir = Vector2i.ZERO
@@ -583,6 +604,8 @@ func lock() -> void:
 func unlock() -> void:
 	_state = State.FREE
 
+
+# ── Camera Scrolling ─────────────────────────────────────────────────────────
 
 # When the cursor approaches the screen edge, pan the camera to keep it visible.
 func _scroll_camera_if_needed() -> void:

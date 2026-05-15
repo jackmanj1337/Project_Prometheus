@@ -42,8 +42,8 @@ func _show_next() -> void:
 	var unit: Node = item["unit"]
 	var increases: Dictionary = item["increases"]
 
-	var unit_name: String = unit.data.unit_name if (unit and unit.data) else "???"
-	var level: int = unit.data.level if (unit and unit.data) else 0
+	var unit_name: String = unit.data.unit_name if (unit and is_instance_valid(unit) and unit.data) else "???"
+	var level: int = unit.data.level if (unit and is_instance_valid(unit) and unit.data) else 0
 	_label_name.text = unit_name
 	_label_level.text = "Level Up!  Lv %d" % level
 

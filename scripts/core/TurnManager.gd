@@ -44,7 +44,7 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 		if u.data.hp <= 0 or u.data.hp >= u.data.max_hp:
 			continue
 		if _grid.get_terrain_at(u.tile_position) == "fort":
-			var heal_amount: int = ceili(u.data.max_hp * 0.10)
+			var heal_amount: int = ceili(u.data.max_hp * GameConstants.FORT_HEAL_FRACTION)
 			u.heal(heal_amount)
 
 

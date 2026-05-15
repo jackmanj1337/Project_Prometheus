@@ -28,6 +28,26 @@ func is_item()   -> bool: return entry_type == "item"
 func is_equip()  -> bool: return entry_type == "equip"
 
 
+# Checks for common misconfiguration: wrong type/id combinations, unset entry_type.
+# Call after loading from .tres or after manual construction.
+func validate() -> bool:
+	const VALID_TYPES := ["weapon", "item", "equip"]
+	if not (entry_type in VALID_TYPES):
+		push_error("InventoryEntry.validate: invalid entry_type '%s'" % entry_type)
+		return false
+	if is_weapon() and weapon_id == "":
+		push_error("InventoryEntry.validate: weapon entry has empty weapon_id")
+		return false
+	if is_item() and item_id == "":
+		push_error("InventoryEntry.validate: item entry has empty item_id")
+		return false
+	if is_weapon() and item_id != "":
+		push_warning("InventoryEntry.validate: weapon entry has item_id set — likely copy/paste error")
+	if is_item() and weapon_id != "":
+		push_warning("InventoryEntry.validate: item entry has weapon_id set — likely copy/paste error")
+	return true
+
+
 # Factory helpers keep construction one-liners at call sites.
 static func make_weapon(wid: String, uses: int) -> InventoryEntry:
 	var e := InventoryEntry.new()

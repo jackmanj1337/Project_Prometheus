@@ -18,8 +18,7 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
-# "off"|"on"
-var permadeath: String = "off"
+var permadeath: bool = false
 # "growth_random"|"growth_fixed"
 var leveling_method: String = "growth_random"
 
@@ -49,7 +48,7 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	permadeath        = cfg.get_value("gameplay", "permadeath",        permadeath)
+	permadeath        = cfg.get_value("gameplay", "permadeath",        permadeath) as bool
 	leveling_method   = cfg.get_value("gameplay", "leveling_method",   leveling_method)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
@@ -91,7 +90,7 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
-			permadeath        = "off"
+			permadeath        = false
 			leveling_method   = "growth_random"
 		"controls":
 			keybindings = {}
@@ -121,6 +120,7 @@ func _apply_keybindings() -> void:
 
 
 func set_volume(bus_name: String, value: int) -> void:
+	value = clampi(value, 0, 100)
 	match bus_name:
 		"Master": master_volume = value
 		"Music":  music_volume  = value

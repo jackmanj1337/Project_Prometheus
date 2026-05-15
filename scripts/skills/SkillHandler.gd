@@ -3,6 +3,29 @@ extends Node
 # GridManager, etc. All skill logic lives here; callers pass a context dict and
 # receive it back modified.
 
+# Dispatch table: effect_id → handler Callable. Built in _ready() so methods are bound.
+# Add new skills here — typos are a startup error rather than a silent no-op.
+var _dispatch: Dictionary = {}
+
+
+func _ready() -> void:
+	_dispatch = {
+		"renewal":       _apply_renewal,
+		"vantage":       _apply_vantage,
+		"nihil":         _apply_nihil,
+		"resolve":       _apply_resolve,
+		"wrath":         _apply_wrath,
+		"miracle":       _apply_miracle,
+		"stat_bonus":    _apply_stat_bonus,
+		"faire":         _apply_faire,
+		"breaker":       _apply_breaker,
+		"charm":         _apply_charm,
+		"anathema":      _apply_anathema,
+		"daunt":         _apply_daunt,
+		"s_rank_mastery": _apply_s_rank_mastery,
+	}
+
+
 # ---- Movement Override Stubs (A4 — implement in M9) ----
 
 func get_move_cost_override(_unit: Node, _terrain: String) -> int:
@@ -56,23 +79,10 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictiona
 
 
 func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
-	match skill.effect_id:
-		"renewal":    return _apply_renewal(skill, unit, context)
-		"vantage":    return _apply_vantage(skill, unit, context)
-		"nihil":      return _apply_nihil(skill, unit, context)
-		"resolve":    return _apply_resolve(skill, unit, context)
-		"wrath":      return _apply_wrath(skill, unit, context)
-		"miracle":    return _apply_miracle(skill, unit, context)
-		"stat_bonus": return _apply_stat_bonus(skill, unit, context)
-		"faire":      return _apply_faire(skill, unit, context)
-		"breaker":    return _apply_breaker(skill, unit, context)
-		"charm":         return _apply_charm(skill, unit, context)
-		"anathema":      return _apply_anathema(skill, unit, context)
-		"daunt":         return _apply_daunt(skill, unit, context)
-		"s_rank_mastery": return _apply_s_rank_mastery(skill, unit, context)
-		_:
-			push_warning("SkillHandler: unknown effect_id '%s'" % skill.effect_id)
-	return context
+	if not _dispatch.has(skill.effect_id):
+		push_error("SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()" % skill.effect_id)
+		return context
+	return _dispatch[skill.effect_id].call(skill, unit, context)
 
 
 # ---- Individual skill implementations ----
@@ -125,10 +135,10 @@ func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> Diction
 func _apply_resolve(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	if unit.data.hp * 2 > unit.data.max_hp:
 		return context
-	unit.add_modifier("strength",  floori(unit.data.strength * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("magic",     floori(unit.data.magic    * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("skill",     floori(unit.data.skill    * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("speed",     floori(unit.data.speed    * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("strength",  floori(unit.get_effective_stat("strength") * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("magic",     floori(unit.get_effective_stat("magic")    * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("skill",     floori(unit.get_effective_stat("skill")    * 0.5), "resolve", -1, "combat")
+	unit.add_modifier("speed",     floori(unit.get_effective_stat("speed")    * 0.5), "resolve", -1, "combat")
 	return context
 
 
@@ -182,8 +192,9 @@ func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 
 # Generic stat bonus from effect_params (hit/crit/str keys).
 # No skill .tres uses this yet — implement fully in M9.
-func _apply_stat_bonus(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	return context  # [STUB — M9]
+func _apply_stat_bonus(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	push_warning("SkillHandler._apply_stat_bonus: stub called for '%s' — implement in M9" % skill.id)
+	return context
 
 
 # ---- Aura skills (on_combat_apply_modifiers) ----
@@ -195,15 +206,18 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 
 
 # +10 hit and +10 dodge to allies within radius.
-func _apply_charm(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	return context  # [STUB — M9]
+func _apply_charm(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	push_warning("SkillHandler._apply_charm: stub called for '%s' — implement in M9" % skill.id)
+	return context
 
 
 # -10 hit and -10 dodge to enemies within radius.
-func _apply_anathema(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	return context  # [STUB — M9]
+func _apply_anathema(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	push_warning("SkillHandler._apply_anathema: stub called for '%s' — implement in M9" % skill.id)
+	return context
 
 
 # -10 hit and -10 crit to enemies within radius.
-func _apply_daunt(_skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
-	return context  # [STUB — M9]
+func _apply_daunt(skill: SkillData, _unit: Node, context: Dictionary) -> Dictionary:
+	push_warning("SkillHandler._apply_daunt: stub called for '%s' — implement in M9" % skill.id)
+	return context

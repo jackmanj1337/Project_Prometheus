@@ -90,4 +90,5 @@ func _move_focus(delta: int) -> void:
 			_buttons[_focused_idx].grab_focus()
 			break
 		if i == start:
-			break  # all disabled; shouldn't happen if Wait is always enabled
+			push_error("ActionMenu: all buttons disabled — Wait should always be enabled")
+			break

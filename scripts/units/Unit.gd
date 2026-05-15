@@ -19,6 +19,7 @@ var team: String = "player"  # "player" | "enemy"
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
 var _grid_manager: GridManager = null  # cached on first use
+var _base_modulate: Color = Color.WHITE  # set in _apply_initial_state; used by set_done_appearance
 
 
 # Called by GameMap right after scene instancing. Must be invoked before _ready
@@ -29,6 +30,11 @@ func initialize(unit_data: UnitData, start_tile: Vector2i, unit_team: String) ->
 	data = unit_data
 	tile_position = start_tile
 	team = unit_team
+
+
+# Called by GameMap after spawning to avoid per-call tree walks in combat calculations.
+func set_grid_manager(grid: GridManager) -> void:
+	_grid_manager = grid
 
 
 func _ready() -> void:
@@ -43,9 +49,10 @@ func _apply_initial_state() -> void:
 	# Player units render in blue tint, enemies in red tint (placeholder visuals).
 	# When real sprites land we use class_id for sprite selection instead.
 	if team == "enemy":
-		_sprite.modulate = Color(0.95, 0.35, 0.35, 1.0)
+		_base_modulate = Color(0.95, 0.35, 0.35, 1.0)
 	else:
-		_sprite.modulate = Color(0.30, 0.55, 0.95, 1.0)
+		_base_modulate = Color(0.30, 0.55, 0.95, 1.0)
+	_sprite.modulate = _base_modulate
 	_hp_bar.max_value = data.max_hp
 	_hp_bar.value = data.hp
 	# Snap world position to tile (TILE_SIZE px per tile)
@@ -78,34 +85,30 @@ func _get_class_data() -> ClassData:
 	return null
 
 
-# Returns the first weapon entry in inventory the unit can actually use:
-# - type == "weapon"
-# - uses_remaining > 0
-# - rank check (unit's proficiency rank >= weapon rank)
-func get_equipped_weapon() -> WeaponData:
-	var entry := get_equipped_weapon_entry()
-	if entry == null:
-		return null
-	return _load_weapon(entry.weapon_id)
-
-
-# Same as get_equipped_weapon but returns the InventoryEntry (so callers can
-# decrement uses_remaining or read forge mods).
-func get_equipped_weapon_entry() -> InventoryEntry:
+# Returns [InventoryEntry, WeaponData] for the first usable equipped weapon, or []
+# if none. Single inventory pass, single DataManager lookup — avoids double-lookup.
+func _find_equipped_weapon() -> Array:
 	if data == null:
-		return null
+		return []
 	for entry in data.inventory:
-		if not entry.is_weapon():
-			continue
-		if entry.uses_remaining <= 0:
+		if not entry.is_weapon() or entry.uses_remaining <= 0:
 			continue
 		var weapon := _load_weapon(entry.weapon_id)
-		if weapon == null:
+		if weapon == null or not _can_equip_rank(weapon):
 			continue
-		if not _can_equip_rank(weapon):
-			continue
-		return entry
-	return null
+		return [entry, weapon]
+	return []
+
+
+func get_equipped_weapon() -> WeaponData:
+	var pair := _find_equipped_weapon()
+	return pair[1] if pair.size() == 2 else null
+
+
+# Returns the InventoryEntry for callers that need to decrement uses or read forge mods.
+func get_equipped_weapon_entry() -> InventoryEntry:
+	var pair := _find_equipped_weapon()
+	return pair[0] if pair.size() == 2 else null
 
 
 func _load_weapon(id: String) -> WeaponData:
@@ -336,6 +339,17 @@ func heal(amount: int) -> void:
 		bus.unit_healed.emit(self, amount)
 
 
+# Shared staff-heal logic used by both MapCursor (player) and EnemyAI.
+# `weapon` must be captured by the caller BEFORE calling this — use_weapon_durability
+# may remove the last-use entry, making get_equipped_weapon() return null afterward.
+func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
+	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + data.magic
+	target.heal(heal_amount)
+	use_weapon_durability(weapon.id)
+	add_wexp(weapon.weapon_type, weapon.wexp)
+	add_exp(GameConstants.STAFF_HEAL_EXP)
+
+
 # Called when HP reaches 0. If permadeath is on (per GameState), flags the
 # UnitData as incapacitated so the unit cannot be redeployed; otherwise the
 # data is preserved for the next map. Either way the scene node is freed.
@@ -441,7 +455,7 @@ func snap_to_tile(tile: Vector2i) -> void:
 # Uses sprite modulate to darken; restored each new player phase.
 func set_done_appearance() -> void:
 	if _sprite:
-		_sprite.modulate = _sprite.modulate.darkened(0.4)
+		_sprite.modulate = _base_modulate.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
 
 
 func reset_appearance() -> void:

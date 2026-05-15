@@ -157,7 +157,7 @@ func get_unit_at(tile: Vector2i) -> Node:
 
 
 # 4-direction adjacency (no diagonals per GDD_02)
-const _DIRS: Array[Vector2i] = [
+const DIRS: Array[Vector2i] = [
 	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
 ]
 
@@ -187,7 +187,7 @@ func get_movement_range(unit: Node) -> Array[Vector2i]:
 		frontier.remove_at(best_idx)
 		var current_cost: int = costs[current]
 
-		for d in _DIRS:
+		for d in DIRS:
 			var next: Vector2i = current + d
 			if get_terrain_at(next) == "wall":
 				continue
@@ -239,7 +239,7 @@ func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]:
 			break
 		var current_cost: int = costs[current]
 
-		for d in _DIRS:
+		for d in DIRS:
 			var next: Vector2i = current + d
 			if get_terrain_at(next) == "wall":
 				continue

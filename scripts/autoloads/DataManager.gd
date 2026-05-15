@@ -1,4 +1,5 @@
 extends Node
+# [NOTE — M-1] class_name conflicts with the autoload singleton name in Godot 4.
 # Loads all content resources at startup. All game systems query this singleton
 # rather than loading resources on demand, so load errors surface immediately.
 
@@ -67,22 +68,30 @@ func _load_directory(path: String, target: Dictionary) -> void:
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
 func get_class_data(id: String) -> ClassData:
-	assert(_classes.has(id), "DataManager: unknown class id '%s'" % id)
+	if not _classes.has(id):
+		push_error("DataManager: unknown class id '%s'" % id)
+		return null
 	return _classes[id]
 
 
 func get_weapon(id: String) -> WeaponData:
-	assert(_weapons.has(id), "DataManager: unknown weapon id '%s'" % id)
+	if not _weapons.has(id):
+		push_error("DataManager: unknown weapon id '%s'" % id)
+		return null
 	return _weapons[id]
 
 
 func get_item(id: String) -> ItemData:
-	assert(_items.has(id), "DataManager: unknown item id '%s'" % id)
+	if not _items.has(id):
+		push_error("DataManager: unknown item id '%s'" % id)
+		return null
 	return _items[id]
 
 
 func get_skill(id: String) -> SkillData:
-	assert(_skills.has(id), "DataManager: unknown skill id '%s'" % id)
+	if not _skills.has(id):
+		push_error("DataManager: unknown skill id '%s'" % id)
+		return null
 	return _skills[id]
 
 

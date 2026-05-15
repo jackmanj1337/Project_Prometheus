@@ -160,8 +160,7 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 	return best_move
 
 
-# Heals the most-injured ally in range if the enemy carries a staff. Mirrors the
-# player's _execute_staff_heal() formula: 10 + MAG, flat 10 EXP, consumes one use.
+# Heals the most-injured ally in range if the enemy carries a staff.
 func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
 	if not enemy.has_method("get_equipped_weapon"):
 		return
@@ -178,12 +177,7 @@ func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
 			target = t
 	if not is_instance_valid(target):
 		return
-	var heal_amount: int = 10 + enemy.data.magic
-	target.heal(heal_amount)
-	enemy.use_weapon_durability(weapon.id)
-	if enemy.has_method("add_wexp"):
-		enemy.add_wexp(weapon.weapon_type, weapon.wexp)
-	enemy.add_exp(10)
+	enemy.perform_staff_heal(target, weapon)
 
 
 # Returns the unit from `units` with the lowest real pathfinding cost from `from_unit`.
@@ -205,7 +199,9 @@ func _find_nearest(from_unit: Node, units: Array[Node], grid: GridManager = null
 		if c < min_cost:
 			min_cost = c
 			nearest = u
-	# If no target is reachable at all (fully walled off), fall back to Manhattan.
+	# If all targets are at INT_MAX cost (fully walled off map), fall back to Manhattan.
+	# Manhattan ignores actual terrain and may pick a different unit than Dijkstra would
+	# through open terrain — this is a last-resort heuristic, not a correct pathfinding result.
 	return nearest if nearest != null else _find_nearest_manhattan(from_unit, units)
 
 
@@ -232,14 +228,13 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 func _flood_costs(start: Vector2i, grid: GridManager) -> Dictionary:
 	var costs: Dictionary = {start: 0}
 	var heap: Array = [[0, start]]
-	const DIRS: Array[Vector2i] = [Vector2i(0,-1), Vector2i(1,0), Vector2i(0,1), Vector2i(-1,0)]
 	while not heap.is_empty():
 		var entry: Array = heap.pop_front()
 		var current_cost: int = entry[0]
 		var current: Vector2i = entry[1]
 		if current_cost > costs.get(current, GameConstants.INT_MAX):
 			continue  # stale entry — a shorter path was already settled
-		for d in DIRS:
+		for d in GridManager.DIRS:
 			var next: Vector2i = current + d
 			if grid.get_terrain_at(next) == "wall":
 				continue

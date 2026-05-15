@@ -60,7 +60,7 @@ static func _eval_formula(formula: String, unit: Node) -> int:
 		if divisor <= 0:
 			return 1
 		return _stat_value(parts[0].strip_edges().to_upper(), unit) / divisor
-	push_warning("WeaponData: unrecognised range formula '%s'" % formula)
+	push_error("WeaponData: unrecognised range formula '%s'" % formula)
 	return 1
 
 

@@ -18,7 +18,7 @@ func _ready() -> void:
 
 
 func _on_phase_changed(new_phase: int) -> void:
-	_label.text = "PLAYER PHASE" if new_phase == 0 else "ENEMY PHASE"
+	_label.text = "PLAYER PHASE" if new_phase == GameState.Phase.PLAYER else "ENEMY PHASE"
 	_animate()
 
 

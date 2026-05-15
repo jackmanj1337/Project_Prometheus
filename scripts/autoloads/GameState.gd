@@ -1,4 +1,5 @@
 extends Node
+# [NOTE — M-1] class_name conflicts with the autoload singleton name in Godot 4.
 # TODO save-system: the current snapshot (_map_start_snapshot) is in-memory only and
 # covers player UnitData. Suspend saves additionally need: (a) live enemy UnitData state
 # (enemies are re-spawned fresh today — see GameMap._spawn_units), and (b) live terrain
@@ -34,7 +35,7 @@ var _map_start_snapshot: Array[Dictionary] = []
 # because GameState autoload runs after SettingsManager — by now SettingsManager._ready()
 # has finished and its values are valid.
 func _ready() -> void:
-	permadeath_enabled = (SettingsManager.permadeath == "on")
+	permadeath_enabled = SettingsManager.permadeath
 	leveling_method = SettingsManager.leveling_method
 
 
@@ -98,6 +99,10 @@ func load_default_roster() -> void:
 	var dir := DirAccess.open(roster_path)
 	if dir == null:
 		push_error("GameState: cannot open roster directory: " + roster_path)
+		# Emit defeat so the game doesn't silently start with zero player units
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.map_defeat.emit()
 		return
 	# Load in filename order so slot numbering stays consistent
 	var files: Array[String] = []
@@ -155,8 +160,8 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"proficiencies": data.proficiencies.duplicate(true),
 		"inventory": data.inventory.duplicate(true),
 		"conditions": data.conditions.duplicate(true),
-		"skills": data.skills.duplicate(),
-		"mastery_skills": data.mastery_skills.duplicate(),
+		"skills": data.skills.duplicate(true),
+		"mastery_skills": data.mastery_skills.duplicate(true),
 		"is_incapacitated": data.is_incapacitated,
 		# Phase 2 runtime state
 		"active_modifiers": data.active_modifiers.duplicate(true),
@@ -169,29 +174,31 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 
 
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
-	data.tile_position = snap.tile_position
-	data.hp = snap.hp
-	data.max_hp = snap.max_hp
-	data.strength = snap.strength
-	data.magic = snap.magic
-	data.defense = snap.defense
-	data.resistance = snap.resistance
-	data.skill = snap.skill
-	data.speed = snap.speed
-	data.luck = snap.luck
-	data.exp = snap.exp
-	data.level = snap.level
-	data.effective_level = snap.effective_level
-	data.proficiencies = snap.proficiencies.duplicate(true)
-	data.inventory = snap.inventory.duplicate(true)
-	data.conditions = snap.conditions.duplicate(true)
-	data.skills = snap.skills.duplicate()
-	data.mastery_skills = snap.mastery_skills.duplicate()
-	data.is_incapacitated = snap.is_incapacitated
+	# Use .get() with defaults so older snapshots missing newer fields don't crash.
+	data.tile_position = snap.get("tile_position", Vector2i.ZERO)
+	data.hp = snap.get("hp", data.max_hp)
+	data.max_hp = snap.get("max_hp", data.max_hp)
+	data.strength = snap.get("strength", data.strength)
+	data.magic = snap.get("magic", data.magic)
+	data.defense = snap.get("defense", data.defense)
+	data.resistance = snap.get("resistance", data.resistance)
+	data.skill = snap.get("skill", data.skill)
+	data.speed = snap.get("speed", data.speed)
+	data.luck = snap.get("luck", data.luck)
+	data.exp = snap.get("exp", 0)
+	data.level = snap.get("level", data.level)
+	data.effective_level = snap.get("effective_level", data.effective_level)
+	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
+	data.inventory.clear()
+	data.inventory.assign(snap.get("inventory", []))
+	data.conditions = snap.get("conditions", []).duplicate(true)
+	data.skills = snap.get("skills", []).duplicate(true)
+	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)
+	data.is_incapacitated = snap.get("is_incapacitated", false)
 	# Phase 2 runtime state
-	data.active_modifiers = snap.active_modifiers.duplicate(true)
-	data.skill_use_counters = snap.skill_use_counters.duplicate(true)
-	data.damage_taken_this_map = snap.damage_taken_this_map
-	data.growth_accumulators = snap.growth_accumulators.duplicate(true)
-	data.shift_gauge = snap.shift_gauge
-	data.is_shifted = snap.is_shifted
+	data.active_modifiers = snap.get("active_modifiers", {}).duplicate(true)
+	data.skill_use_counters = snap.get("skill_use_counters", {}).duplicate(true)
+	data.damage_taken_this_map = snap.get("damage_taken_this_map", 0)
+	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)
+	data.shift_gauge = snap.get("shift_gauge", 0.0)
+	data.is_shifted = snap.get("is_shifted", false)

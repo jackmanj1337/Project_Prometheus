@@ -40,7 +40,8 @@ func _ready() -> void:
 		return
 	var map_width: int = map_data.grid[0].length()
 	var map_height: int = map_data.grid.size()
-	_validate_map(map_data.grid, map_width, map_height)
+	if not _validate_map(map_data.grid, map_width, map_height):
+		return
 	_paint_terrain(map_data.grid, map_width, map_height)
 	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height)
 	_cursor.setup(_grid, _camera, _turn_manager)
@@ -131,25 +132,28 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 	var unit: Unit = unit_scene.instantiate()
 	unit.initialize(u_data, tile, team)
 	_units_container.add_child(unit)
+	unit.set_grid_manager(_grid)
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.register_unit(unit)
 
 
 # Asserts all rows are the expected length and contain only known terrain chars.
-func _validate_map(grid: Array[String], width: int, height: int) -> void:
+func _validate_map(grid: Array[String], width: int, height: int) -> bool:
 	if grid.size() != height:
 		push_error("GameMap: grid has %d rows, expected %d" % [grid.size(), height])
-		return
+		return false
 	for y in grid.size():
 		var row: String = grid[y]
 		if row.length() != width:
 			push_error("GameMap: row %d length %d, expected %d" % [y, row.length(), width])
-			return
+			return false
 		for x in row.length():
 			var ch: String = row[x]
 			if not _CHAR_TO_SOURCE.has(ch):
 				push_error("GameMap: row %d col %d: unknown terrain char '%s'" % [y, x, ch])
+				return false
+	return true
 
 
 func _paint_terrain(grid: Array[String], width: int, height: int) -> void:

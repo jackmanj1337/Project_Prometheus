@@ -43,7 +43,7 @@ func setup(grid: Node, turn_node: Node) -> void:
 
 
 func _on_phase_changed(new_phase: int) -> void:
-	_phase_label.text = "PLAYER PHASE" if new_phase == 0 else "ENEMY PHASE"
+	_phase_label.text = "PLAYER PHASE" if new_phase == GameState.Phase.PLAYER else "ENEMY PHASE"
 
 
 func _on_turn_changed(turn_number: int) -> void:
@@ -59,8 +59,6 @@ func _on_unit_selected(unit: Node) -> void:
 func _on_unit_deselected() -> void:
 	_unit_is_selected = false
 	# After deselection, show whatever unit the cursor is currently over (if any)
-	if _grid == null:
-		_grid = _find_grid()
 	_show_unit(_grid.get_unit_at(_cursor_tile) if _grid != null and _cursor_tile.x >= 0 else null)
 
 
@@ -69,8 +67,6 @@ func _on_cursor_moved(tile: Vector2i) -> void:
 	_update_terrain(tile)
 	# When no unit is actively selected, show info for whatever unit the cursor is over
 	if not _unit_is_selected:
-		if _grid == null:
-			_grid = _find_grid()
 		_show_unit(_grid.get_unit_at(tile) if _grid != null else null)
 
 
@@ -114,8 +110,6 @@ func _update_mastery_display(unit: Node) -> void:
 
 func _update_terrain(tile: Vector2i) -> void:
 	if _grid == null:
-		_grid = _find_grid()
-	if _grid == null:
 		return
 	var terrain: String = _grid.get_terrain_at(tile)
 	_terrain_name.text = terrain.capitalize()
@@ -124,16 +118,6 @@ func _update_terrain(tile: Vector2i) -> void:
 	_terrain_def.text = "DEF  +%d" % def_bonus
 	_terrain_dodge.text = "DODGE +%d" % dodge_bonus
 
-
-func _find_grid() -> Node:
-	# Walk up to GameMap sibling
-	var p := get_parent()
-	while p:
-		var g := p.get_node_or_null("GridManager")
-		if g:
-			return g
-		p = p.get_parent()
-	return null
 
 
 func _update_turn_label() -> void:

@@ -47,7 +47,6 @@ const _COMBAT_ANIM_OPTIONS: Array[String]    = ["all", "player_only", "enemy_onl
 const _MOVEMENT_SPEED_OPTIONS: Array[String] = ["normal", "fast", "instant"]
 const _PHASE_BANNER_OPTIONS: Array[String]   = ["show", "skip"]
 const _LEVEL_UP_OPTIONS: Array[String]       = ["show", "auto", "skip"]
-const _PERMADEATH_OPTIONS: Array[String]     = ["off", "on"]
 
 
 func _ready() -> void:
@@ -91,7 +90,7 @@ func open() -> void:
 	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.movement_speed))
 	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.phase_banner))
 	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.level_up_screen))
-	_opt_permadeath.selected     = maxi(0, _PERMADEATH_OPTIONS.find(sm.permadeath))
+	_opt_permadeath.selected     = int(sm.permadeath)  # 0=Off, 1=On
 	show()
 	_btn_back.grab_focus()
 
@@ -140,7 +139,7 @@ func _on_level_up_selected(index: int) -> void:
 
 
 func _on_permadeath_selected(index: int) -> void:
-	SettingsManager.permadeath = _PERMADEATH_OPTIONS[index]
+	SettingsManager.permadeath = bool(index)  # 0=Off, 1=On
 	SettingsManager.save()
 
 

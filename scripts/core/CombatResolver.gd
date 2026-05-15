@@ -1,6 +1,41 @@
 extends Node
 # Stateless combat math engine. resolve_combat() returns a result dict; no unit
 # fields are written until apply_combat_result() is called.
+#
+# ── Combat Context Dictionary Schema ────────────────────────────────────────
+# Built by _build_combat_context(); extended by skills during trigger processing.
+# All keys present from construction unless marked [skill-added].
+#
+#   "attacker"              Node         — initiating unit (may be null in some previews)
+#   "defender"              Node         — defending unit
+#   "attacker_weapon"       WeaponData   — attacker's equipped weapon (null if unarmed)
+#   "defender_weapon"       WeaponData   — defender's equipped weapon (null if can't ctr)
+#   "is_player_initiated"   bool         — true when attacker.team == "player"
+#   "turn_number"           int          — GameState.turn_number at combat start
+#   "atk_mod"               Dictionary   — attacker modifiers:
+#       "accuracy"          int          — flat hit modifier
+#       "damage"            int          — flat damage modifier
+#       "crit"              int          — flat crit modifier
+#       "crit_avoid"        int          — flat crit-avoid modifier
+#       "dodge"             int          — flat dodge modifier
+#       "strikes"           int          — extra attack count
+#       "damage_multiplier" float        — multiplicative damage scale (default 1.0)
+#   "def_mod"               Dictionary   — same structure as "atk_mod" for the defender
+#   "flags"                 Dictionary   — combat flag overrides:
+#       "vantage"               bool     — defender attacks first
+#       "skip_effectiveness"    bool     — ignore weapon effectiveness
+#       "attacker_ignores_def"  float    — fraction of defender's DEF ignored (0.0–1.0)
+#       "attacker_ignores_res"  float    — fraction of defender's RES ignored
+#       "defender_ignores_def"  float    — fraction of attacker's DEF ignored (unused currently)
+#       "defender_ignores_res"  float    — fraction of attacker's RES ignored (unused currently)
+#       "lifesteal_pct"         float    — fraction of damage healed back to attacker
+#       "vengeance_bonus"       int      — flat damage added from Vengeance skill
+#
+# Keys added by skills during trigger processing [skill-added]:
+#   "defender_skills_blocked"   bool     — nihil: prevent defender's on_combat_start skills
+#   "attacker_skills_blocked"   bool     — nihil (unused): prevent attacker's skills
+#   "effectiveness_mult"        float    — computed once in _collect_combat_modifiers
+# ─────────────────────────────────────────────────────────────────────────────
 
 # EXP table from GDD_02: index = clamp(attacker_level - defender_level + 6, 0, 12)
 const _EXP_TABLE: Array = [
@@ -21,7 +56,7 @@ const _ALWAYS_USE_DURABILITY: Array[String] = [
 # Both resolve_combat() and preview_combat() call this first.
 func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 	var aw: WeaponData = attacker.get_equipped_weapon() if attacker else null
-	var can_ctr := can_counterattack(defender, attacker.tile_position)
+	var can_ctr := can_counterattack(defender, attacker.tile_position) if attacker else false
 	var dw: WeaponData = defender.get_equipped_weapon() if (defender and can_ctr) else null
 	var gs := get_node_or_null("/root/GameState")
 	return {
@@ -228,9 +263,9 @@ func get_follow_up_attacker(a: Node, b: Node) -> Node:
 		return null
 	var spd_a: int = a.battle_speed()
 	var spd_b: int = b.battle_speed()
-	if spd_a - spd_b >= 4:
+	if spd_a - spd_b >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
 		return a
-	if spd_b - spd_a >= 4:
+	if spd_b - spd_a >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
 		return b
 	return null
 
