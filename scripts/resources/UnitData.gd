@@ -29,8 +29,11 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Format: { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
 
-# Array of skill ID strings referencing SkillData resources
+# Array of skill ID strings referencing SkillData resources (equippable, counts against max_skills)
 @export var skills: Array[String] = []
+# Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
+# against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
+var mastery_skills: Array[String] = []
 
 @export var inventory: Array[InventoryEntry] = []
 
@@ -54,14 +57,14 @@ var tile_position: Vector2i = Vector2i.ZERO
 #   { "stat": String, "delta": int, "source": String, "duration": int,
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
 # "duration" = -1 means never auto-removed. "permanent" type is never decremented.
-@export var active_modifiers: Array[Dictionary] = []
+var active_modifiers: Array[Dictionary] = []
 
 # Per-map use counters for limited skills. Keys = effect_id, values = times used.
 # Reset to {} by Unit.reset_map_state() at map load.
-@export var skill_use_counters: Dictionary = {}
+var skill_use_counters: Dictionary = {}
 
 # Cumulative damage taken this map (used by the Vengeance skill — M9).
-@export var damage_taken_this_map: int = 0
+var damage_taken_this_map: int = 0
 
 # Carry-over accumulators for growth_fixed leveling. Keys = stat name, values = remainder (0–99).
 # Persisted with unit data so Retry restores the exact carry state.

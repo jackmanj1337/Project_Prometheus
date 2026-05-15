@@ -156,6 +156,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"inventory": data.inventory.duplicate(true),
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(),
+		"mastery_skills": data.mastery_skills.duplicate(),
 		"is_incapacitated": data.is_incapacitated,
 		# Phase 2 runtime state
 		"active_modifiers": data.active_modifiers.duplicate(true),
@@ -185,6 +186,7 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.inventory = snap.inventory.duplicate(true)
 	data.conditions = snap.conditions.duplicate(true)
 	data.skills = snap.skills.duplicate()
+	data.mastery_skills = snap.mastery_skills.duplicate()
 	data.is_incapacitated = snap.is_incapacitated
 	# Phase 2 runtime state
 	data.active_modifiers = snap.active_modifiers.duplicate(true)

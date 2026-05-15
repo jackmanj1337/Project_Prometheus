@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "s_rank_mastery"
+display_name = "S-Rank Mastery"
+description = "Grants +10 Hit, +5 Crit, and +1 Damage when attacking with a weapon type at S rank."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "s_rank_mastery"
+effect_params = {"hit_bonus": 10, "crit_bonus": 5, "dmg_bonus": 1}
+max_uses_per_map = -1
+max_uses_per_combat = -1
+is_player_activated = false

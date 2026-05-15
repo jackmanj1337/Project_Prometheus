@@ -254,16 +254,6 @@ func _weapon_or_equipped(weapon: WeaponData) -> WeaponData:
 	return weapon if weapon != null else get_equipped_weapon()
 
 
-# Returns true when the unit has reached S-rank in this weapon type.
-# S-rank bonus: +10 Hit, +5 Crit, +1 Damage (GDD_04).
-func _has_s_rank(weapon: WeaponData) -> bool:
-	if weapon == null or data == null:
-		return false
-	if not data.proficiencies.has(weapon.weapon_type):
-		return false
-	return data.proficiencies[weapon.weapon_type].get("rank", "E") == "S"
-
-
 # Battle Speed = SPD - max(0, Wt - STR)
 func battle_speed(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
@@ -273,14 +263,12 @@ func battle_speed(weapon: WeaponData = null) -> int:
 	return get_effective_stat("speed") - penalty
 
 
-# Accuracy = SKL*2 + LUK + weapon.Hit (+10 at S-rank)
+# Accuracy = SKL*2 + LUK + weapon.Hit. S-rank bonus applied via s_rank_mastery skill at combat time.
 func accuracy(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
 	if w != null:
 		acc += w.hit
-		if _has_s_rank(w):
-			acc += 10
 	return acc
 
 
@@ -291,26 +279,21 @@ func dodge(weapon: WeaponData = null) -> int:
 
 # Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
 # OFFENSIVE side of the equation only (caller subtracts defender's def/res).
-# Effective-against weapon tags are handled in CombatResolver, not here.
+# Effective-against weapon tags and S-rank bonus are handled in CombatResolver, not here.
 func damage(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	if w == null:
 		return 0
 	var base_stat: int = get_effective_stat("magic") if w.uses_mag else get_effective_stat("strength")
-	var dmg: int = base_stat + w.mt
-	if _has_s_rank(w):
-		dmg += 1
-	return dmg
+	return base_stat + w.mt
 
 
-# Critical rate = floor(SKL/2) + weapon.Crit (+5 at S-rank)
+# Critical rate = floor(SKL/2) + weapon.Crit. S-rank bonus applied via s_rank_mastery skill.
 func crit_rate(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
 	var c: int = get_effective_stat("skill") / 2
 	if w != null:
 		c += w.crit
-		if _has_s_rank(w):
-			c += 5
 	return c
 
 
@@ -582,6 +565,9 @@ func add_wexp(weapon_type: String, amount: int) -> bool:
 		prof["rank"] = next_rank
 		prof["wexp"] -= 100
 		ranked_up = true
+		# Grant permanent mastery skill on first S-rank in any weapon type.
+		if next_rank == "S" and not ("s_rank_mastery" in data.mastery_skills):
+			data.mastery_skills.append("s_rank_mastery")
 	data.proficiencies[weapon_type] = prof
 	return ranked_up
 

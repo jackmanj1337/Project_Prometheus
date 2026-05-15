@@ -93,15 +93,12 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 
-	# Desert exception: armoured/mounted cost 3; magic-using line cost 1
-	if terrain == "desert" and unit != null:
-		if unit.has_method("has_quality"):
-			if unit.has_quality("armoured") or unit.has_quality("mounted"):
-				return 3
-			# Magic users / thief line uniformly use 1; for MVP just check class id
-			var class_id: String = unit.data.class_id if unit.data else ""
-			if class_id in ["mage", "cleric"]:
-				return 1
+	# Desert exception: armoured/mounted pay 3; light_footed units (mages, thieves, etc.) pay 1.
+	if terrain == "desert" and unit != null and unit.has_method("has_quality"):
+		if unit.has_quality("armoured") or unit.has_quality("mounted"):
+			return 3
+		if unit.has_quality("light_footed"):
+			return 1
 	return base
 
 

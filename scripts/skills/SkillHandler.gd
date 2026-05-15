@@ -27,19 +27,31 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary) -> Dictiona
 	var dm := get_node_or_null("/root/DataManager")
 	if dm == null:
 		return context
-	for skill_id in unit.data.skills:
+	# Check both equipped skills and permanent mastery skills.
+	var all_skills: Array[String] = []
+	all_skills.append_array(unit.data.skills)
+	all_skills.append_array(unit.data.mastery_skills)
+	for skill_id in all_skills:
 		var skill: SkillData = dm.get_skill(skill_id)
 		if skill == null:
 			continue
 		if skill.trigger != trigger:
 			continue
+		# Enforce per-map use limit (C-3 fix: was never checked for non-combat triggers).
+		if skill.max_uses_per_map != -1:
+			var used: int = unit.data.skill_use_counters.get(skill.effect_id, 0)
+			if used >= skill.max_uses_per_map:
+				continue
 		# Roll activation chance from data if a stat is specified.
 		if skill.activation_chance_stat != "":
 			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
 			var chance: int = stat_val / max(1, skill.activation_divisor)
 			if (randi() % 100) >= chance:
-				continue  # skill did not proc this trigger
+				continue
 		context = _execute_skill(skill, unit, context)
+		if skill.max_uses_per_map != -1:
+			unit.data.skill_use_counters[skill.effect_id] = \
+				unit.data.skill_use_counters.get(skill.effect_id, 0) + 1
 	return context
 
 
@@ -54,15 +66,35 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> Dictio
 		"stat_bonus": return _apply_stat_bonus(skill, unit, context)
 		"faire":      return _apply_faire(skill, unit, context)
 		"breaker":    return _apply_breaker(skill, unit, context)
-		"charm":      return _apply_charm(skill, unit, context)
-		"anathema":   return _apply_anathema(skill, unit, context)
-		"daunt":      return _apply_daunt(skill, unit, context)
+		"charm":         return _apply_charm(skill, unit, context)
+		"anathema":      return _apply_anathema(skill, unit, context)
+		"daunt":         return _apply_daunt(skill, unit, context)
+		"s_rank_mastery": return _apply_s_rank_mastery(skill, unit, context)
 		_:
 			push_warning("SkillHandler: unknown effect_id '%s'" % skill.effect_id)
 	return context
 
 
 # ---- Individual skill implementations ----
+
+# S-rank mastery: +Hit, +Crit, +Dmg when attacking with a weapon type the unit holds at S rank.
+# Fires once per combat (on_combat_start); bonuses flow through atk_mod/def_mod so they appear
+# correctly in previews and are cleared by clear_combat_modifiers() after the fight.
+func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
+	var is_atk: bool = (unit == context.get("attacker"))
+	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
+	if w == null:
+		return context
+	# Only apply when the unit actually has S rank in the weapon they're currently wielding.
+	if not unit.data.proficiencies.has(w.weapon_type):
+		return context
+	if unit.data.proficiencies[w.weapon_type].get("rank", "E") != "S":
+		return context
+	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
+	mod["accuracy"] += skill.effect_params.get("hit_bonus", 10)
+	mod["crit"]     += skill.effect_params.get("crit_bonus", 5)
+	mod["damage"]   += skill.effect_params.get("dmg_bonus", 1)
+	return context
 
 func _apply_renewal(_skill: SkillData, unit: Node, context: Dictionary) -> Dictionary:
 	var amount: int = maxi(1, floori(unit.data.max_hp * 0.10))

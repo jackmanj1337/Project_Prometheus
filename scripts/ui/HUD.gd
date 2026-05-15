@@ -19,6 +19,10 @@ var _grid: Node = null  # GridManager reference, set by GameMap
 var _unit_is_selected: bool = false  # true while a player unit is actively selected
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 
+# Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
+# Populated by _show_unit(); nil until a unit with mastery is first displayed.
+var _mastery_label: Label = null
+
 
 func _ready() -> void:
 	_unit_panel.hide()
@@ -79,7 +83,33 @@ func _show_unit(unit: Node) -> void:
 	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]
 	var wpn: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
 	_unit_weapon.text = wpn.display_name if wpn != null else "--"
+	_update_mastery_display(unit)
 	_unit_panel.show()
+
+
+# Shows which weapon types the unit has at S-rank in a dedicated mastery line.
+# Uses a dynamically-created Label so no scene edits are required.
+func _update_mastery_display(unit: Node) -> void:
+	if unit.data == null or unit.data.mastery_skills.is_empty():
+		if _mastery_label != null:
+			_mastery_label.hide()
+		return
+	# Collect all weapon types currently at S-rank.
+	var s_rank_types: Array[String] = []
+	for wtype in unit.data.proficiencies:
+		if unit.data.proficiencies[wtype].get("rank", "") == "S":
+			s_rank_types.append(wtype.capitalize())
+	if s_rank_types.is_empty():
+		if _mastery_label != null:
+			_mastery_label.hide()
+		return
+	# Create the label once and reuse it.
+	if _mastery_label == null:
+		_mastery_label = Label.new()
+		_mastery_label.name = "MasteryLabel"
+		$UnitInfoPanel/VBox.add_child(_mastery_label)
+	_mastery_label.text = "Mastery  " + ", ".join(s_rank_types)
+	_mastery_label.show()
 
 
 func _update_terrain(tile: Vector2i) -> void:

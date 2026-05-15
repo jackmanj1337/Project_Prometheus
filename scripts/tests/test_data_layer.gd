@@ -60,7 +60,8 @@ func _init() -> void:
 	# --- Skills ---
 	for sid in ["renewal", "vantage", "nihil", "resolve", "miracle", "wrath",
 			"swordfaire", "lancefaire", "bowfaire",
-			"swordbreaker", "lancebreaker", "bowbreaker"]:
+			"swordbreaker", "lancebreaker", "bowbreaker",
+			"s_rank_mastery"]:
 		var sk = load("res://data/skills/" + sid + ".tres")
 		if sk and sk is SkillData and sk.id == sid:
 			print("OK  skill: " + sid)
@@ -112,9 +113,9 @@ func _init() -> void:
 	var snapshot_keys := [
 		"tile_position", "hp", "max_hp", "strength", "magic", "defense",
 		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
-		"proficiencies", "inventory", "conditions", "skills", "is_incapacitated",
-		"active_modifiers", "skill_use_counters", "damage_taken_this_map",
-		"growth_accumulators", "shift_gauge", "is_shifted",
+		"proficiencies", "inventory", "conditions", "skills", "mastery_skills",
+		"is_incapacitated", "active_modifiers", "skill_use_counters",
+		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",
 	]
 	# Properties intentionally excluded: static identity or between-map state only.
 	var snapshot_allowlist := [

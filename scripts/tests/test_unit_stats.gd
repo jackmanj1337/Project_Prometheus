@@ -86,13 +86,14 @@ func _init() -> void:
 			print("FAIL %s: got %d, want %d" % [label, got, want])
 			failed += 1
 
-	# --- S-rank bonus ---
-	# At S-rank: +10 Hit, +5 Crit, +1 Damage
+	# --- S-rank: stat methods return BASE values; bonus applied via s_rank_mastery skill at combat time ---
+	# accuracy/damage/crit_rate no longer include S-rank; the skill fires on_combat_start and
+	# injects into atk_mod, which CombatResolver picks up. Test that base values are unchanged.
 	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 0}}
 	var srank_checks := [
-		["S-rank accuracy",  unit.accuracy(iron_lance),  108],  # 98 + 10
-		["S-rank damage",    unit.damage(iron_lance),    15],   # 14 + 1
-		["S-rank crit_rate", unit.crit_rate(iron_lance), 8],    # 3 + 5
+		["S-rank accuracy base (no bonus in stat method)",  unit.accuracy(iron_lance),  98],
+		["S-rank damage base (no bonus in stat method)",    unit.damage(iron_lance),    14],
+		["S-rank crit_rate base (no bonus in stat method)", unit.crit_rate(iron_lance), 3],
 	]
 	for c in srank_checks:
 		var label: String = c[0]

@@ -190,8 +190,7 @@ func compute_damage(attacker: Node, defender: Node,
 			else attacker.get_effective_stat("strength")
 	else:
 		base_stat = attacker.data.magic if w.uses_mag else attacker.data.strength
-	var s_bonus: int = 1 if (attacker.has_method("_has_s_rank") and attacker._has_s_rank(w)) else 0
-	var atk: int = base_stat + mt + s_bonus \
+	var atk: int = base_stat + mt \
 		+ _triangle_damage(attacker, defender) + context.get("damage_bonus", 0)
 	var def_stat: int
 	if defender.has_method("get_effective_stat"):
@@ -322,19 +321,6 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 		"loses_durability": loses_use,
 		"is_counter":      is_counter,
 	}
-
-
-# ── Skill Counter Helpers ────────────────────────────────────────────────────
-
-func _skill_available(unit: Node, skill: SkillData) -> bool:
-	if skill.max_uses_per_map == -1:
-		return true
-	return unit.get_skill_uses_remaining(skill.effect_id, skill.max_uses_per_map) > 0
-
-
-func _consume_skill(unit: Node, skill: SkillData) -> void:
-	if skill.max_uses_per_map != -1:
-		unit.consume_skill_use(skill.effect_id)
 
 
 # ── Preview (no RNG, no side effects) ────────────────────────────────────────
@@ -485,14 +471,12 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_dealt: bool = exchanges.any(func(e): return e["attacker"] == attacker and e["hit"])
 	var def_dealt: bool = exchanges.any(func(e): return e["attacker"] == defender and e["hit"])
 
+	# attacker_exp / defender_exp are NOT included here — they're computed by
+	# apply_combat_result() after filtering weapon-break skips and then set on this dict.
 	return {
 		"exchanges":     exchanges,
 		"attacker_died": attacker_died,
 		"defender_died": defender_died,
-		# EXP and corrected death flags are filled in by apply_combat_result after
-		# filtering skipped exchanges (e.g. weapon broke mid-combat). Placeholder 0s here.
-		"attacker_exp":  0,
-		"defender_exp":  0,
 		"context":       context,
 	}
 

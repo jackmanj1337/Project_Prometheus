@@ -62,9 +62,6 @@ class MockUnit extends Node:
 	func get_terrain_dodge_bonus() -> int:
 		return 0
 
-	func _has_s_rank(_w: Resource) -> bool:
-		return false
-
 	func get_effective_stat(stat_name: String) -> int:
 		var base = data.get(stat_name)
 		var total: int = int(base) if base != null else 0
