@@ -40,6 +40,14 @@ class_name WeaponData extends Resource
 @export var is_natural_weapon: bool = false
 
 
+# A healing staff (mt 0, restores HP via the heal tag). Healing staves cannot be
+# used to attack or counterattack — they are gated to the Staff action only.
+# Offensive/debuff staves (M8) omit the heal tag and ARE treated as attack weapons,
+# so this check keys off the heal tag, not weapon_type alone.
+func is_healing_staff() -> bool:
+	return weapon_type == "staff" and GameConstants.TAG_HEAL_PLUS_MAG in effect_tags
+
+
 func get_range_min(unit: Node = null) -> int:
 	return _eval_formula(range_min_formula, unit)
 

@@ -81,18 +81,19 @@ func _init() -> void:
 	# ── Vantage: only sets flag when unit == defender ─────────────────────────
 	var vantage_skill: SkillData = load("res://data/skills/vantage.tres")
 	var ctx: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
-	ctx = sh._execute_skill(vantage_skill, unit, ctx)
-	if ctx["flags"].get("vantage", false):
-		print("OK  vantage sets flag when unit is defender"); passed += 1
+	# _execute_skill now returns whether the effect fired (context mutates by reference).
+	var vantage_fired: bool = sh._execute_skill(vantage_skill, unit, ctx)
+	if ctx["flags"].get("vantage", false) and vantage_fired:
+		print("OK  vantage sets flag and reports fired when unit is defender"); passed += 1
 	else:
-		print("FAIL vantage: flag not set when unit is defender"); failed += 1
+		print("FAIL vantage: flag not set / not reported fired when unit is defender"); failed += 1
 
 	var ctx2: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
-	ctx2 = sh._execute_skill(vantage_skill, unit, ctx2)
-	if not ctx2["flags"].has("vantage"):
-		print("OK  vantage no flag when unit is attacker"); passed += 1
+	var vantage_fired2: bool = sh._execute_skill(vantage_skill, unit, ctx2)
+	if not ctx2["flags"].has("vantage") and not vantage_fired2:
+		print("OK  vantage no flag and reports not-fired when unit is attacker"); passed += 1
 	else:
-		print("FAIL vantage: flag set when unit is attacker"); failed += 1
+		print("FAIL vantage: flag set / reported fired when unit is attacker"); failed += 1
 
 	# ── Wrath: +50 crit when HP ≤ 50% ────────────────────────────────────────
 	var wrath_skill: SkillData = load("res://data/skills/wrath.tres")
@@ -103,7 +104,7 @@ func _init() -> void:
 	root.add_child(wrath_unit)
 	var ctx3: Dictionary = _make_ctx(wrath_unit, def_unit, iron_lance, iron_lance)
 	ctx3["attacker"] = wrath_unit
-	ctx3 = sh._execute_skill(wrath_skill, wrath_unit, ctx3)
+	sh._execute_skill(wrath_skill, wrath_unit, ctx3)
 	if ctx3["atk_mod"]["crit"] == 50:
 		print("OK  wrath +50 crit when HP ≤ 50%"); passed += 1
 	else:
@@ -116,27 +117,28 @@ func _init() -> void:
 	root.add_child(full_unit)
 	var ctx4: Dictionary = _make_ctx(full_unit, def_unit, iron_lance, iron_lance)
 	ctx4["attacker"] = full_unit
-	ctx4 = sh._execute_skill(wrath_skill, full_unit, ctx4)
-	if ctx4["atk_mod"]["crit"] == 0:
-		print("OK  wrath no bonus when HP > 50%"); passed += 1
+	var wrath_fired_full: bool = sh._execute_skill(wrath_skill, full_unit, ctx4)
+	if ctx4["atk_mod"]["crit"] == 0 and not wrath_fired_full:
+		print("OK  wrath no bonus / not fired when HP > 50%"); passed += 1
 	else:
-		print("FAIL wrath: bonus applied at full HP"); failed += 1
+		print("FAIL wrath: bonus applied / reported fired at full HP"); failed += 1
 
-	# ── Miracle: caps fatal damage at sim_hp - 1 ─────────────────────────────
+	# ── Miracle: caps fatal damage at sim_hp - 1; reports fired only when lethal ──
 	var miracle_skill: SkillData = load("res://data/skills/miracle.tres")
 	var ctx5: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 10, 10)
-	ctx5 = sh._execute_skill(miracle_skill, unit, ctx5)
-	if ctx5["damage"] == 9:
-		print("OK  miracle caps fatal damage to sim_hp-1"); passed += 1
+	var miracle_fired: bool = sh._execute_skill(miracle_skill, unit, ctx5)
+	if ctx5["damage"] == 9 and miracle_fired:
+		print("OK  miracle caps fatal damage to sim_hp-1 and reports fired"); passed += 1
 	else:
-		print("FAIL miracle: expected damage 9, got %d" % ctx5["damage"]); failed += 1
+		print("FAIL miracle: expected damage 9 + fired, got %d / %s" % [ctx5["damage"], miracle_fired]); failed += 1
 
 	var ctx6: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance, 5, 10)
-	ctx6 = sh._execute_skill(miracle_skill, unit, ctx6)
-	if ctx6["damage"] == 5:
-		print("OK  miracle no-op on non-fatal damage"); passed += 1
+	var miracle_fired_nonfatal: bool = sh._execute_skill(miracle_skill, unit, ctx6)
+	# #6: a non-lethal hit must report not-fired so a use-limited Miracle isn't burned.
+	if ctx6["damage"] == 5 and not miracle_fired_nonfatal:
+		print("OK  miracle no-op on non-fatal damage and reports not-fired"); passed += 1
 	else:
-		print("FAIL miracle: modified non-fatal damage"); failed += 1
+		print("FAIL miracle: modified non-fatal damage / reported fired"); failed += 1
 
 	# ── Resolve: adds modifiers when HP ≤ 50% ────────────────────────────────
 	var resolve_skill: SkillData = load("res://data/skills/resolve.tres")
@@ -160,7 +162,7 @@ func _init() -> void:
 	var faire_skill: SkillData = load("res://data/skills/lancefaire.tres")
 	var ctx8: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
 	ctx8["attacker"] = unit
-	ctx8 = sh._execute_skill(faire_skill, unit, ctx8)
+	sh._execute_skill(faire_skill, unit, ctx8)
 	if ctx8["atk_mod"]["damage"] > 0:
 		print("OK  lancefaire adds damage bonus with lance"); passed += 1
 	else:
@@ -168,17 +170,17 @@ func _init() -> void:
 
 	var ctx9: Dictionary = _make_ctx(unit, def_unit, iron_sword, iron_lance)
 	ctx9["attacker"] = unit
-	ctx9 = sh._execute_skill(faire_skill, unit, ctx9)
-	if ctx9["atk_mod"]["damage"] == 0:
-		print("OK  lancefaire no bonus with sword"); passed += 1
+	var faire_fired_wrong: bool = sh._execute_skill(faire_skill, unit, ctx9)
+	if ctx9["atk_mod"]["damage"] == 0 and not faire_fired_wrong:
+		print("OK  lancefaire no bonus / not fired with sword"); passed += 1
 	else:
-		print("FAIL lancefaire: bonus applied with wrong weapon type"); failed += 1
+		print("FAIL lancefaire: bonus applied / reported fired with wrong weapon type"); failed += 1
 
 	# ── Breaker: +hit vs matching opponent weapon type ────────────────────────
 	var breaker_skill: SkillData = load("res://data/skills/lancebreaker.tres")
 	var ctx10: Dictionary = _make_ctx(unit, def_unit, iron_sword, iron_lance)
 	ctx10["attacker"] = unit
-	ctx10 = sh._execute_skill(breaker_skill, unit, ctx10)
+	sh._execute_skill(breaker_skill, unit, ctx10)
 	if ctx10["atk_mod"]["accuracy"] > 0:
 		print("OK  lancebreaker +hit vs lance opponent"); passed += 1
 	else:
@@ -186,11 +188,41 @@ func _init() -> void:
 
 	var ctx11: Dictionary = _make_ctx(unit, def_unit, iron_sword, iron_sword)
 	ctx11["attacker"] = unit
-	ctx11 = sh._execute_skill(breaker_skill, unit, ctx11)
+	sh._execute_skill(breaker_skill, unit, ctx11)
 	if ctx11["atk_mod"]["accuracy"] == 0:
 		print("OK  lancebreaker no bonus vs non-lance opponent"); passed += 1
 	else:
 		print("FAIL lancebreaker: bonus applied vs non-lance"); failed += 1
+
+	# ── #4: max_uses_per_combat caps how often a skill fires within one combat ──
+	# Give lancefaire a 1-use-per-combat limit, then fire on_combat_start twice with
+	# reset_combat_uses() simulating a single combat: the second call must be skipped.
+	var faire_data: SkillData = dm.get_skill("lancefaire")
+	var saved_limit: int = faire_data.max_uses_per_combat
+	faire_data.max_uses_per_combat = 1
+	var combo_unit := MockUnit.new()
+	combo_unit.setup(soldier_data.duplicate(true))
+	combo_unit.data.skills.assign(["lancefaire"])
+	root.add_child(combo_unit)
+	sh.reset_combat_uses()
+	var combo_ctx: Dictionary = _make_ctx(combo_unit, def_unit, iron_lance, iron_lance)
+	combo_ctx["attacker"] = combo_unit
+	sh.apply_trigger(combo_unit, "on_combat_start", combo_ctx)
+	var dmg_after_one: int = combo_ctx["atk_mod"]["damage"]
+	sh.apply_trigger(combo_unit, "on_combat_start", combo_ctx)
+	var dmg_after_two: int = combo_ctx["atk_mod"]["damage"]
+	if dmg_after_one > 0 and dmg_after_two == dmg_after_one:
+		print("OK  #4: max_uses_per_combat blocks the second activation"); passed += 1
+	else:
+		print("FAIL #4: faire fired twice (%d → %d)" % [dmg_after_one, dmg_after_two]); failed += 1
+	# reset_combat_uses() scopes the limit to one combat — a fresh combat fires again.
+	sh.reset_combat_uses()
+	sh.apply_trigger(combo_unit, "on_combat_start", combo_ctx)
+	if combo_ctx["atk_mod"]["damage"] > dmg_after_two:
+		print("OK  #4: reset_combat_uses re-arms the skill for the next combat"); passed += 1
+	else:
+		print("FAIL #4: skill did not re-arm after reset_combat_uses"); failed += 1
+	faire_data.max_uses_per_combat = saved_limit  # restore shared resource
 
 	# ── ItemHandler: heal_flat heals and decrements uses ──────────────────────
 	var vuln_data: UnitData = soldier_data.duplicate(true)

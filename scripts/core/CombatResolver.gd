@@ -86,25 +86,30 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 # Populates atk_mod/def_mod/flags from all sources before the first attack.
 # Steps: (1) UnitData.active_modifiers; (2) aura skills from all other units;
 # (3) equip-type inventory items; (4) on_combat_start triggers.
-func _collect_combat_modifiers(context: Dictionary) -> void:
+# preview = true forwards to SkillHandler so the forecast skips random-activation
+# skills (see SkillHandler.apply_trigger).
+func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> void:
 	var attacker: Node = context["attacker"]
 	var defender: Node = context["defender"]
-	_apply_unit_data_modifiers(attacker, context["atk_mod"])
-	_apply_unit_data_modifiers(defender, context["def_mod"])
 	var sh := get_node_or_null("/root/SkillHandler")
 	var gs := get_node_or_null("/root/GameState")
+	# Scope max_uses_per_combat to this fight — reset before any skill fires.
+	if sh:
+		sh.reset_combat_uses()
+	_apply_unit_data_modifiers(attacker, context["atk_mod"])
+	_apply_unit_data_modifiers(defender, context["def_mod"])
 	# Aura skills from every other living unit on the map
 	if sh and gs:
 		for u in gs.all_units:
 			if is_instance_valid(u) and u.data != null and u.data.hp > 0 \
 					and u != attacker and u != defender:
-				context = sh.apply_trigger(u, "on_combat_apply_modifiers", context)
+				context = sh.apply_trigger(u, "on_combat_apply_modifiers", context, preview)
 	_apply_equip_item_modifiers(attacker, context["atk_mod"])
 	_apply_equip_item_modifiers(defender, context["def_mod"])
 	if sh:
-		context = sh.apply_trigger(attacker, "on_combat_start", context)
+		context = sh.apply_trigger(attacker, "on_combat_start", context, preview)
 		if not context.get("defender_skills_blocked", false):
-			context = sh.apply_trigger(defender, "on_combat_start", context)
+			context = sh.apply_trigger(defender, "on_combat_start", context, preview)
 
 
 func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -253,6 +258,9 @@ func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool:
 	var w: WeaponData = defender.get_equipped_weapon()
 	if w == null:
 		return false
+	# Healing staves cannot counterattack — they are gated to the Staff action.
+	if w.is_healing_staff():
+		return false
 	var dist: int = absi(defender.tile_position.x - attacker_tile.x) \
 		+ absi(defender.tile_position.y - attacker_tile.y)
 	return dist >= w.get_range_min(defender) and dist <= w.get_range_max(defender)
@@ -386,10 +394,11 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_snap := _snapshot_unit_state(attacker)
 	var def_snap := _snapshot_unit_state(defender)
 	var context := _build_combat_context(attacker, defender)
-	_collect_combat_modifiers(context)
-	# Restore immediately — preview must not leave any trace on live unit state.
-	_restore_unit_state(attacker, atk_snap)
-	_restore_unit_state(defender, def_snap)
+	# preview = true: deterministic skills (Resolve, Wrath, Faire, …) apply so the
+	# forecast is accurate; random-activation skills are excluded. The snapshot is
+	# restored at the END of this function — AFTER every stat read below — so the
+	# displayed numbers reflect the same modifier state resolve_combat() will use.
+	_collect_combat_modifiers(context, true)
 	var aw: WeaponData = context["attacker_weapon"]
 	var dw: WeaponData = context["defender_weapon"]
 	var can_counter: bool = dw != null
@@ -410,7 +419,7 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_crit_ctx := {"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"]}
 	var def_crit_ctx := {"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"]}
 
-	return {
+	var result := {
 		"attacker_hit":     compute_hit_pct(attacker, defender, aw, atk_hit_ctx),
 		"attacker_damage":  compute_damage(attacker, defender, aw, atk_dmg_ctx),
 		"attacker_crit":    compute_crit_pct(attacker, defender, aw, atk_crit_ctx),
@@ -423,6 +432,10 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"attacker_weapon":  aw,
 		"defender_weapon":  dw,
 	}
+	# All stat reads are done — restore now so preview leaves no trace on live state.
+	_restore_unit_state(attacker, atk_snap)
+	_restore_unit_state(defender, def_snap)
+	return result
 
 
 # ── Full RNG Resolution ──────────────────────────────────────────────────────
@@ -551,8 +564,11 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 				def_hit = true
 			if weapon != null and atk.has_method("add_wexp"):
 				atk.add_wexp(weapon.weapon_type, weapon.wexp)
+			# Count HP actually lost, not the raw computed damage — take_damage clamps
+			# at 0, so an overkill blow must not inflate damage_taken_this_map.
+			var hp_before: int = def_unit.data.hp
 			def_unit.take_damage(exchange["damage"])
-			def_unit.data.damage_taken_this_map += exchange["damage"]
+			def_unit.data.damage_taken_this_map += hp_before - def_unit.data.hp
 		# No break here — the full exchange list is iterated so both units can die
 		# in a mutual-kill scenario and both get handle_death() called below.
 

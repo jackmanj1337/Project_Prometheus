@@ -282,6 +282,16 @@ func _get_weapon_range(unit: Node) -> Vector2i:
 	return Vector2i(weapon.get_range_min(unit), weapon.get_range_max(unit))
 
 
+# True when the unit's equipped weapon can be used to attack. Healing staves
+# cannot — they are restricted to the Staff action. Keys off is_healing_staff()
+# rather than weapon_type so future offensive/debuff staves remain attack-capable.
+func _equipped_can_attack(unit: Node) -> bool:
+	if unit == null or not unit.has_method("get_equipped_weapon"):
+		return true
+	var w: WeaponData = unit.get_equipped_weapon()
+	return w == null or not w.is_healing_staff()
+
+
 # Manhattan-distance ring at distances [range_min, range_max] from a tile.
 func _tiles_in_range(center: Vector2i, range_min: int, range_max: int) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
@@ -296,6 +306,10 @@ func _tiles_in_range(center: Vector2i, range_min: int, range_max: int) -> Array[
 # All tiles attackable from any tile in from_tiles, excluding from_tiles themselves.
 # Used to draw the red attack overlay around the blue movement overlay.
 func get_attack_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	# Healing-staff users have no attack range — skip the red overlay entirely.
+	if not _equipped_can_attack(unit):
+		return out
 	var wrange := _get_weapon_range(unit)
 	var seen: Dictionary = {}
 	var from_set: Dictionary = {}
@@ -305,7 +319,6 @@ func get_attack_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Arr
 		for tile in _tiles_in_range(src, wrange.x, wrange.y):
 			if not from_set.has(tile) and not seen.has(tile):
 				seen[tile] = true
-	var out: Array[Vector2i] = []
 	for k in seen.keys():
 		out.append(k)
 	return out
@@ -329,6 +342,9 @@ func get_all_attack_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vect
 func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]:
 	var out: Array[Node] = []
 	if unit == null:
+		return out
+	# Healing staves can't attack — no targets regardless of range.
+	if not _equipped_can_attack(unit):
 		return out
 	var wrange := _get_weapon_range(unit)
 	for target in _get_units():
@@ -407,6 +423,9 @@ func show_enemy_danger_zone() -> void:
 		if not ("team" in u) or u.team != "enemy":
 			continue
 		if u.data == null or u.data.hp <= 0:
+			continue
+		# A healing-staff enemy threatens no tiles — keep it out of the danger zone.
+		if not _equipped_can_attack(u):
 			continue
 		var wrange := _get_weapon_range(u)
 		for t in _tiles_in_range(u.tile_position, wrange.x, wrange.y):
