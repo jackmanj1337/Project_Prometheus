@@ -14,11 +14,13 @@ Leave clear concise comments explaining what each section does and why decisions
 
 make regular commits with related messages after each logical step.
 
-keep dated session notes in a folder in the CLAUDE Folder
+All Documentation should go and be read from the appropriate subfolder in the CLAUDE folder
 
 These notes should include what was done that session, the commits made and plans for next session,
 
 Every time a new session is started go back and read the notes from the most recent session.
+
+
 
 
 
