@@ -132,7 +132,11 @@ func _spawn_units() -> void:
 			continue
 		var u_data: UnitData = loaded.duplicate(true)  # fresh copy per map
 		u_data.ai_profile = placement.get("ai_profile", "basic")
-		assert(u_data.unit_id != "", "GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
+		# push_error + continue (not assert) so bad data is skipped in release
+		# builds, where assert() is stripped.
+		if u_data.unit_id == "":
+			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
+			continue
 		_spawn_unit(u_data, tile, "enemy")
 
 

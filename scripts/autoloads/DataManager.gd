@@ -27,8 +27,10 @@ func _validate_cross_references() -> void:
 	# Class starting_skills must resolve to known skills.
 	for cls in _classes.values():
 		for skill_id in cls.starting_skills:
-			assert(_skills.has(skill_id),
-				"DataManager: class '%s' starting_skill '%s' not found" % [cls.id, skill_id])
+			# push_error (not assert) so bad data still surfaces in release builds,
+			# where assert() is stripped.
+			if not _skills.has(skill_id):
+				push_error("DataManager: class '%s' starting_skill '%s' not found" % [cls.id, skill_id])
 		# promotes_to class ids are intentionally not validated — promoted classes are added in M7.
 		# When promotion data lands, add: assert(_classes.has(c), ...) for c in cls.promotes_to
 
@@ -37,9 +39,9 @@ func _validate_cross_references() -> void:
 						  "defense", "resistance", "hp"]
 	for skill in _skills.values():
 		if skill.activation_chance_stat != "":
-			assert(skill.activation_chance_stat in VALID_STATS,
-				"DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
-				% [skill.id, skill.activation_chance_stat])
+			if not (skill.activation_chance_stat in VALID_STATS):
+				push_error("DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
+					% [skill.id, skill.activation_chance_stat])
 
 
 func _load_directory(path: String, target: Dictionary) -> void:

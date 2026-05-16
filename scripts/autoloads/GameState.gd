@@ -134,7 +134,11 @@ func load_default_roster() -> void:
 			continue
 		var res: UnitData = loaded.duplicate(true)
 		if res:
-			assert(res.unit_id != "", "GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
+			# push_error + continue (not assert) so a bad .tres is skipped in
+			# release builds, where assert() is stripped.
+			if res.unit_id == "":
+				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
+				continue
 			player_roster.append(res)
 
 
