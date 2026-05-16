@@ -165,7 +165,7 @@ func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
 	if not enemy.has_method("get_equipped_weapon"):
 		return
 	var weapon: WeaponData = enemy.get_equipped_weapon()
-	if weapon == null or weapon.weapon_type != "staff":
+	if weapon == null or not weapon.is_healing_staff():
 		return
 	var heal_targets: Array[Node] = grid.get_healable_allies(enemy)
 	if heal_targets.is_empty():

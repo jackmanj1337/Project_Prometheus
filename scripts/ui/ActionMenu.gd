@@ -36,9 +36,10 @@ func show_for(unit: Node, grid: Node) -> void:
 		var attackable: Array = grid.get_attackable_enemies_from_tile(unit, unit.tile_position)
 		has_enemies = has_weapon and attackable.size() > 0
 
-		# Staff check: equipped weapon is a staff with the heal tag
+		# Staff check: equipped weapon is a healing staff. Keys off is_healing_staff()
+		# (the heal tag) — not weapon_type — so a future offensive staff won't offer Staff.
 		var staff_weapon = unit.get_equipped_weapon()
-		if staff_weapon and staff_weapon.weapon_type == "staff":
+		if staff_weapon and staff_weapon.is_healing_staff():
 			var allies: Array = grid.get_healable_allies(unit)
 			has_heal_targets = allies.size() > 0
 

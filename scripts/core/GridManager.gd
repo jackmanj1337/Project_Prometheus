@@ -361,6 +361,9 @@ func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
 func can_attack_from_tile(attacker: Node, at_tile: Vector2i, target: Node) -> bool:
 	if attacker == null or target == null:
 		return false
+	# Healing staves can't attack — consistent with get_attackable_enemies_from_tile.
+	if not _equipped_can_attack(attacker):
+		return false
 	var wrange := _get_weapon_range(attacker)
 	var dist: int = absi(target.tile_position.x - at_tile.x) + absi(target.tile_position.y - at_tile.y)
 	return dist >= wrange.x and dist <= wrange.y
