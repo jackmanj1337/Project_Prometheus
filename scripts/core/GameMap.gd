@@ -124,7 +124,13 @@ func _spawn_units() -> void:
 		if path == "" or not ResourceLoader.exists(path):
 			push_warning("GameMap: bad enemy placement: " + str(placement))
 			continue
-		var u_data: UnitData = load(path).duplicate(true)  # fresh copy per map
+		# ResourceLoader.exists() passed, but load() can still return null on a
+		# corrupt .tres — null-check before .duplicate() so we skip, not crash.
+		var loaded := load(path)
+		if loaded == null:
+			push_error("GameMap: failed to load enemy unit data at '%s' — skipping" % path)
+			continue
+		var u_data: UnitData = loaded.duplicate(true)  # fresh copy per map
 		u_data.ai_profile = placement.get("ai_profile", "basic")
 		assert(u_data.unit_id != "", "GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 		_spawn_unit(u_data, tile, "enemy")

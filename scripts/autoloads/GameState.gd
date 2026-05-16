@@ -126,7 +126,13 @@ func load_default_roster() -> void:
 	dir.list_dir_end()
 	files.sort()
 	for f in files:
-		var res: UnitData = load(roster_path + f).duplicate(true)
+		# load() can return null for a corrupt .tres even though the file exists;
+		# null-check before .duplicate() so a bad file is skipped, not a crash.
+		var loaded := load(roster_path + f)
+		if loaded == null:
+			push_error("GameState: failed to load roster file '%s' — skipping" % f)
+			continue
+		var res: UnitData = loaded.duplicate(true)
 		if res:
 			assert(res.unit_id != "", "GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
 			player_roster.append(res)
