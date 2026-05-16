@@ -174,7 +174,17 @@ func _apply_vantage(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	return true
 
 
-# Negate the opponent's battle skills this combat.
+# Negate the opponent's battle skills this combat: their combat-trigger skills
+# (on_combat_start / on_attack / on_hit / on_kill / on_damaged) are suppressed,
+# except any listed in NIHIL_EXEMPT_SKILLS.
+#
+# Nihil does NOT block — these reach combat outside the negate pass:
+#   - buffs/debuffs already in a unit's active_modifiers (applied earlier by an item,
+#     a skill, or another unit — read in by _apply_unit_data_modifiers before Nihil);
+#   - equip-item modifiers (_apply_equip_item_modifiers);
+#   - aura skills from other units on the map (on_combat_apply_modifiers);
+#   - passive/untriggered skills, which are never dispatched through apply_trigger.
+# It only suppresses the opponent's own skills as they would activate in this fight.
 func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	if unit == context.get("attacker"):
 		context["defender_skills_blocked"] = true

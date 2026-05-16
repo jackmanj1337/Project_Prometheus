@@ -99,7 +99,8 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> vo
 		sh.reset_combat_uses()
 	_apply_unit_data_modifiers(attacker, context["atk_mod"])
 	_apply_unit_data_modifiers(defender, context["def_mod"])
-	# Aura skills from every other living unit on the map
+	# Aura skills from every other living unit on the map. Not gated by Nihil — these
+	# fire before the negate pre-pass and pass no skills_blocked flag (see _apply_nihil).
 	if sh and gs:
 		for u in gs.all_units:
 			if is_instance_valid(u) and u.data != null and u.data.hp > 0 \
