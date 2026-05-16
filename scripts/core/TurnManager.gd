@@ -109,6 +109,9 @@ func start_enemy_phase() -> void:
 		gs.set_phase(gs.Phase.ENEMY)
 		_tick_unit_modifiers(gs.get_living_enemy_units(), "turn")
 		_apply_fort_healing(gs.get_living_enemy_units())
+		# Symmetric with start_player_phase: enemy start_of_turn skills (e.g. Renewal)
+		# fire at the top of the enemy phase too.
+		_apply_start_of_turn_skills(gs.get_living_enemy_units())
 	var ai := get_node_or_null("/root/EnemyAI")
 	if ai:
 		await ai.run_enemy_phase(_grid, self)
