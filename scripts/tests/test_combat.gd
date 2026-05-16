@@ -8,6 +8,8 @@ const WeaponDataS    = preload("res://scripts/resources/WeaponData.gd")
 const UnitDataS      = preload("res://scripts/resources/UnitData.gd")
 const CombatRes      = preload("res://scripts/core/CombatResolver.gd")
 const InventoryEntry = preload("res://scripts/resources/InventoryEntry.gd")
+const DataManagerS   = preload("res://scripts/autoloads/DataManager.gd")
+const SkillHandlerS  = preload("res://scripts/skills/SkillHandler.gd")
 
 # ---------- Minimal mock unit (extends Node so it passes Node-typed params) ----------
 class MockUnit extends Node:
@@ -103,6 +105,19 @@ class MockUnit extends Node:
 	func handle_death() -> void:
 		pass
 
+	# Faithful mirror of Unit.add_modifier/remove_modifier — replaces all modifiers
+	# sharing a source. The preview-with-Resolve test relies on this exact behavior.
+	func add_modifier(stat: String, delta: int, source: String,
+			duration: int, duration_type: String) -> void:
+		remove_modifier(source)
+		data.active_modifiers.append({
+			"stat": stat, "delta": delta, "source": source,
+			"duration": duration, "duration_type": duration_type})
+
+	func remove_modifier(source: String) -> void:
+		data.active_modifiers = data.active_modifiers.filter(
+			func(m): return m["source"] != source)
+
 
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
@@ -153,6 +168,17 @@ func _init() -> void:
 
 	var cr := CombatRes.new()
 	root.add_child(cr)  # must be in tree for get_node_or_null autoload lookups
+
+	# DataManager + SkillHandler under /root so combat skill triggers resolve in
+	# tests (used by the preview-with-Resolve case). Mirrors test_skill_item_handler.
+	var dm: Node = DataManagerS.new()
+	dm.name = "DataManager"
+	root.add_child(dm)
+	dm._ready()
+	var sh: Node = SkillHandlerS.new()
+	sh.name = "SkillHandler"
+	root.add_child(sh)
+	await process_frame
 
 	# Weapons
 	var iron_sword  = _make_weapon({"id":"iron_sword","weapon_type":"sword","mt":6,"hit":85,"crit":0,"range_min":1,"range_max":1,"wt":7})
@@ -351,6 +377,29 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL preview_combat missing keys")
+		failed += 1
+
+	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---
+	# A Resolve unit at ≤50% HP gets +50% STR (10→15). preview_combat must show the
+	# boosted damage: the modifier is applied before the stat reads and restored
+	# after. Before the fix, restore ran first and the preview showed base damage.
+	var res_atk = _make_unit({"name":"ResolveAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"hp":8,"max_hp":30,"weapon":iron_sword,"skills":["resolve"]})
+	var res_def = _make_unit({"name":"ResolveDef","strength":8,"defense":4,"skill":8,"speed":14,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var res_prev = cr.preview_combat(res_atk, res_def)
+	# Effective STR 10+5=15; atk=15+mt(6)=21; def=4 → damage 17. Base (unfixed) = 12.
+	if res_prev["attacker_damage"] == 17:
+		print("OK  #1: preview reflects Resolve STR boost (damage %d)" % res_prev["attacker_damage"])
+		passed += 1
+	else:
+		print("FAIL #1: expected preview attacker_damage 17, got %d" % res_prev["attacker_damage"])
+		failed += 1
+	# Preview must leave no trace — the Resolve modifiers are restored away.
+	if res_atk.data.active_modifiers.is_empty() and res_atk.data.hp == 8:
+		print("OK  #1: preview restores unit state (no modifier/HP trace)")
+		passed += 1
+	else:
+		print("FAIL #1: preview left %d modifier(s), hp=%d" \
+			% [res_atk.data.active_modifiers.size(), res_atk.data.hp])
 		failed += 1
 
 	# --- Mutual-kill: both attacker_died and defender_died can be true (BUG-01) ---

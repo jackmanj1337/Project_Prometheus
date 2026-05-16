@@ -17,8 +17,14 @@ class MockUnit extends Node:
 	func heal(amount: int) -> void:
 		data.hp = mini(data.hp + amount, data.max_hp)
 
+	# Faithful mirror of Unit.add_modifier — replaces all modifiers sharing a source.
 	func add_modifier(stat: String, delta: int, source: String, _dur: int, _dtype: String) -> void:
+		remove_modifier(source)
 		data.active_modifiers.append({"stat": stat, "delta": delta, "source": source})
+
+	func remove_modifier(source: String) -> void:
+		data.active_modifiers = data.active_modifiers.filter(
+			func(m): return m.get("source", "") != source)
 
 	func get_effective_stat(stat_name: String) -> int:
 		var base = data.get(stat_name)
@@ -149,14 +155,17 @@ func _init() -> void:
 	root.add_child(res_unit)
 	var ctx7: Dictionary = _make_ctx(res_unit, def_unit, iron_lance, iron_lance)
 	sh._execute_skill(resolve_skill, res_unit, ctx7)
-	var str_bonus := 0
+	# All four stats must survive — Resolve uses a distinct source per stat, since a
+	# single shared source would make add_modifier() wipe three of the four.
+	var resolve_stats := {}
 	for mod in res_data.active_modifiers:
-		if mod.get("stat") == "strength":
-			str_bonus += mod.get("delta", 0)
-	if str_bonus > 0:
-		print("OK  resolve adds STR modifier when HP ≤ 50%"); passed += 1
+		if str(mod.get("source", "")).begins_with("resolve"):
+			resolve_stats[mod.get("stat")] = true
+	if resolve_stats.has("strength") and resolve_stats.has("magic") \
+			and resolve_stats.has("skill") and resolve_stats.has("speed"):
+		print("OK  resolve adds STR/MAG/SKL/SPD modifiers when HP ≤ 50%"); passed += 1
 	else:
-		print("FAIL resolve: no STR modifier added"); failed += 1
+		print("FAIL resolve: expected 4 stat modifiers, got %s" % str(resolve_stats.keys())); failed += 1
 
 	# ── Faire: +damage for matching weapon type ───────────────────────────────
 	var faire_skill: SkillData = load("res://data/skills/lancefaire.tres")

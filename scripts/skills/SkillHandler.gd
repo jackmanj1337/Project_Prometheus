@@ -174,10 +174,14 @@ func _apply_nihil(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 func _apply_resolve(_skill: SkillData, unit: Node, _context: Dictionary) -> bool:
 	if unit.data.hp * 2 > unit.data.max_hp:
 		return false
-	unit.add_modifier("strength",  floori(unit.get_effective_stat("strength") * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("magic",     floori(unit.get_effective_stat("magic")    * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("skill",     floori(unit.get_effective_stat("skill")    * 0.5), "resolve", -1, "combat")
-	unit.add_modifier("speed",     floori(unit.get_effective_stat("speed")    * 0.5), "resolve", -1, "combat")
+	# Distinct source per stat: add_modifier() replaces every modifier sharing a
+	# source, so a single "resolve" source would leave only the last stat applied
+	# (the other three wiped). All four are duration_type "combat", so
+	# clear_combat_modifiers() still removes them together after the fight.
+	unit.add_modifier("strength", floori(unit.get_effective_stat("strength") * 0.5), "resolve_strength", -1, "combat")
+	unit.add_modifier("magic",    floori(unit.get_effective_stat("magic")    * 0.5), "resolve_magic", -1, "combat")
+	unit.add_modifier("skill",    floori(unit.get_effective_stat("skill")    * 0.5), "resolve_skill", -1, "combat")
+	unit.add_modifier("speed",    floori(unit.get_effective_stat("speed")    * 0.5), "resolve_speed", -1, "combat")
 	return true
 
 
