@@ -8,6 +8,7 @@ TESTS=(
   test_game_map_scene
   test_unit_stats
   test_unit_selection
+  test_targeting
   test_combat
   test_enemy_ai
   test_skill_item_handler
