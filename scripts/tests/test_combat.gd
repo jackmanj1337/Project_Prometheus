@@ -33,7 +33,9 @@ class MockUnit extends Node:
 		var e := InventoryEntry.new()
 		e.entry_type = "weapon"
 		e.weapon_id = _weapon.get("id")
-		e.uses_remaining = 99
+		# Mirror _weapon_uses so resolve_combat's durability simulation sees the same
+		# remaining-use count that use_weapon_durability() decrements.
+		e.uses_remaining = _weapon_uses
 		return e
 
 	func has_quality(q: String) -> bool:
@@ -511,6 +513,14 @@ func _init() -> void:
 	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":5,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0)})
 	break_atk._weapon_uses = 1
 	var break_result := cr.resolve_combat(break_atk, break_def)
+	# resolve_combat models breakage itself — it must stop after the single strike
+	# that breaks the weapon, not simulate all 4 and lean on apply_combat_result.
+	if (break_result["exchanges"] as Array).size() == 1:
+		print("OK  mid-combat break: resolve_combat stops the series at the break")
+		passed += 1
+	else:
+		print("FAIL mid-combat break: expected 1 exchange, got %d" % (break_result["exchanges"] as Array).size())
+		failed += 1
 	cr.apply_combat_result(break_result, break_atk, break_def)
 	# Damage per hit = STR(10) + mt(5) - DEF(0) = 15. Only 1 hit should land → HP = 35.
 	if break_def.data.hp == 35:

@@ -377,6 +377,40 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	}
 
 
+# ── Weapon Durability (simulated) ────────────────────────────────────────────
+
+# Remaining uses of a unit's equipped weapon, read from its InventoryEntry.
+# Returns -1 (infinite / unknown) when the unit can't report an entry — such weapons
+# never break mid-combat.
+func _equipped_weapon_uses(unit: Node) -> int:
+	if unit == null or not unit.has_method("get_equipped_weapon_entry"):
+		return -1
+	var entry = unit.get_equipped_weapon_entry()
+	if entry == null:
+		return -1
+	return entry.uses_remaining
+
+
+# Resolves one strike and decrements simulated weapon durability. Returns the exchange,
+# or an empty dict when the actor's weapon has already broken — the caller stops the
+# series. Modelling breakage here (rather than only in apply_combat_result) means the
+# skill triggers fired inside _resolve_single_attack run only for attacks that actually
+# happen, never for exchanges a later weapon break would discard.
+func _resolve_strike(actor: Node, target: Node, context: Dictionary, is_counter: bool,
+		target_sim_hp: int, weapon_uses: Dictionary, broken: Dictionary) -> Dictionary:
+	if broken.get(actor, false):
+		return {}
+	var ex := _resolve_single_attack(actor, target, context, is_counter, target_sim_hp)
+	if ex["loses_durability"]:
+		var remaining: int = weapon_uses.get(actor, -1)
+		if remaining != -1:
+			remaining -= 1
+			weapon_uses[actor] = remaining
+			if remaining <= 0:
+				broken[actor] = true
+	return ex
+
+
 # ── Preview (no RNG, no side effects) ────────────────────────────────────────
 
 # Snapshot the mutable UnitData fields that any on_combat_start skill could touch.
@@ -470,12 +504,24 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_sim_hp: int = attacker.data.hp
 	var def_sim_hp: int = defender.data.hp
 
+	# Simulated weapon durability — breakage is modelled here, not bolted onto
+	# apply_combat_result, so a unit whose weapon breaks mid-combat stops generating
+	# exchanges (and stops firing skill triggers) instead of producing exchanges the
+	# apply phase would have to discard. -1 = infinite / never breaks.
+	var weapon_uses: Dictionary = {
+		attacker: _equipped_weapon_uses(attacker),
+		defender: _equipped_weapon_uses(defender),
+	}
+	var broken: Dictionary = {}  # Node -> true once that unit's weapon has broken
+
 	# Vantage: defender attacks first (set by _apply_vantage in _collect_combat_modifiers)
 	if context["flags"]["vantage"] and can_counter:
 		for _i in def_strikes:
 			if atk_sim_hp <= 0:
 				break
-			var ex := _resolve_single_attack(defender, attacker, context, true, atk_sim_hp)
+			var ex := _resolve_strike(defender, attacker, context, true, atk_sim_hp, weapon_uses, broken)
+			if ex.is_empty():
+				break  # defender's weapon broke — stop the series
 			if ex["hit"]:
 				atk_sim_hp -= ex["damage"]
 			exchanges.append(ex)
@@ -485,7 +531,9 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	for _i in atk_strikes:
 		if def_sim_hp <= 0:
 			break
-		var ex := _resolve_single_attack(attacker, defender, context, false, def_sim_hp)
+		var ex := _resolve_strike(attacker, defender, context, false, def_sim_hp, weapon_uses, broken)
+		if ex.is_empty():
+			break  # attacker's weapon broke — stop the series
 		if ex["hit"]:
 			def_sim_hp -= ex["damage"]
 		exchanges.append(ex)
@@ -495,7 +543,9 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 		for _i in def_strikes:
 			if atk_sim_hp <= 0:
 				break
-			var ex := _resolve_single_attack(defender, attacker, context, true, atk_sim_hp)
+			var ex := _resolve_strike(defender, attacker, context, true, atk_sim_hp, weapon_uses, broken)
+			if ex.is_empty():
+				break  # defender's weapon broke — stop the series
 			if ex["hit"]:
 				atk_sim_hp -= ex["damage"]
 			exchanges.append(ex)
@@ -511,7 +561,9 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 			for _i in fu_strikes:
 				if tgt_sim_hp <= 0:
 					break
-				var ex := _resolve_single_attack(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp)
+				var ex := _resolve_strike(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp, weapon_uses, broken)
+				if ex.is_empty():
+					break  # follow-up unit's weapon broke — stop the series
 				ex["is_follow_up"] = true
 				if ex["hit"]:
 					tgt_sim_hp -= ex["damage"]
@@ -531,7 +583,7 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var def_dealt: bool = exchanges.any(func(e): return e["attacker"] == defender and e["hit"])
 
 	# attacker_exp / defender_exp are NOT included here — they're computed by
-	# apply_combat_result() after filtering weapon-break skips and then set on this dict.
+	# apply_combat_result() from the exchanges that actually landed, then set on this dict.
 	return {
 		"exchanges":     exchanges,
 		"attacker_died": attacker_died,
@@ -548,9 +600,8 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	if bus:
 		bus.combat_started.emit(attacker, defender)
 
-	# Track broken weapons per unit so subsequent exchanges with the same weapon
-	# are skipped — a unit whose weapon broke mid-combat can't keep attacking.
-	var broken: Dictionary = {}  # Node -> weapon_id String
+	# resolve_combat() already modelled weapon breakage, so every exchange here is a
+	# real attack — apply just commits durability/HP/EXP, with no skip logic.
 	var atk_hit := false
 	var def_hit := false
 
@@ -560,13 +611,8 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		var weapon: WeaponData = exchange.get("weapon", null)
 		var weapon_id: String  = weapon.id if weapon != null else ""
 
-		# Weapon broke in an earlier exchange — skip this attack entirely.
-		if weapon_id != "" and broken.get(atk, "") == weapon_id:
-			continue
-
 		if exchange["loses_durability"] and atk.has_method("use_weapon_durability"):
-			if atk.use_weapon_durability(weapon_id):
-				broken[atk] = weapon_id
+			atk.use_weapon_durability(weapon_id)
 
 		if exchange["hit"]:
 			if atk == attacker:
@@ -583,8 +629,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		# No break here — the full exchange list is iterated so both units can die
 		# in a mutual-kill scenario and both get handle_death() called below.
 
-	# Recompute death and EXP from what actually landed — resolve_combat may have
-	# predicted hits that were skipped due to weapon breaks.
+	# Derive death and EXP from final HP after every exchange is applied.
 	var defender_died: bool = defender.data.hp <= 0
 	var attacker_died: bool = attacker.data.hp <= 0
 	result["defender_died"] = defender_died
