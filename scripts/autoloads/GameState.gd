@@ -154,6 +154,12 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 	# Snapshot only the fields that can change during a map.
 	# Phase 2 runtime state (modifiers, conditions, counters) is included so a
 	# mid-battle suspend save can serialize everything without scene tree traversal.
+	# Deep-copy each InventoryEntry individually: Array.duplicate(true) copies the
+	# array but shares the Resource references, so combat use/durability would
+	# otherwise mutate the snapshot and break a Retry.
+	var inventory_copy: Array = []
+	for entry in data.inventory:
+		inventory_copy.append(entry.duplicate(true) if entry != null else null)
 	return {
 		"tile_position": data.tile_position,
 		"hp": data.hp,
@@ -169,7 +175,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"level": data.level,
 		"effective_level": data.effective_level,
 		"proficiencies": data.proficiencies.duplicate(true),
-		"inventory": data.inventory.duplicate(true),
+		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
 		"mastery_skills": data.mastery_skills.duplicate(true),
@@ -200,8 +206,11 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.level = snap.get("level", data.level)
 	data.effective_level = snap.get("effective_level", data.effective_level)
 	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
+	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
+	# fresh copy rather than aliasing the one stored in the snapshot.
 	data.inventory.clear()
-	data.inventory.assign(snap.get("inventory", []))
+	for entry in snap.get("inventory", []):
+		data.inventory.append(entry.duplicate(true) if entry != null else null)
 	data.conditions = snap.get("conditions", []).duplicate(true)
 	data.skills = snap.get("skills", []).duplicate(true)
 	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)

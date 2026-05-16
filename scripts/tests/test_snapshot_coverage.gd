@@ -79,5 +79,46 @@ func _init() -> void:
 			% [d_after.hp, d_after.exp, d_after.is_incapacitated, d_after.active_modifiers])
 		failed += 1
 
+	# A2: snapshot must deep-copy InventoryEntry resources, not share references.
+	# Mutating an entry after snapshotting must not leak into the snapshot, and a
+	# restore must hand back the original uses regardless of post-snapshot edits.
+	var d_inv := UnitData.new()
+	var lance_entry := InventoryEntry.make_weapon("iron_lance", 20)
+	var vuln_entry := InventoryEntry.make_item("vulnerary", 3)
+	d_inv.inventory = [lance_entry, vuln_entry]
+	var snap3: Dictionary = gs.call("_snapshot_unit_data", d_inv)
+	# Mutate the live entries the way combat / item use would.
+	lance_entry.uses_remaining = 5
+	d_inv.inventory.erase(vuln_entry)
+	# The snapshot's entries must be untouched by those mutations.
+	var snap_inv: Array = snap3["inventory"]
+	if snap_inv.size() == 2 and snap_inv[0].uses_remaining == 20 \
+			and snap_inv[1].uses_remaining == 3:
+		print("OK  A2: snapshot deep-copies InventoryEntry (immune to live mutation)")
+		passed += 1
+	else:
+		print("FAIL A2: snapshot leaked — size=%d uses=%s" \
+			% [snap_inv.size(), str(snap_inv.map(func(e): return e.uses_remaining))])
+		failed += 1
+	# Restore must repopulate the live inventory with the original uses.
+	gs.call("_restore_unit_data", d_inv, snap3)
+	if d_inv.inventory.size() == 2 and d_inv.inventory[0].uses_remaining == 20 \
+			and d_inv.inventory[1].uses_remaining == 3:
+		print("OK  A2: restore reinstates original InventoryEntry uses")
+		passed += 1
+	else:
+		print("FAIL A2: restore wrong — size=%d uses=%s" \
+			% [d_inv.inventory.size(), str(d_inv.inventory.map(func(e): return e.uses_remaining))])
+		failed += 1
+	# A second restore from the same snapshot must be isolated from the first.
+	d_inv.inventory[0].uses_remaining = 1
+	gs.call("_restore_unit_data", d_inv, snap3)
+	if d_inv.inventory[0].uses_remaining == 20:
+		print("OK  A2: repeated restores stay isolated from each other")
+		passed += 1
+	else:
+		print("FAIL A2: repeated restore aliased — uses=%d" % d_inv.inventory[0].uses_remaining)
+		failed += 1
+
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)
