@@ -1,16 +1,21 @@
 extends Control
 # Main menu: New Game opens the NewGameScreen overlay (gameplay-rule setup);
-# Quit exits the application.
+# Settings opens the SettingsScreen overlay (also reachable via the open_settings
+# keybinding); Quit exits the application.
 
 @onready var _new_game_btn: Button = $Panel/VBox/NewGameButton
+@onready var _settings_btn: Button = $Panel/VBox/SettingsButton
 @onready var _quit_btn: Button = $Panel/VBox/QuitButton
 @onready var _new_game_screen: Control = $NewGameScreen
+@onready var _settings_screen: Control = $SettingsScreen
 
 
 func _ready() -> void:
 	_new_game_btn.pressed.connect(_on_new_game)
+	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
+	_settings_screen.back_pressed.connect(_on_settings_back)
 	_new_game_btn.grab_focus()
 
 
@@ -21,6 +26,23 @@ func _on_new_game() -> void:
 
 func _on_new_game_back() -> void:
 	_new_game_btn.grab_focus()
+
+
+func _on_settings() -> void:
+	_settings_screen.open()
+
+
+func _on_settings_back() -> void:
+	_settings_btn.grab_focus()
+
+
+# The open_settings keybinding opens the settings screen from the main menu.
+# Ignored while either overlay is already showing — those handle their own input.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("open_settings") \
+			and not _settings_screen.visible and not _new_game_screen.visible:
+		_on_settings()
+		get_viewport().set_input_as_handled()
 
 
 func _on_quit() -> void:
