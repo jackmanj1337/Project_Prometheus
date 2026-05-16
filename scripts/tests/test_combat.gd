@@ -481,7 +481,9 @@ func _init() -> void:
 	# so without the fix 4 hits would land; with the fix only 1 hit lands.
 	var break_brave = _make_weapon({"id":"break_brave","weapon_type":"sword","mt":5,"hit":100,"crit":0,"wt":1,"strikes_per_attack":2})
 	var break_atk = _make_unit({"name":"BreakAtk","strength":10,"defense":5,"skill":10,"speed":20,"luck":5,"hp":30,"max_hp":30,"weapon":break_brave})
-	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":3,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0)})
+	# luck 5 = crit avoid 5 ≥ attacker crit rate (skill 10 / 2 = 5), so crit% clamps
+	# to 0 — the one landing hit can never crit and the HP assertion is deterministic.
+	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":5,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0)})
 	break_atk._weapon_uses = 1
 	var break_result := cr.resolve_combat(break_atk, break_def)
 	cr.apply_combat_result(break_result, break_atk, break_def)
