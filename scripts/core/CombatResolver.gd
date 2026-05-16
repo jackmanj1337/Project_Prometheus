@@ -32,8 +32,9 @@ extends Node
 #       "vengeance_bonus"       int      — flat damage added from Vengeance skill
 #
 # Keys added by skills during trigger processing [skill-added]:
-#   "defender_skills_blocked"   bool     — nihil: prevent defender's on_combat_start skills
-#   "attacker_skills_blocked"   bool     — nihil (unused): prevent attacker's skills
+#   "defender_skills_blocked"   bool     — nihil: skip the defender's on_combat_start modifier skills
+#   "attacker_skills_blocked"   bool     — nihil: skip the attacker's on_combat_start modifier skills
+#                                          (also checked per-strike for on_attack/on_hit/on_kill)
 #   "effectiveness_mult"        float    — computed once in _collect_combat_modifiers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -107,7 +108,17 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> vo
 	_apply_equip_item_modifiers(attacker, context["atk_mod"])
 	_apply_equip_item_modifiers(defender, context["def_mod"])
 	if sh:
-		context = sh.apply_trigger(attacker, "on_combat_start", context, preview)
+		# Negate pre-pass: Nihil (and any future skill-canceller) resolves the
+		# *_skills_blocked flags BEFORE any modifier skill runs, so a Nihil bearer
+		# negates the opponent whether it is attacking or defending. A single
+		# attacker-then-defender on_combat_start pass would let the attacker's
+		# modifier skills apply before a defending Nihil could block them.
+		context = sh.apply_trigger(attacker, "on_combat_start_negate", context, preview)
+		context = sh.apply_trigger(defender, "on_combat_start_negate", context, preview)
+		# Modifier pass: each side's on_combat_start skills, skipped when the
+		# opponent's Nihil blocked that side in the pre-pass.
+		if not context.get("attacker_skills_blocked", false):
+			context = sh.apply_trigger(attacker, "on_combat_start", context, preview)
 		if not context.get("defender_skills_blocked", false):
 			context = sh.apply_trigger(defender, "on_combat_start", context, preview)
 

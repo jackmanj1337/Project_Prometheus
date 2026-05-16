@@ -402,6 +402,31 @@ func _init() -> void:
 			% [res_atk.data.active_modifiers.size(), res_atk.data.hp])
 		failed += 1
 
+	# --- Nihil: a DEFENDING Nihil bearer negates the attacker's on_combat_start skills ---
+	# The old trigger order applied the attacker's skills before the defender's Nihil
+	# could fire, so a defending Nihil (e.g. the map boss) negated nothing.
+	var nihil_atk = _make_unit({"name":"NihilAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
+	var nihil_def = _make_unit({"name":"NihilDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var nihil_prev = cr.preview_combat(nihil_atk, nihil_def)
+	# Base damage = STR 10 + mt 6 - DEF 4 = 12. Swordfaire would add +5 → 17.
+	# The defender's Nihil must negate Swordfaire, leaving the base 12.
+	if nihil_prev["attacker_damage"] == 12:
+		print("OK  Nihil: defending bearer negates attacker's Swordfaire (damage %d)" % nihil_prev["attacker_damage"])
+		passed += 1
+	else:
+		print("FAIL Nihil: expected attacker_damage 12 (Swordfaire negated), got %d" % nihil_prev["attacker_damage"])
+		failed += 1
+
+	# Control: same matchup, no defender Nihil → Swordfaire applies (+5 → 17).
+	var ctrl_def = _make_unit({"name":"CtrlDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var ctrl_prev = cr.preview_combat(nihil_atk, ctrl_def)
+	if ctrl_prev["attacker_damage"] == 17:
+		print("OK  Nihil control: Swordfaire applies (+5 → %d) without a defender Nihil" % ctrl_prev["attacker_damage"])
+		passed += 1
+	else:
+		print("FAIL Nihil control: expected attacker_damage 17, got %d" % ctrl_prev["attacker_damage"])
+		failed += 1
+
 	# --- Mutual-kill: both attacker_died and defender_died can be true (BUG-01) ---
 	# Both units have 1 HP and deal far more than 1 damage — guaranteed mutual kill
 	# when both hit. Use 100% hit weapons to eliminate RNG.

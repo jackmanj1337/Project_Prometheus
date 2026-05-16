@@ -5,6 +5,8 @@ class_name SkillData extends Resource
 @export var description: String = ""
 # "passive"|"start_of_turn"|"on_attack"|"on_defend"|"on_hit"|"on_kill"
 # |"on_damaged"|"on_combat_start"|"on_combat_end"|"on_move"|"on_level_up"|"player_activated"
+# "on_combat_start_negate" runs in a pre-pass before "on_combat_start" — reserved for
+# skill-cancellers (Nihil) that must resolve before the modifier skills they suppress.
 # Phase 2 triggers: "on_combat_apply_modifiers"|"on_ally_attacked"
 # |"on_enemy_leaves_adjacent"|"on_map_start"|"on_shift"
 @export var trigger: String = ""
