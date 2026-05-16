@@ -418,10 +418,9 @@ func _enter_targeting(mode: int) -> void:
 		_show_action_menu()
 		return
 	_state = State.TARGETING
-	# Snap the cursor to the first valid target.
-	current_tile = tiles[0]
-	if _grid != null:
-		position = _grid.tile_to_world(current_tile)
+	# Snap the cursor to the first valid target via _set_tile, so cursor_moved fires
+	# (HUD updates to the target) and the camera scrolls to keep it on screen.
+	_set_tile(tiles[0])
 
 
 # MapCursorTargeting resolved the action (combat done / heal applied).

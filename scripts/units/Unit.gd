@@ -332,7 +332,9 @@ func heal(amount: int) -> void:
 # `weapon` must be captured by the caller BEFORE calling this — use_weapon_durability
 # may remove the last-use entry, making get_equipped_weapon() return null afterward.
 func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
-	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + data.magic
+	# Use the modifier-aware stat so temporary MAG buffs affect healing, matching
+	# how combat damage reads stats.
+	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + get_effective_stat("magic")
 	target.heal(heal_amount)
 	use_weapon_durability(weapon.id)
 	add_wexp(weapon.weapon_type, weapon.wexp)
