@@ -105,7 +105,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if _state == State.LOCKED or _held_dir == Vector2i.ZERO:
+	if _held_dir == Vector2i.ZERO:
+		return
+	# Auto-repeat only applies to free cursor movement. If the state changed
+	# while a key was held (e.g. confirmed into TARGETING), drop the held dir
+	# so the cursor doesn't drift out of a menu/targeting context.
+	if _state != State.FREE and _state != State.UNIT_SELECTED:
+		_held_dir = Vector2i.ZERO
 		return
 	# Held-key auto-repeat: initial 0.25s pause, then 0.10s per step
 	_held_timer -= delta
@@ -118,10 +124,18 @@ func _process(delta: float) -> void:
 func _handle_key_press(event: InputEventKey) -> void:
 	var dir := _direction_from_event(event)
 	if dir != Vector2i.ZERO:
-		move_cursor(dir)
-		_held_dir = dir
-		_held_timer = KEY_REPEAT_DELAY
-		_held_initial = true
+		match _state:
+			State.FREE, State.UNIT_SELECTED:
+				# Free cursor movement, with held-key auto-repeat.
+				move_cursor(dir)
+				_held_dir = dir
+				_held_timer = KEY_REPEAT_DELAY
+				_held_initial = true
+			State.TARGETING, State.STAFF_TARGETING:
+				# Arrows step between valid targets instead of moving freely.
+				_cycle_target(dir)
+			# UNIT_MOVED (ActionMenu owns input) and PREVIEWING (cursor frozen)
+			# ignore direction keys entirely.
 		return
 	if event.is_action_pressed("confirm"):
 		_on_confirm()
@@ -180,8 +194,64 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
 	var world := get_viewport().canvas_transform.affine_inverse() * event.position
 	var tile := _grid.world_to_tile(world)
-	if tile != current_tile:
-		_set_tile(tile)
+	match _state:
+		State.FREE, State.UNIT_SELECTED:
+			if tile != current_tile:
+				_set_tile(tile)
+		State.TARGETING, State.STAFF_TARGETING:
+			_handle_targeting_mouse_motion(tile)
+		# UNIT_MOVED (menu open) and PREVIEWING (cursor frozen) ignore mouse motion.
+
+
+# Mouse motion while choosing a target obeys the mouse_targeting UX setting:
+#   "snap"     — cursor jumps to the valid target nearest the pointer (Manhattan).
+#   "disabled" — motion is ignored; only keyboard cycling moves the cursor.
+# Mouse *clicks* still confirm/cancel regardless — handled in _handle_mouse_button.
+func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.mouse_targeting == "disabled":
+		return
+	var tiles := _active_target_tiles()
+	if tiles.is_empty():
+		return
+	var nearest: Vector2i = tiles[0]
+	var best: int = _manhattan(tile, nearest)
+	for t in tiles:
+		var d := _manhattan(tile, t)
+		if d < best:
+			best = d
+			nearest = t
+	if nearest != current_tile:
+		_set_tile(nearest)
+
+
+# Tiles the cursor may occupy in the current targeting state — empty otherwise.
+func _active_target_tiles() -> Array[Vector2i]:
+	match _state:
+		State.TARGETING:
+			return _attack_tiles
+		State.STAFF_TARGETING:
+			return _heal_tiles
+		_:
+			return []
+
+
+# Step the cursor to the next/previous valid target. Right/Down advance, Left/Up
+# go back; the list wraps. dir is a unit cardinal vector from _direction_from_event.
+func _cycle_target(dir: Vector2i) -> void:
+	var tiles := _active_target_tiles()
+	if tiles.is_empty():
+		return
+	var idx: int = tiles.find(current_tile)
+	if idx == -1:
+		idx = 0
+	var step: int = 1 if (dir.x > 0 or dir.y > 0) else -1
+	idx = (idx + step + tiles.size()) % tiles.size()
+	_set_tile(tiles[idx])
+
+
+func _manhattan(a: Vector2i, b: Vector2i) -> int:
+	return abs(a.x - b.x) + abs(a.y - b.y)
 
 
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
