@@ -1,0 +1,49 @@
+Review the codebase in this directory and produce a written code review document.
+
+## Scope
+Review all source files (or specify: `src/`, specific files, a PR diff, etc.)
+
+## Review Document Structure
+Save the output as a dated markdown document in a dedicated folder with the following sections:
+
+### 1. Executive Summary
+- Overall code quality rating (1–10)
+- 2–3 sentence summary of the codebase's strengths and biggest concerns
+
+### 2. Issues Found
+For each issue, document:
+
+**[SEVERITY: Critical / High / Medium / Low]**
+- **File & Line:** `path/to/file.ts:42`
+- **Problem:** What is wrong and why it matters
+- **Root Cause:** Why this likely happened
+- **Recommended Fix:** Concrete solution with a corrected code snippet
+- **Tradeoffs:** Any downsides to the proposed fix
+
+Severity guide:
+- Critical = security vulnerability, data loss risk, or crash
+- High = correctness bug or serious performance issue
+- Medium = maintainability, bad pattern, or tech debt
+- Low = style, naming, or minor improvement
+
+### 3. Positive Observations
+Note at least 3 things done well — good patterns worth preserving.
+
+### 4. Architectural Observations
+High-level concerns about structure, coupling, separation of concerns, or scalability that don't map to a single line.
+
+### 5. Prioritized Action Plan
+A numbered list of the top fixes to make, ordered by impact vs. effort.
+
+## Review Priorities (adjust as needed)
+- [ ] Security (auth, input validation, secrets in code)
+- [ ] Correctness (logic bugs, edge cases, error handling)
+- [ ] Performance (N+1 queries, blocking calls, memory leaks)
+- [ ] Maintainability (naming, complexity, duplication)
+- [ ] Test coverage (missing or weak tests)
+- [ ] Documentation (missing JSDoc/docstrings on public APIs)
+
+## Constraints
+- Do not refactor the code itself — document only
+- If a fix is non-trivial, explain the approach; don't just say "refactor this"
+- Flag any assumptions you make about intent
