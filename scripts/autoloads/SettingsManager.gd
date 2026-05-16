@@ -18,9 +18,8 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
-var permadeath: bool = false
-# "growth_random"|"growth_fixed"
-var leveling_method: String = "growth_random"
+# NOTE: permadeath and leveling_method are per-save gameplay rules, not global
+# preferences — they live on GameState, set via the New Game screen.
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
@@ -48,12 +47,10 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	permadeath        = cfg.get_value("gameplay", "permadeath",        permadeath) as bool
-	leveling_method   = cfg.get_value("gameplay", "leveling_method",   leveling_method)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
-	# GameState sync happens in GameState._ready() — at this point GameState autoload
-	# hasn't loaded yet (autoload order: EventBus, SettingsManager, GameState, DataManager)
+	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
+	# under [gameplay] — harmless, they are simply never read.
 
 
 func save() -> void:
@@ -67,8 +64,6 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
-	cfg.set_value("gameplay", "permadeath",        permadeath)
-	cfg.set_value("gameplay", "leveling_method",   leveling_method)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -90,8 +85,6 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
-			permadeath        = false
-			leveling_method   = "growth_random"
 		"controls":
 			keybindings = {}
 			_apply_keybindings()

@@ -108,9 +108,6 @@ layout_mode = 2
 [node name="OptLevelUpScreen" type="OptionButton" parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="OptPermadeath" type="OptionButton" parent="Panel/VBox"]
-layout_mode = 2
-
 [node name="HSep2" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
 

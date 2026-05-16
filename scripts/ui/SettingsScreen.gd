@@ -24,7 +24,6 @@ extends Control
 #         OptionButton (node name: OptMovementSpeed) # Normal / Fast / Instant
 #         OptionButton (node name: OptPhaseBanner)   # Show / Skip
 #         OptionButton (node name: OptLevelUpScreen) # Show / Auto / Skip
-#         OptionButton (node name: OptPermadeath)    # Off / On
 #         HSeparator
 #         Button (node name: BtnBack)
 
@@ -40,7 +39,6 @@ signal back_pressed()
 @onready var _opt_movement_speed: OptionButton = $Panel/VBox/OptMovementSpeed
 @onready var _opt_phase_banner: OptionButton  = $Panel/VBox/OptPhaseBanner
 @onready var _opt_level_up: OptionButton      = $Panel/VBox/OptLevelUpScreen
-@onready var _opt_permadeath: OptionButton    = $Panel/VBox/OptPermadeath
 @onready var _btn_back: Button                = $Panel/VBox/BtnBack
 
 const _COMBAT_ANIM_OPTIONS: Array[String]    = ["all", "player_only", "enemy_only", "none"]
@@ -54,7 +52,6 @@ func _ready() -> void:
 	_populate_option_button(_opt_movement_speed, ["Normal", "Fast", "Instant"])
 	_populate_option_button(_opt_phase_banner,   ["Show", "Skip"])
 	_populate_option_button(_opt_level_up,       ["Show", "Auto", "Skip"])
-	_populate_option_button(_opt_permadeath,     ["Off", "On"])
 
 	_slider_master.min_value = 0
 	_slider_master.max_value = 100
@@ -73,7 +70,6 @@ func _ready() -> void:
 	_opt_movement_speed.item_selected.connect(_on_movement_speed_selected)
 	_opt_phase_banner.item_selected.connect(_on_phase_banner_selected)
 	_opt_level_up.item_selected.connect(_on_level_up_selected)
-	_opt_permadeath.item_selected.connect(_on_permadeath_selected)
 	_btn_back.pressed.connect(_on_back)
 	hide()
 
@@ -92,7 +88,6 @@ func open() -> void:
 	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.get("movement_speed")))
 	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.get("phase_banner")))
 	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.get("level_up_screen")))
-	_opt_permadeath.selected     = int(sm.get("permadeath"))  # 0=Off, 1=On
 	show()
 	_btn_back.grab_focus()
 
@@ -151,13 +146,6 @@ func _on_level_up_selected(index: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:
 		sm.set("level_up_screen", _LEVEL_UP_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_permadeath_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("permadeath", bool(index))  # 0=Off, 1=On
 		sm.call("save")
 
 

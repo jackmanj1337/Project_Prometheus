@@ -9,7 +9,8 @@ extends Node
 
 enum Phase { PLAYER, ENEMY }
 
-# Settings (kept in sync with SettingsManager)
+# Per-save gameplay rules. Set by the New Game screen; the save-system milestone
+# will serialize these into the save file. Defaults cover the direct-boot dev path.
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 var max_skills: int = 4
@@ -30,20 +31,6 @@ var party_items: Array[String] = []  # item IDs awarded by completed maps
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
-
-
-# Pulls initial values from SettingsManager. Done here (not in SettingsManager.load_settings)
-# because GameState autoload runs after SettingsManager — by now SettingsManager._ready()
-# has finished and its values are valid.
-func _ready() -> void:
-	# Access SettingsManager at runtime via get_node to avoid a compile-time ordering
-	# issue in headless mode: GDScript may compile GameState.gd before SettingsManager.gd.
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm == null:
-		push_error("GameState: SettingsManager autoload missing — check autoload ordering in Project Settings")
-		return
-	permadeath_enabled = sm.get("permadeath")
-	leveling_method = sm.get("leveling_method")
 
 
 func register_unit(unit: Node) -> void:
