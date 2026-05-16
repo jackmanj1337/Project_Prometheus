@@ -321,7 +321,7 @@ func _init() -> void:
 		failed += 1
 
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
-	# Regression for MapCursor._execute_staff_heal ordering bug: fetching get_equipped_weapon()
+	# Regression for MapCursorTargeting._apply_staff_heal ordering bug: fetching get_equipped_weapon()
 	# after use_weapon_durability() on a 1-use weapon returns null/wrong weapon.
 	var pre_weapon: WeaponData = iron_lance  # captured BEFORE use (the correct ordering)
 	dur_unit.use_weapon_durability()

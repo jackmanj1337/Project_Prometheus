@@ -2,9 +2,9 @@ class_name MapCursor extends Node2D
 # The player's tile-position cursor. Handles keyboard, mouse, and camera scrolling.
 # Emits EventBus.cursor_moved on every tile change so HUD panels can react.
 #
-# [DEFERRED — D-1] This class is a ~600-line FSM. The full split into
-# MapCursorInput / MapCursorSelection / MapCursorTargeting is tracked for a
-# future refactor milestone to enable per-state unit testing.
+# [D-1, in progress] The attack/staff targeting flow has been extracted into
+# MapCursorTargeting (slice 1). The remaining MapCursorInput / MapCursorSelection
+# splits are tracked for future slices.
 #
 # State machine: see State enum below and the transition diagram above _on_confirm().
 
@@ -23,9 +23,7 @@ enum State {
 	FREE,            # default; cursor moves freely
 	UNIT_SELECTED,   # a player unit is highlighted; movement overlay shown
 	UNIT_MOVED,      # unit has moved; ActionMenu is open
-	TARGETING,       # player choosing an attack target
-	PREVIEWING,      # attack preview panel is shown; awaiting confirm/cancel
-	STAFF_TARGETING, # player choosing a heal target
+	TARGETING,       # MapCursorTargeting owns the flow (attack or staff heal)
 	LOCKED,          # input suppressed (animation, enemy phase)
 }
 var _state: State = State.FREE
@@ -34,9 +32,9 @@ var _state: State = State.FREE
 var _selected_unit: Unit = null
 var _movement_tiles: Array[Vector2i] = []
 
-# Tiles valid for the current targeting mode (attack or staff heal)
-var _attack_tiles: Array[Vector2i] = []
-var _heal_tiles: Array[Vector2i] = []
+# Attack / staff-heal targeting flow — see MapCursorTargeting.gd. The cursor FSM
+# above stays here; this object owns the CHOOSING/PREVIEWING sub-state.
+var _targeting: MapCursorTargeting = MapCursorTargeting.new()
 
 # Key-repeat timer state
 var _held_dir: Vector2i = Vector2i.ZERO
@@ -52,8 +50,6 @@ var _held_initial: bool = true
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
-# Target cached while preview is shown
-var _preview_target: Node = null
 # True while the "end turn with unacted units?" ConfirmationDialog is open.
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
@@ -75,6 +71,9 @@ func _ready() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.phase_changed.connect(_on_phase_changed)
+	# React to the targeting flow finishing or being backed out of.
+	_targeting.completed.connect(_on_targeting_completed)
+	_targeting.cancelled.connect(_on_targeting_cancelled)
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -89,6 +88,8 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> voi
 	_camera = camera
 	_turn = turn
 	position = _grid.tile_to_world(current_tile)
+	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
+	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"))
 
 
 # ── Input Handling ──────────────────────────────────────────────────────────
@@ -131,11 +132,10 @@ func _handle_key_press(event: InputEventKey) -> void:
 				_held_dir = dir
 				_held_timer = KEY_REPEAT_DELAY
 				_held_initial = true
-			State.TARGETING, State.STAFF_TARGETING:
+			State.TARGETING:
 				# Arrows step between valid targets instead of moving freely.
 				_cycle_target(dir)
-			# UNIT_MOVED (ActionMenu owns input) and PREVIEWING (cursor frozen)
-			# ignore direction keys entirely.
+			# UNIT_MOVED (ActionMenu owns input) ignores direction keys entirely.
 		return
 	if event.is_action_pressed("confirm"):
 		_on_confirm()
@@ -198,9 +198,9 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		State.FREE, State.UNIT_SELECTED:
 			if tile != current_tile:
 				_set_tile(tile)
-		State.TARGETING, State.STAFF_TARGETING:
+		State.TARGETING:
 			_handle_targeting_mouse_motion(tile)
-		# UNIT_MOVED (menu open) and PREVIEWING (cursor frozen) ignore mouse motion.
+		# UNIT_MOVED (menu open) ignores mouse motion.
 
 
 # Mouse motion while choosing a target obeys the mouse_targeting UX setting:
@@ -208,10 +208,12 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 #   "disabled" — motion is ignored; only keyboard cycling moves the cursor.
 # Mouse *clicks* still confirm/cancel regardless — handled in _handle_mouse_button.
 func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
+	if not _targeting.can_change_target():
+		return  # frozen while the attack preview is showing
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null and sm.mouse_targeting == "disabled":
 		return
-	var tiles := _active_target_tiles()
+	var tiles := _targeting.target_tiles()
 	if tiles.is_empty():
 		return
 	var nearest: Vector2i = tiles[0]
@@ -225,21 +227,12 @@ func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
 		_set_tile(nearest)
 
 
-# Tiles the cursor may occupy in the current targeting state — empty otherwise.
-func _active_target_tiles() -> Array[Vector2i]:
-	match _state:
-		State.TARGETING:
-			return _attack_tiles
-		State.STAFF_TARGETING:
-			return _heal_tiles
-		_:
-			return []
-
-
 # Step the cursor to the next/previous valid target. Right/Down advance, Left/Up
 # go back; the list wraps. dir is a unit cardinal vector from _direction_from_event.
 func _cycle_target(dir: Vector2i) -> void:
-	var tiles := _active_target_tiles()
+	if not _targeting.can_change_target():
+		return  # frozen while the attack preview is showing
+	var tiles := _targeting.target_tiles()
 	if tiles.is_empty():
 		return
 	var idx: int = tiles.find(current_tile)
@@ -287,18 +280,18 @@ func _set_tile(tile: Vector2i) -> void:
 # ── State Machine ──────────────────────────────────────────────────────────
 #
 # State transitions:
-# free             →(confirm on player unit)→  unit_selected
-# unit_selected    →(confirm on move tile) →  unit_moved  (ActionMenu shown)
-# unit_selected    →(cancel)              →  free
-# unit_moved       →[ActionMenu: attack]  →  targeting
-# unit_moved       →[ActionMenu: staff]   →  staff_targeting
-# unit_moved       →[ActionMenu: item]    →  free  (item used, no target required)
-# unit_moved       →[ActionMenu: wait]    →  free
-# unit_moved       →[ActionMenu: cancel]  →  unit_selected  (undo move)
-# targeting        →(confirm on enemy)    →  free  (combat resolved)
-# targeting        →(cancel)             →  unit_moved  (back to ActionMenu)
-# staff_targeting  →(confirm on ally)     →  free  (heal applied)
-# staff_targeting  →(cancel)             →  unit_moved  (back to ActionMenu)
+# free          →(confirm on player unit)→  unit_selected
+# unit_selected →(confirm on move tile) →  unit_moved  (ActionMenu shown)
+# unit_selected →(cancel)              →  free
+# unit_moved    →[ActionMenu: attack]  →  targeting   (MapCursorTargeting, ATTACK)
+# unit_moved    →[ActionMenu: staff]   →  targeting   (MapCursorTargeting, STAFF)
+# unit_moved    →[ActionMenu: item]    →  free  (item used, no target required)
+# unit_moved    →[ActionMenu: wait]    →  free
+# unit_moved    →[ActionMenu: cancel]  →  unit_selected  (undo move)
+# targeting     →(MapCursorTargeting `completed`)→  free  (action resolved)
+# targeting     →(MapCursorTargeting `cancelled`)→  unit_moved  (back to ActionMenu)
+# While in `targeting`, confirm/cancel are delegated to MapCursorTargeting, which
+# tracks the choosing-vs-previewing sub-state internally.
 func _on_confirm() -> void:
 	match _state:
 		State.FREE:
@@ -308,11 +301,7 @@ func _on_confirm() -> void:
 		State.UNIT_MOVED:
 			pass  # ActionMenu drives confirms here; fallback in _show_action_menu when menu is null
 		State.TARGETING:
-			_show_attack_preview()
-		State.PREVIEWING:
-			_execute_attack_confirmed()
-		State.STAFF_TARGETING:
-			_execute_staff_heal()
+			_targeting.handle_confirm(current_tile)
 
 
 func _on_cancel() -> void:
@@ -325,17 +314,7 @@ func _on_cancel() -> void:
 			if action_menu == null:
 				_undo_move_and_reselect()
 		State.TARGETING:
-			_grid.clear_overlays()
-			_attack_tiles.clear()
-			_state = State.UNIT_MOVED
-			_show_action_menu()
-		State.PREVIEWING:
-			_dismiss_attack_preview()
-		State.STAFF_TARGETING:
-			_grid.clear_overlays()
-			_heal_tiles.clear()
-			_state = State.UNIT_MOVED
-			_show_action_menu()
+			_targeting.handle_cancel()
 
 
 # ── State: FREE — unit selection ────────────────────────────────────────────
@@ -420,108 +399,40 @@ func _on_action_menu_cancelled() -> void:
 func _on_action_chosen(action: String) -> void:
 	match action:
 		"attack":
-			_begin_attack_targeting()
+			_enter_targeting(MapCursorTargeting.Mode.ATTACK)
 		"staff":
-			_begin_staff_targeting()
+			_enter_targeting(MapCursorTargeting.Mode.STAFF)
 		"item":
 			_use_item()
 		"wait":
 			_commit_wait()
 
 
-# ── State: TARGETING — attack target selection ───────────────────────────────
+# ── State: TARGETING — delegated to MapCursorTargeting ───────────────────────
 
-func _begin_attack_targeting() -> void:
-	if _grid == null or _selected_unit == null:
-		return
-	var enemies := _grid.get_attackable_enemies_from_tile(_selected_unit, _selected_unit.tile_position)
-	_attack_tiles.clear()
-	for enemy in enemies:
-		_attack_tiles.append(enemy.tile_position)
-	if _attack_tiles.is_empty():
-		# Shouldn't happen if ActionMenu disabled the button correctly, but handle gracefully
+# Hand off to the targeting flow. begin() returns the valid target tiles; if there
+# are none (ActionMenu should have prevented this) reopen the menu instead.
+func _enter_targeting(mode: int) -> void:
+	var tiles := _targeting.begin(mode, _selected_unit)
+	if tiles.is_empty():
 		_show_action_menu()
 		return
-	_grid.show_attack_overlay(_attack_tiles)
-	# Snap cursor to the first valid target
-	current_tile = _attack_tiles[0]
-	position = _grid.tile_to_world(current_tile)
 	_state = State.TARGETING
+	# Snap the cursor to the first valid target.
+	current_tile = tiles[0]
+	if _grid != null:
+		position = _grid.tile_to_world(current_tile)
 
 
-func _show_attack_preview() -> void:
-	var target := _grid.get_unit_at(current_tile)
-	if target == null or target.team == "player":
-		return
-	_preview_target = target
-	if attack_preview and attack_preview.has_method("show_preview"):
-		attack_preview.show_preview(_selected_unit, target)
-		_state = State.PREVIEWING
-	else:
-		# No preview node wired — resolve immediately
-		_do_resolve_attack(target)
-
-
-func _dismiss_attack_preview() -> void:
-	if attack_preview and attack_preview.has_method("hide_preview"):
-		attack_preview.hide_preview()
-	_preview_target = null
-	_state = State.TARGETING
-
-
-func _execute_attack_confirmed() -> void:
-	var target: Node = _preview_target
-	if attack_preview and attack_preview.has_method("hide_preview"):
-		attack_preview.hide_preview()
-	_preview_target = null
-	_do_resolve_attack(target)
-
-
-func _do_resolve_attack(target: Node) -> void:
-	if target == null:
-		_finish_action()
-		return
-	_grid.clear_overlays()
-	_attack_tiles.clear()
-	_state = State.LOCKED  # block input during combat resolution
-	var cr := get_node_or_null("/root/CombatResolver")
-	if cr:
-		var result: Dictionary = cr.resolve_combat(_selected_unit, target)
-		cr.apply_combat_result(result, _selected_unit, target)
-	_finish_action()  # resets _state to "free"
-
-
-# ── State: STAFF_TARGETING — heal target selection ──────────────────────────
-
-func _begin_staff_targeting() -> void:
-	if _grid == null or _selected_unit == null:
-		return
-	var allies := _grid.get_healable_allies(_selected_unit)
-	_heal_tiles.clear()
-	for ally in allies:
-		_heal_tiles.append(ally.tile_position)
-	if _heal_tiles.is_empty():
-		_show_action_menu()
-		return
-	_grid.show_heal_overlay(_heal_tiles)
-	current_tile = _heal_tiles[0]
-	position = _grid.tile_to_world(current_tile)
-	_state = State.STAFF_TARGETING
-
-
-func _execute_staff_heal() -> void:
-	var target := _grid.get_unit_at(current_tile)
-	if target == null or target.team != "player":
-		return
-	_grid.clear_overlays()
-	_heal_tiles.clear()
-	# Heal formula: 10 + mag (GDD_02)
-	# Capture weapon before perform_staff_heal — last-use removal would clear the entry
-	# and a subsequent get_equipped_weapon() could return null or the wrong weapon type.
-	var weapon: WeaponData = _selected_unit.get_equipped_weapon()
-	if weapon != null:
-		_selected_unit.perform_staff_heal(target, weapon)
+# MapCursorTargeting resolved the action (combat done / heal applied).
+func _on_targeting_completed() -> void:
 	_finish_action()
+
+
+# Player backed out of target choice — return to the ActionMenu.
+func _on_targeting_cancelled() -> void:
+	_state = State.UNIT_MOVED
+	_show_action_menu()
 
 
 # ── Item Use ────────────────────────────────────────────────────────────────
@@ -594,8 +505,6 @@ func _finish_action() -> void:
 		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
 	_selected_unit = null
 	_movement_tiles.clear()
-	_attack_tiles.clear()
-	_heal_tiles.clear()
 	_state = State.FREE
 
 
