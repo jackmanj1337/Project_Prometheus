@@ -143,8 +143,11 @@ func can_end_on_tile(tile: Vector2i, unit: Node) -> bool:
 func _get_units() -> Array:
 	if is_inside_tree():
 		var gs := get_node_or_null("/root/GameState")
-		if gs:
-			return gs.all_units
+		if gs != null:
+			# .get() avoids a type error: get_node_or_null returns Node, not GameState
+			var units: Variant = gs.get("all_units")
+			if units is Array:
+				return units
 	return []
 
 

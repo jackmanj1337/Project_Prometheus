@@ -1,5 +1,6 @@
 extends Node
-# [NOTE — M-1] class_name conflicts with the autoload singleton name in Godot 4.
+# [NOTE — M-1] class_name cannot be used on autoload scripts in Godot 4, even with a
+# name that differs from the autoload name — Godot refuses to register the class_name.
 # TODO save-system: the current snapshot (_map_start_snapshot) is in-memory only and
 # covers player UnitData. Suspend saves additionally need: (a) live enemy UnitData state
 # (enemies are re-spawned fresh today — see GameMap._spawn_units), and (b) live terrain
@@ -35,8 +36,12 @@ var _map_start_snapshot: Array[Dictionary] = []
 # because GameState autoload runs after SettingsManager — by now SettingsManager._ready()
 # has finished and its values are valid.
 func _ready() -> void:
-	permadeath_enabled = SettingsManager.permadeath
-	leveling_method = SettingsManager.leveling_method
+	# Access SettingsManager at runtime via get_node to avoid a compile-time ordering
+	# issue in headless mode: GDScript may compile GameState.gd before SettingsManager.gd.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		permadeath_enabled = sm.get("permadeath")
+		leveling_method = sm.get("leveling_method")
 
 
 func register_unit(unit: Node) -> void:
@@ -58,7 +63,11 @@ func unregister_unit(unit: Node) -> void:
 
 func set_phase(new_phase: Phase) -> void:
 	current_phase = new_phase
-	EventBus.phase_changed.emit(new_phase)
+	# Use emit_signal to avoid a compile-time dependency on EventBus identifier
+	# (autoloads must not reference each other by identifier — use get_node_or_null).
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.emit_signal("phase_changed", new_phase)
 
 
 # filter() returns generic Array, so build Array[Node] explicitly

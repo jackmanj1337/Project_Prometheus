@@ -31,7 +31,7 @@ func show_for(unit: Node) -> void:
 			continue
 		var btn := Button.new()
 		var dm := get_node_or_null("/root/DataManager")
-		var item := dm.get_item(entry.item_id) if (dm and entry.item_id != "") else null
+		var item: ItemData = dm.get_item(entry.item_id) if (dm and entry.item_id != "") else null
 		var name_text: String = item.display_name if item else "Item"
 		btn.text = "%s  (%d)" % [name_text, entry.uses_remaining]
 		btn.focus_mode = Control.FOCUS_ALL

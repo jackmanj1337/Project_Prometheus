@@ -497,10 +497,8 @@ func _apply_item_effect(entry: InventoryEntry) -> void:
 
 # ── Shared Action Completion ─────────────────────────────────────────────────
 
-# Commit the move as a Wait action — unit is marked DONE, no combat.
+# Commit the move as a Wait action — unit is marked DONE via _finish_action().
 func _commit_wait() -> void:
-	if _turn != null and _selected_unit != null:
-		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
 	_finish_action()
 
 
@@ -519,6 +517,9 @@ func _undo_move_and_reselect() -> void:
 func _finish_action() -> void:
 	if _grid != null:
 		_grid.clear_overlays()
+	# Mark the acting unit DONE so it can't be selected again this turn.
+	if _turn != null and _selected_unit != null:
+		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
 	_selected_unit = null
 	_movement_tiles.clear()
 	_attack_tiles.clear()

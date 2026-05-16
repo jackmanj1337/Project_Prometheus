@@ -56,12 +56,12 @@ func _ready() -> void:
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
-		# Clear any carry-over modifier state so the snapshot captures a clean map start.
-		for u in gs.all_units:
+		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
+		for u in gs.get("all_units") as Array:
 			if u.has_method("reset_map_state"):
 				u.reset_map_state()
-		gs.map_data = map_data
-		gs.take_map_snapshot()
+		gs.set("map_data", map_data)
+		gs.call("take_map_snapshot")
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
 		_hud.setup(_grid, _turn_manager)
@@ -103,15 +103,17 @@ func _spawn_units() -> void:
 		return
 
 	# Auto-load default roster if MainMenu hasn't filled it (e.g. direct boot)
-	if gs.player_roster.is_empty():
-		gs.load_default_roster()
+	var roster: Array = gs.get("player_roster")
+	if roster == null or roster.is_empty():
+		gs.call("load_default_roster")
+		roster = gs.get("player_roster")
 
 	# Player units: roster slot N → player_start_tiles[N]
-	for i in gs.player_roster.size():
+	for i in roster.size():
 		if i >= map_data.player_start_tiles.size():
 			break
-		var u_data: UnitData = gs.player_roster[i]
-		if u_data.is_incapacitated:
+		var u_data: UnitData = roster[i] as UnitData
+		if u_data == null or u_data.is_incapacitated:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "player")
 
@@ -135,7 +137,7 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 	unit.set_grid_manager(_grid)
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
-		gs.register_unit(unit)
+		gs.call("register_unit", unit)
 
 
 # Asserts all rows are the expected length and contain only known terrain chars.
