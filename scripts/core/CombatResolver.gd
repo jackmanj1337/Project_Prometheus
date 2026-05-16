@@ -115,12 +115,13 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> vo
 		# modifier skills apply before a defending Nihil could block them.
 		context = sh.apply_trigger(attacker, "on_combat_start_negate", context, preview)
 		context = sh.apply_trigger(defender, "on_combat_start_negate", context, preview)
-		# Modifier pass: each side's on_combat_start skills, skipped when the
-		# opponent's Nihil blocked that side in the pre-pass.
-		if not context.get("attacker_skills_blocked", false):
-			context = sh.apply_trigger(attacker, "on_combat_start", context, preview)
-		if not context.get("defender_skills_blocked", false):
-			context = sh.apply_trigger(defender, "on_combat_start", context, preview)
+		# Modifier pass: each side's on_combat_start skills. When the opponent's Nihil
+		# blocked this side, apply_trigger still fires the Nihil-exempt skills (see
+		# SkillHandler.NIHIL_EXEMPT_SKILLS) and skips the rest.
+		context = sh.apply_trigger(attacker, "on_combat_start", context, preview,
+			context.get("attacker_skills_blocked", false))
+		context = sh.apply_trigger(defender, "on_combat_start", context, preview,
+			context.get("defender_skills_blocked", false))
 
 
 func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -310,8 +311,8 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
 	var blocked_key: String = "defender_skills_blocked" if is_counter else "attacker_skills_blocked"
 
-	if sh and not context.get(blocked_key, false):
-		sh.apply_trigger(actor, "on_attack", context)
+	if sh:
+		sh.apply_trigger(actor, "on_attack", context, false, context.get(blocked_key, false))
 
 	var hit_ctx := {
 		"accuracy_bonus": actor_mod["accuracy"],
@@ -337,8 +338,8 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	var damage: int    = 0
 
 	if did_hit:
-		if sh and not context.get(blocked_key, false):
-			sh.apply_trigger(actor, "on_hit", context)
+		if sh:
+			sh.apply_trigger(actor, "on_hit", context, false, context.get(blocked_key, false))
 		did_crit = (randi() % 100) < crit_pct
 		damage = base_dmg * 3 if did_crit else base_dmg
 		var dmg_mult: float = actor_mod["damage_multiplier"]
@@ -349,17 +350,17 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 		if sh:
 			var is_target_blocked: bool = context.get(
 				"attacker_skills_blocked" if is_counter else "defender_skills_blocked", false)
-			if not is_target_blocked:
-				var dmg_ctx2 := {
-					"damage": damage, "current_sim_hp": target_sim_hp,
-					"unit": target, "attacker": actor, "defender": target, "weapon": weapon,
-				}
-				dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2)
-				damage = dmg_ctx2.get("damage", damage)
+			var dmg_ctx2 := {
+				"damage": damage, "current_sim_hp": target_sim_hp,
+				"unit": target, "attacker": actor, "defender": target, "weapon": weapon,
+			}
+			# Nihil-blocked target: apply_trigger fires only NIHIL_EXEMPT_SKILLS.
+			dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2, false, is_target_blocked)
+			damage = dmg_ctx2.get("damage", damage)
 
 	# on_kill
-	if did_hit and damage >= target_sim_hp and sh and not context.get(blocked_key, false):
-		sh.apply_trigger(actor, "on_kill", context)
+	if did_hit and damage >= target_sim_hp and sh:
+		sh.apply_trigger(actor, "on_kill", context, false, context.get(blocked_key, false))
 
 	var loses_use: bool = false
 	if weapon != null:

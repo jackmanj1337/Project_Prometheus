@@ -429,6 +429,21 @@ func _init() -> void:
 		print("FAIL Nihil control: expected attacker_damage 17, got %d" % ctrl_prev["attacker_damage"])
 		failed += 1
 
+	# --- Nihil exemption: S-Rank Mastery still fires when the bearer is Nihil-blocked ---
+	# NIHIL_EXEMPT_SKILLS keeps s_rank_mastery active even though the defender's Nihil
+	# blocks the bearer's combat skills; swordfaire (not exempt) is still negated.
+	var exempt_atk = _make_unit({"name":"ExemptAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire","s_rank_mastery"]})
+	exempt_atk.data.proficiencies = {"sword": {"rank": "S", "wexp": 0}}
+	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var exempt_prev = cr.preview_combat(exempt_atk, exempt_def)
+	# Base 10+6-4 = 12. Swordfaire (+5) negated; S-Rank Mastery (+1 dmg, exempt) applies → 13.
+	if exempt_prev["attacker_damage"] == 13:
+		print("OK  Nihil exemption: S-Rank Mastery applies (+1) while Swordfaire is negated")
+		passed += 1
+	else:
+		print("FAIL Nihil exemption: expected attacker_damage 13, got %d" % exempt_prev["attacker_damage"])
+		failed += 1
+
 	# --- Mutual-kill: both attacker_died and defender_died can be true (BUG-01) ---
 	# Both units have 1 HP and deal far more than 1 damage — guaranteed mutual kill
 	# when both hit. Use 100% hit weapons to eliminate RNG.

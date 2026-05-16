@@ -12,6 +12,13 @@ var _dispatch: Dictionary = {}
 # from UnitData.skill_use_counters, which is the per-map tally.
 var _combat_skill_uses: Dictionary = {}
 
+# Skills Nihil cannot negate — they still activate when this unit's combat skills
+# are blocked. Matched against SkillData.id. s_rank_mastery is an earned, permanent
+# mastery bonus (innate, not a battle skill). nihil's own negate pre-pass is already
+# structurally exempt (it runs before the blocked flags are read), but it is listed
+# here so the whole exemption rule is stated in one place.
+const NIHIL_EXEMPT_SKILLS: Array[String] = ["s_rank_mastery", "nihil"]
+
 
 func _ready() -> void:
 	_dispatch = {
@@ -61,8 +68,12 @@ func reset_combat_uses() -> void:
 # excluded from the forecast entirely, even at 100%+ chance, so the preview never
 # gambles on a proc. Deterministic skills (HP-threshold buffs like Resolve/Wrath,
 # weapon-type bonuses) still apply, so the forecast reflects guaranteed effects.
+#
+# skills_blocked = true (set by an opponent's Nihil): only skills in
+# NIHIL_EXEMPT_SKILLS fire; every other skill on this trigger is skipped. Always
+# false for non-combat triggers, which Nihil does not affect.
 func apply_trigger(unit: Node, trigger: String, context: Dictionary,
-		preview: bool = false) -> Dictionary:
+		preview: bool = false, skills_blocked: bool = false) -> Dictionary:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return context
 	var dm := get_node_or_null("/root/DataManager")
@@ -77,6 +88,10 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		if skill == null:
 			continue
 		if skill.trigger != trigger:
+			continue
+		# Nihil: when this unit's combat skills are negated, fire only the exempt
+		# ones. NIHIL_EXEMPT_SKILLS is matched by skill id.
+		if skills_blocked and not (skill.id in NIHIL_EXEMPT_SKILLS):
 			continue
 		# Combat preview must be deterministic — skip any skill that rolls to activate.
 		if preview and skill.activation_chance_stat != "":
