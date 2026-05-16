@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/NewGameScreen.tscn" id="2_newgame"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -45,3 +46,5 @@ text = "New Game"
 [node name="QuitButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Quit"
+
+[node name="NewGameScreen" parent="." instance=ExtResource("2_newgame")]
