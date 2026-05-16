@@ -563,7 +563,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	result["defender_died"] = defender_died
 	result["attacker_died"] = attacker_died
 	var atk_exp: int = calculate_exp(attacker, defender, defender_died) if atk_hit else 0
-	var def_exp: int = calculate_exp(defender, attacker, attacker_died) if (def_hit and not attacker_died) else 0
+	var def_exp: int = calculate_exp(defender, attacker, attacker_died) if def_hit else 0
 	result["attacker_exp"] = atk_exp
 	result["defender_exp"] = def_exp
 

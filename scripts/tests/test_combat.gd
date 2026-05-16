@@ -444,6 +444,24 @@ func _init() -> void:
 		print("FAIL mid-combat break: expected hp=35, got %d" % break_def.data.hp)
 		failed += 1
 
+	# --- A1: defender earns kill-tier EXP when it counter-kills the attacker ---
+	# Attacker hits for trivial damage (defender survives); defender counters for a
+	# guaranteed kill. The defender must still receive kill-tier EXP — the old code
+	# zeroed it out because the attacker died.
+	var ck_weak_sword = _make_weapon({"id":"ck_weak","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
+	var ck_kill_sword = _make_weapon({"id":"ck_kill","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
+	var ck_atk = _make_unit({"name":"CKAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":10,"max_hp":10,"weapon":ck_weak_sword})
+	var ck_def = _make_unit({"name":"CKDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0),"weapon":ck_kill_sword})
+	var ck_result := cr.resolve_combat(ck_atk, ck_def)
+	cr.apply_combat_result(ck_result, ck_atk, ck_def)
+	# Equal level (5 vs 5) kill EXP = 30 (matches the "EXP kill equal level" case above).
+	if ck_result["attacker_died"] and ck_result["defender_exp"] == 30:
+		print("OK  A1: counter-kill awards defender kill-tier EXP (%d)" % ck_result["defender_exp"])
+		passed += 1
+	else:
+		print("FAIL A1: attacker_died=%s defender_exp=%d (want died, 30)" % [ck_result["attacker_died"], ck_result["defender_exp"]])
+		failed += 1
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
