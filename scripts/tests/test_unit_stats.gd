@@ -13,10 +13,6 @@ func _init() -> void:
 	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
 	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
 
-	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
-	var fire: WeaponData = load("res://data/weapons/fire.tres")
-	mage_data.proficiencies = {"fire": {"rank": "D", "wexp": 0}}
-
 	var fixed_data := UnitData.new()
 	fixed_data.level = 1
 	fixed_data.hp = 20; fixed_data.max_hp = 20
@@ -34,10 +30,6 @@ func _init() -> void:
 	var unit: Unit = unit_scene.instantiate()
 	unit.data = soldier_data
 	root.add_child(unit)
-
-	var mage: Unit = unit_scene.instantiate()
-	mage.data = mage_data
-	root.add_child(mage)
 
 	var fixed_unit: Unit = unit_scene.instantiate()
 	fixed_unit.data = fixed_data
@@ -63,15 +55,13 @@ func _init() -> void:
 	# Battle Speed = SPD - max(0, Wt - STR) = 6 - max(0, 8-7) = 6 - 1 = 5
 	# Accuracy     = SKL*2 + LUK + weapon.Hit = 12 + 6 + 80 = 98
 	# Dodge        = battle_speed*2 + LUK = 10 + 6 = 16
-	# Damage       = STR + Mt = 7 + 7 = 14
 	# Crit         = floor(SKL/2) + weapon.Crit = 3 + 0 = 3
 	# Crit Avoid   = LUK = 6
 
 	var checks := [
 		["battle_speed", unit.battle_speed(iron_lance), 5],
 		["accuracy",     unit.accuracy(iron_lance),     98],
-		["dodge",        unit.dodge(iron_lance),          16],
-		["damage",       unit.damage(iron_lance),        14],
+		["dodge",        unit.dodge(iron_lance),         16],
 		["crit_rate",    unit.crit_rate(iron_lance),     3],
 		["crit_avoid",   unit.crit_avoid(),              6],
 	]
@@ -87,12 +77,11 @@ func _init() -> void:
 			failed += 1
 
 	# --- S-rank: stat methods return BASE values; bonus applied via s_rank_mastery skill at combat time ---
-	# accuracy/damage/crit_rate no longer include S-rank; the skill fires on_combat_start and
+	# accuracy/crit_rate no longer include S-rank; the skill fires on_combat_start and
 	# injects into atk_mod, which CombatResolver picks up. Test that base values are unchanged.
 	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 0}}
 	var srank_checks := [
 		["S-rank accuracy base (no bonus in stat method)",  unit.accuracy(iron_lance),  98],
-		["S-rank damage base (no bonus in stat method)",    unit.damage(iron_lance),    14],
 		["S-rank crit_rate base (no bonus in stat method)", unit.crit_rate(iron_lance), 3],
 	]
 	for c in srank_checks:
@@ -105,25 +94,6 @@ func _init() -> void:
 		else:
 			print("FAIL %s: got %d, want %d" % [label, got, want])
 			failed += 1
-
-	# --- Magic weapon uses MAG, not STR ---
-	# Build a Mage with Fire tome: STR 1, MAG 7; Fire: Mt 4 (uses_mag=true)
-	# Damage = MAG + Mt = 7 + 4 = 11
-	if mage.damage(fire) == 11:
-		print("OK  mage damage with Fire = 11 (uses MAG, not STR)")
-		passed += 1
-	else:
-		print("FAIL mage damage: got %d, want 11" % mage.damage(fire))
-		failed += 1
-
-	# --- No weapon = 0 damage ---
-	mage_data.inventory = []
-	if mage.damage() == 0:
-		print("OK  no weapon = 0 damage")
-		passed += 1
-	else:
-		print("FAIL unarmed damage")
-		failed += 1
 
 	# --- HP changes ---
 	# Restore soldier's setup and run HP tests on it
@@ -356,7 +326,6 @@ func _init() -> void:
 
 	# Cleanup
 	unit.queue_free()
-	mage.queue_free()
 	fixed_unit.queue_free()
 	rand_unit.queue_free()
 	dur_unit.queue_free()

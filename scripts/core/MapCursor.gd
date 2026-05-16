@@ -504,6 +504,8 @@ func _commit_wait() -> void:
 
 # Cancel from unit_moved: snap the unit back to its pre-move tile and re-enter selection.
 func _undo_move_and_reselect() -> void:
+	if _state == State.LOCKED:
+		return
 	if _turn != null and _selected_unit != null:
 		_turn.undo_move(_selected_unit)
 	# Recompute and redisplay overlays so the player can pick a different destination.

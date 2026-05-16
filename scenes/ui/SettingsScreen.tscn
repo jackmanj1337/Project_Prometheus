@@ -1,0 +1,119 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/SettingsScreen.gd" id="1_settings"]
+
+[node name="SettingsScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_settings")
+visible = false
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 100.0
+offset_right = 890.0
+offset_bottom = 620.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Settings"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="HBoxMaster" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelMasterTitle" type="Label" parent="Panel/VBox/HBoxMaster"]
+layout_mode = 2
+text = "Master"
+custom_minimum_size = Vector2(100, 0)
+
+[node name="SliderMaster" type="HSlider" parent="Panel/VBox/HBoxMaster"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="LabelMaster" type="Label" parent="Panel/VBox/HBoxMaster"]
+layout_mode = 2
+text = "80"
+custom_minimum_size = Vector2(36, 0)
+horizontal_alignment = 2
+
+[node name="HBoxMusic" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelMusicTitle" type="Label" parent="Panel/VBox/HBoxMusic"]
+layout_mode = 2
+text = "Music"
+custom_minimum_size = Vector2(100, 0)
+
+[node name="SliderMusic" type="HSlider" parent="Panel/VBox/HBoxMusic"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value = 70.0
+
+[node name="LabelMusic" type="Label" parent="Panel/VBox/HBoxMusic"]
+layout_mode = 2
+text = "70"
+custom_minimum_size = Vector2(36, 0)
+horizontal_alignment = 2
+
+[node name="HBoxSFX" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelSFXTitle" type="Label" parent="Panel/VBox/HBoxSFX"]
+layout_mode = 2
+text = "SFX"
+custom_minimum_size = Vector2(100, 0)
+
+[node name="SliderSFX" type="HSlider" parent="Panel/VBox/HBoxSFX"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value = 90.0
+
+[node name="LabelSFX" type="Label" parent="Panel/VBox/HBoxSFX"]
+layout_mode = 2
+text = "90"
+custom_minimum_size = Vector2(36, 0)
+horizontal_alignment = 2
+
+[node name="HSep1" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptCombatAnim" type="OptionButton" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptMovementSpeed" type="OptionButton" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptPhaseBanner" type="OptionButton" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptLevelUpScreen" type="OptionButton" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="OptPermadeath" type="OptionButton" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="HSep2" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="BtnBack" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Back"

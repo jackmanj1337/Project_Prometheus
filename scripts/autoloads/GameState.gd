@@ -39,9 +39,11 @@ func _ready() -> void:
 	# Access SettingsManager at runtime via get_node to avoid a compile-time ordering
 	# issue in headless mode: GDScript may compile GameState.gd before SettingsManager.gd.
 	var sm := get_node_or_null("/root/SettingsManager")
-	if sm != null:
-		permadeath_enabled = sm.get("permadeath")
-		leveling_method = sm.get("leveling_method")
+	if sm == null:
+		push_error("GameState: SettingsManager autoload missing — check autoload ordering in Project Settings")
+		return
+	permadeath_enabled = sm.get("permadeath")
+	leveling_method = sm.get("leveling_method")
 
 
 func register_unit(unit: Node) -> void:

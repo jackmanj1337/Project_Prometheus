@@ -79,18 +79,20 @@ func _ready() -> void:
 
 
 func open() -> void:
-	var sm := SettingsManager
-	_slider_master.value = sm.master_volume
-	_slider_music.value  = sm.music_volume
-	_slider_sfx.value    = sm.sfx_volume
-	_label_master.text   = "%d" % sm.master_volume
-	_label_music.text    = "%d" % sm.music_volume
-	_label_sfx.text      = "%d" % sm.sfx_volume
-	_opt_combat_anim.selected    = maxi(0, _COMBAT_ANIM_OPTIONS.find(sm.combat_animations))
-	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.movement_speed))
-	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.phase_banner))
-	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.level_up_screen))
-	_opt_permadeath.selected     = int(sm.permadeath)  # 0=Off, 1=On
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	_slider_master.value = sm.get("master_volume")
+	_slider_music.value  = sm.get("music_volume")
+	_slider_sfx.value    = sm.get("sfx_volume")
+	_label_master.text   = "%d" % sm.get("master_volume")
+	_label_music.text    = "%d" % sm.get("music_volume")
+	_label_sfx.text      = "%d" % sm.get("sfx_volume")
+	_opt_combat_anim.selected    = maxi(0, _COMBAT_ANIM_OPTIONS.find(sm.get("combat_animations")))
+	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.get("movement_speed")))
+	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.get("phase_banner")))
+	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.get("level_up_screen")))
+	_opt_permadeath.selected     = int(sm.get("permadeath"))  # 0=Off, 1=On
 	show()
 	_btn_back.grab_focus()
 
@@ -105,42 +107,58 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_master_changed(value: float) -> void:
 	_label_master.text = "%d" % int(value)
-	SettingsManager.set_volume("Master", int(value))
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.call("set_volume", "Master", int(value))
 
 
 func _on_music_changed(value: float) -> void:
 	_label_music.text = "%d" % int(value)
-	SettingsManager.set_volume("Music", int(value))
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.call("set_volume", "Music", int(value))
 
 
 func _on_sfx_changed(value: float) -> void:
 	_label_sfx.text = "%d" % int(value)
-	SettingsManager.set_volume("SFX", int(value))
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.call("set_volume", "SFX", int(value))
 
 
 func _on_combat_anim_selected(index: int) -> void:
-	SettingsManager.combat_animations = _COMBAT_ANIM_OPTIONS[index]
-	SettingsManager.save()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("combat_animations", _COMBAT_ANIM_OPTIONS[index])
+		sm.call("save")
 
 
 func _on_movement_speed_selected(index: int) -> void:
-	SettingsManager.movement_speed = _MOVEMENT_SPEED_OPTIONS[index]
-	SettingsManager.save()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("movement_speed", _MOVEMENT_SPEED_OPTIONS[index])
+		sm.call("save")
 
 
 func _on_phase_banner_selected(index: int) -> void:
-	SettingsManager.phase_banner = _PHASE_BANNER_OPTIONS[index]
-	SettingsManager.save()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("phase_banner", _PHASE_BANNER_OPTIONS[index])
+		sm.call("save")
 
 
 func _on_level_up_selected(index: int) -> void:
-	SettingsManager.level_up_screen = _LEVEL_UP_OPTIONS[index]
-	SettingsManager.save()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("level_up_screen", _LEVEL_UP_OPTIONS[index])
+		sm.call("save")
 
 
 func _on_permadeath_selected(index: int) -> void:
-	SettingsManager.permadeath = bool(index)  # 0=Off, 1=On
-	SettingsManager.save()
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("permadeath", bool(index))  # 0=Off, 1=On
+		sm.call("save")
 
 
 func _on_back() -> void:

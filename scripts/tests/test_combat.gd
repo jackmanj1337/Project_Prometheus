@@ -86,7 +86,10 @@ class MockUnit extends Node:
 		if _weapon_uses <= 0:
 			return false
 		_weapon_uses -= 1
-		return _weapon_uses <= 0
+		if _weapon_uses <= 0:
+			_weapon = null
+			return true
+		return false
 
 	func take_damage(amount: int) -> void:
 		data.hp = max(0, data.hp - amount)

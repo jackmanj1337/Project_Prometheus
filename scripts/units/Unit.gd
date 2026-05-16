@@ -280,17 +280,6 @@ func dodge(weapon: WeaponData = null) -> int:
 	return battle_speed(weapon) * 2 + get_effective_stat("luck")
 
 
-# Damage = (STR or MAG) + weapon.Mt - target.(DEF or RES). Returns the unit's
-# OFFENSIVE side of the equation only (caller subtracts defender's def/res).
-# Effective-against weapon tags and S-rank bonus are handled in CombatResolver, not here.
-func damage(weapon: WeaponData = null) -> int:
-	var w := _weapon_or_equipped(weapon)
-	if w == null:
-		return 0
-	var base_stat: int = get_effective_stat("magic") if w.uses_mag else get_effective_stat("strength")
-	return base_stat + w.mt
-
-
 # Critical rate = floor(SKL/2) + weapon.Crit. S-rank bonus applied via s_rank_mastery skill.
 func crit_rate(weapon: WeaponData = null) -> int:
 	var w := _weapon_or_equipped(weapon)
