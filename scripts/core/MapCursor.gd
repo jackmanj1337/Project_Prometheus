@@ -510,26 +510,27 @@ func _finish_action() -> void:
 
 # ── Map Menu / End Turn ──────────────────────────────────────────────────────
 
-# Cycles cursor to the next READY player unit (Tab key). Wraps around.
+# Cycles cursor to the next player unit that can still act (Tab key). Wraps around.
+# Uses can_unit_act so MOVED units (mid-action) are included, not just READY ones.
 func _cycle_to_next_unit() -> void:
 	if _state != State.FREE or _turn == null:
 		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
-	var ready_units: Array[Node] = []
+	var actable_units: Array[Node] = []
 	for u in gs.get_living_player_units():
-		if _turn.get_unit_state(u) == TurnManager.UnitState.READY:
-			ready_units.append(u)
-	if ready_units.is_empty():
+		if _turn.can_unit_act(u):
+			actable_units.append(u)
+	if actable_units.is_empty():
 		return
 	# Find the next unit after the one currently under the cursor
 	var current_idx: int = -1
-	for i in ready_units.size():
-		if ready_units[i].tile_position == current_tile:
+	for i in actable_units.size():
+		if actable_units[i].tile_position == current_tile:
 			current_idx = i
 			break
-	var next_unit: Node = ready_units[(current_idx + 1) % ready_units.size()]
+	var next_unit: Node = actable_units[(current_idx + 1) % actable_units.size()]
 	_set_tile(next_unit.tile_position)
 
 

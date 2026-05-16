@@ -18,6 +18,7 @@ var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
 var _unit_is_selected: bool = false  # true while a player unit is actively selected
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
+var _displayed_unit: Node = null  # unit currently shown in the info panel (null when hidden)
 
 # Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
@@ -32,6 +33,9 @@ func _ready() -> void:
 		bus.phase_changed.connect(_on_phase_changed)
 		bus.unit_selected.connect(_on_unit_selected)
 		bus.unit_deselected.connect(_on_unit_deselected)
+		# Live-refresh the info panel when the displayed unit's HP changes.
+		bus.unit_damaged.connect(_on_unit_hp_changed)
+		bus.unit_healed.connect(_on_unit_hp_changed)
 	_update_turn_label()
 	_on_phase_changed(0)
 
@@ -70,10 +74,19 @@ func _on_cursor_moved(tile: Vector2i) -> void:
 		_show_unit(_grid.get_unit_at(tile) if _grid != null else null)
 
 
+# Refreshes the info panel if the unit whose HP changed is the one on display.
+# amount is unused — _show_unit re-reads HP straight from unit.data.
+func _on_unit_hp_changed(unit: Node, _amount: int) -> void:
+	if unit != null and unit == _displayed_unit:
+		_show_unit(unit)
+
+
 func _show_unit(unit: Node) -> void:
 	if unit == null or unit.data == null:
+		_displayed_unit = null
 		_unit_panel.hide()
 		return
+	_displayed_unit = unit
 	_unit_name.text = unit.data.unit_name
 	_unit_class.text = unit.data.class_id
 	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]

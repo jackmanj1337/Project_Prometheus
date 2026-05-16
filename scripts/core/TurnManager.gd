@@ -91,7 +91,7 @@ func start_player_phase() -> void:
 				u.reset_appearance()
 
 
-# Called by the End Turn button or by auto-end when all player units are DONE.
+# Called via the map menu's End Turn request (MapCursor._on_end_turn_requested).
 # Increments the turn counter and transitions to the enemy phase.
 func end_player_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
@@ -136,8 +136,8 @@ func can_unit_act(unit: Node) -> bool:
 	return s == UnitState.READY or s == UnitState.MOVED
 
 
-# True when every living player unit's state is DONE (used for auto-end-phase
-# and to enable the "End Turn" confirmation prompt).
+# True when no living player unit can still act. Used by the End Turn flow to
+# decide whether to skip the "some units have not acted" confirmation prompt.
 func are_all_player_units_done() -> bool:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
