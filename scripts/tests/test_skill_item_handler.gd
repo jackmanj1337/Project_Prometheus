@@ -258,5 +258,21 @@ func _init() -> void:
 	else:
 		print("FAIL empty item_id: uses were consumed"); failed += 1
 
+	# ── B1: -1 = infinite-use sentinel — item heals but is never consumed ─────
+	var inf_data: UnitData = soldier_data.duplicate(true)
+	inf_data.hp = 10
+	inf_data.max_hp = 17
+	var inf_unit := MockUnit.new()
+	inf_unit.setup(inf_data)
+	root.add_child(inf_unit)
+	var inf_entry := InventoryEntry.make_item("vulnerary", -1)
+	inf_data.inventory = [inf_entry]
+	ih.apply_item(inf_unit, inf_entry)
+	if inf_data.hp > 10 and inf_entry.uses_remaining == -1 and inf_data.inventory.size() == 1:
+		print("OK  B1: -1 item heals but is never consumed or removed"); passed += 1
+	else:
+		print("FAIL B1 item: hp=%d uses=%d inv=%d" \
+			% [inf_data.hp, inf_entry.uses_remaining, inf_data.inventory.size()]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

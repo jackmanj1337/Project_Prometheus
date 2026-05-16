@@ -195,6 +195,17 @@ func _init() -> void:
 		print("FAIL no-op check: inv=%s" % soldier_data.inventory)
 		failed += 1
 
+	# --- B1: -1 = infinite-use sentinel — weapon never decrements, never breaks ---
+	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", -1)]
+	var inf_broke: bool = unit.use_weapon_durability()
+	if not inf_broke and soldier_data.inventory.size() == 1 \
+			and soldier_data.inventory[0].uses_remaining == -1:
+		print("OK  B1: -1 weapon does not decrement or break")
+		passed += 1
+	else:
+		print("FAIL B1 weapon: broke=%s inv=%s" % [inf_broke, soldier_data.inventory])
+		failed += 1
+
 	# --- snap_to_tile ---
 	unit.snap_to_tile(Vector2i(5, 7))
 	if unit.tile_position == Vector2i(5, 7) and unit.position == Vector2(5 * GameConstants.TILE_SIZE, 7 * GameConstants.TILE_SIZE):

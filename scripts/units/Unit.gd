@@ -91,7 +91,7 @@ func _find_equipped_weapon() -> Array:
 	if data == null:
 		return []
 	for entry in data.inventory:
-		if not entry.is_weapon() or entry.uses_remaining <= 0:
+		if not entry.is_weapon() or not entry.has_uses():
 			continue
 		var weapon := _load_weapon(entry.weapon_id)
 		if weapon == null or not _can_equip_rank(weapon):
@@ -371,8 +371,10 @@ func use_weapon_durability(weapon_id: String = "") -> bool:
 			continue
 		if weapon_id != "" and entry.weapon_id != weapon_id:
 			continue
-		if entry.uses_remaining <= 0:
+		if not entry.has_uses():
 			continue
+		if entry.uses_remaining == -1:
+			return false  # infinite-use weapon: never decrements, never breaks
 		entry.uses_remaining -= 1
 		if entry.uses_remaining <= 0:
 			data.inventory.remove_at(i)

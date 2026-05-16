@@ -469,7 +469,7 @@ func _use_item() -> void:
 		return
 	# Fallback when ItemMenu is not wired: consume first valid item automatically
 	for entry in _selected_unit.data.inventory:
-		if entry.is_item() and entry.uses_remaining > 0:
+		if entry.is_item() and entry.has_uses():
 			_apply_item_effect(entry)
 			break
 	_finish_action()

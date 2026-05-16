@@ -14,6 +14,8 @@ class_name InventoryEntry extends Resource
 @export var item_id: String = ""
 
 # ── Shared ────────────────────────────────────────────────────────────────
+# Remaining uses. -1 = infinite (sentinel), 0 = empty/exhausted, >0 = finite.
+# Equip-type entries ignore this — gate those with is_equip(), not uses.
 @export var uses_remaining: int = 0
 
 # ── Equipment bonus fields (equip type — M10 forging) ──────────────────────
@@ -26,6 +28,13 @@ class_name InventoryEntry extends Resource
 func is_weapon() -> bool: return entry_type == "weapon"
 func is_item()   -> bool: return entry_type == "item"
 func is_equip()  -> bool: return entry_type == "equip"
+
+
+# Whether this weapon/item entry still has uses. -1 (infinite) and any positive
+# count are usable; 0 means exhausted. Equip entries are exempt — they are gated
+# by is_equip(), not by uses.
+func has_uses() -> bool:
+	return uses_remaining != 0
 
 
 # Checks for common misconfiguration: wrong type/id combinations, unset entry_type.

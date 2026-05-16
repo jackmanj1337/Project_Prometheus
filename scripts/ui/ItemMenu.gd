@@ -27,13 +27,15 @@ func show_for(unit: Node) -> void:
 	for entry in unit.data.inventory:
 		if not entry.is_item():
 			continue
-		if entry.uses_remaining <= 0:
+		if not entry.has_uses():
 			continue
 		var btn := Button.new()
 		var dm := get_node_or_null("/root/DataManager")
 		var item: ItemData = dm.get_item(entry.item_id) if (dm and entry.item_id != "") else null
 		var name_text: String = item.display_name if item else "Item"
-		btn.text = "%s  (%d)" % [name_text, entry.uses_remaining]
+		# -1 is the infinite-use sentinel — show ∞ rather than a literal "-1".
+		var uses_text: String = "∞" if entry.uses_remaining == -1 else str(entry.uses_remaining)
+		btn.text = "%s  (%s)" % [name_text, uses_text]
 		btn.focus_mode = Control.FOCUS_ALL
 		_vbox.add_child(btn)
 		var captured: InventoryEntry = entry

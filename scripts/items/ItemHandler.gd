@@ -26,6 +26,8 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 		_:
 			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
 			return  # Don't consume the item if we can't apply its effect
+	if entry.uses_remaining == -1:
+		return  # infinite-use item: never consumed
 	entry.uses_remaining -= 1
 	if entry.uses_remaining <= 0:
 		unit.data.inventory.erase(entry)
