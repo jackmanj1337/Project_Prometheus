@@ -29,7 +29,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Format: { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
 
-# Array of skill ID strings referencing SkillData resources (equippable, counts against max_skills)
+# Array of skill ID strings referencing SkillData resources. Equippable; a
+# GameState.max_skills cap is planned but NOT yet enforced (see GameState).
 @export var skills: Array[String] = []
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.

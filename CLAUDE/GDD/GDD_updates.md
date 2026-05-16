@@ -1610,6 +1610,11 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] Stationary weapon interaction (Ballista/Onager use by player; already have WeaponData)
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
 - [ ] Pre-battle deployment screen
+- [ ] Enforce skill/inventory caps — `GameState.max_skills` and `max_inventory` exist
+      but nothing reads them. Enforce at the skill-equip UI and the trade/inventory
+      UI once those screens are built (a unit may not equip more than `max_skills`
+      skills or carry more than `max_inventory` items). Until then both fields are
+      inert; see the NOT-ENFORCED comment in `GameState.gd`.
 
 ### Maps
 

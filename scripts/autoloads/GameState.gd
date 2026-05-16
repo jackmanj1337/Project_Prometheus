@@ -13,6 +13,10 @@ enum Phase { PLAYER, ENEMY }
 # will serialize these into the save file. Defaults cover the direct-boot dev path.
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
+# NOT ENFORCED YET — nothing caps how many skills/items a unit carries. The
+# skill-equip and trade/inventory UIs that would enforce these don't exist; see
+# the "Enforce skill/inventory caps" item in CLAUDE/GDD/GDD_updates.md. Until that
+# milestone these two fields are inert.
 var max_skills: int = 4
 var max_inventory: int = 8
 
@@ -31,6 +35,11 @@ var party_items: Array[String] = []  # item IDs awarded by completed maps
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
+# Party-level economy snapshot — restored alongside unit data so a Retry (including
+# a Retry after a victory) rolls gold and item rewards back to the map's start
+# state, instead of letting a replay re-grant them.
+var _snapshot_party_gold: int = 0
+var _snapshot_party_items: Array[String] = []
 
 
 func register_unit(unit: Node) -> void:
@@ -135,6 +144,8 @@ func take_map_snapshot() -> void:
 	_map_start_snapshot.clear()
 	for unit_data in player_roster:
 		_map_start_snapshot.append(_snapshot_unit_data(unit_data))
+	_snapshot_party_gold = party_gold
+	_snapshot_party_items = party_items.duplicate()
 
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.
@@ -143,6 +154,9 @@ func restore_map_snapshot() -> void:
 	for i in player_roster.size():
 		if i < _map_start_snapshot.size():
 			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
+	# Roll the party economy back too, so a replayed map can't re-grant its rewards.
+	party_gold = _snapshot_party_gold
+	party_items = _snapshot_party_items.duplicate()
 	reset_map_state()
 	# Caller is responsible for reloading the scene after this returns.
 
