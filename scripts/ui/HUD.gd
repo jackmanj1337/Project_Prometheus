@@ -36,6 +36,8 @@ func _ready() -> void:
 		# Live-refresh the info panel when the displayed unit's HP changes.
 		bus.unit_damaged.connect(_on_unit_hp_changed)
 		bus.unit_healed.connect(_on_unit_hp_changed)
+		# Drop the panel when the displayed unit dies — its node is about to be freed.
+		bus.unit_died.connect(_on_unit_died)
 	_update_turn_label()
 	_on_phase_changed(0)
 
@@ -79,6 +81,13 @@ func _on_cursor_moved(tile: Vector2i) -> void:
 func _on_unit_hp_changed(unit: Node, _amount: int) -> void:
 	if unit != null and unit == _displayed_unit:
 		_show_unit(unit)
+
+
+# Hides the info panel if the unit that just died is the one on display, so the
+# panel never holds a stale reference to a freed node.
+func _on_unit_died(unit: Node) -> void:
+	if unit != null and unit == _displayed_unit:
+		_show_unit(null)
 
 
 func _show_unit(unit: Node) -> void:

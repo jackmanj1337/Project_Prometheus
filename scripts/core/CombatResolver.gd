@@ -476,6 +476,9 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
 		"attacker_weapon":  aw,
 		"defender_weapon":  dw,
+		# True when Vantage will make the defender strike first — the strike counts
+		# above are unaffected, but the exchange order is, so the UI surfaces it.
+		"defender_vantage": context["flags"]["vantage"],
 	}
 	# All stat reads are done — restore now so preview leaves no trace on live state.
 	_restore_unit_state(attacker, atk_snap)

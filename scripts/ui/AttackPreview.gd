@@ -30,7 +30,11 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	_atk_hit.text = "Hit  %d%%" % p["attacker_hit"]
 	_atk_crit.text = "Crit %d%%" % p["attacker_crit"]
 
-	_def_name.text = defender.data.unit_name if defender.data else "???"
+	# Flag Vantage on the defender's name — the defender will strike first.
+	var def_name: String = defender.data.unit_name if defender.data else "???"
+	if p.get("defender_vantage", false):
+		def_name += "  [Vantage]"
+	_def_name.text = def_name
 	_def_hp.text = "HP %d" % (defender.data.hp if defender.data else 0)
 	if p["can_counter"]:
 		_def_dmg.text = "Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]]

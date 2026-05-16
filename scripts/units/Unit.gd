@@ -537,6 +537,9 @@ func _level_up_fixed(rates: Dictionary) -> Dictionary:
 	return changes
 
 
+# NOT ENFORCED — stat caps. Per-class maximum stats are not yet modelled, so a
+# high-growth unit can grow past intended class limits. Clamp here once ClassData
+# carries cap data (e.g. data.strength = mini(data.strength + 1, cap)).
 func _increment_stat(stat: String) -> void:
 	match stat:
 		"hp":
