@@ -18,6 +18,8 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
+# "snap"|"disabled" — mouse behavior while choosing a target tile
+var mouse_targeting: String = "snap"
 # NOTE: permadeath and leveling_method are per-save gameplay rules, not global
 # preferences — they live on GameState, set via the New Game screen.
 
@@ -47,6 +49,7 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
+	mouse_targeting   = cfg.get_value("gameplay", "mouse_targeting",   mouse_targeting)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
@@ -64,6 +67,7 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
+	cfg.set_value("gameplay", "mouse_targeting",   mouse_targeting)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -85,6 +89,7 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
+			mouse_targeting   = "snap"
 		"controls":
 			keybindings = {}
 			_apply_keybindings()

@@ -18,6 +18,10 @@ func _ready() -> void:
 
 
 func _on_phase_changed(new_phase: int) -> void:
+	# Honor the phase_banner preference — "skip" suppresses the cosmetic banner.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.get("phase_banner") == "skip":
+		return
 	_label.text = "PLAYER PHASE" if new_phase == GameState.Phase.PLAYER else "ENEMY PHASE"
 	_animate()
 
