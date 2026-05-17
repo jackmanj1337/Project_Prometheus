@@ -265,6 +265,7 @@ func _set_tile(tile: Vector2i) -> void:
 #
 # State transitions:
 # free          →(confirm on player unit)→  unit_selected
+# free          →(confirm/cancel on empty tile, or the open_menu key)→ map menu (locked)
 # unit_selected →(confirm on move tile) →  unit_moved  (ActionMenu shown)
 # unit_selected →(cancel)              →  free
 # unit_moved    →[ActionMenu: attack]  →  targeting   (MapCursorTargeting, ATTACK)
@@ -290,6 +291,10 @@ func _on_confirm() -> void:
 
 func _on_cancel() -> void:
 	match _state:
+		State.FREE:
+			# Cancel on an empty tile opens the map menu (GDD_07).
+			if _is_cursor_on_empty_tile():
+				_open_map_menu()
 		State.UNIT_SELECTED:
 			_deselect()
 		State.UNIT_MOVED:
@@ -303,6 +308,12 @@ func _on_cancel() -> void:
 
 # ── State: FREE — unit selection ────────────────────────────────────────────
 
+# True when the cursor sits on a tile with no unit — the trigger for the
+# confirm/cancel-on-empty-tile map-menu open.
+func _is_cursor_on_empty_tile() -> bool:
+	return _grid != null and _grid.get_unit_at(current_tile) == null
+
+
 func _try_select_unit_at_cursor() -> void:
 	# MapCursorSelection does the grid validation + overlay painting; the FSM state
 	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
@@ -311,6 +322,9 @@ func _try_select_unit_at_cursor() -> void:
 		var bus := get_node_or_null("/root/EventBus")
 		if bus:
 			bus.unit_selected.emit(_selection.selected_unit)
+	elif _is_cursor_on_empty_tile():
+		# Confirm on an empty tile opens the map menu (GDD_07).
+		_open_map_menu()
 
 
 # ── State: UNIT_SELECTED — movement ─────────────────────────────────────────

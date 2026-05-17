@@ -153,14 +153,32 @@ func _init() -> void:
 		print("FAIL deselect: _state=%d selected=%s" % [c2._state, str(c2._selection.selected_unit)])
 		failed += 1
 
-	# ---- FREE + confirm on an empty tile → stays FREE ----
+	# ---- FREE + confirm on an empty tile → opens the map menu ----
+	# Wire a stub map_menu; _open_map_menu locks the cursor and calls open().
+	var map_menu_script := GDScript.new()
+	map_menu_script.source_code = "extends Node\nsignal end_turn_requested\nsignal menu_closed\nvar opened := false\nfunc open(): opened = true\n"
+	map_menu_script.reload()
+	c2.map_menu = map_menu_script.new()
+	root.add_child(c2.map_menu)
 	c2._set_tile(Vector2i(5, 5))  # no unit here
 	c2._on_confirm()
-	if c2._state == FREE and c2._selection.selected_unit == null:
-		print("OK  FREE + confirm on empty tile → stays FREE")
+	if c2._state == LOCKED and c2.map_menu.opened and c2._selection.selected_unit == null:
+		print("OK  FREE + confirm on empty tile → opens the map menu (LOCKED)")
 		passed += 1
 	else:
-		print("FAIL confirm-empty: _state=%d" % c2._state)
+		print("FAIL confirm-empty-menu: _state=%d opened=%s" % [c2._state, c2.map_menu.opened])
+		failed += 1
+
+	# ---- FREE + cancel on an empty tile → opens the map menu ----
+	c2.unlock()                   # back to FREE
+	c2.map_menu.opened = false
+	c2._set_tile(Vector2i(4, 4))  # still empty
+	c2._on_cancel()
+	if c2._state == LOCKED and c2.map_menu.opened:
+		print("OK  FREE + cancel on empty tile → opens the map menu (LOCKED)")
+		passed += 1
+	else:
+		print("FAIL cancel-empty-menu: _state=%d opened=%s" % [c2._state, c2.map_menu.opened])
 		failed += 1
 
 	# ---- FREE + confirm on an enemy unit → stays FREE ----
