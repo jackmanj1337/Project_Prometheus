@@ -1,5 +1,9 @@
 # Godot 4+ specific ignores
-.godot/
+# Ignore the editor cache directory's contents, but track the global class
+# cache: headless `--script` test runs never regenerate it, so it must be
+# versioned for new class_name scripts to resolve on CI / fresh clones.
+.godot/*
+!.godot/global_script_class_cache.cfg
 .nomedia
 
 # Godot-specific ignores
