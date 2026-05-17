@@ -13,6 +13,7 @@ TESTS=(
   test_enemy_ai
   test_skill_item_handler
   test_snapshot_coverage
+  test_map_cursor
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
