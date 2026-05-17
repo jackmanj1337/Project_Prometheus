@@ -14,6 +14,7 @@ TESTS=(
   test_skill_item_handler
   test_snapshot_coverage
   test_map_cursor
+  test_map_cursor_selection
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
