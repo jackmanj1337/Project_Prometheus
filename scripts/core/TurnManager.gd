@@ -67,6 +67,15 @@ func _tick_unit_modifiers(units: Array[Node], duration_type: String) -> void:
 			u.tick_modifiers(duration_type)
 
 
+# The per-phase routine shared by both phases: tick each unit's "turn"-duration
+# modifiers, apply fort/throne healing, then fire start_of_turn skills. Keeping the
+# three steps in one place means the player and enemy phases cannot drift apart.
+func _begin_phase(units: Array[Node]) -> void:
+	_tick_unit_modifiers(units, "turn")
+	_apply_fort_healing(units)
+	_apply_start_of_turn_skills(units)
+
+
 # Resets all player units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
@@ -82,9 +91,7 @@ func start_player_phase() -> void:
 		gs.set_phase(gs.Phase.PLAYER)
 		# map_turn ticks once per round (at the start of player phase, for all units)
 		_tick_unit_modifiers(gs.all_units, "map_turn")
-		_tick_unit_modifiers(gs.get_living_player_units(), "turn")
-		_apply_fort_healing(gs.get_living_player_units())
-		_apply_start_of_turn_skills(gs.get_living_player_units())
+		_begin_phase(gs.get_living_player_units())
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u) and u.team == "player":
 			_unit_states[u] = UnitState.READY
@@ -108,11 +115,9 @@ func start_enemy_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.ENEMY)
-		_tick_unit_modifiers(gs.get_living_enemy_units(), "turn")
-		_apply_fort_healing(gs.get_living_enemy_units())
-		# Symmetric with start_player_phase: enemy start_of_turn skills (e.g. Renewal)
-		# fire at the top of the enemy phase too.
-		_apply_start_of_turn_skills(gs.get_living_enemy_units())
+		# Same _begin_phase routine as the player phase — turn-modifier tick, fort
+		# healing, then start_of_turn skills (e.g. Renewal) — kept provably symmetric.
+		_begin_phase(gs.get_living_enemy_units())
 	var ai := get_node_or_null("/root/EnemyAI")
 	if ai:
 		await ai.run_enemy_phase(_grid, self)
