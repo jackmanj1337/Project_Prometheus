@@ -1,0 +1,128 @@
+extends SceneTree
+# Run with: godot --headless --path /workspace --script res://scripts/tests/test_game_state.gd
+# Tests GameState: the unit registry, the living-unit filters, phase tracking,
+# reset_map_state, the default-roster load, and the map-snapshot round-trip.
+# test_snapshot_coverage already verifies _snapshot_unit_data's FIELD coverage —
+# this suite covers the behavioural round-trip and the rest of the API.
+
+var _unit_stub: GDScript
+
+
+func _mk_unit(team_name: String, hp: int) -> Node:
+	var d := UnitData.new()
+	d.hp = hp
+	d.max_hp = 20
+	var u: Node = _unit_stub.new()
+	u.set("team", team_name)
+	u.set("data", d)
+	root.add_child(u)
+	return u
+
+
+func _init() -> void:
+	print("=== GameState Test ===")
+	var passed := 0
+	var failed := 0
+
+	_unit_stub = GDScript.new()
+	_unit_stub.source_code = "extends Node\nvar team: String = \"player\"\nvar data = null\n"
+	_unit_stub.reload()
+
+	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
+	gs.name = "GameState"
+	root.add_child(gs)
+	await process_frame
+
+	# ---- register_unit adds the unit to all_units ----
+	var p1 := _mk_unit("player", 20)
+	gs.register_unit(p1)
+	if p1 in gs.all_units:
+		print("OK  register_unit adds the unit to all_units"); passed += 1
+	else:
+		print("FAIL register_unit"); failed += 1
+
+	# ---- register_unit ignores a double registration (a push_error is expected) ----
+	var before: int = gs.all_units.size()
+	gs.register_unit(p1)
+	if gs.all_units.size() == before:
+		print("OK  register_unit: a double registration is ignored"); passed += 1
+	else:
+		print("FAIL register_unit double"); failed += 1
+
+	# ---- the living-unit getters separate units by team ----
+	gs.reset_map_state()
+	var pa := _mk_unit("player", 20)
+	var ea := _mk_unit("enemy", 20)
+	gs.register_unit(pa)
+	gs.register_unit(ea)
+	var lp: Array = gs.get_living_player_units()
+	var le: Array = gs.get_living_enemy_units()
+	if lp.size() == 1 and lp[0] == pa and le.size() == 1 and le[0] == ea:
+		print("OK  get_living_player/enemy_units separate units by team"); passed += 1
+	else:
+		print("FAIL living getters: players=%d enemies=%d" % [lp.size(), le.size()])
+		failed += 1
+
+	# ---- get_living_player_units excludes a dead (hp 0) unit ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("player", 20))
+	gs.register_unit(_mk_unit("player", 0))   # dead
+	if gs.get_living_player_units().size() == 1:
+		print("OK  get_living_player_units excludes a dead unit"); passed += 1
+	else:
+		print("FAIL living excludes dead: got %d" % gs.get_living_player_units().size())
+		failed += 1
+
+	# ---- unregister_unit removes the unit from every list ----
+	gs.reset_map_state()
+	var ru := _mk_unit("player", 20)
+	gs.register_unit(ru)
+	gs.unregister_unit(ru)
+	if not (ru in gs.all_units) and gs.get_living_player_units().is_empty():
+		print("OK  unregister_unit removes the unit from all lists"); passed += 1
+	else:
+		print("FAIL unregister_unit"); failed += 1
+
+	# ---- set_phase / is_player_turn track the current phase ----
+	gs.set_phase(gs.Phase.ENEMY)
+	var on_enemy: bool = not gs.is_player_turn()
+	gs.set_phase(gs.Phase.PLAYER)
+	if on_enemy and gs.is_player_turn():
+		print("OK  set_phase / is_player_turn track the current phase"); passed += 1
+	else:
+		print("FAIL set_phase / is_player_turn"); failed += 1
+
+	# ---- reset_map_state clears units and resets turn_number / phase ----
+	gs.register_unit(_mk_unit("player", 20))
+	gs.turn_number = 9
+	gs.set_phase(gs.Phase.ENEMY)
+	gs.reset_map_state()
+	if gs.all_units.is_empty() and gs.turn_number == 1 and gs.is_player_turn():
+		print("OK  reset_map_state clears units, turn_number → 1, phase → PLAYER"); passed += 1
+	else:
+		print("FAIL reset_map_state"); failed += 1
+
+	# ---- load_default_roster populates player_roster ----
+	gs.load_default_roster()
+	if gs.player_roster.size() > 0:
+		print("OK  load_default_roster loads the roster (%d units)" % gs.player_roster.size())
+		passed += 1
+	else:
+		print("FAIL load_default_roster: roster is empty"); failed += 1
+
+	# ---- take_map_snapshot / restore_map_snapshot: a hp change rolls back ----
+	var ud := UnitData.new()
+	ud.hp = 20
+	ud.max_hp = 20
+	var roster: Array[UnitData] = [ud]
+	gs.player_roster = roster
+	gs.take_map_snapshot()
+	ud.hp = 3                       # simulate battle damage
+	gs.restore_map_snapshot()
+	if ud.hp == 20:
+		print("OK  snapshot round-trip: restore_map_snapshot rolls hp back to 20"); passed += 1
+	else:
+		print("FAIL snapshot round-trip: hp=%d (want 20)" % ud.hp); failed += 1
+
+	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
+	quit(0 if failed == 0 else 1)

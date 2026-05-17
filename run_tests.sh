@@ -16,6 +16,10 @@ TESTS=(
   test_map_cursor
   test_map_cursor_selection
   test_map_cursor_input
+  test_turn_manager
+  test_game_state
+  test_data_manager
+  test_action_menu
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
