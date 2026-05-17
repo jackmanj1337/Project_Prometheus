@@ -563,6 +563,32 @@ func _init() -> void:
 		print("FAIL A1: attacker_died=%s defender_exp=%d (want died, 30)" % [ck_result["attacker_died"], ck_result["defender_exp"]])
 		failed += 1
 
+	# --- Vantage: a counter-killing Vantage defender pre-empts the attacker entirely ---
+	# With Vantage the defender strikes first. If that strike kills the attacker, the
+	# already-dead attacker must NOT swing back. Regression for the resolve_combat
+	# attacker loop missing an atk_sim_hp guard (code review 2026-05-16d, High).
+	# Speeds are equal (10 vs 10) so no follow-up muddies the exchange count.
+	var van_kill_lance = _make_weapon({"id":"van_kill","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
+	var van_atk = _make_unit({"name":"VanAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":8,"max_hp":8,"weapon":iron_sword})
+	var van_def = _make_unit({"name":"VanDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":40,"max_hp":40,"team":"enemy","tile":Vector2i(1,0),"weapon":van_kill_lance,"skills":["vantage"]})
+	var van_result := cr.resolve_combat(van_atk, van_def)
+	var van_atk_swung: bool = (van_result["exchanges"] as Array).any(
+		func(e): return e["attacker"] == van_atk)
+	if van_result["attacker_died"] and not van_result["defender_died"] and not van_atk_swung:
+		print("OK  Vantage: counter-killed attacker never swings back")
+		passed += 1
+	else:
+		print("FAIL Vantage: attacker_died=%s defender_died=%s attacker_swung=%s" \
+			% [van_result["attacker_died"], van_result["defender_died"], van_atk_swung])
+		failed += 1
+	# Exactly one exchange — the single defender strike that killed the attacker.
+	if (van_result["exchanges"] as Array).size() == 1:
+		print("OK  Vantage: exactly one exchange (the lethal counter)")
+		passed += 1
+	else:
+		print("FAIL Vantage: expected 1 exchange, got %d" % (van_result["exchanges"] as Array).size())
+		failed += 1
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -534,7 +534,9 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 
 	# Attacker's strikes
 	for _i in atk_strikes:
-		if def_sim_hp <= 0:
+		# Guard both sides: with Vantage the defender strikes first and may have
+		# already killed the attacker — a dead attacker must not swing back.
+		if def_sim_hp <= 0 or atk_sim_hp <= 0:
 			break
 		var ex := _resolve_strike(attacker, defender, context, false, def_sim_hp, weapon_uses, broken)
 		if ex.is_empty():
