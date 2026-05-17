@@ -210,5 +210,204 @@ func _init() -> void:
 		print("FAIL _try_staff_heal: healed with no valid target")
 		failed += 1
 
+	# ════════════════════════════════════════════════════════════════════════
+	# _act profile dispatch — full passive / basic / healer turns. These need
+	# /root/GameState + /root/CombatResolver and a stub unit with an awaitable
+	# move_along_path.
+	# ════════════════════════════════════════════════════════════════════════
+
+	# Stub unit for the _act tests: the _find_nearest stub plus an awaitable
+	# move_along_path (a one-frame coroutine, like the real Unit.move_along_path).
+	var act_stub := GDScript.new()
+	act_stub.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"enemy\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\nfunc move_along_path(p):\n\ttile_position = p[p.size() - 1]\n\tawait get_tree().process_frame\n"
+	act_stub.reload()
+
+	# Stub GameState: EnemyAI reads get_living_player/enemy_units; GridManager reads
+	# all_units. The three arrays are repopulated per test.
+	var act_gs_script := GDScript.new()
+	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\n"
+	act_gs_script.reload()
+	var act_gs: Node = act_gs_script.new()
+	act_gs.name = "GameState"
+	root.add_child(act_gs)
+
+	# Stub CombatResolver: records resolve_combat so the attack tests can assert it.
+	var act_cr_script := GDScript.new()
+	act_cr_script.source_code = "extends Node\nvar resolve_called: bool = false\nvar last_target = null\nfunc resolve_combat(_a, b):\n\tresolve_called = true\n\tlast_target = b\n\treturn {}\nfunc apply_combat_result(_r, _a, _b): pass\n"
+	act_cr_script.reload()
+	var act_cr: Node = act_cr_script.new()
+	act_cr.name = "CombatResolver"
+	root.add_child(act_cr)
+
+	# Shared 8x3 plain grid + a TurnManager for the _act tests.
+	var act_grid := GridManager.new()
+	act_grid.map_width = 8
+	act_grid.map_height = 3
+	for ay in 3:
+		for ax in 8:
+			act_grid.set_terrain_fallback(Vector2i(ax, ay), "plain")
+	root.add_child(act_grid)
+	var act_turn := TurnManager.new()
+	root.add_child(act_turn)
+
+	# Let the tree go active so nodes report is_inside_tree() and EnemyAI's
+	# get_node_or_null("/root/GameState" / "/root/CombatResolver") resolves.
+	await process_frame
+
+	# ---- _act passive: holds position, no combat when no player is in range ----
+	var pas_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "passive", 20,
+		"res://data/weapons/iron_sword.tres")
+	var pas_player := _mk_act_unit(act_stub, Vector2i(6, 0), "player", "basic", 20, "")
+	var pas_units: Array[Node] = [pas_enemy, pas_player]
+	var pas_players: Array[Node] = [pas_player]
+	var pas_enemies: Array[Node] = [pas_enemy]
+	act_gs.set("all_units", pas_units)
+	act_gs.set("players", pas_players)
+	act_gs.set("enemies", pas_enemies)
+	act_cr.set("resolve_called", false)
+	await ai._act(pas_enemy, act_grid, act_turn)
+	if pas_enemy.tile_position == Vector2i(0, 0) \
+			and act_turn.get_unit_state(pas_enemy) == TurnManager.UnitState.DONE \
+			and not act_cr.get("resolve_called"):
+		print("OK  _act passive: holds position, no combat with no target in range")
+		passed += 1
+	else:
+		print("FAIL _act passive hold: tile=%s state=%d resolve=%s" % [
+			str(pas_enemy.tile_position), act_turn.get_unit_state(pas_enemy),
+			act_cr.get("resolve_called")])
+		failed += 1
+
+	# ---- _act passive: attacks a player already in range, still does not move ----
+	var pa_enemy := _mk_act_unit(act_stub, Vector2i(2, 1), "enemy", "passive", 20,
+		"res://data/weapons/iron_sword.tres")
+	var pa_player := _mk_act_unit(act_stub, Vector2i(3, 1), "player", "basic", 20, "")
+	var pa_units: Array[Node] = [pa_enemy, pa_player]
+	var pa_players: Array[Node] = [pa_player]
+	var pa_enemies: Array[Node] = [pa_enemy]
+	act_gs.set("all_units", pa_units)
+	act_gs.set("players", pa_players)
+	act_gs.set("enemies", pa_enemies)
+	act_cr.set("resolve_called", false)
+	act_cr.set("last_target", null)
+	await ai._act(pa_enemy, act_grid, act_turn)
+	if pa_enemy.tile_position == Vector2i(2, 1) and act_cr.get("resolve_called") \
+			and act_cr.get("last_target") == pa_player \
+			and act_turn.get_unit_state(pa_enemy) == TurnManager.UnitState.DONE:
+		print("OK  _act passive: attacks an adjacent player without moving")
+		passed += 1
+	else:
+		print("FAIL _act passive attack: tile=%s resolve=%s state=%d" % [
+			str(pa_enemy.tile_position), act_cr.get("resolve_called"),
+			act_turn.get_unit_state(pa_enemy)])
+		failed += 1
+
+	# ---- _act basic: no living players → marks DONE immediately, no move ----
+	var nb_enemy := _mk_act_unit(act_stub, Vector2i(1, 1), "enemy", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	var nb_units: Array[Node] = [nb_enemy]
+	var nb_empty: Array[Node] = []
+	act_gs.set("all_units", nb_units)
+	act_gs.set("players", nb_empty)
+	act_gs.set("enemies", nb_units)
+	await ai._act(nb_enemy, act_grid, act_turn)
+	if nb_enemy.tile_position == Vector2i(1, 1) \
+			and act_turn.get_unit_state(nb_enemy) == TurnManager.UnitState.DONE:
+		print("OK  _act basic: no players → DONE without moving")
+		passed += 1
+	else:
+		print("FAIL _act basic no-players: tile=%s state=%d" % [
+			str(nb_enemy.tile_position), act_turn.get_unit_state(nb_enemy)])
+		failed += 1
+
+	# ---- _act basic: closes on a distant player and attacks from in range ----
+	var bm_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	var bm_player := _mk_act_unit(act_stub, Vector2i(4, 0), "player", "basic", 20, "")
+	var bm_units: Array[Node] = [bm_enemy, bm_player]
+	var bm_players: Array[Node] = [bm_player]
+	var bm_enemies: Array[Node] = [bm_enemy]
+	act_gs.set("all_units", bm_units)
+	act_gs.set("players", bm_players)
+	act_gs.set("enemies", bm_enemies)
+	act_cr.set("resolve_called", false)
+	act_cr.set("last_target", null)
+	await ai._act(bm_enemy, act_grid, act_turn)
+	var bm_moved: bool = bm_enemy.tile_position != Vector2i(0, 0)
+	var bm_adj: int = absi(bm_enemy.tile_position.x - 4) + absi(bm_enemy.tile_position.y)
+	if bm_moved and bm_adj == 1 and act_cr.get("resolve_called") \
+			and act_cr.get("last_target") == bm_player \
+			and act_turn.get_unit_state(bm_enemy) == TurnManager.UnitState.DONE:
+		print("OK  _act basic: closes on a distant player and attacks (moved to %s)" \
+			% str(bm_enemy.tile_position))
+		passed += 1
+	else:
+		print("FAIL _act basic move+attack: tile=%s resolve=%s state=%d" % [
+			str(bm_enemy.tile_position), act_cr.get("resolve_called"),
+			act_turn.get_unit_state(bm_enemy)])
+		failed += 1
+
+	# ---- _act healer: routes into staff range of an injured ally and heals it.
+	#      Regression guard for the can_attack_from_tile-vs-staff bug — a healer
+	#      carrying a real staff must still route via in_weapon_range_from_tile.
+	var hl_healer := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "healer", 20,
+		"res://data/weapons/heal_staff.tres")
+	var hl_injured := _mk_act_unit(act_stub, Vector2i(4, 0), "enemy", "basic", 5, "")
+	var hl_units: Array[Node] = [hl_healer, hl_injured]
+	var hl_empty: Array[Node] = []
+	act_gs.set("all_units", hl_units)
+	act_gs.set("players", hl_empty)
+	act_gs.set("enemies", hl_units)
+	await ai._act(hl_healer, act_grid, act_turn)
+	var hl_moved: bool = hl_healer.tile_position != Vector2i(0, 0)
+	if hl_moved and hl_healer.get("staff_heal_called") \
+			and act_turn.get_unit_state(hl_healer) == TurnManager.UnitState.DONE:
+		print("OK  _act healer: routes to an injured ally and heals (moved to %s)" \
+			% str(hl_healer.tile_position))
+		passed += 1
+	else:
+		print("FAIL _act healer route+heal: tile=%s healed=%s state=%d" % [
+			str(hl_healer.tile_position), hl_healer.get("staff_heal_called"),
+			act_turn.get_unit_state(hl_healer)])
+		failed += 1
+
+	# ---- _act healer: all allies at full HP → no reposition, no heal, DONE ----
+	var hn_healer := _mk_act_unit(act_stub, Vector2i(2, 1), "enemy", "healer", 20,
+		"res://data/weapons/heal_staff.tres")
+	var hn_ally := _mk_act_unit(act_stub, Vector2i(4, 1), "enemy", "basic", 20, "")
+	var hn_units: Array[Node] = [hn_healer, hn_ally]
+	var hn_empty: Array[Node] = []
+	act_gs.set("all_units", hn_units)
+	act_gs.set("players", hn_empty)
+	act_gs.set("enemies", hn_units)
+	await ai._act(hn_healer, act_grid, act_turn)
+	if hn_healer.tile_position == Vector2i(2, 1) \
+			and not hn_healer.get("staff_heal_called") \
+			and act_turn.get_unit_state(hn_healer) == TurnManager.UnitState.DONE:
+		print("OK  _act healer: no injured ally → holds position, no heal")
+		passed += 1
+	else:
+		print("FAIL _act healer idle: tile=%s healed=%s state=%d" % [
+			str(hn_healer.tile_position), hn_healer.get("staff_heal_called"),
+			act_turn.get_unit_state(hn_healer)])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+# Builds an _act-test stub unit with a fresh UnitData. weapon_path "" → no weapon.
+func _mk_act_unit(stub: GDScript, tile: Vector2i, team_name: String,
+		profile: String, hp: int, weapon_path: String) -> Node:
+	var d := UnitData.new()
+	d.ai_profile = profile
+	d.hp = hp
+	d.max_hp = 20
+	d.movement = 5
+	var u: Node = stub.new()
+	u.set("tile_position", tile)
+	u.set("team", team_name)
+	u.set("data", d)
+	if weapon_path != "":
+		u.set("_weapon", load(weapon_path))
+	root.add_child(u)
+	return u

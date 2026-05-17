@@ -115,7 +115,8 @@ func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
 				continue
 			if ally.data == null or ally.data.hp >= ally.data.max_hp:
 				continue
-			if not grid.can_attack_from_tile(enemy, tile, ally):
+			# Staff reach, not attack reach — can_attack_from_tile rejects staves.
+			if not grid.in_weapon_range_from_tile(enemy, tile, ally):
 				continue
 			var terrain: String = grid.get_terrain_at(tile)
 			var terrain_bonus: int = GridManager.TERRAIN_DEF_BONUS.get(terrain, 0) \

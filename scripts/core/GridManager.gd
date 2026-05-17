@@ -339,12 +339,19 @@ func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
 
 
 func can_attack_from_tile(attacker: Node, at_tile: Vector2i, target: Node) -> bool:
-	if attacker == null or target == null:
-		return false
 	# Healing staves can't attack — consistent with get_attackable_enemies_from_tile.
-	if not _equipped_can_attack(attacker):
+	if attacker == null or not _equipped_can_attack(attacker):
 		return false
-	var wrange := _get_weapon_range(attacker)
+	return in_weapon_range_from_tile(attacker, at_tile, target)
+
+
+# True when `target` is within `unit`'s weapon range from `at_tile`, regardless of
+# whether the weapon can attack. Staff-heal positioning uses this — can_attack_from_tile
+# rejects healing staves, which is wrong for deciding where a healer should stand.
+func in_weapon_range_from_tile(unit: Node, at_tile: Vector2i, target: Node) -> bool:
+	if unit == null or target == null:
+		return false
+	var wrange := _get_weapon_range(unit)
 	var dist: int = absi(target.tile_position.x - at_tile.x) + absi(target.tile_position.y - at_tile.y)
 	return dist >= wrange.x and dist <= wrange.y
 
