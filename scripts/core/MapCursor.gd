@@ -2,15 +2,14 @@ class_name MapCursor extends Node2D
 # The player's tile-position cursor. Handles keyboard, mouse, and camera scrolling.
 # Emits EventBus.cursor_moved on every tile change so HUD panels can react.
 #
-# [D-1, in progress] The attack/staff targeting flow has been extracted into
-# MapCursorTargeting (slice 1). The remaining MapCursorInput / MapCursorSelection
-# splits are tracked for future slices.
+# Three concerns have been sliced out into RefCounted helpers: MapCursorTargeting
+# (attack/staff flow, D-2), MapCursorSelection (unit selection + move planning, D-3),
+# and MapCursorInput (key decode + auto-repeat, D-3). MapCursor keeps the cursor FSM,
+# camera, menus, and the thin input/mouse receiver shells.
 #
 # State machine: see State enum below and the transition diagram above _on_confirm().
 
-# Key-repeat timings — source of truth is GameConstants; aliases kept here for readability.
-const KEY_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
-const KEY_REPEAT_RATE: float  = GameConstants.CURSOR_KEY_REPEAT_RATE
+# Camera-pan trigger distance. Key-repeat timings now live in MapCursorInput.
 const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
 
 var current_tile: Vector2i = Vector2i(0, 0)
@@ -36,10 +35,9 @@ var _selection: MapCursorSelection = MapCursorSelection.new()
 # above stays here; this object owns the CHOOSING/PREVIEWING sub-state.
 var _targeting: MapCursorTargeting = MapCursorTargeting.new()
 
-# Key-repeat timer state
-var _held_dir: Vector2i = Vector2i.ZERO
-var _held_timer: float = 0.0
-var _held_initial: bool = true
+# Keyboard decoding + held-key auto-repeat — see MapCursorInput.gd (D-3 slice).
+# Named _input_handler, not _input, to avoid colliding with the _input() callback.
+var _input_handler: MapCursorInput = MapCursorInput.new()
 
 # Assign these in the editor — the menu nodes that live in the HUD layer.
 # Typed as Node so the script compiles in headless test mode where class_name lookup fails.
@@ -108,66 +106,50 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if _held_dir == Vector2i.ZERO:
-		return
 	# Auto-repeat only applies to free cursor movement. If the state changed
 	# while a key was held (e.g. confirmed into TARGETING), drop the held dir
 	# so the cursor doesn't drift out of a menu/targeting context.
 	if _state != State.FREE and _state != State.UNIT_SELECTED:
-		_held_dir = Vector2i.ZERO
+		_input_handler.clear_repeat()
 		return
-	# Held-key auto-repeat: initial 0.25s pause, then 0.10s per step
-	_held_timer -= delta
-	if _held_timer <= 0.0:
-		move_cursor(_held_dir)
-		_held_timer = KEY_REPEAT_RATE if not _held_initial else KEY_REPEAT_DELAY
-		_held_initial = false
+	var d := _input_handler.tick(delta)
+	if d != Vector2i.ZERO:
+		move_cursor(d)
 
 
 func _handle_key_press(event: InputEventKey) -> void:
-	var dir := _direction_from_event(event)
-	if dir != Vector2i.ZERO:
-		match _state:
-			State.FREE, State.UNIT_SELECTED:
-				# Free cursor movement, with held-key auto-repeat.
-				move_cursor(dir)
-				_held_dir = dir
-				_held_timer = KEY_REPEAT_DELAY
-				_held_initial = true
-			State.TARGETING:
-				# Arrows step between valid targets instead of moving freely.
-				_cycle_target(dir)
-			# UNIT_MOVED (ActionMenu owns input) ignores direction keys entirely.
-		return
-	if event.is_action_pressed("confirm"):
-		_on_confirm()
-	elif event.is_action_pressed("cancel"):
-		_on_cancel()
-	elif event.is_action_pressed("next_unit"):
-		_cycle_to_next_unit()
-	elif event.is_action_pressed("open_menu") and _state == State.FREE:
-		_open_map_menu()
-
-
-func _direction_from_event(event: InputEventKey) -> Vector2i:
-	if event.is_action_pressed("cursor_up"):    return Vector2i(0, -1)
-	if event.is_action_pressed("cursor_down"):  return Vector2i(0, 1)
-	if event.is_action_pressed("cursor_left"):  return Vector2i(-1, 0)
-	if event.is_action_pressed("cursor_right"): return Vector2i(1, 0)
-	return Vector2i.ZERO
+	# MapCursorInput decodes the key into a state-agnostic intent; the FSM here
+	# decides what a MOVE means per _state (free move / target cycle / ignored).
+	var decoded := _input_handler.decode_key(event)
+	match decoded["intent"]:
+		MapCursorInput.Intent.MOVE:
+			var dir: Vector2i = decoded["dir"]
+			match _state:
+				State.FREE, State.UNIT_SELECTED:
+					# Free cursor movement, with held-key auto-repeat.
+					move_cursor(dir)
+					_input_handler.arm_repeat(dir)
+				State.TARGETING:
+					# Arrows step between valid targets instead of moving freely.
+					_cycle_target(dir)
+				# UNIT_MOVED (ActionMenu owns input) ignores direction keys entirely.
+		MapCursorInput.Intent.CONFIRM:
+			_on_confirm()
+		MapCursorInput.Intent.CANCEL:
+			_on_cancel()
+		MapCursorInput.Intent.NEXT_UNIT:
+			_cycle_to_next_unit()
+		MapCursorInput.Intent.OPEN_MENU:
+			if _state == State.FREE:
+				_open_map_menu()
 
 
 # Reset key-repeat when the held key is released; handle danger zone hold
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if not event.pressed:
-			var dir := Vector2i.ZERO
-			if event.is_action_released("cursor_up"):    dir = Vector2i(0, -1)
-			elif event.is_action_released("cursor_down"):  dir = Vector2i(0, 1)
-			elif event.is_action_released("cursor_left"):  dir = Vector2i(-1, 0)
-			elif event.is_action_released("cursor_right"): dir = Vector2i(1, 0)
-			if dir != Vector2i.ZERO and _held_dir == dir:
-				_held_dir = Vector2i.ZERO
+			# Clear key-repeat when the held direction key is released.
+			_input_handler.note_key_released(event)
 			if event.is_action_released("show_danger_zone") and _danger_zone_shown:
 				if _grid != null:
 					_grid.clear_overlays()
@@ -230,7 +212,7 @@ func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
 
 
 # Step the cursor to the next/previous valid target. Right/Down advance, Left/Up
-# go back; the list wraps. dir is a unit cardinal vector from _direction_from_event.
+# go back; the list wraps. dir is a unit cardinal vector decoded by MapCursorInput.
 func _cycle_target(dir: Vector2i) -> void:
 	if not _targeting.can_change_target():
 		return  # frozen while the attack preview is showing
@@ -554,9 +536,7 @@ func _on_map_menu_closed() -> void:
 
 func lock() -> void:
 	_state = State.LOCKED
-	_held_dir = Vector2i.ZERO
-	_held_timer = 0.0
-	_held_initial = true
+	_input_handler.clear_repeat()
 
 
 func unlock() -> void:

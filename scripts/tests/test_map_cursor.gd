@@ -81,13 +81,13 @@ func _init() -> void:
 		failed += 1
 
 	# ---- lock() / unlock() ----
-	c1._held_dir = Vector2i(1, 0)
+	c1._input_handler._held_dir = Vector2i(1, 0)
 	c1.lock()
-	if c1._state == LOCKED and c1._held_dir == Vector2i.ZERO:
+	if c1._state == LOCKED and c1._input_handler._held_dir == Vector2i.ZERO:
 		print("OK  lock() → LOCKED and clears held direction")
 		passed += 1
 	else:
-		print("FAIL lock(): _state=%d _held_dir=%s" % [c1._state, str(c1._held_dir)])
+		print("FAIL lock(): _state=%d _input_handler._held_dir=%s" % [c1._state, str(c1._input_handler._held_dir)])
 		failed += 1
 	c1.unlock()
 	if c1._state == FREE:
