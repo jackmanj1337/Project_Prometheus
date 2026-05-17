@@ -15,6 +15,7 @@ TESTS=(
   test_snapshot_coverage
   test_map_cursor
   test_map_cursor_selection
+  test_map_cursor_input
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
