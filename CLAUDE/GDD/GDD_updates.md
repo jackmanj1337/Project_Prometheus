@@ -43,6 +43,9 @@ This document is a direct continuation of `GDD_09_Checklist.md`. It covers two t
 | M11 — Content Expansion | — | After M10 |
 | M12 — Laguz System | [DEFERRED] | After M11; fully specced below |
 | M13 — Awakening Supplement | [DEFERRED] | After M12 |
+| M14 — Faction System | — | Stages 1–3 recommended before M9 — see milestone note |
+| M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED] |
+| M16 — Objective System | — | Independent of M14; recommended before M14 green maps |
 
 ---
 
@@ -1584,6 +1587,255 @@ class skills not already implemented in M9:
 
 ---
 
+## Milestone 14 — Faction System
+
+**Goal:** Replace the two-team player/enemy binary with a **data-driven, N-faction
+model**: multiple armies, alliance-based hostility, a configurable turn order, and a
+per-faction *controller*. All factions are AI-controlled in this milestone — human
+controllers are added in M15. The default configuration is the four armies **blue**
+(player), **green**, **red**, **yellow**, with turn order `blue → green → red → yellow`.
+
+Full design rationale, the architecture-seam analysis, and the staged breakdown live
+in `CLAUDE/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
+stages 1–4 + content of that document.
+
+**Supersedes** the Phase 3 Backlog item "Ally NPC phase" — green allies are a faction,
+not a bolted-on phase.
+
+**Test:** A map with blue + AI green + AI red + AI yellow plays a full battle. Green
+attacks red and yellow but never blue; yellow attacks everyone; turn order is
+blue → green → red → yellow; victory/defeat is still evaluated for blue alone.
+
+> **Sequencing.** Stages 1–3 below are behaviour-neutral refactors guarded by the
+> existing test suite. They are strongly recommended to land **before M9**, so M9/M10
+> skill content is written against the hostility model rather than the player/enemy
+> binary it is about to replace — see feasibility doc §10. The "M14" number reflects
+> feature grouping, **not** strict build order; this milestone may be front-loaded.
+
+### Stage 1 — Faction-relative refactor (behaviour-neutral)
+
+Replace every hardcoded `"player"` comparison with an "active controlling faction"
+concept threaded through `MapCursor` and its slices. Affected: `MapCursorSelection`
+(unit select), `MapCursorTargeting` (target validity), `TurnManager` (READY reset,
+end-turn gate), and `CombatResolver.is_player_initiated` → `is_initiator` / attacker
+faction. No behaviour change; the suite stays green.
+
+### Stage 2 — Hostility model (behaviour-neutral)
+
+Add an **alliance-group** hostility helper: each faction declares a group; two units
+are hostile iff in different groups. Default groups: `{blue, green}`, `{red}`,
+`{yellow}`. Rewrite "attackable / healable / blocks movement" in `GridManager`,
+`MapCursorTargeting`, and `EnemyAI` to query it. Still two factions here, so still
+behaviour-neutral.
+
+### Stage 3 — N-faction core, data-driven
+
+A faction is **data**, not a code enum — a faction resource/list carrying `id`,
+display colour, alliance group, and controller. `GameState` gains per-faction unit
+buckets + `get_living_units_of(faction)`; `Phase` becomes an index into a turn-order
+list; `TurnManager` drives an arbitrary-length cycle. Turn order is a configurable
+per-map list, default `blue → green → red → yellow`. The cycle skips any faction with
+zero living units. Building this data-driven is what makes a 5th+ faction pure data
+later (feasibility doc §9).
+
+### Stage 4 — Faction-agnostic AI
+
+`EnemyAI.run_enemy_phase` becomes `run_ai_phase(faction)`, targeting *all hostile
+units* via the hostility model. The AI is **faction-blind**: it does not prefer a
+target by which army it is — every hostile unit is scored by combat factors (target
+HP / strength, terrain danger of the approach, a priority bump for units flagged
+objective-critical, i.e. a unit whose death is a blue defeat condition).
+
+### Content & UX
+
+Green/yellow spawns + per-unit faction tags in `MapData`; faction colour and
+phase-banner label **read from faction data**, never hardcoded per army. `PhaseBanner`
+and any turn-order display built to list N factions.
+
+### Related — objective system (Milestone 16)
+
+Green-specific win/lose conditions (a green unit must escape; a green unit's death is
+a blue defeat) need the richer per-map objective system — now **Milestone 16**, which
+also unblocks Maps 002–005 (Seize / Boss / Escape / Survive). M16 is independent of
+M14's plumbing, but M14 maps using green objectives depend on M16; land M16 before or
+alongside M14's green-objective content.
+
+### Checklist — M14
+
+- [ ] Stage 1: replace literal `"player"` in `MapCursorSelection`,
+      `MapCursorTargeting`, `TurnManager`; suite stays green
+- [ ] Stage 1: `CombatResolver.is_player_initiated` → `is_initiator` / attacker faction
+- [ ] Stage 2: alliance-group hostility helper; default groups `{blue,green} {red} {yellow}`
+- [ ] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
+- [ ] Stage 3: faction defined as data (id, colour, alliance group, controller)
+- [ ] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
+- [ ] Stage 3: `TurnManager` arbitrary-length turn cycle; configurable per-map order;
+      default `blue → green → red → yellow`; skips zero-unit factions
+- [ ] Stage 4: `run_ai_phase(faction)` targeting all hostile units
+- [ ] Stage 4: faction-blind AI target scoring (HP / strength / terrain danger /
+      objective-criticality)
+- [ ] Content: green + yellow spawns and per-unit faction tags in `MapData`
+- [ ] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
+- [ ] Verify: green attacks red/yellow, never blue; yellow attacks all
+- [ ] Verify: victory/defeat still evaluated for blue alone
+- [ ] Verify: a map omitting green or yellow runs correctly (cycle skips it)
+- [ ] New tests for the hostility model, turn-cycle ordering, and `run_ai_phase`
+
+---
+
+## Milestone 15 — Hotseat & Remote Control
+
+**Goal:** Let any **non-blue** faction be controlled by a human instead of AI — first
+locally via **hotseat**, later over the network via **remote play**. Blue is always
+human (player 1). Builds directly on the M14 controller abstraction; adds two new
+controller types alongside the existing `AI`.
+
+Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
+
+**Depends on M14.**
+
+### Part A — Hotseat (shipping target)
+
+Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's phase is driven through the
+existing `MapCursor` instead of `run_ai_phase` — the cursor is *not* locked for a
+human-controlled non-blue phase, and End Turn ends that faction's phase. One phase at
+a time, shared screen, turns alternate (natural for turn-based tactics).
+
+*Optional polish:* per-phase keybindings — each hotseat slot gets its own `InputMap`
+action set (`p2_cursor_up`, …); `MapCursorInput` is told which set to read. Because
+phases alternate rather than run simultaneously, shared keys already work — this is a
+convenience, not a requirement.
+
+**Test:** Assign green to a hotseat slot; a second person plays the green phase via
+the cursor while red and yellow remain AI. Verify the cursor drives green units,
+End Turn passes to the red phase, and blue play is unaffected.
+
+### Part B — Remote Play `[DEFERRED]`
+
+A `REMOTE` controller type: the faction's phase awaits a remote player's committed
+actions instead of a local `MapCursor`. The phase-boundary seam makes the *hook*
+trivial; the real work is networking, and it splits into two distinct jumps.
+
+**Hotseat → LAN — the hard architectural jump** (one game instance becomes two that
+must agree):
+- *Sync model.* Choose lockstep (peers exchange only inputs, both run the sim) or
+  client-server (one authoritative host). Godot's `MultiplayerAPI` / ENet provides
+  the transport, not the model.
+- *Command layer.* Today a turn is imperative `MapCursor` calls resolved locally.
+  LAN needs each faction's turn serialised as committed **commands** (move unit→tile,
+  attack, use item) sent and re-applied on the other machine.
+- *Determinism.* Combat RNG (hit / crit rolls) must be seeded and synchronised, or
+  all rolls resolved host-side — the sim must produce identical results on both peers.
+- *Animation replay.* The remote machine replays the opponent's moves from the
+  command stream rather than teleporting units.
+- *Phase handoff over the wire.* The `REMOTE` controller awaits a "phase committed"
+  network message in place of a local controller.
+
+**LAN → online — mostly infrastructure, not gameplay** (the architecture above
+carries over unchanged):
+- *Connectivity.* NAT traversal / port forwarding / relay servers plus matchmaking —
+  a backend service, where LAN needed none.
+- *Disconnect & reconnect.* Internet links drop; a mid-match drop must pause, allow
+  reconnect (or AI substitution) and resume from synced state — the biggest online
+  item for a turn-based game.
+- *Trust.* Online opponents are untrusted; commands must be validated server-side
+  (legal-move checks). Hotseat and LAN trust the room.
+- *Latency.* Turn-based play tolerates 100 ms+ easily (not real-time); the only cost
+  is "waiting for opponent" UI and timeouts — far cheaper than for an action game.
+- *Versioning.* Peers must run compatible game versions.
+
+A milestone-sized effort of its own; it gates no other milestone. **Designing
+Part A's controller to emit a stream of committed actions per phase** — rather than
+only imperative cursor calls — is the single thing that most reduces the LAN jump
+later. LAN first, online after.
+
+The full set of online design decisions — synchronization model, transport,
+matchmaking, reconnection, trust, army source, and more — with options, pros/cons,
+and a recommendation for each, is catalogued in
+`CLAUDE/Docs/online_play_design_decisions.md` (20 decisions, D1–D20).
+
+### Checklist — M15
+
+**Part A — Hotseat**
+
+- [ ] Controller enum `AI | HOTSEAT` (kept open for `REMOTE`); per-faction assignment
+      in `GameState`, set per map / per match
+- [ ] `HOTSEAT` faction phase routes through `MapCursor`, not `run_ai_phase`
+- [ ] `MapCursor` not locked during a human-controlled non-blue phase; End Turn ends it
+- [ ] `grant_extra_turn` (M10) re-enters the *active controller*, not "the cursor", so
+      an extra turn during a hotseat phase is driven correctly
+- [ ] Faction / hotseat-slot label shown in the HUD
+- [ ] [Optional] per-phase `InputMap` action sets; `MapCursorInput` reads the active set
+- [ ] Verify: a hotseat player drives their faction; AI factions unaffected
+- [ ] Verify: a map with all non-blue factions AI still plays exactly as M14
+
+**Part B — Remote Play `[DEFERRED]`**
+
+- [ ] `REMOTE` controller type; phase awaits remote committed actions
+- [ ] State synchronisation between machines
+- [ ] Command relay + remote move-animation replay
+- [ ] Latency / disconnect handling
+- [ ] LAN session setup; (later) online
+
+---
+
+## Milestone 16 — Objective System
+
+**Goal:** Replace the single-`objective_type` map objective with a **multi-condition
+objective system** — each map carries a list of typed victory conditions and a list
+of typed defeat conditions, all evaluated **for the blue team only**. This is the
+feasibility doc §6 workstream (`CLAUDE/Docs/second_player_control_feasibility.md`).
+
+**Test:** maps exercising each condition type, a compound victory (rout red AND
+yellow), a green-escape victory, and a green-death defeat, all resolve correctly.
+
+> **Sequencing.** M16 is independent of the faction plumbing and may land before,
+> after, or alongside M14. But M14 maps that use *green* win/lose conditions, and the
+> Phase 3 Maps 002–005, both depend on M16 — recommend M16 before or alongside M14's
+> green-objective content. As with M14, the milestone number is feature grouping, not
+> strict build order.
+
+### Current state
+
+`MapData` carries a single `objective_type` (only `"rout"` implemented), a
+`turn_limit`, and `required_survivor_ids`; `TurnManager.check_victory_conditions`
+hardcodes those three checks. Win/loss is already blue-centric — that does not change.
+
+### Condition model
+
+`MapData` gains two arrays of small typed condition resources —
+`victory_conditions` and `defeat_conditions`. `check_victory_conditions` becomes a
+generic evaluator: **victory = AND of all victory conditions; defeat = OR of any
+defeat condition.** Condition types:
+
+- **rout** — a named faction has zero living units. Compound by listing several
+  (rout red AND rout yellow).
+- **defeat_boss** — one or more named unit ids are dead.
+- **seize** — one or more named tiles are occupied by a blue unit.
+- **escape** — named units reach an escape tile / zone (may include green units).
+- **survive** — blue lasts N turns, or holds a named tile for N turns.
+- **protect / unit_survives** — a named unit must stay alive; its death is a defeat
+  (may include green units — replaces today's `required_survivor_ids`).
+- **turn_limit** — turn count exceeds the limit → defeat.
+
+A green unit id simply appears in an escape / protect condition like any other unit —
+no faction special-casing.
+
+### Checklist — M16
+
+- [ ] Define typed condition resources for each condition type above
+- [ ] `MapData`: `victory_conditions` + `defeat_conditions` arrays (inspector-editable)
+- [ ] `check_victory_conditions` → generic evaluator (AND victory / OR defeat)
+- [ ] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
+      to the new condition arrays
+- [ ] Objective readout in the HUD lists the active conditions
+- [ ] Verify: compound victory (rout red AND yellow) resolves only when both are met
+- [ ] Verify: a green-escape victory and a green-death defeat fire correctly
+- [ ] New tests for the evaluator and each condition type
+- [ ] Phase 3 Maps 002–005 authored against the condition system
+
+---
+
 ## Phase 3 Backlog (Post-Awakening)
 
 The following items are planned but not yet milestoned. Implement after M13 is stable.
@@ -1605,7 +1857,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       state is serializable without scene tree traversal.
 - [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)
 - [ ] Rescue and carry system (GDD_09 Phase 2 backlog)
-- [ ] Ally NPC phase (GDD_09 Phase 2 backlog)
+- [ ] ~~Ally NPC phase (GDD_09 Phase 2 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
 - [ ] Additional AI profiles: territorial, guard_tile, healer, boss (GDD_09 Phase 2 backlog)
 - [ ] Stationary weapon interaction (Ballista/Onager use by player; already have WeaponData)
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
@@ -1619,6 +1871,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 ### Maps
 
 - [ ] Maps 002–005 per GDD_09 Phase 2 backlog (Seize, Boss Defeat, Escape, Survive/Defend)
+      — authored against the Milestone 16 Objective System condition types
 
 ### Polish
 
