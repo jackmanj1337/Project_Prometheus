@@ -29,28 +29,28 @@ func _init() -> void:
 	# --- Select Unit_01 (at tile 1,9) ---
 	cursor.current_tile = Vector2i(1, 9)
 	cursor._on_confirm()
-	if cursor._state == MapCursor.State.UNIT_SELECTED and cursor._selected_unit and cursor._selected_unit.data.unit_name == "Unit_01":
+	if cursor._state == MapCursor.State.UNIT_SELECTED and cursor._selection.selected_unit and cursor._selection.selected_unit.data.unit_name == "Unit_01":
 		print("OK  selected Unit_01 at (1,9)")
 		passed += 1
 	else:
-		print("FAIL select: state=%s unit=%s" % [cursor._state, cursor._selected_unit])
+		print("FAIL select: state=%s unit=%s" % [cursor._state, cursor._selection.selected_unit])
 		failed += 1
 
 	# Movement range should be non-empty and include the unit's own tile
-	if cursor._movement_tiles.size() > 0 and Vector2i(1, 9) in cursor._movement_tiles:
-		print("OK  movement range computed (%d tiles, includes origin)" % cursor._movement_tiles.size())
+	if cursor._selection.movement_tiles.size() > 0 and Vector2i(1, 9) in cursor._selection.movement_tiles:
+		print("OK  movement range computed (%d tiles, includes origin)" % cursor._selection.movement_tiles.size())
 		passed += 1
 	else:
-		print("FAIL movement range: size=%d" % cursor._movement_tiles.size())
+		print("FAIL movement range: size=%d" % cursor._selection.movement_tiles.size())
 		failed += 1
 
 	# --- Cancel deselects ---
 	cursor._on_cancel()
-	if cursor._state == MapCursor.State.FREE and cursor._selected_unit == null:
+	if cursor._state == MapCursor.State.FREE and cursor._selection.selected_unit == null:
 		print("OK  cancel deselected")
 		passed += 1
 	else:
-		print("FAIL cancel: state=%s unit=%s" % [cursor._state, cursor._selected_unit])
+		print("FAIL cancel: state=%s unit=%s" % [cursor._state, cursor._selection.selected_unit])
 		failed += 1
 
 	# --- Select again and move ---

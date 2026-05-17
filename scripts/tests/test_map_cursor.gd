@@ -19,7 +19,7 @@ var _grid: GridManager
 var _gs: Node          # stub GameState at /root/GameState — feeds GridManager.get_unit_at
 
 
-# Builds a real Unit (the cursor's _selected_unit field is typed Unit, and get_unit_at
+# Builds a real Unit (the cursor's _selection.selected_unit field is typed Unit, and get_unit_at
 # returns whatever is registered, so stubs would not satisfy the type). Registers it in
 # the stub GameState so GridManager.get_unit_at can find it.
 func _make_unit(tile: Vector2i, team_name: String, hp: int = 20) -> Unit:
@@ -137,26 +137,26 @@ func _init() -> void:
 	var p_unit := _make_unit(Vector2i(2, 2), "player")
 	c2._set_tile(Vector2i(2, 2))
 	c2._on_confirm()
-	if c2._state == UNIT_SELECTED and c2._selected_unit == p_unit:
+	if c2._state == UNIT_SELECTED and c2._selection.selected_unit == p_unit:
 		print("OK  FREE + confirm on player unit → UNIT_SELECTED")
 		passed += 1
 	else:
-		print("FAIL select: _state=%d selected=%s" % [c2._state, str(c2._selected_unit)])
+		print("FAIL select: _state=%d selected=%s" % [c2._state, str(c2._selection.selected_unit)])
 		failed += 1
 
 	# ---- UNIT_SELECTED + cancel → deselect → FREE ----
 	c2._on_cancel()
-	if c2._state == FREE and c2._selected_unit == null:
+	if c2._state == FREE and c2._selection.selected_unit == null:
 		print("OK  UNIT_SELECTED + cancel → FREE, unit deselected")
 		passed += 1
 	else:
-		print("FAIL deselect: _state=%d selected=%s" % [c2._state, str(c2._selected_unit)])
+		print("FAIL deselect: _state=%d selected=%s" % [c2._state, str(c2._selection.selected_unit)])
 		failed += 1
 
 	# ---- FREE + confirm on an empty tile → stays FREE ----
 	c2._set_tile(Vector2i(5, 5))  # no unit here
 	c2._on_confirm()
-	if c2._state == FREE and c2._selected_unit == null:
+	if c2._state == FREE and c2._selection.selected_unit == null:
 		print("OK  FREE + confirm on empty tile → stays FREE")
 		passed += 1
 	else:
@@ -170,7 +170,7 @@ func _init() -> void:
 	_make_unit(Vector2i(3, 3), "enemy")
 	c3._set_tile(Vector2i(3, 3))
 	c3._on_confirm()
-	if c3._state == FREE and c3._selected_unit == null:
+	if c3._state == FREE and c3._selection.selected_unit == null:
 		print("OK  FREE + confirm on enemy unit → stays FREE (not selectable)")
 		passed += 1
 	else:
@@ -185,7 +185,7 @@ func _init() -> void:
 	t4.set_unit_state(acted, TurnManager.UnitState.DONE)
 	c4._set_tile(Vector2i(1, 1))
 	c4._on_confirm()
-	if c4._state == FREE and c4._selected_unit == null:
+	if c4._state == FREE and c4._selection.selected_unit == null:
 		print("OK  FREE + confirm on a DONE unit → stays FREE (can_unit_act false)")
 		passed += 1
 	else:
@@ -197,16 +197,16 @@ func _init() -> void:
 	var t5 := TurnManager.new(); root.add_child(t5)
 	var c5 := _make_cursor(t5)
 	var waiter := _make_unit(Vector2i(0, 0), "player")
-	c5._selected_unit = waiter
+	c5._selection.selected_unit = waiter
 	c5._state = UNIT_MOVED
 	c5._on_action_chosen("wait")
-	if c5._state == FREE and c5._selected_unit == null \
+	if c5._state == FREE and c5._selection.selected_unit == null \
 			and t5.get_unit_state(waiter) == TurnManager.UnitState.DONE:
 		print("OK  action 'wait' → FREE and the unit is marked DONE")
 		passed += 1
 	else:
 		print("FAIL wait: _state=%d selected=%s unit_state=%d" \
-			% [c5._state, str(c5._selected_unit), t5.get_unit_state(waiter)])
+			% [c5._state, str(c5._selection.selected_unit), t5.get_unit_state(waiter)])
 		failed += 1
 
 	# ---- _finish_action liveness guard: a dead unit is NOT written into _unit_states ----
@@ -216,7 +216,7 @@ func _init() -> void:
 	var t6 := TurnManager.new(); root.add_child(t6)
 	var c6 := _make_cursor(t6)
 	var dead := _make_unit(Vector2i(0, 0), "player", 0)  # hp 0 → dead
-	c6._selected_unit = dead
+	c6._selection.selected_unit = dead
 	c6._state = UNIT_MOVED
 	c6._finish_action()
 	if c6._state == FREE and not t6._unit_states.has(dead):
@@ -231,7 +231,7 @@ func _init() -> void:
 	var t7 := TurnManager.new(); root.add_child(t7)
 	var c7 := _make_cursor(t7)
 	var mover := _make_unit(Vector2i(2, 2), "player")
-	c7._selected_unit = mover
+	c7._selection.selected_unit = mover
 	c7._state = UNIT_MOVED
 	c7._undo_move_and_reselect()
 	if c7._state == UNIT_SELECTED:
@@ -250,7 +250,7 @@ func _init() -> void:
 	menu_script.reload()
 	c8.action_menu = menu_script.new()
 	root.add_child(c8.action_menu)
-	c8._selected_unit = _make_unit(Vector2i(1, 1), "player")
+	c8._selection.selected_unit = _make_unit(Vector2i(1, 1), "player")
 	c8._state = TARGETING
 	c8._on_targeting_cancelled()
 	if c8._state == UNIT_MOVED:

@@ -28,9 +28,9 @@ enum State {
 }
 var _state: State = State.FREE
 
-# Currently selected unit and the tiles it could move to (set on selection)
-var _selected_unit: Unit = null
-var _movement_tiles: Array[Vector2i] = []
+# Unit selection + movement-path planning — see MapCursorSelection.gd (D-3 slice).
+# The cursor FSM stays here; this object owns the selected unit and its move range.
+var _selection: MapCursorSelection = MapCursorSelection.new()
 
 # Attack / staff-heal targeting flow — see MapCursorTargeting.gd. The cursor FSM
 # above stays here; this object owns the CHOOSING/PREVIEWING sub-state.
@@ -90,6 +90,8 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> voi
 	position = _grid.tile_to_world(current_tile)
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
 	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"))
+	# The selection slice needs the grid + turn manager for its queries.
+	_selection.setup(_grid, _turn)
 
 
 # ── Input Handling ──────────────────────────────────────────────────────────
@@ -320,53 +322,31 @@ func _on_cancel() -> void:
 # ── State: FREE — unit selection ────────────────────────────────────────────
 
 func _try_select_unit_at_cursor() -> void:
-	if _grid == null:
-		return
-	var unit := _grid.get_unit_at(current_tile)
-	if unit == null:
-		return
-	if not ("team" in unit) or unit.team != "player":
-		return
-	# Can't select if the unit has already acted this turn
-	if _turn != null and not _turn.can_unit_act(unit):
-		return
-	_selected_unit = unit
-	_movement_tiles = _grid.get_movement_range(unit)
-	_grid.show_movement_overlay(_movement_tiles)
-	# Attack overlay on tiles adjacent to the movement range
-	_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, _movement_tiles))
-	_state = State.UNIT_SELECTED
-	var bus := get_node_or_null("/root/EventBus")
-	if bus:
-		bus.unit_selected.emit(unit)
+	# MapCursorSelection does the grid validation + overlay painting; the FSM state
+	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
+	if _selection.select_at(current_tile):
+		_state = State.UNIT_SELECTED
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.unit_selected.emit(_selection.selected_unit)
 
 
 # ── State: UNIT_SELECTED — movement ─────────────────────────────────────────
 
 func _try_move_selected_to_cursor() -> void:
-	if _selected_unit == null:
+	# plan_path_to returns [] (and does nothing) for an illegal destination — the
+	# cursor then simply stays in UNIT_SELECTED.
+	var path := _selection.plan_path_to(current_tile)
+	if path.is_empty():
 		return
-	# Only allow moving to a tile in the unit's movement range
-	if not (current_tile in _movement_tiles):
-		return
-	if not _grid.can_end_on_tile(current_tile, _selected_unit):
-		return
-	# Record original tile for potential undo
-	if _turn != null:
-		_turn.record_move_start(_selected_unit)
-	var path := _grid.get_movement_path(_selected_unit, current_tile)
-	_grid.clear_overlays()
 	_state = State.LOCKED  # block input during the move animation
-	await _selected_unit.move_along_path(path)
+	await _selection.selected_unit.move_along_path(path)
 	_state = State.UNIT_MOVED
 	_show_action_menu()
 
 
 func _deselect() -> void:
-	if _grid != null:
-		_grid.clear_overlays()
-	_selected_unit = null
-	_movement_tiles.clear()
+	_selection.clear()
 	_state = State.FREE
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -381,10 +361,10 @@ func _show_action_menu() -> void:
 		_commit_wait()
 		return
 	# Place the menu just right of the unit's tile in screen space
-	var world_pos := _grid.tile_to_world(_selected_unit.tile_position)
+	var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
 	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
 	action_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
-	action_menu.show_for(_selected_unit, _grid)
+	action_menu.show_for(_selection.selected_unit, _grid)
 
 
 # Fired when ActionMenu's cancel key is pressed while the menu is open
@@ -413,7 +393,7 @@ func _on_action_chosen(action: String) -> void:
 # Hand off to the targeting flow. begin() returns the valid target tiles; if there
 # are none (ActionMenu should have prevented this) reopen the menu instead.
 func _enter_targeting(mode: int) -> void:
-	var tiles := _targeting.begin(mode, _selected_unit)
+	var tiles := _targeting.begin(mode, _selection.selected_unit)
 	if tiles.is_empty():
 		_show_action_menu()
 		return
@@ -437,18 +417,18 @@ func _on_targeting_cancelled() -> void:
 # ── Item Use ────────────────────────────────────────────────────────────────
 
 func _use_item() -> void:
-	if _selected_unit == null or _selected_unit.data == null:
+	if _selection.selected_unit == null or _selection.selected_unit.data == null:
 		_show_action_menu()
 		return
 	if item_menu != null:
 		# Show the item submenu; result arrives via _on_item_chosen / _on_item_menu_cancelled
-		var world_pos := _grid.tile_to_world(_selected_unit.tile_position)
+		var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
 		var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
 		item_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
-		item_menu.show_for(_selected_unit)
+		item_menu.show_for(_selection.selected_unit)
 		return
 	# Fallback when ItemMenu is not wired: consume first valid item automatically
-	for entry in _selected_unit.data.inventory:
+	for entry in _selection.selected_unit.data.inventory:
 		if entry.is_item() and entry.has_uses():
 			_apply_item_effect(entry)
 			break
@@ -456,7 +436,7 @@ func _use_item() -> void:
 
 
 func _on_item_chosen(entry: InventoryEntry) -> void:
-	if _selected_unit == null:
+	if _selection.selected_unit == null:
 		_finish_action()
 		return
 	_apply_item_effect(entry)
@@ -470,7 +450,7 @@ func _on_item_menu_cancelled() -> void:
 func _apply_item_effect(entry: InventoryEntry) -> void:
 	var ih := get_node_or_null("/root/ItemHandler")
 	if ih:
-		ih.apply_item(_selected_unit, entry)
+		ih.apply_item(_selection.selected_unit, entry)
 	else:
 		push_warning("MapCursor: ItemHandler autoload not found")
 
@@ -486,28 +466,20 @@ func _commit_wait() -> void:
 func _undo_move_and_reselect() -> void:
 	if _state == State.LOCKED:
 		return
-	if _turn != null and _selected_unit != null:
-		_turn.undo_move(_selected_unit)
-	# Recompute and redisplay overlays so the player can pick a different destination.
-	if _grid != null and _selected_unit != null:
-		_movement_tiles = _grid.get_movement_range(_selected_unit)
-		_grid.show_movement_overlay(_movement_tiles)
-		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(_selected_unit, _movement_tiles))
+	# The LOCKED guard owns _state; the slice handles the undo + overlay recompute.
+	_selection.undo_and_reselect()
 	_state = State.UNIT_SELECTED
 
 
 func _finish_action() -> void:
-	if _grid != null:
-		_grid.clear_overlays()
 	# Mark the acting unit DONE so it can't be selected again this turn. Skip this
 	# when the unit died mid-action (mutual kill / Vantage counter-kill): it is
 	# already out of TurnManager._unit_states, and set_unit_state would re-insert a
 	# stale freed-node key.
-	if _turn != null and is_instance_valid(_selected_unit) \
-			and _selected_unit.data != null and _selected_unit.data.hp > 0:
-		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
-	_selected_unit = null
-	_movement_tiles.clear()
+	var u := _selection.selected_unit
+	if _turn != null and is_instance_valid(u) and u.data != null and u.data.hp > 0:
+		_turn.set_unit_state(u, TurnManager.UnitState.DONE)
+	_selection.clear()
 	_state = State.FREE
 
 
