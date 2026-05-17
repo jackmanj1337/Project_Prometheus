@@ -227,7 +227,9 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)
 	data.is_incapacitated = snap.get("is_incapacitated", false)
 	# Phase 2 runtime state
-	data.active_modifiers = snap.get("active_modifiers", {}).duplicate(true)
+	# Default is [] — active_modifiers is Array[Dictionary]; an older snapshot missing
+	# the key must fall back to an empty Array, not an empty Dictionary.
+	data.active_modifiers = snap.get("active_modifiers", []).duplicate(true)
 	data.skill_use_counters = snap.get("skill_use_counters", {}).duplicate(true)
 	data.damage_taken_this_map = snap.get("damage_taken_this_map", 0)
 	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)

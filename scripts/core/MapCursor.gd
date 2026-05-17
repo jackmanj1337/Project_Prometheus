@@ -499,8 +499,12 @@ func _undo_move_and_reselect() -> void:
 func _finish_action() -> void:
 	if _grid != null:
 		_grid.clear_overlays()
-	# Mark the acting unit DONE so it can't be selected again this turn.
-	if _turn != null and _selected_unit != null:
+	# Mark the acting unit DONE so it can't be selected again this turn. Skip this
+	# when the unit died mid-action (mutual kill / Vantage counter-kill): it is
+	# already out of TurnManager._unit_states, and set_unit_state would re-insert a
+	# stale freed-node key.
+	if _turn != null and is_instance_valid(_selected_unit) \
+			and _selected_unit.data != null and _selected_unit.data.hp > 0:
 		_turn.set_unit_state(_selected_unit, TurnManager.UnitState.DONE)
 	_selected_unit = null
 	_movement_tiles.clear()

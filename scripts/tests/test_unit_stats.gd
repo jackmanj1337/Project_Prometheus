@@ -335,11 +335,39 @@ func _init() -> void:
 		print("FAIL last-use wexp: entry_removed=%s wexp_ok=%s" % [entry_removed, wexp_ok])
 		failed += 1
 
+	# --- Fort healing rounds down (GDD_02:76) ---
+	# A unit on a fort heals floor(max_hp * 10%). For a 25-HP unit that is 2, not 3 —
+	# the old ceili() gave 3. Regression for code review 2026-05-16d.
+	var fort_unit: Unit = unit_scene.instantiate()
+	var fort_data := UnitData.new()
+	fort_data.hp = 12
+	fort_data.max_hp = 25
+	fort_unit.data = fort_data
+	root.add_child(fort_unit)
+	await process_frame
+	fort_unit.tile_position = Vector2i(0, 0)
+	var fort_grid := GridManager.new()
+	fort_grid.set_terrain_fallback(Vector2i(0, 0), "fort")
+	var fort_tm := TurnManager.new()
+	fort_tm._grid = fort_grid
+	var fort_units: Array[Node] = [fort_unit]
+	fort_tm._apply_fort_healing(fort_units)
+	# floor(25 * 0.10) = 2 → 12 + 2 = 14 (the old ceili would have given 15)
+	if fort_unit.data.hp == 14:
+		print("OK  fort healing rounds down: 25-HP unit heals 2 (hp 12→14)")
+		passed += 1
+	else:
+		print("FAIL fort healing: hp = %d, want 14 (floor heal of 2)" % fort_unit.data.hp)
+		failed += 1
+	fort_grid.free()
+	fort_tm.free()
+
 	# Cleanup
 	unit.queue_free()
 	fixed_unit.queue_free()
 	rand_unit.queue_free()
 	dur_unit.queue_free()
+	fort_unit.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

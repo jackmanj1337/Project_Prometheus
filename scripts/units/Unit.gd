@@ -545,6 +545,12 @@ func _increment_stat(stat: String) -> void:
 		"hp":
 			data.max_hp += 1
 			data.hp += 1  # current HP also increases on level up
+			# Refresh the HP bar: max_value is set once at init, so a mid-map
+			# level-up would otherwise leave the bar's range stale until the next
+			# reset_appearance() (never, for enemies).
+			if _hp_bar:
+				_hp_bar.max_value = data.max_hp
+				_hp_bar.value = data.hp
 		"strength": data.strength += 1
 		"magic": data.magic += 1
 		"defense": data.defense += 1

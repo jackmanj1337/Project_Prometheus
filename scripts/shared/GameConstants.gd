@@ -36,8 +36,10 @@ const CURSOR_CAMERA_EDGE_BUFFER: int = 2     # tiles from viewport edge that tri
 # Combat thresholds
 const FOLLOW_UP_SPEED_THRESHOLD: int = 4    # SPD advantage needed to attack twice (GDD_02)
 
-# Terrain healing (GDD_02)
-const FORT_HEAL_FRACTION: float = 0.10      # fraction of max HP healed per turn on fort/throne
+# Percent-of-max-HP healing (GDD_02). Shared by fort/throne terrain healing and the
+# Renewal skill so the two "heal 10% of max HP" mechanics stay in sync. Per GDD_02:76
+# ("all calculated values are rounded down"), callers must floor the result.
+const PERCENT_HP_HEAL_FRACTION: float = 0.10
 
 # Visual
 const DONE_APPEARANCE_DARKEN: float = 0.4   # darkening applied to sprites of acted units

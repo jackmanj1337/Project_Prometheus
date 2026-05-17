@@ -1,6 +1,10 @@
 extends Node
-# Stateless combat math engine. resolve_combat() returns a result dict; no unit
-# fields are written until apply_combat_result() is called.
+# Combat math engine. resolve_combat() returns a result dict; HP, weapon durability,
+# and EXP are not applied to units until apply_combat_result() is called.
+# NOTE: this is not fully side-effect-free — the skill triggers fired during
+# resolve_combat (on_combat_start / on_combat_end / on_damaged) DO mutate unit state
+# (e.g. active_modifiers, skill_use_counters). preview_combat() snapshots and restores
+# unit state around exactly these writes so the forecast leaves no trace.
 #
 # ── Combat Context Dictionary Schema ────────────────────────────────────────
 # Built by _build_combat_context(); extended by skills during trigger processing.

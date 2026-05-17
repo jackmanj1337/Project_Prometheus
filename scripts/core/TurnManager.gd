@@ -44,7 +44,8 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 		if u.data.hp <= 0 or u.data.hp >= u.data.max_hp:
 			continue
 		if _grid.get_terrain_at(u.tile_position) == "fort":
-			var heal_amount: int = ceili(u.data.max_hp * GameConstants.FORT_HEAL_FRACTION)
+			# Round down per GDD_02:76 — matches Renewal and the global rounding rule.
+			var heal_amount: int = floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION)
 			u.heal(heal_amount)
 
 

@@ -168,7 +168,8 @@ func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) ->
 
 
 func _apply_renewal(_skill: SkillData, unit: Node, _context: Dictionary) -> bool:
-	var amount: int = maxi(1, floori(unit.data.max_hp * 0.10))
+	# Heal 10% of max HP, rounded down (GDD_02:76), but always at least 1.
+	var amount: int = maxi(1, floori(unit.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION))
 	unit.heal(amount)
 	return true
 
