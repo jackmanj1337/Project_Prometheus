@@ -31,7 +31,7 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift + Tab | — |
 | `show_danger_zone` | Q (hold) | Middle Click (hold) |
-| `open_menu` | Escape (on empty tile) | Right Click (on empty tile) |
+| `open_menu` | M | — |
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
@@ -67,7 +67,8 @@ Animation: 4-frame blink at 8 fps.
 ```
 free
   → [confirm on player unit] → unit_selected
-  → [confirm on empty tile] → open_menu (if confirm, else stays free)
+  → [confirm on empty tile] → stays free
+  → [open_menu key (M)] → map menu opens (cursor locked until it closes)
 
 unit_selected
   → [confirm on move tile] → unit_moved (unit moves)

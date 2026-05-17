@@ -48,12 +48,17 @@ func _init() -> void:
 		else:
 			print("FAIL decode_key direction: keycode=%d got %s" % [kc, str(d)]); failed += 1
 
-	# ---- decode_key: ESCAPE → CANCEL (cancel + open_menu both bind ESCAPE; ----
-	#      cancel is tested first, so the keyboard open_menu path is shadowed) ----
+	# ---- decode_key: ESCAPE → CANCEL (cancel binds both X and ESCAPE) ----
 	if inp.decode_key(_key(KEY_ESCAPE))["intent"] == MapCursorInput.Intent.CANCEL:
-		print("OK  decode_key(Escape) → CANCEL (open_menu is shadowed by cancel)"); passed += 1
+		print("OK  decode_key(Escape) → CANCEL"); passed += 1
 	else:
 		print("FAIL decode_key(Escape)"); failed += 1
+
+	# ---- decode_key: M → OPEN_MENU (rebound off ESCAPE, so now reachable) ----
+	if inp.decode_key(_key(KEY_M))["intent"] == MapCursorInput.Intent.OPEN_MENU:
+		print("OK  decode_key(M) → OPEN_MENU"); passed += 1
+	else:
+		print("FAIL decode_key(M)"); failed += 1
 
 	# ---- decode_key: an unmapped key → NONE ----
 	if inp.decode_key(_key(KEY_J))["intent"] == MapCursorInput.Intent.NONE:

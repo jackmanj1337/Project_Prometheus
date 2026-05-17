@@ -54,6 +54,9 @@ func plan_path_to(tile: Vector2i) -> Array[Vector2i]:
 	# Only allow moving to a tile in the unit's movement range.
 	if not (tile in movement_tiles):
 		return []
+	# _grid is non-null in normal use — a null _grid means setup() never ran, in
+	# which case movement_tiles is empty and the check above already returned.
+	# The null guard here is belt-and-suspenders against a direct/test caller.
 	if _grid == null or not _grid.can_end_on_tile(tile, selected_unit):
 		return []
 	# Record original tile for potential undo.

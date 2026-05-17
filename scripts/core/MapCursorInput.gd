@@ -22,8 +22,8 @@ var _held_timer: float = 0.0
 # State-agnostic key decode. The caller (MapCursor._unhandled_input) has already
 # filtered to pressed, non-echo key events — this does not re-check. Returns
 # {"intent": Intent, "dir": Vector2i}; dir is ZERO unless intent is MOVE.
-# NOTE: "cancel" and "open_menu" both bind ESCAPE; cancel is tested first, so an
-# ESCAPE press decodes as CANCEL — matching the old _handle_key_press if/elif order.
+# The action checks run in the same order as the old _handle_key_press if/elif
+# chain, so a key bound to two actions resolves to the first one listed here.
 func decode_key(event: InputEventKey) -> Dictionary:
 	var dir := _direction_from_event(event)
 	if dir != Vector2i.ZERO:

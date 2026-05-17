@@ -91,8 +91,21 @@ func _init() -> void:
 		print("FAIL plan_path_to in-range: got empty path")
 		failed += 1
 
+	# ---- plan_path_to the unit's own tile → non-empty size-1 path ----
+	# Confirming on the unit's own tile is a legal "stand still and act" move;
+	# get_movement_path special-cases start == target to [start]. _try_move_selected_
+	# to_cursor relies on this being non-empty so the ActionMenu still opens.
+	var own_path := sel.plan_path_to(Vector2i(2, 2))
+	if own_path.size() == 1 and own_path[0] == Vector2i(2, 2):
+		print("OK  plan_path_to the unit's own tile → size-1 path [own tile]")
+		passed += 1
+	else:
+		print("FAIL plan_path_to own tile: got %s" % str(own_path))
+		failed += 1
+
 	# ---- plan_path_to an out-of-range tile → [] ----
-	# Find a tile the unit cannot reach (movement 5 from (2,2) on plain → only (5,5)).
+	# Find any tile not in movement_tiles — either out of cost range, or excluded
+	# because it is occupied (the enemy at (4,4)). plan_path_to must reject it.
 	var out_tile := Vector2i(-1, -1)
 	for y in 6:
 		for x in 6:
