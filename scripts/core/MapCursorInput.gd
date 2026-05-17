@@ -17,7 +17,6 @@ enum Intent { NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, OPEN_MENU }
 # Held-direction auto-repeat timer state.
 var _held_dir: Vector2i = Vector2i.ZERO
 var _held_timer: float = 0.0
-var _held_initial: bool = true
 
 
 # State-agnostic key decode. The caller (MapCursor._unhandled_input) has already
@@ -48,11 +47,10 @@ func _direction_from_event(event: InputEventKey) -> Vector2i:
 	return Vector2i.ZERO
 
 
-# Arm the auto-repeat timer on a fresh direction press.
+# Arm the auto-repeat timer on a fresh direction press — the initial DELAY pause.
 func arm_repeat(dir: Vector2i) -> void:
 	_held_dir = dir
 	_held_timer = KEY_REPEAT_DELAY
-	_held_initial = true
 
 
 # Clear the held direction if the released key matches it.
@@ -70,22 +68,17 @@ func note_key_released(event: InputEventKey) -> void:
 func clear_repeat() -> void:
 	_held_dir = Vector2i.ZERO
 	_held_timer = 0.0
-	_held_initial = true
 
 
 # Per-frame auto-repeat tick. Returns a step direction when the timer fires this
-# frame, ZERO otherwise.
-# QUIRK (ported verbatim from the old MapCursor._process): the first auto-repeat
-# step re-arms the timer with KEY_REPEAT_DELAY instead of _RATE, because _held_initial
-# is still true when the ternary reads it. So the first repeat waits DELAY a second
-# time; only from the second repeat on does the RATE cadence apply. The one-line fix
-# (clear _held_initial before reading it) is a separate change, out of scope here.
+# frame, ZERO otherwise. The initial press waits KEY_REPEAT_DELAY (set by
+# arm_repeat); every repeat after that waits KEY_REPEAT_RATE — a flat 0.25s pause
+# then 0.10s per step, as the cursor UX intends.
 func tick(delta: float) -> Vector2i:
 	if _held_dir == Vector2i.ZERO:
 		return Vector2i.ZERO
 	_held_timer -= delta
 	if _held_timer <= 0.0:
-		_held_timer = KEY_REPEAT_RATE if not _held_initial else KEY_REPEAT_DELAY
-		_held_initial = false
+		_held_timer = KEY_REPEAT_RATE
 		return _held_dir
 	return Vector2i.ZERO

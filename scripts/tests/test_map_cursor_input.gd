@@ -78,21 +78,17 @@ func _init() -> void:
 		print("FAIL arm_repeat timing: before=%s first=%s" % [str(before), str(first)])
 		failed += 1
 
-	# ---- double-DELAY quirk: the FIRST auto-repeat re-waits DELAY, not RATE ----
-	# After the first fire the timer is re-armed with DELAY (0.25) because _held_initial
-	# is still true when read — so 0.10s is not enough; it takes another full DELAY.
-	var q1 := ti.tick(0.10)                # 0.10 < 0.25 → ZERO (with RATE this would fire)
-	var q2 := ti.tick(0.10)                # 0.20 < 0.25 → ZERO
-	var q3 := ti.tick(0.10)                # crosses 0.25 → fires
-	if q1 == Vector2i.ZERO and q2 == Vector2i.ZERO and q3 == Vector2i(1, 0):
-		print("OK  first auto-repeat re-waits DELAY (double-DELAY quirk preserved)"); passed += 1
-	else:
-		print("FAIL quirk: q1=%s q2=%s q3=%s" % [str(q1), str(q2), str(q3)])
-		failed += 1
-
-	# ---- subsequent repeats use RATE (0.10s) ----
+	# ---- the first auto-repeat uses RATE (the old double-DELAY quirk is fixed) ----
+	# After the first fire the timer is re-armed with RATE (0.10), so the next repeat
+	# lands one RATE later — no second DELAY wait.
 	if ti.tick(0.10) == Vector2i(1, 0):
-		print("OK  repeats after the first use RATE cadence"); passed += 1
+		print("OK  first auto-repeat uses RATE (double-DELAY quirk fixed)"); passed += 1
+	else:
+		print("FAIL first repeat: expected RATE cadence"); failed += 1
+
+	# ---- subsequent repeats also use RATE (0.10s) ----
+	if ti.tick(0.10) == Vector2i(1, 0):
+		print("OK  subsequent repeats use RATE cadence"); passed += 1
 	else:
 		print("FAIL RATE cadence"); failed += 1
 
