@@ -510,6 +510,11 @@ func _open_map_menu() -> void:
 		return
 	lock()
 	map_menu.open()
+	# Consume the triggering press. Without this the same keystroke keeps
+	# propagating to MapMenu._unhandled_input, which treats open_menu/cancel as
+	# a close — flickering the menu shut on the very keystroke that opened it.
+	if is_inside_tree():
+		get_viewport().set_input_as_handled()
 
 
 func _on_end_turn_requested() -> void:
