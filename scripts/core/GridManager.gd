@@ -165,47 +165,61 @@ const DIRS: Array[Vector2i] = [
 ]
 
 
-# Dijkstra over move costs from unit's tile, capped at unit.data.movement.
+# Dijkstra cost map from `start` over terrain move costs. The single shared flood
+# behind get_movement_range, get_movement_path, and EnemyAI's distance estimation.
+#   max_cost          — caps expansion; pass GameConstants.INT_MAX for "whole map".
+#   ignore_occupants  — when false, enemy-occupied tiles block traversal.
+#   blocker_unit      — the moving unit: defines "enemy" for occupant checks and is
+#                       passed to get_move_cost for unit-specific terrain costs. May
+#                       be null (e.g. EnemyAI's occupant-agnostic distance flood).
+#   came_from         — when a Dictionary is passed it is filled with tile->predecessor
+#                       so callers can reconstruct a path.
+# Returns { tile: cost } for every tile reachable within max_cost (start included).
+# Heap is an insertion-sorted Array of [cost, tile]; pop_front yields the cheapest
+# unvisited tile, and stale entries (a shorter path settled later) are skipped.
+func dijkstra_costs(start: Vector2i, max_cost: int, ignore_occupants: bool,
+		blocker_unit: Node, came_from: Dictionary = {}) -> Dictionary:
+	var costs: Dictionary = {start: 0}
+	var heap: Array = [[0, start]]
+	while not heap.is_empty():
+		var entry: Array = heap.pop_front()
+		var current_cost: int = entry[0]
+		var current: Vector2i = entry[1]
+		if current_cost > costs.get(current, GameConstants.INT_MAX):
+			continue  # stale entry — a shorter path was already settled
+		for d in DIRS:
+			var next: Vector2i = current + d
+			if get_terrain_at(next) == "wall":
+				continue
+			# Enemy units block traversal unless the caller opts out. Allies never block.
+			if not ignore_occupants and blocker_unit != null:
+				var occupant := get_unit_at(next)
+				if occupant != null and occupant != blocker_unit \
+						and "team" in occupant and occupant.team != blocker_unit.team:
+					continue
+			var total: int = current_cost + get_move_cost(next, blocker_unit)
+			if total > max_cost:
+				continue
+			if total < costs.get(next, GameConstants.INT_MAX):
+				costs[next] = total
+				came_from[next] = current
+				var insert_idx := heap.size()
+				for i in heap.size():
+					if total <= heap[i][0]:
+						insert_idx = i
+						break
+				heap.insert(insert_idx, [total, next])
+	return costs
+
+
+# Dijkstra over move costs from the unit's tile, capped at unit.data.movement.
 # Tiles with enemy units occupying are NOT included even if reachable
 # (you can't end your move on an enemy). Allies don't block traversal.
 func get_movement_range(unit: Node) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	if unit == null:
 		return result
-	var max_cost: int = unit.data.movement
-	var start: Vector2i = unit.tile_position
-
-	# Best known cost-to-reach for each tile
-	var costs: Dictionary = {start: 0}
-	# Open set: priority by lowest accumulated cost
-	var frontier: Array[Vector2i] = [start]
-
-	while not frontier.is_empty():
-		# Pop the lowest-cost tile (small N, simple linear scan is fine for MVP)
-		var best_idx := 0
-		for i in frontier.size():
-			if costs[frontier[i]] < costs[frontier[best_idx]]:
-				best_idx = i
-		var current: Vector2i = frontier[best_idx]
-		frontier.remove_at(best_idx)
-		var current_cost: int = costs[current]
-
-		for d in DIRS:
-			var next: Vector2i = current + d
-			if get_terrain_at(next) == "wall":
-				continue
-			# Enemy units block traversal
-			var occupant := get_unit_at(next)
-			if occupant != null and occupant != unit and "team" in occupant and occupant.team != unit.team:
-				continue
-			var step_cost := get_move_cost(next, unit)
-			var total: int = current_cost + step_cost
-			if total > max_cost:
-				continue
-			if not costs.has(next) or total < costs[next]:
-				costs[next] = total
-				frontier.append(next)
-
+	var costs := dijkstra_costs(unit.tile_position, unit.data.movement, false, unit)
 	# Only include tiles the unit can legally stop on (not occupied by anyone else).
 	for tile in costs.keys():
 		if can_end_on_tile(tile, unit):
@@ -213,55 +227,21 @@ func get_movement_range(unit: Node) -> Array[Vector2i]:
 	return result
 
 
-# BFS-style traceback using move costs. Returns ordered tile list from unit's
-# current tile to target_tile inclusive. Empty if unreachable.
+# Traceback over move costs. Returns the ordered tile list from the unit's current
+# tile to target_tile inclusive. Empty if the target is unreachable within movement.
 func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]:
 	var path: Array[Vector2i] = []
 	if unit == null:
 		return path
-	var max_cost: int = unit.data.movement
 	var start: Vector2i = unit.tile_position
 	if start == target_tile:
 		path.append(start)
 		return path
-
-	var costs: Dictionary = {start: 0}
 	var came_from: Dictionary = {}
-	var frontier: Array[Vector2i] = [start]
-	var found := false
-
-	while not frontier.is_empty():
-		var best_idx := 0
-		for i in frontier.size():
-			if costs[frontier[i]] < costs[frontier[best_idx]]:
-				best_idx = i
-		var current: Vector2i = frontier[best_idx]
-		frontier.remove_at(best_idx)
-		if current == target_tile:
-			found = true
-			break
-		var current_cost: int = costs[current]
-
-		for d in DIRS:
-			var next: Vector2i = current + d
-			if get_terrain_at(next) == "wall":
-				continue
-			var occupant := get_unit_at(next)
-			if occupant != null and occupant != unit and "team" in occupant and occupant.team != unit.team:
-				continue
-			var step_cost := get_move_cost(next, unit)
-			var total: int = current_cost + step_cost
-			if total > max_cost:
-				continue
-			if not costs.has(next) or total < costs[next]:
-				costs[next] = total
-				came_from[next] = current
-				frontier.append(next)
-
-	if not found:
+	var costs := dijkstra_costs(start, unit.data.movement, false, unit, came_from)
+	if not costs.has(target_tile):
 		return path
-
-	# Reconstruct path from target back to start
+	# Reconstruct path from target back to start (start has no came_from entry).
 	var node: Vector2i = target_tile
 	path.append(node)
 	while came_from.has(node):

@@ -187,9 +187,10 @@ func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
 func _find_nearest(from_unit: Node, units: Array[Node], grid: GridManager = null) -> Node:
 	if grid == null:
 		return _find_nearest_manhattan(from_unit, units)
-	# Build cost map from the enemy's position with a large movement budget so we
-	# can reach any tile on the map, not just the unit's actual movement range.
-	var costs := _flood_costs(from_unit.tile_position, grid)
+	# Build a whole-map cost flood from the enemy's position (INT_MAX cap) so we can
+	# reach any tile, not just the actual movement range. ignore_occupants=true: this
+	# only estimates path distance — the real move calc respects occupants.
+	var costs := grid.dijkstra_costs(from_unit.tile_position, GameConstants.INT_MAX, true, null)
 	var nearest: Node = null
 	var min_cost: int = GameConstants.INT_MAX
 	for u in units:
@@ -219,33 +220,5 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 	return nearest
 
 
-# Dijkstra flood from `start` using terrain costs but ignoring unit movement cap
-# and unit occupants — intentional for path-distance estimation. The actual movement
-# calculation (GridManager.get_move_tiles) respects occupants; this only estimates
-# path cost to a location across a clear map.
-# Heap is an insertion-sorted Array of [cost, tile] pairs; pop_front always gives
-# the cheapest unvisited tile. Stale entries (cheaper path found later) are skipped.
-func _flood_costs(start: Vector2i, grid: GridManager) -> Dictionary:
-	var costs: Dictionary = {start: 0}
-	var heap: Array = [[0, start]]
-	while not heap.is_empty():
-		var entry: Array = heap.pop_front()
-		var current_cost: int = entry[0]
-		var current: Vector2i = entry[1]
-		if current_cost > costs.get(current, GameConstants.INT_MAX):
-			continue  # stale entry — a shorter path was already settled
-		for d in GridManager.DIRS:
-			var next: Vector2i = current + d
-			if grid.get_terrain_at(next) == "wall":
-				continue
-			var step: int = grid.get_move_cost(next, null)
-			var total: int = current_cost + step
-			if total < costs.get(next, GameConstants.INT_MAX):
-				costs[next] = total
-				var insert_idx := heap.size()
-				for i in heap.size():
-					if total <= heap[i][0]:
-						insert_idx = i
-						break
-				heap.insert(insert_idx, [total, next])
-	return costs
+# NOTE: the former _flood_costs helper was folded into GridManager.dijkstra_costs —
+# _find_nearest now calls grid.dijkstra_costs(start, INT_MAX, true, null) directly.
