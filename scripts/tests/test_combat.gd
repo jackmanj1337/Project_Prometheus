@@ -589,6 +589,33 @@ func _init() -> void:
 		print("FAIL Vantage: expected 1 exchange, got %d" % (van_result["exchanges"] as Array).size())
 		failed += 1
 
+	# --- dry_run: combat previews never burn a limited-use skill's uses ---
+	# Temporarily make Swordfaire a 1-use-per-map skill. preview_combat must leave
+	# skill_use_counters untouched (dry_run), while resolve_combat increments it once.
+	# Regression for preview_combat persisting use counters (code review 2026-05-16d).
+	var faire_skill = dm.get_skill("swordfaire")
+	faire_skill.max_uses_per_map = 1
+	var dry_atk = _make_unit({"name":"DryAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
+	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	cr.preview_combat(dry_atk, dry_def)
+	cr.preview_combat(dry_atk, dry_def)
+	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	if uses_after_preview == 0:
+		print("OK  dry_run: two previews burn 0 skill uses")
+		passed += 1
+	else:
+		print("FAIL dry_run: previews burned %d use(s), want 0" % uses_after_preview)
+		failed += 1
+	cr.resolve_combat(dry_atk, dry_def)
+	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	if uses_after_resolve == 1:
+		print("OK  dry_run: resolve_combat increments the skill use counter")
+		passed += 1
+	else:
+		print("FAIL dry_run: resolve_combat counter = %d, want 1" % uses_after_resolve)
+		failed += 1
+	faire_skill.max_uses_per_map = -1  # restore the shared DataManager resource
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

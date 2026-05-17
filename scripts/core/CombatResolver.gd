@@ -89,7 +89,10 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 # (3) equip-type inventory items; (4) on_combat_start triggers.
 # preview = true forwards to SkillHandler so the forecast skips random-activation
 # skills (see SkillHandler.apply_trigger).
-func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> void:
+# dry_run = true (passed by preview_combat) tells SkillHandler not to persist any
+# limited-use skill counters — so opening a preview never burns a skill's uses.
+func _collect_combat_modifiers(context: Dictionary, preview: bool = false,
+		dry_run: bool = false) -> void:
 	var attacker: Node = context["attacker"]
 	var defender: Node = context["defender"]
 	var sh := get_node_or_null("/root/SkillHandler")
@@ -105,7 +108,8 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> vo
 		for u in gs.all_units:
 			if is_instance_valid(u) and u.data != null and u.data.hp > 0 \
 					and u != attacker and u != defender:
-				context = sh.apply_trigger(u, "on_combat_apply_modifiers", context, preview)
+				context = sh.apply_trigger(u, "on_combat_apply_modifiers", context,
+					preview, false, dry_run)
 	_apply_equip_item_modifiers(attacker, context["atk_mod"])
 	_apply_equip_item_modifiers(defender, context["def_mod"])
 	if sh:
@@ -114,15 +118,17 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false) -> vo
 		# negates the opponent whether it is attacking or defending. A single
 		# attacker-then-defender on_combat_start pass would let the attacker's
 		# modifier skills apply before a defending Nihil could block them.
-		context = sh.apply_trigger(attacker, "on_combat_start_negate", context, preview)
-		context = sh.apply_trigger(defender, "on_combat_start_negate", context, preview)
+		context = sh.apply_trigger(attacker, "on_combat_start_negate", context,
+			preview, false, dry_run)
+		context = sh.apply_trigger(defender, "on_combat_start_negate", context,
+			preview, false, dry_run)
 		# Modifier pass: each side's on_combat_start skills. When the opponent's Nihil
 		# blocked this side, apply_trigger still fires the Nihil-exempt skills (see
 		# SkillHandler.NIHIL_EXEMPT_SKILLS) and skips the rest.
 		context = sh.apply_trigger(attacker, "on_combat_start", context, preview,
-			context.get("attacker_skills_blocked", false))
+			context.get("attacker_skills_blocked", false), dry_run)
 		context = sh.apply_trigger(defender, "on_combat_start", context, preview,
-			context.get("defender_skills_blocked", false))
+			context.get("defender_skills_blocked", false), dry_run)
 
 
 func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
@@ -445,7 +451,8 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	# forecast is accurate; random-activation skills are excluded. The snapshot is
 	# restored at the END of this function — AFTER every stat read below — so the
 	# displayed numbers reflect the same modifier state resolve_combat() will use.
-	_collect_combat_modifiers(context, true)
+	# dry_run = true: SkillHandler does not persist limited-use counters for a preview.
+	_collect_combat_modifiers(context, true, true)
 	var aw: WeaponData = context["attacker_weapon"]
 	var dw: WeaponData = context["defender_weapon"]
 	var can_counter: bool = dw != null

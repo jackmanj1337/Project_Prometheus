@@ -72,8 +72,14 @@ func reset_combat_uses() -> void:
 # skills_blocked = true (set by an opponent's Nihil): only skills in
 # NIHIL_EXEMPT_SKILLS fire; every other skill on this trigger is skipped. Always
 # false for non-combat triggers, which Nihil does not affect.
+#
+# dry_run = true (combat preview only): skill effects still run so the forecast is
+# accurate, but the per-map / per-combat use counters are NOT written — so opening a
+# combat preview never burns a limited-use skill's uses (the skill effect is restored
+# along with the rest of unit state by preview_combat's snapshot).
 func apply_trigger(unit: Node, trigger: String, context: Dictionary,
-		preview: bool = false, skills_blocked: bool = false) -> Dictionary:
+		preview: bool = false, skills_blocked: bool = false,
+		dry_run: bool = false) -> Dictionary:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return context
 	var dm := get_node_or_null("/root/DataManager")
@@ -116,7 +122,8 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		# declines (wrong weapon type, HP above threshold, Miracle on a non-lethal
 		# hit) returns false and must not burn a limited use.
 		var fired: bool = _execute_skill(skill, unit, context)
-		if fired:
+		# dry_run suppresses counter persistence only — the effect above still ran.
+		if fired and not dry_run:
 			if skill.max_uses_per_map != -1:
 				unit.data.skill_use_counters[skill.effect_id] = \
 					unit.data.skill_use_counters.get(skill.effect_id, 0) + 1
