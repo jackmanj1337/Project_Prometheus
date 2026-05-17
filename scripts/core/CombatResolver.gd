@@ -501,6 +501,32 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 
 # ── Full RNG Resolution ──────────────────────────────────────────────────────
 
+# Runs one actor's strike series against target — up to `strikes` attacks — appending
+# each exchange to `exchanges`. Stops early when either side is dead (GDD_02:167: "if
+# target HP ≤ 0, stop the exchange — no further attacks") or the actor's weapon broke.
+# actor_sim_hp is read-only here (an actor never damages itself mid-series); checking it
+# means a unit already felled in an earlier series — a Vantage counter-kill, or a
+# defender the attacker just killed — never swings. Returns target's updated sim HP.
+# This is the single guarded loop behind all four strike series, so the "is either side
+# dead?" rule cannot drift between them.
+func _run_strike_series(actor: Node, target: Node, context: Dictionary, is_counter: bool,
+		strikes: int, actor_sim_hp: int, target_sim_hp: int,
+		weapon_uses: Dictionary, broken: Dictionary, exchanges: Array,
+		is_follow_up: bool = false) -> int:
+	for _i in strikes:
+		if actor_sim_hp <= 0 or target_sim_hp <= 0:
+			break
+		var ex := _resolve_strike(actor, target, context, is_counter, target_sim_hp, weapon_uses, broken)
+		if ex.is_empty():
+			break  # actor's weapon broke — stop the series
+		if is_follow_up:
+			ex["is_follow_up"] = true
+		if ex["hit"]:
+			target_sim_hp -= ex["damage"]
+		exchanges.append(ex)
+	return target_sim_hp
+
+
 func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	var context := _build_combat_context(attacker, defender)
 	_collect_combat_modifiers(context)
@@ -532,64 +558,34 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 
 	# Vantage: defender attacks first (set by _apply_vantage in _collect_combat_modifiers)
 	if context["flags"]["vantage"] and can_counter:
-		for _i in def_strikes:
-			if atk_sim_hp <= 0:
-				break
-			var ex := _resolve_strike(defender, attacker, context, true, atk_sim_hp, weapon_uses, broken)
-			if ex.is_empty():
-				break  # defender's weapon broke — stop the series
-			if ex["hit"]:
-				atk_sim_hp -= ex["damage"]
-			exchanges.append(ex)
+		atk_sim_hp = _run_strike_series(defender, attacker, context, true,
+			def_strikes, def_sim_hp, atk_sim_hp, weapon_uses, broken, exchanges)
 		def_strikes = 0  # defender's attacks are spent
 
 	# Attacker's strikes
-	for _i in atk_strikes:
-		# Guard both sides: with Vantage the defender strikes first and may have
-		# already killed the attacker — a dead attacker must not swing back.
-		if def_sim_hp <= 0 or atk_sim_hp <= 0:
-			break
-		var ex := _resolve_strike(attacker, defender, context, false, def_sim_hp, weapon_uses, broken)
-		if ex.is_empty():
-			break  # attacker's weapon broke — stop the series
-		if ex["hit"]:
-			def_sim_hp -= ex["damage"]
-		exchanges.append(ex)
+	def_sim_hp = _run_strike_series(attacker, defender, context, false,
+		atk_strikes, atk_sim_hp, def_sim_hp, weapon_uses, broken, exchanges)
 
-	# Defender counter (skipped if Vantage already used all counter strikes)
-	if can_counter and def_strikes > 0 and atk_sim_hp > 0:
-		for _i in def_strikes:
-			if atk_sim_hp <= 0:
-				break
-			var ex := _resolve_strike(defender, attacker, context, true, atk_sim_hp, weapon_uses, broken)
-			if ex.is_empty():
-				break  # defender's weapon broke — stop the series
-			if ex["hit"]:
-				atk_sim_hp -= ex["damage"]
-			exchanges.append(ex)
+	# Defender counter (skipped if Vantage already spent the defender's strikes).
+	# _run_strike_series guards the defender's own HP too, so a defender the attacker
+	# just killed does not counterattack (GDD_02:167).
+	if can_counter and def_strikes > 0:
+		atk_sim_hp = _run_strike_series(defender, attacker, context, true,
+			def_strikes, def_sim_hp, atk_sim_hp, weapon_uses, broken, exchanges)
 
 	# Follow-up — loops over all strikes so Brave weapons get their full count.
 	if follow_up != null:
-		var fu_target: Node  = defender if follow_up == attacker else attacker
-		var fu_sim_hp: int   = atk_sim_hp if follow_up == attacker else def_sim_hp
-		var tgt_sim_hp: int  = def_sim_hp if follow_up == attacker else atk_sim_hp
-		var fu_strikes: int  = atk_strikes if follow_up == attacker else original_def_strikes
+		var fu_target: Node = defender if follow_up == attacker else attacker
+		var fu_sim_hp: int  = atk_sim_hp if follow_up == attacker else def_sim_hp
+		var tgt_sim_hp: int = def_sim_hp if follow_up == attacker else atk_sim_hp
+		var fu_strikes: int = atk_strikes if follow_up == attacker else original_def_strikes
 		var is_fu_counter: bool = (follow_up == defender)
-		if fu_sim_hp > 0 and tgt_sim_hp > 0:
-			for _i in fu_strikes:
-				if tgt_sim_hp <= 0:
-					break
-				var ex := _resolve_strike(follow_up, fu_target, context, is_fu_counter, tgt_sim_hp, weapon_uses, broken)
-				if ex.is_empty():
-					break  # follow-up unit's weapon broke — stop the series
-				ex["is_follow_up"] = true
-				if ex["hit"]:
-					tgt_sim_hp -= ex["damage"]
-					if follow_up == attacker:
-						def_sim_hp = tgt_sim_hp
-					else:
-						atk_sim_hp = tgt_sim_hp
-				exchanges.append(ex)
+		var new_tgt_hp: int = _run_strike_series(follow_up, fu_target, context, is_fu_counter,
+			fu_strikes, fu_sim_hp, tgt_sim_hp, weapon_uses, broken, exchanges, true)
+		if follow_up == attacker:
+			def_sim_hp = new_tgt_hp
+		else:
+			atk_sim_hp = new_tgt_hp
 
 	if sh:
 		sh.apply_trigger(attacker, "on_combat_end", context)

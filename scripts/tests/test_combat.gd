@@ -444,19 +444,49 @@ func _init() -> void:
 		print("FAIL Nihil exemption: expected attacker_damage 13, got %d" % exempt_prev["attacker_damage"])
 		failed += 1
 
-	# --- Mutual-kill: both attacker_died and defender_died can be true (BUG-01) ---
-	# Both units have 1 HP and deal far more than 1 damage — guaranteed mutual kill
-	# when both hit. Use 100% hit weapons to eliminate RNG.
+	# --- A one-shot defender does not counterattack (GDD_02:167) ---
+	# glass_atk one-shots glass_def. Per GDD_02:167 the exchange stops the moment the
+	# defender's HP hits 0 — the dead defender must NOT swing back, so the attacker
+	# survives. (Previously the corpse counterattacked — the counter loop had no
+	# actor-alive guard; _run_strike_series now supplies it.)
 	var overkill_sword = _make_weapon({"id":"ok_sword","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var overkill_lance = _make_weapon({"id":"ok_lance","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var glass_atk = _make_unit({"name":"GlassAtk","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
 	var glass_def = _make_unit({"name":"GlassDef","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"team":"enemy","tile":Vector2i(1,0),"weapon":overkill_lance})
 	var mk_result := cr.resolve_combat(glass_atk, glass_def)
-	if mk_result["attacker_died"] and mk_result["defender_died"]:
-		print("OK  mutual kill: both attacker_died and defender_died are true")
+	var def_countered: bool = (mk_result["exchanges"] as Array).any(
+		func(e): return e["attacker"] == glass_def)
+	if mk_result["defender_died"] and not mk_result["attacker_died"] and not def_countered:
+		print("OK  one-shot: dead defender does not counterattack; attacker survives")
 		passed += 1
 	else:
-		print("FAIL mutual kill: attacker_died=%s defender_died=%s" % [mk_result["attacker_died"], mk_result["defender_died"]])
+		print("FAIL one-shot counter: def_died=%s atk_died=%s def_countered=%s" \
+			% [mk_result["defender_died"], mk_result["attacker_died"], def_countered])
+		failed += 1
+
+	# --- apply_combat_result applies every exchange, so a mutual kill still lands (BUG-01) ---
+	# resolve_combat can no longer author a both-die fight (GDD_02:167 stops the exchange
+	# on the first death). The BUG-01 fix lives in apply_combat_result: it iterates ALL
+	# exchanges rather than stopping at the first death. Hand-build a result with two
+	# lethal exchanges and confirm both units end up dead.
+	var mk_a = _make_unit({"name":"MKA","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
+	var mk_d = _make_unit({"name":"MKD","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"team":"enemy","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var mk_apply := {
+		"exchanges": [
+			{"attacker": mk_a, "defender": mk_d, "weapon": overkill_sword,
+				"hit": true, "crit": false, "damage": 50, "loses_durability": true, "is_counter": false},
+			{"attacker": mk_d, "defender": mk_a, "weapon": overkill_lance,
+				"hit": true, "crit": false, "damage": 50, "loses_durability": true, "is_counter": true},
+		],
+		"attacker_died": false, "defender_died": false, "context": {},
+	}
+	cr.apply_combat_result(mk_apply, mk_a, mk_d)
+	if mk_apply["attacker_died"] and mk_apply["defender_died"]:
+		print("OK  apply_combat_result iterates all exchanges — mutual kill lands")
+		passed += 1
+	else:
+		print("FAIL apply_combat_result mutual kill: atk_died=%s def_died=%s" \
+			% [mk_apply["attacker_died"], mk_apply["defender_died"]])
 		failed += 1
 
 	# --- Brave weapon follow-up fires full strike count (BUG-02) ---
