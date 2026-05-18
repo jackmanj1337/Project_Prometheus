@@ -23,8 +23,8 @@ res://
 │
 ├── assets/
 │   ├── sprites/
-│   │   ├── units/                   # [PLACEHOLDER] 32x32 unit sprites per class
-│   │   ├── terrain/                 # [PLACEHOLDER] 32x32 tile sprites
+│   │   ├── units/                   # [PLACEHOLDER] 64x64 unit sprites per class
+│   │   ├── terrain/                 # [PLACEHOLDER] 64x64 tile sprites
 │   │   ├── ui/                      # [PLACEHOLDER] UI panels, icons, cursors
 │   │   ├── weapons/                 # [PLACEHOLDER] 16x16 weapon icons
 │   │   └── cursor/                  # [PLACEHOLDER] map cursor sprite (animated)
@@ -55,13 +55,20 @@ res://
 │   ├── items/
 │   │   ├── vulnerary.tres
 │   │   └── elixir.tres
-│   ├── skills/
+│   ├── skills/                       # 13 SkillData .tres files
 │   │   ├── renewal.tres
 │   │   ├── vantage.tres
 │   │   ├── nihil.tres
 │   │   ├── resolve.tres
 │   │   ├── miracle.tres
-│   │   └── wrath.tres
+│   │   ├── wrath.tres
+│   │   ├── swordfaire.tres
+│   │   ├── lancefaire.tres
+│   │   ├── bowfaire.tres
+│   │   ├── swordbreaker.tres
+│   │   ├── lancebreaker.tres
+│   │   ├── bowbreaker.tres
+│   │   └── s_rank_mastery.tres       # earned at S rank; not assignable in .tres
 │   ├── roster/
 │   │   └── default/                 # Six starter UnitData .tres files
 │   │       ├── unit_01_soldier.tres
@@ -72,8 +79,7 @@ res://
 │   │       └── unit_06_knight.tres
 │   └── maps/
 │       └── map_001_rout/
-│           ├── map_001.tscn
-│           ├── map_001_data.tres
+│           ├── map_001_data.tres    # MapData; terrain lives in MapData.grid
 │           └── enemies/             # Enemy UnitData .tres files for this map
 │               ├── e1_soldier.tres
 │               ├── e2_archer.tres
@@ -86,61 +92,74 @@ res://
 │
 ├── scenes/
 │   ├── core/
-│   │   ├── GameMap.tscn
-│   │   └── Boot.tscn
+│   │   ├── Boot.tscn
+│   │   └── GameMap.tscn
 │   ├── units/
 │   │   └── Unit.tscn
 │   └── ui/
-│       ├── MainMenu.tscn
-│       ├── HUD.tscn
-│       ├── UnitInfoPanel.tscn
-│       ├── TerrainInfoPanel.tscn
 │       ├── ActionMenu.tscn
 │       ├── AttackPreview.tscn
-│       ├── TargetSelectList.tscn
+│       ├── GameOverScreen.tscn      # also shown for victory
+│       ├── HUD.tscn
+│       ├── ItemMenu.tscn
 │       ├── LevelUpScreen.tscn
+│       ├── MainMenu.tscn
 │       ├── MapMenu.tscn
+│       ├── NewGameScreen.tscn
 │       ├── PhaseBanner.tscn
-│       ├── SettingsScreen.tscn
-│       ├── GameOverScreen.tscn
-│       └── VictoryScreen.tscn
+│       └── SettingsScreen.tscn
+│       # CombatHUD has no scene — CombatHUD.gd is attached to a bare
+│       # CanvasLayer inside GameMap.tscn and builds its labels in code.
 │
 └── scripts/
     ├── autoloads/
-    │   ├── GameState.gd
+    │   ├── ConditionManager.gd       # status-condition stub (M8)
     │   ├── DataManager.gd
     │   ├── EventBus.gd
+    │   ├── GameState.gd
     │   └── SettingsManager.gd
+    ├── core/
+    │   ├── Boot.gd
+    │   ├── CombatResolver.gd         # also an autoload (/root/CombatResolver)
+    │   ├── EnemyAI.gd                # also an autoload (/root/EnemyAI)
+    │   ├── GameMap.gd
+    │   ├── GridManager.gd            # scene node, child of GameMap
+    │   ├── MapCursor.gd              # scene node, child of GameMap
+    │   ├── MapCursorInput.gd         # RefCounted slice — key decode + auto-repeat
+    │   ├── MapCursorSelection.gd     # RefCounted slice — selection + path planning
+    │   ├── MapCursorTargeting.gd     # RefCounted slice — attack/staff targeting
+    │   └── TurnManager.gd            # scene node, child of GameMap
+    ├── items/
+    │   └── ItemHandler.gd            # autoload — item-effect dispatcher
     ├── resources/
     │   ├── ClassData.gd
-    │   ├── WeaponData.gd
+    │   ├── InventoryEntry.gd
     │   ├── ItemData.gd
+    │   ├── MapData.gd
     │   ├── SkillData.gd
     │   ├── UnitData.gd
-    │   └── MapData.gd
-    ├── core/
-    │   ├── TurnManager.gd
-    │   ├── GridManager.gd
-    │   ├── CombatResolver.gd
-    │   └── MapCursor.gd
-    ├── units/
-    │   ├── Unit.gd
-    │   └── UnitStatBlock.gd
+    │   └── WeaponData.gd
+    ├── shared/
+    │   └── GameConstants.gd          # autoload — project-wide constants
     ├── skills/
-    │   └── SkillHandler.gd
-    ├── ai/
-    │   └── EnemyAI.gd
-    └── ui/
-        ├── HUD.gd
-        ├── UnitInfoPanel.gd
-        ├── TerrainInfoPanel.gd
-        ├── ActionMenu.gd
-        ├── AttackPreview.gd
-        ├── TargetSelectList.gd
-        ├── LevelUpScreen.gd
-        ├── MapMenu.gd
-        ├── PhaseBanner.gd
-        └── SettingsScreen.gd
+    │   └── SkillHandler.gd           # autoload — skill-effect dispatcher
+    ├── tests/                        # 18 test_*.gd suites; run via run_tests.sh
+    ├── tools/                        # placeholder-asset + tileset generators
+    ├── ui/
+    │   ├── ActionMenu.gd
+    │   ├── AttackPreview.gd
+    │   ├── CombatHUD.gd
+    │   ├── GameOverScreen.gd
+    │   ├── HUD.gd
+    │   ├── ItemMenu.gd
+    │   ├── LevelUpScreen.gd
+    │   ├── MainMenu.gd
+    │   ├── MapMenu.gd
+    │   ├── NewGameScreen.gd
+    │   ├── PhaseBanner.gd
+    │   └── SettingsScreen.gd
+    └── units/
+        └── Unit.gd
 ```
 
 ---
@@ -151,19 +170,23 @@ res://
 Root scene for every battle. Instanced fresh per map.
 
 ```
-GameMap (Node2D)
-├── TileMapLayer_Terrain        # Godot 4 TileMapLayer; base terrain tiles
-├── TileMapLayer_Overlay        # Movement (blue) and attack (red) highlight tiles
-├── UnitsContainer (Node2D)     # All Unit scenes instanced here at runtime
-├── MapCursor (Node2D)          # script: MapCursor.gd
-│   └── AnimatedSprite2D        # [PLACEHOLDER] cursor blink animation
-├── Camera2D                    # Follows cursor; clamps to map bounds
-├── TurnManager (Node)          # script: TurnManager.gd
-├── GridManager (Node)          # script: GridManager.gd
-├── CombatResolver (Node)       # script: CombatResolver.gd
-├── EnemyAI (Node)              # script: EnemyAI.gd
-└── HUD (CanvasLayer)           # layer = 1; always rendered on top
+GameMap (Node2D)                 # script: GameMap.gd
+├── TileMapLayer_Terrain         # base terrain tiles, painted at runtime from MapData.grid
+├── TileMapLayer_Overlay         # movement/attack/heal/danger highlight tiles
+├── UnitsContainer (Node2D)      # all Unit scenes instanced here at runtime
+├── GridManager (Node)           # script: GridManager.gd
+├── MapCursor (Node2D)           # script: MapCursor.gd
+│   └── AnimatedSprite2D         # [PLACEHOLDER] cursor blink animation
+├── Camera2D                     # follows cursor; clamps to map bounds
+├── TurnManager (Node)           # script: TurnManager.gd
+├── HUDMainLayer (CanvasLayer)
+│   └── HUD                      # HUD.tscn instance; script: HUD.gd
+└── CombatHUDLayer (CanvasLayer) # script: CombatHUD.gd; builds its labels in code
 ```
+
+> **Note:** `CombatResolver` and `EnemyAI` are **autoload singletons**
+> (`/root/CombatResolver`, `/root/EnemyAI`) — they are *not* children of
+> `GameMap`. Code reaches them via `get_node_or_null("/root/...")`.
 
 ### `Boot.tscn`
 The first scene loaded by Godot (set as the main scene in `project.godot`).
@@ -184,13 +207,20 @@ One instance per unit on the map.
 
 ```
 Unit (Node2D)                       # script: Unit.gd
-├── Sprite2D                        # [PLACEHOLDER] 32x32 class sprite
-├── HPBar (TextureProgressBar)      # Small bar above sprite; max_value = data.max_hp
-├── StatusIcon (Sprite2D)           # [PLACEHOLDER] condition icon; hidden when normal
-└── SelectionHighlight (Polygon2D)  # Outline glow; hidden by default; shown when selected
+├── Sprite2D                        # [PLACEHOLDER] 64x64 class sprite; team-tinted in code
+└── HPBar (ProgressBar)             # small bar above sprite; max_value = data.max_hp
 ```
 
+> `Unit.gd` references only `$Sprite2D` and `$HPBar`. A condition-icon node and a
+> selection-highlight node are planned (`[PLACEHOLDER]`) but not yet wired.
+
 ### `HUD.tscn`
+
+The HUD is built from separately-instanced scenes (`ActionMenu.tscn`, `ItemMenu.tscn`,
+`AttackPreview.tscn`, `PhaseBanner.tscn`, `LevelUpScreen.tscn`, `MapMenu.tscn`,
+`SettingsScreen.tscn`, `GameOverScreen.tscn`, `NewGameScreen.tscn`). The tree below is
+the intended composition — the `.tscn` files are authoritative for exact node names
+and paths (verified to match each script's `@onready` paths).
 
 ```
 HUD (CanvasLayer)
@@ -206,12 +236,12 @@ HUD (CanvasLayer)
 │   └── DodgeBonusLabel (Label)             # e.g. "Dodge +15"
 ├── TurnCounterLabel (Label)                # Anchor: top-right; e.g. "Turn  3"
 ├── ActionMenu (PanelContainer)             # Shown after unit moves; hidden by default
-│   └── VBoxContainer
-│       ├── AttackButton (Button)
-│       ├── StaffButton (Button)
-│       ├── ItemButton (Button)
-│       ├── TradeButton (Button)
-│       └── WaitButton (Button)
+│   └── Panel/VBox
+│       ├── BtnAttack (Button)
+│       ├── BtnStaff (Button)
+│       ├── BtnItem (Button)
+│       └── BtnWait (Button)                # Trade is designed but NOT yet implemented
+│   # ItemMenu.tscn is a separate submenu opened by the Item action.
 ├── AttackPreview (PanelContainer)          # Centered bottom; shown when targeting
 │   ├── AttackerColumn (VBoxContainer)
 │   │   ├── AttackerNameLabel (Label)
@@ -223,7 +253,8 @@ HUD (CanvasLayer)
 │       ├── DefenderHitLabel (Label)        # "--" if cannot counterattack
 │       ├── DefenderDmgLabel (Label)
 │       └── DefenderCritLabel (Label)
-├── TargetSelectList (VBoxContainer)        # Near cursor; one button per valid target
+│   # No TargetSelectList: target selection uses red/green overlay tiles plus
+│   # cursor cycling among valid target tiles (see MapCursorTargeting.gd).
 ├── PhaseBanner (ColorRect)                 # Full-width (1280x80); slides from off-screen
 │   └── BannerLabel (Label)                 # "PLAYER PHASE" | "ENEMY PHASE"
 ├── LevelUpScreen (PanelContainer)          # Centered; 400x300; blocks all input
@@ -236,12 +267,10 @@ HUD (CanvasLayer)
 │       ├── SettingsButton (Button)
 │       └── QuitButton (Button)
 ├── SettingsScreen (PanelContainer)         # Full screen; shown from MapMenu or MainMenu
-├── GameOverScreen (ColorRect)              # Full screen overlay (black, semi-transparent)
-│   ├── GameOverLabel (Label)               # "GAME OVER"
-│   └── RetryButton (Button)
-└── VictoryScreen (ColorRect)              # Full screen overlay
-    ├── VictoryLabel (Label)                # "VICTORY"
-    └── ContinueButton (Button)             # [PLACEHOLDER] advance to next map
+└── GameOverScreen (ColorRect)              # Full-screen overlay; handles BOTH the
+                                            #   defeat ("GAME OVER" + Retry) and the
+                                            #   victory states. There is no separate
+                                            #   VictoryScreen scene.
 ```
 
 ---
@@ -250,31 +279,37 @@ HUD (CanvasLayer)
 
 ### `GameState.gd`
 
+Autoload. Holds per-save rules, live map state, and the cross-map roster/economy.
+No `class_name` — Godot 4 forbids `class_name` on an autoload script.
+
 ```gdscript
 extends Node
 
 enum Phase { PLAYER, ENEMY }
 
-# Settings
+# --- Per-save gameplay rules (set by the New Game screen) ---
 var permadeath_enabled: bool = false
-var leveling_method: String = "growth_rates"
-var max_skills: int = 4
-var max_inventory: int = 8
+var leveling_method: String = "growth_random"   # "growth_random" | "growth_fixed"
+var max_skills: int = 4        # NOT ENFORCED YET — no equip/inventory UI caps these
+var max_inventory: int = 8     # NOT ENFORCED YET
 
-# Map state
+# --- Current map state ---
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
-var player_units: Array[Node] = []
-var enemy_units: Array[Node] = []
-var selected_unit: Node = null
+var _player_units: Array[Node] = []   # private — query via get_living_player_units()
+var _enemy_units: Array[Node] = []    # private — query via get_living_enemy_units()
 var map_data: MapData = null
 
-# Campaign state (persists between maps)
+# --- Persists between maps ---
 var player_roster: Array[UnitData] = []
+var party_gold: int = 0
+var party_items: Array[String] = []   # item IDs awarded by completed maps
 
-# Map-start snapshot — deep copy taken when map loads; used by Retry
+# --- Map-start snapshot — deep copy taken at map load; used by Retry ---
 var _map_start_snapshot: Array[Dictionary] = []
+var _snapshot_party_gold: int = 0
+var _snapshot_party_items: Array[String] = []
 
 func register_unit(unit: Node) -> void
 func unregister_unit(unit: Node) -> void
@@ -284,101 +319,85 @@ func get_living_enemy_units() -> Array[Node]
 func is_player_turn() -> bool
 func reset_map_state() -> void
 func load_default_roster() -> void
-    # Loads all six .tres files from data/roster/default/ into player_roster.
-    # Called by MainMenu on "New Game" for MVP.
+    # Loads the six .tres files from data/roster/default/ into player_roster.
+    # Skips (push_error) any file with an empty unit_id. Called by the New Game
+    # screen, and as a fallback by GameMap if the roster is empty (direct boot).
 
 func take_map_snapshot() -> void
-    # Called by TurnManager.start_map() immediately after units are spawned.
-    # Deep-copies each player UnitData (hp, inventory, exp, etc.) into
-    # _map_start_snapshot as plain Dictionaries so no resource references
-    # are shared between the live unit and the snapshot.
+    # Called by GameMap after units spawn. Deep-copies each player UnitData and
+    # the party economy (gold/items) into the snapshot so Retry rolls back exactly.
+    # Each InventoryEntry is duplicated individually — Array.duplicate(true) shares
+    # Resource references, so combat use would otherwise mutate the snapshot.
 
 func restore_map_snapshot() -> void
-    # Called by Retry. Iterates player_roster and overwrites each UnitData's
-    # fields from the corresponding snapshot entry. Then reloads the map scene.
+    # Called by the Retry button. Overwrites each roster UnitData and the party
+    # economy from the snapshot, then resets map state. Caller reloads the scene.
 ```
 
 ### `SettingsManager.gd`
 
-Persists all player preferences to `user://settings.cfg` using Godot's `ConfigFile`.
-Loaded once at startup (in `_ready()`); written any time a setting changes.
-Must be registered as an **Autoload** after `EventBus` and before `GameState`.
+Persists global player preferences to `user://settings.cfg` via `ConfigFile`.
+Loaded once at startup (`_ready()`); written immediately on any change.
+Registered as an autoload after `EventBus` and before `GameState`.
+
+> Permadeath and leveling method are **not** here — they are per-save gameplay
+> rules and live on `GameState`, set via the New Game screen.
 
 ```gdscript
 extends Node
 
 const SETTINGS_PATH := "user://settings.cfg"
 
-# --- Audio ---
+# --- Audio (0–100 int scale) ---
 var master_volume: int = 80
 var music_volume: int  = 70
 var sfx_volume: int    = 90
 
 # --- Gameplay ---
-var combat_animations: String = "all"
-    # "all" | "player_only" | "enemy_only" | "none"
-var movement_speed: String = "normal"
-    # "normal" | "fast" | "instant"
-var phase_banner: String = "show"
-    # "show" | "skip"
-var level_up_screen: String = "show"
-    # "show" | "auto" | "skip"
-var permadeath: String = "off"
-    # "off" | "on"
-var leveling_method: String = "growth_rates"
-    # "growth_rates" | "point_buy" | "coin_flip" | "dice"
+var combat_animations: String = "all"      # "all"|"player_only"|"enemy_only"|"none"
+                                            # NOTE: scaffolded — no combat-animation
+                                            # system reads this yet.
+var movement_speed: String = "normal"       # "normal" | "fast" | "instant"
+var phase_banner: String = "show"           # "show" | "skip"
+var level_up_screen: String = "show"        # "show" | "auto" | "skip"
+var mouse_targeting: String = "snap"        # "snap" | "disabled"
 
-# --- Controls (keybindings) ---
-# Stored as a Dictionary: { action_name: Array[InputEvent] }
-# Loaded from config and applied to InputMap at startup.
+# --- Controls ---
+# { action_name: Array[InputEvent] }; applied to InputMap at startup.
 var keybindings: Dictionary = {}
 
-# --- Lifecycle ---
 func _ready() -> void:
     load_settings()
     _apply_audio()
     _apply_keybindings()
 
 func load_settings() -> void
-    # Reads user://settings.cfg via ConfigFile.
-    # Falls back to defaults for any missing key.
-    # IMPORTANT: do NOT read or write GameState from here — SettingsManager
-    # autoloads BEFORE GameState (per the registration order), so the GameState
-    # node may not exist yet. GameState._ready() pulls the relevant values
-    # (permadeath_enabled, leveling_method) from SettingsManager instead.
+    # Reads user://settings.cfg via ConfigFile; falls back to defaults per key.
+    # Stale permadeath/leveling_method keys from old config files are ignored.
 
 func save() -> void
     # Writes all current values to user://settings.cfg.
-    # Called immediately whenever any setting changes.
 
 func reset_section_to_defaults(section: String) -> void
     # section: "audio" | "controls" | "gameplay"
-    # Resets vars in that section to their default values.
-    # Calls save() and _apply_audio() / _apply_keybindings() as needed.
 
-# --- Internal helpers ---
 func _apply_audio() -> void
-    # Converts 0–100 int values to decibel gains and sets each AudioServer bus.
-    # Formula: AudioServer.set_bus_volume_db(bus_idx, linear_to_db(volume / 100.0))
-    # Bus indices: Master = 0, Music = 1, SFX = 2
-    # Guard each set with `AudioServer.bus_count > N` — Music and SFX buses must be
-    # added via the editor's Audio panel; only Master exists in a fresh headless build.
+    # Converts 0–100 ints to decibels and sets each AudioServer bus.
+    # Buses are looked up by NAME (get_bus_index("Master"/"Music"/"SFX")), so
+    # editor bus order does not matter; missing buses are silently skipped.
 
 func _apply_keybindings() -> void
-    # Iterates keybindings dict and calls InputMap.action_erase_events() +
-    # InputMap.action_add_event() for each action.
+    # InputMap.action_erase_events() + action_add_event() per bound action.
 
-func set_volume(bus_name: String, value: int) -> void
-    # Updates the relevant var, calls _apply_audio(), calls save().
-
+func set_volume(bus_name: String, value: int) -> void   # updates var, applies, saves
 func rebind_action(action_name: String, event: InputEvent) -> void
-    # Updates keybindings[action_name], calls _apply_keybindings(), calls save().
-
 func get_movement_speed_seconds() -> float
-    # Returns the per-tile tween duration based on movement_speed setting:
-    # "normal" -> 0.12  |  "fast" -> 0.06  |  "instant" -> 0.0
+    # Per-tile tween duration: "normal" -> 0.12 | "fast" -> 0.06 | "instant" -> 0.0
+```
 
 ### `DataManager.gd`
+
+Autoload. Loads every content `.tres` at startup so bad data fails loud at boot.
 
 ```gdscript
 extends Node
@@ -387,35 +406,31 @@ var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
-
-# Weapon triangle lookup — nested dict: [attacker_type][defender_type] -> "advantage"|"disadvantage"|"neutral"
-var _weapon_triangle: Dictionary = {
-    "sword":   { "axe": "advantage",    "lance": "disadvantage" },
-    "axe":     { "lance": "advantage",  "sword": "disadvantage" },
-    "lance":   { "sword": "advantage",  "axe":   "disadvantage" },
-    "dark":    { "fire":  "advantage",  "thunder": "advantage",  "wind": "advantage",  "light": "disadvantage" },
-    "light":   { "dark":  "advantage",  "fire": "disadvantage",  "thunder": "disadvantage", "wind": "disadvantage" },
-    "fire":    { "light": "advantage",  "dark": "disadvantage" },
-    "thunder": { "light": "advantage",  "dark": "disadvantage" },
-    "wind":    { "light": "advantage",  "dark": "disadvantage" },
-}
+# The weapon triangle lives in GameConstants.WEAPON_TRIANGLE — the single source
+# of truth, shared with CombatResolver. DataManager no longer holds its own copy.
 
 func _ready() -> void:
     _load_directory("res://data/classes/", _classes)
     _load_directory("res://data/weapons/", _weapons)
     _load_directory("res://data/items/", _items)
     _load_directory("res://data/skills/", _skills)
+    for skill in _skills.values():
+        skill.validate()
+    _validate_cross_references()   # class starting_skills + skill activation stats
 
 func _load_directory(path: String, target: Dictionary) -> void
 func get_class_data(id: String) -> ClassData   # named *_data, not get_class, to avoid
-                                                # Godot's built-in Object.get_class() override warning
+                                               # Godot's Object.get_class() override warning
 func get_weapon(id: String) -> WeaponData
 func get_item(id: String) -> ItemData
 func get_skill(id: String) -> SkillData
 func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String
+    # "advantage" | "disadvantage" | "neutral" — reads GameConstants.WEAPON_TRIANGLE.
 ```
 
 ### `EventBus.gd`
+
+Autoload. Central signal bus — systems emit here instead of referencing each other.
 
 ```gdscript
 extends Node
@@ -425,27 +440,27 @@ signal unit_deselected()
 signal unit_moved(unit: Node, from_tile: Vector2i, to_tile: Vector2i)
 signal unit_action_taken(unit: Node)
 signal combat_started(attacker: Node, defender: Node)
+# combat_resolved is emitted AFTER handle_death() on any loser — listeners MUST
+# is_instance_valid() before dereferencing attacker/defender across frames.
 signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)
 signal unit_healed(unit: Node, amount: int)
 signal unit_leveled_up(unit: Node, stat_increases: Dictionary)
-signal phase_changed(new_phase: GameState.Phase)
+signal phase_changed(new_phase: int)   # carries a GameState.Phase value, typed int
 signal cursor_moved(tile: Vector2i)
 signal map_victory()
 signal map_defeat()
-# Amendment A1 — added when ConditionManager is implemented in M8:
-# signal condition_applied(unit: Node, condition_type: String)
-# signal condition_removed(unit: Node, condition_type: String)
-# Amendment M12 — Laguz system:
-# signal shift_gauge_changed(unit: Node, new_value: int)
-# signal unit_shifted(unit: Node, is_animal_form: bool)
 ```
 
-### `ConditionManager.gd` (Amendment A1 — stub until M8)
+> `TurnManager` exposes its own `turn_changed(turn_number: int)` signal (not on the
+> bus). Condition/Laguz signals (`condition_applied`, `shift_gauge_changed`, …) are
+> planned for M8/M12 and are not declared yet.
 
-Registered as autoload after `DataManager`. All methods are no-ops in MVP.
-Full implementation in Milestone 8.
+### `ConditionManager.gd` (stub until M8)
+
+Autoload, registered after `DataManager`. All methods are no-ops until Milestone 8;
+it exists now so other systems can call into it without `get_node_or_null` guards.
 
 ```gdscript
 extends Node
@@ -472,204 +487,228 @@ func clear_all_conditions(unit: Node) -> void
 
 ### `GridManager.gd`
 
-```gdscript
-extends Node
+`class_name GridManager`. A scene node, child of `GameMap`. Authority on map geometry.
 
-# TILE_SIZE lives in GameConstants.gd (autoload) — edit there to change project-wide
+```gdscript
+class_name GridManager extends Node
+
 var map_width: int = 0
 var map_height: int = 0
-var _tilemap: TileMapLayer
+# Terrain bonuses applied to defenders only:
+const TERRAIN_DEF_BONUS: Dictionary    # plain 0, forest 1, mountain 2, fort 2, sea/desert 0
+const TERRAIN_DODGE_BONUS: Dictionary  # plain 0, forest 15, mountain 20, fort 30, sea 10, desert 5
 
-# Terrain
+func setup(terrain_layer, overlay_layer, width, height) -> void   # wired by GameMap
+
+# Terrain / queries
 func get_terrain_at(tile: Vector2i) -> String
-    # Returns "plain"|"forest"|"mountain"|"fort"|"sea"|"desert"|"wall"
+    # "plain"|"forest"|"mountain"|"fort"|"sea"|"desert"|"wall"; out-of-bounds -> "wall"
 func is_passable(tile: Vector2i, unit: Node) -> bool
-func get_unit_at(tile: Vector2i) -> Node   # null if empty
+func can_end_on_tile(tile: Vector2i, unit: Node) -> bool   # cannot stop on any occupant
+func get_unit_at(tile: Vector2i) -> Node                   # null if empty
 func world_to_tile(world_pos: Vector2) -> Vector2i
-func tile_to_world(tile: Vector2i) -> Vector2   # Returns top-left corner of tile
-
-# Movement
-func get_movement_range(unit: Node) -> Array[Vector2i]
-    # BFS/Dijkstra from unit's tile; respects move costs and blocking
-func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]
-    # Ordered path for animation; empty array if unreachable.
-    # Named *_path, not get_path_to, because Godot's Node.get_path_to(node, bool) -> NodePath
-    # is a built-in that would override-warning here.
+func tile_to_world(tile: Vector2i) -> Vector2              # top-left corner of tile
 func get_move_cost(tile: Vector2i, unit: Node) -> int
-    # 1 for plain/fort; 2 for forest/sea/desert (standard);
-    # 3 for mountain; 3 for armoured/mounted on desert; 999 for wall
+    # 1 plain/fort; 2 forest/sea/desert; 3 mountain; 3 armoured/mounted on desert;
+    # 999 wall. Consults SkillHandler movement overrides first.
 
-# Attack
-func get_attack_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]
-    # All tiles attackable from any tile in from_tiles, excluding from_tiles themselves
-func get_all_attack_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]
-    # All attackable tiles including those within movement range
-func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
-    # Enemies in weapon range from a specific tile
-func can_attack_from_tile(attacker: Node, at_tile: Vector2i, target: Node) -> bool
+# Movement (Dijkstra)
+func dijkstra_costs(start, max_cost, ignore_occupants, blocker_unit, came_from := {}) -> Dictionary
+    # Shared cost flood behind the queries below. Returns { tile: cost }.
+func get_movement_range(unit: Node) -> Array[Vector2i]
+    # Tiles the unit can legally stop on; capped at unit.data.movement.
+func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]
+    # Ordered path; [] if unreachable. Named *_path, not get_path_to, to avoid the
+    # Node.get_path_to() built-in override warning.
 
-# Staff
-func get_healable_allies(unit: Node) -> Array[Node]
-    # Allies within staff range who are below max HP
+# Attack / staff range
+func get_attack_range_from_tiles(unit, from_tiles) -> Array[Vector2i]
+func get_all_attack_tiles(unit, from_tiles) -> Array[Vector2i]
+func get_attackable_enemies_from_tile(unit, tile) -> Array[Node]
+func can_attack_from_tile(attacker, at_tile, target) -> bool
+func in_weapon_range_from_tile(unit, at_tile, target) -> bool   # range only; allows staves
+func get_healable_allies(unit: Node) -> Array[Node]             # allies in staff range, hurt
 
 # Overlays
-func show_movement_overlay(tiles: Array[Vector2i]) -> void   # Blue tint
-func show_attack_overlay(tiles: Array[Vector2i]) -> void     # Red tint
-func show_heal_overlay(tiles: Array[Vector2i]) -> void       # Green tint
-func show_enemy_danger_zone() -> void                        # All enemy attack ranges; red tint
+func show_movement_overlay(tiles) -> void   # blue
+func show_attack_overlay(tiles) -> void     # red
+func show_heal_overlay(tiles) -> void       # green
+func show_enemy_danger_zone() -> void       # dark red — union of all enemy attack ranges
 func clear_overlays() -> void
 ```
 
 ### `CombatResolver.gd`
 
+Autoload. The combat math engine. Resolution is **two-phase**: `resolve_combat()`
+builds the exchange list and rolls RNG; `apply_combat_result()` commits the outcome.
+Splitting them lets weapon breakage and skill triggers be modelled during simulation
+before any state is mutated. See the `CombatResolver.gd` header for the full
+combat-context dictionary schema.
+
 ```gdscript
 extends Node
 
-# Main resolution (has side effects — call only when player confirms)
+# Phase 1 — build the exchange list and roll RNG. No HP/EXP applied yet.
 func resolve_combat(attacker: Node, defender: Node) -> Dictionary
 # Returns {
-#   exchanges: [{ actor, target, hit: bool, crit: bool, damage: int }],
-#   attacker_final_hp: int,
-#   defender_final_hp: int,
-#   attacker_exp: int,
-#   attacker_wexp: int
+#   "exchanges": [ { attacker, defender, weapon, hit, crit, damage,
+#                    loses_durability, is_counter, is_follow_up } ],
+#   "attacker_died": bool,   # from the simulated HP
+#   "defender_died": bool,
+#   "context": Dictionary,
 # }
 
-# Preview only — no RNG, no stat changes
+# Phase 2 — commit the result: durability, HP (take_damage), wEXP, EXP, deaths.
+# Adds "attacker_exp"/"defender_exp" to result; emits combat_started/combat_resolved.
+func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void
+
+# Forecast — no RNG, no lasting side effects (snapshots and restores unit state).
 func preview_combat(attacker: Node, defender: Node) -> Dictionary
 # Returns {
-#   attacker_hit_pct, attacker_dmg, attacker_crit_pct, attacker_attacks,
-#   defender_hit_pct, defender_dmg, defender_crit_pct, defender_attacks
+#   attacker_hit, attacker_damage, attacker_crit, attacker_attacks,
+#   can_counter, defender_hit, defender_damage, defender_crit, defender_attacks,
+#   attacker_weapon, defender_weapon, defender_vantage
 # }
 
-# Helpers (used internally and by EnemyAI for scoring)
-func compute_battle_speed(unit: Node, weapon: WeaponData) -> int
-func compute_accuracy(attacker: Node, defender: Node, weapon: WeaponData) -> int
-func compute_damage(attacker: Node, defender: Node, weapon: WeaponData) -> int
-func compute_crit_rate(attacker: Node, defender: Node, weapon: WeaponData) -> int
+# Stat helpers (also used by EnemyAI). Each takes an optional context Dictionary.
+func compute_hit_pct(attacker, defender, weapon := null, context := {}) -> int
+func compute_damage(attacker, defender, weapon := null, context := {}) -> int
+func compute_crit_pct(attacker, defender, weapon := null, context := {}) -> int
 func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool
 func get_follow_up_attacker(a: Node, b: Node) -> Node   # null if no follow-up
 func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int
-
-# Internal
-func _apply_weapon_triangle(base_accuracy: int, base_damage: int,
-        atk_weapon: WeaponData, def_weapon: WeaponData) -> Dictionary
-func _apply_terrain(accuracy: int, dodge_bonus: int) -> int
-func _roll_hit(pct: int) -> bool       # randi() % 100 < pct
-func _roll_crit(pct: int) -> bool
 ```
+
+> Battle speed is not a CombatResolver method — it is `Unit.battle_speed()`.
+> The hit/crit roll is inline `(randi() % 100) < pct` (see GDD_02 → Combat Resolution).
 
 ### `TurnManager.gd`
 
+`class_name TurnManager`. A scene node, child of `GameMap`. Owns phase progression
+and per-unit action state.
+
 ```gdscript
-extends Node
+class_name TurnManager extends Node
+
+signal turn_changed(turn_number: int)
 
 enum UnitState { READY, MOVED, DONE }
 
-var _unit_states: Dictionary = {}   # Node -> UnitState
-var _combat_lock: bool = false      # True while combat animation plays
+var _unit_states: Dictionary = {}     # Node -> UnitState
+var _original_tiles: Dictionary = {}  # Node -> pre-move tile, for undo
+var _map_over: bool = false           # latches on first victory/defeat emit
 
-func start_map(map_data: MapData) -> void
+func start_map(map_data: MapData, grid: GridManager = null) -> void
 func start_player_phase() -> void
-func end_player_phase() -> void
-func start_enemy_phase() -> void
+func end_player_phase() -> void       # increments turn_number, fires turn_changed
+func start_enemy_phase() -> void      # awaits EnemyAI.run_enemy_phase()
 func set_unit_state(unit: Node, state: UnitState) -> void
 func get_unit_state(unit: Node) -> UnitState
-func can_unit_act(unit: Node) -> bool   # READY or MOVED
+func can_unit_act(unit: Node) -> bool          # READY or MOVED
 func are_all_player_units_done() -> bool
-func undo_move(unit: Node) -> void      # Returns MOVED unit to READY; restores position
+func record_move_start(unit: Node) -> void     # stores pre-move tile for undo
+func undo_move(unit: Node) -> void             # restores tile, returns unit to READY
 func check_victory_conditions() -> void
+    # Reads MapData.objective_type. MVP supports "rout". Also handles turn-limit
+    # defeat, all-players-dead defeat, and required_survivor_ids defeat.
 ```
 
 ### `Unit.gd`
 
+`class_name Unit`. One scene instance per unit on the map; wraps a `UnitData`.
+
 ```gdscript
-extends Node2D
+class_name Unit extends Node2D
 
 var data: UnitData
-var tile_position: Vector2i
-var team: String   # "player" | "enemy"
-var _original_tile: Vector2i   # Stored when unit starts moving (for undo)
+var team: String = "player"   # "player" | "enemy"
+var tile_position: Vector2i   # pass-through property to data.tile_position
 
 func initialize(unit_data: UnitData, start_tile: Vector2i, unit_team: String) -> void
-func get_equipped_weapon() -> WeaponData       # null if inventory empty or all broken
-func get_equipped_weapon_entry() -> Dictionary
+func set_grid_manager(grid: GridManager) -> void   # cached by GameMap; avoids tree walks
+func get_equipped_weapon() -> WeaponData           # first usable equipped weapon, or null
+func get_equipped_weapon_entry() -> InventoryEntry # the matching InventoryEntry, or null
 func has_quality(quality: String) -> bool
 func get_terrain_def_bonus() -> int
 func get_terrain_dodge_bonus() -> int
 
-# Stat access — Amendment A2
+# Stat access — all combat stats read through get_effective_stat so modifiers apply
 func get_effective_stat(stat_name: String) -> int
-    # Base stat value + sum of active_modifiers matching stat_name. Clamped ≥ 0.
-    # stat_name must match a UnitData property name exactly (e.g. "strength", "spd").
+    # Base value + active_modifiers matching stat_name, clamped >= 0. stat_name must
+    # match a UnitData property exactly: "strength","magic","defense","resistance",
+    # "skill","speed","luck","hp" — the FULL names, never "str"/"spd"/etc.
 func has_skill(skill_id: String) -> bool
 func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int
 func consume_skill_use(effect_id: String) -> void
 
-# Modifier lifecycle — Amendment A2
-func add_modifier(stat: String, delta: int, source: String,
-                  duration: int, duration_type: String) -> void
+# Modifier lifecycle
+func add_modifier(stat, delta, source, duration, duration_type) -> void
 func remove_modifier(source: String) -> void
-func tick_modifiers(duration_type: String) -> void
-    # "turn" at unit's own turn start; "map_turn" once per full round.
-func clear_combat_modifiers() -> void
-    # Called by CombatResolver after each combat resolves.
-func reset_map_state() -> void
-    # Clears active_modifiers, skill_use_counters, damage_taken_this_map.
-    # Call before GameState.take_map_snapshot().
+func tick_modifiers(duration_type: String) -> void   # "turn" / "map_turn"
+func clear_combat_modifiers() -> void                # called after each combat
+func reset_map_state() -> void                       # before take_map_snapshot()
 
-# Combat stats (all read through get_effective_stat so modifiers apply)
-func battle_speed(weapon: WeaponData = null) -> int
-func accuracy(weapon: WeaponData = null) -> int
-func dodge(weapon: WeaponData = null) -> int
-func damage(weapon: WeaponData = null) -> int
-func crit_rate(weapon: WeaponData = null) -> int
+# Combat stats (optional weapon override; default = currently equipped weapon)
+func battle_speed(weapon := null) -> int
+func accuracy(weapon := null) -> int
+func dodge(weapon := null) -> int
+func crit_rate(weapon := null) -> int
 func crit_avoid() -> int
 
-# HP
+# HP / death
 func take_damage(amount: int) -> void
 func heal(amount: int) -> void
+func perform_staff_heal(target: Node, weapon: WeaponData) -> void   # shared by player + AI
 func handle_death() -> void
 
 # Movement
-func move_along_path(path: Array[Vector2i]) -> void   # async; uses Tween
+func move_along_path(path: Array[Vector2i]) -> void   # async; Tween; await to block
 func snap_to_tile(tile: Vector2i) -> void             # instant; used by AI and undo
 
-# Inventory
-func use_weapon_durability() -> void
+# Inventory / progression
+func use_weapon_durability(weapon_id: String = "") -> bool   # true if the weapon broke
 func can_equip(weapon_data: WeaponData) -> bool
-
-# Progression
 func add_exp(amount: int) -> void
 func level_up() -> void
-func add_wexp(weapon_type: String, amount: int) -> void
+func add_wexp(weapon_type: String, amount: int) -> bool      # true if a rank-up occurred
 
 # Visual state
-func set_done_appearance() -> void     # Greyscale/darkened sprite when DONE
-func reset_appearance() -> void        # Back to normal at phase start
+func set_done_appearance() -> void     # darkened sprite when DONE
+func reset_appearance() -> void        # back to normal at phase start
 ```
+
+> There is no `Unit.damage()` method — per-attack damage is computed only by
+> `CombatResolver.compute_damage()`.
 
 ### `MapCursor.gd`
 
+`class_name MapCursor`. A scene node, child of `GameMap`. The cursor FSM, camera,
+and menu wiring. Three concerns are sliced into `RefCounted` helpers, injected via
+`setup()` so they are unit-testable without a SceneTree:
+`MapCursorSelection` (unit selection + path planning), `MapCursorTargeting`
+(attack/staff targeting flow), and `MapCursorInput` (key decode + auto-repeat).
+
 ```gdscript
-extends Node2D
+class_name MapCursor extends Node2D
 
 var current_tile: Vector2i = Vector2i(0, 0)
-var _grid: GridManager
-var _camera: Camera2D
-var _state: String = "free"   # "free" | "unit_selected" | "unit_moved" | "targeting" | "locked"
 
-const CURSOR_SPEED: float = 0.10    # Seconds between moves when key held
+enum State { FREE, UNIT_SELECTED, UNIT_MOVED, TARGETING, LOCKED }
+var _state: State = State.FREE
 
-func _unhandled_input(event: InputEvent) -> void
+func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void
 func move_cursor(direction: Vector2i) -> void
 func _on_confirm() -> void
 func _on_cancel() -> void
-func lock() -> void     # Disable cursor input during animations and enemy phase
+func lock() -> void      # input suppressed (animation, enemy phase)
 func unlock() -> void
 func _scroll_camera_if_needed() -> void
-    # If cursor is within 2 tiles of viewport edge, scroll camera
 ```
+
+> Key-repeat timing lives in `GameConstants` (`CURSOR_KEY_REPEAT_DELAY` 0.25 s /
+> `CURSOR_KEY_REPEAT_RATE` 0.10 s) and `MapCursorInput` — there is no `CURSOR_SPEED`.
+> The Phase-2 camera-zoom hooks (`ZOOM_LEVELS`, `_handle_zoom`) are not yet added
+> (see the Camera Zoom section).
 
 ---
 
@@ -710,7 +749,8 @@ Define these actions in **Project → Project Settings → Input Map**:
 | `cancel` | X, Escape | Right Click |
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift+Tab | — |
-| `open_menu` | Escape, Enter (on empty tile) | — |
+| `open_menu` | M | — (the map menu also opens via confirm/cancel on an empty tile) |
+| `open_settings` | O | — |
 | `show_danger_zone` | Q | Middle Click |
 | `end_turn` | — | — (accessed via Map Menu) |
 | `zoom_in` | + / = | Scroll Up — [PLACEHOLDER Phase 2] |
@@ -719,127 +759,125 @@ Define these actions in **Project → Project Settings → Input Map**:
 
 ---
 
-## UnitData Field Addendum
-
-The following fields are additions to `UnitData.gd` that were introduced after the
-initial resource definition. Include them alongside the fields listed in GDD_03.
-
-```gdscript
-# In UnitData.gd — add these fields:
-
-@export var ai_profile: String = "basic"
-    # Used by EnemyAI to determine decision-making behaviour.
-    # Valid values for MVP: "basic" | "passive"
-    # Future values: "territorial" | "guard_tile" | "healer" | "boss"
-    # Player units should leave this as "basic" (it is never read for player units).
-
-@export var is_default_roster: bool = false
-    # True for the 6 auto-generated MVP starter units.
-    # Used by GameMap to distinguish generated units from player-created ones.
-```
-
----
-
 ## Resource Class Definitions
 
-These are the full `@export` field definitions for every custom Resource class.
-Each file lives in `scripts/resources/` and is saved as a `.tres` in its
-respective `data/` subfolder.
+The full `@export` field definitions for every custom Resource class. Each class
+lives in `scripts/resources/` and is saved as `.tres` files in its `data/` subfolder.
+
+> **Headless `.tres` note:** in `--script` runs the global class registry is not
+> initialized, so `.tres` files are written with `type="Resource"` and the real
+> class assigned via the `script = ExtResource(...)` line — see Implementation Notes.
 
 ### `UnitData.gd`
 
 ```gdscript
 class_name UnitData extends Resource
 
+@export var unit_id: String = ""           # unique id — survivor checks & save/load
 @export var unit_name: String = ""
+var tile_position: Vector2i = Vector2i.ZERO
+    # NOT @export — runtime map state. Captured by GameState's manual snapshot,
+    # not by ResourceSaver. Unit.tile_position is a pass-through to this field.
 @export var class_id: String = ""
 @export var level: int = 1
 @export var exp: int = 0
 @export var is_promoted: bool = false
-@export var effective_level: int = 1      # pre + post promotion levels combined
+@export var effective_level: int = 1       # pre + post promotion levels combined
 
-# Stats
+# Stats — FULL property names. Combat code reads these via Unit.get_effective_stat().
 @export var max_hp: int = 0
-@export var hp: int = 0                   # current HP
+@export var hp: int = 0                    # current HP
 @export var strength: int = 0
-@export var mag: int = 0
-@export var def: int = 0
-@export var res: int = 0
-@export var skl: int = 0
-@export var spd: int = 0
-@export var luk: int = 0
-@export var mov: int = 0
-@export var con: int = 0
-@export var los: int = 4
+@export var magic: int = 0
+@export var defense: int = 0
+@export var resistance: int = 0
+@export var skill: int = 0
+@export var speed: int = 0
+@export var luck: int = 0
+@export var movement: int = 0
+@export var constitution: int = 0
+@export var line_of_sight: int = 4
 
-# Proficiencies — Dictionary: { "sword": { "rank": "D", "wexp": 0 } }
+# Proficiencies — { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
 
-# Skills — Array of skill ID strings
+# Equippable skill IDs (max GameState.max_skills — cap not yet enforced)
 @export var skills: Array[String] = []
+# Earned mastery skills (e.g. s_rank_mastery). NOT @export — populated at runtime
+# by Unit.add_wexp(); never authored in .tres; never count against the skill cap.
+var mastery_skills: Array[String] = []
 
-# Inventory — Array of Dictionaries; each entry has a "type" field.
-# All code that reads inventory must check entry["type"] before reading
-# other fields. See Inventory Entry Format below.
-@export var inventory: Array[Dictionary] = []
+# Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
+@export var inventory: Array[InventoryEntry] = []
 
 # Conditions — Array of Dictionaries; see GDD_02 status conditions
 @export var conditions: Array[Dictionary] = []
 
-# Economy
 @export var gold: int = 1000
-
-# State
 @export var is_incapacitated: bool = false  # permadeath flag
-@export var ai_profile: String = "basic"
-@export var is_default_roster: bool = false
+@export var ai_profile: String = "basic"    # EnemyAI dispatch — see GDD_08
+@export var is_default_roster: bool = false # true for the 6 generated starter units
 
-# ── Phase 2 runtime state (Amendment A1) ─────────────────────────────────────
-# All default to safe empty/zero values. Serializable for mid-battle suspend saves.
-
+# ── Phase 2 runtime state ────────────────────────────────────────────────────
 # Active temporary stat modifiers. Each entry:
 #   { "stat": String, "delta": int, "source": String, "duration": int,
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
-# "duration" = -1 or "permanent" type = never auto-removed.
+# duration -1 or "permanent" type = never auto-removed.
 @export var active_modifiers: Array[Dictionary] = []
+var skill_use_counters: Dictionary = {}     # NOT @export — effect_id -> uses this map
+var damage_taken_this_map: int = 0          # NOT @export — used by Vengeance (M9)
+@export var growth_accumulators: Dictionary = {}   # carry-over for growth_fixed leveling
 
-# Per-map skill use counters. Keys = effect_id, values = times used this map.
-@export var skill_use_counters: Dictionary = {}
-
-# Cumulative damage taken this map (used by Vengeance skill — M9).
-@export var damage_taken_this_map: int = 0
-
-# Laguz fields — safe defaults for all Beorc units, ignored until M12.
+# Laguz fields — safe defaults for all Beorc units; ignored until M12.
 @export var shift_gauge: int = 0
 @export var is_shifted: bool = false
 @export var shift_profile_id: String = ""
 ```
 
-### Inventory Entry Format
+> The non-`@export` fields (`tile_position`, `mastery_skills`, `skill_use_counters`,
+> `damage_taken_this_map`) are runtime state. `GameState`'s map snapshot copies them
+> by hand for Retry; a future `ResourceSaver`-based save must serialize them via that
+> snapshot dict (a `ResourceSaver` write does not persist non-exported vars).
 
-Every entry in `UnitData.inventory` is a Dictionary with a mandatory `"type"` field.
-This is the single source of truth — all code that reads inventory checks `type` first.
+### `InventoryEntry.gd`
+
+A unit's inventory is `Array[InventoryEntry]` — a typed `Resource`, **not** the old
+`Array[Dictionary]` format. One `InventoryEntry` per slot; `entry_type` discriminates.
 
 ```gdscript
-# Weapon entry
-{
-  "type": "weapon",
-  "weapon_id": "iron_sword",     # must match a WeaponData resource id
-  "uses_remaining": 45,
-  "forged_mods": {}              # empty dict = unforged; see GDD_04 forging section
-}
+class_name InventoryEntry extends Resource
 
-# Item entry
-{
-  "type": "item",
-  "item_id": "vulnerary",        # must match an ItemData resource id
-  "uses_remaining": 3
-}
+@export var entry_type: String = ""    # "weapon" | "item" | "equip"
+
+# Weapon fields
+@export var weapon_id: String = ""     # must match a WeaponData id
+@export var forged_mods: Dictionary = {}   # reserved for forging (M10)
+
+# Item fields
+@export var item_id: String = ""       # must match an ItemData id
+
+# Shared — remaining uses. -1 = infinite, 0 = exhausted, >0 = finite.
+# Equip-type entries ignore this (gate them with is_equip()).
+@export var uses_remaining: int = 0
+
+# Equipment bonus fields (equip type — M10 forging)
+@export var accuracy: int = 0
+@export var damage: int = 0
+@export var crit: int = 0
+@export var dodge: int = 0
+
+func is_weapon() -> bool       # entry_type == "weapon"
+func is_item() -> bool         # entry_type == "item"
+func is_equip() -> bool        # entry_type == "equip"
+func has_uses() -> bool        # uses_remaining != 0
+func validate() -> bool        # checks type/id consistency
+static func make_weapon(weapon_id: String, uses: int) -> InventoryEntry
+static func make_item(item_id: String, uses: int) -> InventoryEntry
 ```
 
-`Unit.get_equipped_weapon()` filters for `type == "weapon"` entries only and
-returns the first one whose `uses_remaining > 0` and which the unit can equip
-(proficiency rank check). Items are never auto-equipped.
+`Unit.get_equipped_weapon()` returns the first `is_weapon()` entry that still
+`has_uses()` and whose `WeaponData` the unit can equip (proficiency rank check).
+Items are never auto-equipped.
 
 ### `WeaponData.gd`
 
@@ -852,41 +890,34 @@ class_name WeaponData extends Resource
     # "sword" | "lance" | "axe" | "bow" | "knife"
     # | "fire" | "thunder" | "wind" | "light" | "dark" | "staff"
 @export var rank: String = "E"            # "E" | "D" | "C" | "B" | "A" | "S"
-@export var mt: int = 0
-    # For staves: set to 0. Heal amount is computed separately (10 + MAG).
-@export var hit: int = 0
-    # For staves: set to 0. Staves do not use a hit roll (healing always lands).
-@export var crit: int = 0
-    # For staves: set to 0. Staves cannot crit.
-@export var range_min: int = 1
-@export var range_max: int = 1
+@export var mt: int = 0                   # staves: 0 (heal = 10 + MAG, computed separately)
+@export var hit: int = 0                  # staves: 0 (healing always lands)
+@export var crit: int = 0                 # staves: 0 (staves cannot crit)
+
+# Range as formula strings so dynamic ranges (e.g. Physic "MAG/2") work uniformly.
+# Static weapons store integer strings ("1", "2"). Always read via get_range_min/max().
+@export var range_min_formula: String = "1"
+@export var range_max_formula: String = "1"
+
 @export var wt: int = 0
 @export var uses: int = 1
 @export var cost: int = 0
-@export var wexp: int = 1
-@export var effect_tags: Array[String] = []
-    # See GDD_04 for full tag list
-@export var uses_mag: bool = false
-    # If true: uses MAG instead of STR for damage; targets RES instead of DEF
-    # Set true for all tomes. Set false for staves (staves have their own heal logic).
-@export var magic_triangle_type: String = ""
-    # Only for hybrid weapons (e.g. Bolt Axe uses "thunder" triangle).
-    # Leave empty for standard weapons and tomes.
+@export var wexp: int = 1                 # wEXP granted per successful hit
+@export var effect_tags: Array[String] = []   # see GDD_04 for the full tag list
+@export var uses_mag: bool = false        # true: MAG for damage, targets RES (tomes)
+@export var magic_triangle_type: String = ""   # hybrid weapons only (e.g. Bolt Axe)
+@export var strikes_per_attack: int = 1   # 2 for Brave weapons
+@export var is_natural_weapon: bool = false    # Laguz Fang/Claw/Beak/Talon (deferred)
 
-# ── Amendment A1 fields ───────────────────────────────────────────────────────
-@export var strikes_per_attack: int = 1
-    # Set to 2 for all Brave weapons. Attacker fires this many times before
-    # the defender counters. Handled by CombatResolver multi-strike loop (M4/A3).
-@export var is_natural_weapon: bool = false
-    # True for Laguz Fang/Claw/Beak/Talon. No cost, no uses consumed.
-    # Unit.get_equipped_weapon() returns this automatically when is_shifted = true.
+func is_healing_staff() -> bool                # staff type + heal_10_plus_mag tag
+func get_range_min(unit: Node = null) -> int   # evaluates range_min_formula
+func get_range_max(unit: Node = null) -> int   # evaluates range_max_formula
 ```
 
-**Staff note:** Staves are `WeaponData` resources with `weapon_type = "staff"`.
-Their `mt`, `hit`, and `crit` fields are all `0` and are never read during combat.
-Staff effects are handled by dedicated staff-use logic in `Unit.gd` and the
-`ActionMenu`, not by `CombatResolver`. The `range_min` and `range_max` fields
-define healing reach (Heal staff: min=1, max=1).
+**Staff note:** healing staves have `weapon_type = "staff"` and the `heal_10_plus_mag`
+effect tag. `is_healing_staff()` keys off the **tag** (not the type), so future
+offensive/debuff staves remain attack-capable. Healing staves cannot attack or
+counterattack — staff use runs through `Unit.perform_staff_heal()`, not `CombatResolver`.
 
 ### `ClassData.gd`
 
@@ -917,11 +948,12 @@ class_name ClassData extends Resource
 @export var promotion_skill: String = ""
 @export var occult_skill: String = ""
 @export var growth_rates: Dictionary = {}
-    # { "hp": 70, "str": 50, "mag": 5, "def": 40,
-    #   "res": 20, "skl": 60, "spd": 50, "luk": 35 }
+    # FULL stat-name keys, values 0–100:
+    # { "hp": 75, "strength": 50, "magic": 5, "defense": 45,
+    #   "resistance": 25, "skill": 50, "speed": 45, "luck": 40 }
 @export var sprite_id: String = ""        # [PLACEHOLDER] links to sprite sheet row
 
-# ── Laguz gauge parameters (Amendment A1) ────────────────────────────────────
+# ── Laguz gauge parameters ───────────────────────────────────────────────────
 # All default to 0/false/"" for Beorc classes — safe to ignore until M12.
 @export var is_laguz: bool = false
 @export var max_shift_gauge: int = 0
@@ -947,7 +979,7 @@ class_name ItemData extends Resource
     # "healing" | "stat" | "promotion" | "equip" | "key" | "sellable"
 @export var uses: int = 1                 # -1 = infinite / equippable
 @export var cost: int = 0
-@export var effect_id: String = ""
+@export var effect_id: String = ""        # dispatched by ItemHandler ("heal_flat", "heal_full")
 @export var effect_params: Dictionary = {}
 ```
 
@@ -963,22 +995,19 @@ class_name SkillData extends Resource
     # "passive" | "start_of_turn" | "on_attack" | "on_defend" | "on_hit"
     # | "on_kill" | "on_damaged" | "on_combat_start" | "on_combat_end"
     # | "on_move" | "on_level_up" | "player_activated"
-    # Phase 2 triggers (Amendment A1): "on_combat_apply_modifiers" | "on_ally_attacked"
+    # | "on_combat_start_negate"  (pre-pass before on_combat_start — Nihil)
+    # Phase 2: "on_combat_apply_modifiers" | "on_ally_attacked"
     # | "on_enemy_leaves_adjacent" | "on_map_start" | "on_shift"
 @export var activation_chance_stat: String = ""
-    # e.g. "skl" — empty string if always triggers
-@export var activation_divisor: int = 2   # e.g. 2 for SKL/2%
-@export var effect_id: String = ""
+    # e.g. "skill" — empty string if the skill always triggers
+@export var activation_divisor: int = 2    # 2 = SKL/2 % activation chance
+@export var effect_id: String = ""         # dispatched by SkillHandler
 @export var effect_params: Dictionary = {}
 @export var is_player_activated: bool = false
+@export var max_uses_per_map: int = -1     # -1 = unlimited (vs skill_use_counters)
+@export var max_uses_per_combat: int = -1  # -1 = unlimited (reset after each combat)
 
-# ── Amendment A1 fields ───────────────────────────────────────────────────────
-@export var max_uses_per_map: int = -1
-    # -1 = unlimited. Checked against UnitData.skill_use_counters[effect_id].
-    # Examples: Rise = 3, Challenge = 3, Favoured = 1.
-@export var max_uses_per_combat: int = -1
-    # -1 = unlimited. Counter cleared after each combat resolves.
-    # Examples: Strike True = 1.
+func validate() -> void   # warns on missing id/effect_id/trigger; called by DataManager
 ```
 
 ### `MapData.gd`
@@ -989,21 +1018,22 @@ class_name MapData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var tilemap_scene_path: String = ""
-@export var objective_type: String = ""
-    # "rout" | "seize" | "boss" | "survive" | "defend" | "escape"
+@export var objective_type: String = ""   # "rout"|"seize"|"boss"|"survive"|"defend"|"escape"
+                                           # (MVP implements "rout")
 @export var objective_params: Dictionary = {}
-@export var turn_limit: int = 0           # 0 = no limit
+@export var turn_limit: int = 0            # 0 = no limit; defeat if exceeded
 @export var player_start_tiles: Array[Vector2i] = []
 @export var enemy_placements: Array[Dictionary] = []
-    # Each entry: {
-    #   "unit_data_path": String,  # e.g. "res://data/maps/map_001_rout/enemies/e1_soldier.tres"
-    #   "tile": Vector2i,
-    #   "ai_profile": String,
-    #   "is_boss": bool
-    # }
-@export var required_survivor_names: Array[String] = []
+    # Each entry: { "unit_data_path": String, "tile": Vector2i,
+    #               "ai_profile": String, "is_boss": bool }
+@export var required_survivor_ids: Array[String] = []   # unit_ids whose death = defeat
 @export var reward_gold: int = 0
 @export var reward_items: Array[String] = []
+# Terrain string grid — one String per row; chars per GameMap._CHAR_TO_SOURCE
+# (. F M T S D W). Height = grid.size(), width = grid[0].length().
+@export var grid: Array[String] = []
+# Camera start; Vector2i(-1,-1) = unset -> centroid of player_start_tiles.
+@export var camera_start_tile: Vector2i = Vector2i(-1, -1)
 ```
 
 ---
@@ -1076,14 +1106,18 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order is `EventBus → SettingsManager → GameState → DataManager → ConditionManager`.
+Project registration order (`project.godot [autoload]`) is the full ten:
+`GameConstants → EventBus → SettingsManager → GameState → DataManager →
+ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI`.
 Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
 must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
 settings from disk but does not push values to GameState; GameState pulls them
 in its own `_ready()` instead.
 
-`ConditionManager` (added in Amendment A1) is a stub until M8. It must be
-registered now so other systems can call into it without `get_node_or_null` guards.
+`ConditionManager` is a stub until M8. It must be registered now so other systems
+can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,
+`SkillHandler`, and `ItemHandler` are autoload singletons reached via
+`get_node_or_null("/root/...")` — they are not scene nodes.
 
 ### .tres files in headless mode
 
