@@ -179,11 +179,13 @@ func get_effective_stat(stat_name: String) -> int:
 	return max(0, total)
 
 
-# Returns true if the unit has the given skill effect_id in their skills list.
+# Returns true if the unit has the given skill — checks both equipped skills and
+# earned mastery skills (e.g. s_rank_mastery), so a mastery skill is never invisible
+# to a has_skill() lookup.
 func has_skill(skill_id: String) -> bool:
 	if data == null:
 		return false
-	return skill_id in data.skills
+	return skill_id in data.skills or skill_id in data.mastery_skills
 
 
 # Returns how many uses of this skill remain this map. -1 = unlimited.

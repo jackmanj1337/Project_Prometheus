@@ -141,6 +141,11 @@ func _spawn_units() -> void:
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
+	# Surface malformed inventory data (bad/empty entry_type, missing weapon_id/item_id)
+	# at spawn — fails loud here rather than as a confusing null mid-combat.
+	for entry in u_data.inventory:
+		if entry != null:
+			entry.validate()
 	var unit: Unit = unit_scene.instantiate()
 	unit.initialize(u_data, tile, team)
 	_units_container.add_child(unit)

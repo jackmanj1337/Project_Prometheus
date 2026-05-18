@@ -39,7 +39,7 @@ func _ready() -> void:
 		# Drop the panel when the displayed unit dies — its node is about to be freed.
 		bus.unit_died.connect(_on_unit_died)
 	_update_turn_label()
-	_on_phase_changed(0)
+	_on_phase_changed(GameState.Phase.PLAYER)
 
 
 func setup(grid: Node, turn_node: Node) -> void:
