@@ -13,35 +13,36 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-13)
+## Status Snapshot (last updated 2026-05-18)
 
 | Milestone | Status | Notes |
 |---|---|---|
-| M0 — Project Setup | ✅ Complete | project.godot, autoloads, folder structure, .gitignore |
-| M1 — Data Layer | ✅ Complete | 6 Resource classes, 4 autoloads, 39 .tres files; Amendment A1 fields added |
-| Amendment A1 — Data Layer | ⏳ Partial | ConditionManager registered; unit_id field exists but not set on roster files (safe default `""` for MVP) |
-| M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap.tscn; Amendment A4 hooks added |
-| Amendment A4 — Grid System | ✅ Complete | All stubs wired; `can_end_on_tile()` called from both movement range and MapCursor |
-| M3 — Units and Turn Structure | ✅ Complete | Unit.gd (stats/HP/EXP/wEXP/movement), Unit.tscn, GameMap, TurnManager, MapCursor |
-| Amendment A2 — Unit Script | ✅ Complete | All hooks wired: tick_modifiers/clear_combat_modifiers/reset_map_state in TurnManager/CombatResolver/GameMap |
-| M4 — Combat System | ✅ Complete | CombatResolver, SkillHandler (renewal/vantage/nihil/resolve/miracle/wrath/faire/breaker), weapon triangle, EXP, brave weapons |
-| Amendment A3 — Combat Resolver | ✅ Complete | Context pipeline, aura scanning, multi-strike (Brave), Miracle sim-HP fix |
-| M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, AttackPreview, LevelUp, GameOver, MainMenu |
-| M6 — Enemy AI | ✅ Basic complete | Basic/passive AI profiles, movement, combat; scoring formula + terrain preference deferred |
-| M7 — Full MVP Playthrough | ⏳ Pending | Integration testing not yet done; several polish items open (see session notes 2026-05-12b) |
+| M0 — Project Setup | ✅ Complete | project.godot, 10 autoloads, folder structure, .gitignore |
+| M1 — Data Layer | ✅ Complete | 7 Resource classes, 46 .tres files; A1 fields folded in |
+| M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap; A4 hooks done |
+| M3 — Units and Turn Structure | ✅ Complete | Unit.gd, Unit.tscn, GameMap, TurnManager, MapCursor; A2 done |
+| M4 — Combat System | ✅ Complete | CombatResolver two-phase pipeline, SkillHandler, EXP, Brave weapons; A3 done |
+| M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, ItemMenu, AttackPreview, CombatHUD, LevelUp, GameOver, MainMenu, NewGameScreen, SettingsScreen |
+| M6 — Enemy AI | ✅ Basic complete | basic / passive / healer profiles; kill-score heuristic deferred to Phase 2 |
+| M7 — Full MVP Playthrough | ⏳ Pending | in-game integration playtest still outstanding |
 
-**Tests:** 155 passing across 8 suites. Run `./run_tests.sh`.
+**Tests:** 347 passing across 18 suites (`scripts/tests/test_*.gd`). Run `./run_tests.sh`.
 
-> **Note on Amendments:** A1–A4 are architectural extensions from `GDD_updates.md` that
-> must be in place before or alongside the MVP milestones they modify. A1 (data fields +
-> ConditionManager), A2 (modifier hooks), and A3 (combat context pipeline) are complete.
-> A4 is mostly done — only the MapCursor move-confirm `can_end_on_tile()` call remains.
+> **Amendments folded in.** The MVP amendments A1–A4 (Phase-2 data fields +
+> `ConditionManager`; modifier hooks; the combat context pipeline; grid skill-hook
+> stubs) are all **complete** and have been merged into GDD_01–GDD_08 — they are no
+> longer tracked as separate "amendments". Phase 2 milestones M8–M16 now live in
+> `GDD_10_Roadmap.md`.
 >
-> **Content Expansion supplements** (`GDD/Content Expansion/`) have been reviewed against
-> the implementation. Conflicts resolved: range formulas (dynamic staff ranges now
-> supported), aura skills (Charm/Anathema/Daunt), Faire/Breaker SkillHandler hooks,
-> Brave weapon multi-strike. Laguz content is deferred (Beast/Dragon quality checks need
-> `is_shifted` guard — see `Unit.has_quality()` DEFERRED comment).
+> The per-task checkboxes in the milestone sections below are a **historical build
+> record**. M0–M6 are complete per the table above and the resynced GDD_01–GDD_08
+> are authoritative for current behaviour, even where individual boxes are still
+> shown unchecked.
+>
+> **Content Expansion supplements** (`GDD/Content Expansion/`) were reviewed against
+> the implementation: dynamic range formulas, Faire/Breaker hooks, and Brave-weapon
+> multi-strike are implemented; aura skills (Charm/Anathema/Daunt) and Laguz content
+> remain deferred (see `Unit.has_quality()`'s DEFERRED comment).
 
 ---
 
@@ -75,11 +76,13 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 - [ ] Create `scenes/ui/`
 - [ ] Create `scripts/autoloads/`
 - [ ] Create `scripts/resources/`
-- [ ] Create `scripts/core/`
+- [ ] Create `scripts/core/` (also holds `EnemyAI.gd` — there is no `scripts/ai/`)
 - [ ] Create `scripts/units/`
 - [ ] Create `scripts/skills/`
-- [ ] Create `scripts/ai/`
+- [ ] Create `scripts/items/`
+- [ ] Create `scripts/shared/`
 - [ ] Create `scripts/ui/`
+- [ ] Create `scripts/tests/` and `scripts/tools/`
 
 ### Project Settings
 - [ ] Set `Display/Window/Size/Viewport Width` to `1280`
@@ -107,7 +110,8 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 - [ ] Add action `next_unit` — Tab
 - [ ] Add action `prev_unit` — Shift + Tab
 - [ ] Add action `show_danger_zone` — Q key, Middle Mouse Button
-- [ ] Add action `open_menu` — Escape (secondary; logic distinguishes context)
+- [ ] Add action `open_menu` — M key
+- [ ] Add action `open_settings` — O key
 
 ---
 
@@ -133,7 +137,7 @@ file is accessible via `DataManager.get_class()` etc. in a temporary test script
 - [ ] Create `scripts/autoloads/GameState.gd` — define all vars and method stubs, including `take_map_snapshot()` and `restore_map_snapshot()`
 - [ ] Create `scripts/autoloads/DataManager.gd` — implement `_load_directory()`, all `get_*()` methods, and weapon triangle lookup table
 - [ ] Create `scripts/autoloads/SettingsManager.gd` — implement all vars, `load_settings()`, `save()`, `_apply_audio()`, `_apply_keybindings()`, `set_volume()`, `rebind_action()`, `reset_section_to_defaults()`, and `get_movement_speed_seconds()` per GDD_01
-- [ ] Register all four as Autoloads in Project Settings in this order: EventBus, SettingsManager, GameState, DataManager
+- [ ] Register the autoloads in Project Settings in this order: GameConstants, EventBus, SettingsManager, GameState, DataManager, ConditionManager, SkillHandler, ItemHandler, CombatResolver, EnemyAI
 - [ ] Verify: `SettingsManager._ready()` runs without error; `user://settings.cfg` is created on first run
 - [ ] Verify: no circular dependency warnings on project load
 
@@ -145,7 +149,7 @@ For each class below, create a `.tres` resource in `data/classes/` using `ClassD
 - [ ] `mage.tres`
 - [ ] `cleric.tres`
 - [ ] `knight.tres`
-- [ ] Verify: `DataManager.get_class("soldier")` returns correct resource at runtime
+- [ ] Verify: `DataManager.get_class_data("soldier")` returns correct resource at runtime
 
 ### MVP Data Files — Weapons (10 files)
 Create `.tres` resources in `data/weapons/` using `WeaponData`:
@@ -164,7 +168,7 @@ Create `.tres` resources in `data/weapons/` using `WeaponData`:
 - [ ] `vulnerary.tres` — effect_id = "heal_flat"; effect_params = {"amount": 20}
 - [ ] `elixir.tres` — effect_id = "heal_full"
 
-### MVP Data Files — Skills (12 files)
+### MVP Data Files — Skills (13 files)
 - [x] `renewal.tres` — trigger = "start_of_turn"; effect_id = "renewal"
 - [x] `vantage.tres` — trigger = "on_combat_start"; effect_id = "vantage"
 - [x] `nihil.tres` — trigger = "on_combat_start"; effect_id = "nihil"
@@ -177,6 +181,7 @@ Create `.tres` resources in `data/weapons/` using `WeaponData`:
 - [x] `swordbreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "sword", "hit": 50}
 - [x] `lancebreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "lance", "hit": 50}
 - [x] `bowbreaker.tres` — trigger = "on_combat_start"; effect_id = "breaker"; effect_params = {"weapon_type": "bow", "hit": 50}
+- [x] `s_rank_mastery.tres` — trigger = "on_combat_start"; effect_id = "s_rank_mastery" (earned at S rank; granted at runtime by `Unit.add_wexp()`, never assigned in a roster .tres)
 
 ### Amendment A1 — Data Layer Extensions
 These fields extend the MVP resource classes for Phase 2 compatibility. Safe defaults
@@ -316,11 +321,11 @@ phase (enemies stand still for now). New player phase restores unit colors.
 - [ ] Implement `set_done_appearance()` — darken/desaturate sprite (use `modulate`)
 - [ ] Implement `reset_appearance()` — restore `modulate` to white
 
-### UnitStatBlock (helper)
-- [ ] Create `scripts/units/UnitStatBlock.gd`
-- [ ] Implement stat computation helpers used by `Unit.gd`
-- [ ] Ensure terrain bonuses are pulled from `GridManager` when computing dodge/def
-- [ ] Ensure S-rank weapon bonus is applied when computing accuracy/crit/damage
+### Stat computation
+- [x] Stat math is **inline in `Unit.gd`** — terrain bonuses are read from
+  `GridManager`, and the S-rank bonus is applied via the `s_rank_mastery` skill.
+  The separate `UnitStatBlock.gd` helper was designed but never created; the logic
+  is small enough to keep in `Unit.gd`.
 
 ### GameMap and Unit Spawning
 - [ ] In `GameMap.tscn`, add script `GameMap.gd`
