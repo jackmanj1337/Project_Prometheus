@@ -154,17 +154,30 @@ When a unit attacks, resolve the following **exchange sequence** in order:
 > combat resolution — determine all attacks before resolving any of them.
 > This prevents mid-combat stat changes from affecting the sequence.
 
+Two modifiers affect this sequence:
+- **Brave weapons** (`WeaponData.strikes_per_attack = 2`) make the wielder strike
+  twice per attack slot — including on the counterattack and the follow-up.
+- **Vantage** (a skill) makes the defender take their counterattack *first*, before
+  the attacker's strike.
+
+`CombatResolver` resolves an exchange the instant the player confirms (MVP has no
+combat animation): `resolve_combat()` builds the exchange list and rolls RNG, then
+`apply_combat_result()` commits HP/durability/EXP. See GDD_01 → CombatResolver.
+
 ### Single Attack Resolution
 
-For each individual attack:
+For each individual attack. The roll is `randi() % 100`, yielding 0–99:
 
-1. Calculate **To-Hit %** (factoring weapon triangle and terrain)
-2. Roll RNG — if roll ≤ To-Hit %, attack connects. Otherwise, miss.
-3. If hit: calculate **Crit %**
-4. Roll RNG — if roll ≤ Crit %, it is a critical hit (3× damage)
-5. Apply damage: `max(0, Damage - DEF or RES)`
-6. Reduce target HP by damage
-7. If target HP ≤ 0, stop the exchange (no further attacks)
+1. Calculate **To-Hit %** (factoring weapon triangle and terrain).
+2. Roll RNG — if `roll < To-Hit %`, the attack connects; otherwise it misses.
+3. If it hits, calculate **Crit %**.
+4. Roll RNG again — if `roll < Crit %`, the hit is a critical.
+5. **Damage** is already `(STR or MAG) + weapon.Mt - target.(DEF or RES)` (see the
+   Derived Combat Stats table — DEF/RES is subtracted exactly once, here). A critical
+   hit then **triples that final figure** (`damage × 3`); any skill damage-multiplier
+   is applied last. The result is clamped to a minimum of 0.
+6. Reduce the target's HP by the damage.
+7. If the target's HP ≤ 0, stop the exchange — no further attacks land.
 
 ### Weapon Durability
 - **Melee and thrown weapons**: lose 1 use only on a **successful hit**
@@ -209,6 +222,10 @@ Some actions end the turn; some do not.
 
 > *Trade: after trading, the unit may still act if they have not yet moved this turn; otherwise the trade ends their turn.
 
+> **MVP scope:** the implemented actions are **Move, Attack, Staff, Item, Wait**.
+> Trade, Shove, Equip Weapon, Seize, Escape, and Class Ability are designed above
+> but are Phase 2 work.
+
 ### Mounted / Flying Unit Exception
 After any turn-ending action (other than Wait), a **mounted or flying unit** may move
 any remaining movement tiles, but must then Wait.
@@ -222,10 +239,12 @@ At 100 EXP, the unit levels up and resets to 0 (carrying over any excess).
 
 ### Combat EXP Table
 
-Level difference = **player unit's level minus enemy's level**. Positive values mean
-the player unit is higher level; negative values mean the enemy is higher level.
+EXP is symmetric — it goes to whichever unit dealt a blow, not just the player.
+Level difference = **the acting unit's level minus the opponent's level**; positive
+means the acting unit is higher level. `CombatResolver.calculate_exp()` indexes this
+table with `clamp(level_diff + 6, 0, 12)`.
 
-| Level Difference (Player minus Enemy) | EXP for Kill | EXP for Damage Only |
+| Level Difference (acting unit minus opponent) | EXP for Kill | EXP for Damage Only |
 |---|---|---|
 | 6+ levels lower | 59 | 20 |
 | 5 lower | 57 | 19 |
@@ -245,11 +264,10 @@ the player unit is higher level; negative values mean the enemy is higher level.
 > wEXP increases per successful **hit**.
 
 ### Staff EXP (MVP — Heal only)
-| Staff | Pre-Promote | Post-Promote |
-|---|---|---|
-| Heal | 11 | 5 |
 
-(Full table in GDD_04)
+A staff use awards a **flat 10 EXP** to the healer (`GameConstants.STAFF_HEAL_EXP`),
+regardless of staff type or promotion status. A pre-/post-promotion staff-EXP curve
+is a Phase 2 refinement.
 
 ---
 
@@ -261,25 +279,28 @@ When a unit reaches 100 EXP:
 3. Level-up animation plays `[PLACEHOLDER]`
 4. New stats are saved to `UnitData`
 
-### Leveling Methods (GM / Session Settings)
-The game should support multiple leveling methods selectable before a campaign begins.
-Store the choice in `GameState`.
+### Leveling Methods (per-save setting)
 
-| Method | Description |
+The leveling method is chosen on the New Game screen and stored in
+`GameState.leveling_method`. **Two methods are implemented:**
+
+| Method (`leveling_method`) | Description |
 |---|---|
-| **Point Buy** | Player assigns N points (3–5) to stats; max +1 per stat per level |
-| **Coin Flip** | Each stat: 50% chance of +1 |
-| **Dice Roll** | Roll d6; spend result as points (max +1 per stat) |
-| **Growth Rates** | Each stat has an assigned growth rate %; roll per stat each level |
+| `growth_random` (default) | Each stat has a growth-rate %, rolled per stat each level. A rate above 100 grants that many guaranteed points plus a roll for the remainder. The classic FE growth-rate system. |
+| `growth_fixed` | Deterministic accumulator: each level adds the growth rate to a per-stat carry; every full 100 accumulated yields +1. Perfectly predictable. The carry persists in `UnitData.growth_accumulators`. |
 
-**Default for MVP:** Growth Rates with values assigned per class.
+> **Designed but not yet implemented:** Point Buy (assign N points/level), Coin Flip
+> (50% per stat), and Dice Roll. These are Phase 2 refinements — the New Game screen
+> currently offers only Random and Fixed.
 
-### Growth Rates (MVP Classes)
-Add a `growth_rates` dictionary to `ClassData`:
+### Growth Rates (per class)
+
+`ClassData.growth_rates` is a Dictionary keyed by **full stat names** (not the
+abbreviations), values 0–100+:
 ```gdscript
 @export var growth_rates: Dictionary
-# e.g. { "hp": 70, "str": 50, "mag": 5, "def": 40, "res": 20,
-#         "skl": 60, "spd": 50, "luk": 35 }
+# e.g. { "hp": 75, "strength": 50, "magic": 5, "defense": 45,
+#         "resistance": 25, "skill": 50, "speed": 45, "luck": 40 }
 ```
 
 ---
