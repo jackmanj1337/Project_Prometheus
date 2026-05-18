@@ -1,6 +1,20 @@
 # Online Play — Design Decisions Catalogue
 
-Status: **Discussion / planning only. No code changed.**
+Status: **RATIFIED 2026-05-17.** All 20 decisions (D1–D20) plus a Steam
+distribution precondition were walked through and ratified — see
+`CLAUDE/Docs/design_decisions_log_2026-05-17.md` for the recorded outcomes and the
+full summary table. The recommendations below were adopted as-is **except**:
+- **D6** — sharpened to *(b2) independent animation + a bounded phase barrier*
+  (host waits a short capped grace before the next phase) rather than plain (b).
+- **D11** — host-pushing content scoped to *data + assets only, never
+  scripts/behaviour, and gated on a sandboxed safe-loader* (a pushed `.tres` via
+  the default `ResourceLoader` is RCE).
+- **D20** — preset/authored armies confirmed as default; bring-your-own-army and
+  draft kept explicitly open as **future expansions**.
+- **D12** — confirmed blue is **not** host-locked; the host assigns all factions.
+- **Steam precondition** — distribution left *undecided*; all netcode is built
+  against Godot's high-level multiplayer API so the transport stays swappable.
+
 Date: 2026-05-17
 Scope: every design decision required to take the networked-play plan
 (`GDD_updates.md` Milestone 15 Part B — Remote Play) from concept to a shippable

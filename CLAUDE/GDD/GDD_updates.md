@@ -37,15 +37,20 @@ This document is a direct continuation of `GDD_09_Checklist.md`. It covers two t
 | MVP Amendments — M3 Unit (A2) | ✅ Complete | All modifier hooks wired in TurnManager/CombatResolver/GameMap |
 | MVP Amendments — M4 Combat (A3) | ✅ Complete | Context pipeline, multi-strike, Miracle sim-HP, faire/breaker |
 | MVP Amendments — M2/M3 Grid (A4) | ✅ Complete | All stubs wired; MapCursor now calls `can_end_on_tile()` |
-| M8 — Status Conditions | — | After M7 |
+| M8 — Status Conditions | — | After M14 core; conditions tick per-unit-activation |
 | M9 — Skill Content Implementation | — | After M8 |
-| M10 — Extra-Turn System | — | After M9 |
+| M10 — Extra-Turn System | — | After M9; **needs M14 stages 1–5** (extra turn = extra activation) |
 | M11 — Content Expansion | — | After M10 |
 | M12 — Laguz System | [DEFERRED] | After M11; fully specced below |
 | M13 — Awakening Supplement | [DEFERRED] | After M12 |
-| M14 — Faction System | — | Stages 1–3 recommended before M9 — see milestone note |
-| M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED] |
-| M16 — Objective System | — | Independent of M14; recommended before M14 green maps |
+| M14 — Faction System | — | **Stages 1–3 first** — behaviour-neutral foundation; see Decision 10 |
+| M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED]; online design ratified 2026-05-17 |
+| M16 — Objective System | — | **After M14 stages 1–3** — per-group victory needs the faction model |
+
+**Implementation order** (dependency-clean — `CLAUDE/Docs/design_decisions_log_2026-05-17.md`,
+Decision 10): **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 →
+M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
+after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
 
 ---
 
@@ -608,6 +613,13 @@ their prescribed effects, and can be removed by Restore staves and Panacea items
 **Test:** Apply each condition via a staff or skill in a test map. Verify visual
 indicator appears. Verify all mechanical effects. Verify removal by Restore staff.
 
+> **Sequencing & dependency.** M8 lands **after M14 core** (the activation
+> scheduler, Decision 9). Conditions tick "at start of holder's turn" — this must
+> mean **start of the holder's *activation***, which is well-defined in both
+> `WHOLE_PHASE` and `ALTERNATING` modes (a unit always has an activation), rather
+> than start of a faction phase. Building M8 on the finished turn model avoids
+> re-wiring tick points later. See decisions log 2026-05-17, Decision 10.
+
 ### Condition Definitions
 
 All conditions store as `{ "type": String, "turns_remaining": int }` in
@@ -1041,6 +1053,13 @@ Encore, and Master Horseman can grant additional turns to themselves or allies w
 the rules of each skill. **Test:** Use each extra-turn mechanic in a live map. Verify
 turn state transitions. Verify per-map/per-turn limits. Verify cursor and UI behave
 correctly during the extra turn.
+
+> **Dependency.** M10 needs **M14 stages 1–5**, not just "after M9." Per Decision 9
+> an extra turn is an extra *activation* inserted into the scheduler (stage 3,
+> mode-aware), and `grant_extra_turn` must re-enter the **active controller** — AI,
+> hotseat, or cursor — not hardcode `MapCursor` (controller abstraction, stage 5).
+> Write `grant_extra_turn` against the scheduler, never assuming a turn model. See
+> decisions log 2026-05-17, Decision 10.
 
 ### TurnManager extensions
 
@@ -1604,13 +1623,15 @@ not a bolted-on phase.
 
 **Test:** A map with blue + AI green + AI red + AI yellow plays a full battle. Green
 attacks red and yellow but never blue; yellow attacks everyone; turn order is
-blue → green → red → yellow; victory/defeat is still evaluated for blue alone.
+blue → green → red → yellow; per-group victory/defeat resolves with correct standings.
 
-> **Sequencing.** Stages 1–3 below are behaviour-neutral refactors guarded by the
-> existing test suite. They are strongly recommended to land **before M9**, so M9/M10
-> skill content is written against the hostility model rather than the player/enemy
-> binary it is about to replace — see feasibility doc §10. The "M14" number reflects
-> feature grouping, **not** strict build order; this milestone may be front-loaded.
+> **Sequencing.** Stages 1–3 are behaviour-neutral refactors guarded by the existing
+> test suite (default `WHOLE_PHASE` activation mode + still 2 factions = today's
+> behaviour). They are the **lowest-risk foundation and are built first** — M16 and
+> all of M8/M9/M10 depend on them. Per Decision 10 (decisions log 2026-05-17), **M16
+> lands between M14 stage 3 and stages 4–5**: stage 4's AI objective-criticality
+> scoring reads M16 objective data. The "M14" number reflects feature grouping,
+> **not** strict build order — see the implementation order in the Status Snapshot.
 
 ### Stage 1 — Faction-relative refactor (behaviour-neutral)
 
@@ -1632,11 +1653,22 @@ behaviour-neutral.
 
 A faction is **data**, not a code enum — a faction resource/list carrying `id`,
 display colour, alliance group, and controller. `GameState` gains per-faction unit
-buckets + `get_living_units_of(faction)`; `Phase` becomes an index into a turn-order
-list; `TurnManager` drives an arbitrary-length cycle. Turn order is a configurable
-per-map list, default `blue → green → red → yellow`. The cycle skips any faction with
-zero living units. Building this data-driven is what makes a 5th+ faction pure data
-later (feasibility doc §9).
+buckets + `get_living_units_of(faction)`.
+
+`TurnManager` is rebuilt as an **activation scheduler**, not a fixed phase cycle —
+its primitive is `activate_one_unit(faction)`, and a pluggable "who activates next?"
+policy drives an arbitrary-length cycle (see decisions log 2026-05-17, Decision 9):
+- `MapData.activation_mode` = `WHOLE_PHASE | ALTERNATING`, **default `WHOLE_PHASE`**.
+- **`WHOLE_PHASE`** — exhaust one faction's units, then advance (FE-style
+  I-Go-You-Go; the baseline, keeps all existing specs valid).
+- **`ALTERNATING`** — advance to the next faction after every single unit; when all
+  units have acted, the round counter advances and all units refresh.
+- The configurable per-map turn-order list (default `blue → green → red → yellow`)
+  is the phase order in whole-phase mode / the round-robin order in alternating
+  mode. The cycle skips any faction with zero living units.
+
+Building this data-driven is what makes a 5th+ faction pure data later (feasibility
+doc §9).
 
 ### Stage 4 — Faction-agnostic AI
 
@@ -1669,17 +1701,23 @@ alongside M14's green-objective content.
 - [ ] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
 - [ ] Stage 3: faction defined as data (id, colour, alliance group, controller)
 - [ ] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
-- [ ] Stage 3: `TurnManager` arbitrary-length turn cycle; configurable per-map order;
-      default `blue → green → red → yellow`; skips zero-unit factions
-- [ ] Stage 4: `run_ai_phase(faction)` targeting all hostile units
+- [ ] Stage 3: `TurnManager` rebuilt as an activation scheduler — primitive
+      `activate_one_unit(faction)` + pluggable scheduling policy
+- [ ] Stage 3: `MapData.activation_mode` (`WHOLE_PHASE | ALTERNATING`, default
+      `WHOLE_PHASE`); whole-phase + alternating policies; configurable per-map
+      turn-order list, default `blue → green → red → yellow`; skips zero-unit factions
+- [ ] Stage 3: player controller branches on mode (whole-phase keeps End Turn;
+      alternating returns control after one committed unit)
+- [ ] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
+- [ ] Stage 4: `run_ai_phase(faction)` / per-unit `activate_one_unit` for all hostile units
 - [ ] Stage 4: faction-blind AI target scoring (HP / strength / terrain danger /
       objective-criticality)
 - [ ] Content: green + yellow spawns and per-unit faction tags in `MapData`
 - [ ] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
 - [ ] Verify: green attacks red/yellow, never blue; yellow attacks all
-- [ ] Verify: victory/defeat still evaluated for blue alone
 - [ ] Verify: a map omitting green or yellow runs correctly (cycle skips it)
-- [ ] New tests for the hostility model, turn-cycle ordering, and `run_ai_phase`
+- [ ] Verify: both activation modes run correctly (whole-phase and alternating)
+- [ ] New tests for the hostility model, both scheduling policies, and `run_ai_phase`
 
 ---
 
@@ -1696,10 +1734,12 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 
 ### Part A — Hotseat (shipping target)
 
-Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's phase is driven through the
-existing `MapCursor` instead of `run_ai_phase` — the cursor is *not* locked for a
-human-controlled non-blue phase, and End Turn ends that faction's phase. One phase at
-a time, shared screen, turns alternate (natural for turn-based tactics).
+Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's activations are driven through
+the existing `MapCursor` instead of the AI — the cursor is *not* locked for a
+human-controlled non-blue faction. Control hand-off follows the map's
+`activation_mode` (Decision 9): in `WHOLE_PHASE` the hotseat player drives the whole
+faction phase and End Turn hands off; in `ALTERNATING` control passes after each
+committed unit. Shared screen, turns alternate (natural for turn-based tactics).
 
 *Optional polish:* per-phase keybindings — each hotseat slot gets its own `InputMap`
 action set (`p2_cursor_up`, …); `MapCursorInput` is told which set to read. Because
@@ -1750,9 +1790,21 @@ only imperative cursor calls — is the single thing that most reduces the LAN j
 later. LAN first, online after.
 
 The full set of online design decisions — synchronization model, transport,
-matchmaking, reconnection, trust, army source, and more — with options, pros/cons,
-and a recommendation for each, is catalogued in
-`CLAUDE/Docs/online_play_design_decisions.md` (20 decisions, D1–D20).
+matchmaking, reconnection, trust, army source, and more — is catalogued in
+`CLAUDE/Docs/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
+ratified on 2026-05-17** — see `CLAUDE/Docs/design_decisions_log_2026-05-17.md` for
+the recorded outcomes. The decisions that drive Part B's build:
+- **Sync model:** host-authoritative client-server (host owns the truth, validates
+  and broadcasts) — *not* lockstep, so no determinism burden.
+- **Transport:** Godot's high-level multiplayer API over ENet, kept swappable;
+  distribution (Steam vs off-Steam) deliberately left undecided.
+- **Command layer:** per-action streaming of committed command objects — Part A's
+  hotseat controller should emit these from day one.
+- **Reconciliation:** full authoritative snapshot each phase (commands stream live
+  for presentation; the snapshot is the truth).
+- **Disconnect:** pause + reconnect window, then AI substitution or
+  save-and-continue; no host migration.
+- **Army source:** preset/authored armies (builder & draft are future expansions).
 
 ### Checklist — M15
 
@@ -1782,56 +1834,115 @@ and a recommendation for each, is catalogued in
 ## Milestone 16 — Objective System
 
 **Goal:** Replace the single-`objective_type` map objective with a **multi-condition
-objective system** — each map carries a list of typed victory conditions and a list
-of typed defeat conditions, all evaluated **for the blue team only**. This is the
-feasibility doc §6 workstream (`CLAUDE/Docs/second_player_control_feasibility.md`).
+objective system** — each map carries typed victory and defeat conditions evaluated
+**per aggression group** (`{blue,green}`, `{red}`, `{yellow}`, …), not for blue
+alone. The map ends with a **ranked-standings results screen**. This generalizes the
+feasibility doc §6 workstream (`CLAUDE/Docs/second_player_control_feasibility.md`);
+the per-group decoupling supersedes §6's blue-centric framing — see decisions log
+2026-05-17, Decision 8.
 
 **Test:** maps exercising each condition type, a compound victory (rout red AND
-yellow), a green-escape victory, and a green-death defeat, all resolve correctly.
+yellow), a green-escape victory, a green-death defeat, and a 3-group match where
+groups are eliminated in order, all resolve correctly with the right standings.
 
-> **Sequencing.** M16 is independent of the faction plumbing and may land before,
-> after, or alongside M14. But M14 maps that use *green* win/lose conditions, and the
-> Phase 3 Maps 002–005, both depend on M16 — recommend M16 before or alongside M14's
-> green-objective content. As with M14, the milestone number is feature grouping, not
-> strict build order.
+> **Sequencing.** M16 **depends on M14 stages 1–3** — per-group victory (Decision 8)
+> needs the aggression-group model (stage 2), per-faction unit buckets (stage 3), and
+> the activation scheduler (stage 3, for the activation-boundary victory sweep). The
+> earlier "M16 independent of M14" framing is superseded. Build M16 immediately after
+> M14 stages 1–3, before M14 stages 4–5 (stage 4's AI objective-criticality scoring
+> reads M16 data). M14 green-objective maps and Phase 3 Maps 002–005 then ride after
+> M16. See decisions log 2026-05-17, Decision 10.
 
 ### Current state
 
 `MapData` carries a single `objective_type` (only `"rout"` implemented), a
 `turn_limit`, and `required_survivor_ids`; `TurnManager.check_victory_conditions`
-hardcodes those three checks. Win/loss is already blue-centric — that does not change.
+hardcodes those three checks, evaluated for blue only. Both the multi-condition
+model **and** the per-group evaluation are new.
 
-### Condition model
+### Condition model — per aggression group
 
-`MapData` gains two arrays of small typed condition resources —
-`victory_conditions` and `defeat_conditions`. `check_victory_conditions` becomes a
-generic evaluator: **victory = AND of all victory conditions; defeat = OR of any
-defeat condition.** Condition types:
+`MapData` carries **per-group** condition sets: each aggression group has its own
+`victory_conditions` and `defeat_conditions` arrays of small typed condition
+resources. `check_victory_conditions` becomes a generic evaluator looping every
+group: for each group, **victory = AND of its victory conditions; defeat = OR of any
+of its defeat conditions.**
 
-- **rout** — a named faction has zero living units. Compound by listing several
-  (rout red AND rout yellow).
+Win resolution:
+- Meeting a victory condition wins the map for that group.
+- Meeting a defeat condition eliminates that group.
+- The map also ends when **≤1 group remains** — the last group standing wins.
+- All remaining groups eliminated simultaneously → **draw**.
+- A group with no conditions authored gets an implicit defeat condition — **group
+  routed** (all its units dead) — so every group always has a way to be out.
+
+`rout`/`seize` author naturally as a group's *defeat*; `escape`/`survive` as the
+achiever group's *victory*. Condition types:
+
+- **rout** — a named faction (or group) has zero living units. Compound by listing
+  several (rout red AND rout yellow).
 - **defeat_boss** — one or more named unit ids are dead.
-- **seize** — one or more named tiles are occupied by a blue unit.
-- **escape** — named units reach an escape tile / zone (may include green units).
-- **survive** — blue lasts N turns, or holds a named tile for N turns.
+- **seize** — a blue unit uses a dedicated **Seize action** (an `ActionMenu`
+  entry) while on a named seize tile. The condition resource carries the tile
+  id(s) and an optional allowed-unit-id list (empty = any blue unit). *Not*
+  passive occupation — see decisions log 2026-05-17, Decision 4.
+- **escape** — named units reach an escape **zone** (a set of tiles — region /
+  edge / doorway; a size-1 zone is a single tile). A unit that reaches the zone
+  is removed from the map ("escaped"), automatically on entry; the condition is
+  met when all named units have escaped. May include green units. See decisions
+  log 2026-05-17, Decision 5.
+- **survive** — a group lasts N turns, or holds a named tile for N turns.
 - **protect / unit_survives** — a named unit must stay alive; its death is a defeat
-  (may include green units — replaces today's `required_survivor_ids`).
-- **turn_limit** — turn count exceeds the limit → defeat.
+  for its group (may include green units — replaces today's `required_survivor_ids`).
+- **turn_limit** — turn count exceeds the limit → defeat for the group it is
+  authored on (e.g. the attacker fails to win in time).
 
 A green unit id simply appears in an escape / protect condition like any other unit —
-no faction special-casing.
+no faction special-casing; allied factions share a group, so they win and lose
+together automatically.
+
+### Results screen
+
+At map end, a **ranked-standings** results screen: the winning group first, then the
+losing groups ordered by elimination round (1st / 2nd / 3rd / 4th placement); a draw
+occupies the top slot. The player is always blue, so the screen leads with a clear
+**Victory / Defeat** from blue's group's standpoint, then shows the standings. Each
+group records an "eliminated on round N" field to drive the ordering.
+
+**Evaluation trigger model (N-faction cycle).** The evaluator is decoupled from phase
+*count* — see decisions log 2026-05-17, Decision 7:
+- A **phase-boundary sweep** runs the full evaluator at the start of every faction's
+  phase (the catch-all).
+- **Event-driven** evaluation also fires right after a death, a Seize action, and an
+  escape, so a win/loss registers immediately rather than at the next phase boundary.
+- **Round-counter** conditions (`turn_limit`, `survive` N turns) read `turn_number`,
+  which increments once per *round* (cycle wrap), not per phase.
+- The `_map_over` latch halts the turn cycle at a single chokepoint
+  (`advance_to_next_phase`); AI / hotseat controllers also check it to abort a
+  decided map early.
 
 ### Checklist — M16
 
 - [ ] Define typed condition resources for each condition type above
-- [ ] `MapData`: `victory_conditions` + `defeat_conditions` arrays (inspector-editable)
-- [ ] `check_victory_conditions` → generic evaluator (AND victory / OR defeat)
+- [ ] `MapData`: **per-group** `victory_conditions` + `defeat_conditions` sets
+      (inspector-editable)
+- [ ] `check_victory_conditions` → generic evaluator looping every group
+      (per group: AND victory / OR defeat); plus the ≤1-group-standing and draw rules
+- [ ] Implicit default defeat condition (group routed) for a group with none authored
+- [ ] Per-group "eliminated on round N" tracking to drive standings
+- [ ] Ranked-standings results screen (winner first, losers by elimination order,
+      draw in the top slot; blue-perspective Victory/Defeat header)
+- [ ] Add a **Seize** entry to `ActionMenu`, gated by "on a seize tile" AND "this
+      unit may seize" (decisions log 2026-05-17, Decision 4)
+- [ ] `escape` zone: units removed-on-entry; HUD/turn-order handling for escapees
 - [ ] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
-      to the new condition arrays
+      to the new per-group condition sets
 - [ ] Objective readout in the HUD lists the active conditions
 - [ ] Verify: compound victory (rout red AND yellow) resolves only when both are met
 - [ ] Verify: a green-escape victory and a green-death defeat fire correctly
-- [ ] New tests for the evaluator and each condition type
+- [ ] Verify: a 3-group match eliminates groups in order with correct standings;
+      simultaneous elimination resolves to a draw
+- [ ] New tests for the evaluator, each condition type, and the standings logic
 - [ ] Phase 3 Maps 002–005 authored against the condition system
 
 ---
@@ -1851,10 +1962,14 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] Between-map save / load (GDD_09 Phase 2 backlog)
 - [ ] Mid-battle suspend save — full serialization of: all unit `UnitData` (including
       `active_modifiers`, `conditions`, `skill_use_counters`, `shift_gauge`, `is_shifted`),
-      all unit tile positions, TurnManager state (current phase, turn number, unit states),
-      EnemyAI state (which enemies have acted), active Bastion/Light Rune blocked tiles,
-      current map ID. The `UnitData` field design from Amendment A1 ensures all runtime
-      state is serializable without scene tree traversal.
+      all unit tile positions, **activation-scheduler state** (turn-order index /
+      next activation, round number, per-unit activation states, the `activation_mode`
+      policy, per-group "eliminated on round N"), AI state (which units have acted),
+      active Bastion/Light Rune blocked tiles, current map ID. The `UnitData` field
+      design from Amendment A1 ensures all runtime state is serializable without
+      scene tree traversal. **Note (Decision 10):** M15 Part B's disconnect
+      save-and-continue (D14) depends on this — when Part B is built, pull this item
+      forward to sit with it rather than leaving it post-M13.
 - [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)
 - [ ] Rescue and carry system (GDD_09 Phase 2 backlog)
 - [ ] ~~Ally NPC phase (GDD_09 Phase 2 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase

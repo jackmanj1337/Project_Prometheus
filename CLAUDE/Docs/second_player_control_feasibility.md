@@ -194,14 +194,23 @@ the existing 347-test suite, which de-risks everything after.
 
 ---
 
-## 6. Victory & defeat — stays blue-centric
+## 6. Victory & defeat
 
 > **Milestoned as M16 — Objective System** in `GDD_updates.md`. This section is its
 > design rationale; the milestone carries the actionable checklist.
+>
+> **SUPERSEDED 2026-05-17 (Decision 8, `CLAUDE/Docs/design_decisions_log_2026-05-17.md`).**
+> The blue-centric framing below was reversed: victory/defeat is now evaluated
+> **per aggression group**, with per-group victory + defeat conditions and a
+> ranked-standings results screen. Blue-centric left red/yellow with no win state,
+> which breaks online PvP. The multi-condition objective design below still holds —
+> only the "blue only" scoping changed. See `GDD_updates.md` M16 for the current
+> spec.
 
-Confirmed: **win/loss is always evaluated for the blue team only.** The other
-armies have no independent win state. This simplifies the faction work — green and
-yellow need unit buckets, phases, AI, and a controller, but *not* victory tracking.
+Original (superseded): *win/loss is always evaluated for the blue team only — the
+other armies have no independent win state. This simplifies the faction work —
+green and yellow need unit buckets, phases, AI, and a controller, but* not *victory
+tracking.*
 
 What it *does* need is a richer **per-map objective system** — a separate workstream
 from the faction/control plumbing, but they meet here. Today `MapData` carries a
@@ -234,15 +243,18 @@ it only shares the `MapData` / `check_victory_conditions` touch-points.
 
 **Settled:**
 - **Turn order** — configurable per map, default `blue → green → red → yellow`.
-- **Victory/defeat** — blue-centric only (§6).
+- **Victory/defeat** — per aggression group (§6, updated by Decision 8 — was
+  blue-centric only).
 - **AI targeting** — faction-blind; ranks hostile units by HP / strength / terrain
   danger / objective-criticality, not by which army they are (§5 stage 4).
 
-**Still worth pinning before stage 3:**
-- **Empty factions.** A map may omit green or yellow — the turn cycle must skip a
-  faction with zero units. Cheap, but make it explicit.
-- **Hotseat keybindings.** Per-phase action sets (§5 stage 6) — wanted from the
-  first hotseat build, or added later as polish?
+**Resolved 2026-05-17** (see `CLAUDE/Docs/design_decisions_log_2026-05-17.md`):
+- **Empty factions.** Turn cycle skips a 0-unit faction (confirmed). HUD: a
+  faction never in the map is hidden; a faction that was present but is now wiped
+  shows greyed-out / "eliminated" (Decision 2).
+- **Hotseat keybindings.** Later polish — ship the first hotseat build with shared
+  keys (functional because phases alternate); add per-phase `InputMap` action
+  sets afterward if wanted (Decision 6).
 
 ---
 
