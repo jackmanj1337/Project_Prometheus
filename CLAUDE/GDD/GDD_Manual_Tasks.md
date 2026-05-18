@@ -8,57 +8,32 @@ Check items off as they are completed (`- [ ]` → `- [x]`).
 
 ---
 
-## MVP — Required (Settings menu, per 2026-05-13c review decision 4)
+## ✅ Settings menu — Completed (M5)
 
-Three editor tasks. Together they make the Settings menu reachable in‑game; tackle in order.
-
-### 1. Create `SettingsScreen.tscn`
-
-- [ ] `scripts/ui/SettingsScreen.gd` is complete. It expects the following scene structure (all node names must match exactly — the script uses `@onready` paths):
+`scenes/ui/SettingsScreen.tscn` exists and is wired into both `MainMenu` and
+`MapMenu`; the Settings menu is reachable in-game. Kept here as a structural
+reference. The **authoritative** node layout is the header comment in
+`scripts/ui/SettingsScreen.gd` — node names must match exactly (`@onready` paths):
 
 ```
-SettingsScreen  (Control, anchors = full rect)
+SettingsScreen  (Control, full-rect anchor)
   Panel
     VBox
-      Label         "Settings"
-      HBoxMaster    (HBoxContainer)
-        Label       "Master"
-        SliderMaster (HSlider, min=0, max=100, step=1)
-        LabelMaster  (Label, e.g. "80")
-      HBoxMusic     (HBoxContainer)
-        Label       "Music"
-        SliderMusic  (HSlider)
-        LabelMusic   (Label)
-      HBoxSFX       (HBoxContainer)
-        Label       "SFX"
-        SliderSFX    (HSlider)
-        LabelSFX     (Label)
+      Label "Settings"
+      HBoxMaster / HBoxMusic / HBoxSFX  (each: Label + HSlider + Label;
+        node names SliderMaster/Music/SFX, LabelMaster/Music/SFX)
       HSeparator
-      OptCombatAnim    (OptionButton)
-      OptMovementSpeed (OptionButton)
-      OptPhaseBanner   (OptionButton)
-      OptLevelUpScreen (OptionButton)
-      OptPermadeath    (OptionButton)
+      OptCombatAnim     (OptionButton)  # hidden at runtime — no system uses it yet
+      OptMovementSpeed  (OptionButton)  # Normal / Fast / Instant
+      OptPhaseBanner    (OptionButton)  # Show / Skip
+      OptLevelUpScreen  (OptionButton)  # Show / Auto / Skip
+      OptMouseTargeting (OptionButton)  # Snap to Target / Keyboard Only
       HSeparator
-      BtnBack          (Button, text "Back")
+      BtnBack           (Button)
 ```
 
-Save as `scenes/ui/SettingsScreen.tscn`.
-
-### 2. Wire `SettingsScreen` into `MainMenu.tscn`
-
-- [ ] Add a "Settings" Button to `Panel/VBox` (between `NewGameButton` and `QuitButton`).
-- [ ] Instance `SettingsScreen.tscn` as a child of MainMenu (or load on demand in the script).
-- [ ] In MainMenu.gd, connect the Settings button's `pressed` signal to a handler that calls `settings_screen.open()`.
-- [ ] Connect `SettingsScreen.back_pressed` to re‑show the MainMenu panel.
-
-### 3. Wire `SettingsScreen` into `MapMenu.tscn`
-
-- [ ] Add a "Settings" Button to `Panel/VBox` (between `EndTurnButton` and `CloseButton`).
-- [ ] Same instance/load pattern as MainMenu.
-- [ ] Connect the button to `settings_screen.open()`; connect `back_pressed` back to MapMenu's open state.
-
-**What breaks if skipped:** Settings Screen can't be opened by the player; all settings require direct file edits to `user://settings.cfg`.
+There is **no** Permadeath or Leveling Method control on this screen — those are
+per-save rules set on the New Game screen (`NewGameScreen.tscn`).
 
 ---
 
@@ -98,7 +73,8 @@ Go to **Project → Project Settings → Input Map** and confirm all actions exi
 | `next_unit` | Tab |
 | `prev_unit` | Shift + Tab |
 | `show_danger_zone` | Q, Middle Mouse Button |
-| `open_menu` | Escape |
+| `open_menu` | M |
+| `open_settings` | O |
 
 ### Project Display Settings
 

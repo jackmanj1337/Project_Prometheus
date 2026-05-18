@@ -17,7 +17,16 @@
 | `GDD_06_Maps_Objectives.md` | Map structure, terrain, objectives, MVP maps |
 | `GDD_07_UI_UX.md` | All UI screens and panels |
 | `GDD_08_Enemy_AI.md` | AI system design and extension hooks |
-| `GDD_09_Checklist.md` | Master implementation checklist, phased by milestone |
+| `GDD_09_Checklist.md` | Master implementation checklist (MVP — milestones M0–M7) |
+| `GDD_10_Roadmap.md` | Phase 2 roadmap — milestones M8–M16 |
+
+Supporting documents (not numbered): `GDD_Assumptions.md` records design decisions
+made from GBA Fire Emblem convention; `GDD_Manual_Tasks.md` lists tasks that require
+the Godot editor and cannot be done by editing files.
+
+> GDD_01–GDD_09 have been resynced to the implementation — they describe the code
+> as built. GDD_10 is forward-looking. The MVP architectural amendments (A1–A4) that
+> were once tracked in a separate `GDD_updates.md` are now folded into GDD_01–GDD_09.
 
 ---
 
