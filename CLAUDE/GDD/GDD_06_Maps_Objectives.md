@@ -75,9 +75,14 @@ Camera scrolling behavior:
 Objectives are defined in `MapData.objective_type` (String) and
 `MapData.objective_params` (Dictionary).
 
-`TurnManager.check_victory_conditions()` is called after every unit death and
-after every enemy phase ends. It reads the map objective and emits `map_victory()`
-or `map_defeat()` accordingly.
+`TurnManager.check_victory_conditions()` is called after every unit death (via
+`EventBus.unit_died`) and at the start of each player phase. It reads the map
+objective and emits `map_victory()` / `map_defeat()` accordingly.
+
+> **MVP status:** only the **`rout`** objective is implemented, alongside the
+> universal defeat checks (turn limit, all player units dead, a required survivor
+> killed). `seize` / `boss` / `survive` / `defend` / `escape` are designed below and
+> scheduled for the M16 objective milestone — see GDD_10.
 
 ### Supported Objective Types
 
@@ -121,35 +126,34 @@ if GameState.get_living_enemy_units().is_empty():
 ```
 
 ### Defeat Conditions (all maps)
-- A unit flagged as `required_survivor` in `MapData` is killed
-- `TurnManager.check_victory_conditions()` handles this check after every death
+- The turn limit is exceeded (`MapData.turn_limit > 0` and turn count passes it)
+- Every player unit is dead
+- A unit whose `unit_id` is listed in `MapData.required_survivor_ids` is killed
+- `TurnManager.check_victory_conditions()` handles all of these.
 
 ---
 
 ## MapData Resource
 
 ```gdscript
-# scripts/resources/MapData.gd
+# scripts/resources/MapData.gd — see GDD_01 → MapData.gd for the authoritative list
 class_name MapData extends Resource
 
 @export var id: String
 @export var display_name: String
-@export var tilemap_scene_path: String        # e.g. "res://data/maps/map_001_rout/map_001.tscn"
-@export var objective_type: String
+@export var tilemap_scene_path: String
+@export var objective_type: String                 # MVP implements "rout"
 @export var objective_params: Dictionary
-@export var turn_limit: int = 0               # 0 = no turn limit; defeat if exceeded
+@export var turn_limit: int = 0                     # 0 = no limit; defeat if exceeded
 @export var player_start_tiles: Array[Vector2i]
 @export var enemy_placements: Array[Dictionary]
-# enemy_placement dict: {
-#   "unit_data_path": String,  # path to a UnitData .tres
-#   "tile": Vector2i,
-#   "ai_profile": String,      # "basic" for MVP
-#   "is_boss": bool,
-#   "required_survivor": bool  # if true, their death = player defeat
-# }
-@export var required_survivor_names: Array[String]  # Player unit names that must survive
+# enemy_placement dict: { "unit_data_path": String, "tile": Vector2i,
+#                         "ai_profile": String, "is_boss": bool }
+@export var required_survivor_ids: Array[String]    # unit_ids whose death = player defeat
 @export var reward_gold: int = 0
-@export var reward_items: Array[String]             # Item IDs given at map end
+@export var reward_items: Array[String]             # item IDs granted at map completion
+@export var grid: Array[String]                     # terrain string grid (data-driven maps)
+@export var camera_start_tile: Vector2i             # (-1,-1) = centroid of player starts
 ```
 
 ---

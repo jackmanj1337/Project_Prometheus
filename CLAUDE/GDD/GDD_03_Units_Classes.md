@@ -133,13 +133,13 @@ HP: 60, STR: 50, MAG: 5, DEF: 35, RES: 20, SKL: 65, SPD: 60, LUK: 35
 HP: 60, STR: 45, MAG: 5, DEF: 30, RES: 20, SKL: 70, SPD: 55, LUK: 40
 ```
 
-> **Weapon note:** The Iron Bow (and all bows) has range_min = 2. Any unit
-> with a bow equipped cannot attack or counterattack against adjacent (range 1)
-> targets. This is a property of the weapon, not the class — a non-Archer unit
-> who equips a bow is subject to the same restriction, and an Archer who somehow
-> equips a melee weapon (e.g. via trade) could attack at range 1 normally.
-> `CombatResolver` enforces this by checking the equipped weapon's range_min
-> against the distance to the target.
+> **Weapon note:** The Iron Bow (and all bows) has `range_min_formula = "2"`. Any
+> unit with a bow equipped cannot attack or counterattack against adjacent (range 1)
+> targets. This is a property of the weapon, not the class — a non-Archer who equips
+> a bow is subject to the same restriction, and an Archer who equips a melee weapon
+> (e.g. via trade) could attack at range 1 normally. Range is enforced by
+> `GridManager`'s attackable-tile queries and `CombatResolver.can_counterattack()`,
+> both reading `WeaponData.get_range_min()` / `get_range_max()`.
 
 **Promotes To (Phase 2):** Ranger, Sniper
 

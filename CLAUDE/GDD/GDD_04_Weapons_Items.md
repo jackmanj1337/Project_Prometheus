@@ -5,20 +5,20 @@
 ## Weapon System Overview
 
 Weapons are `WeaponData` resources stored in `data/weapons/`. Units carry weapons
-and items together in a single inventory (`UnitData.inventory`) — an `Array[Dictionary]`
-where every entry has a `"type"` field of either `"weapon"` or `"item"`. This means
-any inventory slot can hold either a weapon or an item interchangeably.
+and items together in a single inventory (`UnitData.inventory`) — an
+`Array[InventoryEntry]` where each `InventoryEntry` has an `entry_type` of
+`"weapon"`, `"item"`, or `"equip"`. Any slot can hold either a weapon or an item.
 
-See **GDD_01 → Inventory Entry Format** for the full dictionary structure.
+See **GDD_01 → InventoryEntry.gd** for the full resource definition.
 
-`Unit.get_equipped_weapon()` filters for `type == "weapon"` entries only and returns
-the first one the unit can use. Items are accessed separately via the Item action.
+`Unit.get_equipped_weapon()` filters for `is_weapon()` entries only and returns the
+first one the unit can use. Items are accessed separately via the Item action.
 
-A unit can equip any weapon entry in their inventory that:
-1. Has `type == "weapon"`
-2. Matches their proficiency types
-3. Is at or below their current rank for that type
-4. Has `uses_remaining > 0`
+A unit can equip any inventory entry that:
+1. Is a weapon entry (`is_weapon()`)
+2. Matches one of the unit's proficiency types
+3. Is at or below the unit's current rank for that type
+4. Still has uses (`has_uses()` — `uses_remaining != 0`)
 
 ---
 
@@ -109,31 +109,36 @@ var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
 
 ## Effect Tags Reference
 
-Effect tags are strings stored in `WeaponData.effect_tags`. The `CombatResolver`
-checks for these tags during combat.
+Effect tags are strings stored in `WeaponData.effect_tags`. **Reference them via the
+`GameConstants.TAG_*` constants — never raw strings — so a typo is a compile error,
+not a silent miss.**
 
-| Tag | Effect |
+### Implemented tags
+
+| Tag | `GameConstants` constant | Effect |
+|---|---|---|
+| `effective_flying` | `TAG_EFFECTIVE_FLYING` | 3× Mt vs units with the `flying` quality |
+| `effective_armoured` | `TAG_EFFECTIVE_ARMOURED` | 3× Mt vs `armoured` |
+| `effective_mounted` | `TAG_EFFECTIVE_MOUNTED` | 3× Mt vs `mounted` |
+| `effective_dragon` | `TAG_EFFECTIVE_DRAGON` | 3× Mt vs `dragon` |
+| `effective_beast` | `TAG_EFFECTIVE_BEAST` | 3× Mt vs `beast` |
+| `heal_10_plus_mag` | `TAG_HEAL_PLUS_MAG` | Marks a staff as a healing staff (`is_healing_staff()`) |
+
+The effectiveness multiplier is **3×** normally, **4×** with the Giantkiller skill.
+
+### Not tags — dedicated `WeaponData` fields
+
+| Mechanic | Field |
 |---|---|
-| `effective_flying` | 3× Mt vs units with `flying` quality |
-| `effective_armoured` | 3× Mt vs units with `armoured` quality |
-| `effective_mount` | 3× Mt vs units with `mounted` quality |
-| `effective_dragon` | 3× Mt vs units with `dragon` quality |
-| `effective_beast` | 3× Mt vs units with `beast` quality |
-| `effective_laguz` | 3× Mt vs units with `laguz` quality |
-| `poison` | Applies Poison condition on hit (Phase 2) |
-| `2x_strikes` | Unit makes 2 attacks before defender counterattacks |
-| `uses_mag` | Uses MAG instead of STR; targets RES instead of DEF |
-| `magic_triangle_wind` | Uses Wind magic triangle, even if physical weapon |
-| `magic_triangle_fire` | Uses Fire magic triangle |
-| `magic_triangle_thunder` | Uses Thunder magic triangle |
-| `magic_triangle_light` | Uses Light magic triangle |
-| `magic_triangle_dark` | Uses Dark magic triangle |
-| `heal_on_hit` | User regains HP equal to damage dealt (e.g. Nosferatu, Runesword) |
-| `ignores_def` | Damage ignores DEF/RES entirely (e.g. Eclipse) |
-| `ignores_half_def` | Damage ignores half of DEF/RES (e.g. some occult skills) |
-| `always_hits` | Bypasses hit roll (e.g. Onager) |
+| 2 strikes before the counter (Brave weapons) | `strikes_per_attack = 2` |
+| Uses MAG, targets RES (tomes) | `uses_mag = true` |
+| Hybrid-weapon magic triangle | `magic_triangle_type` |
 
-Add new tags here as needed. Each tag needs a corresponding check in `CombatResolver.gd`.
+### Designed but not yet implemented (Phase 2)
+
+`poison` (apply Poison on hit), `heal_on_hit` (lifesteal), `ignores_def` /
+`ignores_half_def`, `always_hits`. Each needs a `GameConstants.TAG_*` constant and a
+matching check in `CombatResolver.gd` when added.
 
 ---
 
@@ -161,8 +166,8 @@ Stored in `data/items/` as `ItemData` resources.
 @export var item_type: String     # "healing", "stat", "promotion", "equip", "key", "sellable"
 @export var uses: int             # -1 = infinite / equippable
 @export var cost: int
-@export var effect_id: String     # Links to ItemHandler logic
-@export var effect_params: Dictionary
+@export var effect_id: String     # dispatched by ItemHandler — MVP: "heal_flat" | "heal_full"
+@export var effect_params: Dictionary   # e.g. { "amount": 20 } for heal_flat
 ```
 
 ### MVP Items
@@ -232,15 +237,15 @@ Rules:
 Each stat tracked independently. Max cost for fully forging all 4 stats = 9,000g.
 
 ### Data Representation
-Forged weapons use the same `"weapon"` inventory entry format with an additional
-`forged_mods` dictionary. Unforged weapons have an empty `forged_mods` dict.
+Forged weapons use the same `InventoryEntry` weapon slot with a populated
+`forged_mods` dictionary; unforged weapons leave it empty. The `forged_mods` field
+already exists on `InventoryEntry` (reserved — no code reads it yet; M10).
 ```gdscript
-{
-  "type": "weapon",
-  "weapon_id": "iron_sword",
-  "uses_remaining": 45,
-  "forged_mods": { "mt": 2, "hit": 5, "crit": 0, "wt": -1 }
-}
+# An InventoryEntry weapon slot (see GDD_01 → InventoryEntry.gd):
+entry_type     = "weapon"
+weapon_id      = "iron_sword"
+uses_remaining = 45
+forged_mods    = { "mt": 2, "hit": 5, "crit": 0, "wt": -1 }
 ```
 
 ---
@@ -258,9 +263,9 @@ Equip items (uses = -1) sell for `floor(base_cost / 2)`.
 
 ## Inventory Management
 
-- Each unit has one inventory: `UnitData.inventory` — a flat `Array[Dictionary]`
-- Every entry has `"type": "weapon"` or `"type": "item"` — slots are interchangeable
-- **Limit:** 8 slots total across weapons and items (configurable via `GameState.max_inventory`)
+- Each unit has one inventory: `UnitData.inventory` — a flat `Array[InventoryEntry]`
+- Each entry's `entry_type` is `"weapon"`, `"item"`, or `"equip"` — slots interchange
+- **Limit:** 8 slots (`GameState.max_inventory`) — NOT yet enforced (no inventory UI)
 - Units can trade entries with adjacent allies on their turn (Trade action)
 - Items and weapons cannot be used during the enemy phase
 

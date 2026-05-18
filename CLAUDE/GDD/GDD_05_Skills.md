@@ -11,7 +11,9 @@ Skills are **not hardcoded per class** — they are data entries. A unit carries
 of skill IDs. The skill handler is a lookup table: given a skill ID and a trigger
 context, it applies the effect.
 
-**Maximum skills per unit:** 4 (configurable in `GameState.max_skills`).
+**Maximum skills per unit:** 4 (`GameState.max_skills`) — the cap is defined but
+**not yet enforced** (no skill-equip UI exists). Earned mastery skills
+(`UnitData.mastery_skills`, e.g. `s_rank_mastery`) never count against this cap.
 
 ---
 
@@ -36,7 +38,7 @@ methods for each trigger. Every relevant code path calls the appropriate hook.
 |---|---|
 | `passive` | Always active; modifies a stat or rule permanently |
 | `start_of_turn` | At the start of the unit's turn |
-| `start_of_enemy_turn` | At the start of an enemy unit's turn (for aura effects) |
+| `on_combat_start_negate` | A pre-pass before `on_combat_start` — for skill-cancellers (Nihil) |
 | `on_attack` | When this unit makes an attack (before damage) |
 | `on_defend` | When this unit is attacked (before damage) |
 | `on_hit` | When this unit's attack successfully hits |
@@ -52,154 +54,79 @@ methods for each trigger. Every relevant code path calls the appropriate hook.
 
 ## `SkillHandler.gd` Architecture
 
+`SkillHandler` is an autoload. `CombatResolver`, `TurnManager`, and `GridManager`
+call `apply_trigger()` at the appropriate moments; it iterates the unit's skills —
+equipped (`UnitData.skills`) **and** earned mastery skills (`UnitData.mastery_skills`)
+— and fires every one whose `trigger` matches.
+
 ```gdscript
-# scripts/skills/SkillHandler.gd
+# scripts/skills/SkillHandler.gd  (autoload)
 extends Node
 
-# Called by CombatResolver, TurnManager, etc.
-# context is a Dictionary with relevant data (attacker, defender, damage, etc.)
-
-func apply_trigger(unit: Unit, trigger: String, context: Dictionary) -> Dictionary:
-    for skill_id in unit.data.skills:
-        var skill: SkillData = DataManager.get_skill(skill_id)
-        if skill.trigger == trigger:
-            context = _execute_skill(skill, unit, context)
-    return context
-
-func _execute_skill(skill: SkillData, unit: Unit, context: Dictionary) -> Dictionary:
-    match skill.effect_id:
-        "stat_bonus":       return _apply_stat_bonus(skill, unit, context)
-        "renewal":          return _apply_renewal(skill, unit, context)
-        "adept":            return _apply_adept(skill, unit, context)
-        "cancel":           return _apply_cancel(skill, unit, context)
-        "vantage":          return _apply_vantage(skill, unit, context)
-        "nihil":            return _apply_nihil(skill, unit, context)
-        "canto":            return _apply_canto(skill, unit, context)
-        "hawkeye":          return _apply_hawkeye(skill, unit, context)
-        # ... add new effect_ids here as skills are implemented
-        _:
-            push_warning("Unknown skill effect_id: " + skill.effect_id)
-            return context
+# preview        — exclude random-activation skills (a combat forecast must be deterministic)
+# skills_blocked — set by an opponent's Nihil; only NIHIL_EXEMPT_SKILLS still fire
+# dry_run        — run effects but do NOT persist limited-use counters (preview only)
+func apply_trigger(unit: Node, trigger: String, context: Dictionary,
+        preview := false, skills_blocked := false, dry_run := false) -> Dictionary
 ```
 
-The `context` dictionary is the shared data structure passed between skill applications.
-Skills can read and modify it. After all skills are applied, `CombatResolver` reads
-the final values.
+For each matching skill, `apply_trigger` enforces `max_uses_per_map` /
+`max_uses_per_combat`, rolls `activation_chance_stat / activation_divisor` if set,
+then dispatches through a `{ effect_id: Callable }` table built in `_ready()` — an
+unknown `effect_id` is a startup `push_error`, never a silent no-op. A handler
+returns `true` only when its effect actually applied, so a limited use is consumed
+only on a real activation.
 
-Example context for `on_attack`:
-```gdscript
-{
-  "attacker": Unit,
-  "defender": Unit,
-  "weapon": WeaponData,
-  "accuracy": int,         # can be modified by skills
-  "damage": int,           # can be modified
-  "crit_rate": int,        # can be modified
-  "additional_attacks": int,
-  "cancel_counter": bool,  # if true, defender cannot counterattack
-  "is_critical": bool,
-  "skill_blocked": bool    # if true (from Nihil), enemy skills don't fire
-}
-```
+Skills mutate a shared **combat context** `Dictionary` in place. Its modifier
+channels are `atk_mod` / `def_mod` (sub-dictionaries with `accuracy`, `damage`,
+`crit`, `crit_avoid`, `dodge`, `strikes`, `damage_multiplier`) and `flags`
+(`vantage`, `skip_effectiveness`, lifesteal, …). Nihil sets
+`attacker_skills_blocked` / `defender_skills_blocked`. The full context schema is
+documented in the `CombatResolver.gd` file header.
 
 ---
 
-## MVP Skills
+## MVP Skills (Implemented)
 
-Implement these for the first playable build. They cover the most common interactions.
+These skills are implemented and have `.tres` files in `data/skills/`. The
+`effect_id` is the `SkillHandler` dispatch key; the `.tres` `id` is the skill name.
+Several skills share one handler, configured via `effect_params`.
 
----
+### Generic battle skills
 
-### Generic Skills (MVP)
+| Skill (`.tres` id) | Trigger | effect_id | Effect |
+|---|---|---|---|
+| `renewal` | `start_of_turn` | `renewal` | Heal 10% of max HP (rounded down, min 1). |
+| `vantage` | `on_combat_start` | `vantage` | When defending, this unit's counter strikes first. |
+| `nihil` | `on_combat_start_negate` | `nihil` | Negates the opponent's battle skills this combat (except mastery skills and Nihil itself). |
+| `resolve` | `on_combat_start` | `resolve` | +50% STR/MAG/SKL/SPD while HP ≤ 50%, applied as combat-duration modifiers. |
+| `wrath` | `on_combat_start` | `wrath` | +50 Crit while HP ≤ 50%. |
+| `miracle` | `on_damaged` | `miracle` | (LUK / divisor) % chance to survive an otherwise-lethal blow at 1 HP. |
 
-#### Renewal
-- **Trigger:** `start_of_turn`
-- **Effect:** Restore 10% of unit's max HP
-- **Always active:** Yes
-- **effect_id:** `renewal`
+### Weapon-type skills (one `.tres` per type, shared handler)
 
-```gdscript
-func _apply_renewal(skill, unit, context):
-    var heal = max(1, floor(unit.data.max_hp * 0.10))
-    unit.heal(heal)
-    return context
-```
+| Skills (`.tres` ids) | Trigger | effect_id | Effect |
+|---|---|---|---|
+| `swordfaire` / `lancefaire` / `bowfaire` | `on_combat_start` | `faire` | +N damage with the matching weapon type (`effect_params`: `weapon_type`, `bonus`). |
+| `swordbreaker` / `lancebreaker` / `bowbreaker` | `on_combat_start` | `breaker` | +Hit attacking / +Dodge defending against the matching opposing weapon type. |
 
-#### Vantage
-- **Trigger:** `on_combat_start`
-- **Effect:** This unit always attacks first in combat (even when defending)
-- **effect_id:** `vantage`
+### Earned mastery skill
 
-```gdscript
-func _apply_vantage(skill, unit, context):
-    context["vantage_unit"] = unit
-    return context
-# CombatResolver checks for vantage_unit and reorders attacks accordingly
-```
+| Skill (`.tres` id) | Trigger | effect_id | Effect |
+|---|---|---|---|
+| `s_rank_mastery` | `on_combat_start` | `s_rank_mastery` | +10 Hit, +5 Crit, +1 Damage with a weapon type held at S rank. Granted automatically by `Unit.add_wexp()` on the first S rank; stored in `UnitData.mastery_skills`; never assignable in a `.tres`. |
 
-#### Nihil
-- **Trigger:** `on_combat_start`
-- **Effect:** Negate all battle-related skills on the opponent for this combat
-- **effect_id:** `nihil`
-
-```gdscript
-func _apply_nihil(skill, unit, context):
-    context["skill_blocked"] = true
-    return context
-```
-
-#### Resolve
-- **Trigger:** `passive` (recalculated each stat query)
-- **Effect:** +50% STR, MAG, SKL, SPD when HP ≤ 50% of max
-- **effect_id:** `resolve`
-
-#### Miracle
-- **Trigger:** `on_damaged`
-- **Effect:** LUK% chance to halve a fatal blow (damage that would kill)
-- **effect_id:** `miracle`
-
-#### Wrath
-- **Trigger:** `passive`
-- **Effect:** +50 Critical when HP ≤ 50% of max
-- **effect_id:** `wrath`
+> **Stub handlers:** `stat_bonus`, `charm`, `anathema`, and `daunt` exist as keys in
+> the `SkillHandler` dispatch table, but their handlers are stubs — no `.tres` uses
+> them yet. Full implementation is M9.
 
 ---
 
-### Class-Specific Skills (MVP)
+### Class / Promotion / Occult skills (designed, not implemented)
 
-#### Pick (Thief line — Phase 2)
-- **Trigger:** `player_activated`
-- **Effect:** Open an adjacent door or chest without a key
-- **effect_id:** `pick`
-
-#### Canto (Bard line — Phase 2)
-- **Trigger:** `player_activated`
-- **Effect:** One adjacent ally without Canto that has already acted can move and act again
-- **effect_id:** `canto`
-
----
-
-### Promotion Skills (MVP — implement at Phase 2 alongside promotion system)
-
-#### Hawkeye (Sniper)
-- **Trigger:** `passive`
-- **Effect:** +15 Hit, +15 Critical
-- **effect_id:** `stat_bonus`
-- **effect_params:** `{ "hit": 15, "crit": 15 }`
-
-#### Finesse (Swordmaster)
-- **Trigger:** `passive`
-- **Effect:** +25 Critical
-- **effect_id:** `stat_bonus`
-- **effect_params:** `{ "crit": 25 }`
-
-#### Renewal (also a generic skill)
-Already listed above.
-
-#### Bastion (General)
-- **Trigger:** `player_activated`
-- **Effect:** As an action: block 1 adjacent unoccupied tile until next turn
-- **effect_id:** `bastion`
+`Pick` (Thief), `Canto` (Bard), `Hawkeye` / `Finesse` (promotion `stat_bonus`
+skills), `Bastion` (General), and the rest are designed in the Full Skill Reference
+below and scheduled for M9 / the promotion milestone — see GDD_10.
 
 ---
 
@@ -292,14 +219,19 @@ The following skills are deferred to Phase 2. They are listed here so their
 4. If `effect_id` is **new**, add an implementation case to `SkillHandler.gd`
 5. No other files need changing
 
-### Implementing `stat_bonus` (reusable for many skills)
+### Implementing a shared handler (the `faire` pattern)
+
+A handler reads `effect_params` and writes into the context's `atk_mod` / `def_mod`
+channel for the relevant side. It returns `true` only when it actually applied — so
+a limited-use skill is not charged a use when it declines:
 ```gdscript
-func _apply_stat_bonus(skill: SkillData, unit: Unit, context: Dictionary) -> Dictionary:
-    var params = skill.effect_params
-    # Apply each bonus to the context's computed stats
-    if params.has("hit"):   context["accuracy"] += params["hit"]
-    if params.has("crit"):  context["crit_rate"] += params["crit"]
-    if params.has("str"):   context["damage"]   += params["str"]
-    # etc.
-    return context
+func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
+    var is_atk: bool = (unit == context.get("attacker"))
+    var w: WeaponData = context.get("attacker_weapon") if is_atk \
+        else context.get("defender_weapon")
+    if w == null or w.weapon_type != skill.effect_params.get("weapon_type", ""):
+        return false                       # declined — no limited use consumed
+    var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
+    mod["damage"] += skill.effect_params.get("bonus", 5)
+    return true
 ```
