@@ -4,39 +4,37 @@
 
 ## How to Use This Document
 
-This document is a direct continuation of `GDD_09_Checklist.md`. It covers two things:
+This is the **Phase 2 roadmap** — a continuation of `GDD_09_Checklist.md`, which
+covers the completed MVP (milestones M0–M7). It defines milestones **M8–M16**, to be
+implemented after the MVP is stable. Each milestone produces a testable build.
 
-1. **Mandatory MVP Amendments** — architectural changes that must be made to the M1–M4
-   milestone work *before or alongside* that work. These are not optional additions; without
-   them, Phase 2 content cannot be bolted on without refactoring. Each amendment names the
-   milestone it modifies.
-
-2. **Phase 2 Milestones (M8–M13)** — new milestones to implement after the MVP (M7) is
-   stable. Each produces a testable build.
+> The MVP amendments A1–A4 that once lived here (Phase-2 data fields +
+> `ConditionManager`, the modifier hooks, the combat context pipeline, and the grid
+> skill-hook stubs) are **complete** and have been folded into GDD_01–GDD_09. They
+> are no longer tracked separately.
 
 **Priority rules used in this document:**
 
-- Tasks that require changing existing combat, grid, or data systems are **mandatory MVP
-  amendments** and are implemented immediately alongside the relevant MVP milestone.
-- Tasks that add new `effect_id` match blocks, new `.tres` data files, or new UI panels
-  on top of working infrastructure are **Phase 2 additions**.
-- The **Laguz System (M12)** is fully specced and ready to implement but is marked
-  `[DEFERRED]` — it does not block any MVP milestone. Its *data fields* are added in the
-  MVP amendment to M1 so that no future refactoring of `UnitData` or `ClassData` is needed.
-- The **Pair Up mechanic** is explicitly out of scope and will not appear in this document.
-  Pair Up skills (Dual Strike+, Dual Guard+, Dual Support+) are noted as content placeholders
-  only — their data resources can be created, but their logic will not be implemented.
+- Tasks that add new `effect_id` match blocks, new `.tres` data files, or new UI
+  panels on top of working infrastructure are straightforward content additions.
+- Tasks that change existing combat, grid, or data systems are flagged where they
+  occur — the MVP amendments already laid the groundwork (modifier system, combat
+  context pipeline, condition stubs, grid skill hooks).
+- The **Laguz System (M12)** is fully specced but marked `[DEFERRED]`. Its data
+  fields already exist on `UnitData` / `ClassData` (folded in during the MVP), so no
+  future resource refactoring is needed.
+- The **Pair Up mechanic** is explicitly out of scope. Pair Up skills (Dual Strike+,
+  Dual Guard+, Dual Support+) are content placeholders only — data resources may be
+  created, but their logic will not be implemented.
 
 ---
 
 ## Status Snapshot
 
+The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase 2.
+
 | Milestone | Status | Notes |
 | --- | --- | --- |
-| MVP Amendments — M1 Data Layer (A1) | ✅ Complete | ConditionManager registered; unit_id defaults fine for MVP |
-| MVP Amendments — M3 Unit (A2) | ✅ Complete | All modifier hooks wired in TurnManager/CombatResolver/GameMap |
-| MVP Amendments — M4 Combat (A3) | ✅ Complete | Context pipeline, multi-strike, Miracle sim-HP, faire/breaker |
-| MVP Amendments — M2/M3 Grid (A4) | ✅ Complete | All stubs wired; MapCursor now calls `can_end_on_tile()` |
 | M8 — Status Conditions | — | After M14 core; conditions tick per-unit-activation |
 | M9 — Skill Content Implementation | — | After M8 |
 | M10 — Extra-Turn System | — | After M9; **needs M14 stages 1–5** (extra turn = extra activation) |
@@ -54,554 +52,7 @@ after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
 
 ---
 
-## Part 1: Mandatory MVP Amendments
-
----
-
-### Amendment A1 — Data Layer (modifies Milestone 1)
-
-**Goal:** Extend all resource classes with the fields required by Phase 2 systems. All
-new fields must have safe defaults so existing `.tres` files load without error. Serialization
-of runtime state (modifiers, conditions, counters) is intentionally in `UnitData` rather than
-on the `Unit` node so that mid-battle suspend saves can serialize everything from `UnitData`
-alone — no scene tree traversal required. **Complete before closing M1.**
-
-#### `UnitData.gd` — new fields
-
-```gdscript
-# ── Modifier system ───────────────────────────────────────────────────────────
-# Serializable list of active temporary stat changes.
-# All mid-battle save/load reads this array directly.
-@export var active_modifiers: Array[Dictionary] = []
-# Each entry:
-# {
-#   "stat":          String,  # "strength" | "magic" | "defense" | "resistance" | "skill" | "speed"
-#                            # | "luck" | "movement" | "accuracy" | "dodge" | "crit"
-#                            # | "crit_avoid" | "damage" | "damage_taken_pct"
-#   "delta":         int,     # positive = buff, negative = debuff
-#   "source":        String,  # effect_id of the skill/item that applied it (for stacking rules)
-#   "duration":      int,     # turns remaining; -1 = lasts until explicitly removed
-#   "duration_type": String   # "turn"      = decrements at start of holder's turn
-#                            # "map_turn"  = decrements after full player + enemy phase
-#                            # "combat"    = removed after next combat ends
-#                            # "permanent" = never auto-removed (stat item bonuses)
-# }
-
-# ── Skill usage tracking ──────────────────────────────────────────────────────
-# Counters for skills with per-map or per-combat limits.
-# Reset to {} in reset_map_state(). Serialized for mid-battle saves.
-@export var skill_use_counters: Dictionary = {}
-# e.g. { "challenge": 2, "rise": 1, "strike_true": 0 }
-# Key = effect_id of the skill. Value = number of times used this map.
-
-# ── Damage tracking ───────────────────────────────────────────────────────────
-# Cumulative damage taken this map (for Vengeance skill). Reset in reset_map_state().
-@export var damage_taken_this_map: int = 0
-
-# ── Laguz infrastructure ──────────────────────────────────────────────────────
-# All fields default to 0 / false / "" for Beorc units — safe to ignore.
-# Full logic implemented in M12. Fields are present now to prevent future UnitData refactoring.
-@export var shift_gauge: int = 0
-@export var is_shifted: bool = false
-@export var shift_profile_id: String = ""
-# shift_profile_id mirrors ClassData.id for the unit's Laguz class; empty for Beorc.
-```
-
-#### `ClassData.gd` — new fields
-
-```gdscript
-# ── Laguz gauge parameters ────────────────────────────────────────────────────
-# All default to 0 / false / "" for Beorc classes.
-@export var is_laguz: bool = false
-@export var max_shift_gauge: int = 0
-@export var shift_gauge_start: int = 0
-@export var shift_gain_per_turn_humanoid: int = 0
-@export var shift_gain_per_turn_animal: int = 0
-@export var shift_gain_per_combat_humanoid: int = 0
-@export var shift_gain_per_combat_animal: int = 0
-@export var animal_stat_bonus_pct: float = 0.5    # +50% for standard Laguz
-@export var natural_weapon_type: String = ""       # "fang" | "claw" | "beak" | "talon" etc.
-@export var animal_con_bonus_pct: float = 0.75    # CON increases ~75% in animal form
-```
-
-#### `WeaponData.gd` — new fields
-
-```gdscript
-@export var strikes_per_attack: int = 1
-# Set to 2 for all Brave weapons. Controls exchange sequence in CombatResolver.
-# Attacker fires strikes_per_attack times before defender counters.
-
-@export var is_natural_weapon: bool = false
-# True for Laguz Fang/Claw/Beak/Talon. No cost, no uses; innate to animal form.
-# Unit.get_equipped_weapon() returns the natural weapon when is_shifted = true
-# and data.natural_weapon_type matches a WeaponData with this flag set.
-# Rank for natural weapons is determined by the unit's wexp in that weapon type.
-```
-
-#### `SkillData.gd` — new fields and updated trigger docstring
-
-```gdscript
-@export var max_uses_per_map: int = -1
-# -1 = unlimited. Checked against UnitData.skill_use_counters[effect_id].
-# Examples: Rise = 3, Challenge = 3, Favoured = 1.
-
-@export var max_uses_per_combat: int = -1
-# -1 = unlimited. Checked at combat start; counter cleared after combat.
-# Examples: Strike True = 1.
-
-# Updated trigger docstring — add these to the existing list:
-# "on_combat_apply_modifiers" — fires before combat stats are calculated;
-#     used by aura skills (Charm, Daunt, Anathema, Motivate, etc.) to inject
-#     flat bonuses into the combat context for attacker or defender.
-# "on_ally_attacked"          — fires on units adjacent to a unit being attacked;
-#     used by Parry and Redirect.
-# "on_enemy_leaves_adjacent"  — fires when an enemy moves away from adjacency;
-#     used by No Escape.
-# "on_map_start"              — fires once per unit when the map loads.
-# "on_shift"                  — fires when a Laguz unit changes form.
-```
-
-#### New autoload: `ConditionManager.gd`
-
-Register after `DataManager` in the autoload order:
-`EventBus → SettingsManager → GameState → DataManager → ConditionManager`
-
-This is a **stub** in M1 — fully implemented in M8. It must exist now so that other
-systems can call into it without failing.
-
-```gdscript
-extends Node
-
-# Stub — all methods are no-ops until M8.
-
-func apply_condition(unit: Node, condition_type: String, duration: int) -> void:
-    pass  # [STUB — implement in M8]
-
-func remove_condition(unit: Node, condition_type: String) -> void:
-    pass
-
-func tick_conditions(unit: Node) -> void:
-    pass
-
-func has_condition(unit: Node, condition_type: String) -> bool:
-    return false
-
-func clear_all_conditions(unit: Node) -> void:
-    pass
-```
-
-#### Checklist — Amendment A1
-
-- [x] Add all new `active_modifiers`, `skill_use_counters`, `damage_taken_this_map`,
-      `shift_gauge`, `is_shifted`, `shift_profile_id` fields to `UnitData.gd`
-- [x] Add all new Laguz gauge fields to `ClassData.gd`
-- [x] Add `strikes_per_attack` and `is_natural_weapon` to `WeaponData.gd`
-- [x] Add `max_uses_per_map`, `max_uses_per_combat` to `SkillData.gd`
-- [x] Update `SkillData.gd` trigger docstring with the 5 new trigger type strings
-- [x] Create `scripts/autoloads/ConditionManager.gd` with stub methods
-- [x] Register `ConditionManager` as autoload after `DataManager`
-- [ ] Verify: existing `.tres` files load without error after field additions
-- [x] Verify: `ConditionManager` node is present at `/root/ConditionManager` at runtime
-- [x] Update `GameState.take_map_snapshot()` to deep-copy `active_modifiers`,
-      `skill_use_counters`, `damage_taken_this_map`, `shift_gauge`, and `is_shifted`
-      from each player `UnitData` into the snapshot — these are runtime state, not just base stats
-
----
-
-### Amendment A2 — Unit Script (modifies Milestone 3)
-
-**Goal:** Refactor `Unit.gd` so all combat stat reads go through a modifier-aware
-accessor. Add modifier lifecycle methods. All existing tests must still pass after
-the refactor. **Complete before M4 begins.**
-
-#### New methods to add to `Unit.gd`
-
-```gdscript
-# ── Stat access ───────────────────────────────────────────────────────────────
-
-func get_effective_stat(stat_name: String) -> int:
-    # Returns base stat + sum of all active_modifiers matching stat_name.
-    # For "strength", "magic", "defense", "resistance", "skill", "speed", "luck", "movement":
-    #   reads the corresponding data field, then applies all deltas.
-    # Result is clamped to minimum 0 for all stats.
-    var base: int = data.get(stat_name)
-    var total: int = base
-    for mod in data.active_modifiers:
-        if mod["stat"] == stat_name:
-            total += mod["delta"]
-    return max(0, total)
-
-func has_skill(skill_id: String) -> bool:
-    # Convenience method — checks data.skills array for the given effect_id.
-    # Used by GridManager, CombatResolver, SkillHandler without coupling to UnitData directly.
-    return skill_id in data.skills
-
-func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int:
-    # Returns how many uses of this skill remain this map.
-    # -1 means unlimited (max_per_map == -1).
-    if max_per_map == -1:
-        return -1
-    var used: int = data.skill_use_counters.get(effect_id, 0)
-    return max(0, max_per_map - used)
-
-func consume_skill_use(effect_id: String) -> void:
-    data.skill_use_counters[effect_id] = data.skill_use_counters.get(effect_id, 0) + 1
-
-# ── Modifier lifecycle ────────────────────────────────────────────────────────
-
-func add_modifier(stat: String, delta: int, source: String,
-                  duration: int, duration_type: String) -> void:
-    # Removes any existing modifier from the same source first (no duplicate stacking
-    # of the same skill — multiple castings refresh the duration instead).
-    remove_modifier(source)
-    data.active_modifiers.append({
-        "stat": stat, "delta": delta, "source": source,
-        "duration": duration, "duration_type": duration_type
-    })
-
-func remove_modifier(source: String) -> void:
-    data.active_modifiers = data.active_modifiers.filter(
-        func(m): return m["source"] != source
-    )
-
-func tick_modifiers(duration_type: String) -> void:
-    # Called by TurnManager. duration_type matches the type to decrement.
-    # "turn" is called at the start of this unit's turn.
-    # "map_turn" is called at the end of the full round (after enemy phase).
-    for mod in data.active_modifiers:
-        if mod["duration_type"] == duration_type and mod["duration"] > 0:
-            mod["duration"] -= 1
-    data.active_modifiers = data.active_modifiers.filter(
-        func(m): return m["duration"] != 0
-    )
-
-func clear_combat_modifiers() -> void:
-    # Removes all "combat" duration_type modifiers. Called after each combat resolves.
-    data.active_modifiers = data.active_modifiers.filter(
-        func(m): return m["duration_type"] != "combat"
-    )
-
-func reset_map_state() -> void:
-    # Called when the map loads (before snapshot is taken) and on retry.
-    data.active_modifiers.clear()
-    data.skill_use_counters.clear()
-    data.damage_taken_this_map = 0
-
-# ── Refactored combat stat functions ─────────────────────────────────────────
-# All existing functions below must be updated to use get_effective_stat()
-# instead of reading data.strength, data.speed, etc. directly. Examples:
-
-func battle_speed(weapon: WeaponData = null) -> int:
-    var w: WeaponData = weapon if weapon else get_equipped_weapon()
-    if not w:
-        return get_effective_stat("speed")
-    return get_effective_stat("speed") - max(0, w.wt - get_effective_stat("strength"))
-
-func accuracy(weapon: WeaponData = null) -> int:
-    var w: WeaponData = weapon if weapon else get_equipped_weapon()
-    var hit_bonus: int = w.hit if w else 0
-    return get_effective_stat("skill") * 2 + get_effective_stat("luck") + hit_bonus
-
-func dodge() -> int:
-    return battle_speed() * 2 + get_effective_stat("luck")
-
-# ... and so on for damage(), crit_rate(), crit_avoid()
-```
-
-#### Checklist — Amendment A2
-
-- [x] Add `get_effective_stat(stat_name)` to `Unit.gd`
-- [x] Add `has_skill(skill_id)` to `Unit.gd`
-- [x] Add `get_skill_uses_remaining()` and `consume_skill_use()` to `Unit.gd`
-- [x] Add `add_modifier()`, `remove_modifier()`, `tick_modifiers()`,
-      `clear_combat_modifiers()`, `reset_map_state()` to `Unit.gd`
-- [x] Refactor `battle_speed()` to use `get_effective_stat()`
-- [x] Refactor `accuracy()` to use `get_effective_stat()`
-- [x] Refactor `dodge()` to use `get_effective_stat()`
-- [x] Refactor `damage()` to use `get_effective_stat()`
-- [x] Refactor `crit_rate()` to use `get_effective_stat()`
-- [x] Refactor `crit_avoid()` to use `get_effective_stat()`
-- [x] Hook `tick_modifiers("turn")` into `TurnManager.start_player_phase()` for each
-      player unit, and into the start of each enemy's AI turn
-- [x] Hook `tick_modifiers("map_turn")` into `TurnManager.start_player_phase()` (fires
-      once per full round, at the top of the player phase)
-- [x] Hook `clear_combat_modifiers()` into `CombatResolver` after each combat resolves
-- [x] Hook `reset_map_state()` into `GameMap._ready()` for all units, *before*
-      `GameState.take_map_snapshot()` is called
-- [ ] Verify: all existing unit stat tests still pass after refactor
-- [ ] Verify: adding a +5 STR modifier makes `get_effective_stat("strength")` return base + 5
-- [ ] Verify: a "turn" duration modifier expires after the correct number of turns
-- [ ] Verify: `has_skill("nihil")` returns true iff the skill id is in the unit's skills array
-
----
-
-### Amendment A3 — Combat Resolver (modifies Milestone 4)
-
-**Goal:** Restructure `CombatResolver` around a modifier pipeline so that all future
-skill effects (aura buffs, weapon effectiveness, multi-strike, damage multipliers)
-plug in cleanly without touching the core math. **Complete alongside M4.**
-
-#### New internal structures
-
-```gdscript
-# Combat context — built fresh at the start of every resolve_combat() and preview_combat().
-# Passed by reference to all helper functions and SkillHandler during combat.
-# Keys that external systems read/write:
-
-# context = {
-#   "attacker":             Node,          # attacker Unit node
-#   "defender":             Node,          # defender Unit node
-#   "attacker_weapon":      WeaponData,    # null if unarmed
-#   "defender_weapon":      WeaponData,    # null if cannot counterattack
-#   "is_player_initiated":  bool,          # true if player unit is the attacker
-#   "turn_number":          int,           # from GameState.turn_number
-#
-#   "atk_mod": {                           # flat additions applied AFTER base calculation
-#       "accuracy":   0,                   # +/- to final hit%
-#       "damage":     0,                   # +/- to damage (post-formula, pre-effectiveness)
-#       "crit":       0,                   # +/- to crit%
-#       "crit_avoid": 0,
-#       "dodge":      0,
-#       "strikes":    0,                   # extra attacks (Adept, etc.)
-#       "damage_multiplier": 1.0,          # multiplies final damage (Charge, Dragonskin)
-#   },
-#   "def_mod": { same keys },
-#
-#   "flags": {
-#       "nihil":                  false,   # defender's battle skills are suppressed
-#       "vantage":                false,   # defender attacks first
-#       "skip_effectiveness":     false,   # Nullify / Dragonskin / Iron Rune
-#       "attacker_ignores_def":   0.0,     # fraction of DEF ignored (Luna = 0.5)
-#       "attacker_ignores_res":   0.0,
-#       "defender_ignores_def":   0.0,
-#       "defender_ignores_res":   0.0,
-#       "lifesteal_pct":          0.0,     # attacker heals this fraction of damage dealt
-#       "vengeance_bonus":        0,       # flat damage added from Vengeance accumulation
-#   }
-# }
-```
-
-#### New and modified methods
-
-```gdscript
-# ── Context and modifier pipeline ─────────────────────────────────────────────
-
-func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
-    # Constructs the initial context dict with zero modifiers.
-    # Reads GameState.turn_number and determines is_player_initiated.
-
-func _collect_combat_modifiers(context: Dictionary) -> void:
-    # Step 1: Apply active_modifiers from both units' UnitData.
-    #         Modifiers with stat "accuracy"/"damage"/"crit"/"dodge" map to context.*_mod fields.
-    # Step 2: Call SkillHandler.apply_trigger(unit, "on_combat_apply_modifiers", context)
-    #         for every unit on the map.
-    #         Aura skills (Charm, Daunt, Anathema, Motivate, etc.) check distance and
-    #         write into context.atk_mod or context.def_mod.
-    # Step 3: Check equipped items (equip-type inventory entries) for modifiers.
-    # Step 4: Call SkillHandler.apply_trigger(attacker, "on_combat_start", context)
-    #         and apply_trigger(defender, "on_combat_start", context).
-    #         This is where Vantage, Nihil, Resolve, Wrath, etc. set their flags.
-
-# ── Effectiveness ─────────────────────────────────────────────────────────────
-
-func _get_effectiveness_multiplier(weapon: WeaponData, target: Node,
-                                    context: Dictionary) -> float:
-    # Returns 1.0 normally, 3.0 if weapon has an effectiveness tag matching a
-    # special_quality of the target, 4.0 if attacker also has Giantkiller skill.
-    # Returns 1.0 if context.flags.skip_effectiveness is true (Dragonskin/Nullify).
-    # Effectiveness tag → special_quality mapping:
-    #   "effective_flying"  → Flying
-    #   "effective_beast"   → Beast
-    #   "effective_dragon"  → Dragon
-    #   "effective_armour"  → Armoured
-    #   "effective_mount"   → Mounted
-    #   "effective_laguz"   → Laguz
-
-# ── Multi-strike exchange sequence ────────────────────────────────────────────
-
-func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
-    var context := _build_combat_context(attacker, defender)
-    _collect_combat_modifiers(context)
-
-    var atk_strikes: int = context.attacker_weapon.strikes_per_attack \
-                           + context.atk_mod.strikes  if context.attacker_weapon else 0
-    var def_strikes: int = 0
-    if can_counterattack(defender, attacker.tile_position) and context.defender_weapon:
-        def_strikes = context.defender_weapon.strikes_per_attack + context.def_mod.strikes
-
-    var exchanges: Array = []
-
-    # Vantage: defender goes first
-    if context.flags.vantage:
-        for _i in def_strikes:
-            exchanges.append(_resolve_single_attack(defender, attacker, context, true))
-            if attacker.data.hp <= 0: break
-        def_strikes = 0  # defender already used their attacks
-
-    # Attacker's strikes
-    for _i in atk_strikes:
-        exchanges.append(_resolve_single_attack(attacker, defender, context, false))
-        if defender.data.hp <= 0: break
-
-    # Defender's counter (unless Vantage already fired)
-    if def_strikes > 0 and attacker.data.hp > 0:
-        for _i in def_strikes:
-            exchanges.append(_resolve_single_attack(defender, attacker, context, true))
-            if attacker.data.hp <= 0: break
-
-    # Follow-up
-    var follow_up_unit := get_follow_up_attacker(attacker, defender)
-    if follow_up_unit and follow_up_unit.data.hp > 0:
-        var follow_up_target := defender if follow_up_unit == attacker else attacker
-        if follow_up_target.data.hp > 0:
-            exchanges.append(_resolve_single_attack(follow_up_unit, follow_up_target,
-                                                    context, follow_up_unit != attacker))
-
-    # Post-combat skill triggers
-    SkillHandler.apply_trigger(attacker, "on_combat_end", context)
-    SkillHandler.apply_trigger(defender, "on_combat_end", context)
-
-    # Damage tracking for Vengeance
-    # (accumulated in _resolve_single_attack per hit taken)
-
-    return {
-        "exchanges":            exchanges,
-        "attacker_final_hp":    attacker.data.hp,
-        "defender_final_hp":    defender.data.hp,
-        "attacker_exp":         calculate_exp(attacker, defender, defender.data.hp <= 0),
-        "attacker_wexp":        context.attacker_weapon.wexp if context.attacker_weapon else 0
-    }
-
-func _resolve_single_attack(actor: Node, target: Node,
-                              context: Dictionary, is_counter: bool) -> Dictionary:
-    # Applies context modifiers (atk_mod / def_mod based on actor role),
-    # rolls hit, rolls crit, computes damage with effectiveness multiplier,
-    # applies damage_multiplier from context.flags,
-    # calls SkillHandler.apply_trigger(actor, "on_attack", context) before rolling,
-    # calls SkillHandler.apply_trigger(actor, "on_hit", context) if hit lands,
-    # calls SkillHandler.apply_trigger(target, "on_damaged", context) after damage,
-    # calls SkillHandler.apply_trigger(actor, "on_kill", context) if target dies,
-    # increments target.data.damage_taken_this_map by damage dealt.
-    # Returns { actor, target, hit: bool, crit: bool, damage: int }
-
-# ── Skill counter helpers ─────────────────────────────────────────────────────
-
-func _skill_available(unit: Node, skill_data: SkillData) -> bool:
-    if skill_data.max_uses_per_map == -1:
-        return true
-    return unit.get_skill_uses_remaining(skill_data.effect_id,
-                                          skill_data.max_uses_per_map) > 0
-
-func _consume_skill(unit: Node, skill_data: SkillData) -> void:
-    if skill_data.max_uses_per_map != -1:
-        unit.consume_skill_use(skill_data.effect_id)
-```
-
-#### Checklist — Amendment A3
-
-- [x] Add `_build_combat_context()` to `CombatResolver.gd`
-- [x] Add `_collect_combat_modifiers()` to `CombatResolver.gd`
-- [x] Add `_get_effectiveness_multiplier()` to `CombatResolver.gd`
-- [x] Refactor `resolve_combat()` to use context, multi-strike loop, and vantage flag
-- [x] Refactor `preview_combat()` to use the same context pipeline (no RNG; no side effects)
-- [x] Add `_resolve_single_attack()` extracting single-attack logic from the exchange loop
-- [x] Add `_skill_available()` and `_consume_skill()` to `CombatResolver.gd`
-- [x] Ensure `_resolve_single_attack()` increments `target.data.damage_taken_this_map`
-- [x] Ensure `clear_combat_modifiers()` is called on both units after `resolve_combat()` returns
-- [x] Verify: Brave Sword (strikes_per_attack = 2) produces two attacker attacks before counter
-- [ ] Verify: weapon effectiveness (e.g. iron bow vs flying unit) triples Mt correctly
-- [ ] Verify: Giantkiller on attacker applies 4× Mt against effective target
-- [ ] Verify: Nullify skill on defender sets `skip_effectiveness = true` in context
-- [ ] Verify: `preview_combat()` returns identical base numbers to `resolve_combat()` (before RNG)
-- [ ] Verify: `damage_taken_this_map` on a unit increments correctly across multiple combats
-- [ ] Verify: skill counter prevents a Rise or Challenge use past its per-map limit
-
----
-
-### Amendment A4 — Grid System (modifies Milestones 2 and 3)
-
-**Goal:** Add per-unit movement rule overrides to `GridManager` so movement-modifying
-skills (Acrobat, Pass, Swiftfoot, Phasing, Nimble) can be added in Phase 2 without
-touching pathfinding core logic. **Complete before M4 begins.**
-
-#### Modified and new methods in `GridManager.gd`
-
-```gdscript
-func get_move_cost(tile: Vector2i, unit: Node) -> int:
-    var terrain: String = get_terrain_at(tile)
-    # Check skill-based overrides FIRST.
-    # Any skill that flattens all terrain costs inserts here.
-    # SkillHandler returns -1 if no override, or the overriding cost.
-    var override: int = SkillHandler.get_move_cost_override(unit, terrain)
-    if override != -1:
-        return override
-    # Then standard terrain cost table (unchanged from M2 implementation).
-
-func is_passable(tile: Vector2i, unit: Node) -> bool:
-    var terrain: String = get_terrain_at(tile)
-    if terrain == "wall":
-        # Wall is impassable to ALL units in MVP.
-        # Phasing skill is checked here in Phase 2.
-        if SkillHandler.can_phase_through(unit, terrain):
-            return true
-        return false
-    var occupant: Node = get_unit_at(tile)
-    if occupant == null:
-        return true
-    if occupant.team == unit.team:
-        return true   # always pass through allies
-    # Enemy-occupied tile: normally blocks. Pass skill overrides this.
-    return SkillHandler.can_pass_through_enemies(unit)
-
-func can_end_on_tile(tile: Vector2i, unit: Node) -> bool:
-    # NEW — separates "can move through" from "can stop here".
-    # A unit with Pass can move through enemy tiles but cannot end on one.
-    # Called at the end of path validation in get_movement_range() and move confirmation.
-    var occupant: Node = get_unit_at(tile)
-    if occupant == null:
-        return true
-    if occupant.team == unit.team:
-        return false  # cannot stack with allies
-    return false      # cannot end on enemy even with Pass
-```
-
-#### New stub methods to add to `SkillHandler.gd`
-
-These return safe defaults until their skill effects are implemented in M9.
-
-```gdscript
-func get_move_cost_override(unit: Node, terrain: String) -> int:
-    # Returns the overriding cost if a skill applies, -1 if no override.
-    # Checks: Acrobat (all non-wall terrain → 1), Swiftfoot (terrain penalties → 1),
-    #         Nimble (Laguz Cat: all terrain → 1), Feral Instincts with Nimble.
-    return -1  # [STUB — implement in M9]
-
-func can_pass_through_enemies(unit: Node) -> bool:
-    # Returns true if the unit has the Pass skill (Trickster occult).
-    return false  # [STUB — implement in M9]
-
-func can_phase_through(unit: Node, terrain: String) -> bool:
-    # Returns true if the unit has the Phasing skill (Sage promotion).
-    return false  # [STUB — implement in M9]
-```
-
-#### Checklist — Amendment A4
-
-- [x] Add `SkillHandler.get_move_cost_override()` stub to `SkillHandler.gd`
-- [x] Add `SkillHandler.can_pass_through_enemies()` stub to `SkillHandler.gd`
-- [x] Add `SkillHandler.can_phase_through()` stub to `SkillHandler.gd`
-- [x] Modify `GridManager.get_move_cost()` to call `get_move_cost_override()` first
-- [x] Modify `GridManager.is_passable()` to check `can_pass_through_enemies()` for enemies
-- [x] Add `GridManager.can_end_on_tile()` as a separate method
-- [x] Update `get_movement_range()` to call `can_end_on_tile()` when marking reachable tiles
-- [x] Update move confirmation in `MapCursor.gd` to call `can_end_on_tile()` before allowing
-      the move to be committed
-- [ ] Verify: stubs return safe defaults and existing pathfinding tests still pass
-- [ ] Verify: path through an ally tile is still walkable but not stoppable
-
----
-
-## Part 2: Phase 2 Milestones
+## Phase 2 Milestones (M8–M16)
 
 ---
 
@@ -912,7 +363,7 @@ or defender, then adds to `context.atk_mod` or `context.def_mod`.
 
 ### Reactive skills — `on_ally_attacked`, `on_enemy_leaves_adjacent`
 
-These require the new trigger types added in Amendment A1.
+These require the Phase 2 trigger types already declared on `SkillData` (see GDD_01).
 
 - [ ] Hook `on_ally_attacked` trigger: in `CombatResolver.resolve_combat()`, after the
       context is built, fire `SkillHandler.apply_trigger(adjacent_unit, "on_ally_attacked", context)`
@@ -1313,7 +764,7 @@ all Laguz class skills trigger correctly.
 
 **Pre-condition:** M11 complete (all Laguz data `.tres` files exist).
 
-### Data architecture (already in UnitData and ClassData from Amendment A1)
+### Data architecture (Laguz fields already on UnitData and ClassData — see GDD_01)
 
 No new fields required. All shift gauge parameters live in `ClassData`. Runtime state
 (`shift_gauge`, `is_shifted`) lives in `UnitData` and is already included in snapshots.
@@ -1966,8 +1417,8 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       next activation, round number, per-unit activation states, the `activation_mode`
       policy, per-group "eliminated on round N"), AI state (which units have acted),
       active Bastion/Light Rune blocked tiles, current map ID. The `UnitData` field
-      design from Amendment A1 ensures all runtime state is serializable without
-      scene tree traversal. **Note (Decision 10):** M15 Part B's disconnect
+      design (Phase 2 runtime-state fields on `UnitData`, see GDD_01) ensures all
+      runtime state is serializable without scene tree traversal. **Note (Decision 10):** M15 Part B's disconnect
       save-and-continue (D14) depends on this — when Part B is built, pull this item
       forward to sit with it rather than leaving it post-M13.
 - [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)

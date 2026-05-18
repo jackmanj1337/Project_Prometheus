@@ -155,7 +155,7 @@ When real art assets arrive, each imported sprite will need:
 
 A `ShiftGaugePanel` scene needs to be built in the editor as a `CanvasLayer` child
 of `HUD.tscn`. A placeholder `ProgressBar` is acceptable for M12 MVP.
-Full visual is marked `[PLACEHOLDER]` in `GDD_updates.md`.
+Full visual is marked `[PLACEHOLDER]` in `GDD_10_Roadmap.md` (Milestone 12).
 
 ---
 

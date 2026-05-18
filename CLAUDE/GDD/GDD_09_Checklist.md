@@ -412,7 +412,8 @@ Equip an archer and verify they cannot attack adjacent targets.
 
 ### Amendment A3 — Combat Resolver (context pipeline)
 Restructures `CombatResolver` around a modifier pipeline so all future skill effects
-plug in cleanly. **Complete alongside M4.** See `GDD_updates.md` for full spec.
+plug in cleanly. **Complete.** The combat context pipeline is now documented in
+GDD_01 (CombatResolver) and the `CombatResolver.gd` file header.
 
 - [x] Add `_build_combat_context(attacker, defender)` — constructs initial context dict with zero mods
 - [x] Add `_collect_combat_modifiers(context)` — applies UnitData modifiers + calls SkillHandler aura triggers
