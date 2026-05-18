@@ -204,17 +204,20 @@ Font size: 40px, bold [PLACEHOLDER font]
 **Layout (positioned near the moved unit, offset to avoid covering it):**
 ```
 ┌────────────┐
-│  Attack    │  ← greyed if no enemies in range
-│  Staff     │  ← greyed if no staff equipped / no targets
-│  Item      │  ← greyed if inventory empty
-│  Trade     │  ← greyed if no adjacent ally
-│  Wait      │
+│  Attack    │  ← disabled if no enemies in range
+│  Staff     │  ← disabled if no healing staff / no targets in range
+│  Item      │  ← disabled if no usable items
+│  Wait      │  ← always available
 └────────────┘
 ```
 
+> Buttons: `BtnAttack`, `BtnStaff`, `BtnItem`, `BtnWait`. **Trade is designed but
+> not yet implemented** — there is no Trade button in the current `ActionMenu.tscn`.
+
 **Behavior:**
 - Menu appears adjacent to the unit's new tile; repositioned if too close to screen edge
-- Navigate with `cursor_up` / `cursor_down`; confirm with `confirm`; close with `cancel`
+- Navigate with `cursor_up` / `cursor_down` (wraps, skipping disabled buttons);
+  confirm with `confirm`; close with `cancel`
 - Closing with cancel triggers undo: unit returns to its pre-move tile
 
 **Button widths:** 120 px; height per button: 30 px
@@ -222,26 +225,20 @@ Font size: 40px, bold [PLACEHOLDER font]
 
 ---
 
-### Target Select List
+### Target Selection
 
-**Scene:** `TargetSelectList.tscn`
-**Trigger:** Player selects "Attack" or "Staff" from Action Menu
+**Trigger:** Player selects "Attack" or "Staff" from the Action Menu.
+**Owner:** `MapCursorTargeting` (a `RefCounted` slice of `MapCursor`).
 
-**Layout (positioned near cursor; repositioned if near edge):**
-```
-┌──────────────────────────┐
-│ ► Garet  (Knight)  HP 21 │  ← highlighted entry
-│   Archer             HP 14│
-└──────────────────────────┘
-```
+There is **no target-list panel**. Target selection happens on the map itself:
 
-**Behavior:**
-- Lists all valid targets (enemies for Attack, allies for Staff)
-- Navigate with `cursor_up` / `cursor_down`
-- As each target is highlighted, cursor snaps to that target's tile on the map
-- Attack preview updates in real time as selection changes
-- Confirm: opens full AttackPreview panel
-- Cancel: returns to Action Menu
+- The valid target tiles are highlighted with overlay tiles — **red** for Attack
+  targets, **green** for Staff (heal) targets.
+- The cursor snaps to the first valid target. Direction keys **cycle** the cursor
+  between valid target tiles (the list wraps). With the mouse, motion snaps the
+  cursor to the nearest valid target — unless Mouse Targeting is "Keyboard Only".
+- `confirm` on an Attack target opens the Attack Preview; `confirm` on a Staff target
+  applies the heal immediately. `cancel` returns to the Action Menu.
 
 ---
 
@@ -276,15 +273,15 @@ Font size: 40px, bold [PLACEHOLDER font]
 
 ---
 
-### Staff Use Panel
+### Staff Use
 
-**Scene:** Reuse `TargetSelectList.tscn` with "Staff" mode.
-**Trigger:** Player selects "Staff" from Action Menu
+**Trigger:** Player selects "Staff" from the Action Menu — enabled only when the unit
+has a healing staff equipped and at least one injured ally in range.
 
-- Lists all allies within staff range who are below max HP
-- Shows each ally's name, current HP, and max HP
-- Selecting one shows a preview: "Heal: +17 HP" (or whatever 10+MAG equals)
-- Confirm uses the staff, heals the target, ends the unit's turn
+Staff targeting uses the same green-overlay + cursor-cycling flow as attack targeting
+(see Target Selection). Confirming on an ally heals them for `10 + MAG` HP via
+`Unit.perform_staff_heal()`, awards the healer EXP and wEXP, and ends the unit's
+turn. There is no separate staff-preview panel in MVP.
 
 ---
 
@@ -367,210 +364,82 @@ Font size: 40px, bold [PLACEHOLDER font]
 **Trigger:** "Settings" button in Main Menu or Map Menu
 **Script:** `scripts/ui/SettingsScreen.gd`
 
-The Settings screen is a full-screen panel with a tab bar across the top.
-Three tabs: **Audio**, **Controls**, **Gameplay**.
-Changes take effect immediately and are saved automatically on close via
-`SettingsManager.save()`. Cancel or pressing `cancel` discards unsaved changes
-and restores previous values.
+The Settings screen is a single full-screen panel — **not tabbed**. It is an overlay
+opened with `open()` and dismissed by the `Back` button or the `cancel` action. Each
+control writes its change to `SettingsManager` immediately (volume via `set_volume()`,
+which persists; option changes call `SettingsManager.save()`), so there is no separate
+save-or-discard step.
 
-All settings persist between sessions using `user://settings.cfg`
-(Godot's `ConfigFile`). See `GDD_01` for `SettingsManager` details.
+All settings persist between sessions in `user://settings.cfg` (Godot's `ConfigFile`).
+See GDD_01 → SettingsManager.
 
----
-
-#### Layout
+#### Layout (single VBox panel)
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  [ Audio ]   [ Controls ]   [ Gameplay ]         │  ← tab bar
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  (tab content — see each tab below)              │
-│                                                  │
-│                                                  │
-│                                                  │
-│                                                  │
-│       [ Reset to Defaults ]   [ Close ]          │
+│                   Settings                       │
+│                                                   │
+│   Master   [━━━━━━━━━━━━━━━━━━━━]   80            │
+│   Music    [━━━━━━━━━━━━━━━━━━━━]   70            │
+│   SFX      [━━━━━━━━━━━━━━━━━━━━]   90            │
+│   ─────────────────────────────────────────       │
+│   Movement Speed     [ Normal ▾ ]                 │
+│   Phase Banner       [ Show ▾ ]                   │
+│   Level Up Screen    [ Show ▾ ]                   │
+│   Mouse Targeting    [ Snap to Target ▾ ]         │
+│   ─────────────────────────────────────────       │
+│                   [ Back ]                        │
 └──────────────────────────────────────────────────┘
 ```
 
-- "Reset to Defaults" resets only the **currently active tab** to defaults,
-  with a confirmation prompt: "Reset [Audio / Controls / Gameplay] to defaults?"
-- "Close" saves all changes and returns to the previous screen
-- Pressing `cancel` closes the screen (same as "Close")
-
 ---
 
-#### Tab 1 — Audio
+#### Audio
 
-```
-  Master Volume    [━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━]  80%
-  Music Volume     [━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━]  70%
-  SFX Volume       [━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━]  90%
-```
+Three `HSlider` controls — `Master`, `Music`, `SFX` — range 0–100, step 1. Dragging a
+slider updates the matching audio bus in real time and saves immediately. Buses are
+looked up by name (`Master` / `Music` / `SFX`); a missing bus is silently skipped.
 
-- Each slider is a Godot `HSlider`, range 0–100, step 1
-- Numeric value shown to the right of each slider (e.g. "80%")
-- Sliders update audio bus volumes in real time as they are dragged
-- Three Godot Audio Buses must be configured: `Master`, `Music`, `SFX`
-  - Background music plays through the `Music` bus
-  - All other sounds play through the `SFX` bus
-  - Both are children of the `Master` bus in the Audio panel
-
-| Setting Key | Default | Range |
+| Setting | Default | Range |
 |---|---|---|
-| `audio/master_volume` | 80 | 0–100 |
-| `audio/music_volume` | 70 | 0–100 |
-| `audio/sfx_volume` | 90 | 0–100 |
+| `master_volume` | 80 | 0–100 |
+| `music_volume` | 70 | 0–100 |
+| `sfx_volume` | 90 | 0–100 |
 
----
+#### Gameplay options
 
-#### Tab 2 — Controls
+Each is an `OptionButton`; selecting an option saves immediately.
 
-Displays a list of all remappable actions. The player can click any row to
-reassign it.
+**Movement Speed** (`movement_speed`, default `"normal"`) — how fast unit sprites
+travel. `Unit.move_along_path()` reads it via `SettingsManager.get_movement_speed_seconds()`.
 
-```
-  cursor_up          W / Up Arrow          [ Rebind ]
-  cursor_down        S / Down Arrow        [ Rebind ]
-  cursor_left        A / Left Arrow        [ Rebind ]
-  cursor_right       D / Right Arrow       [ Rebind ]
-  confirm            Z / Enter / Space     [ Rebind ]
-  cancel             X / Escape            [ Rebind ]
-  next_unit          Tab                   [ Rebind ]
-  prev_unit          Shift + Tab           [ Rebind ]
-  show_danger_zone   Q                     [ Rebind ]
-  open_menu          Escape                [ Rebind ]
-```
-
-**Rebind Flow:**
-1. Player clicks `[ Rebind ]` on a row
-2. That row highlights and shows: `"Press any key..."`
-3. The next key or mouse button pressed is captured
-4. If the key is already bound to a **different** action, show a warning:
-   `"[Key] is already used for [action]. Replace it?"  [ Yes ] [ No ]`
-   - Yes: removes the old binding and assigns to this action
-   - No: cancels and returns to waiting
-5. If player presses `Escape` during rebind: cancel without changing the binding
-6. Mouse buttons (Left, Right, Middle) are valid rebind targets
-7. The new binding is saved immediately to `SettingsManager`
-
-**Implementation notes:**
-- Use `InputEventKey` and `InputEventMouseButton` to capture events
-- After rebinding, call `InputMap.action_erase_events(action)` then
-  `InputMap.action_add_event(action, event)` to apply immediately
-- `SettingsManager.save()` writes the new bindings to `user://settings.cfg`
-- `SettingsManager.load()` reads and re-applies bindings on game start
-
-**Non-remappable inputs:** Mouse hover (always moves cursor) and mouse clicks
-(always confirm/cancel) cannot be rebound. Their behavior is hardcoded.
-
----
-
-#### Tab 3 — Gameplay
-
-```
-  Combat Animations     [ All Units ▾ ]
-  Movement Speed        [ Normal ▾ ]
-  Phase Banner          [ Show ▾ ]
-  Level Up Screen       [ Show ▾ ]
-  Permadeath            [ Off ▾ ]
-  Leveling Method       [ Growth Rates ▾ ]
-```
-
-Each setting uses an `OptionButton` (dropdown). Options and behavior below.
-
----
-
-**Combat Animations**
-Controls whether hit/miss/crit visual effects play during combat resolution.
-
-| Option | Behavior |
+| Option | Per-tile duration |
 |---|---|
-| All Units | Animations play for every unit (default) |
-| Player Units Only | Full animations for player units; enemy hits are instant |
-| Enemy Units Only | Full animations for enemies; player hits are instant |
-| None | All combat effects are instant; HP bars update immediately |
+| Normal | 0.12 s |
+| Fast | 0.06 s |
+| Instant | 0 s — `snap_to_tile()`, no tween (the `unit_moved` signal still fires) |
 
-Setting key: `gameplay/combat_animations`  Default: `"all"`
+**Phase Banner** (`phase_banner`, default `"show"`) — `Show` plays the full
+slide-in / hold / slide-out banner; `Skip` suppresses it (the HUD phase label still
+updates).
 
-When "instant" mode is active for a given exchange, `CombatResolver.apply_combat_result()`
-skips the `await get_tree().create_timer(0.25)` pause between hits and plays no
-flash animation. HP bars still update visually.
+**Level Up Screen** (`level_up_screen`, default `"show"`) — `Show` waits for a
+`confirm` press; `Auto` auto-dismisses after ~1.5 s; `Skip` shows only a brief pop-up.
 
----
+**Mouse Targeting** (`mouse_targeting`, default `"snap"`) — `Snap to Target` makes
+mouse motion during target selection jump the cursor to the nearest valid target;
+`Keyboard Only` ignores mouse motion while targeting.
 
-**Movement Speed**
-Controls how fast unit sprites move across tiles when travelling their path.
+#### Hidden / not yet implemented
 
-| Option | Behavior |
-|---|---|
-| Normal | 0.12 seconds per tile (default) |
-| Fast | 0.06 seconds per tile |
-| Instant | Units snap to their destination immediately (no tween) |
-
-Setting key: `gameplay/movement_speed`  Default: `"normal"`
-
-`Unit.move_along_path()` reads this setting to set tween duration.
-At "Instant", the tween is skipped entirely and `snap_to_tile()` is called directly.
-The `unit_moved` signal is still emitted after the snap.
-
----
-
-**Phase Banner**
-Controls whether the "PLAYER PHASE" / "ENEMY PHASE" banner animation plays.
-
-| Option | Behavior |
-|---|---|
-| Show | Full slide-in / hold / slide-out animation (default) |
-| Skip | Banner does not appear; phase change is still announced via the Phase Label in the HUD |
-
-Setting key: `gameplay/phase_banner`  Default: `"show"`
-
-When skipped, `TurnManager` still updates the Phase Label in the HUD and calls
-`cursor.unlock()` immediately rather than waiting for the animation.
-
----
-
-**Level Up Screen**
-Controls whether the level-up stat screen pauses for player input.
-
-| Option | Behavior |
-|---|---|
-| Show | Screen appears; player presses confirm to dismiss (default) |
-| Auto-dismiss | Screen appears briefly (1.5 seconds) then dismisses itself |
-| Skip | Level-up screen does not appear; a small pop-up text shows briefly (e.g. "+Level!") |
-
-Setting key: `gameplay/level_up_screen`  Default: `"show"`
-
----
-
-**Permadeath**
-Mirrors `GameState.permadeath_enabled`. Also accessible here for convenience.
-
-| Option | Behavior |
-|---|---|
-| Off | Dead units are absent this map only; return next map (default) |
-| On | Dead units are flagged incapacitated; cannot be deployed again |
-
-Setting key: `gameplay/permadeath`  Default: `"off"`
-
-> Note: Changing this mid-campaign takes effect from the next map onward.
-> A warning is shown: "Changing permadeath setting takes effect on the next map."
-
----
-
-**Leveling Method**
-Mirrors the campaign leveling method. Changes take effect on the next level-up.
-
-| Option | Behavior |
-|---|---|
-| Growth Rates | Each stat has a % chance to increase per level (default) |
-| Point Buy | Player assigns a pool of points each level |
-| Coin Flip | Each stat: 50% chance of +1 |
-| Dice Roll | Roll d6 and spend result as points |
-
-Setting key: `gameplay/leveling_method`  Default: `"growth_rates"`
+- **Combat Animations** (`combat_animations`) — a `SettingsManager` field with an
+  `OptCombatAnim` control that is **hidden**: no combat-animation system consumes the
+  setting yet (MVP combat is instant). It will be shown when that system lands.
+- **Controls / key rebinding** — `SettingsManager` stores a `keybindings` dictionary
+  and applies it to the `InputMap` at startup, but there is **no rebind UI** yet
+  (Phase 2). All actions use their default bindings (see the Input System table).
+- **Permadeath** and **Leveling Method** are *not* on the Settings screen — they are
+  per-save rules chosen on the **New Game** screen and stored on `GameState`.
 
 ---
 
@@ -598,18 +467,10 @@ Setting key: `gameplay/leveling_method`  Default: `"growth_rates"`
 
 **Trigger:** `EventBus.map_victory` signal
 
-**Layout (full-screen overlay):**
-```
-[light overlay fades in]
-
-        VICTORY!
-
-   Rewards:
-   Gold: +500
-   [Item name if any]
-
-   [ Continue ]          [PLACEHOLDER — next map or campaign screen]
-```
+There is **no separate `VictoryScreen` scene** — `GameOverScreen.tscn` /
+`GameOverScreen.gd` serves **both** outcomes: a "VICTORY" title on `map_victory` and
+a "GAME OVER" title on `map_defeat`. The next-map / campaign flow beyond the current
+map is a `[PLACEHOLDER]` (campaign structure is Phase 2).
 
 ---
 
