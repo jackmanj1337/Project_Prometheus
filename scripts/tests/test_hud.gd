@@ -1,7 +1,8 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_hud.gd
 # Verifies HUD.tscn instantiates and the debug-mode banner — the red "DEBUG MODE"
-# label — toggles with the debug-build flag via _apply_debug_banner().
+# label — toggles with the debug-build flag via _apply_debug_banner(), and that
+# the text lists the active debug aids when any are flipped on.
 
 func _init() -> void:
 	print("=== HUD Test ===")
@@ -22,18 +23,65 @@ func _init() -> void:
 	else:
 		print("FAIL no DebugLabel node"); failed += 1
 
-	# _apply_debug_banner(true) shows the banner; (false) hides it.
+	# _apply_debug_banner(true, []) shows the banner with the base text.
+	# Typed locals — _apply_debug_banner's `active_aids` is Array[String], and
+	# an untyped `[]` literal won't satisfy that typed parameter.
 	if label != null:
-		hud._apply_debug_banner(true)
-		if label.visible:
-			print("OK  banner shown when debug active"); passed += 1
+		var no_aids: Array[String] = []
+		var one_aid: Array[String] = ["force-levelup"]
+		var two_aids: Array[String] = ["force-levelup", "growth-boost"]
+
+		hud._apply_debug_banner(true, no_aids)
+		if label.visible and label.text == "● DEBUG MODE":
+			print("OK  banner shown with base text when no aids active"); passed += 1
 		else:
-			print("FAIL banner hidden when debug active"); failed += 1
-		hud._apply_debug_banner(false)
+			print("FAIL base banner: visible=%s text=%q" % [label.visible, label.text])
+			failed += 1
+
+		# _apply_debug_banner(true, [...]) lists each active aid by name.
+		hud._apply_debug_banner(true, one_aid)
+		if label.visible and label.text == "● DEBUG MODE — force-levelup":
+			print("OK  banner lists a single active aid"); passed += 1
+		else:
+			print("FAIL one-aid banner: text=%q" % label.text); failed += 1
+
+		hud._apply_debug_banner(true, two_aids)
+		if label.visible and label.text == "● DEBUG MODE — force-levelup, growth-boost":
+			print("OK  banner joins multiple active aids"); passed += 1
+		else:
+			print("FAIL multi-aid banner: text=%q" % label.text); failed += 1
+
+		# is_debug=false hides the banner, regardless of the aid list.
+		hud._apply_debug_banner(false, one_aid)
 		if not label.visible:
 			print("OK  banner hidden when debug inactive"); passed += 1
 		else:
 			print("FAIL banner shown when debug inactive"); failed += 1
+
+	# Flipping a GameState debug flag must re-emit through EventBus and refresh
+	# the banner — the live-update path used from the remote debugger.
+	var gs := root.get_node_or_null("GameState")
+	var bus := root.get_node_or_null("EventBus")
+	if gs != null and bus != null and label != null:
+		# Start clean so a leftover value from another suite can't skew us.
+		gs.debug_force_levelup = false
+		gs.debug_growth_boost = false
+		await process_frame
+		var empty_aids: Array[String] = []
+		hud._apply_debug_banner(true, empty_aids)  # baseline text
+		gs.debug_force_levelup = true       # setter -> signal -> _refresh_debug_banner
+		await process_frame
+		# OS.is_debug_build() is true under --script, so visible stays true; the
+		# refresh re-reads the live flag list and rewrites the text.
+		if label.text.find("force-levelup") != -1:
+			print("OK  flag toggle refreshes banner text"); passed += 1
+		else:
+			print("FAIL flag toggle did not refresh: text=%q" % label.text); failed += 1
+		# Tidy up so other suites aren't affected if they share the autoload.
+		gs.debug_force_levelup = false
+		gs.debug_growth_boost = false
+	else:
+		print("SKIP live flag-toggle test (GameState/EventBus autoload absent)")
 
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

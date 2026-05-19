@@ -152,14 +152,48 @@ func _update_turn_label() -> void:
 # ── Debug-mode banner ────────────────────────────────────────────────────────
 # A red "DEBUG MODE" label on the HUD whenever this is a debug build. It warns
 # playtesters that debug aids (force-levelup, growth boost — see GameState) may
-# be active and that on-screen stats may not reflect release behaviour.
+# be active and that on-screen stats may not reflect release behaviour. The
+# banner also lists the *active* aids by name, refreshing live when a flag is
+# toggled from the remote debugger via EventBus.debug_flags_changed.
 # DEBUG AID — remove before release; see GDD_10_Roadmap.md § Pre-Release Cleanup.
 func _setup_debug_banner() -> void:
-	_apply_debug_banner(OS.is_debug_build())
+	# Listen for runtime flag toggles so the aid list stays current without polling.
+	var bus := get_node_or_null("/root/EventBus")
+	if bus and bus.has_signal("debug_flags_changed"):
+		bus.debug_flags_changed.connect(_refresh_debug_banner)
+	_refresh_debug_banner()
+
+
+# Re-reads the live debug-aid flags off GameState and repaints the banner. Used
+# at startup and on every debug_flags_changed emit.
+func _refresh_debug_banner() -> void:
+	_apply_debug_banner(OS.is_debug_build(), _collect_active_debug_aids())
+
+
+# Returns the short-name list of debug aids currently flipped on. Uses .get() so
+# the HUD doesn't hard-fault if GameState is absent (headless test path).
+func _collect_active_debug_aids() -> Array[String]:
+	var aids: Array[String] = []
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return aids
+	if gs.get("debug_force_levelup"):
+		aids.append("force-levelup")
+	if gs.get("debug_growth_boost"):
+		aids.append("growth-boost")
+	return aids
 
 
 # Split from _setup_debug_banner so tests can drive the banner directly without
-# depending on whether the test run is itself a debug build.
-func _apply_debug_banner(is_debug: bool) -> void:
-	if _debug_label != null:
-		_debug_label.visible = is_debug
+# depending on whether the test run is itself a debug build. `active_aids` is the
+# short-name list rendered after the banner; empty = just "● DEBUG MODE".
+func _apply_debug_banner(is_debug: bool, active_aids: Array[String] = []) -> void:
+	if _debug_label == null:
+		return
+	_debug_label.visible = is_debug
+	if not is_debug:
+		return
+	if active_aids.is_empty():
+		_debug_label.text = "● DEBUG MODE"
+	else:
+		_debug_label.text = "● DEBUG MODE — " + ", ".join(active_aids)

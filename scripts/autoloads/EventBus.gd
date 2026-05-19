@@ -27,3 +27,8 @@ signal cursor_moved(tile: Vector2i)
 signal ai_unit_acting(unit: Node)
 signal map_victory()
 signal map_defeat()
+# Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).
+# Lets the HUD's DEBUG MODE banner re-render the list of active aids in real
+# time when a flag is toggled from the remote debugger. DEBUG AID — remove with
+# the flags themselves before release; see GDD_10_Roadmap.md § Pre-Release Cleanup.
+signal debug_flags_changed()

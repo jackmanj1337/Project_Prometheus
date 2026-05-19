@@ -25,8 +25,37 @@ var max_inventory: int = 8
 # on OS.is_debug_build()), so a release build is unaffected even if left true.
 # RELEASE BLOCKER: delete these and their callers before shipping — tracked in
 # GDD_10_Roadmap.md § Pre-Release Cleanup. Toggle them from the remote debugger.
-var debug_force_levelup: bool = false   # #10: any landed hit awards a full level
-var debug_growth_boost: bool = false    # #11: +50 to every growth rate on level-up
+# Backing fields for the two debug flags. Setters below emit
+# EventBus.debug_flags_changed so the HUD's DEBUG MODE banner can re-render its
+# list of active aids the moment a flag is flipped (incl. from the remote
+# debugger, which goes through the property setter). Backing-variable pattern is
+# required — assigning to the property name inside its own setter recurses.
+var _debug_force_levelup_v: bool = false
+var _debug_growth_boost_v: bool = false
+
+var debug_force_levelup: bool:   # #10: any landed hit awards a full level
+	get:
+		return _debug_force_levelup_v
+	set(v):
+		if _debug_force_levelup_v == v: return
+		_debug_force_levelup_v = v
+		_emit_debug_flags_changed()
+var debug_growth_boost: bool:    # #11: +50 to every growth rate on level-up
+	get:
+		return _debug_growth_boost_v
+	set(v):
+		if _debug_growth_boost_v == v: return
+		_debug_growth_boost_v = v
+		_emit_debug_flags_changed()
+
+
+# Routes the setter notification through EventBus when it is available. Null-
+# guarded because GameState's _init can run before EventBus is wired in headless
+# --script tests that don't load every autoload.
+func _emit_debug_flags_changed() -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus and bus.has_signal("debug_flags_changed"):
+		bus.debug_flags_changed.emit()
 
 # Current map state
 var current_phase: Phase = Phase.PLAYER
