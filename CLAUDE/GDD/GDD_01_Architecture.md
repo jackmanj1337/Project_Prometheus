@@ -370,6 +370,7 @@ func _ready() -> void:
     load_settings()
     _apply_audio()
     _apply_keybindings()
+    _mirror_game_keys_to_ui()
 
 func load_settings() -> void
     # Reads user://settings.cfg via ConfigFile; falls back to defaults per key.
@@ -388,6 +389,10 @@ func _apply_audio() -> void
 
 func _apply_keybindings() -> void
     # InputMap.action_erase_events() + action_add_event() per bound action.
+
+func _mirror_game_keys_to_ui() -> void
+    # Copies the cursor_*/confirm/cancel events onto Godot's built-in ui_* actions
+    # so menus (which navigate via ui_*) respond to the same keys as in-game (WASD/Z/X).
 
 func set_volume(bus_name: String, value: int) -> void   # updates var, applies, saves
 func rebind_action(action_name: String, event: InputEvent) -> void
@@ -533,7 +538,8 @@ func get_healable_allies(unit: Node) -> Array[Node]             # allies in staf
 func show_movement_overlay(tiles) -> void   # blue
 func show_attack_overlay(tiles) -> void     # red
 func show_heal_overlay(tiles) -> void       # green
-func show_enemy_danger_zone() -> void       # dark red — union of all enemy attack ranges
+func get_enemy_danger_tiles() -> Array[Vector2i]  # threat = each enemy's move range + attack reach
+func show_enemy_danger_zone() -> void       # paints get_enemy_danger_tiles() in dark red
 func clear_overlays() -> void
 ```
 
@@ -603,6 +609,8 @@ func start_player_phase() -> void
 func end_player_phase() -> void       # increments turn_number, fires turn_changed
 func start_enemy_phase() -> void      # awaits EnemyAI.run_enemy_phase()
 func set_unit_state(unit: Node, state: UnitState) -> void
+    # Marking the last player unit DONE auto-ends the player phase (deferred via
+    # _auto_end_player_phase, which re-validates and bails if the map is over).
 func get_unit_state(unit: Node) -> UnitState
 func can_unit_act(unit: Node) -> bool          # READY or MOVED
 func are_all_player_units_done() -> bool
@@ -698,12 +706,20 @@ var _state: State = State.FREE
 
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void
 func move_cursor(direction: Vector2i) -> void
+func center_on_tile(tile: Vector2i) -> void   # jump the cursor to a tile (GameMap uses
+                                              # this to start it on the first player unit)
 func _on_confirm() -> void
 func _on_cancel() -> void
-func lock() -> void      # input suppressed (animation, enemy phase)
+func lock() -> void      # input suppressed (animation, enemy phase); also clears the danger zone
 func unlock() -> void
 func _scroll_camera_if_needed() -> void
 ```
+
+> **Menu wiring.** `MapCursor` exports `Node` refs to the HUD-layer menus
+> (`action_menu`, `item_menu`, `map_menu`, `attack_preview`, `settings_screen`).
+> Exported `NodePath`s to nodes declared later in `GameMap.tscn` can resolve to
+> `null` at scene-build time, so `_resolve_menu_refs()` re-resolves any null ref
+> via `get_node_or_null()` in `_ready()` before wiring signals.
 
 > Key-repeat timing lives in `GameConstants` (`CURSOR_KEY_REPEAT_DELAY` 0.25 s /
 > `CURSOR_KEY_REPEAT_RATE` 0.10 s) and `MapCursorInput` — there is no `CURSOR_SPEED`.

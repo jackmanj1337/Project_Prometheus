@@ -66,8 +66,13 @@ Each unit tracks one of three states per round:
 - `DONE` — Cannot act further this round
 
 ### End of Player Phase
-- Player can manually end their phase before all units have acted
-- A confirmation prompt is shown if any units are still `READY` or `MOVED`
+- The player phase ends **automatically** the moment the last player unit is
+  marked `DONE` (no prompt) — `TurnManager` triggers this from `set_unit_state`
+  and from `_on_unit_died` (so a mutual kill on the last unit's own action still
+  ends the phase).
+- The player can also **manually** end the phase early via the Map Menu's
+  *End Turn*. A confirmation prompt is shown if any units are still `READY` or
+  `MOVED`; if every unit is already done, it ends immediately.
 
 ---
 

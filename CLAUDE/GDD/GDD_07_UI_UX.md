@@ -30,8 +30,19 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `cancel` | X, Escape | Right Click |
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift + Tab | — |
-| `show_danger_zone` | Q (hold) | Middle Click (hold) |
+| `show_danger_zone` | Q (toggle) | Middle Click (toggle) |
 | `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
+| `open_settings` | O | — |
+
+`show_danger_zone` is a **toggle** (press once to show the enemy threat area,
+again to hide it) and works only in the free cursor state. `open_settings`
+opens the Settings screen during a map (see Map Menu / Settings Screen below).
+
+> **Menus and the game's keys.** Menus (Main Menu, Map Menu, Settings, the
+> Action / Item menus) navigate via Godot's built-in `ui_*` actions.
+> `SettingsManager._mirror_game_keys_to_ui()` copies the `cursor_*` / `confirm` /
+> `cancel` bindings onto `ui_*` at startup, so WASD / Z / X drive menus exactly
+> as they drive the map cursor.
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
@@ -52,6 +63,10 @@ When a directional key is held:
 
 The `MapCursor` is a `Node2D` with an `AnimatedSprite2D` child.
 It sits on top of all tiles and indicates the currently focused tile.
+
+At map start `GameMap` places the cursor on the first player unit (via
+`MapCursor.center_on_tile()`), not the map's (0,0) corner, so play begins
+focused on the player's force.
 
 **Visual:** [PLACEHOLDER] A flashing yellow/white square outline, 64×64 px.
 Animation: 4-frame blink at 8 fps.
@@ -345,27 +360,37 @@ turn. There is no separate staff-preview panel in MVP.
 ┌──────────────────┐
 │   End Turn       │
 │   Settings       │
-│   Quit to Menu   │
+│   Close          │
 └──────────────────┘
 ```
 
 **Behavior:**
-- `End Turn`: calls `TurnManager.end_player_phase()` after confirmation prompt
-  "End turn? Some units have not acted. [Yes / No]"
-- `Settings`: opens the Settings screen (see below); map is paused while open
-- `Quit to Menu`: returns to Main Menu (with confirmation prompt)
-- Cancel closes the map menu
+- `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
+  a confirmation prompt is shown first; if every unit is already done it ends
+  immediately. (Note: the phase also ends automatically once the last unit acts.)
+- `Settings`: opens the Settings screen (see below); the cursor stays locked
+  while it is open. Settings is also reachable directly via the `open_settings`
+  key (O) during a map.
+- `Close`: closes the map menu and returns to the map.
+- `cancel` also closes the map menu.
+
+> A *Quit to Menu* entry is designed but not yet built — the MVP `MapMenu.tscn`
+> has only End Turn / Settings / Close.
 
 ---
 
 ### Settings Screen
 
 **Scene:** `SettingsScreen.tscn`
-**Trigger:** "Settings" button in Main Menu or Map Menu
+**Trigger:** "Settings" button in Main Menu or Map Menu, or the `open_settings`
+key (O) during a map
 **Script:** `scripts/ui/SettingsScreen.gd`
 
-The Settings screen is a single full-screen panel — **not tabbed**. It is an overlay
-opened with `open()` and dismissed by the `Back` button or the `cancel` action. Each
+The Settings screen is a single panel — **not tabbed**. A full-rect opaque
+`Dimmer` behind the panel makes it modal (the screen behind is fully hidden).
+The panel's contents live in a `ScrollContainer` so the list never overflows.
+It is an overlay opened with `open()` and dismissed by the `Back` button or the
+`cancel` action. Each
 control writes its change to `SettingsManager` immediately (volume via `set_volume()`,
 which persists; option changes call `SettingsManager.save()`), so there is no separate
 save-or-discard step.
@@ -387,6 +412,11 @@ See GDD_01 → SettingsManager.
 │   Phase Banner       [ Show ▾ ]                   │
 │   Level Up Screen    [ Show ▾ ]                   │
 │   Mouse Targeting    [ Snap to Target ▾ ]         │
+│   ─────────────────────────────────────────       │
+│   Controls                                        │
+│   Move Up               W / Up                    │
+│   Confirm               Z / Enter / Space         │
+│   ... (one row per game action — read-only)        │
 │   ─────────────────────────────────────────       │
 │                   [ Back ]                        │
 └──────────────────────────────────────────────────┘
@@ -430,14 +460,21 @@ updates).
 mouse motion during target selection jump the cursor to the nearest valid target;
 `Keyboard Only` ignores mouse motion while targeting.
 
+#### Controls (read-only)
+
+A **Controls** section lists every game action and the key(s) bound to it,
+read live from the `InputMap` when the screen opens (`_populate_keybindings()`
+builds one row per action). It is **display-only** — there is no rebind UI in the
+MVP. `SettingsManager` already stores a `keybindings` dictionary and applies it to
+the `InputMap` at startup, so a rebind UI is the only missing piece (Phase 2).
+
 #### Hidden / not yet implemented
 
 - **Combat Animations** (`combat_animations`) — a `SettingsManager` field with an
   `OptCombatAnim` control that is **hidden**: no combat-animation system consumes the
   setting yet (MVP combat is instant). It will be shown when that system lands.
-- **Controls / key rebinding** — `SettingsManager` stores a `keybindings` dictionary
-  and applies it to the `InputMap` at startup, but there is **no rebind UI** yet
-  (Phase 2). All actions use their default bindings (see the Input System table).
+- **Key rebinding** — the Controls section above is read-only; letting the player
+  reassign keys is Phase 2.
 - **Permadeath** and **Leveling Method** are *not* on the Settings screen — they are
   per-save rules chosen on the **New Game** screen and stored on `GameState`.
 

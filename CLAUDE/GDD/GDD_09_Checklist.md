@@ -24,9 +24,9 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 | M4 — Combat System | ✅ Complete | CombatResolver two-phase pipeline, SkillHandler, EXP, Brave weapons; A3 done |
 | M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, ItemMenu, AttackPreview, CombatHUD, LevelUp, GameOver, MainMenu, NewGameScreen, SettingsScreen |
 | M6 — Enemy AI | ✅ Basic complete | basic / passive / healer profiles; kill-score heuristic deferred to Phase 2 |
-| M7 — Full MVP Playthrough | ⏳ Pending | in-game integration playtest still outstanding |
+| M7 — Full MVP Playthrough | ⏳ In progress | playtest 1 done — 13 findings fixed (+ a ripple audit, 6 more); re-playtest pending |
 
-**Tests:** 347 passing across 18 suites (`scripts/tests/test_*.gd`). Run `./run_tests.sh`.
+**Tests:** 372 passing across 20 suites (`scripts/tests/test_*.gd`). Run `./run_tests.sh`.
 
 > **Amendments folded in.** The MVP amendments A1–A4 (Phase-2 data fields +
 > `ConditionManager`; modifier hooks; the combat context pipeline; grid skill-hook

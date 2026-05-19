@@ -10,51 +10,44 @@ breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
 ## Pending
 
-### ☐ Audio Bus Setup — NOT done
-
-`default_bus_layout.tres` currently defines only the implicit **Master** bus — the
-`Music` and `SFX` buses do **not** exist. `SettingsManager._apply_audio()` looks up
-buses by name and silently skips missing ones, so the **Music and SFX volume
-sliders in the Settings screen currently have no effect** (Master works).
-
-Low priority — the MVP ships with placeholder silence, so there is nothing to hear
-yet. Do this before real audio is added.
-
-1. Open the **Audio** panel at the bottom of the Godot editor.
-2. Add a bus named **Music** (index 1); set its **Send** to `Master`.
-3. Add a bus named **SFX** (index 2); set its **Send** to `Master`.
-4. Result: three buses — Master, Music, SFX. Leave volumes at 0 dB
-   (`SettingsManager` sets them at runtime from the saved settings).
-
-**What breaks if skipped:** Music/SFX volume sliders are inert. No crash —
-`_apply_audio()` guards every bus lookup with `if idx >= 0`.
+_None — all listed manual tasks are complete._
 
 ---
 
 ## Completed
 
-### ✅ Settings menu — Done (M5)
+### ✅ Audio Bus Setup — Done
 
-`scenes/ui/SettingsScreen.tscn` exists and is wired into both `MainMenu` and
-`MapMenu`; the Settings menu is reachable in-game. Kept here as a structural
-reference. The **authoritative** node layout is the header comment in
-`scripts/ui/SettingsScreen.gd` — node names must match exactly (`@onready` paths):
+`default_bus_layout.tres` defines **Master** (bus 0, implicit), **Music** (bus 1),
+and **SFX** (bus 2) — Music and SFX both route **Send → Master**.
+`SettingsManager._apply_audio()` looks buses up by name, so the Music and SFX
+volume sliders now drive real buses. (Godot auto-loads the default-named bus
+layout; no `[audio]` entry in `project.godot` is needed.)
+
+### ✅ Settings menu — Done (M5; rebuilt in Session M)
+
+`scenes/ui/SettingsScreen.tscn` exists and is wired into `MainMenu`, `MapMenu`,
+and `GameMap` (in-game via the map menu's Settings button or the `open_settings`
+key). Kept here as a structural reference; the **authoritative** layout is the
+`SettingsScreen.gd` header comment + the scene itself. Current structure:
 
 ```
-SettingsScreen  (Control, full-rect anchor)
-  Panel
-    VBox
-      Label "Settings"
-      HBoxMaster / HBoxMusic / HBoxSFX  (each: Label + HSlider + Label;
-        node names SliderMaster/Music/SFX, LabelMaster/Music/SFX)
-      HSeparator
-      OptCombatAnim     (OptionButton)  # hidden at runtime — no system uses it yet
-      OptMovementSpeed  (OptionButton)  # Normal / Fast / Instant
-      OptPhaseBanner    (OptionButton)  # Show / Skip
-      OptLevelUpScreen  (OptionButton)  # Show / Auto / Skip
-      OptMouseTargeting (OptionButton)  # Snap to Target / Keyboard Only
-      HSeparator
-      BtnBack           (Button)
+SettingsScreen  (Control, full-rect)
+  Dimmer        (ColorRect, full-rect, opaque — modal backdrop)
+  Panel         (PanelContainer)
+    ScrollContainer
+      VBox
+        Label "Settings"
+        HBoxMaster / HBoxMusic / HBoxSFX  (Label + HSlider + Label)
+        HSeparator
+        OptCombatAnim                      (hidden — no system uses it yet)
+        HBoxMovementSpeed / HBoxPhaseBanner / HBoxLevelUp / HBoxMouseTargeting
+          (each: title Label + OptionButton)
+        HSeparator
+        LabelControls "Controls"
+        KeybindList   (VBoxContainer — read-only rows built at runtime)
+        HSeparator
+        BtnBack       (Button)
 ```
 
 There is **no** Permadeath or Leveling Method control on this screen — those are
