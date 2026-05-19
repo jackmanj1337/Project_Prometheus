@@ -444,5 +444,22 @@ func _init() -> void:
 		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
 		failed += 1
 
+	# ---- _camera_edge_buffer clamps an out-of-range SettingsManager value ----
+	var sm_buf := root.get_node_or_null("SettingsManager")
+	if sm_buf != null:
+		var t_buf := TurnManager.new(); root.add_child(t_buf)
+		var c_buf := _make_cursor(t_buf)
+		sm_buf.camera_edge_buffer = 999          # corrupt / hand-edited value
+		var hi_ok: bool = c_buf._camera_edge_buffer() == 5
+		sm_buf.camera_edge_buffer = -3
+		var lo_ok: bool = c_buf._camera_edge_buffer() == 0
+		sm_buf.camera_edge_buffer = 2            # restore the default
+		if hi_ok and lo_ok:
+			print("OK  _camera_edge_buffer clamps to 0-5"); passed += 1
+		else:
+			print("FAIL camera buffer clamp: hi=%s lo=%s" % [hi_ok, lo_ok]); failed += 1
+	else:
+		print("SKIP camera buffer clamp (SettingsManager autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

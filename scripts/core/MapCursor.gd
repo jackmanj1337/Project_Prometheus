@@ -774,11 +774,13 @@ func unlock() -> void:
 # ── Camera Scrolling ─────────────────────────────────────────────────────────
 
 # The live camera-pan buffer — the player-set value (#17) when SettingsManager
-# is loaded, otherwise the GameConstants default.
+# is loaded, otherwise the GameConstants default. Clamped to 0-5 as belt-and-
+# braces: SettingsManager also clamps on load, but guarding here keeps the
+# scroll math sound regardless of how the value was set.
 func _camera_edge_buffer() -> int:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null:
-		return sm.camera_edge_buffer
+		return clampi(sm.camera_edge_buffer, 0, 5)
 	return CAMERA_EDGE_BUFFER
 
 

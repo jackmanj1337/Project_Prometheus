@@ -57,7 +57,10 @@ func load_settings() -> void:
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
 	mouse_targeting   = cfg.get_value("gameplay", "mouse_targeting",   mouse_targeting)
 	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
-	camera_edge_buffer = cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
+	# Clamp on load: the SettingsScreen slider is limited to 0-5, but a hand-edited
+	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
+	camera_edge_buffer = clampi(
+		cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer), 0, 5)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
