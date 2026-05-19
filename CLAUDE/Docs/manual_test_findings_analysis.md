@@ -6,9 +6,16 @@ Confidence reflects how sure I am of the *cause* without a live repro.
 
 User decisions captured during analysis:
 - **#5** — phase auto-end should be **fully automatic** (normal banner, no prompt).
-- **#6** — observed symptom is **stale data / update lag**, not layout.
+- **#6** — staleness occurs **specifically after a unit finishes acting** (single fix covers it).
 - **#8** — keybindings should be a **read-only display** (rebinding deferred to Phase 2).
 - **#3** — Settings in-game via **both** a map-menu button and the `open_settings` hotkey.
+- **#2** — keep **margin-follow** camera behaviour; fix the math, no smoothing.
+- **#10 / #4** — **CONFIRMED ROOT CAUSE.** Playtester tried all open methods and the
+  cursor kept moving each time → `MapCursor`'s exported menu node references resolve
+  to `null` at runtime. This single bug causes **both** #4 and #10 (and the missing
+  Item submenu). See #4 for the fix.
+- **#12/#13** — MVP: **disable the threat toggle while a unit is selected**. (Roadmap:
+  a general threat range *plus* per-enemy threat highlighting — see #13.)
 
 ---
 
@@ -62,6 +69,9 @@ Camera2D `anchor_mode` to top-left and keep the current math. Camera response is
 already instant (`position_smoothing_enabled = false`); the fix is correctness,
 not speed.
 
+**User decision:** keep the margin-follow behaviour (camera moves only when the
+cursor nears an edge) — just fix the centered-vs-top-left math. No smoothing.
+
 ---
 
 ## #3 — Cannot open Settings from inside a battle
@@ -84,20 +94,36 @@ action is handled *only* by `MainMenu._unhandled_input()`
 
 ## #4 — Action menu does not appear
 
-**Confidence: High.** `ActionMenu.tscn` root is a `Control` with **no anchors and
-no size** — `custom_minimum_size = (128, 0)` only constrains width. Its child
-`Panel` is anchored `anchor_right/bottom = 1.0`, i.e. it fills the *root Control's*
-rect. With a 0-height (effectively 0-area) root, the `Panel` and the `VBox` of
-buttons collapse to nothing — the menu is technically `visible` but renders at
-zero size. `MapCursor._show_action_menu()` (`MapCursor.gd:354-363`) only sets
-`.position`, never a size. Contrast `MapMenu.tscn`, whose root is full-rect and
-whose panel is a `PanelContainer` with explicit offsets — it renders.
+**Confidence: High — confirmed by the #10 diagnosis.** The cause is **not** scene
+sizing — it is the same bug as #10: `MapCursor`'s exported menu node references
+resolve to `null` at runtime. `_show_action_menu()` (`MapCursor.gd:354-356`)
+begins with `if action_menu == null: _commit_wait(); return` — so when
+`action_menu` is null, a unit that finishes moving silently commits **Wait** and
+no menu ever appears. The same null affects `item_menu`: `_use_item()`
+(`MapCursor.gd:419`) falls back to auto-using the first item, so the **Item
+submenu never shows either**.
 
-**Fix:** Give the menu real extents. Cleanest: change `Panel` to a
-`PanelContainer` wrapping the `VBox` (it sizes to its content), and set the
-`ActionMenu` root's size from the panel after `show()` — or give the root an
-explicit `custom_minimum_size`/size. The same structural issue should be checked
-on `ItemMenu.tscn`.
+**Why the exports are null:** `MapCursor` declares `@export var action_menu: Node`
+(plus `item_menu`, `map_menu`, `attack_preview`), wired in `GameMap.tscn` as
+`NodePath("../HUDLayer/…")`. Exported-Node references are resolved at scene-*build*
+time; here they come back null — most likely a forward-reference quirk (the
+`HUDLayer` menus are declared *after* `MapCursor` in the .tscn) or an
+instanced-sub-scene resolution issue. By the time `_ready()` runs the whole tree
+exists, so those paths *are* resolvable then — just not when the export
+mechanism tried.
+
+**Fix (shared with #10 — do this first, it blocks core gameplay):** stop relying
+on exported-Node resolution. In `MapCursor._ready()`, *before* the
+signal-connection block, fall back to `get_node_or_null()` for any menu reference
+that is null — or have `GameMap` inject them. `_ready()` runs after the full tree
+is built, so `get_node()` is reliable there. One fix restores the action menu,
+the map menu (#10), the Item submenu, and the attack preview.
+
+**Secondary (verify only after the export fix):** `ActionMenu.tscn`'s root
+`Control` has no anchors and only `custom_minimum_size = (128, 0)` (zero height);
+its child `Panel` is anchored to fill that. Once the menu actually shows, confirm
+it renders at a sensible size — if not, change `Panel` to a `PanelContainer` that
+sizes to its `VBox` and give the root real extents.
 
 ---
 
@@ -130,8 +156,11 @@ follows the cursor again until the next genuine deselect.
 
 **Fix:** Emit `bus.unit_deselected.emit()` at the end of `_finish_action()` (the
 `_deselect()` path already emits it; the action-completion path does not).
-Verify combat damage routes through `EventBus.unit_damaged`/`unit_healed` so the
-HP line live-refreshes — `HUD` already listens for those.
+
+**User confirmed** the staleness appeared *only* after a unit finished acting —
+which matches this cause exactly, so the single emit is the complete fix. The
+HP-signal routing (`EventBus.unit_damaged`/`unit_healed`, which `HUD` already
+listens for) is worth a quick sanity check but is not implicated here.
 
 ---
 
@@ -189,33 +218,22 @@ matches the camera's centroid behaviour.
 
 ## #10 — Map menu did not appear
 
-**Confidence: Low — needs a repro.** Unlike `ActionMenu` (#4), `MapMenu.tscn`'s
-root is full-rect and its `Panel` is a `PanelContainer` with explicit offsets, so
-the zero-size cause does **not** apply — it should render. `_open_map_menu()`
-(`MapCursor.gd:508-517`) calls `lock()` then `map_menu.open()` (`show()` +
-`grab_focus`).
+**Confidence: High — confirmed.** Playtester reports the **cursor kept moving**
+after every failed attempt (M key, confirm-on-empty-tile, cancel-on-empty-tile).
+All three route through `_open_map_menu()` (`MapCursor.gd:508-517`), which calls
+`lock()` *before* `map_menu.open()`. A locked cursor cannot move — so the cursor
+still moving proves `_open_map_menu()` **early-returned at line 509 because
+`map_menu` is `null`**. The exported reference did not resolve.
 
-**Playtester confirmed no unit was selected** when this occurred. That **rules
-out** the state-guard theory: with `_state == FREE`, the `open_menu` (M) key,
-confirm-on-empty-tile, and cancel-on-empty-tile all reach `_open_map_menu()`.
-Remaining candidates, none confirmed:
-1. **`map_menu` is `null`.** `_open_map_menu()` early-returns if the export did
-   not resolve (`MapCursor.gd:509`). The path `../HUDLayer/MapMenu` *looks*
-   correct, but this is the only silent-no-op left.
-2. **Layer ordering.** Menus live on `HUDLayer` (`layer = 1`); the HUD is on
-   `HUDMainLayer` (`layer = 2`) and draws on top. The HUD is mostly transparent
-   and its panels sit in the corners (no overlap with the centered MapMenu), so
-   this is unlikely to fully hide it — but worth ruling out.
-3. **It opened but was dismissed instantly.** If the opening keystroke is not
-   fully consumed it re-reaches `MapMenu._unhandled_input()`, which treats
-   `open_menu`/`cancel` as a close. `_open_map_menu()` does call
-   `set_input_as_handled()`, but the confirm/cancel-on-empty-tile entry paths do
-   **not** — so opening via confirm/cancel on an empty tile could flicker shut.
+This is the **same root cause as #4**. `map_menu`, `action_menu`, `item_menu`
+(and almost certainly `attack_preview`) are all null at runtime — see #4 for why
+the exported-Node references fail to resolve.
 
-**Suggested next step:** add a temporary `print()` in `_open_map_menu()` to
-confirm it runs and that `map_menu` is non-null. If it opens via confirm/cancel,
-add `set_input_as_handled()` to those paths too (candidate 3). Will confirm the
-fix once the repro is narrowed.
+**Fix:** the single fix in #4 — resolve `MapCursor`'s menu references in
+`_ready()` via `get_node_or_null()` instead of relying on the `@export` — covers
+#10 as well. Note `attack_preview` feeds `MapCursorTargeting.setup()`
+(`MapCursor.gd:90`); if it is null the attack preview during targeting is also
+broken, so fix all four references together.
 
 ---
 
@@ -281,22 +299,30 @@ cancelled, just visually erased. Also note the keyboard path is gated to
 `_state == State.FREE` but the **middle-mouse path has no state guard**
 (`MapCursor.gd:162-171`), so MMB can trigger this mid-selection.
 
-**Fix:** After clearing the danger zone, if `_state == State.UNIT_SELECTED`,
-repaint the selection's overlays (re-run `_selection`'s overlay refresh). Cleaner
-long-term: paint the danger zone on a separate overlay layer so it never touches
-the selection overlay. Also add the same `State.FREE` guard to the MMB path.
-Coordinate with #12: toggling the danger zone *off* while a unit is selected must
-restore the move overlay.
+**Fix (user chose: disable while selecting, for the MVP):** Gate the threat
+toggle to `State.FREE` only — and crucially add that guard to the **middle-mouse
+path**, which currently has none (`MapCursor.gd:162-171`). With the toggle simply
+unavailable once a unit is selected, the overlay-wipe can never happen: the move
+range and the threat zone are never on screen at the same time, so there is
+nothing to restore. This is both the simplest fix and removes the bug entirely.
+
+**Roadmap (not MVP):** the eventual design wants a *general* threat range **plus**
+a way to highlight specific enemies for individual threat monitoring. That will
+need the danger zone painted on its **own overlay layer** (separate from the
+selection overlay) so both can display together. When that lands, revisit this
+to allow the threat toggle during selection.
 
 ---
 
 ## Suggested fix order
 
-1. **Quick logic fixes, low risk:** #5 (auto-end), #6 (emit `unit_deselected`),
-   #9 (cursor start), #11 (threat = move+attack), #12 (toggle), #13 (restore
-   overlay). Mostly small script edits; each is unit-testable.
-2. **Input map:** #7 (add game keys to `ui_*`) — one `project.godot` edit.
-3. **Scene-structure fixes:** #4 (ActionMenu sizing), #1 (Settings opacity/labels),
-   #2 (camera math).
-4. **New UI surface:** #3 (in-game Settings access), #8 (read-only keybind list).
-5. **Needs repro:** #10 — confirm steps before fixing.
+1. **Blocking gameplay bug (do first):** #4 + #10 — one shared fix (resolve
+   `MapCursor`'s menu references in `_ready()`). Until this lands there is no
+   action menu, no map menu, and no Item submenu — core combat is unplayable.
+2. **Quick logic fixes, low risk:** #5 (auto-end), #6 (emit `unit_deselected`),
+   #9 (cursor start), #11 (threat = move+attack), #12 (toggle), #13 (gate threat
+   toggle to `FREE` state). Mostly small script edits; each is unit-testable.
+3. **Input map:** #7 (add game keys to `ui_*`) — one `project.godot` edit.
+4. **Scene/visual fixes:** #1 (Settings opacity/labels), #2 (camera math), and
+   verifying #4's secondary `ActionMenu.tscn` sizing once the menu shows.
+5. **New UI surface:** #3 (in-game Settings access), #8 (read-only keybind list).
