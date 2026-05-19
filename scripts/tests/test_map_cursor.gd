@@ -407,5 +407,25 @@ func _init() -> void:
 			suppressed, frozen, resumed])
 		failed += 1
 
+	# ---- end-turn confirm focuses the Cancel button, not OK (#15/#16) ----
+	_gs.all_units.clear()
+	var t_et := TurnManager.new(); root.add_child(t_et)
+	var c_et := _make_cursor(t_et)
+	_make_unit(Vector2i(0, 0), "player")   # an actable unit → the confirm prompt
+	c_et._on_end_turn_requested()
+	await process_frame
+	var dlg: ConfirmationDialog = null
+	for ch in root.get_children():
+		if ch is ConfirmationDialog:
+			dlg = ch
+	if dlg != null and dlg.get_cancel_button().has_focus():
+		print("OK  end-turn confirm focuses the Cancel button (#15/#16)")
+		passed += 1
+	else:
+		print("FAIL end-turn confirm focus: dlg=%s" % str(dlg))
+		failed += 1
+	if dlg != null:
+		dlg.queue_free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

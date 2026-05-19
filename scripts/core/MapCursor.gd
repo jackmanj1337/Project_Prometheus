@@ -632,6 +632,10 @@ func _on_end_turn_requested() -> void:
 	)
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
+	# Focus the Cancel button, not OK (#15/#16): the safe choice is the default,
+	# so a mashed or held confirm key dismisses the prompt instead of ending the
+	# turn early. The game cancel key still closes it via the dialog's ui_cancel.
+	dlg.get_cancel_button().grab_focus()
 
 
 func _on_map_menu_closed() -> void:
