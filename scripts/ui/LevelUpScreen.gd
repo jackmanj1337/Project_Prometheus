@@ -96,6 +96,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "auto":
 		return  # timer handles dismissal; player input ignored in auto mode
-	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel"):
+	# A click anywhere also dismisses (playtest 3 #2). Without this a mouse-only
+	# player is stuck on the panel — the keyboard confirm path was the only exit.
+	var clicked: bool = event is InputEventMouseButton and event.pressed
+	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel") or clicked:
 		get_viewport().set_input_as_handled()
 		_advance()
