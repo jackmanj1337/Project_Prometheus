@@ -36,6 +36,16 @@ func _init() -> void:
 	else:
 		print("FAIL decode_key(Tab)"); failed += 1
 
+	# ---- decode_key: Shift+Tab → PREV_UNIT (#3) ----
+	# Shift+Tab also matches the modifier-less next_unit action, so decode_key
+	# must check prev_unit first. Plain Tab above must still decode as NEXT_UNIT.
+	var shift_tab := _key(KEY_TAB)
+	shift_tab.shift_pressed = true
+	if inp.decode_key(shift_tab)["intent"] == MapCursorInput.Intent.PREV_UNIT:
+		print("OK  decode_key(Shift+Tab) → PREV_UNIT"); passed += 1
+	else:
+		print("FAIL decode_key(Shift+Tab)"); failed += 1
+
 	# ---- decode_key: each direction → MOVE + the right vector ----
 	var dir_cases := {
 		KEY_W: Vector2i(0, -1), KEY_S: Vector2i(0, 1),

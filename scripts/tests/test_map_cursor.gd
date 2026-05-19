@@ -291,12 +291,38 @@ func _init() -> void:
 	var c9 := _make_cursor(t9)
 	c9._set_tile(Vector2i(3, 3))
 	c9._state = UNIT_SELECTED
-	c9._cycle_to_next_unit()
+	c9._cycle_to_next_unit(1)
 	if c9.current_tile == Vector2i(3, 3):
 		print("OK  _cycle_to_next_unit does nothing outside FREE")
 		passed += 1
 	else:
 		print("FAIL cycle-guard: tile moved to %s" % str(c9.current_tile))
+		failed += 1
+
+	# ---- _cycle_to_next_unit steps forward and backward (#3) ----
+	_gs.all_units.clear()
+	var t_cyc := TurnManager.new(); root.add_child(t_cyc)
+	var c_cyc := _make_cursor(t_cyc)
+	# Three actable player units at distinct tiles.
+	_make_unit(Vector2i(0, 0), "player")
+	_make_unit(Vector2i(2, 2), "player")
+	_make_unit(Vector2i(4, 4), "player")
+	c_cyc._state = FREE
+	c_cyc._set_tile(Vector2i(2, 2))       # park on the middle unit
+	c_cyc._cycle_to_next_unit(1)          # forward → (4,4)
+	var fwd_ok := c_cyc.current_tile == Vector2i(4, 4)
+	c_cyc._cycle_to_next_unit(-1)         # back → (2,2)
+	var back_ok := c_cyc.current_tile == Vector2i(2, 2)
+	c_cyc._cycle_to_next_unit(-1)         # back again → (0,0)
+	var back2_ok := c_cyc.current_tile == Vector2i(0, 0)
+	c_cyc._cycle_to_next_unit(-1)         # wraps → (4,4)
+	var wrap_ok := c_cyc.current_tile == Vector2i(4, 4)
+	if fwd_ok and back_ok and back2_ok and wrap_ok:
+		print("OK  _cycle_to_next_unit steps forward, backward, and wraps (#3)")
+		passed += 1
+	else:
+		print("FAIL cycle dir: fwd=%s back=%s back2=%s wrap=%s" % [
+			fwd_ok, back_ok, back2_ok, wrap_ok])
 		failed += 1
 
 	# ---- danger-zone toggle (#12) + FREE-state gating (#13) ----

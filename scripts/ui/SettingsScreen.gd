@@ -9,6 +9,10 @@ extends Control
 
 signal back_pressed()
 
+# Shared key-display helper — renders modifiers (Shift/Ctrl/Alt) so prev_unit
+# (Shift+Tab) is distinguishable from next_unit (Tab) in the list (#3).
+const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
 @onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
@@ -183,17 +187,14 @@ func _populate_keybindings() -> void:
 	for action in _KEYBIND_LABELS:
 		if not InputMap.has_action(action):
 			continue
-		var keys: Array[String] = []
-		for ev in InputMap.action_get_events(action):
-			if ev is InputEventKey:
-				var code: int = ev.keycode if ev.keycode != 0 else ev.physical_keycode
-				keys.append(OS.get_keycode_string(code))
+		# InputDisplay renders modifiers, so Shift+Tab shows as "Shift+Tab" — the
+		# previous-unit binding is no longer indistinguishable from "Tab" (#3).
 		var row := HBoxContainer.new()
 		var name_label := Label.new()
 		name_label.text = _KEYBIND_LABELS[action]
 		name_label.custom_minimum_size = Vector2(200, 0)
 		var key_label := Label.new()
-		key_label.text = " / ".join(keys) if not keys.is_empty() else "(unbound)"
+		key_label.text = InputDisplay.keys_for_action(action)
 		row.add_child(name_label)
 		row.add_child(key_label)
 		_keybind_list.add_child(row)

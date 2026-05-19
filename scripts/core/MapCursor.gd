@@ -163,7 +163,9 @@ func _handle_key_press(event: InputEventKey) -> void:
 		MapCursorInput.Intent.CANCEL:
 			_on_cancel()
 		MapCursorInput.Intent.NEXT_UNIT:
-			_cycle_to_next_unit()
+			_cycle_to_next_unit(1)
+		MapCursorInput.Intent.PREV_UNIT:
+			_cycle_to_next_unit(-1)
 		MapCursorInput.Intent.OPEN_MENU:
 			if _state == State.FREE:
 				_open_map_menu()
@@ -538,9 +540,11 @@ func _finish_action() -> void:
 
 # ── Map Menu / End Turn ──────────────────────────────────────────────────────
 
-# Cycles cursor to the next player unit that can still act (Tab key). Wraps around.
-# Uses can_unit_act so MOVED units (mid-action) are included, not just READY ones.
-func _cycle_to_next_unit() -> void:
+# Cycles the cursor to the next/previous player unit that can still act.
+# step +1 = forward (Tab / next_unit), step -1 = backward (Shift+Tab / prev_unit).
+# Wraps around. Uses can_unit_act so MOVED units (mid-action) are included, not
+# just READY ones.
+func _cycle_to_next_unit(step: int) -> void:
 	if _state != State.FREE or _turn == null:
 		return
 	var gs := get_node_or_null("/root/GameState")
@@ -552,14 +556,20 @@ func _cycle_to_next_unit() -> void:
 			actable_units.append(u)
 	if actable_units.is_empty():
 		return
-	# Find the next unit after the one currently under the cursor
+	# Find the unit currently under the cursor, if any.
 	var current_idx: int = -1
 	for i in actable_units.size():
 		if actable_units[i].tile_position == current_tile:
 			current_idx = i
 			break
-	var next_unit: Node = actable_units[(current_idx + 1) % actable_units.size()]
-	_set_tile(next_unit.tile_position)
+	var target_idx: int
+	if current_idx == -1:
+		# Cursor not on an actable unit — forward starts at the first, backward
+		# at the last, so a single press always lands somewhere sensible.
+		target_idx = 0 if step > 0 else actable_units.size() - 1
+	else:
+		target_idx = (current_idx + step + actable_units.size()) % actable_units.size()
+	_set_tile(actable_units[target_idx].tile_position)
 
 
 func _open_map_menu() -> void:
