@@ -87,6 +87,79 @@ func _init() -> void:
 	else:
 		print("SKIP live flag-toggle test (GameState/EventBus autoload absent)")
 
+	# ── Playtest 3 #6 — info panel follows the cursor during selection ────────
+	# When a unit is selected, the panel used to latch on that unit and ignore
+	# the cursor — so the player couldn't see the enemy they were about to
+	# attack. The new behaviour: always prefer the unit under the cursor;
+	# fall back to the selected unit only on an empty tile.
+	var stub_grid_script := GDScript.new()
+	stub_grid_script.source_code = """
+extends Node
+var _at: Dictionary = {}
+func set_unit(tile: Vector2i, unit) -> void: _at[tile] = unit
+func get_unit_at(tile: Vector2i): return _at.get(tile, null)
+const TERRAIN_DEF_BONUS: Dictionary = {\"plain\": 0}
+const TERRAIN_DODGE_BONUS: Dictionary = {\"plain\": 0}
+func get_terrain_at(_t: Vector2i) -> String: return \"plain\"
+"""
+	stub_grid_script.reload()
+	var stub_grid: Node = stub_grid_script.new()
+	root.add_child(stub_grid)
+	hud._grid = stub_grid
+
+	# Two stub units with a `data` property — base Node has no `data`, so we
+	# need a tiny script that declares it for HUD._show_unit's `unit.data` reads.
+	var stub_unit_script := GDScript.new()
+	stub_unit_script.source_code = """
+extends Node
+var data
+"""
+	stub_unit_script.reload()
+	var unit_a: Node = stub_unit_script.new()
+	var unit_a_data := UnitData.new()
+	unit_a_data.unit_name = "Selected Hero"
+	unit_a_data.class_id = "soldier"
+	unit_a_data.hp = 20; unit_a_data.max_hp = 20
+	unit_a.data = unit_a_data
+	var unit_b: Node = stub_unit_script.new()
+	var unit_b_data := UnitData.new()
+	unit_b_data.unit_name = "Hovered Enemy"
+	unit_b_data.class_id = "soldier"
+	unit_b_data.hp = 15; unit_b_data.max_hp = 20
+	unit_b.data = unit_b_data
+	root.add_child(unit_a)
+	root.add_child(unit_b)
+	stub_grid.set_unit(Vector2i(1, 1), unit_a)
+	stub_grid.set_unit(Vector2i(3, 3), unit_b)
+
+	hud._on_unit_selected(unit_a)
+	hud._on_cursor_moved(Vector2i(3, 3))   # cursor on enemy
+	if hud._displayed_unit == unit_b:
+		print("OK  HUD follows cursor onto another unit during selection (playtest 3 #6)")
+		passed += 1
+	else:
+		print("FAIL hover-on-other-unit: displayed=%s want=%s" % [hud._displayed_unit, unit_b])
+		failed += 1
+
+	hud._on_cursor_moved(Vector2i(5, 5))   # cursor on empty tile, unit still selected
+	if hud._displayed_unit == unit_a:
+		print("OK  HUD falls back to the selected unit on empty tile (playtest 3 #6)")
+		passed += 1
+	else:
+		print("FAIL empty-tile-fallback: displayed=%s want=%s" % [hud._displayed_unit, unit_a])
+		failed += 1
+
+	hud._on_unit_deselected()
+	hud._on_cursor_moved(Vector2i(5, 5))   # no selection now, empty tile → nothing
+	if hud._displayed_unit == null:
+		print("OK  HUD clears panel on empty tile with no selection (playtest 3 #6)")
+		passed += 1
+	else:
+		print("FAIL post-deselect empty: displayed=%s want=null" % hud._displayed_unit)
+		failed += 1
+
+	unit_a.queue_free(); unit_b.queue_free()
+	stub_grid.queue_free()
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

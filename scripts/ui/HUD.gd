@@ -19,6 +19,7 @@ extends Control
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
 var _unit_is_selected: bool = false  # true while a player unit is actively selected
+var _selected_unit: Node = null  # the actively selected unit (fallback for empty tiles during selection — playtest 3 #6)
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 var _displayed_unit: Node = null  # unit currently shown in the info panel (null when hidden)
 
@@ -62,21 +63,31 @@ func _on_turn_changed(turn_number: int) -> void:
 
 func _on_unit_selected(unit: Node) -> void:
 	_unit_is_selected = true
+	_selected_unit = unit
 	_show_unit(unit)
 
 
 func _on_unit_deselected() -> void:
 	_unit_is_selected = false
+	_selected_unit = null
 	# After deselection, show whatever unit the cursor is currently over (if any)
 	_show_unit(_grid.get_unit_at(_cursor_tile) if _grid != null and _cursor_tile.x >= 0 else null)
 
 
+# Always prefer the unit the cursor is on — including enemies/allies during
+# attack and staff targeting (playtest 3 #6). Only when the cursor sits on an
+# empty tile mid-selection do we fall back to the actively selected unit, so
+# the player doesn't lose sight of who is acting between target candidates.
 func _on_cursor_moved(tile: Vector2i) -> void:
 	_cursor_tile = tile
 	_update_terrain(tile)
-	# When no unit is actively selected, show info for whatever unit the cursor is over
-	if not _unit_is_selected:
-		_show_unit(_grid.get_unit_at(tile) if _grid != null else null)
+	var hovered: Node = _grid.get_unit_at(tile) if _grid != null else null
+	if hovered != null:
+		_show_unit(hovered)
+	elif _unit_is_selected:
+		_show_unit(_selected_unit)
+	else:
+		_show_unit(null)
 
 
 # Refreshes the info panel if the unit whose HP changed is the one on display.
