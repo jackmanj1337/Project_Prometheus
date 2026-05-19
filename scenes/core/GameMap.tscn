@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/MapMenu.tscn" id="14_mapmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/GameOverScreen.tscn" id="15_gameover"]
 [ext_resource type="PackedScene" path="res://scenes/ui/AttackPreview.tscn" id="16_preview"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="17_settings"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -34,6 +35,7 @@ action_menu = NodePath("../HUDLayer/ActionMenu")
 item_menu = NodePath("../HUDLayer/ItemMenu")
 map_menu = NodePath("../HUDLayer/MapMenu")
 attack_preview = NodePath("../HUDLayer/AttackPreview")
+settings_screen = NodePath("../SettingsLayer/SettingsScreen")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapCursor"]
 texture = ExtResource("6_cursor_tex")
@@ -82,3 +84,8 @@ layer = 8
 layer = 20
 
 [node name="GameOverScreen" parent="GameOverLayer" instance=ExtResource("15_gameover")]
+
+[node name="SettingsLayer" type="CanvasLayer" parent="."]
+layer = 15
+
+[node name="SettingsScreen" parent="SettingsLayer" instance=ExtResource("17_settings")]

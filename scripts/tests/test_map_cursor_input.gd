@@ -60,6 +60,12 @@ func _init() -> void:
 	else:
 		print("FAIL decode_key(M)"); failed += 1
 
+	# ---- decode_key: O → OPEN_SETTINGS ----
+	if inp.decode_key(_key(KEY_O))["intent"] == MapCursorInput.Intent.OPEN_SETTINGS:
+		print("OK  decode_key(O) → OPEN_SETTINGS"); passed += 1
+	else:
+		print("FAIL decode_key(O)"); failed += 1
+
 	# ---- decode_key: an unmapped key → NONE ----
 	if inp.decode_key(_key(KEY_J))["intent"] == MapCursorInput.Intent.NONE:
 		print("OK  decode_key(unmapped) → NONE"); passed += 1

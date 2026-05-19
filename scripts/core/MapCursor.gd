@@ -45,6 +45,7 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var item_menu: Node = null
 @export var map_menu: Node = null
 @export var attack_preview: Node = null
+@export var settings_screen: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
@@ -70,6 +71,9 @@ func _ready() -> void:
 	if map_menu:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
+		map_menu.settings_requested.connect(_on_settings_requested)
+	if settings_screen:
+		settings_screen.back_pressed.connect(_on_settings_closed)
 	# Lock cursor during enemy phase; unlock when player phase starts
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -91,6 +95,8 @@ func _resolve_menu_refs() -> void:
 		map_menu = get_node_or_null("../HUDLayer/MapMenu")
 	if attack_preview == null:
 		attack_preview = get_node_or_null("../HUDLayer/AttackPreview")
+	if settings_screen == null:
+		settings_screen = get_node_or_null("../SettingsLayer/SettingsScreen")
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -161,6 +167,8 @@ func _handle_key_press(event: InputEventKey) -> void:
 		MapCursorInput.Intent.OPEN_MENU:
 			if _state == State.FREE:
 				_open_map_menu()
+		MapCursorInput.Intent.OPEN_SETTINGS:
+			_open_settings_via_hotkey()
 
 
 # Resets cursor key-repeat on key release, and flips the enemy danger-zone
@@ -589,6 +597,41 @@ func _on_map_menu_closed() -> void:
 	if _awaiting_end_turn_confirm:
 		return
 	# Don't unlock during the enemy phase — the phase_changed listener handles that.
+	var gs := get_node_or_null("/root/GameState")
+	if gs and not gs.is_player_turn():
+		return
+	unlock()
+
+
+# ── Settings ─────────────────────────────────────────────────────────────────
+
+# open_settings hotkey (#3). Opens Settings from free roam, or from a unit
+# selection — the selection is dropped first. Ignored mid-action (ActionMenu /
+# targeting) so a half-finished action can't be stranded behind the overlay.
+func _open_settings_via_hotkey() -> void:
+	if _state == State.UNIT_SELECTED:
+		_deselect()
+	elif _state != State.FREE:
+		return
+	_open_settings()
+
+
+# Map-menu "Settings" button (#3). The map menu has hidden itself; the cursor is
+# already LOCKED — just show the settings overlay.
+func _on_settings_requested() -> void:
+	_open_settings()
+
+
+# Shows the settings overlay and locks the cursor until it is closed.
+func _open_settings() -> void:
+	if settings_screen == null:
+		return
+	lock()
+	settings_screen.open()
+
+
+# Settings closed (Back / cancel) — unlock unless the enemy phase owns the lock.
+func _on_settings_closed() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs and not gs.is_player_turn():
 		return

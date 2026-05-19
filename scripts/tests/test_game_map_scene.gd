@@ -131,7 +131,7 @@ func _init() -> void:
 	# action menu and map menu never open and the Item submenu never shows
 	# (playtest findings #4 / #10).
 	var cursor: MapCursor = instance.get_node("MapCursor")
-	for ref_name in ["action_menu", "item_menu", "map_menu", "attack_preview"]:
+	for ref_name in ["action_menu", "item_menu", "map_menu", "attack_preview", "settings_screen"]:
 		if cursor.get(ref_name) != null:
 			print("OK  MapCursor.%s resolved" % ref_name)
 			passed += 1

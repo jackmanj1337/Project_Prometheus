@@ -309,5 +309,47 @@ func _init() -> void:
 		print("FAIL danger toggle: on=%s off=%s gated=%s" % [dz_on, dz_off, dz_gated])
 		failed += 1
 
+	# ---- open_settings hotkey: locks the cursor and opens Settings (#3) ----
+	var t11 := TurnManager.new(); root.add_child(t11)
+	var c11 := _make_cursor(t11)
+	var settings_script := GDScript.new()
+	settings_script.source_code = "extends Node\nsignal back_pressed\nvar opened := false\nfunc open(): opened = true\n"
+	settings_script.reload()
+	c11.settings_screen = settings_script.new()
+	root.add_child(c11.settings_screen)
+	c11._state = FREE
+	c11._open_settings_via_hotkey()
+	if c11._state == LOCKED and c11.settings_screen.opened:
+		print("OK  open_settings hotkey locks the cursor and opens Settings")
+		passed += 1
+	else:
+		print("FAIL open_settings: state=%d opened=%s" % [c11._state, c11.settings_screen.opened])
+		failed += 1
+
+	# ---- open_settings from a unit selection drops the selection first (#3) ----
+	c11.settings_screen.opened = false
+	c11.unlock()
+	c11._selection.selected_unit = _make_unit(Vector2i(2, 2), "player")
+	c11._state = UNIT_SELECTED
+	c11._open_settings_via_hotkey()
+	if c11._state == LOCKED and c11._selection.selected_unit == null and c11.settings_screen.opened:
+		print("OK  open_settings from UNIT_SELECTED deselects, then opens")
+		passed += 1
+	else:
+		print("FAIL settings-deselect: state=%d unit=%s opened=%s" % [
+			c11._state, str(c11._selection.selected_unit), c11.settings_screen.opened])
+		failed += 1
+
+	# ---- open_settings is ignored mid-action (UNIT_MOVED) ----
+	c11.settings_screen.opened = false
+	c11._state = UNIT_MOVED
+	c11._open_settings_via_hotkey()
+	if not c11.settings_screen.opened and c11._state == UNIT_MOVED:
+		print("OK  open_settings ignored during an action (UNIT_MOVED)")
+		passed += 1
+	else:
+		print("FAIL settings-gate: opened=%s state=%d" % [c11.settings_screen.opened, c11._state])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
