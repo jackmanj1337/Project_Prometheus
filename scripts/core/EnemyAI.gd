@@ -12,8 +12,24 @@ func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	var enemies: Array[Node] = gs.get_living_enemy_units()
 	for enemy in enemies:
 		if is_instance_valid(enemy):
+			# Pan the camera to the enemy and pause briefly so the player can
+			# follow the enemy phase (#7), then let it act.
+			await _focus_camera(enemy)
 			await _act(enemy, grid, turn)
 	turn.start_player_phase()
+
+
+# Pans the camera onto `unit` via EventBus.ai_unit_acting and pauses briefly so
+# the move/attack is visible (#7). The pause is skipped when the player has set
+# movement_speed to "instant".
+func _focus_camera(unit: Node) -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.ai_unit_acting.emit(unit)
+	var sm := get_node_or_null("/root/SettingsManager")
+	var instant: bool = sm != null and sm.movement_speed == "instant"
+	if not instant and is_inside_tree():
+		await get_tree().create_timer(0.25).timeout
 
 
 # One enemy's turn: dispatch on ai_profile, then mark DONE.

@@ -52,6 +52,13 @@ func _ready() -> void:
 	_camera.position_smoothing_enabled = false
 	_camera.position = _get_camera_start()
 
+	# Camera follows the enemy phase (#7): EnemyAI announces each acting unit and
+	# phase_changed flips smoothing on so the camera glides during the AI turn.
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.ai_unit_acting.connect(_on_ai_unit_acting)
+		bus.phase_changed.connect(_on_phase_changed)
+
 	_spawn_units()
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	var gs := get_node_or_null("/root/GameState")
@@ -71,6 +78,22 @@ func _ready() -> void:
 	_place_cursor_at_start()
 	# Kick off the first player phase
 	_turn_manager.start_map(map_data, _grid)
+
+
+# Smooth camera glide during the enemy phase so AI moves are easy to follow;
+# snappy (smoothing off) for the player phase so the cursor scroll stays tight.
+func _on_phase_changed(new_phase: int) -> void:
+	if _camera != null:
+		_camera.position_smoothing_enabled = new_phase == GameState.Phase.ENEMY
+
+
+# Pans the camera to centre on an acting enemy (#7). tile_to_world gives the
+# tile's top-left; offset by half a tile so the unit sits mid-screen.
+func _on_ai_unit_acting(unit: Node) -> void:
+	if _camera == null or _grid == null or not is_instance_valid(unit):
+		return
+	var half := Vector2(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE) * 0.5
+	_camera.position = _grid.tile_to_world(unit.tile_position) + half
 
 
 # Returns the world-space camera start position. Uses map_data.camera_start_tile when

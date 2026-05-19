@@ -100,9 +100,38 @@ func _init() -> void:
 		print("FAIL camera limits: %d x %d" % [cam.limit_right, cam.limit_bottom])
 		failed += 1
 
+	# Camera follows the enemy phase (#7): _on_phase_changed enables position
+	# smoothing only during the enemy phase, so the camera glides for AI moves
+	# but stays snappy for the cursor during the player phase.
+	instance._on_phase_changed(GameState.Phase.ENEMY)
+	var smooth_on := cam.position_smoothing_enabled
+	instance._on_phase_changed(GameState.Phase.PLAYER)
+	var smooth_off := not cam.position_smoothing_enabled
+	if smooth_on and smooth_off:
+		print("OK  enemy phase enables camera smoothing, player phase disables it (#7)")
+		passed += 1
+	else:
+		print("FAIL camera smoothing toggle: on=%s off=%s" % [smooth_on, smooth_off])
+		failed += 1
+
 	# Verify units spawned (6 player + 8 enemy = 14 total) if GameState is available
 	var gs := root.get_node_or_null("GameState")
 	if gs:
+		# _on_ai_unit_acting centres the camera on the acting unit (#7).
+		var grid_node: GridManager = instance.get_node("GridManager")
+		var ai_units: Array = gs.get_living_enemy_units()
+		if not ai_units.is_empty():
+			var focus_unit = ai_units[0]
+			instance._on_ai_unit_acting(focus_unit)
+			var half := Vector2(64, 64) * 0.5
+			var want := grid_node.tile_to_world(focus_unit.tile_position) + half
+			if cam.position == want:
+				print("OK  _on_ai_unit_acting centres the camera on the unit (#7)")
+				passed += 1
+			else:
+				print("FAIL ai camera pan: cam=%s want=%s" % [cam.position, want])
+				failed += 1
+
 		var units_container: Node2D = instance.get_node("UnitsContainer")
 		var unit_count := units_container.get_child_count()
 		if unit_count == 14:

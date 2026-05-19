@@ -22,5 +22,8 @@ signal level_up_started()
 signal level_up_finished()
 signal phase_changed(new_phase: int)  # GameState.Phase enum value
 signal cursor_moved(tile: Vector2i)
+# Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
+# camera to keep the enemy phase on-screen (#7).
+signal ai_unit_acting(unit: Node)
 signal map_victory()
 signal map_defeat()
