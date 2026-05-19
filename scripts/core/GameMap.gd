@@ -53,8 +53,6 @@ func _ready() -> void:
 	_camera.position = _get_camera_start()
 
 	_spawn_units()
-	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
-	_place_cursor_at_start()
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -67,6 +65,10 @@ func _ready() -> void:
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
 		_hud.setup(_grid, _turn_manager)
+	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
+	# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
+	# its unit/terrain panels from the start tile.
+	_place_cursor_at_start()
 	# Kick off the first player phase
 	_turn_manager.start_map(map_data, _grid)
 

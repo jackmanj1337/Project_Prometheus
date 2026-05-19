@@ -643,6 +643,13 @@ func _on_settings_closed() -> void:
 func lock() -> void:
 	_state = State.LOCKED
 	_input_handler.clear_repeat()
+	# Drop the danger zone when input is suppressed (map menu, enemy phase) — it is
+	# a FREE-state toggle, and leaving it painted would show a stale threat area
+	# after enemies move during their phase.
+	if _danger_zone_shown:
+		if _grid != null:
+			_grid.clear_overlays()
+		_danger_zone_shown = false
 
 
 func unlock() -> void:
