@@ -32,6 +32,7 @@ func _ready() -> void:
 	load_settings()
 	_apply_audio()
 	_apply_keybindings()
+	_mirror_game_keys_to_ui()
 
 
 func load_settings() -> void:
@@ -115,6 +116,27 @@ func _apply_keybindings() -> void:
 		InputMap.action_erase_events(action)
 		for event in keybindings[action]:
 			InputMap.action_add_event(action, event)
+
+
+# Mirrors the game's cursor/confirm/cancel keys onto Godot's built-in ui_* actions.
+# Menus navigate via ui_* (arrows + Enter/Space by default); without this, the
+# game's WASD/Z keys do nothing on a menu (#7). Runs after _apply_keybindings()
+# so any user rebind of a game action carries over to the menus too.
+func _mirror_game_keys_to_ui() -> void:
+	const UI_MIRROR := {
+		"ui_up": "cursor_up", "ui_down": "cursor_down",
+		"ui_left": "cursor_left", "ui_right": "cursor_right",
+		"ui_accept": "confirm", "ui_cancel": "cancel",
+	}
+	for ui_action in UI_MIRROR:
+		var game_action: String = UI_MIRROR[ui_action]
+		if not InputMap.has_action(ui_action) or not InputMap.has_action(game_action):
+			continue
+		for event in InputMap.action_get_events(game_action):
+			# action_has_event guards against duplicating the shared keys (e.g.
+			# arrows on ui_up, Enter on ui_accept) and keeps this idempotent.
+			if not InputMap.action_has_event(ui_action, event):
+				InputMap.action_add_event(ui_action, event)
 
 
 func set_volume(bus_name: String, value: int) -> void:

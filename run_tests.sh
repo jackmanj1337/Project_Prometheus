@@ -20,6 +20,7 @@ TESTS=(
   test_game_state
   test_data_manager
   test_action_menu
+  test_settings_manager
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
