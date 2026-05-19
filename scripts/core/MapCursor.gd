@@ -124,6 +124,11 @@ func _on_phase_changed(new_phase: int) -> void:
 	if new_phase == GameState.Phase.ENEMY:
 		lock()
 	else:
+		# AI-phase tracking pans the camera onto each enemy as it acts (#7), so
+		# at handover the camera is usually somewhere far from the player cursor.
+		# Pull it back before unlocking input — otherwise the player regains
+		# control with their cursor off-screen. Playtest 3 #5.
+		_scroll_camera_if_needed()
 		unlock()
 
 

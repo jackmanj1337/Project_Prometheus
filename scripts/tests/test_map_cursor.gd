@@ -108,6 +108,27 @@ func _init() -> void:
 		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d" % [locked_on_enemy, c1._state])
 		failed += 1
 
+	# ---- _on_phase_changed → PLAYER recentres camera on the cursor (playtest 3 #5) ----
+	# AI-phase tracking leaves the camera wherever the last enemy acted; the
+	# handover must pull it back onto the player's cursor before unlock.
+	c1._set_tile(Vector2i(0, 0))
+	c1._camera.position = Vector2(10_000, 10_000)  # simulate camera far from cursor
+	c1._on_phase_changed(0)  # PLAYER — should call _scroll_camera_if_needed before unlock
+	# After recentre the cursor (tile 0,0 = world centre 32,32) must sit inside
+	# the camera's visible rect, not 10k pixels away. Allow some slack — the
+	# scroll math clamps the view to the map bounds, so the centre lands at a
+	# specific edge position rather than dead-on the cursor.
+	var view_size: Vector2 = c1.get_viewport().get_visible_rect().size
+	var cam_rect := Rect2(c1._camera.position - view_size * 0.5, view_size)
+	var cursor_world: Vector2 = _grid.tile_to_world(c1.current_tile)
+	if cam_rect.has_point(cursor_world):
+		print("OK  _on_phase_changed: PLAYER recentres camera onto cursor (playtest 3 #5)")
+		passed += 1
+	else:
+		print("FAIL phase-change recentre: cam=%s cursor_world=%s rect=%s" % [
+			c1._camera.position, cursor_world, cam_rect])
+		failed += 1
+
 	# ---- _set_tile clamps to map bounds ----
 	c1._set_tile(Vector2i(99, 99))
 	var clamped_hi := c1.current_tile == Vector2i(5, 5)
