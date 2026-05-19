@@ -24,6 +24,7 @@ TESTS=(
   test_settings_screen
   test_new_game_screen
   test_unit_details_screen
+  test_hud
 )
 fail_count=0
 for t in "${TESTS[@]}"; do

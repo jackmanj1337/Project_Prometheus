@@ -13,6 +13,8 @@ extends Control
 @onready var _terrain_name: Label = $TerrainInfoPanel/VBox/TerrainName
 @onready var _terrain_def: Label = $TerrainInfoPanel/VBox/TerrainDef
 @onready var _terrain_dodge: Label = $TerrainInfoPanel/VBox/TerrainDodge
+# Red "DEBUG MODE" banner — shown only in debug builds (see _setup_debug_banner).
+@onready var _debug_label: Label = $DebugLabel
 
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
@@ -40,6 +42,7 @@ func _ready() -> void:
 		bus.unit_died.connect(_on_unit_died)
 	_update_turn_label()
 	_on_phase_changed(GameState.Phase.PLAYER)
+	_setup_debug_banner()
 
 
 func setup(grid: Node, turn_node: Node) -> void:
@@ -144,3 +147,19 @@ func _update_terrain(tile: Vector2i) -> void:
 
 func _update_turn_label() -> void:
 	_turn_label.text = "Turn %d" % _turn
+
+
+# ── Debug-mode banner ────────────────────────────────────────────────────────
+# A red "DEBUG MODE" label on the HUD whenever this is a debug build. It warns
+# playtesters that debug aids (force-levelup, growth boost — see GameState) may
+# be active and that on-screen stats may not reflect release behaviour.
+# DEBUG AID — remove before release; see GDD_10_Roadmap.md § Pre-Release Cleanup.
+func _setup_debug_banner() -> void:
+	_apply_debug_banner(OS.is_debug_build())
+
+
+# Split from _setup_debug_banner so tests can drive the banner directly without
+# depending on whether the test run is itself a debug build.
+func _apply_debug_banner(is_debug: bool) -> void:
+	if _debug_label != null:
+		_debug_label.visible = is_debug

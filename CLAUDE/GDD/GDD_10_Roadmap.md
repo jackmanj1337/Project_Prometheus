@@ -1546,3 +1546,11 @@ review under `CLAUDE/Code Reviews/`).
       release build, but the code itself must still be deleted before release
       so it doesn't rot. Grep for `is_debug_build` and the `debug_force_levelup`
       flag to find every site.
+- [ ] **Remove the debug-mode HUD banner.** A red "DEBUG MODE" label is shown
+      on the HUD whenever `OS.is_debug_build()` is true, so playtesters can see
+      at a glance that the build may have debug aids active (the inflated
+      growths / EXP above) and that on-screen stats may not reflect release
+      behaviour. It is gated on `OS.is_debug_build()` and so never appears in a
+      release build, but the `DebugLabel` node in `HUD.tscn` and the
+      `HUD._setup_debug_banner` / `_apply_debug_banner` code should be deleted
+      with the other aids before release. Added 2026-05-19.
