@@ -535,11 +535,23 @@ func level_up() -> void:
 		bus.unit_leveled_up.emit(self, changes)
 
 
+# DEBUG TESTING AID (#11) — debug builds only; remove before release, see
+# GDD_10_Roadmap.md § Pre-Release Cleanup. When GameState.debug_growth_boost is
+# on, inflates a growth rate by +50 so level-up stat gains are easy to observe.
+func _debug_boosted_rate(rate: int) -> int:
+	if not OS.is_debug_build():
+		return rate
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs != null and gs.debug_growth_boost:
+		return rate + 50
+	return rate
+
+
 # Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
 func _level_up_random(rates: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
-		var rate: int = int(rates.get(stat, 0))
+		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
 		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
@@ -556,7 +568,7 @@ func _level_up_random(rates: Dictionary) -> Dictionary:
 func _level_up_fixed(rates: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
-		var rate: int = int(rates.get(stat, 0))
+		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var acc: int = int(data.growth_accumulators.get(stat, 0)) + rate
 		var gain: int = acc / 100
 		data.growth_accumulators[stat] = acc % 100

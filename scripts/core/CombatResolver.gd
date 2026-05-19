@@ -304,6 +304,13 @@ func get_follow_up_attacker(a: Node, b: Node) -> Node:
 # ── EXP ─────────────────────────────────────────────────────────────────────
 
 func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int:
+	# DEBUG TESTING AID (#10) — debug builds only; remove before release, see
+	# GDD_10_Roadmap.md § Pre-Release Cleanup. When GameState.debug_force_levelup
+	# is on, any landed hit returns a full 100 EXP so a level-up fires at once.
+	if OS.is_debug_build():
+		var gs := get_node_or_null("/root/GameState")
+		if gs != null and gs.get("debug_force_levelup"):
+			return 100
 	var diff: int = attacker.data.level - defender.data.level
 	var idx: int = clampi(diff + 6, 0, 12)
 	return _EXP_TABLE[idx][0] if killed else _EXP_TABLE[idx][1]

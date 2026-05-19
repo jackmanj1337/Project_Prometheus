@@ -360,6 +360,24 @@ func _init() -> void:
 		print("FAIL EXP kill high underdog: got %d" % cr.calculate_exp(lv1_def, lv10_atk, true))
 		failed += 1
 
+	# --- DEBUG AID #10: debug_force_levelup makes any hit award 100 EXP ---
+	# Only effective in debug builds (the headless test binary is one). Restored
+	# to false afterwards so it can't bleed into later assertions.
+	var gs_dbg := root.get_node_or_null("GameState")
+	if gs_dbg != null:
+		gs_dbg.debug_force_levelup = true
+		var forced: bool = cr.calculate_exp(lv10_atk, lv1_def, false) == 100
+		gs_dbg.debug_force_levelup = false
+		var normal: bool = cr.calculate_exp(lv10_atk, lv1_def, false) != 100
+		if forced and normal:
+			print("OK  debug_force_levelup forces 100 EXP, off restores normal (#10)")
+			passed += 1
+		else:
+			print("FAIL debug_force_levelup: forced=%s normal=%s" % [forced, normal])
+			failed += 1
+	else:
+		print("SKIP debug_force_levelup (GameState autoload absent)")
+
 	# --- Damage minimum 0 ---
 	var tanky = _make_unit({"name":"Tank","defense":20,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_lance})
 	var weak  = _make_unit({"name":"Weak","strength":3,"weapon":iron_sword})

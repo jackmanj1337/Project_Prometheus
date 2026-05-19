@@ -20,6 +20,14 @@ var leveling_method: String = "growth_random"
 var max_skills: int = 4
 var max_inventory: int = 8
 
+# ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
+# Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
+# on OS.is_debug_build()), so a release build is unaffected even if left true.
+# RELEASE BLOCKER: delete these and their callers before shipping — tracked in
+# GDD_10_Roadmap.md § Pre-Release Cleanup. Toggle them from the remote debugger.
+var debug_force_levelup: bool = false   # #10: any landed hit awards a full level
+var debug_growth_boost: bool = false    # #11: +50 to every growth rate on level-up
+
 # Current map state
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
