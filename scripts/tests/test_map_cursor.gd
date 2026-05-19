@@ -385,5 +385,27 @@ func _init() -> void:
 		print("FAIL settings-gate: opened=%s state=%d" % [c11.settings_screen.opened, c11._state])
 		failed += 1
 
+	# ---- level-up screen suppresses cursor input (#12) ----
+	var t_lvl := TurnManager.new(); root.add_child(t_lvl)
+	var c_lvl := _make_cursor(t_lvl)
+	c_lvl._state = FREE
+	c_lvl._on_level_up_started()
+	var suppressed := c_lvl._input_suppressed
+	# A held direction must not move the cursor while suppressed: _process clears
+	# the repeat and bails instead of stepping.
+	c_lvl._set_tile(Vector2i(2, 2))
+	c_lvl._input_handler.arm_repeat(Vector2i(1, 0))
+	c_lvl._process(1.0)
+	var frozen := c_lvl.current_tile == Vector2i(2, 2)
+	c_lvl._on_level_up_finished()
+	var resumed := not c_lvl._input_suppressed
+	if suppressed and frozen and resumed:
+		print("OK  level-up screen freezes the cursor, then releases it (#12)")
+		passed += 1
+	else:
+		print("FAIL level-up freeze: suppressed=%s frozen=%s resumed=%s" % [
+			suppressed, frozen, resumed])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

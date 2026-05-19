@@ -35,6 +35,11 @@ func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
 		return
 	_queue.append({"unit": unit, "increases": stat_increases})
 	if not visible:
+		# First level-up of this batch — tell MapCursor to freeze input so the
+		# cursor can't be driven underneath the screen (#12).
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.level_up_started.emit()
 		_show_next()
 
 
@@ -70,9 +75,19 @@ func _show_next() -> void:
 		# SceneTreeTimer outlives nodes — guard against freed self on scene change.
 		get_tree().create_timer(1.5).timeout.connect(func():
 			if not is_instance_valid(self): return
-			hide()
-			_show_next()
+			_advance()
 		, CONNECT_ONE_SHOT)
+
+
+# Dismiss the current panel, then show the next queued level-up — or, when the
+# queue is empty, stay closed and let MapCursor resume input (#12).
+func _advance() -> void:
+	hide()
+	_show_next()
+	if not visible:
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.level_up_finished.emit()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -83,5 +98,4 @@ func _unhandled_input(event: InputEvent) -> void:
 		return  # timer handles dismissal; player input ignored in auto mode
 	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
-		hide()
-		_show_next()
+		_advance()

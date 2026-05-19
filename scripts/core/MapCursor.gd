@@ -49,6 +49,10 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
+# True while the level-up screen is on-screen. Suppresses all cursor input
+# independently of _state, so a post-combat _finish_action setting _state=FREE
+# can't re-enable the cursor underneath the level-up screen (#12).
+var _input_suppressed: bool = false
 # True while the "end turn with unacted units?" ConfirmationDialog is open.
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
@@ -78,6 +82,9 @@ func _ready() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.phase_changed.connect(_on_phase_changed)
+		# Freeze the cursor while the level-up screen is up (#12).
+		bus.level_up_started.connect(_on_level_up_started)
+		bus.level_up_finished.connect(_on_level_up_finished)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -106,6 +113,17 @@ func _on_phase_changed(new_phase: int) -> void:
 		unlock()
 
 
+# Level-up screen opened — suppress cursor input until it closes (#12).
+func _on_level_up_started() -> void:
+	_input_suppressed = true
+	_input_handler.clear_repeat()
+
+
+# Level-up queue exhausted — the cursor may resume.
+func _on_level_up_finished() -> void:
+	_input_suppressed = false
+
+
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void:
 	_grid = grid
 	_camera = camera
@@ -120,7 +138,7 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> voi
 # ── Input Handling ──────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _state == State.LOCKED:
+	if _input_suppressed or _state == State.LOCKED:
 		return
 	if event is InputEventMouseMotion:
 		_handle_mouse_motion(event)
@@ -134,6 +152,9 @@ func _process(delta: float) -> void:
 	# Auto-repeat only applies to free cursor movement. If the state changed
 	# while a key was held (e.g. confirmed into TARGETING), drop the held dir
 	# so the cursor doesn't drift out of a menu/targeting context.
+	if _input_suppressed:
+		_input_handler.clear_repeat()
+		return
 	if _state != State.FREE and _state != State.UNIT_SELECTED:
 		_input_handler.clear_repeat()
 		return
@@ -176,6 +197,8 @@ func _handle_key_press(event: InputEventKey) -> void:
 # Resets cursor key-repeat on key release, and flips the enemy danger-zone
 # toggle on a show_danger_zone press or a middle-mouse click (#12).
 func _input(event: InputEvent) -> void:
+	if _input_suppressed:
+		return
 	if event is InputEventKey:
 		if not event.pressed:
 			# Clear cursor key-repeat when the held direction key is released.
