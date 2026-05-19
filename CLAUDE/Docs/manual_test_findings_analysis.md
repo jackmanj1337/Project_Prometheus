@@ -1,6 +1,6 @@
 # Manual Test Findings — Causes & Suggested Fixes
 
-Analysis of `manual_test_findings.md` (playtest 2026-05-18). Each entry lists the
+Analysis of `playtest1_findings_2026-05-18.md` (playtest 1, 2026-05-18). Each entry lists the
 likely cause with `file:line` references, a suggested fix, and a confidence rating.
 Confidence reflects how sure I am of the *cause* without a live repro.
 

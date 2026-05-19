@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        GODOT_VERSION: "4.3"
+        GODOT_VERSION: "4.6"
         NODE_MAJOR: "20"
     image: godot-claude-code:latest
     container_name: godot-claude-dev
