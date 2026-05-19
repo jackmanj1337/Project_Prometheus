@@ -140,6 +140,49 @@ func _init() -> void:
 		failed += 1
 	stub_menu.queue_free()
 
+	# ---- _set_tile(from_mouse=true) skips edge-scroll (playtest 3 #7) ----
+	# Mouse-driven cursor moves used to cascade into a camera-pan feedback loop.
+	# The fix: skip edge-scroll on the from_mouse path, and clamp the mouse-
+	# resolved tile to the visible area. Force the scroll precondition by
+	# bumping the grid to 30×30 so the view doesn't already contain everything,
+	# then restore — other tests in this file rely on the 6×6 size.
+	var saved_w := _grid.map_width
+	var saved_h := _grid.map_height
+	_grid.map_width = 30
+	_grid.map_height = 30
+	c1._camera.position = _grid.tile_to_world(Vector2i(2, 2))
+	c1._set_tile(Vector2i(2, 2))
+	var cam_before := c1._camera.position
+	c1._set_tile(Vector2i(29, 29), true)  # mouse-driven, far corner — must NOT scroll
+	var no_pan_on_mouse := c1._camera.position == cam_before
+	c1._set_tile(Vector2i(2, 2))
+	cam_before = c1._camera.position
+	c1._set_tile(Vector2i(29, 29))        # keyboard path, default arg — pans as before
+	var pans_on_keyboard := c1._camera.position != cam_before
+	if no_pan_on_mouse and pans_on_keyboard:
+		print("OK  _set_tile(from_mouse=true) skips edge-scroll (playtest 3 #7)")
+		passed += 1
+	else:
+		print("FAIL mouse vs keyboard scroll: no_pan_on_mouse=%s pans_on_keyboard=%s" % [
+			no_pan_on_mouse, pans_on_keyboard])
+		failed += 1
+	# _clamp_tile_to_view keeps a tile inside the camera's current view rect.
+	c1._camera.position = _grid.tile_to_world(Vector2i(10, 10))
+	var view_size_clamp: Vector2 = c1.get_viewport().get_visible_rect().size
+	var tiles_w := int(view_size_clamp.x / GameConstants.TILE_SIZE)
+	var tiles_h := int(view_size_clamp.y / GameConstants.TILE_SIZE)
+	var tl: Vector2i = _grid.world_to_tile(c1._camera.position - view_size_clamp * 0.5)
+	var clamped := c1._clamp_tile_to_view(Vector2i(1000, 1000))
+	if clamped.x == tl.x + tiles_w - 1 and clamped.y == tl.y + tiles_h - 1:
+		print("OK  _clamp_tile_to_view clamps to the visible tile range (playtest 3 #7)")
+		passed += 1
+	else:
+		print("FAIL _clamp_tile_to_view: got %s want bottom-right of view (tl=%s tw=%d th=%d)" % [
+			clamped, tl, tiles_w, tiles_h])
+		failed += 1
+	_grid.map_width = saved_w
+	_grid.map_height = saved_h
+
 	# ---- _on_phase_changed → PLAYER recentres camera on the cursor (playtest 3 #5) ----
 	# AI-phase tracking leaves the camera wherever the last enemy acted; the
 	# handover must pull it back onto the player's cursor before unlock.

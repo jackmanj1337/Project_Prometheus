@@ -254,8 +254,18 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	var tile := _grid.world_to_tile(world)
 	match _state:
 		State.FREE, State.UNIT_SELECTED:
+			# Mouse motion sets the cursor from an absolute pointer position. If
+			# this also triggers an edge-scroll, the camera moves, the screen→world
+			# mapping shifts, the *same* mouse position resolves to a new tile,
+			# and the next motion event jumps further — a runaway pan (#7). Two
+			# guards: (1) clamp the resolved tile to the currently visible area
+			# so the mouse can't push the cursor off-screen, and (2) pass
+			# from_mouse=true through _set_tile so edge-scroll is skipped on this
+			# path. Keyboard moves still pan as before. Steady rate-based edge
+			# pan + a sensitivity slider are on the roadmap.
+			tile = _clamp_tile_to_view(tile)
 			if tile != current_tile:
-				_set_tile(tile)
+				_set_tile(tile, true)
 		State.TARGETING:
 			_handle_targeting_mouse_motion(tile)
 		# UNIT_MOVED (menu open) ignores mouse motion.
@@ -329,7 +339,7 @@ func center_on_tile(tile: Vector2i) -> void:
 			bus.cursor_moved.emit(current_tile)
 
 
-func _set_tile(tile: Vector2i) -> void:
+func _set_tile(tile: Vector2i, from_mouse: bool = false) -> void:
 	# Clamp to map bounds (using GridManager's known map_width/height)
 	if _grid != null:
 		tile.x = clamp(tile.x, 0, _grid.map_width - 1)
@@ -339,13 +349,30 @@ func _set_tile(tile: Vector2i) -> void:
 	current_tile = tile
 	if _grid != null:
 		position = _grid.tile_to_world(current_tile)
-		_scroll_camera_if_needed()
+		# Skip edge-scroll for mouse-driven cursor moves — see _handle_mouse_motion.
+		if not from_mouse:
+			_scroll_camera_if_needed()
 	# Emit only when running inside a tree with EventBus loaded;
 	# tests that load this script via --script don't have autoloads available.
 	if is_inside_tree():
 		var bus := get_node_or_null("/root/EventBus")
 		if bus:
 			bus.cursor_moved.emit(current_tile)
+
+
+# Returns `tile` clamped to the camera's currently visible tile rect. Used to
+# pin the mouse-driven cursor inside the view so it can't push the camera
+# (playtest 3 #7). No-op when the camera/grid are unavailable.
+func _clamp_tile_to_view(tile: Vector2i) -> Vector2i:
+	if _camera == null or _grid == null:
+		return tile
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
+	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
+	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
+	tile.x = clampi(tile.x, tl.x, tl.x + tiles_w - 1)
+	tile.y = clampi(tile.y, tl.y, tl.y + tiles_h - 1)
+	return tile
 
 
 # ── State Machine ──────────────────────────────────────────────────────────
