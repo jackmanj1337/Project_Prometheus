@@ -35,9 +35,6 @@ RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
     apt-get update && apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# ── Claude Code CLI ─────────────────────────────────────────
-RUN npm install -g @anthropic-ai/claude-code
-
 # ── Godot headless binary ───────────────────────────────────
 RUN wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" \
         -O /tmp/godot.zip && \
@@ -54,6 +51,9 @@ RUN wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERS
 #     unzip -q /tmp/templates.tpz -d /tmp/templates && \
 #     mv /tmp/templates/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ && \
 #     rm -rf /tmp/templates.tpz /tmp/templates
+
+# ── Claude Code CLI ─────────────────────────────────────────
+RUN npm install -g @anthropic-ai/claude-code
 
 # ── Create a non-root user ──────────────────────────────────
 RUN useradd -ms /bin/bash developer
