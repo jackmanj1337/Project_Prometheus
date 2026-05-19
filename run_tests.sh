@@ -22,6 +22,7 @@ TESTS=(
   test_action_menu
   test_settings_manager
   test_settings_screen
+  test_new_game_screen
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
