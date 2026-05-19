@@ -133,6 +133,21 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	_unit_states[unit] = state
 	if state == UnitState.DONE and unit.has_method("set_done_appearance"):
 		unit.set_done_appearance()
+	# When the last player unit finishes, end the phase automatically (#5).
+	# Deferred so the current action fully unwinds first; _auto_end_player_phase
+	# re-checks the conditions, so a redundant deferred call is harmless.
+	if state == UnitState.DONE:
+		var gs := get_node_or_null("/root/GameState")
+		if gs and gs.is_player_turn() and are_all_player_units_done():
+			call_deferred("_auto_end_player_phase")
+
+
+# Deferred from set_unit_state — ends the player phase once every player unit is
+# done. Re-validates because the phase may have changed between defer and call.
+func _auto_end_player_phase() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs and gs.is_player_turn() and are_all_player_units_done():
+		end_player_phase()
 
 
 func get_unit_state(unit: Node) -> UnitState:

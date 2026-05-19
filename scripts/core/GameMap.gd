@@ -53,6 +53,8 @@ func _ready() -> void:
 	_camera.position = _get_camera_start()
 
 	_spawn_units()
+	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
+	_place_cursor_at_start()
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -82,6 +84,15 @@ func _get_camera_start() -> Vector2:
 	var centroid := Vector2i(sum.x / map_data.player_start_tiles.size(),
 		sum.y / map_data.player_start_tiles.size())
 	return _grid.tile_to_world(centroid)
+
+
+# Places the map cursor on the first spawned player unit (#9). Falls back to
+# leaving the cursor at its default tile if no player unit was spawned.
+func _place_cursor_at_start() -> void:
+	for u in _units_container.get_children():
+		if "team" in u and u.team == "player":
+			_cursor.center_on_tile(u.tile_position)
+			return
 
 
 func _load_map_data() -> void:

@@ -261,6 +261,19 @@ func move_cursor(direction: Vector2i) -> void:
 	_set_tile(current_tile + direction)
 
 
+# Public entry point for code outside the input flow (e.g. GameMap placing the
+# initial cursor after units spawn, #9) to move the cursor onto a tile and let
+# the HUD react. No camera scroll — the caller positions the camera itself.
+func center_on_tile(tile: Vector2i) -> void:
+	current_tile = tile
+	if _grid != null:
+		position = _grid.tile_to_world(current_tile)
+	if is_inside_tree():
+		var bus := get_node_or_null("/root/EventBus")
+		if bus:
+			bus.cursor_moved.emit(current_tile)
+
+
 func _set_tile(tile: Vector2i) -> void:
 	# Clamp to map bounds (using GridManager's known map_width/height)
 	if _grid != null:
@@ -496,6 +509,11 @@ func _finish_action() -> void:
 		_turn.set_unit_state(u, TurnManager.UnitState.DONE)
 	_selection.clear()
 	_state = State.FREE
+	# Tell the HUD the unit is no longer selected. Without this the HUD stays
+	# latched on the unit that just acted and stops following the cursor (#6).
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.unit_deselected.emit()
 
 
 # ── Map Menu / End Turn ──────────────────────────────────────────────────────

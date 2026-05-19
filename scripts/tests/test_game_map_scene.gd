@@ -139,6 +139,17 @@ func _init() -> void:
 			print("FAIL MapCursor.%s is null" % ref_name)
 			failed += 1
 
+	# Cursor starts on a player unit, not the map's (0,0) corner (#9).
+	if gs:
+		var cursor_unit = grid.get_unit_at(cursor.current_tile)
+		if cursor.current_tile != Vector2i(0, 0) and cursor_unit != null \
+				and cursor_unit.team == "player":
+			print("OK  cursor starts on a player unit at %s" % str(cursor.current_tile))
+			passed += 1
+		else:
+			print("FAIL cursor start tile: %s" % str(cursor.current_tile))
+			failed += 1
+
 	# All player units should be READY at start
 	if gs:
 		var all_ready := true

@@ -224,5 +224,42 @@ func _init() -> void:
 	else:
 		print("FAIL start_player_phase reset: state=%d" % tm_p.get_unit_state(rp)); failed += 1
 
+	# Flush any deferred _auto_end_player_phase calls queued by earlier blocks.
+	await process_frame
+
+	# ---- set_unit_state DONE on the last player unit auto-ends the phase (#5) ----
+	gs.reset_map_state()
+	gs.set_phase(gs.Phase.PLAYER)
+	var a1 := _mk_unit("player", 20, "a1")
+	gs.register_unit(a1)
+	var tm_auto := TurnManager.new()
+	root.add_child(tm_auto)
+	var auto_seen := [0]
+	tm_auto.turn_changed.connect(func(n): auto_seen[0] = n)
+	tm_auto.set_unit_state(a1, TurnManager.UnitState.DONE)
+	await process_frame   # let the deferred _auto_end_player_phase run
+	if auto_seen[0] != 0:
+		print("OK  last player unit DONE auto-ends the phase (#5)"); passed += 1
+	else:
+		print("FAIL auto-end did not fire"); failed += 1
+
+	# ---- auto-end does NOT fire while a player unit can still act ----
+	gs.reset_map_state()
+	gs.set_phase(gs.Phase.PLAYER)
+	var b1 := _mk_unit("player", 20, "b1")
+	var b2 := _mk_unit("player", 20, "b2")
+	gs.register_unit(b1)
+	gs.register_unit(b2)
+	var tm_partial := TurnManager.new()
+	root.add_child(tm_partial)
+	var partial_seen := [0]
+	tm_partial.turn_changed.connect(func(n): partial_seen[0] = n)
+	tm_partial.set_unit_state(b1, TurnManager.UnitState.DONE)   # b2 still READY
+	await process_frame
+	if partial_seen[0] == 0:
+		print("OK  auto-end holds while a unit can still act"); passed += 1
+	else:
+		print("FAIL auto-end fired early: turn_changed=%d" % partial_seen[0]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
