@@ -22,7 +22,7 @@ const TERRAIN_COLORS := {
 const OVERLAY_COLORS := {
 	"blue":     Color(0.30, 0.50, 1.00, 0.45),  # movement
 	"red":      Color(1.00, 0.30, 0.30, 0.45),  # attack
-	"green":    Color(0.30, 1.00, 0.30, 0.45),  # heal
+	"green":    Color(1.00, 0.55, 0.10, 0.45),  # heal — orange for contrast (#6)
 	"dark_red": Color(0.55, 0.10, 0.10, 0.45),  # enemy danger
 }
 

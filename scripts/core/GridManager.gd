@@ -377,10 +377,12 @@ func get_healable_allies(unit: Node) -> Array[Node]:
 
 
 # Overlay tile source IDs (assigned to overlay TileMapLayer in editor):
-#   0: Blue (movement), 1: Red (attack), 2: Green (heal), 3: Dark red (danger)
+#   0: Blue (movement), 1: Red (attack), 2: Heal, 3: Dark red (danger)
+# Source 2's sprite is orange (#6) — the constant is named for its role, not its
+# colour, so a future recolour needs no code change here.
 const OVERLAY_BLUE := 0
 const OVERLAY_RED := 1
-const OVERLAY_GREEN := 2
+const OVERLAY_HEAL := 2
 const OVERLAY_DARK_RED := 3
 
 
@@ -400,7 +402,7 @@ func show_attack_overlay(tiles: Array[Vector2i]) -> void:
 
 
 func show_heal_overlay(tiles: Array[Vector2i]) -> void:
-	_paint_overlay(tiles, OVERLAY_GREEN)
+	_paint_overlay(tiles, OVERLAY_HEAL)
 
 
 # The full threat area of every living, attack-capable enemy: each tile an enemy
