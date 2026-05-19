@@ -64,6 +64,19 @@ func _init() -> void:
 		print("FAIL movement speed: inst=%s fast=%s norm=%s" % [inst_ok, fast_ok, norm_ok])
 		failed += 1
 
+	# ---- #2/#17: new gameplay settings exist with sane defaults + reset ----
+	var defaults_ok: bool = sm.auto_end_turn == true and sm.camera_edge_buffer == 2
+	sm.auto_end_turn = false
+	sm.camera_edge_buffer = 5
+	sm.reset_section_to_defaults("gameplay")
+	var reset_ok: bool = sm.auto_end_turn == true and sm.camera_edge_buffer == 2
+	if defaults_ok and reset_ok:
+		print("OK  auto_end_turn / camera_edge_buffer default and reset (#2/#17)")
+		passed += 1
+	else:
+		print("FAIL new gameplay settings: defaults=%s reset=%s" % [defaults_ok, reset_ok])
+		failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -25,6 +25,9 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _opt_phase_banner: OptionButton   = _vbox.get_node("HBoxPhaseBanner/OptPhaseBanner")
 @onready var _opt_level_up: OptionButton       = _vbox.get_node("HBoxLevelUp/OptLevelUpScreen")
 @onready var _opt_mouse_targeting: OptionButton = _vbox.get_node("HBoxMouseTargeting/OptMouseTargeting")
+@onready var _opt_auto_end: OptionButton       = _vbox.get_node("HBoxAutoEndTurn/OptAutoEndTurn")
+@onready var _slider_camera_buffer: HSlider    = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
+@onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
 
@@ -41,6 +44,7 @@ func _ready() -> void:
 	_populate_option_button(_opt_phase_banner,   ["Show", "Skip"])
 	_populate_option_button(_opt_level_up,       ["Show", "Auto", "Skip"])
 	_populate_option_button(_opt_mouse_targeting, ["Snap to Target", "Keyboard Only"])
+	_populate_option_button(_opt_auto_end, ["Off", "On"])
 	# combat_animations has no system behind it yet — hide the inert control so
 	# the menu doesn't advertise a setting that does nothing. The SettingsManager
 	# field is kept for when the combat-animation system lands.
@@ -55,6 +59,9 @@ func _ready() -> void:
 	_slider_sfx.min_value    = 0
 	_slider_sfx.max_value    = 100
 	_slider_sfx.step         = 1
+	_slider_camera_buffer.min_value = 0
+	_slider_camera_buffer.max_value = 5
+	_slider_camera_buffer.step      = 1
 
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
@@ -64,6 +71,8 @@ func _ready() -> void:
 	_opt_phase_banner.item_selected.connect(_on_phase_banner_selected)
 	_opt_level_up.item_selected.connect(_on_level_up_selected)
 	_opt_mouse_targeting.item_selected.connect(_on_mouse_targeting_selected)
+	_opt_auto_end.item_selected.connect(_on_auto_end_selected)
+	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
 	hide()
@@ -84,6 +93,9 @@ func open() -> void:
 	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.get("phase_banner")))
 	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.get("level_up_screen")))
 	_opt_mouse_targeting.selected = maxi(0, _MOUSE_TARGETING_OPTIONS.find(sm.get("mouse_targeting")))
+	_opt_auto_end.selected = 1 if sm.get("auto_end_turn") else 0
+	_slider_camera_buffer.value = sm.get("camera_edge_buffer")
+	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
 	show()
 	_btn_back.grab_focus()
 
@@ -149,6 +161,21 @@ func _on_mouse_targeting_selected(index: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:
 		sm.set("mouse_targeting", _MOUSE_TARGETING_OPTIONS[index])
+		sm.call("save")
+
+
+func _on_auto_end_selected(index: int) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("auto_end_turn", index == 1)  # 0 = Off, 1 = On
+		sm.call("save")
+
+
+func _on_camera_buffer_changed(value: float) -> void:
+	_label_camera_buffer.text = "%d" % int(value)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("camera_edge_buffer", int(value))
 		sm.call("save")
 
 

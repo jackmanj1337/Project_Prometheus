@@ -149,6 +149,11 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 func _auto_end_player_phase() -> void:
 	if _map_over:
 		return
+	# The player can switch auto-end off (#2); the phase then ends only via the
+	# map menu's End Turn, even when every unit has already acted.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and not sm.auto_end_turn:
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.is_player_turn() and are_all_player_units_done():
 		end_player_phase()

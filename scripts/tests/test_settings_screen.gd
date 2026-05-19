@@ -31,6 +31,9 @@ func _init() -> void:
 		"Panel/ScrollContainer/VBox/HBoxPhaseBanner/OptPhaseBanner",
 		"Panel/ScrollContainer/VBox/HBoxLevelUp/OptLevelUpScreen",
 		"Panel/ScrollContainer/VBox/HBoxMouseTargeting/OptMouseTargeting",
+		"Panel/ScrollContainer/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
+		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/SliderCameraBuffer",
+		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/LabelCameraBuffer",
 		"Panel/ScrollContainer/VBox/KeybindList",
 		"Panel/ScrollContainer/VBox/BtnBack",
 	]

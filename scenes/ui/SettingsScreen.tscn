@@ -166,6 +166,40 @@ text = "Mouse Targeting"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxAutoEndTurn" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxAutoEndTurn"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Auto-End Turn"
+
+[node name="OptAutoEndTurn" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxAutoEndTurn"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxCameraBuffer" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="LabelCameraBufferTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Camera Pan Buffer"
+
+[node name="SliderCameraBuffer" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 5.0
+step = 1.0
+value = 2.0
+
+[node name="LabelCameraBuffer" type="Label" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+text = "2"
+horizontal_alignment = 2
+
 [node name="HSepControls" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
 layout_mode = 2
 

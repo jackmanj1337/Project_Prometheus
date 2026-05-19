@@ -9,7 +9,10 @@ class_name MapCursor extends Node2D
 #
 # State machine: see State enum below and the transition diagram above _on_confirm().
 
-# Camera-pan trigger distance. Key-repeat timings now live in MapCursorInput.
+# Camera-pan trigger distance — the default when SettingsManager is unavailable
+# (headless tests). The live value is read per-scroll via _camera_edge_buffer()
+# so the in-game Camera Pan Buffer setting (#17) takes effect immediately.
+# Key-repeat timings now live in MapCursorInput.
 const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
 
 var current_tile: Vector2i = Vector2i(0, 0)
@@ -696,10 +699,20 @@ func unlock() -> void:
 
 # ── Camera Scrolling ─────────────────────────────────────────────────────────
 
+# The live camera-pan buffer — the player-set value (#17) when SettingsManager
+# is loaded, otherwise the GameConstants default.
+func _camera_edge_buffer() -> int:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		return sm.camera_edge_buffer
+	return CAMERA_EDGE_BUFFER
+
+
 # When the cursor approaches the screen edge, pan the camera to keep it visible.
 func _scroll_camera_if_needed() -> void:
 	if _camera == null or _grid == null:
 		return
+	var buffer: int = _camera_edge_buffer()
 	var view: Vector2 = get_viewport().get_visible_rect().size
 	# How many tiles fit on screen (zoom assumed 1:1, as elsewhere).
 	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
@@ -709,15 +722,15 @@ func _scroll_camera_if_needed() -> void:
 	# treating the centre as the top-left is the bug that let the cursor scroll off.
 	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
 
-	# Pull the view so the cursor never sits within CAMERA_EDGE_BUFFER of an edge.
-	if current_tile.x < tl.x + CAMERA_EDGE_BUFFER:
-		tl.x = current_tile.x - CAMERA_EDGE_BUFFER
-	elif current_tile.x > tl.x + tiles_w - CAMERA_EDGE_BUFFER - 1:
-		tl.x = current_tile.x - tiles_w + CAMERA_EDGE_BUFFER + 1
-	if current_tile.y < tl.y + CAMERA_EDGE_BUFFER:
-		tl.y = current_tile.y - CAMERA_EDGE_BUFFER
-	elif current_tile.y > tl.y + tiles_h - CAMERA_EDGE_BUFFER - 1:
-		tl.y = current_tile.y - tiles_h + CAMERA_EDGE_BUFFER + 1
+	# Pull the view so the cursor never sits within `buffer` tiles of an edge.
+	if current_tile.x < tl.x + buffer:
+		tl.x = current_tile.x - buffer
+	elif current_tile.x > tl.x + tiles_w - buffer - 1:
+		tl.x = current_tile.x - tiles_w + buffer + 1
+	if current_tile.y < tl.y + buffer:
+		tl.y = current_tile.y - buffer
+	elif current_tile.y > tl.y + tiles_h - buffer - 1:
+		tl.y = current_tile.y - tiles_h + buffer + 1
 
 	# Clamp the view so it never shows space beyond the map edges.
 	tl.x = clamp(tl.x, 0, max(0, _grid.map_width - tiles_w))

@@ -302,5 +302,33 @@ func _init() -> void:
 	else:
 		print("FAIL no auto-end after last-unit death"); failed += 1
 
+	# ---- auto-end honours the SettingsManager toggle (#2) ----
+	var sm := root.get_node_or_null("SettingsManager")
+	if sm != null:
+		gs.reset_map_state()
+		gs.set_phase(gs.Phase.PLAYER)
+		var solo := _mk_unit("player", 20, "solo1")
+		gs.register_unit(solo)
+		var tm_toggle := TurnManager.new()
+		root.add_child(tm_toggle)
+		# Mark the only player unit DONE directly so set_unit_state's own deferred
+		# auto-end doesn't run — this block tests _auto_end_player_phase's gate.
+		tm_toggle._unit_states[solo] = TurnManager.UnitState.DONE
+		var toggle_seen := [0]
+		tm_toggle.turn_changed.connect(func(n): toggle_seen[0] = n)
+		sm.auto_end_turn = false
+		tm_toggle._auto_end_player_phase()
+		var held: bool = toggle_seen[0] == 0
+		sm.auto_end_turn = true
+		tm_toggle._auto_end_player_phase()
+		var ended: bool = toggle_seen[0] != 0
+		sm.auto_end_turn = true  # restore the default
+		if held and ended:
+			print("OK  auto-end respects the SettingsManager toggle (#2)"); passed += 1
+		else:
+			print("FAIL auto-end toggle: held=%s ended=%s" % [held, ended]); failed += 1
+	else:
+		print("SKIP auto-end toggle (SettingsManager autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

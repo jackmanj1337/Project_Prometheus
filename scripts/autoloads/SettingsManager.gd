@@ -20,6 +20,11 @@ var phase_banner: String = "show"
 var level_up_screen: String = "show"
 # "snap"|"disabled" — mouse behavior while choosing a target tile
 var mouse_targeting: String = "snap"
+# Whether the player phase ends automatically once every unit has acted (#2).
+var auto_end_turn: bool = true
+# Tiles from the viewport edge that trigger a camera pan (#17). Default mirrors
+# GameConstants.CURSOR_CAMERA_EDGE_BUFFER; MapCursor reads this at scroll time.
+var camera_edge_buffer: int = 2
 # NOTE: permadeath and leveling_method are per-save gameplay rules, not global
 # preferences — they live on GameState, set via the New Game screen.
 
@@ -51,6 +56,8 @@ func load_settings() -> void:
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
 	mouse_targeting   = cfg.get_value("gameplay", "mouse_targeting",   mouse_targeting)
+	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
+	camera_edge_buffer = cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
@@ -69,6 +76,8 @@ func save() -> void:
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
 	cfg.set_value("gameplay", "mouse_targeting",   mouse_targeting)
+	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
+	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -91,6 +100,8 @@ func reset_section_to_defaults(section: String) -> void:
 			phase_banner      = "show"
 			level_up_screen   = "show"
 			mouse_targeting   = "snap"
+			auto_end_turn      = true
+			camera_edge_buffer = 2
 		"controls":
 			keybindings = {}
 			_apply_keybindings()
