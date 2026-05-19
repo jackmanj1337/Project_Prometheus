@@ -133,5 +133,52 @@ func _init() -> void:
 		print("FAIL unreachable path: " + str(unreach))
 		failed += 1
 
+	# --- Staff range (playtest 3 #3) ---
+	# Stub unit that returns a healing staff from get_equipped_weapon(); the
+	# real Unit pulls weapons via DataManager which isn't always loaded in tests.
+	var staff_unit_script := GDScript.new()
+	staff_unit_script.source_code = """
+extends Node
+var tile_position: Vector2i = Vector2i.ZERO
+var _w
+func _set_staff(weapon) -> void: _w = weapon
+func get_equipped_weapon(): return _w
+"""
+	staff_unit_script.reload()
+	var staff_unit: Node = staff_unit_script.new()
+	root.add_child(staff_unit)
+	var heal_staff := WeaponData.new()
+	heal_staff.weapon_type = "staff"
+	# Typed-array literal — bare [] won't satisfy Array[String]; assign via local.
+	var tags: Array[String] = [GameConstants.TAG_HEAL_PLUS_MAG]
+	heal_staff.effect_tags = tags
+	# Range fields default to "1"/"1" formulas — no need to set them.
+	staff_unit._set_staff(heal_staff)
+	# A 3x3 movement-tile footprint centred at (2,2). The staff reach should be
+	# the ring of tiles adjacent to that footprint and NOT inside it.
+	var movement_tiles: Array[Vector2i] = [
+		Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1),
+		Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2),
+		Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3),
+	]
+	var heal_ring := grid.get_staff_range_from_tiles(staff_unit, movement_tiles)
+	var has_outside := Vector2i(0, 2) in heal_ring and Vector2i(4, 2) in heal_ring
+	var no_inside := not (Vector2i(2, 2) in heal_ring)
+	if has_outside and no_inside:
+		print("OK  get_staff_range_from_tiles paints the ring outside the move range (#3)")
+		passed += 1
+	else:
+		print("FAIL staff range: outside=%s no_inside=%s ring=%s" % [has_outside, no_inside, heal_ring])
+		failed += 1
+	# A non-staff unit must get nothing back — gates the heal-overlay branch.
+	var non_staff_ring := grid.get_staff_range_from_tiles(u, movement_tiles)
+	if non_staff_ring.is_empty():
+		print("OK  get_staff_range_from_tiles returns [] for non-healing-staff users")
+		passed += 1
+	else:
+		print("FAIL non-staff ring should be empty, got %s" % non_staff_ring)
+		failed += 1
+	staff_unit.queue_free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

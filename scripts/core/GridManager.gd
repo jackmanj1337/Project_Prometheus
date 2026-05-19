@@ -304,6 +304,32 @@ func get_attack_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Arr
 	return out
 
 
+# Heal reach around the movement range — selection-time analogue of
+# get_attack_range_from_tiles for healing-staff users. Returns empty for any
+# unit not currently equipped with a healing staff, so the caller can pick the
+# right overlay (red attack vs orange heal) by looking at which list is empty.
+# Playtest 3 #3 — without this a selected healer showed only movement range.
+func get_staff_range_from_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if unit == null or not unit.has_method("get_equipped_weapon"):
+		return out
+	var w: WeaponData = unit.get_equipped_weapon()
+	if w == null or not w.is_healing_staff():
+		return out
+	var wrange := _get_weapon_range(unit)
+	var from_set: Dictionary = {}
+	for t in from_tiles:
+		from_set[t] = true
+	var seen: Dictionary = {}
+	for src in from_tiles:
+		for tile in _tiles_in_range(src, wrange.x, wrange.y):
+			if not from_set.has(tile):
+				seen[tile] = true
+	for k in seen.keys():
+		out.append(k)
+	return out
+
+
 # Union of from_tiles and all attackable tiles. Used by AI scoring.
 func get_all_attack_tiles(unit: Node, from_tiles: Array[Vector2i]) -> Array[Vector2i]:
 	var wrange := _get_weapon_range(unit)

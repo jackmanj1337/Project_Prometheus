@@ -38,9 +38,22 @@ func select_at(tile: Vector2i) -> bool:
 	selected_unit = unit
 	movement_tiles = _grid.get_movement_range(unit)
 	_grid.show_movement_overlay(movement_tiles)
-	# Attack overlay on tiles adjacent to the movement range.
-	_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, movement_tiles))
+	# A healing-staff user has no attack reach, but does have a heal reach —
+	# paint the heal overlay around the movement range so the player can see
+	# where the staff can reach when planning the move (playtest 3 #3).
+	_paint_action_overlay(unit)
 	return true
+
+
+# Branches the action-range overlay by what the unit has equipped: heal overlay
+# for healing staves, attack overlay otherwise. Shared by select_at and
+# undo_and_reselect so the two paths can't drift.
+func _paint_action_overlay(unit: Node) -> void:
+	var w: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	if w != null and w.is_healing_staff():
+		_grid.show_heal_overlay(_grid.get_staff_range_from_tiles(unit, movement_tiles))
+	else:
+		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, movement_tiles))
 
 
 # Port of MapCursor._try_move_selected_to_cursor's validation half. If `tile` is a
@@ -76,7 +89,7 @@ func undo_and_reselect() -> void:
 	if _grid != null and selected_unit != null:
 		movement_tiles = _grid.get_movement_range(selected_unit)
 		_grid.show_movement_overlay(movement_tiles)
-		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(selected_unit, movement_tiles))
+		_paint_action_overlay(selected_unit)
 
 
 # Clears overlays, nulls the selected unit, empties the movement tiles. Used by both
