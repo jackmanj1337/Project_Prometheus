@@ -6,10 +6,10 @@ class_name ActionMenu extends Control
 signal action_chosen(action: String)
 signal hidden_by_cancel()
 
-@onready var _btn_attack: Button = $Panel/VBox/BtnAttack
-@onready var _btn_staff:  Button = $Panel/VBox/BtnStaff
-@onready var _btn_item:   Button = $Panel/VBox/BtnItem
-@onready var _btn_wait:   Button = $Panel/VBox/BtnWait
+@onready var _btn_attack: Button = $VBox/BtnAttack
+@onready var _btn_staff:  Button = $VBox/BtnStaff
+@onready var _btn_item:   Button = $VBox/BtnItem
+@onready var _btn_wait:   Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
 var _buttons: Array[Button] = []
@@ -17,10 +17,12 @@ var _buttons: Array[Button] = []
 
 func _ready() -> void:
 	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_wait]
-	_btn_attack.pressed.connect(func(): action_chosen.emit("attack"))
-	_btn_staff.pressed.connect(func():  action_chosen.emit("staff"))
-	_btn_item.pressed.connect(func():   action_chosen.emit("item"))
-	_btn_wait.pressed.connect(func():   action_chosen.emit("wait"))
+	# Hide on press as well as on cancel — otherwise the menu lingers on screen
+	# after a choice (it never appeared before the menu-ref fix, so this was latent).
+	_btn_attack.pressed.connect(func(): hide(); action_chosen.emit("attack"))
+	_btn_staff.pressed.connect(func():  hide(); action_chosen.emit("staff"))
+	_btn_item.pressed.connect(func():   hide(); action_chosen.emit("item"))
+	_btn_wait.pressed.connect(func():   hide(); action_chosen.emit("wait"))
 	hide()
 
 

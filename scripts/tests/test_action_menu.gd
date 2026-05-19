@@ -113,5 +113,27 @@ func _init() -> void:
 			am._btn_item.disabled, am._btn_wait.disabled, am._focused_idx])
 		failed += 1
 
+	# ---- the menu renders at a real size (PanelContainer sizes to its buttons) ----
+	# Regression for the audit: the old Control root was 0-height, so the panel
+	# background never drew once the menu was actually shown.
+	am.show_for(_mk_unit(sword, [_usable_item()]), _mk_grid(dummy, []))
+	await process_frame
+	if am.size.x > 0 and am.size.y > 0:
+		print("OK  ActionMenu has a non-zero size (%s)" % str(am.size)); passed += 1
+	else:
+		print("FAIL ActionMenu size is zero: %s" % str(am.size)); failed += 1
+
+	# ---- choosing an action hides the menu (it used to linger on screen) ----
+	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))
+	var chose := [""]
+	am.action_chosen.connect(func(a): chose[0] = a)
+	am._btn_wait.pressed.emit()
+	if not am.visible and chose[0] == "wait":
+		print("OK  picking an action hides the menu and emits action_chosen")
+		passed += 1
+	else:
+		print("FAIL menu after press: visible=%s chose=%s" % [am.visible, chose[0]])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

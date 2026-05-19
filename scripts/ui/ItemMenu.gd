@@ -5,7 +5,7 @@ class_name ItemMenu extends Control
 signal item_chosen(entry: InventoryEntry)
 signal cancelled()
 
-@onready var _vbox: VBoxContainer = $Panel/VBox
+@onready var _vbox: VBoxContainer = $VBox
 
 var _buttons: Array[Button] = []
 var _focused_idx: int = 0

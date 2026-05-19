@@ -2,38 +2,31 @@
 
 [ext_resource type="Script" path="res://scripts/ui/ActionMenu.gd" id="1_actionmenu"]
 
-[node name="ActionMenu" type="Control"]
+[node name="ActionMenu" type="PanelContainer"]
+custom_minimum_size = Vector2(128, 0)
 script = ExtResource("1_actionmenu")
 visible = false
-custom_minimum_size = Vector2(128, 0)
 mouse_filter = 2
 
-[node name="Panel" type="Panel" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 4.0
-offset_right = -4.0
-offset_bottom = -4.0
-
-[node name="BtnAttack" type="Button" parent="Panel/VBox"]
+[node name="BtnAttack" type="Button" parent="VBox"]
+layout_mode = 2
 text = "Attack"
 focus_mode = 2
 
-[node name="BtnStaff" type="Button" parent="Panel/VBox"]
+[node name="BtnStaff" type="Button" parent="VBox"]
+layout_mode = 2
 text = "Staff"
 focus_mode = 2
 
-[node name="BtnItem" type="Button" parent="Panel/VBox"]
+[node name="BtnItem" type="Button" parent="VBox"]
+layout_mode = 2
 text = "Item"
 focus_mode = 2
 
-[node name="BtnWait" type="Button" parent="Panel/VBox"]
+[node name="BtnWait" type="Button" parent="VBox"]
+layout_mode = 2
 text = "Wait"
 focus_mode = 2
