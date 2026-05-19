@@ -559,6 +559,21 @@ func _execute_canto(canto_unit: Node) -> void:
     TurnManager.set_unit_state(canto_unit, TurnManager.UnitState.DONE)
 ```
 
+### Mounted-unit movement remainder
+
+Beyond the Canto *skill*, all **mounted** classes (cavalry, fliers, etc.) should
+behave like classic Fire Emblem Canto: after taking any non-Wait action that does
+not itself end the turn, a mounted unit may spend its **remaining movement**
+before its turn ends. (Playtest 3 finding #17.) Built on `grant_extra_turn`:
+
+- After a mounted unit's action resolves, if the unit has unused movement, call
+  `grant_extra_turn(unit, { "can_move": true, "can_act": false, "is_self": true })`
+  so it re-enters the active controller able to move but not act again.
+- The leftover range is the unit's `move` stat minus tiles already spent.
+- A unit that chose **Wait** (or any other turn-ending action) gets no remainder.
+- Knight Ring (M11 — "unit treated as Mounted for movement remainder") grants
+  this to a non-mounted holder via the same code path, gated on the item flag.
+
 ### Encore (Skald occult)
 
 `on_combat_end` SKL/2%; after Skald initiates combat, grant an extra turn to the Skald
@@ -616,6 +631,10 @@ all allies within 3 spaces for 1 full round.
 - [ ] Implement Canto action in `ActionMenu`; select adjacent DONE allies
 - [ ] Implement Resonance modifier on Canto (up to 2 targets)
 - [ ] Implement Battle Cry modifier (stat boost on Canto targets)
+- [ ] Implement mounted-unit movement remainder: after a non-Wait action a mounted
+      unit may spend leftover movement (playtest 3 #17)
+- [ ] Verify: a mounted unit that selects Wait does NOT receive leftover movement
+- [ ] Verify: a mounted unit's leftover-movement range excludes already-spent tiles
 - [ ] Implement Encore (self extra-turn after combat, 2× per turn max)
 - [ ] Implement Special Dance with consecutive-target tracking
 - [ ] Implement stat choice selection UI for Special Dance `[PLACEHOLDER UI]`
@@ -1453,9 +1472,12 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 
 ### UI / UX & Settings
 
-Merged from `CLAUDE/Docs/playtest2_findings_2026-05-19.md` ("Features to add to
-the to-do list"). These are deferred enhancements, not playtest bugs — the bugs
-are tracked separately in `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`.
+Merged from the playtest findings docs ("Features to add to the to-do list" /
+"Add to later milestones"): `CLAUDE/Docs/playtest2_findings_2026-05-19.md` and
+`CLAUDE/Docs/playtest3_findings_2026-05-19.md`. These are deferred enhancements,
+not playtest bugs — the bugs are tracked separately (playtest 2 in
+`CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`, playtest 3 in the dated code
+review under `CLAUDE/Code Reviews/`).
 
 - [ ] **Range display on hover** — show a unit's movement/attack range when the
       cursor merely hovers over it (transparent overlay), then render it more
@@ -1480,7 +1502,33 @@ are tracked separately in `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`.
 - [ ] **Key rebinding UI** — the `SettingsScreen` keybinding list is currently
       read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
       already exists; this item is the capture UI that calls it. Originally
-      deferred to "Phase 2" in Session M notes.
+      deferred to "Phase 2" in Session M notes. (Re-flagged as playtest 3 #19,
+      "ability to remap controls" — same feature, no separate entry.)
+- [ ] **Full character sheet** — flesh out the unit details / character sheet
+      screen (`scripts/ui/UnitDetailsScreen.gd`) with the complete stat block,
+      growth rates, class, equipped weapon, and skill list. (Playtest 3 #12.)
+- [ ] **"More info" inspection mode** — a toggle button that makes individual UI
+      elements (weapon stats, skill descriptions, per-stat explanations, item
+      function) selectable. While active, keybindings move a focus highlight
+      between elements and surface an info box. Setting: info box appears on
+      mouse-hover vs. confirm-click. Pairs with the character sheet above.
+      (Playtest 3 #13.)
+- [ ] **Gamepad & touch-screen support** — investigate input support beyond
+      mouse + keyboard. Scope open — controller rebinding ties into the Key
+      rebinding UI above; touch needs an on-screen control surface. (Playtest 3
+      #14 — flagged as a question, not yet committed.)
+- [ ] **Attack-by-target selection** — let the player initiate combat by
+      selecting a valid in-range enemy directly, rather than choosing "Attack"
+      from the Action Menu first. (Playtest 3 #15.)
+- [ ] **Richer combat prediction** — the combat forecast should also show crit
+      chance, weapon-triangle advantage/disadvantage, and effective-damage flags
+      (e.g. anti-cavalry). (Playtest 3 #16.)
+- [ ] **Combat-prediction layout** — the selected-unit info panel must not
+      overlap the combat prediction panel. (Playtest 3 #18.)
+- [ ] **Minimap toggle** — bind the minimap to a button instead of leaving it
+      always-on / unavailable. (Playtest 3 #20.)
+- [ ] **Action Menu shrink-to-fit** — hide unavailable actions so the menu
+      shrinks, rather than showing greyed-out options. (Playtest 3 #21.)
 
 ### Pre-Release Cleanup
 
