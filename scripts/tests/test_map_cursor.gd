@@ -269,6 +269,7 @@ func _init() -> void:
 	c8.action_menu = menu_script.new()
 	root.add_child(c8.action_menu)
 	c8._selection.selected_unit = _make_unit(Vector2i(1, 1), "player")
+	c8._set_tile(Vector2i(4, 4))  # cursor parked on a far tile (a target tile)
 	c8._state = TARGETING
 	c8._on_targeting_cancelled()
 	if c8._state == UNIT_MOVED:
@@ -276,6 +277,13 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL targeting-cancel: _state=%d" % c8._state)
+		failed += 1
+	# Cursor must snap back onto the acting unit, not linger on the target (#9).
+	if c8.current_tile == Vector2i(1, 1):
+		print("OK  _on_targeting_cancelled snaps cursor to acting unit (#9)")
+		passed += 1
+	else:
+		print("FAIL targeting-cancel cursor: tile=%s" % str(c8.current_tile))
 		failed += 1
 
 	# ---- _cycle_to_next_unit is a no-op outside FREE ----

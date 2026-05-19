@@ -454,6 +454,11 @@ func _on_targeting_completed() -> void:
 # Player backed out of target choice — return to the ActionMenu.
 func _on_targeting_cancelled() -> void:
 	_state = State.UNIT_MOVED
+	# Snap the cursor back onto the acting unit (#9). Without this the cursor is
+	# left on the last highlighted enemy tile, away from the unit taking the
+	# action — mirrors how _enter_targeting snapped it onto the first target.
+	if _selection.selected_unit != null:
+		_set_tile(_selection.selected_unit.tile_position)
 	_show_action_menu()
 
 
