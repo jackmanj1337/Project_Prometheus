@@ -111,6 +111,34 @@ func get_equipped_weapon_entry() -> InventoryEntry:
 	return pair[0] if pair.size() == 2 else null
 
 
+# Every inventory weapon the unit can currently use (rank allows it, uses left).
+# The weapon-swap menu (#8) lists these; the first entry is the equipped weapon.
+func get_equippable_weapons() -> Array[InventoryEntry]:
+	var out: Array[InventoryEntry] = []
+	if data == null:
+		return out
+	for entry in data.inventory:
+		if not entry.is_weapon() or not entry.has_uses():
+			continue
+		var weapon := _load_weapon(entry.weapon_id)
+		if weapon != null and _can_equip_rank(weapon):
+			out.append(entry)
+	return out
+
+
+# Makes `entry` the equipped weapon by moving it to the front of the inventory.
+# get_equipped_weapon() returns the first usable weapon, so inventory order *is*
+# the equip state (#8). No-op if the entry is missing or already at the front.
+func set_equipped_weapon(entry: InventoryEntry) -> void:
+	if data == null or entry == null:
+		return
+	var idx: int = data.inventory.find(entry)
+	if idx <= 0:
+		return
+	data.inventory.remove_at(idx)
+	data.inventory.insert(0, entry)
+
+
 func _load_weapon(id: String) -> WeaponData:
 	if is_inside_tree():
 		var dm := get_node_or_null("/root/DataManager")

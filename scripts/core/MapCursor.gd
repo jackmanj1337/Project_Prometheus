@@ -49,6 +49,7 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var map_menu: Node = null
 @export var attack_preview: Node = null
 @export var settings_screen: Node = null
+@export var weapon_menu: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
@@ -75,6 +76,9 @@ func _ready() -> void:
 	if item_menu:
 		item_menu.item_chosen.connect(_on_item_chosen)
 		item_menu.cancelled.connect(_on_item_menu_cancelled)
+	if weapon_menu:
+		weapon_menu.weapon_chosen.connect(_on_weapon_chosen)
+		weapon_menu.cancelled.connect(_on_weapon_menu_cancelled)
 	if map_menu:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
@@ -107,6 +111,8 @@ func _resolve_menu_refs() -> void:
 		attack_preview = get_node_or_null("../HUDLayer/AttackPreview")
 	if settings_screen == null:
 		settings_screen = get_node_or_null("../SettingsLayer/SettingsScreen")
+	if weapon_menu == null:
+		weapon_menu = get_node_or_null("../HUDLayer/WeaponMenu")
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -455,6 +461,8 @@ func _on_action_chosen(action: String) -> void:
 			_enter_targeting(MapCursorTargeting.Mode.STAFF)
 		"item":
 			_use_item()
+		"equip":
+			_open_weapon_menu()
 		"wait":
 			_commit_wait()
 
@@ -529,6 +537,32 @@ func _apply_item_effect(entry: InventoryEntry) -> void:
 		ih.apply_item(_selection.selected_unit, entry)
 	else:
 		push_warning("MapCursor: ItemHandler autoload not found")
+
+
+# ── Weapon Swap (#8) ─────────────────────────────────────────────────────────
+#
+# Equipping is free: it doesn't consume the action. The flow stays in UNIT_MOVED
+# — picking a weapon or cancelling just reopens the ActionMenu, which re-evaluates
+# Attack/Staff availability against the newly equipped weapon.
+
+func _open_weapon_menu() -> void:
+	if weapon_menu == null or _selection.selected_unit == null:
+		_show_action_menu()  # no menu wired / no unit — fall back to the ActionMenu
+		return
+	var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
+	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
+	weapon_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+	weapon_menu.show_for(_selection.selected_unit)
+
+
+func _on_weapon_chosen(entry: InventoryEntry) -> void:
+	if _selection.selected_unit != null:
+		_selection.selected_unit.set_equipped_weapon(entry)
+	_show_action_menu()
+
+
+func _on_weapon_menu_cancelled() -> void:
+	_show_action_menu()
 
 
 # ── Shared Action Completion ─────────────────────────────────────────────────

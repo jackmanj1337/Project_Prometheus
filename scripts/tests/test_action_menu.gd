@@ -8,8 +8,9 @@ var _unit_stub: GDScript
 var _grid_stub: GDScript
 
 
-# Builds a stub unit: get_equipped_weapon() returns `weapon`; data.inventory = `entries`.
-func _mk_unit(weapon: Variant, entries: Array) -> Node:
+# Builds a stub unit: get_equipped_weapon() returns `weapon`; data.inventory =
+# `entries`; get_equippable_weapons() returns `weapons` (drives the Equip button).
+func _mk_unit(weapon: Variant, entries: Array, weapons: Array = []) -> Node:
 	var d := UnitData.new()
 	var inv: Array[InventoryEntry] = []
 	for e in entries:
@@ -18,6 +19,7 @@ func _mk_unit(weapon: Variant, entries: Array) -> Node:
 	var u: Node = _unit_stub.new()
 	u.set("data", d)
 	u.set("_weapon", weapon)
+	u.set("_weapons", weapons)
 	root.add_child(u)
 	return u
 
@@ -46,7 +48,7 @@ func _init() -> void:
 	var failed := 0
 
 	_unit_stub = GDScript.new()
-	_unit_stub.source_code = "extends Node\nvar data = null\nvar _weapon = null\nvar tile_position: Vector2i = Vector2i.ZERO\nfunc get_equipped_weapon(): return _weapon\n"
+	_unit_stub.source_code = "extends Node\nvar data = null\nvar _weapon = null\nvar _weapons: Array = []\nvar tile_position: Vector2i = Vector2i.ZERO\nfunc get_equipped_weapon(): return _weapon\nfunc get_equippable_weapons() -> Array: return _weapons\n"
 	_unit_stub.reload()
 	_grid_stub = GDScript.new()
 	_grid_stub.source_code = "extends Node\nvar enemies: Array = []\nvar heal_targets: Array = []\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return enemies\nfunc get_healable_allies(_u) -> Array: return heal_targets\n"
@@ -105,13 +107,24 @@ func _init() -> void:
 		print("FAIL Item should be enabled"); failed += 1
 
 	# ---- All else disabled: Item off, Wait still on, focus falls to Wait ----
+	# Wait is index 4 in _buttons: [attack, staff, item, equip, wait].
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if am._btn_item.disabled and not am._btn_wait.disabled and am._focused_idx == 3:
+	if am._btn_item.disabled and not am._btn_wait.disabled and am._focused_idx == 4:
 		print("OK  Item disabled / Wait always enabled / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item=%s wait=%s focus=%d" % [
 			am._btn_item.disabled, am._btn_wait.disabled, am._focused_idx])
 		failed += 1
+
+	# ---- Equip enabled only with 2+ usable weapons (#8) ----
+	am.show_for(_mk_unit(sword, [], [null, null]), _mk_grid([], []))
+	var equip_two: bool = not am._btn_equip.disabled
+	am.show_for(_mk_unit(sword, [], [null]), _mk_grid([], []))
+	var equip_one: bool = am._btn_equip.disabled
+	if equip_two and equip_one:
+		print("OK  Equip enabled with 2+ weapons, disabled with fewer (#8)"); passed += 1
+	else:
+		print("FAIL Equip toggle: two_ok=%s one_ok=%s" % [equip_two, equip_one]); failed += 1
 
 	# ---- the menu renders at a real size (PanelContainer sizes to its buttons) ----
 	# Regression for the audit: the old Control root was 0-height, so the panel

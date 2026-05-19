@@ -427,5 +427,22 @@ func _init() -> void:
 	if dlg != null:
 		dlg.queue_free()
 
+	# ---- Unit.set_equipped_weapon reorders the inventory (#8) ----
+	var swap_unit := _make_unit(Vector2i(0, 0), "player")
+	var w_a := InventoryEntry.make_weapon("iron_sword", 40)
+	var w_b := InventoryEntry.make_weapon("iron_lance", 40)
+	var w_c := InventoryEntry.make_weapon("javelin", 40)
+	swap_unit.data.inventory = [w_a, w_b, w_c]
+	swap_unit.set_equipped_weapon(w_c)        # equip the javelin → moves to front
+	var reorder_ok: bool = swap_unit.data.inventory == [w_c, w_a, w_b]
+	swap_unit.set_equipped_weapon(w_c)        # already first → no-op
+	var noop_ok: bool = swap_unit.data.inventory == [w_c, w_a, w_b]
+	if reorder_ok and noop_ok:
+		print("OK  Unit.set_equipped_weapon moves the weapon to the front (#8)")
+		passed += 1
+	else:
+		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

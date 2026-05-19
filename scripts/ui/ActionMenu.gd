@@ -9,6 +9,7 @@ signal hidden_by_cancel()
 @onready var _btn_attack: Button = $VBox/BtnAttack
 @onready var _btn_staff:  Button = $VBox/BtnStaff
 @onready var _btn_item:   Button = $VBox/BtnItem
+@onready var _btn_equip:  Button = $VBox/BtnEquip
 @onready var _btn_wait:   Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
@@ -16,12 +17,13 @@ var _buttons: Array[Button] = []
 
 
 func _ready() -> void:
-	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_wait]
+	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_wait]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
 	_btn_attack.pressed.connect(func(): hide(); action_chosen.emit("attack"))
 	_btn_staff.pressed.connect(func():  hide(); action_chosen.emit("staff"))
 	_btn_item.pressed.connect(func():   hide(); action_chosen.emit("item"))
+	_btn_equip.pressed.connect(func():  hide(); action_chosen.emit("equip"))
 	_btn_wait.pressed.connect(func():   hide(); action_chosen.emit("wait"))
 	hide()
 
@@ -52,9 +54,15 @@ func show_for(unit: Node, grid: Node) -> void:
 				has_items = true
 				break
 
+	# Equip is offered only with 2+ usable weapons — swapping needs an alternative.
+	var has_weapon_swap := false
+	if unit.has_method("get_equippable_weapons"):
+		has_weapon_swap = unit.get_equippable_weapons().size() >= 2
+
 	_btn_attack.disabled = not has_enemies
 	_btn_staff.disabled  = not has_heal_targets
 	_btn_item.disabled   = not has_items
+	_btn_equip.disabled  = not has_weapon_swap
 	_btn_wait.disabled   = false  # Wait is always available
 
 	# Focus first enabled button

@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/WeaponMenu.gd" id="1_weaponmenu"]
+
+[node name="WeaponMenu" type="PanelContainer"]
+custom_minimum_size = Vector2(200, 0)
+script = ExtResource("1_weaponmenu")
+visible = false
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
