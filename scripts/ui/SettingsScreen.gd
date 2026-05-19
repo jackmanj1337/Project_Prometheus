@@ -1,47 +1,28 @@
 extends Control
-# Settings screen: audio sliders, gameplay toggles, and a back button.
-# Reads initial values from SettingsManager on show(); writes back on every change.
+# Settings screen: audio sliders, gameplay toggles, a read-only keybinding list,
+# and a back button. Reads values from SettingsManager on open(); writes back on
+# every change. A full-rect opaque Dimmer makes the screen modal (#1); the inner
+# content lives in a ScrollContainer so it never overflows the panel.
 #
-# Expected scene structure (create in Godot editor — see GDD_Manual_Tasks.md):
-#   SettingsScreen (Control, full-rect anchor)
-#     Panel
-#       VBox
-#         Label "Settings"
-#         HBox (Master Volume)
-#           Label "Master"
-#           HSlider (node name: SliderMaster)
-#           Label (node name: LabelMaster)
-#         HBox (Music Volume)
-#           Label "Music"
-#           HSlider (node name: SliderMusic)
-#           Label (node name: LabelMusic)
-#         HBox (SFX Volume)
-#           Label "SFX"
-#           HSlider (node name: SliderSFX)
-#           Label (node name: LabelSFX)
-#         HSeparator
-#         OptionButton (node name: OptCombatAnim)    # hidden until a combat-animation system exists
-#         OptionButton (node name: OptMovementSpeed)  # Normal / Fast / Instant
-#         OptionButton (node name: OptPhaseBanner)    # Show / Skip
-#         OptionButton (node name: OptLevelUpScreen)  # Show / Auto / Skip
-#         OptionButton (node name: OptMouseTargeting) # Snap to Target / Keyboard Only
-#         HSeparator
-#         Button (node name: BtnBack)
+# Scene: SettingsScreen > Dimmer + Panel > ScrollContainer > VBox > rows.
+# The keybinding rows under VBox/KeybindList are built at runtime (#8).
 
 signal back_pressed()
 
-@onready var _slider_master: HSlider   = $Panel/VBox/HBoxMaster/SliderMaster
-@onready var _slider_music: HSlider    = $Panel/VBox/HBoxMusic/SliderMusic
-@onready var _slider_sfx: HSlider      = $Panel/VBox/HBoxSFX/SliderSFX
-@onready var _label_master: Label      = $Panel/VBox/HBoxMaster/LabelMaster
-@onready var _label_music: Label       = $Panel/VBox/HBoxMusic/LabelMusic
-@onready var _label_sfx: Label         = $Panel/VBox/HBoxSFX/LabelSFX
-@onready var _opt_combat_anim: OptionButton   = $Panel/VBox/OptCombatAnim
-@onready var _opt_movement_speed: OptionButton = $Panel/VBox/OptMovementSpeed
-@onready var _opt_phase_banner: OptionButton  = $Panel/VBox/OptPhaseBanner
-@onready var _opt_level_up: OptionButton      = $Panel/VBox/OptLevelUpScreen
-@onready var _opt_mouse_targeting: OptionButton = $Panel/VBox/OptMouseTargeting
-@onready var _btn_back: Button                = $Panel/VBox/BtnBack
+@onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
+@onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
+@onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
+@onready var _slider_sfx: HSlider       = _vbox.get_node("HBoxSFX/SliderSFX")
+@onready var _label_master: Label       = _vbox.get_node("HBoxMaster/LabelMaster")
+@onready var _label_music: Label        = _vbox.get_node("HBoxMusic/LabelMusic")
+@onready var _label_sfx: Label          = _vbox.get_node("HBoxSFX/LabelSFX")
+@onready var _opt_combat_anim: OptionButton    = _vbox.get_node("OptCombatAnim")
+@onready var _opt_movement_speed: OptionButton = _vbox.get_node("HBoxMovementSpeed/OptMovementSpeed")
+@onready var _opt_phase_banner: OptionButton   = _vbox.get_node("HBoxPhaseBanner/OptPhaseBanner")
+@onready var _opt_level_up: OptionButton       = _vbox.get_node("HBoxLevelUp/OptLevelUpScreen")
+@onready var _opt_mouse_targeting: OptionButton = _vbox.get_node("HBoxMouseTargeting/OptMouseTargeting")
+@onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
+@onready var _btn_back: Button          = _vbox.get_node("BtnBack")
 
 const _COMBAT_ANIM_OPTIONS: Array[String]    = ["all", "player_only", "enemy_only", "none"]
 const _MOVEMENT_SPEED_OPTIONS: Array[String] = ["normal", "fast", "instant"]
@@ -80,6 +61,7 @@ func _ready() -> void:
 	_opt_level_up.item_selected.connect(_on_level_up_selected)
 	_opt_mouse_targeting.item_selected.connect(_on_mouse_targeting_selected)
 	_btn_back.pressed.connect(_on_back)
+	_populate_keybindings()
 	hide()
 
 
@@ -175,3 +157,43 @@ func _populate_option_button(btn: OptionButton, labels: Array[String]) -> void:
 	btn.clear()
 	for lbl in labels:
 		btn.add_item(lbl)
+
+
+# Game actions shown in the read-only keybinding list, in display order (#8).
+const _KEYBIND_LABELS := {
+	"cursor_up": "Move Up",
+	"cursor_down": "Move Down",
+	"cursor_left": "Move Left",
+	"cursor_right": "Move Right",
+	"confirm": "Confirm",
+	"cancel": "Cancel / Back",
+	"next_unit": "Next Unit",
+	"prev_unit": "Previous Unit",
+	"open_menu": "Map Menu",
+	"open_settings": "Settings",
+	"show_danger_zone": "Toggle Threat Range",
+}
+
+
+# Builds the read-only keybinding rows from the live InputMap (#8). Each row is a
+# title label + the key(s) bound to that action. Rebinding is deferred to Phase 2.
+func _populate_keybindings() -> void:
+	for child in _keybind_list.get_children():
+		child.queue_free()
+	for action in _KEYBIND_LABELS:
+		if not InputMap.has_action(action):
+			continue
+		var keys: Array[String] = []
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventKey:
+				var code: int = ev.keycode if ev.keycode != 0 else ev.physical_keycode
+				keys.append(OS.get_keycode_string(code))
+		var row := HBoxContainer.new()
+		var name_label := Label.new()
+		name_label.text = _KEYBIND_LABELS[action]
+		name_label.custom_minimum_size = Vector2(200, 0)
+		var key_label := Label.new()
+		key_label.text = " / ".join(keys) if not keys.is_empty() else "(unbound)"
+		row.add_child(name_label)
+		row.add_child(key_label)
+		_keybind_list.add_child(row)
