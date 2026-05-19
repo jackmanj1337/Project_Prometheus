@@ -1547,10 +1547,28 @@ review under `CLAUDE/Code Reviews/`).
       so it doesn't rot. Grep for `is_debug_build` and the `debug_force_levelup`
       flag to find every site.
 - [ ] **Remove the debug-mode HUD banner.** A red "DEBUG MODE" label is shown
-      on the HUD whenever `OS.is_debug_build()` is true, so playtesters can see
-      at a glance that the build may have debug aids active (the inflated
-      growths / EXP above) and that on-screen stats may not reflect release
-      behaviour. It is gated on `OS.is_debug_build()` and so never appears in a
-      release build, but the `DebugLabel` node in `HUD.tscn` and the
-      `HUD._setup_debug_banner` / `_apply_debug_banner` code should be deleted
-      with the other aids before release. Added 2026-05-19.
+      on the HUD whenever `OS.is_debug_build()` is true, listing which debug
+      aids (force-levelup, growth-boost) are flipped on so playtesters know the
+      stats on screen may not reflect release behaviour. It is gated on
+      `OS.is_debug_build()` and never appears in a release build, but the code
+      must still be deleted before release. The banner is an N-file ecosystem —
+      delete every site below. Added 2026-05-19; extended 2026-05-19.
+
+      Files to clean (grep anchors after each):
+      - `scenes/ui/HUD.tscn` — `DebugLabel` node
+        (grep: `DebugLabel`)
+      - `scripts/ui/HUD.gd` — `@onready _debug_label`, `_setup_debug_banner`,
+        `_refresh_debug_banner`, `_collect_active_debug_aids`,
+        `_apply_debug_banner`, the `_setup_debug_banner()` call in `_ready`,
+        and the "Debug-mode banner" section header / comment block
+        (grep: `_debug_label\|debug_banner\|debug_aids`)
+      - `scripts/autoloads/EventBus.gd` — `signal debug_flags_changed()` +
+        comment block
+        (grep: `debug_flags_changed`)
+      - `scripts/autoloads/GameState.gd` — `_debug_force_levelup_v` and
+        `_debug_growth_boost_v` backing vars, both `debug_force_levelup` /
+        `debug_growth_boost` getter+setter blocks, and `_emit_debug_flags_changed()`
+        (grep: `_debug_force_levelup_v\|_debug_growth_boost_v\|debug_flags_changed`)
+      - `scripts/tests/test_hud.gd` — the entire suite (or at minimum the
+        live-toggle block) and its entry in `run_tests.sh`
+        (grep: `test_hud`)

@@ -157,6 +157,11 @@ func _update_turn_label() -> void:
 # toggled from the remote debugger via EventBus.debug_flags_changed.
 # DEBUG AID — remove before release; see GDD_10_Roadmap.md § Pre-Release Cleanup.
 func _setup_debug_banner() -> void:
+	# Skip wiring entirely in release builds — the banner can never be shown and
+	# the debug flags can never be flipped, so the signal connection would be
+	# dead weight on the bus. The DebugLabel stays hidden by its tscn default.
+	if not OS.is_debug_build():
+		return
 	# Listen for runtime flag toggles so the aid list stays current without polling.
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and bus.has_signal("debug_flags_changed"):
@@ -192,6 +197,9 @@ func _apply_debug_banner(is_debug: bool, active_aids: Array[String] = []) -> voi
 		return
 	_debug_label.visible = is_debug
 	if not is_debug:
+		# Don't leave a stale aid list on the hidden label — clearing keeps the
+		# label state and visible state in sync.
+		_debug_label.text = ""
 		return
 	if active_aids.is_empty():
 		_debug_label.text = "● DEBUG MODE"

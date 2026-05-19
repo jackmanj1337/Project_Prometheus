@@ -51,12 +51,14 @@ func _init() -> void:
 		else:
 			print("FAIL multi-aid banner: text=%q" % label.text); failed += 1
 
-		# is_debug=false hides the banner, regardless of the aid list.
+		# is_debug=false hides the banner AND clears the text — the strict
+		# invariant prevents a stale aid list from sitting under the hidden label.
 		hud._apply_debug_banner(false, one_aid)
-		if not label.visible:
-			print("OK  banner hidden when debug inactive"); passed += 1
+		if not label.visible and label.text == "":
+			print("OK  banner hidden and text cleared when debug inactive"); passed += 1
 		else:
-			print("FAIL banner shown when debug inactive"); failed += 1
+			print("FAIL hide path: visible=%s text=%q" % [label.visible, label.text])
+			failed += 1
 
 	# Flipping a GameState debug flag must re-emit through EventBus and refresh
 	# the banner — the live-update path used from the remote debugger.
@@ -77,7 +79,9 @@ func _init() -> void:
 			print("OK  flag toggle refreshes banner text"); passed += 1
 		else:
 			print("FAIL flag toggle did not refresh: text=%q" % label.text); failed += 1
-		# Tidy up so other suites aren't affected if they share the autoload.
+		# Reset the flags after toggling — defensive only; each suite runs in
+		# its own godot process under run_tests.sh, so this state never leaks
+		# across suites. Cheap belt-and-braces against future test layering.
 		gs.debug_force_levelup = false
 		gs.debug_growth_boost = false
 	else:
