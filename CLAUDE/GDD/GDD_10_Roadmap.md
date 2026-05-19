@@ -1527,8 +1527,11 @@ review under `CLAUDE/Code Reviews/`).
       overlap the combat prediction panel. (Playtest 3 #18.)
 - [ ] **Minimap toggle** — bind the minimap to a button instead of leaving it
       always-on / unavailable. (Playtest 3 #20.)
-- [ ] **Action Menu shrink-to-fit** — hide unavailable actions so the menu
-      shrinks, rather than showing greyed-out options. (Playtest 3 #21.)
+- [x] ~~**Action Menu shrink-to-fit** — hide unavailable actions so the menu
+      shrinks, rather than showing greyed-out options.~~ Shipped 2026-05-19,
+      pulled forward from the backlog. `ActionMenu.show_for` now sets
+      `visible` instead of `disabled`; the VBox collapses the gap so the menu
+      auto-shrinks. (Playtest 3 #21.)
 
 ### Pre-Release Cleanup
 

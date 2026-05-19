@@ -64,67 +64,85 @@ func _init() -> void:
 	root.add_child(am)
 	await process_frame
 
-	# ---- Attack enabled: a weapon equipped + an enemy in range ----
+	# Unavailable actions are HIDDEN (not greyed out) so the menu shrinks to
+	# fit (playtest 3 #21). Assertions check visibility, not disabled.
+
+	# ---- Attack shown: a weapon equipped + an enemy in range ----
 	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))
-	if not am._btn_attack.disabled and am._focused_idx == 0:
-		print("OK  Attack enabled (weapon + enemy in range); focus on Attack"); passed += 1
+	if am._btn_attack.visible and am._focused_idx == 0:
+		print("OK  Attack shown (weapon + enemy in range); focus on Attack"); passed += 1
 	else:
-		print("FAIL Attack should be enabled and focused"); failed += 1
+		print("FAIL Attack should be shown and focused"); failed += 1
 
-	# ---- Attack disabled: a weapon but no enemy in range ----
+	# ---- Attack hidden: a weapon but no enemy in range ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []))
-	if am._btn_attack.disabled:
-		print("OK  Attack disabled when no enemy is in range"); passed += 1
+	if not am._btn_attack.visible:
+		print("OK  Attack hidden when no enemy is in range"); passed += 1
 	else:
-		print("FAIL Attack should be disabled (no enemies)"); failed += 1
+		print("FAIL Attack should be hidden (no enemies)"); failed += 1
 
-	# ---- Attack disabled: no weapon equipped, even with enemies present ----
+	# ---- Attack hidden: no weapon equipped, even with enemies present ----
 	am.show_for(_mk_unit(null, []), _mk_grid(dummy, []))
-	if am._btn_attack.disabled:
-		print("OK  Attack disabled with no weapon equipped"); passed += 1
+	if not am._btn_attack.visible:
+		print("OK  Attack hidden with no weapon equipped"); passed += 1
 	else:
-		print("FAIL Attack should be disabled (no weapon)"); failed += 1
+		print("FAIL Attack should be hidden (no weapon)"); failed += 1
 
-	# ---- Staff enabled: a healing staff + a heal target in range ----
+	# ---- Staff shown: a healing staff + a heal target in range ----
 	am.show_for(_mk_unit(staff, []), _mk_grid([], dummy))
-	if not am._btn_staff.disabled:
-		print("OK  Staff enabled with a healing staff and a target in range"); passed += 1
+	if am._btn_staff.visible:
+		print("OK  Staff shown with a healing staff and a target in range"); passed += 1
 	else:
-		print("FAIL Staff should be enabled"); failed += 1
+		print("FAIL Staff should be shown"); failed += 1
 
-	# ---- Staff disabled: a non-staff weapon never offers Staff ----
+	# ---- Staff hidden: a non-staff weapon never offers Staff ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], dummy))
-	if am._btn_staff.disabled:
-		print("OK  Staff disabled with a non-staff weapon"); passed += 1
+	if not am._btn_staff.visible:
+		print("OK  Staff hidden with a non-staff weapon"); passed += 1
 	else:
-		print("FAIL Staff should be disabled (sword)"); failed += 1
+		print("FAIL Staff should be hidden (sword)"); failed += 1
 
-	# ---- Item enabled: inventory holds a usable item ----
+	# ---- Item shown: inventory holds a usable item ----
 	am.show_for(_mk_unit(sword, [_usable_item()]), _mk_grid([], []))
-	if not am._btn_item.disabled:
-		print("OK  Item enabled when the inventory holds a usable item"); passed += 1
+	if am._btn_item.visible:
+		print("OK  Item shown when the inventory holds a usable item"); passed += 1
 	else:
-		print("FAIL Item should be enabled"); failed += 1
+		print("FAIL Item should be shown"); failed += 1
 
-	# ---- All else disabled: Item off, Wait still on, focus falls to Wait ----
+	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
 	# Wait is index 4 in _buttons: [attack, staff, item, equip, wait].
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if am._btn_item.disabled and not am._btn_wait.disabled and am._focused_idx == 4:
-		print("OK  Item disabled / Wait always enabled / focus falls to Wait"); passed += 1
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 4:
+		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
-		print("FAIL Wait fallback: item=%s wait=%s focus=%d" % [
-			am._btn_item.disabled, am._btn_wait.disabled, am._focused_idx])
+		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
+			am._btn_item.visible, am._btn_wait.visible, am._focused_idx])
 		failed += 1
 
-	# ---- Equip enabled only with 2+ usable weapons (#8) ----
+	# ---- Equip shown only with 2+ usable weapons (#8) ----
 	am.show_for(_mk_unit(sword, [], [null, null]), _mk_grid([], []))
-	var equip_two: bool = not am._btn_equip.disabled
+	var equip_two: bool = am._btn_equip.visible
 	am.show_for(_mk_unit(sword, [], [null]), _mk_grid([], []))
-	var equip_one: bool = am._btn_equip.disabled
+	var equip_one: bool = not am._btn_equip.visible
 	if equip_two and equip_one:
-		print("OK  Equip enabled with 2+ weapons, disabled with fewer (#8)"); passed += 1
+		print("OK  Equip shown with 2+ weapons, hidden with fewer (#8)"); passed += 1
 	else:
 		print("FAIL Equip toggle: two_ok=%s one_ok=%s" % [equip_two, equip_one]); failed += 1
+
+	# ---- Menu shrinks when some actions are hidden (playtest 3 #21) ----
+	# Full menu (all five rows) must be taller than minimal menu (Wait only).
+	am.show_for(_mk_unit(sword, [_usable_item()], [null, null]), _mk_grid(dummy, dummy))
+	await process_frame
+	var full_h: float = am.get_combined_minimum_size().y
+	am.show_for(_mk_unit(null, []), _mk_grid([], []))  # only Wait survives
+	await process_frame
+	var minimal_h: float = am.get_combined_minimum_size().y
+	if full_h > minimal_h and minimal_h > 0:
+		print("OK  ActionMenu shrinks to fit visible rows (full=%.0f minimal=%.0f)" % [full_h, minimal_h])
+		passed += 1
+	else:
+		print("FAIL menu did not shrink: full=%.0f minimal=%.0f" % [full_h, minimal_h])
+		failed += 1
 
 	# ---- the menu renders at a real size (PanelContainer sizes to its buttons) ----
 	# Regression for the audit: the old Control root was 0-height, so the panel

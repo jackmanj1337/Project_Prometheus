@@ -59,16 +59,19 @@ func show_for(unit: Node, grid: Node) -> void:
 	if unit.has_method("get_equippable_weapons"):
 		has_weapon_swap = unit.get_equippable_weapons().size() >= 2
 
-	_btn_attack.disabled = not has_enemies
-	_btn_staff.disabled  = not has_heal_targets
-	_btn_item.disabled   = not has_items
-	_btn_equip.disabled  = not has_weapon_swap
-	_btn_wait.disabled   = false  # Wait is always available
+	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer
+	# collapses the gap so the menu shrinks to fit the offered choices, instead
+	# of showing greyed-out buttons. Wait is always offered.
+	_btn_attack.visible = has_enemies
+	_btn_staff.visible  = has_heal_targets
+	_btn_item.visible   = has_items
+	_btn_equip.visible  = has_weapon_swap
+	_btn_wait.visible   = true
 
-	# Focus first enabled button
+	# Focus first visible button — keyboard nav also skips hidden ones below.
 	_focused_idx = 0
 	for i in _buttons.size():
-		if not _buttons[i].disabled:
+		if _buttons[i].visible:
 			_focused_idx = i
 			break
 	_buttons[_focused_idx].grab_focus()
@@ -96,10 +99,10 @@ func _move_focus(delta: int) -> void:
 	var i := _focused_idx
 	while true:
 		i = (i + delta + _buttons.size()) % _buttons.size()
-		if not _buttons[i].disabled:
+		if _buttons[i].visible:
 			_focused_idx = i
 			_buttons[_focused_idx].grab_focus()
 			break
 		if i == start:
-			push_error("ActionMenu: all buttons disabled — Wait should always be enabled")
+			push_error("ActionMenu: all buttons hidden — Wait should always be visible")
 			break
