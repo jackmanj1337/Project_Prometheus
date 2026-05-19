@@ -261,5 +261,46 @@ func _init() -> void:
 	else:
 		print("FAIL auto-end fired early: turn_changed=%d" % partial_seen[0]); failed += 1
 
+	# ---- _auto_end_player_phase bails when the map is already over ----
+	# Audit regression: a last action that also wins/loses the map must not then
+	# kick off an enemy phase.
+	var tm_over := TurnManager.new()
+	root.add_child(tm_over)
+	tm_over._map_over = true
+	var over_seen := [0]
+	tm_over.turn_changed.connect(func(n): over_seen[0] = n)
+	tm_over._auto_end_player_phase()
+	if over_seen[0] == 0:
+		print("OK  _auto_end_player_phase is a no-op once the map is over"); passed += 1
+	else:
+		print("FAIL auto-end ran after map over: turn_changed=%d" % over_seen[0]); failed += 1
+
+	# ---- a death that leaves every player unit DONE auto-ends the phase (#5) ----
+	# Mutual kill: the last unit to act dies on its own action, so set_unit_state
+	# never marks it DONE — _on_unit_died must still trigger the auto-end.
+	gs.reset_map_state()
+	gs.set_phase(gs.Phase.PLAYER)
+	var done_unit := _mk_unit("player", 20, "done1")
+	var dying_unit := _mk_unit("player", 20, "dying1")
+	gs.register_unit(done_unit)
+	gs.register_unit(dying_unit)
+	gs.register_unit(_mk_unit("enemy", 20, "foe1"))   # living enemy → no rout victory
+	var tm_death := TurnManager.new()
+	root.add_child(tm_death)
+	var md_death := MapData.new()
+	md_death.objective_type = "rout"
+	tm_death._map_data = md_death
+	tm_death.set_unit_state(done_unit, TurnManager.UnitState.DONE)
+	var death_seen := [0]
+	tm_death.turn_changed.connect(func(n): death_seen[0] = n)
+	dying_unit.data.hp = 0                            # the mutual-kill death
+	tm_death._on_unit_died(dying_unit)
+	await process_frame
+	if death_seen[0] != 0:
+		print("OK  a mutual-kill death auto-ends the phase when others are DONE")
+		passed += 1
+	else:
+		print("FAIL no auto-end after last-unit death"); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

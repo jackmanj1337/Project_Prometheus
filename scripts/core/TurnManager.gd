@@ -142,9 +142,13 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 			call_deferred("_auto_end_player_phase")
 
 
-# Deferred from set_unit_state — ends the player phase once every player unit is
-# done. Re-validates because the phase may have changed between defer and call.
+# Deferred from set_unit_state / _on_unit_died — ends the player phase once every
+# player unit is done. Re-validates because state may have changed between defer
+# and call; bails when the map already ended so it can't run an enemy phase after
+# a victory/defeat.
 func _auto_end_player_phase() -> void:
+	if _map_over:
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.is_player_turn() and are_all_player_units_done():
 		end_player_phase()
@@ -240,3 +244,10 @@ func _on_unit_died(unit: Node) -> void:
 	_unit_states.erase(unit)
 	_original_tiles.erase(unit)
 	check_victory_conditions()
+	# A death (e.g. a mutual kill on the last unit's own action) can leave every
+	# remaining player unit already DONE — set_unit_state never ran for the dead
+	# unit, so auto-end it here too (#5). _auto_end_player_phase bails if the map
+	# just ended via the check_victory_conditions call above.
+	var gs := get_node_or_null("/root/GameState")
+	if gs and gs.is_player_turn() and are_all_player_units_done():
+		call_deferred("_auto_end_player_phase")
