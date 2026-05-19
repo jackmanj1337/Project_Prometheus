@@ -164,6 +164,18 @@ func _init() -> void:
 		else:
 			print("FAIL E8_Boss placement: " + str(boss))
 			failed += 1
+		# Playtest 3 #1: HPBar (a ProgressBar Control) must not eat mouse input
+		# over the unit, or MapCursor's _unhandled_input never sees the event.
+		# Default Control.mouse_filter is STOP — the regression risk we're guarding.
+		if soldier:
+			var hpbar: ProgressBar = soldier.get_node_or_null("HPBar")
+			if hpbar != null and hpbar.mouse_filter == Control.MOUSE_FILTER_IGNORE:
+				print("OK  Unit HPBar ignores mouse input (playtest 3 #1)")
+				passed += 1
+			else:
+				print("FAIL Unit HPBar mouse_filter = %d, want IGNORE (2)" % (
+					hpbar.mouse_filter if hpbar != null else -1))
+				failed += 1
 	else:
 		print("SKIP unit spawn checks (GameState autoload not present in --script mode)")
 
