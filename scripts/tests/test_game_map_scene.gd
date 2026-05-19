@@ -71,6 +71,26 @@ func _init() -> void:
 		print("FAIL GridManager: %dx%d" % [grid.map_width, grid.map_height])
 		failed += 1
 
+	# HUD must not eat mouse input (#5): a full-rect Control with the default
+	# MOUSE_FILTER_STOP swallows clicks before they reach MapCursor. The root and
+	# its panels must be MOUSE_FILTER_IGNORE so the mouse can drive the cursor.
+	var hud := instance.get_node_or_null("HUDMainLayer/HUD")
+	if hud != null:
+		var hud_ok: bool = hud.mouse_filter == Control.MOUSE_FILTER_IGNORE
+		for panel in ["UnitInfoPanel", "TerrainInfoPanel"]:
+			var p := hud.get_node_or_null(panel)
+			if p != null and p.mouse_filter != Control.MOUSE_FILTER_IGNORE:
+				hud_ok = false
+		if hud_ok:
+			print("OK  HUD + panels ignore mouse input (#5)")
+			passed += 1
+		else:
+			print("FAIL HUD or a panel still captures mouse input (#5)")
+			failed += 1
+	else:
+		print("FAIL HUDMainLayer/HUD not found")
+		failed += 1
+
 	# Verify Camera2D limits
 	var cam: Camera2D = instance.get_node("Camera2D")
 	if cam.limit_right == 42 * 64 and cam.limit_bottom == 26 * 64:

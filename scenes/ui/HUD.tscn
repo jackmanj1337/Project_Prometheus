@@ -7,6 +7,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 2
 script = ExtResource("1_hud")
 
 [node name="PhaseLabel" type="Label" parent="."]
@@ -32,10 +33,12 @@ offset_left = 8.0
 offset_top = 610.0
 offset_right = 308.0
 offset_bottom = 712.0
+mouse_filter = 2
 visible = false
 
 [node name="VBox" type="VBoxContainer" parent="UnitInfoPanel"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="UnitName" type="Label" parent="UnitInfoPanel/VBox"]
 layout_mode = 2
@@ -59,9 +62,11 @@ offset_left = 1100.0
 offset_top = 632.0
 offset_right = 1272.0
 offset_bottom = 712.0
+mouse_filter = 2
 
 [node name="VBox" type="VBoxContainer" parent="TerrainInfoPanel"]
 layout_mode = 2
+mouse_filter = 2
 
 [node name="TerrainName" type="Label" parent="TerrainInfoPanel/VBox"]
 layout_mode = 2
