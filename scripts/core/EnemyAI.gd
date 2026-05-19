@@ -19,17 +19,26 @@ func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	turn.start_player_phase()
 
 
-# Pans the camera onto `unit` via EventBus.ai_unit_acting and pauses briefly so
-# the move/attack is visible (#7). The pause is skipped when the player has set
-# movement_speed to "instant".
-func _focus_camera(unit: Node) -> void:
+# Pans the camera onto `unit` (#7) by announcing it on EventBus.ai_unit_acting.
+# No delay — used for the mid-turn re-pan after a unit moves.
+func _pan_camera(unit: Node) -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.ai_unit_acting.emit(unit)
+
+
+# Pans the camera onto `unit` and pauses briefly so the move/attack is visible
+# (#7). The pause scales with the movement_speed setting — instant players get
+# no pause, fast players a short one — matching the cursor-movement feel.
+func _focus_camera(unit: Node) -> void:
+	_pan_camera(unit)
 	var sm := get_node_or_null("/root/SettingsManager")
-	var instant: bool = sm != null and sm.movement_speed == "instant"
-	if not instant and is_inside_tree():
-		await get_tree().create_timer(0.25).timeout
+	var delay: float = 0.25
+	match (sm.movement_speed if sm != null else "normal"):
+		"instant": delay = 0.0
+		"fast":    delay = 0.12
+	if delay > 0.0 and is_inside_tree():
+		await get_tree().create_timer(delay).timeout
 
 
 # One enemy's turn: dispatch on ai_profile, then mark DONE.
@@ -58,6 +67,10 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 		if path.size() > 1:
 			turn.record_move_start(enemy)
 			await enemy.move_along_path(path)
+			# Re-centre the camera on the destination so combat resolves on-screen
+			# even when the enemy moved far from where it started (#7).
+			if is_instance_valid(enemy):
+				_pan_camera(enemy)
 
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
@@ -109,6 +122,9 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 		if path.size() > 1:
 			turn.record_move_start(enemy)
 			await enemy.move_along_path(path)
+			# Re-centre on the destination so the heal resolves on-screen (#7).
+			if is_instance_valid(enemy):
+				_pan_camera(enemy)
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 	if is_instance_valid(enemy):

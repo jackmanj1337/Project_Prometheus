@@ -331,6 +331,12 @@ func _init() -> void:
 	act_gs.set("enemies", bm_enemies)
 	act_cr.set("resolve_called", false)
 	act_cr.set("last_target", null)
+	# Watch for the post-move camera re-pan (#7): _act emits ai_unit_acting once
+	# the enemy has moved, so combat resolves on-screen.
+	var bm_panned := [false]
+	var ev_bus := root.get_node_or_null("EventBus")
+	if ev_bus != null:
+		ev_bus.ai_unit_acting.connect(func(u): if u == bm_enemy: bm_panned[0] = true)
 	await ai._act(bm_enemy, act_grid, act_turn)
 	var bm_moved: bool = bm_enemy.tile_position != Vector2i(0, 0)
 	var bm_adj: int = absi(bm_enemy.tile_position.x - 4) + absi(bm_enemy.tile_position.y)
@@ -345,6 +351,14 @@ func _init() -> void:
 			str(bm_enemy.tile_position), act_cr.get("resolve_called"),
 			act_turn.get_unit_state(bm_enemy)])
 		failed += 1
+
+	# Re-pan: the enemy moved, so _act should have re-announced it (#7).
+	if ev_bus == null:
+		print("SKIP _act re-pan check (EventBus autoload absent)")
+	elif bm_panned[0]:
+		print("OK  _act re-pans the camera onto the moved enemy (#7)"); passed += 1
+	else:
+		print("FAIL _act did not emit ai_unit_acting after moving"); failed += 1
 
 	# ---- _act healer: routes into staff range of an injured ally and heals it.
 	#      Regression guard for the can_attack_from_tile-vs-staff bug — a healer
