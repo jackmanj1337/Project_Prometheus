@@ -156,13 +156,16 @@ crashes.
 - **Root Cause:** No weapon-equip step exists. `Unit.get_equipped_weapon()`
   returns the first usable weapon entry; targeting reads it once in
   `MapCursorTargeting.begin`.
-- **Recommended Fix:** Add an "Equip" action to `ActionMenu` (or a weapon
-  sub-list shown when entering Attack targeting) listing the unit's usable
-  weapons. On change, re-run `_targeting.begin` so the valid-target set and
-  overlay refresh. Requires a `Unit.set_equipped_weapon(entry)` method.
+- **Recommended Fix (decided with designer):** Weapon swap is **free** as long
+  as the attack has not been confirmed — standard FE behaviour. Add an "Equip"
+  action to `ActionMenu` (or a weapon sub-list shown when entering Attack
+  targeting) listing the unit's usable weapons. On change, re-run
+  `_targeting.begin` so the valid-target set and overlay refresh. Requires a
+  `Unit.set_equipped_weapon(entry)` method.
 - **Tradeoffs:** Touches the targeting flow's assumption that the weapon is
-  fixed for a session. Confirm with the designer whether weapon swap should
-  cost the action or be free (standard FE: free, before confirming the attack).
+  fixed for a session — `MapCursorTargeting` must support a mid-session weapon
+  change. No action cost, so the swap must be fully reversible until the attack
+  is confirmed.
 
 ### #9 — Cancelling attack should return the cursor to the attacking unit
 **[SEVERITY: Low]**
@@ -184,24 +187,32 @@ crashes.
 - **Tradeoffs:** None. Matches the cursor placement done when entering
   targeting (`_enter_targeting` snaps to `tiles[0]`).
 
-### #15 / #16 — End-turn confirmation: button order & cancel-key dismissal
+### #15 / #16 — End-turn confirmation: prevent accidental early turn-end
 **[SEVERITY: Low]**
 - **File & Line:** `scripts/core/MapCursor.gd:572-593` `_on_end_turn_requested`.
-- **Problem:** (#15) The player wants the Confirm/Cancel buttons swapped in the
-  "end turn anyway?" prompt. (#16) The game's `cancel` key should dismiss the
-  prompt.
-- **Root Cause:** The prompt is a stock `ConfirmationDialog` built in code. Its
-  button order is fixed by the OS/theme, and while `cancel` is mirrored onto
-  `ui_cancel` (`SettingsManager._mirror_game_keys_to_ui`) so Escape/X *should*
-  trigger `canceled`, the behaviour is not explicit or tested.
-- **Recommended Fix:** Replace the ad-hoc `ConfirmationDialog` with a small
-  in-scene confirm panel that uses the game's own input scheme — this fixes both
-  items at once: lay out the buttons in the desired order, and handle the
-  `confirm`/`cancel` actions directly in `_unhandled_input`. This also makes the
-  prompt themable to match the rest of the UI.
-- **Tradeoffs:** More work than tweaking the dialog, but `ConfirmationDialog`
-  button order is not reliably controllable across platforms, and a custom
-  panel is consistent with `MapMenu`/`SettingsScreen`. Add a test.
+- **Problem:** The "some units have not acted — end turn anyway?" prompt is too
+  easy to confirm by accident. Confirm is the default-focused button, so a
+  player mashing or holding the confirm key (e.g. to clear menus) can end the
+  turn before acting with every unit. Also (#16) the game's `cancel` key is not
+  a guaranteed, tested way to dismiss the prompt.
+- **Root Cause:** The prompt is a stock `ConfirmationDialog` with its OK button
+  focused by default — nothing makes the *safe* choice (Cancel) the default.
+  `cancel` is mirrored onto `ui_cancel` (`SettingsManager._mirror_game_keys_to_ui`)
+  so Escape/X *should* trigger `canceled`, but the behaviour is not explicit.
+- **Recommended Fix (decided with designer):** Make the **Cancel button the
+  default-focused button** so an accidental or held confirm press dismisses the
+  prompt instead of ending the turn — call `dlg.get_cancel_button().grab_focus()`
+  after `popup_centered()`. Also explicitly verify the game `cancel` action
+  dismisses it. The designer accepted "Cancel is the default button" as
+  sufficient on its own; a visual swap of the button *positions* is optional
+  polish.
+- **Tradeoffs:** Focusing the Cancel button is effectively a one-liner and fully
+  resolves the accidental end-turn — low effort, high value. If the buttons
+  should *also* be visually reordered, note that `ConfirmationDialog` button
+  order is not reliably controllable across platforms; that would require
+  swapping to a small custom in-scene panel (consistent with `MapMenu`). Treat
+  the position swap as deferred polish unless the designer asks for it. Add a
+  test asserting the Cancel button holds focus on open.
 
 ### #1 — Unit details page
 **[SEVERITY: Medium]** *[FEATURE]*
@@ -209,12 +220,15 @@ crashes.
   `_show_unit` (name, class, HP, weapon, mastery).
 - **Problem:** No way to inspect a unit's full stats (Str/Mag/Def/Res/Skl/Spd/
   Luck, level, EXP, inventory, skills, growth).
-- **Recommended Fix:** Add a `UnitDetailsScreen` (its own `CanvasLayer`, opaque
-  Dimmer like `SettingsScreen`), opened by a new `inspect_unit` action while the
-  cursor is over a unit. Populate from `unit.data`. Lock the `MapCursor` while
-  open (same pattern as Settings).
-- **Tradeoffs:** Needs a new input action and a scene. Scope it to display-only
-  for now; editing/equipping belongs with the inventory milestone.
+- **Recommended Fix (decided with designer):** Add a `UnitDetailsScreen` (its
+  own `CanvasLayer`, opaque Dimmer like `SettingsScreen`), opened by a **new
+  `inspect_unit` input action** while the cursor is over a unit. Populate from
+  `unit.data`. Lock the `MapCursor` while open (same pattern as Settings).
+  Scope is **display-only** — editing/equipping is deferred to the inventory
+  milestone.
+- **Tradeoffs:** Needs a new input action and a scene. Add the `inspect_unit`
+  binding to the `SettingsScreen` keybinding list (`_KEYBIND_LABELS`) so it
+  shows up alongside the other controls.
 
 ### #6 — Healing range highlight colour (try orange)
 **[SEVERITY: Low]**
@@ -376,8 +390,10 @@ Ordered by impact ÷ effort.
 7. **#2, #17 — auto-end-turn toggle, camera buffer setting** — batch together
    as one "settings additions" pass.
 8. **#6 — heal overlay colour** — quick tileset tweak; bundle with art passes.
-9. **#15 / #16 — custom end-turn confirm panel** — medium effort; fixes two
-   items and removes the only stock `ConfirmationDialog` in the game.
+9. **#15 / #16 — end-turn confirm safety** — focus the Cancel button by default
+   (one-liner) so a mashed/held confirm can't end the turn early; verify the
+   cancel key dismisses it. Low effort — can be batched with the quick wins
+   above (steps 2-3).
 10. **#7 — camera tracks AI** — medium; best done after the camera-controller
     refactor noted in §4.
 11. **#8 — weapon swap before attack** — medium feature; needs a designer
