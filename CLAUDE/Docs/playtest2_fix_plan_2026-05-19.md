@@ -285,8 +285,8 @@ crashes.
   that, when set, makes `calculate_exp` return ≥100 for a hit. Gate it behind
   `OS.is_debug_build()` so it can't ship.
 - **Tradeoffs:** Debug-only code in a hot path — keep it a single early
-  `if` and remove or formalise it before release. **This is explicitly a
-  temporary test aid; track its removal.**
+  `if`. **Decided: debug-gate it and track removal** — the deletion is logged
+  as a RELEASE BLOCKER in `GDD_10_Roadmap.md` § Pre-Release Cleanup.
 
 ### #11 — Increase MVP units' stat gains for testing
 **[SEVERITY: Low]** *[FEATURE / TEST]*
@@ -298,7 +298,9 @@ crashes.
   units only, or add a debug multiplier applied in `Unit._level_up_random` /
   `_level_up_fixed` gated on `OS.is_debug_build()`.
 - **Tradeoffs:** Editing real data risks the temporary values being committed
-  and shipped. Prefer the debug-gated multiplier and track its removal.
+  and shipped. **Decided: use the debug-gated multiplier (do not edit shipping
+  `ClassData`) and track removal** — logged as a RELEASE BLOCKER in
+  `GDD_10_Roadmap.md` § Pre-Release Cleanup.
 
 ### #14 — Vulnerary should heal 10 HP
 **[SEVERITY: Low]**
@@ -381,8 +383,9 @@ Ordered by impact ÷ effort.
 11. **#8 — weapon swap before attack** — medium feature; needs a designer
     decision on action cost.
 12. **#1 — unit details page** — largest item; new screen + input action.
-13. **#10, #11 — testing aids** — debug-gated, lowest priority, and **must be
-    tracked for removal** before release.
+13. **#10, #11 — testing aids** — debug-gated (`OS.is_debug_build()`), lowest
+    priority. Removal is tracked as a RELEASE BLOCKER in `GDD_10_Roadmap.md`
+    § Pre-Release Cleanup.
 
 ---
 

@@ -1481,3 +1481,20 @@ are tracked separately in `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`.
       read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
       already exists; this item is the capture UI that calls it. Originally
       deferred to "Phase 2" in Session M notes.
+
+### Pre-Release Cleanup
+
+> ⚠️ **RELEASE BLOCKER** — must be cleared before any non-debug build ships.
+
+- [ ] **Remove the playtest 2 debug testing aids.** Two temporary aids were
+      added for playtest iteration (see `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`
+      items #10 and #11):
+      - **#10** — force-level-up on any attack (debug flag in
+        `CombatResolver.calculate_exp`).
+      - **#11** — inflated MVP-unit stat growths (debug multiplier in
+        `Unit._level_up_random` / `_level_up_fixed`).
+
+      Both are gated behind `OS.is_debug_build()` so they cannot affect a
+      release build, but the code itself must still be deleted before release
+      so it doesn't rot. Grep for `is_debug_build` and the `debug_force_levelup`
+      flag to find every site.
