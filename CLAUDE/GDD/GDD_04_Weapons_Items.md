@@ -175,7 +175,7 @@ Stored in `data/items/` as `ItemData` resources.
 #### Healing Items
 | Name | Effect | Uses | Cost |
 |---|---|---|---|
-| Vulnerary | Restore 20 HP | 3 | 600 |
+| Vulnerary | Restore 10 HP | 3 | 600 |
 | Elixir | Restore all HP | 3 | 3,000 |
 
 #### Keys (Phase 2)

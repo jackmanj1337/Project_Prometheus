@@ -6,9 +6,9 @@
 script = ExtResource("1")
 id = "vulnerary"
 display_name = "Vulnerary"
-description = "A small healing salve. Restores 20 HP."
+description = "A small healing salve. Restores 10 HP."
 item_type = "healing"
 uses = 3
 cost = 600
 effect_id = "heal_flat"
-effect_params = {"amount": 20}
+effect_params = {"amount": 10}

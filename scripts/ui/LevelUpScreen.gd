@@ -2,6 +2,9 @@ class_name LevelUpScreen extends Control
 # Shown when a player unit levels up. Queues multiple level-ups and shows them
 # one at a time; player presses confirm to advance. Blocks all input while open.
 
+# Renders the live confirm keybinding for the "press X to continue" prompt (#13).
+const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+
 @onready var _label_name:   Label = $Panel/VBox/LabelName
 @onready var _label_level:  Label = $Panel/VBox/LabelLevel
 @onready var _label_stats:  Label = $Panel/VBox/LabelStats
@@ -55,7 +58,12 @@ func _show_next() -> void:
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
-	_label_prompt.text = "" if is_auto else "Press A to continue"
+	# Show the real confirm keybinding rather than a hardcoded "A" (#13). Falls
+	# back to "confirm" if no key is bound (e.g. only a mouse button).
+	var confirm_key: String = InputDisplay.first_key_for_action("confirm")
+	if confirm_key == "":
+		confirm_key = "confirm"
+	_label_prompt.text = "" if is_auto else "Press %s to continue" % confirm_key
 	show()
 
 	if is_auto:

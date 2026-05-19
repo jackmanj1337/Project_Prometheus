@@ -234,19 +234,21 @@ func _init() -> void:
 	faire_data.max_uses_per_combat = saved_limit  # restore shared resource
 
 	# ── ItemHandler: heal_flat heals and decrements uses ──────────────────────
+	# max_hp leaves headroom so the full heal is observable (no cap clamp here):
+	# the Vulnerary restores exactly 10 HP (#14), down from the old 20.
 	var vuln_data: UnitData = soldier_data.duplicate(true)
 	vuln_data.hp = 10
-	vuln_data.max_hp = 17
+	vuln_data.max_hp = 30
 	var vuln_unit := MockUnit.new()
 	vuln_unit.setup(vuln_data)
 	root.add_child(vuln_unit)
 	var vuln_entry := InventoryEntry.make_item("vulnerary", 3)
 	vuln_data.inventory = [vuln_entry]
 	ih.apply_item(vuln_unit, vuln_entry)
-	if vuln_data.hp > 10:
-		print("OK  vulnerary heals HP"); passed += 1
+	if vuln_data.hp == 20:
+		print("OK  vulnerary heals exactly 10 HP (#14)"); passed += 1
 	else:
-		print("FAIL vulnerary: HP unchanged after use"); failed += 1
+		print("FAIL vulnerary: expected 20 HP, got %d" % vuln_data.hp); failed += 1
 	if vuln_entry.uses_remaining == 2:
 		print("OK  vulnerary decrements uses"); passed += 1
 	else:
