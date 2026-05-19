@@ -150,6 +150,25 @@ func _init() -> void:
 			print("FAIL cursor start tile: %s" % str(cursor.current_tile))
 			failed += 1
 
+	# Enemy danger zone counts movement range, not just standstill attack (#11).
+	if gs:
+		var danger_count := grid.get_enemy_danger_tiles().size()
+		# Reference: attack tiles from each enemy's CURRENT position only (old behaviour).
+		var standstill := {}
+		for eu in instance.get_node("UnitsContainer").get_children():
+			if eu.team == "enemy" and eu.data and eu.data.hp > 0:
+				var from_here: Array[Vector2i] = [eu.tile_position]
+				for t in grid.get_all_attack_tiles(eu, from_here):
+					standstill[t] = true
+		if danger_count > standstill.size():
+			print("OK  danger zone counts movement (%d tiles > %d standstill)" % [
+				danger_count, standstill.size()])
+			passed += 1
+		else:
+			print("FAIL danger zone ignores movement: %d vs %d standstill" % [
+				danger_count, standstill.size()])
+			failed += 1
+
 	# All player units should be READY at start
 	if gs:
 		var all_ready := true

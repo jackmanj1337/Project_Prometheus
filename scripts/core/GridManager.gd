@@ -403,11 +403,10 @@ func show_heal_overlay(tiles: Array[Vector2i]) -> void:
 	_paint_overlay(tiles, OVERLAY_GREEN)
 
 
-# Paints union of every enemy unit's attack range so the player can see threats.
-# Triggered by Q key / middle mouse via MapCursor.
-func show_enemy_danger_zone() -> void:
-	if _overlay == null:
-		return
+# The full threat area of every living, attack-capable enemy: each tile an enemy
+# could move to (plus staying put) AND the attack range from each of those tiles
+# (#11) — not just the attack range from where the enemy currently stands.
+func get_enemy_danger_tiles() -> Array[Vector2i]:
 	var seen: Dictionary = {}
 	for u in _get_units():
 		if not ("team" in u) or u.team != "enemy":
@@ -417,11 +416,25 @@ func show_enemy_danger_zone() -> void:
 		# A healing-staff enemy threatens no tiles — keep it out of the danger zone.
 		if not _equipped_can_attack(u):
 			continue
-		var wrange := _get_weapon_range(u)
-		for t in _tiles_in_range(u.tile_position, wrange.x, wrange.y):
+		# Reachable tiles (plus staying put), then the union of attack reach from
+		# all of them. get_all_attack_tiles dedups, so the extra current tile is safe.
+		var move_tiles := get_movement_range(u)
+		if not move_tiles.has(u.tile_position):
+			move_tiles.append(u.tile_position)
+		for t in get_all_attack_tiles(u, move_tiles):
 			seen[t] = true
+	var out: Array[Vector2i] = []
 	for tile in seen.keys():
-		_overlay.set_cell(tile, OVERLAY_DARK_RED, Vector2i.ZERO)
+		out.append(tile)
+	return out
+
+
+# Paints the enemy danger zone (see get_enemy_danger_tiles) onto the overlay.
+# Triggered via MapCursor's show_danger_zone toggle / middle mouse.
+func show_enemy_danger_zone() -> void:
+	if _overlay == null:
+		return
+	_paint_overlay(get_enemy_danger_tiles(), OVERLAY_DARK_RED)
 
 
 # Clears every painted overlay tile. Called between selection states and at phase change.

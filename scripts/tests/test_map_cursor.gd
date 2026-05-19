@@ -291,5 +291,23 @@ func _init() -> void:
 		print("FAIL cycle-guard: tile moved to %s" % str(c9.current_tile))
 		failed += 1
 
+	# ---- danger-zone toggle (#12) + FREE-state gating (#13) ----
+	var t10 := TurnManager.new(); root.add_child(t10)
+	var c10 := _make_cursor(t10)
+	c10._state = FREE
+	c10._toggle_danger_zone()         # off → on
+	var dz_on := c10._danger_zone_shown
+	c10._toggle_danger_zone()         # on → off
+	var dz_off := not c10._danger_zone_shown
+	c10._state = UNIT_SELECTED
+	c10._toggle_danger_zone()         # gated while a unit is selected — stays off
+	var dz_gated := not c10._danger_zone_shown
+	if dz_on and dz_off and dz_gated:
+		print("OK  danger zone toggles in FREE, ignored while a unit is selected")
+		passed += 1
+	else:
+		print("FAIL danger toggle: on=%s off=%s gated=%s" % [dz_on, dz_off, dz_gated])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

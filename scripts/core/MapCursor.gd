@@ -163,31 +163,32 @@ func _handle_key_press(event: InputEventKey) -> void:
 				_open_map_menu()
 
 
-# Reset key-repeat when the held key is released; handle danger zone hold
+# Resets cursor key-repeat on key release, and flips the enemy danger-zone
+# toggle on a show_danger_zone press or a middle-mouse click (#12).
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		if not event.pressed:
-			# Clear key-repeat when the held direction key is released.
+			# Clear cursor key-repeat when the held direction key is released.
 			_input_handler.note_key_released(event)
-			if event.is_action_released("show_danger_zone") and _danger_zone_shown:
-				if _grid != null:
-					_grid.clear_overlays()
-				_danger_zone_shown = false
-		elif event.pressed and not event.echo:
-			if event.is_action_pressed("show_danger_zone") and _state == State.FREE:
-				if _grid != null:
-					_grid.show_enemy_danger_zone()
-					_danger_zone_shown = true
+		elif not event.echo and event.is_action_pressed("show_danger_zone"):
+			_toggle_danger_zone()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
-			if not _danger_zone_shown:
-				if _grid != null:
-					_grid.show_enemy_danger_zone()
-					_danger_zone_shown = true
-		elif not event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE and _danger_zone_shown:
-			if _grid != null:
-				_grid.clear_overlays()
-			_danger_zone_shown = false
+			_toggle_danger_zone()
+
+
+# Flips the enemy danger-zone overlay on/off (#12). Available only in the FREE
+# cursor state: while a unit is selected the overlay layer is showing that unit's
+# movement range, and the danger zone would wipe it (#13).
+func _toggle_danger_zone() -> void:
+	if _grid == null or _state != State.FREE:
+		return
+	if _danger_zone_shown:
+		_grid.clear_overlays()
+		_danger_zone_shown = false
+	else:
+		_grid.show_enemy_danger_zone()
+		_danger_zone_shown = true
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
@@ -347,6 +348,12 @@ func _is_cursor_on_empty_tile() -> bool:
 
 
 func _try_select_unit_at_cursor() -> void:
+	# A shown danger zone shares the one overlay layer with the selection overlays.
+	# Clear it before selecting so it can't bleed through the move range (#13).
+	if _danger_zone_shown:
+		if _grid != null:
+			_grid.clear_overlays()
+		_danger_zone_shown = false
 	# MapCursorSelection does the grid validation + overlay painting; the FSM state
 	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
 	if _selection.select_at(current_tile):
