@@ -1450,3 +1450,34 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] [PLACEHOLDER] Sound effects (shift, condition apply, skill trigger, etc.)
 - [ ] [PLACEHOLDER] Story and dialogue system
 - [ ] Steam / itch.io / GitHub release packaging
+
+### UI / UX & Settings
+
+Merged from `CLAUDE/Docs/playtest2_findings_2026-05-19.md` ("Features to add to
+the to-do list"). These are deferred enhancements, not playtest bugs — the bugs
+are tracked separately in `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`.
+
+- [ ] **Range display on hover** — show a unit's movement/attack range when the
+      cursor merely hovers over it (transparent overlay), then render it more
+      opaque once the unit is actually selected. Needs a second, dimmer overlay
+      style alongside the existing solid `OVERLAY_BLUE`/`OVERLAY_RED` tiles.
+- [ ] **Movement path arrows** — draw the planned move path as directional
+      arrow tiles from the unit to the cursor while in `UNIT_SELECTED`.
+      `MapCursorSelection.plan_path_to` already computes the tile list.
+- [ ] **Individual unit threat range** — show one enemy's threat area on
+      hover/select, distinct from the existing all-enemies danger zone toggle
+      (`GridManager.get_enemy_danger_tiles`). Pairs with the hover feature above.
+- [ ] **Grid visibility slider** — a setting controlling terrain grid-line
+      opacity (0 = hidden). New `SettingsManager` field + `SettingsScreen` row.
+- [ ] **Camera settings** — expose camera behaviour in Settings: edge-pan
+      buffer distance and scroll responsiveness. (The playtest bug list also
+      asks for an adjustable camera buffer — see fix plan item #17; this backlog
+      item is the broader settings-screen surface for it.)
+- [ ] **UI scale & movement** — let the player scale HUD/menu elements and
+      reposition them. Likely a `CanvasLayer` scale factor + saved offsets.
+- [ ] **Display resolution options** — windowed/fullscreen and resolution
+      picker in Settings, persisted to `settings.cfg`.
+- [ ] **Key rebinding UI** — the `SettingsScreen` keybinding list is currently
+      read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
+      already exists; this item is the capture UI that calls it. Originally
+      deferred to "Phase 2" in Session M notes.
