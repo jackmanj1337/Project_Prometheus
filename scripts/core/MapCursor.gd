@@ -444,16 +444,40 @@ func _deselect() -> void:
 
 # ── State: UNIT_MOVED — ActionMenu dispatch ──────────────────────────────────
 
+# Position a HUD menu one tile to the right of `tile`, but flip it to the left
+# and clamp it inside the viewport if it would otherwise run off-screen
+# (playtest 3 #4). Used by every per-unit popup — Action / Item / Weapon menus —
+# so the fix lands in one place. Call this AFTER the menu's show_for() so its
+# real size is known (menus hide unavailable rows, so the height varies).
+func _place_menu_near(menu: Node, tile: Vector2i) -> void:
+	if menu == null or _grid == null:
+		return
+	var world_pos := _grid.tile_to_world(tile)
+	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	# size is updated after show_for() populates the menu; for containers this
+	# matches get_combined_minimum_size(). Fall back to the latter when size is 0.
+	var menu_size: Vector2 = menu.size
+	if menu_size.x <= 0 or menu_size.y <= 0:
+		menu_size = menu.get_combined_minimum_size()
+	var pos := screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+	# Flip to the unit's left if the menu would run off the right edge.
+	if pos.x + menu_size.x > view.x:
+		pos.x = screen_pos.x - menu_size.x
+	pos.x = clampf(pos.x, 0.0, maxf(0.0, view.x - menu_size.x))
+	pos.y = clampf(pos.y, 0.0, maxf(0.0, view.y - menu_size.y))
+	menu.position = pos
+
+
 func _show_action_menu() -> void:
 	if action_menu == null:
 		# No menu wired up — fall back to Wait so the unit can always complete its turn
 		_commit_wait()
 		return
-	# Place the menu just right of the unit's tile in screen space
-	var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
-	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
-	action_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+	# show_for() before placement — ActionMenu hides unavailable rows, so the
+	# real height is only known once the contents are populated (playtest 3 #4).
 	action_menu.show_for(_selection.selected_unit, _grid)
+	_place_menu_near(action_menu, _selection.selected_unit.tile_position)
 
 
 # Fired when ActionMenu's cancel key is pressed while the menu is open
@@ -518,10 +542,8 @@ func _use_item() -> void:
 		return
 	if item_menu != null:
 		# Show the item submenu; result arrives via _on_item_chosen / _on_item_menu_cancelled
-		var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
-		var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
-		item_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
 		item_menu.show_for(_selection.selected_unit)
+		_place_menu_near(item_menu, _selection.selected_unit.tile_position)
 		return
 	# Fallback when ItemMenu is not wired: consume first valid item automatically
 	for entry in _selection.selected_unit.data.inventory:
@@ -561,10 +583,8 @@ func _open_weapon_menu() -> void:
 	if weapon_menu == null or _selection.selected_unit == null:
 		_show_action_menu()  # no menu wired / no unit — fall back to the ActionMenu
 		return
-	var world_pos := _grid.tile_to_world(_selection.selected_unit.tile_position)
-	var screen_pos: Vector2 = get_viewport().canvas_transform * world_pos
-	weapon_menu.position = screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
 	weapon_menu.show_for(_selection.selected_unit)
+	_place_menu_near(weapon_menu, _selection.selected_unit.tile_position)
 
 
 func _on_weapon_chosen(entry: InventoryEntry) -> void:

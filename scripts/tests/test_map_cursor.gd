@@ -108,6 +108,38 @@ func _init() -> void:
 		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d" % [locked_on_enemy, c1._state])
 		failed += 1
 
+	# ---- _place_menu_near keeps the menu fully inside the viewport (playtest 3 #4) ----
+	# Action / Item / Weapon menus used to be pinned `+ TILE_SIZE` right of the
+	# unit with no viewport check — units near the right or bottom edge pushed
+	# the menu off-screen.
+	var stub_menu: Control = Control.new()
+	stub_menu.size = Vector2(200, 100)
+	root.add_child(stub_menu)
+	var view: Vector2 = c1.get_viewport().get_visible_rect().size
+	# Cursor at world (0,0) — menu placed normally one tile to the right.
+	c1._place_menu_near(stub_menu, Vector2i(0, 0))
+	var top_left_ok: bool = (stub_menu.position.x >= 0
+			and stub_menu.position.y >= 0
+			and stub_menu.position.x + stub_menu.size.x <= view.x
+			and stub_menu.position.y + stub_menu.size.y <= view.y)
+	# Move camera so tile (5,5) sits at the bottom-right viewport edge and the
+	# menu would overflow without the flip + clamp. Camera2D centres the view,
+	# so we put the tile near the camera's bottom-right.
+	c1._camera.position = _grid.tile_to_world(Vector2i(5, 5)) - view * 0.5 + Vector2(40, 30)
+	c1._place_menu_near(stub_menu, Vector2i(5, 5))
+	var bottom_right_ok: bool = (stub_menu.position.x >= 0
+			and stub_menu.position.y >= 0
+			and stub_menu.position.x + stub_menu.size.x <= view.x
+			and stub_menu.position.y + stub_menu.size.y <= view.y)
+	if top_left_ok and bottom_right_ok:
+		print("OK  _place_menu_near keeps menu inside viewport (playtest 3 #4)")
+		passed += 1
+	else:
+		print("FAIL _place_menu_near: top_left=%s bottom_right=%s pos=%s view=%s" % [
+			top_left_ok, bottom_right_ok, stub_menu.position, view])
+		failed += 1
+	stub_menu.queue_free()
+
 	# ---- _on_phase_changed → PLAYER recentres camera on the cursor (playtest 3 #5) ----
 	# AI-phase tracking leaves the camera wherever the last enemy acted; the
 	# handover must pull it back onto the player's cursor before unlock.
