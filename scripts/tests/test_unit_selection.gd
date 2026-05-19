@@ -16,15 +16,19 @@ func _init() -> void:
 	var grid: GridManager = instance.get_node("GridManager")
 	var turn: TurnManager = instance.get_node("TurnManager")
 
-	# --- Selecting empty tile does nothing ---
+	# --- Confirm on an empty tile opens the map menu and selects nothing (GDD_07) ---
 	cursor.current_tile = Vector2i(5, 5)
 	cursor._on_confirm()
-	if cursor._state == MapCursor.State.FREE:
-		print("OK  confirm on empty tile stays 'free'")
+	if cursor._selection.selected_unit == null and cursor.map_menu.visible:
+		print("OK  confirm on empty tile opens map menu, selects no unit")
 		passed += 1
 	else:
-		print("FAIL state after empty confirm: %s" % cursor._state)
+		print("FAIL empty confirm: state=%s unit=%s menu=%s" % [
+			cursor._state, cursor._selection.selected_unit, cursor.map_menu.visible])
 		failed += 1
+	# Close the map menu so the cursor is FREE for the rest of the test.
+	cursor.map_menu._on_close()
+	await process_frame
 
 	# --- Select Unit_01 (at tile 1,9) ---
 	cursor.current_tile = Vector2i(1, 9)
@@ -75,8 +79,9 @@ func _init() -> void:
 		print("FAIL move: tile=%s" % (unit_01.tile_position if unit_01 else "null"))
 		failed += 1
 
-	# With a live ActionMenu the cursor pauses in "unit_moved"; without one (this test),
-	# _show_action_menu falls back to _commit_wait, so state goes straight to "free".
+	# After moving, the ActionMenu opens and the cursor waits in "unit_moved".
+	# (If the menu ever fails to resolve, _show_action_menu falls back to a Wait
+	# commit and the state is "free" instead — accept both.)
 	if cursor._state == MapCursor.State.UNIT_MOVED or cursor._state == MapCursor.State.FREE:
 		print("OK  cursor in post-move state: %s" % cursor._state)
 		passed += 1
@@ -84,9 +89,10 @@ func _init() -> void:
 		print("FAIL unexpected post-move state: %s" % cursor._state)
 		failed += 1
 
-	# Commit Wait only if ActionMenu put us in unit_moved; otherwise already committed.
+	# Commit Wait. With the ActionMenu live the cursor sits in "unit_moved" and the
+	# menu drives the choice — emulate the Wait button via _on_action_chosen.
 	if cursor._state == MapCursor.State.UNIT_MOVED:
-		cursor._on_confirm()
+		cursor._on_action_chosen("wait")
 
 	if turn.get_unit_state(unit_01) == TurnManager.UnitState.DONE:
 		print("OK  Unit_01 state = DONE after Wait confirm")

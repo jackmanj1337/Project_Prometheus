@@ -56,6 +56,11 @@ var _awaiting_end_turn_confirm: bool = false
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
 
 func _ready() -> void:
+	# The @export NodePaths to the HUDLayer menus resolve to null at scene-build
+	# time — the menus are declared after MapCursor in GameMap.tscn, so they don't
+	# exist yet when the exports are applied. _ready() runs after the whole tree is
+	# built, so re-resolve any that came back null before wiring their signals.
+	_resolve_menu_refs()
 	if action_menu:
 		action_menu.action_chosen.connect(_on_action_chosen)
 		action_menu.hidden_by_cancel.connect(_on_action_menu_cancelled)
@@ -72,6 +77,20 @@ func _ready() -> void:
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
+
+
+# Fallback lookup for the menu @exports — see _ready(). Each path mirrors the
+# NodePath set on the export in GameMap.tscn; only applied when the export is
+# null so an editor-assigned reference still wins.
+func _resolve_menu_refs() -> void:
+	if action_menu == null:
+		action_menu = get_node_or_null("../HUDLayer/ActionMenu")
+	if item_menu == null:
+		item_menu = get_node_or_null("../HUDLayer/ItemMenu")
+	if map_menu == null:
+		map_menu = get_node_or_null("../HUDLayer/MapMenu")
+	if attack_preview == null:
+		attack_preview = get_node_or_null("../HUDLayer/AttackPreview")
 
 
 func _on_phase_changed(new_phase: int) -> void:

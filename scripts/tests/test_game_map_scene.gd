@@ -127,6 +127,18 @@ func _init() -> void:
 		print("FAIL TurnManager not initialized")
 		failed += 1
 
+	# MapCursor menu references must resolve at runtime. If they are null the
+	# action menu and map menu never open and the Item submenu never shows
+	# (playtest findings #4 / #10).
+	var cursor: MapCursor = instance.get_node("MapCursor")
+	for ref_name in ["action_menu", "item_menu", "map_menu", "attack_preview"]:
+		if cursor.get(ref_name) != null:
+			print("OK  MapCursor.%s resolved" % ref_name)
+			passed += 1
+		else:
+			print("FAIL MapCursor.%s is null" % ref_name)
+			failed += 1
+
 	# All player units should be READY at start
 	if gs:
 		var all_ready := true
