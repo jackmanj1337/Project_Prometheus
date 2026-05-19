@@ -202,6 +202,7 @@ const _KEYBIND_LABELS := {
 	"prev_unit": "Previous Unit",
 	"open_menu": "Map Menu",
 	"open_settings": "Settings",
+	"inspect_unit": "Unit Details",
 	"show_danger_zone": "Toggle Threat Range",
 }
 

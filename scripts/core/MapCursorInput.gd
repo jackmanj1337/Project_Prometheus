@@ -12,7 +12,7 @@ const KEY_REPEAT_RATE: float  = GameConstants.CURSOR_KEY_REPEAT_RATE
 
 # What a key event means. MapCursor maps a MOVE to a cursor step / target cycle /
 # no-op depending on its _state — the decoding here is deliberately state-agnostic.
-enum Intent { NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, PREV_UNIT, OPEN_MENU, OPEN_SETTINGS }
+enum Intent { NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, PREV_UNIT, OPEN_MENU, OPEN_SETTINGS, INSPECT_UNIT }
 
 # Held-direction auto-repeat timer state.
 var _held_dir: Vector2i = Vector2i.ZERO
@@ -44,6 +44,8 @@ func decode_key(event: InputEventKey) -> Dictionary:
 		return {"intent": Intent.OPEN_MENU, "dir": Vector2i.ZERO}
 	if event.is_action_pressed("open_settings"):
 		return {"intent": Intent.OPEN_SETTINGS, "dir": Vector2i.ZERO}
+	if event.is_action_pressed("inspect_unit"):
+		return {"intent": Intent.INSPECT_UNIT, "dir": Vector2i.ZERO}
 	return {"intent": Intent.NONE, "dir": Vector2i.ZERO}
 
 

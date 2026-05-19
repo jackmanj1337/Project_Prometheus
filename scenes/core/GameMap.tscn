@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/AttackPreview.tscn" id="16_preview"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="17_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WeaponMenu.tscn" id="18_weaponmenu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/UnitDetailsScreen.tscn" id="19_unitdetails"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -38,6 +39,7 @@ map_menu = NodePath("../HUDLayer/MapMenu")
 attack_preview = NodePath("../HUDLayer/AttackPreview")
 settings_screen = NodePath("../SettingsLayer/SettingsScreen")
 weapon_menu = NodePath("../HUDLayer/WeaponMenu")
+unit_details = NodePath("../UnitDetailsLayer/UnitDetailsScreen")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapCursor"]
 texture = ExtResource("6_cursor_tex")
@@ -93,3 +95,8 @@ layer = 20
 layer = 15
 
 [node name="SettingsScreen" parent="SettingsLayer" instance=ExtResource("17_settings")]
+
+[node name="UnitDetailsLayer" type="CanvasLayer" parent="."]
+layer = 14
+
+[node name="UnitDetailsScreen" parent="UnitDetailsLayer" instance=ExtResource("19_unitdetails")]

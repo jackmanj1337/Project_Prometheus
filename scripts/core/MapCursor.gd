@@ -50,6 +50,7 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var attack_preview: Node = null
 @export var settings_screen: Node = null
 @export var weapon_menu: Node = null
+@export var unit_details: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
@@ -79,6 +80,8 @@ func _ready() -> void:
 	if weapon_menu:
 		weapon_menu.weapon_chosen.connect(_on_weapon_chosen)
 		weapon_menu.cancelled.connect(_on_weapon_menu_cancelled)
+	if unit_details:
+		unit_details.closed.connect(_on_unit_details_closed)
 	if map_menu:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
@@ -113,6 +116,8 @@ func _resolve_menu_refs() -> void:
 		settings_screen = get_node_or_null("../SettingsLayer/SettingsScreen")
 	if weapon_menu == null:
 		weapon_menu = get_node_or_null("../HUDLayer/WeaponMenu")
+	if unit_details == null:
+		unit_details = get_node_or_null("../UnitDetailsLayer/UnitDetailsScreen")
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -201,6 +206,8 @@ func _handle_key_press(event: InputEventKey) -> void:
 				_open_map_menu()
 		MapCursorInput.Intent.OPEN_SETTINGS:
 			_open_settings_via_hotkey()
+		MapCursorInput.Intent.INSPECT_UNIT:
+			_open_unit_details()
 
 
 # Resets cursor key-repeat on key release, and flips the enemy danger-zone
@@ -715,6 +722,35 @@ func _on_settings_closed() -> void:
 	if gs and not gs.is_player_turn():
 		return
 	unlock()
+
+
+# ── Unit Details (#1) ────────────────────────────────────────────────────────
+
+# inspect_unit hotkey. Opens the read-only details page for the unit under the
+# cursor. Available in free roam and while a unit is selected; ignored mid-action
+# so a half-finished action can't be stranded. Uses the _input_suppressed flag
+# (not lock()) so a live unit selection and its overlays survive the inspection.
+func _open_unit_details() -> void:
+	if unit_details == null or _grid == null:
+		return
+	if _state != State.FREE and _state != State.UNIT_SELECTED:
+		return
+	var unit := _grid.get_unit_at(current_tile)
+	if unit == null:
+		return
+	_input_suppressed = true
+	_input_handler.clear_repeat()
+	unit_details.open(unit)
+	# Consume the triggering press so UnitDetailsScreen._unhandled_input doesn't
+	# treat the same inspect_unit keystroke as a close.
+	if is_inside_tree():
+		get_viewport().set_input_as_handled()
+
+
+# Details page closed — resume cursor input. The FSM _state was never touched,
+# so a unit that was selected stays selected.
+func _on_unit_details_closed() -> void:
+	_input_suppressed = false
 
 
 # ── Lock / Unlock ────────────────────────────────────────────────────────────
