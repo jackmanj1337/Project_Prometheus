@@ -612,27 +612,30 @@ func unlock() -> void:
 func _scroll_camera_if_needed() -> void:
 	if _camera == null or _grid == null:
 		return
-	var viewport := get_viewport().get_visible_rect().size
-	# How many tiles fit on screen at current zoom
-	var tiles_w: int = int(viewport.x / GameConstants.TILE_SIZE)
-	var tiles_h: int = int(viewport.y / GameConstants.TILE_SIZE)
-	var cam_tile := _grid.world_to_tile(_camera.position)
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	# How many tiles fit on screen (zoom assumed 1:1, as elsewhere).
+	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
+	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
+	# Camera2D.position is the view CENTRE (anchor_mode = DRAG_CENTER). Convert to
+	# the top-left tile of the visible area so the edge-margin checks are correct —
+	# treating the centre as the top-left is the bug that let the cursor scroll off.
+	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
 
-	# If cursor is too close to the visible edge, recenter the camera by 1 tile
-	if current_tile.x < cam_tile.x + CAMERA_EDGE_BUFFER:
-		cam_tile.x = current_tile.x - CAMERA_EDGE_BUFFER
-	elif current_tile.x > cam_tile.x + tiles_w - CAMERA_EDGE_BUFFER - 1:
-		cam_tile.x = current_tile.x - tiles_w + CAMERA_EDGE_BUFFER + 1
-	if current_tile.y < cam_tile.y + CAMERA_EDGE_BUFFER:
-		cam_tile.y = current_tile.y - CAMERA_EDGE_BUFFER
-	elif current_tile.y > cam_tile.y + tiles_h - CAMERA_EDGE_BUFFER - 1:
-		cam_tile.y = current_tile.y - tiles_h + CAMERA_EDGE_BUFFER + 1
+	# Pull the view so the cursor never sits within CAMERA_EDGE_BUFFER of an edge.
+	if current_tile.x < tl.x + CAMERA_EDGE_BUFFER:
+		tl.x = current_tile.x - CAMERA_EDGE_BUFFER
+	elif current_tile.x > tl.x + tiles_w - CAMERA_EDGE_BUFFER - 1:
+		tl.x = current_tile.x - tiles_w + CAMERA_EDGE_BUFFER + 1
+	if current_tile.y < tl.y + CAMERA_EDGE_BUFFER:
+		tl.y = current_tile.y - CAMERA_EDGE_BUFFER
+	elif current_tile.y > tl.y + tiles_h - CAMERA_EDGE_BUFFER - 1:
+		tl.y = current_tile.y - tiles_h + CAMERA_EDGE_BUFFER + 1
 
-	# Clamp camera so it never shows space beyond the map edges
-	var max_x: int = max(0, _grid.map_width - tiles_w)
-	var max_y: int = max(0, _grid.map_height - tiles_h)
-	cam_tile.x = clamp(cam_tile.x, 0, max_x)
-	cam_tile.y = clamp(cam_tile.y, 0, max_y)
-	_camera.position = _grid.tile_to_world(cam_tile)
+	# Clamp the view so it never shows space beyond the map edges.
+	tl.x = clamp(tl.x, 0, max(0, _grid.map_width - tiles_w))
+	tl.y = clamp(tl.y, 0, max(0, _grid.map_height - tiles_h))
+
+	# Convert the top-left tile back to a centre position for the camera.
+	_camera.position = _grid.tile_to_world(tl) + view * 0.5
 
 

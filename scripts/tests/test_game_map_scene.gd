@@ -150,6 +150,19 @@ func _init() -> void:
 			print("FAIL cursor start tile: %s" % str(cursor.current_tile))
 			failed += 1
 
+	# Camera keeps the cursor on-screen as it moves to a far map corner (#2).
+	cursor._set_tile(Vector2i(40, 24))   # far corner of the 42x26 map
+	var view: Vector2 = instance.get_viewport().get_visible_rect().size
+	var cur_world: Vector2 = grid.tile_to_world(cursor.current_tile)
+	var half: Vector2 = view * 0.5
+	if cur_world.x >= cam.position.x - half.x and cur_world.x <= cam.position.x + half.x \
+			and cur_world.y >= cam.position.y - half.y and cur_world.y <= cam.position.y + half.y:
+		print("OK  camera keeps the cursor on-screen at a far tile")
+		passed += 1
+	else:
+		print("FAIL cursor off-screen: cursor=%s cam=%s" % [str(cur_world), str(cam.position)])
+		failed += 1
+
 	# Enemy danger zone counts movement range, not just standstill attack (#11).
 	if gs:
 		var danger_count := grid.get_enemy_danger_tiles().size()
