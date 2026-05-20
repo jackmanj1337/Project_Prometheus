@@ -204,6 +204,37 @@ func _init() -> void:
 			c1._camera.position, cursor_world, cam_rect])
 		failed += 1
 
+	# ---- _on_phase_changed → ENEMY saves camera, PLAYER restores it (PT4 #2) ----
+	# Bump the grid wider than the viewport (~20x11 tiles) so _scroll_camera_if_needed
+	# doesn't clamp the camera back to the map centre; on a 6x6 grid the safety net
+	# would always dominate and mask the actual restore. Same trick as the #7 block.
+	var pt4_saved_w := _grid.map_width
+	var pt4_saved_h := _grid.map_height
+	_grid.map_width = 30
+	_grid.map_height = 30
+	# Cursor mid-map so the saved view contains it; the PT3 #5 safety net is then
+	# a no-op and the restore is the only force on the camera. Pre-align the camera
+	# via _scroll_camera_if_needed so the saved position is a fixed point of the
+	# scroll math (which tile-aligns its output) — otherwise the restore would land
+	# on a different tile-aligned position than what we saved.
+	c1._set_tile(Vector2i(15, 15))
+	c1._scroll_camera_if_needed()
+	var saved_view: Vector2 = c1._camera.position
+	c1._on_phase_changed(1)  # ENEMY — captures _saved_camera_position
+	var saved_ok: bool = c1._has_saved_camera and c1._saved_camera_position == saved_view
+	c1._camera.position = Vector2(9_000, 9_000)  # AI-phase pan to "the last enemy"
+	c1._on_phase_changed(0)  # PLAYER — should restore _saved_camera_position
+	var restored_ok: bool = c1._camera.position == saved_view
+	_grid.map_width = pt4_saved_w
+	_grid.map_height = pt4_saved_h
+	if saved_ok and restored_ok:
+		print("OK  _on_phase_changed: ENEMY saves camera, PLAYER restores it (PT4 #2)")
+		passed += 1
+	else:
+		print("FAIL camera save/restore: saved_ok=%s restored_ok=%s pos=%s" % [
+			saved_ok, restored_ok, c1._camera.position])
+		failed += 1
+
 	# ---- _set_tile clamps to map bounds ----
 	c1._set_tile(Vector2i(99, 99))
 	var clamped_hi := c1.current_tile == Vector2i(5, 5)

@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `8eadfe9` + PT4 #1 fix.
+Last refreshed: **2026-05-20** against branch `main` @ `bad9f24` + PT4 #2 fix.
 
 ---
 
@@ -24,7 +24,8 @@ Last refreshed: **2026-05-20** against branch `main` @ `8eadfe9` + PT4 #1 fix.
 | Code review 2026-05-18 | GDD_01 resync (D1–D5, D7–D11), `InventoryEntry.validate()` wired in `GameMap._spawn_units`, `Unit.has_skill()` unions `mastery_skills`, `combat_animations` hidden in `SettingsScreen` | grep verified 2026-05-20 |
 | Code review 2026-05-19 | Clamp `camera_edge_buffer` on load, scale AI pacing delay with `movement_speed`, AI camera re-pan after movement | commits `d430384`, `fa27b2c` |
 | Code review 2026-05-19c | 4 DEBUG-banner nits (2.1–2.4) | commit `958995b` |
-| Playtest 4 — #1 | Mouse-bump no longer moves the cursor in keyboard-only mode: setting renamed `mouse_targeting`→`mouse_cursor` (values `enabled`/`disabled`), gate applied to motion in all three states (`FREE`/`UNIT_SELECTED`/`TARGETING`); legacy cfg key migrates | this commit; `test_map_cursor` "mouse_cursor=disabled ignores motion" |
+| Playtest 4 — #1 | Mouse-bump no longer moves the cursor in keyboard-only mode: setting renamed `mouse_targeting`→`mouse_cursor` (values `enabled`/`disabled`), gate applied to motion in all three states (`FREE`/`UNIT_SELECTED`/`TARGETING`); legacy cfg key migrates | commit `bad9f24`; `test_map_cursor` "mouse_cursor=disabled ignores motion" |
+| Playtest 4 — #2 | Camera now returns to the player's end-of-turn view: `MapCursor._on_phase_changed` saves `_camera.position` on `PLAYER → ENEMY` and restores it on `ENEMY → PLAYER`. PT3 #5 safety net (`_scroll_camera_if_needed`) still runs after the restore so a cursor outside the resulting view is panned in. | this commit; `test_map_cursor` "ENEMY saves camera, PLAYER restores it (PT4 #2)" |
 
 ---
 
@@ -37,7 +38,7 @@ Numbering is the work order. Status: ⬜ = pending, 🟦 = in flight, ⚫ = defe
 | # | Item | Source | Notes |
 |---|---|---|---|
 | A1 ✅ | ~~PT4 #1 — mouse-bump moves cursor in keyboard-only mode~~ | — | Shipped 2026-05-20; see §1 row. |
-| A2 ⬜ | **PT4 #2** — Camera doesn't return to where the player left it at end of turn | `CLAUDE/Docs/playtest4_findings_2026-05-19.md:3` | Symmetric to PT3 #5: that one recentres on **player-phase start**; this one wants to *remember* the player's pre-AI camera position and restore it. Touches `MapCursor._on_phase_changed`. |
+| A2 ✅ | ~~PT4 #2 — Camera doesn't return to player's end-of-turn view~~ | — | Shipped 2026-05-20; see §1 row. Bucket A is now empty. |
 
 ### Bucket B — Tech-debt prep work (slot before the milestones that need it)
 

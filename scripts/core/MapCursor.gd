@@ -20,6 +20,17 @@ var _grid: GridManager = null
 var _camera: Camera2D = null
 var _turn: TurnManager = null
 
+# Camera position captured at the moment the player phase ends, restored at the
+# start of the next player phase (PT4 #2). The AI phase pans the camera to follow
+# acting enemies (#7) — without this, the player regained control with the camera
+# wherever the last enemy acted. PT3 #5 still applies as a safety net: after the
+# restore we call _scroll_camera_if_needed() so a cursor that ended up outside
+# the visible rect is brought back in (e.g. if End Turn fired while the player
+# had panned far from the cursor). `_has_saved_camera` guards the very first
+# player phase (no prior position to restore — initial placement wins).
+var _saved_camera_position: Vector2 = Vector2.ZERO
+var _has_saved_camera: bool = false
+
 # State machine — see GDD_01 MapCursor section
 enum State {
 	FREE,            # default; cursor moves freely
@@ -122,12 +133,20 @@ func _resolve_menu_refs() -> void:
 
 func _on_phase_changed(new_phase: int) -> void:
 	if new_phase == GameState.Phase.ENEMY:
+		# Capture the player's last camera view so we can restore it next player
+		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads
+		# naturally as "remember where we were, then freeze."
+		if _camera != null:
+			_saved_camera_position = _camera.position
+			_has_saved_camera = true
 		lock()
 	else:
-		# AI-phase tracking pans the camera onto each enemy as it acts (#7), so
-		# at handover the camera is usually somewhere far from the player cursor.
-		# Pull it back before unlocking input — otherwise the player regains
-		# control with their cursor off-screen. Playtest 3 #5.
+		# Restore the player's saved camera (PT4 #2). Then run the existing
+		# PT3 #5 safety net so a cursor outside the resulting view is panned back
+		# in — covers the rare case where the saved view no longer contains the
+		# cursor (e.g. End Turn from a far-panned position).
+		if _has_saved_camera and _camera != null:
+			_camera.position = _saved_camera_position
 		_scroll_camera_if_needed()
 		unlock()
 
