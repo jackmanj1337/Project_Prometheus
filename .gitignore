@@ -22,3 +22,6 @@ mono_crash.*.json
 
 # Claude Code tool config (local only)
 .claude
+
+# Local Docker/API-key config
+.env

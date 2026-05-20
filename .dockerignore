@@ -1,0 +1,13 @@
+.git
+.godot
+.claude
+.codex
+.import
+.mono
+data_*
+mono_crash.*.json
+export.cfg
+export_credentials.cfg
+*.tmp
+*.translation
+.env

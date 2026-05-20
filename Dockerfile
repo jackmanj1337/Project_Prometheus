@@ -1,5 +1,5 @@
 # ============================================================
-# Godot + Claude Code — Terminal Dev Container
+# Godot + Claude Code + Codex — Terminal Dev Container
 # Base: Ubuntu 22.04 LTS
 # ============================================================
 
@@ -12,6 +12,12 @@ ENV TZ=UTC
 # ── Versions (update here to upgrade) ──────────────────────
 ARG GODOT_VERSION=4.3
 ARG NODE_MAJOR=20
+ARG CLAUDE_CODE_VERSION=latest
+ARG CODEX_VERSION=latest
+
+# Disable Claude Code's auto-updater in container builds.
+# Pin CLAUDE_CODE_VERSION / CODEX_VERSION from docker-compose.yml for reproducible builds.
+ENV DISABLE_AUTOUPDATER=1
 
 # ── System dependencies ─────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -19,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl wget git unzip ca-certificates gnupg \
     # Godot headless runtime deps
     libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 \
-    libgl1-mesa-glx libglu1-mesa \
+    libgl1-mesa-glx libglu1-mesa libfontconfig1 \
     # Build tooling (GDScript, C# etc.)
     build-essential \
     # Utilities
@@ -27,7 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Node.js (LTS) via NodeSource ────────────────────────────
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+RUN mkdir -p /etc/apt/keyrings && \
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
         | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] \
         https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
@@ -52,28 +59,37 @@ RUN wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERS
 #     mv /tmp/templates/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ && \
 #     rm -rf /tmp/templates.tpz /tmp/templates
 
-# ── Claude Code CLI ─────────────────────────────────────────
-RUN npm install -g @anthropic-ai/claude-code
+# ── AI coding CLIs ──────────────────────────────────────────
+RUN npm install -g \
+    @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+    @openai/codex@${CODEX_VERSION} && \
+    npm cache clean --force
 
 # ── Create a non-root user ──────────────────────────────────
 RUN useradd -ms /bin/bash developer
 WORKDIR /workspace
 RUN chown developer:developer /workspace
 
-# ── Persist Claude Code auth across sessions ────────────────
-RUN mkdir -p /home/developer/.claude && \
-    chown -R developer:developer /home/developer/.claude
+# ── Persist AI CLI auth/config across sessions ──────────────
+RUN mkdir -p /home/developer/.claude /home/developer/.codex /home/developer/.config && \
+    chown -R developer:developer /home/developer
 
 USER developer
 
 # ── Shell quality-of-life ───────────────────────────────────
 RUN echo 'alias godot="godot --headless"' >> ~/.bashrc && \
     echo 'alias ll="ls -lah --color=auto"' >> ~/.bashrc && \
-    echo 'export PS1="\[\e[36m\][godot-claude]\[\e[0m\] \w \$ "' >> ~/.bashrc && \
+    echo 'alias ai-claude="claude --dangerously-skip-permissions"' >> ~/.bashrc && \
+    echo 'alias ai-codex="codex"' >> ~/.bashrc && \
+    echo 'export PS1="\[\e[36m\][godot-ai]\[\e[0m\] \w \$ "' >> ~/.bashrc && \
     echo 'echo ""' >> ~/.bashrc && \
     echo 'echo "  🎮  Godot $(godot --version 2>/dev/null | head -1) — headless mode"' >> ~/.bashrc && \
     echo 'echo "  🤖  Claude Code $(claude --version 2>/dev/null)"' >> ~/.bashrc && \
+    echo 'echo "  🧠  Codex $(codex --version 2>/dev/null)"' >> ~/.bashrc && \
     echo 'echo "  📁  Project mounted at /workspace"' >> ~/.bashrc && \
+    echo 'echo ""' >> ~/.bashrc && \
+    echo 'echo "Start Claude Code: ai-claude"' >> ~/.bashrc && \
+    echo 'echo "Start Codex:       ai-codex"' >> ~/.bashrc && \
     echo 'echo ""' >> ~/.bashrc
 
-CMD ["/bin/bash", "-c", "claude --dangerously-skip-permissions; exec /bin/bash"]
+CMD ["/bin/bash"]

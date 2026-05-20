@@ -1,17 +1,24 @@
 services:
-  godot-claude:
+  agents-godot:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         GODOT_VERSION: "4.6"
         NODE_MAJOR: "20"
-    image: godot-claude-code:latest
-    container_name: godot-claude-dev
+        CLAUDE_CODE_VERSION: "latest"
+        CODEX_VERSION: "latest"
+    image: agents-godot:latest
+    container_name: agents-godot
 
     volumes:
       - .:/workspace
       - developer-home:/home/developer
+
+    # Optional API-key based auth. Login-based auth also persists in developer-home.
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
 
     stdin_open: true
     tty: true
