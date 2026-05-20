@@ -16,6 +16,8 @@ make regular commits with related messages after each logical step.
 
 All Documentation should go and be read from the appropriate subfolder in the CLAUDE folder
 
+Code review instructions are in the CLAUDE/Docs folder
+
 These notes should include what was done that session, the commits made and plans for next session,
 
 Every time a new session is started go back and read the notes from the most recent session.
