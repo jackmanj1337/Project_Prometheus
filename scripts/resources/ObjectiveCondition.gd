@@ -41,9 +41,12 @@ class_name ObjectiveCondition extends Resource
 # Empty = any unit in the conditioning group may seize (Decision 4 / 2026-05-17).
 @export var allowed_unit_ids: Array[String] = []
 
-# survive: number of completed rounds the condition must persist.
-# turn_limit: defeat fires once turn_number exceeds this value (0 = no limit,
-# meaning the condition never fires — useful as a noop authored stub).
+# Measured in completed *rounds* (one full faction cycle = one round; turn_number
+# ticks once per round in both WHOLE_PHASE and ALTERNATING modes — see TurnManager).
+#   survive: condition is met once turn_number > turns (i.e. `turns` full rounds
+#     have elapsed since the map began on turn 1).
+#   turn_limit: defeat fires once turn_number > turns. 0 = no limit, meaning the
+#     condition never fires — useful as a noop authored stub.
 @export var turns: int = 0
 
 

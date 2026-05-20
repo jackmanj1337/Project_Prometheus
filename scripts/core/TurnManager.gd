@@ -452,9 +452,10 @@ func check_victory_conditions() -> void:
 	# (matches the spec rationale: "so every group always has a way to be out").
 	# Authoring defeat_conditions[group] = [] in MapData opts the group OUT of
 	# the routed default and into "wipe doesn't end the run for this group".
+	# defeat_by_group[g] was assigned directly from _conditions_for_group(...)
+	# above, so an empty Array here always means "no authored defeats".
 	for g in groups:
-		if _conditions_for_group(_map_data.defeat_conditions, g).size() == 0 \
-				and (defeat_by_group[g] as Array).is_empty():
+		if (defeat_by_group[g] as Array).is_empty():
 			(defeat_by_group[g] as Array).append(_implicit_group_routed_condition())
 
 	var round_n: int = gs.turn_number
@@ -561,7 +562,7 @@ func _build_standings(winner: String, all_groups: Array[String], gs: Node) -> Ar
 # living units (the escape_records bookkeeping survives the wipe).
 func _all_evaluated_groups(gs: Node) -> Array[String]:
 	var seen: Dictionary = {}
-	for fid in gs._units_by_faction.keys():
+	for fid in gs.get_registered_faction_ids():
 		seen[gs.get_alliance_group(fid)] = true
 	for g in _map_data.victory_conditions.keys():
 		seen[g] = true
@@ -632,18 +633,29 @@ func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) 
 # Empty faction_id means "every faction hostile to the conditioning group" —
 # the natural authoring shortcut for "blue wins when everyone else is dead",
 # and the translation target for legacy `objective_type == "rout"`.
+#
+# An unknown faction_id (matches neither a registered faction nor an alliance
+# group on this map) is treated as unmet and logged via push_warning so the
+# typo surfaces in the editor output. DataManager validation (M16 follow-up)
+# will promote this to a load-time push_error.
 func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	var faction_ids: Array[String] = gs.get_registered_faction_ids()
 	if cond.faction_id != "":
 		# Faction id first; fall back to "alliance-group name" interpretation.
-		if gs._units_by_faction.has(cond.faction_id):
+		if cond.faction_id in faction_ids:
 			return gs.get_living_units_of(cond.faction_id).is_empty()
-		for fid in gs._units_by_faction.keys():
+		var matched := false
+		for fid in faction_ids:
 			if gs.get_alliance_group(fid) == cond.faction_id:
+				matched = true
 				if not gs.get_living_units_of(fid).is_empty():
 					return false
+		if not matched:
+			push_warning("ObjectiveCondition rout: faction_id '%s' matches no faction or group" % cond.faction_id)
+			return false
 		return true
 	# faction_id == "" → all hostiles to the conditioning group wiped.
-	for fid in gs._units_by_faction.keys():
+	for fid in faction_ids:
 		if gs.get_alliance_group(fid) == for_group:
 			continue
 		if not gs.get_living_units_of(fid).is_empty():
@@ -698,10 +710,11 @@ func _is_unit_id_alive(unit_id: String, gs: Node) -> bool:
 	return false
 
 
-# seize: TRUE iff some tile in cond.tiles has a seize record AND the seizing
-# unit was either in cond.allowed_unit_ids (when authored) OR a member of the
-# conditioning group (the default). Decision 4 / 2026-05-17 — Seize is a
-# deliberate ActionMenu entry; the cursor calls record_seize on confirm.
+# seize: TRUE iff some tile in cond.tiles has a seize record from a unit that
+# (a) belongs to the conditioning group AND (b) is in cond.allowed_unit_ids
+# when one is authored. The allow-list NARROWS the conditioning group — it does
+# not grant cross-group credit. Decision 4 / 2026-05-17 — Seize is a deliberate
+# ActionMenu entry; the cursor calls record_seize on confirm.
 func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 	if cond.tiles.is_empty():
 		return false
@@ -711,11 +724,12 @@ func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 			continue
 		var unit_id: String = record.get("unit_id", "")
 		var faction: String = record.get("faction", "")
-		if not cond.allowed_unit_ids.is_empty():
-			if unit_id in cond.allowed_unit_ids:
-				return true
+		# Allow-list (when authored) restricts to specific named units.
+		if not cond.allowed_unit_ids.is_empty() and not (unit_id in cond.allowed_unit_ids):
 			continue
-		# No allow-list authored — any unit in the conditioning group counts.
+		# Group membership is required in BOTH the allow-list and default cases —
+		# a named unit_id that happens to live in another faction can't seize for
+		# this group.
 		if gs.get_alliance_group(faction) == for_group:
 			return true
 	return false
@@ -742,7 +756,7 @@ func _eval_survive(cond: ObjectiveCondition, for_group: String, gs: Node) -> boo
 		return false
 	if cond.tiles.is_empty():
 		return true
-	for fid in gs._units_by_faction.keys():
+	for fid in gs.get_registered_faction_ids():
 		if gs.get_alliance_group(fid) != for_group:
 			continue
 		for u in gs.get_living_units_of(fid):
@@ -760,7 +774,7 @@ func _group_has_no_living_units(group: String, gs: Node) -> bool:
 	for record in _escape_records:
 		if gs.get_alliance_group(record.get("faction", "")) == group:
 			return false
-	for fid in gs._units_by_faction.keys():
+	for fid in gs.get_registered_faction_ids():
 		if gs.get_alliance_group(fid) != group:
 			continue
 		if not gs.get_living_units_of(fid).is_empty():
@@ -811,12 +825,12 @@ func can_seize(unit: Node, tile: Vector2i) -> bool:
 					continue
 				if not (tile in cond.tiles):
 					continue
-				# Allow-list gate: explicit list wins; otherwise the unit must
-				# belong to the conditioning group.
-				if not cond.allowed_unit_ids.is_empty():
-					if unit.data.unit_id in cond.allowed_unit_ids:
-						return true
-				elif group_id == unit_group:
+				# Allow-list (when authored) narrows the conditioning group, it
+				# does not override it — same shape as _eval_seize.
+				if not cond.allowed_unit_ids.is_empty() \
+						and not (unit.data.unit_id in cond.allowed_unit_ids):
+					continue
+				if group_id == unit_group:
 					return true
 	return false
 
@@ -833,6 +847,10 @@ func record_escape(unit: Node) -> void:
 			"unit_id": unit.data.unit_id,
 			"faction": unit.team,
 		})
+	# Order: log the escape (above) → unregister from GameState → drop the
+	# per-unit bookkeeping (state + original tile) → free the node → re-evaluate.
+	# Reordering risks evaluator passes seeing a half-escaped unit (e.g.
+	# unregistered but still in _unit_states), so keep the steps in this order.
 	var gs := get_node_or_null("/root/GameState")
 	if gs and unit in gs.all_units:
 		gs.unregister_unit(unit)

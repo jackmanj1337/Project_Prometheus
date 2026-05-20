@@ -666,6 +666,55 @@ func _init() -> void:
 			tm_cs.can_seize(seizer_ok, Vector2i(0, 0)),
 		]); failed += 1
 
+	# ---- _eval_rout: unknown faction_id fails closed (no vacuous victory) ----
+	# A typo'd rout authoring (e.g. "reds" instead of "red") must not silently
+	# fire map_victory; it should treat the condition as unmet and log a warning
+	# (push_warning, not asserted here — the editor surfaces it).
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_typo"))
+	gs.register_unit(_mk_unit("red", 20, "e_typo"))    # red alive — only typo'd rout could fire
+	var md_typo := MapData.new()
+	var c_typo := ObjectiveCondition.new()
+	c_typo.type = "rout"; c_typo.faction_id = "reds"   # typo: real id is "red"
+	md_typo.victory_conditions = {"allies": [c_typo]}
+	var tm_typo := TurnManager.new()
+	root.add_child(tm_typo)
+	tm_typo._map_data = md_typo
+	victories[0] = 0
+	tm_typo.check_victory_conditions()
+	if victories[0] == 0:
+		print("OK  _eval_rout: unknown faction_id treated as unmet"); passed += 1
+	else:
+		print("FAIL rout-typo: victories=%d" % victories[0]); failed += 1
+
+	# ---- _eval_seize: allow-list match without group membership does NOT win ----
+	# A red unit happens to share a unit_id with the allow-listed seizer name.
+	# Without the L-2 fix, seizing the tile would fire allies' victory; with the
+	# fix, group membership is required AND the allow-list narrows within the
+	# conditioning group.
+	gs.reset_map_state()
+	var infiltrator := _mk_unit("red", 20, "seizer_xg")
+	infiltrator.set("tile_position", Vector2i(4, 4))
+	gs.register_unit(infiltrator)
+	gs.register_unit(_mk_unit("blue", 20, "p_xg"))
+	var md_xg := MapData.new()
+	var c_xg := ObjectiveCondition.new()
+	c_xg.type = "seize"
+	c_xg.tiles = [Vector2i(4, 4)] as Array[Vector2i]
+	c_xg.allowed_unit_ids = ["seizer_xg"] as Array[String]
+	md_xg.victory_conditions = {"allies": [c_xg]}
+	var tm_xg := TurnManager.new()
+	root.add_child(tm_xg)
+	tm_xg._map_data = md_xg
+	victories[0] = 0
+	tm_xg.record_seize(infiltrator)
+	# can_seize must also refuse to show Seize for the cross-group unit.
+	var xg_can_seize: bool = tm_xg.can_seize(infiltrator, Vector2i(4, 4))
+	if victories[0] == 0 and not xg_can_seize:
+		print("OK  _eval_seize / can_seize: allow-list match without group membership is blocked"); passed += 1
+	else:
+		print("FAIL seize-xg: victories=%d can_seize=%s" % [victories[0], xg_can_seize]); failed += 1
+
 	# ---- record_escape: every named unit escaped → map_victory ----
 	gs.reset_map_state()
 	var runner := _mk_unit("blue", 20, "runner")

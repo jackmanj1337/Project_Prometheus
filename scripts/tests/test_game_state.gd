@@ -83,6 +83,18 @@ func _init() -> void:
 	else:
 		print("FAIL unregister_unit"); failed += 1
 
+	# ---- get_registered_faction_ids: returns every faction id with a unit ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20))
+	gs.register_unit(_mk_unit("red", 20))
+	gs.register_unit(_mk_unit("green", 20))
+	var fids: Array[String] = gs.get_registered_faction_ids()
+	fids.sort()
+	if fids == (["blue", "green", "red"] as Array[String]):
+		print("OK  get_registered_faction_ids returns every registered faction"); passed += 1
+	else:
+		print("FAIL get_registered_faction_ids: %s" % str(fids)); failed += 1
+
 	# ---- set_phase / is_player_turn track the current phase ----
 	gs.set_phase(gs.Phase.ENEMY)
 	var on_enemy: bool = not gs.is_player_turn()

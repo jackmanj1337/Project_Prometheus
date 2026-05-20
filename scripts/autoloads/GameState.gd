@@ -176,6 +176,17 @@ func get_living_units_of(faction_id: String) -> Array[Node]:
 	return result
 
 
+# Every faction id that has had at least one unit registered on this map (alive
+# or dead). Used by the M16 evaluator to enumerate which factions exist when
+# walking per-group conditions. Returns a typed copy so callers can iterate
+# safely while register_unit / unregister_unit mutate the underlying dict.
+func get_registered_faction_ids() -> Array[String]:
+	var out: Array[String] = []
+	for fid in _units_by_faction.keys():
+		out.append(fid)
+	return out
+
+
 # Legacy alias: the human-controlled "blue" faction. Kept so the existing
 # TurnManager / MapCursor / EnemyAI / test call sites work unchanged. Stage 5
 # (hotseat) and beyond will broaden this to "the active controlling faction"
