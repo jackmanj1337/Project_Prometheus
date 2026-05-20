@@ -9,6 +9,52 @@ extends Node
 
 enum Phase { PLAYER, ENEMY }
 
+# ── M14 stage 2: alliance-group hostility model ──────────────────────────────
+# A faction's id maps to an alliance group; two units are hostile iff they
+# belong to different groups. Captures the GDD relationships exactly with one
+# table instead of a 4x4 pairwise matrix (and trivially extends to a 5th+
+# faction — add it to the dict).
+#
+# Default groups (per second_player_control_feasibility.md §3.2):
+#   {blue, green} — the player's alliance
+#   {red}         — the standing enemy
+#   {yellow}      — the rogue that fights everyone
+#
+# Stage 3 will replace this constant with data read from each map's
+# FactionData[] so a map can override groupings; the constant stays as the
+# fallback for tests / headless code paths that don't set a MapData.
+const _DEFAULT_ALLIANCE_GROUPS: Dictionary = {
+	"blue":   "allies",
+	"green":  "allies",
+	"red":    "foes",
+	"yellow": "rogues",
+}
+# Runtime override — populated by Stage 3 from MapData.factions; meanwhile mirrors
+# the defaults so are_hostile() works from the moment GameState comes up.
+var _alliance_groups: Dictionary = _DEFAULT_ALLIANCE_GROUPS.duplicate()
+
+
+# True iff faction `a_id` and faction `b_id` are in DIFFERENT alliance groups.
+# An empty string OR an unknown id is treated as its own private group (so it
+# is hostile to every named faction and to itself — same group of one). Stage 5
+# may revisit "hostile to self" but for the current model it can't arise.
+func are_hostile(a_id: String, b_id: String) -> bool:
+	if a_id == b_id:
+		# Exactly-equal ids are the same faction by definition — same group, never hostile.
+		# Matches the stage-1 "u.team == other.team" semantics for the binary case.
+		return false
+	var ga: String = _alliance_groups.get(a_id, a_id)  # unknown id → its own group named after itself
+	var gb: String = _alliance_groups.get(b_id, b_id)
+	return ga != gb
+
+
+# Alliance-group name for a faction id; defaults to the id itself if unknown
+# (every unmapped faction is its own one-faction group, hostile to all others).
+func get_alliance_group(faction_id: String) -> String:
+	return _alliance_groups.get(faction_id, faction_id)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 # Per-save gameplay rules. Set by the New Game screen; the save-system milestone
 # will serialize these into the save file. Defaults cover the direct-boot dev path.
 var permadeath_enabled: bool = false

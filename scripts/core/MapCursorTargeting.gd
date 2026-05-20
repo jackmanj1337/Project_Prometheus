@@ -121,9 +121,28 @@ func is_active() -> bool:
 
 # ── Internals ────────────────────────────────────────────────────────────────
 
+# True iff `target.team` is hostile to `_controlling_faction` per the alliance
+# model. Routes through GameState.are_hostile when the autoload is live; falls
+# back to the strict same-faction comparison so headless --script tests that
+# don't load GameState still get the stage-1 binary behaviour.
+func _is_target_hostile(target: Node) -> bool:
+	if target == null or not ("team" in target):
+		return false
+	var gs: Node = null
+	# RefCounted has no scene-tree handle; resolve the autoload via the grid Node
+	# (which is in the tree during gameplay) when we need to read GameState.
+	if _grid != null and _grid.is_inside_tree():
+		gs = _grid.get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("are_hostile"):
+		return gs.are_hostile(_controlling_faction, target.team)
+	return target.team != _controlling_faction
+
+
 func _confirm_attack_target(cursor_tile: Vector2i) -> void:
 	var target := _grid.get_unit_at(cursor_tile)
-	if target == null or target.team == _controlling_faction:
+	# M14 stage 2: "valid enemy" = "hostile to the controlling faction", routed
+	# through GameState.are_hostile so blue can't confirm an attack on a green ally.
+	if target == null or not _is_target_hostile(target):
 		return  # cursor isn't on a valid enemy — ignore the confirm, stay CHOOSING
 	_preview_target = target
 	if _attack_preview and _attack_preview.has_method("show_preview"):
@@ -148,7 +167,10 @@ func _resolve_attack(target: Node) -> void:
 
 func _apply_staff_heal(cursor_tile: Vector2i) -> void:
 	var target := _grid.get_unit_at(cursor_tile)
-	if target == null or target.team != _controlling_faction:
+	# M14 stage 2: "valid ally" = "same alliance group as the controlling faction"
+	# = "not hostile to the controlling faction". Routes through GameState.are_hostile
+	# so blue can heal green when stage-3 content adds the green faction.
+	if target == null or _is_target_hostile(target):
 		return  # cursor isn't on a valid ally — ignore the confirm, stay CHOOSING
 	# Capture the weapon before perform_staff_heal — a last-use removal would clear
 	# the entry, and a later get_equipped_weapon() could return null / the wrong type.

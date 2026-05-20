@@ -39,6 +39,24 @@ const TERRAIN_DODGE_BONUS: Dictionary = {
 }
 
 
+# M14 stage 2: hostility check, routed through GameState.are_hostile when the
+# autoload is live. Without the autoload (headless --script tests that don't
+# load every autoload) we fall back to "different team-string = hostile" —
+# which is exactly the stage-1 binary behaviour the test suite already pins.
+# Identity-equal (both null / same instance) is never hostile; missing `team`
+# on either side is never hostile either (matches the prior `"team" in`
+# guards).
+func _hostile(a: Node, b: Node) -> bool:
+	if a == null or b == null or a == b:
+		return false
+	if not ("team" in a) or not ("team" in b):
+		return false
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs != null and gs.has_method("are_hostile"):
+		return gs.are_hostile(a.team, b.team)
+	return a.team != b.team
+
+
 # Called by GameMap during _ready() to wire the layers.
 func setup(terrain_layer: TileMapLayer, overlay_layer: TileMapLayer,
 		width: int, height: int) -> void:
@@ -129,15 +147,16 @@ func is_passable(tile: Vector2i, unit: Node) -> bool:
 		return false
 	var occupant := get_unit_at(tile)
 	if occupant != null and occupant != unit:
-		# Enemy units block; same-team allies can be passed through during movement
-		if unit != null and unit.has_method("get") and "team" in unit and "team" in occupant:
-			if unit.team != occupant.team:
-				# Pass skill (Trickster) allows moving through enemies — stub returns false
-				if is_inside_tree():
-					var sh := get_node_or_null("/root/SkillHandler")
-					if sh and sh.can_pass_through_enemies(unit):
-						return true
-				return false
+		# Hostile units block; allies (same alliance group) can be passed through
+		# during movement. M14 stage 2: routes through _hostile so blue/green allies
+		# don't block each other when stage-3 content adds the green faction.
+		if _hostile(unit, occupant):
+			# Pass skill (Trickster) allows moving through enemies — stub returns false
+			if is_inside_tree():
+				var sh := get_node_or_null("/root/SkillHandler")
+				if sh and sh.can_pass_through_enemies(unit):
+					return true
+			return false
 	return true
 
 
@@ -205,11 +224,11 @@ func dijkstra_costs(start: Vector2i, max_cost: int, ignore_occupants: bool,
 			var next: Vector2i = current + d
 			if get_terrain_at(next) == "wall":
 				continue
-			# Enemy units block traversal unless the caller opts out. Allies never block.
+			# Hostile units block traversal unless the caller opts out. Allies (same
+			# alliance group) never block — M14 stage 2 routes through _hostile.
 			if not ignore_occupants and blocker_unit != null:
 				var occupant := get_unit_at(next)
-				if occupant != null and occupant != blocker_unit \
-						and "team" in occupant and occupant.team != blocker_unit.team:
+				if _hostile(blocker_unit, occupant):
 					continue
 			var total: int = current_cost + get_move_cost(next, blocker_unit)
 			if total > max_cost:
@@ -368,7 +387,9 @@ func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
 		return out
 	var wrange := _get_weapon_range(unit)
 	for target in _get_units():
-		if "team" in target and target.team == unit.team:
+		# Only hostile units are attackable. M14 stage 2: routes through _hostile
+		# so blue can't accidentally attack a green ally once stage-3 content lands.
+		if not _hostile(unit, target):
 			continue
 		if target.data == null or target.data.hp <= 0:
 			continue
@@ -404,9 +425,15 @@ func get_healable_allies(unit: Node) -> Array[Node]:
 		return out
 	var wrange := _get_weapon_range(unit)
 	for ally in _get_units():
-		if not ("team" in ally) or ally.team != unit.team:
-			continue
+		# Only same-alliance-group units are healable. M14 stage 2: routes through
+		# _hostile so blue can heal green (and vice versa) once green units exist.
+		# (`_hostile(u, u)` returns false — the ally==unit guard below still keeps
+		# self-heal out of staff targeting.)
 		if ally == unit:
+			continue
+		if _hostile(unit, ally):
+			continue
+		if not ("team" in ally):
 			continue
 		if ally.data == null or ally.data.hp >= ally.data.max_hp:
 			continue
@@ -449,9 +476,23 @@ func show_heal_overlay(tiles: Array[Vector2i]) -> void:
 # could move to (plus staying put) AND the attack range from each of those tiles
 # (#11) — not just the attack range from where the enemy currently stands.
 func get_enemy_danger_tiles() -> Array[Vector2i]:
+	# M14 stage 2: "danger" still means "tiles a unit hostile to blue can hit",
+	# since the cursor's danger-zone toggle is player-facing. Stage 3 will let a
+	# hotseat MapCursor parameterise this with the cursor's controlling faction;
+	# until then the literal "blue" is the player's faction id.
 	var seen: Dictionary = {}
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	for u in _get_units():
-		if not ("team" in u) or u.team != "red":
+		if not ("team" in u):
+			continue
+		# Hostile-to-blue filter. Skip blue (and any ally in blue's alliance group).
+		var is_hostile_to_blue: bool
+		if gs != null and gs.has_method("are_hostile"):
+			is_hostile_to_blue = gs.are_hostile("blue", u.team)
+		else:
+			# Headless fallback — preserves stage-1 binary behaviour
+			is_hostile_to_blue = (u.team == "red")
+		if not is_hostile_to_blue:
 			continue
 		if u.data == null or u.data.hp <= 0:
 			continue

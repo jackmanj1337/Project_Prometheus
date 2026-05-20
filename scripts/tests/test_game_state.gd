@@ -25,7 +25,7 @@ func _init() -> void:
 	var failed := 0
 
 	_unit_stub = GDScript.new()
-	_unit_stub.source_code = "extends Node\nvar team: String = \"player\"\nvar data = null\n"
+	_unit_stub.source_code = "extends Node\nvar team: String = \"blue\"\nvar data = null\n"
 	_unit_stub.reload()
 
 	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
@@ -109,6 +109,38 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL load_default_roster: roster is empty"); failed += 1
+
+	# ---- M14 stage 2: are_hostile uses the alliance-group model ----
+	# Default groups: {blue,green} (allies), {red} (foes), {yellow} (rogues).
+	var hostility_ok: bool = (
+		not gs.are_hostile("blue", "blue")          # same id → never hostile
+		and not gs.are_hostile("blue", "green")     # same alliance group "allies"
+		and not gs.are_hostile("green", "blue")     # symmetric
+		and gs.are_hostile("blue", "red")           # different groups
+		and gs.are_hostile("green", "red")          # green ally is hostile to red
+		and gs.are_hostile("yellow", "blue")        # yellow fights everyone
+		and gs.are_hostile("yellow", "red")
+		and gs.are_hostile("yellow", "green")
+		and gs.are_hostile("blue", "")              # unknown ("") is its own group
+		and gs.are_hostile("blue", "purple")        # unmapped → hostile to all mapped
+	)
+	if hostility_ok:
+		print("OK  are_hostile: alliance-group model matches the GDD"); passed += 1
+	else:
+		print("FAIL are_hostile: alliance-group check failed"); failed += 1
+
+	# ---- get_alliance_group returns the group name; unknown id falls back to itself ----
+	var group_ok: bool = (
+		gs.get_alliance_group("blue") == "allies"
+		and gs.get_alliance_group("green") == "allies"
+		and gs.get_alliance_group("red") == "foes"
+		and gs.get_alliance_group("yellow") == "rogues"
+		and gs.get_alliance_group("purple") == "purple"  # unmapped → own group
+	)
+	if group_ok:
+		print("OK  get_alliance_group: known ids resolve, unknown id is its own group"); passed += 1
+	else:
+		print("FAIL get_alliance_group: lookup result mismatch"); failed += 1
 
 	# ---- take_map_snapshot / restore_map_snapshot: a hp change rolls back ----
 	var ud := UnitData.new()
