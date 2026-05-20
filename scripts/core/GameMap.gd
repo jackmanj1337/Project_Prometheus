@@ -29,6 +29,12 @@ const _CHAR_TO_SOURCE := {
 @onready var _turn_manager: TurnManager = $TurnManager
 @onready var _hud: Control = $HUDMainLayer/HUD
 
+# Sole writer of Camera2D.position in production (B4). Built in _ready, shared
+# with MapCursor via its setup() so both layers' camera operations flow through
+# the same instance — keeps save/restore state consistent across phase changes.
+const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+var _camera_ctrl: RefCounted = null
+
 var map_data: MapData = null
 
 
@@ -44,13 +50,17 @@ func _ready() -> void:
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
 	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height)
-	_cursor.setup(_grid, _camera, _turn_manager)
+	# Build the camera controller and share it with the cursor (B4) so save/restore
+	# state lives in exactly one place.
+	_camera_ctrl = CameraControllerS.new()
+	_camera_ctrl.setup(_camera, _grid)
+	_cursor.setup(_grid, _camera, _turn_manager, _camera_ctrl)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
 	_camera.limit_right = map_width * GameConstants.TILE_SIZE
 	_camera.limit_bottom = map_height * GameConstants.TILE_SIZE
-	_camera.position_smoothing_enabled = false
-	_camera.position = _get_camera_start()
+	_camera_ctrl.set_smoothing(false)
+	_camera_ctrl.center_at(_get_camera_start())
 
 	# Camera follows the enemy phase (#7): EnemyAI announces each acting unit and
 	# phase_changed flips smoothing on so the camera glides during the AI turn.
@@ -83,17 +93,16 @@ func _ready() -> void:
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
 # snappy (smoothing off) for the player phase so the cursor scroll stays tight.
 func _on_phase_changed(new_phase: int) -> void:
-	if _camera != null:
-		_camera.position_smoothing_enabled = new_phase == GameState.Phase.ENEMY
+	if _camera_ctrl != null:
+		_camera_ctrl.set_smoothing(new_phase == GameState.Phase.ENEMY)
 
 
-# Pans the camera to centre on an acting enemy (#7). tile_to_world gives the
-# tile's top-left; offset by half a tile so the unit sits mid-screen.
+# Pans the camera to centre on an acting enemy (#7). Half-tile offset is owned
+# by CameraController.center_on_tile now (B4).
 func _on_ai_unit_acting(unit: Node) -> void:
-	if _camera == null or _grid == null or not is_instance_valid(unit):
+	if _camera_ctrl == null or not is_instance_valid(unit):
 		return
-	var half := Vector2(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE) * 0.5
-	_camera.position = _grid.tile_to_world(unit.tile_position) + half
+	_camera_ctrl.center_on_tile(unit.tile_position)
 
 
 # Returns the world-space camera start position. Uses map_data.camera_start_tile when

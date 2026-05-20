@@ -17,19 +17,14 @@ const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
 
 var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
-var _camera: Camera2D = null
+var _camera: Camera2D = null  # held only for null checks + test reads; production writes go through _camera_ctrl
 var _turn: TurnManager = null
 
-# Camera position captured at the moment the player phase ends, restored at the
-# start of the next player phase (PT4 #2). The AI phase pans the camera to follow
-# acting enemies (#7) — without this, the player regained control with the camera
-# wherever the last enemy acted. PT3 #5 still applies as a safety net: after the
-# restore we call _scroll_camera_if_needed() so a cursor that ended up outside
-# the visible rect is brought back in (e.g. if End Turn fired while the player
-# had panned far from the cursor). `_has_saved_camera` guards the very first
-# player phase (no prior position to restore — initial placement wins).
-var _saved_camera_position: Vector2 = Vector2.ZERO
-var _has_saved_camera: bool = false
+# All camera writes (scroll, AI tracking, PT4 #2 save/restore) go through this
+# controller (B4). Built either by GameMap and passed in via setup(), or built
+# in setup() if only a raw Camera2D was provided (test convenience).
+const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+var _camera_ctrl: RefCounted = null
 
 # State machine — see GDD_01 MapCursor section
 enum State {
@@ -136,17 +131,16 @@ func _on_phase_changed(new_phase: int) -> void:
 		# Capture the player's last camera view so we can restore it next player
 		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads
 		# naturally as "remember where we were, then freeze."
-		if _camera != null:
-			_saved_camera_position = _camera.position
-			_has_saved_camera = true
+		if _camera_ctrl != null:
+			_camera_ctrl.save_view()
 		lock()
 	else:
 		# Restore the player's saved camera (PT4 #2). Then run the existing
 		# PT3 #5 safety net so a cursor outside the resulting view is panned back
 		# in — covers the rare case where the saved view no longer contains the
 		# cursor (e.g. End Turn from a far-panned position).
-		if _has_saved_camera and _camera != null:
-			_camera.position = _saved_camera_position
+		if _camera_ctrl != null:
+			_camera_ctrl.restore_view()
 		_scroll_camera_if_needed()
 		unlock()
 
@@ -162,10 +156,19 @@ func _on_level_up_finished() -> void:
 	_input_suppressed = false
 
 
-func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void:
+func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
+		camera_ctrl: RefCounted = null) -> void:
 	_grid = grid
 	_camera = camera
 	_turn = turn
+	# Accept a pre-built CameraController (GameMap path — there should be exactly
+	# one in production so the save/restore state is shared) or build a fresh one
+	# from the camera (test path — _make_cursor passes only a Camera2D).
+	if camera_ctrl != null:
+		_camera_ctrl = camera_ctrl
+	elif camera != null:
+		_camera_ctrl = CameraControllerS.new()
+		_camera_ctrl.setup(camera, grid)
 	position = _grid.tile_to_world(current_tile)
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
 	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"))
@@ -385,17 +388,11 @@ func _set_tile(tile: Vector2i, from_mouse: bool = false) -> void:
 
 # Returns `tile` clamped to the camera's currently visible tile rect. Used to
 # pin the mouse-driven cursor inside the view so it can't push the camera
-# (playtest 3 #7). No-op when the camera/grid are unavailable.
+# (playtest 3 #7). Thin delegation to CameraController.clamp_tile_to_view (B4).
 func _clamp_tile_to_view(tile: Vector2i) -> Vector2i:
-	if _camera == null or _grid == null:
+	if _camera_ctrl == null:
 		return tile
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
-	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
-	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
-	tile.x = clampi(tile.x, tl.x, tl.x + tiles_w - 1)
-	tile.y = clampi(tile.y, tl.y, tl.y + tiles_h - 1)
-	return tile
+	return _camera_ctrl.clamp_tile_to_view(tile)
 
 
 # ── State Machine ──────────────────────────────────────────────────────────
@@ -860,34 +857,10 @@ func _camera_edge_buffer() -> int:
 
 
 # When the cursor approaches the screen edge, pan the camera to keep it visible.
+# Thin delegation to CameraController.keep_cursor_in_view (B4).
 func _scroll_camera_if_needed() -> void:
-	if _camera == null or _grid == null:
+	if _camera_ctrl == null:
 		return
-	var buffer: int = _camera_edge_buffer()
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	# How many tiles fit on screen (zoom assumed 1:1, as elsewhere).
-	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
-	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
-	# Camera2D.position is the view CENTRE (anchor_mode = DRAG_CENTER). Convert to
-	# the top-left tile of the visible area so the edge-margin checks are correct —
-	# treating the centre as the top-left is the bug that let the cursor scroll off.
-	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
-
-	# Pull the view so the cursor never sits within `buffer` tiles of an edge.
-	if current_tile.x < tl.x + buffer:
-		tl.x = current_tile.x - buffer
-	elif current_tile.x > tl.x + tiles_w - buffer - 1:
-		tl.x = current_tile.x - tiles_w + buffer + 1
-	if current_tile.y < tl.y + buffer:
-		tl.y = current_tile.y - buffer
-	elif current_tile.y > tl.y + tiles_h - buffer - 1:
-		tl.y = current_tile.y - tiles_h + buffer + 1
-
-	# Clamp the view so it never shows space beyond the map edges.
-	tl.x = clamp(tl.x, 0, max(0, _grid.map_width - tiles_w))
-	tl.y = clamp(tl.y, 0, max(0, _grid.map_height - tiles_h))
-
-	# Convert the top-left tile back to a centre position for the camera.
-	_camera.position = _grid.tile_to_world(tl) + view * 0.5
+	_camera_ctrl.keep_cursor_in_view(current_tile, _camera_edge_buffer())
 
 

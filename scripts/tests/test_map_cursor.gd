@@ -220,10 +220,11 @@ func _init() -> void:
 	c1._set_tile(Vector2i(15, 15))
 	c1._scroll_camera_if_needed()
 	var saved_view: Vector2 = c1._camera.position
-	c1._on_phase_changed(1)  # ENEMY — captures _saved_camera_position
-	var saved_ok: bool = c1._has_saved_camera and c1._saved_camera_position == saved_view
+	c1._on_phase_changed(1)  # ENEMY — controller captures the current view
+	# Save state lives on the CameraController now (B4); read it through there.
+	var saved_ok: bool = c1._camera_ctrl._has_saved and c1._camera_ctrl._saved_position == saved_view
 	c1._camera.position = Vector2(9_000, 9_000)  # AI-phase pan to "the last enemy"
-	c1._on_phase_changed(0)  # PLAYER — should restore _saved_camera_position
+	c1._on_phase_changed(0)  # PLAYER — controller restores the saved view
 	var restored_ok: bool = c1._camera.position == saved_view
 	_grid.map_width = pt4_saved_w
 	_grid.map_height = pt4_saved_h
