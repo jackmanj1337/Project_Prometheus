@@ -470,5 +470,104 @@ func _init() -> void:
 		print("FAIL fd-derived order: %s" % str(tm_fd._turn_order))
 		failed += 1
 
+	# ── M16 stage 2: per-group evaluator ────────────────────────────────────────
+	# All blocks below use NEW victory_conditions / defeat_conditions dicts (NOT
+	# the legacy fields) — the legacy fields keep their pre-M16 tests above. The
+	# new evaluator must score the same plus the new rules (last-standing, draw,
+	# elimination-round tracking).
+
+	# ---- per-group victory: authored rout on allies group fires map_victory ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_v1"))
+	gs.register_unit(_mk_unit("red", 0, "e_v1"))   # red unit dead
+	var md_pg_v := MapData.new()
+	var c_rout_red := ObjectiveCondition.new()
+	c_rout_red.type = "rout"; c_rout_red.faction_id = "red"
+	md_pg_v.victory_conditions = {"allies": [c_rout_red]}
+	var tm_pg_v := TurnManager.new()
+	root.add_child(tm_pg_v)
+	tm_pg_v._map_data = md_pg_v
+	victories[0] = 0
+	tm_pg_v.check_victory_conditions()
+	if victories[0] == 1:
+		print("OK  per-group victory: authored rout(red) → map_victory"); passed += 1
+	else:
+		print("FAIL per-group victory: victories=%d" % victories[0]); failed += 1
+
+	# ---- per-group defeat: authored protect fires map_defeat ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "grunt2"))   # protected id absent → defeat
+	gs.register_unit(_mk_unit("red", 20, "e_d1"))      # red alive so no last-standing
+	var md_pg_d := MapData.new()
+	var c_prot := ObjectiveCondition.new()
+	c_prot.type = "protect"; c_prot.unit_ids = ["hero_pg"] as Array[String]
+	md_pg_d.defeat_conditions = {"allies": [c_prot]}
+	var tm_pg_d := TurnManager.new()
+	root.add_child(tm_pg_d)
+	tm_pg_d._map_data = md_pg_d
+	defeats[0] = 0
+	tm_pg_d.check_victory_conditions()
+	if defeats[0] == 1:
+		print("OK  per-group defeat: authored protect (missing unit) → map_defeat"); passed += 1
+	else:
+		print("FAIL per-group defeat: defeats=%d" % defeats[0]); failed += 1
+
+	# ---- ≤1 group remaining → last group standing wins (no authored victory) ----
+	# Authored: foes have a protect condition on a missing unit → foes eliminated.
+	# allies have NO conditions → implicit "group routed" defeat. allies has a live
+	# blue → not routed → allies survives → last standing → allies wins → map_victory.
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_ls"))
+	gs.register_unit(_mk_unit("red", 20, "e_ls"))      # red alive
+	var md_ls := MapData.new()
+	var c_prot_foes := ObjectiveCondition.new()
+	c_prot_foes.type = "protect"; c_prot_foes.unit_ids = ["red_boss_ls"] as Array[String]
+	md_ls.defeat_conditions = {"foes": [c_prot_foes]}
+	var tm_ls := TurnManager.new()
+	root.add_child(tm_ls)
+	tm_ls._map_data = md_ls
+	victories[0] = 0
+	tm_ls.check_victory_conditions()
+	if victories[0] == 1:
+		print("OK  ≤1 group remaining: last-standing wins (map_victory)"); passed += 1
+	else:
+		print("FAIL last-standing: victories=%d defeats=%d" % [victories[0], defeats[0]]); failed += 1
+
+	# ---- simultaneous elimination → draw → map_defeat (blue eliminated too) ----
+	# Both factions have zero living units; both groups get the implicit routed
+	# defeat. 0 in_play → draw → map_defeat.
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 0, "p_draw"))
+	gs.register_unit(_mk_unit("red", 0, "e_draw"))
+	var md_draw := MapData.new()                       # no conditions
+	var tm_draw := TurnManager.new()
+	root.add_child(tm_draw)
+	tm_draw._map_data = md_draw
+	victories[0] = 0; defeats[0] = 0
+	tm_draw.check_victory_conditions()
+	if defeats[0] == 1 and victories[0] == 0:
+		print("OK  simultaneous wipe → draw → map_defeat (blue eliminated)"); passed += 1
+	else:
+		print("FAIL draw: V=%d D=%d" % [victories[0], defeats[0]]); failed += 1
+
+	# ---- get_group_eliminated_round records the round a group fell ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_er"))
+	gs.register_unit(_mk_unit("red", 0, "e_er"))       # red wiped on turn 1
+	gs.turn_number = 1
+	var md_er := MapData.new()                         # implicit defaults
+	var tm_er := TurnManager.new()
+	root.add_child(tm_er)
+	tm_er._map_data = md_er
+	tm_er.check_victory_conditions()                   # foes eliminated, allies wins
+	if tm_er.get_group_eliminated_round("foes") == 1 \
+			and tm_er.get_group_eliminated_round("allies") == -1:
+		print("OK  get_group_eliminated_round: foes=1, allies=-1"); passed += 1
+	else:
+		print("FAIL elim-round: foes=%d allies=%d" % [
+			tm_er.get_group_eliminated_round("foes"),
+			tm_er.get_group_eliminated_round("allies"),
+		]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

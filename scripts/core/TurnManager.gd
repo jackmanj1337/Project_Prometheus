@@ -27,6 +27,13 @@ var _grid: GridManager = null
 # Latches true on first map_victory/map_defeat emit to prevent double-fire.
 var _map_over: bool = false
 
+# M16 stage 2: per-group elimination tracking. Maps alliance-group id ("allies",
+# "foes", ...) → turn_number when that group was first marked eliminated. A
+# group not in the dict is still in the game. Drives the ranked-standings
+# results screen (M16 stage 4); the evaluator below populates it and the
+# get_group_eliminated_round() accessor reads it.
+var _group_eliminated_round: Dictionary = {}
+
 # ── Scheduler state (M14 stage 3) ────────────────────────────────────────────
 # The ordered list of faction ids this map cycles through. Set in start_map
 # from MapData.turn_order; falls back to the default if the map didn't author one.
@@ -385,8 +392,24 @@ func undo_move(unit: Node) -> void:
 	_original_tiles.erase(unit)
 
 
-# Called after every unit death (via EventBus.unit_died) and on enemy phase end.
-# Reads MapData.objective_type and emits map_victory/map_defeat accordingly.
+# M16 stage 2: generic per-group victory/defeat evaluator (Decision 8 /
+# 2026-05-17). Loops every alliance group that has at least one registered
+# faction OR an authored condition set. Per group:
+#   victory = AND of every condition in MapData.victory_conditions[group]
+#   defeat  = OR  of any condition in MapData.defeat_conditions[group]
+# A group with no authored defeat conditions falls when every member faction
+# is empty ("group routed") — the implicit-default rule from the GDD so a
+# group always has a way to be out. After defeats are marked: ≤1 group still
+# in play → last-standing wins; 0 → draw.
+#
+# Legacy fields (objective_type / turn_limit / required_survivor_ids) are
+# translated into implicit BLUE-group conditions so existing maps and tests
+# keep their behaviour exactly. Stage 4 or 5 will retire the legacy fields
+# once every map has migrated to victory_conditions / defeat_conditions.
+#
+# Blue-perspective EventBus signals stay the same: blue's alliance group winning
+# → map_victory; blue eliminated or draw → map_defeat. The ranked-standings
+# UI (stage 4) reads _group_eliminated_round directly instead of the signals.
 func check_victory_conditions() -> void:
 	# _map_over prevents double-emit when this is called from both unit_died signal
 	# and phase-transition hooks in the same frame.
@@ -396,34 +419,244 @@ func check_victory_conditions() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if gs == null or bus == null:
 		return
-	# Turn limit defeat (0 = no limit)
-	if _map_data.turn_limit > 0 and gs.turn_number > _map_data.turn_limit:
-		_map_over = true
-		bus.map_defeat.emit()
-		return
-	# MVP supports rout only
-	if _map_data.objective_type == "rout":
-		if gs.get_living_enemy_units().is_empty():
-			_map_over = true
-			_apply_victory_rewards(gs)
-			bus.map_victory.emit()
-			return
-	# Defeat: all player units dead
-	if gs.get_living_player_units().is_empty():
-		_map_over = true
-		bus.map_defeat.emit()
-		return
-	# Defeat: a required survivor was killed (matched by unit_id)
-	for required_id in _map_data.required_survivor_ids:
-		var alive := false
-		for u in gs.get_living_player_units():
-			if u.data and u.data.unit_id == required_id:
-				alive = true
+
+	var groups: Array[String] = _all_evaluated_groups(gs)
+	var victory_by_group: Dictionary = {}
+	var defeat_by_group: Dictionary = {}
+	for g in groups:
+		victory_by_group[g] = _conditions_for_group(_map_data.victory_conditions, g)
+		defeat_by_group[g]  = _conditions_for_group(_map_data.defeat_conditions, g)
+	# Legacy translation lands on blue's alliance group only — stage 2 keeps
+	# every existing map / test identical to pre-M16 behaviour.
+	_apply_legacy_conditions(victory_by_group, defeat_by_group, gs)
+	# Implicit-default "group routed" — only when the group has no other way out
+	# (matches the spec rationale: "so every group always has a way to be out").
+	# Authoring defeat_conditions[group] = [] in MapData opts the group OUT of
+	# the routed default and into "wipe doesn't end the run for this group".
+	for g in groups:
+		if _conditions_for_group(_map_data.defeat_conditions, g).size() == 0 \
+				and (defeat_by_group[g] as Array).is_empty():
+			(defeat_by_group[g] as Array).append(_implicit_group_routed_condition())
+
+	var round_n: int = gs.turn_number
+
+	# Step 1: mark newly-eliminated groups (defeat = OR of conditions).
+	for g in groups:
+		if _group_eliminated_round.has(g):
+			continue
+		for cond in defeat_by_group[g]:
+			if _evaluate_condition(cond, g, gs):
+				_group_eliminated_round[g] = round_n
 				break
-		if not alive:
+
+	# Step 2: check victory among groups still in play (victory = AND of conditions).
+	var winner: String = ""
+	for g in groups:
+		if _group_eliminated_round.has(g):
+			continue
+		var vlist: Array = victory_by_group[g]
+		if vlist.is_empty():
+			continue
+		var all_met: bool = true
+		for cond in vlist:
+			if not _evaluate_condition(cond, g, gs):
+				all_met = false
+				break
+		if all_met:
+			winner = g
+			break
+
+	# Step 3: last-group-standing / draw fallback.
+	var in_play: Array[String] = []
+	for g in groups:
+		if not _group_eliminated_round.has(g):
+			in_play.append(g)
+	if winner == "":
+		if in_play.size() == 1:
+			winner = in_play[0]
+		elif in_play.size() == 0:
+			# Simultaneous wipe-out — draw. Map ends with no victor; blue is in
+			# the eliminated set so the legacy signal is map_defeat.
 			_map_over = true
 			bus.map_defeat.emit()
 			return
+
+	if winner == "":
+		# No winner decided this evaluation pass — map continues.
+		return
+
+	# Map decided. Fire the blue-perspective signal for the existing GameOverScreen
+	# (the ranked-standings screen in stage 4 will read _group_eliminated_round).
+	_map_over = true
+	var blue_group: String = gs.get_alliance_group("blue")
+	if winner == blue_group:
+		_apply_victory_rewards(gs)
+		bus.map_victory.emit()
+	else:
+		bus.map_defeat.emit()
+
+
+# Union of (groups with at least one registered faction) and (groups named in
+# either authored condition dict) and (blue's group, when legacy fields would
+# add conditions to it). The third clause matters for tests that don't
+# pre-register blue but rely on the legacy `objective_type = "rout"` path.
+func _all_evaluated_groups(gs: Node) -> Array[String]:
+	var seen: Dictionary = {}
+	for fid in gs._units_by_faction.keys():
+		seen[gs.get_alliance_group(fid)] = true
+	for g in _map_data.victory_conditions.keys():
+		seen[g] = true
+	for g in _map_data.defeat_conditions.keys():
+		seen[g] = true
+	if _has_legacy_blue_conditions():
+		seen[gs.get_alliance_group("blue")] = true
+	var out: Array[String] = []
+	for g in seen.keys():
+		out.append(g)
+	return out
+
+
+func _has_legacy_blue_conditions() -> bool:
+	return _map_data.objective_type == "rout" \
+			or _map_data.turn_limit > 0 \
+			or not _map_data.required_survivor_ids.is_empty()
+
+
+# Reads MapData.{victory|defeat}_conditions[group] as an Array. Tolerates a
+# missing key (returns []), an explicitly-authored empty Array (returns the
+# same empty Array — preserves opt-out semantics for the implicit-default
+# routed defeat), or a non-Array value (returns [], logs nothing for now —
+# DataManager could add a cross-ref check in M16 stage 5+).
+func _conditions_for_group(dict: Dictionary, group: String) -> Array:
+	var raw: Variant = dict.get(group, null)
+	if raw is Array:
+		return raw
+	return []
+
+
+# Translates legacy MapData fields into implicit blue-alliance-group conditions.
+# Stage 4 / 5 will delete the legacy fields once map_001 + tests are fully
+# migrated to victory_conditions / defeat_conditions; this is the only place
+# the translation lives until then.
+func _apply_legacy_conditions(victory_by_group: Dictionary, defeat_by_group: Dictionary, gs: Node) -> void:
+	var blue_group: String = gs.get_alliance_group("blue")
+	if not victory_by_group.has(blue_group):
+		victory_by_group[blue_group] = []
+	if not defeat_by_group.has(blue_group):
+		defeat_by_group[blue_group] = []
+	# objective_type == "rout" → blue's group victory = rout all hostiles.
+	# Empty faction_id (= every faction outside this group) reproduces the
+	# pre-M16 "get_living_enemy_units().is_empty()" check.
+	if _map_data.objective_type == "rout":
+		var rout_cond := ObjectiveCondition.new()
+		rout_cond.type = "rout"
+		(victory_by_group[blue_group] as Array).append(rout_cond)
+	# turn_limit > 0 → blue's group defeat once turn_number exceeds the limit.
+	if _map_data.turn_limit > 0:
+		var tl_cond := ObjectiveCondition.new()
+		tl_cond.type = "turn_limit"
+		tl_cond.turns = _map_data.turn_limit
+		(defeat_by_group[blue_group] as Array).append(tl_cond)
+	# required_survivor_ids → blue's group defeat when any named unit is dead.
+	# Same evaluator as the new `protect` condition — they share semantics.
+	if not _map_data.required_survivor_ids.is_empty():
+		var pr_cond := ObjectiveCondition.new()
+		pr_cond.type = "protect"
+		pr_cond.unit_ids = _map_data.required_survivor_ids.duplicate()
+		(defeat_by_group[blue_group] as Array).append(pr_cond)
+
+
+# Sentinel "this group is fully wiped" condition; the implicit-default defeat
+# for any group without an authored defeat list. Lives behind its own type tag
+# so a normal `rout` with faction_id == "" can keep meaning "all hostiles
+# wiped" rather than being context-dependent.
+func _implicit_group_routed_condition() -> ObjectiveCondition:
+	var c := ObjectiveCondition.new()
+	c.type = "_group_routed"
+	return c
+
+
+# Dispatcher. Returns true iff `cond` is satisfied right now for the
+# conditioning group `for_group`. Stage 2 covers rout / turn_limit / protect
+# (the three legacy types) plus the _group_routed sentinel. defeat_boss /
+# seize / escape / survive land in stage 3.
+func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	if cond == null:
+		return false
+	match cond.type:
+		"_group_routed":
+			return _group_has_no_living_units(for_group, gs)
+		"rout":
+			return _eval_rout(cond, for_group, gs)
+		"turn_limit":
+			# defeat when turn_number > turns; mirrors the legacy strict-greater check.
+			return gs.turn_number > cond.turns
+		"protect":
+			# defeat-condition truth = ANY protected unit is dead/missing.
+			return _eval_protect_failed(cond, gs)
+		_:
+			push_warning("ObjectiveCondition: unimplemented type '%s' — treated as unmet" % cond.type)
+			return false
+
+
+# rout: a named faction id, or a named alliance group, has zero living units.
+# Empty faction_id means "every faction hostile to the conditioning group" —
+# the natural authoring shortcut for "blue wins when everyone else is dead",
+# and the translation target for legacy `objective_type == "rout"`.
+func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	if cond.faction_id != "":
+		# Faction id first; fall back to "alliance-group name" interpretation.
+		if gs._units_by_faction.has(cond.faction_id):
+			return gs.get_living_units_of(cond.faction_id).is_empty()
+		for fid in gs._units_by_faction.keys():
+			if gs.get_alliance_group(fid) == cond.faction_id:
+				if not gs.get_living_units_of(fid).is_empty():
+					return false
+		return true
+	# faction_id == "" → all hostiles to the conditioning group wiped.
+	for fid in gs._units_by_faction.keys():
+		if gs.get_alliance_group(fid) == for_group:
+			continue
+		if not gs.get_living_units_of(fid).is_empty():
+			return false
+	return true
+
+
+# protect-failed (= defeat truth value): TRUE iff ANY named unit is missing
+# or has hp <= 0. May include green units, per the M16 spec — so this scans
+# every registered unit, not just blue (which is what the legacy
+# required_survivor_ids check did, since required survivors were only ever
+# blue under the old model).
+func _eval_protect_failed(cond: ObjectiveCondition, gs: Node) -> bool:
+	for required_id in cond.unit_ids:
+		var alive := false
+		for u in gs.all_units:
+			if not is_instance_valid(u) or u.data == null:
+				continue
+			if u.data.unit_id == required_id and u.data.hp > 0:
+				alive = true
+				break
+		if not alive:
+			return true
+	return false
+
+
+# True when no faction whose alliance_group == `group` has any living unit.
+# Powers the implicit "group routed" defeat default; not exposed to authors.
+func _group_has_no_living_units(group: String, gs: Node) -> bool:
+	for fid in gs._units_by_faction.keys():
+		if gs.get_alliance_group(fid) != group:
+			continue
+		if not gs.get_living_units_of(fid).is_empty():
+			return false
+	return true
+
+
+# Returns the turn_number when `group` was first marked eliminated, or -1 if
+# the group is still in play. Drives the ranked-standings results screen in
+# M16 stage 4.
+func get_group_eliminated_round(group: String) -> int:
+	return _group_eliminated_round.get(group, -1)
 
 
 func _apply_victory_rewards(gs: Node) -> void:
