@@ -5,11 +5,16 @@ extends "res://scripts/ui/ModalScreen.gd"
 # content lives in a ScrollContainer so it never overflows the panel.
 #
 # Extends ModalScreen (B3) for the shared hide-on-ready + cancel-to-close
-# wiring; this script overrides _close() to also emit back_pressed and override
-# _unhandled_input is inherited as-is.
+# wiring; this script overrides _close() to also emit back_pressed.
+#
+# Enum settings (the seven OptionButtons) are driven by _ENUM_SETTINGS below
+# (B5 / 05-19 review §4). Adding a new enum setting is one schema row plus a
+# named OptionButton in the scene — no new @onready / connect / _on_*_changed
+# triplet per setting. Sliders and the read-only keybindings list stay hand-
+# wired because their shape (signal, label-update, value range) doesn't fit
+# the OptionButton template.
 #
 # Scene: SettingsScreen > Dimmer + Panel > ScrollContainer > VBox > rows.
-# The keybinding rows under VBox/KeybindList are built at runtime (#8).
 
 signal back_pressed()
 
@@ -24,36 +29,72 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _label_master: Label       = _vbox.get_node("HBoxMaster/LabelMaster")
 @onready var _label_music: Label        = _vbox.get_node("HBoxMusic/LabelMusic")
 @onready var _label_sfx: Label          = _vbox.get_node("HBoxSFX/LabelSFX")
-@onready var _opt_combat_anim: OptionButton    = _vbox.get_node("OptCombatAnim")
-@onready var _opt_movement_speed: OptionButton = _vbox.get_node("HBoxMovementSpeed/OptMovementSpeed")
-@onready var _opt_phase_banner: OptionButton   = _vbox.get_node("HBoxPhaseBanner/OptPhaseBanner")
-@onready var _opt_level_up: OptionButton       = _vbox.get_node("HBoxLevelUp/OptLevelUpScreen")
-@onready var _opt_mouse_cursor: OptionButton = _vbox.get_node("HBoxMouseCursor/OptMouseCursor")
-@onready var _opt_auto_end: OptionButton       = _vbox.get_node("HBoxAutoEndTurn/OptAutoEndTurn")
 @onready var _slider_camera_buffer: HSlider    = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
 @onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
 
-const _COMBAT_ANIM_OPTIONS: Array[String]    = ["all", "player_only", "enemy_only", "none"]
-const _MOVEMENT_SPEED_OPTIONS: Array[String] = ["normal", "fast", "instant"]
-const _PHASE_BANNER_OPTIONS: Array[String]   = ["show", "skip"]
-const _LEVEL_UP_OPTIONS: Array[String]       = ["show", "auto", "skip"]
-const _MOUSE_CURSOR_OPTIONS: Array[String] = ["enabled", "disabled"]
+# Data-driven schema for the OptionButton-style settings. Each row:
+#   key:    SettingsManager field name (used for both get/set)
+#   node:   path under _vbox to the OptionButton
+#   values: ordered list of valid SettingsManager values (Variant)
+#   labels: ordered display strings, parallel to `values`
+#   hidden: optional bool — when true, the OptionButton is set invisible (used
+#           for inert scaffolded settings like combat_animations until their
+#           system lands)
+#
+# Adding a new enum setting:
+#   1. Declare the @export/var on SettingsManager.gd (load/save still names it
+#      explicitly, since it's a Godot field with a default).
+#   2. Add a row here.
+#   3. Add an OptionButton node to SettingsScreen.tscn at the named path.
+const _ENUM_SETTINGS: Array = [
+	{
+		"key": "combat_animations", "node": "OptCombatAnim",
+		"values": ["all", "player_only", "enemy_only", "none"],
+		"labels": ["All", "Player Only", "Enemy Only", "None"],
+		"hidden": true,  # no combat-animation system yet
+	},
+	{
+		"key": "movement_speed", "node": "HBoxMovementSpeed/OptMovementSpeed",
+		"values": ["normal", "fast", "instant"],
+		"labels": ["Normal", "Fast", "Instant"],
+	},
+	{
+		"key": "phase_banner", "node": "HBoxPhaseBanner/OptPhaseBanner",
+		"values": ["show", "skip"],
+		"labels": ["Show", "Skip"],
+	},
+	{
+		"key": "level_up_screen", "node": "HBoxLevelUp/OptLevelUpScreen",
+		"values": ["show", "auto", "skip"],
+		"labels": ["Show", "Auto", "Skip"],
+	},
+	{
+		"key": "mouse_cursor", "node": "HBoxMouseCursor/OptMouseCursor",
+		"values": ["enabled", "disabled"],
+		"labels": ["Enabled", "Disabled"],
+	},
+	{
+		"key": "auto_end_turn", "node": "HBoxAutoEndTurn/OptAutoEndTurn",
+		"values": [false, true],
+		"labels": ["Off", "On"],
+	},
+]
 
 
 func _ready() -> void:
-	_populate_option_button(_opt_combat_anim,    ["All", "Player Only", "Enemy Only", "None"])
-	_populate_option_button(_opt_movement_speed, ["Normal", "Fast", "Instant"])
-	_populate_option_button(_opt_phase_banner,   ["Show", "Skip"])
-	_populate_option_button(_opt_level_up,       ["Show", "Auto", "Skip"])
-	_populate_option_button(_opt_mouse_cursor, ["Enabled", "Disabled"])
-	_populate_option_button(_opt_auto_end, ["Off", "On"])
-	# combat_animations has no system behind it yet — hide the inert control so
-	# the menu doesn't advertise a setting that does nothing. The SettingsManager
-	# field is kept for when the combat-animation system lands.
-	_opt_combat_anim.visible = false
+	# Schema-driven enum settings (B5).
+	for s in _ENUM_SETTINGS:
+		var btn: OptionButton = _vbox.get_node(s["node"])
+		_populate_option_button(btn, s["labels"])
+		# bind() partials the schema row into the handler so we have one
+		# generic _on_enum_setting_changed instead of seven hand-rolled ones.
+		btn.item_selected.connect(_on_enum_setting_changed.bind(s))
+		if s.get("hidden", false):
+			btn.visible = false
 
+	# Hand-wired sliders (different shape — value range, value label, save path).
 	_slider_master.min_value = 0
 	_slider_master.max_value = 100
 	_slider_master.step      = 1
@@ -70,12 +111,6 @@ func _ready() -> void:
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
 	_slider_sfx.value_changed.connect(_on_sfx_changed)
-	_opt_combat_anim.item_selected.connect(_on_combat_anim_selected)
-	_opt_movement_speed.item_selected.connect(_on_movement_speed_selected)
-	_opt_phase_banner.item_selected.connect(_on_phase_banner_selected)
-	_opt_level_up.item_selected.connect(_on_level_up_selected)
-	_opt_mouse_cursor.item_selected.connect(_on_mouse_cursor_selected)
-	_opt_auto_end.item_selected.connect(_on_auto_end_selected)
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
@@ -86,20 +121,20 @@ func open() -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm == null:
 		return
+	# Sliders + their value labels.
 	_slider_master.value = sm.get("master_volume")
 	_slider_music.value  = sm.get("music_volume")
 	_slider_sfx.value    = sm.get("sfx_volume")
 	_label_master.text   = "%d" % sm.get("master_volume")
 	_label_music.text    = "%d" % sm.get("music_volume")
 	_label_sfx.text      = "%d" % sm.get("sfx_volume")
-	_opt_combat_anim.selected    = maxi(0, _COMBAT_ANIM_OPTIONS.find(sm.get("combat_animations")))
-	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.get("movement_speed")))
-	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.get("phase_banner")))
-	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.get("level_up_screen")))
-	_opt_mouse_cursor.selected = maxi(0, _MOUSE_CURSOR_OPTIONS.find(sm.get("mouse_cursor")))
-	_opt_auto_end.selected = 1 if sm.get("auto_end_turn") else 0
 	_slider_camera_buffer.value = sm.get("camera_edge_buffer")
 	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
+	# Schema-driven enum settings: select the index of the stored value (B5).
+	for s in _ENUM_SETTINGS:
+		var btn: OptionButton = _vbox.get_node(s["node"])
+		var values: Array = s["values"]
+		btn.selected = maxi(0, values.find(sm.get(s["key"])))
 	show()
 	_btn_back.grab_focus()
 
@@ -133,46 +168,18 @@ func _on_sfx_changed(value: float) -> void:
 		sm.call("set_volume", "SFX", int(value))
 
 
-func _on_combat_anim_selected(index: int) -> void:
+# Generic handler for every row in _ENUM_SETTINGS (B5). bind() partials the
+# schema row in at connect time, so item_selected delivers (index, schema_row).
+# Writes the chosen value to SettingsManager and saves.
+func _on_enum_setting_changed(index: int, schema_row: Dictionary) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("combat_animations", _COMBAT_ANIM_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_movement_speed_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("movement_speed", _MOVEMENT_SPEED_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_phase_banner_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("phase_banner", _PHASE_BANNER_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_level_up_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("level_up_screen", _LEVEL_UP_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_mouse_cursor_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("mouse_cursor", _MOUSE_CURSOR_OPTIONS[index])
-		sm.call("save")
-
-
-func _on_auto_end_selected(index: int) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm:
-		sm.set("auto_end_turn", index == 1)  # 0 = Off, 1 = On
-		sm.call("save")
+	if sm == null:
+		return
+	var values: Array = schema_row["values"]
+	if index < 0 or index >= values.size():
+		return  # defensive — OptionButton.item_selected should always be in range
+	sm.set(schema_row["key"], values[index])
+	sm.call("save")
 
 
 func _on_camera_buffer_changed(value: float) -> void:
@@ -189,10 +196,13 @@ func _on_back() -> void:
 	_close()
 
 
-func _populate_option_button(btn: OptionButton, labels: Array[String]) -> void:
+func _populate_option_button(btn: OptionButton, labels: Array) -> void:
+	# Untyped Array on purpose (B5): schema labels arrive via Dictionary lookup,
+	# which yields a plain Array even when the literal was Array[String]. Each
+	# item is read via String() so non-string entries would still render harmlessly.
 	btn.clear()
 	for lbl in labels:
-		btn.add_item(lbl)
+		btn.add_item(String(lbl))
 
 
 # Game actions shown in the read-only keybinding list, in display order (#8).
