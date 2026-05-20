@@ -76,4 +76,4 @@ RUN echo 'alias godot="godot --headless"' >> ~/.bashrc && \
     echo 'echo "  📁  Project mounted at /workspace"' >> ~/.bashrc && \
     echo 'echo ""' >> ~/.bashrc
 
-CMD ["claude", "--dangerously-skip-permissions"]
+CMD ["/bin/bash", "-c", "claude --dangerously-skip-permissions; exec /bin/bash"]
