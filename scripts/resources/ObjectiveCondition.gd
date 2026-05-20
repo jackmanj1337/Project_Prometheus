@@ -32,10 +32,18 @@ class_name ObjectiveCondition extends Resource
 # these must reach any tile in `tiles`.
 @export var unit_ids: Array[String] = []
 
-# seize: the tile(s) the Seize action may be used on.
 # escape: the zone of tiles (a unit on any of them counts as escaped).
 # survive (hold variant): the tile(s) that must be held for `turns` rounds.
+# NOT used by seize — seize is one tile per condition (see `tile` below). A map
+# that wants two seizable thrones authors two seize conditions, not one with
+# tiles.size() == 2.
 @export var tiles: Array[Vector2i] = []
+
+# seize: the single tile the Seize action may be used on. Vector2i(-1, -1)
+# means "not authored" — DataManager validation flags a seize condition that
+# leaves this at the sentinel. Kept separate from `tiles` because the seize
+# semantics are fundamentally one-tile-per-condition (L-1 / 2026-05-20 review).
+@export var tile: Vector2i = Vector2i(-1, -1)
 
 # seize: optional restriction on which unit_ids may perform the seize.
 # Empty = any unit in the conditioning group may seize (Decision 4 / 2026-05-17).
@@ -64,9 +72,9 @@ func get_display_text() -> String:
 				return "Defeat boss"
 			return "Defeat %s" % ", ".join(unit_ids)
 		"seize":
-			if tiles.is_empty():
+			if tile == Vector2i(-1, -1):
 				return "Seize"
-			return "Seize %s" % str(tiles[0])
+			return "Seize %s" % str(tile)
 		"escape":
 			if unit_ids.is_empty():
 				return "Escape"

@@ -625,7 +625,7 @@ func _init() -> void:
 	var md_se := MapData.new()
 	var c_se := ObjectiveCondition.new()
 	c_se.type = "seize"
-	c_se.tiles = [Vector2i(2, 2)] as Array[Vector2i]
+	c_se.tile = Vector2i(2, 2)
 	c_se.allowed_unit_ids = ["seizer"] as Array[String]
 	md_se.victory_conditions = {"allies": [c_se]}
 	var tm_se := TurnManager.new()
@@ -649,7 +649,7 @@ func _init() -> void:
 	var md_cs := MapData.new()
 	var c_cs := ObjectiveCondition.new()
 	c_cs.type = "seize"
-	c_cs.tiles = [Vector2i(3, 3)] as Array[Vector2i]
+	c_cs.tile = Vector2i(3, 3)
 	c_cs.allowed_unit_ids = ["lord"] as Array[String]
 	md_cs.victory_conditions = {"allies": [c_cs]}
 	var tm_cs := TurnManager.new()
@@ -700,7 +700,7 @@ func _init() -> void:
 	var md_xg := MapData.new()
 	var c_xg := ObjectiveCondition.new()
 	c_xg.type = "seize"
-	c_xg.tiles = [Vector2i(4, 4)] as Array[Vector2i]
+	c_xg.tile = Vector2i(4, 4)
 	c_xg.allowed_unit_ids = ["seizer_xg"] as Array[String]
 	md_xg.victory_conditions = {"allies": [c_xg]}
 	var tm_xg := TurnManager.new()

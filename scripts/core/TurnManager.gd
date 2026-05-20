@@ -716,11 +716,11 @@ func _is_unit_id_alive(unit_id: String, gs: Node) -> bool:
 # not grant cross-group credit. Decision 4 / 2026-05-17 — Seize is a deliberate
 # ActionMenu entry; the cursor calls record_seize on confirm.
 func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
-	if cond.tiles.is_empty():
+	if cond.tile == Vector2i(-1, -1):
 		return false
 	for record in _seize_records:
-		var tile: Vector2i = record.get("tile", Vector2i.ZERO)
-		if not (tile in cond.tiles):
+		var rec_tile: Vector2i = record.get("tile", Vector2i.ZERO)
+		if rec_tile != cond.tile:
 			continue
 		var unit_id: String = record.get("unit_id", "")
 		var faction: String = record.get("faction", "")
@@ -823,7 +823,7 @@ func can_seize(unit: Node, tile: Vector2i) -> bool:
 			for cond in _conditions_for_group(dict, group_id):
 				if cond == null or cond.type != "seize":
 					continue
-				if not (tile in cond.tiles):
+				if cond.tile != tile:
 					continue
 				# Allow-list (when authored) narrows the conditioning group, it
 				# does not override it — same shape as _eval_seize.
