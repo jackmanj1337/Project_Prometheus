@@ -29,6 +29,12 @@ Last refreshed: **2026-05-20** against branch `main` @ `f92899d` (B1–B9 done).
 | B7 | `NewGameScreen._on_start`: `push_error + return` when GameState absent (scene change was unconditional — would drop the player's choices) | commit `f92899d` |
 | B8 | Comment sweep: `UnitData.tile_position` + `mastery_skills` now say "captured by GameState's manual snapshot (not ResourceSaver; not @export)"; `TurnManager._apply_fort_healing` "fort/throne" → "fort". HUD magic `0`, test comment, and `_grid == null` guard items already addressed in earlier sessions. | commit `f92899d` |
 | B9 | Singleton-mutating tests already restore unconditionally before the assertion block (satisfies the "restore before next block" option from code_review_2026-05-19 §2). No code change needed. | verified 2026-05-20 |
+| B1 | `GridManager.get_terrain_bonuses(tile) → {def, dodge}` accessor; `HUD._update_terrain` + `Unit.get_terrain_*_bonus` route through it. Decouples UI/unit layer from `TERRAIN_*_BONUS` dict names (rename safety). | commit `89f370f` |
+| B2 | `EventBus.combat_started` moved to the top of `resolve_combat` (before RNG); was firing at the top of `apply_combat_result` — i.e. after the dice were rolled. `preview_combat` stays silent. Signal name now matches contract; prep for M8 `condition_applied/removed` siblings. | commit `b87d1bb` |
+| B3 | `scripts/ui/ModalScreen.gd` base extracted; `SettingsScreen`, `NewGameScreen`, `UnitDetailsScreen` migrated (`hide` in `_ready` + `_unhandled_input` cancel + `closed` signal live in the base). `LevelUpScreen` deliberately out of scope (no Dimmer; cursor-lock via `EventBus.level_up_started/finished`). | commit `ecfecf9` |
+| B4 | `scripts/core/CameraController.gd` extracted (RefCounted slice). Sole production writer of `Camera2D.position`. `GameMap` builds and injects via `MapCursor.setup()` (new 4th param); PT4 #2 save/restore state now lives on the controller. `MapCursor._scroll_camera_if_needed` / `_clamp_tile_to_view` are one-line delegations. | commit `d231e0f` |
+| B5 | Data-driven `_ENUM_SETTINGS` schema in `SettingsScreen` for the six OptionButton-style settings; one generic handler via `bind()`. Six per-setting handlers + four parallel `_*_OPTIONS` const lists removed (net −49 lines). Sliders + read-only keybindings stay hand-wired (don't fit the OptionButton template). | commit `b4050fd` |
+| B6 | `DataManager._validate_cross_references` extended to weapon `effect_tags`, weapon/skill `weapon_type`, item `effect_id`. Canonical lists owned by their producers (`GameConstants.VALID_EFFECT_TAGS`/`VALID_WEAPON_TYPES`, `ItemHandler.IMPLEMENTED_EFFECT_IDS`). Refactored to pure `collect_validation_errors` core + `_ready` loop for testability. | commit `9d7f2a4` |
 
 ---
 
@@ -49,12 +55,12 @@ These are code-review followups whose natural slot is **before** a specific upco
 
 | # | Item | Why slot here | Source |
 |---|---|---|---|
-| B1 ⬜ | `GridManager.get_terrain_bonuses(tile) → {def, dodge}` accessor; route `HUD.gd:152` + `Unit.gd:168` through it | Closes UI→system coupling leak. Independent of milestones — do whenever. | 05-18 review §2 (Medium) |
-| B2 ⬜ | Rename / re-time `combat_started` (currently emits *after* `resolve_combat`) — either move emit to top of `resolve_combat` or rename to `combat_applying`; document the chosen contract on the signal | Do **before M8**: M8 adds `condition_applied/removed` siblings to `EventBus`; cleaning up the misleading sibling first prevents future listeners from coding to a lie. | 05-18 review §2 (Low) |
-| B3 ⬜ | Extract a **`ModalScreen` base** (Dimmer + open/close + cursor lock) — `SettingsScreen`, `NewGameScreen`, `LevelUpScreen`, `UnitDetailsScreen` all hand-roll modality | Do **before M8/M9 content waves** — those will add condition icons, skill detail popups, etc., each tempted to reinvent again. | 05-19 review §4, 05-19b §4 |
-| B4 ⬜ | Extract a **`CameraController`** (autoload or `GameMap`-owned node) — `MapCursor._scroll_camera_if_needed`, `GameMap._on_ai_unit_acting`, and `GameMap`'s initial placement all write `Camera2D.position` directly | Do **before M14 stage 1** — Stage 1 threads the "active controlling faction" through `MapCursor` slices; consolidating camera ownership first keeps the diff smaller. Also unblocks Bucket A2. | 05-19 review §4 |
-| B5 ⬜ | Data-driven **Settings schema** — `SettingsManager` field + `SettingsScreen` row + `_on_*_changed` triplet per setting is growing linearly; replace with a registry | Do **before M11** content pass and the Phase-3 UI/UX backlog (grid slider, camera settings, UI scale, resolution, rebind UI all add to this layer). | playtest-2 fix plan §4, 05-19 review §4 |
-| B6 ⬜ | Extend `DataManager._validate_cross_references` to weapon `effect_tags`, weapon/skill `weapon_type`, item `effect_id` | Do **before M9** — M9 adds many new `effect_id`s in `.tres`; cheap typos otherwise become silent no-ops. | 05-18 review §2 (Medium) |
+| B1 ✅ | ~~`GridManager.get_terrain_bonuses(tile) → {def, dodge}` accessor; route `HUD.gd:152` + `Unit.gd:168` through it~~ | — | Shipped 2026-05-20; commit `89f370f` |
+| B2 ✅ | ~~Rename / re-time `combat_started` (currently emits *after* `resolve_combat`) — either move emit to top of `resolve_combat` or rename to `combat_applying`; document the chosen contract on the signal~~ | — | Shipped 2026-05-20; commit `b87d1bb` (moved emit to top of `resolve_combat`) |
+| B3 ✅ | ~~Extract a **`ModalScreen` base** (Dimmer + open/close + cursor lock) — `SettingsScreen`, `NewGameScreen`, `LevelUpScreen`, `UnitDetailsScreen` all hand-roll modality~~ | — | Shipped 2026-05-20; commit `ecfecf9`. `LevelUpScreen` deliberately out of scope (no Dimmer). |
+| B4 ✅ | ~~Extract a **`CameraController`** (autoload or `GameMap`-owned node) — `MapCursor._scroll_camera_if_needed`, `GameMap._on_ai_unit_acting`, and `GameMap`'s initial placement all write `Camera2D.position` directly~~ | — | Shipped 2026-05-20; commit `d231e0f`. RefCounted slice owned by `GameMap`, injected into `MapCursor.setup()`. |
+| B5 ✅ | ~~Data-driven **Settings schema** — `SettingsManager` field + `SettingsScreen` row + `_on_*_changed` triplet per setting is growing linearly; replace with a registry~~ | — | Shipped 2026-05-20; commit `b4050fd`. Schema covers the six OptionButton-style settings; sliders + keybindings stay hand-wired by design. |
+| B6 ✅ | ~~Extend `DataManager._validate_cross_references` to weapon `effect_tags`, weapon/skill `weapon_type`, item `effect_id`~~ | — | Shipped 2026-05-20; commit `9d7f2a4`. Canonical lists owned by their producers (GameConstants, ItemHandler). |
 | B7 ✅ | ~~`NewGameScreen._on_start` — guard scene change if `GameState` autoload missing~~ | — | Shipped 2026-05-20; commit `f92899d` |
 | B8 ✅ | ~~Carry-over Lows: UnitData comment wording; TurnManager "fort/throne"~~ | — | Shipped 2026-05-20; commit `f92899d`. HUD magic `0`, test comment, `_grid==null` guard items verified already done. |
 | B9 ✅ | ~~Tighten singleton-mutating tests~~ | — | Verified 2026-05-20: all three test files already restore unconditionally before assertions. No code change needed. |
@@ -102,22 +108,16 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
 ## 3. Dependency graph (key edges only)
 
 ```
- A1, A2  ────────────────────────┐  open bugs — do first
-                                 │
- B4 (CameraController) ──▶ C1    │
-                                 │
  C1 (M14 s1-3) ──▶ C2 (M16) ──▶ C3 (M14 s4-5) ──▶ C4 (M8) ──▶ C5 (M9) ──▶ C6 (M10) ──▶ C7 (M11) ──▶ C8 (M12) ──▶ C9 (M13)
                                        │
                                        └──▶ C10 (M15 Part A)  ──▶ C11 (M15 Part B, deferred)
 
- B2 (combat_started) ──▶ C4
- B3 (ModalScreen)    ──▶ C4, C5
- B5 (Settings schema)──▶ C7 + Phase-3 UI backlog
- B6 (DataManager validation) ──▶ C5
  B10 (content-doc reconciliation) ──▶ C5, C7 (M9, M11)
 
  D1 (Pre-Release Cleanup) — gate at release time, not in milestone order
 ```
+
+(Bucket A is empty; Bucket B prereqs B1–B9 have shipped — only B10 remains. See §1 for the done list.)
 
 ---
 
