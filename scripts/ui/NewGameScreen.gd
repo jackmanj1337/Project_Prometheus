@@ -65,10 +65,12 @@ func _close() -> void:
 func _on_start() -> void:
 	# Commit the chosen rules onto GameState, then load the roster and the first map.
 	var gs := get_node_or_null("/root/GameState")
-	if gs:
-		gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
-		gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-		gs.call("load_default_roster")
+	if gs == null:
+		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
+		return
+	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
+	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
+	gs.call("load_default_roster")
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 

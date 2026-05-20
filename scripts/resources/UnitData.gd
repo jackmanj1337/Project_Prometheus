@@ -2,8 +2,8 @@ class_name UnitData extends Resource
 
 @export var unit_id: String = ""   # unique identifier; used by survivor checks and save/load
 @export var unit_name: String = ""
-# Grid position — stored on UnitData so the snapshot and save system can serialize it without
-# scene-tree traversal. Unit.tile_position is a pass-through property to this field.
+# Grid position — captured by GameState's manual snapshot (not by ResourceSaver; not @export).
+# Unit.tile_position is a pass-through property to this field.
 var tile_position: Vector2i = Vector2i.ZERO
 @export var class_id: String = ""
 @export var level: int = 1
@@ -34,6 +34,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var skills: Array[String] = []
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
+# Captured by GameState's manual snapshot (not by ResourceSaver; not @export).
 var mastery_skills: Array[String] = []
 
 @export var inventory: Array[InventoryEntry] = []

@@ -33,7 +33,7 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	start_player_phase()
 
 
-# Heals units standing on fort/throne tiles by 10% max HP (GDD_02 terrain table).
+# Heals units standing on fort tiles by 10% max HP (GDD_02 terrain table).
 # Called at the start of each phase (player and enemy) so both sides benefit.
 func _apply_fort_healing(units: Array[Node]) -> void:
 	if _grid == null:
