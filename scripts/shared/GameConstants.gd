@@ -24,6 +24,24 @@ const TAG_EFFECTIVE_DRAGON   := "effective_dragon"
 const TAG_EFFECTIVE_BEAST    := "effective_beast"
 const TAG_HEAL_PLUS_MAG      := "heal_10_plus_mag"
 
+# Canonical set of all valid weapon effect_tags. DataManager._validate_cross_references
+# checks every weapon's effect_tags against this; an unknown tag is a typo (or a tag
+# that has not yet been added here) and fails loud at startup (B6). Extend this when
+# adding new effect tags — e.g. M8 will add "poison_on_hit" for Venin weapons.
+const VALID_EFFECT_TAGS: Array[String] = [
+	TAG_EFFECTIVE_FLYING, TAG_EFFECTIVE_ARMOURED, TAG_EFFECTIVE_MOUNTED,
+	TAG_EFFECTIVE_DRAGON, TAG_EFFECTIVE_BEAST, TAG_HEAL_PLUS_MAG,
+]
+
+# Canonical set of all valid WeaponData.weapon_type / skill effect_params.weapon_type
+# values. Sourced from WEAPON_TRIANGLE keys plus the two non-triangle types (bow,
+# staff). Used by DataManager._validate_cross_references (B6).
+const VALID_WEAPON_TYPES: Array[String] = [
+	"sword", "lance", "axe",
+	"fire", "thunder", "wind", "light", "dark",
+	"bow", "staff",
+]
+
 # Staff heal formula constants (GDD_02)
 const STAFF_HEAL_BASE: int = 10  # base HP restored; full formula = STAFF_HEAL_BASE + healer MAG
 const STAFF_HEAL_EXP: int = 10   # flat EXP awarded to the healer per staff use

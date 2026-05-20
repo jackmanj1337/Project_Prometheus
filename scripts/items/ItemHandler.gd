@@ -3,6 +3,13 @@ extends Node
 # the unit and the inventory entry dict; all item logic lives here so MapCursor
 # and future AI systems stay free of item mechanics.
 
+# Canonical list of effect_ids implemented by apply_item's match below. Read by
+# DataManager._validate_cross_references at startup (B6) so a typo in an item
+# .tres surfaces immediately rather than as a runtime push_warning the first time
+# the item is used. Keep this list in lockstep with apply_item's match cases —
+# add the case AND a string here whenever a new item effect lands.
+const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full"]
+
 # Applies the effect of an item entry to `unit`.
 # Decrements uses_remaining and removes exhausted entries from the inventory.
 func apply_item(unit: Node, entry: InventoryEntry) -> void:
