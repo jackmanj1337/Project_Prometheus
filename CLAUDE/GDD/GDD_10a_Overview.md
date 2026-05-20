@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `f92899d` (B1–B9 done).
+Last refreshed: **2026-05-20** against branch `main` @ `0c68254` (B1–B9 + C1 done).
 
 ---
 
@@ -35,6 +35,9 @@ Last refreshed: **2026-05-20** against branch `main` @ `f92899d` (B1–B9 done).
 | B4 | `scripts/core/CameraController.gd` extracted (RefCounted slice). Sole production writer of `Camera2D.position`. `GameMap` builds and injects via `MapCursor.setup()` (new 4th param); PT4 #2 save/restore state now lives on the controller. `MapCursor._scroll_camera_if_needed` / `_clamp_tile_to_view` are one-line delegations. | commit `d231e0f` |
 | B5 | Data-driven `_ENUM_SETTINGS` schema in `SettingsScreen` for the six OptionButton-style settings; one generic handler via `bind()`. Six per-setting handlers + four parallel `_*_OPTIONS` const lists removed (net −49 lines). Sliders + read-only keybindings stay hand-wired (don't fit the OptionButton template). | commit `b4050fd` |
 | B6 | `DataManager._validate_cross_references` extended to weapon `effect_tags`, weapon/skill `weapon_type`, item `effect_id`. Canonical lists owned by their producers (`GameConstants.VALID_EFFECT_TAGS`/`VALID_WEAPON_TYPES`, `ItemHandler.IMPLEMENTED_EFFECT_IDS`). Refactored to pure `collect_validation_errors` core + `_ready` loop for testability. | commit `9d7f2a4` |
+| C1 stage 1 | Faction-relative refactor (behaviour-neutral): `Unit.team` data rename `player→blue` / `enemy→red`; `controlling_faction` threaded through `MapCursor.setup` + slices with a `set_controlling_faction` setter for stage 5; `CombatResolver.is_player_initiated` → `attacker_faction: String`. 50+ test string literals flipped via sed. | commit `20ef18e`; suite 426 green |
+| C1 stage 2 | Alliance-group hostility model on `GameState` (`are_hostile(a, b)` + `get_alliance_group(id)`; defaults `{blue,green}/{red}/{yellow}`). Routes `GridManager` is_passable / dijkstra / get_attackable / get_healable + `MapCursorTargeting` attack/heal gates through it. New `GridManager._hostile` / `MapCursorTargeting._is_target_hostile` chokepoints with headless fallback to the strict same-team binary. | commit `c5c9c32`; +2 test_game_state cases |
+| C1 stage 3 | N-faction data + activation scheduler: new `FactionData` Resource (id, color, alliance_group, controller); `MapData` adds `factions` / `turn_order` / `activation_mode`; `GameState._units_by_faction` + `get_living_units_of()` (legacy `get_living_player/enemy_units` kept as wrappers); `TurnManager` rebuilt with `_turn_order` + `_active_faction_idx` + `_activation_mode`, mode-aware `_begin_phase` (Decision 9), `_advance_faction` (skips empties per Decision 2), new `end_alternating_activation` primitive. WHOLE_PHASE = today's behaviour; ALTERNATING tested via primitive. | commit `0c68254`; +8 test cases across test_game_state + test_turn_manager |
 
 ---
 
@@ -75,7 +78,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 
 | # | Milestone | Goal (1-liner) | Depends on | Source |
 |---|---|---|---|---|
-| C1 ⬜ | **M14 stages 1–3** | Replace hardcoded `"player"` with faction-relative concepts; alliance-group hostility helper; faction-as-data + activation-scheduler `TurnManager` (`WHOLE_PHASE`/`ALTERNATING`). **Behaviour-neutral.** | B4 (CameraController extraction recommended) | `GDD_10_Roadmap.md` § Milestone 14 (stages 1–3 only) |
+| C1 ✅ | ~~**M14 stages 1–3**~~ | ~~Replace hardcoded `"player"` with faction-relative concepts; alliance-group hostility helper; faction-as-data + activation-scheduler `TurnManager` (`WHOLE_PHASE`/`ALTERNATING`). **Behaviour-neutral.**~~ | — | Shipped 2026-05-20; commits `20ef18e` / `c5c9c32` / `0c68254`. See §1 + Session Notes 2026-05-20. Small stage-3 follow-ups (cursor branching on activation_mode, AI-faction dispatch from start_map non-blue path) fold into C3. |
 | C2 ⬜ | **M16 — Objective System** | Replace single `objective_type` with multi-condition victory/defeat per faction (Rout, Seize, Boss, Escape, Survive, Defend, Survivor-survives, …). | C1 (per-group victory needs faction model) | `GDD_10_Roadmap.md` § Milestone 16 |
 | C3 ⬜ | **M14 stages 4–5 (+content)** | Faction-agnostic AI (`run_ai_phase(faction)`); green/yellow spawns + per-unit faction tags in `MapData`; `PhaseBanner` reads from faction data. | C1, C2 (stage 4 AI reads M16 objective data) | `GDD_10_Roadmap.md` § Milestone 14 stages 4–5 |
 | C4 ⬜ | **M8 — Status Conditions** | Full `ConditionManager` (Poison/Sleep/Silence/Berserk/Stun); ticking at start of holder's **activation**; hooks in `TurnManager` / `CombatResolver` / `ActionMenu` / `EnemyAI` / `SkillHandler`; Restore staff + Panacea. | C3 (tick point is "start of activation" — well-defined in either activation mode); B2, B3 recommended | `GDD_10_Roadmap.md` § Milestone 8 |
