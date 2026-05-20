@@ -119,6 +119,29 @@ func _init() -> void:
 	else:
 		print("FAIL ObjectiveCondition defaults — got type=%s, faction_id=%s" % [oc.type, oc.faction_id]); failed += 1
 
+	# --- M16 stage 4: get_display_text() one-liners per type ---
+	var dt_rout_all := ObjectiveCondition.new()
+	dt_rout_all.type = "rout"
+	var dt_rout_named := ObjectiveCondition.new()
+	dt_rout_named.type = "rout"; dt_rout_named.faction_id = "red"
+	var dt_boss := ObjectiveCondition.new()
+	dt_boss.type = "defeat_boss"; dt_boss.unit_ids = ["e8"] as Array[String]
+	var dt_esc := ObjectiveCondition.new()
+	dt_esc.type = "escape"; dt_esc.unit_ids = ["lord"] as Array[String]
+	var dt_surv := ObjectiveCondition.new()
+	dt_surv.type = "survive"; dt_surv.turns = 5
+	if dt_rout_all.get_display_text() == "Rout all hostiles" \
+			and dt_rout_named.get_display_text() == "Rout red" \
+			and dt_boss.get_display_text() == "Defeat e8" \
+			and dt_esc.get_display_text() == "Escape: lord" \
+			and dt_surv.get_display_text() == "Survive 5 turn(s)":
+		print("OK  ObjectiveCondition.get_display_text: per-type one-liners"); passed += 1
+	else:
+		print("FAIL display_text: rout_all=%s rout_red=%s boss=%s esc=%s surv=%s" % [
+			dt_rout_all.get_display_text(), dt_rout_named.get_display_text(),
+			dt_boss.get_display_text(), dt_esc.get_display_text(),
+			dt_surv.get_display_text()]); failed += 1
+
 	# --- Roster unit_id non-empty ---
 	for path in roster_files:
 		var u = load(path)

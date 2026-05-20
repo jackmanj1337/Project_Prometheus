@@ -33,6 +33,14 @@ signal cursor_moved(tile: Vector2i)
 signal ai_unit_acting(unit: Node)
 signal map_victory()
 signal map_defeat()
+# M16 stage 4: emitted alongside map_victory / map_defeat with the full per-group
+# standings. winner_group is the alliance group that won (e.g. "allies") or ""
+# for a draw. standings is an Array of dictionaries — one per group in play —
+# each with keys: group (String), eliminated_round (int; -1 = winner / never
+# eliminated), rank (int; 1 = top), is_blue_group (bool). The new
+# ranked-standings results screen consumes this directly; the existing
+# blue-perspective signals stay for back-compat.
+signal map_resolved(winner_group: String, standings: Array)
 # Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).
 # Lets the HUD's DEBUG MODE banner re-render the list of active aids in real
 # time when a flag is toggled from the remote debugger. DEBUG AID — remove with

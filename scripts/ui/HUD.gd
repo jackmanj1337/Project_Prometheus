@@ -15,6 +15,10 @@ extends Control
 @onready var _terrain_dodge: Label = $TerrainInfoPanel/VBox/TerrainDodge
 # Red "DEBUG MODE" banner — shown only in debug builds (see _setup_debug_banner).
 @onready var _debug_label: Label = $DebugLabel
+# M16 stage 4: objective readout for the current player (blue) — listed
+# from MapData.victory_conditions["allies"]. Populated by setup().
+@onready var _objective_panel: PanelContainer = $ObjectivePanel
+@onready var _objective_list: Label = $ObjectivePanel/VBox/ObjectiveList
 
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
@@ -50,6 +54,68 @@ func setup(grid: Node, turn_node: Node) -> void:
 	_grid = grid
 	if turn_node:
 		turn_node.turn_changed.connect(_on_turn_changed)
+	# M16 stage 4: populate the objective readout from the active map's blue-group
+	# conditions, plus any legacy fields (which translate to blue group at the
+	# TurnManager evaluator). Render-only — no live re-evaluation needed since
+	# conditions are static for the duration of a map.
+	_populate_objective_panel()
+
+
+func _populate_objective_panel() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or gs.map_data == null or _objective_panel == null:
+		return
+	var lines: Array[String] = _build_objective_lines(gs.map_data)
+	if lines.is_empty():
+		_objective_panel.hide()
+		return
+	_objective_list.text = "\n".join(lines)
+	_objective_panel.show()
+
+
+# Returns the display lines for the local player (blue's alliance group):
+# a "Win:" header followed by every victory-condition summary, then a "Lose:"
+# header followed by every defeat-condition summary. Each header is only
+# emitted when at least one matching condition exists, so a map with no
+# defeats authored doesn't show an empty "Lose:" group. Legacy fields are
+# translated to match the TurnManager evaluator (stage 5 retires the legacy
+# fields once map_001 has migrated to authored conditions).
+func _build_objective_lines(map_data: MapData) -> Array[String]:
+	var gs := get_node_or_null("/root/GameState")
+	var blue_group: String = "allies"
+	if gs:
+		blue_group = gs.get_alliance_group("blue")
+	var win_lines: Array[String] = []
+	var lose_lines: Array[String] = []
+	for cond in _conditions_for(map_data.victory_conditions, blue_group):
+		var s: String = cond.get_display_text()
+		if s != "":
+			win_lines.append("  " + s)
+	for cond in _conditions_for(map_data.defeat_conditions, blue_group):
+		var s: String = cond.get_display_text()
+		if s != "":
+			lose_lines.append("  " + s)
+	if map_data.objective_type == "rout":
+		win_lines.append("  Rout all hostiles")
+	if map_data.turn_limit > 0:
+		lose_lines.append("  Turn %d passes" % map_data.turn_limit)
+	if not map_data.required_survivor_ids.is_empty():
+		lose_lines.append("  Protect: %s" % ", ".join(map_data.required_survivor_ids))
+	var out: Array[String] = []
+	if not win_lines.is_empty():
+		out.append("Win:")
+		out.append_array(win_lines)
+	if not lose_lines.is_empty():
+		out.append("Lose:")
+		out.append_array(lose_lines)
+	return out
+
+
+func _conditions_for(dict: Dictionary, group: String) -> Array:
+	var raw: Variant = dict.get(group, null)
+	if raw is Array:
+		return raw
+	return []
 
 
 func _on_phase_changed(new_phase: int) -> void:

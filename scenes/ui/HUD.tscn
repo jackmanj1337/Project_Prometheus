@@ -90,3 +90,24 @@ text = "DEF  +0"
 [node name="TerrainDodge" type="Label" parent="TerrainInfoPanel/VBox"]
 layout_mode = 2
 text = "DODGE +0"
+
+[node name="ObjectivePanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 48.0
+offset_right = 300.0
+offset_bottom = 140.0
+mouse_filter = 2
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="ObjectivePanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ObjectiveHeader" type="Label" parent="ObjectivePanel/VBox"]
+layout_mode = 2
+text = "Objectives"
+
+[node name="ObjectiveList" type="Label" parent="ObjectivePanel/VBox"]
+layout_mode = 2
+text = ""

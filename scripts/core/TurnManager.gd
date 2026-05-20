@@ -495,17 +495,19 @@ func check_victory_conditions() -> void:
 			winner = in_play[0]
 		elif in_play.size() == 0:
 			# Simultaneous wipe-out — draw. Map ends with no victor; blue is in
-			# the eliminated set so the legacy signal is map_defeat.
+			# the eliminated set so the legacy signal is map_defeat. The
+			# standings screen leads with "DRAW" instead of a winner.
 			_map_over = true
 			bus.map_defeat.emit()
+			bus.map_resolved.emit("", _build_standings("", groups, gs))
 			return
 
 	if winner == "":
 		# No winner decided this evaluation pass — map continues.
 		return
 
-	# Map decided. Fire the blue-perspective signal for the existing GameOverScreen
-	# (the ranked-standings screen in stage 4 will read _group_eliminated_round).
+	# Map decided. Fire the blue-perspective signal for the existing GameOverScreen,
+	# then map_resolved with the ranked standings for the M16 results screen.
 	_map_over = true
 	var blue_group: String = gs.get_alliance_group("blue")
 	if winner == blue_group:
@@ -513,6 +515,43 @@ func check_victory_conditions() -> void:
 		bus.map_victory.emit()
 	else:
 		bus.map_defeat.emit()
+	bus.map_resolved.emit(winner, _build_standings(winner, groups, gs))
+
+
+# Builds the ranked standings array for the M16 results screen. Winner gets
+# rank 1; remaining groups are sorted by elimination round DESCENDING (a group
+# that fell later survived longer, so it ranks higher than one that fell
+# earlier). For a draw (winner == ""), no rank 1 is emitted — losers start at
+# rank 1; the results screen renders "DRAW" in the top slot.
+func _build_standings(winner: String, all_groups: Array[String], gs: Node) -> Array:
+	var standings: Array = []
+	var blue_group: String = gs.get_alliance_group("blue")
+	if winner != "":
+		standings.append({
+			"group": winner,
+			"eliminated_round": -1,
+			"rank": 1,
+			"is_blue_group": winner == blue_group,
+		})
+	# Snapshot losers with their elimination round.
+	var losers: Array = []
+	for g in all_groups:
+		if g == winner:
+			continue
+		losers.append({
+			"group": g,
+			"eliminated_round": _group_eliminated_round.get(g, -1),
+			"is_blue_group": g == blue_group,
+		})
+	# Sort losers by elimination round descending; ties keep insertion order
+	# (sort_custom is stable in Godot 4).
+	losers.sort_custom(func(a, b): return a["eliminated_round"] > b["eliminated_round"])
+	var next_rank: int = 2 if winner != "" else 1
+	for l in losers:
+		l["rank"] = next_rank
+		standings.append(l)
+		next_rank += 1
+	return standings
 
 
 # Union of (groups with at least one registered faction) and (groups named in

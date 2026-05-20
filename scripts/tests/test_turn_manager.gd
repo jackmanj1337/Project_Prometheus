@@ -722,5 +722,56 @@ func _init() -> void:
 	else:
 		print("FAIL auto-escape: victories=%d escaped=%s" % [victories[0], tm_auto_esc._escape_records]); failed += 1
 
+	# ── M16 stage 4: map_resolved standings emission ────────────────────────────
+
+	# Capture the most recent map_resolved payload so each assertion below can
+	# inspect it. Connected once; tests reset the slot to track which fires when.
+	var resolved: Array = [{}]
+	bus.map_resolved.connect(func(w, s):
+		resolved[0] = {"winner": w, "standings": s}
+	)
+
+	# ---- map_resolved: blue victory → standings rank 1 = allies (you) ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_st"))
+	gs.register_unit(_mk_unit("red", 0, "e_st"))           # red wiped → blue wins
+	gs.turn_number = 2
+	var md_st := MapData.new()
+	md_st.objective_type = "rout"
+	var tm_st := TurnManager.new()
+	root.add_child(tm_st)
+	tm_st._map_data = md_st
+	resolved[0] = {}
+	tm_st.check_victory_conditions()
+	var st_ok: bool = (resolved[0].get("winner", "") == "allies"
+			and resolved[0].get("standings", []).size() == 2)
+	if st_ok:
+		var top = resolved[0]["standings"][0]
+		var bottom = resolved[0]["standings"][1]
+		st_ok = st_ok and top["rank"] == 1 and top["group"] == "allies" \
+				and top["is_blue_group"] == true \
+				and bottom["rank"] == 2 and bottom["group"] == "foes" \
+				and bottom["eliminated_round"] == 2
+	if st_ok:
+		print("OK  map_resolved: blue victory standings (allies #1, foes #2 elim turn 2)")
+		passed += 1
+	else:
+		print("FAIL map_resolved blue-victory standings: %s" % str(resolved[0]))
+		failed += 1
+
+	# ---- map_resolved: draw → winner="" and DRAW header ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 0, "p_draw2"))
+	gs.register_unit(_mk_unit("red", 0, "e_draw2"))
+	var tm_dr := TurnManager.new()
+	root.add_child(tm_dr)
+	tm_dr._map_data = MapData.new()
+	resolved[0] = {}
+	tm_dr.check_victory_conditions()
+	if resolved[0].get("winner", "_") == "" and resolved[0].get("standings", []).size() == 2:
+		print("OK  map_resolved: draw → winner=\"\", both groups in standings"); passed += 1
+	else:
+		print("FAIL draw standings: %s" % str(resolved[0])); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

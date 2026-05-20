@@ -46,3 +46,38 @@ class_name ObjectiveCondition extends Resource
 # turn_limit: defeat fires once turn_number exceeds this value (0 = no limit,
 # matching MapData.turn_limit's existing meaning).
 @export var turns: int = 0
+
+
+# One-line summary for the HUD objective readout (M16 stage 4). Concise enough
+# to fit in the side panel; type-specific so each condition reads naturally.
+# Returns "" for the internal _group_routed sentinel — it isn't author-facing.
+func get_display_text() -> String:
+	match type:
+		"rout":
+			if faction_id == "":
+				return "Rout all hostiles"
+			return "Rout %s" % faction_id
+		"defeat_boss":
+			if unit_ids.is_empty():
+				return "Defeat boss"
+			return "Defeat %s" % ", ".join(unit_ids)
+		"seize":
+			if tiles.is_empty():
+				return "Seize"
+			return "Seize %s" % str(tiles[0])
+		"escape":
+			if unit_ids.is_empty():
+				return "Escape"
+			return "Escape: %s" % ", ".join(unit_ids)
+		"survive":
+			if tiles.is_empty():
+				return "Survive %d turn(s)" % turns
+			return "Hold for %d turn(s)" % turns
+		"protect":
+			if unit_ids.is_empty():
+				return "Protect"
+			return "Protect: %s" % ", ".join(unit_ids)
+		"turn_limit":
+			return "Win before turn %d" % turns
+		_:
+			return ""
