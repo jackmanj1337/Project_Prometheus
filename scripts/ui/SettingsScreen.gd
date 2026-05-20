@@ -24,7 +24,7 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _opt_movement_speed: OptionButton = _vbox.get_node("HBoxMovementSpeed/OptMovementSpeed")
 @onready var _opt_phase_banner: OptionButton   = _vbox.get_node("HBoxPhaseBanner/OptPhaseBanner")
 @onready var _opt_level_up: OptionButton       = _vbox.get_node("HBoxLevelUp/OptLevelUpScreen")
-@onready var _opt_mouse_targeting: OptionButton = _vbox.get_node("HBoxMouseTargeting/OptMouseTargeting")
+@onready var _opt_mouse_cursor: OptionButton = _vbox.get_node("HBoxMouseCursor/OptMouseCursor")
 @onready var _opt_auto_end: OptionButton       = _vbox.get_node("HBoxAutoEndTurn/OptAutoEndTurn")
 @onready var _slider_camera_buffer: HSlider    = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
 @onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
@@ -35,7 +35,7 @@ const _COMBAT_ANIM_OPTIONS: Array[String]    = ["all", "player_only", "enemy_onl
 const _MOVEMENT_SPEED_OPTIONS: Array[String] = ["normal", "fast", "instant"]
 const _PHASE_BANNER_OPTIONS: Array[String]   = ["show", "skip"]
 const _LEVEL_UP_OPTIONS: Array[String]       = ["show", "auto", "skip"]
-const _MOUSE_TARGETING_OPTIONS: Array[String] = ["snap", "disabled"]
+const _MOUSE_CURSOR_OPTIONS: Array[String] = ["enabled", "disabled"]
 
 
 func _ready() -> void:
@@ -43,7 +43,7 @@ func _ready() -> void:
 	_populate_option_button(_opt_movement_speed, ["Normal", "Fast", "Instant"])
 	_populate_option_button(_opt_phase_banner,   ["Show", "Skip"])
 	_populate_option_button(_opt_level_up,       ["Show", "Auto", "Skip"])
-	_populate_option_button(_opt_mouse_targeting, ["Snap to Target", "Keyboard Only"])
+	_populate_option_button(_opt_mouse_cursor, ["Enabled", "Disabled"])
 	_populate_option_button(_opt_auto_end, ["Off", "On"])
 	# combat_animations has no system behind it yet — hide the inert control so
 	# the menu doesn't advertise a setting that does nothing. The SettingsManager
@@ -70,7 +70,7 @@ func _ready() -> void:
 	_opt_movement_speed.item_selected.connect(_on_movement_speed_selected)
 	_opt_phase_banner.item_selected.connect(_on_phase_banner_selected)
 	_opt_level_up.item_selected.connect(_on_level_up_selected)
-	_opt_mouse_targeting.item_selected.connect(_on_mouse_targeting_selected)
+	_opt_mouse_cursor.item_selected.connect(_on_mouse_cursor_selected)
 	_opt_auto_end.item_selected.connect(_on_auto_end_selected)
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_btn_back.pressed.connect(_on_back)
@@ -92,7 +92,7 @@ func open() -> void:
 	_opt_movement_speed.selected = maxi(0, _MOVEMENT_SPEED_OPTIONS.find(sm.get("movement_speed")))
 	_opt_phase_banner.selected   = maxi(0, _PHASE_BANNER_OPTIONS.find(sm.get("phase_banner")))
 	_opt_level_up.selected       = maxi(0, _LEVEL_UP_OPTIONS.find(sm.get("level_up_screen")))
-	_opt_mouse_targeting.selected = maxi(0, _MOUSE_TARGETING_OPTIONS.find(sm.get("mouse_targeting")))
+	_opt_mouse_cursor.selected = maxi(0, _MOUSE_CURSOR_OPTIONS.find(sm.get("mouse_cursor")))
 	_opt_auto_end.selected = 1 if sm.get("auto_end_turn") else 0
 	_slider_camera_buffer.value = sm.get("camera_edge_buffer")
 	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
@@ -157,10 +157,10 @@ func _on_level_up_selected(index: int) -> void:
 		sm.call("save")
 
 
-func _on_mouse_targeting_selected(index: int) -> void:
+func _on_mouse_cursor_selected(index: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:
-		sm.set("mouse_targeting", _MOUSE_TARGETING_OPTIONS[index])
+		sm.set("mouse_cursor", _MOUSE_CURSOR_OPTIONS[index])
 		sm.call("save")
 
 

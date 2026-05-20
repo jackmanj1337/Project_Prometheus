@@ -360,7 +360,10 @@ var combat_animations: String = "all"      # "all"|"player_only"|"enemy_only"|"n
 var movement_speed: String = "normal"       # "normal" | "fast" | "instant"
 var phase_banner: String = "show"           # "show" | "skip"
 var level_up_screen: String = "show"        # "show" | "auto" | "skip"
-var mouse_targeting: String = "snap"        # "snap" | "disabled"
+var mouse_cursor: String = "enabled"        # "enabled" | "disabled"
+                                            # When "disabled", mouse motion does not
+                                            # move the on-map cursor in any state.
+                                            # Mouse clicks (confirm/cancel) still fire.
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup.

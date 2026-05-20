@@ -456,9 +456,13 @@ updates).
 **Level Up Screen** (`level_up_screen`, default `"show"`) — `Show` waits for a
 `confirm` press; `Auto` auto-dismisses after ~1.5 s; `Skip` shows only a brief pop-up.
 
-**Mouse Targeting** (`mouse_targeting`, default `"snap"`) — `Snap to Target` makes
-mouse motion during target selection jump the cursor to the nearest valid target;
-`Keyboard Only` ignores mouse motion while targeting.
+**Mouse Cursor** (`mouse_cursor`, default `"enabled"`) — `Enabled` lets mouse
+motion drive the on-map cursor (in `FREE` / `UNIT_SELECTED` it follows the
+pointer; in `TARGETING` it snaps to the nearest valid target). `Disabled` ignores
+mouse motion entirely in every state, so stray bumps cannot nudge the cursor
+during keyboard play (PT4 #1). Mouse *clicks* (confirm/cancel and the middle-
+click danger toggle) are intentional acts and remain active in both modes.
+Renamed from `mouse_targeting` 2026-05-20; the old cfg key still migrates.
 
 #### Controls (read-only)
 

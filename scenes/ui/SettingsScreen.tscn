@@ -154,15 +154,15 @@ text = "Level-Up Screen"
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxMouseTargeting" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMouseCursor" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMouseTargeting"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMouseCursor"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "Mouse Targeting"
+text = "Mouse Cursor"
 
-[node name="OptMouseTargeting" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxMouseTargeting"]
+[node name="OptMouseCursor" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxMouseCursor"]
 layout_mode = 2
 size_flags_horizontal = 3
 

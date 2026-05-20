@@ -540,6 +540,43 @@ func _init() -> void:
 		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
 		failed += 1
 
+	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
+	# Drive _handle_mouse_motion directly with a synthesized event. The function
+	# reads SettingsManager.mouse_cursor and bails before touching _set_tile when
+	# the setting is "disabled", so the cursor must stay put. When "enabled", the
+	# same motion must move it. Skips cleanly if the autoload isn't registered
+	# (e.g. someone runs this suite in isolation without --path).
+	var sm_mc := root.get_node_or_null("SettingsManager")
+	if sm_mc != null:
+		var t_mc := TurnManager.new(); root.add_child(t_mc)
+		var c_mc := _make_cursor(t_mc)
+		# Park the camera on (3,3) so _clamp_tile_to_view doesn't clip (4,4) out.
+		c_mc._camera.position = _grid.tile_to_world(Vector2i(3, 3))
+		c_mc._set_tile(Vector2i(0, 0))
+		var ev := InputEventMouseMotion.new()
+		# canvas_transform is identity here (no Camera2D offset applied to the
+		# root viewport), so screen pos == world pos for the test.
+		ev.position = _grid.tile_to_world(Vector2i(4, 4))
+
+		sm_mc.mouse_cursor = "disabled"
+		c_mc._handle_mouse_motion(ev)
+		var stayed: bool = c_mc.current_tile == Vector2i(0, 0)
+
+		sm_mc.mouse_cursor = "enabled"
+		c_mc._handle_mouse_motion(ev)
+		var moved: bool = c_mc.current_tile == Vector2i(4, 4)
+
+		sm_mc.mouse_cursor = "enabled"  # restore default
+		if stayed and moved:
+			print("OK  mouse_cursor=disabled ignores motion; enabled resumes (PT4 #1)")
+			passed += 1
+		else:
+			print("FAIL mouse_cursor gate: stayed=%s moved=%s tile=%s" % [
+				stayed, moved, str(c_mc.current_tile)])
+			failed += 1
+	else:
+		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")
+
 	# ---- _camera_edge_buffer clamps an out-of-range SettingsManager value ----
 	var sm_buf := root.get_node_or_null("SettingsManager")
 	if sm_buf != null:

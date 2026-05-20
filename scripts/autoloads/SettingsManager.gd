@@ -18,8 +18,13 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
-# "snap"|"disabled" — mouse behavior while choosing a target tile
-var mouse_targeting: String = "snap"
+# "enabled"|"disabled" — whether the mouse drives the on-map cursor at all.
+# When "enabled", mouse motion moves the cursor in FREE / UNIT_SELECTED states
+# and snaps to the nearest valid target in TARGETING. When "disabled", mouse
+# motion is ignored entirely so stray bumps don't move the cursor in keyboard
+# play (PT4 #1). Mouse *clicks* (confirm/cancel/middle-click danger toggle) are
+# intentional acts and remain active in both modes.
+var mouse_cursor: String = "enabled"
 # Whether the player phase ends automatically once every unit has acted (#2).
 var auto_end_turn: bool = true
 # Tiles from the viewport edge that trigger a camera pan (#17). Default mirrors
@@ -55,7 +60,15 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	mouse_targeting   = cfg.get_value("gameplay", "mouse_targeting",   mouse_targeting)
+	mouse_cursor      = cfg.get_value("gameplay", "mouse_cursor",      mouse_cursor)
+	# Migration (2026-05-20): the setting was renamed from mouse_targeting (values
+	# "snap"|"disabled") to mouse_cursor (values "enabled"|"disabled") because the
+	# old name covered only the TARGETING state. Honour an old cfg key once so
+	# saved preferences survive the rename. Remove this branch once no in-flight
+	# cfg files are likely to carry the legacy key.
+	var legacy_mouse: String = cfg.get_value("gameplay", "mouse_targeting", "")
+	if legacy_mouse != "":
+		mouse_cursor = "disabled" if legacy_mouse == "disabled" else "enabled"
 	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
 	# Clamp on load: the SettingsScreen slider is limited to 0-5, but a hand-edited
 	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
@@ -78,7 +91,7 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
-	cfg.set_value("gameplay", "mouse_targeting",   mouse_targeting)
+	cfg.set_value("gameplay", "mouse_cursor",      mouse_cursor)
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
 
@@ -102,7 +115,7 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
-			mouse_targeting   = "snap"
+			mouse_cursor      = "enabled"
 			auto_end_turn      = true
 			camera_edge_buffer = 2
 		"controls":

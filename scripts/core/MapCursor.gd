@@ -248,6 +248,13 @@ func _toggle_danger_zone() -> void:
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	if _camera == null or _grid == null:
 		return
+	# Player-controlled gate: when mouse_cursor is "disabled", a stray bump must
+	# not move the on-map cursor in any state (PT4 #1). Mouse *clicks* are still
+	# accepted as confirm/cancel — see _handle_mouse_button — because clicks are
+	# intentional and the toggle is scoped to cursor follow, not all mouse input.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.mouse_cursor == "disabled":
+		return
 	# canvas_transform maps world → screen; its inverse converts screen pixels to world coords.
 	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
 	var world := get_viewport().canvas_transform.affine_inverse() * event.position
@@ -271,16 +278,13 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		# UNIT_MOVED (menu open) ignores mouse motion.
 
 
-# Mouse motion while choosing a target obeys the mouse_targeting UX setting:
-#   "snap"     — cursor jumps to the valid target nearest the pointer (Manhattan).
-#   "disabled" — motion is ignored; only keyboard cycling moves the cursor.
-# Mouse *clicks* still confirm/cancel regardless — handled in _handle_mouse_button.
+# Mouse motion in TARGETING snaps the cursor to the valid target nearest the
+# pointer (Manhattan distance). The "is the mouse cursor enabled?" gate is
+# already enforced once in _handle_mouse_motion above, so this function runs
+# only when mouse_cursor == "enabled".
 func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
 	if not _targeting.can_change_target():
 		return  # frozen while the attack preview is showing
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm != null and sm.mouse_targeting == "disabled":
-		return
 	var tiles := _targeting.target_tiles()
 	if tiles.is_empty():
 		return

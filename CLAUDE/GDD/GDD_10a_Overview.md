@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `4b03a9e`.
+Last refreshed: **2026-05-20** against branch `main` @ `8eadfe9` + PT4 #1 fix.
 
 ---
 
@@ -24,6 +24,7 @@ Last refreshed: **2026-05-20** against branch `main` @ `4b03a9e`.
 | Code review 2026-05-18 | GDD_01 resync (D1–D5, D7–D11), `InventoryEntry.validate()` wired in `GameMap._spawn_units`, `Unit.has_skill()` unions `mastery_skills`, `combat_animations` hidden in `SettingsScreen` | grep verified 2026-05-20 |
 | Code review 2026-05-19 | Clamp `camera_edge_buffer` on load, scale AI pacing delay with `movement_speed`, AI camera re-pan after movement | commits `d430384`, `fa27b2c` |
 | Code review 2026-05-19c | 4 DEBUG-banner nits (2.1–2.4) | commit `958995b` |
+| Playtest 4 — #1 | Mouse-bump no longer moves the cursor in keyboard-only mode: setting renamed `mouse_targeting`→`mouse_cursor` (values `enabled`/`disabled`), gate applied to motion in all three states (`FREE`/`UNIT_SELECTED`/`TARGETING`); legacy cfg key migrates | this commit; `test_map_cursor` "mouse_cursor=disabled ignores motion" |
 
 ---
 
@@ -35,7 +36,7 @@ Numbering is the work order. Status: ⬜ = pending, 🟦 = in flight, ⚫ = defe
 
 | # | Item | Source | Notes |
 |---|---|---|---|
-| A1 ⬜ | **PT4 #1** — In keyboard-only mode, a mouse bump still moves the cursor | `CLAUDE/Docs/playtest4_findings_2026-05-19.md:2` | **Mis-scoped setting.** `MapCursor._handle_targeting_mouse_motion` (`MapCursor.gd:282`) checks `SettingsManager.mouse_targeting == "disabled"` — but only inside `State.TARGETING`. The `FREE` / `UNIT_SELECTED` branch (`:255-268`) moves the cursor on every `InputEventMouseMotion` with no setting check. Fix: gate the FREE/UNIT_SELECTED motion handler on the same setting, or rename to `mouse_cursor` and apply it across all states. Designer call on which states the setting should cover (just targeting? all states? include mouse-click confirm/cancel?). |
+| A1 ✅ | ~~PT4 #1 — mouse-bump moves cursor in keyboard-only mode~~ | — | Shipped 2026-05-20; see §1 row. |
 | A2 ⬜ | **PT4 #2** — Camera doesn't return to where the player left it at end of turn | `CLAUDE/Docs/playtest4_findings_2026-05-19.md:3` | Symmetric to PT3 #5: that one recentres on **player-phase start**; this one wants to *remember* the player's pre-AI camera position and restore it. Touches `MapCursor._on_phase_changed`. |
 
 ### Bucket B — Tech-debt prep work (slot before the milestones that need it)
