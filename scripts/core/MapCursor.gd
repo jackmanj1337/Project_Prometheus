@@ -538,7 +538,8 @@ func _show_action_menu() -> void:
 		return
 	# show_for() before placement — ActionMenu hides unavailable rows, so the
 	# real height is only known once the contents are populated (playtest 3 #4).
-	action_menu.show_for(_selection.selected_unit, _grid)
+	# Passing _turn lets the menu compute the M16 Seize gate.
+	action_menu.show_for(_selection.selected_unit, _grid, _turn)
 	_place_menu_near(action_menu, _selection.selected_unit.tile_position)
 
 
@@ -561,8 +562,19 @@ func _on_action_chosen(action: String) -> void:
 			_use_item()
 		"equip":
 			_open_weapon_menu()
+		"seize":
+			_commit_seize()
 		"wait":
 			_commit_wait()
+
+
+# M16 stage 3: Seize commits the unit's turn the same way Wait does. The
+# TurnManager records the {tile, unit_id, faction} triple and re-evaluates
+# objectives — a seize-victory or seize-defeat may resolve the map here.
+func _commit_seize() -> void:
+	if _turn != null and _selection.selected_unit != null:
+		_turn.record_seize(_selection.selected_unit)
+	_finish_action()
 
 
 # ── State: TARGETING — delegated to MapCursorTargeting ───────────────────────

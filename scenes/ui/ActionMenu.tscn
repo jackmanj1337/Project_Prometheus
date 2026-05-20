@@ -31,6 +31,11 @@ layout_mode = 2
 text = "Equip"
 focus_mode = 2
 
+[node name="BtnSeize" type="Button" parent="VBox"]
+layout_mode = 2
+text = "Seize"
+focus_mode = 2
+
 [node name="BtnWait" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Wait"

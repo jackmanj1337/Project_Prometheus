@@ -34,6 +34,22 @@ var _map_over: bool = false
 # get_group_eliminated_round() accessor reads it.
 var _group_eliminated_round: Dictionary = {}
 
+# M16 stage 3: per-record event tracking for the four new condition types.
+# Seize is action-driven (record_seize); escape is movement-driven (the
+# unit_moved signal hook). Both arrays are reset implicitly when a fresh
+# TurnManager is instantiated for a new map.
+#
+# _seize_records: each entry = {tile: Vector2i, unit_id: String, faction: String}
+#   — the unit that performed the Seize action on that tile. Multiple records
+#   per tile are allowed (in case a future map design re-seizes after loss).
+# _escape_records: each entry = {unit_id: String, faction: String} for a unit
+#   that left the map via an escape zone. The escape evaluator passes when
+#   every named unit appears here; the protect evaluator treats escaped ids as
+#   still-alive (escape isn't death); the implicit "group routed" defeat
+#   treats a group with any escapee as still in the game.
+var _seize_records: Array[Dictionary] = []
+var _escape_records: Array[Dictionary] = []
+
 # ── Scheduler state (M14 stage 3) ────────────────────────────────────────────
 # The ordered list of faction ids this map cycles through. Set in start_map
 # from MapData.turn_order; falls back to the default if the map didn't author one.
@@ -66,10 +82,13 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 			_unit_states[u] = UnitState.READY
 	if _activation_mode == "ALTERNATING" and gs != null:
 		_begin_phase(gs.all_units)
-	# Hook into unit_died so victory checks fire after each kill
+	# Hook into unit_died so victory checks fire after each kill, and unit_moved
+	# so escape-zone entry triggers an auto-escape (Decision 5 / 2026-05-17).
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and not bus.unit_died.is_connected(_on_unit_died):
 		bus.unit_died.connect(_on_unit_died)
+	if bus and not bus.unit_moved.is_connected(_on_unit_moved):
+		bus.unit_moved.connect(_on_unit_moved)
 	# Begin the first faction's phase. For 2-faction WHOLE_PHASE maps the first
 	# active faction is "blue", so this is the same as the pre-stage-3 call.
 	#
@@ -577,9 +596,8 @@ func _implicit_group_routed_condition() -> ObjectiveCondition:
 
 
 # Dispatcher. Returns true iff `cond` is satisfied right now for the
-# conditioning group `for_group`. Stage 2 covers rout / turn_limit / protect
-# (the three legacy types) plus the _group_routed sentinel. defeat_boss /
-# seize / escape / survive land in stage 3.
+# conditioning group `for_group`. Covers the seven authored types from the
+# M16 catalogue plus the internal _group_routed sentinel.
 func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 	if cond == null:
 		return false
@@ -594,6 +612,17 @@ func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) 
 		"protect":
 			# defeat-condition truth = ANY protected unit is dead/missing.
 			return _eval_protect_failed(cond, gs)
+		"defeat_boss":
+			# defeat-condition truth = ANY named unit is dead. Same shape as
+			# protect_failed but authored as a foe-eliminating victory ("boss
+			# down → I win") on the conditioning group's victory_conditions.
+			return _eval_all_named_dead(cond, gs)
+		"seize":
+			return _eval_seize(cond, for_group, gs)
+		"escape":
+			return _eval_escape(cond)
+		"survive":
+			return _eval_survive(cond, for_group, gs)
 		_:
 			push_warning("ObjectiveCondition: unimplemented type '%s' — treated as unmet" % cond.type)
 			return false
@@ -623,27 +652,114 @@ func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 
 
 # protect-failed (= defeat truth value): TRUE iff ANY named unit is missing
-# or has hp <= 0. May include green units, per the M16 spec — so this scans
-# every registered unit, not just blue (which is what the legacy
-# required_survivor_ids check did, since required survivors were only ever
-# blue under the old model).
+# or has hp <= 0 AND has not escaped. May include green units, per the M16
+# spec — so this scans every registered unit, not just blue (which is what
+# the legacy required_survivor_ids check did under the old blue-only model).
+#
+# Escape exclusion: a unit that left the map via an escape zone is not "dead"
+# (it survived the map by definition); the spec ties protect-failure to
+# "death" specifically. Without this carve-out an escape victory would
+# simultaneously trigger a protect defeat for the same unit.
 func _eval_protect_failed(cond: ObjectiveCondition, gs: Node) -> bool:
 	for required_id in cond.unit_ids:
-		var alive := false
-		for u in gs.all_units:
-			if not is_instance_valid(u) or u.data == null:
-				continue
-			if u.data.unit_id == required_id and u.data.hp > 0:
-				alive = true
-				break
-		if not alive:
+		if _has_unit_escaped(required_id):
+			continue
+		if not _is_unit_id_alive(required_id, gs):
 			return true
 	return false
 
 
-# True when no faction whose alliance_group == `group` has any living unit.
-# Powers the implicit "group routed" defeat default; not exposed to authors.
+func _has_unit_escaped(unit_id: String) -> bool:
+	for record in _escape_records:
+		if record.get("unit_id", "") == unit_id:
+			return true
+	return false
+
+
+# all-named-dead (defeat_boss truth value): TRUE iff EVERY unit_id in the
+# condition is dead. Mirrors protect_failed inverted (any-vs-all + alive-vs-dead);
+# kept as its own helper so the spec-level "boss is down" reads cleanly.
+func _eval_all_named_dead(cond: ObjectiveCondition, gs: Node) -> bool:
+	if cond.unit_ids.is_empty():
+		return false
+	for target_id in cond.unit_ids:
+		if _is_unit_id_alive(target_id, gs):
+			return false
+	return true
+
+
+# A unit_id resolves to a living registered unit (escapes are tracked separately).
+func _is_unit_id_alive(unit_id: String, gs: Node) -> bool:
+	for u in gs.all_units:
+		if not is_instance_valid(u) or u.data == null:
+			continue
+		if u.data.unit_id == unit_id and u.data.hp > 0:
+			return true
+	return false
+
+
+# seize: TRUE iff some tile in cond.tiles has a seize record AND the seizing
+# unit was either in cond.allowed_unit_ids (when authored) OR a member of the
+# conditioning group (the default). Decision 4 / 2026-05-17 — Seize is a
+# deliberate ActionMenu entry; the cursor calls record_seize on confirm.
+func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	if cond.tiles.is_empty():
+		return false
+	for record in _seize_records:
+		var tile: Vector2i = record.get("tile", Vector2i.ZERO)
+		if not (tile in cond.tiles):
+			continue
+		var unit_id: String = record.get("unit_id", "")
+		var faction: String = record.get("faction", "")
+		if not cond.allowed_unit_ids.is_empty():
+			if unit_id in cond.allowed_unit_ids:
+				return true
+			continue
+		# No allow-list authored — any unit in the conditioning group counts.
+		if gs.get_alliance_group(faction) == for_group:
+			return true
+	return false
+
+
+# escape: TRUE iff every unit_id in cond.unit_ids appears in _escape_records
+# (the runtime escape log; unit_moved → _on_unit_moved → record_escape).
+func _eval_escape(cond: ObjectiveCondition) -> bool:
+	if cond.unit_ids.is_empty():
+		return false
+	for required_id in cond.unit_ids:
+		if not _has_unit_escaped(required_id):
+			return false
+	return true
+
+
+# survive: TRUE once turn_number > cond.turns AND (if cond.tiles is authored)
+# at least one conditioning-group unit currently stands on a `tiles` tile.
+# The optional tile clause keeps the eval simple — a strict "held for N
+# consecutive rounds" requires per-round bookkeeping; map authors can model
+# that with stage 5's hybrid triggers if needed.
+func _eval_survive(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	if gs.turn_number <= cond.turns:
+		return false
+	if cond.tiles.is_empty():
+		return true
+	for fid in gs._units_by_faction.keys():
+		if gs.get_alliance_group(fid) != for_group:
+			continue
+		for u in gs.get_living_units_of(fid):
+			if u.tile_position in cond.tiles:
+				return true
+	return false
+
+
+# True when no faction whose alliance_group == `group` has any living unit AND
+# the group has no escapees. Powers the implicit "group routed" defeat default;
+# escapees count as "still members" — they left the map alive, so the group
+# should not be considered fully wiped while any of its units have escaped.
+# Not exposed to authors.
 func _group_has_no_living_units(group: String, gs: Node) -> bool:
+	for record in _escape_records:
+		if gs.get_alliance_group(record.get("faction", "")) == group:
+			return false
 	for fid in gs._units_by_faction.keys():
 		if gs.get_alliance_group(fid) != group:
 			continue
@@ -657,6 +773,106 @@ func _group_has_no_living_units(group: String, gs: Node) -> bool:
 # M16 stage 4.
 func get_group_eliminated_round(group: String) -> int:
 	return _group_eliminated_round.get(group, -1)
+
+
+# ── M16 stage 3: seize / escape public APIs ──────────────────────────────────
+
+# Called by MapCursor when the player commits the Seize ActionMenu entry on
+# `unit`'s current tile. Records the {tile, unit_id, faction} triple so the
+# next victory sweep can resolve seize conditions, then runs the sweep
+# immediately (Decision 7's event-driven path — wins shouldn't have to wait
+# for the next phase boundary).
+func record_seize(unit: Node) -> void:
+	if unit == null or unit.data == null:
+		return
+	_seize_records.append({
+		"tile": unit.tile_position,
+		"unit_id": unit.data.unit_id,
+		"faction": unit.team,
+	})
+	check_victory_conditions()
+
+
+# True iff at least one authored seize condition (anywhere in the map's
+# victory or defeat condition sets) would accept `unit` performing a Seize on
+# `tile`. The ActionMenu reads this to decide whether to show the Seize
+# button (Decision 4: a deliberate, gated entry — not a passive occupation).
+func can_seize(unit: Node, tile: Vector2i) -> bool:
+	if _map_data == null or unit == null or unit.data == null:
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var unit_group: String = gs.get_alliance_group(unit.team)
+	for dict in [_map_data.victory_conditions, _map_data.defeat_conditions]:
+		for group_id in dict.keys():
+			for cond in _conditions_for_group(dict, group_id):
+				if cond == null or cond.type != "seize":
+					continue
+				if not (tile in cond.tiles):
+					continue
+				# Allow-list gate: explicit list wins; otherwise the unit must
+				# belong to the conditioning group.
+				if not cond.allowed_unit_ids.is_empty():
+					if unit.data.unit_id in cond.allowed_unit_ids:
+						return true
+				elif group_id == unit_group:
+					return true
+	return false
+
+
+# Removes a unit from the map under the "escape" semantics: tracks its
+# unit_id in _escaped_unit_ids, unregisters from GameState, and queue_frees
+# the node. Unlike unit_died this does NOT emit map_defeat-by-protect — the
+# unit survived; it just isn't on the map any more.
+func record_escape(unit: Node) -> void:
+	if unit == null or unit.data == null:
+		return
+	if not _has_unit_escaped(unit.data.unit_id):
+		_escape_records.append({
+			"unit_id": unit.data.unit_id,
+			"faction": unit.team,
+		})
+	var gs := get_node_or_null("/root/GameState")
+	if gs and unit in gs.all_units:
+		gs.unregister_unit(unit)
+	_unit_states.erase(unit)
+	_original_tiles.erase(unit)
+	if is_instance_valid(unit):
+		unit.queue_free()
+	check_victory_conditions()
+
+
+# Bus hook: after a unit completes its move, check if the destination tile is
+# inside any escape zone that names this unit. If so, escape it automatically
+# on entry (Decision 5 / 2026-05-17 — escape is auto, not an action choice).
+func _on_unit_moved(unit: Node, _from_tile: Vector2i, to_tile: Vector2i) -> void:
+	if _map_data == null or unit == null or unit.data == null:
+		return
+	for cond in _all_conditions_of_type("escape"):
+		if not (to_tile in cond.tiles):
+			continue
+		if cond.unit_ids.is_empty():
+			continue
+		if unit.data.unit_id in cond.unit_ids:
+			record_escape(unit)
+			return
+
+
+# Iterator helper: every ObjectiveCondition of the given type across both
+# the victory and defeat dictionaries of MapData. Used by can_seize and the
+# unit_moved hook; the evaluator path itself walks per-group, so this is the
+# action-time view rather than the evaluation-time view.
+func _all_conditions_of_type(type_name: String) -> Array:
+	var out: Array = []
+	if _map_data == null:
+		return out
+	for dict in [_map_data.victory_conditions, _map_data.defeat_conditions]:
+		for group_id in dict.keys():
+			for cond in _conditions_for_group(dict, group_id):
+				if cond != null and cond.type == type_name:
+					out.append(cond)
+	return out
 
 
 func _apply_victory_rewards(gs: Node) -> void:

@@ -110,9 +110,10 @@ func _init() -> void:
 		print("FAIL Item should be shown"); failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
-	# Wait is index 4 in _buttons: [attack, staff, item, equip, wait].
+	# Wait is index 5 in _buttons: [attack, staff, item, equip, seize, wait].
+	# (M16 stage 3 inserted Seize at index 4.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 4:
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 5:
 		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
@@ -165,6 +166,41 @@ func _init() -> void:
 	else:
 		print("FAIL menu after press: visible=%s chose=%s" % [am.visible, chose[0]])
 		failed += 1
+
+	# ── M16 stage 3: Seize button visibility ──────────────────────────────────
+	# Stub TurnManager: can_seize(unit, tile) returns whatever the test sets.
+	# Reproduces the can_seize contract without spinning up the real evaluator.
+	var turn_stub_src := "extends Node\nvar result: bool = false\nfunc can_seize(_u, _t) -> bool: return result\n"
+	var turn_stub: GDScript = GDScript.new()
+	turn_stub.source_code = turn_stub_src
+	turn_stub.reload()
+
+	# ---- Seize hidden when no TurnManager is passed (turn = null) ----
+	am.show_for(_mk_unit(sword, []), _mk_grid([], []))
+	if not am._btn_seize.visible:
+		print("OK  Seize hidden when no TurnManager is passed"); passed += 1
+	else:
+		print("FAIL Seize should be hidden without a TurnManager"); failed += 1
+
+	# ---- Seize hidden when can_seize returns false ----
+	var t_no: Node = turn_stub.new()
+	t_no.set("result", false)
+	root.add_child(t_no)
+	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_no)
+	if not am._btn_seize.visible:
+		print("OK  Seize hidden when TurnManager.can_seize == false"); passed += 1
+	else:
+		print("FAIL Seize should be hidden (can_seize=false)"); failed += 1
+
+	# ---- Seize shown when can_seize returns true ----
+	var t_yes: Node = turn_stub.new()
+	t_yes.set("result", true)
+	root.add_child(t_yes)
+	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_yes)
+	if am._btn_seize.visible:
+		print("OK  Seize shown when TurnManager.can_seize == true"); passed += 1
+	else:
+		print("FAIL Seize should be shown (can_seize=true)"); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

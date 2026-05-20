@@ -569,5 +569,158 @@ func _init() -> void:
 			tm_er.get_group_eliminated_round("allies"),
 		]); failed += 1
 
+	# ── M16 stage 3: defeat_boss / seize / escape / survive ─────────────────────
+
+	# ---- defeat_boss victory: every named unit_id dead → map_victory ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_db"))
+	gs.register_unit(_mk_unit("red", 0, "boss_db"))       # boss dead
+	var md_db := MapData.new()
+	var c_db := ObjectiveCondition.new()
+	c_db.type = "defeat_boss"; c_db.unit_ids = ["boss_db"] as Array[String]
+	md_db.victory_conditions = {"allies": [c_db]}
+	var tm_db := TurnManager.new()
+	root.add_child(tm_db)
+	tm_db._map_data = md_db
+	victories[0] = 0
+	tm_db.check_victory_conditions()
+	if victories[0] == 1:
+		print("OK  defeat_boss: every named unit dead → map_victory"); passed += 1
+	else:
+		print("FAIL defeat_boss: victories=%d" % victories[0]); failed += 1
+
+	# ---- survive victory: turn_number > turns → map_victory ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_sv"))
+	gs.register_unit(_mk_unit("red", 20, "e_sv"))         # red alive — only the timer wins it
+	gs.turn_number = 4
+	var md_sv := MapData.new()
+	var c_sv := ObjectiveCondition.new()
+	c_sv.type = "survive"; c_sv.turns = 3
+	md_sv.victory_conditions = {"allies": [c_sv]}
+	var tm_sv := TurnManager.new()
+	root.add_child(tm_sv)
+	tm_sv._map_data = md_sv
+	victories[0] = 0
+	tm_sv.check_victory_conditions()
+	if victories[0] == 1:
+		print("OK  survive: turn_number > turns → map_victory"); passed += 1
+	else:
+		print("FAIL survive: victories=%d" % victories[0]); failed += 1
+
+	# ---- record_seize: seize on a named tile by an allowed unit → map_victory ----
+	gs.reset_map_state()
+	var seizer := _mk_unit("blue", 20, "seizer")
+	seizer.set("tile_position", Vector2i(2, 2))
+	gs.register_unit(seizer)
+	gs.register_unit(_mk_unit("red", 20, "e_seize"))      # red alive — seize is the win
+	var md_se := MapData.new()
+	var c_se := ObjectiveCondition.new()
+	c_se.type = "seize"
+	c_se.tiles = [Vector2i(2, 2)] as Array[Vector2i]
+	c_se.allowed_unit_ids = ["seizer"] as Array[String]
+	md_se.victory_conditions = {"allies": [c_se]}
+	var tm_se := TurnManager.new()
+	root.add_child(tm_se)
+	tm_se._map_data = md_se
+	victories[0] = 0
+	tm_se.record_seize(seizer)
+	if victories[0] == 1:
+		print("OK  record_seize: allowed unit on tile → map_victory"); passed += 1
+	else:
+		print("FAIL record_seize: victories=%d" % victories[0]); failed += 1
+
+	# ---- can_seize: allow-list gate hides Seize for the wrong unit_id ----
+	gs.reset_map_state()
+	var seizer_ok := _mk_unit("blue", 20, "lord")
+	var seizer_no := _mk_unit("blue", 20, "knight")
+	seizer_ok.set("tile_position", Vector2i(3, 3))
+	seizer_no.set("tile_position", Vector2i(3, 3))
+	gs.register_unit(seizer_ok)
+	gs.register_unit(seizer_no)
+	var md_cs := MapData.new()
+	var c_cs := ObjectiveCondition.new()
+	c_cs.type = "seize"
+	c_cs.tiles = [Vector2i(3, 3)] as Array[Vector2i]
+	c_cs.allowed_unit_ids = ["lord"] as Array[String]
+	md_cs.victory_conditions = {"allies": [c_cs]}
+	var tm_cs := TurnManager.new()
+	root.add_child(tm_cs)
+	tm_cs._map_data = md_cs
+	if tm_cs.can_seize(seizer_ok, Vector2i(3, 3)) \
+			and not tm_cs.can_seize(seizer_no, Vector2i(3, 3)) \
+			and not tm_cs.can_seize(seizer_ok, Vector2i(0, 0)):
+		print("OK  can_seize: allow-list + tile gate"); passed += 1
+	else:
+		print("FAIL can_seize gate (lord=%s knight=%s offtile=%s)" % [
+			tm_cs.can_seize(seizer_ok, Vector2i(3, 3)),
+			tm_cs.can_seize(seizer_no, Vector2i(3, 3)),
+			tm_cs.can_seize(seizer_ok, Vector2i(0, 0)),
+		]); failed += 1
+
+	# ---- record_escape: every named unit escaped → map_victory ----
+	gs.reset_map_state()
+	var runner := _mk_unit("blue", 20, "runner")
+	gs.register_unit(runner)
+	gs.register_unit(_mk_unit("red", 20, "e_esc"))        # red alive — escape is the win
+	var md_esc := MapData.new()
+	var c_esc := ObjectiveCondition.new()
+	c_esc.type = "escape"
+	c_esc.tiles = [Vector2i(5, 5)] as Array[Vector2i]
+	c_esc.unit_ids = ["runner"] as Array[String]
+	md_esc.victory_conditions = {"allies": [c_esc]}
+	var tm_esc := TurnManager.new()
+	root.add_child(tm_esc)
+	tm_esc._map_data = md_esc
+	victories[0] = 0
+	tm_esc.record_escape(runner)
+	if victories[0] == 1 and tm_esc._has_unit_escaped("runner"):
+		print("OK  record_escape: named unit escaped → map_victory"); passed += 1
+	else:
+		print("FAIL record_escape: victories=%d escaped=%s" % [victories[0], tm_esc._escape_records]); failed += 1
+
+	# ---- escape exclusion in protect: an escaped id doesn't trigger protect-fail ----
+	gs.reset_map_state()
+	var prot_unit := _mk_unit("blue", 20, "vip")
+	gs.register_unit(prot_unit)
+	gs.register_unit(_mk_unit("red", 20, "e_prot"))       # red alive
+	var md_xp := MapData.new()
+	var c_xp_prot := ObjectiveCondition.new()
+	c_xp_prot.type = "protect"; c_xp_prot.unit_ids = ["vip"] as Array[String]
+	md_xp.defeat_conditions = {"allies": [c_xp_prot]}
+	var tm_xp := TurnManager.new()
+	root.add_child(tm_xp)
+	tm_xp._map_data = md_xp
+	defeats[0] = 0
+	tm_xp.record_escape(prot_unit)                        # vip leaves the map alive
+	if defeats[0] == 0:
+		print("OK  escape exclusion: escaped vip doesn't fail protect"); passed += 1
+	else:
+		print("FAIL escape exclusion: defeats=%d (should be 0)" % defeats[0]); failed += 1
+
+	# ---- _on_unit_moved auto-escapes a named unit entering the zone ----
+	gs.reset_map_state()
+	var auto_run := _mk_unit("blue", 20, "auto_runner")
+	gs.register_unit(auto_run)
+	gs.register_unit(_mk_unit("red", 20, "e_auto"))       # red alive
+	var md_auto := MapData.new()
+	var c_auto := ObjectiveCondition.new()
+	c_auto.type = "escape"
+	c_auto.tiles = [Vector2i(7, 7)] as Array[Vector2i]
+	c_auto.unit_ids = ["auto_runner"] as Array[String]
+	md_auto.victory_conditions = {"allies": [c_auto]}
+	var tm_auto_esc := TurnManager.new()
+	root.add_child(tm_auto_esc)
+	tm_auto_esc._map_data = md_auto
+	victories[0] = 0
+	# Simulate the EventBus.unit_moved signal payload directly — the real
+	# emission happens inside Unit.move_along_path which isn't reachable from
+	# the headless stub. Same shape: (unit, from_tile, to_tile).
+	tm_auto_esc._on_unit_moved(auto_run, Vector2i(6, 7), Vector2i(7, 7))
+	if victories[0] == 1 and tm_auto_esc._has_unit_escaped("auto_runner"):
+		print("OK  _on_unit_moved: auto-escape on zone entry → map_victory"); passed += 1
+	else:
+		print("FAIL auto-escape: victories=%d escaped=%s" % [victories[0], tm_auto_esc._escape_records]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

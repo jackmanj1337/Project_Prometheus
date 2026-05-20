@@ -10,6 +10,7 @@ signal hidden_by_cancel()
 @onready var _btn_staff:  Button = $VBox/BtnStaff
 @onready var _btn_item:   Button = $VBox/BtnItem
 @onready var _btn_equip:  Button = $VBox/BtnEquip
+@onready var _btn_seize:  Button = $VBox/BtnSeize
 @onready var _btn_wait:   Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
@@ -17,19 +18,25 @@ var _buttons: Array[Button] = []
 
 
 func _ready() -> void:
-	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_wait]
+	# Seize sits between Equip and Wait in the visual order — by convention map
+	# objectives go just above the always-available Wait entry.
+	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_wait]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
 	_btn_attack.pressed.connect(func(): hide(); action_chosen.emit("attack"))
 	_btn_staff.pressed.connect(func():  hide(); action_chosen.emit("staff"))
 	_btn_item.pressed.connect(func():   hide(); action_chosen.emit("item"))
 	_btn_equip.pressed.connect(func():  hide(); action_chosen.emit("equip"))
+	_btn_seize.pressed.connect(func():  hide(); action_chosen.emit("seize"))
 	_btn_wait.pressed.connect(func():   hide(); action_chosen.emit("wait"))
 	hide()
 
 
 # Show the menu and configure which buttons are active.
-func show_for(unit: Node, grid: Node) -> void:
+# `turn` is the TurnManager — passed to compute the Seize gate (M16). Optional
+# so older callers (incl. test_action_menu's pre-M16 cases) still compile;
+# Seize stays hidden when `turn` is null.
+func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	var has_weapon := unit.get_equipped_weapon() != null
 	var has_enemies := false
 	var has_heal_targets := false
@@ -59,6 +66,13 @@ func show_for(unit: Node, grid: Node) -> void:
 	if unit.has_method("get_equippable_weapons"):
 		has_weapon_swap = unit.get_equippable_weapons().size() >= 2
 
+	# M16 stage 3: Seize is a deliberate, gated entry (Decision 4 / 2026-05-17)
+	# — visible only when the active map authors a seize condition that accepts
+	# this unit on this tile. Hidden when no TurnManager was passed.
+	var can_seize := false
+	if turn != null and turn.has_method("can_seize"):
+		can_seize = turn.can_seize(unit, unit.tile_position)
+
 	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer
 	# collapses the gap so the menu shrinks to fit the offered choices, instead
 	# of showing greyed-out buttons. Wait is always offered.
@@ -66,6 +80,7 @@ func show_for(unit: Node, grid: Node) -> void:
 	_btn_staff.visible  = has_heal_targets
 	_btn_item.visible   = has_items
 	_btn_equip.visible  = has_weapon_swap
+	_btn_seize.visible  = can_seize
 	_btn_wait.visible   = true
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
