@@ -1,7 +1,8 @@
-extends Control
+extends "res://scripts/ui/ModalScreen.gd"
 # New Game setup: pick the per-save gameplay rules (permadeath, leveling method),
 # then start a fresh run. Implemented as an overlay child of MainMenu — open()/hide()
 # like SettingsScreen, with Back returning to MainMenu (no scene reload).
+# Extends ModalScreen (B3) for hide-on-ready and cancel-to-close.
 #
 # Gameplay rules are per-save state, so they are written onto GameState here rather
 # than into the global settings.cfg. The save-system milestone will serialize them.
@@ -41,7 +42,7 @@ func _ready() -> void:
 	_opt_leveling.add_item("Fixed")
 	_btn_start.pressed.connect(_on_start)
 	_btn_back.pressed.connect(_on_back)
-	hide()
+	# hide() is performed by ModalScreen._ready.
 
 
 func open() -> void:
@@ -54,12 +55,11 @@ func open() -> void:
 	_btn_start.grab_focus()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event.is_action_pressed("cancel"):
-		_on_back()
-		get_viewport().set_input_as_handled()
+func _close() -> void:
+	# Subclass override: emit back_pressed (consumed by MainMenu) in addition
+	# to ModalScreen.closed.
+	back_pressed.emit()
+	super._close()
 
 
 func _on_start() -> void:
@@ -73,5 +73,6 @@ func _on_start() -> void:
 
 
 func _on_back() -> void:
-	hide()
-	back_pressed.emit()
+	# Back button and cancel key share the _close path so teardown stays in
+	# one place (B3).
+	_close()

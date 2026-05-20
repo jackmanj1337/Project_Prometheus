@@ -1,16 +1,16 @@
-extends Control
+extends "res://scripts/ui/ModalScreen.gd"
 # Read-only unit details page (#1). Shows a unit's full stat block, inventory and
 # skills. Opened by the inspect_unit action while the cursor is over a unit;
 # MapCursor suppresses cursor input while it is up. Display-only — equipping and
 # editing are deferred to the inventory milestone.
 #
-# No `class_name`: instantiated from its scene and referenced as a plain Node by
-# MapCursor, so headless --script test runs need no global class-cache entry.
+# Extends ModalScreen (B3) for the hide-on-ready + close handling; the `closed`
+# signal MapCursor listens for is inherited from the base. _unhandled_input is
+# overridden here because the inspect_unit key (same key that opens it) acts as
+# a close-toggle — the base's cancel-only default isn't enough.
 #
 # Scene: UnitDetailsScreen > Dimmer + Panel > VBox > TitleLabel, StatsLabel,
 #        InventoryLabel, SkillsLabel, BtnBack.
-
-signal closed()
 
 @onready var _title: Label     = $Panel/VBox/TitleLabel
 @onready var _stats: Label     = $Panel/VBox/StatsLabel
@@ -21,7 +21,7 @@ signal closed()
 
 func _ready() -> void:
 	_btn_back.pressed.connect(_close)
-	hide()
+	super._ready()  # ModalScreen does the hide()
 
 
 # Populates the panel from `unit` and shows it. A null/invalid unit is ignored.
@@ -75,14 +75,14 @@ func _format_skills(d: UnitData) -> String:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Override the base: this screen also closes on the inspect_unit key (toggle
+	# behaviour — the same I press opens it and dismisses it). Cancel still closes.
 	if not visible:
 		return
-	# Cancel or another inspect_unit press closes the page.
 	if event.is_action_pressed("cancel") or event.is_action_pressed("inspect_unit"):
 		get_viewport().set_input_as_handled()
 		_close()
 
 
-func _close() -> void:
-	hide()
-	closed.emit()
+# _close is inherited from ModalScreen — emits `closed` and hides. Subclasses
+# only override when they have an additional per-screen signal to emit.

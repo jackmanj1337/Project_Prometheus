@@ -1,8 +1,12 @@
-extends Control
+extends "res://scripts/ui/ModalScreen.gd"
 # Settings screen: audio sliders, gameplay toggles, a read-only keybinding list,
 # and a back button. Reads values from SettingsManager on open(); writes back on
 # every change. A full-rect opaque Dimmer makes the screen modal (#1); the inner
 # content lives in a ScrollContainer so it never overflows the panel.
+#
+# Extends ModalScreen (B3) for the shared hide-on-ready + cancel-to-close
+# wiring; this script overrides _close() to also emit back_pressed and override
+# _unhandled_input is inherited as-is.
 #
 # Scene: SettingsScreen > Dimmer + Panel > ScrollContainer > VBox > rows.
 # The keybinding rows under VBox/KeybindList are built at runtime (#8).
@@ -75,7 +79,7 @@ func _ready() -> void:
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
-	hide()
+	# hide() is performed by ModalScreen._ready — don't duplicate it.
 
 
 func open() -> void:
@@ -100,12 +104,12 @@ func open() -> void:
 	_btn_back.grab_focus()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event.is_action_pressed("cancel"):
-		_on_back()
-		get_viewport().set_input_as_handled()
+func _close() -> void:
+	# Subclass override: emit back_pressed (consumed by MainMenu and MapMenu's
+	# Settings button) in addition to ModalScreen.closed. Then super() emits
+	# closed and hides.
+	back_pressed.emit()
+	super._close()
 
 
 func _on_master_changed(value: float) -> void:
@@ -180,8 +184,9 @@ func _on_camera_buffer_changed(value: float) -> void:
 
 
 func _on_back() -> void:
-	hide()
-	back_pressed.emit()
+	# Routes through _close() so the back button and cancel-key paths share
+	# the same teardown (B3). _close emits back_pressed + closed and hides.
+	_close()
 
 
 func _populate_option_button(btn: OptionButton, labels: Array[String]) -> void:
