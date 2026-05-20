@@ -664,6 +664,36 @@ func _init() -> void:
 		failed += 1
 	faire_skill.max_uses_per_map = -1  # restore the shared DataManager resource
 
+	# --- B2: combat_started fires from resolve_combat, NOT preview_combat ---
+	# The signal previously emitted from apply_combat_result, after RNG, so a
+	# listener wanting a pre-fight hook would have missed the fight starting and
+	# fired only at apply time. Now resolve_combat emits it before any RNG; preview
+	# must remain silent so hover forecasts don't trigger fight-start side effects.
+	var bus_bs := root.get_node_or_null("EventBus")
+	if bus_bs != null:
+		var bs_atk = _make_unit({"name":"BsAtk","weapon":iron_sword})
+		var bs_def = _make_unit({"name":"BsDef","team":"enemy","tile":Vector2i(1,0),"weapon":iron_sword})
+		var bs_count: Array = [0]  # boxed so the lambda mutates the same int
+		var bs_handler := func(_a: Node, _d: Node) -> void:
+			bs_count[0] += 1
+		bus_bs.combat_started.connect(bs_handler)
+		cr.preview_combat(bs_atk, bs_def)
+		var preview_silent: bool = bs_count[0] == 0
+		cr.resolve_combat(bs_atk, bs_def)
+		var resolve_fired: bool = bs_count[0] == 1
+		bus_bs.combat_started.disconnect(bs_handler)
+		bs_atk.queue_free()
+		bs_def.queue_free()
+		if preview_silent and resolve_fired:
+			print("OK  combat_started fires from resolve_combat, not preview_combat (B2)")
+			passed += 1
+		else:
+			print("FAIL combat_started timing: preview_silent=%s resolve_fired=%s count=%d" % [
+				preview_silent, resolve_fired, bs_count[0]])
+			failed += 1
+	else:
+		print("SKIP B2 combat_started timing (EventBus autoload absent)")
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

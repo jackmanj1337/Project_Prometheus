@@ -7,6 +7,12 @@ signal unit_selected(unit: Node)
 signal unit_deselected()
 signal unit_moved(unit: Node, from_tile: Vector2i, to_tile: Vector2i)
 signal unit_action_taken(unit: Node)
+# Fires at the TOP of CombatResolver.resolve_combat — before any RNG is rolled,
+# before exchanges are computed, before stats are committed. Listeners that want
+# a "fight is about to begin" hook (intro animation, camera focus, sfx) read this
+# one. preview_combat does NOT emit it — the signal marks an actual fight, not a
+# forecast. (B2 / 05-18 review §2: previously fired from apply_combat_result,
+# misnaming an apply-phase event.)
 signal combat_started(attacker: Node, defender: Node)
 # Emitted AFTER handle_death() has been called on any loser(s). Listeners MUST
 # use is_instance_valid() before dereferencing attacker/defender across frames.

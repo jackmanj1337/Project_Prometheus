@@ -568,7 +568,8 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary
 # }
 
 # Phase 2 — commit the result: durability, HP (take_damage), wEXP, EXP, deaths.
-# Adds "attacker_exp"/"defender_exp" to result; emits combat_started/combat_resolved.
+# Adds "attacker_exp"/"defender_exp" to result; emits combat_resolved at the end.
+# (combat_started is emitted by resolve_combat() above, before any RNG.)
 func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void
 
 # Forecast — no RNG, no lasting side effects (snapshots and restores unit state).

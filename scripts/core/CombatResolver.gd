@@ -535,6 +535,13 @@ func _run_strike_series(actor: Node, target: Node, context: Dictionary, is_count
 
 
 func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
+	# combat_started fires before any RNG is rolled — it marks the fight starting,
+	# not the apply phase. preview_combat is the side-effect-free forecast and
+	# must NOT emit this. See EventBus.gd signal comment (B2).
+	var bus := get_node_or_null("/root/EventBus") if is_inside_tree() else null
+	if bus:
+		bus.combat_started.emit(attacker, defender)
+
 	var context := _build_combat_context(attacker, defender)
 	_collect_combat_modifiers(context)
 	var sh := get_node_or_null("/root/SkillHandler")
@@ -616,10 +623,10 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 # ── Apply Combat Result ──────────────────────────────────────────────────────
 
 # Applies the result from resolve_combat: HP changes, durability, EXP, wEXP, death.
+# combat_started has already fired from resolve_combat (B2); apply emits only
+# combat_resolved at the end.
 func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void:
 	var bus := get_node_or_null("/root/EventBus") if is_inside_tree() else null
-	if bus:
-		bus.combat_started.emit(attacker, defender)
 
 	# resolve_combat() already modelled weapon breakage, so every exchange here is a
 	# real attack — apply just commits durability/HP/EXP, with no skip logic.
