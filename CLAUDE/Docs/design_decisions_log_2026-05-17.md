@@ -240,7 +240,7 @@ Open questions from the Session J notes addendum + the next-session sequencing.
   tile," not passive occupation. Add a Seize entry to the `ActionMenu`.
 
 ## Decision 5 — M16 escape: tile vs. zone
-- *Status:* DECIDED 2026-05-17
+- *Status:* DECIDED 2026-05-17 — auto-fire reversed 2026-05-20 (see addendum)
 - *Decision:* **Zone (a set of tiles).** An `escape` condition defines a region /
   edge / doorway (inspector-editable tile list or rect); a named unit escapes by
   reaching any tile in it. Generalizes single-tile (a zone of size 1), no
@@ -248,6 +248,17 @@ Open questions from the Session J notes addendum + the next-session sequencing.
   from the map** ("escaped") — automatic on entry (no Escape action needed;
   escape rarely needs Seize-style timing). Condition met when all named units
   have escaped.
+- *Addendum 2026-05-20 (post-M16 code review, H-1):* the auto-fire-on-entry half
+  of this decision is REVERSED. Escape is now a deliberate `ActionMenu` entry,
+  same shape as Seize (Decision 4) — the player picks Escape from the menu and
+  the turn commits. Reason: the auto-fire path ran inside the `bus.unit_moved`
+  signal handler, which fires from inside the cursor's `await move_along_path`.
+  `record_escape` queue_free'd the unit, but the cursor flow then resumed and
+  showed an ActionMenu for the freed unit (and `set_unit_state(DONE)` re-inserted
+  it into `_unit_states`). Making Escape a deliberate menu entry has no mid-move
+  ownership-of-the-unit problem. The zone semantics (a set of tiles) are
+  unchanged — `can_escape(unit, tile)` gates the button on the unit being named
+  and the current tile being in the zone.
 
 ## Decision 6 — M15 per-phase keybindings timing
 - *Status:* DECIDED 2026-05-17

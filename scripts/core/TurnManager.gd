@@ -82,13 +82,13 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 			_unit_states[u] = UnitState.READY
 	if _activation_mode == "ALTERNATING" and gs != null:
 		_begin_phase(gs.all_units)
-	# Hook into unit_died so victory checks fire after each kill, and unit_moved
-	# so escape-zone entry triggers an auto-escape (Decision 5 / 2026-05-17).
+	# Hook into unit_died so victory checks fire after each kill. Escape used to
+	# be wired on unit_moved (Decision 5 / 2026-05-17), but the 2026-05-20 review
+	# reversed it — escape is now a deliberate ActionMenu entry like Seize, so
+	# no movement hook is needed.
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and not bus.unit_died.is_connected(_on_unit_died):
 		bus.unit_died.connect(_on_unit_died)
-	if bus and not bus.unit_moved.is_connected(_on_unit_moved):
-		bus.unit_moved.connect(_on_unit_moved)
 	# Begin the first faction's phase. For 2-faction WHOLE_PHASE maps the first
 	# active faction is "blue", so this is the same as the pre-stage-3 call.
 	#
@@ -736,7 +736,8 @@ func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 
 
 # escape: TRUE iff every unit_id in cond.unit_ids appears in _escape_records
-# (the runtime escape log; unit_moved → _on_unit_moved → record_escape).
+# (the runtime escape log; player commits Escape from the ActionMenu and
+# MapCursor calls record_escape, post-2026-05-20 review).
 func _eval_escape(cond: ObjectiveCondition) -> bool:
 	if cond.unit_ids.is_empty():
 		return false
@@ -861,36 +862,27 @@ func record_escape(unit: Node) -> void:
 	check_victory_conditions()
 
 
-# Bus hook: after a unit completes its move, check if the destination tile is
-# inside any escape zone that names this unit. If so, escape it automatically
-# on entry (Decision 5 / 2026-05-17 — escape is auto, not an action choice).
-func _on_unit_moved(unit: Node, _from_tile: Vector2i, to_tile: Vector2i) -> void:
+# True iff at least one authored escape condition (anywhere in the map's
+# victory or defeat condition sets) names `unit` AND has `tile` inside its
+# escape zone. The ActionMenu reads this to decide whether to show the Escape
+# button — same shape as can_seize, post-2026-05-20-review (replaces the old
+# unit_moved auto-escape hook that fired during the move await and left the
+# cursor with a stale selected_unit).
+func can_escape(unit: Node, tile: Vector2i) -> bool:
 	if _map_data == null or unit == null or unit.data == null:
-		return
-	for cond in _all_conditions_of_type("escape"):
-		if not (to_tile in cond.tiles):
-			continue
-		if cond.unit_ids.is_empty():
-			continue
-		if unit.data.unit_id in cond.unit_ids:
-			record_escape(unit)
-			return
-
-
-# Iterator helper: every ObjectiveCondition of the given type across both
-# the victory and defeat dictionaries of MapData. Used by can_seize and the
-# unit_moved hook; the evaluator path itself walks per-group, so this is the
-# action-time view rather than the evaluation-time view.
-func _all_conditions_of_type(type_name: String) -> Array:
-	var out: Array = []
-	if _map_data == null:
-		return out
+		return false
 	for dict in [_map_data.victory_conditions, _map_data.defeat_conditions]:
 		for group_id in dict.keys():
 			for cond in _conditions_for_group(dict, group_id):
-				if cond != null and cond.type == type_name:
-					out.append(cond)
-	return out
+				if cond == null or cond.type != "escape":
+					continue
+				if cond.unit_ids.is_empty():
+					continue
+				if not (unit.data.unit_id in cond.unit_ids):
+					continue
+				if tile in cond.tiles:
+					return true
+	return false
 
 
 func _apply_victory_rewards(gs: Node) -> void:

@@ -564,6 +564,8 @@ func _on_action_chosen(action: String) -> void:
 			_open_weapon_menu()
 		"seize":
 			_commit_seize()
+		"escape":
+			_commit_escape()
 		"wait":
 			_commit_wait()
 
@@ -575,6 +577,26 @@ func _commit_seize() -> void:
 	if _turn != null and _selection.selected_unit != null:
 		_turn.record_seize(_selection.selected_unit)
 	_finish_action()
+
+
+# Post-2026-05-20 review: Escape is now a deliberate ActionMenu entry (was
+# auto-fire on zone entry under Decision 5). TurnManager.record_escape
+# unregisters the unit and queue_frees it, then re-evaluates objectives.
+# _finish_action is NOT called — record_escape already removed the unit from
+# _unit_states / _original_tiles and the unit is being freed, so there is no
+# unit to mark DONE. The cursor flow falls back to FREE via _selection.clear().
+func _commit_escape() -> void:
+	if _turn == null or _selection.selected_unit == null:
+		_finish_action()
+		return
+	_turn.record_escape(_selection.selected_unit)
+	# selected_unit is now queue_freed; mirror _finish_action's bookkeeping
+	# without touching the (freed) unit.
+	_selection.clear()
+	_state = State.FREE
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.unit_deselected.emit()
 
 
 # ── State: TARGETING — delegated to MapCursorTargeting ───────────────────────

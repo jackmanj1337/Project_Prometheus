@@ -11,6 +11,7 @@ signal hidden_by_cancel()
 @onready var _btn_item:   Button = $VBox/BtnItem
 @onready var _btn_equip:  Button = $VBox/BtnEquip
 @onready var _btn_seize:  Button = $VBox/BtnSeize
+@onready var _btn_escape: Button = $VBox/BtnEscape
 @onready var _btn_wait:   Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
@@ -18,9 +19,9 @@ var _buttons: Array[Button] = []
 
 
 func _ready() -> void:
-	# Seize sits between Equip and Wait in the visual order — by convention map
-	# objectives go just above the always-available Wait entry.
-	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_wait]
+	# Seize and Escape are the two map-objective entries; both sit between Equip
+	# and Wait so the always-available Wait stays at the bottom.
+	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_escape, _btn_wait]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
 	_btn_attack.pressed.connect(func(): hide(); action_chosen.emit("attack"))
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_btn_item.pressed.connect(func():   hide(); action_chosen.emit("item"))
 	_btn_equip.pressed.connect(func():  hide(); action_chosen.emit("equip"))
 	_btn_seize.pressed.connect(func():  hide(); action_chosen.emit("seize"))
+	_btn_escape.pressed.connect(func(): hide(); action_chosen.emit("escape"))
 	_btn_wait.pressed.connect(func():   hide(); action_chosen.emit("wait"))
 	hide()
 
@@ -73,6 +75,14 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	if turn != null and turn.has_method("can_seize"):
 		can_seize = turn.can_seize(unit, unit.tile_position)
 
+	# Escape was originally auto-fire on entry to an escape zone (Decision 5 /
+	# 2026-05-17). The 2026-05-20 review reversed it: escape is now a deliberate
+	# ActionMenu entry like Seize, gated by an authored escape condition that
+	# names this unit AND a `tiles` zone covering its current tile.
+	var can_escape := false
+	if turn != null and turn.has_method("can_escape"):
+		can_escape = turn.can_escape(unit, unit.tile_position)
+
 	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer
 	# collapses the gap so the menu shrinks to fit the offered choices, instead
 	# of showing greyed-out buttons. Wait is always offered.
@@ -81,6 +91,7 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	_btn_item.visible   = has_items
 	_btn_equip.visible  = has_weapon_swap
 	_btn_seize.visible  = can_seize
+	_btn_escape.visible = can_escape
 	_btn_wait.visible   = true
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.

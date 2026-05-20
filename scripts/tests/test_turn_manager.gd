@@ -755,29 +755,49 @@ func _init() -> void:
 	else:
 		print("FAIL escape exclusion: defeats=%d (should be 0)" % defeats[0]); failed += 1
 
-	# ---- _on_unit_moved auto-escapes a named unit entering the zone ----
+	# ---- can_escape gate: ActionMenu sees Escape only on a zone tile for a named unit ----
+	# Replaces the old _on_unit_moved auto-escape test (H-1 / 2026-05-20 review:
+	# escape is now a deliberate ActionMenu entry, not a movement-driven hook).
 	gs.reset_map_state()
-	var auto_run := _mk_unit("blue", 20, "auto_runner")
-	gs.register_unit(auto_run)
-	gs.register_unit(_mk_unit("red", 20, "e_auto"))       # red alive
-	var md_auto := MapData.new()
-	var c_auto := ObjectiveCondition.new()
-	c_auto.type = "escape"
-	c_auto.tiles = [Vector2i(7, 7)] as Array[Vector2i]
-	c_auto.unit_ids = ["auto_runner"] as Array[String]
-	md_auto.victory_conditions = {"allies": [c_auto]}
-	var tm_auto_esc := TurnManager.new()
-	root.add_child(tm_auto_esc)
-	tm_auto_esc._map_data = md_auto
-	victories[0] = 0
-	# Simulate the EventBus.unit_moved signal payload directly — the real
-	# emission happens inside Unit.move_along_path which isn't reachable from
-	# the headless stub. Same shape: (unit, from_tile, to_tile).
-	tm_auto_esc._on_unit_moved(auto_run, Vector2i(6, 7), Vector2i(7, 7))
-	if victories[0] == 1 and tm_auto_esc._has_unit_escaped("auto_runner"):
-		print("OK  _on_unit_moved: auto-escape on zone entry → map_victory"); passed += 1
+	var runner_can := _mk_unit("blue", 20, "auto_runner")
+	var runner_not_named := _mk_unit("blue", 20, "other_blue")
+	runner_can.set("tile_position", Vector2i(7, 7))
+	runner_not_named.set("tile_position", Vector2i(7, 7))
+	gs.register_unit(runner_can)
+	gs.register_unit(runner_not_named)
+	gs.register_unit(_mk_unit("red", 20, "e_auto"))
+	var md_can_esc := MapData.new()
+	var c_can_esc := ObjectiveCondition.new()
+	c_can_esc.type = "escape"
+	c_can_esc.tiles = [Vector2i(7, 7)] as Array[Vector2i]
+	c_can_esc.unit_ids = ["auto_runner"] as Array[String]
+	md_can_esc.victory_conditions = {"allies": [c_can_esc]}
+	var tm_can_esc := TurnManager.new()
+	root.add_child(tm_can_esc)
+	tm_can_esc._map_data = md_can_esc
+	# Named unit on the zone tile → can_escape true; other unit on the same tile → false;
+	# named unit off the zone → false.
+	if tm_can_esc.can_escape(runner_can, Vector2i(7, 7)) \
+			and not tm_can_esc.can_escape(runner_not_named, Vector2i(7, 7)) \
+			and not tm_can_esc.can_escape(runner_can, Vector2i(0, 0)):
+		print("OK  can_escape: zone + named-unit gate"); passed += 1
 	else:
-		print("FAIL auto-escape: victories=%d escaped=%s" % [victories[0], tm_auto_esc._escape_records]); failed += 1
+		print("FAIL can_escape gate (named=%s other=%s offzone=%s)" % [
+			tm_can_esc.can_escape(runner_can, Vector2i(7, 7)),
+			tm_can_esc.can_escape(runner_not_named, Vector2i(7, 7)),
+			tm_can_esc.can_escape(runner_can, Vector2i(0, 0)),
+		]); failed += 1
+
+	# ---- TurnManager no longer hooks unit_moved (H-1 / 2026-05-20 review) ----
+	# Pinned because the connect used to live alongside unit_died; a future
+	# refactor could accidentally re-add it. If escape ever needs movement
+	# awareness again, that's a fresh design decision, not a quiet revival.
+	var tm_no_hook := TurnManager.new()
+	root.add_child(tm_no_hook)
+	if not tm_no_hook.has_method("_on_unit_moved"):
+		print("OK  TurnManager has no _on_unit_moved handler (auto-escape removed)"); passed += 1
+	else:
+		print("FAIL _on_unit_moved still defined on TurnManager"); failed += 1
 
 	# ── M16 stage 4: map_resolved standings emission ────────────────────────────
 

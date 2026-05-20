@@ -110,10 +110,11 @@ func _init() -> void:
 		print("FAIL Item should be shown"); failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
-	# Wait is index 5 in _buttons: [attack, staff, item, equip, seize, wait].
-	# (M16 stage 3 inserted Seize at index 4.)
+	# Wait is index 6 in _buttons: [attack, staff, item, equip, seize, escape, wait].
+	# (M16 stage 3 inserted Seize at index 4; the 2026-05-20 review added Escape
+	# at index 5, reversing Decision 5's auto-escape.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 5:
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 6:
 		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
@@ -167,24 +168,25 @@ func _init() -> void:
 		print("FAIL menu after press: visible=%s chose=%s" % [am.visible, chose[0]])
 		failed += 1
 
-	# ── M16 stage 3: Seize button visibility ──────────────────────────────────
-	# Stub TurnManager: can_seize(unit, tile) returns whatever the test sets.
-	# Reproduces the can_seize contract without spinning up the real evaluator.
-	var turn_stub_src := "extends Node\nvar result: bool = false\nfunc can_seize(_u, _t) -> bool: return result\n"
+	# ── M16 stage 3: Seize + Escape button visibility ──────────────────────────
+	# Stub TurnManager: can_seize / can_escape each return whatever the test sets.
+	# Reproduces the gate contract without spinning up the real evaluator. Escape
+	# was added in the 2026-05-20 review (H-1, reverses Decision 5 / 2026-05-17).
+	var turn_stub_src := "extends Node\nvar seize_result: bool = false\nvar escape_result: bool = false\nfunc can_seize(_u, _t) -> bool: return seize_result\nfunc can_escape(_u, _t) -> bool: return escape_result\n"
 	var turn_stub: GDScript = GDScript.new()
 	turn_stub.source_code = turn_stub_src
 	turn_stub.reload()
 
 	# ---- Seize hidden when no TurnManager is passed (turn = null) ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []))
-	if not am._btn_seize.visible:
-		print("OK  Seize hidden when no TurnManager is passed"); passed += 1
+	if not am._btn_seize.visible and not am._btn_escape.visible:
+		print("OK  Seize + Escape hidden when no TurnManager is passed"); passed += 1
 	else:
-		print("FAIL Seize should be hidden without a TurnManager"); failed += 1
+		print("FAIL Seize/Escape should be hidden without a TurnManager"); failed += 1
 
 	# ---- Seize hidden when can_seize returns false ----
 	var t_no: Node = turn_stub.new()
-	t_no.set("result", false)
+	t_no.set("seize_result", false)
 	root.add_child(t_no)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_no)
 	if not am._btn_seize.visible:
@@ -194,13 +196,33 @@ func _init() -> void:
 
 	# ---- Seize shown when can_seize returns true ----
 	var t_yes: Node = turn_stub.new()
-	t_yes.set("result", true)
+	t_yes.set("seize_result", true)
 	root.add_child(t_yes)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_yes)
 	if am._btn_seize.visible:
 		print("OK  Seize shown when TurnManager.can_seize == true"); passed += 1
 	else:
 		print("FAIL Seize should be shown (can_seize=true)"); failed += 1
+
+	# ---- Escape hidden when can_escape returns false ----
+	var t_esc_no: Node = turn_stub.new()
+	t_esc_no.set("escape_result", false)
+	root.add_child(t_esc_no)
+	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_esc_no)
+	if not am._btn_escape.visible:
+		print("OK  Escape hidden when TurnManager.can_escape == false"); passed += 1
+	else:
+		print("FAIL Escape should be hidden (can_escape=false)"); failed += 1
+
+	# ---- Escape shown when can_escape returns true ----
+	var t_esc_yes: Node = turn_stub.new()
+	t_esc_yes.set("escape_result", true)
+	root.add_child(t_esc_yes)
+	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_esc_yes)
+	if am._btn_escape.visible:
+		print("OK  Escape shown when TurnManager.can_escape == true"); passed += 1
+	else:
+		print("FAIL Escape should be shown (can_escape=true)"); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

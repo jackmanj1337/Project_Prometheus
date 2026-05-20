@@ -1357,10 +1357,11 @@ achiever group's *victory*. Condition types:
   id(s) and an optional allowed-unit-id list (empty = any blue unit). *Not*
   passive occupation — see decisions log 2026-05-17, Decision 4.
 - **escape** — named units reach an escape **zone** (a set of tiles — region /
-  edge / doorway; a size-1 zone is a single tile). A unit that reaches the zone
-  is removed from the map ("escaped"), automatically on entry; the condition is
-  met when all named units have escaped. May include green units. See decisions
-  log 2026-05-17, Decision 5.
+  edge / doorway; a size-1 zone is a single tile). A named unit on a zone tile
+  may pick the **Escape action** from the `ActionMenu` (post-2026-05-20 review —
+  H-1 reversed the original auto-fire-on-entry half of Decision 5; see
+  decisions log addendum). Picking Escape removes the unit from the map; the
+  condition is met when all named units have escaped. May include green units.
 - **survive** — a group lasts N turns, or holds a named tile for N turns.
 - **protect / unit_survives** — a named unit must stay alive; its death is a defeat
   for its group (may include green units — replaces today's `required_survivor_ids`).
