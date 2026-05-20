@@ -97,18 +97,21 @@ func _init() -> void:
 		print("FAIL map_data: map_001_data.tres")
 		failed += 1
 
-	# --- M16 stage 1: per-group condition fields exist + default empty ---
-	# Existing .tres files must load with both dicts empty (legacy fields still
-	# drive the evaluator). Stage 2 adds the evaluator changes; stage 1 just
-	# pins the schema.
-	if md and md.victory_conditions is Dictionary and md.victory_conditions.is_empty():
-		print("OK  map_data: victory_conditions defaults empty"); passed += 1
+	# --- M16: map_001 authored conditions ---
+	# Stage 5 migrated map_001 to victory_conditions = {"allies": [rout()]}.
+	# defeat_conditions stays empty — the implicit "group routed" default
+	# (TurnManager) supplies the all-allies-dead defeat.
+	if md and md.victory_conditions is Dictionary \
+			and md.victory_conditions.has("allies") \
+			and (md.victory_conditions["allies"] as Array).size() == 1 \
+			and (md.victory_conditions["allies"][0] as ObjectiveCondition).type == "rout":
+		print("OK  map_001: victory_conditions = {allies: [rout]}"); passed += 1
 	else:
-		print("FAIL map_data: victory_conditions missing or non-empty by default"); failed += 1
+		print("FAIL map_001 victory_conditions: %s" % str(md.victory_conditions if md else null)); failed += 1
 	if md and md.defeat_conditions is Dictionary and md.defeat_conditions.is_empty():
-		print("OK  map_data: defeat_conditions defaults empty"); passed += 1
+		print("OK  map_001: defeat_conditions empty (implicit group-routed default)"); passed += 1
 	else:
-		print("FAIL map_data: defeat_conditions missing or non-empty by default"); failed += 1
+		print("FAIL map_001 defeat_conditions: %s" % str(md.defeat_conditions if md else null)); failed += 1
 
 	# --- M16 stage 1: ObjectiveCondition resource constructs with defaults ---
 	var oc := ObjectiveCondition.new()

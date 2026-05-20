@@ -7,10 +7,9 @@ class_name ObjectiveCondition extends Resource
 # to the right check, and the other fields supply that check's parameters.
 #
 # A single typed resource (rather than a class hierarchy) keeps the inspector
-# UX simple and matches the existing MapData.objective_params pattern. The
-# trade-off is that only the fields relevant to `type` are meaningful — the
-# others are inert defaults. See GDD_10_Roadmap.md § Milestone 16 for the
-# full condition catalogue and which fields each type reads.
+# UX simple. The trade-off is that only the fields relevant to `type` are
+# meaningful — the others are inert defaults. See GDD_10_Roadmap.md § Milestone
+# 16 for the full condition catalogue and which fields each type reads.
 
 # Catalogue:
 #   rout          — faction_id wiped (or "all hostiles" if faction_id empty)
@@ -19,7 +18,7 @@ class_name ObjectiveCondition extends Resource
 #   escape        — every unit_ids id has reached any tile in `tiles`
 #   survive       — turn_number advances by `turns` rounds (optionally while
 #                   holding any of `tiles`)
-#   protect       — every unit_ids id stays alive (replaces required_survivor_ids)
+#   protect       — every unit_ids id stays alive
 #   turn_limit    — turn_number exceeds `turns` (defeat-only convention)
 @export var type: String = "rout"
 
@@ -44,7 +43,7 @@ class_name ObjectiveCondition extends Resource
 
 # survive: number of completed rounds the condition must persist.
 # turn_limit: defeat fires once turn_number exceeds this value (0 = no limit,
-# matching MapData.turn_limit's existing meaning).
+# meaning the condition never fires — useful as a noop authored stub).
 @export var turns: int = 0
 
 

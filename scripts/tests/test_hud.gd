@@ -161,21 +161,22 @@ var data
 	unit_a.queue_free(); unit_b.queue_free()
 	stub_grid.queue_free()
 
-	# ── M16 stage 4: objective readout ──────────────────────────────────────────
-	# _build_objective_lines reads MapData + GameState.get_alliance_group("blue").
-	# Legacy fields (objective_type / turn_limit / required_survivor_ids) and
-	# authored conditions (victory_conditions / defeat_conditions) both feed in;
-	# headers ("Win:" / "Lose:") only appear when at least one entry follows.
+	# ── M16: objective readout ──────────────────────────────────────────────────
+	# _build_objective_lines reads MapData.victory_conditions / defeat_conditions
+	# for blue's alliance group ("allies"). Headers ("Win:" / "Lose:") only
+	# appear when at least one entry follows.
 	var md_obj := MapData.new()
-	md_obj.objective_type = "rout"
+	var c_obj_rout := ObjectiveCondition.new()
+	c_obj_rout.type = "rout"
 	var c_obj_prot := ObjectiveCondition.new()
 	c_obj_prot.type = "protect"; c_obj_prot.unit_ids = ["leader"] as Array[String]
+	md_obj.victory_conditions = {"allies": [c_obj_rout]}
 	md_obj.defeat_conditions = {"allies": [c_obj_prot]}
 	var lines: Array[String] = hud._build_objective_lines(md_obj)
 	if lines.size() == 4 \
 			and lines[0] == "Win:" and lines[1].find("Rout all hostiles") != -1 \
 			and lines[2] == "Lose:" and lines[3].find("Protect: leader") != -1:
-		print("OK  HUD objective lines: legacy rout + authored protect"); passed += 1
+		print("OK  HUD objective lines: authored rout + protect"); passed += 1
 	else:
 		print("FAIL HUD objective lines: %s" % str(lines)); failed += 1
 

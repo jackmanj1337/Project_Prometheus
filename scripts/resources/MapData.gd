@@ -7,17 +7,9 @@ class_name MapData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var tilemap_scene_path: String = ""
-# "rout"|"seize"|"boss"|"survive"|"defend"|"escape"
-@export var objective_type: String = ""
-@export var objective_params: Dictionary = {}
-# 0 = no turn limit; defeat if exceeded
-@export var turn_limit: int = 0
 @export var player_start_tiles: Array[Vector2i] = []
 # Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String, "is_boss":bool }
-# required_survivor belongs on the top-level required_survivor_ids array, not per-placement.
 @export var enemy_placements: Array[Dictionary] = []
-# Player unit names that trigger defeat if killed
-@export var required_survivor_ids: Array[String] = []
 @export var reward_gold: int = 0
 # Item IDs given at map completion
 @export var reward_items: Array[String] = []
@@ -48,21 +40,16 @@ class_name MapData extends Resource
 # Default WHOLE_PHASE keeps the existing M14/M15/M16 specs + content valid.
 @export var activation_mode: String = "WHOLE_PHASE"
 
-# ── M16 stage 1: per-group condition sets ────────────────────────────────────
+# ── M16: per-group condition sets ────────────────────────────────────────────
 # Victory and defeat conditions are evaluated PER ALLIANCE GROUP (Decision 8 /
 # 2026-05-17): each key is a group name from FactionData.alliance_group
 # ("allies", "foes", "rogues", … plus any custom group introduced by a map),
 # each value is an Array[ObjectiveCondition].
 #
-# Evaluation semantics (TurnManager.check_victory_conditions, M16 stage 2+):
+# Evaluation semantics (TurnManager.check_victory_conditions):
 #   victory = AND of every condition in victory_conditions[group]
 #   defeat  = OR  of any condition in defeat_conditions[group]
 # A group with no entries in either dictionary gets an implicit "group routed"
 # defeat condition so every group always has a way to be out (M16 spec).
-#
-# Stage 1 ships the schema only — the evaluator still reads the legacy
-# `objective_type` / `turn_limit` / `required_survivor_ids` fields below, which
-# are treated as implicit blue-group conditions in stage 2. Both dictionaries
-# are empty by default so existing maps load unchanged.
 @export var victory_conditions: Dictionary = {}
 @export var defeat_conditions: Dictionary = {}

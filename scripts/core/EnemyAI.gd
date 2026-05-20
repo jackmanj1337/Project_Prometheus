@@ -3,6 +3,9 @@ extends Node
 # Called by TurnManager.start_enemy_phase(); awaited until all enemies have acted.
 
 # Runs each living enemy sequentially, then hands control back to TurnManager.
+# Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
+# _map_over latch halts the cycle at the controller chokepoint, so a decided
+# map does not keep playing out remaining enemy turns).
 func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null or grid == null:
@@ -11,11 +14,15 @@ func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	# Get living enemies before iterating — combat may kill enemies mid-loop
 	var enemies: Array[Node] = gs.get_living_enemy_units()
 	for enemy in enemies:
+		if turn._map_over:
+			return
 		if is_instance_valid(enemy):
 			# Pan the camera to the enemy and pause briefly so the player can
 			# follow the enemy phase (#7), then let it act.
 			await _focus_camera(enemy)
 			await _act(enemy, grid, turn)
+	if turn._map_over:
+		return
 	turn.start_player_phase()
 
 

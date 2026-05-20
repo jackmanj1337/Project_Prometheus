@@ -119,18 +119,20 @@ func _init() -> void:
 	else:
 		print("FAIL are_all_player_units_done (one ready)"); failed += 1
 
-	# ---- check_victory_conditions: rout objective + no enemies → map_victory ----
+	# ---- check_victory_conditions: rout authored on allies → map_victory ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p1"))
 	var md_rout := MapData.new()
-	md_rout.objective_type = "rout"
+	var c_rout_all := ObjectiveCondition.new()
+	c_rout_all.type = "rout"                                # faction_id "" = all hostiles
+	md_rout.victory_conditions = {"allies": [c_rout_all]}
 	var tm_v := TurnManager.new()
 	root.add_child(tm_v)
 	tm_v._map_data = md_rout
 	victories[0] = 0
 	tm_v.check_victory_conditions()
 	if victories[0] == 1:
-		print("OK  check_victory_conditions: rout + no enemies → map_victory"); passed += 1
+		print("OK  check_victory_conditions: rout(all hostiles) + no enemies → map_victory"); passed += 1
 	else:
 		print("FAIL victory rout: victories=%d" % victories[0]); failed += 1
 
@@ -142,9 +144,11 @@ func _init() -> void:
 		print("FAIL victory double-emit: victories=%d" % victories[0]); failed += 1
 
 	# ---- check_victory_conditions: all players dead → map_defeat ----
+	# Implicit "group routed" default fires for allies (no defeat conditions
+	# authored), and foes survives via its living e1.
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("red", 20, "e1"))   # a living enemy → rout victory cannot fire
-	gs.register_unit(_mk_unit("blue", 0, "p2"))   # dead player
+	gs.register_unit(_mk_unit("red", 20, "e1"))
+	gs.register_unit(_mk_unit("blue", 0, "p2"))
 	var tm_d := TurnManager.new()
 	root.add_child(tm_d)
 	tm_d._map_data = md_rout
@@ -155,37 +159,39 @@ func _init() -> void:
 	else:
 		print("FAIL defeat all-dead: defeats=%d" % defeats[0]); failed += 1
 
-	# ---- check_victory_conditions: turn limit exceeded → map_defeat ----
+	# ---- check_victory_conditions: turn_limit defeat on allies → map_defeat ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p3"))
 	gs.turn_number = 4
 	var md_limit := MapData.new()
-	md_limit.objective_type = "rout"
-	md_limit.turn_limit = 3
+	var c_limit := ObjectiveCondition.new()
+	c_limit.type = "turn_limit"; c_limit.turns = 3
+	md_limit.defeat_conditions = {"allies": [c_limit]}
 	var tm_t := TurnManager.new()
 	root.add_child(tm_t)
 	tm_t._map_data = md_limit
 	defeats[0] = 0
 	tm_t.check_victory_conditions()
 	if defeats[0] == 1:
-		print("OK  check_victory_conditions: turn limit exceeded → map_defeat"); passed += 1
+		print("OK  check_victory_conditions: turn_limit defeat → map_defeat"); passed += 1
 	else:
 		print("FAIL defeat turn-limit: defeats=%d" % defeats[0]); failed += 1
 
-	# ---- check_victory_conditions: a required survivor killed → map_defeat ----
+	# ---- check_victory_conditions: protect (missing named survivor) → map_defeat ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("red", 20, "e2"))      # living enemy → no rout victory
-	gs.register_unit(_mk_unit("blue", 20, "grunt"))  # alive, but not the required survivor
+	gs.register_unit(_mk_unit("red", 20, "e2"))
+	gs.register_unit(_mk_unit("blue", 20, "grunt"))
 	var md_surv := MapData.new()
-	md_surv.objective_type = "rout"
-	md_surv.required_survivor_ids = ["hero"] as Array[String]
+	var c_prot_hero := ObjectiveCondition.new()
+	c_prot_hero.type = "protect"; c_prot_hero.unit_ids = ["hero"] as Array[String]
+	md_surv.defeat_conditions = {"allies": [c_prot_hero]}
 	var tm_s := TurnManager.new()
 	root.add_child(tm_s)
 	tm_s._map_data = md_surv
 	defeats[0] = 0
 	tm_s.check_victory_conditions()
 	if defeats[0] == 1:
-		print("OK  check_victory_conditions: required survivor dead → map_defeat"); passed += 1
+		print("OK  check_victory_conditions: protect (missing) → map_defeat"); passed += 1
 	else:
 		print("FAIL defeat survivor: defeats=%d" % defeats[0]); failed += 1
 
@@ -288,7 +294,9 @@ func _init() -> void:
 	var tm_death := TurnManager.new()
 	root.add_child(tm_death)
 	var md_death := MapData.new()
-	md_death.objective_type = "rout"
+	var c_death_rout := ObjectiveCondition.new()
+	c_death_rout.type = "rout"
+	md_death.victory_conditions = {"allies": [c_death_rout]}
 	tm_death._map_data = md_death
 	tm_death.set_unit_state(done_unit, TurnManager.UnitState.DONE)
 	var death_seen := [0]
@@ -737,7 +745,9 @@ func _init() -> void:
 	gs.register_unit(_mk_unit("red", 0, "e_st"))           # red wiped → blue wins
 	gs.turn_number = 2
 	var md_st := MapData.new()
-	md_st.objective_type = "rout"
+	var c_st_rout := ObjectiveCondition.new()
+	c_st_rout.type = "rout"
+	md_st.victory_conditions = {"allies": [c_st_rout]}
 	var tm_st := TurnManager.new()
 	root.add_child(tm_st)
 	tm_st._map_data = md_st
@@ -772,6 +782,32 @@ func _init() -> void:
 		print("OK  map_resolved: draw → winner=\"\", both groups in standings"); passed += 1
 	else:
 		print("FAIL draw standings: %s" % str(resolved[0])); failed += 1
+
+	# ── M16 stage 5: Decision 7 phase-boundary sweep on start_enemy_phase ──────
+	# A turn_limit defeat that fires when the enemy phase begins. Without the
+	# stage-5 sweep, the defeat would have to wait until the next blue phase
+	# (or any death/move); with it, start_enemy_phase resolves the map.
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_pbs"))
+	gs.register_unit(_mk_unit("red", 20, "e_pbs"))
+	gs.turn_number = 3
+	var md_pbs := MapData.new()
+	var c_pbs_tl := ObjectiveCondition.new()
+	c_pbs_tl.type = "turn_limit"; c_pbs_tl.turns = 2
+	md_pbs.defeat_conditions = {"allies": [c_pbs_tl]}
+	var tm_pbs := TurnManager.new()
+	root.add_child(tm_pbs)
+	tm_pbs._map_data = md_pbs
+	# Seed the scheduler so start_enemy_phase has a turn_order to advance through.
+	tm_pbs._turn_order = ["blue", "red"] as Array[String]
+	tm_pbs._active_faction_idx = 0
+	defeats[0] = 0
+	tm_pbs.start_enemy_phase()
+	await process_frame
+	if defeats[0] == 1 and tm_pbs._map_over:
+		print("OK  start_enemy_phase: phase-boundary sweep fires map_defeat (D7)"); passed += 1
+	else:
+		print("FAIL D7 phase sweep: defeats=%d _map_over=%s" % [defeats[0], tm_pbs._map_over]); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

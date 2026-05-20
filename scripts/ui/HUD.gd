@@ -77,9 +77,7 @@ func _populate_objective_panel() -> void:
 # a "Win:" header followed by every victory-condition summary, then a "Lose:"
 # header followed by every defeat-condition summary. Each header is only
 # emitted when at least one matching condition exists, so a map with no
-# defeats authored doesn't show an empty "Lose:" group. Legacy fields are
-# translated to match the TurnManager evaluator (stage 5 retires the legacy
-# fields once map_001 has migrated to authored conditions).
+# defeats authored doesn't show an empty "Lose:" group.
 func _build_objective_lines(map_data: MapData) -> Array[String]:
 	var gs := get_node_or_null("/root/GameState")
 	var blue_group: String = "allies"
@@ -95,12 +93,6 @@ func _build_objective_lines(map_data: MapData) -> Array[String]:
 		var s: String = cond.get_display_text()
 		if s != "":
 			lose_lines.append("  " + s)
-	if map_data.objective_type == "rout":
-		win_lines.append("  Rout all hostiles")
-	if map_data.turn_limit > 0:
-		lose_lines.append("  Turn %d passes" % map_data.turn_limit)
-	if not map_data.required_survivor_ids.is_empty():
-		lose_lines.append("  Protect: %s" % ", ".join(map_data.required_survivor_ids))
 	var out: Array[String] = []
 	if not win_lines.is_empty():
 		out.append("Win:")
