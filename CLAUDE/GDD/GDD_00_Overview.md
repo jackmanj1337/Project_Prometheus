@@ -19,6 +19,7 @@
 | `GDD_08_Enemy_AI.md` | AI system design and extension hooks |
 | `GDD_09_Checklist.md` | Master implementation checklist (MVP — milestones M0–M7) |
 | `GDD_10_Roadmap.md` | Phase 2 roadmap — milestones M8–M16 |
+| `GDD_10a_Overview.md` | One-screen ordered overview — every planned feature + deferred fix in recommended completion order; companion to GDD_10 |
 
 Supporting documents (not numbered): `GDD_Assumptions.md` records design decisions
 made from GBA Fire Emblem convention; `GDD_Manual_Tasks.md` lists tasks that require
