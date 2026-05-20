@@ -262,7 +262,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t2 := TurnManager.new(); root.add_child(t2)
 	var c2 := _make_cursor(t2)
-	var p_unit := _make_unit(Vector2i(2, 2), "player")
+	var p_unit := _make_unit(Vector2i(2, 2), "blue")
 	c2._set_tile(Vector2i(2, 2))
 	c2._on_confirm()
 	if c2._state == UNIT_SELECTED and c2._selection.selected_unit == p_unit:
@@ -313,7 +313,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t3 := TurnManager.new(); root.add_child(t3)
 	var c3 := _make_cursor(t3)
-	_make_unit(Vector2i(3, 3), "enemy")
+	_make_unit(Vector2i(3, 3), "red")
 	c3._set_tile(Vector2i(3, 3))
 	c3._on_confirm()
 	if c3._state == FREE and c3._selection.selected_unit == null:
@@ -327,7 +327,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t4 := TurnManager.new(); root.add_child(t4)
 	var c4 := _make_cursor(t4)
-	var acted := _make_unit(Vector2i(1, 1), "player")
+	var acted := _make_unit(Vector2i(1, 1), "blue")
 	t4.set_unit_state(acted, TurnManager.UnitState.DONE)
 	c4._set_tile(Vector2i(1, 1))
 	c4._on_confirm()
@@ -342,7 +342,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t5 := TurnManager.new(); root.add_child(t5)
 	var c5 := _make_cursor(t5)
-	var waiter := _make_unit(Vector2i(0, 0), "player")
+	var waiter := _make_unit(Vector2i(0, 0), "blue")
 	c5._selection.selected_unit = waiter
 	c5._state = UNIT_MOVED
 	c5._on_action_chosen("wait")
@@ -361,7 +361,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t6 := TurnManager.new(); root.add_child(t6)
 	var c6 := _make_cursor(t6)
-	var dead := _make_unit(Vector2i(0, 0), "player", 0)  # hp 0 → dead
+	var dead := _make_unit(Vector2i(0, 0), "blue", 0)  # hp 0 → dead
 	c6._selection.selected_unit = dead
 	c6._state = UNIT_MOVED
 	c6._finish_action()
@@ -376,7 +376,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t7 := TurnManager.new(); root.add_child(t7)
 	var c7 := _make_cursor(t7)
-	var mover := _make_unit(Vector2i(2, 2), "player")
+	var mover := _make_unit(Vector2i(2, 2), "blue")
 	c7._selection.selected_unit = mover
 	c7._state = UNIT_MOVED
 	c7._undo_move_and_reselect()
@@ -396,7 +396,7 @@ func _init() -> void:
 	menu_script.reload()
 	c8.action_menu = menu_script.new()
 	root.add_child(c8.action_menu)
-	c8._selection.selected_unit = _make_unit(Vector2i(1, 1), "player")
+	c8._selection.selected_unit = _make_unit(Vector2i(1, 1), "blue")
 	c8._set_tile(Vector2i(4, 4))  # cursor parked on a far tile (a target tile)
 	c8._state = TARGETING
 	c8._on_targeting_cancelled()
@@ -432,9 +432,9 @@ func _init() -> void:
 	var t_cyc := TurnManager.new(); root.add_child(t_cyc)
 	var c_cyc := _make_cursor(t_cyc)
 	# Three actable player units at distinct tiles.
-	_make_unit(Vector2i(0, 0), "player")
-	_make_unit(Vector2i(2, 2), "player")
-	_make_unit(Vector2i(4, 4), "player")
+	_make_unit(Vector2i(0, 0), "blue")
+	_make_unit(Vector2i(2, 2), "blue")
+	_make_unit(Vector2i(4, 4), "blue")
 	c_cyc._state = FREE
 	c_cyc._set_tile(Vector2i(2, 2))       # park on the middle unit
 	c_cyc._cycle_to_next_unit(1)          # forward → (4,4)
@@ -491,7 +491,7 @@ func _init() -> void:
 	# ---- open_settings from a unit selection drops the selection first (#3) ----
 	c11.settings_screen.opened = false
 	c11.unlock()
-	c11._selection.selected_unit = _make_unit(Vector2i(2, 2), "player")
+	c11._selection.selected_unit = _make_unit(Vector2i(2, 2), "blue")
 	c11._state = UNIT_SELECTED
 	c11._open_settings_via_hotkey()
 	if c11._state == LOCKED and c11._selection.selected_unit == null and c11.settings_screen.opened:
@@ -539,7 +539,7 @@ func _init() -> void:
 	_gs.all_units.clear()
 	var t_et := TurnManager.new(); root.add_child(t_et)
 	var c_et := _make_cursor(t_et)
-	_make_unit(Vector2i(0, 0), "player")   # an actable unit → the confirm prompt
+	_make_unit(Vector2i(0, 0), "blue")   # an actable unit → the confirm prompt
 	c_et._on_end_turn_requested()
 	await process_frame
 	var dlg: ConfirmationDialog = null
@@ -556,7 +556,7 @@ func _init() -> void:
 		dlg.queue_free()
 
 	# ---- Unit.set_equipped_weapon reorders the inventory (#8) ----
-	var swap_unit := _make_unit(Vector2i(0, 0), "player")
+	var swap_unit := _make_unit(Vector2i(0, 0), "blue")
 	var w_a := InventoryEntry.make_weapon("iron_sword", 40)
 	var w_b := InventoryEntry.make_weapon("iron_lance", 40)
 	var w_c := InventoryEntry.make_weapon("javelin", 40)

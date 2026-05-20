@@ -124,7 +124,7 @@ func _get_camera_start() -> Vector2:
 # leaving the cursor at its default tile if no player unit was spawned.
 func _place_cursor_at_start() -> void:
 	for u in _units_container.get_children():
-		if "team" in u and u.team == "player":
+		if "team" in u and u.team == "blue":
 			_cursor.center_on_tile(u.tile_position)
 			return
 
@@ -160,7 +160,7 @@ func _spawn_units() -> void:
 		var u_data: UnitData = roster[i] as UnitData
 		if u_data == null or u_data.is_incapacitated:
 			continue  # permadeath: skip dead units in future deployments
-		_spawn_unit(u_data, map_data.player_start_tiles[i], "player")
+		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
 	# Enemy units: load each UnitData .tres referenced by enemy_placements
 	for placement in map_data.enemy_placements:
@@ -182,7 +182,7 @@ func _spawn_units() -> void:
 		if u_data.unit_id == "":
 			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 			continue
-		_spawn_unit(u_data, tile, "enemy")
+		_spawn_unit(u_data, tile, "red")
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:

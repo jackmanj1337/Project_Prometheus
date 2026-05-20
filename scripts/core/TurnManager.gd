@@ -93,7 +93,10 @@ func start_player_phase() -> void:
 		_tick_unit_modifiers(gs.all_units, "map_turn")
 		_begin_phase(gs.get_living_player_units())
 	for u in _unit_states.keys():
-		if u and is_instance_valid(u) and u.team == "player":
+		# M14 stage 1: literal "player" became the "blue" faction id. Stage 3 replaces
+		# this loop with `gs.get_living_units_of(active_faction)` once the per-faction
+		# unit buckets land — there's no behaviour change in stage 1.
+		if u and is_instance_valid(u) and u.team == "blue":
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()

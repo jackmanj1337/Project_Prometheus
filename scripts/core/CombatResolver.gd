@@ -14,7 +14,13 @@ extends Node
 #   "defender"              Node         — defending unit
 #   "attacker_weapon"       WeaponData   — attacker's equipped weapon (null if unarmed)
 #   "defender_weapon"       WeaponData   — defender's equipped weapon (null if can't ctr)
-#   "is_player_initiated"   bool         — true when attacker.team == "player"
+#   "attacker_faction"      String       — attacker's faction id ("blue", "red", …; "" if attacker null).
+#                                          M14 stage 1 replacement for the old `is_player_initiated` bool —
+#                                          a literal "player"-team check meant nothing in red-vs-yellow
+#                                          combat. Skills wanting "did the player initiate?" check
+#                                          attacker_faction against the active controlling faction; skills
+#                                          wanting "am I the initiator?" should compare against
+#                                          `context.attacker` directly (no faction needed).
 #   "turn_number"           int          — GameState.turn_number at combat start
 #   "atk_mod"               Dictionary   — attacker modifiers:
 #       "accuracy"          int          — flat hit modifier
@@ -69,7 +75,7 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"defender":            defender,
 		"attacker_weapon":     aw,
 		"defender_weapon":     dw,
-		"is_player_initiated": attacker != null and attacker.team == "player",
+		"attacker_faction":    attacker.team if attacker != null else "",
 		"turn_number":         gs.turn_number if gs else 0,
 		"atk_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
 			"dodge": 0, "strikes": 0, "damage_multiplier": 1.0},

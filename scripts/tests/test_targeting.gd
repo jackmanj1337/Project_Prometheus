@@ -45,7 +45,7 @@ func _init() -> void:
 	var enemy: Unit = null
 	var cleric: Unit = null
 	for u in gs.all_units:
-		if u.team == "enemy":
+		if u.team == "red":
 			if enemy == null:
 				enemy = u
 		elif u.data != null and u.data.class_id == "cleric":

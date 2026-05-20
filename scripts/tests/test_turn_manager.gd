@@ -47,7 +47,7 @@ func _init() -> void:
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
 	var tm := TurnManager.new()
 	root.add_child(tm)
-	var u1 := _mk_unit("player", 20, "u1")
+	var u1 := _mk_unit("blue", 20, "u1")
 	if tm.get_unit_state(u1) == TurnManager.UnitState.READY:
 		print("OK  get_unit_state defaults to READY"); passed += 1
 	else:
@@ -76,7 +76,7 @@ func _init() -> void:
 		failed += 1
 
 	# ---- record_move_start + undo_move: restores tile and resets to READY ----
-	var u2 := _mk_unit("player", 20, "u2")
+	var u2 := _mk_unit("blue", 20, "u2")
 	u2.set("tile_position", Vector2i(3, 4))
 	tm.record_move_start(u2)
 	u2.set("tile_position", Vector2i(7, 8))   # simulate a move
@@ -99,8 +99,8 @@ func _init() -> void:
 
 	# ---- are_all_player_units_done: true when every living player is DONE ----
 	gs.reset_map_state()
-	var d1 := _mk_unit("player", 20, "d1")
-	var d2 := _mk_unit("player", 20, "d2")
+	var d1 := _mk_unit("blue", 20, "d1")
+	var d2 := _mk_unit("blue", 20, "d2")
 	gs.register_unit(d1)
 	gs.register_unit(d2)
 	var tm2 := TurnManager.new()
@@ -121,7 +121,7 @@ func _init() -> void:
 
 	# ---- check_victory_conditions: rout objective + no enemies → map_victory ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("player", 20, "p1"))
+	gs.register_unit(_mk_unit("blue", 20, "p1"))
 	var md_rout := MapData.new()
 	md_rout.objective_type = "rout"
 	var tm_v := TurnManager.new()
@@ -143,8 +143,8 @@ func _init() -> void:
 
 	# ---- check_victory_conditions: all players dead → map_defeat ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("enemy", 20, "e1"))   # a living enemy → rout victory cannot fire
-	gs.register_unit(_mk_unit("player", 0, "p2"))   # dead player
+	gs.register_unit(_mk_unit("red", 20, "e1"))   # a living enemy → rout victory cannot fire
+	gs.register_unit(_mk_unit("blue", 0, "p2"))   # dead player
 	var tm_d := TurnManager.new()
 	root.add_child(tm_d)
 	tm_d._map_data = md_rout
@@ -157,7 +157,7 @@ func _init() -> void:
 
 	# ---- check_victory_conditions: turn limit exceeded → map_defeat ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("player", 20, "p3"))
+	gs.register_unit(_mk_unit("blue", 20, "p3"))
 	gs.turn_number = 4
 	var md_limit := MapData.new()
 	md_limit.objective_type = "rout"
@@ -174,8 +174,8 @@ func _init() -> void:
 
 	# ---- check_victory_conditions: a required survivor killed → map_defeat ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("enemy", 20, "e2"))      # living enemy → no rout victory
-	gs.register_unit(_mk_unit("player", 20, "grunt"))  # alive, but not the required survivor
+	gs.register_unit(_mk_unit("red", 20, "e2"))      # living enemy → no rout victory
+	gs.register_unit(_mk_unit("blue", 20, "grunt"))  # alive, but not the required survivor
 	var md_surv := MapData.new()
 	md_surv.objective_type = "rout"
 	md_surv.required_survivor_ids = ["hero"] as Array[String]
@@ -216,7 +216,7 @@ func _init() -> void:
 	# ---- start_player_phase: resets a DONE player unit back to READY ----
 	var tm_p := TurnManager.new()
 	root.add_child(tm_p)
-	var rp := _mk_unit("player", 20, "rp")
+	var rp := _mk_unit("blue", 20, "rp")
 	tm_p.set_unit_state(rp, TurnManager.UnitState.DONE)
 	tm_p.start_player_phase()
 	if tm_p.get_unit_state(rp) == TurnManager.UnitState.READY:
@@ -230,7 +230,7 @@ func _init() -> void:
 	# ---- set_unit_state DONE on the last player unit auto-ends the phase (#5) ----
 	gs.reset_map_state()
 	gs.set_phase(gs.Phase.PLAYER)
-	var a1 := _mk_unit("player", 20, "a1")
+	var a1 := _mk_unit("blue", 20, "a1")
 	gs.register_unit(a1)
 	var tm_auto := TurnManager.new()
 	root.add_child(tm_auto)
@@ -246,8 +246,8 @@ func _init() -> void:
 	# ---- auto-end does NOT fire while a player unit can still act ----
 	gs.reset_map_state()
 	gs.set_phase(gs.Phase.PLAYER)
-	var b1 := _mk_unit("player", 20, "b1")
-	var b2 := _mk_unit("player", 20, "b2")
+	var b1 := _mk_unit("blue", 20, "b1")
+	var b2 := _mk_unit("blue", 20, "b2")
 	gs.register_unit(b1)
 	gs.register_unit(b2)
 	var tm_partial := TurnManager.new()
@@ -280,11 +280,11 @@ func _init() -> void:
 	# never marks it DONE — _on_unit_died must still trigger the auto-end.
 	gs.reset_map_state()
 	gs.set_phase(gs.Phase.PLAYER)
-	var done_unit := _mk_unit("player", 20, "done1")
-	var dying_unit := _mk_unit("player", 20, "dying1")
+	var done_unit := _mk_unit("blue", 20, "done1")
+	var dying_unit := _mk_unit("blue", 20, "dying1")
 	gs.register_unit(done_unit)
 	gs.register_unit(dying_unit)
-	gs.register_unit(_mk_unit("enemy", 20, "foe1"))   # living enemy → no rout victory
+	gs.register_unit(_mk_unit("red", 20, "foe1"))   # living enemy → no rout victory
 	var tm_death := TurnManager.new()
 	root.add_child(tm_death)
 	var md_death := MapData.new()
@@ -307,7 +307,7 @@ func _init() -> void:
 	if sm != null:
 		gs.reset_map_state()
 		gs.set_phase(gs.Phase.PLAYER)
-		var solo := _mk_unit("player", 20, "solo1")
+		var solo := _mk_unit("blue", 20, "solo1")
 		gs.register_unit(solo)
 		var tm_toggle := TurnManager.new()
 		root.add_child(tm_toggle)

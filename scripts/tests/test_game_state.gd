@@ -34,7 +34,7 @@ func _init() -> void:
 	await process_frame
 
 	# ---- register_unit adds the unit to all_units ----
-	var p1 := _mk_unit("player", 20)
+	var p1 := _mk_unit("blue", 20)
 	gs.register_unit(p1)
 	if p1 in gs.all_units:
 		print("OK  register_unit adds the unit to all_units"); passed += 1
@@ -51,8 +51,8 @@ func _init() -> void:
 
 	# ---- the living-unit getters separate units by team ----
 	gs.reset_map_state()
-	var pa := _mk_unit("player", 20)
-	var ea := _mk_unit("enemy", 20)
+	var pa := _mk_unit("blue", 20)
+	var ea := _mk_unit("red", 20)
 	gs.register_unit(pa)
 	gs.register_unit(ea)
 	var lp: Array = gs.get_living_player_units()
@@ -65,8 +65,8 @@ func _init() -> void:
 
 	# ---- get_living_player_units excludes a dead (hp 0) unit ----
 	gs.reset_map_state()
-	gs.register_unit(_mk_unit("player", 20))
-	gs.register_unit(_mk_unit("player", 0))   # dead
+	gs.register_unit(_mk_unit("blue", 20))
+	gs.register_unit(_mk_unit("blue", 0))   # dead
 	if gs.get_living_player_units().size() == 1:
 		print("OK  get_living_player_units excludes a dead unit"); passed += 1
 	else:
@@ -75,7 +75,7 @@ func _init() -> void:
 
 	# ---- unregister_unit removes the unit from every list ----
 	gs.reset_map_state()
-	var ru := _mk_unit("player", 20)
+	var ru := _mk_unit("blue", 20)
 	gs.register_unit(ru)
 	gs.unregister_unit(ru)
 	if not (ru in gs.all_units) and gs.get_living_player_units().is_empty():
@@ -93,7 +93,7 @@ func _init() -> void:
 		print("FAIL set_phase / is_player_turn"); failed += 1
 
 	# ---- reset_map_state clears units and resets turn_number / phase ----
-	gs.register_unit(_mk_unit("player", 20))
+	gs.register_unit(_mk_unit("blue", 20))
 	gs.turn_number = 9
 	gs.set_phase(gs.Phase.ENEMY)
 	gs.reset_map_state()

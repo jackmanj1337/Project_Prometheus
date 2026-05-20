@@ -15,7 +15,7 @@ const SkillHandlerS  = preload("res://scripts/skills/SkillHandler.gd")
 class MockUnit extends Node:
 	var data: Resource
 	var tile_position: Vector2i = Vector2i.ZERO
-	var team: String = "player"
+	var team: String = "blue"
 	var _weapon: Resource = null
 	var _qualities: Array = []
 	var _skills: Array = []
@@ -157,7 +157,7 @@ func _make_unit(p: Dictionary) -> MockUnit:
 	ud.movement   = p.get("movement", 5)
 	ud.skills.assign(p.get("skills", []))
 	var u := MockUnit.new()
-	u.setup(ud, p.get("tile", Vector2i.ZERO), p.get("team", "player"))
+	u.setup(ud, p.get("tile", Vector2i.ZERO), p.get("team", "blue"))
 	u._weapon = p.get("weapon", null)
 	u._qualities = p.get("qualities", [])
 	return u
@@ -192,7 +192,7 @@ func _init() -> void:
 	# --- Test: basic damage and hit (both use same type = no triangle modifier) ---
 	var atk = _make_unit({"name":"Attacker","strength":10,"magic":0,"defense":5,"resistance":2,"skill":10,"speed":10,"luck":5,"weapon":iron_sword})
 	# Defender uses a bow (no triangle vs sword) to ensure neutral matchup
-	var def = _make_unit({"name":"Defender","strength":8,"magic":0,"defense":4,"resistance":2,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var def = _make_unit({"name":"Defender","strength":8,"magic":0,"defense":4,"resistance":2,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 
 	var hit = cr.compute_hit_pct(atk, def, iron_sword)
 	# Accuracy = 10*2+5+85 = 110; Dodge = (8-max(0,5-8))*2+4 = 8*2+4=20; Hit% = 90 (no triangle)
@@ -222,7 +222,7 @@ func _init() -> void:
 		failed += 1
 
 	# --- Weapon triangle: sword vs lance = disadvantage for sword ---
-	var def_lance = _make_unit({"name":"Lancedef","defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_lance})
+	var def_lance = _make_unit({"name":"Lancedef","defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
 	var hit_disadv = cr.compute_hit_pct(atk, def_lance, iron_sword)
 	# acc=110; triangle -10; dodge=(8-0)*2+4=20; hit=110-10-20=80
 	if hit_disadv == 80:
@@ -243,7 +243,7 @@ func _init() -> void:
 
 	# --- Weapon triangle advantage: lance vs sword ---
 	var atk2 = _make_unit({"name":"Lancer","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_lance})
-	var def2 = _make_unit({"name":"Swordsman","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_sword})
+	var def2 = _make_unit({"name":"Swordsman","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_sword})
 	var hit_adv = cr.compute_hit_pct(atk2, def2, iron_lance)
 	# acc = 10*2+5+80 = 105; triangle adv +10 = 115; dodge = 8*2+4 = 20; hit = 115-20 = 95
 	if hit_adv == 95:
@@ -264,7 +264,7 @@ func _init() -> void:
 
 	# --- Effective weapon (bow vs flying) ---
 	var archer = _make_unit({"name":"Archer","strength":8,"defense":3,"skill":9,"speed":9,"luck":4,"weapon":iron_bow,"tile":Vector2i(0,2)})
-	var pegasus = _make_unit({"name":"Pegasus","strength":6,"defense":2,"skill":7,"speed":12,"luck":5,"team":"enemy","tile":Vector2i(0,0),"qualities":["flying"]})
+	var pegasus = _make_unit({"name":"Pegasus","strength":6,"defense":2,"skill":7,"speed":12,"luck":5,"team":"red","tile":Vector2i(0,0),"qualities":["flying"]})
 	var dmg_eff = cr.compute_damage(archer, pegasus, iron_bow)
 	# mt=6*3=18 (effective); base_stat=8; atk=8+18=26; def=2; dmg=24
 	if dmg_eff == 24:
@@ -275,7 +275,7 @@ func _init() -> void:
 		failed += 1
 
 	# Non-flying enemy → not effective → normal mt
-	var non_flying = _make_unit({"name":"Soldier","strength":6,"defense":2,"skill":7,"speed":10,"luck":4,"team":"enemy","tile":Vector2i(0,0)})
+	var non_flying = _make_unit({"name":"Soldier","strength":6,"defense":2,"skill":7,"speed":10,"luck":4,"team":"red","tile":Vector2i(0,0)})
 	var dmg_not_eff = cr.compute_damage(archer, non_flying, iron_bow)
 	# mt=6 (not effective); atk=8+6=14; def=2; dmg=12
 	if dmg_not_eff == 12:
@@ -307,7 +307,7 @@ func _init() -> void:
 
 	# --- Follow-up ---
 	var fast = _make_unit({"name":"Fast","speed":14,"weapon":iron_sword})
-	var slow = _make_unit({"name":"Slow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"enemy"})
+	var slow = _make_unit({"name":"Slow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
 	var fu = cr.get_follow_up_attacker(fast, slow)
 	if fu == fast:
 		print("OK  follow-up: fast unit attacks twice")
@@ -317,7 +317,7 @@ func _init() -> void:
 		failed += 1
 
 	var even_a = _make_unit({"name":"EvenA","speed":10,"weapon":iron_sword})
-	var even_b = _make_unit({"name":"EvenB","speed":10,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"enemy"})
+	var even_b = _make_unit({"name":"EvenB","speed":10,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
 	if cr.get_follow_up_attacker(even_a, even_b) != null:
 		print("FAIL no follow-up when speed equal")
 		failed += 1
@@ -379,7 +379,7 @@ func _init() -> void:
 		print("SKIP debug_force_levelup (GameState autoload absent)")
 
 	# --- Damage minimum 0 ---
-	var tanky = _make_unit({"name":"Tank","defense":20,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_lance})
+	var tanky = _make_unit({"name":"Tank","defense":20,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
 	var weak  = _make_unit({"name":"Weak","strength":3,"weapon":iron_sword})
 	var dmg_zero = cr.compute_damage(weak, tanky, iron_sword)
 	# atk=3+6-2=7 (triangle: sword vs lance = -2); def=20; 7-20=-13 → clamp to 0
@@ -404,7 +404,7 @@ func _init() -> void:
 	# boosted damage: the modifier is applied before the stat reads and restored
 	# after. Before the fix, restore ran first and the preview showed base damage.
 	var res_atk = _make_unit({"name":"ResolveAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"hp":8,"max_hp":30,"weapon":iron_sword,"skills":["resolve"]})
-	var res_def = _make_unit({"name":"ResolveDef","strength":8,"defense":4,"skill":8,"speed":14,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var res_def = _make_unit({"name":"ResolveDef","strength":8,"defense":4,"skill":8,"speed":14,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 	var res_prev = cr.preview_combat(res_atk, res_def)
 	# Effective STR 10+5=15; atk=15+mt(6)=21; def=4 → damage 17. Base (unfixed) = 12.
 	if res_prev["attacker_damage"] == 17:
@@ -426,7 +426,7 @@ func _init() -> void:
 	# The old trigger order applied the attacker's skills before the defender's Nihil
 	# could fire, so a defending Nihil (e.g. the map boss) negated nothing.
 	var nihil_atk = _make_unit({"name":"NihilAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
-	var nihil_def = _make_unit({"name":"NihilDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var nihil_def = _make_unit({"name":"NihilDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
 	var nihil_prev = cr.preview_combat(nihil_atk, nihil_def)
 	# Base damage = STR 10 + mt 6 - DEF 4 = 12. Swordfaire would add +5 → 17.
 	# The defender's Nihil must negate Swordfaire, leaving the base 12.
@@ -438,7 +438,7 @@ func _init() -> void:
 		failed += 1
 
 	# Control: same matchup, no defender Nihil → Swordfaire applies (+5 → 17).
-	var ctrl_def = _make_unit({"name":"CtrlDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var ctrl_def = _make_unit({"name":"CtrlDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 	var ctrl_prev = cr.preview_combat(nihil_atk, ctrl_def)
 	if ctrl_prev["attacker_damage"] == 17:
 		print("OK  Nihil control: Swordfaire applies (+5 → %d) without a defender Nihil" % ctrl_prev["attacker_damage"])
@@ -452,7 +452,7 @@ func _init() -> void:
 	# blocks the bearer's combat skills; swordfaire (not exempt) is still negated.
 	var exempt_atk = _make_unit({"name":"ExemptAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire","s_rank_mastery"]})
 	exempt_atk.data.proficiencies = {"sword": {"rank": "S", "wexp": 0}}
-	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
 	var exempt_prev = cr.preview_combat(exempt_atk, exempt_def)
 	# Base 10+6-4 = 12. Swordfaire (+5) negated; S-Rank Mastery (+1 dmg, exempt) applies → 13.
 	if exempt_prev["attacker_damage"] == 13:
@@ -470,7 +470,7 @@ func _init() -> void:
 	var overkill_sword = _make_weapon({"id":"ok_sword","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var overkill_lance = _make_weapon({"id":"ok_lance","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var glass_atk = _make_unit({"name":"GlassAtk","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
-	var glass_def = _make_unit({"name":"GlassDef","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"team":"enemy","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var glass_def = _make_unit({"name":"GlassDef","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"team":"red","tile":Vector2i(1,0),"weapon":overkill_lance})
 	var mk_result := cr.resolve_combat(glass_atk, glass_def)
 	var def_countered: bool = (mk_result["exchanges"] as Array).any(
 		func(e): return e["attacker"] == glass_def)
@@ -488,7 +488,7 @@ func _init() -> void:
 	# exchanges rather than stopping at the first death. Hand-build a result with two
 	# lethal exchanges and confirm both units end up dead.
 	var mk_a = _make_unit({"name":"MKA","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
-	var mk_d = _make_unit({"name":"MKD","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"team":"enemy","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var mk_d = _make_unit({"name":"MKD","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"team":"red","tile":Vector2i(1,0),"weapon":overkill_lance})
 	var mk_apply := {
 		"exchanges": [
 			{"attacker": mk_a, "defender": mk_d, "weapon": overkill_sword,
@@ -513,7 +513,7 @@ func _init() -> void:
 	# Expected: 2 initial strikes + 2 follow-up strikes = 4 exchanges total.
 	var brave_sword = _make_weapon({"id":"brave_sword","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1,"strikes_per_attack":2})
 	var brave_atk = _make_unit({"name":"BraveAtk","strength":5,"defense":0,"skill":10,"speed":15,"luck":0,"hp":30,"max_hp":30,"weapon":brave_sword})
-	var tanky_slow_def = _make_unit({"name":"TankySlow","strength":0,"defense":10,"skill":0,"speed":9,"luck":0,"hp":200,"max_hp":200,"team":"enemy","tile":Vector2i(1,0)})
+	var tanky_slow_def = _make_unit({"name":"TankySlow","strength":0,"defense":10,"skill":0,"speed":9,"luck":0,"hp":200,"max_hp":200,"team":"red","tile":Vector2i(1,0)})
 	var brave_result := cr.resolve_combat(brave_atk, tanky_slow_def)
 	var brave_exchanges: int = (brave_result["exchanges"] as Array).size()
 	if brave_exchanges == 4:
@@ -535,8 +535,8 @@ func _init() -> void:
 	# --- H-2: defender stat modifier respected in compute_damage ---
 	# Defender with +3 DEF active modifier should take 3 less damage than base.
 	var h2_atk = _make_unit({"name":"H2Atk","strength":10,"weapon":iron_sword})
-	var h2_def_base = _make_unit({"name":"H2DefBase","defense":4,"team":"enemy","tile":Vector2i(1,0)})
-	var h2_def_buff = _make_unit({"name":"H2DefBuff","defense":4,"team":"enemy","tile":Vector2i(1,0)})
+	var h2_def_base = _make_unit({"name":"H2DefBase","defense":4,"team":"red","tile":Vector2i(1,0)})
+	var h2_def_buff = _make_unit({"name":"H2DefBuff","defense":4,"team":"red","tile":Vector2i(1,0)})
 	h2_def_buff.data.active_modifiers.append({"stat":"defense","delta":3,"duration_type":"turn","duration":1})
 	var dmg_base := cr.compute_damage(h2_atk, h2_def_base, iron_sword)
 	var dmg_buff := cr.compute_damage(h2_atk, h2_def_buff, iron_sword)
@@ -553,7 +553,7 @@ func _init() -> void:
 	# The attacker is a flying unit. preview_combat defender_damage should be 4x mt.
 	var gk_bow = _make_weapon({"id":"gk_bow","weapon_type":"bow","mt":6,"hit":100,"crit":0,"range_min":2,"range_max":2,"effect_tags":["effective_flying"]})
 	var gk_atk = _make_unit({"name":"GKAtk","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"qualities":["flying"],"weapon":iron_sword,"tile":Vector2i(0,2)})
-	var gk_def = _make_unit({"name":"GKDef","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"team":"enemy","tile":Vector2i(0,0),"weapon":gk_bow})
+	var gk_def = _make_unit({"name":"GKDef","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"team":"red","tile":Vector2i(0,0),"weapon":gk_bow})
 	gk_def._skills = ["giantkiller"]
 	var gk_prev = cr.preview_combat(gk_atk, gk_def)
 	# Defender damage: mt=6*4=24 (effective 4× via giantkiller); atk=8+24=32; def_atk_def=3; dmg=29
@@ -573,7 +573,7 @@ func _init() -> void:
 	var break_atk = _make_unit({"name":"BreakAtk","strength":10,"defense":5,"skill":10,"speed":20,"luck":5,"hp":30,"max_hp":30,"weapon":break_brave})
 	# luck 5 = crit avoid 5 ≥ attacker crit rate (skill 10 / 2 = 5), so crit% clamps
 	# to 0 — the one landing hit can never crit and the HP assertion is deterministic.
-	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":5,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0)})
+	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":5,"hp":50,"max_hp":50,"team":"red","tile":Vector2i(1,0)})
 	break_atk._weapon_uses = 1
 	var break_result := cr.resolve_combat(break_atk, break_def)
 	# resolve_combat models breakage itself — it must stop after the single strike
@@ -600,7 +600,7 @@ func _init() -> void:
 	var ck_weak_sword = _make_weapon({"id":"ck_weak","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var ck_kill_sword = _make_weapon({"id":"ck_kill","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var ck_atk = _make_unit({"name":"CKAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":10,"max_hp":10,"weapon":ck_weak_sword})
-	var ck_def = _make_unit({"name":"CKDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":50,"max_hp":50,"team":"enemy","tile":Vector2i(1,0),"weapon":ck_kill_sword})
+	var ck_def = _make_unit({"name":"CKDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":50,"max_hp":50,"team":"red","tile":Vector2i(1,0),"weapon":ck_kill_sword})
 	var ck_result := cr.resolve_combat(ck_atk, ck_def)
 	cr.apply_combat_result(ck_result, ck_atk, ck_def)
 	# Equal level (5 vs 5) kill EXP = 30 (matches the "EXP kill equal level" case above).
@@ -618,7 +618,7 @@ func _init() -> void:
 	# Speeds are equal (10 vs 10) so no follow-up muddies the exchange count.
 	var van_kill_lance = _make_weapon({"id":"van_kill","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
 	var van_atk = _make_unit({"name":"VanAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":8,"max_hp":8,"weapon":iron_sword})
-	var van_def = _make_unit({"name":"VanDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":40,"max_hp":40,"team":"enemy","tile":Vector2i(1,0),"weapon":van_kill_lance,"skills":["vantage"]})
+	var van_def = _make_unit({"name":"VanDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":40,"max_hp":40,"team":"red","tile":Vector2i(1,0),"weapon":van_kill_lance,"skills":["vantage"]})
 	var van_result := cr.resolve_combat(van_atk, van_def)
 	var van_atk_swung: bool = (van_result["exchanges"] as Array).any(
 		func(e): return e["attacker"] == van_atk)
@@ -644,7 +644,7 @@ func _init() -> void:
 	var faire_skill = dm.get_skill("swordfaire")
 	faire_skill.max_uses_per_map = 1
 	var dry_atk = _make_unit({"name":"DryAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
-	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"enemy","tile":Vector2i(1,0),"weapon":iron_bow})
+	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 	cr.preview_combat(dry_atk, dry_def)
 	cr.preview_combat(dry_atk, dry_def)
 	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("faire", 0)
@@ -672,7 +672,7 @@ func _init() -> void:
 	var bus_bs := root.get_node_or_null("EventBus")
 	if bus_bs != null:
 		var bs_atk = _make_unit({"name":"BsAtk","weapon":iron_sword})
-		var bs_def = _make_unit({"name":"BsDef","team":"enemy","tile":Vector2i(1,0),"weapon":iron_sword})
+		var bs_def = _make_unit({"name":"BsDef","team":"red","tile":Vector2i(1,0),"weapon":iron_sword})
 		var bs_count: Array = [0]  # boxed so the lambda mutates the same int
 		var bs_handler := func(_a: Node, _d: Node) -> void:
 			bs_count[0] += 1

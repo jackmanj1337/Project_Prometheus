@@ -27,8 +27,10 @@ func _ready() -> void:
 
 
 func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
-	# Only show level-up screen for player units; enemy level-ups are silent.
-	if not ("team" in unit) or unit.team != "player":
+	# Only show level-up screen for the player's faction; other factions are silent.
+	# M14 stage 5 will broaden this to "the active controlling faction" once a
+	# non-blue hotseat phase exists; for stage 1 the blue/player binding holds.
+	if not ("team" in unit) or unit.team != "blue":
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "skip":

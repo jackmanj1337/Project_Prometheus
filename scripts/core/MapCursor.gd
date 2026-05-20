@@ -19,6 +19,10 @@ var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
 var _camera: Camera2D = null  # held only for null checks + test reads; production writes go through _camera_ctrl
 var _turn: TurnManager = null
+# Faction id this cursor currently drives (M14 stage 1). Defaults to "blue"
+# (the player) so behaviour stays unchanged until stage 5 routes a non-blue
+# hotseat phase through the cursor. Threaded to both slices on setup().
+var _controlling_faction: String = "blue"
 
 # All camera writes (scroll, AI tracking, PT4 #2 save/restore) go through this
 # controller (B4). Built either by GameMap and passed in via setup(), or built
@@ -157,10 +161,11 @@ func _on_level_up_finished() -> void:
 
 
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
-		camera_ctrl: RefCounted = null) -> void:
+		camera_ctrl: RefCounted = null, controlling_faction: String = "blue") -> void:
 	_grid = grid
 	_camera = camera
 	_turn = turn
+	_controlling_faction = controlling_faction
 	# Accept a pre-built CameraController (GameMap path — there should be exactly
 	# one in production so the save/restore state is shared) or build a fresh one
 	# from the camera (test path — _make_cursor passes only a Camera2D).
@@ -171,9 +176,19 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 		_camera_ctrl.setup(camera, grid)
 	position = _grid.tile_to_world(current_tile)
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
-	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"))
+	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"),
+		_controlling_faction)
 	# The selection slice needs the grid + turn manager for its queries.
-	_selection.setup(_grid, _turn)
+	_selection.setup(_grid, _turn, _controlling_faction)
+
+
+# Called when the active controlling faction changes mid-map (M14 stage 5 —
+# hotseat hand-off). Re-points the selection + targeting slices so the cursor
+# starts respecting the new faction's units immediately.
+func set_controlling_faction(faction_id: String) -> void:
+	_controlling_faction = faction_id
+	_selection.set_controlling_faction(faction_id)
+	_targeting.set_controlling_faction(faction_id)
 
 
 # ── Input Handling ──────────────────────────────────────────────────────────

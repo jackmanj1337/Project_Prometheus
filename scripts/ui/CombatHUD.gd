@@ -17,7 +17,7 @@ func _on_combat_resolved(_attacker: Node, _defender: Node, result: Dictionary) -
 		if exchange.get("hit", false):
 			var dmg: int = exchange.get("damage", 0)
 			var text: String = "CRIT! %d" % dmg if exchange.get("crit", false) else str(dmg)
-			var color := Color.ORANGE_RED if def_unit.team == "player" else Color.ORANGE
+			var color := Color.ORANGE_RED if def_unit.team == "blue" else Color.ORANGE
 			_spawn_label(def_unit, text, color)
 		else:
 			_spawn_label(def_unit, "Miss", Color.WHITE)

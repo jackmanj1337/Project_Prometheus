@@ -9,6 +9,11 @@ class_name MapCursorSelection extends RefCounted
 # Injected via setup(). Both may be referenced before injection, so methods null-guard.
 var _grid: GridManager = null
 var _turn: TurnManager = null
+# Faction id whose units this cursor is allowed to select. Defaults to "blue"
+# (the player) so existing test callers that don't pass a faction keep working.
+# M14 stage 1: replaces the literal `unit.team != "player"` gate. Stage 2 widens
+# this from "same faction" to "same alliance group" via the hostility helper.
+var _controlling_faction: String = "blue"
 
 # Public: MapCursor reads selected_unit; both MapCursor test suites read + inject these.
 var selected_unit: Unit = null
@@ -16,9 +21,17 @@ var movement_tiles: Array[Vector2i] = []
 
 
 # Inject scene-tree dependencies once, when MapCursor.setup() runs and _grid is known.
-func setup(grid: GridManager, turn: TurnManager) -> void:
+# controlling_faction defaults to "blue" so 2-arg test callers stay valid.
+func setup(grid: GridManager, turn: TurnManager, controlling_faction: String = "blue") -> void:
 	_grid = grid
 	_turn = turn
+	_controlling_faction = controlling_faction
+
+
+# Called when the active controlling faction changes mid-map (M14 stage 5 — hotseat).
+# Kept separate from setup() so the dependency wiring isn't duplicated.
+func set_controlling_faction(faction_id: String) -> void:
+	_controlling_faction = faction_id
 
 
 # Port of MapCursor._try_select_unit_at_cursor minus the _state write and EventBus
@@ -30,7 +43,7 @@ func select_at(tile: Vector2i) -> bool:
 	var unit := _grid.get_unit_at(tile)
 	if unit == null:
 		return false
-	if not ("team" in unit) or unit.team != "player":
+	if not ("team" in unit) or unit.team != _controlling_faction:
 		return false
 	# Can't select if the unit has already acted this turn.
 	if _turn != null and not _turn.can_unit_act(unit):

@@ -52,8 +52,8 @@ func _init() -> void:
 	var sel := MapCursorSelection.new()
 	sel.setup(_grid, turn)
 
-	var p := _make_unit(Vector2i(2, 2), "player")
-	_make_unit(Vector2i(4, 4), "enemy")
+	var p := _make_unit(Vector2i(2, 2), "blue")
+	_make_unit(Vector2i(4, 4), "red")
 
 	# ---- select_at on a player unit → true, fields populated ----
 	var ok := sel.select_at(Vector2i(2, 2))

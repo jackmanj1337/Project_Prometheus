@@ -84,7 +84,10 @@ func register_unit(unit: Node) -> void:
 		push_error("GameState.register_unit: %s already registered" % unit)
 		return
 	all_units.append(unit)
-	if unit.team == "player":
+	# M14 stage 1: legacy "player"/"enemy" buckets keyed off "blue"/"red" faction ids.
+	# Stage 3 replaces these two arrays with a per-faction-id dictionary; until then
+	# the binary bucketing is preserved so test_game_state and TurnManager don't move.
+	if unit.team == "blue":
 		_player_units.append(unit)
 	else:
 		_enemy_units.append(unit)

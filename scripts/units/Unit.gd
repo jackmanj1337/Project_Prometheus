@@ -14,7 +14,7 @@ var tile_position: Vector2i:
 	set(val):
 		if data:
 			data.tile_position = val
-var team: String = "player"  # "player" | "enemy"
+var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red" (enemy); "green"/"yellow" land with stage-4/5 content
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
@@ -46,12 +46,14 @@ func _ready() -> void:
 func _apply_initial_state() -> void:
 	if _sprite == null or _hp_bar == null:
 		return
-	# Player units render in blue tint, enemies in red tint (placeholder visuals).
+	# Blue faction renders in blue tint, red faction in red tint (placeholder visuals).
+	# Stage 3 reads colour from FactionData; until then any non-"blue" id falls back
+	# to the red tint so a stage-2 second-faction test still renders sensibly.
 	# When real sprites land we use class_id for sprite selection instead.
-	if team == "enemy":
-		_base_modulate = Color(0.95, 0.35, 0.35, 1.0)
-	else:
+	if team == "blue":
 		_base_modulate = Color(0.30, 0.55, 0.95, 1.0)
+	else:
+		_base_modulate = Color(0.95, 0.35, 0.35, 1.0)
 	_sprite.modulate = _base_modulate
 	_hp_bar.max_value = data.max_hp
 	_hp_bar.value = data.hp

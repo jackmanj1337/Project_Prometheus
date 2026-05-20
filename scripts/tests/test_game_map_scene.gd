@@ -146,7 +146,7 @@ func _init() -> void:
 			if child.data and child.data.unit_name == "Unit_01":
 				soldier = child
 				break
-		if soldier and soldier.tile_position == Vector2i(1, 9) and soldier.team == "player":
+		if soldier and soldier.tile_position == Vector2i(1, 9) and soldier.team == "blue":
 			print("OK  Unit_01 spawned at (1,9) as player")
 			passed += 1
 		else:
@@ -158,7 +158,7 @@ func _init() -> void:
 			if child.data and child.data.unit_name == "E8_Boss":
 				boss = child
 				break
-		if boss and boss.tile_position == Vector2i(39, 12) and boss.team == "enemy":
+		if boss and boss.tile_position == Vector2i(39, 12) and boss.team == "red":
 			print("OK  E8_Boss spawned at (39,12) as enemy")
 			passed += 1
 		else:
@@ -204,7 +204,7 @@ func _init() -> void:
 	if gs:
 		var cursor_unit = grid.get_unit_at(cursor.current_tile)
 		if cursor.current_tile != Vector2i(0, 0) and cursor_unit != null \
-				and cursor_unit.team == "player":
+				and cursor_unit.team == "blue":
 			print("OK  cursor starts on a player unit at %s" % str(cursor.current_tile))
 			passed += 1
 		else:
@@ -230,7 +230,7 @@ func _init() -> void:
 		# Reference: attack tiles from each enemy's CURRENT position only (old behaviour).
 		var standstill := {}
 		for eu in instance.get_node("UnitsContainer").get_children():
-			if eu.team == "enemy" and eu.data and eu.data.hp > 0:
+			if eu.team == "red" and eu.data and eu.data.hp > 0:
 				var from_here: Array[Vector2i] = [eu.tile_position]
 				for t in grid.get_all_attack_tiles(eu, from_here):
 					standstill[t] = true

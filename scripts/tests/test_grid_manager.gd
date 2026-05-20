@@ -8,7 +8,7 @@ const SoldierData := preload("res://data/classes/soldier.tres")
 # Mock unit that GridManager methods can read from
 class MockUnit extends Node:
 	var tile_position: Vector2i
-	var team: String = "player"
+	var team: String = "blue"
 	var data: Resource
 
 	func has_quality(_q: String) -> bool:

@@ -9,7 +9,7 @@ const DataManagerS  = preload("res://scripts/autoloads/DataManager.gd")
 # ---- Minimal mock unit ----
 class MockUnit extends Node:
 	var data: UnitData
-	var team: String = "player"
+	var team: String = "blue"
 
 	func setup(unit_data: UnitData) -> void:
 		data = unit_data

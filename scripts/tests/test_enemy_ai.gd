@@ -62,7 +62,7 @@ func _init() -> void:
 	var enemy: Node = stub_script.new(); enemy.set("tile_position", Vector2i(0, 0))
 	var player: Node = stub_script.new()
 	player.set("tile_position", Vector2i(4, 0))
-	player.set("team", "player")
+	player.set("team", "blue")
 	root.add_child(enemy); root.add_child(player)
 
 	var move_tiles: Array[Vector2i] = [
@@ -80,7 +80,7 @@ func _init() -> void:
 	# ---- _choose_move_tile: player out of attack reach → just close distance ----
 	var far_player: Node = stub_script.new()
 	far_player.set("tile_position", Vector2i(10, 0))
-	far_player.set("team", "player")
+	far_player.set("team", "blue")
 	root.add_child(far_player)
 	var all_far: Array[Node] = [far_player]
 	var chosen2: Vector2i = ai._choose_move_tile(enemy, far_player, all_far, move_tiles, grid)
@@ -255,9 +255,9 @@ func _init() -> void:
 	await process_frame
 
 	# ---- _act passive: holds position, no combat when no player is in range ----
-	var pas_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "passive", 20,
+	var pas_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "red", "passive", 20,
 		"res://data/weapons/iron_sword.tres")
-	var pas_player := _mk_act_unit(act_stub, Vector2i(6, 0), "player", "basic", 20, "")
+	var pas_player := _mk_act_unit(act_stub, Vector2i(6, 0), "blue", "basic", 20, "")
 	var pas_units: Array[Node] = [pas_enemy, pas_player]
 	var pas_players: Array[Node] = [pas_player]
 	var pas_enemies: Array[Node] = [pas_enemy]
@@ -278,9 +278,9 @@ func _init() -> void:
 		failed += 1
 
 	# ---- _act passive: attacks a player already in range, still does not move ----
-	var pa_enemy := _mk_act_unit(act_stub, Vector2i(2, 1), "enemy", "passive", 20,
+	var pa_enemy := _mk_act_unit(act_stub, Vector2i(2, 1), "red", "passive", 20,
 		"res://data/weapons/iron_sword.tres")
-	var pa_player := _mk_act_unit(act_stub, Vector2i(3, 1), "player", "basic", 20, "")
+	var pa_player := _mk_act_unit(act_stub, Vector2i(3, 1), "blue", "basic", 20, "")
 	var pa_units: Array[Node] = [pa_enemy, pa_player]
 	var pa_players: Array[Node] = [pa_player]
 	var pa_enemies: Array[Node] = [pa_enemy]
@@ -302,7 +302,7 @@ func _init() -> void:
 		failed += 1
 
 	# ---- _act basic: no living players → marks DONE immediately, no move ----
-	var nb_enemy := _mk_act_unit(act_stub, Vector2i(1, 1), "enemy", "basic", 20,
+	var nb_enemy := _mk_act_unit(act_stub, Vector2i(1, 1), "red", "basic", 20,
 		"res://data/weapons/iron_sword.tres")
 	var nb_units: Array[Node] = [nb_enemy]
 	var nb_empty: Array[Node] = []
@@ -320,9 +320,9 @@ func _init() -> void:
 		failed += 1
 
 	# ---- _act basic: closes on a distant player and attacks from in range ----
-	var bm_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "basic", 20,
+	var bm_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "red", "basic", 20,
 		"res://data/weapons/iron_sword.tres")
-	var bm_player := _mk_act_unit(act_stub, Vector2i(4, 0), "player", "basic", 20, "")
+	var bm_player := _mk_act_unit(act_stub, Vector2i(4, 0), "blue", "basic", 20, "")
 	var bm_units: Array[Node] = [bm_enemy, bm_player]
 	var bm_players: Array[Node] = [bm_player]
 	var bm_enemies: Array[Node] = [bm_enemy]
@@ -363,9 +363,9 @@ func _init() -> void:
 	# ---- _act healer: routes into staff range of an injured ally and heals it.
 	#      Regression guard for the can_attack_from_tile-vs-staff bug — a healer
 	#      carrying a real staff must still route via in_weapon_range_from_tile.
-	var hl_healer := _mk_act_unit(act_stub, Vector2i(0, 0), "enemy", "healer", 20,
+	var hl_healer := _mk_act_unit(act_stub, Vector2i(0, 0), "red", "healer", 20,
 		"res://data/weapons/heal_staff.tres")
-	var hl_injured := _mk_act_unit(act_stub, Vector2i(4, 0), "enemy", "basic", 5, "")
+	var hl_injured := _mk_act_unit(act_stub, Vector2i(4, 0), "red", "basic", 5, "")
 	var hl_units: Array[Node] = [hl_healer, hl_injured]
 	var hl_empty: Array[Node] = []
 	act_gs.set("all_units", hl_units)
@@ -385,9 +385,9 @@ func _init() -> void:
 		failed += 1
 
 	# ---- _act healer: all allies at full HP → no reposition, no heal, DONE ----
-	var hn_healer := _mk_act_unit(act_stub, Vector2i(2, 1), "enemy", "healer", 20,
+	var hn_healer := _mk_act_unit(act_stub, Vector2i(2, 1), "red", "healer", 20,
 		"res://data/weapons/heal_staff.tres")
-	var hn_ally := _mk_act_unit(act_stub, Vector2i(4, 1), "enemy", "basic", 20, "")
+	var hn_ally := _mk_act_unit(act_stub, Vector2i(4, 1), "red", "basic", 20, "")
 	var hn_units: Array[Node] = [hn_healer, hn_ally]
 	var hn_empty: Array[Node] = []
 	act_gs.set("all_units", hn_units)

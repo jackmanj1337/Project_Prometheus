@@ -451,7 +451,7 @@ func show_heal_overlay(tiles: Array[Vector2i]) -> void:
 func get_enemy_danger_tiles() -> Array[Vector2i]:
 	var seen: Dictionary = {}
 	for u in _get_units():
-		if not ("team" in u) or u.team != "enemy":
+		if not ("team" in u) or u.team != "red":
 			continue
 		if u.data == null or u.data.hp <= 0:
 			continue

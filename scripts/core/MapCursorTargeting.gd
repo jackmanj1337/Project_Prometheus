@@ -20,6 +20,11 @@ signal cancelled   # player backed out of target choice — MapCursor reopens th
 var _grid: GridManager = null
 var _attack_preview: Node = null
 var _combat_resolver: Node = null
+# Faction id the cursor currently controls. Used by the attack/heal-target gates
+# (M14 stage 1) — "valid enemy" = `target.team != _controlling_faction`, "valid
+# ally" = same. Defaults to "blue" so 3-arg test callers stay valid. Stage 2
+# generalises both gates to the alliance-group hostility helper.
+var _controlling_faction: String = "blue"
 
 var _sub: int = _Sub.IDLE
 var _mode: int = Mode.ATTACK
@@ -31,10 +36,18 @@ var _preview_target: Node = null
 # Inject scene-tree dependencies once, when MapCursor.setup() runs and _grid is known.
 # attack_preview may be null (headless tests) — confirm then resolves immediately.
 # combat_resolver may be null — combat resolution is skipped (matches the old `if cr:`).
-func setup(grid: GridManager, attack_preview: Node, combat_resolver: Node) -> void:
+# controlling_faction defaults to "blue" so 3-arg test callers stay valid.
+func setup(grid: GridManager, attack_preview: Node, combat_resolver: Node,
+		controlling_faction: String = "blue") -> void:
 	_grid = grid
 	_attack_preview = attack_preview
 	_combat_resolver = combat_resolver
+	_controlling_faction = controlling_faction
+
+
+# Called when the active controlling faction changes mid-map (M14 stage 5).
+func set_controlling_faction(faction_id: String) -> void:
+	_controlling_faction = faction_id
 
 
 # Start a targeting session. Returns the valid target tiles (caller snaps the cursor
@@ -110,7 +123,7 @@ func is_active() -> bool:
 
 func _confirm_attack_target(cursor_tile: Vector2i) -> void:
 	var target := _grid.get_unit_at(cursor_tile)
-	if target == null or target.team == "player":
+	if target == null or target.team == _controlling_faction:
 		return  # cursor isn't on a valid enemy — ignore the confirm, stay CHOOSING
 	_preview_target = target
 	if _attack_preview and _attack_preview.has_method("show_preview"):
@@ -135,7 +148,7 @@ func _resolve_attack(target: Node) -> void:
 
 func _apply_staff_heal(cursor_tile: Vector2i) -> void:
 	var target := _grid.get_unit_at(cursor_tile)
-	if target == null or target.team != "player":
+	if target == null or target.team != _controlling_faction:
 		return  # cursor isn't on a valid ally — ignore the confirm, stay CHOOSING
 	# Capture the weapon before perform_staff_heal — a last-use removal would clear
 	# the entry, and a later get_equipped_weapon() could return null / the wrong type.
