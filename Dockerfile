@@ -65,6 +65,22 @@ RUN npm install -g \
     @openai/codex@${CODEX_VERSION} && \
     npm cache clean --force
 
+# ── Stable helper commands ──────────────────────────────────
+# These live outside /home/developer so old auth volumes cannot hide them.
+RUN printf '%s\n' \
+        '#!/usr/bin/env bash' \
+        'exec claude --dangerously-skip-permissions "$@"' \
+        > /usr/local/bin/ai-claude && \
+    printf '%s\n' \
+        '#!/usr/bin/env bash' \
+        'exec codex "$@"' \
+        > /usr/local/bin/ai-codex && \
+    printf '%s\n' \
+        '#!/usr/bin/env bash' \
+        'exec codex --dangerously-bypass-approvals-and-sandbox "$@"' \
+        > /usr/local/bin/ai-codex-yolo && \
+    chmod +x /usr/local/bin/ai-claude /usr/local/bin/ai-codex /usr/local/bin/ai-codex-yolo
+
 # ── Create a non-root user ──────────────────────────────────
 RUN useradd -ms /bin/bash developer
 WORKDIR /workspace
@@ -74,22 +90,25 @@ RUN chown developer:developer /workspace
 RUN mkdir -p /home/developer/.claude /home/developer/.codex /home/developer/.config && \
     chown -R developer:developer /home/developer
 
+# ── Shell quality-of-life ───────────────────────────────────
+# Keep the startup shell outside /home/developer because that path is a volume.
+RUN mkdir -p /etc/agents-godot && \
+    printf '%s\n' \
+        'alias godot="godot --headless"' \
+        'alias ll="ls -lah --color=auto"' \
+        'export PS1="\[\e[36m\][godot-ai]\[\e[0m\] \w \$ "' \
+        'echo ""' \
+        'echo "  🎮  Godot $(godot --version 2>/dev/null | head -1) — headless mode"' \
+        'echo "  🤖  Claude Code $(claude --version 2>/dev/null)"' \
+        'echo "  🧠  Codex $(codex --version 2>/dev/null)"' \
+        'echo "  📁  Project mounted at /workspace"' \
+        'echo ""' \
+        'echo "Start Claude Code: ai-claude"' \
+        'echo "Start Codex:       ai-codex"' \
+        'echo "Start Codex YOLO:  ai-codex-yolo"' \
+        'echo ""' \
+        > /etc/agents-godot/bashrc
+
 USER developer
 
-# ── Shell quality-of-life ───────────────────────────────────
-RUN echo 'alias godot="godot --headless"' >> ~/.bashrc && \
-    echo 'alias ll="ls -lah --color=auto"' >> ~/.bashrc && \
-    echo 'alias ai-claude="claude --dangerously-skip-permissions"' >> ~/.bashrc && \
-    echo 'alias ai-codex="codex"' >> ~/.bashrc && \
-    echo 'export PS1="\[\e[36m\][godot-ai]\[\e[0m\] \w \$ "' >> ~/.bashrc && \
-    echo 'echo ""' >> ~/.bashrc && \
-    echo 'echo "  🎮  Godot $(godot --version 2>/dev/null | head -1) — headless mode"' >> ~/.bashrc && \
-    echo 'echo "  🤖  Claude Code $(claude --version 2>/dev/null)"' >> ~/.bashrc && \
-    echo 'echo "  🧠  Codex $(codex --version 2>/dev/null)"' >> ~/.bashrc && \
-    echo 'echo "  📁  Project mounted at /workspace"' >> ~/.bashrc && \
-    echo 'echo ""' >> ~/.bashrc && \
-    echo 'echo "Start Claude Code: ai-claude"' >> ~/.bashrc && \
-    echo 'echo "Start Codex:       ai-codex"' >> ~/.bashrc && \
-    echo 'echo ""' >> ~/.bashrc
-
-CMD ["/bin/bash"]
+CMD ["/bin/bash", "--rcfile", "/etc/agents-godot/bashrc"]

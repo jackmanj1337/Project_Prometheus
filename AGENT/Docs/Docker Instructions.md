@@ -66,10 +66,13 @@ Follow the OAuth flows. Sessions are saved in the `developer-home` Docker volume
 
 ```bash
 # Open Claude Code in your project
-claude
+ai-claude
 
 # Open Codex in your project
-codex
+ai-codex
+
+# Open Codex with approvals and sandbox disabled inside the Docker sandbox
+ai-codex-yolo
 
 # Or start with a prompt
 claude "Create a simple Godot 4 platformer player scene in GDScript"
@@ -125,6 +128,9 @@ codex
 
 # Or use the container alias
 ai-codex
+
+# Trust the Docker container as the outer sandbox
+ai-codex-yolo
 ```
 
 ---
