@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `b4050fd` (B1–B6 + PT4 #1–#2).
+Last refreshed: **2026-05-20** against branch `main` @ `f92899d` (B1–B9 done).
 
 ---
 
@@ -26,6 +26,9 @@ Last refreshed: **2026-05-20** against branch `main` @ `b4050fd` (B1–B6 + PT4 
 | Code review 2026-05-19c | 4 DEBUG-banner nits (2.1–2.4) | commit `958995b` |
 | Playtest 4 — #1 | Mouse-bump no longer moves the cursor in keyboard-only mode: setting renamed `mouse_targeting`→`mouse_cursor` (values `enabled`/`disabled`), gate applied to motion in all three states (`FREE`/`UNIT_SELECTED`/`TARGETING`); legacy cfg key migrates | commit `bad9f24`; `test_map_cursor` "mouse_cursor=disabled ignores motion" |
 | Playtest 4 — #2 | Camera now returns to the player's end-of-turn view: `MapCursor._on_phase_changed` saves `_camera.position` on `PLAYER → ENEMY` and restores it on `ENEMY → PLAYER`. PT3 #5 safety net (`_scroll_camera_if_needed`) still runs after the restore so a cursor outside the resulting view is panned in. | this commit; `test_map_cursor` "ENEMY saves camera, PLAYER restores it (PT4 #2)" |
+| B7 | `NewGameScreen._on_start`: `push_error + return` when GameState absent (scene change was unconditional — would drop the player's choices) | commit `f92899d` |
+| B8 | Comment sweep: `UnitData.tile_position` + `mastery_skills` now say "captured by GameState's manual snapshot (not ResourceSaver; not @export)"; `TurnManager._apply_fort_healing` "fort/throne" → "fort". HUD magic `0`, test comment, and `_grid == null` guard items already addressed in earlier sessions. | commit `f92899d` |
+| B9 | Singleton-mutating tests already restore unconditionally before the assertion block (satisfies the "restore before next block" option from code_review_2026-05-19 §2). No code change needed. | verified 2026-05-20 |
 
 ---
 
@@ -52,9 +55,9 @@ These are code-review followups whose natural slot is **before** a specific upco
 | B4 ⬜ | Extract a **`CameraController`** (autoload or `GameMap`-owned node) — `MapCursor._scroll_camera_if_needed`, `GameMap._on_ai_unit_acting`, and `GameMap`'s initial placement all write `Camera2D.position` directly | Do **before M14 stage 1** — Stage 1 threads the "active controlling faction" through `MapCursor` slices; consolidating camera ownership first keeps the diff smaller. Also unblocks Bucket A2. | 05-19 review §4 |
 | B5 ⬜ | Data-driven **Settings schema** — `SettingsManager` field + `SettingsScreen` row + `_on_*_changed` triplet per setting is growing linearly; replace with a registry | Do **before M11** content pass and the Phase-3 UI/UX backlog (grid slider, camera settings, UI scale, resolution, rebind UI all add to this layer). | playtest-2 fix plan §4, 05-19 review §4 |
 | B6 ⬜ | Extend `DataManager._validate_cross_references` to weapon `effect_tags`, weapon/skill `weapon_type`, item `effect_id` | Do **before M9** — M9 adds many new `effect_id`s in `.tres`; cheap typos otherwise become silent no-ops. | 05-18 review §2 (Medium) |
-| B7 ⬜ | `NewGameScreen._on_start` — guard scene change if `GameState` autoload missing | Independent; opportunistic. | 05-18 review §2 (Medium) |
-| B8 ⬜ | Carry-over Lows: redundant `_grid == null` half of `MapCursorSelection.plan_path_to`; misdescribing comment at `test_map_cursor_selection.gd:90`; `HUD._ready` magic `0`→`GameState.Phase.PLAYER`; `tile_position` / `mastery_skills` comment wording; `TurnManager._apply_fort_healing` "fort/throne" comment | Sweep together; one trivial commit. | 05-18 review §2 (Low) |
-| B9 ⬜ | Tighten singleton-mutating tests (restore in `else` branch too) — `test_turn_manager`, `test_combat`, `test_unit_stats` | Touch when next adding similar tests. | 05-19 review §2 (Low) |
+| B7 ✅ | ~~`NewGameScreen._on_start` — guard scene change if `GameState` autoload missing~~ | — | Shipped 2026-05-20; commit `f92899d` |
+| B8 ✅ | ~~Carry-over Lows: UnitData comment wording; TurnManager "fort/throne"~~ | — | Shipped 2026-05-20; commit `f92899d`. HUD magic `0`, test comment, `_grid==null` guard items verified already done. |
+| B9 ✅ | ~~Tighten singleton-mutating tests~~ | — | Verified 2026-05-20: all three test files already restore unconditionally before assertions. No code change needed. |
 | B10 ⬜ | **Review and integrate `revised_classes_and_skills.md`.** A new 2567-line classes + skills reference (Awakening flavoured — base + promoted classes, stat caps, growth rates, skill descriptions for ~225 sections) landed in `CLAUDE/GDD/Content Expansion/`. Sits alongside the existing `classes.md`, `skills.md`, `awakening_classes_supplement.md`, `awakening_skills_supplement.md` — the word "revised" implies a supersession but is not declared. **Open question:** which existing docs does this replace vs. extend, and what does it imply for M9 (skill `effect_id`s), M11 (content expansion .tres authoring) and M13 (Awakening supplement)? Reconcile before M9 starts so the .tres data is authored against one source of truth, not four overlapping ones. | Do **before C5 (M9)**: M9 stamps `effect_id`s and `.tres` data into the codebase; doing so against a yet-to-be-reconciled spec is a guaranteed re-author. | `CLAUDE/GDD/Content Expansion/revised_classes_and_skills.md`; sibling docs in the same folder |
 
 ### Bucket C — Phase 2 milestones (Decision 10 order)
