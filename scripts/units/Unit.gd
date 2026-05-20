@@ -158,22 +158,21 @@ func _can_equip_rank(weapon: WeaponData) -> bool:
 	return _RANK_ORDER.get(unit_rank, 0) >= _RANK_ORDER.get(weapon.rank, 0)
 
 
-# Reads terrain bonuses from GridManager; only applies when this unit is the
+# Reads terrain bonuses from GridManager via its accessor (B1) rather than
+# reaching into TERRAIN_*_BONUS directly. Only applies when this unit is the
 # defender in combat (per GDD_02).
 func get_terrain_def_bonus() -> int:
 	var grid := _get_grid_manager()
 	if grid == null:
 		return 0
-	var terrain := grid.get_terrain_at(tile_position)
-	return GridManager.TERRAIN_DEF_BONUS.get(terrain, 0)
+	return int(grid.get_terrain_bonuses(tile_position)["def"])
 
 
 func get_terrain_dodge_bonus() -> int:
 	var grid := _get_grid_manager()
 	if grid == null:
 		return 0
-	var terrain := grid.get_terrain_at(tile_position)
-	return GridManager.TERRAIN_DODGE_BONUS.get(terrain, 0)
+	return int(grid.get_terrain_bonuses(tile_position)["dodge"])
 
 
 func _get_grid_manager() -> GridManager:

@@ -149,10 +149,11 @@ func _update_terrain(tile: Vector2i) -> void:
 		return
 	var terrain: String = _grid.get_terrain_at(tile)
 	_terrain_name.text = terrain.capitalize()
-	var def_bonus: int = _grid.TERRAIN_DEF_BONUS.get(terrain, 0)
-	var dodge_bonus: int = _grid.TERRAIN_DODGE_BONUS.get(terrain, 0)
-	_terrain_def.text = "DEF  +%d" % def_bonus
-	_terrain_dodge.text = "DODGE +%d" % dodge_bonus
+	# Read bonuses through GridManager's accessor rather than reaching into the
+	# TERRAIN_*_BONUS dicts directly — GridManager owns the lookup contract (B1).
+	var bonuses: Dictionary = _grid.get_terrain_bonuses(tile)
+	_terrain_def.text = "DEF  +%d" % int(bonuses["def"])
+	_terrain_dodge.text = "DODGE +%d" % int(bonuses["dodge"])
 
 
 

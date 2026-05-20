@@ -69,6 +69,20 @@ func set_terrain_fallback(tile: Vector2i, terrain: String) -> void:
 	_terrain_fallback[tile] = terrain
 
 
+# Returns the defender's DEF / Dodge bonuses for the terrain at `tile` as a
+# dictionary {"def": int, "dodge": int}. The TERRAIN_*_BONUS dicts remain public
+# (CombatResolver and EnemyAI's hypothetical-attack scoring both read them as
+# constants), but UI callers (HUD, Unit.get_terrain_def_bonus / _dodge_bonus)
+# should query through this accessor so GridManager owns the lookup contract.
+# Out-of-bounds / wall terrain returns zeros — never a counterattack hazard.
+func get_terrain_bonuses(tile: Vector2i) -> Dictionary:
+	var terrain := get_terrain_at(tile)
+	return {
+		"def":   TERRAIN_DEF_BONUS.get(terrain, 0),
+		"dodge": TERRAIN_DODGE_BONUS.get(terrain, 0),
+	}
+
+
 func world_to_tile(world_pos: Vector2) -> Vector2i:
 	return Vector2i(int(world_pos.x) / GameConstants.TILE_SIZE, int(world_pos.y) / GameConstants.TILE_SIZE)
 

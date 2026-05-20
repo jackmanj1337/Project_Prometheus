@@ -180,5 +180,24 @@ func get_equipped_weapon(): return _w
 		failed += 1
 	staff_unit.queue_free()
 
+	# --- get_terrain_bonuses returns matching {def, dodge} per tile (B1) ---
+	# The grid above seeds (2,2)=forest, (3,3)=mountain, (4,4)=wall. Wall has no
+	# defender bonus by design (impassable; counterattacks from wall tiles never
+	# happen) — confirms the accessor zeros out unknown / no-bonus terrain too.
+	var b_forest: Dictionary = grid.get_terrain_bonuses(Vector2i(2, 2))
+	var b_mountain: Dictionary = grid.get_terrain_bonuses(Vector2i(3, 3))
+	var b_wall: Dictionary = grid.get_terrain_bonuses(Vector2i(4, 4))
+	var b_plain: Dictionary = grid.get_terrain_bonuses(Vector2i(0, 0))
+	if b_forest == {"def": 1, "dodge": 15} \
+			and b_mountain == {"def": 2, "dodge": 20} \
+			and b_wall == {"def": 0, "dodge": 0} \
+			and b_plain == {"def": 0, "dodge": 0}:
+		print("OK  get_terrain_bonuses returns {def,dodge} per terrain (B1)")
+		passed += 1
+	else:
+		print("FAIL get_terrain_bonuses: forest=%s mountain=%s wall=%s plain=%s" % [
+			b_forest, b_mountain, b_wall, b_plain])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
