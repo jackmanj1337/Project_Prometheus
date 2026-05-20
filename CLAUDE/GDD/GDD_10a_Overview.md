@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `bad9f24` + PT4 #2 fix.
+Last refreshed: **2026-05-20** against branch `main` @ `b4050fd` (B1–B6 + PT4 #1–#2).
 
 ---
 
@@ -55,6 +55,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 | B7 ⬜ | `NewGameScreen._on_start` — guard scene change if `GameState` autoload missing | Independent; opportunistic. | 05-18 review §2 (Medium) |
 | B8 ⬜ | Carry-over Lows: redundant `_grid == null` half of `MapCursorSelection.plan_path_to`; misdescribing comment at `test_map_cursor_selection.gd:90`; `HUD._ready` magic `0`→`GameState.Phase.PLAYER`; `tile_position` / `mastery_skills` comment wording; `TurnManager._apply_fort_healing` "fort/throne" comment | Sweep together; one trivial commit. | 05-18 review §2 (Low) |
 | B9 ⬜ | Tighten singleton-mutating tests (restore in `else` branch too) — `test_turn_manager`, `test_combat`, `test_unit_stats` | Touch when next adding similar tests. | 05-19 review §2 (Low) |
+| B10 ⬜ | **Review and integrate `revised_classes_and_skills.md`.** A new 2567-line classes + skills reference (Awakening flavoured — base + promoted classes, stat caps, growth rates, skill descriptions for ~225 sections) landed in `CLAUDE/GDD/Content Expansion/`. Sits alongside the existing `classes.md`, `skills.md`, `awakening_classes_supplement.md`, `awakening_skills_supplement.md` — the word "revised" implies a supersession but is not declared. **Open question:** which existing docs does this replace vs. extend, and what does it imply for M9 (skill `effect_id`s), M11 (content expansion .tres authoring) and M13 (Awakening supplement)? Reconcile before M9 starts so the .tres data is authored against one source of truth, not four overlapping ones. | Do **before C5 (M9)**: M9 stamps `effect_id`s and `.tres` data into the codebase; doing so against a yet-to-be-reconciled spec is a guaranteed re-author. | `CLAUDE/GDD/Content Expansion/revised_classes_and_skills.md`; sibling docs in the same folder |
 
 ### Bucket C — Phase 2 milestones (Decision 10 order)
 
@@ -110,6 +111,7 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
  B3 (ModalScreen)    ──▶ C4, C5
  B5 (Settings schema)──▶ C7 + Phase-3 UI backlog
  B6 (DataManager validation) ──▶ C5
+ B10 (content-doc reconciliation) ──▶ C5, C7 (M9, M11)
 
  D1 (Pre-Release Cleanup) — gate at release time, not in milestone order
 ```
