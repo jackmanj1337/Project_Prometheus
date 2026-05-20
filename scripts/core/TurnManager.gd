@@ -1,6 +1,18 @@
 class_name TurnManager extends Node
 # Authority on phase progression and per-unit action state. The cursor and
 # action menu read from here to know what's selectable and when input is locked.
+#
+# M14 stage 3: rebuilt as an activation scheduler. Public surface unchanged
+# (start_player_phase / end_player_phase / start_enemy_phase still exist for
+# the existing controllers + tests), but underneath the cycle is now a list
+# of faction ids with a configurable activation policy. A 2-faction map in
+# the default WHOLE_PHASE mode runs identically to pre-stage-3.
+#
+# Activation modes (per Decision 9 / 2026-05-17):
+#   WHOLE_PHASE  — exhaust one faction's units, then advance. Today's FE-style
+#                  I-Go-You-Go; the default. _begin_phase fires per army phase.
+#   ALTERNATING  — advance one faction per single unit committed. _begin_phase
+#                  fires once per round (when the cycle wraps), not per phase.
 
 signal turn_changed(turn_number: int)
 
@@ -15,22 +27,125 @@ var _grid: GridManager = null
 # Latches true on first map_victory/map_defeat emit to prevent double-fire.
 var _map_over: bool = false
 
+# ── Scheduler state (M14 stage 3) ────────────────────────────────────────────
+# The ordered list of faction ids this map cycles through. Set in start_map
+# from MapData.turn_order; falls back to the default if the map didn't author one.
+var _turn_order: Array[String] = []
+# Index into _turn_order — the currently activating faction.
+var _active_faction_idx: int = 0
+# WHOLE_PHASE | ALTERNATING — set in start_map from MapData.activation_mode.
+var _activation_mode: String = "WHOLE_PHASE"
+# Default cycle when neither MapData.turn_order nor MapData.factions provides one.
+# Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
+# Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
+# collapses this to blue → red automatically.
+const _DEFAULT_TURN_ORDER: Array[String] = ["blue", "green", "red", "yellow"]
+
 
 # Called by GameMap after units have spawned.
 func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	_map_data = map_data
 	_grid = grid
+	_turn_order = _derive_turn_order(map_data)
+	_activation_mode = _derive_activation_mode(map_data)
+	_active_faction_idx = 0
+	# In ALTERNATING mode the round-start _begin_phase fires once for all units
+	# now (since this IS the start of round 1). WHOLE_PHASE defers begin-phase
+	# to start_faction_phase as before.
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.turn_number = 1
 		for u in gs.all_units:
 			_unit_states[u] = UnitState.READY
+	if _activation_mode == "ALTERNATING" and gs != null:
+		_begin_phase(gs.all_units)
 	# Hook into unit_died so victory checks fire after each kill
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and not bus.unit_died.is_connected(_on_unit_died):
 		bus.unit_died.connect(_on_unit_died)
-	# First player phase — does NOT increment turn_number (we're already on turn 1)
-	start_player_phase()
+	# Begin the first faction's phase. For 2-faction WHOLE_PHASE maps the first
+	# active faction is "blue", so this is the same as the pre-stage-3 call.
+	#
+	# Maps that start with a non-blue faction (a stage-4+ content design choice)
+	# set up the phase state but DO NOT auto-loop through AI here — the caller
+	# (GameMap, or stage-4's run_ai_phase dispatch) is responsible for driving
+	# the first non-blue phase. Otherwise the deferred "back to blue" call would
+	# fire before any caller could observe the initial scheduler state, and
+	# tests asserting "active faction after start_map" become race-prone.
+	if active_faction() == "blue" or active_faction() == "":
+		start_player_phase()
+	else:
+		# Non-blue first-faction: set ENEMY phase + per-army begin-phase, but
+		# don't await AI / queue start_player_phase. Stage 4 will plumb the
+		# controller dispatch here.
+		var gs_for_first := get_node_or_null("/root/GameState")
+		if gs_for_first:
+			gs_for_first.set_phase(gs_for_first.Phase.ENEMY)
+			if _activation_mode == "WHOLE_PHASE":
+				_begin_phase(gs_for_first.get_living_units_of(active_faction()))
+
+
+# Reads MapData.turn_order, MapData.factions, or falls back to the default
+# four-army cycle. A faction id is allowed even if it has zero living units —
+# _advance_faction's skip logic handles that at runtime.
+func _derive_turn_order(map_data: MapData) -> Array[String]:
+	if map_data != null and not map_data.turn_order.is_empty():
+		# Defensive copy — MapData lives in a Resource that could be shared
+		# across loads; we mutate _active_faction_idx, not the array, but a
+		# future _advance might want to write to _turn_order too.
+		return map_data.turn_order.duplicate()
+	if map_data != null and not map_data.factions.is_empty():
+		var out: Array[String] = []
+		for f in map_data.factions:
+			if f != null and f.id != "":
+				out.append(f.id)
+		if not out.is_empty():
+			return out
+	# Default — copy so callers can't mutate the constant via the returned ref.
+	var fallback: Array[String] = []
+	for fid in _DEFAULT_TURN_ORDER:
+		fallback.append(fid)
+	return fallback
+
+
+func _derive_activation_mode(map_data: MapData) -> String:
+	if map_data != null and map_data.activation_mode != "":
+		return map_data.activation_mode
+	return "WHOLE_PHASE"
+
+
+# The faction whose phase / activation is currently in flight.
+func active_faction() -> String:
+	if _turn_order.is_empty():
+		return ""
+	return _turn_order[_active_faction_idx]
+
+
+# Advances _active_faction_idx to the next faction in the cycle, skipping any
+# faction with zero living units (Decision 2 / 2026-05-17). Returns true iff
+# the cycle wrapped past the end of _turn_order — i.e. a new round began.
+# If EVERY faction has zero living units (e.g. mutual wipe), the cycle is
+# halted and the function returns false without changing the index.
+func _advance_faction() -> bool:
+	if _turn_order.is_empty():
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	var wrapped := false
+	var checked := 0
+	while checked < _turn_order.size():
+		var next_idx: int = _active_faction_idx + 1
+		if next_idx >= _turn_order.size():
+			next_idx = 0
+			wrapped = true
+		_active_faction_idx = next_idx
+		checked += 1
+		if gs == null:
+			# No GameState in this scope — accept the advance as-is rather than loop.
+			return wrapped
+		if not gs.get_living_units_of(active_faction()).is_empty():
+			return wrapped
+	# All factions empty — halt.
+	return wrapped
 
 
 # Heals units standing on fort tiles by 10% max HP (GDD_02 terrain table).
@@ -76,10 +191,19 @@ func _begin_phase(units: Array[Node]) -> void:
 	_apply_start_of_turn_skills(units)
 
 
-# Resets all player units to READY, restores their appearance, sets the phase.
+# Resets all blue units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
+#
+# Stage 3 keeps this name + behaviour intact so MapCursor, EnemyAI, and the
+# existing test suite work unchanged. Routes through the new scheduler so
+# _active_faction_idx is always in sync with what's actually on-screen.
 func start_player_phase() -> void:
+	# Sync the scheduler — start_player_phase can be called from EnemyAI's tail
+	# (after the enemy phase) or from start_map (initial blue phase); both must
+	# leave _active_faction_idx pointing at blue so end_player_phase advances
+	# from the right slot.
+	_jump_active_faction_to("blue")
 	# Check victory/defeat first — if the map is already over (e.g. last enemy died
 	# during the enemy phase) we must not reset unit states or call start-of-turn effects
 	# on freed nodes.
@@ -89,13 +213,17 @@ func start_player_phase() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.PLAYER)
-		# map_turn ticks once per round (at the start of player phase, for all units)
-		_tick_unit_modifiers(gs.all_units, "map_turn")
-		_begin_phase(gs.get_living_player_units())
+		# WHOLE_PHASE (today's mode): map_turn ticks at the start of blue's phase
+		# (= round start in the 2-faction default cycle), then _begin_phase fires
+		# for blue's units only. ALTERNATING does both at round start in start_map
+		# / _alternating_round_wrap, not here.
+		if _activation_mode == "WHOLE_PHASE":
+			_tick_unit_modifiers(gs.all_units, "map_turn")
+			_begin_phase(gs.get_living_units_of("blue"))
 	for u in _unit_states.keys():
-		# M14 stage 1: literal "player" became the "blue" faction id. Stage 3 replaces
-		# this loop with `gs.get_living_units_of(active_faction)` once the per-faction
-		# unit buckets land — there's no behaviour change in stage 1.
+		# M14 stage 1: literal "player" became the "blue" faction id. Stage 3
+		# replaces this loop with `gs.get_living_units_of("blue")` when the
+		# per-faction buckets become the only source of truth.
 		if u and is_instance_valid(u) and u.team == "blue":
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
@@ -114,13 +242,25 @@ func end_player_phase() -> void:
 
 # Enemy phase: fort healing, then AI moves each enemy, then player phase resumes.
 # EnemyAI.run_enemy_phase() is awaited; without the autoload it falls back instantly.
+#
+# Stage 3: advances the scheduler one slot past blue (skipping empties via
+# _advance_faction). In a 2-faction default cycle that lands on red exactly
+# as pre-stage-3. Stage 4 replaces this single-AI path with a per-faction
+# AI loop driven by FactionData.controller.
 func start_enemy_phase() -> void:
+	# Advance the scheduler from blue to the next non-empty faction. The skip
+	# logic in _advance_faction handles the default cycle's empty green/yellow.
+	# Guard: only advance if we're sitting on blue — start_enemy_phase can also
+	# be reached via a direct test call where the index is already correct.
+	if active_faction() == "blue":
+		_advance_faction()
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.set_phase(gs.Phase.ENEMY)
-		# Same _begin_phase routine as the player phase — turn-modifier tick, fort
-		# healing, then start_of_turn skills (e.g. Renewal) — kept provably symmetric.
-		_begin_phase(gs.get_living_enemy_units())
+		if _activation_mode == "WHOLE_PHASE":
+			# Same _begin_phase routine as the player phase — turn-modifier tick, fort
+			# healing, then start_of_turn skills (e.g. Renewal) — kept provably symmetric.
+			_begin_phase(gs.get_living_units_of(active_faction()))
 	var ai := get_node_or_null("/root/EnemyAI")
 	if ai:
 		await ai.run_enemy_phase(_grid, self)
@@ -128,6 +268,51 @@ func start_enemy_phase() -> void:
 		call_deferred("start_player_phase")
 	# Victory/defeat during the enemy phase is caught by _on_unit_died (via signal).
 	# start_player_phase() covers the turn-limit check at the top of each new turn.
+
+
+# Scheduler primitive: snap _active_faction_idx onto a specific faction id, if
+# it appears in _turn_order. No-op when the id isn't in the cycle (a misconfigured
+# map). Stage 3 uses this from start_player_phase to keep the scheduler honest
+# under the legacy API; stage 5 (hotseat) and stage 4 (per-AI-faction) will
+# call _advance_faction directly instead.
+func _jump_active_faction_to(faction_id: String) -> void:
+	if faction_id == "":
+		return
+	var idx: int = _turn_order.find(faction_id)
+	if idx >= 0:
+		_active_faction_idx = idx
+
+
+# ── ALTERNATING-mode primitive (M14 stage 3) ─────────────────────────────────
+# In ALTERNATING mode the controller (cursor or AI) commits ONE unit, then
+# yields back here. _end_alternating_activation advances the scheduler one
+# slot, refreshing everyone + ticking map_turn + firing _begin_phase exactly
+# at the round boundary (Decision 9 — "_begin_phase timing mode-aware").
+#
+# Pre-stage-3 single-mode controllers don't call this — they end whole phases
+# via start_player_phase / end_player_phase, which keeps WHOLE_PHASE behaviour
+# identical. ALTERNATING maps wire their controllers into this primitive in a
+# follow-up; tests below pin the primitive directly.
+func end_alternating_activation() -> void:
+	if _activation_mode != "ALTERNATING":
+		return
+	var wrapped: bool = _advance_faction()
+	if not wrapped:
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	# Round boundary: refresh + map_turn tick + begin-phase across all units.
+	gs.turn_number += 1
+	turn_changed.emit(gs.turn_number)
+	for u in _unit_states.keys():
+		if u and is_instance_valid(u):
+			_unit_states[u] = UnitState.READY
+			if u.has_method("reset_appearance"):
+				u.reset_appearance()
+	_tick_unit_modifiers(gs.all_units, "map_turn")
+	_begin_phase(gs.all_units)
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 func set_unit_state(unit: Node, state: UnitState) -> void:

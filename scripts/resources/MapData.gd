@@ -29,3 +29,21 @@ class_name MapData extends Resource
 # Where to center the camera on map load. Vector2i(-1,-1) = not set; falls back
 # to the centroid of player_start_tiles.
 @export var camera_start_tile: Vector2i = Vector2i(-1, -1)
+
+# ── M14 stage 3: N-faction data ──────────────────────────────────────────────
+# The factions that exist on this map. Leave empty for the blue+red default —
+# TurnManager / GameState build a default list at start_map time so existing
+# maps load with zero edits. Stage-4+ content maps will populate this directly.
+@export var factions: Array[FactionData] = []
+
+# The order factions activate in. Leave empty to use the order of `factions`
+# (or the [blue, red] default). The cycle skips any faction with zero living
+# units (Decision 2 / 2026-05-17). Strings here must match a faction id either
+# in `factions` or in the default fallback.
+@export var turn_order: Array[String] = []
+
+# Activation policy — "WHOLE_PHASE" exhausts one faction's units before
+# advancing (today's FE-style I-Go-You-Go); "ALTERNATING" advances after each
+# single unit committed and refreshes everyone at round end (Decision 9).
+# Default WHOLE_PHASE keeps the existing M14/M15/M16 specs + content valid.
+@export var activation_mode: String = "WHOLE_PHASE"

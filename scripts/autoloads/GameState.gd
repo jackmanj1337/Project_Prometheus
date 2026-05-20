@@ -107,8 +107,13 @@ func _emit_debug_flags_changed() -> void:
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
-var _player_units: Array[Node] = []
-var _enemy_units: Array[Node] = []
+# M14 stage 3: per-faction unit buckets keyed by faction id. Replaces the
+# previous binary _player_units / _enemy_units pair so a 5th faction is pure
+# data. Living-unit filters (get_living_units_of, get_living_player_units,
+# get_living_enemy_units) all read from this dict — the legacy two methods
+# are thin wrappers that delegate to "blue" and "every non-blue id" so the
+# existing TurnManager / EnemyAI / MapCursor call sites work unchanged.
+var _units_by_faction: Dictionary = {}
 var map_data: MapData = null
 
 # Persists between maps — the live roster and shared economy
@@ -130,19 +135,25 @@ func register_unit(unit: Node) -> void:
 		push_error("GameState.register_unit: %s already registered" % unit)
 		return
 	all_units.append(unit)
-	# M14 stage 1: legacy "player"/"enemy" buckets keyed off "blue"/"red" faction ids.
-	# Stage 3 replaces these two arrays with a per-faction-id dictionary; until then
-	# the binary bucketing is preserved so test_game_state and TurnManager don't move.
-	if unit.team == "blue":
-		_player_units.append(unit)
-	else:
-		_enemy_units.append(unit)
+	# M14 stage 3: per-faction-id buckets. Builds the entry array lazily so a
+	# new faction joining mid-map (e.g. summoned units in a later milestone)
+	# doesn't need pre-registration.
+	var bucket: Array[Node] = _units_by_faction.get(unit.team, [] as Array[Node])
+	if not (unit in bucket):
+		bucket.append(unit)
+	_units_by_faction[unit.team] = bucket
 
 
 func unregister_unit(unit: Node) -> void:
 	all_units.erase(unit)
-	_player_units.erase(unit)
-	_enemy_units.erase(unit)
+	if "team" in unit:
+		var bucket: Array[Node] = _units_by_faction.get(unit.team, [] as Array[Node])
+		bucket.erase(unit)
+		_units_by_faction[unit.team] = bucket
+	else:
+		# Defensive: a Unit instance whose team somehow vanished — sweep all buckets.
+		for fid in _units_by_faction.keys():
+			(_units_by_faction[fid] as Array[Node]).erase(unit)
 
 
 func set_phase(new_phase: Phase) -> void:
@@ -154,20 +165,40 @@ func set_phase(new_phase: Phase) -> void:
 		bus.emit_signal("phase_changed", new_phase)
 
 
-# filter() returns generic Array, so build Array[Node] explicitly
-func get_living_player_units() -> Array[Node]:
+# M14 stage 3: living units of an arbitrary faction. filter() returns a generic
+# Array, so build Array[Node] explicitly. A missing faction returns [].
+func get_living_units_of(faction_id: String) -> Array[Node]:
 	var result: Array[Node] = []
-	for u in _player_units:
+	var bucket: Array[Node] = _units_by_faction.get(faction_id, [] as Array[Node])
+	for u in bucket:
 		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
 			result.append(u)
 	return result
 
 
+# Legacy alias: the human-controlled "blue" faction. Kept so the existing
+# TurnManager / MapCursor / EnemyAI / test call sites work unchanged. Stage 5
+# (hotseat) and beyond will broaden this to "the active controlling faction"
+# at the call site rather than hardcoding blue here.
+func get_living_player_units() -> Array[Node]:
+	return get_living_units_of("blue")
+
+
+# Legacy alias: every living unit NOT in blue's alliance group — i.e. every
+# unit hostile to the player. Today's enemy AI loop iterates this; stage 4
+# replaces both call sites with run_ai_phase(faction) / per-AI-faction iter.
 func get_living_enemy_units() -> Array[Node]:
 	var result: Array[Node] = []
-	for u in _enemy_units:
-		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
-			result.append(u)
+	for fid in _units_by_faction.keys():
+		# "blue" by definition is in blue's alliance group; skip it. For other
+		# ids, use are_hostile so a future "green" ally to blue is also excluded
+		# from the "enemy" list. (Stage 4 retires this caller; behaviour-neutral
+		# today since only blue + red exist.)
+		if fid == "blue" or not are_hostile("blue", fid):
+			continue
+		for u in (_units_by_faction[fid] as Array[Node]):
+			if is_instance_valid(u) and u.data != null and u.data.hp > 0:
+				result.append(u)
 	return result
 
 
@@ -177,8 +208,7 @@ func is_player_turn() -> bool:
 
 func reset_map_state() -> void:
 	all_units.clear()
-	_player_units.clear()
-	_enemy_units.clear()
+	_units_by_faction.clear()
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER

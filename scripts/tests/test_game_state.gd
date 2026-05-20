@@ -129,6 +129,46 @@ func _init() -> void:
 	else:
 		print("FAIL are_hostile: alliance-group check failed"); failed += 1
 
+	# ---- M14 stage 3: per-faction buckets via get_living_units_of() ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20))
+	gs.register_unit(_mk_unit("blue", 0))    # dead — excluded by living filter
+	gs.register_unit(_mk_unit("red", 20))
+	gs.register_unit(_mk_unit("green", 20))  # 4-faction-ready
+	gs.register_unit(_mk_unit("yellow", 0))  # dead yellow
+	var bucket_ok: bool = (
+		gs.get_living_units_of("blue").size() == 1
+		and gs.get_living_units_of("red").size() == 1
+		and gs.get_living_units_of("green").size() == 1
+		and gs.get_living_units_of("yellow").is_empty()         # only the dead one was registered
+		and gs.get_living_units_of("purple").is_empty()         # never registered
+	)
+	if bucket_ok:
+		print("OK  get_living_units_of: per-faction buckets, excludes dead, returns [] for unknowns"); passed += 1
+	else:
+		print("FAIL get_living_units_of: blue=%d red=%d green=%d yellow=%d purple=%d" % [
+			gs.get_living_units_of("blue").size(),
+			gs.get_living_units_of("red").size(),
+			gs.get_living_units_of("green").size(),
+			gs.get_living_units_of("yellow").size(),
+			gs.get_living_units_of("purple").size(),
+		])
+		failed += 1
+
+	# ---- legacy aliases still work: blue → player wrapper, hostile-to-blue → enemy wrapper ----
+	var alias_ok: bool = (
+		gs.get_living_player_units().size() == 1            # blue
+		and gs.get_living_enemy_units().size() == 1         # red is hostile to blue; green is ally; yellow has no live unit
+	)
+	if alias_ok:
+		print("OK  get_living_player_units == get_living_units_of('blue'); enemy alias hostility-aware"); passed += 1
+	else:
+		print("FAIL legacy aliases: player=%d enemy=%d" % [
+			gs.get_living_player_units().size(),
+			gs.get_living_enemy_units().size(),
+		])
+		failed += 1
+
 	# ---- get_alliance_group returns the group name; unknown id falls back to itself ----
 	var group_ok: bool = (
 		gs.get_alliance_group("blue") == "allies"

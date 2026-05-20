@@ -330,5 +330,145 @@ func _init() -> void:
 	else:
 		print("SKIP auto-end toggle (SettingsManager autoload absent)")
 
+	# ── M14 stage 3: activation scheduler ─────────────────────────────────────
+
+	# ---- start_map: default turn_order is the four-army cycle when MapData is bare ----
+	gs.reset_map_state()
+	var md_default := MapData.new()
+	var tm_default := TurnManager.new()
+	root.add_child(tm_default)
+	tm_default.start_map(md_default)
+	var default_order_ok: bool = (
+		tm_default._turn_order == (["blue", "green", "red", "yellow"] as Array[String])
+		and tm_default._activation_mode == "WHOLE_PHASE"
+		and tm_default.active_faction() == "blue"
+	)
+	if default_order_ok:
+		print("OK  start_map: default turn_order blue→green→red→yellow, WHOLE_PHASE, blue first"); passed += 1
+	else:
+		print("FAIL default turn_order: order=%s mode=%s active=%s" % [
+			tm_default._turn_order, tm_default._activation_mode, tm_default.active_faction()])
+		failed += 1
+
+	# ---- start_map: MapData.turn_order overrides the default ----
+	gs.reset_map_state()
+	var md_custom := MapData.new()
+	md_custom.turn_order = ["red", "blue"] as Array[String]   # red moves first
+	md_custom.activation_mode = "ALTERNATING"
+	var tm_custom := TurnManager.new()
+	root.add_child(tm_custom)
+	tm_custom.start_map(md_custom)
+	var custom_ok: bool = (
+		tm_custom._turn_order == (["red", "blue"] as Array[String])
+		and tm_custom._activation_mode == "ALTERNATING"
+		and tm_custom.active_faction() == "red"
+	)
+	if custom_ok:
+		print("OK  start_map: MapData.turn_order + activation_mode override the defaults"); passed += 1
+	else:
+		print("FAIL custom turn_order: order=%s mode=%s active=%s" % [
+			tm_custom._turn_order, tm_custom._activation_mode, tm_custom.active_faction()])
+		failed += 1
+
+	# ---- _advance_faction: skips factions with zero living units ----
+	# Cycle blue→green→red. Only blue + red have units; green is empty and must be skipped.
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "b_skip"))
+	gs.register_unit(_mk_unit("red", 20, "r_skip"))
+	var tm_skip := TurnManager.new()
+	root.add_child(tm_skip)
+	var md_skip := MapData.new()
+	md_skip.turn_order = ["blue", "green", "red"] as Array[String]
+	tm_skip.start_map(md_skip)
+	# We're on blue (idx 0). One advance should land on red, skipping the empty green.
+	var skip_wrapped: bool = tm_skip._advance_faction()
+	var skip_active: String = tm_skip.active_faction()
+	if not skip_wrapped and skip_active == "red":
+		print("OK  _advance_faction: skips zero-unit factions in the cycle"); passed += 1
+	else:
+		print("FAIL skip-zero: wrapped=%s active=%s (want false / red)" % [skip_wrapped, skip_active])
+		failed += 1
+
+	# ---- _advance_faction: wraps past the end and reports it ----
+	# Now on red (idx 2). One more advance must wrap → blue (idx 0), wrapped=true.
+	var wrap_result: bool = tm_skip._advance_faction()
+	var wrap_active: String = tm_skip.active_faction()
+	if wrap_result and wrap_active == "blue":
+		print("OK  _advance_faction: wraps past end of turn_order and reports it"); passed += 1
+	else:
+		print("FAIL wrap: wrapped=%s active=%s (want true / blue)" % [wrap_result, wrap_active])
+		failed += 1
+
+	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
+	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can
+	# observe the refresh-on-wrap.
+	gs.reset_map_state()
+	var alt_blue := _mk_unit("blue", 20, "alt_b")
+	var alt_red  := _mk_unit("red", 20, "alt_r")
+	gs.register_unit(alt_blue)
+	gs.register_unit(alt_red)
+	var tm_alt := TurnManager.new()
+	root.add_child(tm_alt)
+	var md_alt := MapData.new()
+	md_alt.turn_order = ["blue", "red"] as Array[String]
+	md_alt.activation_mode = "ALTERNATING"
+	tm_alt.start_map(md_alt)
+	# After start_map: on blue, all units READY.
+	tm_alt._unit_states[alt_blue] = TurnManager.UnitState.DONE
+	tm_alt._unit_states[alt_red]  = TurnManager.UnitState.DONE
+	var alt_turn_seen := [0]
+	tm_alt.turn_changed.connect(func(n): alt_turn_seen[0] = n)
+	# First end-activation: blue → red, no wrap, no refresh.
+	tm_alt.end_alternating_activation()
+	var alt_mid_ok: bool = (
+		tm_alt.active_faction() == "red"
+		and alt_turn_seen[0] == 0
+		and tm_alt._unit_states[alt_blue] == TurnManager.UnitState.DONE
+	)
+	# Second end-activation: red → blue, wraps. Round bumped, units refreshed.
+	tm_alt.end_alternating_activation()
+	var alt_wrap_ok: bool = (
+		tm_alt.active_faction() == "blue"
+		and alt_turn_seen[0] == 2                                              # turn_number bumped 1 → 2
+		and tm_alt._unit_states[alt_blue] == TurnManager.UnitState.READY       # refreshed
+		and tm_alt._unit_states[alt_red] == TurnManager.UnitState.READY
+	)
+	if alt_mid_ok and alt_wrap_ok:
+		print("OK  ALTERNATING: per-unit advance, round-wrap refreshes and bumps turn_number"); passed += 1
+	else:
+		print("FAIL ALTERNATING: mid_ok=%s wrap_ok=%s active=%s turn_seen=%d" % [
+			alt_mid_ok, alt_wrap_ok, tm_alt.active_faction(), alt_turn_seen[0]])
+		failed += 1
+
+	# ---- WHOLE_PHASE: end_alternating_activation is a no-op (wrong mode) ----
+	var tm_whole := TurnManager.new()
+	root.add_child(tm_whole)
+	tm_whole._turn_order = ["blue", "red"] as Array[String]
+	tm_whole._activation_mode = "WHOLE_PHASE"
+	tm_whole._active_faction_idx = 0
+	tm_whole.end_alternating_activation()
+	if tm_whole.active_faction() == "blue":
+		print("OK  end_alternating_activation is a no-op in WHOLE_PHASE mode"); passed += 1
+	else:
+		print("FAIL ALT no-op: active=%s after call (want blue)" % tm_whole.active_faction())
+		failed += 1
+
+	# ---- start_map: factions read FactionData[] when turn_order isn't authored ----
+	# Stage 3 lets MapData carry FactionData entries instead of a string list; the
+	# scheduler then reads the order from those entries' ids.
+	gs.reset_map_state()
+	var fd_blue := FactionData.new(); fd_blue.id = "blue"
+	var fd_red  := FactionData.new(); fd_red.id  = "red"
+	var md_fd := MapData.new()
+	md_fd.factions = [fd_blue, fd_red] as Array[FactionData]   # no turn_order
+	var tm_fd := TurnManager.new()
+	root.add_child(tm_fd)
+	tm_fd.start_map(md_fd)
+	if tm_fd._turn_order == (["blue", "red"] as Array[String]):
+		print("OK  start_map: turn_order derived from MapData.factions when turn_order empty"); passed += 1
+	else:
+		print("FAIL fd-derived order: %s" % str(tm_fd._turn_order))
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
