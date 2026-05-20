@@ -97,6 +97,28 @@ func _init() -> void:
 		print("FAIL map_data: map_001_data.tres")
 		failed += 1
 
+	# --- M16 stage 1: per-group condition fields exist + default empty ---
+	# Existing .tres files must load with both dicts empty (legacy fields still
+	# drive the evaluator). Stage 2 adds the evaluator changes; stage 1 just
+	# pins the schema.
+	if md and md.victory_conditions is Dictionary and md.victory_conditions.is_empty():
+		print("OK  map_data: victory_conditions defaults empty"); passed += 1
+	else:
+		print("FAIL map_data: victory_conditions missing or non-empty by default"); failed += 1
+	if md and md.defeat_conditions is Dictionary and md.defeat_conditions.is_empty():
+		print("OK  map_data: defeat_conditions defaults empty"); passed += 1
+	else:
+		print("FAIL map_data: defeat_conditions missing or non-empty by default"); failed += 1
+
+	# --- M16 stage 1: ObjectiveCondition resource constructs with defaults ---
+	var oc := ObjectiveCondition.new()
+	if oc is ObjectiveCondition and oc.type == "rout" and oc.faction_id == "" \
+			and oc.unit_ids.is_empty() and oc.tiles.is_empty() \
+			and oc.allowed_unit_ids.is_empty() and oc.turns == 0:
+		print("OK  ObjectiveCondition: defaults (type=rout, all params empty/0)"); passed += 1
+	else:
+		print("FAIL ObjectiveCondition defaults — got type=%s, faction_id=%s" % [oc.type, oc.faction_id]); failed += 1
+
 	# --- Roster unit_id non-empty ---
 	for path in roster_files:
 		var u = load(path)

@@ -47,3 +47,22 @@ class_name MapData extends Resource
 # single unit committed and refreshes everyone at round end (Decision 9).
 # Default WHOLE_PHASE keeps the existing M14/M15/M16 specs + content valid.
 @export var activation_mode: String = "WHOLE_PHASE"
+
+# ── M16 stage 1: per-group condition sets ────────────────────────────────────
+# Victory and defeat conditions are evaluated PER ALLIANCE GROUP (Decision 8 /
+# 2026-05-17): each key is a group name from FactionData.alliance_group
+# ("allies", "foes", "rogues", … plus any custom group introduced by a map),
+# each value is an Array[ObjectiveCondition].
+#
+# Evaluation semantics (TurnManager.check_victory_conditions, M16 stage 2+):
+#   victory = AND of every condition in victory_conditions[group]
+#   defeat  = OR  of any condition in defeat_conditions[group]
+# A group with no entries in either dictionary gets an implicit "group routed"
+# defeat condition so every group always has a way to be out (M16 spec).
+#
+# Stage 1 ships the schema only — the evaluator still reads the legacy
+# `objective_type` / `turn_limit` / `required_survivor_ids` fields below, which
+# are treated as implicit blue-group conditions in stage 2. Both dictionaries
+# are empty by default so existing maps load unchanged.
+@export var victory_conditions: Dictionary = {}
+@export var defeat_conditions: Dictionary = {}
