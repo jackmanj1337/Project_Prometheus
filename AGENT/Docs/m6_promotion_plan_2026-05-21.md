@@ -35,6 +35,9 @@ the battle-prep skill-swap UI (noted as a dependency, built separately).
    equipped skills for previously-earned ones. M6 must keep every earned skill
    recorded even when it can't be equipped (see "Skill cap handling").
 7. **New weapon proficiencies gained at promotion start at E rank.**
+8. **Promotion weapon outcomes are fixed, not player-chosen, for the first
+   pass.** Use Awakening-style defaults / analogues so promotion remains a
+   single class-choice flow with no second weapon-selection prompt.
 
 ## Schema changes
 
@@ -121,8 +124,8 @@ off, EXP is discarded at cap as today until a promotion item is used.
   name, the stat-bonus deltas, and the two skills it will learn.
 - On confirm, calls `Unit.promote(chosen_id)`; blocks input while open
   (mirror `LevelUpScreen`'s `level_up_started` / `_finished` bracketing).
-- For classes with a sub-choice (Bow Knight proficiency, Paladin "+1
-  additional", Sage "+1 additional", War Monk vs War Cleric) — see A3.
+- No second prompt for weapon selection in M6. Weapon outcomes are fixed per
+  promoted class; see "Fixed promotion proficiencies" below.
 
 ### New Game screen — `NewGameScreen.gd`
 Add an "Auto-promote at max level" Off/On `OptionButton`, wired to
@@ -165,18 +168,18 @@ for player tables; LUK cap shown).
 - player growth: 50 / 20 / 0 / 25 / 20 / 0 / 5 / 5
 - enemy growth: 90 / 35 / 0 / 40 / 40 / 35 / 25 / 15
 - skills: 5 → bowfaire *(exists)*, 15 → rally_skill
-- note: proficiency gained depends on origin (A3).
+- note: fixed to sword + bow for both origins.
 
 ### Cavalier → paladin, vanguard
 
-**paladin** — weapons: sword, lance (+1 at promotion, A3) — type: mounted
+**paladin** — weapons: sword, lance — type: mounted
 - bonuses: HP+7 STR+3 MAG+1 SKL+2 SPD+2 LUK+0 DEF+3 RES+6 (MOV+1)
 - caps: 80 / 42 / 30 / 40 / 40 / 45 / 42 / 42
 - player growth: 45 / 20 / 0 / 20 / 20 / 0 / 10 / 10
 - enemy growth: 90 / 45 / 0 / 40 / 40 / 45 / 35 / 30
 - skills: 5 → strike_true, 15 → challenge
 
-**vanguard** (homebrew) — weapons: axe, lance, sword (as held) — type: mounted
+**vanguard** (homebrew) — weapons: sword, lance — type: mounted
 - bonuses: HP+8 STR+5 MAG+0 SKL+1 SPD-1 LUK+0 DEF+7 RES+1 (MOV+0)
 - caps: 80 / 48 / 20 / 34 / 37 / 45 / 48 / 30
 - player growth: 50 / 25 / 0 / 15 / 15 / 0 / 15 / 5
@@ -226,14 +229,14 @@ for player tables; LUK cap shown).
 
 ### Mage → mage_knight, sage, dark_knight
 
-**mage_knight** (homebrew) — weapons: anima (as held) — type: mounted
+**mage_knight** (homebrew) — weapons: sword, anima — type: mounted
 - bonuses: HP+9 STR+4 MAG+1 SKL+3 SPD+1 LUK+0 DEF+7 RES+2 (MOV+3)
 - caps: 80 / 38 / 41 / 40 / 40 / 45 / 42 / 38
 - player growth: 50 / 15 / 15 / 15 / 15 / 0 / 10 / 5
 - enemy growth: 95 / 35 / 40 / 40 / 30 / 30 / 35 / 30
 - skills: 5 → aegis, 15 → flare
 
-**sage** — weapons: anima (as held) +1 additional (A3)
+**sage** — weapons: anima, staff
 - bonuses: HP+4 STR+1 MAG+3 SKL+2 SPD+3 LUK+0 DEF+2 RES+2 (MOV+1)
 - caps: 80 / 30 / 46 / 43 / 42 / 45 / 31 / 40
 - player growth: 35 / 0 / 20 / 20 / 20 / 0 / 5 / 10
@@ -287,6 +290,34 @@ deeper_knowledge, lifetaker, shadowgift, dash, disarm, vigilance, diehard.
 Register each new `effect_id` in `SkillHandler._dispatch` pointing at
 `_apply_unimplemented` until M9.
 
+## Fixed promotion proficiencies
+
+To keep M6 simple and deterministic, promotion grants a fixed promoted-class
+weapon set with any newly-added proficiencies starting at **E** rank. These are
+chosen to mirror Awakening's broad class identities instead of adding a second
+weapon-choice UI in the first pass.
+
+- `ranger`: `bow`, `sword`
+- `sniper`: `bow`
+- `bow_knight`: `sword`, `bow`
+- `paladin`: `sword`, `lance`
+- `vanguard`: `sword`, `lance`
+- `bishop`: `light`, `staff`
+- `paragon`: `light`, `lance`, `staff`
+- `war_monk`: `axe`, `staff`
+- `war_cleric`: `bow`, `staff`
+- `general`: `lance`, `axe`
+- `great_knight`: `sword`, `lance`, `axe`
+- `mage_knight`: `sword`, `anima`
+- `sage`: `anima`, `staff`
+- `dark_knight`: `sword`, `dark`
+- `hero`: `sword`, `axe`
+- `sentinel`: `sword`, `lance`
+
+Implementation note: `Unit.promote()` should add only the proficiencies missing
+from the unit's current loadout and initialise each new one at `{"rank": "E",
+"wexp": 0}`.
+
 ## Suggested commit breakdown
 
 - **M6.1** — Schema: `ClassData.max_level` + `promotes_from`, remove
@@ -298,6 +329,8 @@ Register each new `effect_id` in `SkillHandler._dispatch` pointing at
   "slots full" line.
 - **M6.4** — Promotion items: `ItemHandler` `promote` effect + `master_seal.tres`.
 - **M6.5** — `PromotionScreen` UI + New Game screen auto-promote option.
+- No weapon-subchoice UI in this pass; `PromotionScreen` only asks which class
+  to promote into.
 - **M6.6** — Promoted-class skill resources (~28 `.tres` + dispatch stubs).
 - **M6.7** — Promoted-class data (15 `.tres`); update Tier-1 `promotes_to`;
   `DataManager` validation of `promotes_to`/`promotes_from` (the deferred
@@ -320,14 +353,20 @@ Register each new `effect_id` in `SkillHandler._dispatch` pointing at
 - **A2 — `effective_level` is not reset** at promotion; `level` resets to 1.
   Promoted units re-cap at their own `max_level` (default 20 → 40 effective).
 - **A3 — Sub-choices at promotion** (Bow Knight's origin-based proficiency,
-  Paladin / Sage "+1 additional" weapon, War Monk vs War Cleric) are handled by
-  modelling distinct classes where possible (war_monk / war_cleric) and by a
-  second prompt in `PromotionScreen` for the "+1 weapon" cases. If that is too
-  much UI for a first pass, fix the extra weapon per class instead.
+  Paladin / Sage "+1 additional" weapon, War Monk vs War Cleric) are resolved
+  by fixed class data in M6. `war_monk` / `war_cleric` stay separate classes;
+  Bow Knight, Paladin, Vanguard, Mage Knight, and Sage use the fixed weapon
+  sets listed above. No second prompt is planned.
 - **A4 — Homebrew promoted classes** use the doc's stated analogue numbers
   as-is; no further tuning in M6.
 - **A5 — Promotion items are consumed on use** and require an eligible target;
   using one on an ineligible unit is a no-op with feedback.
+
+## Follow-up after M6
+
+- **F1 — Level-1 skill grant at unit creation.** Fix the existing N6 gap from
+  `class_skill_rebuild_plan_2026-05-21.md` so a newly-created level-1 unit
+  automatically receives its level-1 class skill without hand-authored data.
 
 ## Second Seal (reclassing) — effort estimate
 

@@ -142,3 +142,14 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
   transitions; a unit created at level 1 does not auto-receive its level-1
   class skill. `unit_01` was hand-given `discipline`. A "grant level-1 unlocks
   at unit creation" hook is a suggested follow-up.
+
+## Agreed next steps (2026-05-21)
+
+- Review and merge `class-skill-rebuild` into `main` before starting the larger
+  promotion implementation where practical.
+- Implement **M6 — Promotion** next.
+- Treat **M15 Part A — Hotseat Control** as explicitly deferred until the class
+  and skill track is complete; it stays the next milestone after the full
+  classes/skills pass.
+- After M6, schedule a small follow-up for **N6** so level-1 class skills are
+  granted automatically at unit creation instead of only on level-up.
