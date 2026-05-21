@@ -36,6 +36,7 @@ luck = 4
 movement = 6
 constitution = 8
 line_of_sight = 4
+growth_rates = {"hp": 55, "strength": 45, "magic": 0, "defense": 20, "resistance": 15, "skill": 45, "speed": 45, "luck": 35}
 proficiencies = {"sword": {"rank": "D", "wexp": 0}}
 skills = ["vantage", "swordfaire"]
 inventory = [SubResource("IE_1"), SubResource("IE_2")]

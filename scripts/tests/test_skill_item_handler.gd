@@ -72,7 +72,7 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
-	var soldier_data: UnitData = load("res://data/roster/default/unit_01_soldier.tres").duplicate(true)
+	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(true)
 	var unit := MockUnit.new()
 	unit.setup(soldier_data)
 	root.add_child(unit)

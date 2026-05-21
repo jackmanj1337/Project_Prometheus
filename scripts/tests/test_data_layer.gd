@@ -76,7 +76,7 @@ func _init() -> void:
 
 	# --- Default roster ---
 	var roster_files := [
-		"res://data/roster/default/unit_01_soldier.tres",
+		"res://data/roster/default/unit_01_cavalier.tres",
 		"res://data/roster/default/unit_02_mercenary.tres",
 		"res://data/roster/default/unit_03_archer.tres",
 		"res://data/roster/default/unit_04_mage.tres",

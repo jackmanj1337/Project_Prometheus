@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cavalier"
+display_name = "Cavalier"
+description = "A mounted knight with superior movement. Wields a lance from horseback."
+tier = 1
+base_hp = 18
+base_strength = 6
+base_magic = 0
+base_defense = 7
+base_resistance = 0
+base_skill = 5
+base_speed = 6
+base_luck = 0
+base_movement = 7
+base_constitution = 18
+base_line_of_sight = 4
+proficiencies = ["lance"]
+special_qualities = ["mounted"]
+promotes_to = ["paladin", "vanguard"]
+promotion_stat_bonuses = {}
+player_growth_rates = {"hp": 45, "strength": 20, "magic": 0, "defense": 10, "resistance": 5, "skill": 20, "speed": 20, "luck": 0}
+enemy_growth_rates = {"hp": 80, "strength": 35, "magic": 0, "defense": 30, "resistance": 15, "skill": 30, "speed": 30, "luck": 35}
+stat_caps = {"hp": 60, "strength": 26, "magic": 20, "defense": 26, "resistance": 26, "skill": 25, "speed": 25, "luck": 30}
+skill_unlocks = {1: "discipline", 10: "outdoor_fighter"}
+sprite_id = ""

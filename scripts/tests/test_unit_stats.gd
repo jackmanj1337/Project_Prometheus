@@ -8,7 +8,7 @@ func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
 
 	# ── Load resources ──
-	var soldier_data: UnitData = load("res://data/roster/default/unit_01_soldier.tres").duplicate(true)
+	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(true)
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
 	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
