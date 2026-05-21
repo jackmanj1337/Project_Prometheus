@@ -1456,7 +1456,27 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] Review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md` — align
       naming/layout assumptions with project asset standards, add validation/error
       handling requirements, and define how imported outputs plug into faction-aware
-      runtime data.
+      runtime data. **Decisions needed before implementation** (raised 2026-05-21):
+  - [ ] **Frame size & row order:** the guide hardcodes `FRAME_WIDTH/HEIGHT = 32`
+        and a `down/left/right/up` row order. Confirm the canonical frame size
+        (tie to `GameConstants.TILE_SIZE`) and direction order, and make both
+        exported plugin settings rather than `const`s so a mismatched sheet is a
+        config change, not a code edit.
+  - [ ] **Output shape vs. the `Unit` scene:** the guide generates a standalone
+        `_unit.tscn` (`Node2D + AnimatedSprite2D`) that `GameMap._spawn_unit()`
+        cannot consume — real units are the `Unit` scene with `Sprite2D`, HP bar,
+        `UnitData`, and faction tint (`apply_faction_visual`). Recommended: import
+        generates the `SpriteFrames` `.tres` only, and `Unit` switches from
+        `Sprite2D` to `AnimatedSprite2D` to consume it. Do NOT fork the unit
+        pipeline by generating whole scenes.
+  - [ ] **Folder layout:** the guide proposes `res://assets/raw/` +
+        `res://assets/generated/`; the project already splits source under
+        `assets/` and resources under `data/`. Decide raw art → `assets/`,
+        generated `.tres` → `data/` to match existing conventions.
+  - [ ] **Testability:** an `EditorPlugin` button cannot be exercised by the
+        headless `run_tests.sh`. Split the importer — region math and filename
+        parsing into a plain `RefCounted` covered by headless tests; the
+        `EditorPlugin` becomes a thin button that calls it.
 
 ### Maps
 
