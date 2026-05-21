@@ -10,7 +10,40 @@ breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
 ## Pending
 
-_None — all listed manual tasks are complete._
+### M15 Part A — Hotseat Validation Playtest
+
+Run this after the hotseat validation map and the first map selector build land.
+Skipping it leaves the remaining M15 Part A acceptance criteria unverified and
+makes future multi-map regression testing slower and more error-prone.
+
+Reference plan: `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md`
+
+- [ ] Launch the hotseat validation map from the **map selector**, not by editing
+      `GameMap.tscn` or changing `GameMap.map_data_path`
+- [ ] Confirm blue phase still behaves normally: cursor starts on blue, blue units
+      are selectable, and green units are not selectable during blue's turn
+- [ ] Leave at least one blue unit unacted and press End Turn once; confirm the
+      "some units have not acted" prompt appears, Cancel returns control, and
+      Confirm advances the turn
+- [ ] Confirm the green hotseat phase starts with an unlocked cursor and only green
+      units are selectable
+- [ ] Use a green combat unit to attack a **red** unit
+- [ ] Use a green combat unit to attack a **yellow** unit, confirming both hostile
+      factions are valid green targets
+- [ ] Use the green staff unit to heal a valid ally in range, ideally once on a
+      green ally and once on a blue ally, confirming same-alliance targeting
+- [ ] End a green phase manually with End Turn and confirm control passes to red
+- [ ] On a later green phase, act with every green unit and confirm the phase can
+      auto-end cleanly when all green units are done
+- [ ] Watch the red AI phase complete after green without hanging or skipping units
+- [ ] Watch the yellow AI phase complete after red without hanging or skipping units
+- [ ] Confirm the camera/control handoff back to blue feels normal when blue's
+      phase resumes
+- [ ] End the map by defeating the final hostile during a green hotseat action and
+      confirm the map resolves immediately without waiting for End Turn
+- [ ] Use the map selector to launch an all-non-blue-AI comparison map
+      (`map_001_c3_factions`) and confirm it still behaves like the pre-hotseat
+      faction-system build
 
 ---
 
