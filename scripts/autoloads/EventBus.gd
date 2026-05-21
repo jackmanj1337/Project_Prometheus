@@ -20,7 +20,7 @@ signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)
 signal unit_healed(unit: Node, amount: int)
-signal unit_leveled_up(unit: Node, stat_increases: Dictionary)
+signal unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array)
 # Brackets the level-up screen being on-screen — fired when it first appears and
 # again once its whole queue is dismissed. MapCursor uses these to suppress input
 # so the cursor can't be driven underneath the screen (#12).

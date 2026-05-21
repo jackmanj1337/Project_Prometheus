@@ -544,18 +544,48 @@ func level_up() -> void:
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
-	# M1: single growth table retained. M2 splits this into player vs enemy
-	# growth selection and folds in the unit's personal growth_rates.
-	var rates: Dictionary = class_data.player_growth_rates
+	var rates: Dictionary = _resolve_growth_rates(class_data)
+	var caps: Dictionary = class_data.stat_caps
 	var changes: Dictionary = {}
 	match method:
 		"growth_fixed":
-			changes = _level_up_fixed(rates)
+			changes = _level_up_fixed(rates, caps)
 		_:  # "growth_random" and any unknown value
-			changes = _level_up_random(rates)
+			changes = _level_up_random(rates, caps)
+	# Auto-learn any class skill whose unlock level matches the new level.
+	var learned: Array[String] = _grant_level_skills(class_data)
 	var bus := _bus()
 	if bus:
-		bus.unit_leveled_up.emit(self, changes)
+		bus.unit_leveled_up.emit(self, changes, learned)
+
+
+# Picks the growth table for this level-up. Enemy/generic units auto-level on
+# the class enemy table alone; player units add the class player table to the
+# unit's personal growth_rates (per the GDD growth-rate split).
+func _resolve_growth_rates(class_data: ClassData) -> Dictionary:
+	if team != "blue":
+		return class_data.enemy_growth_rates
+	var merged: Dictionary = {}
+	for stat in ClassData.STAT_KEYS:
+		merged[stat] = int(class_data.player_growth_rates.get(stat, 0)) \
+			+ int(data.growth_rates.get(stat, 0))
+	return merged
+
+
+# Grants every skill listed in the class's skill_unlocks for the unit's current
+# level, skipping any the unit already knows. Returns the ids newly learned so
+# the level-up screen can announce them.
+func _grant_level_skills(class_data: ClassData) -> Array[String]:
+	var learned: Array[String] = []
+	for unlock_level in class_data.skill_unlocks:
+		if int(unlock_level) != data.level:
+			continue
+		var skill_id: String = String(class_data.skill_unlocks[unlock_level])
+		if skill_id.is_empty() or has_skill(skill_id):
+			continue
+		data.skills.append(skill_id)
+		learned.append(skill_id)
+	return learned
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
@@ -571,58 +601,70 @@ func _debug_boosted_rate(rate: int) -> int:
 
 
 # Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
-func _level_up_random(rates: Dictionary) -> Dictionary:
+func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
 		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
-		if gain > 0:
-			for _i in gain:
-				_increment_stat(stat)
-			changes[stat] = gain
+		var applied: int = _apply_stat_gain(stat, gain, caps)
+		if applied > 0:
+			changes[stat] = applied
 	return changes
 
 
 # Deterministic: accumulates rate each level; +1 per full 100 accumulated.
 # Carry persists in data.growth_accumulators so gains are perfectly predictable.
 # Rate 50 → +1 every 2 levels exactly. Rate 150 → +1 every level, +1 extra every other.
-func _level_up_fixed(rates: Dictionary) -> Dictionary:
+func _level_up_fixed(rates: Dictionary, caps: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var acc: int = int(data.growth_accumulators.get(stat, 0)) + rate
 		var gain: int = acc / 100
 		data.growth_accumulators[stat] = acc % 100
-		if gain > 0:
-			for _i in gain:
-				_increment_stat(stat)
-			changes[stat] = gain
+		var applied: int = _apply_stat_gain(stat, gain, caps)
+		if applied > 0:
+			changes[stat] = applied
 	return changes
 
 
-# NOT ENFORCED — stat caps. Per-class maximum stats are not yet modelled, so a
-# high-growth unit can grow past intended class limits. Clamp here once ClassData
-# carries cap data (e.g. data.strength = mini(data.strength + 1, cap)).
-func _increment_stat(stat: String) -> void:
-	match stat:
-		"hp":
-			data.max_hp += 1
-			data.hp += 1  # current HP also increases on level up
-			# Refresh the HP bar: max_value is set once at init, so a mid-map
-			# level-up would otherwise leave the bar's range stale until the next
-			# reset_appearance() (never, for enemies).
-			if _hp_bar:
-				_hp_bar.max_value = data.max_hp
-				_hp_bar.value = data.hp
-		"strength": data.strength += 1
-		"magic": data.magic += 1
-		"defense": data.defense += 1
-		"resistance": data.resistance += 1
-		"skill": data.skill += 1
-		"speed": data.speed += 1
-		"luck": data.luck += 1
+# Applies up to `gain` points to a stat, stopping at the class cap. Returns the
+# number actually applied — a stat already at cap reports 0 so the level-up
+# screen shows no gain for it.
+func _apply_stat_gain(stat: String, gain: int, caps: Dictionary) -> int:
+	var cap: int = int(caps.get(stat, -1))  # -1 = uncapped (missing key / empty caps)
+	var applied: int = 0
+	for _i in gain:
+		if not _increment_stat(stat, cap):
+			break  # at cap — further points in this level-up are wasted
+		applied += 1
+	return applied
+
+
+# Raises one stat by 1, unless it has reached `cap` (cap < 0 means uncapped).
+# Returns true if the point was applied. The "hp" stat raises max_hp (the cap
+# target) and current hp together.
+func _increment_stat(stat: String, cap: int) -> bool:
+	if stat == "hp":
+		if cap >= 0 and data.max_hp >= cap:
+			return false
+		data.max_hp += 1
+		data.hp += 1  # current HP also increases on level up
+		# Refresh the HP bar: max_value is set once at init, so a mid-map
+		# level-up would otherwise leave the bar's range stale until the next
+		# reset_appearance() (never, for enemies).
+		if _hp_bar:
+			_hp_bar.max_value = data.max_hp
+			_hp_bar.value = data.hp
+		return true
+	# Every other growth stat shares its name with a UnitData property.
+	var current: int = int(data.get(stat))
+	if cap >= 0 and current >= cap:
+		return false
+	data.set(stat, current + 1)
+	return true
 
 
 # Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit

@@ -26,7 +26,7 @@ func _ready() -> void:
 	hide()
 
 
-func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
+func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array) -> void:
 	# Only show level-up screen for the player's faction; other factions are silent.
 	# M14 stage 5 will broaden this to "the active controlling faction" once a
 	# non-blue hotseat phase exists; for stage 1 the blue/player binding holds.
@@ -35,7 +35,7 @@ func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "skip":
 		return
-	_queue.append({"unit": unit, "increases": stat_increases})
+	_queue.append({"unit": unit, "increases": stat_increases, "learned": learned_skills})
 	if not visible:
 		# First level-up of this batch — tell MapCursor to freeze input so the
 		# cursor can't be driven underneath the screen (#12).

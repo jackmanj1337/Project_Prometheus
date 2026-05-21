@@ -296,9 +296,9 @@ func _init() -> void:
 	# Rate 50: should gain +1 on even levels only.
 	var rates50 := {"hp": 0, "strength": 50, "magic": 0, "defense": 0, "resistance": 0,
 		"skill": 0, "speed": 0, "luck": 0}
-	var ch1 := fixed_unit._level_up_fixed(rates50)  # acc=50 → 0 gain, carry=50
-	var ch2 := fixed_unit._level_up_fixed(rates50)  # acc=100 → +1, carry=0
-	var ch3 := fixed_unit._level_up_fixed(rates50)  # acc=50 → 0 gain, carry=50
+	var ch1 := fixed_unit._level_up_fixed(rates50, {})  # acc=50 → 0 gain, carry=50
+	var ch2 := fixed_unit._level_up_fixed(rates50, {})  # acc=100 → +1, carry=0
+	var ch3 := fixed_unit._level_up_fixed(rates50, {})  # acc=50 → 0 gain, carry=50
 	if not ch1.has("strength") and ch2.get("strength", 0) == 1 and not ch3.has("strength"):
 		print("OK  growth_fixed rate-50: gain only on every 2nd level")
 		passed += 1
@@ -311,8 +311,8 @@ func _init() -> void:
 		"skill": 0, "speed": 0, "luck": 0}
 	fixed_data.growth_accumulators = {}
 	fixed_data.strength = 0
-	var r1 := fixed_unit._level_up_fixed(rates150)  # acc=150 → +1, carry=50
-	var r2 := fixed_unit._level_up_fixed(rates150)  # acc=200 → +2, carry=0
+	var r1 := fixed_unit._level_up_fixed(rates150, {})  # acc=150 → +1, carry=50
+	var r2 := fixed_unit._level_up_fixed(rates150, {})  # acc=200 → +2, carry=0
 	if r1.get("strength", 0) == 1 and r2.get("strength", 0) == 2:
 		print("OK  growth_fixed rate-150: +1 then +2 pattern")
 		passed += 1
@@ -328,7 +328,7 @@ func _init() -> void:
 	var min_gain := 9999
 	for _i in 100:
 		rand_unit.data.strength = 0
-		var res := rand_unit._level_up_random(rates250)
+		var res := rand_unit._level_up_random(rates250, {})
 		var gain: int = res.get("strength", 0)
 		if gain < min_gain:
 			min_gain = gain
@@ -356,6 +356,67 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP debug_growth_boost (GameState autoload absent)")
+
+	# --- M2: stat gains clamp to the class stat cap ---
+	# A stat already at cap gains nothing; a stat one below cap gains only 1 of 2.
+	var cap_unit: Unit = unit_scene.instantiate()
+	var cap_data := UnitData.new()
+	cap_unit.data = cap_data
+	root.add_child(cap_unit)
+	await process_frame
+	cap_data.strength = 30
+	var at_cap: int = cap_unit._apply_stat_gain("strength", 2, {"strength": 30})
+	cap_data.strength = 29
+	var partial: int = cap_unit._apply_stat_gain("strength", 2, {"strength": 30})
+	if at_cap == 0 and partial == 1 and cap_data.strength == 30:
+		print("OK  M2: stat gain clamps to class cap")
+		passed += 1
+	else:
+		print("FAIL M2 cap clamp: at_cap=%d partial=%d str=%d" % [at_cap, partial, cap_data.strength])
+		failed += 1
+
+	# --- M2: growth-table resolution (player vs enemy) ---
+	# Blue units add personal growth_rates to the class player table; other teams
+	# use the class enemy table alone.
+	var gc := ClassData.new()
+	gc.player_growth_rates = {"hp": 40, "strength": 20, "magic": 0, "defense": 10,
+		"resistance": 5, "skill": 30, "speed": 15, "luck": 0}
+	gc.enemy_growth_rates = {"hp": 80, "strength": 40, "magic": 0, "defense": 20,
+		"resistance": 10, "skill": 60, "speed": 30, "luck": 0}
+	fixed_unit.data.growth_rates = {"strength": 10}
+	fixed_unit.team = "blue"
+	var blue_rates: Dictionary = fixed_unit._resolve_growth_rates(gc)
+	fixed_unit.team = "red"
+	var red_rates: Dictionary = fixed_unit._resolve_growth_rates(gc)
+	fixed_unit.team = "blue"
+	if blue_rates.get("strength", 0) == 30 and red_rates.get("strength", 0) == 40:
+		print("OK  M2: player growths add personal rates; enemy uses enemy table")
+		passed += 1
+	else:
+		print("FAIL M2 growth resolution: blue=%s red=%s" % [blue_rates, red_rates])
+		failed += 1
+
+	# --- M2: class skills auto-granted at their unlock level ---
+	var skill_unit: Unit = unit_scene.instantiate()
+	var skill_data := UnitData.new()
+	skill_unit.data = skill_data
+	root.add_child(skill_unit)
+	await process_frame
+	var sc := ClassData.new()
+	sc.skill_unlocks = {1: "vantage", 10: "wrath"}
+	skill_data.level = 10
+	var learned1: Array = skill_unit._grant_level_skills(sc)  # → wrath
+	skill_data.level = 1
+	var learned2: Array = skill_unit._grant_level_skills(sc)  # → vantage
+	var learned3: Array = skill_unit._grant_level_skills(sc)  # vantage already known → none
+	if learned1.size() == 1 and learned1[0] == "wrath" \
+			and learned2.size() == 1 and learned2[0] == "vantage" \
+			and learned3.is_empty():
+		print("OK  M2: class skills auto-granted at unlock level, no duplicates")
+		passed += 1
+	else:
+		print("FAIL M2 skill grant: l1=%s l2=%s l3=%s" % [learned1, learned2, learned3])
+		failed += 1
 
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
 	# Regression for MapCursorTargeting._apply_staff_heal ordering bug: fetching get_equipped_weapon()
