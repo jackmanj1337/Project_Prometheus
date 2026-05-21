@@ -613,6 +613,25 @@ func _init() -> void:
 		failed += 1
 	gs.max_skills = 4
 
+	# --- N6/F1: a newly created level-1 unit receives its class level-1 skill once ---
+	var init_skill_unit: Unit = unit_scene.instantiate()
+	var init_skill_data := UnitData.new()
+	init_skill_data.class_id = "cavalier"
+	init_skill_data.level = 1
+	init_skill_data.hp = 10
+	init_skill_data.max_hp = 10
+	init_skill_unit.data = init_skill_data
+	root.add_child(init_skill_unit)
+	await process_frame
+	init_skill_unit._grant_current_level_class_skills()
+	if init_skill_data.skills == ["discipline"] and init_skill_data.earned_skills == ["discipline"]:
+		print("OK  N6/F1: unit creation grants the class level-1 skill without duplicates")
+		passed += 1
+	else:
+		print("FAIL N6/F1 init skill grant: skills=%s earned=%s" % [
+			init_skill_data.skills, init_skill_data.earned_skills])
+		failed += 1
+
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
 	# Regression for MapCursorTargeting._apply_staff_heal ordering bug: fetching get_equipped_weapon()
 	# after use_weapon_durability() on a 1-use weapon returns null/wrong weapon.

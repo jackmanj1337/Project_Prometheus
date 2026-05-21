@@ -40,6 +40,7 @@ func set_grid_manager(grid: GridManager) -> void:
 func _ready() -> void:
 	if data != null:
 		_seed_earned_skills()
+		_grant_current_level_class_skills()
 		_apply_initial_state()
 
 
@@ -664,15 +665,9 @@ func _grant_level_skills(class_data: ClassData) -> Array[Dictionary]:
 	for unlock_level in class_data.skill_unlocks:
 		if int(unlock_level) != data.level:
 			continue
-		var skill_id: String = String(class_data.skill_unlocks[unlock_level])
-		if skill_id.is_empty() or _has_earned_skill(skill_id):
-			continue
-		data.earned_skills.append(skill_id)
-		var equipped: bool = false
-		if data.skills.size() < _max_equipped_skills():
-			data.skills.append(skill_id)
-			equipped = true
-		learned.append({"id": skill_id, "equipped": equipped})
+		var learned_skill := _learn_skill(String(class_data.skill_unlocks[unlock_level]))
+		if not learned_skill.is_empty():
+			learned.append(learned_skill)
 	return learned
 
 
@@ -684,6 +679,32 @@ func _seed_earned_skills() -> void:
 
 func _has_earned_skill(skill_id: String) -> bool:
 	return skill_id in data.earned_skills or skill_id in data.skills or skill_id in data.mastery_skills
+
+
+func _grant_current_level_class_skills() -> void:
+	if data == null or data.class_id.is_empty() or not is_inside_tree():
+		return
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm._classes.has(data.class_id):
+		return
+	var class_data: ClassData = dm._classes[data.class_id]
+	if class_data == null:
+		return
+	for unlock_level in class_data.skill_unlocks:
+		if int(unlock_level) != data.level:
+			continue
+		_learn_skill(String(class_data.skill_unlocks[unlock_level]))
+
+
+func _learn_skill(skill_id: String) -> Dictionary:
+	if skill_id.is_empty() or _has_earned_skill(skill_id):
+		return {}
+	data.earned_skills.append(skill_id)
+	var equipped: bool = false
+	if data.skills.size() < _max_equipped_skills():
+		data.skills.append(skill_id)
+		equipped = true
+	return {"id": skill_id, "equipped": equipped}
 
 
 func _max_equipped_skills() -> int:
