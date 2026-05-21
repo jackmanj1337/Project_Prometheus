@@ -119,6 +119,20 @@ func _init() -> void:
 	else:
 		print("FAIL are_all_player_units_done (one ready)"); failed += 1
 
+	# ---- are_all_units_done: works for any faction bucket ----
+	var d3 := _mk_unit("red", 20, "d3")
+	gs.register_unit(d3)
+	tm2.set_unit_state(d3, TurnManager.UnitState.DONE)
+	var all_red_done: bool = tm2.are_all_units_done("red")
+	tm2.set_unit_state(d3, TurnManager.UnitState.READY)
+	var red_ready_blocks: bool = not tm2.are_all_units_done("red")
+	if all_red_done and red_ready_blocks:
+		print("OK  are_all_units_done: checks arbitrary faction buckets"); passed += 1
+	else:
+		print("FAIL are_all_units_done: all_red_done=%s red_ready_blocks=%s" % [
+			all_red_done, red_ready_blocks])
+		failed += 1
+
 	# ---- check_victory_conditions: rout authored on allies → map_victory ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p1"))
@@ -267,6 +281,41 @@ func _init() -> void:
 	else:
 		print("FAIL auto-end fired early: turn_changed=%d" % partial_seen[0]); failed += 1
 
+	# ---- request_end_phase: blue falls through to end_player_phase ----
+	gs.reset_map_state()
+	gs.set_phase(gs.Phase.PLAYER)
+	var tm_req_blue := TurnManager.new()
+	root.add_child(tm_req_blue)
+	var req_blue_seen := [0]
+	tm_req_blue.turn_changed.connect(func(n): req_blue_seen[0] = n)
+	tm_req_blue.request_end_phase()
+	if req_blue_seen[0] != 0:
+		print("OK  request_end_phase: blue commits through end_player_phase")
+		passed += 1
+	else:
+		print("FAIL request_end_phase blue: turn_changed=%d" % req_blue_seen[0])
+		failed += 1
+
+	# ---- request_end_phase: hotseat commits by signal instead of blue logic ----
+	var tm_req_hot := TurnManager.new()
+	root.add_child(tm_req_hot)
+	var md_req_hot := MapData.new()
+	var hotseat_faction := FactionData.new()
+	hotseat_faction.id = "green"
+	hotseat_faction.controller = "HOTSEAT"
+	md_req_hot.factions = [hotseat_faction]
+	tm_req_hot._map_data = md_req_hot
+	tm_req_hot._turn_order = ["green"] as Array[String]
+	var hotseat_commit_seen := [0]
+	tm_req_hot.phase_committed.connect(func(): hotseat_commit_seen[0] += 1)
+	tm_req_hot.request_end_phase()
+	if hotseat_commit_seen[0] == 1:
+		print("OK  request_end_phase: hotseat commits by emitting phase_committed")
+		passed += 1
+	else:
+		print("FAIL request_end_phase hotseat: commits=%d" % hotseat_commit_seen[0])
+		failed += 1
+
 	# ---- _auto_end_player_phase bails when the map is already over ----
 	# Audit regression: a last action that also wins/loses the map must not then
 	# kick off an enemy phase.
@@ -407,33 +456,76 @@ func _init() -> void:
 		print("FAIL wrap: wrapped=%s active=%s (want true / blue)" % [wrap_result, wrap_active])
 		failed += 1
 
-	# ---- C3 stage 4: start_enemy_phase dispatches consecutive non-blue AI factions ----
+	# ---- M15 Part A: start_enemy_phase routes HOTSEAT then AI controllers ----
 	gs.reset_map_state()
 	var c3_b := _mk_unit("blue", 20, "c3_b")
+	var c3_g := _mk_unit("green", 20, "c3_g")
 	var c3_r := _mk_unit("red", 20, "c3_r")
-	var c3_y := _mk_unit("yellow", 20, "c3_y")
 	gs.register_unit(c3_b)
+	gs.register_unit(c3_g)
 	gs.register_unit(c3_r)
-	gs.register_unit(c3_y)
 	var tm_c3 := TurnManager.new()
 	root.add_child(tm_c3)
 	var md_c3 := MapData.new()
-	md_c3.turn_order = ["blue", "red", "yellow"] as Array[String]
+	var c3_green := FactionData.new()
+	c3_green.id = "green"
+	c3_green.controller = "HOTSEAT"
+	var c3_red := FactionData.new()
+	c3_red.id = "red"
+	c3_red.controller = "AI"
+	md_c3.factions = [c3_green, c3_red]
+	md_c3.turn_order = ["blue", "green", "red"] as Array[String]
 	tm_c3.start_map(md_c3)
 	var ai_stub_script := GDScript.new()
 	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
 	ai_stub_script.reload()
 	var ai_stub: Node = ai_stub_script.new()
+	var hotseat_stub_script := GDScript.new()
+	hotseat_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tturn.phase_committed.emit()\n"
+	hotseat_stub_script.reload()
+	var hotseat_stub: Node = hotseat_stub_script.new()
 	tm_c3.set_ai_controller(ai_stub)
+	tm_c3.set_hotseat_controller(hotseat_stub)
 	await tm_c3.start_enemy_phase()
 	var c3_calls: Array = ai_stub.get("calls")
-	if c3_calls == ["red", "yellow"] and tm_c3.active_faction() == "blue" and gs.is_player_turn():
-		print("OK  C3 stage 4: start_enemy_phase runs red+yellow AI then returns to blue")
+	var c3_hotseat_calls: Array = hotseat_stub.get("calls")
+	if c3_hotseat_calls == ["green"] and c3_calls == ["red"] \
+			and tm_c3.active_faction() == "blue" and gs.is_player_turn():
+		print("OK  start_enemy_phase: HOTSEAT then AI controllers run before blue resumes")
 		passed += 1
 	else:
-		print("FAIL C3 stage 4 loop: calls=%s active=%s phase=%s" % [
-			str(c3_calls), tm_c3.active_faction(), gs.current_phase
+		print("FAIL controller loop: hotseat=%s ai=%s active=%s phase=%s" % [
+			str(c3_hotseat_calls), str(c3_calls), tm_c3.active_faction(), gs.current_phase
 		]); failed += 1
+
+	# ---- HotseatController.run_phase: points the cursor at the acting faction and waits ----
+	var hotseat_controller: Node = load("res://scripts/core/HotseatController.gd").new()
+	root.add_child(hotseat_controller)
+	var hotseat_cursor_script := GDScript.new()
+	hotseat_cursor_script.source_code = "extends Node\nvar controlling_faction := \"\"\nvar unlock_calls := 0\nfunc set_controlling_faction(faction_id: String) -> void:\n\tcontrolling_faction = faction_id\nfunc unlock() -> void:\n\tunlock_calls += 1\n"
+	hotseat_cursor_script.reload()
+	var hotseat_cursor: Node = hotseat_cursor_script.new()
+	root.add_child(hotseat_cursor)
+	hotseat_controller.set_cursor(hotseat_cursor)
+	var tm_hotseat := TurnManager.new()
+	root.add_child(tm_hotseat)
+	var md_hotseat := MapData.new()
+	var hotseat_green := FactionData.new()
+	hotseat_green.id = "green"
+	hotseat_green.controller = "HOTSEAT"
+	md_hotseat.factions = [hotseat_green]
+	tm_hotseat._map_data = md_hotseat
+	tm_hotseat.call_deferred("emit_signal", "phase_committed")
+	await hotseat_controller.run_phase(null, tm_hotseat, "green")
+	var configured: bool = hotseat_cursor.get("controlling_faction") == "green" \
+			and hotseat_cursor.get("unlock_calls") == 1
+	if configured:
+		print("OK  HotseatController.run_phase configures the cursor then waits for commit")
+		passed += 1
+	else:
+		print("FAIL HotseatController.run_phase: faction=%s unlocks=%s" % [
+			hotseat_cursor.get("controlling_faction"), hotseat_cursor.get("unlock_calls")])
+		failed += 1
 
 	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
 	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can

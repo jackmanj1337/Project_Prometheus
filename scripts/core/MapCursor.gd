@@ -775,8 +775,11 @@ func _open_map_menu() -> void:
 func _on_end_turn_requested() -> void:
 	if _turn == null:
 		return
-	if _turn.are_all_player_units_done():
-		_turn.end_player_phase()
+	var faction_id: String = _turn.active_faction()
+	if faction_id == "":
+		faction_id = "blue"
+	if _turn.are_all_units_done(faction_id):
+		_turn.request_end_phase()
 		return
 	# Some units haven't acted — keep cursor locked and ask for confirmation.
 	_awaiting_end_turn_confirm = true
@@ -784,7 +787,7 @@ func _on_end_turn_requested() -> void:
 	dlg.dialog_text = "Some units have not acted yet.\nEnd turn anyway?"
 	dlg.confirmed.connect(func():
 		_awaiting_end_turn_confirm = false
-		_turn.end_player_phase()
+		_turn.request_end_phase()
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func():
@@ -911,5 +914,4 @@ func _scroll_camera_if_needed() -> void:
 	if _camera_ctrl == null:
 		return
 	_camera_ctrl.keep_cursor_in_view(current_tile, _camera_edge_buffer())
-
 

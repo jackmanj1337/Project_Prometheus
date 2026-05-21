@@ -323,6 +323,23 @@ func _init() -> void:
 		print("FAIL confirm-enemy: _state=%d" % c3._state)
 		failed += 1
 
+	# ---- set_controlling_faction retargets selection to the new faction ----
+	_gs.all_units.clear()
+	var t3b := TurnManager.new(); root.add_child(t3b)
+	var c3b := _make_cursor(t3b)
+	_make_unit(Vector2i(1, 1), "blue")
+	var green_unit := _make_unit(Vector2i(2, 2), "green")
+	c3b.set_controlling_faction("green")
+	c3b._set_tile(Vector2i(2, 2))
+	c3b._on_confirm()
+	if c3b._state == UNIT_SELECTED and c3b._selection.selected_unit == green_unit:
+		print("OK  set_controlling_faction retargets selection to the new faction")
+		passed += 1
+	else:
+		print("FAIL set_controlling_faction select: _state=%d selected=%s" % [
+			c3b._state, str(c3b._selection.selected_unit)])
+		failed += 1
+
 	# ---- FREE + confirm on an already-acted unit → stays FREE ----
 	_gs.all_units.clear()
 	var t4 := TurnManager.new(); root.add_child(t4)
@@ -554,6 +571,22 @@ func _init() -> void:
 		failed += 1
 	if dlg != null:
 		dlg.queue_free()
+
+	# ---- end-turn routes through are_all_units_done(active_faction) + request_end_phase ----
+	var tm_end_script := GDScript.new()
+	tm_end_script.source_code = "extends \"res://scripts/core/TurnManager.gd\"\nvar last_faction := \"\"\nvar request_calls := 0\nfunc active_faction() -> String:\n\treturn \"green\"\nfunc are_all_units_done(faction_id: String) -> bool:\n\tlast_faction = faction_id\n\treturn true\nfunc request_end_phase() -> void:\n\trequest_calls += 1\n"
+	tm_end_script.reload()
+	var t_end: TurnManager = tm_end_script.new()
+	root.add_child(t_end)
+	var c_end := _make_cursor(t_end)
+	c_end._on_end_turn_requested()
+	if t_end.get("last_faction") == "green" and t_end.get("request_calls") == 1:
+		print("OK  end-turn uses the active faction and routes through request_end_phase")
+		passed += 1
+	else:
+		print("FAIL end-turn routing: faction=%s calls=%s" % [
+			t_end.get("last_faction"), t_end.get("request_calls")])
+		failed += 1
 
 	# ---- Unit.set_equipped_weapon reorders the inventory (#8) ----
 	var swap_unit := _make_unit(Vector2i(0, 0), "blue")

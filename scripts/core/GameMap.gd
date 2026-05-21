@@ -33,7 +33,9 @@ const _CHAR_TO_SOURCE := {
 # with MapCursor via its setup() so both layers' camera operations flow through
 # the same instance — keeps save/restore state consistent across phase changes.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+const HotseatControllerS = preload("res://scripts/core/HotseatController.gd")
 var _camera_ctrl: RefCounted = null
+var _hotseat_controller: Node = null
 
 var map_data: MapData = null
 
@@ -55,6 +57,10 @@ func _ready() -> void:
 	_camera_ctrl = CameraControllerS.new()
 	_camera_ctrl.setup(_camera, _grid)
 	_cursor.setup(_grid, _camera, _turn_manager, _camera_ctrl)
+	_hotseat_controller = HotseatControllerS.new()
+	_hotseat_controller.set_cursor(_cursor)
+	add_child(_hotseat_controller)
+	_turn_manager.set_hotseat_controller(_hotseat_controller)
 	_camera.limit_left = 0
 	_camera.limit_top = 0
 	_camera.limit_right = map_width * GameConstants.TILE_SIZE

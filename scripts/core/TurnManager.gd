@@ -15,6 +15,7 @@ class_name TurnManager extends Node
 #                  fires once per round (when the cycle wraps), not per phase.
 
 signal turn_changed(turn_number: int)
+signal phase_committed
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -61,6 +62,7 @@ var _activation_mode: String = "WHOLE_PHASE"
 # Optional AI driver override for deterministic tests. When null, the autoload
 # /root/EnemyAI is used.
 var _ai_controller: Node = null
+var _hotseat_controller: Node = null
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -139,6 +141,12 @@ func _derive_activation_mode(map_data: MapData) -> String:
 # run_phase(grid, turn, faction_id). Null resets to the autoload lookup.
 func set_ai_controller(ai: Node) -> void:
 	_ai_controller = ai
+
+
+# Test seam: inject a hotseat controller node that responds to
+# run_phase(grid, turn, faction_id). Null resets to the local hotseat driver.
+func set_hotseat_controller(controller: Node) -> void:
+	_hotseat_controller = controller
 
 
 # The faction whose phase / activation is currently in flight.
@@ -298,9 +306,9 @@ func start_enemy_phase() -> void:
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
 				_begin_phase(gs.get_living_units_of(active_faction()))
-		var ai := _ai_controller if _ai_controller != null else get_node_or_null("/root/EnemyAI")
-		if _is_ai_controlled(active_faction()) and ai:
-			await ai.run_phase(_grid, self, active_faction())
+		var controller := _controller_for(active_faction())
+		if controller != null:
+			await controller.run_phase(_grid, self, active_faction())
 		if _map_over:
 			return
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
@@ -337,6 +345,24 @@ func _is_ai_controlled(faction_id: String) -> bool:
 			if f != null and f.id == faction_id:
 				return f.controller == "" or f.controller == "AI"
 	return true
+
+
+func _is_hotseat_controlled(faction_id: String) -> bool:
+	if faction_id == "" or faction_id == "blue":
+		return false
+	if _map_data != null:
+		for f in _map_data.factions:
+			if f != null and f.id == faction_id:
+				return f.controller == "HOTSEAT"
+	return false
+
+
+func _controller_for(faction_id: String) -> Node:
+	if _is_hotseat_controlled(faction_id):
+		return _hotseat_controller
+	if _is_ai_controlled(faction_id):
+		return _ai_controller if _ai_controller != null else get_node_or_null("/root/EnemyAI")
+	return null
 
 
 # ── ALTERNATING-mode primitive (M14 stage 3) ─────────────────────────────────
@@ -377,30 +403,39 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	_unit_states[unit] = state
 	if state == UnitState.DONE and unit.has_method("set_done_appearance"):
 		unit.set_done_appearance()
-	# When the last player unit finishes, end the phase automatically (#5).
-	# Deferred so the current action fully unwinds first; _auto_end_player_phase
-	# re-checks the conditions, so a redundant deferred call is harmless.
+	# When the last locally-human-controlled unit finishes, end the phase
+	# automatically (#5 / M15 Part A). Deferred so the current action fully
+	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
+	# redundant deferred call is harmless.
 	if state == UnitState.DONE:
-		var gs := get_node_or_null("/root/GameState")
-		if gs and gs.is_player_turn() and are_all_player_units_done():
-			call_deferred("_auto_end_player_phase")
+		var active_faction_id: String = _active_or_default_faction()
+		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
+			call_deferred("_auto_end_active_phase")
 
 
-# Deferred from set_unit_state / _on_unit_died — ends the player phase once every
-# player unit is done. Re-validates because state may have changed between defer
-# and call; bails when the map already ended so it can't run an enemy phase after
-# a victory/defeat.
-func _auto_end_player_phase() -> void:
+# Deferred from set_unit_state / _on_unit_died — ends the active locally-human
+# phase once every unit is done. Re-validates because state may have changed
+# between defer and call; bails when the map already ended so it can't run an
+# enemy phase after a victory/defeat.
+func _auto_end_active_phase() -> void:
 	if _map_over:
 		return
 	# The player can switch auto-end off (#2); the phase then ends only via the
-	# map menu's End Turn, even when every unit has already acted.
+	# map menu's End Turn, even when every unit has already acted. Hotseat uses
+	# the same local preference.
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null and not sm.auto_end_turn:
 		return
-	var gs := get_node_or_null("/root/GameState")
-	if gs and gs.is_player_turn() and are_all_player_units_done():
-		end_player_phase()
+	var active_faction_id: String = _active_or_default_faction()
+	if not _should_auto_end_faction(active_faction_id):
+		return
+	if are_all_units_done(active_faction_id):
+		request_end_phase()
+
+
+# Legacy entry point kept for the existing tests and call sites.
+func _auto_end_player_phase() -> void:
+	_auto_end_active_phase()
 
 
 func get_unit_state(unit: Node) -> UnitState:
@@ -416,13 +451,36 @@ func can_unit_act(unit: Node) -> bool:
 # True when no living player unit can still act. Used by the End Turn flow to
 # decide whether to skip the "some units have not acted" confirmation prompt.
 func are_all_player_units_done() -> bool:
+	return are_all_units_done("blue")
+
+
+func are_all_units_done(faction_id: String) -> bool:
 	var gs := get_node_or_null("/root/GameState")
-	if gs == null:
+	if gs == null or faction_id == "":
 		return false
-	for u in gs.get_living_player_units():
+	var living_units: Array[Node] = []
+	if gs.has_method("get_living_units_of"):
+		living_units = gs.get_living_units_of(faction_id)
+	elif faction_id == "blue" and gs.has_method("get_living_player_units"):
+		living_units = gs.get_living_player_units()
+	else:
+		return false
+	for u in living_units:
 		if can_unit_act(u):
 			return false
 	return true
+
+
+func request_end_phase() -> void:
+	if _map_over:
+		return
+	var faction_id: String = _active_or_default_faction()
+	if faction_id == "":
+		return
+	if faction_id == "blue":
+		end_player_phase()
+		return
+	phase_committed.emit()
 
 
 # Called when player picks "Cancel" after moving a unit but before committing.
@@ -522,6 +580,7 @@ func check_victory_conditions() -> void:
 			# the eliminated set so the legacy signal is map_defeat. The
 			# standings screen leads with "DRAW" instead of a winner.
 			_map_over = true
+			phase_committed.emit()
 			bus.map_defeat.emit()
 			bus.map_resolved.emit("", _build_standings("", groups, gs))
 			return
@@ -533,6 +592,7 @@ func check_victory_conditions() -> void:
 	# Map decided. Fire the blue-perspective signal for the existing GameOverScreen,
 	# then map_resolved with the ranked standings for the M16 results screen.
 	_map_over = true
+	phase_committed.emit()
 	var blue_group: String = gs.get_alliance_group("blue")
 	if winner == blue_group:
 		_apply_victory_rewards(gs)
@@ -920,9 +980,29 @@ func _on_unit_died(unit: Node) -> void:
 	_original_tiles.erase(unit)
 	check_victory_conditions()
 	# A death (e.g. a mutual kill on the last unit's own action) can leave every
-	# remaining player unit already DONE — set_unit_state never ran for the dead
-	# unit, so auto-end it here too (#5). _auto_end_player_phase bails if the map
-	# just ended via the check_victory_conditions call above.
+	# remaining locally-human-controlled unit already DONE — set_unit_state
+	# never ran for the dead unit, so auto-end it here too (#5 / M15 Part A).
+	# _auto_end_active_phase bails if the map just ended via the
+	# check_victory_conditions call above.
+	var active_faction_id: String = _active_or_default_faction()
+	if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
+		call_deferred("_auto_end_active_phase")
+
+
+func _active_or_default_faction() -> String:
+	var faction_id: String = active_faction()
+	if faction_id != "":
+		return faction_id
 	var gs := get_node_or_null("/root/GameState")
-	if gs and gs.is_player_turn() and are_all_player_units_done():
-		call_deferred("_auto_end_player_phase")
+	if gs != null and gs.is_player_turn():
+		return "blue"
+	return ""
+
+
+func _should_auto_end_faction(faction_id: String) -> bool:
+	if faction_id == "":
+		return false
+	if faction_id == "blue":
+		var gs := get_node_or_null("/root/GameState")
+		return gs != null and gs.is_player_turn()
+	return _is_hotseat_controlled(faction_id)

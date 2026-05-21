@@ -27,10 +27,10 @@ class_name FactionData extends Resource
 # don't override): blue/green → "allies", red → "foes", yellow → "rogues".
 @export var alliance_group: String = ""
 
-# Who drives this faction's activations. M14 stage 3 only ships "AI" (and
-# the implicit human-blue path). "HOTSEAT" lands with M15 Part A; "REMOTE"
-# with M15 Part B (deferred). Open enum on purpose so new controllers slot
-# in without touching this file.
+# Who drives this faction's activations. Blue remains the implicit player-1
+# path; non-blue factions currently ship "AI" and "HOTSEAT". "REMOTE" is
+# reserved for M15 Part B (deferred). Open enum on purpose so new controllers
+# slot in without touching this file.
 @export var controller: String = "AI"
 
 

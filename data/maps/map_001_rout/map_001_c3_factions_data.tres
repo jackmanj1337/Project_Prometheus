@@ -19,7 +19,6 @@ id = "blue"
 display_name = "Allies"
 color = Color(0.24, 0.49, 0.89, 1)
 alliance_group = "allies"
-controller = "HUMAN"
 
 [sub_resource type="Resource" id="faction_green"]
 script = ExtResource("3")
