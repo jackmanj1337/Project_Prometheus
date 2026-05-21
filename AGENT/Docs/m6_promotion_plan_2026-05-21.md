@@ -1,4 +1,9 @@
-# M6 — Promotion System Plan (handoff, 2026-05-21)
+# M6 — Promotion System Plan (implemented, 2026-05-21)
+
+Status: implemented on branch `class-skill-rebuild`. This document keeps the
+locked decisions, data tables, and original commit breakdown that guided the
+work. Remaining work after M6 is the N6 level-1 skill grant follow-up and the
+separate M7 Second Seal milestone.
 
 Detailed implementation plan for the promotion milestone of the class & skill
 rebuild. Builds on M1–M5 (see `class_skill_rebuild_plan_2026-05-21.md`). Branch:

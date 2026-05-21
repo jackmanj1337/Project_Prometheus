@@ -21,8 +21,9 @@ split**, and **per-class skills auto-learned at fixed levels**.
 7. **Per-unit growth rates are stored on `UnitData`** ("unit base stat gains").
    Player level-ups use class growths **plus** the unit's personal growths.
 
-Promotion mechanics remain **out of scope** for this rebuild (M6). The schema is
-made promotion-ready only.
+Promotion mechanics were originally split into **M6**; that milestone is now
+implemented on branch `class-skill-rebuild`. This doc remains the umbrella
+status page for the full class/skill track.
 
 ## Assumptions — REVIEW BEFORE IMPLEMENTATION
 
@@ -117,9 +118,13 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
 - **M5 — Class & roster data. ✅ DONE.** 5 retained classes rewritten with doc
   FE:A values; `cavalier.tres` added; `unit_01_soldier.tres` renamed/reclassed to
   Cavalier; all 6 roster units given personal `growth_rates`.
-- **M6 — Promotion. PLANNED, NOT STARTED.** Full detailed handoff plan —
-  schema, flow, promoted-class data, commit breakdown, Second Seal estimate —
-  in `m6_promotion_plan_2026-05-21.md`.
+- **M6 — Promotion. ✅ DONE.** Added `Unit.can_promote()` / `promote()`,
+  `PromotionScreen`, the New Game auto-promote rule, promotion items
+  (`master_seal`, plus class/class-group restricted seals), 16 promoted-class
+  `.tres` files, promoted skill resources/stubs, and coverage in
+  `test_unit_stats`, `test_skill_item_handler`, `test_data_manager`,
+  `test_promotion_screen`, and scene/data tests. Implementation detail and the
+  original handoff breakdown remain in `m6_promotion_plan_2026-05-21.md`.
 
 ## Implementation notes & follow-up assumptions (REVIEW)
 
@@ -145,10 +150,8 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
 
 ## Agreed next steps (2026-05-21)
 
-- Review and merge `class-skill-rebuild` into `main` before starting the larger
-  promotion implementation where practical.
-- Implement **M6 — Promotion** next.
-- After M6, schedule a small follow-up for **N6** so level-1 class skills are
+- Review and merge `class-skill-rebuild` into `main`.
+- Schedule the small **N6** follow-up so level-1 class skills are
   granted automatically at unit creation instead of only on level-up.
 - Save **M7 — Second Seal Reclassing & Demotion** for after M6 and the N6/F1
   follow-up; see `AGENT/Docs/m7_second_seal_plan_2026-05-21.md`.
