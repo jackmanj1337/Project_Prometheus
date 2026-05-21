@@ -39,6 +39,7 @@ func set_grid_manager(grid: GridManager) -> void:
 
 func _ready() -> void:
 	if data != null:
+		_seed_earned_skills()
 		_apply_initial_state()
 
 
@@ -635,7 +636,7 @@ func level_up() -> void:
 		_:  # "growth_random" and any unknown value
 			changes = _level_up_random(rates, caps)
 	# Auto-learn any class skill whose unlock level matches the new level.
-	var learned: Array[String] = _grant_level_skills(class_data)
+	var learned: Array[Dictionary] = _grant_level_skills(class_data)
 	var bus := _bus()
 	if bus:
 		bus.unit_leveled_up.emit(self, changes, learned)
@@ -655,19 +656,39 @@ func _resolve_growth_rates(class_data: ClassData) -> Dictionary:
 
 
 # Grants every skill listed in the class's skill_unlocks for the unit's current
-# level, skipping any the unit already knows. Returns the ids newly learned so
-# the level-up screen can announce them.
-func _grant_level_skills(class_data: ClassData) -> Array[String]:
-	var learned: Array[String] = []
+# level, skipping any the unit already knows. Returns dictionaries describing
+# what was learned and whether it fit into an equipped skill slot.
+func _grant_level_skills(class_data: ClassData) -> Array[Dictionary]:
+	_seed_earned_skills()
+	var learned: Array[Dictionary] = []
 	for unlock_level in class_data.skill_unlocks:
 		if int(unlock_level) != data.level:
 			continue
 		var skill_id: String = String(class_data.skill_unlocks[unlock_level])
-		if skill_id.is_empty() or has_skill(skill_id):
+		if skill_id.is_empty() or _has_earned_skill(skill_id):
 			continue
-		data.skills.append(skill_id)
-		learned.append(skill_id)
+		data.earned_skills.append(skill_id)
+		var equipped: bool = false
+		if data.skills.size() < _max_equipped_skills():
+			data.skills.append(skill_id)
+			equipped = true
+		learned.append({"id": skill_id, "equipped": equipped})
 	return learned
+
+
+func _seed_earned_skills() -> void:
+	for skill_id in data.skills:
+		if not (skill_id in data.earned_skills):
+			data.earned_skills.append(skill_id)
+
+
+func _has_earned_skill(skill_id: String) -> bool:
+	return skill_id in data.earned_skills or skill_id in data.skills or skill_id in data.mastery_skills
+
+
+func _max_equipped_skills() -> int:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	return int(gs.get("max_skills")) if gs != null else 4
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see

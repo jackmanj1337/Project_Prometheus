@@ -65,7 +65,7 @@ var data: StubData = StubData.new()
 
 	# A level-up that learns a skill announces it on the stats label (M3).
 	screen._queue.append({
-		"unit": stub_unit, "increases": {"hp": 1}, "learned": ["vantage"],
+		"unit": stub_unit, "increases": {"hp": 1}, "learned": [{"id": "vantage", "equipped": true}],
 	})
 	screen._show_next()
 	await process_frame
@@ -74,6 +74,20 @@ var data: StubData = StubData.new()
 		print("OK  level-up panel announces a learned skill"); passed += 1
 	else:
 		print("FAIL learned-skill line missing: '%s'" % stats_label.text); failed += 1
+	screen._unhandled_input(confirm)
+	await process_frame
+
+	# M6.3: when the skill cap is full, the learned line explains the skill was stored.
+	screen._queue.append({
+		"unit": stub_unit, "increases": {"hp": 1},
+		"learned": [{"id": "wrath", "equipped": false}],
+	})
+	screen._show_next()
+	await process_frame
+	if "skill slots full" in stats_label.text and "Wrath" in stats_label.text:
+		print("OK  learned-skill line explains when the skill is stored due to full slots"); passed += 1
+	else:
+		print("FAIL stored-skill line missing: '%s'" % stats_label.text); failed += 1
 	screen._unhandled_input(confirm)
 	await process_frame
 

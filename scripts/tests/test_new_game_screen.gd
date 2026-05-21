@@ -25,6 +25,7 @@ func _init() -> void:
 	var expected := [
 		"Panel/VBox/HBoxMap/OptMap",
 		"Panel/VBox/HBoxPermadeath/OptPermadeath",
+		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
 		"Panel/VBox/HBoxLeveling/OptLeveling",
 		"Panel/VBox/BtnStart",
 		"Panel/VBox/BtnBack",
@@ -43,6 +44,12 @@ func _init() -> void:
 		print("OK  map selector is populated from the registry source"); passed += 1
 	else:
 		print("FAIL map selector missing or empty"); failed += 1
+
+	var auto_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxAutoPromote/OptAutoPromote")
+	if auto_opt != null and auto_opt.item_count == 2:
+		print("OK  auto-promote selector is present with Off/On choices"); passed += 1
+	else:
+		print("FAIL auto-promote selector missing or not populated"); failed += 1
 
 	# open() / _on_back() drive visibility. open() reads GameState — skip the
 	# check cleanly when that autoload is absent.

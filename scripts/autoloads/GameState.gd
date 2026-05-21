@@ -60,10 +60,8 @@ func get_alliance_group(faction_id: String) -> String:
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 var auto_promote_at_max_level: bool = false
-# NOT ENFORCED YET — nothing caps how many skills/items a unit carries. The
-# skill-equip and trade/inventory UIs that would enforce these don't exist; see
-# the "Enforce skill/inventory caps" item in AGENT/GDD/GDD_10_Roadmap.md. Until that
-# milestone these two fields are inert.
+# max_skills now gates auto-equipped learned skills (M6.3), but there is still
+# no battle-prep UI for manual swapping. max_inventory remains future-facing.
 var max_skills: int = 4
 var max_inventory: int = 8
 

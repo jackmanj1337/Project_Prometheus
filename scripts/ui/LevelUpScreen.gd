@@ -15,6 +15,7 @@ const _STAT_NAMES: Dictionary = {
 	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
 	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
 }
+const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
 
 var _queue: Array[Dictionary] = []
 
@@ -67,8 +68,10 @@ func _show_next() -> void:
 	var learned: Array = item.get("learned", [])
 	if not learned.is_empty():
 		var dm := get_node_or_null("/root/DataManager")
-		for skill_id in learned:
-			stats_text += "Learned %s!\n" % _skill_display_name(dm, skill_id)
+		for learned_entry in learned:
+			var skill_id: String = _learned_skill_id(learned_entry)
+			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
+			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
 
 	var sm := get_node_or_null("/root/SettingsManager")
@@ -97,6 +100,18 @@ func _skill_display_name(dm: Node, skill_id: String) -> String:
 		if sk != null:
 			return sk.display_name
 	return skill_id
+
+
+func _learned_skill_id(learned_entry: Variant) -> String:
+	if learned_entry is Dictionary:
+		return String((learned_entry as Dictionary).get("id", ""))
+	return String(learned_entry)
+
+
+func _learned_skill_equipped(learned_entry: Variant) -> bool:
+	if learned_entry is Dictionary:
+		return bool((learned_entry as Dictionary).get("equipped", true))
+	return true
 
 
 # Dismiss the current panel, then show the next queued level-up — or, when the

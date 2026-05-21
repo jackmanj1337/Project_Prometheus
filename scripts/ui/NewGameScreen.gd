@@ -18,6 +18,9 @@ extends "res://scripts/ui/ModalScreen.gd"
 #         HBoxPermadeath
 #           Label "Permadeath"
 #           OptionButton (node name: OptPermadeath)  # Off / On
+#         HBoxAutoPromote
+#           Label "Auto Promote"
+#           OptionButton (node name: OptAutoPromote) # Off / On
 #         HBoxLeveling
 #           Label "Leveling"
 #           OptionButton (node name: OptLeveling)    # Random / Fixed
@@ -29,6 +32,7 @@ signal back_pressed()
 
 @onready var _opt_map: OptionButton          = $Panel/VBox/HBoxMap/OptMap
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
+@onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
@@ -63,6 +67,9 @@ func _ready() -> void:
 	_opt_permadeath.clear()
 	_opt_permadeath.add_item("Off")
 	_opt_permadeath.add_item("On")
+	_opt_auto_promote.clear()
+	_opt_auto_promote.add_item("Off")
+	_opt_auto_promote.add_item("On")
 	_opt_leveling.clear()
 	_opt_leveling.add_item("Random")
 	_opt_leveling.add_item("Fixed")
@@ -77,6 +84,7 @@ func open() -> void:
 	if gs:
 		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
 		_opt_permadeath.selected = int(gs.get("permadeath_enabled"))  # 0=Off, 1=On
+		_opt_auto_promote.selected = int(gs.get("auto_promote_at_max_level"))  # 0=Off, 1=On
 		_opt_leveling.selected   = maxi(0, _LEVELING_OPTIONS.find(gs.get("leveling_method")))
 	else:
 		_opt_map.selected = 0
@@ -98,6 +106,7 @@ func _on_start() -> void:
 		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
 		return
 	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
+	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
 	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],

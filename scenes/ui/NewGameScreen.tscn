@@ -66,6 +66,18 @@ custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxAutoPromote" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelAutoPromote" type="Label" parent="Panel/VBox/HBoxAutoPromote"]
+layout_mode = 2
+text = "Auto Promote"
+custom_minimum_size = Vector2(160, 0)
+
+[node name="OptAutoPromote" type="OptionButton" parent="Panel/VBox/HBoxAutoPromote"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HBoxLeveling" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
 

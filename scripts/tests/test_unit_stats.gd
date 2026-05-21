@@ -586,7 +586,7 @@ func _init() -> void:
 		print("FAIL M2 growth resolution: blue=%s red=%s" % [blue_rates, red_rates])
 		failed += 1
 
-	# --- M2: class skills auto-granted at their unlock level ---
+	# --- M2/M6.3: class skills auto-granted; earned_skills tracks stored skills ---
 	var skill_unit: Unit = unit_scene.instantiate()
 	var skill_data := UnitData.new()
 	skill_unit.data = skill_data
@@ -594,19 +594,24 @@ func _init() -> void:
 	await process_frame
 	var sc := ClassData.new()
 	sc.skill_unlocks = {1: "vantage", 10: "wrath"}
+	gs.max_skills = 1
 	skill_data.level = 10
 	var learned1: Array = skill_unit._grant_level_skills(sc)  # → wrath
 	skill_data.level = 1
-	var learned2: Array = skill_unit._grant_level_skills(sc)  # → vantage
+	var learned2: Array = skill_unit._grant_level_skills(sc)  # → stored, slots full
 	var learned3: Array = skill_unit._grant_level_skills(sc)  # vantage already known → none
-	if learned1.size() == 1 and learned1[0] == "wrath" \
-			and learned2.size() == 1 and learned2[0] == "vantage" \
-			and learned3.is_empty():
-		print("OK  M2: class skills auto-granted at unlock level, no duplicates")
+	if learned1.size() == 1 and learned1[0]["id"] == "wrath" and learned1[0]["equipped"] \
+			and learned2.size() == 1 and learned2[0]["id"] == "vantage" \
+			and not learned2[0]["equipped"] and learned3.is_empty() \
+			and skill_data.skills == ["wrath"] \
+			and skill_data.earned_skills == ["wrath", "vantage"]:
+		print("OK  M2/M6.3: class skills auto-grant, respect max_skills, and track earned_skills")
 		passed += 1
 	else:
-		print("FAIL M2 skill grant: l1=%s l2=%s l3=%s" % [learned1, learned2, learned3])
+		print("FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s" % [
+			skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3])
 		failed += 1
+	gs.max_skills = 4
 
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---
 	# Regression for MapCursorTargeting._apply_staff_heal ordering bug: fetching get_equipped_weapon()
