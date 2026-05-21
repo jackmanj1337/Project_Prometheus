@@ -1204,6 +1204,14 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 
 ### Part A — Hotseat (shipping target)
 
+> **▶ NEXT ACTION ITEM (2026-05-21).** Implementation plan ready —
+> `AGENT/Docs/implementation_plan_2026-05-21.md`: six design questions settled,
+> a done-vs-remaining audit against current code, ordered build steps + test
+> plan. Part A is scoped to **WHOLE_PHASE maps only** (Decision Q6); ALTERNATING
+> hotseat is deferred to a later backlog item. The `grant_extra_turn` checklist
+> item below is **blocked on M10** — that feature does not exist in the codebase
+> yet — so skip it for Part A.
+
 Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's activations are driven through
 the existing `MapCursor` instead of the AI — the cursor is *not* locked for a
 human-controlled non-blue faction. Control hand-off follows the map's
