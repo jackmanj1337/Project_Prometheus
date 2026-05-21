@@ -39,7 +39,7 @@ Severity: Medium ×1, Low ×3, Critical/High ×0.
 
 ### 2.1 — Pre-Release Cleanup checklist under-enumerates the debug-banner removal surface
 **[SEVERITY: Medium]**
-- **File & Line:** `CLAUDE/GDD/GDD_10_Roadmap.md` § Pre-Release Cleanup, the
+- **File & Line:** `AGENT/GDD/GDD_10_Roadmap.md` § Pre-Release Cleanup, the
   bullet added in 3e66f51 ("Remove the debug-mode HUD banner").
 - **Problem:** The bullet names only "the `DebugLabel` node in `HUD.tscn` and
   the `HUD._setup_debug_banner` / `_apply_debug_banner` code." The actual

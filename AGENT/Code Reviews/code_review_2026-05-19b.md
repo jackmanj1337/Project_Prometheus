@@ -1,7 +1,7 @@
 # Code Review — 2026-05-19b (Playtest 3: Bugs & Immediate Action Items)
 
 **Scope:** the seven bugs and two analysis requests captured in
-`CLAUDE/Docs/playtest3_findings_2026-05-19.md` ("Bugs and immediate action
+`AGENT/Docs/playtest3_findings_2026-05-19.md` ("Bugs and immediate action
 items"). This is a *diagnosis* review — root cause + recommended fix per item —
 not a diff review; no code was changed. The "Add to later milestones" half of
 that findings doc has already been merged into `GDD/GDD_10_Roadmap.md`.
@@ -371,7 +371,7 @@ Ordered by impact ÷ effort — the top three are near-trivial fixes for High-se
    rate-based edge pan + Settings slider with the roadmap "Camera settings"
    item. *(High severity, medium effort.)*
 
-Each fix should ship with a unit test where one is reasonable (per `CLAUDE.md`):
+Each fix should ship with a unit test where one is reasonable (per `AGENTS.md`):
 #2.3 and #2.6 are directly testable in the existing headless suites; #2.1, #2.4,
 #2.5, #2.7 need either a viewport-rect assertion or manual verification — note
 which in the session notes.

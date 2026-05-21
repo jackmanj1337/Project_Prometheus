@@ -1,6 +1,6 @@
 # Implementation Plan — Code Review 2026-05-16 (d) Fixes
 
-Source: `CLAUDE/Code Reviews/code_review_2026-05-16d.md`
+Source: `AGENT/Code Reviews/code_review_2026-05-16d.md`
 Scope: all 8 findings + the 3 test-coverage gaps from that review.
 Status: **not started** — prepared for next session, execute top-to-bottom.
 
@@ -181,10 +181,10 @@ where a profile test needs it (or use real `Unit`/`UnitData` if the stub gets un
 ## Step 6 — final verification
 
 - `bash run_tests.sh` → all 11 suites green; test count should be ~249 + new tests.
-- Update `CLAUDE/GDD/GDD_updates.md` if any fix changes documented behavior (the fort
+- Update `AGENT/GDD/GDD_updates.md` if any fix changes documented behavior (the fort
   rounding correction is the only candidate — note it was already GDD-correct, code was
   not).
-- Write session notes (`CLAUDE/Session Notes/2026-05-16i.md` or next letter) covering
+- Write session notes (`AGENT/Session Notes/2026-05-16i.md` or next letter) covering
   what landed and the commit list.
 
 ---

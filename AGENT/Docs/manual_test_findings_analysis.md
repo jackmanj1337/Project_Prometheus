@@ -1,7 +1,7 @@
 # Manual Test Findings — Causes & Suggested Fixes
 
 > **STATUS (2026-05-18, Session M): all 13 findings fixed and merged to `main`.**
-> See `CLAUDE/Session Notes/2026-05-18c.md`. This document is kept as the
+> See `AGENT/Session Notes/2026-05-18c.md`. This document is kept as the
 > diagnosis record; the "Suggested fix" sections describe what was implemented.
 > Follow-up: the fixes are unit-tested — UI feel still needs a manual playtest.
 

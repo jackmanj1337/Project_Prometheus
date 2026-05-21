@@ -18,8 +18,8 @@ Last refreshed: **2026-05-20** against branch `main` @ `8fed076` (B1–B9 + C1 +
 
 | Source | Items | Verified |
 |---|---|---|
-| Manual test (Playtest 1) | All 13 findings | `CLAUDE/Docs/manual_test_findings_analysis.md` header (✅) |
-| Playtest 2 — 17 fixes | #1 unit details, #2 auto-end-turn, #3 prev-unit display, #4 New Game dimmer, #5 HUD mouse_filter, #6 heal overlay orange, #7 AI camera pan, #8 weapon swap, #9 cursor returns to actor on cancel, #10/#11 debug aids gated, #12 cursor freeze on level-up, #13/#14 prompt key + Vulnerary value, #15/#16 end-turn focus, #17 camera buffer setting | `CLAUDE/Session Notes/2026-05-19.md`, all commits one-per-fix on `main` |
+| Manual test (Playtest 1) | All 13 findings | `AGENT/Docs/manual_test_findings_analysis.md` header (✅) |
+| Playtest 2 — 17 fixes | #1 unit details, #2 auto-end-turn, #3 prev-unit display, #4 New Game dimmer, #5 HUD mouse_filter, #6 heal overlay orange, #7 AI camera pan, #8 weapon swap, #9 cursor returns to actor on cancel, #10/#11 debug aids gated, #12 cursor freeze on level-up, #13/#14 prompt key + Vulnerary value, #15/#16 end-turn focus, #17 camera buffer setting | `AGENT/Session Notes/2026-05-19.md`, all commits one-per-fix on `main` |
 | Playtest 3 — bug list | #1 HPBar mouse-eater, #2 mouse dismiss level-up, #3 staff range overlay, #4 menu viewport clamp, #5 camera recentre on phase change, #6 HUD follows cursor, #7 mouse-pan feedback loop, #21 ActionMenu shrink | commits `334a724 … 5b1a87c` |
 | Code review 2026-05-18 | GDD_01 resync (D1–D5, D7–D11), `InventoryEntry.validate()` wired in `GameMap._spawn_units`, `Unit.has_skill()` unions `mastery_skills`, `combat_animations` hidden in `SettingsScreen` | grep verified 2026-05-20 |
 | Code review 2026-05-19 | Clamp `camera_edge_buffer` on load, scale AI pacing delay with `movement_speed`, AI camera re-pan after movement | commits `d430384`, `fa27b2c` |
@@ -72,11 +72,11 @@ These are code-review followups whose natural slot is **before** a specific upco
 | B7 ✅ | ~~`NewGameScreen._on_start` — guard scene change if `GameState` autoload missing~~ | — | Shipped 2026-05-20; commit `f92899d` |
 | B8 ✅ | ~~Carry-over Lows: UnitData comment wording; TurnManager "fort/throne"~~ | — | Shipped 2026-05-20; commit `f92899d`. HUD magic `0`, test comment, `_grid==null` guard items verified already done. |
 | B9 ✅ | ~~Tighten singleton-mutating tests~~ | — | Verified 2026-05-20: all three test files already restore unconditionally before assertions. No code change needed. |
-| B10 ⬜ | **Review and integrate `revised_classes_and_skills.md`.** A new 2567-line classes + skills reference (Awakening flavoured — base + promoted classes, stat caps, growth rates, skill descriptions for ~225 sections) landed in `CLAUDE/GDD/Content Expansion/`. Sits alongside the existing `classes.md`, `skills.md`, `awakening_classes_supplement.md`, `awakening_skills_supplement.md` — the word "revised" implies a supersession but is not declared. **Open question:** which existing docs does this replace vs. extend, and what does it imply for M9 (skill `effect_id`s), M11 (content expansion .tres authoring) and M13 (Awakening supplement)? Reconcile before M9 starts so the .tres data is authored against one source of truth, not four overlapping ones. | Do **before C5 (M9)**: M9 stamps `effect_id`s and `.tres` data into the codebase; doing so against a yet-to-be-reconciled spec is a guaranteed re-author. | `CLAUDE/GDD/Content Expansion/revised_classes_and_skills.md`; sibling docs in the same folder |
+| B10 ⬜ | **Review and integrate `revised_classes_and_skills.md`.** A new 2567-line classes + skills reference (Awakening flavoured — base + promoted classes, stat caps, growth rates, skill descriptions for ~225 sections) landed in `AGENT/GDD/Content Expansion/`. Sits alongside the existing `classes.md`, `skills.md`, `awakening_classes_supplement.md`, `awakening_skills_supplement.md` — the word "revised" implies a supersession but is not declared. **Open question:** which existing docs does this replace vs. extend, and what does it imply for M9 (skill `effect_id`s), M11 (content expansion .tres authoring) and M13 (Awakening supplement)? Reconcile before M9 starts so the .tres data is authored against one source of truth, not four overlapping ones. | Do **before C5 (M9)**: M9 stamps `effect_id`s and `.tres` data into the codebase; doing so against a yet-to-be-reconciled spec is a guaranteed re-author. | `AGENT/GDD/Content Expansion/revised_classes_and_skills.md`; sibling docs in the same folder |
 
 ### Bucket C — Phase 2 milestones (Decision 10 order)
 
-> Implementation order per `CLAUDE/Docs/design_decisions_log_2026-05-17.md` Decision 10:
+> Implementation order per `AGENT/Docs/design_decisions_log_2026-05-17.md` Decision 10:
 > **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 → M11 → M12 → M13**.
 > M15 Part A (hotseat) slots anywhere after M14 stage 5.
 > M14 green/yellow content + Maps 002–005 ride after M16.
@@ -133,17 +133,17 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
 
 Update this index when adding new findings docs.
 
-- **Roadmap (canonical):** `CLAUDE/GDD/GDD_10_Roadmap.md`
-- **Design decisions:** `CLAUDE/Docs/design_decisions_log_2026-05-17.md` (Decision 10 = the ordering rule)
-- **GDD assumptions:** `CLAUDE/GDD/GDD_Assumptions.md`
-- **Manual / editor tasks:** `CLAUDE/GDD/GDD_Manual_Tasks.md` (Pending = **none**)
+- **Roadmap (canonical):** `AGENT/GDD/GDD_10_Roadmap.md`
+- **Design decisions:** `AGENT/Docs/design_decisions_log_2026-05-17.md` (Decision 10 = the ordering rule)
+- **GDD assumptions:** `AGENT/GDD/GDD_Assumptions.md`
+- **Manual / editor tasks:** `AGENT/GDD/GDD_Manual_Tasks.md` (Pending = **none**)
 - **Playtests:**
   - 1 (`playtest1_findings_2026-05-18.md`) — fully analysed in `manual_test_findings_analysis.md`, all done
   - 2 (`playtest2_findings_2026-05-19.md` + `playtest2_fix_plan_2026-05-19.md`) — all done
   - 3 (`playtest3_findings_2026-05-19.md`) — bugs #1–7 + #21 done; "later milestones" merged into `GDD_10_Roadmap.md` § UI/UX & Settings
   - 4 (`playtest4_findings_2026-05-19.md`) — bugs **A1, A2** above
 - **Code reviews (most recent first):**
-  - 2026-05-19c (`CLAUDE/Code Reviews/code_review_2026-05-19c.md`) — DEBUG-banner; 4 nits, all done
+  - 2026-05-19c (`AGENT/Code Reviews/code_review_2026-05-19c.md`) — DEBUG-banner; 4 nits, all done
   - 2026-05-19b (`code_review_2026-05-19b.md`) — playtest 3 diagnosis; all bugs done
   - 2026-05-19 (`code_review_2026-05-19.md`) — playtest-2-fixes review; top 4 done; remainder = **B9** + architectural backlog (B3/B4/B5)
   - 2026-05-18 (`code_review_2026-05-18.md`) — full-codebase review + documentation audit; most done; remainder = **B1, B2, B6, B7, B8**

@@ -45,7 +45,7 @@ The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase
 | M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED]; online design ratified 2026-05-17 |
 | M16 — Objective System | — | **After M14 stages 1–3** — per-group victory needs the faction model |
 
-**Implementation order** (dependency-clean — `CLAUDE/Docs/design_decisions_log_2026-05-17.md`,
+**Implementation order** (dependency-clean — `AGENT/Docs/design_decisions_log_2026-05-17.md`,
 Decision 10): **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 →
 M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
 after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
@@ -1085,7 +1085,7 @@ controllers are added in M15. The default configuration is the four armies **blu
 (player), **green**, **red**, **yellow**, with turn order `blue → green → red → yellow`.
 
 Full design rationale, the architecture-seam analysis, and the staged breakdown live
-in `CLAUDE/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
+in `AGENT/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
 stages 1–4 + content of that document.
 
 **Supersedes** the Phase 3 Backlog item "Ally NPC phase" — green allies are a faction,
@@ -1261,8 +1261,8 @@ later. LAN first, online after.
 
 The full set of online design decisions — synchronization model, transport,
 matchmaking, reconnection, trust, army source, and more — is catalogued in
-`CLAUDE/Docs/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
-ratified on 2026-05-17** — see `CLAUDE/Docs/design_decisions_log_2026-05-17.md` for
+`AGENT/Docs/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
+ratified on 2026-05-17** — see `AGENT/Docs/design_decisions_log_2026-05-17.md` for
 the recorded outcomes. The decisions that drive Part B's build:
 - **Sync model:** host-authoritative client-server (host owns the truth, validates
   and broadcasts) — *not* lockstep, so no determinism burden.
@@ -1307,7 +1307,7 @@ the recorded outcomes. The decisions that drive Part B's build:
 objective system** — each map carries typed victory and defeat conditions evaluated
 **per aggression group** (`{blue,green}`, `{red}`, `{yellow}`, …), not for blue
 alone. The map ends with a **ranked-standings results screen**. This generalizes the
-feasibility doc §6 workstream (`CLAUDE/Docs/second_player_control_feasibility.md`);
+feasibility doc §6 workstream (`AGENT/Docs/second_player_control_feasibility.md`);
 the per-group decoupling supersedes §6's blue-centric framing — see decisions log
 2026-05-17, Decision 8.
 
@@ -1474,11 +1474,11 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 ### UI / UX & Settings
 
 Merged from the playtest findings docs ("Features to add to the to-do list" /
-"Add to later milestones"): `CLAUDE/Docs/playtest2_findings_2026-05-19.md` and
-`CLAUDE/Docs/playtest3_findings_2026-05-19.md`. These are deferred enhancements,
+"Add to later milestones"): `AGENT/Docs/playtest2_findings_2026-05-19.md` and
+`AGENT/Docs/playtest3_findings_2026-05-19.md`. These are deferred enhancements,
 not playtest bugs — the bugs are tracked separately (playtest 2 in
-`CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`, playtest 3 in the dated code
-review under `CLAUDE/Code Reviews/`).
+`AGENT/Docs/playtest2_fix_plan_2026-05-19.md`, playtest 3 in the dated code
+review under `AGENT/Code Reviews/`).
 
 - [ ] **Range display on hover** — show a unit's movement/attack range when the
       cursor merely hovers over it (transparent overlay), then render it more
@@ -1539,7 +1539,7 @@ review under `CLAUDE/Code Reviews/`).
 > ⚠️ **RELEASE BLOCKER** — must be cleared before any non-debug build ships.
 
 - [ ] **Remove the playtest 2 debug testing aids.** Two temporary aids were
-      added for playtest iteration (see `CLAUDE/Docs/playtest2_fix_plan_2026-05-19.md`
+      added for playtest iteration (see `AGENT/Docs/playtest2_fix_plan_2026-05-19.md`
       items #10 and #11):
       - **#10** — force-level-up on any attack (debug flag in
         `CombatResolver.calculate_exp`).

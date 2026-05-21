@@ -199,7 +199,7 @@ the existing 347-test suite, which de-risks everything after.
 > **Milestoned as M16 — Objective System** in `GDD_updates.md`. This section is its
 > design rationale; the milestone carries the actionable checklist.
 >
-> **SUPERSEDED 2026-05-17 (Decision 8, `CLAUDE/Docs/design_decisions_log_2026-05-17.md`).**
+> **SUPERSEDED 2026-05-17 (Decision 8, `AGENT/Docs/design_decisions_log_2026-05-17.md`).**
 > The blue-centric framing below was reversed: victory/defeat is now evaluated
 > **per aggression group**, with per-group victory + defeat conditions and a
 > ranked-standings results screen. Blue-centric left red/yellow with no win state,
@@ -248,7 +248,7 @@ it only shares the `MapData` / `check_victory_conditions` touch-points.
 - **AI targeting** — faction-blind; ranks hostile units by HP / strength / terrain
   danger / objective-criticality, not by which army they are (§5 stage 4).
 
-**Resolved 2026-05-17** (see `CLAUDE/Docs/design_decisions_log_2026-05-17.md`):
+**Resolved 2026-05-17** (see `AGENT/Docs/design_decisions_log_2026-05-17.md`):
 - **Empty factions.** Turn cycle skips a 0-unit faction (confirmed). HUD: a
   faction never in the map is hidden; a faction that was present but is now wiped
   shows greyed-out / "eliminated" (Decision 2).

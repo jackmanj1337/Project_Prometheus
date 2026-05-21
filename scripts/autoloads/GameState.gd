@@ -61,7 +61,7 @@ var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 # NOT ENFORCED YET — nothing caps how many skills/items a unit carries. The
 # skill-equip and trade/inventory UIs that would enforce these don't exist; see
-# the "Enforce skill/inventory caps" item in CLAUDE/GDD/GDD_updates.md. Until that
+# the "Enforce skill/inventory caps" item in AGENT/GDD/GDD_10_Roadmap.md. Until that
 # milestone these two fields are inert.
 var max_skills: int = 4
 var max_inventory: int = 8

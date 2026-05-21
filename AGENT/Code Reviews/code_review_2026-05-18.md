@@ -2,7 +2,7 @@
 
 Reviewer: Claude
 Scope: **full-codebase review** + **full documentation audit** (per
-`CLAUDE/Docs/code_review_instructions.txt`, plus the user's request to check the
+`AGENT/Docs/code_review_instructions.txt`, plus the user's request to check the
 GDD/Docs for bugs, bad design, and design↔doc divergence).
 
 Files read in full: every script under `scripts/` (autoloads, core, units, skills,
@@ -379,7 +379,7 @@ it holds `unit_id`s.
   architectural finding. `GDD_01_Architecture.md` is the document a new contributor
   would read first, and it is wrong about resource fields, every major API
   signature, the folder layout, the autoload set, and the Input Map. The project's
-  own `CLAUDE.md` mandates docs-as-source-of-truth ("All Documentation should go and
+  own `AGENTS.md` mandates docs-as-source-of-truth ("All Documentation should go and
   be read from the appropriate subfolder"), but the *code* is currently the only
   reliable spec. The drift is concentrated and explicable — `GDD_01` was never
   revised after four refactors (the `InventoryEntry` typing / ARCH-05, the stat-name

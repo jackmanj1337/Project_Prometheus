@@ -412,6 +412,6 @@ Ordered by impact ÷ effort.
 - Items #1, #2, #7, #8, #17 are oversight *features*, not defects; #10/#11 are
   explicitly temporary test aids. Designer sign-off recommended on #8 (action
   cost), #14 (final heal value) and #6 (final colour).
-- Per CLAUDE.md, each fix above should land as its own commit with the test
+- Per AGENTS.md, each fix above should land as its own commit with the test
   suite green, and reasonable items should gain unit tests (notably #3 wiring,
   #2 toggle, #9 cursor placement).

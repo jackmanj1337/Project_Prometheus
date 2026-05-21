@@ -1,6 +1,6 @@
 # Implementation Plan — 2026-05-16
 
-Derived from `CLAUDE/Code Reviews/code_review_2026-05-16.md`. Six phases, ordered so low-risk
+Derived from `AGENT/Code Reviews/code_review_2026-05-16.md`. Six phases, ordered so low-risk
 correctness fixes land before the MapCursor refactor. Each phase ends green via `run_tests.sh`
 (baseline: 10 suites, 222 tests). One commit per item unless noted.
 
@@ -132,7 +132,7 @@ correctness fixes land before the MapCursor refactor. Each phase ends green via 
 - Commit: `Gate MapCursor input by state; cycle targets in targeting modes`
 
 ### D2. Extract `MapCursorTargeting` (refactor + input re-point, no behavior change)
-- **Design complete** — see `CLAUDE/Docs/d2_mapcursortargeting_design.md`. Ready to implement.
+- **Design complete** — see `AGENT/Docs/d2_mapcursortargeting_design.md`. Ready to implement.
 - Summary: `MapCursorTargeting extends RefCounted` with injected `grid` / `attack_preview` /
   `combat_resolver`. The cursor FSM stays on `MapCursor`; `TARGETING`/`PREVIEWING`/`STAFF_TARGETING`
   collapse into one `State.TARGETING` plus internal sub-state on the targeting object. `MapCursor`

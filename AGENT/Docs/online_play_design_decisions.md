@@ -2,7 +2,7 @@
 
 Status: **RATIFIED 2026-05-17.** All 20 decisions (D1–D20) plus a Steam
 distribution precondition were walked through and ratified — see
-`CLAUDE/Docs/design_decisions_log_2026-05-17.md` for the recorded outcomes and the
+`AGENT/Docs/design_decisions_log_2026-05-17.md` for the recorded outcomes and the
 full summary table. The recommendations below were adopted as-is **except**:
 - **D6** — sharpened to *(b2) independent animation + a bounded phase barrier*
   (host waits a short capped grace before the next phase) rather than plain (b).
