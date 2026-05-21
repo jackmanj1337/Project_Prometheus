@@ -10,7 +10,7 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-20** against branch `main` @ `8fed076` (B1–B9 + C1 + C2 done).
+Last refreshed: **2026-05-21** against branch `main` @ `8ea7429` (B1–B10 + C1 + C2 + C3 done).
 
 ---
 
@@ -43,6 +43,7 @@ Last refreshed: **2026-05-20** against branch `main` @ `8fed076` (B1–B9 + C1 +
 | C2 stage 3 | defeat_boss / seize / escape / survive condition evaluators. `_seize_records` + `_escape_records` runtime tracking. Public APIs `record_seize(unit)`, `record_escape(unit)`, `can_seize(unit, tile)`. ActionMenu `BtnSeize` button gated by `can_seize`; MapCursor handles `"seize"` action_chosen → records + finishes. Auto-escape on unit_moved into a zone. Escape-aware protect (escapees count as alive) + escape-aware group_routed (groups with any escapee aren't "wiped"). | commit `bd2d12e`; +3 test_action_menu, +7 test_turn_manager |
 | C2 stage 4 | Ranked-standings results screen + HUD objective readout. New `EventBus.map_resolved(winner_group, standings)` signal emitted alongside map_victory / map_defeat; `_build_standings` orders losers by elim-round DESC (stable). `GameOverScreen` renders standings; `HUD` has an ObjectivePanel listing blue's Win/Lose conditions from `ObjectiveCondition.get_display_text()`. | commit `8fed076`; +2 test_turn_manager, +1 test_data_layer, +2 test_hud |
 | C2 stage 5 | Decision 7 phase-boundary sweep on `start_enemy_phase` + `_map_over` chokepoint in `EnemyAI.run_enemy_phase` (bails between units when map is over). Legacy `objective_type` / `turn_limit` / `required_survivor_ids` / `objective_params` fields deleted from MapData; `_apply_legacy_conditions` / `_has_legacy_blue_conditions` deleted from TurnManager; HUD legacy translation deleted. `map_001_data.tres` migrated to `victory_conditions = {"allies": [rout()]}`. All legacy-field tests converted to authored conditions. | this commit; +1 test_turn_manager (phase-boundary sweep) |
+| C3 | M14 stages 4–5 completed: faction-driven AI loop (`run_ai_phase(faction)`), sequential non-blue AI dispatch in `TurnManager`, green/yellow spawn support via per-placement `faction` tags, faction-aware `PhaseBanner` + HUD labels from `FactionData`, authored faction color application on unit sprites, deterministic TurnManager AI-loop seam/tests, and C3 content resource `map_001_c3_factions_data.tres`. | commits `cca788d`, `bf0d9b1`, `8ea7429`; suite green (`test_enemy_ai` 20, `test_turn_manager` 47, `test_hud` 12, `test_unit_stats` 32) |
 
 ---
 
@@ -85,7 +86,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 |---|---|---|---|---|
 | C1 ✅ | ~~**M14 stages 1–3**~~ | ~~Replace hardcoded `"player"` with faction-relative concepts; alliance-group hostility helper; faction-as-data + activation-scheduler `TurnManager` (`WHOLE_PHASE`/`ALTERNATING`). **Behaviour-neutral.**~~ | — | Shipped 2026-05-20; commits `20ef18e` / `c5c9c32` / `0c68254`. See §1 + Session Notes 2026-05-20. Small stage-3 follow-ups (cursor branching on activation_mode, AI-faction dispatch from start_map non-blue path) fold into C3. |
 | C2 ✅ | ~~**M16 — Objective System**~~ | ~~Replace single `objective_type` with multi-condition victory/defeat per faction (Rout, Seize, Boss, Escape, Survive, Defend, Survivor-survives, …).~~ | — | Shipped 2026-05-20 across 5 stages; see §1 + Session Notes 2026-05-20. Decision 7 phase-boundary sweep + `_map_over` chokepoint live; legacy MapData fields removed. |
-| C3 ⬜ | **M14 stages 4–5 (+content)** | Faction-agnostic AI (`run_ai_phase(faction)`); green/yellow spawns + per-unit faction tags in `MapData`; `PhaseBanner` reads from faction data. | C1, C2 (stage 4 AI reads M16 objective data) | `GDD_10_Roadmap.md` § Milestone 14 stages 4–5 |
+| C3 ✅ | ~~**M14 stages 4–5 (+content)**~~ | ~~Faction-agnostic AI (`run_ai_phase(faction)`); green/yellow spawns + per-unit faction tags in `MapData`; `PhaseBanner` reads from faction data.~~ | C1, C2 (stage 4 AI reads M16 objective data) | Shipped 2026-05-21; commits `cca788d`, `bf0d9b1`, `8ea7429`. See §1 row and Session Notes 2026-05-21. |
 | C4 ⬜ | **M8 — Status Conditions** | Full `ConditionManager` (Poison/Sleep/Silence/Berserk/Stun); ticking at start of holder's **activation**; hooks in `TurnManager` / `CombatResolver` / `ActionMenu` / `EnemyAI` / `SkillHandler`; Restore staff + Panacea. | C3 (tick point is "start of activation" — well-defined in either activation mode); B2, B3 recommended | `GDD_10_Roadmap.md` § Milestone 8 |
 | C5 ⬜ | **M9 — Skill Content** | Implement all deferred `effect_id` handlers (stat bonuses, auras, on-hit/on-attack triggers, healer skills, terrain skills, weapon-skill triggers, special masteries). Mostly content on the existing modifier/trigger pipeline. | C4; B6 recommended | `GDD_10_Roadmap.md` § Milestone 9 |
 | C6 ⬜ | **M10 — Extra-Turn System** | Canto, Special Dance, Galeforce, Pavise/Aegis double-act and similar. Each grants an extra **activation**. | C5; **M14 stages 1–5** (extra turn = extra activation) | `GDD_10_Roadmap.md` § Milestone 10 |
