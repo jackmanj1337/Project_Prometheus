@@ -102,26 +102,42 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
 - Render a "Learned <Skill>!" line when a queued level-up carries
   `learned_skills`.
 
-## Milestones (small commits)
+## Milestones (small commits) — STATUS
 
-- **M1 — Schema.** `ClassData.gd`, `UnitData.gd`, `DataManager.gd`; migrate all
-  6 class `.tres` to the new schema; update `test_data_layer` / `test_data_manager`.
-- **M2 — Level-up engine.** Growth selection + personal growths, cap clamping,
-  skill auto-grant in `Unit.gd`; `test_unit_stats` + new coverage.
-- **M3 — Level-up UI.** `LevelUpScreen.gd` learned-skill line; `test_level_up_screen`.
-- **M4 — Skill resources.** Create the 11 new skill `.tres`; wire effects —
-  `*_plus_2` reuse the existing `stat_bonus` effect; `prescience`/`patience` as
-  combat hit/avoid modifiers; `discipline`, `outdoor_fighter`, `indoor_fighter`,
-  `focus`, `armsthrift`, `healtouch` get resources + dispatch entries (effect
-  parity best-effort, A9).
-- **M5 — Class & roster data.** Rewrite the 6 class `.tres` with doc FE:A stats,
-  caps, and split growths; add `cavalier.tres`; populate roster units'
-  `growth_rates`; swap `unit_01_soldier` to a Cavalier unit.
-- **M6 — Promotion (later, not this rebuild).** Promoted-class `.tres`, level-20
-  promotion flow, `promotion_stat_bonuses` application.
+- **M1 — Schema. ✅ DONE.** `ClassData.gd`, `UnitData.gd`, `DataManager.gd`; all
+  6 class `.tres` migrated; `test_data_layer` / `test_data_manager` updated.
+- **M2 — Level-up engine. ✅ DONE.** Growth selection by team + personal growths,
+  cap clamping, skill auto-grant in `Unit.gd`; `test_unit_stats` coverage added.
+- **M3 — Level-up UI. ✅ DONE.** `LevelUpScreen.gd` learned-skill line +
+  `test_level_up_screen` coverage.
+- **M4 — Skill resources. ✅ DONE (data only).** 11 skill `.tres` created from the
+  FE:A wiki. `*_plus_2` use `stat_bonus`; the other 8 effect_ids registered in
+  `SkillHandler` as M9 stubs. **Effect logic itself is NOT implemented** — it
+  rides with the codebase's existing M9 skill-effects milestone.
+- **M5 — Class & roster data. ✅ DONE.** 5 retained classes rewritten with doc
+  FE:A values; `cavalier.tres` added; `unit_01_soldier.tres` renamed/reclassed to
+  Cavalier; all 6 roster units given personal `growth_rates`.
+- **M6 — Promotion. NOT STARTED (out of scope).** Promoted-class `.tres`,
+  level-20 promotion flow, `promotion_stat_bonuses` application.
 
-## Open items flagged for review
+## Implementation notes & follow-up assumptions (REVIEW)
 
-- A1 (keep `soldier.tres`) — confirm, or schedule enemy re-classing.
-- A9 — confirm best-effort skill-effect parity is acceptable for M4, or split a
-  dedicated skill-effects milestone.
+- **N1 — Skill effects deferred to M9.** Per the codebase's own roadmap,
+  `SkillHandler` stubs `stat_bonus`/`charm`/`anathema`/`daunt`; the 8 new
+  base-class effects join them as stubs. The 11 skills are real, equippable, and
+  auto-granted at level-up — they just have no combat effect until M9.
+- **N2 — Cavalier proficiency fixed to Lance.** The doc lets Cavalier choose
+  Axe/Lance/Sword; MVP picks Lance so the existing `unit_01` iron-lance loadout
+  stays valid. Mage keeps all three anima types (doc says choose two).
+- **N3 — `unit_01` Cavalier keeps its hand-authored stats.** Only `class_id` and
+  `growth_rates` changed; base stats were NOT re-derived from Cavalier base
+  stats, to avoid rebalancing existing maps. Its movement (6) is below the
+  Cavalier base (7) as a result.
+- **N4 — Roster personal `growth_rates` are placeholder values** chosen to read
+  sensibly per class; they are not tuned and should be reviewed.
+- **N5 — `soldier.tres` retained unchanged** (interim M1 schema, non-doc values)
+  for the enemy units that still reference it.
+- **N6 — Level-1 skill grant.** `_grant_level_skills` only fires on level-up
+  transitions; a unit created at level 1 does not auto-receive its level-1
+  class skill. `unit_01` was hand-given `discipline`. A "grant level-1 unlocks
+  at unit creation" hook is a suggested follow-up.
