@@ -69,6 +69,21 @@ func _init() -> void:
 	unit.team = "blue"
 	unit.apply_faction_visual(null)
 
+	# --- Issue 4: MapData.get_faction() — shared faction lookup helper ---
+	if md_c3.get_faction("green") == fd_green and md_c3.get_faction("red") == null:
+		print("OK  Issue 4: MapData.get_faction returns match / null for unknown id")
+		passed += 1
+	else:
+		print("FAIL Issue 4: MapData.get_faction lookup"); failed += 1
+
+	# --- Issue 4: FactionData.display_label() — id title-case fallback ---
+	if FactionData.display_label("yellow") == "Yellow" \
+			and FactionData.display_label("") == "Unknown":
+		print("OK  Issue 4: FactionData.display_label title-cases id, '' → Unknown")
+		passed += 1
+	else:
+		print("FAIL Issue 4: FactionData.display_label"); failed += 1
+
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
 	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
 	# Battle Speed = SPD - max(0, Wt - STR) = 6 - max(0, 8-7) = 6 - 1 = 5

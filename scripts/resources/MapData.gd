@@ -55,3 +55,13 @@ class_name MapData extends Resource
 # defeat condition so every group always has a way to be out (M16 spec).
 @export var victory_conditions: Dictionary = {}
 @export var defeat_conditions: Dictionary = {}
+
+
+# Returns the authored FactionData for `faction_id`, or null if this map
+# authors none. Single lookup point for faction-aware UI (HUD phase label,
+# PhaseBanner) and Unit tinting — keeps the match loop out of every consumer.
+func get_faction(faction_id: String) -> FactionData:
+	for f in factions:
+		if f != null and f.id == faction_id:
+			return f
+	return null

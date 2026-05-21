@@ -26,7 +26,10 @@ signal unit_leveled_up(unit: Node, stat_increases: Dictionary)
 # so the cursor can't be driven underneath the screen (#12).
 signal level_up_started()
 signal level_up_finished()
-signal phase_changed(new_phase: int)  # GameState.Phase enum value
+# new_phase is a GameState.Phase enum value; faction_id is the faction whose
+# phase is starting (the active faction for ENEMY, "blue" for PLAYER). UI reads
+# faction_id straight off the signal so it never has to walk the scene tree.
+signal phase_changed(new_phase: int, faction_id: String)
 signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).

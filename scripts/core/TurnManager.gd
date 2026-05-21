@@ -103,7 +103,7 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 		else:
 			var gs_for_first := get_node_or_null("/root/GameState")
 			if gs_for_first:
-				gs_for_first.set_phase(gs_for_first.Phase.ENEMY)
+				gs_for_first.set_phase(gs_for_first.Phase.ENEMY, active_faction())
 
 
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
@@ -239,7 +239,7 @@ func start_player_phase() -> void:
 		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
-		gs.set_phase(gs.Phase.PLAYER)
+		gs.set_phase(gs.Phase.PLAYER, "blue")
 		# WHOLE_PHASE (today's mode): map_turn ticks at the start of blue's phase
 		# (= round start in the 2-faction default cycle), then _begin_phase fires
 		# for blue's units only. ALTERNATING does both at round start in start_map
@@ -270,13 +270,12 @@ func end_player_phase() -> void:
 	start_enemy_phase()
 
 
-# Enemy phase: fort healing, then AI moves each enemy, then player phase resumes.
-# EnemyAI.run_enemy_phase() is awaited; without the autoload it falls back instantly.
-#
-# Stage 3: advances the scheduler one slot past blue (skipping empties via
-# _advance_faction). In a 2-faction default cycle that lands on red exactly
-# as pre-stage-3. Stage 4 replaces this single-AI path with a per-faction
-# AI loop driven by FactionData.controller.
+# Enemy phase: runs every consecutive non-blue AI faction in turn order, then
+# hands control back to blue via start_player_phase(). Each AI faction is driven
+# by EnemyAI.run_ai_phase() — the /root/EnemyAI autoload, or a controller
+# injected for tests via set_ai_controller(). A non-AI faction's phase begins
+# (fort healing, start-of-turn skills) but commits no moves until the M15
+# hotseat controller lands.
 func start_enemy_phase() -> void:
 	# Advance the scheduler from blue to the next non-empty faction. The skip
 	# logic in _advance_faction handles the default cycle's empty green/yellow.
@@ -285,7 +284,16 @@ func start_enemy_phase() -> void:
 	if active_faction() == "blue":
 		_advance_faction()
 	# Stage 4: run each consecutive non-blue AI faction, then hand back to blue.
+	# `guard` bounds the loop to one full pass of the turn order: termination
+	# normally happens when active_faction() wraps back to "blue", but a map
+	# whose turn_order omits "blue" would otherwise loop forever — guard turns
+	# that data error into a loud push_error instead of a hang.
+	var guard: int = _turn_order.size() + 1
 	while active_faction() != "blue" and active_faction() != "":
+		guard -= 1
+		if guard < 0:
+			push_error("TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'")
+			break
 		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
 		# faction's phase (not just blue's).
 		check_victory_conditions()
@@ -293,7 +301,7 @@ func start_enemy_phase() -> void:
 			return
 		var gs := get_node_or_null("/root/GameState")
 		if gs:
-			gs.set_phase(gs.Phase.ENEMY)
+			gs.set_phase(gs.Phase.ENEMY, active_faction())
 			if _activation_mode == "WHOLE_PHASE":
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.

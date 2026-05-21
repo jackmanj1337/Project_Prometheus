@@ -110,31 +110,22 @@ func _conditions_for(dict: Dictionary, group: String) -> Array:
 	return []
 
 
-func _on_phase_changed(new_phase: int) -> void:
-	var faction_id: String = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
-	var label: String = _faction_label(faction_id)
+# faction_id arrives on the phase_changed signal (empty on the initial _ready
+# self-call, where new_phase is PLAYER so "blue" is used regardless).
+func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
+	var fid: String = "blue" if new_phase == GameState.Phase.PLAYER else faction_id
+	var label: String = _faction_label(fid)
 	_phase_label.text = "%s PHASE" % label.to_upper()
-
-
-func _active_faction_id() -> String:
-	var turn := get_node_or_null("/root/GameMap/TurnManager")
-	if turn != null and turn.has_method("active_faction"):
-		var fid: String = turn.active_faction()
-		if fid != "":
-			return fid
-	return "red"
 
 
 func _faction_label(faction_id: String) -> String:
 	var gs := get_node_or_null("/root/GameState")
 	var md: MapData = gs.map_data if gs != null else null
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.get_label()
-	if faction_id == "":
-		return "Unknown"
-	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+		var f: FactionData = md.get_faction(faction_id)
+		if f != null:
+			return f.get_label()
+	return FactionData.display_label(faction_id)
 
 
 func _on_turn_changed(turn_number: int) -> void:

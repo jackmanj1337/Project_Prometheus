@@ -435,6 +435,29 @@ func _init() -> void:
 			str(c3_calls), tm_c3.active_faction(), gs.current_phase
 		]); failed += 1
 
+	# ---- C3 Issue 1: start_enemy_phase loop terminates when turn_order omits "blue" ----
+	# A malformed turn_order with no "blue" entry must not hang — the guard caps
+	# the loop at one pass of the order, logs push_error, and hands off anyway.
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("red", 20, "guard_r"))
+	gs.register_unit(_mk_unit("yellow", 20, "guard_y"))
+	var tm_guard := TurnManager.new()
+	root.add_child(tm_guard)
+	var md_guard := MapData.new()
+	md_guard.turn_order = ["red", "yellow"] as Array[String]  # no "blue" — data error
+	tm_guard.start_map(md_guard)
+	var guard_ai: Node = ai_stub_script.new()
+	tm_guard.set_ai_controller(guard_ai)
+	# If the guard were missing this call would never return (infinite loop).
+	await tm_guard.start_enemy_phase()
+	if (guard_ai.get("calls") as Array).size() <= md_guard.turn_order.size() + 1:
+		print("OK  C3 Issue 1: no-blue turn_order terminates instead of hanging")
+		passed += 1
+	else:
+		print("FAIL C3 Issue 1: loop ran %d times (guard breached)" % \
+			(guard_ai.get("calls") as Array).size())
+		failed += 1
+
 	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
 	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can
 	# observe the refresh-on-wrap.

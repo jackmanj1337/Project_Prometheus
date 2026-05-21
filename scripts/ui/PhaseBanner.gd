@@ -17,15 +17,17 @@ func _ready() -> void:
 		bus.phase_changed.connect(_on_phase_changed)
 
 
-func _on_phase_changed(new_phase: int) -> void:
+# faction_id arrives on the phase_changed signal — the faction whose phase is
+# starting (empty falls through to the "Unknown" label).
+func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
 	# Honor the phase_banner preference — "skip" suppresses the cosmetic banner.
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.get("phase_banner") == "skip":
 		return
-	var faction_id: String = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
-	var faction_label: String = _faction_label(faction_id)
+	var fid: String = "blue" if new_phase == GameState.Phase.PLAYER else faction_id
+	var faction_label: String = _faction_label(fid)
 	_label.text = "%s PHASE" % faction_label.to_upper()
-	_panel.modulate = _faction_color(faction_id)
+	_panel.modulate = _faction_color(fid)
 	_animate()
 
 
@@ -49,32 +51,21 @@ func _animate() -> void:
 	tween.tween_property(_panel, "position:x", _offscreen_left(), SLIDE_DURATION)
 
 
-func _active_faction_id() -> String:
-	var turn := get_node_or_null("/root/GameMap/TurnManager")
-	if turn != null and turn.has_method("active_faction"):
-		var fid: String = turn.active_faction()
-		if fid != "":
-			return fid
-	return "red"
-
-
 func _faction_label(faction_id: String) -> String:
 	var md: MapData = _current_map_data()
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.get_label()
-	if faction_id == "":
-		return "Unknown"
-	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+		var f: FactionData = md.get_faction(faction_id)
+		if f != null:
+			return f.get_label()
+	return FactionData.display_label(faction_id)
 
 
 func _faction_color(faction_id: String) -> Color:
 	var md: MapData = _current_map_data()
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.color
+		var f: FactionData = md.get_faction(faction_id)
+		if f != null:
+			return f.color
 	return Color(1, 1, 1, 1)
 
 

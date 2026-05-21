@@ -27,10 +27,10 @@ class_name FactionData extends Resource
 # don't override): blue/green → "allies", red → "foes", yellow → "rogues".
 @export var alliance_group: String = ""
 
-# Who drives this faction's activations. M14 stage 3 only ships "AI" (and
-# the implicit human-blue path). "HOTSEAT" lands with M15 Part A; "REMOTE"
-# with M15 Part B (deferred). Open enum on purpose so new controllers slot
-# in without touching this file.
+# Who drives this faction's activations. Recognised values: "AI" (default),
+# "HUMAN" (a local human-controlled faction — what blue uses), "HOTSEAT"
+# (lands with M15 Part A), "REMOTE" (M15 Part B, deferred). Open enum on
+# purpose so new controllers slot in without touching this file.
 @export var controller: String = "AI"
 
 
@@ -42,4 +42,13 @@ func get_label() -> String:
 		return display_name
 	if id == "":
 		return ""
-	return id.substr(0, 1).to_upper() + id.substr(1)
+	return display_label(id)
+
+
+# Title-cases a raw faction id for the "no FactionData authored" fallback used
+# by faction-aware UI (HUD phase label, PhaseBanner). "" → "Unknown";
+# "blue" → "Blue". Static so callers don't need a FactionData instance.
+static func display_label(faction_id: String) -> String:
+	if faction_id == "":
+		return "Unknown"
+	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)

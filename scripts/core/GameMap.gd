@@ -162,8 +162,8 @@ func _spawn_units() -> void:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
-# Enemy/AI-controlled units: load each UnitData .tres referenced by enemy_placements.
-# Optional placement key: "faction" (defaults to "red").
+	# Enemy/AI-controlled units: load each UnitData .tres referenced by
+	# enemy_placements. Optional placement key: "faction" (defaults to "red").
 	for placement in map_data.enemy_placements:
 		var path: String = placement.get("unit_data_path", "")
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)

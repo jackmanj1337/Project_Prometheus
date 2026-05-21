@@ -188,6 +188,8 @@ var data
 		print("FAIL empty mapdata produced lines"); failed += 1
 
 	# ── C3: phase label reads authored faction display_name ───────────────────
+	# faction_id arrives on the phase_changed signal, so the HUD reads it from
+	# the _on_phase_changed argument directly — no TurnManager lookup needed.
 	var gs2 := root.get_node_or_null("GameState")
 	if gs2 != null:
 		var md_phase := MapData.new()
@@ -196,17 +198,7 @@ var data
 		f_red.display_name = "Invaders"
 		md_phase.factions = [f_red] as Array[FactionData]
 		gs2.map_data = md_phase
-		var tm_stub := Node.new()
-		var tm_stub_script := GDScript.new()
-		tm_stub_script.source_code = "extends Node\nfunc active_faction() -> String: return \"red\"\n"
-		tm_stub_script.reload()
-		tm_stub.set_script(tm_stub_script)
-		tm_stub.name = "TurnManager"
-		var gm_stub := Node.new()
-		gm_stub.name = "GameMap"
-		gm_stub.add_child(tm_stub)
-		root.add_child(gm_stub)
-		hud._on_phase_changed(GameState.Phase.ENEMY)
+		hud._on_phase_changed(GameState.Phase.ENEMY, "red")
 		var phase_label: Label = hud.get_node("PhaseLabel")
 		if phase_label.text == "INVADERS PHASE":
 			print("OK  C3: HUD phase label uses faction display_name")
@@ -214,7 +206,6 @@ var data
 		else:
 			print("FAIL C3 HUD phase label: %q" % phase_label.text)
 			failed += 1
-		gm_stub.queue_free()
 	else:
 		print("SKIP C3 HUD phase label test (GameState autoload absent)")
 
