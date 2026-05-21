@@ -196,6 +196,7 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 	var unit: Unit = unit_scene.instantiate()
 	unit.initialize(u_data, tile, team)
 	_units_container.add_child(unit)
+	unit.apply_faction_visual(map_data)
 	unit.set_grid_manager(_grid)
 	var gs := get_node_or_null("/root/GameState")
 	if gs:

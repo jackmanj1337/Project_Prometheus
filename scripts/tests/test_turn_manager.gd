@@ -421,7 +421,7 @@ func _init() -> void:
 	md_c3.turn_order = ["blue", "red", "yellow"] as Array[String]
 	tm_c3.start_map(md_c3)
 	var ai_stub_script := GDScript.new()
-	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_ai_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tawait get_tree().process_frame\n"
+	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_ai_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
 	ai_stub_script.reload()
 	var ai_stub: Node = ai_stub_script.new()
 	tm_c3.set_ai_controller(ai_stub)
@@ -474,6 +474,19 @@ func _init() -> void:
 	else:
 		print("FAIL ALTERNATING: mid_ok=%s wrap_ok=%s active=%s turn_seen=%d" % [
 			alt_mid_ok, alt_wrap_ok, tm_alt.active_faction(), alt_turn_seen[0]])
+		failed += 1
+
+	# ---- ALTERNATING: start_player_phase handoff does not refresh blue units ----
+	# In alternating mode refreshes happen only on round-wrap in
+	# end_alternating_activation(), not every blue handoff.
+	tm_alt._unit_states[alt_blue] = TurnManager.UnitState.DONE
+	tm_alt._unit_states[alt_red] = TurnManager.UnitState.READY
+	tm_alt.start_player_phase()
+	if tm_alt._unit_states[alt_blue] == TurnManager.UnitState.DONE:
+		print("OK  ALTERNATING: start_player_phase handoff does not refresh blue")
+		passed += 1
+	else:
+		print("FAIL ALT handoff refresh: blue state=%d (want DONE)" % tm_alt._unit_states[alt_blue])
 		failed += 1
 
 	# ---- WHOLE_PHASE: end_alternating_activation is a no-op (wrong mode) ----

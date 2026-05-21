@@ -210,6 +210,38 @@ func _init() -> void:
 		print("FAIL _try_staff_heal: healed with no valid target")
 		failed += 1
 
+	# ---- _living_hostiles_for_faction: green targets red+yellow, not blue ----
+	var hs_script := GDScript.new()
+	hs_script.source_code = "extends Node\nvar by_faction := {}\nvar groups := {\"blue\":\"allies\",\"green\":\"allies\",\"red\":\"foes\",\"yellow\":\"rogues\"}\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\",\"green\",\"red\",\"yellow\"]\nfunc are_hostile(a: String, b: String) -> bool: return groups.get(a, a) != groups.get(b, b)\nfunc get_living_units_of(fid: String) -> Array[Node]: return by_faction.get(fid, [] as Array[Node])\n"
+	hs_script.reload()
+	var hs_gs: Node = hs_script.new()
+	var hb: Node = stub_script.new(); hb.set("team", "blue")
+	var hg: Node = stub_script.new(); hg.set("team", "green")
+	var hr: Node = stub_script.new(); hr.set("team", "red")
+	var hy: Node = stub_script.new(); hy.set("team", "yellow")
+	hs_gs.set("by_faction", {
+		"blue": [hb] as Array[Node],
+		"green": [hg] as Array[Node],
+		"red": [hr] as Array[Node],
+		"yellow": [hy] as Array[Node],
+	})
+	var green_hostiles: Array[Node] = ai._living_hostiles_for_faction(hs_gs, "green")
+	var yellow_hostiles: Array[Node] = ai._living_hostiles_for_faction(hs_gs, "yellow")
+	if green_hostiles.has(hr) and green_hostiles.has(hy) and not green_hostiles.has(hb) \
+			and not green_hostiles.has(hg):
+		print("OK  hostility model: green sees red+yellow as hostiles, not blue")
+		passed += 1
+	else:
+		print("FAIL hostility model green: %s" % str(green_hostiles))
+		failed += 1
+	if yellow_hostiles.has(hb) and yellow_hostiles.has(hg) and yellow_hostiles.has(hr) \
+			and not yellow_hostiles.has(hy):
+		print("OK  hostility model: yellow sees blue+green+red as hostiles")
+		passed += 1
+	else:
+		print("FAIL hostility model yellow: %s" % str(yellow_hostiles))
+		failed += 1
+
 	# ════════════════════════════════════════════════════════════════════════
 	# _act profile dispatch — full passive / basic / healer turns. These need
 	# /root/GameState + /root/CombatResolver and a stub unit with an awaitable
@@ -225,7 +257,7 @@ func _init() -> void:
 	# Stub GameState: EnemyAI reads per-faction unit buckets + hostility checks;
 	# GridManager reads all_units. Arrays are repopulated per test.
 	var act_gs_script := GDScript.new()
-	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\n"
+	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\nfunc is_player_turn() -> bool: return false\n"
 	act_gs_script.reload()
 	var act_gs: Node = act_gs_script.new()
 	act_gs.name = "GameState"

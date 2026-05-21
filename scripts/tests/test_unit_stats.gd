@@ -50,6 +50,25 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
+	# --- C3: unit tint reads FactionData.color when authored ---
+	var md_c3 := MapData.new()
+	var fd_green := FactionData.new()
+	fd_green.id = "green"
+	fd_green.color = Color(0.12, 0.88, 0.31, 1.0)
+	md_c3.factions = [fd_green] as Array[FactionData]
+	unit.team = "green"
+	unit.apply_faction_visual(md_c3)
+	if unit.get_node("Sprite2D").modulate == fd_green.color:
+		print("OK  C3: Unit tint uses authored FactionData.color")
+		passed += 1
+	else:
+		print("FAIL C3 unit tint: got %s want %s" % [
+			str(unit.get_node("Sprite2D").modulate), str(fd_green.color)
+		]); failed += 1
+	# Restore default team for the remaining baseline checks.
+	unit.team = "blue"
+	unit.apply_faction_visual(null)
+
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
 	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
 	# Battle Speed = SPD - max(0, Wt - STR) = 6 - max(0, 8-7) = 6 - 1 = 5

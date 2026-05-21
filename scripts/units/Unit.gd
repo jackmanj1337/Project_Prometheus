@@ -46,20 +46,40 @@ func _ready() -> void:
 func _apply_initial_state() -> void:
 	if _sprite == null or _hp_bar == null:
 		return
-	# Blue faction renders in blue tint, red faction in red tint (placeholder visuals).
-	# Stage 3 reads colour from FactionData; until then any non-"blue" id falls back
-	# to the red tint so a stage-2 second-faction test still renders sensibly.
-	# When real sprites land we use class_id for sprite selection instead.
-	if team == "blue":
-		_base_modulate = Color(0.30, 0.55, 0.95, 1.0)
-	else:
-		_base_modulate = Color(0.95, 0.35, 0.35, 1.0)
-	_sprite.modulate = _base_modulate
+	# C3: use authored faction colours when map data provides them.
+	_apply_faction_visual()
 	_hp_bar.max_value = data.max_hp
 	_hp_bar.value = data.hp
 	# Snap world position to tile (TILE_SIZE px per tile)
 	position = Vector2(tile_position.x * GameConstants.TILE_SIZE,
 		tile_position.y * GameConstants.TILE_SIZE)
+
+
+# Applies the unit tint from MapData.factions when available; otherwise falls
+# back to the legacy blue/red defaults.
+func _apply_faction_visual(map_data: MapData = null) -> void:
+	var color: Color = Color(0.95, 0.35, 0.35, 1.0)
+	if team == "blue":
+		color = Color(0.30, 0.55, 0.95, 1.0)
+	var md: MapData = map_data
+	if md == null:
+		var gs := get_node_or_null("/root/GameState")
+		if gs != null:
+			md = gs.map_data
+	if md != null:
+		for f in md.factions:
+			if f != null and f.id == team:
+				color = f.color
+				break
+	_base_modulate = color
+	if _sprite != null:
+		_sprite.modulate = _base_modulate
+
+
+# Called by GameMap once map_data is known so faction colour can be applied
+# even though Unit._ready runs before GameState.map_data is assigned.
+func apply_faction_visual(map_data: MapData) -> void:
+	_apply_faction_visual(map_data)
 
 
 # True if the unit's class has the given quality (per ClassData.special_qualities)

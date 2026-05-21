@@ -247,6 +247,9 @@ func start_player_phase() -> void:
 		if _activation_mode == "WHOLE_PHASE":
 			_tick_unit_modifiers(gs.all_units, "map_turn")
 			_begin_phase(gs.get_living_units_of("blue"))
+		else:
+			# ALTERNATING handoff: control returns to blue without per-phase refresh.
+			return
 	for u in _unit_states.keys():
 		# M14 stage 1: literal "player" became the "blue" faction id. Stage 3
 		# replaces this loop with `gs.get_living_units_of("blue")` when the

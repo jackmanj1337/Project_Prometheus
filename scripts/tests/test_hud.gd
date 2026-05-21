@@ -101,6 +101,7 @@ func get_unit_at(tile: Vector2i): return _at.get(tile, null)
 const TERRAIN_DEF_BONUS: Dictionary = {\"plain\": 0}
 const TERRAIN_DODGE_BONUS: Dictionary = {\"plain\": 0}
 func get_terrain_at(_t: Vector2i) -> String: return \"plain\"
+func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodge\": 0}
 """
 	stub_grid_script.reload()
 	var stub_grid: Node = stub_grid_script.new()
@@ -185,6 +186,37 @@ var data
 		print("OK  HUD objective lines: empty MapData → no lines"); passed += 1
 	else:
 		print("FAIL empty mapdata produced lines"); failed += 1
+
+	# ── C3: phase label reads authored faction display_name ───────────────────
+	var gs2 := root.get_node_or_null("GameState")
+	if gs2 != null:
+		var md_phase := MapData.new()
+		var f_red := FactionData.new()
+		f_red.id = "red"
+		f_red.display_name = "Invaders"
+		md_phase.factions = [f_red] as Array[FactionData]
+		gs2.map_data = md_phase
+		var tm_stub := Node.new()
+		var tm_stub_script := GDScript.new()
+		tm_stub_script.source_code = "extends Node\nfunc active_faction() -> String: return \"red\"\n"
+		tm_stub_script.reload()
+		tm_stub.set_script(tm_stub_script)
+		tm_stub.name = "TurnManager"
+		var gm_stub := Node.new()
+		gm_stub.name = "GameMap"
+		gm_stub.add_child(tm_stub)
+		root.add_child(gm_stub)
+		hud._on_phase_changed(GameState.Phase.ENEMY)
+		var phase_label: Label = hud.get_node("PhaseLabel")
+		if phase_label.text == "INVADERS PHASE":
+			print("OK  C3: HUD phase label uses faction display_name")
+			passed += 1
+		else:
+			print("FAIL C3 HUD phase label: %q" % phase_label.text)
+			failed += 1
+		gm_stub.queue_free()
+	else:
+		print("SKIP C3 HUD phase label test (GameState autoload absent)")
 
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
