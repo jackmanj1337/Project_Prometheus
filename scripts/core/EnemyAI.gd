@@ -6,7 +6,7 @@ extends Node
 # Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
 # _map_over latch halts the cycle at the controller chokepoint, so a decided
 # map does not keep playing out remaining enemy turns).
-func run_ai_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
+func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null or grid == null:
 		return
@@ -21,15 +21,20 @@ func run_ai_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> v
 			await _act(enemy, grid, turn, faction_id)
 
 
-# Legacy alias kept so older tests/callers can still invoke the pre-C3 entry
-# point. Uses TurnManager.active_faction() when available.
+# Legacy aliases kept so older callers can still invoke the pre-M15 names while
+# the shared controller contract settles on `run_phase()`.
+func run_ai_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
+	await run_phase(grid, turn, faction_id)
+
+
+# Uses TurnManager.active_faction() when available.
 func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
 	var faction_id: String = "red"
 	if turn != null and turn.has_method("active_faction"):
 		var active: String = turn.active_faction()
 		if active != "":
 			faction_id = active
-	await run_ai_phase(grid, turn, faction_id)
+	await run_phase(grid, turn, faction_id)
 
 
 # Pans the camera onto `unit` (#7) by announcing it on EventBus.ai_unit_acting.

@@ -421,7 +421,7 @@ func _init() -> void:
 	md_c3.turn_order = ["blue", "red", "yellow"] as Array[String]
 	tm_c3.start_map(md_c3)
 	var ai_stub_script := GDScript.new()
-	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_ai_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
+	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
 	ai_stub_script.reload()
 	var ai_stub: Node = ai_stub_script.new()
 	tm_c3.set_ai_controller(ai_stub)

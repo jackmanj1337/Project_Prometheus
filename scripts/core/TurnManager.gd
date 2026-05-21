@@ -136,7 +136,7 @@ func _derive_activation_mode(map_data: MapData) -> String:
 
 
 # Test seam: inject an AI controller node that responds to
-# run_ai_phase(grid, turn, faction_id). Null resets to the autoload lookup.
+# run_phase(grid, turn, faction_id). Null resets to the autoload lookup.
 func set_ai_controller(ai: Node) -> void:
 	_ai_controller = ai
 
@@ -271,7 +271,7 @@ func end_player_phase() -> void:
 
 
 # Enemy phase: fort healing, then AI moves each enemy, then player phase resumes.
-# EnemyAI.run_enemy_phase() is awaited; without the autoload it falls back instantly.
+# EnemyAI.run_phase() is awaited; without the autoload it falls back instantly.
 #
 # Stage 3: advances the scheduler one slot past blue (skipping empties via
 # _advance_faction). In a 2-faction default cycle that lands on red exactly
@@ -300,7 +300,7 @@ func start_enemy_phase() -> void:
 				_begin_phase(gs.get_living_units_of(active_faction()))
 		var ai := _ai_controller if _ai_controller != null else get_node_or_null("/root/EnemyAI")
 		if _is_ai_controlled(active_faction()) and ai:
-			await ai.run_ai_phase(_grid, self, active_faction())
+			await ai.run_phase(_grid, self, active_faction())
 		if _map_over:
 			return
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
