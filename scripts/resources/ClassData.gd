@@ -6,6 +6,7 @@ class_name ClassData extends Resource
 
 # Tier 1 = base class, Tier 2 = promoted class. Promotion (M6) keys off this.
 @export var tier: int = 1
+@export var max_level: int = 20
 
 # Base stats copied to UnitData at unit creation
 @export var base_hp: int = 0
@@ -27,6 +28,7 @@ class_name ClassData extends Resource
 
 # Promotion (M6) — applied as additive stat deltas at promotion.
 @export var promotes_to: Array[String] = []
+@export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
 
 # Stat keys recognised in growth_rates / stat_caps dictionaries.

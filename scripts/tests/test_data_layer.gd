@@ -176,7 +176,8 @@ func _init() -> void:
 	var snapshot_keys := [
 		"tile_position", "hp", "max_hp", "strength", "magic", "defense",
 		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
-		"proficiencies", "inventory", "conditions", "skills", "mastery_skills",
+		"proficiencies", "inventory", "conditions", "skills", "earned_skills",
+		"mastery_skills",
 		"is_incapacitated", "active_modifiers", "skill_use_counters",
 		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",
 	]

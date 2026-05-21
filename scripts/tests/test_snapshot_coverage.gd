@@ -67,18 +67,21 @@ func _init() -> void:
 	d_before.hp = 13
 	d_before.exp = 55
 	d_before.is_incapacitated = true
+	d_before.earned_skills = ["discipline", "outdoor_fighter"]
 	d_before.active_modifiers = [{"stat": "strength", "delta": 2, "source": "test",
 		"duration": 2, "duration_type": "turn"}]
 	var snap2: Dictionary = gs.call("_snapshot_unit_data", d_before)
 	var d_after := UnitData.new()
 	gs.call("_restore_unit_data", d_after, snap2)
 	if d_after.hp == 13 and d_after.exp == 55 and d_after.is_incapacitated == true \
-			and d_after.active_modifiers.size() == 1:
-		print("OK  restore round-trip: hp, exp, is_incapacitated, active_modifiers")
+			and d_after.active_modifiers.size() == 1 \
+			and d_after.earned_skills == ["discipline", "outdoor_fighter"]:
+		print("OK  restore round-trip: hp, exp, earned_skills, incap, active_modifiers")
 		passed += 1
 	else:
-		print("FAIL restore round-trip: hp=%d exp=%d incap=%s mods=%s" \
-			% [d_after.hp, d_after.exp, d_after.is_incapacitated, d_after.active_modifiers])
+		print("FAIL restore round-trip: hp=%d exp=%d earned=%s incap=%s mods=%s" \
+			% [d_after.hp, d_after.exp, d_after.earned_skills,
+			d_after.is_incapacitated, d_after.active_modifiers])
 		failed += 1
 
 	# A2: snapshot must deep-copy InventoryEntry resources, not share references.

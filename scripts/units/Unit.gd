@@ -517,15 +517,21 @@ func reset_appearance() -> void:
 func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
-	if data.level >= GameConstants.MAX_LEVEL:
-		return  # EXP discarded at cap; promotion (Phase 2) will unlock further levelling
+	var max_level: int = _current_max_level()
+	if data.level >= max_level:
+		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
 	data.exp += amount
 	while data.exp >= 100:
 		data.exp -= 100
 		level_up()
-		if data.level >= GameConstants.MAX_LEVEL:
+		if data.level >= max_level:
 			data.exp = 0  # no overflow past the cap
 			break
+
+
+func _current_max_level() -> int:
+	var class_data := _get_class_data()
+	return class_data.max_level if class_data != null else 20
 
 
 # Rolls stat increases per the unit's class growth rates and applies them.

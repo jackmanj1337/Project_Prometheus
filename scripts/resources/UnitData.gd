@@ -35,8 +35,11 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var proficiencies: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
-# GameState.max_skills cap is planned but NOT yet enforced (see GameState).
+# GameState.max_skills caps how many of these can be equipped once M6 lands.
 @export var skills: Array[String] = []
+# Every skill this unit has ever learned. `skills` is the currently equipped
+# subset; future battle-prep skill swapping will draw from this full list.
+@export var earned_skills: Array[String] = []
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
 # Captured by GameState's manual snapshot (not by ResourceSaver; not @export).

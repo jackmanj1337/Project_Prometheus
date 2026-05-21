@@ -264,6 +264,21 @@ func _init() -> void:
 		print("FAIL multi level-up: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
 		failed += 1
 
+	# Per-class max level: Unit.add_exp reads ClassData.max_level, not a global constant.
+	var saved_max_level: int = load("res://data/classes/cavalier.tres").max_level
+	var class_res: ClassData = load("res://data/classes/cavalier.tres")
+	class_res.max_level = 3
+	soldier_data.level = 3
+	soldier_data.exp = 20
+	unit.add_exp(80)
+	if soldier_data.level == 3 and soldier_data.exp == 20:
+		print("OK  add_exp respects ClassData.max_level")
+		passed += 1
+	else:
+		print("FAIL class max level: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
+		failed += 1
+	class_res.max_level = saved_max_level
+
 	# --- Weapon EXP and rank-up ---
 	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 50}}
 	unit.add_wexp("lance", 30)

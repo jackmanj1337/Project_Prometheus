@@ -59,6 +59,7 @@ func get_alliance_group(faction_id: String) -> String:
 # will serialize these into the save file. Defaults cover the direct-boot dev path.
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
+var auto_promote_at_max_level: bool = false
 # NOT ENFORCED YET — nothing caps how many skills/items a unit carries. The
 # skill-equip and trade/inventory UIs that would enforce these don't exist; see
 # the "Enforce skill/inventory caps" item in AGENT/GDD/GDD_10_Roadmap.md. Until that
@@ -331,6 +332,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
+		"earned_skills": data.earned_skills.duplicate(true),
 		"mastery_skills": data.mastery_skills.duplicate(true),
 		"is_incapacitated": data.is_incapacitated,
 		# Phase 2 runtime state
@@ -366,6 +368,7 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 		data.inventory.append(entry.duplicate(true) if entry != null else null)
 	data.conditions = snap.get("conditions", []).duplicate(true)
 	data.skills = snap.get("skills", []).duplicate(true)
+	data.earned_skills = snap.get("earned_skills", []).duplicate(true)
 	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)
 	data.is_incapacitated = snap.get("is_incapacitated", false)
 	# Phase 2 runtime state
