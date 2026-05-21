@@ -12,6 +12,9 @@ extends "res://scripts/ui/ModalScreen.gd"
 #     Panel
 #       VBox
 #         Label "New Game"
+#         HBoxMap
+#           Label "Map"
+#           OptionButton (node name: OptMap)
 #         HBoxPermadeath
 #           Label "Permadeath"
 #           OptionButton (node name: OptPermadeath)  # Off / On
@@ -24,6 +27,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 
 signal back_pressed()
 
+@onready var _opt_map: OptionButton          = $Panel/VBox/HBoxMap/OptMap
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
@@ -31,9 +35,26 @@ signal back_pressed()
 
 # OptLeveling index → GameState.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
+const _MAP_OPTIONS: Array[Dictionary] = [
+	{
+		"id": "map_001",
+		"label": "Map 001 - Rout",
+		"map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",
+		"roster_policy": "default_roster",
+	},
+	{
+		"id": "map_001_c3_factions",
+		"label": "Map 001 - Faction Demo",
+		"map_data_path": "res://data/maps/map_001_rout/map_001_c3_factions_data.tres",
+		"roster_policy": "default_roster",
+	},
+]
 
 
 func _ready() -> void:
+	_opt_map.clear()
+	for entry in _MAP_OPTIONS:
+		_opt_map.add_item(entry["label"])
 	_opt_permadeath.clear()
 	_opt_permadeath.add_item("Off")
 	_opt_permadeath.add_item("On")
@@ -49,8 +70,11 @@ func open() -> void:
 	# Seed the controls from GameState so reopening shows the current choices.
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
+		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
 		_opt_permadeath.selected = int(gs.get("permadeath_enabled"))  # 0=Off, 1=On
 		_opt_leveling.selected   = maxi(0, _LEVELING_OPTIONS.find(gs.get("leveling_method")))
+	else:
+		_opt_map.selected = 0
 	show()
 	_btn_start.grab_focus()
 
@@ -70,7 +94,9 @@ func _on_start() -> void:
 		return
 	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
 	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-	gs.call("load_default_roster")
+	var map_entry: Dictionary = _MAP_OPTIONS[_opt_map.selected]
+	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"])
+	_apply_roster_policy(gs, map_entry["roster_policy"])
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 
@@ -78,3 +104,21 @@ func _on_back() -> void:
 	# Back button and cancel key share the _close path so teardown stays in
 	# one place (B3).
 	_close()
+
+
+func _selected_map_index_for(map_path: String) -> int:
+	for i in _MAP_OPTIONS.size():
+		if _MAP_OPTIONS[i]["map_data_path"] == map_path:
+			return i
+	return 0
+
+
+func _apply_roster_policy(gs: Node, roster_policy: String) -> void:
+	match roster_policy:
+		"default_roster":
+			gs.call("load_default_roster")
+		"keep_current_roster":
+			return
+		_:
+			push_warning("NewGameScreen: unknown roster policy '%s' — using default roster" % roster_policy)
+			gs.call("load_default_roster")

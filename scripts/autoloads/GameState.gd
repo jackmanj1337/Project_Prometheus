@@ -120,6 +120,10 @@ var map_data: MapData = null
 var player_roster: Array[UnitData] = []
 var party_gold: int = 0
 var party_items: Array[String] = []  # item IDs awarded by completed maps
+# New Game / map-select launch state. The selected map path persists so retries
+# and direct scene reloads stay on the same map until another selection is made.
+var next_map_data_path: String = ""
+var next_map_roster_policy: String = "default_roster"
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -223,6 +227,11 @@ func reset_map_state() -> void:
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
+
+
+func configure_next_map(map_path: String, roster_policy: String = "default_roster") -> void:
+	next_map_data_path = map_path
+	next_map_roster_policy = roster_policy
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.

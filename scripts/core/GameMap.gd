@@ -136,10 +136,16 @@ func _place_cursor_at_start() -> void:
 
 
 func _load_map_data() -> void:
-	if ResourceLoader.exists(map_data_path):
-		map_data = load(map_data_path)
+	var selected_path: String = map_data_path
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null:
+		var override_path: String = gs.get("next_map_data_path")
+		if override_path != "":
+			selected_path = override_path
+	if ResourceLoader.exists(selected_path):
+		map_data = load(selected_path)
 	else:
-		push_error("GameMap: missing MapData at " + map_data_path)
+		push_error("GameMap: missing MapData at " + selected_path)
 
 
 # Spawns player units from GameState.player_roster onto player_start_tiles,

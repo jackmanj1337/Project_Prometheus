@@ -23,6 +23,7 @@ func _init() -> void:
 
 	# Every node the NewGameScreen script's @onready vars depend on must exist.
 	var expected := [
+		"Panel/VBox/HBoxMap/OptMap",
 		"Panel/VBox/HBoxPermadeath/OptPermadeath",
 		"Panel/VBox/HBoxLeveling/OptLeveling",
 		"Panel/VBox/BtnStart",
@@ -36,6 +37,12 @@ func _init() -> void:
 			failed += 1
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
+
+	var map_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxMap/OptMap")
+	if map_opt != null and map_opt.item_count >= 2:
+		print("OK  map selector is populated with multiple map options"); passed += 1
+	else:
+		print("FAIL map selector missing or empty"); failed += 1
 
 	# open() / _on_back() drive visibility. open() reads GameState — skip the
 	# check cleanly when that autoload is absent.
