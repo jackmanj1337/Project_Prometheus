@@ -22,7 +22,7 @@ ENV DISABLE_AUTOUPDATER=1
 # ── System dependencies ─────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Essentials
-    curl wget git unzip ca-certificates gnupg \
+    curl wget git openssh-client unzip ca-certificates gnupg \
     # Godot headless runtime deps
     libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 \
     libgl1-mesa-glx libglu1-mesa libfontconfig1 \
