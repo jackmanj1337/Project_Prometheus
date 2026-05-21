@@ -63,7 +63,7 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc is_player_turn() -> bool: return true\n"
+	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
@@ -409,7 +409,7 @@ func _init() -> void:
 	var t8 := TurnManager.new(); root.add_child(t8)
 	var c8 := _make_cursor(t8)
 	var menu_script := GDScript.new()
-	menu_script.source_code = "extends Node2D\nsignal action_chosen(a)\nsignal hidden_by_cancel\nfunc show_for(_u, _g): pass\n"
+	menu_script.source_code = "extends Control\nsignal action_chosen(a)\nsignal hidden_by_cancel\nfunc show_for(_u, _tile, _g): pass\n"
 	menu_script.reload()
 	c8.action_menu = menu_script.new()
 	root.add_child(c8.action_menu)
