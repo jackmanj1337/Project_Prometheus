@@ -407,6 +407,34 @@ func _init() -> void:
 		print("FAIL wrap: wrapped=%s active=%s (want true / blue)" % [wrap_result, wrap_active])
 		failed += 1
 
+	# ---- C3 stage 4: start_enemy_phase dispatches consecutive non-blue AI factions ----
+	gs.reset_map_state()
+	var c3_b := _mk_unit("blue", 20, "c3_b")
+	var c3_r := _mk_unit("red", 20, "c3_r")
+	var c3_y := _mk_unit("yellow", 20, "c3_y")
+	gs.register_unit(c3_b)
+	gs.register_unit(c3_r)
+	gs.register_unit(c3_y)
+	var tm_c3 := TurnManager.new()
+	root.add_child(tm_c3)
+	var md_c3 := MapData.new()
+	md_c3.turn_order = ["blue", "red", "yellow"] as Array[String]
+	tm_c3.start_map(md_c3)
+	var ai_stub_script := GDScript.new()
+	ai_stub_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_ai_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tawait get_tree().process_frame\n"
+	ai_stub_script.reload()
+	var ai_stub: Node = ai_stub_script.new()
+	tm_c3.set_ai_controller(ai_stub)
+	await tm_c3.start_enemy_phase()
+	var c3_calls: Array = ai_stub.get("calls")
+	if c3_calls == ["red", "yellow"] and tm_c3.active_faction() == "blue" and gs.is_player_turn():
+		print("OK  C3 stage 4: start_enemy_phase runs red+yellow AI then returns to blue")
+		passed += 1
+	else:
+		print("FAIL C3 stage 4 loop: calls=%s active=%s phase=%s" % [
+			str(c3_calls), tm_c3.active_faction(), gs.current_phase
+		]); failed += 1
+
 	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
 	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can
 	# observe the refresh-on-wrap.

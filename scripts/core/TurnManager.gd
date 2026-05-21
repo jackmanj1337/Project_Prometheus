@@ -58,6 +58,9 @@ var _turn_order: Array[String] = []
 var _active_faction_idx: int = 0
 # WHOLE_PHASE | ALTERNATING — set in start_map from MapData.activation_mode.
 var _activation_mode: String = "WHOLE_PHASE"
+# Optional AI driver override for deterministic tests. When null, the autoload
+# /root/EnemyAI is used.
+var _ai_controller: Node = null
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -130,6 +133,12 @@ func _derive_activation_mode(map_data: MapData) -> String:
 	if map_data != null and map_data.activation_mode != "":
 		return map_data.activation_mode
 	return "WHOLE_PHASE"
+
+
+# Test seam: inject an AI controller node that responds to
+# run_ai_phase(grid, turn, faction_id). Null resets to the autoload lookup.
+func set_ai_controller(ai: Node) -> void:
+	_ai_controller = ai
 
 
 # The faction whose phase / activation is currently in flight.
@@ -286,7 +295,7 @@ func start_enemy_phase() -> void:
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
 				_begin_phase(gs.get_living_units_of(active_faction()))
-		var ai := get_node_or_null("/root/EnemyAI")
+		var ai := _ai_controller if _ai_controller != null else get_node_or_null("/root/EnemyAI")
 		if _is_ai_controlled(active_faction()) and ai:
 			await ai.run_ai_phase(_grid, self, active_faction())
 		if _map_over:
