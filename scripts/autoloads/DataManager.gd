@@ -38,7 +38,7 @@ static func collect_validation_errors(classes: Dictionary, weapons: Dictionary,
 	_check_class_refs(classes, skills, errors)
 	_check_skill_refs(skills, errors)
 	_check_weapon_refs(weapons, errors)
-	_check_item_refs(items, errors)
+	_check_item_refs(items, classes, errors)
 	return errors
 
 
@@ -55,8 +55,12 @@ static func _check_class_refs(classes: Dictionary, skills: Dictionary, errors: A
 		_check_stat_dict(cls, "player_growth_rates", cls.player_growth_rates, errors)
 		_check_stat_dict(cls, "enemy_growth_rates", cls.enemy_growth_rates, errors)
 		_check_stat_dict(cls, "stat_caps", cls.stat_caps, errors)
-		# promotes_to class ids are intentionally not validated — promoted classes are added in M6.
-		# When promotion data lands, add: errors.append on missing class for c in cls.promotes_to
+		for target_id in cls.promotes_to:
+			if not classes.has(String(target_id)):
+				errors.append("DataManager: class '%s' promotes_to '%s' not found" % [cls.id, String(target_id)])
+		for source_id in cls.promotes_from:
+			if not classes.has(String(source_id)):
+				errors.append("DataManager: class '%s' promotes_from '%s' not found" % [cls.id, String(source_id)])
 
 
 # Warns if a class stat dictionary is non-empty but missing expected stat keys.
@@ -104,14 +108,33 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 					% [weapon.id, tag])
 
 
-static func _check_item_refs(items: Dictionary, errors: Array[String]) -> void:
+static func _check_item_refs(items: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
 	# apply_item already push_warns and refuses to consume unknown effects at
 	# runtime, but failing loud at boot beats discovering it the first time the
 	# player drinks the item.
+	var known_class_groups := _collect_class_groups(classes)
 	for item in items.values():
 		if not (item.effect_id in ItemHandlerScript.IMPLEMENTED_EFFECT_IDS):
 			errors.append("DataManager: item '%s' effect_id '%s' is not implemented by ItemHandler" \
 				% [item.id, item.effect_id])
+		if item.effect_params.has("allowed_classes"):
+			for class_id in item.effect_params["allowed_classes"]:
+				if not classes.has(String(class_id)):
+					errors.append("DataManager: item '%s' allowed_classes '%s' not found" % [
+						item.id, String(class_id)])
+		if item.effect_params.has("allowed_class_groups"):
+			for group_id in item.effect_params["allowed_class_groups"]:
+				if not known_class_groups.has(String(group_id)):
+					errors.append("DataManager: item '%s' allowed_class_groups '%s' not found" % [
+						item.id, String(group_id)])
+
+
+static func _collect_class_groups(classes: Dictionary) -> Dictionary:
+	var groups := {}
+	for cls in classes.values():
+		for group_id in cls.class_groups:
+			groups[String(group_id)] = true
+	return groups
 
 
 func _load_directory(path: String, target: Dictionary) -> void:

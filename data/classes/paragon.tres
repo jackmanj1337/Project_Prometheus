@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "paragon"
+display_name = "Paragon"
+description = "A mounted divine caster who supports allies across the field."
+tier = 2
+max_level = 20
+base_hp = 0
+base_strength = 0
+base_magic = 0
+base_defense = 0
+base_resistance = 0
+base_skill = 0
+base_speed = 0
+base_luck = 0
+base_movement = 0
+base_constitution = 0
+base_line_of_sight = 4
+proficiencies = ["light", "lance", "staff"]
+special_qualities = ["mounted"]
+promotes_from = ["cleric"]
+promotion_stat_bonuses = {"hp": 3, "magic": 2, "skill": 2, "speed": 4, "defense": 2, "resistance": 2}
+player_growth_rates = {"hp": 35, "strength": 0, "magic": 20, "defense": 5, "resistance": 15, "skill": 10, "speed": 20, "luck": 0}
+enemy_growth_rates = {"hp": 70, "strength": 0, "magic": 40, "defense": 20, "resistance": 45, "skill": 30, "speed": 50, "luck": 50}
+stat_caps = {"hp": 80, "strength": 30, "magic": 42, "defense": 30, "resistance": 45, "skill": 38, "speed": 43, "luck": 45}
+skill_unlocks = {5: "boon", 15: "judgement"}
+sprite_id = ""

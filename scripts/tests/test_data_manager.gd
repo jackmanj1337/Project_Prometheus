@@ -70,7 +70,7 @@ func _init() -> void:
 	if live_errors.is_empty():
 		print("OK  live catalogue validates clean against B6 checks"); passed += 1
 	else:
-		print("FAIL live validation: %s" % live_errors); failed += 1
+		print("FAIL live validation: %s" % [live_errors]); failed += 1
 
 	# ---- B6: bad fixtures fire the right errors ----
 	# Hand-build minimal ad-hoc resources and assert each invalid field surfaces.
@@ -83,40 +83,54 @@ func _init() -> void:
 	var bad_item := ItemData.new()
 	bad_item.id = "bad_i"
 	bad_item.effect_id = "heal_partial"  # not implemented
+	bad_item.effect_params = {
+		"allowed_classes": ["no_such_class"],
+		"allowed_class_groups": ["no_such_group"],
+	}
 	var bad_skill := SkillData.new()
 	bad_skill.id = "bad_s"
 	bad_skill.activation_chance_stat = "charisma"  # not a stat
 	bad_skill.effect_params = {"weapon_type": "frying_pan"}
+	var ok_class := ClassData.new()
+	ok_class.id = "ok_c"
+	ok_class.class_groups = ["real_group"]
 	var errs: Array[String] = DataManagerS.collect_validation_errors(
-		{}, {"bad_w": bad_weapon}, {"bad_i": bad_item}, {"bad_s": bad_skill})
-	# Expect 5: weapon_type, effect_tag, item effect_id, skill stat, skill weapon_type.
+		{"ok_c": ok_class}, {"bad_w": bad_weapon}, {"bad_i": bad_item}, {"bad_s": bad_skill})
+	# Expect 7: weapon_type, effect_tag, item effect_id, bad allowed_class,
+	# bad allowed_group, skill stat, skill weapon_type.
 	var w_type_err: bool   = errs.any(func(e): return "weapon 'bad_w' weapon_type 'sord'" in e)
 	var w_tag_err: bool    = errs.any(func(e): return "weapon 'bad_w' effect_tag 'effective_armored'" in e)
 	var i_eff_err: bool    = errs.any(func(e): return "item 'bad_i' effect_id 'heal_partial'" in e)
+	var i_class_err: bool  = errs.any(func(e): return "item 'bad_i' allowed_classes 'no_such_class'" in e)
+	var i_group_err: bool  = errs.any(func(e): return "item 'bad_i' allowed_class_groups 'no_such_group'" in e)
 	var s_stat_err: bool   = errs.any(func(e): return "skill 'bad_s' activation_chance_stat 'charisma'" in e)
 	var s_wtype_err: bool  = errs.any(func(e): return "skill 'bad_s' effect_params.weapon_type 'frying_pan'" in e)
-	if w_type_err and w_tag_err and i_eff_err and s_stat_err and s_wtype_err:
-		print("OK  bad fixtures fire all five new B6 checks"); passed += 1
+	if w_type_err and w_tag_err and i_eff_err and i_class_err and i_group_err \
+			and s_stat_err and s_wtype_err:
+		print("OK  bad fixtures fire all seven new B6 checks"); passed += 1
 	else:
-		print("FAIL B6 bad fixtures: w_type=%s w_tag=%s i_eff=%s s_stat=%s s_wtype=%s errs=%s" % [
-			w_type_err, w_tag_err, i_eff_err, s_stat_err, s_wtype_err, errs])
+		print("FAIL B6 bad fixtures: w_type=%s w_tag=%s i_eff=%s i_class=%s i_group=%s s_stat=%s s_wtype=%s errs=%s" % [
+			w_type_err, w_tag_err, i_eff_err, i_class_err, i_group_err, s_stat_err, s_wtype_err, errs])
 		failed += 1
 
-	# ---- Class validation: bad skill_unlocks ref + incomplete stat dict ----
+	# ---- Class validation: bad skill_unlocks ref + incomplete stat dict + bad promotes_to ----
 	# A class that auto-grants a missing skill, or whose growth table drops a stat
 	# key, must fail validation before it can silently misbehave at level-up.
 	var bad_class := ClassData.new()
 	bad_class.id = "bad_c"
 	bad_class.skill_unlocks = {1: "no_such_skill"}
 	bad_class.player_growth_rates = {"hp": 50}  # missing the other 7 stat keys
+	bad_class.promotes_to = ["no_such_target"]
 	var class_errs: Array[String] = DataManagerS.collect_validation_errors(
 		{"bad_c": bad_class}, {}, {}, dm._skills)
 	var c_skill_err: bool = class_errs.any(func(e): return "class 'bad_c' skill_unlocks[1] 'no_such_skill'" in e)
 	var c_growth_err: bool = class_errs.any(func(e): return "class 'bad_c' player_growth_rates missing stat key" in e)
-	if c_skill_err and c_growth_err:
-		print("OK  bad class fixture fires skill_unlocks + stat-dict checks"); passed += 1
+	var c_promote_err: bool = class_errs.any(func(e): return "class 'bad_c' promotes_to 'no_such_target'" in e)
+	if c_skill_err and c_growth_err and c_promote_err:
+		print("OK  bad class fixture fires skill_unlocks + stat-dict + promotes_to checks"); passed += 1
 	else:
-		print("FAIL class checks: skill=%s growth=%s errs=%s" % [c_skill_err, c_growth_err, class_errs])
+		print("FAIL class checks: skill=%s growth=%s promote=%s errs=%s" % [
+			c_skill_err, c_growth_err, c_promote_err, class_errs])
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

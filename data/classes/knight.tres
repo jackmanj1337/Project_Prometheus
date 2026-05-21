@@ -20,6 +20,7 @@ base_movement = 4
 base_constitution = 15
 base_line_of_sight = 4
 proficiencies = ["lance"]
+class_groups = ["armoured"]
 special_qualities = ["armoured"]
 promotes_to = ["general", "great_knight"]
 promotion_stat_bonuses = {}

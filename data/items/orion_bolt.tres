@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "orion_bolt"
+display_name = "Orion Bolt"
+description = "Promotes an Archer into an advanced bow class."
+item_type = "promotion"
+uses = 1
+cost = 2000
+effect_id = "promote"
+effect_params = {"allowed_classes": ["archer"]}

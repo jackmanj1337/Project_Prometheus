@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "aegis"
+display_name = "Aegis"
+description = "A promoted Mage Knight skill. Effect logic is scheduled for M9."
+trigger = "on_combat_start"
+effect_id = "aegis"
+effect_params = {}
+is_player_activated = false

@@ -61,6 +61,7 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var settings_screen: Node = null
 @export var weapon_menu: Node = null
 @export var unit_details: Node = null
+@export var promotion_screen: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
@@ -105,6 +106,8 @@ func _ready() -> void:
 		# Freeze the cursor while the level-up screen is up (#12).
 		bus.level_up_started.connect(_on_level_up_started)
 		bus.level_up_finished.connect(_on_level_up_finished)
+		bus.promotion_started.connect(_on_level_up_started)
+		bus.promotion_finished.connect(_on_level_up_finished)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -128,6 +131,8 @@ func _resolve_menu_refs() -> void:
 		weapon_menu = get_node_or_null("../HUDLayer/WeaponMenu")
 	if unit_details == null:
 		unit_details = get_node_or_null("../UnitDetailsLayer/UnitDetailsScreen")
+	if promotion_screen == null:
+		promotion_screen = get_node_or_null("../PromotionLayer/PromotionScreen")
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -653,20 +658,35 @@ func _on_item_chosen(entry: InventoryEntry) -> void:
 	if _selection.selected_unit == null:
 		_finish_action()
 		return
-	_apply_item_effect(entry)
-	_finish_action()
+	if _apply_item_effect(entry):
+		_finish_action()
 
 
 func _on_item_menu_cancelled() -> void:
 	_show_action_menu()
 
 
-func _apply_item_effect(entry: InventoryEntry) -> void:
+func _apply_item_effect(entry: InventoryEntry) -> bool:
 	var ih := get_node_or_null("/root/ItemHandler")
-	if ih:
-		ih.apply_item(_selection.selected_unit, entry)
-	else:
+	if ih == null:
 		push_warning("MapCursor: ItemHandler autoload not found")
+		return true
+	var item: ItemData = ih.get_item_data(entry)
+	if item != null and item.effect_id == "promote" and promotion_screen != null:
+		promotion_screen.open_for(_selection.selected_unit, entry,
+			Callable(self, "_on_promotion_item_confirmed"),
+			Callable(self, "_on_promotion_item_cancelled"))
+		return false
+	ih.apply_item(_selection.selected_unit, entry)
+	return true
+
+
+func _on_promotion_item_confirmed() -> void:
+	_finish_action()
+
+
+func _on_promotion_item_cancelled() -> void:
+	_show_action_menu()
 
 
 # ── Weapon Swap (#8) ─────────────────────────────────────────────────────────
@@ -914,4 +934,3 @@ func _scroll_camera_if_needed() -> void:
 	if _camera_ctrl == null:
 		return
 	_camera_ctrl.keep_cursor_in_view(current_tile, _camera_edge_buffer())
-

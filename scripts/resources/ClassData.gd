@@ -23,6 +23,8 @@ class_name ClassData extends Resource
 
 # First entry = primary weapon type (starts at D rank); rest start at E rank
 @export var proficiencies: Array[String] = []
+# Loose semantic tags for item restrictions and future content gating.
+@export var class_groups: Array[String] = []
 # See GDD_03 for valid values: "flying", "mounted", "armoured", "dragon", "beast", "laguz"
 @export var special_qualities: Array[String] = []
 

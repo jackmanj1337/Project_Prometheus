@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "master_seal"
+display_name = "Master Seal"
+description = "Promotes an eligible unit into one of its advanced classes."
+item_type = "promotion"
+uses = 1
+cost = 2500
+effect_id = "promote"
+effect_params = {}

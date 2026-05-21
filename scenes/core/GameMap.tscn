@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="17_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WeaponMenu.tscn" id="18_weaponmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/UnitDetailsScreen.tscn" id="19_unitdetails"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PromotionScreen.tscn" id="20_promotionscreen"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -40,6 +41,7 @@ attack_preview = NodePath("../HUDLayer/AttackPreview")
 settings_screen = NodePath("../SettingsLayer/SettingsScreen")
 weapon_menu = NodePath("../HUDLayer/WeaponMenu")
 unit_details = NodePath("../UnitDetailsLayer/UnitDetailsScreen")
+promotion_screen = NodePath("../PromotionLayer/PromotionScreen")
 
 [node name="Sprite2D" type="Sprite2D" parent="MapCursor"]
 texture = ExtResource("6_cursor_tex")
@@ -71,6 +73,11 @@ layer = 1
 layer = 10
 
 [node name="LevelUpScreen" parent="LevelUpLayer" instance=ExtResource("10_levelup")]
+
+[node name="PromotionLayer" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="PromotionScreen" parent="PromotionLayer" instance=ExtResource("20_promotionscreen")]
 
 [node name="CombatHUDLayer" type="CanvasLayer" parent="."]
 layer = 5

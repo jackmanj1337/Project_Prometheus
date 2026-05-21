@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mage_knight"
+display_name = "Mage Knight"
+description = "A mounted mage who supplements anima with a sword."
+tier = 2
+max_level = 20
+base_hp = 0
+base_strength = 0
+base_magic = 0
+base_defense = 0
+base_resistance = 0
+base_skill = 0
+base_speed = 0
+base_luck = 0
+base_movement = 0
+base_constitution = 0
+base_line_of_sight = 4
+proficiencies = ["sword", "fire", "thunder", "wind"]
+special_qualities = ["mounted"]
+promotes_from = ["mage"]
+promotion_stat_bonuses = {"hp": 9, "strength": 4, "magic": 1, "skill": 3, "speed": 1, "defense": 7, "resistance": 2}
+player_growth_rates = {"hp": 50, "strength": 15, "magic": 15, "defense": 10, "resistance": 5, "skill": 15, "speed": 15, "luck": 0}
+enemy_growth_rates = {"hp": 95, "strength": 35, "magic": 40, "defense": 35, "resistance": 30, "skill": 40, "speed": 30, "luck": 30}
+stat_caps = {"hp": 80, "strength": 38, "magic": 41, "defense": 42, "resistance": 38, "skill": 40, "speed": 40, "luck": 45}
+skill_unlocks = {5: "aegis", 15: "flare"}
+sprite_id = ""
