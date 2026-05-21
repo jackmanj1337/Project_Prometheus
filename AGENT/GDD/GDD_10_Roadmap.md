@@ -1453,6 +1453,10 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       UI once those screens are built (a unit may not equip more than `max_skills`
       skills or carry more than `max_inventory` items). Until then both fields are
       inert; see the NOT-ENFORCED comment in `GameState.gd`.
+- [ ] Review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md` — align
+      naming/layout assumptions with project asset standards, add validation/error
+      handling requirements, and define how imported outputs plug into faction-aware
+      runtime data.
 
 ### Maps
 
