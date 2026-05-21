@@ -145,12 +145,31 @@ Create one registry source that lists:
 - `id`
 - `label`
 - `map_data_path`
+- `roster_policy`
 - `description`
 - `is_dev_only`
 - optional tags such as `campaign`, `faction_test`, `hotseat_test`
 
 Best-practice recommendation: keep this registry in one authored data file so map
 labels and paths are not duplicated across scripts.
+
+### Recommended roster handling
+
+The first selector build should be explicit and simple:
+
+- **Phase 1 rule:** map selection changes only the map; every selectable map uses
+  the current `load_default_roster()` path unless the registry says otherwise.
+- Add `roster_policy` to each registry entry now, even if every initial entry is
+  `"default_roster"`.
+- Supported first-pass policies should be:
+  - `default_roster` — call `GameState.load_default_roster()`
+  - `keep_current_roster` — reserved for later reuse/testing flows; do not make it
+    the default for New Game
+- `fixed_test_roster` should be planned as the next extension for deterministic
+  regression maps, but it does **not** need to ship in the first selector patch.
+
+This avoids the current ambiguity: the selector should not silently inherit
+whatever roster happens to be in memory unless the map entry explicitly opts in.
 
 ### Recommended UI scope
 
@@ -167,7 +186,8 @@ Keep the first selector intentionally small:
 ### Recommended runtime wiring
 
 - Store the chosen `map_data_path` in `GameState` as the next map to load
-- `NewGameScreen` applies the selection before changing to `GameMap.tscn`
+- Store the chosen `roster_policy` alongside it in `GameState`
+- `NewGameScreen` applies both selections before changing to `GameMap.tscn`
 - `GameMap` reads that override first and falls back to its exported default only
   when no selection was supplied
 
@@ -179,6 +199,8 @@ path-driven and repeatable.
 - A tester can launch the hotseat validation map from the UI without editing scenes.
 - A tester can switch back to the existing faction regression map from the same UI.
 - Adding the next test map requires editing the registry, not wiring a new button.
+- The selected map's roster behavior is explicit in the registry, not implied by
+  whatever roster was last loaded in memory.
 
 ---
 
@@ -201,4 +223,3 @@ This order avoids creating a new test map that still has to be launched by hand.
 - Per-phase custom keybindings
 - Remote/LAN play
 - New objective-system coverage beyond what the current rout objective already gives
-
