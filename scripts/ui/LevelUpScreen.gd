@@ -61,7 +61,15 @@ func _show_next() -> void:
 	for stat in increases:
 		if increases[stat] > 0:
 			stats_text += "%s  +%d\n" % [_STAT_NAMES.get(stat, stat), increases[stat]]
-	_label_stats.text = stats_text.strip_edges() if stats_text != "" else "(No stats increased)"
+	if stats_text == "":
+		stats_text = "(No stats increased)\n"
+	# Announce any class skills learned at this level (Unit.skill_unlocks grant).
+	var learned: Array = item.get("learned", [])
+	if not learned.is_empty():
+		var dm := get_node_or_null("/root/DataManager")
+		for skill_id in learned:
+			stats_text += "Learned %s!\n" % _skill_display_name(dm, skill_id)
+	_label_stats.text = stats_text.strip_edges()
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
@@ -79,6 +87,16 @@ func _show_next() -> void:
 			if not is_instance_valid(self): return
 			_advance()
 		, CONNECT_ONE_SHOT)
+
+
+# Resolves a skill id to its display name via DataManager, falling back to the
+# raw id if the catalogue or skill is unavailable.
+func _skill_display_name(dm: Node, skill_id: String) -> String:
+	if dm != null:
+		var sk = dm.get_skill(skill_id)
+		if sk != null:
+			return sk.display_name
+	return skill_id
 
 
 # Dismiss the current panel, then show the next queued level-up — or, when the

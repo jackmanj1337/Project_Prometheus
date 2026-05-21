@@ -63,6 +63,20 @@ var data: StubData = StubData.new()
 	else:
 		print("FAIL confirm key no longer dismisses"); failed += 1
 
+	# A level-up that learns a skill announces it on the stats label (M3).
+	screen._queue.append({
+		"unit": stub_unit, "increases": {"hp": 1}, "learned": ["vantage"],
+	})
+	screen._show_next()
+	await process_frame
+	var stats_label: Label = screen.get_node("Panel/VBox/LabelStats")
+	if "Learned" in stats_label.text and "Vantage" in stats_label.text:
+		print("OK  level-up panel announces a learned skill"); passed += 1
+	else:
+		print("FAIL learned-skill line missing: '%s'" % stats_label.text); failed += 1
+	screen._unhandled_input(confirm)
+	await process_frame
+
 	stub_unit.queue_free()
 	screen.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
