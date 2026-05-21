@@ -368,12 +368,13 @@ from the unit's current loadout and initialise each new one at `{"rank": "E",
   `class_skill_rebuild_plan_2026-05-21.md` so a newly-created level-1 unit
   automatically receives its level-1 class skill without hand-authored data.
 
-## Second Seal (reclassing) — effort estimate
+## Second Seal (reclassing) — superseded note
 
-**Question: how much harder is adding Second Seal to this plan?**
+Detailed planning now lives in
+`AGENT/Docs/m7_second_seal_plan_2026-05-21.md`.
 
-Short answer: **moderate — roughly 30–40% on top of M6**, because M6 already
-builds the hard parts.
+This section is kept only as rationale for why M6 should factor reusable
+class-change code.
 
 Reclassing reuses almost all of the promotion machinery:
 - the class-switch routine (swap `class_id`, caps, growth tables, skill
