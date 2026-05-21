@@ -22,7 +22,10 @@ func _on_phase_changed(new_phase: int) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.get("phase_banner") == "skip":
 		return
-	_label.text = "PLAYER PHASE" if new_phase == GameState.Phase.PLAYER else "ENEMY PHASE"
+	var faction_id: String = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
+	var faction_label: String = _faction_label(faction_id)
+	_label.text = "%s PHASE" % faction_label.to_upper()
+	_panel.modulate = _faction_color(faction_id)
 	_animate()
 
 
@@ -44,3 +47,39 @@ func _animate() -> void:
 	# Slide out
 	tween.set_ease(Tween.EASE_IN)
 	tween.tween_property(_panel, "position:x", _offscreen_left(), SLIDE_DURATION)
+
+
+func _active_faction_id() -> String:
+	var turn := get_node_or_null("/root/GameMap/TurnManager")
+	if turn != null and turn.has_method("active_faction"):
+		var fid: String = turn.active_faction()
+		if fid != "":
+			return fid
+	return "red"
+
+
+func _faction_label(faction_id: String) -> String:
+	var md: MapData = _current_map_data()
+	if md != null:
+		for f in md.factions:
+			if f != null and f.id == faction_id:
+				return f.get_label()
+	if faction_id == "":
+		return "Unknown"
+	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+
+
+func _faction_color(faction_id: String) -> Color:
+	var md: MapData = _current_map_data()
+	if md != null:
+		for f in md.factions:
+			if f != null and f.id == faction_id:
+				return f.color
+	return Color(1, 1, 1, 1)
+
+
+func _current_map_data() -> MapData:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return null
+	return gs.map_data

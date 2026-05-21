@@ -8,7 +8,9 @@ class_name MapData extends Resource
 @export var display_name: String = ""
 @export var tilemap_scene_path: String = ""
 @export var player_start_tiles: Array[Vector2i] = []
-# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String, "is_boss":bool }
+# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String,
+#               "is_boss":bool, "faction":String? }
+# faction is optional; defaults to "red" for pre-C3 maps.
 @export var enemy_placements: Array[Dictionary] = []
 @export var reward_gold: int = 0
 # Item IDs given at map completion

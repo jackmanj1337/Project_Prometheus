@@ -1,29 +1,35 @@
 extends Node
-# Basic enemy AI: move toward nearest player unit, attack if in range.
-# Called by TurnManager.start_enemy_phase(); awaited until all enemies have acted.
+# Basic faction AI: move toward nearest hostile unit, attack if in range.
+# Called by TurnManager.start_enemy_phase(); awaited until one AI faction has acted.
 
-# Runs each living enemy sequentially, then hands control back to TurnManager.
+# Runs one faction's living units sequentially.
 # Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
 # _map_over latch halts the cycle at the controller chokepoint, so a decided
 # map does not keep playing out remaining enemy turns).
-func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
+func run_ai_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null or grid == null:
-		turn.start_player_phase()
 		return
-	# Get living enemies before iterating — combat may kill enemies mid-loop
-	var enemies: Array[Node] = gs.get_living_enemy_units()
-	for enemy in enemies:
+	var actors: Array[Node] = gs.get_living_units_of(faction_id)
+	for enemy in actors:
 		if turn._map_over:
 			return
 		if is_instance_valid(enemy):
 			# Pan the camera to the enemy and pause briefly so the player can
 			# follow the enemy phase (#7), then let it act.
 			await _focus_camera(enemy)
-			await _act(enemy, grid, turn)
-	if turn._map_over:
-		return
-	turn.start_player_phase()
+			await _act(enemy, grid, turn, faction_id)
+
+
+# Legacy alias kept so older tests/callers can still invoke the pre-C3 entry
+# point. Uses TurnManager.active_faction() when available.
+func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
+	var faction_id: String = "red"
+	if turn != null and turn.has_method("active_faction"):
+		var active: String = turn.active_faction()
+		if active != "":
+			faction_id = active
+	await run_ai_phase(grid, turn, faction_id)
 
 
 # Pans the camera onto `unit` (#7) by announcing it on EventBus.ai_unit_acting.
@@ -49,25 +55,25 @@ func _focus_camera(unit: Node) -> void:
 
 
 # One enemy's turn: dispatch on ai_profile, then mark DONE.
-func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: String = "red") -> void:
 	if enemy.data == null:
 		return
 	match enemy.data.ai_profile:
-		"passive": await _act_passive(enemy, grid, turn); return
-		"healer":  await _act_healer(enemy, grid, turn);  return
+		"passive": await _act_passive(enemy, grid, turn, acting_faction); return
+		"healer":  await _act_healer(enemy, grid, turn, acting_faction);  return
 		_: pass  # "basic" falls through to standard logic
 
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
-	var players: Array[Node] = gs.get_living_player_units()
-	if players.is_empty():
+	var hostiles: Array[Node] = _living_hostiles_for_faction(gs, acting_faction)
+	if hostiles.is_empty():
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 
-	var nearest: Node = _find_nearest(enemy, players, grid)
+	var nearest: Node = _find_nearest(enemy, hostiles, grid)
 	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
-	var best_tile: Vector2i = _choose_move_tile(enemy, nearest, players, move_tiles, grid)
+	var best_tile: Vector2i = _choose_move_tile(enemy, nearest, hostiles, move_tiles, grid)
 
 	if best_tile != enemy.tile_position:
 		var path := grid.get_movement_path(enemy, best_tile)
@@ -100,7 +106,7 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 
 
 # Passive: hold position; only attack if a player is already in attack range.
-func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_faction: String = "red") -> void:
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 	if is_instance_valid(enemy):
@@ -117,13 +123,14 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 
 
 # Healer: move toward injured allies, heal the most-injured one in range.
-func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
+func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
+		acting_faction: String = "red") -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
-	var best_tile: Vector2i = _choose_heal_move_tile(enemy, move_tiles, grid, gs)
+	var best_tile: Vector2i = _choose_heal_move_tile(enemy, move_tiles, grid, gs, acting_faction)
 	if best_tile != enemy.tile_position:
 		var path := grid.get_movement_path(enemy, best_tile)
 		if path.size() > 1:
@@ -143,11 +150,11 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 # Pick the move tile that places the most-injured ally in staff range.
 # Tie-break: prefer tiles with higher terrain DEF+Dodge bonus (safer positioning).
 func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
-		grid: GridManager, gs: Node) -> Vector2i:
+		grid: GridManager, gs: Node, acting_faction: String = "red") -> Vector2i:
 	var best_tile: Vector2i = enemy.tile_position
 	var best_injury_pct: float = -1.0  # higher = more injured = higher priority
 	var best_terrain_bonus: int = -1
-	var allies: Array[Node] = gs.get_living_enemy_units()
+	var allies: Array[Node] = gs.get_living_units_of(acting_faction)
 	for tile in move_tiles:
 		for ally in allies:
 			if not is_instance_valid(ally) or ally == enemy:
@@ -258,6 +265,17 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 			min_dist = d
 			nearest = u
 	return nearest
+
+
+# Returns every living unit hostile to `acting_faction`, based on the
+# alliance-group model (M14 stage 2/3).
+func _living_hostiles_for_faction(gs: Node, acting_faction: String) -> Array[Node]:
+	var out: Array[Node] = []
+	for fid in gs.get_registered_faction_ids():
+		if not gs.are_hostile(acting_faction, fid):
+			continue
+		out.append_array(gs.get_living_units_of(fid))
+	return out
 
 
 # NOTE: the former _flood_costs helper was folded into GridManager.dijkstra_costs —

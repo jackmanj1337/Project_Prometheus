@@ -162,10 +162,12 @@ func _spawn_units() -> void:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
-	# Enemy units: load each UnitData .tres referenced by enemy_placements
+# Enemy/AI-controlled units: load each UnitData .tres referenced by enemy_placements.
+# Optional placement key: "faction" (defaults to "red").
 	for placement in map_data.enemy_placements:
 		var path: String = placement.get("unit_data_path", "")
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
+		var faction_id: String = placement.get("faction", "red")
 		if path == "" or not ResourceLoader.exists(path):
 			push_warning("GameMap: bad enemy placement: " + str(placement))
 			continue
@@ -182,7 +184,7 @@ func _spawn_units() -> void:
 		if u_data.unit_id == "":
 			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 			continue
-		_spawn_unit(u_data, tile, "red")
+		_spawn_unit(u_data, tile, faction_id)
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:

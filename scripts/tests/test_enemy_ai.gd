@@ -168,7 +168,7 @@ func _init() -> void:
 	injured.set("data", injured_data)
 	root.add_child(healer); root.add_child(injured)
 	var gs_stub_script := GDScript.new()
-	gs_stub_script.source_code = "extends Node\nvar units: Array[Node] = []\nfunc get_living_enemy_units() -> Array[Node]: return units\n"
+	gs_stub_script.source_code = "extends Node\nvar units: Array[Node] = []\nfunc get_living_units_of(_faction: String) -> Array[Node]: return units\n"
 	gs_stub_script.reload()
 	var gs_stub: Node = gs_stub_script.new()
 	var heal_allies: Array[Node] = [healer, injured]
@@ -222,10 +222,10 @@ func _init() -> void:
 	act_stub.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"enemy\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\nfunc move_along_path(p):\n\ttile_position = p[p.size() - 1]\n\tawait get_tree().process_frame\n"
 	act_stub.reload()
 
-	# Stub GameState: EnemyAI reads get_living_player/enemy_units; GridManager reads
-	# all_units. The three arrays are repopulated per test.
+	# Stub GameState: EnemyAI reads per-faction unit buckets + hostility checks;
+	# GridManager reads all_units. Arrays are repopulated per test.
 	var act_gs_script := GDScript.new()
-	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\n"
+	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\n"
 	act_gs_script.reload()
 	var act_gs: Node = act_gs_script.new()
 	act_gs.name = "GameState"

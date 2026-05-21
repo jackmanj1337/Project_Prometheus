@@ -89,26 +89,18 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and not bus.unit_died.is_connected(_on_unit_died):
 		bus.unit_died.connect(_on_unit_died)
-	# Begin the first faction's phase. For 2-faction WHOLE_PHASE maps the first
-	# active faction is "blue", so this is the same as the pre-stage-3 call.
-	#
-	# Maps that start with a non-blue faction (a stage-4+ content design choice)
-	# set up the phase state but DO NOT auto-loop through AI here — the caller
-	# (GameMap, or stage-4's run_ai_phase dispatch) is responsible for driving
-	# the first non-blue phase. Otherwise the deferred "back to blue" call would
-	# fire before any caller could observe the initial scheduler state, and
-	# tests asserting "active faction after start_map" become race-prone.
+	# Begin the first faction's phase.
 	if active_faction() == "blue" or active_faction() == "":
 		start_player_phase()
 	else:
-		# Non-blue first-faction: set ENEMY phase + per-army begin-phase, but
-		# don't await AI / queue start_player_phase. Stage 4 will plumb the
-		# controller dispatch here.
-		var gs_for_first := get_node_or_null("/root/GameState")
-		if gs_for_first:
-			gs_for_first.set_phase(gs_for_first.Phase.ENEMY)
-			if _activation_mode == "WHOLE_PHASE":
-				_begin_phase(gs_for_first.get_living_units_of(active_faction()))
+		# Stage 4: non-blue first faction dispatches through the per-faction AI
+		# loop in WHOLE_PHASE mode. ALTERNATING handoff remains a later step.
+		if _activation_mode == "WHOLE_PHASE":
+			call_deferred("start_enemy_phase")
+		else:
+			var gs_for_first := get_node_or_null("/root/GameState")
+			if gs_for_first:
+				gs_for_first.set_phase(gs_for_first.Phase.ENEMY)
 
 
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
@@ -280,27 +272,33 @@ func start_enemy_phase() -> void:
 	# be reached via a direct test call where the index is already correct.
 	if active_faction() == "blue":
 		_advance_faction()
-	# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
-	# faction's phase (not just blue's). A win or loss decided during the prior
-	# phase by something other than unit_died / unit_moved (e.g. a survive
-	# condition firing on the new round number) is caught here.
-	check_victory_conditions()
-	if _map_over:
-		return
-	var gs := get_node_or_null("/root/GameState")
-	if gs:
-		gs.set_phase(gs.Phase.ENEMY)
-		if _activation_mode == "WHOLE_PHASE":
-			# Same _begin_phase routine as the player phase — turn-modifier tick, fort
-			# healing, then start_of_turn skills (e.g. Renewal) — kept provably symmetric.
-			_begin_phase(gs.get_living_units_of(active_faction()))
-	var ai := get_node_or_null("/root/EnemyAI")
-	if ai:
-		await ai.run_enemy_phase(_grid, self)
-	else:
-		call_deferred("start_player_phase")
-	# Victory/defeat during the enemy phase is caught by _on_unit_died (via signal).
-	# start_player_phase() covers the turn-limit check at the top of each new turn.
+	# Stage 4: run each consecutive non-blue AI faction, then hand back to blue.
+	while active_faction() != "blue" and active_faction() != "":
+		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
+		# faction's phase (not just blue's).
+		check_victory_conditions()
+		if _map_over:
+			return
+		var gs := get_node_or_null("/root/GameState")
+		if gs:
+			gs.set_phase(gs.Phase.ENEMY)
+			if _activation_mode == "WHOLE_PHASE":
+				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
+				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
+				_begin_phase(gs.get_living_units_of(active_faction()))
+		var ai := get_node_or_null("/root/EnemyAI")
+		if _is_ai_controlled(active_faction()) and ai:
+			await ai.run_ai_phase(_grid, self, active_faction())
+		if _map_over:
+			return
+		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
+		# controller handoff lands with the stage-5/hotseat flow.
+		if _activation_mode != "WHOLE_PHASE":
+			break
+		_advance_faction()
+	# Victory/defeat during AI phases is caught by _on_unit_died (signal), and
+	# start_player_phase() covers the turn-limit check at the top of blue's phase.
+	start_player_phase()
 
 
 # Scheduler primitive: snap _active_faction_idx onto a specific faction id, if
@@ -314,6 +312,19 @@ func _jump_active_faction_to(faction_id: String) -> void:
 	var idx: int = _turn_order.find(faction_id)
 	if idx >= 0:
 		_active_faction_idx = idx
+
+
+# True when the faction should be driven by EnemyAI in M14 stage 4.
+# For maps without authored FactionData entries, every non-blue faction defaults
+# to AI so existing content keeps working.
+func _is_ai_controlled(faction_id: String) -> bool:
+	if faction_id == "" or faction_id == "blue":
+		return false
+	if _map_data != null:
+		for f in _map_data.factions:
+			if f != null and f.id == faction_id:
+				return f.controller == "" or f.controller == "AI"
+	return true
 
 
 # ── ALTERNATING-mode primitive (M14 stage 3) ─────────────────────────────────
