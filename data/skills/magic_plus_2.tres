@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "magic_plus_2"
+display_name = "Magic +2"
+description = "Grants Magic +2."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "stat_bonus"
+effect_params = {"stat": "magic", "amount": 2}
+is_player_activated = false

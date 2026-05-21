@@ -35,6 +35,17 @@ func _ready() -> void:
 		"anathema":      _apply_anathema,
 		"daunt":         _apply_daunt,
 		"s_rank_mastery": _apply_s_rank_mastery,
+		# Base-class skills pulled from FE:A (M4). Effect logic is implemented in
+		# M9 alongside stat_bonus/charm/anathema/daunt; registered now as stubs so
+		# the .tres resources resolve and combat never hits an unknown effect_id.
+		"prescience":     _apply_unimplemented,
+		"patience":       _apply_unimplemented,
+		"discipline":     _apply_unimplemented,
+		"outdoor_fighter": _apply_unimplemented,
+		"indoor_fighter": _apply_unimplemented,
+		"focus":          _apply_unimplemented,
+		"armsthrift":     _apply_unimplemented,
+		"healtouch":      _apply_unimplemented,
 	}
 
 
@@ -267,11 +278,18 @@ func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	return true
 
 
-# Generic stat bonus from effect_params (hit/crit/str keys).
-# No skill .tres uses this yet — implement fully in M9.
+# Generic stat bonus from effect_params ({"stat": String, "amount": int}).
+# Used by the FE:A "+2" skills (Skill +2, Defense +2, Magic +2). Implement in M9.
 func _apply_stat_bonus(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
 	push_warning("SkillHandler._apply_stat_bonus: stub called for '%s' — implement in M9" % skill.id)
 	return false  # stub did nothing — don't consume a use
+
+
+# Shared stub for the FE:A base-class skills whose effects land in M9. Declining
+# (false) means no use is consumed and combat/preview math is unaffected.
+func _apply_unimplemented(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
+	push_warning("SkillHandler._apply_unimplemented: stub called for '%s' — implement in M9" % skill.id)
+	return false
 
 
 # ---- Aura skills (on_combat_apply_modifiers) ----

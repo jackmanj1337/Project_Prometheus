@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "healtouch"
+display_name = "Healtouch"
+description = "Adds 5 HP to the amount recovered when healing allies with a staff."
+trigger = "passive"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "healtouch"
+effect_params = {"heal_bonus": 5}
+is_player_activated = false

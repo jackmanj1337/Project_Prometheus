@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "armsthrift"
+display_name = "Armsthrift"
+description = "Luck x2% chance to attack without expending a weapon use."
+trigger = "on_attack"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "armsthrift"
+effect_params = {}
+is_player_activated = false
