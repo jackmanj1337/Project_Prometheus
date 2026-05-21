@@ -40,6 +40,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Every skill this unit has ever learned. `skills` is the currently equipped
 # subset; future battle-prep skill swapping will draw from this full list.
 @export var earned_skills: Array[String] = []
+@export var reclass_options: Array[String] = []
+@export var class_line_id: String = ""
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
 # Captured by GameState's manual snapshot (not by ResourceSaver; not @export).

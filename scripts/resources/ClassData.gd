@@ -32,6 +32,7 @@ class_name ClassData extends Resource
 @export var promotes_to: Array[String] = []
 @export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
+@export var is_special_class: bool = false
 
 # Stat keys recognised in growth_rates / stat_caps dictionaries.
 const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",

@@ -25,6 +25,9 @@ signal promotion_available(unit: Node)
 signal unit_promoted(unit: Node, old_class_id: String, new_class_id: String)
 signal promotion_started()
 signal promotion_finished()
+signal unit_reclassed(unit: Node, old_class_id: String, new_class_id: String)
+signal reclass_started()
+signal reclass_finished()
 # Brackets the level-up screen being on-screen — fired when it first appears and
 # again once its whole queue is dismissed. MapCursor uses these to suppress input
 # so the cursor can't be driven underneath the screen (#12).

@@ -133,5 +133,21 @@ func _init() -> void:
 			c_skill_err, c_growth_err, c_promote_err, class_errs])
 		failed += 1
 
+	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----
+	var bad_unit := UnitData.new()
+	bad_unit.unit_id = "bad_u"
+	bad_unit.class_id = "cavalier"
+	bad_unit.class_line_id = "paladin"
+	bad_unit.reclass_options = ["mage", "no_such_class"]
+	var unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors([bad_unit], dm._classes)
+	var u_line_err: bool = unit_errs.any(func(e): return "unit 'bad_u' class_line_id 'paladin' must point to a tier-1 class" in e)
+	var u_missing_err: bool = unit_errs.any(func(e): return "unit 'bad_u' reclass_options 'no_such_class' not found" in e)
+	if u_line_err and u_missing_err:
+		print("OK  bad unit fixture fires class_line_id + reclass_options checks"); passed += 1
+	else:
+		print("FAIL unit checks: line=%s missing=%s errs=%s" % [
+			u_line_err, u_missing_err, unit_errs])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

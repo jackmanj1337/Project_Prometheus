@@ -11,6 +11,10 @@ class SignalWatcher extends RefCounted:
 	var prompt_count: int = 0
 	var promoted_target: Node = null
 	var prompt_target: Node = null
+	var reclass_count: int = 0
+	var reclass_from: String = ""
+	var reclass_to: String = ""
+	var reclass_target: Node = null
 
 	func on_promoted(promoted_unit: Node, old_id: String, new_id: String) -> void:
 		if promoted_unit != promoted_target:
@@ -23,6 +27,13 @@ class SignalWatcher extends RefCounted:
 		if prompt_unit != prompt_target:
 			return
 		prompt_count += 1
+
+	func on_reclassed(reclassed_unit: Node, old_id: String, new_id: String) -> void:
+		if reclassed_unit != reclass_target:
+			return
+		reclass_count += 1
+		reclass_from = old_id
+		reclass_to = new_id
 
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
@@ -630,6 +641,189 @@ func _init() -> void:
 	else:
 		print("FAIL N6/F1 init skill grant: skills=%s earned=%s" % [
 			init_skill_data.skills, init_skill_data.earned_skills])
+		failed += 1
+
+	# --- M7: Second Seal eligibility, options, and reclass rules ---
+	var watcher_reclass := SignalWatcher.new()
+	var seal_base: Unit = unit_scene.instantiate()
+	var seal_base_data := UnitData.new()
+	seal_base_data.class_id = "cavalier"
+	seal_base_data.class_line_id = "cavalier"
+	seal_base_data.reclass_options = ["cavalier", "knight", "mercenary"]
+	seal_base_data.level = 9
+	seal_base_data.effective_level = 9
+	seal_base_data.hp = 18
+	seal_base_data.max_hp = 18
+	seal_base_data.strength = 8
+	seal_base_data.magic = 0
+	seal_base_data.defense = 6
+	seal_base_data.resistance = 3
+	seal_base_data.skill = 7
+	seal_base_data.speed = 7
+	seal_base_data.luck = 5
+	seal_base_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+	seal_base.data = seal_base_data
+	root.add_child(seal_base)
+	await process_frame
+	if not seal_base.can_use_second_seal():
+		print("OK  M7: a tier-1 unit below level 10 cannot use Second Seal")
+		passed += 1
+	else:
+		print("FAIL M7 tier-1 gate: unit below level 10 should not use Second Seal")
+		failed += 1
+	seal_base_data.level = 10
+	var base_options: Array[Dictionary] = seal_base.get_second_seal_options()
+	var base_ids: Array = base_options.map(func(opt): return opt["class_id"])
+	var base_has_tier2: bool = base_options.any(func(opt): return int(opt["target_tier"]) == 2)
+	if seal_base.can_use_second_seal() and "knight" in base_ids and "mercenary" in base_ids \
+			and not ("paladin" in base_ids) and not base_has_tier2:
+		print("OK  M7: a tier-1 level-10 unit gets only tier-1 reclass options")
+		passed += 1
+	else:
+		print("FAIL M7 tier-1 options: ids=%s has_tier2=%s" % [base_ids, base_has_tier2])
+		failed += 1
+	watcher_reclass.reclass_target = seal_base
+	bus.unit_reclassed.connect(Callable(watcher_reclass, "on_reclassed"))
+	var base_reclass_ok: bool = seal_base.reclass("knight")
+	if base_reclass_ok and seal_base_data.class_id == "knight" \
+			and seal_base_data.class_line_id == "knight" and seal_base_data.level == 1 \
+			and seal_base_data.exp == 0 and not seal_base_data.is_promoted \
+			and seal_base_data.skills.has("defense_plus_2") \
+			and seal_base_data.earned_skills.has("defense_plus_2") \
+			and watcher_reclass.reclass_count == 1 \
+			and watcher_reclass.reclass_from == "cavalier" \
+			and watcher_reclass.reclass_to == "knight":
+		print("OK  M7: tier-1 reclass changes class, resets level, grants the new level-1 skill, and emits unit_reclassed")
+		passed += 1
+	else:
+		print("FAIL M7 tier-1 reclass: ok=%s class=%s line=%s lvl=%d exp=%d promoted=%s skills=%s earned=%s signals=%d from=%s to=%s" % [
+			base_reclass_ok, seal_base_data.class_id, seal_base_data.class_line_id,
+			seal_base_data.level, seal_base_data.exp, seal_base_data.is_promoted,
+			seal_base_data.skills, seal_base_data.earned_skills,
+			watcher_reclass.reclass_count, watcher_reclass.reclass_from,
+			watcher_reclass.reclass_to])
+		failed += 1
+
+	var seal_promoted: Unit = unit_scene.instantiate()
+	var seal_promoted_data := UnitData.new()
+	seal_promoted_data.class_id = "paladin"
+	seal_promoted_data.class_line_id = "cavalier"
+	seal_promoted_data.level = 9
+	seal_promoted_data.exp = 40
+	seal_promoted_data.is_promoted = true
+	seal_promoted_data.effective_level = 17
+	seal_promoted_data.hp = 28
+	seal_promoted_data.max_hp = 30
+	seal_promoted_data.strength = 14
+	seal_promoted_data.magic = 1
+	seal_promoted_data.defense = 10
+	seal_promoted_data.resistance = 8
+	seal_promoted_data.skill = 10
+	seal_promoted_data.speed = 10
+	seal_promoted_data.luck = 7
+	seal_promoted_data.proficiencies = {
+		"lance": {"rank": "B", "wexp": 0},
+		"sword": {"rank": "C", "wexp": 0},
+	}
+	seal_promoted.data = seal_promoted_data
+	root.add_child(seal_promoted)
+	await process_frame
+	var promoted_low_options: Array[Dictionary] = seal_promoted.get_second_seal_options()
+	var promoted_low_has_tier2: bool = promoted_low_options.any(func(opt): return int(opt["target_tier"]) == 2)
+	if seal_promoted.can_use_second_seal() and not promoted_low_has_tier2:
+		print("OK  M7: a promoted unit below level 10 can demote but cannot laterally reclass")
+		passed += 1
+	else:
+		print("FAIL M7 promoted low options: can_use=%s opts=%s" % [
+			seal_promoted.can_use_second_seal(), promoted_low_options])
+		failed += 1
+	var demote_ok: bool = seal_promoted.reclass("knight")
+	if demote_ok and seal_promoted_data.class_id == "knight" and seal_promoted_data.class_line_id == "knight" \
+			and not seal_promoted_data.is_promoted and seal_promoted_data.level == 1 \
+			and seal_promoted_data.effective_level == 17 and seal_promoted_data.max_hp == 23 \
+			and seal_promoted_data.hp == 23 and seal_promoted_data.strength == 11 \
+			and seal_promoted_data.magic == 0 and seal_promoted_data.defense == 7 \
+			and seal_promoted_data.resistance == 2:
+		print("OK  M7: demotion removes source promotion bonuses and preserves effective_level")
+		passed += 1
+	else:
+		print("FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d" % [
+			demote_ok, seal_promoted_data.class_id, seal_promoted_data.class_line_id,
+			seal_promoted_data.is_promoted, seal_promoted_data.level,
+			seal_promoted_data.effective_level, seal_promoted_data.hp,
+			seal_promoted_data.max_hp, seal_promoted_data.strength,
+			seal_promoted_data.magic, seal_promoted_data.defense,
+			seal_promoted_data.resistance])
+		failed += 1
+
+	var seal_lateral: Unit = unit_scene.instantiate()
+	var seal_lateral_data := UnitData.new()
+	seal_lateral_data.class_id = "paladin"
+	seal_lateral_data.class_line_id = "cavalier"
+	seal_lateral_data.level = 10
+	seal_lateral_data.is_promoted = true
+	seal_lateral_data.effective_level = 18
+	seal_lateral_data.hp = 28
+	seal_lateral_data.max_hp = 30
+	seal_lateral_data.strength = 14
+	seal_lateral_data.magic = 1
+	seal_lateral_data.defense = 10
+	seal_lateral_data.resistance = 8
+	seal_lateral_data.skill = 10
+	seal_lateral_data.speed = 10
+	seal_lateral_data.luck = 7
+	seal_lateral_data.proficiencies = {
+		"lance": {"rank": "B", "wexp": 0},
+		"sword": {"rank": "C", "wexp": 0},
+	}
+	seal_lateral.data = seal_lateral_data
+	root.add_child(seal_lateral)
+	await process_frame
+	var lateral_options: Array[Dictionary] = seal_lateral.get_second_seal_options()
+	var bow_knight_lines: Array = lateral_options.filter(func(opt): return opt["class_id"] == "bow_knight") \
+		.map(func(opt): return opt["class_line_id"])
+	var lateral_has_hero: bool = lateral_options.any(func(opt): return opt["class_id"] == "hero")
+	if lateral_has_hero and bow_knight_lines.size() == 2 \
+			and "archer" in bow_knight_lines and "mercenary" in bow_knight_lines:
+		print("OK  M7: a promoted level-10 unit sees lateral tier-2 options, including shared-class lines")
+		passed += 1
+	else:
+		print("FAIL M7 lateral options: hero=%s bow_knight_lines=%s opts=%s" % [
+			lateral_has_hero, bow_knight_lines, lateral_options])
+		failed += 1
+	var lateral_ok: bool = seal_lateral.reclass("hero", "mercenary")
+	if lateral_ok and seal_lateral_data.class_id == "hero" and seal_lateral_data.class_line_id == "mercenary" \
+			and seal_lateral_data.is_promoted and seal_lateral_data.level == 1 \
+			and seal_lateral_data.max_hp == 23 and seal_lateral_data.hp == 23 \
+			and seal_lateral_data.strength == 11 and seal_lateral_data.magic == 0 \
+			and seal_lateral_data.defense == 7 and seal_lateral_data.resistance == 2 \
+			and seal_lateral_data.proficiencies.has("axe") \
+			and seal_lateral_data.proficiencies["axe"]["rank"] == "E":
+		print("OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new proficiencies at E")
+		passed += 1
+	else:
+		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d prof=%s" % [
+			lateral_ok, seal_lateral_data.class_id, seal_lateral_data.class_line_id,
+			seal_lateral_data.is_promoted, seal_lateral_data.level,
+			seal_lateral_data.hp, seal_lateral_data.max_hp, seal_lateral_data.strength,
+			seal_lateral_data.magic, seal_lateral_data.defense,
+			seal_lateral_data.resistance, seal_lateral_data.proficiencies])
+		failed += 1
+	seal_lateral_data.level = 20
+	seal_lateral_data.exp = 55
+	var hp_before_reset: int = seal_lateral_data.hp
+	var max_hp_before_reset: int = seal_lateral_data.max_hp
+	var reset_ok: bool = seal_lateral.reclass("hero", "mercenary")
+	if reset_ok and seal_lateral_data.level == 1 and seal_lateral_data.exp == 0 \
+			and seal_lateral_data.hp == hp_before_reset \
+			and seal_lateral_data.max_hp == max_hp_before_reset:
+		print("OK  M7: self-reset keeps stats unchanged while resetting the displayed level")
+		passed += 1
+	else:
+		print("FAIL M7 self-reset: ok=%s lvl=%d exp=%d hp=%d/%d want=%d/%d" % [
+			reset_ok, seal_lateral_data.level, seal_lateral_data.exp,
+			seal_lateral_data.hp, seal_lateral_data.max_hp,
+			hp_before_reset, max_hp_before_reset])
 		failed += 1
 
 	# --- use_weapon_durability: last-use removal doesn't lose wexp if weapon captured first ---

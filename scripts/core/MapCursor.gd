@@ -62,6 +62,7 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var weapon_menu: Node = null
 @export var unit_details: Node = null
 @export var promotion_screen: Node = null
+@export var reclass_screen: Node = null
 
 # Whether the danger zone overlay is currently displayed
 var _danger_zone_shown: bool = false
@@ -108,6 +109,8 @@ func _ready() -> void:
 		bus.level_up_finished.connect(_on_level_up_finished)
 		bus.promotion_started.connect(_on_level_up_started)
 		bus.promotion_finished.connect(_on_level_up_finished)
+		bus.reclass_started.connect(_on_level_up_started)
+		bus.reclass_finished.connect(_on_level_up_finished)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -133,6 +136,8 @@ func _resolve_menu_refs() -> void:
 		unit_details = get_node_or_null("../UnitDetailsLayer/UnitDetailsScreen")
 	if promotion_screen == null:
 		promotion_screen = get_node_or_null("../PromotionLayer/PromotionScreen")
+	if reclass_screen == null:
+		reclass_screen = get_node_or_null("../ReclassLayer/ReclassScreen")
 
 
 func _on_phase_changed(new_phase: int) -> void:
@@ -674,6 +679,11 @@ func _apply_item_effect(entry: InventoryEntry) -> bool:
 	var item: ItemData = ih.get_item_data(entry)
 	if item != null and item.effect_id == "promote" and promotion_screen != null:
 		promotion_screen.open_for(_selection.selected_unit, entry,
+			Callable(self, "_on_promotion_item_confirmed"),
+			Callable(self, "_on_promotion_item_cancelled"))
+		return false
+	if item != null and item.effect_id == "reclass" and reclass_screen != null:
+		reclass_screen.open_for(_selection.selected_unit, entry,
 			Callable(self, "_on_promotion_item_confirmed"),
 			Callable(self, "_on_promotion_item_cancelled"))
 		return false

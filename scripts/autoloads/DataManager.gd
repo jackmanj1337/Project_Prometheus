@@ -169,6 +169,14 @@ func get_class_data(id: String) -> ClassData:
 	return _classes[id]
 
 
+func get_all_classes() -> Dictionary:
+	return _classes
+
+
+func validate_unit_data(unit: UnitData) -> Array[String]:
+	return collect_unit_validation_errors([unit], _classes)
+
+
 func get_weapon(id: String) -> WeaponData:
 	if not _weapons.has(id):
 		push_error("DataManager: unknown weapon id '%s'" % id)
@@ -197,3 +205,32 @@ func get_weapon_triangle_result(attacker_type: String, defender_type: String) ->
 		if row.has(defender_type):
 			return row[defender_type]
 	return "neutral"
+
+
+static func collect_unit_validation_errors(units: Array, classes: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for unit in units:
+		if unit == null:
+			continue
+		if unit.class_id != "" and not classes.has(unit.class_id):
+			errors.append("DataManager: unit '%s' class_id '%s' not found" % [
+				unit.unit_id, unit.class_id])
+		if unit.class_line_id != "":
+			if not classes.has(unit.class_line_id):
+				errors.append("DataManager: unit '%s' class_line_id '%s' not found" % [
+					unit.unit_id, unit.class_line_id])
+			else:
+				var line_class: ClassData = classes[unit.class_line_id]
+				if line_class.tier != 1:
+					errors.append("DataManager: unit '%s' class_line_id '%s' must point to a tier-1 class" % [
+						unit.unit_id, unit.class_line_id])
+		for option_id in unit.reclass_options:
+			if not classes.has(String(option_id)):
+				errors.append("DataManager: unit '%s' reclass_options '%s' not found" % [
+					unit.unit_id, String(option_id)])
+				continue
+			var option_class: ClassData = classes[String(option_id)]
+			if option_class.tier != 1:
+				errors.append("DataManager: unit '%s' reclass_options '%s' must point to a tier-1 class" % [
+					unit.unit_id, String(option_id)])
+	return errors

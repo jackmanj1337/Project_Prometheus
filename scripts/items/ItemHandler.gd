@@ -8,7 +8,7 @@ extends Node
 # .tres surfaces immediately rather than as a runtime push_warning the first time
 # the item is used. Keep this list in lockstep with apply_item's match cases —
 # add the case AND a string here whenever a new item effect lands.
-const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full", "promote"]
+const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full", "promote", "reclass"]
 
 # Applies the effect of an item entry to `unit`.
 # Decrements uses_remaining and removes exhausted entries from the inventory.
@@ -33,6 +33,9 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 		"promote":
 			push_warning("ItemHandler: promote items must be resolved through PromotionScreen")
 			return
+		"reclass":
+			push_warning("ItemHandler: reclass items must be resolved through ReclassScreen")
+			return
 		_:
 			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
 			return  # Don't consume the item if we can't apply its effect
@@ -52,6 +55,8 @@ func can_apply_item(unit: Node, entry: InventoryEntry) -> bool:
 			return true
 		"promote":
 			return _can_apply_promotion_item(unit, item)
+		"reclass":
+			return unit.has_method("can_use_second_seal") and unit.can_use_second_seal()
 		_:
 			return false
 

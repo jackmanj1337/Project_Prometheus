@@ -10,6 +10,7 @@ const DataManagerS  = preload("res://scripts/autoloads/DataManager.gd")
 class MockUnit extends Node:
 	var data: UnitData
 	var team: String = "blue"
+	var second_seal_usable: bool = false
 
 	func setup(unit_data: UnitData) -> void:
 		data = unit_data
@@ -41,6 +42,9 @@ class MockUnit extends Node:
 		var class_data: ClassData = dm.get_class_data(data.class_id)
 		return class_data != null and not data.is_promoted \
 			and data.level >= class_data.max_level and not class_data.promotes_to.is_empty()
+
+	func can_use_second_seal() -> bool:
+		return second_seal_usable
 
 
 func _make_ctx(atk: Node, def: Node, w_atk: WeaponData, w_def: WeaponData,
@@ -330,16 +334,19 @@ func _init() -> void:
 	archer_data.level = 20
 	var archer_unit := MockUnit.new()
 	archer_unit.setup(archer_data)
+	archer_unit.second_seal_usable = true
 	root.add_child(archer_unit)
 	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
 	mage_data.level = 20
 	var mage_unit := MockUnit.new()
 	mage_unit.setup(mage_data)
+	mage_unit.second_seal_usable = true
 	root.add_child(mage_unit)
 	var merc_data: UnitData = load("res://data/roster/default/unit_02_mercenary.tres").duplicate(true)
 	merc_data.level = 20
 	var merc_unit := MockUnit.new()
 	merc_unit.setup(merc_data)
+	merc_unit.second_seal_usable = false
 	root.add_child(merc_unit)
 	var orion_entry := InventoryEntry.make_item("orion_bolt", 1)
 	var ring_entry := InventoryEntry.make_item("guiding_ring", 1)
@@ -353,6 +360,12 @@ func _init() -> void:
 	else:
 		print("FAIL M6.4 allowed_class_groups: mage=%s merc=%s" % [
 			ih.can_apply_item(mage_unit, ring_entry), ih.can_apply_item(merc_unit, ring_entry)]); failed += 1
+	var second_entry := InventoryEntry.make_item("second_seal", 1)
+	if ih.can_apply_item(archer_unit, second_entry) and not ih.can_apply_item(merc_unit, second_entry):
+		print("OK  M7.4: Second Seal usability follows unit.can_use_second_seal()"); passed += 1
+	else:
+		print("FAIL M7.4 second_seal: archer=%s merc=%s" % [
+			ih.can_apply_item(archer_unit, second_entry), ih.can_apply_item(merc_unit, second_entry)]); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

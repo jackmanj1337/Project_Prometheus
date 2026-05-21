@@ -276,6 +276,13 @@ func load_roster_from_directory(roster_path: String) -> void:
 			if res.unit_id == "":
 				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
 				continue
+			var dm := get_node_or_null("/root/DataManager")
+			if dm != null and not dm.get_all_classes().is_empty():
+				var unit_errors: Array[String] = dm.validate_unit_data(res)
+				if not unit_errors.is_empty():
+					for err in unit_errors:
+						push_error(err)
+					continue
 			player_roster.append(res)
 
 
@@ -314,6 +321,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		inventory_copy.append(entry.duplicate(true) if entry != null else null)
 	return {
 		"tile_position": data.tile_position,
+		"class_id": data.class_id,
 		"hp": data.hp,
 		"max_hp": data.max_hp,
 		"strength": data.strength,
@@ -326,6 +334,8 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"exp": data.exp,
 		"level": data.level,
 		"effective_level": data.effective_level,
+		"is_promoted": data.is_promoted,
+		"class_line_id": data.class_line_id,
 		"proficiencies": data.proficiencies.duplicate(true),
 		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
@@ -346,6 +356,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	# Use .get() with defaults so older snapshots missing newer fields don't crash.
 	data.tile_position = snap.get("tile_position", Vector2i.ZERO)
+	data.class_id = snap.get("class_id", data.class_id)
 	data.hp = snap.get("hp", data.max_hp)
 	data.max_hp = snap.get("max_hp", data.max_hp)
 	data.strength = snap.get("strength", data.strength)
@@ -358,6 +369,8 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.exp = snap.get("exp", 0)
 	data.level = snap.get("level", data.level)
 	data.effective_level = snap.get("effective_level", data.effective_level)
+	data.is_promoted = snap.get("is_promoted", data.is_promoted)
+	data.class_line_id = snap.get("class_line_id", data.class_line_id)
 	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
 	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
 	# fresh copy rather than aliasing the one stored in the snapshot.

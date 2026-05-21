@@ -136,12 +136,31 @@ func _init() -> void:
 			print("FAIL unit_id empty in: " + path)
 			failed += 1
 
+	# --- Roster reclass metadata validates against the loaded class catalogue ---
+	var DataManagerS = load("res://scripts/autoloads/DataManager.gd")
+	var class_catalogue := {}
+	for loaded_class in _load_resources_from_dir("res://data/classes/"):
+		if loaded_class and loaded_class is ClassData and loaded_class.id != "":
+			class_catalogue[loaded_class.id] = loaded_class
+	var roster_units: Array = []
+	for path in roster_files:
+		roster_units.append(load(path))
+	var roster_errors: Array[String] = DataManagerS.collect_unit_validation_errors(
+		roster_units, class_catalogue)
+	if roster_errors.is_empty():
+		print("OK  roster reclass metadata validates cleanly")
+		passed += 1
+	else:
+		print("FAIL roster reclass validation: %s" % [roster_errors])
+		failed += 1
+
 	# --- Snapshot coverage: every mutable UnitData property must appear in the
 	# snapshot dict or in the explicit allowlist of intentionally-excluded fields.
 	# Fail if a new @export var is added to UnitData without updating the snapshot.
 	var snapshot_keys := [
-		"tile_position", "hp", "max_hp", "strength", "magic", "defense",
+		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
 		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
+		"is_promoted", "class_line_id",
 		"proficiencies", "inventory", "conditions", "skills", "earned_skills",
 		"mastery_skills",
 		"is_incapacitated", "active_modifiers", "skill_use_counters",
@@ -149,9 +168,9 @@ func _init() -> void:
 	]
 	# Properties intentionally excluded: static identity or between-map state only.
 	var snapshot_allowlist := [
-		"unit_id", "unit_name", "class_id", "is_promoted", "movement",
+		"unit_id", "unit_name", "movement",
 		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
-		"shift_profile_id", "growth_rates",
+		"shift_profile_id", "growth_rates", "reclass_options",
 	]
 	var sample_unit: UnitData = UnitData.new()
 	var snapshot_fail := false
