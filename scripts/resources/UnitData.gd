@@ -26,6 +26,11 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var constitution: int = 0
 @export var line_of_sight: int = 4
 
+# This unit's personal growth rates, keys = ClassData.STAT_KEYS, values 0–100+.
+# Added on top of the class's player_growth_rates at level-up (player units only).
+# Empty {} is valid — the unit then levels purely on its class growths.
+@export var growth_rates: Dictionary = {}
+
 # Format: { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
 

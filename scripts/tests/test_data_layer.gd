@@ -180,7 +180,7 @@ func _init() -> void:
 	var snapshot_allowlist := [
 		"unit_id", "unit_name", "class_id", "is_promoted", "movement",
 		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
-		"shift_profile_id",
+		"shift_profile_id", "growth_rates",
 	]
 	var sample_unit: UnitData = UnitData.new()
 	var snapshot_fail := false

@@ -44,11 +44,29 @@ static func collect_validation_errors(classes: Dictionary, weapons: Dictionary,
 
 static func _check_class_refs(classes: Dictionary, skills: Dictionary, errors: Array[String]) -> void:
 	for cls in classes.values():
-		for skill_id in cls.starting_skills:
+		# Every skill a class auto-grants at level-up must reference a real skill.
+		for level in cls.skill_unlocks:
+			var skill_id: String = String(cls.skill_unlocks[level])
 			if not skills.has(skill_id):
-				errors.append("DataManager: class '%s' starting_skill '%s' not found" % [cls.id, skill_id])
-		# promotes_to class ids are intentionally not validated — promoted classes are added in M7.
+				errors.append("DataManager: class '%s' skill_unlocks[%s] '%s' not found" \
+					% [cls.id, str(level), skill_id])
+		# Growth tables and caps must carry every expected stat key so a missing
+		# entry can't silently zero a stat at level-up.
+		_check_stat_dict(cls, "player_growth_rates", cls.player_growth_rates, errors)
+		_check_stat_dict(cls, "enemy_growth_rates", cls.enemy_growth_rates, errors)
+		_check_stat_dict(cls, "stat_caps", cls.stat_caps, errors)
+		# promotes_to class ids are intentionally not validated — promoted classes are added in M6.
 		# When promotion data lands, add: errors.append on missing class for c in cls.promotes_to
+
+
+# Warns if a class stat dictionary is non-empty but missing expected stat keys.
+# Empty {} is allowed (e.g. a class with no enemy variant) and skipped.
+static func _check_stat_dict(cls, field: String, dict: Dictionary, errors: Array[String]) -> void:
+	if dict.is_empty():
+		return
+	for key in ClassData.STAT_KEYS:
+		if not dict.has(key):
+			errors.append("DataManager: class '%s' %s missing stat key '%s'" % [cls.id, field, key])
 
 
 # Valid stat names skills may name in activation_chance_stat. Hoisted to module

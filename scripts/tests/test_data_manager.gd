@@ -102,5 +102,22 @@ func _init() -> void:
 			w_type_err, w_tag_err, i_eff_err, s_stat_err, s_wtype_err, errs])
 		failed += 1
 
+	# ---- Class validation: bad skill_unlocks ref + incomplete stat dict ----
+	# A class that auto-grants a missing skill, or whose growth table drops a stat
+	# key, must fail validation before it can silently misbehave at level-up.
+	var bad_class := ClassData.new()
+	bad_class.id = "bad_c"
+	bad_class.skill_unlocks = {1: "no_such_skill"}
+	bad_class.player_growth_rates = {"hp": 50}  # missing the other 7 stat keys
+	var class_errs: Array[String] = DataManagerS.collect_validation_errors(
+		{"bad_c": bad_class}, {}, {}, dm._skills)
+	var c_skill_err: bool = class_errs.any(func(e): return "class 'bad_c' skill_unlocks[1] 'no_such_skill'" in e)
+	var c_growth_err: bool = class_errs.any(func(e): return "class 'bad_c' player_growth_rates missing stat key" in e)
+	if c_skill_err and c_growth_err:
+		print("OK  bad class fixture fires skill_unlocks + stat-dict checks"); passed += 1
+	else:
+		print("FAIL class checks: skill=%s growth=%s errs=%s" % [c_skill_err, c_growth_err, class_errs])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -10,6 +10,8 @@ const STATIC_FIELDS := [
 	"unit_id", "unit_name", "class_id", "ai_profile", "is_default_roster",
 	# Not individually tracked in snapshot (not mutable in MVP maps)
 	"is_promoted", "movement", "constitution", "line_of_sight", "gold",
+	# Personal growth rates — set at unit creation, never written at runtime
+	"growth_rates",
 	# Laguz identity field — static in MVP
 	"shift_profile_id",
 ]

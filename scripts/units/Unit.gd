@@ -544,7 +544,9 @@ func level_up() -> void:
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
-	var rates: Dictionary = class_data.growth_rates
+	# M1: single growth table retained. M2 splits this into player vs enemy
+	# growth selection and folds in the unit's personal growth_rates.
+	var rates: Dictionary = class_data.player_growth_rates
 	var changes: Dictionary = {}
 	match method:
 		"growth_fixed":
