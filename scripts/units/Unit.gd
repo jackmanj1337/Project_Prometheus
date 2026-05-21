@@ -350,7 +350,12 @@ func crit_avoid() -> int:
 # Safe EventBus accessor; returns null in tests where the autoload isn't live
 func _bus() -> Node:
 	if is_inside_tree():
-		return get_node_or_null("/root/EventBus")
+		var bus := get_node_or_null("/root/EventBus")
+		if bus != null:
+			return bus
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("EventBus")
 	return null
 
 
@@ -525,6 +530,7 @@ func add_exp(amount: int) -> void:
 		data.exp -= 100
 		level_up()
 		if data.level >= max_level:
+			_maybe_emit_promotion_available()
 			data.exp = 0  # no overflow past the cap
 			break
 
@@ -532,6 +538,76 @@ func add_exp(amount: int) -> void:
 func _current_max_level() -> int:
 	var class_data := _get_class_data()
 	return class_data.max_level if class_data != null else 20
+
+
+func can_promote() -> bool:
+	var class_data := _get_class_data()
+	return class_data != null and not data.is_promoted \
+		and data.level >= class_data.max_level and not class_data.promotes_to.is_empty()
+
+
+func promote(target_class_id: String) -> bool:
+	var source_class := _get_class_data()
+	if source_class == null or not can_promote():
+		return false
+	if not (target_class_id in source_class.promotes_to):
+		return false
+	var target_class := _class_data_for(target_class_id)
+	if target_class == null:
+		return false
+	var old_class_id: String = data.class_id
+	_apply_promotion_stat_bonuses(target_class)
+	data.class_id = target_class_id
+	data.is_promoted = true
+	data.level = 1
+	data.exp = 0
+	data.growth_accumulators = {}
+	_grant_missing_proficiencies(target_class.proficiencies)
+	var bus := _bus()
+	if bus:
+		bus.unit_promoted.emit(self, old_class_id, target_class_id)
+	return true
+
+
+func _class_data_for(class_id: String) -> ClassData:
+	if not is_inside_tree():
+		return null
+	var dm := get_node_or_null("/root/DataManager")
+	return dm.get_class_data(class_id) if dm != null else null
+
+
+func _maybe_emit_promotion_available() -> void:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs == null or not bool(gs.get("auto_promote_at_max_level")) or not can_promote():
+		return
+	var bus := _bus()
+	if bus:
+		bus.promotion_available.emit(self)
+
+
+func _apply_promotion_stat_bonuses(target_class: ClassData) -> void:
+	for stat in _GROWTH_STATS:
+		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat, 0))
+		if stat == "hp":
+			data.max_hp = _clamp_to_cap(data.max_hp + bonus, int(target_class.stat_caps.get("hp", -1)))
+			data.hp = mini(data.hp + bonus, data.max_hp)
+			if _hp_bar:
+				_hp_bar.max_value = data.max_hp
+				_hp_bar.value = data.hp
+			continue
+		var current: int = int(data.get(stat))
+		data.set(stat, _clamp_to_cap(current + bonus, int(target_class.stat_caps.get(stat, -1))))
+
+
+func _grant_missing_proficiencies(weapon_types: Array[String]) -> void:
+	for weapon_type in weapon_types:
+		if data.proficiencies.has(weapon_type):
+			continue
+		data.proficiencies[weapon_type] = {"rank": "E", "wexp": 0}
+
+
+func _clamp_to_cap(value: int, cap: int) -> int:
+	return mini(value, cap) if cap >= 0 else value
 
 
 # Rolls stat increases per the unit's class growth rates and applies them.

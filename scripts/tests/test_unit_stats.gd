@@ -4,6 +4,26 @@ extends SceneTree
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
+class SignalWatcher extends RefCounted:
+	var promoted_count: int = 0
+	var promoted_from: String = ""
+	var promoted_to: String = ""
+	var prompt_count: int = 0
+	var promoted_target: Node = null
+	var prompt_target: Node = null
+
+	func on_promoted(promoted_unit: Node, old_id: String, new_id: String) -> void:
+		if promoted_unit != promoted_target:
+			return
+		promoted_count += 1
+		promoted_from = old_id
+		promoted_to = new_id
+
+	func on_prompt(prompt_unit: Node) -> void:
+		if prompt_unit != prompt_target:
+			return
+		prompt_count += 1
+
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
 
@@ -49,6 +69,19 @@ func _init() -> void:
 
 	var passed := 0
 	var failed := 0
+
+	var relay := Node.new()
+	root.add_child(relay)
+	await process_frame
+	var dm: Node = relay.get_node_or_null("/root/DataManager")
+	var gs: Node = relay.get_node_or_null("/root/GameState")
+	var bus: Node = relay.get_node_or_null("/root/EventBus")
+	relay.queue_free()
+	if dm == null or gs == null or bus == null:
+		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s" % [
+			dm, gs, bus])
+		quit(1)
+		return
 
 	# --- C3: unit tint reads FactionData.color when authored ---
 	var md_c3 := MapData.new()
@@ -278,6 +311,148 @@ func _init() -> void:
 		print("FAIL class max level: lvl=%d exp=%d" % [soldier_data.level, soldier_data.exp])
 		failed += 1
 	class_res.max_level = saved_max_level
+
+	# --- M6.2: promotion eligibility / flow / auto-prompt ---
+	var promo_base: ClassData = dm.get_class_data("cavalier")
+	var saved_base_max_level: int = promo_base.max_level
+	var saved_base_promotes_to: Array[String] = promo_base.promotes_to.duplicate(true)
+	promo_base.max_level = 2
+	promo_base.promotes_to = ["archer"]
+	var promo_target: ClassData = dm.get_class_data("archer")
+	var saved_target_tier: int = promo_target.tier
+	var saved_target_caps: Dictionary = promo_target.stat_caps.duplicate(true)
+	var saved_target_bonuses: Dictionary = promo_target.promotion_stat_bonuses.duplicate(true)
+	var saved_target_proficiencies: Array[String] = promo_target.proficiencies.duplicate(true)
+	promo_target.tier = 2
+	promo_target.stat_caps = {"hp": 20, "strength": 12, "magic": 20, "defense": 20,
+		"resistance": 20, "skill": 20, "speed": 20, "luck": 20}
+	promo_target.promotion_stat_bonuses = {"hp": 5, "strength": 3, "defense": 2}
+	promo_target.proficiencies = ["sword", "bow"]
+
+	var promo_data := UnitData.new()
+	promo_data.class_id = "cavalier"
+	promo_data.level = 2
+	promo_data.exp = 80
+	promo_data.effective_level = 7
+	promo_data.hp = 18
+	promo_data.max_hp = 18
+	promo_data.strength = 10
+	promo_data.defense = 6
+	promo_data.proficiencies = {"sword": {"rank": "D", "wexp": 25}}
+	promo_data.growth_accumulators = {"strength": 55}
+	var promo_unit: Unit = unit_scene.instantiate()
+	promo_unit.data = promo_data
+	root.add_child(promo_unit)
+	await process_frame
+	if promo_unit.can_promote():
+		print("OK  can_promote true at max level with promotion options")
+		passed += 1
+	else:
+		print("FAIL can_promote should be true for eligible base class unit")
+		failed += 1
+	promo_data.level = 1
+	if not promo_unit.can_promote():
+		print("OK  can_promote false below class max level")
+		passed += 1
+	else:
+		print("FAIL can_promote true below class max level")
+		failed += 1
+	promo_data.level = 2
+	promo_base.promotes_to = []
+	if not promo_unit.can_promote():
+		print("OK  can_promote false with no promotion targets")
+		passed += 1
+	else:
+		print("FAIL can_promote true with no promotion targets")
+		failed += 1
+	promo_base.promotes_to = ["archer"]
+	promo_data.is_promoted = true
+	if not promo_unit.can_promote():
+		print("OK  can_promote false once already promoted")
+		passed += 1
+	else:
+		print("FAIL can_promote true for promoted unit")
+		failed += 1
+	promo_data.is_promoted = false
+
+	var watcher := SignalWatcher.new()
+	watcher.promoted_target = promo_unit
+	bus.unit_promoted.connect(Callable(watcher, "on_promoted"))
+	await process_frame
+	var promote_ok: bool = promo_unit.promote("archer")
+	if promote_ok and promo_data.class_id == "archer" and promo_data.is_promoted \
+			and promo_data.level == 1 and promo_data.exp == 0 \
+			and promo_data.effective_level == 7 \
+			and promo_data.growth_accumulators.is_empty() \
+			and promo_data.max_hp == 20 and promo_data.hp == 20 \
+			and promo_data.strength == 12 and promo_data.defense == 8 \
+			and promo_data.proficiencies.has("bow") \
+			and promo_data.proficiencies["bow"]["rank"] == "E" \
+			and promo_data.proficiencies["sword"]["rank"] == "D" \
+			and watcher.promoted_count == 1 \
+			and watcher.promoted_from == "cavalier" \
+			and watcher.promoted_to == "archer":
+		print("OK  promote applies bonuses, caps, proficiencies, reset state, and emits unit_promoted")
+		passed += 1
+	else:
+		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d eff=%d hp=%d/%d str=%d def=%d prof=%s promoted=%d from=%s to=%s" % [
+			promote_ok, promo_data.class_id, promo_data.level, promo_data.exp,
+			promo_data.effective_level, promo_data.hp, promo_data.max_hp,
+			promo_data.strength, promo_data.defense, promo_data.proficiencies,
+			watcher.promoted_count, watcher.promoted_from, watcher.promoted_to])
+		failed += 1
+
+	var auto_data := UnitData.new()
+	auto_data.class_id = "cavalier"
+	auto_data.level = 1
+	auto_data.exp = 95
+	auto_data.hp = 10
+	auto_data.max_hp = 10
+	auto_data.proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+	var auto_unit: Unit = unit_scene.instantiate()
+	auto_unit.data = auto_data
+	root.add_child(auto_unit)
+	await process_frame
+	watcher.prompt_target = auto_unit
+	bus.promotion_available.connect(Callable(watcher, "on_prompt"))
+	await process_frame
+	gs.auto_promote_at_max_level = true
+	auto_unit.add_exp(5)
+	if auto_data.level == 2 and auto_data.exp == 0 and watcher.prompt_count == 1:
+		print("OK  auto-promote emits promotion_available at class cap when enabled")
+		passed += 1
+	else:
+		print("FAIL auto-promote on: lvl=%d exp=%d prompts=%d" % [
+			auto_data.level, auto_data.exp, watcher.prompt_count])
+		failed += 1
+	var no_prompt_data := UnitData.new()
+	no_prompt_data.class_id = "cavalier"
+	no_prompt_data.level = 1
+	no_prompt_data.exp = 95
+	no_prompt_data.hp = 10
+	no_prompt_data.max_hp = 10
+	no_prompt_data.proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+	var no_prompt_unit: Unit = unit_scene.instantiate()
+	no_prompt_unit.data = no_prompt_data
+	root.add_child(no_prompt_unit)
+	await process_frame
+	var prompt_before: int = watcher.prompt_count
+	gs.auto_promote_at_max_level = false
+	no_prompt_unit.add_exp(5)
+	if no_prompt_data.level == 2 and no_prompt_data.exp == 0 \
+			and watcher.prompt_count == prompt_before:
+		print("OK  auto-promote stays silent when the campaign rule is off")
+		passed += 1
+	else:
+		print("FAIL auto-promote off: lvl=%d exp=%d prompts=%d before=%d" % [
+			no_prompt_data.level, no_prompt_data.exp, watcher.prompt_count, prompt_before])
+		failed += 1
+	promo_base.max_level = saved_base_max_level
+	promo_base.promotes_to = saved_base_promotes_to
+	promo_target.tier = saved_target_tier
+	promo_target.stat_caps = saved_target_caps
+	promo_target.promotion_stat_bonuses = saved_target_bonuses
+	promo_target.proficiencies = saved_target_proficiencies
 
 	# --- Weapon EXP and rank-up ---
 	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 50}}
