@@ -1,4 +1,4 @@
-# M7 — Second Seal Reclassing & Demotion Plan (handoff, 2026-05-21)
+# M7 — Second Seal Reclassing & Demotion Plan (implemented, 2026-05-21)
 
 Detailed implementation plan for the Second Seal milestone that follows M6
 promotion. This plan is saved for later; it is **not** the next implementation
@@ -7,11 +7,11 @@ follow-up noted in `class_skill_rebuild_plan_2026-05-21.md`.
 
 ## Status
 
-Planned and ready for later implementation after:
+Implemented on branch `class-skill-rebuild` after:
 - **M6 — Promotion**
 - **F1 — level-1 class skill grant at unit creation / class reset**
 
-Hotseat remains deferred until the class/skill track is complete.
+Hotseat is now the next saved milestone after the class/skill track.
 
 ## Scope
 

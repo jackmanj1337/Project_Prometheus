@@ -125,6 +125,13 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
   `test_unit_stats`, `test_skill_item_handler`, `test_data_manager`,
   `test_promotion_screen`, and scene/data tests. Implementation detail and the
   original handoff breakdown remain in `m6_promotion_plan_2026-05-21.md`.
+- **N6 / F1 — Level-1 class skill grant. ✅ DONE.** Units now auto-learn their
+  current class's level-matching skill on creation, which also gives M7 a clean
+  level-1 skill grant when reclassing into a new class.
+- **M7 — Second Seal Reclassing & Demotion. ✅ DONE.** Added Second Seal rules,
+  `Unit.can_use_second_seal()` / `get_second_seal_options()` / `reclass()`,
+  class-line tracking, the `second_seal` item, `ReclassScreen`, roster
+  `reclass_options`, and save/restore coverage for in-map reclass state.
 
 ## Implementation notes & follow-up assumptions (REVIEW)
 
@@ -151,10 +158,5 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
 ## Agreed next steps (2026-05-21)
 
 - Review and merge `class-skill-rebuild` into `main`.
-- Schedule the small **N6** follow-up so level-1 class skills are
-  granted automatically at unit creation instead of only on level-up.
-- Save **M7 — Second Seal Reclassing & Demotion** for after M6 and the N6/F1
-  follow-up; see `AGENT/Docs/m7_second_seal_plan_2026-05-21.md`.
-- Treat **M15 Part A — Hotseat Control** as explicitly deferred until the class
-  and skill track is complete; it stays the next milestone after the full
-  classes/skills pass, including the saved M7 work.
+- The saved class/skill track items are now complete through **M7**.
+- Treat **M15 Part A — Hotseat Control** as the next implementation milestone.
