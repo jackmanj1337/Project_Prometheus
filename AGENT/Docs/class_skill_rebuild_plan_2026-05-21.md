@@ -117,8 +117,9 @@ Source: tanasmanor.net FE:A skill list / fireemblem.fandom.com.
 - **M5 — Class & roster data. ✅ DONE.** 5 retained classes rewritten with doc
   FE:A values; `cavalier.tres` added; `unit_01_soldier.tres` renamed/reclassed to
   Cavalier; all 6 roster units given personal `growth_rates`.
-- **M6 — Promotion. NOT STARTED (out of scope).** Promoted-class `.tres`,
-  level-20 promotion flow, `promotion_stat_bonuses` application.
+- **M6 — Promotion. PLANNED, NOT STARTED.** Full detailed handoff plan —
+  schema, flow, promoted-class data, commit breakdown, Second Seal estimate —
+  in `m6_promotion_plan_2026-05-21.md`.
 
 ## Implementation notes & follow-up assumptions (REVIEW)
 
