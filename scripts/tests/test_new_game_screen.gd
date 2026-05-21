@@ -39,8 +39,8 @@ func _init() -> void:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
 
 	var map_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxMap/OptMap")
-	if map_opt != null and map_opt.item_count >= 2:
-		print("OK  map selector is populated with multiple map options"); passed += 1
+	if map_opt != null and map_opt.item_count >= 3:
+		print("OK  map selector is populated from the registry source"); passed += 1
 	else:
 		print("FAIL map selector missing or empty"); failed += 1
 

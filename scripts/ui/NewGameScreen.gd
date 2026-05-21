@@ -35,25 +35,30 @@ signal back_pressed()
 
 # OptLeveling index → GameState.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
-const _MAP_OPTIONS: Array[Dictionary] = [
+const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
 	{
 		"id": "map_001",
 		"label": "Map 001 - Rout",
 		"map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",
 		"roster_policy": "default_roster",
+		"roster_source": "",
 	},
 	{
 		"id": "map_001_c3_factions",
 		"label": "Map 001 - Faction Demo",
 		"map_data_path": "res://data/maps/map_001_rout/map_001_c3_factions_data.tres",
 		"roster_policy": "default_roster",
+		"roster_source": "",
 	},
 ]
+var _map_options: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	_map_options = _load_map_options()
 	_opt_map.clear()
-	for entry in _MAP_OPTIONS:
+	for entry in _map_options:
 		_opt_map.add_item(entry["label"])
 	_opt_permadeath.clear()
 	_opt_permadeath.add_item("Off")
@@ -94,9 +99,10 @@ func _on_start() -> void:
 		return
 	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
 	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-	var map_entry: Dictionary = _MAP_OPTIONS[_opt_map.selected]
-	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"])
-	_apply_roster_policy(gs, map_entry["roster_policy"])
+	var map_entry: Dictionary = _map_options[_opt_map.selected]
+	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
+		map_entry.get("roster_source", ""))
+	_apply_roster_policy(gs, map_entry["roster_policy"], map_entry.get("roster_source", ""))
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 
@@ -107,18 +113,46 @@ func _on_back() -> void:
 
 
 func _selected_map_index_for(map_path: String) -> int:
-	for i in _MAP_OPTIONS.size():
-		if _MAP_OPTIONS[i]["map_data_path"] == map_path:
+	for i in _map_options.size():
+		if _map_options[i]["map_data_path"] == map_path:
 			return i
 	return 0
 
 
-func _apply_roster_policy(gs: Node, roster_policy: String) -> void:
+func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String = "") -> void:
 	match roster_policy:
 		"default_roster":
 			gs.call("load_default_roster")
+		"fixed_test_roster":
+			if roster_source == "":
+				push_warning("NewGameScreen: fixed_test_roster missing roster_source — using default roster")
+				gs.call("load_default_roster")
+				return
+			gs.call("load_roster_from_directory", roster_source)
 		"keep_current_roster":
 			return
 		_:
 			push_warning("NewGameScreen: unknown roster policy '%s' — using default roster" % roster_policy)
 			gs.call("load_default_roster")
+
+
+func _load_map_options() -> Array[Dictionary]:
+	if not FileAccess.file_exists(_MAP_REGISTRY_PATH):
+		push_warning("NewGameScreen: map registry missing at %s — using fallback entries" % _MAP_REGISTRY_PATH)
+		return _FALLBACK_MAP_OPTIONS.duplicate(true)
+	var raw_text := FileAccess.get_file_as_string(_MAP_REGISTRY_PATH)
+	var parsed: Variant = JSON.parse_string(raw_text)
+	if not (parsed is Array):
+		push_warning("NewGameScreen: map registry did not parse as an array — using fallback entries")
+		return _FALLBACK_MAP_OPTIONS.duplicate(true)
+	var out: Array[Dictionary] = []
+	for entry in parsed:
+		if not (entry is Dictionary):
+			continue
+		if entry.get("label", "") == "" or entry.get("map_data_path", "") == "":
+			continue
+		out.append(entry)
+	if out.is_empty():
+		push_warning("NewGameScreen: map registry had no valid entries — using fallback entries")
+		return _FALLBACK_MAP_OPTIONS.duplicate(true)
+	return out

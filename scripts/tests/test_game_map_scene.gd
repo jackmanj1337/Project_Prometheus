@@ -265,5 +265,37 @@ func _init() -> void:
 			print("FAIL turn_number = %d at start" % gs.turn_number)
 			failed += 1
 
+		# Map selector override: a second GameMap instance should honor the
+		# selected map path and fixed test roster instead of the exported default.
+		gs.reset_map_state()
+		gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
+		gs.configure_next_map(
+			"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
+			"fixed_test_roster",
+			"res://data/roster/test/map_900_hotseat_validation/")
+		var hotseat_instance: Node = packed.instantiate()
+		root.add_child(hotseat_instance)
+		await process_frame
+		var hotseat_tm: TurnManager = hotseat_instance.get_node("TurnManager")
+		var hotseat_units: Node2D = hotseat_instance.get_node("UnitsContainer")
+		var hotseat_green_found := false
+		for child in hotseat_units.get_children():
+			if child.team == "green":
+				hotseat_green_found = true
+				break
+		if hotseat_tm._map_data != null and hotseat_tm._map_data.id == "map_900_hotseat_validation":
+			print("OK  GameMap honors GameState.next_map_data_path for the selected map")
+			passed += 1
+		else:
+			print("FAIL selected map override not applied")
+			failed += 1
+		if hotseat_units.get_child_count() == 7 and hotseat_green_found:
+			print("OK  selected hotseat map spawns the fixed roster plus green/red/yellow units")
+			passed += 1
+		else:
+			print("FAIL hotseat map spawn count/factions: count=%d green=%s" % [
+				hotseat_units.get_child_count(), hotseat_green_found])
+			failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

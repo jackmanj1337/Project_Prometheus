@@ -1,0 +1,46 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_sword"
+uses_remaining = 45
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "vulnerary"
+uses_remaining = 3
+
+[resource]
+script = ExtResource("1")
+unit_id = "map900_green_mercenary"
+unit_name = "Green_Mercenary"
+class_id = "mercenary"
+level = 1
+exp = 0
+is_promoted = false
+effective_level = 1
+max_hp = 18
+hp = 10
+strength = 7
+magic = 0
+defense = 5
+resistance = 2
+skill = 8
+speed = 7
+luck = 4
+movement = 6
+constitution = 8
+line_of_sight = 4
+proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

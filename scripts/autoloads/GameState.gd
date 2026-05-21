@@ -124,6 +124,7 @@ var party_items: Array[String] = []  # item IDs awarded by completed maps
 # and direct scene reloads stay on the same map until another selection is made.
 var next_map_data_path: String = ""
 var next_map_roster_policy: String = "default_roster"
+var next_map_roster_source: String = ""
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -229,16 +230,21 @@ func reset_map_state() -> void:
 	current_phase = Phase.PLAYER
 
 
-func configure_next_map(map_path: String, roster_policy: String = "default_roster") -> void:
+func configure_next_map(map_path: String, roster_policy: String = "default_roster",
+		roster_source: String = "") -> void:
 	next_map_data_path = map_path
 	next_map_roster_policy = roster_policy
+	next_map_roster_source = roster_source
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
 # Called by MainMenu on "New Game" for MVP.
 func load_default_roster() -> void:
+	load_roster_from_directory("res://data/roster/default/")
+
+
+func load_roster_from_directory(roster_path: String) -> void:
 	player_roster.clear()
-	var roster_path := "res://data/roster/default/"
 	var dir := DirAccess.open(roster_path)
 	if dir == null:
 		push_error("GameState: cannot open roster directory: " + roster_path)
