@@ -26,6 +26,8 @@ TESTS=(
   test_unit_details_screen
   test_hud
   test_level_up_screen
+  test_promotion_screen
+  test_reclass_screen
 )
 fail_count=0
 for t in "${TESTS[@]}"; do

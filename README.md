@@ -3,7 +3,7 @@ A repo to track a small side project game I am making to test some tools.
 
 ## Running tests
 
-`./run_tests.sh` runs the GDScript test suites headlessly.
+`bash run_tests.sh` runs the GDScript test suites headlessly.
 
 **On a fresh clone, open the project in the Godot editor once before running tests.**
 The headless test runner resolves `class_name` types through Godot's global class
