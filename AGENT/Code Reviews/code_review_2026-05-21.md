@@ -192,3 +192,22 @@ three UI scripts.
 4. **Delete or correctly document `run_enemy_phase`** (Issue 3).
 5. **Fix the stale comments and comment indentation** (Issues 6, 7) and **record
    `"HUMAN"` in the `controller` doc** (Issue 8) — trivial cleanups, batch them.
+
+## 6. Resolved Decisions (2026-05-21)
+
+The four issues that needed a call before implementation were resolved with the
+user on 2026-05-21:
+
+- **Issue 2 — non-AI non-blue faction in WHOLE_PHASE → Build hotseat handoff now.**
+  Rather than break/skip, pull the stage-5 hotseat controller dispatch forward so
+  a non-blue `HOTSEAT`/`HUMAN` faction is actually driven. This is a scope
+  expansion beyond a bugfix — treat it as its own work item.
+- **Issue 3 — `run_enemy_phase` → Remove it.** Delete the dead alias entirely;
+  re-add a documented shim later only if a real caller appears.
+- **Issue 5 — hardcoded TurnManager path → Decouple via EventBus now.** Add the
+  active `faction_id` to the `phase_changed` signal payload so HUD/PhaseBanner
+  never walk the tree; update every `phase_changed` listener accordingly.
+- **Issue 8 — `"HUMAN"` controller → It is valid.** Add `"HUMAN"` to the
+  `FactionData.controller` doc comment as a recognised value.
+
+Issues 1, 4, 6, 7 need no decision — apply as written in §2.
