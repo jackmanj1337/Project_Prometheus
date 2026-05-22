@@ -77,6 +77,11 @@ func _init() -> void:
 		print("FAIL new gameplay settings: defaults=%s reset=%s" % [defaults_ok, reset_ok])
 		failed += 1
 
+	# Intentional failure for branch-protection validation on the disposable
+	# faulty-branch-protection-test branch. This should never be merged.
+	print("FAIL intentional branch-protection test failure")
+	failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
