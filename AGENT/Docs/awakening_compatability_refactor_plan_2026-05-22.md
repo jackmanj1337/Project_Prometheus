@@ -313,11 +313,20 @@ Without this, the refactor will drift.
 8. `AWR-7` Advanced Awakening-only systems
 
 ## Risks That Need Explicit Decisions
-- whether to preserve the current custom GDD as the gameplay authority
-- whether Awakening support is full replacement or optional ruleset mode
 - whether Pair Up is required for the first compatibility milestone
 - whether child and DLC systems are in scope at all
 - whether markdown corpus import is automated or manual
+
+## Open Questions
+- whether weapon `type` and WEXP track should always be the same concept
+- whether the five tome types should remain separate WEXP tracks long-term or
+  collapse into fewer progression tracks with separate combat-family metadata
+- the exact schema shape for class-side numeric weapon baseline data and class
+  maximum WEXP data
+- how much of staff behavior should remain in generic weapon logic versus a
+  dedicated staff resolver
+- whether future weapon-type expansion should be modeled only by extending
+  canonical constants or by moving type metadata into data-driven config later
 
 ## Recommendation
 Do not start by importing classes or skills. Start by refactoring the runtime
