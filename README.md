@@ -25,8 +25,11 @@ This repo includes a first-pass GitHub Actions workflow at
 
 It:
 - installs Godot `4.6`
+- runs uniquely named jobs for `push` and `pull_request`
 - runs `bash scripts/ci/run_headless_tests.sh`
   which performs the import scan and then runs `bash run_tests.sh`
+
+For branch protection, require the `godot-tests-pr` check on `main`.
 
 After you push the workflow to GitHub, verify that **Actions** are enabled for
 the repo and confirm the first run passes.
