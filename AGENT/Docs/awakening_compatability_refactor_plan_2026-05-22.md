@@ -36,6 +36,24 @@ behavior will be quietly wrong rather than loudly failing.
 - Item dispatch lives in `scripts/items/ItemHandler.gd`.
 - Data validation and load shape live in `scripts/autoloads/DataManager.gd`.
 
+## Resolved Decisions
+- The Awakening corpus is the new gameplay canon where it conflicts with the
+  older project GDD.
+- `level` remains the displayed level.
+- `internal_level` will be added as an explicit hidden progression value.
+- Repeated Second Seal pressure will be tracked separately from `internal_level`.
+- Special classes will use explicit data-driven rules instead of being forced
+  into normal base/promoted handling.
+- Any unit may access any playable class by default.
+- The final product will not contain gender-locked or gender-differentiated
+  classes.
+- `special_qualities` remains for broad trait and movement behavior.
+- `vulnerability_groups` will be added for combat effectiveness targeting.
+- `mounted` and `flying` may appear in both `special_qualities` and
+  `vulnerability_groups`.
+- Numeric `wexp` is the source of truth; displayed rank is derived from
+  threshold tables.
+
 ## Main Compatibility Problems
 
 ### 1. Rules Source Conflict
@@ -48,10 +66,11 @@ Problems this causes:
 - current promotion and reclass rules are only partially aligned
 - future bug reports become ambiguous because there are now two rule sources
 
-Recommendation:
-- decide that the Awakening corpus becomes either the new canonical rules source
-  for gameplay, or a reference-only content pack
-- do not start data conversion before that decision is explicit
+Resolution:
+- resolved: the Awakening corpus is now the canonical gameplay rules source
+- the older project GDD should be treated as superseded where it conflicts
+- migration work should target Awakening-correct behavior, not the prior
+  tabletop-adaptation behavior
 
 ### 2. Progression Model Mismatch
 The corpus requires displayed level and internal level as separate values, plus
@@ -70,13 +89,22 @@ Required refactor:
   reclass, and combat EXP logic
 - add tests for promotion, demotion, and reclass edge cases before migrating data
 
+Resolved direction:
+- `level` = displayed level
+- `internal_level` = hidden canonical Awakening progression value
+- repeated reclass pressure is separate from `internal_level`
+- base classes use `internal_level = level`
+- promoted classes use `internal_level = 20 + level`
+- promotion resets displayed level to `1` and sets internal level to `21`
+- repeated Second Seal behavior should preserve hidden progression pressure
+- special classes should use explicit class-data rules
+
 ### 3. Class Schema Is Too Small
 `ClassData.gd` can represent tier, promotions, growths, caps, skills, and
 qualities, but the new corpus needs more structure than that.
 
 Missing or underspecified data:
 - Awakening class-family and reclass-set identity
-- gender-locked replacement rules
 - class-specific WEXP baselines per weapon type
 - special-class legality and DLC gating
 - vulnerability-group mapping separate from broad quality tags
@@ -91,6 +119,21 @@ Required refactor:
 - expand class schema first
 - add validation for graph legality, class-family membership, and class-role flags
 - keep conversion helpers separate from runtime combat code
+
+Resolved direction:
+- add `class_category`
+- add `class_family_id`
+- add `internal_level_rule`
+- add `vulnerability_groups`
+- add `class_availability`
+- keep `tier` as a meaningful numeric progression-depth field for future higher
+  tiers
+- do not add gender-lock or gender-replacement fields
+- do not add `reclass_group_ids` in the first pass
+- treat `class_availability` as a soft menu and legality filter, not a hard ban
+  on direct designer-authored assignment
+- universal playable-class access replaces Awakening-style per-character class
+  pools for this project
 
 ### 4. Weapon and WEXP Model Mismatch
 The corpus normalizes weapon rank as numeric WEXP with explicit thresholds,
@@ -107,6 +150,10 @@ Required refactor:
 - make numeric WEXP the authoritative runtime value
 - derive rank labels from thresholds instead of storing both as peers
 - extend weapon typing and legality checks before importing stones or special weapons
+
+Resolved direction:
+- numeric `wexp` is the source of truth
+- displayed weapon rank is always derived from threshold tables
 
 ### 5. Combat Engine Does Not Match Awakening
 The corpus expects Awakening-specific combat sequencing, hidden behavior, Pair
