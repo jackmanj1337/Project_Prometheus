@@ -59,10 +59,9 @@ func get_alliance_group(faction_id: String) -> String:
 # will serialize these into the save file. Defaults cover the direct-boot dev path.
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
-# NOT ENFORCED YET — nothing caps how many skills/items a unit carries. The
-# skill-equip and trade/inventory UIs that would enforce these don't exist; see
-# the "Enforce skill/inventory caps" item in AGENT/GDD/GDD_10_Roadmap.md. Until that
-# milestone these two fields are inert.
+var auto_promote_at_max_level: bool = false
+# max_skills now gates auto-equipped learned skills (M6.3), but there is still
+# no battle-prep UI for manual swapping. max_inventory remains future-facing.
 var max_skills: int = 4
 var max_inventory: int = 8
 
@@ -120,6 +119,11 @@ var map_data: MapData = null
 var player_roster: Array[UnitData] = []
 var party_gold: int = 0
 var party_items: Array[String] = []  # item IDs awarded by completed maps
+# New Game / map-select launch state. The selected map path persists so retries
+# and direct scene reloads stay on the same map until another selection is made.
+var next_map_data_path: String = ""
+var next_map_roster_policy: String = "default_roster"
+var next_map_roster_source: String = ""
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -156,13 +160,13 @@ func unregister_unit(unit: Node) -> void:
 			(_units_by_faction[fid] as Array[Node]).erase(unit)
 
 
-func set_phase(new_phase: Phase) -> void:
+func set_phase(new_phase: Phase, faction_id: String = "") -> void:
 	current_phase = new_phase
 	# Use emit_signal to avoid a compile-time dependency on EventBus identifier
 	# (autoloads must not reference each other by identifier — use get_node_or_null).
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
-		bus.emit_signal("phase_changed", new_phase)
+		bus.emit_signal("phase_changed", new_phase, faction_id)
 
 
 # M14 stage 3: living units of an arbitrary faction. filter() returns a generic
@@ -225,11 +229,21 @@ func reset_map_state() -> void:
 	current_phase = Phase.PLAYER
 
 
+func configure_next_map(map_path: String, roster_policy: String = "default_roster",
+		roster_source: String = "") -> void:
+	next_map_data_path = map_path
+	next_map_roster_policy = roster_policy
+	next_map_roster_source = roster_source
+
+
 # Loads the 6 default roster UnitData .tres files into player_roster.
 # Called by MainMenu on "New Game" for MVP.
 func load_default_roster() -> void:
+	load_roster_from_directory("res://data/roster/default/")
+
+
+func load_roster_from_directory(roster_path: String) -> void:
 	player_roster.clear()
-	var roster_path := "res://data/roster/default/"
 	var dir := DirAccess.open(roster_path)
 	if dir == null:
 		push_error("GameState: cannot open roster directory: " + roster_path)
@@ -262,6 +276,13 @@ func load_default_roster() -> void:
 			if res.unit_id == "":
 				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
 				continue
+			var dm := get_node_or_null("/root/DataManager")
+			if dm != null and not dm.get_all_classes().is_empty():
+				var unit_errors: Array[String] = dm.validate_unit_data(res)
+				if not unit_errors.is_empty():
+					for err in unit_errors:
+						push_error(err)
+					continue
 			player_roster.append(res)
 
 
@@ -300,6 +321,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		inventory_copy.append(entry.duplicate(true) if entry != null else null)
 	return {
 		"tile_position": data.tile_position,
+		"class_id": data.class_id,
 		"hp": data.hp,
 		"max_hp": data.max_hp,
 		"strength": data.strength,
@@ -312,10 +334,13 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"exp": data.exp,
 		"level": data.level,
 		"effective_level": data.effective_level,
+		"is_promoted": data.is_promoted,
+		"class_line_id": data.class_line_id,
 		"proficiencies": data.proficiencies.duplicate(true),
 		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
+		"earned_skills": data.earned_skills.duplicate(true),
 		"mastery_skills": data.mastery_skills.duplicate(true),
 		"is_incapacitated": data.is_incapacitated,
 		# Phase 2 runtime state
@@ -331,6 +356,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	# Use .get() with defaults so older snapshots missing newer fields don't crash.
 	data.tile_position = snap.get("tile_position", Vector2i.ZERO)
+	data.class_id = snap.get("class_id", data.class_id)
 	data.hp = snap.get("hp", data.max_hp)
 	data.max_hp = snap.get("max_hp", data.max_hp)
 	data.strength = snap.get("strength", data.strength)
@@ -343,6 +369,8 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.exp = snap.get("exp", 0)
 	data.level = snap.get("level", data.level)
 	data.effective_level = snap.get("effective_level", data.effective_level)
+	data.is_promoted = snap.get("is_promoted", data.is_promoted)
+	data.class_line_id = snap.get("class_line_id", data.class_line_id)
 	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
 	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
 	# fresh copy rather than aliasing the one stored in the snapshot.
@@ -351,6 +379,7 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 		data.inventory.append(entry.duplicate(true) if entry != null else null)
 	data.conditions = snap.get("conditions", []).duplicate(true)
 	data.skills = snap.get("skills", []).duplicate(true)
+	data.earned_skills = snap.get("earned_skills", []).duplicate(true)
 	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)
 	data.is_incapacitated = snap.get("is_incapacitated", false)
 	# Phase 2 runtime state

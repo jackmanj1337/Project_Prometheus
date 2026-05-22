@@ -98,7 +98,7 @@ func _ready() -> void:
 
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
 # snappy (smoothing off) for the player phase so the cursor scroll stays tight.
-func _on_phase_changed(new_phase: int) -> void:
+func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 	if _camera_ctrl != null:
 		_camera_ctrl.set_smoothing(new_phase == GameState.Phase.ENEMY)
 
@@ -136,10 +136,16 @@ func _place_cursor_at_start() -> void:
 
 
 func _load_map_data() -> void:
-	if ResourceLoader.exists(map_data_path):
-		map_data = load(map_data_path)
+	var selected_path: String = map_data_path
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null:
+		var override_path: String = gs.get("next_map_data_path")
+		if override_path != "":
+			selected_path = override_path
+	if ResourceLoader.exists(selected_path):
+		map_data = load(selected_path)
 	else:
-		push_error("GameMap: missing MapData at " + map_data_path)
+		push_error("GameMap: missing MapData at " + selected_path)
 
 
 # Spawns player units from GameState.player_roster onto player_start_tiles,
@@ -168,8 +174,8 @@ func _spawn_units() -> void:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
-# Enemy/AI-controlled units: load each UnitData .tres referenced by enemy_placements.
-# Optional placement key: "faction" (defaults to "red").
+	# Enemy/AI-controlled units: load each UnitData .tres referenced by
+	# enemy_placements. Optional placement key: "faction" (defaults to "red").
 	for placement in map_data.enemy_placements:
 		var path: String = placement.get("unit_data_path", "")
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)

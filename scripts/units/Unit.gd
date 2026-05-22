@@ -39,6 +39,9 @@ func set_grid_manager(grid: GridManager) -> void:
 
 func _ready() -> void:
 	if data != null:
+		_ensure_class_line_id()
+		_seed_earned_skills()
+		_grant_current_level_class_skills()
 		_apply_initial_state()
 
 
@@ -67,10 +70,9 @@ func _apply_faction_visual(map_data: MapData = null) -> void:
 		if gs != null:
 			md = gs.map_data
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == team:
-				color = f.color
-				break
+		var faction: FactionData = md.get_faction(team)
+		if faction != null:
+			color = faction.color
 	_base_modulate = color
 	if _sprite != null:
 		_sprite.modulate = _base_modulate
@@ -350,7 +352,12 @@ func crit_avoid() -> int:
 # Safe EventBus accessor; returns null in tests where the autoload isn't live
 func _bus() -> Node:
 	if is_inside_tree():
-		return get_node_or_null("/root/EventBus")
+		var bus := get_node_or_null("/root/EventBus")
+		if bus != null:
+			return bus
+		var tree := get_tree()
+		if tree != null and tree.root != null:
+			return tree.root.get_node_or_null("EventBus")
 	return null
 
 
@@ -517,15 +524,181 @@ func reset_appearance() -> void:
 func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
-	if data.level >= GameConstants.MAX_LEVEL:
-		return  # EXP discarded at cap; promotion (Phase 2) will unlock further levelling
+	var max_level: int = _current_max_level()
+	if data.level >= max_level:
+		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
 	data.exp += amount
 	while data.exp >= 100:
 		data.exp -= 100
 		level_up()
-		if data.level >= GameConstants.MAX_LEVEL:
+		if data.level >= max_level:
+			_maybe_emit_promotion_available()
 			data.exp = 0  # no overflow past the cap
 			break
+
+
+func _current_max_level() -> int:
+	var class_data := _get_class_data()
+	return class_data.max_level if class_data != null else 20
+
+
+func can_promote() -> bool:
+	var class_data := _get_class_data()
+	return class_data != null and not data.is_promoted \
+		and data.level >= class_data.max_level and not class_data.promotes_to.is_empty()
+
+
+func promote(target_class_id: String) -> bool:
+	var source_class := _get_class_data()
+	if source_class == null or not can_promote():
+		return false
+	if not (target_class_id in source_class.promotes_to):
+		return false
+	var target_class := _class_data_for(target_class_id)
+	if target_class == null:
+		return false
+	var old_class_id: String = data.class_id
+	var line_id: String = _current_class_line_id()
+	_apply_promotion_stat_bonuses(target_class)
+	data.class_id = target_class_id
+	data.class_line_id = line_id if line_id != "" else old_class_id
+	data.is_promoted = true
+	_reset_class_level_state()
+	_grant_missing_proficiencies(target_class.proficiencies)
+	var bus := _bus()
+	if bus:
+		bus.unit_promoted.emit(self, old_class_id, target_class_id)
+	return true
+
+
+func can_use_second_seal() -> bool:
+	return not get_second_seal_options().is_empty()
+
+
+func get_second_seal_options() -> Array[Dictionary]:
+	var class_data := _get_class_data()
+	if class_data == null:
+		return []
+	var dm := get_node_or_null("/root/DataManager") if is_inside_tree() else null
+	if dm == null:
+		return []
+	var options: Array[Dictionary] = []
+	var current_line_id: String = _current_class_line_id()
+	var at_max_level: bool = data.level >= class_data.max_level
+	match _effective_second_seal_tier():
+		1:
+			if data.level < 10:
+				return _self_reset_only(options, class_data, current_line_id, at_max_level)
+			for class_id in data.reclass_options:
+				var target_class: ClassData = _class_data_for(String(class_id))
+				if target_class == null or target_class.tier != 1:
+					continue
+				if target_class.id == data.class_id:
+					continue
+				_append_second_seal_option(options, target_class, target_class.id, "Reclass", false)
+			return _self_reset_only(options, class_data, current_line_id, at_max_level)
+		2:
+			var class_ids: Array = dm.get_all_classes().keys()
+			class_ids.sort()
+			for class_id in class_ids:
+				var target_class: ClassData = _class_data_for(String(class_id))
+				if target_class == null:
+					continue
+				if target_class.tier == 1:
+					_append_second_seal_option(options, target_class, target_class.id, "Demote", false)
+					continue
+				if data.level < 10 or target_class.tier != 2:
+					continue
+				for line_id in _target_line_ids_for_promoted_class(target_class):
+					if line_id == current_line_id:
+						continue
+					_append_second_seal_option(options, target_class, line_id, "Reclass", false)
+			return _self_reset_only(options, class_data, current_line_id, at_max_level)
+	return []
+
+
+func reclass(target_class_id: String, target_line_id: String = "") -> bool:
+	var source_class := _get_class_data()
+	if source_class == null:
+		return false
+	var resolved_line_id: String = _normalize_line_id(target_class_id, target_line_id)
+	var chosen := {}
+	for option in get_second_seal_options():
+		if option["class_id"] == target_class_id and option["class_line_id"] == resolved_line_id:
+			chosen = option
+			break
+	if chosen.is_empty():
+		return false
+	var target_class := _class_data_for(target_class_id)
+	if target_class == null:
+		return false
+	var old_class_id: String = data.class_id
+	var self_reset: bool = bool(chosen.get("is_self_reset", false))
+	if not self_reset and source_class.tier == 2:
+		_remove_promotion_stat_bonuses(source_class)
+	if not self_reset:
+		_clamp_stats_to_caps(target_class)
+		data.class_id = target_class_id
+		data.class_line_id = resolved_line_id
+		data.is_promoted = target_class.tier == 2
+		_grant_missing_proficiencies(target_class.proficiencies)
+	else:
+		data.class_id = target_class_id
+		data.class_line_id = resolved_line_id
+		data.is_promoted = target_class.tier == 2
+	_reset_class_level_state()
+	_grant_current_level_class_skills()
+	var bus := _bus()
+	if bus:
+		bus.unit_reclassed.emit(self, old_class_id, target_class_id)
+	return true
+
+
+func _class_data_for(class_id: String) -> ClassData:
+	if not is_inside_tree():
+		return null
+	var dm := get_node_or_null("/root/DataManager")
+	return dm.get_class_data(class_id) if dm != null else null
+
+
+func _maybe_emit_promotion_available() -> void:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs == null or not bool(gs.get("auto_promote_at_max_level")) or not can_promote():
+		return
+	var bus := _bus()
+	if bus:
+		bus.promotion_available.emit(self)
+
+
+func _apply_promotion_stat_bonuses(target_class: ClassData) -> void:
+	for stat in _GROWTH_STATS:
+		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat, 0))
+		if stat == "hp":
+			data.max_hp = _clamp_to_cap(data.max_hp + bonus, int(target_class.stat_caps.get("hp", -1)))
+			data.hp = mini(data.hp + bonus, data.max_hp)
+			if _hp_bar:
+				_hp_bar.max_value = data.max_hp
+				_hp_bar.value = data.hp
+			continue
+		var current: int = int(data.get(stat))
+		data.set(stat, _clamp_to_cap(current + bonus, int(target_class.stat_caps.get(stat, -1))))
+
+
+func _grant_missing_proficiencies(weapon_types: Array[String]) -> void:
+	for weapon_type in weapon_types:
+		if data.proficiencies.has(weapon_type):
+			continue
+		data.proficiencies[weapon_type] = {"rank": "E", "wexp": 0}
+
+
+func _reset_class_level_state() -> void:
+	data.level = 1
+	data.exp = 0
+	data.growth_accumulators = {}
+
+
+func _clamp_to_cap(value: int, cap: int) -> int:
+	return mini(value, cap) if cap >= 0 else value
 
 
 # Rolls stat increases per the unit's class growth rates and applies them.
@@ -544,16 +717,204 @@ func level_up() -> void:
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
-	var rates: Dictionary = class_data.growth_rates
+	var rates: Dictionary = _resolve_growth_rates(class_data)
+	var caps: Dictionary = class_data.stat_caps
 	var changes: Dictionary = {}
 	match method:
 		"growth_fixed":
-			changes = _level_up_fixed(rates)
+			changes = _level_up_fixed(rates, caps)
 		_:  # "growth_random" and any unknown value
-			changes = _level_up_random(rates)
+			changes = _level_up_random(rates, caps)
+	# Auto-learn any class skill whose unlock level matches the new level.
+	var learned: Array[Dictionary] = _grant_level_skills(class_data)
 	var bus := _bus()
 	if bus:
-		bus.unit_leveled_up.emit(self, changes)
+		bus.unit_leveled_up.emit(self, changes, learned)
+
+
+# Picks the growth table for this level-up. Enemy/generic units auto-level on
+# the class enemy table alone; player units add the class player table to the
+# unit's personal growth_rates (per the GDD growth-rate split).
+func _resolve_growth_rates(class_data: ClassData) -> Dictionary:
+	if team != "blue":
+		return class_data.enemy_growth_rates
+	var merged: Dictionary = {}
+	for stat in ClassData.STAT_KEYS:
+		merged[stat] = int(class_data.player_growth_rates.get(stat, 0)) \
+			+ int(data.growth_rates.get(stat, 0))
+	return merged
+
+
+# Grants every skill listed in the class's skill_unlocks for the unit's current
+# level, skipping any the unit already knows. Returns dictionaries describing
+# what was learned and whether it fit into an equipped skill slot.
+func _grant_level_skills(class_data: ClassData) -> Array[Dictionary]:
+	_seed_earned_skills()
+	var learned: Array[Dictionary] = []
+	for unlock_level in class_data.skill_unlocks:
+		if int(unlock_level) != data.level:
+			continue
+		var learned_skill := _learn_skill(String(class_data.skill_unlocks[unlock_level]))
+		if not learned_skill.is_empty():
+			learned.append(learned_skill)
+	return learned
+
+
+func _seed_earned_skills() -> void:
+	for skill_id in data.skills:
+		if not (skill_id in data.earned_skills):
+			data.earned_skills.append(skill_id)
+
+
+func _has_earned_skill(skill_id: String) -> bool:
+	return skill_id in data.earned_skills or skill_id in data.skills or skill_id in data.mastery_skills
+
+
+func _grant_current_level_class_skills() -> void:
+	if data == null or data.class_id.is_empty() or not is_inside_tree():
+		return
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm._classes.has(data.class_id):
+		return
+	var class_data: ClassData = dm._classes[data.class_id]
+	if class_data == null:
+		return
+	for unlock_level in class_data.skill_unlocks:
+		if int(unlock_level) != data.level:
+			continue
+		_learn_skill(String(class_data.skill_unlocks[unlock_level]))
+
+
+func _learn_skill(skill_id: String) -> Dictionary:
+	if skill_id.is_empty() or _has_earned_skill(skill_id):
+		return {}
+	data.earned_skills.append(skill_id)
+	var equipped: bool = false
+	if data.skills.size() < _max_equipped_skills():
+		data.skills.append(skill_id)
+		equipped = true
+	return {"id": skill_id, "equipped": equipped}
+
+
+func _ensure_class_line_id() -> void:
+	if data == null or data.class_id.is_empty() or not data.class_line_id.is_empty():
+		return
+	var dm := get_node_or_null("/root/DataManager") if is_inside_tree() else null
+	if dm == null or not dm._classes.has(data.class_id):
+		return
+	var class_data: ClassData = dm._classes[data.class_id]
+	if class_data == null:
+		return
+	if class_data.tier == 1:
+		data.class_line_id = data.class_id
+		return
+	var lines := _target_line_ids_for_promoted_class(class_data)
+	if not lines.is_empty():
+		data.class_line_id = lines[0]
+
+
+func _current_class_line_id() -> String:
+	_ensure_class_line_id()
+	return data.class_line_id
+
+
+func _effective_second_seal_tier() -> int:
+	var class_data := _get_class_data()
+	if class_data == null:
+		return 0
+	if class_data.is_special_class:
+		return 2 if data.level >= 30 else 1
+	return class_data.tier
+
+
+func _self_reset_only(options: Array[Dictionary], class_data: ClassData,
+		current_line_id: String, at_max_level: bool) -> Array[Dictionary]:
+	if at_max_level:
+		_append_second_seal_option(options, class_data, current_line_id, "Reset", true)
+	return options
+
+
+func _append_second_seal_option(options: Array[Dictionary], target_class: ClassData,
+		line_id: String, note: String, is_self_reset: bool) -> void:
+	for option in options:
+		if option["class_id"] == target_class.id and option["class_line_id"] == line_id:
+			return
+	var label := target_class.display_name
+	var target_lines := _target_line_ids_for_promoted_class(target_class)
+	if target_class.tier == 2 and target_lines.size() > 1:
+		var line_class := _class_data_for(line_id)
+		var line_name := line_class.display_name if line_class != null else line_id.capitalize()
+		label = "%s (%s line)" % [target_class.display_name, line_name]
+	options.append({
+		"class_id": target_class.id,
+		"class_line_id": line_id,
+		"label": label,
+		"target_tier": target_class.tier,
+		"is_self_reset": is_self_reset,
+		"note": note,
+	})
+
+
+func _target_line_ids_for_promoted_class(target_class: ClassData) -> Array[String]:
+	if target_class == null:
+		return []
+	if target_class.tier != 2:
+		return [target_class.id]
+	var line_ids: Array[String] = []
+	for line_id in target_class.promotes_from:
+		var line_text := String(line_id)
+		if line_text.is_empty() or line_text in line_ids:
+			continue
+		line_ids.append(line_text)
+	if line_ids.is_empty():
+		line_ids.append(target_class.id)
+	line_ids.sort()
+	return line_ids
+
+
+func _normalize_line_id(target_class_id: String, target_line_id: String) -> String:
+	if not target_line_id.is_empty():
+		return target_line_id
+	var target_class := _class_data_for(target_class_id)
+	if target_class == null:
+		return ""
+	if target_class.tier == 1:
+		return target_class.id
+	var line_ids := _target_line_ids_for_promoted_class(target_class)
+	return line_ids[0] if not line_ids.is_empty() else target_class.id
+
+
+func _remove_promotion_stat_bonuses(source_class: ClassData) -> void:
+	for stat in _GROWTH_STATS:
+		var bonus: int = int(source_class.promotion_stat_bonuses.get(stat, 0))
+		if bonus == 0:
+			continue
+		if stat == "hp":
+			data.max_hp = max(1, data.max_hp - bonus)
+			data.hp = mini(data.hp, data.max_hp)
+			if _hp_bar:
+				_hp_bar.max_value = data.max_hp
+				_hp_bar.value = data.hp
+			continue
+		var current: int = int(data.get(stat))
+		data.set(stat, max(0, current - bonus))
+
+
+func _clamp_stats_to_caps(target_class: ClassData) -> void:
+	data.max_hp = _clamp_to_cap(data.max_hp, int(target_class.stat_caps.get("hp", -1)))
+	data.hp = mini(data.hp, data.max_hp)
+	if _hp_bar:
+		_hp_bar.max_value = data.max_hp
+		_hp_bar.value = data.hp
+	for stat in _GROWTH_STATS:
+		if stat == "hp":
+			continue
+		data.set(stat, _clamp_to_cap(int(data.get(stat)), int(target_class.stat_caps.get(stat, -1))))
+
+
+func _max_equipped_skills() -> int:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	return int(gs.get("max_skills")) if gs != null else 4
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
@@ -569,58 +930,70 @@ func _debug_boosted_rate(rate: int) -> int:
 
 
 # Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
-func _level_up_random(rates: Dictionary) -> Dictionary:
+func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
 		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
-		if gain > 0:
-			for _i in gain:
-				_increment_stat(stat)
-			changes[stat] = gain
+		var applied: int = _apply_stat_gain(stat, gain, caps)
+		if applied > 0:
+			changes[stat] = applied
 	return changes
 
 
 # Deterministic: accumulates rate each level; +1 per full 100 accumulated.
 # Carry persists in data.growth_accumulators so gains are perfectly predictable.
 # Rate 50 → +1 every 2 levels exactly. Rate 150 → +1 every level, +1 extra every other.
-func _level_up_fixed(rates: Dictionary) -> Dictionary:
+func _level_up_fixed(rates: Dictionary, caps: Dictionary) -> Dictionary:
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var acc: int = int(data.growth_accumulators.get(stat, 0)) + rate
 		var gain: int = acc / 100
 		data.growth_accumulators[stat] = acc % 100
-		if gain > 0:
-			for _i in gain:
-				_increment_stat(stat)
-			changes[stat] = gain
+		var applied: int = _apply_stat_gain(stat, gain, caps)
+		if applied > 0:
+			changes[stat] = applied
 	return changes
 
 
-# NOT ENFORCED — stat caps. Per-class maximum stats are not yet modelled, so a
-# high-growth unit can grow past intended class limits. Clamp here once ClassData
-# carries cap data (e.g. data.strength = mini(data.strength + 1, cap)).
-func _increment_stat(stat: String) -> void:
-	match stat:
-		"hp":
-			data.max_hp += 1
-			data.hp += 1  # current HP also increases on level up
-			# Refresh the HP bar: max_value is set once at init, so a mid-map
-			# level-up would otherwise leave the bar's range stale until the next
-			# reset_appearance() (never, for enemies).
-			if _hp_bar:
-				_hp_bar.max_value = data.max_hp
-				_hp_bar.value = data.hp
-		"strength": data.strength += 1
-		"magic": data.magic += 1
-		"defense": data.defense += 1
-		"resistance": data.resistance += 1
-		"skill": data.skill += 1
-		"speed": data.speed += 1
-		"luck": data.luck += 1
+# Applies up to `gain` points to a stat, stopping at the class cap. Returns the
+# number actually applied — a stat already at cap reports 0 so the level-up
+# screen shows no gain for it.
+func _apply_stat_gain(stat: String, gain: int, caps: Dictionary) -> int:
+	var cap: int = int(caps.get(stat, -1))  # -1 = uncapped (missing key / empty caps)
+	var applied: int = 0
+	for _i in gain:
+		if not _increment_stat(stat, cap):
+			break  # at cap — further points in this level-up are wasted
+		applied += 1
+	return applied
+
+
+# Raises one stat by 1, unless it has reached `cap` (cap < 0 means uncapped).
+# Returns true if the point was applied. The "hp" stat raises max_hp (the cap
+# target) and current hp together.
+func _increment_stat(stat: String, cap: int) -> bool:
+	if stat == "hp":
+		if cap >= 0 and data.max_hp >= cap:
+			return false
+		data.max_hp += 1
+		data.hp += 1  # current HP also increases on level up
+		# Refresh the HP bar: max_value is set once at init, so a mid-map
+		# level-up would otherwise leave the bar's range stale until the next
+		# reset_appearance() (never, for enemies).
+		if _hp_bar:
+			_hp_bar.max_value = data.max_hp
+			_hp_bar.value = data.hp
+		return true
+	# Every other growth stat shares its name with a UnitData property.
+	var current: int = int(data.get(stat))
+	if cap >= 0 and current >= cap:
+		return false
+	data.set(stat, current + 1)
+	return true
 
 
 # Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit

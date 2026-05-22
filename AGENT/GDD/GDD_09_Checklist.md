@@ -13,7 +13,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-18)
+## Status Snapshot (last updated 2026-05-21)
 
 | Milestone | Status | Notes |
 |---|---|---|
@@ -26,7 +26,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 | M6 — Enemy AI | ✅ Basic complete | basic / passive / healer profiles; kill-score heuristic deferred to Phase 2 |
 | M7 — Full MVP Playthrough | ⏳ In progress | playtest 1 done — 13 findings fixed (+ a ripple audit, 6 more); re-playtest pending |
 
-**Tests:** 372 passing across 20 suites (`scripts/tests/test_*.gd`). Run `./run_tests.sh`.
+**Tests:** 586 passing across 26 suites (`scripts/tests/test_*.gd`). Run `bash run_tests.sh`.
 
 > **Amendments folded in.** The MVP amendments A1–A4 (Phase-2 data fields +
 > `ConditionManager`; modifier hooks; the combat context pipeline; grid skill-hook

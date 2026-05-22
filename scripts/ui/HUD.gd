@@ -46,7 +46,7 @@ func _ready() -> void:
 		# Drop the panel when the displayed unit dies — its node is about to be freed.
 		bus.unit_died.connect(_on_unit_died)
 	_update_turn_label()
-	_on_phase_changed(GameState.Phase.PLAYER)
+	_on_phase_changed(GameState.Phase.PLAYER, "blue")
 	_setup_debug_banner()
 
 
@@ -110,8 +110,9 @@ func _conditions_for(dict: Dictionary, group: String) -> Array:
 	return []
 
 
-func _on_phase_changed(new_phase: int) -> void:
-	var faction_id: String = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
+func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
+	if faction_id == "":
+		faction_id = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
 	var label: String = _faction_label(faction_id)
 	_phase_label.text = "%s PHASE" % label.to_upper()
 
@@ -129,12 +130,10 @@ func _faction_label(faction_id: String) -> String:
 	var gs := get_node_or_null("/root/GameState")
 	var md: MapData = gs.map_data if gs != null else null
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.get_label()
-	if faction_id == "":
-		return "Unknown"
-	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+		var faction: FactionData = md.get_faction(faction_id)
+		if faction != null:
+			return faction.get_label()
+	return "Unknown" if faction_id == "" else FactionData.display_label(faction_id)
 
 
 func _on_turn_changed(turn_number: int) -> void:

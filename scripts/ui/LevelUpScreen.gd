@@ -15,6 +15,7 @@ const _STAT_NAMES: Dictionary = {
 	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
 	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
 }
+const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
 
 var _queue: Array[Dictionary] = []
 
@@ -26,7 +27,7 @@ func _ready() -> void:
 	hide()
 
 
-func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
+func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array) -> void:
 	# Only show level-up screen for the player's faction; other factions are silent.
 	# M14 stage 5 will broaden this to "the active controlling faction" once a
 	# non-blue hotseat phase exists; for stage 1 the blue/player binding holds.
@@ -35,7 +36,7 @@ func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "skip":
 		return
-	_queue.append({"unit": unit, "increases": stat_increases})
+	_queue.append({"unit": unit, "increases": stat_increases, "learned": learned_skills})
 	if not visible:
 		# First level-up of this batch — tell MapCursor to freeze input so the
 		# cursor can't be driven underneath the screen (#12).
@@ -61,7 +62,17 @@ func _show_next() -> void:
 	for stat in increases:
 		if increases[stat] > 0:
 			stats_text += "%s  +%d\n" % [_STAT_NAMES.get(stat, stat), increases[stat]]
-	_label_stats.text = stats_text.strip_edges() if stats_text != "" else "(No stats increased)"
+	if stats_text == "":
+		stats_text = "(No stats increased)\n"
+	# Announce any class skills learned at this level (Unit.skill_unlocks grant).
+	var learned: Array = item.get("learned", [])
+	if not learned.is_empty():
+		var dm := get_node_or_null("/root/DataManager")
+		for learned_entry in learned:
+			var skill_id: String = _learned_skill_id(learned_entry)
+			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
+			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
+	_label_stats.text = stats_text.strip_edges()
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
@@ -79,6 +90,28 @@ func _show_next() -> void:
 			if not is_instance_valid(self): return
 			_advance()
 		, CONNECT_ONE_SHOT)
+
+
+# Resolves a skill id to its display name via DataManager, falling back to the
+# raw id if the catalogue or skill is unavailable.
+func _skill_display_name(dm: Node, skill_id: String) -> String:
+	if dm != null:
+		var sk = dm.get_skill(skill_id)
+		if sk != null:
+			return sk.display_name
+	return skill_id
+
+
+func _learned_skill_id(learned_entry: Variant) -> String:
+	if learned_entry is Dictionary:
+		return String((learned_entry as Dictionary).get("id", ""))
+	return String(learned_entry)
+
+
+func _learned_skill_equipped(learned_entry: Variant) -> bool:
+	if learned_entry is Dictionary:
+		return bool((learned_entry as Dictionary).get("equipped", true))
+	return true
 
 
 # Dismiss the current panel, then show the next queued level-up — or, when the

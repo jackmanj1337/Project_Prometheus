@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sniper"
+display_name = "Sniper"
+description = "An elite bow specialist with exceptional precision."
+tier = 2
+max_level = 20
+base_hp = 0
+base_strength = 0
+base_magic = 0
+base_defense = 0
+base_resistance = 0
+base_skill = 0
+base_speed = 0
+base_luck = 0
+base_movement = 0
+base_constitution = 0
+base_line_of_sight = 4
+proficiencies = ["bow"]
+special_qualities = []
+promotes_from = ["archer"]
+promotion_stat_bonuses = {"hp": 4, "strength": 2, "magic": 1, "skill": 4, "speed": 3, "defense": 5, "resistance": 3}
+player_growth_rates = {"hp": 45, "strength": 15, "magic": 0, "defense": 15, "resistance": 5, "skill": 30, "speed": 15, "luck": 0}
+enemy_growth_rates = {"hp": 90, "strength": 35, "magic": 0, "defense": 30, "resistance": 25, "skill": 50, "speed": 40, "luck": 35}
+stat_caps = {"hp": 80, "strength": 41, "magic": 30, "defense": 40, "resistance": 31, "skill": 48, "speed": 40, "luck": 45}
+skill_unlocks = {5: "hawkeye", 15: "deadeye"}
+sprite_id = ""

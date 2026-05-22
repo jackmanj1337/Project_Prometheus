@@ -20,13 +20,22 @@ signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)
 signal unit_healed(unit: Node, amount: int)
-signal unit_leveled_up(unit: Node, stat_increases: Dictionary)
+signal unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array)
+signal promotion_available(unit: Node)
+signal unit_promoted(unit: Node, old_class_id: String, new_class_id: String)
+signal promotion_started()
+signal promotion_finished()
+signal unit_reclassed(unit: Node, old_class_id: String, new_class_id: String)
+signal reclass_started()
+signal reclass_finished()
 # Brackets the level-up screen being on-screen — fired when it first appears and
 # again once its whole queue is dismissed. MapCursor uses these to suppress input
 # so the cursor can't be driven underneath the screen (#12).
 signal level_up_started()
 signal level_up_finished()
-signal phase_changed(new_phase: int)  # GameState.Phase enum value
+# new_phase is a GameState.Phase enum value; faction_id names the faction whose
+# phase is starting. PLAYER emits "blue"; ENEMY emits the active non-blue faction.
+signal phase_changed(new_phase: int, faction_id: String)
 signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).

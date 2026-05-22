@@ -10,6 +10,7 @@ const DataManagerS  = preload("res://scripts/autoloads/DataManager.gd")
 class MockUnit extends Node:
 	var data: UnitData
 	var team: String = "blue"
+	var second_seal_usable: bool = false
 
 	func setup(unit_data: UnitData) -> void:
 		data = unit_data
@@ -33,6 +34,17 @@ class MockUnit extends Node:
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)
+
+	func can_promote() -> bool:
+		var dm := get_node_or_null("/root/DataManager")
+		if dm == null or data == null:
+			return false
+		var class_data: ClassData = dm.get_class_data(data.class_id)
+		return class_data != null and not data.is_promoted \
+			and data.level >= class_data.max_level and not class_data.promotes_to.is_empty()
+
+	func can_use_second_seal() -> bool:
+		return second_seal_usable
 
 
 func _make_ctx(atk: Node, def: Node, w_atk: WeaponData, w_def: WeaponData,
@@ -72,7 +84,7 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
-	var soldier_data: UnitData = load("res://data/roster/default/unit_01_soldier.tres").duplicate(true)
+	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(true)
 	var unit := MockUnit.new()
 	unit.setup(soldier_data)
 	root.add_child(unit)
@@ -316,6 +328,44 @@ func _init() -> void:
 	else:
 		print("FAIL B1 item: hp=%d uses=%d inv=%d" \
 			% [inf_data.hp, inf_entry.uses_remaining, inf_data.inventory.size()]); failed += 1
+
+	# ── M6.4: promotion-item restrictions by exact class and class group ─────
+	var archer_data: UnitData = load("res://data/roster/default/unit_03_archer.tres").duplicate(true)
+	archer_data.level = 20
+	var archer_unit := MockUnit.new()
+	archer_unit.setup(archer_data)
+	archer_unit.second_seal_usable = true
+	root.add_child(archer_unit)
+	var mage_data: UnitData = load("res://data/roster/default/unit_04_mage.tres").duplicate(true)
+	mage_data.level = 20
+	var mage_unit := MockUnit.new()
+	mage_unit.setup(mage_data)
+	mage_unit.second_seal_usable = true
+	root.add_child(mage_unit)
+	var merc_data: UnitData = load("res://data/roster/default/unit_02_mercenary.tres").duplicate(true)
+	merc_data.level = 20
+	var merc_unit := MockUnit.new()
+	merc_unit.setup(merc_data)
+	merc_unit.second_seal_usable = false
+	root.add_child(merc_unit)
+	var orion_entry := InventoryEntry.make_item("orion_bolt", 1)
+	var ring_entry := InventoryEntry.make_item("guiding_ring", 1)
+	if ih.can_apply_item(archer_unit, orion_entry) and not ih.can_apply_item(merc_unit, orion_entry):
+		print("OK  M6.4: allowed_classes restrict a promotion item to exact classes"); passed += 1
+	else:
+		print("FAIL M6.4 allowed_classes: archer=%s merc=%s" % [
+			ih.can_apply_item(archer_unit, orion_entry), ih.can_apply_item(merc_unit, orion_entry)]); failed += 1
+	if ih.can_apply_item(mage_unit, ring_entry) and not ih.can_apply_item(merc_unit, ring_entry):
+		print("OK  M6.4: allowed_class_groups restrict a promotion item by class group"); passed += 1
+	else:
+		print("FAIL M6.4 allowed_class_groups: mage=%s merc=%s" % [
+			ih.can_apply_item(mage_unit, ring_entry), ih.can_apply_item(merc_unit, ring_entry)]); failed += 1
+	var second_entry := InventoryEntry.make_item("second_seal", 1)
+	if ih.can_apply_item(archer_unit, second_entry) and not ih.can_apply_item(merc_unit, second_entry):
+		print("OK  M7.4: Second Seal usability follows unit.can_use_second_seal()"); passed += 1
+	else:
+		print("FAIL M7.4 second_seal: archer=%s merc=%s" % [
+			ih.can_apply_item(archer_unit, second_entry), ih.can_apply_item(merc_unit, second_entry)]); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

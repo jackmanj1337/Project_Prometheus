@@ -57,9 +57,10 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 			has_heal_targets = allies.size() > 0
 
 	# Items: any inventory entry of type "item" with uses remaining
+	var ih := get_node_or_null("/root/ItemHandler")
 	if unit.data:
 		for entry in unit.data.inventory:
-			if entry.is_item() and entry.has_uses():
+			if entry.is_item() and entry.has_uses() and (ih == null or ih.can_apply_item(unit, entry)):
 				has_items = true
 				break
 

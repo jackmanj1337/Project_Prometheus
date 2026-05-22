@@ -1,8 +1,10 @@
 # Implementation Plan — M15 Part A: Hotseat Control
 
 **Date:** 2026-05-21
-**Status:** Core implementation landed on 2026-05-21; dedicated content map and
-manual verification remain.
+**Status:** Deferred on 2026-05-21. Core implementation landed, but the hotseat
+track is paused until the class/skill rebuild and promotion follow-up are
+completed. It remains the next planned milestone after classes and skills are
+fully sorted out.
 **Scope:** Milestone 15 Part A (hotseat) per `GDD_10_Roadmap.md:1205`, bounded
 to **WHOLE_PHASE maps only** (see Decision Q6).
 **Design source:** `second_player_control_feasibility.md` §5 stage 6, refined by

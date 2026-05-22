@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "guiding_ring"
+display_name = "Guiding Ring"
+description = "Promotes mystic classes into their advanced spellcasting roles."
+item_type = "promotion"
+uses = 1
+cost = 2000
+effect_id = "promote"
+effect_params = {"allowed_class_groups": ["mystic"]}

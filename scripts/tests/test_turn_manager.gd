@@ -1011,5 +1011,21 @@ func _init() -> void:
 	else:
 		print("FAIL D7 phase sweep: defeats=%d _map_over=%s" % [defeats[0], tm_pbs._map_over]); failed += 1
 
+	# ---- start_enemy_phase: a turn_order without blue fails loud instead of looping forever ----
+	var tm_guard := TurnManager.new()
+	root.add_child(tm_guard)
+	var md_guard := MapData.new()
+	var fd_guard := FactionData.new()
+	fd_guard.id = "red"
+	md_guard.factions = [fd_guard]
+	md_guard.turn_order = ["red"] as Array[String]
+	tm_guard.start_map(md_guard)
+	tm_guard.start_enemy_phase()
+	await process_frame
+	if tm_guard.active_faction() == "red":
+		print("OK  start_enemy_phase: no-blue turn_order terminates instead of hanging"); passed += 1
+	else:
+		print("FAIL no-blue guard: active_faction=%s" % tm_guard.active_faction()); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

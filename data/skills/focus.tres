@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "focus"
+display_name = "Focus"
+description = "Grants Crit +10 when there are no allies within three spaces."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "focus"
+effect_params = {"crit": 10, "radius": 3}
+is_player_activated = false

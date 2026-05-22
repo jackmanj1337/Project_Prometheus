@@ -12,9 +12,6 @@ const TILE_SIZE: int = 64
 # Sentinel value for "no result yet" comparisons — avoids magic literals.
 const INT_MAX: int = 0x7FFFFFFF
 
-# Maximum level for unpromoted units before promotion is required (GDD_02).
-const MAX_LEVEL: int = 20
-
 # WeaponData.effect_tags string constants. CombatResolver must use these — never the
 # raw strings — so a typo here is a compile error, not a silent missed effect.
 const TAG_EFFECTIVE_FLYING   := "effective_flying"

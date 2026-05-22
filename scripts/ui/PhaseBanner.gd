@@ -17,12 +17,13 @@ func _ready() -> void:
 		bus.phase_changed.connect(_on_phase_changed)
 
 
-func _on_phase_changed(new_phase: int) -> void:
+func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
 	# Honor the phase_banner preference — "skip" suppresses the cosmetic banner.
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.get("phase_banner") == "skip":
 		return
-	var faction_id: String = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
+	if faction_id == "":
+		faction_id = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
 	var faction_label: String = _faction_label(faction_id)
 	_label.text = "%s PHASE" % faction_label.to_upper()
 	_panel.modulate = _faction_color(faction_id)
@@ -61,20 +62,18 @@ func _active_faction_id() -> String:
 func _faction_label(faction_id: String) -> String:
 	var md: MapData = _current_map_data()
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.get_label()
-	if faction_id == "":
-		return "Unknown"
-	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+		var faction: FactionData = md.get_faction(faction_id)
+		if faction != null:
+			return faction.get_label()
+	return "Unknown" if faction_id == "" else FactionData.display_label(faction_id)
 
 
 func _faction_color(faction_id: String) -> Color:
 	var md: MapData = _current_map_data()
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == faction_id:
-				return f.color
+		var faction: FactionData = md.get_faction(faction_id)
+		if faction != null:
+			return faction.color
 	return Color(1, 1, 1, 1)
 
 

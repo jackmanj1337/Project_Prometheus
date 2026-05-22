@@ -23,11 +23,14 @@ func show_for(unit: Node) -> void:
 
 	if unit == null or unit.data == null:
 		return
+	var ih := get_node_or_null("/root/ItemHandler")
 
 	for entry in unit.data.inventory:
 		if not entry.is_item():
 			continue
 		if not entry.has_uses():
+			continue
+		if ih != null and not ih.can_apply_item(unit, entry):
 			continue
 		var btn := Button.new()
 		var dm := get_node_or_null("/root/DataManager")

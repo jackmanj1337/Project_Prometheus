@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "prescience"
+display_name = "Prescience"
+description = "Grants Hit/Avoid +15 when this unit initiates an attack."
+trigger = "on_combat_start"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "prescience"
+effect_params = {"avoid": 15, "hit": 15, "when": "attacking"}
+is_player_activated = false

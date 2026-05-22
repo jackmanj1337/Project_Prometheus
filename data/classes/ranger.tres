@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ranger"
+display_name = "Ranger"
+description = "A nimble mounted archer who also fights with a sword."
+tier = 2
+max_level = 20
+base_hp = 0
+base_strength = 0
+base_magic = 0
+base_defense = 0
+base_resistance = 0
+base_skill = 0
+base_speed = 0
+base_luck = 0
+base_movement = 0
+base_constitution = 0
+base_line_of_sight = 4
+proficiencies = ["bow", "sword"]
+special_qualities = ["mounted"]
+promotes_from = ["archer"]
+promotion_stat_bonuses = {"hp": 8, "strength": 3, "skill": 2, "speed": 4, "defense": 1, "resistance": 2}
+player_growth_rates = {"hp": 50, "strength": 20, "magic": 0, "defense": 5, "resistance": 5, "skill": 25, "speed": 20, "luck": 0}
+enemy_growth_rates = {"hp": 90, "strength": 35, "magic": 0, "defense": 25, "resistance": 15, "skill": 40, "speed": 40, "luck": 35}
+stat_caps = {"hp": 80, "strength": 40, "magic": 30, "defense": 35, "resistance": 30, "skill": 43, "speed": 41, "luck": 45}
+skill_unlocks = {5: "swiftfoot", 15: "multishot"}
+sprite_id = ""

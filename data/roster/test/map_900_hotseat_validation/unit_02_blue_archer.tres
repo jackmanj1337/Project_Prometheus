@@ -6,41 +6,41 @@
 [sub_resource type="Resource" id="IE_1"]
 script = ExtResource("2")
 entry_type = "weapon"
-weapon_id = "iron_lance"
-uses_remaining = -1
+weapon_id = "iron_bow"
+uses_remaining = 45
 
 [sub_resource type="Resource" id="IE_2"]
 script = ExtResource("2")
 entry_type = "item"
 item_id = "vulnerary"
-uses_remaining = -1
+uses_remaining = 3
 
 [resource]
 script = ExtResource("1")
-unit_id = "unit_01_soldier"
-unit_name = "Unit_01"
-class_id = "soldier"
+unit_id = "map900_blue_archer"
+unit_name = "Blue_Archer"
+class_id = "archer"
 level = 1
 exp = 0
 is_promoted = false
 effective_level = 1
 max_hp = 17
 hp = 17
-strength = 7
+strength = 6
 magic = 0
-defense = 6
+defense = 4
 resistance = 3
-skill = 6
-speed = 6
-luck = 6
+skill = 9
+speed = 7
+luck = 5
 movement = 6
-constitution = 8
+constitution = 6
 line_of_sight = 4
-proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+proficiencies = {"bow": {"rank": "D", "wexp": 0}}
 skills = []
 inventory = [SubResource("IE_1"), SubResource("IE_2")]
 conditions = []
 gold = 1000
 is_incapacitated = false
 ai_profile = "basic"
-is_default_roster = true
+is_default_roster = false

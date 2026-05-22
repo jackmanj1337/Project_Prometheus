@@ -122,6 +122,26 @@ func _init() -> void:
 	else:
 		print("FAIL load_default_roster: roster is empty"); failed += 1
 
+	# ---- load_roster_from_directory loads a fixed test roster ----
+	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
+	if gs.player_roster.size() == 2:
+		print("OK  load_roster_from_directory loads the fixed test roster (2 units)")
+		passed += 1
+	else:
+		print("FAIL load_roster_from_directory: roster size = %d (want 2)" % gs.player_roster.size())
+		failed += 1
+
+	# ---- configure_next_map stores the next map path + roster policy ----
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_c3_factions_data.tres",
+		"default_roster", "res://data/roster/default/")
+	if gs.next_map_data_path == "res://data/maps/map_001_rout/map_001_c3_factions_data.tres" \
+			and gs.next_map_roster_policy == "default_roster" \
+			and gs.next_map_roster_source == "res://data/roster/default/":
+		print("OK  configure_next_map stores selector launch state"); passed += 1
+	else:
+		print("FAIL configure_next_map: path=%s policy=%s source=%s" % [
+			gs.next_map_data_path, gs.next_map_roster_policy, gs.next_map_roster_source]); failed += 1
+
 	# ---- M14 stage 2: are_hostile uses the alliance-group model ----
 	# Default groups: {blue,green} (allies), {red} (foes), {yellow} (rogues).
 	var hostility_ok: bool = (

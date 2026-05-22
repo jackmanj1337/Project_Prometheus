@@ -143,7 +143,7 @@ res://
     │   └── GameConstants.gd          # autoload — project-wide constants
     ├── skills/
     │   └── SkillHandler.gd           # autoload — skill-effect dispatcher
-    ├── tests/                        # 18 test_*.gd suites; run via run_tests.sh
+    ├── tests/                        # 26 test_*.gd suites; run via run_tests.sh
     ├── tools/                        # placeholder-asset + tileset generators
     ├── ui/
     │   ├── ActionMenu.gd
@@ -1188,7 +1188,7 @@ known terrain on `_ready` — transcription bugs fail loud at map load.
 ### Test infrastructure
 
 All tests live under `scripts/tests/test_*.gd` and run via
-`./run_tests.sh` (a bash wrapper) or per-suite via
+`bash run_tests.sh` (a bash wrapper) or per-suite via
 `godot --headless --path . --script res://scripts/tests/<name>.gd`.
 
 Each test extends `SceneTree`, prints `OK`/`FAIL` lines, and exits with code

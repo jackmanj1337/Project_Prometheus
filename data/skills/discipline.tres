@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "discipline"
+display_name = "Discipline"
+description = "Doubles the weapon experience this unit earns."
+trigger = "passive"
+activation_chance_stat = ""
+activation_divisor = 2
+effect_id = "discipline"
+effect_params = {"wexp_multiplier": 2}
+is_player_activated = false

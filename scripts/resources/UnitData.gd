@@ -26,12 +26,22 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var constitution: int = 0
 @export var line_of_sight: int = 4
 
+# This unit's personal growth rates, keys = ClassData.STAT_KEYS, values 0–100+.
+# Added on top of the class's player_growth_rates at level-up (player units only).
+# Empty {} is valid — the unit then levels purely on its class growths.
+@export var growth_rates: Dictionary = {}
+
 # Format: { "sword": { "rank": "D", "wexp": 0 } }
 @export var proficiencies: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
-# GameState.max_skills cap is planned but NOT yet enforced (see GameState).
+# GameState.max_skills caps how many of these can be equipped once M6 lands.
 @export var skills: Array[String] = []
+# Every skill this unit has ever learned. `skills` is the currently equipped
+# subset; future battle-prep skill swapping will draw from this full list.
+@export var earned_skills: Array[String] = []
+@export var reclass_options: Array[String] = []
+@export var class_line_id: String = ""
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
 # Captured by GameState's manual snapshot (not by ResourceSaver; not @export).

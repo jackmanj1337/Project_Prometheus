@@ -4,13 +4,99 @@ Tasks here need action inside the Godot editor (or a tool run) — they are not 
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
 breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
-> Last verified against the project: 2026-05-18.
+> Last verified against the project: 2026-05-21.
 
 ---
 
 ## Pending
 
-_None — all listed manual tasks are complete._
+### Class / Skill Live Playtest
+
+Run this before treating the class/skill track as fully signed off. Skipping it
+leaves the newly-implemented promotion, level-1 class-skill, and Second Seal
+flows verified only by headless tests, not by actual in-map play.
+
+- [ ] Start a fresh map with the default roster and confirm each starter unit
+      begins with the correct level-1 class skill in live UI/tooltips, not just
+      in data/tests
+- [ ] Level a base-class unit to level 10 and confirm the class level-10 skill
+      is learned in live play with the expected level-up messaging
+- [ ] Fill a unit's equipped skill slots, then learn another class skill and
+      confirm it is stored in `earned_skills` without being auto-equipped
+- [ ] With **Auto Promote** enabled on New Game, level a promotable unit to its
+      class cap and confirm the promotion prompt appears automatically after the
+      level-up flow finishes
+- [ ] With **Auto Promote** disabled, level a promotable unit to its class cap
+      and confirm no auto-prompt appears until a promotion item is used
+- [ ] Use a `Master Seal` on a valid capped unit and confirm the promotion modal
+      opens, the unit changes class, level resets to 1, EXP resets to 0, and
+      the item is consumed only after confirm
+- [ ] Cancel out of a promotion-item prompt once and confirm the item is **not**
+      consumed and control returns cleanly to the action flow
+- [ ] Use a class-restricted promotion item (`Orion Bolt`) on both a valid class
+      and an invalid class, confirming only the legal unit can use it
+- [ ] Use a class-group-restricted promotion item (`Guiding Ring`) on both a
+      valid class-group unit and an invalid one, confirming only the legal unit
+      can use it
+- [ ] Promote at least one unit into each of these multi-option class families
+      and confirm the correct class choice appears in the modal:
+      Archer, Cavalier, Cleric, Knight, Mage, Mercenary
+- [ ] After promotion, confirm newly granted weapon proficiencies appear at `E`
+      rank and pre-existing ranks are preserved
+- [ ] Level a promoted unit to promoted level 5 and then 15, confirming the
+      promoted-class skills are learned at the right levels in live play
+- [ ] Use a `Second Seal` on a tier-1 unit below level 10 and confirm it is not
+      usable
+- [ ] Use a `Second Seal` on a tier-1 unit at level 10 and confirm only that
+      character's allowed tier-1 reclass set appears
+- [ ] Use a `Second Seal` on a promoted unit below level 10 and confirm the
+      options are demotions only, with no lateral tier-2 reclass options shown
+- [ ] Use a `Second Seal` on a promoted unit at level 10+ and confirm lateral
+      tier-2 options from other class lines appear
+- [ ] Reclass into a shared promoted class option (for example a `Bow Knight`
+      line-qualified entry) and confirm the chosen class line is respected
+- [ ] Pick the current class with a `Second Seal` at max level and confirm the
+      unit cleanly resets to level 1 without stat changes
+- [ ] After any reclass or demotion, confirm the unit immediately has the new
+      class's level-1 skill if applicable
+- [ ] Save a retry snapshot after promotion or reclassing, trigger a restore,
+      and confirm class, level, promotion state, skills, and weapon ranks come
+      back correctly in live play
+
+### M15 Part A — Hotseat Validation Playtest
+
+Run this after the hotseat validation map and the first map selector build land.
+Skipping it leaves the remaining M15 Part A acceptance criteria unverified and
+makes future multi-map regression testing slower and more error-prone.
+
+Reference plan: `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md`
+
+- [ ] Launch the hotseat validation map from the **map selector**, not by editing
+      `GameMap.tscn` or changing `GameMap.map_data_path`
+- [ ] Confirm blue phase still behaves normally: cursor starts on blue, blue units
+      are selectable, and green units are not selectable during blue's turn
+- [ ] Leave at least one blue unit unacted and press End Turn once; confirm the
+      "some units have not acted" prompt appears, Cancel returns control, and
+      Confirm advances the turn
+- [ ] Confirm the green hotseat phase starts with an unlocked cursor and only green
+      units are selectable
+- [ ] Use a green combat unit to attack a **red** unit
+- [ ] Use a green combat unit to attack a **yellow** unit, confirming both hostile
+      factions are valid green targets
+- [ ] Use the green staff unit to heal a valid ally in range, ideally once on a
+      green ally and once on a blue ally, confirming same-alliance targeting
+- [ ] End a green phase manually with End Turn and confirm control passes to red
+- [ ] On a later green phase, act with every green unit and confirm the phase can
+      auto-end cleanly when all green units are done
+- [ ] Watch the red AI phase complete after green without hanging or skipping units
+- [ ] Watch the yellow AI phase complete after red without hanging or skipping units
+- [ ] Confirm the camera/control handoff back to blue feels normal when blue's
+      phase resumes
+- [ ] End the map by defeating the final hostile during a green hotseat action and
+      confirm the map resolves immediately without waiting for End Turn
+- [ ] Use the map selector to launch an all-non-blue-AI comparison map
+      (`map_001_c3_factions`) and confirm it still behaves like the pre-hotseat
+      faction-system build
 
 ---
 

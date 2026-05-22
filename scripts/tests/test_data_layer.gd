@@ -7,72 +7,42 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
-	# --- Classes ---
-	var class_files := {
-		"soldier":    "res://data/classes/soldier.tres",
-		"mercenary":  "res://data/classes/mercenary.tres",
-		"archer":     "res://data/classes/archer.tres",
-		"mage":       "res://data/classes/mage.tres",
-		"cleric":     "res://data/classes/cleric.tres",
-		"knight":     "res://data/classes/knight.tres",
-	}
-	for cid in class_files:
-		var c = load(class_files[cid])
-		if c and c is ClassData and c.id == cid:
-			print("OK  class: " + cid)
+	# --- Classes / weapons / items / skills ---
+	for loaded in _load_resources_from_dir("res://data/classes/"):
+		if loaded and loaded is ClassData and loaded.id != "":
+			print("OK  class: " + loaded.id)
 			passed += 1
 		else:
-			print("FAIL class: " + cid + " (got: " + str(c) + ")")
+			print("FAIL class resource: " + str(loaded))
 			failed += 1
 
-	# --- Weapons ---
-	var weapon_files := {
-		"iron_sword":  "res://data/weapons/iron_sword.tres",
-		"steel_sword": "res://data/weapons/steel_sword.tres",
-		"iron_lance":  "res://data/weapons/iron_lance.tres",
-		"javelin":     "res://data/weapons/javelin.tres",
-		"iron_bow":    "res://data/weapons/iron_bow.tres",
-		"fire":        "res://data/weapons/fire.tres",
-		"elfire":      "res://data/weapons/elfire.tres",
-		"thunder":     "res://data/weapons/thunder.tres",
-		"wind":        "res://data/weapons/wind.tres",
-		"heal_staff":  "res://data/weapons/heal_staff.tres",
-	}
-	for wid in weapon_files:
-		var w = load(weapon_files[wid])
-		if w and w is WeaponData and w.id == wid:
-			print("OK  weapon: " + wid)
+	for loaded in _load_resources_from_dir("res://data/weapons/"):
+		if loaded and loaded is WeaponData and loaded.id != "":
+			print("OK  weapon: " + loaded.id)
 			passed += 1
 		else:
-			print("FAIL weapon: " + wid)
+			print("FAIL weapon resource: " + str(loaded))
 			failed += 1
 
-	# --- Items ---
-	for iid in ["vulnerary", "elixir"]:
-		var it = load("res://data/items/" + iid + ".tres")
-		if it and it is ItemData and it.id == iid:
-			print("OK  item: " + iid)
+	for loaded in _load_resources_from_dir("res://data/items/"):
+		if loaded and loaded is ItemData and loaded.id != "":
+			print("OK  item: " + loaded.id)
 			passed += 1
 		else:
-			print("FAIL item: " + iid)
+			print("FAIL item resource: " + str(loaded))
 			failed += 1
 
-	# --- Skills ---
-	for sid in ["renewal", "vantage", "nihil", "resolve", "miracle", "wrath",
-			"swordfaire", "lancefaire", "bowfaire",
-			"swordbreaker", "lancebreaker", "bowbreaker",
-			"s_rank_mastery"]:
-		var sk = load("res://data/skills/" + sid + ".tres")
-		if sk and sk is SkillData and sk.id == sid:
-			print("OK  skill: " + sid)
+	for loaded in _load_resources_from_dir("res://data/skills/"):
+		if loaded and loaded is SkillData and loaded.id != "":
+			print("OK  skill: " + loaded.id)
 			passed += 1
 		else:
-			print("FAIL skill: " + sid)
+			print("FAIL skill resource: " + str(loaded))
 			failed += 1
 
 	# --- Default roster ---
 	var roster_files := [
-		"res://data/roster/default/unit_01_soldier.tres",
+		"res://data/roster/default/unit_01_cavalier.tres",
 		"res://data/roster/default/unit_02_mercenary.tres",
 		"res://data/roster/default/unit_03_archer.tres",
 		"res://data/roster/default/unit_04_mage.tres",
@@ -166,21 +136,41 @@ func _init() -> void:
 			print("FAIL unit_id empty in: " + path)
 			failed += 1
 
+	# --- Roster reclass metadata validates against the loaded class catalogue ---
+	var DataManagerS = load("res://scripts/autoloads/DataManager.gd")
+	var class_catalogue := {}
+	for loaded_class in _load_resources_from_dir("res://data/classes/"):
+		if loaded_class and loaded_class is ClassData and loaded_class.id != "":
+			class_catalogue[loaded_class.id] = loaded_class
+	var roster_units: Array = []
+	for path in roster_files:
+		roster_units.append(load(path))
+	var roster_errors: Array[String] = DataManagerS.collect_unit_validation_errors(
+		roster_units, class_catalogue)
+	if roster_errors.is_empty():
+		print("OK  roster reclass metadata validates cleanly")
+		passed += 1
+	else:
+		print("FAIL roster reclass validation: %s" % [roster_errors])
+		failed += 1
+
 	# --- Snapshot coverage: every mutable UnitData property must appear in the
 	# snapshot dict or in the explicit allowlist of intentionally-excluded fields.
 	# Fail if a new @export var is added to UnitData without updating the snapshot.
 	var snapshot_keys := [
-		"tile_position", "hp", "max_hp", "strength", "magic", "defense",
+		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
 		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
-		"proficiencies", "inventory", "conditions", "skills", "mastery_skills",
+		"is_promoted", "class_line_id",
+		"proficiencies", "inventory", "conditions", "skills", "earned_skills",
+		"mastery_skills",
 		"is_incapacitated", "active_modifiers", "skill_use_counters",
 		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",
 	]
 	# Properties intentionally excluded: static identity or between-map state only.
 	var snapshot_allowlist := [
-		"unit_id", "unit_name", "class_id", "is_promoted", "movement",
+		"unit_id", "unit_name", "movement",
 		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
-		"shift_profile_id",
+		"shift_profile_id", "growth_rates", "reclass_options",
 	]
 	var sample_unit: UnitData = UnitData.new()
 	var snapshot_fail := false
@@ -202,3 +192,22 @@ func _init() -> void:
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _load_resources_from_dir(path: String) -> Array:
+	var loaded: Array = []
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return loaded
+	var files: Array[String] = []
+	dir.list_dir_begin()
+	var fname := dir.get_next()
+	while fname != "":
+		if fname.ends_with(".tres"):
+			files.append(fname)
+		fname = dir.get_next()
+	dir.list_dir_end()
+	files.sort()
+	for fname2 in files:
+		loaded.append(load(path + fname2))
+	return loaded

@@ -38,17 +38,39 @@ static func collect_validation_errors(classes: Dictionary, weapons: Dictionary,
 	_check_class_refs(classes, skills, errors)
 	_check_skill_refs(skills, errors)
 	_check_weapon_refs(weapons, errors)
-	_check_item_refs(items, errors)
+	_check_item_refs(items, classes, errors)
 	return errors
 
 
 static func _check_class_refs(classes: Dictionary, skills: Dictionary, errors: Array[String]) -> void:
 	for cls in classes.values():
-		for skill_id in cls.starting_skills:
+		# Every skill a class auto-grants at level-up must reference a real skill.
+		for level in cls.skill_unlocks:
+			var skill_id: String = String(cls.skill_unlocks[level])
 			if not skills.has(skill_id):
-				errors.append("DataManager: class '%s' starting_skill '%s' not found" % [cls.id, skill_id])
-		# promotes_to class ids are intentionally not validated — promoted classes are added in M7.
-		# When promotion data lands, add: errors.append on missing class for c in cls.promotes_to
+				errors.append("DataManager: class '%s' skill_unlocks[%s] '%s' not found" \
+					% [cls.id, str(level), skill_id])
+		# Growth tables and caps must carry every expected stat key so a missing
+		# entry can't silently zero a stat at level-up.
+		_check_stat_dict(cls, "player_growth_rates", cls.player_growth_rates, errors)
+		_check_stat_dict(cls, "enemy_growth_rates", cls.enemy_growth_rates, errors)
+		_check_stat_dict(cls, "stat_caps", cls.stat_caps, errors)
+		for target_id in cls.promotes_to:
+			if not classes.has(String(target_id)):
+				errors.append("DataManager: class '%s' promotes_to '%s' not found" % [cls.id, String(target_id)])
+		for source_id in cls.promotes_from:
+			if not classes.has(String(source_id)):
+				errors.append("DataManager: class '%s' promotes_from '%s' not found" % [cls.id, String(source_id)])
+
+
+# Warns if a class stat dictionary is non-empty but missing expected stat keys.
+# Empty {} is allowed (e.g. a class with no enemy variant) and skipped.
+static func _check_stat_dict(cls, field: String, dict: Dictionary, errors: Array[String]) -> void:
+	if dict.is_empty():
+		return
+	for key in ClassData.STAT_KEYS:
+		if not dict.has(key):
+			errors.append("DataManager: class '%s' %s missing stat key '%s'" % [cls.id, field, key])
 
 
 # Valid stat names skills may name in activation_chance_stat. Hoisted to module
@@ -86,14 +108,33 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 					% [weapon.id, tag])
 
 
-static func _check_item_refs(items: Dictionary, errors: Array[String]) -> void:
+static func _check_item_refs(items: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
 	# apply_item already push_warns and refuses to consume unknown effects at
 	# runtime, but failing loud at boot beats discovering it the first time the
 	# player drinks the item.
+	var known_class_groups := _collect_class_groups(classes)
 	for item in items.values():
 		if not (item.effect_id in ItemHandlerScript.IMPLEMENTED_EFFECT_IDS):
 			errors.append("DataManager: item '%s' effect_id '%s' is not implemented by ItemHandler" \
 				% [item.id, item.effect_id])
+		if item.effect_params.has("allowed_classes"):
+			for class_id in item.effect_params["allowed_classes"]:
+				if not classes.has(String(class_id)):
+					errors.append("DataManager: item '%s' allowed_classes '%s' not found" % [
+						item.id, String(class_id)])
+		if item.effect_params.has("allowed_class_groups"):
+			for group_id in item.effect_params["allowed_class_groups"]:
+				if not known_class_groups.has(String(group_id)):
+					errors.append("DataManager: item '%s' allowed_class_groups '%s' not found" % [
+						item.id, String(group_id)])
+
+
+static func _collect_class_groups(classes: Dictionary) -> Dictionary:
+	var groups := {}
+	for cls in classes.values():
+		for group_id in cls.class_groups:
+			groups[String(group_id)] = true
+	return groups
 
 
 func _load_directory(path: String, target: Dictionary) -> void:
@@ -128,6 +169,14 @@ func get_class_data(id: String) -> ClassData:
 	return _classes[id]
 
 
+func get_all_classes() -> Dictionary:
+	return _classes
+
+
+func validate_unit_data(unit: UnitData) -> Array[String]:
+	return collect_unit_validation_errors([unit], _classes)
+
+
 func get_weapon(id: String) -> WeaponData:
 	if not _weapons.has(id):
 		push_error("DataManager: unknown weapon id '%s'" % id)
@@ -156,3 +205,32 @@ func get_weapon_triangle_result(attacker_type: String, defender_type: String) ->
 		if row.has(defender_type):
 			return row[defender_type]
 	return "neutral"
+
+
+static func collect_unit_validation_errors(units: Array, classes: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for unit in units:
+		if unit == null:
+			continue
+		if unit.class_id != "" and not classes.has(unit.class_id):
+			errors.append("DataManager: unit '%s' class_id '%s' not found" % [
+				unit.unit_id, unit.class_id])
+		if unit.class_line_id != "":
+			if not classes.has(unit.class_line_id):
+				errors.append("DataManager: unit '%s' class_line_id '%s' not found" % [
+					unit.unit_id, unit.class_line_id])
+			else:
+				var line_class: ClassData = classes[unit.class_line_id]
+				if line_class.tier != 1:
+					errors.append("DataManager: unit '%s' class_line_id '%s' must point to a tier-1 class" % [
+						unit.unit_id, unit.class_line_id])
+		for option_id in unit.reclass_options:
+			if not classes.has(String(option_id)):
+				errors.append("DataManager: unit '%s' reclass_options '%s' not found" % [
+					unit.unit_id, String(option_id)])
+				continue
+			var option_class: ClassData = classes[String(option_id)]
+			if option_class.tier != 1:
+				errors.append("DataManager: unit '%s' reclass_options '%s' must point to a tier-1 class" % [
+					unit.unit_id, String(option_id)])
+	return errors

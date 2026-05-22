@@ -4,6 +4,10 @@ class_name ClassData extends Resource
 @export var display_name: String = ""
 @export var description: String = ""
 
+# Tier 1 = base class, Tier 2 = promoted class. Promotion (M6) keys off this.
+@export var tier: int = 1
+@export var max_level: int = 20
+
 # Base stats copied to UnitData at unit creation
 @export var base_hp: int = 0
 @export var base_strength: int = 0
@@ -19,18 +23,34 @@ class_name ClassData extends Resource
 
 # First entry = primary weapon type (starts at D rank); rest start at E rank
 @export var proficiencies: Array[String] = []
-@export var starting_skills: Array[String] = []
+# Loose semantic tags for item restrictions and future content gating.
+@export var class_groups: Array[String] = []
 # See GDD_03 for valid values: "flying", "mounted", "armoured", "dragon", "beast", "laguz"
 @export var special_qualities: Array[String] = []
 
-# Promotion (Phase 2)
+# Promotion (M6) — applied as additive stat deltas at promotion.
 @export var promotes_to: Array[String] = []
-@export var promotion_stat_increases: Dictionary = {}
-@export var promotion_skill: String = ""
-@export var occult_skill: String = ""
+@export var promotes_from: Array[String] = []
+@export var promotion_stat_bonuses: Dictionary = {}
+@export var is_special_class: bool = false
 
-# Keys: "hp","strength","magic","defense","resistance","skill","speed","luck" — values 0–100
-@export var growth_rates: Dictionary = {}
+# Stat keys recognised in growth_rates / stat_caps dictionaries.
+const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
+	"resistance", "skill", "speed", "luck"]
+
+# Growth rates, keys = STAT_KEYS, values 0–100+. Two tables per the GDD:
+#   - player_growth_rates: added to a player unit's personal growths at level-up.
+#   - enemy_growth_rates:  used alone to auto-level generic enemy units.
+@export var player_growth_rates: Dictionary = {}
+@export var enemy_growth_rates: Dictionary = {}
+
+# Maximum stats for this class, keys = STAT_KEYS. Level-up gains are clamped here.
+# MOV/CON/LoS are intentionally uncapped (no keys), matching the GDD cap tables.
+@export var stat_caps: Dictionary = {}
+
+# Skills auto-learned while in this class. Keys = level (int), values = skill id.
+# e.g. { 1: "skill_plus_2", 10: "prescience" }. One skill per level.
+@export var skill_unlocks: Dictionary = {}
 
 # [PLACEHOLDER] links to sprite sheet row
 @export var sprite_id: String = ""

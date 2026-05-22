@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sage"
+display_name = "Sage"
+description = "A master anima caster who also commands healing staves."
+tier = 2
+max_level = 20
+base_hp = 0
+base_strength = 0
+base_magic = 0
+base_defense = 0
+base_resistance = 0
+base_skill = 0
+base_speed = 0
+base_luck = 0
+base_movement = 0
+base_constitution = 0
+base_line_of_sight = 4
+proficiencies = ["fire", "thunder", "wind", "staff"]
+special_qualities = []
+promotes_from = ["mage"]
+promotion_stat_bonuses = {"hp": 4, "strength": 1, "magic": 3, "skill": 2, "speed": 3, "defense": 2, "resistance": 2}
+player_growth_rates = {"hp": 35, "strength": 0, "magic": 20, "defense": 5, "resistance": 10, "skill": 20, "speed": 20, "luck": 0}
+enemy_growth_rates = {"hp": 70, "strength": 0, "magic": 40, "defense": 20, "resistance": 35, "skill": 40, "speed": 40, "luck": 40}
+stat_caps = {"hp": 80, "strength": 30, "magic": 46, "defense": 31, "resistance": 40, "skill": 43, "speed": 42, "luck": 45}
+skill_unlocks = {5: "phasing", 15: "deeper_knowledge"}
+sprite_id = ""
