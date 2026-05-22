@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
 # ── Versions (update here to upgrade) ──────────────────────
-ARG GODOT_VERSION=4.3
+ARG GODOT_VERSION=4.6
 ARG NODE_MAJOR=20
 ARG CLAUDE_CODE_VERSION=latest
 ARG CODEX_VERSION=latest
