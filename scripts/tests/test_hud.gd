@@ -206,7 +206,7 @@ var data
 		gm_stub.name = "GameMap"
 		gm_stub.add_child(tm_stub)
 		root.add_child(gm_stub)
-		hud._on_phase_changed(GameState.Phase.ENEMY)
+		hud._on_phase_changed(GameState.Phase.ENEMY, "red")
 		var phase_label: Label = hud.get_node("PhaseLabel")
 		if phase_label.text == "INVADERS PHASE":
 			print("OK  C3: HUD phase label uses faction display_name")

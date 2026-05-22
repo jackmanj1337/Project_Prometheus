@@ -40,6 +40,10 @@ class_name FactionData extends Resource
 func get_label() -> String:
 	if display_name != "":
 		return display_name
-	if id == "":
+	return display_label(id)
+
+
+static func display_label(faction_id: String) -> String:
+	if faction_id == "":
 		return ""
-	return id.substr(0, 1).to_upper() + id.substr(1)
+	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)

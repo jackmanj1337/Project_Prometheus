@@ -55,3 +55,10 @@ class_name MapData extends Resource
 # defeat condition so every group always has a way to be out (M16 spec).
 @export var victory_conditions: Dictionary = {}
 @export var defeat_conditions: Dictionary = {}
+
+
+func get_faction(faction_id: String) -> FactionData:
+	for faction in factions:
+		if faction != null and faction.id == faction_id:
+			return faction
+	return null

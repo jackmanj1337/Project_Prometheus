@@ -140,7 +140,7 @@ func _resolve_menu_refs() -> void:
 		reclass_screen = get_node_or_null("../ReclassLayer/ReclassScreen")
 
 
-func _on_phase_changed(new_phase: int) -> void:
+func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 	if new_phase == GameState.Phase.ENEMY:
 		# Capture the player's last camera view so we can restore it next player
 		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads

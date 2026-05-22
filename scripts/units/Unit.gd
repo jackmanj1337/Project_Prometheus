@@ -70,10 +70,9 @@ func _apply_faction_visual(map_data: MapData = null) -> void:
 		if gs != null:
 			md = gs.map_data
 	if md != null:
-		for f in md.factions:
-			if f != null and f.id == team:
-				color = f.color
-				break
+		var faction: FactionData = md.get_faction(team)
+		if faction != null:
+			color = faction.color
 	_base_modulate = color
 	if _sprite != null:
 		_sprite.modulate = _base_modulate

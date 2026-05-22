@@ -643,6 +643,22 @@ func _init() -> void:
 			init_skill_data.skills, init_skill_data.earned_skills])
 		failed += 1
 
+	# --- C3 helper lookups: MapData.get_faction + FactionData.display_label ---
+	var md_helpers := MapData.new()
+	var fd_helpers := FactionData.new()
+	fd_helpers.id = "green"
+	fd_helpers.display_name = "Verdant"
+	md_helpers.factions = [fd_helpers]
+	var helper_found: bool = md_helpers.get_faction("green") == fd_helpers
+	var helper_missing: bool = md_helpers.get_faction("purple") == null
+	var helper_label: bool = FactionData.display_label("yellow") == "Yellow"
+	if helper_found and helper_missing and helper_label:
+		print("OK  C3 helpers: get_faction resolves known ids and display_label title-cases ids")
+		passed += 1
+	else:
+		print("FAIL C3 helpers: found=%s missing=%s label=%s" % [helper_found, helper_missing, helper_label])
+		failed += 1
+
 	# --- M7: Second Seal eligibility, options, and reclass rules ---
 	var watcher_reclass := SignalWatcher.new()
 	var seal_base: Unit = unit_scene.instantiate()

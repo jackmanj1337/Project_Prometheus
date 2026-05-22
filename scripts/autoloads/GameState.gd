@@ -160,13 +160,13 @@ func unregister_unit(unit: Node) -> void:
 			(_units_by_faction[fid] as Array[Node]).erase(unit)
 
 
-func set_phase(new_phase: Phase) -> void:
+func set_phase(new_phase: Phase, faction_id: String = "") -> void:
 	current_phase = new_phase
 	# Use emit_signal to avoid a compile-time dependency on EventBus identifier
 	# (autoloads must not reference each other by identifier — use get_node_or_null).
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
-		bus.emit_signal("phase_changed", new_phase)
+		bus.emit_signal("phase_changed", new_phase, faction_id)
 
 
 # M14 stage 3: living units of an arbitrary faction. filter() returns a generic

@@ -98,7 +98,7 @@ func _ready() -> void:
 
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
 # snappy (smoothing off) for the player phase so the cursor scroll stays tight.
-func _on_phase_changed(new_phase: int) -> void:
+func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
 	if _camera_ctrl != null:
 		_camera_ctrl.set_smoothing(new_phase == GameState.Phase.ENEMY)
 
@@ -174,8 +174,8 @@ func _spawn_units() -> void:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
-# Enemy/AI-controlled units: load each UnitData .tres referenced by enemy_placements.
-# Optional placement key: "faction" (defaults to "red").
+	# Enemy/AI-controlled units: load each UnitData .tres referenced by
+	# enemy_placements. Optional placement key: "faction" (defaults to "red").
 	for placement in map_data.enemy_placements:
 		var path: String = placement.get("unit_data_path", "")
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)

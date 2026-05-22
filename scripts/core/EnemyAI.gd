@@ -27,16 +27,6 @@ func run_ai_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> v
 	await run_phase(grid, turn, faction_id)
 
 
-# Uses TurnManager.active_faction() when available.
-func run_enemy_phase(grid: GridManager, turn: TurnManager) -> void:
-	var faction_id: String = "red"
-	if turn != null and turn.has_method("active_faction"):
-		var active: String = turn.active_faction()
-		if active != "":
-			faction_id = active
-	await run_phase(grid, turn, faction_id)
-
-
 # Pans the camera onto `unit` (#7) by announcing it on EventBus.ai_unit_acting.
 # No delay — used for the mid-turn re-pan after a unit moves.
 func _pan_camera(unit: Node) -> void:
