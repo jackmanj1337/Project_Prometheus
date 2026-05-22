@@ -20,12 +20,13 @@ hand (copy an existing block; set `base`, `class`, `path`).
 
 ## GitHub Actions
 
-This repo includes a first-pass GitHub Actions workflow at
-`.github/workflows/tests.yml`.
+This repo includes two GitHub Actions workflows:
+- `.github/workflows/tests-pr.yml`
+- `.github/workflows/tests-push.yml`
 
 It:
 - installs Godot `4.6`
-- runs uniquely named jobs for `push` and `pull_request`
+- runs separate workflows for `push` and `pull_request`
 - runs `bash scripts/ci/run_headless_tests.sh`
   which performs the import scan and then runs `bash run_tests.sh`
 
