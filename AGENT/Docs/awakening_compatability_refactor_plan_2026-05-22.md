@@ -357,10 +357,8 @@ Without this, the refactor will drift.
 8. `AWR-7` Advanced Awakening-only systems
 
 ## Risks That Need Explicit Decisions
-- whether Pair Up is required for the first compatibility milestone
 - whether child and DLC systems are in scope at all
 - whether markdown corpus import is automated or manual
-- how Pair Up-related skills should behave before real Pair Up mechanics exist
 
 ## Open Questions
 - the exact schema shape for class-side numeric weapon baseline data and class
@@ -373,9 +371,12 @@ Without this, the refactor will drift.
   migration, and unit tests together as a single bounded pass.
 - Schedule a dedicated combat refactor immediately after the schema/migration
   pass to handle combat timing, effectiveness, and Pair Up scaffolding.
+- In that combat refactor, include Pair Up scaffolding in the first pass, but
+  keep full Pair Up mechanics campaign-configurable through settings so
+  campaigns can disable the feature cleanly.
 - Until Pair Up mechanics exist, give Pair Up-related skills explicit
-  non-Pair-Up alternate effects or keep them disabled; do not ship them with
-  dead or misleading behavior.
+  non-Pair-Up alternate effects or keep them disabled by explicit rule; do not
+  ship them with dead or misleading behavior.
 - Build markdown-corpus content import tooling later, after the runtime schema
   and combat foundation are stable enough to validate imported data correctly.
 - whether combat-family allowances should live directly in `ClassData` or be
