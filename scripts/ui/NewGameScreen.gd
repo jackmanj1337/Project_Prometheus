@@ -34,6 +34,7 @@ signal back_pressed()
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
+@onready var _opt_pair_up: OptionButton    = $Panel/VBox/HBoxPairUp/OptPairUp
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
 
@@ -73,6 +74,9 @@ func _ready() -> void:
 	_opt_leveling.clear()
 	_opt_leveling.add_item("Random")
 	_opt_leveling.add_item("Fixed")
+	_opt_pair_up.clear()
+	_opt_pair_up.add_item("Off")
+	_opt_pair_up.add_item("On")
 	_btn_start.pressed.connect(_on_start)
 	_btn_back.pressed.connect(_on_back)
 	# hide() is performed by ModalScreen._ready.
@@ -86,6 +90,7 @@ func open() -> void:
 		_opt_permadeath.selected = int(gs.get("permadeath_enabled"))  # 0=Off, 1=On
 		_opt_auto_promote.selected = int(gs.get("auto_promote_at_max_level"))  # 0=Off, 1=On
 		_opt_leveling.selected   = maxi(0, _LEVELING_OPTIONS.find(gs.get("leveling_method")))
+		_opt_pair_up.selected    = int(gs.get("pair_up_enabled"))  # 0=Off, 1=On
 	else:
 		_opt_map.selected = 0
 	show()
@@ -108,6 +113,7 @@ func _on_start() -> void:
 	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
 	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
 	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
+	gs.set("pair_up_enabled", bool(_opt_pair_up.selected))  # 0=Off, 1=On
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
 		map_entry.get("roster_source", ""))

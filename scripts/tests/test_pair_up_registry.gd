@@ -153,6 +153,28 @@ func _init() -> void:
 			print("OK  GameState.reset_map_state clears the registry"); passed += 1
 		else:
 			print("FAIL reset_map_state left pairings live"); failed += 1
+		# Campaign gate: when GameState.pair_up_enabled is false, pair() refuses
+		# new pairings but separate/restore/queries still work on existing ones.
+		live_reg.call("clear")
+		live_reg.pair("chrom", "lissa")  # established while gate is open
+		var prior_enabled: bool = bool(gs.get("pair_up_enabled"))
+		gs.set("pair_up_enabled", false)
+		var refused_disabled: bool = not live_reg.pair("robin", "lucina")
+		var sep_still_works: bool = live_reg.separate("chrom")
+		gs.set("pair_up_enabled", prior_enabled)  # restore default for other tests
+		if refused_disabled and sep_still_works \
+				and not live_reg.is_paired("chrom") and not live_reg.is_paired("robin"):
+			print("OK  campaign gate: pair refused while disabled, separate still works"); passed += 1
+		else:
+			print("FAIL campaign gate: refused=%s sep=%s chrom_paired=%s robin_paired=%s" \
+				% [refused_disabled, sep_still_works,
+				live_reg.is_paired("chrom"), live_reg.is_paired("robin")])
+			failed += 1
+		# Re-enabling restores pair formation.
+		if live_reg.pair("severa", "owain") and live_reg.is_paired("severa"):
+			print("OK  campaign gate: pair allowed again once re-enabled"); passed += 1
+		else:
+			print("FAIL campaign gate did not re-open"); failed += 1
 		# Clean up so a later test in the same harness does not see stale state.
 		live_reg.call("clear")
 

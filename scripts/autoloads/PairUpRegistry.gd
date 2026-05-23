@@ -46,9 +46,11 @@ func is_support(unit_id: String) -> bool:
 # ---- Mutations ----
 
 # Pairs lead_id and support_id. Returns false (and does nothing) if either id
-# is empty, the two ids are equal, or either unit is already paired. Callers
-# must separate first to repartner.
+# is empty, the two ids are equal, either unit is already paired, or the
+# campaign has Pair Up disabled. Callers must separate first to repartner.
 func pair(lead_id: String, support_id: String) -> bool:
+	if not _campaign_allows_pair_up():
+		return false
 	if lead_id == "" or support_id == "" or lead_id == support_id:
 		return false
 	if is_paired(lead_id) or is_paired(support_id):
@@ -56,6 +58,23 @@ func pair(lead_id: String, support_id: String) -> bool:
 	_pairs[lead_id] = {"partner_id": support_id, "role": ROLE_LEAD}
 	_pairs[support_id] = {"partner_id": lead_id, "role": ROLE_SUPPORT}
 	return true
+
+
+# Gates pair() on the campaign-level GameState.pair_up_enabled flag. Returns
+# true when the autoload is absent (headless tests that omit GameState) or
+# when the registry instance is not in the scene tree (direct-instance unit
+# tests). The is_inside_tree() check matches the cross-autoload idiom used
+# elsewhere — get_node_or_null with an absolute path errors when called from
+# a Node outside the active scene tree. Existing pairings, separate(),
+# swap_roles(), and restore() are intentionally NOT gated; disabling Pair Up
+# only blocks new pair formation.
+func _campaign_allows_pair_up() -> bool:
+	if not is_inside_tree():
+		return true
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return true
+	return bool(gs.get("pair_up_enabled"))
 
 
 # Removes both sides of the pair this unit belongs to. Returns false if the

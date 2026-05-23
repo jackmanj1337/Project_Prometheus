@@ -60,6 +60,11 @@ func get_alliance_group(faction_id: String) -> String:
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 var auto_promote_at_max_level: bool = false
+# Campaign-level Pair Up toggle. Default On (Awakening behavior). When false,
+# PairUpRegistry.pair() refuses to create new pairings; existing pairings from
+# a snapshot are still restored and separable so the rule can be flipped
+# mid-campaign without leaving the save in an inconsistent state.
+var pair_up_enabled: bool = true
 # max_skills now gates auto-equipped learned skills (M6.3), but there is still
 # no battle-prep UI for manual swapping. max_inventory remains future-facing.
 var max_skills: int = 4
