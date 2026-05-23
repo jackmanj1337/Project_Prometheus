@@ -154,6 +154,36 @@ Required refactor:
 Resolved direction:
 - numeric `wexp` is the source of truth
 - displayed weapon rank is always derived from threshold tables
+- weapon identity and WEXP progression must be separate runtime concepts
+- canonical WEXP tracks should be `sword`, `lance`, `axe`, `bow`, `tome`,
+  `dark`, `staff`, `beaststone`, and `dragonstone`
+- ordinary anima/light tome variants should collapse into the shared `tome`
+  WEXP track and keep any elemental or school behavior in separate metadata
+- hybrid weapons should keep their combat behavior metadata while pointing at
+  the physical track they actually train
+- migration should treat existing `fire`, `thunder`, `wind`, and `light`
+  proficiencies as legacy weapon-family data that maps into the `tome` track
+
+Recommended schema direction:
+- `WeaponData` should separate:
+  - equip/combat family
+  - `wexp_track`
+  - optional subtype metadata for elemental or special handling
+- `ClassData` should replace the current ordered proficiency list with explicit
+  numeric dictionaries keyed by WEXP track:
+  - `weapon_wexp_bases`
+  - `weapon_wexp_caps`
+  - optional family-allowance metadata if combat-family filtering differs from
+    WEXP-track access
+- `UnitData` should store one authoritative numeric WEXP dictionary keyed by
+  WEXP track, with rank labels derived on demand
+- legacy save/content migration should normalize:
+  - `fire`/`thunder`/`wind`/`light` -> `tome`
+  - `dark` -> `dark`
+  - `staff` -> `staff`
+- class entry logic should follow the corpus distinction between stored WEXP
+  and class-limited active WEXP so promotion, reclassing, and enemy loadout
+  assignment do not flatten legal states
 
 ### 5. Combat Engine Does Not Match Awakening
 The corpus expects Awakening-specific combat sequencing, hidden behavior, Pair
@@ -318,15 +348,14 @@ Without this, the refactor will drift.
 - whether markdown corpus import is automated or manual
 
 ## Open Questions
-- whether weapon `type` and WEXP track should always be the same concept
-- whether the five tome types should remain separate WEXP tracks long-term or
-  collapse into fewer progression tracks with separate combat-family metadata
 - the exact schema shape for class-side numeric weapon baseline data and class
   maximum WEXP data
 - how much of staff behavior should remain in generic weapon logic versus a
   dedicated staff resolver
-- whether future weapon-type expansion should be modeled only by extending
-  canonical constants or by moving type metadata into data-driven config later
+- whether combat-family allowances should live directly in `ClassData` or be
+  derived from WEXP-track access plus optional exception metadata
+- whether future weapon-family expansion should remain constant-driven for the
+  first compatibility pass or move into fully data-driven family definitions
 
 ## Recommendation
 Do not start by importing classes or skills. Start by refactoring the runtime
