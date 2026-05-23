@@ -42,6 +42,7 @@ func set_grid_manager(grid: GridManager) -> void:
 func _ready() -> void:
 	if data != null:
 		_ensure_class_line_id()
+		_ensure_internal_level()
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
@@ -99,6 +100,15 @@ func has_quality(quality: String) -> bool:
 	if class_data == null:
 		return false
 	return quality in class_data.special_qualities
+
+
+func has_vulnerability(group: String) -> bool:
+	if data == null:
+		return false
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	return group in class_data.vulnerability_groups
 
 
 func _get_class_data() -> ClassData:
@@ -203,6 +213,15 @@ func get_active_wexp(track: String) -> int:
 
 func get_weapon_rank(track: String) -> String:
 	return GameConstants.weapon_rank_for_wexp(get_active_wexp(track))
+
+
+func get_stored_weapon_rank(track: String) -> String:
+	return GameConstants.weapon_rank_for_wexp(get_weapon_wexp(track))
+
+
+func is_weapon_track_available(track: String) -> bool:
+	var class_data := _get_class_data()
+	return class_data != null and class_data.get_weapon_wexp_cap(track) > 0
 
 
 # Reads terrain bonuses from GridManager via its accessor (B1) rather than
@@ -586,7 +605,7 @@ func promote(target_class_id: String) -> bool:
 	data.class_id = target_class_id
 	data.class_line_id = line_id if line_id != "" else old_class_id
 	data.is_promoted = true
-	_reset_class_level_state()
+	_reset_class_level_state(false)
 	_apply_class_weapon_bases(target_class)
 	var bus := _bus()
 	if bus:
@@ -669,7 +688,7 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
 		data.is_promoted = target_class.tier == 2
-	_reset_class_level_state()
+	_reset_class_level_state(true)
 	_grant_current_level_class_skills()
 	var bus := _bus()
 	if bus:
@@ -714,10 +733,14 @@ func _apply_class_weapon_bases(target_class: ClassData) -> void:
 		data.weapon_wexp[track] = maxi(get_weapon_wexp(track), base_wexp)
 
 
-func _reset_class_level_state() -> void:
+func _reset_class_level_state(preserve_internal_level: bool) -> void:
+	var previous_internal_level: int = data.internal_level
 	data.level = 1
 	data.exp = 0
 	data.growth_accumulators = {}
+	_recalculate_internal_level()
+	if preserve_internal_level:
+		data.internal_level = maxi(previous_internal_level, data.internal_level)
 
 
 func _clamp_to_cap(value: int, cap: int) -> int:
@@ -734,7 +757,7 @@ func level_up() -> void:
 	if data == null:
 		return
 	data.level += 1
-	data.effective_level += 1
+	data.internal_level += 1
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	var method: String = gs.leveling_method if gs else "growth_random"
 	var class_data := _get_class_data()
@@ -836,6 +859,12 @@ func _ensure_class_line_id() -> void:
 		data.class_line_id = lines[0]
 
 
+func _ensure_internal_level() -> void:
+	if data == null or data.internal_level > 0:
+		return
+	_recalculate_internal_level()
+
+
 func _current_class_line_id() -> String:
 	_ensure_class_line_id()
 	return data.class_line_id
@@ -845,9 +874,25 @@ func _effective_second_seal_tier() -> int:
 	var class_data := _get_class_data()
 	if class_data == null:
 		return 0
-	if class_data.is_special_class:
+	if class_data.resolved_internal_level_rule() == "special":
 		return 2 if data.level >= 30 else 1
 	return class_data.tier
+
+
+func _recalculate_internal_level() -> void:
+	if data == null:
+		return
+	var class_data := _get_class_data()
+	if class_data == null:
+		data.internal_level = maxi(1, data.level)
+		return
+	match class_data.resolved_internal_level_rule():
+		"promoted":
+			data.internal_level = 20 + data.level
+		"special":
+			data.internal_level = data.level
+		_:
+			data.internal_level = data.level
 
 
 func _self_reset_only(options: Array[Dictionary], class_data: ClassData,

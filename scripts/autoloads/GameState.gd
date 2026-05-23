@@ -333,7 +333,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"luck": data.luck,
 		"exp": data.exp,
 		"level": data.level,
-		"effective_level": data.effective_level,
+		"internal_level": data.internal_level,
 		"is_promoted": data.is_promoted,
 		"class_line_id": data.class_line_id,
 		"weapon_wexp": data.weapon_wexp.duplicate(true),
@@ -368,7 +368,7 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.luck = snap.get("luck", data.luck)
 	data.exp = snap.get("exp", 0)
 	data.level = snap.get("level", data.level)
-	data.effective_level = snap.get("effective_level", data.effective_level)
+	data.internal_level = snap.get("internal_level", data.internal_level)
 	data.is_promoted = snap.get("is_promoted", data.is_promoted)
 	data.class_line_id = snap.get("class_line_id", data.class_line_id)
 	data.weapon_wexp = snap.get("weapon_wexp", {}).duplicate(true)

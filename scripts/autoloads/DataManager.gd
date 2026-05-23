@@ -57,6 +57,17 @@ static func _check_class_refs(classes: Dictionary, skills: Dictionary, errors: A
 		_check_stat_dict(cls, "stat_caps", cls.stat_caps, errors)
 		_check_weapon_wexp_dict(cls.id, "weapon_wexp_bases", cls.weapon_wexp_bases, false, errors)
 		_check_weapon_wexp_dict(cls.id, "weapon_wexp_caps", cls.weapon_wexp_caps, true, errors)
+		if cls.internal_level_rule != "" and not (cls.internal_level_rule in GameConstants.VALID_INTERNAL_LEVEL_RULES):
+			errors.append("DataManager: class '%s' internal_level_rule '%s' is not valid" % [
+				cls.id, cls.internal_level_rule])
+		if not (cls.class_availability in GameConstants.VALID_CLASS_AVAILABILITY):
+			errors.append("DataManager: class '%s' class_availability '%s' is not valid" % [
+				cls.id, cls.class_availability])
+		for group in cls.vulnerability_groups:
+			var group_id: String = String(group)
+			if not (group_id in GameConstants.VALID_VULNERABILITY_GROUPS):
+				errors.append("DataManager: class '%s' vulnerability_groups '%s' is not a known group" % [
+					cls.id, group_id])
 		for family in cls.allowed_weapon_families:
 			var family_id: String = String(family)
 			if not (family_id in GameConstants.VALID_COMBAT_FAMILIES):
@@ -248,6 +259,9 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 		if unit.class_id != "" and not classes.has(unit.class_id):
 			errors.append("DataManager: unit '%s' class_id '%s' not found" % [
 				unit.unit_id, unit.class_id])
+		if unit.internal_level < 1:
+			errors.append("DataManager: unit '%s' internal_level must be >= 1" % [
+				unit.unit_id])
 		if unit.class_line_id != "":
 			if not classes.has(unit.class_line_id):
 				errors.append("DataManager: unit '%s' class_line_id '%s' not found" % [

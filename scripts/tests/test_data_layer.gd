@@ -159,7 +159,7 @@ func _init() -> void:
 	# Fail if a new @export var is added to UnitData without updating the snapshot.
 	var snapshot_keys := [
 		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
-		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
+		"resistance", "skill", "speed", "luck", "exp", "level", "internal_level",
 		"is_promoted", "class_line_id",
 		"weapon_wexp", "inventory", "conditions", "skills", "earned_skills",
 		"mastery_skills",

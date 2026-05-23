@@ -9,8 +9,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var level: int = 1
 @export var exp: int = 0
 @export var is_promoted: bool = false
-# Pre + post promotion levels combined
-@export var effective_level: int = 1
+# Hidden progression state used for Awakening-style levelling and reclass logic.
+@export var internal_level: int = 1
 
 # Stats
 @export var max_hp: int = 0

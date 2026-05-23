@@ -127,16 +127,22 @@ func _init() -> void:
 	bad_class.skill_unlocks = {1: "no_such_skill"}
 	bad_class.player_growth_rates = {"hp": 50}  # missing the other 7 stat keys
 	bad_class.promotes_to = ["no_such_target"]
+	bad_class.internal_level_rule = "sideways"
+	bad_class.class_availability = "secret"
+	bad_class.vulnerability_groups = ["slime"]
 	var class_errs: Array[String] = DataManagerS.collect_validation_errors(
 		{"bad_c": bad_class}, {}, {}, dm._skills)
 	var c_skill_err: bool = class_errs.any(func(e): return "class 'bad_c' skill_unlocks[1] 'no_such_skill'" in e)
 	var c_growth_err: bool = class_errs.any(func(e): return "class 'bad_c' player_growth_rates missing stat key" in e)
 	var c_promote_err: bool = class_errs.any(func(e): return "class 'bad_c' promotes_to 'no_such_target'" in e)
-	if c_skill_err and c_growth_err and c_promote_err:
-		print("OK  bad class fixture fires skill_unlocks + stat-dict + promotes_to checks"); passed += 1
+	var c_rule_err: bool = class_errs.any(func(e): return "class 'bad_c' internal_level_rule 'sideways'" in e)
+	var c_availability_err: bool = class_errs.any(func(e): return "class 'bad_c' class_availability 'secret'" in e)
+	var c_vuln_err: bool = class_errs.any(func(e): return "class 'bad_c' vulnerability_groups 'slime'" in e)
+	if c_skill_err and c_growth_err and c_promote_err and c_rule_err and c_availability_err and c_vuln_err:
+		print("OK  bad class fixture fires schema validation for skills, stats, promotion, level rule, availability, and vulnerabilities"); passed += 1
 	else:
-		print("FAIL class checks: skill=%s growth=%s promote=%s errs=%s" % [
-			c_skill_err, c_growth_err, c_promote_err, class_errs])
+		print("FAIL class checks: skill=%s growth=%s promote=%s rule=%s availability=%s vuln=%s errs=%s" % [
+			c_skill_err, c_growth_err, c_promote_err, c_rule_err, c_availability_err, c_vuln_err, class_errs])
 		failed += 1
 
 	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----

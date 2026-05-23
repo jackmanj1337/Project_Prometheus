@@ -32,12 +32,14 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 @export var class_groups: Array[String] = []
 # See GDD_03 for valid values: "flying", "mounted", "armoured", "dragon", "beast", "laguz"
 @export var special_qualities: Array[String] = []
+@export var vulnerability_groups: Array[String] = []
+@export var internal_level_rule: String = ""
+@export var class_availability: String = "playable"
 
 # Promotion (M6) — applied as additive stat deltas at promotion.
 @export var promotes_to: Array[String] = []
 @export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
-@export var is_special_class: bool = false
 
 # Stat keys recognised in growth_rates / stat_caps dictionaries.
 const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
@@ -98,3 +100,13 @@ func get_allowed_weapon_families() -> Array[String]:
 			seen[family] = true
 			derived.append(family)
 	return derived
+
+
+func resolved_internal_level_rule() -> String:
+	if internal_level_rule in GameConstants.VALID_INTERNAL_LEVEL_RULES:
+		return internal_level_rule
+	return "promoted" if tier >= 2 else "base"
+
+
+func is_menu_visible() -> bool:
+	return class_availability != "hidden"

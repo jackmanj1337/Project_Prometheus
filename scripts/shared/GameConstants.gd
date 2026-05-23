@@ -47,6 +47,13 @@ const VALID_WEXP_TRACKS: Array[String] = [
 	"beaststone", "dragonstone",
 ]
 
+const VALID_VULNERABILITY_GROUPS: Array[String] = [
+	"mounted", "flying", "armoured", "dragon", "beast", "monster",
+]
+
+const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
+const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
+
 # Legacy authored keys that must be migrated in-repo instead of supported at load time.
 const LEGACY_WEXP_TRACKS: Array[String] = ["fire", "thunder", "wind"]
 
@@ -140,3 +147,19 @@ static func minimum_wexp_for_rank(rank: String) -> int:
 
 static func maximum_wexp_total() -> int:
 	return int(WEXP_RANK_THRESHOLDS["S"])
+
+
+static func next_weapon_rank(rank: String) -> String:
+	match rank:
+		"E":
+			return "D"
+		"D":
+			return "C"
+		"C":
+			return "B"
+		"B":
+			return "A"
+		"A":
+			return "S"
+		_:
+			return ""

@@ -197,16 +197,32 @@ func _triangle_damage(attacker: Node, defender: Node) -> int:
 # Returns true when the weapon has an effectiveness tag matching a target quality.
 # Used as a fallback when compute_damage is called without a context dict.
 func _is_effective(weapon: WeaponData, target: Node) -> bool:
-	if weapon == null or target == null or not target.has_method("has_quality"):
+	if weapon == null or target == null:
 		return false
 	for tag in weapon.effect_tags:
 		match tag:
-			GameConstants.TAG_EFFECTIVE_FLYING:   if target.has_quality("flying"):   return true
-			GameConstants.TAG_EFFECTIVE_ARMOURED: if target.has_quality("armoured"): return true
-			GameConstants.TAG_EFFECTIVE_MOUNTED:  if target.has_quality("mounted"):  return true
-			GameConstants.TAG_EFFECTIVE_DRAGON:   if target.has_quality("dragon"):   return true
-			GameConstants.TAG_EFFECTIVE_BEAST:    if target.has_quality("beast"):    return true
+			GameConstants.TAG_EFFECTIVE_FLYING:
+				if _target_has_vulnerability(target, "flying"):
+					return true
+			GameConstants.TAG_EFFECTIVE_ARMOURED:
+				if _target_has_vulnerability(target, "armoured"):
+					return true
+			GameConstants.TAG_EFFECTIVE_MOUNTED:
+				if _target_has_vulnerability(target, "mounted"):
+					return true
+			GameConstants.TAG_EFFECTIVE_DRAGON:
+				if _target_has_vulnerability(target, "dragon"):
+					return true
+			GameConstants.TAG_EFFECTIVE_BEAST:
+				if _target_has_vulnerability(target, "beast"):
+					return true
 	return false
+
+
+func _target_has_vulnerability(target: Node, group: String) -> bool:
+	if target.has_method("has_vulnerability"):
+		return target.has_vulnerability(group)
+	return target.has_method("has_quality") and target.has_quality(group)
 
 
 # Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.

@@ -28,6 +28,7 @@ func _init() -> void:
 		"Panel/VBox/StatsLabel",
 		"Panel/VBox/InventoryLabel",
 		"Panel/VBox/SkillsLabel",
+		"Panel/VBox/WexpLabel",
 		"Panel/VBox/BtnBack",
 	]
 	var all_present := true
@@ -44,9 +45,19 @@ func _init() -> void:
 	d.unit_name = "Test Knight"
 	d.class_id = "soldier"
 	d.level = 7
+	d.internal_level = 7
 	d.strength = 9
+	d.weapon_wexp = {"lance": 130, "axe": 50}
 	var stub_script := GDScript.new()
-	stub_script.source_code = "extends Node\nvar data = null\n"
+	stub_script.source_code = """
+extends Node
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+var data = null
+func get_stored_weapon_rank(track: String) -> String:
+	return GameConstants.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
+func is_weapon_track_available(track: String) -> bool:
+	return track == "lance"
+"""
 	stub_script.reload()
 	var stub_unit: Node = stub_script.new()
 	stub_unit.data = d
@@ -66,6 +77,15 @@ func _init() -> void:
 		print("OK  stats panel reflects the unit data"); passed += 1
 	else:
 		print("FAIL stats panel: %s" % screen._stats.text); failed += 1
+
+	if "Int  7" in screen._stats.text and "Weapon Ranks:" in screen._wexp.text \
+			and "Lance  D  130 / 200 to C" in screen._wexp.text \
+			and "Axe  E  50 / 100 to D" in screen._wexp.text \
+			and "Unavailable" in screen._wexp.text:
+		print("OK  WEXP panel shows rank progress and dims unavailable tracks")
+		passed += 1
+	else:
+		print("FAIL WEXP panel: %s" % screen._wexp.text); failed += 1
 
 	# _close() hides the page and emits `closed`.
 	var closed_seen := [false]

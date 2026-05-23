@@ -339,7 +339,9 @@ func _init() -> void:
 	var saved_target_bonuses: Dictionary = promo_target.promotion_stat_bonuses.duplicate(true)
 	var saved_target_weapon_wexp_bases: Dictionary = promo_target.weapon_wexp_bases.duplicate(true)
 	var saved_target_weapon_wexp_caps: Dictionary = promo_target.weapon_wexp_caps.duplicate(true)
+	var saved_target_internal_level_rule: String = promo_target.internal_level_rule
 	promo_target.tier = 2
+	promo_target.internal_level_rule = "promoted"
 	promo_target.stat_caps = {"hp": 20, "strength": 12, "magic": 20, "defense": 20,
 		"resistance": 20, "skill": 20, "speed": 20, "luck": 20}
 	promo_target.promotion_stat_bonuses = {"hp": 5, "strength": 3, "defense": 2}
@@ -350,7 +352,7 @@ func _init() -> void:
 	promo_data.class_id = "cavalier"
 	promo_data.level = 2
 	promo_data.exp = 80
-	promo_data.effective_level = 7
+	promo_data.internal_level = 7
 	promo_data.hp = 18
 	promo_data.max_hp = 18
 	promo_data.strength = 10
@@ -399,7 +401,7 @@ func _init() -> void:
 	var promote_ok: bool = promo_unit.promote("archer")
 	if promote_ok and promo_data.class_id == "archer" and promo_data.is_promoted \
 			and promo_data.level == 1 and promo_data.exp == 0 \
-			and promo_data.effective_level == 7 \
+			and promo_data.internal_level == 21 \
 			and promo_data.growth_accumulators.is_empty() \
 			and promo_data.max_hp == 20 and promo_data.hp == 20 \
 			and promo_data.strength == 12 and promo_data.defense == 8 \
@@ -411,9 +413,9 @@ func _init() -> void:
 		print("OK  promote applies bonuses, caps, weapon baselines, reset state, and emits unit_promoted")
 		passed += 1
 	else:
-		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d eff=%d hp=%d/%d str=%d def=%d weapon_wexp=%s promoted=%d from=%s to=%s" % [
+		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d internal=%d hp=%d/%d str=%d def=%d weapon_wexp=%s promoted=%d from=%s to=%s" % [
 			promote_ok, promo_data.class_id, promo_data.level, promo_data.exp,
-			promo_data.effective_level, promo_data.hp, promo_data.max_hp,
+			promo_data.internal_level, promo_data.hp, promo_data.max_hp,
 			promo_data.strength, promo_data.defense, promo_data.weapon_wexp,
 			watcher.promoted_count, watcher.promoted_from, watcher.promoted_to])
 		failed += 1
@@ -466,6 +468,7 @@ func _init() -> void:
 	promo_base.max_level = saved_base_max_level
 	promo_base.promotes_to = saved_base_promotes_to
 	promo_target.tier = saved_target_tier
+	promo_target.internal_level_rule = saved_target_internal_level_rule
 	promo_target.stat_caps = saved_target_caps
 	promo_target.promotion_stat_bonuses = saved_target_bonuses
 	promo_target.weapon_wexp_bases = saved_target_weapon_wexp_bases
@@ -673,7 +676,7 @@ func _init() -> void:
 	seal_base_data.class_line_id = "cavalier"
 	seal_base_data.reclass_options = ["cavalier", "knight", "mercenary"]
 	seal_base_data.level = 9
-	seal_base_data.effective_level = 9
+	seal_base_data.internal_level = 9
 	seal_base_data.hp = 18
 	seal_base_data.max_hp = 18
 	seal_base_data.strength = 8
@@ -733,7 +736,7 @@ func _init() -> void:
 	seal_promoted_data.level = 9
 	seal_promoted_data.exp = 40
 	seal_promoted_data.is_promoted = true
-	seal_promoted_data.effective_level = 17
+	seal_promoted_data.internal_level = 17
 	seal_promoted_data.hp = 28
 	seal_promoted_data.max_hp = 30
 	seal_promoted_data.strength = 14
@@ -759,17 +762,17 @@ func _init() -> void:
 	var demote_ok: bool = seal_promoted.reclass("knight")
 	if demote_ok and seal_promoted_data.class_id == "knight" and seal_promoted_data.class_line_id == "knight" \
 			and not seal_promoted_data.is_promoted and seal_promoted_data.level == 1 \
-			and seal_promoted_data.effective_level == 17 and seal_promoted_data.max_hp == 23 \
+			and seal_promoted_data.internal_level == 17 and seal_promoted_data.max_hp == 23 \
 			and seal_promoted_data.hp == 23 and seal_promoted_data.strength == 11 \
 			and seal_promoted_data.magic == 0 and seal_promoted_data.defense == 7 \
 			and seal_promoted_data.resistance == 2:
-		print("OK  M7: demotion removes source promotion bonuses and preserves effective_level")
+		print("OK  M7: demotion removes source promotion bonuses and preserves internal_level")
 		passed += 1
 	else:
 		print("FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d" % [
 			demote_ok, seal_promoted_data.class_id, seal_promoted_data.class_line_id,
 			seal_promoted_data.is_promoted, seal_promoted_data.level,
-			seal_promoted_data.effective_level, seal_promoted_data.hp,
+			seal_promoted_data.internal_level, seal_promoted_data.hp,
 			seal_promoted_data.max_hp, seal_promoted_data.strength,
 			seal_promoted_data.magic, seal_promoted_data.defense,
 			seal_promoted_data.resistance])
@@ -781,7 +784,7 @@ func _init() -> void:
 	seal_lateral_data.class_line_id = "cavalier"
 	seal_lateral_data.level = 10
 	seal_lateral_data.is_promoted = true
-	seal_lateral_data.effective_level = 18
+	seal_lateral_data.internal_level = 18
 	seal_lateral_data.hp = 28
 	seal_lateral_data.max_hp = 30
 	seal_lateral_data.strength = 14

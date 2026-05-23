@@ -12,10 +12,13 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Scene: UnitDetailsScreen > Dimmer + Panel > VBox > TitleLabel, StatsLabel,
 #        InventoryLabel, SkillsLabel, BtnBack.
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 @onready var _title: Label     = $Panel/VBox/TitleLabel
 @onready var _stats: Label     = $Panel/VBox/StatsLabel
 @onready var _inventory: Label = $Panel/VBox/InventoryLabel
 @onready var _skills: Label    = $Panel/VBox/SkillsLabel
+@onready var _wexp: RichTextLabel = $Panel/VBox/WexpLabel
 @onready var _btn_back: Button = $Panel/VBox/BtnBack
 
 
@@ -33,6 +36,7 @@ func open(unit: Node) -> void:
 	_stats.text = _format_stats(d)
 	_inventory.text = _format_inventory(d)
 	_skills.text = _format_skills(d)
+	_wexp.text = _format_weapon_wexp(unit)
 	show()
 	_btn_back.grab_focus()
 
@@ -45,6 +49,7 @@ func _format_stats(d: UnitData) -> String:
 		"Skl  %-3d  Spd  %d" % [d.skill, d.speed],
 		"Def  %-3d  Res  %d" % [d.defense, d.resistance],
 		"Lck  %-3d  Mov  %d" % [d.luck, d.movement],
+		"Int  %d" % d.internal_level,
 		"EXP  %d / 100" % d.exp,
 	])
 
@@ -72,6 +77,49 @@ func _format_skills(d: UnitData) -> String:
 	if d.skills.is_empty():
 		return "Skills: (none)"
 	return "Skills: " + ", ".join(d.skills)
+
+
+func _format_weapon_wexp(unit: Node) -> String:
+	var d: UnitData = unit.data
+	if d.weapon_wexp.is_empty():
+		return "Weapon Ranks: (none)"
+	var tracks: Array[String] = []
+	for key in d.weapon_wexp.keys():
+		if int(d.weapon_wexp[key]) > 0:
+			tracks.append(String(key))
+	tracks.sort()
+	if tracks.is_empty():
+		return "Weapon Ranks: (none)"
+	var lines: Array[String] = ["Weapon Ranks:"]
+	for track in tracks:
+		var total: int = int(d.weapon_wexp.get(track, 0))
+		var rank: String = unit.get_stored_weapon_rank(track) if unit.has_method("get_stored_weapon_rank") \
+			else GameConstants.weapon_rank_for_wexp(total)
+		var next_rank: String = GameConstants.next_weapon_rank(rank)
+		var progress_text: String
+		if next_rank == "":
+			progress_text = "%d / MAX" % total
+		else:
+			progress_text = "%d / %d to %s" % [total, GameConstants.minimum_wexp_for_rank(next_rank), next_rank]
+		var line := "%s  %s  %s" % [_display_track_name(track), rank, progress_text]
+		var available: bool = unit.has_method("is_weapon_track_available") and unit.is_weapon_track_available(track)
+		if available:
+			lines.append(line)
+		else:
+			lines.append("[color=#9a9aa6]%s (Unavailable)[/color]" % line)
+	return "\n".join(lines)
+
+
+func _display_track_name(track: String) -> String:
+	match track:
+		"elemental_magic":
+			return "Elemental Magic"
+		"beaststone":
+			return "Beaststone"
+		"dragonstone":
+			return "Dragonstone"
+		_:
+			return track.capitalize()
 
 
 func _unhandled_input(event: InputEvent) -> void:
