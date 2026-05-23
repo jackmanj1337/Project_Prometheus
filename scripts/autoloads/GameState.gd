@@ -107,6 +107,21 @@ func _emit_debug_flags_changed() -> void:
 	if bus and bus.has_signal("debug_flags_changed"):
 		bus.debug_flags_changed.emit()
 
+
+# Debug hotkey handler. F11 toggles debug_force_levelup, F12 toggles
+# debug_growth_boost. Gated on OS.is_debug_build() so the action firing in a
+# release build is a no-op even if the input binding remains registered —
+# matches the existing gate on the flags themselves (callers check the same).
+# Actions are absent from the SettingsScreen keybinding list in release per
+# the OS.is_debug_build() filter in _populate_keybindings.
+func _unhandled_input(event: InputEvent) -> void:
+	if not OS.is_debug_build():
+		return
+	if event.is_action_pressed("debug_toggle_force_levelup"):
+		debug_force_levelup = not debug_force_levelup
+	elif event.is_action_pressed("debug_toggle_growth_boost"):
+		debug_growth_boost = not debug_growth_boost
+
 # Current map state
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1

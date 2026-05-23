@@ -228,5 +228,39 @@ func _init() -> void:
 	else:
 		print("FAIL snapshot round-trip: hp=%d (want 20)" % ud.hp); failed += 1
 
+	# ---- Debug hotkey handler flips the matching flag in debug builds ----
+	# Headless tests run via the Godot binary which OS.is_debug_build() reports
+	# true for, so we exercise the active path here. The handler ignores events
+	# entirely in release; that branch is verified by inspection of the early
+	# return in GameState._unhandled_input.
+	if OS.is_debug_build():
+		gs.debug_force_levelup = false
+		gs.debug_growth_boost = false
+		# InputEventAction carries an action name + pressed flag; the handler's
+		# event.is_action_pressed() lookup matches it via InputMap.
+		var ev_fl := InputEventAction.new()
+		ev_fl.action = "debug_toggle_force_levelup"
+		ev_fl.pressed = true
+		gs._unhandled_input(ev_fl)
+		var force_ok: bool = gs.debug_force_levelup == true
+		gs._unhandled_input(ev_fl)  # second press toggles back off
+		force_ok = force_ok and (gs.debug_force_levelup == false)
+
+		var ev_gb := InputEventAction.new()
+		ev_gb.action = "debug_toggle_growth_boost"
+		ev_gb.pressed = true
+		gs._unhandled_input(ev_gb)
+		var growth_ok: bool = gs.debug_growth_boost == true
+		gs._unhandled_input(ev_gb)
+		growth_ok = growth_ok and (gs.debug_growth_boost == false)
+
+		if force_ok and growth_ok:
+			print("OK  debug hotkeys toggle force_levelup / growth_boost on and back off"); passed += 1
+		else:
+			print("FAIL debug hotkeys: force_ok=%s growth_ok=%s" % [force_ok, growth_ok])
+			failed += 1
+	else:
+		print("SKIP debug hotkey test (not a debug build)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
