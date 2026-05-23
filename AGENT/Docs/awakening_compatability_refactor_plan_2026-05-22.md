@@ -316,11 +316,17 @@ Without this, the refactor will drift.
 - extend `ClassData` and `WeaponData`
 - add validators in `DataManager`
 - support stones, special classes, vulnerability groups, and class-family metadata
+- perform the one-time repo data migration to the new weapon-family and
+  WEXP-track schema in the same pass
+- add unit tests for schema validation, WEXP derivation, and hybrid/special
+  weapon behavior before moving on
 
 ### Phase 4. Combat Refactor
 - update hit logic, combat order hooks, and effectiveness handling
 - add Pair Up scaffolding even if support content is still disabled
 - convert skill trigger timing to an explicit sequence model
+- keep this as an explicit follow-up to the schema/migration pass; do not fold
+  combat-sequence changes into the data-model refactor
 
 ### Phase 5. Skill and Item Refactor
 - expand legality checking and resolver categories
@@ -331,6 +337,8 @@ Without this, the refactor will drift.
 - create parser or conversion scripts from markdown corpus to project resources
 - import classes first, then weapons, then skills, then items
 - reject imports that violate graph or trigger validation
+- treat corpus import tooling as a later milestone after schema, migration,
+  validation, and combat foundations are stable
 
 ### Phase 7. Advanced Systems
 - enemy generation
@@ -352,12 +360,24 @@ Without this, the refactor will drift.
 - whether Pair Up is required for the first compatibility milestone
 - whether child and DLC systems are in scope at all
 - whether markdown corpus import is automated or manual
+- how Pair Up-related skills should behave before real Pair Up mechanics exist
 
 ## Open Questions
 - the exact schema shape for class-side numeric weapon baseline data and class
   maximum WEXP data
 - how much of staff behavior should remain in generic weapon logic versus a
   dedicated staff resolver
+
+## Recorded Next-Step To-Do
+- Implement the class/weapon/unit schema refactor, one-time repo data
+  migration, and unit tests together as a single bounded pass.
+- Schedule a dedicated combat refactor immediately after the schema/migration
+  pass to handle combat timing, effectiveness, and Pair Up scaffolding.
+- Until Pair Up mechanics exist, give Pair Up-related skills explicit
+  non-Pair-Up alternate effects or keep them disabled; do not ship them with
+  dead or misleading behavior.
+- Build markdown-corpus content import tooling later, after the runtime schema
+  and combat foundation are stable enough to validate imported data correctly.
 - whether combat-family allowances should live directly in `ClassData` or be
   derived from WEXP-track access plus optional exception metadata
 - whether future weapon-family expansion should remain constant-driven for the
