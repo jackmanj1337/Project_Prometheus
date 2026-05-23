@@ -114,6 +114,7 @@ func _ready() -> void:
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
+	_targeting.pair_up_resolved.connect(_on_pair_up_resolved)
 
 
 # Fallback lookup for the menu @exports — see _ready(). Each path mirrors the
@@ -578,8 +579,43 @@ func _on_action_chosen(action: String) -> void:
 			_commit_escape()
 		"swap_roles":
 			_commit_swap_roles()
+		"pair_up":
+			_enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
 		"wait":
 			_commit_wait()
+
+
+const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+
+
+# Pair Up resolved: register the pairing, hide the support off-grid (Q2: only
+# the lead occupies a tile while paired), and mark both units DONE. The lead
+# is selected_unit so _finish_action handles its DONE; the support needs a
+# manual set_unit_state because it was never the selected unit. Step 6c
+# (Separate) restores the support to an adjacent free tile of the lead — the
+# Awakening rule positions Separate relative to the lead, not the support's
+# pre-pair tile, so we deliberately do not stash a "return to" coord here.
+func _on_pair_up_resolved(lead: Node, support: Node) -> void:
+	if lead == null or support == null or lead.data == null or support.data == null:
+		_finish_action()
+		return
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry == null or not registry.call("pair", lead.data.unit_id, support.data.unit_id):
+		# Pairing refused (campaign disabled, ids mismatched, already paired) —
+		# fall through to _finish_action so the player's turn-input stays sane.
+		_finish_action()
+		return
+	# Move the support off the grid: GridManager.get_unit_at compares
+	# tile_position by equality, so the OFF_MAP_TILE sentinel removes the
+	# support from every tile query for a real map cell. visible = false
+	# keeps the sprite from rendering on the lead's tile.
+	support.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
+	support.visible = false
+	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
+		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
+	# _finish_action marks the lead DONE and clears selection. The lead stays
+	# on its original tile per Q2.
+	_finish_action()
 
 
 # Swaps lead and support roles within the selected unit's Pair Up. Ends the

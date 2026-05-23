@@ -7,7 +7,7 @@ class_name MapCursorTargeting extends RefCounted
 # its own ATTACK-vs-STAFF mode and CHOOSING-vs-PREVIEWING sub-state, and reports
 # back through the `completed` / `cancelled` signals.
 
-enum Mode { ATTACK, STAFF }
+enum Mode { ATTACK, STAFF, PAIR_UP }
 
 # Internal sub-state. Collapses the old MapCursor TARGETING / PREVIEWING /
 # STAFF_TARGETING states — MapCursor now sees a single State.TARGETING.
@@ -15,6 +15,12 @@ enum _Sub { IDLE, CHOOSING, PREVIEWING }
 
 signal completed   # action resolved — MapCursor should call _finish_action()
 signal cancelled   # player backed out of target choice — MapCursor reopens the ActionMenu
+# Pair Up confirmation. Emitted by handle_confirm() while in PAIR_UP mode when
+# the cursor sits on a valid adjacent unpaired ally; MapCursor receives lead
+# (the initiating unit) and support (the chosen partner), performs the actual
+# pair / support-tile / DONE bookkeeping, then arranges _finish_action. This
+# stays separate from `completed` so existing ATTACK/STAFF flows are untouched.
+signal pair_up_resolved(lead: Node, support: Node)
 
 # Injected via setup(). attack_preview / combat_resolver may be null (see setup()).
 var _grid: GridManager = null
@@ -66,6 +72,14 @@ func begin(mode: int, unit: Unit) -> Array[Vector2i]:
 			_tiles.append(enemy.tile_position)
 		if not _tiles.is_empty():
 			_grid.show_attack_overlay(_tiles)
+	elif mode == Mode.PAIR_UP:
+		# Adjacent unpaired allies. Visually reuses the heal overlay — Pair Up
+		# is the "friendly target" pattern, same as a staff heal in terms of
+		# what the player is picking among.
+		for ally in _get_adjacent_unpaired_allies(unit):
+			_tiles.append(ally.tile_position)
+		if not _tiles.is_empty():
+			_grid.show_heal_overlay(_tiles)
 	else:
 		for ally in _grid.get_healable_allies(unit):
 			_tiles.append(ally.tile_position)
@@ -76,13 +90,16 @@ func begin(mode: int, unit: Unit) -> Array[Vector2i]:
 
 
 # Called by MapCursor._on_confirm while in State.TARGETING. cursor_tile is the
-# cursor's current tile. CHOOSING: shows the attack preview (ATTACK) or applies the
-# heal (STAFF). PREVIEWING: resolves the previewed attack.
+# cursor's current tile. CHOOSING: shows the attack preview (ATTACK), applies
+# the heal (STAFF), or resolves the pair choice (PAIR_UP). PREVIEWING: resolves
+# the previewed attack.
 func handle_confirm(cursor_tile: Vector2i) -> void:
 	match _sub:
 		_Sub.CHOOSING:
 			if _mode == Mode.ATTACK:
 				_confirm_attack_target(cursor_tile)
+			elif _mode == Mode.PAIR_UP:
+				_confirm_pair_up_target(cursor_tile)
 			else:
 				_apply_staff_heal(cursor_tile)
 		_Sub.PREVIEWING:
@@ -186,3 +203,51 @@ func _clear_overlays() -> void:
 	_tiles = []
 	if _grid != null:
 		_grid.clear_overlays()
+
+
+# Returns the four cardinal-neighbor allies of `unit` who are unpaired and have
+# a unit_id. Pair Up needs an unpaired partner, so filter via PairUpRegistry.
+# Resolves the registry through the grid Node (RefCounted has no scene-tree
+# handle of its own — same trick used by _is_target_hostile for GameState).
+func _get_adjacent_unpaired_allies(unit: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	if _grid == null or unit == null:
+		return out
+	var registry: Node = null
+	if _grid.is_inside_tree():
+		registry = _grid.get_node_or_null("/root/PairUpRegistry")
+	const _CARDINALS: Array[Vector2i] = [
+		Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)
+	]
+	for delta in _CARDINALS:
+		var neighbor: Node = _grid.get_unit_at(unit.tile_position + delta)
+		if neighbor == null or neighbor == unit:
+			continue
+		if _is_target_hostile(neighbor):
+			continue
+		if neighbor.data == null or neighbor.data.unit_id == "":
+			continue
+		# Self-pair check — unit must also be unpaired. Cheap to short-circuit
+		# the whole list when the lead is already paired.
+		if registry != null:
+			if registry.call("is_paired", unit.data.unit_id):
+				return out
+			if registry.call("is_paired", neighbor.data.unit_id):
+				continue
+		out.append(neighbor)
+	return out
+
+
+# CHOOSING + PAIR_UP confirm. Validates the cursor sits on one of the _tiles
+# returned by begin(), looks up the unit there, and emits pair_up_resolved so
+# MapCursor can perform the registry mutation / support-tile hide / dual-DONE
+# bookkeeping. Bails silently if the cursor moved off a valid target.
+func _confirm_pair_up_target(cursor_tile: Vector2i) -> void:
+	if not (cursor_tile in _tiles):
+		return
+	var target: Node = _grid.get_unit_at(cursor_tile)
+	if target == null:
+		return
+	_clear_overlays()
+	_sub = _Sub.IDLE
+	pair_up_resolved.emit(_unit, target)

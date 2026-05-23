@@ -11,9 +11,10 @@ signal hidden_by_cancel()
 @onready var _btn_item:   Button = $VBox/BtnItem
 @onready var _btn_equip:  Button = $VBox/BtnEquip
 @onready var _btn_seize:  Button = $VBox/BtnSeize
-@onready var _btn_escape: Button = $VBox/BtnEscape
-@onready var _btn_swap:   Button = $VBox/BtnSwap
-@onready var _btn_wait:   Button = $VBox/BtnWait
+@onready var _btn_escape:  Button = $VBox/BtnEscape
+@onready var _btn_pair_up: Button = $VBox/BtnPairUp
+@onready var _btn_swap:    Button = $VBox/BtnSwap
+@onready var _btn_wait:    Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
 var _buttons: Array[Button] = []
@@ -21,21 +22,22 @@ var _buttons: Array[Button] = []
 
 func _ready() -> void:
 	# Seize and Escape are the two map-objective entries; both sit between Equip
-	# and Wait so the always-available Wait stays at the bottom. Swap sits next
-	# to them as the Pair Up section's first entry (Pair Up / Separate will join
-	# it in steps 6b / 6c).
+	# and Wait so the always-available Wait stays at the bottom. Pair Up and Swap
+	# sit between Escape and Wait as the Pair Up section (Separate joins them in
+	# step 6c).
 	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_escape,
-		_btn_swap, _btn_wait]
+		_btn_pair_up, _btn_swap, _btn_wait]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
-	_btn_attack.pressed.connect(func(): hide(); action_chosen.emit("attack"))
-	_btn_staff.pressed.connect(func():  hide(); action_chosen.emit("staff"))
-	_btn_item.pressed.connect(func():   hide(); action_chosen.emit("item"))
-	_btn_equip.pressed.connect(func():  hide(); action_chosen.emit("equip"))
-	_btn_seize.pressed.connect(func():  hide(); action_chosen.emit("seize"))
-	_btn_escape.pressed.connect(func(): hide(); action_chosen.emit("escape"))
-	_btn_swap.pressed.connect(func():   hide(); action_chosen.emit("swap_roles"))
-	_btn_wait.pressed.connect(func():   hide(); action_chosen.emit("wait"))
+	_btn_attack.pressed.connect(func():  hide(); action_chosen.emit("attack"))
+	_btn_staff.pressed.connect(func():   hide(); action_chosen.emit("staff"))
+	_btn_item.pressed.connect(func():    hide(); action_chosen.emit("item"))
+	_btn_equip.pressed.connect(func():   hide(); action_chosen.emit("equip"))
+	_btn_seize.pressed.connect(func():   hide(); action_chosen.emit("seize"))
+	_btn_escape.pressed.connect(func():  hide(); action_chosen.emit("escape"))
+	_btn_pair_up.pressed.connect(func(): hide(); action_chosen.emit("pair_up"))
+	_btn_swap.pressed.connect(func():    hide(); action_chosen.emit("swap_roles"))
+	_btn_wait.pressed.connect(func():    hide(); action_chosen.emit("wait"))
 	hide()
 
 
@@ -89,26 +91,32 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	if turn != null and turn.has_method("can_escape"):
 		can_escape = turn.can_escape(unit, unit.tile_position)
 
-	# Swap is offered when the unit is paired. The registry holds the unit_id
-	# index — fetch it via /root path so headless tests that omit the autoload
-	# still resolve the menu without crashing.
+	# Pair Up / Swap visibility. Pair Up is shown when the unit is unpaired
+	# AND there is at least one adjacent unpaired ally; Swap when the unit is
+	# already paired. The registry holds the unit_id index — fetch via /root
+	# so headless tests that omit the autoload still resolve the menu.
 	var can_swap := false
+	var can_pair_up := false
 	if unit != null and unit.data != null and unit.data.unit_id != "":
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		if registry != null and registry.has_method("is_paired"):
-			can_swap = bool(registry.is_paired(unit.data.unit_id))
+			if bool(registry.is_paired(unit.data.unit_id)):
+				can_swap = true
+			else:
+				can_pair_up = _has_adjacent_unpaired_ally(unit, grid, registry)
 
 	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer
 	# collapses the gap so the menu shrinks to fit the offered choices, instead
 	# of showing greyed-out buttons. Wait is always offered.
-	_btn_attack.visible = has_enemies
-	_btn_staff.visible  = has_heal_targets
-	_btn_item.visible   = has_items
-	_btn_equip.visible  = has_weapon_swap
-	_btn_seize.visible  = can_seize
-	_btn_escape.visible = can_escape
-	_btn_swap.visible   = can_swap
-	_btn_wait.visible   = true
+	_btn_attack.visible  = has_enemies
+	_btn_staff.visible   = has_heal_targets
+	_btn_item.visible    = has_items
+	_btn_equip.visible   = has_weapon_swap
+	_btn_seize.visible   = can_seize
+	_btn_escape.visible  = can_escape
+	_btn_pair_up.visible = can_pair_up
+	_btn_swap.visible    = can_swap
+	_btn_wait.visible    = true
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
 	_focused_idx = 0
@@ -134,6 +142,31 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("cursor_down"):
 		_move_focus(1)
 		get_viewport().set_input_as_handled()
+
+
+# True iff `unit` has at least one adjacent (4-cardinal) ally with a unit_id
+# who is also unpaired per the registry. Visibility-only helper — the real
+# target-collection happens in MapCursorTargeting.begin(PAIR_UP) and must agree
+# with this filter so the button never shows when no targets exist.
+func _has_adjacent_unpaired_ally(unit: Node, grid: Node, registry: Node) -> bool:
+	if unit == null or grid == null or not grid.has_method("get_unit_at"):
+		return false
+	if unit.data == null or unit.data.unit_id == "":
+		return false
+	const _CARDINALS: Array[Vector2i] = [
+		Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)
+	]
+	for delta in _CARDINALS:
+		var neighbor: Node = grid.get_unit_at(unit.tile_position + delta)
+		if neighbor == null or neighbor == unit:
+			continue
+		if not ("team" in neighbor) or neighbor.team != unit.team:
+			continue
+		if neighbor.data == null or neighbor.data.unit_id == "":
+			continue
+		if not bool(registry.call("is_paired", neighbor.data.unit_id)):
+			return true
+	return false
 
 
 func _move_focus(delta: int) -> void:

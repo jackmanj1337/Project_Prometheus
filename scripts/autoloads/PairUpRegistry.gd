@@ -12,6 +12,13 @@ extends Node
 
 const ROLE_LEAD := "lead"
 const ROLE_SUPPORT := "support"
+# Sentinel tile_position used to mark a paired support unit as off-map (Q2:
+# "Lead-only on map; support's tile becomes null while paired"). Vector2i
+# cannot be null, so we use a negative-coord sentinel no real map tile occupies.
+# GridManager.get_unit_at compares tile_position by equality, so units at this
+# coord cannot be returned by any tile query for a real map cell. Step 6c
+# (Separate) and the Charm aura helper (step 11) compare against this value.
+const OFF_MAP_TILE := Vector2i(-1, -1)
 
 # Storage: unit_id -> { "partner_id": String, "role": String }
 var _pairs: Dictionary = {}
