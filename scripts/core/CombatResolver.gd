@@ -124,8 +124,9 @@ func _resolve_pair_partner(unit: Node) -> Node:
 
 
 # Populates atk_mod/def_mod/flags from all sources before the first attack.
-# Steps: (1) UnitData.active_modifiers; (2) aura skills from all other units;
-# (3) equip-type inventory items; (4) on_combat_start triggers.
+# Steps: (1) Pair Up support bonuses (so subsequent passes see them as live
+# active_modifiers); (2) UnitData.active_modifiers; (3) aura skills from all
+# other units; (4) equip-type inventory items; (5) on_combat_start triggers.
 # preview = true forwards to SkillHandler so the forecast skips random-activation
 # skills (see SkillHandler.apply_trigger).
 # dry_run = true (passed by preview_combat) tells SkillHandler not to persist any
@@ -139,6 +140,12 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false,
 	# Scope max_uses_per_combat to this fight — reset before any skill fires.
 	if sh:
 		sh.reset_combat_uses()
+	# Pair Up bonuses: apply BEFORE _apply_unit_data_modifiers so the support's
+	# contribution flows through get_effective_stat (and through the modifier
+	# pass) like any other temporary stat buff. clear_combat_modifiers() at the
+	# end of combat removes them again.
+	_apply_pair_up_bonuses(attacker, context.get("attacker_support"))
+	_apply_pair_up_bonuses(defender, context.get("defender_support"))
 	_apply_unit_data_modifiers(attacker, context["atk_mod"])
 	_apply_unit_data_modifiers(defender, context["def_mod"])
 	# Aura skills from every other living unit on the map. Not gated by Nihil — these
@@ -179,6 +186,34 @@ func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 			"damage":   mod_dict["damage"]   += m.get("delta", 0)
 			"crit":     mod_dict["crit"]     += m.get("delta", 0)
 			"dodge":    mod_dict["dodge"]    += m.get("delta", 0)
+
+
+# Pair Up bonus application — queries PairUpBonusResolver and stamps each
+# non-zero stat as a duration_type="combat" modifier on the combatant. These
+# are cleared by Unit.clear_combat_modifiers() at the end of combat (see the
+# tail of apply_combat_result). Reads via get_effective_stat in the damage /
+# accuracy formulas pick them up automatically — no per-stat translation
+# table needed here.
+func _apply_pair_up_bonuses(combatant: Node, support: Node) -> void:
+	if combatant == null or support == null or support.data == null:
+		return
+	if not combatant.has_method("add_modifier"):
+		return
+	var resolver := get_node_or_null("/root/PairUpBonusResolver")
+	if resolver == null:
+		return
+	var bonuses: Dictionary = resolver.call("bonuses_for", support)
+	if bonuses.is_empty():
+		return
+	var source: String = "pair_up:%s" % support.data.unit_id
+	for stat_key in bonuses.keys():
+		var stat: String = String(stat_key)
+		var delta: int = int(bonuses[stat])
+		if delta == 0:
+			continue
+		# duration -1 = no auto-decrement; duration_type="combat" ensures
+		# clear_combat_modifiers() removes the modifier after the fight.
+		combatant.add_modifier(stat, delta, source, -1, "combat")
 
 
 func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:

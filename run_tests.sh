@@ -30,6 +30,7 @@ TESTS=(
   test_reclass_screen
   test_pair_up_registry
   test_pair_up_combat_context
+  test_pair_up_bonus_resolver
 )
 fail_count=0
 for t in "${TESTS[@]}"; do

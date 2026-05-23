@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/PairUpBonusTable.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scaling_divisor = 4
+scaling_stats = PackedStringArray("strength", "magic", "defense", "resistance", "skill", "speed", "luck")
+class_bonuses = {
+"archer":       {"skill": 2, "speed": 1},
+"bishop":       {"magic": 2, "resistance": 2, "luck": 1},
+"bow_knight":   {"skill": 1, "speed": 1, "defense": 1},
+"cavalier":     {"strength": 1, "defense": 1, "speed": 1},
+"cleric":       {"magic": 1, "resistance": 2, "luck": 1},
+"dark_knight":  {"strength": 1, "magic": 1, "defense": 1},
+"general":      {"defense": 3, "strength": 1},
+"great_knight": {"strength": 1, "defense": 2, "skill": 1},
+"hero":         {"strength": 2, "skill": 2, "speed": 1},
+"knight":       {"defense": 3, "strength": 1}
+}

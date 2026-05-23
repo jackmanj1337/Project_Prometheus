@@ -32,6 +32,7 @@ ItemHandler="*res://scripts/items/ItemHandler.gd"
 CombatResolver="*res://scripts/core/CombatResolver.gd"
 EnemyAI="*res://scripts/core/EnemyAI.gd"
 PairUpRegistry="*res://scripts/autoloads/PairUpRegistry.gd"
+PairUpBonusResolver="*res://scripts/autoloads/PairUpBonusResolver.gd"
 
 [display]
 
