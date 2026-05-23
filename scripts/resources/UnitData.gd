@@ -31,8 +31,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Empty {} is valid — the unit then levels purely on its class growths.
 @export var growth_rates: Dictionary = {}
 
-# Format: { "sword": { "rank": "D", "wexp": 0 } }
-@export var proficiencies: Dictionary = {}
+# Authoritative numeric WEXP totals keyed by GameConstants.VALID_WEXP_TRACKS.
+@export var weapon_wexp: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
 # GameState.max_skills caps how many of these can be equipped once M6 lands.

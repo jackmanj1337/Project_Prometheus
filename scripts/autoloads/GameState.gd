@@ -336,7 +336,7 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"effective_level": data.effective_level,
 		"is_promoted": data.is_promoted,
 		"class_line_id": data.class_line_id,
-		"proficiencies": data.proficiencies.duplicate(true),
+		"weapon_wexp": data.weapon_wexp.duplicate(true),
 		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
@@ -371,7 +371,7 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.effective_level = snap.get("effective_level", data.effective_level)
 	data.is_promoted = snap.get("is_promoted", data.is_promoted)
 	data.class_line_id = snap.get("class_line_id", data.class_line_id)
-	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
+	data.weapon_wexp = snap.get("weapon_wexp", {}).duplicate(true)
 	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
 	# fresh copy rather than aliasing the one stored in the snapshot.
 	data.inventory.clear()

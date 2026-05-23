@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "javelin"
 display_name = "Javelin"
-weapon_type = "lance"
-rank = "E"
+combat_family = "lance"
+wexp_track = "lance"
+required_rank = "E"
 mt = 6
 hit = 75
 crit = 0
@@ -19,4 +20,4 @@ cost = 500
 wexp = 1
 effect_tags = []
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

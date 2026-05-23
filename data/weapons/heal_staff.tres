@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "heal_staff"
 display_name = "Heal"
-weapon_type = "staff"
-rank = "E"
+combat_family = "staff"
+wexp_track = "staff"
+required_rank = "E"
 mt = 0
 hit = 0
 crit = 0
@@ -19,4 +20,4 @@ cost = 700
 wexp = 1
 effect_tags = ["heal_10_plus_mag"]
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

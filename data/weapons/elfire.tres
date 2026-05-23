@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "elfire"
 display_name = "Elfire"
-weapon_type = "fire"
-rank = "D"
+combat_family = "fire"
+wexp_track = "elemental_magic"
+required_rank = "D"
 mt = 5
 hit = 70
 crit = 5
@@ -19,4 +20,4 @@ cost = 900
 wexp = 1
 effect_tags = ["effective_beast"]
 uses_mag = true
-magic_triangle_type = ""
+triangle_family = ""

@@ -69,6 +69,7 @@ func _init() -> void:
 	d_before.exp = 55
 	d_before.is_promoted = true
 	d_before.class_line_id = "cavalier"
+	d_before.weapon_wexp = {"lance": 130}
 	d_before.is_incapacitated = true
 	d_before.earned_skills = ["discipline", "outdoor_fighter"]
 	d_before.active_modifiers = [{"stat": "strength", "delta": 2, "source": "test",
@@ -78,15 +79,16 @@ func _init() -> void:
 	gs.call("_restore_unit_data", d_after, snap2)
 	if d_after.class_id == "cavalier" and d_after.hp == 13 and d_after.exp == 55 \
 			and d_after.is_promoted == true and d_after.class_line_id == "cavalier" \
+			and d_after.weapon_wexp == {"lance": 130} \
 			and d_after.is_incapacitated == true \
 			and d_after.active_modifiers.size() == 1 \
 			and d_after.earned_skills == ["discipline", "outdoor_fighter"]:
-		print("OK  restore round-trip: class, promotion, hp, exp, earned_skills, incap, active_modifiers")
+		print("OK  restore round-trip: class, promotion, hp, exp, weapon_wexp, earned_skills, incap, active_modifiers")
 		passed += 1
 	else:
-		print("FAIL restore round-trip: class=%s promoted=%s line=%s hp=%d exp=%d earned=%s incap=%s mods=%s" \
+		print("FAIL restore round-trip: class=%s promoted=%s line=%s hp=%d exp=%d weapon_wexp=%s earned=%s incap=%s mods=%s" \
 			% [d_after.class_id, d_after.is_promoted, d_after.class_line_id, d_after.hp,
-			d_after.exp, d_after.earned_skills, d_after.is_incapacitated,
+			d_after.exp, d_after.weapon_wexp, d_after.earned_skills, d_after.is_incapacitated,
 			d_after.active_modifiers])
 		failed += 1
 

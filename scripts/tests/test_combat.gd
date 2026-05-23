@@ -79,6 +79,9 @@ class MockUnit extends Node:
 				total += mod.get("delta", 0)
 		return max(0, total)
 
+	func get_weapon_rank(track: String) -> String:
+		return GameConst.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
+
 	# Tracks remaining uses for apply_combat_result tests. Default 99 = effectively unlimited.
 	var _weapon_uses: int = 99
 
@@ -124,7 +127,8 @@ class MockUnit extends Node:
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
 	w.id           = p.get("id", "test")
-	w.weapon_type  = p.get("weapon_type", "sword")
+	w.combat_family = p.get("combat_family", p.get("weapon_type", "sword"))
+	w.wexp_track    = p.get("wexp_track", GameConst.combat_family_to_wexp_track(w.combat_family))
 	w.mt           = p.get("mt", 6)
 	w.hit          = p.get("hit", 80)
 	w.crit         = p.get("crit", 0)
@@ -136,7 +140,8 @@ func _make_weapon(p: Dictionary) -> Resource:
 	w.uses_mag        = p.get("uses_mag", false)
 	w.strikes_per_attack = p.get("strikes_per_attack", 1)
 	w.effect_tags.assign(p.get("effect_tags", []))
-	w.magic_triangle_type = p.get("magic_triangle_type", "")
+	w.required_rank = p.get("required_rank", "E")
+	w.triangle_family = p.get("triangle_family", p.get("magic_triangle_type", ""))
 	return w
 
 
@@ -451,7 +456,7 @@ func _init() -> void:
 	# NIHIL_EXEMPT_SKILLS keeps s_rank_mastery active even though the defender's Nihil
 	# blocks the bearer's combat skills; swordfaire (not exempt) is still negated.
 	var exempt_atk = _make_unit({"name":"ExemptAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire","s_rank_mastery"]})
-	exempt_atk.data.proficiencies = {"sword": {"rank": "S", "wexp": 0}}
+	exempt_atk.data.weapon_wexp = {"sword": 500}
 	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
 	var exempt_prev = cr.preview_combat(exempt_atk, exempt_def)
 	# Base 10+6-4 = 12. Swordfaire (+5) negated; S-Rank Mastery (+1 dmg, exempt) applies → 13.

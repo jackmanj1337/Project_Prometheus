@@ -35,6 +35,10 @@ class SignalWatcher extends RefCounted:
 		reclass_from = old_id
 		reclass_to = new_id
 
+
+func _wexp(rank: String, carry: int = 0) -> int:
+	return mini(GameConstants.minimum_wexp_for_rank(rank) + carry, GameConstants.maximum_wexp_total())
+
 func _init() -> void:
 	print("=== Unit Combat Stats Test ===")
 
@@ -42,7 +46,7 @@ func _init() -> void:
 	var soldier_data: UnitData = load("res://data/roster/default/unit_01_cavalier.tres").duplicate(true)
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	soldier_data.inventory = [InventoryEntry.make_weapon("iron_lance", 45)]
-	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+	soldier_data.weapon_wexp = {"lance": _wexp("D")}
 
 	var fixed_data := UnitData.new()
 	fixed_data.level = 1
@@ -52,7 +56,7 @@ func _init() -> void:
 
 	var dur_data := UnitData.new()
 	dur_data.inventory = [InventoryEntry.make_weapon("iron_lance", 1)]
-	dur_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+	dur_data.weapon_wexp = {"lance": _wexp("D")}
 
 	# ── Instantiate from Unit.tscn so @onready vars are populated via _ready().
 	# Set data before add_child so _ready fires with it already assigned.
@@ -142,7 +146,7 @@ func _init() -> void:
 	# --- S-rank: stat methods return BASE values; bonus applied via s_rank_mastery skill at combat time ---
 	# accuracy/crit_rate no longer include S-rank; the skill fires on_combat_start and
 	# injects into atk_mod, which CombatResolver picks up. Test that base values are unchanged.
-	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 0}}
+	soldier_data.weapon_wexp = {"lance": _wexp("S")}
 	var srank_checks := [
 		["S-rank accuracy base (no bonus in stat method)",  unit.accuracy(iron_lance),  98],
 		["S-rank crit_rate base (no bonus in stat method)", unit.crit_rate(iron_lance), 3],
@@ -333,12 +337,14 @@ func _init() -> void:
 	var saved_target_tier: int = promo_target.tier
 	var saved_target_caps: Dictionary = promo_target.stat_caps.duplicate(true)
 	var saved_target_bonuses: Dictionary = promo_target.promotion_stat_bonuses.duplicate(true)
-	var saved_target_proficiencies: Array[String] = promo_target.proficiencies.duplicate(true)
+	var saved_target_weapon_wexp_bases: Dictionary = promo_target.weapon_wexp_bases.duplicate(true)
+	var saved_target_weapon_wexp_caps: Dictionary = promo_target.weapon_wexp_caps.duplicate(true)
 	promo_target.tier = 2
 	promo_target.stat_caps = {"hp": 20, "strength": 12, "magic": 20, "defense": 20,
 		"resistance": 20, "skill": 20, "speed": 20, "luck": 20}
 	promo_target.promotion_stat_bonuses = {"hp": 5, "strength": 3, "defense": 2}
-	promo_target.proficiencies = ["sword", "bow"]
+	promo_target.weapon_wexp_bases = {"sword": _wexp("D"), "bow": _wexp("E")}
+	promo_target.weapon_wexp_caps = {"sword": _wexp("S"), "bow": _wexp("S")}
 
 	var promo_data := UnitData.new()
 	promo_data.class_id = "cavalier"
@@ -349,7 +355,7 @@ func _init() -> void:
 	promo_data.max_hp = 18
 	promo_data.strength = 10
 	promo_data.defense = 6
-	promo_data.proficiencies = {"sword": {"rank": "D", "wexp": 25}}
+	promo_data.weapon_wexp = {"sword": _wexp("D", 25)}
 	promo_data.growth_accumulators = {"strength": 55}
 	var promo_unit: Unit = unit_scene.instantiate()
 	promo_unit.data = promo_data
@@ -397,19 +403,18 @@ func _init() -> void:
 			and promo_data.growth_accumulators.is_empty() \
 			and promo_data.max_hp == 20 and promo_data.hp == 20 \
 			and promo_data.strength == 12 and promo_data.defense == 8 \
-			and promo_data.proficiencies.has("bow") \
-			and promo_data.proficiencies["bow"]["rank"] == "E" \
-			and promo_data.proficiencies["sword"]["rank"] == "D" \
+			and promo_data.weapon_wexp.get("bow", -1) == _wexp("E") \
+			and promo_data.weapon_wexp.get("sword", -1) == _wexp("D", 25) \
 			and watcher.promoted_count == 1 \
 			and watcher.promoted_from == "cavalier" \
 			and watcher.promoted_to == "archer":
-		print("OK  promote applies bonuses, caps, proficiencies, reset state, and emits unit_promoted")
+		print("OK  promote applies bonuses, caps, weapon baselines, reset state, and emits unit_promoted")
 		passed += 1
 	else:
-		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d eff=%d hp=%d/%d str=%d def=%d prof=%s promoted=%d from=%s to=%s" % [
+		print("FAIL promote: ok=%s class=%s lvl=%d exp=%d eff=%d hp=%d/%d str=%d def=%d weapon_wexp=%s promoted=%d from=%s to=%s" % [
 			promote_ok, promo_data.class_id, promo_data.level, promo_data.exp,
 			promo_data.effective_level, promo_data.hp, promo_data.max_hp,
-			promo_data.strength, promo_data.defense, promo_data.proficiencies,
+			promo_data.strength, promo_data.defense, promo_data.weapon_wexp,
 			watcher.promoted_count, watcher.promoted_from, watcher.promoted_to])
 		failed += 1
 
@@ -419,7 +424,7 @@ func _init() -> void:
 	auto_data.exp = 95
 	auto_data.hp = 10
 	auto_data.max_hp = 10
-	auto_data.proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+	auto_data.weapon_wexp = {"sword": _wexp("D")}
 	var auto_unit: Unit = unit_scene.instantiate()
 	auto_unit.data = auto_data
 	root.add_child(auto_unit)
@@ -442,7 +447,7 @@ func _init() -> void:
 	no_prompt_data.exp = 95
 	no_prompt_data.hp = 10
 	no_prompt_data.max_hp = 10
-	no_prompt_data.proficiencies = {"sword": {"rank": "D", "wexp": 0}}
+	no_prompt_data.weapon_wexp = {"sword": _wexp("D")}
 	var no_prompt_unit: Unit = unit_scene.instantiate()
 	no_prompt_unit.data = no_prompt_data
 	root.add_child(no_prompt_unit)
@@ -463,34 +468,35 @@ func _init() -> void:
 	promo_target.tier = saved_target_tier
 	promo_target.stat_caps = saved_target_caps
 	promo_target.promotion_stat_bonuses = saved_target_bonuses
-	promo_target.proficiencies = saved_target_proficiencies
+	promo_target.weapon_wexp_bases = saved_target_weapon_wexp_bases
+	promo_target.weapon_wexp_caps = saved_target_weapon_wexp_caps
 
 	# --- Weapon EXP and rank-up ---
-	soldier_data.proficiencies = {"lance": {"rank": "D", "wexp": 50}}
+	soldier_data.weapon_wexp = {"lance": _wexp("D", 50)}
 	unit.add_wexp("lance", 30)
-	if soldier_data.proficiencies["lance"]["wexp"] == 80 and soldier_data.proficiencies["lance"]["rank"] == "D":
+	if soldier_data.weapon_wexp["lance"] == _wexp("D", 80) and unit.get_weapon_rank("lance") == "D":
 		print("OK  add_wexp accumulates without rank-up")
 		passed += 1
 	else:
-		print("FAIL wexp accumulate: %s" % soldier_data.proficiencies)
+		print("FAIL wexp accumulate: %s" % soldier_data.weapon_wexp)
 		failed += 1
 
-	var ranked := unit.add_wexp("lance", 30)  # 80+30 = 110 → rank up to C, 10 carry
-	if ranked and soldier_data.proficiencies["lance"]["rank"] == "C" and soldier_data.proficiencies["lance"]["wexp"] == 10:
+	var ranked := unit.add_wexp("lance", 30)  # 180+30 = 210 → rank up to C, 10 carry
+	if ranked and unit.get_weapon_rank("lance") == "C" and soldier_data.weapon_wexp["lance"] == _wexp("C", 10):
 		print("OK  add_wexp triggers rank-up D→C")
 		passed += 1
 	else:
-		print("FAIL rank up: %s ranked=%s" % [soldier_data.proficiencies, ranked])
+		print("FAIL rank up: %s ranked=%s" % [soldier_data.weapon_wexp, ranked])
 		failed += 1
 
 	# S rank cap
-	soldier_data.proficiencies = {"lance": {"rank": "S", "wexp": 95}}
+	soldier_data.weapon_wexp = {"lance": _wexp("S", 95)}
 	unit.add_wexp("lance", 100)
-	if soldier_data.proficiencies["lance"]["rank"] == "S" and soldier_data.proficiencies["lance"]["wexp"] == 100:
+	if unit.get_weapon_rank("lance") == "S" and soldier_data.weapon_wexp["lance"] == _wexp("S"):
 		print("OK  wexp caps at 100 when already S-rank")
 		passed += 1
 	else:
-		print("FAIL S-cap: %s" % soldier_data.proficiencies)
+		print("FAIL S-cap: %s" % soldier_data.weapon_wexp)
 		failed += 1
 
 	# --- growth_fixed: carry persists across calls ---
@@ -677,7 +683,7 @@ func _init() -> void:
 	seal_base_data.skill = 7
 	seal_base_data.speed = 7
 	seal_base_data.luck = 5
-	seal_base_data.proficiencies = {"lance": {"rank": "D", "wexp": 0}}
+	seal_base_data.weapon_wexp = {"lance": _wexp("D")}
 	seal_base.data = seal_base_data
 	root.add_child(seal_base)
 	await process_frame
@@ -737,10 +743,7 @@ func _init() -> void:
 	seal_promoted_data.skill = 10
 	seal_promoted_data.speed = 10
 	seal_promoted_data.luck = 7
-	seal_promoted_data.proficiencies = {
-		"lance": {"rank": "B", "wexp": 0},
-		"sword": {"rank": "C", "wexp": 0},
-	}
+	seal_promoted_data.weapon_wexp = {"lance": _wexp("B"), "sword": _wexp("C")}
 	seal_promoted.data = seal_promoted_data
 	root.add_child(seal_promoted)
 	await process_frame
@@ -788,10 +791,7 @@ func _init() -> void:
 	seal_lateral_data.skill = 10
 	seal_lateral_data.speed = 10
 	seal_lateral_data.luck = 7
-	seal_lateral_data.proficiencies = {
-		"lance": {"rank": "B", "wexp": 0},
-		"sword": {"rank": "C", "wexp": 0},
-	}
+	seal_lateral_data.weapon_wexp = {"lance": _wexp("B"), "sword": _wexp("C")}
 	seal_lateral.data = seal_lateral_data
 	root.add_child(seal_lateral)
 	await process_frame
@@ -813,17 +813,16 @@ func _init() -> void:
 			and seal_lateral_data.max_hp == 23 and seal_lateral_data.hp == 23 \
 			and seal_lateral_data.strength == 11 and seal_lateral_data.magic == 0 \
 			and seal_lateral_data.defense == 7 and seal_lateral_data.resistance == 2 \
-			and seal_lateral_data.proficiencies.has("axe") \
-			and seal_lateral_data.proficiencies["axe"]["rank"] == "E":
-		print("OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new proficiencies at E")
+			and seal_lateral_data.weapon_wexp.get("axe", -1) == _wexp("E"):
+		print("OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new weapon baselines at E")
 		passed += 1
 	else:
-		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d prof=%s" % [
+		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d weapon_wexp=%s" % [
 			lateral_ok, seal_lateral_data.class_id, seal_lateral_data.class_line_id,
 			seal_lateral_data.is_promoted, seal_lateral_data.level,
 			seal_lateral_data.hp, seal_lateral_data.max_hp, seal_lateral_data.strength,
 			seal_lateral_data.magic, seal_lateral_data.defense,
-			seal_lateral_data.resistance, seal_lateral_data.proficiencies])
+			seal_lateral_data.resistance, seal_lateral_data.weapon_wexp])
 		failed += 1
 	seal_lateral_data.level = 20
 	seal_lateral_data.exp = 55
@@ -848,8 +847,8 @@ func _init() -> void:
 	var pre_weapon: WeaponData = iron_lance  # captured BEFORE use (the correct ordering)
 	dur_unit.use_weapon_durability()
 	var entry_removed: bool = dur_data.inventory.is_empty()
-	dur_unit.add_wexp(pre_weapon.weapon_type, pre_weapon.wexp)
-	var wexp_ok: bool = dur_data.proficiencies["lance"]["wexp"] == pre_weapon.wexp
+	dur_unit.add_wexp(pre_weapon.wexp_track, pre_weapon.wexp)
+	var wexp_ok: bool = dur_data.weapon_wexp["lance"] == _wexp("D", pre_weapon.wexp)
 	if entry_removed and wexp_ok:
 		print("OK  last-use weapon removed; pre-captured wexp reference awards correctly")
 		passed += 1

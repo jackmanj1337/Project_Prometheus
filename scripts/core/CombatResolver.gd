@@ -169,8 +169,8 @@ func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 	if aw == null or dw == null:
 		return "neutral"
-	var atype: String = aw.magic_triangle_type if aw.magic_triangle_type != "" else aw.weapon_type
-	var dtype: String = dw.magic_triangle_type if dw.magic_triangle_type != "" else dw.weapon_type
+	var atype: String = aw.get_triangle_family()
+	var dtype: String = dw.get_triangle_family()
 	if GameConstants.WEAPON_TRIANGLE.has(atype):
 		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[atype]
 		if row.has(dtype):
@@ -388,7 +388,7 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 
 	var loses_use: bool = false
 	if weapon != null:
-		loses_use = (weapon.weapon_type in _ALWAYS_USE_DURABILITY) or did_hit
+		loses_use = (weapon.combat_family in _ALWAYS_USE_DURABILITY) or did_hit
 
 	return {
 		"attacker":        actor,
@@ -654,7 +654,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 			else:
 				def_hit = true
 			if weapon != null and atk.has_method("add_wexp"):
-				atk.add_wexp(weapon.weapon_type, weapon.wexp)
+				atk.add_wexp(weapon.wexp_track, weapon.wexp)
 			# Count HP actually lost, not the raw computed damage — take_damage clamps
 			# at 0, so an overkill blow must not inflate damage_taken_this_map.
 			var hp_before: int = def_unit.data.hp

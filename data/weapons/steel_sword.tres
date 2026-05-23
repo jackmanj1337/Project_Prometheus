@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "steel_sword"
 display_name = "Steel Sword"
-weapon_type = "sword"
-rank = "D"
+combat_family = "sword"
+wexp_track = "sword"
+required_rank = "D"
 mt = 9
 hit = 75
 crit = 0
@@ -19,4 +20,4 @@ cost = 700
 wexp = 2
 effect_tags = []
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

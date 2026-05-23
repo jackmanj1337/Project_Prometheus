@@ -206,11 +206,10 @@ func _update_mastery_display(unit: Node) -> void:
 		if _mastery_label != null:
 			_mastery_label.hide()
 		return
-	# Collect all weapon types currently at S-rank.
 	var s_rank_types: Array[String] = []
-	for wtype in unit.data.proficiencies:
-		if unit.data.proficiencies[wtype].get("rank", "") == "S":
-			s_rank_types.append(wtype.capitalize())
+	for track in unit.data.weapon_wexp.keys():
+		if unit.get_weapon_rank(String(track)) == "S":
+			s_rank_types.append(String(track).capitalize())
 	if s_rank_types.is_empty():
 		if _mastery_label != null:
 			_mastery_label.hide()

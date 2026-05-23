@@ -55,6 +55,13 @@ static func _check_class_refs(classes: Dictionary, skills: Dictionary, errors: A
 		_check_stat_dict(cls, "player_growth_rates", cls.player_growth_rates, errors)
 		_check_stat_dict(cls, "enemy_growth_rates", cls.enemy_growth_rates, errors)
 		_check_stat_dict(cls, "stat_caps", cls.stat_caps, errors)
+		_check_weapon_wexp_dict(cls.id, "weapon_wexp_bases", cls.weapon_wexp_bases, false, errors)
+		_check_weapon_wexp_dict(cls.id, "weapon_wexp_caps", cls.weapon_wexp_caps, true, errors)
+		for family in cls.allowed_weapon_families:
+			var family_id: String = String(family)
+			if not (family_id in GameConstants.VALID_COMBAT_FAMILIES):
+				errors.append("DataManager: class '%s' allowed_weapon_families '%s' is not a known combat family" % [
+					cls.id, family_id])
 		for target_id in cls.promotes_to:
 			if not classes.has(String(target_id)):
 				errors.append("DataManager: class '%s' promotes_to '%s' not found" % [cls.id, String(target_id)])
@@ -73,6 +80,23 @@ static func _check_stat_dict(cls, field: String, dict: Dictionary, errors: Array
 			errors.append("DataManager: class '%s' %s missing stat key '%s'" % [cls.id, field, key])
 
 
+static func _check_weapon_wexp_dict(owner_id: String, field: String, dict: Dictionary,
+		require_positive: bool, errors: Array[String]) -> void:
+	for key in dict.keys():
+		var track: String = String(key)
+		if not (track in GameConstants.VALID_WEXP_TRACKS):
+			errors.append("DataManager: class '%s' %s key '%s' is not a known WEXP track" % [
+				owner_id, field, track])
+			continue
+		var value: int = int(dict[key])
+		if value < 0:
+			errors.append("DataManager: class '%s' %s['%s'] cannot be negative" % [
+				owner_id, field, track])
+		elif require_positive and value == 0:
+			errors.append("DataManager: class '%s' %s['%s'] must be > 0 when authored" % [
+				owner_id, field, track])
+
+
 # Valid stat names skills may name in activation_chance_stat. Hoisted to module
 # scope so it can be a static const (consts inside a static func can't capture
 # instance state; this is pure data, so module scope is the right home).
@@ -86,11 +110,11 @@ static func _check_skill_refs(skills: Dictionary, errors: Array[String]) -> void
 			if not (skill.activation_chance_stat in _VALID_STATS):
 				errors.append("DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
 					% [skill.id, skill.activation_chance_stat])
-		# Skills whose effect_params name a weapon_type (faires, breakers) must
-		# reference a real weapon type so a typo like 'sord' fails loud.
+		# Skills whose effect_params name a combat family (faires, breakers) must
+		# reference a real combat family so a typo like 'sord' fails loud.
 		if skill.effect_params.has("weapon_type"):
 			var skl_wt: String = String(skill.effect_params["weapon_type"])
-			if not (skl_wt in GameConstants.VALID_WEAPON_TYPES):
+			if not (skl_wt in GameConstants.VALID_COMBAT_FAMILIES):
 				errors.append("DataManager: skill '%s' effect_params.weapon_type '%s' is not a known weapon type" \
 					% [skill.id, skl_wt])
 
@@ -99,9 +123,18 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 	# Catches typos like effective_armored vs effective_armoured (the literal-string
 	# match in CombatResolver._is_effective would silently never fire on a typo).
 	for weapon in weapons.values():
-		if not (weapon.weapon_type in GameConstants.VALID_WEAPON_TYPES):
-			errors.append("DataManager: weapon '%s' weapon_type '%s' is not a known weapon type" \
-				% [weapon.id, weapon.weapon_type])
+		if not (weapon.combat_family in GameConstants.VALID_COMBAT_FAMILIES):
+			errors.append("DataManager: weapon '%s' combat_family '%s' is not a known combat family" \
+				% [weapon.id, weapon.combat_family])
+		if not (weapon.wexp_track in GameConstants.VALID_WEXP_TRACKS):
+			errors.append("DataManager: weapon '%s' wexp_track '%s' is not a known WEXP track" \
+				% [weapon.id, weapon.wexp_track])
+		if weapon.required_rank not in GameConstants.WEXP_RANK_THRESHOLDS:
+			errors.append("DataManager: weapon '%s' required_rank '%s' is not a known weapon rank" % [
+				weapon.id, weapon.required_rank])
+		if weapon.triangle_family != "" and not (weapon.triangle_family in GameConstants.VALID_COMBAT_FAMILIES):
+			errors.append("DataManager: weapon '%s' triangle_family '%s' is not a known combat family" % [
+				weapon.id, weapon.triangle_family])
 		for tag in weapon.effect_tags:
 			if not (tag in GameConstants.VALID_EFFECT_TAGS):
 				errors.append("DataManager: weapon '%s' effect_tag '%s' is not a known tag" \
@@ -233,4 +266,13 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 			if option_class.tier != 1:
 				errors.append("DataManager: unit '%s' reclass_options '%s' must point to a tier-1 class" % [
 					unit.unit_id, String(option_id)])
+		for track in unit.weapon_wexp.keys():
+			var track_id: String = String(track)
+			if not (track_id in GameConstants.VALID_WEXP_TRACKS):
+				errors.append("DataManager: unit '%s' weapon_wexp key '%s' is not a known WEXP track" % [
+					unit.unit_id, track_id])
+				continue
+			if int(unit.weapon_wexp[track]) < 0:
+				errors.append("DataManager: unit '%s' weapon_wexp['%s'] cannot be negative" % [
+					unit.unit_id, track_id])
 	return errors

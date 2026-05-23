@@ -161,7 +161,7 @@ func _init() -> void:
 		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
 		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
 		"is_promoted", "class_line_id",
-		"proficiencies", "inventory", "conditions", "skills", "earned_skills",
+		"weapon_wexp", "inventory", "conditions", "skills", "earned_skills",
 		"mastery_skills",
 		"is_incapacitated", "active_modifiers", "skill_use_counters",
 		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",

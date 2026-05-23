@@ -30,14 +30,35 @@ const VALID_EFFECT_TAGS: Array[String] = [
 	TAG_EFFECTIVE_DRAGON, TAG_EFFECTIVE_BEAST, TAG_HEAL_PLUS_MAG,
 ]
 
-# Canonical set of all valid WeaponData.weapon_type / skill effect_params.weapon_type
-# values. Sourced from WEAPON_TRIANGLE keys plus the two non-triangle types (bow,
-# staff). Used by DataManager._validate_cross_references (B6).
-const VALID_WEAPON_TYPES: Array[String] = [
-	"sword", "lance", "axe",
-	"fire", "thunder", "wind", "light", "dark",
-	"bow", "staff",
+# Canonical weapon combat families. These drive equip legality, breaker/faire style
+# skills, and combat-family-specific behavior. Progression is tracked separately via
+# VALID_WEXP_TRACKS.
+const VALID_COMBAT_FAMILIES: Array[String] = [
+	"sword", "lance", "axe", "bow",
+	"fire", "thunder", "wind", "light", "dark", "staff",
+	"beaststone", "dragonstone",
 ]
+
+# Canonical WEXP tracks. UnitData.weapon_wexp stores numeric progress against these
+# keys only; displayed ranks are derived from thresholds below.
+const VALID_WEXP_TRACKS: Array[String] = [
+	"sword", "lance", "axe", "bow",
+	"elemental_magic", "light", "dark", "staff",
+	"beaststone", "dragonstone",
+]
+
+# Legacy authored keys that must be migrated in-repo instead of supported at load time.
+const LEGACY_WEXP_TRACKS: Array[String] = ["fire", "thunder", "wind"]
+
+# Shared threshold table for deriving weapon ranks from numeric WEXP totals.
+const WEXP_RANK_THRESHOLDS: Dictionary = {
+	"E": 0,
+	"D": 100,
+	"C": 200,
+	"B": 300,
+	"A": 400,
+	"S": 500,
+}
 
 # Staff heal formula constants (GDD_02)
 const STAFF_HEAL_BASE: int = 10  # base HP restored; full formula = STAFF_HEAL_BASE + healer MAG
@@ -77,3 +98,45 @@ const WEAPON_TRIANGLE: Dictionary = {
 	"thunder": {"light": "advantage",  "dark": "disadvantage"},
 	"wind":    {"light": "advantage",  "dark": "disadvantage"},
 }
+
+
+static func combat_family_to_wexp_track(combat_family: String) -> String:
+	match combat_family:
+		"fire", "thunder", "wind":
+			return "elemental_magic"
+		_:
+			return combat_family
+
+
+static func wexp_track_to_combat_families(track: String) -> Array[String]:
+	match track:
+		"elemental_magic":
+			return ["fire", "thunder", "wind"]
+		_:
+			var families: Array[String] = []
+			if track in VALID_COMBAT_FAMILIES:
+				families.append(track)
+			return families
+
+
+static func weapon_rank_for_wexp(wexp_total: int) -> String:
+	var total := maxi(0, wexp_total)
+	if total >= int(WEXP_RANK_THRESHOLDS["S"]):
+		return "S"
+	if total >= int(WEXP_RANK_THRESHOLDS["A"]):
+		return "A"
+	if total >= int(WEXP_RANK_THRESHOLDS["B"]):
+		return "B"
+	if total >= int(WEXP_RANK_THRESHOLDS["C"]):
+		return "C"
+	if total >= int(WEXP_RANK_THRESHOLDS["D"]):
+		return "D"
+	return "E"
+
+
+static func minimum_wexp_for_rank(rank: String) -> int:
+	return int(WEXP_RANK_THRESHOLDS.get(rank, 0))
+
+
+static func maximum_wexp_total() -> int:
+	return int(WEXP_RANK_THRESHOLDS["S"])

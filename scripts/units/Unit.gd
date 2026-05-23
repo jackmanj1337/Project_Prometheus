@@ -6,6 +6,8 @@ class_name Unit extends Node2D
 #   - This file: identity, position, HP/state changes, movement animation
 #   - UnitStatBlock.gd (helper): stat math that factors in terrain, S-rank, conditions
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 # Set by initialize()
 var data: UnitData
 # Pass-through to data.tile_position so callers use unit.tile_position unchanged.
@@ -171,15 +173,36 @@ func _load_weapon(id: String) -> WeaponData:
 	return null
 
 
-# Rank order: E < D < C < B < A < S (small lookup map)
-const _RANK_ORDER := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
-
-
 func _can_equip_rank(weapon: WeaponData) -> bool:
-	if not data.proficiencies.has(weapon.weapon_type):
+	if data == null or weapon == null:
 		return false
-	var unit_rank: String = data.proficiencies[weapon.weapon_type].get("rank", "E")
-	return _RANK_ORDER.get(unit_rank, 0) >= _RANK_ORDER.get(weapon.rank, 0)
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	if not (weapon.combat_family in class_data.get_allowed_weapon_families()):
+		return false
+	return get_active_wexp(weapon.wexp_track) >= GameConstants.minimum_wexp_for_rank(weapon.required_rank)
+
+
+func get_weapon_wexp(track: String) -> int:
+	if data == null:
+		return 0
+	return int(data.weapon_wexp.get(track, 0))
+
+
+func get_active_wexp(track: String) -> int:
+	var stored := get_weapon_wexp(track)
+	var class_data := _get_class_data()
+	if class_data == null:
+		return stored
+	var cap := class_data.get_weapon_wexp_cap(track)
+	if cap <= 0:
+		return 0
+	return mini(stored, cap)
+
+
+func get_weapon_rank(track: String) -> String:
+	return GameConstants.weapon_rank_for_wexp(get_active_wexp(track))
 
 
 # Reads terrain bonuses from GridManager via its accessor (B1) rather than
@@ -395,7 +418,7 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + get_effective_stat("magic")
 	target.heal(heal_amount)
 	use_weapon_durability(weapon.id)
-	add_wexp(weapon.weapon_type, weapon.wexp)
+	add_wexp(weapon.wexp_track, weapon.wexp)
 	add_exp(GameConstants.STAFF_HEAL_EXP)
 
 
@@ -564,7 +587,7 @@ func promote(target_class_id: String) -> bool:
 	data.class_line_id = line_id if line_id != "" else old_class_id
 	data.is_promoted = true
 	_reset_class_level_state()
-	_grant_missing_proficiencies(target_class.proficiencies)
+	_apply_class_weapon_bases(target_class)
 	var bus := _bus()
 	if bus:
 		bus.unit_promoted.emit(self, old_class_id, target_class_id)
@@ -641,7 +664,7 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
 		data.is_promoted = target_class.tier == 2
-		_grant_missing_proficiencies(target_class.proficiencies)
+		_apply_class_weapon_bases(target_class)
 	else:
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
@@ -684,11 +707,11 @@ func _apply_promotion_stat_bonuses(target_class: ClassData) -> void:
 		data.set(stat, _clamp_to_cap(current + bonus, int(target_class.stat_caps.get(stat, -1))))
 
 
-func _grant_missing_proficiencies(weapon_types: Array[String]) -> void:
-	for weapon_type in weapon_types:
-		if data.proficiencies.has(weapon_type):
-			continue
-		data.proficiencies[weapon_type] = {"rank": "E", "wexp": 0}
+func _apply_class_weapon_bases(target_class: ClassData) -> void:
+	for key in target_class.weapon_wexp_bases.keys():
+		var track: String = String(key)
+		var base_wexp: int = target_class.get_weapon_wexp_base(track)
+		data.weapon_wexp[track] = maxi(get_weapon_wexp(track), base_wexp)
 
 
 func _reset_class_level_state() -> void:
@@ -996,34 +1019,17 @@ func _increment_stat(stat: String, cap: int) -> bool:
 	return true
 
 
-# Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit
-# must already have an entry for this weapon type (set at class creation).
-# Returns true if a rank-up occurred.
-func add_wexp(weapon_type: String, amount: int) -> bool:
+# Adds weapon EXP to the given track and reports whether the derived displayed
+# rank increased. Numeric WEXP is the authoritative stored value.
+func add_wexp(track: String, amount: int) -> bool:
 	if data == null or amount <= 0:
 		return false
-	if not data.proficiencies.has(weapon_type):
+	if not data.weapon_wexp.has(track):
 		return false
-	var prof: Dictionary = data.proficiencies[weapon_type]
-	prof["wexp"] = prof.get("wexp", 0) + amount
-	var ranked_up := false
-	while prof["wexp"] >= 100:
-		var current_rank: String = prof.get("rank", "E")
-		var next_rank := _next_rank(current_rank)
-		if next_rank == current_rank:
-			# Already at S — cap wexp at 100
-			prof["wexp"] = 100
-			break
-		prof["rank"] = next_rank
-		prof["wexp"] -= 100
-		ranked_up = true
-		# Grant permanent mastery skill on first S-rank in any weapon type.
-		if next_rank == "S" and not ("s_rank_mastery" in data.mastery_skills):
-			data.mastery_skills.append("s_rank_mastery")
-	data.proficiencies[weapon_type] = prof
-	return ranked_up
-
-
-func _next_rank(rank: String) -> String:
-	const NEXT := {"E": "D", "D": "C", "C": "B", "B": "A", "A": "S", "S": "S"}
-	return NEXT.get(rank, rank)
+	var previous_rank: String = GameConstants.weapon_rank_for_wexp(get_weapon_wexp(track))
+	var next_total := mini(get_weapon_wexp(track) + amount, GameConstants.maximum_wexp_total())
+	data.weapon_wexp[track] = next_total
+	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
+	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):
+		data.mastery_skills.append("s_rank_mastery")
+	return previous_rank != next_rank

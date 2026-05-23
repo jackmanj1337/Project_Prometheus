@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "wind"
 display_name = "Wind"
-weapon_type = "wind"
-rank = "E"
+combat_family = "wind"
+wexp_track = "elemental_magic"
+required_rank = "E"
 mt = 3
 hit = 85
 crit = 0
@@ -19,4 +20,4 @@ cost = 500
 wexp = 1
 effect_tags = ["effective_flying"]
 uses_mag = true
-magic_triangle_type = ""
+triangle_family = ""

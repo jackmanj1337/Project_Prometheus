@@ -66,7 +66,8 @@ func _rebuild_options() -> void:
 
 
 func _button_text(target_class: ClassData, option: Dictionary) -> String:
-	var weapon_text: String = ", ".join(target_class.proficiencies) if not target_class.proficiencies.is_empty() else "none"
+	var weapon_text: String = ", ".join(target_class.get_allowed_weapon_families()) \
+		if not target_class.get_allowed_weapon_families().is_empty() else "none"
 	var skill_lines: Array[String] = []
 	var unlock_levels: Array = target_class.skill_unlocks.keys()
 	unlock_levels.sort()

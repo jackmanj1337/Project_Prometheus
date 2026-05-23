@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "thunder"
 display_name = "Thunder"
-weapon_type = "thunder"
-rank = "E"
+combat_family = "thunder"
+wexp_track = "elemental_magic"
+required_rank = "E"
 mt = 5
 hit = 75
 crit = 0
@@ -19,4 +20,4 @@ cost = 700
 wexp = 1
 effect_tags = ["effective_dragon"]
 uses_mag = true
-magic_triangle_type = ""
+triangle_family = ""

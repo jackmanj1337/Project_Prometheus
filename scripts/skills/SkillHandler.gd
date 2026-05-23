@@ -196,10 +196,7 @@ func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) ->
 	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
 	if w == null:
 		return false
-	# Only apply when the unit actually has S rank in the weapon they're currently wielding.
-	if not unit.data.proficiencies.has(w.weapon_type):
-		return false
-	if unit.data.proficiencies[w.weapon_type].get("rank", "E") != "S":
+	if unit.get_weapon_rank(w.wexp_track) != "S":
 		return false
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
 	mod["accuracy"] += skill.effect_params.get("hit_bonus", 10)
@@ -287,7 +284,7 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	var is_atk: bool = (unit == context.get("attacker"))
 	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
-	if w == null or w.weapon_type != skill.effect_params.get("weapon_type", ""):
+	if w == null or w.combat_family != skill.effect_params.get("weapon_type", ""):
 		return false
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
 	mod["damage"] += skill.effect_params.get("bonus", 5)
@@ -298,7 +295,7 @@ func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	var is_atk: bool = (unit == context.get("attacker"))
 	var opp_w: WeaponData = context.get("defender_weapon") if is_atk else context.get("attacker_weapon")
-	if opp_w == null or opp_w.weapon_type != skill.effect_params.get("weapon_type", ""):
+	if opp_w == null or opp_w.combat_family != skill.effect_params.get("weapon_type", ""):
 		return false
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
 	if is_atk:
