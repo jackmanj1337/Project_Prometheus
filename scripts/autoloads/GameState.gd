@@ -132,6 +132,10 @@ var _map_start_snapshot: Array[Dictionary] = []
 # state, instead of letting a replay re-grant them.
 var _snapshot_party_gold: int = 0
 var _snapshot_party_items: Array[String] = []
+# Pair Up registry snapshot — captures all map-start pairings (designer-set or
+# otherwise) so a Retry restores them exactly. Lives here rather than on the
+# registry so all map-scoped snapshot state is owned by one author.
+var _snapshot_pair_up_registry: Dictionary = {}
 
 
 func register_unit(unit: Node) -> void:
@@ -227,6 +231,11 @@ func reset_map_state() -> void:
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
+	# Pair Up state is map-scoped; drop pairings between maps so a new map
+	# starts unpaired regardless of how the previous one ended.
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("clear")
 
 
 func configure_next_map(map_path: String, roster_policy: String = "default_roster",
@@ -294,6 +303,11 @@ func take_map_snapshot() -> void:
 		_map_start_snapshot.append(_snapshot_unit_data(unit_data))
 	_snapshot_party_gold = party_gold
 	_snapshot_party_items = party_items.duplicate()
+	# Pair Up state is part of the map start state; capture it so Retry rewinds
+	# pairings alongside HP/inventory. Empty dict if no registry is loaded
+	# (e.g. headless tests that omit the autoload).
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	_snapshot_pair_up_registry = reg.call("serialize") if reg else {}
 
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.
@@ -306,6 +320,12 @@ func restore_map_snapshot() -> void:
 	party_gold = _snapshot_party_gold
 	party_items = _snapshot_party_items.duplicate()
 	reset_map_state()
+	# reset_map_state cleared the registry; reapply the snapshotted pairings so
+	# Retry lands on the same paired layout the map started with. Done AFTER
+	# reset so the clear-then-restore order is deterministic.
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("restore", _snapshot_pair_up_registry)
 	# Caller is responsible for reloading the scene after this returns.
 
 
