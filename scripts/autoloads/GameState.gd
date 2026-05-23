@@ -90,7 +90,7 @@ var debug_force_levelup: bool:   # #10: any landed hit awards a full level
 		if _debug_force_levelup_v == v: return
 		_debug_force_levelup_v = v
 		_emit_debug_flags_changed()
-var debug_growth_boost: bool:    # #11: +50 to every growth rate on level-up
+var debug_growth_boost: bool:    # #11: +300 to every growth rate on level-up
 	get:
 		return _debug_growth_boost_v
 	set(v):

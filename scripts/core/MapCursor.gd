@@ -602,8 +602,11 @@ func _on_pair_up_resolved(lead: Node, support: Node) -> void:
 	var registry := get_node_or_null("/root/PairUpRegistry")
 	if registry == null or not registry.call("pair", lead.data.unit_id, support.data.unit_id):
 		# Pairing refused (campaign disabled, ids mismatched, already paired) —
-		# fall through to _finish_action so the player's turn-input stays sane.
-		_finish_action()
+		# do NOT consume the unit's action. Restore focus to the acting unit and
+		# reopen the ActionMenu so the player can choose something else.
+		_state = State.UNIT_MOVED
+		_set_tile(lead.tile_position)
+		_show_action_menu()
 		return
 	# Move the support off the grid: GridManager.get_unit_at compares
 	# tile_position by equality, so the OFF_MAP_TILE sentinel removes the
@@ -795,6 +798,8 @@ func _finish_action() -> void:
 	# already out of TurnManager._unit_states, and set_unit_state would re-insert a
 	# stale freed-node key.
 	var u := _selection.selected_unit
+	if is_instance_valid(u) and u != null and u.data != null and u.data.hp > 0:
+		_set_tile(u.tile_position)
 	if _turn != null and is_instance_valid(u) and u.data != null and u.data.hp > 0:
 		_turn.set_unit_state(u, TurnManager.UnitState.DONE)
 	_selection.clear()

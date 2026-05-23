@@ -191,7 +191,7 @@ func _show_unit(unit: Node) -> void:
 		return
 	_displayed_unit = unit
 	_unit_name.text = unit.data.unit_name
-	_unit_class.text = unit.data.class_id
+	_unit_class.text = "%s  Lv %d" % [unit.data.class_id, int(unit.data.level)]
 	_unit_hp.text = "HP %d / %d" % [unit.data.hp, unit.data.max_hp]
 	var wpn: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
 	_unit_weapon.text = wpn.display_name if wpn != null else "--"
@@ -276,7 +276,7 @@ func _collect_active_debug_aids() -> Array[String]:
 	if gs.get("debug_force_levelup"):
 		aids.append("force-levelup")
 	if gs.get("debug_growth_boost"):
-		aids.append("growth-boost")
+		aids.append("growth+300")
 	return aids
 
 

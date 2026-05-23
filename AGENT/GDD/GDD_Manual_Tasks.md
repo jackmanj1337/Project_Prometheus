@@ -71,6 +71,27 @@ no way to disengage pair up
 turn does not auto end when units are paired
 currsor remains on attack target after attacking instead of returning to the attacking unit
 paired units are defeated together instead of droping the support unit by itself on the map square
+can't get the debug stat growth boost label to show up (try binding to f11)
+lets change the stat boost to +300 to each stat.
+when pair up is disabled, it still shows up in the action menu and you can still click it and try to select someone and confirm and it burns an action, but doesn't actually pair anyone up.
+cavalier has wrong movement
+eventually, you should be able to use the more info button on a stat and see the base and what modifiers are currently changing it and by how much.
+
+#### Current Action Items
+- [ ] Make mouse-driven cursor movement pan the camera in a controlled way instead of freezing camera follow
+- [ ] Include the unit's displayed level in the map HUD unit-info panel
+- [ ] Implement the Pair Up **Separate** action for paired leads
+- [ ] Confirm Pair Up actions still trigger auto-end when they expend the last locally-controlled units
+- [ ] Return the cursor focus to the acting unit after combat resolves
+- [ ] On lead-unit death, drop the paired support onto the lead's tile
+- [ ] If the lead dies during the player phase, mark the dropped support unit expended for that round
+- [ ] If the lead dies during an enemy phase, restore the support on-map and have it ready again at the next round start
+- [ ] Make the debug growth-boost state obvious in the HUD / debug banner and verify the hotkey path works in live play
+- [ ] Raise the temporary debug growth boost from `+50` to `+300` per stat
+- [ ] Hide / hard-gate Pair Up creation when the campaign setting disables Pair Up so a rejected attempt never burns an action
+- [ ] Correct Cavalier movement to the intended value
+- [ ] Expand the **More info** stat-inspection milestone so each stat can show its base value plus every active modifier and delta
+- [ ] Move the **More info** stat-inspection milestone up the priority queue because it is useful for playtest verification and debugging
 
 
 ### Pair Up Pass 1 Playtest

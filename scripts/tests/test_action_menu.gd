@@ -306,6 +306,20 @@ func _init() -> void:
 			print("OK  Pair Up button emits action_chosen('pair_up')"); passed += 1
 		else:
 			print("FAIL Pair Up emission: %s" % pair_chose[0]); failed += 1
+		var gs := root.get_node_or_null("/root/GameState")
+		if gs != null:
+			var prior_pair_up_enabled: bool = bool(gs.get("pair_up_enabled"))
+			gs.set("pair_up_enabled", false)
+			reg.call("clear")
+			am.show_for(paired_unit_a, adj_grid)
+			var hidden_when_disabled: bool = not am._btn_pair_up.visible
+			gs.set("pair_up_enabled", prior_pair_up_enabled)
+			if hidden_when_disabled:
+				print("OK  Pair Up hidden when the campaign setting disables it"); passed += 1
+			else:
+				print("FAIL Pair Up should be hidden while disabled"); failed += 1
+		else:
+			print("SKIP Pair Up disabled visibility test (GameState autoload absent)")
 		reg.call("clear")
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

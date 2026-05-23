@@ -549,17 +549,17 @@ func _init() -> void:
 		print("FAIL growth_random rate-250: got min_gain=%d (expected ≥ 2)" % min_gain)
 		failed += 1
 
-	# --- DEBUG AID #11: debug_growth_boost inflates growth rates by +50 ---
+	# --- DEBUG AID #11: debug_growth_boost inflates growth rates by +300 ---
 	# Effective only in debug builds (the headless test binary is one). A rate-0
-	# stat becomes 50 → _debug_boosted_rate returns 50; restored to false after.
+	# stat becomes 300 → _debug_boosted_rate returns 300; restored to false after.
 	var gs_dbg := rand_unit.get_node_or_null("/root/GameState")
 	if gs_dbg != null:
 		gs_dbg.debug_growth_boost = true
-		var boosted: bool = rand_unit._debug_boosted_rate(0) == 50
+		var boosted: bool = rand_unit._debug_boosted_rate(0) == 300
 		gs_dbg.debug_growth_boost = false
 		var unboosted: bool = rand_unit._debug_boosted_rate(0) == 0
 		if boosted and unboosted:
-			print("OK  debug_growth_boost adds +50 to growth rates, off restores (#11)")
+			print("OK  debug_growth_boost adds +300 to growth rates, off restores (#11)")
 			passed += 1
 		else:
 			print("FAIL debug_growth_boost: boosted=%s unboosted=%s" % [boosted, unboosted])

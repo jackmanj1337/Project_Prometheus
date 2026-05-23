@@ -111,6 +111,7 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
 - **Maps** — Maps 002–005 (Seize, Boss Defeat, Escape, Survive/Defend) authored against M16.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).
 - **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, full character sheet, "More info" inspection mode, gamepad/touch support, attack-by-target selection, richer combat prediction (crit + WT + effective), prediction layout, minimap toggle.
+- **Priority bump (2026-05-23 playtest):** move the `"More info"` stat-inspection work forward. It should show each stat's base value plus every active modifier and its signed delta, because that surface is now needed for playtest validation and debugging, not just polish.
 
 ---
 

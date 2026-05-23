@@ -117,6 +117,47 @@ func clear() -> void:
 	_pairs.clear()
 
 
+# Lead-death handler: if a paired lead dies, the support drops onto the lead's
+# tile and the pairing is cleared. Player-phase deaths expend the dropped
+# support immediately; enemy-phase deaths leave the support to refresh at the
+# next round start with the normal blue-phase READY reset.
+func release_support_from_fallen_lead(unit: Node) -> Node:
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return null
+	if not is_lead(unit.data.unit_id):
+		return null
+	var support_id: String = get_partner_id(unit.data.unit_id)
+	var drop_tile: Vector2i = unit.tile_position
+	var support: Node = _find_live_unit(support_id)
+	separate(unit.data.unit_id)
+	if support == null or support.data == null or support.data.hp <= 0:
+		return null
+	support.tile_position = drop_tile
+	support.visible = true
+	_apply_support_turn_state_after_lead_death(support)
+	return support
+
+
+func _find_live_unit(unit_id: String) -> Node:
+	if unit_id == "" or not is_inside_tree():
+		return null
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not gs.has_method("find_unit_by_id"):
+		return null
+	return gs.find_unit_by_id(unit_id)
+
+
+func _apply_support_turn_state_after_lead_death(support: Node) -> void:
+	if support == null or not is_inside_tree():
+		return
+	var gs := get_node_or_null("/root/GameState")
+	var turn := get_node_or_null("/root/GameMap/TurnManager")
+	if gs == null or turn == null or not turn.has_method("set_unit_state"):
+		return
+	if gs.current_phase == gs.Phase.PLAYER:
+		turn.set_unit_state(support, turn.UnitState.DONE)
+
+
 # ---- Snapshot ----
 
 # Returns a deep copy of the registry suitable for storage in a map snapshot.

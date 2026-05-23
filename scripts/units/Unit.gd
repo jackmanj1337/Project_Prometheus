@@ -448,9 +448,12 @@ func handle_death() -> void:
 	if data == null:
 		return
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	var pair_up := get_node_or_null("/root/PairUpRegistry") if is_inside_tree() else null
 	if gs:
 		if gs.permadeath_enabled:
 			data.is_incapacitated = true
+		if pair_up != null and pair_up.has_method("release_support_from_fallen_lead"):
+			pair_up.release_support_from_fallen_lead(self)
 		gs.unregister_unit(self)
 	var bus := _bus()
 	if bus:
@@ -987,13 +990,13 @@ func _max_equipped_skills() -> int:
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
 # GDD_10_Roadmap.md § Pre-Release Cleanup. When GameState.debug_growth_boost is
-# on, inflates a growth rate by +50 so level-up stat gains are easy to observe.
+# on, inflates a growth rate by +300 so level-up stat gains are easy to observe.
 func _debug_boosted_rate(rate: int) -> int:
 	if not OS.is_debug_build():
 		return rate
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	if gs != null and gs.debug_growth_boost:
-		return rate + 50
+		return rate + 300
 	return rate
 
 

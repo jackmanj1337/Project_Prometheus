@@ -99,10 +99,12 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	var can_pair_up := false
 	if unit != null and unit.data != null and unit.data.unit_id != "":
 		var registry := get_node_or_null("/root/PairUpRegistry")
+		var gs := get_node_or_null("/root/GameState")
+		var pair_up_enabled: bool = true if gs == null else bool(gs.get("pair_up_enabled"))
 		if registry != null and registry.has_method("is_paired"):
 			if bool(registry.is_paired(unit.data.unit_id)):
 				can_swap = true
-			else:
+			elif pair_up_enabled:
 				can_pair_up = _has_adjacent_unpaired_ally(unit, grid, registry)
 
 	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer

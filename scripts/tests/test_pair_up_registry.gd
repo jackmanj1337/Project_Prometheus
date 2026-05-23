@@ -175,6 +175,69 @@ func _init() -> void:
 			print("OK  campaign gate: pair allowed again once re-enabled"); passed += 1
 		else:
 			print("FAIL campaign gate did not re-open"); failed += 1
+		# Lead death: drop the support onto the lead tile and expend it only when
+		# the lead died during the player phase.
+		var tm_stub_script := GDScript.new()
+		tm_stub_script.source_code = "extends Node\nenum UnitState { READY, MOVED, DONE }\nvar last_unit = null\nvar last_state = -1\nfunc set_unit_state(unit, state) -> void:\n\tlast_unit = unit\n\tlast_state = state\n"
+		tm_stub_script.reload()
+		var gm: Node = Node.new(); gm.name = "GameMap"
+		var tm: Node = tm_stub_script.new(); tm.name = "TurnManager"
+		gm.add_child(tm); root.add_child(gm)
+		var unit_stub_script := GDScript.new()
+		unit_stub_script.source_code = "extends Node\nvar data = null\nvar tile_position: Vector2i = Vector2i.ZERO\nvar visible: bool = true\nvar team: String = \"blue\"\n"
+		unit_stub_script.reload()
+		var lead: Node = unit_stub_script.new()
+		lead.data = UnitData.new()
+		lead.data.unit_id = "chrom"
+		lead.data.hp = 0
+		lead.tile_position = Vector2i(4, 5)
+		var support: Node = unit_stub_script.new()
+		support.data = UnitData.new()
+		support.data.unit_id = "lissa"
+		support.data.hp = 10
+		support.tile_position = live_reg.OFF_MAP_TILE
+		support.visible = false
+		root.add_child(lead)
+		root.add_child(support)
+		gs.register_unit(lead)
+		gs.register_unit(support)
+		live_reg.call("clear")
+		live_reg.pair("chrom", "lissa")
+		gs.current_phase = gs.Phase.PLAYER
+		var dropped_player: Node = live_reg.release_support_from_fallen_lead(lead)
+		var player_drop_ok: bool = (
+			dropped_player == support
+			and support.tile_position == Vector2i(4, 5)
+			and support.visible
+			and tm.last_unit == support
+			and tm.last_state == tm.UnitState.DONE
+			and not live_reg.is_paired("chrom")
+		)
+		live_reg.pair("chrom", "lissa")
+		support.tile_position = live_reg.OFF_MAP_TILE
+		support.visible = false
+		tm.last_unit = null
+		tm.last_state = -1
+		gs.current_phase = gs.Phase.ENEMY
+		var dropped_enemy: Node = live_reg.release_support_from_fallen_lead(lead)
+		var enemy_drop_ok: bool = (
+			dropped_enemy == support
+			and support.tile_position == Vector2i(4, 5)
+			and support.visible
+			and tm.last_unit == null
+			and not live_reg.is_paired("chrom")
+		)
+		gs.unregister_unit(lead)
+		gs.unregister_unit(support)
+		lead.queue_free()
+		support.queue_free()
+		gm.queue_free()
+		if player_drop_ok and enemy_drop_ok:
+			print("OK  lead death drops support onto the lead tile with phase-aware turn state"); passed += 1
+		else:
+			print("FAIL lead-death drop: player_ok=%s enemy_ok=%s tile=%s visible=%s state=%s" % [
+				player_drop_ok, enemy_drop_ok, support.tile_position, support.visible, tm.last_state])
+			failed += 1
 		# Clean up so a later test in the same harness does not see stale state.
 		live_reg.call("clear")
 

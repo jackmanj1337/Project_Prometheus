@@ -29,7 +29,7 @@ func _init() -> void:
 	if label != null:
 		var no_aids: Array[String] = []
 		var one_aid: Array[String] = ["force-levelup"]
-		var two_aids: Array[String] = ["force-levelup", "growth-boost"]
+		var two_aids: Array[String] = ["force-levelup", "growth+300"]
 
 		hud._apply_debug_banner(true, no_aids)
 		if label.visible and label.text == "● DEBUG MODE":
@@ -46,7 +46,7 @@ func _init() -> void:
 			print("FAIL one-aid banner: text=%q" % label.text); failed += 1
 
 		hud._apply_debug_banner(true, two_aids)
-		if label.visible and label.text == "● DEBUG MODE — force-levelup, growth-boost":
+		if label.visible and label.text == "● DEBUG MODE — force-levelup, growth+300":
 			print("OK  banner joins multiple active aids"); passed += 1
 		else:
 			print("FAIL multi-aid banner: text=%q" % label.text); failed += 1
