@@ -155,14 +155,19 @@ Resolved direction:
 - numeric `wexp` is the source of truth
 - displayed weapon rank is always derived from threshold tables
 - weapon identity and WEXP progression must be separate runtime concepts
-- canonical WEXP tracks should be `sword`, `lance`, `axe`, `bow`, `tome`,
-  `dark`, `staff`, `beaststone`, and `dragonstone`
-- ordinary anima/light tome variants should collapse into the shared `tome`
-  WEXP track and keep any elemental or school behavior in separate metadata
+- canonical WEXP tracks should be `sword`, `lance`, `axe`, `bow`,
+  `elemental_magic`, `light`, `dark`, `staff`, `beaststone`, and
+  `dragonstone`
+- fire, thunder, and wind variants should collapse into the shared
+  `elemental_magic` WEXP track and keep any elemental behavior in separate
+  metadata
+- light magic should remain its own WEXP track instead of collapsing into
+  `elemental_magic`
 - hybrid weapons should keep their combat behavior metadata while pointing at
   the physical track they actually train
 - migration should treat existing `fire`, `thunder`, `wind`, and `light`
-  proficiencies as legacy weapon-family data that maps into the `tome` track
+  proficiencies as legacy weapon-family data that maps into the new magic-track
+  model
 
 Recommended schema direction:
 - `WeaponData` should separate:
@@ -178,7 +183,8 @@ Recommended schema direction:
 - `UnitData` should store one authoritative numeric WEXP dictionary keyed by
   WEXP track, with rank labels derived on demand
 - legacy save/content migration should normalize:
-  - `fire`/`thunder`/`wind`/`light` -> `tome`
+  - `fire`/`thunder`/`wind` -> `elemental_magic`
+  - `light` -> `light`
   - `dark` -> `dark`
   - `staff` -> `staff`
 - class entry logic should follow the corpus distinction between stored WEXP
