@@ -1,0 +1,41 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_lance"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_e6_knight"
+unit_name = "M950_E6_Knight"
+class_id = "knight"
+class_line_id = "knight"
+level = 5
+exp = 0
+is_promoted = false
+internal_level = 5
+max_hp = 22
+hp = 22
+strength = 10
+magic = 0
+defense = 13
+resistance = 2
+skill = 6
+speed = 4
+luck = 4
+movement = 4
+constitution = 15
+line_of_sight = 4
+weapon_wexp = {"lance": 120}
+skills = []
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

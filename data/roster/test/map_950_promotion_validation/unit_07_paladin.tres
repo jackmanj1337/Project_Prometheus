@@ -1,0 +1,47 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_sword"
+uses_remaining = 45
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "second_seal"
+uses_remaining = 1
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_paladin"
+unit_name = "M950_Paladin"
+class_id = "paladin"
+class_line_id = "cavalier"
+level = 4
+exp = 0
+is_promoted = true
+internal_level = 24
+max_hp = 30
+hp = 30
+strength = 14
+magic = 1
+defense = 14
+resistance = 7
+skill = 11
+speed = 12
+luck = 6
+movement = 8
+constitution = 18
+line_of_sight = 4
+weapon_wexp = {"sword": 100, "lance": 150}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

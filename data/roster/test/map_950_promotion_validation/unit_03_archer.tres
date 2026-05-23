@@ -1,0 +1,59 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_bow"
+uses_remaining = 45
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "master_seal"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_3"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "orion_bolt"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_4"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "second_seal"
+uses_remaining = 1
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_archer"
+unit_name = "M950_Archer"
+class_id = "archer"
+class_line_id = "archer"
+level = 9
+exp = 0
+is_promoted = false
+internal_level = 9
+max_hp = 20
+hp = 20
+strength = 9
+magic = 0
+defense = 7
+resistance = 2
+skill = 12
+speed = 10
+luck = 6
+movement = 5
+constitution = 6
+line_of_sight = 4
+weapon_wexp = {"bow": 130}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3"), SubResource("IE_4")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

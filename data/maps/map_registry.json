@@ -28,5 +28,15 @@
     "description": "Small WHOLE_PHASE map for validating green hotseat control.",
     "is_dev_only": true,
     "tags": ["hotseat_test", "faction_test"]
+  },
+  {
+    "id": "map_950_promotion_validation",
+    "label": "Map 950 - Promotion Validation",
+    "map_data_path": "res://data/maps/map_950_promotion_validation/map_950_promotion_validation_data.tres",
+    "roster_policy": "fixed_test_roster",
+    "roster_source": "res://data/roster/test/map_950_promotion_validation/",
+    "description": "Test roster pre-staged for every promotion / reclass case (10 units, Master Seal / Second Seal / Orion Bolt / Guiding Ring in hand).",
+    "is_dev_only": false,
+    "tags": ["class_test", "promotion_test", "reclass_test"]
   }
 ]

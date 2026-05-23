@@ -31,6 +31,7 @@ TESTS=(
   test_pair_up_registry
   test_pair_up_combat_context
   test_pair_up_bonus_resolver
+  test_map_950_promotion_validation
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
