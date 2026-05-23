@@ -51,8 +51,17 @@ behavior will be quietly wrong rather than loudly failing.
 - `vulnerability_groups` will be added for combat effectiveness targeting.
 - `mounted` and `flying` may appear in both `special_qualities` and
   `vulnerability_groups`.
+- canonical vulnerability groups for the current pass are `mounted`, `flying`,
+  `armoured`, `dragon`, `beast`, and `monster`
 - Numeric `wexp` is the source of truth; displayed rank is derived from
   threshold tables.
+- `effective_level` should be fully replaced by `internal_level`, not kept as a
+  parallel migration field
+- `class_availability` should control in-game menu visibility only and remain a
+  soft filter that map and campaign creators can override by direct assignment
+- the unit details / character sheet should show every stored weapon track with
+  any WEXP, including derived rank, current WEXP, next threshold, and a dimmed
+  presentation when the track is currently unavailable
 
 ## Main Compatibility Problems
 
@@ -135,6 +144,14 @@ Resolved direction:
 - universal playable-class access replaces Awakening-style per-character class
   pools for this project
 
+Current status:
+- done: `internal_level` replaced `effective_level`
+- done: class-side `internal_level_rule`, `vulnerability_groups`, and
+  `class_availability`
+- done: unit-details WEXP/rank display for stored tracks
+- still deferred: broader class-family/reclass identity and DLC/special-class
+  access policy beyond the current soft availability field
+
 ### 4. Weapon and WEXP Model Mismatch
 The corpus normalizes weapon rank as numeric WEXP with explicit thresholds,
 carryover, retention, and inheritance behavior. The current project stores
@@ -191,6 +208,13 @@ Recommended schema direction:
   and class-limited active WEXP so promotion, reclassing, and enemy loadout
   assignment do not flatten legal states
 
+Current status:
+- done: weapon family and WEXP progression split
+- done: authored data migration to `combat_family` / `wexp_track` /
+  `weapon_wexp`
+- done: stored WEXP persists even when the current class cannot actively use the
+  track
+
 ### 5. Combat Engine Does Not Match Awakening
 The corpus expects Awakening-specific combat sequencing, hidden behavior, Pair
 Up interactions, Dual Strike, Dual Guard, effective damage rules, and proc
@@ -212,6 +236,17 @@ Required refactor:
 - define a new combat-context schema before adding Awakening-only mechanics
 - implement combat timing tests first, then port mechanics in layers
 - treat Pair Up as a foundational subsystem, not a skill effect
+
+Immediate next pass:
+- Pair Up scaffolding and combat-context refactor should be the next
+  implementation pass
+- Pair Up must be campaign-configurable so campaigns can disable it in settings
+- Pair Up-related skills imported before full Pair Up support should receive an
+  alternate effect or remain explicitly disabled
+
+Next-session preparation:
+- use `AGENT/Docs/pair_up_combat_refactor_questions_2026-05-23.md` as the
+  starting question list before coding the next pass
 
 ### 6. Skill System Needs More Than More Skills
 The existing skill handler is extensible, but the corpus expects a larger rules
