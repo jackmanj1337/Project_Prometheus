@@ -110,11 +110,11 @@ func _init() -> void:
 		print("FAIL Item should be shown"); failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
-	# Wait is index 6 in _buttons: [attack, staff, item, equip, seize, escape, wait].
-	# (M16 stage 3 inserted Seize at index 4; the 2026-05-20 review added Escape
-	# at index 5, reversing Decision 5's auto-escape.)
+	# Wait is now index 7 in _buttons: [attack, staff, item, equip, seize, escape,
+	# swap, wait]. (M16 stage 3 inserted Seize at index 4; the 2026-05-20 review
+	# added Escape at index 5; step 6a inserted Swap at index 6.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 6:
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 7:
 		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
@@ -223,6 +223,44 @@ func _init() -> void:
 		print("OK  Escape shown when TurnManager.can_escape == true"); passed += 1
 	else:
 		print("FAIL Escape should be shown (can_escape=true)"); failed += 1
+
+	# ── Step 6a: Swap button visibility ────────────────────────────────────────
+	# Swap is offered only when the unit is paired per PairUpRegistry. Visibility
+	# depends on a live autoload, so the relay node above (root) is in the tree.
+	var reg := root.get_node_or_null("/root/PairUpRegistry")
+	if reg == null:
+		print("SKIP Swap visibility tests (PairUpRegistry autoload absent)")
+	else:
+		reg.call("clear")
+		var paired_unit_a := _mk_unit(sword, [])
+		paired_unit_a.data.unit_id = "chrom"
+		var paired_unit_b := _mk_unit(sword, [])
+		paired_unit_b.data.unit_id = "lissa"
+		reg.pair("chrom", "lissa")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var paired_visible: bool = am._btn_swap.visible
+		am.show_for(paired_unit_b, _mk_grid([], []))
+		var support_visible: bool = am._btn_swap.visible
+		reg.call("clear")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var unpaired_visible: bool = am._btn_swap.visible
+		if paired_visible and support_visible and not unpaired_visible:
+			print("OK  Swap shown for paired lead and support; hidden when unpaired"); passed += 1
+		else:
+			print("FAIL Swap visibility: lead=%s support=%s unpaired=%s" \
+				% [paired_visible, support_visible, unpaired_visible])
+			failed += 1
+		# Choosing Swap emits the "swap_roles" action name so MapCursor can route it.
+		reg.pair("chrom", "lissa")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var swap_chose := [""]
+		am.action_chosen.connect(func(a): swap_chose[0] = a)
+		am._btn_swap.pressed.emit()
+		if swap_chose[0] == "swap_roles":
+			print("OK  Swap button emits action_chosen('swap_roles')"); passed += 1
+		else:
+			print("FAIL Swap emission: %s" % swap_chose[0]); failed += 1
+		reg.call("clear")
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

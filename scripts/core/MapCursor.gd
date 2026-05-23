@@ -576,8 +576,22 @@ func _on_action_chosen(action: String) -> void:
 			_commit_seize()
 		"escape":
 			_commit_escape()
+		"swap_roles":
+			_commit_swap_roles()
 		"wait":
 			_commit_wait()
+
+
+# Swaps lead and support roles within the selected unit's Pair Up. Ends the
+# unit's turn alongside other ActionMenu choices. Step 6b/6c will add Pair Up
+# and Separate actions; for 6a only Swap is wired.
+func _commit_swap_roles() -> void:
+	var unit: Node = _selection.selected_unit
+	if unit != null and unit.data != null and unit.data.unit_id != "":
+		var registry := get_node_or_null("/root/PairUpRegistry")
+		if registry != null and registry.has_method("swap_roles"):
+			registry.swap_roles(unit.data.unit_id)
+	_finish_action()
 
 
 # M16 stage 3: Seize commits the unit's turn the same way Wait does. The
