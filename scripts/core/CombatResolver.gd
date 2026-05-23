@@ -14,6 +14,12 @@ extends Node
 #   "defender"              Node         — defending unit
 #   "attacker_weapon"       WeaponData   — attacker's equipped weapon (null if unarmed)
 #   "defender_weapon"       WeaponData   — defender's equipped weapon (null if can't ctr)
+#   "attacker_support"      Node         — attacker's Pair Up support partner (null when
+#                                          attacker is unpaired or registry/GameState absent).
+#                                          The on-map combatant is always the lead per
+#                                          design Q2, so this is the off-map partner.
+#   "defender_support"      Node         — defender's Pair Up support partner (same shape
+#                                          as attacker_support).
 #   "attacker_faction"      String       — attacker's faction id ("blue", "red", …; "" if attacker null).
 #                                          M14 stage 1 replacement for the old `is_player_initiated` bool —
 #                                          a literal "player"-team check meant nothing in red-vs-yellow
@@ -75,6 +81,8 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"defender":            defender,
 		"attacker_weapon":     aw,
 		"defender_weapon":     dw,
+		"attacker_support":    _resolve_pair_partner(attacker),
+		"defender_support":    _resolve_pair_partner(defender),
 		"attacker_faction":    attacker.team if attacker != null else "",
 		"turn_number":         gs.turn_number if gs else 0,
 		"atk_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
@@ -92,6 +100,27 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 			"vengeance_bonus":      0,
 		}
 	}
+
+
+# Looks up a combatant's Pair Up support partner via PairUpRegistry and
+# GameState. Returns null when the unit is unpaired, when its data/unit_id is
+# missing, when either autoload is absent, or when the partner is not currently
+# registered. Step 4 will layer the bonus resolver on top of this lookup.
+func _resolve_pair_partner(unit: Node) -> Node:
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return null
+	if not is_inside_tree():
+		return null
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg == null:
+		return null
+	var partner_id: String = reg.call("get_partner_id", unit.data.unit_id)
+	if partner_id == "":
+		return null
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return null
+	return gs.call("find_unit_by_id", partner_id)
 
 
 # Populates atk_mod/def_mod/flags from all sources before the first attack.

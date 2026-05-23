@@ -178,6 +178,20 @@ func set_phase(new_phase: Phase, faction_id: String = "") -> void:
 		bus.emit_signal("phase_changed", new_phase, faction_id)
 
 
+# Returns the registered Unit Node whose data.unit_id matches the given id,
+# or null if no live unit carries that id. Empty / unknown ids return null.
+# Walks all_units rather than the per-faction buckets because Pair Up callers
+# need the lookup to work even when the support is off-map; faction filtering
+# is incidental, identity is not.
+func find_unit_by_id(unit_id: String) -> Node:
+	if unit_id == "":
+		return null
+	for u in all_units:
+		if is_instance_valid(u) and u.data != null and u.data.unit_id == unit_id:
+			return u
+	return null
+
+
 # M14 stage 3: living units of an arbitrary faction. filter() returns a generic
 # Array, so build Array[Node] explicitly. A missing faction returns [].
 func get_living_units_of(faction_id: String) -> Array[Node]:

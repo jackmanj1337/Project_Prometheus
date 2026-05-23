@@ -29,6 +29,7 @@ TESTS=(
   test_promotion_screen
   test_reclass_screen
   test_pair_up_registry
+  test_pair_up_combat_context
 )
 fail_count=0
 for t in "${TESTS[@]}"; do
