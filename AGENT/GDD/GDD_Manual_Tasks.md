@@ -4,7 +4,8 @@ Tasks here need action inside the Godot editor (or a tool run) — they are not 
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
 breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
-> Last verified against the project: 2026-05-21.
+> Last verified against the project: 2026-05-23 (Pair Up pass 1 partial — see
+> Pair Up Pass 1 Playtest section below for new items).
 
 ---
 
@@ -62,6 +63,94 @@ flows verified only by headless tests, not by actual in-map play.
 - [ ] Save a retry snapshot after promotion or reclassing, trigger a restore,
       and confirm class, level, promotion state, skills, and weapon ranks come
       back correctly in live play
+
+### Pair Up Pass 1 Playtest
+
+Steps 1–4 + 6a + 6b of the Pair Up refactor are merged (see
+`AGENT/Docs/pair_up_combat_refactor_answers_2026-05-23.md` for the design
+inputs). The headless suite covers registry, snapshot, combat-context, and
+bonus-resolver math, plus the ActionMenu visibility / emission contracts —
+the items below cover the parts that only show up in live play.
+
+Skip what is **NOT** yet implemented (will surface as missing entries — that
+is expected, not a bug):
+
+- Separate action (step 6c)
+- Combat-forecast UI for Pair Up bonuses, DS/DG %, support portrait (step 5)
+- Dual Strike / Dual Guard mechanics in live combat (step 7)
+- AI handling for paired targets (step 8)
+- Unit-details / map-HUD Pair Up surfaces (step 9)
+- Dual Strike+ / Dual Guard+ `.tres` skills (step 10)
+- Charm aura "support inherits lead's tile" helper (step 11)
+- Per-turn `pair_up_action_this_turn` flag (deferred until a save system
+  exists — Q8 reload-exploit protection)
+
+NewGameScreen toggle:
+
+- [ ] On New Game, confirm the screen shows a **Pair Up** Off/On selector
+      between Leveling and Start
+- [ ] Default is **On**; closing and reopening the New Game screen restores
+      the last-chosen value
+- [ ] Selecting **Off** and starting a map suppresses every Pair Up entry in
+      the on-map ActionMenu, even when standing next to an unpaired ally
+
+ActionMenu visibility (Pair Up **On**):
+
+- [ ] Select an unpaired unit standing next to (4-cardinal) an unpaired ally
+      and confirm the ActionMenu shows **Pair Up** in addition to the usual
+      entries
+- [ ] Move the same unit so no ally is adjacent and confirm **Pair Up**
+      disappears from the menu (menu shrinks to fit)
+- [ ] Already-paired adjacent ally hides **Pair Up** (visibility check
+      filters by registry, not just adjacency)
+
+Pair Up flow:
+
+- [ ] Picking Pair Up enters targeting; the adjacent ally tile is
+      highlighted with the heal overlay color (visual reuse from staff
+      targeting is intentional)
+- [ ] Cancelling out of targeting returns control to the ActionMenu without
+      pairing
+- [ ] Confirming on the ally pairs them; the support sprite disappears from
+      the map and both units are greyed-out (DONE state)
+- [ ] The lead remains on its original tile (Q2: lead-only on map)
+- [ ] Trying to select the support unit afterwards: cursor cannot land on
+      it (no tile) and it is absent from any cursor / Tab cycle
+
+Swap:
+
+- [ ] On a paired lead, the ActionMenu shows **Swap** (and hides Pair Up)
+- [ ] On the paired support — which is now off-map and cannot be selected
+      directly — there is nothing to verify; the registry has both ids but
+      only the lead is reachable in the UI
+- [ ] Picking Swap ends the lead's turn and trades roles in the registry
+      (verified by exiting/re-entering combat preview if any other paired
+      effect surfaces it — otherwise this is currently invisible until
+      step 5 / 9 land UI surfaces for Pair Up state)
+
+Combat math integration (step 4):
+
+- [ ] Pair two units of a known class combination (e.g. Cavalier + Cleric)
+      and check the lead's pre-combat preview shows higher effective stats
+      than an unpaired comparison unit of the same class — **note**: the
+      forecast UI in the existing combat preview is **not yet** Pair Up-
+      aware (step 5), so the easiest check is to observe higher damage /
+      hit rates against a known enemy
+- [ ] If the comparison is ambiguous, swap to a more impactful class pair
+      (Cavalier supporting a Hero lead gives `+1 str +1 def +1 spd` flat
+      plus scaling — see `data/pair_up/pair_up_bonus_table.tres`)
+- [ ] Confirm the support's contribution stops being applied after Wait /
+      moving the lead — `clear_combat_modifiers()` runs at end of combat
+
+Retry / snapshot round-trip:
+
+- [ ] Pair two units, take fatal damage on the lead in a combat
+- [ ] On the Game Over screen, hit Retry
+- [ ] Confirm the pairing is restored: the ActionMenu still shows **Swap**
+      on the lead, the support is still off-map
+- [ ] Confirm the support is **not** rendered on its old tile after restore
+      (snapshot captures `tile_position = (-1, -1)` for the support; if it
+      reappears at its pre-pair tile, the snapshot was bypassed)
 
 ### M15 Part A — Hotseat Validation Playtest
 
