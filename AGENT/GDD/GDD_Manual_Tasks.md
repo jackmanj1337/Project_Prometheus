@@ -64,6 +64,15 @@ flows verified only by headless tests, not by actual in-map play.
       and confirm class, level, promotion state, skills, and weapon ranks come
       back correctly in live play
 
+#### Playtester Comments
+Mouse is not able to move camera
+include level in map unit info
+no way to disengage pair up
+turn does not auto end when units are paired
+currsor remains on attack target after attacking instead of returning to the attacking unit
+paired units are defeated together instead of droping the support unit by itself on the map square
+
+
 ### Pair Up Pass 1 Playtest
 
 Steps 1–4 + 6a + 6b of the Pair Up refactor are merged (see
