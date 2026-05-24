@@ -12,6 +12,8 @@ var _grid_stub: GDScript
 # `entries`; get_equippable_weapons() returns `weapons` (drives the Equip button).
 func _mk_unit(weapon: Variant, entries: Array, weapons: Array = []) -> Node:
 	var d := UnitData.new()
+	d.hp = 20
+	d.max_hp = 20
 	var inv: Array[InventoryEntry] = []
 	for e in entries:
 		inv.append(e)
@@ -110,12 +112,12 @@ func _init() -> void:
 		print("FAIL Item should be shown"); failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
-	# Wait is now index 8 in _buttons: [attack, staff, item, equip, seize, escape,
-	# pair_up, swap, wait]. (M16 stage 3 inserted Seize at index 4; the
+	# Wait is now index 9 in _buttons: [attack, staff, item, equip, seize, escape,
+	# pair_up, swap, separate, wait]. (M16 stage 3 inserted Seize at index 4; the
 	# 2026-05-20 review added Escape at index 5; step 6a inserted Swap; step 6b
-	# inserted Pair Up between Escape and Swap.)
+	# inserted Pair Up; step 6c inserted Separate before Wait.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 8:
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 9:
 		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
@@ -233,6 +235,7 @@ func _init() -> void:
 	if reg == null:
 		print("SKIP Pair Up / Swap visibility tests (PairUpRegistry autoload absent)")
 	else:
+		var gs_pairs := root.get_node_or_null("/root/GameState")
 		reg.call("clear")
 		var paired_unit_a := _mk_unit(sword, [])
 		paired_unit_a.data.unit_id = "chrom"
@@ -242,6 +245,9 @@ func _init() -> void:
 		paired_unit_b.data.unit_id = "lissa"
 		paired_unit_b.set("team", "blue")
 		paired_unit_b.tile_position = Vector2i(3, 2)  # cardinal-adjacent to chrom
+		if gs_pairs != null:
+			gs_pairs.register_unit(paired_unit_a)
+			gs_pairs.register_unit(paired_unit_b)
 		reg.pair("chrom", "lissa")
 		am.show_for(paired_unit_a, _mk_grid([], []))
 		var paired_visible: bool = am._btn_swap.visible
@@ -270,7 +276,7 @@ func _init() -> void:
 
 		# Pair Up visibility: needs an adjacency-aware grid stub so the
 		# show_for helper can find an unpaired ally next to the lead.
-		var adj_stub_src := "extends Node\nvar adjacency: Dictionary = {}\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return []\nfunc get_healable_allies(_u) -> Array: return []\nfunc get_unit_at(tile: Vector2i): return adjacency.get(tile, null)\n"
+		var adj_stub_src := "extends Node\nvar adjacency: Dictionary = {}\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return []\nfunc get_healable_allies(_u) -> Array: return []\nfunc get_unit_at(tile: Vector2i): return adjacency.get(tile, null)\nfunc is_passable(tile: Vector2i, _unit) -> bool: return not adjacency.has(tile)\nfunc can_end_on_tile(tile: Vector2i, _unit) -> bool: return not adjacency.has(tile)\n"
 		var adj_stub: GDScript = GDScript.new()
 		adj_stub.source_code = adj_stub_src
 		adj_stub.reload()
@@ -306,6 +312,32 @@ func _init() -> void:
 			print("OK  Pair Up button emits action_chosen('pair_up')"); passed += 1
 		else:
 			print("FAIL Pair Up emission: %s" % pair_chose[0]); failed += 1
+		# Separate shown only for a paired lead with an adjacent legal drop tile.
+		reg.call("clear")
+		reg.pair("chrom", "lissa")
+		paired_unit_b.tile_position = reg.OFF_MAP_TILE
+		adj_grid.set("adjacency", {})
+		am.show_for(paired_unit_a, adj_grid)
+		var separate_shown: bool = am._btn_separate.visible
+		adj_grid.set("adjacency", {
+			Vector2i(2, 1): Node.new(),
+			Vector2i(2, 3): Node.new(),
+			Vector2i(1, 2): Node.new(),
+			Vector2i(3, 2): Node.new(),
+		})
+		am.show_for(paired_unit_a, adj_grid)
+		var separate_hidden_blocked: bool = not am._btn_separate.visible
+		adj_grid.set("adjacency", {})
+		var separate_chose := [""]
+		am.show_for(paired_unit_a, adj_grid)
+		am.action_chosen.connect(func(a): separate_chose[0] = a)
+		am._btn_separate.pressed.emit()
+		var separate_emits: bool = separate_chose[0] == "separate"
+		if separate_shown and separate_hidden_blocked and separate_emits:
+			print("OK  Separate shown only with a legal drop tile and emits action_chosen('separate')"); passed += 1
+		else:
+			print("FAIL Separate visibility/emission: shown=%s hidden_blocked=%s emitted=%s" % [
+				separate_shown, separate_hidden_blocked, separate_emits]); failed += 1
 		var gs := root.get_node_or_null("/root/GameState")
 		if gs != null:
 			var prior_pair_up_enabled: bool = bool(gs.get("pair_up_enabled"))

@@ -122,6 +122,17 @@ func _init() -> void:
 	else:
 		print("FAIL load_default_roster: roster is empty"); failed += 1
 
+	# ---- default roster Cavalier movement matches authored class intent ----
+	var cav_ok: bool = false
+	for unit_data in gs.player_roster:
+		if unit_data.class_id == "cavalier":
+			cav_ok = unit_data.movement == 7
+			break
+	if cav_ok:
+		print("OK  default-roster Cavalier movement is 7"); passed += 1
+	else:
+		print("FAIL default-roster Cavalier movement should be 7"); failed += 1
+
 	# ---- load_roster_from_directory loads a fixed test roster ----
 	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
 	if gs.player_roster.size() == 2:

@@ -7,7 +7,7 @@ class_name MapCursorTargeting extends RefCounted
 # its own ATTACK-vs-STAFF mode and CHOOSING-vs-PREVIEWING sub-state, and reports
 # back through the `completed` / `cancelled` signals.
 
-enum Mode { ATTACK, STAFF, PAIR_UP }
+enum Mode { ATTACK, STAFF, PAIR_UP, SEPARATE }
 
 # Internal sub-state. Collapses the old MapCursor TARGETING / PREVIEWING /
 # STAFF_TARGETING states — MapCursor now sees a single State.TARGETING.
@@ -21,6 +21,7 @@ signal cancelled   # player backed out of target choice — MapCursor reopens th
 # pair / support-tile / DONE bookkeeping, then arranges _finish_action. This
 # stays separate from `completed` so existing ATTACK/STAFF flows are untouched.
 signal pair_up_resolved(lead: Node, support: Node)
+signal separate_resolved(lead: Node, support: Node, target_tile: Vector2i)
 
 # Injected via setup(). attack_preview / combat_resolver may be null (see setup()).
 var _grid: GridManager = null
@@ -80,6 +81,11 @@ func begin(mode: int, unit: Unit) -> Array[Vector2i]:
 			_tiles.append(ally.tile_position)
 		if not _tiles.is_empty():
 			_grid.show_heal_overlay(_tiles)
+	elif mode == Mode.SEPARATE:
+		for tile in _get_adjacent_separate_tiles(unit):
+			_tiles.append(tile)
+		if not _tiles.is_empty():
+			_grid.show_heal_overlay(_tiles)
 	else:
 		for ally in _grid.get_healable_allies(unit):
 			_tiles.append(ally.tile_position)
@@ -100,6 +106,8 @@ func handle_confirm(cursor_tile: Vector2i) -> void:
 				_confirm_attack_target(cursor_tile)
 			elif _mode == Mode.PAIR_UP:
 				_confirm_pair_up_target(cursor_tile)
+			elif _mode == Mode.SEPARATE:
+				_confirm_separate_target(cursor_tile)
 			else:
 				_apply_staff_heal(cursor_tile)
 		_Sub.PREVIEWING:
@@ -251,3 +259,58 @@ func _confirm_pair_up_target(cursor_tile: Vector2i) -> void:
 	_clear_overlays()
 	_sub = _Sub.IDLE
 	pair_up_resolved.emit(_unit, target)
+
+
+# Returns every adjacent cardinal tile the paired lead may drop its support onto.
+# Requires the current unit to be the lead of a live pair; passability + end-tile
+# legality are both checked so Separate can't target walls or occupied tiles.
+func _get_adjacent_separate_tiles(unit: Node) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if _grid == null or unit == null or unit.data == null or unit.data.unit_id == "":
+		return out
+	var registry: Node = null
+	var gs: Node = null
+	if _grid.is_inside_tree():
+		registry = _grid.get_node_or_null("/root/PairUpRegistry")
+		gs = _grid.get_node_or_null("/root/GameState")
+	if registry == null or gs == null:
+		return out
+	if not registry.call("is_lead", unit.data.unit_id):
+		return out
+	var support_id: String = registry.call("get_partner_id", unit.data.unit_id)
+	if support_id == "":
+		return out
+	var support: Node = gs.call("find_unit_by_id", support_id)
+	if support == null or support.data == null or support.data.hp <= 0:
+		return out
+	const _CARDINALS: Array[Vector2i] = [
+		Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)
+	]
+	for delta in _CARDINALS:
+		var tile: Vector2i = unit.tile_position + delta
+		if _grid.is_passable(tile, support) and _grid.can_end_on_tile(tile, support):
+			out.append(tile)
+	return out
+
+
+# CHOOSING + SEPARATE confirm. The cursor picks which adjacent legal tile the
+# support should reappear on; MapCursor performs the actual registry mutation.
+func _confirm_separate_target(cursor_tile: Vector2i) -> void:
+	if not (cursor_tile in _tiles):
+		return
+	if _unit == null or _unit.data == null:
+		return
+	var gs: Node = null
+	var registry: Node = null
+	if _grid != null and _grid.is_inside_tree():
+		gs = _grid.get_node_or_null("/root/GameState")
+		registry = _grid.get_node_or_null("/root/PairUpRegistry")
+	if gs == null or registry == null:
+		return
+	var support_id: String = registry.call("get_partner_id", _unit.data.unit_id)
+	var support: Node = gs.call("find_unit_by_id", support_id)
+	if support == null:
+		return
+	_clear_overlays()
+	_sub = _Sub.IDLE
+	separate_resolved.emit(_unit, support, cursor_tile)

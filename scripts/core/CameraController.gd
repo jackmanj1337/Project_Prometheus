@@ -101,6 +101,25 @@ func clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	return tile
 
 
+# Nudges the camera by whole tiles, clamped to the authored map bounds. Used by
+# mouse-edge camera panning so a moving mouse can scroll the view without
+# feeding directly back into cursor->camera recursion.
+func nudge_by_tiles(delta: Vector2i) -> bool:
+	if _camera == null or _grid == null or delta == Vector2i.ZERO:
+		return false
+	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
+	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
+	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
+	var next_tl := tl + delta
+	next_tl.x = clamp(next_tl.x, 0, max(0, _grid.map_width - tiles_w))
+	next_tl.y = clamp(next_tl.y, 0, max(0, _grid.map_height - tiles_h))
+	if next_tl == tl:
+		return false
+	_camera.position = _grid.tile_to_world(next_tl) + view * 0.5
+	return true
+
+
 # Saves the current camera position. Restored at the next phase change back to
 # PLAYER so AI-phase tracking doesn't drag the player to a different view (PT4 #2).
 func save_view() -> void:

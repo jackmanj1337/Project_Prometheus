@@ -14,6 +14,7 @@ signal hidden_by_cancel()
 @onready var _btn_escape:  Button = $VBox/BtnEscape
 @onready var _btn_pair_up: Button = $VBox/BtnPairUp
 @onready var _btn_swap:    Button = $VBox/BtnSwap
+@onready var _btn_separate: Button = $VBox/BtnSeparate
 @onready var _btn_wait:    Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
@@ -26,7 +27,7 @@ func _ready() -> void:
 	# sit between Escape and Wait as the Pair Up section (Separate joins them in
 	# step 6c).
 	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_escape,
-		_btn_pair_up, _btn_swap, _btn_wait]
+		_btn_pair_up, _btn_swap, _btn_separate, _btn_wait]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
 	_btn_attack.pressed.connect(func():  hide(); action_chosen.emit("attack"))
@@ -37,6 +38,7 @@ func _ready() -> void:
 	_btn_escape.pressed.connect(func():  hide(); action_chosen.emit("escape"))
 	_btn_pair_up.pressed.connect(func(): hide(); action_chosen.emit("pair_up"))
 	_btn_swap.pressed.connect(func():    hide(); action_chosen.emit("swap_roles"))
+	_btn_separate.pressed.connect(func(): hide(); action_chosen.emit("separate"))
 	_btn_wait.pressed.connect(func():    hide(); action_chosen.emit("wait"))
 	hide()
 
@@ -96,6 +98,7 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	# already paired. The registry holds the unit_id index — fetch via /root
 	# so headless tests that omit the autoload still resolve the menu.
 	var can_swap := false
+	var can_separate := false
 	var can_pair_up := false
 	if unit != null and unit.data != null and unit.data.unit_id != "":
 		var registry := get_node_or_null("/root/PairUpRegistry")
@@ -104,6 +107,8 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 		if registry != null and registry.has_method("is_paired"):
 			if bool(registry.is_paired(unit.data.unit_id)):
 				can_swap = true
+				can_separate = bool(registry.call("is_lead", unit.data.unit_id)) \
+					and _has_adjacent_separate_tile(unit, grid, registry)
 			elif pair_up_enabled:
 				can_pair_up = _has_adjacent_unpaired_ally(unit, grid, registry)
 
@@ -118,6 +123,7 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	_btn_escape.visible  = can_escape
 	_btn_pair_up.visible = can_pair_up
 	_btn_swap.visible    = can_swap
+	_btn_separate.visible = can_separate
 	_btn_wait.visible    = true
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
@@ -167,6 +173,33 @@ func _has_adjacent_unpaired_ally(unit: Node, grid: Node, registry: Node) -> bool
 		if neighbor.data == null or neighbor.data.unit_id == "":
 			continue
 		if not bool(registry.call("is_paired", neighbor.data.unit_id)):
+			return true
+	return false
+
+
+# True iff the paired lead can place its support onto at least one adjacent
+# cardinal tile. Separate is only offered on the lead, and only when the
+# placement can succeed immediately.
+func _has_adjacent_separate_tile(unit: Node, grid: Node, registry: Node) -> bool:
+	if unit == null or grid == null or registry == null:
+		return false
+	if unit.data == null or unit.data.unit_id == "" or not bool(registry.call("is_lead", unit.data.unit_id)):
+		return false
+	if not grid.has_method("is_passable") or not grid.has_method("can_end_on_tile"):
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not gs.has_method("find_unit_by_id"):
+		return false
+	var support_id: String = registry.call("get_partner_id", unit.data.unit_id)
+	var support: Node = gs.find_unit_by_id(support_id)
+	if support == null or support.data == null or support.data.hp <= 0:
+		return false
+	const _CARDINALS: Array[Vector2i] = [
+		Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)
+	]
+	for delta in _CARDINALS:
+		var tile: Vector2i = unit.tile_position + delta
+		if grid.is_passable(tile, support) and grid.can_end_on_tile(tile, support):
 			return true
 	return false
 

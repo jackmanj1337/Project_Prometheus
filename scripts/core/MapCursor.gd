@@ -115,6 +115,7 @@ func _ready() -> void:
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
 	_targeting.pair_up_resolved.connect(_on_pair_up_resolved)
+	_targeting.separate_resolved.connect(_on_separate_resolved)
 
 
 # Fallback lookup for the menu @exports — see _ready(). Each path mirrors the
@@ -303,21 +304,16 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null and sm.mouse_cursor == "disabled":
 		return
-	# canvas_transform maps world → screen; its inverse converts screen pixels to world coords.
-	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
-	var world := get_viewport().canvas_transform.affine_inverse() * event.position
-	var tile := _grid.world_to_tile(world)
+	var tile := _mouse_tile_at(event.position)
 	match _state:
 		State.FREE, State.UNIT_SELECTED:
-			# Mouse motion sets the cursor from an absolute pointer position. If
-			# this also triggers an edge-scroll, the camera moves, the screen→world
-			# mapping shifts, the *same* mouse position resolves to a new tile,
-			# and the next motion event jumps further — a runaway pan (#7). Two
-			# guards: (1) clamp the resolved tile to the currently visible area
-			# so the mouse can't push the cursor off-screen, and (2) pass
-			# from_mouse=true through _set_tile so edge-scroll is skipped on this
-			# path. Keyboard moves still pan as before. Steady rate-based edge
-			# pan + a sensitivity slider are on the roadmap.
+			# Mouse motion now pans the camera intentionally when the pointer
+			# reaches the viewport edge, then recomputes the pointed-at tile in
+			# the new view. Cursor moves still skip the keyboard edge-scroll path,
+			# which avoids the old camera-feedback runaway while restoring basic
+			# mouse-driven map scrolling.
+			if _maybe_pan_camera_for_mouse(event.position):
+				tile = _mouse_tile_at(event.position)
 			tile = _clamp_tile_to_view(tile)
 			if tile != current_tile:
 				_set_tile(tile, true)
@@ -419,6 +415,30 @@ func _clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	if _camera_ctrl == null:
 		return tile
 	return _camera_ctrl.clamp_tile_to_view(tile)
+
+
+func _mouse_tile_at(screen_pos: Vector2) -> Vector2i:
+	var world := get_viewport().canvas_transform.affine_inverse() * screen_pos
+	return _grid.world_to_tile(world)
+
+
+func _maybe_pan_camera_for_mouse(screen_pos: Vector2) -> bool:
+	if _camera_ctrl == null or _camera == null:
+		return false
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var px_buffer: float = float(_camera_edge_buffer() * GameConstants.TILE_SIZE)
+	if px_buffer <= 0.0:
+		return false
+	var delta := Vector2i.ZERO
+	if screen_pos.x <= px_buffer:
+		delta.x = -1
+	elif screen_pos.x >= view.x - px_buffer:
+		delta.x = 1
+	if screen_pos.y <= px_buffer:
+		delta.y = -1
+	elif screen_pos.y >= view.y - px_buffer:
+		delta.y = 1
+	return _camera_ctrl.nudge_by_tiles(delta)
 
 
 # ── State Machine ──────────────────────────────────────────────────────────
@@ -581,6 +601,8 @@ func _on_action_chosen(action: String) -> void:
 			_commit_swap_roles()
 		"pair_up":
 			_enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+		"separate":
+			_enter_targeting(MapCursorTargeting.Mode.SEPARATE)
 		"wait":
 			_commit_wait()
 
@@ -630,6 +652,25 @@ func _commit_swap_roles() -> void:
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		if registry != null and registry.has_method("swap_roles"):
 			registry.swap_roles(unit.data.unit_id)
+	_finish_action()
+
+
+# Separate resolved: place the support back onto the chosen adjacent tile,
+# make it visible again, clear the pair, and end both units' turns.
+func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> void:
+	if lead == null or support == null or lead.data == null or support.data == null:
+		_finish_action()
+		return
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry == null or not registry.call("separate", lead.data.unit_id):
+		_state = State.UNIT_MOVED
+		_set_tile(lead.tile_position)
+		_show_action_menu()
+		return
+	support.tile_position = target_tile
+	support.visible = true
+	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
+		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
 	_finish_action()
 
 

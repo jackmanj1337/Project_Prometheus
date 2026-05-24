@@ -631,13 +631,27 @@ func _init() -> void:
 		c_mc._handle_mouse_motion(ev)
 		var moved: bool = c_mc.current_tile == Vector2i(4, 4)
 
+		# Mouse motion near the viewport edge should nudge the camera on large maps
+		# instead of freezing camera follow entirely.
+		var mouse_pan_w := _grid.map_width
+		var mouse_pan_h := _grid.map_height
+		_grid.map_width = 30
+		_grid.map_height = 30
+		c_mc._camera.position = _grid.tile_to_world(Vector2i(10, 10))
+		var mouse_cam_before: Vector2 = c_mc._camera.position
+		ev.position = Vector2(c_mc.get_viewport().get_visible_rect().size.x - 1.0, 64.0)
+		c_mc._handle_mouse_motion(ev)
+		var camera_panned: bool = c_mc._camera.position != mouse_cam_before
+		_grid.map_width = mouse_pan_w
+		_grid.map_height = mouse_pan_h
+
 		sm_mc.mouse_cursor = "enabled"  # restore default
-		if stayed and moved:
-			print("OK  mouse_cursor=disabled ignores motion; enabled resumes (PT4 #1)")
+		if stayed and moved and camera_panned:
+			print("OK  mouse_cursor=disabled ignores motion; enabled resumes and can pan camera")
 			passed += 1
 		else:
-			print("FAIL mouse_cursor gate: stayed=%s moved=%s tile=%s" % [
-				stayed, moved, str(c_mc.current_tile)])
+			print("FAIL mouse_cursor gate/pan: stayed=%s moved=%s camera_panned=%s tile=%s" % [
+				stayed, moved, camera_panned, str(c_mc.current_tile)])
 			failed += 1
 	else:
 		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")
