@@ -4,8 +4,8 @@ Tasks here need action inside the Godot editor (or a tool run) — they are not 
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
 breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
-> Last verified against the project: 2026-05-23 (Pair Up pass 1 partial — see
-> Pair Up Pass 1 Playtest section below for new items).
+> Last verified against the project docs: 2026-05-24. Broad regression sweep +
+> detailed class/Pair Up/More Info/hotseat passes are pending below.
 
 ---
 

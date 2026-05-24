@@ -34,13 +34,14 @@ res://
 │   └── fonts/                       # [PLACEHOLDER] pixel font recommended
 │
 ├── data/
-│   ├── classes/
-│   │   ├── soldier.tres
-│   │   ├── mercenary.tres
+│   ├── classes/                   # 23 ClassData .tres files (base + promoted)
 │   │   ├── archer.tres
-│   │   ├── mage.tres
+│   │   ├── bishop.tres
+│   │   ├── bow_knight.tres
+│   │   ├── cavalier.tres
 │   │   ├── cleric.tres
-│   │   └── knight.tres
+│   │   ├── ...
+│   │   └── war_monk.tres
 │   ├── weapons/
 │   │   ├── iron_sword.tres
 │   │   ├── steel_sword.tres
@@ -52,43 +53,41 @@ res://
 │   │   ├── thunder.tres
 │   │   ├── wind.tres
 │   │   └── heal_staff.tres
-│   ├── items/
+│   ├── items/                     # 6 ItemData .tres files
 │   │   ├── vulnerary.tres
-│   │   └── elixir.tres
-│   ├── skills/                       # 13 SkillData .tres files
+│   │   ├── elixir.tres
+│   │   ├── master_seal.tres
+│   │   ├── orion_bolt.tres
+│   │   ├── guiding_ring.tres
+│   │   └── second_seal.tres
+│   ├── skills/                    # 54 SkillData .tres files
 │   │   ├── renewal.tres
 │   │   ├── vantage.tres
-│   │   ├── nihil.tres
-│   │   ├── resolve.tres
-│   │   ├── miracle.tres
-│   │   ├── wrath.tres
-│   │   ├── swordfaire.tres
-│   │   ├── lancefaire.tres
-│   │   ├── bowfaire.tres
-│   │   ├── swordbreaker.tres
-│   │   ├── lancebreaker.tres
-│   │   ├── bowbreaker.tres
-│   │   └── s_rank_mastery.tres       # earned at S rank; not assignable in .tres
+│   │   ├── ...
+│   │   └── s_rank_mastery.tres
 │   ├── roster/
-│   │   └── default/                 # Six starter UnitData .tres files
-│   │       ├── unit_01_soldier.tres
-│   │       ├── unit_02_mercenary.tres
-│   │       ├── unit_03_archer.tres
-│   │       ├── unit_04_mage.tres
-│   │       ├── unit_05_cleric.tres
-│   │       └── unit_06_knight.tres
+│   │   ├── default/               # Six starter UnitData .tres files
+│   │   │   ├── unit_01_cavalier.tres
+│   │   │   ├── unit_02_mercenary.tres
+│   │   │   ├── unit_03_archer.tres
+│   │   │   ├── unit_04_mage.tres
+│   │   │   ├── unit_05_cleric.tres
+│   │   │   └── unit_06_knight.tres
+│   │   └── test/
+│   │       ├── map_900_hotseat_validation/
+│   │       └── map_950_promotion_validation/
+│   ├── pair_up/
+│   │   └── pair_up_bonus_table.tres
 │   └── maps/
-│       └── map_001_rout/
-│           ├── map_001_data.tres    # MapData; terrain lives in MapData.grid
-│           └── enemies/             # Enemy UnitData .tres files for this map
-│               ├── e1_soldier.tres
-│               ├── e2_archer.tres
-│               ├── e3_mercenary.tres
-│               ├── e4_knight.tres
-│               ├── e5_archer.tres
-│               ├── e6_soldier.tres
-│               ├── e7_knight_sub.tres
-│               └── e8_knight_boss.tres
+│       ├── map_001_rout/
+│       │   ├── map_001_data.tres
+│       │   ├── map_001_c3_factions_data.tres
+│       │   └── enemies/
+│       ├── map_900_hotseat_validation/
+│       │   └── map_900_hotseat_validation_data.tres
+│       └── map_950_promotion_validation/
+│           ├── map_950_promotion_validation_data.tres
+│           └── enemies/
 │
 ├── scenes/
 │   ├── core/
@@ -107,8 +106,12 @@ res://
 │       ├── MapMenu.tscn
 │       ├── NewGameScreen.tscn
 │       ├── PhaseBanner.tscn
-│       └── SettingsScreen.tscn
-│       # CombatHUD has no scene — CombatHUD.gd is attached to a bare
+│       ├── PromotionScreen.tscn
+│       ├── ReclassScreen.tscn
+│       ├── SettingsScreen.tscn
+│       ├── UnitDetailsScreen.tscn
+│       └── WeaponMenu.tscn
+│       # CombatHUD still has no scene — CombatHUD.gd is attached to a bare
 │       # CanvasLayer inside GameMap.tscn and builds its labels in code.
 │
 └── scripts/
@@ -117,13 +120,17 @@ res://
     │   ├── DataManager.gd
     │   ├── EventBus.gd
     │   ├── GameState.gd
+    │   ├── PairUpBonusResolver.gd
+    │   ├── PairUpRegistry.gd
     │   └── SettingsManager.gd
     ├── core/
     │   ├── Boot.gd
+    │   ├── CameraController.gd
     │   ├── CombatResolver.gd         # also an autoload (/root/CombatResolver)
     │   ├── EnemyAI.gd                # also an autoload (/root/EnemyAI)
     │   ├── GameMap.gd
     │   ├── GridManager.gd            # scene node, child of GameMap
+    │   ├── HotseatController.gd
     │   ├── MapCursor.gd              # scene node, child of GameMap
     │   ├── MapCursorInput.gd         # RefCounted slice — key decode + auto-repeat
     │   ├── MapCursorSelection.gd     # RefCounted slice — selection + path planning
@@ -133,17 +140,24 @@ res://
     │   └── ItemHandler.gd            # autoload — item-effect dispatcher
     ├── resources/
     │   ├── ClassData.gd
+    │   ├── FactionData.gd
     │   ├── InventoryEntry.gd
     │   ├── ItemData.gd
     │   ├── MapData.gd
+    │   ├── ObjectiveCondition.gd
+    │   ├── PairUpBonusTable.gd
     │   ├── SkillData.gd
     │   ├── UnitData.gd
     │   └── WeaponData.gd
     ├── shared/
-    │   └── GameConstants.gd          # autoload — project-wide constants
+    │   ├── GameConstants.gd          # autoload — project-wide constants
+    │   ├── InputDisplay.gd
+    │   ├── MoreInfoContent.gd
+    │   ├── StatBreakdown.gd
+    │   └── TileActions.gd
     ├── skills/
     │   └── SkillHandler.gd           # autoload — skill-effect dispatcher
-    ├── tests/                        # 26 test_*.gd suites; run via run_tests.sh
+    ├── tests/                        # 35 test_*.gd suites; run via run_tests.sh
     ├── tools/                        # placeholder-asset + tileset generators
     ├── ui/
     │   ├── ActionMenu.gd
@@ -155,9 +169,14 @@ res://
     │   ├── LevelUpScreen.gd
     │   ├── MainMenu.gd
     │   ├── MapMenu.gd
+    │   ├── ModalScreen.gd
     │   ├── NewGameScreen.gd
     │   ├── PhaseBanner.gd
-    │   └── SettingsScreen.gd
+    │   ├── PromotionScreen.gd
+    │   ├── ReclassScreen.gd
+    │   ├── SettingsScreen.gd
+    │   ├── UnitDetailsScreen.gd
+    │   └── WeaponMenu.gd
     └── units/
         └── Unit.gd
 ```
@@ -174,14 +193,34 @@ GameMap (Node2D)                 # script: GameMap.gd
 ├── TileMapLayer_Terrain         # base terrain tiles, painted at runtime from MapData.grid
 ├── TileMapLayer_Overlay         # movement/attack/heal/danger highlight tiles
 ├── UnitsContainer (Node2D)      # all Unit scenes instanced here at runtime
-├── GridManager (Node)           # script: GridManager.gd
 ├── MapCursor (Node2D)           # script: MapCursor.gd
-│   └── AnimatedSprite2D         # [PLACEHOLDER] cursor blink animation
+│   └── Sprite2D                 # cursor sprite
 ├── Camera2D                     # follows cursor; clamps to map bounds
+├── GridManager (Node)           # script: GridManager.gd
 ├── TurnManager (Node)           # script: TurnManager.gd
+├── HUDLayer (CanvasLayer)
+│   ├── ActionMenu
+│   ├── ItemMenu
+│   ├── MapMenu
+│   ├── AttackPreview
+│   └── WeaponMenu
+├── LevelUpLayer (CanvasLayer)
+│   └── LevelUpScreen
+├── PromotionLayer (CanvasLayer)
+│   └── PromotionScreen
+├── ReclassLayer (CanvasLayer)
+│   └── ReclassScreen
+├── CombatHUDLayer (CanvasLayer) # script: CombatHUD.gd; builds labels in code
 ├── HUDMainLayer (CanvasLayer)
 │   └── HUD                      # HUD.tscn instance; script: HUD.gd
-└── CombatHUDLayer (CanvasLayer) # script: CombatHUD.gd; builds its labels in code
+├── BannerLayer (CanvasLayer)
+│   └── PhaseBanner
+├── GameOverLayer (CanvasLayer)
+│   └── GameOverScreen
+├── SettingsLayer (CanvasLayer)
+│   └── SettingsScreen
+└── UnitDetailsLayer (CanvasLayer)
+    └── UnitDetailsScreen
 ```
 
 > **Note:** `CombatResolver` and `EnemyAI` are **autoload singletons**
@@ -216,62 +255,52 @@ Unit (Node2D)                       # script: Unit.gd
 
 ### `HUD.tscn`
 
-The HUD is built from separately-instanced scenes (`ActionMenu.tscn`, `ItemMenu.tscn`,
-`AttackPreview.tscn`, `PhaseBanner.tscn`, `LevelUpScreen.tscn`, `MapMenu.tscn`,
-`SettingsScreen.tscn`, `GameOverScreen.tscn`, `NewGameScreen.tscn`). The tree below is
-the intended composition — the `.tscn` files are authoritative for exact node names
-and paths (verified to match each script's `@onready` paths).
+The HUD is now spread across separately-instanced scenes and layers inside
+`GameMap.tscn`. `HUD.tscn` owns the persistent map-side panels; menus/modals such
+as `ActionMenu`, `AttackPreview`, `PromotionScreen`, `ReclassScreen`, and
+`UnitDetailsScreen` are sibling layer instances in the main map scene. The tree
+below reflects the current `HUD.tscn` internals; the `.tscn` files remain
+authoritative for exact node names and paths.
 
 ```
-HUD (CanvasLayer)
-├── UnitInfoPanel (PanelContainer)          # Anchor: bottom-left; 300x110 px
-│   ├── PortraitRect (TextureRect)          # [PLACEHOLDER] 64x64 unit portrait (2× the 32x32 sprite)
-│   ├── NameLabel (Label)
-│   ├── ClassLabel (Label)
-│   ├── HPLabel (Label)                     # e.g. "HP  17 / 21"
-│   └── WeaponLabel (Label)                 # Equipped weapon name or "---"
-├── TerrainInfoPanel (PanelContainer)       # Anchor: bottom-right; 200x80 px
-│   ├── TerrainNameLabel (Label)
-│   ├── DefBonusLabel (Label)               # e.g. "DEF +1"
-│   └── DodgeBonusLabel (Label)             # e.g. "Dodge +15"
-├── TurnCounterLabel (Label)                # Anchor: top-right; e.g. "Turn  3"
-├── ActionMenu (PanelContainer)             # Shown after unit moves; hidden by default
-│   └── Panel/VBox
-│       ├── BtnAttack (Button)
-│       ├── BtnStaff (Button)
-│       ├── BtnItem (Button)
-│       └── BtnWait (Button)                # Trade is designed but NOT yet implemented
-│   # ItemMenu.tscn is a separate submenu opened by the Item action.
-├── AttackPreview (PanelContainer)          # Centered bottom; shown when targeting
-│   ├── AttackerColumn (VBoxContainer)
-│   │   ├── AttackerNameLabel (Label)
-│   │   ├── AttackerHitLabel (Label)        # "Hit: 82%"
-│   │   ├── AttackerDmgLabel (Label)        # "Dmg: 7"
-│   │   └── AttackerCritLabel (Label)       # "Crit: 5%"
-│   └── DefenderColumn (VBoxContainer)
-│       ├── DefenderNameLabel (Label)
-│       ├── DefenderHitLabel (Label)        # "--" if cannot counterattack
-│       ├── DefenderDmgLabel (Label)
-│       └── DefenderCritLabel (Label)
-│   # No TargetSelectList: target selection uses red/green overlay tiles plus
-│   # cursor cycling among valid target tiles (see MapCursorTargeting.gd).
-├── PhaseBanner (ColorRect)                 # Full-width (1280x80); slides from off-screen
-│   └── BannerLabel (Label)                 # "PLAYER PHASE" | "ENEMY PHASE"
-├── LevelUpScreen (PanelContainer)          # Centered; 400x300; blocks all input
-│   ├── UnitNameLabel (Label)
-│   ├── LevelLabel (Label)
-│   └── StatGrid (GridContainer)            # 8 stats; highlight changed ones in yellow
-├── MapMenu (PanelContainer)                # Centered overlay; shown on Escape
-│   └── VBoxContainer
-│       ├── EndTurnButton (Button)
-│       ├── SettingsButton (Button)
-│       └── QuitButton (Button)
-├── SettingsScreen (PanelContainer)         # Full screen; shown from MapMenu or MainMenu
-└── GameOverScreen (ColorRect)              # Full-screen overlay; handles BOTH the
-                                            #   defeat ("GAME OVER" + Retry) and the
-                                            #   victory states. There is no separate
-                                            #   VictoryScreen scene.
+HUD (Control)
+├── PhaseLabel (Label)
+├── TurnLabel (Label)
+├── DebugLabel (Label)                      # debug-build only; hidden in release
+├── UnitInfoPanel (PanelContainer)
+│   └── VBox
+│       ├── UnitName (Label)
+│       ├── UnitClass (Label)
+│       ├── UnitHP (Label)
+│       ├── UnitWeapon (Label)
+│       └── MasteryLabel (Label, created dynamically when needed)
+├── TerrainInfoPanel (PanelContainer)
+│   └── VBox
+│       ├── TerrainName (Label)
+│       ├── TerrainDef (Label)
+│       ├── TerrainDodge (Label)
+│       ├── TerrainDescription (RichTextLabel)   # More Info expanded mode
+│       ├── TerrainMoveCosts (RichTextLabel)     # More Info expanded mode
+│       ├── TerrainActions (RichTextLabel)       # More Info expanded mode
+│       └── TerrainHint (Label)
+└── ObjectivePanel (PanelContainer)
+    └── VBox
+        ├── ObjectiveHeader (Label)
+        └── ObjectiveList (Label)
 ```
+
+Related sibling UI scenes/layers in `GameMap.tscn`:
+- `ActionMenu.tscn` — post-move action list, including Pair Up / Swap / Separate,
+  Seize, Escape, Equip, Item, Staff, Wait as applicable
+- `ItemMenu.tscn` and `WeaponMenu.tscn` — submenus launched from the action flow
+- `AttackPreview.tscn` — combat forecast with More Info side panel
+- `UnitDetailsScreen.tscn` — inspect-unit character sheet with More Info side panel
+- `LevelUpScreen.tscn`, `PromotionScreen.tscn`, `ReclassScreen.tscn` — blocking
+  progression modals
+- `MapMenu.tscn`, `SettingsScreen.tscn`, `PhaseBanner.tscn`, `GameOverScreen.tscn`
+
+The `.tscn` files are authoritative for exact composition and should be checked
+before updating this document again.
 
 ---
 

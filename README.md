@@ -3,20 +3,15 @@ A repo to track a small side project game I am making to test some tools.
 
 ## Running tests
 
-`bash run_tests.sh` runs the GDScript test suites headlessly.
+`bash run_tests.sh` runs the 35 headless GDScript test suites in the current
+checkout.
 
 For a fresh-clone, CI-style run that bootstraps Godot's import/class cache first,
 use `bash scripts/ci/run_headless_tests.sh`.
 
-**On a fresh clone, open the project in the Godot editor once before running tests.**
-The headless test runner resolves `class_name` types through Godot's global class
-cache (`.godot/global_script_class_cache.cfg`), which is gitignored and only generated
-by an editor project scan. Without that scan, tests fail with errors like
-`Could not find type "X" in the current scope`.
-
-When a new `class_name` script is added outside the editor, either re-open the editor
-to regenerate the cache or add the entry to `.godot/global_script_class_cache.cfg` by
-hand (copy an existing block; set `base`, `class`, `path`).
+`run_headless_tests.sh` is the portable option for clean environments because it
+forces Godot's import/class-cache bootstrap before the suite. In an existing
+working checkout, `bash run_tests.sh` is the normal fast path.
 
 ## GitHub Actions
 
@@ -24,7 +19,7 @@ This repo includes two GitHub Actions workflows:
 - `.github/workflows/tests-pr.yml`
 - `.github/workflows/tests-push.yml`
 
-It:
+They:
 - installs Godot `4.6`
 - runs separate workflows for `push` and `pull_request`
 - runs `bash scripts/ci/run_headless_tests.sh`

@@ -10,7 +10,10 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-21** against branch `main` @ `8ea7429` (B1–B10 + C1 + C2 + C3 done).
+Last refreshed: **2026-05-24** against branch `awakening-compatability-refactor`
+@ `4d0ea2e` (C1–C3 done; hotseat foundations, class-skill rebuild, Pair Up
+pass 1 partial, and More Info phase 1 all landed in code; live validation still
+pending in `GDD_Manual_Tasks.md`).
 
 ---
 
@@ -44,6 +47,10 @@ Last refreshed: **2026-05-21** against branch `main` @ `8ea7429` (B1–B10 + C1 
 | C2 stage 4 | Ranked-standings results screen + HUD objective readout. New `EventBus.map_resolved(winner_group, standings)` signal emitted alongside map_victory / map_defeat; `_build_standings` orders losers by elim-round DESC (stable). `GameOverScreen` renders standings; `HUD` has an ObjectivePanel listing blue's Win/Lose conditions from `ObjectiveCondition.get_display_text()`. | commit `8fed076`; +2 test_turn_manager, +1 test_data_layer, +2 test_hud |
 | C2 stage 5 | Decision 7 phase-boundary sweep on `start_enemy_phase` + `_map_over` chokepoint in `EnemyAI.run_enemy_phase` (bails between units when map is over). Legacy `objective_type` / `turn_limit` / `required_survivor_ids` / `objective_params` fields deleted from MapData; `_apply_legacy_conditions` / `_has_legacy_blue_conditions` deleted from TurnManager; HUD legacy translation deleted. `map_001_data.tres` migrated to `victory_conditions = {"allies": [rout()]}`. All legacy-field tests converted to authored conditions. | this commit; +1 test_turn_manager (phase-boundary sweep) |
 | C3 | M14 stages 4–5 completed: faction-driven AI loop (`run_ai_phase(faction)`), sequential non-blue AI dispatch in `TurnManager`, green/yellow spawn support via per-placement `faction` tags, faction-aware `PhaseBanner` + HUD labels from `FactionData`, authored faction color application on unit sprites, deterministic TurnManager AI-loop seam/tests, and C3 content resource `map_001_c3_factions_data.tres`. | commits `cca788d`, `bf0d9b1`, `8ea7429`; suite green (`test_enemy_ai` 20, `test_turn_manager` 47, `test_hud` 12, `test_unit_stats` 32) |
+| M15 Part A foundations | Hotseat controller contract (`run_phase`), generic phase commit flow, selector-backed validation-map launch state, `map_900_hotseat_validation`, and the broad/detailed manual hotseat checklists all landed. Manual live validation remains pending, so C10 stays open. | commits `1ba6640`, `49f7420`, `4e68cc7`; docs `hotseat_test_map_plan_2026-05-21.md`, `GDD_Manual_Tasks.md` |
+| Class / Skill rebuild | Awakening-oriented class/skill rebuild landed through promotion + Second Seal reclassing/demotion: level-1 class-skill grant on unit creation, promotion items and modal, promoted classes/skills, internal-level state, class-line metadata, reclass screen, and snapshot persistence for runtime class changes. | commits `ae37743`, `6e1f4c9`, `e7b79d6`, `1050abc`, `002ff94`, `7545a12`, `0b3693d`, `48743b5` |
+| Pair Up pass 1 (partial) | PairUpRegistry + snapshot integration, Pair Up campaign toggle, combat-context plumbing, stat-bonus resolver, Pair Up / Swap / Separate actions, support-drop-on-lead-death behavior, and Pair Up validation map/checklists landed. DS/DG combat mechanics, Pair Up forecast UI, and Pair Up-specific detail surfaces remain pending. | commits `5de5103`, `5535c82`, `fecc7d4`, `4f9bdad`, `c587564`, `ee983fb`, `1567541`, `993a413` |
+| More Info phase 1 | `more_info` action, shared `StatBreakdown`, `MoreInfoContent`, character-sheet side panel, combat-preview side panel + markers, terrain HUD expansion, `TileActions`, preview edge repositioning, and the broad/detailed live playtest checklists all landed. | commits `5630f40`, `6c8b2d2`, `f9c1b91`, `30ff7e9`, `8877230`, `51b0cdb`, `2ed9efc`, `46f5e70`, `edd48dc`, `6cc670b`, `4d0ea2e` |
 
 ---
 
@@ -93,7 +100,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 | C7 ⬜ | **M11 — Content Expansion** | All remaining classes / weapons / skills / items from the base handbook + Awakening supplement. | C6; B5 recommended | `GDD_10_Roadmap.md` § Milestone 11 |
 | C8 ⚫ | **M12 — Laguz System** `[DEFERRED]` | Shift gauge, Beast/Bird/Dragon tribes, transformed forms, brand items. Data fields already on `UnitData`/`ClassData`. | C7 | `GDD_10_Roadmap.md` § Milestone 12 |
 | C9 ⚫ | **M13 — Awakening Supplement** `[DEFERRED]` | Awakening classes (Lord/Bride/Dread Fighter/Manakete/etc), Pair-Up *data only* (logic explicitly out of scope), Awakening-only skills not covered in M9. | C8 | `GDD_10_Roadmap.md` § Milestone 13 |
-| C10 ⬜ | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Local-only. May slot **anywhere after C3**. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
+| C10 🟦 | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Local-only. Core code/content landed; remaining work is manual validation from the checklists in `GDD_Manual_Tasks.md`. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
 | C11 ⚫ | **M15 Part B — Remote Control** `[DEFERRED]` | Network-driven faction controller. Online design ratified 2026-05-17; build deferred. | C10 + Phase-3 mid-battle suspend save (Decision 10 / D14) | `GDD_10_Roadmap.md` § Milestone 15 |
 
 ### Bucket D — Cross-cutting obligation (release-gate, not order-gated)
@@ -110,8 +117,8 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
 - **Systems** — between-map save/load; mid-battle suspend save (pull forward with M15 Part B); fog of war + LoS; rescue and carry; additional AI profiles (territorial/guard_tile/healer/boss); stationary weapon use; door/chest/key; pre-battle deployment screen; enforce `GameState.max_skills` / `max_inventory`; review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md`.
 - **Maps** — Maps 002–005 (Seize, Boss Defeat, Escape, Survive/Defend) authored against M16.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).
-- **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, full character sheet, "More info" inspection mode, gamepad/touch support, attack-by-target selection, richer combat prediction (crit + WT + effective), prediction layout, minimap toggle.
-- **Priority bump (2026-05-23 playtest):** move the `"More info"` stat-inspection work forward. It should show each stat's base value plus every active modifier and its signed delta, because that surface is now needed for playtest validation and debugging, not just polish.
+- **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, gamepad/touch support, attack-by-target selection, minimap toggle.
+- **UI items now partly shipped:** full character sheet, richer combat prediction (`crit` + weapon triangle + effectiveness markers), and `"More info"` phase 1 are no longer backlog ideas. Remaining follow-up is polish/iteration: per-entry authored copy expansion, Pair Up forecast integration, and any UX changes that surface in the live playtest checklists.
 
 ---
 
@@ -138,13 +145,17 @@ Update this index when adding new findings docs.
 - **Roadmap (canonical):** `AGENT/GDD/GDD_10_Roadmap.md`
 - **Design decisions:** `AGENT/Docs/design_decisions_log_2026-05-17.md` (Decision 10 = the ordering rule)
 - **GDD assumptions:** `AGENT/GDD/GDD_Assumptions.md`
-- **Manual / editor tasks:** `AGENT/GDD/GDD_Manual_Tasks.md` (Pending = **none**)
+- **Manual / editor tasks:** `AGENT/GDD/GDD_Manual_Tasks.md` (Pending = broad regression sweep + detailed class/Pair Up/More Info/hotseat passes)
 - **Playtests:**
   - 1 (`playtest1_findings_2026-05-18.md`) — fully analysed in `manual_test_findings_analysis.md`, all done
   - 2 (`playtest2_findings_2026-05-19.md` + `playtest2_fix_plan_2026-05-19.md`) — all done
   - 3 (`playtest3_findings_2026-05-19.md`) — bugs #1–7 + #21 done; "later milestones" merged into `GDD_10_Roadmap.md` § UI/UX & Settings
   - 4 (`playtest4_findings_2026-05-19.md`) — bugs **A1, A2** above
 - **Code reviews (most recent first):**
+  - 2026-05-24 (`AGENT/Code Reviews/code_review_2026-05-24.md`) — More Info review; hard-coded HUD host lookup and terrain-description coverage fixed in later commits, one HUD/ActionMenu semantics finding superseded by clarified intended behavior
+  - 2026-05-21b (`AGENT/Code Reviews/code_review_2026-05-21b.md`) — verification/doc sync review; test-runner/docs drift fixed
+  - 2026-05-21 (`AGENT/Code Reviews/code_review_2026-05-21.md`) — earlier 2026-05-21 review record
+  - 2026-05-20 (`AGENT/Code Reviews/code_review_2026-05-20.md`) — earlier 2026-05-20 review record
   - 2026-05-19c (`AGENT/Code Reviews/code_review_2026-05-19c.md`) — DEBUG-banner; 4 nits, all done
   - 2026-05-19b (`code_review_2026-05-19b.md`) — playtest 3 diagnosis; all bugs done
   - 2026-05-19 (`code_review_2026-05-19.md`) — playtest-2-fixes review; top 4 done; remainder = **B9** + architectural backlog (B3/B4/B5)

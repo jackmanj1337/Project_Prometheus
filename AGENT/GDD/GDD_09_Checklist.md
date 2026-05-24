@@ -13,20 +13,20 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-21)
+## Status Snapshot (last updated 2026-05-24)
 
 | Milestone | Status | Notes |
 |---|---|---|
-| M0 — Project Setup | ✅ Complete | project.godot, 10 autoloads, folder structure, .gitignore |
-| M1 — Data Layer | ✅ Complete | 7 Resource classes, 46 .tres files; A1 fields folded in |
+| M0 — Project Setup | ✅ Complete | project.godot, current autoload stack, folder structure, .gitignore, CI wrapper/workflows |
+| M1 — Data Layer | ✅ Complete | expanded Resource layer plus live data sets for classes, items, skills, maps, pair-up data, and test rosters |
 | M2 — Grid and Map Rendering | ✅ Complete | TileSets, GridManager, MapCursor, GameMap; A4 hooks done |
 | M3 — Units and Turn Structure | ✅ Complete | Unit.gd, Unit.tscn, GameMap, TurnManager, MapCursor; A2 done |
 | M4 — Combat System | ✅ Complete | CombatResolver two-phase pipeline, SkillHandler, EXP, Brave weapons; A3 done |
-| M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, ItemMenu, AttackPreview, CombatHUD, LevelUp, GameOver, MainMenu, NewGameScreen, SettingsScreen |
+| M5 — HUD and UI | ✅ Complete | HUD, PhaseBanner, MapMenu, ActionMenu, ItemMenu, WeaponMenu, AttackPreview, CombatHUD, LevelUp, Promotion, Reclass, UnitDetails, GameOver, MainMenu, NewGameScreen, SettingsScreen |
 | M6 — Enemy AI | ✅ Basic complete | basic / passive / healer profiles; kill-score heuristic deferred to Phase 2 |
-| M7 — Full MVP Playthrough | ⏳ In progress | playtest 1 done — 13 findings fixed (+ a ripple audit, 6 more); re-playtest pending |
+| M7 — Full MVP Playthrough | ⏳ In progress | playtest 1 done; later playtests 2–4 follow-ups, Pair Up pass 1, and More Info phase 1 landed; fresh broad/manual regression sweep still pending |
 
-**Tests:** 586 passing across 26 suites (`scripts/tests/test_*.gd`). Run `bash run_tests.sh`.
+**Tests:** 35 suites in `scripts/tests/test_*.gd`. Run `bash run_tests.sh` in an existing checkout, or `bash scripts/ci/run_headless_tests.sh` for a fresh-clone/CI-style run.
 
 > **Amendments folded in.** The MVP amendments A1–A4 (Phase-2 data fields +
 > `ConditionManager`; modifier hooks; the combat context pipeline; grid skill-hook
@@ -38,6 +38,13 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 > record**. M0–M6 are complete per the table above and the resynced GDD_01–GDD_08
 > are authoritative for current behaviour, even where individual boxes are still
 > shown unchecked.
+>
+> **Post-MVP additions landed after this checklist's original phase order.** The
+> current branch also includes M14/M16 faction-objective work, hotseat
+> foundations and validation maps, the class/promotion/reclass rebuild, Pair Up
+> pass 1 partial, and More Info phase 1. Those newer systems are tracked in
+> `AGENT/GDD/GDD_10a_Overview.md` and the live validation passes in
+> `AGENT/GDD/GDD_Manual_Tasks.md`.
 >
 > **Content Expansion supplements** (`GDD/Content Expansion/`) were reviewed against
 > the implementation: dynamic range formulas, Faire/Breaker hooks, and Brave-weapon
