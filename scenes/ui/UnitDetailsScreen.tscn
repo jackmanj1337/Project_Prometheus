@@ -42,8 +42,11 @@ text = "Unit"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 
-[node name="StatsLabel" type="Label" parent="Panel/VBox"]
+[node name="StatsLabel" type="RichTextLabel" parent="Panel/VBox"]
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = "Stats"
 
 [node name="InventoryLabel" type="Label" parent="Panel/VBox"]

@@ -15,7 +15,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
 @onready var _title: Label     = $Panel/VBox/TitleLabel
-@onready var _stats: Label     = $Panel/VBox/StatsLabel
+@onready var _stats: RichTextLabel = $Panel/VBox/StatsLabel
 @onready var _inventory: Label = $Panel/VBox/InventoryLabel
 @onready var _skills: Label    = $Panel/VBox/SkillsLabel
 @onready var _wexp: RichTextLabel = $Panel/VBox/WexpLabel
@@ -43,16 +43,24 @@ func open(unit: Node) -> void:
 
 func _format_stats(unit: Node) -> String:
 	var d: UnitData = unit.data
+	var str_cur: int = _effective_stat(unit, "strength", d.strength)
+	var mag_cur: int = _effective_stat(unit, "magic", d.magic)
+	var skl_cur: int = _effective_stat(unit, "skill", d.skill)
+	var spd_cur: int = _effective_stat(unit, "speed", d.speed)
+	var def_cur: int = _effective_stat(unit, "defense", d.defense)
+	var res_cur: int = _effective_stat(unit, "resistance", d.resistance)
+	var lck_cur: int = _effective_stat(unit, "luck", d.luck)
+	var mov_cur: int = _effective_stat(unit, "movement", d.movement)
 	var lines: Array[String] = [
 		"HP   %d / %d" % [d.hp, d.max_hp],
-		"Str  %-3d  Mag  %d" % [_effective_stat(unit, "strength", d.strength),
-			_effective_stat(unit, "magic", d.magic)],
-		"Skl  %-3d  Spd  %d" % [_effective_stat(unit, "skill", d.skill),
-			_effective_stat(unit, "speed", d.speed)],
-		"Def  %-3d  Res  %d" % [_effective_stat(unit, "defense", d.defense),
-			_effective_stat(unit, "resistance", d.resistance)],
-		"Lck  %-3d  Mov  %d" % [_effective_stat(unit, "luck", d.luck),
-			_effective_stat(unit, "movement", d.movement)],
+		"Str  %s  Mag  %s" % [_format_current_stat(str_cur, d.strength),
+			_format_current_stat(mag_cur, d.magic)],
+		"Skl  %s  Spd  %s" % [_format_current_stat(skl_cur, d.skill),
+			_format_current_stat(spd_cur, d.speed)],
+		"Def  %s  Res  %s" % [_format_current_stat(def_cur, d.defense),
+			_format_current_stat(res_cur, d.resistance)],
+		"Lck  %s  Mov  %s" % [_format_current_stat(lck_cur, d.luck),
+			_format_current_stat(mov_cur, d.movement)],
 		"Int  %d" % d.internal_level,
 		"EXP  %d / 100" % d.exp,
 		"",
@@ -98,6 +106,15 @@ func _format_stat_breakdown(unit: Node, label: String, stat_name: String) -> Str
 
 func _signed(value: int) -> String:
 	return ("%+d" % value)
+
+
+func _format_current_stat(current: int, base: int) -> String:
+	var value_text: String = "%-3d" % current
+	if current > base:
+		return "[color=#61c454]%s[/color]" % value_text
+	if current < base:
+		return "[color=#d85b5b]%s[/color]" % value_text
+	return value_text
 
 
 func _format_inventory(d: UnitData) -> String:

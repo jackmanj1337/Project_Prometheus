@@ -84,10 +84,12 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
 
-	# Stats line reflects effective values and the breakdown includes base + mods.
-	if "Str  11" in screen._stats.text and "Str  base 9; mods: tonic +2; total 11" in screen._stats.text \
+	# Stats line reflects effective values, colors boosted stats, and the
+	# breakdown includes base + mods.
+	if "[color=#61c454]11 [/color]" in screen._stats.text \
+			and "Str  base 9; mods: tonic +2; total 11" in screen._stats.text \
 			and "Mov  base 6; mods: pair_up +1; total 7" in screen._stats.text:
-		print("OK  stats panel shows effective values plus base/modifier breakdown"); passed += 1
+		print("OK  stats panel shows colored effective values plus base/modifier breakdown"); passed += 1
 	else:
 		print("FAIL stats panel: %s" % screen._stats.text); failed += 1
 
