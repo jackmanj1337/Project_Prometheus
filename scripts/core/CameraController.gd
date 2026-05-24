@@ -101,6 +101,30 @@ func clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	return tile
 
 
+# Nudges the camera by a pixel delta, clamped so the view never shows blank
+# space past the map. Used by AttackPreview to shift the camera horizontally
+# when the preview panel does not fit on either side of the defender on the
+# current viewport. Pixel granularity (not whole-tile) so the camera lands
+# exactly where the preview needs it, not the nearest tile boundary.
+func pan_by_pixels(delta_px: Vector2) -> void:
+	if _camera == null or _grid == null or delta_px == Vector2.ZERO:
+		return
+	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var half := view * 0.5
+	var map_size := Vector2(_grid.map_width, _grid.map_height) * GameConstants.TILE_SIZE
+	var target := _camera.position + delta_px
+	# Camera position is the view CENTRE. Min centre = half view (so left edge
+	# = 0); max centre = map_size - half (so right edge = map_size). Clamp on
+	# each axis independently so a tall-but-narrow map still pans horizontally.
+	var min_x: float = half.x
+	var max_x: float = max(half.x, map_size.x - half.x)
+	var min_y: float = half.y
+	var max_y: float = max(half.y, map_size.y - half.y)
+	target.x = clampf(target.x, min_x, max_x)
+	target.y = clampf(target.y, min_y, max_y)
+	_camera.position = target
+
+
 # Nudges the camera by whole tiles, clamped to the authored map bounds. Used by
 # mouse-edge camera panning so a moving mouse can scroll the view without
 # feeding directly back into cursor->camera recursion.

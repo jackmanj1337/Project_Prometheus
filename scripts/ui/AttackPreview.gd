@@ -7,7 +7,17 @@ extends Control
 # pre-requisites for the upcoming combat-preview More Info selector. Both
 # fields read straight from CombatResolver.preview_combat() — the resolver is
 # the math authority; this script only formats the result.
+#
+# Positioning (2026-05-24d follow-up): instead of a fixed bottom-of-screen
+# panel, the preview anchors adjacent to the defender's screen tile. If
+# neither side of the defender has room for the panel on the current viewport
+# the camera pans horizontally just far enough to make room — this is the
+# only place outside CameraController that triggers a camera write, and it
+# goes through pan_by_pixels() so map-bounds clamping is honoured.
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
+@onready var _panel: PanelContainer = $Panel
 @onready var _atk_name: Label      = $Panel/HBox/AttackerBox/AtkName
 @onready var _atk_hp: Label        = $Panel/HBox/AttackerBox/AtkHP
 @onready var _atk_dmg: Label       = $Panel/HBox/AttackerBox/AtkDmg
@@ -31,6 +41,28 @@ const COLOR_ADVANTAGE    := Color(0.38, 0.77, 0.33)
 const COLOR_DISADVANTAGE := Color(0.85, 0.36, 0.36)
 const COLOR_EFFECTIVE    := Color(0.94, 0.78, 0.30)
 const COLOR_NEUTRAL      := Color(1, 1, 1, 0.6)
+
+# Pixel gap between the defender's tile edge and the preview panel, and
+# between the panel and the viewport edge. Small enough that the panel reads
+# as "attached" to the defender without crowding the sprite.
+const PANEL_MARGIN_PX: int = 16
+
+# Injected by MapCursor.setup() so the panel can read the defender's screen
+# position and ask the camera controller to pan when there is no room. All
+# three may be null in headless tests — show_preview() falls back to the
+# original fixed position so existing tests keep working.
+var _camera: Camera2D = null
+var _grid: Node = null
+var _camera_ctrl: RefCounted = null
+
+
+# Inject scene-tree dependencies that the dynamic positioning needs. Safe to
+# omit (headless tests) — the panel then keeps whatever position it had from
+# the scene file, matching the pre-2026-05-24 behaviour.
+func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
+	_camera = camera
+	_grid = grid
+	_camera_ctrl = camera_ctrl
 
 
 func _ready() -> void:
@@ -76,11 +108,66 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		_apply_triangle(_def_triangle, "neutral")
 		_apply_effective(_def_effective, false, 1.0)
 
+	# Reposition after content updates so PanelContainer's minimum size
+	# reflects the labels we just set. Then make visible.
+	_reposition_for(defender)
 	show()
 
 
 func hide_preview() -> void:
 	hide()
+
+
+# Anchors the panel beside `defender` on the current viewport. Right of the
+# defender by default; left if there is no room on the right; pan the camera
+# and use the right side if neither side fits. No-op in headless tests where
+# camera/grid were never injected.
+func _reposition_for(defender: Node) -> void:
+	if defender == null or not is_instance_valid(defender) or _camera == null:
+		return
+	if not (defender is Node2D):
+		return
+	# PanelContainer doesn't always report its minimum size until after a
+	# layout pass; reset_size() forces it to recompute from current content.
+	_panel.reset_size()
+	var panel_size: Vector2 = _panel.size
+	if panel_size == Vector2.ZERO:
+		panel_size = _panel.get_combined_minimum_size()
+	var view: Vector2 = get_viewport_rect().size
+	var tile_px: float = float(GameConstants.TILE_SIZE)
+	var defender_screen: Vector2 = (defender as Node2D).get_global_transform_with_canvas().origin
+
+	# Try the right side first. If it overflows the viewport, try the left.
+	# If the left also overflows, pan the camera so the right side fits.
+	var right_left: float = defender_screen.x + tile_px + PANEL_MARGIN_PX
+	var left_left: float  = defender_screen.x - PANEL_MARGIN_PX - panel_size.x
+	var panel_left: float = right_left
+	if right_left + panel_size.x > view.x - PANEL_MARGIN_PX:
+		if left_left >= PANEL_MARGIN_PX:
+			panel_left = left_left
+		else:
+			# Neither side fits — shift the camera right by enough to make
+			# the right-side placement land inside the viewport. After the
+			# pan the defender's screen position has moved left by the same
+			# amount, so we recompute and re-anchor.
+			var max_right_left: float = view.x - PANEL_MARGIN_PX - panel_size.x
+			var pan_x: float = right_left - max_right_left
+			if pan_x > 0 and _camera_ctrl != null and _camera_ctrl.has_method("pan_by_pixels"):
+				_camera_ctrl.pan_by_pixels(Vector2(pan_x, 0))
+				defender_screen = (defender as Node2D).get_global_transform_with_canvas().origin
+				panel_left = defender_screen.x + tile_px + PANEL_MARGIN_PX
+			# If the camera couldn't move (e.g. already at the map edge),
+			# clamp to the right-most legal position so the panel stays on
+			# screen even if it visually overlaps the defender.
+			panel_left = min(panel_left, view.x - PANEL_MARGIN_PX - panel_size.x)
+			panel_left = max(panel_left, PANEL_MARGIN_PX)
+
+	# Vertical: centre the panel on the defender; clamp to viewport so the
+	# top/bottom never clip when the defender is at a screen edge.
+	var panel_top: float = defender_screen.y + tile_px * 0.5 - panel_size.y * 0.5
+	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
+
+	_panel.position = Vector2(panel_left, panel_top)
 
 
 # Writes the triangle marker into `label`. Neutral collapses to an empty

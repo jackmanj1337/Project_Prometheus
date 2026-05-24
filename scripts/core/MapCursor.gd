@@ -190,6 +190,11 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
 	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"),
 		_controlling_faction)
+	# AttackPreview needs the camera + camera controller so it can anchor
+	# itself beside the defender and pan the view when the panel does not
+	# fit. has_method guard keeps test stubs (StubPreview) working.
+	if attack_preview != null and attack_preview.has_method("setup"):
+		attack_preview.setup(_camera, _grid, _camera_ctrl)
 	# The selection slice needs the grid + turn manager for its queries.
 	_selection.setup(_grid, _turn, _controlling_faction)
 
