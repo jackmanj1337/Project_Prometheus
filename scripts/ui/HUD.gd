@@ -1,6 +1,17 @@
 extends Control
 # Persistent HUD overlay: phase label, turn counter, unit info panel, terrain info panel.
 # Connects to EventBus signals; reads GridManager for terrain data.
+#
+# Phase 1 More Info terminal host (see
+# AGENT/Docs/more_info_mode_plan_2026-05-24.md): when no higher-priority
+# More Info panel is open, pressing `more_info` (F) toggles the terrain
+# panel into an expanded mode that adds the terrain description, common
+# movement-group costs, and the tile actions the currently-selected unit
+# could perform on this tile. Priority chain (last winner): combat preview
+# → character sheet → terrain HUD.
+
+const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
+const TileActions     = preload("res://scripts/shared/TileActions.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -13,6 +24,10 @@ extends Control
 @onready var _terrain_name: Label = $TerrainInfoPanel/VBox/TerrainName
 @onready var _terrain_def: Label = $TerrainInfoPanel/VBox/TerrainDef
 @onready var _terrain_dodge: Label = $TerrainInfoPanel/VBox/TerrainDodge
+@onready var _terrain_desc: RichTextLabel = $TerrainInfoPanel/VBox/TerrainDescription
+@onready var _terrain_moves: RichTextLabel = $TerrainInfoPanel/VBox/TerrainMoveCosts
+@onready var _terrain_actions: RichTextLabel = $TerrainInfoPanel/VBox/TerrainActions
+@onready var _terrain_hint: Label = $TerrainInfoPanel/VBox/TerrainHint
 # Red "DEBUG MODE" banner — shown only in debug builds (see _setup_debug_banner).
 @onready var _debug_label: Label = $DebugLabel
 # M16 stage 4: objective readout for the current player (blue) — listed
@@ -22,10 +37,16 @@ extends Control
 
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
+var _turn_manager: Node = null  # TurnManager — needed for tile-action gates in expanded mode
 var _unit_is_selected: bool = false  # true while a player unit is actively selected
 var _selected_unit: Node = null  # the actively selected unit (fallback for empty tiles during selection — playtest 3 #6)
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 var _displayed_unit: Node = null  # unit currently shown in the info panel (null when hidden)
+# Phase 1 More Info terrain expansion. Toggled by the `more_info` action
+# when no higher-priority More Info panel is visible. Off by default — the
+# compact terrain readout stays the at-a-glance view; expanded mode is for
+# learning what the tile does.
+var _terrain_expanded: bool = false
 
 # Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
@@ -52,6 +73,7 @@ func _ready() -> void:
 
 func setup(grid: Node, turn_node: Node) -> void:
 	_grid = grid
+	_turn_manager = turn_node
 	if turn_node:
 		turn_node.turn_changed.connect(_on_turn_changed)
 	# M16 stage 4: populate the objective readout from the active map's blue-group
@@ -233,6 +255,110 @@ func _update_terrain(tile: Vector2i) -> void:
 	var bonuses: Dictionary = _grid.get_terrain_bonuses(tile)
 	_terrain_def.text = "DEF  +%d" % int(bonuses["def"])
 	_terrain_dodge.text = "DODGE +%d" % int(bonuses["dodge"])
+	# Compact view = the three lines above. Expanded view adds the
+	# description, move-cost-by-group, and available tile actions.
+	if _terrain_expanded:
+		_render_terrain_expanded(tile, terrain)
+	else:
+		_terrain_desc.visible = false
+		_terrain_moves.visible = false
+		_terrain_actions.visible = false
+		_terrain_hint.visible = true
+
+
+# Fills the expanded More Info rows. Visibility is set here so a tile with
+# no available actions still hides that row instead of showing a stray
+# header. Description always shows when expanded — MoreInfoContent guarantees
+# a fallback string for unknown terrain ids.
+func _render_terrain_expanded(tile: Vector2i, terrain: String) -> void:
+	_terrain_desc.text = MoreInfoContent.describe("terrain", terrain)
+	_terrain_desc.visible = true
+	_terrain_moves.text = _format_move_costs(terrain)
+	_terrain_moves.visible = true
+	var actions_text: String = _format_tile_actions(tile)
+	_terrain_actions.text = actions_text
+	# Only show the actions row when there's something to say — empty list
+	# means no unit is selected or no action gates fire on this tile.
+	_terrain_actions.visible = actions_text != ""
+	_terrain_hint.visible = false
+
+
+# Returns the BBCode block listing common movement-group costs for this
+# terrain. Walls render "—" so the player sees they're impassable rather
+# than a meaningless "999."
+func _format_move_costs(terrain: String) -> String:
+	const GridManagerS = preload("res://scripts/core/GridManager.gd")
+	var costs: Dictionary = GridManagerS.get_move_costs_for_groups(terrain)
+	var lines: Array[String] = ["Move cost:"]
+	var group_labels: Array = [
+		["foot",     "Foot"],
+		["mounted",  "Mounted"],
+		["armoured", "Armoured"],
+		["light",    "Light"],
+	]
+	for entry in group_labels:
+		var key: String = entry[0]
+		var label: String = entry[1]
+		var c: int = int(costs.get(key, 1))
+		var rendered: String = "—" if c >= GridManagerS.IMPASSABLE_MOVE_COST else str(c)
+		lines.append("  %-9s %s" % [label, rendered])
+	return "\n".join(lines)
+
+
+# Returns the BBCode block listing available tile actions for the currently-
+# selected unit. Empty when no unit is selected so the row collapses
+# entirely. Uses TileActions so the list mirrors what ActionMenu would offer
+# at the same tile.
+func _format_tile_actions(tile: Vector2i) -> String:
+	if _selected_unit == null:
+		return ""
+	var ids: Array[String] = TileActions.available_for(
+		_selected_unit, tile, _turn_manager)
+	if ids.is_empty():
+		return ""
+	var lines: Array[String] = ["Actions:"]
+	for id in ids:
+		lines.append("  %s" % TileActions.display_label(id))
+	return "\n".join(lines)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Priority 3 in the More Info chain: only act when no higher-priority
+	# panel is visible. UnitDetailsScreen and AttackPreview both call
+	# set_input_as_handled when they consume the event, which already
+	# prevents this handler from firing in most cases; the explicit
+	# visibility check below makes the priority safe against future tree-
+	# order changes.
+	if not event.is_action_pressed("more_info"):
+		return
+	if _higher_priority_more_info_visible():
+		return
+	get_viewport().set_input_as_handled()
+	_terrain_expanded = not _terrain_expanded
+	# Re-render the terrain panel against the current cursor tile so the
+	# transition is immediate rather than waiting for the next cursor move.
+	if _cursor_tile.x >= 0:
+		_update_terrain(_cursor_tile)
+
+
+# True when the combat preview or unit-details screen is open — those are
+# the priority-1 and priority-2 More Info hosts and own the F key while
+# visible.
+func _higher_priority_more_info_visible() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var rt: Window = tree.root
+	# Paths mirror GameMap.tscn so they're stable as long as the scene tree
+	# structure holds. Either being absent is fine — that just means we're
+	# in a test scene where only the HUD is wired.
+	var ap: Node = rt.get_node_or_null("GameMap/HUDLayer/AttackPreview")
+	if ap != null and ap.visible:
+		return true
+	var uds: Node = rt.get_node_or_null("GameMap/UnitDetailsLayer/UnitDetailsScreen")
+	if uds != null and uds.visible:
+		return true
+	return false
 
 
 

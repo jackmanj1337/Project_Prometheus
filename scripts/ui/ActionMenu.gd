@@ -2,6 +2,12 @@ class_name ActionMenu extends Control
 # Action menu shown after a unit moves (or acts in place).
 # Buttons: Attack / Staff / Item / Wait. Each can be disabled when invalid.
 # Emits action_chosen(action_name) when player confirms, hidden_by_cancel when dismissed.
+#
+# Tile-action visibility (Seize, Escape, …) is routed through the shared
+# TileActions helper so the HUD's terrain More Info panel and this menu
+# never disagree about what's available on a given tile.
+
+const TileActions = preload("res://scripts/shared/TileActions.gd")
 
 signal action_chosen(action: String)
 signal hidden_by_cancel()
@@ -81,17 +87,13 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	# M16 stage 3: Seize is a deliberate, gated entry (Decision 4 / 2026-05-17)
 	# — visible only when the active map authors a seize condition that accepts
 	# this unit on this tile. Hidden when no TurnManager was passed.
-	var can_seize := false
-	if turn != null and turn.has_method("can_seize"):
-		can_seize = turn.can_seize(unit, unit.tile_position)
-
-	# Escape was originally auto-fire on entry to an escape zone (Decision 5 /
-	# 2026-05-17). The 2026-05-20 review reversed it: escape is now a deliberate
-	# ActionMenu entry like Seize, gated by an authored escape condition that
-	# names this unit AND a `tiles` zone covering its current tile.
-	var can_escape := false
-	if turn != null and turn.has_method("can_escape"):
-		can_escape = turn.can_escape(unit, unit.tile_position)
+	# Escape (Decision 5 + 2026-05-20 review): deliberate ActionMenu entry,
+	# gated by an authored escape condition that names this unit AND a `tiles`
+	# zone covering its current tile.
+	# Both gates go through TileActions so the HUD's terrain More Info panel
+	# shows exactly the same set of available actions.
+	var can_seize: bool = TileActions.is_available("seize", unit, unit.tile_position, turn)
+	var can_escape: bool = TileActions.is_available("escape", unit, unit.tile_position, turn)
 
 	# Pair Up / Swap visibility. Pair Up is shown when the unit is unpaired
 	# AND there is at least one adjacent unpaired ally; Swap when the unit is

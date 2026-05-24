@@ -101,6 +101,34 @@ func get_terrain_bonuses(tile: Vector2i) -> Dictionary:
 	}
 
 
+# Returns a `terrain`-specific move-cost reading for the common authored
+# movement groups, so the HUD's terrain More Info panel can show the same
+# numbers without having to invent a synthetic unit for each group. Mirrors
+# the per-unit overrides in get_move_cost() — keep the two in sync if one
+# changes. Wall terrain reports IMPASSABLE_MOVE_COST for every group; the
+# caller renders that as "—" rather than a numeric cost.
+const IMPASSABLE_MOVE_COST: int = 999
+
+static func get_move_costs_for_groups(terrain: String) -> Dictionary:
+	if terrain == "wall":
+		return {
+			"foot":     IMPASSABLE_MOVE_COST,
+			"mounted":  IMPASSABLE_MOVE_COST,
+			"armoured": IMPASSABLE_MOVE_COST,
+			"light":    IMPASSABLE_MOVE_COST,
+		}
+	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
+	var mounted: int = 3 if terrain == "desert" else base
+	var armoured: int = 3 if terrain == "desert" else base
+	var light: int = 1 if terrain == "desert" else base
+	return {
+		"foot":     base,
+		"mounted":  mounted,
+		"armoured": armoured,
+		"light":    light,
+	}
+
+
 func world_to_tile(world_pos: Vector2) -> Vector2i:
 	return Vector2i(int(world_pos.x) / GameConstants.TILE_SIZE, int(world_pos.y) / GameConstants.TILE_SIZE)
 
