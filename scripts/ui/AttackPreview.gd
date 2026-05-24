@@ -2,63 +2,69 @@ extends Control
 # Shows attacker vs defender combat stats before the player confirms an attack.
 # Populated by MapCursor when entering 'previewing' state.
 #
-# Phase 1 More Info content (see AGENT/Docs/more_info_mode_plan_2026-05-24.md):
-# the preview shows weapon-triangle and effectiveness markers because both are
-# pre-requisites for the upcoming combat-preview More Info selector. Both
-# fields read straight from CombatResolver.preview_combat() — the resolver is
-# the math authority; this script only formats the result.
+# Phase 1 More Info host (see AGENT/Docs/more_info_mode_plan_2026-05-24.md):
+# every preview field is a clickable [url=combat_field:...] link that opens
+# a description in the InfoBox side panel; the more_info action cycles
+# through them in declaration order. Combat preview wins priority 1 in the
+# F chain so its handler consumes the event when the panel is visible.
 #
-# Positioning (2026-05-24d follow-up): instead of a fixed bottom-of-screen
-# panel, the preview anchors adjacent to the defender's screen tile. If
-# neither side of the defender has room for the panel on the current viewport
-# the camera pans horizontally just far enough to make room — this is the
-# only place outside CameraController that triggers a camera write, and it
-# goes through pan_by_pixels() so map-bounds clamping is honoured.
+# Positioning: instead of a fixed bottom-of-screen slot the preview anchors
+# beside the defender on screen. If neither side has room the camera pans
+# horizontally via CameraController.pan_by_pixels(). The math reads the
+# panel's current size after content updates so the InfoBox column can grow
+# without breaking the screen-edge clamp.
 
-const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
+const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 
 @onready var _panel: PanelContainer = $Panel
-@onready var _atk_name: Label      = $Panel/HBox/AttackerBox/AtkName
-@onready var _atk_hp: Label        = $Panel/HBox/AttackerBox/AtkHP
-@onready var _atk_dmg: Label       = $Panel/HBox/AttackerBox/AtkDmg
-@onready var _atk_hit: Label       = $Panel/HBox/AttackerBox/AtkHit
-@onready var _atk_crit: Label      = $Panel/HBox/AttackerBox/AtkCrit
-@onready var _atk_triangle: Label  = $Panel/HBox/AttackerBox/AtkTriangle
-@onready var _atk_effective: Label = $Panel/HBox/AttackerBox/AtkEffective
-@onready var _def_name: Label      = $Panel/HBox/DefenderBox/DefName
-@onready var _def_hp: Label        = $Panel/HBox/DefenderBox/DefHP
-@onready var _def_dmg: Label       = $Panel/HBox/DefenderBox/DefDmg
-@onready var _def_hit: Label       = $Panel/HBox/DefenderBox/DefHit
-@onready var _def_crit: Label      = $Panel/HBox/DefenderBox/DefCrit
-@onready var _def_triangle: Label  = $Panel/HBox/DefenderBox/DefTriangle
-@onready var _def_effective: Label = $Panel/HBox/DefenderBox/DefEffective
+@onready var _atk_name: RichTextLabel      = $Panel/HBox/AttackerBox/AtkName
+@onready var _atk_hp: RichTextLabel        = $Panel/HBox/AttackerBox/AtkHP
+@onready var _atk_dmg: RichTextLabel       = $Panel/HBox/AttackerBox/AtkDmg
+@onready var _atk_hit: RichTextLabel       = $Panel/HBox/AttackerBox/AtkHit
+@onready var _atk_crit: RichTextLabel      = $Panel/HBox/AttackerBox/AtkCrit
+@onready var _atk_triangle: RichTextLabel  = $Panel/HBox/AttackerBox/AtkTriangle
+@onready var _atk_effective: RichTextLabel = $Panel/HBox/AttackerBox/AtkEffective
+@onready var _def_name: RichTextLabel      = $Panel/HBox/DefenderBox/DefName
+@onready var _def_hp: RichTextLabel        = $Panel/HBox/DefenderBox/DefHP
+@onready var _def_dmg: RichTextLabel       = $Panel/HBox/DefenderBox/DefDmg
+@onready var _def_hit: RichTextLabel       = $Panel/HBox/DefenderBox/DefHit
+@onready var _def_crit: RichTextLabel      = $Panel/HBox/DefenderBox/DefCrit
+@onready var _def_triangle: RichTextLabel  = $Panel/HBox/DefenderBox/DefTriangle
+@onready var _def_effective: RichTextLabel = $Panel/HBox/DefenderBox/DefEffective
+@onready var _info_title: Label            = $Panel/HBox/InfoBox/InfoTitle
+@onready var _info_hint: Label             = $Panel/HBox/InfoBox/InfoHint
+@onready var _info_desc: RichTextLabel     = $Panel/HBox/InfoBox/InfoDescription
 
-# Colors tuned to read against the dark panel: green = advantage / boost,
-# red = disadvantage, amber = effective. Modulate is used instead of BBCode
-# because these are plain Labels and modulate avoids upgrading the whole row
-# to a RichTextLabel for one short tag.
-const COLOR_ADVANTAGE    := Color(0.38, 0.77, 0.33)
-const COLOR_DISADVANTAGE := Color(0.85, 0.36, 0.36)
-const COLOR_EFFECTIVE    := Color(0.94, 0.78, 0.30)
-const COLOR_NEUTRAL      := Color(1, 1, 1, 0.6)
+# BBCode colour strings (Hex without alpha — RichTextLabel matches the
+# previous modulate colours). Inline [color] wraps the link text so the
+# triangle/effective markers stay readable while still being clickable.
+const COLOR_ADVANTAGE    := "#61c454"
+const COLOR_DISADVANTAGE := "#d85b5b"
+const COLOR_EFFECTIVE    := "#eec84c"
 
 # Pixel gap between the defender's tile edge and the preview panel, and
-# between the panel and the viewport edge. Small enough that the panel reads
-# as "attached" to the defender without crowding the sprite.
+# between the panel and the viewport edge.
 const PANEL_MARGIN_PX: int = 16
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
-# three may be null in headless tests — show_preview() falls back to the
-# original fixed position so existing tests keep working.
+# three may be null in headless tests — show_preview() then keeps the panel
+# at its scene-file position rather than crashing.
 var _camera: Camera2D = null
 var _grid: Node = null
 var _camera_ctrl: RefCounted = null
 
+# Ordered list of selectable entries built during show_preview(). Each is
+# {"side": "atk"|"def", "key": "hit"|..., "title": String} — `more_info`
+# cycles through this list in left-to-right, top-to-bottom order.
+var _entries: Array = []
 
-# Inject scene-tree dependencies that the dynamic positioning needs. Safe to
-# omit (headless tests) — the panel then keeps whatever position it had from
-# the scene file, matching the pre-2026-05-24 behaviour.
+# Index into _entries for the currently displayed side-panel entry. -1 means
+# nothing is selected yet — InfoHint is visible and InfoDescription is empty.
+var _current_index: int = -1
+
+
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 	_camera = camera
 	_grid = grid
@@ -66,6 +72,10 @@ func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 
 
 func _ready() -> void:
+	# Wire every selectable field's meta_clicked to the same handler. The
+	# [url=combat_field:KEY] meta string is parsed in _on_entry_clicked.
+	for label in _all_selectable_labels():
+		label.meta_clicked.connect(_on_entry_clicked)
 	hide()
 
 
@@ -75,41 +85,64 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		return
 	var p: Dictionary = cr.preview_combat(attacker, defender)
 
-	_atk_name.text = attacker.data.unit_name if attacker.data else "???"
-	_atk_hp.text = "HP %d" % (attacker.data.hp if attacker.data else 0)
-	_atk_dmg.text = "Dmg  %d×%d" % [p["attacker_damage"], p["attacker_attacks"]]
-	_atk_hit.text = "Hit  %d%%" % p["attacker_hit"]
-	_atk_crit.text = "Crit %d%%" % p["attacker_crit"]
-	_apply_triangle(_atk_triangle, String(p.get("attacker_triangle", "neutral")))
-	_apply_effective(_atk_effective,
+	_entries.clear()
+	_current_index = -1
+
+	# ---- Attacker rows -----------------------------------------------
+	var atk_name: String = attacker.data.unit_name if attacker.data else "???"
+	_atk_name.text = _link("atk", "name", "Attacker", atk_name)
+	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
+	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
+	_atk_hp.text  = _link("atk", "hp", "HP",
+		"HP %d / %d" % [atk_hp_val, atk_hp_max])
+	_atk_dmg.text = _link("atk", "damage", "Damage",
+		"Dmg  %d×%d" % [p["attacker_damage"], p["attacker_attacks"]])
+	_atk_hit.text = _link("atk", "hit", "Hit Rate",
+		"Hit  %d%%" % p["attacker_hit"])
+	_atk_crit.text = _link("atk", "crit", "Crit Rate",
+		"Crit %d%%" % p["attacker_crit"])
+	_atk_triangle.text = _triangle_link("atk",
+		String(p.get("attacker_triangle", "neutral")))
+	_atk_effective.text = _effective_link("atk",
 		bool(p.get("attacker_effective", false)),
 		float(p.get("attacker_effectiveness_mult", 1.0)))
 
-	# Flag Vantage on the defender's name — the defender will strike first.
-	var def_name: String = defender.data.unit_name if defender.data else "???"
+	# ---- Defender rows -----------------------------------------------
+	var def_name_str: String = defender.data.unit_name if defender.data else "???"
 	if p.get("defender_vantage", false):
-		def_name += "  [Vantage]"
-	_def_name.text = def_name
-	_def_hp.text = "HP %d" % (defender.data.hp if defender.data else 0)
+		# Vantage is annotated on the name so the player sees the strike-order
+		# change. The [Vantage] tag stays outside the [url] to keep the link
+		# meta clean.
+		_def_name.text = _link("def", "name", "Defender", def_name_str) + "  [Vantage]"
+	else:
+		_def_name.text = _link("def", "name", "Defender", def_name_str)
+	var def_hp_val: int = defender.data.hp if defender.data else 0
+	var def_hp_max: int = defender.data.max_hp if defender.data else 0
+	_def_hp.text = _link("def", "hp", "HP",
+		"HP %d / %d" % [def_hp_val, def_hp_max])
 	if p["can_counter"]:
-		_def_dmg.text = "Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]]
-		_def_hit.text = "Hit  %d%%" % p["defender_hit"]
-		_def_crit.text = "Crit %d%%" % p["defender_crit"]
-		_apply_triangle(_def_triangle, String(p.get("defender_triangle", "neutral")))
-		_apply_effective(_def_effective,
+		_def_dmg.text = _link("def", "damage", "Damage",
+			"Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]])
+		_def_hit.text = _link("def", "hit", "Hit Rate",
+			"Hit  %d%%" % p["defender_hit"])
+		_def_crit.text = _link("def", "crit", "Crit Rate",
+			"Crit %d%%" % p["defender_crit"])
+		_def_triangle.text = _triangle_link("def",
+			String(p.get("defender_triangle", "neutral")))
+		_def_effective.text = _effective_link("def",
 			bool(p.get("defender_effective", false)),
 			float(p.get("defender_effectiveness_mult", 1.0)))
 	else:
-		# No counter -> defender row is mostly blank; clear the markers too so
-		# stale text from a previous preview never leaks through.
-		_def_dmg.text = "No counter"
+		# No counter — the defender row collapses to a single "No counter"
+		# line. We still register it as an entry so more_info cycle visits
+		# the defender side, but the description is a plain note.
+		_def_dmg.text = _link("def", "damage", "Damage", "No counter")
 		_def_hit.text = ""
 		_def_crit.text = ""
-		_apply_triangle(_def_triangle, "neutral")
-		_apply_effective(_def_effective, false, 1.0)
+		_def_triangle.text = _triangle_link("def", "neutral")
+		_def_effective.text = _effective_link("def", false, 1.0)
 
-	# Reposition after content updates so PanelContainer's minimum size
-	# reflects the labels we just set. Then make visible.
+	_reset_info_panel()
 	_reposition_for(defender)
 	show()
 
@@ -118,10 +151,110 @@ func hide_preview() -> void:
 	hide()
 
 
-# Anchors the panel beside `defender` on the current viewport. Right of the
-# defender by default; left if there is no room on the right; pan the camera
-# and use the right side if neither side fits. No-op in headless tests where
-# camera/grid were never injected.
+# Returns the labels that participate in selection. Hand-listed instead of
+# walking the tree so a future "add a stat below crit" doesn't accidentally
+# break selection ordering — the cycle order is exactly this declaration
+# order, which matches how the player reads the preview.
+func _all_selectable_labels() -> Array[RichTextLabel]:
+	return [
+		_atk_name, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle, _atk_effective,
+		_def_name, _def_hp, _def_dmg, _def_hit, _def_crit, _def_triangle, _def_effective,
+	]
+
+
+# Builds one selectable field. `title` is the side-panel title used when this
+# field is selected; `text` is the visible row text. Registering the entry
+# here keeps the _entries list in sync with the visible link order.
+func _link(side: String, key: String, title: String, text: String) -> String:
+	_entries.append({"side": side, "key": key, "title": title})
+	return "[url=combat_field:%s:%s]%s[/url]" % [side, key, text]
+
+
+# Triangle marker. Neutral renders empty so the row doesn't reserve space
+# for a marker that has no meaning. Advantage/disadvantage wrap the text in
+# both [color] and [url] so the marker stays readable AND clickable.
+func _triangle_link(side: String, result: String) -> String:
+	match result:
+		"advantage":
+			return _link(side, "triangle", "Weapon Triangle",
+				"[color=%s]▲ Advantage[/color]" % COLOR_ADVANTAGE)
+		"disadvantage":
+			return _link(side, "triangle", "Weapon Triangle",
+				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE)
+		_:
+			# Still register the entry so the cycle visits it — but render
+			# blank text. Clicking nothing is impossible, so the entry is
+			# only reachable via the more_info cycle.
+			_entries.append({"side": side, "key": "triangle", "title": "Weapon Triangle"})
+			return ""
+
+
+# Effectiveness marker. Mult is included so the player can tell Giantkiller's
+# 4× apart from the standard 3× effective bonus.
+func _effective_link(side: String, is_effective: bool, mult: float) -> String:
+	if is_effective:
+		return _link(side, "effectiveness", "Effectiveness",
+			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))])
+	# Same cycle-only registration as the neutral triangle case.
+	_entries.append({"side": side, "key": "effectiveness", "title": "Effectiveness"})
+	return ""
+
+
+# Resets the side panel to its "nothing selected yet" hint state.
+func _reset_info_panel() -> void:
+	_info_title.text = "More Info"
+	_info_hint.visible = true
+	_info_desc.text = ""
+
+
+# Parses the [url=...] meta. Expected shape: "combat_field:atk:hit" — a
+# three-segment colon-delimited key carrying category, side, and field.
+func _on_entry_clicked(meta: Variant) -> void:
+	var s: String = String(meta)
+	var parts: PackedStringArray = s.split(":")
+	if parts.size() != 3:
+		return
+	var side: String = parts[1]
+	var key: String = parts[2]
+	for i in _entries.size():
+		var e: Dictionary = _entries[i]
+		if e["side"] == side and e["key"] == key:
+			_current_index = i
+			_show_entry(e)
+			return
+
+
+func _show_entry(entry: Dictionary) -> void:
+	_info_title.text = String(entry["title"])
+	_info_hint.visible = false
+	_info_desc.text = MoreInfoContent.describe("combat_field", String(entry["key"]))
+
+
+# Advances through _entries. First press shows the first entry; subsequent
+# presses move forward one and wrap. Same semantics as UnitDetailsScreen so
+# the player only has to learn one F behaviour across both surfaces.
+func _cycle_more_info() -> void:
+	if _entries.is_empty():
+		return
+	_current_index = (_current_index + 1) % _entries.size()
+	_show_entry(_entries[_current_index])
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Priority 1 in the More Info chain: when the preview is visible the F
+	# action belongs to the preview, not the character sheet or terrain HUD.
+	# Consuming the event here keeps both implicit (the other handlers also
+	# guard on `visible`) and explicit (they receive set_input_as_handled).
+	if not visible:
+		return
+	if event.is_action_pressed("more_info"):
+		get_viewport().set_input_as_handled()
+		_cycle_more_info()
+
+
+# ── Positioning helpers (unchanged from 2026-05-24d) ──────────────────────
+
+
 func _reposition_for(defender: Node) -> void:
 	if defender == null or not is_instance_valid(defender) or _camera == null:
 		return
@@ -137,8 +270,6 @@ func _reposition_for(defender: Node) -> void:
 	var tile_px: float = float(GameConstants.TILE_SIZE)
 	var defender_screen: Vector2 = (defender as Node2D).get_global_transform_with_canvas().origin
 
-	# Try the right side first. If it overflows the viewport, try the left.
-	# If the left also overflows, pan the camera so the right side fits.
 	var right_left: float = defender_screen.x + tile_px + PANEL_MARGIN_PX
 	var left_left: float  = defender_screen.x - PANEL_MARGIN_PX - panel_size.x
 	var panel_left: float = right_left
@@ -146,52 +277,16 @@ func _reposition_for(defender: Node) -> void:
 		if left_left >= PANEL_MARGIN_PX:
 			panel_left = left_left
 		else:
-			# Neither side fits — shift the camera right by enough to make
-			# the right-side placement land inside the viewport. After the
-			# pan the defender's screen position has moved left by the same
-			# amount, so we recompute and re-anchor.
 			var max_right_left: float = view.x - PANEL_MARGIN_PX - panel_size.x
 			var pan_x: float = right_left - max_right_left
 			if pan_x > 0 and _camera_ctrl != null and _camera_ctrl.has_method("pan_by_pixels"):
 				_camera_ctrl.pan_by_pixels(Vector2(pan_x, 0))
 				defender_screen = (defender as Node2D).get_global_transform_with_canvas().origin
 				panel_left = defender_screen.x + tile_px + PANEL_MARGIN_PX
-			# If the camera couldn't move (e.g. already at the map edge),
-			# clamp to the right-most legal position so the panel stays on
-			# screen even if it visually overlaps the defender.
 			panel_left = min(panel_left, view.x - PANEL_MARGIN_PX - panel_size.x)
 			panel_left = max(panel_left, PANEL_MARGIN_PX)
 
-	# Vertical: centre the panel on the defender; clamp to viewport so the
-	# top/bottom never clip when the defender is at a screen edge.
 	var panel_top: float = defender_screen.y + tile_px * 0.5 - panel_size.y * 0.5
 	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
 
 	_panel.position = Vector2(panel_left, panel_top)
-
-
-# Writes the triangle marker into `label`. Neutral collapses to an empty
-# string so the row doesn't reserve vertical space for a marker that has no
-# meaning right now.
-func _apply_triangle(label: Label, result: String) -> void:
-	match result:
-		"advantage":
-			label.text = "▲ Advantage"
-			label.modulate = COLOR_ADVANTAGE
-		"disadvantage":
-			label.text = "▼ Disadvantage"
-			label.modulate = COLOR_DISADVANTAGE
-		_:
-			label.text = ""
-			label.modulate = COLOR_NEUTRAL
-
-
-# Writes the effectiveness marker. Mult is shown when > 1 so the player can
-# see Giantkiller's 4× distinct from the normal 3× effective bonus.
-func _apply_effective(label: Label, is_effective: bool, mult: float) -> void:
-	if is_effective:
-		label.text = "Effective ×%d" % int(round(mult))
-		label.modulate = COLOR_EFFECTIVE
-	else:
-		label.text = ""
-		label.modulate = COLOR_NEUTRAL

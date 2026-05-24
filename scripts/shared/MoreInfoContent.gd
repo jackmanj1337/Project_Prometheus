@@ -51,6 +51,8 @@ const WEXP: Dictionary = {
 
 # Combat preview field descriptions.
 const COMBAT_FIELDS: Dictionary = {
+	"name":          "The combatant in this exchange. Press the inspect-unit key on the map for their full character sheet.",
+	"hp":            "Current HP / Max HP for this combatant. Reaching 0 HP defeats them.",
 	"hit":           "Chance to land a single hit, after the defender's avoid is subtracted.",
 	"crit":          "Chance the hit deals triple damage. Critical hits still need to land — they are rolled after hit.",
 	"damage":        "Damage dealt per successful hit, before any defensive stat is applied.",
