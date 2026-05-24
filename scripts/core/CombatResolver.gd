@@ -570,6 +570,15 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_crit_ctx := {"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"]}
 	var def_crit_ctx := {"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"]}
 
+	# Triangle result from the attacker's perspective; the defender's result is
+	# always the mirror (advantage <-> disadvantage, neutral stays neutral).
+	# Exposed so the More Info preview can show a marker beside each side
+	# without re-querying the triangle table.
+	var atk_triangle: String = _get_triangle_result(aw, dw)
+	var def_triangle: String = "neutral"
+	match atk_triangle:
+		"advantage":    def_triangle = "disadvantage"
+		"disadvantage": def_triangle = "advantage"
 	var result := {
 		"attacker_hit":     compute_hit_pct(attacker, defender, aw, atk_hit_ctx),
 		"attacker_damage":  compute_damage(attacker, defender, aw, atk_dmg_ctx),
@@ -585,6 +594,15 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		# True when Vantage will make the defender strike first — the strike counts
 		# above are unaffected, but the exchange order is, so the UI surfaces it.
 		"defender_vantage": context["flags"]["vantage"],
+		# Phase 1 More Info preview fields. _effective is a bool for the UI
+		# marker; _mult is the float multiplier (1.0 / 3.0 / 4.0 for Giantkiller)
+		# so the description panel can show "Effective ×3" without recomputing.
+		"attacker_triangle":           atk_triangle,
+		"defender_triangle":           def_triangle,
+		"attacker_effective":          eff_atk > 1.0,
+		"defender_effective":          can_counter and eff_def > 1.0,
+		"attacker_effectiveness_mult": eff_atk,
+		"defender_effectiveness_mult": eff_def if can_counter else 1.0,
 	}
 	# All stat reads are done — restore now so preview leaves no trace on live state.
 	_restore_unit_state(attacker, atk_snap)

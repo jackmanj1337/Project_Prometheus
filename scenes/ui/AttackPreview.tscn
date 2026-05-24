@@ -44,6 +44,14 @@ text = "Hit  0%%"
 layout_mode = 2
 text = "Crit 0%%"
 
+[node name="AtkTriangle" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = ""
+
+[node name="AtkEffective" type="Label" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+text = ""
+
 [node name="DefenderBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
 
@@ -64,5 +72,13 @@ layout_mode = 2
 text = ""
 
 [node name="DefCrit" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = ""
+
+[node name="DefTriangle" type="Label" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+text = ""
+
+[node name="DefEffective" type="Label" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 text = ""

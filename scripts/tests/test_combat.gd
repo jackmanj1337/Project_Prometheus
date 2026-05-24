@@ -404,6 +404,47 @@ func _init() -> void:
 		print("FAIL preview_combat missing keys")
 		failed += 1
 
+	# --- More Info preview fields: triangle + effectiveness ---
+	# Sword (atk) vs Bow (def) is neutral. Both effective flags must be false
+	# and both multipliers must be 1.0 — defaults the UI marker code relies on.
+	var neutral_ok: bool = (
+		String(prev.get("attacker_triangle", "")) == "neutral"
+		and String(prev.get("defender_triangle", "")) == "neutral"
+		and bool(prev.get("attacker_effective", true)) == false
+		and bool(prev.get("defender_effective", true)) == false
+		and float(prev.get("attacker_effectiveness_mult", 0.0)) == 1.0
+		and float(prev.get("defender_effectiveness_mult", 0.0)) == 1.0
+	)
+	if neutral_ok:
+		print("OK  preview exposes neutral triangle + no effectiveness as defaults")
+		passed += 1
+	else:
+		print("FAIL preview defaults: %s" % prev); failed += 1
+
+	# Sword vs Lance = sword disadvantage; defender's mirror is advantage.
+	var atk_tri := _make_unit({"name":"SwordTri","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword})
+	var def_tri := _make_unit({"name":"LanceTri","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
+	var prev_tri := cr.preview_combat(atk_tri, def_tri)
+	if String(prev_tri["attacker_triangle"]) == "disadvantage" \
+			and String(prev_tri["defender_triangle"]) == "advantage":
+		print("OK  preview triangle: sword vs lance -> attacker disadv, defender adv")
+		passed += 1
+	else:
+		print("FAIL preview triangle: atk=%s def=%s" % [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]])
+		failed += 1
+
+	# Bow with effective_flying vs flying defender -> attacker_effective true,
+	# multiplier 3.0. (Existing fixture: iron_bow has effective_flying tag.)
+	var eff_def := _make_unit({"name":"EffPegasus","strength":8,"defense":4,"skill":10,"speed":12,"luck":6,"team":"red","tile":Vector2i(1,0),"qualities":["flying"],"weapon":iron_sword})
+	var eff_atk := _make_unit({"name":"EffArcher","strength":10,"defense":5,"skill":12,"speed":8,"luck":4,"weapon":iron_bow})
+	var prev_eff := cr.preview_combat(eff_atk, eff_def)
+	if bool(prev_eff["attacker_effective"]) and float(prev_eff["attacker_effectiveness_mult"]) == 3.0:
+		print("OK  preview effectiveness: bow vs flyer flags effective ×3")
+		passed += 1
+	else:
+		print("FAIL preview effectiveness: eff=%s mult=%s" % [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]])
+		failed += 1
+
 	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---
 	# A Resolve unit at ≤50% HP gets +50% STR (10→15). preview_combat must show the
 	# boosted damage: the modifier is applied before the stat reads and restored
