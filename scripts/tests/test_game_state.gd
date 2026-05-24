@@ -270,6 +270,22 @@ func _init() -> void:
 		else:
 			print("FAIL debug hotkeys: force_ok=%s growth_ok=%s" % [force_ok, growth_ok])
 			failed += 1
+		var force_events: Array = InputMap.action_get_events("debug_toggle_force_levelup")
+		var growth_events: Array = InputMap.action_get_events("debug_toggle_growth_boost")
+		var binding_ok: bool = (
+			not force_events.is_empty()
+			and not growth_events.is_empty()
+			and force_events[0] is InputEventKey
+			and growth_events[0] is InputEventKey
+			and force_events[0].keycode == KEY_F10
+			and growth_events[0].keycode == KEY_F11
+		)
+		if binding_ok:
+			print("OK  debug keybindings: force-levelup on F10, growth-boost on F11"); passed += 1
+		else:
+			print("FAIL debug keybindings: force=%s growth=%s" % [
+				str(force_events), str(growth_events)])
+			failed += 1
 	else:
 		print("SKIP debug hotkey test (not a debug build)")
 

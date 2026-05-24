@@ -47,12 +47,24 @@ func _init() -> void:
 	d.level = 7
 	d.internal_level = 7
 	d.strength = 9
+	d.movement = 6
 	d.weapon_wexp = {"lance": 130, "axe": 50}
+	d.active_modifiers = [
+		{"stat": "strength", "delta": 2, "source": "tonic", "duration": 1, "duration_type": "turn"},
+		{"stat": "movement", "delta": 1, "source": "pair_up", "duration": -1, "duration_type": "combat"},
+	]
 	var stub_script := GDScript.new()
 	stub_script.source_code = """
 extends Node
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 var data = null
+func get_effective_stat(stat_name: String) -> int:
+	var base = data.get(stat_name)
+	var total: int = int(base) if base != null else 0
+	for mod in data.active_modifiers:
+		if String(mod.get("stat", "")) == stat_name:
+			total += int(mod.get("delta", 0))
+	return max(0, total)
 func get_stored_weapon_rank(track: String) -> String:
 	return GameConstants.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
 func is_weapon_track_available(track: String) -> bool:
@@ -72,9 +84,10 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
 
-	# Stats line reflects the unit's data.
-	if "Str  9" in screen._stats.text:
-		print("OK  stats panel reflects the unit data"); passed += 1
+	# Stats line reflects effective values and the breakdown includes base + mods.
+	if "Str  11" in screen._stats.text and "Str  base 9; mods: tonic +2; total 11" in screen._stats.text \
+			and "Mov  base 6; mods: pair_up +1; total 7" in screen._stats.text:
+		print("OK  stats panel shows effective values plus base/modifier breakdown"); passed += 1
 	else:
 		print("FAIL stats panel: %s" % screen._stats.text); failed += 1
 

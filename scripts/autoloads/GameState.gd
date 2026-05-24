@@ -108,7 +108,7 @@ func _emit_debug_flags_changed() -> void:
 		bus.debug_flags_changed.emit()
 
 
-# Debug hotkey handler. F11 toggles debug_force_levelup, F12 toggles
+# Debug hotkey handler. F10 toggles debug_force_levelup, F11 toggles
 # debug_growth_boost. Gated on OS.is_debug_build() so the action firing in a
 # release build is a no-op even if the input binding remains registered —
 # matches the existing gate on the flags themselves (callers check the same).

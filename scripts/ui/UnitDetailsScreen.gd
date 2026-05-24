@@ -33,7 +33,7 @@ func open(unit: Node) -> void:
 		return
 	var d: UnitData = unit.data
 	_title.text = "%s — %s   Lv %d" % [d.unit_name, d.class_id, d.level]
-	_stats.text = _format_stats(d)
+	_stats.text = _format_stats(unit)
 	_inventory.text = _format_inventory(d)
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
@@ -41,17 +41,63 @@ func open(unit: Node) -> void:
 	_btn_back.grab_focus()
 
 
-func _format_stats(d: UnitData) -> String:
-	# Two stats per line keeps the panel compact and readable.
-	return "\n".join([
+func _format_stats(unit: Node) -> String:
+	var d: UnitData = unit.data
+	var lines: Array[String] = [
 		"HP   %d / %d" % [d.hp, d.max_hp],
-		"Str  %-3d  Mag  %d" % [d.strength, d.magic],
-		"Skl  %-3d  Spd  %d" % [d.skill, d.speed],
-		"Def  %-3d  Res  %d" % [d.defense, d.resistance],
-		"Lck  %-3d  Mov  %d" % [d.luck, d.movement],
+		"Str  %-3d  Mag  %d" % [_effective_stat(unit, "strength", d.strength),
+			_effective_stat(unit, "magic", d.magic)],
+		"Skl  %-3d  Spd  %d" % [_effective_stat(unit, "skill", d.skill),
+			_effective_stat(unit, "speed", d.speed)],
+		"Def  %-3d  Res  %d" % [_effective_stat(unit, "defense", d.defense),
+			_effective_stat(unit, "resistance", d.resistance)],
+		"Lck  %-3d  Mov  %d" % [_effective_stat(unit, "luck", d.luck),
+			_effective_stat(unit, "movement", d.movement)],
 		"Int  %d" % d.internal_level,
 		"EXP  %d / 100" % d.exp,
-	])
+		"",
+		"Stat Breakdown:",
+	]
+	for spec in [
+		{"label": "Str", "stat": "strength"},
+		{"label": "Mag", "stat": "magic"},
+		{"label": "Skl", "stat": "skill"},
+		{"label": "Spd", "stat": "speed"},
+		{"label": "Def", "stat": "defense"},
+		{"label": "Res", "stat": "resistance"},
+		{"label": "Lck", "stat": "luck"},
+		{"label": "Mov", "stat": "movement"},
+	]:
+		lines.append(_format_stat_breakdown(unit, spec["label"], spec["stat"]))
+	return "\n".join(lines)
+
+
+func _effective_stat(unit: Node, stat_name: String, fallback_value: int) -> int:
+	if unit != null and unit.has_method("get_effective_stat"):
+		return int(unit.get_effective_stat(stat_name))
+	return fallback_value
+
+
+func _format_stat_breakdown(unit: Node, label: String, stat_name: String) -> String:
+	var d: UnitData = unit.data
+	var base_value: int = int(d.get(stat_name))
+	var effective: int = _effective_stat(unit, stat_name, base_value)
+	var parts: Array[String] = []
+	var total_delta: int = 0
+	for mod in d.active_modifiers:
+		if String(mod.get("stat", "")) != stat_name:
+			continue
+		var delta: int = int(mod.get("delta", 0))
+		total_delta += delta
+		parts.append("%s %s" % [String(mod.get("source", "?")), _signed(delta)])
+	var mod_text: String = "mods: none"
+	if not parts.is_empty():
+		mod_text = "mods: " + ", ".join(parts)
+	return "%s  base %d; %s; total %d" % [label, base_value, mod_text, effective]
+
+
+func _signed(value: int) -> String:
+	return ("%+d" % value)
 
 
 func _format_inventory(d: UnitData) -> String:
