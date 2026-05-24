@@ -78,20 +78,20 @@ cavalier has wrong movement
 eventually, you should be able to use the more info button on a stat and see the base and what modifiers are currently changing it and by how much.
 
 #### Current Action Items
-- [ ] Make mouse-driven cursor movement pan the camera in a controlled way instead of freezing camera follow
-- [ ] Include the unit's displayed level in the map HUD unit-info panel
-- [ ] Implement the Pair Up **Separate** action for paired leads
-- [ ] Confirm Pair Up actions still trigger auto-end when they expend the last locally-controlled units
-- [ ] Return the cursor focus to the acting unit after combat resolves
-- [ ] On lead-unit death, drop the paired support onto the lead's tile
-- [ ] If the lead dies during the player phase, mark the dropped support unit expended for that round
-- [ ] If the lead dies during an enemy phase, restore the support on-map and have it ready again at the next round start
-- [ ] Make the debug growth-boost state obvious in the HUD / debug banner and verify the hotkey path works in live play
-- [ ] Raise the temporary debug growth boost from `+50` to `+300` per stat
-- [ ] Hide / hard-gate Pair Up creation when the campaign setting disables Pair Up so a rejected attempt never burns an action
-- [ ] Correct Cavalier movement to the intended value
-- [ ] Expand the **More info** stat-inspection milestone so each stat can show its base value plus every active modifier and delta
-- [ ] Move the **More info** stat-inspection milestone up the priority queue because it is useful for playtest verification and debugging
+- [x] Make mouse-driven cursor movement pan the camera in a controlled way instead of freezing camera follow
+- [x] Include the unit's displayed level in the map HUD unit-info panel
+- [x] Implement the Pair Up **Separate** action for paired leads
+- [x] Confirm Pair Up actions still trigger auto-end when they expend the last locally-controlled units
+- [x] Return the cursor focus to the acting unit after combat resolves
+- [x] On lead-unit death, drop the paired support onto the lead's tile
+- [x] If the lead dies during the player phase, mark the dropped support unit expended for that round
+- [x] If the lead dies during an enemy phase, restore the support on-map and have it ready again at the next round start
+- [x] Make the debug growth-boost state obvious in the HUD / debug banner and verify the hotkey path works in live play
+- [x] Raise the temporary debug growth boost from `+50` to `+300` per stat
+- [x] Hide / hard-gate Pair Up creation when the campaign setting disables Pair Up so a rejected attempt never burns an action
+- [x] Correct Cavalier movement to the intended value
+- [x] Expand the **More info** stat-inspection milestone so each stat can show its base value plus every active modifier and delta
+- [x] Move the **More info** stat-inspection milestone up the priority queue because it is useful for playtest verification and debugging
 
 
 ### Pair Up Pass 1 Playtest
@@ -105,7 +105,6 @@ the items below cover the parts that only show up in live play.
 Skip what is **NOT** yet implemented (will surface as missing entries — that
 is expected, not a bug):
 
-- Separate action (step 6c)
 - Combat-forecast UI for Pair Up bonuses, DS/DG %, support portrait (step 5)
 - Dual Strike / Dual Guard mechanics in live combat (step 7)
 - AI handling for paired targets (step 8)
@@ -157,6 +156,16 @@ Swap:
       (verified by exiting/re-entering combat preview if any other paired
       effect surfaces it — otherwise this is currently invisible until
       step 5 / 9 land UI surfaces for Pair Up state)
+
+Separate:
+
+- [ ] On a paired lead, the ActionMenu shows **Separate** when at least one
+      adjacent legal drop tile exists for the support
+- [ ] Picking Separate enters targeting and highlights the legal adjacent drop
+      tiles
+- [ ] Confirming a drop tile restores the support on that tile, makes the
+      support sprite visible again, clears the pairing, and ends both units'
+      turns
 
 Combat math integration (step 4):
 
