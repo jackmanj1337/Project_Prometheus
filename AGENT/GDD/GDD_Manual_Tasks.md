@@ -191,6 +191,168 @@ Retry / snapshot round-trip:
       (snapshot captures `tile_position = (-1, -1)` for the support; if it
       reappears at its pre-pair tile, the snapshot was bypassed)
 
+### More Info Phase 1 Live Playtest
+
+Run this before treating the new More Info surfaces as signed off. The headless
+tests cover the data contracts, selector cycling, terrain expansion, and the
+camera-pan helper, but live play is still needed for viewport/layout behaviour,
+input-priority feel, and copy quality.
+
+General binding / priority:
+
+- [ ] Press `F` on the open map with no combat preview or character sheet open
+      and confirm the terrain HUD toggles between compact and expanded mode
+- [ ] With the character sheet open, press `F` and confirm the character-sheet
+      More Info selector advances instead of the terrain HUD expanding
+- [ ] With the combat preview visible, press `F` and confirm the combat-preview
+      More Info selector advances instead of the character sheet or terrain HUD
+- [ ] With the combat preview visible **and** the character sheet still open in
+      the background, press `F` and confirm the preview keeps priority every
+      time until it closes
+- [ ] After closing the combat preview, press `F` again and confirm priority
+      falls back to the character sheet if it is still open
+- [ ] After closing all higher-priority surfaces, press `F` again and confirm
+      control falls back to the terrain HUD
+
+Character sheet — opening / selection:
+
+- [ ] Open the character sheet from the map and confirm the side panel starts in
+      its hint state (no stale description carried over from a previous open)
+- [ ] Click each stat row once (`HP`, `Str`, `Mag`, `Skl`, `Spd`, `Def`,
+      `Res`, `Lck`, `Mov`) and confirm the side panel title matches the clicked
+      row and the description matches that stat rather than a generic fallback
+- [ ] Click at least one inventory entry, one skill, and one weapon-rank row
+      and confirm each opens the side panel with the expected category text
+- [ ] Press `F` repeatedly on the character sheet and confirm the selector
+      advances in a stable, readable order and wraps back to the first entry
+      after the last one
+- [ ] Close the character sheet and reopen it, then press `F` once and confirm
+      the selector restarts from the first entry rather than resuming an old
+      index
+
+Character sheet — stat breakdown correctness:
+
+- [ ] On a unit with no active stat modifiers, open a stat and confirm the
+      breakdown shows the base/effective values plus a clear "no modifiers"
+      state rather than blank space
+- [ ] On a unit with a positive temporary modifier active, open the affected
+      stat and confirm the modifier list names the source, shows a positive
+      signed delta, and shows duration text
+- [ ] On a unit with a negative temporary modifier active (if available in the
+      current build), confirm the affected stat shows a negative signed delta
+      and the final effective value reflects it
+- [ ] On a stat unaffected by the active modifier, confirm that modifier does
+      **not** appear in the breakdown for unrelated stats
+- [ ] If multiple modifiers affect the same stat, confirm every contributing
+      source is shown clearly enough to explain the final number during
+      debugging/playtest
+
+Combat preview — opening / content:
+
+- [ ] Enter attack targeting against an enemy who can counter and confirm the
+      preview shows both attacker and defender columns with Name, HP, Damage,
+      Hit, Crit, triangle marker, and effectiveness marker rows present in the
+      expected places
+- [ ] Target an enemy who **cannot** counter and confirm the defender damage row
+      reads `No counter`, the preview stays stable, and no blank-row layout bug
+      appears
+- [ ] Target a matchup with weapon-triangle advantage and confirm the correct
+      side shows `▲ Advantage` in green
+- [ ] Target a matchup with weapon-triangle disadvantage and confirm the correct
+      side shows `▼ Disadvantage` in red
+- [ ] Target a neutral matchup and confirm no misleading triangle marker is
+      shown on the surface, while `F` can still cycle to the triangle entry and
+      explain the mechanic
+- [ ] Target an effectiveness matchup and confirm the correct side shows
+      `Effective ×N` with the expected multiplier
+- [ ] Target a non-effective matchup and confirm no misleading effectiveness
+      marker is shown on the surface, while `F` can still cycle to the
+      effectiveness entry and explain the mechanic
+- [ ] Target a defender with `Vantage` and confirm the defender name row shows
+      the `Vantage` annotation without breaking the rest of the line layout
+
+Combat preview — selector behaviour:
+
+- [ ] Click each visible combat-preview row at least once and confirm the side
+      panel title/description always match the clicked field
+- [ ] Press `F` repeatedly while the preview is visible and confirm the selector
+      visits every row in a stable order, including neutral triangle /
+      non-effective entries that are only reachable by cycling
+- [ ] Close the preview, reopen it on another target, press `F` once, and
+      confirm the selector restarts from the first entry instead of preserving
+      the previous target's selection
+
+Combat preview — positioning / camera edge cases:
+
+- [ ] Target an enemy near the center of the screen and confirm the preview
+      appears adjacent to the defender rather than in the old fixed corner
+- [ ] Target an enemy near the right edge and confirm the preview either fits on
+      the right, flips to the left, or pans the camera just enough to keep the
+      full panel visible without clipping
+- [ ] Target an enemy near the left edge and confirm the preview still remains
+      fully visible on-screen
+- [ ] Target an enemy near the top edge and confirm the preview does not clip
+      above the viewport
+- [ ] Target an enemy near the bottom edge and confirm the preview does not clip
+      below the viewport
+- [ ] On a narrow-looking setup where the panel is wide (for example a target
+      with the side panel open), confirm camera pan still keeps both the
+      preview and battlefield readable instead of overshooting or hiding the
+      defender awkwardly
+- [ ] Cancel out of preview after any camera pan and confirm control returns
+      cleanly to targeting with no stuck camera/input state
+
+Terrain HUD — compact / expanded content:
+
+- [ ] On the open map, move the cursor across at least `plain`, `forest`,
+      `mountain`, `fort`, `sea`, `desert`, and `wall` tiles; press `F` on each
+      and confirm expanded mode shows a terrain description instead of the
+      placeholder text
+- [ ] In compact mode, confirm only the compact terrain rows are visible and
+      the hint label invites `F` for more info
+- [ ] In expanded mode, confirm the description row, move-cost row, and
+      actions row appear in a readable layout and the compact-mode hint hides
+- [ ] Collapse back to compact mode and confirm all expanded-only rows hide
+      again immediately
+- [ ] On `wall`, confirm move costs render as `—` rather than `999`
+- [ ] On `desert`, confirm the move-cost row reflects the intended special-case
+      behaviour (mounted/armoured worse than foot, light units easier if shown)
+
+Terrain HUD — unit-sensitive behaviour:
+
+- [ ] With no unit selected, expand the terrain HUD and confirm the actions row
+      hides entirely instead of showing an empty header
+- [ ] Select a unit, move the cursor over a normal tile with no location action,
+      and confirm the actions row stays hidden
+- [ ] Select a unit and move the cursor over a tile that should support a
+      location-specific action for that unit (for example `Seize` or `Escape`);
+      confirm the actions row appears and lists the expected action label
+- [ ] Move the cursor from a tile with actions to one without while expanded and
+      confirm the actions row disappears immediately rather than leaving stale
+      text behind
+- [ ] Deselect the unit while the terrain HUD is expanded and confirm the
+      actions row hides immediately
+
+Cross-surface cleanup / stale-state checks:
+
+- [ ] Open each More Info surface, make a selection, close it, then reopen it
+      later and confirm it starts from the default hint/first-step state rather
+      than showing stale text from the prior visit
+- [ ] While moving the cursor rapidly between tiles, confirm the terrain HUD
+      never shows stale terrain name, stale move costs, or stale actions from a
+      previous tile
+- [ ] After attacking, cancelling targeting, or closing the character sheet,
+      confirm there is no leftover More Info panel still visible on the map
+
+Copy / UX sanity:
+
+- [ ] While using all three surfaces, note any descriptions that are technically
+      correct but unclear, misleading, or too generic for playtest/debugging
+- [ ] Specifically flag any wording that sounds like "available right now" when
+      it is really describing what a unit could do **on that tile**
+- [ ] Flag any screen position where the preview or side panel feels too cramped
+      to read comfortably even if it is technically visible
+
 ### M15 Part A — Hotseat Validation Playtest
 
 Run this after the hotseat validation map and the first map selector build land.
