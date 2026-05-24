@@ -1,8 +1,10 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_unit_details_screen.gd
-# Verifies UnitDetailsScreen.tscn instantiates, the nodes its script's @onready
-# vars expect resolve, the opaque Dimmer exists, and open()/close drive
-# visibility and populate the panel from a unit's data (#1).
+# Verifies UnitDetailsScreen.tscn instantiates, the new HBox-based layout's
+# @onready vars resolve, the opaque Dimmer exists, open()/_close drive
+# visibility, and the More Info side panel responds to clicks and the
+# `more_info` cycle. Tracks the Phase 1 More Info migration from
+# AGENT/Docs/more_info_mode_plan_2026-05-24.md.
 
 func _init() -> void:
 	print("=== UnitDetailsScreen Test ===")
@@ -22,14 +24,19 @@ func _init() -> void:
 	else:
 		print("FAIL no Dimmer node (#1)"); failed += 1
 
-	# Every node the script's @onready vars depend on must exist.
+	# Every node the script's @onready vars depend on must exist after the
+	# More Info layout switch to Panel/HBox/{VBox, InfoVBox}.
 	var expected := [
-		"Panel/VBox/TitleLabel",
-		"Panel/VBox/StatsLabel",
-		"Panel/VBox/InventoryLabel",
-		"Panel/VBox/SkillsLabel",
-		"Panel/VBox/WexpLabel",
-		"Panel/VBox/BtnBack",
+		"Panel/HBox/VBox/TitleLabel",
+		"Panel/HBox/VBox/StatsLabel",
+		"Panel/HBox/VBox/InventoryLabel",
+		"Panel/HBox/VBox/SkillsLabel",
+		"Panel/HBox/VBox/WexpLabel",
+		"Panel/HBox/VBox/BtnBack",
+		"Panel/HBox/InfoVBox/InfoTitle",
+		"Panel/HBox/InfoVBox/InfoHint",
+		"Panel/HBox/InfoVBox/InfoDescription",
+		"Panel/HBox/InfoVBox/InfoModifiers",
 	]
 	var all_present := true
 	for path in expected:
@@ -56,19 +63,19 @@ func _init() -> void:
 	var stub_script := GDScript.new()
 	stub_script.source_code = """
 extends Node
-const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const GameConstants = preload(\"res://scripts/shared/GameConstants.gd\")
 var data = null
 func get_effective_stat(stat_name: String) -> int:
 	var base = data.get(stat_name)
 	var total: int = int(base) if base != null else 0
 	for mod in data.active_modifiers:
-		if String(mod.get("stat", "")) == stat_name:
-			total += int(mod.get("delta", 0))
+		if String(mod.get(\"stat\", \"\")) == stat_name:
+			total += int(mod.get(\"delta\", 0))
 	return max(0, total)
 func get_stored_weapon_rank(track: String) -> String:
 	return GameConstants.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
 func is_weapon_track_available(track: String) -> bool:
-	return track == "lance"
+	return track == \"lance\"
 """
 	stub_script.reload()
 	var stub_unit: Node = stub_script.new()
@@ -84,32 +91,114 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL open(): visible=%s title=%s" % [screen.visible, screen._title.text])
 		failed += 1
 
-	# Stats line reflects effective values, colors boosted stats, and the
-	# breakdown includes base + mods.
-	if "[color=#61c454]11 [/color]" in screen._stats.text \
-			and "Str  base 9; mods: tonic +2; total 11" in screen._stats.text \
-			and "Mov  base 6; mods: pair_up +1; total 7" in screen._stats.text:
-		print("OK  stats panel shows colored effective values plus base/modifier breakdown"); passed += 1
-	else:
-		print("FAIL stats panel: %s" % screen._stats.text); failed += 1
-
-	if "Int  7" in screen._stats.text and "Weapon Ranks:" in screen._wexp.text \
-			and "Lance  D  130 / 200 to C" in screen._wexp.text \
-			and "Axe  E  50 / 100 to D" in screen._wexp.text \
-			and "Unavailable" in screen._wexp.text:
-		print("OK  WEXP panel shows rank progress and dims unavailable tracks")
+	# Stats panel: each stat is now a [url=stat:...] link with the colored
+	# current value. Boosted Strength shows green and the link is intact.
+	var stats_text: String = screen._stats.text
+	var stats_ok: bool = (
+		"[url=stat:strength]Str  [color=#61c454]11 [/color][/url]" in stats_text
+		and "[url=stat:movement]Mov  [color=#61c454]7  [/color][/url]" in stats_text
+		and "[url=stat:hp]HP" in stats_text
+	)
+	if stats_ok:
+		print("OK  stats panel renders selectable [url=...] rows with coloured current values")
 		passed += 1
 	else:
-		print("FAIL WEXP panel: %s" % screen._wexp.text); failed += 1
+		print("FAIL stats panel: %s" % stats_text); failed += 1
 
-	# _close() hides the page and emits `closed`.
+	# WEXP panel: track rows are also [url=wexp:...] links so they open
+	# More Info; unavailable tracks stay dimmed but selectable.
+	var wexp_text: String = screen._wexp.text
+	if "[url=wexp:lance]Lance  D  130 / 200 to C[/url]" in wexp_text \
+			and "[url=wexp:axe][color=#9a9aa6]Axe  E  50 / 100 to D (Unavailable)[/color][/url]" in wexp_text:
+		print("OK  WEXP panel rows are selectable, unavailable tracks dimmed"); passed += 1
+	else:
+		print("FAIL WEXP panel: %s" % wexp_text); failed += 1
+
+	# Side panel starts in the hint state — nothing selected yet.
+	if screen._info_hint.visible and screen._info_desc.text == "" \
+			and screen._info_mods.text == "":
+		print("OK  side panel starts in the hint state"); passed += 1
+	else:
+		print("FAIL side panel initial state"); failed += 1
+
+	# Click a stat -> side panel shows its description + modifier breakdown.
+	screen._on_entry_clicked("stat:strength")
+	var desc_text: String = screen._info_desc.text
+	var mods_text: String = screen._info_mods.text
+	var click_ok: bool = (
+		screen._info_title.text == "Str"
+		and not screen._info_hint.visible
+		and "Physical" in desc_text
+		and "Base 9" in mods_text
+		and "Effective 11" in mods_text
+		and "Tonic" in mods_text
+		and "+2" in mods_text
+	)
+	if click_ok:
+		print("OK  clicking a stat populates description + modifier rows"); passed += 1
+	else:
+		print("FAIL stat click: title=%s desc=%s mods=%s" % [screen._info_title.text, desc_text, mods_text])
+		failed += 1
+
+	# Click a stat with no active modifiers -> mods block shows the "none"
+	# notice rather than an empty block.
+	screen._on_entry_clicked("stat:luck")
+	if "No active modifiers" in screen._info_mods.text:
+		print("OK  zero-mod stats render the 'No active modifiers' notice"); passed += 1
+	else:
+		print("FAIL zero-mod render: %s" % screen._info_mods.text); failed += 1
+
+	# Non-stat entries (wexp here) get a description but no modifier rows.
+	screen._on_entry_clicked("wexp:lance")
+	if screen._info_title.text == "Lance" \
+			and "Weapon experience" in screen._info_desc.text \
+			and screen._info_mods.text == "":
+		print("OK  wexp click renders generic description and no modifier rows")
+		passed += 1
+	else:
+		print("FAIL wexp click: title=%s desc=%s mods=%s" % [screen._info_title.text, screen._info_desc.text, screen._info_mods.text])
+		failed += 1
+
+	# more_info cycling: invoke the cycle directly (input simulation is
+	# out of scope for this headless test). First call after a manual click
+	# advances to the next registered entry.
+	var before_index: int = screen._current_index
+	screen._cycle_more_info()
+	var advanced: bool = screen._current_index != before_index \
+		and screen._info_title.text != ""
+	if advanced:
+		print("OK  more_info cycle advances the side-panel selection"); passed += 1
+	else:
+		print("FAIL more_info cycle did not advance (idx %d -> %d)" % [before_index, screen._current_index])
+		failed += 1
+
+	# Cycle should wrap around — keep cycling once per entry and confirm we
+	# loop back to the first entry without crashing.
+	for _i in screen._entries.size() + 1:
+		screen._cycle_more_info()
+	if screen._current_index >= 0 and screen._current_index < screen._entries.size():
+		print("OK  more_info cycle wraps around safely"); passed += 1
+	else:
+		print("FAIL more_info cycle index out of range: %d" % screen._current_index)
+		failed += 1
+
+	# _close() hides the page, emits `closed`, and clears local state so the
+	# next open() starts from a clean slate.
 	var closed_seen := [false]
 	screen.closed.connect(func(): closed_seen[0] = true)
 	screen._close()
-	if not screen.visible and closed_seen[0]:
-		print("OK  _close() hides the page and emits closed"); passed += 1
+	var close_ok: bool = (
+		not screen.visible
+		and closed_seen[0]
+		and screen._unit == null
+		and screen._entries.is_empty()
+		and screen._current_index == -1
+	)
+	if close_ok:
+		print("OK  _close() hides, emits closed, and clears local state"); passed += 1
 	else:
-		print("FAIL close: visible=%s closed=%s" % [screen.visible, closed_seen[0]])
+		print("FAIL close state: visible=%s closed=%s unit=%s entries=%d idx=%d" \
+			% [screen.visible, closed_seen[0], screen._unit, screen._entries.size(), screen._current_index])
 		failed += 1
 
 	# open() ignores a null unit without error.
