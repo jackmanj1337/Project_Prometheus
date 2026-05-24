@@ -11,6 +11,155 @@ breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
 ## Pending
 
+### Post-2026-05-19 Regression Sweep
+
+Run this as the first broad live regression pass before drilling into the
+deeper feature-specific sections below. It covers every player-facing feature
+cluster added after the 2026-05-19 playtest wave: map selector / launch-state,
+objective + faction UI, hotseat, class-skill progression, Pair Up pass 1,
+camera/debug controls, and More Info surfaces.
+
+Use these maps for coverage:
+- `Map 001` — baseline combat/UI/Pair Up/More Info checks
+- `Map 900 - Hotseat Validation` — hotseat + selector launch-state checks
+- `Map 950 - Promotion Validation` — promotion / reclass / class-skill checks
+
+Launch / selector / roster state:
+
+- [ ] Open New Game and confirm the map selector lists at least the baseline
+      map, the faction-demo map, the hotseat validation map, and the promotion
+      validation map, with no blank/duplicate entries
+- [ ] Launch `Map 001` from the selector and confirm it starts normally without
+      requiring a scene edit or manual `GameMap.map_data_path` change
+- [ ] Launch `Map 900 - Hotseat Validation` from the selector and confirm the
+      authored fixed test roster loads instead of the default campaign roster
+- [ ] Return to New Game, switch back to a default-roster map, start again, and
+      confirm the fixed test roster from map 900 does **not** leak into the new
+      run
+- [ ] Launch `Map 950 - Promotion Validation` from the selector and confirm the
+      authored promotion/reclass test roster loads successfully
+- [ ] Change the Pair Up toggle and Auto Promote toggle in New Game, back out,
+      reopen New Game, and confirm the last-selected values persist in the UI
+
+Faction / objective / phase UI:
+
+- [ ] Start a normal blue-player map and confirm the HUD phase label shows the
+      authored faction label (not a stale hardcoded `PLAYER PHASE` string where
+      faction data should drive it)
+- [ ] Confirm the HUD objective panel appears on maps with authored conditions
+      and lists the current side's win/lose conditions in readable text
+- [ ] On a map with a non-blue hostile phase, confirm the phase/banner labels
+      use the authored faction display names rather than collapsing everything
+      to `ENEMY`
+- [ ] On a seize-capable map, move the correct unit onto the seize tile and
+      confirm the ActionMenu offers `Seize`; use it and confirm the map resolves
+      immediately when that objective should win the map
+- [ ] On a map with an authored escape unit/tile case (if available in the
+      current roster/maps), confirm the correct unit gets `Escape` only on the
+      proper tile and the action resolves cleanly
+
+Hotseat / multi-faction control:
+
+- [ ] Launch `Map 900 - Hotseat Validation` and confirm blue starts under manual
+      control while green/red/yellow do not become selectable during blue's
+      phase
+- [ ] End blue's phase and confirm control passes to green with an unlocked
+      cursor and green-only selection
+- [ ] During green's hotseat phase, attack a red unit and a yellow unit in
+      separate checks and confirm both count as hostile targets
+- [ ] During green's hotseat phase, heal a same-alliance target and confirm
+      allied non-green units are valid for staff targeting when the alliance
+      rules allow it
+- [ ] End a hotseat-controlled phase manually and confirm control passes to the
+      next faction without hanging, soft-locking, or leaving the prior faction
+      selectable
+- [ ] On a later hotseat phase, act with every locally controlled unit and
+      confirm the phase auto-ends when all those units are done
+- [ ] Let red and yellow AI phases run to completion and confirm they act in
+      order and hand control back to blue cleanly afterward
+
+Camera / cursor / control regressions:
+
+- [ ] Move the mouse to the screen edge and confirm the camera nudges/pans in a
+      bounded way instead of freezing or running away
+- [ ] Disable mouse cursor control in Settings, move the mouse, and confirm the
+      cursor no longer drifts from mouse motion
+- [ ] End the player phase after manually panning to a custom view, let the
+      enemy phase run, then return to player phase and confirm the camera
+      restores to the player's saved end-turn view
+- [ ] Attack an enemy, resolve combat, and confirm the cursor focus returns to
+      the acting unit instead of remaining stranded on the target
+- [ ] Open the map HUD unit panel on several units and confirm the displayed
+      level is visible in live UI
+
+Debug / testing aids:
+
+- [ ] Press `F10` during a safe debug playtest and confirm force-level-up still
+      works on the intended unit/event path
+- [ ] Press `F11` during a safe debug playtest and confirm the growth-boost aid
+      toggles, the HUD debug banner updates, and the label clearly shows the
+      `growth+300` state
+- [ ] With debug aids inactive, confirm the HUD does **not** falsely show a
+      stale growth/debug state from a previous toggle
+
+Class / skill / progression surfaces:
+
+- [ ] Start a fresh default-roster map and confirm each starter unit already has
+      its level-1 class skill without needing to level first
+- [ ] On level-up, confirm any newly learned class skill is announced in the
+      level-up UI rather than being granted silently
+- [ ] Open the unit details surface on a few units and confirm weapon-rank/WEXP
+      information appears correctly, with unavailable tracks dimmed rather than
+      omitted confusingly
+- [ ] Promote a valid capped unit and confirm displayed level resets to `1`,
+      class changes correctly, and the promoted class's level-1/5/15 progression
+      behaves as expected when leveling continues
+- [ ] Reclass or demote with a `Second Seal` and confirm the unit's displayed
+      level, internal progression behavior, class line, and immediate level-1
+      class-skill grant all behave correctly in live play
+- [ ] After promotion or reclass, trigger a retry/snapshot restore and confirm
+      the changed class state survives the round-trip
+
+Pair Up pass 1:
+
+- [ ] On New Game with Pair Up `Off`, start a map and confirm no Pair Up entry
+      appears in the ActionMenu and a rejected pair attempt cannot burn an
+      action indirectly
+- [ ] On New Game with Pair Up `On`, pair two units and confirm the support goes
+      off-map, the lead stays on-map, and both units end in the expected DONE
+      state
+- [ ] Use `Swap` on a paired lead and confirm the turn ends and the pairing
+      remains valid afterward
+- [ ] Use `Separate` on a paired lead, choose a legal adjacent tile, and confirm
+      the support is restored there, the pairing clears, and both turns end
+- [ ] Kill a paired lead during the player phase and confirm the support drops
+      onto the lead's tile and is immediately expended for the round
+- [ ] Kill a paired lead during an enemy phase and confirm the support drops
+      back onto the map and is available again on the next round start
+- [ ] Pair two units with a known stat-bonus combination and confirm the lead's
+      live combat numbers improve versus the unpaired baseline
+
+More Info / inspection mode:
+
+- [ ] Run the new More Info surfaces on `Map 001` and confirm all three hosts
+      are reachable: character sheet, combat preview, and terrain HUD
+- [ ] Confirm the character sheet shows effective stat values plus the base /
+      modifier / total breakdown without visual corruption
+- [ ] Confirm the combat preview now shows crit, weapon triangle, and
+      effectiveness markers in live play
+- [ ] Confirm the terrain HUD expands with `F`, shows terrain descriptions for
+      live terrain ids, and never falls back to placeholder text on common
+      tiles
+- [ ] Specifically stress preview positioning near screen edges and confirm the
+      panel stays readable and on-screen
+
+Recommended follow-through:
+
+- [ ] After completing this broad regression sweep, continue with the detailed
+      sections below:
+      `Class / Skill Live Playtest`, `Pair Up Pass 1 Playtest`,
+      `More Info Phase 1 Live Playtest`, and `M15 Part A — Hotseat Validation Playtest`
+
 ### Class / Skill Live Playtest
 
 Run this before treating the class/skill track as fully signed off. Skipping it
