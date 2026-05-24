@@ -25,10 +25,27 @@ and scope decisions below are locked unless a later playtest forces a change.
   view.
 - Clicking a selectable stat/item in the combat preview opens its More Info
   view.
-- Pressing `F` follows this priority:
+- Pressing the `more_info` action (bound to `F` for now; rebindable later)
+  follows this priority:
   1. if the combat preview More Info selector is available, open that
   2. else if the character sheet is open, open its More Info selector
   3. else on the map, expand the terrain HUD into terrain More Info mode
+- Add a new `more_info` InputMap action so the binding can be remapped later
+  without touching every consumer.
+
+### Detail View Shape
+- More Info opens as a **side panel** attached to the host UI
+  (`UnitDetailsScreen`, `AttackPreview`, `HUD`), not a separate modal.
+- **Every** entry on the host UI is selectable, not just stats — items,
+  skills, weapon ranks, combat-preview fields, terrain rows, and tile actions
+  all open a detail panel when clicked.
+- The detail panel always shows:
+  - a short **description** of the entry — what it is, where it is used, why
+    it matters
+  - any **current modifiers** affecting that entry, with sources, when the
+    entry supports modifiers (primarily stats)
+- Stats specifically show the full breakdown rows from the shared helper.
+- Combat-preview fields explain where the displayed value comes from.
 
 ### Terrain More Info Content
 - Show terrain combat bonuses.
@@ -59,6 +76,17 @@ and scope decisions below are locked unless a later playtest forces a change.
   movement tag.
 - Query existing gameplay systems for tile actions. Do not hardcode tile-action
   strings inside the HUD.
+- Extract a shared helper (e.g. `scripts/shared/TileActions.gd`) that
+  `ActionMenu` already-uses logic moves into. The HUD reads from the same
+  helper so terrain More Info and the actual action menu agree by
+  construction.
+
+### Description Content
+- Add a shared content source (e.g. `scripts/shared/MoreInfoContent.gd`)
+  mapping entry keys (`stat:strength`, `weapon_field:hit`, `terrain:forest`,
+  `tile_action:seize`, etc.) to short descriptions.
+- Fall back to a generic "No description yet" placeholder if a key has no
+  authored entry — never crash on a missing description.
 
 ## Implementation Shape
 
