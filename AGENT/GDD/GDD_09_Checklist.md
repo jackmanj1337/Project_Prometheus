@@ -2,6 +2,12 @@
 
 ---
 
+> **Historical checklist note:** this file preserves the original milestone task
+> sequence. Some unchecked items intentionally mention superseded field names or
+> earlier schema (`objective_type`, old proficiency wording, generated MVP roster
+> assumptions, etc.). Use `GDD_01_Architecture.md`, `GDD_03_Units_Classes.md`,
+> and `GDD_06_Maps_Objectives.md` as the current implementation reference.
+
 ## How to Use This Document
 
 Work through milestones in order. Each milestone produces a **testable build**.

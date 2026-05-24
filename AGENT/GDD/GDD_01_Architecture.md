@@ -308,59 +308,80 @@ before updating this document again.
 
 ### `GameState.gd`
 
-Autoload. Holds per-save rules, live map state, and the cross-map roster/economy.
-No `class_name` — Godot 4 forbids `class_name` on an autoload script.
+Autoload. Holds per-campaign rules, live map state, faction/alliance helpers,
+launch-state for the next map, the cross-map roster/economy, and the Retry
+snapshot. No `class_name` — Godot 4 forbids `class_name` on an autoload script.
 
 ```gdscript
 extends Node
 
 enum Phase { PLAYER, ENEMY }
 
-# --- Per-save gameplay rules (set by the New Game screen) ---
+# --- Alliance / faction model ---
+const _DEFAULT_ALLIANCE_GROUPS: Dictionary = {
+    "blue": "allies",
+    "green": "allies",
+    "red": "foes",
+    "yellow": "rogues",
+}
+var _alliance_groups: Dictionary = _DEFAULT_ALLIANCE_GROUPS.duplicate()
+
+# --- Per-campaign gameplay rules (set by New Game / future save flow) ---
 var permadeath_enabled: bool = false
-var leveling_method: String = "growth_random"   # "growth_random" | "growth_fixed"
-var max_skills: int = 4        # NOT ENFORCED YET — no equip/inventory UI caps these
-var max_inventory: int = 8     # NOT ENFORCED YET
+var leveling_method: String = "growth_random"
+var auto_promote_at_max_level: bool = false
+var pair_up_enabled: bool = true
+var max_skills: int = 4
+var max_inventory: int = 8
+
+# --- Debug-only testing aids ---
+var debug_force_levelup: bool = false
+var debug_growth_boost: bool = false
 
 # --- Current map state ---
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
-var _player_units: Array[Node] = []   # private — query via get_living_player_units()
-var _enemy_units: Array[Node] = []    # private — query via get_living_enemy_units()
+var _units_by_faction: Dictionary = {}   # faction_id -> Array[Node]
 var map_data: MapData = null
 
 # --- Persists between maps ---
 var player_roster: Array[UnitData] = []
 var party_gold: int = 0
-var party_items: Array[String] = []   # item IDs awarded by completed maps
+var party_items: Array[String] = []
+var next_map_data_path: String = ""
+var next_map_roster_policy: String = "default_roster"
+var next_map_roster_source: String = ""
 
-# --- Map-start snapshot — deep copy taken at map load; used by Retry ---
+# --- Map-start snapshot — used by Retry ---
 var _map_start_snapshot: Array[Dictionary] = []
 var _snapshot_party_gold: int = 0
 var _snapshot_party_items: Array[String] = []
+var _snapshot_pair_up_registry: Dictionary = {}
 
+func are_hostile(a_id: String, b_id: String) -> bool
+func get_alliance_group(faction_id: String) -> String
 func register_unit(unit: Node) -> void
 func unregister_unit(unit: Node) -> void
-func set_phase(new_phase: Phase) -> void
+func set_phase(new_phase: Phase, faction_id: String = "") -> void
+func find_unit_by_id(unit_id: String) -> Node
+func get_living_units_of(faction_id: String) -> Array[Node]
+func get_registered_faction_ids() -> Array[String]
 func get_living_player_units() -> Array[Node]
 func get_living_enemy_units() -> Array[Node]
 func is_player_turn() -> bool
 func reset_map_state() -> void
+func configure_next_map(map_path: String, roster_policy := "default_roster",
+        roster_source := "") -> void
 func load_default_roster() -> void
-    # Loads the six .tres files from data/roster/default/ into player_roster.
-    # Skips (push_error) any file with an empty unit_id. Called by the New Game
-    # screen, and as a fallback by GameMap if the roster is empty (direct boot).
+func load_roster_from_directory(roster_path: String) -> void
 
 func take_map_snapshot() -> void
-    # Called by GameMap after units spawn. Deep-copies each player UnitData and
-    # the party economy (gold/items) into the snapshot so Retry rolls back exactly.
-    # Each InventoryEntry is duplicated individually — Array.duplicate(true) shares
-    # Resource references, so combat use would otherwise mutate the snapshot.
-
+    # Deep-copies each roster UnitData, party economy, and the PairUpRegistry state
+    # so Retry rewinds HP, inventory, class changes, pairings, and rewards together.
 func restore_map_snapshot() -> void
-    # Called by the Retry button. Overwrites each roster UnitData and the party
-    # economy from the snapshot, then resets map state. Caller reloads the scene.
+    # Restores the snapshotted roster/economy/pairings, then resets map state.
+    # The caller reloads the current scene after this returns.
 ```
 
 ### `SettingsManager.gd`
@@ -453,11 +474,15 @@ func _ready() -> void:
     _load_directory("res://data/skills/", _skills)
     for skill in _skills.values():
         skill.validate()
-    _validate_cross_references()   # class starting_skills + skill activation stats
+    for err in collect_validation_errors(_classes, _weapons, _items, _skills):
+        push_error(err)
 
+static func collect_validation_errors(classes, weapons, items, skills) -> Array[String]
 func _load_directory(path: String, target: Dictionary) -> void
 func get_class_data(id: String) -> ClassData   # named *_data, not get_class, to avoid
                                                # Godot's Object.get_class() override warning
+func get_all_classes() -> Dictionary
+func validate_unit_data(unit: UnitData) -> Array[String]
 func get_weapon(id: String) -> WeaponData
 func get_item(id: String) -> ItemData
 func get_skill(id: String) -> SkillData
@@ -483,16 +508,28 @@ signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
 signal unit_damaged(unit: Node, amount: int)
 signal unit_died(unit: Node)
 signal unit_healed(unit: Node, amount: int)
-signal unit_leveled_up(unit: Node, stat_increases: Dictionary)
-signal phase_changed(new_phase: int)   # carries a GameState.Phase value, typed int
+signal unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array)
+signal promotion_available(unit: Node)
+signal unit_promoted(unit: Node, old_class_id: String, new_class_id: String)
+signal promotion_started()
+signal promotion_finished()
+signal unit_reclassed(unit: Node, old_class_id: String, new_class_id: String)
+signal reclass_started()
+signal reclass_finished()
+signal level_up_started()
+signal level_up_finished()
+signal phase_changed(new_phase: int, faction_id: String)
 signal cursor_moved(tile: Vector2i)
+signal ai_unit_acting(unit: Node)
 signal map_victory()
 signal map_defeat()
+signal map_resolved(winner_group: String, standings: Array)
+signal debug_flags_changed()
 ```
 
-> `TurnManager` exposes its own `turn_changed(turn_number: int)` signal (not on the
-> bus). Condition/Laguz signals (`condition_applied`, `shift_gauge_changed`, …) are
-> planned for M8/M12 and are not declared yet.
+> `TurnManager` still exposes its own `turn_changed(turn_number: int)` signal
+> outside the bus. Condition/Laguz signals (`condition_applied`,
+> `shift_gauge_changed`, …) are still deferred to M8/M12.
 
 ### `ConditionManager.gd` (stub until M8)
 
@@ -635,23 +672,35 @@ enum UnitState { READY, MOVED, DONE }
 
 var _unit_states: Dictionary = {}     # Node -> UnitState
 var _original_tiles: Dictionary = {}  # Node -> pre-move tile, for undo
-var _map_over: bool = false           # latches on first victory/defeat emit
+var _map_over: bool = false
+var _group_eliminated_round: Dictionary = {}
+var _seize_records: Array[Dictionary] = []
+var _escape_records: Array[Dictionary] = []
+var _turn_order: Array[String] = []
+var _active_faction_idx: int = 0
+var _activation_mode: String = "WHOLE_PHASE"
 
 func start_map(map_data: MapData, grid: GridManager = null) -> void
 func start_player_phase() -> void
-func end_player_phase() -> void       # increments turn_number, fires turn_changed
-func start_enemy_phase() -> void      # awaits EnemyAI.run_enemy_phase()
+func end_player_phase() -> void
+func start_enemy_phase() -> void
+func active_faction() -> String
+func set_ai_controller(ai: Node) -> void
+func set_hotseat_controller(controller: Node) -> void
 func set_unit_state(unit: Node, state: UnitState) -> void
-    # Marking the last player unit DONE auto-ends the player phase (deferred via
-    # _auto_end_player_phase, which re-validates and bails if the map is over).
 func get_unit_state(unit: Node) -> UnitState
 func can_unit_act(unit: Node) -> bool          # READY or MOVED
 func are_all_player_units_done() -> bool
 func record_move_start(unit: Node) -> void     # stores pre-move tile for undo
 func undo_move(unit: Node) -> void             # restores tile, returns unit to READY
 func check_victory_conditions() -> void
-    # Reads MapData.objective_type. MVP supports "rout". Also handles turn-limit
-    # defeat, all-players-dead defeat, and required_survivor_ids defeat.
+    # Evaluates authored ObjectiveCondition arrays per alliance group, including
+    # rout, defeat_boss, protect, survive, seize, escape, and turn_limit.
+func record_seize(unit: Node) -> void
+func can_seize(unit: Node, tile: Vector2i) -> bool
+func record_escape(unit: Node) -> void
+func can_escape(unit: Node, tile: Vector2i) -> bool
+func get_group_eliminated_round(group: String) -> int
 ```
 
 ### `Unit.gd`
@@ -662,14 +711,17 @@ func check_victory_conditions() -> void
 class_name Unit extends Node2D
 
 var data: UnitData
-var team: String = "player"   # "player" | "enemy"
+var team: String = "blue"   # faction id, not a binary player/enemy enum
 var tile_position: Vector2i   # pass-through property to data.tile_position
 
 func initialize(unit_data: UnitData, start_tile: Vector2i, unit_team: String) -> void
 func set_grid_manager(grid: GridManager) -> void   # cached by GameMap; avoids tree walks
 func get_equipped_weapon() -> WeaponData           # first usable equipped weapon, or null
 func get_equipped_weapon_entry() -> InventoryEntry # the matching InventoryEntry, or null
+func get_equippable_weapons() -> Array[InventoryEntry]
+func set_equipped_weapon(entry: InventoryEntry) -> void
 func has_quality(quality: String) -> bool
+func has_vulnerability(group: String) -> bool
 func get_terrain_def_bonus() -> int
 func get_terrain_dodge_bonus() -> int
 
@@ -712,6 +764,10 @@ func can_equip(weapon_data: WeaponData) -> bool
 func add_exp(amount: int) -> void
 func level_up() -> void
 func add_wexp(weapon_type: String, amount: int) -> bool      # true if a rank-up occurred
+func promote(target_class_id: String) -> bool
+func can_reclass() -> bool
+func get_second_seal_options() -> Array[Dictionary]
+func reclass(target_class_id: String, target_line_id := "") -> bool
 
 # Visual state
 func set_done_appearance() -> void     # darkened sprite when DONE
@@ -738,6 +794,8 @@ enum State { FREE, UNIT_SELECTED, UNIT_MOVED, TARGETING, LOCKED }
 var _state: State = State.FREE
 
 func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void
+    # Also injects HUD-layer menus/screens and the helper slices
+    # (MapCursorSelection / MapCursorTargeting / MapCursorInput).
 func move_cursor(direction: Vector2i) -> void
 func center_on_tile(tile: Vector2i) -> void   # jump the cursor to a tile (GameMap uses
                                               # this to start it on the first player unit)
@@ -831,7 +889,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var level: int = 1
 @export var exp: int = 0
 @export var is_promoted: bool = false
-@export var effective_level: int = 1       # pre + post promotion levels combined
+@export var internal_level: int = 1        # hidden progression state for promotion/reclass
 
 # Stats — FULL property names. Combat code reads these via Unit.get_effective_stat().
 @export var max_hp: int = 0
@@ -847,13 +905,19 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var constitution: int = 0
 @export var line_of_sight: int = 4
 
-# Proficiencies — { "sword": { "rank": "D", "wexp": 0 } }
-@export var proficiencies: Dictionary = {}
+# Personal growth rates, added to the class growth table for player units.
+@export var growth_rates: Dictionary = {}
 
-# Equippable skill IDs (max GameState.max_skills — cap not yet enforced)
+# Authoritative numeric WEXP totals keyed by track (e.g. "sword", "staff",
+# "elemental_magic"). Rank display is derived from these totals.
+@export var weapon_wexp: Dictionary = {}
+
+# Equipped skill IDs (future prep UI can swap a subset out of earned_skills)
 @export var skills: Array[String] = []
-# Earned mastery skills (e.g. s_rank_mastery). NOT @export — populated at runtime
-# by Unit.add_wexp(); never authored in .tres; never count against the skill cap.
+@export var earned_skills: Array[String] = []
+@export var reclass_options: Array[String] = []
+@export var class_line_id: String = ""
+# Permanently earned mastery skills. NOT @export — runtime only.
 var mastery_skills: Array[String] = []
 
 # Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
@@ -873,8 +937,8 @@ var mastery_skills: Array[String] = []
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
 # duration -1 or "permanent" type = never auto-removed.
 @export var active_modifiers: Array[Dictionary] = []
-var skill_use_counters: Dictionary = {}     # NOT @export — effect_id -> uses this map
-var damage_taken_this_map: int = 0          # NOT @export — used by Vengeance (M9)
+var skill_use_counters: Dictionary = {}     # effect_id -> uses this map
+var damage_taken_this_map: int = 0          # used by Vengeance (M9)
 @export var growth_accumulators: Dictionary = {}   # carry-over for growth_fixed leveling
 
 # Laguz fields — safe defaults for all Beorc units; ignored until M12.
@@ -935,10 +999,9 @@ class_name WeaponData extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
-@export var weapon_type: String = ""
-    # "sword" | "lance" | "axe" | "bow" | "knife"
-    # | "fire" | "thunder" | "wind" | "light" | "dark" | "staff"
-@export var rank: String = "E"            # "E" | "D" | "C" | "B" | "A" | "S"
+@export var combat_family: String = ""    # canonical equip / skill family
+@export var wexp_track: String = ""       # canonical trained progression track
+@export var required_rank: String = "E"
 @export var mt: int = 0                   # staves: 0 (heal = 10 + MAG, computed separately)
 @export var hit: int = 0                  # staves: 0 (healing always lands)
 @export var crit: int = 0                 # staves: 0 (staves cannot crit)
@@ -954,13 +1017,14 @@ class_name WeaponData extends Resource
 @export var wexp: int = 1                 # wEXP granted per successful hit
 @export var effect_tags: Array[String] = []   # see GDD_04 for the full tag list
 @export var uses_mag: bool = false        # true: MAG for damage, targets RES (tomes)
-@export var magic_triangle_type: String = ""   # hybrid weapons only (e.g. Bolt Axe)
+@export var triangle_family: String = ""       # hybrid override for triangle checks
 @export var strikes_per_attack: int = 1   # 2 for Brave weapons
 @export var is_natural_weapon: bool = false    # Laguz Fang/Claw/Beak/Talon (deferred)
 
 func is_healing_staff() -> bool                # staff type + heal_10_plus_mag tag
 func get_range_min(unit: Node = null) -> int   # evaluates range_min_formula
 func get_range_max(unit: Node = null) -> int   # evaluates range_max_formula
+func get_triangle_family() -> String
 ```
 
 **Staff note:** healing staves have `weapon_type = "staff"` and the `heal_10_plus_mag`
@@ -976,6 +1040,8 @@ class_name ClassData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
+@export var tier: int = 1
+@export var max_level: int = 20
 @export var base_hp: int = 0
 @export var base_strength: int = 0
 @export var base_magic: int = 0
@@ -987,19 +1053,23 @@ class_name ClassData extends Resource
 @export var base_movement: int = 0
 @export var base_constitution: int = 0
 @export var base_line_of_sight: int = 4
-@export var proficiencies: Array[String] = []
-    # Weapon type strings for starting proficiencies.
-    # First entry starts at D rank; remaining start at E rank.
-@export var starting_skills: Array[String] = []
+@export var weapon_wexp_bases: Dictionary = {}
+@export var weapon_wexp_caps: Dictionary = {}
+@export var allowed_weapon_families: Array[String] = []
+@export var class_groups: Array[String] = []
 @export var special_qualities: Array[String] = []
+@export var vulnerability_groups: Array[String] = []
+@export var internal_level_rule: String = ""
+@export var class_availability: String = "playable"
 @export var promotes_to: Array[String] = []
-@export var promotion_stat_increases: Dictionary = {}
-@export var promotion_skill: String = ""
-@export var occult_skill: String = ""
-@export var growth_rates: Dictionary = {}
-    # FULL stat-name keys, values 0–100:
-    # { "hp": 75, "strength": 50, "magic": 5, "defense": 45,
-    #   "resistance": 25, "skill": 50, "speed": 45, "luck": 40 }
+@export var promotes_from: Array[String] = []
+@export var promotion_stat_bonuses: Dictionary = {}
+const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
+    "resistance", "skill", "speed", "luck"]
+@export var player_growth_rates: Dictionary = {}
+@export var enemy_growth_rates: Dictionary = {}
+@export var stat_caps: Dictionary = {}
+@export var skill_unlocks: Dictionary = {}
 @export var sprite_id: String = ""        # [PLACEHOLDER] links to sprite sheet row
 
 # ── Laguz gauge parameters ───────────────────────────────────────────────────
@@ -1014,6 +1084,12 @@ class_name ClassData extends Resource
 @export var animal_stat_bonus_pct: float = 0.5    # +50%; reduced to +25% with Feral Instincts
 @export var natural_weapon_type: String = ""       # "fang"|"claw"|"beak"|"talon"|"" for Beorc
 @export var animal_con_bonus_pct: float = 0.75     # CON ~+75% in animal form
+
+func get_weapon_wexp_base(track: String) -> int
+func get_weapon_wexp_cap(track: String) -> int
+func get_allowed_weapon_families() -> Array[String]
+func resolved_internal_level_rule() -> String
+func is_menu_visible() -> bool
 ```
 
 ### `ItemData.gd`
@@ -1067,15 +1143,10 @@ class_name MapData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var tilemap_scene_path: String = ""
-@export var objective_type: String = ""   # "rout"|"seize"|"boss"|"survive"|"defend"|"escape"
-                                           # (MVP implements "rout")
-@export var objective_params: Dictionary = {}
-@export var turn_limit: int = 0            # 0 = no limit; defeat if exceeded
 @export var player_start_tiles: Array[Vector2i] = []
 @export var enemy_placements: Array[Dictionary] = []
     # Each entry: { "unit_data_path": String, "tile": Vector2i,
-    #               "ai_profile": String, "is_boss": bool }
-@export var required_survivor_ids: Array[String] = []   # unit_ids whose death = defeat
+    #               "ai_profile": String, "is_boss": bool, "faction": String? }
 @export var reward_gold: int = 0
 @export var reward_items: Array[String] = []
 # Terrain string grid — one String per row; chars per GameMap._CHAR_TO_SOURCE
@@ -1083,6 +1154,13 @@ class_name MapData extends Resource
 @export var grid: Array[String] = []
 # Camera start; Vector2i(-1,-1) = unset -> centroid of player_start_tiles.
 @export var camera_start_tile: Vector2i = Vector2i(-1, -1)
+@export var factions: Array[FactionData] = []
+@export var turn_order: Array[String] = []
+@export var activation_mode: String = "WHOLE_PHASE"
+@export var victory_conditions: Dictionary = {}   # alliance_group -> Array[ObjectiveCondition]
+@export var defeat_conditions: Dictionary = {}
+
+func get_faction(faction_id: String) -> FactionData
 ```
 
 ---
@@ -1155,9 +1233,10 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order (`project.godot [autoload]`) is the full ten:
+Project registration order (`project.godot [autoload]`) is the full twelve:
 `GameConstants → EventBus → SettingsManager → GameState → DataManager →
-ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI`.
+ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI →
+PairUpRegistry → PairUpBonusResolver`.
 Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
 must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
 settings from disk but does not push values to GameState; GameState pulls them
@@ -1206,10 +1285,10 @@ runtime even when test scripts are executed via `--script` — only the
 
 ### Map painting is data-driven
 
-`GameMap.gd` paints `TileMapLayer_Terrain` at runtime from a string grid
-(`MAP_001` constant). This means new maps are added by writing a new constant
-grid + a new MapData `.tres`, with no editor painting required. The string
-grid format is documented in `GDD_06` map section.
+`GameMap.gd` paints `TileMapLayer_Terrain` at runtime from `MapData.grid`.
+This means a data-driven map is added by authoring the terrain string grid in
+the map resource, not by editing code-side constants. The string-grid format is
+documented in `GDD_06`.
 
 `_validate_map()` asserts row count, row length, and that every char is a
 known terrain on `_ready` — transcription bugs fail loud at map load.

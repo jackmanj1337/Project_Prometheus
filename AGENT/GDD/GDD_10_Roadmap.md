@@ -2,6 +2,12 @@
 
 ---
 
+> **Historical roadmap note:** completed migration sections below may mention
+> deprecated field names or legacy systems while describing the path from the
+> old implementation to the current one. That wording is historical context, not
+> the live schema. For the current code-facing contract, use `GDD_01`, `GDD_03`,
+> and `GDD_06`.
+
 ## How to Use This Document
 
 This is the **Phase 2 roadmap** — a continuation of `GDD_09_Checklist.md`, which

@@ -6,7 +6,7 @@
 
 Each map is a Godot **TileMapLayer** scene paired with a **MapData** resource.
 The TileMap defines the visual layout and terrain. The MapData resource defines
-objectives, enemy placements, player start tiles, and rewards.
+objectives, faction setup, enemy placements, player start tiles, and rewards.
 
 Maps are self-contained — adding a new map never requires code changes.
 
@@ -72,64 +72,58 @@ Camera scrolling behavior:
 
 ## Objective System
 
-Objectives are defined in `MapData.objective_type` (String) and
-`MapData.objective_params` (Dictionary).
+Objectives are now authored as typed `ObjectiveCondition` resources grouped by
+alliance group:
 
-`TurnManager.check_victory_conditions()` is called after every unit death (via
-`EventBus.unit_died`) and at the start of each player phase. It reads the map
-objective and emits `map_victory()` / `map_defeat()` accordingly.
+- `MapData.victory_conditions: Dictionary`
+- `MapData.defeat_conditions: Dictionary`
 
-> **MVP status:** only the **`rout`** objective is implemented, alongside the
-> universal defeat checks (turn limit, all player units dead, a required survivor
-> killed). `seize` / `boss` / `survive` / `defend` / `escape` are designed below and
-> scheduled for the M16 objective milestone — see GDD_10.
+Each key is an alliance-group id such as `"allies"` or `"foes"`, and each value
+is an `Array[ObjectiveCondition]`.
 
-### Supported Objective Types
+`TurnManager.check_victory_conditions()` evaluates these dictionaries after
+combat deaths, phase transitions, Seize confirmations, and Escape resolutions.
+It emits the legacy blue-perspective `map_victory()` / `map_defeat()` signals
+plus the richer `map_resolved(winner_group, standings)` summary for the newer
+results flow.
 
-#### `"rout"` — Defeat all enemies
-```gdscript
-# No params needed
-if GameState.get_living_enemy_units().is_empty():
-    EventBus.map_victory.emit()
-```
+### Authored Condition Types
 
-#### `"seize"` — Player unit stands on a specific tile and uses Seize action
-```gdscript
-# Params: { "seize_tile": Vector2i(x, y) }
-# Checked when a player unit performs the Seize action
-```
+#### `rout`
+The named faction or alliance group has no living units left. With an empty
+`faction_id`, the condition means "every faction hostile to the conditioning
+group has been eliminated."
 
-#### `"boss"` — Defeat a specific enemy unit
-```gdscript
-# Params: { "boss_unit_name": "Garet" }
-# Victory triggers when that named unit dies
-```
+#### `defeat_boss`
+Every `unit_id` named in the condition is dead.
 
-#### `"survive"` — Survive N turns without defeat condition
-```gdscript
-# Params: { "turns": 10 }
-# Victory triggers at start of player phase turn N+1
-```
+#### `protect`
+Fails when any named `unit_id` dies. Escaped units do not count as dead.
 
-#### `"defend"` — Prevent enemies from standing on a tile for N turns
-```gdscript
-# Params: { "defend_tile": Vector2i(x, y), "turns": 8 }
-# Defeat triggers if an enemy ends their turn on defend_tile
-# Victory triggers if player survives all turns
-```
+#### `turn_limit`
+Condition becomes true when `turn_number > turns`.
 
-#### `"escape"` — All player units must reach the escape tile
-```gdscript
-# Params: { "escape_tile": Vector2i(x, y) }
-# Units that use Escape action are removed from the map and marked safe
-# Victory when all living player units have escaped
-```
+#### `survive`
+Condition becomes true once `turn_number > turns`, optionally requiring at least
+one unit from the conditioning group to stand on one of the authored tiles.
 
-### Defeat Conditions (all maps)
-- The turn limit is exceeded (`MapData.turn_limit > 0` and turn count passes it)
-- Every player unit is dead
-- A unit whose `unit_id` is listed in `MapData.required_survivor_ids` is killed
-- `TurnManager.check_victory_conditions()` handles all of these.
+#### `seize`
+Condition becomes true when an allowed unit from the conditioning group uses the
+Seize action on the authored tile.
+
+#### `escape`
+Condition becomes true when every named `unit_id` has used the Escape action on
+one of the authored escape-zone tiles.
+
+### Evaluation Rules
+
+- Victory for a group is the logical `AND` of that group's authored victory conditions.
+- Defeat for a group is the logical `OR` of that group's authored defeat conditions.
+- A group with no authored defeat list gets an implicit "group routed" defeat so
+  every group has a way to leave play.
+- If one group remains in play, it wins by last-group-standing even without an
+  explicit victory condition.
+- If no groups remain in play, the map resolves as a draw.
 
 ---
 
@@ -142,18 +136,19 @@ class_name MapData extends Resource
 @export var id: String
 @export var display_name: String
 @export var tilemap_scene_path: String
-@export var objective_type: String                 # MVP implements "rout"
-@export var objective_params: Dictionary
-@export var turn_limit: int = 0                     # 0 = no limit; defeat if exceeded
 @export var player_start_tiles: Array[Vector2i]
 @export var enemy_placements: Array[Dictionary]
 # enemy_placement dict: { "unit_data_path": String, "tile": Vector2i,
-#                         "ai_profile": String, "is_boss": bool }
-@export var required_survivor_ids: Array[String]    # unit_ids whose death = player defeat
+#                         "ai_profile": String, "is_boss": bool, "faction": String? }
 @export var reward_gold: int = 0
 @export var reward_items: Array[String]             # item IDs granted at map completion
 @export var grid: Array[String]                     # terrain string grid (data-driven maps)
 @export var camera_start_tile: Vector2i             # (-1,-1) = centroid of player starts
+@export var factions: Array[FactionData]
+@export var turn_order: Array[String]
+@export var activation_mode: String = "WHOLE_PHASE"
+@export var victory_conditions: Dictionary          # alliance_group -> Array[ObjectiveCondition]
+@export var defeat_conditions: Dictionary
 ```
 
 ---
@@ -328,15 +323,13 @@ Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 Two approaches are supported:
 
 ### Data-driven (used for MVP `map_001`)
-The map layout lives as a string-grid constant in `GameMap.gd`. No editor
-painting is required — the script paints the TileMap at runtime. To add a map
-this way:
-- [ ] Add a new constant string grid (one row per `String`, each row exactly
-      `MAP_WIDTH` chars) using the legend `. F M T S D W`
-- [ ] Update `GameMap.gd` to choose the right grid based on `map_data.id`
-      (or move the grids into MapData itself)
-- [ ] Create `MapData.tres` with `objective_type`, `player_start_tiles`,
-      and `enemy_placements`
+The map layout lives in `MapData.grid`. No editor painting is required for
+terrain. To add a map this way:
+- [ ] Create `MapData.tres` with a `grid` string array using the legend `. F M T S D W`
+- [ ] Fill `player_start_tiles`, `enemy_placements`, rewards, and camera start
+- [ ] Author `factions`, `turn_order`, and `activation_mode` only when the map
+      needs to override the default blue/green/red/yellow behavior
+- [ ] Author `victory_conditions` / `defeat_conditions` using `ObjectiveCondition`
 - [ ] Create enemy `UnitData` `.tres` files
 - [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
 
@@ -348,7 +341,7 @@ this way:
 - [ ] Create enemy `UnitData` `.tres` files for all enemies on this map
 - [ ] Reference enemy `.tres` paths in `MapData.enemy_placements`
 - [ ] Set `player_start_tiles` array
-- [ ] Set objective type and params
+- [ ] Set `victory_conditions` / `defeat_conditions`
 - [ ] Register map in the map select / campaign sequence `[PLACEHOLDER]`
 - [ ] Test: verify all tiles are passable/impassable as intended
 - [ ] Test: verify objective triggers correctly
