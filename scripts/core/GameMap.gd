@@ -28,6 +28,8 @@ const _CHAR_TO_SOURCE := {
 @onready var _camera: Camera2D = $Camera2D
 @onready var _turn_manager: TurnManager = $TurnManager
 @onready var _hud: Control = $HUDMainLayer/HUD
+@onready var _attack_preview: Control = $HUDLayer/AttackPreview
+@onready var _unit_details_screen: Control = $UnitDetailsLayer/UnitDetailsScreen
 
 # Sole writer of Camera2D.position in production (B4). Built in _ready, shared
 # with MapCursor via its setup() so both layers' camera operations flow through
@@ -87,7 +89,7 @@ func _ready() -> void:
 		gs.call("take_map_snapshot")
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
-		_hud.setup(_grid, _turn_manager)
+		_hud.setup(_grid, _turn_manager, _attack_preview, _unit_details_screen)
 	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
 	# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
 	# its unit/terrain panels from the start tile.

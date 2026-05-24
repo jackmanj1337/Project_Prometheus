@@ -51,10 +51,9 @@ func _init() -> void:
 	else:
 		print("FAIL unknown category: %s" % bad_category); failed += 1
 
-	# ---- coverage smoke test for Phase 1 surfaces -----------------------
-	# Every category the three Phase 1 surfaces will touch must have at
-	# least one authored entry, otherwise the side panels never have real
-	# content to render during the first playtest.
+	# ---- coverage checks for Phase 1 surfaces ---------------------------
+	# Keep the smoke check for the broad categories the three Phase 1
+	# surfaces touch.
 	var required: Array = [
 		["stat", "strength"],
 		["combat_field", "hit"],
@@ -72,6 +71,22 @@ func _init() -> void:
 			failed += 1
 	if coverage_ok:
 		print("OK  Phase 1 surfaces all have at least one authored entry")
+		passed += 1
+
+	# Terrain HUD should have authored copy for every terrain id currently
+	# surfaced by GridManager, so normal play never falls through to the
+	# placeholder text on common tiles.
+	var terrain_ids: Array[String] = [
+		"plain", "forest", "mountain", "fort", "sea", "desert", "wall",
+	]
+	var terrain_ok := true
+	for terrain_id in terrain_ids:
+		if not MoreInfoContent.has_description("terrain", terrain_id):
+			terrain_ok = false
+			print("FAIL terrain coverage missing: %s" % terrain_id)
+			failed += 1
+	if terrain_ok:
+		print("OK  terrain descriptions cover every GridManager terrain id")
 		passed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

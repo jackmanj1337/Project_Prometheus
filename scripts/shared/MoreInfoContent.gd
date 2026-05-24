@@ -71,6 +71,8 @@ const TERRAIN: Dictionary = {
 	"throne":   "Seat of a commander. Major defensive bonus and may be a Seize target for the chapter objective.",
 	"river":    "Impassable to most ground units; fliers cross freely. Some units have wading bonuses.",
 	"sea":      "Open water. Generally impassable except to fliers and dedicated naval classes.",
+	"desert":   "Loose sand that slows most units. Mounted and armoured units struggle most; light-footed units cross it more easily.",
+	"wall":     "Solid obstruction. Blocks movement and usually blocks passage entirely unless a special ability says otherwise.",
 }
 
 # Tile-action descriptions surfaced by the terrain More Info expansion.

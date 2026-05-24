@@ -91,6 +91,19 @@ func _init() -> void:
 		print("FAIL HUDMainLayer/HUD not found")
 		failed += 1
 
+	# HUD More Info priority hosts should be injected by GameMap rather than
+	# resolved through hard-coded scene paths.
+	if hud != null:
+		var injected_preview: Variant = hud.get("_attack_preview")
+		var injected_details: Variant = hud.get("_unit_details_screen")
+		if injected_preview == instance.get_node("HUDLayer/AttackPreview") \
+				and injected_details == instance.get_node("UnitDetailsLayer/UnitDetailsScreen"):
+			print("OK  HUD More Info hosts injected from GameMap")
+			passed += 1
+		else:
+			print("FAIL HUD More Info hosts were not injected correctly")
+			failed += 1
+
 	# Verify Camera2D limits
 	var cam: Camera2D = instance.get_node("Camera2D")
 	if cam.limit_right == 42 * 64 and cam.limit_bottom == 26 * 64:

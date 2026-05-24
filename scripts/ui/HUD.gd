@@ -38,6 +38,8 @@ const TileActions     = preload("res://scripts/shared/TileActions.gd")
 var _turn: int = 1
 var _grid: Node = null  # GridManager reference, set by GameMap
 var _turn_manager: Node = null  # TurnManager — needed for tile-action gates in expanded mode
+var _attack_preview: Node = null  # More Info priority 1 host, injected by GameMap
+var _unit_details_screen: Node = null  # More Info priority 2 host, injected by GameMap
 var _unit_is_selected: bool = false  # true while a player unit is actively selected
 var _selected_unit: Node = null  # the actively selected unit (fallback for empty tiles during selection — playtest 3 #6)
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
@@ -71,9 +73,12 @@ func _ready() -> void:
 	_setup_debug_banner()
 
 
-func setup(grid: Node, turn_node: Node) -> void:
+func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
+		unit_details_screen: Node = null) -> void:
 	_grid = grid
 	_turn_manager = turn_node
+	_attack_preview = attack_preview
+	_unit_details_screen = unit_details_screen
 	if turn_node:
 		turn_node.turn_changed.connect(_on_turn_changed)
 	# M16 stage 4: populate the objective readout from the active map's blue-group
@@ -345,18 +350,11 @@ func _unhandled_input(event: InputEvent) -> void:
 # the priority-1 and priority-2 More Info hosts and own the F key while
 # visible.
 func _higher_priority_more_info_visible() -> bool:
-	var tree := get_tree()
-	if tree == null:
-		return false
-	var rt: Window = tree.root
-	# Paths mirror GameMap.tscn so they're stable as long as the scene tree
-	# structure holds. Either being absent is fine — that just means we're
-	# in a test scene where only the HUD is wired.
-	var ap: Node = rt.get_node_or_null("GameMap/HUDLayer/AttackPreview")
-	if ap != null and ap.visible:
+	if _attack_preview != null and is_instance_valid(_attack_preview) \
+			and _attack_preview.visible:
 		return true
-	var uds: Node = rt.get_node_or_null("GameMap/UnitDetailsLayer/UnitDetailsScreen")
-	if uds != null and uds.visible:
+	if _unit_details_screen != null and is_instance_valid(_unit_details_screen) \
+			and _unit_details_screen.visible:
 		return true
 	return false
 
