@@ -1444,6 +1444,12 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 
 ### Systems
 
+- [ ] Firm up the **campaign-rules contract** before building the full save / prep
+      loop. `pair_up`, `support`, and `rescue` are campaign rules, not one-off map
+      toggles. When the between-map save/load, deployment, convoy, trade, and
+      progression-management screens are designed, treat these as part of the same
+      contract and answer the open questions in
+      `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
 - [ ] Between-map save / load (GDD_09 Phase 2 backlog)
 - [ ] Mid-battle suspend save — full serialization of: all unit `UnitData` (including
       `active_modifiers`, `conditions`, `skill_use_counters`, `shift_gauge`, `is_shifted`),
@@ -1456,12 +1462,15 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       save-and-continue (D14) depends on this — when Part B is built, pull this item
       forward to sit with it rather than leaving it post-M13.
 - [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)
-- [ ] Rescue and carry system (GDD_09 Phase 2 backlog)
+- [ ] Rescue and carry system (GDD_09 Phase 2 backlog) — treat rescue availability,
+      support bonuses, and Pair Up coexistence as campaign-rule decisions, not a
+      map-local ruleset
 - [ ] ~~Ally NPC phase (GDD_09 Phase 2 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
 - [ ] Additional AI profiles: territorial, guard_tile, healer, boss (GDD_09 Phase 2 backlog)
 - [ ] Stationary weapon interaction (Ballista/Onager use by player; already have WeaponData)
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
-- [ ] Pre-battle deployment screen
+- [ ] Pre-battle deployment screen — designed together with convoy, trade, campaign
+      rules, and save/load ownership so roster/inventory state has one canonical flow
 - [ ] Enforce skill/inventory caps — `GameState.max_skills` and `max_inventory` exist
       but nothing reads them. Enforce at the skill-equip UI and the trade/inventory
       UI once those screens are built (a unit may not equip more than `max_skills`

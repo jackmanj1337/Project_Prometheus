@@ -114,7 +114,14 @@ These are code-review followups whose natural slot is **before** a specific upco
 Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal ordering yet — pick from the bucket your post-M13 stack benefits from.
 
 - **Content** — remaining handbook classes; forging UI + shop; promotion UI for 3+-path classes.
-- **Systems** — between-map save/load; mid-battle suspend save (pull forward with M15 Part B); fog of war + LoS; rescue and carry; additional AI profiles (territorial/guard_tile/healer/boss); stationary weapon use; door/chest/key; pre-battle deployment screen; enforce `GameState.max_skills` / `max_inventory`; review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md`.
+- **Systems** — first firm up the campaign-rules contract (`pair_up`, `support`,
+  `rescue`) alongside campaign save/load + prep/deployment ownership; see
+  `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`. Then land between-map
+  save/load; mid-battle suspend save (pull forward with M15 Part B); fog of war +
+  LoS; rescue and carry; additional AI profiles (territorial/guard_tile/healer/boss);
+  stationary weapon use; door/chest/key; pre-battle deployment screen; enforce
+  `GameState.max_skills` / `max_inventory`; review and productionize
+  `AGENT/Docs/fe_map_sprite_importer_guide.md`.
 - **Maps** — Maps 002–005 (Seize, Boss Defeat, Escape, Survive/Defend) authored against M16.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).
 - **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, gamepad/touch support, attack-by-target selection, minimap toggle.
