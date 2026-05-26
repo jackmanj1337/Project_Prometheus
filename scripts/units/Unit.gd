@@ -572,6 +572,7 @@ func reset_appearance() -> void:
 func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
+	amount = _debug_force_levelup_exp(amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
 		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
@@ -583,6 +584,19 @@ func add_exp(amount: int) -> void:
 			_maybe_emit_promotion_available()
 			data.exp = 0  # no overflow past the cap
 			break
+
+
+# Shared debug-aid seam: when force-level-up is on, every EXP-awarding path
+# should grant at least one full level. Combat already routes through a
+# dedicated override in CombatResolver; add_exp() mirrors that so staff use and
+# future non-combat EXP sources behave the same way.
+func _debug_force_levelup_exp(amount: int) -> int:
+	if amount <= 0 or not OS.is_debug_build() or not is_inside_tree():
+		return amount
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.get("debug_force_levelup"):
+		return maxi(amount, 100)
+	return amount
 
 
 func _current_max_level() -> int:

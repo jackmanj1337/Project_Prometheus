@@ -898,6 +898,35 @@ func _init() -> void:
 		print("FAIL healtouch heal: hp=%d want=20" % patient.data.hp)
 		failed += 1
 
+	# --- debug_force_levelup applies to staff EXP too ---
+	var debug_healer_data := UnitData.new()
+	debug_healer_data.class_id = "cleric"
+	debug_healer_data.level = 1
+	debug_healer_data.exp = 0
+	debug_healer_data.magic = 4
+	debug_healer_data.inventory = [InventoryEntry.make_weapon("heal_staff", 10)]
+	debug_healer_data.weapon_wexp = {"staff": _wexp("E")}
+	var debug_healer: Unit = unit_scene.instantiate()
+	debug_healer.data = debug_healer_data
+	root.add_child(debug_healer)
+	var debug_patient_data := UnitData.new()
+	debug_patient_data.hp = 1
+	debug_patient_data.max_hp = 30
+	var debug_patient: Unit = unit_scene.instantiate()
+	debug_patient.data = debug_patient_data
+	root.add_child(debug_patient)
+	await process_frame
+	gs.debug_force_levelup = true
+	debug_healer.perform_staff_heal(debug_patient, heal_staff)
+	gs.debug_force_levelup = false
+	if debug_healer.data.level == 2 and debug_healer.data.exp == 0:
+		print("OK  debug_force_levelup forces a staff-use level-up")
+		passed += 1
+	else:
+		print("FAIL debug_force_levelup staff heal: level=%d exp=%d" % [
+			debug_healer.data.level, debug_healer.data.exp])
+		failed += 1
+
 	# --- Fort healing rounds down (GDD_02:76) ---
 	# A unit on a fort heals floor(max_hp * 10%). For a 25-HP unit that is 2, not 3 —
 	# the old ceili() gave 3. Regression for code review 2026-05-16d.
@@ -931,6 +960,10 @@ func _init() -> void:
 	rand_unit.queue_free()
 	dur_unit.queue_free()
 	fort_unit.queue_free()
+	healer.queue_free()
+	patient.queue_free()
+	debug_healer.queue_free()
+	debug_patient.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
