@@ -4,11 +4,13 @@ extends Control
 
 signal end_turn_requested()
 signal settings_requested()
+signal quit_to_menu_requested()
 signal menu_closed()
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _end_turn_btn: Button = $Panel/VBox/EndTurnButton
 @onready var _settings_btn: Button = $Panel/VBox/SettingsButton
+@onready var _quit_to_menu_btn: Button = $Panel/VBox/QuitToMenuButton
 @onready var _close_btn: Button = $Panel/VBox/CloseButton
 
 
@@ -16,6 +18,7 @@ func _ready() -> void:
 	hide()
 	_end_turn_btn.pressed.connect(_on_end_turn)
 	_settings_btn.pressed.connect(_on_settings)
+	_quit_to_menu_btn.pressed.connect(_on_quit_to_menu)
 	_close_btn.pressed.connect(_on_close)
 
 
@@ -43,6 +46,11 @@ func _on_end_turn() -> void:
 func _on_settings() -> void:
 	hide()
 	settings_requested.emit()
+
+
+func _on_quit_to_menu() -> void:
+	hide()
+	quit_to_menu_requested.emit()
 
 
 func _on_close() -> void:

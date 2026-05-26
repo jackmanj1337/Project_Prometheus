@@ -98,6 +98,7 @@ func _ready() -> void:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
 		map_menu.settings_requested.connect(_on_settings_requested)
+		map_menu.quit_to_menu_requested.connect(_on_quit_to_menu_requested)
 	if settings_screen:
 		settings_screen.back_pressed.connect(_on_settings_closed)
 	# Lock cursor during enemy phase; unlock when player phase starts
@@ -944,6 +945,25 @@ func _on_map_menu_closed() -> void:
 	if gs and not gs.is_player_turn():
 		return
 	unlock()
+
+
+func _on_quit_to_menu_requested() -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
+	dlg.confirmed.connect(func():
+		dlg.queue_free()
+		get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
+	)
+	dlg.canceled.connect(func():
+		dlg.queue_free()
+		var gs := get_node_or_null("/root/GameState")
+		if gs and not gs.is_player_turn():
+			return
+		unlock()
+	)
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_cancel_button().grab_focus()
 
 
 # ── Settings ─────────────────────────────────────────────────────────────────

@@ -5,7 +5,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 @onready var _label_title: Label = $Panel/VBox/TitleLabel
 @onready var _label_unit: Label = $Panel/VBox/LabelUnit
 @onready var _label_hint: Label = $Panel/VBox/LabelHint
-@onready var _options: VBoxContainer = $Panel/VBox/Options
+@onready var _options_scroll: ScrollContainer = $Panel/VBox/OptionsScroll
+@onready var _options: VBoxContainer = $Panel/VBox/OptionsScroll/Options
 @onready var _btn_cancel: Button = $Panel/VBox/BtnCancel
 
 var _unit: Node = null
@@ -35,6 +36,7 @@ func open_for(unit: Node, consume_entry: InventoryEntry = null,
 		return
 	_emit_reclass_started()
 	show()
+	_options_scroll.scroll_vertical = 0
 	_buttons[0].grab_focus()
 
 

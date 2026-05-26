@@ -42,12 +42,19 @@ func _init() -> void:
 
 	screen.open_for(unit, seal, Callable(watcher, "on_completed"))
 	await process_frame
-	var options: VBoxContainer = screen.get_node("Panel/VBox/Options")
+	var options_scroll: ScrollContainer = screen.get_node("Panel/VBox/OptionsScroll")
+	var options: VBoxContainer = screen.get_node("Panel/VBox/OptionsScroll/Options")
 	if screen.visible and options.get_child_count() == 2:
 		print("OK  reclass screen opens and lists the legal options")
 		passed += 1
 	else:
 		print("FAIL reclass options: visible=%s count=%d" % [screen.visible, options.get_child_count()])
+		failed += 1
+	if options_scroll.custom_minimum_size.y >= 0:
+		print("OK  reclass options live inside a scroll container")
+		passed += 1
+	else:
+		print("FAIL reclass options missing scroll container")
 		failed += 1
 
 	var first_button: Button = options.get_child(0)

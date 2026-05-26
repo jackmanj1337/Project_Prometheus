@@ -27,6 +27,17 @@ camera/debug controls, and More Info surfaces.
   2. `Map 900 - Hotseat Validation`
   3. `Map 950 - Promotion Validation`
 - Start with default debug aids Off unless a step explicitly tests `F10` / `F11`.
+- Expected rosters for this sweep:
+  - `Map 001` uses the normal default campaign roster
+  - `Map 900 - Hotseat Validation` uses the authored fixed test roster from
+    `data/roster/test/map_900_hotseat_validation/` plus the authored
+    green/red/yellow units in the map data
+  - `Map 950 - Promotion Validation` uses the authored fixed test roster from
+    `data/roster/test/map_950_promotion_validation/`
+- Objective coverage note:
+  `Seize` and `Escape` are still blocked on the planned `Maps 002–005`
+  content pass; do not treat their absence on the current selector list as a
+  regression in this sweep.
 
 **Run Order**
 
@@ -200,6 +211,10 @@ flows verified only by headless tests, not by actual in-map play.
 - Preferred launch path:
   1. `Map 001` for starter-skill / level-up / unit-details checks
   2. `Map 950 - Promotion Validation` for promotion and reclass checks
+- Expected rosters:
+  - `Map 001` should load the normal default campaign roster
+  - `Map 950` should load the fixed promotion/reclass validation roster with
+    pre-staged seal/item coverage for the listed scenarios
 - Run this section twice where relevant:
   1. once with `Auto Promote` On
   2. once with `Auto Promote` Off
@@ -298,21 +313,21 @@ collapsed into a single active entry, and already-shipped items were left in
 the closed list above.
 
 ##### High-Priority Bugs
-- [ ] Fix `Map 900` hotseat phase handoff so turn order returns control to Blue
+- [x] Fix `Map 900` hotseat phase handoff so turn order returns control to Blue
       after Red and Yellow act, Blue becomes controllable again on later
       phases, and Green units refresh correctly on turn 3
-- [ ] Fix `Map 900` hotseat combat preview so selecting an enemy as Green shows
+- [x] Fix `Map 900` hotseat combat preview so selecting an enemy as Green shows
       the normal combat analysis / prediction instead of opening a partial
       `More info` panel with missing combat data
-- [ ] Fix `Map 950` reclass menu overflow so long option lists stay navigable on
+- [x] Fix `Map 950` reclass menu overflow so long option lists stay navigable on
       screen and lower entries remain reachable
 
 ##### Medium-Priority Bugs / Debug Gaps
-- [ ] Fix debug `Force Level-up` so staff use can trigger the forced level-up
+- [x] Fix debug `Force Level-up` so staff use can trigger the forced level-up
       path the same way combat and other EXP-granting actions do
 
 ##### Content / Documentation Gaps
-- [ ] Disambiguate the two `Map 001` entries in the selector so testers can
+- [x] Disambiguate the two `Map 001` entries in the selector so testers can
       tell `Rout` apart from the faction-demo variant before launch
 - [ ] Add explicit expected rosters / expected knowledge to the manual task
       setup sections where a test depends on party composition or unlock state
@@ -321,8 +336,9 @@ the closed list above.
       steps that cover those objective types
 
 ##### Feature Requests Already Tracked Elsewhere
-- [ ] Add an `Exit to Main Menu` button from in-run UI flow
-      Tracked as UI / UX follow-up work rather than a playtest blocker
+- [x] Add an `Exit to Main Menu` button from in-run UI flow
+      Landed in the map menu with confirmation; still needs manual live-use
+      validation during the next broad regression pass
 - [ ] Continue the broader UI / UX backlog already captured in the roadmap:
       range-on-hover, movement-path arrows, individual threat range, UI scaling
       and repositioning, camera settings, resolution options, key rebinding,

@@ -142,6 +142,51 @@ func _init() -> void:
 	_check(ally.data.hp > hp_before and f4.done == 1,
 		"handle_confirm heals the ally and emits `completed`")
 
+	# ── Map 900 hotseat regression: green attack opens the real combat preview ──
+	gs.reset_map_state()
+	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
+	gs.configure_next_map(
+		"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
+		"fixed_test_roster",
+		"res://data/roster/test/map_900_hotseat_validation/")
+	var hotseat_instance: Node = load("res://scenes/core/GameMap.tscn").instantiate()
+	root.add_child(hotseat_instance)
+	await process_frame
+	var hotseat_cursor: MapCursor = hotseat_instance.get_node("MapCursor")
+	var hotseat_preview: Control = hotseat_instance.get_node("HUDLayer/AttackPreview")
+	var hotseat_green: Unit = null
+	var hotseat_red: Unit = null
+	for u in gs.all_units:
+		if u.team == "green" and hotseat_green == null:
+			hotseat_green = u
+		elif u.team == "red" and hotseat_red == null:
+			hotseat_red = u
+	if hotseat_green == null or hotseat_red == null:
+		_check(false, "Map 900 hotseat map spawned green and red units")
+	else:
+		hotseat_cursor.set_controlling_faction("green")
+		hotseat_cursor.unlock()
+		hotseat_cursor.current_tile = hotseat_green.tile_position
+		hotseat_cursor._on_confirm()
+		hotseat_cursor.current_tile = Vector2i(5, 4)  # adjacent to the red soldier at (6,4)
+		hotseat_cursor._on_confirm()
+		await create_timer(0.5).timeout
+		hotseat_cursor._on_action_chosen("attack")
+		var targeting_ready: bool = (
+			hotseat_cursor._state == MapCursor.State.TARGETING
+			and hotseat_cursor.current_tile == hotseat_red.tile_position
+		)
+		_check(targeting_ready,
+			"Map 900 green move-then-attack enters targeting on the red unit")
+		hotseat_cursor._on_confirm()
+		await process_frame
+		var preview_populated: bool = hotseat_preview.visible \
+			and "Dmg" in hotseat_preview._atk_dmg.text \
+			and "HP " in hotseat_preview._def_hp.text
+		_check(preview_populated,
+			"Map 900 green attack opens a populated combat preview instead of info-only UI")
+	hotseat_instance.queue_free()
+
 	_finish()
 
 

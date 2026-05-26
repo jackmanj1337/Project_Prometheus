@@ -20,6 +20,7 @@ TESTS=(
   test_game_state
   test_data_manager
   test_action_menu
+  test_map_menu
   test_settings_manager
   test_settings_screen
   test_new_game_screen
