@@ -226,6 +226,21 @@ func _begin_phase(units: Array[Node]) -> void:
 	_apply_start_of_turn_skills(units)
 
 
+# Whole-phase maps refresh the acting faction at the start of that faction's
+# turn, not just Blue. Hotseat and multi-faction validation maps rely on this
+# so non-blue local factions do not stay latched in DONE across rounds.
+func _refresh_faction_units(faction_id: String) -> void:
+	if faction_id == "":
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	for u in gs.get_living_units_of(faction_id):
+		_unit_states[u] = UnitState.READY
+		if u.has_method("reset_appearance"):
+			u.reset_appearance()
+
+
 # Resets all blue units to READY, restores their appearance, sets the phase.
 # Does NOT increment turn_number directly — that happens in end_player_phase
 # at the moment the player commits to ending their turn.
@@ -253,6 +268,7 @@ func start_player_phase() -> void:
 		# for blue's units only. ALTERNATING does both at round start in start_map
 		# / _alternating_round_wrap, not here.
 		if _activation_mode == "WHOLE_PHASE":
+			_refresh_faction_units("blue")
 			_tick_unit_modifiers(gs.all_units, "map_turn")
 			_begin_phase(gs.get_living_units_of("blue"))
 		else:
@@ -306,6 +322,7 @@ func start_enemy_phase() -> void:
 			if _activation_mode == "WHOLE_PHASE":
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
+				_refresh_faction_units(active_faction())
 				_begin_phase(gs.get_living_units_of(active_faction()))
 		var controller := _controller_for(active_faction())
 		if controller != null:

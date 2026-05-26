@@ -143,6 +143,8 @@ func _resolve_menu_refs() -> void:
 
 
 func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
+	if _faction_id != "":
+		set_controlling_faction(_faction_id)
 	if new_phase == GameState.Phase.ENEMY:
 		# Capture the player's last camera view so we can restore it next player
 		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads

@@ -486,16 +486,19 @@ func _init() -> void:
 	var hotseat_stub: Node = hotseat_stub_script.new()
 	tm_c3.set_ai_controller(ai_stub)
 	tm_c3.set_hotseat_controller(hotseat_stub)
+	tm_c3._unit_states[c3_g] = TurnManager.UnitState.DONE
 	await tm_c3.start_enemy_phase()
 	var c3_calls: Array = ai_stub.get("calls")
 	var c3_hotseat_calls: Array = hotseat_stub.get("calls")
 	if c3_hotseat_calls == ["green"] and c3_calls == ["red"] \
-			and tm_c3.active_faction() == "blue" and gs.is_player_turn():
+			and tm_c3.active_faction() == "blue" and gs.is_player_turn() \
+			and tm_c3.get_unit_state(c3_g) == TurnManager.UnitState.READY:
 		print("OK  start_enemy_phase: HOTSEAT then AI controllers run before blue resumes")
 		passed += 1
 	else:
-		print("FAIL controller loop: hotseat=%s ai=%s active=%s phase=%s" % [
-			str(c3_hotseat_calls), str(c3_calls), tm_c3.active_faction(), gs.current_phase
+		print("FAIL controller loop: hotseat=%s ai=%s active=%s phase=%s green_state=%s" % [
+			str(c3_hotseat_calls), str(c3_calls), tm_c3.active_faction(), gs.current_phase,
+			tm_c3.get_unit_state(c3_g)
 		]); failed += 1
 
 	# ---- HotseatController.run_phase: points the cursor at the acting faction and waits ----

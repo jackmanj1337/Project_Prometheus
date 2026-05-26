@@ -97,15 +97,17 @@ func _init() -> void:
 		print("FAIL unlock(): _state=%d" % c1._state)
 		failed += 1
 
-	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks ----
-	c1._on_phase_changed(1)  # GameState.Phase.ENEMY
+	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks, controlling faction follows phase ----
+	c1.set_controlling_faction("green")
+	c1._on_phase_changed(1, "green")  # GameState.Phase.ENEMY
 	var locked_on_enemy := c1._state == LOCKED
-	c1._on_phase_changed(0)  # GameState.Phase.PLAYER
-	if locked_on_enemy and c1._state == FREE:
-		print("OK  _on_phase_changed: ENEMY → LOCKED, PLAYER → FREE")
+	c1._on_phase_changed(0, "blue")  # GameState.Phase.PLAYER
+	if locked_on_enemy and c1._state == FREE and c1._controlling_faction == "blue":
+		print("OK  _on_phase_changed: ENEMY → LOCKED, PLAYER → FREE, control returns to blue")
 		passed += 1
 	else:
-		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d" % [locked_on_enemy, c1._state])
+		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d faction=%s" % [
+			locked_on_enemy, c1._state, c1._controlling_faction])
 		failed += 1
 
 	# ---- _place_menu_near keeps the menu fully inside the viewport (playtest 3 #4) ----
