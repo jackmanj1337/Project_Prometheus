@@ -310,6 +310,22 @@ func _init() -> void:
 				hotseat_units.get_child_count(), hotseat_green_found])
 			failed += 1
 
+		# A fresh map boot must wipe stale map-scoped GameState data left behind
+		# by a prior battle/menu transition instead of appending on top of it.
+		gs.all_units.append(Node.new())
+		gs.turn_number = 9
+		var clean_boot_instance: Node = packed.instantiate()
+		root.add_child(clean_boot_instance)
+		await process_frame
+		var clean_units: Node2D = clean_boot_instance.get_node("UnitsContainer")
+		if gs.turn_number == 1 and gs.all_units.size() == clean_units.get_child_count():
+			print("OK  GameMap resets stale GameState map state before spawning")
+			passed += 1
+		else:
+			print("FAIL stale map state leaked into fresh GameMap: turn=%d all_units=%d scene_units=%d" % [
+				gs.turn_number, gs.all_units.size(), clean_units.get_child_count()])
+			failed += 1
+
 		# Objective showcase smoke: each newly-authored selector map should boot
 		# through the selected-map override path with the default roster.
 		var objective_maps := [

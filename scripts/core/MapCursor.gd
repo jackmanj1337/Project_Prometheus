@@ -952,6 +952,9 @@ func _on_quit_to_menu_requested() -> void:
 	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
 	dlg.confirmed.connect(func():
 		dlg.queue_free()
+		var gs := get_node_or_null("/root/GameState")
+		if gs:
+			gs.call("reset_map_state")
 		get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
 	)
 	dlg.canceled.connect(func():

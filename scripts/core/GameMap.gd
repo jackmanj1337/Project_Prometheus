@@ -43,6 +43,12 @@ var map_data: MapData = null
 
 
 func _ready() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs:
+		# Fresh map boot must not inherit stale scene-scoped unit state from a
+		# prior battle. This is especially important after returning to the main
+		# menu from an in-progress map in an exported build.
+		gs.call("reset_map_state")
 	# Load data first — terrain painting and grid setup both depend on map_data.grid.
 	_load_map_data()
 	if map_data == null or map_data.grid.is_empty():
@@ -79,7 +85,6 @@ func _ready() -> void:
 
 	_spawn_units()
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
-	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
 		for u in gs.get("all_units") as Array:
