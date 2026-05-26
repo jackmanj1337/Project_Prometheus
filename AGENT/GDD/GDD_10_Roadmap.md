@@ -41,20 +41,24 @@ The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase
 
 | Milestone | Status | Notes |
 | --- | --- | --- |
-| M8 — Status Conditions | — | After M14 core; conditions tick per-unit-activation |
-| M9 — Skill Content Implementation | — | After M8 |
+| M8 — Status Conditions | [READY TO START] | After M9a engine slice; design locks reviewed 2026-05-25; conditions tick per-unit-activation |
+| M9 — Skill Content Implementation | [READY TO START] | Promoted split: M9a engine first, then M8, then M9b content |
 | M10 — Extra-Turn System | — | After M9; **needs M14 stages 1–5** (extra turn = extra activation) |
 | M11 — Content Expansion | — | After M10 |
 | M12 — Laguz System | [DEFERRED] | After M11; fully specced below |
 | M13 — Awakening Supplement | [DEFERRED] | After M12 |
-| M14 — Faction System | — | **Stages 1–3 first** — behaviour-neutral foundation; see Decision 10 |
-| M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED]; online design ratified 2026-05-17 |
-| M16 — Objective System | — | **After M14 stages 1–3** — per-group victory needs the faction model |
+| M14 — Faction System | [COMPLETE] | Shipped across 2026-05-20 and 2026-05-21; see session notes for stages 1–5 |
+| M15 — Hotseat & Remote Control | [PART A IN VALIDATION / PART B DEFERRED] | Hotseat core landed 2026-05-21; remaining Part A work is validation/content; online design ratified 2026-05-17 |
+| M16 — Objective System | [COMPLETE] | Shipped 2026-05-20; per-group victory/defeat and standings live |
 
 **Implementation order** (dependency-clean — `AGENT/Docs/design_decisions_log_2026-05-17.md`,
-Decision 10): **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 →
-M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
+Decision 10, revised by the 2026-05-26 M9a promotion): **M14 stages 1–3 → M16 →
+M14 stages 4–5 (+content) → M9a (engine) → M8 → M9b (content/data) → M10 → M11 →
+M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
 after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
+The 2026-05-25 milestone-lock review clarified open design choices for M8/M9/M15/maps;
+2026-05-26 explicitly promoted **M9a** ahead of M8 so the skill engine can land before
+bulk condition/content work.
 
 ---
 
@@ -77,6 +81,34 @@ indicator appears. Verify all mechanical effects. Verify removal by Restore staf
 > than start of a faction phase. Building M8 on the finished turn model avoids
 > re-wiring tick points later. See decisions log 2026-05-17, Decision 10.
 
+### Locked design decisions — 2026-05-25 review
+
+These four open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+for the deliberation log.
+
+- **Poison lethality — configurable per source.** Poison damage **floors at 1 HP
+  by default** (Poison alone cannot kill). The damage source carries an optional
+  `can_be_lethal: bool` flag (default `false`); only sources with the flag
+  explicitly set may reduce the holder to 0 HP. This preserves classic FE
+  semantics while leaving the door open for a future "lethal poison" boss skill.
+- **Berserk targeting — highest projected damage, then nearest, then unit id.**
+  The Berserk AI profile reaches every legal target it can attack this
+  activation, ranks them by **projected damage** (the same expected-damage
+  calculation the threat preview will already need: hit/crit-weighted, after
+  mitigation), then tiebreaks **nearest in tiles**, then **lowest unit id** for
+  determinism. Behaviour is therefore reproducible under a fixed RNG seed.
+- **Silence scope — tomes and staves only.** Silence blocks actions whose
+  primary `weapon_type` is `TOME` or `STAFF`. It does **not** block physical
+  weapons or active non-magical skills. The condition is a pure filter on
+  weapon type; no per-skill `silenceable` flag is added in M8. (If a future
+  active skill genuinely needs Silencing, add the flag then.)
+- **Condition schema — minimal `{ type, turns_remaining }`.** Standard
+  conditions store only those two fields; extra fields are added per
+  condition only when the condition genuinely needs them (e.g. Hex's
+  skill-granted effect id). Do **not** preemptively add `source_id`,
+  `magnitude`, `tags`, or `metadata` columns to every condition.
+
 ### Condition Definitions
 
 All conditions store as `{ "type": String, "turns_remaining": int }` in
@@ -88,7 +120,7 @@ fully implemented here.
 | Poison | −3 HP at start of holder's turn; −10 Accuracy and Dodge during combat | 5 turns | Start of holder's turn |
 | Sleep | Cannot move, act, or counterattack; Dodge set to 0 | 3 turns | Start of holder's turn |
 | Silence | Cannot use tomes or staves | 4 turns | Start of holder's turn |
-| Berserk | Must attack the most vulnerable unit in range each turn (including allies) | 3 turns | Start of holder's turn |
+| Berserk | Must attack the target with the highest projected damage (nearest → lowest unit id tiebreak) in range each turn, including allies | 3 turns | Start of holder's turn |
 | Stun | Cannot move, act, or counterattack; Dodge set to 0 | 1 turn | Start of holder's turn |
 | Hex | −6 STR and −6 MAG (via active_modifiers, "combat" duration_type by default) | Custom | Applied by skill |
 
@@ -130,8 +162,13 @@ func tick_conditions(unit: Node) -> void:
     for condition in unit.data.conditions.duplicate():
         match condition["type"]:
             CONDITION_POISON:
-                unit.take_damage(3)
-                EventBus.unit_damaged.emit(unit, 3)
+                # Default Poison floors at 1 HP. A lethal-poison source would
+                # carry `can_be_lethal = true` and call `take_damage` directly.
+                var damage := 3
+                if unit.data.hp - damage < 1:
+                    damage = max(unit.data.hp - 1, 0)
+                unit.take_damage(damage)
+                EventBus.unit_damaged.emit(unit, damage)
         condition["turns_remaining"] -= 1
     unit.data.conditions = unit.data.conditions.filter(
         func(c): return c["turns_remaining"] > 0
@@ -201,6 +238,14 @@ Handle in `SkillHandler.apply_trigger(attacker, "on_hit", context)` — if weapo
 - [ ] Implement `ConditionManager.apply_condition()` with duplicate-refresh logic
 - [ ] Implement `ConditionManager.remove_condition()` with modifier cleanup for Poison
 - [ ] Implement `ConditionManager.tick_conditions()` with Poison damage
+- [ ] Implement Poison-floors-at-1-HP-by-default; respect `can_be_lethal` on the
+      condition's source data when present
+- [ ] Implement Berserk targeting as **highest projected damage → nearest →
+      lowest unit id** (reuse the threat-projection helper from AI)
+- [ ] Silence filter: block actions whose `weapon_type` is `TOME` or `STAFF`
+      (no other categories)
+- [ ] Keep stored condition records to `{ type, turns_remaining }` — no extra
+      schema fields unless an individual condition (e.g. Hex) needs them
 - [ ] Implement `ConditionManager.has_condition()`
 - [ ] Implement `ConditionManager.clear_all_conditions()` (for Restore/Boon/Panacea)
 - [ ] Add `condition_applied` and `condition_removed` signals to `EventBus.gd`
@@ -238,6 +283,39 @@ its effect triggers correctly and produces the expected change in numbers or beh
 This milestone adds `match` blocks to `SkillHandler.apply_trigger()` for every
 deferred effect. The infrastructure (modifier pipeline, trigger types, counter system)
 is already in place from the MVP amendments.
+
+### Locked design decisions — 2026-05-25 review
+
+These four open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+for the deliberation log.
+
+- **Internal M9a / M9b split (public roadmap unchanged).** Work M9 internally as
+  two phases: **M9a** finishes the *engine* — every `match` arm in
+  `SkillHandler.apply_trigger()` for the effect families below, plus shared
+  helpers — landing first against a minimal authored test set. **M9b** then
+  authors the bulk of the production skill `.tres` files against the locked
+  engine. The roadmap and downstream milestone numbers stay unchanged; the
+  split is a discipline tool to avoid mid-content engine refactors.
+- **Trigger discipline — strict reuse, flags first.** Do **not** introduce a
+  new `trigger` type during M9 unless an existing trigger combined with a
+  context flag (`context.flags.*`) demonstrably cannot express the skill. If a
+  new trigger is genuinely required, justify it in the skill's design note
+  before adding it. The trigger surface area drives interaction-ordering
+  complexity, so it is deliberately kept small.
+- **Effect computation — hybrid (dynamic for state, stored for static).**
+  Threshold- and state-dependent effects (e.g. **Resolve**, **Frenzy**, the
+  pre-mitigation halving applied by **Aegis**) are evaluated **at query time**
+  off the current state, not stored as toggled modifiers. Static passives
+  (e.g. **Zeal**, **Tough**) remain stored modifiers added on initialisation.
+  Rule of thumb: if the contribution depends on a condition that can change
+  during a unit's lifetime, evaluate it dynamically.
+- **Pair Up / Rescue — fully out of M9.** No skill content or engine code in
+  M9 may depend on `pair_up`, `support`, or `rescue` semantics; these are
+  campaign-rule features and will be handled in the campaign-rules milestone
+  (per the 2026-05-25 scope decision). M9-era Pair Up references in the
+  checklist below are explicitly marked *skip* / *defer*. Any unavoidable
+  integration retrofit lands later, once the campaign rules are specified.
 
 ### Generic stat skills — passive bonuses
 
@@ -1210,13 +1288,43 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 
 ### Part A — Hotseat (shipping target)
 
-> **▶ NEXT ACTION ITEM (2026-05-21).** Implementation plan ready —
-> `AGENT/Docs/implementation_plan_2026-05-21.md`: six design questions settled,
-> a done-vs-remaining audit against current code, ordered build steps + test
-> plan. Part A is scoped to **WHOLE_PHASE maps only** (Decision Q6); ALTERNATING
-> hotseat is deferred to a later backlog item. The `grant_extra_turn` checklist
-> item below is **blocked on M10** — that feature does not exist in the codebase
-> yet — so skip it for Part A.
+> **Current state (refreshed 2026-05-26).** Core Part-A implementation landed on
+> 2026-05-21 (controller seam, `HotseatController`, generic phase commit flow,
+> cursor faction handoff, tests). The detailed build/test plan in
+> `AGENT/Docs/implementation_plan_2026-05-21.md` remains the reference for the
+> architecture and validation scope. Remaining Part-A work is:
+> 1. author the WHOLE_PHASE validation content / launch path,
+> 2. run the manual acceptance checklist in `AGENT/GDD/GDD_Manual_Tasks.md`,
+> 3. then mark checklist items complete where the live pass confirms them.
+>
+> Part A is scoped to **WHOLE_PHASE maps only**; `ALTERNATING` hotseat remains
+> deferred. The `grant_extra_turn` checklist item below is still **blocked on M10**
+> because that feature does not exist in the codebase yet.
+
+#### Locked design decisions — 2026-05-25 review
+
+These four Part-A open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+
+- **Per-player keybindings — skip for Part A.** All hotseat slots share the
+  existing single `InputMap` action set. Per-player keybinding profiles are
+  deferred to the same later backlog item that picks up split-controller /
+  shared-couch co-op. `WHOLE_PHASE` hotseat means only one player interacts at
+  a time on one keyboard, so personal binds add no value yet.
+- **Hotseat assignment — per-map data + CLI/dev override.** A map's `.tres`
+  declares each faction's default controller (`AI` or `HOTSEAT`); a CLI/dev
+  flag (e.g. `--hotseat=red:human2,green:ai`) may override the defaults for
+  testing and regression fixtures. **No pre-battle lobby UI in Part A** — that
+  arrives with the prep/lobby work later.
+- **HUD controller label — `Faction — Controller` text.** The active phase
+  banner reads e.g. `Red — Player 2` or `Green — AI`. Faction-first matches
+  the in-game identity; the controller half eliminates the "whose turn is it?"
+  ambiguity for hotseat sessions. Icons are optional decoration but must not
+  replace the text.
+- **`ALTERNATING` hotseat — fully out of Part A.** No code path in Part A may
+  rely on `ALTERNATING` behaviour. `ALTERNATING` is revisited only after the
+  extra-turn / activation-scheduler work is settled (the scheduler may simplify
+  or eliminate the special case altogether).
 
 Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's activations are driven through
 the existing `MapCursor` instead of the AI — the cursor is *not* locked for a
@@ -1295,13 +1403,17 @@ the recorded outcomes. The decisions that drive Part B's build:
 **Part A — Hotseat**
 
 - [ ] Controller enum `AI | HOTSEAT` (kept open for `REMOTE`); per-faction assignment
-      in `GameState`, set per map / per match
+      sourced from the map's `.tres` defaults, overridable by a CLI/dev flag
+      (no lobby UI in Part A)
 - [ ] `HOTSEAT` faction phase routes through `MapCursor`, not `run_ai_phase`
 - [ ] `MapCursor` not locked during a human-controlled non-blue phase; End Turn ends it
 - [ ] `grant_extra_turn` (M10) re-enters the *active controller*, not "the cursor", so
       an extra turn during a hotseat phase is driven correctly
-- [ ] Faction / hotseat-slot label shown in the HUD
-- [ ] [Optional] per-phase `InputMap` action sets; `MapCursorInput` reads the active set
+- [ ] HUD phase banner shows `Faction — Controller` text (e.g. `Red — Player 2`,
+      `Green — AI`)
+- [ ] [Deferred] per-player `InputMap` action sets — skipped in Part A; revisit
+      with split-controller co-op
+- [ ] No code path may rely on `ALTERNATING` activation mode in Part A
 - [ ] Verify: a hotseat player drives their faction; AI factions unaffected
 - [ ] Verify: a map with all non-blue factions AI still plays exactly as M14
 
@@ -1366,10 +1478,12 @@ achiever group's *victory*. Condition types:
 - **rout** — a named faction (or group) has zero living units. Compound by listing
   several (rout red AND rout yellow).
 - **defeat_boss** — one or more named unit ids are dead.
-- **seize** — a blue unit uses a dedicated **Seize action** (an `ActionMenu`
-  entry) while on a named seize tile. The condition resource carries the tile
-  id(s) and an optional allowed-unit-id list (empty = any blue unit). *Not*
-  passive occupation — see decisions log 2026-05-17, Decision 4.
+- **seize** — a unit carrying the `can_seize` tag uses a dedicated **Seize
+  action** (an `ActionMenu` entry) while on a named seize tile. The condition
+  resource carries the tile id(s); seize eligibility is determined by the
+  per-unit `can_seize` tag (2026-05-25 review), not by class and not by a
+  per-map allowlist. *Not* passive occupation — see decisions log 2026-05-17,
+  Decision 4.
 - **escape** — named units reach an escape **zone** (a set of tiles — region /
   edge / doorway; a size-1 zone is a single tile). A named unit on a zone tile
   may pick the **Escape action** from the `ActionMenu` (post-2026-05-20 review —
@@ -1406,6 +1520,38 @@ group records an "eliminated on round N" field to drive the ordering.
   (`advance_to_next_phase`); AI / hotseat controllers also check it to abort a
   decided map early.
 
+### Locked design decisions — 2026-05-25 review (Maps 002–005 followup)
+
+M16 itself is shipped. These five decisions govern the **objective-map followup**
+— authoring Maps 002–005 against the implemented condition system. See
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md` for the deliberation log.
+
+- **Showcase plan — one map per primary objective type.** Maps 002–005 cover
+  exactly the four types implemented in M16: **Seize**, **Defeat Boss**,
+  **Escape**, **Survive / Defend** — one map each. The goal is to validate the
+  typed condition system through real content; map variety within a type is a
+  later authoring pass.
+- **Primary objectives — one per early map.** Each of the four maps declares
+  **exactly one** primary victory objective for blue (multi-primary and
+  optional-secondary objectives are out of scope until the basics are
+  validated). Defeat conditions are still varied per map (see below).
+- **Allowed seizer — per-unit `can_seize` tag.** Seize eligibility is
+  determined by a **tag on the unit's data** (not derived from class, and not
+  declared as a per-map `allowed_unit_ids` allowlist). The Seize action is
+  available only to units carrying the tag while standing on a configured
+  seize tile. Authors set the tag on the relevant lord-class units; new
+  characters opt in by being tagged.
+- **Escape semantics — alive, removed, no further actions this map.** An
+  escaped unit counts as alive for survival/protection conditions, is removed
+  from the active board, and may not act further on the current map. (Classic
+  FE Escape semantics; matches the typed condition system's expectations.)
+- **Authored defeat standard — ≥1 authored defeat per map, beyond rout.** Every
+  Phase-3 objective map must declare at least one **authored** defeat condition
+  in addition to the implicit "all units dead" rout fallback (e.g. a turn
+  limit, a lord-protect, a hold-the-tile failure). This exercises the
+  defeat-condition code paths in real content and produces stronger tactical
+  pressure.
+
 ### Checklist — M16
 
 - [ ] Define typed condition resources for each condition type above
@@ -1428,7 +1574,11 @@ group records an "eliminated on round N" field to drive the ordering.
 - [ ] Verify: a 3-group match eliminates groups in order with correct standings;
       simultaneous elimination resolves to a draw
 - [ ] New tests for the evaluator, each condition type, and the standings logic
-- [ ] Phase 3 Maps 002–005 authored against the condition system
+- [ ] Phase 3 Maps 002–005 authored against the condition system — one map
+      per primary objective (Seize / Defeat Boss / Escape / Survive-Defend),
+      one primary objective each, ≥1 authored defeat condition beyond rout
+- [ ] Define a `can_seize` tag on `UnitData`; gate the Seize action on the
+      tag rather than on class or a per-map allowlist
 
 ---
 

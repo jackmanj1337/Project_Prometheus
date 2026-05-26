@@ -10,10 +10,10 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-24** against branch `awakening-compatability-refactor`
-@ `4d0ea2e` (C1–C3 done; hotseat foundations, class-skill rebuild, Pair Up
-pass 1 partial, and More Info phase 1 all landed in code; live validation still
-pending in `GDD_Manual_Tasks.md`).
+Last refreshed: **2026-05-26** against the current worktree (C1–C3 and M16 are
+shipped; M15 Part A core is landed with manual validation still pending in
+`GDD_Manual_Tasks.md`; the 2026-05-25 review locked the remaining open design
+choices for M8, M9, hotseat validation scope, and Maps 002–005 authoring).
 
 ---
 
@@ -84,24 +84,29 @@ These are code-review followups whose natural slot is **before** a specific upco
 
 ### Bucket C — Phase 2 milestones (Decision 10 order)
 
-> Implementation order per `AGENT/Docs/design_decisions_log_2026-05-17.md` Decision 10:
-> **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 → M11 → M12 → M13**.
+> Implementation order per `AGENT/Docs/design_decisions_log_2026-05-17.md` Decision 10,
+> revised by the 2026-05-26 M9a promotion:
+> **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M9a → M8 → M9b → M10 → M11 → M12 → M13**.
 > M15 Part A (hotseat) slots anywhere after M14 stage 5.
 > M14 green/yellow content + Maps 002–005 ride after M16.
+> 2026-05-25's planning pass converted open design questions into locked
+> implementation constraints. 2026-05-26 then explicitly promoted **M9a**
+> ahead of M8 so the skill-engine slice lands before conditions and bulk skill data.
 
 | # | Milestone | Goal (1-liner) | Depends on | Source |
 |---|---|---|---|---|
 | C1 ✅ | ~~**M14 stages 1–3**~~ | ~~Replace hardcoded `"player"` with faction-relative concepts; alliance-group hostility helper; faction-as-data + activation-scheduler `TurnManager` (`WHOLE_PHASE`/`ALTERNATING`). **Behaviour-neutral.**~~ | — | Shipped 2026-05-20; commits `20ef18e` / `c5c9c32` / `0c68254`. See §1 + Session Notes 2026-05-20. Small stage-3 follow-ups (cursor branching on activation_mode, AI-faction dispatch from start_map non-blue path) fold into C3. |
 | C2 ✅ | ~~**M16 — Objective System**~~ | ~~Replace single `objective_type` with multi-condition victory/defeat per faction (Rout, Seize, Boss, Escape, Survive, Defend, Survivor-survives, …).~~ | — | Shipped 2026-05-20 across 5 stages; see §1 + Session Notes 2026-05-20. Decision 7 phase-boundary sweep + `_map_over` chokepoint live; legacy MapData fields removed. |
 | C3 ✅ | ~~**M14 stages 4–5 (+content)**~~ | ~~Faction-agnostic AI (`run_ai_phase(faction)`); green/yellow spawns + per-unit faction tags in `MapData`; `PhaseBanner` reads from faction data.~~ | C1, C2 (stage 4 AI reads M16 objective data) | Shipped 2026-05-21; commits `cca788d`, `bf0d9b1`, `8ea7429`. See §1 row and Session Notes 2026-05-21. |
-| C4 ⬜ | **M8 — Status Conditions** | Full `ConditionManager` (Poison/Sleep/Silence/Berserk/Stun); ticking at start of holder's **activation**; hooks in `TurnManager` / `CombatResolver` / `ActionMenu` / `EnemyAI` / `SkillHandler`; Restore staff + Panacea. | C3 (tick point is "start of activation" — well-defined in either activation mode); B2, B3 recommended | `GDD_10_Roadmap.md` § Milestone 8 |
-| C5 ⬜ | **M9 — Skill Content** | Implement all deferred `effect_id` handlers (stat bonuses, auras, on-hit/on-attack triggers, healer skills, terrain skills, weapon-skill triggers, special masteries). Mostly content on the existing modifier/trigger pipeline. | C4; B6 recommended | `GDD_10_Roadmap.md` § Milestone 9 |
-| C6 ⬜ | **M10 — Extra-Turn System** | Canto, Special Dance, Galeforce, Pavise/Aegis double-act and similar. Each grants an extra **activation**. | C5; **M14 stages 1–5** (extra turn = extra activation) | `GDD_10_Roadmap.md` § Milestone 10 |
-| C7 ⬜ | **M11 — Content Expansion** | All remaining classes / weapons / skills / items from the base handbook + Awakening supplement. | C6; B5 recommended | `GDD_10_Roadmap.md` § Milestone 11 |
-| C8 ⚫ | **M12 — Laguz System** `[DEFERRED]` | Shift gauge, Beast/Bird/Dragon tribes, transformed forms, brand items. Data fields already on `UnitData`/`ClassData`. | C7 | `GDD_10_Roadmap.md` § Milestone 12 |
-| C9 ⚫ | **M13 — Awakening Supplement** `[DEFERRED]` | Awakening classes (Lord/Bride/Dread Fighter/Manakete/etc), Pair-Up *data only* (logic explicitly out of scope), Awakening-only skills not covered in M9. | C8 | `GDD_10_Roadmap.md` § Milestone 13 |
-| C10 🟦 | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Local-only. Core code/content landed; remaining work is manual validation from the checklists in `GDD_Manual_Tasks.md`. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
-| C11 ⚫ | **M15 Part B — Remote Control** `[DEFERRED]` | Network-driven faction controller. Online design ratified 2026-05-17; build deferred. | C10 + Phase-3 mid-battle suspend save (Decision 10 / D14) | `GDD_10_Roadmap.md` § Milestone 15 |
+| C4 ⬜ | **M9a — Skill Engine Slice** | Land the engine-facing half of M9 first: close the deferred `SkillHandler` dispatch arms and shared helpers against a minimal authored test set, without bulk `.tres` authoring. **Locked 2026-05-25:** strict trigger reuse (flags first); hybrid effect calc (dynamic for state/threshold, stored for static); Pair Up / Rescue fully deferred. | C3; B6 recommended | `GDD_10_Roadmap.md` § Milestone 9 |
+| C5 ⬜ | **M8 — Status Conditions** | Full `ConditionManager` (Poison/Sleep/Silence/Berserk/Stun); ticking at start of holder's **activation**; hooks in `TurnManager` / `CombatResolver` / `ActionMenu` / `EnemyAI` / `SkillHandler`; Restore staff + Panacea. **Locked 2026-05-25:** Poison floors at 1 HP by default (`can_be_lethal` opt-in); Berserk targets highest projected damage; Silence = tomes/staves only; condition records stay `{type, turns_remaining}`. | C3 and the initial M9a skill-engine slice; B2, B3 recommended | `GDD_10_Roadmap.md` § Milestone 8 |
+| C6 ⬜ | **M9b — Skill Content/Data** | Finish M9 by authoring and verifying the bulk deferred `effect_id` coverage and production skill `.tres` content on top of the locked M9a engine. | C4, C5 | `GDD_10_Roadmap.md` § Milestone 9 |
+| C7 ⬜ | **M10 — Extra-Turn System** | Canto, Special Dance, Galeforce, Pavise/Aegis double-act and similar. Each grants an extra **activation**. | C6; **M14 stages 1–5** (extra turn = extra activation) | `GDD_10_Roadmap.md` § Milestone 10 |
+| C8 ⬜ | **M11 — Content Expansion** | All remaining classes / weapons / skills / items from the base handbook + Awakening supplement. | C7; B5 recommended | `GDD_10_Roadmap.md` § Milestone 11 |
+| C9 ⚫ | **M12 — Laguz System** `[DEFERRED]` | Shift gauge, Beast/Bird/Dragon tribes, transformed forms, brand items. Data fields already on `UnitData`/`ClassData`. | C8 | `GDD_10_Roadmap.md` § Milestone 12 |
+| C10 ⚫ | **M13 — Awakening Supplement** `[DEFERRED]` | Awakening classes (Lord/Bride/Dread Fighter/Manakete/etc), Pair-Up *data only* (logic explicitly out of scope), Awakening-only skills not covered in M9. | C9 | `GDD_10_Roadmap.md` § Milestone 13 |
+| C11 🟦 | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Local-only. Core code/content landed; remaining work is manual validation from the checklists in `GDD_Manual_Tasks.md`. **Locked 2026-05-25:** per-player keybinds skipped; assignment via per-map data + CLI override (no lobby UI); HUD label = `Faction — Controller`; `ALTERNATING` fully out of Part A. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
+| C12 ⚫ | **M15 Part B — Remote Control** `[DEFERRED]` | Network-driven faction controller. Online design ratified 2026-05-17; build deferred. | C11 + Phase-3 mid-battle suspend save (Decision 10 / D14) | `GDD_10_Roadmap.md` § Milestone 15 |
 
 ### Bucket D — Cross-cutting obligation (release-gate, not order-gated)
 
@@ -122,7 +127,11 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
   stationary weapon use; door/chest/key; pre-battle deployment screen; enforce
   `GameState.max_skills` / `max_inventory`; review and productionize
   `AGENT/Docs/fe_map_sprite_importer_guide.md`.
-- **Maps** — Maps 002–005 (Seize, Boss Defeat, Escape, Survive/Defend) authored against M16.
+- **Maps** — Maps 002–005 authored against M16: one map per primary objective
+  (Seize / Defeat Boss / Escape / Survive-Defend), one primary objective each,
+  ≥1 authored defeat condition beyond rout, seize eligibility via per-unit
+  `can_seize` tag, classic Escape semantics (alive, removed, no further
+  actions). Locked 2026-05-25.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).
 - **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, gamepad/touch support, attack-by-target selection, minimap toggle.
 - **UI items now partly shipped:** full character sheet, richer combat prediction (`crit` + weapon triangle + effectiveness markers), and `"More info"` phase 1 are no longer backlog ideas. Remaining follow-up is polish/iteration: per-entry authored copy expansion, Pair Up forecast integration, and any UX changes that surface in the live playtest checklists.
@@ -132,11 +141,11 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
 ## 3. Dependency graph (key edges only)
 
 ```
- C1 (M14 s1-3) ──▶ C2 (M16) ──▶ C3 (M14 s4-5) ──▶ C4 (M8) ──▶ C5 (M9) ──▶ C6 (M10) ──▶ C7 (M11) ──▶ C8 (M12) ──▶ C9 (M13)
+ C1 (M14 s1-3) ──▶ C2 (M16) ──▶ C3 (M14 s4-5) ──▶ C4 (M9a) ──▶ C5 (M8) ──▶ C6 (M9b) ──▶ C7 (M10) ──▶ C8 (M11) ──▶ C9 (M12) ──▶ C10 (M13)
                                        │
-                                       └──▶ C10 (M15 Part A)  ──▶ C11 (M15 Part B, deferred)
+                                       └──▶ C11 (M15 Part A)  ──▶ C12 (M15 Part B, deferred)
 
- B10 (content-doc reconciliation) ──▶ C5, C7 (M9, M11)
+ B10 (content-doc reconciliation) ──▶ C4, C6, C8 (M9a, M9b, M11)
 
  D1 (Pre-Release Cleanup) — gate at release time, not in milestone order
 ```

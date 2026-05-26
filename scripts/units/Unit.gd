@@ -435,6 +435,9 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 	# Use the modifier-aware stat so temporary MAG buffs affect healing, matching
 	# how combat damage reads stats.
 	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + get_effective_stat("magic")
+	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
+	if sh != null and sh.has_method("get_staff_heal_bonus"):
+		heal_amount += int(sh.get_staff_heal_bonus(self))
 	target.heal(heal_amount)
 	use_weapon_durability(weapon.id)
 	add_wexp(weapon.wexp_track, weapon.wexp)
@@ -1074,8 +1077,12 @@ func add_wexp(track: String, amount: int) -> bool:
 		return false
 	if not data.weapon_wexp.has(track):
 		return false
+	var gained := amount
+	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
+	if sh != null and sh.has_method("get_wexp_multiplier"):
+		gained *= int(sh.get_wexp_multiplier(self, track))
 	var previous_rank: String = GameConstants.weapon_rank_for_wexp(get_weapon_wexp(track))
-	var next_total := mini(get_weapon_wexp(track) + amount, GameConstants.maximum_wexp_total())
+	var next_total := mini(get_weapon_wexp(track) + gained, GameConstants.maximum_wexp_total())
 	data.weapon_wexp[track] = next_total
 	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
 	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):

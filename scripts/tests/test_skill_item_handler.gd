@@ -10,6 +10,7 @@ const DataManagerS  = preload("res://scripts/autoloads/DataManager.gd")
 class MockUnit extends Node:
 	var data: UnitData
 	var team: String = "blue"
+	var tile_position: Vector2i = Vector2i.ZERO
 	var second_seal_usable: bool = false
 
 	func setup(unit_data: UnitData) -> void:
@@ -47,6 +48,13 @@ class MockUnit extends Node:
 		return second_seal_usable
 
 
+class MockGameState extends Node:
+	var all_units: Array[Node] = []
+
+	func are_hostile(a_id: String, b_id: String) -> bool:
+		return a_id != b_id
+
+
 func _make_ctx(atk: Node, def: Node, w_atk: WeaponData, w_def: WeaponData,
 		damage: int = 0, sim_hp: int = 17) -> Dictionary:
 	return {
@@ -73,6 +81,10 @@ func _init() -> void:
 	sh.name = "SkillHandler"
 	root.add_child(sh)
 
+	var gs := MockGameState.new()
+	gs.name = "GameState"
+	root.add_child(gs)
+
 	var ih: Node = ItemHandlerS.new()
 	ih.name = "ItemHandler"
 	root.add_child(ih)
@@ -92,6 +104,7 @@ func _init() -> void:
 	var def_unit := MockUnit.new()
 	def_unit.setup(soldier_data.duplicate(true))
 	root.add_child(def_unit)
+	gs.all_units = [unit, def_unit]
 
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	var iron_sword: WeaponData = load("res://data/weapons/iron_sword.tres")
@@ -214,6 +227,83 @@ func _init() -> void:
 		print("OK  lancebreaker no bonus vs non-lance opponent"); passed += 1
 	else:
 		print("FAIL lancebreaker: bonus applied vs non-lance"); failed += 1
+
+	# ── M9a: stat_bonus applies a combat-duration modifier through unit stats ──
+	var skill_plus_2: SkillData = load("res://data/skills/skill_plus_2.tres")
+	var sb_data: UnitData = soldier_data.duplicate(true)
+	var sb_unit := MockUnit.new()
+	sb_unit.setup(sb_data)
+	root.add_child(sb_unit)
+	var sb_ctx: Dictionary = _make_ctx(sb_unit, def_unit, iron_lance, iron_lance)
+	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)
+	if sb_fired and sb_unit.get_effective_stat("skill") == sb_data.skill + 2:
+		print("OK  M9a stat_bonus adds a combat stat modifier"); passed += 1
+	else:
+		print("FAIL M9a stat_bonus: fired=%s skill=%d base=%d" \
+			% [sb_fired, sb_unit.get_effective_stat("skill"), sb_data.skill]); failed += 1
+
+	# ── M9a: prescience gives +15 hit/dodge only on initiation ───────────────
+	var prescience: SkillData = load("res://data/skills/prescience.tres")
+	var pre_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
+	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)
+	if pre_fired and pre_ctx["atk_mod"]["accuracy"] == 15 and pre_ctx["atk_mod"]["dodge"] == 15:
+		print("OK  M9a prescience buffs the initiator"); passed += 1
+	else:
+		print("FAIL M9a prescience atk_mod=%s fired=%s" % [str(pre_ctx["atk_mod"]), pre_fired]); failed += 1
+	var pre_ctx2: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
+	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)
+	if not pre_fired2 and pre_ctx2["def_mod"]["accuracy"] == 0 and pre_ctx2["def_mod"]["dodge"] == 0:
+		print("OK  M9a prescience stays inactive on defense"); passed += 1
+	else:
+		print("FAIL M9a prescience defended: def_mod=%s fired=%s" % [str(pre_ctx2["def_mod"]), pre_fired2]); failed += 1
+
+	# ── M9a: patience gives +10 hit/dodge only while defending ───────────────
+	var patience: SkillData = load("res://data/skills/patience.tres")
+	var pat_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
+	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)
+	if pat_fired and pat_ctx["def_mod"]["accuracy"] == 10 and pat_ctx["def_mod"]["dodge"] == 10:
+		print("OK  M9a patience buffs the defender"); passed += 1
+	else:
+		print("FAIL M9a patience def_mod=%s fired=%s" % [str(pat_ctx["def_mod"]), pat_fired]); failed += 1
+
+	# ── M9a: focus grants crit only when no ally is nearby ────────────────────
+	var focus_skill: SkillData = load("res://data/skills/focus.tres")
+	var focus_data: UnitData = soldier_data.duplicate(true)
+	var focus_unit := MockUnit.new()
+	focus_unit.setup(focus_data)
+	focus_unit.tile_position = Vector2i(5, 5)
+	root.add_child(focus_unit)
+	gs.all_units = [focus_unit]
+	var focus_ctx: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
+	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)
+	if focus_fired and focus_ctx["atk_mod"]["crit"] == 10:
+		print("OK  M9a focus grants crit when no ally is within range"); passed += 1
+	else:
+		print("FAIL M9a focus solo atk_mod=%s fired=%s" % [str(focus_ctx["atk_mod"]), focus_fired]); failed += 1
+	var ally_unit := MockUnit.new()
+	ally_unit.setup(soldier_data.duplicate(true))
+	ally_unit.tile_position = Vector2i(6, 5)
+	root.add_child(ally_unit)
+	gs.all_units = [focus_unit, ally_unit]
+	var focus_ctx2: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
+	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)
+	if not focus_fired2 and focus_ctx2["atk_mod"]["crit"] == 0:
+		print("OK  M9a focus stays off when an ally is nearby"); passed += 1
+	else:
+		print("FAIL M9a focus ally atk_mod=%s fired=%s" % [str(focus_ctx2["atk_mod"]), focus_fired2]); failed += 1
+
+	# ── M9a helpers: discipline and healtouch expose runtime bonuses ─────────
+	var helper_data: UnitData = soldier_data.duplicate(true)
+	helper_data.skills = ["discipline", "healtouch"]
+	var helper_unit := MockUnit.new()
+	helper_unit.setup(helper_data)
+	root.add_child(helper_unit)
+	var wexp_mult: int = sh.get_wexp_multiplier(helper_unit, "lance")
+	var heal_bonus: int = sh.get_staff_heal_bonus(helper_unit)
+	if wexp_mult == 2 and heal_bonus == 5:
+		print("OK  M9a helpers expose discipline/healtouch bonuses"); passed += 1
+	else:
+		print("FAIL M9a helpers: wexp=%d heal=%d" % [wexp_mult, heal_bonus]); failed += 1
 
 	# ── #4: max_uses_per_combat caps how often a skill fires within one combat ──
 	# Give lancefaire a 1-use-per-combat limit, then fire on_combat_start twice with

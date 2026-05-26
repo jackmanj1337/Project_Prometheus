@@ -475,6 +475,8 @@ func _init() -> void:
 	promo_target.weapon_wexp_caps = saved_target_weapon_wexp_caps
 
 	# --- Weapon EXP and rank-up ---
+	var saved_skills: Array[String] = soldier_data.skills.duplicate()
+	soldier_data.skills.clear()  # baseline WEXP checks without Discipline's multiplier
 	soldier_data.weapon_wexp = {"lance": _wexp("D", 50)}
 	unit.add_wexp("lance", 30)
 	if soldier_data.weapon_wexp["lance"] == _wexp("D", 80) and unit.get_weapon_rank("lance") == "D":
@@ -500,6 +502,17 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL S-cap: %s" % soldier_data.weapon_wexp)
+		failed += 1
+	soldier_data.skills = saved_skills
+
+	# Discipline doubles WEXP through the SkillHandler helper seam.
+	soldier_data.weapon_wexp = {"lance": _wexp("D", 50)}
+	unit.add_wexp("lance", 30)
+	if soldier_data.weapon_wexp["lance"] == _wexp("C", 10) and unit.get_weapon_rank("lance") == "C":
+		print("OK  discipline doubles gained weapon EXP")
+		passed += 1
+	else:
+		print("FAIL discipline WEXP: %s rank=%s" % [soldier_data.weapon_wexp, unit.get_weapon_rank("lance")])
 		failed += 1
 
 	# --- growth_fixed: carry persists across calls ---
@@ -857,6 +870,32 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL last-use wexp: entry_removed=%s wexp_ok=%s" % [entry_removed, wexp_ok])
+		failed += 1
+
+	# --- Healtouch adds +5 to staff healing through the SkillHandler helper seam ---
+	var heal_staff: WeaponData = load("res://data/weapons/heal_staff.tres")
+	var healer_data := UnitData.new()
+	healer_data.class_id = "cleric"
+	healer_data.skills = ["healtouch"]
+	healer_data.magic = 4
+	healer_data.inventory = [InventoryEntry.make_weapon("heal_staff", 10)]
+	healer_data.weapon_wexp = {"staff": _wexp("E")}
+	var healer: Unit = unit_scene.instantiate()
+	healer.data = healer_data
+	root.add_child(healer)
+	var patient_data := UnitData.new()
+	patient_data.hp = 1
+	patient_data.max_hp = 30
+	var patient: Unit = unit_scene.instantiate()
+	patient.data = patient_data
+	root.add_child(patient)
+	await process_frame
+	healer.perform_staff_heal(patient, heal_staff)
+	if patient.data.hp == 20:
+		print("OK  healtouch adds +5 to staff healing")
+		passed += 1
+	else:
+		print("FAIL healtouch heal: hp=%d want=20" % patient.data.hp)
 		failed += 1
 
 	# --- Fort healing rounds down (GDD_02:76) ---

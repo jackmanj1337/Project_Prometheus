@@ -36,16 +36,17 @@ func _ready() -> void:
 		"daunt":         _apply_daunt,
 		"s_rank_mastery": _apply_s_rank_mastery,
 		# Base-class skills pulled from FE:A (M4). Effect logic is implemented in
-		# M9 alongside stat_bonus/charm/anathema/daunt; registered now as stubs so
-		# the .tres resources resolve and combat never hits an unknown effect_id.
-		"prescience":     _apply_unimplemented,
-		"patience":       _apply_unimplemented,
-		"discipline":     _apply_unimplemented,
+		# M9a closes the engine-first slice where the current seams are already
+		# clear. The terrain-classification and durability-override families stay
+		# deferred until their plumbing is ready.
+		"prescience":     _apply_prescience,
+		"patience":       _apply_patience,
+		"discipline":     _apply_discipline,
 		"outdoor_fighter": _apply_unimplemented,
 		"indoor_fighter": _apply_unimplemented,
-		"focus":          _apply_unimplemented,
+		"focus":          _apply_focus,
 		"armsthrift":     _apply_unimplemented,
-		"healtouch":      _apply_unimplemented,
+		"healtouch":      _apply_healtouch,
 		"swiftfoot":      _apply_unimplemented,
 		"multishot":      _apply_unimplemented,
 		"hawkeye":        _apply_unimplemented,
@@ -91,6 +92,30 @@ func can_pass_through_enemies(_unit: Node) -> bool:
 
 func can_phase_through(_unit: Node, _terrain: String) -> bool:
 	return false  # [STUB — implement in M9]
+
+
+func get_wexp_multiplier(unit: Node, track: String) -> int:
+	if unit == null or unit.data == null or track == "":
+		return 1
+	var multiplier := 1
+	for skill in _skills_for(unit):
+		if skill.effect_id != "discipline":
+			continue
+		var applies_to: Array = skill.effect_params.get("tracks", [])
+		if not applies_to.is_empty() and not (track in applies_to):
+			continue
+		multiplier = maxi(multiplier, int(skill.effect_params.get("wexp_multiplier", 1)))
+	return multiplier
+
+
+func get_staff_heal_bonus(unit: Node) -> int:
+	if unit == null or unit.data == null:
+		return 0
+	var bonus := 0
+	for skill in _skills_for(unit):
+		if skill.effect_id == "healtouch":
+			bonus += int(skill.effect_params.get("heal_bonus", 0))
+	return bonus
 
 
 # Resets the per-combat skill use counters. CombatResolver calls this once at the
@@ -306,10 +331,95 @@ func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 
 
 # Generic stat bonus from effect_params ({"stat": String, "amount": int}).
-# Used by the FE:A "+2" skills (Skill +2, Defense +2, Magic +2). Implement in M9.
-func _apply_stat_bonus(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
-	push_warning("SkillHandler._apply_stat_bonus: stub called for '%s' — implement in M9" % skill.id)
-	return false  # stub did nothing — don't consume a use
+# Used by the FE:A "+2" skills (Skill +2, Defense +2, Magic +2). Applied as a
+# combat-duration modifier so all downstream formulas read the adjusted stat via
+# get_effective_stat() without duplicating per-stat combat math here.
+func _apply_stat_bonus(skill: SkillData, unit: Node, _context: Dictionary) -> bool:
+	if unit == null or unit.data == null:
+		return false
+	var stat: String = String(skill.effect_params.get("stat", ""))
+	var amount: int = int(skill.effect_params.get("amount", 0))
+	if stat == "" or amount == 0:
+		return false
+	unit.add_modifier(stat, amount, "skill:%s" % skill.id, -1, "combat")
+	return true
+
+
+func _apply_prescience(skill: SkillData, unit: Node, context: Dictionary) -> bool:
+	if unit != context.get("attacker"):
+		return false
+	var mod: Dictionary = context["atk_mod"]
+	mod["accuracy"] += int(skill.effect_params.get("hit", 0))
+	mod["dodge"] += int(skill.effect_params.get("avoid", 0))
+	return true
+
+
+func _apply_patience(skill: SkillData, unit: Node, context: Dictionary) -> bool:
+	if unit != context.get("defender"):
+		return false
+	var mod: Dictionary = context["def_mod"]
+	mod["accuracy"] += int(skill.effect_params.get("hit", 0))
+	mod["dodge"] += int(skill.effect_params.get("avoid", 0))
+	return true
+
+
+func _apply_discipline(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
+	# Discipline is consumed through get_wexp_multiplier(), not a combat trigger.
+	return false
+
+
+func _apply_focus(skill: SkillData, unit: Node, context: Dictionary) -> bool:
+	var radius: int = int(skill.effect_params.get("radius", 3))
+	if _has_ally_within(unit, radius):
+		return false
+	var mod: Dictionary = context["atk_mod"] if unit == context.get("attacker") else context["def_mod"]
+	mod["crit"] += int(skill.effect_params.get("crit", 0))
+	return true
+
+
+func _apply_healtouch(_skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
+	# Healtouch is consumed through get_staff_heal_bonus(), not a combat trigger.
+	return false
+
+
+func _skills_for(unit: Node) -> Array[SkillData]:
+	var out: Array[SkillData] = []
+	if unit == null or unit.data == null:
+		return out
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		return out
+	var ids: Array[String] = []
+	ids.append_array(unit.data.skills)
+	ids.append_array(unit.data.mastery_skills)
+	for skill_id in ids:
+		var skill: SkillData = dm.get_skill(skill_id)
+		if skill != null:
+			out.append(skill)
+	return out
+
+
+func _has_ally_within(unit: Node, radius: int) -> bool:
+	if unit == null or radius < 0:
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	for other in gs.all_units:
+		if other == unit or not is_instance_valid(other) or other.data == null or other.data.hp <= 0:
+			continue
+		var is_ally: bool = false
+		if gs.has_method("are_hostile"):
+			is_ally = not gs.are_hostile(unit.team, other.team)
+		else:
+			is_ally = unit.team == other.team
+		if not is_ally:
+			continue
+		var dist: int = absi(unit.tile_position.x - other.tile_position.x) \
+			+ absi(unit.tile_position.y - other.tile_position.y)
+		if dist <= radius:
+			return true
+	return false
 
 
 # Shared stub for the FE:A base-class skills whose effects land in M9. Declining
