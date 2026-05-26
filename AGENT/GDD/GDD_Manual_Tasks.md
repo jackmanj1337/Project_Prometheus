@@ -29,15 +29,16 @@ camera/debug controls, and More Info surfaces.
 - Start with default debug aids Off unless a step explicitly tests `F10` / `F11`.
 - Expected rosters for this sweep:
   - `Map 001` uses the normal default campaign roster
+  - `Maps 002–005` use the normal default campaign roster
   - `Map 900 - Hotseat Validation` uses the authored fixed test roster from
     `data/roster/test/map_900_hotseat_validation/` plus the authored
     green/red/yellow units in the map data
   - `Map 950 - Promotion Validation` uses the authored fixed test roster from
     `data/roster/test/map_950_promotion_validation/`
 - Objective coverage note:
-  `Seize` and `Escape` are still blocked on the planned `Maps 002–005`
-  content pass; do not treat their absence on the current selector list as a
-  regression in this sweep.
+  `Seize`, `Defeat Boss`, `Escape`, and `Defend` now have direct authored
+  coverage on `Maps 002–005`; include those maps in this sweep when validating
+  objective-specific actions and end conditions.
 
 **Run Order**
 
@@ -331,9 +332,8 @@ the closed list above.
       tell `Rout` apart from the faction-demo variant before launch
 - [ ] Add explicit expected rosters / expected knowledge to the manual task
       setup sections where a test depends on party composition or unlock state
-- [ ] Keep `Seize` and `Escape` validation blocked on the already-tracked
-      `Maps 002–005` content pass; once those maps land, add direct checklist
-      steps that cover those objective types
+- [x] Land `Maps 002–005` so `Seize`, `Defeat Boss`, `Escape`, and `Defend`
+      have direct selector coverage in the manual test sweep
 
 ##### Feature Requests Already Tracked Elsewhere
 - [x] Add an `Exit to Main Menu` button from in-run UI flow

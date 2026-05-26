@@ -12,6 +12,7 @@ const STATIC_FIELDS := [
 	"movement", "constitution", "line_of_sight", "gold",
 	# Personal growth rates — set at unit creation, never written at runtime
 	"growth_rates", "reclass_options",
+	"can_seize",
 	# Laguz identity field — static in MVP
 	"shift_profile_id",
 ]

@@ -42,6 +42,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var earned_skills: Array[String] = []
 @export var reclass_options: Array[String] = []
 @export var class_line_id: String = ""
+@export var can_seize: bool = false
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
 # Captured by GameState's manual snapshot (not by ResourceSaver; not @export).

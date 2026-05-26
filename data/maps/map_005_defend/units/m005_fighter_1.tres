@@ -1,0 +1,35 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_axe"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m005_fighter_1"
+unit_name = "Breaker"
+class_id = "fighter"
+level = 3
+internal_level = 3
+max_hp = 21
+hp = 21
+strength = 9
+defense = 4
+resistance = 1
+skill = 6
+speed = 6
+luck = 4
+movement = 6
+constitution = 11
+line_of_sight = 4
+weapon_wexp = {"axe": 100}
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+ai_profile = "basic"
+is_default_roster = false

@@ -1574,10 +1574,10 @@ M16 itself is shipped. These five decisions govern the **objective-map followup*
 - [ ] Verify: a 3-group match eliminates groups in order with correct standings;
       simultaneous elimination resolves to a draw
 - [ ] New tests for the evaluator, each condition type, and the standings logic
-- [ ] Phase 3 Maps 002–005 authored against the condition system — one map
+- [x] Phase 3 Maps 002–005 authored against the condition system — one map
       per primary objective (Seize / Defeat Boss / Escape / Survive-Defend),
       one primary objective each, ≥1 authored defeat condition beyond rout
-- [ ] Define a `can_seize` tag on `UnitData`; gate the Seize action on the
+- [x] Define a `can_seize` tag on `UnitData`; gate the Seize action on the
       tag rather than on class or a per-map allowlist
 
 ---

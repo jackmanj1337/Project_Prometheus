@@ -310,5 +310,39 @@ func _init() -> void:
 				hotseat_units.get_child_count(), hotseat_green_found])
 			failed += 1
 
+		# Objective showcase smoke: each newly-authored selector map should boot
+		# through the selected-map override path with the default roster.
+		var objective_maps := [
+			{"id": "map_002_seize", "path": "res://data/maps/map_002_seize/map_002_seize_data.tres", "enemy_count": 4},
+			{"id": "map_003_defeat_boss", "path": "res://data/maps/map_003_defeat_boss/map_003_defeat_boss_data.tres", "enemy_count": 5},
+			{"id": "map_004_escape", "path": "res://data/maps/map_004_escape/map_004_escape_data.tres", "enemy_count": 4},
+			{"id": "map_005_defend", "path": "res://data/maps/map_005_defend/map_005_defend_data.tres", "enemy_count": 5},
+		]
+		for map_info in objective_maps:
+			gs.reset_map_state()
+			gs.load_default_roster()
+			gs.configure_next_map(map_info["path"], "default_roster", "")
+			var objective_instance: Node = packed.instantiate()
+			root.add_child(objective_instance)
+			await process_frame
+			var objective_tm: TurnManager = objective_instance.get_node("TurnManager")
+			var objective_units: Node2D = objective_instance.get_node("UnitsContainer")
+			var expected_total: int = gs.player_roster.size() + int(map_info["enemy_count"])
+			if objective_tm._map_data != null and objective_tm._map_data.id == map_info["id"]:
+				print("OK  GameMap boots %s via selected-map override" % map_info["id"])
+				passed += 1
+			else:
+				print("FAIL objective map override: got=%s want=%s" % [
+					objective_tm._map_data.id if objective_tm._map_data != null else "null",
+					map_info["id"]])
+				failed += 1
+			if objective_units.get_child_count() == expected_total:
+				print("OK  %s spawns default roster + authored enemies" % map_info["id"])
+				passed += 1
+			else:
+				print("FAIL %s unit count: got=%d want=%d" % [
+					map_info["id"], objective_units.get_child_count(), expected_total])
+				failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

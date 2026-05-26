@@ -802,6 +802,34 @@ func _init() -> void:
 			tm_cs.can_seize(seizer_ok, Vector2i(0, 0)),
 		]); failed += 1
 
+	# ---- can_seize: default gate uses UnitData.can_seize when no allow-list authored ----
+	gs.reset_map_state()
+	var seize_tag_yes := _mk_unit("blue", 20, "tag_yes")
+	var seize_tag_no := _mk_unit("blue", 20, "tag_no")
+	seize_tag_yes.set("tile_position", Vector2i(6, 6))
+	seize_tag_no.set("tile_position", Vector2i(6, 6))
+	seize_tag_yes.data.can_seize = true
+	seize_tag_no.data.can_seize = false
+	gs.register_unit(seize_tag_yes)
+	gs.register_unit(seize_tag_no)
+	var md_cst := MapData.new()
+	var c_cst := ObjectiveCondition.new()
+	c_cst.type = "seize"
+	c_cst.tile = Vector2i(6, 6)
+	md_cst.victory_conditions = {"allies": [c_cst]}
+	var tm_cst := TurnManager.new()
+	root.add_child(tm_cst)
+	tm_cst._map_data = md_cst
+	if tm_cst.can_seize(seize_tag_yes, Vector2i(6, 6)) \
+			and not tm_cst.can_seize(seize_tag_no, Vector2i(6, 6)):
+		print("OK  can_seize: UnitData.can_seize gates seize when no allow-list is authored")
+		passed += 1
+	else:
+		print("FAIL can_seize tag gate (yes=%s no=%s)" % [
+			tm_cst.can_seize(seize_tag_yes, Vector2i(6, 6)),
+			tm_cst.can_seize(seize_tag_no, Vector2i(6, 6)),
+		]); failed += 1
+
 	# ---- _eval_rout: unknown faction_id fails closed (no vacuous victory) ----
 	# A typo'd rout authoring (e.g. "reds" instead of "red") must not silently
 	# fire map_victory; it should treat the condition as unmet and log a warning

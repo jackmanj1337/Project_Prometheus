@@ -127,11 +127,12 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
   stationary weapon use; door/chest/key; pre-battle deployment screen; enforce
   `GameState.max_skills` / `max_inventory`; review and productionize
   `AGENT/Docs/fe_map_sprite_importer_guide.md`.
-- **Maps** — Maps 002–005 authored against M16: one map per primary objective
-  (Seize / Defeat Boss / Escape / Survive-Defend), one primary objective each,
-  ≥1 authored defeat condition beyond rout, seize eligibility via per-unit
-  `can_seize` tag, classic Escape semantics (alive, removed, no further
-  actions). Locked 2026-05-25.
+- **Maps** — Maps 002–005 are now authored against M16 and registered in the
+  selector: one map per primary objective (Seize / Defeat Boss / Escape /
+  Survive-Defend), one primary objective each, ≥1 authored defeat condition
+  beyond rout, seize eligibility via per-unit `can_seize` tag, classic Escape
+  semantics (alive, removed, no further actions). Locked 2026-05-25, landed
+  2026-05-26.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).
 - **UI / UX & Settings** (merged from playtests 2 & 3 "later milestones"): range-on-hover overlay, movement path arrows, individual unit threat range, grid visibility slider, camera settings, UI scale + reposition, display resolution options, key rebinding UI, gamepad/touch support, attack-by-target selection, minimap toggle.
 - **UI items now partly shipped:** full character sheet, richer combat prediction (`crit` + weapon triangle + effectiveness markers), and `"More info"` phase 1 are no longer backlog ideas. Remaining follow-up is polish/iteration: per-entry authored copy expansion, Pair Up forecast integration, and any UX changes that surface in the live playtest checklists.

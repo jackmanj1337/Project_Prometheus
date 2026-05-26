@@ -812,10 +812,11 @@ func _is_unit_id_alive(unit_id: String, gs: Node) -> bool:
 
 
 # seize: TRUE iff some tile in cond.tiles has a seize record from a unit that
-# (a) belongs to the conditioning group AND (b) is in cond.allowed_unit_ids
-# when one is authored. The allow-list NARROWS the conditioning group — it does
-# not grant cross-group credit. Decision 4 / 2026-05-17 — Seize is a deliberate
-# ActionMenu entry; the cursor calls record_seize on confirm.
+# (a) belongs to the conditioning group AND (b) is allowed to seize by either
+# the legacy allow-list or the per-unit can_seize tag. The allow-list NARROWS
+# the conditioning group; otherwise authored maps rely on UnitData.can_seize.
+# Decision 4 / 2026-05-17 — Seize is a deliberate ActionMenu entry; the cursor
+# calls record_seize on confirm.
 func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 	if cond.tile == Vector2i(-1, -1):
 		return false
@@ -825,13 +826,13 @@ func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 			continue
 		var unit_id: String = record.get("unit_id", "")
 		var faction: String = record.get("faction", "")
-		# Allow-list (when authored) restricts to specific named units.
-		if not cond.allowed_unit_ids.is_empty() and not (unit_id in cond.allowed_unit_ids):
-			continue
 		# Group membership is required in BOTH the allow-list and default cases —
 		# a named unit_id that happens to live in another faction can't seize for
 		# this group.
-		if gs.get_alliance_group(faction) == for_group:
+		if gs.get_alliance_group(faction) != for_group:
+			continue
+		var unit: Node = gs.find_unit_by_id(unit_id)
+		if _unit_matches_seize_gate(unit, cond):
 			return true
 	return false
 
@@ -927,14 +928,17 @@ func can_seize(unit: Node, tile: Vector2i) -> bool:
 					continue
 				if cond.tile != tile:
 					continue
-				# Allow-list (when authored) narrows the conditioning group, it
-				# does not override it — same shape as _eval_seize.
-				if not cond.allowed_unit_ids.is_empty() \
-						and not (unit.data.unit_id in cond.allowed_unit_ids):
-					continue
-				if group_id == unit_group:
+				if group_id == unit_group and _unit_matches_seize_gate(unit, cond):
 					return true
 	return false
+
+
+func _unit_matches_seize_gate(unit: Node, cond: ObjectiveCondition) -> bool:
+	if unit == null or unit.data == null:
+		return false
+	if not cond.allowed_unit_ids.is_empty():
+		return unit.data.unit_id in cond.allowed_unit_ids
+	return bool(unit.data.get("can_seize")) if unit.data != null else false
 
 
 # Removes a unit from the map under the "escape" semantics: tracks its

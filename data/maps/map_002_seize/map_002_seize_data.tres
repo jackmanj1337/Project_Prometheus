@@ -1,0 +1,51 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
+
+[sub_resource type="Resource" id="cond_seize"]
+script = ExtResource("2")
+type = "seize"
+tile = Vector2i(15, 2)
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("2")
+type = "protect"
+unit_ids = ["unit_01_cavalier"]
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("2")
+type = "turn_limit"
+turns = 8
+
+[resource]
+script = ExtResource("1")
+id = "map_002_seize"
+display_name = "Map 002 - Seize"
+tilemap_scene_path = ""
+player_start_tiles = [Vector2i(1, 8), Vector2i(1, 9), Vector2i(1, 10), Vector2i(2, 8), Vector2i(2, 9), Vector2i(2, 10)]
+enemy_placements = [
+{"unit_data_path": "res://data/maps/map_002_seize/units/m002_lancer_1.tres", "tile": Vector2i(10, 4), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_002_seize/units/m002_archer_1.tres", "tile": Vector2i(12, 6), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_002_seize/units/m002_knight_1.tres", "tile": Vector2i(14, 3), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_002_seize/units/m002_boss.tres", "tile": Vector2i(15, 2), "ai_profile": "basic", "is_boss": true}
+]
+reward_gold = 700
+reward_items = []
+camera_start_tile = Vector2i(6, 7)
+victory_conditions = {"allies": [SubResource("cond_seize")]}
+defeat_conditions = {"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]}
+grid = [
+"WWWWWWWWWWWWWWWWWW",
+"W......F......T..W",
+"W.....FF.........W",
+"W................W",
+"W...F.......FF...W",
+"W................W",
+"W.......FF.......W",
+"W................W",
+"W..FF............W",
+"W................W",
+"W................W",
+"WWWWWWWWWWWWWWWWWW"
+]
