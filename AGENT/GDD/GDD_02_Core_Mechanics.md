@@ -352,17 +352,25 @@ from the start).
 
 | Condition | Effect | Duration |
 |---|---|---|
-| **Berserk** | Auto-attacks most vulnerable unit in range (including allies) | 3 turns |
-| **Silence** | Cannot use tomes or staves | 4 turns |
+| **Berserk** | Auto-attacks the target with the **highest projected damage** in range; tiebreak nearest → lowest unit id; can hit allies | 3 turns |
+| **Silence** | Cannot use weapons whose `weapon_type` is `TOME` or `STAFF` (physical weapons unaffected) | 4 turns |
 | **Sleep** | Cannot move, act, or counterattack; dodge disabled | 3 turns |
-| **Poison** | -3 HP at start of turn; -10 Accuracy and Dodge | 5 turns |
+| **Poison** | -3 HP at start of turn; **floors at 1 HP by default** (source-supplied `can_be_lethal` opts in to killing); -10 Accuracy and Dodge | 5 turns |
 | **Stun** | Cannot move, act, or counterattack; dodge disabled | 1 turn |
 
 Store conditions on `UnitData` as:
 ```gdscript
 @export var conditions: Array[Dictionary]
+# Standard schema: { "type": String, "turns_remaining": int }.
+# Do not pre-add source_id / magnitude / tags — extend only when a specific
+# condition (e.g. Hex's skill payload) genuinely needs an extra field.
 # e.g. [{ "type": "poison", "turns_remaining": 3 }]
 ```
+
+**Locked 2026-05-25:** see `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+and the M8 section of `GDD_10_Roadmap.md`. The Poison `can_be_lethal` flag,
+Berserk's projected-damage targeting, Silence's tome/staff filter, and the
+minimal condition schema were settled before M8 implementation begins.
 
 ---
 

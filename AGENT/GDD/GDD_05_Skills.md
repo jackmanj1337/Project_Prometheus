@@ -135,6 +135,34 @@ below and scheduled for M9 / the promotion milestone — see GDD_10.
 The following skills are deferred to Phase 2. They are listed here so their
 `effect_id` strings can be reserved and their design understood before implementation.
 
+> **M9 implementation rules — locked 2026-05-25.** See `GDD_10_Roadmap.md`
+> § Milestone 9 → *Locked design decisions* for the deliberation log.
+>
+> 1. **Internal M9a / M9b split.** M9a closes the engine work (every
+>    `apply_trigger()` `match` arm + shared helpers) against a minimal test set
+>    *before* M9b authors the bulk of skill `.tres` data. Public roadmap order
+>    is unchanged; the split is a discipline tool to avoid mid-content engine
+>    refactors.
+> 2. **Trigger discipline — strict reuse, flags first.** Do not introduce a
+>    new entry in the *Skill Triggers* table during M9 unless an existing
+>    trigger combined with a `context.flags.*` value provably cannot express
+>    the skill. If a new trigger is genuinely required, justify it in the
+>    skill's design note before adding it.
+> 3. **Effect computation — hybrid.** Threshold/state-dependent effects
+>    (e.g. **Resolve**'s ≤50% HP gate, **Frenzy**, the pre-mitigation
+>    halving applied by **Aegis**) are evaluated **at query time** off the
+>    current state, not stored as toggled modifiers. Static passives
+>    (e.g. **Zeal**, **Tough**) remain stored modifiers added at
+>    initialisation. Rule of thumb: if the contribution depends on a
+>    condition that can change during a unit's lifetime, evaluate it
+>    dynamically.
+> 4. **Pair Up / Rescue out of M9.** No M9 skill content or engine code may
+>    depend on `pair_up`, `support`, or `rescue` semantics. These are
+>    campaign-rule features; the campaign-rules milestone (see
+>    `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`) owns them.
+>    M9-era references to Pair Up (e.g. `solidarity`, partner-aware variants)
+>    are explicitly skipped / deferred.
+
 ### Generic Skills (All Phase 2)
 
 | Skill | Trigger | effect_id | Notes |

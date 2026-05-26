@@ -109,11 +109,17 @@ one unit from the conditioning group to stand on one of the authored tiles.
 
 #### `seize`
 Condition becomes true when an allowed unit from the conditioning group uses the
-Seize action on the authored tile.
+Seize action on the authored tile. **Eligibility comes from a per-unit
+`can_seize` tag** on `UnitData` — not from class data and not from a per-map
+`allowed_unit_ids` allowlist (locked 2026-05-25; see
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
+the relevant lord-class units; new characters opt in by being tagged.
 
 #### `escape`
 Condition becomes true when every named `unit_id` has used the Escape action on
-one of the authored escape-zone tiles.
+one of the authored escape-zone tiles. Escaped units count as **alive** for
+`protect` / `survive` evaluation, are removed from the active board, and may
+**not act further** on the current map (locked 2026-05-25).
 
 ### Evaluation Rules
 
@@ -315,6 +321,32 @@ Not in MVP. Architecture placeholder:
 - A `Torch` item temporarily increases a unit's LoS by 4
 
 Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
+
+---
+
+## Phase 3 Maps 002–005 — Authoring Rules (locked 2026-05-25)
+
+The objective-map followup authors four maps against the implemented
+`ObjectiveCondition` system to validate it through real content. See
+`GDD_10_Roadmap.md` § Milestone 16 → *Locked design decisions* and
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+
+- **Showcase plan — one map per primary objective.** Maps 002–005 cover the
+  four objective types one each: **Seize**, **Defeat Boss**, **Escape**,
+  **Survive / Defend**. Variety within a type is a later authoring pass.
+- **One primary objective per map.** Each of the four maps declares **exactly
+  one** primary victory objective for blue. Multi-primary and optional-
+  secondary objectives are out of scope until the basics are validated.
+- **Seize eligibility comes from the `can_seize` unit tag** (not class, not a
+  per-map allowlist).
+- **Escape semantics — alive, removed from the board, no further actions
+  this map.**
+- **Authored defeat standard — ≥1 authored defeat per map, beyond rout.** Every
+  Phase 3 objective map must declare at least one **authored** defeat condition
+  (e.g. `turn_limit`, `protect`, hold-the-tile failure) in addition to the
+  implicit "all units dead" rout fallback. The implicit rout condition is
+  satisfied by leaving a group's `defeat_conditions` list empty, but Maps
+  002–005 must *also* add at least one explicit entry.
 
 ---
 

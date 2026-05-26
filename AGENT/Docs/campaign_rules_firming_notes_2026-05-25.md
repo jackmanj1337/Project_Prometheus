@@ -69,3 +69,66 @@ campaign loop is still being specified.
 - When the between-map save/load design starts, use this note as a checklist.
 - When the prep/deployment screen is specced, fold the settled answers back into
   the relevant GDD files and remove any resolved questions from this note.
+
+---
+
+## Milestone review locks — 2026-05-25 (afternoon pass)
+
+A focused review of the open questions called out under §"Next-Session Review
+List" in `AGENT/Session Notes/2026-05-25.md` was completed the same day. Each
+question was discussed with options + pros/cons + recommendation; the user
+selected one per question. The resulting decisions are now reflected in the
+canonical docs:
+
+- `GDD_10_Roadmap.md` — added a *Locked design decisions — 2026-05-25 review*
+  block to milestones **M8**, **M9**, **M15 Part A**, and **M16** (Maps 002–005
+  followup).
+- `GDD_10a_Overview.md` — Bucket C rows for C4 / C5 / C10 now name the locks,
+  and the Phase 3 Maps row for Maps 002–005 names the authoring rules.
+- `GDD_02_Core_Mechanics.md` — *Status Conditions* table and schema updated for
+  the Poison floor, Berserk targeting, Silence scope, and minimal record shape.
+- `GDD_05_Skills.md` — *Full Skill Reference* preamble carries the four M9
+  rules (M9a/M9b split, trigger discipline, hybrid effect calc, Pair Up out).
+- `GDD_06_Maps_Objectives.md` — `seize` and `escape` condition entries refer to
+  the `can_seize` tag and the escape semantics; a new *Phase 3 Maps 002–005 —
+  Authoring Rules* section captures the showcase plan and authored-defeat
+  standard.
+- `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md` — new §8 captures the four
+  M15 Part A decisions.
+
+### M8 — Status Conditions
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Can Poison reduce a unit to 0 HP? | **Configurable per source.** Default floors at 1 HP. Optional `can_be_lethal: bool` (default `false`) on the source data opts in to lethal damage. |
+| 2 | Berserk targeting priority | **Highest projected damage** (hit/crit-weighted, post-mitigation) → nearest in tiles → lowest unit id. Reproducible under a fixed seed. |
+| 3 | Silence scope | **Tomes and staves only** — a filter on the action's `weapon_type`. No per-skill `silenceable` flag for M8. |
+| 4 | Condition schema discipline | **Minimal `{ type, turns_remaining }`.** Extra fields are added per-condition only when genuinely needed (e.g. Hex). |
+
+### M9 — Skill Content
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Internal M9a/M9b split? | **Internal split, public roadmap unchanged.** M9a closes the engine (every `apply_trigger()` `match` arm + shared helpers) against a minimal test set; M9b authors the bulk of `.tres` content. |
+| 2 | Trigger-type discipline | **Strict reuse, flags first.** No new `trigger` types unless an existing trigger + `context.flags.*` provably cannot express the skill. |
+| 3 | Dynamic vs stored modifiers | **Hybrid.** Threshold/state-dependent effects (Resolve, Frenzy, Aegis halving) evaluate at query time; static passives (Zeal, Tough) remain stored modifiers. |
+| 4 | Pair Up / Rescue scope | **Fully out of M9.** Campaign-rule features; handled in the campaign-rules milestone. |
+
+### M15 Part A — Hotseat
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Per-player keybindings? | **Skipped for Part A.** One shared `InputMap`; revisit with split-controller co-op. |
+| 2 | Hotseat assignment surface | **Per-map data + CLI/dev override.** No pre-battle lobby UI in Part A. |
+| 3 | HUD controller label | **`Faction — Controller` text** (e.g. `Red — Player 2`, `Green — AI`). |
+| 4 | `ALTERNATING` hotseat scope | **Fully out of Part A.** Revisit only after scheduler/extra-turn work settles. |
+
+### Objective-Map followup (Maps 002–005)
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | Map showcase plan | **One map per primary objective type** — Seize / Defeat Boss / Escape / Survive-Defend. |
+| 2 | Multiple primary objectives per map? | **No** — one primary per early map. Defeat conditions still vary. |
+| 3 | Allowed-seizer policy | **Per-unit `can_seize` tag on `UnitData`** (not class-derived, not per-map allowlist). |
+| 4 | Escape semantics | **Alive, removed from map, no further actions** this map. Classic FE Escape. |
+| 5 | Authored defeat standard | **≥1 authored defeat per map**, beyond the implicit rout fallback. |
