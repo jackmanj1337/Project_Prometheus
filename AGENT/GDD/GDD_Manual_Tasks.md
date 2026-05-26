@@ -274,20 +274,7 @@ flows verified only by headless tests, not by actual in-map play.
       and confirm class, level, promotion state, skills, and weapon ranks come
       back correctly in live play
 
-#### Playtester Comments
-Mouse is not able to move camera
-include level in map unit info
-no way to disengage pair up
-turn does not auto end when units are paired
-currsor remains on attack target after attacking instead of returning to the attacking unit
-paired units are defeated together instead of droping the support unit by itself on the map square
-can't get the debug stat growth boost label to show up (try binding to f11)
-lets change the stat boost to +300 to each stat.
-when pair up is disabled, it still shows up in the action menu and you can still click it and try to select someone and confirm and it burns an action, but doesn't actually pair anyone up.
-cavalier has wrong movement
-eventually, you should be able to use the more info button on a stat and see the base and what modifiers are currently changing it and by how much.
-
-#### Current Action Items
+#### Historical Playtester Findings Now Closed
 - [x] Make mouse-driven cursor movement pan the camera in a controlled way instead of freezing camera follow
 - [x] Include the unit's displayed level in the map HUD unit-info panel
 - [x] Implement the Pair Up **Separate** action for paired leads
@@ -302,6 +289,44 @@ eventually, you should be able to use the more info button on a stat and see the
 - [x] Correct Cavalier movement to the intended value
 - [x] Expand the **More info** stat-inspection milestone so each stat can show its base value plus every active modifier and delta
 - [x] Move the **More info** stat-inspection milestone up the priority queue because it is useful for playtest verification and debugging
+
+#### Merged Open Playtest Triage
+
+The items below merge the latest notes from `Play_tester_comments.md` with the
+earlier playtest findings and the existing roadmap backlog. Duplicates were
+collapsed into a single active entry, and already-shipped items were left in
+the closed list above.
+
+##### High-Priority Bugs
+- [ ] Fix `Map 900` hotseat phase handoff so turn order returns control to Blue
+      after Red and Yellow act, Blue becomes controllable again on later
+      phases, and Green units refresh correctly on turn 3
+- [ ] Fix `Map 900` hotseat combat preview so selecting an enemy as Green shows
+      the normal combat analysis / prediction instead of opening a partial
+      `More info` panel with missing combat data
+- [ ] Fix `Map 950` reclass menu overflow so long option lists stay navigable on
+      screen and lower entries remain reachable
+
+##### Medium-Priority Bugs / Debug Gaps
+- [ ] Fix debug `Force Level-up` so staff use can trigger the forced level-up
+      path the same way combat and other EXP-granting actions do
+
+##### Content / Documentation Gaps
+- [ ] Disambiguate the two `Map 001` entries in the selector so testers can
+      tell `Rout` apart from the faction-demo variant before launch
+- [ ] Add explicit expected rosters / expected knowledge to the manual task
+      setup sections where a test depends on party composition or unlock state
+- [ ] Keep `Seize` and `Escape` validation blocked on the already-tracked
+      `Maps 002–005` content pass; once those maps land, add direct checklist
+      steps that cover those objective types
+
+##### Feature Requests Already Tracked Elsewhere
+- [ ] Add an `Exit to Main Menu` button from in-run UI flow
+      Tracked as UI / UX follow-up work rather than a playtest blocker
+- [ ] Continue the broader UI / UX backlog already captured in the roadmap:
+      range-on-hover, movement-path arrows, individual threat range, UI scaling
+      and repositioning, camera settings, resolution options, key rebinding,
+      and future input/device support
 
 
 ### Pair Up Pass 1 Playtest
