@@ -13,6 +13,19 @@ func _init() -> void:
 	root.add_child(dm)   # entering the tree runs _ready → loads every catalogue
 	await process_frame
 
+	# ---- export-safe manifests enumerate the live content catalogues ----
+	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
+	var manifest_ok: bool = (
+		ResourceManifest.load_paths("res://data/classes/").size() == 23
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 10
+		and ResourceManifest.load_paths("res://data/items/").size() == 6
+		and ResourceManifest.load_paths("res://data/skills/").size() == 54
+	)
+	if manifest_ok:
+		print("OK  resource manifests enumerate the live catalogues"); passed += 1
+	else:
+		print("FAIL resource manifests missing catalogue entries"); failed += 1
+
 	# ---- get_weapon resolves a known weapon id ----
 	var sword = dm.get_weapon("iron_sword")
 	if sword != null and sword.id == "iron_sword":
@@ -39,6 +52,10 @@ func _init() -> void:
 		print("OK  get_class_data resolves a known class id"); passed += 1
 	else:
 		print("FAIL get_class_data(mercenary)"); failed += 1
+	if dm.get_weapon("iron_lance") != null and dm.get_skill("discipline") != null:
+		print("OK  manifest-backed boot resolves export-critical weapon + skill ids"); passed += 1
+	else:
+		print("FAIL manifest-backed boot missed export-critical ids"); failed += 1
 
 	# ---- weapon triangle: sword beats axe, loses to lance, neutral vs sword ----
 	var adv: bool = dm.get_weapon_triangle_result("sword", "axe") == "advantage"

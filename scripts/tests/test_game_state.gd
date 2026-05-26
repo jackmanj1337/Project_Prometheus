@@ -122,6 +122,14 @@ func _init() -> void:
 	else:
 		print("FAIL load_default_roster: roster is empty"); failed += 1
 
+	# ---- export-safe roster manifest lists the default roster in slot order ----
+	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
+	var roster_manifest: Array[String] = ResourceManifest.load_paths("res://data/roster/default/")
+	if roster_manifest.size() == 6 and roster_manifest[0].ends_with("unit_01_cavalier.tres"):
+		print("OK  default roster manifest preserves deployment order"); passed += 1
+	else:
+		print("FAIL default roster manifest: %s" % [roster_manifest]); failed += 1
+
 	# ---- default roster Cavalier movement matches authored class intent ----
 	var cav_ok: bool = false
 	for unit_data in gs.player_roster:

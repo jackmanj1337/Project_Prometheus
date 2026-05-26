@@ -287,37 +287,27 @@ func load_default_roster() -> void:
 
 func load_roster_from_directory(roster_path: String) -> void:
 	player_roster.clear()
-	var dir := DirAccess.open(roster_path)
-	if dir == null:
+	var resource_paths: Array[String] = ResourceManifest.load_paths(roster_path)
+	if resource_paths.is_empty():
 		push_error("GameState: cannot open roster directory: " + roster_path)
 		# Emit defeat so the game doesn't silently start with zero player units
 		var bus := get_node_or_null("/root/EventBus")
 		if bus:
 			bus.map_defeat.emit()
 		return
-	# Load in filename order so slot numbering stays consistent
-	var files: Array[String] = []
-	dir.list_dir_begin()
-	var fname := dir.get_next()
-	while fname != "":
-		if fname.ends_with(".tres"):
-			files.append(fname)
-		fname = dir.get_next()
-	dir.list_dir_end()
-	files.sort()
-	for f in files:
+	for res_path in resource_paths:
 		# load() can return null for a corrupt .tres even though the file exists;
 		# null-check before .duplicate() so a bad file is skipped, not a crash.
-		var loaded := load(roster_path + f)
+		var loaded := load(res_path)
 		if loaded == null:
-			push_error("GameState: failed to load roster file '%s' — skipping" % f)
+			push_error("GameState: failed to load roster file '%s' — skipping" % res_path)
 			continue
 		var res: UnitData = loaded.duplicate(true)
 		if res:
 			# push_error + continue (not assert) so a bad .tres is skipped in
 			# release builds, where assert() is stripped.
 			if res.unit_id == "":
-				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
+				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % res_path)
 				continue
 			var dm := get_node_or_null("/root/DataManager")
 			if dm != null and not dm.get_all_classes().is_empty():
@@ -445,3 +435,4 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)
 	data.shift_gauge = snap.get("shift_gauge", 0.0)
 	data.is_shifted = snap.get("is_shifted", false)
+const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")

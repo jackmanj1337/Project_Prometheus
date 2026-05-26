@@ -8,6 +8,7 @@ extends Node
 # an autoload AFTER DataManager in project.godot (so /root/ItemHandler doesn't
 # exist yet during DataManager._ready). Const access only — no instance needed.
 const ItemHandlerScript = preload("res://scripts/items/ItemHandler.gd")
+const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 
 var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
@@ -182,27 +183,18 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 
 
 func _load_directory(path: String, target: Dictionary) -> void:
-	var dir := DirAccess.open(path)
-	if dir == null:
+	var resource_paths: Array[String] = ResourceManifest.load_paths(path)
+	if resource_paths.is_empty():
 		push_error("DataManager: cannot open directory: " + path)
 		return
-	dir.list_dir_begin()
-	var fname := dir.get_next()
-	while fname != "":
-		if dir.current_is_dir():
-			fname = dir.get_next()
-			continue
-		if fname.ends_with(".tres"):
-			var res_path := path + fname
-			var res := load(res_path)
-			# All our content resources have a non-empty 'id' field; warn on others
-			var rid: Variant = res.get("id") if res else null
-			if rid != null and rid != "":
-				target[rid] = res
-			else:
-				push_warning("DataManager: resource at %s has no 'id' field" % res_path)
-		fname = dir.get_next()
-	dir.list_dir_end()
+	for res_path in resource_paths:
+		var res := load(res_path)
+		# All our content resources have a non-empty 'id' field; warn on others
+		var rid: Variant = res.get("id") if res else null
+		if rid != null and rid != "":
+			target[rid] = res
+		else:
+			push_warning("DataManager: resource at %s has no 'id' field" % res_path)
 
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
