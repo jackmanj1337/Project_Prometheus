@@ -19,6 +19,35 @@ cluster added after the 2026-05-19 playtest wave: map selector / launch-state,
 objective + faction UI, hotseat, class-skill progression, Pair Up pass 1,
 camera/debug controls, and More Info surfaces.
 
+**Setup**
+
+- Launch from the normal New Game flow, not by editing scene paths.
+- Use these maps in this order unless a step explicitly says otherwise:
+  1. `Map 001`
+  2. `Map 900 - Hotseat Validation`
+  3. `Map 950 - Promotion Validation`
+- Start with default debug aids Off unless a step explicitly tests `F10` / `F11`.
+
+**Run Order**
+
+- Work top-to-bottom through this section once without skipping ahead.
+- When one check depends on a later map, finish the current map's checks first,
+  then change maps and continue from the next unchecked item.
+
+**Expected Result Standard**
+
+- Each checkbox already states the expected outcome inline.
+- If a check does not spell it out fully, the expected result is:
+  no soft-lock, no stale UI state, no wrong roster leakage, and clean return
+  to player control after the action finishes.
+
+**Failure Note Format**
+
+- Record failures as:
+  `Map / Section / Step / Actual / Expected / Repro`
+- Example:
+  `Map 900 / Hotseat / green heal / blue ally not targetable / same-alliance ally should be targetable / end blue phase -> select green staff -> hover blue ally`
+
 Use these maps for coverage:
 - `Map 001` — baseline combat/UI/Pair Up/More Info checks
 - `Map 900 - Hotseat Validation` — hotseat + selector launch-state checks
@@ -166,6 +195,38 @@ Run this before treating the class/skill track as fully signed off. Skipping it
 leaves the newly-implemented promotion, level-1 class-skill, and Second Seal
 flows verified only by headless tests, not by actual in-map play.
 
+**Setup**
+
+- Preferred launch path:
+  1. `Map 001` for starter-skill / level-up / unit-details checks
+  2. `Map 950 - Promotion Validation` for promotion and reclass checks
+- Run this section twice where relevant:
+  1. once with `Auto Promote` On
+  2. once with `Auto Promote` Off
+- Leave Pair Up at its normal default unless a specific class/skill check also
+  needs Pair Up state.
+
+**Run Order**
+
+- Complete the `Map 001` starter-skill and level-up checks first.
+- Move to `Map 950` for promotion-item, promoted-skill, and Second Seal checks.
+- After any promotion or reclass check that changes persistent unit state, do
+  the retry/snapshot round-trip before moving on.
+
+**Expected Result Standard**
+
+- Each checkbox states the target outcome inline.
+- When a skill/class change occurs, the expected baseline is:
+  correct class, correct displayed level/EXP, correct skills, correct weapon
+  ranks, no silent item consumption, and no broken retry restore.
+
+**Failure Note Format**
+
+- Record failures as:
+  `Map / Unit / Step / Actual / Expected / Repro`
+- Example:
+  `Map 950 / m950_archer / Orion Bolt invalid target / mercenary can open promotion modal / only archer should be eligible / start map -> select mercenary -> Item -> Orion Bolt`
+
 - [ ] Start a fresh map with the default roster and confirm each starter unit
       begins with the correct level-1 class skill in live UI/tooltips, not just
       in data/tests
@@ -250,6 +311,36 @@ Steps 1–4 + 6a + 6b of the Pair Up refactor are merged (see
 inputs). The headless suite covers registry, snapshot, combat-context, and
 bonus-resolver math, plus the ActionMenu visibility / emission contracts —
 the items below cover the parts that only show up in live play.
+
+**Setup**
+
+- Use `Map 001` unless a later regression map is explicitly better for a given
+  step.
+- Run this section in two passes:
+  1. New Game with Pair Up `Off`
+  2. New Game with Pair Up `On`
+- Prefer repeatable unit pairs so the stat-bonus checks are easy to compare.
+
+**Run Order**
+
+- First complete the New Game toggle and ActionMenu visibility checks.
+- Then run the Pair Up, Swap, and Separate interaction flow in order.
+- After a successful pair, continue immediately into combat-math and retry
+  checks so the same live pairing is reused.
+
+**Expected Result Standard**
+
+- Each checkbox states the expected result inline.
+- If a flow is only partly visible in the UI, expected result means:
+  menu visibility is correct, no action is burned incorrectly, pairing state
+  remains internally consistent, and control returns cleanly after confirm/cancel.
+
+**Failure Note Format**
+
+- Record failures as:
+  `Map / Pair / Step / Actual / Expected / Repro`
+- Example:
+  `Map 001 / Cavalier+Cleric / Separate confirm / support reappears but pairing persists / pairing should clear and both turns should end / pair -> Separate -> choose legal tile`
 
 Skip what is **NOT** yet implemented (will surface as missing entries — that
 is expected, not a bug):
@@ -346,6 +437,39 @@ Run this before treating the new More Info surfaces as signed off. The headless
 tests cover the data contracts, selector cycling, terrain expansion, and the
 camera-pan helper, but live play is still needed for viewport/layout behaviour,
 input-priority feel, and copy quality.
+
+**Setup**
+
+- Use `Map 001`.
+- Start from a clean map load with default HUD state and no lingering modal
+  open.
+- Keep keyboard focus on the game window so `F` checks are unambiguous.
+
+**Run Order**
+
+- Run the sections in this order:
+  1. General binding / priority
+  2. Character sheet
+  3. Combat preview
+  4. Terrain HUD
+  5. Cross-surface cleanup
+  6. Copy / UX notes
+- Do not mix preview-edge positioning checks into the earlier correctness
+  checks; leave those for the dedicated preview-positioning subsection.
+
+**Expected Result Standard**
+
+- Each checkbox states the expected outcome inline.
+- For every surface, expected result also includes:
+  no stale text, no off-screen clipping, no broken focus priority, and clean
+  recovery when the surface closes or targeting is cancelled.
+
+**Failure Note Format**
+
+- Record failures as:
+  `Map / Surface / Step / Actual / Expected / Repro`
+- Example:
+  `Map 001 / Combat Preview / right-edge positioning / panel clips off-screen / preview should flip or pan enough to stay readable / target enemy near right edge`
 
 General binding / priority:
 
@@ -509,6 +633,35 @@ Skipping it leaves the remaining M15 Part A acceptance criteria unverified and
 makes future multi-map regression testing slower and more error-prone.
 
 Reference plan: `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md`
+
+**Setup**
+
+- Launch from the map selector, not by scene editing.
+- Primary map: `Map 900 - Hotseat Validation`
+- Comparison map after the hotseat run: `map_001_c3_factions`
+- Use the authored defaults first; only use CLI/dev controller overrides if a
+  later regression specifically needs them.
+
+**Run Order**
+
+- Run the checklist in one uninterrupted session on `Map 900` until the map
+  resolves.
+- Only after the hotseat map completes should you switch to the all-AI
+  comparison map for the final regression check.
+
+**Expected Result Standard**
+
+- Each checkbox states the expected outcome inline.
+- For all controller handoff checks, expected result also means:
+  no soft-lock, no wrong-faction selection, no stuck camera/control state, and
+  no need to manually poke the turn flow forward.
+
+**Failure Note Format**
+
+- Record failures as:
+  `Map / Faction / Step / Actual / Expected / Repro`
+- Example:
+  `Map 900 / Green / auto-end / all units done but phase did not advance / phase should auto-end cleanly / play to second green phase -> act with both green units`
 
 - [ ] Launch the hotseat validation map from the **map selector**, not by editing
       `GameMap.tscn` or changing `GameMap.map_data_path`
