@@ -57,7 +57,7 @@ res://
 │   └── fonts/                       # [PLACEHOLDER] pixel font recommended
 │
 ├── data/
-│   ├── classes/                   # 23 ClassData .tres files (base + promoted)
+│   ├── classes/                   # 24 ClassData .tres files (base + promoted + hidden enemy-only fighter)
 │   │   ├── archer.tres
 │   │   ├── bishop.tres
 │   │   ├── bow_knight.tres

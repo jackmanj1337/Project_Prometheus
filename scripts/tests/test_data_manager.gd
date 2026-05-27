@@ -16,7 +16,7 @@ func _init() -> void:
 	# ---- export-safe manifests enumerate the live content catalogues ----
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
-		ResourceManifest.load_paths("res://data/classes/").size() == 23
+		ResourceManifest.load_paths("res://data/classes/").size() == 24
 		and ResourceManifest.load_paths("res://data/weapons/").size() == 10
 		and ResourceManifest.load_paths("res://data/items/").size() == 6
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
@@ -106,6 +106,13 @@ func _init() -> void:
 	else:
 		print("FAIL live validation: %s" % [live_errors]); failed += 1
 
+	var live_map_errors: Array[String] = DataManagerS.collect_map_registry_validation_errors(
+		"res://data/maps/map_registry.json", dm._classes)
+	if live_map_errors.is_empty():
+		print("OK  live map registry and referenced MapData validate cleanly"); passed += 1
+	else:
+		print("FAIL live map validation: %s" % [live_map_errors]); failed += 1
+
 	# ---- B6: bad fixtures fire the right errors ----
 	# Hand-build minimal ad-hoc resources and assert each invalid field surfaces.
 	# The collector is pure, so we drive it with fixture dicts and never mutate
@@ -177,6 +184,107 @@ func _init() -> void:
 	else:
 		print("FAIL class checks: skill=%s growth=%s promote=%s rule=%s availability=%s vuln=%s errs=%s" % [
 			c_skill_err, c_growth_err, c_promote_err, c_rule_err, c_availability_err, c_vuln_err, class_errs])
+		failed += 1
+
+	# ---- Map/registry validation: bad fixtures fail loud on authoring drift ----
+	var bad_map := MapData.new()
+	bad_map.grid = ["..", ".X."] as Array[String]
+	bad_map.player_start_tiles = [Vector2i(0, 0), Vector2i(0, 0)] as Array[Vector2i]
+	bad_map.camera_start_tile = Vector2i(99, 99)
+	bad_map.activation_mode = "ROUND_ROBIN"
+	var dup_green_a := FactionData.new()
+	dup_green_a.id = "green"
+	dup_green_a.alliance_group = "allies"
+	var dup_green_b := FactionData.new()
+	dup_green_b.id = "green"
+	dup_green_b.alliance_group = "allies"
+	bad_map.factions = [dup_green_a, dup_green_b]
+	bad_map.turn_order = ["ghost", "ghost"] as Array[String]
+	bad_map.enemy_placements = [
+		{"unit_data_path": "res://missing_enemy.tres", "tile": Vector2i(1, 1), "faction": "purple"},
+		{"tile": Vector2i(1, 1)}
+	]
+	var bad_rout := ObjectiveCondition.new()
+	bad_rout.type = "rout"
+	bad_rout.faction_id = "phantoms"
+	var bad_seize := ObjectiveCondition.new()
+	bad_seize.type = "seize"
+	var bad_escape := ObjectiveCondition.new()
+	bad_escape.type = "escape"
+	var bad_survive := ObjectiveCondition.new()
+	bad_survive.type = "survive"
+	bad_map.victory_conditions = {
+		"": [bad_seize],
+		"allies": [bad_rout, bad_escape, bad_survive],
+		"mystery_group": ["not_a_condition"],
+	}
+	var bad_map_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		bad_map, "res://bad_map.tres", dm._classes)
+	var m_id_err: bool = bad_map_errors.any(func(e): return "missing MapData.id" in e)
+	var m_name_err: bool = bad_map_errors.any(func(e): return "missing display_name" in e)
+	var m_grid_err: bool = bad_map_errors.any(func(e): return "unknown terrain 'X'" in e)
+	var m_grid_len_err: bool = bad_map_errors.any(func(e): return "grid row 1 length 3 != 2" in e)
+	var m_start_dup_err: bool = bad_map_errors.any(func(e): return "duplicate player_start_tile" in e)
+	var m_cam_err: bool = bad_map_errors.any(func(e): return "camera_start_tile" in e)
+	var m_mode_err: bool = bad_map_errors.any(func(e): return "activation_mode 'ROUND_ROBIN'" in e)
+	var m_turn_err: bool = bad_map_errors.any(func(e): return "turn_order references unknown faction 'ghost'" in e)
+	var m_enemy_missing_err: bool = bad_map_errors.any(func(e): return "missing UnitData 'res://missing_enemy.tres'" in e)
+	var m_enemy_faction_err: bool = bad_map_errors.any(func(e): return "enemy placement references unknown faction 'purple'" in e)
+	var m_cond_group_err: bool = bad_map_errors.any(func(e): return "empty group id" in e)
+	var m_seize_err: bool = bad_map_errors.any(func(e): return "seize condition" in e and "missing tile" in e)
+	var m_escape_err: bool = bad_map_errors.any(func(e): return "escape condition" in e and "requires unit_ids" in e)
+	var m_survive_err: bool = bad_map_errors.any(func(e): return "survive condition" in e and "turns > 0" in e)
+	var m_unknown_group_err: bool = bad_map_errors.any(func(e): return "unknown alliance group 'mystery_group'" in e)
+	var m_bad_cond_err: bool = bad_map_errors.any(func(e): return "is not an ObjectiveCondition" in e)
+	if m_id_err and m_name_err and m_grid_err and m_grid_len_err and m_start_dup_err and m_cam_err \
+			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_faction_err \
+			and m_cond_group_err and m_seize_err and m_escape_err and m_survive_err \
+			and m_unknown_group_err and m_bad_cond_err:
+		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks"); passed += 1
+	else:
+		print("FAIL bad map checks: id=%s name=%s grid=%s grid_len=%s start_dup=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_faction=%s cond_group=%s seize=%s escape=%s survive=%s unknown_group=%s bad_cond=%s errs=%s" % [
+			m_id_err, m_name_err, m_grid_err, m_grid_len_err, m_start_dup_err, m_cam_err,
+			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_faction_err,
+			m_cond_group_err, m_seize_err, m_escape_err, m_survive_err,
+			m_unknown_group_err, m_bad_cond_err, bad_map_errors])
+		failed += 1
+
+	var bad_registry: Array = [
+		{
+			"id": "map_001",
+			"label": "",
+			"map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",
+			"roster_policy": "fixed_test_roster",
+			"roster_source": "",
+		},
+		{
+			"id": "map_001",
+			"label": "Duplicate",
+			"map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",
+			"roster_policy": "bogus_policy",
+			"roster_source": "res://data/roster/default/",
+		},
+	]
+	var registry_fixture_errors: Array[String] = []
+	var seen_ids := {}
+	var seen_paths := {}
+	for i in bad_registry.size():
+		DataManagerS._validate_map_registry_entry(
+			bad_registry[i], i, seen_ids, seen_paths, dm._classes, registry_fixture_errors)
+	var r_dup_err: bool = registry_fixture_errors.any(func(e): return "duplicate id 'map_001'" in e)
+	var r_label_err: bool = registry_fixture_errors.any(func(e): return "missing 'label'" in e)
+	var r_policy_err: bool = registry_fixture_errors.any(func(e): return "roster_policy 'bogus_policy'" in e)
+	var r_fixed_src_err: bool = registry_fixture_errors.any(func(e): return "fixed_test_roster is missing roster_source" in e)
+	var r_path_dup_err: bool = registry_fixture_errors.any(func(e): return "duplicate map_data_path" in e)
+	var r_source_should_empty_err: bool = registry_fixture_errors.any(func(e):
+		return "roster_source should be empty" in e)
+	if r_dup_err and r_label_err and r_policy_err and r_fixed_src_err and r_path_dup_err \
+			and r_source_should_empty_err:
+		print("OK  bad registry fixture fires duplicate-id, policy, and roster-source checks"); passed += 1
+	else:
+		print("FAIL bad registry checks: dup=%s label=%s policy=%s fixed_src=%s path_dup=%s source_empty=%s errs=%s" % [
+			r_dup_err, r_label_err, r_policy_err, r_fixed_src_err, r_path_dup_err,
+			r_source_should_empty_err, registry_fixture_errors])
 		failed += 1
 
 	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----

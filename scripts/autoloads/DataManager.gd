@@ -9,6 +9,12 @@ extends Node
 # exist yet during DataManager._ready). Const access only — no instance needed.
 const ItemHandlerScript = preload("res://scripts/items/ItemHandler.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
+const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
+const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
+const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
+const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
 var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
@@ -26,6 +32,8 @@ func _ready() -> void:
 	for skill in _skills.values():
 		skill.validate()
 	for err in collect_validation_errors(_classes, _weapons, _items, _skills):
+		push_error(err)
+	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes):
 		push_error(err)
 
 
@@ -180,6 +188,267 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 		for group_id in cls.class_groups:
 			groups[String(group_id)] = true
 	return groups
+
+
+static func collect_map_registry_validation_errors(registry_path: String,
+		classes: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if not FileAccess.file_exists(registry_path):
+		errors.append("DataManager: map registry missing at %s" % registry_path)
+		return errors
+	var raw_text := FileAccess.get_file_as_string(registry_path)
+	var parsed: Variant = JSON.parse_string(raw_text)
+	if not (parsed is Array):
+		errors.append("DataManager: map registry did not parse as an array at %s" % registry_path)
+		return errors
+	var seen_ids := {}
+	var seen_paths := {}
+	for i in parsed.size():
+		var entry: Variant = parsed[i]
+		if not (entry is Dictionary):
+			errors.append("DataManager: map registry entry %d is not a Dictionary" % i)
+			continue
+		_validate_map_registry_entry(entry, i, seen_ids, seen_paths, classes, errors)
+	return errors
+
+
+static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids: Dictionary,
+		seen_paths: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
+	var entry_id: String = String(entry.get("id", ""))
+	var label: String = String(entry.get("label", ""))
+	var map_path: String = String(entry.get("map_data_path", ""))
+	var roster_policy: String = String(entry.get("roster_policy", ""))
+	var roster_source: String = String(entry.get("roster_source", ""))
+	if entry_id == "":
+		errors.append("DataManager: map registry entry %d is missing 'id'" % index)
+	else:
+		if seen_ids.has(entry_id):
+			errors.append("DataManager: map registry duplicate id '%s'" % entry_id)
+		else:
+			seen_ids[entry_id] = true
+	if label == "":
+		errors.append("DataManager: map registry entry %d ('%s') is missing 'label'" % [index, entry_id])
+	if map_path == "":
+		errors.append("DataManager: map registry entry %d ('%s') is missing 'map_data_path'" % [index, entry_id])
+	else:
+		if seen_paths.has(map_path):
+			errors.append("DataManager: map registry duplicate map_data_path '%s'" % map_path)
+		else:
+			seen_paths[map_path] = true
+	if not (roster_policy in _VALID_ROSTER_POLICIES):
+		errors.append("DataManager: map registry entry '%s' roster_policy '%s' is not valid" % [
+			entry_id, roster_policy])
+	if roster_policy == "fixed_test_roster":
+		if roster_source == "":
+			errors.append("DataManager: map registry entry '%s' fixed_test_roster is missing roster_source" % entry_id)
+		else:
+			var roster_paths: Array[String] = ResourceManifest.load_paths(roster_source)
+			if roster_paths.is_empty():
+				errors.append("DataManager: map registry entry '%s' roster_source '%s' does not load any roster units" % [
+					entry_id, roster_source])
+			else:
+				var roster_units: Array = []
+				for roster_path in roster_paths:
+					var loaded := load(roster_path)
+					if loaded == null:
+						errors.append("DataManager: roster file '%s' failed to load for map '%s'" % [
+							roster_path, entry_id])
+						continue
+					roster_units.append(loaded)
+				for err in collect_unit_validation_errors(roster_units, classes):
+					errors.append(err)
+	if roster_policy != "fixed_test_roster" and roster_source != "":
+		errors.append("DataManager: map registry entry '%s' roster_source should be empty for roster_policy '%s'" % [
+			entry_id, roster_policy])
+	if map_path == "":
+		return
+	if not ResourceLoader.exists(map_path):
+		errors.append("DataManager: map registry entry '%s' points at missing MapData '%s'" % [
+			entry_id, map_path])
+		return
+	var loaded_map := load(map_path)
+	if not (loaded_map is MapData):
+		errors.append("DataManager: map registry entry '%s' path '%s' did not load as MapData" % [
+			entry_id, map_path])
+		return
+	var map_data: MapData = loaded_map
+	if entry_id != "" and map_data.id != "" and map_data.id != entry_id:
+		errors.append("DataManager: map registry entry '%s' points at MapData id '%s'" % [
+			entry_id, map_data.id])
+	for err in collect_map_data_validation_errors(map_data, map_path, classes):
+		errors.append(err)
+
+
+static func collect_map_data_validation_errors(map_data: MapData, map_path: String,
+		classes: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if map_data == null:
+		errors.append("DataManager: map '%s' did not load" % map_path)
+		return errors
+	if map_data.id == "":
+		errors.append("DataManager: map '%s' is missing MapData.id" % map_path)
+	if map_data.display_name == "":
+		errors.append("DataManager: map '%s' is missing display_name" % map_path)
+	if map_data.player_start_tiles.is_empty():
+		errors.append("DataManager: map '%s' has no player_start_tiles" % map_path)
+	var seen_player_tiles := {}
+	for tile in map_data.player_start_tiles:
+		var tile_key := "%d,%d" % [tile.x, tile.y]
+		if seen_player_tiles.has(tile_key):
+			errors.append("DataManager: map '%s' has duplicate player_start_tile %s" % [map_path, str(tile)])
+		else:
+			seen_player_tiles[tile_key] = true
+	if not map_data.grid.is_empty():
+		var width: int = map_data.grid[0].length()
+		var valid_terrain := {".": true, "F": true, "M": true, "T": true, "S": true, "D": true, "W": true}
+		for y in map_data.grid.size():
+			var row: String = map_data.grid[y]
+			if row.length() != width:
+				errors.append("DataManager: map '%s' grid row %d length %d != %d" % [
+					map_path, y, row.length(), width])
+			for x in row.length():
+				var ch: String = row[x]
+				if not valid_terrain.has(ch):
+					errors.append("DataManager: map '%s' grid row %d col %d has unknown terrain '%s'" % [
+						map_path, y, x, ch])
+		if map_data.camera_start_tile != Vector2i(-1, -1):
+			if map_data.camera_start_tile.x < 0 or map_data.camera_start_tile.y < 0 \
+					or map_data.camera_start_tile.x >= width or map_data.camera_start_tile.y >= map_data.grid.size():
+				errors.append("DataManager: map '%s' camera_start_tile %s is outside the grid" % [
+					map_path, str(map_data.camera_start_tile)])
+	var faction_ids := {}
+	var alliance_groups := {}
+	for default_id in _DEFAULT_FACTION_IDS:
+		faction_ids[default_id] = true
+	for default_group in _DEFAULT_ALLIANCE_GROUP_IDS:
+		alliance_groups[default_group] = true
+	for faction in map_data.factions:
+		if faction == null:
+			errors.append("DataManager: map '%s' has a null faction entry" % map_path)
+			continue
+		if faction.id == "":
+			errors.append("DataManager: map '%s' has a faction with empty id" % map_path)
+			continue
+		if faction_ids.has(faction.id):
+			# allow default ids once, but not duplicates within the authored list
+			var authored_dupes := 0
+			for other in map_data.factions:
+				if other != null and other.id == faction.id:
+					authored_dupes += 1
+			if authored_dupes > 1:
+				errors.append("DataManager: map '%s' has duplicate faction id '%s'" % [map_path, faction.id])
+		else:
+			faction_ids[faction.id] = true
+		if faction.alliance_group != "":
+			alliance_groups[faction.alliance_group] = true
+	if not (map_data.activation_mode in _VALID_ACTIVATION_MODES):
+		errors.append("DataManager: map '%s' activation_mode '%s' is not valid" % [
+			map_path, map_data.activation_mode])
+	var seen_turn_ids := {}
+	for faction_id in map_data.turn_order:
+		if faction_id == "":
+			errors.append("DataManager: map '%s' turn_order contains an empty faction id" % map_path)
+			continue
+		if seen_turn_ids.has(faction_id):
+			errors.append("DataManager: map '%s' turn_order repeats faction '%s'" % [map_path, faction_id])
+		else:
+			seen_turn_ids[faction_id] = true
+		if not faction_ids.has(faction_id):
+			errors.append("DataManager: map '%s' turn_order references unknown faction '%s'" % [
+				map_path, faction_id])
+	var seen_enemy_tiles := {}
+	for placement in map_data.enemy_placements:
+		if not (placement is Dictionary):
+			errors.append("DataManager: map '%s' has non-Dictionary enemy placement %s" % [
+				map_path, str(placement)])
+			continue
+		var unit_path: String = String(placement.get("unit_data_path", ""))
+		if unit_path == "":
+			errors.append("DataManager: map '%s' has enemy placement missing unit_data_path" % map_path)
+		elif not ResourceLoader.exists(unit_path):
+			errors.append("DataManager: map '%s' enemy placement points at missing UnitData '%s'" % [
+				map_path, unit_path])
+		else:
+			var unit_loaded := load(unit_path)
+			if not (unit_loaded is UnitData):
+				errors.append("DataManager: map '%s' enemy placement '%s' did not load as UnitData" % [
+					map_path, unit_path])
+			elif String(unit_loaded.unit_id) == "":
+				errors.append("DataManager: map '%s' enemy placement '%s' has empty unit_id" % [
+					map_path, unit_path])
+			else:
+				for err in collect_unit_validation_errors([unit_loaded], classes):
+					errors.append(err)
+		if not placement.has("tile"):
+			errors.append("DataManager: map '%s' has enemy placement missing tile" % map_path)
+		else:
+			var enemy_tile: Vector2i = placement.get("tile", Vector2i.ZERO)
+			var tile_key := "%d,%d" % [enemy_tile.x, enemy_tile.y]
+			if seen_enemy_tiles.has(tile_key):
+				errors.append("DataManager: map '%s' has duplicate enemy placement tile %s" % [
+					map_path, str(enemy_tile)])
+			else:
+				seen_enemy_tiles[tile_key] = true
+		var placement_faction: String = String(placement.get("faction", "red"))
+		if placement_faction == "":
+			errors.append("DataManager: map '%s' has enemy placement with empty faction id" % map_path)
+		elif not faction_ids.has(placement_faction):
+			errors.append("DataManager: map '%s' enemy placement references unknown faction '%s'" % [
+				map_path, placement_faction])
+	_validate_condition_dict(map_data.victory_conditions, "victory_conditions", map_path,
+		faction_ids, alliance_groups, errors)
+	_validate_condition_dict(map_data.defeat_conditions, "defeat_conditions", map_path,
+		faction_ids, alliance_groups, errors)
+	return errors
+
+
+static func _validate_condition_dict(cond_dict: Dictionary, field_name: String, map_path: String,
+		faction_ids: Dictionary, alliance_groups: Dictionary, errors: Array[String]) -> void:
+	for group_id in cond_dict.keys():
+		var group_name: String = String(group_id)
+		if group_name == "":
+			errors.append("DataManager: map '%s' %s has an empty group id" % [map_path, field_name])
+		elif not alliance_groups.has(group_name):
+			errors.append("DataManager: map '%s' %s references unknown alliance group '%s'" % [
+				map_path, field_name, group_name])
+		var conds: Variant = cond_dict[group_id]
+		if not (conds is Array):
+			errors.append("DataManager: map '%s' %s['%s'] is not an Array" % [
+				map_path, field_name, group_name])
+			continue
+		for i in conds.size():
+			var cond: Variant = conds[i]
+			if not (cond is ObjectiveCondition):
+				errors.append("DataManager: map '%s' %s['%s'][%d] is not an ObjectiveCondition" % [
+					map_path, field_name, group_name, i])
+				continue
+			_validate_objective_condition(cond, map_path, field_name, group_name, faction_ids, alliance_groups, errors)
+
+
+static func _validate_objective_condition(cond: ObjectiveCondition, map_path: String,
+		field_name: String, group_name: String, faction_ids: Dictionary,
+		alliance_groups: Dictionary, errors: Array[String]) -> void:
+	if not (cond.type in _VALID_OBJECTIVE_TYPES):
+		errors.append("DataManager: map '%s' %s['%s'] has invalid ObjectiveCondition.type '%s'" % [
+			map_path, field_name, group_name, cond.type])
+		return
+	if cond.type == "rout" and cond.faction_id != "" \
+			and not faction_ids.has(cond.faction_id) and not alliance_groups.has(cond.faction_id):
+		errors.append("DataManager: map '%s' rout condition references unknown faction/group '%s'" % [
+			map_path, cond.faction_id])
+	if cond.type in ["defeat_boss", "protect", "escape"] and cond.unit_ids.is_empty():
+		errors.append("DataManager: map '%s' %s condition in group '%s' requires unit_ids" % [
+			map_path, cond.type, group_name])
+	if cond.type == "seize":
+		if cond.tile == Vector2i(-1, -1):
+			errors.append("DataManager: map '%s' seize condition in group '%s' is missing tile" % [
+				map_path, group_name])
+	if cond.type == "escape" and cond.tiles.is_empty():
+		errors.append("DataManager: map '%s' escape condition in group '%s' requires tiles" % [
+			map_path, group_name])
+	if cond.type == "survive" and cond.turns <= 0:
+		errors.append("DataManager: map '%s' survive condition in group '%s' requires turns > 0" % [
+			map_path, group_name])
 
 
 static func register_loaded_resource(target: Dictionary, res: Resource, res_path: String) -> String:
