@@ -117,7 +117,12 @@ func _on_start() -> void:
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
 		map_entry.get("roster_source", ""))
-	_apply_roster_policy(gs, map_entry["roster_policy"], map_entry.get("roster_source", ""))
+	if not _apply_roster_policy(gs, map_entry["roster_policy"], map_entry.get("roster_source", "")):
+		push_error("NewGameScreen: roster setup failed for map '%s' (%s)" % [
+			map_entry.get("label", map_entry["map_data_path"]),
+			map_entry["roster_policy"],
+		])
+		return
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 
@@ -134,21 +139,20 @@ func _selected_map_index_for(map_path: String) -> int:
 	return 0
 
 
-func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String = "") -> void:
+func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String = "") -> bool:
 	match roster_policy:
 		"default_roster":
-			gs.call("load_default_roster")
+			return bool(gs.call("load_default_roster"))
 		"fixed_test_roster":
 			if roster_source == "":
 				push_warning("NewGameScreen: fixed_test_roster missing roster_source — using default roster")
-				gs.call("load_default_roster")
-				return
-			gs.call("load_roster_from_directory", roster_source)
+				return false
+			return bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
 		"keep_current_roster":
-			return
+			return bool(gs.call("is_roster_ready_for_launch"))
 		_:
 			push_warning("NewGameScreen: unknown roster policy '%s' — using default roster" % roster_policy)
-			gs.call("load_default_roster")
+			return false
 
 
 func _load_map_options() -> Array[Dictionary]:

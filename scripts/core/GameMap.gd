@@ -83,7 +83,8 @@ func _ready() -> void:
 		bus.ai_unit_acting.connect(_on_ai_unit_acting)
 		bus.phase_changed.connect(_on_phase_changed)
 
-	_spawn_units()
+	if not _spawn_units():
+		return
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
 	if gs:
 		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
@@ -158,19 +159,23 @@ func _load_map_data() -> void:
 # Spawns player units from GameState.player_roster onto player_start_tiles,
 # then enemy units from MapData.enemy_placements. All units get registered
 # with GameState so GridManager can find them via _get_units().
-func _spawn_units() -> void:
+func _spawn_units() -> bool:
 	if map_data == null:
-		return
+		return false
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		push_error("GameMap: GameState autoload missing")
-		return
-
-	# Auto-load default roster if MainMenu hasn't filled it (e.g. direct boot)
+		return false
+	if not bool(gs.call("is_roster_ready_for_launch")):
+		push_error("GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')" % [
+			String(gs.get("next_map_roster_policy")),
+			String(gs.get("next_map_roster_source")),
+		])
+		return false
 	var roster: Array = gs.get("player_roster")
 	if roster == null or roster.is_empty():
-		gs.call("load_default_roster")
-		roster = gs.get("player_roster")
+		push_error("GameMap: prepared launch roster is empty")
+		return false
 
 	# Player units: roster slot N → player_start_tiles[N]
 	for i in roster.size():
@@ -204,6 +209,7 @@ func _spawn_units() -> void:
 			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 			continue
 		_spawn_unit(u_data, tile, faction_id)
+	return true
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:

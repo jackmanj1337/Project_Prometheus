@@ -67,6 +67,9 @@ coverage, start with `AGENT/Docs/testing_guide.md`.
 - Maps exposed in the New Game selector are registered in `data/maps/map_registry.json`.
 - The default player roster loads from `data/roster/default/`.
 - Validation maps may use fixed test rosters from `data/roster/test/`.
+- Map launch now requires an explicit prepared roster that matches the selected
+  `roster_policy`; the runtime no longer silently falls back to the default
+  roster on missing/failed roster setup.
 
 If you are adding content instead of changing engine logic, use
 `AGENT/Docs/map_authoring_guide.md` before touching `map_registry.json` or new

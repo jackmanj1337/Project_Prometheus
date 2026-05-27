@@ -30,13 +30,36 @@ func _check(ok: bool, msg: String) -> void:
 func _init() -> void:
 	print("=== MapCursorTargeting Test ===")
 
+	var bus := root.get_node_or_null("EventBus")
+	if bus == null:
+		bus = load("res://scripts/autoloads/EventBus.gd").new()
+		bus.name = "EventBus"
+		root.add_child(bus)
+	var dm := root.get_node_or_null("DataManager")
+	if dm == null:
+		dm = load("res://scripts/autoloads/DataManager.gd").new()
+		dm.name = "DataManager"
+		root.add_child(dm)
+	var gs := root.get_node_or_null("GameState")
+	if gs == null:
+		gs = load("res://scripts/autoloads/GameState.gd").new()
+		gs.name = "GameState"
+		root.add_child(gs)
+	var cr := root.get_node_or_null("CombatResolver")
+	if cr == null:
+		cr = load("res://scripts/core/CombatResolver.gd").new()
+		cr.name = "CombatResolver"
+		root.add_child(cr)
+	await process_frame
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+
 	var instance: Node = load("res://scenes/core/GameMap.tscn").instantiate()
 	root.add_child(instance)
 	await process_frame  # let _ready and unit spawns complete
 
 	var grid: GridManager = instance.get_node("GridManager")
-	var cr: Node = root.get_node_or_null("CombatResolver")
-	var gs: Node = root.get_node_or_null("GameState")
 
 	# Pick test units: a player attacker with a weapon, a second player unit to
 	# heal, the cleric (staff user), and an enemy.

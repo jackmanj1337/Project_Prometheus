@@ -113,6 +113,13 @@ Use `fixed_test_roster` for validation maps that need pre-staged units, items,
 or levels. Use `default_roster` for normal campaign-style maps unless there is
 a deliberate reason not to.
 
+Current runtime rule:
+
+- map launch requires a roster explicitly prepared for the selected
+  `roster_policy`
+- a bad or missing roster no longer falls back to `default_roster` inside
+  `GameMap`
+
 ## Registry entry
 
 Every launchable map needs a `data/maps/map_registry.json` entry like:

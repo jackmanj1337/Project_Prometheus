@@ -139,10 +139,16 @@ var map_data: MapData = null
 var player_roster: Array[UnitData] = []
 var party_gold: int = 0
 var party_items: Array[String] = []  # item IDs awarded by completed maps
+# Explicit roster-launch state. This separates "roster was never prepared",
+# "roster prep failed", and "roster is ready for the selected launch policy".
+var roster_initialized: bool = false
+var roster_load_failed: bool = false
+var active_roster_policy: String = ""
+var active_roster_source: String = ""
 # New Game / map-select launch state. The selected map path persists so retries
 # and direct scene reloads stay on the same map until another selection is made.
 var next_map_data_path: String = ""
-var next_map_roster_policy: String = "default_roster"
+var next_map_roster_policy: String = ""
 var next_map_roster_source: String = ""
 
 # Deep copy taken at map start; used by the Retry button to restore state
@@ -281,26 +287,26 @@ func configure_next_map(map_path: String, roster_policy: String = "default_roste
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
 # Called by MainMenu on "New Game" for MVP.
-func load_default_roster() -> void:
-	load_roster_from_directory("res://data/roster/default/")
+func load_default_roster() -> bool:
+	return load_roster_from_directory("res://data/roster/default/", "default_roster")
 
 
-func load_roster_from_directory(roster_path: String) -> void:
-	player_roster.clear()
+func load_roster_from_directory(roster_path: String, roster_policy: String = "fixed_test_roster") -> bool:
+	_clear_roster_launch_state()
 	var resource_paths: Array[String] = ResourceManifest.load_paths(roster_path)
 	if resource_paths.is_empty():
 		push_error("GameState: cannot open roster directory: " + roster_path)
-		# Emit defeat so the game doesn't silently start with zero player units
-		var bus := get_node_or_null("/root/EventBus")
-		if bus:
-			bus.map_defeat.emit()
-		return
+		roster_load_failed = true
+		return false
+	var loaded_roster: Array[UnitData] = []
+	var had_errors: bool = false
 	for res_path in resource_paths:
 		# load() can return null for a corrupt .tres even though the file exists;
 		# null-check before .duplicate() so a bad file is skipped, not a crash.
 		var loaded := load(res_path)
 		if loaded == null:
 			push_error("GameState: failed to load roster file '%s' — skipping" % res_path)
+			had_errors = true
 			continue
 		var res: UnitData = loaded.duplicate(true)
 		if res:
@@ -308,6 +314,7 @@ func load_roster_from_directory(roster_path: String) -> void:
 			# release builds, where assert() is stripped.
 			if res.unit_id == "":
 				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % res_path)
+				had_errors = true
 				continue
 			var dm := get_node_or_null("/root/DataManager")
 			if dm != null and not dm.get_all_classes().is_empty():
@@ -315,8 +322,47 @@ func load_roster_from_directory(roster_path: String) -> void:
 				if not unit_errors.is_empty():
 					for err in unit_errors:
 						push_error(err)
+					had_errors = true
 					continue
-			player_roster.append(res)
+			loaded_roster.append(res)
+	if had_errors or loaded_roster.is_empty():
+		if loaded_roster.is_empty():
+			push_error("GameState: roster load produced no valid units from '%s'" % roster_path)
+		player_roster.clear()
+		roster_load_failed = true
+		return false
+	player_roster = loaded_roster
+	roster_initialized = true
+	active_roster_policy = roster_policy
+	active_roster_source = roster_path
+	return true
+
+
+func is_roster_ready_for_launch() -> bool:
+	if roster_load_failed or not roster_initialized:
+		return false
+	match next_map_roster_policy:
+		"default_roster":
+			return active_roster_policy == "default_roster" \
+				and active_roster_source == "res://data/roster/default/" \
+				and not player_roster.is_empty()
+		"fixed_test_roster":
+			return next_map_roster_source != "" \
+				and active_roster_policy == "fixed_test_roster" \
+				and active_roster_source == next_map_roster_source \
+				and not player_roster.is_empty()
+		"keep_current_roster":
+			return not player_roster.is_empty()
+		_:
+			return false
+
+
+func _clear_roster_launch_state() -> void:
+	player_roster.clear()
+	roster_initialized = false
+	roster_load_failed = false
+	active_roster_policy = ""
+	active_roster_source = ""
 
 
 # Deep-copies all player UnitData fields into _map_start_snapshot.

@@ -23,6 +23,26 @@ func _init() -> void:
 	print("OK  instantiate() returned a node")
 	passed += 1
 
+	var bus := root.get_node_or_null("EventBus")
+	if bus == null:
+		bus = load("res://scripts/autoloads/EventBus.gd").new()
+		bus.name = "EventBus"
+		root.add_child(bus)
+	var dm := root.get_node_or_null("DataManager")
+	if dm == null:
+		dm = load("res://scripts/autoloads/DataManager.gd").new()
+		dm.name = "DataManager"
+		root.add_child(dm)
+	var gs := root.get_node_or_null("GameState")
+	if gs == null:
+		gs = load("res://scripts/autoloads/GameState.gd").new()
+		gs.name = "GameState"
+		root.add_child(gs)
+	await process_frame
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+
 	# Add to root so @onready and _ready run
 	root.add_child(instance)
 	# One frame to let _ready complete
@@ -127,70 +147,66 @@ func _init() -> void:
 		print("FAIL camera smoothing toggle: on=%s off=%s" % [smooth_on, smooth_off])
 		failed += 1
 
-	# Verify units spawned (6 player + 8 enemy = 14 total) if GameState is available
-	var gs := root.get_node_or_null("GameState")
-	if gs:
-		# _on_ai_unit_acting centres the camera on the acting unit (#7).
-		var grid_node: GridManager = instance.get_node("GridManager")
-		var ai_units: Array = gs.get_living_enemy_units()
-		if not ai_units.is_empty():
-			var focus_unit = ai_units[0]
-			instance._on_ai_unit_acting(focus_unit)
-			var half := Vector2(64, 64) * 0.5
-			var want := grid_node.tile_to_world(focus_unit.tile_position) + half
-			if cam.position == want:
-				print("OK  _on_ai_unit_acting centres the camera on the unit (#7)")
-				passed += 1
-			else:
-				print("FAIL ai camera pan: cam=%s want=%s" % [cam.position, want])
-				failed += 1
+	# Verify units spawned (6 player + 8 enemy = 14 total)
+	# _on_ai_unit_acting centres the camera on the acting unit (#7).
+	var grid_node: GridManager = instance.get_node("GridManager")
+	var ai_units: Array = gs.get_living_enemy_units()
+	if not ai_units.is_empty():
+		var focus_unit = ai_units[0]
+		instance._on_ai_unit_acting(focus_unit)
+		var half := Vector2(64, 64) * 0.5
+		var want := grid_node.tile_to_world(focus_unit.tile_position) + half
+		if cam.position == want:
+			print("OK  _on_ai_unit_acting centres the camera on the unit (#7)")
+			passed += 1
+		else:
+			print("FAIL ai camera pan: cam=%s want=%s" % [cam.position, want])
+			failed += 1
 
-		var units_container: Node2D = instance.get_node("UnitsContainer")
-		var unit_count := units_container.get_child_count()
-		if unit_count == 14:
-			print("OK  spawned 14 units (6 player + 8 enemy)")
-			passed += 1
-		else:
-			print("FAIL unit count: got %d, want 14" % unit_count)
-			failed += 1
-		# Player Unit_01 should be at tile (1,9)
-		var soldier: Unit = null
-		for child in units_container.get_children():
-			if child.data and child.data.unit_name == "Unit_01":
-				soldier = child
-				break
-		if soldier and soldier.tile_position == Vector2i(1, 9) and soldier.team == "blue":
-			print("OK  Unit_01 spawned at (1,9) as player")
-			passed += 1
-		else:
-			print("FAIL Unit_01 placement: " + str(soldier))
-			failed += 1
-		# Boss enemy E8 should be at (39, 12)
-		var boss: Unit = null
-		for child in units_container.get_children():
-			if child.data and child.data.unit_name == "E8_Boss":
-				boss = child
-				break
-		if boss and boss.tile_position == Vector2i(39, 12) and boss.team == "red":
-			print("OK  E8_Boss spawned at (39,12) as enemy")
-			passed += 1
-		else:
-			print("FAIL E8_Boss placement: " + str(boss))
-			failed += 1
-		# Playtest 3 #1: HPBar (a ProgressBar Control) must not eat mouse input
-		# over the unit, or MapCursor's _unhandled_input never sees the event.
-		# Default Control.mouse_filter is STOP — the regression risk we're guarding.
-		if soldier:
-			var hpbar: ProgressBar = soldier.get_node_or_null("HPBar")
-			if hpbar != null and hpbar.mouse_filter == Control.MOUSE_FILTER_IGNORE:
-				print("OK  Unit HPBar ignores mouse input (playtest 3 #1)")
-				passed += 1
-			else:
-				print("FAIL Unit HPBar mouse_filter = %d, want IGNORE (2)" % (
-					hpbar.mouse_filter if hpbar != null else -1))
-				failed += 1
+	var units_container: Node2D = instance.get_node("UnitsContainer")
+	var unit_count := units_container.get_child_count()
+	if unit_count == 14:
+		print("OK  spawned 14 units (6 player + 8 enemy)")
+		passed += 1
 	else:
-		print("SKIP unit spawn checks (GameState autoload not present in --script mode)")
+		print("FAIL unit count: got %d, want 14" % unit_count)
+		failed += 1
+	# Player Unit_01 should be at tile (1,9)
+	var soldier: Unit = null
+	for child in units_container.get_children():
+		if child.data and child.data.unit_name == "Unit_01":
+			soldier = child
+			break
+	if soldier and soldier.tile_position == Vector2i(1, 9) and soldier.team == "blue":
+		print("OK  Unit_01 spawned at (1,9) as player")
+		passed += 1
+	else:
+		print("FAIL Unit_01 placement: " + str(soldier))
+		failed += 1
+	# Boss enemy E8 should be at (39, 12)
+	var boss: Unit = null
+	for child in units_container.get_children():
+		if child.data and child.data.unit_name == "E8_Boss":
+			boss = child
+			break
+	if boss and boss.tile_position == Vector2i(39, 12) and boss.team == "red":
+		print("OK  E8_Boss spawned at (39,12) as enemy")
+		passed += 1
+	else:
+		print("FAIL E8_Boss placement: " + str(boss))
+		failed += 1
+	# Playtest 3 #1: HPBar (a ProgressBar Control) must not eat mouse input
+	# over the unit, or MapCursor's _unhandled_input never sees the event.
+	# Default Control.mouse_filter is STOP — the regression risk we're guarding.
+	if soldier:
+		var hpbar: ProgressBar = soldier.get_node_or_null("HPBar")
+		if hpbar != null and hpbar.mouse_filter == Control.MOUSE_FILTER_IGNORE:
+			print("OK  Unit HPBar ignores mouse input (playtest 3 #1)")
+			passed += 1
+		else:
+			print("FAIL Unit HPBar mouse_filter = %d, want IGNORE (2)" % (
+				hpbar.mouse_filter if hpbar != null else -1))
+			failed += 1
 
 	# TurnManager wiring
 	var tm: TurnManager = instance.get_node("TurnManager")
@@ -281,7 +297,8 @@ func _init() -> void:
 		# Map selector override: a second GameMap instance should honor the
 		# selected map path and fixed test roster instead of the exported default.
 		gs.reset_map_state()
-		gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
+		gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/",
+			"fixed_test_roster")
 		gs.configure_next_map(
 			"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
 			"fixed_test_roster",
@@ -359,6 +376,26 @@ func _init() -> void:
 				print("FAIL %s unit count: got=%d want=%d" % [
 					map_info["id"], objective_units.get_child_count(), expected_total])
 				failed += 1
+
+		# Missing explicit roster prep should fail loud instead of silently loading
+		# the default roster from inside GameMap.
+		gs.reset_map_state()
+		gs.player_roster.clear()
+		gs.roster_initialized = false
+		gs.roster_load_failed = false
+		gs.active_roster_policy = ""
+		gs.active_roster_source = ""
+		gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+		var bad_boot_instance: Node = packed.instantiate()
+		root.add_child(bad_boot_instance)
+		await process_frame
+		var bad_units: Node2D = bad_boot_instance.get_node("UnitsContainer")
+		if bad_units.get_child_count() == 0:
+			print("OK  GameMap refuses to silently bootstrap a missing roster")
+			passed += 1
+		else:
+			print("FAIL GameMap silently spawned %d units without explicit roster prep" % bad_units.get_child_count())
+			failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

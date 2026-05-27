@@ -114,9 +114,12 @@ func _init() -> void:
 	else:
 		print("FAIL reset_map_state"); failed += 1
 
-	# ---- load_default_roster populates player_roster ----
-	gs.load_default_roster()
-	if gs.player_roster.size() > 0:
+	# ---- load_default_roster populates player_roster and explicit roster state ----
+	var default_ok: bool = gs.load_default_roster()
+	if default_ok and gs.player_roster.size() > 0 \
+			and gs.roster_initialized and not gs.roster_load_failed \
+			and gs.active_roster_policy == "default_roster" \
+			and gs.active_roster_source == "res://data/roster/default/":
 		print("OK  load_default_roster loads the roster (%d units)" % gs.player_roster.size())
 		passed += 1
 	else:
@@ -142,12 +145,28 @@ func _init() -> void:
 		print("FAIL default-roster Cavalier movement should be 7"); failed += 1
 
 	# ---- load_roster_from_directory loads a fixed test roster ----
-	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
-	if gs.player_roster.size() == 2:
+	var fixed_ok: bool = gs.load_roster_from_directory(
+		"res://data/roster/test/map_900_hotseat_validation/", "fixed_test_roster")
+	if fixed_ok and gs.player_roster.size() == 2 \
+			and gs.roster_initialized and not gs.roster_load_failed \
+			and gs.active_roster_policy == "fixed_test_roster" \
+			and gs.active_roster_source == "res://data/roster/test/map_900_hotseat_validation/":
 		print("OK  load_roster_from_directory loads the fixed test roster (2 units)")
 		passed += 1
 	else:
 		print("FAIL load_roster_from_directory: roster size = %d (want 2)" % gs.player_roster.size())
+		failed += 1
+
+	# ---- bad roster path fails loud and does not leave stale roster state behind ----
+	var missing_ok: bool = not gs.load_roster_from_directory(
+		"res://data/roster/test/does_not_exist/", "fixed_test_roster")
+	if missing_ok and gs.player_roster.is_empty() and not gs.roster_initialized \
+			and gs.roster_load_failed and gs.active_roster_policy == "":
+		print("OK  missing roster path fails without silently leaving an old roster active")
+		passed += 1
+	else:
+		print("FAIL missing roster path state: size=%d initialized=%s failed=%s policy=%s" % [
+			gs.player_roster.size(), gs.roster_initialized, gs.roster_load_failed, gs.active_roster_policy])
 		failed += 1
 
 	# ---- configure_next_map stores the next map path + roster policy ----
@@ -160,6 +179,21 @@ func _init() -> void:
 	else:
 		print("FAIL configure_next_map: path=%s policy=%s source=%s" % [
 			gs.next_map_data_path, gs.next_map_roster_policy, gs.next_map_roster_source]); failed += 1
+
+	# ---- is_roster_ready_for_launch requires explicit roster prep that matches the launch policy ----
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var launch_default_ok: bool = gs.is_roster_ready_for_launch()
+	gs.configure_next_map("res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
+		"fixed_test_roster", "res://data/roster/test/map_900_hotseat_validation/")
+	var launch_fixed_mismatch_ok: bool = not gs.is_roster_ready_for_launch()
+	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/", "fixed_test_roster")
+	var launch_fixed_ok: bool = gs.is_roster_ready_for_launch()
+	if launch_default_ok and launch_fixed_mismatch_ok and launch_fixed_ok:
+		print("OK  is_roster_ready_for_launch enforces explicit roster prep per policy"); passed += 1
+	else:
+		print("FAIL is_roster_ready_for_launch: default=%s mismatch=%s fixed=%s" % [
+			launch_default_ok, launch_fixed_mismatch_ok, launch_fixed_ok]); failed += 1
 
 	# ---- M14 stage 2: are_hostile uses the alliance-group model ----
 	# Default groups: {blue,green} (allies), {red} (foes), {yellow} (rogues).

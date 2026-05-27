@@ -399,8 +399,10 @@ func is_player_turn() -> bool
 func reset_map_state() -> void
 func configure_next_map(map_path: String, roster_policy := "default_roster",
         roster_source := "") -> void
-func load_default_roster() -> void
-func load_roster_from_directory(roster_path: String) -> void
+func load_default_roster() -> bool
+func load_roster_from_directory(roster_path: String,
+        roster_policy := "fixed_test_roster") -> bool
+func is_roster_ready_for_launch() -> bool
 
 func take_map_snapshot() -> void
     # Deep-copies each roster UnitData, party economy, and the PairUpRegistry state
@@ -419,12 +421,19 @@ Runtime launch is now selector-driven rather than hardcoded to `Map 001`.
   - `GameState.next_map_data_path`
   - `GameState.next_map_roster_policy`
   - `GameState.next_map_roster_source`
+- `NewGameScreen.gd` loads the requested roster before scene change
 - `GameMap.gd` reads that launch state when the battle scene opens
+- `GameMap.gd` now fails loud if the roster was not explicitly prepared for the
+  selected launch policy; it no longer silently falls back to the default roster
 
 This means new maps generally need two pieces of authoring to be launchable:
 
 1. the map resource / scene under `data/maps/...`
 2. an entry in `data/maps/map_registry.json`
+
+For maps that do not use `default_roster`, the registry entry must also provide
+the correct explicit roster source. A bad or missing roster now blocks launch
+instead of substituting another roster behind the scenes.
 
 Practical follow-up guides:
 
