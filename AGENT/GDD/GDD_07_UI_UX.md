@@ -31,6 +31,8 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift + Tab | — |
 | `show_danger_zone` | Q (toggle) | Middle Click (toggle) |
+| `inspect_unit` | I | — |
+| `more_info` | F | — |
 | `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
 | `open_settings` | O | — |
 
@@ -73,15 +75,15 @@ Animation: 4-frame blink at 8 fps.
 
 **States:**
 - `free` — cursor moves freely; hovering shows unit/terrain info
-- `unit_selected` — a player unit is selected; movement range shown in blue
+- `unit_selected` — a controllable unit is selected; movement range shown in blue
 - `unit_moved` — selected unit has moved; action menu is open
-- `targeting` — player is selecting an enemy to attack; attack range shown in red
-- `locked` — cursor cannot move (during animations, enemy phase)
+- `targeting` — the active controller is selecting a target; attack range shown in red
+- `locked` — cursor cannot move (during animations or controller handoff)
 
 **State Transitions:**
 ```
 free
-  → [confirm on player unit] → unit_selected
+  → [confirm on controllable unit] → unit_selected
   → [confirm or cancel on an empty tile, or the open_menu key (M)]
         → map menu opens (cursor locked until it closes)
 
@@ -130,10 +132,38 @@ locked
 ```
 
 **Behavior:**
-- "New Game" → character creation flow (Phase 2) or directly to map 001 for MVP
+- "New Game" → opens the `NewGameScreen` overlay
 - "Continue" → load save (Phase 2)
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "New Game", "Settings", and "Quit" are functional
+
+---
+
+### New Game Screen
+
+**Scene:** `NewGameScreen.tscn`
+**Trigger:** "New Game" from the Main Menu
+
+The live new-game flow is no longer a direct jump into `Map 001`. It is a modal
+setup screen that writes per-run rules onto `GameState`, then launches the chosen
+map through `GameMap.tscn`.
+
+**Current options:**
+- `Map` — populated from `data/maps/map_registry.json`
+- `Permadeath` — Off / On
+- `Auto Promote` — Off / On
+- `Leveling` — Random / Fixed
+- `Pair Up` — Off / On
+
+**Behavior:**
+- Selecting a map also selects its roster policy (`default_roster`, fixed test roster,
+  or keep-current when that mode is authored later)
+- Starting the run calls `GameState.configure_next_map(...)`, applies the roster
+  policy, then changes to `GameMap.tscn`
+- Back returns to the Main Menu without reloading the scene
+
+This screen is onboarding-relevant because the map registry is now the canonical
+launch surface for the validation maps and objective showcase maps.
 
 ---
 
@@ -147,7 +177,7 @@ by camera movement.
 ```
 ┌──────────────────────────────────────────────────────┐  ← top of screen
 │ Phase Label (top-left)           Turn Label (top-right)│
-│ e.g. "Player Phase"              e.g. "Turn  3"        │
+│ e.g. "Blue Phase"                e.g. "Turn  3"        │
 └──────────────────────────────────────────────────────┘
 
               [MAP VIEW — tiles, units, cursor]
@@ -171,15 +201,23 @@ by camera movement.
 **Terrain Info Panel** (`TerrainInfoPanel.tscn`):
 - Always shown (updates as cursor moves)
 - Shows terrain name, DEF bonus, Dodge bonus
+- In the current build it also hosts the phase-1 More Info terrain text:
+  description, move-cost notes, and available tile actions
 - Size: ~180 × 80 px
 
+**Objective Panel:**
+- Lists the active blue-group win/lose conditions from authored `ObjectiveCondition`
+  resources
+- Hidden on maps that do not author objective text for the current view
+
 **Phase Label:**
-- Text: "Player Phase" (blue) or "Enemy Phase" (red)
+- Text is faction-driven, not hardcoded player/enemy text
+- Uses the acting faction's authored display name and controller context
 - Updates on phase change; fades in briefly after banner
 
 **Turn Label:**
 - Text: "Turn  3"
-- Increments at the start of each Player Phase
+- Increments when the scheduler wraps back to blue in whole-phase maps
 
 ---
 
@@ -192,7 +230,7 @@ by camera movement.
 ```
 [full-width colored bar slides in from right, pauses, slides out to left]
 ┌────────────────────────────────────────┐
-│           PLAYER PHASE                 │   ← blue background
+│            BLUE PHASE                  │   ← example; display text is authored
 └────────────────────────────────────────┘
 ```
 
@@ -204,8 +242,8 @@ by camera movement.
 5. `cursor.unlock()` called after animation completes
 
 Colors:
-- Player Phase: dark blue background, white text
-- Enemy Phase: dark red background, white text
+- Driven from `FactionData.color` for the acting faction
+- Text uses the faction's authored display name
 
 Font size: 40px, bold [PLACEHOLDER font]
 
@@ -214,26 +252,35 @@ Font size: 40px, bold [PLACEHOLDER font]
 ### Action Menu
 
 **Scene:** `ActionMenu.tscn`
-**Trigger:** After a player unit successfully moves (or confirms on its current tile)
+**Trigger:** After a controllable unit successfully moves (or confirms on its current tile)
 
 **Layout (positioned near the moved unit, offset to avoid covering it):**
 ```
 ┌────────────┐
-│  Attack    │  ← disabled if no enemies in range
-│  Staff     │  ← disabled if no healing staff / no targets in range
-│  Item      │  ← disabled if no usable items
-│  Wait      │  ← always available
+│  Attack    │
+│  Staff     │
+│  Item      │
+│  Equip     │
+│  Seize     │
+│  Escape    │
+│  Pair Up   │
+│  Swap      │
+│  Separate  │
+│  Wait      │
 └────────────┘
 ```
 
-> Buttons: `BtnAttack`, `BtnStaff`, `BtnItem`, `BtnWait`. **Trade is designed but
-> not yet implemented** — there is no Trade button in the current `ActionMenu.tscn`.
+The menu is **contextual**. Unavailable actions are hidden entirely rather than shown
+disabled, so the visible row set depends on the acting unit, tile, and current map.
 
 **Behavior:**
 - Menu appears adjacent to the unit's new tile; repositioned if too close to screen edge
 - Navigate with `cursor_up` / `cursor_down` (wraps, skipping disabled buttons);
   confirm with `confirm`; close with `cancel`
 - Closing with cancel triggers undo: unit returns to its pre-move tile
+- `Seize` / `Escape` are gated by shared `TileActions` logic so the action menu and
+  terrain More Info panel agree
+- `Pair Up`, `Swap`, and `Separate` are shown only when the pairing state allows them
 
 **Button widths:** 120 px; height per button: 30 px
 **Font size:** 18px
@@ -251,7 +298,7 @@ There is **no target-list panel**. Target selection happens on the map itself:
   targets, **green** for Staff (heal) targets.
 - The cursor snaps to the first valid target. Direction keys **cycle** the cursor
   between valid target tiles (the list wraps). With the mouse, motion snaps the
-  cursor to the nearest valid target — unless Mouse Targeting is "Keyboard Only".
+  cursor to the nearest valid target — unless `Mouse Cursor` is disabled.
 - `confirm` on an Attack target opens the Attack Preview; `confirm` on a Staff target
   applies the heal immediately. `cancel` returns to the Action Menu.
 
@@ -262,7 +309,7 @@ There is **no target-list panel**. Target selection happens on the map itself:
 **Scene:** `AttackPreview.tscn`
 **Trigger:** Player selects a target from the Target Select List
 
-**Layout (centered at bottom of screen, above terrain panel):**
+**Layout (anchored near the defender on screen rather than fixed to the bottom):**
 ```
 ┌────────────────────────────────────────────────┐
 │   [Attacker Name]          [Defender Name]     │
@@ -278,10 +325,14 @@ There is **no target-list panel**. Target selection happens on the map itself:
 
 **Rules:**
 - If the defender cannot counterattack (out of range, or no weapon):
-  their Hit/Dmg/Crit shows `--`
+  the defender side collapses to a `No counter` readout and omits the normal
+  hit/crit rows
 - If attacker gets a follow-up, show `×2 attacks` below their crit
 - Preview is calculated by `CombatResolver.preview_combat()` — no RNG
 - Confirm triggers `CombatResolver.resolve_combat()` (with RNG)
+- The current panel also shows weapon-triangle and effectiveness markers
+- Phase-1 More Info adds an info box on the right; `more_info` cycles through each
+  preview field and clicking a field opens its description
 
 **Size:** ~500 × 130 px
 **Font size:** 18px
@@ -315,6 +366,31 @@ turn. There is no separate staff-preview panel in MVP.
 - Selecting an item and confirming uses it (healing items restore HP immediately)
 - Ends the unit's turn after use
 - Cancel returns to Action Menu
+
+---
+
+### Unit Details Screen
+
+**Scene:** `UnitDetailsScreen.tscn`
+**Trigger:** `inspect_unit` while the cursor is over a unit
+
+This is the live character-sheet overlay. It shows:
+
+- unit name, class, level, internal level, and EXP
+- full core stat block
+- inventory with remaining uses
+- equipped skills
+- weapon ranks / WEXP progress
+
+The screen is read-only. It exists for inspection, not inventory management.
+
+**More Info integration:**
+- every stat, inventory entry, skill, and weapon-rank row is selectable
+- clicking a row or pressing `more_info` cycles the side panel
+- stat entries show both authored description text and the active modifier breakdown
+
+This screen is one of the primary onboarding-relevant UI surfaces because it exposes
+the runtime meaning of modifiers, skills, and WEXP without opening the code.
 
 ---
 
@@ -360,6 +436,7 @@ turn. There is no separate staff-preview panel in MVP.
 ┌──────────────────┐
 │   End Turn       │
 │   Settings       │
+│   Quit to Menu   │
 │   Close          │
 └──────────────────┘
 ```
@@ -371,11 +448,10 @@ turn. There is no separate staff-preview panel in MVP.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
+- `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
+  runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.
 - `cancel` also closes the map menu.
-
-> A *Quit to Menu* entry is designed but not yet built — the MVP `MapMenu.tscn`
-> has only End Turn / Settings / Close.
 
 ---
 
@@ -411,7 +487,7 @@ See GDD_01 → SettingsManager.
 │   Movement Speed     [ Normal ▾ ]                 │
 │   Phase Banner       [ Show ▾ ]                   │
 │   Level Up Screen    [ Show ▾ ]                   │
-│   Mouse Targeting    [ Snap to Target ▾ ]         │
+│   Mouse Cursor       [ Enabled ▾ ]                │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │
 │   Move Up               W / Up                    │
@@ -486,13 +562,13 @@ the `InputMap` at startup, so a rebind UI is the only missing piece (Phase 2).
 
 ### Game Over Screen
 
-**Trigger:** `EventBus.map_defeat` signal
+**Trigger:** `EventBus.map_defeat`, `EventBus.map_victory`, and `EventBus.map_resolved`
 
 **Layout (full-screen dark overlay):**
 ```
 [dark overlay fades in over 1 second]
 
-        GAME OVER
+        DEFEAT / VICTORY / DRAW
 
    [ Retry Map ]
    [ Quit to Menu ]
@@ -501,17 +577,16 @@ the `InputMap` at startup, so a rebind UI is the only missing piece (Phase 2).
 - "Retry Map" reloads the current map from scratch
   (player unit stats and inventory are preserved from map start — not mid-map)
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
+- The current screen also renders ranked standings when `map_resolved` supplies them
+- "Quit to Menu" resets map-scoped state and returns to `Boot.tscn`
 
 ---
 
 ### Victory Screen
 
-**Trigger:** `EventBus.map_victory` signal
-
 There is **no separate `VictoryScreen` scene** — `GameOverScreen.tscn` /
-`GameOverScreen.gd` serves **both** outcomes: a "VICTORY" title on `map_victory` and
-a "GAME OVER" title on `map_defeat`. The next-map / campaign flow beyond the current
-map is a `[PLACEHOLDER]` (campaign structure is Phase 2).
+`GameOverScreen.gd` serves victory, defeat, and draw. It switches the title based on
+the emitted outcome and may render multi-group standings below the header.
 
 ---
 
@@ -522,17 +597,20 @@ The HUD operates as a state machine. Only one primary panel is active at a time.
 
 ```
 HUD States:
-  FREE          — UnitInfoPanel + TerrainInfoPanel visible
-  UNIT_SELECTED — same as FREE (overlays on map, no extra panel)
-  ACTION_MENU   — ActionMenu visible
-  TARGETING     — TargetSelectList visible + AttackPreview visible
-  STAFF_TARGET  — TargetSelectList visible (staff mode)
+  FREE          — UnitInfoPanel + TerrainInfoPanel + ObjectivePanel visible
+  UNIT_SELECTED — same as FREE (movement overlay active)
+  ACTION_MENU   — contextual ActionMenu visible
+  TARGETING     — target cycling active; AttackPreview may be visible
+  STAFF_TARGET  — target cycling active for healing staff use
   ITEM_MENU     — ItemMenu visible
+  WEAPON_MENU   — WeaponMenu visible
   MAP_MENU      — MapMenu visible (pauses cursor)
+  DETAILS       — UnitDetailsScreen visible
   LEVEL_UP      — LevelUpScreen visible (cursor locked)
-  GAME_OVER     — GameOverScreen visible (cursor locked)
-  VICTORY       — VictoryScreen visible (cursor locked)
-  LOCKED        — All panels hidden except UnitInfoPanel; cursor locked
+  PROMOTION     — PromotionScreen visible
+  RECLASS       — ReclassScreen visible
+  RESULTS       — GameOverScreen visible for victory / defeat / draw
+  LOCKED        — cursor input suspended during animation or controller handoff
 ```
 
 ---

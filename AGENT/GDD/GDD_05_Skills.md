@@ -11,9 +11,10 @@ Skills are **not hardcoded per class** — they are data entries. A unit carries
 of skill IDs. The skill handler is a lookup table: given a skill ID and a trigger
 context, it applies the effect.
 
-**Maximum skills per unit:** 4 (`GameState.max_skills`) — the cap is defined but
-**not yet enforced** (no skill-equip UI exists). Earned mastery skills
-(`UnitData.mastery_skills`, e.g. `s_rank_mastery`) never count against this cap.
+**Maximum equipped skills per unit:** 4 (`GameState.max_skills`). There is still no
+manual skill-equip UI, but the cap now gates auto-equipped learned skills. Earned
+mastery skills (`UnitData.mastery_skills`, e.g. `s_rank_mastery`) never count against
+this cap.
 
 ---
 
@@ -49,6 +50,9 @@ methods for each trigger. Every relevant code path calls the appropriate hook.
 | `on_combat_end` | After all attacks in a combat exchange resolve |
 | `on_level_up` | When this unit levels up |
 | `player_activated` | Player manually triggers the skill (costs the action or is free) |
+
+> The trigger table is intentionally conservative. Recent M9a work extended coverage
+> by reusing existing triggers and helper seams rather than adding new trigger ids.
 
 ---
 
@@ -103,6 +107,17 @@ Several skills share one handler, configured via `effect_params`.
 | `wrath` | `on_combat_start` | `wrath` | +50 Crit while HP ≤ 50%. |
 | `miracle` | `on_damaged` | `miracle` | (LUK / divisor) % chance to survive an otherwise-lethal blow at 1 HP. |
 
+### Shared-handler combat/passive skills
+
+| Skill (`.tres` id) | Trigger | effect_id | Effect |
+|---|---|---|---|
+| `skill_plus_2` / `magic_plus_2` / `defense_plus_2` | `on_combat_start` | `stat_bonus` | Add the authored combat-duration stat modifier from `effect_params.stat` / `amount`. |
+| `prescience` | `on_combat_start` | `prescience` | Attacker-only hit/avoid bonus from `effect_params`. |
+| `patience` | `on_combat_start` | `patience` | Defender-only hit/avoid bonus from `effect_params`. |
+| `focus` | `on_combat_start` | `focus` | Crit bonus when no ally is within the authored radius. |
+| `discipline` | `passive` | `discipline` | Doubles WEXP gain through `SkillHandler.get_wexp_multiplier()`; not a combat modifier. |
+| `healtouch` | `passive` | `healtouch` | Adds flat staff-heal bonus through `SkillHandler.get_staff_heal_bonus()`; not a combat modifier. |
+
 ### Weapon-type skills (one `.tres` per type, shared handler)
 
 | Skills (`.tres` ids) | Trigger | effect_id | Effect |
@@ -116,9 +131,10 @@ Several skills share one handler, configured via `effect_params`.
 |---|---|---|---|
 | `s_rank_mastery` | `on_combat_start` | `s_rank_mastery` | +10 Hit, +5 Crit, +1 Damage with a weapon type held at S rank. Granted automatically by `Unit.add_wexp()` on the first S rank; stored in `UnitData.mastery_skills`; never assignable in a `.tres`. |
 
-> **Stub handlers:** `stat_bonus`, `charm`, `anathema`, and `daunt` exist as keys in
-> the `SkillHandler` dispatch table, but their handlers are stubs — no `.tres` uses
-> them yet. Full implementation is M9.
+> **Still deferred:** aura handlers (`charm`, `anathema`, `daunt`), terrain/mobility
+> helpers (`get_move_cost_override`, `can_pass_through_enemies`, `can_phase_through`),
+> and the large Phase-2 skill catalogue remain roadmap work. The section above is the
+> current implemented handler surface.
 
 ---
 
@@ -173,18 +189,18 @@ The following skills are deferred to Phase 2. They are listed here so their
 | Celerity | passive | `stat_bonus` | +2 MOV |
 | Clear Vision | passive | `stat_bonus` | +2 LoS |
 | Corrosion | on_hit | `corrosion` | SKL/2%: enemy weapon loses uses |
-| Daunt | start_of_enemy_turn | `daunt` | -10 Acc/Crit to enemies in 3-radius |
-| Discipline | passive | `discipline` | Negate weapon triangle |
-| Focus | passive | `stat_bonus` | +2 MAG |
+| Daunt | aura | `daunt` | Deferred aura debuff; handler key reserved, live gameplay not authored yet |
+| Discipline | passive | `discipline` | WEXP multiplier passive; current authored use doubles WEXP gain |
+| Focus | on_combat_start | `focus` | Crit bonus when no ally is within the authored radius |
 | Fortunate | passive | `stat_bonus` | +2 LUK |
 | Gamble | player_activated | `gamble` | Halve Acc, double Crit |
 | Loot | on_kill | `loot` | Gain 20 gold |
-| Nihil | on_combat_start | `nihil` | Already in MVP |
+| Nihil | on_combat_start_negate | `nihil` | Already in MVP |
 | Nullify | on_defend | `nullify` | Negate effectiveness bonus |
 | Perceptive | passive | `stat_bonus` | +2 LoS |
 | Prowess | passive | `stat_bonus` | +2 SKL |
 | Renewal | start_of_turn | `renewal` | Already in MVP |
-| Resolve | passive | `resolve` | Already in MVP |
+| Resolve | on_combat_start | `resolve` | Already in MVP |
 | Savior | passive | `savior` | No rescue penalty |
 | Smite | player_activated | `smite` | Shove 2 tiles instead of 1 |
 | Swift | passive | `stat_bonus` | +2 SPD |
@@ -192,7 +208,7 @@ The following skills are deferred to Phase 2. They are listed here so their
 | Unorthodox | passive | `unorthodox` | Reverse weapon triangle |
 | Vantage | on_combat_start | `vantage` | Already in MVP |
 | Vigor | passive | `stat_bonus` | +5 max HP |
-| Wrath | passive | `wrath` | Already in MVP |
+| Wrath | on_combat_start | `wrath` | Already in MVP |
 | Zeal | passive | `stat_bonus` | +2 STR |
 
 ### Promotion Skills (All Phase 2 — add alongside each promoted class)

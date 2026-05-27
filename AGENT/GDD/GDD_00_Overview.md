@@ -1,5 +1,5 @@
 # Game Design Document
-## [PROJECT NAME — PLACEHOLDER]
+## Fire Emblem Tabletop RPG Adaptation
 ### A Top-Down Turn-Based Strategy RPG
 
 ---
@@ -55,27 +55,29 @@ without requiring engine changes.
 
 ## Scope
 
-### MVP (Milestone 1 — Playable Prototype)
+### Current Implemented Baseline
 - Grid-based map with terrain
-- 6 starter classes (Soldier, Mercenary, Archer, Mage, Cleric, Knight)
+- 6 starter classes (Cavalier, Mercenary, Archer, Mage, Cleric, Knight)
 - Basic weapon types (Sword, Lance, Bow, Fire tome, Heal staff)
 - Full combat resolution (hit, crit, damage, weapon triangle, counterattack, follow-up)
-- Player turn + Enemy turn loop
-- Simple enemy AI (attack weakest target in range)
+- Faction-based phase loop with authored turn order, alliance groups, and controller ownership
+- Whole-phase hotseat support for non-blue factions
+- Simple enemy AI profiles (`basic`, `passive`, `healer`) with per-faction dispatch
 - Experience and leveling
 - Permadeath toggle (unit is incapacitated, not deleted)
-- 1 playable map with a Rout objective
-- Basic UI (unit info, attack preview, turn management)
+- Promotion and Second Seal reclassing
+- Pair Up pass 1 (`Pair Up`, `Swap`, `Separate`, snapshot persistence)
+- Multi-condition objective system (Rout, Seize, Defeat Boss, Escape, Survive / Defend, Protect)
+- 8 registered maps including validation maps and objective showcase maps
+- Basic UI plus Settings, New Game map selector, character sheet, and More Info panels
 
 ### Phase 2 — Content Expansion
 - Remaining handbook classes
 - Full weapon roster
-- Generic and class skills
-- Additional map objectives (Seize, Rout, Escape, Defend, Defeat the Boss)
+- Remaining generic and class skills
 - Status conditions (Poison, Sleep, Silence, Berserk, Stun)
-- Class promotion system
 - Forging system
-- Additional maps
+- Additional campaign maps and progression flow
 - **Between-map save / load** — roster state, current map, gold; saved at map end and on quit
 
 ### Phase 3 — Polish & Release
@@ -93,7 +95,7 @@ without requiring engine changes.
 | Component | Choice | Notes |
 |---|---|---|
 | Engine | Godot 4 (stable) | Free, open source, excellent 2D tooling |
-| Language | GDScript | Default Godot language, Python-like, beginner friendly |
+| Language | GDScript | Default Godot language; current codebase is entirely GDScript |
 | Data format | Godot Resources (.tres) | Native editor support; JSON acceptable for maps |
 | Version control | Git + GitHub | Public repo for open source release |
 | Target platform | Desktop (Windows, Mac, Linux) | Mobile deferred to Phase 3 |

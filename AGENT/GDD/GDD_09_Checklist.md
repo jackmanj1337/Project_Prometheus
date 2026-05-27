@@ -19,7 +19,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 
 ---
 
-## Status Snapshot (last updated 2026-05-24)
+## Status Snapshot (last updated 2026-05-27)
 
 | Milestone | Status | Notes |
 |---|---|---|

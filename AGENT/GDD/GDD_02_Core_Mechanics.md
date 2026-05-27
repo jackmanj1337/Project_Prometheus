@@ -40,24 +40,45 @@ in Phase 2 via a flag in `MapData`.
 
 ## Turn Structure
 
-Each round of battle consists of **phases**:
+The live game now uses a **faction-based phase scheduler**. Every map can author:
+
+- `MapData.factions` — display name, color, alliance group, controller
+- `MapData.turn_order` — the order factions act in
+- `MapData.activation_mode` — currently `WHOLE_PHASE` in shipped content
+
+### Default Whole-Phase Loop
+
+Most maps still play like a classic Fire Emblem round, but the implementation is
+data-driven rather than hardcoded to player/enemy:
 
 ```
 Round Start
-  └── PLAYER PHASE
-        ├── Player selects a unit
-        ├── Unit moves (optional)
-        ├── Unit takes an action (Attack / Use Item / Trade / Wait / etc.)
-        └── Unit is marked as "acted" (greyed out visually)
-        ... (repeat for all player units)
-  └── PLAYER PHASE ENDS (all units acted, or player ends phase manually)
-  └── ENEMY PHASE
-        ├── Enemy AI resolves all enemy turns sequentially
-        └── Each enemy moves and acts
-  └── ENEMY PHASE ENDS
-  └── (Future Phase 2: Ally NPC Phase)
-Round End → check victory/defeat → next round
+  └── BLUE PHASE
+        ├── Blue units refresh
+        ├── per-unit "turn" modifiers tick
+        ├── fort healing and start_of_turn skills resolve
+        ├── player controls blue units until all are DONE or End Turn is chosen
+  └── GREEN / RED / YELLOW PHASES (if authored in turn_order)
+        ├── acting faction refreshes
+        ├── per-unit "turn" modifiers tick
+        ├── fort healing and start_of_turn skills resolve
+        └── controller runs the faction (AI or hotseat)
+  └── Round wraps back to blue
+        ├── all-units "map_turn" modifiers tick once
+        └── turn counter increments
 ```
+
+### Controllers
+
+- `blue` is the standard player-controlled faction
+- non-blue factions may be AI-controlled or `HOTSEAT`-controlled per `FactionData.controller`
+- objective checks run at phase boundaries, after combat deaths, and after Seize / Escape
+
+### Alternating Mode
+
+`ALTERNATING` exists in `TurnManager` as an engine primitive, but shipped maps and
+manual validation currently target `WHOLE_PHASE`. Treat alternating activation as
+implemented infrastructure, not production gameplay yet.
 
 ### Unit Action States
 Each unit tracks one of three states per round:
@@ -65,14 +86,12 @@ Each unit tracks one of three states per round:
 - `MOVED` — Has moved, can still act
 - `DONE` — Cannot act further this round
 
-### End of Player Phase
-- The player phase ends **automatically** the moment the last player unit is
-  marked `DONE` (no prompt) — `TurnManager` triggers this from `set_unit_state`
-  and from `_on_unit_died` (so a mutual kill on the last unit's own action still
-  ends the phase).
-- The player can also **manually** end the phase early via the Map Menu's
-  *End Turn*. A confirmation prompt is shown if any units are still `READY` or
-  `MOVED`; if every unit is already done, it ends immediately.
+### End of a Controlled Phase
+- A controlled phase ends **automatically** when every unit in the acting faction
+  is `DONE`.
+- The acting human controller can also end the phase early from the Map Menu.
+- Hotseat phases use the same commit flow as blue's phase; the difference is only
+  which faction the cursor is allowed to command.
 
 ---
 
@@ -92,7 +111,7 @@ become **0**.
 | **SPD** | Speed. Affects number of attacks and dodge rate |
 | **LUK** | Luck. Affects hit, dodge, and crit avoidance |
 | **MOV** | Movement. Tiles the unit can move per turn |
-| **CON** | Constitution. Affects rescue/shove eligibility |
+| **CON** | Constitution. Affects rescue/shove eligibility and related future carry systems |
 | **LoS** | Line of Sight. Tiles visible in fog-of-war maps (Phase 2+) |
 
 ### Derived Combat Stats (per equipped weapon)
@@ -196,14 +215,15 @@ For each individual attack. The roll is `randi() % 100`, yielding 0–99:
 
 ## Weapon Proficiency (wEXP)
 
-Each unit tracks weapon proficiency per type: `{ "sword": { "rank": "D", "wexp": 0 } }`
+Each unit tracks weapon proficiency as numeric totals per WEXP track:
+`{ "sword": 100, "lance": 40 }`
 
-- Every successful hit with a weapon grants `weapon.wexp` points to that proficiency
-- At 100 wEXP, rank increases: **E → D → C → B → A → S**
+- Every successful hit with a weapon grants `weapon.wexp` points to that track
+- Rank letters are derived from the stored total using `GameConstants.WEXP_RANK_THRESHOLDS`
 - **S rank bonus**: +10 Hit, +5 Crit, +1 Damage with that weapon type
 - A unit can only equip weapons at or below their current rank for that type
-- Starting proficiency for a class's primary weapon type: **D rank, 0 wEXP**
-- Additional starting proficiencies: **E rank, 0 wEXP**
+- Class resources author WEXP baselines/caps; promotion and reclass raise a unit to at
+  least the new class's authored baselines for any gained weapon tracks
 
 ---
 
@@ -216,10 +236,14 @@ Some actions end the turn; some do not.
 |---|---|---|
 | **Move** | No | Up to MOV tiles; can be undone unless unit revealed an enemy |
 | **Attack** | Yes | Must have a valid target in weapon range |
+| **Staff** | Yes | Heal an allied unit in range; awards EXP and wEXP |
 | **Use Item** | Yes | Consumes one use of a healing/utility item |
 | **Equip Weapon** | No | Switch active weapon; does not consume turn |
 | **Trade** | No* | Swap items with adjacent ally; if unit has already moved, trading ends their turn; if unit has not yet moved, they may still take an action after trading |
 | **Shove** | Yes | Push adjacent non-mounted ally 1 tile |
+| **Pair Up** | Yes | Combine with an adjacent unpaired ally when campaign Pair Up is enabled |
+| **Swap** | Yes | Swap lead/support roles inside an existing pair |
+| **Separate** | Yes | Drop the support unit onto an adjacent valid tile |
 | **Wait** | Yes | End turn without acting |
 | **Seize** | Yes | Map objective action on specific tile |
 | **Escape** | Yes | Map objective action on specific tile |
@@ -227,13 +251,16 @@ Some actions end the turn; some do not.
 
 > *Trade: after trading, the unit may still act if they have not yet moved this turn; otherwise the trade ends their turn.
 
-> **MVP scope:** the implemented actions are **Move, Attack, Staff, Item, Wait**.
-> Trade, Shove, Equip Weapon, Seize, Escape, and Class Ability are designed above
-> but are Phase 2 work.
+> **Current implementation:** the shipped action flow supports **Move, Attack, Staff,
+> Item, Equip, Wait, Seize, Escape, Pair Up, Swap, and Separate**. Trade, Shove,
+> Rescue/carry, and other class-specific field actions remain future work.
 
 ### Mounted / Flying Unit Exception
 After any turn-ending action (other than Wait), a **mounted or flying unit** may move
 any remaining movement tiles, but must then Wait.
+
+> This is still a design target, not a shipped runtime rule. The current codebase
+> does **not** implement post-action remainder movement / Canto yet.
 
 ---
 
