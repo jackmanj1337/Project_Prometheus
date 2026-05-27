@@ -41,7 +41,7 @@ skills or items). They affect movement rules, combat interactions, and terrain.
 | Quality | Effect |
 |---|---|
 | `flying` | Ignores terrain movement costs; can cross most obstacles; weak to bow/wind |
-| `mounted` | Can move remainder of movement after acting (before final Wait); higher CON |
+| `mounted` | Higher mobility / CON profile; future Canto-style remainder movement is still deferred |
 | `armoured` | Generally high DEF; affected by certain anti-armor weapons |
 | `dragon` | Affected by dragon-effective weapons |
 | `beast` | Affected by beast-effective weapons (Laguz land units) |
@@ -126,7 +126,7 @@ HP: 75, STR: 50, MAG: 5, DEF: 45, RES: 25, SKL: 50, SPD: 45, LUK: 40
 HP: 60, STR: 50, MAG: 5, DEF: 35, RES: 20, SKL: 65, SPD: 60, LUK: 35
 ```
 
-**Promotes To (Phase 2):** Hero, Sentinel
+**Promotes To:** Hero, Sentinel
 
 ---
 
@@ -166,7 +166,7 @@ HP: 60, STR: 45, MAG: 5, DEF: 30, RES: 20, SKL: 70, SPD: 55, LUK: 40
 > `GridManager`'s attackable-tile queries and `CombatResolver.can_counterattack()`,
 > both reading `WeaponData.get_range_min()` / `get_range_max()`.
 
-**Promotes To (Phase 2):** Ranger, Sniper
+**Promotes To:** Ranger, Sniper
 
 ---
 
@@ -198,7 +198,7 @@ HP: 60, STR: 45, MAG: 5, DEF: 30, RES: 20, SKL: 70, SPD: 55, LUK: 40
 HP: 50, STR: 5, MAG: 65, DEF: 15, RES: 60, SKL: 60, SPD: 50, LUK: 40
 ```
 
-**Promotes To (Phase 2):** Mage Knight, Sage
+**Promotes To:** Mage Knight, Sage
 
 ---
 
@@ -233,7 +233,7 @@ HP: 55, STR: 10, MAG: 55, DEF: 20, RES: 70, SKL: 45, SPD: 45, LUK: 55
 > **Staff Use:** The Cleric targets an ally within staff range (1 tile for Heal).
 > Healing = 10 + MAG. Staff use is a turn-ending action. Grants EXP.
 
-**Promotes To (Phase 2):** Bishop, Paragon
+**Promotes To:** Bishop, Paragon
 
 ---
 
@@ -265,24 +265,23 @@ HP: 55, STR: 10, MAG: 55, DEF: 20, RES: 70, SKL: 45, SPD: 45, LUK: 55
 HP: 70, STR: 55, MAG: 0, DEF: 65, RES: 15, SKL: 45, SPD: 25, LUK: 25
 ```
 
-**Promotes To (Phase 2):** General, Great Knight
+**Promotes To:** General, Great Knight
 
 ---
 
-## Character Creation (Digital Adaptation)
+## New Game Runtime Setup
 
-On the character creation screen, the player:
+The current `NewGameScreen` does **not** do character creation. It configures
+per-run gameplay rules and map launch state:
 
-1. Enters a **name** for their unit `[PLACEHOLDER — name input field]`
-2. Selects a **class** from available classes
-3. Sees base stats displayed
-4. Allocates **stat points** based on the campaign's difficulty setting:
-   - Low: 4 points
-   - Standard: 6 points
-   - High: 7 points
-5. Maximum +2 to any single stat at creation
-6. Starts with **1,000 gold**
-7. Can buy starting equipment from available weapons/items
+1. Select a map from `data/maps/map_registry.json`
+2. Toggle `Permadeath`
+3. Toggle `Auto Promote`
+4. Choose `Leveling` (`Random` / `Fixed`)
+5. Toggle `Pair Up`
+
+Roster identity still comes from authored `UnitData` resources, not a custom avatar
+builder. A future character-creation system would be a separate milestone.
 
 ---
 
@@ -306,8 +305,9 @@ Cat, Tiger, Hawk, Raven, Heron
 To add a class:
 1. Create `data/classes/class_name.tres` using the `ClassData` resource
 2. Fill all fields including promotion paths (set to empty array if not yet implemented)
-3. Add class name to the character creation screen's class list
-4. No code changes required unless the class introduces a new mechanic
+3. Add or update any roster/map data that should reference the class
+4. Add tests or extend validation maps if the class changes progression or equipment flow
+5. No code changes are required unless the class introduces a new mechanic
 
 ---
 
@@ -334,7 +334,7 @@ When a unit uses a Second Seal:
 
 The older single `promotion_skill` / `effective_level` model is deprecated.
 
-### Promotion Items (Phase 2)
+### Promotion Items
 
 | Item | Eligible Classes |
 |---|---|
@@ -353,7 +353,7 @@ Store eligibility in each promotion item's `effect_params`:
 
 ---
 
-## Default MVP Roster
+## Default Roster
 
 Used when the player starts a new game or launches a default-roster validation map.
 Six authored `UnitData` resources are loaded into `GameState.player_roster`. Each
@@ -395,6 +395,5 @@ Units are placed at player start tiles in slot order (Slot 1 → tile index 0, e
 | Unit_05 (Cleric) | (2, 10) |
 | Unit_06 (Knight) | (2, 11) |
 
-> These names, classes, and positions are intentionally generic.
-> Replace with named characters when a story and character creation screen
-> are implemented in Phase 2.
+> These units are still generic authored test/campaign placeholders. They are the
+> live default roster used by the current New Game flow and by default-roster maps.

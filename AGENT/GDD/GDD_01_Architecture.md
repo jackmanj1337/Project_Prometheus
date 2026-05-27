@@ -13,6 +13,19 @@ not in code. Game logic reads and executes these definitions at runtime. This me
 
 The only time code changes are needed is when introducing a **new type of mechanic**.
 
+### Onboarding Read Order
+
+For a new developer, the shortest accurate path through the docs is:
+
+1. This file (`GDD_01`) for project structure and runtime ownership
+2. `GDD_02` for battle-loop rules
+3. `GDD_03` for unit/class progression state
+4. `GDD_06` for map/objective authoring
+5. `GDD_07` for UI surfaces and player flow
+
+`GDD_09` is a historical checklist and `GDD_10*` are roadmap documents. They are useful
+context, but they should not be treated as the primary source for shipped behavior.
+
 ---
 
 ## Godot Project Folder Structure
@@ -157,7 +170,7 @@ res://
     │   └── TileActions.gd
     ├── skills/
     │   └── SkillHandler.gd           # autoload — skill-effect dispatcher
-    ├── tests/                        # 35 test_*.gd suites; run via run_tests.sh
+    ├── tests/                        # headless test suites; run via run_tests.sh
     ├── tools/                        # placeholder-asset + tileset generators
     ├── ui/
     │   ├── ActionMenu.gd
@@ -240,6 +253,9 @@ extends Node
 func _ready() -> void:
     get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
 ```
+
+`Boot` also acts as the stable re-entry point when quitting from an in-progress map:
+UI flows return to `Boot.tscn`, then `Boot` routes back to `MainMenu.tscn`.
 
 ### `Unit.tscn`
 One instance per unit on the map.
@@ -383,6 +399,22 @@ func restore_map_snapshot() -> void
     # Restores the snapshotted roster/economy/pairings, then resets map state.
     # The caller reloads the current scene after this returns.
 ```
+
+### New Game / Map Launch Flow
+
+Runtime launch is now selector-driven rather than hardcoded to `Map 001`.
+
+- `NewGameScreen.gd` loads choices from `data/maps/map_registry.json`
+- the selected entry is committed into:
+  - `GameState.next_map_data_path`
+  - `GameState.next_map_roster_policy`
+  - `GameState.next_map_roster_source`
+- `GameMap.gd` reads that launch state when the battle scene opens
+
+This means new maps generally need two pieces of authoring to be launchable:
+
+1. the map resource / scene under `data/maps/...`
+2. an entry in `data/maps/map_registry.json`
 
 ### `SettingsManager.gd`
 
@@ -1247,7 +1279,20 @@ can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,
 `SkillHandler`, and `ItemHandler` are autoload singletons reached via
 `get_node_or_null("/root/...")` — they are not scene nodes.
 
-### .tres files in headless mode
+### Export-safe content loading
+
+Exported builds cannot reliably enumerate `res://` directories the same way the editor
+can. The project's live rule is:
+
+- use `scripts/shared/ResourceManifest.gd`
+- author `resource_manifest.json` in content directories that must load in exports
+- let `DataManager` and `GameState.load_roster_from_directory()` resolve through the
+  manifest first, only falling back to raw directory listing in editor/headless runs
+
+If new exported content appears to load in-editor but vanish in a packaged build, check
+for a missing or stale `resource_manifest.json` first.
+
+### `.tres` files in headless mode
 
 When `.tres` files are created via the editor, their header reads
 `[gd_resource type="ClassData" ...]` (using the `class_name` of the custom
@@ -1292,6 +1337,16 @@ documented in `GDD_06`.
 
 `_validate_map()` asserts row count, row length, and that every char is a
 known terrain on `_ready` — transcription bugs fail loud at map load.
+
+### Common onboarding gotchas
+
+- If a new gameplay resource exists on disk but not at runtime, check `DataManager`
+  validation errors and the relevant `resource_manifest.json`.
+- If a map exists but cannot be chosen from New Game, check `map_registry.json`.
+- If a test script needs an autoload, use `get_node_or_null("/root/...")` rather than
+  compile-time identifiers.
+- If a change affects battle retry behavior, inspect both `GameState.take_map_snapshot()`
+  and `restore_map_snapshot()`; Retry rewinds more than HP.
 
 ### Test infrastructure
 
