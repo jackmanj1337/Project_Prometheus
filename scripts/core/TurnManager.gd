@@ -1021,10 +1021,14 @@ func _active_or_default_faction() -> String:
 	return ""
 
 
-func _should_auto_end_faction(faction_id: String) -> bool:
+func is_locally_controlled_faction(faction_id: String) -> bool:
 	if faction_id == "":
 		return false
 	if faction_id == "blue":
 		var gs := get_node_or_null("/root/GameState")
 		return gs != null and gs.is_player_turn()
 	return _is_hotseat_controlled(faction_id)
+
+
+func _should_auto_end_faction(faction_id: String) -> bool:
+	return is_locally_controlled_faction(faction_id)

@@ -132,10 +132,19 @@ func release_support_from_fallen_lead(unit: Node) -> Node:
 	separate(unit.data.unit_id)
 	if support == null or support.data == null or support.data.hp <= 0:
 		return null
-	support.tile_position = drop_tile
-	support.visible = true
+	_restore_support_to_tile(support, drop_tile)
 	_apply_support_turn_state_after_lead_death(support)
 	return support
+
+
+func _restore_support_to_tile(support: Node, tile: Vector2i) -> void:
+	if support == null:
+		return
+	if support.has_method("snap_to_tile"):
+		support.snap_to_tile(tile)
+	else:
+		support.tile_position = tile
+	support.visible = true
 
 
 func _find_live_unit(unit_id: String) -> Node:

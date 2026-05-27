@@ -110,6 +110,41 @@ func _init() -> void:
 			locked_on_enemy, c1._state, c1._controlling_faction])
 		failed += 1
 
+	# ---- Hotseat menu close/cancel unlocks because green is still locally controlled ----
+	var hot_tm := TurnManager.new()
+	root.add_child(hot_tm)
+	var hot_md := MapData.new()
+	var hot_green := FactionData.new()
+	hot_green.id = "green"
+	hot_green.controller = "HOTSEAT"
+	hot_md.factions = [hot_green]
+	hot_tm._map_data = hot_md
+	hot_tm._turn_order = ["green"]
+	hot_tm._active_faction_idx = 0
+	var c_hot := _make_cursor(hot_tm)
+	c_hot.lock()
+	c_hot._on_map_menu_closed()
+	var closed_unlocks: bool = c_hot._state == FREE
+	c_hot.lock()
+	c_hot._on_quit_to_menu_requested()
+	await process_frame
+	var hot_dlg: ConfirmationDialog = null
+	for ch in root.get_children():
+		if ch is ConfirmationDialog:
+			hot_dlg = ch
+	if hot_dlg != null:
+		hot_dlg.canceled.emit()
+		hot_dlg.queue_free()
+	await process_frame
+	var cancel_unlocks: bool = c_hot._state == FREE
+	if closed_unlocks and cancel_unlocks:
+		print("OK  hotseat menu close and quit-cancel unlock the cursor for local non-blue control")
+		passed += 1
+	else:
+		print("FAIL hotseat unlock: close=%s cancel=%s state=%d" % [
+			closed_unlocks, cancel_unlocks, c_hot._state])
+		failed += 1
+
 	# ---- _place_menu_near keeps the menu fully inside the viewport (playtest 3 #4) ----
 	# Action / Item / Weapon menus used to be pinned `+ TILE_SIZE` right of the
 	# unit with no viewport check — units near the right or bottom edge pushed

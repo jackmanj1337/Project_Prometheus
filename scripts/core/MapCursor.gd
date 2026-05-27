@@ -675,7 +675,10 @@ func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> 
 		_set_tile(lead.tile_position)
 		_show_action_menu()
 		return
-	support.tile_position = target_tile
+	if support.has_method("snap_to_tile"):
+		support.snap_to_tile(target_tile)
+	else:
+		support.tile_position = target_tile
 	support.visible = true
 	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
 		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
@@ -940,9 +943,7 @@ func _on_end_turn_requested() -> void:
 func _on_map_menu_closed() -> void:
 	if _awaiting_end_turn_confirm:
 		return
-	# Don't unlock during the enemy phase — the phase_changed listener handles that.
-	var gs := get_node_or_null("/root/GameState")
-	if gs and not gs.is_player_turn():
+	if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
 		return
 	unlock()
 
@@ -959,8 +960,7 @@ func _on_quit_to_menu_requested() -> void:
 	)
 	dlg.canceled.connect(func():
 		dlg.queue_free()
-		var gs := get_node_or_null("/root/GameState")
-		if gs and not gs.is_player_turn():
+		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
 			return
 		unlock()
 	)

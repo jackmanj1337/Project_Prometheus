@@ -4,6 +4,7 @@ extends SceneTree
 # restore round-trips, and the GameState snapshot/restore integration.
 
 const PairUpRegistryS = preload("res://scripts/autoloads/PairUpRegistry.gd")
+const UnitScene = preload("res://scenes/units/Unit.tscn")
 
 
 func _init() -> void:
@@ -240,6 +241,43 @@ func _init() -> void:
 			failed += 1
 		# Clean up so a later test in the same harness does not see stale state.
 		live_reg.call("clear")
+
+		# Real Unit regression: restoring a paired support must snap both logical
+		# tile_position and world position back onto the map, not just update data.
+		var lead_unit: Unit = UnitScene.instantiate()
+		lead_unit.data = UnitData.new()
+		lead_unit.data.unit_id = "chrom_real"
+		lead_unit.data.hp = 0
+		lead_unit.data.max_hp = 20
+		lead_unit.tile_position = Vector2i(7, 3)
+		root.add_child(lead_unit)
+		var support_unit: Unit = UnitScene.instantiate()
+		support_unit.data = UnitData.new()
+		support_unit.data.unit_id = "lissa_real"
+		support_unit.data.hp = 18
+		support_unit.data.max_hp = 18
+		root.add_child(support_unit)
+		support_unit.tile_position = live_reg.OFF_MAP_TILE
+		support_unit.visible = false
+		support_unit.position = Vector2(-999, -999)
+		gs.register_unit(lead_unit)
+		gs.register_unit(support_unit)
+		live_reg.pair("chrom_real", "lissa_real")
+		gs.current_phase = gs.Phase.ENEMY
+		live_reg.release_support_from_fallen_lead(lead_unit)
+		var expected_world := Vector2(7 * 64, 3 * 64)
+		var snapped_ok: bool = support_unit.tile_position == Vector2i(7, 3) \
+			and support_unit.position == expected_world and support_unit.visible
+		gs.unregister_unit(lead_unit)
+		gs.unregister_unit(support_unit)
+		lead_unit.queue_free()
+		support_unit.queue_free()
+		live_reg.call("clear")
+		if snapped_ok:
+			print("OK  lead-death restore snaps a real Unit back onto the tile visually and logically"); passed += 1
+		else:
+			print("FAIL real Unit restore: tile=%s pos=%s visible=%s" % [
+				support_unit.tile_position, support_unit.position, support_unit.visible]); failed += 1
 
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

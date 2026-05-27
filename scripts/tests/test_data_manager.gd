@@ -57,6 +57,23 @@ func _init() -> void:
 	else:
 		print("FAIL manifest-backed boot missed export-critical ids"); failed += 1
 
+	# ---- duplicate ids fail loud instead of silently overwriting ----
+	var dup_target := {}
+	var dup_a := WeaponData.new()
+	dup_a.id = "dup_weapon"
+	var dup_b := WeaponData.new()
+	dup_b.id = "dup_weapon"
+	var first_err: String = dm.register_loaded_resource(dup_target, dup_a, "res://a.tres")
+	var second_err: String = dm.register_loaded_resource(dup_target, dup_b, "res://b.tres")
+	if first_err == "" and "duplicate resource id 'dup_weapon'" in second_err \
+			and dup_target["dup_weapon"] == dup_a:
+		print("OK  register_loaded_resource rejects duplicate ids without overwriting the original")
+		passed += 1
+	else:
+		print("FAIL duplicate-id guard: first=%s second=%s target=%s" % [
+			first_err, second_err, dup_target])
+		failed += 1
+
 	# ---- weapon triangle: sword beats axe, loses to lance, neutral vs sword ----
 	var adv: bool = dm.get_weapon_triangle_result("sword", "axe") == "advantage"
 	var dis: bool = dm.get_weapon_triangle_result("sword", "lance") == "disadvantage"

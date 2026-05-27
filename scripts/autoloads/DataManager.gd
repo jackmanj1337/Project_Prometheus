@@ -182,6 +182,17 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 	return groups
 
 
+static func register_loaded_resource(target: Dictionary, res: Resource, res_path: String) -> String:
+	var rid: Variant = res.get("id") if res else null
+	if rid == null or rid == "":
+		return "DataManager: resource at %s has no 'id' field" % res_path
+	var id: String = String(rid)
+	if target.has(id):
+		return "DataManager: duplicate resource id '%s' at %s" % [id, res_path]
+	target[id] = res
+	return ""
+
+
 func _load_directory(path: String, target: Dictionary) -> void:
 	var resource_paths: Array[String] = ResourceManifest.load_paths(path)
 	if resource_paths.is_empty():
@@ -189,12 +200,13 @@ func _load_directory(path: String, target: Dictionary) -> void:
 		return
 	for res_path in resource_paths:
 		var res := load(res_path)
-		# All our content resources have a non-empty 'id' field; warn on others
-		var rid: Variant = res.get("id") if res else null
-		if rid != null and rid != "":
-			target[rid] = res
+		var err := register_loaded_resource(target, res, res_path)
+		if err == "":
+			continue
+		if "duplicate resource id" in err:
+			push_error(err)
 		else:
-			push_warning("DataManager: resource at %s has no 'id' field" % res_path)
+			push_warning(err)
 
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String
