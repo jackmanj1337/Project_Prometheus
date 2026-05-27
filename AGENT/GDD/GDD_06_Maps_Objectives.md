@@ -2,6 +2,11 @@
 
 ---
 
+For the practical authoring workflow, registry entry shape, roster-policy
+rules, and export-manifest reminders, use
+`AGENT/Docs/map_authoring_guide.md`. This chapter remains the runtime contract
+for map/objective behavior.
+
 ## Map System Overview
 
 Each map is a Godot **TileMapLayer** scene paired with a **MapData** resource.

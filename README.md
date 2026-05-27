@@ -19,6 +19,12 @@ For onboarding, start here:
 Use `AGENT/GDD/GDD_10_Roadmap.md` and `AGENT/GDD/GDD_10a_Overview.md` for planned /
 deferred work, not for the current runtime contract.
 
+For centralized practical workflows, use:
+
+- `AGENT/Docs/map_authoring_guide.md`
+- `AGENT/Docs/testing_guide.md`
+- `AGENT/Docs/campaign_rules.md`
+
 ## Current Runtime Highlights
 
 - Faction-driven phase system with authored `turn_order`, alliance groups, and hotseat-capable controllers
@@ -39,6 +45,9 @@ Runs the headless GDScript suite in the current checkout.
 Use this in a fresh clone or CI-style environment. It bootstraps Godot's
 import/class cache first, then runs the same suite.
 
+For validation-map roles, manual regression flow, and when to add automated
+coverage, start with `AGENT/Docs/testing_guide.md`.
+
 ## Project Structure
 
 - `scripts/autoloads/` — global state and registries (`GameState`, `DataManager`, `SettingsManager`, etc.)
@@ -58,6 +67,10 @@ import/class cache first, then runs the same suite.
 - Maps exposed in the New Game selector are registered in `data/maps/map_registry.json`.
 - The default player roster loads from `data/roster/default/`.
 - Validation maps may use fixed test rosters from `data/roster/test/`.
+
+If you are adding content instead of changing engine logic, use
+`AGENT/Docs/map_authoring_guide.md` before touching `map_registry.json` or new
+runtime-scanned folders.
 
 ## GitHub Actions
 

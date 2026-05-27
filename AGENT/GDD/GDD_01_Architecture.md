@@ -13,6 +13,10 @@ not in code. Game logic reads and executes these definitions at runtime. This me
 
 The only time code changes are needed is when introducing a **new type of mechanic**.
 
+For the step-by-step "how do I add or validate one safely?" workflows, prefer
+the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
+GDD chapter.
+
 ### Onboarding Read Order
 
 For a new developer, the shortest accurate path through the docs is:
@@ -25,6 +29,12 @@ For a new developer, the shortest accurate path through the docs is:
 
 `GDD_09` is a historical checklist and `GDD_10*` are roadmap documents. They are useful
 context, but they should not be treated as the primary source for shipped behavior.
+
+Cross-cutting workflow guides:
+
+- `AGENT/Docs/map_authoring_guide.md`
+- `AGENT/Docs/testing_guide.md`
+- `AGENT/Docs/campaign_rules.md`
 
 ---
 
@@ -415,6 +425,12 @@ This means new maps generally need two pieces of authoring to be launchable:
 
 1. the map resource / scene under `data/maps/...`
 2. an entry in `data/maps/map_registry.json`
+
+Practical follow-up guides:
+
+- map authoring and registry rules: `AGENT/Docs/map_authoring_guide.md`
+- campaign-rule ownership: `AGENT/Docs/campaign_rules.md`
+- validation expectations: `AGENT/Docs/testing_guide.md`
 
 ### `SettingsManager.gd`
 

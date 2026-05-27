@@ -4,6 +4,12 @@ Tasks here need action inside the Godot editor (or a tool run) — they are not 
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
 breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
+Use `AGENT/Docs/testing_guide.md` as the entry point for:
+
+- which automated command to run
+- which validation maps cover what
+- when to update this file versus adding a headless test
+
 > Last verified against the project docs: 2026-05-24. Broad regression sweep +
 > detailed class/Pair Up/More Info/hotseat passes are pending below.
 
