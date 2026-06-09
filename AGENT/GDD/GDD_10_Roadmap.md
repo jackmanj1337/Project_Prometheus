@@ -1600,6 +1600,12 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       progression-management screens are designed, treat these as part of the same
       contract and answer the open questions in
       `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+      Each campaign, including a single-map campaign, must be able to author a
+      default value for every New Game rule and mark that rule as either
+      player-adjustable or designer-locked. Store adjustable selections in that
+      campaign save. This ownership model is deliberately deferred from the
+      June 2026 playtest bug-fix series; until the campaign layer exists, retain
+      the current last-selected New Game behavior.
 - [ ] Between-map save / load (GDD_09 Phase 2 backlog)
 - [ ] Mid-battle suspend save — full serialization of: all unit `UnitData` (including
       `active_modifiers`, `conditions`, `skill_use_counters`, `shift_gauge`, `is_shifted`),

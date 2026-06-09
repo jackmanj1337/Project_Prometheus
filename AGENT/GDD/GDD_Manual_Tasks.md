@@ -10,7 +10,7 @@ Use `AGENT/Docs/testing_guide.md` as the entry point for:
 - which validation maps cover what
 - when to update this file versus adding a headless test
 
-> Last verified against the project docs: 2026-05-24. Broad regression sweep +
+> Last verified against the project docs: 2026-05-29. Broad regression sweep +
 > detailed class/Pair Up/More Info/hotseat passes are pending below.
 
 ---
@@ -73,132 +73,187 @@ Use these maps for coverage:
 
 Launch / selector / roster state:
 
-- [ ] Open New Game and confirm the map selector lists at least the baseline
+- [x] Open New Game and confirm the map selector lists at least the baseline
       map, the faction-demo map, the hotseat validation map, and the promotion
       validation map, with no blank/duplicate entries
-- [ ] Launch `Map 001` from the selector and confirm it starts normally without
+- [x] Launch `Map 001` from the selector and confirm it starts normally without
       requiring a scene edit or manual `GameMap.map_data_path` change
-- [ ] Launch `Map 900 - Hotseat Validation` from the selector and confirm the
+- [x] Launch `Map 900 - Hotseat Validation` from the selector and confirm the
       authored fixed test roster loads instead of the default campaign roster
-- [ ] Return to New Game, switch back to a default-roster map, start again, and
+- [x] Return to New Game, switch back to a default-roster map, start again, and
       confirm the fixed test roster from map 900 does **not** leak into the new
       run
-- [ ] Launch `Map 950 - Promotion Validation` from the selector and confirm the
+- [x] Launch `Map 950 - Promotion Validation` from the selector and confirm the
       authored promotion/reclass test roster loads successfully
-- [ ] Change the Pair Up toggle and Auto Promote toggle in New Game, back out,
+- [x] Change the Pair Up toggle and Auto Promote toggle in New Game, back out,
       reopen New Game, and confirm the last-selected values persist in the UI
+  - Current bug-fix scope: keep the existing last-selected New Game behavior.
+    Do not build campaign-owned defaults/locks in this pass.
+  - Deferred campaign design: each campaign will eventually define defaults and
+    whether each rule is player-adjustable or designer-locked. This is tracked
+    in `GDD_10_Roadmap.md`.
+- [ ] Confirm mouse-wheel input over New Game controls does not move or corrupt
+      the camera pan buffer/state behind the menu
+- [ ] Confirm the New Game panel is centered beneath the title
 
 Faction / objective / phase UI:
 
-- [ ] Start a normal blue-player map and confirm the HUD phase label shows the
+- [x] Start a normal blue-player map and confirm the HUD phase label shows the
       authored faction label (not a stale hardcoded `PLAYER PHASE` string where
       faction data should drive it)
-- [ ] Confirm the HUD objective panel appears on maps with authored conditions
+- [x] Confirm the HUD objective panel appears on maps with authored conditions
       and lists the current side's win/lose conditions in readable text
-- [ ] On a map with a non-blue hostile phase, confirm the phase/banner labels
+- [x] On a map with a non-blue hostile phase, confirm the phase/banner labels
       use the authored faction display names rather than collapsing everything
       to `ENEMY`
 - [ ] On a seize-capable map, move the correct unit onto the seize tile and
       confirm the ActionMenu offers `Seize`; use it and confirm the map resolves
       immediately when that objective should win the map
+  - Expected objective behavior: routing Red must not grant Blue victory on the
+    Seize map. Blue wins only by using `Seize`; Blue loses when routed.
+  - Map details should show one-based coordinates, with `(1, 1)` at the
+    upper-left tile.
+  - Keep compact/default map details at the bottom. Expanded details should open
+    upward in a scrollable area and keep available tile actions visible.
+	- attack preview is broken, pressing f looks like it cycles through various extra info boxes, but the regular information is no where to be found, possibly hidden under the info box.
+	- Check on status of single target threat zone.
+	- level up screen does not expand or scroll when more than 5 stats are upgraded at once.
+		- perhaps level up screen should be widened and show all previous stats, how much they increased by, and what the new total is.
+	- lets add stat growth to what is shown in the more info panel for a stat, as well as how many points a unit has towards another stat increase.
+	- cant click out of level up screen.
+	- `Seize` action unavailable.
+	- when canceling a movement action the cursor should return to the selected unit instead of remaining on the square where the movement was canceled
+	- cannot cancel click out of map menu.
 - [ ] On a map with an authored escape unit/tile case (if available in the
       current roster/maps), confirm the correct unit gets `Escape` only on the
       proper tile and the action resolves cleanly
+  - Both `unit_01` and `unit_02` are required escape units.
+  - If either required unit dies before escaping, resolve Blue defeat
+    immediately and do not leave the map in an unwinnable state.
+  - If the two required units are paired and the lead escapes, escape the support
+    too and count both toward the objective.
+  - Routing enemies must not grant victory unless Rout is explicitly listed as
+    a victory condition.
 
 Hotseat / multi-faction control:
 
-- [ ] Launch `Map 900 - Hotseat Validation` and confirm blue starts under manual
+- [x] Launch `Map 900 - Hotseat Validation` and confirm blue starts under manual
       control while green/red/yellow do not become selectable during blue's
       phase
-- [ ] End blue's phase and confirm control passes to green with an unlocked
+- [x] End blue's phase and confirm control passes to green with an unlocked
       cursor and green-only selection
-- [ ] During green's hotseat phase, attack a red unit and a yellow unit in
+- [x] During green's hotseat phase, attack a red unit and a yellow unit in
       separate checks and confirm both count as hostile targets
-- [ ] During green's hotseat phase, heal a same-alliance target and confirm
+- [x] During green's hotseat phase, heal a same-alliance target and confirm
       allied non-green units are valid for staff targeting when the alliance
       rules allow it
-- [ ] End a hotseat-controlled phase manually and confirm control passes to the
+- [x] End a hotseat-controlled phase manually and confirm control passes to the
       next faction without hanging, soft-locking, or leaving the prior faction
       selectable
-- [ ] On a later hotseat phase, act with every locally controlled unit and
+- [x] On a later hotseat phase, act with every locally controlled unit and
       confirm the phase auto-ends when all those units are done
-- [ ] Let red and yellow AI phases run to completion and confirm they act in
+- [x] Let red and yellow AI phases run to completion and confirm they act in
       order and hand control back to blue cleanly afterward
+- [ ] Recheck the stationary Red archer and record:
+      map id/name, round and phase, archer unit id/tile, nearest hostile
+      unit/tile, whether a reachable hostile target existed, and whether the
+      archer was authored with a stationary/guard AI profile
 
 Camera / cursor / control regressions:
 
-- [ ] Move the mouse to the screen edge and confirm the camera nudges/pans in a
+- [x] Move the mouse to the screen edge and confirm the camera nudges/pans in a
       bounded way instead of freezing or running away
-- [ ] Disable mouse cursor control in Settings, move the mouse, and confirm the
+	- can we try to make the camera movement to catch up to the mouse a bit slower?dda
+- [x] Disable mouse cursor control in Settings, move the mouse, and confirm the
       cursor no longer drifts from mouse motion
-- [ ] End the player phase after manually panning to a custom view, let the
+- [x] End the player phase after manually panning to a custom view, let the
       enemy phase run, then return to player phase and confirm the camera
       restores to the player's saved end-turn view
-- [ ] Attack an enemy, resolve combat, and confirm the cursor focus returns to
+- [x] Attack an enemy, resolve combat, and confirm the cursor focus returns to
       the acting unit instead of remaining stranded on the target
-- [ ] Open the map HUD unit panel on several units and confirm the displayed
+- [x] Open the map HUD unit panel on several units and confirm the displayed
       level is visible in live UI
 
 Debug / testing aids:
 
-- [ ] Press `F10` during a safe debug playtest and confirm force-level-up still
+- [x] Press `F10` during a safe debug playtest and confirm force-level-up still
       works on the intended unit/event path
-- [ ] Press `F11` during a safe debug playtest and confirm the growth-boost aid
+	- When the same unit levels up 3 times or more in a enemy phase the first and last level notifications are shown but not the ones in the middle.
+		- Place new level up screens in a queue to be displayed immediately after any currently active notifications have been dismissed.
+- [x] Press `F11` during a safe debug playtest and confirm the growth-boost aid
       toggles, the HUD debug banner updates, and the label clearly shows the
       `growth+300` state
-- [ ] With debug aids inactive, confirm the HUD does **not** falsely show a
+- [x] With debug aids inactive, confirm the HUD does **not** falsely show a
       stale growth/debug state from a previous toggle
 
 Class / skill / progression surfaces:
 
-- [ ] Start a fresh default-roster map and confirm each starter unit already has
+- [x] Start a fresh default-roster map and confirm each starter unit already has
       its level-1 class skill without needing to level first
-- [ ] On level-up, confirm any newly learned class skill is announced in the
+- [x] On level-up, confirm any newly learned class skill is announced in the
       level-up UI rather than being granted silently
-- [ ] Open the unit details surface on a few units and confirm weapon-rank/WEXP
+- [x] Open the unit details surface on a few units and confirm weapon-rank/WEXP
       information appears correctly, with unavailable tracks dimmed rather than
       omitted confusingly
+	- When changing classes you should show a level up style screen listing changes to stats and any skills gained.
 - [ ] Promote a valid capped unit and confirm displayed level resets to `1`,
       class changes correctly, and the promoted class's level-1/5/15 progression
       behaves as expected when leveling continues
+	- confirm that level 20 general has the skills he should have gotten
 - [ ] Reclass or demote with a `Second Seal` and confirm the unit's displayed
       level, internal progression behavior, class line, and immediate level-1
       class-skill grant all behave correctly in live play
-- [ ] After promotion or reclass, trigger a retry/snapshot restore and confirm
-      the changed class state survives the round-trip
+	- class based stat bonuses did not change based on new class.
+		- make sure all classes have their base stats set and that those bonuses get replaced during reclassing.
+		- when changing classes, show each stat as "Stat: new_stat_value (+/-change) / new_stat_max"
+	- level 1 class skills gained
+	-
+- [ ] After promotion or reclass, trigger Retry and confirm it restores the
+      map's initial launch state, undoing class changes made during the failed
+      attempt
+- units who started out with promotion items that they were to low level to use remained unable to use them after increasing in level.
 
 Pair Up pass 1:
 
-- [ ] On New Game with Pair Up `Off`, start a map and confirm no Pair Up entry
+- [x] On New Game with Pair Up `Off`, start a map and confirm no Pair Up entry
       appears in the ActionMenu and a rejected pair attempt cannot burn an
       action indirectly
 - [ ] On New Game with Pair Up `On`, pair two units and confirm the support goes
       off-map, the lead stays on-map, and both units end in the expected DONE
       state
+	- lead stays on the map and support gets removed, but turn doesnt auto end, so likely the unit is not being marked as done properly.
 - [ ] Use `Swap` on a paired lead and confirm the turn ends and the pairing
       remains valid afterward
-- [ ] Use `Separate` on a paired lead, choose a legal adjacent tile, and confirm
+	- Swap expends action but does not actually change lead unit.
+- [x] Use `Separate` on a paired lead, choose a legal adjacent tile, and confirm
       the support is restored there, the pairing clears, and both turns end
-- [ ] Kill a paired lead during the player phase and confirm the support drops
+- [x] Kill a paired lead during the player phase and confirm the support drops
       onto the lead's tile and is immediately expended for the round
-- [ ] Kill a paired lead during an enemy phase and confirm the support drops
+- [x] Kill a paired lead during an enemy phase and confirm the support drops
       back onto the map and is available again on the next round start
 - [ ] Pair two units with a known stat-bonus combination and confirm the lead's
       live combat numbers improve versus the unpaired baseline
+	- please list a specific combination and what bonuses should be expected
+	- no bonuses noted during playtesting
 
 More Info / inspection mode:
 
-- [ ] Run the new More Info surfaces on `Map 001` and confirm all three hosts
+- [x] Run the new More Info surfaces on `Map 001` and confirm all three hosts
       are reachable: character sheet, combat preview, and terrain HUD
 - [ ] Confirm the character sheet shows effective stat values plus the base /
       modifier / total breakdown without visual corruption
+	- playtester was unable to make any bonuses appear.
 - [ ] Confirm the combat preview now shows crit, weapon triangle, and
       effectiveness markers in live play
+  - Broken-layout reference:
+    `AGENT/Docs/2026-06-09 broken combat preview.png`
 - [ ] Confirm the terrain HUD expands with `F`, shows terrain descriptions for
       live terrain ids, and never falls back to placeholder text on common
       tiles
+	- [ ] terrain hud block should expand upward with a scrolling wheel for the extra information as some of it appears to be getting cut off.
 - [ ] Specifically stress preview positioning near screen edges and confirm the
       panel stays readable and on-screen
+	- can we expand the area that the camera can go to include more area from outside the map so that the player can see the very corners of the map without them being covered up by info boxes?
 
 Recommended follow-through:
 
@@ -252,19 +307,21 @@ flows verified only by headless tests, not by actual in-map play.
 - [ ] Start a fresh map with the default roster and confirm each starter unit
       begins with the correct level-1 class skill in live UI/tooltips, not just
       in data/tests
-- [ ] Level a base-class unit to level 10 and confirm the class level-10 skill
+- [x] Level a base-class unit to level 10 and confirm the class level-10 skill
       is learned in live play with the expected level-up messaging
 - [ ] Fill a unit's equipped skill slots, then learn another class skill and
       confirm it is stored in `earned_skills` without being auto-equipped
+	- Unable to do this on a single map.
 - [ ] With **Auto Promote** enabled on New Game, level a promotable unit to its
       class cap and confirm the promotion prompt appears automatically after the
       level-up flow finishes
+	- add a level 19 tier 1 unit to promotion validation map to test this
 - [ ] With **Auto Promote** disabled, level a promotable unit to its class cap
       and confirm no auto-prompt appears until a promotion item is used
 - [ ] Use a `Master Seal` on a valid capped unit and confirm the promotion modal
       opens, the unit changes class, level resets to 1, EXP resets to 0, and
       the item is consumed only after confirm
-- [ ] Cancel out of a promotion-item prompt once and confirm the item is **not**
+- [x] Cancel out of a promotion-item prompt once and confirm the item is **not**
       consumed and control returns cleanly to the action flow
 - [ ] Use a class-restricted promotion item (`Orion Bolt`) on both a valid class
       and an invalid class, confirming only the legal unit can use it
@@ -274,27 +331,27 @@ flows verified only by headless tests, not by actual in-map play.
 - [ ] Promote at least one unit into each of these multi-option class families
       and confirm the correct class choice appears in the modal:
       Archer, Cavalier, Cleric, Knight, Mage, Mercenary
-- [ ] After promotion, confirm newly granted weapon proficiencies appear at `E`
+- [x] After promotion, confirm newly granted weapon proficiencies appear at `E`
       rank and pre-existing ranks are preserved
-- [ ] Level a promoted unit to promoted level 5 and then 15, confirming the
+- [x] Level a promoted unit to promoted level 5 and then 15, confirming the
       promoted-class skills are learned at the right levels in live play
 - [ ] Use a `Second Seal` on a tier-1 unit below level 10 and confirm it is not
       usable
 - [ ] Use a `Second Seal` on a tier-1 unit at level 10 and confirm only that
       character's allowed tier-1 reclass set appears
-- [ ] Use a `Second Seal` on a promoted unit below level 10 and confirm the
+- [x] Use a `Second Seal` on a promoted unit below level 10 and confirm the
       options are demotions only, with no lateral tier-2 reclass options shown
-- [ ] Use a `Second Seal` on a promoted unit at level 10+ and confirm lateral
+- [x] Use a `Second Seal` on a promoted unit at level 10+ and confirm lateral
       tier-2 options from other class lines appear
 - [ ] Reclass into a shared promoted class option (for example a `Bow Knight`
       line-qualified entry) and confirm the chosen class line is respected
-- [ ] Pick the current class with a `Second Seal` at max level and confirm the
+- [x] Pick the current class with a `Second Seal` at max level and confirm the
       unit cleanly resets to level 1 without stat changes
-- [ ] After any reclass or demotion, confirm the unit immediately has the new
+- [x] After any reclass or demotion, confirm the unit immediately has the new
       class's level-1 skill if applicable
-- [ ] Save a retry snapshot after promotion or reclassing, trigger a restore,
-      and confirm class, level, promotion state, skills, and weapon ranks come
-      back correctly in live play
+- [ ] Promote or reclass a unit, fail the map, choose Retry, and confirm the map
+      returns to its initial launch state: the unit's original class, level,
+      promotion state, skills, weapon ranks, and inventory are restored
 
 #### Historical Playtester Findings Now Closed
 - [x] Make mouse-driven cursor movement pan the camera in a controlled way instead of freezing camera follow
@@ -336,8 +393,10 @@ the closed list above.
 ##### Content / Documentation Gaps
 - [x] Disambiguate the two `Map 001` entries in the selector so testers can
       tell `Rout` apart from the faction-demo variant before launch
-- [ ] Add explicit expected rosters / expected knowledge to the manual task
+- [x] Add explicit expected rosters / expected knowledge to the manual task
       setup sections where a test depends on party composition or unlock state
+      (regression sweep, Class/Skill, Pair Up, More Info, and Hotseat sections
+      now name their expected rosters; closed 2026-05-29)
 - [x] Land `Maps 002–005` so `Seize`, `Defeat Boss`, `Escape`, and `Defend`
       have direct selector coverage in the manual test sweep
 
@@ -363,6 +422,8 @@ the items below cover the parts that only show up in live play.
 
 - Use `Map 001` unless a later regression map is explicitly better for a given
   step.
+- Expected roster: `Map 001` should load the normal default campaign roster so
+  stat-bonus comparisons reference a known unit set.
 - Run this section in two passes:
   1. New Game with Pair Up `Off`
   2. New Game with Pair Up `On`
@@ -488,6 +549,8 @@ input-priority feel, and copy quality.
 **Setup**
 
 - Use `Map 001`.
+- Expected roster: `Map 001` should load the normal default campaign roster;
+  More Info coverage assumes the shipped starter units' stats and modifiers.
 - Start from a clean map load with default HUD state and no lingering modal
   open.
 - Keep keyboard focus on the game window so `F` checks are unambiguous.
@@ -686,6 +749,11 @@ Reference plan: `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md`
 - Launch from the map selector, not by scene editing.
 - Primary map: `Map 900 - Hotseat Validation`
 - Comparison map after the hotseat run: `map_001_c3_factions`
+- Expected rosters:
+  - `Map 900 - Hotseat Validation` uses the authored fixed test roster from
+    `data/roster/test/map_900_hotseat_validation/` plus the green/red/yellow
+    units authored directly in the map data.
+  - `map_001_c3_factions` uses the normal default campaign roster.
 - Use the authored defaults first; only use CLI/dev controller overrides if a
   later regression specifically needs them.
 
