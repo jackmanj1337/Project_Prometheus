@@ -22,6 +22,7 @@ const TileActions     = preload("res://scripts/shared/TileActions.gd")
 @onready var _unit_weapon: Label = $UnitInfoPanel/VBox/UnitWeapon
 @onready var _terrain_panel: PanelContainer = $TerrainInfoPanel
 @onready var _terrain_name: Label = $TerrainInfoPanel/VBox/TerrainName
+@onready var _terrain_coord: Label = $TerrainInfoPanel/VBox/TerrainCoord
 @onready var _terrain_def: Label = $TerrainInfoPanel/VBox/TerrainDef
 @onready var _terrain_dodge: Label = $TerrainInfoPanel/VBox/TerrainDodge
 @onready var _terrain_desc: RichTextLabel = $TerrainInfoPanel/VBox/TerrainDescription
@@ -255,6 +256,9 @@ func _update_terrain(tile: Vector2i) -> void:
 		return
 	var terrain: String = _grid.get_terrain_at(tile)
 	_terrain_name.text = terrain.capitalize()
+	# Player-facing coords are one-based — upper-left tile reads (1, 1). Internal
+	# tile_position storage stays zero-based; this is display-only.
+	_terrain_coord.text = "Tile (%d, %d)" % [tile.x + 1, tile.y + 1]
 	# Read bonuses through GridManager's accessor rather than reaching into the
 	# TERRAIN_*_BONUS dicts directly — GridManager owns the lookup contract (B1).
 	var bonuses: Dictionary = _grid.get_terrain_bonuses(tile)

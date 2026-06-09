@@ -317,6 +317,19 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL wall move-cost text: %q" % hud._terrain_moves.text); failed += 1
 
+	# W6a: player-facing tile coords are one-based — internal Vector2i(0,0) shows
+	# as Tile (1, 1). Storage stays zero-based; this is a display-only +1.
+	hud._update_terrain(Vector2i(0, 0))
+	if hud._terrain_coord.text == "Tile (1, 1)":
+		print("OK  W6a tile coord (0,0) renders as one-based (1, 1)"); passed += 1
+	else:
+		print("FAIL W6a coord at (0,0): %q" % hud._terrain_coord.text); failed += 1
+	hud._update_terrain(Vector2i(7, 4))
+	if hud._terrain_coord.text == "Tile (8, 5)":
+		print("OK  W6a tile coord (7,4) renders as one-based (8, 5)"); passed += 1
+	else:
+		print("FAIL W6a coord at (7,4): %q" % hud._terrain_coord.text); failed += 1
+
 	# Actions row hides when no unit is selected (deselect mid-expansion).
 	hud._on_unit_deselected()
 	hud._update_terrain(Vector2i(0, 0))

@@ -83,6 +83,11 @@ mouse_filter = 2
 layout_mode = 2
 text = "Plain"
 
+[node name="TerrainCoord" type="Label" parent="TerrainInfoPanel/VBox"]
+layout_mode = 2
+modulate = Color(0.7, 0.7, 0.75, 1)
+text = "Tile (1, 1)"
+
 [node name="TerrainDef" type="Label" parent="TerrainInfoPanel/VBox"]
 layout_mode = 2
 text = "DEF  +0"

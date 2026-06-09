@@ -849,6 +849,11 @@ func _undo_move_and_reselect() -> void:
 	# The LOCKED guard owns _state; the slice handles the undo + overlay recompute.
 	_selection.undo_and_reselect()
 	_state = State.UNIT_SELECTED
+	# W6f: snap the cursor back onto the unit after a movement cancel, mirroring
+	# _on_targeting_cancelled. Otherwise the cursor is stranded on the cancelled
+	# destination, away from the unit that still owns the action.
+	if _selection.selected_unit != null:
+		_set_tile(_selection.selected_unit.tile_position)
 
 
 func _finish_action() -> void:

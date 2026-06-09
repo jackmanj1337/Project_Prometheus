@@ -436,12 +436,22 @@ func _init() -> void:
 	var mover := _make_unit(Vector2i(2, 2), "blue")
 	c7._selection.selected_unit = mover
 	c7._state = UNIT_MOVED
+	# W6f: park the cursor on the post-move tile so the snap-back is observable.
+	c7._set_tile(Vector2i(5, 5))
 	c7._undo_move_and_reselect()
 	if c7._state == UNIT_SELECTED:
 		print("OK  _undo_move_and_reselect: UNIT_MOVED → UNIT_SELECTED")
 		passed += 1
 	else:
 		print("FAIL undo-reselect: _state=%d" % c7._state)
+		failed += 1
+	# W6f: cursor must snap back onto the acting unit's pre-move tile so the
+	# player isn't stranded on the cancelled destination.
+	if c7.current_tile == Vector2i(2, 2):
+		print("OK  W6f _undo_move_and_reselect snaps cursor to acting unit")
+		passed += 1
+	else:
+		print("FAIL W6f undo-cursor: tile=%s" % str(c7.current_tile))
 		failed += 1
 
 	# ---- _on_targeting_cancelled → UNIT_MOVED (ActionMenu reopens) ----
