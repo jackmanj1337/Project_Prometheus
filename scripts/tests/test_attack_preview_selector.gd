@@ -68,6 +68,16 @@ func _init() -> void:
 	root.add_child(defender)
 
 	preview.show_preview(attacker, defender)
+	var panel_size_ok: bool = preview._panel.size.x >= 560.0 \
+		and preview._panel.size.x < root.get_visible_rect().size.x \
+		and preview._panel.size.y >= 110.0 \
+		and preview._panel.size.y < 400.0
+	if panel_size_ok:
+		print("OK  preview panel sizes to its content instead of stretching across the screen")
+		passed += 1
+	else:
+		print("FAIL preview panel size: %s" % str(preview._panel.size))
+		failed += 1
 
 	# ---- Each visible field is wrapped in a [url=combat_field:...] link ----
 	var atk_dmg_text: String = preview._atk_dmg.text

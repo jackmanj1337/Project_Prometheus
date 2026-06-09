@@ -23,113 +23,110 @@ theme_override_constants/separation = 24
 
 [node name="AttackerBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="AtkName" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "Attacker"
 
 [node name="AtkHP" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "HP 0"
 
 [node name="AtkDmg" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "Dmg  0×1"
 
 [node name="AtkHit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "Hit  0%%"
 
 [node name="AtkCrit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "Crit 0%%"
 
 [node name="AtkTriangle" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="AtkEffective" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="DefenderBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="DefName" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "Defender"
 
 [node name="DefHP" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "HP 0"
 
 [node name="DefDmg" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = "No counter"
 
 [node name="DefHit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="DefCrit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="DefTriangle" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="DefEffective" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = true
+fit_content = false
 scroll_active = false
 text = ""
 
 [node name="InfoBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 6
 custom_minimum_size = Vector2(260, 0)
 
@@ -146,8 +143,8 @@ modulate = Color(0.7, 0.7, 0.75, 1)
 
 [node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
-size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 88)
 bbcode_enabled = true
-fit_content = true
-scroll_active = false
+fit_content = false
+scroll_active = true
 text = ""

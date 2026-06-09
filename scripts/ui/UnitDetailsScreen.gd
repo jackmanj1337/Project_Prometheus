@@ -16,6 +16,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 # the selection.
 
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
+const ClassData        = preload("res://scripts/resources/ClassData.gd")
 const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 
@@ -265,6 +266,7 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 	var lines: Array[String] = [
 		"Base %d   Effective %d" % [bd["base"], bd["effective"]],
 	]
+	lines.append_array(_growth_info_lines(unit, stat_name))
 	var mods: Array = bd["mods"]
 	if mods.is_empty():
 		lines.append("[color=#9a9aa6]No active modifiers[/color]")
@@ -280,6 +282,26 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 				dur,
 			])
 	return "\n".join(lines)
+
+
+func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
+	var lines: Array[String] = []
+	if unit == null or unit.data == null:
+		return lines
+	if not (stat_name in ClassData.STAT_KEYS):
+		return lines
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		return lines
+	var class_data: ClassData = dm.get_class_data(unit.data.class_id)
+	if class_data == null:
+		return lines
+	var effective_growth: int = int(class_data.player_growth_rates.get(stat_name, 0)) \
+		+ int(unit.data.growth_rates.get(stat_name, 0))
+	var fixed_progress: int = int(unit.data.growth_accumulators.get(stat_name, 0))
+	lines.append("Growth %d%%" % effective_growth)
+	lines.append("Fixed %d / 100" % fixed_progress)
+	return lines
 
 
 func _unhandled_input(event: InputEvent) -> void:

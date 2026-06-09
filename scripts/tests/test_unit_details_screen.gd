@@ -11,6 +11,11 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
+	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
+	dm.name = "DataManager"
+	root.add_child(dm)
+	await process_frame
+
 	var packed := load("res://scenes/ui/UnitDetailsScreen.tscn")
 	if packed == null:
 		print("FAIL could not load UnitDetailsScreen.tscn"); quit(1); return
@@ -55,6 +60,8 @@ func _init() -> void:
 	d.internal_level = 7
 	d.strength = 9
 	d.movement = 6
+	d.growth_rates = {"strength": 20}
+	d.growth_accumulators = {"strength": 35}
 	d.weapon_wexp = {"lance": 130, "axe": 50}
 	d.active_modifiers = [
 		{"stat": "strength", "delta": 2, "source": "tonic", "duration": 1, "duration_type": "turn"},
@@ -131,6 +138,8 @@ func is_weapon_track_available(track: String) -> bool:
 		and "Physical" in desc_text
 		and "Base 9" in mods_text
 		and "Effective 11" in mods_text
+		and "Growth 70%" in mods_text
+		and "Fixed 35 / 100" in mods_text
 		and "Tonic" in mods_text
 		and "+2" in mods_text
 	)

@@ -63,11 +63,14 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\n"
+	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nvar pair_up_enabled: bool = true\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
 	root.add_child(_gs)
+	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+	pair_reg.name = "PairUpRegistry"
+	root.add_child(pair_reg)
 	await process_frame
 
 	# ---- Initial state ----
@@ -640,6 +643,36 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
+		failed += 1
+
+	# ---- swap_roles spends both units so hidden support cannot block auto-end ----
+	var tm_swap := TurnManager.new(); root.add_child(tm_swap)
+	var c_swap := _make_cursor(tm_swap)
+	var pair_lead := _make_unit(Vector2i(1, 1), "blue")
+	var pair_support := _make_unit(Vector2i(1, 2), "blue")
+	pair_lead.data.unit_id = "lead"
+	pair_support.data.unit_id = "support"
+	var pair_reg_live := root.get_node_or_null("PairUpRegistry")
+	pair_reg_live.call("clear")
+	pair_reg_live.call("pair", "lead", "support")
+	c_swap._selection.selected_unit = pair_lead
+	c_swap._state = UNIT_MOVED
+	c_swap._commit_swap_roles()
+	var swap_roles_ok: bool = pair_reg_live.call("is_support", "lead") \
+		and pair_reg_live.call("is_lead", "support") \
+		and tm_swap.get_unit_state(pair_lead) == TurnManager.UnitState.DONE \
+		and tm_swap.get_unit_state(pair_support) == TurnManager.UnitState.DONE \
+		and c_swap._state == FREE
+	if swap_roles_ok:
+		print("OK  swap_roles flips roles and marks both units DONE")
+		passed += 1
+	else:
+		print("FAIL swap_roles: lead_role=%s support_role=%s lead_state=%s support_state=%s state=%d" % [
+			pair_reg_live.call("get_role", "lead"),
+			pair_reg_live.call("get_role", "support"),
+			tm_swap.get_unit_state(pair_lead),
+			tm_swap.get_unit_state(pair_support),
+			c_swap._state])
 		failed += 1
 
 	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----

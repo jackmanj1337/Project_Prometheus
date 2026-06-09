@@ -660,6 +660,13 @@ func _commit_swap_roles() -> void:
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		if registry != null and registry.has_method("swap_roles"):
 			registry.swap_roles(unit.data.unit_id)
+			if _turn != null:
+				var gs := get_node_or_null("/root/GameState")
+				if gs != null and gs.has_method("find_unit_by_id"):
+					var partner_id: String = registry.call("get_partner_id", unit.data.unit_id)
+					var partner: Node = gs.find_unit_by_id(partner_id)
+					if is_instance_valid(partner) and partner.data != null and partner.data.hp > 0:
+						_turn.set_unit_state(partner, TurnManager.UnitState.DONE)
 	_finish_action()
 
 

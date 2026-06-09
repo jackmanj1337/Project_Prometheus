@@ -18,6 +18,9 @@ const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 
 @onready var _panel: PanelContainer = $Panel
+@onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
+@onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
+@onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
 @onready var _atk_name: RichTextLabel      = $Panel/HBox/AttackerBox/AtkName
 @onready var _atk_hp: RichTextLabel        = $Panel/HBox/AttackerBox/AtkHP
 @onready var _atk_dmg: RichTextLabel       = $Panel/HBox/AttackerBox/AtkDmg
@@ -46,6 +49,10 @@ const COLOR_EFFECTIVE    := "#eec84c"
 # Pixel gap between the defender's tile edge and the preview panel, and
 # between the panel and the viewport edge.
 const PANEL_MARGIN_PX: int = 16
+const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
+const INFO_COLUMN_MIN_WIDTH: float = 260.0
+const PANEL_MIN_HEIGHT: float = 110.0
+const PANEL_DEFAULT_HEIGHT: float = 170.0
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
@@ -72,6 +79,9 @@ func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 
 
 func _ready() -> void:
+	_attacker_box.custom_minimum_size.x = FORECAST_COLUMN_MIN_WIDTH
+	_defender_box.custom_minimum_size.x = FORECAST_COLUMN_MIN_WIDTH
+	_info_box.custom_minimum_size.x = INFO_COLUMN_MIN_WIDTH
 	# Wire every selectable field's meta_clicked to the same handler. The
 	# [url=combat_field:KEY] meta string is parsed in _on_entry_clicked.
 	for label in _all_selectable_labels():
@@ -143,6 +153,7 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		_def_effective.text = _effective_link("def", false, 1.0)
 
 	_reset_info_panel()
+	_size_panel_to_content()
 	_reposition_for(defender)
 	show()
 
@@ -207,6 +218,15 @@ func _reset_info_panel() -> void:
 	_info_desc.text = ""
 
 
+func _size_panel_to_content() -> void:
+	_panel.reset_size()
+	var min_size: Vector2 = _panel.get_combined_minimum_size()
+	min_size.x = maxf(min_size.x, FORECAST_COLUMN_MIN_WIDTH * 2.0 + INFO_COLUMN_MIN_WIDTH)
+	min_size.y = maxf(PANEL_MIN_HEIGHT, PANEL_DEFAULT_HEIGHT)
+	_panel.offset_right = _panel.offset_left + min_size.x
+	_panel.offset_bottom = _panel.offset_top + min_size.y
+
+
 # Parses the [url=...] meta. Expected shape: "combat_field:atk:hit" — a
 # three-segment colon-delimited key carrying category, side, and field.
 func _on_entry_clicked(meta: Variant) -> void:
@@ -262,7 +282,6 @@ func _reposition_for(defender: Node) -> void:
 		return
 	# PanelContainer doesn't always report its minimum size until after a
 	# layout pass; reset_size() forces it to recompute from current content.
-	_panel.reset_size()
 	var panel_size: Vector2 = _panel.size
 	if panel_size == Vector2.ZERO:
 		panel_size = _panel.get_combined_minimum_size()
@@ -290,3 +309,5 @@ func _reposition_for(defender: Node) -> void:
 	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
 
 	_panel.position = Vector2(panel_left, panel_top)
+	_panel.offset_right = _panel.offset_left + panel_size.x
+	_panel.offset_bottom = _panel.offset_top + panel_size.y
