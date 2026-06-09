@@ -13,6 +13,7 @@ const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
 const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
+const _VALID_AI_PROFILES := ["basic", "passive", "healer"]
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -33,7 +34,7 @@ func _ready() -> void:
 		skill.validate()
 	for err in collect_validation_errors(_classes, _weapons, _items, _skills):
 		push_error(err)
-	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes):
+	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes, _items):
 		push_error(err)
 
 
@@ -191,7 +192,7 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 
 
 static func collect_map_registry_validation_errors(registry_path: String,
-		classes: Dictionary) -> Array[String]:
+		classes: Dictionary, items: Dictionary = {}) -> Array[String]:
 	var errors: Array[String] = []
 	if not FileAccess.file_exists(registry_path):
 		errors.append("DataManager: map registry missing at %s" % registry_path)
@@ -208,12 +209,13 @@ static func collect_map_registry_validation_errors(registry_path: String,
 		if not (entry is Dictionary):
 			errors.append("DataManager: map registry entry %d is not a Dictionary" % i)
 			continue
-		_validate_map_registry_entry(entry, i, seen_ids, seen_paths, classes, errors)
+		_validate_map_registry_entry(entry, i, seen_ids, seen_paths, classes, items, errors)
 	return errors
 
 
 static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids: Dictionary,
-		seen_paths: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
+		seen_paths: Dictionary, classes: Dictionary, items: Dictionary,
+		errors: Array[String]) -> void:
 	var entry_id: String = String(entry.get("id", ""))
 	var label: String = String(entry.get("label", ""))
 	var map_path: String = String(entry.get("map_data_path", ""))
@@ -275,12 +277,12 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 	if entry_id != "" and map_data.id != "" and map_data.id != entry_id:
 		errors.append("DataManager: map registry entry '%s' points at MapData id '%s'" % [
 			entry_id, map_data.id])
-	for err in collect_map_data_validation_errors(map_data, map_path, classes):
+	for err in collect_map_data_validation_errors(map_data, map_path, classes, items):
 		errors.append(err)
 
 
 static func collect_map_data_validation_errors(map_data: MapData, map_path: String,
-		classes: Dictionary) -> Array[String]:
+		classes: Dictionary, items: Dictionary = {}) -> Array[String]:
 	var errors: Array[String] = []
 	if map_data == null:
 		errors.append("DataManager: map '%s' did not load" % map_path)
@@ -289,8 +291,24 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 		errors.append("DataManager: map '%s' is missing MapData.id" % map_path)
 	if map_data.display_name == "":
 		errors.append("DataManager: map '%s' is missing display_name" % map_path)
+	if map_data.tilemap_scene_path != "":
+		if not ResourceLoader.exists(map_data.tilemap_scene_path):
+			errors.append("DataManager: map '%s' tilemap_scene_path '%s' is missing" % [
+				map_path, map_data.tilemap_scene_path])
+		else:
+			var tilemap_scene := load(map_data.tilemap_scene_path)
+			if not (tilemap_scene is PackedScene):
+				errors.append("DataManager: map '%s' tilemap_scene_path '%s' did not load as PackedScene" % [
+					map_path, map_data.tilemap_scene_path])
 	if map_data.player_start_tiles.is_empty():
 		errors.append("DataManager: map '%s' has no player_start_tiles" % map_path)
+	for reward_item in map_data.reward_items:
+		var reward_item_id: String = String(reward_item)
+		if reward_item_id == "":
+			errors.append("DataManager: map '%s' reward_items contains an empty item id" % map_path)
+		elif not items.is_empty() and not items.has(reward_item_id):
+			errors.append("DataManager: map '%s' reward_items item '%s' not found" % [
+				map_path, reward_item_id])
 	var seen_player_tiles := {}
 	for tile in map_data.player_start_tiles:
 		var tile_key := "%d,%d" % [tile.x, tile.y]
@@ -298,8 +316,10 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 			errors.append("DataManager: map '%s' has duplicate player_start_tile %s" % [map_path, str(tile)])
 		else:
 			seen_player_tiles[tile_key] = true
+	var width: int = 0
+	var height: int = map_data.grid.size()
 	if not map_data.grid.is_empty():
-		var width: int = map_data.grid[0].length()
+		width = map_data.grid[0].length()
 		var valid_terrain := {".": true, "F": true, "M": true, "T": true, "S": true, "D": true, "W": true}
 		for y in map_data.grid.size():
 			var row: String = map_data.grid[y]
@@ -312,10 +332,13 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 					errors.append("DataManager: map '%s' grid row %d col %d has unknown terrain '%s'" % [
 						map_path, y, x, ch])
 		if map_data.camera_start_tile != Vector2i(-1, -1):
-			if map_data.camera_start_tile.x < 0 or map_data.camera_start_tile.y < 0 \
-					or map_data.camera_start_tile.x >= width or map_data.camera_start_tile.y >= map_data.grid.size():
+			if not _tile_is_inside_grid(map_data.camera_start_tile, width, height):
 				errors.append("DataManager: map '%s' camera_start_tile %s is outside the grid" % [
 					map_path, str(map_data.camera_start_tile)])
+	for tile in map_data.player_start_tiles:
+		if width > 0 and height > 0 and not _tile_is_inside_grid(tile, width, height):
+			errors.append("DataManager: map '%s' player_start_tile %s is outside the grid" % [
+				map_path, str(tile)])
 	var faction_ids := {}
 	var alliance_groups := {}
 	for default_id in _DEFAULT_FACTION_IDS:
@@ -395,15 +418,25 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 		elif not faction_ids.has(placement_faction):
 			errors.append("DataManager: map '%s' enemy placement references unknown faction '%s'" % [
 				map_path, placement_faction])
+		var ai_profile: String = String(placement.get("ai_profile", "basic"))
+		if not (ai_profile in _VALID_AI_PROFILES):
+			errors.append("DataManager: map '%s' enemy placement ai_profile '%s' is not valid" % [
+				map_path, ai_profile])
+		if placement.has("tile"):
+			var enemy_tile: Vector2i = placement.get("tile", Vector2i.ZERO)
+			if width > 0 and height > 0 and not _tile_is_inside_grid(enemy_tile, width, height):
+				errors.append("DataManager: map '%s' enemy placement tile %s is outside the grid" % [
+					map_path, str(enemy_tile)])
 	_validate_condition_dict(map_data.victory_conditions, "victory_conditions", map_path,
-		faction_ids, alliance_groups, errors)
+		faction_ids, alliance_groups, width, height, errors)
 	_validate_condition_dict(map_data.defeat_conditions, "defeat_conditions", map_path,
-		faction_ids, alliance_groups, errors)
+		faction_ids, alliance_groups, width, height, errors)
 	return errors
 
 
 static func _validate_condition_dict(cond_dict: Dictionary, field_name: String, map_path: String,
-		faction_ids: Dictionary, alliance_groups: Dictionary, errors: Array[String]) -> void:
+		faction_ids: Dictionary, alliance_groups: Dictionary, width: int, height: int,
+		errors: Array[String]) -> void:
 	for group_id in cond_dict.keys():
 		var group_name: String = String(group_id)
 		if group_name == "":
@@ -422,12 +455,15 @@ static func _validate_condition_dict(cond_dict: Dictionary, field_name: String, 
 				errors.append("DataManager: map '%s' %s['%s'][%d] is not an ObjectiveCondition" % [
 					map_path, field_name, group_name, i])
 				continue
-			_validate_objective_condition(cond, map_path, field_name, group_name, faction_ids, alliance_groups, errors)
+			_validate_objective_condition(
+				cond, map_path, field_name, group_name, faction_ids, alliance_groups,
+				width, height, errors)
 
 
 static func _validate_objective_condition(cond: ObjectiveCondition, map_path: String,
 		field_name: String, group_name: String, faction_ids: Dictionary,
-		alliance_groups: Dictionary, errors: Array[String]) -> void:
+		alliance_groups: Dictionary, width: int, height: int,
+		errors: Array[String]) -> void:
 	if not (cond.type in _VALID_OBJECTIVE_TYPES):
 		errors.append("DataManager: map '%s' %s['%s'] has invalid ObjectiveCondition.type '%s'" % [
 			map_path, field_name, group_name, cond.type])
@@ -443,12 +479,23 @@ static func _validate_objective_condition(cond: ObjectiveCondition, map_path: St
 		if cond.tile == Vector2i(-1, -1):
 			errors.append("DataManager: map '%s' seize condition in group '%s' is missing tile" % [
 				map_path, group_name])
+		elif width > 0 and height > 0 and not _tile_is_inside_grid(cond.tile, width, height):
+			errors.append("DataManager: map '%s' seize condition in group '%s' tile %s is outside the grid" % [
+				map_path, group_name, str(cond.tile)])
 	if cond.type == "escape" and cond.tiles.is_empty():
 		errors.append("DataManager: map '%s' escape condition in group '%s' requires tiles" % [
 			map_path, group_name])
+	for tile in cond.tiles:
+		if width > 0 and height > 0 and not _tile_is_inside_grid(tile, width, height):
+			errors.append("DataManager: map '%s' %s condition in group '%s' tile %s is outside the grid" % [
+				map_path, cond.type, group_name, str(tile)])
 	if cond.type == "survive" and cond.turns <= 0:
 		errors.append("DataManager: map '%s' survive condition in group '%s' requires turns > 0" % [
 			map_path, group_name])
+
+
+static func _tile_is_inside_grid(tile: Vector2i, width: int, height: int) -> bool:
+	return tile.x >= 0 and tile.y >= 0 and tile.x < width and tile.y < height
 
 
 static func register_loaded_resource(target: Dictionary, res: Resource, res_path: String) -> String:
@@ -508,6 +555,10 @@ func get_item(id: String) -> ItemData:
 	return _items[id]
 
 
+func has_item(id: String) -> bool:
+	return _items.has(id)
+
+
 func get_skill(id: String) -> SkillData:
 	if not _skills.has(id):
 		push_error("DataManager: unknown skill id '%s'" % id)
@@ -562,4 +613,7 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 			if int(unit.weapon_wexp[track]) < 0:
 				errors.append("DataManager: unit '%s' weapon_wexp['%s'] cannot be negative" % [
 					unit.unit_id, track_id])
+		if not (unit.ai_profile in _VALID_AI_PROFILES):
+			errors.append("DataManager: unit '%s' ai_profile '%s' is not valid" % [
+				unit.unit_id, unit.ai_profile])
 	return errors

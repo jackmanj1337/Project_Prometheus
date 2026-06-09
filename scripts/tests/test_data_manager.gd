@@ -18,7 +18,7 @@ func _init() -> void:
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
 		and ResourceManifest.load_paths("res://data/weapons/").size() == 10
-		and ResourceManifest.load_paths("res://data/items/").size() == 6
+		and ResourceManifest.load_paths("res://data/items/").size() == 7
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
 	if manifest_ok:
@@ -107,7 +107,7 @@ func _init() -> void:
 		print("FAIL live validation: %s" % [live_errors]); failed += 1
 
 	var live_map_errors: Array[String] = DataManagerS.collect_map_registry_validation_errors(
-		"res://data/maps/map_registry.json", dm._classes)
+		"res://data/maps/map_registry.json", dm._classes, dm._items)
 	if live_map_errors.is_empty():
 		print("OK  live map registry and referenced MapData validate cleanly"); passed += 1
 	else:
@@ -188,10 +188,12 @@ func _init() -> void:
 
 	# ---- Map/registry validation: bad fixtures fail loud on authoring drift ----
 	var bad_map := MapData.new()
+	bad_map.tilemap_scene_path = "res://missing_map_scene.tscn"
 	bad_map.grid = ["..", ".X."] as Array[String]
-	bad_map.player_start_tiles = [Vector2i(0, 0), Vector2i(0, 0)] as Array[Vector2i]
+	bad_map.player_start_tiles = [Vector2i(0, 0), Vector2i(0, 0), Vector2i(5, 5)] as Array[Vector2i]
 	bad_map.camera_start_tile = Vector2i(99, 99)
 	bad_map.activation_mode = "ROUND_ROBIN"
+	bad_map.reward_items = ["", "missing_item"] as Array[String]
 	var dup_green_a := FactionData.new()
 	dup_green_a.id = "green"
 	dup_green_a.alliance_group = "allies"
@@ -201,7 +203,7 @@ func _init() -> void:
 	bad_map.factions = [dup_green_a, dup_green_b]
 	bad_map.turn_order = ["ghost", "ghost"] as Array[String]
 	bad_map.enemy_placements = [
-		{"unit_data_path": "res://missing_enemy.tres", "tile": Vector2i(1, 1), "faction": "purple"},
+		{"unit_data_path": "res://missing_enemy.tres", "tile": Vector2i(9, 9), "faction": "purple", "ai_profile": "berserk"},
 		{"tile": Vector2i(1, 1)}
 	]
 	var bad_rout := ObjectiveCondition.new()
@@ -209,43 +211,58 @@ func _init() -> void:
 	bad_rout.faction_id = "phantoms"
 	var bad_seize := ObjectiveCondition.new()
 	bad_seize.type = "seize"
+	bad_seize.tile = Vector2i(8, 8)
 	var bad_escape := ObjectiveCondition.new()
 	bad_escape.type = "escape"
+	bad_escape.tiles = [Vector2i(4, 4)] as Array[Vector2i]
 	var bad_survive := ObjectiveCondition.new()
 	bad_survive.type = "survive"
+	bad_survive.tiles = [Vector2i(7, 7)] as Array[Vector2i]
 	bad_map.victory_conditions = {
 		"": [bad_seize],
 		"allies": [bad_rout, bad_escape, bad_survive],
 		"mystery_group": ["not_a_condition"],
 	}
 	var bad_map_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
-		bad_map, "res://bad_map.tres", dm._classes)
+		bad_map, "res://bad_map.tres", dm._classes, dm._items)
 	var m_id_err: bool = bad_map_errors.any(func(e): return "missing MapData.id" in e)
 	var m_name_err: bool = bad_map_errors.any(func(e): return "missing display_name" in e)
+	var m_scene_err: bool = bad_map_errors.any(func(e): return "tilemap_scene_path 'res://missing_map_scene.tscn' is missing" in e)
+	var m_reward_empty_err: bool = bad_map_errors.any(func(e): return "reward_items contains an empty item id" in e)
+	var m_reward_missing_err: bool = bad_map_errors.any(func(e): return "reward_items item 'missing_item' not found" in e)
 	var m_grid_err: bool = bad_map_errors.any(func(e): return "unknown terrain 'X'" in e)
 	var m_grid_len_err: bool = bad_map_errors.any(func(e): return "grid row 1 length 3 != 2" in e)
 	var m_start_dup_err: bool = bad_map_errors.any(func(e): return "duplicate player_start_tile" in e)
+	var m_start_oob_err: bool = bad_map_errors.any(func(e): return "player_start_tile (5, 5) is outside the grid" in e)
 	var m_cam_err: bool = bad_map_errors.any(func(e): return "camera_start_tile" in e)
 	var m_mode_err: bool = bad_map_errors.any(func(e): return "activation_mode 'ROUND_ROBIN'" in e)
 	var m_turn_err: bool = bad_map_errors.any(func(e): return "turn_order references unknown faction 'ghost'" in e)
 	var m_enemy_missing_err: bool = bad_map_errors.any(func(e): return "missing UnitData 'res://missing_enemy.tres'" in e)
 	var m_enemy_faction_err: bool = bad_map_errors.any(func(e): return "enemy placement references unknown faction 'purple'" in e)
+	var m_enemy_ai_err: bool = bad_map_errors.any(func(e): return "enemy placement ai_profile 'berserk' is not valid" in e)
+	var m_enemy_tile_err: bool = bad_map_errors.any(func(e): return "enemy placement tile (9, 9) is outside the grid" in e)
 	var m_cond_group_err: bool = bad_map_errors.any(func(e): return "empty group id" in e)
-	var m_seize_err: bool = bad_map_errors.any(func(e): return "seize condition" in e and "missing tile" in e)
+	var m_seize_err: bool = bad_map_errors.any(func(e): return "seize condition" in e and "tile (8, 8) is outside the grid" in e)
 	var m_escape_err: bool = bad_map_errors.any(func(e): return "escape condition" in e and "requires unit_ids" in e)
+	var m_escape_tile_err: bool = bad_map_errors.any(func(e): return "escape condition" in e and "tile (4, 4) is outside the grid" in e)
 	var m_survive_err: bool = bad_map_errors.any(func(e): return "survive condition" in e and "turns > 0" in e)
+	var m_survive_tile_err: bool = bad_map_errors.any(func(e): return "survive condition" in e and "tile (7, 7) is outside the grid" in e)
 	var m_unknown_group_err: bool = bad_map_errors.any(func(e): return "unknown alliance group 'mystery_group'" in e)
 	var m_bad_cond_err: bool = bad_map_errors.any(func(e): return "is not an ObjectiveCondition" in e)
-	if m_id_err and m_name_err and m_grid_err and m_grid_len_err and m_start_dup_err and m_cam_err \
+	if m_id_err and m_name_err and m_scene_err and m_reward_empty_err and m_reward_missing_err \
+			and m_grid_err and m_grid_len_err and m_start_dup_err and m_start_oob_err and m_cam_err \
 			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_faction_err \
-			and m_cond_group_err and m_seize_err and m_escape_err and m_survive_err \
+			and m_enemy_ai_err and m_enemy_tile_err and m_cond_group_err and m_seize_err \
+			and m_escape_err and m_escape_tile_err and m_survive_err and m_survive_tile_err \
 			and m_unknown_group_err and m_bad_cond_err:
 		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks"); passed += 1
 	else:
-		print("FAIL bad map checks: id=%s name=%s grid=%s grid_len=%s start_dup=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_faction=%s cond_group=%s seize=%s escape=%s survive=%s unknown_group=%s bad_cond=%s errs=%s" % [
-			m_id_err, m_name_err, m_grid_err, m_grid_len_err, m_start_dup_err, m_cam_err,
+		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
+			m_id_err, m_name_err, m_scene_err, m_reward_empty_err, m_reward_missing_err,
+			m_grid_err, m_grid_len_err, m_start_dup_err, m_start_oob_err, m_cam_err,
 			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_faction_err,
-			m_cond_group_err, m_seize_err, m_escape_err, m_survive_err,
+			m_enemy_ai_err, m_enemy_tile_err, m_cond_group_err, m_seize_err,
+			m_escape_err, m_escape_tile_err, m_survive_err, m_survive_tile_err,
 			m_unknown_group_err, m_bad_cond_err, bad_map_errors])
 		failed += 1
 
@@ -270,7 +287,7 @@ func _init() -> void:
 	var seen_paths := {}
 	for i in bad_registry.size():
 		DataManagerS._validate_map_registry_entry(
-			bad_registry[i], i, seen_ids, seen_paths, dm._classes, registry_fixture_errors)
+			bad_registry[i], i, seen_ids, seen_paths, dm._classes, dm._items, registry_fixture_errors)
 	var r_dup_err: bool = registry_fixture_errors.any(func(e): return "duplicate id 'map_001'" in e)
 	var r_label_err: bool = registry_fixture_errors.any(func(e): return "missing 'label'" in e)
 	var r_policy_err: bool = registry_fixture_errors.any(func(e): return "roster_policy 'bogus_policy'" in e)

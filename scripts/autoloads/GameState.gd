@@ -365,6 +365,62 @@ func _clear_roster_launch_state() -> void:
 	active_roster_source = ""
 
 
+func validate_restore_snapshot_state() -> Array[String]:
+	var errors: Array[String] = []
+	if _map_start_snapshot.size() != player_roster.size():
+		errors.append("GameState: snapshot unit count %d does not match player_roster size %d" % [
+			_map_start_snapshot.size(), player_roster.size()])
+	for i in _map_start_snapshot.size():
+		var snap: Variant = _map_start_snapshot[i]
+		if not (snap is Dictionary):
+			errors.append("GameState: snapshot entry %d is not a Dictionary" % i)
+			continue
+		_validate_snapshot_unit_dict(snap, i, errors)
+	if not (_snapshot_party_items is Array):
+		errors.append("GameState: snapshot party_items is not an Array")
+	else:
+		var dm := get_node_or_null("/root/DataManager")
+		for item_id_var in _snapshot_party_items:
+			var item_id: String = String(item_id_var)
+			if item_id == "":
+				errors.append("GameState: snapshot party_items contains an empty item id")
+			elif dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)):
+				errors.append("GameState: snapshot party_items item '%s' not found" % item_id)
+	if not (_snapshot_pair_up_registry is Dictionary):
+		errors.append("GameState: snapshot Pair Up registry is not a Dictionary")
+	return errors
+
+
+func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[String]) -> void:
+	var required_array_keys := ["inventory", "conditions", "skills", "earned_skills",
+		"mastery_skills", "active_modifiers"]
+	var required_dict_keys := ["weapon_wexp", "skill_use_counters", "growth_accumulators"]
+	if not snap.has("hp") or not snap.has("max_hp"):
+		errors.append("GameState: snapshot entry %d is missing hp/max_hp" % index)
+	else:
+		var hp: int = int(snap.get("hp", -1))
+		var max_hp: int = int(snap.get("max_hp", -1))
+		if max_hp < 1:
+			errors.append("GameState: snapshot entry %d max_hp must be >= 1" % index)
+		if hp < 0:
+			errors.append("GameState: snapshot entry %d hp cannot be negative" % index)
+		elif max_hp >= 1 and hp > max_hp:
+			errors.append("GameState: snapshot entry %d hp %d exceeds max_hp %d" % [
+				index, hp, max_hp])
+	if snap.has("tile_position") and not (snap["tile_position"] is Vector2i):
+		errors.append("GameState: snapshot entry %d tile_position is not a Vector2i" % index)
+	for key in required_array_keys:
+		if not snap.has(key):
+			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
+		elif not (snap[key] is Array):
+			errors.append("GameState: snapshot entry %d '%s' is not an Array" % [index, key])
+	for key in required_dict_keys:
+		if not snap.has(key):
+			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
+		elif not (snap[key] is Dictionary):
+			errors.append("GameState: snapshot entry %d '%s' is not a Dictionary" % [index, key])
+
+
 # Deep-copies all player UnitData fields into _map_start_snapshot.
 # Call once immediately after units are spawned on the map.
 func take_map_snapshot() -> void:
@@ -382,7 +438,12 @@ func take_map_snapshot() -> void:
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.
 # Called by GameOverScreen's Retry button.
-func restore_map_snapshot() -> void:
+func restore_map_snapshot() -> bool:
+	var snapshot_errors: Array[String] = validate_restore_snapshot_state()
+	if not snapshot_errors.is_empty():
+		for err in snapshot_errors:
+			push_error(err)
+		return false
 	for i in player_roster.size():
 		if i < _map_start_snapshot.size():
 			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
@@ -397,6 +458,7 @@ func restore_map_snapshot() -> void:
 	if reg:
 		reg.call("restore", _snapshot_pair_up_registry)
 	# Caller is responsible for reloading the scene after this returns.
+	return true
 
 
 func _snapshot_unit_data(data: UnitData) -> Dictionary:

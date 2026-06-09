@@ -28,6 +28,10 @@ func _init() -> void:
 	_unit_stub.source_code = "extends Node\nvar team: String = \"blue\"\nvar data = null\n"
 	_unit_stub.reload()
 
+	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
+	dm.name = "DataManager"
+	root.add_child(dm)
+
 	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
 	gs.name = "GameState"
 	root.add_child(gs)
@@ -280,6 +284,48 @@ func _init() -> void:
 		print("OK  snapshot round-trip: restore_map_snapshot rolls hp back to 20"); passed += 1
 	else:
 		print("FAIL snapshot round-trip: hp=%d (want 20)" % ud.hp); failed += 1
+
+	# ---- malformed snapshot count fails loud before mutating roster state ----
+	var bad_count_unit := UnitData.new()
+	bad_count_unit.hp = 17
+	bad_count_unit.max_hp = 20
+	gs.player_roster = [bad_count_unit] as Array[UnitData]
+	gs._map_start_snapshot = [] as Array[Dictionary]
+	gs._snapshot_party_items = [] as Array[String]
+	gs._snapshot_pair_up_registry = {}
+	var count_restore_ok: bool = not gs.restore_map_snapshot()
+	if count_restore_ok and bad_count_unit.hp == 17:
+		print("OK  restore_map_snapshot rejects snapshot count mismatch without mutating roster"); passed += 1
+	else:
+		print("FAIL snapshot count guard: ok=%s hp=%d" % [count_restore_ok, bad_count_unit.hp]); failed += 1
+
+	# ---- malformed snapshot payload fails loud before applying any fields ----
+	var bad_payload_unit := UnitData.new()
+	bad_payload_unit.hp = 12
+	bad_payload_unit.max_hp = 20
+	bad_payload_unit.weapon_wexp = {"sword": 1}
+	gs.player_roster = [bad_payload_unit] as Array[UnitData]
+	gs._map_start_snapshot = [{
+		"hp": 25,
+		"max_hp": 20,
+		"tile_position": Vector2.ZERO,
+		"inventory": {},
+		"conditions": [],
+		"skills": [],
+		"earned_skills": [],
+		"mastery_skills": [],
+		"active_modifiers": [],
+		"weapon_wexp": [],
+		"skill_use_counters": [],
+		"growth_accumulators": [],
+	}] as Array[Dictionary]
+	gs._snapshot_party_items = ["missing_item"] as Array[String]
+	gs._snapshot_pair_up_registry = {}
+	var payload_restore_ok: bool = not gs.restore_map_snapshot()
+	if payload_restore_ok and bad_payload_unit.hp == 12:
+		print("OK  restore_map_snapshot rejects malformed payloads before partial restore"); passed += 1
+	else:
+		print("FAIL snapshot payload guard: ok=%s hp=%d" % [payload_restore_ok, bad_payload_unit.hp]); failed += 1
 
 	# ---- Debug hotkey handler flips the matching flag in debug builds ----
 	# Headless tests run via the Godot binary which OS.is_debug_build() reports
