@@ -36,6 +36,9 @@ func _init() -> void:
 	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
 	bus.name = "EventBus"
 	root.add_child(bus)
+	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+	pair_reg.name = "PairUpRegistry"
+	root.add_child(pair_reg)
 	await process_frame
 
 	# Victory/defeat emission counters (Arrays — captured by reference by the lambdas).
@@ -774,6 +777,27 @@ func _init() -> void:
 	else:
 		print("FAIL record_seize: victories=%d" % victories[0]); failed += 1
 
+	# ---- seize map does NOT auto-win from last-group-standing before Seize happens ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "p_seize_only"))
+	var md_seize_only := MapData.new()
+	var c_seize_only := ObjectiveCondition.new()
+	c_seize_only.type = "seize"
+	c_seize_only.tile = Vector2i(9, 9)
+	c_seize_only.allowed_unit_ids = ["p_seize_only"] as Array[String]
+	md_seize_only.victory_conditions = {"allies": [c_seize_only]}
+	var tm_seize_only := TurnManager.new()
+	root.add_child(tm_seize_only)
+	tm_seize_only._map_data = md_seize_only
+	victories[0] = 0
+	defeats[0] = 0
+	tm_seize_only.check_victory_conditions()
+	if victories[0] == 0 and defeats[0] == 0 and not tm_seize_only._map_over:
+		print("OK  seize objective suppresses last-group-standing auto-win"); passed += 1
+	else:
+		print("FAIL seize fallback suppression: victories=%d defeats=%d map_over=%s" % [
+			victories[0], defeats[0], tm_seize_only._map_over]); failed += 1
+
 	# ---- can_seize: allow-list gate hides Seize for the wrong unit_id ----
 	gs.reset_map_state()
 	var seizer_ok := _mk_unit("blue", 20, "lord")
@@ -899,6 +923,68 @@ func _init() -> void:
 		print("OK  record_escape: named unit escaped → map_victory"); passed += 1
 	else:
 		print("FAIL record_escape: victories=%d escaped=%s" % [victories[0], tm_esc._escape_records]); failed += 1
+
+	# ---- escape map does NOT auto-win from hostile rout before every unit escapes ----
+	gs.reset_map_state()
+	gs.register_unit(_mk_unit("blue", 20, "runner_a"))
+	gs.register_unit(_mk_unit("blue", 20, "runner_b"))
+	var md_escape_only := MapData.new()
+	var c_escape_only := ObjectiveCondition.new()
+	c_escape_only.type = "escape"
+	c_escape_only.tiles = [Vector2i(8, 8)] as Array[Vector2i]
+	c_escape_only.unit_ids = ["runner_a", "runner_b"] as Array[String]
+	md_escape_only.victory_conditions = {"allies": [c_escape_only]}
+	var tm_escape_only := TurnManager.new()
+	root.add_child(tm_escape_only)
+	tm_escape_only._map_data = md_escape_only
+	victories[0] = 0
+	defeats[0] = 0
+	tm_escape_only.check_victory_conditions()
+	if victories[0] == 0 and defeats[0] == 0 and not tm_escape_only._map_over:
+		print("OK  escape objective suppresses last-group-standing auto-win"); passed += 1
+	else:
+		print("FAIL escape fallback suppression: victories=%d defeats=%d map_over=%s" % [
+			victories[0], defeats[0], tm_escape_only._map_over]); failed += 1
+
+	# ---- record_escape: paired lead escaping removes and counts both units ----
+	gs.reset_map_state()
+	pair_reg.call("clear")
+	var paired_lead := _mk_unit("blue", 20, "pair_lead")
+	var paired_support := _mk_unit("blue", 20, "pair_support")
+	paired_support.set("tile_position", pair_reg.OFF_MAP_TILE)
+	gs.register_unit(paired_lead)
+	gs.register_unit(paired_support)
+	gs.register_unit(_mk_unit("red", 20, "e_pair_esc"))
+	pair_reg.pair("pair_lead", "pair_support")
+	var md_pair_esc := MapData.new()
+	var c_pair_esc := ObjectiveCondition.new()
+	c_pair_esc.type = "escape"
+	c_pair_esc.tiles = [Vector2i(1, 1)] as Array[Vector2i]
+	c_pair_esc.unit_ids = ["pair_lead", "pair_support"] as Array[String]
+	md_pair_esc.victory_conditions = {"allies": [c_pair_esc]}
+	var tm_pair_esc := TurnManager.new()
+	root.add_child(tm_pair_esc)
+	tm_pair_esc._map_data = md_pair_esc
+	victories[0] = 0
+	tm_pair_esc.record_escape(paired_lead)
+	await process_frame
+	var pair_escape_ok: bool = victories[0] == 1 \
+			and tm_pair_esc._has_unit_escaped("pair_lead") \
+			and tm_pair_esc._has_unit_escaped("pair_support") \
+			and not pair_reg.is_paired("pair_lead") \
+			and gs.find_unit_by_id("pair_lead") == null \
+			and gs.find_unit_by_id("pair_support") == null
+	if pair_escape_ok:
+		print("OK  record_escape: paired lead escape removes and counts both units"); passed += 1
+	else:
+		print("FAIL paired escape: victories=%d lead_escaped=%s support_escaped=%s lead_live=%s support_live=%s paired=%s" % [
+			victories[0],
+			tm_pair_esc._has_unit_escaped("pair_lead"),
+			tm_pair_esc._has_unit_escaped("pair_support"),
+			gs.find_unit_by_id("pair_lead") != null,
+			gs.find_unit_by_id("pair_support") != null,
+			pair_reg.is_paired("pair_lead"),
+		]); failed += 1
 
 	# ---- escape exclusion in protect: an escaped id doesn't trigger protect-fail ----
 	gs.reset_map_state()

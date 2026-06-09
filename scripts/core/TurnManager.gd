@@ -592,7 +592,9 @@ func check_victory_conditions() -> void:
 			in_play.append(g)
 	if winner == "":
 		if in_play.size() == 1:
-			winner = in_play[0]
+			var sole_survivor: String = in_play[0]
+			if not _group_has_authored_victory_conditions(sole_survivor):
+				winner = sole_survivor
 		elif in_play.size() == 0:
 			# Simultaneous wipe-out — draw. Map ends with no victor; blue is in
 			# the eliminated set so the legacy signal is map_defeat. The
@@ -673,6 +675,10 @@ func _all_evaluated_groups(gs: Node) -> Array[String]:
 	for g in seen.keys():
 		out.append(g)
 	return out
+
+
+func _group_has_authored_victory_conditions(group: String) -> bool:
+	return not _conditions_for_group(_map_data.victory_conditions, group).is_empty()
 
 
 # Reads MapData.{victory|defeat}_conditions[group] as an Array. Tolerates a
@@ -948,23 +954,52 @@ func _unit_matches_seize_gate(unit: Node, cond: ObjectiveCondition) -> bool:
 func record_escape(unit: Node) -> void:
 	if unit == null or unit.data == null:
 		return
-	if not _has_unit_escaped(unit.data.unit_id):
-		_escape_records.append({
-			"unit_id": unit.data.unit_id,
-			"faction": unit.team,
-		})
+	var escaping_units: Array[Node] = _collect_escape_units(unit)
+	for escaping_unit in escaping_units:
+		if escaping_unit == null or escaping_unit.data == null:
+			continue
+		if not _has_unit_escaped(escaping_unit.data.unit_id):
+			_escape_records.append({
+				"unit_id": escaping_unit.data.unit_id,
+				"faction": escaping_unit.team,
+			})
 	# Order: log the escape (above) → unregister from GameState → drop the
 	# per-unit bookkeeping (state + original tile) → free the node → re-evaluate.
 	# Reordering risks evaluator passes seeing a half-escaped unit (e.g.
 	# unregistered but still in _unit_states), so keep the steps in this order.
 	var gs := get_node_or_null("/root/GameState")
-	if gs and unit in gs.all_units:
-		gs.unregister_unit(unit)
-	_unit_states.erase(unit)
-	_original_tiles.erase(unit)
-	if is_instance_valid(unit):
-		unit.queue_free()
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry != null and unit.data.unit_id != "" and registry.call("is_paired", unit.data.unit_id):
+		registry.call("separate", unit.data.unit_id)
+	for escaping_unit in escaping_units:
+		if escaping_unit == null:
+			continue
+		if gs and escaping_unit in gs.all_units:
+			gs.unregister_unit(escaping_unit)
+		_unit_states.erase(escaping_unit)
+		_original_tiles.erase(escaping_unit)
+		if is_instance_valid(escaping_unit):
+			escaping_unit.queue_free()
 	check_victory_conditions()
+
+
+func _collect_escape_units(unit: Node) -> Array[Node]:
+	var escaping_units: Array[Node] = [unit]
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return escaping_units
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry == null or not registry.call("is_lead", unit.data.unit_id):
+		return escaping_units
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not gs.has_method("find_unit_by_id"):
+		return escaping_units
+	var support_id: String = registry.call("get_partner_id", unit.data.unit_id)
+	if support_id == "":
+		return escaping_units
+	var support: Node = gs.find_unit_by_id(support_id)
+	if support != null and support != unit:
+		escaping_units.append(support)
+	return escaping_units
 
 
 # True iff at least one authored escape condition (anywhere in the map's

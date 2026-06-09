@@ -12,7 +12,7 @@ tiles = [Vector2i(16, 2), Vector2i(16, 3), Vector2i(16, 4)]
 [sub_resource type="Resource" id="cond_protect_lord"]
 script = ExtResource("2")
 type = "protect"
-unit_ids = ["unit_01_cavalier"]
+unit_ids = ["unit_01_cavalier", "unit_02_mercenary"]
 
 [sub_resource type="Resource" id="cond_turn_limit"]
 script = ExtResource("2")
