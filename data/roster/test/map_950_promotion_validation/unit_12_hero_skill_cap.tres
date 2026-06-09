@@ -1,0 +1,42 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_sword"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_hero_skill_cap"
+unit_name = "M950_Hero_SkillCap"
+class_id = "hero"
+class_line_id = "mercenary"
+level = 14
+exp = 0
+is_promoted = true
+internal_level = 34
+max_hp = 42
+hp = 42
+strength = 22
+magic = 1
+defense = 16
+resistance = 10
+skill = 26
+speed = 25
+luck = 12
+movement = 5
+constitution = 12
+line_of_sight = 4
+weapon_wexp = {"sword": 350, "axe": 100}
+skills = ["armsthrift", "patience", "dash", "discipline"]
+earned_skills = ["armsthrift", "patience", "dash", "discipline"]
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

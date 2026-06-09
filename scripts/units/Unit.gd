@@ -846,8 +846,13 @@ func _grant_current_level_class_skills() -> void:
 	var class_data: ClassData = dm._classes[data.class_id]
 	if class_data == null:
 		return
-	for unlock_level in class_data.skill_unlocks:
-		if int(unlock_level) != data.level:
+	# Spawn/reclass should grant every class skill earned at or below the unit's
+	# current level — a directly-spawned level-20 General must already know its
+	# level 5 and level 15 unlocks, not only an exact-level match.
+	var unlock_levels: Array = class_data.skill_unlocks.keys()
+	unlock_levels.sort()
+	for unlock_level in unlock_levels:
+		if int(unlock_level) > data.level:
 			continue
 		_learn_skill(String(class_data.skill_unlocks[unlock_level]))
 

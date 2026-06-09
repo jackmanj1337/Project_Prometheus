@@ -665,6 +665,30 @@ func _init() -> void:
 			init_skill_data.skills, init_skill_data.earned_skills])
 		failed += 1
 
+	# --- Spawn-time grant is retroactive: a directly-spawned level-20 General
+	# must already know every skill unlock at or below its level (5: bastion,
+	# 15: iron_wall). Without retroactive grants, spawned high-level fixtures
+	# would have no class skills until the next level-up.
+	var maxed_unit: Unit = unit_scene.instantiate()
+	var maxed_data := UnitData.new()
+	maxed_data.class_id = "general"
+	maxed_data.level = 20
+	maxed_data.is_promoted = true
+	maxed_data.hp = 30
+	maxed_data.max_hp = 30
+	maxed_unit.data = maxed_data
+	root.add_child(maxed_unit)
+	await process_frame
+	maxed_unit._grant_current_level_class_skills()
+	if maxed_data.earned_skills.has("bastion") and maxed_data.earned_skills.has("iron_wall") \
+			and maxed_data.skills.has("bastion") and maxed_data.skills.has("iron_wall"):
+		print("OK  Spawn retroactive grant: level-20 General knows both class skill_unlocks")
+		passed += 1
+	else:
+		print("FAIL retroactive grant: skills=%s earned=%s" % [
+			maxed_data.skills, maxed_data.earned_skills])
+		failed += 1
+
 	# --- C3 helper lookups: MapData.get_faction + FactionData.display_label ---
 	var md_helpers := MapData.new()
 	var fd_helpers := FactionData.new()

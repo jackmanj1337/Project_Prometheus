@@ -645,6 +645,37 @@ func _init() -> void:
 		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
 		failed += 1
 
+	# ---- W4a: pair creation marks both lead and support DONE so the phase can
+	# auto-end. The support is hidden after pairing — without an explicit DONE,
+	# the turn manager would still see an actionable unit and refuse to advance.
+	var tm_pair := TurnManager.new(); root.add_child(tm_pair)
+	var c_pair := _make_cursor(tm_pair)
+	var pc_lead := _make_unit(Vector2i(1, 1), "blue")
+	var pc_support := _make_unit(Vector2i(1, 2), "blue")
+	pc_lead.data.unit_id = "pc_lead"
+	pc_support.data.unit_id = "pc_support"
+	var pair_reg_pc := root.get_node_or_null("PairUpRegistry")
+	pair_reg_pc.call("clear")
+	c_pair._selection.selected_unit = pc_lead
+	c_pair._state = UNIT_MOVED
+	c_pair._on_pair_up_resolved(pc_lead, pc_support)
+	var pair_create_ok: bool = pair_reg_pc.call("is_paired", "pc_lead") \
+		and pair_reg_pc.call("is_paired", "pc_support") \
+		and tm_pair.get_unit_state(pc_lead) == TurnManager.UnitState.DONE \
+		and tm_pair.get_unit_state(pc_support) == TurnManager.UnitState.DONE \
+		and c_pair._state == FREE
+	if pair_create_ok:
+		print("OK  W4a: pair creation marks lead and support DONE so auto-end is not blocked")
+		passed += 1
+	else:
+		print("FAIL W4a pair create: paired_lead=%s paired_support=%s lead_state=%s support_state=%s state=%d" % [
+			pair_reg_pc.call("is_paired", "pc_lead"),
+			pair_reg_pc.call("is_paired", "pc_support"),
+			tm_pair.get_unit_state(pc_lead),
+			tm_pair.get_unit_state(pc_support),
+			c_pair._state])
+		failed += 1
+
 	# ---- swap_roles spends both units so hidden support cannot block auto-end ----
 	var tm_swap := TurnManager.new(); root.add_child(tm_swap)
 	var c_swap := _make_cursor(tm_swap)

@@ -136,5 +136,56 @@ func _init() -> void:
 		print("FAIL A2: repeated restore aliased — uses=%d" % d_inv.inventory[0].uses_remaining)
 		failed += 1
 
+	# W3e: Retry after an in-map reclass must revert class_id, class_line_id,
+	# is_promoted, level, internal_level, stats, equipped skills, and weapon_wexp.
+	# Snapshot a level-5 Cavalier, mutate it as a tier-1→tier-1 reclass would,
+	# then restore and verify every reclass-touched field is back to the original.
+	var pre := UnitData.new()
+	pre.class_id = "cavalier"
+	pre.class_line_id = "cavalier"
+	pre.level = 5
+	pre.exp = 30
+	pre.is_promoted = false
+	pre.internal_level = 5
+	pre.max_hp = 24
+	pre.hp = 24
+	pre.strength = 9
+	pre.defense = 7
+	pre.speed = 8
+	pre.skill = 8
+	pre.weapon_wexp = {"lance": 130, "sword": 0}
+	pre.skills = ["discipline"]
+	pre.earned_skills = ["discipline"]
+	var pre_snap: Dictionary = gs.call("_snapshot_unit_data", pre)
+	# Simulate a Second Seal reclass mid-map.
+	pre.class_id = "mercenary"
+	pre.class_line_id = "mercenary"
+	pre.level = 1
+	pre.exp = 0
+	pre.internal_level = 5
+	pre.strength = 6
+	pre.defense = 5
+	pre.speed = 9
+	pre.skill = 11
+	pre.weapon_wexp = {"lance": 130, "sword": 100}
+	pre.skills = ["armsthrift"]
+	pre.earned_skills = ["discipline", "armsthrift"]
+	gs.call("_restore_unit_data", pre, pre_snap)
+	if pre.class_id == "cavalier" and pre.class_line_id == "cavalier" \
+			and not pre.is_promoted and pre.level == 5 and pre.internal_level == 5 \
+			and pre.exp == 30 and pre.strength == 9 and pre.defense == 7 \
+			and pre.speed == 8 and pre.skill == 8 \
+			and pre.weapon_wexp == {"lance": 130, "sword": 0} \
+			and pre.skills == ["discipline"] \
+			and pre.earned_skills == ["discipline"]:
+		print("OK  W3e: Retry after a mid-map reclass restores class, level, stats, weapon_wexp, and equipped skills")
+		passed += 1
+	else:
+		print("FAIL W3e reclass-restore: class=%s line=%s lvl=%d il=%d str=%d def=%d spd=%d skl=%d wexp=%s skills=%s earned=%s" % [
+			pre.class_id, pre.class_line_id, pre.level, pre.internal_level,
+			pre.strength, pre.defense, pre.speed, pre.skill,
+			pre.weapon_wexp, pre.skills, pre.earned_skills])
+		failed += 1
+
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

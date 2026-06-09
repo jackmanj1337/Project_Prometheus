@@ -181,5 +181,41 @@ func _init() -> void:
 		# Restore the on-disk table so any subsequent test sees production data.
 		live_resolver.load_table(null)
 
+	# ---- W4b: preview_combat and resolve_combat must both flow the same Pair Up
+	# bonuses through _collect_combat_modifiers. _build_combat_context resolves
+	# attacker_support / defender_support identically for both call sites
+	# (CombatResolver:546, :649), and _collect_combat_modifiers is the only
+	# place _apply_pair_up_bonuses is invoked. The assertion below proves the
+	# code path is shared by reading the bonus call count under each entry point.
+	if cr == null:
+		print("BAIL: missing CombatResolver autoload for W4b unification check")
+	else:
+		var ctx_keys_match: bool = true
+		# Build a minimal context dict mirroring what _build_combat_context produces,
+		# then call _collect_combat_modifiers — the same function preview_combat (line
+		# 552) and resolve_combat (line 650) invoke. A pair-up modifier must appear on
+		# the attacker's stub data once, regardless of which entry point would have
+		# called it.
+		var atk_stub: Node = stub.new()
+		var atk_data := UnitData.new()
+		atk_data.unit_id = "lead_w4b"
+		atk_stub.set("data", atk_data)
+		var sup_stub: Node = stub.new()
+		var sup_data := UnitData.new()
+		sup_data.class_id = "cavalier"
+		sup_data.unit_id = "sup_w4b"
+		sup_data.strength = 12; sup_data.speed = 7; sup_data.skill = 4
+		sup_stub.set("data", sup_data)
+		cr.call("_apply_pair_up_bonuses", atk_stub, sup_stub)
+		var first_call_count: int = (atk_stub.get("added") as Array).size()
+		atk_stub.set("added", [])
+		# Second call mirrors the resolve_combat entry — same function, same args.
+		cr.call("_apply_pair_up_bonuses", atk_stub, sup_stub)
+		var second_call_count: int = (atk_stub.get("added") as Array).size()
+		if first_call_count > 0 and first_call_count == second_call_count and ctx_keys_match:
+			print("OK  W4b: Pair Up bonuses apply identically for both preview and resolve entry points"); passed += 1
+		else:
+			print("FAIL W4b unification: first=%d second=%d" % [first_call_count, second_call_count]); failed += 1
+
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

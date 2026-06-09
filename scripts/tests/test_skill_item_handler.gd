@@ -19,10 +19,12 @@ class MockUnit extends Node:
 	func heal(amount: int) -> void:
 		data.hp = mini(data.hp + amount, data.max_hp)
 
-	# Faithful mirror of Unit.add_modifier — replaces all modifiers sharing a source.
-	func add_modifier(stat: String, delta: int, source: String, _dur: int, _dtype: String) -> void:
+	# Faithful mirror of Unit.add_modifier — replaces all modifiers sharing a source
+	# and stores duration + duration_type so callers can verify the modifier shape.
+	func add_modifier(stat: String, delta: int, source: String, duration: int, duration_type: String) -> void:
 		remove_modifier(source)
-		data.active_modifiers.append({"stat": stat, "delta": delta, "source": source})
+		data.active_modifiers.append({"stat": stat, "delta": delta, "source": source,
+			"duration": duration, "duration_type": duration_type})
 
 	func remove_modifier(source: String) -> void:
 		data.active_modifiers = data.active_modifiers.filter(
@@ -456,6 +458,54 @@ func _init() -> void:
 	else:
 		print("FAIL M7.4 second_seal: archer=%s merc=%s" % [
 			ih.can_apply_item(archer_unit, second_entry), ih.can_apply_item(merc_unit, second_entry)]); failed += 1
+
+	# W5c regression — strength_tonic is a fixture item with effect_id "stat_buff"
+	# that lets playtesters verify the unit-details modifier block and combat
+	# preview against a reliable positive modifier. apply_item must stamp an
+	# active_modifier from ItemData.effect_params and consume the entry.
+	var tonic_entry := InventoryEntry.make_item("strength_tonic", 1)
+	var tonic_data: UnitData = load("res://data/roster/default/unit_02_mercenary.tres").duplicate(true)
+	tonic_data.inventory = [tonic_entry]
+	tonic_data.active_modifiers = []
+	var tonic_unit := MockUnit.new()
+	tonic_unit.setup(tonic_data)
+	root.add_child(tonic_unit)
+	var tonic_usable: bool = ih.can_apply_item(tonic_unit, tonic_entry)
+	ih.apply_item(tonic_unit, tonic_entry)
+	var matched: int = 0
+	for mod in tonic_data.active_modifiers:
+		if mod.get("stat", "") == "strength" and int(mod.get("delta", 0)) == 4 \
+				and String(mod.get("source", "")).begins_with("item:") \
+				and String(mod.get("duration_type", "")) == "turn":
+			matched += 1
+	if tonic_usable and matched == 1 and tonic_data.inventory.is_empty():
+		print("OK  W5c: strength_tonic applies a +4 strength turn modifier and is consumed"); passed += 1
+	else:
+		print("FAIL W5c: usable=%s matched=%d inv=%d mods=%s" % [
+			tonic_usable, matched, tonic_data.inventory.size(), tonic_data.active_modifiers]); failed += 1
+
+	# W3b regression — playtest #214: a unit that started below max level with a
+	# promotion item in inventory should become eligible as soon as it hits the
+	# class max. can_apply_item must reflect the live data.level so the next
+	# action-menu open reveals the seal.
+	var refresh_data: UnitData = load("res://data/roster/default/unit_06_knight.tres").duplicate(true)
+	refresh_data.level = 18
+	refresh_data.is_promoted = false
+	var refresh_unit := MockUnit.new()
+	refresh_unit.setup(refresh_data)
+	refresh_unit.second_seal_usable = false
+	root.add_child(refresh_unit)
+	var seal_entry := InventoryEntry.make_item("master_seal", 1)
+	var hidden_at_18: bool = not ih.can_apply_item(refresh_unit, seal_entry)
+	refresh_data.level = 19
+	var hidden_at_19: bool = not ih.can_apply_item(refresh_unit, seal_entry)
+	refresh_data.level = 20
+	var usable_at_20: bool = ih.can_apply_item(refresh_unit, seal_entry)
+	if hidden_at_18 and hidden_at_19 and usable_at_20:
+		print("OK  W3b: promotion-item usability refreshes the instant a unit hits max level"); passed += 1
+	else:
+		print("FAIL W3b promotion refresh: 18=%s 19=%s 20=%s" % [
+			hidden_at_18, hidden_at_19, usable_at_20]); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
