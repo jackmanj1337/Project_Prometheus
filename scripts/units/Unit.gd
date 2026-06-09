@@ -699,6 +699,7 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 	if not self_reset and source_class.tier == 2:
 		_remove_promotion_stat_bonuses(source_class)
 	if not self_reset:
+		_replace_class_base_stats(source_class, _current_class_line_id(), target_class, resolved_line_id)
 		_clamp_stats_to_caps(target_class)
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
@@ -986,6 +987,46 @@ func _remove_promotion_stat_bonuses(source_class: ClassData) -> void:
 			continue
 		var current: int = int(data.get(stat))
 		data.set(stat, max(0, current - bonus))
+
+
+func _replace_class_base_stats(source_class: ClassData, source_line_id: String,
+		target_class: ClassData, target_line_id: String) -> void:
+	var source_base_class: ClassData = _class_base_contributor(source_class, source_line_id)
+	var target_base_class: ClassData = _class_base_contributor(target_class, target_line_id)
+	if source_base_class == null or target_base_class == null:
+		return
+	var hp_delta: int = target_base_class.base_hp - source_base_class.base_hp
+	data.max_hp = max(1, data.max_hp + hp_delta)
+	data.hp = clampi(data.hp + hp_delta, 0, data.max_hp)
+	if _hp_bar:
+		_hp_bar.max_value = data.max_hp
+		_hp_bar.value = data.hp
+	var stat_keys := {
+		"strength": ["base_strength", "strength"],
+		"magic": ["base_magic", "magic"],
+		"defense": ["base_defense", "defense"],
+		"resistance": ["base_resistance", "resistance"],
+		"skill": ["base_skill", "skill"],
+		"speed": ["base_speed", "speed"],
+		"luck": ["base_luck", "luck"],
+		"movement": ["base_movement", "movement"],
+		"constitution": ["base_constitution", "constitution"],
+		"line_of_sight": ["base_line_of_sight", "line_of_sight"],
+	}
+	for stat_name in stat_keys.keys():
+		var fields: Array = stat_keys[stat_name]
+		var source_base: int = int(source_base_class.get(String(fields[0])))
+		var target_base: int = int(target_base_class.get(String(fields[0])))
+		var current: int = int(data.get(String(fields[1])))
+		data.set(String(fields[1]), max(0, current + target_base - source_base))
+
+
+func _class_base_contributor(class_data: ClassData, line_id: String) -> ClassData:
+	if class_data == null:
+		return null
+	if class_data.tier == 1:
+		return class_data
+	return _class_data_for(line_id)
 
 
 func _clamp_stats_to_caps(target_class: ClassData) -> void:

@@ -72,20 +72,14 @@ func _rebuild_options() -> void:
 
 
 func _button_text(target_class: ClassData) -> String:
-	var bonuses: Array[String] = []
-	for stat in ClassData.STAT_KEYS:
-		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat, 0))
-		if bonus != 0:
-			bonuses.append("%s %+d" % [_stat_short_name(stat), bonus])
-	var bonus_text: String = ", ".join(bonuses)
 	var skill_names: Array[String] = []
 	for unlock_level in [5, 15]:
 		if target_class.skill_unlocks.has(unlock_level):
 			skill_names.append(_skill_name(String(target_class.skill_unlocks[unlock_level])))
 	var skills_text: String = "Skills: %s" % " / ".join(skill_names) if not skill_names.is_empty() else "Skills: none"
-	return "%s\nBonuses: %s\n%s" % [
+	return "%s\n%s\n%s" % [
 		target_class.display_name,
-		bonus_text if bonus_text != "" else "none",
+		_promotion_preview_text(target_class),
 		skills_text,
 	]
 
@@ -172,3 +166,19 @@ func _stat_short_name(stat: String) -> String:
 		"luck":
 			return "Luk"
 	return stat
+
+
+func _promotion_preview_text(target_class: ClassData) -> String:
+	if _unit == null or _unit.data == null:
+		return "Stats: unavailable"
+	var parts: Array[String] = []
+	for stat_name in ClassData.STAT_KEYS:
+		var old_value: int = int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat_name, 0))
+		var new_value: int = old_value + bonus
+		var cap: int = int(target_class.stat_caps.get(stat_name, -1))
+		if cap >= 0:
+			new_value = mini(new_value, cap)
+		parts.append("%s %d %+d -> %d / %s" % [
+			_stat_short_name(stat_name), old_value, bonus, new_value, str(cap) if cap >= 0 else "-"])
+	return "Stats: %s" % " | ".join(parts)

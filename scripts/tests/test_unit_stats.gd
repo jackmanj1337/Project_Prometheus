@@ -726,6 +726,11 @@ func _init() -> void:
 	if base_reclass_ok and seal_base_data.class_id == "knight" \
 			and seal_base_data.class_line_id == "knight" and seal_base_data.level == 1 \
 			and seal_base_data.exp == 0 and not seal_base_data.is_promoted \
+			and seal_base_data.max_hp == 18 and seal_base_data.hp == 18 \
+			and seal_base_data.strength == 10 and seal_base_data.magic == 0 \
+			and seal_base_data.defense == 10 and seal_base_data.resistance == 3 \
+			and seal_base_data.skill == 6 and seal_base_data.speed == 3 \
+			and seal_base_data.luck == 5 \
 			and seal_base_data.skills.has("defense_plus_2") \
 			and seal_base_data.earned_skills.has("defense_plus_2") \
 			and watcher_reclass.reclass_count == 1 \
@@ -734,9 +739,12 @@ func _init() -> void:
 		print("OK  M7: tier-1 reclass changes class, resets level, grants the new level-1 skill, and emits unit_reclassed")
 		passed += 1
 	else:
-		print("FAIL M7 tier-1 reclass: ok=%s class=%s line=%s lvl=%d exp=%d promoted=%s skills=%s earned=%s signals=%d from=%s to=%s" % [
+		print("FAIL M7 tier-1 reclass: ok=%s class=%s line=%s lvl=%d exp=%d promoted=%s hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d skills=%s earned=%s signals=%d from=%s to=%s" % [
 			base_reclass_ok, seal_base_data.class_id, seal_base_data.class_line_id,
 			seal_base_data.level, seal_base_data.exp, seal_base_data.is_promoted,
+			seal_base_data.hp, seal_base_data.max_hp, seal_base_data.strength,
+			seal_base_data.magic, seal_base_data.defense, seal_base_data.resistance,
+			seal_base_data.skill, seal_base_data.speed, seal_base_data.luck,
 			seal_base_data.skills, seal_base_data.earned_skills,
 			watcher_reclass.reclass_count, watcher_reclass.reclass_from,
 			watcher_reclass.reclass_to])
@@ -776,19 +784,21 @@ func _init() -> void:
 	if demote_ok and seal_promoted_data.class_id == "knight" and seal_promoted_data.class_line_id == "knight" \
 			and not seal_promoted_data.is_promoted and seal_promoted_data.level == 1 \
 			and seal_promoted_data.internal_level == 17 and seal_promoted_data.max_hp == 23 \
-			and seal_promoted_data.hp == 23 and seal_promoted_data.strength == 11 \
-			and seal_promoted_data.magic == 0 and seal_promoted_data.defense == 7 \
-			and seal_promoted_data.resistance == 2:
+			and seal_promoted_data.hp == 23 and seal_promoted_data.strength == 13 \
+			and seal_promoted_data.magic == 0 and seal_promoted_data.defense == 11 \
+			and seal_promoted_data.resistance == 2 and seal_promoted_data.skill == 7 \
+			and seal_promoted_data.speed == 4 and seal_promoted_data.luck == 7:
 		print("OK  M7: demotion removes source promotion bonuses and preserves internal_level")
 		passed += 1
 	else:
-		print("FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d" % [
+		print("FAIL M7 demotion: ok=%s class=%s line=%s promoted=%s lvl=%d eff=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d" % [
 			demote_ok, seal_promoted_data.class_id, seal_promoted_data.class_line_id,
 			seal_promoted_data.is_promoted, seal_promoted_data.level,
 			seal_promoted_data.internal_level, seal_promoted_data.hp,
 			seal_promoted_data.max_hp, seal_promoted_data.strength,
 			seal_promoted_data.magic, seal_promoted_data.defense,
-			seal_promoted_data.resistance])
+			seal_promoted_data.resistance, seal_promoted_data.skill,
+			seal_promoted_data.speed, seal_promoted_data.luck])
 		failed += 1
 
 	var seal_lateral: Unit = unit_scene.instantiate()
@@ -827,18 +837,21 @@ func _init() -> void:
 	if lateral_ok and seal_lateral_data.class_id == "hero" and seal_lateral_data.class_line_id == "mercenary" \
 			and seal_lateral_data.is_promoted and seal_lateral_data.level == 1 \
 			and seal_lateral_data.max_hp == 23 and seal_lateral_data.hp == 23 \
-			and seal_lateral_data.strength == 11 and seal_lateral_data.magic == 0 \
-			and seal_lateral_data.defense == 7 and seal_lateral_data.resistance == 2 \
+			and seal_lateral_data.strength == 10 and seal_lateral_data.magic == 0 \
+			and seal_lateral_data.defense == 5 and seal_lateral_data.resistance == 2 \
+			and seal_lateral_data.skill == 11 and seal_lateral_data.speed == 9 \
+			and seal_lateral_data.luck == 7 \
 			and seal_lateral_data.weapon_wexp.get("axe", -1) == _wexp("E"):
 		print("OK  M7: lateral tier-2 reclass removes source bonuses, keeps no target bonuses, and adds new weapon baselines at E")
 		passed += 1
 	else:
-		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d weapon_wexp=%s" % [
+		print("FAIL M7 lateral reclass: ok=%s class=%s line=%s promoted=%s lvl=%d hp=%d/%d str=%d mag=%d def=%d res=%d skl=%d spd=%d luk=%d weapon_wexp=%s" % [
 			lateral_ok, seal_lateral_data.class_id, seal_lateral_data.class_line_id,
 			seal_lateral_data.is_promoted, seal_lateral_data.level,
 			seal_lateral_data.hp, seal_lateral_data.max_hp, seal_lateral_data.strength,
 			seal_lateral_data.magic, seal_lateral_data.defense,
-			seal_lateral_data.resistance, seal_lateral_data.weapon_wexp])
+			seal_lateral_data.resistance, seal_lateral_data.skill,
+			seal_lateral_data.speed, seal_lateral_data.luck, seal_lateral_data.weapon_wexp])
 		failed += 1
 	seal_lateral_data.level = 20
 	seal_lateral_data.exp = 55

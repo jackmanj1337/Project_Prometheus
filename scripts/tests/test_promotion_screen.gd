@@ -58,7 +58,9 @@ func _init() -> void:
 	await process_frame
 	if not screen.visible and signal_watcher.completed and unit.promoted_to == "paladin" \
 			and unit.data.inventory.is_empty() and signal_watcher.started == 1 \
-			and signal_watcher.finished == 1 and "Paladin" in first_label:
+			and signal_watcher.finished == 1 and "Paladin" in first_label \
+			and "Str 8 +3 -> 11 / 42" in first_label \
+			and "HP 18 +7 -> 25 / 80" in first_label:
 		print("OK  confirming a promotion promotes the unit, consumes the seal, and closes")
 		passed += 1
 	else:
@@ -119,6 +121,15 @@ func promote(target_class_id: String) -> bool:
 	unit.data.unit_name = unit_name
 	unit.data.class_id = class_id
 	unit.data.level = 10
+	unit.data.hp = 18
+	unit.data.max_hp = 18
+	unit.data.strength = 8
+	unit.data.magic = 0
+	unit.data.defense = 6
+	unit.data.resistance = 3
+	unit.data.skill = 7
+	unit.data.speed = 7
+	unit.data.luck = 5
 	return unit
 
 

@@ -64,7 +64,9 @@ func _init() -> void:
 	if not screen.visible and watcher.completed and unit.reclass_target == "knight" \
 			and unit.reclass_line == "knight" and unit.data.inventory.is_empty() \
 			and watcher.started == 1 and watcher.finished == 1 \
-			and "No promotion bonuses gained" in first_text:
+			and "No promotion bonuses gained" in first_text \
+			and "Str 14 -1 -> 13 / 30" in first_text \
+			and "HP 30 -7 -> 23 / 60" in first_text:
 		print("OK  confirming a reclass consumes the seal and closes the modal")
 		passed += 1
 	else:
@@ -111,6 +113,15 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 	unit.data.class_id = "paladin"
 	unit.data.class_line_id = "cavalier"
 	unit.data.level = 9
+	unit.data.hp = 28
+	unit.data.max_hp = 30
+	unit.data.strength = 14
+	unit.data.magic = 1
+	unit.data.defense = 10
+	unit.data.resistance = 8
+	unit.data.skill = 10
+	unit.data.speed = 10
+	unit.data.luck = 7
 	return unit
 
 
