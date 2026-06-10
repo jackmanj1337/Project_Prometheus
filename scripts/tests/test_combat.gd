@@ -41,6 +41,14 @@ class MockUnit extends Node:
 	func has_quality(q: String) -> bool:
 		return q in _qualities
 
+	# CombatResolver._target_has_vulnerability reads has_vulnerability (the unit
+	# is HIT BY group), separate from has_quality (the unit IS group). For these
+	# test fixtures the two arrays match — every "flying" / "armoured" mock is
+	# also vulnerable to anti-flying / anti-armoured. The fallback to has_quality
+	# was dropped in 2026-06-10 issue 2.8 because production never hit it.
+	func has_vulnerability(group: String) -> bool:
+		return group in _qualities
+
 	func has_skill(s: String) -> bool:
 		return s in _skills
 

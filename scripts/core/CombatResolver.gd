@@ -284,9 +284,13 @@ func _is_effective(weapon: WeaponData, target: Node) -> bool:
 
 
 func _target_has_vulnerability(target: Node, group: String) -> bool:
-	if target.has_method("has_vulnerability"):
-		return target.has_vulnerability(group)
-	return target.has_method("has_quality") and target.has_quality(group)
+	# has_quality (the unit IS X) and has_vulnerability (the unit is HIT BY X)
+	# read different ClassData fields, so the old "fall back to has_quality"
+	# path could silently return the wrong answer for an armoured class with
+	# an empty vulnerability_groups list. Every Unit instance now defines
+	# has_vulnerability, so the fallback is dead and was also incorrect —
+	# drop it (code review 2026-06-10 issue 2.8).
+	return target.has_method("has_vulnerability") and target.has_vulnerability(group)
 
 
 # Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.
