@@ -261,8 +261,10 @@ func _init() -> void:
 	c1._scroll_camera_if_needed()
 	var saved_view: Vector2 = c1._camera.position
 	c1._on_phase_changed(1)  # ENEMY — controller captures the current view
-	# Save state lives on the CameraController now (B4); read it through there.
-	var saved_ok: bool = c1._camera_ctrl._has_saved and c1._camera_ctrl._saved_position == saved_view
+	# Save state lives on the CameraController now (B4); per-faction keys (code
+	# review 2026-06-09) — the outgoing faction was blue, so the save lands
+	# under "blue".
+	var saved_ok: bool = c1._camera_ctrl._saved_positions.get("blue", Vector2.INF) == saved_view
 	c1._camera.position = Vector2(9_000, 9_000)  # AI-phase pan to "the last enemy"
 	c1._on_phase_changed(0)  # PLAYER — controller restores the saved view
 	var restored_ok: bool = c1._camera.position == saved_view
@@ -274,6 +276,43 @@ func _init() -> void:
 	else:
 		print("FAIL camera save/restore: saved_ok=%s restored_ok=%s pos=%s" % [
 			saved_ok, restored_ok, c1._camera.position])
+		failed += 1
+
+	# ---- multi-faction phase transitions don't clobber blue's saved view ----
+	# Code review 2026-06-09: with hotseat (blue → green → red → blue) every
+	# Phase.ENEMY transition fired save_view. The green→red hop overwrote
+	# blue's saved view, so when blue resumed the camera restored to green's
+	# last position. Per-faction keys keep each save independent.
+	_grid.map_width = 30
+	_grid.map_height = 30
+	c1.set_controlling_faction("blue")
+	c1._set_tile(Vector2i(15, 15))
+	c1._scroll_camera_if_needed()
+	var blue_view: Vector2 = c1._camera.position
+	# Blue → green (hotseat). Save lands under outgoing "blue".
+	c1._on_phase_changed(1, "green")
+	# Green pans somewhere very different, then green ends → red.
+	c1._camera.position = Vector2(4_000, 4_000)
+	c1._on_phase_changed(1, "red")  # save under outgoing "green", NOT "blue"
+	# Red pans even further, then red ends → blue.
+	c1._camera.position = Vector2(8_000, 8_000)
+	c1._on_phase_changed(0, "blue")  # restore "blue"'s view
+	var multi_restore_ok: bool = c1._camera.position == blue_view
+	# Per-faction memory: simulate going back to green and verify green's
+	# saved-position is still its own value, not blue's.
+	c1.set_controlling_faction("green")
+	c1._camera.position = Vector2.ZERO
+	var green_restored: bool = c1._camera_ctrl.restore_view("green")
+	var green_view_ok: bool = green_restored and c1._camera.position == Vector2(4_000, 4_000)
+	_grid.map_width = pt4_saved_w
+	_grid.map_height = pt4_saved_h
+	c1.set_controlling_faction("blue")
+	if multi_restore_ok and green_view_ok:
+		print("OK  multi-faction camera save/restore keeps each faction's view separate")
+		passed += 1
+	else:
+		print("FAIL multi-faction camera: blue_restore_ok=%s green_view_ok=%s" % [
+			multi_restore_ok, green_view_ok])
 		failed += 1
 
 	# ---- _set_tile clamps to map bounds ----

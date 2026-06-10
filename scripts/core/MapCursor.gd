@@ -144,22 +144,26 @@ func _resolve_menu_refs() -> void:
 
 
 func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
+	# Capture the *outgoing* faction's camera view BEFORE reassigning
+	# _controlling_faction. With multi-faction hotseat (M14 stage 5) every
+	# Phase.ENEMY transition fires phase_changed, so blue → green → red → blue
+	# used to overwrite blue's saved view on the green→red hop. Saving against
+	# the outgoing faction id keeps each faction's view independent (code
+	# review 2026-06-09).
+	var outgoing_faction: String = _controlling_faction
 	if _faction_id != "":
 		set_controlling_faction(_faction_id)
 	if new_phase == GameState.Phase.ENEMY:
-		# Capture the player's last camera view so we can restore it next player
-		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads
-		# naturally as "remember where we were, then freeze."
 		if _camera_ctrl != null:
-			_camera_ctrl.save_view()
+			_camera_ctrl.save_view(outgoing_faction)
 		lock()
 	else:
-		# Restore the player's saved camera (PT4 #2). Then run the existing
-		# PT3 #5 safety net so a cursor outside the resulting view is panned back
-		# in — covers the rare case where the saved view no longer contains the
-		# cursor (e.g. End Turn from a far-panned position).
+		# Restore the incoming faction's saved camera (PT4 #2). Then run the
+		# existing PT3 #5 safety net so a cursor outside the resulting view is
+		# panned back in — covers the rare case where the saved view no longer
+		# contains the cursor (e.g. End Turn from a far-panned position).
 		if _camera_ctrl != null:
-			_camera_ctrl.restore_view()
+			_camera_ctrl.restore_view(_controlling_faction)
 		_scroll_camera_if_needed()
 		unlock()
 

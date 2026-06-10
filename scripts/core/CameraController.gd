@@ -19,12 +19,18 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 var _camera: Camera2D = null
 var _grid: Node = null  # GridManager — typed as Node to avoid a cyclic preload
 
-# PT4 #2: snapshot of the player's view at the moment the player phase ends,
-# restored at the start of the next player phase. AI-phase tracking (#7) pans
-# the camera onto each acting enemy, which would otherwise leave the camera
-# adrift wherever the last enemy stood.
-var _saved_position: Vector2 = Vector2.ZERO
-var _has_saved: bool = false
+# PT4 #2: snapshot of each faction's camera view at the moment its phase ends,
+# restored at the start of that faction's next phase. AI-phase tracking (#7)
+# pans the camera onto each acting enemy, which would otherwise leave the
+# camera adrift wherever the last enemy stood.
+#
+# Keyed by faction id so hotseat factions (M14 stage 5) each keep their own
+# view across rounds — a hotseat green player resumes wherever they left off,
+# and an intervening green phase no longer overwrites blue's saved view (code
+# review 2026-06-09). save_view() / restore_view() called with no faction id
+# stay back-compatible with pre-M14 callers and the test seam.
+const _DEFAULT_FACTION_KEY := "blue"
+var _saved_positions: Dictionary = {}
 
 
 func setup(camera: Camera2D, grid: Node) -> void:
@@ -144,19 +150,26 @@ func nudge_by_tiles(delta: Vector2i) -> bool:
 	return true
 
 
-# Saves the current camera position. Restored at the next phase change back to
-# PLAYER so AI-phase tracking doesn't drag the player to a different view (PT4 #2).
-func save_view() -> void:
-	if _camera != null:
-		_saved_position = _camera.position
-		_has_saved = true
+# Saves the current camera position for `faction_id`. Restored at the next
+# phase change back to that faction so AI-phase tracking doesn't drag the
+# camera to a different view (PT4 #2). Empty faction id falls back to the
+# default key so pre-M14 callers and tests that didn't track factions still
+# round-trip correctly.
+func save_view(faction_id: String = "") -> void:
+	if _camera == null:
+		return
+	var key: String = faction_id if faction_id != "" else _DEFAULT_FACTION_KEY
+	_saved_positions[key] = _camera.position
 
 
-# Restores the saved view. Returns true if a restore happened, false if save_view
-# has never been called (e.g. very first player phase — GameMap's initial placement
-# is the right source then).
-func restore_view() -> bool:
-	if not _has_saved or _camera == null:
+# Restores `faction_id`'s saved view. Returns true if a restore happened, false
+# if save_view has never been called for that faction (e.g. very first phase —
+# GameMap's initial placement is the right source then).
+func restore_view(faction_id: String = "") -> bool:
+	if _camera == null:
 		return false
-	_camera.position = _saved_position
+	var key: String = faction_id if faction_id != "" else _DEFAULT_FACTION_KEY
+	if not _saved_positions.has(key):
+		return false
+	_camera.position = _saved_positions[key]
 	return true
