@@ -498,15 +498,28 @@ static func _tile_is_inside_grid(tile: Vector2i, width: int, height: int) -> boo
 	return tile.x >= 0 and tile.y >= 0 and tile.x < width and tile.y < height
 
 
-static func register_loaded_resource(target: Dictionary, res: Resource, res_path: String) -> String:
-	var rid: Variant = res.get("id") if res else null
+# Result codes returned by register_loaded_resource. Was a free-form String
+# error previously, which forced _load_directory to switch severity via a
+# substring search on the message — fragile across rewordings (code review
+# 2026-06-09). Keeping the message in the return alongside the code so callers
+# that want to surface it still can.
+enum LoadResult { OK, MISSING_ID, DUPLICATE_ID, LOAD_FAILED }
+
+
+static func register_loaded_resource(target: Dictionary, res: Resource, res_path: String) -> Dictionary:
+	if res == null:
+		return {"result": LoadResult.LOAD_FAILED,
+			"message": "DataManager: resource at %s failed to load" % res_path}
+	var rid: Variant = res.get("id")
 	if rid == null or rid == "":
-		return "DataManager: resource at %s has no 'id' field" % res_path
+		return {"result": LoadResult.MISSING_ID,
+			"message": "DataManager: resource at %s has no 'id' field" % res_path}
 	var id: String = String(rid)
 	if target.has(id):
-		return "DataManager: duplicate resource id '%s' at %s" % [id, res_path]
+		return {"result": LoadResult.DUPLICATE_ID,
+			"message": "DataManager: duplicate resource id '%s' at %s" % [id, res_path]}
 	target[id] = res
-	return ""
+	return {"result": LoadResult.OK, "message": ""}
 
 
 func _load_directory(path: String, target: Dictionary) -> void:
@@ -516,13 +529,17 @@ func _load_directory(path: String, target: Dictionary) -> void:
 		return
 	for res_path in resource_paths:
 		var res := load(res_path)
-		var err := register_loaded_resource(target, res, res_path)
-		if err == "":
-			continue
-		if "duplicate resource id" in err:
-			push_error(err)
-		else:
-			push_warning(err)
+		var r: Dictionary = register_loaded_resource(target, res, res_path)
+		# Duplicate ids and load failures must fail loud — they leave a wrong
+		# resource resolved (or none at all) at runtime. Missing-id is a soft
+		# data-authoring warning: the resource is skipped, not silently aliased.
+		match r["result"]:
+			LoadResult.OK:
+				continue
+			LoadResult.DUPLICATE_ID, LoadResult.LOAD_FAILED:
+				push_error(r["message"])
+			_:
+				push_warning(r["message"])
 
 
 # Named get_class_data (not get_class) to avoid conflict with Object.get_class() -> String

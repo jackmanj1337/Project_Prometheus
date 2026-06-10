@@ -63,15 +63,34 @@ func _init() -> void:
 	dup_a.id = "dup_weapon"
 	var dup_b := WeaponData.new()
 	dup_b.id = "dup_weapon"
-	var first_err: String = dm.register_loaded_resource(dup_target, dup_a, "res://a.tres")
-	var second_err: String = dm.register_loaded_resource(dup_target, dup_b, "res://b.tres")
-	if first_err == "" and "duplicate resource id 'dup_weapon'" in second_err \
+	var DataManagerS = load("res://scripts/autoloads/DataManager.gd")
+	var first_r: Dictionary = dm.register_loaded_resource(dup_target, dup_a, "res://a.tres")
+	var second_r: Dictionary = dm.register_loaded_resource(dup_target, dup_b, "res://b.tres")
+	if first_r["result"] == DataManagerS.LoadResult.OK \
+			and second_r["result"] == DataManagerS.LoadResult.DUPLICATE_ID \
+			and "duplicate resource id 'dup_weapon'" in String(second_r["message"]) \
 			and dup_target["dup_weapon"] == dup_a:
 		print("OK  register_loaded_resource rejects duplicate ids without overwriting the original")
 		passed += 1
 	else:
 		print("FAIL duplicate-id guard: first=%s second=%s target=%s" % [
-			first_err, second_err, dup_target])
+			first_r, second_r, dup_target])
+		failed += 1
+
+	# ---- missing id / failed load each return their own result code ----
+	var miss_target := {}
+	var miss_res := WeaponData.new()
+	# miss_res.id left as default "" → MISSING_ID
+	var miss_r: Dictionary = dm.register_loaded_resource(miss_target, miss_res, "res://m.tres")
+	var fail_r: Dictionary = dm.register_loaded_resource(miss_target, null, "res://f.tres")
+	if miss_r["result"] == DataManagerS.LoadResult.MISSING_ID \
+			and fail_r["result"] == DataManagerS.LoadResult.LOAD_FAILED \
+			and miss_target.is_empty():
+		print("OK  register_loaded_resource reports MISSING_ID and LOAD_FAILED distinctly")
+		passed += 1
+	else:
+		print("FAIL register_loaded_resource result codes: miss=%s fail=%s target=%s" % [
+			miss_r, fail_r, miss_target])
 		failed += 1
 
 	# ---- weapon triangle: sword beats axe, loses to lance, neutral vs sword ----
@@ -98,7 +117,7 @@ func _init() -> void:
 	# All real .tres files must come up clean against the extended checks; if a
 	# new family/track/effect_id is added without updating GameConstants or
 	# ItemHandler, this catches it before commit.
-	var DataManagerS = load("res://scripts/autoloads/DataManager.gd")
+	# (DataManagerS already in scope from the result-code test above.)
 	var live_errors: Array[String] = DataManagerS.collect_validation_errors(
 		dm._classes, dm._weapons, dm._items, dm._skills)
 	if live_errors.is_empty():
