@@ -341,6 +341,33 @@ func _init() -> void:
 			u_line_err, u_missing_err, u_track_err, unit_errs])
 		failed += 1
 
+	# ---- 2.10: cross-source unit_id uniqueness ──────────────────────────────
+	# A roster unit and an enemy placement sharing a unit_id is a silent runtime
+	# disaster: find_unit_by_id returns whichever loaded first, breaking Pair Up
+	# lookups in non-obvious ways. The validator now threads a shared dedup dict
+	# across the roster pass and the enemy_placements pass.
+	var dup_map := MapData.new()
+	dup_map.id = "dup_unit_id_check"
+	dup_map.display_name = "dup unit_id check"
+	dup_map.grid = ["..."] as Array[String]
+	dup_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	dup_map.enemy_placements = [
+		{"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
+			"tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	# Pre-seed seen_unit_ids as if the roster pass had already registered the
+	# same unit_id ("e1_soldier") from a fake roster file. The enemy_placement
+	# loader should detect the collision.
+	var seen: Dictionary = {"e1_soldier": "roster file 'fake_roster.tres'"}
+	var dup_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		dup_map, "res://dup_map.tres", dm._classes, dm._items, seen)
+	var dup_err_found: bool = dup_errors.any(func(e):
+		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
+	if dup_err_found:
+		print("OK  2.10: cross-source duplicate unit_id fires loud"); passed += 1
+	else:
+		print("FAIL 2.10 cross-source dup: %s" % dup_errors); failed += 1
+
 	# ---- 2.7: hp/max_hp/level invariants ────────────────────────────────────
 	# Pre-2026-06-10 a unit with hp=50, max_hp=10 would load fine and render
 	# broken in-game. Now caught at boot like the GameState snapshot validator

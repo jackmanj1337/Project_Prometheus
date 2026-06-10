@@ -240,6 +240,12 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 	if not (roster_policy in _VALID_ROSTER_POLICIES):
 		errors.append("DataManager: map registry entry '%s' roster_policy '%s' is not valid" % [
 			entry_id, roster_policy])
+	# Cross-source unit_id uniqueness (code review 2026-06-10 issue 2.10).
+	# Shared dedup table across the roster pass below and the enemy_placements
+	# pass in collect_map_data_validation_errors; a duplicate unit_id between a
+	# roster file and an enemy placement breaks find_unit_by_id and Pair Up
+	# in silently confusing ways.
+	var seen_unit_ids: Dictionary = {}
 	if roster_policy == "fixed_test_roster":
 		if roster_source == "":
 			errors.append("DataManager: map registry entry '%s' fixed_test_roster is missing roster_source" % entry_id)
@@ -257,6 +263,14 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 							roster_path, entry_id])
 						continue
 					roster_units.append(loaded)
+					if loaded is UnitData and String(loaded.unit_id) != "":
+						var uid: String = String(loaded.unit_id)
+						var here: String = "roster file '%s'" % roster_path
+						if seen_unit_ids.has(uid):
+							errors.append("DataManager: duplicate unit_id '%s' at %s (also at %s)" % [
+								uid, here, seen_unit_ids[uid]])
+						else:
+							seen_unit_ids[uid] = here
 				for err in collect_unit_validation_errors(roster_units, classes):
 					errors.append(err)
 	if roster_policy != "fixed_test_roster" and roster_source != "":
@@ -277,12 +291,20 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 	if entry_id != "" and map_data.id != "" and map_data.id != entry_id:
 		errors.append("DataManager: map registry entry '%s' points at MapData id '%s'" % [
 			entry_id, map_data.id])
-	for err in collect_map_data_validation_errors(map_data, map_path, classes, items):
+	for err in collect_map_data_validation_errors(map_data, map_path, classes, items,
+			seen_unit_ids):
 		errors.append(err)
 
 
+# `seen_unit_ids` is unit_id -> source description (e.g. "roster file '...'"
+# or "enemy placement '...'"). Threaded in by collect_map_registry_validation
+# _errors so the unit_ids loaded from the roster directory and the enemy_
+# placements share a single dedup namespace. Defaults to a fresh dict for
+# direct callers that don't have a cross-source view. Code review 2026-06-10
+# issue 2.10.
 static func collect_map_data_validation_errors(map_data: MapData, map_path: String,
-		classes: Dictionary, items: Dictionary = {}) -> Array[String]:
+		classes: Dictionary, items: Dictionary = {},
+		seen_unit_ids: Dictionary = {}) -> Array[String]:
 	var errors: Array[String] = []
 	if map_data == null:
 		errors.append("DataManager: map '%s' did not load" % map_path)
@@ -400,6 +422,13 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 				errors.append("DataManager: map '%s' enemy placement '%s' has empty unit_id" % [
 					map_path, unit_path])
 			else:
+				var uid: String = String(unit_loaded.unit_id)
+				var here: String = "enemy placement '%s'" % unit_path
+				if seen_unit_ids.has(uid):
+					errors.append("DataManager: duplicate unit_id '%s' at %s (also at %s)" % [
+						uid, here, seen_unit_ids[uid]])
+				else:
+					seen_unit_ids[uid] = here
 				for err in collect_unit_validation_errors([unit_loaded], classes):
 					errors.append(err)
 		if not placement.has("tile"):
