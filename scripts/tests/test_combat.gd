@@ -44,26 +44,33 @@ class MockUnit extends Node:
 	func has_skill(s: String) -> bool:
 		return s in _skills
 
+	# Combat-stat helpers mirror Unit.gd: all stat reads route through
+	# get_effective_stat so a "combat"-duration modifier (Resolve, Wrath,
+	# Pair Up bonus, stat_bonus) flows into the same formulas production
+	# uses. Code review 2026-06-10 issue 2.5 — without this, tests for
+	# modifier-bearing combat exercised a different code path than the
+	# real Unit.
 	func battle_speed(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		if w == null: return data.get("speed")
-		return data.get("speed") - maxi(0, w.get("wt") - data.get("strength"))
+		if w == null: return get_effective_stat("speed")
+		return get_effective_stat("speed") - maxi(0,
+			w.get("wt") - get_effective_stat("strength"))
 
 	func accuracy(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		var acc: int = data.get("skill") * 2 + data.get("luck")
+		var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
 		if w: acc += w.get("hit")
 		return acc
 
 	func dodge(_w: Resource = null) -> int:
-		return battle_speed(_w) * 2 + data.get("luck")
+		return battle_speed(_w) * 2 + get_effective_stat("luck")
 
 	func crit_rate(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		return data.get("skill") / 2 + (w.get("crit") if w else 0)
+		return get_effective_stat("skill") / 2 + (w.get("crit") if w else 0)
 
 	func crit_avoid() -> int:
-		return data.get("luck")
+		return get_effective_stat("luck")
 
 	func get_terrain_def_bonus() -> int:
 		return 0
@@ -739,6 +746,34 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP B2 combat_started timing (EventBus autoload absent)")
+
+	# ── MockUnit modifier flow: a combat-duration modifier must flow through ──
+	# accuracy/dodge/crit/battle_speed exactly the way active_modifiers does in
+	# production. Pre-2026-06-10, these helpers read raw data.get(...) and the
+	# modifier was silently ignored; resolving combat with a stamped modifier
+	# now affects hit/dodge/crit (issue 2.5).
+	var mod_atk = _make_unit({"name":"ModAtk","skill":10,"luck":5,"speed":10,"strength":10,"weapon":iron_sword})
+	var mod_def = _make_unit({"name":"ModDef","skill":8,"luck":4,"speed":8,"strength":8,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var hit_base: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	# Stamp +5 skill on attacker; accuracy uses skill*2, so hit should rise by 10.
+	mod_atk.data.active_modifiers.append({"stat": "skill", "delta": 5,
+		"source": "test", "duration": -1, "duration_type": "combat"})
+	var hit_with_skill: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	# Stamp +6 speed on defender; dodge uses battle_speed*2 + luck, so dodge
+	# should rise by 12 and hit should fall further.
+	mod_def.data.active_modifiers.append({"stat": "speed", "delta": 6,
+		"source": "test", "duration": -1, "duration_type": "combat"})
+	var hit_with_both: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	if hit_with_skill - hit_base == 10 and hit_base - hit_with_both == 2:
+		# +10 from attacker skill, then -12 from defender speed, net -2 vs base.
+		print("OK  MockUnit modifier flows through accuracy/dodge (issue 2.5)")
+		passed += 1
+	else:
+		print("FAIL MockUnit modifier flow: base=%d skill=%d both=%d (want +10 / -2)" % [
+			hit_base, hit_with_skill, hit_with_both])
+		failed += 1
+	mod_atk.queue_free()
+	mod_def.queue_free()
 
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
