@@ -341,5 +341,33 @@ func _init() -> void:
 			u_line_err, u_missing_err, u_track_err, unit_errs])
 		failed += 1
 
+	# ---- 2.7: hp/max_hp/level invariants ────────────────────────────────────
+	# Pre-2026-06-10 a unit with hp=50, max_hp=10 would load fine and render
+	# broken in-game. Now caught at boot like the GameState snapshot validator
+	# already catches the same shape at runtime.
+	var hp_bad := UnitData.new()
+	hp_bad.unit_id = "hp_bad"
+	hp_bad.class_id = "cavalier"
+	hp_bad.level = 0      # below minimum
+	hp_bad.max_hp = 0     # below minimum
+	hp_bad.hp = -3        # negative
+	var hp_max_bad := UnitData.new()
+	hp_max_bad.unit_id = "overflow"
+	hp_max_bad.class_id = "cavalier"
+	hp_max_bad.max_hp = 10
+	hp_max_bad.hp = 50    # exceeds max
+	var inv_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
+		[hp_bad, hp_max_bad], dm._classes)
+	var level_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' level must be >= 1" in e)
+	var max_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' max_hp must be >= 1" in e)
+	var neg_err: bool = inv_errs.any(func(e): return "unit 'hp_bad' hp cannot be negative" in e)
+	var over_err: bool = inv_errs.any(func(e): return "unit 'overflow' hp 50 exceeds max_hp 10" in e)
+	if level_err and max_err and neg_err and over_err:
+		print("OK  2.7: hp/max_hp/level invariants fail loud at validation"); passed += 1
+	else:
+		print("FAIL 2.7 invariants: level=%s max=%s neg=%s over=%s errs=%s" % [
+			level_err, max_err, neg_err, over_err, inv_errs])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

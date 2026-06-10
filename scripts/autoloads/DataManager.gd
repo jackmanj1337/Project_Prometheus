@@ -603,6 +603,19 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 		if unit.internal_level < 1:
 			errors.append("DataManager: unit '%s' internal_level must be >= 1" % [
 				unit.unit_id])
+		# HP / max_hp / level invariants (code review 2026-06-10 issue 2.7).
+		# Mirrors GameState._validate_snapshot_unit_dict so authoring caught here
+		# at boot matches what the snapshot restore would reject at runtime.
+		if unit.level < 1:
+			errors.append("DataManager: unit '%s' level must be >= 1" % unit.unit_id)
+		if unit.max_hp < 1:
+			errors.append("DataManager: unit '%s' max_hp must be >= 1" % unit.unit_id)
+		if unit.hp < 0:
+			errors.append("DataManager: unit '%s' hp cannot be negative (%d)" % [
+				unit.unit_id, unit.hp])
+		elif unit.max_hp >= 1 and unit.hp > unit.max_hp:
+			errors.append("DataManager: unit '%s' hp %d exceeds max_hp %d" % [
+				unit.unit_id, unit.hp, unit.max_hp])
 		if unit.class_line_id != "":
 			if not classes.has(unit.class_line_id):
 				errors.append("DataManager: unit '%s' class_line_id '%s' not found" % [
