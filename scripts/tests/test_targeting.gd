@@ -165,6 +165,41 @@ func _init() -> void:
 	_check(ally.data.hp > hp_before and f4.done == 1,
 		"handle_confirm heals the ally and emits `completed`")
 
+	# ── Pair Up: strict same-faction gate ──────────────────────────────────────
+	# Code review 2026-06-10: the menu visibility check and the target-collection
+	# slice must agree. Pair Up is intra-army: two non-hostile factions in the
+	# same alliance group (blue/green) cooperate but cannot pair. Reuse `player`
+	# and `ally` (both blue, both unit_id-bearing roster units) so the positive
+	# case shares fixtures with the negative one.
+	var pair_reg := root.get_node_or_null("PairUpRegistry")
+	if pair_reg == null:
+		pair_reg = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+		pair_reg.name = "PairUpRegistry"
+		root.add_child(pair_reg)
+	pair_reg.call("clear")
+	for u in gs.all_units:
+		u.tile_position = Vector2i(0, 0)
+	player.tile_position = Vector2i(5, 5)
+	ally.tile_position = Vector2i(5, 6)  # cardinal-adjacent
+	var t_pair := MapCursorTargeting.new()
+	t_pair.setup(grid, null, cr)
+	var pair_tiles_same: Array[Vector2i] = t_pair.begin(
+		MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(ally.tile_position in pair_tiles_same,
+		"begin(PAIR_UP) lists an adjacent same-faction ally")
+
+	# Cross-faction-same-alliance: flip the ally's team to "green". GameState's
+	# default alliance map puts blue+green in the same group ("allies"), so they
+	# are NOT hostile — but Pair Up must still refuse because the gate is strict
+	# same-faction (issue 2.1 / decision: strict).
+	var saved_team: String = ally.team
+	ally.team = "green"
+	var pair_tiles_cross: Array[Vector2i] = t_pair.begin(
+		MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(not (ally.tile_position in pair_tiles_cross),
+		"begin(PAIR_UP) refuses a same-alliance cross-faction neighbor")
+	ally.team = saved_team
+
 	# ── Map 900 hotseat regression: green attack opens the real combat preview ──
 	gs.reset_map_state()
 	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")

@@ -231,7 +231,10 @@ func _get_adjacent_unpaired_allies(unit: Node) -> Array[Node]:
 		var neighbor: Node = _grid.get_unit_at(unit.tile_position + delta)
 		if neighbor == null or neighbor == unit:
 			continue
-		if _is_target_hostile(neighbor):
+		# Pair Up is intra-army (strict same-faction). Two non-hostile factions
+		# in the same alliance group can cooperate (no friendly fire) but cannot
+		# pair — matches ActionMenu's visibility gate. Code review 2026-06-10.
+		if not ("team" in neighbor) or neighbor.team != unit.team:
 			continue
 		if neighbor.data == null or neighbor.data.unit_id == "":
 			continue
