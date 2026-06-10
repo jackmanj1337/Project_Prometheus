@@ -57,6 +57,26 @@ func _ensure_table_loaded() -> bool:
 
 
 func _compute_bonuses(class_id: String, support_unit: Node) -> Dictionary:
+	return _compute_bonuses_common(class_id,
+		func(stat: String) -> int: return _read_support_stat(support_unit, stat))
+
+
+# Variant used by bonuses_for_class_and_stats — same shape as _compute_bonuses
+# but reads scaling input from the supplied dict rather than a Unit Node.
+# Routes through the same body so a missing stat key reads as 0 (production
+# behaviour via _read_support_stat), not skipped (code review 2026-06-10
+# issue 2.3 — the previous "if not support_stats.has(...)" silently
+# diverged from production).
+func _compute_bonuses_from_stats(class_id: String, support_stats: Dictionary) -> Dictionary:
+	return _compute_bonuses_common(class_id,
+		func(stat: String) -> int: return int(support_stats.get(stat, 0)))
+
+
+# Shared body: builds the bonus dict from the flat block + scaling layer.
+# `read_stat` is a Callable(String) -> int that yields the support's value for
+# a stat — Unit-backed for production, dict-backed for the test seam — so the
+# two entry points cannot drift on the "missing stat reads 0" rule.
+func _compute_bonuses_common(class_id: String, read_stat: Callable) -> Dictionary:
 	var flat: Dictionary = _table.call("get_class_bonus", class_id)
 	var divisor: int = int(_table.get("scaling_divisor"))
 	var scaling_stats: PackedStringArray = _table.get("scaling_stats")
@@ -69,30 +89,7 @@ func _compute_bonuses(class_id: String, support_unit: Node) -> Dictionary:
 	if divisor > 0:
 		for stat in scaling_stats:
 			var stat_key: String = String(stat)
-			var live_value: int = _read_support_stat(support_unit, stat_key)
-			var scale: int = live_value / divisor
-			if scale == 0:
-				continue
-			out[stat_key] = int(out.get(stat_key, 0)) + scale
-	return out
-
-
-# Variant used by bonuses_for_class_and_stats — same shape as _compute_bonuses
-# but reads scaling input from the supplied dict rather than a Unit Node.
-func _compute_bonuses_from_stats(class_id: String, support_stats: Dictionary) -> Dictionary:
-	var flat: Dictionary = _table.call("get_class_bonus", class_id)
-	var divisor: int = int(_table.get("scaling_divisor"))
-	var scaling_stats: PackedStringArray = _table.get("scaling_stats")
-	var out: Dictionary = {}
-	for stat in flat.keys():
-		var stat_key: String = String(stat)
-		out[stat_key] = int(flat[stat_key])
-	if divisor > 0:
-		for stat in scaling_stats:
-			var stat_key: String = String(stat)
-			if not support_stats.has(stat_key):
-				continue
-			var scale: int = int(support_stats[stat_key]) / divisor
+			var scale: int = int(read_stat.call(stat_key)) / divisor
 			if scale == 0:
 				continue
 			out[stat_key] = int(out.get(stat_key, 0)) + scale

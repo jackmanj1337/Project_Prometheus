@@ -131,6 +131,23 @@ func _init() -> void:
 	else:
 		print("FAIL bonuses_for(unit) returned: %s" % via_unit); failed += 1
 
+	# The Unit-backed path and the dict-backed test seam must agree, given the
+	# same effective stat values. Pre-2026-06-10 the seam silently SKIPPED any
+	# scaling stat not in the input dict, while production read it as 0 — a
+	# behavioural divergence that only mattered if a flat block ever gated on
+	# the scaling input being present. Issue 2.3.
+	var stats_from_unit: Dictionary = {
+		"strength": int(support_data.strength),
+		"speed":    int(support_data.speed),
+		"skill":    int(support_data.skill),
+	}  # NOTE: deliberately omits "magic" — both paths should treat it as 0
+	var via_stats: Dictionary = resolver.bonuses_for_class_and_stats(
+		"cavalier", stats_from_unit)
+	if via_stats == via_unit:
+		print("OK  unit-backed and dict-backed paths converge (issue 2.3)"); passed += 1
+	else:
+		print("FAIL path divergence: unit=%s stats=%s" % [via_unit, via_stats]); failed += 1
+
 	# ---- CombatResolver._apply_pair_up_bonuses integration ----
 	# Requires the live resolver autoload so the cross-autoload lookup works.
 	var relay := Node.new()
