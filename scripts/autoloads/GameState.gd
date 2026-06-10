@@ -321,6 +321,14 @@ func load_roster_from_directory(roster_path: String, roster_policy: String = "fi
 			push_error("GameState: failed to load roster file '%s' — skipping" % res_path)
 			had_errors = true
 			continue
+		# Explicit type check before the typed-variable assignment below: a stray
+		# non-UnitData resource (e.g. ClassData accidentally saved here) would
+		# otherwise trigger a typed-assignment crash rather than the friendly
+		# skip path. Code review 2026-06-09 issue #4.
+		if not (loaded is UnitData):
+			push_error("GameState: roster file '%s' is not UnitData — skipping" % res_path)
+			had_errors = true
+			continue
 		var res: UnitData = loaded.duplicate(true)
 		if res:
 			# push_error + continue (not assert) so a bad .tres is skipped in
