@@ -838,12 +838,9 @@ func _has_earned_skill(skill_id: String) -> bool:
 
 
 func _grant_current_level_class_skills() -> void:
-	if data == null or data.class_id.is_empty() or not is_inside_tree():
+	if data == null or data.class_id.is_empty():
 		return
-	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not dm._classes.has(data.class_id):
-		return
-	var class_data: ClassData = dm._classes[data.class_id]
+	var class_data := _get_class_data()
 	if class_data == null:
 		return
 	# Spawn/reclass should grant every class skill earned at or below the unit's
@@ -871,10 +868,7 @@ func _learn_skill(skill_id: String) -> Dictionary:
 func _ensure_class_line_id() -> void:
 	if data == null or data.class_id.is_empty() or not data.class_line_id.is_empty():
 		return
-	var dm := get_node_or_null("/root/DataManager") if is_inside_tree() else null
-	if dm == null or not dm._classes.has(data.class_id):
-		return
-	var class_data: ClassData = dm._classes[data.class_id]
+	var class_data := _get_class_data()
 	if class_data == null:
 		return
 	if class_data.tier == 1:
