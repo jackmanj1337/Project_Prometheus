@@ -18,7 +18,9 @@ class_name SkillData extends Resource
 @export var effect_params: Dictionary = {}
 @export var is_player_activated: bool = false
 
-# -1 = unlimited. Checked against UnitData.skill_use_counters[effect_id] each use.
+# -1 = unlimited. Checked against UnitData.skill_use_counters[skill.id] each
+# use (changed from effect_id in 2026-06-10 issue 2.6 so two skills sharing
+# an effect_id keep isolated counters).
 @export var max_uses_per_map: int = -1
 # -1 = unlimited. Counter cleared after each combat resolves.
 @export var max_uses_per_combat: int = -1

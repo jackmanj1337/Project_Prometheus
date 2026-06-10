@@ -337,6 +337,39 @@ func _init() -> void:
 		print("FAIL #4: skill did not re-arm after reset_combat_uses"); failed += 1
 	faire_data.max_uses_per_combat = saved_limit  # restore shared resource
 
+	# ── 2.6: counters key by skill.id, not effect_id ──────────────────────────
+	# Two stat_bonus skills (skill_plus_2 and defense_plus_2) share an
+	# effect_id but have distinct skill ids. Pre-2026-06-10 they shared a
+	# single max_uses_per_combat counter, so capping at 1 silently silenced
+	# the second one. Keying by skill.id keeps them isolated.
+	var skl_plus: SkillData = dm.get_skill("skill_plus_2")
+	var def_plus: SkillData = dm.get_skill("defense_plus_2")
+	var saved_skl_limit: int = skl_plus.max_uses_per_combat
+	var saved_def_limit: int = def_plus.max_uses_per_combat
+	skl_plus.max_uses_per_combat = 1
+	def_plus.max_uses_per_combat = 1
+	var iso_unit := MockUnit.new()
+	iso_unit.setup(soldier_data.duplicate(true))
+	iso_unit.data.skills.assign(["skill_plus_2", "defense_plus_2"])
+	root.add_child(iso_unit)
+	sh.reset_combat_uses()
+	var iso_ctx: Dictionary = _make_ctx(iso_unit, def_unit, iron_lance, iron_lance)
+	iso_ctx["attacker"] = iso_unit
+	sh.apply_trigger(iso_unit, "on_combat_start", iso_ctx)
+	# Both stat_bonus skills are duration_type="combat" modifiers on the unit's
+	# active_modifiers — count distinct sources.
+	var distinct_sources: Dictionary = {}
+	for m in iso_unit.data.active_modifiers:
+		if String(m.get("source", "")).begins_with("skill:"):
+			distinct_sources[String(m["source"])] = true
+	if distinct_sources.size() == 2:
+		print("OK  2.6: skills sharing effect_id keep isolated use counters"); passed += 1
+	else:
+		print("FAIL 2.6: shared-effect-id skill counter collision (%d sources)" % \
+			distinct_sources.size()); failed += 1
+	skl_plus.max_uses_per_combat = saved_skl_limit
+	def_plus.max_uses_per_combat = saved_def_limit
+
 	# ── ItemHandler: heal_flat heals and decrements uses ──────────────────────
 	# max_hp leaves headroom so the full heal is observable (no cap clamp here):
 	# the Vulnerary restores exactly 10 HP (#14), down from the old 20.

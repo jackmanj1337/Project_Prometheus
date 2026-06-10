@@ -282,15 +282,17 @@ func has_skill(skill_id: String) -> bool:
 
 
 # Returns how many uses of this skill remain this map. -1 = unlimited.
-func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int:
+# Keyed by skill.id (not effect_id) so two skills sharing an effect_id keep
+# isolated counters — matches SkillHandler.apply_trigger after issue 2.6.
+func get_skill_uses_remaining(skill_id: String, max_per_map: int) -> int:
 	if max_per_map == -1:
 		return -1
-	var used: int = data.skill_use_counters.get(effect_id, 0)
+	var used: int = data.skill_use_counters.get(skill_id, 0)
 	return max(0, max_per_map - used)
 
 
-func consume_skill_use(effect_id: String) -> void:
-	data.skill_use_counters[effect_id] = data.skill_use_counters.get(effect_id, 0) + 1
+func consume_skill_use(skill_id: String) -> void:
+	data.skill_use_counters[skill_id] = data.skill_use_counters.get(skill_id, 0) + 1
 
 
 # ---- Modifier Lifecycle ----

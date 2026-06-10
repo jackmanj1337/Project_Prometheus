@@ -7,9 +7,12 @@ extends Node
 # Add new skills here — typos are a startup error rather than a silent no-op.
 var _dispatch: Dictionary = {}
 
-# Per-combat skill use counters: effect_id → times fired this combat. Reset by
+# Per-combat skill use counters: skill.id → times fired this combat. Reset by
 # reset_combat_uses() at the start of each combat (see CombatResolver). Separate
 # from UnitData.skill_use_counters, which is the per-map tally.
+# Keyed by skill.id rather than effect_id so two skills sharing an effect_id
+# (e.g. two "stat_bonus" variants for Str+2 and Mag+2) keep isolated counters
+# instead of sharing a single quota. Code review 2026-06-10 issue 2.6.
 var _combat_skill_uses: Dictionary = {}
 
 # Skills Nihil cannot negate — they still activate when this unit's combat skills
@@ -169,13 +172,14 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		if preview and skill.activation_chance_stat != "":
 			continue
 		# Enforce per-map use limit (C-3 fix: was never checked for non-combat triggers).
+		# Keyed by skill.id so two skills sharing effect_id don't share a counter.
 		if skill.max_uses_per_map != -1:
-			var used: int = unit.data.skill_use_counters.get(skill.effect_id, 0)
+			var used: int = unit.data.skill_use_counters.get(skill.id, 0)
 			if used >= skill.max_uses_per_map:
 				continue
 		# Enforce per-combat use limit (scoped by reset_combat_uses()).
 		if skill.max_uses_per_combat != -1:
-			var combat_used: int = _combat_skill_uses.get(skill.effect_id, 0)
+			var combat_used: int = _combat_skill_uses.get(skill.id, 0)
 			if combat_used >= skill.max_uses_per_combat:
 				continue
 		# Roll activation chance from data if a stat is specified.
@@ -191,11 +195,11 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		# dry_run suppresses counter persistence only — the effect above still ran.
 		if fired and not dry_run:
 			if skill.max_uses_per_map != -1:
-				unit.data.skill_use_counters[skill.effect_id] = \
-					unit.data.skill_use_counters.get(skill.effect_id, 0) + 1
+				unit.data.skill_use_counters[skill.id] = \
+					unit.data.skill_use_counters.get(skill.id, 0) + 1
 			if skill.max_uses_per_combat != -1:
-				_combat_skill_uses[skill.effect_id] = \
-					_combat_skill_uses.get(skill.effect_id, 0) + 1
+				_combat_skill_uses[skill.id] = \
+					_combat_skill_uses.get(skill.id, 0) + 1
 	return context
 
 

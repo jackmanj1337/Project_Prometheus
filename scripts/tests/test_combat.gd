@@ -700,7 +700,9 @@ func _init() -> void:
 	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 	cr.preview_combat(dry_atk, dry_def)
 	cr.preview_combat(dry_atk, dry_def)
-	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	# Counter is keyed by skill.id (code review 2026-06-10 issue 2.6), not the
+	# shared effect_id "faire" — so the three faire skills don't pool quotas.
+	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
 	if uses_after_preview == 0:
 		print("OK  dry_run: two previews burn 0 skill uses")
 		passed += 1
@@ -708,7 +710,7 @@ func _init() -> void:
 		print("FAIL dry_run: previews burned %d use(s), want 0" % uses_after_preview)
 		failed += 1
 	cr.resolve_combat(dry_atk, dry_def)
-	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
 	if uses_after_resolve == 1:
 		print("OK  dry_run: resolve_combat increments the skill use counter")
 		passed += 1
