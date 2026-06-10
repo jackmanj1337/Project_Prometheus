@@ -136,6 +136,29 @@ func _init() -> void:
 			all_red_done, red_ready_blocks])
 		failed += 1
 
+	# ---- paired support doesn't block are_all_units_done across a round boundary ----
+	# Code review 2026-06-09: a paired support left over from the previous round
+	# was being reset to READY by _refresh_faction_units and counted as actable.
+	# After the filter lands in GameState.get_living_units_of the lead is the
+	# only blue unit reported, and a DONE lead alone reports the phase as ended.
+	gs.reset_map_state()
+	pair_reg.call("clear")
+	var pp_lead := _mk_unit("blue", 20, "pp_lead")
+	var pp_support := _mk_unit("blue", 20, "pp_support")
+	pp_support.set("tile_position", pair_reg.OFF_MAP_TILE)
+	gs.register_unit(pp_lead)
+	gs.register_unit(pp_support)
+	pair_reg.pair("pp_lead", "pp_support")
+	var tm_pp := TurnManager.new()
+	root.add_child(tm_pp)
+	tm_pp._refresh_faction_units("blue")
+	tm_pp.set_unit_state(pp_lead, TurnManager.UnitState.DONE)
+	if tm_pp.are_all_units_done("blue"):
+		print("OK  paired support does not block are_all_units_done across rounds")
+		passed += 1
+	else:
+		print("FAIL paired support blocks are_all_units_done"); failed += 1
+
 	# ---- check_victory_conditions: rout authored on allies → map_victory ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p1"))

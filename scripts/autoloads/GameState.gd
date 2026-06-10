@@ -215,12 +215,25 @@ func find_unit_by_id(unit_id: String) -> Node:
 
 # M14 stage 3: living units of an arbitrary faction. filter() returns a generic
 # Array, so build Array[Node] explicitly. A missing faction returns [].
+#
+# Paired supports are excluded: while a unit is the support side of a Pair Up
+# its tile_position is the OFF_MAP_TILE sentinel, the player cannot select it,
+# and its lead has already consumed the joint action. Counting it as "living"
+# here inflated are_all_units_done so auto-end-turn never fired, and made
+# MapCursor._cycle_to_next_unit Tab onto the (-1, -1) sentinel. Liveness
+# queries that need every unit alive regardless of pair role (objective
+# evaluators) already use find_unit_by_id / escape records, not this method.
 func get_living_units_of(faction_id: String) -> Array[Node]:
 	var result: Array[Node] = []
 	var bucket: Array[Node] = _units_by_faction.get(faction_id, [] as Array[Node])
+	var reg := get_node_or_null("/root/PairUpRegistry")
 	for u in bucket:
-		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
-			result.append(u)
+		if not is_instance_valid(u) or u.data == null or u.data.hp <= 0:
+			continue
+		if reg != null and u.data.unit_id != "" \
+				and reg.call("is_support", u.data.unit_id):
+			continue
+		result.append(u)
 	return result
 
 

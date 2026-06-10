@@ -8,10 +8,11 @@ extends SceneTree
 var _unit_stub: GDScript
 
 
-func _mk_unit(team_name: String, hp: int) -> Node:
+func _mk_unit(team_name: String, hp: int, unit_id: String = "") -> Node:
 	var d := UnitData.new()
 	d.hp = hp
 	d.max_hp = 20
+	d.unit_id = unit_id
 	var u: Node = _unit_stub.new()
 	u.set("team", team_name)
 	u.set("data", d)
@@ -35,6 +36,11 @@ func _init() -> void:
 	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
 	gs.name = "GameState"
 	root.add_child(gs)
+	# PairUpRegistry is consulted by get_living_units_of so paired supports
+	# are excluded; load it as an autoload-equivalent for tests that pair units.
+	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+	pair_reg.name = "PairUpRegistry"
+	root.add_child(pair_reg)
 	await process_frame
 
 	# ---- register_unit adds the unit to all_units ----
@@ -75,6 +81,33 @@ func _init() -> void:
 		print("OK  get_living_player_units excludes a dead unit"); passed += 1
 	else:
 		print("FAIL living excludes dead: got %d" % gs.get_living_player_units().size())
+		failed += 1
+
+	# ---- get_living_units_of excludes a paired support ----
+	# A paired support has its tile moved off-grid and its lead has already
+	# consumed the joint action. Counting it as living inflated
+	# are_all_units_done so auto-end-turn never fired (code review 2026-06-09).
+	gs.reset_map_state()
+	pair_reg.call("clear")
+	var lead := _mk_unit("blue", 20, "pp_lead")
+	var support := _mk_unit("blue", 20, "pp_support")
+	gs.register_unit(lead)
+	gs.register_unit(support)
+	var paired_ok: bool = pair_reg.pair("pp_lead", "pp_support")
+	var live_after_pair: Array = gs.get_living_units_of("blue")
+	if paired_ok and live_after_pair.size() == 1 and live_after_pair[0] == lead:
+		print("OK  get_living_units_of excludes a paired support"); passed += 1
+	else:
+		print("FAIL paired support filter: paired=%s live_count=%d" % [
+			paired_ok, live_after_pair.size()]); failed += 1
+
+	# ---- after Separate the support is counted again ----
+	pair_reg.call("separate", "pp_lead")
+	var live_after_sep: Array = gs.get_living_units_of("blue")
+	if live_after_sep.size() == 2:
+		print("OK  get_living_units_of counts the support again after Separate"); passed += 1
+	else:
+		print("FAIL paired support filter after Separate: %d" % live_after_sep.size())
 		failed += 1
 
 	# ---- unregister_unit removes the unit from every list ----
