@@ -272,6 +272,37 @@ func _init() -> void:
 				danger_count, standstill.size()])
 			failed += 1
 
+	# Danger zone is computed from the viewer faction's perspective: from red's
+	# POV, the tiles blue threatens are dangerous (not the tiles red threatens).
+	# Code review 2026-06-10 issue 2.4.
+	if gs:
+		var blue_pov: Array[Vector2i] = grid.get_enemy_danger_tiles("blue")
+		var red_pov: Array[Vector2i] = grid.get_enemy_danger_tiles("red")
+		var blue_set := {}
+		for t in blue_pov:
+			blue_set[t] = true
+		var red_set := {}
+		for t in red_pov:
+			red_set[t] = true
+		# blue's POV must NOT include tiles only blue threatens, and red's POV
+		# must include at least one such tile (the asymmetry is the test).
+		var only_in_red: int = 0
+		for t in red_pov:
+			if not blue_set.has(t):
+				only_in_red += 1
+		var only_in_blue: int = 0
+		for t in blue_pov:
+			if not red_set.has(t):
+				only_in_blue += 1
+		if only_in_red > 0 and only_in_blue > 0:
+			print("OK  danger zone is per-faction (blue-only=%d, red-only=%d tiles)" % [
+				only_in_blue, only_in_red])
+			passed += 1
+		else:
+			print("FAIL danger zone perspective: blue-only=%d red-only=%d" % [
+				only_in_blue, only_in_red])
+			failed += 1
+
 	# All player units should be READY at start
 	if gs:
 		var all_ready := true

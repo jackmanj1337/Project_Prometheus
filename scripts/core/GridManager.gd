@@ -503,24 +503,24 @@ func show_heal_overlay(tiles: Array[Vector2i]) -> void:
 # The full threat area of every living, attack-capable enemy: each tile an enemy
 # could move to (plus staying put) AND the attack range from each of those tiles
 # (#11) — not just the attack range from where the enemy currently stands.
-func get_enemy_danger_tiles() -> Array[Vector2i]:
-	# M14 stage 2: "danger" still means "tiles a unit hostile to blue can hit",
-	# since the cursor's danger-zone toggle is player-facing. Stage 3 will let a
-	# hotseat MapCursor parameterise this with the cursor's controlling faction;
-	# until then the literal "blue" is the player's faction id.
+#
+# `viewer_faction` is the faction from whose perspective "danger" is measured.
+# Defaults to "blue" so existing single-player callers stay valid; the cursor
+# passes its _controlling_faction so a hotseat green player sees green's
+# threats, not blue's (code review 2026-06-10 issue 2.4).
+func get_enemy_danger_tiles(viewer_faction: String = "blue") -> Array[Vector2i]:
 	var seen: Dictionary = {}
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	for u in _get_units():
 		if not ("team" in u):
 			continue
-		# Hostile-to-blue filter. Skip blue (and any ally in blue's alliance group).
-		var is_hostile_to_blue: bool
+		var hostile: bool
 		if gs != null and gs.has_method("are_hostile"):
-			is_hostile_to_blue = gs.are_hostile("blue", u.team)
+			hostile = gs.are_hostile(viewer_faction, u.team)
 		else:
-			# Headless fallback — preserves stage-1 binary behaviour
-			is_hostile_to_blue = (u.team == "red")
-		if not is_hostile_to_blue:
+			# Headless fallback — different team string = hostile (stage-1 binary).
+			hostile = u.team != viewer_faction
+		if not hostile:
 			continue
 		if u.data == null or u.data.hp <= 0:
 			continue
@@ -540,12 +540,12 @@ func get_enemy_danger_tiles() -> Array[Vector2i]:
 	return out
 
 
-# Paints the enemy danger zone (see get_enemy_danger_tiles) onto the overlay.
-# Triggered via MapCursor's show_danger_zone toggle / middle mouse.
-func show_enemy_danger_zone() -> void:
+# Paints the danger zone for `viewer_faction` (see get_enemy_danger_tiles) onto
+# the overlay. Triggered via MapCursor's show_danger_zone toggle / middle mouse.
+func show_enemy_danger_zone(viewer_faction: String = "blue") -> void:
 	if _overlay == null:
 		return
-	_paint_overlay(get_enemy_danger_tiles(), OVERLAY_DARK_RED)
+	_paint_overlay(get_enemy_danger_tiles(viewer_faction), OVERLAY_DARK_RED)
 
 
 # Clears every painted overlay tile. Called between selection states and at phase change.

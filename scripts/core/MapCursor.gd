@@ -302,7 +302,10 @@ func _toggle_danger_zone() -> void:
 		_grid.clear_overlays()
 		_danger_zone_shown = false
 	else:
-		_grid.show_enemy_danger_zone()
+		# Paint from the perspective of the active controlling faction so a
+		# hotseat green player sees green's threats, not blue's (code review
+		# 2026-06-10 issue 2.4).
+		_grid.show_enemy_danger_zone(_controlling_faction)
 		_danger_zone_shown = true
 
 
