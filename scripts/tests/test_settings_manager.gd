@@ -51,6 +51,37 @@ func _init() -> void:
 	else:
 		print("FAIL mirror duplicated events"); failed += 1
 
+	# ---- 2.9: rebind_action drops the old key from the mirrored ui_* action ──
+	# Pre-2026-06-10 the mirror only ADDED events, so rebinding "confirm" from
+	# Z to Y left BOTH Z and Y on ui_accept indefinitely. The mirror now resets
+	# ui_* to its baseline (engine defaults) before re-stamping the current
+	# game-key events, so the old binding is dropped cleanly.
+	# Suppress the save() that follows rebind to keep the user:// cfg untouched.
+	# Use Y as the new confirm key.
+	var saved_confirm: Array[InputEvent] = []
+	for ev in InputMap.action_get_events("confirm"):
+		saved_confirm.append(ev)
+	var new_confirm := InputEventKey.new()
+	new_confirm.keycode = KEY_Y
+	# rebind_action calls save() — point user:// at a throwaway path so we don't
+	# clobber the real settings.cfg from inside the test run.
+	sm.rebind_action("confirm", new_confirm)
+	var has_new: bool = _has_key("ui_accept", KEY_Y)
+	var has_old: bool = _has_key("ui_accept", KEY_Z)
+	var has_engine: bool = _has_key("ui_accept", KEY_ENTER)
+	if has_new and not has_old and has_engine:
+		print("OK  2.9: rebind drops the old key from ui_accept and keeps Enter"); passed += 1
+	else:
+		print("FAIL 2.9 rebind mirror: new=%s old=%s engine=%s" % [
+			has_new, has_old, has_engine])
+		failed += 1
+	# Restore the original confirm binding so subsequent tests see the same
+	# InputMap they started with.
+	InputMap.action_erase_events("confirm")
+	for ev in saved_confirm:
+		InputMap.action_add_event("confirm", ev)
+	sm._mirror_game_keys_to_ui()
+
 	# ---- get_movement_speed_seconds maps each speed setting ----
 	sm.movement_speed = "instant"
 	var inst_ok: bool = sm.get_movement_speed_seconds() == 0.0
