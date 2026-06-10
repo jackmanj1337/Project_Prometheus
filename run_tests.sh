@@ -1,39 +1,23 @@
 #!/usr/bin/env bash
-# Run all GDScript tests; exit 1 if any fail
+# Run all GDScript tests; exit 1 if any fail.
+#
+# Test discovery is glob-based (code review 2026-06-10 issue 2.2): every
+# scripts/tests/test_*.gd is picked up automatically and run in sorted order.
+# Prior to this, the list was hand-maintained and five test files (~40 assertions)
+# had drifted off the array.
+#
+# A new test file lands in CI as soon as it's added to scripts/tests/. If you
+# need a specific order (e.g. one test must run before another due to user://
+# state), prefix its filename — sorted ASCII order is stable.
 cd "$(dirname "$0")"
-TESTS=(
-  test_data_layer
-  test_grid_manager
-  test_map_grid
-  test_game_map_scene
-  test_unit_stats
-  test_unit_selection
-  test_targeting
-  test_combat
-  test_enemy_ai
-  test_skill_item_handler
-  test_snapshot_coverage
-  test_map_cursor
-  test_map_cursor_selection
-  test_map_cursor_input
-  test_turn_manager
-  test_game_state
-  test_data_manager
-  test_action_menu
-  test_map_menu
-  test_settings_manager
-  test_settings_screen
-  test_new_game_screen
-  test_unit_details_screen
-  test_hud
-  test_level_up_screen
-  test_promotion_screen
-  test_reclass_screen
-  test_pair_up_registry
-  test_pair_up_combat_context
-  test_pair_up_bonus_resolver
-  test_map_950_promotion_validation
-)
+TESTS=()
+while IFS= read -r f; do
+  TESTS+=("$(basename "$f" .gd)")
+done < <(find scripts/tests -maxdepth 1 -name 'test_*.gd' -type f | sort)
+if [[ ${#TESTS[@]} -eq 0 ]]; then
+  echo "FAIL: no test files found under scripts/tests/"
+  exit 1
+fi
 fail_count=0
 for t in "${TESTS[@]}"; do
   out=$(godot --headless --path . --script "res://scripts/tests/$t.gd" 2>&1)
