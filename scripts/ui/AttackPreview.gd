@@ -53,6 +53,10 @@ const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
 const INFO_COLUMN_MIN_WIDTH: float = 260.0
 const PANEL_DEFAULT_HEIGHT: float = 170.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
+# Horizontal slack subtracted from the forecast column when deciding whether a
+# name fits on one line, so the ellipsis never butts right against the edge.
+const NAME_FIT_PADDING_X: float = 6.0
+const NAME_ELLIPSIS: String = "…"
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
@@ -70,6 +74,12 @@ var _entries: Array = []
 # Index into _entries for the currently displayed side-panel entry. -1 means
 # nothing is selected yet — InfoHint is visible and InfoDescription is empty.
 var _current_index: int = -1
+
+# Full, untruncated combatant names captured each show_preview(). The name rows
+# may be shortened with an ellipsis to fit their column, so More Info reads from
+# these to always show the complete name.
+var _atk_full_name: String = ""
+var _def_full_name: String = ""
 
 
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
@@ -100,7 +110,11 @@ func show_preview(attacker: Node, defender: Node) -> void:
 
 	# ---- Attacker rows -----------------------------------------------
 	var atk_name: String = attacker.data.unit_name if attacker.data else "???"
-	_atk_name.text = _link("atk", "name", "Attacker", atk_name)
+	_atk_full_name = atk_name
+	# Name rows are one line; truncate with an ellipsis so a long name can't
+	# wrap and clip. The full name stays available through More Info.
+	_atk_name.text = _link("atk", "name", "Attacker",
+		_fit_name_to_column(atk_name, "", _atk_name))
 	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
 	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
 	_atk_hp.text  = _link("atk", "hp", "HP",
@@ -119,13 +133,17 @@ func show_preview(attacker: Node, defender: Node) -> void:
 
 	# ---- Defender rows -----------------------------------------------
 	var def_name_str: String = defender.data.unit_name if defender.data else "???"
+	_def_full_name = def_name_str
 	if p.get("defender_vantage", false):
 		# Vantage is annotated on the name so the player sees the strike-order
 		# change. The [Vantage] tag stays outside the [url] to keep the link
-		# meta clean.
-		_def_name.text = _link("def", "name", "Defender", def_name_str) + "  [Vantage]"
+		# meta clean, and its width is reserved so it survives name truncation.
+		var vantage_suffix: String = "  [Vantage]"
+		_def_name.text = _link("def", "name", "Defender",
+			_fit_name_to_column(def_name_str, vantage_suffix, _def_name)) + vantage_suffix
 	else:
-		_def_name.text = _link("def", "name", "Defender", def_name_str)
+		_def_name.text = _link("def", "name", "Defender",
+			_fit_name_to_column(def_name_str, "", _def_name))
 	var def_hp_val: int = defender.data.hp if defender.data else 0
 	var def_hp_max: int = defender.data.max_hp if defender.data else 0
 	_def_hp.text = _link("def", "hp", "HP",
@@ -237,6 +255,32 @@ func _measure_forecast_row_height(label: RichTextLabel) -> float:
 	return ceilf(font.get_height(label.get_theme_default_font_size()) + FORECAST_ROW_PADDING_Y)
 
 
+# Shortens `name` with a trailing ellipsis so it plus `suffix` fits on one line
+# in a forecast column. RichTextLabel has no built-in overrun ellipsis, so we
+# measure against the column width and trim by hand. Returns the (possibly
+# truncated) name only — the caller re-wraps it in the [url] link and appends
+# any suffix. If the font can't be measured the full name is returned and the
+# label's clip falls back to a hard cut.
+func _fit_name_to_column(p_name: String, suffix: String, label: RichTextLabel) -> String:
+	var font: Font = label.get_theme_default_font()
+	if font == null:
+		return p_name
+	var font_size: int = label.get_theme_default_font_size()
+	var budget: float = FORECAST_COLUMN_MIN_WIDTH - NAME_FIT_PADDING_X
+	budget -= font.get_string_size(suffix, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	if font.get_string_size(p_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= budget:
+		return p_name
+	var ellipsis_w: float = font.get_string_size(NAME_ELLIPSIS, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var fitted: String = ""
+	for i in p_name.length():
+		var candidate: String = p_name.substr(0, i + 1)
+		if font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + ellipsis_w > budget:
+			break
+		fitted = candidate
+	# Drop a trailing space so the ellipsis reads as "Name…" not "Name …".
+	return fitted.strip_edges(false, true) + NAME_ELLIPSIS
+
+
 func _size_panel_to_content() -> void:
 	_panel.reset_size()
 	var min_size: Vector2 = _panel.get_combined_minimum_size()
@@ -271,7 +315,13 @@ func _on_entry_clicked(meta: Variant) -> void:
 func _show_entry(entry: Dictionary) -> void:
 	_info_title.text = String(entry["title"])
 	_info_hint.visible = false
-	_info_desc.text = MoreInfoContent.describe("combat_field", String(entry["key"]))
+	var desc: String = MoreInfoContent.describe("combat_field", String(entry["key"]))
+	# Name rows can be ellipsised in the column, so lead the description with the
+	# full name — this is where the player reads a name that didn't fit.
+	if String(entry["key"]) == "name":
+		var full_name: String = _atk_full_name if String(entry["side"]) == "atk" else _def_full_name
+		desc = "%s\n\n%s" % [full_name, desc]
+	_info_desc.text = desc
 
 
 # Advances through _entries. First press shows the first entry; subsequent

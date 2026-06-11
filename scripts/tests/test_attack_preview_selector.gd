@@ -253,6 +253,37 @@ func _init() -> void:
 		])
 		failed += 1
 
+	# ---- Long names truncate to one line but stay full in More Info -----
+	# A name wider than the forecast column must collapse to a single
+	# ellipsised line in the row (no wrap, no silent clip), while the full
+	# name remains readable by selecting the name entry.
+	var long_name := "Sir Reginald the Unfathomably Verbose"
+	attacker.data.unit_name = long_name
+	resolver.preview_data = _make_preview_data()
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var row_text: String = preview._atk_name.text
+	var trunc_ok: bool = (
+		preview._atk_name.autowrap_mode == TextServer.AUTOWRAP_OFF
+		and "…" in row_text
+		and not ("Verbose" in row_text)          # the overflowing tail is dropped
+		and preview._atk_name.get_line_count() == 1
+	)
+	preview._on_entry_clicked("combat_field:atk:name")
+	var info_ok: bool = long_name in preview._info_desc.text
+	# A short name must pass through untouched — no spurious ellipsis.
+	attacker.data.unit_name = "Hero"
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var short_ok: bool = not ("…" in preview._atk_name.text)
+	if trunc_ok and info_ok and short_ok:
+		print("OK  long names ellipsise in the row but show in full in More Info")
+		passed += 1
+	else:
+		print("FAIL name truncation: trunc_ok=%s info_ok=%s short_ok=%s row=%s desc=%s" \
+			% [trunc_ok, info_ok, short_ok, row_text, preview._info_desc.text])
+		failed += 1
+
 	# ---- show_preview without setup() is a safe no-op for positioning ---
 	# Re-render with no camera/grid injected; _reposition_for early-returns
 	# and the panel stays visible without crashing.
