@@ -53,12 +53,49 @@ The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase
 
 **Implementation order** (dependency-clean — `AGENT/Docs/design_decisions_log_2026-05-17.md`,
 Decision 10, revised by the 2026-05-26 M9a promotion): **M14 stages 1–3 → M16 →
-M14 stages 4–5 (+content) → M9a (engine) → M8 → M9b (content/data) → M10 → M11 →
-M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
+M14 stages 4–5 (+content) → [current playtest/bug-fix round] → **Display &
+Accessibility controls** (near-term, see section below) → M9a (engine) → M8 →
+M9b (content/data) → M10 → M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
 after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
 The 2026-05-25 milestone-lock review clarified open design choices for M8/M9/M15/maps;
 2026-05-26 explicitly promoted **M9a** ahead of M8 so the skill engine can land before
 bulk condition/content work.
+
+---
+
+## Near-Term — Display & Accessibility Controls
+
+Bumped up from the Phase 3 backlog (2026-06-11): scheduled to begin **immediately
+after the current playtest / bug-fix round wraps**, ahead of the remaining Phase 2
+content milestones. Grouped because they share UI-scaling and screen-space
+plumbing. Ordered cheapest-now-first where it ties, hardest-to-retrofit-first
+otherwise — see the per-item coupling notes for why the order matters.
+
+1. [ ] **Map zoom** — player-controlled camera zoom (scroll wheel / keys) per the
+      designed 0.75× / 1× / 1.5× levels in `GDD_01_Architecture.md` §Camera Zoom
+      (currently design-only — no code, no input actions). Cross-cutting: touches
+      `CameraController`, `MapCursor`, and every world-anchored overlay/UI (combat
+      preview, HP bars, future damage popups). **Do this first** — build the
+      `Camera2D.zoom` hook and a centralized tile↔screen conversion early; it gets
+      meaningfully harder to retrofit as more world-pinned UI is added. (There is
+      already one zoom-naive spot: `AttackPreview._reposition_for` offsets by a raw
+      32px tile rather than the on-screen tile size.)
+2. [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
+      picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
+      already uses `stretch/mode="canvas_items"`, so UI scales with the window
+      automatically; the open work is the picker UI, the fullscreen toggle, and a
+      non-16:9 aspect policy (`stretch/aspect`) so the ~84 absolute-offset nodes in
+      scenes don't break off-screen. Decide the aspect policy early.
+3. [ ] **Text / font size (accessibility)** — a Settings option to scale UI font
+      size independently of window resolution and panel layout. Cleanest as a
+      `Theme` default-font-size scalar applied at startup. Coupling note: every
+      fixed `custom_minimum_size` / fixed-width column (e.g. AttackPreview's 150px
+      forecast columns) is a text-clip risk at larger sizes — prefer content-sized
+      containers in new UI so this stays cheap to add.
+4. [ ] **UI layout scale & movement** — let the player scale and reposition HUD/menu
+      *panels* (panel layout only — text size is item 3 above). Likely a
+      `CanvasLayer` scale factor + saved offsets. Broadest/least-defined of the four;
+      fine to do last.
 
 ---
 
@@ -1699,28 +1736,10 @@ review under `AGENT/Code Reviews/`).
       buffer distance and scroll responsiveness. (The playtest bug list also
       asks for an adjustable camera buffer — see fix plan item #17; this backlog
       item is the broader settings-screen surface for it.)
-- [ ] **UI layout scale & movement** — let the player scale and reposition HUD/menu
-      *panels* (panel layout only — text size is its own item below). Likely a
-      `CanvasLayer` scale factor + saved offsets.
-- [ ] **Text / font size (accessibility)** — a Settings option to scale UI font
-      size independently of window resolution and panel layout. Cleanest as a
-      `Theme` default-font-size scalar applied at startup. Coupling note: every
-      fixed `custom_minimum_size` / fixed-width column (e.g. AttackPreview's 150px
-      forecast columns) is a text-clip risk at larger sizes — prefer content-sized
-      containers in new UI so this stays cheap to add.
-- [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
-      picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
-      already uses `stretch/mode="canvas_items"`, so UI scales with the window
-      automatically; the open work is the picker UI, the fullscreen toggle, and a
-      non-16:9 aspect policy (`stretch/aspect`) so the ~84 absolute-offset nodes in
-      scenes don't break off-screen.
-- [ ] **Map zoom** — player-controlled camera zoom (scroll wheel / keys) per the
-      designed 0.75× / 1× / 1.5× levels in `GDD_01_Architecture.md` §Camera Zoom
-      (currently design-only — no code, no input actions). Cross-cutting: touches
-      `CameraController`, `MapCursor`, and every world-anchored overlay/UI (combat
-      preview, HP bars, future damage popups). Build the `Camera2D.zoom` hook and a
-      centralized tile↔screen conversion early — this is the one that gets
-      meaningfully harder to retrofit as more world-pinned UI is added.
+- [ ] **Display & accessibility controls** (map zoom, display resolution, text/font
+      size, UI layout scale & movement) — **bumped up 2026-06-11**; now scheduled
+      right after the current playtest/bug-fix round. The four detailed items moved
+      to *Near-Term — Display & Accessibility Controls* under the Status Snapshot.
 - [ ] **Key rebinding UI** — the `SettingsScreen` keybinding list is currently
       read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
       already exists; this item is the capture UI that calls it. Originally
