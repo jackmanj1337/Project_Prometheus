@@ -53,6 +53,7 @@ const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
 const INFO_COLUMN_MIN_WIDTH: float = 260.0
 const PANEL_MIN_HEIGHT: float = 110.0
 const PANEL_DEFAULT_HEIGHT: float = 170.0
+const FORECAST_ROW_PADDING_Y: float = 4.0
 
 # Injected by MapCursor.setup() so the panel can read the defender's screen
 # position and ask the camera controller to pan when there is no room. All
@@ -152,6 +153,7 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		_def_triangle.text = _triangle_link("def", "neutral")
 		_def_effective.text = _effective_link("def", false, 1.0)
 
+	_refresh_forecast_row_heights()
 	_reset_info_panel()
 	_size_panel_to_content()
 	_reposition_for(defender)
@@ -216,6 +218,24 @@ func _reset_info_panel() -> void:
 	_info_title.text = "More Info"
 	_info_hint.visible = true
 	_info_desc.text = ""
+
+
+func _refresh_forecast_row_heights() -> void:
+	for label in _all_selectable_labels():
+		if label.text == "":
+			label.custom_minimum_size.y = 0.0
+			continue
+		# Forecast rows are authored as single-line values. Keep a stable
+		# one-line minimum height instead of letting fit_content drive the
+		# whole panel size from RichTextLabel internals.
+		label.custom_minimum_size.y = _measure_forecast_row_height(label)
+
+
+func _measure_forecast_row_height(label: RichTextLabel) -> float:
+	var font: Font = label.get_theme_default_font()
+	if font == null:
+		return 20.0
+	return ceilf(font.get_height(label.get_theme_default_font_size()) + FORECAST_ROW_PADDING_Y)
 
 
 func _size_panel_to_content() -> void:
