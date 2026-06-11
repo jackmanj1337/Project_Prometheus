@@ -51,7 +51,6 @@ const COLOR_EFFECTIVE    := "#eec84c"
 const PANEL_MARGIN_PX: int = 16
 const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
 const INFO_COLUMN_MIN_WIDTH: float = 260.0
-const PANEL_MIN_HEIGHT: float = 110.0
 const PANEL_DEFAULT_HEIGHT: float = 170.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
 
@@ -242,7 +241,12 @@ func _size_panel_to_content() -> void:
 	_panel.reset_size()
 	var min_size: Vector2 = _panel.get_combined_minimum_size()
 	min_size.x = maxf(min_size.x, FORECAST_COLUMN_MIN_WIDTH * 2.0 + INFO_COLUMN_MIN_WIDTH)
-	min_size.y = maxf(PANEL_MIN_HEIGHT, PANEL_DEFAULT_HEIGHT)
+	# Height is deliberately NOT taken from get_combined_minimum_size(): on the
+	# first show that height is still settling and reads inflated, and pinning it
+	# into offset_bottom freezes the over-tall panel. Seed a stable default and
+	# let PanelContainer's own minimum-size pass grow the panel to fit the rows
+	# (it already enforces its content minimum, so tall previews never clip).
+	min_size.y = PANEL_DEFAULT_HEIGHT
 	_panel.offset_right = _panel.offset_left + min_size.x
 	_panel.offset_bottom = _panel.offset_top + min_size.y
 

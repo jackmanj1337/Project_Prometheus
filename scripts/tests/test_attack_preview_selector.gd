@@ -226,6 +226,33 @@ func _init() -> void:
 		])
 		failed += 1
 
+	# ---- Tallest preview renders every row and fits the panel -----------
+	# Both sides showing weapon-triangle AND effectiveness is the maximum
+	# row count (7 per column). Guards the fit_content=false + row-height
+	# refresh path for the maximal case: all four optional rows must render
+	# with height, and the panel must be at least its own combined minimum
+	# so no row is clipped.
+	resolver.preview_data = _make_preview_data(true, false, true)
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var tall_min: Vector2 = preview._panel.get_combined_minimum_size()
+	var tall_ok: bool = (
+		preview._atk_triangle.size.y > 0.0
+		and preview._atk_effective.size.y > 0.0
+		and preview._def_triangle.size.y > 0.0
+		and preview._def_effective.size.y > 0.0
+		and preview._panel.size.y >= tall_min.y - 0.5
+	)
+	if tall_ok:
+		print("OK  tallest preview renders every row and fits the panel"); passed += 1
+	else:
+		print("FAIL tall preview clipped: panel=%s combined_min=%s atk_tri=%s atk_eff=%s def_tri=%s def_eff=%s" % [
+			str(preview._panel.size), str(tall_min),
+			str(preview._atk_triangle.size), str(preview._atk_effective.size),
+			str(preview._def_triangle.size), str(preview._def_effective.size),
+		])
+		failed += 1
+
 	# ---- show_preview without setup() is a safe no-op for positioning ---
 	# Re-render with no camera/grid injected; _reposition_for early-returns
 	# and the panel stays visible without crashing.
@@ -253,7 +280,8 @@ func _make_unit_data(unit_name: String, hp: int, max_hp: int):
 	return d
 
 
-func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false) -> Dictionary:
+func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false,
+		defender_effective: bool = false) -> Dictionary:
 	return {
 		"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
 		"attacker_attacks": 2,
@@ -265,7 +293,7 @@ func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false
 		"attacker_triangle": "advantage",
 		"defender_triangle": "disadvantage",
 		"attacker_effective": true,
-		"defender_effective": false,
+		"defender_effective": defender_effective,
 		"attacker_effectiveness_mult": 3.0,
-		"defender_effectiveness_mult": 1.0,
+		"defender_effectiveness_mult": 2.0 if defender_effective else 1.0,
 	}
