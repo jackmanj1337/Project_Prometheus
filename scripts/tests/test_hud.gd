@@ -264,7 +264,8 @@ func can_escape(_u: Node, _t: Vector2i) -> bool: return false
 	if not hud._terrain_desc.visible \
 			and not hud._terrain_moves.visible \
 			and not hud._terrain_actions.visible \
-			and hud._terrain_hint.visible:
+			and hud._terrain_hint.visible \
+			and not hud._terrain_more_panel.visible:
 		print("OK  terrain panel starts compact, hint visible"); passed += 1
 	else:
 		print("FAIL compact start: desc=%s moves=%s actions=%s hint=%s" \
@@ -279,7 +280,8 @@ func can_escape(_u: Node, _t: Vector2i) -> bool: return false
 	hud._terrain_expanded = true
 	hud._update_terrain(Vector2i(2, 2))
 	var expanded_ok: bool = (
-		hud._terrain_desc.visible
+		hud._terrain_more_panel.visible
+		and hud._terrain_desc.visible
 		and "Slows most ground units" in hud._terrain_desc.text
 		and hud._terrain_moves.visible
 		and "Foot" in hud._terrain_moves.text
@@ -342,10 +344,32 @@ func get_unit_at(_t: Vector2i): return null
 	hud._terrain_expanded = false
 	hud._update_terrain(Vector2i(0, 0))
 	if not hud._terrain_desc.visible and not hud._terrain_moves.visible \
-			and not hud._terrain_actions.visible and hud._terrain_hint.visible:
+			and not hud._terrain_actions.visible and hud._terrain_hint.visible \
+			and not hud._terrain_more_panel.visible:
 		print("OK  collapsing the panel restores the compact view"); passed += 1
 	else:
 		print("FAIL collapse: rows still visible"); failed += 1
+
+	# More Info is a separate, bounded, scrollable box — not part of the basic
+	# stats panel. The scroll caps the visible height so long terrain text
+	# scrolls instead of growing the panel off-screen.
+	var separate_ok: bool = (
+		hud._terrain_more_panel != hud._terrain_panel
+		and hud._terrain_desc.get_parent().get_parent() == hud._terrain_scroll
+		and hud._terrain_scroll.get_parent() == hud._terrain_more_panel
+	)
+	var bounded_ok: bool = (
+		hud._terrain_scroll.custom_minimum_size.y > 0.0
+		and hud._terrain_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED
+	)
+	if separate_ok and bounded_ok:
+		print("OK  More Info box is separate from the basic panel and scroll-bounded")
+		passed += 1
+	else:
+		print("FAIL more-info structure: separate=%s bounded=%s min_y=%s mode=%d" \
+			% [separate_ok, bounded_ok, str(hud._terrain_scroll.custom_minimum_size.y),
+				hud._terrain_scroll.vertical_scroll_mode])
+		failed += 1
 
 	more_unit.queue_free(); more_grid.queue_free()
 	wall_grid.queue_free(); more_turn.queue_free()

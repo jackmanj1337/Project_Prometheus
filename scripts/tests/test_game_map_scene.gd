@@ -97,8 +97,12 @@ func _init() -> void:
 	var hud := instance.get_node_or_null("HUDMainLayer/HUD")
 	if hud != null:
 		var hud_ok: bool = hud.mouse_filter == Control.MOUSE_FILTER_IGNORE
-		for panel in ["UnitInfoPanel", "TerrainInfoPanel"]:
-			var p := hud.get_node_or_null(panel)
+		# find_child (recursive) so the check survives the terrain panels being
+		# re-parented under the TerrainCorner stack. The new corner wrapper and
+		# the scrollable More Info box must also stay click-through.
+		for panel in ["UnitInfoPanel", "TerrainCorner", "TerrainInfoPanel",
+				"TerrainMoreInfoPanel", "Scroll"]:
+			var p := hud.find_child(panel, true, false)
 			if p != null and p.mouse_filter != Control.MOUSE_FILTER_IGNORE:
 				hud_ok = false
 		if hud_ok:
