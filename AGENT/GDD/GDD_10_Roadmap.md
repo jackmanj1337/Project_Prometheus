@@ -1699,10 +1699,28 @@ review under `AGENT/Code Reviews/`).
       buffer distance and scroll responsiveness. (The playtest bug list also
       asks for an adjustable camera buffer — see fix plan item #17; this backlog
       item is the broader settings-screen surface for it.)
-- [ ] **UI scale & movement** — let the player scale HUD/menu elements and
-      reposition them. Likely a `CanvasLayer` scale factor + saved offsets.
-- [ ] **Display resolution options** — windowed/fullscreen and resolution
-      picker in Settings, persisted to `settings.cfg`.
+- [ ] **UI layout scale & movement** — let the player scale and reposition HUD/menu
+      *panels* (panel layout only — text size is its own item below). Likely a
+      `CanvasLayer` scale factor + saved offsets.
+- [ ] **Text / font size (accessibility)** — a Settings option to scale UI font
+      size independently of window resolution and panel layout. Cleanest as a
+      `Theme` default-font-size scalar applied at startup. Coupling note: every
+      fixed `custom_minimum_size` / fixed-width column (e.g. AttackPreview's 150px
+      forecast columns) is a text-clip risk at larger sizes — prefer content-sized
+      containers in new UI so this stays cheap to add.
+- [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
+      picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
+      already uses `stretch/mode="canvas_items"`, so UI scales with the window
+      automatically; the open work is the picker UI, the fullscreen toggle, and a
+      non-16:9 aspect policy (`stretch/aspect`) so the ~84 absolute-offset nodes in
+      scenes don't break off-screen.
+- [ ] **Map zoom** — player-controlled camera zoom (scroll wheel / keys) per the
+      designed 0.75× / 1× / 1.5× levels in `GDD_01_Architecture.md` §Camera Zoom
+      (currently design-only — no code, no input actions). Cross-cutting: touches
+      `CameraController`, `MapCursor`, and every world-anchored overlay/UI (combat
+      preview, HP bars, future damage popups). Build the `Camera2D.zoom` hook and a
+      centralized tile↔screen conversion early — this is the one that gets
+      meaningfully harder to retrofit as more world-pinned UI is added.
 - [ ] **Key rebinding UI** — the `SettingsScreen` keybinding list is currently
       read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
       already exists; this item is the capture UI that calls it. Originally
