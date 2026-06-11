@@ -17,22 +17,10 @@ extends SceneTree
 # Tiny resolver stub so show_preview can pull a Dictionary without booting
 # the real CombatResolver autoload.
 class StubResolver extends Node:
+	var preview_data: Dictionary = {}
+
 	func preview_combat(_a: Node, _d: Node) -> Dictionary:
-		return {
-			"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
-			"attacker_attacks": 2,
-			"can_counter": true,
-			"defender_hit": 40, "defender_damage": 6, "defender_crit": 0,
-			"defender_attacks": 1,
-			"attacker_weapon": null, "defender_weapon": null,
-			"defender_vantage": false,
-			"attacker_triangle": "advantage",
-			"defender_triangle": "disadvantage",
-			"attacker_effective": true,
-			"defender_effective": false,
-			"attacker_effectiveness_mult": 3.0,
-			"defender_effectiveness_mult": 1.0,
-		}
+		return preview_data.duplicate(true)
 
 
 # Minimal Node2D-shaped unit so AttackPreview's .data and (skipped) screen-
@@ -50,6 +38,7 @@ func _init() -> void:
 	# show_preview's get_node_or_null("/root/CombatResolver") resolves it.
 	var resolver := StubResolver.new()
 	resolver.name = "CombatResolver"
+	resolver.preview_data = _make_preview_data()
 	root.add_child(resolver)
 
 	var packed := load("res://scenes/ui/AttackPreview.tscn")
@@ -68,6 +57,7 @@ func _init() -> void:
 	root.add_child(defender)
 
 	preview.show_preview(attacker, defender)
+	await process_frame
 	var panel_size_ok: bool = preview._panel.size.x >= 560.0 \
 		and preview._panel.size.x < root.get_visible_rect().size.x \
 		and preview._panel.size.y >= 110.0 \
@@ -77,6 +67,47 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL preview panel size: %s" % str(preview._panel.size))
+		failed += 1
+
+	# ---- Rendered forecast rows must receive visible height -------------
+	var forecast_rows: Array[RichTextLabel] = [
+		preview._atk_name, preview._atk_hp, preview._atk_dmg, preview._atk_hit,
+		preview._atk_crit, preview._atk_triangle, preview._atk_effective,
+		preview._def_name, preview._def_hp, preview._def_dmg, preview._def_hit,
+		preview._def_crit, preview._def_triangle,
+	]
+	var visible_height_failures: Array[String] = []
+	for label in forecast_rows:
+		if label.text == "":
+			continue
+		if label.size.y <= 0.0:
+			visible_height_failures.append("%s=%s" % [label.name, str(label.size)])
+	if visible_height_failures.is_empty():
+		print("OK  every non-empty forecast row receives visible height")
+		passed += 1
+	else:
+		print("FAIL zero-height forecast rows: %s" % ", ".join(visible_height_failures))
+		failed += 1
+
+	# ---- Forecast columns must stay distinct and inside the panel -------
+	var columns_ok: bool = (
+		preview._attacker_box.size.x > 0.0
+		and preview._defender_box.size.x > 0.0
+		and preview._info_box.size.x > 0.0
+		and preview._attacker_box.position.x + preview._attacker_box.size.x <= preview._defender_box.position.x
+		and preview._defender_box.position.x + preview._defender_box.size.x <= preview._info_box.position.x
+		and preview._info_box.position.x + preview._info_box.size.x <= preview._panel.size.x
+	)
+	if columns_ok:
+		print("OK  attacker, defender, and info columns stay separated inside the panel")
+		passed += 1
+	else:
+		print("FAIL column layout: atk=%s/%s def=%s/%s info=%s/%s panel=%s" % [
+			str(preview._attacker_box.position), str(preview._attacker_box.size),
+			str(preview._defender_box.position), str(preview._defender_box.size),
+			str(preview._info_box.position), str(preview._info_box.size),
+			str(preview._panel.size),
+		])
 		failed += 1
 
 	# ---- Each visible field is wrapped in a [url=combat_field:...] link ----
@@ -132,6 +163,7 @@ func _init() -> void:
 	# ---- Cycle: first press goes to the first entry (atk:name) ---------
 	# Reset by re-rendering — show_preview clears _current_index back to -1.
 	preview.show_preview(attacker, defender)
+	await process_frame
 	preview._cycle_more_info()
 	if preview._current_index == 0 \
 			and preview._info_title.text == "Attacker":
@@ -153,6 +185,7 @@ func _init() -> void:
 
 	# ---- Cycle visits every entry exactly once per loop -----------------
 	preview.show_preview(attacker, defender)  # reset to -1
+	await process_frame
 	var seen := {}
 	for _i in preview._entries.size():
 		preview._cycle_more_info()
@@ -168,13 +201,40 @@ func _init() -> void:
 			% [seen.size(), preview._entries.size()])
 		failed += 1
 
+	# ---- No-counter layout keeps the visible defender row readable ------
+	resolver.preview_data = _make_preview_data(false, true)
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var no_counter_ok: bool = (
+		preview._def_dmg.text == "[url=combat_field:def:damage]No counter[/url]"
+		and preview._def_dmg.size.y > 0.0
+		and preview._def_hit.text == ""
+		and preview._def_hit.size.y <= 0.0
+		and preview._def_crit.text == ""
+		and preview._def_crit.size.y <= 0.0
+		and preview._def_name.text.ends_with("  [Vantage]")
+	)
+	if no_counter_ok:
+		print("OK  no-counter preview keeps the visible defender row readable")
+		passed += 1
+	else:
+		print("FAIL no-counter layout: dmg=%s/%s hit=%s/%s crit=%s/%s name=%s" % [
+			preview._def_dmg.text, str(preview._def_dmg.size),
+			preview._def_hit.text, str(preview._def_hit.size),
+			preview._def_crit.text, str(preview._def_crit.size),
+			preview._def_name.text,
+		])
+		failed += 1
+
 	# ---- show_preview without setup() is a safe no-op for positioning ---
 	# Re-render with no camera/grid injected; _reposition_for early-returns
 	# and the panel stays visible without crashing.
+	resolver.preview_data = _make_preview_data()
 	preview._camera = null
 	preview._grid = null
 	preview._camera_ctrl = null
 	preview.show_preview(attacker, defender)
+	await process_frame
 	if preview.visible:
 		print("OK  show_preview is safe without camera injection"); passed += 1
 	else:
@@ -191,3 +251,21 @@ func _make_unit_data(unit_name: String, hp: int, max_hp: int):
 	d.hp = hp
 	d.max_hp = max_hp
 	return d
+
+
+func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false) -> Dictionary:
+	return {
+		"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
+		"attacker_attacks": 2,
+		"can_counter": can_counter,
+		"defender_hit": 40, "defender_damage": 6, "defender_crit": 0,
+		"defender_attacks": 1,
+		"attacker_weapon": null, "defender_weapon": null,
+		"defender_vantage": defender_vantage,
+		"attacker_triangle": "advantage",
+		"defender_triangle": "disadvantage",
+		"attacker_effective": true,
+		"defender_effective": false,
+		"attacker_effectiveness_mult": 3.0,
+		"defender_effectiveness_mult": 1.0,
+	}

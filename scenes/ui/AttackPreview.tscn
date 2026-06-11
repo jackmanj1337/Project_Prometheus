@@ -27,49 +27,49 @@ layout_mode = 2
 [node name="AtkName" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "Attacker"
 
 [node name="AtkHP" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "HP 0"
 
 [node name="AtkDmg" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "Dmg  0×1"
 
 [node name="AtkHit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "Hit  0%%"
 
 [node name="AtkCrit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "Crit 0%%"
 
 [node name="AtkTriangle" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
 [node name="AtkEffective" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
@@ -79,49 +79,49 @@ layout_mode = 2
 [node name="DefName" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "Defender"
 
 [node name="DefHP" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "HP 0"
 
 [node name="DefDmg" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = "No counter"
 
 [node name="DefHit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
 [node name="DefCrit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
 [node name="DefTriangle" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
 [node name="DefEffective" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
-fit_content = false
+fit_content = true
 scroll_active = false
 text = ""
 
