@@ -20,15 +20,20 @@ const TileActions     = preload("res://scripts/shared/TileActions.gd")
 @onready var _unit_class: Label = $UnitInfoPanel/VBox/UnitClass
 @onready var _unit_hp: Label = $UnitInfoPanel/VBox/UnitHP
 @onready var _unit_weapon: Label = $UnitInfoPanel/VBox/UnitWeapon
-@onready var _terrain_panel: PanelContainer = $TerrainInfoPanel
-@onready var _terrain_name: Label = $TerrainInfoPanel/VBox/TerrainName
-@onready var _terrain_coord: Label = $TerrainInfoPanel/VBox/TerrainCoord
-@onready var _terrain_def: Label = $TerrainInfoPanel/VBox/TerrainDef
-@onready var _terrain_dodge: Label = $TerrainInfoPanel/VBox/TerrainDodge
-@onready var _terrain_desc: RichTextLabel = $TerrainInfoPanel/VBox/TerrainDescription
-@onready var _terrain_moves: RichTextLabel = $TerrainInfoPanel/VBox/TerrainMoveCosts
-@onready var _terrain_actions: RichTextLabel = $TerrainInfoPanel/VBox/TerrainActions
-@onready var _terrain_hint: Label = $TerrainInfoPanel/VBox/TerrainHint
+# Basic stats box (always visible) lives in the bottom of the corner stack.
+@onready var _terrain_panel: PanelContainer = $TerrainCorner/TerrainInfoPanel
+@onready var _terrain_name: Label = $TerrainCorner/TerrainInfoPanel/VBox/TerrainName
+@onready var _terrain_coord: Label = $TerrainCorner/TerrainInfoPanel/VBox/TerrainCoord
+@onready var _terrain_def: Label = $TerrainCorner/TerrainInfoPanel/VBox/TerrainDef
+@onready var _terrain_dodge: Label = $TerrainCorner/TerrainInfoPanel/VBox/TerrainDodge
+@onready var _terrain_hint: Label = $TerrainCorner/TerrainInfoPanel/VBox/TerrainHint
+# Separate, scrollable More Info box that appears above the basic box when
+# expanded. The rows live inside its bounded ScrollContainer.
+@onready var _terrain_more_panel: PanelContainer = $TerrainCorner/TerrainMoreInfoPanel
+@onready var _terrain_scroll: ScrollContainer = $TerrainCorner/TerrainMoreInfoPanel/Scroll
+@onready var _terrain_desc: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainDescription
+@onready var _terrain_moves: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainMoveCosts
+@onready var _terrain_actions: RichTextLabel = $TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox/TerrainActions
 # Red "DEBUG MODE" banner — shown only in debug builds (see _setup_debug_banner).
 @onready var _debug_label: Label = $DebugLabel
 # M16 stage 4: objective readout for the current player (blue) — listed
@@ -269,6 +274,9 @@ func _update_terrain(tile: Vector2i) -> void:
 	if _terrain_expanded:
 		_render_terrain_expanded(tile, terrain)
 	else:
+		# Collapsed: hide the whole More Info box. Row visibilities are kept in
+		# sync too so anything reading them sees the off state.
+		_terrain_more_panel.hide()
 		_terrain_desc.visible = false
 		_terrain_moves.visible = false
 		_terrain_actions.visible = false
@@ -280,6 +288,7 @@ func _update_terrain(tile: Vector2i) -> void:
 # header. Description always shows when expanded — MoreInfoContent guarantees
 # a fallback string for unknown terrain ids.
 func _render_terrain_expanded(tile: Vector2i, terrain: String) -> void:
+	_terrain_more_panel.show()
 	_terrain_desc.text = MoreInfoContent.describe("terrain", terrain)
 	_terrain_desc.visible = true
 	_terrain_moves.text = _format_move_costs(terrain)
@@ -290,6 +299,9 @@ func _render_terrain_expanded(tile: Vector2i, terrain: String) -> void:
 	# means no unit is selected or no action gates fire on this tile.
 	_terrain_actions.visible = actions_text != ""
 	_terrain_hint.visible = false
+	# Start each tile's More Info at the top so a long previous tile doesn't
+	# leave the box scrolled past this tile's description.
+	_terrain_scroll.scroll_vertical = 0
 
 
 # Returns the BBCode block listing common movement-group costs for this
