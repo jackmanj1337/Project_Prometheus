@@ -118,8 +118,9 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
   `.gitignore`). Headless `--script` runs don't regenerate the cache, so
   any new `class_name` needs a manual entry committed alongside.
 - `export_presets.cfg` — Windows preset used for playtest builds.
-  Currently at `v0.1.4`; it excludes `AGENT/**` so internal documentation and
-  playtest screenshots are not packaged into tester builds.
+  Currently at `v0.1.4`; it excludes `AGENT/**`, `scripts/tests/**`, and
+  `scripts/tools/**` so internal documentation, screenshots, test harnesses,
+  and authoring tools are not packaged into tester builds.
 
 ## What's NOT tracked and what to do about it
 

@@ -32,11 +32,15 @@ func _init() -> void:
 			preset_name, export_path, product_version])
 		failed += 1
 
-	if "AGENT/**" in exclude_filter:
-		print("OK  internal AGENT documentation is excluded from exports")
+	var expected_excludes := ["AGENT/**", "scripts/tests/**", "scripts/tools/**"]
+	var excludes_ok := true
+	for expected in expected_excludes:
+		excludes_ok = excludes_ok and expected in exclude_filter
+	if excludes_ok:
+		print("OK  development-only files are excluded from exports")
 		passed += 1
 	else:
-		print("FAIL export preset packages internal AGENT documentation")
+		print("FAIL export preset packages development-only files: %s" % exclude_filter)
 		failed += 1
 
 	var packed := load("res://scenes/ui/MainMenu.tscn")
