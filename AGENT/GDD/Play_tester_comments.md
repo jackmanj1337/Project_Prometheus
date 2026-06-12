@@ -1,3 +1,9 @@
+# Historical Playtester Comments
+
+These are the raw May 2026 notes retained as evidence. They have been triaged
+into `AGENT/GDD/GDD_Manual_Tasks.md`; do not use this file as the current test
+plan. Use `AGENT/Docs/playtest_checklist_v0.1.4.md` for the current build.
+
 There are two maps labeled 001, please specify rout or faction demo
 Could not test for sieze or escape, as all maps are rout victory
 A "Exit to Main Menu" button would be nice

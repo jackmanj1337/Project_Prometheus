@@ -118,7 +118,8 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
   `.gitignore`). Headless `--script` runs don't regenerate the cache, so
   any new `class_name` needs a manual entry committed alongside.
 - `export_presets.cfg` — Windows preset used for playtest builds.
-  Currently at `v0.1.3`.
+  Currently at `v0.1.4`; it excludes `AGENT/**` so internal documentation and
+  playtest screenshots are not packaged into tester builds.
 
 ## What's NOT tracked and what to do about it
 
@@ -127,7 +128,7 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
 - `.import/` — Godot regenerates on first asset load.
 - `export.cfg`, `export_credentials.cfg` — local-only.
 - `builds/` — `.exe` artifacts. Re-export per
-  `playtest_checklist_v0.1.3.md` to reproduce.
+  `playtest_checklist_v0.1.4.md` to reproduce.
 - `.env` — API keys.
 
 If you cloned and these directories are missing, that's correct.
@@ -143,13 +144,13 @@ with Godot 4.6 + export templates installed):
 ```bash
 # Debug build (slightly larger, useful for testers)
 godot --headless --path . \
-    --export-debug "Project Prometheus v0.1.3" \
-    builds/Project_Prometheus_v0.1.3_debug.exe
+    --export-debug "Project Prometheus v0.1.4" \
+    builds/Project_Prometheus_v0.1.4_debug.exe
 
 # Release build
 godot --headless --path . \
-    --export-release "Project Prometheus v0.1.3" \
-    builds/Project_Prometheus_v0.1.3.exe
+    --export-release "Project Prometheus v0.1.4" \
+    builds/Project_Prometheus_v0.1.4.exe
 ```
 
 The preset name must match `export_presets.cfg[preset.0].name` exactly.
@@ -172,12 +173,11 @@ print as `FAIL <name>: ...` and exit non-zero.
 
 ## When you sit down at the new machine
 
-1. Read `AGENT/Session Notes/2026-06-09d.md` (most recent) and
-   `AGENT/Docs/handoff_2026-06-09d.md` for what to do next.
-2. Read `AGENT/Docs/playtest_checklist_v0.1.3.md` to know what was
-   shipped to testers and what's still open.
+1. Read the newest file in `AGENT/Session Notes/`.
+2. Read `AGENT/Docs/playtest_checklist_v0.1.4.md` to know what is
+   shipped to testers and what remains open.
 3. `bash run_tests.sh` to confirm the environment is clean.
-4. Pick a W6 item from the handoff doc and start.
+4. Continue from the plan recorded in the newest session note.
 
 ## Things that might trip you up
 

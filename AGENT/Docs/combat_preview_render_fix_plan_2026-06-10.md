@@ -1,5 +1,12 @@
 # Combat Preview Render Fix Plan - 2026-06-10
 
+## Status - Implemented for v0.1.4
+
+The forecast-row and panel-geometry fixes are implemented and covered by
+`test_attack_preview_selector.gd`. The v0.1.4 playtest checklist retains the
+manual `1280x720` and narrow-viewport checks because automated geometry tests
+cannot judge final readability.
+
 ## Evidence
 
 Latest screenshot:

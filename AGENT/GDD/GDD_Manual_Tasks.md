@@ -10,8 +10,9 @@ Use `AGENT/Docs/testing_guide.md` as the entry point for:
 - which validation maps cover what
 - when to update this file versus adding a headless test
 
-> Last verified against the project docs: 2026-05-29. Broad regression sweep +
-> detailed class/Pair Up/More Info/hotseat passes are pending below.
+> Updated for the v0.1.4 playtester build on 2026-06-12. Use
+> `AGENT/Docs/playtest_checklist_v0.1.4.md` for the release-focused pass;
+> the broader class/Pair Up/More Info/hotseat passes remain pending below.
 
 ---
 
@@ -235,7 +236,7 @@ Pair Up pass 1:
       live combat numbers improve versus the unpaired baseline
 	- please list a specific combination and what bonuses should be expected
 	- no bonuses noted during playtesting
-	- v0.1.3 baseline (`data/pair_up/pair_up_bonus_table.tres`): a Cavalier
+	- v0.1.4 baseline (`data/pair_up/pair_up_bonus_table.tres`): a Cavalier
 	  support contributes a flat `+1 Str / +1 Def / +1 Spd` to its lead,
 	  plus `floor(support.stat / 4)` to every scaling stat (Str, Mag, Skl,
 	  Spd, Def, Res, Lck). So a Cavalier with Str 12 / Spd 7 / Skl 4 adds
@@ -250,7 +251,7 @@ More Info / inspection mode:
 - [ ] Confirm the character sheet shows effective stat values plus the base /
       modifier / total breakdown without visual corruption
 	- playtester was unable to make any bonuses appear.
-	- v0.1.3: M950's Mercenary now carries a `Strength Tonic`. Use it to
+	- v0.1.4: M950's Mercenary carries a `Strength Tonic`. Use it to
 	  grant +4 Strength for 4 turns; inspect the unit to confirm the
 	  Strength breakdown shows `Base / +4 / Effective` and the modifier
 	  line shows `Strength Tonic +4 (4 turns)`.
@@ -323,14 +324,15 @@ flows verified only by headless tests, not by actual in-map play.
 - [ ] Fill a unit's equipped skill slots, then learn another class skill and
       confirm it is stored in `earned_skills` without being auto-equipped
 	- Unable to do this on a single map.
-	- v0.1.3: M950 now spawns `unit_12_hero_skill_cap` (Level-14 Hero with
-	  four skills already equipped). Leveling them to 15 earns Disarm; the
-	  unit must end with 4 equipped + 1 unequipped earned skill.
+	- v0.1.4 raises the default cap to five. M950's
+	  `unit_12_hero_skill_cap` starts with four equipped skills and earns
+	  Disarm at level 15, so it now verifies the fifth slot is filled. A
+	  separate six-skill fixture is still needed to live-test overflow.
 - [ ] With **Auto Promote** enabled on New Game, level a promotable unit to its
       class cap and confirm the promotion prompt appears automatically after the
       level-up flow finishes
 	- add a level 19 tier 1 unit to promotion validation map to test this
-	- v0.1.3: M950 now spawns `unit_11_lvl19_mercenary` (Level-19 Mercenary
+	- v0.1.4: M950 spawns `unit_11_lvl19_mercenary` (Level-19 Mercenary
 	  carrying a Master Seal) for exactly this case.
 - [ ] With **Auto Promote** disabled, level a promotable unit to its class cap
       and confirm no auto-prompt appears until a promotion item is used
