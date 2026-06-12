@@ -2,6 +2,8 @@
 
 Use this against the v0.1.4 build
 (`builds/Project_Prometheus_v0.1.4_debug.exe`).
+Artifact hash and source details are in
+`AGENT/Docs/playtest_build_v0.1.4.md`.
 
 This build includes every v0.1.3a check plus the June 10-12 fixes: visible and
 bounded combat forecasts, scroll-bounded terrain More Info, multi-faction
