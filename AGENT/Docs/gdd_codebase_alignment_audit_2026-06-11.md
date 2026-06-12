@@ -31,6 +31,23 @@ Recommended status labels used below:
 - **Update GDD:** The implementation is coherent and should become the documented rule.
 - **Reconcile:** Both sides contain useful intent; make an explicit decision first.
 
+## Settlement Addendum - 2026-06-11
+
+The review following this audit settled the code-facing recommendations:
+
+- P0-1 and P0-2 were implemented with regression tests.
+- M14 tactical scoring moved to a separate deferred AI task.
+- The M15 CLI/dev controller override was deferred; `Faction - Controller`
+  labels were implemented.
+- Flying movement remains planned for terrain movement-cost categories.
+- Rout is never implicit; affected wipe-failure maps now author it explicitly.
+- Defaults changed to 5 equipped skills and a 5-point follow-up threshold,
+  with future campaign override ownership recorded.
+- Current class WEXP caps default to A; explicit S-cap classes remain possible.
+- The Awakening corpus is external reference, has an adoption matrix, and uses
+  repository-relative links.
+- The misspelled content-expansion directories were renamed with references.
+
 ## P0: Behavior Violates Locked Decisions
 
 | ID | Difference | Evidence and risk | Recommendation |
@@ -120,13 +137,14 @@ Recommended status labels used below:
 | P1-38 | Normal class WEXP caps conflict with the project rank model. | Corpus class tables generally cap normal classes at A/250 while also preserving a global S/400 convention. Current project supports S rank and S-rank mastery in the live class/weapon system. | **Reconcile before importing classes.** Define whether S is globally reachable, class-limited, or special-only, then normalize imported class caps to that rule. |
 | P1-39 | Corpus Pair Up describes the full Awakening system as if implementation-ready. | It includes support scaling, Dual Strike, Dual Guard, and adjacent support. Current project only implements Pair Up pass 1 stat bonuses/actions; Dual Strike/Guard and forecast UI remain pending. | **Update corpus integration notes.** Add an adoption matrix showing implemented, planned, and intentionally omitted mechanics. |
 | P1-40 | Corpus links are not repository-portable. | `awakening_master_index.md` links to `sandbox:/mnt/data/...`, which is dead outside the generation environment. | **Update corpus.** Replace links with relative repository links. |
-| P2-9 | Content-expansion directory names contain persistent typos. | Active and archived directories use `New_Contet_expansion` and `Old-deffered`. This makes links and search terms error-prone. | **Reconcile carefully.** Rename only in a dedicated link-migration commit after locating every reference. This is low priority but should not become permanent public structure. |
+| P2-9 | Content-expansion directory names contain persistent typos. | At audit time the active and archived directories used `New_Contet_expansion` and `Old-deffered`. This made links and search terms error-prone. | **Reconcile carefully.** Rename only in a dedicated link-migration commit after locating every reference. This is low priority but should not become permanent public structure. |
 
 ## Verified Alignments
 
 The following high-risk areas were checked and currently agree:
 
-- Current follow-up threshold is 4 in both `GDD_02` and `GameConstants`.
+- At audit time, the follow-up threshold was 4 in both `GDD_02` and
+  `GameConstants`; the settlement addendum deliberately changes it to 5.
 - Current content counts for classes (24), skills (54), weapons (10), and registered
   maps (8) are otherwise consistent with the implementation baseline.
 - Explicit Escape action semantics in code match the post-2026-05-20 decision

@@ -32,7 +32,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 | M6 — Enemy AI | ✅ Basic complete | basic / passive / healer profiles; kill-score heuristic deferred to Phase 2 |
 | M7 — Full MVP Playthrough | ⏳ In progress | playtest 1 done; later playtests 2–4 follow-ups, Pair Up pass 1, and More Info phase 1 landed; fresh broad/manual regression sweep still pending |
 
-**Tests:** 35 suites in `scripts/tests/test_*.gd`. Run `bash run_tests.sh` in an existing checkout, or `bash scripts/ci/run_headless_tests.sh` for a fresh-clone/CI-style run.
+**Tests:** 36 suites in `scripts/tests/test_*.gd`. Run `bash run_tests.sh` in an existing checkout, or `bash scripts/ci/run_headless_tests.sh` for a fresh-clone/CI-style run.
 
 > **Amendments folded in.** The MVP amendments A1–A4 (Phase-2 data fields +
 > `ConditionManager`; modifier hooks; the combat context pipeline; grid skill-hook
@@ -448,7 +448,7 @@ GDD_01 (CombatResolver) and the `CombatResolver.gd` file header.
 - [ ] Implement `compute_damage(attacker, defender, weapon)` — includes weapon triangle; clamp min 0
 - [ ] Implement `compute_crit_rate(attacker, defender, weapon)` — clamp 0–100
 - [ ] Implement `can_counterattack(defender, attacker_tile)` — range check
-- [ ] Implement `get_follow_up_attacker(a, b)` — speed difference ≥ 4
+- [x] Implement `get_follow_up_attacker(a, b)` — speed difference >= 5
 - [ ] Implement `calculate_exp(attacker, defender, killed)`
 - [ ] Implement `_apply_weapon_triangle()` — ±10 accuracy, ±2 damage
 - [ ] Implement `_roll_hit(pct)` and `_roll_crit(pct)` — `randi() % 100 < pct`
@@ -459,7 +459,7 @@ GDD_01 (CombatResolver) and the `CombatResolver.gd` file header.
 - [ ] Verify: a unit with a bow equipped cannot attack a range-1 target (range_min = 2 check applies to weapon, not class)
 - [ ] Verify: weapon triangle advantage gives +10 accuracy and +2 damage
 - [ ] Verify: critical hit deals 3× damage
-- [ ] Verify: follow-up triggers when speed difference ≥ 4
+- [x] Verify: follow-up triggers when speed difference >= 5
 - [ ] Verify: defender with out-of-range weapon cannot counterattack
 - [ ] Verify: damage cannot go below 0
 

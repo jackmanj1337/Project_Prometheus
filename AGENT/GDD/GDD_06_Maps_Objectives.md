@@ -9,9 +9,9 @@ for map/objective behavior.
 
 ## Map System Overview
 
-Each map is a Godot **TileMapLayer** scene paired with a **MapData** resource.
-The TileMap defines the visual layout and terrain. The MapData resource defines
-objectives, faction setup, enemy placements, player start tiles, and rewards.
+Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
+string `grid` defines terrain and whose remaining fields define objectives,
+factions, placements, start tiles, camera start, and rewards.
 
 Maps are self-contained — adding a new map never requires code changes.
 
@@ -32,8 +32,8 @@ Create a single shared `TileSet` resource used by all maps.
 > art. Re-run that tool after sprite changes; the script also creates the
 > `terrain_type` custom data layer and assigns each tile's value.
 
-### TileMapLayer Setup Per Map
-Each map scene contains two TileMapLayers as children of `GameMap`:
+### Runtime TileMapLayer Setup
+The shared `GameMap` scene contains two TileMapLayers:
 
 1. `TileMapLayer_Terrain` — the actual map tiles; uses the shared TileSet
 2. `TileMapLayer_Overlay` — a second layer for movement/attack highlights;
@@ -130,11 +130,16 @@ one of the authored escape-zone tiles. Escaped units count as **alive** for
 
 - Victory for a group is the logical `AND` of that group's authored victory conditions.
 - Defeat for a group is the logical `OR` of that group's authored defeat conditions.
-- A group with no authored defeat list gets an implicit "group routed" defeat so
-  every group has a way to leave play.
+- Rout is never implicit. A group is eliminated only by an authored defeat
+  condition. Maps that should fail when a group has no living units must author
+  a `rout` defeat for that group.
 - If one group remains in play, it wins by last-group-standing even without an
   explicit victory condition.
 - If no groups remain in play, the map resolves as a draw.
+
+Explicit Rout is required because a zero-unit group may still be active while
+waiting for reinforcements, and timed or escape objectives can fail without any
+opposing units remaining.
 
 ---
 
@@ -146,7 +151,7 @@ class_name MapData extends Resource
 
 @export var id: String
 @export var display_name: String
-@export var tilemap_scene_path: String
+@export var tilemap_scene_path: String              # reserved; not instanced by current runtime
 @export var player_start_tiles: Array[Vector2i]
 @export var enemy_placements: Array[Dictionary]
 # enemy_placement dict: { "unit_data_path": String, "tile": Vector2i,
@@ -236,7 +241,7 @@ D = Desert     (+5 Dodge, move cost 2; cost 3 for armoured/mounted)
 | **Mountain S** | (9–10, 21–22) | Southern mountain cluster |
 | **Fort (player-side)** | (7, 6) | Players can use for HP recovery mid-map |
 | **Fort (E7)** | (38, 9) | Enemy E7 starts here |
-| **Fort / Throne (boss)** | (39, 12) | Enemy E8 (boss) starts here; heals every turn |
+| **Fort with throne art (boss)** | (39, 12) | Uses Fort runtime behavior; enemy E8 starts here and heals every turn |
 | **Desert belt** | Cols 20–36 rows 16–22 | Slows armoured and mounted units; thief/mage unaffected |
 | **Walled corner** | Cols 38–41 rows 4–5 | Impassable cliff; blocks northeast shortcut |
 
@@ -245,7 +250,7 @@ Auto-deployed in slot order (Unit_01 first):
 
 | Unit | Slot | Start Tile |
 |---|---|---|
-| Unit_01 (Soldier) | 1 | (1, 9) |
+| Unit_01 (Cavalier) | 1 | (1, 9) |
 | Unit_02 (Mercenary) | 2 | (1, 10) |
 | Unit_03 (Archer) | 3 | (1, 11) |
 | Unit_04 (Mage) | 4 | (2, 9) |
@@ -346,20 +351,18 @@ The objective-map followup authors four maps against the implemented
   per-map allowlist).
 - **Escape semantics — alive, removed from the board, no further actions
   this map.**
-- **Authored defeat standard — ≥1 authored defeat per map, beyond rout.** Every
-  Phase 3 objective map must declare at least one **authored** defeat condition
-  (e.g. `turn_limit`, `protect`, hold-the-tile failure) in addition to the
-  implicit "all units dead" rout fallback. The implicit rout condition is
-  satisfied by leaving a group's `defeat_conditions` list empty, but Maps
-  002–005 must *also* add at least one explicit entry.
+- **Authored defeat standard.** Every Phase 3 objective map declares at least
+  one authored defeat condition appropriate to that map, such as `turn_limit`
+  or `protect`. Rout is added explicitly only where a full wipe should itself
+  eliminate the group.
 
 ---
 
 ## Adding a New Map (Checklist)
 
-Two approaches are supported:
+The current runtime supports data-driven string-grid maps.
 
-### Data-driven (used for MVP `map_001`)
+### Data-driven
 The map layout lives in `MapData.grid`. No editor painting is required for
 terrain. To add a map this way:
 - [ ] Create `MapData.tres` with a `grid` string array using the legend `. F M T S D W`
@@ -370,16 +373,6 @@ terrain. To add a map this way:
 - [ ] Create enemy `UnitData` `.tres` files
 - [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
 
-### Editor-painted (heavier maps in Phase 2+)
-- [ ] Create folder `res://data/maps/map_XXX_name/`
-- [ ] Build TileMap scene in Godot editor using shared TileSet
-- [ ] Verify every tile has correct `terrain_type` custom data set
-- [ ] Create `MapData` resource, fill all fields
-- [ ] Create enemy `UnitData` `.tres` files for all enemies on this map
-- [ ] Reference enemy `.tres` paths in `MapData.enemy_placements`
-- [ ] Set `player_start_tiles` array
-- [ ] Set `victory_conditions` / `defeat_conditions`
-- [ ] Register map in the map select / campaign sequence `[PLACEHOLDER]`
-- [ ] Test: verify all tiles are passable/impassable as intended
-- [ ] Test: verify objective triggers correctly
-- [ ] Test: verify enemy placements load at correct tiles
+Editor-painted map scenes are not currently instanced. `tilemap_scene_path` is
+reserved schema only; implement and test that loading path before documenting
+editor-painted maps as supported.

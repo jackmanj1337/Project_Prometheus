@@ -6,7 +6,7 @@
 
 - The battlefield is a **square tile grid**
 - Tiles are navigated **orthogonally only** (no diagonal movement)
-- MVP map size: up to **30×30 tiles**; system supports up to ~50×50
+- Current authored maps are tested through **42×26 tiles**
 - Each tile has a **terrain type** that affects movement cost, defense, and dodge
 - Units occupy exactly **one tile** at a time
 - A tile can hold at most **one unit** (ally or enemy)
@@ -24,17 +24,17 @@ Use Godot's `Vector2i` for all tile positions. `(0, 0)` = top-left corner.
 | Plain | 0 | 0 | 1 | Standard |
 | Forest | +1 | +15 | 2 | |
 | Mountain | +2 | +20 | 3 | |
-| Fort / Throne | +2 | +30 | 1 | Unit heals 10% max HP per turn |
+| Fort | +2 | +30 | 1 | Unit heals 10% max HP per turn; throne visuals currently reuse Fort behavior |
 | Sea | 0 | +10 | 2 | |
 | Desert | 0 | +5 | 2 | Armoured/Mounted cost 3; Magic users/Thief line cost 1 |
 | Wall / Building | — | — | Impassable | Blocks movement |
 
 Terrain bonuses apply to **defending units only**. Attackers receive no terrain bonus.
 
-Flying units ignore movement cost penalties and can cross most terrain types.
-For MVP, **wall tiles remain impassable to all units including flying**. Per-map
-exceptions (e.g. flying units crossing walls on specific maps) can be designated
-in Phase 2 via a flag in `MapData`.
+Flying movement is **planned, not implemented**. It will use terrain-level
+movement-cost categories selected by the unit/class movement type; it will not
+be implemented as a unit special case that simply ignores terrain. Until that
+system lands, all units use the current terrain costs and walls remain impassable.
 
 ---
 
@@ -171,8 +171,11 @@ When a unit attacks, resolve the following **exchange sequence** in order:
 
 1. **Attacker's first attack**
 2. **Defender's counterattack** (only if target is within their equipped weapon's range)
-3. **Follow-up attack** — if one unit's Battle Speed is **4 or more** higher than the
+3. **Follow-up attack** — if one unit's Battle Speed is **5 or more** higher than the
    other's, that unit makes one additional attack
+
+The current default threshold is 5. A future campaign settings layer may
+override it for a campaign.
 
 > Both the follow-up check and the counterattack check happen at the **start** of
 > combat resolution — determine all attacks before resolving any of them.
@@ -224,6 +227,8 @@ Each unit tracks weapon proficiency as numeric totals per WEXP track:
 - A unit can only equip weapons at or below their current rank for that type
 - Class resources author WEXP baselines/caps; promotion and reclass raise a unit to at
   least the new class's authored baselines for any gained weapon tracks
+- WEXP gain stops at the active class's authored cap. Current classes default
+  to A; explicit S-cap classes may be added later.
 
 ---
 
@@ -234,7 +239,7 @@ Some actions end the turn; some do not.
 
 | Action | Ends Turn? | Notes |
 |---|---|---|
-| **Move** | No | Up to MOV tiles; can be undone unless unit revealed an enemy |
+| **Move** | No | Up to MOV tiles; can be undone until an action is committed |
 | **Attack** | Yes | Must have a valid target in weapon range |
 | **Staff** | Yes | Heal an allied unit in range; awards EXP and wEXP |
 | **Use Item** | Yes | Consumes one use of a healing/utility item |
@@ -325,12 +330,14 @@ The leveling method is chosen on the New Game screen and stored in
 > (50% per stat), and Dice Roll. These are Phase 2 refinements — the New Game screen
 > currently offers only Random and Fixed.
 
-### Growth Rates (per class)
+### Growth Rates
 
-`ClassData.growth_rates` is a Dictionary keyed by **full stat names** (not the
-abbreviations), values 0–100+:
+Growth dictionaries use **full stat names**. Blue units add personal
+`UnitData.growth_rates` to `ClassData.player_growth_rates`; non-blue generation
+uses `ClassData.enemy_growth_rates`.
 ```gdscript
-@export var growth_rates: Dictionary
+@export var player_growth_rates: Dictionary
+@export var enemy_growth_rates: Dictionary
 # e.g. { "hp": 75, "strength": 50, "magic": 5, "defense": 45,
 #         "resistance": 25, "skill": 50, "speed": 45, "luck": 40 }
 ```
@@ -339,13 +346,14 @@ abbreviations), values 0–100+:
 
 ## Class Promotion
 
-- Beorc units promote at **level 20** (or earlier with a promotion item)
-- At promotion: unit chooses one of two promoted class options
-- Promotion stat bonuses are added immediately
-- Promotion skill is granted automatically
-- Occult skill can be granted via Occult Scroll item (Phase 2)
-- Post-promotion levels are tracked separately; effective level = pre + post
-- Growth rates increase by 5% across all stats at promotion (if using growth rate method)
+- A unit may promote when it reaches its current class's `max_level` and has at
+  least one authored `promotes_to` option.
+- Promotion items use the same eligibility gate; they do not allow early promotion.
+- The player chooses an authored target class.
+- Promotion stat bonuses and WEXP baselines apply immediately.
+- Visible level resets to 1; broader progression is preserved in `internal_level`.
+- Promoted class skills are learned at their authored `skill_unlocks` levels.
+- Promotion does not add a blanket growth-rate bonus.
 
 ---
 
@@ -420,8 +428,8 @@ minimal condition schema were settled before M8 implementation begins.
 
 ## Gold and Economy
 
-- Each unit has their own gold pool stored in `UnitData`
-- Units start with **1,000 gold** at campaign start
+- The active economy uses the shared `GameState.party_gold` treasury.
+- Map rewards add to party gold once when the map resolves.
 - Gold is used to buy weapons and items at shops (Phase 2 — shop scenes)
 - Items can be sold for **½ their base value**, reduced proportionally by remaining uses:
   `sale_price = floor(base_cost * (uses_remaining / max_uses) / 2)`

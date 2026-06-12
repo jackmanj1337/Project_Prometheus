@@ -10,10 +10,9 @@ docs — this file links into them.
 > wins on milestone *content*; this file wins on *ordering*. Update the order
 > here when Decision 10 (or its successor) is revised.
 
-Last refreshed: **2026-05-26** against the current worktree (C1–C3 and M16 are
-shipped; M15 Part A core is landed with manual validation still pending in
-`GDD_Manual_Tasks.md`; the 2026-05-25 review locked the remaining open design
-choices for M8, M9, hotseat validation scope, and Maps 002–005 authoring).
+Last refreshed: **2026-06-11**. C1-C3 and M16 are shipped; M14 tactical target
+scoring is a separate deferred AI task. M15 Part A code/content and
+`Faction - Controller` labels are landed, with manual validation still pending.
 
 ---
 
@@ -41,9 +40,8 @@ choices for M8, M9, hotseat validation scope, and Maps 002–005 authoring).
 | C1 stage 1 | Faction-relative refactor (behaviour-neutral): `Unit.team` data rename `player→blue` / `enemy→red`; `controlling_faction` threaded through `MapCursor.setup` + slices with a `set_controlling_faction` setter for stage 5; `CombatResolver.is_player_initiated` → `attacker_faction: String`. 50+ test string literals flipped via sed. | commit `20ef18e`; suite 426 green |
 | C1 stage 2 | Alliance-group hostility model on `GameState` (`are_hostile(a, b)` + `get_alliance_group(id)`; defaults `{blue,green}/{red}/{yellow}`). Routes `GridManager` is_passable / dijkstra / get_attackable / get_healable + `MapCursorTargeting` attack/heal gates through it. New `GridManager._hostile` / `MapCursorTargeting._is_target_hostile` chokepoints with headless fallback to the strict same-team binary. | commit `c5c9c32`; +2 test_game_state cases |
 | C1 stage 3 | N-faction data + activation scheduler: new `FactionData` Resource (id, color, alliance_group, controller); `MapData` adds `factions` / `turn_order` / `activation_mode`; `GameState._units_by_faction` + `get_living_units_of()` (legacy `get_living_player/enemy_units` kept as wrappers); `TurnManager` rebuilt with `_turn_order` + `_active_faction_idx` + `_activation_mode`, mode-aware `_begin_phase` (Decision 9), `_advance_faction` (skips empties per Decision 2), new `end_alternating_activation` primitive. WHOLE_PHASE = today's behaviour; ALTERNATING tested via primitive. | commit `0c68254`; +8 test cases across test_game_state + test_turn_manager |
-| C2 stage 1 | `ObjectiveCondition` Resource + per-group `MapData.victory_conditions` / `defeat_conditions` dictionaries keyed by alliance group (Decision 8 / 2026-05-17). Single typed resource with type + per-type fields (faction_id, unit_ids, tiles, allowed_unit_ids, turns). Behaviour-neutral schema-only — evaluator still reads the legacy `objective_type`. | commit `316e509`; +3 test_data_layer |
-| C2 stage 2 | Generic per-group evaluator. `check_victory_conditions` rewritten: per-group condition lists (legacy translated to implicit blue-group conditions); per-group AND-victory / OR-defeat; implicit "group routed" default; ≤1-group-standing → last wins; 0 → draw → map_defeat. New `_group_eliminated_round` dict + `get_group_eliminated_round()` accessor for stage 4 standings. Internal `_group_routed` sentinel keeps `rout` semantics clean. | commit `badeec6`; +5 test_turn_manager |
-| C2 stage 3 | defeat_boss / seize / escape / survive condition evaluators. `_seize_records` + `_escape_records` runtime tracking. Public APIs `record_seize(unit)`, `record_escape(unit)`, `can_seize(unit, tile)`. ActionMenu `BtnSeize` button gated by `can_seize`; MapCursor handles `"seize"` action_chosen → records + finishes. Auto-escape on unit_moved into a zone. Escape-aware protect (escapees count as alive) + escape-aware group_routed (groups with any escapee aren't "wiped"). | commit `bd2d12e`; +3 test_action_menu, +7 test_turn_manager |
+| C2 stages 1-2 | Historical M16 foundation: typed per-group conditions and generic AND-victory / OR-defeat evaluation. The 2026-06-11 addendum removed the early `allowed_unit_ids` field and implicit `_group_routed` fallback; current Rout defeats are always authored. | commits `316e509`, `badeec6`; see 2026-06-11 alignment work |
+| C2 stage 3 | Defeat Boss / Seize / Escape / Survive evaluators and action flows. Current Escape is an explicit ActionMenu action, not automatic movement entry. Seize eligibility comes only from `UnitData.can_seize`. | commit `bd2d12e` plus later review fixes |
 | C2 stage 4 | Ranked-standings results screen + HUD objective readout. New `EventBus.map_resolved(winner_group, standings)` signal emitted alongside map_victory / map_defeat; `_build_standings` orders losers by elim-round DESC (stable). `GameOverScreen` renders standings; `HUD` has an ObjectivePanel listing blue's Win/Lose conditions from `ObjectiveCondition.get_display_text()`. | commit `8fed076`; +2 test_turn_manager, +1 test_data_layer, +2 test_hud |
 | C2 stage 5 | Decision 7 phase-boundary sweep on `start_enemy_phase` + `_map_over` chokepoint in `EnemyAI.run_enemy_phase` (bails between units when map is over). Legacy `objective_type` / `turn_limit` / `required_survivor_ids` / `objective_params` fields deleted from MapData; `_apply_legacy_conditions` / `_has_legacy_blue_conditions` deleted from TurnManager; HUD legacy translation deleted. `map_001_data.tres` migrated to `victory_conditions = {"allies": [rout()]}`. All legacy-field tests converted to authored conditions. | this commit; +1 test_turn_manager (phase-boundary sweep) |
 | C3 | M14 stages 4–5 completed: faction-driven AI loop (`run_ai_phase(faction)`), sequential non-blue AI dispatch in `TurnManager`, green/yellow spawn support via per-placement `faction` tags, faction-aware `PhaseBanner` + HUD labels from `FactionData`, authored faction color application on unit sprites, deterministic TurnManager AI-loop seam/tests, and C3 content resource `map_001_c3_factions_data.tres`. | commits `cca788d`, `bf0d9b1`, `8ea7429`; suite green (`test_enemy_ai` 20, `test_turn_manager` 47, `test_hud` 12, `test_unit_stats` 32) |
@@ -80,7 +78,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 | B7 ✅ | ~~`NewGameScreen._on_start` — guard scene change if `GameState` autoload missing~~ | — | Shipped 2026-05-20; commit `f92899d` |
 | B8 ✅ | ~~Carry-over Lows: UnitData comment wording; TurnManager "fort/throne"~~ | — | Shipped 2026-05-20; commit `f92899d`. HUD magic `0`, test comment, `_grid==null` guard items verified already done. |
 | B9 ✅ | ~~Tighten singleton-mutating tests~~ | — | Verified 2026-05-20: all three test files already restore unconditionally before assertions. No code change needed. |
-| B10 ⬜ | **Review and integrate `revised_classes_and_skills.md`.** A new 2567-line classes + skills reference (Awakening flavoured — base + promoted classes, stat caps, growth rates, skill descriptions for ~225 sections) landed in `AGENT/GDD/Content Expansion/`. Sits alongside the existing `classes.md`, `skills.md`, `awakening_classes_supplement.md`, `awakening_skills_supplement.md` — the word "revised" implies a supersession but is not declared. **Open question:** which existing docs does this replace vs. extend, and what does it imply for M9 (skill `effect_id`s), M11 (content expansion .tres authoring) and M13 (Awakening supplement)? Reconcile before M9 starts so the .tres data is authored against one source of truth, not four overlapping ones. | Do **before C5 (M9)**: M9 stamps `effect_id`s and `.tres` data into the codebase; doing so against a yet-to-be-reconciled spec is a guaranteed re-author. | `AGENT/GDD/Content Expansion/revised_classes_and_skills.md`; sibling docs in the same folder |
+| B10 ⬜ | **Reconcile the active Awakening reference corpus with the live project GDD.** The corpus is external reference, not project authority until a rule is adopted through a dated decision and GDD change. Maintain an implemented/planned/omitted adoption matrix before bulk M9/M11 authoring. | Do before bulk content import so reference mechanics do not silently replace project rules. | `AGENT/GDD/Content Expansion/New_Content_Expansion/` |
 
 ### Bucket C — Phase 2 milestones (Decision 10 order)
 
@@ -97,7 +95,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 |---|---|---|---|---|
 | C1 ✅ | ~~**M14 stages 1–3**~~ | ~~Replace hardcoded `"player"` with faction-relative concepts; alliance-group hostility helper; faction-as-data + activation-scheduler `TurnManager` (`WHOLE_PHASE`/`ALTERNATING`). **Behaviour-neutral.**~~ | — | Shipped 2026-05-20; commits `20ef18e` / `c5c9c32` / `0c68254`. See §1 + Session Notes 2026-05-20. Small stage-3 follow-ups (cursor branching on activation_mode, AI-faction dispatch from start_map non-blue path) fold into C3. |
 | C2 ✅ | ~~**M16 — Objective System**~~ | ~~Replace single `objective_type` with multi-condition victory/defeat per faction (Rout, Seize, Boss, Escape, Survive, Defend, Survivor-survives, …).~~ | — | Shipped 2026-05-20 across 5 stages; see §1 + Session Notes 2026-05-20. Decision 7 phase-boundary sweep + `_map_over` chokepoint live; legacy MapData fields removed. |
-| C3 ✅ | ~~**M14 stages 4–5 (+content)**~~ | ~~Faction-agnostic AI (`run_ai_phase(faction)`); green/yellow spawns + per-unit faction tags in `MapData`; `PhaseBanner` reads from faction data.~~ | C1, C2 (stage 4 AI reads M16 objective data) | Shipped 2026-05-21; commits `cca788d`, `bf0d9b1`, `8ea7429`. See §1 row and Session Notes 2026-05-21. |
+| C3 ✅ | ~~**M14 stages 4–5 (+content)**~~ | ~~Faction-agnostic AI dispatch; green/yellow spawns + per-unit faction tags; faction-driven phase UI.~~ | C1, C2 | Shipped 2026-05-21. Tactical target scoring is a separate deferred AI task. |
 | C4 ⬜ | **M9a — Skill Engine Slice** | Land the engine-facing half of M9 first: close the deferred `SkillHandler` dispatch arms and shared helpers against a minimal authored test set, without bulk `.tres` authoring. **Locked 2026-05-25:** strict trigger reuse (flags first); hybrid effect calc (dynamic for state/threshold, stored for static); Pair Up / Rescue fully deferred. | C3; B6 recommended | `GDD_10_Roadmap.md` § Milestone 9 |
 | C5 ⬜ | **M8 — Status Conditions** | Full `ConditionManager` (Poison/Sleep/Silence/Berserk/Stun); ticking at start of holder's **activation**; hooks in `TurnManager` / `CombatResolver` / `ActionMenu` / `EnemyAI` / `SkillHandler`; Restore staff + Panacea. **Locked 2026-05-25:** Poison floors at 1 HP by default (`can_be_lethal` opt-in); Berserk targets highest projected damage; Silence = tomes/staves only; condition records stay `{type, turns_remaining}`. | C3 and the initial M9a skill-engine slice; B2, B3 recommended | `GDD_10_Roadmap.md` § Milestone 8 |
 | C6 ⬜ | **M9b — Skill Content/Data** | Finish M9 by authoring and verifying the bulk deferred `effect_id` coverage and production skill `.tres` content on top of the locked M9a engine. | C4, C5 | `GDD_10_Roadmap.md` § Milestone 9 |
@@ -105,7 +103,7 @@ These are code-review followups whose natural slot is **before** a specific upco
 | C8 ⬜ | **M11 — Content Expansion** | All remaining classes / weapons / skills / items from the base handbook + Awakening supplement. | C7; B5 recommended | `GDD_10_Roadmap.md` § Milestone 11 |
 | C9 ⚫ | **M12 — Laguz System** `[DEFERRED]` | Shift gauge, Beast/Bird/Dragon tribes, transformed forms, brand items. Data fields already on `UnitData`/`ClassData`. | C8 | `GDD_10_Roadmap.md` § Milestone 12 |
 | C10 ⚫ | **M13 — Awakening Supplement** `[DEFERRED]` | Awakening classes (Lord/Bride/Dread Fighter/Manakete/etc), Pair-Up *data only* (logic explicitly out of scope), Awakening-only skills not covered in M9. | C9 | `GDD_10_Roadmap.md` § Milestone 13 |
-| C11 🟦 | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Local-only. Core code/content landed; remaining work is manual validation from the checklists in `GDD_Manual_Tasks.md`. **Locked 2026-05-25:** per-player keybinds skipped; assignment via per-map data + CLI override (no lobby UI); HUD label = `Faction — Controller`; `ALTERNATING` fully out of Part A. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
+| C11 🟦 | **M15 Part A — Hotseat** | Any non-blue faction can be human-controlled. Code/content and `Faction - Controller` labels landed; manual validation remains. Per-player keybinds and CLI/dev controller overrides are deferred; `ALTERNATING` remains out of Part A. | C3 | `GDD_10_Roadmap.md` § Milestone 15 |
 | C12 ⚫ | **M15 Part B — Remote Control** `[DEFERRED]` | Network-driven faction controller. Online design ratified 2026-05-17; build deferred. | C11 + Phase-3 mid-battle suspend save (Decision 10 / D14) | `GDD_10_Roadmap.md` § Milestone 15 |
 
 ### Bucket D — Cross-cutting obligation (release-gate, not order-gated)
@@ -124,13 +122,13 @@ Grouped exactly as in `GDD_10_Roadmap.md` § Phase 3 Backlog. No internal orderi
   `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`. Then land between-map
   save/load; mid-battle suspend save (pull forward with M15 Part B); fog of war +
   LoS; rescue and carry; additional AI profiles (territorial/guard_tile/healer/boss);
-  stationary weapon use; door/chest/key; pre-battle deployment screen; enforce
-  `GameState.max_skills` / `max_inventory`; review and productionize
+  stationary weapon use; door/chest/key; pre-battle deployment screen; finish
+  manual skill/inventory cap UI; review and productionize
   `AGENT/Docs/fe_map_sprite_importer_guide.md`.
 - **Maps** — Maps 002–005 are now authored against M16 and registered in the
   selector: one map per primary objective (Seize / Defeat Boss / Escape /
-  Survive-Defend), one primary objective each, ≥1 authored defeat condition
-  beyond rout, seize eligibility via per-unit `can_seize` tag, classic Escape
+  Survive-Defend), one primary objective each, authored defeat conditions,
+  seize eligibility via per-unit `can_seize` tag, classic Escape
   semantics (alive, removed, no further actions). Locked 2026-05-25, landed
   2026-05-26.
 - **Polish** — real sprites/tilesets/UI art; combat animations (then re-enable `SettingsManager.combat_animations`); skill activation FX; music + SFX; story + dialogue; release packaging (Steam / itch.io / GitHub).

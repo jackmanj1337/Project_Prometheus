@@ -1,9 +1,7 @@
 # GDD Assumptions — For Designer Review
 
-These are decisions made without explicit instruction, based on GBA Fire Emblem
-conventions (primarily The Blazing Blade / FE7). Review each item and override
-anything that doesn't match your vision. Each assumption notes which GDD file
-it affects.
+This is a historical record of assumptions made from GBA Fire Emblem
+conventions. Ratified decisions and the live GDD supersede entries where noted.
 
 ---
 
@@ -42,7 +40,7 @@ it affects.
 | 15 | Equipping a different weapon does not end the turn | Matches handbook rule | GDD_02 |
 | 16 | Moving is undoable until an action is taken | GBA FE convention; handbook says "unless unit reveals hidden enemy" — hidden enemies deferred to Phase 2 fog of war | GDD_02, GDD_07 |
 | 17 | End Turn requires confirmation if any player units haven't acted | QoL; prevents accidental early end of turn | GDD_07, GDD_09 |
-| 18 | Turn counter increments at the start of each Player Phase | Standard FE convention | GDD_02 |
+| 18 | **Superseded 2026-05-17:** turn counter increments once when the full faction cycle wraps | Ratified Decision 7 | GDD_02 |
 
 ---
 
@@ -70,7 +68,7 @@ it affects.
 | 29 | MVP uses 6 classes: Soldier, Mercenary, Archer, Mage, Cleric, Knight | Best spread of archetypes (tank, balanced melee, ranged physical, magic, healer, armored) | GDD_03 |
 | 30 | Default leveling method is growth rates assigned per class | Most common FE system; most interesting for long campaigns | GDD_02, GDD_03 |
 | 31 | Maximum inventory size is 8 slots per unit | The handbook has no hard limit; 8 is standard GBA FE and feels right | GDD_04 |
-| 32 | Maximum skills per unit is 4 | Matches handbook rule explicitly | GDD_05 |
+| 32 | **Superseded 2026-06-11:** default maximum equipped skills is 5; future campaigns may override it | Awakening-compatible project rule | GDD_05 |
 | 33 | Enemies use static stat blocks (base stats + growth formula) rather than random level-up rolls | Makes enemy stats predictable and designable; players can learn enemy patterns | GDD_06 |
 | 34 | Unit portraits are 64×64 pixels in the HUD | GBA FE used ~48×48; 64×64 fits the 1280×720 layout better | GDD_07 |
 | 35 | Dead units' UnitData is never deleted from the roster | Explicitly requested; enables future revival events and allows players to review fallen units | GDD_02 |

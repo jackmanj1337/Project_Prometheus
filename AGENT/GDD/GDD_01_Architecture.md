@@ -76,13 +76,14 @@ res://
 │   │   ├── thunder.tres
 │   │   ├── wind.tres
 │   │   └── heal_staff.tres
-│   ├── items/                     # 6 ItemData .tres files
+│   ├── items/                     # 7 ItemData .tres files
 │   │   ├── vulnerary.tres
 │   │   ├── elixir.tres
 │   │   ├── master_seal.tres
 │   │   ├── orion_bolt.tres
 │   │   ├── guiding_ring.tres
-│   │   └── second_seal.tres
+│   │   ├── second_seal.tres
+│   │   └── strength_tonic.tres
 │   ├── skills/                    # 54 SkillData .tres files
 │   │   ├── renewal.tres
 │   │   ├── vantage.tres
@@ -357,7 +358,7 @@ var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 var auto_promote_at_max_level: bool = false
 var pair_up_enabled: bool = true
-var max_skills: int = 4
+var max_skills: int = 5
 var max_inventory: int = 8
 
 # --- Debug-only testing aids ---
@@ -471,6 +472,8 @@ var mouse_cursor: String = "enabled"        # "enabled" | "disabled"
                                             # When "disabled", mouse motion does not
                                             # move the on-map cursor in any state.
                                             # Mouse clicks (confirm/cancel) still fire.
+var auto_end_turn: bool = true              # end phase when every acting unit is DONE
+var camera_edge_buffer: int = 2             # clamped 0-5 tiles
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup.
@@ -788,8 +791,8 @@ func get_effective_stat(stat_name: String) -> int
     # match a UnitData property exactly: "strength","magic","defense","resistance",
     # "skill","speed","luck","hp" — the FULL names, never "str"/"spd"/etc.
 func has_skill(skill_id: String) -> bool
-func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int
-func consume_skill_use(effect_id: String) -> void
+func get_skill_uses_remaining(skill_id: String, max_per_map: int) -> int
+func consume_skill_use(skill_id: String) -> void
 
 # Modifier lifecycle
 func add_modifier(stat, delta, source, duration, duration_type) -> void
@@ -983,7 +986,7 @@ var mastery_skills: Array[String] = []
 # Conditions — Array of Dictionaries; see GDD_02 status conditions
 @export var conditions: Array[Dictionary] = []
 
-@export var gold: int = 1000
+@export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold
 @export var is_incapacitated: bool = false  # permadeath flag
 @export var ai_profile: String = "basic"    # EnemyAI dispatch — see GDD_08
 @export var is_default_roster: bool = false # true for the 6 generated starter units
@@ -993,8 +996,8 @@ var mastery_skills: Array[String] = []
 #   { "stat": String, "delta": int, "source": String, "duration": int,
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
 # duration -1 or "permanent" type = never auto-removed.
-@export var active_modifiers: Array[Dictionary] = []
-var skill_use_counters: Dictionary = {}     # effect_id -> uses this map
+var active_modifiers: Array[Dictionary] = []
+var skill_use_counters: Dictionary = {}     # skill.id -> uses this map
 var damage_taken_this_map: int = 0          # used by Vengeance (M9)
 @export var growth_accumulators: Dictionary = {}   # carry-over for growth_fixed leveling
 
@@ -1004,8 +1007,8 @@ var damage_taken_this_map: int = 0          # used by Vengeance (M9)
 @export var shift_profile_id: String = ""
 ```
 
-> The non-`@export` fields (`tile_position`, `mastery_skills`, `skill_use_counters`,
-> `damage_taken_this_map`) are runtime state. `GameState`'s map snapshot copies them
+> The non-`@export` fields (`tile_position`, `mastery_skills`, `active_modifiers`,
+> `skill_use_counters`, `damage_taken_this_map`) are runtime state. `GameState`'s map snapshot copies them
 > by hand for Retry; a future `ResourceSaver`-based save must serialize them via that
 > snapshot dict (a `ResourceSaver` write does not persist non-exported vars).
 
@@ -1149,6 +1152,10 @@ func resolved_internal_level_rule() -> String
 func is_menu_visible() -> bool
 ```
 
+Each usable WEXP track has an authored class cap. Current classes default to
+the A-rank threshold (400 WEXP); special classes may explicitly author S-rank
+caps later. `Unit.add_wexp()` stops at the active class cap.
+
 ### `ItemData.gd`
 
 ```gdscript
@@ -1161,7 +1168,8 @@ class_name ItemData extends Resource
     # "healing" | "stat" | "promotion" | "equip" | "key" | "sellable"
 @export var uses: int = 1                 # -1 = infinite / equippable
 @export var cost: int = 0
-@export var effect_id: String = ""        # dispatched by ItemHandler ("heal_flat", "heal_full")
+@export var effect_id: String = ""
+    # ItemHandler: "heal_flat" | "heal_full" | "promote" | "reclass" | "stat_buff"
 @export var effect_params: Dictionary = {}
 ```
 
@@ -1231,8 +1239,9 @@ without restructuring.
 ### Design
 - The player zooms using the scroll wheel or dedicated keyboard shortcuts
 - Three discrete zoom levels: **0.75×** (zoomed out), **1×** (default), **1.5×** (zoomed in)
-- At 0.75× zoom: approximately 53×29 tiles visible — useful for tactical overview
-- At 1.5× zoom: approximately 27×15 tiles visible — useful for precise unit inspection
+- At 1280x720 with 64px tiles, 1x shows about 20x11 tiles.
+- At 0.75x zoom, the same viewport shows about 27x15 tiles.
+- At 1.5x zoom, it shows about 13x7 tiles.
 - Zoom is centered on the cursor's current tile, not the screen center
 - Camera clamping still applies at all zoom levels (no black space shown)
 - Pixel snapping (`Rendering/2D/Snap`) remains active at all zoom levels

@@ -8,11 +8,11 @@ A **Unit** is an individual character with a name, current stats, inventory, and
 A **Class** is a template that defines base stats, WEXP baselines/caps, growth tables,
 stat caps, skill unlocks, vulnerabilities, and promotion/reclass relationships.
 
-When a unit is created:
-1. Copy base stats from `ClassData` into a new `UnitData`
-2. Apply the unit's personal growth table / authored roster fields
-3. Seed class-line metadata, WEXP totals, and learned skills
-4. Grant any class skills that should already be known at the unit's current level
+Current roster and map units are authored `UnitData` `.tres` resources. At
+spawn, the resource is duplicated, placed on the map, and granted any class
+skills it should already know at its authored level. `ClassData` bases are
+available for future character/enemy generators and are used by progression,
+promotion, and reclass logic.
 
 When a unit levels up or promotes, `UnitData` is modified directly — the `ClassData`
 resource is referenced again for growths, caps, promotion bonuses, skill unlocks,
@@ -40,7 +40,7 @@ skills or items). They affect movement rules, combat interactions, and terrain.
 
 | Quality | Effect |
 |---|---|
-| `flying` | Ignores terrain movement costs; can cross most obstacles; weak to bow/wind |
+| `flying` | Identity/vulnerability tag. Flying movement costs remain planned for the terrain movement-category system |
 | `mounted` | Higher mobility / CON profile; future Canto-style remainder movement is still deferred |
 | `armoured` | Generally high DEF; affected by certain anti-armor weapons |
 | `dragon` | Affected by dragon-effective weapons |
@@ -309,6 +309,10 @@ To add a class:
 4. Add tests or extend validation maps if the class changes progression or equipment flow
 5. No code changes are required unless the class introduces a new mechanic
 
+Every usable weapon track must have an authored `weapon_wexp_caps` entry.
+Current classes use A rank (400 WEXP) as the default maximum; S rank remains
+available only for classes that explicitly opt into an S cap.
+
 ---
 
 ## Promotion and Reclass
@@ -338,18 +342,18 @@ The older single `promotion_skill` / `effective_level` model is deprecated.
 
 | Item | Eligible Classes |
 |---|---|
-| Master Seal | Any non-promoted Beorc (promotes before level 20) |
-| Knight Crest | Cavalier, Knight, Soldier |
-| Hero Crest | Brigand, Fighter, Mercenary, Myrmidon |
-| Guiding Ring | Bard, Cleric, Druid, Mage |
-| Orion's Bolt | Archer, Nomad |
-| Elysian Whip | Pegasus Knight, Wyvern Rider |
-| Fell Contract | Thief |
+| Master Seal | Any eligible unit at its current class maximum |
+| Orion Bolt | `allowed_classes = ["archer"]` |
+| Guiding Ring | `allowed_class_groups = ["mystic"]` |
+| Second Seal | Any unit with a legal reclass option |
 
 Store eligibility in each promotion item's `effect_params`:
 ```gdscript
-{ "eligible_classes": ["cavalier", "knight", "soldier"] }
+{ "allowed_classes": ["archer"] }
+{ "allowed_class_groups": ["mystic"] }
 ```
+
+Other handbook promotion items remain planned content and are not live resources.
 
 ---
 
@@ -359,9 +363,9 @@ Used when the player starts a new game or launches a default-roster validation m
 Six authored `UnitData` resources are loaded into `GameState.player_roster`. Each
 has `is_default_roster = true`.
 
-All units start at **level 1** with **1,000 gold** and the inventory listed below.
-Unlike the original MVP draft, the roster now ships with authored personal growths,
-equipped skills, and reclass options.
+All units start at **level 1** with the inventory listed below. Gold belongs to
+the shared party treasury, not the individual roster entry. The roster ships
+with authored personal growths, equipped skills, and reclass options.
 
 Save these as `.tres` files in `data/roster/default/` so they can be loaded
 directly by `GameState` without generating them in code.

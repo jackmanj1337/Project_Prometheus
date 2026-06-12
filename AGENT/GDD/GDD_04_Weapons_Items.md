@@ -95,12 +95,13 @@ Expand freely from the handbook weapon tables in Phase 2.
 
 ## Effectiveness Mechanic
 
-When a weapon has an `effective_*` tag matching a defending unit's special quality,
+When a weapon has an `effective_*` tag matching a defending unit's
+`ClassData.vulnerability_groups`,
 the weapon's Mt is treated as **3× its listed value** for damage calculation.
 
 ```gdscript
 var effective_mt = weapon.mt
-if weapon.effect_tags.has("effective_flying") and defender.has_quality("flying"):
+if weapon.effect_tags.has("effective_flying") and defender.has_vulnerability("flying"):
     effective_mt = weapon.mt * 3
 var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
 ```
@@ -117,7 +118,7 @@ not a silent miss.**
 
 | Tag | `GameConstants` constant | Effect |
 |---|---|---|
-| `effective_flying` | `TAG_EFFECTIVE_FLYING` | 3× Mt vs units with the `flying` quality |
+| `effective_flying` | `TAG_EFFECTIVE_FLYING` | 3× Mt vs the `flying` vulnerability |
 | `effective_armoured` | `TAG_EFFECTIVE_ARMOURED` | 3× Mt vs `armoured` |
 | `effective_mounted` | `TAG_EFFECTIVE_MOUNTED` | 3× Mt vs `mounted` |
 | `effective_dragon` | `TAG_EFFECTIVE_DRAGON` | 3× Mt vs `dragon` |
@@ -132,7 +133,7 @@ The effectiveness multiplier is **3×** normally, **4×** with the Giantkiller s
 |---|---|
 | 2 strikes before the counter (Brave weapons) | `strikes_per_attack = 2` |
 | Uses MAG, targets RES (tomes) | `uses_mag = true` |
-| Hybrid-weapon magic triangle | `magic_triangle_type` |
+| Hybrid-weapon magic triangle | `triangle_family` / `get_triangle_family()` |
 
 ### Designed but not yet implemented (Phase 2)
 
@@ -166,7 +167,7 @@ Stored in `data/items/` as `ItemData` resources.
 @export var item_type: String     # "healing", "stat", "promotion", "equip", "key", "sellable"
 @export var uses: int             # -1 = infinite / equippable
 @export var cost: int
-@export var effect_id: String     # dispatched by ItemHandler — MVP: "heal_flat" | "heal_full"
+@export var effect_id: String     # heal_flat | heal_full | promote | reclass | stat_buff
 @export var effect_params: Dictionary   # e.g. { "amount": 20 } for heal_flat
 ```
 
@@ -266,7 +267,8 @@ Equip items (uses = -1) sell for `floor(base_cost / 2)`.
 - Each unit has one inventory: `UnitData.inventory` — a flat `Array[InventoryEntry]`
 - Each entry's `entry_type` is `"weapon"`, `"item"`, or `"equip"` — slots interchange
 - **Limit:** 8 slots (`GameState.max_inventory`) — NOT yet enforced (no inventory UI)
-- Units can trade entries with adjacent allies on their turn (Trade action)
+- Trade is designed but not implemented; no current action moves inventory
+  entries between units.
 - Items and weapons cannot be used during the enemy phase
 
 ---

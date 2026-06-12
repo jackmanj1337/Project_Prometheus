@@ -17,7 +17,7 @@
 | `GDD_06_Maps_Objectives.md` | Map structure, terrain, objectives, MVP maps |
 | `GDD_07_UI_UX.md` | All UI screens and panels |
 | `GDD_08_Enemy_AI.md` | AI system design and extension hooks |
-| `GDD_09_Checklist.md` | Master implementation checklist (MVP — milestones M0–M7) |
+| `GDD_09_Checklist.md` | Historical MVP implementation checklist (milestones M0-M7) |
 | `GDD_10_Roadmap.md` | Phase 2 roadmap — milestones M8–M16 |
 | `GDD_10a_Overview.md` | One-screen ordered overview — every planned feature + deferred fix in recommended completion order; companion to GDD_10 |
 
@@ -25,9 +25,18 @@ Supporting documents (not numbered): `GDD_Assumptions.md` records design decisio
 made from GBA Fire Emblem convention; `GDD_Manual_Tasks.md` lists tasks that require
 the Godot editor and cannot be done by editing files.
 
-> GDD_01–GDD_09 have been resynced to the implementation — they describe the code
-> as built. GDD_10 is forward-looking. The MVP architectural amendments (A1–A4) that
-> were once tracked in a separate `GDD_updates.md` are now folded into GDD_01–GDD_09.
+### Documentation Authority
+
+When documents disagree, use this order:
+
+1. Ratified dated decisions and later addenda in `AGENT/Docs`.
+2. Current code and tests for shipped behavior, except where they violate a
+   ratified decision.
+3. `GDD_01` through `GDD_08` as the live design/implementation contract.
+4. `GDD_10_Roadmap.md` and `GDD_10a_Overview.md` for future work and status.
+5. `GDD_Assumptions.md` and `GDD_09_Checklist.md` as historical records.
+6. The Awakening corpus as external reference until a rule is explicitly
+   adopted into this GDD.
 
 ---
 
@@ -85,7 +94,7 @@ without requiring engine changes.
 - [PLACEHOLDER — Art pass]
 - [PLACEHOLDER — Audio]
 - **Mid-battle suspend save** — full battle state serialization; built on Phase 2 save infrastructure
-- Settings menu (keybindings, audio, gameplay options)
+- Settings expansion: key rebinding, display options, and accessibility controls
 - Steam / GitHub release preparation
 
 ---

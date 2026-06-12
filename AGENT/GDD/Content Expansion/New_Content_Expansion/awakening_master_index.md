@@ -1,6 +1,10 @@
 # Fire Emblem Awakening Technical Reference Corpus
 # Master Index
 
+> **Project authority notice:** This corpus is external Awakening reference
+> material. It does not override the numbered Project Prometheus GDD or dated
+> decisions. See [`project_adoption_matrix.md`](project_adoption_matrix.md).
+
 **File:** `awakening_master_index.md`  
 **Final Phase:** Master Index  
 **Corpus Version:** `1.0.0`  
@@ -56,18 +60,19 @@ The corpus is intentionally split into smaller markdown files to preserve:
 
 # Complete Document Links
 
-- [`awakening_project_index.md`](sandbox:/mnt/data/awakening_project_index.md) — Project Index
-- [`awakening_core_systems.md`](sandbox:/mnt/data/awakening_core_systems.md) — Core Systems
-- [`awakening_lookup_tables.md`](sandbox:/mnt/data/awakening_lookup_tables.md) — Canonical Lookup Tables
-- [`awakening_classes_base.md`](sandbox:/mnt/data/awakening_classes_base.md) — Base Classes
-- [`awakening_classes_promoted.md`](sandbox:/mnt/data/awakening_classes_promoted.md) — Promoted Classes
-- [`awakening_classes_special.md`](sandbox:/mnt/data/awakening_classes_special.md) — Special / NPC / Enemy / DLC Classes
-- [`awakening_skills.md`](sandbox:/mnt/data/awakening_skills.md) — Skill Encyclopedia
-- [`awakening_weapons_physical.md`](sandbox:/mnt/data/awakening_weapons_physical.md) — Weapon Encyclopedia — Physical Weapons
-- [`awakening_weapons_magic.md`](sandbox:/mnt/data/awakening_weapons_magic.md) — Weapon Encyclopedia — Magic, Staves, and Stones
-- [`awakening_items.md`](sandbox:/mnt/data/awakening_items.md) — Item Encyclopedia
-- [`awakening_archetypes.md`](sandbox:/mnt/data/awakening_archetypes.md) — Archetype Templates
-- [`awakening_appendices.md`](sandbox:/mnt/data/awakening_appendices.md) — Appendices
+- [`project_adoption_matrix.md`](project_adoption_matrix.md) — Project adoption status and authority boundary
+- [`awakening_project_index.md`](awakening_project_index.md) — Project Index
+- [`awakening_core_systems.md`](awakening_core_systems.md) — Core Systems
+- [`awakening_lookup_tables.md`](awakening_lookup_tables.md) — Canonical Lookup Tables
+- [`awakening_classes_base.md`](awakening_classes_base.md) — Base Classes
+- [`awakening_classes_promoted.md`](awakening_classes_promoted.md) — Promoted Classes
+- [`awakening_classes_special.md`](awakening_classes_special.md) — Special / NPC / Enemy / DLC Classes
+- [`awakening_skills.md`](awakening_skills.md) — Skill Encyclopedia
+- [`awakening_weapons_physical.md`](awakening_weapons_physical.md) — Weapon Encyclopedia — Physical Weapons
+- [`awakening_weapons_magic.md`](awakening_weapons_magic.md) — Weapon Encyclopedia — Magic, Staves, and Stones
+- [`awakening_items.md`](awakening_items.md) — Item Encyclopedia
+- [`awakening_archetypes.md`](awakening_archetypes.md) — Archetype Templates
+- [`awakening_appendices.md`](awakening_appendices.md) — Appendices
 
 ---
 
@@ -75,18 +80,18 @@ The corpus is intentionally split into smaller markdown files to preserve:
 
 | Topic | Document | Use |
 |---|---|---|
-| Project Index | [`awakening_project_index.md`](sandbox:/mnt/data/awakening_project_index.md) | Corpus overview, normalization assumptions, glossary, schemas, file map, dependency graph, versioning, and roadmap. |
-| Core Systems | [`awakening_core_systems.md`](sandbox:/mnt/data/awakening_core_systems.md) | Stat system, growths, levels, promotion, reclassing, WEXP, combat, Pair Up, enemy generation, child mechanics, effectiveness. |
-| Canonical Lookup Tables | [`awakening_lookup_tables.md`](sandbox:/mnt/data/awakening_lookup_tables.md) | Stats, weapon types, WEXP thresholds, movement types, terrain categories, vulnerability groups, effectiveness, multipliers, rank progression. |
-| Base Classes | [`awakening_classes_base.md`](sandbox:/mnt/data/awakening_classes_base.md) | All regular tier-1/base class definitions using normalized class schema. |
-| Promoted Classes | [`awakening_classes_promoted.md`](sandbox:/mnt/data/awakening_classes_promoted.md) | All regular promoted/tier-2 class definitions using normalized class schema. |
-| Special / NPC / Enemy / DLC Classes | [`awakening_classes_special.md`](sandbox:/mnt/data/awakening_classes_special.md) | Special, single-tier, transformation, NPC, enemy-only, boss-only, DLC, and placeholder classes. |
-| Skill Encyclopedia | [`awakening_skills.md`](sandbox:/mnt/data/awakening_skills.md) | All skills with category, trigger, formula, proc rate, stacking, AI usage, source classes, and hidden mechanics. |
-| Weapon Encyclopedia — Physical Weapons | [`awakening_weapons_physical.md`](sandbox:/mnt/data/awakening_weapons_physical.md) | Swords, lances, axes, and bows with rank, WEXP requirement, stats, durability, cost, sell value, effectiveness, and special effects. |
-| Weapon Encyclopedia — Magic, Staves, and Stones | [`awakening_weapons_magic.md`](sandbox:/mnt/data/awakening_weapons_magic.md) | Tomes, dark magic, staves, beaststones, and dragonstones with normalized schema. |
-| Item Encyclopedia | [`awakening_items.md`](sandbox:/mnt/data/awakening_items.md) | Healing items, consumables, valuables, seals, boosters, utility items, DLC items, and item formulas. |
-| Archetype Templates | [`awakening_archetypes.md`](sandbox:/mnt/data/awakening_archetypes.md) | Simulation-ready generic growth packages and role templates for unit/enemy generation. |
-| Appendices | [`awakening_appendices.md`](sandbox:/mnt/data/awakening_appendices.md) | Promotion graph, reclass graph, vulnerability matrix, effective damage matrix, inheritance legality, internal-level conversion, examples, DLC compatibility. |
+| Project Index | [`awakening_project_index.md`](awakening_project_index.md) | Corpus overview, normalization assumptions, glossary, schemas, file map, dependency graph, versioning, and roadmap. |
+| Core Systems | [`awakening_core_systems.md`](awakening_core_systems.md) | Stat system, growths, levels, promotion, reclassing, WEXP, combat, Pair Up, enemy generation, child mechanics, effectiveness. |
+| Canonical Lookup Tables | [`awakening_lookup_tables.md`](awakening_lookup_tables.md) | Stats, weapon types, WEXP thresholds, movement types, terrain categories, vulnerability groups, effectiveness, multipliers, rank progression. |
+| Base Classes | [`awakening_classes_base.md`](awakening_classes_base.md) | All regular tier-1/base class definitions using normalized class schema. |
+| Promoted Classes | [`awakening_classes_promoted.md`](awakening_classes_promoted.md) | All regular promoted/tier-2 class definitions using normalized class schema. |
+| Special / NPC / Enemy / DLC Classes | [`awakening_classes_special.md`](awakening_classes_special.md) | Special, single-tier, transformation, NPC, enemy-only, boss-only, DLC, and placeholder classes. |
+| Skill Encyclopedia | [`awakening_skills.md`](awakening_skills.md) | All skills with category, trigger, formula, proc rate, stacking, AI usage, source classes, and hidden mechanics. |
+| Weapon Encyclopedia — Physical Weapons | [`awakening_weapons_physical.md`](awakening_weapons_physical.md) | Swords, lances, axes, and bows with rank, WEXP requirement, stats, durability, cost, sell value, effectiveness, and special effects. |
+| Weapon Encyclopedia — Magic, Staves, and Stones | [`awakening_weapons_magic.md`](awakening_weapons_magic.md) | Tomes, dark magic, staves, beaststones, and dragonstones with normalized schema. |
+| Item Encyclopedia | [`awakening_items.md`](awakening_items.md) | Healing items, consumables, valuables, seals, boosters, utility items, DLC items, and item formulas. |
+| Archetype Templates | [`awakening_archetypes.md`](awakening_archetypes.md) | Simulation-ready generic growth packages and role templates for unit/enemy generation. |
+| Appendices | [`awakening_appendices.md`](awakening_appendices.md) | Promotion graph, reclass graph, vulnerability matrix, effective damage matrix, inheritance legality, internal-level conversion, examples, DLC compatibility. |
 
 ---
 
@@ -96,18 +101,18 @@ The corpus was authored in a strict dependency sequence.
 
 | Phase | Document | Title | Purpose | Depends On |
 |---|---|---|---|---|
-| Phase 0 | [`awakening_project_index.md`](sandbox:/mnt/data/awakening_project_index.md) | Project Index | Corpus overview, normalization assumptions, glossary, schemas, file map, dependency graph, versioning, and roadmap. | N/A |
-| Phase 1 | [`awakening_core_systems.md`](sandbox:/mnt/data/awakening_core_systems.md) | Core Systems | Stat system, growths, levels, promotion, reclassing, WEXP, combat, Pair Up, enemy generation, child mechanics, effectiveness. | Phase 0 |
-| Phase 2 | [`awakening_lookup_tables.md`](sandbox:/mnt/data/awakening_lookup_tables.md) | Canonical Lookup Tables | Stats, weapon types, WEXP thresholds, movement types, terrain categories, vulnerability groups, effectiveness, multipliers, rank progression. | Phases 0–1 |
-| Phase 3 | [`awakening_classes_base.md`](sandbox:/mnt/data/awakening_classes_base.md) | Base Classes | All regular tier-1/base class definitions using normalized class schema. | Phases 0–2 |
-| Phase 4 | [`awakening_classes_promoted.md`](sandbox:/mnt/data/awakening_classes_promoted.md) | Promoted Classes | All regular promoted/tier-2 class definitions using normalized class schema. | Phases 0–3 |
-| Phase 5 | [`awakening_classes_special.md`](sandbox:/mnt/data/awakening_classes_special.md) | Special / NPC / Enemy / DLC Classes | Special, single-tier, transformation, NPC, enemy-only, boss-only, DLC, and placeholder classes. | Phases 0–4 |
-| Phase 6 | [`awakening_skills.md`](sandbox:/mnt/data/awakening_skills.md) | Skill Encyclopedia | All skills with category, trigger, formula, proc rate, stacking, AI usage, source classes, and hidden mechanics. | Phases 0–5 |
-| Phase 7 | [`awakening_weapons_physical.md`](sandbox:/mnt/data/awakening_weapons_physical.md) | Weapon Encyclopedia — Physical Weapons | Swords, lances, axes, and bows with rank, WEXP requirement, stats, durability, cost, sell value, effectiveness, and special effects. | Phases 0–6 |
-| Phase 8 | [`awakening_weapons_magic.md`](sandbox:/mnt/data/awakening_weapons_magic.md) | Weapon Encyclopedia — Magic, Staves, and Stones | Tomes, dark magic, staves, beaststones, and dragonstones with normalized schema. | Phases 0–7 |
-| Phase 9 | [`awakening_items.md`](sandbox:/mnt/data/awakening_items.md) | Item Encyclopedia | Healing items, consumables, valuables, seals, boosters, utility items, DLC items, and item formulas. | Phases 0–8 |
-| Phase 10 | [`awakening_archetypes.md`](sandbox:/mnt/data/awakening_archetypes.md) | Archetype Templates | Simulation-ready generic growth packages and role templates for unit/enemy generation. | Phases 0–9 |
-| Phase 11 | [`awakening_appendices.md`](sandbox:/mnt/data/awakening_appendices.md) | Appendices | Promotion graph, reclass graph, vulnerability matrix, effective damage matrix, inheritance legality, internal-level conversion, examples, DLC compatibility. | Phases 0–10 |
+| Phase 0 | [`awakening_project_index.md`](awakening_project_index.md) | Project Index | Corpus overview, normalization assumptions, glossary, schemas, file map, dependency graph, versioning, and roadmap. | N/A |
+| Phase 1 | [`awakening_core_systems.md`](awakening_core_systems.md) | Core Systems | Stat system, growths, levels, promotion, reclassing, WEXP, combat, Pair Up, enemy generation, child mechanics, effectiveness. | Phase 0 |
+| Phase 2 | [`awakening_lookup_tables.md`](awakening_lookup_tables.md) | Canonical Lookup Tables | Stats, weapon types, WEXP thresholds, movement types, terrain categories, vulnerability groups, effectiveness, multipliers, rank progression. | Phases 0–1 |
+| Phase 3 | [`awakening_classes_base.md`](awakening_classes_base.md) | Base Classes | All regular tier-1/base class definitions using normalized class schema. | Phases 0–2 |
+| Phase 4 | [`awakening_classes_promoted.md`](awakening_classes_promoted.md) | Promoted Classes | All regular promoted/tier-2 class definitions using normalized class schema. | Phases 0–3 |
+| Phase 5 | [`awakening_classes_special.md`](awakening_classes_special.md) | Special / NPC / Enemy / DLC Classes | Special, single-tier, transformation, NPC, enemy-only, boss-only, DLC, and placeholder classes. | Phases 0–4 |
+| Phase 6 | [`awakening_skills.md`](awakening_skills.md) | Skill Encyclopedia | All skills with category, trigger, formula, proc rate, stacking, AI usage, source classes, and hidden mechanics. | Phases 0–5 |
+| Phase 7 | [`awakening_weapons_physical.md`](awakening_weapons_physical.md) | Weapon Encyclopedia — Physical Weapons | Swords, lances, axes, and bows with rank, WEXP requirement, stats, durability, cost, sell value, effectiveness, and special effects. | Phases 0–6 |
+| Phase 8 | [`awakening_weapons_magic.md`](awakening_weapons_magic.md) | Weapon Encyclopedia — Magic, Staves, and Stones | Tomes, dark magic, staves, beaststones, and dragonstones with normalized schema. | Phases 0–7 |
+| Phase 9 | [`awakening_items.md`](awakening_items.md) | Item Encyclopedia | Healing items, consumables, valuables, seals, boosters, utility items, DLC items, and item formulas. | Phases 0–8 |
+| Phase 10 | [`awakening_archetypes.md`](awakening_archetypes.md) | Archetype Templates | Simulation-ready generic growth packages and role templates for unit/enemy generation. | Phases 0–9 |
+| Phase 11 | [`awakening_appendices.md`](awakening_appendices.md) | Appendices | Promotion graph, reclass graph, vulnerability matrix, effective damage matrix, inheritance legality, internal-level conversion, examples, DLC compatibility. | Phases 0–10 |
 
 ## Dependency Graph
 
@@ -156,18 +161,18 @@ awakening_master_index.md <- all completed corpus documents
 
 | Order | Document | Title |
 |---:|---|---|
-| 1 | [`awakening_project_index.md`](sandbox:/mnt/data/awakening_project_index.md) | Project Index |
-| 2 | [`awakening_core_systems.md`](sandbox:/mnt/data/awakening_core_systems.md) | Core Systems |
-| 3 | [`awakening_lookup_tables.md`](sandbox:/mnt/data/awakening_lookup_tables.md) | Canonical Lookup Tables |
-| 4 | [`awakening_classes_base.md`](sandbox:/mnt/data/awakening_classes_base.md) | Base Classes |
-| 5 | [`awakening_classes_promoted.md`](sandbox:/mnt/data/awakening_classes_promoted.md) | Promoted Classes |
-| 6 | [`awakening_classes_special.md`](sandbox:/mnt/data/awakening_classes_special.md) | Special / NPC / Enemy / DLC Classes |
-| 7 | [`awakening_skills.md`](sandbox:/mnt/data/awakening_skills.md) | Skill Encyclopedia |
-| 8 | [`awakening_weapons_physical.md`](sandbox:/mnt/data/awakening_weapons_physical.md) | Weapon Encyclopedia — Physical Weapons |
-| 9 | [`awakening_weapons_magic.md`](sandbox:/mnt/data/awakening_weapons_magic.md) | Weapon Encyclopedia — Magic, Staves, and Stones |
-| 10 | [`awakening_items.md`](sandbox:/mnt/data/awakening_items.md) | Item Encyclopedia |
-| 11 | [`awakening_archetypes.md`](sandbox:/mnt/data/awakening_archetypes.md) | Archetype Templates |
-| 12 | [`awakening_appendices.md`](sandbox:/mnt/data/awakening_appendices.md) | Appendices |
+| 1 | [`awakening_project_index.md`](awakening_project_index.md) | Project Index |
+| 2 | [`awakening_core_systems.md`](awakening_core_systems.md) | Core Systems |
+| 3 | [`awakening_lookup_tables.md`](awakening_lookup_tables.md) | Canonical Lookup Tables |
+| 4 | [`awakening_classes_base.md`](awakening_classes_base.md) | Base Classes |
+| 5 | [`awakening_classes_promoted.md`](awakening_classes_promoted.md) | Promoted Classes |
+| 6 | [`awakening_classes_special.md`](awakening_classes_special.md) | Special / NPC / Enemy / DLC Classes |
+| 7 | [`awakening_skills.md`](awakening_skills.md) | Skill Encyclopedia |
+| 8 | [`awakening_weapons_physical.md`](awakening_weapons_physical.md) | Weapon Encyclopedia — Physical Weapons |
+| 9 | [`awakening_weapons_magic.md`](awakening_weapons_magic.md) | Weapon Encyclopedia — Magic, Staves, and Stones |
+| 10 | [`awakening_items.md`](awakening_items.md) | Item Encyclopedia |
+| 11 | [`awakening_archetypes.md`](awakening_archetypes.md) | Archetype Templates |
+| 12 | [`awakening_appendices.md`](awakening_appendices.md) | Appendices |
 
 ## Reading Strategy by Use Case
 

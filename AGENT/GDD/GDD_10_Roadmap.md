@@ -29,9 +29,10 @@ implemented after the MVP is stable. Each milestone produces a testable build.
 - The **Laguz System (M12)** is fully specced but marked `[DEFERRED]`. Its data
   fields already exist on `UnitData` / `ClassData` (folded in during the MVP), so no
   future resource refactoring is needed.
-- The **Pair Up mechanic** is explicitly out of scope. Pair Up skills (Dual Strike+,
-  Dual Guard+, Dual Support+) are content placeholders only — data resources may be
-  created, but their logic will not be implemented.
+- **Pair Up pass 1 is implemented:** pairing, stat bonuses, Pair Up/Swap/Separate
+  actions, campaign toggle, and snapshot persistence. Dual Strike, Dual Guard,
+  adjacent support, forecast integration, and related skills remain deferred
+  until explicitly scheduled.
 
 ---
 
@@ -811,11 +812,11 @@ errors. Verify every class, weapon, and skill appears correctly in the editor In
 - [ ] Create `WeaponData.tres` for all axes (Bronze through Urvan, including Bolt Axe,
       Brave Axe, Halberd, Hammer, Wyrm Axe, etc.)
 - [ ] Create `WeaponData.tres` for all bows (Bronze through Rienfleche, including
-      Bright Bow with `magic_triangle_type = "light"`, Double Bow with `range_min = 1`)
+      Bright Bow with `triangle_family = "light"`, Double Bow with `range_min = 1`)
 - [ ] Create `WeaponData.tres` for all lances (Bronze through Wishblade, including
-      Flame Lance with `magic_triangle_type = "fire"`, Brave Lance)
+      Flame Lance with `triangle_family = "fire"`, Brave Lance)
 - [ ] Create `WeaponData.tres` for all swords (Bronze through Vague Katti, including
-      Sonic Sword with `magic_triangle_type = "wind"`, Runesword with lifesteal tag,
+      Sonic Sword with `triangle_family = "wind"`, Runesword with lifesteal tag,
       Brave Sword)
 - [ ] Create `WeaponData.tres` for all knives (Bronze Knife through Peshkatz)
 - [ ] Create `WeaponData.tres` for all staves (Heal through Ashera Staff)
@@ -1205,6 +1206,11 @@ per-faction *controller*. All factions are AI-controlled in this milestone — h
 controllers are added in M15. The default configuration is the four armies **blue**
 (player), **green**, **red**, **yellow**, with turn order `blue → green → red → yellow`.
 
+> **Current state (2026-06-11):** The faction model, hostility rules,
+> per-faction dispatch, scheduler, data/content, and tests are complete.
+> Tactical target scoring by HP, strength, terrain danger, and objective
+> criticality is deferred to its own AI task and is not part of M14 completion.
+
 Full design rationale, the architecture-seam analysis, and the staged breakdown live
 in `AGENT/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
 stages 1–4 + content of that document.
@@ -1261,13 +1267,11 @@ policy drives an arbitrary-length cycle (see decisions log 2026-05-17, Decision 
 Building this data-driven is what makes a 5th+ faction pure data later (feasibility
 doc §9).
 
-### Stage 4 — Faction-agnostic AI
+### Stage 4 — Faction-agnostic AI Dispatch
 
-`EnemyAI.run_enemy_phase` becomes `run_ai_phase(faction)`, targeting *all hostile
-units* via the hostility model. The AI is **faction-blind**: it does not prefer a
-target by which army it is — every hostile unit is scored by combat factors (target
-HP / strength, terrain danger of the approach, a priority bump for units flagged
-objective-critical, i.e. a unit whose death is a blue defeat condition).
+`EnemyAI` runs for any AI-controlled faction and targets hostile units through
+the alliance model. Advanced tactical scoring (target HP/strength, terrain
+danger, and objective criticality) is a separate deferred AI task.
 
 ### Content & UX
 
@@ -1285,30 +1289,29 @@ alongside M14's green-objective content.
 
 ### Checklist — M14
 
-- [ ] Stage 1: replace literal `"player"` in `MapCursorSelection`,
+- [x] Stage 1: replace literal `"player"` in `MapCursorSelection`,
       `MapCursorTargeting`, `TurnManager`; suite stays green
-- [ ] Stage 1: `CombatResolver.is_player_initiated` → `is_initiator` / attacker faction
-- [ ] Stage 2: alliance-group hostility helper; default groups `{blue,green} {red} {yellow}`
-- [ ] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
-- [ ] Stage 3: faction defined as data (id, colour, alliance group, controller)
-- [ ] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
-- [ ] Stage 3: `TurnManager` rebuilt as an activation scheduler — primitive
+- [x] Stage 1: `CombatResolver.is_player_initiated` → `is_initiator` / attacker faction
+- [x] Stage 2: alliance-group hostility helper; default groups `{blue,green} {red} {yellow}`
+- [x] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
+- [x] Stage 3: faction defined as data (id, colour, alliance group, controller)
+- [x] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
+- [x] Stage 3: `TurnManager` rebuilt as an activation scheduler — primitive
       `activate_one_unit(faction)` + pluggable scheduling policy
-- [ ] Stage 3: `MapData.activation_mode` (`WHOLE_PHASE | ALTERNATING`, default
+- [x] Stage 3: `MapData.activation_mode` (`WHOLE_PHASE | ALTERNATING`, default
       `WHOLE_PHASE`); whole-phase + alternating policies; configurable per-map
       turn-order list, default `blue → green → red → yellow`; skips zero-unit factions
-- [ ] Stage 3: player controller branches on mode (whole-phase keeps End Turn;
+- [x] Stage 3: player controller branches on mode (whole-phase keeps End Turn;
       alternating returns control after one committed unit)
-- [ ] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
-- [ ] Stage 4: `run_ai_phase(faction)` / per-unit `activate_one_unit` for all hostile units
-- [ ] Stage 4: faction-blind AI target scoring (HP / strength / terrain danger /
-      objective-criticality)
-- [ ] Content: green + yellow spawns and per-unit faction tags in `MapData`
-- [ ] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
-- [ ] Verify: green attacks red/yellow, never blue; yellow attacks all
-- [ ] Verify: a map omitting green or yellow runs correctly (cycle skips it)
-- [ ] Verify: both activation modes run correctly (whole-phase and alternating)
-- [ ] New tests for the hostility model, both scheduling policies, and `run_ai_phase`
+- [x] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
+- [x] Stage 4: faction-agnostic AI dispatch for all hostile units
+- [ ] Separate tactical-AI task: HP / strength / terrain danger / objective-critical scoring
+- [x] Content: green + yellow spawns and per-unit faction tags in `MapData`
+- [x] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
+- [x] Verify: green attacks red/yellow, never blue; yellow attacks all
+- [x] Verify: a map omitting green or yellow runs correctly (cycle skips it)
+- [x] Verify: both activation modes run correctly (whole-phase and alternating)
+- [x] Tests for the hostility model, both scheduling policies, and AI dispatch
 
 ---
 
@@ -1325,14 +1328,13 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 
 ### Part A — Hotseat (shipping target)
 
-> **Current state (refreshed 2026-05-26).** Core Part-A implementation landed on
+> **Current state (refreshed 2026-06-11).** Core Part-A implementation landed on
 > 2026-05-21 (controller seam, `HotseatController`, generic phase commit flow,
 > cursor faction handoff, tests). The detailed build/test plan in
 > `AGENT/Docs/implementation_plan_2026-05-21.md` remains the reference for the
-> architecture and validation scope. Remaining Part-A work is:
-> 1. author the WHOLE_PHASE validation content / launch path,
-> 2. run the manual acceptance checklist in `AGENT/GDD/GDD_Manual_Tasks.md`,
-> 3. then mark checklist items complete where the live pass confirms them.
+> architecture and validation scope. The WHOLE_PHASE validation map/launch path
+> and `Faction - Controller` HUD/banner text are implemented. Remaining Part-A
+> work is the manual acceptance checklist in `AGENT/GDD/GDD_Manual_Tasks.md`.
 >
 > Part A is scoped to **WHOLE_PHASE maps only**; `ALTERNATING` hotseat remains
 > deferred. The `grant_extra_turn` checklist item below is still **blocked on M10**
@@ -1348,13 +1350,11 @@ implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.m
   deferred to the same later backlog item that picks up split-controller /
   shared-couch co-op. `WHOLE_PHASE` hotseat means only one player interacts at
   a time on one keyboard, so personal binds add no value yet.
-- **Hotseat assignment — per-map data + CLI/dev override.** A map's `.tres`
-  declares each faction's default controller (`AI` or `HOTSEAT`); a CLI/dev
-  flag (e.g. `--hotseat=red:human2,green:ai`) may override the defaults for
-  testing and regression fixtures. **No pre-battle lobby UI in Part A** — that
-  arrives with the prep/lobby work later.
-- **HUD controller label — `Faction — Controller` text.** The active phase
-  banner reads e.g. `Red — Player 2` or `Green — AI`. Faction-first matches
+- **Hotseat assignment — per-map data.** A map's `.tres` declares each
+  faction's controller (`AI` or `HOTSEAT`). The proposed CLI/dev override is
+  deferred. **No pre-battle lobby UI in Part A**.
+- **HUD controller label — `Faction - Controller` text.** The active phase
+  banner reads e.g. `Red - Player 2` or `Green - AI`. Faction-first matches
   the in-game identity; the controller half eliminates the "whose turn is it?"
   ambiguity for hotseat sessions. Icons are optional decoration but must not
   replace the text.
@@ -1387,9 +1387,8 @@ trivial; the real work is networking, and it splits into two distinct jumps.
 
 **Hotseat → LAN — the hard architectural jump** (one game instance becomes two that
 must agree):
-- *Sync model.* Choose lockstep (peers exchange only inputs, both run the sim) or
-  client-server (one authoritative host). Godot's `MultiplayerAPI` / ENet provides
-  the transport, not the model.
+- *Sync model.* Use the ratified host-authoritative client-server model. The
+  host owns simulation truth, validates commands, and broadcasts results.
 - *Command layer.* Today a turn is imperative `MapCursor` calls resolved locally.
   LAN needs each faction's turn serialised as committed **commands** (move unit→tile,
   attack, use item) sent and re-applied on the other machine.
@@ -1488,10 +1487,11 @@ groups are eliminated in order, all resolve correctly with the right standings.
 
 ### Current state
 
-`MapData` carries a single `objective_type` (only `"rout"` implemented), a
-`turn_limit`, and `required_survivor_ids`; `TurnManager.check_victory_conditions`
-hardcodes those three checks, evaluated for blue only. Both the multi-condition
-model **and** the per-group evaluation are new.
+> **Current state (2026-06-11):** M16 is shipped. `MapData` carries typed,
+> per-group `victory_conditions` and `defeat_conditions`; the generic evaluator
+> supports Rout, Defeat Boss, Protect, Turn Limit, Survive, Seize, and Escape,
+> with standings and objective HUD output. The legacy single-objective fields
+> have been removed.
 
 ### Condition model — per aggression group
 
@@ -1506,8 +1506,9 @@ Win resolution:
 - Meeting a defeat condition eliminates that group.
 - The map also ends when **≤1 group remains** — the last group standing wins.
 - All remaining groups eliminated simultaneously → **draw**.
-- A group with no conditions authored gets an implicit defeat condition — **group
-  routed** (all its units dead) — so every group always has a way to be out.
+- Rout is never implicit. A group is eliminated only by an authored defeat
+  condition. Zero deployed units may remain a valid state for reinforcements or
+  for objectives that can still fail without opposition.
 
 `rout`/`seize` author naturally as a group's *defeat*; `escape`/`survive` as the
 achiever group's *victory*. Condition types:
@@ -1582,35 +1583,32 @@ M16 itself is shipped. These five decisions govern the **objective-map followup*
   escaped unit counts as alive for survival/protection conditions, is removed
   from the active board, and may not act further on the current map. (Classic
   FE Escape semantics; matches the typed condition system's expectations.)
-- **Authored defeat standard — ≥1 authored defeat per map, beyond rout.** Every
-  Phase-3 objective map must declare at least one **authored** defeat condition
-  in addition to the implicit "all units dead" rout fallback (e.g. a turn
-  limit, a lord-protect, a hold-the-tile failure). This exercises the
-  defeat-condition code paths in real content and produces stronger tactical
-  pressure.
+- **Authored defeat standard.** Every Phase-3 objective map declares at least
+  one authored defeat condition appropriate to the scenario. Rout is authored
+  explicitly only when a full wipe should eliminate that group.
 
 ### Checklist — M16
 
-- [ ] Define typed condition resources for each condition type above
-- [ ] `MapData`: **per-group** `victory_conditions` + `defeat_conditions` sets
+- [x] Define typed condition resources for each condition type above
+- [x] `MapData`: **per-group** `victory_conditions` + `defeat_conditions` sets
       (inspector-editable)
-- [ ] `check_victory_conditions` → generic evaluator looping every group
+- [x] `check_victory_conditions` → generic evaluator looping every group
       (per group: AND victory / OR defeat); plus the ≤1-group-standing and draw rules
-- [ ] Implicit default defeat condition (group routed) for a group with none authored
-- [ ] Per-group "eliminated on round N" tracking to drive standings
-- [ ] Ranked-standings results screen (winner first, losers by elimination order,
+- [x] Explicit authored Rout defeats; no implicit group elimination
+- [x] Per-group "eliminated on round N" tracking to drive standings
+- [x] Ranked-standings results screen (winner first, losers by elimination order,
       draw in the top slot; blue-perspective Victory/Defeat header)
-- [ ] Add a **Seize** entry to `ActionMenu`, gated by "on a seize tile" AND "this
+- [x] Add a **Seize** entry to `ActionMenu`, gated by "on a seize tile" AND "this
       unit may seize" (decisions log 2026-05-17, Decision 4)
-- [ ] `escape` zone: units removed-on-entry; HUD/turn-order handling for escapees
-- [ ] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
+- [x] `escape` zone: explicit Escape action removes units; HUD/turn-order handling for escapees
+- [x] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
       to the new per-group condition sets
-- [ ] Objective readout in the HUD lists the active conditions
-- [ ] Verify: compound victory (rout red AND yellow) resolves only when both are met
-- [ ] Verify: a green-escape victory and a green-death defeat fire correctly
-- [ ] Verify: a 3-group match eliminates groups in order with correct standings;
+- [x] Objective readout in the HUD lists the active conditions
+- [x] Verify: compound victory (rout red AND yellow) resolves only when both are met
+- [x] Verify: a green-escape victory and a green-death defeat fire correctly
+- [x] Verify: a 3-group match eliminates groups in order with correct standings;
       simultaneous elimination resolves to a draw
-- [ ] New tests for the evaluator, each condition type, and the standings logic
+- [x] Tests for the evaluator, each condition type, and the standings logic
 - [x] Phase 3 Maps 002–005 authored against the condition system — one map
       per primary objective (Seize / Defeat Boss / Escape / Survive-Defend),
       one primary objective each, ≥1 authored defeat condition beyond rout
@@ -1664,11 +1662,9 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
 - [ ] Pre-battle deployment screen — designed together with convoy, trade, campaign
       rules, and save/load ownership so roster/inventory state has one canonical flow
-- [ ] Enforce skill/inventory caps — `GameState.max_skills` and `max_inventory` exist
-      but nothing reads them. Enforce at the skill-equip UI and the trade/inventory
-      UI once those screens are built (a unit may not equip more than `max_skills`
-      skills or carry more than `max_inventory` items). Until then both fields are
-      inert; see the NOT-ENFORCED comment in `GameState.gd`.
+- [ ] Finish cap-management UI. `GameState.max_skills` is enforced for
+      auto-equipped learned skills and defaults to 5; manual skill swapping is
+      not built. `max_inventory` remains future-facing until trade/inventory UI.
 - [ ] Review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md` — align
       naming/layout assumptions with project asset standards, add validation/error
       handling requirements, and define how imported outputs plug into faction-aware

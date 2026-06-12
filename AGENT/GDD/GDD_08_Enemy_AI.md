@@ -11,8 +11,9 @@ non-blue faction authored as `controller = "AI"`, it awaits
 map's authored `turn_order`.
 
 Each enemy's behaviour is selected by its `UnitData.ai_profile` string. The dispatcher
-(`_act()`) reads that string and calls the matching routine — adding a new profile is
-just a new `match` branch plus a new function.
+(`_act()`) reads that string and calls the matching routine. Adding a profile
+also requires adding it to `DataManager._VALID_AI_PROFILES`, authoring data,
+and adding behavior tests.
 
 > **MVP scope vs. design.** The implemented AI is deliberately simple: it moves toward
 > the nearest hostile target and attacks the nearest target in range — there is no
@@ -102,18 +103,17 @@ See GDD_01 → CombatResolver for its return shape.
 
 ## Execution Timing
 
-MVP combat is **instant** — there is no per-tile pause, no per-enemy pause, and no
-combat animation. `Unit.move_along_path` animates movement at the player's configured
-speed (`SettingsManager.get_movement_speed_seconds()` — 0.12 s/tile by default, 0 when
-"instant"); combat itself resolves in a single frame. Pacing pauses and combat
-animations are a Phase 2 polish item; when added, their durations should be constants
-at the top of `EnemyAI.gd`.
+Combat resolves in a single frame. `Unit.move_along_path` animates at the
+configured movement speed (0.12 s/tile by default, 0 when instant).
+`EnemyAI._focus_camera()` also pauses before each acting unit: 0.25 seconds at
+normal speed and 0.12 seconds at fast speed. Instant movement skips that delay.
 
 ---
 
 ## Future AI Profiles (Phase 2+)
 
-Designed but not implemented. Register them in `_act()`'s `match` block when ready.
+Designed but not implemented. Register them in `_act()` and
+`DataManager._VALID_AI_PROFILES`, then add resource validation and behavior tests.
 
 | Profile | Behaviour |
 |---|---|
@@ -124,7 +124,7 @@ Designed but not implemented. Register them in `_act()`'s `match` block when rea
 
 ### Phase 2 Scoring Model (design backlog)
 
-When the basic profile is upgraded (M14 stage 4), target selection should score each
+When the basic profile is upgraded in the separate tactical-AI task, target selection should score each
 reachable target with `preview_combat()` — prioritising guaranteed kills, then
 low-HP targets, then expected damage, penalised by the counter-damage the enemy would
 take. Until then the AI uses the nearest-target rule above.

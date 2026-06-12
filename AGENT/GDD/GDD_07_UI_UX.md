@@ -63,15 +63,15 @@ When a directional key is held:
 
 ## Cursor System
 
-The `MapCursor` is a `Node2D` with an `AnimatedSprite2D` child.
+The `MapCursor` is a `Node2D` with a `Sprite2D` child.
 It sits on top of all tiles and indicates the currently focused tile.
 
 At map start `GameMap` places the cursor on the first player unit (via
 `MapCursor.center_on_tile()`), not the map's (0,0) corner, so play begins
 focused on the player's force.
 
-**Visual:** [PLACEHOLDER] A flashing yellow/white square outline, 64×64 px.
-Animation: 4-frame blink at 8 fps.
+**Visual:** current cursor art is a static 64x64 sprite. Animated cursor art is
+a future presentation pass.
 
 **States:**
 - `free` — cursor moves freely; hovering shows unit/terrain info
@@ -212,7 +212,8 @@ by camera movement.
 
 **Phase Label:**
 - Text is faction-driven, not hardcoded player/enemy text
-- Uses the acting faction's authored display name and controller context
+- Uses `Faction - Controller` text from one shared formatter, for example
+  `Blue - Player 1`, `Red - AI`, or `Green - Player 2`
 - Updates on phase change; fades in briefly after banner
 
 **Turn Label:**
@@ -307,7 +308,7 @@ There is **no target-list panel**. Target selection happens on the map itself:
 ### Attack Preview Panel
 
 **Scene:** `AttackPreview.tscn`
-**Trigger:** Player selects a target from the Target Select List
+**Trigger:** Player confirms an attack target during on-map target selection
 
 **Layout (anchored near the defender on screen rather than fixed to the bottom):**
 ```
@@ -334,7 +335,7 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - Phase-1 More Info adds an info box on the right; `more_info` cycles through each
   preview field and clicking a field opens its description
 
-**Size:** ~500 × 130 px
+**Size:** Content-sized three-column layout, clamped/repositioned to the viewport
 **Font size:** 18px
 
 ---
@@ -488,6 +489,8 @@ See GDD_01 → SettingsManager.
 │   Phase Banner       [ Show ▾ ]                   │
 │   Level Up Screen    [ Show ▾ ]                   │
 │   Mouse Cursor       [ Enabled ▾ ]                │
+│   Auto End Turn      [ On ▾ ]                     │
+│   Camera Edge Buffer [━━●━━━━] 2                  │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │
 │   Move Up               W / Up                    │
@@ -539,6 +542,13 @@ mouse motion entirely in every state, so stray bumps cannot nudge the cursor
 during keyboard play (PT4 #1). Mouse *clicks* (confirm/cancel and the middle-
 click danger toggle) are intentional acts and remain active in both modes.
 Renamed from `mouse_targeting` 2026-05-20; the old cfg key still migrates.
+
+**Auto End Turn** (`auto_end_turn`, default `true`) — when On, the acting human
+phase commits automatically after every controllable unit is `DONE`.
+
+**Camera Edge Buffer** (`camera_edge_buffer`, default `2`, range `0-5`) — number
+of tiles from the viewport edge that trigger camera panning. The value is
+clamped when loaded from the settings file.
 
 #### Controls (read-only)
 
@@ -619,7 +629,7 @@ HUD States:
 
 | Event | Visual Feedback |
 |---|---|
-| Unit selected | Blue movement tiles appear; selection ring on unit |
+| Unit selected | Blue movement tiles appear; a dedicated selection ring is planned |
 | Unit moved | Blue/red tiles update for new position |
 | Unit acted (DONE) | Unit sprite darkened/greyed |
 | New player phase | All unit sprites return to normal color |

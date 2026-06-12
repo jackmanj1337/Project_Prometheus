@@ -11,10 +11,10 @@ Skills are **not hardcoded per class** — they are data entries. A unit carries
 of skill IDs. The skill handler is a lookup table: given a skill ID and a trigger
 context, it applies the effect.
 
-**Maximum equipped skills per unit:** 4 (`GameState.max_skills`). There is still no
+**Maximum equipped skills per unit:** 5 (`GameState.max_skills`). There is still no
 manual skill-equip UI, but the cap now gates auto-equipped learned skills. Earned
 mastery skills (`UnitData.mastery_skills`, e.g. `s_rank_mastery`) never count against
-this cap.
+this cap. A future campaign settings layer may override the default.
 
 ---
 
@@ -32,8 +32,9 @@ this cap.
 
 ## Skill Triggers
 
-Skills fire at specific points in the game loop. `SkillHandler.gd` provides hook
-methods for each trigger. Every relevant code path calls the appropriate hook.
+Skills fire at specific points in the game loop. The trigger catalogue includes
+both live and reserved hooks; authored data alone does not mean a trigger is
+wired end to end.
 
 | Trigger ID | When It Fires |
 |---|---|
@@ -51,8 +52,11 @@ methods for each trigger. Every relevant code path calls the appropriate hook.
 | `on_level_up` | When this unit levels up |
 | `player_activated` | Player manually triggers the skill (costs the action or is free) |
 
-> The trigger table is intentionally conservative. Recent M9a work extended coverage
-> by reusing existing triggers and helper seams rather than adding new trigger ids.
+**Currently wired:** `start_of_turn`, `on_combat_apply_modifiers`,
+`on_combat_start_negate`, `on_combat_start`, `on_attack`, `on_hit`,
+`on_damaged`, `on_kill`, and `on_combat_end`, plus the dedicated WEXP and staff
+helper seams. `on_defend`, `on_move`, `on_level_up`, and `player_activated`
+remain reserved until callers are implemented.
 
 ---
 
@@ -76,8 +80,9 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 
 For each matching skill, `apply_trigger` enforces `max_uses_per_map` /
 `max_uses_per_combat`, rolls `activation_chance_stat / activation_divisor` if set,
-then dispatches through a `{ effect_id: Callable }` table built in `_ready()` — an
-unknown `effect_id` is a startup `push_error`, never a silent no-op. A handler
+then dispatches through a `{ effect_id: Callable }` table built in `_ready()`.
+Unknown IDs are startup errors. Several known future IDs deliberately dispatch
+to `_apply_unimplemented` and warn at runtime. A real handler
 returns `true` only when its effect actually applied, so a limited use is consumed
 only on a real activation.
 
@@ -138,11 +143,12 @@ Several skills share one handler, configured via `effect_params`.
 
 ---
 
-### Class / Promotion / Occult skills (designed, not implemented)
+### Additional Class / Promotion / Occult Skills
 
-`Pick` (Thief), `Canto` (Bard), `Hawkeye` / `Finesse` (promotion `stat_bonus`
-skills), `Bastion` (General), and the rest are designed in the Full Skill Reference
-below and scheduled for M9 / the promotion milestone — see GDD_10.
+Many class/promotion skill resources are already authored, but implementation
+status has three independent layers: resource authored, effect handler
+implemented, and trigger/caller wired end to end. Skills routed to
+`_apply_unimplemented` are data placeholders, not functioning gameplay.
 
 ---
 

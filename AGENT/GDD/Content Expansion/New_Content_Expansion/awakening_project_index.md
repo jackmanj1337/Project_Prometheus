@@ -2,6 +2,10 @@
 # Fire Emblem Awakening Technical Reference Corpus
 **Project Index / Corpus Specification**
 
+> **Project authority notice:** This corpus is external Awakening reference
+> material. It does not override the numbered Project Prometheus GDD or dated
+> decisions. See [`project_adoption_matrix.md`](project_adoption_matrix.md).
+
 **Corpus ID:** `fea-tech-corpus`  
 **Game:** Fire Emblem Awakening  
 **Platform:** Nintendo 3DS  
@@ -32,7 +36,7 @@
 
 # Corpus Overview
 
-This corpus defines a complete technical reference implementation of Fire Emblem Awakening systems and data.
+This corpus defines a complete technical reference implementation of Fire Emblem Awakening systems and data. "Canonical" in this directory means canonical to the normalized Awakening reference, not canonical to Project Prometheus.
 
 The corpus is designed to function as a canonical source for:
 

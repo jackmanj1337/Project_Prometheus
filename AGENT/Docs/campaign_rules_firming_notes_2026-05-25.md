@@ -119,8 +119,8 @@ canonical docs:
 | # | Question | Decision |
 |---|---|---|
 | 1 | Per-player keybindings? | **Skipped for Part A.** One shared `InputMap`; revisit with split-controller co-op. |
-| 2 | Hotseat assignment surface | **Per-map data + CLI/dev override.** No pre-battle lobby UI in Part A. |
-| 3 | HUD controller label | **`Faction — Controller` text** (e.g. `Red — Player 2`, `Green — AI`). |
+| 2 | Hotseat assignment surface | **Updated 2026-06-11:** per-map data; CLI/dev override deferred. No pre-battle lobby UI in Part A. |
+| 3 | HUD controller label | **`Faction - Controller` text** (e.g. `Red - Player 2`, `Green - AI`). |
 | 4 | `ALTERNATING` hotseat scope | **Fully out of Part A.** Revisit only after scheduler/extra-turn work settles. |
 
 ### Objective-Map followup (Maps 002–005)
@@ -131,4 +131,4 @@ canonical docs:
 | 2 | Multiple primary objectives per map? | **No** — one primary per early map. Defeat conditions still vary. |
 | 3 | Allowed-seizer policy | **Per-unit `can_seize` tag on `UnitData`** (not class-derived, not per-map allowlist). |
 | 4 | Escape semantics | **Alive, removed from map, no further actions** this map. Classic FE Escape. |
-| 5 | Authored defeat standard | **≥1 authored defeat per map**, beyond the implicit rout fallback. |
+| 5 | Authored defeat standard | **Updated 2026-06-11:** at least one authored defeat appropriate to the map; Rout is never implicit. |
