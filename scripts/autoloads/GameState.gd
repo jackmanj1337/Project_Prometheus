@@ -67,7 +67,7 @@ var auto_promote_at_max_level: bool = false
 var pair_up_enabled: bool = true
 # max_skills now gates auto-equipped learned skills (M6.3), but there is still
 # no battle-prep UI for manual swapping. max_inventory remains future-facing.
-var max_skills: int = 4
+var max_skills: int = 5
 var max_inventory: int = 8
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────

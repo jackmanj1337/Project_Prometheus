@@ -24,7 +24,7 @@ func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
 		return
 	if faction_id == "":
 		faction_id = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
-	var faction_label: String = _faction_label(faction_id)
+	var faction_label: String = _faction_phase_label(faction_id)
 	_label.text = "%s PHASE" % faction_label.to_upper()
 	_panel.modulate = _faction_color(faction_id)
 	_animate()
@@ -59,13 +59,13 @@ func _active_faction_id() -> String:
 	return "red"
 
 
-func _faction_label(faction_id: String) -> String:
+func _faction_phase_label(faction_id: String) -> String:
 	var md: MapData = _current_map_data()
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
-			return faction.get_label()
-	return "Unknown" if faction_id == "" else FactionData.display_label(faction_id)
+			return faction.get_phase_label()
+	return "Unknown" if faction_id == "" else FactionData.default_phase_label(faction_id)
 
 
 func _faction_color(faction_id: String) -> Color:

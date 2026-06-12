@@ -146,7 +146,7 @@ func _conditions_for(dict: Dictionary, group: String) -> Array:
 func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
 	if faction_id == "":
 		faction_id = "blue" if new_phase == GameState.Phase.PLAYER else _active_faction_id()
-	var label: String = _faction_label(faction_id)
+	var label: String = _faction_phase_label(faction_id)
 	_phase_label.text = "%s PHASE" % label.to_upper()
 
 
@@ -159,14 +159,14 @@ func _active_faction_id() -> String:
 	return "red"
 
 
-func _faction_label(faction_id: String) -> String:
+func _faction_phase_label(faction_id: String) -> String:
 	var gs := get_node_or_null("/root/GameState")
 	var md: MapData = gs.map_data if gs != null else null
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
-			return faction.get_label()
-	return "Unknown" if faction_id == "" else FactionData.display_label(faction_id)
+			return faction.get_phase_label()
+	return "Unknown" if faction_id == "" else FactionData.default_phase_label(faction_id)
 
 
 func _on_turn_changed(turn_number: int) -> void:

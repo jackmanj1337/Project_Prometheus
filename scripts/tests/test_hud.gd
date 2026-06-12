@@ -187,7 +187,7 @@ var data
 	else:
 		print("FAIL empty mapdata produced lines"); failed += 1
 
-	# ── C3: phase label reads authored faction display_name ───────────────────
+	# ── C3: phase label identifies both faction and controller ────────────────
 	var gs2 := root.get_node_or_null("GameState")
 	if gs2 != null:
 		var md_phase := MapData.new()
@@ -208,8 +208,8 @@ var data
 		root.add_child(gm_stub)
 		hud._on_phase_changed(GameState.Phase.ENEMY, "red")
 		var phase_label: Label = hud.get_node("PhaseLabel")
-		if phase_label.text == "INVADERS PHASE":
-			print("OK  C3: HUD phase label uses faction display_name")
+		if phase_label.text == "INVADERS - AI PHASE":
+			print("OK  C3: HUD phase label uses faction and controller")
 			passed += 1
 		else:
 			print("FAIL C3 HUD phase label: %q" % phase_label.text)

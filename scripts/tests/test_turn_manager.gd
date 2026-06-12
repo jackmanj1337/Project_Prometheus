@@ -166,6 +166,10 @@ func _init() -> void:
 	var c_rout_all := ObjectiveCondition.new()
 	c_rout_all.type = "rout"                                # faction_id "" = all hostiles
 	md_rout.victory_conditions = {"allies": [c_rout_all]}
+	var c_rout_allies := ObjectiveCondition.new()
+	c_rout_allies.type = "rout"
+	c_rout_allies.faction_id = "allies"
+	md_rout.defeat_conditions = {"allies": [c_rout_allies]}
 	var tm_v := TurnManager.new()
 	root.add_child(tm_v)
 	tm_v._map_data = md_rout
@@ -183,9 +187,7 @@ func _init() -> void:
 	else:
 		print("FAIL victory double-emit: victories=%d" % victories[0]); failed += 1
 
-	# ---- check_victory_conditions: all players dead → map_defeat ----
-	# Implicit "group routed" default fires for allies (no defeat conditions
-	# authored), and foes survives via its living e1.
+	# ---- check_victory_conditions: authored allied Rout defeat → map_defeat ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("red", 20, "e1"))
 	gs.register_unit(_mk_unit("blue", 0, "p2"))
@@ -195,7 +197,7 @@ func _init() -> void:
 	defeats[0] = 0
 	tm_d.check_victory_conditions()
 	if defeats[0] == 1:
-		print("OK  check_victory_conditions: all players dead → map_defeat"); passed += 1
+		print("OK  check_victory_conditions: authored allied Rout → map_defeat"); passed += 1
 	else:
 		print("FAIL defeat all-dead: defeats=%d" % defeats[0]); failed += 1
 
@@ -246,17 +248,32 @@ func _init() -> void:
 	else:
 		print("FAIL victory null-mapdata"); failed += 1
 
-	# ---- end_player_phase: increments turn_number and emits turn_changed ----
+	# ---- WHOLE_PHASE: round increments only after every faction phase ----
 	gs.reset_map_state()           # turn_number → 1
+	var round_blue := _mk_unit("blue", 20, "round_blue")
+	var round_red := _mk_unit("red", 20, "round_red")
+	gs.register_unit(round_blue)
+	gs.register_unit(round_red)
 	var tm_e := TurnManager.new()
 	root.add_child(tm_e)
+	var md_round := MapData.new()
+	md_round.turn_order = ["blue", "red"] as Array[String]
+	tm_e._map_data = md_round
+	tm_e._turn_order = md_round.turn_order.duplicate()
+	var round_ai_script := GDScript.new()
+	round_ai_script.source_code = "extends Node\nvar game_state: Node\nvar observed_turns: Array[int] = []\nfunc run_phase(_grid, _turn, _faction_id: String) -> void:\n\tobserved_turns.append(game_state.turn_number)\n"
+	round_ai_script.reload()
+	var round_ai: Node = round_ai_script.new()
+	round_ai.set("game_state", gs)
+	tm_e.set_ai_controller(round_ai)
 	var turn_seen := [0]
 	tm_e.turn_changed.connect(func(n): turn_seen[0] = n)
-	tm_e.end_player_phase()
-	if gs.turn_number == 2 and turn_seen[0] == 2:
-		print("OK  end_player_phase: turn_number → 2, turn_changed emitted"); passed += 1
+	await tm_e.start_enemy_phase()
+	if round_ai.get("observed_turns") == [1] and gs.turn_number == 2 and turn_seen[0] == 2:
+		print("OK  WHOLE_PHASE: enemy acts on turn 1; cycle wrap advances to turn 2"); passed += 1
 	else:
-		print("FAIL end_player_phase: turn=%d signal=%d" % [gs.turn_number, turn_seen[0]])
+		print("FAIL WHOLE_PHASE round timing: observed=%s turn=%d signal=%d" % [
+			str(round_ai.get("observed_turns")), gs.turn_number, turn_seen[0]])
 		failed += 1
 
 	# ---- start_player_phase: resets a DONE player unit back to READY ----
@@ -280,6 +297,8 @@ func _init() -> void:
 	gs.register_unit(a1)
 	var tm_auto := TurnManager.new()
 	root.add_child(tm_auto)
+	tm_auto._map_data = MapData.new()
+	tm_auto._turn_order = ["blue"] as Array[String]
 	var auto_seen := [0]
 	tm_auto.turn_changed.connect(func(n): auto_seen[0] = n)
 	tm_auto.set_unit_state(a1, TurnManager.UnitState.DONE)
@@ -312,6 +331,8 @@ func _init() -> void:
 	gs.set_phase(gs.Phase.PLAYER)
 	var tm_req_blue := TurnManager.new()
 	root.add_child(tm_req_blue)
+	tm_req_blue._map_data = MapData.new()
+	tm_req_blue._turn_order = ["blue"] as Array[String]
 	var req_blue_seen := [0]
 	tm_req_blue.turn_changed.connect(func(n): req_blue_seen[0] = n)
 	tm_req_blue.request_end_phase()
@@ -373,6 +394,7 @@ func _init() -> void:
 	c_death_rout.type = "rout"
 	md_death.victory_conditions = {"allies": [c_death_rout]}
 	tm_death._map_data = md_death
+	tm_death._turn_order = ["blue", "red"] as Array[String]
 	tm_death.set_unit_state(done_unit, TurnManager.UnitState.DONE)
 	var death_seen := [0]
 	tm_death.turn_changed.connect(func(n): death_seen[0] = n)
@@ -394,6 +416,8 @@ func _init() -> void:
 		gs.register_unit(solo)
 		var tm_toggle := TurnManager.new()
 		root.add_child(tm_toggle)
+		tm_toggle._map_data = MapData.new()
+		tm_toggle._turn_order = ["blue"] as Array[String]
 		# Mark the only player unit DONE directly so set_unit_state's own deferred
 		# auto-end doesn't run — this block tests _auto_end_player_phase's gate.
 		tm_toggle._unit_states[solo] = TurnManager.UnitState.DONE
@@ -684,8 +708,7 @@ func _init() -> void:
 
 	# ---- ≤1 group remaining → last group standing wins (no authored victory) ----
 	# Authored: foes have a protect condition on a missing unit → foes eliminated.
-	# allies have NO conditions → implicit "group routed" defeat. allies has a live
-	# blue → not routed → allies survives → last standing → allies wins → map_victory.
+	# Allies remain in play, so the last-standing fallback awards them the win.
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p_ls"))
 	gs.register_unit(_mk_unit("red", 20, "e_ls"))      # red alive
@@ -703,9 +726,7 @@ func _init() -> void:
 	else:
 		print("FAIL last-standing: victories=%d defeats=%d" % [victories[0], defeats[0]]); failed += 1
 
-	# ---- simultaneous elimination → draw → map_defeat (blue eliminated too) ----
-	# Both factions have zero living units; both groups get the implicit routed
-	# defeat. 0 in_play → draw → map_defeat.
+	# ---- no authored Rout means a wiped board does not end the map ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 0, "p_draw"))
 	gs.register_unit(_mk_unit("red", 0, "e_draw"))
@@ -715,17 +736,39 @@ func _init() -> void:
 	tm_draw._map_data = md_draw
 	victories[0] = 0; defeats[0] = 0
 	tm_draw.check_victory_conditions()
-	if defeats[0] == 1 and victories[0] == 0:
-		print("OK  simultaneous wipe → draw → map_defeat (blue eliminated)"); passed += 1
+	if defeats[0] == 0 and victories[0] == 0 and not tm_draw._map_over:
+		print("OK  no authored Rout: zero deployed units does not end the map"); passed += 1
 	else:
-		print("FAIL draw: V=%d D=%d" % [victories[0], defeats[0]]); failed += 1
+		print("FAIL explicit-Rout requirement: V=%d D=%d map_over=%s" % [
+			victories[0], defeats[0], tm_draw._map_over]); failed += 1
+
+	# ---- simultaneous authored elimination → draw → map_defeat ----
+	var c_draw_allies := ObjectiveCondition.new()
+	c_draw_allies.type = "rout"; c_draw_allies.faction_id = "allies"
+	var c_draw_foes := ObjectiveCondition.new()
+	c_draw_foes.type = "rout"; c_draw_foes.faction_id = "foes"
+	md_draw.defeat_conditions = {
+		"allies": [c_draw_allies],
+		"foes": [c_draw_foes],
+	}
+	tm_draw = TurnManager.new()
+	root.add_child(tm_draw)
+	tm_draw._map_data = md_draw
+	tm_draw.check_victory_conditions()
+	if defeats[0] == 1 and victories[0] == 0:
+		print("OK  simultaneous authored elimination → draw → map_defeat"); passed += 1
+	else:
+		print("FAIL authored draw: V=%d D=%d" % [victories[0], defeats[0]]); failed += 1
 
 	# ---- get_group_eliminated_round records the round a group fell ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p_er"))
 	gs.register_unit(_mk_unit("red", 0, "e_er"))       # red wiped on turn 1
 	gs.turn_number = 1
-	var md_er := MapData.new()                         # implicit defaults
+	var md_er := MapData.new()
+	var c_er_foes := ObjectiveCondition.new()
+	c_er_foes.type = "rout"; c_er_foes.faction_id = "foes"
+	md_er.defeat_conditions = {"foes": [c_er_foes]}
 	var tm_er := TurnManager.new()
 	root.add_child(tm_er)
 	tm_er._map_data = md_er
@@ -788,7 +831,7 @@ func _init() -> void:
 	var c_se := ObjectiveCondition.new()
 	c_se.type = "seize"
 	c_se.tile = Vector2i(2, 2)
-	c_se.allowed_unit_ids = ["seizer"] as Array[String]
+	seizer.data.can_seize = true
 	md_se.victory_conditions = {"allies": [c_se]}
 	var tm_se := TurnManager.new()
 	root.add_child(tm_se)
@@ -807,7 +850,6 @@ func _init() -> void:
 	var c_seize_only := ObjectiveCondition.new()
 	c_seize_only.type = "seize"
 	c_seize_only.tile = Vector2i(9, 9)
-	c_seize_only.allowed_unit_ids = ["p_seize_only"] as Array[String]
 	md_seize_only.victory_conditions = {"allies": [c_seize_only]}
 	var tm_seize_only := TurnManager.new()
 	root.add_child(tm_seize_only)
@@ -821,19 +863,20 @@ func _init() -> void:
 		print("FAIL seize fallback suppression: victories=%d defeats=%d map_over=%s" % [
 			victories[0], defeats[0], tm_seize_only._map_over]); failed += 1
 
-	# ---- can_seize: allow-list gate hides Seize for the wrong unit_id ----
+	# ---- can_seize: UnitData.can_seize + tile gate ----
 	gs.reset_map_state()
 	var seizer_ok := _mk_unit("blue", 20, "lord")
 	var seizer_no := _mk_unit("blue", 20, "knight")
 	seizer_ok.set("tile_position", Vector2i(3, 3))
 	seizer_no.set("tile_position", Vector2i(3, 3))
+	seizer_ok.data.can_seize = true
+	seizer_no.data.can_seize = false
 	gs.register_unit(seizer_ok)
 	gs.register_unit(seizer_no)
 	var md_cs := MapData.new()
 	var c_cs := ObjectiveCondition.new()
 	c_cs.type = "seize"
 	c_cs.tile = Vector2i(3, 3)
-	c_cs.allowed_unit_ids = ["lord"] as Array[String]
 	md_cs.victory_conditions = {"allies": [c_cs]}
 	var tm_cs := TurnManager.new()
 	root.add_child(tm_cs)
@@ -841,7 +884,7 @@ func _init() -> void:
 	if tm_cs.can_seize(seizer_ok, Vector2i(3, 3)) \
 			and not tm_cs.can_seize(seizer_no, Vector2i(3, 3)) \
 			and not tm_cs.can_seize(seizer_ok, Vector2i(0, 0)):
-		print("OK  can_seize: allow-list + tile gate"); passed += 1
+		print("OK  can_seize: can_seize tag + tile gate"); passed += 1
 	else:
 		print("FAIL can_seize gate (lord=%s knight=%s offtile=%s)" % [
 			tm_cs.can_seize(seizer_ok, Vector2i(3, 3)),
@@ -849,7 +892,7 @@ func _init() -> void:
 			tm_cs.can_seize(seizer_ok, Vector2i(0, 0)),
 		]); failed += 1
 
-	# ---- can_seize: default gate uses UnitData.can_seize when no allow-list authored ----
+	# ---- can_seize: false tag blocks another unit on the same tile ----
 	gs.reset_map_state()
 	var seize_tag_yes := _mk_unit("blue", 20, "tag_yes")
 	var seize_tag_no := _mk_unit("blue", 20, "tag_no")
@@ -869,7 +912,7 @@ func _init() -> void:
 	tm_cst._map_data = md_cst
 	if tm_cst.can_seize(seize_tag_yes, Vector2i(6, 6)) \
 			and not tm_cst.can_seize(seize_tag_no, Vector2i(6, 6)):
-		print("OK  can_seize: UnitData.can_seize gates seize when no allow-list is authored")
+		print("OK  can_seize: UnitData.can_seize is the sole unit eligibility gate")
 		passed += 1
 	else:
 		print("FAIL can_seize tag gate (yes=%s no=%s)" % [
@@ -898,21 +941,17 @@ func _init() -> void:
 	else:
 		print("FAIL rout-typo: victories=%d" % victories[0]); failed += 1
 
-	# ---- _eval_seize: allow-list match without group membership does NOT win ----
-	# A red unit happens to share a unit_id with the allow-listed seizer name.
-	# Without the L-2 fix, seizing the tile would fire allies' victory; with the
-	# fix, group membership is required AND the allow-list narrows within the
-	# conditioning group.
+	# ---- _eval_seize: can_seize unit outside the group does NOT win ----
 	gs.reset_map_state()
 	var infiltrator := _mk_unit("red", 20, "seizer_xg")
 	infiltrator.set("tile_position", Vector2i(4, 4))
+	infiltrator.data.can_seize = true
 	gs.register_unit(infiltrator)
 	gs.register_unit(_mk_unit("blue", 20, "p_xg"))
 	var md_xg := MapData.new()
 	var c_xg := ObjectiveCondition.new()
 	c_xg.type = "seize"
 	c_xg.tile = Vector2i(4, 4)
-	c_xg.allowed_unit_ids = ["seizer_xg"] as Array[String]
 	md_xg.victory_conditions = {"allies": [c_xg]}
 	var tm_xg := TurnManager.new()
 	root.add_child(tm_xg)
@@ -922,7 +961,7 @@ func _init() -> void:
 	# can_seize must also refuse to show Seize for the cross-group unit.
 	var xg_can_seize: bool = tm_xg.can_seize(infiltrator, Vector2i(4, 4))
 	if victories[0] == 0 and not xg_can_seize:
-		print("OK  _eval_seize / can_seize: allow-list match without group membership is blocked"); passed += 1
+		print("OK  _eval_seize / can_seize: tagged unit outside the group is blocked"); passed += 1
 	else:
 		print("FAIL seize-xg: victories=%d can_seize=%s" % [victories[0], xg_can_seize]); failed += 1
 
@@ -1090,6 +1129,10 @@ func _init() -> void:
 	var c_st_rout := ObjectiveCondition.new()
 	c_st_rout.type = "rout"
 	md_st.victory_conditions = {"allies": [c_st_rout]}
+	var c_st_foes_routed := ObjectiveCondition.new()
+	c_st_foes_routed.type = "rout"
+	c_st_foes_routed.faction_id = "foes"
+	md_st.defeat_conditions = {"foes": [c_st_foes_routed]}
 	var tm_st := TurnManager.new()
 	root.add_child(tm_st)
 	tm_st._map_data = md_st
@@ -1117,7 +1160,18 @@ func _init() -> void:
 	gs.register_unit(_mk_unit("red", 0, "e_draw2"))
 	var tm_dr := TurnManager.new()
 	root.add_child(tm_dr)
-	tm_dr._map_data = MapData.new()
+	var md_draw_standings := MapData.new()
+	var c_st_draw_allies := ObjectiveCondition.new()
+	c_st_draw_allies.type = "rout"
+	c_st_draw_allies.faction_id = "allies"
+	var c_st_draw_foes := ObjectiveCondition.new()
+	c_st_draw_foes.type = "rout"
+	c_st_draw_foes.faction_id = "foes"
+	md_draw_standings.defeat_conditions = {
+		"allies": [c_st_draw_allies],
+		"foes": [c_st_draw_foes],
+	}
+	tm_dr._map_data = md_draw_standings
 	resolved[0] = {}
 	tm_dr.check_victory_conditions()
 	if resolved[0].get("winner", "_") == "" and resolved[0].get("standings", []).size() == 2:

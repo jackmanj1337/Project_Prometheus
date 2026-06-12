@@ -55,6 +55,7 @@ func _init() -> void:
 	fixed_data.resistance = 0; fixed_data.skill = 0; fixed_data.speed = 0; fixed_data.luck = 0
 
 	var dur_data := UnitData.new()
+	dur_data.class_id = "cavalier"
 	dur_data.inventory = [InventoryEntry.make_weapon("iron_lance", 1)]
 	dur_data.weapon_wexp = {"lance": _wexp("D")}
 
@@ -494,14 +495,16 @@ func _init() -> void:
 		print("FAIL rank up: %s ranked=%s" % [soldier_data.weapon_wexp, ranked])
 		failed += 1
 
-	# S rank cap
-	soldier_data.weapon_wexp = {"lance": _wexp("S", 95)}
+	# The authored class cap wins even though the global WEXP table supports S.
+	soldier_data.weapon_wexp = {"lance": _wexp("B", 95)}
 	unit.add_wexp("lance", 100)
-	if unit.get_weapon_rank("lance") == "S" and soldier_data.weapon_wexp["lance"] == _wexp("S"):
-		print("OK  wexp caps at 100 when already S-rank")
+	if unit.get_weapon_rank("lance") == "A" \
+			and soldier_data.weapon_wexp["lance"] == _wexp("A") \
+			and not soldier_data.mastery_skills.has("s_rank_mastery"):
+		print("OK  wexp respects the class's authored A-rank cap")
 		passed += 1
 	else:
-		print("FAIL S-cap: %s" % soldier_data.weapon_wexp)
+		print("FAIL class WEXP cap: %s" % soldier_data.weapon_wexp)
 		failed += 1
 	soldier_data.skills = saved_skills
 
@@ -644,7 +647,7 @@ func _init() -> void:
 		print("FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s" % [
 			skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3])
 		failed += 1
-	gs.max_skills = 4
+	gs.max_skills = 5
 
 	# --- N6/F1: a newly created level-1 unit receives its class level-1 skill once ---
 	var init_skill_unit: Unit = unit_scene.instantiate()
@@ -698,11 +701,15 @@ func _init() -> void:
 	var helper_found: bool = md_helpers.get_faction("green") == fd_helpers
 	var helper_missing: bool = md_helpers.get_faction("purple") == null
 	var helper_label: bool = FactionData.display_label("yellow") == "Yellow"
-	if helper_found and helper_missing and helper_label:
-		print("OK  C3 helpers: get_faction resolves known ids and display_label title-cases ids")
+	var helper_phase_label: bool = fd_helpers.get_phase_label() == "Verdant - AI"
+	fd_helpers.controller = "HOTSEAT"
+	helper_phase_label = helper_phase_label and fd_helpers.get_phase_label() == "Verdant - Player 2"
+	if helper_found and helper_missing and helper_label and helper_phase_label:
+		print("OK  C3 helpers: faction lookup and player-facing labels")
 		passed += 1
 	else:
-		print("FAIL C3 helpers: found=%s missing=%s label=%s" % [helper_found, helper_missing, helper_label])
+		print("FAIL C3 helpers: found=%s missing=%s label=%s phase=%s" % [
+			helper_found, helper_missing, helper_label, helper_phase_label])
 		failed += 1
 
 	# --- M7: Second Seal eligibility, options, and reclass rules ---

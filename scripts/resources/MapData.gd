@@ -51,8 +51,9 @@ class_name MapData extends Resource
 # Evaluation semantics (TurnManager.check_victory_conditions):
 #   victory = AND of every condition in victory_conditions[group]
 #   defeat  = OR  of any condition in defeat_conditions[group]
-# A group with no entries in either dictionary gets an implicit "group routed"
-# defeat condition so every group always has a way to be out (M16 spec).
+# Rout is never implicit. Authors must add a rout defeat explicitly when a wiped
+# group should be eliminated; maps may intentionally continue for reinforcements
+# or timed objectives after every currently deployed unit leaves the board.
 @export var victory_conditions: Dictionary = {}
 @export var defeat_conditions: Dictionary = {}
 

@@ -43,6 +43,13 @@ func _init() -> void:
 	root.add_child(pair_reg)
 	await process_frame
 
+	if gs.max_skills == 5:
+		print("OK  max_skills defaults to 5")
+		passed += 1
+	else:
+		print("FAIL max_skills default: %d" % gs.max_skills)
+		failed += 1
+
 	# ---- register_unit adds the unit to all_units ----
 	var p1 := _mk_unit("blue", 20)
 	gs.register_unit(p1)

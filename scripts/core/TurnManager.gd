@@ -46,8 +46,7 @@ var _group_eliminated_round: Dictionary = {}
 # _escape_records: each entry = {unit_id: String, faction: String} for a unit
 #   that left the map via an escape zone. The escape evaluator passes when
 #   every named unit appears here; the protect evaluator treats escaped ids as
-#   still-alive (escape isn't death); the implicit "group routed" defeat
-#   treats a group with any escapee as still in the game.
+#   still-alive because escape is not death.
 var _seize_records: Array[Dictionary] = []
 var _escape_records: Array[Dictionary] = []
 
@@ -242,8 +241,7 @@ func _refresh_faction_units(faction_id: String) -> void:
 
 
 # Resets all blue units to READY, restores their appearance, sets the phase.
-# Does NOT increment turn_number directly — that happens in end_player_phase
-# at the moment the player commits to ending their turn.
+# turn_number advances at the full faction-cycle wrap before this begins.
 #
 # Stage 3 keeps this name + behaviour intact so MapCursor, EnemyAI, and the
 # existing test suite work unchanged. Routes through the new scheduler so
@@ -285,12 +283,9 @@ func start_player_phase() -> void:
 
 
 # Called via the map menu's End Turn request (MapCursor._on_end_turn_requested).
-# Increments the turn counter and transitions to the enemy phase.
+# Transitions to the remaining faction phases. The round counter does not
+# advance until the scheduler wraps back to blue.
 func end_player_phase() -> void:
-	var gs := get_node_or_null("/root/GameState")
-	if gs:
-		gs.turn_number += 1
-		turn_changed.emit(gs.turn_number)
 	start_enemy_phase()
 
 
@@ -303,7 +298,8 @@ func start_enemy_phase() -> void:
 	# Guard: only advance if we're sitting on blue — start_enemy_phase can also
 	# be reached via a direct test call where the index is already correct.
 	if active_faction() == "blue":
-		_advance_faction()
+		if _advance_faction():
+			_complete_round()
 	# Stage 4/5: run each consecutive non-blue faction controller, then hand back to blue.
 	var guard: int = _turn_order.size() + 1
 	while active_faction() != "blue" and active_faction() != "":
@@ -333,10 +329,22 @@ func start_enemy_phase() -> void:
 		# controller handoff lands with the stage-5/hotseat flow.
 		if _activation_mode != "WHOLE_PHASE":
 			break
-		_advance_faction()
+		if _advance_faction():
+			_complete_round()
 	# Victory/defeat during AI phases is caught by _on_unit_died (signal), and
 	# start_player_phase() covers the turn-limit check at the top of blue's phase.
 	start_player_phase()
+
+
+# Completes one full faction cycle. WHOLE_PHASE calls this when the scheduler
+# wraps to blue; ALTERNATING uses the same round semantics in its own refresh
+# path below.
+func _complete_round() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	gs.turn_number += 1
+	turn_changed.emit(gs.turn_number)
 
 
 # Scheduler primitive: snap _active_faction_idx onto a specific faction id, if
@@ -522,10 +530,8 @@ func undo_move(unit: Node) -> void:
 # authored condition set. Per group:
 #   victory = AND of every condition in MapData.victory_conditions[group]
 #   defeat  = OR  of any condition in MapData.defeat_conditions[group]
-# A group with no authored defeat conditions falls when every member faction
-# is empty ("group routed") — the implicit-default rule from the GDD so a
-# group always has a way to be out. After defeats are marked: ≤1 group still
-# in play → last-standing wins; 0 → draw.
+# A group is eliminated only by an authored defeat condition. After defeats
+# are marked: <=1 group still in play -> last-standing wins; 0 -> draw.
 #
 # Blue-perspective EventBus signals: blue's alliance group winning →
 # map_victory; blue eliminated or draw → map_defeat. The ranked-standings UI
@@ -547,15 +553,6 @@ func check_victory_conditions() -> void:
 	for g in groups:
 		victory_by_group[g] = _conditions_for_group(_map_data.victory_conditions, g)
 		defeat_by_group[g]  = _conditions_for_group(_map_data.defeat_conditions, g)
-	# Implicit-default "group routed" — only when the group has no other way out
-	# (matches the spec rationale: "so every group always has a way to be out").
-	# Authoring defeat_conditions[group] = [] in MapData opts the group OUT of
-	# the routed default and into "wipe doesn't end the run for this group".
-	# defeat_by_group[g] was assigned directly from _conditions_for_group(...)
-	# above, so an empty Array here always means "no authored defeats".
-	for g in groups:
-		if (defeat_by_group[g] as Array).is_empty():
-			(defeat_by_group[g] as Array).append(_implicit_group_routed_condition())
 
 	var round_n: int = gs.turn_number
 
@@ -681,11 +678,8 @@ func _group_has_authored_victory_conditions(group: String) -> bool:
 	return not _conditions_for_group(_map_data.victory_conditions, group).is_empty()
 
 
-# Reads MapData.{victory|defeat}_conditions[group] as an Array. Tolerates a
-# missing key (returns []), an explicitly-authored empty Array (returns the
-# same empty Array — preserves opt-out semantics for the implicit-default
-# routed defeat), or a non-Array value (returns [], logs nothing for now —
-# DataManager could add a cross-ref check in M16 stage 5+).
+# Reads MapData.{victory|defeat}_conditions[group] as an Array. Missing,
+# explicitly empty, and non-Array values all mean "no authored conditions."
 func _conditions_for_group(dict: Dictionary, group: String) -> Array:
 	var raw: Variant = dict.get(group, null)
 	if raw is Array:
@@ -693,25 +687,12 @@ func _conditions_for_group(dict: Dictionary, group: String) -> Array:
 	return []
 
 
-# Sentinel "this group is fully wiped" condition; the implicit-default defeat
-# for any group without an authored defeat list. Lives behind its own type tag
-# so a normal `rout` with faction_id == "" can keep meaning "all hostiles
-# wiped" rather than being context-dependent.
-func _implicit_group_routed_condition() -> ObjectiveCondition:
-	var c := ObjectiveCondition.new()
-	c.type = "_group_routed"
-	return c
-
-
 # Dispatcher. Returns true iff `cond` is satisfied right now for the
-# conditioning group `for_group`. Covers the seven authored types from the
-# M16 catalogue plus the internal _group_routed sentinel.
+# conditioning group `for_group`. Covers the seven authored M16 types.
 func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 	if cond == null:
 		return false
 	match cond.type:
-		"_group_routed":
-			return _group_has_no_living_units(for_group, gs)
 		"rout":
 			return _eval_rout(cond, for_group, gs)
 		"turn_limit":
@@ -817,10 +798,8 @@ func _is_unit_id_alive(unit_id: String, gs: Node) -> bool:
 	return false
 
 
-# seize: TRUE iff some tile in cond.tiles has a seize record from a unit that
-# (a) belongs to the conditioning group AND (b) is allowed to seize by either
-# the legacy allow-list or the per-unit can_seize tag. The allow-list NARROWS
-# the conditioning group; otherwise authored maps rely on UnitData.can_seize.
+# seize: TRUE iff the configured tile has a seize record from a unit that
+# belongs to the conditioning group and carries UnitData.can_seize.
 # Decision 4 / 2026-05-17 — Seize is a deliberate ActionMenu entry; the cursor
 # calls record_seize on confirm.
 func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
@@ -832,13 +811,10 @@ func _eval_seize(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 			continue
 		var unit_id: String = record.get("unit_id", "")
 		var faction: String = record.get("faction", "")
-		# Group membership is required in BOTH the allow-list and default cases —
-		# a named unit_id that happens to live in another faction can't seize for
-		# this group.
 		if gs.get_alliance_group(faction) != for_group:
 			continue
 		var unit: Node = gs.find_unit_by_id(unit_id)
-		if _unit_matches_seize_gate(unit, cond):
+		if _unit_can_seize(unit):
 			return true
 	return false
 
@@ -872,23 +848,6 @@ func _eval_survive(cond: ObjectiveCondition, for_group: String, gs: Node) -> boo
 			if u.tile_position in cond.tiles:
 				return true
 	return false
-
-
-# True when no faction whose alliance_group == `group` has any living unit AND
-# the group has no escapees. Powers the implicit "group routed" defeat default;
-# escapees count as "still members" — they left the map alive, so the group
-# should not be considered fully wiped while any of its units have escaped.
-# Not exposed to authors.
-func _group_has_no_living_units(group: String, gs: Node) -> bool:
-	for record in _escape_records:
-		if gs.get_alliance_group(record.get("faction", "")) == group:
-			return false
-	for fid in gs.get_registered_faction_ids():
-		if gs.get_alliance_group(fid) != group:
-			continue
-		if not gs.get_living_units_of(fid).is_empty():
-			return false
-	return true
 
 
 # Returns the turn_number when `group` was first marked eliminated, or -1 if
@@ -934,17 +893,15 @@ func can_seize(unit: Node, tile: Vector2i) -> bool:
 					continue
 				if cond.tile != tile:
 					continue
-				if group_id == unit_group and _unit_matches_seize_gate(unit, cond):
+				if group_id == unit_group and _unit_can_seize(unit):
 					return true
 	return false
 
 
-func _unit_matches_seize_gate(unit: Node, cond: ObjectiveCondition) -> bool:
+func _unit_can_seize(unit: Node) -> bool:
 	if unit == null or unit.data == null:
 		return false
-	if not cond.allowed_unit_ids.is_empty():
-		return unit.data.unit_id in cond.allowed_unit_ids
-	return bool(unit.data.get("can_seize")) if unit.data != null else false
+	return bool(unit.data.get("can_seize"))
 
 
 # Removes a unit from the map under the "escape" semantics: tracks its

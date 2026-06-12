@@ -1044,7 +1044,7 @@ func _clamp_stats_to_caps(target_class: ClassData) -> void:
 
 func _max_equipped_skills() -> int:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	return int(gs.get("max_skills")) if gs != null else 4
+	return int(gs.get("max_skills")) if gs != null else 5
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
@@ -1133,12 +1133,19 @@ func add_wexp(track: String, amount: int) -> bool:
 		return false
 	if not data.weapon_wexp.has(track):
 		return false
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	var class_cap := class_data.get_weapon_wexp_cap(track)
+	var current_total := get_weapon_wexp(track)
+	if class_cap <= 0 or current_total >= class_cap:
+		return false
 	var gained := amount
 	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
 	if sh != null and sh.has_method("get_wexp_multiplier"):
 		gained *= int(sh.get_wexp_multiplier(self, track))
-	var previous_rank: String = GameConstants.weapon_rank_for_wexp(get_weapon_wexp(track))
-	var next_total := mini(get_weapon_wexp(track) + gained, GameConstants.maximum_wexp_total())
+	var previous_rank: String = GameConstants.weapon_rank_for_wexp(current_total)
+	var next_total := mini(current_total + gained, class_cap)
 	data.weapon_wexp[track] = next_total
 	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
 	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):

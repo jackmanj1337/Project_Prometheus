@@ -345,6 +345,15 @@ func _init() -> void:
 		print("OK  no follow-up when speed equal")
 		passed += 1
 
+	var near_fast = _make_unit({"name":"NearFast","speed":13,"weapon":iron_sword})
+	var near_slow = _make_unit({"name":"NearSlow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
+	if cr.get_follow_up_attacker(near_fast, near_slow) == null:
+		print("OK  no follow-up below the 5-Speed threshold")
+		passed += 1
+	else:
+		print("FAIL follow-up triggered at a 4-Speed advantage")
+		failed += 1
+
 	# --- EXP table ---
 	var lv5_atk = _make_unit({"level":5})
 	var lv5_def = _make_unit({"level":5})

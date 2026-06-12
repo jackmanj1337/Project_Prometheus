@@ -14,7 +14,7 @@ class_name ObjectiveCondition extends Resource
 # Catalogue:
 #   rout          — faction_id wiped (or "all hostiles" if faction_id empty)
 #   defeat_boss   — every unit_ids id dead
-#   seize         — a unit in allowed_unit_ids uses the Seize action on a `tiles` tile
+#   seize         — a unit with UnitData.can_seize uses Seize on the configured tile
 #   escape        — every unit_ids id has reached any tile in `tiles`
 #   survive       — turn_number advances by `turns` rounds (optionally while
 #                   holding any of `tiles`)
@@ -45,10 +45,6 @@ class_name ObjectiveCondition extends Resource
 # semantics are fundamentally one-tile-per-condition (L-1 / 2026-05-20 review).
 @export var tile: Vector2i = Vector2i(-1, -1)
 
-# seize: optional restriction on which unit_ids may perform the seize.
-# Empty = any unit in the conditioning group may seize (Decision 4 / 2026-05-17).
-@export var allowed_unit_ids: Array[String] = []
-
 # Measured in completed *rounds* (one full faction cycle = one round; turn_number
 # ticks once per round in both WHOLE_PHASE and ALTERNATING modes — see TurnManager).
 #   survive: condition is met once turn_number > turns (i.e. `turns` full rounds
@@ -60,7 +56,6 @@ class_name ObjectiveCondition extends Resource
 
 # One-line summary for the HUD objective readout (M16 stage 4). Concise enough
 # to fit in the side panel; type-specific so each condition reads naturally.
-# Returns "" for the internal _group_routed sentinel — it isn't author-facing.
 func get_display_text() -> String:
 	match type:
 		"rout":

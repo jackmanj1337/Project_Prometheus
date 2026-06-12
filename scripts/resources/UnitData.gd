@@ -72,7 +72,7 @@ var mastery_skills: Array[String] = []
 # "duration" = -1 means never auto-removed. "permanent" type is never decremented.
 var active_modifiers: Array[Dictionary] = []
 
-# Per-map use counters for limited skills. Keys = effect_id, values = times used.
+# Per-map use counters for limited skills. Keys = skill.id, values = times used.
 # Reset to {} by Unit.reset_map_state() at map load.
 var skill_use_counters: Dictionary = {}
 

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
@@ -9,7 +9,14 @@ type = "rout"
 faction_id = ""
 unit_ids = []
 tiles = []
-allowed_unit_ids = []
+turns = 0
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("2")
+type = "rout"
+faction_id = "allies"
+unit_ids = []
+tiles = []
 turns = 0
 
 [resource]
@@ -27,6 +34,7 @@ enemy_placements = [
 {"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e6_knight_tougher.tres", "tile": Vector2i(12, 6), "ai_profile": "basic", "is_boss": false}
 ]
 victory_conditions = {"allies": [SubResource("cond_rout_all")]}
+defeat_conditions = {"allies": [SubResource("cond_rout_allies")]}
 reward_gold = 0
 reward_items = []
 camera_start_tile = Vector2i(2, 3)
