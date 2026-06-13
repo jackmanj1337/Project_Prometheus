@@ -32,7 +32,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Applied / Supersession |
 |----|-------|--------|------|------------------------|
-| DOC-001 | Project/corpus authority boundary | Answered | REG | GDD owns rules, corpus is reference. **Supersedes D-C.** Apply in GDD_00 (Stage 2). |
+| DOC-001 | Project/corpus authority boundary | Applied | REG | GDD owns rules, corpus is reference. **Supersedes D-C.** Applied to GDD_00 authority order (Stage 2.1). |
 | DOC-002 | Current/target layout (section template) | Applied (governance) | REG | Template in GOV; apply to GDD chapters in Stage 3. |
 | DOC-003 | Status vocabulary | Applied (governance) | REG | Vocabulary in GOV; apply to GDD chapters in Stage 3. |
 | DOC-004 | Roadmap ownership | Answered | REG | Retire GDD_10a; GDD_10 owns. Apply in Stage 4. |
@@ -83,7 +83,7 @@ but not yet applied to the GDD). Homes:
 | ID | Title | Status | Home | Canonical / Notes |
 |----|-------|--------|------|-------------------|
 | D-A | Public identity rename | Retained | JUN | Data-pass rename ≤ first public RC. Separate from OPEN-12/DOC-012. |
-| D-B | 1.0 definition | Retained | JUN | Offline non-pipeline features + one short campaign; M11 re-scoped. |
+| D-B | 1.0 definition | Retained (applied to GDD_00) | JUN | Offline non-pipeline features + one short campaign; M11 re-scoped. In GDD_00 Release Definition (Stage 2.1). |
 | D-C | Rules authority | **Superseded by DOC-001** | JUN | Reversed: GDD owns rules, corpus is reference. |
 | D-D | Campaign prerequisites | Retained | JUN | Deployment screen, shops, recruit mechanic → roadmap edges. |
 | D-E | Reclass growth to caps | Retained | JUN | Second Seal growth to caps; caps are the balance lever. Note in GDD_03. |
@@ -108,10 +108,10 @@ but not yet applied to the GDD). Homes:
 | OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; new backlog: broken-weapon degraded mode. |
 | OPEN-6 | Simultaneous victory/defeat | Answered | JUN | Defeat before victory; tie → acting faction. |
 | OPEN-7 | Fort/throne heal rounding | Answered | JUN | `max(1, floor(0.10 × max_hp))`. |
-| OPEN-8 | Renderer backend | Answered | JUN | Compatibility (OpenGL); record in GDD_00 tech stack. |
+| OPEN-8 | Renderer backend | Answered (applied to GDD_00) | JUN | Compatibility (OpenGL); recorded in GDD_00 Platform Targets (Stage 2.1). |
 | OPEN-9 | Soldier class | Deferred (AWR-2) | JUN | Placeholder enemy-only Soldier on Map 001 until class migration. |
 | OPEN-10 | Cleric "Light E" | Deferred (RULE-009) | JUN | Decided by Light/Dark design pass. |
-| OPEN-11 | Steam Deck 16:10 | Answered | JUN | Letterbox; revisit once UI-scale setting exists. |
+| OPEN-11 | Steam Deck 16:10 | Answered (applied to GDD_00) | JUN | Letterbox; revisit once UI-scale setting exists. In GDD_00 Platform Targets (Stage 2.1). |
 | OPEN-12 | Handbook licensing/attribution | Answered (pre-1.0 gate) | JUN | Blocking pre-1.0 gate; owned with DOC-012; rename does not resolve it. |
 | OPEN-13 | Suspend-file lifecycle | Answered | JUN | Persists until map resolves, then deleted; no delete-on-load. |
 
@@ -120,7 +120,7 @@ but not yet applied to the GDD). Homes:
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
 | Combat modifier pipeline order | Canonical order ratified | Answered | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Goes in GDD_01. |
-| PL#8 | Doc-lifecycle DoD rule | Answered (adopted) | JUN | Same-commit GDD + roadmap update. Add to AGENTS.md (Stage 2.2). |
+| PL#8 | Doc-lifecycle DoD rule | Applied | JUN | Same-commit GDD + roadmap update. **Applied to AGENTS.md** (Stage 2.2). |
 | PL#9 | Minimal SFX | Answered (deferred) | JUN | Wait for Phase 3 audio milestone. |
 
 ## AWR — roadmap milestones referenced by decisions

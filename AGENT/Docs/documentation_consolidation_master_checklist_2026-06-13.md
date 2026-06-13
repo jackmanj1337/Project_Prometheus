@@ -77,7 +77,7 @@ Exit: file exists; will be linked from `GDD_00` in Stage 2.
 
 # STAGE 2 — Entry point (Phase 2)
 
-### [ ] 2.1 Rewrite `GDD_00_Overview.md`
+### [x] 2.1 Rewrite `GDD_00_Overview.md` — DONE 2026-06-13
 
 Owns: project vision + 1.0 release definition (D-B); authority model (DOC-001 — GDD
 owns rules, corpus is reference); status vocabulary (DOC-003); GDD section template
@@ -88,7 +88,7 @@ procedures duplicated.
 Exit: a new session can start from `GDD_00` and reach the correct owner for any major
 feature.
 
-### [ ] 2.2 Add the PL#8 doc-lifecycle DoD rule to `AGENTS.md`
+### [x] 2.2 Add the PL#8 doc-lifecycle DoD rule to `AGENTS.md` — DONE 2026-06-13
 
 Same-commit rule: a feature change updates the affected GDD sections **and** flips the
 roadmap status in the same commit. (Pairs with the DOC-011 CI checks in Stage 6.)

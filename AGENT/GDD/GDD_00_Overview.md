@@ -2,41 +2,88 @@
 ## Fire Emblem Tabletop RPG Adaptation
 ### A Top-Down Turn-Based Strategy RPG
 
+**Status:** Active — project entry point.
+**Last verified:** 2026-06-13
+**Governance:** `AGENT/Docs/documentation_governance_2026-06-13.md`
+
+This is the starting page for any contributor. It defines the documentation
+authority model, points to the feature and decision indices, and summarizes the
+release definition, baseline, known issues, and platform targets. It does **not**
+hold rule detail — each rule lives in its owning numbered chapter.
+
 ---
 
-## Document Index
+## Documentation Authority (DOC-001)
 
-| File | Contents |
-|---|---|
-| `GDD_00_Overview.md` | This file. Project goals, scope, tech stack, document map |
-| `GDD_01_Architecture.md` | Godot project structure, data-driven design, extensibility patterns |
-| `GDD_02_Core_Mechanics.md` | Grid, turns, combat, stats, EXP, permadeath |
-| `GDD_03_Units_Classes.md` | Unit data structure, MVP classes, promotion system |
-| `GDD_04_Weapons_Items.md` | Weapon/item data structures, MVP content, forging |
-| `GDD_05_Skills.md` | Skill system architecture, MVP skills |
-| `GDD_06_Maps_Objectives.md` | Map structure, terrain, objectives, MVP maps |
-| `GDD_07_UI_UX.md` | All UI screens and panels |
-| `GDD_08_Enemy_AI.md` | AI system design and extension hooks |
-| `GDD_09_Checklist.md` | Historical MVP implementation checklist (milestones M0-M7) |
-| `GDD_10_Roadmap.md` | Phase 2 roadmap — milestones M8–M16 |
-| `GDD_10a_Overview.md` | One-screen ordered overview — every planned feature + deferred fix in recommended completion order; companion to GDD_10 |
-
-Supporting documents (not numbered): `GDD_Assumptions.md` records design decisions
-made from GBA Fire Emblem convention; `GDD_Manual_Tasks.md` lists tasks that require
-the Godot editor and cannot be done by editing files.
-
-### Documentation Authority
+The numbered GDD owns project **design rules and target design**. The Awakening
+corpus is a **reference** for building features; a corpus rule becomes a project
+target only through an explicit **adoption-matrix** entry plus a GDD update. A later
+edit to the corpus never changes project rules on its own.
 
 When documents disagree, use this order:
 
-1. Ratified dated decisions and later addenda in `AGENT/Docs`.
-2. Current code and tests for shipped behavior, except where they violate a
-   ratified decision.
-3. `GDD_01` through `GDD_08` as the live design/implementation contract.
-4. `GDD_10_Roadmap.md` and `GDD_10a_Overview.md` for future work and status.
-5. `GDD_Assumptions.md` and `GDD_09_Checklist.md` as historical records.
-6. The Awakening corpus as external reference until a rule is explicitly
-   adopted into this GDD.
+1. **Ratified dated decisions** — the decision register, dated decision records, and
+   governance standards in `AGENT/Docs` (see the decision index below).
+2. **The numbered GDD** (`GDD_01`–`GDD_08`) as the live design/implementation
+   contract, with each section's status label distinguishing implemented from target.
+3. **Code and tests** for shipped behavior, except where they contradict a ratified
+   decision (in which case the code is a tracked gap, not the rule).
+4. **`GDD_10_Roadmap.md`** for work order, milestone scope, dependencies, and status.
+5. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+   reference, binding only where an adoption-matrix entry has adopted it.
+
+> This order is written from **DOC-001**. The earlier D-C direction (corpus
+> authoritative for rules) is **superseded** — see `decision_index.md`.
+
+### Status vocabulary
+
+Every status-bearing section uses one label — **Implemented · Pending validation ·
+Known issue · Target design · Planned · Deferred · Open decision · Historical ·
+Superseded** — plus a `Last verified` date. The unqualified words "current,"
+"complete," and "canonical" are prohibited in status-bearing sections. A feature may
+carry a **split status** (an `Implemented` line and a `Target design` line) during
+migration. Full table + the GDD section template: the governance doc.
+
+---
+
+## Navigation
+
+| Index | Purpose |
+|---|---|
+| `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, roadmap owner, code/data, tests, decisions, and reference source. |
+| `AGENT/Docs/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
+
+### Document map (live set)
+
+| File | Owns |
+|---|---|
+| `GDD_00_Overview.md` | This file — authority model, indices, release definition, platform targets |
+| `GDD_01_Architecture.md` | Project structure, data/serialization contracts, autoload order, snapshot/RNG seams |
+| `GDD_02_Core_Mechanics.md` | Grid, turns, combat resolution, RNG model, EXP, permadeath, terrain combat |
+| `GDD_03_Units_Classes.md` | Units, classes, progression, promotion, reclass |
+| `GDD_04_Weapons_Items.md` | Weapons, items, weapon triangle, WEXP, economy-facing rules |
+| `GDD_05_Skills.md` | Skills, triggers/precedence, Pair Up/support, status conditions |
+| `GDD_06_Maps_Objectives.md` | Terrain, movement categories, objectives, authored-map contracts |
+| `GDD_07_UI_UX.md` | UI/UX behavior, input, settings, accessibility |
+| `GDD_08_Enemy_AI.md` | AI behavior, parity obligations, performance constraints |
+| `GDD_10_Roadmap.md` | Sole roadmap owner — work order, milestones, dependencies, status |
+
+Operational guides live in `AGENT/Docs` (`environment_setup.md`, `testing_guide.md`,
+`map_authoring_guide.md`, `fe_map_sprite_importer_guide.md`) and are linked from the
+relevant feature rows; the GDD does not duplicate them.
+
+### Documents being retired or migrated
+
+Per the lifecycle table (`AGENT/Docs/documentation_lifecycle_2026-06-13.md`), these
+are **not** authority sources; retrieve via Git history once removed:
+
+- `GDD_09_Checklist.md` — **Historical** (MVP build sequence); merged into the roadmap
+  backlog then deleted (DOC-006).
+- `GDD_10a_Overview.md` — **Superseded**; the roadmap owns order/status (DOC-004).
+- `GDD_Assumptions.md` — **Historical**; useful assumptions fold into owning chapters
+  then deleted (DOC-006).
+- `GDD_Manual_Tasks.md` — operational; moves to `AGENT/Docs/manual_test_playbook.md`
+  (DOC-007).
 
 ---
 
@@ -47,82 +94,98 @@ top-down grid-based turn-based strategy game. Built to be extensible — core sy
 implemented first, with classes, maps, items, and skills added as self-contained data
 without requiring engine changes.
 
----
-
 ## Design Pillars
 
-1. **Rules-faithful** — Combat math, weapon triangles, and stat interactions follow the
-   handbook as closely as reasonable for a digital game.
-2. **Extensible by design** — All content (classes, weapons, skills, maps) lives in data
-   files, not hardcoded logic. Adding a new class should never require touching combat code.
-3. **Readable systems** — The player always has access to the numbers. Hit chance, crit
-   chance, and expected damage are shown before committing to an attack.
-4. **Modular milestones** — The game is playable and testable at the end of each
-   development phase, even if content is thin.
+1. **Rules-faithful** — combat math, weapon triangles, and stat interactions follow the
+   adopted corpus/handbook rules as closely as reasonable for a digital game.
+2. **Extensible by design** — all content lives in data files, not hardcoded logic.
+3. **Readable systems** — the player always has the numbers: hit, crit, and expected
+   damage are shown before committing to an attack.
+4. **Modular milestones** — the game is playable and testable at the end of each phase.
 
 ---
 
-## Scope
+## Release Definition (D-B)
 
-### Current Implemented Baseline
+**1.0 = all offline, non-pipeline features + one short playable campaign.**
+
+- Campaign **content** for the short campaign is in 1.0; full content coverage is
+  post-1.0 (M11 re-scoped).
+- **Online play** (M15 Part B, host-authoritative) is **post-1.0**.
+- **Public-identity rename** (D-A): all FE-derived names are placeholders; a data-pass
+  rename lands no later than the first public release candidate.
+- **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** —
+  handbook/corpus derivative-works rights and attribution must be resolved before 1.0.
+  This is **separate from** the rename and is not satisfied by it.
+
+---
+
+## Implemented Baseline
+
+Status: **Implemented** (project behavior; corpus migration is **Target design** —
+see the feature index and per-chapter status).
+Last verified: 2026-06-13
+
 - Grid-based map with terrain
-- 6 starter classes (Cavalier, Mercenary, Archer, Mage, Cleric, Knight)
+- 6 starter classes (Cavalier, Mercenary, Archer, Mage, Cleric, Knight) — *being
+  migrated to corpus class definitions (Target design, AWR-2)*
 - Basic weapon types (Sword, Lance, Bow, Fire tome, Heal staff)
 - Full combat resolution (hit, crit, damage, weapon triangle, counterattack, follow-up)
-- Faction-based phase loop with authored turn order, alliance groups, and controller ownership
+- Faction-based phase loop with authored turn order, alliance groups, controller ownership
 - Whole-phase hotseat support for non-blue factions
-- Simple enemy AI profiles (`basic`, `passive`, `healer`) with per-faction dispatch
-- Experience and leveling
-- Permadeath toggle (unit is incapacitated, not deleted)
+- Enemy AI profiles (`basic`, `passive`, `healer`) with per-faction dispatch
+- Experience and leveling; permadeath toggle (incapacitated, not deleted)
 - Promotion and Second Seal reclassing
 - Pair Up pass 1 (`Pair Up`, `Swap`, `Separate`, snapshot persistence)
-- Multi-condition objective system (Rout, Seize, Defeat Boss, Escape, Survive / Defend, Protect)
-- 8 registered maps including validation maps and objective showcase maps
+- Multi-condition objectives (Rout, Seize, Defeat Boss, Escape, Survive/Defend, Protect)
+- 8 registered maps including validation and objective-showcase maps
 - Basic UI plus Settings, New Game map selector, character sheet, and More Info panels
 
-### Phase 2 — Content Expansion
-- Remaining handbook classes
-- Full weapon roster
-- Remaining generic and class skills
-- Status conditions (Poison, Sleep, Silence, Berserk, Stun)
-- Forging system
-- Additional campaign maps and progression flow
-- **Between-map save / load** — roster state, current map, gold; saved at map end and on quit
+The authoritative, per-feature implemented/target split lives in `GDD_Feature_Index.md`
+and the owning chapters; this list is a high-level snapshot only.
 
-### Phase 3 — Polish & Release
-- [PLACEHOLDER — Story / campaign structure]
-- [PLACEHOLDER — Art pass]
-- [PLACEHOLDER — Audio]
-- **Mid-battle suspend save** — full battle state serialization; built on Phase 2 save infrastructure
-- Settings expansion: key rebinding, display options, and accessibility controls
-- Steam / GitHub release preparation
+## Known Issues & Pending Validation
+
+Status: **Known issue**
+Last verified: 2026-06-13
+
+- **Combat preview render** — Known issue (2026-06-10); fix tracked in
+  `AGENT/Docs/combat_preview_render_fix_plan_2026-06-10.md`.
+
+The roadmap (`GDD_10_Roadmap.md`) owns the authoritative bug/pending-validation list;
+confirmed playtest defects are migrated there during roadmap consolidation. This
+summary is a pointer, not the tracker.
 
 ---
 
-## Tech Stack
+## Platform Targets
+
+Status: **Target design** (renderer/platform decisions ratified; verification pending)
+Last verified: 2026-06-13
+
+| Aspect | Target | Source |
+|---|---|---|
+| Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
+| Primary platform | Desktop (Windows, Mac, Linux) | — |
+| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; revisit once a UI-scale setting exists | OPEN-11 |
+| Web | Playtest distribution channel | OPEN-8 |
+| Gamepad | Supported, landing with the key-rebinding milestone | — |
+| Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
 
 | Component | Choice | Notes |
 |---|---|---|
-| Engine | Godot 4 (stable) | Free, open source, excellent 2D tooling |
-| Language | GDScript | Default Godot language; current codebase is entirely GDScript |
-| Data format | Godot Resources (.tres) | Native editor support; JSON acceptable for maps |
-| Version control | Git + GitHub | Public repo for open source release |
-| Target platform | Desktop (Windows, Mac, Linux) | Mobile deferred to Phase 3 |
-
----
-
-## Release Targets
-
-- **GitHub** — Open source repository, MIT license recommended
-- **Steam** — Possible later release; no monetization planned
-- **Mobile** — Deferred; note that UI will need a significant redesign pass for touch
+| Engine | Godot 4 (stable) | 2D tooling; Compatibility renderer |
+| Language | GDScript | Codebase is entirely GDScript |
+| Data format | Godot Resources (.tres) | JSON acceptable for maps/suspend saves |
+| Version control | Git + GitHub | Public repo; licensing gate (DOC-012) precedes public release |
 
 ---
 
 ## Conventions Used in These Documents
 
-- `[PLACEHOLDER]` — Content not yet designed; label clearly in code and assets
-- `MVP` — Required for the first playable build
-- `Phase 2+` — Planned but not in the first milestone
-- Code references use `ClassName` or `script_name.gd` format
-- Checklist items use GitHub-style task lists: `- [ ] Task`
+- Status-bearing sections use the governance status vocabulary + `Last verified` date.
+- `[PLACEHOLDER]` — content not yet designed; label clearly in code and assets.
+- Code references use `ClassName` or `script_name.gd` format.
+- Checklist items use GitHub-style task lists: `- [ ] Task`.
+- Per **PL#8** (definition-of-done): a behavior change updates the affected GDD
+  section(s) **and** flips the roadmap status in the **same commit**.

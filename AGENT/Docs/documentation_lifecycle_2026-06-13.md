@@ -30,6 +30,12 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 | `rng_determinism_design_2026-06-11.md` | Ratified design (two-RN updated 2026-06-13) | RNG/save/rewind/online contract | **move then merge** (DOC-010) | → `AGENT/Docs/` then binding rules merge into GDD feature-design home (GDD_01/02) | none live (consolidation docs only, self-updating) | 3.1 | Binding rules in GDD_01/02; file archived/removed after merge |
 | `gdd_update_reference_2026-06-12.md` | Historical (once applied) | June update input | **archive** (DOC-010) | All dispositions already imported to decision record | none live (consolidation docs only) | 5.2 | Marked Historical/archived after all dispositions reflected in GDD/roadmap |
 
+> **Stage 2 update (2026-06-13):** `GDD_00` was rewritten and no longer links these
+> four files as *authority* sources — they now appear only in its "Documents being
+> retired or migrated" subsection as status notes. Those bullets (not the old
+> line numbers 20/22/24/25/36/37) are what each file's deletion removes. README and the
+> other live refs in this table are unchanged.
+
 > `Play_tester_comments.md` (`AGENT/GDD`) — Historical raw notes. **Action: keep**
 > (not a contract). Optional: relocate to `AGENT/Docs` with the playbook later; no live
 > dependency forces a move, so out of Stage 1 scope.

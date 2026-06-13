@@ -16,6 +16,8 @@ make regular commits with related messages after each logical step.
 
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
+Documentation lifecycle definition-of-done (PL#8): when a change alters behavior, update the affected GDD_01–08 section(s) AND flip the matching status in GDD_10_Roadmap.md in the SAME commit. Use the governance status vocabulary (AGENT/Docs/documentation_governance_2026-06-13.md) — never the words "current", "complete", or "canonical" in a status-bearing section. (Pairs with the DOC-011 CI documentation checks.)
+
 Code review instructions are in the AGENT/Docs folder
 
 These notes should include what was done that session, the commits made and plans for next session,
