@@ -636,8 +636,8 @@ func clear_all_conditions(unit: Node) -> void
 ## CampaignRules Contract
 
 Status: **Split** — the live per-save rule fields are **Implemented** (on `GameState`);
-consolidation into a `CampaignRules` object + the new fields are **Target design**
-(Stage 4.3 creates the code stub)
+consolidation into a `CampaignRules` object is **Target design** (stub created Stage 4.3);
+`exp_gaining_factions` field is **Stub** (`scripts/resources/CampaignRules.gd`)
 Last verified: 2026-06-13
 
 ### Summary
@@ -677,14 +677,15 @@ campaign systems depend on.
 - **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
 
 ### Known gaps
-- No `CampaignRules` class exists in code yet; fields are loose on `GameState`. The
-  long-term campaign-save schema is broader than the current runtime contract.
+- `CampaignRules` class stub created (`scripts/resources/CampaignRules.gd`), but not
+  yet wired into `GameState`. Fields remain loose on `GameState`; consolidation and
+  snapshot integration are a Phase 3 task (requires campaign save/load design).
 
 ### Anchors
-- Code: `scripts/autoloads/GameState.gd` (current rule fields); target `CampaignRules`
+- Code: `scripts/autoloads/GameState.gd` (current rule fields); `scripts/resources/CampaignRules.gd` (stub)
 - Guide: `AGENT/Docs/campaign_rules.md`
 - Decisions: OPEN-4, OPEN-5, RNG-3, D-D
-- Roadmap: Stage 4.3 (CampaignRules stub); Owner of EXP gating: GDD_02
+- Roadmap: GDD_10 §Release Gates / CampaignRules Stub; EXP gating owner: GDD_02
 
 ---
 

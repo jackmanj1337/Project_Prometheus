@@ -39,8 +39,8 @@ headings (`§ …`) are finalized during the Stage 3 rewrites.
 
 | Feature | Status | Tracking | Decisions |
 |---|---|---|---|
-| Broken-weapon degraded mode | Backlog (optional rule) | Stage 4.3 roadmap | OPEN-5 |
-| `CampaignRules.exp_gaining_factions` | Planned | Stage 4.3 / CampaignRules stub | OPEN-4 |
+| Broken-weapon degraded mode | Backlog (optional rule) | GDD_10 §Release Gates (OPEN-5); Phase 3 Backlog §Systems | OPEN-5 |
+| `CampaignRules.exp_gaining_factions` | Stub created (Stage 4.3) | GDD_10 §Release Gates / CampaignRules Stub; GDD_01 §CampaignRules Contract | OPEN-4 |
 
 > Anchors and exact section headings are filled in during Stage 3 chapter rewrites,
 > when code/test/manual coverage is verified per-chapter. Until then this index is a

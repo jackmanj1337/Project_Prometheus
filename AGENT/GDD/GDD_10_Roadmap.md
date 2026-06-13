@@ -100,6 +100,80 @@ otherwise — see the per-item coupling notes for why the order matters.
 
 ---
 
+## Release Gates & Package G Decisions
+
+> These items are cross-cutting release obligations, not milestone-ordered work. Each
+> has a decision record owner; track as roadmap entries so nothing falls through.
+
+### 1.0 Definition (D-B)
+
+**Scope:** 1.0 = all offline non-pipeline features + one short campaign.
+M15 Part B (online) is post-1.0.
+M11 re-scoped: campaign content required for 1.0; full corpus coverage is post-1.0.
+
+**Campaign prerequisites (D-D):** the following are prerequisite dependency edges to
+the campaign milestone, not standalone optional work:
+- Pre-battle deployment screen (roster selection, convoy/trade initial state)
+- Shop / item-purchase screen
+- Recruit mechanic (green ally → player unit)
+
+These three items gate the campaign milestone; they do not gate M8–M11 individually.
+
+### Public-Identity Rename Gate (D-A)
+
+All Fire Emblem–derived names are placeholders. A data-pass rename to project-owned
+names is required **no later than the first public release-candidate**.
+- Scope: faction names, class names, item names, GDD prose, data file strings.
+- This rename does **not** resolve the legal/licensing gate (D-A and DOC-012 are
+  separate, consecutive gates — rename first, then licensing review).
+
+### Legal / Licensing Gate (DOC-012 / OPEN-12)
+
+**Blocking pre-1.0 gate.** Before any public release, research the source handbook /
+corpus license for derivative digital works and decide attribution strategy.
+- D-A rename does not resolve this; it runs after the rename.
+- Scope: all corpus-derived rules, text, and structural content.
+- Owner: DOC-012 decision record.
+
+### Renderer & Platform Targets (OPEN-8 / OPEN-11)
+
+Ratified 2026-06-13 (June decision record):
+- **Renderer:** Compatibility (OpenGL) — required for web export; Forward+ not needed.
+- **Desktop:** primary target.
+- **Steam Deck:** letterbox (keep 16:9) at first verification; revisit "expand" once
+  UI-scale setting exists (OPEN-11).
+- **Web:** playtest channel.
+- **Gamepad:** with the key-rebind milestone.
+- **Mobile:** deferred.
+
+Cross-referenced in GDD_00 §Tech Stack; GDD_07 §Accessibility & Input Parity.
+
+### CampaignRules Stub (OPEN-4 / GDD_01 §CampaignRules Contract)
+
+**Status: Stub created (Stage 4.3, 2026-06-13)** — `scripts/resources/CampaignRules.gd`.
+
+The `CampaignRules` Resource defines the per-save bundle of gameplay rules. Today the
+fields are loose on `GameState`; the stub establishes the class and adds the key new
+field from OPEN-4:
+
+- **`exp_gaining_factions: Array[String]`** — default `["blue", "green"]`; Red (enemy)
+  does not gain EXP. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
+
+**Next step (post-stub):** wire `CampaignRules` into `GameState` (replace loose fields
+with a `campaign_rules` member), update the snapshot serializer, and update `NewGameScreen`
+to populate the object. This is a Phase 3 task (requires campaign save/load design).
+
+### New Backlog Items (from June decisions)
+
+- **Broken-weapon degraded mode (OPEN-5):** optional rule — a 0-use weapon stays
+  usable with a stat penalty and infinite uses while broken, repairable at special
+  shops/items. Likely a `CampaignRules` toggle. Tracked in Phase 3 Backlog §Systems
+  and GDD_04 §Inventory Management.
+- **SFX deferred (PL#9):** no interim SFX. Wait for the Phase 3 audio milestone
+  (Polish §Sound effects). No code placeholder needed.
+
+---
+
 ## Phase 2 Milestones (M8–M16)
 
 ---
