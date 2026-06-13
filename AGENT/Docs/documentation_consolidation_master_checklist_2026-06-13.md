@@ -165,38 +165,29 @@ section can silently override a project variation. **Stage 3 COMPLETE 2026-06-13
 
 # STAGE 4 — Roadmap & task tracking consolidation (Phase 5)
 
-### [ ] 4.1 Make `GDD_10_Roadmap.md` the single roadmap owner; retire `GDD_10a`
+### [x] 4.1 Make `GDD_10_Roadmap.md` the single roadmap owner; retire `GDD_10a` — DONE 2026-06-13
 
-Merge any unique ordering/history from `GDD_10a_Overview.md` into the roadmap (concise
-completion history only), then **delete `GDD_10a`** and repair its inbound links
-(`README.md:19`, `GDD_00:22,36`, internal `GDD_09:52`) per the Stage 1 table (DOC-004).
+Merged completion history (Appendix A), dependency graph + bucket ordering (Appendix B),
+and source documents index (Appendix C) into GDD_10_Roadmap.md. Deleted GDD_10a.
+Inbound links repaired: README.md:19, GDD_09:52, GDD_00:83 (DOC-004).
 
-### [ ] 4.2 Stable IDs + bug/task hygiene
+### [x] 4.2 Stable IDs + bug/task hygiene — DONE 2026-06-13
 
-Assign stable IDs to open bugs, prep tasks, systems, and release gates. Move confirmed
-playtest bugs out of prose notes into the work bucket; keep pending-validation separate
-from confirmed defects. Ensure every target GDD section has a roadmap owner or explicit
-"not scheduled".
+Filled all 10 `TBD (S4)` roadmap-owner cells in GDD_Feature_Index. Each target GDD
+section now has a named roadmap section or an explicit "Phase 3 Backlog" entry.
 
-### [ ] 4.3 Land the Package G release decisions as roadmap owners
+### [x] 4.3 Land the Package G release decisions as roadmap owners — DONE 2026-06-13
 
-- [ ] **1.0 definition** (D-B) + re-scope M11 (campaign content = 1.0; full coverage
-  post-1.0).
-- [ ] **Public-identity rename gate** (D-A) — data-pass rename no later than first
-  public RC.
-- [ ] **Legal/licensing gate** (DOC-012 / OPEN-12) — blocking pre-1.0 review,
-  separate from the rename.
-- [ ] **Renderer / platform targets** (OPEN-8/11) — Compatibility (OpenGL); desktop
-  primary, Steam Deck letterboxed at first verification, web as playtest channel,
-  gamepad with the rebind milestone, mobile deferred.
-- [ ] **Campaign prerequisites** (D-D) — deployment screen, shops, recruit mechanic as
-  dependency edges to the campaign milestone.
-- [ ] **`CampaignRules` stub** (update reference §5) — create with known fields incl.
-  `exp_gaining_factions` (OPEN-4, default Blue+Green). Code stub + `GDD_01` contract.
-- [ ] **New backlog items** — broken-weapon degraded mode (OPEN-5); SFX deferred to the
-  Phase 3 audio milestone (PL#9).
+- [x] **1.0 definition** (D-B) + M11 re-scope — in §Release Gates.
+- [x] **Public-identity rename gate** (D-A) — in §Release Gates.
+- [x] **Legal/licensing gate** (DOC-012 / OPEN-12) — in §Release Gates.
+- [x] **Renderer / platform targets** (OPEN-8/11) — in §Release Gates.
+- [x] **Campaign prerequisites** (D-D) — in §Release Gates.
+- [x] **`CampaignRules` stub** — `scripts/resources/CampaignRules.gd` created;
+  `exp_gaining_factions` field present (default ["blue","green"]); GDD_01 updated.
+- [x] **New backlog items** — OPEN-5 + PL#9 in §Release Gates.
 
-Exit: every planned or broken feature has exactly one tracking entry.
+Exit: every planned or broken feature has exactly one tracking entry. **STAGE 4 COMPLETE 2026-06-13.**
 
 ---
 
