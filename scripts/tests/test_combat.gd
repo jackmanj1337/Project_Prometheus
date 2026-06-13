@@ -634,6 +634,20 @@ func _init() -> void:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
+	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the backward-compat
+	# boundary noted in code_review_2026-06-13 §2 Low). The live 4× path is covered by H-3;
+	# a direct compute_damage() with no context dict must fall back to the 3× effectiveness
+	# default — never 4× — because Giantkiller is only resolved through the context path.
+	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict
+	# mt=6*3=18 (effective, no giantkiller); atk=8+18=26; def=3; dmg=23 (vs 29 on the 4× path)
+	if h3b_dmg == 23 and h3b_dmg < gk_prev["defender_damage"]:
+		print("OK  H-3b: no-context compute_damage caps at 3× (got %d, < 4× path %d)" \
+			% [h3b_dmg, gk_prev["defender_damage"]])
+		passed += 1
+	else:
+		print("FAIL H-3b: expected 23 (3× only), got %d" % h3b_dmg)
+		failed += 1
+
 	# --- Mid-combat weapon break stops further attacks ---
 	# Brave sword (strikes=2) with 1 use left: first hit breaks it; all subsequent
 	# exchanges from the same attacker must be skipped by apply_combat_result.

@@ -186,7 +186,7 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		if skill.activation_chance_stat != "":
 			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
 			var chance: int = stat_val / max(1, skill.activation_divisor)
-			if (randi() % 100) >= chance:
+			if (randi() % 100) >= chance:  # rng-allow: pre-M9a (RNG-1)
 				continue
 		# Only count a use when the effect actually committed: a handler that
 		# declines (wrong weapon type, HP above threshold, Miracle on a non-lethal

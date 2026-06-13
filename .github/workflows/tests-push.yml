@@ -19,6 +19,9 @@ jobs:
       - name: Documentation checks (DOC-011)
         run: python3 AGENT/Docs/check_docs.py
 
+      - name: RNG-usage guard
+        run: bash scripts/ci/check_rng_usage.sh
+
       - name: Install runtime dependencies
         run: |
           sudo apt-get update

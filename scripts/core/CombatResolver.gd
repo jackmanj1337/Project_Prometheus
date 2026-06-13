@@ -441,14 +441,14 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	var crit_pct := compute_crit_pct(actor, target, weapon, crit_ctx)
 	var base_dmg := compute_damage(actor, target, weapon, dmg_ctx)
 
-	var did_hit: bool  = (randi() % 100) < hit_pct
+	var did_hit: bool  = (randi() % 100) < hit_pct  # rng-allow: pre-M9a (RNG-1)
 	var did_crit: bool = false
 	var damage: int    = 0
 
 	if did_hit:
 		if sh:
 			sh.apply_trigger(actor, "on_hit", context, false, context.get(blocked_key, false))
-		did_crit = (randi() % 100) < crit_pct
+		did_crit = (randi() % 100) < crit_pct  # rng-allow: pre-M9a (RNG-1)
 		damage = base_dmg * 3 if did_crit else base_dmg
 		var dmg_mult: float = actor_mod["damage_multiplier"]
 		if dmg_mult != 1.0:

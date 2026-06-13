@@ -1,5 +1,11 @@
 class_name UnitData extends Resource
 
+# SNAPSHOT CONTRACT: any field below that can CHANGE during a map must be added to
+# GameState._snapshot_unit_data / _restore_unit_data, or Retry/suspend won't roll it
+# back. Static identity/config fields are exempt and listed in test_snapshot_coverage.gd
+# (STATIC_FIELDS). That test reflects over these fields and FAILS on any uncovered
+# mutable field — so when you add a field here, update the snapshot or STATIC_FIELDS.
+
 @export var unit_id: String = ""   # unique identifier; used by survivor checks and save/load
 @export var unit_name: String = ""
 # Grid position — captured by GameState's manual snapshot (not by ResourceSaver; not @export).

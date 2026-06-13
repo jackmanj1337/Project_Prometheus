@@ -1066,7 +1066,7 @@ func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
-		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
+		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)  # rng-allow: pre-M9a (RNG-1)
 		var applied: int = _apply_stat_gain(stat, gain, caps)
 		if applied > 0:
 			changes[stat] = applied
