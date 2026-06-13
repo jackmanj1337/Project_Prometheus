@@ -92,14 +92,14 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | S-rank / marriage (7) | `awakening_core_systems` | Deferred | — | Post-1.0 | Deferred | OPEN-1, RULE-012 |
 | Child units / inheritance (8) | `awakening_core_systems`, `awakening_appendices` | Deferred | — | Post-1.0 | Deferred | OPEN-1, RULE-012 |
 
-## Terrain & movement  → GDD_06 (3.6)
+## Terrain & movement  → GDD_06 (3.6 — DONE)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Terrain values | `awakening_lookup_tables` | Adopted target | GDD_06 §Terrain (TBD) | Show both tables (Implemented project + Target corpus) until migration | Target design | SET-008, RULE-010 |
-| Movement categories | `awakening_lookup_tables` | Adopted target | GDD_06 §Movement (TBD) | — | Target design | SET-008 |
-| Flying movement category | `awakening_lookup_tables` | Adopted target | GDD_06 (TBD) | Implemented via terrain movement-cost categories | Planned | SET-008 |
-| Existing terrain ID mapping | `awakening_lookup_tables` | Deferred | GDD_06 (TBD) | sea / wall-building / Fort-behavior throne resolved by mapping pass, not name equality | Open decision | RULE-011 (AWR-8) |
+| Terrain values | `awakening_lookup_tables` | Adopted target | GDD_06 §Terrain & Movement | Show both tables (Implemented project + Target corpus) until migration | Target design | SET-008, RULE-010 |
+| Movement categories | `awakening_lookup_tables` | Adopted target | GDD_06 §Terrain & Movement | — | Target design | SET-008 |
+| Flying movement category | `awakening_lookup_tables` | Adopted target | GDD_06 §Terrain & Movement | Implemented via terrain movement-cost categories | Planned | SET-008 |
+| Existing terrain ID mapping | `awakening_lookup_tables` | Deferred | GDD_06 §Terrain & Movement (Known gaps) | sea / wall-building / Fort-behavior throne resolved by mapping pass, not name equality | Open decision | RULE-011 (AWR-8) |
 
 ## Weapons & items  → GDD_04 (3.3 — DONE)
 

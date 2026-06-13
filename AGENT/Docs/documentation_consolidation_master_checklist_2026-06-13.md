@@ -143,8 +143,11 @@ record any new choice in the register.
   follow-up override Target, code stub deferred to Stage 4.3). Two-RN save-compat note +
   RngService autoload-order insertion already present in §Determinism/Implementation Notes
   (3.1); resource/serialization schemas retained as Reference tracking the code.
-- [ ] 3.6 **`GDD_06` Maps & Objectives** — terrain/movement schemas, objective and
-  authored-map contracts. Package D docs.
+- [x] 3.6 **`GDD_06` Maps & Objectives** — DONE 2026-06-13. Header + status labels; added
+  §Terrain & Movement schema with split tables (project Implemented + corpus Target,
+  SET-008/RULE-010), terrain ID mapping Open decision (RULE-011/AWR-8); status-labeled
+  Objective System, Map 001 reference, Phase 3 maps (M16), Doors/Chests + Fog (Planned).
+  Combat effects cross-referenced to GDD_02; schemas to GDD_01.
 - [ ] 3.7 **`GDD_07` UI/UX** — UI capacity, input parity, accessibility contracts.
 - [ ] 3.8 **`GDD_08` Enemy AI** — AI parity obligations and performance constraints.
 

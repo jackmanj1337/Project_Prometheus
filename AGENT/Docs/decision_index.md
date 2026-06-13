@@ -58,7 +58,7 @@ but not yet applied to the GDD). Homes:
 | RULE-007 | Class replacement scope | Applied (Target design) | REG | Full corpus classes; project-only Rejected/archived. In GDD_03 §Starter Roster (3.2). |
 | RULE-008 | Personal vs class growths | Applied (Target design) | REG | Replace personal growths; effective = corpus archetype + class. In GDD_03 §Starter Roster (3.2). |
 | RULE-009 | Light/Dark magic design scope | Applied (Planned) | REG | Dedicated design task before bulk class migration. In GDD_03 §Starter Roster Known gaps (3.2). Owns OPEN-10. |
-| RULE-010 | Terrain migration rollout | Answered | REG | Show both tables (Implemented + Target design) until migration. |
+| RULE-010 | Terrain migration rollout | Applied (Target design) | REG | Show both tables (Implemented + Target design) until migration. In GDD_06 §Terrain & Movement (3.6). |
 | RULE-011 | Existing terrain ID mapping | Deferred | REG | Roadmap owner **AWR-8**; GDD terrain ID section stays Open decision until then. |
 | RULE-012 | Pair Up/support release scope | Applied | REG | Pair Up pass 1 IN 1.0; Dual Strike/Guard later; supports 4–8 post-1.0. In GDD_05 §Pair Up & Support System (3.4). |
 | RULE-013 | Magic-triangle rank source | Applied (Target design) | REG | Equipped weapon's trained WEXP track sets magnitude; `triangle_family` sets relationship. In GDD_04 §Weapon Families & Triangle Membership (3.3). |
@@ -74,7 +74,7 @@ but not yet applied to the GDD). Homes:
 | SET-005 | Weapon-rank combat bonuses → engine | Applied (Target design) | REG → GDD_04 §S-Rank Weapon Bonus (3.3) |
 | SET-006 | Promotion → corpus model | Applied (Target design) | REG → GDD_03 §Promotion (3.2) |
 | SET-007 | Reclass progression counters | Applied (Target design) | REG → GDD_03 §Progression Counters / §Reclass (3.2) |
-| SET-008 | Terrain → corpus values/categories | Settled (target) | REG |
+| SET-008 | Terrain → corpus values/categories | Applied (Target design) | REG → GDD_06 §Terrain & Movement (3.6) |
 | SET-009 | Class definitions → corpus + Light/Dark task | Applied (Target design) | REG → GDD_03 §Starter Roster (3.2) |
 | SET-010 | Pair Up/supports → corpus eventual target | Applied (Planned values) | REG → GDD_05 §Pair Up & Support System (3.4) |
 

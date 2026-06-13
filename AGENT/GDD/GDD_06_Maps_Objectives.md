@@ -1,13 +1,24 @@
 # GDD_06 — Maps & Objectives
 
----
+**Status:** Active contract — split status per section (the objective system, map schema,
+and project terrain values are **Implemented**; corpus terrain values/movement categories
+are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
+decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
 
-For the practical authoring workflow, registry entry shape, roster-policy
-rules, and export-manifest reminders, use
-`AGENT/Docs/map_authoring_guide.md`. This chapter remains the runtime contract
-for map/objective behavior.
+This chapter owns the **terrain/movement schema** (terrain types, movement categories,
+authored values) and the **objective + authored-map contracts**. The *combat effects* of
+terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
+(`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
+authoring workflow, registry entry shape, roster-policy rules, and export-manifest
+reminders, use `AGENT/Docs/map_authoring_guide.md`.
 
 ## Map System Overview
+
+Status: **Implemented**
+Last verified: 2026-06-13
 
 Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
 string `grid` defines terrain and whose remaining fields define objectives,
@@ -17,7 +28,60 @@ Maps are self-contained — adding a new map never requires code changes.
 
 ---
 
+## Terrain & Movement
+
+Status: **Split** — project terrain values/movement costs **Implemented**; corpus values + movement categories **Target design** (SET-008/RULE-010); terrain ID mapping **Open decision** (RULE-011/AWR-8)
+Last verified: 2026-06-13
+
+### Summary
+This section owns the terrain **schema** (terrain types + their movement/defense data) and
+the movement-cost model. The *combat application* of the DEF/Dodge/heal values is owned by
+`GDD_02 §Terrain`; the two tables are kept in sync.
+
+### Specs
+
+**Implemented (project terrain values).** Each `terrain_type` carries move cost + defender
+bonuses; bonuses apply to the defender only, during combat (GDD_02).
+
+| Terrain (`terrain_type`) | Move cost | DEF | Dodge | Notes |
+|---|---|---|---|---|
+| `plain` | 1 | 0 | 0 | |
+| `forest` | 2 | +1 | +15 | |
+| `mountain` | 3 | +2 | +20 | |
+| `fort` | 1 | +2 | +30 | Heals `max(1, floor(0.10 × max_hp))`/turn (OPEN-7) |
+| `sea` | 2 | 0 | +10 | |
+| `desert` | 2 (3 armoured/mounted) | 0 | +5 | Magic/Thief line cost 1 |
+| `wall` | 999 (impassable) | — | — | Out-of-bounds resolves to `wall` |
+
+- Move cost is consulted by `GridManager.get_move_cost()` (skill movement overrides first).
+- Valid `terrain_type` strings: `plain`, `forest`, `mountain`, `fort`, `sea`, `desert`,
+  `wall` (the TileSet `terrain_type` custom-data layer + the `MapData.grid` legend
+  `. F M T S D W`).
+
+**Target design (corpus terrain & movement, SET-008/RULE-010).** Corpus terrain values and
+**movement categories** are an adopted target; **show both tables until** code/data/maps
+migrate (RULE-010). Flying is implemented via terrain movement-cost categories (Planned),
+never a terrain-ignoring special case. Provenance: `GDD_Adoption_Matrix.md` →
+`awakening_lookup_tables.md` (Terrain Categories / Movement Types).
+
+### Known gaps
+- **Terrain ID mapping (RULE-011, Open decision → AWR-8):** sea / wall-building variants /
+  throne-vs-Fort behavior are resolved by a **mapping pass**, not name equality. Throne art
+  presently reuses Fort runtime behavior. Do not assume name-equality mappings.
+
+### Anchors
+- Code: `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
+  `TERRAIN_DEF_BONUS`, `TERRAIN_DODGE_BONUS`)
+- Decisions: SET-008, RULE-010, RULE-011, OPEN-7
+- Owner of terrain combat effects: GDD_02 §Terrain
+- Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
+
+---
+
 ## Tile Setup in Godot
+
+Status: **Implemented** (placeholder art)
+Last verified: 2026-06-13
 
 ### TileSet Configuration
 Create a single shared `TileSet` resource used by all maps.
@@ -76,6 +140,9 @@ Camera scrolling behavior:
 ---
 
 ## Objective System
+
+Status: **Implemented** (objective evaluation); Phase 3 showcase maps **Planned** (M16)
+Last verified: 2026-06-13
 
 Objectives are now authored as typed `ObjectiveCondition` resources grouped by
 alliance group:
@@ -170,6 +237,9 @@ class_name MapData extends Resource
 ---
 
 ## MVP Map: Map 001 — "First Battle" (Rout)
+
+Status: **Implemented** (authored content reference)
+Last verified: 2026-06-13
 
 ### Summary
 - **Size:** 42 × 26 tiles
@@ -298,7 +368,10 @@ Apply this to each stat using the class's growth rates.
 
 ---
 
-## Doors and Chests (Phase 2)
+## Doors and Chests
+
+Status: **Planned** (Phase 2)
+Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
@@ -320,7 +393,10 @@ Door HP values from handbook:
 
 ---
 
-## Fog of War (Phase 2)
+## Fog of War
+
+Status: **Planned** (Phase 2)
+Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
@@ -335,6 +411,9 @@ Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 ---
 
 ## Phase 3 Maps 002–005 — Authoring Rules (locked 2026-05-25)
+
+Status: **Planned** (M16; design locked 2026-05-25)
+Last verified: 2026-06-13
 
 The objective-map followup authors four maps against the implemented
 `ObjectiveCondition` system to validate it through real content. See
