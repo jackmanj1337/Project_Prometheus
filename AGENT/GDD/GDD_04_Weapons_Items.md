@@ -185,7 +185,7 @@ Proficiency`.
 
 ## S-Rank Weapon Bonus
 
-Status: **Split** — current bonus **Implemented**; move-to-engine + retire `s_rank_mastery` **Target design** (SET-005 / RULE-002)
+Status: **Split** — project bonus **Implemented**; move-to-engine + retire `s_rank_mastery` **Target design** (SET-005 / RULE-002)
 Last verified: 2026-06-13
 
 ### Summary

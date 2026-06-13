@@ -253,7 +253,7 @@ dispatch key; several skills share one handler via `effect_params`.
 
 ## Skill Acquisition
 
-Status: **Split** — current auto-grant **Implemented**; corpus acquisition-by-class/level **Target design**
+Status: **Split** — project auto-grant **Implemented**; corpus acquisition-by-class/level **Target design**
 Last verified: 2026-06-13
 
 ### Summary

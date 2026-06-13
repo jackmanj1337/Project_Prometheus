@@ -184,7 +184,7 @@ online play stay consistent.
 
 ## Performance Constraints
 
-Status: **Implemented** (current budget) + **Target design** (scaling guardrails)
+Status: **Implemented** (project budget) + **Target design** (scaling guardrails)
 Last verified: 2026-06-13
 
 ### Summary
@@ -212,7 +212,7 @@ authored maps.
 
 ## Enemy Generation & Autolevel
 
-Status: **Not reviewed** (corpus adoption) — current enemies use static stat blocks
+Status: **Open decision** (corpus stat-block adoption) — project enemies use static stat blocks
 Last verified: 2026-06-13
 
 ### Specs

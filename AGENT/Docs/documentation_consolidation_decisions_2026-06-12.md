@@ -481,3 +481,20 @@ inventing a second hidden magic rank for a sword/lance/axe weapon.
 
 **Answer:** This sounds fine
 
+### DOC-013 - Split-status phrasing ("project" vs "corpus", not "current")
+
+**Question:** Split-status `Status:` lines across GDD_02–05/08 named the shipped half
+with the word "current" (e.g. "current values **Implemented**; corpus values **Target
+design**"). DOC-003 prohibits the bare word "current" in status-bearing sections. How
+should the two halves be phrased?
+
+**Recommendation (clarifies DOC-003):** Use **project** for the shipped half and
+**corpus** (or the named target) for the migration half — the DOC-001 authority axis,
+with no shipped/aspirational ambiguity. Enforce via `check_docs.py` checks 7–8 on
+GDD_00–08.
+
+**Answer (2026-06-13):** Adopt project/corpus phrasing. Applied: ~13 status lines
+reworded; governance addendum added under DOC-003; checks 7–8 added to `check_docs.py`.
+Status: **Applied**. Detail in `documentation_governance_2026-06-13.md` §Split-status
+phrasing.
+

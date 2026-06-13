@@ -44,6 +44,7 @@ but not yet applied to the GDD). Homes:
 | DOC-010 | Location of June reference contracts | Answered | REG | Move both to Docs; archive update-ref (Stage 5.2), merge RNG into GDD home (Stage 3.1). |
 | DOC-011 | Documentation validation in CI | Answered | REG | Implement in Stage 6. |
 | DOC-012 | Legal/licensing release gate | Answered | REG | Blocking pre-1.0 gate; pairs with OPEN-12. Roadmap owner in Stage 4.3. |
+| DOC-013 | Split-status phrasing (project/corpus) | Applied | REG | Clarifies DOC-003: "project" vs "corpus", never "current". Phrasing in GOV; enforced by `check_docs.py` checks 7–8. Applied to GDD_02–05/08 status lines (2026-06-13). |
 
 ## RULE — rules / migration
 

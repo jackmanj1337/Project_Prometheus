@@ -57,7 +57,7 @@ var mastery_skills: Array[String] = []
 
 # Permadeath flag; unit removed from future deployment when true
 @export var is_incapacitated: bool = false
-# "basic"|"passive" for MVP; future: "territorial"|"guard_tile"|"healer"|"boss"
+# "basic"|"passive"|"healer" implemented; future: "territorial"|"guard_tile"|"boss"
 @export var ai_profile: String = "basic"
 # True for the 6 auto-generated MVP starter units
 @export var is_default_roster: bool = false

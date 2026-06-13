@@ -37,7 +37,7 @@ A square, orthogonally-navigated tile grid; one unit per tile.
 
 ## Terrain (combat effects)
 
-Status: **Split** — current values **Implemented**; corpus values **Target design** (RULE-010)
+Status: **Split** — project values **Implemented**; corpus values **Target design** (RULE-010)
 Last verified: 2026-06-13
 
 ### Summary
@@ -119,7 +119,7 @@ Round Start
 
 ## Unit Stats & Derived Combat Values
 
-Status: **Split** — current formulas **Implemented**; corpus combat-stat formulas **Target design** (SET-001)
+Status: **Split** — project formulas **Implemented**; corpus combat-stat formulas **Target design** (SET-001)
 Last verified: 2026-06-13
 
 ### Summary
@@ -281,7 +281,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ## Weapon Durability
 
-Status: **Split** — current model **Implemented**; breakage-cancels-strikes **Target design** (OPEN-3)
+Status: **Split** — project model **Implemented**; breakage-cancels-strikes **Target design** (OPEN-3)
 Last verified: 2026-06-13
 
 ### Specs
@@ -303,7 +303,7 @@ Last verified: 2026-06-13
 
 ## Weapon Proficiency (WEXP)
 
-Status: **Split** — current thresholds/gain **Implemented**; corpus migration **Target design** (SET-004/005)
+Status: **Split** — project thresholds/gain **Implemented**; corpus migration **Target design** (SET-004/005)
 Last verified: 2026-06-13
 
 ### Summary
@@ -319,7 +319,8 @@ Units accumulate numeric WEXP per weapon track; rank letters derive from thresho
 - Class resources author WEXP baselines/caps; promotion/reclass raise a unit to at
   least the new class's baselines for gained tracks. Gain stops at the class's authored
   cap (default A; explicit S-cap classes may exist).
-- **S-rank bonus (current):** +10 Hit, +5 Crit, +1 Damage with that weapon type.
+- **S-rank bonus:** applies at the S-rank step of the pipeline; values owned by
+  GDD_04 §S-Rank Weapon Bonus (not restated here).
 
 **Target design.**
 - **WEXP thresholds/caps (SET-004):** corpus values E=1, D=31, C=71, B=121, A=181,
@@ -330,7 +331,7 @@ Units accumulate numeric WEXP per weapon track; rank letters derive from thresho
   migrate, so this governs runtime/in-session conversion. Formula in the register.
 - **Rank bonuses (SET-005/RULE-002):** move rank bonuses into the **combat engine**;
   retire `s_rank_mastery` as a pseudo/equipped skill. The S-rank extension
-  (+10/+5/+1) is the project variation.
+  is the project variation (values owned by GDD_04 §S-Rank Weapon Bonus).
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`, `GameConstants` (`WEXP_RANK_THRESHOLDS`)
@@ -444,7 +445,7 @@ one growth roll per stat in `ClassData.STAT_KEYS` order — see the determinism 
 
 ## Promotion — Trigger Timing
 
-Status: **Split** — current eligibility **Implemented**; corpus timing + modal **Target design** (RULE-005)
+Status: **Split** — project eligibility **Implemented**; corpus timing + modal **Target design** (RULE-005)
 Last verified: 2026-06-13
 
 ### Summary
@@ -498,7 +499,7 @@ Controlled by `GameState.permadeath_enabled`.
 
 ## Win/Loss Evaluation
 
-Status: **Target design** (ruling ratified) — current objective checks **Implemented**
+Status: **Target design** (ruling ratified) — project objective checks **Implemented**
 Last verified: 2026-06-13
 
 ### Summary

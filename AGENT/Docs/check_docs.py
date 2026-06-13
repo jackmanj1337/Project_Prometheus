@@ -12,6 +12,8 @@ Checks:
   4. Feature index — .gd files listed as implemented in GDD_Feature_Index must exist
   5. Roadmap IDs   — no duplicate ## headings in GDD_10_Roadmap.md
   6. Stale dates   — Last verified must not be older than the file's last git commit date
+  7. Status words  — status-bearing lines must not use 'current'/'complete'/'canonical'
+  8. Status labels — every status-bearing line must carry an approved governance label
 """
 
 import re
@@ -46,6 +48,13 @@ def _is_historical(path: Path) -> bool:
 # ── file lists ──────────────────────────────────────────────────────────────
 
 _ACTIVE_GDD_FILES = sorted((ROOT / "AGENT/GDD").glob("GDD_*.md"))
+
+# DOC-003 status vocabulary binds the numbered design chapters (GDD_00–08) only —
+# NOT the GDD_10 roadmap (its own tracker vocab: "COMPLETE", "Stub created") nor the
+# indices (GDD_Feature_Index "Seed", GDD_Adoption_Matrix). Scope checks 7/8 to these.
+_NUMBERED_CHAPTERS = [
+    p for p in _ACTIVE_GDD_FILES if re.match(r"GDD_0\d", p.name)
+]
 
 _ACTIVE_GUIDE_FILES = [
     ROOT / "AGENT/Docs/testing_guide.md",
@@ -268,6 +277,57 @@ def check_stale_last_verified() -> None:
                   f"file last committed {git_date} but Last verified is {verified}")
 
 
+# ── check 7: prohibited status words ────────────────────────────────────────
+
+# A status-bearing line is one that declares a Status (chapter header `**Status:**`
+# or a per-section `Status:` line). Only these are scanned — domain uses of "current"
+# in prose (e.g. "the unit's current rank") are intentionally allowed (DOC-003).
+_STATUS_LINE_RE = re.compile(r"^\s*(?:\*\*)?Status:")
+_PROHIBITED_WORD_RE = re.compile(r"\b(current|complete|canonical)\b", re.IGNORECASE)
+
+
+def check_prohibited_status_words() -> None:
+    """Status-bearing lines must not use the words current/complete/canonical (DOC-003)."""
+    for path in _NUMBERED_CHAPTERS:
+        with open(path, encoding="utf-8") as fh:
+            for i, line in enumerate(fh, 1):
+                if not _STATUS_LINE_RE.match(line):
+                    continue
+                m = _PROHIBITED_WORD_RE.search(line)
+                if m:
+                    _fail("status-word", path, i,
+                          f"prohibited word {m.group(1)!r} in a status-bearing line "
+                          f"(use an approved label, e.g. 'project' vs 'corpus')")
+
+
+# ── check 8: approved status labels ──────────────────────────────────────────
+
+# The governance status vocabulary (DOC-003) plus the structural framings used in
+# chapter/section headers (Split = a two-label split status; Active/Reference = chapter
+# framing). Any Status line must contain at least one of these.
+_APPROVED_LABELS = [
+    "Implemented", "Pending validation", "Known issue", "Target design",
+    "Planned", "Deferred", "Open decision", "Historical", "Superseded",
+    "Split", "Reference", "Active",
+]
+_APPROVED_LABEL_RE = re.compile(
+    "(" + "|".join(re.escape(lbl) for lbl in _APPROVED_LABELS) + ")"
+)
+
+
+def check_status_labels() -> None:
+    """Every status-bearing line must contain an approved governance label (DOC-003)."""
+    for path in _NUMBERED_CHAPTERS:
+        with open(path, encoding="utf-8") as fh:
+            for i, line in enumerate(fh, 1):
+                if not _STATUS_LINE_RE.match(line):
+                    continue
+                if not _APPROVED_LABEL_RE.search(line):
+                    _fail("status-label", path, i,
+                          "status line has no approved label "
+                          f"(expected one of: {', '.join(_APPROVED_LABELS)})")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -280,6 +340,8 @@ def main() -> None:
         ("[4] Feature index targets",     check_feature_index_targets),
         ("[5] Duplicate roadmap headings",check_duplicate_roadmap_headings),
         ("[6] Stale Last verified",       check_stale_last_verified),
+        ("[7] Prohibited status words",   check_prohibited_status_words),
+        ("[8] Approved status labels",    check_status_labels),
     ]
     for label, fn in steps:
         print(f"  {label}...")

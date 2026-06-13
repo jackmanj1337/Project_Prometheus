@@ -43,6 +43,20 @@ Last verified: 2026-06-13
 This directly supports DOC-002's summary+spec layout and RULE-010's
 "show both terrain tables until migration" direction.
 
+### Split-status phrasing (DOC-013, ratified 2026-06-13)
+
+When a split-status line names the two halves, the "ships today" half is labelled
+**project** and the migration target **corpus** (or the specific target's name) — e.g.
+`Status: **Split** — project values **Implemented**; corpus values **Target design**`.
+The word **current** is NOT used for this purpose: it is one of the three prohibited
+status words (DOC-003), and "project vs corpus" already names the real axis (DOC-001
+authority boundary) without the shipped/aspirational ambiguity "current" hides.
+
+**Enforcement:** `check_docs.py` checks 7 (prohibited status words) and 8 (approved
+label present) enforce this on the numbered chapters GDD_00–08. The GDD_10 roadmap and
+the indices are out of scope — they use their own tracker vocabulary ("COMPLETE",
+"Stub created", "Seed").
+
 ## GDD Section Template (DOC-002, ratified 2026-06-13)
 
 Every major GDD feature section uses this template. DOC-002's direction: a brief

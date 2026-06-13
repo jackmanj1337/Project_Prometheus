@@ -1,6 +1,6 @@
 # GDD_03 — Units & Classes
 
-**Status:** Active contract — split status per section (current roster/classes are
+**Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
 **Last verified:** 2026-06-13
@@ -67,7 +67,7 @@ Tags on a unit (from class, or added by skills/items) affecting movement, combat
 
 ## Starter Roster & Classes
 
-Status: **Split** — current roster/classes **Implemented**; corpus class definitions + growth replacement **Target design** (AWR-2)
+Status: **Split** — project roster/classes **Implemented**; corpus class definitions + growth replacement **Target design** (AWR-2)
 Last verified: 2026-06-13
 
 ### Summary
@@ -153,7 +153,7 @@ promotion/reclass; the explicit `exp_basis_level` / `lifetime_levels_gained` spl
 
 ## Promotion (relationships & targets)
 
-Status: **Split** — current eligibility **Implemented**; corpus promotion model **Target design** (SET-006)
+Status: **Split** — project eligibility **Implemented**; corpus promotion model **Target design** (SET-006)
 Last verified: 2026-06-13
 
 ### Summary
