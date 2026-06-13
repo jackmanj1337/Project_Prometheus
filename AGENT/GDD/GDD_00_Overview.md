@@ -78,8 +78,8 @@ relevant feature rows; the GDD does not duplicate them.
 Per the lifecycle table (`AGENT/Docs/documentation_lifecycle_2026-06-13.md`), these
 are **not** authority sources; retrieve via Git history once removed:
 
-- `GDD_09_Checklist.md` — **Historical** (MVP build sequence); merged into the roadmap
-  backlog then deleted (DOC-006).
+- `GDD_09_Checklist.md` — **Deleted** (Stage 5.2, 2026-06-13); MVP build sequence,
+  retrieve via Git. Open backlog items were already in GDD_10_Roadmap Phase 3 (DOC-006).
 - `GDD_10a_Overview.md` — **Deleted** (Stage 4.1, 2026-06-13); content merged into
   `GDD_10_Roadmap.md` Appendix A–C. Retrieve via Git history if needed (DOC-004).
 - `GDD_Assumptions.md` — **Historical**; useful assumptions fold into owning chapters

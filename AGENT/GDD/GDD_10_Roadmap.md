@@ -10,13 +10,14 @@
 
 ## How to Use This Document
 
-This is the **Phase 2 roadmap** — a continuation of `GDD_09_Checklist.md`, which
-covers the completed MVP (milestones M0–M7). It defines milestones **M8–M16**, to be
-implemented after the MVP is stable. Each milestone produces a testable build.
+This is the **Phase 2 roadmap** — the continuation of the MVP phase (milestones
+M0–M7, historical build record in `GDD_09_Checklist.md` — deleted Stage 5.2, retrieve
+via Git). It defines milestones **M8–M16**, to be implemented after the MVP is stable.
+Each milestone produces a testable build.
 
 > The MVP amendments A1–A4 that once lived here (Phase-2 data fields +
 > `ConditionManager`, the modifier hooks, the combat context pipeline, and the grid
-> skill-hook stubs) are **complete** and have been folded into GDD_01–GDD_09. They
+> skill-hook stubs) are **complete** and have been folded into GDD_01–GDD_08. They
 > are no longer tracked separately.
 
 **Priority rules used in this document:**
@@ -38,7 +39,8 @@ implemented after the MVP is stable. Each milestone produces a testable build.
 
 ## Status Snapshot
 
-The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase 2.
+The MVP (M0–M7) build is historical (see `GDD_09_Checklist.md` — deleted Stage 5.2,
+retrieve via Git). This table tracks Phase 2.
 
 | Milestone | Status | Notes |
 | --- | --- | --- |
@@ -1698,7 +1700,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 ### Content
 
 - [ ] All remaining handbook classes not covered in M11 (GM-discretion additions)
-- [ ] Full forging UI and shop system (already architected in GDD_09 Phase 2 backlog)
+- [ ] Full forging UI and shop system (already architected in Phase 3 backlog)
 - [ ] Class promotion UI for classes with 3+ promotion paths
 
 ### Systems
@@ -1715,7 +1717,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       campaign save. This ownership model is deliberately deferred from the
       June 2026 playtest bug-fix series; until the campaign layer exists, retain
       the current last-selected New Game behavior.
-- [ ] Between-map save / load (GDD_09 Phase 2 backlog)
+- [ ] Between-map save / load (Phase 3 backlog)
 - [ ] Mid-battle suspend save — full serialization of: all unit `UnitData` (including
       `active_modifiers`, `conditions`, `skill_use_counters`, `shift_gauge`, `is_shifted`),
       all unit tile positions, **activation-scheduler state** (turn-order index /
@@ -1726,12 +1728,12 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       runtime state is serializable without scene tree traversal. **Note (Decision 10):** M15 Part B's disconnect
       save-and-continue (D14) depends on this — when Part B is built, pull this item
       forward to sit with it rather than leaving it post-M13.
-- [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)
-- [ ] Rescue and carry system (GDD_09 Phase 2 backlog) — treat rescue availability,
+- [ ] Fog of war and LoS (Phase 3 backlog)
+- [ ] Rescue and carry system (Phase 3 backlog) — treat rescue availability,
       support bonuses, and Pair Up coexistence as campaign-rule decisions, not a
       map-local ruleset
-- [ ] ~~Ally NPC phase (GDD_09 Phase 2 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
-- [ ] Additional AI profiles: territorial, guard_tile, healer, boss (GDD_09 Phase 2 backlog)
+- [ ] ~~Ally NPC phase (Phase 3 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
+- [ ] Additional AI profiles: territorial, guard_tile, healer, boss (Phase 3 backlog)
 - [ ] Stationary weapon interaction (Ballista/Onager use by player; already have WeaponData)
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
 - [ ] Pre-battle deployment screen — designed together with convoy, trade, campaign
@@ -1766,7 +1768,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 
 ### Maps
 
-- [ ] Maps 002–005 per GDD_09 Phase 2 backlog (Seize, Boss Defeat, Escape, Survive/Defend)
+- [ ] Maps 002–005 per Phase 3 backlog (Seize, Boss Defeat, Escape, Survive/Defend)
       — authored against the Milestone 16 Objective System condition types
 
 ### Polish

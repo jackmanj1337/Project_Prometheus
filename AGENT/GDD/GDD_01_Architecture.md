@@ -43,8 +43,9 @@ For a new developer, the shortest accurate path through the docs is:
 4. `GDD_06` for map/objective authoring
 5. `GDD_07` for UI surfaces and player flow
 
-`GDD_09` is a historical checklist and `GDD_10*` are roadmap documents. They are useful
-context, but they should not be treated as the primary source for shipped behavior.
+`GDD_09_Checklist.md` was the MVP build checklist — deleted in Stage 5.2 (retrieve
+via Git). `GDD_10_Roadmap.md` is the sole roadmap. Neither should be treated as the
+primary source for shipped behavior; use GDD_01–GDD_08 for that.
 
 Cross-cutting workflow guides:
 
