@@ -1,5 +1,7 @@
 # Environment Setup — Transfer to a New Machine
 
+**Last verified:** 2026-06-13
+
 Everything needed to bring this project up on a fresh machine and pick up
 work where this session left off.
 

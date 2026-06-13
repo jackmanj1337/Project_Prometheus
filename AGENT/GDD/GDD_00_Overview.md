@@ -84,8 +84,8 @@ are **not** authority sources; retrieve via Git history once removed:
   `GDD_10_Roadmap.md` Appendix A–C. Retrieve via Git history if needed (DOC-004).
 - `GDD_Assumptions.md` — **Historical**; useful assumptions fold into owning chapters
   then deleted (DOC-006).
-- `GDD_Manual_Tasks.md` — operational; moves to `AGENT/Docs/manual_test_playbook.md`
-  (DOC-007).
+- `GDD_Manual_Tasks.md` — **Moved** (Stage 5.2, 2026-06-13); now at
+  `AGENT/Docs/manual_test_playbook.md` (DOC-007).
 
 ---
 

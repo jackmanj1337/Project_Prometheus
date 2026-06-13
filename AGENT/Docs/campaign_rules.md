@@ -1,5 +1,8 @@
 # Campaign Rules
 
+**Last verified:** 2026-06-13
+**See also:** `GDD_01_Architecture.md` §CampaignRules Contract; `scripts/resources/CampaignRules.gd` (stub created Stage 4.3)
+
 This file is the evergreen reference for campaign-level gameplay rules chosen at
 `New Game` and carried by the current save/runtime state.
 

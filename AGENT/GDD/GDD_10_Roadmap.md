@@ -1408,7 +1408,7 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 > `AGENT/Docs/implementation_plan_2026-05-21.md` remains the reference for the
 > architecture and validation scope. The WHOLE_PHASE validation map/launch path
 > and `Faction - Controller` HUD/banner text are implemented. Remaining Part-A
-> work is the manual acceptance checklist in `AGENT/GDD/GDD_Manual_Tasks.md`.
+> work is the manual acceptance checklist in `AGENT/Docs/manual_test_playbook.md`.
 >
 > Part A is scoped to **WHOLE_PHASE maps only**; `ALTERNATING` hotseat remains
 > deferred. The `grant_extra_turn` checklist item below is still **blocked on M10**
@@ -1951,4 +1951,4 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
 | `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
 | `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
-| `AGENT/GDD/GDD_Manual_Tasks.md` | Manual playtest checklists (pending move to `AGENT/Docs/`) |
+| `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |

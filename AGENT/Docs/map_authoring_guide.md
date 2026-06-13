@@ -1,5 +1,7 @@
 # Map Authoring Guide
 
+**Last verified:** 2026-06-13
+
 Use this guide when adding or changing a playable map. It centralizes the
 practical authoring steps that are otherwise split across `GDD_01`, `GDD_06`,
 `README.md`, and validation notes.

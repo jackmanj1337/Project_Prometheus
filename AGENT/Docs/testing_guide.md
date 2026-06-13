@@ -1,5 +1,7 @@
 # Testing Guide
 
+**Last verified:** 2026-06-13
+
 Use this guide to decide what to run after a change and where to document new
 coverage. It centralizes the project's current automated and manual validation
 flow.
@@ -43,7 +45,7 @@ Prefer adding or updating these whenever a change touches runtime logic.
 
 Primary location:
 
-- `AGENT/GDD/GDD_Manual_Tasks.md`
+- `AGENT/Docs/manual_test_playbook.md`
 
 Use manual validation for:
 
@@ -147,7 +149,7 @@ If the underlying logic is also new, add both manual and automated coverage.
 
 ## Manual task ownership
 
-`AGENT/GDD/GDD_Manual_Tasks.md` is the detailed playbook. Keep it detailed, but
+`AGENT/Docs/manual_test_playbook.md` is the detailed playbook. Keep it detailed, but
 use this file as the entry point.
 
 When updating manual tasks:
@@ -172,7 +174,7 @@ Useful sections already in place:
 - Running only manual checks after a logic change
 - Running only headless checks after a scene/UI wiring change
 - Adding a validation map without documenting what it validates
-- Leaving `GDD_Manual_Tasks.md` with stale map names or expected outcomes
+- Leaving `manual_test_playbook.md` with stale map names or expected outcomes
 
 ## Practical workflow
 
@@ -180,5 +182,5 @@ Useful sections already in place:
 2. Run `bash run_tests.sh` if code changed.
 3. Launch the relevant map from New Game.
 4. Run the smallest manual pass that proves the behavior.
-5. Update `GDD_Manual_Tasks.md` if the validation story changed.
+5. Update `manual_test_playbook.md` if the validation story changed.
 6. Record anything noteworthy in the session note.

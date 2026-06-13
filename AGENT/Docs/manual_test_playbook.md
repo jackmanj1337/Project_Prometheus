@@ -1,4 +1,7 @@
-# GDD — Manual Tasks Reference
+# Manual Test Playbook
+
+**Moved from:** `AGENT/GDD/GDD_Manual_Tasks.md` (Stage 5.2, 2026-06-13, DOC-007)
+**Last verified:** 2026-06-13
 
 Tasks here need action inside the Godot editor (or a tool run) — they are not done
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
