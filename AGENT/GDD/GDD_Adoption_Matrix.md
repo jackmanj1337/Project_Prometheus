@@ -75,19 +75,19 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Project-only classes (Sentinel/Bishop/Paragon/Mage Knight) | (project homebrew) | Rejected | — | Archived (Git history) | Superseded | RULE-007 |
 | Light/Dark magic class lines | (project addition; not in corpus) | Deferred | GDD_03 / GDD_05 (TBD) | Dedicated design task before bulk class authoring | Planned | RULE-009 |
 | Soldier class identity | `awakening_classes_special` | Deferred | GDD_03 (TBD) | Resolve at class migration; interim placeholder enemy-only | Open decision | OPEN-9 (AWR-2) |
-| Class skill acquisition (by class/level) | `awakening_skills`, `awakening_classes_*` | Adopted target | GDD_05 §Skills (TBD) | — | Target design | — |
-| Proc skills (rate formulas) | `awakening_skills` | Adopted target | GDD_05 §Skills (TBD) | Draw from event RNG at trigger slot | Target design | OPEN-2 |
-| Five equipped skills | `awakening_core_systems` | Implemented | GDD_05 §Skills (TBD) | Current default; campaigns may override | Implemented | — |
-| Cleric "Light E" access | `awakening_classes_*` | Deferred | GDD_05 (TBD) | Decided by Light/Dark design pass | Open decision | OPEN-10 (RULE-009) |
+| Class skill acquisition (by class/level) | `awakening_skills`, `awakening_classes_*` | Adopted target | GDD_05 §Skill Acquisition | — | Target design | — |
+| Proc skills (rate formulas) | `awakening_skills` | Adopted target | GDD_05 §Skill Activation & RNG | Draw from event RNG at trigger slot | Target design | OPEN-2 |
+| Five equipped skills | `awakening_core_systems` | Implemented | GDD_05 §Skill System Overview | Current default; campaigns may override | Implemented | — |
+| Cleric "Light E" access | `awakening_classes_*` | Deferred | GDD_05 §Skill Acquisition (→ GDD_03) | Decided by Light/Dark design pass | Open decision | OPEN-10 (RULE-009) |
 
-## Pair Up & supports  → GDD_05 (3.4)
+## Pair Up & supports  → GDD_05 (3.4 — DONE)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Pair Up stat bonuses/actions (layer 1) | `awakening_core_systems` | Implemented | GDD_05 §Pair Up (TBD) | Pass 1 implemented; **value migration to corpus numbers Planned** | Implemented (+ Target for values) | SET-010, RULE-012 |
-| Dual Strike (layer 2) | `awakening_core_systems` | Deferred | GDD_05 (TBD) | Scheduled with Dual Guard under AWR combat foundation | Target design | RULE-012 |
-| Dual Guard (layer 3) | `awakening_core_systems` | Deferred | GDD_05 (TBD) | With Dual Strike | Target design | RULE-012 |
-| Adjacent support (layer 4) | `awakening_core_systems` | Deferred | GDD_05 (TBD) | Post-1.0 | Deferred | OPEN-1, RULE-012 |
+| Pair Up stat bonuses/actions (layer 1) | `awakening_core_systems` | Implemented | GDD_05 §Pair Up & Support System | Pass 1 implemented; **value migration to corpus numbers Planned** | Implemented (+ Target for values) | SET-010, RULE-012 |
+| Dual Strike (layer 2) | `awakening_core_systems` | Deferred | GDD_05 §Pair Up & Support System | Scheduled with Dual Guard under AWR combat foundation | Target design | RULE-012 |
+| Dual Guard (layer 3) | `awakening_core_systems` | Deferred | GDD_05 §Pair Up & Support System | With Dual Strike | Target design | RULE-012 |
+| Adjacent support (layer 4) | `awakening_core_systems` | Deferred | GDD_05 §Pair Up & Support System | Post-1.0 | Deferred | OPEN-1, RULE-012 |
 | Support ranks / conversations (5,6) | `awakening_core_systems` | Deferred | — | Post-1.0 | Deferred | OPEN-1, RULE-012 |
 | S-rank / marriage (7) | `awakening_core_systems` | Deferred | — | Post-1.0 | Deferred | OPEN-1, RULE-012 |
 | Child units / inheritance (8) | `awakening_core_systems`, `awakening_appendices` | Deferred | — | Post-1.0 | Deferred | OPEN-1, RULE-012 |

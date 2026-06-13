@@ -51,7 +51,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 | `GDD_02_Core_Mechanics.md` | Active contract | **rewrite** (two-RN, modifier pipeline, combat rulings; absorb RNG binding rules) | 3.1 |
 | `GDD_03_Units_Classes.md` | Active contract | **rewrite** (progression, promotion/reclass, class corpus adoption) | 3.2 |
 | `GDD_04_Weapons_Items.md` | Active contract | **rewrite** (triangle, rank bonuses, WEXP, economy) — DONE 2026-06-13 | 3.3 |
-| `GDD_05_Skills.md` | Active contract | **rewrite** (skills, Pair Up, conditions precedence) | 3.4 |
+| `GDD_05_Skills.md` | Active contract | **rewrite** (skills, Pair Up, conditions precedence) — DONE 2026-06-13 | 3.4 |
 | `GDD_06_Maps_Objectives.md` | Active contract | **rewrite** (terrain split tables, objectives) | 3.6 |
 | `GDD_07_UI_UX.md` | Active contract | **rewrite** (UI/input/accessibility) | 3.7 |
 | `GDD_08_Enemy_AI.md` | Active contract | **rewrite** (AI parity, performance) | 3.8 |

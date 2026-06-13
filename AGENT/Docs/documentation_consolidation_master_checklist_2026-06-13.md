@@ -131,10 +131,12 @@ record any new choice in the register.
   gain/migration (SET-004/RULE-003/004), S-rank engine move + retire `s_rank_mastery`
   (SET-005/RULE-002), effectiveness, items/economy/forging, broken-weapon backlog (OPEN-5).
   Combat application cross-referenced to GDD_02; schemas to GDD_01.
-- [ ] 3.4 **`GDD_05` Skills** — skill acquisition, proc precedence, Pair Up pass-1
-  bonuses IN 1.0 / value migration Planned (RULE-012), Dual Strike+Guard scheduled
-  later, adjacent support/relationships/marriage/children deferred post-1.0 (OPEN-1).
-  Cleric Light E deferred (RULE-009). Package E/F docs.
+- [x] 3.4 **`GDD_05` Skills** — DONE 2026-06-13. Section template + status labels; added
+  §Pair Up & Support System (pass 1 Implemented; value migration Planned RULE-012/SET-010;
+  Dual Strike/Guard Target; supports 4–8 Deferred OPEN-1) and §Skill Acquisition,
+  §Skill Activation & RNG (proc draws from event RNG, RNG-1/OPEN-2), §Condition/Skill
+  Precedence (per-skill exceptions, OPEN-2). Cleric Light E Open decision cross-ref to
+  GDD_03 (RULE-009). `s_rank_mastery` retirement cross-ref to GDD_04.
 - [ ] 3.5 **`GDD_01` Architecture** — data/resource/serialization contracts those rules
   depend on, including the two-RN save-compat note and `CampaignRules` contract (see
   4.6).

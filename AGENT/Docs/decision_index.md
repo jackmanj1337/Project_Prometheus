@@ -60,7 +60,7 @@ but not yet applied to the GDD). Homes:
 | RULE-009 | Light/Dark magic design scope | Applied (Planned) | REG | Dedicated design task before bulk class migration. In GDD_03 §Starter Roster Known gaps (3.2). Owns OPEN-10. |
 | RULE-010 | Terrain migration rollout | Answered | REG | Show both tables (Implemented + Target design) until migration. |
 | RULE-011 | Existing terrain ID mapping | Deferred | REG | Roadmap owner **AWR-8**; GDD terrain ID section stays Open decision until then. |
-| RULE-012 | Pair Up/support release scope | Answered | REG | Pair Up pass 1 IN 1.0; Dual Strike/Guard later; supports 4–8 post-1.0. |
+| RULE-012 | Pair Up/support release scope | Applied | REG | Pair Up pass 1 IN 1.0; Dual Strike/Guard later; supports 4–8 post-1.0. In GDD_05 §Pair Up & Support System (3.4). |
 | RULE-013 | Magic-triangle rank source | Applied (Target design) | REG | Equipped weapon's trained WEXP track sets magnitude; `triangle_family` sets relationship. In GDD_04 §Weapon Families & Triangle Membership (3.3). |
 
 ## SET — settled owner directions
@@ -76,7 +76,7 @@ but not yet applied to the GDD). Homes:
 | SET-007 | Reclass progression counters | Applied (Target design) | REG → GDD_03 §Progression Counters / §Reclass (3.2) |
 | SET-008 | Terrain → corpus values/categories | Settled (target) | REG |
 | SET-009 | Class definitions → corpus + Light/Dark task | Applied (Target design) | REG → GDD_03 §Starter Roster (3.2) |
-| SET-010 | Pair Up/supports → corpus eventual target | Settled (target) | REG |
+| SET-010 | Pair Up/supports → corpus eventual target | Applied (Planned values) | REG → GDD_05 §Pair Up & Support System (3.4) |
 
 ## D — June ratified decisions (deprecated short aliases)
 
@@ -101,7 +101,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Resolution |
 |----|-------|--------|------|------------|
-| OPEN-1 | Supports in/out | Deferred (post-1.0) | JUN | Committed feature, post-1.0; confirms RULE-012. |
+| OPEN-1 | Supports in/out | Deferred (post-1.0) | JUN | Committed feature, post-1.0; confirms RULE-012. In GDD_05 §Pair Up & Support System (3.4). |
 | OPEN-2 | Condition/skill precedence | Applied | JUN | Conditions ≠ skills; one general rule. In GDD_02 §Status Conditions (3.1); per-skill exceptions in GDD_05. |
 | OPEN-3 | Mid-exchange weapon breakage | Applied | JUN | Cancels remaining strikes. In GDD_02 §Combat Resolution + §Durability (3.1). |
 | OPEN-4 | Enemy/AI EXP | Answered (in GDD_02) | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. Noted GDD_02 §EXP (3.1); CampaignRules contract is GDD_01 (3.5). |
