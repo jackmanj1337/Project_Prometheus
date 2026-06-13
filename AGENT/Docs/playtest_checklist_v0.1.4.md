@@ -1,348 +1,709 @@
-# Playtest Checklist — v0.1.4
-
-Use this against the v0.1.4 build
-(`builds/Project_Prometheus_v0.1.4_debug.exe`).
-Artifact hash and source details are in
-`AGENT/Docs/playtest_build_v0.1.4.md`.
-
-This build includes every v0.1.3a check plus the June 10-12 fixes: visible and
-bounded combat forecasts, scroll-bounded terrain More Info, multi-faction
-camera/danger-zone corrections, stricter Pair Up targeting, full-round turn
-counting, authored-only Rout defeat, `can_seize`-only Seize eligibility, a
-five-skill equip cap, a five-Battle-Speed follow-up threshold, and A-rank caps
-for the currently authored classes.
-
-Record failures as: `Map / Unit / Step / Actual / Expected / Repro`.
-
-----
-
-## A. First-launch smoke
-
-1. **Title screen shows v0.1.4.** Open the .exe; bottom-right of the Main Menu
-   reads `v0.1.4` in a small grey label.
-   - Fail signal: missing label, or wrong version string. Means you are
-     running a stale build.
-
-2. **New Game options load with last-selected defaults.** New Game → confirm
-   `Map` selector, `Pair Up` toggle, `Auto Promote` toggle, `Leveling Method`,
-   etc. are present and remember their last value across opening / closing
-   the New Game panel.
-
-3. **Settings round-trip.** Open Settings, change `mouse_cursor`, back out,
-   open again — value persists.
-
-----
-
-## B. Objective correctness (workstream 2 fixes — 2026-06-09b)
-
-### B1. Seize map (Map 002) — exclusive Seize victory
-
-1. Launch `Map 002`. Select the lead unit that can Seize.
-2. Defeat every Red unit *without* using Seize.
-   - **Expected:** Map does NOT end. No victory screen. Hostile rout alone is
-     not a Blue win on this map.
-   - Fail: victory triggers anyway.
-3. Step onto the authored Seize tile and choose `Seize` from the Action Menu.
-   - **Expected:** victory screen.
-
-### B2. Escape map (Map 004) — required units + paired escape
-
-1. Launch `Map 004`. Note the two named required Escape units.
-2. Move one required unit onto the Escape tile and pick `Escape`.
-   - **Expected:** that unit is removed and recorded as escaped, the map does
-     not yet resolve.
-3. Kill one required unit instead of escaping it.
-   - **Expected:** immediate defeat screen.
-4. Pair a lead with a support, then escape the lead.
-   - **Expected:** *both* lead and support are removed and counted as
-     escaped, no remaining "support left on map" ghost.
-5. Defeat every Red unit while a required Escape unit is still on the map.
-   - **Expected:** no auto-win. Routing reds is not an Escape-map victory.
-
-----
-
-## C. Progression and class state (workstream 3)
-
-### C1. Level-20 General has the right skills (W3a)
-
-1. Launch `Map 950 - Promotion Validation`. The roster now contains 12 units.
-2. Select `M950_General` (level 20, promoted Knight → General). Open `Inspect`
-   / Unit Details.
-   - **Expected equipped skills:** `bastion` (General lvl 5 unlock) and
-     `iron_wall` (General lvl 15 unlock). Both must be in the equipped skill
-     list — not just earned.
-   - Fail: General lists no skills, or only one.
-
-### C2. Reclass replaces class base stats while preserving earned gains (W3 done in b)
-
-1. On `Map 950`, select `M950_Knight` (level 9 Knight). Note current
-   Strength / Defense / Speed / Skill.
-2. Use a `Second Seal` to reclass them into a tier-1 option (e.g. Soldier).
-   - **Expected:** Strength / Defense / Speed / Skill / Movement adjust by
-     the *difference* between Knight and Soldier class base contributions.
-     Personal level-up gains are preserved. New class's level-1 skill is
-     granted. Displayed level resets to 1.
-   - The reclass option labels show each stat as
-     `old +/-delta -> new / cap`.
-
-### C3. Promotion-item usability refresh (W3b)
-
-1. Select `unit_11_lvl19_mercenary` (Level 19 Mercenary with Master Seal).
-   Open Action Menu.
-   - **Expected:** `Item` button **hidden** — they are level 19, not yet
-     eligible to promote.
-2. Walk them into combat and kill a Soldier (E1) to gain at least one level.
-   Continue until they hit level 20.
-3. On the *next* turn, select them again and open Action Menu.
-   - **Expected:** `Item` button now visible. Picking it shows
-     `Master Seal (1)`. Confirming opens the promotion modal with both
-     `Hero` and `Sentinel` and `Bow Knight` options.
-   - Fail: Item button still hidden after hitting level 20.
-
-### C4. Auto Promote at cap (W3c)
-
-1. Restart New Game with `Auto Promote: On`. Replay step C3.
-   - **Expected:** the moment Level 19 → 20 finishes its level-up animation,
-     the promotion modal opens automatically without needing to use the seal.
-
-### C5. Fifth equipped-skill slot is used (updated default)
+# Playtester Handbook and Checklist - v0.1.4
 
-1. On `Map 950`, select `unit_12_hero_skill_cap` (Level 14 Hero). Open
-   Unit Details.
-   - **Expected equipped:** `armsthrift`, `patience`, `dash`, `discipline`
-     (4 skills, with one of the 5 default equip slots still open).
-2. Walk them into combat and earn the level to 15.
-   - **Expected:** Level-up screen reports `disarm` learned.
-     `data.earned_skills` and `data.skills` now list all 5 ids. No crash and
-     no existing skill is overwritten.
-3. Verify by re-inspecting the unit: `disarm` appears with the other four
-   equipped skills. A sixth learned skill would remain unequipped.
-
-### C6. Retry restores state after an in-map class change (W3e)
-
-1. On `Map 950`, use a Second Seal on a tier-1 unit (e.g. `M950_Cavalier`)
-   to reclass.
-2. Continue play until any Blue unit dies and Game Over fires.
-3. Press `Retry`.
-   - **Expected:** the reclassed unit reverts to its original class,
-     class_line_id, level, internal_level, stats, weapon_wexp, and skills.
-     No leftover Mercenary state on a Cavalier.
-   - Fail: unit stays in its reclassed state, or the snapshot rejects with
-     a `push_error` line in the debug console.
-
-----
-
-## D. Pair Up (workstream 4)
-
-### D1. Pair creation marks both units done (W4a)
-
-1. On any map with `Pair Up: On`, move a Blue lead adjacent to a Blue ally.
-   Pick `Pair Up` → target the ally.
-   - **Expected:** support sprite disappears (off-map), lead remains visible.
-     Both units' end-of-action color/state changes to DONE (greyed). Phase
-     auto-end (if all other Blue units are done) fires normally.
-   - Fail: hidden support stays "actionable," phase refuses to advance.
-
-### D2. Swap turns lead and support, costs the action (already in 09c)
-
-1. Pair two units, then on the lead's turn pick `Swap`.
-   - **Expected:** roles flip (the lead becomes support, support becomes
-     lead). Both units marked DONE. Lead stays on its original tile.
-
-### D3. Pair Up bonus context unified for preview and resolution (W4b)
-
-Pair a Hero lead with a Cavalier support. Engage an enemy at melee.
-
-- **Expected Cavalier flat bonuses** (`pair_up_bonus_table.tres`):
-  `+1 Str / +1 Def / +1 Spd`.
-- **Expected scaling bonuses** (divisor 4, scaling stats:
-  strength, magic, defense, resistance, skill, speed, luck):
-  add `floor(support.<stat> / 4)` to each.
-
-  Example: Cavalier with Str 12 / Spd 7 / Skl 4 / Def 7 contributes:
-  ```
-  Str:  flat +1 + floor(12/4)=3 → +4
-  Def:  flat +1 + floor( 7/4)=1 → +2
-  Spd:  flat +1 + floor( 7/4)=1 → +2
-  Skl:  flat  0 + floor( 4/4)=1 → +1
-  ```
-
-- **Expected preview vs resolution:** the combat preview's Atk, Hit, AS-based
-  follow-up calc, and final damage all reflect those bonuses. The live fight
-  must deal damage matching the preview's `attacker_damage` (modulo crit /
-  miss RNG). If you ever see "preview says 12, fight does 9," log this as a
-  W4b regression.
-
-### D4. Pair Up requires the same faction
-
-1. Launch `Map 900 - Hotseat Validation`.
-2. During Blue's phase, move a Blue unit adjacent to a Green unit.
-   - **Expected:** `Pair Up` is not offered. Blue and Green are allies, but
-     they are different armies.
-3. On a normal map, move two Blue units together.
-   - **Expected:** same-faction Pair Up remains available.
-
-### D5. Paired support does not block phase completion
-
-1. Pair two Blue units, then finish every remaining Blue unit's action.
-   - **Expected:** the phase ends normally. The hidden support is not counted
-     as a separate waiting unit.
-2. Before ending the phase, cycle units with the next-unit input.
-   - **Expected:** selection never jumps to the support's off-map position.
-
-----
-
-## E. Combat preview + More Info (workstream 5)
-
-### E1. Preview panel sizes to content (already in 09c)
-
-1. Move an attacker adjacent to a defender. Open the combat preview.
-   - **Expected:** panel hugs the rows it actually contains, not stretched
-     vertically. Both sides' Name, HP, Damage, Hit, and Crit rows are visible.
-     This specifically guards the blank-forecast regression from June 10.
-2. Preview an enemy that cannot counter.
-   - **Expected:** `No counter` remains visible while unused defender Hit and
-     Crit rows collapse without leaving blank overlapping controls.
-
-### E2. More Info column does not cover the base forecast (already in 09c)
-
-1. Open preview, press `More Info` / cycle.
-   - **Expected:** the base forecast stays visible while the More Info
-     description shows. Triangle, effectiveness, crit, Vantage rows do not
-     stack on top of each other.
-2. Repeat with triangle and effectiveness rows visible together.
-   - **Expected:** every row remains readable and the panel stays on-screen.
-3. Repeat at `960x540` if window resizing is available.
-   - **Expected:** the preview remains bounded and does not return to the
-     near-full-height June 9 layout.
-
-### E3. Character stat details show active modifiers (W5b)
-
-1. On `Map 950`, select `M950_Mercenary`. Open Action Menu → Item →
-   `Strength Tonic`.
-   - **Expected:** `+4 Strength (4 turns)` modifier applied. The Strength
-     Tonic is consumed.
-2. Inspect the unit.
-   - **Expected lines on the Strength stat detail panel:**
-     ```
-     Base <N>   Effective <N+4>
-     Growth <X>%
-     Fixed <Y> / 100
-     Modifiers:
-       Strength Tonic  +4  (4 turns)
-     ```
-   - Where `<N>` is the Mercenary's pre-tonic Strength (the same number the
-     stats panel showed before drinking it). `<X>` is the effective Strength
-     growth (class + personal), and `<Y>` is the current fixed-growth
-     accumulator out of 100.
-   - Fail: modifier line missing, "No active modifiers" still shown,
-     Effective unchanged, or duration text wrong.
-
-3. End four turns. The tonic should expire — Effective drops back to Base,
-   and the Modifiers line disappears.
-
-### E4. Effective growth and fixed-growth progress (W5b + W3 09c)
-
-1. Inspect any growing player unit. For each stat row, the detail panel must
-   show **two** lines below `Base / Effective`:
-   - `Growth N%`  — class player_growth + unit growth_rates contribution.
-   - `Fixed N / 100`  — the fixed-growth accumulator. `N` advances on every
-     level-up in `growth_fixed` mode and resets to `0` when the stat ticks.
-
-----
-
-## F. Map HUD / camera / input (workstream 6)
-
-v0.1.4 retains the four v0.1.3a quick wins and adds the terrain More Info
-layout correction. The remaining visual/input items stay deferred.
-
-### F1. Map details show one-based tile coordinates (W6a)
-
-1. Launch any map. Move the cursor over the upper-left tile.
-   - **Expected:** the Terrain panel reads `Tile (1, 1)`. The terrain name,
-     defense, and dodge lines are unchanged.
-2. Move the cursor right by one tile.
-   - **Expected:** `Tile (2, 1)`.
-3. Move the cursor to a player_start tile that you know is internally at
-   `(0, 0)` (the top-left start on a small map).
-   - **Expected:** `Tile (1, 1)` shown — internal storage is still zero-based,
-     this is a display-only `+1`.
-   - Fail signal: `Tile (0, 0)`, missing line, or coords disagree with the
-     map's visible row/column count.
-
-### F2. Movement Cancel snaps cursor back to the acting unit (W6f)
-
-1. Select any Blue unit and walk the cursor to a legal destination tile
-   (anywhere along the blue movement overlay).
-2. Confirm the move so the Action Menu opens. The unit is now on the new
-   tile and the cursor is parked on top of it.
-3. Press Cancel (B / Esc / right-click) on the Action Menu.
-   - **Expected:** the unit teleports back to its pre-move tile **and the
-     cursor follows it** — both the unit and the cursor are on the original
-     starting tile. The movement overlay re-appears so a new destination can
-     be chosen.
-   - Fail signal: the unit returns to its starting tile but the cursor stays
-     on the cancelled destination. Previously the player had to manually
-     move the cursor back; that is the regression to watch for.
-
-### F3. Mouse-wheel over New Game UI does not move the camera (W6e)
-
-1. From the title screen, open `New Game`.
-2. Hover the mouse over the New Game panel — over the title, over each
-   dropdown, and over empty space inside the panel.
-3. Scroll the mouse wheel up and down five times each in each spot.
-   - **Expected:** the panel itself does not scroll (it isn't a scroll
-     view), and the background camera state does **not** drift. Closing
-     New Game returns you to the same Main Menu view you started in.
-   - Fail signal: any visible camera/viewport shift in the title screen
-     while wheeling over the New Game panel.
-
-### F4. New Game options panel is horizontally centered (W6i)
-
-1. Open `New Game` at the default 1280×720 viewport.
-   - **Expected:** the options panel sits centered horizontally, with equal
-     left/right margin between the panel and the screen edges. The panel
-     title "New Game" sits centered at the top of the panel.
-2. If you can resize the window (e.g. fullscreen vs windowed at a different
-   resolution), re-open New Game and confirm the panel is still centered.
-   - **Expected:** centering is anchor-driven, so it should hold at any
-     viewport width.
-   - Fail signal: panel hugs the left side of the screen, or is off-center
-     by a visible amount.
-
-### F5. Terrain More Info is separate and scroll-bounded (W6b)
-
-1. Hover any terrain tile and open More Info.
-   - **Expected:** the compact Terrain panel remains at bottom-right and a
-     separate details box appears above it.
-2. Check a terrain entry with longer description, movement-cost, and action
-   text.
-   - **Expected:** the details box has a fixed visible height and scrolls.
-     It does not grow off the top of the screen or cover the compact terrain
-     stats.
-3. Close More Info.
-   - **Expected:** the details box disappears and the compact Terrain panel
-     remains.
-
-### F.deferred — Still deferred to a later build
-
-These W6 items remain known issues for v0.1.4; do not treat them as
-regressions:
-
-- Camera limits do not include viewport-aware overscan for edge panels (W6c).
-- Mouse-follow camera catch-up is still snappy (W6d).
-- Map-menu backdrop click does not dismiss the menu (W6g).
-- No per-enemy threat inspect; `Q` is the only toggle (W6h).
-
-Note any *worse* behavior in these areas, but do not treat the unchanged
-behavior as a v0.1.4 failure.
-
-----
-
-## G. Validation hardening (silent, watch debug console)
-
-The data layer is stricter in v0.1.4. While playing, the debug log
-should not emit `DataManager: ...` errors. If you see any push_error like:
+Use this handbook with:
+
+- Build: `builds/Project_Prometheus_v0.1.4_debug.exe`
+- Build details: `AGENT/Docs/playtest_build_v0.1.4.md`
+
+Complete the sections in order. Checks are grouped by the map that provides
+the fastest reliable setup. State-changing, map-ending, and retry checks are
+placed last so earlier checks can reuse the same run.
+
+Only check **This item works as expected** after every expectation in that
+item passes. Record failures as:
+
+`Map / Unit or UI / Step / Actual / Expected / Repro`
+
+For visual failures, include the window resolution and a screenshot.
+
+## Coverage limits
+
+- The current Map 950 fixture verifies the fifth equipped-skill slot, but it
+  does not contain a unit learning a sixth skill. Sixth-skill overflow remains
+  covered by automated tests rather than this live pass.
+- Current class weapon-rank caps are verified by automated tests. The build
+  does not provide a fast live fixture near enough to the A-rank cap to make a
+  manual cap test practical.
+- The deferred issues near the end are known limitations, not failed checks.
+
+---
+
+## 1. Non-map-specific UI commentary
+
+Complete these checks before launching the first map.
+
+### 1.1 Version label
+
+Open the executable.
+
+**Expected**
+
+- The Main Menu opens without an engine error.
+- A small grey `v0.1.4` label appears at the bottom-right.
+- A missing or different version means the tester has a stale build.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 1.2 New Game options and remembered values
+
+Open New Game and confirm the `Map`, `Pair Up`, `Auto Promote`, and
+`Leveling Method` controls are present. Change `Pair Up` and `Auto Promote`,
+close the panel, and reopen it.
+
+**Expected**
+
+- All expected controls are present.
+- The changed values are remembered after closing and reopening the panel.
+- Leave `Pair Up: On` and `Auto Promote: Off` for the first map pass.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 1.3 Settings round-trip
+
+Open Settings, change `mouse_cursor`, back out, and reopen Settings.
+
+**Expected**
+
+- The changed value persists.
+- Backing out and reopening does not leave the menu stuck or visually corrupt.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 1.4 Mouse wheel does not affect the background
+
+Open New Game. Hover over the title, every dropdown, and empty panel space.
+Scroll up and down five times in each location, then close the panel.
+
+**Expected**
+
+- The New Game panel does not scroll.
+- The title-screen background or camera does not drift.
+- Closing New Game returns to the same Main Menu view.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 1.5 New Game panel centering
+
+Check the New Game panel at `1280x720`. If resizing is available, check it
+again at another resolution.
+
+**Expected**
+
+- The panel has visually equal left and right margins.
+- The `New Game` heading is centered.
+- The panel remains centered after the viewport width changes.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### General non-map UI comments
+
+_Enter comments about menu readability, wording, focus, or navigation that do
+not belong to a specific check._
+
+---
+
+## 2. Map 001 - Rout
+
+Use `Map 001 - Rout` for baseline map UI, combat preview, Pair Up flow, and
+authored Rout defeat. Keep `Pair Up: On`.
+
+### 2.1 Launch and one-based terrain coordinates
+
+Launch the map through New Game. Move the cursor to the upper-left map tile,
+then one tile to the right.
+
+**Expected**
+
+- The normal default campaign roster loads.
+- The Terrain panel shows `Tile (1, 1)` at the upper-left tile.
+- One tile to the right shows `Tile (2, 1)`.
+- Terrain name, defense, and dodge remain readable.
+- The display never exposes internal zero-based coordinates such as
+  `Tile (0, 0)`.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.2 Movement cancel restores unit and cursor
+
+Select a Blue unit, confirm a legal move, and wait for the Action Menu. Press
+Cancel (`B`, `Esc`, or right-click).
+
+**Expected**
+
+- The unit returns to its original tile.
+- The cursor returns to the same original tile.
+- The movement overlay reappears for another destination choice.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.3 Terrain More Info layout
+
+Hover terrain and open More Info. Check at least one terrain entry with a long
+description, movement costs, and action text. Close More Info afterward.
+
+**Expected**
+
+- The compact Terrain panel stays at the bottom-right.
+- A separate details box opens above it.
+- The details box has a bounded height and scrolls instead of growing
+  off-screen.
+- The details box does not cover the compact terrain stats.
+- Closing More Info removes only the details box.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.4 Combat preview base layout and no-counter state
+
+Open a combat preview against an enemy that can counter. Then preview an enemy
+that cannot counter.
+
+**Expected**
+
+- The panel sizes to its content instead of stretching vertically.
+- Both sides show readable Name, HP, Damage, Hit, and Crit information.
+- The forecast is populated rather than blank.
+- `No counter` remains visible when appropriate.
+- Unused defender Hit and Crit rows collapse without blank space or overlap.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.5 Combat preview More Info and narrow resolution
+
+Open a combat preview and cycle More Info. Use a matchup that displays both
+weapon-triangle and effectiveness information if one is available. Repeat at
+`960x540` if window resizing is available.
+
+**Expected**
+
+- The base forecast remains visible while More Info is open.
+- Description, triangle, effectiveness, crit, and Vantage rows do not overlap.
+- Every visible row remains readable and on-screen.
+- At `960x540`, the preview stays bounded and does not expand to nearly the
+  full viewport height.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.6 Pair creation, DONE state, and hidden-support handling
+
+Move a Blue unit next to an unpaired Blue ally. Choose `Pair Up`, target the
+ally, and then cycle through available units. Finish every remaining Blue
+unit's action.
+
+**Expected**
+
+- Same-faction Pair Up is available.
+- The support sprite leaves the map and the lead remains on its tile.
+- Both units become DONE/greyed.
+- Unit cycling never selects the support's off-map position.
+- The hidden support is not counted as waiting, so the phase ends normally
+  when all visible Blue units are done.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.7 Swap costs the action
+
+On the next Blue phase, select the paired lead and choose `Swap`.
+
+**Expected**
+
+- Lead and support roles trade places.
+- The new lead remains on the original map tile.
+- Both units become DONE.
+- The pairing remains valid after the action.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 2.8 Authored allied Rout defeat
+
+Do this last because it ends the run. Allow every allied unit to be defeated.
+
+**Expected**
+
+- A defeat screen appears because Map 001 explicitly authors allied Rout
+  defeat.
+- The game does not remain on an unwinnable map.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+---
+
+## 3. Map 002 - Seize
+
+Use one run for all three checks. Do not Seize until every Red unit has been
+defeated.
+
+### 3.1 Seize eligibility is unit-specific
+
+Move the default Cavalier, whose `can_seize` flag is enabled, onto the authored
+Seize tile. Check the Action Menu, cancel, and then place a different Blue unit
+on the same tile.
+
+**Expected**
+
+- The Cavalier is offered `Seize`.
+- A different Blue unit is not offered `Seize`.
+- Eligibility comes from the unit's authored `can_seize` flag.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 3.2 Routing Red does not win
+
+Defeat every Red unit without using Seize.
+
+**Expected**
+
+- The map remains active.
+- No victory screen appears.
+- Hostile Rout is not inferred as a Blue victory condition.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 3.3 Seize resolves the map
+
+After the Red units are defeated, move the eligible Cavalier onto the Seize
+tile and choose `Seize`.
+
+**Expected**
+
+- The victory screen appears immediately.
+- The objective does not require another End Turn.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+---
+
+## 4. Map 004 - Escape
+
+This section needs three short runs because each objective branch ends or
+invalidates the others.
+
+### Run 1: single escape followed by required-unit defeat
+
+### 4.1 One required unit escaping is not enough
+
+Launch Map 004. The required units are the default Cavalier and Mercenary.
+Move one required unit onto an Escape tile and choose `Escape`.
+
+**Expected**
+
+- That unit is removed from the map and recorded as escaped.
+- The map remains active because the other required unit has not escaped.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 4.2 Required-unit death causes immediate defeat
+
+Continue Run 1 and allow the remaining required unit to die.
+
+**Expected**
+
+- The defeat screen appears immediately.
+- The map does not remain in an unwinnable state.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### Run 2: paired escape
+
+### 4.3 Paired lead and support escape together
+
+Restart Map 004. Pair the two required units, move the lead onto an Escape
+tile, and choose `Escape`.
+
+**Expected**
+
+- Both lead and support are removed.
+- Both are counted as escaped.
+- No off-map support remains as a ghost objective unit.
+- The victory screen appears when both requirements are satisfied.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### Run 3: enemy Rout is not victory
+
+### 4.4 Routing Red while a required unit remains does not win
+
+Restart Map 004. Defeat every Red unit while at least one required Escape unit
+is still on the map.
+
+**Expected**
+
+- The map remains active.
+- No victory screen appears.
+- Rout is not inferred on an Escape map.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+---
+
+## 5. Map 900 - Hotseat Validation
+
+Complete this section in one uninterrupted faction cycle. It covers faction
+ownership, controller handoff, turn counting, camera memory, danger zones, and
+the two closed hotseat regressions.
+
+### 5.1 Blue startup and cross-faction Pair Up restriction
+
+At the start of Blue's phase, confirm the HUD reads `Turn 1`. Move a Blue unit
+next to a Green unit and open the Action Menu.
+
+**Expected**
+
+- Blue starts under Player 1 control.
+- Blue units are selectable and Green units are not.
+- `Pair Up` is not offered between Blue and Green. They are allied, but they
+  belong to different factions.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 5.2 Full faction cycle, labels, and handoff
+
+End Blue, play/end Green, and watch Red and Yellow act. Check the HUD and phase
+banner as each phase starts.
+
+**Expected**
+
+- Blue: `Blue - Player 1`
+- Green: `Green - Player 2`
+- Red: `Red Raiders - AI`
+- Yellow: `Yellow Rogues - AI`
+- A `PHASE` suffix or capitalization difference is acceptable if faction and
+  controller ownership agree.
+- The HUD remains on `Turn 1` during Green, Red, and Yellow.
+- Red and Yellow complete in order without a hang.
+- Control returns cleanly to Blue.
+- The HUD changes to `Turn 2` only when Blue returns.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 5.3 Green combat preview uses the active side
+
+During Green's phase, use a Green combat unit to target a hostile Red or Yellow
+unit.
+
+**Expected**
+
+- The normal populated combat preview opens.
+- The preview uses Green as the active attacker.
+- It does not open a partial More Info panel with missing combat data.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 5.4 Faction-specific camera and danger zone
+
+During Blue's phase, pan to a memorable view before ending the phase. During
+Green's phase, pan elsewhere and press `Q`. Finish the faction cycle.
+
+**Expected**
+
+- Green's danger overlay shows units hostile to Green, not a stale Blue view.
+- Red and Yellow phases do not overwrite the saved player camera views.
+- Blue's saved view is restored when Blue control returns.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### General Map 900 comments
+
+_Enter comments about faction readability, controller handoff, AI pacing, or
+camera behavior that do not belong to a specific check._
+
+---
+
+## 6. Map 950 - Promotion Validation
+
+First run setup:
+
+- `Pair Up: On`
+- `Auto Promote: Off`
+- Use the authored 12-unit fixed roster.
+
+Apply the Strength Tonic early. Its four-turn duration can expire while the
+other checks are completed. Save the intentional defeat/Retry check for the
+end of the first run. The final Auto Promote check requires one restart.
+
+### 6.1 Roster and promoted General skills
+
+Launch Map 950 and inspect `M950_General`, a level-20 promoted
+Knight-to-General.
+
+**Expected**
+
+- The fixed roster contains 12 units.
+- The General has both `bastion` and `iron_wall` equipped.
+- Neither skill is missing or only present as an unshown earned skill.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.2 Growth and fixed-growth details
+
+Inspect any growing player unit and open More Info for several stat rows.
+
+**Expected**
+
+- Each stat shows `Base` and `Effective`.
+- Each stat shows `Growth N%`.
+- Each stat shows `Fixed N / 100`.
+- In `growth_fixed` mode, the fixed value advances on level-up and returns to
+  `0` when that stat increases.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.3 Four Battle Speed does not follow up
+
+Preview `M950_Mage` attacking `M950_E1_Soldier`, `M950_E2_Soldier`, or
+`M950_E3_Soldier` without Pair Up or temporary stat modifiers.
+
+**Expected**
+
+- The Mage's authored Battle Speed is 7.
+- The Soldier's authored Battle Speed is 3.
+- The Mage attacks once, not twice, because a difference of 4 is below the
+  current follow-up threshold of 5.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.4 Strength Tonic modifier and expiration
+
+Use `M950_Mercenary` -> Action Menu -> Item -> `Strength Tonic`. Inspect the
+Strength row immediately, then inspect it again after four full turns.
+
+**Expected immediately**
+
+- The tonic is consumed.
+- Strength gains `+4` for `4 turns`.
+- The detail panel shows:
+
+```text
+Base <N>   Effective <N+4>
+Growth <X>%
+Fixed <Y> / 100
+Modifiers:
+  Strength Tonic  +4  (4 turns)
+```
+
+**Expected after four turns**
+
+- Effective Strength returns to Base.
+- The Strength Tonic modifier line disappears.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.5 Pair Up bonuses match preview and live combat
+
+Move `M950_Hero_SkillCap` and `M950_Cavalier` near the same melee target.
+Before pairing, record the Hero's forecast and cancel. Pair the Hero as lead
+with the Cavalier as support, then preview and complete the same attack.
+
+The support bonus is:
+
+- Flat Cavalier bonus: `+1 Str`, `+1 Def`, `+1 Spd`
+- Scaling bonus: `floor(support stat / 4)` for Str, Mag, Skl, Spd, Def, Res,
+  and Lck
+
+With the authored Cavalier stats, the expected contributions are:
+
+```text
+Str: +1 + floor(10 / 4) = +3
+Def: +1 + floor(10 / 4) = +3
+Spd: +1 + floor( 9 / 4) = +3
+Skl:      floor( 8 / 4) = +2
+Lck:      floor( 4 / 4) = +1
+Mag:      floor( 0 / 4) = +0
+Res:      floor( 1 / 4) = +0
+```
+
+**Expected**
+
+- The paired forecast improves by the authored support contribution where
+  those stats affect combat.
+- Preview Atk, Hit, and follow-up calculations reflect the bonuses.
+- Live damage matches the preview, except for normal miss or critical RNG.
+- A result such as `preview says 12, live fight deals 9` is a failure.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.6 Reclass stats, skills, and menu layout
+
+Record `M950_Knight`'s Strength, Defense, Speed, Skill, Movement, displayed
+level, and skills. Use a `Second Seal` to reclass into a tier-1 option such as
+Soldier.
+
+**Expected**
+
+- The reclass menu remains on-screen and every option is reachable.
+- Option labels use `old +/-delta -> new / cap`.
+- Class base contributions are replaced rather than stacked.
+- Personal earned gains are preserved.
+- Strength, Defense, Speed, Skill, and Movement change by the class-base
+  difference.
+- Displayed level resets to 1.
+- The new class's level-1 skill is granted.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.7 Promotion item becomes usable at level 20
+
+Select `M950_Lvl19_Merc` before leveling and open the Action Menu. Then defeat
+`M950_E1_Soldier` and continue until the Mercenary reaches level 20. On the
+next turn, open the Action Menu and use the Master Seal.
+
+**Expected before level 20**
+
+- `Item` is hidden because the Master Seal has no legal use yet.
+
+**Expected at level 20**
+
+- `Item` appears on the next selection.
+- The item list shows `Master Seal (1)`.
+- Confirming it opens the promotion modal.
+- `Hero`, `Sentinel`, and `Bow Knight` are offered.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.8 Fifth equipped-skill slot
+
+Before leveling, inspect `M950_Hero_SkillCap`.
+
+**Expected before level 15**
+
+- Equipped skills are `armsthrift`, `patience`, `dash`, and `discipline`.
+- One of the five default equipped-skill slots is open.
+
+Earn the level to 15 and inspect the unit again.
+
+**Expected after level 15**
+
+- The level-up screen reports `disarm` learned.
+- `disarm` appears with the existing four equipped skills.
+- No existing skill is overwritten and no crash occurs.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.9 Staff use honors Force Level Up
+
+Use `F10` to enable Force Level Up. Have `M950_Cleric` successfully use a
+staff, then disable Force Level Up with `F10`.
+
+**Expected**
+
+- The debug indicator shows Force Level Up while enabled.
+- A successful staff use triggers the forced level-up path.
+- Disabling the aid removes the active debug state.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.10 Retry restores the original class state
+
+Do this last in the first run. After reclassing `M950_Knight`, allow any Blue
+unit to die, choose `Retry`, and inspect the Knight.
+
+**Expected**
+
+- The Knight returns to the original class and displayed level.
+- Original stats, weapon ranks, inventory, and skills are restored.
+- No reclass state remains.
+- The debug console does not report a snapshot rejection or `push_error`.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 6.11 Auto Promote at the level cap
+
+Return to New Game, set `Auto Promote: On`, and relaunch Map 950. Use
+`M950_Lvl19_Merc` to gain level 20 again.
+
+**Expected**
+
+- The promotion modal opens immediately after the level-up animation.
+- The Master Seal does not need to be selected manually.
+- The modal offers `Hero`, `Sentinel`, and `Bow Knight`.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### General Map 950 comments
+
+_Enter comments about progression clarity, class-choice wording, stat-change
+presentation, or menu readability that do not belong to a specific check._
+
+---
+
+## 7. All-map debug-console check
+
+Keep the debug console visible when practical throughout the entire pass.
+
+### 7.1 No data-validation errors
+
+**Expected**
+
+No `DataManager: ...` error or `push_error` appears. Examples include:
 
 - `tilemap_scene_path '...' is missing`
 - `reward_items item '...' not found`
@@ -352,80 +713,39 @@ should not emit `DataManager: ...` errors. If you see any push_error like:
 - `unit '...' hp ... exceeds max_hp ...`
 - `snapshot ... is not a Dictionary`
 
-…it is a content-authoring bug, not a runtime crash. Capture the message
-and the map you saw it on.
+These messages indicate content-authoring defects even if the game does not
+crash. Record the complete message and the active map.
 
-----
+- [ ] **This item works as expected.**
 
-## H. Closed May fixes — recheck if you have time
+**Tester comments:** _Enter comments here._
 
-Recheck and re-open ONLY if these regress:
+---
 
-- Map 900 hotseat handoff still works.
-- Hotseat combat preview dispatch still binds to the active side.
-- Map 950 reclass-menu does not overflow.
-- Staff use still force-levels the wielder when `debug_force_levelup` is on.
+## 8. Known deferred issues
 
-----
+Do not report the unchanged behavior below as a v0.1.4 regression:
 
-## I. v0.1.4 rules and multi-faction changes
+- Camera limits do not include viewport-aware overscan for edge panels.
+- Mouse-follow camera catch-up remains abrupt.
+- Clicking the Map Menu backdrop does not dismiss the menu.
+- `Q` toggles the full danger zone; per-enemy threat inspection is not
+  implemented.
 
-### I1. Turn number advances after the full faction cycle
+Report behavior in these areas only if it is worse than described.
 
-1. Launch `Map 900 - Hotseat Validation`; confirm the HUD begins at `Turn 1`.
-2. End Blue, play/end Green, then watch Red and Yellow act.
-   - **Expected:** the HUD remains `Turn 1` throughout Green, Red, and Yellow.
-3. When control returns to Blue:
-   - **Expected:** the HUD changes to `Turn 2`.
-   - Fail signal: the number changes when Blue first ends, or changes more
-     than once during the cycle.
+### Deferred-issue comments
 
-### I2. Phase labels include controller ownership
+_Enter observations here._
 
-On Map 900, check the HUD/banner through one cycle:
+---
 
-- Blue: `Blue - Player 1`
-- Green: `Green - Player 2`
-- Red: `Red Raiders - AI`
-- Yellow: `Yellow Rogues - AI`
+## 9. What to send back
 
-Capitalization and the added `PHASE` suffix may differ between HUD and banner;
-the faction and controller text must agree.
+Return:
 
-### I3. Camera and danger zone are faction-specific
-
-1. During Blue's phase, pan to a memorable view, then end the phase.
-2. During Green's phase, pan somewhere different and press `Q`.
-   - **Expected:** the danger overlay shows units hostile to Green, not a
-     stale Blue-only perspective.
-3. Finish the cycle.
-   - **Expected:** Blue's saved camera view is restored when Blue returns.
-     Green's view must not overwrite it during Red or Yellow phases.
-
-### I4. Four Battle Speed is no longer a follow-up
-
-1. On Map 950, preview `M950_Mage` attacking an `M950_E1/E2/E3_Soldier`
-   without Pair Up or stat modifiers.
-   - Authored Battle Speed is 7 for the Mage and 3 for the Soldier.
-   - **Expected:** the Mage attacks once, not twice, because the advantage is
-     4 and the follow-up threshold is now 5.
-
-### I5. Seize and Rout use authored rules only
-
-1. Repeat B1 with the default Cavalier, whose `can_seize` flag is true.
-   - **Expected:** Seize is available on the objective tile.
-2. Put a different Blue unit on that tile.
-   - **Expected:** Seize is not available.
-3. On Map 001, allow every allied unit to be defeated.
-   - **Expected:** defeat triggers because that map explicitly authors allied
-     Rout defeat. Maps without an authored Rout condition must not infer one.
-
-----
-
-## What to send back
-
-1. The filled checklist (`[x]` per item, with the fail-signal note when
-   something is off).
-2. Any debug-console output captured during play.
-3. A screenshot for any visual regression in section E or F.
-4. Specific repros for anything in section G.
+1. This completed handbook with every applicable checkbox marked.
+2. Tester comments for every failed or unclear item.
+3. Debug-console output for any validation error.
+4. Screenshots for combat-preview, terrain, camera, or menu-layout failures.
+5. Exact repro steps using the failure format at the top of this document.
