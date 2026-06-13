@@ -1,5 +1,11 @@
 # GDD Update Reference — Full Review Consolidation (2026-06-12)
 
+> **ARCHIVED (Stage 5.2d, 2026-06-13 / DOC-010).** All dispositions from this
+> document have been imported into `decision_record_2026-06-13_june_reference_import.md`
+> and applied to GDD_01–GDD_08. This file is retained for provenance; do not use it
+> as a live action list. The companion `rng_determinism_design_2026-06-11.md` is in
+> `AGENT/Docs/` and active as an implementation plan for `RngService`.
+
 **Purpose:** single working reference for the upcoming GDD update pass.
 Consolidates every finding, decision, and action item from the 2026-06 design
 review. File under `AGENT/Docs/` alongside its companion document:
