@@ -248,18 +248,18 @@ Exit: common structural drift fails locally or in CI. **STAGE 6 COMPLETE 2026-06
 
 # STAGE 7 — Completion verification (plan §12)
 
-### [ ] 7.1 Confirm every completion criterion
+### [x] 7.1 Confirm every completion criterion — DONE 2026-06-13
 
-- [ ] `GDD_00` gives an unambiguous starting point + authority model
-- [ ] every current/target feature has one owning GDD section
-- [ ] the feature index reaches rules, roadmap, code/data, verification
-- [ ] corpus adoption + project variations are explicit
-- [ ] one roadmap owns scope/order/status/dependencies
-- [ ] open decisions live only in the register
-- [ ] historical files can't be mistaken for current instructions
-- [ ] operational guides don't duplicate normative rules
-- [ ] doc validation catches broken links + lifecycle errors
-- [ ] feature DoD requires synchronized documentation
+- [x] `GDD_00` gives an unambiguous starting point + authority model. **GDD_00** has Status: Active, Last verified: 2026-06-13, authority order (decisions > GDD > code), document map to all chapters and indices.
+- [x] every current/target feature has one owning GDD section. **GDD_Feature_Index.md** maps 17 feature groups; each row names exactly one rule owner in GDD_01–08 and one roadmap owner in GDD_10.
+- [x] the feature index reaches rules, roadmap, code/data, verification. Feature index columns cover Rule owner, Arch. owner, Roadmap owner, Code/data anchors, Automated coverage, Manual coverage, Decisions, Reference source — all filled (TBD (S3) entries are explicitly deferred, not silently empty).
+- [x] corpus adoption + project variations are explicit. **GDD_Adoption_Matrix.md** has one row per corpus rule with adoption status; every "project variation" links to a GDD section. All GDD_03-06 chapters cross-reference the matrix.
+- [x] one roadmap owns scope/order/status/dependencies. **GDD_10_Roadmap.md** owns M8–M16, release gates, Phase 3 backlog, completion history, dependency graph. GDD_10a retired (Stage 4.1).
+- [x] open decisions live only in the register. **decision_index.md** covers all DOC-/RULE-/SET-/OPEN-/RNG-/AWR- IDs; decisions not yet answered are marked with status and open question. Spot-check: OPEN-1 through OPEN-13 all present.
+- [x] historical files can't be mistaken for current instructions. Six plan/audit docs carry `> **Historical**` blockquotes (Stage 5.3); deleted docs (GDD_09, GDD_Assumptions) are gone from the tree; GDD_00 §Document Map lists deletions explicitly.
+- [x] operational guides don't duplicate normative rules. testing_guide.md, map_authoring_guide.md, campaign_rules.md, environment_setup.md, manual_test_playbook.md all have Last verified: 2026-06-13 and link back to owning GDD sections rather than repeating rule text.
+- [x] doc validation catches broken links + lifecycle errors. `python3 AGENT/Docs/check_docs.py` runs 6 structural checks (banned paths, broken repo paths, required headers, feature-index targets, duplicate roadmap headings, stale Last verified). Exit 0 = green.
+- [x] feature DoD requires synchronized documentation. PL#8 rule in **AGENTS.md** line 19: same-commit rule enforces GDD update + roadmap status flip whenever behavior changes. Pairs with DOC-011 CI checks.
 
 ---
 
