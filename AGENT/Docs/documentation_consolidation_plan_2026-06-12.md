@@ -105,16 +105,23 @@ When consolidation encounters a choice:
 
 ### 3.3 Preserve history without preserving ambiguity
 
-Superseded files should not be silently deleted unless they are generated,
-empty, or redundant after review. Historical files should receive a short
-header that states:
+**Owner policy (DOC-004/006/008/010, 2026-06-13):** superseded and historical
+documents are **moved or removed now**, not left in place with headers. Useful
+content is merged into its owning GDD/decision home first; the original is then
+retrieved through Git history if ever needed. Specifically:
 
-- document status
-- date superseded
-- replacement document
-- whether any content remains operationally relevant
+- `GDD_10a_Overview.md` is retired; the roadmap owns content/order/status (DOC-004).
+- `GDD_09_Checklist.md` and `GDD_Assumptions.md` are merged then deleted (DOC-006).
+- Superseded plans are moved/removed in dedicated batches now (DOC-008).
+- `gdd_update_reference_2026-06-12.md` and `rng_determinism_design_2026-06-11.md`
+  move to `AGENT/Docs` now; the update reference is later archived once applied,
+  and the RNG contract merges into the GDD feature-design home (DOC-010).
 
-Current documents should stop linking to superseded plans as implementation
+**Gate:** no move or deletion happens before the file lifecycle / link-migration
+table (Phase 1) is reviewed, so no useful content or live inbound link is lost.
+Each move/delete is applied atomically with all link repairs.
+
+Current documents must stop linking to superseded plans as implementation
 instructions.
 
 ### 3.4 Separate status from authority
@@ -122,7 +129,12 @@ instructions.
 A file may be authoritative for a target design even when the target is not
 implemented. Every canonical section therefore needs explicit status language.
 
-Proposed vocabulary, pending `DOC-003`:
+**Ratified (DOC-003, 2026-06-13):** the vocabulary below is adopted; one example
+per label and the **split-status** rule (a feature may carry separate
+`Implemented` and `Target design` lines during migration) live in
+`documentation_governance_2026-06-13.md`. Unqualified words ("current,"
+"complete," "canonical") are prohibited in status-bearing sections; each carries
+a `Last verified` date.
 
 - **Implemented** - code/data exists and automated coverage is current.
 - **Pending validation** - implementation exists but required live validation
@@ -244,8 +256,9 @@ Plans must identify their status and replacement when completed or superseded.
 
 ## 5. Feature Navigation Model
 
-Create a feature-oriented index, location pending `DOC-005`. Each feature row
-should contain:
+Create a feature-oriented index in a **dedicated file** (`DOC-005`, resolved
+2026-06-13: `AGENT/GDD/GDD_Feature_Index.md`), linked prominently from `GDD_00`.
+Each feature row should contain:
 
 | Field | Purpose |
 |---|---|
@@ -347,19 +360,30 @@ must then label the rule as target design until code and tests land.
 
 ## 7. Migration Work Plan
 
-### Phase 0 - Ratify governance choices
+### Phase 0 - Ratify governance choices — COMPLETE (2026-06-13)
 
-Resolve the `DOC-*` entries that control document ownership:
+All `DOC-*` and `RULE-*` register entries are answered, and the June update
+reference (D-A…E, RNG-1…4, OPEN-1…13, pipeline order, parking-lot #8/#9) is
+imported and dispositioned in
+`decision_record_2026-06-13_june_reference_import.md`. The governance outputs are
+ratified in `documentation_governance_2026-06-13.md`:
 
-- project/corpus authority boundary
-- status vocabulary
-- roadmap ownership
-- feature-index location
-- archive and supersession policy
-- location of active design contracts
+- project/corpus authority boundary — DOC-001 (numbered GDD owns rules; corpus is
+  reference; supersedes D-C)
+- status vocabulary + split-status rule — DOC-003
+- GDD section template — DOC-002
+- decision-record schema + unique ID namespace — DOC-009
+- roadmap ownership (retire `GDD_10a`) — DOC-004
+- feature-index location (`GDD_Feature_Index.md`) — DOC-005
+- archive/supersession policy (move/remove now, gated on Phase 1 table) — DOC-006/008/010
+- location of active design contracts — DOC-010
 
-Exit criterion: contributors can tell which file wins without inspecting Git
-history.
+Exit criterion **met**: contributors can tell which file wins without inspecting
+Git history.
+
+**Remaining readiness-gate work before Phase 2 / destructive moves:** build the
+Phase 1 file lifecycle / link-migration table, update the RNG contract to two-RN
+(RULE-001, Package A prerequisite), then proceed.
 
 ### Phase 1 - Inventory and freeze the source map
 
@@ -396,15 +420,25 @@ owner for any major feature.
 
 ### Phase 3 - Consolidate system chapters
 
+**Sequencing rule (review fix, 2026-06-13):** corpus adoption must not lag the
+GDD rewrite. For any chapter that imports corpus-derived rules, its
+**adoption-matrix rows (Phase 4) are completed before or in the same commit as
+the chapter rewrite** — recording corpus version, exact source headings, adopted
+rules, rejected rules, project variations, and implementation status. This
+enforces DOC-001's explicit-adoption boundary so "adopt corpus formulas" can
+never be copied in without provenance.
+
 Process `GDD_01` through `GDD_08` one chapter at a time. For each chapter:
 
 1. compare it with code, tests, decisions, active plans, and corpus adoption
-2. remove obsolete claims from current sections
-3. retain approved future behavior as explicit target design
-4. add code/data/test anchors
-5. move procedural detail to the appropriate guide
-6. add unresolved choices to the decision register
-7. mark historical source documents superseded after their useful content is
+2. complete the adoption-matrix rows for this chapter's corpus-derived rules
+   (Phase 4) before or with the rewrite
+3. remove obsolete claims from current sections
+4. retain approved future behavior as explicit target design
+5. add code/data/test anchors
+6. move procedural detail to the appropriate guide
+7. add unresolved choices to the decision register
+8. mark historical source documents superseded after their useful content is
    incorporated
 
 Recommended order:
@@ -421,6 +455,11 @@ Recommended order:
 Exit criterion: each live rule or target rule has one numbered-GDD owner.
 
 ### Phase 4 - Reconcile the Awakening corpus
+
+**Runs interleaved with Phase 3, not after it** (review fix, 2026-06-13): each
+chapter's adoption-matrix rows are completed before/with that chapter's rewrite.
+This phase entry defines the matrix structure and coverage; the per-chapter rows
+land during Phase 3.
 
 Expand `project_adoption_matrix.md` from a short list into a systematic index.
 
@@ -590,9 +629,20 @@ the decision register.
 
 ### Package A - Combat and RNG
 
+- **Prerequisite (RULE-001):** update the deterministic RNG roll-order contract,
+  fixed roll-order fixture, and save-compat notes to the **two-RN** model (draw
+  two 0–99, floor the average, compare to resolved hit; crit only after a
+  successful hit; skill activations at their trigger slots) **before** `RngService`
+  is built. The companion RNG contract currently still defines one hit draw.
 - adopt corpus-derived combat-stat formulas
 - adopt two-RN hit resolution
-- update deterministic RNG roll-order contract
+- ratify the combat modifier pipeline order (base → permanent → pair-up →
+  combat-duration skills → conditions → terrain → triangle → S-rank → clamps);
+  corpus formulas slot into this order
+- apply combat rulings: weapon breakage cancels remaining strikes (OPEN-3);
+  fort/throne heal = max(1, floor(0.10 × max HP)) (OPEN-7); simultaneous
+  victory/defeat = defeat first, then acting faction (OPEN-6); condition/skill
+  precedence (OPEN-2)
 - retain the project magic triangle
 - use rank-scaled triangle bonuses for both physical and magic triangles
 
@@ -627,9 +677,35 @@ the decision register.
 ### Package F - Pair Up and support
 
 - treat the complete corpus model as the long-term target
-- separate implemented Pair Up pass 1 from future Dual Strike, Dual Guard,
-  adjacent support, relationship ranks, marriage, and child systems
+- keep Pair Up pass 1 stat bonuses/actions IN 1.0 (Implemented); value migration
+  to corpus numbers is Planned (RULE-012)
+- schedule Dual Strike + Dual Guard together as later combat work
+- defer adjacent support, relationship ranks, conversations, marriage, and child
+  systems to post-1.0 (OPEN-1 / RULE-012)
 - assign release scope and milestone ownership for each layer
+
+### Package G - Project and release decisions
+
+Release-defining decisions from the June reference that the prior plan omitted
+(review fix, 2026-06-13). Each needs a roadmap owner:
+
+- **1.0 definition** (D-B): offline non-pipeline features + one short campaign;
+  re-scope M11 (campaign content = 1.0, full coverage = post-1.0).
+- **Public-identity rename gate** (D-A): data-pass rename no later than first
+  public release candidate.
+- **Legal/licensing gate** (DOC-012 / OPEN-12): blocking pre-1.0 review of
+  handbook/corpus derivative-works rights and attribution — separate from the
+  rename.
+- **Renderer / platform targets** (OPEN-8/11): Compatibility (OpenGL); desktop
+  primary, Steam Deck letterboxed at first verification, web as playtest channel,
+  gamepad with the rebind milestone, mobile deferred.
+- **Campaign prerequisites** (D-D): deployment screen, shops, recruit mechanic
+  as dependency edges to the campaign milestone.
+- **CampaignRules stub** (update reference §5): create with known fields,
+  including `exp_gaining_factions` (OPEN-4, default Blue+Green).
+- **New backlog items:** broken-weapon degraded mode (OPEN-5); doc-lifecycle
+  definition-of-done rule (PL#8) added to `AGENTS.md` and paired with DOC-011 CI
+  checks. SFX deferred to the Phase 3 audio milestone (PL#9).
 
 ## 11. Recommended Commit Sequence
 
