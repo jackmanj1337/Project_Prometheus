@@ -2,7 +2,11 @@
 
 **Date:** 2026-06-13
 **Supersedes:** `documentation_consolidation_handoff_2026-06-13.md`
-**Status:** Decisions complete. Readiness gate is now an execution checklist.
+**SUPERSEDED BY:** `documentation_consolidation_master_checklist_2026-06-13.md` —
+this handoff only covered Phases 1–3; the master checklist covers the full
+Phase 1→7 + Package G scope. Use the master checklist; this file is retained for
+provenance (its Appendix A inventory is carried forward there).
+**Status:** Superseded.
 
 ## Where things stand
 
