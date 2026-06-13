@@ -104,7 +104,7 @@ but not yet applied to the GDD). Homes:
 | OPEN-1 | Supports in/out | Deferred (post-1.0) | JUN | Committed feature, post-1.0; confirms RULE-012. In GDD_05 §Pair Up & Support System (3.4). |
 | OPEN-2 | Condition/skill precedence | Applied | JUN | Conditions ≠ skills; one general rule. In GDD_02 §Status Conditions (3.1); per-skill exceptions in GDD_05. |
 | OPEN-3 | Mid-exchange weapon breakage | Applied | JUN | Cancels remaining strikes. In GDD_02 §Combat Resolution + §Durability (3.1). |
-| OPEN-4 | Enemy/AI EXP | Answered (in GDD_02) | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. Noted GDD_02 §EXP (3.1); CampaignRules contract is GDD_01 (3.5). |
+| OPEN-4 | Enemy/AI EXP | Applied | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. In GDD_02 §EXP (3.1) + GDD_01 §CampaignRules Contract (3.5). |
 | OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; backlog item in GDD_02 §Durability (3.1) + GDD_04 §Broken-Weapon Degraded Mode (3.3). |
 | OPEN-6 | Simultaneous victory/defeat | Applied | JUN | Defeat before victory; tie → acting faction. In GDD_02 §Win/Loss Evaluation (3.1). |
 | OPEN-7 | Fort/throne heal rounding | Applied | JUN | `max(1, floor(0.10 × max_hp))`. In GDD_02 §Terrain (3.1). |

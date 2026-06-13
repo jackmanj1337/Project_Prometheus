@@ -1,4 +1,20 @@
-# GDD_01 — Architecture & Project Structure (Detailed)
+# GDD_01 — Architecture & Project Structure
+
+**Status:** Active contract — architecture reference. Most sections are descriptive
+**Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
+the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
+CampaignRules contract) carry their own `Status` + `Last verified` markers.
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns project structure, runtime ownership, autoload order, the
+resource/serialization schemas (`UnitData`, `ClassData`, `WeaponData`, `ItemData`,
+`SkillData`, `InventoryEntry`, `MapData`, `FactionData`, `ObjectiveCondition`,
+`PairUpBonusTable`), the **determinism/snapshot/online contract**, and the
+**`CampaignRules` contract**. Gameplay rules that use these structures are owned by the
+feature chapters (GDD_02–08); this file owns the data shapes and the binding contracts
+they depend on.
 
 ---
 
@@ -614,6 +630,61 @@ func has_condition(unit: Node, condition_type: String) -> bool
 func clear_all_conditions(unit: Node) -> void
     # Called by Restore staff and Panacea item.
 ```
+
+---
+
+## CampaignRules Contract
+
+Status: **Split** — the live per-save rule fields are **Implemented** (on `GameState`);
+consolidation into a `CampaignRules` object + the new fields are **Target design**
+(Stage 4.3 creates the code stub)
+Last verified: 2026-06-13
+
+### Summary
+`CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
+the save/runtime state — distinct from global app **settings** (`SettingsManager`, on
+disk) and from per-map **launch state**. Today these rules live as loose fields on
+`GameState`; the contract consolidates them and adds the fields the determinism, EXP, and
+campaign systems depend on.
+
+### Specs
+
+**Implemented (live per-save fields on `GameState`).**
+
+| Field | Type | Meaning |
+|---|---|---|
+| `permadeath_enabled` | bool | Defeated allied units lost for the run (GDD_02 §Permadeath) |
+| `leveling_method` | String | `growth_random` / `growth_fixed` (GDD_02 §Leveling) |
+| `auto_promote_at_max_level` | bool | Auto-promote at class cap (GDD_02 §Promotion timing) |
+| `pair_up_enabled` | bool | Enables Pair Up actions (GDD_05 §Pair Up) |
+| `max_skills` | int (5) | Equipped-skill cap (GDD_05) |
+| `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
+
+> Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
+> `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
+> Evergreen rule reference: `AGENT/Docs/campaign_rules.md`.
+
+**Target design (consolidated `CampaignRules` + new fields).**
+- Consolidate the rule fields above into a single `CampaignRules` object referenced by
+  `GameState` and serialized into the snapshot (`campaign_rules` key — see Determinism
+  contract). Code stub created in **Stage 4.3**.
+- **`exp_gaining_factions` (OPEN-4):** which factions earn EXP; **default Blue + Green**,
+  Red none. Designers may override. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
+- **Rewind-charge pool (RNG-3):** bounded reroll/probe budget; **default 3–5, 0 =
+  ironman**. Owned by the determinism contract below.
+- **Follow-up threshold override:** the default Battle-Speed follow-up threshold (5) may be
+  campaign-overridable (GDD_02 §Combat Resolution).
+- **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
+
+### Known gaps
+- No `CampaignRules` class exists in code yet; fields are loose on `GameState`. The
+  long-term campaign-save schema is broader than the current runtime contract.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (current rule fields); target `CampaignRules`
+- Guide: `AGENT/Docs/campaign_rules.md`
+- Decisions: OPEN-4, OPEN-5, RNG-3, D-D
+- Roadmap: Stage 4.3 (CampaignRules stub); Owner of EXP gating: GDD_02
 
 ---
 

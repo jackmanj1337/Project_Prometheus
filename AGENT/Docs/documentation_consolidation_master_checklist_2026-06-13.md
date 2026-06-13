@@ -137,9 +137,12 @@ record any new choice in the register.
   §Skill Activation & RNG (proc draws from event RNG, RNG-1/OPEN-2), §Condition/Skill
   Precedence (per-skill exceptions, OPEN-2). Cleric Light E Open decision cross-ref to
   GDD_03 (RULE-009). `s_rank_mastery` retirement cross-ref to GDD_04.
-- [ ] 3.5 **`GDD_01` Architecture** — data/resource/serialization contracts those rules
-  depend on, including the two-RN save-compat note and `CampaignRules` contract (see
-  4.6).
+- [x] 3.5 **`GDD_01` Architecture** — DONE 2026-06-13. Added header status block +
+  ownership statement; added **§CampaignRules Contract** (live GameState rule fields
+  Implemented; consolidation + `exp_gaining_factions` OPEN-4 / rewind charges RNG-3 /
+  follow-up override Target, code stub deferred to Stage 4.3). Two-RN save-compat note +
+  RngService autoload-order insertion already present in §Determinism/Implementation Notes
+  (3.1); resource/serialization schemas retained as Reference tracking the code.
 - [ ] 3.6 **`GDD_06` Maps & Objectives** — terrain/movement schemas, objective and
   authored-map contracts. Package D docs.
 - [ ] 3.7 **`GDD_07` UI/UX** — UI capacity, input parity, accessibility contracts.

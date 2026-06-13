@@ -32,7 +32,7 @@ headings (`§ …`) are finalized during the Stage 3 rewrites.
 | Save, retry, suspend & rewind | Split (Retry Implemented / rest Target) | GDD_01 §Determinism, Snapshot & Online Contract | GDD_01 §Determinism, Snapshot & Online Contract | TBD (S4) | `GameState.gd` snapshot; impl. plan `AGENT/Docs/rng_determinism_design_2026-06-11.md` §8 | TBD (S3) | TBD (S3) | RNG-2, RNG-3, OPEN-13 | — |
 | UI, input, settings & accessibility | Mixed | GDD_07 §UI/UX | — | TBD (S4) | TBD (S3) | TBD (S3) | TBD (S3) | OPEN-11 | — |
 | AI behavior | Implemented (parity TBD) | GDD_08 §AI | — | TBD (S4) | TBD (S3) | TBD (S3) | TBD (S3) | — | — |
-| Campaign flow & recruitment | Planned | GDD_10 §Campaign / CampaignRules | GDD_01 §CampaignRules | TBD (S4) — D-D | `campaign_rules.md` | TBD (S3) | TBD (S3) | D-B, D-D, OPEN-4 | — |
+| Campaign flow & recruitment | Planned | GDD_10 §Campaign / CampaignRules | GDD_01 §CampaignRules Contract | TBD (S4) — D-D | `GameState.gd` (rule fields), `campaign_rules.md` | TBD (S3) | TBD (S3) | D-B, D-D, OPEN-4 | — |
 | Online play | Deferred (post-1.0, M15B) | GDD_01 §Online seam | GDD_01 §Snapshot/result payload | M15B | RNG contract §9 | TBD (S3) | TBD (S3) | RNG-4 | `online_play_design_decisions.md` |
 
 ## Backlog features (no owning chapter section yet)
