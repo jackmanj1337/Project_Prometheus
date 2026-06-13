@@ -48,6 +48,18 @@ import/class cache first, then runs the same suite.
 For validation-map roles, manual regression flow, and when to add automated
 coverage, start with `AGENT/Docs/testing_guide.md`.
 
+## New Machine / Fresh Clone Setup
+
+After cloning on a new machine, run:
+
+`bash scripts/setup_dev.sh`
+
+This activates the versioned git hooks (`git config core.hooksPath scripts/hooks`, so
+`check_docs.py` + the RNG guard + the GDScript suite gate every commit) and builds
+Godot's import/class cache. Prerequisites a clone does **not** carry, so set them up by
+hand: Godot `4.6` stable on `PATH` (+ its export templates for `builds/`), a `.env`
+copied from `.env.example`, and the SSH key/host alias used by the `origin` remote.
+
 ## Project Structure
 
 - `scripts/autoloads/` — global state and registries (`GameState`, `DataManager`, `SettingsManager`, etc.)

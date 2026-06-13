@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Versioned pre-commit hook (travels with the repo, unlike .git/hooks).
+# Activate on each clone with:  git config core.hooksPath scripts/hooks
+#   1. Documentation structural checks (DOC-011) — fast, always run.
+#   2. RNG-usage guard — blocks new unmarked engine randi() before RngService (M9a).
+#   3. GDScript test suite — only when code/assets changed (skipped for docs-only).
+# Set SKIP_TESTS=1 to bypass the test suite (e.g. for WIP commits): SKIP_TESTS=1 git commit ...
+cd "$(git rev-parse --show-toplevel)"
+
+# 1. Documentation checks — cheap, so gate every commit (this is where DOC-011 runs).
+if [[ -f AGENT/Docs/check_docs.py ]] && command -v python3 >/dev/null 2>&1; then
+	echo "pre-commit: running documentation checks (check_docs.py)..."
+	python3 AGENT/Docs/check_docs.py || exit 1
+fi
+
+# 1b. RNG-usage guard — cheap, blocks new unmarked engine randi() before RngService (M9a).
+if [[ -f scripts/ci/check_rng_usage.sh ]]; then
+	echo "pre-commit: running RNG-usage guard..."
+	bash scripts/ci/check_rng_usage.sh || exit 1
+fi
+
+# 2. GDScript test suite.
+if [[ "${SKIP_TESTS:-}" == "1" ]]; then
+	echo "pre-commit: SKIP_TESTS=1 set — skipping test suite"
+	exit 0
+fi
+
+# Skip the Godot suite when no runtime files changed. Staged files that are all docs
+# (AGENT/, .github/, *.md, *.txt, .gitignore) cannot affect test outcomes; anything
+# outside that safelist (a .gd/.tres/.tscn/etc.) triggers the suite. Conservative by
+# design — an unrecognized path runs the tests rather than skipping them.
+needs_tests=0
+while IFS= read -r f; do
+	[[ -z "$f" ]] && continue
+	case "$f" in
+		AGENT/*|.github/*|*.md|*.txt|.gitignore) ;;  # docs/meta — safe to skip
+		*) needs_tests=1 ;;
+	esac
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [[ "${needs_tests}" -eq 0 ]]; then
+	echo "pre-commit: docs-only change — skipping Godot test suite"
+	exit 0
+fi
+
+if [[ ! -f run_tests.sh ]]; then
+	echo "pre-commit: run_tests.sh not found — skipping"
+	exit 0
+fi
+
+echo "pre-commit: running test suite..."
+bash run_tests.sh
+exit $?
