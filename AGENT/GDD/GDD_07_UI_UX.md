@@ -1,8 +1,23 @@
 # GDD_07 — UI & UX
 
+**Status:** Active contract — split status per section (most UI surfaces are
+**Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
+are **Planned**). UI is project-specific; it has no corpus-adoption rows.
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns the UI surfaces, input map, input parity (keyboard/mouse + hotseat),
+and accessibility contracts. Platform/renderer targets (desktop primary, Steam Deck
+letterbox, web playtest, gamepad with the rebind milestone — OPEN-8/11) are owned by
+`GDD_00 §Platform Targets`; the `SettingsManager` schema is owned by `GDD_01`.
+
 ---
 
 ## Design Reference
+
+Status: **Reference** (design principles)
+Last verified: 2026-06-13
 
 The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 
@@ -14,6 +29,9 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 ---
 
 ## Input System
+
+Status: **Implemented** (keyboard + mouse parity); key rebinding **Planned** (Phase 2)
+Last verified: 2026-06-13
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -63,6 +81,9 @@ When a directional key is held:
 
 ## Cursor System
 
+Status: **Implemented** (static cursor art; animated art is a later presentation pass)
+Last verified: 2026-06-13
+
 The `MapCursor` is a `Node2D` with a `Sprite2D` child.
 It sits on top of all tiles and indicates the currently focused tile.
 
@@ -111,6 +132,9 @@ locked
 ---
 
 ## Screens and Panels
+
+Status: **Implemented** (MVP screens); save/Continue + combat-animation feedback **Planned**
+Last verified: 2026-06-13
 
 ---
 
@@ -602,6 +626,9 @@ the emitted outcome and may render multi-group standings below the header.
 
 ## UI State Machine
 
+Status: **Implemented**
+Last verified: 2026-06-13
+
 The HUD operates as a state machine. Only one primary panel is active at a time.
 `MapCursor` manages state and shows/hides panels by calling methods on `HUD`.
 
@@ -627,6 +654,9 @@ HUD States:
 
 ## Visual Feedback Summary
 
+Status: **Split** — state/HP/level-up feedback **Implemented**; combat hit/miss/crit/death FX **Planned** (with the combat-animation system)
+Last verified: 2026-06-13
+
 | Event | Visual Feedback |
 |---|---|
 | Unit selected | Blue movement tiles appear; a dedicated selection ring is planned |
@@ -640,3 +670,45 @@ HUD States:
 | Unit healed | [PLACEHOLDER] green flash; HP bar updates |
 | Level up | Gold flash on unit sprite; LevelUpScreen shown |
 | Weapon breaks | [PLACEHOLDER] weapon removed from inventory notification |
+
+---
+
+## Accessibility & Input Parity
+
+Status: **Split** — implemented options listed below **Implemented**; key rebinding + UI-scale **Planned**
+Last verified: 2026-06-13
+
+### Summary
+The accessibility and parity contract the UI must honor across input methods and players.
+
+### Specs
+
+**Implemented.**
+- **Input parity:** every gameplay action is reachable by keyboard *and* mouse;
+  `SettingsManager._mirror_game_keys_to_ui()` mirrors `cursor_*`/`confirm`/`cancel` onto
+  Godot `ui_*` so menus and the map cursor share bindings.
+- **Hotseat parity:** non-blue human (hotseat) phases use blue's commit/UI flow — only
+  the commandable faction differs (GDD_02 §Turn Structure). No player has a UI affordance
+  another lacks.
+- **Mouse Cursor toggle** (`mouse_cursor`): `Disabled` ignores all mouse *motion* so stray
+  bumps cannot nudge the cursor during keyboard play (PT4 #1); intentional clicks still fire.
+- **Pacing options:** `movement_speed` (Normal/Fast/Instant), `phase_banner` (Show/Skip),
+  `level_up_screen` (Show/Auto/Skip) let players reduce animation/wait time.
+- **Always-visible numbers:** all combat-relevant values (Hit/Dmg/Crit, terrain bonuses,
+  WEXP, modifiers) are shown before commit (Attack Preview, Unit Details + More Info).
+
+**Planned.**
+- **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the
+  rebind surface is the only missing piece, scheduled with the **gamepad** milestone
+  (GDD_00 §Platform Targets, OPEN-11).
+- **UI-scale setting:** required before revisiting Steam Deck 16:10 (currently letterboxed,
+  OPEN-11). Owned by GDD_00.
+- **Combat-animation toggle** (`combat_animations`): scaffolded but hidden until a
+  combat-animation system consumes it.
+
+### Anchors
+- Code: `scripts/autoloads/SettingsManager.gd`, `scripts/core/MapCursor.gd`,
+  `scripts/core/HotseatController.gd`
+- Tests: `scripts/tests/test_settings_manager.gd`, `test_settings_screen.gd`
+- Decisions: OPEN-11 (GDD_00 §Platform Targets)
+- Owner of platform/renderer targets: GDD_00; SettingsManager schema: GDD_01

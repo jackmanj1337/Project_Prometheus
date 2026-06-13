@@ -148,7 +148,10 @@ record any new choice in the register.
   SET-008/RULE-010), terrain ID mapping Open decision (RULE-011/AWR-8); status-labeled
   Objective System, Map 001 reference, Phase 3 maps (M16), Doors/Chests + Fog (Planned).
   Combat effects cross-referenced to GDD_02; schemas to GDD_01.
-- [ ] 3.7 **`GDD_07` UI/UX** — UI capacity, input parity, accessibility contracts.
+- [x] 3.7 **`GDD_07` UI/UX** — DONE 2026-06-13. Header + status labels across input/cursor/
+  screens/state-machine/feedback sections; added §Accessibility & Input Parity contract
+  (keyboard/mouse + hotseat parity Implemented; key rebind + UI-scale Planned). Platform
+  targets cross-referenced to GDD_00 (OPEN-11); SettingsManager schema to GDD_01.
 - [ ] 3.8 **`GDD_08` Enemy AI** — AI parity obligations and performance constraints.
 
 Exit: each live rule or target rule has exactly one numbered-GDD owner, and no corpus
