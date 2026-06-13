@@ -193,30 +193,36 @@ Exit: every planned or broken feature has exactly one tracking entry. **STAGE 4 
 
 # STAGE 5 — Supporting documents cleanup (Phase 6)
 
-### [ ] 5.1 Active guides
+### [x] 5.1 Active guides — DONE 2026-06-13
 
 For `testing_guide.md`, map authoring guide, sprite importer guide, environment setup,
 release/export procedure: verify paths/commands, remove copied rules that belong in the
 GDD, link back to the authoritative GDD section, add `Last verified` date + responsible
 workflow.
 
-### [ ] 5.2 Execute the remaining gated moves/merges (Stage 1 table)
+`Last verified: 2026-06-13` added to: `testing_guide.md`, `map_authoring_guide.md`,
+`environment_setup.md`, `campaign_rules.md`, `Docker Instructions.md`.
+`testing_guide.md` GDD_Manual_Tasks refs updated to `manual_test_playbook.md`.
 
-- [ ] `GDD_09_Checklist.md` → merge useful content, then **delete** + repair links
-  (DOC-006).
-- [ ] `GDD_Assumptions.md` → merge, then **delete** + repair links (DOC-006).
-- [ ] `GDD_Manual_Tasks.md` → move to `AGENT/Docs/manual_test_playbook.md` + repair
-  links (DOC-007: `GDD_00:25`, `testing_guide.md:46,150,175,183`,
+### [x] 5.2 Execute the remaining gated moves/merges (Stage 1 table) — DONE 2026-06-13
+
+- [x] `GDD_09_Checklist.md` → merged useful content, **deleted** + repaired links (DOC-006).
+- [x] `GDD_Assumptions.md` → merged, **deleted** + repaired links (DOC-006).
+- [x] `GDD_Manual_Tasks.md` → moved to `AGENT/Docs/manual_test_playbook.md` + all
+  four live inbound links repaired (DOC-007: `GDD_00:25`, `testing_guide.md:46,150,175,183`,
   `GDD_10_Roadmap.md:1337`, `Play_tester_comments.md:4`).
-- [ ] `gdd_update_reference_2026-06-12.md` → archive once fully applied (DOC-010).
-  (Its companion `rng_determinism_design` was merged in 3.1.)
+- [x] `gdd_update_reference_2026-06-12.md` → archived (ARCHIVED header added, added to
+  git tracking) (DOC-010). Companion `rng_determinism_design` merged in 3.1.
 
-### [ ] 5.3 Historical plans/audits
+### [x] 5.3 Historical plans/audits — DONE 2026-06-13
 
-Add supersession headers where needed; remove current-document links that imply a
-superseded plan is still active; preserve evidence and rationale.
+Added `> **Historical**` blockquotes to 6 superseded plan/audit docs:
+`playtest_fix_plan_2026-06-09.md`, `playtest_triage_execution_plan_2026-05-26.md`,
+`awakening_compatability_refactor_plan_2026-05-22.md`,
+`gdd_codebase_alignment_audit_2026-06-11.md`, `hotseat_test_map_plan_2026-05-21.md`,
+`handoff_2026-06-09d.md`.
 
-Exit: search results clearly distinguish instructions from history.
+Exit: search results clearly distinguish instructions from history. **STAGE 5 COMPLETE 2026-06-13.**
 
 ---
 
