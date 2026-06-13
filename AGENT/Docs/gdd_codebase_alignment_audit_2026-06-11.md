@@ -1,5 +1,9 @@
 # GDD / Codebase Alignment Audit
 
+> **Historical** — all findings were applied during the documentation consolidation
+> Stages 1–3 (2026-06-13). GDD_01–GDD_08 are now the authoritative record. Retained
+> as evidence of the alignment analysis. Do not use as a live action list.
+
 **Date:** 2026-06-11
 **Scope:** `AGENT/GDD`, ratified decision records in `AGENT/Docs`, current
 GDScript, scenes, data resources, registry content, and automated tests.

@@ -1,5 +1,9 @@
 # Plan — Hotseat Validation Map + Map Selector
 
+> **Historical** — M15 Part A foundations landed 2026-05-21. Manual validation
+> checklist migrated to `AGENT/Docs/manual_test_playbook.md`. Retained for the
+> original design rationale.
+
 **Date:** 2026-05-21
 **Scope:** Finish M15 Part A's remaining content and manual verification work.
 **Status:** Planning only.

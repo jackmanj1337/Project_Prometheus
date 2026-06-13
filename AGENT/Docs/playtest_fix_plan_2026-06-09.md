@@ -1,5 +1,8 @@
 # Playtest Fix Plan — 2026-06-09
 
+> **Historical** — all fixes resolved; superseded by the v0.1.4 release and
+> subsequent sessions. Retained for provenance. Do not use as a live action list.
+
 ## Goal
 
 Resolve every defect and requested usability improvement recorded in the latest

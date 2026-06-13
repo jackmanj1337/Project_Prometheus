@@ -1,5 +1,10 @@
 # Awakening Compatability Refactor Plan
 
+> **Historical** — the compatibility gap analysis this plan describes was resolved
+> through the documentation consolidation project (Stages 1–5, 2026-06-13). The
+> adoption matrix and GDD chapters are now the authoritative result. Retained for
+> the gap analysis rationale. Do not use as a live action list.
+
 ## Purpose
 Assess the new Awakening content expansion in `AGENT/GDD/Content Expansion/New_Content_Expansion/`
 against the current game implementation and identify the work needed to make the

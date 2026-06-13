@@ -1,5 +1,8 @@
 # Playtest Triage Execution Plan — 2026-05-26
 
+> **Historical** — all triage items executed; superseded by later playtests.
+> Retained for provenance. Do not use as a live action list.
+
 ## Goal
 
 Turn the merged playtest triage list into an execution order that fixes the
