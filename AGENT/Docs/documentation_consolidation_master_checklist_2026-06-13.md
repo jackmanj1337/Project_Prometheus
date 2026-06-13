@@ -126,8 +126,11 @@ record any new choice in the register.
   reclass + growth-to-caps (D-E); Light/Dark (RULE-009) + Soldier (OPEN-9) deferred;
   Cleric Light (OPEN-10) Open decision. Compressed 6 stat blocks → 1 reference table
   (.tres authoritative).
-- [ ] 3.3 **`GDD_04` Weapons & Items** — weapon families, rank-scaled triangle bonuses
-  (physical + project magic triangle), item/economy-facing rules. Package B/D docs.
+- [x] 3.3 **`GDD_04` Weapons & Items** — DONE 2026-06-13. Section template + status labels;
+  weapon families + rank-scaled triangle bonus table (SET-003/RULE-013), WEXP thresholds/
+  gain/migration (SET-004/RULE-003/004), S-rank engine move + retire `s_rank_mastery`
+  (SET-005/RULE-002), effectiveness, items/economy/forging, broken-weapon backlog (OPEN-5).
+  Combat application cross-referenced to GDD_02; schemas to GDD_01.
 - [ ] 3.4 **`GDD_05` Skills** — skill acquisition, proc precedence, Pair Up pass-1
   bonuses IN 1.0 / value migration Planned (RULE-012), Dual Strike+Guard scheduled
   later, adjacent support/relationships/marriage/children deferred post-1.0 (OPEN-1).

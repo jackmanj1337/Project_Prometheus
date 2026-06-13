@@ -42,18 +42,18 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Simultaneous victory/defeat | (project ruling) | Adopted w/ variation | GDD_02 / GDD_06 (TBD) | Defeat before victory; tie → acting faction | Target design | OPEN-6 |
 | Condition/skill precedence | `awakening_skills` (interactions) | Adopted w/ variation | GDD_02 / GDD_05 (TBD) | **Conditions ≠ skills**; one general rule, per-skill exceptions | Target design | OPEN-2 |
 
-## Weapon triangles & WEXP  → GDD_04 (3.3)
+## Weapon triangles & WEXP  → GDD_04 (3.3 — DONE)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Physical weapon triangle | `awakening_weapons_physical`, `awakening_lookup_tables` | Adopted w/ variation | GDD_04 §Triangle (TBD) | Retain project relationship Sword→Axe→Lance; rank-scaled corpus bonuses | Target design | SET-003 |
-| Magic weapon triangle | `awakening_weapons_magic` | Adopted w/ variation | GDD_04 §Triangle (TBD) | **Retain project Dark→Anima→Light** triangle; same rank-scaling table | Target design | SET-003, RULE-013 |
-| Rank-scaled triangle bonus table | `awakening_lookup_tables` | Adopted target | GDD_04 §Triangle (TBD) | Hybrid weapons use equipped weapon's trained WEXP track for magnitude | Target design | SET-003, RULE-013 |
-| WEXP thresholds & caps (E1/D31/C71/B121/A181/S251/Cap400) | `awakening_project_index`, `awakening_lookup_tables` | Adopted target | GDD_04 §WEXP (TBD) | — | Target design | SET-004 |
-| Class weapon-rank caps | `awakening_classes_*` | Adopted w/ variation | GDD_03 / GDD_04 (TBD) | Classes author A as default cap; explicit S caps possible | Target design | SET-004 |
-| Weapon-rank combat bonuses | `awakening_lookup_tables` | Adopted w/ variation | GDD_02 / GDD_04 (TBD) | **S-rank project extension** +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery` | Target design | SET-005, RULE-002 |
-| WEXP gain timing | `awakening_core_systems` | Adopted target | GDD_04 (TBD) | Per valid use; may change in a balance pass | Target design | RULE-004 |
-| WEXP migration (runtime conversion) | (project rule) | Adopted w/ variation | GDD_04 (TBD) | Proportional within rank; no persistent save to migrate | Target design | RULE-003 |
+| Physical weapon triangle | `awakening_weapons_physical`, `awakening_lookup_tables` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | Retain project relationship Sword→Axe→Lance; rank-scaled corpus bonuses | Target design | SET-003 |
+| Magic weapon triangle | `awakening_weapons_magic` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | **Retain project Dark→Anima→Light** triangle; same rank-scaling table | Target design | SET-003, RULE-013 |
+| Rank-scaled triangle bonus table | `awakening_lookup_tables` | Adopted target | GDD_04 §Weapon Families & Triangle Membership | Hybrid weapons use equipped weapon's trained WEXP track for magnitude | Target design | SET-003, RULE-013 |
+| WEXP thresholds & caps (E1/D31/C71/B121/A181/S251/Cap400) | `awakening_project_index`, `awakening_lookup_tables` | Adopted target | GDD_04 §Weapon Proficiency (WEXP) | — | Target design | SET-004 |
+| Class weapon-rank caps | `awakening_classes_*` | Adopted w/ variation | GDD_03 (caps) / GDD_04 §Weapon Proficiency (math) | Classes author A as default cap; explicit S caps possible | Target design | SET-004 |
+| Weapon-rank combat bonuses | `awakening_lookup_tables` | Adopted w/ variation | GDD_04 §S-Rank Weapon Bonus (+ GDD_02 application) | **S-rank project extension** +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery` | Target design | SET-005, RULE-002 |
+| WEXP gain timing | `awakening_core_systems` | Adopted target | GDD_04 §Weapon Proficiency (WEXP) | Per valid use; may change in a balance pass | Target design | RULE-004 |
+| WEXP migration (runtime conversion) | (project rule) | Adopted w/ variation | GDD_04 §Weapon Proficiency (WEXP) | Proportional within rank; no persistent save to migrate | Target design | RULE-003 |
 
 ## Progression: EXP / promotion / reclass  → GDD_03 (3.2)
 
@@ -101,15 +101,16 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Flying movement category | `awakening_lookup_tables` | Adopted target | GDD_06 (TBD) | Implemented via terrain movement-cost categories | Planned | SET-008 |
 | Existing terrain ID mapping | `awakening_lookup_tables` | Deferred | GDD_06 (TBD) | sea / wall-building / Fort-behavior throne resolved by mapping pass, not name equality | Open decision | RULE-011 (AWR-8) |
 
-## Weapons & items  → GDD_04 (3.3)
+## Weapons & items  → GDD_04 (3.3 — DONE)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Physical weapons | `awakening_weapons_physical` | Adopted target | GDD_04 (TBD) | — | Target design | SET-009 |
-| Magic weapons / tomes | `awakening_weapons_magic` | Adopted target | GDD_04 (TBD) | Project magic triangle preserved (see triangles) | Target design | SET-003 |
-| Staves | `awakening_weapons_magic` | Adopted target | GDD_04 (TBD) | Heal deterministic; EXP flat (no dice) | Target design | — |
-| Items | `awakening_items` | Adopted target | GDD_04 (TBD) | — | Target design | — |
-| Broken-weapon degraded mode | (project backlog) | Deferred | GDD_04 (TBD) | Optional rule: stat penalty + infinite uses while broken; likely CampaignRules toggle | Planned (backlog) | OPEN-5 |
+| Physical weapons | `awakening_weapons_physical` | Adopted target | GDD_04 §Weapon Data & Tables | — | Target design | SET-009 |
+| Magic weapons / tomes | `awakening_weapons_magic` | Adopted target | GDD_04 §Weapon Data & Tables | Project magic triangle preserved (see triangles) | Target design | SET-003 |
+| Staves | `awakening_weapons_magic` | Adopted target | GDD_04 §Weapon Data & Tables | Heal deterministic; EXP flat (no dice) | Target design | — |
+| Items | `awakening_items` | Adopted target | GDD_04 §Items & Economy | — | Target design | — |
+| Effectiveness matrix | `awakening_lookup_tables` | Adopted target | GDD_04 §Effectiveness Mechanic | 3× (4× Giantkiller) | Target design | — |
+| Broken-weapon degraded mode | (project backlog) | Deferred | GDD_04 §Broken-Weapon Degraded Mode | Optional rule: stat penalty + infinite uses while broken; likely CampaignRules toggle | Planned (backlog) | OPEN-5 |
 
 ## AI & enemy generation  → GDD_08 (3.8)
 

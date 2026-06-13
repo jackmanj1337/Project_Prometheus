@@ -50,9 +50,9 @@ but not yet applied to the GDD). Homes:
 | ID | Title | Status | Home | Applied / Notes |
 |----|-------|--------|------|-----------------|
 | RULE-001 | Exact two-RN hit model | Applied (Target design) | REG | Option A (two 0–99, floor avg). **Supersedes single-roll hit.** Documented in GDD_02 §Combat Resolution & GDD_01 §Determinism (Stage 3.1); code is Package A. |
-| RULE-002 | S-rank bonus | Answered | REG | +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery`. |
-| RULE-003 | WEXP migration | Answered | REG | Option B (proportional within rank); runtime conversion formula recorded. |
-| RULE-004 | WEXP gain timing | Answered | REG | Per valid use; may change in a balance pass. |
+| RULE-002 | S-rank bonus | Applied (Target design) | REG | +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery`. In GDD_04 §S-Rank Weapon Bonus (3.3). |
+| RULE-003 | WEXP migration | Applied (Target design) | REG | Option B (proportional within rank); runtime conversion. In GDD_04 §Weapon Proficiency (3.3). |
+| RULE-004 | WEXP gain timing | Applied (Target design) | REG | Per valid use; may change in a balance pass. In GDD_04 §Weapon Proficiency (3.3). |
 | RULE-005 | Promotion trigger timing | Answered | REG | Seal@10 + optional auto-promote@cap; mandatory modal blocks all controllers, no cancel. |
 | RULE-006 | Reclass EXP counters | Applied (Target design) | REG | `displayed_level`/`exp_basis_level`/`lifetime_levels_gained`. In GDD_03 §Progression Counters (3.2). |
 | RULE-007 | Class replacement scope | Applied (Target design) | REG | Full corpus classes; project-only Rejected/archived. In GDD_03 §Starter Roster (3.2). |
@@ -61,7 +61,7 @@ but not yet applied to the GDD). Homes:
 | RULE-010 | Terrain migration rollout | Answered | REG | Show both tables (Implemented + Target design) until migration. |
 | RULE-011 | Existing terrain ID mapping | Deferred | REG | Roadmap owner **AWR-8**; GDD terrain ID section stays Open decision until then. |
 | RULE-012 | Pair Up/support release scope | Answered | REG | Pair Up pass 1 IN 1.0; Dual Strike/Guard later; supports 4–8 post-1.0. |
-| RULE-013 | Magic-triangle rank source | Answered | REG | Equipped weapon's trained WEXP track sets magnitude; `triangle_family` sets relationship. |
+| RULE-013 | Magic-triangle rank source | Applied (Target design) | REG | Equipped weapon's trained WEXP track sets magnitude; `triangle_family` sets relationship. In GDD_04 §Weapon Families & Triangle Membership (3.3). |
 
 ## SET — settled owner directions
 
@@ -69,9 +69,9 @@ but not yet applied to the GDD). Homes:
 |----|-------|--------|------|
 | SET-001 | Combat formulas → corpus | Settled (target) | REG |
 | SET-002 | Hit RNG → two-RN (see RULE-001) | Settled (target) | REG |
-| SET-003 | Weapon triangles (retain both, rank-scaled) | Settled (target) | REG |
-| SET-004 | WEXP → corpus thresholds/caps | Settled (target) | REG |
-| SET-005 | Weapon-rank combat bonuses → engine | Settled (target) | REG |
+| SET-003 | Weapon triangles (retain both, rank-scaled) | Applied (Target design) | REG → GDD_04 §Weapon Families & Triangle Membership (3.3) |
+| SET-004 | WEXP → corpus thresholds/caps | Applied (Target design) | REG → GDD_04 §Weapon Proficiency (3.3) |
+| SET-005 | Weapon-rank combat bonuses → engine | Applied (Target design) | REG → GDD_04 §S-Rank Weapon Bonus (3.3) |
 | SET-006 | Promotion → corpus model | Applied (Target design) | REG → GDD_03 §Promotion (3.2) |
 | SET-007 | Reclass progression counters | Applied (Target design) | REG → GDD_03 §Progression Counters / §Reclass (3.2) |
 | SET-008 | Terrain → corpus values/categories | Settled (target) | REG |
@@ -105,7 +105,7 @@ but not yet applied to the GDD). Homes:
 | OPEN-2 | Condition/skill precedence | Applied | JUN | Conditions ≠ skills; one general rule. In GDD_02 §Status Conditions (3.1); per-skill exceptions in GDD_05. |
 | OPEN-3 | Mid-exchange weapon breakage | Applied | JUN | Cancels remaining strikes. In GDD_02 §Combat Resolution + §Durability (3.1). |
 | OPEN-4 | Enemy/AI EXP | Answered (in GDD_02) | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. Noted GDD_02 §EXP (3.1); CampaignRules contract is GDD_01 (3.5). |
-| OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; backlog item noted GDD_02 §Durability (3.1). |
+| OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; backlog item in GDD_02 §Durability (3.1) + GDD_04 §Broken-Weapon Degraded Mode (3.3). |
 | OPEN-6 | Simultaneous victory/defeat | Applied | JUN | Defeat before victory; tie → acting faction. In GDD_02 §Win/Loss Evaluation (3.1). |
 | OPEN-7 | Fort/throne heal rounding | Applied | JUN | `max(1, floor(0.10 × max_hp))`. In GDD_02 §Terrain (3.1). |
 | OPEN-8 | Renderer backend | Answered (applied to GDD_00) | JUN | Compatibility (OpenGL); recorded in GDD_00 Platform Targets (Stage 2.1). |
