@@ -144,11 +144,14 @@ def err(msg_id, code: int, message: str) -> None:
 # ── Main loop ─────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        print("Usage: server.py <project_root>", file=sys.stderr)
-        sys.exit(1)
-
-    project_root = Path(sys.argv[1]).resolve()
+    # project_root may be passed explicitly (argv[1]); otherwise default to the repo root
+    # derived from this file's location (tools/godot-analyzer-mcp/server.py -> repo root).
+    # This keeps the server working when .mcp.json omits the arg or the repo is not at a
+    # fixed absolute path (e.g. after a machine move), instead of hardcoding /workspace.
+    if len(sys.argv) >= 2:
+        project_root = Path(sys.argv[1]).resolve()
+    else:
+        project_root = Path(__file__).resolve().parents[2]
     logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
     for raw_line in sys.stdin:
