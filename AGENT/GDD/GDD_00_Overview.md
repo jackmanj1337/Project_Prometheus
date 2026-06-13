@@ -80,7 +80,8 @@ are **not** authority sources; retrieve via Git history once removed:
 
 - `GDD_09_Checklist.md` — **Historical** (MVP build sequence); merged into the roadmap
   backlog then deleted (DOC-006).
-- `GDD_10a_Overview.md` — **Superseded**; the roadmap owns order/status (DOC-004).
+- `GDD_10a_Overview.md` — **Deleted** (Stage 4.1, 2026-06-13); content merged into
+  `GDD_10_Roadmap.md` Appendix A–C. Retrieve via Git history if needed (DOC-004).
 - `GDD_Assumptions.md` — **Historical**; useful assumptions fold into owning chapters
   then deleted (DOC-006).
 - `GDD_Manual_Tasks.md` — operational; moves to `AGENT/Docs/manual_test_playbook.md`

@@ -16,8 +16,8 @@ For onboarding, start here:
 5. `AGENT/GDD/GDD_06_Maps_Objectives.md`
 6. `AGENT/GDD/GDD_07_UI_UX.md`
 
-Use `AGENT/GDD/GDD_10_Roadmap.md` and `AGENT/GDD/GDD_10a_Overview.md` for planned /
-deferred work, not for the current runtime contract.
+Use `AGENT/GDD/GDD_10_Roadmap.md` for planned / deferred work and milestone
+ordering — it is the single roadmap owner. Not for the current runtime contract.
 
 For centralized practical workflows, use:
 

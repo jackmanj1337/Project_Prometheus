@@ -1812,3 +1812,69 @@ review under `AGENT/Code Reviews/`).
       - `scripts/tests/test_hud.gd` — the entire suite (or at minimum the
         live-toggle block) and its entry in `run_tests.sh`
         (grep: `test_hud`)
+
+---
+
+## Appendix A — Completion History
+
+Condensed record of shipped items for quick reference. Full verification details in
+the linked session notes and commit hashes.
+
+| Item | Shipped | Verification ref |
+|---|---|---|
+| Playtest 1 — all 13 findings | 2026-05-18 | `AGENT/Docs/manual_test_findings_analysis.md` (all ✅) |
+| Playtest 2 — 17 fixes (#1–17) | 2026-05-19 | `AGENT/Session Notes/2026-05-19.md`; one commit per fix |
+| Playtest 3 — bugs #1–7, #21 | 2026-05-19 | commits `334a724 … 5b1a87c` |
+| Code reviews 2026-05-18/19/19c | 2026-05-20 | All Lows resolved; B-items see Tech Debt rows |
+| Playtest 4 — #1 mouse-bump, #2 camera | 2026-05-20 | commits `bad9f24`, `f92899d` |
+| B1–B9 — Tech-debt prep (all) | 2026-05-20 | commits `89f370f` … `9d7f2a4` |
+| M14 stages 1–3 — Faction refactor | 2026-05-20 | commits `20ef18e`, `c5c9c32`, `0c68254`; suite 426 green |
+| M16 — Objective System (5 stages) | 2026-05-20 | commits `316e509` … `8fed076`; legacy fields removed |
+| M14 stages 4–5 — AI dispatch + faction content | 2026-05-21 | commits `cca788d`, `bf0d9b1`, `8ea7429`; suite green |
+| M15 Part A — Hotseat foundations | 2026-05-21 | commits `1ba6640`, `49f7420`, `4e68cc7`; manual validation pending |
+| Class / Skill rebuild — promotion + reclass | 2026-05-21 | commits `ae37743` … `48743b5` |
+| Pair Up pass 1 (partial) | 2026-05-22 | commits `5de5103` … `993a413`; DS/DG + forecast deferred |
+| More Info phase 1 | 2026-05-24 | commits `5630f40` … `4d0ea2e` |
+
+---
+
+## Appendix B — Work Item Ordering (Bucket Summary)
+
+**Current position:** Phase 2, post-playtest/bug-fix round. Bucket A (playtest bugs)
+and B1–B9 (tech-debt prep) are complete. B10 (corpus reconciliation) is the
+documentation consolidation work on the `awakening-compatability-refactor` branch.
+
+| Bucket | Items | Status |
+|---|---|---|
+| A — Open playtest bugs | A1, A2 | ✅ All done |
+| B — Tech-debt prep | B1–B9 | ✅ All done; B10 = doc consolidation (this branch) |
+| C — Phase 2 milestones | C1–C3 done; C4 (M9a) → C5 (M8) → C6 (M9b) → C7 (M10) → C8 (M11) → C9 (M12, deferred) → C10 (M13, deferred); C11 (M15A, in validation) | See Status Snapshot |
+| D — Release gate | D1: remove debug aids | Before any non-debug build ships |
+| E — Phase 3 backlog | Forging, fog, rescue, campaign save, additional maps, polish | Post-M13 |
+
+**Dependency graph (key edges):**
+
+```
+C1 (M14 s1-3) ──▶ C2 (M16) ──▶ C3 (M14 s4-5) ──▶ C4 (M9a) ──▶ C5 (M8) ──▶ C6 (M9b) ──▶ C7 (M10) ──▶ C8 (M11) ──▶ C9 (M12) ──▶ C10 (M13)
+                                      │
+                                      └──▶ C11 (M15A) ──▶ C12 (M15B, deferred)
+
+B10 (corpus/doc consolidation) ──▶ C4, C6, C8 (M9a, M9b, M11)
+
+D1 (pre-release cleanup) — gate at release time, not in milestone order
+```
+
+---
+
+## Appendix C — Source Documents
+
+| Document | Purpose |
+|---|---|
+| `AGENT/GDD/GDD_10_Roadmap.md` | **This file** — canonical Phase 2 roadmap, milestone specs, backlog |
+| `AGENT/Docs/design_decisions_log_2026-05-17.md` | Decision 10 = ordering rule; design locks |
+| `AGENT/GDD/GDD_Feature_Index.md` | Feature → rule owner / roadmap owner routing table (DOC-005) |
+| `AGENT/Docs/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
+| `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
+| `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
+| `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
+| `AGENT/GDD/GDD_Manual_Tasks.md` | Manual playtest checklists (pending move to `AGENT/Docs/`) |

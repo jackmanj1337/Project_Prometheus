@@ -49,7 +49,7 @@ Check boxes use GitHub markdown: `- [ ]` incomplete, `- [x]` complete.
 > current branch also includes M14/M16 faction-objective work, hotseat
 > foundations and validation maps, the class/promotion/reclass rebuild, Pair Up
 > pass 1 partial, and More Info phase 1. Those newer systems are tracked in
-> `AGENT/GDD/GDD_10a_Overview.md` and the live validation passes in
+> `AGENT/GDD/GDD_10_Roadmap.md` (Appendix A–B) and the live validation passes in
 > `AGENT/GDD/GDD_Manual_Tasks.md`.
 >
 > **Content Expansion supplements** (`GDD/Content Expansion/`) were reviewed against
