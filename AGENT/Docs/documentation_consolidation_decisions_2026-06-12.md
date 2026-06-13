@@ -94,7 +94,7 @@ target only through an explicit adoption entry and GDD update.
 **Why:** Automatic authority would allow an external-reference edit to change
 combat math, scope, or migration behavior without a project decision.
 
-**Answer:** Pending
+**Answer:** the numbered GDD should own project design rules with the corpus being used as refrence for building out features. The purpose of this consolidation session is to sort out contradictions and move towards one unified goal.
 
 ### DOC-002 - Current and target behavior layout
 
@@ -110,7 +110,7 @@ and approved future behavior?
 **Recommendation:** A. It keeps feature information together without claiming
 the target is already shipped.
 
-**Answer:** Pending
+**Answer:** Have the GDD contain the design and a dated status marker. The design should contain a brief summary of what a feature does and then a larger section with the specs.
 
 ### DOC-003 - Status vocabulary
 
@@ -122,7 +122,12 @@ design, Planned, Deferred, Open decision, Historical, Superseded.
 **Recommendation:** Adopt them and prohibit unqualified phrases such as
 "current," "complete," or "canonical" in status-bearing sections.
 
-**Answer:** Pending
+**Answer:** Resolved 2026-06-13. Adopt the nine labels with one example each, and
+prohibit unqualified phrases ("current," "complete," "canonical") in
+status-bearing sections. A feature may carry a **split status** (separate
+`Implemented` and `Target design` lines) during the migration period. The
+ratified table lives in `AGENT/Docs/documentation_governance_2026-06-13.md`.
+Status: **Applied** to governance artifact (not yet applied to numbered GDD).
 
 ### DOC-004 - Roadmap ownership
 
@@ -137,7 +142,7 @@ design, Planned, Deferred, Open decision, Historical, Superseded.
 **Recommendation:** A for the consolidation pass. Consider C only after the
 roadmap structure is stable.
 
-**Answer:** Pending
+**Answer:** Lets retire it and make the roadmap own content, order and status. Old documents such as 10a_overview should be removed and will be accessed through GitHub history if they are needed.
 
 ### DOC-005 - Feature-index location
 
@@ -151,7 +156,7 @@ roadmap structure is stable.
 **Recommendation:** B. The index will become too large for the overview but
 must remain part of the numbered/live GDD set.
 
-**Answer:** Pending
+**Answer:** A dedicated index should be fine
 
 ### DOC-006 - Historical checklist and assumptions
 
@@ -167,7 +172,7 @@ GDD directory?
 **Recommendation:** B. They remain useful provenance but should not sit beside
 live contracts as peers.
 
-**Answer:** Pending
+**Answer:** Merge and delete them. They can be manually retrieved through github if needed.
 
 ### DOC-007 - Manual-test playbook location
 
@@ -177,7 +182,7 @@ live contracts as peers.
 playbook, then link it from `testing_guide.md` and the feature index. It is not a
 game-design contract.
 
-**Answer:** Pending
+**Answer:** That is likely for the best
 
 ### DOC-008 - Superseded-document policy
 
@@ -188,7 +193,7 @@ headers?
 supersession header. Moving many files immediately creates link churn and makes
 Git history harder to follow. Perform archive moves later in dedicated batches.
 
-**Answer:** Pending
+**Answer:** Lets move/remove them now so that they don't get forgotten
 
 ### DOC-009 - Decision-log structure
 
@@ -204,7 +209,7 @@ Git history harder to follow. Perform archive moves later in dedicated batches.
 **Recommendation:** B. Stable decision IDs and a central index make feature
 navigation easier while keeping discussions scoped.
 
-**Answer:** Pending
+**Answer:** B Sounds fine
 
 ### DOC-010 - Location of the June reference contracts
 
@@ -215,7 +220,7 @@ navigation easier while keeping discussions scoped.
 to consolidation. The RNG file is a supporting design contract until its
 binding rules are integrated into the numbered GDD and decision log.
 
-**Answer:** Pending
+**Answer:** You can move them to Docs for now. But eventually the update reference should get marked as completed and discarded/archived and the RNG doc should get merged into where ever other feature designs go.
 
 ### DOC-011 - Documentation validation in CI
 
@@ -225,7 +230,7 @@ binding rules are integrated into the numbered GDD and decision log.
 links, required lifecycle headers, stable IDs, and forbidden legacy paths. Keep
 it separate from the full Godot suite.
 
-**Answer:** Pending
+**Answer:** Sounds good
 
 ### DOC-012 - Legal/licensing release gate
 
@@ -235,7 +240,7 @@ review be a formal public-release gate?
 **Recommendation:** Yes. Renaming FE-derived identifiers does not resolve rights
 or attribution questions surrounding the source handbook/corpus.
 
-**Answer:** Pending
+**Answer:** Yes, make a note that this should be reviewed and resolved before the 1.0 release
 
 ## Open Rules and Migration Decisions
 
@@ -255,7 +260,7 @@ hash-chained event RNG once the roll order is updated.
 **Impact:** Changes deterministic combat fixtures and consumes two hit draws per
 strike instead of one.
 
-**Answer:** Pending
+**Answer:** A is fine
 
 ### RULE-002 - S-rank bonus
 
@@ -268,7 +273,7 @@ source-defined. What should S rank grant?
 **Impact:** Requires removing automatic mastery-skill grants and migrating any
 existing runtime/save representation.
 
-**Answer:** Pending
+**Answer:** The recommendation looks good
 
 ### RULE-003 - WEXP migration
 
@@ -284,7 +289,7 @@ existing runtime/save representation.
 **Recommendation:** B. It preserves both earned rank and progress without
 keeping obsolete numeric meaning.
 
-**Answer:** Pending
+**Answer:** There is no persistent player save data to migrate, but preserving proportional progress sounds good.
 
 ### RULE-004 - WEXP gain timing
 
@@ -295,7 +300,7 @@ misses where applicable, or retain the current per-successful-hit model?
 exceptions. Add explicit hit/miss/staff gain fields only if the content needs
 different values.
 
-**Answer:** Pending
+**Answer:** Lets start with the recomendation and leave a note that this may get changed with game balance passes later.
 
 ### RULE-005 - Promotion trigger timing
 
@@ -311,7 +316,7 @@ does automatic promotion occur?
 **Recommendation:** A. It preserves the current convenience setting while
 making early promotion an explicit player tradeoff.
 
-**Answer:** Pending
+**Answer:** Lets go with the basis of seals can promote at 10, but campaign settings can allow for automatic promotion when the unit reaches the level cap for their current class. Note that the promotion menu should pop up instantly even interupting other players turns, with control only shifting back to the original player after the unit owner has picked a new class.
 
 ### RULE-006 - Reclass EXP counters
 
@@ -328,7 +333,7 @@ making early promotion an explicit player tradeoff.
 `lifetime_levels_gained` to reduce player EXP unless a future campaign rule
 explicitly says so.
 
-**Answer:** Pending
+**Answer:** recomendation looks good
 
 ### RULE-007 - Class replacement scope
 
@@ -346,7 +351,7 @@ and Mage Knight?
 **Recommendation:** C. A blanket rule may create three-target promotion trees
 or preserve classes that conflict with the intended Awakening baseline.
 
-**Answer:** Pending
+**Answer:** Lets transfer completely to corpus based classes and archive the old classes
 
 ### RULE-008 - Personal versus class growths during corpus class adoption
 
@@ -358,7 +363,7 @@ growths remain?
 only class growth components with corpus values. Rebalance the starter roster
 after combined growth totals are visible.
 
-**Answer:** Pending
+**Answer:** Use new corpus data. It should contain archetypal examples of character growth stats that should be usable for this testing period.
 
 ### RULE-009 - Light and Dark magic design scope
 
@@ -369,7 +374,7 @@ scheduled?
 migration. It should define class lines, promotion paths, tome access, skill
 identity, and magic-triangle balance before resources are authored.
 
-**Answer:** Pending
+**Answer:** Lets go with the recomendation
 
 ### RULE-010 - Terrain migration rollout
 
@@ -382,7 +387,7 @@ corpus values, or preserve both current and target tables until implementation?
 **Impact:** Map 001 and validation maps will need pathfinding, healing, pacing,
 and balance regression passes.
 
-**Answer:** Pending
+**Answer:** The recomendation is fine
 
 ### RULE-011 - Existing terrain ID mapping
 
@@ -393,7 +398,7 @@ throne art currently using Fort behavior.
 **Recommendation:** Decide mappings during the terrain design pass rather than
 assuming name equality.
 
-**Answer:** Pending
+**Answer:** Lets do a more complete pass on this later
 
 ### RULE-012 - Pair Up/support release scope
 
@@ -414,7 +419,7 @@ assuming name equality.
 Schedule Dual Strike/Guard and support ranks separately. Treat marriage and
 children as post-1.0 unless the short campaign specifically depends on them.
 
-**Answer:** Pending
+**Answer:** Lets seperate out dual strike, dual guard, and stat bonuses from the other support stuff  and work on that later 
 
 ### RULE-013 - Project-specific magic triangle rank source
 
@@ -425,4 +430,5 @@ have a physical weapon family and a magic `triangle_family`?
 magnitude, while `triangle_family` determines only the relationship. This avoids
 inventing a second hidden magic rank for a sword/lance/axe weapon.
 
-**Answer:** Pending
+**Answer:** This sounds fine
+
