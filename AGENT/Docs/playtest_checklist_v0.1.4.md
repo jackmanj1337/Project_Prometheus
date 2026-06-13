@@ -1,12 +1,45 @@
 # Playtester Handbook and Checklist - v0.1.4
 
-Use this handbook with:
+This document is written for testers who have not read the design documents
+or source code. Everything needed for this test pass is included below.
 
-- Build: `builds/Project_Prometheus_v0.1.4_debug.exe`
-- Build details: `AGENT/Docs/playtest_build_v0.1.4.md`
+## Before you begin
+
+### Required build and equipment
+
+- Windows 10 or 11, 64-bit
+- Keyboard and mouse
+- Executable: `Project_Prometheus_v0.1.4_debug.exe`
+- Expected file size: `101,199,464` bytes
+- Expected SHA-256:
+  `b8aa878399b9315ab78496acaf0b24cc88dabda12d55c9fd09665f7a0dc4ee16`
+
+The executable is a standalone debug build. It does not need Godot or an
+installer. Do not disable antivirus or other security software to run it. If
+Windows blocks or quarantines it, record the exact message and contact the
+person who supplied the build.
+
+Optional PowerShell integrity check:
+
+```powershell
+Get-FileHash .\Project_Prometheus_v0.1.4_debug.exe -Algorithm SHA256
+```
+
+The result must match the expected SHA-256 above.
+
+### Tester information
+
+- **Tester name:** _Enter name._
+- **Test date:** _Enter date._
+- **Windows version:** _Enter version._
+- **Primary resolution:** _Enter resolution._
+- **Input method:** _Keyboard/mouse or other._
+- **Build hash verified:** _Yes / No._
+
+### How to record results
 
 Complete the sections in order. Checks are grouped by the map that provides
-the fastest reliable setup. State-changing, map-ending, and retry checks are
+the fastest reliable setup. State-changing, map-ending, and Retry checks are
 placed last so earlier checks can reuse the same run.
 
 Only check **This item works as expected** after every expectation in that
@@ -15,6 +48,85 @@ item passes. Record failures as:
 `Map / Unit or UI / Step / Actual / Expected / Repro`
 
 For visual failures, include the window resolution and a screenshot.
+On Windows, `Win+Shift+S` opens the Snipping Tool.
+
+If a check cannot be performed, leave it unchecked and write `NOT RUN` with
+the reason. Do not check an item merely because no problem was noticed.
+
+If the game crashes or stops accepting input, record the active map, unit,
+last action, and visible screen. Close the game, preserve `godot.log`, relaunch
+the executable, and continue with the next independent check.
+
+### Controls
+
+| Action | Keyboard / mouse |
+|---|---|
+| Move cursor or menu selection | `WASD` or arrow keys |
+| Confirm / select | `Z`, `Enter`, `Space`, or left-click |
+| Cancel / back | `X`, `Esc`, or right-click |
+| Next available unit | `Tab` |
+| Previous available unit | `Shift+Tab` |
+| Open or close Map Menu | `M` |
+| Open Settings directly | `O` |
+| Inspect the unit under the cursor | `I` |
+| Open or cycle More Info | `F` |
+| Toggle danger/threat overlay | `Q` or middle-click |
+| Toggle Force Level Up debug aid | `F10` |
+| Toggle Growth Boost debug aid | `F11` |
+
+Settings contains a read-only list of most controls. `F`, `F10`, and `F11`
+are listed here because they are required by this handbook.
+When `Mouse Cursor` is enabled in Settings, moving the mouse can also move the
+map cursor.
+
+### Basic play flow
+
+1. From the Main Menu, choose `New Game`.
+2. Choose the requested map and settings, then choose `Start`.
+3. Move the cursor onto a Blue unit and Confirm to select it.
+4. Move within the highlighted movement area and Confirm a destination.
+5. Choose an action such as `Attack`, `Item`, `Pair Up`, or `Wait`.
+6. For an attack, choose a target, review the forecast, and Confirm again to
+   resolve combat. Cancel backs out without committing the attack.
+7. To end a phase early, press `M`, choose `End Turn`, and confirm the warning
+   if units have not acted.
+8. To abandon a run, press `M`, choose `Exit to Main Menu`, and confirm.
+9. After Victory or Defeat, `Retry` reloads that map's original starting state.
+
+To identify a named unit, move the cursor over units and read the HUD name.
+Press `I` to confirm the unit's name, class, level, stats, skills, and weapon
+ranks. Unit and enemy names used below appear exactly as written in the game.
+
+`F10` is a toggle, not a one-use command. While enabled, the HUD debug banner
+includes `force-levelup`. Press `F10` again immediately after the requested
+level-up so later checks use normal experience.
+
+### Terms used in this handbook
+
+- **Phase:** one faction's opportunity to act. A full turn/round ends after
+  every faction in the map's cycle has completed its phase.
+- **Blue / Green / Red / Yellow:** faction colors. Blue and Green may be
+  allied, but they remain separate factions.
+- **Rout:** defeat every unit in the specified opposing faction or alliance.
+- **Lead / support:** when two units Pair Up, the lead stays on the map and
+  acts; the support is hidden off-map and supplies bonuses.
+- **DONE:** the unit has spent its action for the current phase and appears
+  greyed out.
+- **Combat preview / forecast:** the panel shown before confirming an attack.
+- **HP / Atk / Hit / Crit:** health, attack power, hit chance, and critical-hit
+  chance.
+- **Str / Mag / Skl / Spd / Def / Res / Lck:** Strength, Magic, Skill, Speed,
+  Defense, Resistance, and Luck.
+- **Battle Speed:** the value used to determine follow-up attacks. A unit
+  needs at least 5 more Battle Speed than its opponent to follow up.
+- **`floor(value)`:** round down to the nearest whole number.
+- **More Info:** contextual details opened or cycled with `F`.
+- **Fixed growth:** deterministic leveling. `Fixed N / 100` shows progress
+  toward that stat's next increase.
+- **Configured/authored condition:** a victory or defeat rule explicitly set
+  for that map. The game must not invent an unlisted Rout condition.
+- **One-based coordinates:** the displayed top-left tile is `(1, 1)`, even
+  though internal map data starts at zero.
 
 ## Coverage limits
 
@@ -171,7 +283,8 @@ description, movement costs, and action text. Close More Info afterward.
 ### 2.4 Combat preview base layout and no-counter state
 
 Open a combat preview against an enemy that can counter. Then preview an enemy
-that cannot counter.
+that cannot counter. An easy no-counter setup is an Archer attacking a
+melee-only enemy from two tiles away.
 
 **Expected**
 
@@ -188,8 +301,10 @@ that cannot counter.
 ### 2.5 Combat preview More Info and narrow resolution
 
 Open a combat preview and cycle More Info. Use a matchup that displays both
-weapon-triangle and effectiveness information if one is available. Repeat at
-`960x540` if window resizing is available.
+weapon-triangle and effectiveness information if one is available. A sword
+against a lance, or a lance against a sword, provides a triangle matchup. If
+no effective weapon is available, write `NOT AVAILABLE` for that substep and
+continue. Repeat at `960x540` if window resizing is available.
 
 **Expected**
 
@@ -256,25 +371,11 @@ Do this last because it ends the run. Allow every allied unit to be defeated.
 ## 3. Map 002 - Seize
 
 Use one run for all three checks. Do not Seize until every Red unit has been
-defeated.
+defeated. The Seize point is the throne at displayed coordinate `(16, 3)`;
+the boss begins on it. Move the Cavalier and one other Blue unit toward the
+throne while fighting so both eligibility checks fit within the turn limit.
 
-### 3.1 Seize eligibility is unit-specific
-
-Move the default Cavalier, whose `can_seize` flag is enabled, onto the authored
-Seize tile. Check the Action Menu, cancel, and then place a different Blue unit
-on the same tile.
-
-**Expected**
-
-- The Cavalier is offered `Seize`.
-- A different Blue unit is not offered `Seize`.
-- Eligibility comes from the unit's authored `can_seize` flag.
-
-- [ ] **This item works as expected.**
-
-**Tester comments:** _Enter comments here._
-
-### 3.2 Routing Red does not win
+### 3.1 Routing Red does not win
 
 Defeat every Red unit without using Seize.
 
@@ -282,7 +383,23 @@ Defeat every Red unit without using Seize.
 
 - The map remains active.
 - No victory screen appears.
-- Hostile Rout is not inferred as a Blue victory condition.
+- Hostile Rout is not configured as a Blue victory condition.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 3.2 Seize eligibility is unit-specific
+
+After defeating Red, move a Blue unit other than the Cavalier onto `(16, 3)`
+and open the Action Menu. Cancel the Action Menu to undo that move. Then move
+the default Cavalier onto the same tile.
+
+**Expected**
+
+- The non-Cavalier is not offered `Seize`.
+- The Cavalier is offered `Seize`.
+- Only the configured eligible unit can complete the objective.
 
 - [ ] **This item works as expected.**
 
@@ -304,14 +421,51 @@ tile and choose `Seize`.
 
 ---
 
-## 4. Map 004 - Escape
+## 4. Map 003 - Defeat Boss
+
+This map is won by defeating the named boss, not by routing every enemy. The
+boss is `Bandit Chief`, who begins near the right side of the map. Use the HUD
+name or `I` to identify him.
+
+### 4.1 Boss defeat wins while another enemy remains
+
+Keep at least one non-boss Red unit alive. Defeat `Bandit Chief`.
+
+**Expected**
+
+- Victory appears immediately when the boss is defeated.
+- The remaining non-boss enemy does not need to be defeated.
+- The map does not require another End Turn.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+### 4.2 Protected Cavalier death causes defeat
+
+Choose `Retry` after the victory, or relaunch Map 003. Allow the default
+Cavalier to be defeated while `Bandit Chief` is still alive.
+
+**Expected**
+
+- Defeat appears immediately because the Cavalier is the protected unit.
+- The game does not remain on an unwinnable map.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+---
+
+## 5. Map 004 - Escape
 
 This section needs three short runs because each objective branch ends or
-invalidates the others.
+invalidates the others. The Escape tiles are the three right-edge tiles at
+displayed coordinates `(17, 3)`, `(17, 4)`, and `(17, 5)`.
 
 ### Run 1: single escape followed by required-unit defeat
 
-### 4.1 One required unit escaping is not enough
+### 5.1 One required unit escaping is not enough
 
 Launch Map 004. The required units are the default Cavalier and Mercenary.
 Move one required unit onto an Escape tile and choose `Escape`.
@@ -325,7 +479,7 @@ Move one required unit onto an Escape tile and choose `Escape`.
 
 **Tester comments:** _Enter comments here._
 
-### 4.2 Required-unit death causes immediate defeat
+### 5.2 Required-unit death causes immediate defeat
 
 Continue Run 1 and allow the remaining required unit to die.
 
@@ -340,10 +494,11 @@ Continue Run 1 and allow the remaining required unit to die.
 
 ### Run 2: paired escape
 
-### 4.3 Paired lead and support escape together
+### 5.3 Paired lead and support escape together
 
 Restart Map 004. Pair the two required units, move the lead onto an Escape
-tile, and choose `Escape`.
+tile on the next Blue phase, and choose `Escape`. Pair Up spends both units'
+actions, so moving on that same phase is not expected.
 
 **Expected**
 
@@ -358,7 +513,7 @@ tile, and choose `Escape`.
 
 ### Run 3: enemy Rout is not victory
 
-### 4.4 Routing Red while a required unit remains does not win
+### 5.4 Routing Red while a required unit remains does not win
 
 Restart Map 004. Defeat every Red unit while at least one required Escape unit
 is still on the map.
@@ -375,13 +530,40 @@ is still on the map.
 
 ---
 
-## 5. Map 900 - Hotseat Validation
+## 6. Map 005 - Defend
+
+The two Defend tiles are displayed coordinates `(4, 6)` and `(4, 7)`, near
+the Blue starting area. Victory requires surviving six complete turns while
+an allied unit occupies at least one of those tiles when Turn 7 begins.
+
+### 6.1 Survive six turns while holding a Defend tile
+
+Keep the default Cavalier alive. Place any Blue unit on `(4, 6)` or `(4, 7)`
+before the end of Turn 6 and keep that unit there through the remaining
+faction phase. Use `M` -> `End Turn` to advance when ready.
+
+**Expected**
+
+- No victory appears at the start of Turns 2 through 6.
+- The HUD turn number advances once per complete Blue/Red cycle.
+- Victory appears when control would return to Blue for Turn 7, provided a
+  living allied unit still occupies a Defend tile.
+- Defeating Red early does not replace the configured Survive/Defend
+  objective with an automatic Rout victory.
+
+- [ ] **This item works as expected.**
+
+**Tester comments:** _Enter comments here._
+
+---
+
+## 7. Map 900 - Hotseat Validation
 
 Complete this section in one uninterrupted faction cycle. It covers faction
 ownership, controller handoff, turn counting, camera memory, danger zones, and
 the two closed hotseat regressions.
 
-### 5.1 Blue startup and cross-faction Pair Up restriction
+### 7.1 Blue startup and cross-faction Pair Up restriction
 
 At the start of Blue's phase, confirm the HUD reads `Turn 1`. Move a Blue unit
 next to a Green unit and open the Action Menu.
@@ -397,7 +579,7 @@ next to a Green unit and open the Action Menu.
 
 **Tester comments:** _Enter comments here._
 
-### 5.2 Full faction cycle, labels, and handoff
+### 7.2 Full faction cycle, labels, and handoff
 
 End Blue, play/end Green, and watch Red and Yellow act. Check the HUD and phase
 banner as each phase starts.
@@ -419,7 +601,7 @@ banner as each phase starts.
 
 **Tester comments:** _Enter comments here._
 
-### 5.3 Green combat preview uses the active side
+### 7.3 Green combat preview uses the active side
 
 During Green's phase, use a Green combat unit to target a hostile Red or Yellow
 unit.
@@ -434,10 +616,11 @@ unit.
 
 **Tester comments:** _Enter comments here._
 
-### 5.4 Faction-specific camera and danger zone
+### 7.4 Faction-specific camera and danger zone
 
 During Blue's phase, pan to a memorable view before ending the phase. During
-Green's phase, pan elsewhere and press `Q`. Finish the faction cycle.
+Green's phase, move the cursor toward another map edge until the camera pans
+elsewhere, then press `Q`. Finish the faction cycle.
 
 **Expected**
 
@@ -456,19 +639,20 @@ camera behavior that do not belong to a specific check._
 
 ---
 
-## 6. Map 950 - Promotion Validation
+## 8. Map 950 - Promotion Validation
 
 First run setup:
 
 - `Pair Up: On`
 - `Auto Promote: Off`
+- `Leveling Method: Fixed`
 - Use the authored 12-unit fixed roster.
 
 Apply the Strength Tonic early. Its four-turn duration can expire while the
-other checks are completed. Save the intentional defeat/Retry check for the
-end of the first run. The final Auto Promote check requires one restart.
+other checks are completed. Save the Victory/Retry check for the end of the
+first run. The final Auto Promote check requires one restart.
 
-### 6.1 Roster and promoted General skills
+### 8.1 Roster and promoted General skills
 
 Launch Map 950 and inspect `M950_General`, a level-20 promoted
 Knight-to-General.
@@ -483,9 +667,11 @@ Knight-to-General.
 
 **Tester comments:** _Enter comments here._
 
-### 6.2 Growth and fixed-growth details
+### 8.2 Growth and fixed-growth details
 
 Inspect any growing player unit and open More Info for several stat rows.
+Record at least one `Fixed N / 100` value. Leave this checkbox open until a
+later Map 950 level-up, then inspect the same stat again.
 
 **Expected**
 
@@ -499,7 +685,7 @@ Inspect any growing player unit and open More Info for several stat rows.
 
 **Tester comments:** _Enter comments here._
 
-### 6.3 Four Battle Speed does not follow up
+### 8.3 Four Battle Speed does not follow up
 
 Preview `M950_Mage` attacking `M950_E1_Soldier`, `M950_E2_Soldier`, or
 `M950_E3_Soldier` without Pair Up or temporary stat modifiers.
@@ -515,7 +701,7 @@ Preview `M950_Mage` attacking `M950_E1_Soldier`, `M950_E2_Soldier`, or
 
 **Tester comments:** _Enter comments here._
 
-### 6.4 Strength Tonic modifier and expiration
+### 8.4 Strength Tonic modifier and expiration
 
 Use `M950_Mercenary` -> Action Menu -> Item -> `Strength Tonic`. Inspect the
 Strength row immediately, then inspect it again after four full turns.
@@ -543,11 +729,13 @@ Modifiers:
 
 **Tester comments:** _Enter comments here._
 
-### 6.5 Pair Up bonuses match preview and live combat
+### 8.5 Pair Up bonuses match preview and live combat
 
 Move `M950_Hero_SkillCap` and `M950_Cavalier` near the same melee target.
 Before pairing, record the Hero's forecast and cancel. Pair the Hero as lead
-with the Cavalier as support, then preview and complete the same attack.
+with the Cavalier as support. Advance to the next Blue phase, then preview and
+complete the same attack. Pair Up spends both units' actions, so attacking on
+the pairing phase is not expected.
 
 The support bonus is:
 
@@ -579,15 +767,16 @@ Res:      floor( 1 / 4) = +0
 
 **Tester comments:** _Enter comments here._
 
-### 6.6 Reclass stats, skills, and menu layout
+### 8.6 Demotion stats, skills, and menu layout
 
-Record `M950_Knight`'s Strength, Defense, Speed, Skill, Movement, displayed
-level, and skills. Use a `Second Seal` to reclass into a tier-1 option such as
-Soldier.
+Record `M950_General`'s Strength, Defense, Speed, Skill, Movement, displayed
+level, and skills. Use the General's `Second Seal` and choose the tier-1
+`Soldier` option.
 
 **Expected**
 
-- The reclass menu remains on-screen and every option is reachable.
+- The Second Seal is usable and the long option list remains on-screen.
+- Every option is reachable by keyboard or mouse scrolling.
 - Option labels use `old +/-delta -> new / cap`.
 - Class base contributions are replaced rather than stacked.
 - Personal earned gains are preserved.
@@ -600,11 +789,12 @@ Soldier.
 
 **Tester comments:** _Enter comments here._
 
-### 6.7 Promotion item becomes usable at level 20
+### 8.7 Promotion item becomes usable at level 20
 
-Select `M950_Lvl19_Merc` before leveling and open the Action Menu. Then defeat
-`M950_E1_Soldier` and continue until the Mercenary reaches level 20. On the
-next turn, open the Action Menu and use the Master Seal.
+Select `M950_Lvl19_Merc` before leveling and open the Action Menu. Turn on
+`F10`, complete a successful EXP-granting combat against
+`M950_E1_Soldier`, then turn `F10` off. On the next turn, open the Action Menu
+and use the Master Seal.
 
 **Expected before level 20**
 
@@ -621,7 +811,7 @@ next turn, open the Action Menu and use the Master Seal.
 
 **Tester comments:** _Enter comments here._
 
-### 6.8 Fifth equipped-skill slot
+### 8.8 Fifth equipped-skill slot
 
 Before leveling, inspect `M950_Hero_SkillCap`.
 
@@ -630,7 +820,8 @@ Before leveling, inspect `M950_Hero_SkillCap`.
 - Equipped skills are `armsthrift`, `patience`, `dash`, and `discipline`.
 - One of the five default equipped-skill slots is open.
 
-Earn the level to 15 and inspect the unit again.
+Use `F10`, complete a successful EXP-granting combat to earn level 15, turn
+`F10` off, and inspect the unit again.
 
 **Expected after level 15**
 
@@ -642,7 +833,7 @@ Earn the level to 15 and inspect the unit again.
 
 **Tester comments:** _Enter comments here._
 
-### 6.9 Staff use honors Force Level Up
+### 8.9 Staff use honors Force Level Up
 
 Use `F10` to enable Force Level Up. Have `M950_Cleric` successfully use a
 staff, then disable Force Level Up with `F10`.
@@ -657,26 +848,28 @@ staff, then disable Force Level Up with `F10`.
 
 **Tester comments:** _Enter comments here._
 
-### 6.10 Retry restores the original class state
+### 8.10 Retry restores the original class state
 
-Do this last in the first run. After reclassing `M950_Knight`, allow any Blue
-unit to die, choose `Retry`, and inspect the Knight.
+Do this last in the first run. After demoting `M950_General` to Soldier,
+defeat every Red unit. On the Victory screen, choose `Retry`, then inspect the
+General. Victory and Defeat use the same map-start Retry snapshot.
 
 **Expected**
 
-- The Knight returns to the original class and displayed level.
+- The unit returns to General at its original displayed level.
 - Original stats, weapon ranks, inventory, and skills are restored.
-- No reclass state remains.
-- The debug console does not report a snapshot rejection or `push_error`.
+- No Soldier state remains.
+- The error log does not report a snapshot rejection or `push_error`.
 
 - [ ] **This item works as expected.**
 
 **Tester comments:** _Enter comments here._
 
-### 6.11 Auto Promote at the level cap
+### 8.11 Auto Promote at the level cap
 
 Return to New Game, set `Auto Promote: On`, and relaunch Map 950. Use
-`M950_Lvl19_Merc` to gain level 20 again.
+`M950_Lvl19_Merc` to gain level 20 again. Turn on `F10` before the successful
+combat and turn it off after the level-up flow.
 
 **Expected**
 
@@ -695,11 +888,17 @@ presentation, or menu readability that do not belong to a specific check._
 
 ---
 
-## 7. All-map debug-console check
+## 9. All-map error-log check
 
-Keep the debug console visible when practical throughout the entire pass.
+The Windows executable may not display a separate debug console. After the
+test pass, close the game and inspect:
 
-### 7.1 No data-validation errors
+`%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs\godot.log`
+
+Paste that path into Windows Explorer's address bar. If the file does not
+exist, record `LOG FILE NOT FOUND`; that is useful build feedback.
+
+### 9.1 No data-validation errors
 
 **Expected**
 
@@ -713,8 +912,9 @@ No `DataManager: ...` error or `push_error` appears. Examples include:
 - `unit '...' hp ... exceeds max_hp ...`
 - `snapshot ... is not a Dictionary`
 
-These messages indicate content-authoring defects even if the game does not
-crash. Record the complete message and the active map.
+These messages indicate content/configuration defects even if the game does
+not crash. Record the complete message and the active map. Also report any
+line containing `ERROR`, `SCRIPT ERROR`, or a crash stack trace.
 
 - [ ] **This item works as expected.**
 
@@ -722,7 +922,7 @@ crash. Record the complete message and the active map.
 
 ---
 
-## 8. Known deferred issues
+## 10. Known deferred issues
 
 Do not report the unchanged behavior below as a v0.1.4 regression:
 
@@ -740,12 +940,13 @@ _Enter observations here._
 
 ---
 
-## 9. What to send back
+## 11. What to send back
 
 Return:
 
 1. This completed handbook with every applicable checkbox marked.
 2. Tester comments for every failed or unclear item.
-3. Debug-console output for any validation error.
+3. Error-log output for any validation error.
 4. Screenshots for combat-preview, terrain, camera, or menu-layout failures.
 5. Exact repro steps using the failure format at the top of this document.
+6. The `godot.log` file, or a note that it was not found.
