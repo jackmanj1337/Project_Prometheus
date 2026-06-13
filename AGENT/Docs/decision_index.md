@@ -49,7 +49,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Applied / Notes |
 |----|-------|--------|------|-----------------|
-| RULE-001 | Exact two-RN hit model | Answered | REG | Option A (two 0–99, floor avg). RNG contract updated 2026-06-13 (Stage 1.2). **Supersedes single-roll hit.** Apply in GDD_02 (Stage 3.1). |
+| RULE-001 | Exact two-RN hit model | Applied (Target design) | REG | Option A (two 0–99, floor avg). **Supersedes single-roll hit.** Documented in GDD_02 §Combat Resolution & GDD_01 §Determinism (Stage 3.1); code is Package A. |
 | RULE-002 | S-rank bonus | Answered | REG | +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery`. |
 | RULE-003 | WEXP migration | Answered | REG | Option B (proportional within rank); runtime conversion formula recorded. |
 | RULE-004 | WEXP gain timing | Answered | REG | Per valid use; may change in a balance pass. |
@@ -92,22 +92,22 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
-| RNG-1 | Hash-chained context-seeded dice | Retained | RNG | Roll order amended by RULE-001 (two-RN). |
-| RNG-2 | RNG state in snapshot contract | Retained | RNG | Blocks reload-scumming. |
-| RNG-3 | Accepted exploits priced by rewind charges | Retained | RNG | — |
-| RNG-4 | Online play host-authoritative | Retained | RNG | M15B; engine-local determinism only. |
+| RNG-1 | Hash-chained context-seeded dice | Applied (Target design) | RNG→GDD_01 | Roll order amended by RULE-001. In GDD_01 §Determinism (3.1). |
+| RNG-2 | RNG state in snapshot contract | Applied (Target design) | RNG→GDD_01 | Blocks reload-scumming. In GDD_01 §Determinism (3.1). |
+| RNG-3 | Accepted exploits priced by rewind charges | Applied (Target design) | RNG→GDD_01 | In GDD_01 §Determinism (3.1). |
+| RNG-4 | Online play host-authoritative | Applied (Target design) | RNG→GDD_01 | M15B; engine-local determinism. In GDD_01 §Determinism (3.1). |
 
 ## OPEN — June open questions (all resolved 2026-06-13)
 
 | ID | Title | Status | Home | Resolution |
 |----|-------|--------|------|------------|
 | OPEN-1 | Supports in/out | Deferred (post-1.0) | JUN | Committed feature, post-1.0; confirms RULE-012. |
-| OPEN-2 | Condition/skill precedence | Answered | JUN | Conditions ≠ skills; one general rule, exceptions in GDD_05. |
-| OPEN-3 | Mid-exchange weapon breakage | Answered | JUN | Cancels remaining strikes; weapon gone after combat. |
-| OPEN-4 | Enemy/AI EXP | Answered | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. |
-| OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; new backlog: broken-weapon degraded mode. |
-| OPEN-6 | Simultaneous victory/defeat | Answered | JUN | Defeat before victory; tie → acting faction. |
-| OPEN-7 | Fort/throne heal rounding | Answered | JUN | `max(1, floor(0.10 × max_hp))`. |
+| OPEN-2 | Condition/skill precedence | Applied | JUN | Conditions ≠ skills; one general rule. In GDD_02 §Status Conditions (3.1); per-skill exceptions in GDD_05. |
+| OPEN-3 | Mid-exchange weapon breakage | Applied | JUN | Cancels remaining strikes. In GDD_02 §Combat Resolution + §Durability (3.1). |
+| OPEN-4 | Enemy/AI EXP | Answered (in GDD_02) | JUN | `CampaignRules.exp_gaining_factions`, default Blue+Green. Noted GDD_02 §EXP (3.1); CampaignRules contract is GDD_01 (3.5). |
+| OPEN-5 | Durability soft-lock | Answered + backlog | JUN | Accept for now; backlog item noted GDD_02 §Durability (3.1). |
+| OPEN-6 | Simultaneous victory/defeat | Applied | JUN | Defeat before victory; tie → acting faction. In GDD_02 §Win/Loss Evaluation (3.1). |
+| OPEN-7 | Fort/throne heal rounding | Applied | JUN | `max(1, floor(0.10 × max_hp))`. In GDD_02 §Terrain (3.1). |
 | OPEN-8 | Renderer backend | Answered (applied to GDD_00) | JUN | Compatibility (OpenGL); recorded in GDD_00 Platform Targets (Stage 2.1). |
 | OPEN-9 | Soldier class | Deferred (AWR-2) | JUN | Placeholder enemy-only Soldier on Map 001 until class migration. |
 | OPEN-10 | Cleric "Light E" | Deferred (RULE-009) | JUN | Decided by Light/Dark design pass. |
@@ -119,7 +119,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
-| Combat modifier pipeline order | Canonical order ratified | Answered | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Goes in GDD_01. |
+| Combat modifier pipeline order | Canonical order ratified | Applied | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Summary in GDD_02 §Modifier Pipeline (3.1); binding contract home GDD_01 (3.5). |
 | PL#8 | Doc-lifecycle DoD rule | Applied | JUN | Same-commit GDD + roadmap update. **Applied to AGENTS.md** (Stage 2.2). |
 | PL#9 | Minimal SFX | Answered (deferred) | JUN | Wait for Phase 3 audio milestone. |
 

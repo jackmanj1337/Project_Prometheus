@@ -1,435 +1,594 @@
 # GDD_02 — Core Mechanics
 
+**Status:** Active contract — split status per section (project behavior is
+**Implemented**; corpus migration is **Target design**, tracked in
+`GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns combat resolution, the RNG/hit model, stats and derived combat
+values, terrain combat, WEXP, combat EXP, leveling, and promotion *trigger timing*.
+Class definitions, promotion targets, and progression *relationships* are owned by
+`GDD_03`. Determinism architecture (autoloads, snapshot/save) is owned by `GDD_01`.
+
 ---
 
 ## The Grid
 
-- The battlefield is a **square tile grid**
-- Tiles are navigated **orthogonally only** (no diagonal movement)
-- Current authored maps are tested through **42×26 tiles**
-- Each tile has a **terrain type** that affects movement cost, defense, and dodge
-- Units occupy exactly **one tile** at a time
-- A tile can hold at most **one unit** (ally or enemy)
-- Allied units can be **passed through** during movement; enemy units cannot
+Status: **Implemented**
+Last verified: 2026-06-13
 
-### Tile Coordinate System
-Use Godot's `Vector2i` for all tile positions. `(0, 0)` = top-left corner.
+### Summary
+A square, orthogonally-navigated tile grid; one unit per tile.
+
+### Specs
+- Square tile grid; orthogonal movement only (no diagonals).
+- Authored maps tested through 42×26 tiles.
+- Each tile has a terrain type affecting movement cost, defense, and dodge.
+- One unit per tile. Allied units can be passed through during movement; enemies cannot.
+- Coordinates use Godot `Vector2i`; `(0,0)` = top-left.
+
+### Anchors
+- Code: `scripts/core/GridManager.gd`, `scripts/core/GameMap.gd`
+- Roadmap: GDD_10 (shipped)
 
 ---
 
-## Terrain Types
+## Terrain (combat effects)
 
-| Terrain | DEF Bonus | Dodge Bonus | Move Cost | Notes |
+Status: **Split** — current values **Implemented**; corpus values **Target design** (RULE-010)
+Last verified: 2026-06-13
+
+### Summary
+Terrain grants the defender DEF/Dodge and sets movement cost; some tiles heal.
+
+### Specs
+
+**Implemented (project values).** Terrain bonuses apply to the **defending unit only**;
+attackers get none. Bonuses are added during combat and never permanently modify stats.
+
+| Terrain | DEF | Dodge | Move | Notes |
 |---|---|---|---|---|
-| Plain | 0 | 0 | 1 | Standard |
+| Plain | 0 | 0 | 1 | |
 | Forest | +1 | +15 | 2 | |
 | Mountain | +2 | +20 | 3 | |
-| Fort | +2 | +30 | 1 | Unit heals 10% max HP per turn; throne visuals currently reuse Fort behavior |
+| Fort | +2 | +30 | 1 | Heals per turn (see fort heal below) |
 | Sea | 0 | +10 | 2 | |
-| Desert | 0 | +5 | 2 | Armoured/Mounted cost 3; Magic users/Thief line cost 1 |
-| Wall / Building | — | — | Impassable | Blocks movement |
+| Desert | 0 | +5 | 2 | Armoured/Mounted cost 3; Magic/Thief line cost 1 |
+| Wall / Building | — | — | Impassable | |
 
-Terrain bonuses apply to **defending units only**. Attackers receive no terrain bonus.
+**Fort/throne heal (OPEN-7, Answered).** A unit standing on a healing tile recovers
+`heal = max(1, floor(0.10 × max_hp))` at start of turn (Renewal rounding — guarantees
+at least 1).
 
-Flying movement is **planned, not implemented**. It will use terrain-level
-movement-cost categories selected by the unit/class movement type; it will not
-be implemented as a unit special case that simply ignores terrain. Until that
-system lands, all units use the current terrain costs and walls remain impassable.
+**Target design (corpus terrain, SET-008/RULE-010).** Corpus terrain values and
+movement categories are an adopted target; show both tables until code/data/maps
+migrate. Flying uses terrain movement-cost categories (Planned), never a
+terrain-ignoring special case.
+
+### Known gaps
+- **Throne art currently reuses Fort behavior** — terrain ID mapping (sea, wall/building
+  variants, throne) is **Open decision**, deferred to roadmap **AWR-8** (RULE-011). Do
+  not assume name-equality mappings.
+
+### Anchors
+- Code: `scripts/core/GridManager.gd`; terrain data resources
+- Decisions: SET-008, RULE-010, RULE-011, OPEN-7
+- Reference: `awakening_lookup_tables.md` (terrain/movement); `GDD_Adoption_Matrix.md`
+- Owner of authored map/terrain schema: GDD_06
 
 ---
 
 ## Turn Structure
 
-The live game now uses a **faction-based phase scheduler**. Every map can author:
+Status: **Implemented**
+Last verified: 2026-06-13
 
-- `MapData.factions` — display name, color, alliance group, controller
-- `MapData.turn_order` — the order factions act in
-- `MapData.activation_mode` — currently `WHOLE_PHASE` in shipped content
+### Summary
+A data-driven faction phase scheduler; the default is a classic whole-phase round.
 
-### Default Whole-Phase Loop
+### Specs
+Maps author `MapData.factions` (name, color, alliance group, controller),
+`MapData.turn_order`, and `MapData.activation_mode` (shipped content uses
+`WHOLE_PHASE`).
 
-Most maps still play like a classic Fire Emblem round, but the implementation is
-data-driven rather than hardcoded to player/enemy:
-
+Default whole-phase loop:
 ```
 Round Start
-  └── BLUE PHASE
-        ├── Blue units refresh
-        ├── per-unit "turn" modifiers tick
-        ├── fort healing and start_of_turn skills resolve
-        ├── player controls blue units until all are DONE or End Turn is chosen
-  └── GREEN / RED / YELLOW PHASES (if authored in turn_order)
-        ├── acting faction refreshes
-        ├── per-unit "turn" modifiers tick
-        ├── fort healing and start_of_turn skills resolve
-        └── controller runs the faction (AI or hotseat)
-  └── Round wraps back to blue
-        ├── all-units "map_turn" modifiers tick once
-        └── turn counter increments
+  └── BLUE PHASE: refresh → per-unit "turn" modifiers tick → fort heal + start_of_turn
+        skills → player commands blue units until all DONE or End Turn
+  └── GREEN / RED / YELLOW PHASES (if in turn_order): refresh → modifiers tick →
+        fort heal + start_of_turn skills → controller runs faction (AI or hotseat)
+  └── Round wraps to blue: all-units "map_turn" modifiers tick once → turn counter++
 ```
 
-### Controllers
+- Controllers: `blue` is the player; non-blue factions are AI or `HOTSEAT` per
+  `FactionData.controller`.
+- Unit action states per round: `READY` → `MOVED` → `DONE`.
+- A controlled phase ends automatically when every acting-faction unit is `DONE`, or
+  early via the Map Menu. Hotseat phases use blue's commit flow; only the commandable
+  faction differs.
+- `ALTERNATING` exists in `TurnManager` as infrastructure, not production gameplay.
 
-- `blue` is the standard player-controlled faction
-- non-blue factions may be AI-controlled or `HOTSEAT`-controlled per `FactionData.controller`
-- objective checks run at phase boundaries, after combat deaths, and after Seize / Escape
-
-### Alternating Mode
-
-`ALTERNATING` exists in `TurnManager` as an engine primitive, but shipped maps and
-manual validation currently target `WHOLE_PHASE`. Treat alternating activation as
-implemented infrastructure, not production gameplay yet.
-
-### Unit Action States
-Each unit tracks one of three states per round:
-- `READY` — Has not moved or acted
-- `MOVED` — Has moved, can still act
-- `DONE` — Cannot act further this round
-
-### End of a Controlled Phase
-- A controlled phase ends **automatically** when every unit in the acting faction
-  is `DONE`.
-- The acting human controller can also end the phase early from the Map Menu.
-- Hotseat phases use the same commit flow as blue's phase; the difference is only
-  which faction the cursor is allowed to command.
+### Anchors
+- Code: `scripts/core/TurnManager.gd`, `scripts/core/HotseatController.gd`
+- Tests: `scripts/tests/test_turn_manager.gd`
 
 ---
 
-## Unit Stats
+## Unit Stats & Derived Combat Values
 
-All stats are integers. All calculated values are **rounded down**. Negative results
-become **0**.
+Status: **Split** — current formulas **Implemented**; corpus combat-stat formulas **Target design** (SET-001)
+Last verified: 2026-06-13
 
-| Stat | Description |
+### Summary
+Integer stats; combat values are derived per equipped weapon, rounded down, floored at 0.
+
+### Specs
+
+Base stats: HP, STR, MAG, DEF, RES, SKL, SPD, LUK, MOV, CON, LoS (LoS is Phase 2+).
+
+**Implemented (project) derived values:**
+
+| Derived | Formula |
 |---|---|
-| **HP** | Hit points. At 0, unit is dead or incapacitated |
-| **STR** | Strength. Adds to physical weapon damage |
-| **MAG** | Magic. Adds to tome/staff damage and effectiveness |
-| **DEF** | Defense. Reduces incoming physical damage |
-| **RES** | Resistance. Reduces incoming magical damage |
-| **SKL** | Skill. Affects hit rate and critical hit rate |
-| **SPD** | Speed. Affects number of attacks and dodge rate |
-| **LUK** | Luck. Affects hit, dodge, and crit avoidance |
-| **MOV** | Movement. Tiles the unit can move per turn |
-| **CON** | Constitution. Affects rescue/shove eligibility and related future carry systems |
-| **LoS** | Line of Sight. Tiles visible in fog-of-war maps (Phase 2+) |
+| Battle Speed | `SPD - max(0, Wt - STR)` |
+| Accuracy | `SKL × 2 + LUK + weapon.Hit` |
+| Dodge | `Battle Speed × 2 + LUK` |
+| To-Hit % | `Accuracy - target.Dodge` (clamped 0–100) |
+| Damage | `(STR or MAG) + weapon.Mt - target.(DEF or RES)` (min 0) |
+| Critical | `floor(SKL / 2) + weapon.Crit` |
+| Crit Avoid | `LUK` |
+| Crit % | `Critical - target.Crit Avoid` (clamped 0–100) |
 
-### Derived Combat Stats (per equipped weapon)
+Terrain DEF/Dodge add to the defender's values during combat only.
 
-These are calculated fresh each time and shown in the UI:
+**Target design (SET-001).** Corpus combat-stat formulas are adopted as a target; the
+exact formula set and provenance live in `GDD_Adoption_Matrix.md` (→ `awakening_core_systems.md`
+Derived Combat Values / Attack Speed). Not yet implemented — do not treat as shipped.
 
-| Derived Stat | Formula |
-|---|---|
-| **Battle Speed** | `SPD - max(0, Wt - STR)` |
-| **Accuracy** | `SKL × 2 + LUK + weapon.Hit` |
-| **Dodge** | `Battle Speed × 2 + LUK` |
-| **To-Hit %** | `Accuracy - target.Dodge` (clamped 0–100) |
-| **Damage** | `(STR or MAG) + weapon.Mt - target.(DEF or RES)` (min 0) |
-| **Critical** | `floor(SKL / 2) + weapon.Crit` |
-| **Crit Avoid** | `LUK` |
-| **Crit %** | `Critical - target.Crit Avoid` (clamped 0–100) |
+### Anchors
+- Code: `scripts/core/CombatResolver.gd`
+- Tests: `scripts/tests/test_combat.gd`
+- Decisions: SET-001
+- Reference: `awakening_core_systems.md`; `GDD_Adoption_Matrix.md`
 
-> Note: Terrain DEF/Dodge bonuses are added to the defender's values during combat
-> but do **not** permanently modify stats.
+---
+
+## Combat Modifier Pipeline Order
+
+Status: **Target design** (ratified order; corpus formulas slot into it)
+Last verified: 2026-06-13
+
+### Summary
+A single canonical order in which modifiers compose into final combat values.
+
+### Specs
+Canonical order (ratified 2026-06-13):
+
+```
+base stats → permanent modifiers → pair-up bonuses → combat-duration skill mods →
+conditions → terrain → weapon triangle → S-rank bonus → clamps
+```
+
+Corpus combat migration (SET-001/SET-003, RULE-002) must slot into this order. The
+**binding pipeline contract lives in `GDD_01`** (combat context); this is the
+combat-facing summary. Enforced before M9b authoring.
+
+### Anchors
+- Owner of the binding contract: GDD_01 (combat context schema)
+- Decisions: combat modifier pipeline order (decision_index → JUN)
 
 ---
 
 ## Weapon Triangle
 
-Two separate triangles. Each gives **+10 Accuracy and +2 Damage** when at advantage,
-**-10 Accuracy and -2 Damage** when at disadvantage.
+Status: **Split** — flat project bonus **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003)
+Last verified: 2026-06-13
 
-### Physical Weapons
-```
-Swords → Axes → Lances → Swords
-(Swords beat Axes, Axes beat Lances, Lances beat Swords)
-```
+### Summary
+Two triangles (physical + project magic), each giving advantage/disadvantage to
+Accuracy and Damage.
 
-### Magic Tomes
-```
-Dark → Anima (Fire/Thunder/Wind) → Light → Dark
-```
+### Specs
 
-### Rules
-- Weapons not in a triangle (bows, knives, staves) have no triangle interaction
-- A weapon type has no advantage or disadvantage against **itself**
-- Hybrid weapons (e.g. Sonic Sword, Bolt Axe) use a specified magic type for triangle
-  purposes and their own physical type simultaneously — use whichever gives advantage
+**Implemented (project).** Each triangle gives **+10 Accuracy / +2 Damage** at
+advantage, **-10 / -2** at disadvantage.
+- Physical: Sword → Axe → Lance → Sword.
+- Magic: Dark → Anima (Fire/Thunder/Wind) → Light → Dark.
+- Bows, knives, staves have no triangle interaction; a type has no advantage vs itself.
+- Hybrid weapons (e.g. Sonic Sword, Bolt Axe) carry a magic `triangle_family` and their
+  physical type simultaneously — use whichever gives advantage.
+- Lookup: `DataManager.get_weapon_triangle_result("sword","axe") → "advantage"`.
 
-### Implementation Note
-Store triangle relationships in `DataManager` as a lookup table:
-```gdscript
-# Returns "advantage", "disadvantage", or "neutral"
-DataManager.get_weapon_triangle_result("sword", "axe")  # → "advantage"
-```
+**Target design (SET-003, RULE-013).** Adopt **rank-scaled** corpus triangle bonuses
+for **both** triangles (same scaling table). Both project relationships are retained.
+For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
+magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
+Provenance + variation: `GDD_Adoption_Matrix.md`.
 
----
-
-## Combat Resolution
-
-When a unit attacks, resolve the following **exchange sequence** in order:
-
-1. **Attacker's first attack**
-2. **Defender's counterattack** (only if target is within their equipped weapon's range)
-3. **Follow-up attack** — if one unit's Battle Speed is **5 or more** higher than the
-   other's, that unit makes one additional attack
-
-The current default threshold is 5. A future campaign settings layer may
-override it for a campaign.
-
-> Both the follow-up check and the counterattack check happen at the **start** of
-> combat resolution — determine all attacks before resolving any of them.
-> This prevents mid-combat stat changes from affecting the sequence.
-
-Two modifiers affect this sequence:
-- **Brave weapons** (`WeaponData.strikes_per_attack = 2`) make the wielder strike
-  twice per attack slot — including on the counterattack and the follow-up.
-- **Vantage** (a skill) makes the defender take their counterattack *first*, before
-  the attacker's strike.
-
-`CombatResolver` resolves an exchange the instant the player confirms (MVP has no
-combat animation): `resolve_combat()` builds the exchange list and rolls RNG, then
-`apply_combat_result()` commits HP/durability/EXP. See GDD_01 → CombatResolver.
-
-### Single Attack Resolution
-
-For each individual attack. The roll is `randi() % 100`, yielding 0–99:
-
-1. Calculate **To-Hit %** (factoring weapon triangle and terrain).
-2. Roll RNG — if `roll < To-Hit %`, the attack connects; otherwise it misses.
-3. If it hits, calculate **Crit %**.
-4. Roll RNG again — if `roll < Crit %`, the hit is a critical.
-5. **Damage** is already `(STR or MAG) + weapon.Mt - target.(DEF or RES)` (see the
-   Derived Combat Stats table — DEF/RES is subtracted exactly once, here). A critical
-   hit then **triples that final figure** (`damage × 3`); any skill damage-multiplier
-   is applied last. The result is clamped to a minimum of 0.
-6. Reduce the target's HP by the damage.
-7. If the target's HP ≤ 0, stop the exchange — no further attacks land.
-
-### Weapon Durability
-- **Melee and thrown weapons**: lose 1 use only on a **successful hit**
-- **Bows, tomes, staves**: lose 1 use on **any use**, hit or miss
-- Durability is consumed whether the attack is made as the **initiator or as a counterattacker** — the same rules apply in both directions
-- When a weapon's uses reach 0 it is **destroyed** and removed from inventory
-- Units with no usable weapon in their equipped slot cannot attack
-  (they can still counterattack if they have another weapon in inventory — Phase 2+)
+### Anchors
+- Code: `scripts/autoloads/DataManager.gd`
+- Decisions: SET-003, RULE-013
+- Owner of weapon-family/rank detail: GDD_04
+- Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`
 
 ---
 
-## Weapon Proficiency (wEXP)
+## Combat Resolution & Hit RNG
 
-Each unit tracks weapon proficiency as numeric totals per WEXP track:
-`{ "sword": 100, "lance": 40 }`
+Status: **Split** — exchange flow **Implemented**; two-RN hit model **Target design** (RULE-001)
+Last verified: 2026-06-13
 
-- Every successful hit with a weapon grants `weapon.wexp` points to that track
-- Rank letters are derived from the stored total using `GameConstants.WEXP_RANK_THRESHOLDS`
-- **S rank bonus**: +10 Hit, +5 Crit, +1 Damage with that weapon type
-- A unit can only equip weapons at or below their current rank for that type
-- Class resources author WEXP baselines/caps; promotion and reclass raise a unit to at
-  least the new class's authored baselines for any gained weapon tracks
-- WEXP gain stops at the active class's authored cap. Current classes default
-  to A; explicit S-cap classes may be added later.
+### Summary
+An attack resolves a pre-built exchange list; each strike rolls a hit (two-RN model)
+and, on a hit, a crit. All randomness is sourced from the deterministic `RngService`.
+
+### Specs
+
+**Exchange list (Implemented).** Resolve in order:
+1. Attacker's first attack.
+2. Defender's counterattack (only if the target is within their equipped weapon's range).
+3. Follow-up — if one unit's Battle Speed is **≥5** higher, it makes one extra attack.
+
+All attacks are determined **before** any are resolved (follow-up and counter checks
+run at the start), so mid-combat stat changes never alter the sequence. The default
+follow-up threshold is 5; a future campaign-settings layer may override it.
+- **Brave weapons** (`WeaponData.strikes_per_attack = 2`): the wielder strikes twice
+  per attack slot, including counter and follow-up.
+- **Vantage** (skill): the defender counters *first*, before the attacker's strike.
+
+**Hit/crit per strike — two-RN model (RULE-001, Target design).** Each strike draws
+**two** integers 0–99 (`r1`, `r2`) and hits when `floor((r1 + r2) / 2) < To-Hit %`.
+A crit roll is drawn **only if the hit landed**. Both hit draws are always consumed
+(miss = 2 draws, hit = 3) so the roll order never depends on the outcome.
+- This **supersedes** the former single-roll rule (`randi() % 100`, `roll < pct`).
+- Damage = the Derived value (DEF/RES subtracted once). A critical **triples the final
+  figure** (`×3`); any skill damage-multiplier applies last; clamp to ≥0.
+- If the target's HP ≤ 0, the exchange stops — no further attacks land.
+
+**Determinism (RNG-1…4, see GDD_01).** All gameplay dice come from `RngService` (hash-
+chained, context-seeded), not `randi()`. The **canonical roll order** per attack — two
+hit RNs, then a crit RN on a hit, then skill activation rolls at their trigger slots —
+is the binding contract; reordering it is a save/replay-breaking change. Architecture,
+autoload order, snapshot persistence, accepted exploits, and the online model are owned
+by `GDD_01 → Determinism & RNG`; the build/implementation plan is
+`AGENT/Docs/rng_determinism_design_2026-06-11.md`.
+
+**Mid-exchange weapon breakage (OPEN-3, Answered).** If a weapon breaks mid-exchange,
+it **cancels that unit's remaining strikes** in the exchange (consistent with
+attacks-determined-upfront and the deterministic roll order); the weapon is gone after
+combat.
+
+`CombatResolver` resolves an exchange the instant the player confirms (no combat
+animation yet): `resolve_combat()` builds the list and draws rolls; `apply_combat_result()`
+commits HP/durability/EXP. See GDD_01 → CombatResolver.
+
+### Known gaps
+- Two-RN model and `RngService` are **Target design** — not yet implemented (Package A,
+  RngService Build Order Step 1).
+- Units with no usable equipped weapon cannot attack; counterattacking from a non-equipped
+  inventory weapon is Phase 2+.
+
+### Anchors
+- Code: `scripts/core/CombatResolver.gd` (target: `scripts/autoloads/RngService.gd`)
+- Tests: `scripts/tests/test_combat.gd` (target: RNG determinism T1–T7)
+- Decisions: RULE-001, RNG-1…4, OPEN-3, pipeline order
+- Reference: `GDD_Adoption_Matrix.md`; `AGENT/Docs/rng_determinism_design_2026-06-11.md`
 
 ---
 
-## Actions Available on a Unit's Turn
+## Weapon Durability
 
-A unit may **Move** and then take **one action**, or skip movement and act in place.
-Some actions end the turn; some do not.
+Status: **Split** — current model **Implemented**; breakage-cancels-strikes **Target design** (OPEN-3)
+Last verified: 2026-06-13
 
-| Action | Ends Turn? | Notes |
+### Specs
+- Melee/thrown weapons lose 1 use only on a **successful hit**.
+- Bows, tomes, staves lose 1 use on **any use**, hit or miss.
+- Durability is consumed as initiator or counterattacker alike.
+- At 0 uses the weapon is **destroyed** and removed from inventory.
+- Mid-exchange breakage cancels the unit's remaining strikes (OPEN-3 — see Combat
+  Resolution).
+- A **broken-weapon degraded mode** (optional: stat penalty + infinite uses while
+  broken, repairable later) is a **deferred backlog** item (OPEN-5), likely a
+  CampaignRules toggle.
+
+### Anchors
+- Decisions: OPEN-3, OPEN-5
+- Owner of per-weapon data: GDD_04
+
+---
+
+## Weapon Proficiency (WEXP)
+
+Status: **Split** — current thresholds/gain **Implemented**; corpus migration **Target design** (SET-004/005)
+Last verified: 2026-06-13
+
+### Summary
+Units accumulate numeric WEXP per weapon track; rank letters derive from thresholds.
+
+### Specs
+
+**Implemented (project).**
+- Per-track totals, e.g. `{ "sword": 100, "lance": 40 }`.
+- Each successful hit grants `weapon.wexp` to that track; ranks derive via
+  `GameConstants.WEXP_RANK_THRESHOLDS`.
+- A unit equips only weapons at/below its current rank for that type.
+- Class resources author WEXP baselines/caps; promotion/reclass raise a unit to at
+  least the new class's baselines for gained tracks. Gain stops at the class's authored
+  cap (default A; explicit S-cap classes may exist).
+- **S-rank bonus (current):** +10 Hit, +5 Crit, +1 Damage with that weapon type.
+
+**Target design.**
+- **WEXP thresholds/caps (SET-004):** corpus values E=1, D=31, C=71, B=121, A=181,
+  S=251, Cap=400.
+- **Gain timing (RULE-004):** per **valid use** (corpus-style), weapon-defined
+  exceptions; may change in a balance pass.
+- **Migration (RULE-003):** proportional within current rank; no persistent save to
+  migrate, so this governs runtime/in-session conversion. Formula in the register.
+- **Rank bonuses (SET-005/RULE-002):** move rank bonuses into the **combat engine**;
+  retire `s_rank_mastery` as a pseudo/equipped skill. The S-rank extension
+  (+10/+5/+1) is the project variation.
+
+### Anchors
+- Code: `scripts/autoloads/DataManager.gd`, `GameConstants` (`WEXP_RANK_THRESHOLDS`)
+- Decisions: SET-004, SET-005, RULE-002, RULE-003, RULE-004
+- Owner of weapon-rank detail/economy: GDD_04
+- Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
+
+---
+
+## Actions on a Unit's Turn
+
+Status: **Implemented** (with noted future actions)
+Last verified: 2026-06-13
+
+### Specs
+A unit may Move then take **one action**, or act in place. Shipped action flow:
+**Move, Attack, Staff, Item, Equip, Wait, Seize, Escape, Pair Up, Swap, Separate**.
+
+| Action | Ends turn? | Notes |
 |---|---|---|
-| **Move** | No | Up to MOV tiles; can be undone until an action is committed |
-| **Attack** | Yes | Must have a valid target in weapon range |
-| **Staff** | Yes | Heal an allied unit in range; awards EXP and wEXP |
-| **Use Item** | Yes | Consumes one use of a healing/utility item |
-| **Equip Weapon** | No | Switch active weapon; does not consume turn |
-| **Trade** | No* | Swap items with adjacent ally; if unit has already moved, trading ends their turn; if unit has not yet moved, they may still take an action after trading |
-| **Shove** | Yes | Push adjacent non-mounted ally 1 tile |
-| **Pair Up** | Yes | Combine with an adjacent unpaired ally when campaign Pair Up is enabled |
-| **Swap** | Yes | Swap lead/support roles inside an existing pair |
-| **Separate** | Yes | Drop the support unit onto an adjacent valid tile |
-| **Wait** | Yes | End turn without acting |
-| **Seize** | Yes | Map objective action on specific tile |
-| **Escape** | Yes | Map objective action on specific tile |
-| **Class Ability** | Yes | If the ability requires an action |
+| Move | No | Up to MOV; undoable until an action commits |
+| Attack | Yes | Valid target in range |
+| Staff | Yes | Heal ally in range; awards EXP + WEXP |
+| Use Item | Yes | Consumes one use |
+| Equip Weapon | No | Switch active weapon |
+| Trade | No* | Adjacent ally; ends turn only if already moved |
+| Shove | Yes | Push adjacent non-mounted ally 1 tile |
+| Pair Up / Swap / Separate | Yes | When campaign Pair Up enabled |
+| Wait / Seize / Escape | Yes | Wait ends turn; Seize/Escape are objective actions |
+| Class Ability | Yes | If it requires an action |
 
-> *Trade: after trading, the unit may still act if they have not yet moved this turn; otherwise the trade ends their turn.
+> *Trade: may still act if not yet moved this turn.
 
-> **Current implementation:** the shipped action flow supports **Move, Attack, Staff,
-> Item, Equip, Wait, Seize, Escape, Pair Up, Swap, and Separate**. Trade, Shove,
-> Rescue/carry, and other class-specific field actions remain future work.
+### Known gaps
+- Trade, Shove, Rescue/carry, and class-specific field actions are future work.
+- **Canto / post-action remainder movement** (mounted/flying move after a turn-ending
+  action, then Wait) is a design target, **not** implemented.
 
-### Mounted / Flying Unit Exception
-After any turn-ending action (other than Wait), a **mounted or flying unit** may move
-any remaining movement tiles, but must then Wait.
-
-> This is still a design target, not a shipped runtime rule. The current codebase
-> does **not** implement post-action remainder movement / Canto yet.
+### Anchors
+- Code: `scripts/core/TurnManager.gd`, `scripts/core/MapCursorSelection.gd`
 
 ---
 
 ## Experience Points (EXP)
 
-Units gain EXP through combat, staff use, and certain class abilities.
-At 100 EXP, the unit levels up and resets to 0 (carrying over any excess).
+Status: **Implemented**
+Last verified: 2026-06-13
 
-### Combat EXP Table
+### Summary
+Symmetric combat/staff EXP; 100 EXP = one level, overflow carries.
 
-EXP is symmetric — it goes to whichever unit dealt a blow, not just the player.
-Level difference = **the acting unit's level minus the opponent's level**; positive
-means the acting unit is higher level. `CombatResolver.calculate_exp()` indexes this
-table with `clamp(level_diff + 6, 0, 12)`.
+### Specs
+- EXP goes to whichever unit dealt a blow (player and enemy alike), once per **combat
+  exchange** (not per hit). WEXP increases per successful **hit**.
+- Level difference = acting unit's level − opponent's; `CombatResolver.calculate_exp()`
+  indexes the table with `clamp(level_diff + 6, 0, 12)`.
 
-| Level Difference (acting unit minus opponent) | EXP for Kill | EXP for Damage Only |
+| Lvl diff (acting − opp) | Kill | Damage only |
 |---|---|---|
-| 6+ levels lower | 59 | 20 |
-| 5 lower | 57 | 19 |
-| 4 lower | 53 | 18 |
-| 3 lower | 47 | 16 |
-| 2 lower | 41 | 14 |
-| 1 lower | 35 | 12 |
+| 6+ lower | 59 | 20 |
+| 5 / 4 / 3 / 2 / 1 lower | 57 / 53 / 47 / 41 / 35 | 19 / 18 / 16 / 14 / 12 |
 | Equal | 30 | 10 |
-| 1 higher | 25 | 8 |
-| 2 higher | 19 | 6 |
-| 3 higher | 13 | 4 |
-| 4 higher | 7 | 2 |
-| 5 higher | 3 | 1 |
+| 1 / 2 / 3 / 4 / 5 higher | 25 / 19 / 13 / 7 / 3 | 8 / 6 / 4 / 2 / 1 |
 | 6+ higher | 1 | 0 |
 
-> EXP is granted once per **combat exchange**, not per hit.
-> wEXP increases per successful **hit**.
+- **Enemy/AI EXP gating (OPEN-4, Target):** EXP gain is faction-gated via
+  `CampaignRules.exp_gaining_factions` (default Blue + Green; Red none). Designers may
+  override. Owner of the CampaignRules contract: GDD_01 (Stage 3.5).
+- **Staff EXP (Implemented):** flat 10 EXP (`GameConstants.STAFF_HEAL_EXP`); a
+  pre/post-promotion curve is a Phase 2 refinement.
 
-### Staff EXP (MVP — Heal only)
-
-A staff use awards a **flat 10 EXP** to the healer (`GameConstants.STAFF_HEAL_EXP`),
-regardless of staff type or promotion status. A pre-/post-promotion staff-EXP curve
-is a Phase 2 refinement.
+### Anchors
+- Code: `scripts/core/CombatResolver.gd` (`calculate_exp`), `GameConstants`
+- Decisions: OPEN-4
 
 ---
 
 ## Leveling Up
 
-When a unit reaches 100 EXP:
-1. Level increases by 1, EXP resets (overflow carries)
-2. Stats increase using the selected leveling method (see below)
-3. Level-up animation plays `[PLACEHOLDER]`
-4. New stats are saved to `UnitData`
+Status: **Implemented** (Random + Fixed); other methods **Planned**
+Last verified: 2026-06-13
 
-### Leveling Methods (per-save setting)
+### Specs
+At 100 EXP: level +1, EXP resets (overflow carries), stats rise per the save's
+`GameState.leveling_method`.
 
-The leveling method is chosen on the New Game screen and stored in
-`GameState.leveling_method`. **Two methods are implemented:**
-
-| Method (`leveling_method`) | Description |
+| Method | Description |
 |---|---|
-| `growth_random` (default) | Each stat has a growth-rate %, rolled per stat each level. A rate above 100 grants that many guaranteed points plus a roll for the remainder. The classic FE growth-rate system. |
-| `growth_fixed` | Deterministic accumulator: each level adds the growth rate to a per-stat carry; every full 100 accumulated yields +1. Perfectly predictable. The carry persists in `UnitData.growth_accumulators`. |
+| `growth_random` (default) | Per-stat growth %, rolled each level; >100 grants guaranteed points + a roll for the remainder |
+| `growth_fixed` | Deterministic accumulator in `UnitData.growth_accumulators`; every full 100 yields +1 |
 
-> **Designed but not yet implemented:** Point Buy (assign N points/level), Coin Flip
-> (50% per stat), and Dice Roll. These are Phase 2 refinements — the New Game screen
-> currently offers only Random and Fixed.
+Growth dicts use full stat names. Blue units add personal `UnitData.growth_rates` to
+`ClassData.player_growth_rates`; non-blue generation uses `enemy_growth_rates`.
 
-### Growth Rates
+Level-up rolls are a chained `levelup` RNG event (one per level on overflow), drawing
+one growth roll per stat in `ClassData.STAT_KEYS` order — see the determinism contract.
 
-Growth dictionaries use **full stat names**. Blue units add personal
-`UnitData.growth_rates` to `ClassData.player_growth_rates`; non-blue generation
-uses `ClassData.enemy_growth_rates`.
-```gdscript
-@export var player_growth_rates: Dictionary
-@export var enemy_growth_rates: Dictionary
-# e.g. { "hp": 75, "strength": 50, "magic": 5, "defense": 45,
-#         "resistance": 25, "skill": 50, "speed": 45, "luck": 40 }
-```
+### Known gaps
+- Point Buy, Coin Flip, Dice Roll are **Planned** (New Game screen offers only Random
+  and Fixed).
+- **Class-growth adoption (RULE-008, Target):** effective growth becomes corpus
+  archetype + corpus class growth; authored personal growths are replaced. Owned by
+  GDD_03.
 
----
-
-## Class Promotion
-
-- A unit may promote when it reaches its current class's `max_level` and has at
-  least one authored `promotes_to` option.
-- Promotion items use the same eligibility gate; they do not allow early promotion.
-- The player chooses an authored target class.
-- Promotion stat bonuses and WEXP baselines apply immediately.
-- Visible level resets to 1; broader progression is preserved in `internal_level`.
-- Promoted class skills are learned at their authored `skill_unlocks` levels.
-- Promotion does not add a blanket growth-rate bonus.
+### Anchors
+- Code: `scripts/units/Unit.gd` (`level_up`)
+- Tests: `scripts/tests/test_level_up_screen.gd`
+- Decisions: RULE-008 (GDD_03)
 
 ---
 
-## Permadeath System
+## Promotion — Trigger Timing
 
-Controlled by `GameState.permadeath_enabled` (bool).
+Status: **Split** — current eligibility **Implemented**; corpus timing + modal **Target design** (RULE-005)
+Last verified: 2026-06-13
 
-### Permadeath ON
-- Unit is removed from the map when HP reaches 0
-- Unit's `UnitData` is retained — stats, level, inventory preserved
-- Unit is **flagged** as `is_incapacitated = true`
-- Incapacitated units cannot be deployed in future maps
-- The unit data is never deleted — it can be "revived" by the designer later
-  (e.g. via story event) or the player can view their fallen units
+### Summary
+*When* promotion fires and how the modal interrupts play. Class targets, bonuses, and
+progression relationships are owned by **GDD_03**.
 
-### Permadeath OFF
-- Unit collapses on the map, is removed from play for that map
-- Unit is fully available in the next map
-- No `is_incapacitated` flag is set
+### Specs
 
-### Game Over Condition
-Regardless of permadeath setting, if a **designated required unit** (e.g. the lord
-character) dies, the map ends in defeat and the player is returned to a retry screen.
+**Implemented (project).** A unit may promote at its class `max_level` with an authored
+`promotes_to`; promotion items use the same gate (no early promotion). Visible level
+resets to 1; progression preserved in `internal_level`; promoted skills learn at their
+`skill_unlocks` levels.
+
+**Target design (RULE-005).**
+- **Seals** permit promotion at **level 10**; **campaign settings** may additionally
+  allow **automatic** promotion when a unit reaches its class level cap.
+- The promotion modal opens **only after the triggering action fully commits** (combat
+  resolves and EXP is applied) — not mid-action.
+- While open, **all controllers are blocked** until the owning player selects a class;
+  it may interrupt other players' turns, with control returning afterward.
+- Promotion is **mandatory once triggered — no cancel**.
+- Rationale: keeps the deterministic event stream and online sync unambiguous (the
+  interrupt point is the post-commit eligibility check).
+
+### Anchors
+- Decisions: RULE-005, SET-006
+- Owner of class targets/progression: GDD_03
+- Reference: `awakening_core_systems.md` (Promotion System); `GDD_Adoption_Matrix.md`
+
+---
+
+## Permadeath
+
+Status: **Implemented**
+Last verified: 2026-06-13
+
+### Specs
+Controlled by `GameState.permadeath_enabled`.
+- **ON:** at 0 HP the unit leaves the map; `UnitData` is retained and flagged
+  `is_incapacitated = true`; cannot be deployed later; never deleted (revival/viewing
+  possible).
+- **OFF:** the unit is removed for that map only and is fully available next map; no
+  flag set.
+- **Game Over:** if a designated required unit (e.g. the lord) dies, the map ends in
+  defeat → retry screen, regardless of the setting.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd`
+
+---
+
+## Win/Loss Evaluation
+
+Status: **Target design** (ruling ratified) — current objective checks **Implemented**
+Last verified: 2026-06-13
+
+### Summary
+Objective checks run at phase boundaries, after combat deaths, and after Seize/Escape.
+This section owns the **simultaneous victory/defeat** tiebreak.
+
+### Specs
+**Simultaneous victory/defeat (OPEN-6, Answered).** Evaluate **defeat before victory**.
+If multiple groups still satisfy victory in one pass, prefer the **acting faction's**
+group; otherwise declare the existing draw.
+
+Objective *types* (Rout, Seize, Defeat Boss, Escape, Survive/Defend, Protect) and
+authored-map objective contracts are owned by **GDD_06**.
+
+### Anchors
+- Code: `scripts/core/TurnManager.gd` (objective checks)
+- Decisions: OPEN-6
+- Owner of objective types: GDD_06
 
 ---
 
 ## Status Conditions
 
-Phase 2+ (listed here for architectural awareness — build condition slots into `UnitData`
-from the start).
+Status: **Target design** (locked design; build slots from the start) — Phase 2+ (M8)
+Last verified: 2026-06-13
+
+### Summary
+Timed conditions stored on `UnitData`. Conditions are **not** skills.
+
+### Specs
 
 | Condition | Effect | Duration |
 |---|---|---|
-| **Berserk** | Auto-attacks the target with the **highest projected damage** in range; tiebreak nearest → lowest unit id; can hit allies | 3 turns |
-| **Silence** | Cannot use weapons whose `weapon_type` is `TOME` or `STAFF` (physical weapons unaffected) | 4 turns |
-| **Sleep** | Cannot move, act, or counterattack; dodge disabled | 3 turns |
-| **Poison** | -3 HP at start of turn; **floors at 1 HP by default** (source-supplied `can_be_lethal` opts in to killing); -10 Accuracy and Dodge | 5 turns |
-| **Stun** | Cannot move, act, or counterattack; dodge disabled | 1 turn |
+| Berserk | Auto-attacks highest projected-damage target in range; tiebreak nearest → lowest unit id; can hit allies | 3 turns |
+| Silence | Cannot use `TOME`/`STAFF` weapons (physical unaffected) | 4 turns |
+| Sleep | Cannot move/act/counter; dodge disabled | 3 turns |
+| Poison | −3 HP at start of turn; **floors at 1 HP** unless source `can_be_lethal`; −10 Accuracy & Dodge | 5 turns |
+| Stun | Cannot move/act/counter; dodge disabled | 1 turn |
 
-Store conditions on `UnitData` as:
+Storage:
 ```gdscript
 @export var conditions: Array[Dictionary]
-# Standard schema: { "type": String, "turns_remaining": int }.
-# Do not pre-add source_id / magnitude / tags — extend only when a specific
-# condition (e.g. Hex's skill payload) genuinely needs an extra field.
-# e.g. [{ "type": "poison", "turns_remaining": 3 }]
+# { "type": String, "turns_remaining": int }; extend only when a condition needs more.
 ```
 
-**Locked 2026-05-25:** see `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
-and the M8 section of `GDD_10_Roadmap.md`. The Poison `can_be_lethal` flag,
-Berserk's projected-damage targeting, Silence's tome/staff filter, and the
-minimal condition schema were settled before M8 implementation begins.
+**Condition/skill precedence (OPEN-2, Answered) — one general rule:**
+- Conditions are **not** skills: Nihil/skill-negators **never** block conditions.
+- A condition that disables acting (Sleep, Stun) **also suppresses that unit's
+  combat-start skills**.
+- Per-skill exceptions are logged in `GDD_05`, not here.
+
+### Known gaps
+- Phase 2+ (M8). Design locked 2026-05-25 (see `campaign_rules_firming_notes_2026-05-25.md`
+  and GDD_10 §M8): Poison `can_be_lethal`, Berserk targeting, Silence filter, schema.
+
+### Anchors
+- Code: `scripts/autoloads/ConditionManager.gd`
+- Decisions: OPEN-2
+- Owner of per-skill interactions: GDD_05
 
 ---
 
-## Rescue and Shove
+## Rescue & Shove
 
-### Shove
-- Non-mounted units only
-- Push an adjacent unit (ally or enemy — GM discretion) 1 tile in a direction
-- Target tile must be unoccupied
-- Some units cannot be shoved (implement as a special quality flag: `no_shove`)
-- Ends the shoving unit's turn
+Status: **Split** — Shove design **Target**; Rescue **Planned** (Phase 2)
+Last verified: 2026-06-13
 
-### Rescue (Phase 2)
-- Unit picks up an adjacent ally with lower CON
-- Rescued unit is carried; loses its turn while carried
-- Rescuing unit loses ½ SPD and ½ SKL while carrying
-- Rescued unit can be dropped to any adjacent unoccupied tile
+### Specs
+- **Shove:** non-mounted units push an adjacent unit 1 tile to an unoccupied tile;
+  `no_shove` quality blocks it; ends the shover's turn. (Not in the shipped action flow
+  yet — see Actions.)
+- **Rescue (Phase 2):** pick up an adjacent ally with lower CON; carried unit loses its
+  turn; carrier loses ½ SPD and ½ SKL; droppable to an adjacent unoccupied tile.
+
+### Anchors
+- Owner of CON/carry systems: GDD_03
 
 ---
 
-## Gold and Economy
+## Gold & Economy (combat-adjacent)
 
-- The active economy uses the shared `GameState.party_gold` treasury.
-- Map rewards add to party gold once when the map resolves.
-- Gold is used to buy weapons and items at shops (Phase 2 — shop scenes)
-- Items can be sold for **½ their base value**, reduced proportionally by remaining uses:
-  `sale_price = floor(base_cost * (uses_remaining / max_uses) / 2)`
+Status: **Implemented** (shops **Planned**)
+Last verified: 2026-06-13
+
+### Specs
+- Shared `GameState.party_gold` treasury; map rewards add once on map resolve.
+- Sale price: `floor(base_cost × (uses_remaining / max_uses) / 2)`.
+- Shops are Phase 2 (scenes); a campaign-mode prerequisite (D-D).
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd`
+- Owner of item/economy detail: GDD_04
+- Decisions: D-D

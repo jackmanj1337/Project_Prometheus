@@ -115,12 +115,11 @@ dates, (c) add code/data/test anchors, (d) move procedural detail to the owning 
 (e) mark superseded source docs and apply their gated move/merge (Stage 1 table), (f)
 record any new choice in the register.
 
-- [ ] 3.1 **`GDD_02` Core Mechanics** — combat, two-RN hit, modifier pipeline order,
-  WEXP, EXP, promotion, reclass, terrain. Apply combat rulings: weapon breakage cancels
-  remaining strikes (OPEN-3); fort/throne heal = max(1, floor(0.10 × max HP)) (OPEN-7);
-  simultaneous victory/defeat → defeat first then acting faction (OPEN-6);
-  condition/skill precedence as one rule (OPEN-2). **Merge `rng_determinism_design`
-  into the GDD feature-design home here** (DOC-010). Package A + parts of B/C/D docs.
+- [x] 3.1 **`GDD_02` Core Mechanics** — DONE 2026-06-13. Rewrote with section template +
+  status labels; applied two-RN (RULE-001), pipeline order, OPEN-2/3/6/7, WEXP/EXP/
+  promotion-timing decisions as split status. **RNG contract merged:** binding rules →
+  `GDD_01 §Determinism, Snapshot & Online Contract` + `GDD_02 §Combat Resolution & Hit
+  RNG`; file moved to `AGENT/Docs/` and re-scoped as the implementation plan (DOC-010).
 - [ ] 3.2 **`GDD_03` Units & Classes** — class corpus adoption, progression/promotion/
   reclass relationships, EXP-basis reset on reclass, lifetime-level counter, magic-class
   design gaps (Light/Dark lines). Soldier deferred (AWR-2). Package C/E docs.
@@ -277,7 +276,9 @@ answered decision.
 ## Preserve this worktree state (until its Stage action runs)
 
 - `AGENT/GDD/gdd_update_reference_2026-06-12.md` (untracked; archived in Stage 5.2)
-- `AGENT/GDD/rng_determinism_design_2026-06-11.md` (untracked; moved/merged in 3.1)
+- ~~`AGENT/GDD/rng_determinism_design_2026-06-11.md`~~ — **DONE (3.1):** moved to
+  `AGENT/Docs/`, binding rules merged into GDD_01/02, re-scoped as implementation plan,
+  now tracked. Archived once `RngService` + tests land.
 - combat-preview screenshots + `.import` files in `AGENT/Docs`
 
 ---

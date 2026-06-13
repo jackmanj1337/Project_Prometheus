@@ -32,7 +32,7 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
 | Combat-stat formulas (Atk/Hit/Avo/Crit/AS) | `awakening_core_systems`, `awakening_lookup_tables` | Adopted target | GDD_02 §Combat (TBD) | — | Target design | SET-001 |
-| Hit RNG model | `awakening_core_systems` | Adopted w/ variation | GDD_02 §Combat RNG / GDD_01 §RngService | Two-RN math is corpus; **sourcing is project** — hash-chained deterministic `RngService` | Target design | RULE-001, SET-002, RNG-1…4 |
+| Hit RNG model | `awakening_core_systems` | Adopted w/ variation | GDD_02 §Combat Resolution & Hit RNG; GDD_01 §Determinism, Snapshot & Online Contract | Two-RN math is corpus; **sourcing is project** — hash-chained deterministic `RngService` | Target design | RULE-001, SET-002, RNG-1…4 |
 | Crit resolution | `awakening_core_systems` | Adopted target | GDD_02 §Combat (TBD) | Crit only after a hit (roll order) | Target design | RULE-001 |
 | Effectiveness multiplier | `awakening_core_systems`, `awakening_lookup_tables` | Adopted target | GDD_02 / GDD_04 (TBD) | — | Target design | — |
 | Follow-up at +5 AS | `awakening_core_systems` | Implemented | GDD_02 §Combat (TBD) | Current default; campaigns may override | Implemented | — |

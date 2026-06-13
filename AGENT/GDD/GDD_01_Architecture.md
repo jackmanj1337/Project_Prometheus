@@ -617,6 +617,69 @@ func clear_all_conditions(unit: Node) -> void
 
 ---
 
+## Determinism, Snapshot & Online Contract
+
+Status: **Target design** (binding rules ratified; `RngService` is Package A, not yet built)
+Last verified: 2026-06-13
+
+### Summary
+All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
+that rewind, suspend save, and Retry reproduce identical outcomes, and online play can
+be host-authoritative. This section is the **binding contract**; the implementation
+plan (code, integration sweep, tests, build order) is
+`AGENT/Docs/rng_determinism_design_2026-06-11.md`.
+
+### Specs (binding rules)
+
+- **RNG-1 — Hash-chained context-seeded dice.** Every gameplay die derives from
+  `seed = mix(map_seed, history_hash, event_record)`. `history_hash` advances on every
+  **committed, non-undoable** unit action; equip, undone moves, menu/cursor/preview
+  **never** advance it. Each dice-bearing event draws from its own freshly seeded RNG
+  in the canonical roll order; level-ups are chained per `(unit_id, new_level)`.
+- **RNG-2 — RNG state lives in the snapshot.** `{map_seed, history_hash}` serializes
+  into every map snapshot (Retry, rewind checkpoints, suspend save); replaying the
+  identical committed-action sequence reproduces outcomes byte-for-byte.
+- **RNG-3 — Accepted exploits, priced by rewind charges.** Probing and Wait-to-reroll
+  are knowingly permitted, bounded by a `CampaignRules` rewind-charge pool (default 3–5;
+  0 = ironman). No further anti-manipulation machinery.
+- **RNG-4 — Online is host-authoritative (M15B, post-1.0).** The host simulates and
+  broadcasts result payloads through the `resolve_combat()` / `apply_combat_result()` +
+  snapshot seams; determinism guarantees are **engine-local**. The custom mixer is still
+  mandatory (protects suspend saves across Godot upgrades).
+- **Canonical roll order (binding).** Per `attack` event: per strike, **two hit RNs**
+  (0–99; hit when `floor((r1+r2)/2) < To-Hit`, RULE-001), then a **crit RN only on a
+  hit**, then skill-activation rolls at their trigger slots; then `levelup` events
+  (one growth roll per stat in `ClassData.STAT_KEYS` order). Reordering — including
+  reverting to a single hit RN — is a **save/replay-breaking** change.
+- **Frame-atomicity (already true).** Combat resolves within one frame
+  (`resolve_combat()` builds + rolls; `apply_combat_result()` commits); snapshots exist
+  only **between** committed actions, so there is no mid-exchange state to serialize.
+- **Snapshot contract.** Generalize `GameState.take_map_snapshot()` into one
+  `Dictionary` (`schema_version`, `map_id`, `campaign_rules`, `rng`, `turn`, `party`,
+  `pair_up`, `units[]` including non-`@export` runtime fields). Retry = restore
+  checkpoint 0; suspend save = this dict to `user://suspend.sav`; rewind = a ring of
+  these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
+  delete-on-load — RNG-2 already blocks reload-scumming).
+- **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
+  subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
+  save-breaking).
+
+### Known gaps
+- `RngService` autoload, the migration sweep off raw `randi()`, and tests T1–T7 are
+  **not built** (Package A, Build Order Step 1). Until then combat uses the inline
+  single-roll path noted under CombatResolver.
+
+### Anchors
+- Code (target): `scripts/autoloads/RngService.gd`; touches `CombatResolver.gd`,
+  `SkillHandler.gd`, `Unit.gd` (`level_up`), `TurnManager.gd`, `GameState.gd`
+- Tests (target): determinism T1–T7 (replay, snapshot round-trip, butterfly/isolation,
+  equip neutrality, raw-RNG lint, suspend round-trip, roll-order freeze)
+- Decisions: RNG-1…4, RULE-001, OPEN-13
+- Implementation plan: `AGENT/Docs/rng_determinism_design_2026-06-11.md`
+- Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG
+
+---
+
 ## Key Script Function Signatures
 
 ### `GridManager.gd`
@@ -716,7 +779,10 @@ func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int
 ```
 
 > Battle speed is not a CombatResolver method — it is `Unit.battle_speed()`.
-> The hit/crit roll is inline `(randi() % 100) < pct` (see GDD_02 → Combat Resolution).
+> **Hit/crit roll — status split.** *Implemented:* inline single-roll
+> `(randi() % 100) < pct`. *Target design:* the **two-RN** model (RULE-001) sourced
+> from `RngService` — see GDD_02 → Combat Resolution and "Determinism, Snapshot &
+> Online Contract" below.
 
 ### `TurnManager.gd`
 
@@ -1312,6 +1378,11 @@ in its own `_ready()` instead.
 can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,
 `SkillHandler`, and `ItemHandler` are autoload singletons reached via
 `get_node_or_null("/root/...")` — they are not scene nodes.
+
+**Target design (Package A):** `RngService` (see "Determinism, Snapshot & Online
+Contract") inserts into this order **after `EventBus`, before `SettingsManager`** — it
+has no dependencies and must exist before anything rolls — making the list thirteen:
+`GameConstants → EventBus → RngService → SettingsManager → GameState → …`.
 
 ### Export-safe content loading
 
