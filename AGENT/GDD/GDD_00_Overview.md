@@ -82,8 +82,9 @@ are **not** authority sources; retrieve via Git history once removed:
   retrieve via Git. Open backlog items were already in GDD_10_Roadmap Phase 3 (DOC-006).
 - `GDD_10a_Overview.md` — **Deleted** (Stage 4.1, 2026-06-13); content merged into
   `GDD_10_Roadmap.md` Appendix A–C. Retrieve via Git history if needed (DOC-004).
-- `GDD_Assumptions.md` — **Historical**; useful assumptions fold into owning chapters
-  then deleted (DOC-006).
+- `GDD_Assumptions.md` — **Deleted** (Stage 5.2, 2026-06-13); assumptions are now
+  embedded in owning GDD chapters (GDD_02/03/06/07/08) or in design decisions.
+  Retrieve via Git if needed (DOC-006).
 - `GDD_Manual_Tasks.md` — **Moved** (Stage 5.2, 2026-06-13); now at
   `AGENT/Docs/manual_test_playbook.md` (DOC-007).
 
