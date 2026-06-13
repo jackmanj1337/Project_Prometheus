@@ -1,7 +1,11 @@
 # Documentation Consolidation Handoff
 
+> **Superseded 2026-06-13 by `documentation_consolidation_handoff_2026-06-13b.md`.**
+> All decision work in the "First Work Package" below is now complete; the new
+> handoff carries the ready-to-execute checklist. Kept for provenance.
+
 **Date:** 2026-06-13
-**Status:** Ready for next-session decision work
+**Status:** Superseded — decision work complete
 **Review:** `AGENT/Docs/documentation_consolidation_preimplementation_review_2026-06-13.md`
 
 ## Current State
