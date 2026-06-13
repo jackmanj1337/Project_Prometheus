@@ -1700,6 +1700,13 @@ M16 itself is shipped. These five decisions govern the **objective-map followup*
 
 The following items are planned but not yet milestoned. Implement after M13 is stable.
 
+### Code Health (tech debt)
+
+- [ ] **Decompose `DataManager._ready()`** (~525 lines) into named, testable phases
+      (`_load_all_resources`, `_validate_cross_references`, `_build_default_roster`,
+      `_dedup_unit_ids`). Behavior-preserving refactor for readability and unit-testable
+      load/validate. Source: code review 2026-06-13 (AGENT/Code Reviews) §2, Medium.
+
 ### Content
 
 - [ ] All remaining handbook classes not covered in M11 (GM-discretion additions)
