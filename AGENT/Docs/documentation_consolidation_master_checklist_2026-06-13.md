@@ -38,7 +38,7 @@ prerequisite for the later `RngService` implementation.
 
 # STAGE 1 — Foundations (readiness gate, before any destructive move)
 
-### [ ] 1.1 Phase 1 — file lifecycle / link-migration table
+### [x] 1.1 Phase 1 — file lifecycle / link-migration table — DONE 2026-06-13 (`documentation_lifecycle_2026-06-13.md`)
 
 Create `AGENT/Docs/documentation_lifecycle_2026-06-13.md`: one row per tracked doc —
 current path, status label, authority scope, action (keep/merge/move/supersede/
@@ -48,7 +48,7 @@ the inbound-reference sweep in **Appendix A** (do not re-search).
 Exit: every document has an explicit lifecycle; no planned move would orphan a live
 inbound link.
 
-### [ ] 1.2 Update the RNG contract to two-RN (RULE-001) — Package A prerequisite
+### [x] 1.2 Update the RNG contract to two-RN (RULE-001) — DONE 2026-06-13 (`rng_determinism_design_2026-06-11.md` §5/§6/§11/T7; file kept untracked pending 3.1 move/merge)
 
 In `rng_determinism_design_2026-06-11.md`: hit = two 0–99 draws, floor the average,
 compare to resolved hit; crit only after a successful hit; skill activations at their
@@ -57,14 +57,14 @@ save-compatibility notes. Must precede any `RngService` code.
 
 Exit: contract, fixture, and save notes all describe the two-RN order.
 
-### [ ] 1.3 Seed `AGENT/Docs/decision_index.md`
+### [x] 1.3 Seed `AGENT/Docs/decision_index.md` — DONE 2026-06-13
 
 Per the DOC-009 schema: one row per existing DOC-/RULE-/SET-/OPEN-/RNG-/AWR- ID with
 status + link + supersession. Record **D-C → superseded by DOC-001**.
 
 Exit: every known decision ID is discoverable from one index.
 
-### [ ] 1.4 Seed `AGENT/GDD/GDD_Feature_Index.md`
+### [x] 1.4 Seed `AGENT/GDD/GDD_Feature_Index.md` — DONE 2026-06-13
 
 The DOC-005 dedicated index; columns per plan §5. Start from the initial feature
 groups in plan §5 (combat/RNG, weapon triangle, WEXP, EXP/promotion/reclass, classes/
