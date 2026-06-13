@@ -63,6 +63,7 @@ _ACTIVE_GUIDE_FILES = [
     ROOT / "AGENT/Docs/campaign_rules.md",
     ROOT / "AGENT/Docs/manual_test_playbook.md",
     ROOT / "AGENT/Docs/Docker Instructions.md",
+    ROOT / "AGENT/Docs/new_machine_transfer_checklist.md",
 ]
 
 # These are scanned for banned/broken paths but are not operational guides

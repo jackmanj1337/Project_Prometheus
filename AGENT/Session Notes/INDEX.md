@@ -1,93 +1,94 @@
 # Session Notes — Master Index
 
-One line per session note, newest first. Auto-seeded from each note's first
-content line; refine summaries by hand as needed. **Add a row here whenever you
-create a session note** (mirrors how `MEMORY.md` indexes memories).
+One line per session note, newest first. **Add a row here whenever you create a
+session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
+records — keep them; this index is the navigation layer.
 
-- [2026-06-13m](2026-06-13m.md) — Whole-codebase code review (8/10) + GDD field-test; implemented review fixes (RNG-usage guard, low-sev tests, roadmap/feature-index)
-- [2026-06-13l](2026-06-13l.md) — Built a documentation-review process (the doc analogue of the code-review
-- [2026-06-13k](2026-06-13k.md) — Executed Stage 6 — Documentation validation checks (DOC-011) and Stage 7 — Completion verification in a single…
+- [2026-06-13n](2026-06-13n.md) — Prepared the project to move to a new machine, and closed out the session.
+- [2026-06-13m](2026-06-13m.md) — Whole-codebase code review (8/10) + GDD field-test; implemented review fixes (RNG-usage guard, low-sev tests, roadmap + feature-index coverage).
+- [2026-06-13l](2026-06-13l.md) — Built a documentation-review process (the doc analogue of the code-review instructions), executed it against the live doc set, and applied every…
+- [2026-06-13k](2026-06-13k.md) — Executed Stage 6 — Documentation validation checks (DOC-011) and Stage 7 — Completion verification in a single session pass.
 - [2026-06-13j](2026-06-13j.md) — Executed all of Stage 5 — Supporting documents cleanup in a single session pass.
-- [2026-06-13i](2026-06-13i.md) — Stage 4 of the documentation consolidation: roadmap ownership consolidation,
-- [2026-06-13h](2026-06-13h.md) — Finish the documentation consolidation Stage 3: rewrite the remaining system chapters
-- [2026-06-13g](2026-06-13g.md) — Continue the documentation consolidation: Stage 3.0 (adoption-matrix structure),
+- [2026-06-13i](2026-06-13i.md) — Stage 4 of the documentation consolidation: roadmap ownership consolidation, feature-index TBD cell filling, and Package G release decisions as…
+- [2026-06-13h](2026-06-13h.md) — Finish the documentation consolidation Stage 3: rewrite the remaining system chapters (GDD_04, GDD_05, GDD_01, GDD_06, GDD_07, GDD_08) to the section…
+- [2026-06-13g](2026-06-13g.md) — Continue the documentation consolidation: Stage 3.0 (adoption-matrix structure), 3.1 (GDD_02 + RNG merge), and 3.2 (GDD_03), then hand off.
 - [2026-06-13f](2026-06-13f.md) — Execute Stage 2 of the consolidation master checklist, then hand off.
-- [2026-06-13e](2026-06-13e.md) — Two things: (1) verify whether the existing handoff checklist actually covered the
-- [2026-06-13d](2026-06-13d.md) — Resolve every remaining human-decision point in the documentation consolidation
-- [2026-06-13c](2026-06-13c.md) — Work through the documentation consolidation decision register one item at a
-- [2026-06-13b](2026-06-13b.md) — Review the documentation consolidation decision register and implementation plan
-- [2026-06-13](2026-06-13.md) — Audit whether the v0.1.4 playtester handbook is fully usable by a tester who
+- [2026-06-13e](2026-06-13e.md) — Two things: (1) verify whether the existing handoff checklist actually covered the whole consolidation, and rebuild it as a complete plan; (2)…
+- [2026-06-13d](2026-06-13d.md) — Resolve every remaining human-decision point in the documentation consolidation (the June update reference's open items) and reconcile the…
+- [2026-06-13c](2026-06-13c.md) — Work through the documentation consolidation decision register one item at a time, closing the seven items the 2026-06-13 pre-implementation review…
+- [2026-06-13b](2026-06-13b.md) — Review the documentation consolidation decision register and implementation plan for gaps that should be resolved before consolidation begins.
+- [2026-06-13](2026-06-13.md) — Audit whether the v0.1.4 playtester handbook is fully usable by a tester who has never read the GDD or source code, then correct the gaps found.
 - [2026-06-12d](2026-06-12d.md) — Review and reorganize the v0.1.4 playtester handbook before distribution.
-- [2026-06-12c](2026-06-12c.md) — Bring the current playtester documentation up to date and produce a Windows
-- [2026-06-12b](2026-06-12b.md) — Start the documentation-consolidation project: define how the numbered GDD,
-- [2026-06-12](2026-06-12.md) — Implement the decisions from the GDD/codebase alignment review, synchronize the
-- [2026-06-11](2026-06-11.md) — Start implementing the combat preview render-fix plan from 2026-06-10 by
-- [2026-06-10](2026-06-10.md) — Diagnose the latest broken combat preview screenshot and produce a concrete
-- [2026-06-09e](2026-06-09e.md) — Land the four "quick win" Workstream 6 polish items (W6a, W6e, W6f, W6i)
-- [2026-06-09d](2026-06-09d.md) — Close remaining workstreams from playtest_fix_plan_2026-06-09.md that can be
-- [2026-06-09c](2026-06-09c.md) — Continue the 2026-06-09 playtest fix plan with Pair Up action integrity and
-- [2026-06-09b](2026-06-09b.md) — Begin executing the 2026-06-09 playtest fix plan, starting with objective
-- [2026-06-09](2026-06-09.md) — Review the latest playtest responses, settle implementation-critical behavior,
-- [2026-05-27](2026-05-27.md) — Bring the numbered GDD back in sync with the current code so a new developer can
-- [2026-05-26](2026-05-26.md) — Audit the roadmap docs against the session notes, then promote M9a ahead of
-- [2026-05-25b](2026-05-25b.md) — Walk the four "decisions to review" buckets from 2026-05-25.md — M8, M9,
-- [2026-05-25](2026-05-25.md) — Align the roadmap/backlog with the decision that pair_up, support, and
-- [2026-05-24j](2026-05-24j.md) — Audit the long-form documentation for stale API/schema references and resync the
-- [2026-05-24i](2026-05-24i.md) — Resync the project documentation so the docs match the current codebase,
-- [2026-05-24h](2026-05-24h.md) — Expand the manual playtest checklist so it covers every player-facing feature
-- [2026-05-24g](2026-05-24g.md) — Merge the ad-hoc More Info playtest guidance into the authoritative manual task
-- [2026-05-24f](2026-05-24f.md) — Close the two remaining review items from code_review_2026-05-24.md that
-- [2026-05-24e](2026-05-24e.md) — Finish the Phase 1 More Info build order. Picking up from 2026-05-24d,
-- [2026-05-24d](2026-05-24d.md) — Start implementing the More Info inspection mode using the locked plan in
-- [2026-05-24c](2026-05-24c.md) — Lock the "More info" inspection-mode decisions into an implementation-ready
-- [2026-05-24b](2026-05-24b.md) — Polish the promoted unit-details stat surface so active buffs/debuffs read more
-- [2026-05-24](2026-05-24.md) — Finish the remaining playtest follow-up items from the 2026-05-23h note:
-- [2026-05-23h](2026-05-23h.md) — Convert the current playtest comments into explicit action items, lock the new
-- [2026-05-23g](2026-05-23g.md) — Unblock the Class / Skill Live Playtest checklist in
-- [2026-05-23f](2026-05-23f.md) — Begin implementing the Pair Up combat refactor from the answers locked in
-- [2026-05-23e](2026-05-23e.md) — Walk through the Pair Up / combat refactor questions one at a time and lock in
-- [2026-05-23d](2026-05-23d.md) — Clean up the current Awakening refactor documentation and prepare the next
-- [2026-05-23c](2026-05-23c.md) — Implement the next Awakening compatibility schema pass after the weapon/WEXP
-- [2026-05-23b](2026-05-23b.md) — Implement the first Awakening compatibility schema pass for weapon family and
-- [2026-05-23](2026-05-23.md) — Resume the Awakening compatibility branch from the prior design session and
-- [2026-05-22c](2026-05-22c.md) — Track the new Awakening content expansion corpus, review its system scope against
-- [2026-05-22b](2026-05-22b.md) — Port the safe fixes from code-review-fixes-2026-05-21 into
+- [2026-06-12c](2026-06-12c.md) — Bring the current playtester documentation up to date and produce a Windows playtester build that matches the current code.
+- [2026-06-12b](2026-06-12b.md) — Start the documentation-consolidation project: define how the numbered GDD, Awakening corpus, roadmap, operational guides, decisions, tests, and…
+- [2026-06-12](2026-06-12.md) — Implement the decisions from the GDD/codebase alignment review, synchronize the live GDD and roadmap with the resulting rules, commit the work, and…
+- [2026-06-11](2026-06-11.md) — Start implementing the combat preview render-fix plan from 2026-06-10 by closing the zero-height forecast-row regression and hardening automated test…
+- [2026-06-10](2026-06-10.md) — Diagnose the latest broken combat preview screenshot and produce a concrete implementation and verification plan without changing runtime code.
+- [2026-06-09e](2026-06-09e.md) — Land the four "quick win" Workstream 6 polish items (W6a, W6e, W6f, W6i) that were deferred from session 2026-06-09d, ship a v0.1.3a follow-up build,…
+- [2026-06-09d](2026-06-09d.md) — Close remaining workstreams from playtest_fix_plan_2026-06-09.md that can be verified through code + headless tests, ship a new playtest build at…
+- [2026-06-09c](2026-06-09c.md) — Continue the 2026-06-09 playtest fix plan with Pair Up action integrity and combat preview / More Info fixes.
+- [2026-06-09b](2026-06-09b.md) — Begin executing the 2026-06-09 playtest fix plan, starting with objective correctness and progression/class-state fixes.
+- [2026-06-09](2026-06-09.md) — Review the latest playtest responses, settle implementation-critical behavior, and design an execution plan for all reported defects and usability…
+- [2026-05-27](2026-05-27.md) — Bring the numbered GDD back in sync with the current code so a new developer can use the GDD as a reliable onboarding reference instead of stitching…
+- [2026-05-26](2026-05-26.md) — Audit the roadmap docs against the session notes, then promote M9a ahead of M8 and start the first skill-engine implementation slice.
+- [2026-05-25b](2026-05-25b.md) — Walk the four "decisions to review" buckets from 2026-05-25.md — M8, M9, M15 Part A, and the Objective-Map followup (Maps 002–005) — and fold every…
+- [2026-05-25](2026-05-25.md) — Align the roadmap/backlog with the decision that pair_up, support, and rescue are campaign rules and capture the related design questions before the…
+- [2026-05-24j](2026-05-24j.md) — Audit the long-form documentation for stale API/schema references and resync the docs that still described deprecated systems as current.
+- [2026-05-24i](2026-05-24i.md) — Resync the project documentation so the docs match the current codebase, feature status, and remaining manual validation work.
+- [2026-05-24h](2026-05-24h.md) — Expand the manual playtest checklist so it covers every player-facing feature added since the 2026-05-19 playtest wave, not just the new More Info…
+- [2026-05-24g](2026-05-24g.md) — Merge the ad-hoc More Info playtest guidance into the authoritative manual task list so playtesting can resume from one checklist instead of…
+- [2026-05-24f](2026-05-24f.md) — Close the two remaining review items from code_review_2026-05-24.md that still stood after the ActionMenu/HUD semantics clarification.
+- [2026-05-24e](2026-05-24e.md) — Finish the Phase 1 More Info build order.
+- [2026-05-24d](2026-05-24d.md) — Start implementing the More Info inspection mode using the locked plan in AGENT/Docs/more_info_mode_plan_2026-05-24.md.
+- [2026-05-24c](2026-05-24c.md) — Lock the "More info" inspection-mode decisions into an implementation-ready handoff so the next session can start coding instead of reopening scope…
+- [2026-05-24b](2026-05-24b.md) — Polish the promoted unit-details stat surface so active buffs/debuffs read more clearly in live play, and start the formal plan for the broader "More…
+- [2026-05-24](2026-05-24.md) — Finish the remaining playtest follow-up items from the 2026-05-23h note: Pair Up disengage, mouse camera follow, Cavalier movement, debug hotkey UX,…
+- [2026-05-23h](2026-05-23h.md) — Convert the current playtest comments into explicit action items, lock the new Pair Up lead-death behavior, and land a first bug-fix slice that helps…
+- [2026-05-23g](2026-05-23g.md) — Unblock the Class / Skill Live Playtest checklist in AGENT/GDD/GDD_Manual_Tasks.md.
+- [2026-05-23f](2026-05-23f.md) — Begin implementing the Pair Up combat refactor from the answers locked in this morning (2026-05-23e).
+- [2026-05-23e](2026-05-23e.md) — Walk through the Pair Up / combat refactor questions one at a time and lock in answers as inputs for the implementation pass.
+- [2026-05-23d](2026-05-23d.md) — Clean up the current Awakening refactor documentation and prepare the next session's Pair Up/combat refactor questions.
+- [2026-05-23c](2026-05-23c.md) — Implement the next Awakening compatibility schema pass after the weapon/WEXP split: replace effective_level with internal_level, add class-side…
+- [2026-05-23b](2026-05-23b.md) — Implement the first Awakening compatibility schema pass for weapon family and WEXP separation, including authored-data migration and validation…
+- [2026-05-23](2026-05-23.md) — Resume the Awakening compatibility branch from the prior design session and resolve the open weapon/WEXP model questions before schema implementation.
+- [2026-05-22c](2026-05-22c.md) — Track the new Awakening content expansion corpus, review its system scope against the current implementation, and document a compatibility-oriented…
+- [2026-05-22b](2026-05-22b.md) — Port the safe fixes from code-review-fixes-2026-05-21 into class-skill-rebuild without regressing the newer class/reclass/promotion work.
 - [2026-05-22](2026-05-22.md) — Set up the repo-side pieces for running the Godot test suite on GitHub Actions.
-- [2026-05-21i](2026-05-21i.md) — Run a full repo review and resync the living verification/docs trail with the
-- [2026-05-21h](2026-05-21h.md) — Implement the remaining class/skill follow-ups in order:
-- [2026-05-21g](2026-05-21g.md) — Finish M6 promotion implementation and add promotion-item restrictions by class
-- [2026-05-21f](2026-05-21f.md) — Class & skill system rebuild to support the Awakening-style class descriptions
-- [2026-05-21e](2026-05-21e.md) — User asked to start tracking the outstanding content-expansion docs, then begin
-- [2026-05-21d](2026-05-21d.md) — User asked how the planned map selector should handle rosters, requested the docs
-- [2026-05-21c](2026-05-21c.md) — User asked for a plan for the hotseat validation map and requested a manual
+- [2026-05-21i](2026-05-21i.md) — Run a full repo review and resync the living verification/docs trail with the current codebase state.
+- [2026-05-21h](2026-05-21h.md) — Implement the remaining class/skill follow-ups in order: - N6 level-1 class skill grant on unit creation - M7 Second Seal reclassing and demotion
+- [2026-05-21g](2026-05-21g.md) — Finish M6 promotion implementation and add promotion-item restrictions by class and class group.
+- [2026-05-21f](2026-05-21f.md) — Class & skill system rebuild to support the Awakening-style class descriptions in AGENT/GDD/Content Expansion/awakening_classes_and_skills.md.
+- [2026-05-21e](2026-05-21e.md) — User asked to start tracking the outstanding content-expansion docs, then begin work on the real map registry source and the first hotseat validation…
+- [2026-05-21d](2026-05-21d.md) — User asked how the planned map selector should handle rosters, requested the docs be updated to define that behavior explicitly, and then asked to…
+- [2026-05-21c](2026-05-21c.md) — User asked for a plan for the hotseat validation map and requested a manual playtest checklist be added to the manual tasks document, including a…
 - [2026-05-21b](2026-05-21b.md) — User asked to begin M15 Part A hotseat control work.
-- [2026-05-21](2026-05-21.md) — User asked to clean up the codebase for the new dual-agent Claude Code + Codex
-- [2026-05-20c](2026-05-20c.md) — User asked to fix the updated Docker container so one image can support both
-- [2026-05-20b](2026-05-20b.md) — Picking up from the morning's 2026-05-20 session (C1 / M14 stages 1–3
-- [2026-05-20](2026-05-20.md) — Picking up from the 2026-05-19 session note. Today the working
-- [2026-05-19](2026-05-19.md) — Second manual playtest produced AGENT/Docs/playtest2_findings_2026-05-19.md:
-- [2026-05-18c](2026-05-18c.md) — First manual playtest of the MVP turned up 13 bugs, listed in
-- [2026-05-18b](2026-05-18b.md) — A review + documentation session — no game code changed. The user asked for a
-- [2026-05-18](2026-05-18.md) — A planning / design session — no code changed, docs only. Picked up from the
-- [2026-05-17](2026-05-17.md) — Execution session. Completed the D-3 MapCursor slicing
-- [2026-05-16i](2026-05-16i.md) — Execution session. Implemented AGENT/Docs/implementation_plan_2026-05-16d.md top to
-- [2026-05-16h](2026-05-16h.md) — Review-and-plan session. No production code changed. Followed
-- [2026-05-16g](2026-05-16g.md) — Follow-up to Session F's review (code_review_2026-05-16c.md). This session
-- [2026-05-16f](2026-05-16f.md) — Review-only session. The user asked for a fresh code review per
-- [2026-05-16e](2026-05-16e.md) — Follow-up to Session D (the 2026-05-16 implementation plan A–E was complete). This
-- [2026-05-16d](2026-05-16d.md) — Continuation of Session C. This session implemented Phases D and E of
-- [2026-05-16c](2026-05-16c.md) — Continuation of 2026-05-16 Session B (review + planning only). This session implemented
-- [2026-05-16b](2026-05-16b.md) — Continuation of 2026-05-16. The prior session completed code_review_2026-05-13c with all bug
-- [2026-05-16](2026-05-16.md) — Continuation from 2026-05-15. The _finish_action DONE-marking fix had been applied but not committed.…
-- [2026-05-15](2026-05-15.md) — This session completed the full code review fix pass that started in the previous session. All issues from…
-- [2026-05-13c](2026-05-13c.md) — Worked through the implementation plan from code_review_2026-05-13c.md, completing items 2–10 and 13–14. Items 11…
-- [2026-05-13b](2026-05-13b.md) — LevelUpScreen.gd — Added is_instance_valid(self) guard in create_timer lambda to prevent calling methods on a…
+- [2026-05-21](2026-05-21.md) — User asked to clean up the codebase for the new dual-agent Claude Code + Codex setup after the shared Docker container work.
+- [2026-05-20c](2026-05-20c.md) — User asked to fix the updated Docker container so one image can support both Claude Code and Codex without juggling separate containers.
+- [2026-05-20b](2026-05-20b.md) — Picking up from the morning's 2026-05-20 session (C1 / M14 stages 1–3 shipped).
+- [2026-05-20](2026-05-20.md) — Picking up from the 2026-05-19 session note.
+- [2026-05-19](2026-05-19.md) — Second manual playtest produced AGENT/Docs/playtest2_findings_2026-05-19.md: 17 "bugs and oversight features" plus 8 "features to add to the to-do…
+- [2026-05-18c](2026-05-18c.md) — First manual playtest of the MVP turned up 13 bugs, listed in AGENT/Docs/playtest1_findings_2026-05-18.md (renamed this session from…
+- [2026-05-18b](2026-05-18b.md) — A review + documentation session — no game code changed.
+- [2026-05-18](2026-05-18.md) — A planning / design session — no code changed, docs only.
+- [2026-05-17](2026-05-17.md) — Execution session.
+- [2026-05-16i](2026-05-16i.md) — Execution session.
+- [2026-05-16h](2026-05-16h.md) — Review-and-plan session.
+- [2026-05-16g](2026-05-16g.md) — Follow-up to Session F's review (code_review_2026-05-16c.md).
+- [2026-05-16f](2026-05-16f.md) — Review-only session.
+- [2026-05-16e](2026-05-16e.md) — Follow-up to Session D (the 2026-05-16 implementation plan A–E was complete).
+- [2026-05-16d](2026-05-16d.md) — Continuation of Session C.
+- [2026-05-16c](2026-05-16c.md) — Continuation of 2026-05-16 Session B (review + planning only).
+- [2026-05-16b](2026-05-16b.md) — Continuation of 2026-05-16.
+- [2026-05-16](2026-05-16.md) — Continuation from 2026-05-15.
+- [2026-05-15](2026-05-15.md) — This session completed the full code review fix pass that started in the previous session.
+- [2026-05-13c](2026-05-13c.md) — Worked through the implementation plan from code_review_2026-05-13c.md, completing items 2–10 and 13–14.
+- [2026-05-13b](2026-05-13b.md) — LevelUpScreen.gd — Added is_instance_valid(self) guard in create_timer lambda to prevent calling methods on a freed node if the scene changes during…
 - [2026-05-13_review-fixes](2026-05-13_review-fixes.md) — Scope: Full codebase review of all .gd scripts.
 - [2026-05-13_a3-wiring](2026-05-13_a3-wiring.md) — Commit: Wire A2/A4 hooks and register ConditionManager autoload
-- [2026-05-13](2026-05-13.md) — Resumed from 2026-05-13 code review (AGENT/code_review_2026-05-13.md) which was added as the most recent commit at…
-- [2026-05-12b](2026-05-12b.md) — Performed a systematic review of all scripts. Found and categorised 25 issues across
-- [2026-05-12_amendments-A1-A4](2026-05-12_amendments-A1-A4.md) — Amendment A1 — Data Layer Extensions
-- [2026-05-12](2026-05-12.md) — Phase label top-left, Turn counter top-right
-- [2026-05-11b](2026-05-11b.md) — Added "defaultMode": "bypassPermissions" to /workspace/.claude/settings.local.json so
-- [2026-05-11](2026-05-11.md) — This session was a two-part code review and fix session covering the entire codebase through
-- [2026-05-10](2026-05-10.md) — Created Godot 4.3 project (project.godot) with:
+- [2026-05-13](2026-05-13.md) — Resumed from 2026-05-13 code review (AGENT/code_review_2026-05-13.md) which was added as the most recent commit at session start.
+- [2026-05-12b](2026-05-12b.md) — Performed a systematic review of all scripts.
+- [2026-05-12_amendments-A1-A4](2026-05-12_amendments-A1-A4.md) — Amendment A1 — Data Layer Extensions - Added Phase 2 runtime fields to UnitData.gd: active_modifiers, skill_use_counters, damage_taken_this_map,…
+- [2026-05-12](2026-05-12.md) — Phase label top-left, Turn counter top-right - UnitInfoPanel (bottom-left): name, class, HP/MaxHP, equipped weapon — shown on unit_selected, hidden…
+- [2026-05-11b](2026-05-11b.md) — Added "defaultMode": "bypassPermissions" to /workspace/.claude/settings.local.json so Claude can read, write, and run Bash without per-operation…
+- [2026-05-11](2026-05-11.md) — This session was a two-part code review and fix session covering the entire codebase through commit 62d0087 (the TILE_SIZE centralisation commit from…
+- [2026-05-10](2026-05-10.md) — Created Godot 4.3 project (project.godot) with: - 1280×720 viewport, canvas_items stretch, pixel snap - Full input map (cursor WASD/arrows, confirm…

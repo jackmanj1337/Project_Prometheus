@@ -38,7 +38,8 @@ cache.
 
 - **Godot 4.6 stable** on `PATH` as `godot` (matches `project.godot` + CI).
 - **Godot 4.6 export templates** (only for `builds/` exports).
-- **Python 3** — `check_docs.py`, the RNG guard, and the godot-analyzer MCP server.
+- **Python 3** — `check_docs.py`, the RNG guard, and the godot-analyzer MCP server
+  (the MCP server is stdlib-only; no `pip install` needed).
 - **MCP path:** `.mcp.json` references `tools/godot-analyzer-mcp/server.py`. `server.py`
   now defaults its project root to its own location, so it works even if the repo is not
   at `/workspace`. If `.mcp.json` still lists absolute `/workspace` paths and the new repo
@@ -52,6 +53,7 @@ bash scripts/check_env.sh            # doctor — should be all [OK]
 python3 AGENT/Docs/check_docs.py     # docs checks → PASS (8 checks)
 bash scripts/ci/check_rng_usage.sh   # RNG guard → PASS
 bash run_tests.sh                    # full GDScript suite → 38 suites green
+godot --path . scenes/core/Boot.tscn # launch once to confirm the app boots
 git push                             # confirms the SSH host alias resolves
 ```
 
