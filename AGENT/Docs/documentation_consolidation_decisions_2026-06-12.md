@@ -182,7 +182,10 @@ live contracts as peers.
 playbook, then link it from `testing_guide.md` and the feature index. It is not a
 game-design contract.
 
-**Answer:** That is likely for the best
+**Answer:** Accepted 2026-06-13. Move `GDD_Manual_Tasks.md` to
+`AGENT/Docs/manual_test_playbook.md` and re-link from `testing_guide.md` and the
+feature index. Status: **Needs clarification -> Answered** (move executed only
+during the lifecycle/link-migration package, not now).
 
 ### DOC-008 - Superseded-document policy
 
@@ -289,7 +292,20 @@ existing runtime/save representation.
 **Recommendation:** B. It preserves both earned rank and progress without
 keeping obsolete numeric meaning.
 
-**Answer:** There is no persistent player save data to migrate, but preserving proportional progress sounds good.
+**Answer:** Option B, defined 2026-06-13. There is no persistent player save data
+to migrate; this formula governs in-session/runtime conversion and any future
+save migration. Formula:
+
+```
+ratio     = (old_wexp - old_rank_floor) / (old_next_floor - old_rank_floor)
+new_span  = corpus_next_floor - corpus_rank_floor
+new_wexp  = corpus_rank_floor + floor(ratio * new_span)
+new_wexp  = min(new_wexp, corpus_next_floor - 1)   # never auto-promote a rank
+```
+
+Boundary handling: a unit already at max rank stays at the corpus max-rank floor;
+`ratio` is clamped to `[0, 1)` so rounding never crosses the next threshold.
+Status: **Answered**.
 
 ### RULE-004 - WEXP gain timing
 
@@ -317,6 +333,14 @@ does automatic promotion occur?
 making early promotion an explicit player tradeoff.
 
 **Answer:** Lets go with the basis of seals can promote at 10, but campaign settings can allow for automatic promotion when the unit reaches the level cap for their current class. Note that the promotion menu should pop up instantly even interupting other players turns, with control only shifting back to the original player after the unit owner has picked a new class.
+
+**UI/control sub-decision (clarified 2026-06-13):** The promotion modal opens only
+**after the triggering action fully commits** (combat resolves and EXP is applied).
+While open, **all controllers are blocked** until the owning player selects a class.
+Promotion is **mandatory once triggered — no cancel** (a seal/level-cap trigger
+always resolves to a class choice). This keeps the deterministic event stream and
+online sync unambiguous: the interrupt point is the post-commit eligibility check,
+not mid-action. Status: **Answered**.
 
 ### RULE-006 - Reclass EXP counters
 
@@ -365,6 +389,11 @@ after combined growth totals are visible.
 
 **Answer:** Use new corpus data. It should contain archetypal examples of character growth stats that should be usable for this testing period.
 
+**Clarified 2026-06-13:** For the testing period, **replace** each unit's authored
+personal growths. Effective growth = `corpus_archetype_growth + corpus_class_growth`.
+Authored personal growths are dropped (recoverable via git history) and the roster
+is rebalanced once combined totals are visible. Status: **Answered**.
+
 ### RULE-009 - Light and Dark magic design scope
 
 **Question:** Where should the project-specific Light/Dark class lines be
@@ -398,7 +427,14 @@ throne art currently using Fort behavior.
 **Recommendation:** Decide mappings during the terrain design pass rather than
 assuming name equality.
 
-**Answer:** Lets do a more complete pass on this later
+**Answer:** Deferred with owner 2026-06-13. The complete terrain ID-mapping pass
+is assigned roadmap ID **AWR-8 (Terrain corpus migration & ID mapping)** under the
+existing `AWR-` milestone scheme in
+`awakening_compatability_refactor_plan_2026-05-22.md`; its exact slot in the AWR
+sequence is set during the roadmap rewrite. Until then the GDD terrain
+ID-mapping section stays **Open decision** (sea, wall/building variants, and
+Fort-behavior throne art resolved in AWR-8, not by name equality).
+Status: **Deferred (roadmap owner AWR-8)**.
 
 ### RULE-012 - Pair Up/support release scope
 
@@ -419,7 +455,20 @@ assuming name equality.
 Schedule Dual Strike/Guard and support ranks separately. Treat marriage and
 children as post-1.0 unless the short campaign specifically depends on them.
 
-**Answer:** Lets seperate out dual strike, dual guard, and stat bonuses from the other support stuff  and work on that later 
+**Answer:** Lets seperate out dual strike, dual guard, and stat bonuses from the other support stuff  and work on that later
+
+**Scoped 2026-06-13 — 1.0 layer breakdown:**
+
+- **IN 1.0:** Layer 1, Pair Up stat bonuses/actions (already **Implemented**,
+  pass 1). Migrating its values to exact corpus numbers is **Planned** (later AWR
+  Pair Up pass), not required for 1.0.
+- **Later combat work (Target design):** Dual Strike (layer 2) and Dual Guard
+  (layer 3), scheduled together under the AWR combat foundation.
+- **Post-1.0 (Deferred):** adjacent support (4), support-rank progression (5),
+  support conversations (6), S-rank/marriage (7), child units/inheritance (8) —
+  unless short-campaign content makes one explicitly required.
+
+Status: **Answered**.
 
 ### RULE-013 - Project-specific magic triangle rank source
 
