@@ -13,6 +13,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # check_docs.py reads git log for the stale-date check
+
+      - name: Documentation checks (DOC-011)
+        run: python3 AGENT/Docs/check_docs.py
 
       - name: Install runtime dependencies
         run: |
