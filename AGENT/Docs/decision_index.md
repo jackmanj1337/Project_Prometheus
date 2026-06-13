@@ -54,10 +54,10 @@ but not yet applied to the GDD). Homes:
 | RULE-003 | WEXP migration | Answered | REG | Option B (proportional within rank); runtime conversion formula recorded. |
 | RULE-004 | WEXP gain timing | Answered | REG | Per valid use; may change in a balance pass. |
 | RULE-005 | Promotion trigger timing | Answered | REG | Seal@10 + optional auto-promote@cap; mandatory modal blocks all controllers, no cancel. |
-| RULE-006 | Reclass EXP counters | Answered | REG | `displayed_level` / `exp_basis_level` / `lifetime_levels_gained`. |
-| RULE-007 | Class replacement scope | Answered | REG | Full corpus classes; archive project-only classes. |
-| RULE-008 | Personal vs class growths | Answered | REG | Replace personal growths; effective = corpus archetype + corpus class. |
-| RULE-009 | Light/Dark magic design scope | Answered | REG | Dedicated design task before bulk class migration. Owns OPEN-10. |
+| RULE-006 | Reclass EXP counters | Applied (Target design) | REG | `displayed_level`/`exp_basis_level`/`lifetime_levels_gained`. In GDD_03 §Progression Counters (3.2). |
+| RULE-007 | Class replacement scope | Applied (Target design) | REG | Full corpus classes; project-only Rejected/archived. In GDD_03 §Starter Roster (3.2). |
+| RULE-008 | Personal vs class growths | Applied (Target design) | REG | Replace personal growths; effective = corpus archetype + class. In GDD_03 §Starter Roster (3.2). |
+| RULE-009 | Light/Dark magic design scope | Applied (Planned) | REG | Dedicated design task before bulk class migration. In GDD_03 §Starter Roster Known gaps (3.2). Owns OPEN-10. |
 | RULE-010 | Terrain migration rollout | Answered | REG | Show both tables (Implemented + Target design) until migration. |
 | RULE-011 | Existing terrain ID mapping | Deferred | REG | Roadmap owner **AWR-8**; GDD terrain ID section stays Open decision until then. |
 | RULE-012 | Pair Up/support release scope | Answered | REG | Pair Up pass 1 IN 1.0; Dual Strike/Guard later; supports 4–8 post-1.0. |
@@ -72,10 +72,10 @@ but not yet applied to the GDD). Homes:
 | SET-003 | Weapon triangles (retain both, rank-scaled) | Settled (target) | REG |
 | SET-004 | WEXP → corpus thresholds/caps | Settled (target) | REG |
 | SET-005 | Weapon-rank combat bonuses → engine | Settled (target) | REG |
-| SET-006 | Promotion → corpus model | Settled (target) | REG |
-| SET-007 | Reclass progression counters | Settled (target) | REG |
+| SET-006 | Promotion → corpus model | Applied (Target design) | REG → GDD_03 §Promotion (3.2) |
+| SET-007 | Reclass progression counters | Applied (Target design) | REG → GDD_03 §Progression Counters / §Reclass (3.2) |
 | SET-008 | Terrain → corpus values/categories | Settled (target) | REG |
-| SET-009 | Class definitions → corpus + Light/Dark task | Settled (target) | REG |
+| SET-009 | Class definitions → corpus + Light/Dark task | Applied (Target design) | REG → GDD_03 §Starter Roster (3.2) |
 | SET-010 | Pair Up/supports → corpus eventual target | Settled (target) | REG |
 
 ## D — June ratified decisions (deprecated short aliases)
@@ -86,7 +86,7 @@ but not yet applied to the GDD). Homes:
 | D-B | 1.0 definition | Retained (applied to GDD_00) | JUN | Offline non-pipeline features + one short campaign; M11 re-scoped. In GDD_00 Release Definition (Stage 2.1). |
 | D-C | Rules authority | **Superseded by DOC-001** | JUN | Reversed: GDD owns rules, corpus is reference. |
 | D-D | Campaign prerequisites | Retained | JUN | Deployment screen, shops, recruit mechanic → roadmap edges. |
-| D-E | Reclass growth to caps | Retained | JUN | Second Seal growth to caps; caps are the balance lever. Note in GDD_03. |
+| D-E | Reclass growth to caps | Applied | JUN | Second Seal growth to caps; caps are the balance lever. In GDD_03 §Reclass (3.2). |
 
 ## RNG — determinism contract
 
@@ -109,8 +109,8 @@ but not yet applied to the GDD). Homes:
 | OPEN-6 | Simultaneous victory/defeat | Applied | JUN | Defeat before victory; tie → acting faction. In GDD_02 §Win/Loss Evaluation (3.1). |
 | OPEN-7 | Fort/throne heal rounding | Applied | JUN | `max(1, floor(0.10 × max_hp))`. In GDD_02 §Terrain (3.1). |
 | OPEN-8 | Renderer backend | Answered (applied to GDD_00) | JUN | Compatibility (OpenGL); recorded in GDD_00 Platform Targets (Stage 2.1). |
-| OPEN-9 | Soldier class | Deferred (AWR-2) | JUN | Placeholder enemy-only Soldier on Map 001 until class migration. |
-| OPEN-10 | Cleric "Light E" | Deferred (RULE-009) | JUN | Decided by Light/Dark design pass. |
+| OPEN-9 | Soldier class | Deferred (AWR-2) | JUN | Placeholder enemy-only Soldier until class migration. Noted GDD_03 §Starter Roster Known gaps (3.2). |
+| OPEN-10 | Cleric "Light E" | Open decision (RULE-009) | JUN | Decided by Light/Dark design pass. Noted GDD_03 §Starter Roster (3.2). |
 | OPEN-11 | Steam Deck 16:10 | Answered (applied to GDD_00) | JUN | Letterbox; revisit once UI-scale setting exists. In GDD_00 Platform Targets (Stage 2.1). |
 | OPEN-12 | Handbook licensing/attribution | Answered (pre-1.0 gate) | JUN | Blocking pre-1.0 gate; owned with DOC-012; rename does not resolve it. |
 | OPEN-13 | Suspend-file lifecycle | Answered | JUN | Persists until map resolves, then deleted; no delete-on-load. |

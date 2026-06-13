@@ -59,17 +59,17 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Promotion model (lvl-10 eligibility) | `awakening_core_systems`, `awakening_appendices` | Adopted w/ variation | GDD_03 §Promotion (TBD) | Seal promotes @10; **campaign-optional auto-promote @class cap**; mandatory blocking modal, no cancel | Target design | SET-006, RULE-005 |
+| Promotion model (lvl-10 eligibility) | `awakening_core_systems`, `awakening_appendices` | Adopted w/ variation | GDD_03 §Promotion | Seal promotes @10; **campaign-optional auto-promote @class cap**; mandatory blocking modal, no cancel | Target design | SET-006, RULE-005 |
 | Internal level (`20 + displayed`) | `awakening_project_index` | Adopted target | GDD_03 (TBD) | — | Target design | SET-006 |
-| Reclass reset behavior | `awakening_core_systems` | Adopted w/ variation | GDD_03 §Reclass (TBD) | `exp_basis_level` resets; `lifetime_levels_gained` retained (future autoscale only) | Target design | SET-007, RULE-006 |
-| Second Seal growth to caps | `awakening_core_systems` | Adopted target | GDD_03 §Reclass (TBD) | Stat caps are the balance lever; no anti-grind guards | Target design | D-E |
+| Reclass reset behavior | `awakening_core_systems` | Adopted w/ variation | GDD_03 §Reclass | `exp_basis_level` resets; `lifetime_levels_gained` retained (future autoscale only) | Target design | SET-007, RULE-006 |
+| Second Seal growth to caps | `awakening_core_systems` | Adopted target | GDD_03 §Reclass | Stat caps are the balance lever; no anti-grind guards | Target design | D-E |
 
 ## Classes & class skills  → GDD_03 / GDD_05 (3.2 / 3.4)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Base classes | `awakening_classes_base` | Adopted target | GDD_03 §Classes (TBD) | Replace project starter classes wholesale (AWR-2) | Target design | SET-009, RULE-007 |
-| Promoted classes | `awakening_classes_promoted` | Adopted target | GDD_03 §Classes (TBD) | — | Target design | SET-009, RULE-007 |
+| Base classes | `awakening_classes_base` | Adopted target | GDD_03 §Starter Roster & Classes | Replace project starter classes wholesale (AWR-2) | Target design | SET-009, RULE-007 |
+| Promoted classes | `awakening_classes_promoted` | Adopted target | GDD_03 §Starter Roster & Classes | — | Target design | SET-009, RULE-007 |
 | Gender-locked normalization | `awakening_project_index` | Adopted target | GDD_03 (TBD) | — | Target design | — |
 | Class growths | `awakening_classes_*`, `awakening_archetypes` | Adopted w/ variation | GDD_03 (TBD) | Effective = corpus archetype growth + corpus class growth; **authored personal growths replaced** | Target design | RULE-008 |
 | Project-only classes (Sentinel/Bishop/Paragon/Mage Knight) | (project homebrew) | Rejected | — | Archived (Git history) | Superseded | RULE-007 |

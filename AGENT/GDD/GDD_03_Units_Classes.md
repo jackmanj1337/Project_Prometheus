@@ -1,403 +1,279 @@
 # GDD_03 — Units & Classes
 
+**Status:** Active contract — split status per section (current roster/classes are
+**Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
+`GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns unit/class data structure, the starter roster, progression counters,
+promotion/reclass **relationships and class targets**, and the class-adoption plan.
+Promotion **trigger timing** (the modal/interrupt behavior) is owned by `GDD_02`; combat
+math, EXP earning, and leveling mechanics are owned by `GDD_02`.
+
 ---
 
 ## Unit vs Class
 
-A **Unit** is an individual character with a name, current stats, inventory, and level.
-A **Class** is a template that defines base stats, WEXP baselines/caps, growth tables,
-stat caps, skill unlocks, vulnerabilities, and promotion/reclass relationships.
+Status: **Implemented**
+Last verified: 2026-06-13
 
-Current roster and map units are authored `UnitData` `.tres` resources. At
-spawn, the resource is duplicated, placed on the map, and granted any class
-skills it should already know at its authored level. `ClassData` bases are
-available for future character/enemy generators and are used by progression,
-promotion, and reclass logic.
+### Summary
+A **Unit** is an individual character (name, stats, inventory, level); a **Class** is a
+template (bases, WEXP baselines/caps, growths, stat caps, skill unlocks, vulnerabilities,
+promotion/reclass relationships).
 
-When a unit levels up or promotes, `UnitData` is modified directly — the `ClassData`
-resource is referenced again for growths, caps, promotion bonuses, skill unlocks,
-and reclass legality.
+### Specs
+- Roster/map units are authored `UnitData` `.tres`; at spawn the resource is duplicated,
+  placed, and granted the class skills it should already know at its authored level.
+- Level-up/promotion modify `UnitData` directly; `ClassData` is re-read for growths,
+  caps, promotion bonuses, skill unlocks, and reclass legality.
+- Authoritative progression fields:
+  - `UnitData.weapon_wexp` — numeric WEXP totals per track; rank letters derived.
+  - `UnitData.earned_skills` (permanent pool) vs `UnitData.skills` (equipped subset).
+  - `UnitData.internal_level` (replaces the old `effective_level`).
+  - `ClassData.weapon_wexp_bases` / `weapon_wexp_caps` (replace the old proficiency array).
+  - `ClassData.skill_unlocks` (replaces `starting_skills` / single-promotion-skill).
 
-Current authored progression fields:
-
-- `UnitData.weapon_wexp` stores numeric WEXP totals per track; rank letters are derived
-  from these totals rather than stored separately.
-- `UnitData.earned_skills` is the permanent learned pool; `UnitData.skills` is the
-  currently equipped subset.
-- `UnitData.internal_level` replaces the old `effective_level` field for promotion /
-  reclass calculations.
-- `ClassData.weapon_wexp_bases` / `weapon_wexp_caps` replace the older
-  proficiency-array schema.
-- `ClassData.skill_unlocks` replaces the older `starting_skills` / single-promotion-skill
-  model.
+### Anchors
+- Code: `scripts/resources/UnitData.gd`, `scripts/resources/ClassData.gd`, `scripts/units/Unit.gd`
+- Schema owner: GDD_01 (`UnitData`/`ClassData` field definitions)
 
 ---
 
 ## Special Qualities
 
-Special qualities are tags stored on a unit (inherited from class, can be added by
-skills or items). They affect movement rules, combat interactions, and terrain.
+Status: **Implemented**
+Last verified: 2026-06-13
+
+### Specs
+Tags on a unit (from class, or added by skills/items) affecting movement, combat, terrain:
 
 | Quality | Effect |
 |---|---|
-| `flying` | Identity/vulnerability tag. Flying movement costs remain planned for the terrain movement-category system |
-| `mounted` | Higher mobility / CON profile; future Canto-style remainder movement is still deferred |
-| `armoured` | Generally high DEF; affected by certain anti-armor weapons |
+| `flying` | Identity/vulnerability tag; flying movement costs use the planned terrain movement-category system |
+| `mounted` | Higher mobility/CON; Canto-style remainder movement deferred |
+| `armoured` | High DEF; affected by anti-armor weapons |
 | `dragon` | Affected by dragon-effective weapons |
 | `beast` | Affected by beast-effective weapons (Laguz land units) |
-| `laguz` | Has shift gauge (Phase 2+) |
+| `laguz` | Has a shift gauge (Phase 2+, M12) |
+
+### Anchors
+- Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`)
+- Owner of effectiveness/vulnerability detail: GDD_04
 
 ---
 
-## Current Starter Roster
+## Starter Roster & Classes
 
-The live default roster loaded by `GameState.load_default_roster()` is:
+Status: **Split** — current roster/classes **Implemented**; corpus class definitions + growth replacement **Target design** (AWR-2)
+Last verified: 2026-06-13
 
-- `Unit_01` — `cavalier`
-- `Unit_02` — `mercenary`
-- `Unit_03` — `archer`
-- `Unit_04` — `mage`
-- `Unit_05` — `cleric`
-- `Unit_06` — `knight`
+### Summary
+Six authored starter units load via `GameState.load_default_roster()`. Their `.tres`
+files are the authoritative source for stats/growths/skills; the table below is a
+reference snapshot.
 
-Each unit has authored personal growths, starting WEXP, equipped skills, and
-reclass options in its `.tres` file under `data/roster/default/`. The older
-"generated six-class MVP starter set" description is deprecated.
+### Specs
 
----
+**Implemented (project roster).** All units start level 1.
 
-### 1. Cavalier
+| Slot | Unit | Class | Start WEXP | Skills | Qualities | Promotes To |
+|---|---|---|---|---|---|---|
+| 1 | Unit_01 | Cavalier | Lance D | `discipline` | mounted | Paladin, Great Knight |
+| 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | — | Hero, Sentinel* |
+| 3 | Unit_03 | Archer | Bow D | `bowfaire` | — | Ranger, Sniper |
+| 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | — | Mage Knight*, Sage |
+| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | — | Bishop*, Paragon* |
+| 6 | Unit_06 | Knight | Lance D | `resolve` | armoured | General, Great Knight |
 
-**Role:** Mobile frontline fighter  
-**Handbook Source:** Cavalier line
+Base stats and personal growth rates are authored per unit in `data/roster/default/`
+(`.tres` = source of truth). Bows have `range_min_formula = "2"` — any bow-equipped unit
+cannot hit adjacent targets (a weapon property, not a class trait; enforced by
+`GridManager` + `CombatResolver.can_counterattack()`).
 
-| Stat | Value |
-|---|---|
-| HP | 17 |
-| STR | 7 |
-| MAG | 0 |
-| DEF | 6 |
-| RES | 3 |
-| SKL | 6 |
-| SPD | 6 |
-| LUK | 6 |
-| MOV | 7 |
-| CON | 8 |
-| LoS | 4 |
+\* **Project-only promotion targets** (Sentinel, Mage Knight, Bishop, Paragon) are
+**Rejected** under RULE-007 — archived to Git history at class migration.
+† **Cleric "Light E"** is an **Open decision** (OPEN-10), deferred to the Light/Dark
+design pass (RULE-009); do not author a one-off tome or drop it prematurely.
 
-**Starting WEXP:** Lance D (`weapon_wexp = {"lance": 100}`)  
-**Starter Skills:** `discipline`  
-**Special Qualities:** `mounted`
+**Target design (corpus class adoption — SET-009 / RULE-007 / RULE-008, AWR-2).**
+- Replace project starter classes wholesale with corpus base/promoted classes; provenance
+  in `GDD_Adoption_Matrix.md` → `awakening_classes_base.md` / `_promoted.md`.
+- **Growths (RULE-008):** effective growth = corpus archetype growth + corpus class
+  growth. **Authored personal growths are replaced** (recoverable via Git); the roster is
+  rebalanced once combined totals are visible.
+- Gender-locked classes normalize to universal definitions unless mechanics diverge.
 
-**Growth Rates:**
-```
-HP: 75, STR: 50, MAG: 5, DEF: 45, RES: 25, SKL: 50, SPD: 45, LUK: 40
-```
+### Known gaps
+- **Soldier class (OPEN-9):** identity resolved at corpus class migration (AWR-2);
+  interim, Map 001 keeps a **placeholder enemy-only Soldier**. Marked **Open decision**.
+- **Light/Dark magic class lines (RULE-009):** a dedicated design task (class lines,
+  promotion paths, tome access, skill identity, magic-triangle balance) precedes bulk
+  class authoring. **Planned.**
 
-**Promotes To:** Paladin, Great Knight
-
----
-
-### 2. Mercenary
-
-**Role:** Accurate, fast melee fighter  
-**Handbook Source:** Mercenary
-
-| Stat | Value |
-|---|---|
-| HP | 18 |
-| STR | 7 |
-| MAG | 0 |
-| DEF | 5 |
-| RES | 2 |
-| SKL | 8 |
-| SPD | 7 |
-| LUK | 4 |
-| MOV | 6 |
-| CON | 8 |
-| LoS | 4 |
-
-**Starting WEXP:** Sword D  
-**Starter Skills:** `vantage`, `swordfaire`  
-**Special Qualities:** —
-
-**Growth Rates:**
-```
-HP: 60, STR: 50, MAG: 5, DEF: 35, RES: 20, SKL: 65, SPD: 60, LUK: 35
-```
-
-**Promotes To:** Hero, Sentinel
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (`load_default_roster`), `data/roster/default/`,
+  `data/classes/`
+- Tests: `scripts/tests/test_unit_stats.gd`
+- Decisions: SET-009, RULE-007, RULE-008, RULE-009, OPEN-9, OPEN-10
+- Reference: `awakening_classes_base.md`, `awakening_classes_promoted.md`, `awakening_archetypes.md`; `GDD_Adoption_Matrix.md`
 
 ---
 
-### 3. Archer
+## Progression Counters
 
-**Role:** Ranged physical attacker; cannot attack adjacent targets  
-**Handbook Source:** Archer
+Status: **Split** — `internal_level` **Implemented**; corpus counter model **Target design** (RULE-006/SET-007)
+Last verified: 2026-06-13
 
-| Stat | Value |
-|---|---|
-| HP | 17 |
-| STR | 6 |
-| MAG | 0 |
-| DEF | 4 |
-| RES | 3 |
-| SKL | 9 |
-| SPD | 7 |
-| LUK | 5 |
-| MOV | 6 |
-| CON | 6 |
-| LoS | 4 |
+### Summary
+The fields that drive EXP-gain scaling and reclass behavior.
 
-**Starting WEXP:** Bow D  
-**Starter Skills:** `bowfaire`  
-**Special Qualities:** —
+### Specs
 
-**Growth Rates:**
-```
-HP: 60, STR: 45, MAG: 5, DEF: 30, RES: 20, SKL: 70, SPD: 55, LUK: 40
-```
+**Target model (RULE-006 / SET-007), three separated counters:**
+- `displayed_level` — current class-track level (visible).
+- `exp_basis_level` — drives EXP-gain bonuses; **resets on reclass** (SET-007).
+- `lifetime_levels_gained` — monotonic; reserved for analytics / future enemy
+  autoscaling. **Never** used to reduce player EXP unless a campaign rule says so.
 
-> **Weapon note:** The Iron Bow (and all bows) has `range_min_formula = "2"`. Any
-> unit with a bow equipped cannot attack or counterattack against adjacent (range 1)
-> targets. This is a property of the weapon, not the class — a non-Archer who equips
-> a bow is subject to the same restriction, and an Archer who equips a melee weapon
-> (e.g. via trade) could attack at range 1 normally. Range is enforced by
-> `GridManager`'s attackable-tile queries and `CombatResolver.can_counterattack()`,
-> both reading `WeaponData.get_range_min()` / `get_range_max()`.
+Internal level follows the corpus rule `Promoted Internal Level = 20 + Displayed Level`.
 
-**Promotes To:** Ranger, Sniper
+**Implemented today:** `UnitData.internal_level` carries hidden progression for
+promotion/reclass; the explicit `exp_basis_level` / `lifetime_levels_gained` split is
+**Target design** (lands with the corpus progression work).
+
+### Anchors
+- Code: `scripts/resources/UnitData.gd` (`internal_level`), `scripts/units/Unit.gd`
+- Decisions: SET-007, RULE-006
+- Reference: `awakening_core_systems.md` (Leveling / Internal Level)
 
 ---
 
-### 4. Mage
+## Promotion (relationships & targets)
 
-**Role:** Magical attacker; targets RES instead of DEF; uses weapon triangle  
-**Handbook Source:** Mage
+Status: **Split** — current eligibility **Implemented**; corpus promotion model **Target design** (SET-006)
+Last verified: 2026-06-13
 
-| Stat | Value |
-|---|---|
-| HP | 15 |
-| STR | 1 |
-| MAG | 7 |
-| DEF | 1 |
-| RES | 8 |
-| SKL | 8 |
-| SPD | 6 |
-| LUK | 5 |
-| MOV | 6 |
-| CON | 5 |
-| LoS | 4 |
+### Summary
+*What* a unit promotes into and the state changes applied. ***When* promotion fires and
+the modal/interrupt behavior is owned by `GDD_02 → Promotion — Trigger Timing` (RULE-005).**
 
-**Starting WEXP:** Elemental Magic D  
-**Starter Skills:** `wrath`  
-**Special Qualities:** —
+### Specs
 
-**Growth Rates:**
-```
-HP: 50, STR: 5, MAG: 65, DEF: 15, RES: 60, SKL: 60, SPD: 50, LUK: 40
-```
+**Implemented (project).** When a unit promotes:
+1. `PromotionScreen` offers `ClassData.promotes_to`.
+2. The chosen class's `promotion_stat_bonuses` apply immediately.
+3. `class_id` changes; `is_promoted = true`.
+4. `weapon_wexp` is raised to at least the promoted class's authored baselines.
+5. Class skills granted from `skill_unlocks`.
+6. `internal_level` recalculated from the promoted class's internal-level rule.
+- No blanket growth-rate bonus on promotion. The old single `promotion_skill` /
+  `effective_level` model is deprecated.
 
-**Promotes To:** Mage Knight, Sage
+**Target design (SET-006).** Adopt the corpus promotion model + targets; provenance in
+`GDD_Adoption_Matrix.md` → `awakening_core_systems.md` (Promotion System) /
+`awakening_appendices.md` (promotion graph). Eligibility begins at corpus level 10 (see
+trigger timing in GDD_02).
 
----
-
-### 5. Cleric
-
-**Role:** Support / healer; uses staves to restore ally HP; cannot fight effectively  
-**Handbook Source:** Cleric
-
-| Stat | Value |
-|---|---|
-| HP | 16 |
-| STR | 1 |
-| MAG | 5 |
-| DEF | 3 |
-| RES | 9 |
-| SKL | 5 |
-| SPD | 6 |
-| LUK | 6 |
-| MOV | 6 |
-| CON | 6 |
-| LoS | 4 |
-
-**Starting WEXP:** Staff D, Light E  
-**Starter Skills:** `renewal`, `miracle`  
-**Special Qualities:** —
-
-**Growth Rates:**
-```
-HP: 55, STR: 10, MAG: 55, DEF: 20, RES: 70, SKL: 45, SPD: 45, LUK: 55
-```
-
-> **Staff Use:** The Cleric targets an ally within staff range (1 tile for Heal).
-> Healing = 10 + MAG. Staff use is a turn-ending action. Grants EXP.
-
-**Promotes To:** Bishop, Paragon
+### Anchors
+- Code: `scripts/units/Unit.gd` (`promote`), `scripts/ui/PromotionScreen.gd`
+- Manual: `data/maps/map_950_promotion_validation/`
+- Decisions: SET-006, RULE-005 (timing → GDD_02)
+- Reference: `awakening_core_systems.md`, `awakening_appendices.md`
 
 ---
 
-### 6. Knight
+## Reclass (Second Seal)
 
-**Role:** Tank; very high DEF; slow; uses lance  
-**Handbook Source:** Knight
+Status: **Split** — Second Seal flow **Implemented**; corpus reclass + growth-to-caps **Target design** (SET-007/D-E)
+Last verified: 2026-06-13
 
-| Stat | Value |
-|---|---|
-| HP | 21 |
-| STR | 9 |
-| MAG | 0 |
-| DEF | 12 |
-| RES | 0 |
-| SKL | 5 |
-| SPD | 3 |
-| LUK | 2 |
-| MOV | 5 |
-| CON | 15 |
-| LoS | 4 |
+### Summary
+Reclassing reassigns a unit's class via a Second Seal, resetting visible level and the
+EXP basis.
 
-**Starting WEXP:** Lance D  
-**Starter Skills:** `resolve`  
-**Special Qualities:** `armoured`
+### Specs
 
-**Growth Rates:**
-```
-HP: 70, STR: 55, MAG: 0, DEF: 65, RES: 15, SKL: 45, SPD: 25, LUK: 25
-```
+**Implemented (project).** On Second Seal:
+1. `ReclassScreen` offers `Unit.get_second_seal_options()`.
+2. The selected class resets visible level to 1.
+3. Broader progression preserved via `internal_level`.
+4. Promotion stat bonuses from the previous promoted class are removed before applying
+   the new class state.
 
-**Promotes To:** General, Great Knight
+**Target design.**
+- **EXP basis reset (SET-007):** reclass resets `exp_basis_level` (see Progression
+  Counters); `lifetime_levels_gained` continues to accumulate.
+- **Reclass growth to caps (D-E):** Second Seal growth up to **stat caps** is sanctioned;
+  stat caps are the balance lever — **no anti-grind guards**.
+- Corpus reclass legality/graph: `GDD_Adoption_Matrix.md` → `awakening_appendices.md`.
 
----
-
-## New Game Runtime Setup
-
-The current `NewGameScreen` does **not** do character creation. It configures
-per-run gameplay rules and map launch state:
-
-1. Select a map from `data/maps/map_registry.json`
-2. Toggle `Permadeath`
-3. Toggle `Auto Promote`
-4. Choose `Leveling` (`Random` / `Fixed`)
-5. Toggle `Pair Up`
-
-Roster identity still comes from authored `UnitData` resources, not a custom avatar
-builder. A future character-creation system would be a separate milestone.
+### Anchors
+- Code: `scripts/units/Unit.gd` (`can_reclass`, `get_second_seal_options`, `reclass`),
+  `scripts/ui/ReclassScreen.gd`
+- Decisions: SET-007, RULE-006, D-E
 
 ---
 
-## Adding Future Classes
+## Promotion Items
 
-All classes in the handbook (53 total) are intended for Phase 2+.
-Priority order for implementation after MVP:
+Status: **Implemented** (Master Seal, Orion Bolt, Guiding Ring, Second Seal)
+Last verified: 2026-06-13
 
-**Priority A (common archetypes):**
-Fighter, Brigand, Cavalier, Myrmidon, Thief, Bard, Druid
+### Specs
 
-**Priority B (mounted/flying):**
-Pegasus Knight, Wyvern Rider, Nomad, Paladin, Great Knight
-
-**Priority C (promoted only, no base class in MVP):**
-General, Hero, Swordmaster, Sage, Berserker, Warrior, Sniper, etc.
-
-**Priority D (Laguz — requires separate shift system):**
-Cat, Tiger, Hawk, Raven, Heron
-
-To add a class:
-1. Create `data/classes/class_name.tres` using the `ClassData` resource
-2. Fill all fields including promotion paths (set to empty array if not yet implemented)
-3. Add or update any roster/map data that should reference the class
-4. Add tests or extend validation maps if the class changes progression or equipment flow
-5. No code changes are required unless the class introduces a new mechanic
-
-Every usable weapon track must have an authored `weapon_wexp_caps` entry.
-Current classes use A rank (400 WEXP) as the default maximum; S rank remains
-available only for classes that explicitly opt into an S cap.
-
----
-
-## Promotion and Reclass
-
-Promotion and Second Seal reclassing are now implemented.
-
-When a unit promotes:
-
-1. `PromotionScreen` offers the entries from `ClassData.promotes_to`
-2. The chosen class's `promotion_stat_bonuses` are applied immediately
-3. `class_id` changes to the promoted class and `is_promoted` becomes `true`
-4. `weapon_wexp` is raised to at least the promoted class's authored WEXP baselines
-5. Class skills are granted from the promoted class's `skill_unlocks`
-6. `internal_level` is recalculated from the promoted class's internal-level rule
-
-When a unit uses a Second Seal:
-
-1. `ReclassScreen` offers the legal results from `Unit.get_second_seal_options()`
-2. The selected class resets the unit's visible level to 1
-3. The unit keeps its broader progression state through `internal_level`
-4. Promotion stat bonuses from the previous promoted class are removed before the
-   new class state is applied
-
-The older single `promotion_skill` / `effective_level` model is deprecated.
-
-### Promotion Items
-
-| Item | Eligible Classes |
+| Item | Eligible |
 |---|---|
 | Master Seal | Any eligible unit at its current class maximum |
 | Orion Bolt | `allowed_classes = ["archer"]` |
 | Guiding Ring | `allowed_class_groups = ["mystic"]` |
 | Second Seal | Any unit with a legal reclass option |
 
-Store eligibility in each promotion item's `effect_params`:
-```gdscript
-{ "allowed_classes": ["archer"] }
-{ "allowed_class_groups": ["mystic"] }
-```
+Promotion items use the same eligibility gate as level-up promotion (no early
+promotion). Eligibility lives in each item's `effect_params`
+(`{ "allowed_classes": [...] }` / `{ "allowed_class_groups": [...] }`). Other handbook
+promotion items remain Planned content (not live resources).
 
-Other handbook promotion items remain planned content and are not live resources.
+### Anchors
+- Code: `scripts/items/ItemHandler.gd`, `data/items/`
+- Owner of item data schema: GDD_04
 
 ---
 
-## Default Roster
+## New Game Runtime Setup
 
-Used when the player starts a new game or launches a default-roster validation map.
-Six authored `UnitData` resources are loaded into `GameState.player_roster`. Each
-has `is_default_roster = true`.
+Status: **Implemented**
+Last verified: 2026-06-13
 
-All units start at **level 1** with the inventory listed below. Gold belongs to
-the shared party treasury, not the individual roster entry. The roster ships
-with authored personal growths, equipped skills, and reclass options.
+### Specs
+`NewGameScreen` does not do character creation; it sets per-run rules + launch state:
+select a map (`map_registry.json`), toggle Permadeath, toggle Auto Promote, choose
+Leveling (Random/Fixed), toggle Pair Up. Roster identity comes from authored `UnitData`.
+Character creation is a separate future milestone.
 
-Save these as `.tres` files in `data/roster/default/` so they can be loaded
-directly by `GameState` without generating them in code.
+### Anchors
+- Code: `scripts/ui/NewGameScreen.gd`
+- Owner of launch/roster-policy flow: GDD_01
 
-| Slot | Name | Class | Weapon | Item |
-|---|---|---|---|---|
-| 1 | Unit_01 | Cavalier | Iron Lance | Vulnerary |
-| 2 | Unit_02 | Mercenary | Iron Sword | Vulnerary |
-| 3 | Unit_03 | Archer | Iron Bow | Vulnerary |
-| 4 | Unit_04 | Mage | Fire | Vulnerary |
-| 5 | Unit_05 | Cleric | Heal Staff | Vulnerary |
-| 6 | Unit_06 | Knight | Iron Lance | Vulnerary |
+---
 
-**Starting proficiency ranks:**
-- Unit_01 (Cavalier): Lance D
-- Unit_02 (Mercenary): Sword D
-- Unit_03 (Archer): Bow D
-- Unit_04 (Mage): Elemental Magic D
-- Unit_05 (Cleric): Staff D, Light E
-- Unit_06 (Knight): Lance D
+## Adding Future Classes (operational)
 
-**Deployment order on Map 001:**
-Units are placed at player start tiles in slot order (Slot 1 → tile index 0, etc.).
+Status: **Reference** (process, not a rule)
+Last verified: 2026-06-13
 
-| Unit | Start Tile |
-|---|---|
-| Unit_01 (Cavalier) | (1, 9) |
-| Unit_02 (Mercenary) | (1, 10) |
-| Unit_03 (Archer) | (1, 11) |
-| Unit_04 (Mage) | (2, 9) |
-| Unit_05 (Cleric) | (2, 10) |
-| Unit_06 (Knight) | (2, 11) |
+### Specs
+To add a class: author `data/classes/<id>.tres` (`ClassData`), fill all fields incl.
+promotion paths (empty array if none), update referencing roster/map data, add/extend
+tests or validation maps if progression/equipment flow changes. No code changes unless a
+new mechanic is introduced. Every usable WEXP track needs an authored `weapon_wexp_caps`
+entry (current classes default to A = 400 WEXP; S caps are opt-in).
 
-> These units are still generic authored test/campaign placeholders. They are the
-> live default roster used by the current New Game flow and by default-roster maps.
+> Class **priority/order** for the corpus migration is owned by the roadmap
+> (`GDD_10`, AWR-2), not this chapter.
+
+### Anchors
+- Guide: `AGENT/Docs/map_authoring_guide.md` (authoring), GDD_01 (`ClassData` schema)
+- Roadmap: AWR-2

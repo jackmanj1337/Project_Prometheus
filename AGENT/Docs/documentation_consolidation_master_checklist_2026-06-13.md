@@ -120,9 +120,12 @@ record any new choice in the register.
   promotion-timing decisions as split status. **RNG contract merged:** binding rules →
   `GDD_01 §Determinism, Snapshot & Online Contract` + `GDD_02 §Combat Resolution & Hit
   RNG`; file moved to `AGENT/Docs/` and re-scoped as the implementation plan (DOC-010).
-- [ ] 3.2 **`GDD_03` Units & Classes** — class corpus adoption, progression/promotion/
-  reclass relationships, EXP-basis reset on reclass, lifetime-level counter, magic-class
-  design gaps (Light/Dark lines). Soldier deferred (AWR-2). Package C/E docs.
+- [x] 3.2 **`GDD_03` Units & Classes** — DONE 2026-06-13. Section template + status
+  labels; corpus class adoption (SET-009/RULE-007/008) as Target; progression counters
+  (RULE-006/SET-007); promotion targets (SET-006) w/ timing cross-ref to GDD_02 (RULE-005);
+  reclass + growth-to-caps (D-E); Light/Dark (RULE-009) + Soldier (OPEN-9) deferred;
+  Cleric Light (OPEN-10) Open decision. Compressed 6 stat blocks → 1 reference table
+  (.tres authoritative).
 - [ ] 3.3 **`GDD_04` Weapons & Items** — weapon families, rank-scaled triangle bonuses
   (physical + project magic triangle), item/economy-facing rules. Package B/D docs.
 - [ ] 3.4 **`GDD_05` Skills** — skill acquisition, proc precedence, Pair Up pass-1
