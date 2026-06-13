@@ -1,8 +1,24 @@
 # GDD_08 — Enemy AI
 
+**Status:** Active contract — split status per section (the basic/passive/healer profiles
+are **Implemented**; the tactical scoring model, extra profiles, and enemy
+generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
+`GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-13
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns enemy AI behaviour, AI determinism/parity obligations, and AI
+performance constraints. Combat math is owned by `GDD_02`; the EnemyAI autoload + faction
+dispatch are owned by `GDD_01`/`GDD_02 §Turn Structure`. Enemy EXP gating is owned by
+`GDD_02 §EXP` + `GDD_01 §CampaignRules Contract` (OPEN-4).
+
 ---
 
 ## Overview
+
+Status: **Implemented** (basic close-and-attack AI); richer scoring is backlog
+Last verified: 2026-06-13
 
 Enemy AI lives in `scripts/core/EnemyAI.gd`, registered as the `EnemyAI` autoload.
 `TurnManager.start_enemy_phase()` now dispatches AI **per acting faction**. For each
@@ -56,6 +72,9 @@ every other non-blue unit.
 ---
 
 ## Implemented Profiles
+
+Status: **Implemented** (`basic`, `passive`, `healer`)
+Last verified: 2026-06-13
 
 ### `"basic"` — the default
 
@@ -112,6 +131,9 @@ normal speed and 0.12 seconds at fast speed. Instant movement skips that delay.
 
 ## Future AI Profiles (Phase 2+)
 
+Status: **Planned** (separate tactical-AI task); enemy generation/autolevel **Not reviewed**
+Last verified: 2026-06-13
+
 Designed but not implemented. Register them in `_act()` and
 `DataManager._VALID_AI_PROFILES`, then add resource validation and behavior tests.
 
@@ -131,7 +153,85 @@ take. Until then the AI uses the nearest-target rule above.
 
 ---
 
+## AI Determinism & Parity
+
+Status: **Target design** (parity obligations; binding once `RngService` lands — RNG-4)
+Last verified: 2026-06-13
+
+### Summary
+AI decisions must be reproducible so replay, rewind, suspend, and host-authoritative
+online play stay consistent.
+
+### Specs
+- **Deterministic decisions.** AI move/target selection must be a pure function of the
+  snapshotted game state plus the deterministic event stream. Any AI dice (none today) must
+  draw from `RngService` in canonical order, never `randi()` (GDD_01 §Determinism).
+- **Tie-break stability.** Target/destination tie-breaks use stable ordering (pathfinding
+  cost, then a deterministic key) so the same state always yields the same action — no
+  dependence on iteration/hash order.
+- **Online parity (RNG-4, post-1.0, M15B).** In online play the **host simulates AI** and
+  broadcasts results through the `resolve_combat()`/`apply_combat_result()` + snapshot
+  seams; clients never run a divergent AI. Determinism guarantees are engine-local.
+- **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`
+  (default Blue + Green; Red none) — owned by GDD_02 §EXP / GDD_01 §CampaignRules Contract.
+
+### Anchors
+- Code: `scripts/core/EnemyAI.gd`; target `scripts/autoloads/RngService.gd`
+- Decisions: RNG-4, OPEN-4
+- Owner of the determinism contract: GDD_01 §Determinism, Snapshot & Online Contract
+
+---
+
+## Performance Constraints
+
+Status: **Implemented** (current budget) + **Target design** (scaling guardrails)
+Last verified: 2026-06-13
+
+### Summary
+The AI must resolve a faction phase within an acceptable frame/time budget on the largest
+authored maps.
+
+### Specs
+- **Per-unit pathfinding:** the basic profile runs a whole-map Dijkstra flood
+  (`GridManager.dijkstra_costs`) from each acting unit to find the nearest hostile by real
+  cost, with a Manhattan fallback only when every target is walled off. Cost scales with
+  map size × acting units; authored maps are tested through 42×26.
+- **Frame atomicity:** combat resolves within one frame; movement animates at the
+  configured speed; `_focus_camera()` pauses 0.25 s (0.12 s fast, 0 instant) before each
+  acting unit for readability.
+- **Target design (scaling):** if larger maps or denser factions stress the budget, cache
+  per-phase flood results / cap re-floods rather than per-unit recompute. Any optimization
+  must preserve AI Determinism above (identical decisions).
+
+### Anchors
+- Code: `scripts/core/EnemyAI.gd` (`run_phase`, `_choose_move_tile`, `_focus_camera`),
+  `scripts/core/GridManager.gd` (`dijkstra_costs`)
+- Owner of grid/pathfinding: GDD_01 §GridManager
+
+---
+
+## Enemy Generation & Autolevel
+
+Status: **Not reviewed** (corpus adoption) — current enemies use static stat blocks
+Last verified: 2026-06-13
+
+### Specs
+- **Implemented:** map enemies are authored `UnitData` `.tres` with static stat blocks at
+  their level (no level-up rolls); see GDD_06 Map 001 (`stat = base + floor(growth% ×
+  (N−1))`).
+- **Not reviewed:** corpus enemy generation / autolevel adoption is unreviewed; resolve at
+  the enemy-generation task. Class/stat ownership stays in GDD_03.
+
+### Anchors
+- Decisions: — (enemy generation row, `GDD_Adoption_Matrix.md`)
+- Owner of class/stat data: GDD_03; authored placements: GDD_06
+
+---
+
 ## Testing the AI
+
+Status: **Implemented** (profile coverage); scoring tests **Planned**
+Last verified: 2026-06-13
 
 `scripts/tests/test_enemy_ai.gd` covers the AI profiles. Behaviour checklist:
 

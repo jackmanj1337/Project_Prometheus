@@ -112,13 +112,13 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Effectiveness matrix | `awakening_lookup_tables` | Adopted target | GDD_04 §Effectiveness Mechanic | 3× (4× Giantkiller) | Target design | — |
 | Broken-weapon degraded mode | (project backlog) | Deferred | GDD_04 §Broken-Weapon Degraded Mode | Optional rule: stat penalty + infinite uses while broken; likely CampaignRules toggle | Planned (backlog) | OPEN-5 |
 
-## AI & enemy generation  → GDD_08 (3.8)
+## AI & enemy generation  → GDD_08 (3.8 — DONE)
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Tactical AI scoring | `awakening_core_systems` | Deferred | GDD_08 (TBD) | Separate AI task | Planned | — |
-| Enemy generation / autolevel | `awakening_core_systems`, `awakening_appendices` | Not reviewed | GDD_08 / GDD_03 (TBD) | — | — | — |
-| Enemy/AI EXP gain | (project rule) | Adopted w/ variation | GDD_03 / CampaignRules (TBD) | `CampaignRules.exp_gaining_factions`, default Blue+Green; Red none | Planned | OPEN-4 |
+| Tactical AI scoring | `awakening_core_systems` | Deferred | GDD_08 §Future AI Profiles / §Phase 2 Scoring Model | Separate AI task | Planned | — |
+| Enemy generation / autolevel | `awakening_core_systems`, `awakening_appendices` | Not reviewed | GDD_08 §Enemy Generation & Autolevel (+ GDD_03 stats) | — | — | — |
+| Enemy/AI EXP gain | (project rule) | Adopted w/ variation | GDD_02 §EXP / GDD_01 §CampaignRules Contract | `CampaignRules.exp_gaining_factions`, default Blue+Green; Red none | Planned | OPEN-4 |
 
 ---
 

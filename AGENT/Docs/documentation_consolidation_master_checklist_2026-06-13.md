@@ -152,10 +152,14 @@ record any new choice in the register.
   screens/state-machine/feedback sections; added §Accessibility & Input Parity contract
   (keyboard/mouse + hotseat parity Implemented; key rebind + UI-scale Planned). Platform
   targets cross-referenced to GDD_00 (OPEN-11); SettingsManager schema to GDD_01.
-- [ ] 3.8 **`GDD_08` Enemy AI** — AI parity obligations and performance constraints.
+- [x] 3.8 **`GDD_08` Enemy AI** — DONE 2026-06-13. Header + status labels; added
+  §AI Determinism & Parity (deterministic decisions, stable tie-breaks, host-authoritative
+  online RNG-4, EXP parity OPEN-4), §Performance Constraints (per-unit Dijkstra budget +
+  scaling guardrails), §Enemy Generation & Autolevel (Not reviewed). Tactical scoring
+  Planned. EXP gating cross-referenced to GDD_02/GDD_01.
 
 Exit: each live rule or target rule has exactly one numbered-GDD owner, and no corpus
-section can silently override a project variation.
+section can silently override a project variation. **Stage 3 COMPLETE 2026-06-13.**
 
 ---
 

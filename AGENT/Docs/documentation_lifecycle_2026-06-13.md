@@ -54,7 +54,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 | `GDD_05_Skills.md` | Active contract | **rewrite** (skills, Pair Up, conditions precedence) — DONE 2026-06-13 | 3.4 |
 | `GDD_06_Maps_Objectives.md` | Active contract | **rewrite** (terrain split tables, objectives) — DONE 2026-06-13 | 3.6 |
 | `GDD_07_UI_UX.md` | Active contract | **rewrite** (UI/input/accessibility) — DONE 2026-06-13 | 3.7 |
-| `GDD_08_Enemy_AI.md` | Active contract | **rewrite** (AI parity, performance) | 3.8 |
+| `GDD_08_Enemy_AI.md` | Active contract | **rewrite** (AI parity, performance) — DONE 2026-06-13 | 3.8 |
 | `GDD_10_Roadmap.md` | Active roadmap | **rewrite** (sole roadmap owner; absorb 10a; stable IDs; Package G owners) | 4 |
 | `GDD_Feature_Index.md` | Active (seed) | **keep** (populate anchors during Stage 3) | 3 |
 
