@@ -3,7 +3,7 @@
 
 > **Project authority notice:** This corpus is external Awakening reference
 > material. It does not override the numbered Project Prometheus GDD or dated
-> decisions. See [`project_adoption_matrix.md`](project_adoption_matrix.md).
+> decisions. See [`GDD_Adoption_Matrix.md`](../../GDD_Adoption_Matrix.md).
 
 **File:** `awakening_master_index.md`  
 **Final Phase:** Master Index  
@@ -60,7 +60,7 @@ The corpus is intentionally split into smaller markdown files to preserve:
 
 # Complete Document Links
 
-- [`project_adoption_matrix.md`](project_adoption_matrix.md) — Project adoption status and authority boundary
+- [`GDD_Adoption_Matrix.md`](../../GDD_Adoption_Matrix.md) — Project adoption status and authority boundary (lives in the live GDD set)
 - [`awakening_project_index.md`](awakening_project_index.md) — Project Index
 - [`awakening_core_systems.md`](awakening_core_systems.md) — Core Systems
 - [`awakening_lookup_tables.md`](awakening_lookup_tables.md) — Canonical Lookup Tables

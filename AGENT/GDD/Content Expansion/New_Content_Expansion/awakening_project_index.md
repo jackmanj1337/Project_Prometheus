@@ -4,7 +4,7 @@
 
 > **Project authority notice:** This corpus is external Awakening reference
 > material. It does not override the numbered Project Prometheus GDD or dated
-> decisions. See [`project_adoption_matrix.md`](project_adoption_matrix.md).
+> decisions. See [`GDD_Adoption_Matrix.md`](../../GDD_Adoption_Matrix.md).
 
 **Corpus ID:** `fea-tech-corpus`  
 **Game:** Fire Emblem Awakening  

@@ -79,7 +79,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 | Group | Status | Action |
 |---|---|---|
 | `New_Content_Expansion/awakening_*.md` (12 reference files + 2 indexes) | Reference (corpus) | **keep** — corpus owns Awakening reference data only; never project rules (DOC-001). Cited via adoption matrix. |
-| `New_Content_Expansion/project_adoption_matrix.md` | Active | **keep + expand** into the systematic matrix (Stage 3.0); decide final home there |
+| ~~`New_Content_Expansion/project_adoption_matrix.md`~~ → `AGENT/GDD/GDD_Adoption_Matrix.md` | Active | **DONE (Stage 3.0)** — expanded into the systematic matrix and **moved** to the live GDD set (project authority artifact, not corpus, per DOC-001). 3 corpus inbound links repaired (`awakening_project_index.md`, `awakening_master_index.md` ×2). |
 | `Old_Deferred/*.md` (9 files) | Historical (archived source) | **keep** — archived homebrew/source material, never live rules; no live inbound refs |
 
 ---

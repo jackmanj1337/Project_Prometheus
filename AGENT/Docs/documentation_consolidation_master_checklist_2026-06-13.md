@@ -101,7 +101,7 @@ roadmap status in the same commit. (Pairs with the DOC-011 CI checks in Stage 6.
 adoption-matrix rows are completed **before or in the same commit as** the chapter
 rewrite (enforces DOC-001 provenance).
 
-### [ ] 3.0 Establish the adoption-matrix structure
+### [x] 3.0 Establish the adoption-matrix structure — DONE 2026-06-13 (moved to `AGENT/GDD/GDD_Adoption_Matrix.md`; corpus links repaired)
 
 Expand `AGENT/GDD/Content Expansion/New_Content_Expansion/project_adoption_matrix.md`
 from a short list into the systematic index defined in plan §4.4 (columns: not
