@@ -93,6 +93,10 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and not bus.unit_died.is_connected(_on_unit_died):
 		bus.unit_died.connect(_on_unit_died)
+	# A support dropped by a player-phase lead death spends its turn at once.
+	# PairUpRegistry announces it on EventBus so it need not know our scene path.
+	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
+		bus.support_orphaned.connect(_on_support_orphaned)
 	# Begin the first faction's phase.
 	if active_faction() == "blue" or active_faction() == "":
 		start_player_phase()
@@ -994,6 +998,13 @@ func _apply_victory_rewards(gs: Node) -> void:
 		gs.party_gold += _map_data.reward_gold
 	for item_id in _map_data.reward_items:
 		gs.party_items.append(item_id)
+
+
+func _on_support_orphaned(support: Node) -> void:
+	# The registry only emits this for a player-phase lead death, so the dropped
+	# support has effectively already acted this turn — mark it DONE.
+	if is_instance_valid(support):
+		set_unit_state(support, UnitState.DONE)
 
 
 func _on_unit_died(unit: Node) -> void:

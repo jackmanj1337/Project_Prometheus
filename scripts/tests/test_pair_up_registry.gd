@@ -119,6 +119,66 @@ func _init() -> void:
 	else:
 		print("FAIL restore({}) left pairings behind"); failed += 1
 
+	# ---- Pair Up invariant harness (audit 2026-06-14 R1) ----
+	# Pair Up is the top recurring defect class (Swap no-op, bonus-source collision,
+	# …). Those were all invariant violations. This harness drives a scripted
+	# pair/swap/separate sequence over a fixed roster and asserts, after EVERY
+	# operation, that the structural invariants hold: pairing is symmetric and
+	# reciprocal, roles are complementary, no unit is paired to itself, and
+	# lead/support are mutually exclusive.
+	var inv_reg: Node = PairUpRegistryS.new()  # bare instance: no tree, gate open
+	var roster := ["a", "b", "c", "d"]
+	# Returns "" when all invariants hold over the roster, else a failure reason.
+	var check_inv := func() -> String:
+		for uid in roster:
+			if not inv_reg.is_paired(uid):
+				continue
+			var partner: String = inv_reg.get_partner_id(uid)
+			if partner == "" or partner == uid:
+				return "%s has invalid partner '%s'" % [uid, partner]
+			if not inv_reg.is_paired(partner) or inv_reg.get_partner_id(partner) != uid:
+				return "%s<->%s link not reciprocal" % [uid, partner]
+			if inv_reg.get_role(uid) == inv_reg.get_role(partner):
+				return "%s and %s share role %s" % [uid, partner, inv_reg.get_role(uid)]
+			if inv_reg.is_lead(uid) == inv_reg.is_support(uid):
+				return "%s is both/neither lead and support" % uid
+		return ""
+	# [op, arg1, arg2]; pair() onto an already-paired unit must no-op, not corrupt.
+	var ops := [
+		["pair", "a", "b"], ["swap", "a", ""], ["pair", "c", "d"],
+		["separate", "b", ""], ["pair", "a", "c"], ["swap", "c", ""],
+		["separate", "c", ""], ["pair", "a", "d"],
+	]
+	var inv_msg := ""
+	for op in ops:
+		match op[0]:
+			"pair": inv_reg.pair(op[1], op[2])
+			"swap": inv_reg.swap_roles(op[1])
+			"separate": inv_reg.separate(op[1])
+		inv_msg = check_inv.call()
+		if inv_msg != "":
+			break
+	if inv_msg == "":
+		print("OK  invariant harness: pair/swap/separate sequence preserves all invariants"); passed += 1
+	else:
+		print("FAIL invariant harness after op sequence: %s" % inv_msg); failed += 1
+	# serialize -> restore into a fresh registry must preserve every pairing exactly.
+	var inv_reg2: Node = PairUpRegistryS.new()
+	inv_reg2.restore(inv_reg.serialize())
+	var rt_ok := true
+	for uid in roster:
+		if inv_reg.is_paired(uid) != inv_reg2.is_paired(uid) \
+				or inv_reg.get_partner_id(uid) != inv_reg2.get_partner_id(uid) \
+				or inv_reg.get_role(uid) != inv_reg2.get_role(uid):
+			rt_ok = false
+			break
+	if rt_ok and check_inv.call() == "":
+		print("OK  invariant harness: serialize/restore round-trip preserves pair state"); passed += 1
+	else:
+		print("FAIL invariant harness: serialize/restore drifted"); failed += 1
+	inv_reg.free()
+	inv_reg2.free()
+
 	# ---- GameState integration ----
 	# GameState's take_map_snapshot / restore_map_snapshot must capture and
 	# restore Pair Up state alongside unit data. Use the autoload via relay-node
@@ -178,12 +238,13 @@ func _init() -> void:
 			print("FAIL campaign gate did not re-open"); failed += 1
 		# Lead death: drop the support onto the lead tile and expend it only when
 		# the lead died during the player phase.
-		var tm_stub_script := GDScript.new()
-		tm_stub_script.source_code = "extends Node\nenum UnitState { READY, MOVED, DONE }\nvar last_unit = null\nvar last_state = -1\nfunc set_unit_state(unit, state) -> void:\n\tlast_unit = unit\n\tlast_state = state\n"
-		tm_stub_script.reload()
-		var gm: Node = Node.new(); gm.name = "GameMap"
-		var tm: Node = tm_stub_script.new(); tm.name = "TurnManager"
-		gm.add_child(tm); root.add_child(gm)
+		# The registry no longer reaches into the scene's TurnManager; it announces a
+		# player-phase support drop on EventBus (audit 2026-06-14). Capture the emit.
+		var orphaned: Array = [null]
+		var orphan_cb := func(s): orphaned[0] = s
+		var bus: Node = relay.get_node_or_null("/root/EventBus")
+		if bus != null:
+			bus.support_orphaned.connect(orphan_cb)
 		var unit_stub_script := GDScript.new()
 		unit_stub_script.source_code = "extends Node\nvar data = null\nvar tile_position: Vector2i = Vector2i.ZERO\nvar visible: bool = true\nvar team: String = \"blue\"\n"
 		unit_stub_script.reload()
@@ -210,34 +271,33 @@ func _init() -> void:
 			dropped_player == support
 			and support.tile_position == Vector2i(4, 5)
 			and support.visible
-			and tm.last_unit == support
-			and tm.last_state == tm.UnitState.DONE
+			and orphaned[0] == support
 			and not live_reg.is_paired("chrom")
 		)
 		live_reg.pair("chrom", "lissa")
 		support.tile_position = live_reg.OFF_MAP_TILE
 		support.visible = false
-		tm.last_unit = null
-		tm.last_state = -1
+		orphaned[0] = null
 		gs.current_phase = gs.Phase.ENEMY
 		var dropped_enemy: Node = live_reg.release_support_from_fallen_lead(lead)
 		var enemy_drop_ok: bool = (
 			dropped_enemy == support
 			and support.tile_position == Vector2i(4, 5)
 			and support.visible
-			and tm.last_unit == null
+			and orphaned[0] == null
 			and not live_reg.is_paired("chrom")
 		)
+		if bus != null:
+			bus.support_orphaned.disconnect(orphan_cb)
 		gs.unregister_unit(lead)
 		gs.unregister_unit(support)
 		lead.queue_free()
 		support.queue_free()
-		gm.queue_free()
 		if player_drop_ok and enemy_drop_ok:
 			print("OK  lead death drops support onto the lead tile with phase-aware turn state"); passed += 1
 		else:
-			print("FAIL lead-death drop: player_ok=%s enemy_ok=%s tile=%s visible=%s state=%s" % [
-				player_drop_ok, enemy_drop_ok, support.tile_position, support.visible, tm.last_state])
+			print("FAIL lead-death drop: player_ok=%s enemy_ok=%s tile=%s visible=%s orphaned=%s" % [
+				player_drop_ok, enemy_drop_ok, support.tile_position, support.visible, str(orphaned[0])])
 			failed += 1
 		# Clean up so a later test in the same harness does not see stale state.
 		live_reg.call("clear")

@@ -160,11 +160,17 @@ func _apply_support_turn_state_after_lead_death(support: Node) -> void:
 	if support == null or not is_inside_tree():
 		return
 	var gs := get_node_or_null("/root/GameState")
-	var turn := get_node_or_null("/root/GameMap/TurnManager")
-	if gs == null or turn == null or not turn.has_method("set_unit_state"):
+	if gs == null:
 		return
+	# A player-phase lead death expends the dropped support immediately. Announce it
+	# on EventBus rather than reaching into "/root/GameMap/TurnManager" by literal
+	# path — that autoload→scene coupling silently no-op'd on a tree reorg, so a
+	# dropped support could fail to be marked DONE (audit 2026-06-14 P1). TurnManager
+	# owns unit-state and listens for support_orphaned.
 	if gs.current_phase == gs.Phase.PLAYER:
-		turn.set_unit_state(support, turn.UnitState.DONE)
+		var bus := get_node_or_null("/root/EventBus")
+		if bus != null:
+			bus.support_orphaned.emit(support)
 
 
 # ---- Snapshot ----
