@@ -81,7 +81,7 @@ but not yet applied to the GDD). Homes:
 
 ## D — June ratified decisions (deprecated short aliases)
 
-| ID | Title | Status | Home | Canonical / Notes |
+| ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------------------|
 | D-A | Public identity rename | Retained | JUN | Data-pass rename ≤ first public RC. Separate from OPEN-12/DOC-012. |
 | D-B | 1.0 definition | Retained (applied to GDD_00) | JUN | Offline non-pipeline features + one short campaign; M11 re-scoped. In GDD_00 Release Definition (Stage 2.1). |
@@ -120,7 +120,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
-| Combat modifier pipeline order | Canonical order ratified | Applied | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Summary in GDD_02 §Modifier Pipeline (3.1); binding contract home GDD_01 (3.5). |
+| Combat modifier pipeline order | Modifier order ratified | Applied | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Summary in GDD_02 §Modifier Pipeline (3.1); binding contract home GDD_01 (3.5). |
 | PL#8 | Doc-lifecycle DoD rule | Applied | JUN | Same-commit GDD + roadmap update. **Applied to AGENTS.md** (Stage 2.2). |
 | PL#9 | Minimal SFX | Answered (deferred) | JUN | Wait for Phase 3 audio milestone. |
 

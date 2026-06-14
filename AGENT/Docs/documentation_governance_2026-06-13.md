@@ -89,6 +89,21 @@ Reference: <corpus/handbook section, if any>
 `Status` and `Last verified` are mandatory. `Summary` and `Specs` are mandatory.
 `Known gaps` and `Anchors` are required when they apply (almost always).
 
+### Catalog-section variant (DOC-002a, ratified 2026-06-14)
+
+Some chapters are **catalogs** — many small, uniform entries (terrain tiles, UI
+screens, AI behaviours) rather than a few large feature systems. GDD_06 (Maps/
+Objectives), GDD_07 (UI/UX), and GDD_08 (Enemy AI) are catalogs. For these, the
+per-entry `### Summary`/`### Specs` split is noise: a row in a table *is* the spec.
+
+A catalog chapter is compliant when it: (1) carries the chapter-level `Status` +
+`Last verified` header; (2) opens with a chapter `### Summary`; (3) presents its
+entries as a table or a consistent per-entry block; and (4) keeps a chapter-level
+`### Known gaps` and `### Anchors`. The per-entry Summary/Specs split is **not**
+required. This is a blessed deviation, not a gap — flagged by the 2026-06-14
+documentation audit (Pillar 2) and chosen over forcing the feature template onto
+catalog content.
+
 ## Decision-Record Schema & ID Namespace (DOC-009, ratified 2026-06-13)
 
 **Structure:** dated decision-record files plus a central index.
