@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-06-14c](2026-06-14c.md) — First full execution of the review procedure: closed 4 coverage gaps, ran the parallel five-pillar audit at `e924bb4` (overall 6/10 — Code 9, Docs 8, Data 8, Process 8, Tests/CI/Build 6), and wrote the rollup + a meta-review of the procedure itself (8/10). Top finds: fort-heal floor bug (Doc↔Code), untracked `.uid` (3-pillar corroborated), analyzer suite red+ungated.
 - [2026-06-14b](2026-06-14b.md) — Designed the full-project review procedure: new `AGENT/Review Procedures/` folder with a master orchestrator + 5 parallelizable pillars (Code, Documentation, Scenes/Data/Assets, Tests/CI/Build, Process/History incl. tooling recommendations); folded in and superseded the two old review-instruction docs.
 - [2026-06-14](2026-06-14.md) — Triaged the returned v0.1.4 playtest package and resolved the whole round: 6 defects fixed (iron_axe, Pair Up Swap, rout-liveness + AI off-map guard, New Game persistence, promotion modal, pair-up bonus source collision) + 3 observations closed (combat-preview HUD avoidance, Battle Speed in preview, Soldier no-skill decision), each with a regression test.
 - [2026-06-13n](2026-06-13n.md) — Prepared the project to move to a new machine, and closed out the session.
