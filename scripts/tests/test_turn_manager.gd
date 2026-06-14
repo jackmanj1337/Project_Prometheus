@@ -1254,5 +1254,39 @@ func _init() -> void:
 	else:
 		print("FAIL no-blue guard: active_faction=%s" % tm_guard.active_faction()); failed += 1
 
+	# ---- fort heal floors at 1 (OPEN-7 regression, audit CR-2) ----
+	# Pre-fix, _apply_fort_healing used bare floori(): a 5-max-HP unit healed
+	# floor(0.10×5)=0. OPEN-7 guarantees max(1, floor(...)), so it must recover ≥1.
+	var heal_unit_stub := GDScript.new()
+	heal_unit_stub.source_code = "extends Node\nvar team := \"blue\"\nvar data = null\nvar tile_position: Vector2i = Vector2i.ZERO\nfunc heal(amount: int) -> void:\n\tdata.hp = mini(data.max_hp, data.hp + amount)\n"
+	heal_unit_stub.reload()
+
+	var fort_grid := GridManager.new()
+	root.add_child(fort_grid)
+	fort_grid.set_terrain_fallback(Vector2i.ZERO, "fort")
+	var tm_fort := TurnManager.new()
+	root.add_child(tm_fort)
+	tm_fort._grid = fort_grid
+
+	# Small unit: floor(0.10×5)=0 → must still heal 1.
+	var small_d := UnitData.new()
+	small_d.max_hp = 5
+	small_d.hp = 1
+	var small_u: Node = heal_unit_stub.new()
+	small_u.set("data", small_d)
+	# Large unit: floor(0.10×20)=2 → heals the full rounded amount, not just 1.
+	var big_d := UnitData.new()
+	big_d.max_hp = 20
+	big_d.hp = 1
+	var big_u: Node = heal_unit_stub.new()
+	big_u.set("data", big_d)
+	root.add_child(small_u)
+	root.add_child(big_u)
+	tm_fort._apply_fort_healing([small_u, big_u] as Array[Node])
+	if small_d.hp == 2 and big_d.hp == 3:
+		print("OK  fort heal floors at 1 (5-HP unit +1, 20-HP unit +2)"); passed += 1
+	else:
+		print("FAIL fort heal floor: small=%d (want 2) big=%d (want 3)" % [small_d.hp, big_d.hp]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
