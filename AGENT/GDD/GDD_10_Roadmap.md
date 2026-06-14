@@ -103,11 +103,16 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        stat change appears on unit info or in the combat preview, so the authored
        support contribution never reaches forecast or live combat. May share a root
        cause with item 2 (pair-state not being read post-pairing).
-4. [ ] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
+4. [x] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
        allies died, Red ignored the surviving paired archer, beelined to `(1,1)`,
-       Blue phase stopped auto-completing, and no defeat screen fired — the map sat
-       in an unresolvable state. Touches the allied-Rout defeat check and the
-       hidden-support / phase-end accounting when only a paired unit remains.
+       and no defeat screen fired. **Fixed (2026-06-14), two parts:**
+       (A) `TurnManager._eval_rout` now counts true liveness via
+       `GameState.get_all_living_units_of` (new), so a Rout no longer resolves while
+       a hidden paired support is alive — the prior `get_living_units_of` excluded
+       supports. (B) `EnemyAI._living_hostiles_for_faction` now drops any unit at
+       `OFF_MAP_TILE` regardless of pair role, so a desynced off-map unit can't drag
+       the AI toward the `(-1,-1)` corner (the `(1,1)` beeline). Regression guards in
+       `scripts/tests/test_turn_manager.gd` and `scripts/tests/test_enemy_ai.gd`.
 5. [ ] **Promotion modal runs off the right edge (handbook 8.7 and 8.11).** The
        promotion class-choice modal is not centered and clips off-screen at the test
        resolution; reproduces under both manual Master Seal (8.7) and Auto Promote

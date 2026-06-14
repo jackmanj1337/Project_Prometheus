@@ -727,16 +727,21 @@ func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) 
 # typo surfaces in the editor output. DataManager validation (M16 follow-up)
 # will promote this to a load-time push_error.
 func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
+	# Rout counts TRUE liveness via get_all_living_units_of: a paired support is an
+	# undefeated unit even though it sits off-map, so it must keep a faction/group
+	# "not routed". get_living_units_of excludes supports (for selection/turn-end)
+	# and must NOT be used here — doing so let a Rout resolve while a hidden support
+	# was still alive (playtest v0.1.4 #4).
 	var faction_ids: Array[String] = gs.get_registered_faction_ids()
 	if cond.faction_id != "":
 		# Faction id first; fall back to "alliance-group name" interpretation.
 		if cond.faction_id in faction_ids:
-			return gs.get_living_units_of(cond.faction_id).is_empty()
+			return gs.get_all_living_units_of(cond.faction_id).is_empty()
 		var matched := false
 		for fid in faction_ids:
 			if gs.get_alliance_group(fid) == cond.faction_id:
 				matched = true
-				if not gs.get_living_units_of(fid).is_empty():
+				if not gs.get_all_living_units_of(fid).is_empty():
 					return false
 		if not matched:
 			push_warning("ObjectiveCondition rout: faction_id '%s' matches no faction or group" % cond.faction_id)
@@ -746,7 +751,7 @@ func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 	for fid in faction_ids:
 		if gs.get_alliance_group(fid) == for_group:
 			continue
-		if not gs.get_living_units_of(fid).is_empty():
+		if not gs.get_all_living_units_of(fid).is_empty():
 			return false
 	return true
 

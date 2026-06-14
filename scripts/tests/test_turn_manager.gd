@@ -201,6 +201,39 @@ func _init() -> void:
 	else:
 		print("FAIL defeat all-dead: defeats=%d" % defeats[0]); failed += 1
 
+	# ---- rout counts paired supports as living (playtest v0.1.4 #4) ----
+	# _eval_rout used get_living_units_of, which excludes off-map supports, so an
+	# allied Rout could resolve while a hidden support was still alive. With a dead
+	# lead and a LIVING off-map support, allied Rout must NOT fire; once the support
+	# also dies, it must fire.
+	gs.reset_map_state()
+	pair_reg.call("clear")
+	var rd_lead := _mk_unit("blue", 0, "rd_lead")          # lead already dead
+	var rd_support := _mk_unit("blue", 20, "rd_support")   # support alive, off-map
+	rd_support.set("tile_position", pair_reg.OFF_MAP_TILE)
+	gs.register_unit(rd_lead)
+	gs.register_unit(rd_support)
+	pair_reg.pair("rd_lead", "rd_support")                 # rd_support is the support
+	gs.register_unit(_mk_unit("red", 20, "rd_e1"))         # keep a hostile alive (no victory)
+	var tm_rs := TurnManager.new(); root.add_child(tm_rs)
+	tm_rs._map_data = md_rout
+	defeats[0] = 0
+	tm_rs.check_victory_conditions()
+	var support_alive_no_defeat: bool = defeats[0] == 0
+	# Now the support dies too → allies are truly routed → defeat fires.
+	rd_support.data.hp = 0
+	tm_rs._map_over = false
+	defeats[0] = 0
+	tm_rs.check_victory_conditions()
+	var support_dead_defeat: bool = defeats[0] == 1
+	if support_alive_no_defeat and support_dead_defeat:
+		print("OK  rout counts paired supports: alive support blocks defeat, dead support allows it")
+		passed += 1
+	else:
+		print("FAIL rout support liveness: no_defeat_while_alive=%s defeat_when_dead=%s" % [
+			support_alive_no_defeat, support_dead_defeat])
+		failed += 1
+
 	# ---- check_victory_conditions: turn_limit defeat on allies → map_defeat ----
 	gs.reset_map_state()
 	gs.register_unit(_mk_unit("blue", 20, "p3"))

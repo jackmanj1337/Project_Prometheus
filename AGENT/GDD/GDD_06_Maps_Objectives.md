@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -164,7 +164,11 @@ results flow.
 #### `rout`
 The named faction or alliance group has no living units left. With an empty
 `faction_id`, the condition means "every faction hostile to the conditioning
-group has been eliminated."
+group has been eliminated." Liveness here counts **every** undefeated unit,
+including a paired support hidden off-map — a pair's support is not "dead" just
+because it is off the grid, so a Rout does not resolve while one survives.
+(`TurnManager._eval_rout` uses `GameState.get_all_living_units_of`, not the
+support-excluding `get_living_units_of` used for selection/turn-end.)
 
 #### `defeat_boss`
 Every `unit_id` named in the condition is dead.

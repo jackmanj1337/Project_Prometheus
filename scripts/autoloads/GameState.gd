@@ -237,6 +237,21 @@ func get_living_units_of(faction_id: String) -> Array[Node]:
 	return result
 
 
+# True liveness of a faction, INCLUDING paired supports. Objective evaluators
+# (rout victory/defeat) must count a hidden support as a living member — a pair's
+# support is still an undefeated unit even though it sits off-map. This differs
+# from get_living_units_of, which deliberately drops supports for unit selection,
+# Tab cycling, and are_all_units_done accounting. Mixing the two let an
+# allied/enemy Rout resolve while a support was still alive (playtest v0.1.4 #4).
+func get_all_living_units_of(faction_id: String) -> Array[Node]:
+	var result: Array[Node] = []
+	var bucket: Array[Node] = _units_by_faction.get(faction_id, [] as Array[Node])
+	for u in bucket:
+		if is_instance_valid(u) and u.data != null and u.data.hp > 0:
+			result.append(u)
+	return result
+
+
 # Every faction id that has had at least one unit registered on this map (alive
 # or dead). Used by the M16 evaluator to enumerate which factions exist when
 # walking per-group conditions. Returns a typed copy so callers can iterate

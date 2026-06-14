@@ -4,7 +4,7 @@
 are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -80,7 +80,10 @@ Last verified: 2026-06-13
 
 1. Find the nearest **hostile** unit by **real pathfinding cost** — a whole-map Dijkstra
    flood from the enemy's tile (`GridManager.dijkstra_costs`), falling back to
-   Manhattan distance only if every target is walled off.
+   Manhattan distance only if every target is walled off. The hostile list excludes
+   any unit parked at `PairUpRegistry.OFF_MAP_TILE` (a paired support, or any
+   role-desynced off-map unit) so the AI never targets or paths toward the off-grid
+   sentinel — which clamps to the top-left and made enemies beeline to (1,1).
 2. Choose a destination from the enemy's movement range (`_choose_move_tile`):
    prefer a tile it can attack a hostile unit from, picking the one closest to the
    nearest target; if no attack tile is reachable, pick the reachable tile that

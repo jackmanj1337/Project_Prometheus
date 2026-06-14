@@ -2,6 +2,10 @@ extends Node
 # Basic faction AI: move toward nearest hostile unit, attack if in range.
 # Called by TurnManager.start_enemy_phase(); awaited until one AI faction has acted.
 
+# Used to recognise (and skip) paired supports parked off the grid. See the guard
+# in _living_hostiles_for_faction.
+const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+
 # Runs one faction's living units sequentially.
 # Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
 # _map_over latch halts the cycle at the controller chokepoint, so a decided
@@ -264,12 +268,20 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 
 # Returns every living unit hostile to `acting_faction`, based on the
 # alliance-group model (M14 stage 2/3).
+#
+# Off-map guard (playtest v0.1.4 #4): any unit parked at OFF_MAP_TILE is excluded
+# regardless of Pair Up role. get_living_units_of already drops registry-tagged
+# supports, but this is a position-based backstop — a role desync (e.g. a future
+# Swap/Separate bug) must never make the AI target or path toward the (-1, -1)
+# sentinel, which clamps to the top-left corner and makes enemies beeline to (1,1).
 func _living_hostiles_for_faction(gs: Node, acting_faction: String) -> Array[Node]:
 	var out: Array[Node] = []
 	for fid in gs.get_registered_faction_ids():
 		if not gs.are_hostile(acting_faction, fid):
 			continue
-		out.append_array(gs.get_living_units_of(fid))
+		for u in gs.get_living_units_of(fid):
+			if is_instance_valid(u) and u.tile_position != _PairUpRegistryScript.OFF_MAP_TILE:
+				out.append(u)
 	return out
 
 
