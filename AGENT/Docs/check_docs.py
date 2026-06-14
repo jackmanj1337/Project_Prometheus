@@ -14,6 +14,7 @@ Checks:
   6. Stale dates   — Last verified must not be older than the file's last git commit date
   7. Status words  — status-bearing lines must not use 'current'/'complete'/'canonical'
   8. Status labels — every status-bearing line must carry an approved governance label
+  9. .uid tracking — every Godot .uid sidecar on disk must be tracked in git
 """
 
 import re
@@ -329,6 +330,28 @@ def check_status_labels() -> None:
                           f"(expected one of: {', '.join(_APPROVED_LABELS)})")
 
 
+# ── check 9: .uid sidecar tracking ───────────────────────────────────────────
+
+def check_uid_tracking() -> None:
+    """Every Godot .uid sidecar on disk must be tracked in git.
+
+    Godot 4 writes a `<script>.gd.uid` next to each script; if it is left untracked
+    the `uid://` reference fails to resolve on a fresh clone or in CI. Policy is
+    track-all-.uid (95/97 at audit time, no `*.uid` in .gitignore), so any untracked
+    .uid is accidental drift. Audit 2026-06-14 CR-1.
+    """
+    result = subprocess.run(
+        ["git", "-C", str(ROOT), "ls-files", "--others", "--exclude-standard", "*.uid"],
+        capture_output=True, text=True,
+    )
+    for rel in result.stdout.splitlines():
+        rel = rel.strip()
+        if rel:
+            _fail("uid-untracked", ROOT / rel, 1,
+                  "Godot .uid sidecar is untracked — `git add` it (breaks uid:// "
+                  "resolution on a fresh clone/CI)")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -343,6 +366,7 @@ def main() -> None:
         ("[6] Stale Last verified",       check_stale_last_verified),
         ("[7] Prohibited status words",   check_prohibited_status_words),
         ("[8] Approved status labels",    check_status_labels),
+        ("[9] .uid sidecar tracking",     check_uid_tracking),
     ]
     for label, fn in steps:
         print(f"  {label}...")
