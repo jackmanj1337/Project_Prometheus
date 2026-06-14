@@ -130,6 +130,13 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
       *"It would be helpful long term to have combat preview display what weapons are
       being used."* The preview shows damage/hit/crit but not the equipped weapon names.
       Candidate for the combat-preview polish backlog.
+- [ ] **Comprehensive character-sheet stat breakdown.** The `I` inspect sheet should
+      show, per stat, personal base + class base + class cap (loud `NO_CAP_DEFINED`
+      placeholder) and every active bonus (pair-up, auras, personal skills, items)
+      with amount + source, boosted stats in green. Also closes the #8.5 surface
+      asymmetry (pair-up shows on the HUD panel but not the sheet). **Planned, not yet
+      implemented:** design in `AGENT/Docs/stat_breakdown_character_sheet_plan_2026-06-14.md`
+      (drift-safe shared collector so the sheet and combat never disagree).
 
 **Needs tester clarification (left unchecked on the returned handbook, no comment):**
 
