@@ -15,6 +15,7 @@ Checks:
   7. Status words  — status-bearing lines must not use 'current'/'complete'/'canonical'
   8. Status labels — every status-bearing line must carry an approved governance label
   9. .uid tracking — every Godot .uid sidecar on disk must be tracked in git
+ 10. Version tag  — the current product_version must have a matching git tag
 """
 
 import re
@@ -352,6 +353,35 @@ def check_uid_tracking() -> None:
                   "resolution on a fresh clone/CI)")
 
 
+# ── check 10: release version has a git tag ──────────────────────────────────
+
+def check_version_tag() -> None:
+    """The current product_version in project.godot must have a matching git tag.
+
+    Without a tag, a shipped build cannot be checked out / reproduced from source.
+    Convention: tag `v<product_version>` (e.g. product_version 0.1.5.0 -> tag
+    v0.1.5.0). Audit 2026-06-14 rollup #5.
+    """
+    project_godot = ROOT / "project.godot"
+    try:
+        content = project_godot.read_text(encoding="utf-8")
+    except OSError:
+        return
+    m = re.search(r'application/product_version="([^"]+)"', content)
+    if not m or not m.group(1):
+        return  # no version declared — nothing to enforce
+    version = m.group(1)
+    tag = f"v{version}"
+    result = subprocess.run(
+        ["git", "-C", str(ROOT), "tag", "-l", tag],
+        capture_output=True, text=True,
+    )
+    if not result.stdout.strip():
+        _fail("version-untagged", project_godot, 1,
+              f"product_version is {version!r} but git tag {tag!r} does not exist "
+              f"— tag the release so the build is reproducible from source")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -367,6 +397,7 @@ def main() -> None:
         ("[7] Prohibited status words",   check_prohibited_status_words),
         ("[8] Approved status labels",    check_status_labels),
         ("[9] .uid sidecar tracking",     check_uid_tracking),
+        ("[10] Release version tagged",    check_version_tag),
     ]
     for label, fn in steps:
         print(f"  {label}...")
