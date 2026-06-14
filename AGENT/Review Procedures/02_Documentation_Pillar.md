@@ -41,8 +41,11 @@ For each live doc, judge:
 - **Status correctness:** every status-bearing section carries one approved label
   (Implemented / Known issue / Target design / Historical / Superseded) +
   `Last verified`; no hidden status via prohibited words.
-- **Template conformance:** major GDD sections follow the DOC-002 template
-  (Summary / Specs / Known gaps / Anchors).
+- **Template conformance:** major GDD feature sections follow the DOC-002 template
+  (Summary / Specs / Known gaps / Anchors). **Catalog chapters** (GDD_06/07/08 —
+  many small uniform entries) are exempt under the blessed **DOC-002a** variant: a
+  chapter-level Summary + uniform per-entry table satisfies it. A catalog chapter
+  using DOC-002a is an accepted variant, **not** a finding.
 - **Single source of truth:** no rule fully duplicated across two live chapters
   (it will drift). One rule, one owner.
 - **Navigability:** feature-index and anchors point at the right owner/file;
@@ -56,7 +59,8 @@ Cite line numbers for any miss:
 - [ ] Every status-bearing section: one approved label + `Last verified`.
 - [ ] Prohibited words ("current"/"complete"/"canonical") absent as a *status*;
       flag split-status "current X / target Y" framing as a smell even if paired.
-- [ ] Major GDD sections follow the DOC-002 template.
+- [ ] Major GDD feature sections follow the DOC-002 template (catalog chapters
+      GDD_06/07/08 may use the blessed DOC-002a variant instead).
 - [ ] `decision_index.md` statuses use one consistent vocabulary and case.
 - [ ] No live doc links a Historical/Superseded/deleted file as authority.
 - [ ] One rule has one owner (no full duplication across live chapters).

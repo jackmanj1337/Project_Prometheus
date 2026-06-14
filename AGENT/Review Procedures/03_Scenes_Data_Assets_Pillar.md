@@ -65,18 +65,25 @@ Lean on the godot-analyzer MCP — it reads scenes/resources structurally:
 - `get_autoloads` vs. `project.godot`: every registered autoload's script exists
   and loads; ordering dependencies are sane (consumers after providers).
 
-**F. `.uid` sidecar consistency (Godot 4)**
-- Every script/resource that should carry a `.uid` has one, and it is **tracked in
-  git** — `git ls-files | grep '\.uid$'` vs. untracked `.uid` from
-  `git status --porcelain`. Missing/untracked UIDs break references on a fresh
-  clone or CI. Flag any `.gd`/`.tres` whose `.uid` is untracked (High — it bites a
-  new machine), and any orphan `.uid` whose owner was deleted.
+**F. `.uid` consistency (Godot 4)**
+- Note the two UID mechanisms so this check isn't misapplied: a `.gd` script
+  carries a **sidecar** `<name>.gd.uid` file, whereas a `.tres`/`.tscn` embeds its
+  `uid="uid://…"` **inline** (no sidecar). So this check targets `.gd` sidecars;
+  zero `.uid` files next to `.tres` is correct, not a gap.
+- Every `.gd` that should carry a sidecar has one, and it is **tracked in git** —
+  `git ls-files | grep '\.uid$'` vs. untracked `.uid` from `git status --porcelain`.
+  Missing/untracked UIDs break references on a fresh clone or CI. Flag any `.gd`
+  whose `.uid` is untracked (High — it bites a new machine), and any orphan `.uid`
+  whose owner was deleted. (`check_docs.py` check 9 now gates untracked `.uid`.)
 - Confirm the `.gitignore` policy for `.uid` is intentional and consistent (all in
   or all out), not accidental drift.
 
 **G. Stray / empty directories & misplaced resources**
-- Empty or vestigial top-level dirs (e.g. an empty `code/`) — recommend deletion
-  or document why they exist; flag any live doc still referencing them.
+- Empty or vestigial top-level dirs — recommend deletion or document why they
+  exist; flag any live doc still referencing them. Note git **cannot track empty
+  dirs**, so an untracked-empty dir (e.g. the former `code/`) is a *local* cleanup
+  (`rmdir`) plus a doc-reference check, not a committable change. (`check_docs.py`
+  check 11 gates *named* top-level dirs against the master coverage map.)
 - `.tres` resources sitting outside their expected home (root, `assets/`) — confirm
   they are referenced and intentional, not strays.
 
