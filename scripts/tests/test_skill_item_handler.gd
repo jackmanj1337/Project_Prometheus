@@ -540,5 +540,17 @@ func _init() -> void:
 		print("FAIL W3b promotion refresh: 18=%s 19=%s 20=%s" % [
 			hidden_at_18, hidden_at_19, usable_at_20]); failed += 1
 
+	# ---- stub appliers warn once per skill id, not every combat (log-noise fix) ----
+	# Guards against the v0.1.4 godot.log flood (armsthrift ×80 etc.). _warn_stub_once
+	# records each skill id once; repeats are suppressed.
+	sh._stub_warned.clear()
+	sh._warn_stub_once("Test._stub", "armsthrift")
+	sh._warn_stub_once("Test._stub", "armsthrift")   # repeat — must not re-record
+	sh._warn_stub_once("Test._stub", "dash")
+	if sh._stub_warned.size() == 2 and sh._stub_warned.has("armsthrift") and sh._stub_warned.has("dash"):
+		print("OK  stub appliers warn once per skill id (repeats suppressed)"); passed += 1
+	else:
+		print("FAIL stub warn dedupe: %s" % sh._stub_warned); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

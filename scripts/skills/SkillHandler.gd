@@ -426,10 +426,24 @@ func _has_ally_within(unit: Node, radius: int) -> bool:
 	return false
 
 
+# Stub appliers warn ONCE per skill id per session, not every combat. A single
+# armsthrift-bearer fighting all map otherwise floods godot.log (the v0.1.4 pass
+# logged armsthrift ×80, dash ×25). The M9 reminder still surfaces once; it just
+# stops repeating so real ERRORs are not buried.
+var _stub_warned: Dictionary = {}
+
+
+func _warn_stub_once(where: String, skill_id: String) -> void:
+	if _stub_warned.has(skill_id):
+		return
+	_stub_warned[skill_id] = true
+	push_warning("%s: stub called for '%s' — implement in M9 (repeats suppressed)" % [where, skill_id])
+
+
 # Shared stub for the FE:A base-class skills whose effects land in M9. Declining
 # (false) means no use is consumed and combat/preview math is unaffected.
 func _apply_unimplemented(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
-	push_warning("SkillHandler._apply_unimplemented: stub called for '%s' — implement in M9" % skill.id)
+	_warn_stub_once("SkillHandler._apply_unimplemented", skill.id)
 	return false
 
 
@@ -443,17 +457,17 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 
 # +10 hit and +10 dodge to allies within radius.
 func _apply_charm(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
-	push_warning("SkillHandler._apply_charm: stub called for '%s' — implement in M9" % skill.id)
+	_warn_stub_once("SkillHandler._apply_charm", skill.id)
 	return false
 
 
 # -10 hit and -10 dodge to enemies within radius.
 func _apply_anathema(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
-	push_warning("SkillHandler._apply_anathema: stub called for '%s' — implement in M9" % skill.id)
+	_warn_stub_once("SkillHandler._apply_anathema", skill.id)
 	return false
 
 
 # -10 hit and -10 crit to enemies within radius.
 func _apply_daunt(skill: SkillData, _unit: Node, _context: Dictionary) -> bool:
-	push_warning("SkillHandler._apply_daunt: stub called for '%s' — implement in M9" % skill.id)
+	_warn_stub_once("SkillHandler._apply_daunt", skill.id)
 	return false
