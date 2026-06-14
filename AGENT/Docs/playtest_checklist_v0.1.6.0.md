@@ -12,12 +12,20 @@ already passed and that did not change do not need re-running.
 This is **not** a full handbook. Most of the v0.1.5.0 build was re-verified as
 passing; this covers what is new or was left open.
 
-## Build (fill in when the v0.1.6.0 build is exported)
+## Build
 
-- Executable: `Project_Prometheus_v0.1.6.0_debug.exe` _(TBD)_
-- Source commit: _(TBD — `2bc79a9` or later)_
-- Expected size / SHA-256: _(TBD — record from the export; see
-  `AGENT/Docs/playtest_build_v0.1.5.0.md` for the manifest format)_
+- Executable: `Project_Prometheus_v0.1.6.0_debug.exe`
+- Source commit: `a947faf`
+- Expected file size: `101,214,696` bytes
+- Expected SHA-256:
+  `706faf26a9b49fbffde1d295cc3dd1d2239e8bcdae304c2cab66186ea7f80705`
+- Manifest: `AGENT/Docs/playtest_build_v0.1.6.0.md`
+
+Optional PowerShell integrity check:
+
+```powershell
+Get-FileHash .\Project_Prometheus_v0.1.6.0_debug.exe -Algorithm SHA256
+```
 
 The fixes/feature below are verified by the automated suite and headless checks.
 The dev container cannot render a window, so the **visual** items (the green/red
