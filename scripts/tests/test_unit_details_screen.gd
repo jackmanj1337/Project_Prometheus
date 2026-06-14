@@ -63,9 +63,12 @@ func _init() -> void:
 	d.growth_rates = {"strength": 20}
 	d.growth_accumulators = {"strength": 35}
 	d.weapon_wexp = {"lance": 130, "axe": 50}
+	d.defense = 8
 	d.active_modifiers = [
 		{"stat": "strength", "delta": 2, "source": "tonic", "duration": 1, "duration_type": "turn"},
 		{"stat": "movement", "delta": 1, "source": "pair_up", "duration": -1, "duration_type": "combat"},
+		# A net debuff on defense (8 -> 5) must render red.
+		{"stat": "defense", "delta": -3, "source": "poison", "duration": -1, "duration_type": "permanent"},
 	]
 	var stub_script := GDScript.new()
 	stub_script.source_code = """
@@ -155,6 +158,14 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL stat click: title=%s desc=%s mods=%s" % [screen._info_title.text, desc_text, mods_text])
 		failed += 1
+
+	# Click a debuffed stat -> effective renders red (net-negative), not green.
+	screen._on_entry_clicked("stat:defense")
+	var def_text: String = screen._info_mods.text
+	if "#ff6b6b" in def_text and not ("#5fd35f" in def_text) and "poison" in def_text:
+		print("OK  a net-debuffed stat renders the effective value red"); passed += 1
+	else:
+		print("FAIL debuff render: %s" % def_text); failed += 1
 
 	# Click a stat with no active bonuses -> block shows the "none" notice plus
 	# the decomposition, not an empty block, and is NOT green.

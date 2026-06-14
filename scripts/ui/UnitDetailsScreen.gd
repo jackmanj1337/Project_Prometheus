@@ -21,8 +21,10 @@ const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
 const StatContributions = preload("res://scripts/shared/StatContributions.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 
-# Green used to flag a stat that an active bonus is currently raising.
+# Green flags a stat an active bonus is currently raising; red flags one a
+# net debuff is currently lowering below its base+class value.
 const _BOOST_COLOR := "#5fd35f"
+const _DEBUFF_COLOR := "#ff6b6b"
 
 @onready var _title: Label             = $Panel/HBox/VBox/TitleLabel
 @onready var _stats: RichTextLabel     = $Panel/HBox/VBox/StatsLabel
@@ -282,11 +284,14 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 			StatBreakdown.format_signed(int(bd["class_base"])), class_name_txt])
 		lines.append(_cap_line(bd))
 
-	# Effective — green when a bonus raises it above base+class.
+	# Effective — green when a bonus raises it above base, red when a net debuff
+	# lowers it below base, plain otherwise.
 	var eff: int = int(bd["effective_display"])
 	var eff_txt: String = str(eff)
 	if eff > int(bd["base"]):
 		eff_txt = "[color=%s]%d[/color]" % [_BOOST_COLOR, eff]
+	elif eff < int(bd["base"]):
+		eff_txt = "[color=%s]%d[/color]" % [_DEBUFF_COLOR, eff]
 	lines.append("Effective      %s" % eff_txt)
 
 	lines.append_array(_growth_info_lines(unit, stat_name))

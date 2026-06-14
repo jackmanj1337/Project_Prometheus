@@ -446,7 +446,8 @@ The screen is read-only. It exists for inspection, not inventory management.
   signal — guarded by `test_class_stat_caps.gd`, so it should never appear in a
   shipped build).
 - **Effective** — the displayed total including combat-only bonuses; rendered
-  **green** when an active bonus raises it above base+class.
+  **green** when an active bonus raises it above base, **red** when a net debuff
+  lowers it below base, plain otherwise.
 - **Bonuses** — every active bonus with amount + source. Persistent sources
   (items/tonics) come from `active_modifiers`; **combat-only sources (Pair Up, the
   unit's own stat skills) are computed by `StatContributions`**, because they are
