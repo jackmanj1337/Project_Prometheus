@@ -89,7 +89,11 @@ finding; for "this is wrong" cite the correct behavior's source too.
 summary + 1–10 score; Issues (severity-tagged, with File&Line / Problem / Root
 cause / Recommended fix / Tradeoffs); ≥3 Positive observations; Architectural
 observations; Prioritized action plan; **Delta vs previous review**
-(new/fixed/regressed). Tag cross-pillar items `[CROSS]`.
+(new/fixed/regressed). Tag cross-pillar items `[CROSS]`. The delta section may
+necessarily *reference* another pillar's files (e.g. a prior finding that was
+`.tscn`-rooted) — that is expected; cite it with a `[CROSS]` tag rather than
+treating it as out of scope. Note when a "new" item is *newly-scoped* by a fuller
+review rather than newly-introduced, so it isn't mistaken for a regression.
 
 ## 7. Sub-agent dispatch brief
 
