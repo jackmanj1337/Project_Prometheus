@@ -141,9 +141,13 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
 
 **Lower-severity observations** (confirm and fold in or defer; not yet release-blocking):
 
-- [ ] **Combat preview shifts and overlaps (handbook 2.4).** The preview's right
-      edge centers on the attacking unit and can overlap the unit-info or objective
-      panels. (Related to the deferred combat-preview placement work.)
+- [x] **Combat preview shifts and overlaps (handbook 2.4).** The preview could cover
+      the unit-info / objective / terrain HUD panels. **Fixed (2026-06-14):**
+      `AttackPreview._reposition_for` now nudges the panel clear of the visible HUD
+      panels' screen rects (`_place_clear_of`, a pure helper) after the viewport clamp;
+      degrades to the plain clamp when the HUD isn't reachable. Guards in
+      `test_attack_preview_position.gd`. (The deferred mouse-follow camera catch-up in
+      §10 is separate and unchanged.)
 - [ ] **Battle Speed not shown in combat preview (handbook 8.3).** The follow-up
       check passed behaviorally, but testers cannot verify Battle Speed values
       because the preview does not display them.

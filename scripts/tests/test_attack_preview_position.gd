@@ -9,6 +9,7 @@ extends SceneTree
 
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const CameraController = preload("res://scripts/core/CameraController.gd")
+const AttackPreviewS   = preload("res://scripts/ui/AttackPreview.gd")
 
 
 class StubGrid extends Node:
@@ -96,6 +97,42 @@ func _init() -> void:
 	var bare := CameraController.new()
 	bare.pan_by_pixels(Vector2(50, 50))
 	print("OK  pan_by_pixels without setup() is a safe no-op"); passed += 1
+
+	# ── _place_clear_of: HUD-avoidance placement (playtest v0.1.4 #2.4) ──────────
+	# Pure helper, unit-testable without canvas transforms. view = 1280x720, margin 16.
+	var vw := Vector2(1280, 720)
+	var psize := Vector2(200, 170)
+	var m := 16.0
+	var unit_info := Rect2(8, 610, 300, 102)   # bottom-left HUD panel
+	var objective := Rect2(8, 48, 292, 92)      # top-left HUD panel
+
+	# 1) No avoid rects → position unchanged (already inside the viewport).
+	var p_noavoid: Vector2 = AttackPreviewS._place_clear_of(Vector2(400, 300), psize, vw, [] as Array[Rect2], m)
+	if p_noavoid == Vector2(400, 300):
+		print("OK  _place_clear_of: no avoid rects leaves an in-view position unchanged"); passed += 1
+	else:
+		print("FAIL no-avoid: %s" % p_noavoid); failed += 1
+
+	# 2) Overlapping the bottom-left unit-info panel → pushed ABOVE it (no room below).
+	var p_bottom: Vector2 = AttackPreviewS._place_clear_of(Vector2(8, 600), psize, vw, [unit_info] as Array[Rect2], m)
+	if p_bottom.y == unit_info.position.y - psize.y - m and not Rect2(p_bottom, psize).intersects(unit_info):
+		print("OK  _place_clear_of: pushes the panel above the bottom HUD panel"); passed += 1
+	else:
+		print("FAIL bottom-avoid: %s (want y=%f)" % [p_bottom, unit_info.position.y - psize.y - m]); failed += 1
+
+	# 3) Overlapping the top objective panel → pushed BELOW it (no room above).
+	var p_top: Vector2 = AttackPreviewS._place_clear_of(Vector2(8, 40), psize, vw, [objective] as Array[Rect2], m)
+	if p_top.y == objective.position.y + objective.size.y + m and not Rect2(p_top, psize).intersects(objective):
+		print("OK  _place_clear_of: pushes the panel below the top HUD panel"); passed += 1
+	else:
+		print("FAIL top-avoid: %s (want y=%f)" % [p_top, objective.position.y + objective.size.y + m]); failed += 1
+
+	# 4) An off-viewport desired position is clamped back inside.
+	var p_clamp: Vector2 = AttackPreviewS._place_clear_of(Vector2(5000, 5000), psize, vw, [] as Array[Rect2], m)
+	if p_clamp.x == vw.x - psize.x - m and p_clamp.y == vw.y - psize.y - m:
+		print("OK  _place_clear_of: clamps an off-screen position back into the viewport"); passed += 1
+	else:
+		print("FAIL clamp: %s" % p_clamp); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

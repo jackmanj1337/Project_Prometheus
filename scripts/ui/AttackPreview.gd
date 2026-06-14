@@ -382,6 +382,55 @@ func _reposition_for(defender: Node) -> void:
 	var panel_top: float = defender_screen.y + tile_px * 0.5 - panel_size.y * 0.5
 	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
 
-	_panel.position = Vector2(panel_left, panel_top)
+	# Nudge the panel clear of the HUD panels it would otherwise cover (the unit-info,
+	# objective, and terrain corners — playtest v0.1.4 #2.4) before committing the
+	# position. Degrades to the plain viewport clamp when the HUD isn't reachable.
+	var placed: Vector2 = _place_clear_of(Vector2(panel_left, panel_top), panel_size,
+		view, _hud_avoid_rects(), float(PANEL_MARGIN_PX))
+
+	_panel.position = placed
 	_panel.offset_right = _panel.offset_left + panel_size.x
 	_panel.offset_bottom = _panel.offset_top + panel_size.y
+
+
+# Screen-space rects of the visible HUD panels the combat preview should not cover.
+# Read live from the HUD (a sibling CanvasLayer, so its Control rects are already in
+# the same screen space as the preview). Returns [] — i.e. no avoidance, plain
+# viewport clamp — when the HUD or a panel is absent/hidden, so this never hard-fails.
+func _hud_avoid_rects() -> Array[Rect2]:
+	var out: Array[Rect2] = []
+	var hud := get_node_or_null("../../HUDMainLayer/HUD")
+	if hud == null:
+		return out
+	for panel_name in ["ObjectivePanel", "UnitInfoPanel", "TerrainCorner"]:
+		var p := hud.get_node_or_null(panel_name)
+		if p != null and p is Control and (p as Control).visible:
+			var r: Rect2 = (p as Control).get_global_rect()
+			if r.size.x > 0.0 and r.size.y > 0.0:
+				out.append(r)
+	return out
+
+
+# Pure placement helper (no node access, so it is unit-testable): start from `pos`
+# and, for each `avoid` rect the panel overlaps, slide it vertically clear — above
+# the rect when there is room, otherwise below, preferring the smaller move. The
+# result is always re-clamped inside `view`. A panel too tall to clear a rect is
+# left where it is (clamped); avoidance is best-effort, never off-screen.
+static func _place_clear_of(pos: Vector2, panel_size: Vector2, view: Vector2,
+		avoid: Array[Rect2], margin: float) -> Vector2:
+	var rect := Rect2(pos, panel_size)
+	for a in avoid:
+		if not rect.intersects(a):
+			continue
+		var above_y: float = a.position.y - panel_size.y - margin
+		var below_y: float = a.position.y + a.size.y + margin
+		var above_ok: bool = above_y >= margin
+		var below_ok: bool = below_y + panel_size.y <= view.y - margin
+		if above_ok and (not below_ok \
+				or absf(above_y - rect.position.y) <= absf(below_y - rect.position.y)):
+			rect.position.y = above_y
+		elif below_ok:
+			rect.position.y = below_y
+	rect.position.x = clampf(rect.position.x, margin, maxf(margin, view.x - panel_size.x - margin))
+	rect.position.y = clampf(rect.position.y, margin, maxf(margin, view.y - panel_size.y - margin))
+	return rect.position

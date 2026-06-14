@@ -364,6 +364,10 @@ There is **no target-list panel**. Target selection happens on the map itself:
   preview field and clicking a field opens its description
 
 **Size:** Content-sized three-column layout, clamped/repositioned to the viewport
+**Placement:** Anchored beside the defender (right, else left), kept inside the viewport,
+and nudged clear of the visible HUD panels (objective / unit-info / terrain corners) so
+it does not cover them (`AttackPreview._place_clear_of`). Avoidance is best-effort: a
+panel too tall to clear a HUD rect is left clamped on-screen rather than pushed off.
 **Font size:** 18px
 
 ---
