@@ -1,7 +1,7 @@
 # New Machine / Environment Transfer Checklist
 
 **Status:** Active — operational runbook for moving this repo to a new machine.
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 
 Run order on the new machine: **clone → `bash scripts/check_env.sh` (see gaps) →
 fix the gaps below → `bash scripts/setup_dev.sh` → `bash run_tests.sh`.**
@@ -21,6 +21,9 @@ cache.
   `origin/main` only via the normal PR merge unless you deliberately want the ref moved.
 - After cloning, check out the working branch: `git checkout awakening-compatability-refactor`.
 - Verify nothing local is unpushed: `git status -sb` and `git log --oneline @{u}..HEAD`.
+- Release tags are pushed (`v0.1`…`v0.1.5.0`); `git clone` / `git fetch --tags` brings
+  them. `check_docs.py` check 10 fails if the current `product_version` has no matching
+  `v<version>` tag, so keep tagging each release.
 
 ## B. Will NOT travel via git — recreate or copy by hand
 
@@ -44,15 +47,19 @@ cache.
   now defaults its project root to its own location, so it works even if the repo is not
   at `/workspace`. If `.mcp.json` still lists absolute `/workspace` paths and the new repo
   path differs, update those two paths (or drop the root arg).
+- **GitHub CLI (`gh`)** — `main` is PR-protected (direct pushes are rejected), so
+  updating `main` goes through a pull request. `gh pr create` / `gh pr merge` need `gh`
+  installed + `gh auth login`. Without it, open PRs in the browser instead.
 - **Docker** (optional) — `Dockerfile` / `docker-compose.yml` are tracked; need `.env`.
 
 ## D. Verify after setup
 
 ```
 bash scripts/check_env.sh            # doctor — should be all [OK]
-python3 AGENT/Docs/check_docs.py     # docs checks → PASS (8 checks)
+python3 AGENT/Docs/check_docs.py     # docs checks → PASS (10 checks)
 bash scripts/ci/check_rng_usage.sh   # RNG guard → PASS
-bash run_tests.sh                    # full GDScript suite → 38 suites green
+python3 tools/godot-analyzer-mcp/tests/test_tools.py  # analyzer suite (CI-gated) → OK
+bash run_tests.sh                    # full GDScript suite → all suites green (39 suites)
 godot --path . scenes/core/Boot.tscn # launch once to confirm the app boots
 git push                             # confirms the SSH host alias resolves
 ```
