@@ -674,25 +674,31 @@ func _commit_swap_roles() -> void:
 	if old_lead != null and old_lead.data != null and old_lead.data.unit_id != "":
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		var gs := get_node_or_null("/root/GameState")
-		if registry != null and registry.has_method("swap_roles") \
+		# Resolve the partner BEFORE mutating any roles, so the registry is never
+		# left with roles flipped but positions not swapped — i.e. an on-map unit
+		# tagged "support" (code review 2026-06-14 #2). get_partner_id is role-
+		# independent, so it returns the same partner before the swap. Both units
+		# are alive whenever Swap is offered in normal play; this is a defensive
+		# guard. Only flip roles once we know we can complete the position swap.
+		var new_lead: Node = null
+		if registry != null and gs != null and gs.has_method("find_unit_by_id"):
+			new_lead = gs.find_unit_by_id(registry.call("get_partner_id", old_lead.data.unit_id))
+		if is_instance_valid(new_lead) and new_lead.data != null \
+				and registry.has_method("swap_roles") \
 				and registry.call("swap_roles", old_lead.data.unit_id):
-			var new_lead: Node = null
-			if gs != null and gs.has_method("find_unit_by_id"):
-				new_lead = gs.find_unit_by_id(registry.call("get_partner_id", old_lead.data.unit_id))
-			if is_instance_valid(new_lead) and new_lead.data != null:
-				var lead_tile: Vector2i = old_lead.tile_position
-				old_lead.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
-				old_lead.visible = false
-				if new_lead.has_method("snap_to_tile"):
-					new_lead.snap_to_tile(lead_tile)
-				else:
-					new_lead.tile_position = lead_tile
-				new_lead.visible = true
-				# Swap spends the joint action: the off-map old lead is marked DONE
-				# here; the on-map new lead is handed to _finish_action below.
-				if _turn != null and old_lead.data.hp > 0:
-					_turn.set_unit_state(old_lead, TurnManager.UnitState.DONE)
-				_selection.selected_unit = new_lead
+			var lead_tile: Vector2i = old_lead.tile_position
+			old_lead.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
+			old_lead.visible = false
+			if new_lead.has_method("snap_to_tile"):
+				new_lead.snap_to_tile(lead_tile)
+			else:
+				new_lead.tile_position = lead_tile
+			new_lead.visible = true
+			# Swap spends the joint action: the off-map old lead is marked DONE
+			# here; the on-map new lead is handed to _finish_action below.
+			if _turn != null and old_lead.data.hp > 0:
+				_turn.set_unit_state(old_lead, TurnManager.UnitState.DONE)
+			_selection.selected_unit = new_lead
 	_finish_action()
 
 

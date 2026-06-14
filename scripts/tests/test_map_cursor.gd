@@ -769,6 +769,33 @@ func _init() -> void:
 			pair_lead.tile_position, pair_lead.visible])
 		failed += 1
 
+	# ---- Swap with an unresolvable partner does NOT flip roles (review #2) ----
+	# Defensive guard: if the partner Node can't be resolved, _commit_swap_roles must
+	# bail BEFORE swap_roles(), so the registry is never left with roles flipped but
+	# positions unswapped (an on-map unit tagged "support"). Pair the lead with a
+	# partner id that has no registered Unit node.
+	var tm_orphan := TurnManager.new(); root.add_child(tm_orphan)
+	var c_orphan := _make_cursor(tm_orphan)
+	var orphan_lead := _make_unit(Vector2i(2, 2), "blue")
+	orphan_lead.data.unit_id = "orphan_lead"
+	pair_reg_live.call("clear")
+	pair_reg_live.call("pair", "orphan_lead", "ghost_partner")   # ghost has no Unit node
+	c_orphan._selection.selected_unit = orphan_lead
+	c_orphan._state = UNIT_MOVED
+	c_orphan._commit_swap_roles()
+	# Roles must be unchanged (lead still lead), the unit stays on its tile + visible.
+	var orphan_no_flip: bool = pair_reg_live.call("is_lead", "orphan_lead") \
+		and orphan_lead.tile_position == Vector2i(2, 2) and orphan_lead.visible \
+		and c_orphan._state == FREE
+	if orphan_no_flip:
+		print("OK  Swap with an unresolvable partner bails without flipping roles (review #2)")
+		passed += 1
+	else:
+		print("FAIL swap orphan: is_lead=%s tile=%s vis=%s state=%d" % [
+			pair_reg_live.call("is_lead", "orphan_lead"),
+			orphan_lead.tile_position, orphan_lead.visible, c_orphan._state])
+		failed += 1
+
 	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
 	# Drive _handle_mouse_motion directly with a synthesized event. The function
 	# reads SettingsManager.mouse_cursor and bails before touching _set_tile when

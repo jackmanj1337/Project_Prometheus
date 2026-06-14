@@ -628,6 +628,12 @@ panel (the pre-fix layout) ran off the right edge of the screen at the play
 resolution. Symmetric grow guarantees that even if content does expand, it stays
 centered rather than spilling past one edge.
 
+The reclass picker (`ReclassScreen.tscn`, Second Seal) uses the **same centered
+panel**; it additionally wraps its longer option list in a `ScrollContainer`
+(reclass can offer many targets, where promotion offers ≤3). Both modals were
+left-pinned originally; the reclass panel was re-centered alongside the promotion
+fix (code review 2026-06-14 #1) for resolution-robustness.
+
 ---
 
 ### Game Over Screen
