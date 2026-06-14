@@ -117,10 +117,13 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        promotion class-choice modal is not centered and clips off-screen at the test
        resolution; reproduces under both manual Master Seal (8.7) and Auto Promote
        (8.11). UI centering/anchor bug. See the screenshot evidence above.
-6. [ ] **New Game settings not persisted unless a map is started (handbook 1.2).**
+6. [x] **New Game settings not persisted unless a map is started (handbook 1.2).**
        Changing `Pair Up` / `Auto Promote` and closing the New Game panel *without*
-       starting a map discards the change; values only persist once a map is started
-       and exited.
+       starting a map discarded the change. **Fixed (2026-06-14):** `NewGameScreen`
+       now writes each rule toggle through to `GameState` on `item_selected` (shared
+       `_persist_rules`, also called by Start), so close/reopen remembers them.
+       Regression guard in `scripts/tests/test_new_game_screen.gd`. (The `Map`
+       dropdown remains Start-only by design — it configures roster policy too.)
 
 **Lower-severity observations** (confirm and fold in or defer; not yet release-blocking):
 

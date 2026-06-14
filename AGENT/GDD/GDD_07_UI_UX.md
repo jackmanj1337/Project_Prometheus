@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -182,6 +182,10 @@ map through `GameMap.tscn`.
 **Behavior:**
 - Selecting a map also selects its roster policy (`default_roster`, fixed test roster,
   or keep-current when that mode is authored later)
+- The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through
+  to `GameState` the moment they change, so closing the panel with Back and reopening
+  it remembers the choices — Start is not required to persist them. (The `Map`
+  selection and roster are only configured on Start.)
 - Starting the run calls `GameState.configure_next_map(...)`, applies the roster
   policy, then changes to `GameMap.tscn`
 - Back returns to the Main Menu without reloading the scene

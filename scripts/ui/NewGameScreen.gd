@@ -79,6 +79,16 @@ func _ready() -> void:
 	_opt_pair_up.add_item("On")
 	_btn_start.pressed.connect(_on_start)
 	_btn_back.pressed.connect(_on_back)
+	# Persist the rule toggles to GameState the moment they change, so closing the
+	# panel WITHOUT pressing Start still remembers them on reopen (playtest v0.1.4
+	# #1.2). open() seeds the controls back from these same GameState fields. These
+	# are pure per-save flags; the map + roster are only configured on Start.
+	# (add_item / setting `.selected` in open() do not emit item_selected, so this
+	# never fires spuriously during setup.)
+	_opt_permadeath.item_selected.connect(func(_i: int): _persist_rules())
+	_opt_auto_promote.item_selected.connect(func(_i: int): _persist_rules())
+	_opt_leveling.item_selected.connect(func(_i: int): _persist_rules())
+	_opt_pair_up.item_selected.connect(func(_i: int): _persist_rules())
 	# hide() is performed by ModalScreen._ready.
 
 
@@ -104,16 +114,27 @@ func _close() -> void:
 	super._close()
 
 
+# Writes the current rule-toggle selections onto GameState. Shared by the
+# on-change handlers (so a close/reopen without Start remembers them) and by
+# _on_start (which additionally configures the map + roster). Pure per-save
+# flags — no map or roster side effects.
+func _persist_rules() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
+	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
+	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
+	gs.set("pair_up_enabled", bool(_opt_pair_up.selected))  # 0=Off, 1=On
+
+
 func _on_start() -> void:
 	# Commit the chosen rules onto GameState, then load the roster and the first map.
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
 		return
-	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
-	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
-	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-	gs.set("pair_up_enabled", bool(_opt_pair_up.selected))  # 0=Off, 1=On
+	_persist_rules()
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
 		map_entry.get("roster_source", ""))

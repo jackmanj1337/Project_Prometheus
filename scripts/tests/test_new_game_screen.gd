@@ -72,5 +72,30 @@ func _init() -> void:
 	else:
 		print("SKIP open()/back visibility (GameState autoload absent)")
 
+	# ---- rule toggles persist to GameState on change, without pressing Start ----
+	# playtest v0.1.4 #1.2: changing Pair Up / Auto Promote then closing the panel
+	# (no Start) must be remembered. The on-change handler writes through to
+	# GameState; open() seeds the controls back from it.
+	var gs_node := root.get_node_or_null("GameState")
+	if gs_node != null:
+		var want_pair := not bool(gs_node.get("pair_up_enabled"))
+		var want_auto := not bool(gs_node.get("auto_promote_at_max_level"))
+		pair_opt.selected = 1 if want_pair else 0
+		pair_opt.item_selected.emit(pair_opt.selected)   # as a click would
+		auto_opt.selected = 1 if want_auto else 0
+		auto_opt.item_selected.emit(auto_opt.selected)
+		# Note: no _on_start() — this is the "closed without starting" path.
+		var persisted_ok: bool = bool(gs_node.get("pair_up_enabled")) == want_pair \
+			and bool(gs_node.get("auto_promote_at_max_level")) == want_auto
+		if persisted_ok:
+			print("OK  rule toggles persist to GameState on change (no Start needed)"); passed += 1
+		else:
+			print("FAIL rule persistence: pair=%s want=%s | auto=%s want=%s" % [
+				gs_node.get("pair_up_enabled"), want_pair,
+				gs_node.get("auto_promote_at_max_level"), want_auto])
+			failed += 1
+	else:
+		print("SKIP rule persistence (GameState autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
