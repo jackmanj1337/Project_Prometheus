@@ -428,6 +428,19 @@ func _init() -> void:
 		print("FAIL preview_combat missing keys")
 		failed += 1
 
+	# --- Battle Speed surfaced for the preview UI (handbook 8.3) ---
+	if prev.get("attacker_battle_speed") == atk.battle_speed() \
+			and prev.get("defender_battle_speed") == def.battle_speed() \
+			and prev.get("follow_up_threshold") == GameConst.FOLLOW_UP_SPEED_THRESHOLD:
+		print("OK  preview_combat surfaces battle speed + follow-up threshold (8.3)")
+		passed += 1
+	else:
+		print("FAIL preview battle speed: atk=%s (want %d) def=%s (want %d) thr=%s" % [
+			prev.get("attacker_battle_speed"), atk.battle_speed(),
+			prev.get("defender_battle_speed"), def.battle_speed(),
+			prev.get("follow_up_threshold")])
+		failed += 1
+
 	# --- More Info preview fields: triangle + effectiveness ---
 	# Sword (atk) vs Bow (def) is neutral. Both effective flags must be false
 	# and both multipliers must be 1.0 — defaults the UI marker code relies on.

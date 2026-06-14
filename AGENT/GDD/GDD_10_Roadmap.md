@@ -148,9 +148,12 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
       degrades to the plain clamp when the HUD isn't reachable. Guards in
       `test_attack_preview_position.gd`. (The deferred mouse-follow camera catch-up in
       §10 is separate and unchanged.)
-- [ ] **Battle Speed not shown in combat preview (handbook 8.3).** The follow-up
-      check passed behaviorally, but testers cannot verify Battle Speed values
-      because the preview does not display them.
+- [x] **Battle Speed not shown in combat preview (handbook 8.3).** Testers couldn't
+      verify the follow-up threshold because Battle Speed wasn't shown. **Fixed
+      (2026-06-14):** `preview_combat` now returns `attacker_battle_speed` /
+      `defender_battle_speed` / `follow_up_threshold`, and the Damage field's More
+      Info shows both sides' Battle Speed, the +5 threshold, and who doubles. Guard
+      in `test_combat.gd`.
 - [ ] **Reclass to Soldier grants no level-1 skill (handbook 8.6).** Demoting the
       General to Soldier added no starting skill (reclass to Mercenary correctly
       granted `armsthrift`). Verify whether tier-1 Soldier is authored with a

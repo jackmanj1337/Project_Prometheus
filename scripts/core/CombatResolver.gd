@@ -601,6 +601,13 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
 		"attacker_weapon":  aw,
 		"defender_weapon":  dw,
+		# Battle Speed of each side (effective, i.e. with combat modifiers applied —
+		# the snapshot is restored after this dict is built). Surfaced so the UI can
+		# show the follow-up math the tester couldn't otherwise verify (handbook 8.3).
+		# A side needs FOLLOW_UP_SPEED_THRESHOLD more than its opponent to double.
+		"attacker_battle_speed": attacker.battle_speed() if attacker and attacker.has_method("battle_speed") else 0,
+		"defender_battle_speed": defender.battle_speed() if defender and defender.has_method("battle_speed") else 0,
+		"follow_up_threshold":   GameConstants.FOLLOW_UP_SPEED_THRESHOLD,
 		# True when Vantage will make the defender strike first — the strike counts
 		# above are unaffected, but the exchange order is, so the UI surfaces it.
 		"defender_vantage": context["flags"]["vantage"],

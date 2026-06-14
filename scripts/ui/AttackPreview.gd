@@ -81,6 +81,14 @@ var _current_index: int = -1
 var _atk_full_name: String = ""
 var _def_full_name: String = ""
 
+# Battle Speed of each side and the follow-up threshold, captured each
+# show_preview(). Surfaced in the Damage field's More Info so the player can
+# verify the follow-up (doubling) math (handbook 8.3).
+var _atk_battle_speed: int = 0
+var _def_battle_speed: int = 0
+var _follow_up_threshold: int = 5
+var _can_counter: bool = false
+
 
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 	_camera = camera
@@ -107,6 +115,12 @@ func show_preview(attacker: Node, defender: Node) -> void:
 
 	_entries.clear()
 	_current_index = -1
+
+	# Battle Speed + follow-up threshold for the Damage field's More Info (8.3).
+	_atk_battle_speed = int(p.get("attacker_battle_speed", 0))
+	_def_battle_speed = int(p.get("defender_battle_speed", 0))
+	_follow_up_threshold = int(p.get("follow_up_threshold", 5))
+	_can_counter = bool(p.get("can_counter", false))
 
 	# ---- Attacker rows -----------------------------------------------
 	var atk_name: String = attacker.data.unit_name if attacker.data else "???"
@@ -321,7 +335,31 @@ func _show_entry(entry: Dictionary) -> void:
 	if String(entry["key"]) == "name":
 		var full_name: String = _atk_full_name if String(entry["side"]) == "atk" else _def_full_name
 		desc = "%s\n\n%s" % [full_name, desc]
+	# The Damage field carries the follow-up (×N attacks) outcome, so append the
+	# Battle Speed comparison and threshold there — the values the tester needed to
+	# verify doubling (handbook 8.3).
+	if String(entry["key"]) == "damage":
+		desc = "%s\n\n%s" % [desc, _battle_speed_note()]
 	_info_desc.text = desc
+
+
+# Builds the Battle Speed / follow-up line shown under the Damage field's More
+# Info. Shows both sides' Battle Speed and the threshold; notes who (if anyone)
+# earns a follow-up. Defender speed is shown only when it can counter.
+func _battle_speed_note() -> String:
+	if not _can_counter:
+		return "Battle Speed — Attacker %d (no counter).\nA follow-up needs +%d Battle Speed over the opponent." % [
+			_atk_battle_speed, _follow_up_threshold]
+	var diff: int = _atk_battle_speed - _def_battle_speed
+	var who: String = ""
+	if diff >= _follow_up_threshold:
+		who = "Attacker follows up."
+	elif -diff >= _follow_up_threshold:
+		who = "Defender follows up."
+	else:
+		who = "No follow-up."
+	return "Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s" % [
+		_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
 
 
 # Advances through _entries. First press shows the first entry; subsequent

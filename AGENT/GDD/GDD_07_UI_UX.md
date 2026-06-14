@@ -362,6 +362,10 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - The current panel also shows weapon-triangle and effectiveness markers
 - Phase-1 More Info adds an info box on the right; `more_info` cycles through each
   preview field and clicking a field opens its description
+- The **Damage** field's More Info also shows each side's **Battle Speed** and the
+  follow-up threshold (and who, if anyone, doubles) — the values needed to verify
+  the follow-up math (handbook 8.3). `preview_combat()` returns
+  `attacker_battle_speed` / `defender_battle_speed` / `follow_up_threshold`.
 
 **Size:** Content-sized three-column layout, clamped/repositioned to the viewport
 **Placement:** Anchored beside the defender (right, else left), kept inside the viewport,
