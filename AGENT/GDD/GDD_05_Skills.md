@@ -4,7 +4,7 @@
 Pair Up pass 1 are **Implemented**; corpus skill acquisition, proc-RNG sourcing, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -343,7 +343,11 @@ today; the deeper layers are scheduled or deferred.
 - `PairUpBonusResolver` (autoload) computes the support's stat bonus to its lead from a
   `PairUpBonusTable` resource. Both combat preview and live combat call `bonuses_for()`,
   so forecast and fight never disagree; bonuses apply as `duration_type="combat"`
-  modifiers at the **pair-up step** of the modifier pipeline (GDD_02).
+  modifiers at the **pair-up step** of the modifier pipeline (GDD_02). Each stat is
+  stamped under a **distinct modifier source** (`pair_up:<support_id>:<stat>`) — a
+  shared source made each stat's `add_modifier` wipe the previous one, so only the last
+  bonus survived and a paired lead's combat stats never actually changed (playtest
+  v0.1.4 #8.5; fixed 2026-06-14).
 - Pairing actions (Pair Up / Swap / Separate) are in the shipped action flow (GDD_02
   §Actions), gated by the campaign Pair Up toggle (`NewGameScreen`).
 

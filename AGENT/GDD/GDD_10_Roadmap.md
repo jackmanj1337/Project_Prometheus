@@ -99,10 +99,18 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        on-map tile + becomes visible, the old lead moves to `OFF_MAP_TILE` + hides,
        both go DONE. Regression guard added to `scripts/tests/test_map_cursor.gd`
        (asserts positions + visibility, not just role labels).
-3. [ ] **Pair Up support bonuses not applied (handbook 8.5).** After pairing, no
-       stat change appears on unit info or in the combat preview, so the authored
-       support contribution never reaches forecast or live combat. May share a root
-       cause with item 2 (pair-state not being read post-pairing).
+3. [x] **Pair Up support bonuses not applied (handbook 8.5).** After pairing, no
+       stat change reached the combat preview or live combat. **Root cause found via
+       the new preview-delta test (2026-06-14):** `CombatResolver._apply_pair_up_bonuses`
+       stamped every stat under one shared modifier source, and `add_modifier` removes
+       all modifiers sharing a source before adding — so each stat wiped the previous
+       one and only the last (luck) survived, leaving damage unchanged. **Fixed:**
+       distinct source per stat (`pair_up:<support_id>:<stat>`). Guard:
+       `test_combat.gd` asserts a paired lead's preview damage rises by the support's
+       strength contribution. (The earlier triage note that called this a "correct
+       code path" was wrong — the bug only shows with a multi-stat bonus.) Note: this
+       was a combat-modifier bug; pair-up bonuses are still combat-only and do not show
+       on the standalone unit-info panel by design (a visible indicator is a UX follow-up).
 4. [x] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
        allies died, Red ignored the surviving paired archer, beelined to `(1,1)`,
        and no defeat screen fired. **Fixed (2026-06-14), two parts:**

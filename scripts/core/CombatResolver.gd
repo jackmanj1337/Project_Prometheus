@@ -205,12 +205,18 @@ func _apply_pair_up_bonuses(combatant: Node, support: Node) -> void:
 	var bonuses: Dictionary = resolver.call("bonuses_for", support)
 	if bonuses.is_empty():
 		return
-	var source: String = "pair_up:%s" % support.data.unit_id
 	for stat_key in bonuses.keys():
 		var stat: String = String(stat_key)
 		var delta: int = int(bonuses[stat])
 		if delta == 0:
 			continue
+		# Distinct source PER STAT. add_modifier() calls remove_modifier(source)
+		# first, so a shared source made each stat wipe the previous one — only the
+		# last bonus (luck) survived, which is why a paired lead's damage never
+		# changed (playtest v0.1.4 #8.5). Same lesson SkillHandler's Resolve already
+		# encodes. clear_combat_modifiers() removes them by duration_type="combat",
+		# not source, so unique sources still get cleared after the fight.
+		var source: String = "pair_up:%s:%s" % [support.data.unit_id, stat]
 		# duration -1 = no auto-decrement; duration_type="combat" ensures
 		# clear_combat_modifiers() removes the modifier after the fight.
 		combatant.add_modifier(stat, delta, source, -1, "combat")

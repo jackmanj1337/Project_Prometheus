@@ -808,6 +808,47 @@ func _init() -> void:
 	mod_atk.queue_free()
 	mod_def.queue_free()
 
+	# ── Pair Up support bonus flows into the combat preview (playtest v0.1.4 #3) ──
+	# End-to-end guard for the bonus pipeline the v0.1.4 tester believed was dead:
+	# a paired lead's preview damage must rise by exactly the support's strength
+	# contribution (table -> PairUpBonusResolver -> add_modifier("combat") ->
+	# get_effective_stat -> compute_damage). Uses the real autoloads.
+	var pu_reg := cr.get_node_or_null("/root/PairUpRegistry")
+	var pu_res := cr.get_node_or_null("/root/PairUpBonusResolver")
+	var pu_gs := cr.get_node_or_null("/root/GameState")
+	if pu_reg != null and pu_res != null and pu_gs != null:
+		pu_reg.call("clear")
+		pu_gs.call("reset_map_state")
+		pu_gs.set("pair_up_enabled", true)  # PairUpRegistry.pair() is gated on this
+		# Lead: soldier, Str 10, iron sword. Support: cavalier, Str 10 → flat +1 Str
+		# + floor(10/4)=+2 = +3 Str contribution. Defender: no weapon (no counter, no
+		# triangle), Def 5, so per-hit damage stays positive both ways.
+		var pu_lead = _make_unit({"name":"PUlead","class_id":"soldier","strength":10,"weapon":iron_sword,"tile":Vector2i(0,0)})
+		var pu_support = _make_unit({"name":"PUsupport","class_id":"cavalier","strength":10,"tile":Vector2i(5,5)})
+		var pu_def = _make_unit({"name":"PUdef","class_id":"soldier","defense":5,"team":"red","tile":Vector2i(1,0)})
+		pu_lead.data.unit_id = "pu_lead"
+		pu_support.data.unit_id = "pu_support"
+		pu_def.data.unit_id = "pu_def"
+		pu_gs.call("register_unit", pu_lead)
+		pu_gs.call("register_unit", pu_support)
+		pu_gs.call("register_unit", pu_def)
+		var dmg_unpaired: int = cr.preview_combat(pu_lead, pu_def)["attacker_damage"]
+		var paired_ok: bool = bool(pu_reg.call("pair", "pu_lead", "pu_support"))  # pu_lead is the lead
+		var dmg_paired: int = cr.preview_combat(pu_lead, pu_def)["attacker_damage"]
+		if paired_ok and dmg_paired - dmg_unpaired == 3:
+			print("OK  Pair Up support bonus raises preview damage by the support contribution (#3)")
+			passed += 1
+		else:
+			print("FAIL pair-up preview delta: paired_ok=%s unpaired=%d paired=%d (want +3)" % [
+				paired_ok, dmg_unpaired, dmg_paired])
+			failed += 1
+		pu_reg.call("clear")
+		pu_gs.call("reset_map_state")
+		pu_lead.queue_free(); pu_support.queue_free(); pu_def.queue_free()
+	else:
+		print("SKIP pair-up preview delta (autoload missing: reg=%s res=%s gs=%s)" % [
+			pu_reg != null, pu_res != null, pu_gs != null])
+
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
