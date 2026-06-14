@@ -69,6 +69,68 @@ bulk condition/content work.
 
 ---
 
+## Current Playtest / Bug-Fix Round — v0.1.4 findings (2026-06-14)
+
+This is the live action list for the bug-fix round the implementation order
+points to (the `[current playtest/bug-fix round]` step above). Items are the
+defects returned by the v0.1.4 live pass. Evidence:
+
+- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.4_returned_2026-06-14.md`
+- Error-log excerpt + counts: `AGENT/Docs/godot_v0.1.4_2026-06-14_sample.log`
+- Promotion-modal screenshot: `950MERC Promotion.png` (in `AGENT/Docs/`)
+
+Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
+
+1. [ ] **Unknown weapon id `iron_axe` (handbook 9.1).** `DataManager` logs
+       `unknown weapon id 'iron_axe'` 11,829 times in one pass. Root cause: no
+       axe weapon exists in `data/weapons/`, but four Fighter units reference it —
+       `data/maps/map_003_defeat_boss/units/m003_fighter_1.tres`,
+       `data/maps/map_003_defeat_boss/units/m003_boss.tres`,
+       `data/maps/map_004_escape/units/m004_fighter_1.tres`, and
+       `data/maps/map_005_defend/units/m005_fighter_1.tres`. Fix is a data pass:
+       add an `iron_axe` `WeaponData` (and register it) or repoint these units to
+       an existing weapon. Pure content defect — no engine change.
+2. [ ] **Pair Up `Swap` is a no-op (handbook 2.7).** Choosing `Swap` on a paired
+       lead spends the action but does not trade lead/support roles; the original
+       lead stays on the map. Expected: roles trade, new lead keeps the tile, both
+       become DONE.
+3. [ ] **Pair Up support bonuses not applied (handbook 8.5).** After pairing, no
+       stat change appears on unit info or in the combat preview, so the authored
+       support contribution never reaches forecast or live combat. May share a root
+       cause with item 2 (pair-state not being read post-pairing).
+4. [ ] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
+       allies died, Red ignored the surviving paired archer, beelined to `(1,1)`,
+       Blue phase stopped auto-completing, and no defeat screen fired — the map sat
+       in an unresolvable state. Touches the allied-Rout defeat check and the
+       hidden-support / phase-end accounting when only a paired unit remains.
+5. [ ] **Promotion modal runs off the right edge (handbook 8.7 and 8.11).** The
+       promotion class-choice modal is not centered and clips off-screen at the test
+       resolution; reproduces under both manual Master Seal (8.7) and Auto Promote
+       (8.11). UI centering/anchor bug. See the screenshot evidence above.
+6. [ ] **New Game settings not persisted unless a map is started (handbook 1.2).**
+       Changing `Pair Up` / `Auto Promote` and closing the New Game panel *without*
+       starting a map discards the change; values only persist once a map is started
+       and exited.
+
+**Lower-severity observations** (confirm and fold in or defer; not yet release-blocking):
+
+- [ ] **Combat preview shifts and overlaps (handbook 2.4).** The preview's right
+      edge centers on the attacking unit and can overlap the unit-info or objective
+      panels. (Related to the deferred combat-preview placement work.)
+- [ ] **Battle Speed not shown in combat preview (handbook 8.3).** The follow-up
+      check passed behaviorally, but testers cannot verify Battle Speed values
+      because the preview does not display them.
+- [ ] **Reclass to Soldier grants no level-1 skill (handbook 8.6).** Demoting the
+      General to Soldier added no starting skill (reclass to Mercenary correctly
+      granted `armsthrift`). Verify whether tier-1 Soldier is authored with a
+      level-1 skill before treating this as a bug.
+
+> Note: the `armsthrift` (x80), `dash` (x25), and `disarm` (x2) `SkillHandler`
+> stub warnings in the same log are expected pre-M9 (skill content lands in
+> Milestone 9), not defects in this round.
+
+---
+
 ## Near-Term — Display & Accessibility Controls
 
 Bumped up from the Phase 3 backlog (2026-06-11): scheduled to begin **immediately
