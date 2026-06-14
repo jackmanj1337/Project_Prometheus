@@ -44,9 +44,10 @@ class TestValidateOnreadyPaths(unittest.TestCase):
         self.assertIn("res://scenes/ui/HUD.tscn", out)
 
     def test_all_hud_paths_validate_ok(self):
-        # HUD.gd has 11 @onready vars, all valid against HUD.tscn
+        # Every @onready var in HUD.gd resolves against HUD.tscn. Assert no misses
+        # rather than a hardcoded count (the count drifts as HUD.tscn grows).
         out = validate_onready_paths("scripts/ui/HUD.gd", PROJECT_ROOT)
-        self.assertIn("11 OK", out)
+        self.assertIn(" OK", out)
         self.assertNotIn("MISS", out)
 
     def test_script_with_no_onready_declarations(self):
@@ -69,8 +70,9 @@ class TestFindScenesWithScript(unittest.TestCase):
         self.assertIn("res://scenes/ui/HUD.tscn", out)
 
     def test_script_attached_to_no_scene(self):
-        # SettingsScreen.gd exists but isn't referenced by any .tscn
-        out = find_scenes_with_script("scripts/ui/SettingsScreen.gd", PROJECT_ROOT)
+        # CampaignRules.gd is a Resource subclass — never attached to any .tscn.
+        # (SettingsScreen.gd, the old fixture, is now scene-attached.)
+        out = find_scenes_with_script("scripts/resources/CampaignRules.gd", PROJECT_ROOT)
         self.assertIn("No scenes found", out)
 
 
@@ -102,7 +104,8 @@ class TestGetResourceFields(unittest.TestCase):
         out = get_resource_fields("data/weapons/iron_sword.tres", PROJECT_ROOT)
         self.assertIn('id', out)
         self.assertIn('"iron_sword"', out)
-        self.assertIn('weapon_type', out)
+        # Field was renamed weapon_type -> combat_family in the weapon schema.
+        self.assertIn('combat_family', out)
         self.assertIn('"sword"', out)
 
 

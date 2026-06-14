@@ -22,6 +22,11 @@ jobs:
       - name: RNG-usage guard
         run: bash scripts/ci/check_rng_usage.sh
 
+      - name: Analyzer tool tests
+        # The godot-analyzer MCP backs the Scenes/Data audit pillar; gate it so a
+        # parser regression can't slip through. Stdlib unittest — no pip deps.
+        run: python3 tools/godot-analyzer-mcp/tests/test_tools.py
+
       - name: Install runtime dependencies
         run: |
           sudo apt-get update

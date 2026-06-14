@@ -48,6 +48,16 @@ if [[ ! -f run_tests.sh ]]; then
 	exit 0
 fi
 
+# Parity with CI (scripts/ci/run_headless_tests.sh): the headless test scripts
+# depend on the versioned global class cache. CI regenerates+asserts it; the hook
+# only asserts (a full reimport every commit would be too slow). This closes the
+# drift where a missing/stale cache failure CI catches but the hook would miss.
+if [[ ! -f .godot/global_script_class_cache.cfg ]]; then
+	echo "pre-commit: FAIL — .godot/global_script_class_cache.cfg missing."
+	echo "  Run 'bash scripts/ci/run_headless_tests.sh' once to regenerate it."
+	exit 1
+fi
+
 echo "pre-commit: running test suite..."
 bash run_tests.sh
 exit $?
