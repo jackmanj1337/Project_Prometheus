@@ -1,5 +1,10 @@
 # Documentation Review Instructions
 
+> **Status: Superseded (2026-06-14)** by `AGENT/Review Procedures/02_Documentation_Pillar.md`,
+> which folds this content in as Pillar 2 of the full project audit
+> (`AGENT/Review Procedures/00_Master_Review_Procedure.md`). Kept for provenance
+> only. Do not use for new reviews.
+
 Companion to `code_review_instructions.txt`. Where the code review judges *code*,
 this judges the *docs* — the numbered GDD, the decision/governance system, and the
 operational guides. The structural CI (`check_docs.py`, DOC-011) already covers broken
