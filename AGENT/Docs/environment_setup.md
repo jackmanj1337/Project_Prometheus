@@ -1,6 +1,6 @@
 # Environment Setup — Transfer to a New Machine
 
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 
 Everything needed to bring this project up on a fresh machine and pick up
 work where this session left off.
@@ -120,7 +120,7 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
   `.gitignore`). Headless `--script` runs don't regenerate the cache, so
   any new `class_name` needs a manual entry committed alongside.
 - `export_presets.cfg` — Windows preset used for playtest builds.
-  Currently at `v0.1.4`; it excludes `AGENT/**`, `scripts/tests/**`, and
+  Currently at `v0.1.5.0`; it excludes `AGENT/**`, `scripts/tests/**`, and
   `scripts/tools/**` so internal documentation, screenshots, test harnesses,
   and authoring tools are not packaged into tester builds.
 
@@ -131,7 +131,7 @@ git remote set-url origin git@github.com:jackmanj1337/Project_Prometheus.git
 - `.import/` — Godot regenerates on first asset load.
 - `export.cfg`, `export_credentials.cfg` — local-only.
 - `builds/` — `.exe` artifacts. Re-export per
-  `playtest_checklist_v0.1.4.md` to reproduce.
+  `playtest_checklist_v0.1.5.0.md` to reproduce.
 - `.env` — API keys.
 
 If you cloned and these directories are missing, that's correct.
@@ -147,13 +147,13 @@ with Godot 4.6 + export templates installed):
 ```bash
 # Debug build (slightly larger, useful for testers)
 godot --headless --path . \
-    --export-debug "Project Prometheus v0.1.4" \
-    builds/Project_Prometheus_v0.1.4_debug.exe
+    --export-debug "Project Prometheus v0.1.5.0" \
+    builds/Project_Prometheus_v0.1.5.0_debug.exe
 
 # Release build
 godot --headless --path . \
-    --export-release "Project Prometheus v0.1.4" \
-    builds/Project_Prometheus_v0.1.4.exe
+    --export-release "Project Prometheus v0.1.5.0" \
+    builds/Project_Prometheus_v0.1.5.0.exe
 ```
 
 The preset name must match `export_presets.cfg[preset.0].name` exactly.
@@ -177,7 +177,7 @@ print as `FAIL <name>: ...` and exit non-zero.
 ## When you sit down at the new machine
 
 1. Read the newest file in `AGENT/Session Notes/`.
-2. Read `AGENT/Docs/playtest_checklist_v0.1.4.md` to know what is
+2. Read `AGENT/Docs/playtest_checklist_v0.1.5.0.md` to know what is
    shipped to testers and what remains open.
 3. `bash run_tests.sh` to confirm the environment is clean.
 4. Continue from the plan recorded in the newest session note.
