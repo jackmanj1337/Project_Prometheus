@@ -59,6 +59,7 @@ bash scripts/check_env.sh            # doctor — should be all [OK]
 python3 AGENT/Docs/check_docs.py     # docs checks → PASS (10 checks)
 bash scripts/ci/check_rng_usage.sh   # RNG guard → PASS
 python3 tools/godot-analyzer-mcp/tests/test_tools.py  # analyzer suite (CI-gated) → OK
+python3 scripts/ci/check_scene_integrity.py           # scene @onready paths (CI-gated) → PASS
 bash run_tests.sh                    # full GDScript suite → all suites green (39 suites)
 godot --path . scenes/core/Boot.tscn # launch once to confirm the app boots
 git push                             # confirms the SSH host alias resolves

@@ -27,6 +27,11 @@ jobs:
         # parser regression can't slip through. Stdlib unittest — no pip deps.
         run: python3 tools/godot-analyzer-mcp/tests/test_tools.py
 
+      - name: Scene-integrity check
+        # Fails if any scene-attached @onready $-path no longer resolves (silent
+        # node-rename / scene-reorg breakage). Stdlib only — no pip deps.
+        run: python3 scripts/ci/check_scene_integrity.py
+
       - name: Install runtime dependencies
         run: |
           sudo apt-get update
