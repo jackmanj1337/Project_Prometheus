@@ -156,11 +156,13 @@ Swap and preview-placement paths. None are shipping blockers.
    defensive desync). Quick win. — **DONE `92a171b`** (resolve-first + guard test).
 3. **Route objective-liveness through one helper / lint** so `get_living_units_of` can't
    be misused by future evaluators (Low-Medium; small, prevents a repeat of #4-A).
+   — **DEFERRED to next session.**
 4. **Inject the HUD into AttackPreview via `setup()`** to drop the hardcoded path (Low;
-   defer — graceful fallback today).
+   defer — graceful fallback today). — **DEFERRED to next session.**
 5. **ScrollContainer / fixpoint avoidance** for PromotionScreen and `_place_clear_of`
    (Low; future-proofing only, not needed at current content scale).
+   — **DEFERRED to next session.**
 
 No critical or high-severity issues. The changed code is shippable as-is; the items
-above are hardening and consistency, with #1 the only one I'd recommend doing before
-the next build because it's the same bug class a tester just reported.
+above are hardening and consistency. #1 and #2 are done; #3–#5 are explicitly
+deferred to next session (none blocks the v0.1.5.0 build).

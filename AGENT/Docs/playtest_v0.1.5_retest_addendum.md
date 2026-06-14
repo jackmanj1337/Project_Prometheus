@@ -1,6 +1,9 @@
 # Playtest v0.1.5 — Re-test Addendum & Changelog
 
-**Status:** Planned — companion to the v0.1.4 handbook for the next build.
+**Status:** Superseded — folded into the full `AGENT/Docs/playtest_checklist_v0.1.5.0.md`
+handbook (which now carries the "What changed since v0.1.4" re-verify summary, the
+updated 8.3/8.5/8.6 checks, and the §12 features/roadmap summary). Retained for
+provenance; use the v0.1.5.0 handbook for the live pass.
 **Last verified:** 2026-06-14
 
 This is **not** a full handbook. It is the focused re-test list for the build cut

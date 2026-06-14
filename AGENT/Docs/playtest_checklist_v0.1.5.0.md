@@ -33,9 +33,9 @@ skill-stub warnings now appear once each instead of every combat.
 - Windows 10 or 11, 64-bit
 - Keyboard and mouse
 - Executable: `Project_Prometheus_v0.1.5.0_debug.exe`
-- Expected file size: `__BUILD_SIZE__` bytes
+- Expected file size: `101,209,032` bytes
 - Expected SHA-256:
-  `__BUILD_SHA256__`
+  `d91ca65f755bdaeb7ca758fd882097a58a4e1dccaada637a74db15f811a5c5c5`
 
 The executable is a standalone debug build. It does not need Godot or an
 installer. Do not disable antivirus or other security software to run it. If
