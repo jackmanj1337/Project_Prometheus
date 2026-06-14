@@ -69,11 +69,72 @@ bulk condition/content work.
 
 ---
 
-## Current Playtest / Bug-Fix Round — v0.1.4 findings (2026-06-14)
+## Current Playtest / Bug-Fix Round — v0.1.5.0 findings (2026-06-14)
 
-This is the live action list for the bug-fix round the implementation order
-points to (the `[current playtest/bug-fix round]` step above). Items are the
-defects returned by the v0.1.4 live pass. Evidence:
+Live action list for the v0.1.5.0 return pass. Evidence:
+
+- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
+
+The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
+1–7, plus 8.1–8.2, 8.6–8.11, and 9) — only the items below need action.
+
+1. [ ] **Pair Up bonuses still report as absent (handbook 8.5).** Tester:
+       *"Pairup did not grant any bonuses, and no pairup line showed in lead unit
+       character sheet."* **Could not reproduce — needs live evidence (Open decision).**
+       The shipped binary is SHA-verified (`d91ca65…c5c5`) and was built *after* the
+       8.5 commits (`b53a385`, `913d39e`), so it contains the fix. A new faithful
+       end-to-end regression — `scripts/tests/test_pair_up_bonus_e2e.gd` — loads the
+       **real Map 950 roster** (`unit_12_hero_skill_cap` lead + `unit_01_cavalier`
+       support), builds **real `Unit` scene instances**, registers them with the live
+       `GameState`/`PairUpRegistry`/`PairUpBonusResolver` autoloads, and asserts both
+       paths: the resolver returns the handbook bonus `{Str 3, Def 3, Spd 3, Skl 2,
+       Lck 1}` **and** `HUD._show_unit` renders `Paired  +3 Str +2 Skl +3 Spd +3 Def
+       +1 Lck`. It passes. So the in-build code path is correct; the failure is not
+       reproducible headlessly. **Needed to proceed:** the tester's `godot.log` from
+       that run and a precise repro — specifically (a) which unit was made the *lead*
+       (initiating Pair Up from the Cavalier would put the Hero off-map), and (b)
+       whether the "panel" checked was the HUD unit-info panel (which carries the line)
+       or the `I` inspect screen (which does not).
+2. [x] **Reclass option lines force a horizontal scroll (handbook 8.6 /
+       General Map 950 comment).** Tester asked for the class-change stat lines to
+       *"wrap around to a second line instead of a horizontal scroll wheel."* Root
+       cause: `ReclassScreen`'s option buttons (unlike `PromotionScreen`'s) had no
+       `autowrap_mode`, and `OptionsScroll` allowed horizontal scrolling, so the long
+       `old +Δ -> new / cap` line overflowed sideways. **Fixed (2026-06-14):** disabled
+       the scroll container's horizontal scroll (`horizontal_scroll_mode = 0`) so each
+       button is width-capped to the panel, and set the buttons to
+       `AUTOWRAP_WORD_SMART` — matching the promotion modal. Regression guard added to
+       `scripts/tests/test_reclass_screen.gd`. Docs: GDD_07 §Promotion / Reclass Modal.
+3. [ ] **Defender Battle Speed hidden when it cannot counter (handbook 8.3).**
+       Tester: *"defender battle speed does not display when they cannot counter."*
+       This is **intentional today** — `AttackPreview._battle_speed_note()` shows only
+       the attacker's Battle Speed plus "(no counter)" when the defender can't counter,
+       since a non-countering defender can never follow up. The handbook 8.3 wording
+       ("each side's Battle Speed") implies both should always show. **Open decision:**
+       show the defender's Battle Speed even on a no-counter matchup, or keep the
+       current behaviour and soften the handbook wording. Cosmetic; not blocking.
+
+**Enhancement requests (logged; not defects):**
+
+- [ ] **Show which weapons are in use in the combat preview (handbook 2.4).** Tester:
+      *"It would be helpful long term to have combat preview display what weapons are
+      being used."* The preview shows damage/hit/crit but not the equipped weapon names.
+      Candidate for the combat-preview polish backlog.
+
+**Needs tester clarification (left unchecked on the returned handbook, no comment):**
+
+- 3.1 (Routing Red does not win — Map 002) and 8.4 (Strength Tonic modifier &
+  expiration — Map 950) were returned **unchecked with no comment**. Treat as
+  `NOT RUN` pending confirmation, not as failures — request a re-run or a note.
+- 7.4 camera **panning** memory could not be exercised because *"map is still too
+  small"* — a fixture coverage gap, not a defect (the danger-view half passed).
+
+---
+
+## Playtest / Bug-Fix Round — v0.1.4 findings (2026-06-14, resolved)
+
+Items are the defects returned by the v0.1.4 live pass; all are resolved and were
+re-verified by the v0.1.5.0 pass above. Evidence:
 
 - Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.4_returned_2026-06-14.md`
 - Error-log excerpt + counts: `AGENT/Docs/godot_v0.1.4_2026-06-14_sample.log`

@@ -60,6 +60,13 @@ func _rebuild_options() -> void:
 		var btn := Button.new()
 		btn.focus_mode = Control.FOCUS_ALL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		# Wrap the long per-stat `old +Δ -> new / cap` line within the panel width
+		# instead of letting it overflow into a horizontal scrollbar (playtest
+		# v0.1.5.0 #8.6 — the reclass option lines forced a horizontal scroll). The
+		# OptionsScroll's horizontal scroll is disabled in the scene, so each button
+		# is width-capped to the panel and autowrap takes effect — mirroring the
+		# PromotionScreen fix (playtest v0.1.4 #5).
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.text = _button_text(target_class, option)
 		_options.add_child(btn)
 		var captured_option: Dictionary = option

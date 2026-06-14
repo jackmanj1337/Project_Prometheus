@@ -630,9 +630,13 @@ centered rather than spilling past one edge.
 
 The reclass picker (`ReclassScreen.tscn`, Second Seal) uses the **same centered
 panel**; it additionally wraps its longer option list in a `ScrollContainer`
-(reclass can offer many targets, where promotion offers ≤3). Both modals were
-left-pinned originally; the reclass panel was re-centered alongside the promotion
-fix (code review 2026-06-14 #1) for resolution-robustness.
+(reclass can offer many targets, where promotion offers ≤3). That scroll container
+**scrolls vertically only** (`horizontal_scroll_mode` disabled), which width-caps
+each option button to the panel so its buttons **autowrap** their long
+`old +Δ -> new / cap` line the same way the promotion buttons do — without a
+horizontal scrollbar (playtest v0.1.5.0 #8.6). Both modals were left-pinned
+originally; the reclass panel was re-centered alongside the promotion fix (code
+review 2026-06-14 #1) for resolution-robustness.
 
 ---
 

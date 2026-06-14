@@ -57,6 +57,22 @@ func _init() -> void:
 		print("FAIL reclass options missing scroll container")
 		failed += 1
 
+	# Long option lines must wrap to a second line, not force a horizontal scroll
+	# (playtest v0.1.5.0 #8.6). That needs BOTH: horizontal scroll disabled on the
+	# container (so buttons are width-capped to the panel) AND autowrap on each
+	# button. Mirrors the PromotionScreen fix.
+	var hscroll_off: bool = options_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED
+	var all_wrap: bool = options.get_child_count() > 0
+	for child in options.get_children():
+		if not (child is Button) or (child as Button).autowrap_mode == TextServer.AUTOWRAP_OFF:
+			all_wrap = false
+	if hscroll_off and all_wrap:
+		print("OK  reclass option lines autowrap (no horizontal scroll) — #8.6")
+		passed += 1
+	else:
+		print("FAIL reclass autowrap: hscroll_off=%s all_wrap=%s" % [hscroll_off, all_wrap])
+		failed += 1
+
 	# Modal must stay on-screen and centered (code review 2026-06-14 #1: it shared the
 	# un-centered fixed-offset layout that ran the promotion modal off the right edge).
 	await process_frame
