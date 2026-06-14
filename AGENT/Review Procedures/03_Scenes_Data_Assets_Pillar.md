@@ -12,8 +12,11 @@ none of which the GDScript compiler or a unit test necessarily catches.
 
 ## 1. Mandate & non-goals
 
-**In scope:** `scenes/**.tscn`, `data/**` resources, `assets/**`, all `*.import`
-files, and autoload registration in `project.godot`.
+**In scope:** `scenes/**.tscn`, **all `*.tres` resources wherever they live** —
+`data/**`, `assets/**` (e.g. tilesets), and repo-root resources like
+`default_bus_layout.tres` — `assets/**`, all `*.import` files, the `*.uid`
+sidecar files, stray/empty top-level directories, and autoload registration in
+`project.godot`.
 
 **Out of scope:** the *logic* inside scripts (Pillar 1); whether tests pass
 (Pillar 4); whether the GDD *describes* the data correctly (Pillar 2 — but a
@@ -61,6 +64,21 @@ Lean on the godot-analyzer MCP — it reads scenes/resources structurally:
 **E. Autoload registration**
 - `get_autoloads` vs. `project.godot`: every registered autoload's script exists
   and loads; ordering dependencies are sane (consumers after providers).
+
+**F. `.uid` sidecar consistency (Godot 4)**
+- Every script/resource that should carry a `.uid` has one, and it is **tracked in
+  git** — `git ls-files | grep '\.uid$'` vs. untracked `.uid` from
+  `git status --porcelain`. Missing/untracked UIDs break references on a fresh
+  clone or CI. Flag any `.gd`/`.tres` whose `.uid` is untracked (High — it bites a
+  new machine), and any orphan `.uid` whose owner was deleted.
+- Confirm the `.gitignore` policy for `.uid` is intentional and consistent (all in
+  or all out), not accidental drift.
+
+**G. Stray / empty directories & misplaced resources**
+- Empty or vestigial top-level dirs (e.g. an empty `code/`) — recommend deletion
+  or document why they exist; flag any live doc still referencing them.
+- `.tres` resources sitting outside their expected home (root, `assets/`) — confirm
+  they are referenced and intentional, not strays.
 
 ## 4. Spot-check requirements
 

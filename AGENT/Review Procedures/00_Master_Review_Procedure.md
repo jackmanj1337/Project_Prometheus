@@ -46,11 +46,18 @@ Coverage map (so nothing falls between pillars):
 - `scripts/**.gd` non-test code → **Pillar 1**
 - `scripts/tests/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
   `check_docs.py`, `.github/workflows/**`, `project.godot`, `export_presets.cfg`,
-  `Dockerfile`, `docker-compose.yml` → **Pillar 4**
-- `scenes/**.tscn`, `data/**`, `assets/**`, `*.import`, autoload *wiring* → **Pillar 3**
+  `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
+  one-off scripts) and its pytest suite** → **Pillar 4**
+- `scenes/**.tscn`, **all `*.tres` wherever they live** (`data/**`, `assets/**`,
+  repo-root), `assets/**`, `*.import`, `*.uid` sidecars, stray/empty top-level
+  dirs, autoload *wiring* → **Pillar 3**
 - `AGENT/GDD/**`, `AGENT/Docs/**` guides + governance, `README.md` → **Pillar 2**
 - `AGENT/Session Notes/**`, git history, decision index/records, playtest
   findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
+
+Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
+`builds/` [gitignored artifacts], `code/` [stray — Pillar 3], `data/`, `scenes/`,
+`scripts/`, `tools/`) and the root config files map to exactly one pillar above.
 
 If a finding spans two pillars, the discovering pillar files it and tags it
 `[CROSS]`; the rollup (§7) reconciles cross-pillar findings.
@@ -204,6 +211,18 @@ Each is a candidate to add to `check_docs.py` when ratified:
 - The rollup links to exactly five pillar reports.
 - No two live procedure docs define the same severity table (single-source-of-
   truth: the rubric lives only here in §5).
+- **`.uid` tracking** — every `.gd`/`.tres` with a `.uid` sidecar has it tracked
+  in git (untracked UIDs break fresh clones). Scriptable in `check_docs.py`.
+- **`tools/` Python is tested in CI** — add `pytest` to the environment and a CI
+  job running `tools/godot-analyzer-mcp/tests/`; the analyzer is currently
+  untested by any gate even though Pillar 3 depends on it.
+- **GDScript lint/format gate** — no `gdlint`/`gdformat` runs in hooks or CI;
+  style is human-only via Pillar 1. Candidate CI job.
+- **Scene/resource integrity gate** — the godot-analyzer MCP can already do
+  `validate_onready_paths` + orphan detection; wire it into CI so Pillar 3's
+  structural checks run automatically, not just at audit time.
+- **Procedure-folder scan** — add `AGENT/Review Procedures/**` to
+  `check_docs.py`'s scan set so its backtick paths are validated.
 
 Until checked, these are honor-system — list any violation as a Pillar 2 finding.
 
