@@ -113,10 +113,16 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        `OFF_MAP_TILE` regardless of pair role, so a desynced off-map unit can't drag
        the AI toward the `(-1,-1)` corner (the `(1,1)` beeline). Regression guards in
        `scripts/tests/test_turn_manager.gd` and `scripts/tests/test_enemy_ai.gd`.
-5. [ ] **Promotion modal runs off the right edge (handbook 8.7 and 8.11).** The
-       promotion class-choice modal is not centered and clips off-screen at the test
-       resolution; reproduces under both manual Master Seal (8.7) and Auto Promote
-       (8.11). UI centering/anchor bug. See the screenshot evidence above.
+5. [x] **Promotion modal runs off the right edge (handbook 8.7 and 8.11).** The
+       promotion class-choice modal was left-pinned with fixed offsets, and the long
+       per-stat preview rows forced it wider than the screen, so it clipped off the
+       right edge (both manual Master Seal 8.7 and Auto Promote 8.11 — same scene).
+       **Fixed (2026-06-14):** `PromotionScreen.tscn` panel is now centered via
+       anchors with symmetric grow, and `PromotionScreen.gd` sets the option buttons
+       to autowrap so the stat line wraps within the capped width instead of pushing
+       the panel off-screen. Regression guard: `test_promotion_screen.gd` asserts the
+       panel stays on-screen and horizontally centered. (Headless bounds check only —
+       a build-time visual confirm is still worth doing.)
 6. [x] **New Game settings not persisted unless a map is started (handbook 1.2).**
        Changing `Pair Up` / `Auto Promote` and closing the New Game panel *without*
        starting a map discarded the change. **Fixed (2026-06-14):** `NewGameScreen`

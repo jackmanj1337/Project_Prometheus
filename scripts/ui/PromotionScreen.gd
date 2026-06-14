@@ -65,6 +65,11 @@ func _rebuild_options() -> void:
 		var btn := Button.new()
 		btn.focus_mode = Control.FOCUS_ALL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		# Wrap the long stat-preview line within the panel width instead of forcing
+		# the panel wider than the screen (playtest v0.1.4 #5 — promotion modal ran
+		# off the right edge). The panel is centered + width-capped in the scene; the
+		# buttons must be allowed to shrink/wrap so they don't push past that cap.
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.text = _button_text(target_class)
 		_options.add_child(btn)
 		btn.pressed.connect(func(): _commit_promotion(target_class.id))

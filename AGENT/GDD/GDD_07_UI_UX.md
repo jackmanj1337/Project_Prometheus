@@ -598,6 +598,25 @@ the `InputMap` at startup, so a rebind UI is the only missing piece (Phase 2).
 
 ---
 
+### Promotion / Reclass Modal
+
+**Scene:** `PromotionScreen.tscn` (the reclass picker mirrors this layout)
+**Trigger:** auto-promotion at the class cap, or using a promotion seal (the
+modal/interrupt timing is owned by GDD_02 → Promotion — Trigger Timing)
+
+A full-rect `Dimmer` + a centered `PanelContainer` listing one button per
+`promotes_to` target. Each button shows the class name, a per-stat
+`old +Δ -> new / cap` preview line, and the class's learned skills.
+
+The panel is **centered via anchors with symmetric grow**, and the option
+buttons **autowrap** their long stat-preview line within a capped panel width.
+This is deliberate: the per-stat preview is wide, so a left-pinned fixed-offset
+panel (the pre-fix layout) ran off the right edge of the screen at the play
+resolution. Symmetric grow guarantees that even if content does expand, it stays
+centered rather than spilling past one edge.
+
+---
+
 ### Game Over Screen
 
 **Trigger:** `EventBus.map_defeat`, `EventBus.map_victory`, and `EventBus.map_resolved`
