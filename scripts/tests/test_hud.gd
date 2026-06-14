@@ -114,6 +114,7 @@ func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodg
 	stub_unit_script.source_code = """
 extends Node
 var data
+var team: String = "blue"
 """
 	stub_unit_script.reload()
 	var unit_a: Node = stub_unit_script.new()
@@ -158,6 +159,52 @@ var data
 	else:
 		print("FAIL post-deselect empty: displayed=%s want=null" % hud._displayed_unit)
 		failed += 1
+
+	# ── Pair Up bonus indicator on the unit-info panel (playtest #8.5 follow-up) ──
+	# A paired lead's panel must show the support's contribution (queried on demand,
+	# since the bonus is a combat-only modifier). A non-lead must not show it.
+	var gs_pu := root.get_node_or_null("GameState")
+	var reg_pu := root.get_node_or_null("PairUpRegistry")
+	var res_pu := root.get_node_or_null("PairUpBonusResolver")
+	if gs_pu != null and reg_pu != null and res_pu != null:
+		gs_pu.call("reset_map_state")
+		reg_pu.call("clear")
+		gs_pu.set("pair_up_enabled", true)
+		var lead: Node = stub_unit_script.new()
+		var lead_data := UnitData.new()
+		lead_data.unit_name = "PU Lead"; lead_data.class_id = "soldier"; lead_data.unit_id = "hud_lead"
+		lead_data.hp = 20; lead_data.max_hp = 20
+		lead.data = lead_data
+		var supp: Node = stub_unit_script.new()
+		var supp_data := UnitData.new()
+		supp_data.unit_name = "PU Support"; supp_data.class_id = "cavalier"; supp_data.unit_id = "hud_supp"
+		supp_data.hp = 20; supp_data.max_hp = 20
+		supp_data.strength = 10; supp_data.defense = 10; supp_data.speed = 9
+		supp_data.skill = 8; supp_data.luck = 4
+		supp.data = supp_data
+		root.add_child(lead); root.add_child(supp)
+		gs_pu.call("register_unit", lead)
+		gs_pu.call("register_unit", supp)
+		reg_pu.call("pair", "hud_lead", "hud_supp")
+
+		hud._show_unit(lead)
+		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
+		var lead_shows: bool = pu_label != null and pu_label.visible \
+			and "Paired" in pu_label.text and "Str" in pu_label.text
+		hud._show_unit(supp)   # support is not the lead → indicator hidden
+		var supp_hides: bool = pu_label != null and not pu_label.visible
+		if lead_shows and supp_hides:
+			print("OK  unit-info shows the Pair Up bonus on a paired lead, hides it otherwise (#8.5)")
+			passed += 1
+		else:
+			print("FAIL pair-up indicator: lead_shows=%s supp_hides=%s text=%s" % [
+				lead_shows, supp_hides, (pu_label.text if pu_label != null else "<no label>")])
+			failed += 1
+		reg_pu.call("clear")
+		gs_pu.call("reset_map_state")
+		lead.queue_free(); supp.queue_free()
+	else:
+		print("SKIP pair-up indicator (autoload missing)")
 
 	unit_a.queue_free(); unit_b.queue_free()
 	stub_grid.queue_free()

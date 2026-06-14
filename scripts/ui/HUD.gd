@@ -60,6 +60,16 @@ var _terrain_expanded: bool = false
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
 var _mastery_label: Label = null
 
+# Dynamically-created Pair Up bonus label (same no-scene-edit pattern as mastery).
+# Shows the support's contribution when a paired LEAD is displayed.
+var _pairup_label: Label = null
+
+# Stat-key → short label used in the Pair Up bonus readout (matches handbook terms).
+const _STAT_SHORT: Dictionary = {
+	"strength": "Str", "magic": "Mag", "skill": "Skl", "speed": "Spd",
+	"defense": "Def", "resistance": "Res", "luck": "Lck",
+}
+
 
 func _ready() -> void:
 	_unit_panel.hide()
@@ -229,6 +239,7 @@ func _show_unit(unit: Node) -> void:
 	var wpn: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
 	_unit_weapon.text = wpn.display_name if wpn != null else "--"
 	_update_mastery_display(unit)
+	_update_pairup_display(unit)
 	_unit_panel.show()
 
 
@@ -254,6 +265,49 @@ func _update_mastery_display(unit: Node) -> void:
 		$UnitInfoPanel/VBox.add_child(_mastery_label)
 	_mastery_label.text = "Mastery  " + ", ".join(s_rank_types)
 	_mastery_label.show()
+
+
+# Shows the Pair Up support bonus on a paired lead's info panel. The bonus is a
+# combat-only modifier — it never lives in active_modifiers outside a fight — so
+# the panel otherwise gives no sign the pairing does anything, which is exactly
+# what the v0.1.4 tester reported (#8.5). Query PairUpBonusResolver on demand.
+func _update_pairup_display(unit: Node) -> void:
+	var text: String = _pairup_bonus_text(unit)
+	if text == "":
+		if _pairup_label != null:
+			_pairup_label.hide()
+		return
+	if _pairup_label == null:
+		_pairup_label = Label.new()
+		_pairup_label.name = "PairUpLabel"
+		$UnitInfoPanel/VBox.add_child(_pairup_label)
+	_pairup_label.text = text
+	_pairup_label.show()
+
+
+# "Paired  +3 Str +3 Def …" for a paired LEAD, else "". Only the lead is shown
+# (the support sits off-map and is never the displayed unit). Returns "Paired"
+# with no deltas if the support's table entry is all zeros.
+func _pairup_bonus_text(unit: Node) -> String:
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return ""
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg == null or not bool(reg.call("is_lead", unit.data.unit_id)):
+		return ""
+	var gs := get_node_or_null("/root/GameState")
+	var res := get_node_or_null("/root/PairUpBonusResolver")
+	if gs == null or res == null:
+		return ""
+	var support: Node = gs.call("find_unit_by_id", reg.call("get_partner_id", unit.data.unit_id))
+	if support == null:
+		return ""
+	var bonuses: Dictionary = res.call("bonuses_for", support)
+	var parts: Array[String] = []
+	for stat in ["strength", "magic", "skill", "speed", "defense", "resistance", "luck"]:
+		var v: int = int(bonuses.get(stat, 0))
+		if v != 0:
+			parts.append("+%d %s" % [v, String(_STAT_SHORT[stat])])
+	return "Paired" if parts.is_empty() else "Paired  " + " ".join(parts)
 
 
 func _update_terrain(tile: Vector2i) -> void:

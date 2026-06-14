@@ -225,6 +225,11 @@ by camera movement.
 - Hidden when cursor is on an empty tile with no unit
 - Size: ~300 × 110 px
 - Portrait: [PLACEHOLDER] 64×64 px class portrait
+- For a paired **lead**, a "Paired  +N Str +N Def …" line lists the support's
+  contribution. The Pair Up bonus is a combat-only modifier (it is not in the
+  unit's `active_modifiers` outside a fight), so `HUD._pairup_bonus_text` queries
+  `PairUpBonusResolver` on demand — without this the panel gave no sign the pairing
+  did anything (playtest v0.1.4 #8.5). Supports are off-map and never displayed.
 
 **Terrain Info Panel** (`TerrainInfoPanel.tscn`):
 - Always shown (updates as cursor moves)

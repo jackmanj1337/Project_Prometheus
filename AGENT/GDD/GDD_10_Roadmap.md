@@ -108,9 +108,11 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        distinct source per stat (`pair_up:<support_id>:<stat>`). Guard:
        `test_combat.gd` asserts a paired lead's preview damage rises by the support's
        strength contribution. (The earlier triage note that called this a "correct
-       code path" was wrong — the bug only shows with a multi-stat bonus.) Note: this
-       was a combat-modifier bug; pair-up bonuses are still combat-only and do not show
-       on the standalone unit-info panel by design (a visible indicator is a UX follow-up).
+       code path" was wrong — the bug only shows with a multi-stat bonus.) UX follow-up
+       **done (2026-06-14):** pair-up bonuses are combat-only modifiers, so they never
+       showed on the unit-info panel; the panel now displays a "Paired  +N Str +N Def …"
+       line for a paired lead (`HUD._pairup_bonus_text`, queried on demand), closing the
+       "no change post-pairup" confusion. Guard in `test_hud.gd`.
 4. [x] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
        allies died, Red ignored the surviving paired archer, beelined to `(1,1)`,
        and no defeat screen fired. **Fixed (2026-06-14), two parts:**
