@@ -18,7 +18,11 @@ extends "res://scripts/ui/ModalScreen.gd"
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const ClassData        = preload("res://scripts/resources/ClassData.gd")
 const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
+const StatContributions = preload("res://scripts/shared/StatContributions.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
+
+# Green used to flag a stat that an active bonus is currently raising.
+const _BOOST_COLOR := "#5fd35f"
 
 @onready var _title: Label             = $Panel/HBox/VBox/TitleLabel
 @onready var _stats: RichTextLabel     = $Panel/HBox/VBox/StatsLabel
@@ -259,19 +263,39 @@ func _show_entry(category: String, key: String, title: String) -> void:
 		_info_mods.text = ""
 
 
-# Renders the modifier breakdown block for one stat. Always shows base and
-# effective; lists each grouped modifier with signed delta and duration text.
+# Renders the full breakdown block for one stat: the personal/class
+# decomposition, the class cap, the displayed effective value (green when an
+# active bonus raises it), growth info, and every active bonus with its amount
+# and source. Combat-only bonuses (pair-up, stat skills) are pulled via
+# StatContributions because they never live in active_modifiers outside a fight.
 func _format_mods_block(unit: Node, stat_name: String) -> String:
-	var bd: Dictionary = StatBreakdown.build(unit, stat_name)
-	var lines: Array[String] = [
-		"Base %d   Effective %d" % [bd["base"], bd["effective"]],
-	]
+	var class_data: ClassData = _class_data_for(unit)
+	var extra_mods: Array = StatContributions.for_stat(unit, stat_name, _contribution_deps())
+	var bd: Dictionary = StatBreakdown.build(unit, stat_name, class_data, extra_mods)
+
+	var lines: Array[String] = []
+	# Decomposition — only meaningful when we resolved the class.
+	if String(bd["cap_state"]) != "unknown":
+		lines.append("Personal base  %d" % int(bd["personal_base"]))
+		var class_name_txt: String = class_data.display_name if class_data != null else "Class"
+		lines.append("Class base     %s  (%s)" % [
+			StatBreakdown.format_signed(int(bd["class_base"])), class_name_txt])
+		lines.append(_cap_line(bd))
+
+	# Effective — green when a bonus raises it above base+class.
+	var eff: int = int(bd["effective_display"])
+	var eff_txt: String = str(eff)
+	if eff > int(bd["base"]):
+		eff_txt = "[color=%s]%d[/color]" % [_BOOST_COLOR, eff]
+	lines.append("Effective      %s" % eff_txt)
+
 	lines.append_array(_growth_info_lines(unit, stat_name))
+
 	var mods: Array = bd["mods"]
 	if mods.is_empty():
-		lines.append("[color=#9a9aa6]No active modifiers[/color]")
+		lines.append("[color=#9a9aa6]No active bonuses[/color]")
 	else:
-		lines.append("Modifiers:")
+		lines.append("Bonuses:")
 		for m_any in mods:
 			var m: Dictionary = m_any
 			var dur := StatBreakdown.format_duration(
@@ -282,6 +306,36 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 				dur,
 			])
 	return "\n".join(lines)
+
+
+# The cap row: the integer when authored, a loud NO_CAP_DEFINED when a capped
+# stat is missing its entry (a class-data hole), or "—" for the intentionally
+# uncapped stats (MOV / CON / LoS).
+func _cap_line(bd: Dictionary) -> String:
+	match String(bd["cap_state"]):
+		"capped":   return "Class cap      %d" % int(bd["cap"])
+		"uncapped": return "Class cap      —"
+		_:          return "Class cap      [color=#ff5a5a]NO_CAP_DEFINED[/color]"
+
+
+# Resolves the inspected unit's ClassData via DataManager, or null if unavailable.
+func _class_data_for(unit: Node) -> ClassData:
+	if unit == null or unit.data == null:
+		return null
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		return null
+	return dm.get_class_data(unit.data.class_id)
+
+
+# Autoload handles StatContributions needs to surface combat-only bonuses.
+func _contribution_deps() -> Dictionary:
+	return {
+		"registry":     get_node_or_null("/root/PairUpRegistry"),
+		"game_state":   get_node_or_null("/root/GameState"),
+		"resolver":     get_node_or_null("/root/PairUpBonusResolver"),
+		"data_manager": get_node_or_null("/root/DataManager"),
+	}
 
 
 func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:

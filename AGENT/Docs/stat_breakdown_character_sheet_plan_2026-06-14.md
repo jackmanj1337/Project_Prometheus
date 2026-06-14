@@ -1,7 +1,13 @@
 # Character-Sheet Stat Breakdown — Design & Plan (2026-06-14)
 
-**Status:** Target design — planning only, no code yet (user: "just plan it first").
-**Owner doc for implementation:** this file, until the work lands and GDD_07 absorbs it.
+**Status:** Implemented (2026-06-14) — Stage A + the live combat-only sources
+(pair-up, stat skills) shipped; aura stat-contributions remain deferred to M9
+(auras are stubs that target hit/dodge/crit, not base stats). The behaviour
+contract now lives in GDD_07 §Unit Details Screen; this doc is retained as the
+design record. Code: `StatBreakdown` (decomposition+caps), `StatContributions`
+(collector), `UnitDetailsScreen` (render+green). Tests: `test_stat_breakdown`,
+`test_stat_contributions` (drift guard), `test_class_stat_caps`,
+`test_unit_details_screen`, `test_pair_up_bonus_e2e`.
 
 ## 1. Goal
 

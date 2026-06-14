@@ -130,13 +130,19 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
       *"It would be helpful long term to have combat preview display what weapons are
       being used."* The preview shows damage/hit/crit but not the equipped weapon names.
       Candidate for the combat-preview polish backlog.
-- [ ] **Comprehensive character-sheet stat breakdown.** The `I` inspect sheet should
-      show, per stat, personal base + class base + class cap (loud `NO_CAP_DEFINED`
-      placeholder) and every active bonus (pair-up, auras, personal skills, items)
-      with amount + source, boosted stats in green. Also closes the #8.5 surface
-      asymmetry (pair-up shows on the HUD panel but not the sheet). **Planned, not yet
-      implemented:** design in `AGENT/Docs/stat_breakdown_character_sheet_plan_2026-06-14.md`
-      (drift-safe shared collector so the sheet and combat never disagree).
+- [x] **Comprehensive character-sheet stat breakdown.** The `I` inspect sheet now
+      shows, per stat, personal base + class base + class cap (loud `NO_CAP_DEFINED`
+      placeholder; "—" for intentionally-uncapped MOV/CON/LoS) and every active bonus
+      (pair-up + the unit's stat skills + items/tonics) with amount + source, boosted
+      stats in green. **Implemented (2026-06-14):** `StatBreakdown` decomposition +
+      caps; new `StatContributions` collector surfaces combat-only sources (pair-up,
+      stat skills) the same way combat resolves them, with `test_stat_contributions.gd`
+      as a drift guard binding the sheet to combat; `UnitDetailsScreen` renders the
+      breakdown + green. Caps invariant enforced by `test_class_stat_caps.gd` (DoD#2;
+      Soldier is a documented cap-less placeholder). Closes the #8.5 surface gap — the
+      pair-up bonus now appears on the sheet, not just the HUD panel (verified by
+      `test_pair_up_bonus_e2e.gd`). Auras stay M9 (stubs, hit/dodge/crit only). Design:
+      `AGENT/Docs/stat_breakdown_character_sheet_plan_2026-06-14.md`.
 
 **Needs tester clarification (left unchecked on the returned handbook, no comment):**
 

@@ -434,7 +434,31 @@ The screen is read-only. It exists for inspection, not inventory management.
 **More Info integration:**
 - every stat, inventory entry, skill, and weapon-rank row is selectable
 - clicking a row or pressing `more_info` cycles the side panel
-- stat entries show both authored description text and the active modifier breakdown
+- stat entries show authored description text plus the full stat breakdown
+
+**Stat breakdown (per selected stat):**
+- **Personal base / Class base** — the stored stat split into the unit's own value
+  and the current class's base contribution (`personal_base = stored − class base`,
+  clamped at 0 for authored units that store a stat below their class base).
+- **Class cap** — the class's ceiling from `ClassData.stat_caps`. Stats outside
+  `STAT_KEYS` (MOV/CON/LoS) are intentionally uncapped and show "—"; a `STAT_KEYS`
+  stat with no authored cap shows a loud **`NO_CAP_DEFINED`** (a data-integrity
+  signal — guarded by `test_class_stat_caps.gd`, so it should never appear in a
+  shipped build).
+- **Effective** — the displayed total including combat-only bonuses; rendered
+  **green** when an active bonus raises it above base+class.
+- **Bonuses** — every active bonus with amount + source. Persistent sources
+  (items/tonics) come from `active_modifiers`; **combat-only sources (Pair Up, the
+  unit's own stat skills) are computed by `StatContributions`**, because they are
+  stamped only at combat start (`duration_type="combat"`) and never live in
+  `active_modifiers` outside a fight. `StatContributions` is the single authority
+  the combat path also resolves through, and `test_stat_contributions.gd` is a
+  drift guard asserting the sheet and combat report identical numbers. (Aura skills
+  are M9 stubs that target hit/dodge/crit, not base stats, so they contribute
+  nothing here yet.)
+
+This closes the v0.1.5.0 #8.5 surface gap: the Pair Up bonus previously appeared
+only on the HUD unit-info panel, never on this character sheet.
 
 This screen is one of the primary onboarding-relevant UI surfaces because it exposes
 the runtime meaning of modifiers, skills, and WEXP without opening the code.

@@ -139,6 +139,31 @@ func _init() -> void:
 		print("FAIL could not load HUD.tscn")
 		failed += 1
 
+	# ── The `I` character sheet now also shows the pair-up contribution ──
+	# This is the surface the v0.1.5.0 tester said showed nothing (the line had
+	# only ever lived on the HUD panel). The breakdown must list "Pair Up +3" on
+	# the lead's Strength and render the effective value green.
+	var sheet_packed := load("res://scenes/ui/UnitDetailsScreen.tscn")
+	if sheet_packed != null:
+		var sheet: Control = sheet_packed.instantiate()
+		root.add_child(sheet)
+		await process_frame
+		sheet.open(hero)
+		await process_frame
+		sheet._on_entry_clicked("stat:strength")
+		var mods_text: String = sheet._info_mods.text
+		var sheet_ok: bool = "Pair Up" in mods_text and "+3" in mods_text and "#5fd35f" in mods_text
+		if sheet_ok:
+			print("OK  I character sheet shows the Pair Up bonus on the lead's Strength (#8.5)")
+			passed += 1
+		else:
+			print("FAIL I-sheet pair-up: %s" % mods_text)
+			failed += 1
+		sheet.queue_free()
+	else:
+		print("FAIL could not load UnitDetailsScreen.tscn")
+		failed += 1
+
 	# Teardown.
 	reg.call("clear")
 	gs.call("reset_map_state")

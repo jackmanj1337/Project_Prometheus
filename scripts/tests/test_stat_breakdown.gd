@@ -165,5 +165,85 @@ func _init() -> void:
 	else:
 		print("FAIL clamp: %s" % clamped); failed += 1
 
+	# ---- class decomposition + caps (class_data supplied) -----------------
+	var ClassDataS = load("res://scripts/resources/ClassData.gd")
+	var cls = ClassDataS.new()
+	cls.display_name = "Cavalier"
+	cls.base_strength = 6
+	cls.stat_caps = {"strength": 26}  # capped stat
+	# (movement deliberately uncapped — not in STAT_KEYS)
+	d.strength = 10
+	d.movement = 6
+	d.active_modifiers = []
+	var deco: Dictionary = StatBreakdown.build(unit_a, "strength", cls)
+	var deco_ok: bool = (
+		deco["base"] == 10
+		and deco["personal_base"] == 4      # 10 - class base 6
+		and deco["class_base"] == 6
+		and deco["cap"] == 26
+		and deco["cap_state"] == "capped"
+	)
+	if deco_ok:
+		print("OK  build decomposes base into personal + class and reads the cap"); passed += 1
+	else:
+		print("FAIL decomposition: %s" % deco); failed += 1
+
+	# movement is outside STAT_KEYS -> intentionally uncapped
+	var uncapped: Dictionary = StatBreakdown.build(unit_a, "movement", cls)
+	if uncapped["cap_state"] == "uncapped":
+		print("OK  stats outside STAT_KEYS report cap_state 'uncapped'"); passed += 1
+	else:
+		print("FAIL uncapped: %s" % uncapped); failed += 1
+
+	# a capped stat with no cap key authored -> loud 'missing'
+	var cls_nocap = ClassDataS.new()
+	cls_nocap.base_strength = 5
+	cls_nocap.stat_caps = {}  # strength is in STAT_KEYS but has no entry
+	var missing: Dictionary = StatBreakdown.build(unit_a, "strength", cls_nocap)
+	if missing["cap_state"] == "missing" and missing["cap"] == StatBreakdown.CAP_MISSING:
+		print("OK  capped stat with no cap entry reports cap_state 'missing'"); passed += 1
+	else:
+		print("FAIL missing-cap: %s" % missing); failed += 1
+
+	# no class_data -> 'unknown', personal_base falls back to base
+	var unknown_cap: Dictionary = StatBreakdown.build(unit_a, "strength")
+	if unknown_cap["cap_state"] == "unknown" and unknown_cap["personal_base"] == int(d.strength):
+		print("OK  no class_data reports cap_state 'unknown'"); passed += 1
+	else:
+		print("FAIL unknown-cap: %s" % unknown_cap); failed += 1
+
+	# ---- authored unit whose stored stat is below class base --------------
+	# personal_base must clamp at 0 rather than show a negative value.
+	d.strength = 4
+	var below = StatBreakdown.build(unit_a, "strength", cls)  # class base 6 > 4
+	if below["personal_base"] == 0 and below["class_base"] == 6:
+		print("OK  personal_base clamps at 0 when stored stat is below class base"); passed += 1
+	else:
+		print("FAIL personal clamp: %s" % below); failed += 1
+
+	# ---- extra_mods merge + effective_display -----------------------------
+	# Combat-only rows the caller injects are merged into mods and added into
+	# effective_display (but not into the live `effective`).
+	d.strength = 10
+	d.active_modifiers = [
+		{"stat": "strength", "delta": 2, "source": "tonic",
+			"duration": 1, "duration_type": "turn"},
+	]
+	var extra: Array = [
+		{"source_id": "pair_up", "source_label": "Pair Up", "delta": 3,
+			"duration_type": "combat", "remaining": -1},
+	]
+	var merged: Dictionary = StatBreakdown.build(unit_a, "strength", cls, extra)
+	var merged_ok: bool = (
+		merged["effective"] == 12            # base 10 + tonic 2 (live engine value)
+		and merged["effective_display"] == 15  # + pair-up 3 (display)
+		and (merged["mods"] as Array).size() == 2
+		and StatBreakdown.label_for_source("pair_up:m1:strength") == "Pair Up"  # prefix label
+	)
+	if merged_ok:
+		print("OK  extra_mods merge into mods and raise effective_display only"); passed += 1
+	else:
+		print("FAIL extra_mods merge: %s" % merged); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

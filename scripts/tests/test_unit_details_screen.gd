@@ -136,26 +136,34 @@ func is_weapon_track_available(track: String) -> bool:
 		screen._info_title.text == "Str"
 		and not screen._info_hint.visible
 		and "Physical" in desc_text
-		and "Base 9" in mods_text
-		and "Effective 11" in mods_text
+		# Decomposition rows (class resolved from "soldier").
+		and "Personal base" in mods_text
+		and "Class base" in mods_text and "Soldier" in mods_text
+		and "Class cap" in mods_text
+		# Effective is shown and rendered green because the +2 tonic raises it.
+		and "Effective" in mods_text and "11" in mods_text
+		and "#5fd35f" in mods_text
 		and "Growth 70%" in mods_text
 		and "Fixed 35 / 100" in mods_text
+		# The bonus row lists the source + signed delta.
+		and "Bonuses:" in mods_text
 		and "Tonic" in mods_text
 		and "+2" in mods_text
 	)
 	if click_ok:
-		print("OK  clicking a stat populates description + modifier rows"); passed += 1
+		print("OK  clicking a stat populates description + breakdown rows (green when boosted)"); passed += 1
 	else:
 		print("FAIL stat click: title=%s desc=%s mods=%s" % [screen._info_title.text, desc_text, mods_text])
 		failed += 1
 
-	# Click a stat with no active modifiers -> mods block shows the "none"
-	# notice rather than an empty block.
+	# Click a stat with no active bonuses -> block shows the "none" notice plus
+	# the decomposition, not an empty block, and is NOT green.
 	screen._on_entry_clicked("stat:luck")
-	if "No active modifiers" in screen._info_mods.text:
-		print("OK  zero-mod stats render the 'No active modifiers' notice"); passed += 1
+	var luck_text: String = screen._info_mods.text
+	if "No active bonuses" in luck_text and "Class cap" in luck_text and not ("#5fd35f" in luck_text):
+		print("OK  zero-bonus stats render the decomposition + 'none' notice, no green"); passed += 1
 	else:
-		print("FAIL zero-mod render: %s" % screen._info_mods.text); failed += 1
+		print("FAIL zero-bonus render: %s" % luck_text); failed += 1
 
 	# Non-stat entries (wexp here) get a description but no modifier rows.
 	screen._on_entry_clicked("wexp:lance")
