@@ -50,6 +50,12 @@ cache.
 - **GitHub CLI (`gh`)** — `main` is PR-protected (direct pushes are rejected), so
   updating `main` goes through a pull request. `gh pr create` / `gh pr merge` need `gh`
   installed + `gh auth login`. Without it, open PRs in the browser instead.
+- **gdtoolkit** (`pip install gdtoolkit` → `gdlint` / `gdformat`) — needed to land the
+  ratified GDScript lint/format gate. This environment had no `pip`, so the gate is
+  **not wired yet**: on a pip-capable machine, run `gdformat scripts/ tools/` once
+  (the one-time whole-repo reformat), commit it, then add `gdformat --check` +
+  `gdlint` steps to the hook and both CI workflows. Until then, style stays a Pillar 1
+  (human) check.
 - **Docker** (optional) — `Dockerfile` / `docker-compose.yml` are tracked; need `.env`.
 
 ## D. Verify after setup
