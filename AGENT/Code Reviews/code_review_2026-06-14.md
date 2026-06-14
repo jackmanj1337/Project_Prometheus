@@ -150,9 +150,10 @@ Swap and preview-placement paths. None are shipping blockers.
 ## 5. Prioritized Action Plan
 
 1. **Center `ReclassScreen.tscn`** the same way as PromotionScreen (Medium; ~5 min,
-   resolution-robustness + consistency). Best impact/effort.
+   resolution-robustness + consistency). Best impact/effort. — **DONE `92a171b`**
+   (re-centered + on-screen test).
 2. **Make Swap resolve the partner before flipping roles** (Low; tiny, removes a
-   defensive desync). Quick win.
+   defensive desync). Quick win. — **DONE `92a171b`** (resolve-first + guard test).
 3. **Route objective-liveness through one helper / lint** so `get_living_units_of` can't
    be misused by future evaluators (Low-Medium; small, prevents a repeat of #4-A).
 4. **Inject the HUD into AttackPreview via `setup()`** to drop the hardcoded path (Low;
