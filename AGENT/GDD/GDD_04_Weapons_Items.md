@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -120,6 +120,7 @@ MVP map; expand from the corpus tables in Phase 2.
 
 Swords — Iron Sword (E, Mt 6/Hit 85), Steel Sword (D, Mt 9/Hit 75).
 Lances — Iron Lance (E, Mt 7/Hit 80), Javelin (E, Mt 6/Hit 75, range 1–2).
+Axes — Iron Axe (E, Mt 8/Hit 75).
 Bows — Iron Bow (E, Mt 6/Hit 85, range 2, `effective_flying`).
 Anima tomes — Fire (E, Mt 4, `effective_beast`), Elfire (D, Mt 5/Crit 5),
 Thunder (E, Mt 5, `effective_dragon`), Wind (E, Mt 3, `effective_flying`).

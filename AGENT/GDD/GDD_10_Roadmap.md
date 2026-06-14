@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 
 ---
 
@@ -81,15 +81,17 @@ defects returned by the v0.1.4 live pass. Evidence:
 
 Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
 
-1. [ ] **Unknown weapon id `iron_axe` (handbook 9.1).** `DataManager` logs
+1. [x] **Unknown weapon id `iron_axe` (handbook 9.1).** `DataManager` logged
        `unknown weapon id 'iron_axe'` 11,829 times in one pass. Root cause: no
-       axe weapon exists in `data/weapons/`, but four Fighter units reference it —
+       axe weapon existed in `data/weapons/`, but four Fighter units reference it —
        `data/maps/map_003_defeat_boss/units/m003_fighter_1.tres`,
        `data/maps/map_003_defeat_boss/units/m003_boss.tres`,
        `data/maps/map_004_escape/units/m004_fighter_1.tres`, and
-       `data/maps/map_005_defend/units/m005_fighter_1.tres`. Fix is a data pass:
-       add an `iron_axe` `WeaponData` (and register it) or repoint these units to
-       an existing weapon. Pure content defect — no engine change.
+       `data/maps/map_005_defend/units/m005_fighter_1.tres`.
+       **Fixed (2026-06-14):** added `data/weapons/iron_axe.tres` (E, Mt 8/Hit 75)
+       and registered it in `resource_manifest.json`. Regression guard:
+       `scripts/tests/test_unit_inventory_refs.gd` now fails on any unit inventory
+       weapon_id / item_id that does not resolve in DataManager.
 2. [ ] **Pair Up `Swap` is a no-op (handbook 2.7).** Choosing `Swap` on a paired
        lead spends the action but does not trade lead/support roles; the original
        lead stays on the map. Expected: roles trade, new lead keeps the tile, both
