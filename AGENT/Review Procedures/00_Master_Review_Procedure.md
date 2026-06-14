@@ -56,8 +56,10 @@ Coverage map (so nothing falls between pillars):
   findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
 
 Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
-`builds/` [gitignored artifacts], `code/` [stray — Pillar 3], `data/`, `scenes/`,
-`scripts/`, `tools/`) and the root config files map to exactly one pillar above.
+`builds/` [gitignored artifacts], `data/`, `scenes/`, `scripts/`, `tools/`) and the
+root config files map to exactly one pillar above. The §3 tree-completeness
+preflight enforces this each run, and `check_docs.py` check 11 fails if a new
+top-level dir appears that this map does not mention.
 
 If a finding spans two pillars, the discovering pillar files it and tags it
 `[CROSS]`; the rollup (§7) reconciles cross-pillar findings.
@@ -73,13 +75,26 @@ rollup header so every pillar reviews the same snapshot:
    (`git rev-parse HEAD`) and confirm a clean working tree
    (`git status --porcelain`). A dirty tree means the audit is of an
    uncommitted state — note it explicitly.
-2. **Establish the green baseline.** Run `python3 AGENT/Docs/check_docs.py`
-   and `./run_tests.sh`. Record pass/fail. **Pillars assume these are green and
-   must not re-do their work** — they go after what a script cannot judge. If
-   either is red, that is the *first* finding (Critical) and pillars note that
-   their baseline was unstable.
-3. **Locate the previous audit** (most recent rollup in `AGENT/Code Reviews/`)
-   so each pillar can report deltas (new / fixed / regressed / still-open).
+2. **Probe the toolchain (MR-4).** Record what is actually available —
+   `godot --version`, `python3`, `pytest`, `gdtoolkit` (gdlint/gdformat), `gh` —
+   and pass the results to the pillars. Pillars must use the lowest-dependency
+   runner available (e.g. the analyzer suite runs under stock `python3`, no pytest)
+   and report a *missing* tool as a finding, never assume its absence is the defect.
+3. **Establish the green baseline.** Run `python3 AGENT/Docs/check_docs.py`
+   and `bash run_tests.sh`. Capture exit codes *before* piping output (a piped
+   `| tail` masks a non-zero exit — MR-8). Record pass/fail. **Pillars assume these
+   are green and must not re-do their work** — they go after what a script cannot
+   judge. If either is red, that is the *first* finding (Critical) and pillars note
+   that their baseline was unstable.
+4. **Tree-completeness preflight (MR-1).** List every top-level dir
+   (`ls -d */`) and the root config files, and confirm each maps to exactly one
+   pillar in §2. If anything is unowned, the audit is incomplete — assign it before
+   dispatching. (`check_docs.py` check 11 enforces the dir half of this.)
+5. **Discover the delta baseline per pillar (MR-2).** For each pillar, find the
+   *latest* matching prior report by filename pattern (e.g.
+   `AGENT/Code Reviews/code_review_*.md`) and hand the pillar that **pattern**, not a
+   first-run/last-report assertion — let the pillar resolve and confirm it, so a
+   missed prior report (it happens) is caught, not asserted away.
 
 ---
 
@@ -89,10 +104,16 @@ The audit is designed to fan out. The orchestrator (you) does §3, then dispatch
 **one sub-agent per pillar, in parallel**, each with:
 
 - its pillar doc as the brief ("Follow `AGENT/Review Procedures/0N_*.md` exactly"),
-- the pinned commit SHA and baseline results from §3,
-- the path to the previous audit's matching report for delta computation,
+- the pinned commit SHA, the §3 baseline results, and the toolchain probe,
+- the **prior-report glob** for delta computation (not a first-run assertion — MR-2),
+- the **output path with the same-day disambiguator** (MR-3): reports are
+  `…_YYYY-MM-DD.md`; if that file already exists from an earlier run the same day,
+  append a lowercase suffix (`…_YYYY-MM-DD-b.md`, `-c`, …), matching the existing
+  `AGENT/Code Reviews/` convention. Never overwrite a same-day report.
 - a **document-only** constraint: the pillar produces a report; it does **not**
-  edit code or docs. Fixes are a separate follow-up pass after the rollup.
+  edit code or docs. Fixes are a separate follow-up pass after the rollup. Each
+  pillar also returns **procedure-friction notes** (kept permanent — they feed the
+  next meta-review).
 
 Dispatch guidance:
 
@@ -135,6 +156,12 @@ problems, 1–2 broken. The rollup reports each pillar score plus an **overall
 health score** = the *lowest* pillar score is the headline (a project is only as
 healthy as its weakest audited pillar), with the rounded mean shown alongside for
 trend tracking. Always compare against the previous audit's scores.
+
+**Anchored score header (MR-6).** Every pillar report and the rollup MUST carry a
+machine-readable score line so trend extraction can't mis-parse (a naive grep for
+`N/10` hit a `150 / 10` code snippet last run). Use exactly, near the top:
+`**Score:** N/10` in each pillar report, and `**Overall health:** N/10` in the
+rollup. `check_docs.py` check 12 enforces this on `full_review_rollup_*.md`.
 
 ---
 
@@ -203,28 +230,32 @@ Where the project's history lives, so an audit can reconstruct what happened:
 
 ## 10. Enforcement candidates (DoD#2 backlog)
 
-Mechanical rules this procedure relies on that are **not yet** machine-checked.
-Each is a candidate to add to `check_docs.py` when ratified:
+Mechanical rules this procedure relies on. **Landed** ones run in `check_docs.py`
+and/or CI; **remaining** ones are honor-system until ratified (list any violation as
+a Pillar 2 finding).
 
-- Every pillar report under `AGENT/Code Reviews/` carries a date matching its
-  filename and a pillar score line.
-- The rollup links to exactly five pillar reports.
-- No two live procedure docs define the same severity table (single-source-of-
-  truth: the rubric lives only here in §5).
-- **`.uid` tracking** — every `.gd`/`.tres` with a `.uid` sidecar has it tracked
-  in git (untracked UIDs break fresh clones). Scriptable in `check_docs.py`.
-- **`tools/` Python is tested in CI** — add `pytest` to the environment and a CI
-  job running `tools/godot-analyzer-mcp/tests/`; the analyzer is currently
-  untested by any gate even though Pillar 3 depends on it.
-- **GDScript lint/format gate** — no `gdlint`/`gdformat` runs in hooks or CI;
-  style is human-only via Pillar 1. Candidate CI job.
-- **Scene/resource integrity gate** — the godot-analyzer MCP can already do
-  `validate_onready_paths` + orphan detection; wire it into CI so Pillar 3's
-  structural checks run automatically, not just at audit time.
-- **Procedure-folder scan** — add `AGENT/Review Procedures/**` to
-  `check_docs.py`'s scan set so its backtick paths are validated.
+**Landed (as of 2026-06-14):**
+- **`.uid` tracking** — `check_docs.py` check 9: every `.uid` sidecar on disk is
+  git-tracked (untracked UIDs break fresh clones).
+- **Release version ↔ tag** — check 10: `product_version` must have a `v<version>` tag.
+- **Tree-completeness** — check 11: every top-level dir is named in the §2 coverage map.
+- **Anchored rollup score** — check 12: `full_review_rollup_*.md` carries an
+  `**Overall health:** N/10` line for reliable trend parsing.
+- **`tools/` analyzer tested in CI** — `tools/godot-analyzer-mcp/tests/` runs in both
+  workflows (stdlib `unittest`; no pytest dependency).
+- **Scene-integrity gate** — `scripts/ci/check_scene_integrity.py` runs in CI: every
+  scene-attached `@onready` path resolves.
 
-Until checked, these are honor-system — list any violation as a Pillar 2 finding.
+**Remaining:**
+- **GDScript lint/format gate** — `gdlint`/`gdformat` (gdtoolkit) in hooks/CI.
+  Needs a pip dependency + a one-time whole-repo reformat; do it on a pip-capable
+  machine (it can't run where pip is absent).
+- **Procedure-folder scan** — add `AGENT/Review Procedures/**` to `check_docs.py`'s
+  path-scan set (skip `YYYY-MM-DD`/glob placeholders) so its backtick paths validate.
+- **Pillar-report score line** — extend check 12 to each `*_review_*` report, not
+  just the rollup (deferred: ~20 historical reports predate the convention).
+- **Rollup links to exactly five pillar reports**, and **one severity table**
+  (single-source-of-truth: the rubric lives only in §5).
 
 ---
 

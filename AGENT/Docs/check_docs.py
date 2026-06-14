@@ -16,6 +16,8 @@ Checks:
   8. Status labels — every status-bearing line must carry an approved governance label
   9. .uid tracking — every Godot .uid sidecar on disk must be tracked in git
  10. Version tag  — the current product_version must have a matching git tag
+ 11. Tree cover   — every top-level dir is named in the review procedure §2 map
+ 12. Rollup score — each full_review_rollup_* carries an anchored overall score
 """
 
 import re
@@ -382,6 +384,49 @@ def check_version_tag() -> None:
               f"— tag the release so the build is reproducible from source")
 
 
+# ── check 11: review-procedure tree completeness ─────────────────────────────
+
+_MASTER_REVIEW_DOC = ROOT / "AGENT/Review Procedures/00_Master_Review_Procedure.md"
+
+
+def check_tree_completeness() -> None:
+    """Every top-level dir must be named in the master review procedure's §2 map.
+
+    Guards the audit's "nothing is unowned" guarantee: a new top-level directory
+    added without assigning it to a pillar is a coverage hole. Audit 2026-06-14 MR-1.
+    """
+    if not _MASTER_REVIEW_DOC.exists():
+        return
+    content = _MASTER_REVIEW_DOC.read_text(encoding="utf-8")
+    for d in sorted(ROOT.iterdir()):
+        if not d.is_dir() or d.name.startswith("."):
+            continue
+        if f"{d.name}/" not in content:
+            _fail("tree-coverage", _MASTER_REVIEW_DOC, 1,
+                  f"top-level dir {d.name!r} is not named in the §2 coverage map "
+                  f"(assign it to a review pillar or remove it)")
+
+
+# ── check 12: rollup carries an anchored overall-health score ────────────────
+
+_OVERALL_SCORE_RE = re.compile(r"Overall health.{0,30}?\b\d{1,2}\s*/\s*10")
+
+
+def check_rollup_score_header() -> None:
+    """Each full-audit rollup must carry a parseable overall-health score line.
+
+    A naive `N/10` grep mis-hit a `150 / 10` code snippet during the 2026-06-14
+    audit; an anchored `Overall health … N/10` line makes trend extraction reliable.
+    Audit 2026-06-14 MR-6.
+    """
+    for rollup in sorted((ROOT / "AGENT/Code Reviews").glob("full_review_rollup_*.md")):
+        content = rollup.read_text(encoding="utf-8")
+        if not _OVERALL_SCORE_RE.search(content):
+            _fail("rollup-score", rollup, 1,
+                  "no anchored overall-health score (expected a line like "
+                  "'**Overall health:** N/10')")
+
+
 # ── main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -398,6 +443,8 @@ def main() -> None:
         ("[8] Approved status labels",    check_status_labels),
         ("[9] .uid sidecar tracking",     check_uid_tracking),
         ("[10] Release version tagged",    check_version_tag),
+        ("[11] Review tree completeness",  check_tree_completeness),
+        ("[12] Rollup score header",       check_rollup_score_header),
     ]
     for label, fn in steps:
         print(f"  {label}...")
