@@ -1,10 +1,12 @@
-# Playtest v0.1.6.0 — Re-test Addendum & Changelog
+# Playtester Checklist — v0.1.6.0 (focused re-test)
 
-**Status:** Draft — re-test list for the build cut after the v0.1.5.0 return pass.
-Pair it with the completed `AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
-and the full `AGENT/Docs/playtest_checklist_v0.1.5.0.md` handbook: only the items
-below changed since v0.1.5.0, plus the new character-sheet checks. Items the
-v0.1.5.0 tester already passed and that did not change do not need re-running.
+**Status:** Pending validation — focused re-test list for the build cut after the
+v0.1.5.0 return pass. This is the versioned checklist for v0.1.6.0; it is
+**focused, not a full handbook**. Pair it with the completed
+`AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md` and the full
+`AGENT/Docs/playtest_checklist_v0.1.5.0.md` handbook: only the items below changed
+since v0.1.5.0, plus the new character-sheet checks. Items the v0.1.5.0 tester
+already passed and that did not change do not need re-running.
 **Last verified:** 2026-06-14
 
 This is **not** a full handbook. Most of the v0.1.5.0 build was re-verified as
