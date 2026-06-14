@@ -154,10 +154,12 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
       `defender_battle_speed` / `follow_up_threshold`, and the Damage field's More
       Info shows both sides' Battle Speed, the +5 threshold, and who doubles. Guard
       in `test_combat.gd`.
-- [ ] **Reclass to Soldier grants no level-1 skill (handbook 8.6).** Demoting the
+- [x] **Reclass to Soldier grants no level-1 skill (handbook 8.6).** Demoting the
       General to Soldier added no starting skill (reclass to Mercenary correctly
-      granted `armsthrift`). Verify whether tier-1 Soldier is authored with a
-      level-1 skill before treating this as a bug.
+      granted `armsthrift`). **Resolved as not-a-bug (decision 2026-06-14):** the
+      placeholder Soldier intentionally authors no `skill_unlocks`, so it grants no
+      class skill — working as designed. The reclass code is correct (it grants a
+      level-1 skill for any class that authors one). Documented in GDD_03 §Known gaps.
 
 > Note: the `armsthrift` (x80), `dash` (x25), and `disarm` (x2) `SkillHandler`
 > stub warnings in the same log are expected pre-M9 (skill content lands in

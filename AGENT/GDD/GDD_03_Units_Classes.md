@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -109,6 +109,12 @@ design pass (RULE-009); do not author a one-off tome or drop it prematurely.
 ### Known gaps
 - **Soldier class (OPEN-9):** identity resolved at corpus class migration (AWR-2);
   interim, Map 001 keeps a **placeholder enemy-only Soldier**. Marked **Open decision**.
+  The placeholder Soldier intentionally authors **no `skill_unlocks`**, so promoting
+  or reclassing into it grants **no class skill** — this is by design (decision
+  2026-06-14), not a defect. The reclass flow still grants a level-1 skill for any
+  class that *does* author one (e.g. Mercenary → `armsthrift`); a class with an empty
+  `skill_unlocks` simply has none to grant. Personal earned skills are preserved
+  across the reclass regardless.
 - **Light/Dark magic class lines (RULE-009):** a dedicated design task (class lines,
   promotion paths, tome access, skill identity, magic-triangle balance) precedes bulk
   class authoring. **Planned.**
