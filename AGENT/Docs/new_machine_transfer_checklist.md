@@ -14,11 +14,13 @@ cache.
 
 ## A. GitHub / git state
 
-- All branches with work are pushed: `awakening-compatability-refactor`,
-  `class-skill-rebuild`, `code-review-fixes-2026-05-21`. No stashes.
-- Local `main` may sit a few commits ahead of `origin/main`, but those commits are also
-  reachable from pushed feature branches, so **no commit data is at risk**. Advance
-  `origin/main` only via the normal PR merge unless you deliberately want the ref moved.
+- All branches with work are pushed: `awakening-compatability-refactor` (working
+  branch), `class-skill-rebuild`, `code-review-fixes-2026-05-21`. No stashes.
+- `main` is **PR-protected** — it advances only via a pull request, never a direct
+  push (a direct push is rejected). The integration branch
+  `integrate-awakening-into-main` carries the pending merge to `main`; delete it
+  once the PR is merged. On a fresh clone `main` tracks `origin/main` cleanly — just
+  check out the working branch and don't push to `main` directly.
 - After cloning, check out the working branch: `git checkout awakening-compatability-refactor`.
 - Verify nothing local is unpushed: `git status -sb` and `git log --oneline @{u}..HEAD`.
 - Release tags are pushed (`v0.1`…`v0.1.5.0`); `git clone` / `git fetch --tags` brings
@@ -62,7 +64,7 @@ cache.
 
 ```
 bash scripts/check_env.sh            # doctor — should be all [OK]
-python3 AGENT/Docs/check_docs.py     # docs checks → PASS (10 checks)
+python3 AGENT/Docs/check_docs.py     # docs checks → PASS (12 checks)
 bash scripts/ci/check_rng_usage.sh   # RNG guard → PASS
 python3 tools/godot-analyzer-mcp/tests/test_tools.py  # analyzer suite (CI-gated) → OK
 python3 scripts/ci/check_scene_integrity.py           # scene @onready paths (CI-gated) → PASS
@@ -78,3 +80,9 @@ git push                             # confirms the SSH host alias resolves
   not done. Whatever renderer is active drives the new machine's GPU/driver needs.
 - `.gitattributes` forces LF on scripts/code so the hooks and tooling run on a
   Windows-native checkout too.
+- **CRLF renormalization gotcha:** a file committed with CRLF before the LF rule
+  reads as perpetually "modified" (a full-file EOL diff), and that phantom change
+  can **block a branch switch or merge** ("local changes would be overwritten").
+  It's not real content — clear it with `git checkout -f <branch>` to switch, or
+  `git add --renormalize <file> && git commit` to bake the LF normalization. (Seen
+  on `AGENTS.md`; now normalized to LF on the working + integration branches.)
