@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-06-14](2026-06-14.md) — Triaged the returned v0.1.4 playtest package and fixed 5 of its defects (iron_axe data, Pair Up Swap, rout-liveness + AI off-map guard, New Game persistence, promotion modal), each with a regression test.
 - [2026-06-13n](2026-06-13n.md) — Prepared the project to move to a new machine, and closed out the session.
 - [2026-06-13m](2026-06-13m.md) — Whole-codebase code review (8/10) + GDD field-test; implemented review fixes (RNG-usage guard, low-sev tests, roadmap + feature-index coverage).
 - [2026-06-13l](2026-06-13l.md) — Built a documentation-review process (the doc analogue of the code-review instructions), executed it against the live doc set, and applied every…
