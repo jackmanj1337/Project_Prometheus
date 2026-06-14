@@ -344,14 +344,20 @@ func _show_entry(entry: Dictionary) -> void:
 
 
 # Builds the Battle Speed / follow-up line shown under the Damage field's More
-# Info. Shows both sides' Battle Speed and the threshold; notes who (if anyone)
-# earns a follow-up. Defender speed is shown only when it can counter.
+# Info. Shows BOTH sides' Battle Speed and the threshold; notes who (if anyone)
+# earns a follow-up. Defender speed is shown even when it cannot counter
+# (playtest v0.1.5.0 #8.3): the value is still informative, and the attacker can
+# still double a non-countering defender, so the comparison is meaningful. When
+# the defender can't counter it simply never attacks, so it can't follow up
+# regardless of its speed — that is called out in the note rather than hidden.
 func _battle_speed_note() -> String:
-	if not _can_counter:
-		return "Battle Speed — Attacker %d (no counter).\nA follow-up needs +%d Battle Speed over the opponent." % [
-			_atk_battle_speed, _follow_up_threshold]
 	var diff: int = _atk_battle_speed - _def_battle_speed
 	var who: String = ""
+	if not _can_counter:
+		# Only the attacker can follow up here; the defender deals no strikes.
+		who = "Attacker follows up." if diff >= _follow_up_threshold else "No follow-up."
+		return "Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s (defender cannot counter)" % [
+			_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
 	if diff >= _follow_up_threshold:
 		who = "Attacker follows up."
 	elif -diff >= _follow_up_threshold:

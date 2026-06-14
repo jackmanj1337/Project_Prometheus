@@ -232,6 +232,24 @@ func _init() -> void:
 	# refresh path for the maximal case: all four optional rows must render
 	# with height, and the panel must be at least its own combined minimum
 	# so no row is clipped.
+	# ---- No-counter Battle Speed note still shows the defender's speed --
+	# Playtest v0.1.5.0 #8.3: the defender's Battle Speed must appear even when
+	# it cannot counter (it was previously hidden with a bare "(no counter)").
+	resolver.preview_data = _make_preview_data(false)
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var bs_note: String = preview._battle_speed_note()
+	var bs_note_ok: bool = (
+		"Attacker 9 vs Defender 3" in bs_note
+		and "defender cannot counter" in bs_note
+	)
+	if bs_note_ok:
+		print("OK  no-counter Battle Speed note still shows the defender's speed (#8.3)")
+		passed += 1
+	else:
+		print("FAIL no-counter battle-speed note: %s" % bs_note)
+		failed += 1
+
 	resolver.preview_data = _make_preview_data(true, false, true)
 	preview.show_preview(attacker, defender)
 	await process_frame
@@ -316,6 +334,8 @@ func _make_preview_data(can_counter: bool = true, defender_vantage: bool = false
 	return {
 		"attacker_hit": 90, "attacker_damage": 10, "attacker_crit": 5,
 		"attacker_attacks": 2,
+		"attacker_battle_speed": 9, "defender_battle_speed": 3,
+		"follow_up_threshold": 5,
 		"can_counter": can_counter,
 		"defender_hit": 40, "defender_damage": 6, "defender_crit": 0,
 		"defender_attacks": 1,

@@ -371,6 +371,11 @@ There is **no target-list panel**. Target selection happens on the map itself:
   follow-up threshold (and who, if anyone, doubles) — the values needed to verify
   the follow-up math (handbook 8.3). `preview_combat()` returns
   `attacker_battle_speed` / `defender_battle_speed` / `follow_up_threshold`.
+  Both sides' Battle Speed are shown **even when the defender cannot counter**
+  (playtest v0.1.5.0 #8.3): the defender's speed is still informative and the
+  attacker can double a non-countering defender, so the note reads
+  `Attacker N vs Defender M … (defender cannot counter)` rather than hiding the
+  defender's value.
 
 **Size:** Content-sized three-column layout, clamped/repositioned to the viewport
 **Placement:** Anchored beside the defender (right, else left), kept inside the viewport,

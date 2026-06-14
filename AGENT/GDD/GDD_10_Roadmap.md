@@ -74,6 +74,7 @@ bulk condition/content work.
 Live action list for the v0.1.5.0 return pass. Evidence:
 
 - Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
+- Session error log: `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`
 
 The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
 1–7, plus 8.1–8.2, 8.6–8.11, and 9) — only the items below need action.
@@ -90,11 +91,19 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
        paths: the resolver returns the handbook bonus `{Str 3, Def 3, Spd 3, Skl 2,
        Lck 1}` **and** `HUD._show_unit` renders `Paired  +3 Str +2 Skl +3 Spd +3 Def
        +1 Lck`. It passes. So the in-build code path is correct; the failure is not
-       reproducible headlessly. **Needed to proceed:** the tester's `godot.log` from
-       that run and a precise repro — specifically (a) which unit was made the *lead*
-       (initiating Pair Up from the Cavalier would put the Hero off-map), and (b)
-       whether the "panel" checked was the HUD unit-info panel (which carries the line)
-       or the `I` inspect screen (which does not).
+       reproducible headlessly. **Log reviewed (2026-06-14):** the tester's
+       `godot.log` (now `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`) is **clean** — the
+       only entries are the expected pre-M9 `armsthrift` / `dash` skill-stub warnings,
+       and their backtraces show the combatant carrying `armsthrift`+`dash` (i.e. the
+       Hero) attacking. There is **no** `PairUpBonusResolver` / table-load /
+       `find_unit_by_id` / data-validation error, so the bonus chain did not fail or
+       crash in that run. The log does not capture bonus magnitudes or which unit was
+       lead, so it neither confirms nor refutes the report. **Still needed for a
+       definitive answer:** a precise repro — (a) which unit was made the *lead*
+       (initiating Pair Up from the Cavalier would put the Hero off-map, so hovering
+       the Hero would show nothing), and (b) whether the panel checked was the HUD
+       unit-info panel (which carries the line) or the `I` inspect screen (which does
+       not). Working hypothesis: tester procedure, not a code defect.
 2. [x] **Reclass option lines force a horizontal scroll (handbook 8.6 /
        General Map 950 comment).** Tester asked for the class-change stat lines to
        *"wrap around to a second line instead of a horizontal scroll wheel."* Root
@@ -105,14 +114,15 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
        button is width-capped to the panel, and set the buttons to
        `AUTOWRAP_WORD_SMART` — matching the promotion modal. Regression guard added to
        `scripts/tests/test_reclass_screen.gd`. Docs: GDD_07 §Promotion / Reclass Modal.
-3. [ ] **Defender Battle Speed hidden when it cannot counter (handbook 8.3).**
+3. [x] **Defender Battle Speed hidden when it cannot counter (handbook 8.3).**
        Tester: *"defender battle speed does not display when they cannot counter."*
-       This is **intentional today** — `AttackPreview._battle_speed_note()` shows only
-       the attacker's Battle Speed plus "(no counter)" when the defender can't counter,
-       since a non-countering defender can never follow up. The handbook 8.3 wording
-       ("each side's Battle Speed") implies both should always show. **Open decision:**
-       show the defender's Battle Speed even on a no-counter matchup, or keep the
-       current behaviour and soften the handbook wording. Cosmetic; not blocking.
+       The note previously showed only the attacker's Battle Speed plus "(no counter)".
+       **Fixed (2026-06-14, decision: show it anyway):** `AttackPreview._battle_speed_note()`
+       now always shows both sides — `Attacker N vs Defender M … (defender cannot
+       counter)` — since the value is informative and the attacker can still double a
+       non-countering defender. `defender_battle_speed` was already populated
+       unconditionally by `preview_combat`. Regression guard in
+       `test_attack_preview_selector.gd`; GDD_07 updated (DoD#1).
 
 **Enhancement requests (logged; not defects):**
 
