@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -364,6 +364,11 @@ A unit may Move then take **one action**, or act in place. Shipped action flow:
 | Class Ability | Yes | If it requires an action |
 
 > *Trade: may still act if not yet moved this turn.
+
+> **Swap** trades the lead and support roles within an existing pair: the new
+> lead (the former support) takes the on-map tile and becomes visible, the former
+> lead moves off-map and hides, and the joint action is spent (both units DONE).
+> Code: `MapCursor._commit_swap_roles`; off-map placement uses `PairUpRegistry.OFF_MAP_TILE`.
 
 ### Known gaps
 - Trade, Shove, Rescue/carry, and class-specific field actions are future work.

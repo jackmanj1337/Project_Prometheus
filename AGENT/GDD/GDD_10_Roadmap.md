@@ -92,10 +92,13 @@ Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
        and registered it in `resource_manifest.json`. Regression guard:
        `scripts/tests/test_unit_inventory_refs.gd` now fails on any unit inventory
        weapon_id / item_id that does not resolve in DataManager.
-2. [ ] **Pair Up `Swap` is a no-op (handbook 2.7).** Choosing `Swap` on a paired
-       lead spends the action but does not trade lead/support roles; the original
-       lead stays on the map. Expected: roles trade, new lead keeps the tile, both
-       become DONE.
+2. [x] **Pair Up `Swap` is a no-op (handbook 2.7).** Choosing `Swap` on a paired
+       lead spent the action but did not trade lead/support roles; the original
+       lead stayed on the map. **Fixed (2026-06-14):** `MapCursor._commit_swap_roles`
+       now physically swaps the pair after `swap_roles()` — the new lead takes the
+       on-map tile + becomes visible, the old lead moves to `OFF_MAP_TILE` + hides,
+       both go DONE. Regression guard added to `scripts/tests/test_map_cursor.gd`
+       (asserts positions + visibility, not just role labels).
 3. [ ] **Pair Up support bonuses not applied (handbook 8.5).** After pairing, no
        stat change appears on unit info or in the combat preview, so the authored
        support contribution never reaches forecast or live combat. May share a root

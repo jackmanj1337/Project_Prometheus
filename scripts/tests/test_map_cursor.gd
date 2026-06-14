@@ -725,16 +725,27 @@ func _init() -> void:
 			c_pair._state])
 		failed += 1
 
-	# ---- swap_roles spends both units so hidden support cannot block auto-end ----
+	# ---- Swap flips roles AND physically swaps the pair (playtest v0.1.4 #2) ----
+	# Set up a realistic paired state via _on_pair_up_resolved so the support is
+	# off-map and hidden, exactly as it is mid-game. The bug was that Swap only
+	# flipped the registry role labels, leaving the on-map unit in place and the
+	# hidden off-map unit tagged "lead". Assert the new lead (old support) now
+	# holds the on-map tile and is visible, and the old lead is off-map + hidden.
+	var OFF_MAP_TILE: Vector2i = load("res://scripts/autoloads/PairUpRegistry.gd").OFF_MAP_TILE
 	var tm_swap := TurnManager.new(); root.add_child(tm_swap)
 	var c_swap := _make_cursor(tm_swap)
-	var pair_lead := _make_unit(Vector2i(1, 1), "blue")
+	var on_map_tile := Vector2i(1, 1)
+	var pair_lead := _make_unit(on_map_tile, "blue")
 	var pair_support := _make_unit(Vector2i(1, 2), "blue")
 	pair_lead.data.unit_id = "lead"
 	pair_support.data.unit_id = "support"
 	var pair_reg_live := root.get_node_or_null("PairUpRegistry")
 	pair_reg_live.call("clear")
-	pair_reg_live.call("pair", "lead", "support")
+	# Pair through the real flow: support goes to OFF_MAP_TILE + visible=false.
+	c_swap._selection.selected_unit = pair_lead
+	c_swap._state = UNIT_MOVED
+	c_swap._on_pair_up_resolved(pair_lead, pair_support)
+	# Now swap. selected_unit was cleared by pairing's _finish_action; re-arm it.
 	c_swap._selection.selected_unit = pair_lead
 	c_swap._state = UNIT_MOVED
 	c_swap._commit_swap_roles()
@@ -743,16 +754,19 @@ func _init() -> void:
 		and tm_swap.get_unit_state(pair_lead) == TurnManager.UnitState.DONE \
 		and tm_swap.get_unit_state(pair_support) == TurnManager.UnitState.DONE \
 		and c_swap._state == FREE
-	if swap_roles_ok:
-		print("OK  swap_roles flips roles and marks both units DONE")
+	# The physical swap is the actual regression guard:
+	var swap_positions_ok: bool = pair_support.tile_position == on_map_tile \
+		and pair_support.visible \
+		and pair_lead.tile_position == OFF_MAP_TILE \
+		and not pair_lead.visible
+	if swap_roles_ok and swap_positions_ok:
+		print("OK  Swap flips roles, swaps positions/visibility, and spends both units")
 		passed += 1
 	else:
-		print("FAIL swap_roles: lead_role=%s support_role=%s lead_state=%s support_state=%s state=%d" % [
-			pair_reg_live.call("get_role", "lead"),
-			pair_reg_live.call("get_role", "support"),
-			tm_swap.get_unit_state(pair_lead),
-			tm_swap.get_unit_state(pair_support),
-			c_swap._state])
+		print("FAIL swap: roles_ok=%s pos_ok=%s | support@%s vis=%s lead@%s vis=%s" % [
+			swap_roles_ok, swap_positions_ok,
+			pair_support.tile_position, pair_support.visible,
+			pair_lead.tile_position, pair_lead.visible])
 		failed += 1
 
 	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
