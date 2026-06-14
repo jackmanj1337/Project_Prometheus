@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-06-14i](2026-06-14i.md) — Session-end wrap: final new-machine-checklist accuracy pass (12-check count, PR-protected-main guidance, gh/gdtoolkit, CRLF gotcha) + day summary (review procedure designed→run→fixed→hardened). Next session: merge the integration PR; land the gdformat gate on a pip machine.
 - [2026-06-14h](2026-06-14h.md) — Meta-review MR-9 polish (no decisions needed): clarified both Godot-4 UID mechanisms + empty-dir scope (Pillar 3), exempted catalog chapters via DOC-002a (Pillar 2), and acknowledged CROSS delta references (Pillar 1). Audit follow-up now complete except the env-blocked gdformat gate.
 - [2026-06-14g](2026-06-14g.md) — Sorted the 4 remaining decisions: PL#8/PL#9→DoD#1/DoD#2 rename (parking-lot collision); scene-integrity CI gate (`check_scene_integrity.py`); procedure fix pass (meta-review §4 + check_docs checks 11/12, now 12 total); GDScript lint/format gate blocked (no pip) so wired into the new-machine plan instead.
 - [2026-06-14f](2026-06-14f.md) — Pushed the audit work + 5 release tags; `main` push rejected (remote PR #1 diverged), so built/verified/pushed a clean `integrate-awakening-into-main` PR branch (all green, banned-path deletions preserved). Refreshed `new_machine_transfer_checklist.md` from what the audit exercised (10 checks, 39 suites, analyzer verify, `gh` CLI, tags note).
