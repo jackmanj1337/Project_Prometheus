@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-14
 **Governance:** `AGENT/Docs/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -190,5 +190,5 @@ Last verified: 2026-06-13
 - `[PLACEHOLDER]` — content not yet designed; label clearly in code and assets.
 - Code references use `ClassName` or `script_name.gd` format.
 - Checklist items use GitHub-style task lists: `- [ ] Task`.
-- Per **PL#8** (definition-of-done): a behavior change updates the affected GDD
+- Per **DoD#1** (definition-of-done): a behavior change updates the affected GDD
   section(s) **and** flips the roadmap status in the **same commit**.

@@ -50,8 +50,8 @@ Run in a **worktree** (master §4) so running tests can't disturb the main tree.
 
 **D. `check_docs.py` enforcement audit**
 - Which governance/AGENTS.md rules are *stated but unchecked*? Cross-reference the
-  master doc's PL#9 backlog and Pillar 2's coverage gaps. Recommend concrete new
-  checks. (This is the PL#9 health check.)
+  master doc's DoD#2 backlog and Pillar 2's coverage gaps. Recommend concrete new
+  checks. (This is the DoD#2 health check.)
 
 **E. Python tooling under `tools/` (the audit's own dependency)**
 - This tooling is *load-bearing*: Pillar 3 uses the godot-analyzer MCP to judge
@@ -61,7 +61,7 @@ Run in a **worktree** (master §4) so running tests can't disturb the main tree.
   `python3 tools/godot-analyzer-mcp/tests/test_tools.py` if pytest is absent).
   Record result. **If pytest is unavailable in the environment, that itself is a
   finding** — the MCP tests cannot gate, so the analyzer is effectively untested
-  in CI. Recommend adding pytest + a CI job (PL#9 backlog).
+  in CI. Recommend adding pytest + a CI job (DoD#2 backlog).
 - Review `tools/convert_inventory_tres.py` and other one-off scripts for the same
   GDScript-adjacent footguns (silent failure, no error path) and whether they are
   still needed or are stale migration tools.
@@ -88,7 +88,7 @@ coverage gaps, name the untested script and the critical behavior it owns.
 Executive summary + 1–10 score; **Baseline results** (test counts/runtime,
 check_docs status — this is what the rollup header quotes); Issues (severity-
 tagged); Coverage gap table (system → has-test? → criticality); CI/hook findings;
-PL#9 enforcement-gap list; Build/export findings; ≥3 Positive observations;
+DoD#2 enforcement-gap list; Build/export findings; ≥3 Positive observations;
 Prioritized action plan; **Delta vs previous review**. Tag cross-pillar items
 `[CROSS]`.
 

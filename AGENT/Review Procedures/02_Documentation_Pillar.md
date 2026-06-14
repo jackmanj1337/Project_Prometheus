@@ -65,7 +65,7 @@ Cite line numbers for any miss:
 
 Which governance rules are **stated but unenforced** by `check_docs.py`? The rules
 no script checks are the ones that rot. Recommend a new check or explicitly accept
-the gap. (Feed concrete ones to the rollup's PL#9 backlog.)
+the gap. (Feed concrete ones to the rollup's DoD#2 backlog.)
 
 ## 6. Severity guide (doc-specific)
 
@@ -94,7 +94,7 @@ the checker"; **Delta vs previous review**. Tag cross-pillar items `[CROSS]`.
 - Document only — do not edit docs in the review pass.
 - Every drift claim cites both the doc line and the contradicting source.
 - State your spot-check sample; flag any unverified claim as an assumption.
-- Respect PL#8: if a doc is wrong because behavior changed without the paired
+- Respect DoD#1: if a doc is wrong because behavior changed without the paired
   GDD+roadmap update, name that as the root cause.
 
 ## 9. Sub-agent dispatch brief

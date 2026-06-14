@@ -171,10 +171,10 @@ fed back into the project:
 1. Write the rollup (§7) and all five pillar reports.
 2. Turn the unified action plan into tracked work (the next session's plan, or
    roadmap/feature-index entries for anything systemic).
-3. Per **PL#9**: if the audit ratifies a new mechanical, checkable rule, land its
+3. Per **DoD#2**: if the audit ratifies a new mechanical, checkable rule, land its
    check in `AGENT/Docs/check_docs.py` in the follow-up — a rule with no check
    rots. (See §10 for current enforcement candidates.)
-4. Per **PL#8**: if the audit drives a behavior/doc change, update the affected
+4. Per **DoD#1**: if the audit drives a behavior/doc change, update the affected
    GDD section *and* `GDD_10_Roadmap.md` status in the same commit.
 5. Write a session note and add its row to `AGENT/Session Notes/INDEX.md`.
 6. Fixes themselves land as a **separate** pass after the audit — the audit
@@ -201,7 +201,7 @@ Where the project's history lives, so an audit can reconstruct what happened:
 
 ---
 
-## 10. Enforcement candidates (PL#9 backlog)
+## 10. Enforcement candidates (DoD#2 backlog)
 
 Mechanical rules this procedure relies on that are **not yet** machine-checked.
 Each is a candidate to add to `check_docs.py` when ratified:

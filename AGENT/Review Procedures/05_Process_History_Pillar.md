@@ -30,10 +30,10 @@ prior review or playtest flagged. State your sample explicitly. Use `git log`,
 ## 3. Procedure (exhaustive)
 
 **A. Workflow adherence (against `AGENTS.md`)**
-- **PL#8** — when a sampled change altered behavior, did the *same commit* update
+- **DoD#1** — when a sampled change altered behavior, did the *same commit* update
   the affected GDD section AND flip the `GDD_10_Roadmap.md` status? Find
   behavior-changing commits with no paired doc update.
-- **PL#9** — when a mechanical rule was ratified, did the same change add its check
+- **DoD#2** — when a mechanical rule was ratified, did the same change add its check
   to `check_docs.py`? Find rules that landed as prose only.
 - **Session discipline** — did each working session produce a session note AND an
   `INDEX.md` row? Find sessions with commits but no note, or notes missing from
@@ -82,7 +82,7 @@ prior review or playtest flagged. State your sample explicitly. Use `git log`,
 
 **Path:** `AGENT/Code Reviews/process_history_review_YYYY-MM-DD.md`. Sections:
 Executive summary + 1–10 process-health score; **Sample statement** (which
-sessions/commits examined); Workflow-adherence findings (PL#8/PL#9/session/commit,
+sessions/commits examined); Workflow-adherence findings (DoD#1/DoD#2/session/commit,
 each with cited commits); Git-hygiene assessment; Decision-traceability table
 (decision ID → in code? → in docs? → status); Process-effectiveness analysis
 (recurring defect classes, score trend, repeatedly-violated rules); **Tooling &

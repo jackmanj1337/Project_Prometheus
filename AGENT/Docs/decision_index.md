@@ -121,8 +121,8 @@ but not yet applied to the GDD). Homes:
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
 | Combat modifier pipeline order | Modifier order ratified | Applied | JUN | base → permanent → pair-up → combat-duration skills → conditions → terrain → triangle → S-rank → clamps. Summary in GDD_02 §Modifier Pipeline (3.1); binding contract home GDD_01 (3.5). |
-| PL#8 | Doc-lifecycle DoD rule | Applied | JUN | Same-commit GDD + roadmap update. **Applied to AGENTS.md** (Stage 2.2). |
-| PL#9 | Minimal SFX | Answered (deferred) | JUN | Wait for Phase 3 audio milestone. |
+| PL#8 | Doc-lifecycle DoD rule | Applied | JUN | Same-commit GDD + roadmap update. Ratified in AGENTS.md as **DoD#1** (Stage 2.2). |
+| PL#9 | Minimal SFX | Answered (deferred) | JUN | Wait for Phase 3 audio milestone. (Distinct from AGENTS.md **DoD#2** enforcement rule — the rules are no longer numbered in the PL# parking-lot namespace.) |
 
 ## AWR — roadmap milestones referenced by decisions
 
