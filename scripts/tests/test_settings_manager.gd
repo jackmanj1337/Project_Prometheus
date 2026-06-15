@@ -135,6 +135,27 @@ func _init() -> void:
 		print("FAIL display section: defaults=%s reset=%s" % [disp_default_ok, disp_reset_ok])
 		failed += 1
 
+	# ---- hud_layout: default empty, round-trips through save/load, resets (item 4) ----
+	var hud_default_ok: bool = sm.hud_layout == {}
+	sm.hud_layout = { "unit_info": { "offset": Vector2(24, -16), "scale": 1.5 } }
+	sm.save()
+	var sm2: Node = SettingsManagerS.new()
+	sm2.load_settings()
+	var entry: Variant = sm2.hud_layout.get("unit_info", {})
+	var hud_roundtrip_ok: bool = (entry is Dictionary
+		and entry.get("offset", Vector2.ZERO) == Vector2(24, -16)
+		and is_equal_approx(entry.get("scale", 0.0), 1.5))
+	sm.reset_section_to_defaults("display")
+	var hud_reset_ok: bool = sm.hud_layout == {}
+	if hud_default_ok and hud_roundtrip_ok and hud_reset_ok:
+		print("OK  hud_layout defaults empty, round-trips through cfg, and resets")
+		passed += 1
+	else:
+		print("FAIL hud_layout: default=%s roundtrip=%s reset=%s" % [
+			hud_default_ok, hud_roundtrip_ok, hud_reset_ok])
+		failed += 1
+	sm2.free()
+
 	# ---- _parse_resolution: valid "WxH" parses; malformed returns ZERO ----
 	var parse_ok: bool = (sm._parse_resolution("1600x900") == Vector2i(1600, 900)
 		and sm._parse_resolution("bad") == Vector2i.ZERO

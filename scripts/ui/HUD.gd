@@ -70,6 +70,22 @@ const _STAT_SHORT: Dictionary = {
 	"defense": "Def", "resistance": "Res", "luck": "Lck",
 }
 
+# ── Per-panel HUD layout (Display & Accessibility item 4) ─────────────────────
+# Stable panel ids the player can reposition/scale. Order is the editor cycle order.
+const LAYOUT_PANEL_IDS: Array[String] = [
+	"phase_label", "turn_label", "unit_info", "objective", "terrain_corner",
+]
+# Per-panel scale clamp — small enough to declutter, large enough to read, without
+# letting a panel balloon off-screen.
+const MIN_PANEL_SCALE: float = 0.5
+const MAX_PANEL_SCALE: float = 2.0
+# Minimum on-screen pixels kept visible on each axis so a panel can't be dragged
+# (or saved) fully off the viewport.
+const _MIN_VISIBLE_PX: float = 24.0
+# panel_id → authored base position, captured once before any offset is applied so
+# Reset restores the exact .tscn layout regardless of the live offset.
+var _layout_base_positions: Dictionary = {}
+
 
 func _ready() -> void:
 	_unit_panel.hide()
@@ -87,6 +103,9 @@ func _ready() -> void:
 	_update_turn_label()
 	_on_phase_changed(GameState.Phase.PLAYER, "blue")
 	_setup_debug_banner()
+	# Apply the saved per-panel layout after the first layout pass has settled, so
+	# the captured base positions reflect the authored offsets (item 4).
+	call_deferred("_apply_saved_layout")
 
 
 func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
@@ -102,6 +121,102 @@ func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
 	# TurnManager evaluator). Render-only — no live re-evaluation needed since
 	# conditions are static for the duration of a map.
 	_populate_objective_panel()
+
+
+# ── Per-panel HUD layout (item 4) ─────────────────────────────────────────────
+
+# Resolves a stable panel id to its live Control node.
+func get_layout_panel(panel_id: String) -> Control:
+	match panel_id:
+		"phase_label":    return _phase_label
+		"turn_label":     return _turn_label
+		"unit_info":      return _unit_panel
+		"objective":      return _objective_panel
+		"terrain_corner": return get_node_or_null("TerrainCorner")
+	return null
+
+
+# Captures each panel's authored base position exactly once, before any saved offset
+# is applied, so Reset can restore the .tscn layout no matter the current offset.
+func _capture_base_positions() -> void:
+	if not _layout_base_positions.is_empty():
+		return
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel != null:
+			_layout_base_positions[id] = panel.position
+
+
+# Applies a full layout dict (panel_id -> { offset: Vector2, scale: float }) to the
+# panels. Missing/malformed entries leave that panel at its authored base. Positions
+# are clamped so a panel always keeps _MIN_VISIBLE_PX on screen.
+func apply_layout(layout: Dictionary) -> void:
+	_capture_base_positions()
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel == null:
+			continue
+		var base: Vector2 = _layout_base_positions.get(id, panel.position)
+		var entry: Variant = layout.get(id, {})
+		var offset := Vector2.ZERO
+		var scale_f := 1.0
+		if entry is Dictionary:
+			offset = entry.get("offset", Vector2.ZERO)
+			scale_f = float(entry.get("scale", 1.0))
+		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
+		panel.position = _clamp_panel_on_screen(panel, base + offset)
+
+
+# Loads the saved layout from SettingsManager and applies it. Called deferred from
+# _ready (post-layout) and re-runnable by the editor.
+func _apply_saved_layout() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	apply_layout(sm.hud_layout if sm != null else {})
+
+
+# Keeps a panel from being placed (or saved) fully off-screen: clamps the top-left so
+# at least _MIN_VISIBLE_PX of the scaled panel stays inside the viewport on each axis.
+func _clamp_panel_on_screen(panel: Control, pos: Vector2) -> Vector2:
+	var view: Vector2 = get_viewport_rect().size
+	var sz: Vector2 = panel.size * panel.scale
+	pos.x = clampf(pos.x, _MIN_VISIBLE_PX - sz.x, view.x - _MIN_VISIBLE_PX)
+	pos.y = clampf(pos.y, _MIN_VISIBLE_PX - sz.y, view.y - _MIN_VISIBLE_PX)
+	return pos
+
+
+# Live single-panel edit used by the layout editor: sets one panel's offset (from its
+# base) + scale without disturbing the others. Returns the clamped on-screen position.
+func set_panel_layout(panel_id: String, offset: Vector2, scale_f: float) -> Vector2:
+	_capture_base_positions()
+	var panel := get_layout_panel(panel_id)
+	if panel == null:
+		return Vector2.ZERO
+	var base: Vector2 = _layout_base_positions.get(panel_id, panel.position)
+	panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
+	panel.position = _clamp_panel_on_screen(panel, base + offset)
+	return panel.position
+
+
+# Builds the current layout dict (offset from base + scale) for panels that differ
+# from their authored layout — the shape persisted to SettingsManager.hud_layout.
+func current_layout() -> Dictionary:
+	_capture_base_positions()
+	var out: Dictionary = {}
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel == null:
+			continue
+		var base: Vector2 = _layout_base_positions.get(id, panel.position)
+		var offset: Vector2 = panel.position - base
+		var scale_f: float = panel.scale.x
+		if offset != Vector2.ZERO or not is_equal_approx(scale_f, 1.0):
+			out[id] = { "offset": offset, "scale": scale_f }
+	return out
+
+
+# Restores every panel to its authored base layout (offset 0, scale 1).
+func reset_layout() -> void:
+	apply_layout({})
 
 
 func _populate_objective_panel() -> void:

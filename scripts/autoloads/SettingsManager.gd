@@ -51,6 +51,11 @@ const RESOLUTION_CHOICES: Array[String] = ["1280x720", "1600x900", "1920x1080"]
 # Steam Deck / web — the reason it is preferred over a font-only theme scalar.
 var ui_scale_index: int = 1
 const UI_SCALE_LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+# Per-panel HUD layout (item 4), keyed by stable panel id -> { "offset": Vector2,
+# "scale": float }. A missing entry = that panel's authored layout. Edited via the
+# in-map "Edit HUD Layout" mode and applied by HUD.apply_layout; composes on top of
+# the global ui_scale above (content_scale_factor) since per-panel scale is local.
+var hud_layout: Dictionary = {}
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
@@ -114,6 +119,9 @@ func load_settings() -> void:
 	ui_scale_index = clampi(
 		cfg.get_value("display", "ui_scale_index", ui_scale_index),
 		0, UI_SCALE_LEVELS.size() - 1)
+	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
+	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
+	hud_layout = cfg.get_value("display", "hud_layout", {})
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
@@ -139,6 +147,7 @@ func save() -> void:
 	cfg.set_value("display", "window_mode",    window_mode)
 	cfg.set_value("display", "resolution",     resolution)
 	cfg.set_value("display", "ui_scale_index", ui_scale_index)
+	cfg.set_value("display", "hud_layout",     hud_layout)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -168,6 +177,7 @@ func reset_section_to_defaults(section: String) -> void:
 			window_mode    = "windowed"
 			resolution     = "1280x720"
 			ui_scale_index = 1
+			hud_layout     = {}
 			_apply_display()
 			_apply_ui_scale()
 		"controls":
