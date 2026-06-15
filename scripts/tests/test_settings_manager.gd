@@ -165,6 +165,21 @@ func _init() -> void:
 	else:
 		print("FAIL _parse_resolution"); failed += 1
 
+	# ---- window_centre_position: centres a fitting window, but never off-screen ----
+	# Fits the screen → centred. Origin (0,0), 1920x1080 screen, 1280x720 window.
+	var fit_ok: bool = sm.window_centre_position(
+		Vector2i.ZERO, Vector2i(1920, 1080), Vector2i(1280, 720)) == Vector2i(320, 180)
+	# Larger than the screen → clamped to the screen origin (title bar stays reachable),
+	# not centred into negative coordinates.
+	var clamp_ok: bool = sm.window_centre_position(
+		Vector2i(100, 50), Vector2i(1366, 768), Vector2i(1920, 1080)) == Vector2i(100, 50)
+	if fit_ok and clamp_ok:
+		print("OK  window_centre_position centres a fitting window, clamps an oversized one")
+		passed += 1
+	else:
+		print("FAIL window_centre_position: fit=%s clamp=%s" % [fit_ok, clamp_ok])
+		failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

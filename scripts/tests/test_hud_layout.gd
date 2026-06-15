@@ -77,11 +77,20 @@ func _init() -> void:
 		and is_equal_approx(unit_panel.scale.x, 1.25),
 		"set_panel_layout edits one panel live")
 
-	# ---- malformed entry tolerated (non-dict / missing keys) ----
+	# ---- malformed entry tolerated (non-dict / missing keys / wrong-typed fields) ----
 	hud.reset_layout()
-	hud.apply_layout({ "unit_info": "garbage", "objective": {} })
+	# A dict entry whose offset/scale are the wrong type (e.g. a corrupt cfg) must not
+	# crash the typed assignment — the panel stays at base.
+	hud.apply_layout({
+		"unit_info": "garbage",
+		"objective": {},
+		"turn_label": { "offset": "bad", "scale": "also bad" },
+	})
 	_ok(unit_panel.position == unit_base,
 		"apply_layout tolerates a malformed entry (leaves panel at base)")
+	var turn_panel: Control = hud.get_layout_panel("turn_label")
+	_ok(is_equal_approx(turn_panel.scale.x, 1.0),
+		"apply_layout tolerates wrong-typed offset/scale without crashing")
 
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])

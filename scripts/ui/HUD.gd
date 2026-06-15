@@ -163,8 +163,14 @@ func apply_layout(layout: Dictionary) -> void:
 		var offset := Vector2.ZERO
 		var scale_f := 1.0
 		if entry is Dictionary:
-			offset = entry.get("offset", Vector2.ZERO)
-			scale_f = float(entry.get("scale", 1.0))
+			# Type-guard each field: a corrupt/hand-edited cfg could carry a wrong-typed
+			# value, and assigning a non-Vector2 into the typed `offset` would crash.
+			var off_v: Variant = entry.get("offset", Vector2.ZERO)
+			if off_v is Vector2:
+				offset = off_v
+			var scale_v: Variant = entry.get("scale", 1.0)
+			if scale_v is float or scale_v is int:
+				scale_f = float(scale_v)
 		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
 		panel.position = _clamp_panel_on_screen(panel, base + offset)
 

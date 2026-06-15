@@ -219,7 +219,16 @@ func _apply_display() -> void:
 				var screen := DisplayServer.window_get_current_screen()
 				var origin := DisplayServer.screen_get_position(screen)
 				var screen_size := DisplayServer.screen_get_size(screen)
-				DisplayServer.window_set_position(origin + (screen_size - size) / 2)
+				DisplayServer.window_set_position(window_centre_position(origin, screen_size, size))
+
+
+# Top-left position that centres a `size` window on a screen at `origin`/`screen_size`,
+# clamped so the position never goes above/left of the screen origin. A window larger
+# than the screen therefore keeps its title bar reachable (honouring the chosen size)
+# instead of being centred into negative coordinates. Pure + side-effect-free for tests.
+func window_centre_position(origin: Vector2i, screen_size: Vector2i, size: Vector2i) -> Vector2i:
+	var offset := (screen_size - size) / 2
+	return origin + Vector2i(maxi(offset.x, 0), maxi(offset.y, 0))
 
 
 # Parses a "WxH" resolution string to a Vector2i; returns ZERO on a malformed value
