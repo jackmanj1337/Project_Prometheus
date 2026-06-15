@@ -782,13 +782,18 @@ The accessibility and parity contract the UI must honor across input methods and
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): see `GDD_01_Architecture.md`
   §Camera Zoom.
+- **Per-panel HUD layout** (`hud_layout`, Display & Accessibility item 4): the player
+  repositions and scales the five persistent HUD readouts (phase/turn labels, unit
+  info, objective, terrain corner) via an in-map "Edit HUD Layout" mode (drag frames +
+  per-panel Scale, Reset/Done/Cancel). Persisted per panel as `{ offset, scale }` in
+  `SettingsManager.hud_layout`; applied by `HUD.apply_layout` with an on-screen clamp.
+  Per-panel scale is local, so it composes on top of the global UI scale above. Scope:
+  the persistent readouts only — contextual menus (cursor-anchored) are not movable.
 
 **Planned.**
 - **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the
   rebind surface is the only missing piece, scheduled with the **gamepad** milestone
   (GDD_00 §Platform Targets, OPEN-11).
-- **Per-panel UI layout scale & reposition** (Display & Accessibility item 4): scale and
-  move individual HUD/menu panels independently of the overall UI scale above. Deferred.
 - **Combat-animation toggle** (`combat_animations`): scaffolded but hidden until a
   combat-animation system consumes it.
 

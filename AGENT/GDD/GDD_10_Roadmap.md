@@ -283,10 +283,14 @@ otherwise — see the per-item coupling notes for why the order matters.
       clips) and is resolution-independent across desktop / Steam Deck / web. A
       separate text-only scalar can layer on later (overlaps item 4). See
       `GDD_07_UI_UX.md` §Accessibility.
-4. [ ] **UI layout scale & movement** — Deferred. Let the player scale and reposition
-      HUD/menu *panels* independently (panel layout only — overall UI scale is item 3,
-      now shipped). Likely a `CanvasLayer` scale factor + saved offsets.
-      Broadest/least-defined of the four; spec separately.
+4. [x] **UI layout scale & movement** — Implemented (HUD readouts). The player
+      repositions + scales the five persistent HUD panels via an in-map "Edit HUD
+      Layout" mode (`HudLayoutEditor`), persisted per panel as `{ offset, scale }` in
+      `SettingsManager.hud_layout` and applied by `HUD.apply_layout` (on-screen clamp;
+      per-panel scale composes on top of item 3's global scale). Scope is the
+      persistent readouts only — the cursor-anchored contextual menus are not movable
+      (a later extension if wanted). See `GDD_07_UI_UX.md` §Accessibility. Tests:
+      `test_hud_layout` (12) + `test_hud_layout_editor` (6); drag UX is playtest-verified.
 
 ---
 
