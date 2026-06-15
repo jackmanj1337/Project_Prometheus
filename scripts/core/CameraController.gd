@@ -66,13 +66,27 @@ func center_on_tile(tile: Vector2i) -> void:
 	_camera.position = _grid.tile_to_world(tile) + half
 
 
+# World-space size of the visible region. At zoom 1 this equals the viewport
+# pixel size; at any other Camera2D.zoom the visible world span is
+# viewport_px / zoom (a larger zoom magnifies, so fewer world units are shown).
+# Every tile/pan calculation below works in WORLD units, so it must size the view
+# through here — using raw viewport pixels would be wrong at any zoom != 1.
+func _visible_world_size() -> Vector2:
+	var px: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var z: Vector2 = _camera.zoom
+	# Guard against a zero/unset zoom (would divide-by-zero); treat as 1×.
+	var zx: float = z.x if z.x > 0.0 else 1.0
+	var zy: float = z.y if z.y > 0.0 else 1.0
+	return Vector2(px.x / zx, px.y / zy)
+
+
 # Pans the view so `cursor_tile` is no closer than `edge_buffer` tiles to any edge.
 # Clamps the resulting view to the map bounds so it never shows blank space past
 # the map. Was MapCursor._scroll_camera_if_needed; same math, new home.
 func keep_cursor_in_view(cursor_tile: Vector2i, edge_buffer: int) -> void:
 	if _camera == null or _grid == null:
 		return
-	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var view: Vector2 = _visible_world_size()
 	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
 	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
 	# Camera2D.position is the view CENTRE (anchor_mode = DRAG_CENTER). Convert to
@@ -98,7 +112,7 @@ func keep_cursor_in_view(cursor_tile: Vector2i, edge_buffer: int) -> void:
 func clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	if _camera == null or _grid == null:
 		return tile
-	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var view: Vector2 = _visible_world_size()
 	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
 	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
 	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
@@ -107,18 +121,26 @@ func clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	return tile
 
 
-# Nudges the camera by a pixel delta, clamped so the view never shows blank
-# space past the map. Used by AttackPreview to shift the camera horizontally
+# Nudges the camera by a SCREEN-pixel delta, clamped so the view never shows
+# blank space past the map. Used by AttackPreview to shift the camera horizontally
 # when the preview panel does not fit on either side of the defender on the
 # current viewport. Pixel granularity (not whole-tile) so the camera lands
 # exactly where the preview needs it, not the nearest tile boundary.
+#
+# delta_px is in SCREEN pixels (the caller works in canvas/screen space). One
+# screen pixel is 1/zoom world units, so divide by zoom before moving the camera,
+# which lives in world space — otherwise a zoomed view would over/under-shoot.
 func pan_by_pixels(delta_px: Vector2) -> void:
 	if _camera == null or _grid == null or delta_px == Vector2.ZERO:
 		return
-	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var z: Vector2 = _camera.zoom
+	var world_delta := Vector2(
+		delta_px.x / (z.x if z.x > 0.0 else 1.0),
+		delta_px.y / (z.y if z.y > 0.0 else 1.0))
+	var view: Vector2 = _visible_world_size()
 	var half := view * 0.5
 	var map_size := Vector2(_grid.map_width, _grid.map_height) * GameConstants.TILE_SIZE
-	var target := _camera.position + delta_px
+	var target := _camera.position + world_delta
 	# Camera position is the view CENTRE. Min centre = half view (so left edge
 	# = 0); max centre = map_size - half (so right edge = map_size). Clamp on
 	# each axis independently so a tall-but-narrow map still pans horizontally.
@@ -137,7 +159,7 @@ func pan_by_pixels(delta_px: Vector2) -> void:
 func nudge_by_tiles(delta: Vector2i) -> bool:
 	if _camera == null or _grid == null or delta == Vector2i.ZERO:
 		return false
-	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var view: Vector2 = _visible_world_size()
 	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
 	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
 	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
