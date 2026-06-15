@@ -220,6 +220,19 @@ func set_controlling_faction(faction_id: String) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _input_suppressed or _state == State.LOCKED:
 		return
+	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
+	# before the cursor-move branches so a scroll-to-zoom isn't also read as a
+	# mouse button. Zoom re-frames on the cursor's current tile and persists the
+	# chosen level so it survives map changes and restarts.
+	if event.is_action_pressed("zoom_in"):
+		_apply_zoom_step(1)
+		return
+	if event.is_action_pressed("zoom_out"):
+		_apply_zoom_step(-1)
+		return
+	if event.is_action_pressed("zoom_reset"):
+		_apply_zoom_reset()
+		return
 	if event is InputEventMouseMotion:
 		_handle_mouse_motion(event)
 	elif event is InputEventMouseButton and event.pressed:
@@ -1106,6 +1119,32 @@ func _camera_edge_buffer() -> int:
 	if sm != null:
 		return clampi(sm.camera_edge_buffer, 0, 5)
 	return CAMERA_EDGE_BUFFER
+
+
+# Steps the map zoom one level (direction +1 in / -1 out), re-framing on the
+# cursor, then persists the resulting index. No-op without a camera controller.
+func _apply_zoom_step(direction: int) -> void:
+	if _camera_ctrl == null:
+		return
+	var idx: int = _camera_ctrl.step_zoom(direction, current_tile, _camera_edge_buffer())
+	_persist_zoom_index(idx)
+
+
+# Resets the map zoom to the default 1× level, re-framing on the cursor.
+func _apply_zoom_reset() -> void:
+	if _camera_ctrl == null:
+		return
+	var idx: int = _camera_ctrl.reset_zoom(current_tile, _camera_edge_buffer())
+	_persist_zoom_index(idx)
+
+
+# Writes the chosen zoom index back to SettingsManager so it survives map changes
+# and restarts. Silently skips when SettingsManager isn't present (headless tests).
+func _persist_zoom_index(idx: int) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		sm.set("map_zoom_index", idx)
+		sm.call("save")
 
 
 # When the cursor approaches the screen edge, pan the camera to keep it visible.

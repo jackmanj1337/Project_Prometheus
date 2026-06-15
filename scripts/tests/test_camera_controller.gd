@@ -123,6 +123,38 @@ func _init() -> void:
 	_ok(is_equal_approx(cam.position.x, 1000.0),
 		"pan_by_pixels: 1:1 at zoom 1 (parity)")
 
+	# ---- zoom API: levels, default, stepping, clamping ----
+	_ok(cc.get_zoom_count() == 8, "get_zoom_count == 8 levels")
+	cam.zoom = Vector2.ONE
+	cc.set_zoom_index_silent(cc.DEFAULT_ZOOM_INDEX)
+	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX and is_equal_approx(cc.get_zoom(), 1.0),
+		"default zoom index is 1.0x")
+	_ok(is_equal_approx(cam.zoom.x, 1.0), "set_zoom_index_silent applies Camera2D.zoom")
+	# step_zoom changes the level and the Camera2D zoom.
+	cc.set_zoom_index(cc.DEFAULT_ZOOM_INDEX, Vector2i(5, 5))
+	cc.step_zoom(1, Vector2i(5, 5))
+	_ok(is_equal_approx(cam.zoom.x, 1.5), "step_zoom(+1) moves to the next level (1.5x)")
+	# Clamp at the bottom: stepping out from index 0 stays at 0 (0.25x).
+	cc.set_zoom_index(0, Vector2i(5, 5))
+	cc.step_zoom(-1, Vector2i(5, 5))
+	_ok(cc.get_zoom_index() == 0 and is_equal_approx(cam.zoom.x, 0.25),
+		"step_zoom clamps at the zoomed-out end")
+	# Clamp at the top: stepping in from the last index stays there (4x).
+	cc.set_zoom_index(cc.get_zoom_count() - 1, Vector2i(5, 5))
+	cc.step_zoom(1, Vector2i(5, 5))
+	_ok(cc.get_zoom_index() == cc.get_zoom_count() - 1 and is_equal_approx(cam.zoom.x, 4.0),
+		"step_zoom clamps at the zoomed-in end")
+	# reset_zoom returns to the default level.
+	cc.reset_zoom(Vector2i(5, 5))
+	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX, "reset_zoom returns to 1.0x")
+
+	# ---- too-small map: a fully-visible map is centred, not pinned to a corner ----
+	grid.map_width = 4   # 4*64 = 256 px wide
+	grid.map_height = 3  # 3*64 = 192 px tall
+	cc.set_zoom_index(0, Vector2i(0, 0))  # 0.25x — view dwarfs the map on both axes
+	_ok(cc.get_camera().position == Vector2(128, 96),
+		"too-small map is centred on both axes (no blank-space pinning)")
+
 	# cc is RefCounted — it frees itself when the last reference drops; only the
 	# scene-tree nodes need an explicit queue_free.
 	cam.queue_free()

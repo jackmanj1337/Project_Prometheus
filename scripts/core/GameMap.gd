@@ -73,6 +73,12 @@ func _ready() -> void:
 	_camera.limit_top = 0
 	_camera.limit_right = map_width * GameConstants.TILE_SIZE
 	_camera.limit_bottom = map_height * GameConstants.TILE_SIZE
+	# Apply the persisted map-zoom level (Display & Accessibility item 1) before the
+	# initial center so the centre uses the right visible span. _silent variant just
+	# sets Camera2D.zoom + level without repositioning — center_at follows.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		_camera_ctrl.set_zoom_index_silent(sm.get("map_zoom_index"))
 	_camera_ctrl.set_smoothing(false)
 	_camera_ctrl.center_at(_get_camera_start())
 

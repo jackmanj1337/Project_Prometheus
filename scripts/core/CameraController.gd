@@ -32,6 +32,16 @@ var _grid: Node = null  # GridManager — typed as Node to avoid a cyclic preloa
 const _DEFAULT_FACTION_KEY := "blue"
 var _saved_positions: Dictionary = {}
 
+# Player-controlled map zoom (Display & Accessibility item 1). Discrete levels are
+# presented in the Settings screen as a stepped slider and stepped with the
+# scroll wheel / +/-/0 keys. Power-of-two-friendly common stops keep the pixel-snap
+# (Rendering/2D/Snap) crisp at the usual zooms; 0.75/1.5/3 are available but shimmer
+# slightly. ZOOM_LEVELS is the single source of truth — the slider sizes itself from
+# get_zoom_count() and the persisted setting is an index into this array.
+const ZOOM_LEVELS: Array[float] = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
+const DEFAULT_ZOOM_INDEX: int = 3  # 1.0× — the unchanged default view
+var _zoom_index: int = DEFAULT_ZOOM_INDEX
+
 
 func setup(camera: Camera2D, grid: Node) -> void:
 	_camera = camera
@@ -195,3 +205,69 @@ func restore_view(faction_id: String = "") -> bool:
 		return false
 	_camera.position = _saved_positions[key]
 	return true
+
+
+# ── Zoom (Display & Accessibility item 1) ─────────────────────────────────────
+
+func get_zoom_index() -> int:
+	return _zoom_index
+
+
+func get_zoom_count() -> int:
+	return ZOOM_LEVELS.size()
+
+
+func get_zoom() -> float:
+	return ZOOM_LEVELS[_zoom_index]
+
+
+# Sets the zoom level + Camera2D.zoom WITHOUT repositioning the view. Used at map
+# load (GameMap) to apply the persisted level before the initial center, so the
+# clamp/center math downstream sees the right visible span. Returns the clamped
+# index actually applied.
+func set_zoom_index_silent(index: int) -> int:
+	_zoom_index = clampi(index, 0, ZOOM_LEVELS.size() - 1)
+	if _camera != null:
+		_camera.zoom = Vector2.ONE * ZOOM_LEVELS[_zoom_index]
+	return _zoom_index
+
+
+# Sets the zoom level and re-frames the view on `focus_tile` (the cursor's tile in
+# play), keeping the focus on screen and the view inside the map. At low zoom a map
+# can be smaller than the viewport on an axis — then that axis is centred instead of
+# pinned to the top-left (which would leave blank space on one side). Returns the
+# clamped index actually applied.
+func set_zoom_index(index: int, focus_tile: Vector2i,
+		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+	set_zoom_index_silent(index)
+	if _camera != null and _grid != null:
+		keep_cursor_in_view(focus_tile, edge_buffer)
+		_center_axes_smaller_than_view()
+	return _zoom_index
+
+
+# Steps one level toward zoom-in (+1) or zoom-out (-1); clamps at the array ends.
+func step_zoom(direction: int, focus_tile: Vector2i,
+		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+	return set_zoom_index(_zoom_index + direction, focus_tile, edge_buffer)
+
+
+# Returns to the default 1× level, re-framed on `focus_tile`.
+func reset_zoom(focus_tile: Vector2i,
+		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+	return set_zoom_index(DEFAULT_ZOOM_INDEX, focus_tile, edge_buffer)
+
+
+# Centres any axis on which the whole map is smaller than the visible span, so a
+# zoomed-out view of a small map shows the map centred rather than blank space on
+# one side. No-op on axes where the map is at least as large as the view (the
+# normal case — keep_cursor_in_view already clamps those correctly).
+func _center_axes_smaller_than_view() -> void:
+	if _camera == null or _grid == null:
+		return
+	var view: Vector2 = _visible_world_size()
+	var map_size := Vector2(_grid.map_width, _grid.map_height) * GameConstants.TILE_SIZE
+	if map_size.x <= view.x:
+		_camera.position.x = map_size.x * 0.5
+	if map_size.y <= view.y:
+		_camera.position.y = map_size.y * 0.5

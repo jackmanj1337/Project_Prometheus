@@ -1371,49 +1371,41 @@ func get_faction(faction_id: String) -> FactionData
 
 ## Camera Zoom
 
-Camera zoom is planned as a **Phase 2** feature. The architecture below should
-be built into `MapCursor.gd` and `Camera2D` from the start so zoom can be added
-without restructuring.
+Status: Implemented (Display & Accessibility item 1)
+
+Player-controlled map zoom. The player steps through discrete zoom levels with the
+scroll wheel or the `+`/`-`/`0` keys; the chosen level persists across maps and
+restarts.
 
 ### Design
-- The player zooms using the scroll wheel or dedicated keyboard shortcuts
-- Three discrete zoom levels: **0.75×** (zoomed out), **1×** (default), **1.5×** (zoomed in)
-- At 1280x720 with 64px tiles, 1x shows about 20x11 tiles.
-- At 0.75x zoom, the same viewport shows about 27x15 tiles.
-- At 1.5x zoom, it shows about 13x7 tiles.
-- Zoom is centered on the cursor's current tile, not the screen center
-- Camera clamping still applies at all zoom levels (no black space shown)
-- Pixel snapping (`Rendering/2D/Snap`) remains active at all zoom levels
+- Eight discrete levels: **0.25× / 0.5× / 0.75× / 1.0× / 1.5× / 2.0× / 3.0× / 4.0×**
+  (`CameraController.ZOOM_LEVELS` is the single source of truth). 1.0× is the default.
+  Power-of-two-friendly stops keep pixel snapping crisp at the common zooms; the
+  intermediate 0.75/1.5/3 stops can shimmer slightly under `Rendering/2D/Snap`.
+- At 1280×720 with 64px tiles, 1× shows ~20×11 tiles; lower zoom shows proportionally
+  more, higher zoom fewer (`visible tiles = viewport_px / (TILE_SIZE × zoom)`).
+- Zoom re-frames on the cursor's tile, not the screen centre.
+- Camera clamping applies at every level (no blank space past the map). When a low
+  zoom makes the whole map smaller than the viewport on an axis, that axis is centred.
+- The level is stored as `SettingsManager.map_zoom_index` (an index into
+  `ZOOM_LEVELS`) and exposed as a stepped slider in the Settings screen.
 
-### Input Actions to Add (Phase 2)
-Add to Input Map:
+### Input Actions
 | Action | Key | Mouse |
 |---|---|---|
-| `zoom_in` | + / = | Scroll Up |
+| `zoom_in` | = | Scroll Up |
 | `zoom_out` | - | Scroll Down |
 | `zoom_reset` | 0 | — |
 
-### Architecture Hooks (Add Now)
-Add these to `MapCursor.gd` even in MVP so Phase 2 zoom slots in cleanly:
-
-```gdscript
-# In MapCursor.gd
-
-const ZOOM_LEVELS: Array[float] = [0.75, 1.0, 1.5]
-const DEFAULT_ZOOM_INDEX: int = 1
-var _zoom_index: int = DEFAULT_ZOOM_INDEX
-
-func _handle_zoom(direction: int) -> void
-    # direction: +1 = zoom in, -1 = zoom out
-    # Clamps to ZOOM_LEVELS array bounds
-    # Calls _apply_zoom()
-    # [PLACEHOLDER — implement in Phase 2]
-
-func _apply_zoom() -> void
-    # Sets _camera.zoom = Vector2.ONE * ZOOM_LEVELS[_zoom_index]
-    # Re-applies camera clamp limits adjusted for current zoom
-    # [PLACEHOLDER — implement in Phase 2]
-```
+### Implementation
+`CameraController.gd` owns the zoom state and the zoom-aware view math: every
+tile/pan calculation sizes the visible region through `_visible_world_size()`
+(`viewport_px / zoom`) rather than raw pixels, so framing and clamping stay correct
+at all levels. The public API is `set_zoom_index` / `step_zoom` / `reset_zoom`
+(re-frame on a focus tile) and `set_zoom_index_silent` (level-only, used at map load
+before the initial centre). `MapCursor._unhandled_input` maps the input actions onto
+`step_zoom` / `reset_zoom` and persists the result; `GameMap` applies the saved level
+on map load.
 
 ---
 

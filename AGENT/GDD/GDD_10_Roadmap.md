@@ -261,15 +261,14 @@ content milestones. Grouped because they share UI-scaling and screen-space
 plumbing. Ordered cheapest-now-first where it ties, hardest-to-retrofit-first
 otherwise — see the per-item coupling notes for why the order matters.
 
-1. [ ] **Map zoom** — player-controlled camera zoom (scroll wheel / keys) per the
-      designed 0.75× / 1× / 1.5× levels in `GDD_01_Architecture.md` §Camera Zoom
-      (currently design-only — no code, no input actions). Cross-cutting: touches
-      `CameraController`, `MapCursor`, and every world-anchored overlay/UI (combat
-      preview, HP bars, future damage popups). **Do this first** — build the
-      `Camera2D.zoom` hook and a centralized tile↔screen conversion early; it gets
-      meaningfully harder to retrofit as more world-pinned UI is added. (There is
-      already one zoom-naive spot: `AttackPreview._reposition_for` offsets by a raw
-      32px tile rather than the on-screen tile size.)
+1. [x] **Map zoom** — Implemented. Player-controlled camera zoom (scroll wheel /
+      `+`/`-`/`0`) over eight levels 0.25×–4× (see `GDD_01_Architecture.md` §Camera
+      Zoom). The zoom-aware view math is centralized in `CameraController`
+      (`_visible_world_size()`); `MapCursor` drives the input and persists the level
+      as `SettingsManager.map_zoom_index`; `GameMap` applies it on map load. The one
+      known zoom-naive spot (`AttackPreview._reposition_for`, which offset by a raw
+      tile instead of the on-screen `TILE_SIZE × zoom`) is fixed. Tests in
+      `test_camera_controller.gd` (zoom-1 parity + 0.5×/2× framing/pan).
 2. [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
       picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
       already uses `stretch/mode="canvas_items"`, so UI scales with the window

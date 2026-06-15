@@ -21,6 +21,9 @@ signal back_pressed()
 # Shared key-display helper — renders modifiers (Shift/Ctrl/Alt) so prev_unit
 # (Shift+Tab) is distinguishable from next_unit (Tab) in the list (#3).
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+# Source of truth for the Map Zoom slider's range + factor labels (Display &
+# Accessibility item 1). The stored setting is an index into ZOOM_LEVELS.
+const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
@@ -31,6 +34,8 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _label_sfx: Label          = _vbox.get_node("HBoxSFX/LabelSFX")
 @onready var _slider_camera_buffer: HSlider    = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
 @onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
+@onready var _slider_map_zoom: HSlider         = _vbox.get_node("HBoxMapZoom/SliderMapZoom")
+@onready var _label_map_zoom: Label            = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
 
@@ -107,11 +112,17 @@ func _ready() -> void:
 	_slider_camera_buffer.min_value = 0
 	_slider_camera_buffer.max_value = 5
 	_slider_camera_buffer.step      = 1
+	# Size the zoom slider from CameraController.ZOOM_LEVELS so adding a level only
+	# touches that one array. The slider value IS the stored index.
+	_slider_map_zoom.min_value = 0
+	_slider_map_zoom.max_value = CameraControllerS.ZOOM_LEVELS.size() - 1
+	_slider_map_zoom.step      = 1
 
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
 	_slider_sfx.value_changed.connect(_on_sfx_changed)
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
+	_slider_map_zoom.value_changed.connect(_on_map_zoom_changed)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
 	# hide() is performed by ModalScreen._ready — don't duplicate it.
@@ -130,6 +141,8 @@ func open() -> void:
 	_label_sfx.text      = "%d" % sm.get("sfx_volume")
 	_slider_camera_buffer.value = sm.get("camera_edge_buffer")
 	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
+	_slider_map_zoom.value = sm.get("map_zoom_index")
+	_label_map_zoom.text   = _zoom_label(sm.get("map_zoom_index"))
 	# Schema-driven enum settings: select the index of the stored value (B5).
 	for s in _ENUM_SETTINGS:
 		var btn: OptionButton = _vbox.get_node(s["node"])
@@ -188,6 +201,26 @@ func _on_camera_buffer_changed(value: float) -> void:
 	if sm:
 		sm.set("camera_edge_buffer", int(value))
 		sm.call("save")
+
+
+# The Map Zoom slider value IS the stored index into CameraController.ZOOM_LEVELS;
+# the label shows the human-readable factor (e.g. "1.5x"). The new level takes
+# effect on the next map load (and immediately if a map is active and re-reads it).
+func _on_map_zoom_changed(value: float) -> void:
+	var idx: int = int(value)
+	_label_map_zoom.text = _zoom_label(idx)
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set("map_zoom_index", idx)
+		sm.call("save")
+
+
+# Formats a zoom index as a factor label, e.g. 3 -> "1.0x". Clamps defensively so a
+# stale stored index never indexes past the array.
+func _zoom_label(index: int) -> String:
+	var levels := CameraControllerS.ZOOM_LEVELS
+	var i: int = clampi(index, 0, levels.size() - 1)
+	return "%sx" % str(levels[i])
 
 
 func _on_back() -> void:

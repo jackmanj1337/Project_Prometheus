@@ -30,6 +30,10 @@ var auto_end_turn: bool = true
 # Tiles from the viewport edge that trigger a camera pan (#17). Default mirrors
 # GameConstants.CURSOR_CAMERA_EDGE_BUFFER; MapCursor reads this at scroll time.
 var camera_edge_buffer: int = 2
+# Last map-zoom level, as an index into CameraController.ZOOM_LEVELS (Display &
+# Accessibility item 1). Default 3 == 1.0× (mirrors CameraController.DEFAULT_ZOOM_INDEX).
+# GameMap applies it on map load; MapCursor writes it on every scroll/zoom-key.
+var map_zoom_index: int = 3
 # NOTE: permadeath and leveling_method are per-save gameplay rules, not global
 # preferences — they live on GameState, set via the New Game screen.
 
@@ -81,6 +85,11 @@ func load_settings() -> void:
 	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
 	camera_edge_buffer = clampi(
 		cfg.get_value("gameplay", "camera_edge_buffer", camera_edge_buffer), 0, 5)
+	# Clamp on load: a hand-edited/corrupt cfg or a future change to ZOOM_LEVELS's
+	# length must never feed an out-of-range index into the camera. 8 levels today
+	# (indices 0–7); the upper bound is a static guard, not a hard contract.
+	map_zoom_index = clampi(
+		cfg.get_value("gameplay", "map_zoom_index", map_zoom_index), 0, 7)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
@@ -101,6 +110,7 @@ func save() -> void:
 	cfg.set_value("gameplay", "mouse_cursor",      mouse_cursor)
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
+	cfg.set_value("gameplay", "map_zoom_index",     map_zoom_index)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -125,6 +135,7 @@ func reset_section_to_defaults(section: String) -> void:
 			mouse_cursor      = "enabled"
 			auto_end_turn      = true
 			camera_edge_buffer = 2
+			map_zoom_index     = 3
 		"controls":
 			keybindings = {}
 			_apply_keybindings()

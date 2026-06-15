@@ -108,6 +108,17 @@ func _init() -> void:
 		print("FAIL new gameplay settings: defaults=%s reset=%s" % [defaults_ok, reset_ok])
 		failed += 1
 
+	# ---- map_zoom_index: default 3 (1.0x), reset restores it (Display/Access item 1) ----
+	var zoom_default_ok: bool = sm.map_zoom_index == 3
+	sm.map_zoom_index = 6
+	sm.reset_section_to_defaults("gameplay")
+	var zoom_reset_ok: bool = sm.map_zoom_index == 3
+	if zoom_default_ok and zoom_reset_ok:
+		print("OK  map_zoom_index defaults to 3 (1.0x) and resets"); passed += 1
+	else:
+		print("FAIL map_zoom_index: default=%s reset=%s" % [zoom_default_ok, zoom_reset_ok])
+		failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

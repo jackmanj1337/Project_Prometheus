@@ -404,7 +404,13 @@ func _reposition_for(defender: Node) -> void:
 	if panel_size == Vector2.ZERO:
 		panel_size = _panel.get_combined_minimum_size()
 	var view: Vector2 = get_viewport_rect().size
-	var tile_px: float = float(GameConstants.TILE_SIZE)
+	# On-screen size of one tile = world TILE_SIZE × camera zoom. defender_screen below
+	# is already in canvas/screen space (the canvas transform bakes in camera zoom), so
+	# the offset beside it must be the *screen* tile size, not the raw world constant —
+	# otherwise the panel sits too far/near the defender at any zoom != 1 (Display &
+	# Accessibility item 1d).
+	var zoom_x: float = _camera.zoom.x if _camera != null and _camera.zoom.x > 0.0 else 1.0
+	var tile_px: float = float(GameConstants.TILE_SIZE) * zoom_x
 	var defender_screen: Vector2 = (defender as Node2D).get_global_transform_with_canvas().origin
 
 	var right_left: float = defender_screen.x + tile_px + PANEL_MARGIN_PX
