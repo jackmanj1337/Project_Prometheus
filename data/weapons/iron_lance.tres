@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "iron_lance"
 display_name = "Iron Lance"
-weapon_type = "lance"
-rank = "E"
+combat_family = "lance"
+wexp_track = "lance"
+required_rank = "E"
 mt = 7
 hit = 80
 crit = 0
@@ -19,4 +20,4 @@ cost = 450
 wexp = 1
 effect_tags = []
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

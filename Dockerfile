@@ -50,14 +50,17 @@ RUN wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERS
     chmod +x /usr/local/bin/godot && \
     rm -rf /tmp/godot.zip /tmp/godot_extracted
 
-# ── Godot export templates (needed for export commands) ─────
-# Uncomment if you need to export your game from the container:
-# RUN mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable && \
-#     wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" \
-#         -O /tmp/templates.tpz && \
-#     unzip -q /tmp/templates.tpz -d /tmp/templates && \
-#     mv /tmp/templates/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable/ && \
-#     rm -rf /tmp/templates.tpz /tmp/templates
+# ── Godot export templates (needed for `godot --export-debug` / --export-release).
+# Baked into /opt so they survive the developer-home named volume mount; the
+# bashrc startup hook below symlinks them into the developer's home on first
+# container start. ~1.1 GB download at build time.
+RUN mkdir -p /opt/godot-export-templates/${GODOT_VERSION}.stable && \
+    wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz" \
+        -O /tmp/templates.tpz && \
+    unzip -q /tmp/templates.tpz -d /tmp/templates && \
+    mv /tmp/templates/templates/* /opt/godot-export-templates/${GODOT_VERSION}.stable/ && \
+    rm -rf /tmp/templates.tpz /tmp/templates && \
+    chmod -R a+rX /opt/godot-export-templates
 
 # ── AI coding CLIs ──────────────────────────────────────────
 RUN npm install -g \
@@ -97,6 +100,12 @@ RUN mkdir -p /etc/agents-godot && \
         'alias godot="godot --headless"' \
         'alias ll="ls -lah --color=auto"' \
         'export PS1="\[\e[36m\][godot-ai]\[\e[0m\] \w \$ "' \
+        '# First-run: link baked export templates into the developer-home volume' \
+        '# so godot --export-debug works without manual setup on fresh machines.' \
+        'if [ -d /opt/godot-export-templates ] && [ ! -e "$HOME/.local/share/godot/export_templates" ]; then' \
+        '  mkdir -p "$HOME/.local/share/godot"' \
+        '  ln -s /opt/godot-export-templates "$HOME/.local/share/godot/export_templates"' \
+        'fi' \
         'echo ""' \
         'echo "  🎮  Godot $(godot --version 2>/dev/null | head -1) — headless mode"' \
         'echo "  🤖  Claude Code $(claude --version 2>/dev/null)"' \

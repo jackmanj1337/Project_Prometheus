@@ -8,10 +8,11 @@ extends SceneTree
 var _unit_stub: GDScript
 
 
-func _mk_unit(team_name: String, hp: int) -> Node:
+func _mk_unit(team_name: String, hp: int, unit_id: String = "") -> Node:
 	var d := UnitData.new()
 	d.hp = hp
 	d.max_hp = 20
+	d.unit_id = unit_id
 	var u: Node = _unit_stub.new()
 	u.set("team", team_name)
 	u.set("data", d)
@@ -28,10 +29,26 @@ func _init() -> void:
 	_unit_stub.source_code = "extends Node\nvar team: String = \"blue\"\nvar data = null\n"
 	_unit_stub.reload()
 
+	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
+	dm.name = "DataManager"
+	root.add_child(dm)
+
 	var gs: Node = load("res://scripts/autoloads/GameState.gd").new()
 	gs.name = "GameState"
 	root.add_child(gs)
+	# PairUpRegistry is consulted by get_living_units_of so paired supports
+	# are excluded; load it as an autoload-equivalent for tests that pair units.
+	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+	pair_reg.name = "PairUpRegistry"
+	root.add_child(pair_reg)
 	await process_frame
+
+	if gs.max_skills == 5:
+		print("OK  max_skills defaults to 5")
+		passed += 1
+	else:
+		print("FAIL max_skills default: %d" % gs.max_skills)
+		failed += 1
 
 	# ---- register_unit adds the unit to all_units ----
 	var p1 := _mk_unit("blue", 20)
@@ -71,6 +88,33 @@ func _init() -> void:
 		print("OK  get_living_player_units excludes a dead unit"); passed += 1
 	else:
 		print("FAIL living excludes dead: got %d" % gs.get_living_player_units().size())
+		failed += 1
+
+	# ---- get_living_units_of excludes a paired support ----
+	# A paired support has its tile moved off-grid and its lead has already
+	# consumed the joint action. Counting it as living inflated
+	# are_all_units_done so auto-end-turn never fired (code review 2026-06-09).
+	gs.reset_map_state()
+	pair_reg.call("clear")
+	var lead := _mk_unit("blue", 20, "pp_lead")
+	var support := _mk_unit("blue", 20, "pp_support")
+	gs.register_unit(lead)
+	gs.register_unit(support)
+	var paired_ok: bool = pair_reg.pair("pp_lead", "pp_support")
+	var live_after_pair: Array = gs.get_living_units_of("blue")
+	if paired_ok and live_after_pair.size() == 1 and live_after_pair[0] == lead:
+		print("OK  get_living_units_of excludes a paired support"); passed += 1
+	else:
+		print("FAIL paired support filter: paired=%s live_count=%d" % [
+			paired_ok, live_after_pair.size()]); failed += 1
+
+	# ---- after Separate the support is counted again ----
+	pair_reg.call("separate", "pp_lead")
+	var live_after_sep: Array = gs.get_living_units_of("blue")
+	if live_after_sep.size() == 2:
+		print("OK  get_living_units_of counts the support again after Separate"); passed += 1
+	else:
+		print("FAIL paired support filter after Separate: %d" % live_after_sep.size())
 		failed += 1
 
 	# ---- unregister_unit removes the unit from every list ----
@@ -114,21 +158,59 @@ func _init() -> void:
 	else:
 		print("FAIL reset_map_state"); failed += 1
 
-	# ---- load_default_roster populates player_roster ----
-	gs.load_default_roster()
-	if gs.player_roster.size() > 0:
+	# ---- load_default_roster populates player_roster and explicit roster state ----
+	var default_ok: bool = gs.load_default_roster()
+	if default_ok and gs.player_roster.size() > 0 \
+			and gs.roster_initialized and not gs.roster_load_failed \
+			and gs.active_roster_policy == "default_roster" \
+			and gs.active_roster_source == "res://data/roster/default/":
 		print("OK  load_default_roster loads the roster (%d units)" % gs.player_roster.size())
 		passed += 1
 	else:
 		print("FAIL load_default_roster: roster is empty"); failed += 1
 
+	# ---- export-safe roster manifest lists the default roster in slot order ----
+	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
+	var roster_manifest: Array[String] = ResourceManifest.load_paths("res://data/roster/default/")
+	if roster_manifest.size() == 6 and roster_manifest[0].ends_with("unit_01_cavalier.tres"):
+		print("OK  default roster manifest preserves deployment order"); passed += 1
+	else:
+		print("FAIL default roster manifest: %s" % [roster_manifest]); failed += 1
+
+	# ---- default roster Cavalier movement matches authored class intent ----
+	var cav_ok: bool = false
+	for unit_data in gs.player_roster:
+		if unit_data.class_id == "cavalier":
+			cav_ok = unit_data.movement == 7
+			break
+	if cav_ok:
+		print("OK  default-roster Cavalier movement is 7"); passed += 1
+	else:
+		print("FAIL default-roster Cavalier movement should be 7"); failed += 1
+
 	# ---- load_roster_from_directory loads a fixed test roster ----
-	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
-	if gs.player_roster.size() == 2:
+	var fixed_ok: bool = gs.load_roster_from_directory(
+		"res://data/roster/test/map_900_hotseat_validation/", "fixed_test_roster")
+	if fixed_ok and gs.player_roster.size() == 2 \
+			and gs.roster_initialized and not gs.roster_load_failed \
+			and gs.active_roster_policy == "fixed_test_roster" \
+			and gs.active_roster_source == "res://data/roster/test/map_900_hotseat_validation/":
 		print("OK  load_roster_from_directory loads the fixed test roster (2 units)")
 		passed += 1
 	else:
 		print("FAIL load_roster_from_directory: roster size = %d (want 2)" % gs.player_roster.size())
+		failed += 1
+
+	# ---- bad roster path fails loud and does not leave stale roster state behind ----
+	var missing_ok: bool = not gs.load_roster_from_directory(
+		"res://data/roster/test/does_not_exist/", "fixed_test_roster")
+	if missing_ok and gs.player_roster.is_empty() and not gs.roster_initialized \
+			and gs.roster_load_failed and gs.active_roster_policy == "":
+		print("OK  missing roster path fails without silently leaving an old roster active")
+		passed += 1
+	else:
+		print("FAIL missing roster path state: size=%d initialized=%s failed=%s policy=%s" % [
+			gs.player_roster.size(), gs.roster_initialized, gs.roster_load_failed, gs.active_roster_policy])
 		failed += 1
 
 	# ---- configure_next_map stores the next map path + roster policy ----
@@ -141,6 +223,21 @@ func _init() -> void:
 	else:
 		print("FAIL configure_next_map: path=%s policy=%s source=%s" % [
 			gs.next_map_data_path, gs.next_map_roster_policy, gs.next_map_roster_source]); failed += 1
+
+	# ---- is_roster_ready_for_launch requires explicit roster prep that matches the launch policy ----
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var launch_default_ok: bool = gs.is_roster_ready_for_launch()
+	gs.configure_next_map("res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
+		"fixed_test_roster", "res://data/roster/test/map_900_hotseat_validation/")
+	var launch_fixed_mismatch_ok: bool = not gs.is_roster_ready_for_launch()
+	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/", "fixed_test_roster")
+	var launch_fixed_ok: bool = gs.is_roster_ready_for_launch()
+	if launch_default_ok and launch_fixed_mismatch_ok and launch_fixed_ok:
+		print("OK  is_roster_ready_for_launch enforces explicit roster prep per policy"); passed += 1
+	else:
+		print("FAIL is_roster_ready_for_launch: default=%s mismatch=%s fixed=%s" % [
+			launch_default_ok, launch_fixed_mismatch_ok, launch_fixed_ok]); failed += 1
 
 	# ---- M14 stage 2: are_hostile uses the alliance-group model ----
 	# Default groups: {blue,green} (allies), {red} (foes), {yellow} (rogues).
@@ -227,6 +324,98 @@ func _init() -> void:
 		print("OK  snapshot round-trip: restore_map_snapshot rolls hp back to 20"); passed += 1
 	else:
 		print("FAIL snapshot round-trip: hp=%d (want 20)" % ud.hp); failed += 1
+
+	# ---- malformed snapshot count fails loud before mutating roster state ----
+	var bad_count_unit := UnitData.new()
+	bad_count_unit.hp = 17
+	bad_count_unit.max_hp = 20
+	gs.player_roster = [bad_count_unit] as Array[UnitData]
+	gs._map_start_snapshot = [] as Array[Dictionary]
+	gs._snapshot_party_items = [] as Array[String]
+	gs._snapshot_pair_up_registry = {}
+	var count_restore_ok: bool = not gs.restore_map_snapshot()
+	if count_restore_ok and bad_count_unit.hp == 17:
+		print("OK  restore_map_snapshot rejects snapshot count mismatch without mutating roster"); passed += 1
+	else:
+		print("FAIL snapshot count guard: ok=%s hp=%d" % [count_restore_ok, bad_count_unit.hp]); failed += 1
+
+	# ---- malformed snapshot payload fails loud before applying any fields ----
+	var bad_payload_unit := UnitData.new()
+	bad_payload_unit.hp = 12
+	bad_payload_unit.max_hp = 20
+	bad_payload_unit.weapon_wexp = {"sword": 1}
+	gs.player_roster = [bad_payload_unit] as Array[UnitData]
+	gs._map_start_snapshot = [{
+		"hp": 25,
+		"max_hp": 20,
+		"tile_position": Vector2.ZERO,
+		"inventory": {},
+		"conditions": [],
+		"skills": [],
+		"earned_skills": [],
+		"mastery_skills": [],
+		"active_modifiers": [],
+		"weapon_wexp": [],
+		"skill_use_counters": [],
+		"growth_accumulators": [],
+	}] as Array[Dictionary]
+	gs._snapshot_party_items = ["missing_item"] as Array[String]
+	gs._snapshot_pair_up_registry = {}
+	var payload_restore_ok: bool = not gs.restore_map_snapshot()
+	if payload_restore_ok and bad_payload_unit.hp == 12:
+		print("OK  restore_map_snapshot rejects malformed payloads before partial restore"); passed += 1
+	else:
+		print("FAIL snapshot payload guard: ok=%s hp=%d" % [payload_restore_ok, bad_payload_unit.hp]); failed += 1
+
+	# ---- Debug hotkey handler flips the matching flag in debug builds ----
+	# Headless tests run via the Godot binary which OS.is_debug_build() reports
+	# true for, so we exercise the active path here. The handler ignores events
+	# entirely in release; that branch is verified by inspection of the early
+	# return in GameState._unhandled_input.
+	if OS.is_debug_build():
+		gs.debug_force_levelup = false
+		gs.debug_growth_boost = false
+		# InputEventAction carries an action name + pressed flag; the handler's
+		# event.is_action_pressed() lookup matches it via InputMap.
+		var ev_fl := InputEventAction.new()
+		ev_fl.action = "debug_toggle_force_levelup"
+		ev_fl.pressed = true
+		gs._unhandled_input(ev_fl)
+		var force_ok: bool = gs.debug_force_levelup == true
+		gs._unhandled_input(ev_fl)  # second press toggles back off
+		force_ok = force_ok and (gs.debug_force_levelup == false)
+
+		var ev_gb := InputEventAction.new()
+		ev_gb.action = "debug_toggle_growth_boost"
+		ev_gb.pressed = true
+		gs._unhandled_input(ev_gb)
+		var growth_ok: bool = gs.debug_growth_boost == true
+		gs._unhandled_input(ev_gb)
+		growth_ok = growth_ok and (gs.debug_growth_boost == false)
+
+		if force_ok and growth_ok:
+			print("OK  debug hotkeys toggle force_levelup / growth_boost on and back off"); passed += 1
+		else:
+			print("FAIL debug hotkeys: force_ok=%s growth_ok=%s" % [force_ok, growth_ok])
+			failed += 1
+		var force_events: Array = InputMap.action_get_events("debug_toggle_force_levelup")
+		var growth_events: Array = InputMap.action_get_events("debug_toggle_growth_boost")
+		var binding_ok: bool = (
+			not force_events.is_empty()
+			and not growth_events.is_empty()
+			and force_events[0] is InputEventKey
+			and growth_events[0] is InputEventKey
+			and force_events[0].keycode == KEY_F10
+			and growth_events[0].keycode == KEY_F11
+		)
+		if binding_ok:
+			print("OK  debug keybindings: force-levelup on F10, growth-boost on F11"); passed += 1
+		else:
+			print("FAIL debug keybindings: force=%s growth=%s" % [
+				str(force_events), str(growth_events)])
+			failed += 1
+	else:
+		print("SKIP debug hotkey test (not a debug build)")
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

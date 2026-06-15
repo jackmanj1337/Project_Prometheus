@@ -148,7 +148,9 @@ func get_equipped_weapon(): return _w
 	var staff_unit: Node = staff_unit_script.new()
 	root.add_child(staff_unit)
 	var heal_staff := WeaponData.new()
-	heal_staff.weapon_type = "staff"
+	heal_staff.combat_family = "staff"
+	heal_staff.wexp_track = "staff"
+	heal_staff.required_rank = "E"
 	# Typed-array literal — bare [] won't satisfy Array[String]; assign via local.
 	var tags: Array[String] = [GameConstants.TAG_HEAL_PLUS_MAG]
 	heal_staff.effect_tags = tags

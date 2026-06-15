@@ -19,12 +19,18 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 var _camera: Camera2D = null
 var _grid: Node = null  # GridManager — typed as Node to avoid a cyclic preload
 
-# PT4 #2: snapshot of the player's view at the moment the player phase ends,
-# restored at the start of the next player phase. AI-phase tracking (#7) pans
-# the camera onto each acting enemy, which would otherwise leave the camera
-# adrift wherever the last enemy stood.
-var _saved_position: Vector2 = Vector2.ZERO
-var _has_saved: bool = false
+# PT4 #2: snapshot of each faction's camera view at the moment its phase ends,
+# restored at the start of that faction's next phase. AI-phase tracking (#7)
+# pans the camera onto each acting enemy, which would otherwise leave the
+# camera adrift wherever the last enemy stood.
+#
+# Keyed by faction id so hotseat factions (M14 stage 5) each keep their own
+# view across rounds — a hotseat green player resumes wherever they left off,
+# and an intervening green phase no longer overwrites blue's saved view (code
+# review 2026-06-09). save_view() / restore_view() called with no faction id
+# stay back-compatible with pre-M14 callers and the test seam.
+const _DEFAULT_FACTION_KEY := "blue"
+var _saved_positions: Dictionary = {}
 
 
 func setup(camera: Camera2D, grid: Node) -> void:
@@ -101,19 +107,69 @@ func clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	return tile
 
 
-# Saves the current camera position. Restored at the next phase change back to
-# PLAYER so AI-phase tracking doesn't drag the player to a different view (PT4 #2).
-func save_view() -> void:
-	if _camera != null:
-		_saved_position = _camera.position
-		_has_saved = true
+# Nudges the camera by a pixel delta, clamped so the view never shows blank
+# space past the map. Used by AttackPreview to shift the camera horizontally
+# when the preview panel does not fit on either side of the defender on the
+# current viewport. Pixel granularity (not whole-tile) so the camera lands
+# exactly where the preview needs it, not the nearest tile boundary.
+func pan_by_pixels(delta_px: Vector2) -> void:
+	if _camera == null or _grid == null or delta_px == Vector2.ZERO:
+		return
+	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var half := view * 0.5
+	var map_size := Vector2(_grid.map_width, _grid.map_height) * GameConstants.TILE_SIZE
+	var target := _camera.position + delta_px
+	# Camera position is the view CENTRE. Min centre = half view (so left edge
+	# = 0); max centre = map_size - half (so right edge = map_size). Clamp on
+	# each axis independently so a tall-but-narrow map still pans horizontally.
+	var min_x: float = half.x
+	var max_x: float = max(half.x, map_size.x - half.x)
+	var min_y: float = half.y
+	var max_y: float = max(half.y, map_size.y - half.y)
+	target.x = clampf(target.x, min_x, max_x)
+	target.y = clampf(target.y, min_y, max_y)
+	_camera.position = target
 
 
-# Restores the saved view. Returns true if a restore happened, false if save_view
-# has never been called (e.g. very first player phase — GameMap's initial placement
-# is the right source then).
-func restore_view() -> bool:
-	if not _has_saved or _camera == null:
+# Nudges the camera by whole tiles, clamped to the authored map bounds. Used by
+# mouse-edge camera panning so a moving mouse can scroll the view without
+# feeding directly back into cursor->camera recursion.
+func nudge_by_tiles(delta: Vector2i) -> bool:
+	if _camera == null or _grid == null or delta == Vector2i.ZERO:
 		return false
-	_camera.position = _saved_position
+	var view: Vector2 = _camera.get_viewport().get_visible_rect().size
+	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
+	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
+	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
+	var next_tl := tl + delta
+	next_tl.x = clamp(next_tl.x, 0, max(0, _grid.map_width - tiles_w))
+	next_tl.y = clamp(next_tl.y, 0, max(0, _grid.map_height - tiles_h))
+	if next_tl == tl:
+		return false
+	_camera.position = _grid.tile_to_world(next_tl) + view * 0.5
+	return true
+
+
+# Saves the current camera position for `faction_id`. Restored at the next
+# phase change back to that faction so AI-phase tracking doesn't drag the
+# camera to a different view (PT4 #2). Empty faction id falls back to the
+# default key so pre-M14 callers and tests that didn't track factions still
+# round-trip correctly.
+func save_view(faction_id: String = "") -> void:
+	if _camera == null:
+		return
+	var key: String = faction_id if faction_id != "" else _DEFAULT_FACTION_KEY
+	_saved_positions[key] = _camera.position
+
+
+# Restores `faction_id`'s saved view. Returns true if a restore happened, false
+# if save_view has never been called for that faction (e.g. very first phase —
+# GameMap's initial placement is the right source then).
+func restore_view(faction_id: String = "") -> bool:
+	if _camera == null:
+		return false
+	var key: String = faction_id if faction_id != "" else _DEFAULT_FACTION_KEY
+	if not _saved_positions.has(key):
+		return false
+	_camera.position = _saved_positions[key]
 	return true

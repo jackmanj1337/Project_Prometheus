@@ -1,5 +1,9 @@
 # Plan — Hotseat Validation Map + Map Selector
 
+> **Historical** — M15 Part A foundations landed 2026-05-21. Manual validation
+> checklist migrated to `AGENT/Docs/manual_test_playbook.md`. Retained for the
+> original design rationale.
+
 **Date:** 2026-05-21
 **Scope:** Finish M15 Part A's remaining content and manual verification work.
 **Status:** Planning only.
@@ -223,3 +227,30 @@ This order avoids creating a new test map that still has to be launched by hand.
 - Per-phase custom keybindings
 - Remote/LAN play
 - New objective-system coverage beyond what the current rout objective already gives
+
+---
+
+## 8. Locked design decisions — 2026-05-25 review
+
+The four M15 Part A open questions from
+`AGENT/Session Notes/2026-05-25.md` were resolved before the manual-validation
+pass starts. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md` and
+`GDD_10_Roadmap.md` § Milestone 15 Part A.
+
+- **Per-player keybindings — skipped for Part A.** All hotseat slots share the
+  existing single `InputMap` action set. Per-player binding profiles defer to
+  the same later backlog item that picks up split-controller / shared-couch
+  co-op. (Already listed under §7 *Out of Scope*; restated here as a locked
+  decision rather than a deferral.)
+- **Hotseat assignment — per-map data + CLI/dev override.** Each map's `.tres`
+  declares its factions' default controllers (`AI` or `HOTSEAT`). A CLI/dev
+  flag (e.g. `--hotseat=red:human2,green:ai`) may override the defaults for
+  testing and regression fixtures. **No pre-battle lobby UI lands in Part A.**
+  The map selector planned in §4 is the only launch path; lobby UI arrives
+  with the prep work later.
+- **HUD phase banner shows `Faction — Controller` text.** The HUD label format
+  is e.g. `Red — Player 2` or `Green — AI`. Faction-first matches the in-game
+  identity; the controller half eliminates the "whose turn is it?" ambiguity
+  for hotseat sessions. Icons may decorate but must not replace the text.
+- **`ALTERNATING` hotseat — fully out of Part A.** Revisited only after the
+  extra-turn / activation-scheduler work is settled. Already covered in §7.

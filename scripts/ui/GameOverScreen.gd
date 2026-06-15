@@ -87,4 +87,7 @@ func _on_retry() -> void:
 
 func _on_quit() -> void:
 	# Return to Boot/MainMenu — Boot re-routes to MainMenu in non-dev builds
+	var gs := get_node_or_null("/root/GameState")
+	if gs and gs.has_method("reset_map_state"):
+		gs.reset_map_state()
 	get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")

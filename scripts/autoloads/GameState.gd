@@ -60,9 +60,14 @@ func get_alliance_group(faction_id: String) -> String:
 var permadeath_enabled: bool = false
 var leveling_method: String = "growth_random"
 var auto_promote_at_max_level: bool = false
+# Campaign-level Pair Up toggle. Default On (Awakening behavior). When false,
+# PairUpRegistry.pair() refuses to create new pairings; existing pairings from
+# a snapshot are still restored and separable so the rule can be flipped
+# mid-campaign without leaving the save in an inconsistent state.
+var pair_up_enabled: bool = true
 # max_skills now gates auto-equipped learned skills (M6.3), but there is still
 # no battle-prep UI for manual swapping. max_inventory remains future-facing.
-var max_skills: int = 4
+var max_skills: int = 5
 var max_inventory: int = 8
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
@@ -85,7 +90,7 @@ var debug_force_levelup: bool:   # #10: any landed hit awards a full level
 		if _debug_force_levelup_v == v: return
 		_debug_force_levelup_v = v
 		_emit_debug_flags_changed()
-var debug_growth_boost: bool:    # #11: +50 to every growth rate on level-up
+var debug_growth_boost: bool:    # #11: +300 to every growth rate on level-up
 	get:
 		return _debug_growth_boost_v
 	set(v):
@@ -101,6 +106,21 @@ func _emit_debug_flags_changed() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus and bus.has_signal("debug_flags_changed"):
 		bus.debug_flags_changed.emit()
+
+
+# Debug hotkey handler. F10 toggles debug_force_levelup, F11 toggles
+# debug_growth_boost. Gated on OS.is_debug_build() so the action firing in a
+# release build is a no-op even if the input binding remains registered —
+# matches the existing gate on the flags themselves (callers check the same).
+# Actions are absent from the SettingsScreen keybinding list in release per
+# the OS.is_debug_build() filter in _populate_keybindings.
+func _unhandled_input(event: InputEvent) -> void:
+	if not OS.is_debug_build():
+		return
+	if event.is_action_pressed("debug_toggle_force_levelup"):
+		debug_force_levelup = not debug_force_levelup
+	elif event.is_action_pressed("debug_toggle_growth_boost"):
+		debug_growth_boost = not debug_growth_boost
 
 # Current map state
 var current_phase: Phase = Phase.PLAYER
@@ -119,10 +139,16 @@ var map_data: MapData = null
 var player_roster: Array[UnitData] = []
 var party_gold: int = 0
 var party_items: Array[String] = []  # item IDs awarded by completed maps
+# Explicit roster-launch state. This separates "roster was never prepared",
+# "roster prep failed", and "roster is ready for the selected launch policy".
+var roster_initialized: bool = false
+var roster_load_failed: bool = false
+var active_roster_policy: String = ""
+var active_roster_source: String = ""
 # New Game / map-select launch state. The selected map path persists so retries
 # and direct scene reloads stay on the same map until another selection is made.
 var next_map_data_path: String = ""
-var next_map_roster_policy: String = "default_roster"
+var next_map_roster_policy: String = ""
 var next_map_roster_source: String = ""
 
 # Deep copy taken at map start; used by the Retry button to restore state
@@ -132,6 +158,10 @@ var _map_start_snapshot: Array[Dictionary] = []
 # state, instead of letting a replay re-grant them.
 var _snapshot_party_gold: int = 0
 var _snapshot_party_items: Array[String] = []
+# Pair Up registry snapshot — captures all map-start pairings (designer-set or
+# otherwise) so a Retry restores them exactly. Lives here rather than on the
+# registry so all map-scoped snapshot state is owned by one author.
+var _snapshot_pair_up_registry: Dictionary = {}
 
 
 func register_unit(unit: Node) -> void:
@@ -169,9 +199,51 @@ func set_phase(new_phase: Phase, faction_id: String = "") -> void:
 		bus.emit_signal("phase_changed", new_phase, faction_id)
 
 
+# Returns the registered Unit Node whose data.unit_id matches the given id,
+# or null if no live unit carries that id. Empty / unknown ids return null.
+# Walks all_units rather than the per-faction buckets because Pair Up callers
+# need the lookup to work even when the support is off-map; faction filtering
+# is incidental, identity is not.
+func find_unit_by_id(unit_id: String) -> Node:
+	if unit_id == "":
+		return null
+	for u in all_units:
+		if is_instance_valid(u) and u.data != null and u.data.unit_id == unit_id:
+			return u
+	return null
+
+
 # M14 stage 3: living units of an arbitrary faction. filter() returns a generic
 # Array, so build Array[Node] explicitly. A missing faction returns [].
+#
+# Paired supports are excluded: while a unit is the support side of a Pair Up
+# its tile_position is the OFF_MAP_TILE sentinel, the player cannot select it,
+# and its lead has already consumed the joint action. Counting it as "living"
+# here inflated are_all_units_done so auto-end-turn never fired, and made
+# MapCursor._cycle_to_next_unit Tab onto the (-1, -1) sentinel. Liveness
+# queries that need every unit alive regardless of pair role (objective
+# evaluators) already use find_unit_by_id / escape records, not this method.
 func get_living_units_of(faction_id: String) -> Array[Node]:
+	var result: Array[Node] = []
+	var bucket: Array[Node] = _units_by_faction.get(faction_id, [] as Array[Node])
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	for u in bucket:
+		if not is_instance_valid(u) or u.data == null or u.data.hp <= 0:
+			continue
+		if reg != null and u.data.unit_id != "" \
+				and reg.call("is_support", u.data.unit_id):
+			continue
+		result.append(u)
+	return result
+
+
+# True liveness of a faction, INCLUDING paired supports. Objective evaluators
+# (rout victory/defeat) must count a hidden support as a living member — a pair's
+# support is still an undefeated unit even though it sits off-map. This differs
+# from get_living_units_of, which deliberately drops supports for unit selection,
+# Tab cycling, and are_all_units_done accounting. Mixing the two let an
+# allied/enemy Rout resolve while a support was still alive (playtest v0.1.4 #4).
+func get_all_living_units_of(faction_id: String) -> Array[Node]:
 	var result: Array[Node] = []
 	var bucket: Array[Node] = _units_by_faction.get(faction_id, [] as Array[Node])
 	for u in bucket:
@@ -227,6 +299,11 @@ func reset_map_state() -> void:
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
+	# Pair Up state is map-scoped; drop pairings between maps so a new map
+	# starts unpaired regardless of how the previous one ended.
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("clear")
 
 
 func configure_next_map(map_path: String, roster_policy: String = "default_roster",
@@ -238,43 +315,42 @@ func configure_next_map(map_path: String, roster_policy: String = "default_roste
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
 # Called by MainMenu on "New Game" for MVP.
-func load_default_roster() -> void:
-	load_roster_from_directory("res://data/roster/default/")
+func load_default_roster() -> bool:
+	return load_roster_from_directory("res://data/roster/default/", "default_roster")
 
 
-func load_roster_from_directory(roster_path: String) -> void:
-	player_roster.clear()
-	var dir := DirAccess.open(roster_path)
-	if dir == null:
+func load_roster_from_directory(roster_path: String, roster_policy: String = "fixed_test_roster") -> bool:
+	_clear_roster_launch_state()
+	var resource_paths: Array[String] = ResourceManifest.load_paths(roster_path)
+	if resource_paths.is_empty():
 		push_error("GameState: cannot open roster directory: " + roster_path)
-		# Emit defeat so the game doesn't silently start with zero player units
-		var bus := get_node_or_null("/root/EventBus")
-		if bus:
-			bus.map_defeat.emit()
-		return
-	# Load in filename order so slot numbering stays consistent
-	var files: Array[String] = []
-	dir.list_dir_begin()
-	var fname := dir.get_next()
-	while fname != "":
-		if fname.ends_with(".tres"):
-			files.append(fname)
-		fname = dir.get_next()
-	dir.list_dir_end()
-	files.sort()
-	for f in files:
+		roster_load_failed = true
+		return false
+	var loaded_roster: Array[UnitData] = []
+	var had_errors: bool = false
+	for res_path in resource_paths:
 		# load() can return null for a corrupt .tres even though the file exists;
 		# null-check before .duplicate() so a bad file is skipped, not a crash.
-		var loaded := load(roster_path + f)
+		var loaded := load(res_path)
 		if loaded == null:
-			push_error("GameState: failed to load roster file '%s' — skipping" % f)
+			push_error("GameState: failed to load roster file '%s' — skipping" % res_path)
+			had_errors = true
+			continue
+		# Explicit type check before the typed-variable assignment below: a stray
+		# non-UnitData resource (e.g. ClassData accidentally saved here) would
+		# otherwise trigger a typed-assignment crash rather than the friendly
+		# skip path. Code review 2026-06-09 issue #4.
+		if not (loaded is UnitData):
+			push_error("GameState: roster file '%s' is not UnitData — skipping" % res_path)
+			had_errors = true
 			continue
 		var res: UnitData = loaded.duplicate(true)
 		if res:
 			# push_error + continue (not assert) so a bad .tres is skipped in
 			# release builds, where assert() is stripped.
 			if res.unit_id == "":
-				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % f)
+				push_error("GameState: roster file '%s' has empty unit_id — set it in the .tres" % res_path)
+				had_errors = true
 				continue
 			var dm := get_node_or_null("/root/DataManager")
 			if dm != null and not dm.get_all_classes().is_empty():
@@ -282,8 +358,103 @@ func load_roster_from_directory(roster_path: String) -> void:
 				if not unit_errors.is_empty():
 					for err in unit_errors:
 						push_error(err)
+					had_errors = true
 					continue
-			player_roster.append(res)
+			loaded_roster.append(res)
+	if had_errors or loaded_roster.is_empty():
+		if loaded_roster.is_empty():
+			push_error("GameState: roster load produced no valid units from '%s'" % roster_path)
+		player_roster.clear()
+		roster_load_failed = true
+		return false
+	player_roster = loaded_roster
+	roster_initialized = true
+	active_roster_policy = roster_policy
+	active_roster_source = roster_path
+	return true
+
+
+func is_roster_ready_for_launch() -> bool:
+	if roster_load_failed or not roster_initialized:
+		return false
+	match next_map_roster_policy:
+		"default_roster":
+			return active_roster_policy == "default_roster" \
+				and active_roster_source == "res://data/roster/default/" \
+				and not player_roster.is_empty()
+		"fixed_test_roster":
+			return next_map_roster_source != "" \
+				and active_roster_policy == "fixed_test_roster" \
+				and active_roster_source == next_map_roster_source \
+				and not player_roster.is_empty()
+		"keep_current_roster":
+			return not player_roster.is_empty()
+		_:
+			return false
+
+
+func _clear_roster_launch_state() -> void:
+	player_roster.clear()
+	roster_initialized = false
+	roster_load_failed = false
+	active_roster_policy = ""
+	active_roster_source = ""
+
+
+func validate_restore_snapshot_state() -> Array[String]:
+	var errors: Array[String] = []
+	if _map_start_snapshot.size() != player_roster.size():
+		errors.append("GameState: snapshot unit count %d does not match player_roster size %d" % [
+			_map_start_snapshot.size(), player_roster.size()])
+	for i in _map_start_snapshot.size():
+		var snap: Variant = _map_start_snapshot[i]
+		if not (snap is Dictionary):
+			errors.append("GameState: snapshot entry %d is not a Dictionary" % i)
+			continue
+		_validate_snapshot_unit_dict(snap, i, errors)
+	if not (_snapshot_party_items is Array):
+		errors.append("GameState: snapshot party_items is not an Array")
+	else:
+		var dm := get_node_or_null("/root/DataManager")
+		for item_id_var in _snapshot_party_items:
+			var item_id: String = String(item_id_var)
+			if item_id == "":
+				errors.append("GameState: snapshot party_items contains an empty item id")
+			elif dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)):
+				errors.append("GameState: snapshot party_items item '%s' not found" % item_id)
+	if not (_snapshot_pair_up_registry is Dictionary):
+		errors.append("GameState: snapshot Pair Up registry is not a Dictionary")
+	return errors
+
+
+func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[String]) -> void:
+	var required_array_keys := ["inventory", "conditions", "skills", "earned_skills",
+		"mastery_skills", "active_modifiers"]
+	var required_dict_keys := ["weapon_wexp", "skill_use_counters", "growth_accumulators"]
+	if not snap.has("hp") or not snap.has("max_hp"):
+		errors.append("GameState: snapshot entry %d is missing hp/max_hp" % index)
+	else:
+		var hp: int = int(snap.get("hp", -1))
+		var max_hp: int = int(snap.get("max_hp", -1))
+		if max_hp < 1:
+			errors.append("GameState: snapshot entry %d max_hp must be >= 1" % index)
+		if hp < 0:
+			errors.append("GameState: snapshot entry %d hp cannot be negative" % index)
+		elif max_hp >= 1 and hp > max_hp:
+			errors.append("GameState: snapshot entry %d hp %d exceeds max_hp %d" % [
+				index, hp, max_hp])
+	if snap.has("tile_position") and not (snap["tile_position"] is Vector2i):
+		errors.append("GameState: snapshot entry %d tile_position is not a Vector2i" % index)
+	for key in required_array_keys:
+		if not snap.has(key):
+			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
+		elif not (snap[key] is Array):
+			errors.append("GameState: snapshot entry %d '%s' is not an Array" % [index, key])
+	for key in required_dict_keys:
+		if not snap.has(key):
+			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
+		elif not (snap[key] is Dictionary):
+			errors.append("GameState: snapshot entry %d '%s' is not a Dictionary" % [index, key])
 
 
 # Deep-copies all player UnitData fields into _map_start_snapshot.
@@ -294,11 +465,21 @@ func take_map_snapshot() -> void:
 		_map_start_snapshot.append(_snapshot_unit_data(unit_data))
 	_snapshot_party_gold = party_gold
 	_snapshot_party_items = party_items.duplicate()
+	# Pair Up state is part of the map start state; capture it so Retry rewinds
+	# pairings alongside HP/inventory. Empty dict if no registry is loaded
+	# (e.g. headless tests that omit the autoload).
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	_snapshot_pair_up_registry = reg.call("serialize") if reg else {}
 
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.
 # Called by GameOverScreen's Retry button.
-func restore_map_snapshot() -> void:
+func restore_map_snapshot() -> bool:
+	var snapshot_errors: Array[String] = validate_restore_snapshot_state()
+	if not snapshot_errors.is_empty():
+		for err in snapshot_errors:
+			push_error(err)
+		return false
 	for i in player_roster.size():
 		if i < _map_start_snapshot.size():
 			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
@@ -306,7 +487,14 @@ func restore_map_snapshot() -> void:
 	party_gold = _snapshot_party_gold
 	party_items = _snapshot_party_items.duplicate()
 	reset_map_state()
+	# reset_map_state cleared the registry; reapply the snapshotted pairings so
+	# Retry lands on the same paired layout the map started with. Done AFTER
+	# reset so the clear-then-restore order is deterministic.
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("restore", _snapshot_pair_up_registry)
 	# Caller is responsible for reloading the scene after this returns.
+	return true
 
 
 func _snapshot_unit_data(data: UnitData) -> Dictionary:
@@ -333,10 +521,10 @@ func _snapshot_unit_data(data: UnitData) -> Dictionary:
 		"luck": data.luck,
 		"exp": data.exp,
 		"level": data.level,
-		"effective_level": data.effective_level,
+		"internal_level": data.internal_level,
 		"is_promoted": data.is_promoted,
 		"class_line_id": data.class_line_id,
-		"proficiencies": data.proficiencies.duplicate(true),
+		"weapon_wexp": data.weapon_wexp.duplicate(true),
 		"inventory": inventory_copy,
 		"conditions": data.conditions.duplicate(true),
 		"skills": data.skills.duplicate(true),
@@ -368,10 +556,10 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.luck = snap.get("luck", data.luck)
 	data.exp = snap.get("exp", 0)
 	data.level = snap.get("level", data.level)
-	data.effective_level = snap.get("effective_level", data.effective_level)
+	data.internal_level = snap.get("internal_level", data.internal_level)
 	data.is_promoted = snap.get("is_promoted", data.is_promoted)
 	data.class_line_id = snap.get("class_line_id", data.class_line_id)
-	data.proficiencies = snap.get("proficiencies", {}).duplicate(true)
+	data.weapon_wexp = snap.get("weapon_wexp", {}).duplicate(true)
 	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
 	# fresh copy rather than aliasing the one stored in the snapshot.
 	data.inventory.clear()
@@ -391,3 +579,4 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)
 	data.shift_gauge = snap.get("shift_gauge", 0.0)
 	data.is_shifted = snap.get("is_shifted", false)
+const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")

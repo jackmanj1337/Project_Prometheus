@@ -1,28 +1,59 @@
 # GDD_04 — Weapons & Items
 
+**Status:** Active contract — split status per section (project weapon/item data is
+**Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
+in `GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-14
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns weapon-family definitions, per-weapon/per-item data, the **rank-scaled
+triangle bonus table**, WEXP thresholds/caps/gain/migration detail, effectiveness data,
+and the item economy (selling, forging, inventory). The **combat application** of these
+rules — how triangle, WEXP, durability, and effectiveness feed the exchange — is owned by
+`GDD_02`. Resource/serialization schemas (`InventoryEntry`, `WeaponData`, `ItemData`) are
+owned by `GDD_01`. Class WEXP baselines/caps live in `GDD_03`.
+
 ---
 
 ## Weapon System Overview
 
-Weapons are `WeaponData` resources stored in `data/weapons/`. Units carry weapons
-and items together in a single inventory (`UnitData.inventory`) — an
-`Array[InventoryEntry]` where each `InventoryEntry` has an `entry_type` of
-`"weapon"`, `"item"`, or `"equip"`. Any slot can hold either a weapon or an item.
+Status: **Implemented**
+Last verified: 2026-06-13
 
-See **GDD_01 → InventoryEntry.gd** for the full resource definition.
+### Summary
+Weapons are `WeaponData` resources in `data/weapons/`; units carry weapons and items
+together in one inventory.
 
-`Unit.get_equipped_weapon()` filters for `is_weapon()` entries only and returns the
-first one the unit can use. Items are accessed separately via the Item action.
+### Specs
+- `UnitData.inventory` is an `Array[InventoryEntry]`; each entry's `entry_type` is
+  `"weapon"`, `"item"`, or `"equip"`. Any slot can hold either a weapon or an item
+  (full `InventoryEntry` definition → GDD_01).
+- `Unit.get_equipped_weapon()` filters for `is_weapon()` entries and returns the first
+  one the unit can use. Items are accessed separately via the Item action.
+- A unit can equip any inventory entry that: (1) is a weapon entry (`is_weapon()`),
+  (2) matches one of the unit's proficiency tracks, (3) is at/below the unit's current
+  rank for that track, (4) still has uses (`has_uses()`, `uses_remaining != 0`).
 
-A unit can equip any inventory entry that:
-1. Is a weapon entry (`is_weapon()`)
-2. Matches one of the unit's proficiency types
-3. Is at or below the unit's current rank for that type
-4. Still has uses (`has_uses()` — `uses_remaining != 0`)
+### Anchors
+- Code: `scripts/resources/WeaponData.gd`, `scripts/units/Unit.gd`
+- Schema owner: GDD_01 (`InventoryEntry` / `WeaponData` fields)
 
 ---
 
-## Weapon Types and Triangle Membership
+## Weapon Families & Triangle Membership
+
+Status: **Split** — project families/relationships **Implemented**; rank-scaled corpus bonuses **Target design** (SET-003 / RULE-013)
+Last verified: 2026-06-13
+
+### Summary
+Two triangles (physical + project magic). This section owns the **family table and the
+rank-scaled bonus table**; the combat-facing triangle summary lives in `GDD_02 §Weapon
+Triangle`.
+
+### Specs
+
+**Implemented (project families).**
 
 | Type | Triangle | Notes |
 |---|---|---|
@@ -39,126 +70,208 @@ A unit can equip any inventory entry that:
 | Staff | None | Targets allies (healing) or enemies (status — Phase 2) |
 | Fang/Claw/Talon/Beak | None | Laguz only (Phase 2) |
 
----
+- Project relationships are retained: physical **Sword → Axe → Lance**; magic
+  **Dark → Anima → Light** (the project keeps the Dark/Anima/Light ordering — see SET-003).
+- A type has no advantage vs itself; bows, knives, staves have no triangle interaction.
+- **Hybrid weapons** (e.g. Sonic Sword, Bolt Axe) carry a magic `triangle_family` and
+  their physical `combat_family` at once; use whichever gives advantage.
+  `get_triangle_family()` falls back to `combat_family` when `triangle_family` is unset.
 
-## MVP Weapons
+**Target design (rank-scaled triangle bonus, SET-003 / RULE-013).** Both triangles adopt
+the corpus **rank-scaled** advantage table (replacing the current flat ±10 Hit / ±2 Damage
+in GDD_02). The bonus magnitude is driven by the **equipped weapon's trained WEXP track**;
+`triangle_family` only sets the *relationship* — there is no second hidden magic rank.
 
-These are the minimum weapons needed for the MVP map. One weapon per role.
-Expand freely from the handbook weapon tables in Phase 2.
-
-### Swords
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | wEXP |
-|---|---|---|---|---|---|---|---|---|---|
-| Iron Sword | E | 6 | 85 | 0 | 1 | 7 | 45 | 460 | 1 |
-| Steel Sword | D | 9 | 75 | 0 | 1 | 12 | 35 | 700 | 2 |
-
-### Lances
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | wEXP |
-|---|---|---|---|---|---|---|---|---|---|
-| Iron Lance | E | 7 | 80 | 0 | 1 | 8 | 45 | 450 | 1 |
-| Javelin | E | 6 | 75 | 0 | 1–2 | 11 | 25 | 500 | 1 |
-
-### Bows
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | Effect | wEXP |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Iron Bow | E | 6 | 85 | 0 | 2 | 5 | 45 | 540 | effective_flying | 1 |
-
-### Fire Tomes (Anima)
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | Effect | wEXP |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Fire | E | 4 | 80 | 0 | 1–2 | 2 | 40 | 600 | effective_beast | 1 |
-| Elfire | D | 5 | 70 | 5 | 1–2 | 4 | 30 | 900 | effective_beast | 1 |
-
-### Thunder Tomes (Anima)
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | Effect | wEXP |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Thunder | E | 5 | 75 | 0 | 1–2 | 3 | 40 | 700 | effective_dragon | 1 |
-
-### Wind Tomes (Anima)
-
-| Name | Rank | Mt | Hit | Crit | Range | Wt | Uses | Cost | Effect | wEXP |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Wind | E | 3 | 85 | 0 | 1–2 | 1 | 40 | 500 | effective_flying | 1 |
-
-### Staves
-
-| Name | Rank | Hit | Effect | Range | Wt | Uses | Cost | wEXP |
-|---|---|---|---|---|---|---|---|---|
-| Heal | E | — | Heals 10 + MAG HP to target | 1 | 2 | 40 | 700 | 1 |
-
----
-
-## Effectiveness Mechanic
-
-When a weapon has an `effective_*` tag matching a defending unit's special quality,
-the weapon's Mt is treated as **3× its listed value** for damage calculation.
-
-```gdscript
-var effective_mt = weapon.mt
-if weapon.effect_tags.has("effective_flying") and defender.has_quality("flying"):
-    effective_mt = weapon.mt * 3
-var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
-```
-
----
-
-## Effect Tags Reference
-
-Effect tags are strings stored in `WeaponData.effect_tags`. **Reference them via the
-`GameConstants.TAG_*` constants — never raw strings — so a typo is a compile error,
-not a silent miss.**
-
-### Implemented tags
-
-| Tag | `GameConstants` constant | Effect |
+| Equipped rank | Advantage | Disadvantage |
 |---|---|---|
-| `effective_flying` | `TAG_EFFECTIVE_FLYING` | 3× Mt vs units with the `flying` quality |
-| `effective_armoured` | `TAG_EFFECTIVE_ARMOURED` | 3× Mt vs `armoured` |
-| `effective_mounted` | `TAG_EFFECTIVE_MOUNTED` | 3× Mt vs `mounted` |
-| `effective_dragon` | `TAG_EFFECTIVE_DRAGON` | 3× Mt vs `dragon` |
-| `effective_beast` | `TAG_EFFECTIVE_BEAST` | 3× Mt vs `beast` |
-| `heal_10_plus_mag` | `TAG_HEAL_PLUS_MAG` | Marks a staff as a healing staff (`is_healing_staff()`) |
+| E / D | Hit +5 | Hit −5 |
+| C | Hit +10 | Hit −10 |
+| B | Hit +10, Atk +1 | Hit −10, Atk −1 |
+| A | Hit +15, Atk +1 | Hit −15, Atk −1 |
+| S | corpus/source-defined | corpus/source-defined |
 
-The effectiveness multiplier is **3×** normally, **4×** with the Giantkiller skill.
+Provenance: `GDD_Adoption_Matrix.md` → `awakening_lookup_tables.md` (Weapon Triangle
+Advantage Table / Weapon Triangle Participation). Not yet implemented — current behavior
+is the flat project bonus in GDD_02.
 
-### Not tags — dedicated `WeaponData` fields
+### Anchors
+- Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),
+  `GameConstants.WEAPON_TRIANGLE`, `scripts/resources/WeaponData.gd` (`triangle_family`)
+- Tests: `scripts/tests/test_data_manager.gd`
+- Decisions: SET-003, RULE-013
+- Owner of combat application: GDD_02 §Weapon Triangle
+- Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
 
-| Mechanic | Field |
-|---|---|
-| 2 strikes before the counter (Brave weapons) | `strikes_per_attack = 2` |
-| Uses MAG, targets RES (tomes) | `uses_mag = true` |
-| Hybrid-weapon magic triangle | `magic_triangle_type` |
+---
 
-### Designed but not yet implemented (Phase 2)
+## Weapon Data & Tables
 
-`poison` (apply Poison on hit), `heal_on_hit` (lifesteal), `ignores_def` /
-`ignores_half_def`, `always_hits`. Each needs a `GameConstants.TAG_*` constant and a
-matching check in `CombatResolver.gd` when added.
+Status: **Split** — project MVP weapons **Implemented**; corpus weapon roster **Target design** (SET-009 / SET-003)
+Last verified: 2026-06-13
+
+### Summary
+The authored `.tres` weapons that ship today, and the corpus weapon roster they migrate to.
+
+### Specs
+
+**Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` are the
+source of truth; the tables below are a reference snapshot. One weapon per role for the
+MVP map; expand from the corpus tables in Phase 2.
+
+Swords — Iron Sword (E, Mt 6/Hit 85), Steel Sword (D, Mt 9/Hit 75).
+Lances — Iron Lance (E, Mt 7/Hit 80), Javelin (E, Mt 6/Hit 75, range 1–2).
+Axes — Iron Axe (E, Mt 8/Hit 75).
+Bows — Iron Bow (E, Mt 6/Hit 85, range 2, `effective_flying`).
+Anima tomes — Fire (E, Mt 4, `effective_beast`), Elfire (D, Mt 5/Crit 5),
+Thunder (E, Mt 5, `effective_dragon`), Wind (E, Mt 3, `effective_flying`).
+Staves — Heal (E, heals 10 + MAG HP, range 1).
+
+> Full Mt/Hit/Crit/Range/Wt/Uses/Cost/wEXP values are authored per weapon `.tres`
+> (`data/weapons/`, `resource_manifest.json`); do not hand-maintain a duplicate table here.
+
+**Target design (corpus weapon roster, SET-009).** Adopt the corpus physical + magic
+weapon encyclopedia wholesale; the project magic triangle is preserved (see Triangle
+Membership). Provenance: `GDD_Adoption_Matrix.md` → `awakening_weapons_physical.md`,
+`awakening_weapons_magic.md`. Staves stay deterministic: heal is computed, EXP is flat
+(no dice).
+
+### Anchors
+- Code/data: `data/weapons/`, `data/weapons/resource_manifest.json`
+- Decisions: SET-009, SET-003
+- Reference: `awakening_weapons_physical.md`, `awakening_weapons_magic.md`
+
+---
+
+## Weapon Proficiency (WEXP) — thresholds, gain & migration
+
+Status: **Split** — project thresholds/gain **Implemented**; corpus thresholds/gain/migration **Target design** (SET-004 / RULE-003 / RULE-004)
+Last verified: 2026-06-13
+
+### Summary
+This section owns WEXP **data**: the threshold values, caps, gain timing, and the
+runtime migration rule. The combat-facing WEXP summary lives in `GDD_02 §Weapon
+Proficiency`.
+
+### Specs
+
+**Implemented (project).**
+- Per-track numeric totals on `UnitData.weapon_wexp`; rank letters derive via
+  `GameConstants.WEXP_RANK_THRESHOLDS`.
+- A unit equips only weapons at/below its current rank for that track.
+- Class resources author baselines/caps (`ClassData.weapon_wexp_bases` /
+  `weapon_wexp_caps`); promotion/reclass raise a unit to at least the new class's
+  baselines for gained tracks. Gain stops at the authored cap (default A = 400 WEXP;
+  explicit S-cap classes opt in).
+
+**Target design.**
+- **Thresholds/caps (SET-004):** corpus values E = 1, D = 31, C = 71, B = 121, A = 181,
+  S = 251, Cap = 400.
+- **Gain timing (RULE-004):** per **valid use** (corpus-style), with weapon-defined
+  exceptions; may change in a balance pass.
+- **Migration (RULE-003):** proportional within the current rank band. There is no
+  persistent WEXP save to migrate, so this governs **runtime/in-session** conversion when
+  thresholds change.
+
+### Known gaps
+- Class WEXP cap ownership: explicit S caps are authored per class in GDD_03; this
+  chapter owns only the threshold/derivation math.
+
+### Anchors
+- Code: `scripts/autoloads/DataManager.gd`, `GameConstants` (`WEXP_RANK_THRESHOLDS`)
+- Decisions: SET-004, RULE-003, RULE-004
+- Owner of combat application: GDD_02 §Weapon Proficiency; class caps: GDD_03
+- Reference: `awakening_lookup_tables.md` (Numeric WEXP Thresholds / WEXP Gain Rule Table); `GDD_Adoption_Matrix.md`
 
 ---
 
 ## S-Rank Weapon Bonus
 
-When a unit's proficiency for a weapon type reaches S rank, they gain:
-- +10 Hit with that weapon type
-- +5 Crit with that weapon type
-- +1 Damage with that weapon type
+Status: **Split** — project bonus **Implemented**; move-to-engine + retire `s_rank_mastery` **Target design** (SET-005 / RULE-002)
+Last verified: 2026-06-13
 
-Apply as a modifier when computing derived combat stats, not as a permanent stat change.
+### Summary
+At S rank in a weapon track, the wielder gains a combat bonus with that weapon type.
+
+### Specs
+- **Bonus (project extension):** +10 Hit, +5 Crit, +1 Damage with that weapon type.
+- Applied as a **combat-time modifier** when computing derived values, never a permanent
+  stat change — slots at the `S-rank bonus` step of the modifier pipeline (GDD_02).
+
+**Target design (SET-005 / RULE-002).** Compute the S-rank bonus inside the **combat
+engine** and **retire `s_rank_mastery`** as a pseudo/equipped skill. The +10/+5/+1
+magnitude is the project variation on the corpus rank-bonus table.
+
+### Anchors
+- Code: `scripts/core/CombatResolver.gd`, `scripts/shared/StatBreakdown.gd`
+- Decisions: SET-005, RULE-002
+- Owner of pipeline order: GDD_02 §Combat Modifier Pipeline Order
+- Reference: `awakening_lookup_tables.md` (Weapon Rank Bonus table)
 
 ---
 
-## Items
+## Effectiveness Mechanic
 
-Items are non-weapon inventory entries with single-use or equippable effects.
-Stored in `data/items/` as `ItemData` resources.
+Status: **Implemented** (3× multiplier; corpus matrix **Target design**)
+Last verified: 2026-06-13
 
-### `ItemData.gd` (extends Resource)
+### Summary
+A weapon's `effective_*` tag triples its Mt against a defender carrying the matching
+vulnerability group.
+
+### Specs
+When a weapon has an `effective_*` tag matching a defending unit's
+`ClassData.vulnerability_groups`, the weapon's Mt is treated as **3× its listed value**
+for damage (**4×** with the Giantkiller skill).
+
+```gdscript
+var effective_mt = weapon.mt
+if weapon.effect_tags.has("effective_flying") and defender.has_vulnerability("flying"):
+    effective_mt = weapon.mt * 3
+var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
+```
+
+**Effect tags** are strings in `WeaponData.effect_tags`. **Reference them via the
+`GameConstants.TAG_*` constants — never raw strings** — so a typo is a compile error.
+
+| Tag | `GameConstants` constant | Effect |
+|---|---|---|
+| `effective_flying` | `TAG_EFFECTIVE_FLYING` | 3× Mt vs `flying` |
+| `effective_armoured` | `TAG_EFFECTIVE_ARMOURED` | 3× Mt vs `armoured` |
+| `effective_mounted` | `TAG_EFFECTIVE_MOUNTED` | 3× Mt vs `mounted` |
+| `effective_dragon` | `TAG_EFFECTIVE_DRAGON` | 3× Mt vs `dragon` |
+| `effective_beast` | `TAG_EFFECTIVE_BEAST` | 3× Mt vs `beast` |
+| `heal_10_plus_mag` | `TAG_HEAL_PLUS_MAG` | Marks a healing staff (`is_healing_staff()`) |
+
+**Not tags — dedicated `WeaponData` fields:** Brave (`strikes_per_attack = 2`),
+tome MAG/RES (`uses_mag = true`), hybrid triangle (`triangle_family`).
+
+### Known gaps
+- **Designed, not implemented (Phase 2):** `poison`, `heal_on_hit`, `ignores_def` /
+  `ignores_half_def`, `always_hits`. Each needs a `GameConstants.TAG_*` constant and a
+  matching check in `CombatResolver.gd`.
+- **Target design:** the corpus effectiveness matrix (source→group) is the migration
+  target; provenance `GDD_Adoption_Matrix.md` → `awakening_lookup_tables.md` (Effectiveness
+  Matrix).
+
+### Anchors
+- Code: `scripts/core/CombatResolver.gd`, `GameConstants` (`TAG_*`)
+- Owner of vulnerability-group definitions: GDD_03 §Special Qualities
+- Reference: `awakening_lookup_tables.md` (Effectiveness Matrix / Vulnerability Groups)
+
+---
+
+## Items & Economy
+
+Status: **Split** — project MVP items + selling **Implemented**; corpus item roster + forging **Target design / Planned**
+Last verified: 2026-06-13
+
+### Summary
+Non-weapon inventory entries with single-use or equippable effects, plus the sale/forge
+economy.
+
+### Specs
+
+**`ItemData.gd` (Implemented, extends Resource).** Schema owner: GDD_01.
 ```gdscript
 @export var id: String
 @export var display_name: String
@@ -166,121 +279,84 @@ Stored in `data/items/` as `ItemData` resources.
 @export var item_type: String     # "healing", "stat", "promotion", "equip", "key", "sellable"
 @export var uses: int             # -1 = infinite / equippable
 @export var cost: int
-@export var effect_id: String     # dispatched by ItemHandler — MVP: "heal_flat" | "heal_full"
+@export var effect_id: String     # heal_flat | heal_full | promote | reclass | stat_buff
 @export var effect_params: Dictionary   # e.g. { "amount": 20 } for heal_flat
 ```
 
-### MVP Items
+**Implemented MVP items.** Vulnerary (restore 10 HP, 3 uses), Elixir (full HP, 3 uses).
 
-#### Healing Items
-| Name | Effect | Uses | Cost |
-|---|---|---|---|
-| Vulnerary | Restore 10 HP | 3 | 600 |
-| Elixir | Restore all HP | 3 | 3,000 |
+**Planned (Phase 2) items.** Keys (Chest/Door); permanent stat boosters (+2 to a stat /
++7 max HP / Arms Scroll = advance one proficiency rank); equip items (Full Guard, Iron
+Rune, Knight Ring, Wing Guard, Laguz Guard). Promotion items are owned by GDD_03; full
+corpus item roster is the adoption target (provenance `awakening_items.md`).
 
-#### Keys (Phase 2)
-| Name | Effect | Uses | Cost |
-|---|---|---|---|
-| Chest Key | Opens 1 chest | 2 | 400 |
-| Door Key | Opens 1 door | 2 | 200 |
+**Selling (Implemented).** Any inventory entry sells for
+`sale_value = floor(base_cost × (uses_remaining / max_uses) / 2)`; `max_uses` reads from
+the matching `WeaponData.uses` / `ItemData.uses`. Equip items (uses = −1) sell for
+`floor(base_cost / 2)`. Gold is the shared `GameState.party_gold` treasury (GDD_02 owns
+the economy summary; shops are a D-D campaign prerequisite, Planned).
 
-#### Stat Items (Phase 2)
-| Name | Effect | Cost |
-|---|---|---|
-| Energy Drop | Permanent +2 STR | 8,000 |
-| Spirit Dust | Permanent +2 MAG | 8,000 |
-| Seraph Robe | Permanent +7 max HP | 8,000 |
-| Secret Book | Permanent +2 SKL | 8,000 |
-| Speedwing | Permanent +2 SPD | 8,000 |
-| Dracoshield | Permanent +2 DEF | 8,000 |
-| Talisman | Permanent +2 RES | 8,000 |
-| Goddess Icon | Permanent +2 LUK | 8,000 |
-| Boots | Permanent +2 MOV | 8,000 |
-| Statue Frag | Permanent +2 CON | 8,000 |
-| Arms Scroll | Advance 1 proficiency rank | 8,000 |
+**Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
+Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20
+total modifications; per-stat increment cost 150/300/450/600/750g (max 9,000g fully
+forged). Stored in the existing `InventoryEntry.forged_mods` dictionary (reserved — no
+code reads it yet, M10); unforged weapons leave it empty.
 
-#### Equip Items (Phase 2)
-These occupy the equip slot and cannot be swapped during combat.
-| Name | Effect | Cost |
-|---|---|---|
-| Full Guard | Negate all effectiveness bonuses | 8,500 |
-| Iron Rune | Negate all critical hits | 6,500 |
-| Knight Ring | Unit gains mounted post-action movement | 8,500 |
-| Wing Guard | Negate Flying effectiveness | 6,000 |
-| Laguz Guard | Negate Laguz effectiveness | 6,000 |
-
----
-
-## Forging System (Phase 2)
-
-Weapons can be upgraded at a forge (designated map event or between-map screen).
-Rules:
-
-- Can only forge a weapon once, at time of purchase
-- Staves cannot be forged
-- Stats that can be changed:
-  - Mt: ±5 in increments of 1
-  - Hit: ±25 in increments of 5
-  - Crit: ±15 in increments of 3
-  - Wt: ±5 in increments of 1
-- Total modifications: up to 20 across all stats
-
-### Forging Cost Table
-| Increment | Cost | Running Total |
-|---|---|---|
-| 1st | 150g | 150g |
-| 2nd | 300g | 450g |
-| 3rd | 450g | 900g |
-| 4th | 600g | 1,500g |
-| 5th | 750g | 2,250g |
-
-Each stat tracked independently. Max cost for fully forging all 4 stats = 9,000g.
-
-### Data Representation
-Forged weapons use the same `InventoryEntry` weapon slot with a populated
-`forged_mods` dictionary; unforged weapons leave it empty. The `forged_mods` field
-already exists on `InventoryEntry` (reserved — no code reads it yet; M10).
-```gdscript
-# An InventoryEntry weapon slot (see GDD_01 → InventoryEntry.gd):
-entry_type     = "weapon"
-weapon_id      = "iron_sword"
-uses_remaining = 45
-forged_mods    = { "mt": 2, "hit": 5, "crit": 0, "wt": -1 }
-```
-
----
-
-## Selling Items
-
-Any item or weapon entry in inventory can be sold for:
-```
-sale_value = floor(base_cost * (uses_remaining / max_uses) / 2)
-```
-`max_uses` is read from the corresponding `WeaponData.uses` or `ItemData.uses`.
-Equip items (uses = -1) sell for `floor(base_cost / 2)`.
+### Anchors
+- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`, `data/items/`
+- Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
+- Owner of economy/gold summary: GDD_02 §Gold & Economy
+- Decisions: D-D (shops as campaign prerequisite)
+- Reference: `awakening_items.md`
 
 ---
 
 ## Inventory Management
 
-- Each unit has one inventory: `UnitData.inventory` — a flat `Array[InventoryEntry]`
-- Each entry's `entry_type` is `"weapon"`, `"item"`, or `"equip"` — slots interchange
-- **Limit:** 8 slots (`GameState.max_inventory`) — NOT yet enforced (no inventory UI)
-- Units can trade entries with adjacent allies on their turn (Trade action)
-- Items and weapons cannot be used during the enemy phase
+Status: **Implemented** (limit not yet enforced; Trade designed-only)
+Last verified: 2026-06-13
+
+### Specs
+- One inventory per unit (`UnitData.inventory`), a flat `Array[InventoryEntry]`; each
+  `entry_type` is `"weapon"`, `"item"`, or `"equip"` and slots interchange.
+- **Limit:** 8 slots (`GameState.max_inventory`) — **NOT yet enforced** (no inventory UI).
+- **Trade** is designed but not implemented; no current action moves entries between units.
+- Items and weapons cannot be used during the enemy phase.
+
+### Anchors
+- Code: `scripts/autoloads/GameState.gd` (`max_inventory`), `scripts/resources/UnitData.gd`
+- Owner of Trade action flow: GDD_02 §Actions
 
 ---
 
-## Stationary Weapons (Phase 2)
+## Stationary Weapons
 
-Found on the battlefield; usable by non-mounted units with bow proficiency (any rank).
+Status: **Planned** (Phase 2)
+Last verified: 2026-06-13
 
-| Name | Mt | Hit | Crit | Range | Effect |
-|---|---|---|---|---|---|
-| Ballista | 18 | 100 | 0 | 3–10 | Effective vs Flying; ignores user STR |
-| Iron Ballista | 22 | 90 | 0 | 3–15 | Effective vs Flying; ignores user STR |
-| Killer Ballista | 20 | 95 | 15 | 3–10 | Effective vs Flying; ignores user STR |
-| Onager | 20 | Always hits | Cannot crit | 3–10 | AoE (target + adjacent); ignores user STR |
+### Specs
+Battlefield map objects (not inventory items), usable by non-mounted units with bow
+proficiency at any rank: Ballista, Iron Ballista, Killer Ballista, Onager (AoE). All are
+effective vs Flying and ignore user STR. Implement as interactable tiles with a weapon
+definition embedded in `MapData`.
 
-Stationary weapons are map objects, not inventory items. Implement as interactable
-tiles with a weapon definition embedded in `MapData`.
+### Anchors
+- Owner of MapData/authored-map schema: GDD_06
+
+---
+
+## Broken-Weapon Degraded Mode
+
+Status: **Deferred** (optional rule, backlog — OPEN-5)
+Last verified: 2026-06-13
+
+### Specs
+An optional rule where a weapon at 0 uses enters a **degraded mode** (stat penalty +
+infinite uses while broken, repairable later) instead of being destroyed. Likely a
+`CampaignRules` toggle. Current behavior (weapon destroyed at 0 uses) is owned by
+`GDD_02 §Weapon Durability`.
+
+### Anchors
+- Decisions: OPEN-5
+- Owner of durability behavior: GDD_02 §Weapon Durability
+- Tracking: Stage 4.3 roadmap backlog

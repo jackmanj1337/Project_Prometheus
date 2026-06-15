@@ -67,29 +67,95 @@ text = "HP -- / --"
 layout_mode = 2
 text = "--"
 
-[node name="TerrainInfoPanel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 1100.0
-offset_top = 632.0
-offset_right = 1272.0
-offset_bottom = 712.0
+[node name="TerrainCorner" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -288.0
+offset_top = -8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="TerrainMoreInfoPanel" type="PanelContainer" parent="TerrainCorner"]
+layout_mode = 2
+mouse_filter = 2
+visible = false
+
+[node name="Scroll" type="ScrollContainer" parent="TerrainCorner/TerrainMoreInfoPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(264, 170)
+mouse_filter = 2
+horizontal_scroll_mode = 0
+
+[node name="VBox" type="VBoxContainer" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="TerrainInfoPanel"]
+[node name="TerrainDescription" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 2
+custom_minimum_size = Vector2(240, 0)
+text = ""
+visible = false
+
+[node name="TerrainMoveCosts" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""
+visible = false
+
+[node name="TerrainActions" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""
+visible = false
+
+[node name="TerrainInfoPanel" type="PanelContainer" parent="TerrainCorner"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="TerrainName" type="Label" parent="TerrainInfoPanel/VBox"]
+[node name="VBox" type="VBoxContainer" parent="TerrainCorner/TerrainInfoPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TerrainName" type="Label" parent="TerrainCorner/TerrainInfoPanel/VBox"]
 layout_mode = 2
 text = "Plain"
 
-[node name="TerrainDef" type="Label" parent="TerrainInfoPanel/VBox"]
+[node name="TerrainCoord" type="Label" parent="TerrainCorner/TerrainInfoPanel/VBox"]
+layout_mode = 2
+modulate = Color(0.7, 0.7, 0.75, 1)
+text = "Tile (1, 1)"
+
+[node name="TerrainDef" type="Label" parent="TerrainCorner/TerrainInfoPanel/VBox"]
 layout_mode = 2
 text = "DEF  +0"
 
-[node name="TerrainDodge" type="Label" parent="TerrainInfoPanel/VBox"]
+[node name="TerrainDodge" type="Label" parent="TerrainCorner/TerrainInfoPanel/VBox"]
 layout_mode = 2
 text = "DODGE +0"
+
+[node name="TerrainHint" type="Label" parent="TerrainCorner/TerrainInfoPanel/VBox"]
+layout_mode = 2
+modulate = Color(0.7, 0.7, 0.75, 1)
+text = "Press F for more info"
+visible = true
 
 [node name="ObjectivePanel" type="PanelContainer" parent="."]
 layout_mode = 0

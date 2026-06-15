@@ -1,0 +1,20 @@
+# Keep scripts and code LF-normalized so git hooks and tooling run on any checkout,
+# including a Windows-native one after a machine move (CRLF breaks `#!/usr/bin/env bash`).
+*.sh    text eol=lf
+*.py    text eol=lf
+*.gd    text eol=lf
+*.cfg   text eol=lf
+*.tres  text eol=lf
+*.tscn  text eol=lf
+*.godot text eol=lf
+*.json  text eol=lf
+*.md    text
+
+# Binary assets — no end-of-line munging, no broken diffs.
+*.png  binary
+*.jpg  binary
+*.wav  binary
+*.ogg  binary
+*.ttf  binary
+*.otf  binary
+*.import binary

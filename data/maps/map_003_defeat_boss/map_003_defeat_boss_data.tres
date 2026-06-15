@@ -1,0 +1,52 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
+
+[sub_resource type="Resource" id="cond_boss"]
+script = ExtResource("2")
+type = "defeat_boss"
+unit_ids = ["m003_boss"]
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("2")
+type = "protect"
+unit_ids = ["unit_01_cavalier"]
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("2")
+type = "turn_limit"
+turns = 10
+
+[resource]
+script = ExtResource("1")
+id = "map_003_defeat_boss"
+display_name = "Map 003 - Defeat Boss"
+tilemap_scene_path = ""
+player_start_tiles = [Vector2i(1, 7), Vector2i(1, 8), Vector2i(1, 9), Vector2i(2, 7), Vector2i(2, 8), Vector2i(2, 9)]
+enemy_placements = [
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_fighter_1.tres", "tile": Vector2i(9, 4), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_archer_1.tres", "tile": Vector2i(11, 2), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_merc_1.tres", "tile": Vector2i(12, 6), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_knight_1.tres", "tile": Vector2i(14, 4), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_boss.tres", "tile": Vector2i(15, 4), "ai_profile": "basic", "is_boss": true}
+]
+reward_gold = 800
+reward_items = []
+camera_start_tile = Vector2i(7, 6)
+victory_conditions = {"allies": [SubResource("cond_boss")]}
+defeat_conditions = {"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]}
+grid = [
+"WWWWWWWWWWWWWWWWWW",
+"W...F............W",
+"W..FF....F.......W",
+"W................W",
+"W......FF....T...W",
+"W................W",
+"W............FF..W",
+"W................W",
+"W..T.............W",
+"W................W",
+"W................W",
+"WWWWWWWWWWWWWWWWWW"
+]

@@ -397,3 +397,60 @@ Open questions from the Session J notes addendum + the next-session sequencing.
   - M14 green/yellow content + Maps 002-005 ride after M16.
   - M15 Part B + remaining Phase 3 stay deferred; move the mid-battle suspend
     save adjacent to M15 Part B (D14 save-and-continue depends on it).
+
+---
+
+## Addendum - 2026-06-11 GDD Alignment Decisions
+
+### A1 - Tactical AI scoring
+- *Status:* DEFERRED TO A SEPARATE TASK.
+- *Decision:* M14's faction architecture, controller dispatch, and faction
+  content remain complete. HP/strength/terrain/objective-critical target scoring
+  is tracked as a separate tactical-AI improvement and does not reopen the
+  faction-system milestone.
+
+### A2 - Hotseat CLI/dev override
+- *Status:* DEFERRED.
+- *Decision:* Maps remain authoritative for `FactionData.controller`. A command
+  line or developer override may be added later, but is not part of current
+  M15 Part A completion.
+
+### A3 - Flying movement
+- *Status:* PLANNED, NOT IMPLEMENTED.
+- *Decision:* Player-facing flying rules will be implemented through
+  terrain-level movement-cost categories. Units/classes select a movement-cost
+  category; flying must not be a unit-level special case that simply ignores
+  terrain.
+
+### A4 - Rout elimination
+- *Status:* DECIDED; supersedes Decision 8's implicit Rout default.
+- *Decision:* Rout is never implicit. A group is eliminated only when an
+  authored defeat condition becomes true. Maps that should fail when an allied
+  group is wiped must author a Rout defeat explicitly. This preserves valid
+  zero-unit states for future reinforcements and objectives that can fail
+  without an opposing force.
+
+### A5 - Equipped skill cap
+- *Status:* DECIDED.
+- *Decision:* The default equipped-skill cap is **5**. A future campaign system
+  may override the value through campaign settings; the current direct-boot
+  default remains 5.
+
+### A6 - Follow-up threshold
+- *Status:* DECIDED.
+- *Decision:* A follow-up requires a **5-point Battle Speed advantage**. A
+  future campaign system may override the threshold; the current game-wide
+  default remains 5.
+
+### A7 - Class weapon-rank caps
+- *Status:* DECIDED.
+- *Decision:* Every class authors caps for its usable WEXP tracks. **A rank is
+  the default maximum** for current classes. The global rank table retains S so
+  special classes can opt into an explicit S cap later. WEXP gain stops at the
+  active class's authored cap.
+
+### A8 - Documentation directory names
+- *Status:* DECIDED.
+- *Decision:* Rename `New_Contet_expansion` to `New_Content_Expansion` and
+  `Old-deffered` to `Old_Deferred`, updating repository references in the same
+  migration.

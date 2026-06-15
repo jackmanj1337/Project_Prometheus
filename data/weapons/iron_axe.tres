@@ -1,0 +1,23 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_axe"
+display_name = "Iron Axe"
+combat_family = "axe"
+wexp_track = "axe"
+required_rank = "E"
+mt = 8
+hit = 75
+crit = 0
+range_min_formula = "1"
+range_max_formula = "1"
+wt = 10
+uses = 45
+cost = 270
+wexp = 1
+effect_tags = []
+uses_mag = false
+triangle_family = ""

@@ -52,13 +52,32 @@ func _init() -> void:
 			screen.visible, options.get_child_count()])
 		failed += 1
 
+	# Promotion modal must stay on-screen and centered (playtest v0.1.4 #5: it ran
+	# off the right edge because the panel was left-pinned with fixed offsets and the
+	# long stat rows forced it wider than the screen). Now centered + width-capped
+	# with autowrapping option labels.
+	await process_frame
+	var panel: Control = screen.get_node("Panel")
+	var view_w: float = screen.get_viewport().get_visible_rect().size.x
+	var left_margin: float = panel.position.x
+	var right_margin: float = view_w - (panel.position.x + panel.size.x)
+	var on_screen: bool = left_margin >= -1.0 and right_margin >= -1.0
+	var centered: bool = absf(left_margin - right_margin) <= 2.0
+	if on_screen and centered:
+		print("OK  promotion modal fits on-screen and is horizontally centered"); passed += 1
+	else:
+		print("FAIL modal bounds: view_w=%.0f panel.x=%.0f panel.w=%.0f left=%.1f right=%.1f" % [
+			view_w, panel.position.x, panel.size.x, left_margin, right_margin]); failed += 1
+
 	var first_button: Button = options.get_child(0)
 	var first_label: String = first_button.text
 	first_button.pressed.emit()
 	await process_frame
 	if not screen.visible and signal_watcher.completed and unit.promoted_to == "paladin" \
 			and unit.data.inventory.is_empty() and signal_watcher.started == 1 \
-			and signal_watcher.finished == 1 and "Paladin" in first_label:
+			and signal_watcher.finished == 1 and "Paladin" in first_label \
+			and "Str 8 +3 -> 11 / 42" in first_label \
+			and "HP 18 +7 -> 25 / 80" in first_label:
 		print("OK  confirming a promotion promotes the unit, consumes the seal, and closes")
 		passed += 1
 	else:
@@ -119,6 +138,15 @@ func promote(target_class_id: String) -> bool:
 	unit.data.unit_name = unit_name
 	unit.data.class_id = class_id
 	unit.data.level = 10
+	unit.data.hp = 18
+	unit.data.max_hp = 18
+	unit.data.strength = 8
+	unit.data.magic = 0
+	unit.data.defense = 6
+	unit.data.resistance = 3
+	unit.data.skill = 7
+	unit.data.speed = 7
+	unit.data.luck = 5
 	return unit
 
 

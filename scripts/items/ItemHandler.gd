@@ -8,7 +8,7 @@ extends Node
 # .tres surfaces immediately rather than as a runtime push_warning the first time
 # the item is used. Keep this list in lockstep with apply_item's match cases —
 # add the case AND a string here whenever a new item effect lands.
-const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full", "promote", "reclass"]
+const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full", "promote", "reclass", "stat_buff"]
 
 # Applies the effect of an item entry to `unit`.
 # Decrements uses_remaining and removes exhausted entries from the inventory.
@@ -36,6 +36,19 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 		"reclass":
 			push_warning("ItemHandler: reclass items must be resolved through ReclassScreen")
 			return
+		"stat_buff":
+			# Stamps an active_modifier on the unit using ItemData.effect_params.
+			# Used by the strength_tonic fixture so previews and unit details can
+			# reliably surface a positive modifier in a single validation run.
+			if not unit.has_method("add_modifier"):
+				return
+			var stat: String = String(item.effect_params.get("stat", ""))
+			var delta: int = int(item.effect_params.get("delta", 0))
+			var duration: int = int(item.effect_params.get("duration", -1))
+			var duration_type: String = String(item.effect_params.get("duration_type", "turn"))
+			if stat == "" or delta == 0:
+				return
+			unit.add_modifier(stat, delta, "item:%s" % item.id, duration, duration_type)
 		_:
 			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
 			return  # Don't consume the item if we can't apply its effect
@@ -57,6 +70,8 @@ func can_apply_item(unit: Node, entry: InventoryEntry) -> bool:
 			return _can_apply_promotion_item(unit, item)
 		"reclass":
 			return unit.has_method("can_use_second_seal") and unit.can_use_second_seal()
+		"stat_buff":
+			return unit.has_method("add_modifier")
 		_:
 			return false
 

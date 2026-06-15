@@ -36,6 +36,11 @@ signal level_up_finished()
 # new_phase is a GameState.Phase enum value; faction_id names the faction whose
 # phase is starting. PLAYER emits "blue"; ENEMY emits the active non-blue faction.
 signal phase_changed(new_phase: int, faction_id: String)
+# A paired support was dropped onto the map because its lead died during the
+# player phase, so it must spend its turn immediately. PairUpRegistry (an autoload)
+# emits this instead of reaching into the scene's TurnManager node; TurnManager
+# listens and marks the support DONE. Decouples autoload→scene (audit 2026-06-14).
+signal support_orphaned(support: Node)
 signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).

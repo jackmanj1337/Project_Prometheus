@@ -1,18 +1,87 @@
 # GDD_06 — Maps & Objectives
 
----
+**Status:** Active contract — split status per section (the objective system, map schema,
+and project terrain values are **Implemented**; corpus terrain values/movement categories
+are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
+decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
+**Last verified:** 2026-06-14
+**Governance:** section template + status vocabulary in
+`AGENT/Docs/documentation_governance_2026-06-13.md`.
+
+This chapter owns the **terrain/movement schema** (terrain types, movement categories,
+authored values) and the **objective + authored-map contracts**. The *combat effects* of
+terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
+(`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
+authoring workflow, registry entry shape, roster-policy rules, and export-manifest
+reminders, use `AGENT/Docs/map_authoring_guide.md`.
 
 ## Map System Overview
 
-Each map is a Godot **TileMapLayer** scene paired with a **MapData** resource.
-The TileMap defines the visual layout and terrain. The MapData resource defines
-objectives, enemy placements, player start tiles, and rewards.
+Status: **Implemented**
+Last verified: 2026-06-13
+
+Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
+string `grid` defines terrain and whose remaining fields define objectives,
+factions, placements, start tiles, camera start, and rewards.
 
 Maps are self-contained — adding a new map never requires code changes.
 
 ---
 
+## Terrain & Movement
+
+Status: **Split** — project terrain values/movement costs **Implemented**; corpus values + movement categories **Target design** (SET-008/RULE-010); terrain ID mapping **Open decision** (RULE-011/AWR-8)
+Last verified: 2026-06-13
+
+### Summary
+This section owns the terrain **schema** (terrain types + their movement/defense data) and
+the movement-cost model. The *combat application* of the DEF/Dodge/heal values is owned by
+`GDD_02 §Terrain`; the two tables are kept in sync.
+
+### Specs
+
+**Implemented (project terrain values).** Each `terrain_type` carries move cost + defender
+bonuses; bonuses apply to the defender only, during combat (GDD_02).
+
+| Terrain (`terrain_type`) | Move cost | DEF | Dodge | Notes |
+|---|---|---|---|---|
+| `plain` | 1 | 0 | 0 | |
+| `forest` | 2 | +1 | +15 | |
+| `mountain` | 3 | +2 | +20 | |
+| `fort` | 1 | +2 | +30 | Heals `max(1, floor(0.10 × max_hp))`/turn (OPEN-7) |
+| `sea` | 2 | 0 | +10 | |
+| `desert` | 2 (3 armoured/mounted) | 0 | +5 | Magic/Thief line cost 1 |
+| `wall` | 999 (impassable) | — | — | Out-of-bounds resolves to `wall` |
+
+- Move cost is consulted by `GridManager.get_move_cost()` (skill movement overrides first).
+- Valid `terrain_type` strings: `plain`, `forest`, `mountain`, `fort`, `sea`, `desert`,
+  `wall` (the TileSet `terrain_type` custom-data layer + the `MapData.grid` legend
+  `. F M T S D W`).
+
+**Target design (corpus terrain & movement, SET-008/RULE-010).** Corpus terrain values and
+**movement categories** are an adopted target; **show both tables until** code/data/maps
+migrate (RULE-010). Flying is implemented via terrain movement-cost categories (Planned),
+never a terrain-ignoring special case. Provenance: `GDD_Adoption_Matrix.md` →
+`awakening_lookup_tables.md` (Terrain Categories / Movement Types).
+
+### Known gaps
+- **Terrain ID mapping (RULE-011, Open decision → AWR-8):** sea / wall-building variants /
+  throne-vs-Fort behavior are resolved by a **mapping pass**, not name equality. Throne art
+  presently reuses Fort runtime behavior. Do not assume name-equality mappings.
+
+### Anchors
+- Code: `scripts/core/GridManager.gd` (`get_terrain_at`, `get_move_cost`,
+  `TERRAIN_DEF_BONUS`, `TERRAIN_DODGE_BONUS`)
+- Decisions: SET-008, RULE-010, RULE-011, OPEN-7
+- Owner of terrain combat effects: GDD_02 §Terrain
+- Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
+
+---
+
 ## Tile Setup in Godot
+
+Status: **Implemented** (placeholder art)
+Last verified: 2026-06-13
 
 ### TileSet Configuration
 Create a single shared `TileSet` resource used by all maps.
@@ -27,8 +96,8 @@ Create a single shared `TileSet` resource used by all maps.
 > art. Re-run that tool after sprite changes; the script also creates the
 > `terrain_type` custom data layer and assigns each tile's value.
 
-### TileMapLayer Setup Per Map
-Each map scene contains two TileMapLayers as children of `GameMap`:
+### Runtime TileMapLayer Setup
+The shared `GameMap` scene contains two TileMapLayers:
 
 1. `TileMapLayer_Terrain` — the actual map tiles; uses the shared TileSet
 2. `TileMapLayer_Overlay` — a second layer for movement/attack highlights;
@@ -72,64 +141,76 @@ Camera scrolling behavior:
 
 ## Objective System
 
-Objectives are defined in `MapData.objective_type` (String) and
-`MapData.objective_params` (Dictionary).
+Status: **Implemented** (objective evaluation); Phase 3 showcase maps **Planned** (M16)
+Last verified: 2026-06-13
 
-`TurnManager.check_victory_conditions()` is called after every unit death (via
-`EventBus.unit_died`) and at the start of each player phase. It reads the map
-objective and emits `map_victory()` / `map_defeat()` accordingly.
+Objectives are now authored as typed `ObjectiveCondition` resources grouped by
+alliance group:
 
-> **MVP status:** only the **`rout`** objective is implemented, alongside the
-> universal defeat checks (turn limit, all player units dead, a required survivor
-> killed). `seize` / `boss` / `survive` / `defend` / `escape` are designed below and
-> scheduled for the M16 objective milestone — see GDD_10.
+- `MapData.victory_conditions: Dictionary`
+- `MapData.defeat_conditions: Dictionary`
 
-### Supported Objective Types
+Each key is an alliance-group id such as `"allies"` or `"foes"`, and each value
+is an `Array[ObjectiveCondition]`.
 
-#### `"rout"` — Defeat all enemies
-```gdscript
-# No params needed
-if GameState.get_living_enemy_units().is_empty():
-    EventBus.map_victory.emit()
-```
+`TurnManager.check_victory_conditions()` evaluates these dictionaries after
+combat deaths, phase transitions, Seize confirmations, and Escape resolutions.
+It emits the legacy blue-perspective `map_victory()` / `map_defeat()` signals
+plus the richer `map_resolved(winner_group, standings)` summary for the newer
+results flow.
 
-#### `"seize"` — Player unit stands on a specific tile and uses Seize action
-```gdscript
-# Params: { "seize_tile": Vector2i(x, y) }
-# Checked when a player unit performs the Seize action
-```
+### Authored Condition Types
 
-#### `"boss"` — Defeat a specific enemy unit
-```gdscript
-# Params: { "boss_unit_name": "Garet" }
-# Victory triggers when that named unit dies
-```
+#### `rout`
+The named faction or alliance group has no living units left. With an empty
+`faction_id`, the condition means "every faction hostile to the conditioning
+group has been eliminated." Liveness here counts **every** undefeated unit,
+including a paired support hidden off-map — a pair's support is not "dead" just
+because it is off the grid, so a Rout does not resolve while one survives.
+(`TurnManager._eval_rout` uses `GameState.get_all_living_units_of`, not the
+support-excluding `get_living_units_of` used for selection/turn-end.)
 
-#### `"survive"` — Survive N turns without defeat condition
-```gdscript
-# Params: { "turns": 10 }
-# Victory triggers at start of player phase turn N+1
-```
+#### `defeat_boss`
+Every `unit_id` named in the condition is dead.
 
-#### `"defend"` — Prevent enemies from standing on a tile for N turns
-```gdscript
-# Params: { "defend_tile": Vector2i(x, y), "turns": 8 }
-# Defeat triggers if an enemy ends their turn on defend_tile
-# Victory triggers if player survives all turns
-```
+#### `protect`
+Fails when any named `unit_id` dies. Escaped units do not count as dead.
 
-#### `"escape"` — All player units must reach the escape tile
-```gdscript
-# Params: { "escape_tile": Vector2i(x, y) }
-# Units that use Escape action are removed from the map and marked safe
-# Victory when all living player units have escaped
-```
+#### `turn_limit`
+Condition becomes true when `turn_number > turns`.
 
-### Defeat Conditions (all maps)
-- The turn limit is exceeded (`MapData.turn_limit > 0` and turn count passes it)
-- Every player unit is dead
-- A unit whose `unit_id` is listed in `MapData.required_survivor_ids` is killed
-- `TurnManager.check_victory_conditions()` handles all of these.
+#### `survive`
+Condition becomes true once `turn_number > turns`, optionally requiring at least
+one unit from the conditioning group to stand on one of the authored tiles.
+
+#### `seize`
+Condition becomes true when an allowed unit from the conditioning group uses the
+Seize action on the authored tile. **Eligibility comes from a per-unit
+`can_seize` tag** on `UnitData` — not from class data and not from a per-map
+`allowed_unit_ids` allowlist (locked 2026-05-25; see
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
+the relevant lord-class units; new characters opt in by being tagged.
+
+#### `escape`
+Condition becomes true when every named `unit_id` has used the Escape action on
+one of the authored escape-zone tiles. Escaped units count as **alive** for
+`protect` / `survive` evaluation, are removed from the active board, and may
+**not act further** on the current map (locked 2026-05-25).
+
+### Evaluation Rules
+
+- Victory for a group is the logical `AND` of that group's authored victory conditions.
+- Defeat for a group is the logical `OR` of that group's authored defeat conditions.
+- Rout is never implicit. A group is eliminated only by an authored defeat
+  condition. Maps that should fail when a group has no living units must author
+  a `rout` defeat for that group.
+- If one group remains in play, it wins by last-group-standing even without an
+  explicit victory condition.
+- If no groups remain in play, the map resolves as a draw.
+
+Explicit Rout is required because a zero-unit group may still be active while
+waiting for reinforcements, and timed or escape objectives can fail without any
+opposing units remaining.
 
 ---
 
@@ -141,24 +222,28 @@ class_name MapData extends Resource
 
 @export var id: String
 @export var display_name: String
-@export var tilemap_scene_path: String
-@export var objective_type: String                 # MVP implements "rout"
-@export var objective_params: Dictionary
-@export var turn_limit: int = 0                     # 0 = no limit; defeat if exceeded
+@export var tilemap_scene_path: String              # reserved; not instanced by current runtime
 @export var player_start_tiles: Array[Vector2i]
 @export var enemy_placements: Array[Dictionary]
 # enemy_placement dict: { "unit_data_path": String, "tile": Vector2i,
-#                         "ai_profile": String, "is_boss": bool }
-@export var required_survivor_ids: Array[String]    # unit_ids whose death = player defeat
+#                         "ai_profile": String, "is_boss": bool, "faction": String? }
 @export var reward_gold: int = 0
 @export var reward_items: Array[String]             # item IDs granted at map completion
 @export var grid: Array[String]                     # terrain string grid (data-driven maps)
 @export var camera_start_tile: Vector2i             # (-1,-1) = centroid of player starts
+@export var factions: Array[FactionData]
+@export var turn_order: Array[String]
+@export var activation_mode: String = "WHOLE_PHASE"
+@export var victory_conditions: Dictionary          # alliance_group -> Array[ObjectiveCondition]
+@export var defeat_conditions: Dictionary
 ```
 
 ---
 
 ## MVP Map: Map 001 — "First Battle" (Rout)
+
+Status: **Implemented** (authored content reference)
+Last verified: 2026-06-13
 
 ### Summary
 - **Size:** 42 × 26 tiles
@@ -230,7 +315,7 @@ D = Desert     (+5 Dodge, move cost 2; cost 3 for armoured/mounted)
 | **Mountain S** | (9–10, 21–22) | Southern mountain cluster |
 | **Fort (player-side)** | (7, 6) | Players can use for HP recovery mid-map |
 | **Fort (E7)** | (38, 9) | Enemy E7 starts here |
-| **Fort / Throne (boss)** | (39, 12) | Enemy E8 (boss) starts here; heals every turn |
+| **Fort with throne art (boss)** | (39, 12) | Uses Fort runtime behavior; enemy E8 starts here and heals every turn |
 | **Desert belt** | Cols 20–36 rows 16–22 | Slows armoured and mounted units; thief/mage unaffected |
 | **Walled corner** | Cols 38–41 rows 4–5 | Impassable cliff; blocks northeast shortcut |
 
@@ -239,7 +324,7 @@ Auto-deployed in slot order (Unit_01 first):
 
 | Unit | Slot | Start Tile |
 |---|---|---|
-| Unit_01 (Soldier) | 1 | (1, 9) |
+| Unit_01 (Cavalier) | 1 | (1, 9) |
 | Unit_02 (Mercenary) | 2 | (1, 10) |
 | Unit_03 (Archer) | 3 | (1, 11) |
 | Unit_04 (Mage) | 4 | (2, 9) |
@@ -287,7 +372,10 @@ Apply this to each stat using the class's growth rates.
 
 ---
 
-## Doors and Chests (Phase 2)
+## Doors and Chests
+
+Status: **Planned** (Phase 2)
+Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
@@ -309,7 +397,10 @@ Door HP values from handbook:
 
 ---
 
-## Fog of War (Phase 2)
+## Fog of War
+
+Status: **Planned** (Phase 2)
+Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
@@ -323,33 +414,48 @@ Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 
 ---
 
+## Phase 3 Maps 002–005 — Authoring Rules (locked 2026-05-25)
+
+Status: **Planned** (M16; design locked 2026-05-25)
+Last verified: 2026-06-13
+
+The objective-map followup authors four maps against the implemented
+`ObjectiveCondition` system to validate it through real content. See
+`GDD_10_Roadmap.md` § Milestone 16 → *Locked design decisions* and
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+
+- **Showcase plan — one map per primary objective.** Maps 002–005 cover the
+  four objective types one each: **Seize**, **Defeat Boss**, **Escape**,
+  **Survive / Defend**. Variety within a type is a later authoring pass.
+- **One primary objective per map.** Each of the four maps declares **exactly
+  one** primary victory objective for blue. Multi-primary and optional-
+  secondary objectives are out of scope until the basics are validated.
+- **Seize eligibility comes from the `can_seize` unit tag** (not class, not a
+  per-map allowlist).
+- **Escape semantics — alive, removed from the board, no further actions
+  this map.**
+- **Authored defeat standard.** Every Phase 3 objective map declares at least
+  one authored defeat condition appropriate to that map, such as `turn_limit`
+  or `protect`. Rout is added explicitly only where a full wipe should itself
+  eliminate the group.
+
+---
+
 ## Adding a New Map (Checklist)
 
-Two approaches are supported:
+The current runtime supports data-driven string-grid maps.
 
-### Data-driven (used for MVP `map_001`)
-The map layout lives as a string-grid constant in `GameMap.gd`. No editor
-painting is required — the script paints the TileMap at runtime. To add a map
-this way:
-- [ ] Add a new constant string grid (one row per `String`, each row exactly
-      `MAP_WIDTH` chars) using the legend `. F M T S D W`
-- [ ] Update `GameMap.gd` to choose the right grid based on `map_data.id`
-      (or move the grids into MapData itself)
-- [ ] Create `MapData.tres` with `objective_type`, `player_start_tiles`,
-      and `enemy_placements`
+### Data-driven
+The map layout lives in `MapData.grid`. No editor painting is required for
+terrain. To add a map this way:
+- [ ] Create `MapData.tres` with a `grid` string array using the legend `. F M T S D W`
+- [ ] Fill `player_start_tiles`, `enemy_placements`, rewards, and camera start
+- [ ] Author `factions`, `turn_order`, and `activation_mode` only when the map
+      needs to override the default blue/green/red/yellow behavior
+- [ ] Author `victory_conditions` / `defeat_conditions` using `ObjectiveCondition`
 - [ ] Create enemy `UnitData` `.tres` files
 - [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
 
-### Editor-painted (heavier maps in Phase 2+)
-- [ ] Create folder `res://data/maps/map_XXX_name/`
-- [ ] Build TileMap scene in Godot editor using shared TileSet
-- [ ] Verify every tile has correct `terrain_type` custom data set
-- [ ] Create `MapData` resource, fill all fields
-- [ ] Create enemy `UnitData` `.tres` files for all enemies on this map
-- [ ] Reference enemy `.tres` paths in `MapData.enemy_placements`
-- [ ] Set `player_start_tiles` array
-- [ ] Set objective type and params
-- [ ] Register map in the map select / campaign sequence `[PLACEHOLDER]`
-- [ ] Test: verify all tiles are passable/impassable as intended
-- [ ] Test: verify objective triggers correctly
-- [ ] Test: verify enemy placements load at correct tiles
+Editor-painted map scenes are not currently instanced. `tilemap_scene_path` is
+reserved schema only; implement and test that loading path before documenting
+editor-painted maps as supported.

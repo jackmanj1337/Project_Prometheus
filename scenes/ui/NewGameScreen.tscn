@@ -14,6 +14,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 0
 script = ExtResource("1_newgame")
 visible = false
 
@@ -22,14 +23,23 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+mouse_filter = 0
 color = Color(0.04, 0.04, 0.07, 0.97)
 
 [node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 440.0
-offset_top = 240.0
-offset_right = 840.0
-offset_bottom = 530.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -145.0
+offset_right = 200.0
+offset_bottom = 145.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
@@ -87,6 +97,18 @@ text = "Leveling"
 custom_minimum_size = Vector2(160, 0)
 
 [node name="OptLeveling" type="OptionButton" parent="Panel/VBox/HBoxLeveling"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxPairUp" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelPairUp" type="Label" parent="Panel/VBox/HBoxPairUp"]
+layout_mode = 2
+text = "Pair Up"
+custom_minimum_size = Vector2(160, 0)
+
+[node name="OptPairUp" type="OptionButton" parent="Panel/VBox/HBoxPairUp"]
 layout_mode = 2
 size_flags_horizontal = 3
 

@@ -29,7 +29,7 @@ func _init() -> void:
 	if label != null:
 		var no_aids: Array[String] = []
 		var one_aid: Array[String] = ["force-levelup"]
-		var two_aids: Array[String] = ["force-levelup", "growth-boost"]
+		var two_aids: Array[String] = ["force-levelup", "growth+300"]
 
 		hud._apply_debug_banner(true, no_aids)
 		if label.visible and label.text == "● DEBUG MODE":
@@ -46,7 +46,7 @@ func _init() -> void:
 			print("FAIL one-aid banner: text=%q" % label.text); failed += 1
 
 		hud._apply_debug_banner(true, two_aids)
-		if label.visible and label.text == "● DEBUG MODE — force-levelup, growth-boost":
+		if label.visible and label.text == "● DEBUG MODE — force-levelup, growth+300":
 			print("OK  banner joins multiple active aids"); passed += 1
 		else:
 			print("FAIL multi-aid banner: text=%q" % label.text); failed += 1
@@ -114,6 +114,7 @@ func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodg
 	stub_unit_script.source_code = """
 extends Node
 var data
+var team: String = "blue"
 """
 	stub_unit_script.reload()
 	var unit_a: Node = stub_unit_script.new()
@@ -159,6 +160,52 @@ var data
 		print("FAIL post-deselect empty: displayed=%s want=null" % hud._displayed_unit)
 		failed += 1
 
+	# ── Pair Up bonus indicator on the unit-info panel (playtest #8.5 follow-up) ──
+	# A paired lead's panel must show the support's contribution (queried on demand,
+	# since the bonus is a combat-only modifier). A non-lead must not show it.
+	var gs_pu := root.get_node_or_null("GameState")
+	var reg_pu := root.get_node_or_null("PairUpRegistry")
+	var res_pu := root.get_node_or_null("PairUpBonusResolver")
+	if gs_pu != null and reg_pu != null and res_pu != null:
+		gs_pu.call("reset_map_state")
+		reg_pu.call("clear")
+		gs_pu.set("pair_up_enabled", true)
+		var lead: Node = stub_unit_script.new()
+		var lead_data := UnitData.new()
+		lead_data.unit_name = "PU Lead"; lead_data.class_id = "soldier"; lead_data.unit_id = "hud_lead"
+		lead_data.hp = 20; lead_data.max_hp = 20
+		lead.data = lead_data
+		var supp: Node = stub_unit_script.new()
+		var supp_data := UnitData.new()
+		supp_data.unit_name = "PU Support"; supp_data.class_id = "cavalier"; supp_data.unit_id = "hud_supp"
+		supp_data.hp = 20; supp_data.max_hp = 20
+		supp_data.strength = 10; supp_data.defense = 10; supp_data.speed = 9
+		supp_data.skill = 8; supp_data.luck = 4
+		supp.data = supp_data
+		root.add_child(lead); root.add_child(supp)
+		gs_pu.call("register_unit", lead)
+		gs_pu.call("register_unit", supp)
+		reg_pu.call("pair", "hud_lead", "hud_supp")
+
+		hud._show_unit(lead)
+		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
+		var lead_shows: bool = pu_label != null and pu_label.visible \
+			and "Paired" in pu_label.text and "Str" in pu_label.text
+		hud._show_unit(supp)   # support is not the lead → indicator hidden
+		var supp_hides: bool = pu_label != null and not pu_label.visible
+		if lead_shows and supp_hides:
+			print("OK  unit-info shows the Pair Up bonus on a paired lead, hides it otherwise (#8.5)")
+			passed += 1
+		else:
+			print("FAIL pair-up indicator: lead_shows=%s supp_hides=%s text=%s" % [
+				lead_shows, supp_hides, (pu_label.text if pu_label != null else "<no label>")])
+			failed += 1
+		reg_pu.call("clear")
+		gs_pu.call("reset_map_state")
+		lead.queue_free(); supp.queue_free()
+	else:
+		print("SKIP pair-up indicator (autoload missing)")
+
 	unit_a.queue_free(); unit_b.queue_free()
 	stub_grid.queue_free()
 
@@ -187,7 +234,7 @@ var data
 	else:
 		print("FAIL empty mapdata produced lines"); failed += 1
 
-	# ── C3: phase label reads authored faction display_name ───────────────────
+	# ── C3: phase label identifies both faction and controller ────────────────
 	var gs2 := root.get_node_or_null("GameState")
 	if gs2 != null:
 		var md_phase := MapData.new()
@@ -208,8 +255,8 @@ var data
 		root.add_child(gm_stub)
 		hud._on_phase_changed(GameState.Phase.ENEMY, "red")
 		var phase_label: Label = hud.get_node("PhaseLabel")
-		if phase_label.text == "INVADERS PHASE":
-			print("OK  C3: HUD phase label uses faction display_name")
+		if phase_label.text == "INVADERS - AI PHASE":
+			print("OK  C3: HUD phase label uses faction and controller")
 			passed += 1
 		else:
 			print("FAIL C3 HUD phase label: %q" % phase_label.text)
@@ -217,6 +264,162 @@ var data
 		gm_stub.queue_free()
 	else:
 		print("SKIP C3 HUD phase label test (GameState autoload absent)")
+
+	# ── Phase 1 More Info: terrain expansion ────────────────────────────────────
+	# A second stub grid + selected-unit setup so the expanded mode has a
+	# meaningful tile + actor context. TurnManager stub mirrors the gates
+	# TileActions queries; only "seize" fires for this test so we know the
+	# Actions row picks it up.
+	var more_grid_script := GDScript.new()
+	more_grid_script.source_code = """
+extends Node
+func get_terrain_at(_t: Vector2i) -> String: return \"forest\"
+func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 1, \"dodge\": 15}
+func get_unit_at(_t: Vector2i): return null
+"""
+	more_grid_script.reload()
+	var more_grid: Node = more_grid_script.new()
+	root.add_child(more_grid)
+
+	var more_turn_script := GDScript.new()
+	more_turn_script.source_code = """
+extends Node
+func can_seize(_u: Node, _t: Vector2i) -> bool: return true
+func can_escape(_u: Node, _t: Vector2i) -> bool: return false
+"""
+	more_turn_script.reload()
+	var more_turn: Node = more_turn_script.new()
+	root.add_child(more_turn)
+
+	# Direct injection — setup() also connects turn_changed which the stub
+	# doesn't expose, so we wire fields manually.
+	hud._grid = more_grid
+	hud._turn_manager = more_turn
+
+	# Selected unit so the Actions row has someone to gate against.
+	var more_unit_script := GDScript.new()
+	more_unit_script.source_code = "extends Node\nvar data\n"
+	more_unit_script.reload()
+	var more_unit: Node = more_unit_script.new()
+	more_unit.data = UnitData.new()
+	root.add_child(more_unit)
+	hud._on_unit_selected(more_unit)
+
+	# Compact view: only the original three rows are populated; the
+	# expansion rows stay hidden until the player presses more_info.
+	hud._on_cursor_moved(Vector2i(2, 2))
+	if not hud._terrain_desc.visible \
+			and not hud._terrain_moves.visible \
+			and not hud._terrain_actions.visible \
+			and hud._terrain_hint.visible \
+			and not hud._terrain_more_panel.visible:
+		print("OK  terrain panel starts compact, hint visible"); passed += 1
+	else:
+		print("FAIL compact start: desc=%s moves=%s actions=%s hint=%s" \
+			% [hud._terrain_desc.visible, hud._terrain_moves.visible,
+				hud._terrain_actions.visible, hud._terrain_hint.visible])
+		failed += 1
+
+	# Expand: description + move-costs + actions populated, hint hidden.
+	# Match a substring from MoreInfoContent.TERRAIN["forest"] so the test
+	# proves the lookup landed on the right entry without coupling to the
+	# exact authored copy.
+	hud._terrain_expanded = true
+	hud._update_terrain(Vector2i(2, 2))
+	var expanded_ok: bool = (
+		hud._terrain_more_panel.visible
+		and hud._terrain_desc.visible
+		and "Slows most ground units" in hud._terrain_desc.text
+		and hud._terrain_moves.visible
+		and "Foot" in hud._terrain_moves.text
+		and "Mounted" in hud._terrain_moves.text
+		and hud._terrain_actions.visible
+		and "Seize" in hud._terrain_actions.text
+		and not hud._terrain_hint.visible
+	)
+	if expanded_ok:
+		print("OK  expanded terrain panel shows description, move costs, actions")
+		passed += 1
+	else:
+		print("FAIL expanded render: desc=%s|%s moves=%s|%s actions=%s|%s hint=%s" \
+			% [hud._terrain_desc.visible, hud._terrain_desc.text,
+				hud._terrain_moves.visible, hud._terrain_moves.text,
+				hud._terrain_actions.visible, hud._terrain_actions.text,
+				hud._terrain_hint.visible])
+		failed += 1
+
+	# Move-cost row uses "—" for impassable rather than the raw 999.
+	var wall_grid_script := GDScript.new()
+	wall_grid_script.source_code = """
+extends Node
+func get_terrain_at(_t: Vector2i) -> String: return \"wall\"
+func get_terrain_bonuses(_t: Vector2i) -> Dictionary: return {\"def\": 0, \"dodge\": 0}
+func get_unit_at(_t: Vector2i): return null
+"""
+	wall_grid_script.reload()
+	var wall_grid: Node = wall_grid_script.new()
+	root.add_child(wall_grid)
+	hud._grid = wall_grid
+	hud._update_terrain(Vector2i(0, 0))
+	if "—" in hud._terrain_moves.text and "999" not in hud._terrain_moves.text:
+		print("OK  wall renders move cost as — instead of 999"); passed += 1
+	else:
+		print("FAIL wall move-cost text: %q" % hud._terrain_moves.text); failed += 1
+
+	# W6a: player-facing tile coords are one-based — internal Vector2i(0,0) shows
+	# as Tile (1, 1). Storage stays zero-based; this is a display-only +1.
+	hud._update_terrain(Vector2i(0, 0))
+	if hud._terrain_coord.text == "Tile (1, 1)":
+		print("OK  W6a tile coord (0,0) renders as one-based (1, 1)"); passed += 1
+	else:
+		print("FAIL W6a coord at (0,0): %q" % hud._terrain_coord.text); failed += 1
+	hud._update_terrain(Vector2i(7, 4))
+	if hud._terrain_coord.text == "Tile (8, 5)":
+		print("OK  W6a tile coord (7,4) renders as one-based (8, 5)"); passed += 1
+	else:
+		print("FAIL W6a coord at (7,4): %q" % hud._terrain_coord.text); failed += 1
+
+	# Actions row hides when no unit is selected (deselect mid-expansion).
+	hud._on_unit_deselected()
+	hud._update_terrain(Vector2i(0, 0))
+	if not hud._terrain_actions.visible:
+		print("OK  actions row hides when no unit is selected"); passed += 1
+	else:
+		print("FAIL actions row visible without a selected unit"); failed += 1
+
+	# Collapse back to compact view: expansion rows hide, hint returns.
+	hud._terrain_expanded = false
+	hud._update_terrain(Vector2i(0, 0))
+	if not hud._terrain_desc.visible and not hud._terrain_moves.visible \
+			and not hud._terrain_actions.visible and hud._terrain_hint.visible \
+			and not hud._terrain_more_panel.visible:
+		print("OK  collapsing the panel restores the compact view"); passed += 1
+	else:
+		print("FAIL collapse: rows still visible"); failed += 1
+
+	# More Info is a separate, bounded, scrollable box — not part of the basic
+	# stats panel. The scroll caps the visible height so long terrain text
+	# scrolls instead of growing the panel off-screen.
+	var separate_ok: bool = (
+		hud._terrain_more_panel != hud._terrain_panel
+		and hud._terrain_desc.get_parent().get_parent() == hud._terrain_scroll
+		and hud._terrain_scroll.get_parent() == hud._terrain_more_panel
+	)
+	var bounded_ok: bool = (
+		hud._terrain_scroll.custom_minimum_size.y > 0.0
+		and hud._terrain_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED
+	)
+	if separate_ok and bounded_ok:
+		print("OK  More Info box is separate from the basic panel and scroll-bounded")
+		passed += 1
+	else:
+		print("FAIL more-info structure: separate=%s bounded=%s min_y=%s mode=%d" \
+			% [separate_ok, bounded_ok, str(hud._terrain_scroll.custom_minimum_size.y),
+				hud._terrain_scroll.vertical_scroll_mode])
+		failed += 1
+
+	more_unit.queue_free(); more_grid.queue_free()
+	wall_grid.queue_free(); more_turn.queue_free()
 
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

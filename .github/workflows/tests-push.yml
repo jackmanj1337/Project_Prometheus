@@ -13,6 +13,24 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # check_docs.py reads git log for the stale-date check
+
+      - name: Documentation checks (DOC-011)
+        run: python3 AGENT/Docs/check_docs.py
+
+      - name: RNG-usage guard
+        run: bash scripts/ci/check_rng_usage.sh
+
+      - name: Analyzer tool tests
+        # The godot-analyzer MCP backs the Scenes/Data audit pillar; gate it so a
+        # parser regression can't slip through. Stdlib unittest — no pip deps.
+        run: python3 tools/godot-analyzer-mcp/tests/test_tools.py
+
+      - name: Scene-integrity check
+        # Fails if any scene-attached @onready $-path no longer resolves (silent
+        # node-rename / scene-reorg breakage). Stdlib only — no pip deps.
+        run: python3 scripts/ci/check_scene_integrity.py
 
       - name: Install runtime dependencies
         run: |

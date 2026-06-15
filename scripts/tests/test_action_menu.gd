@@ -12,6 +12,8 @@ var _grid_stub: GDScript
 # `entries`; get_equippable_weapons() returns `weapons` (drives the Equip button).
 func _mk_unit(weapon: Variant, entries: Array, weapons: Array = []) -> Node:
 	var d := UnitData.new()
+	d.hp = 20
+	d.max_hp = 20
 	var inv: Array[InventoryEntry] = []
 	for e in entries:
 		inv.append(e)
@@ -48,7 +50,7 @@ func _init() -> void:
 	var failed := 0
 
 	_unit_stub = GDScript.new()
-	_unit_stub.source_code = "extends Node\nvar data = null\nvar _weapon = null\nvar _weapons: Array = []\nvar tile_position: Vector2i = Vector2i.ZERO\nfunc get_equipped_weapon(): return _weapon\nfunc get_equippable_weapons() -> Array: return _weapons\n"
+	_unit_stub.source_code = "extends Node\nvar data = null\nvar _weapon = null\nvar _weapons: Array = []\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"blue\"\nfunc get_equipped_weapon(): return _weapon\nfunc get_equippable_weapons() -> Array: return _weapons\n"
 	_unit_stub.reload()
 	_grid_stub = GDScript.new()
 	_grid_stub.source_code = "extends Node\nvar enemies: Array = []\nvar heal_targets: Array = []\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return enemies\nfunc get_healable_allies(_u) -> Array: return heal_targets\n"
@@ -110,11 +112,12 @@ func _init() -> void:
 		print("FAIL Item should be shown"); failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
-	# Wait is index 6 in _buttons: [attack, staff, item, equip, seize, escape, wait].
-	# (M16 stage 3 inserted Seize at index 4; the 2026-05-20 review added Escape
-	# at index 5, reversing Decision 5's auto-escape.)
+	# Wait is now index 9 in _buttons: [attack, staff, item, equip, seize, escape,
+	# pair_up, swap, separate, wait]. (M16 stage 3 inserted Seize at index 4; the
+	# 2026-05-20 review added Escape at index 5; step 6a inserted Swap; step 6b
+	# inserted Pair Up; step 6c inserted Separate before Wait.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
-	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 6:
+	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 9:
 		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
 	else:
 		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
@@ -223,6 +226,133 @@ func _init() -> void:
 		print("OK  Escape shown when TurnManager.can_escape == true"); passed += 1
 	else:
 		print("FAIL Escape should be shown (can_escape=true)"); failed += 1
+
+	# ── Step 6a/6b: Pair Up + Swap button visibility ──────────────────────────
+	# Swap is offered when the unit is paired; Pair Up is offered when the unit
+	# is unpaired AND has an adjacent unpaired ally. Both depend on a live
+	# PairUpRegistry autoload; Pair Up additionally walks grid.get_unit_at.
+	var reg := root.get_node_or_null("/root/PairUpRegistry")
+	if reg == null:
+		print("SKIP Pair Up / Swap visibility tests (PairUpRegistry autoload absent)")
+	else:
+		var gs_pairs := root.get_node_or_null("/root/GameState")
+		reg.call("clear")
+		var paired_unit_a := _mk_unit(sword, [])
+		paired_unit_a.data.unit_id = "chrom"
+		paired_unit_a.set("team", "blue")
+		paired_unit_a.tile_position = Vector2i(2, 2)
+		var paired_unit_b := _mk_unit(sword, [])
+		paired_unit_b.data.unit_id = "lissa"
+		paired_unit_b.set("team", "blue")
+		paired_unit_b.tile_position = Vector2i(3, 2)  # cardinal-adjacent to chrom
+		if gs_pairs != null:
+			gs_pairs.register_unit(paired_unit_a)
+			gs_pairs.register_unit(paired_unit_b)
+		reg.pair("chrom", "lissa")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var paired_visible: bool = am._btn_swap.visible
+		am.show_for(paired_unit_b, _mk_grid([], []))
+		var support_visible: bool = am._btn_swap.visible
+		reg.call("clear")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var unpaired_visible: bool = am._btn_swap.visible
+		if paired_visible and support_visible and not unpaired_visible:
+			print("OK  Swap shown for paired lead and support; hidden when unpaired"); passed += 1
+		else:
+			print("FAIL Swap visibility: lead=%s support=%s unpaired=%s" \
+				% [paired_visible, support_visible, unpaired_visible])
+			failed += 1
+		# Choosing Swap emits the "swap_roles" action name so MapCursor can route it.
+		reg.pair("chrom", "lissa")
+		am.show_for(paired_unit_a, _mk_grid([], []))
+		var swap_chose := [""]
+		am.action_chosen.connect(func(a): swap_chose[0] = a)
+		am._btn_swap.pressed.emit()
+		if swap_chose[0] == "swap_roles":
+			print("OK  Swap button emits action_chosen('swap_roles')"); passed += 1
+		else:
+			print("FAIL Swap emission: %s" % swap_chose[0]); failed += 1
+		reg.call("clear")
+
+		# Pair Up visibility: needs an adjacency-aware grid stub so the
+		# show_for helper can find an unpaired ally next to the lead.
+		var adj_stub_src := "extends Node\nvar adjacency: Dictionary = {}\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return []\nfunc get_healable_allies(_u) -> Array: return []\nfunc get_unit_at(tile: Vector2i): return adjacency.get(tile, null)\nfunc is_passable(tile: Vector2i, _unit) -> bool: return not adjacency.has(tile)\nfunc can_end_on_tile(tile: Vector2i, _unit) -> bool: return not adjacency.has(tile)\n"
+		var adj_stub: GDScript = GDScript.new()
+		adj_stub.source_code = adj_stub_src
+		adj_stub.reload()
+		var adj_grid: Node = adj_stub.new()
+		adj_grid.set("adjacency", {Vector2i(3, 2): paired_unit_b})  # lissa next to chrom
+		root.add_child(adj_grid)
+
+		# Pair Up shown when an adjacent unpaired ally exists.
+		am.show_for(paired_unit_a, adj_grid)
+		var pair_btn_shown: bool = am._btn_pair_up.visible
+		# Pair Up hidden if the candidate ally is already paired.
+		reg.pair("chrom", "lissa")
+		am.show_for(paired_unit_a, adj_grid)
+		var pair_btn_hidden_when_paired: bool = not am._btn_pair_up.visible
+		reg.call("clear")
+		# Pair Up hidden when nobody is adjacent.
+		adj_grid.set("adjacency", {})
+		am.show_for(paired_unit_a, adj_grid)
+		var pair_btn_hidden_when_alone: bool = not am._btn_pair_up.visible
+		if pair_btn_shown and pair_btn_hidden_when_paired and pair_btn_hidden_when_alone:
+			print("OK  Pair Up shown only with an adjacent unpaired ally"); passed += 1
+		else:
+			print("FAIL Pair Up visibility: shown=%s hidden_paired=%s hidden_alone=%s" \
+				% [pair_btn_shown, pair_btn_hidden_when_paired, pair_btn_hidden_when_alone])
+			failed += 1
+		# Pair Up button emits "pair_up" so MapCursor can route to the targeting flow.
+		adj_grid.set("adjacency", {Vector2i(3, 2): paired_unit_b})
+		am.show_for(paired_unit_a, adj_grid)
+		var pair_chose := [""]
+		am.action_chosen.connect(func(a): pair_chose[0] = a)
+		am._btn_pair_up.pressed.emit()
+		if pair_chose[0] == "pair_up":
+			print("OK  Pair Up button emits action_chosen('pair_up')"); passed += 1
+		else:
+			print("FAIL Pair Up emission: %s" % pair_chose[0]); failed += 1
+		# Separate shown only for a paired lead with an adjacent legal drop tile.
+		reg.call("clear")
+		reg.pair("chrom", "lissa")
+		paired_unit_b.tile_position = reg.OFF_MAP_TILE
+		adj_grid.set("adjacency", {})
+		am.show_for(paired_unit_a, adj_grid)
+		var separate_shown: bool = am._btn_separate.visible
+		adj_grid.set("adjacency", {
+			Vector2i(2, 1): Node.new(),
+			Vector2i(2, 3): Node.new(),
+			Vector2i(1, 2): Node.new(),
+			Vector2i(3, 2): Node.new(),
+		})
+		am.show_for(paired_unit_a, adj_grid)
+		var separate_hidden_blocked: bool = not am._btn_separate.visible
+		adj_grid.set("adjacency", {})
+		var separate_chose := [""]
+		am.show_for(paired_unit_a, adj_grid)
+		am.action_chosen.connect(func(a): separate_chose[0] = a)
+		am._btn_separate.pressed.emit()
+		var separate_emits: bool = separate_chose[0] == "separate"
+		if separate_shown and separate_hidden_blocked and separate_emits:
+			print("OK  Separate shown only with a legal drop tile and emits action_chosen('separate')"); passed += 1
+		else:
+			print("FAIL Separate visibility/emission: shown=%s hidden_blocked=%s emitted=%s" % [
+				separate_shown, separate_hidden_blocked, separate_emits]); failed += 1
+		var gs := root.get_node_or_null("/root/GameState")
+		if gs != null:
+			var prior_pair_up_enabled: bool = bool(gs.get("pair_up_enabled"))
+			gs.set("pair_up_enabled", false)
+			reg.call("clear")
+			am.show_for(paired_unit_a, adj_grid)
+			var hidden_when_disabled: bool = not am._btn_pair_up.visible
+			gs.set("pair_up_enabled", prior_pair_up_enabled)
+			if hidden_when_disabled:
+				print("OK  Pair Up hidden when the campaign setting disables it"); passed += 1
+			else:
+				print("FAIL Pair Up should be hidden while disabled"); failed += 1
+		else:
+			print("SKIP Pair Up disabled visibility test (GameState autoload absent)")
+		reg.call("clear")
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

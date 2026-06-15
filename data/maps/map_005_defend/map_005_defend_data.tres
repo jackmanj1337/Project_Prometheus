@@ -1,0 +1,53 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
+
+[sub_resource type="Resource" id="cond_survive_hold"]
+script = ExtResource("2")
+type = "survive"
+tiles = [Vector2i(3, 5), Vector2i(3, 6)]
+turns = 6
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("2")
+type = "protect"
+unit_ids = ["unit_01_cavalier"]
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("2")
+type = "turn_limit"
+turns = 8
+
+[resource]
+script = ExtResource("1")
+id = "map_005_defend"
+display_name = "Map 005 - Defend"
+tilemap_scene_path = ""
+player_start_tiles = [Vector2i(1, 4), Vector2i(1, 5), Vector2i(1, 6), Vector2i(2, 4), Vector2i(2, 5), Vector2i(2, 6)]
+enemy_placements = [
+{"unit_data_path": "res://data/maps/map_005_defend/units/m005_soldier_1.tres", "tile": Vector2i(9, 3), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_005_defend/units/m005_archer_1.tres", "tile": Vector2i(11, 5), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_005_defend/units/m005_fighter_1.tres", "tile": Vector2i(12, 7), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_005_defend/units/m005_soldier_2.tres", "tile": Vector2i(14, 4), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_005_defend/units/m005_knight_1.tres", "tile": Vector2i(15, 6), "ai_profile": "basic", "is_boss": false}
+]
+reward_gold = 750
+reward_items = []
+camera_start_tile = Vector2i(6, 5)
+victory_conditions = {"allies": [SubResource("cond_survive_hold")]}
+defeat_conditions = {"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]}
+grid = [
+"WWWWWWWWWWWWWWWWWW",
+"W......F.........W",
+"W..FF............W",
+"W................W",
+"W..T....FF.......W",
+"W..T.............W",
+"W...........FF...W",
+"W................W",
+"W.....FF.........W",
+"W................W",
+"W................W",
+"WWWWWWWWWWWWWWWWWW"
+]

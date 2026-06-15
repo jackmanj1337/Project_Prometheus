@@ -1,5 +1,7 @@
 # Godot + Claude Code + Codex — Terminal Dev Container
 
+**Last verified:** 2026-06-13
+
 A Docker environment for developing this Godot project with both Claude Code and Codex from one terminal container.
 
 ## What's inside

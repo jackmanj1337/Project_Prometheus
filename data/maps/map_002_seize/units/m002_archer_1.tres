@@ -1,0 +1,35 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_bow"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m002_archer_1"
+unit_name = "Wall Archer"
+class_id = "archer"
+level = 3
+internal_level = 3
+max_hp = 18
+hp = 18
+strength = 7
+defense = 4
+resistance = 3
+skill = 9
+speed = 7
+luck = 5
+movement = 6
+constitution = 6
+line_of_sight = 4
+weapon_wexp = {"bow": 100}
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+ai_profile = "basic"
+is_default_roster = false

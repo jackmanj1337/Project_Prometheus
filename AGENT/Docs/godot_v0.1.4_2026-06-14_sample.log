@@ -1,0 +1,51 @@
+# godot.log — v0.1.4 playtest sample (2026-06-14)
+#
+# Deduplicated excerpt of the returned 9.4 MB / 161,358-line godot.log.
+# Full raw log kept out of git (per tracking decision); counts preserved below.
+#
+# Build: Project_Prometheus_v0.1.4_debug (commit a8ee66a), Godot 4.6.stable.
+#
+# Aggregate counts across the full log:
+#   11829x  ERROR  DataManager: unknown weapon id 'iron_axe'
+#      80x  WARN   SkillHandler stub: 'armsthrift'  (implement in M9)
+#      25x  WARN   SkillHandler stub: 'dash'        (implement in M9)
+#       2x  WARN   SkillHandler stub: 'disarm'      (implement in M9)
+#
+# Root cause of the iron_axe error: no axe weapon exists in data/weapons/,
+# yet these Fighter units reference weapon id 'iron_axe':
+#   data/maps/map_003_defeat_boss/units/m003_fighter_1.tres
+#   data/maps/map_003_defeat_boss/units/m003_boss.tres
+#   data/maps/map_004_escape/units/m004_fighter_1.tres
+#   data/maps/map_005_defend/units/m005_fighter_1.tres
+
+── engine banner ─────────────────────────────────────────────────────────────
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+Vulkan 1.4.325 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 3060 Laptop GPU
+
+── representative ERROR: iron_axe (x11829) ───────────────────────────────────
+ERROR: DataManager: unknown weapon id 'iron_axe'
+
+── representative WARN: armsthrift stub (x80, full backtrace) ────────────────
+WARNING: SkillHandler._apply_unimplemented: stub called for 'armsthrift' — implement in M9
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:432)
+       [1] _execute_skill (res://scripts/skills/SkillHandler.gd:212)
+       [2] apply_trigger (res://scripts/skills/SkillHandler.gd:194)
+       [3] _resolve_single_attack (res://scripts/core/CombatResolver.gd:423)
+       [4] _resolve_strike (res://scripts/core/CombatResolver.gd:512)
+       [5] _run_strike_series (res://scripts/core/CombatResolver.gd:634)
+       [6] resolve_combat (res://scripts/core/CombatResolver.gd:683)
+       [7] _resolve_attack (res://scripts/core/MapCursorTargeting.gd:186)
+       [8] handle_confirm (res://scripts/core/MapCursorTargeting.gd:114)
+       [9] _on_confirm (res://scripts/core/MapCursor.gd:484)
+       [10] _handle_mouse_button (res://scripts/core/MapCursor.gd:383)
+       [11] _unhandled_input (res://scripts/core/MapCursor.gd:226)
+
+── representative WARN: dash stub (x25) ──────────────────────────────────────
+WARNING: SkillHandler._apply_unimplemented: stub called for 'dash' — implement in M9
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+
+── representative WARN: disarm stub (x2) ─────────────────────────────────────
+WARNING: SkillHandler._apply_unimplemented: stub called for 'disarm' — implement in M9
+   at: push_warning (core/variant/variant_utility.cpp:1034)

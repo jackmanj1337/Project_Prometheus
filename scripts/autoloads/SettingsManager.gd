@@ -37,6 +37,13 @@ var camera_edge_buffer: int = 2
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
 var keybindings: Dictionary = {}
 
+# Baseline ui_* events captured at startup BEFORE the first mirror, so a later
+# re-mirror (after rebind_action) can reset ui_accept etc. to their defaults
+# (Enter/Space/etc. from project.godot) before re-stamping the current game-key
+# events. Without this, rebinding "confirm" from Z to Y would leave Z attached
+# to ui_accept indefinitely. Code review 2026-06-10 issue 2.9.
+var _ui_baseline_events: Dictionary = {}
+
 
 func _ready() -> void:
 	load_settings()
@@ -145,23 +152,53 @@ func _apply_keybindings() -> void:
 			InputMap.action_add_event(action, event)
 
 
+const _UI_MIRROR: Dictionary = {
+	"ui_up": "cursor_up", "ui_down": "cursor_down",
+	"ui_left": "cursor_left", "ui_right": "cursor_right",
+	"ui_accept": "confirm", "ui_cancel": "cancel",
+}
+
+
+# Snapshots the engine-default ui_* events (Enter/Space on ui_accept etc.)
+# the first time the mirror runs. Restored at the top of every subsequent
+# mirror call so a later re-mirror after rebind_action() doesn't leave the
+# previous binding stuck on ui_accept. Capturing lazily (instead of in _ready)
+# means a direct test caller that hits _mirror_game_keys_to_ui without going
+# through _ready still gets the right baseline on first call.
+func _capture_ui_baseline_if_needed() -> void:
+	if not _ui_baseline_events.is_empty():
+		return
+	for ui_action in _UI_MIRROR:
+		if not InputMap.has_action(ui_action):
+			continue
+		var events: Array[InputEvent] = []
+		for event in InputMap.action_get_events(ui_action):
+			events.append(event)
+		_ui_baseline_events[ui_action] = events
+
+
 # Mirrors the game's cursor/confirm/cancel keys onto Godot's built-in ui_* actions.
 # Menus navigate via ui_* (arrows + Enter/Space by default); without this, the
 # game's WASD/Z keys do nothing on a menu (#7). Runs after _apply_keybindings()
 # so any user rebind of a game action carries over to the menus too.
+#
+# Each call first resets every mirrored ui_* action back to its baseline (the
+# engine defaults captured in _capture_ui_baseline) before stamping the current
+# game-action events on top. This makes the function idempotent across rebinds:
+# unbinding "confirm" away from Z removes Z from ui_accept too.
 func _mirror_game_keys_to_ui() -> void:
-	const UI_MIRROR := {
-		"ui_up": "cursor_up", "ui_down": "cursor_down",
-		"ui_left": "cursor_left", "ui_right": "cursor_right",
-		"ui_accept": "confirm", "ui_cancel": "cancel",
-	}
-	for ui_action in UI_MIRROR:
-		var game_action: String = UI_MIRROR[ui_action]
+	_capture_ui_baseline_if_needed()
+	for ui_action in _UI_MIRROR:
+		var game_action: String = _UI_MIRROR[ui_action]
 		if not InputMap.has_action(ui_action) or not InputMap.has_action(game_action):
 			continue
+		# Reset ui_action to its baseline (engine defaults), then re-stamp every
+		# current game-action event. action_has_event keeps the add idempotent
+		# for events already on the baseline (e.g. arrows on ui_up).
+		InputMap.action_erase_events(ui_action)
+		for event in _ui_baseline_events.get(ui_action, [] as Array[InputEvent]):
+			InputMap.action_add_event(ui_action, event)
 		for event in InputMap.action_get_events(game_action):
-			# action_has_event guards against duplicating the shared keys (e.g.
-			# arrows on ui_up, Enter on ui_accept) and keeps this idempotent.
 			if not InputMap.action_has_event(ui_action, event):
 				InputMap.action_add_event(ui_action, event)
 
@@ -179,6 +216,11 @@ func set_volume(bus_name: String, value: int) -> void:
 func rebind_action(action_name: String, event: InputEvent) -> void:
 	keybindings[action_name] = [event]
 	_apply_keybindings()
+	# Re-mirror so the ui_* actions consumed by menus track the new binding —
+	# rebinding "confirm" must also re-anchor "ui_accept". _mirror_game_keys_to_ui
+	# is idempotent (action_has_event guards every add) so the redundant call on
+	# the unchanged actions is cheap. Code review 2026-06-10 issue 2.9.
+	_mirror_game_keys_to_ui()
 	save()
 
 

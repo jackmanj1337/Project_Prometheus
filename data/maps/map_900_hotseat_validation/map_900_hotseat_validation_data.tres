@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=8 format=3]
+[gd_resource type="Resource" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
@@ -10,7 +10,14 @@ type = "rout"
 faction_id = ""
 unit_ids = []
 tiles = []
-allowed_unit_ids = []
+turns = 0
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("2")
+type = "rout"
+faction_id = "allies"
+unit_ids = []
+tiles = []
 turns = 0
 
 [sub_resource type="Resource" id="faction_blue"]
@@ -24,7 +31,7 @@ controller = "AI"
 [sub_resource type="Resource" id="faction_green"]
 script = ExtResource("3")
 id = "green"
-display_name = "Green Hotseat"
+display_name = "Green"
 color = Color(0.24, 0.72, 0.38, 1)
 alliance_group = "allies"
 controller = "HOTSEAT"
@@ -62,6 +69,7 @@ factions = [SubResource("faction_blue"), SubResource("faction_green"), SubResour
 turn_order = ["blue", "green", "red", "yellow"]
 activation_mode = "WHOLE_PHASE"
 victory_conditions = {"allies": [SubResource("cond_rout_all")]}
+defeat_conditions = {"allies": [SubResource("cond_rout_allies")]}
 reward_gold = 0
 reward_items = []
 camera_start_tile = Vector2i(4, 6)

@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "iron_sword"
 display_name = "Iron Sword"
-weapon_type = "sword"
-rank = "E"
+combat_family = "sword"
+wexp_track = "sword"
+required_rank = "E"
 mt = 6
 hit = 85
 crit = 0
@@ -19,4 +20,4 @@ cost = 460
 wexp = 1
 effect_tags = []
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

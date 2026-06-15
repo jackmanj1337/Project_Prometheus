@@ -98,6 +98,7 @@ func _ready() -> void:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
 		map_menu.settings_requested.connect(_on_settings_requested)
+		map_menu.quit_to_menu_requested.connect(_on_quit_to_menu_requested)
 	if settings_screen:
 		settings_screen.back_pressed.connect(_on_settings_closed)
 	# Lock cursor during enemy phase; unlock when player phase starts
@@ -114,6 +115,8 @@ func _ready() -> void:
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
+	_targeting.pair_up_resolved.connect(_on_pair_up_resolved)
+	_targeting.separate_resolved.connect(_on_separate_resolved)
 
 
 # Fallback lookup for the menu @exports — see _ready(). Each path mirrors the
@@ -141,20 +144,26 @@ func _resolve_menu_refs() -> void:
 
 
 func _on_phase_changed(new_phase: int, _faction_id: String = "") -> void:
+	# Capture the *outgoing* faction's camera view BEFORE reassigning
+	# _controlling_faction. With multi-faction hotseat (M14 stage 5) every
+	# Phase.ENEMY transition fires phase_changed, so blue → green → red → blue
+	# used to overwrite blue's saved view on the green→red hop. Saving against
+	# the outgoing faction id keeps each faction's view independent (code
+	# review 2026-06-09).
+	var outgoing_faction: String = _controlling_faction
+	if _faction_id != "":
+		set_controlling_faction(_faction_id)
 	if new_phase == GameState.Phase.ENEMY:
-		# Capture the player's last camera view so we can restore it next player
-		# phase (PT4 #2). Done before lock() — order doesn't matter, but reads
-		# naturally as "remember where we were, then freeze."
 		if _camera_ctrl != null:
-			_camera_ctrl.save_view()
+			_camera_ctrl.save_view(outgoing_faction)
 		lock()
 	else:
-		# Restore the player's saved camera (PT4 #2). Then run the existing
-		# PT3 #5 safety net so a cursor outside the resulting view is panned back
-		# in — covers the rare case where the saved view no longer contains the
-		# cursor (e.g. End Turn from a far-panned position).
+		# Restore the incoming faction's saved camera (PT4 #2). Then run the
+		# existing PT3 #5 safety net so a cursor outside the resulting view is
+		# panned back in — covers the rare case where the saved view no longer
+		# contains the cursor (e.g. End Turn from a far-panned position).
 		if _camera_ctrl != null:
-			_camera_ctrl.restore_view()
+			_camera_ctrl.restore_view(_controlling_faction)
 		_scroll_camera_if_needed()
 		unlock()
 
@@ -188,6 +197,11 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
 	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"),
 		_controlling_faction)
+	# AttackPreview needs the camera + camera controller so it can anchor
+	# itself beside the defender and pan the view when the panel does not
+	# fit. has_method guard keeps test stubs (StubPreview) working.
+	if attack_preview != null and attack_preview.has_method("setup"):
+		attack_preview.setup(_camera, _grid, _camera_ctrl)
 	# The selection slice needs the grid + turn manager for its queries.
 	_selection.setup(_grid, _turn, _controlling_faction)
 
@@ -288,7 +302,10 @@ func _toggle_danger_zone() -> void:
 		_grid.clear_overlays()
 		_danger_zone_shown = false
 	else:
-		_grid.show_enemy_danger_zone()
+		# Paint from the perspective of the active controlling faction so a
+		# hotseat green player sees green's threats, not blue's (code review
+		# 2026-06-10 issue 2.4).
+		_grid.show_enemy_danger_zone(_controlling_faction)
 		_danger_zone_shown = true
 
 
@@ -302,21 +319,16 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null and sm.mouse_cursor == "disabled":
 		return
-	# canvas_transform maps world → screen; its inverse converts screen pixels to world coords.
-	# Using the camera's own transform here would be wrong — it doesn't account for viewport offset.
-	var world := get_viewport().canvas_transform.affine_inverse() * event.position
-	var tile := _grid.world_to_tile(world)
+	var tile := _mouse_tile_at(event.position)
 	match _state:
 		State.FREE, State.UNIT_SELECTED:
-			# Mouse motion sets the cursor from an absolute pointer position. If
-			# this also triggers an edge-scroll, the camera moves, the screen→world
-			# mapping shifts, the *same* mouse position resolves to a new tile,
-			# and the next motion event jumps further — a runaway pan (#7). Two
-			# guards: (1) clamp the resolved tile to the currently visible area
-			# so the mouse can't push the cursor off-screen, and (2) pass
-			# from_mouse=true through _set_tile so edge-scroll is skipped on this
-			# path. Keyboard moves still pan as before. Steady rate-based edge
-			# pan + a sensitivity slider are on the roadmap.
+			# Mouse motion now pans the camera intentionally when the pointer
+			# reaches the viewport edge, then recomputes the pointed-at tile in
+			# the new view. Cursor moves still skip the keyboard edge-scroll path,
+			# which avoids the old camera-feedback runaway while restoring basic
+			# mouse-driven map scrolling.
+			if _maybe_pan_camera_for_mouse(event.position):
+				tile = _mouse_tile_at(event.position)
 			tile = _clamp_tile_to_view(tile)
 			if tile != current_tile:
 				_set_tile(tile, true)
@@ -418,6 +430,30 @@ func _clamp_tile_to_view(tile: Vector2i) -> Vector2i:
 	if _camera_ctrl == null:
 		return tile
 	return _camera_ctrl.clamp_tile_to_view(tile)
+
+
+func _mouse_tile_at(screen_pos: Vector2) -> Vector2i:
+	var world := get_viewport().canvas_transform.affine_inverse() * screen_pos
+	return _grid.world_to_tile(world)
+
+
+func _maybe_pan_camera_for_mouse(screen_pos: Vector2) -> bool:
+	if _camera_ctrl == null or _camera == null:
+		return false
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var px_buffer: float = float(_camera_edge_buffer() * GameConstants.TILE_SIZE)
+	if px_buffer <= 0.0:
+		return false
+	var delta := Vector2i.ZERO
+	if screen_pos.x <= px_buffer:
+		delta.x = -1
+	elif screen_pos.x >= view.x - px_buffer:
+		delta.x = 1
+	if screen_pos.y <= px_buffer:
+		delta.y = -1
+	elif screen_pos.y >= view.y - px_buffer:
+		delta.y = 1
+	return _camera_ctrl.nudge_by_tiles(delta)
 
 
 # ── State Machine ──────────────────────────────────────────────────────────
@@ -576,8 +612,116 @@ func _on_action_chosen(action: String) -> void:
 			_commit_seize()
 		"escape":
 			_commit_escape()
+		"swap_roles":
+			_commit_swap_roles()
+		"pair_up":
+			_enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+		"separate":
+			_enter_targeting(MapCursorTargeting.Mode.SEPARATE)
 		"wait":
 			_commit_wait()
+
+
+const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+
+
+# Pair Up resolved: register the pairing, hide the support off-grid (Q2: only
+# the lead occupies a tile while paired), and mark both units DONE. The lead
+# is selected_unit so _finish_action handles its DONE; the support needs a
+# manual set_unit_state because it was never the selected unit. Step 6c
+# (Separate) restores the support to an adjacent free tile of the lead — the
+# Awakening rule positions Separate relative to the lead, not the support's
+# pre-pair tile, so we deliberately do not stash a "return to" coord here.
+func _on_pair_up_resolved(lead: Node, support: Node) -> void:
+	if lead == null or support == null or lead.data == null or support.data == null:
+		_finish_action()
+		return
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry == null or not registry.call("pair", lead.data.unit_id, support.data.unit_id):
+		# Pairing refused (campaign disabled, ids mismatched, already paired) —
+		# do NOT consume the unit's action. Restore focus to the acting unit and
+		# reopen the ActionMenu so the player can choose something else.
+		_state = State.UNIT_MOVED
+		_set_tile(lead.tile_position)
+		_show_action_menu()
+		return
+	# Move the support off the grid: GridManager.get_unit_at compares
+	# tile_position by equality, so the OFF_MAP_TILE sentinel removes the
+	# support from every tile query for a real map cell. visible = false
+	# keeps the sprite from rendering on the lead's tile.
+	support.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
+	support.visible = false
+	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
+		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
+	# _finish_action marks the lead DONE and clears selection. The lead stays
+	# on its original tile per Q2.
+	_finish_action()
+
+
+# Swaps lead and support roles within the selected unit's Pair Up. Ends the
+# unit's turn alongside other ActionMenu choices.
+#
+# swap_roles() only flips the registry's role labels; it does NOT move the units.
+# Without a physical swap the on-map unit stays put while the registry now thinks
+# the hidden, off-map unit is the lead and the visible unit is the support — the
+# Swap-does-nothing regression (playtest v0.1.4 #2). So mirror _on_pair_up_resolved:
+# the new lead (the old support) takes the on-map tile and becomes visible, and the
+# old lead moves to OFF_MAP_TILE and hides. The new lead is then handed to
+# _finish_action so the cursor settles on the tile the pair actually occupies
+# rather than the (-1, -1) sentinel.
+func _commit_swap_roles() -> void:
+	var old_lead: Node = _selection.selected_unit  # on-map unit before the swap
+	if old_lead != null and old_lead.data != null and old_lead.data.unit_id != "":
+		var registry := get_node_or_null("/root/PairUpRegistry")
+		var gs := get_node_or_null("/root/GameState")
+		# Resolve the partner BEFORE mutating any roles, so the registry is never
+		# left with roles flipped but positions not swapped — i.e. an on-map unit
+		# tagged "support" (code review 2026-06-14 #2). get_partner_id is role-
+		# independent, so it returns the same partner before the swap. Both units
+		# are alive whenever Swap is offered in normal play; this is a defensive
+		# guard. Only flip roles once we know we can complete the position swap.
+		var new_lead: Node = null
+		if registry != null and gs != null and gs.has_method("find_unit_by_id"):
+			new_lead = gs.find_unit_by_id(registry.call("get_partner_id", old_lead.data.unit_id))
+		if is_instance_valid(new_lead) and new_lead.data != null \
+				and registry.has_method("swap_roles") \
+				and registry.call("swap_roles", old_lead.data.unit_id):
+			var lead_tile: Vector2i = old_lead.tile_position
+			old_lead.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
+			old_lead.visible = false
+			if new_lead.has_method("snap_to_tile"):
+				new_lead.snap_to_tile(lead_tile)
+			else:
+				new_lead.tile_position = lead_tile
+			new_lead.visible = true
+			# Swap spends the joint action: the off-map old lead is marked DONE
+			# here; the on-map new lead is handed to _finish_action below.
+			if _turn != null and old_lead.data.hp > 0:
+				_turn.set_unit_state(old_lead, TurnManager.UnitState.DONE)
+			_selection.selected_unit = new_lead
+	_finish_action()
+
+
+# Separate resolved: place the support back onto the chosen adjacent tile,
+# make it visible again, clear the pair, and end both units' turns.
+func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> void:
+	if lead == null or support == null or lead.data == null or support.data == null:
+		_finish_action()
+		return
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	if registry == null or not registry.call("separate", lead.data.unit_id):
+		_state = State.UNIT_MOVED
+		_set_tile(lead.tile_position)
+		_show_action_menu()
+		return
+	if support.has_method("snap_to_tile"):
+		support.snap_to_tile(target_tile)
+	else:
+		support.tile_position = target_tile
+	support.visible = true
+	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
+		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
+	_finish_action()
 
 
 # M16 stage 3: Seize commits the unit's turn the same way Wait does. The
@@ -737,6 +881,11 @@ func _undo_move_and_reselect() -> void:
 	# The LOCKED guard owns _state; the slice handles the undo + overlay recompute.
 	_selection.undo_and_reselect()
 	_state = State.UNIT_SELECTED
+	# W6f: snap the cursor back onto the unit after a movement cancel, mirroring
+	# _on_targeting_cancelled. Otherwise the cursor is stranded on the cancelled
+	# destination, away from the unit that still owns the action.
+	if _selection.selected_unit != null:
+		_set_tile(_selection.selected_unit.tile_position)
 
 
 func _finish_action() -> void:
@@ -745,6 +894,8 @@ func _finish_action() -> void:
 	# already out of TurnManager._unit_states, and set_unit_state would re-insert a
 	# stale freed-node key.
 	var u := _selection.selected_unit
+	if is_instance_valid(u) and u != null and u.data != null and u.data.hp > 0:
+		_set_tile(u.tile_position)
 	if _turn != null and is_instance_valid(u) and u.data != null and u.data.hp > 0:
 		_turn.set_unit_state(u, TurnManager.UnitState.DONE)
 	_selection.clear()
@@ -836,11 +987,30 @@ func _on_end_turn_requested() -> void:
 func _on_map_menu_closed() -> void:
 	if _awaiting_end_turn_confirm:
 		return
-	# Don't unlock during the enemy phase — the phase_changed listener handles that.
-	var gs := get_node_or_null("/root/GameState")
-	if gs and not gs.is_player_turn():
+	if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
 		return
 	unlock()
+
+
+func _on_quit_to_menu_requested() -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
+	dlg.confirmed.connect(func():
+		dlg.queue_free()
+		var gs := get_node_or_null("/root/GameState")
+		if gs:
+			gs.call("reset_map_state")
+		get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
+	)
+	dlg.canceled.connect(func():
+		dlg.queue_free()
+		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+			return
+		unlock()
+	)
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_cancel_button().grab_focus()
 
 
 # ── Settings ─────────────────────────────────────────────────────────────────
