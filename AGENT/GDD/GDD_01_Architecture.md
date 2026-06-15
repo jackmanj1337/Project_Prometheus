@@ -1043,6 +1043,14 @@ policy above letterboxes non-16:9 screens so the absolute-offset scene nodes sta
 on-screen. Overall UI scale (`Window.content_scale_factor`) is also player-set — see
 `GDD_07_UI_UX.md` §Accessibility. Player map zoom is the §Camera Zoom section below.
 
+**Confirm-or-revert on risky display changes.** Changing window mode or resolution
+applies the new mode immediately (so the player can see it) but **defers the save
+behind a 15-second confirm dialog** (`DisplayConfirmDialog`): Keep persists it, while
+Revert or the countdown reaching zero restores the previous value, re-applies it, and
+resets the dropdown. This guards the case where a wrong fullscreen/resolution leaves
+the screen unusable. Wired generically via a `"confirm": true` flag on the
+`SettingsScreen` enum-setting schema, so it covers both display-mode settings.
+
 > **Note:** earlier drafts of this document specified 32×32 tiles. The project
 > standardized on 64×64 to match the GDD_06 tileset spec and the placeholder
 > sprite sizes in the checklist. `GameConstants.TILE_SIZE = 64` is authoritative

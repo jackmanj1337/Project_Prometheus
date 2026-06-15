@@ -26,6 +26,8 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 # In-map per-panel HUD layout editor (item 4), launched by the button below.
 const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
+# 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
+const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
@@ -92,17 +94,20 @@ const _ENUM_SETTINGS: Array = [
 	},
 	{
 		# Display & Accessibility item 2. "apply" re-runs the SettingsManager method
-		# so the change takes effect live (not just on next launch).
+		# so the change takes effect live (not just on next launch). "confirm" routes
+		# the change through the 15s confirm-or-revert dialog (a wrong fullscreen/
+		# resolution can leave the screen unusable), so the new value is applied but
+		# only persisted on confirm.
 		"key": "window_mode", "node": "HBoxWindowMode/OptWindowMode",
 		"values": ["windowed", "borderless", "fullscreen"],
 		"labels": ["Windowed", "Borderless", "Fullscreen"],
-		"apply": "_apply_display",
+		"apply": "_apply_display", "confirm": true,
 	},
 	{
 		"key": "resolution", "node": "HBoxResolution/OptResolution",
 		"values": ["1280x720", "1600x900", "1920x1080"],
 		"labels": ["1280 x 720", "1600 x 900", "1920 x 1080"],
-		"apply": "_apply_display",
+		"apply": "_apply_display", "confirm": true,
 	},
 ]
 
@@ -223,12 +228,46 @@ func _on_enum_setting_changed(index: int, schema_row: Dictionary) -> void:
 	var values: Array = schema_row["values"]
 	if index < 0 or index >= values.size():
 		return  # defensive — OptionButton.item_selected should always be in range
+	# Risky display changes (resolution / window mode) apply immediately but defer the
+	# save behind a confirm-or-revert dialog, so a setting that blanks the screen
+	# auto-reverts (item 2 safety). Everything else saves straight away.
+	if schema_row.get("confirm", false):
+		_change_with_confirm(sm, schema_row, index)
+		return
 	sm.set(schema_row["key"], values[index])
 	sm.call("save")
 	# Optional per-row hook: re-apply the setting so it takes effect immediately
 	# (e.g. window mode / resolution via DisplayServer), not only on next launch.
 	if schema_row.has("apply"):
 		sm.call(schema_row["apply"])
+
+
+# Applies a confirm-gated display change: the new value is set + applied (so the
+# player sees it) but NOT saved yet. A DisplayConfirmDialog then either persists it
+# (Keep) or restores the previous value, re-applies, and resets the dropdown
+# (Revert / 15s timeout). The modal dialog blocks further changes meanwhile.
+func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> void:
+	var key: String = schema_row["key"]
+	var values: Array = schema_row["values"]
+	var prev_value: Variant = sm.get(key)
+	var prev_index: int = values.find(prev_value)
+	# Apply the new value live; do NOT save until confirmed.
+	sm.set(key, values[index])
+	if schema_row.has("apply"):
+		sm.call(schema_row["apply"])
+
+	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
+	add_child(dlg)
+	dlg.kept.connect(func() -> void:
+		sm.call("save"))
+	dlg.reverted.connect(func() -> void:
+		sm.set(key, prev_value)
+		if schema_row.has("apply"):
+			sm.call(schema_row["apply"])
+		# Cfg was never saved with the new value, so the restore is in-memory only.
+		var btn: OptionButton = _vbox.get_node(schema_row["node"])
+		btn.selected = maxi(0, prev_index))
+	dlg.start()
 
 
 func _on_camera_buffer_changed(value: float) -> void:
