@@ -119,6 +119,31 @@ func _init() -> void:
 		print("FAIL map_zoom_index: default=%s reset=%s" % [zoom_default_ok, zoom_reset_ok])
 		failed += 1
 
+	# ---- display section: defaults + reset (Display/Access items 2-3) ----
+	var disp_default_ok: bool = (sm.window_mode == "windowed"
+		and sm.resolution == "1280x720" and sm.ui_scale_index == 1)
+	sm.window_mode = "fullscreen"
+	sm.resolution = "1920x1080"
+	sm.ui_scale_index = 4
+	sm.reset_section_to_defaults("display")
+	var disp_reset_ok: bool = (sm.window_mode == "windowed"
+		and sm.resolution == "1280x720" and sm.ui_scale_index == 1)
+	if disp_default_ok and disp_reset_ok:
+		print("OK  display section defaults and resets (window/resolution/ui_scale)")
+		passed += 1
+	else:
+		print("FAIL display section: defaults=%s reset=%s" % [disp_default_ok, disp_reset_ok])
+		failed += 1
+
+	# ---- _parse_resolution: valid "WxH" parses; malformed returns ZERO ----
+	var parse_ok: bool = (sm._parse_resolution("1600x900") == Vector2i(1600, 900)
+		and sm._parse_resolution("bad") == Vector2i.ZERO
+		and sm._parse_resolution("1280x") == Vector2i.ZERO)
+	if parse_ok:
+		print("OK  _parse_resolution handles valid + malformed strings"); passed += 1
+	else:
+		print("FAIL _parse_resolution"); failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

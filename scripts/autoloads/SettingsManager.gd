@@ -37,6 +37,21 @@ var map_zoom_index: int = 3
 # NOTE: permadeath and leveling_method are per-save gameplay rules, not global
 # preferences — they live on GameState, set via the New Game screen.
 
+# --- Display (Display & Accessibility items 2–3) ---
+# Window mode: "windowed" | "borderless" (windowed-fullscreen) | "fullscreen" (exclusive).
+var window_mode: String = "windowed"
+# Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
+# native screen size). Curated 16:9 list — the canvas_items + keep stretch letterboxes
+# any non-16:9 screen so absolute-offset scene nodes never push off-screen.
+var resolution: String = "1280x720"
+const RESOLUTION_CHOICES: Array[String] = ["1280x720", "1600x900", "1920x1080"]
+# Overall UI scale (item 3), an index into UI_SCALE_LEVELS. Default 1 == 1.0×.
+# Applied via Window.content_scale_factor so the whole GUI scales uniformly
+# (fixed-size nodes included), which is resolution-independent across desktop /
+# Steam Deck / web — the reason it is preferred over a font-only theme scalar.
+var ui_scale_index: int = 1
+const UI_SCALE_LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
 var keybindings: Dictionary = {}
@@ -52,6 +67,8 @@ var _ui_baseline_events: Dictionary = {}
 func _ready() -> void:
 	load_settings()
 	_apply_audio()
+	_apply_display()
+	_apply_ui_scale()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 
@@ -91,6 +108,13 @@ func load_settings() -> void:
 	map_zoom_index = clampi(
 		cfg.get_value("gameplay", "map_zoom_index", map_zoom_index), 0, 7)
 
+	window_mode = cfg.get_value("display", "window_mode", window_mode)
+	resolution  = cfg.get_value("display", "resolution",  resolution)
+	# Clamp on load so a stale/corrupt index never indexes past UI_SCALE_LEVELS.
+	ui_scale_index = clampi(
+		cfg.get_value("display", "ui_scale_index", ui_scale_index),
+		0, UI_SCALE_LEVELS.size() - 1)
+
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
 	# under [gameplay] — harmless, they are simply never read.
@@ -111,6 +135,10 @@ func save() -> void:
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
 	cfg.set_value("gameplay", "map_zoom_index",     map_zoom_index)
+
+	cfg.set_value("display", "window_mode",    window_mode)
+	cfg.set_value("display", "resolution",     resolution)
+	cfg.set_value("display", "ui_scale_index", ui_scale_index)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -136,6 +164,12 @@ func reset_section_to_defaults(section: String) -> void:
 			auto_end_turn      = true
 			camera_edge_buffer = 2
 			map_zoom_index     = 3
+		"display":
+			window_mode    = "windowed"
+			resolution     = "1280x720"
+			ui_scale_index = 1
+			_apply_display()
+			_apply_ui_scale()
 		"controls":
 			keybindings = {}
 			_apply_keybindings()
@@ -152,6 +186,51 @@ func _apply_audio() -> void:
 	if master_idx >= 0: AudioServer.set_bus_volume_db(master_idx, linear_to_db(master_volume / 100.0))
 	if music_idx  >= 0: AudioServer.set_bus_volume_db(music_idx,  linear_to_db(music_volume  / 100.0))
 	if sfx_idx    >= 0: AudioServer.set_bus_volume_db(sfx_idx,    linear_to_db(sfx_volume    / 100.0))
+
+
+# Applies the window mode and (in windowed mode) the chosen resolution via
+# DisplayServer. Called at startup and whenever the display settings change. The
+# DisplayServer calls are safe no-ops on a headless server, so tests that never run
+# _ready() are unaffected. Fullscreen modes use the native screen size, so the
+# resolution is only meaningful — and only applied — in windowed mode.
+func _apply_display() -> void:
+	match window_mode:
+		"fullscreen":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+		"borderless":
+			# Godot's WINDOW_MODE_FULLSCREEN is borderless ("windowed fullscreen").
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_:  # "windowed"
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			var size := _parse_resolution(resolution)
+			if size != Vector2i.ZERO:
+				DisplayServer.window_set_size(size)
+				# Re-centre the window on its screen after a resize.
+				var screen := DisplayServer.window_get_current_screen()
+				var origin := DisplayServer.screen_get_position(screen)
+				var screen_size := DisplayServer.screen_get_size(screen)
+				DisplayServer.window_set_position(origin + (screen_size - size) / 2)
+
+
+# Parses a "WxH" resolution string to a Vector2i; returns ZERO on a malformed value
+# so the caller leaves the window size untouched.
+func _parse_resolution(res: String) -> Vector2i:
+	var parts := res.split("x")
+	if parts.size() != 2 or not parts[0].is_valid_int() or not parts[1].is_valid_int():
+		return Vector2i.ZERO
+	return Vector2i(int(parts[0]), int(parts[1]))
+
+
+# Scales the entire GUI uniformly via the root Window's content_scale_factor (item 3).
+# Resolution-independent on top of the project's canvas_items + keep stretch, so it
+# behaves consistently across desktop / Steam Deck / web — and unlike a font-only
+# scalar it scales fixed-size nodes too, so nothing clips. No-op if the window isn't
+# available yet (e.g. a direct test caller that bypasses _ready()).
+func _apply_ui_scale() -> void:
+	var win := get_window()
+	if win != null:
+		win.content_scale_factor = UI_SCALE_LEVELS[
+			clampi(ui_scale_index, 0, UI_SCALE_LEVELS.size() - 1)]
 
 
 func _apply_keybindings() -> void:

@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-14
+**Last verified:** 2026-06-15
 
 ---
 
@@ -269,22 +269,24 @@ otherwise — see the per-item coupling notes for why the order matters.
       known zoom-naive spot (`AttackPreview._reposition_for`, which offset by a raw
       tile instead of the on-screen `TILE_SIZE × zoom`) is fixed. Tests in
       `test_camera_controller.gd` (zoom-1 parity + 0.5×/2× framing/pan).
-2. [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
-      picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
-      already uses `stretch/mode="canvas_items"`, so UI scales with the window
-      automatically; the open work is the picker UI, the fullscreen toggle, and a
-      non-16:9 aspect policy (`stretch/aspect`) so the ~84 absolute-offset nodes in
-      scenes don't break off-screen. Decide the aspect policy early.
-3. [ ] **Text / font size (accessibility)** — a Settings option to scale UI font
-      size independently of window resolution and panel layout. Cleanest as a
-      `Theme` default-font-size scalar applied at startup. Coupling note: every
-      fixed `custom_minimum_size` / fixed-width column (e.g. AttackPreview's 150px
-      forecast columns) is a text-clip risk at larger sizes — prefer content-sized
-      containers in new UI so this stays cheap to add.
-4. [ ] **UI layout scale & movement** — let the player scale and reposition HUD/menu
-      *panels* (panel layout only — text size is item 3 above). Likely a
-      `CanvasLayer` scale factor + saved offsets. Broadest/least-defined of the four;
-      fine to do last.
+2. [x] **Display resolution options** — Implemented. Window-mode dropdown
+      (Windowed / Borderless / Fullscreen) + a windowed-resolution picker
+      (1280×720 / 1600×900 / 1920×1080) in Settings, persisted to `settings.cfg`
+      under a new `[display]` section and applied via `DisplayServer` in
+      `SettingsManager._apply_display()`. Aspect policy stays `keep` (letterbox) — the
+      existing `canvas_items` + `keep` stretch letterboxes non-16:9 screens, so no
+      `stretch/aspect` change was needed.
+3. [x] **UI scale (accessibility)** — Implemented. A Settings stepped slider scales
+      the whole GUI uniformly via `Window.content_scale_factor`
+      (`SettingsManager.UI_SCALE_LEVELS` 0.75×–2.0×, `_apply_ui_scale()`), chosen over
+      a font-only `Theme` scalar because it scales fixed-size nodes too (nothing
+      clips) and is resolution-independent across desktop / Steam Deck / web. A
+      separate text-only scalar can layer on later (overlaps item 4). See
+      `GDD_07_UI_UX.md` §Accessibility.
+4. [ ] **UI layout scale & movement** — Deferred. Let the player scale and reposition
+      HUD/menu *panels* independently (panel layout only — overall UI scale is item 3,
+      now shipped). Likely a `CanvasLayer` scale factor + saved offsets.
+      Broadest/least-defined of the four; spec separately.
 
 ---
 

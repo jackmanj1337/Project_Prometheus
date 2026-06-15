@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -1033,6 +1033,15 @@ Rendering/2D/Snap/Snap 2D Vertices To Pixel: ON
 Tile size: **64 × 64 pixels** (matches GDD_06 tileset spec)
 Visible tiles at native resolution: approximately **20 × 11**
 Camera clamps to map bounds so empty space is never shown.
+
+**Player display controls (Implemented — Display & Accessibility items 2–3).** The
+Settings screen lets the player choose a window mode (Windowed / Borderless /
+Fullscreen) and, in windowed mode, a 16:9 resolution (1280×720 / 1600×900 /
+1920×1080), persisted under `[display]` in `settings.cfg` and applied via
+`DisplayServer` in `SettingsManager._apply_display()`. The `Stretch/Aspect: keep`
+policy above letterboxes non-16:9 screens so the absolute-offset scene nodes stay
+on-screen. Overall UI scale (`Window.content_scale_factor`) is also player-set — see
+`GDD_07_UI_UX.md` §Accessibility. Player map zoom is the §Camera Zoom section below.
 
 > **Note:** earlier drafts of this document specified 32×32 tiles. The project
 > standardized on 64×64 to match the GDD_06 tileset spec and the placeholder

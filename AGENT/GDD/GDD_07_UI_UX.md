@@ -751,8 +751,8 @@ Last verified: 2026-06-13
 
 ## Accessibility & Input Parity
 
-Status: **Split** — implemented options listed below **Implemented**; key rebinding + UI-scale **Planned**
-Last verified: 2026-06-13
+Status: **Split** — implemented options listed below **Implemented**; key rebinding **Planned**
+Last verified: 2026-06-15
 
 ### Summary
 The accessibility and parity contract the UI must honor across input methods and players.
@@ -772,13 +772,23 @@ The accessibility and parity contract the UI must honor across input methods and
   `level_up_screen` (Show/Auto/Skip) let players reduce animation/wait time.
 - **Always-visible numbers:** all combat-relevant values (Hit/Dmg/Crit, terrain bonuses,
   WEXP, modifiers) are shown before commit (Attack Preview, Unit Details + More Info).
+- **UI scale** (`ui_scale_index` → `SettingsManager.UI_SCALE_LEVELS`, 0.75×–2.0×): a
+  Settings stepped slider scales the whole GUI uniformly via
+  `Window.content_scale_factor` (`_apply_ui_scale()`). Chosen over a font-only `Theme`
+  scalar because it scales fixed-size nodes too (nothing clips) and is
+  resolution-independent across desktop / Steam Deck / web. This is the OPEN-11
+  prerequisite for revisiting Steam Deck 16:10 "expand".
+- **Display controls** (window mode + windowed resolution): see
+  `GDD_01_Architecture.md` §Rendering and Display Settings.
+- **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): see `GDD_01_Architecture.md`
+  §Camera Zoom.
 
 **Planned.**
 - **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the
   rebind surface is the only missing piece, scheduled with the **gamepad** milestone
   (GDD_00 §Platform Targets, OPEN-11).
-- **UI-scale setting:** required before revisiting Steam Deck 16:10 (currently letterboxed,
-  OPEN-11). Owned by GDD_00.
+- **Per-panel UI layout scale & reposition** (Display & Accessibility item 4): scale and
+  move individual HUD/menu panels independently of the overall UI scale above. Deferred.
 - **Combat-animation toggle** (`combat_animations`): scaffolded but hidden until a
   combat-animation system consumes it.
 
