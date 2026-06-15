@@ -43,6 +43,16 @@ mkdir -p "$WORK/out"
 echo "running test suite (${#TESTS[@]} suites, ${JOBS} workers)..."
 godot --headless --path . --quit >/dev/null 2>&1 || true
 
+# Per-suite hard timeout. A SceneTree test only exits when its _init() reaches the
+# explicit quit(); a test that errors out *before* that line leaves godot idling
+# forever (headless --script has no idle auto-quit). Without this guard such a
+# suite would hang the whole run — and pre-commit/CI — indefinitely, and ad-hoc
+# runs orphan the godot process. timeout kills it (SIGTERM, then SIGKILL) and the
+# resulting non-zero exit is recorded as a failure. Generous vs the ~8s real
+# runtime; override with TEST_TIMEOUT for slow machines.
+TIMEOUT="${TEST_TIMEOUT:-180}"
+export TIMEOUT
+
 # Runs a single suite. Writes its summary line to out/<name> and, on a non-zero
 # exit, records the suite name in the failures file. Exported for xargs workers.
 run_one() {
@@ -51,9 +61,14 @@ run_one() {
   mkdir -p "$home/.local/share"
   local out exit_code summary
   out="$(HOME="$home" XDG_DATA_HOME="$home/.local/share" \
+    timeout --kill-after=10 "$TIMEOUT" \
     godot --headless --path . --script "res://scripts/tests/$name.gd" 2>&1)"
   exit_code=$?
   summary="$(echo "$out" | grep "Results")"
+  # 124 = timed out (killed by `timeout`): a hung or never-quitting suite.
+  if [[ $exit_code -eq 124 ]]; then
+    summary="TIMED OUT after ${TIMEOUT}s (no quit() reached — likely errored before finishing)"
+  fi
   echo "$name: ${summary:-'(no summary)'}" > "$WORK/out/$name"
   if [[ $exit_code -ne 0 ]]; then
     echo "$name" >> "$WORK/failures"
