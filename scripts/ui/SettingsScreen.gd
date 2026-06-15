@@ -24,6 +24,8 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 # Source of truth for the Map Zoom slider's range + factor labels (Display &
 # Accessibility item 1). The stored setting is an index into ZOOM_LEVELS.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+# In-map per-panel HUD layout editor (item 4), launched by the button below.
+const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
@@ -39,6 +41,7 @@ const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 @onready var _slider_ui_scale: HSlider         = _vbox.get_node("HBoxUIScale/SliderUIScale")
 @onready var _label_ui_scale: Label            = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
+@onready var _btn_edit_hud: Button      = _vbox.get_node("BtnEditHudLayout")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
 
 # Data-driven schema for the OptionButton-style settings. Each row:
@@ -146,6 +149,7 @@ func _ready() -> void:
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_slider_map_zoom.value_changed.connect(_on_map_zoom_changed)
 	_slider_ui_scale.value_changed.connect(_on_ui_scale_changed)
+	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
 	# hide() is performed by ModalScreen._ready — don't duplicate it.
@@ -173,6 +177,9 @@ func open() -> void:
 		var btn: OptionButton = _vbox.get_node(s["node"])
 		var values: Array = s["values"]
 		btn.selected = maxi(0, values.find(sm.get(s["key"])))
+	# The HUD layout editor edits the live in-map HUD, so the button is only usable
+	# when a HUD exists (i.e. Settings opened via the in-map Map Menu, not the title).
+	_btn_edit_hud.disabled = get_tree().get_first_node_in_group("hud") == null
 	show()
 	_btn_back.grab_focus()
 
@@ -270,6 +277,18 @@ func _ui_scale_label(sm: Object, index: int) -> String:
 	var levels: Array = sm.UI_SCALE_LEVELS
 	var i: int = clampi(index, 0, levels.size() - 1)
 	return "%sx" % str(levels[i])
+
+
+# Launches the in-map HUD layout editor over the live HUD (item 4). The editor sits
+# on a high CanvasLayer above this screen; Settings stays open underneath (keeping its
+# modal cursor suppression) and is revealed again when the editor closes.
+func _on_edit_hud_layout() -> void:
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud == null:
+		return
+	var editor: CanvasLayer = HudLayoutEditorS.new()
+	get_tree().root.add_child(editor)
+	editor.open(hud)
 
 
 func _on_back() -> void:

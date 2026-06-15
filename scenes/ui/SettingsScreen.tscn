@@ -291,6 +291,10 @@ theme_override_constants/separation = 4
 [node name="HSep2" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
 layout_mode = 2
 
+[node name="BtnEditHudLayout" type="Button" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+text = "Edit HUD Layout"
+
 [node name="BtnBack" type="Button" parent="Panel/ScrollContainer/VBox"]
 layout_mode = 2
 text = "Back"

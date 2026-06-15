@@ -88,6 +88,8 @@ var _layout_base_positions: Dictionary = {}
 
 
 func _ready() -> void:
+	# Discoverable by the in-map "Edit HUD Layout" launcher without a hard node path.
+	add_to_group("hud")
 	_unit_panel.hide()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
