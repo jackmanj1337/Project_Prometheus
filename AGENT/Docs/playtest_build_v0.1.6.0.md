@@ -11,8 +11,10 @@
 - SHA-256:
   `706faf26a9b49fbffde1d295cc3dd1d2239e8bcdae304c2cab66186ea7f80705`
 
-The artifact is intentionally ignored by Git. Distribute the executable and
-`AGENT/Docs/playtest_checklist_v0.1.6.0.md` together.
+The artifact is intentionally ignored by Git. Distribute **three things together**:
+the executable, `AGENT/Docs/playtest_checklist_v0.1.6.0.md` (focused changed/new
+checks), and `AGENT/Docs/playtest_checklist_v0.1.5.0.md` (the full handbook the
+focused checklist builds on — setup, controls, and unchanged checks).
 
 ## What's in this build (since v0.1.5.0)
 

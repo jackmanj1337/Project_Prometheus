@@ -12,6 +12,16 @@ already passed and that did not change do not need re-running.
 This is **not** a full handbook. Most of the v0.1.5.0 build was re-verified as
 passing; this covers what is new or was left open.
 
+## Distribution bundle (what the tester needs)
+
+Hand the tester **all three** of these together — this focused checklist does not
+repeat the setup/controls/basic-flow sections or the unchanged checks:
+
+1. `Project_Prometheus_v0.1.6.0_debug.exe` (the build).
+2. **This** file (`playtest_checklist_v0.1.6.0.md`) — the changed + new checks.
+3. `playtest_checklist_v0.1.5.0.md` — the full handbook: build setup, controls,
+   terms, and every check whose behaviour did not change since v0.1.5.0.
+
 ## Build
 
 - Executable: `Project_Prometheus_v0.1.6.0_debug.exe`
