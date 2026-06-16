@@ -3,7 +3,7 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.0_debug.exe`
-- Source commit: `__COMMIT__`
+- Source commit: `9c394b6`
 - Source subject: `Switch to v0.2.0: single self-contained combined playtest handbook`
 - Exported: 2026-06-16 20:54 UTC
 - Godot: `4.6.stable.official.89cea1439`
