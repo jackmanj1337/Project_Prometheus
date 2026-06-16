@@ -690,6 +690,45 @@ func _init() -> void:
 		failed += 1
 	gs.set("debug_hotseat_override", false)
 
+	# ---- Debug F9 toggled repeatedly in one phase doesn't exhaust the cycle guard ----
+	# Each F9 re-run replays the SAME faction; the guard (turn_order.size()+1 = 3
+	# here) must be refunded on those re-runs or rapid toggling trips the spurious
+	# "never returned to blue" abort. The controllers ping-pong the override off/on
+	# to force more re-runs than the raw guard budget, then settle on AI.
+	gs.reset_map_state()
+	gs.set("debug_hotseat_override", false)
+	var tog_blue := _mk_unit("blue", 20, "tog_blue")
+	var tog_red := _mk_unit("red", 20, "tog_red")
+	gs.register_unit(tog_blue)
+	gs.register_unit(tog_red)
+	var tm_tog := TurnManager.new()
+	root.add_child(tm_tog)
+	tm_tog.start_map(md_dbg)
+	var tog_hot_script := GDScript.new()
+	tog_hot_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar toggles := 0\nvar game_state: Node = null\nfunc cancel_transient_control_for_handoff() -> void:\n\tpass\nfunc run_phase(_grid, turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\ttoggles += 1\n\tgame_state.debug_hotseat_override = false\n\tturn.phase_committed.emit()\n"
+	tog_hot_script.reload()
+	var tog_hot: Node = tog_hot_script.new()
+	tog_hot.set("game_state", gs)
+	var tog_ai_script := GDScript.new()
+	tog_ai_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar hotseat: Node = null\nvar game_state: Node = null\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tif hotseat.toggles < 3:\n\t\tgame_state.debug_hotseat_override = true\n"
+	tog_ai_script.reload()
+	var tog_ai: Node = tog_ai_script.new()
+	tog_ai.set("game_state", gs)
+	tog_ai.set("hotseat", tog_hot)
+	tm_tog.set_ai_controller(tog_ai)
+	tm_tog.set_hotseat_controller(tog_hot)
+	await tm_tog.start_enemy_phase()
+	var guard_survives_toggling: bool = int(tog_hot.get("toggles")) == 3 \
+		and tm_tog.active_faction() == "blue" and gs.is_player_turn()
+	if guard_survives_toggling:
+		print("OK  F9 repeated toggling in one phase doesn't trip the cycle guard")
+		passed += 1
+	else:
+		print("FAIL F9 guard refund: toggles=%s active=%s phase=%s" % [
+			tog_hot.get("toggles"), tm_tog.active_faction(), gs.current_phase])
+		failed += 1
+	gs.set("debug_hotseat_override", false)
+
 	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
 	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can
 	# observe the refresh-on-wrap.

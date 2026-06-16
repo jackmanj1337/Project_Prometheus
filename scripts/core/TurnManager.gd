@@ -341,11 +341,16 @@ func start_enemy_phase() -> void:
 		# F9 may flip while a controller is awaited. If it interrupts AI, rerun
 		# the same faction through hotseat; if it turns off during override
 		# hotseat, rerun the same faction through its normal AI controller.
+		# These re-runs replay the SAME faction (no cycle progress), so refund the
+		# guard decrement above — otherwise repeated F9 toggling in one phase would
+		# exhaust the cycle budget and trip the spurious "never returned to blue".
 		if not was_debug_override and _debug_hotseat_override_active_for(active_faction()) \
 				and not _is_hotseat_controlled(active_faction()):
+			guard += 1
 			continue
 		if was_debug_override and not is_debug_hotseat_override_active() \
 				and _is_ai_controlled(active_faction()):
+			guard += 1
 			continue
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
 		# controller handoff lands with the stage-5/hotseat flow.
@@ -406,6 +411,10 @@ func _is_hotseat_controlled(faction_id: String) -> bool:
 
 
 func _controller_for(faction_id: String) -> Node:
+	# F9 debug override routes every faction through hotseat. If no hotseat
+	# controller is registered this returns null and the caller skips the
+	# faction's turn entirely (no AI, no player) — acceptable for a debug-only
+	# toggle since the real game maps always register a hotseat controller.
 	if _debug_hotseat_override_active_for(faction_id):
 		return _hotseat_controller
 	if _is_hotseat_controlled(faction_id):

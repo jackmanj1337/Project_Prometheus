@@ -102,6 +102,16 @@ func _refresh_pair_up_badge() -> void:
 	if data != null and data.unit_id != "" and is_inside_tree():
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		show_badge = registry != null and bool(registry.call("is_lead", data.unit_id))
+	if show_badge:
+		# Anchor to the sprite's upper-right corner derived from TILE_SIZE rather
+		# than hardcoded offsets, so the badge tracks the tile if TILE_SIZE changes.
+		var badge_w := 22.0
+		var badge_h := 16.0
+		var top_margin := 13.0
+		_pair_up_badge.offset_left = GameConstants.TILE_SIZE - badge_w
+		_pair_up_badge.offset_right = GameConstants.TILE_SIZE
+		_pair_up_badge.offset_top = top_margin
+		_pair_up_badge.offset_bottom = top_margin + badge_h
 	_pair_up_badge.visible = show_badge
 
 
