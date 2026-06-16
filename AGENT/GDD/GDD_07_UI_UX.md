@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-15
+**Last verified:** 2026-06-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -31,7 +31,7 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 ## Input System
 
 Status: **Implemented** (keyboard + mouse parity); key rebinding **Planned** (Phase 2)
-Last verified: 2026-06-13
+Last verified: 2026-06-16
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -53,10 +53,14 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `more_info` | F | — |
 | `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
 | `open_settings` | O | — |
+| `debug_toggle_hotseat_override` | F9 | — |
 
 `show_danger_zone` is a **toggle** (press once to show the enemy threat area,
 again to hide it) and works only in the free cursor state. `open_settings`
 opens the Settings screen during a map (see Map Menu / Settings Screen below).
+`debug_toggle_hotseat_override` is debug-build-only; it temporarily routes every
+faction through hotseat control for live testing and is listed in the debug HUD
+banner as `hotseat-all` while active.
 
 > **Menus and the game's keys.** Menus (Main Menu, Map Menu, Settings, the
 > Action / Item menus) navigate via Godot's built-in `ui_*` actions.
@@ -186,6 +190,10 @@ map through `GameMap.tscn`.
   to `GameState` the moment they change, so closing the panel with Back and reopening
   it remembers the choices — Start is not required to persist them. (The `Map`
   selection and roster are only configured on Start.)
+- The `Map` dropdown seeds from `GameState.next_map_data_path`, which represents the
+  last configured/launched map. Choosing a different map and backing out without Start
+  does not overwrite that path, so reopening the screen returns to the last launched
+  selection rather than an unsaved dropdown choice.
 - Starting the run calls `GameState.configure_next_map(...)`, applies the roster
   policy, then changes to `GameMap.tscn`
 - Back returns to the Main Menu without reloading the scene
@@ -230,6 +238,9 @@ by camera movement.
   unit's `active_modifiers` outside a fight), so `HUD._pairup_bonus_text` queries
   `PairUpBonusResolver` on demand — without this the panel gave no sign the pairing
   did anything (playtest v0.1.4 #8.5). Supports are off-map and never displayed.
+- On the map, a visible paired lead shows a small `PU` badge on the unit sprite.
+  The marker is driven by `PairUpRegistry.pair_up_changed`, so Pair Up, Swap,
+  Separate, clear, and snapshot restore all refresh the badge without polling.
 
 **Terrain Info Panel** (`TerrainInfoPanel.tscn`):
 - Always shown (updates as cursor moves)
@@ -424,10 +435,12 @@ turn. There is no separate staff-preview panel in MVP.
 This is the live character-sheet overlay. It shows:
 
 - unit name, class, level, internal level, and EXP
-- full core stat block
+- full core stat block using the effective display totals
 - inventory with remaining uses
 - equipped skills
 - weapon ranks / WEXP progress
+- a `View Support` / `View Lead` button when the inspected unit is paired, letting
+  the player inspect the hidden support unit without leaving the sheet
 
 The screen is read-only. It exists for inspection, not inventory management.
 
@@ -435,6 +448,8 @@ The screen is read-only. It exists for inspection, not inventory management.
 - every stat, inventory entry, skill, and weapon-rank row is selectable
 - clicking a row or pressing `more_info` cycles the side panel
 - stat entries show authored description text plus the full stat breakdown
+- the compact stat rows use the same `effective_display` value as the More Info
+  breakdown, including Pair Up and other combat-only stat contributions
 
 **Stat breakdown (per selected stat):**
 - **Personal base / Class base** — the stored stat split into the unit's own value
@@ -458,8 +473,9 @@ The screen is read-only. It exists for inspection, not inventory management.
   are M9 stubs that target hit/dodge/crit, not base stats, so they contribute
   nothing here yet.)
 
-This closes the v0.1.5.0 #8.5 surface gap: the Pair Up bonus previously appeared
-only on the HUD unit-info panel, never on this character sheet.
+This closes the v0.1.5.0 #8.5 surface gap: the Pair Up bonus now appears on the
+compact character sheet, the detailed stat breakdown, the HUD unit-info panel, and
+the paired lead's map badge.
 
 This screen is one of the primary onboarding-relevant UI surfaces because it exposes
 the runtime meaning of modifiers, skills, and WEXP without opening the code.

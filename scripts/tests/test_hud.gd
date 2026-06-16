@@ -79,11 +79,18 @@ func _init() -> void:
 			print("OK  flag toggle refreshes banner text"); passed += 1
 		else:
 			print("FAIL flag toggle did not refresh: text=%q" % label.text); failed += 1
+		gs.debug_hotseat_override = true
+		await process_frame
+		if label.text.find("hotseat-all") != -1:
+			print("OK  F9 hotseat override appears in the debug banner"); passed += 1
+		else:
+			print("FAIL hotseat override missing from banner: text=%q" % label.text); failed += 1
 		# Reset the flags after toggling — defensive only; each suite runs in
 		# its own godot process under run_tests.sh, so this state never leaks
 		# across suites. Cheap belt-and-braces against future test layering.
 		gs.debug_force_levelup = false
 		gs.debug_growth_boost = false
+		gs.debug_hotseat_override = false
 	else:
 		print("SKIP live flag-toggle test (GameState/EventBus autoload absent)")
 

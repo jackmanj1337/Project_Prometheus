@@ -64,6 +64,7 @@ func pair(lead_id: String, support_id: String) -> bool:
 		return false
 	_pairs[lead_id] = {"partner_id": support_id, "role": ROLE_LEAD}
 	_pairs[support_id] = {"partner_id": lead_id, "role": ROLE_SUPPORT}
+	_emit_pair_up_changed()
 	return true
 
 
@@ -93,6 +94,7 @@ func separate(unit_id: String) -> bool:
 	_pairs.erase(unit_id)
 	if partner_id != "":
 		_pairs.erase(partner_id)
+	_emit_pair_up_changed()
 	return true
 
 
@@ -109,12 +111,14 @@ func swap_roles(unit_id: String) -> bool:
 	var partner_role := get_role(partner_id)
 	_pairs[unit_id]["role"] = partner_role
 	_pairs[partner_id]["role"] = unit_role
+	_emit_pair_up_changed()
 	return true
 
 
 # Drops all pairings. Called by GameState.reset_map_state() between maps.
 func clear() -> void:
 	_pairs.clear()
+	_emit_pair_up_changed()
 
 
 # Lead-death handler: if a paired lead dies, the support drops onto the lead's
@@ -187,3 +191,12 @@ func serialize() -> Dictionary:
 # A missing or empty snapshot leaves the registry empty.
 func restore(snap: Dictionary) -> void:
 	_pairs = snap.duplicate(true) if snap != null else {}
+	_emit_pair_up_changed()
+
+
+func _emit_pair_up_changed() -> void:
+	if not is_inside_tree():
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("pair_up_changed"):
+		bus.pair_up_changed.emit()

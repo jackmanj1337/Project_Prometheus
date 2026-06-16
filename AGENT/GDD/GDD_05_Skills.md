@@ -4,7 +4,7 @@
 Pair Up pass 1 are **Implemented**; corpus skill acquisition, proc-RNG sourcing, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-06-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -327,7 +327,7 @@ to Rejected classes (RULE-007) are dropped with their classes.
 ## Pair Up & Support System
 
 Status: **Split** — Pair Up pass 1 **Implemented**; corpus bonus values **Planned** (RULE-012/SET-010); Dual Strike/Guard **Target design**; supports 4–8 **Deferred** (OPEN-1)
-Last verified: 2026-06-13
+Last verified: 2026-06-16
 
 ### Summary
 Pair Up layers a support unit onto a lead. Pass 1 (stat bonuses + pairing actions) ships
@@ -350,6 +350,10 @@ today; the deeper layers are scheduled or deferred.
   v0.1.4 #8.5; fixed 2026-06-14).
 - Pairing actions (Pair Up / Swap / Separate) are in the shipped action flow (GDD_02
   §Actions), gated by the campaign Pair Up toggle (`NewGameScreen`).
+- `PairUpRegistry` emits `EventBus.pair_up_changed()` after pair, separate, swap,
+  clear, and restore operations. `Unit` nodes use that signal to show the on-map
+  `PU` badge for paired leads, and `UnitDetailsScreen` uses the registry plus
+  `GameState.find_unit_by_id()` to open the paired partner's sheet.
 
 **Planned — value migration (RULE-012 / SET-010).** The pass-1 *mechanism* is
 Implemented; migrating the bonus **values** to corpus numbers is **Planned** (re-author

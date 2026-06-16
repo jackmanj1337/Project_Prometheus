@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-06-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -83,7 +83,7 @@ terrain-ignoring special case.
 ## Turn Structure
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-06-16
 
 ### Summary
 A data-driven faction phase scheduler; the default is a classic whole-phase round.
@@ -110,6 +110,10 @@ Round Start
   early via the Map Menu. Hotseat phases use blue's commit flow; only the commandable
   faction differs.
 - `ALTERNATING` exists in `TurnManager` as infrastructure, not production gameplay.
+- Debug-build F9 toggles a temporary all-faction hotseat override. While active, every
+  faction uses the hotseat controller and the debug HUD lists `hotseat-all`; toggling
+  it off during a normally AI-controlled phase cancels transient cursor UI/selection
+  state and resumes that same faction through its authored AI controller.
 
 ### Anchors
 - Code: `scripts/core/TurnManager.gd`, `scripts/core/HotseatController.gd`

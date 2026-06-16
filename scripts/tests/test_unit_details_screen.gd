@@ -37,6 +37,7 @@ func _init() -> void:
 		"Panel/HBox/VBox/InventoryLabel",
 		"Panel/HBox/VBox/SkillsLabel",
 		"Panel/HBox/VBox/WexpLabel",
+		"Panel/HBox/VBox/BtnPair",
 		"Panel/HBox/VBox/BtnBack",
 		"Panel/HBox/InfoVBox/InfoTitle",
 		"Panel/HBox/InfoVBox/InfoHint",
@@ -63,6 +64,7 @@ func _init() -> void:
 	d.growth_rates = {"strength": 20}
 	d.growth_accumulators = {"strength": 35}
 	d.weapon_wexp = {"lance": 130, "axe": 50}
+	d.unit_id = "details_lead"
 	d.defense = 8
 	d.active_modifiers = [
 		{"stat": "strength", "delta": 2, "source": "tonic", "duration": 1, "duration_type": "turn"},
@@ -75,6 +77,7 @@ func _init() -> void:
 extends Node
 const GameConstants = preload(\"res://scripts/shared/GameConstants.gd\")
 var data = null
+var team: String = \"blue\"
 func get_effective_stat(stat_name: String) -> int:
 	var base = data.get(stat_name)
 	var total: int = int(base) if base != null else 0
@@ -114,6 +117,58 @@ func is_weapon_track_available(track: String) -> bool:
 		passed += 1
 	else:
 		print("FAIL stats panel: %s" % stats_text); failed += 1
+
+	# Compact stats use the same effective-display total as More Info, including
+	# combat-only Pair Up bonuses. The paired-unit button opens the hidden support
+	# sheet and then lets the player return to the lead.
+	var gs_pair := root.get_node_or_null("GameState")
+	var reg_pair := root.get_node_or_null("PairUpRegistry")
+	var res_pair := root.get_node_or_null("PairUpBonusResolver")
+	if gs_pair != null and reg_pair != null and res_pair != null:
+		gs_pair.call("reset_map_state")
+		reg_pair.call("clear")
+		gs_pair.set("pair_up_enabled", true)
+		var support_data := UnitData.new()
+		support_data.unit_id = "details_support"
+		support_data.unit_name = "Support Cavalier"
+		support_data.class_id = "cavalier"
+		support_data.hp = 20; support_data.max_hp = 20
+		support_data.strength = 10
+		support_data.defense = 10
+		support_data.speed = 9
+		support_data.skill = 8
+		support_data.luck = 4
+		var support_unit: Node = stub_script.new()
+		support_unit.data = support_data
+		root.add_child(support_unit)
+		gs_pair.call("register_unit", stub_unit)
+		gs_pair.call("register_unit", support_unit)
+		reg_pair.call("pair", "details_lead", "details_support")
+		screen.open(stub_unit)
+		var bonuses: Dictionary = res_pair.call("bonuses_for", support_unit)
+		var expected_str: int = int(d.strength) + 2 + int(bonuses.get("strength", 0))
+		var compact_expected := "Str  [color=#61c454]%s[/color]" % ("%-3d" % expected_str)
+		var compact_uses_pair: bool = compact_expected in screen._stats.text
+		var pair_button_visible: bool = screen._btn_pair.visible \
+			and screen._btn_pair.text == "View Support"
+		screen._on_pair_button_pressed()
+		var opened_support: bool = "Support Cavalier" in screen._title.text \
+			and screen._btn_pair.visible and screen._btn_pair.text == "View Lead"
+		screen._on_pair_button_pressed()
+		var returned_to_lead: bool = "Test Knight" in screen._title.text
+		if compact_uses_pair and pair_button_visible and opened_support and returned_to_lead:
+			print("OK  compact stats include Pair Up effective values and paired-unit button swaps sheets")
+			passed += 1
+		else:
+			print("FAIL pair sheet: compact=%s button=%s support=%s return=%s stats=%s title=%s" % [
+				compact_uses_pair, pair_button_visible, opened_support, returned_to_lead,
+				screen._stats.text, screen._title.text])
+			failed += 1
+		reg_pair.call("clear")
+		gs_pair.call("reset_map_state")
+		support_unit.queue_free()
+	else:
+		print("SKIP compact Pair Up stat / paired-unit button test (autoload missing)")
 
 	# WEXP panel: track rows are also [url=wexp:...] links so they open
 	# More Info; unavailable tracks stay dimmed but selectable.

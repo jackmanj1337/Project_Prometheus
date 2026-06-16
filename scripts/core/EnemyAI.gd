@@ -16,12 +16,14 @@ func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void
 		return
 	var actors: Array[Node] = gs.get_living_units_of(faction_id)
 	for enemy in actors:
-		if turn._map_over:
+		if turn._map_over or _debug_hotseat_override_active(turn):
 			return
 		if is_instance_valid(enemy):
 			# Pan the camera to the enemy and pause briefly so the player can
 			# follow the enemy phase (#7), then let it act.
 			await _focus_camera(enemy)
+			if _debug_hotseat_override_active(turn):
+				return
 			await _act(enemy, grid, turn, faction_id)
 
 
@@ -57,6 +59,8 @@ func _focus_camera(unit: Node) -> void:
 func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: String = "red") -> void:
 	if enemy.data == null:
 		return
+	if _debug_hotseat_override_active(turn):
+		return
 	match enemy.data.ai_profile:
 		"passive": await _act_passive(enemy, grid, turn, acting_faction); return
 		"healer":  await _act_healer(enemy, grid, turn, acting_faction);  return
@@ -79,6 +83,8 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		if path.size() > 1:
 			turn.record_move_start(enemy)
 			await enemy.move_along_path(path)
+			if _debug_hotseat_override_active(turn):
+				return
 			# Re-centre the camera on the destination so combat resolves on-screen
 			# even when the enemy moved far from where it started (#7).
 			if is_instance_valid(enemy):
@@ -88,6 +94,8 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 
 	# Attack the nearest targetable player from the new position; fall back to staff heal.
+	if _debug_hotseat_override_active(turn):
+		return
 	if is_instance_valid(enemy):
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
@@ -106,8 +114,12 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 
 # Passive: hold position; only attack if a player is already in attack range.
 func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_faction: String = "red") -> void:
+	if _debug_hotseat_override_active(turn):
+		return
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
+	if _debug_hotseat_override_active(turn):
+		return
 	if is_instance_valid(enemy):
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
@@ -124,6 +136,8 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 # Healer: move toward injured allies, heal the most-injured one in range.
 func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
 		acting_faction: String = "red") -> void:
+	if _debug_hotseat_override_active(turn):
+		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
@@ -135,15 +149,24 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
 		if path.size() > 1:
 			turn.record_move_start(enemy)
 			await enemy.move_along_path(path)
+			if _debug_hotseat_override_active(turn):
+				return
 			# Re-centre on the destination so the heal resolves on-screen (#7).
 			if is_instance_valid(enemy):
 				_pan_camera(enemy)
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
+	if _debug_hotseat_override_active(turn):
+		return
 	if is_instance_valid(enemy):
 		_try_staff_heal(enemy, grid)
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
+
+
+func _debug_hotseat_override_active(turn: TurnManager) -> bool:
+	return turn != null and turn.has_method("is_debug_hotseat_override_active") \
+		and turn.is_debug_hotseat_override_active()
 
 
 # Pick the move tile that places the most-injured ally in staff range.

@@ -613,6 +613,83 @@ func _init() -> void:
 			hotseat_cursor.get("controlling_faction"), hotseat_cursor.get("unlock_calls")])
 		failed += 1
 
+	# ---- Debug F9: all non-blue factions route through hotseat while enabled ----
+	gs.reset_map_state()
+	gs.set("debug_hotseat_override", true)
+	var dbg_blue := _mk_unit("blue", 20, "dbg_blue")
+	var dbg_red := _mk_unit("red", 20, "dbg_red")
+	gs.register_unit(dbg_blue)
+	gs.register_unit(dbg_red)
+	var tm_dbg := TurnManager.new()
+	root.add_child(tm_dbg)
+	var md_dbg := MapData.new()
+	var dbg_red_faction := FactionData.new()
+	dbg_red_faction.id = "red"
+	dbg_red_faction.controller = "AI"
+	md_dbg.factions = [dbg_red_faction]
+	md_dbg.turn_order = ["blue", "red"] as Array[String]
+	tm_dbg.start_map(md_dbg)
+	var dbg_ai_script := GDScript.new()
+	dbg_ai_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
+	dbg_ai_script.reload()
+	var dbg_ai: Node = dbg_ai_script.new()
+	var dbg_hot_script := GDScript.new()
+	dbg_hot_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tturn.phase_committed.emit()\n"
+	dbg_hot_script.reload()
+	var dbg_hot: Node = dbg_hot_script.new()
+	tm_dbg.set_ai_controller(dbg_ai)
+	tm_dbg.set_hotseat_controller(dbg_hot)
+	await tm_dbg.start_enemy_phase()
+	var debug_routes_hotseat: bool = dbg_hot.get("calls") == ["red"] \
+		and dbg_ai.get("calls").is_empty() \
+		and tm_dbg.active_faction() == "blue" and gs.is_player_turn()
+	if debug_routes_hotseat:
+		print("OK  F9 debug override routes an AI faction through hotseat")
+		passed += 1
+	else:
+		print("FAIL F9 hotseat route: hotseat=%s ai=%s active=%s phase=%s" % [
+			str(dbg_hot.get("calls")), str(dbg_ai.get("calls")),
+			tm_dbg.active_faction(), gs.current_phase])
+		failed += 1
+	gs.set("debug_hotseat_override", false)
+
+	# ---- Debug F9 off mid-phase: cleanup runs, then the same AI faction resumes ----
+	gs.reset_map_state()
+	gs.set("debug_hotseat_override", true)
+	var off_blue := _mk_unit("blue", 20, "off_blue")
+	var off_red := _mk_unit("red", 20, "off_red")
+	gs.register_unit(off_blue)
+	gs.register_unit(off_red)
+	var tm_off := TurnManager.new()
+	root.add_child(tm_off)
+	tm_off.start_map(md_dbg)
+	var off_ai_script := GDScript.new()
+	off_ai_script.source_code = "extends Node\nvar calls: Array[String] = []\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n"
+	off_ai_script.reload()
+	var off_ai: Node = off_ai_script.new()
+	var off_hot_script := GDScript.new()
+	off_hot_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar cancel_calls := 0\nvar game_state: Node = null\nfunc cancel_transient_control_for_handoff() -> void:\n\tcancel_calls += 1\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tgame_state.debug_hotseat_override = false\n"
+	off_hot_script.reload()
+	var off_hot: Node = off_hot_script.new()
+	off_hot.set("game_state", gs)
+	tm_off.set_ai_controller(off_ai)
+	tm_off.set_hotseat_controller(off_hot)
+	await tm_off.start_enemy_phase()
+	var debug_off_resumes_ai: bool = off_hot.get("calls") == ["red"] \
+		and int(off_hot.get("cancel_calls")) == 1 \
+		and off_ai.get("calls") == ["red"] \
+		and tm_off.active_faction() == "blue" and gs.is_player_turn()
+	if debug_off_resumes_ai:
+		print("OK  F9 off during override cleans up and resumes the same faction via AI")
+		passed += 1
+	else:
+		print("FAIL F9 off resume: hotseat=%s cancel=%s ai=%s active=%s phase=%s debug=%s" % [
+			str(off_hot.get("calls")), off_hot.get("cancel_calls"),
+			str(off_ai.get("calls")), tm_off.active_faction(), gs.current_phase,
+			gs.get("debug_hotseat_override")])
+		failed += 1
+	gs.set("debug_hotseat_override", false)
+
 	# ---- ALTERNATING: end_alternating_activation advances per-unit; round-wrap refreshes + bumps turn ----
 	# Build a fresh ALT-mode scheduler with blue + red units, both DONE so we can
 	# observe the refresh-on-wrap.

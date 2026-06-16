@@ -31,6 +31,7 @@ const _DEBUFF_COLOR := "#ff6b6b"
 @onready var _inventory: RichTextLabel = $Panel/HBox/VBox/InventoryLabel
 @onready var _skills: RichTextLabel    = $Panel/HBox/VBox/SkillsLabel
 @onready var _wexp: RichTextLabel      = $Panel/HBox/VBox/WexpLabel
+@onready var _btn_pair: Button         = $Panel/HBox/VBox/BtnPair
 @onready var _btn_back: Button         = $Panel/HBox/VBox/BtnBack
 @onready var _info_title: Label        = $Panel/HBox/InfoVBox/InfoTitle
 @onready var _info_hint: Label         = $Panel/HBox/InfoVBox/InfoHint
@@ -41,6 +42,7 @@ const _DEBUFF_COLOR := "#ff6b6b"
 # modifier breakdowns on demand without re-passing the unit through every
 # click handler.
 var _unit: Node = null
+var _paired_unit: Node = null
 
 # Ordered list of selectable entries built during populate. Each entry is
 # {"category": String, "key": String, "title": String}. `more_info` (F)
@@ -54,6 +56,7 @@ var _current_index: int = -1
 
 
 func _ready() -> void:
+	_btn_pair.pressed.connect(_on_pair_button_pressed)
 	_btn_back.pressed.connect(_close)
 	# Each section label exposes selectable [url=...] entries; wire the
 	# meta_clicked signal so clicks open the corresponding More Info entry.
@@ -78,6 +81,7 @@ func open(unit: Node) -> void:
 	_inventory.text = _format_inventory(d)
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
+	_update_pair_button(unit)
 	_reset_info_panel()
 	show()
 	_btn_back.grab_focus()
@@ -114,9 +118,10 @@ func _format_stats(unit: Node) -> String:
 # registers an entry for F-cycling. Boosted = green, lowered = red, unchanged
 # = default colour — same convention the previous inline formatter used.
 func _stat_link(unit: Node, stat_name: String) -> String:
-	var bd: Dictionary = StatBreakdown.build(unit, stat_name)
+	var extra_mods: Array = StatContributions.for_stat(unit, stat_name, _contribution_deps())
+	var bd: Dictionary = StatBreakdown.build(unit, stat_name, null, extra_mods)
 	var label: String = bd["label"]
-	var current: int = bd["effective"]
+	var current: int = bd["effective_display"]
 	var base: int = bd["base"]
 	_entries.append({"category": "stat", "key": stat_name, "title": label})
 	var value_text: String = "%-3d" % current
@@ -159,6 +164,37 @@ func _format_inventory(d: UnitData) -> String:
 		})
 		lines.append("  [url=inventory:%s]%s  (%s)[/url]" % [category_key, label, uses])
 	return "\n".join(lines)
+
+
+func _update_pair_button(unit: Node) -> void:
+	_paired_unit = _paired_unit_for(unit)
+	if _paired_unit == null or _paired_unit.data == null:
+		_btn_pair.hide()
+		return
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	var role: String = ""
+	if registry != null and unit != null and unit.data != null:
+		role = String(registry.call("get_role", unit.data.unit_id))
+	_btn_pair.text = "View Lead" if role == "support" else "View Support"
+	_btn_pair.show()
+
+
+func _paired_unit_for(unit: Node) -> Node:
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return null
+	var registry := get_node_or_null("/root/PairUpRegistry")
+	var gs := get_node_or_null("/root/GameState")
+	if registry == null or gs == null or not bool(registry.call("is_paired", unit.data.unit_id)):
+		return null
+	var partner_id: String = registry.call("get_partner_id", unit.data.unit_id)
+	if partner_id == "" or not gs.has_method("find_unit_by_id"):
+		return null
+	return gs.call("find_unit_by_id", partner_id)
+
+
+func _on_pair_button_pressed() -> void:
+	if _paired_unit != null and is_instance_valid(_paired_unit):
+		open(_paired_unit)
 
 
 func _format_skills(d: UnitData) -> String:
@@ -393,6 +429,7 @@ func _cycle_more_info() -> void:
 # only to clear local references so we don't pin a stale unit between opens.
 func _close() -> void:
 	_unit = null
+	_paired_unit = null
 	_entries.clear()
 	_current_index = -1
 	super._close()

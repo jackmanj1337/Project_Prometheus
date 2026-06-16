@@ -75,6 +75,11 @@ fit_content = true
 scroll_active = false
 text = "Weapon Ranks"
 
+[node name="BtnPair" type="Button" parent="Panel/HBox/VBox"]
+layout_mode = 2
+visible = false
+text = "View Support"
+
 [node name="BtnBack" type="Button" parent="Panel/HBox/VBox"]
 layout_mode = 2
 text = "Back"

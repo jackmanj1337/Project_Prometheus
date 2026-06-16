@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-15
+**Last verified:** 2026-06-16
 
 ---
 
@@ -69,6 +69,39 @@ bulk condition/content work.
 
 ---
 
+## Playtest Follow-Up — Initial Responses (2026-06-16)
+
+Items below are implemented and ready for playtest / visual confirmation:
+
+1. [x] **Main character sheet compact stats use effective-display totals.**
+       The `I` sheet's compact stat block now uses `StatContributions` +
+       `StatBreakdown.effective_display`, so Pair Up and other combat-only stat
+       sources are visible without opening More Info. Guard:
+       `scripts/tests/test_unit_details_screen.gd`.
+2. [x] **Paired units are visible and inspectable from the map/sheet.** Paired leads
+       show a `PU` badge on the map, and `UnitDetailsScreen` adds `View Support` /
+       `View Lead` to jump between paired partners. Guards:
+       `scripts/tests/test_unit_stats.gd`,
+       `scripts/tests/test_unit_details_screen.gd`.
+3. [x] **New Game map selector keeps last-launched semantics.** Rule toggles still
+       persist on change, but the `Map` dropdown reopens from
+       `GameState.next_map_data_path` until Start configures a new map/roster choice.
+       Guard: `scripts/tests/test_new_game_screen.gd`.
+4. [x] **F9 debug hotseat override.** Debug builds now use F9 to route every faction
+       through hotseat control and show `hotseat-all` in the debug banner. Toggling F9
+       off during a normally AI-controlled phase cancels transient cursor menus /
+       selections and resumes that same faction through AI. Guards:
+       `scripts/tests/test_turn_manager.gd`,
+       `scripts/tests/test_enemy_ai.gd`,
+       `scripts/tests/test_map_cursor.gd`,
+       `scripts/tests/test_hud.gd`.
+
+Manual visual confirmation still needed: `PU` badge placement on all common unit
+facings/tints, paired-partner button focus/order on the `I` sheet, New Game reopen
+selection after Back, and the F9 on/off handoff during a live enemy phase.
+
+---
+
 ## Current Playtest / Bug-Fix Round — v0.1.5.0 findings (2026-06-14)
 
 Live action list for the v0.1.5.0 return pass. Evidence:
@@ -79,9 +112,12 @@ Live action list for the v0.1.5.0 return pass. Evidence:
 The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
 1–7, plus 8.1–8.2, 8.6–8.11, and 9) — only the items below need action.
 
-1. [ ] **Pair Up bonuses still report as absent (handbook 8.5).** Tester:
+1. [x] **Pair Up bonuses still report as absent (handbook 8.5).** Tester:
        *"Pairup did not grant any bonuses, and no pairup line showed in lead unit
-       character sheet."* **Could not reproduce — needs live evidence (Open decision).**
+       character sheet."* **Resolved for the visible sheet surface (2026-06-16):**
+       compact stats now show effective-display totals, the paired partner can be
+       opened directly from the sheet, and paired leads show a map `PU` badge.
+       Earlier investigation below is retained as historical triage context.
        The shipped binary is SHA-verified (`d91ca65…c5c5`) and was built *after* the
        8.5 commits (`b53a385`, `913d39e`), so it contains the fix. A new faithful
        end-to-end regression — `scripts/tests/test_pair_up_bonus_e2e.gd` — loads the
@@ -2061,10 +2097,30 @@ review under `AGENT/Code Reviews/`).
       release build, but the code itself must still be deleted before release
       so it doesn't rot. Grep for `is_debug_build` and the `debug_force_levelup`
       flag to find every site.
+- [ ] **Remove the F9 all-faction hotseat debug override.** Added 2026-06-16 for
+      midgame AI/debug testing. It is gated by `OS.is_debug_build()` and listed in
+      the debug HUD as `hotseat-all`, but it is temporary test plumbing and must be
+      removed before a non-debug build ships.
+
+      Files to clean:
+      - `project.godot` — `debug_toggle_hotseat_override`
+      - `scripts/autoloads/GameState.gd` — `_debug_hotseat_override_v`,
+        `debug_hotseat_override`, and the F9 branch in `_unhandled_input`
+      - `scripts/core/TurnManager.gd` — `_debug_hotseat_override_latch`,
+        `is_debug_hotseat_override_active`, `_debug_hotseat_override_active_for`,
+        `_on_debug_flags_changed`, and the override branches in `_controller_for`,
+        `is_locally_controlled_faction`, and `start_enemy_phase`
+      - `scripts/core/EnemyAI.gd` — `_debug_hotseat_override_active` and the AI abort
+        checkpoints
+      - `scripts/core/HotseatController.gd`, `scripts/core/MapCursor.gd`, and
+        `scripts/core/MapCursorTargeting.gd` — transient-control cancellation helpers
+      - `scripts/ui/HUD.gd` — `hotseat-all` debug banner aid
+      - Tests: `test_turn_manager.gd`, `test_enemy_ai.gd`, `test_map_cursor.gd`,
+        and `test_hud.gd` F9 coverage
 - [ ] **Remove the debug-mode HUD banner.** A red "DEBUG MODE" label is shown
       on the HUD whenever `OS.is_debug_build()` is true, listing which debug
-      aids (force-levelup, growth-boost) are flipped on so playtesters know the
-      stats on screen may not reflect release behaviour. It is gated on
+      aids (force-levelup, growth-boost, hotseat-all) are flipped on so playtesters
+      know the stats on screen may not reflect release behaviour. It is gated on
       `OS.is_debug_build()` and never appears in a release build, but the code
       must still be deleted before release. The banner is an N-file ecosystem —
       delete every site below. Added 2026-05-19; extended 2026-05-19.
@@ -2081,9 +2137,10 @@ review under `AGENT/Code Reviews/`).
         comment block
         (grep: `debug_flags_changed`)
       - `scripts/autoloads/GameState.gd` — `_debug_force_levelup_v` and
-        `_debug_growth_boost_v` backing vars, both `debug_force_levelup` /
-        `debug_growth_boost` getter+setter blocks, and `_emit_debug_flags_changed()`
-        (grep: `_debug_force_levelup_v\|_debug_growth_boost_v\|debug_flags_changed`)
+        `_debug_growth_boost_v` / `_debug_hotseat_override_v` backing vars,
+        `debug_force_levelup` / `debug_growth_boost` / `debug_hotseat_override`
+        getter+setter blocks, and `_emit_debug_flags_changed()`
+        (grep: `_debug_force_levelup_v\|_debug_growth_boost_v\|_debug_hotseat_override_v\|debug_flags_changed`)
       - `scripts/tests/test_hud.gd` — the entire suite (or at minimum the
         live-toggle block) and its entry in `run_tests.sh`
         (grep: `test_hud`)

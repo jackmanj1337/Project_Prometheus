@@ -9,6 +9,7 @@ func _init() -> void:
 
 	var ai: Node = load("res://scripts/core/EnemyAI.gd").new()
 	root.add_child(ai)
+	await process_frame
 
 	# Stub script: a Node subclass with the members EnemyAI reads. _weapon defaults to
 	# null → GridManager._get_weapon_range → (1,1). perform_staff_heal records that it
@@ -16,6 +17,50 @@ func _init() -> void:
 	var stub_script := GDScript.new()
 	stub_script.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"enemy\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\n"
 	stub_script.reload()
+
+	# ---- F9 debug hotseat override: AI phase aborts before acting ----
+	var created_gs := false
+	var gs_debug := root.get_node_or_null("GameState")
+	if gs_debug == null:
+		var gs_debug_script := GDScript.new()
+		gs_debug_script.source_code = "extends Node\nvar debug_hotseat_override: bool = true\nvar actors: Array[Node] = []\nfunc get_living_units_of(_faction: String) -> Array[Node]: return actors\n"
+		gs_debug_script.reload()
+		gs_debug = gs_debug_script.new()
+		gs_debug.name = "GameState"
+		root.add_child(gs_debug)
+		created_gs = true
+	var old_debug_override: bool = false if created_gs else bool(gs_debug.get("debug_hotseat_override"))
+	gs_debug.set("debug_hotseat_override", true)
+	if gs_debug.has_method("reset_map_state"):
+		gs_debug.call("reset_map_state")
+	var debug_actor: Node = stub_script.new()
+	debug_actor.set("team", "red")
+	var debug_data := UnitData.new()
+	debug_data.hp = 20
+	debug_data.max_hp = 20
+	debug_actor.set("data", debug_data)
+	root.add_child(debug_actor)
+	if gs_debug.has_method("register_unit"):
+		gs_debug.call("register_unit", debug_actor)
+	else:
+		gs_debug.set("actors", [debug_actor] as Array[Node])
+	var debug_turn := TurnManager.new()
+	root.add_child(debug_turn)
+	var debug_grid := GridManager.new()
+	root.add_child(debug_grid)
+	await ai.run_phase(debug_grid, debug_turn, "red")
+	if debug_turn._unit_states.is_empty():
+		print("OK  F9 debug override makes EnemyAI.run_phase abort before acting")
+		passed += 1
+	else:
+		print("FAIL F9 EnemyAI abort: unit_states=%s" % str(debug_turn._unit_states))
+		failed += 1
+	if gs_debug.has_method("reset_map_state"):
+		gs_debug.call("reset_map_state")
+	gs_debug.set("debug_hotseat_override", old_debug_override)
+	if created_gs:
+		root.remove_child(gs_debug)
+		gs_debug.free()
 
 	# ---- _find_nearest: returns closer of two units ----
 	var from_unit: Node = stub_script.new()
@@ -270,6 +315,16 @@ func _init() -> void:
 	# move_along_path.
 	# ════════════════════════════════════════════════════════════════════════
 
+	# These tests need exact /root/GameState and /root/CombatResolver stubs. Move
+	# project autoloads out of the tree temporarily so get_node_or_null resolves
+	# the scoped fixtures below instead of live map state.
+	var real_game_state := root.get_node_or_null("GameState")
+	var real_combat_resolver := root.get_node_or_null("CombatResolver")
+	if real_game_state != null:
+		root.remove_child(real_game_state)
+	if real_combat_resolver != null:
+		root.remove_child(real_combat_resolver)
+
 	# Stub unit for the _act tests: the _find_nearest stub plus an awaitable
 	# move_along_path (a one-frame coroutine, like the real Unit.move_along_path).
 	var act_stub := GDScript.new()
@@ -458,6 +513,15 @@ func _init() -> void:
 			str(hn_healer.tile_position), hn_healer.get("staff_heal_called"),
 			act_turn.get_unit_state(hn_healer)])
 		failed += 1
+
+	root.remove_child(act_gs)
+	act_gs.free()
+	root.remove_child(act_cr)
+	act_cr.free()
+	if real_game_state != null:
+		root.add_child(real_game_state)
+	if real_combat_resolver != null:
+		root.add_child(real_combat_resolver)
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

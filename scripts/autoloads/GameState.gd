@@ -82,6 +82,7 @@ var max_inventory: int = 8
 # required — assigning to the property name inside its own setter recurses.
 var _debug_force_levelup_v: bool = false
 var _debug_growth_boost_v: bool = false
+var _debug_hotseat_override_v: bool = false
 
 var debug_force_levelup: bool:   # #10: any landed hit awards a full level
 	get:
@@ -97,6 +98,13 @@ var debug_growth_boost: bool:    # #11: +300 to every growth rate on level-up
 		if _debug_growth_boost_v == v: return
 		_debug_growth_boost_v = v
 		_emit_debug_flags_changed()
+var debug_hotseat_override: bool: # F9: temporarily drive all factions by hotseat
+	get:
+		return _debug_hotseat_override_v
+	set(v):
+		if _debug_hotseat_override_v == v: return
+		_debug_hotseat_override_v = v
+		_emit_debug_flags_changed()
 
 
 # Routes the setter notification through EventBus when it is available. Null-
@@ -109,9 +117,10 @@ func _emit_debug_flags_changed() -> void:
 
 
 # Debug hotkey handler. F10 toggles debug_force_levelup, F11 toggles
-# debug_growth_boost. Gated on OS.is_debug_build() so the action firing in a
-# release build is a no-op even if the input binding remains registered —
-# matches the existing gate on the flags themselves (callers check the same).
+# debug_growth_boost, and F9 toggles all-faction hotseat override. Gated on
+# OS.is_debug_build() so the action firing in a release build is a no-op even
+# if the input binding remains registered — matches the existing gate on the
+# flags themselves (callers check the same).
 # Actions are absent from the SettingsScreen keybinding list in release per
 # the OS.is_debug_build() filter in _populate_keybindings.
 func _unhandled_input(event: InputEvent) -> void:
@@ -121,6 +130,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		debug_force_levelup = not debug_force_levelup
 	elif event.is_action_pressed("debug_toggle_growth_boost"):
 		debug_growth_boost = not debug_growth_boost
+	elif event.is_action_pressed("debug_toggle_hotseat_override"):
+		debug_hotseat_override = not debug_hotseat_override
 
 # Current map state
 var current_phase: Phase = Phase.PLAYER

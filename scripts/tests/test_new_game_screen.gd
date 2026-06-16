@@ -58,9 +58,29 @@ func _init() -> void:
 	else:
 		print("FAIL pair-up selector missing or not populated"); failed += 1
 
+	# Some tests run without autoloads; add the tiny subset NewGameScreen.open()
+	# needs so the persistence checks below exercise real code paths.
+	var created_gs := false
+	var gs_node := root.get_node_or_null("GameState")
+	if gs_node == null:
+		var gs_script := GDScript.new()
+		gs_script.source_code = """
+extends Node
+var next_map_data_path: String = ""
+var permadeath_enabled: bool = false
+var auto_promote_at_max_level: bool = false
+var leveling_method: String = "growth_random"
+var pair_up_enabled: bool = true
+"""
+		gs_script.reload()
+		gs_node = gs_script.new()
+		gs_node.name = "GameState"
+		root.add_child(gs_node)
+		created_gs = true
+
 	# open() / _on_back() drive visibility. open() reads GameState — skip the
 	# check cleanly when that autoload is absent.
-	if root.get_node_or_null("GameState") != null:
+	if gs_node != null:
 		screen.open()
 		var shown := screen.visible
 		screen._on_back()
@@ -76,7 +96,6 @@ func _init() -> void:
 	# playtest v0.1.4 #1.2: changing Pair Up / Auto Promote then closing the panel
 	# (no Start) must be remembered. The on-change handler writes through to
 	# GameState; open() seeds the controls back from it.
-	var gs_node := root.get_node_or_null("GameState")
 	if gs_node != null:
 		var want_pair := not bool(gs_node.get("pair_up_enabled"))
 		var want_auto := not bool(gs_node.get("auto_promote_at_max_level"))
@@ -96,6 +115,33 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP rule persistence (GameState autoload absent)")
+
+	# ---- map selection keeps last-launched semantics until Start ----
+	# Unlike the rule toggles above, the Map dropdown is a launch choice. Closing
+	# without Start must not rewrite GameState.next_map_data_path; reopening seeds
+	# from the last configured/launched map path.
+	if gs_node != null and map_opt != null and map_opt.item_count > 1:
+		var original_path: String = screen._map_options[0]["map_data_path"]
+		gs_node.set("next_map_data_path", original_path)
+		screen.open()
+		map_opt.selected = 1
+		screen._on_back()
+		screen.open()
+		var map_kept_last_launch: bool = map_opt.selected == 0 \
+			and String(gs_node.get("next_map_data_path")) == original_path
+		screen._on_back()
+		if map_kept_last_launch:
+			print("OK  map dropdown reopens on last launched map, not unsaved selection")
+			passed += 1
+		else:
+			print("FAIL map last-launched behavior: selected=%d path=%s want=%s" % [
+				map_opt.selected, String(gs_node.get("next_map_data_path")), original_path])
+			failed += 1
+	else:
+		print("SKIP map last-launched behavior (GameState/map options unavailable)")
+
+	if created_gs and gs_node != null:
+		gs_node.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

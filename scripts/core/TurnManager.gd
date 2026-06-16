@@ -62,6 +62,7 @@ var _activation_mode: String = "WHOLE_PHASE"
 # /root/EnemyAI is used.
 var _ai_controller: Node = null
 var _hotseat_controller: Node = null
+var _debug_hotseat_override_latch: bool = false
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -97,6 +98,10 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	# PairUpRegistry announces it on EventBus so it need not know our scene path.
 	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
 		bus.support_orphaned.connect(_on_support_orphaned)
+	if bus and bus.has_signal("debug_flags_changed") \
+			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
+		bus.debug_flags_changed.connect(_on_debug_flags_changed)
+	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
 	# Begin the first faction's phase.
 	if active_faction() == "blue" or active_faction() == "":
 		start_player_phase()
@@ -326,11 +331,22 @@ func start_enemy_phase() -> void:
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
 				_refresh_faction_units(active_faction())
 				_begin_phase(gs.get_living_units_of(active_faction()))
+		var was_debug_override: bool = _debug_hotseat_override_active_for(active_faction()) \
+			and not _is_hotseat_controlled(active_faction())
 		var controller := _controller_for(active_faction())
 		if controller != null:
 			await controller.run_phase(_grid, self, active_faction())
 		if _map_over:
 			return
+		# F9 may flip while a controller is awaited. If it interrupts AI, rerun
+		# the same faction through hotseat; if it turns off during override
+		# hotseat, rerun the same faction through its normal AI controller.
+		if not was_debug_override and _debug_hotseat_override_active_for(active_faction()) \
+				and not _is_hotseat_controlled(active_faction()):
+			continue
+		if was_debug_override and not is_debug_hotseat_override_active() \
+				and _is_ai_controlled(active_faction()):
+			continue
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
 		# controller handoff lands with the stage-5/hotseat flow.
 		if _activation_mode != "WHOLE_PHASE":
@@ -390,6 +406,8 @@ func _is_hotseat_controlled(faction_id: String) -> bool:
 
 
 func _controller_for(faction_id: String) -> Node:
+	if _debug_hotseat_override_active_for(faction_id):
+		return _hotseat_controller
 	if _is_hotseat_controlled(faction_id):
 		return _hotseat_controller
 	if _is_ai_controlled(faction_id):
@@ -1034,6 +1052,8 @@ func _active_or_default_faction() -> String:
 func is_locally_controlled_faction(faction_id: String) -> bool:
 	if faction_id == "":
 		return false
+	if _debug_hotseat_override_active_for(faction_id):
+		return true
 	if faction_id == "blue":
 		var gs := get_node_or_null("/root/GameState")
 		return gs != null and gs.is_player_turn()
@@ -1042,3 +1062,36 @@ func is_locally_controlled_faction(faction_id: String) -> bool:
 
 func _should_auto_end_faction(faction_id: String) -> bool:
 	return is_locally_controlled_faction(faction_id)
+
+
+func is_debug_hotseat_override_active() -> bool:
+	if not OS.is_debug_build():
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var value: Variant = gs.get("debug_hotseat_override")
+	return value is bool and value
+
+
+func _debug_hotseat_override_active_for(faction_id: String) -> bool:
+	return faction_id != "" and is_debug_hotseat_override_active()
+
+
+func _on_debug_flags_changed() -> void:
+	var active := is_debug_hotseat_override_active()
+	if active == _debug_hotseat_override_latch:
+		return
+	_debug_hotseat_override_latch = active
+	if active:
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or gs.current_phase != gs.Phase.ENEMY:
+		return
+	var faction_id := active_faction()
+	if faction_id == "" or not _is_ai_controlled(faction_id):
+		return
+	var controller := _hotseat_controller
+	if controller != null and controller.has_method("cancel_transient_control_for_handoff"):
+		controller.call("cancel_transient_control_for_handoff")
+	phase_committed.emit()

@@ -1055,8 +1055,13 @@ func _open_settings() -> void:
 
 # Settings closed (Back / cancel) — unlock unless the enemy phase owns the lock.
 func _on_settings_closed() -> void:
+	if _turn != null:
+		if not _turn.is_locally_controlled_faction(_turn.active_faction()):
+			return
+		unlock()
+		return
 	var gs := get_node_or_null("/root/GameState")
-	if gs and not gs.is_player_turn():
+	if gs != null and not gs.is_player_turn():
 		return
 	unlock()
 
@@ -1106,6 +1111,40 @@ func lock() -> void:
 
 func unlock() -> void:
 	_state = State.FREE
+
+
+# Called by TurnManager when a temporary debug controller handoff ends. It backs
+# out of uncommitted player choices so a normally AI-controlled phase can resume
+# from a clean state instead of inheriting a half-open menu or moved unit.
+func cancel_transient_control_for_handoff() -> void:
+	_input_handler.clear_repeat()
+	_awaiting_end_turn_confirm = false
+	_hide_if_visible(action_menu)
+	_hide_if_visible(item_menu)
+	_hide_if_visible(weapon_menu)
+	_hide_if_visible(map_menu)
+	_hide_if_visible(settings_screen)
+	_hide_if_visible(unit_details)
+	if attack_preview != null and attack_preview.has_method("hide_preview"):
+		attack_preview.hide_preview()
+	if _state == State.TARGETING:
+		_targeting.abort()
+	if _state == State.UNIT_MOVED or _state == State.TARGETING:
+		_selection.undo_and_reselect()
+	_selection.clear()
+	if _danger_zone_shown and _grid != null:
+		_grid.clear_overlays()
+	_danger_zone_shown = false
+	_input_suppressed = false
+	_state = State.FREE
+	var bus := get_node_or_null("/root/EventBus")
+	if bus:
+		bus.unit_deselected.emit()
+
+
+func _hide_if_visible(node: Node) -> void:
+	if node != null and node.has_method("hide"):
+		node.hide()
 
 
 # ── Camera Scrolling ─────────────────────────────────────────────────────────

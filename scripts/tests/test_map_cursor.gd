@@ -100,6 +100,35 @@ func _init() -> void:
 		print("FAIL unlock(): _state=%d" % c1._state)
 		failed += 1
 
+	# ---- cancel_transient_control_for_handoff backs out an uncommitted move ----
+	var t_cleanup := TurnManager.new()
+	root.add_child(t_cleanup)
+	var c_cleanup := _make_cursor(t_cleanup)
+	var cleanup_unit := _make_unit(Vector2i(1, 1), "blue")
+	t_cleanup.record_move_start(cleanup_unit)
+	cleanup_unit.snap_to_tile(Vector2i(2, 1))
+	c_cleanup._selection.selected_unit = cleanup_unit
+	c_cleanup._state = UNIT_MOVED
+	var cleanup_menu := Control.new()
+	cleanup_menu.show()
+	root.add_child(cleanup_menu)
+	c_cleanup.action_menu = cleanup_menu
+	c_cleanup.cancel_transient_control_for_handoff()
+	var cleanup_ok: bool = c_cleanup._state == FREE \
+		and c_cleanup._selection.selected_unit == null \
+		and cleanup_unit.tile_position == Vector2i(1, 1) \
+		and not cleanup_menu.visible \
+		and not c_cleanup._input_suppressed
+	if cleanup_ok:
+		print("OK  controller handoff cleanup hides menus and undoes an uncommitted move")
+		passed += 1
+	else:
+		print("FAIL handoff cleanup: state=%d selected=%s tile=%s menu=%s suppressed=%s" % [
+			c_cleanup._state, c_cleanup._selection.selected_unit,
+			cleanup_unit.tile_position, cleanup_menu.visible, c_cleanup._input_suppressed])
+		failed += 1
+	cleanup_menu.queue_free()
+
 	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks, controlling faction follows phase ----
 	c1.set_controlling_faction("green")
 	c1._on_phase_changed(1, "green")  # GameState.Phase.ENEMY

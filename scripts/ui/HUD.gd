@@ -594,6 +594,8 @@ func _collect_active_debug_aids() -> Array[String]:
 		aids.append("force-levelup")
 	if gs.get("debug_growth_boost"):
 		aids.append("growth+300")
+	if gs.get("debug_hotseat_override"):
+		aids.append("hotseat-all")
 	return aids
 
 

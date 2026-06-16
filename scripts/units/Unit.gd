@@ -20,6 +20,7 @@ var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red"
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
+@onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
 var _base_modulate: Color = Color.WHITE  # set in _apply_initial_state; used by set_done_appearance
 
@@ -46,6 +47,10 @@ func _ready() -> void:
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
+	var bus := _bus()
+	if bus != null and bus.has_signal("pair_up_changed") \
+			and not bus.pair_up_changed.is_connected(_refresh_pair_up_badge):
+		bus.pair_up_changed.connect(_refresh_pair_up_badge)
 
 
 # Sets sprite tint, HP bar, and world position. Idempotent.
@@ -59,6 +64,7 @@ func _apply_initial_state() -> void:
 	# Snap world position to tile (TILE_SIZE px per tile)
 	position = Vector2(tile_position.x * GameConstants.TILE_SIZE,
 		tile_position.y * GameConstants.TILE_SIZE)
+	_refresh_pair_up_badge()
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
@@ -85,6 +91,18 @@ func _apply_faction_visual(map_data: MapData = null) -> void:
 # even though Unit._ready runs before GameState.map_data is assigned.
 func apply_faction_visual(map_data: MapData) -> void:
 	_apply_faction_visual(map_data)
+
+
+# Small on-map marker for a visible paired lead. Pair Up support units are hidden
+# off-map, so the badge belongs to the lead and refreshes whenever the registry changes.
+func _refresh_pair_up_badge() -> void:
+	if _pair_up_badge == null:
+		return
+	var show_badge := false
+	if data != null and data.unit_id != "" and is_inside_tree():
+		var registry := get_node_or_null("/root/PairUpRegistry")
+		show_badge = registry != null and bool(registry.call("is_lead", data.unit_id))
+	_pair_up_badge.visible = show_badge
 
 
 # True if the unit's class has the given quality (per ClassData.special_qualities)

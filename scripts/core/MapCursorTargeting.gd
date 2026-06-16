@@ -144,6 +144,17 @@ func is_active() -> bool:
 	return _sub != _Sub.IDLE
 
 
+# Controller handoff / debug override cancellation: hide any preview, clear
+# overlays, and forget the transient target without emitting action-complete.
+func abort() -> void:
+	if _attack_preview and _attack_preview.has_method("hide_preview"):
+		_attack_preview.hide_preview()
+	_preview_target = null
+	_unit = null
+	_clear_overlays()
+	_sub = _Sub.IDLE
+
+
 # ── Internals ────────────────────────────────────────────────────────────────
 
 # True iff `target.team` is hostile to `_controlling_faction` per the alliance

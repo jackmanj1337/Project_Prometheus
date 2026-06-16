@@ -41,6 +41,9 @@ signal phase_changed(new_phase: int, faction_id: String)
 # emits this instead of reaching into the scene's TurnManager node; TurnManager
 # listens and marks the support DONE. Decouples autoload→scene (audit 2026-06-14).
 signal support_orphaned(support: Node)
+# Pair Up state changed (pair, separate, swap, clear, or restore). Unit nodes
+# listen so their on-map Pair Up badges stay in sync without polling.
+signal pair_up_changed()
 signal cursor_moved(tile: Vector2i)
 # Emitted by EnemyAI as each enemy is about to act, so GameMap can pan the
 # camera to keep the enemy phase on-screen (#7).

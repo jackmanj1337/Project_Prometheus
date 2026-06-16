@@ -92,10 +92,11 @@ func _init() -> void:
 	var dm: Node = relay.get_node_or_null("/root/DataManager")
 	var gs: Node = relay.get_node_or_null("/root/GameState")
 	var bus: Node = relay.get_node_or_null("/root/EventBus")
+	var pair_reg: Node = relay.get_node_or_null("/root/PairUpRegistry")
 	relay.queue_free()
-	if dm == null or gs == null or bus == null:
-		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s" % [
-			dm, gs, bus])
+	if dm == null or gs == null or bus == null or pair_reg == null:
+		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s PairUpRegistry=%s" % [
+			dm, gs, bus, pair_reg])
 		quit(1)
 		return
 
@@ -117,6 +118,25 @@ func _init() -> void:
 	# Restore default team for the remaining baseline checks.
 	unit.team = "blue"
 	unit.apply_faction_visual(null)
+
+	# --- Pair Up map badge: paired leads show a small on-map marker ---
+	gs.set("pair_up_enabled", true)
+	pair_reg.call("clear")
+	unit.data.unit_id = "badge_lead"
+	var badge: Label = unit.get_node_or_null("PairUpBadge")
+	var pair_ok: bool = bool(pair_reg.call("pair", "badge_lead", "badge_support"))
+	await process_frame
+	var badge_shown: bool = badge != null and badge.visible
+	pair_reg.call("separate", "badge_lead")
+	await process_frame
+	var badge_hidden: bool = badge != null and not badge.visible
+	if pair_ok and badge_shown and badge_hidden:
+		print("OK  Pair Up badge follows lead pair/separate state")
+		passed += 1
+	else:
+		print("FAIL Pair Up badge: pair=%s shown=%s hidden=%s" % [
+			pair_ok, badge_shown, badge_hidden])
+		failed += 1
 
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
 	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
