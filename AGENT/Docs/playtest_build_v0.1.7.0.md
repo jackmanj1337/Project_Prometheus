@@ -3,7 +3,7 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.1.7.0_debug.exe`
-- Source commit: `__COMMIT__`
+- Source commit: `77d6dd8`
 - Source subject: `Bump to v0.1.7.0: version strings + combined playtest handbook`
 - Exported: 2026-06-16 20:29 UTC
 - Godot: `4.6.stable.official.89cea1439`

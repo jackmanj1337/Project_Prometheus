@@ -36,7 +36,7 @@ change:
 ## Build
 
 - Executable: `Project_Prometheus_v0.1.7.0_debug.exe`
-- Source commit: `__COMMIT__`
+- Source commit: `77d6dd8`
 - Expected file size: `101,241,976` bytes
 - Expected SHA-256:
   `f8e5015cd0bbaae96071c936cc71196676ba7c65b14fc34e4895fd1fd57200fb`
