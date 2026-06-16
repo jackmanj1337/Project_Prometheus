@@ -99,8 +99,8 @@ Items below are implemented and ready for playtest / visual confirmation:
 Manual visual confirmation still needed: `PU` badge placement on all common unit
 facings/tints, paired-partner button focus/order on the `I` sheet, New Game reopen
 selection after Back, and the F9 on/off handoff during a live enemy phase. These ship
-in the **v0.1.7.0** combined playtest build alongside the Display & Accessibility
-features; see `AGENT/Docs/playtest_checklist_v0.1.7.0.md`.
+in the **v0.2.0** combined playtest build alongside the Display & Accessibility
+features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
 
 ---
 
