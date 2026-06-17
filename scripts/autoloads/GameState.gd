@@ -7,6 +7,8 @@ extends Node
 # mutations if MapData.grid ever diverges at runtime. Neither is in scope until the
 # save-system milestone — see §0b N2 in code_review_2026-05-13c.
 
+const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+
 enum Phase { PLAYER, ENEMY }
 
 # ── M14 stage 2: alliance-group hostility model ──────────────────────────────
@@ -590,4 +592,3 @@ func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
 	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)
 	data.shift_gauge = snap.get("shift_gauge", 0.0)
 	data.is_shifted = snap.get("is_shifted", false)
-const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")

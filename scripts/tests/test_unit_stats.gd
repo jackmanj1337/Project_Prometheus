@@ -486,6 +486,35 @@ func _init() -> void:
 		print("FAIL auto-promote off: lvl=%d exp=%d prompts=%d before=%d" % [
 			no_prompt_data.level, no_prompt_data.exp, watcher.prompt_count, prompt_before])
 		failed += 1
+	# Regression (review 2026-06-17 #4): a unit authored to spawn ALREADY at the
+	# class cap never crosses the cap via level_up(), so add_exp() returns early.
+	# It must still surface promotion availability on that early-return path or
+	# such a unit could never auto-promote. EXP is still discarded at the cap.
+	var atmax_data := UnitData.new()
+	atmax_data.class_id = "cavalier"
+	atmax_data.level = promo_base.max_level  # already at the (test-shrunk) cap
+	atmax_data.exp = 0
+	atmax_data.hp = 10
+	atmax_data.max_hp = 10
+	atmax_data.weapon_wexp = {"sword": _wexp("D")}
+	var atmax_unit: Unit = unit_scene.instantiate()
+	atmax_unit.data = atmax_data
+	root.add_child(atmax_unit)
+	await process_frame
+	watcher.prompt_target = atmax_unit
+	var atmax_prompt_before: int = watcher.prompt_count
+	gs.auto_promote_at_max_level = true
+	atmax_unit.add_exp(50)  # discarded at cap, but should still prompt
+	if atmax_data.level == promo_base.max_level and atmax_data.exp == 0 \
+			and watcher.prompt_count == atmax_prompt_before + 1:
+		print("OK  add_exp at max level still emits promotion_available (auto-promote on)")
+		passed += 1
+	else:
+		print("FAIL add_exp at max: lvl=%d exp=%d prompts=%d before=%d" % [
+			atmax_data.level, atmax_data.exp, watcher.prompt_count, atmax_prompt_before])
+		failed += 1
+	gs.auto_promote_at_max_level = false
+
 	promo_base.max_level = saved_base_max_level
 	promo_base.promotes_to = saved_base_promotes_to
 	promo_target.tier = saved_target_tier

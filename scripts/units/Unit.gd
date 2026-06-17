@@ -1,10 +1,8 @@
 class_name Unit extends Node2D
 # A single unit on the battlefield. Wraps a UnitData resource and provides
-# combat math, movement, and visual state.
-#
-# Responsibilities are split:
-#   - This file: identity, position, HP/state changes, movement animation
-#   - UnitStatBlock.gd (helper): stat math that factors in terrain, S-rank, conditions
+# combat math, movement, progression, and visual state. (Identity, position,
+# HP/state, movement animation, the modifier-aware combat stats, and the
+# reclass/second-seal state machine all live here.)
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
@@ -605,7 +603,15 @@ func add_exp(amount: int) -> void:
 	amount = _debug_force_levelup_exp(amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
-		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
+		# EXP is discarded at the level cap, but still surface promotion availability:
+		# a unit authored to spawn ALREADY at max level never crossed the cap via
+		# level_up() (which is the other emit site), so without this it could never
+		# auto-promote. Idempotent — _maybe_emit_promotion_available() is gated on
+		# auto_promote_at_max_level + can_promote() (false once promoted), and
+		# PromotionScreen ignores re-emits while it is already open.
+		_maybe_emit_promotion_available()
+		return  # M6 promotion will hook here for further levelling
+
 	data.exp += amount
 	while data.exp >= 100:
 		data.exp -= 100
