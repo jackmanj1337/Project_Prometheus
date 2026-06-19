@@ -252,6 +252,8 @@ by camera movement.
 **Objective Panel:**
 - Lists the active blue-group win/lose conditions from authored `ObjectiveCondition`
   resources
+- Tile coordinates shown in objective text are player-facing one-based coordinates;
+  the underlying objective data and evaluator stay zero-based.
 - Hidden on maps that do not author objective text for the current view
 
 **Phase Label:**
@@ -809,6 +811,8 @@ The accessibility and parity contract the UI must honor across input methods and
   `SettingsManager.hud_layout`; applied by `HUD.apply_layout` with an on-screen clamp.
   Per-panel scale is local, so it composes on top of the global UI scale above. Scope:
   the persistent readouts only — contextual menus (cursor-anchored) are not movable.
+  Terrain More Info expands above the compact terrain panel; layout offsets anchor the
+  compact panel so Reset/Edit keep it in place while the expanded box is open.
 
 **Planned.**
 - **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the

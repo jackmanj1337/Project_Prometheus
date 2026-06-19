@@ -134,18 +134,18 @@ do not treat it as a playtest blocker without verbose leak details.
        land over the defender at several zoom levels/positions. Plan: treat the
        defender's screen rect as an avoid rect and fall back to above/below placement
        when side placement plus camera pan cannot avoid overlap. Fixed 2026-06-19.
-4. [ ] **V020-04 — F9 repeated hotseat toggling refreshes spent units.** Same-faction
+4. [x] **V020-04 — F9 repeated hotseat toggling refreshes spent units.** Same-faction
        controller reruns re-enter `_refresh_faction_units()` / `_begin_phase()`, so
        DONE units can become READY again. Plan: skip phase-start refresh/ticks on F9
-       same-faction reruns while retaining transient UI cleanup.
-5. [ ] **V020-05 — Seize objective text uses zero-based tile coordinates.** Map 002
+       same-faction reruns while retaining transient UI cleanup. Fixed 2026-06-19.
+5. [x] **V020-05 — Seize objective text uses zero-based tile coordinates.** Map 002
        authors `Vector2i(15, 2)` internally, but the objective HUD should display the
        player-facing `(16, 3)`. Plan: render objective coordinates one-based without
-       changing evaluator data.
-6. [ ] **V020-06 — HUD reset misplaces Terrain More Info when expanded.** Resetting
+       changing evaluator data. Fixed 2026-06-19.
+6. [x] **V020-06 — HUD reset misplaces Terrain More Info when expanded.** Resetting
        HUD layout while terrain More Info is open can align the details box to the
        compact panel's old top. Plan: reflow expanded terrain details after layout
-       apply/reset.
+       apply/reset. Fixed 2026-06-19.
 
 **Small clarity / UX polish from the same return:**
 

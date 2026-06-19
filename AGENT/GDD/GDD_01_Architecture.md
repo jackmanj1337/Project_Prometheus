@@ -902,6 +902,11 @@ func can_escape(unit: Node, tile: Vector2i) -> bool
 func get_group_eliminated_round(group: String) -> int
 ```
 
+In `WHOLE_PHASE`, `start_enemy_phase()` runs phase-start refresh/tick effects once
+per faction phase. Same-faction controller replays, such as the debug F9 AI↔hotseat
+handoff, rerun the controller without rerunning `_refresh_faction_units()` or
+`_begin_phase()`, so units that already spent their action remain `DONE`.
+
 ### `Unit.gd`
 
 `class_name Unit`. One scene instance per unit on the map; wraps a `UnitData`.
@@ -1383,6 +1388,10 @@ class_name MapData extends Resource
 
 func get_faction(faction_id: String) -> FactionData
 ```
+
+Objective condition tiles are authored and evaluated in zero-based map coordinates.
+HUD display text converts tile coordinates to player-facing one-based coordinates
+only at render time.
 
 ---
 

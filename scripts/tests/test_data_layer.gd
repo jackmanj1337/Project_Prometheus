@@ -123,6 +123,7 @@ func _init() -> void:
 	var dt_surv := ObjectiveCondition.new()
 	dt_surv.type = "survive"; dt_surv.turns = 5
 	# Seize display text (L-1): uses the singular `tile` field; sentinel → "Seize".
+	# Player-facing coordinates are one-based, while the authored tile stays zero-based.
 	var dt_seize_bare := ObjectiveCondition.new()
 	dt_seize_bare.type = "seize"
 	var dt_seize_tile := ObjectiveCondition.new()
@@ -133,7 +134,7 @@ func _init() -> void:
 			and dt_esc.get_display_text() == "Escape: lord" \
 			and dt_surv.get_display_text() == "Survive 5 turn(s)" \
 			and dt_seize_bare.get_display_text() == "Seize" \
-			and dt_seize_tile.get_display_text() == "Seize (3, 4)":
+			and dt_seize_tile.get_display_text() == "Seize (4, 5)":
 		print("OK  ObjectiveCondition.get_display_text: per-type one-liners"); passed += 1
 	else:
 		print("FAIL display_text: rout_all=%s rout_red=%s boss=%s esc=%s surv=%s seize_bare=%s seize_tile=%s" % [

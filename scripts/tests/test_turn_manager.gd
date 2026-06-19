@@ -705,10 +705,11 @@ func _init() -> void:
 	root.add_child(tm_tog)
 	tm_tog.start_map(md_dbg)
 	var tog_hot_script := GDScript.new()
-	tog_hot_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar toggles := 0\nvar game_state: Node = null\nfunc cancel_transient_control_for_handoff() -> void:\n\tpass\nfunc run_phase(_grid, turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\ttoggles += 1\n\tgame_state.debug_hotseat_override = false\n\tturn.phase_committed.emit()\n"
+	tog_hot_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar toggles := 0\nvar game_state: Node = null\nvar target: Node = null\nfunc cancel_transient_control_for_handoff() -> void:\n\tpass\nfunc run_phase(_grid, turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\ttoggles += 1\n\tif target != null:\n\t\tturn.set_unit_state(target, 2)\n\tgame_state.debug_hotseat_override = false\n\tturn.phase_committed.emit()\n"
 	tog_hot_script.reload()
 	var tog_hot: Node = tog_hot_script.new()
 	tog_hot.set("game_state", gs)
+	tog_hot.set("target", tog_red)
 	var tog_ai_script := GDScript.new()
 	tog_ai_script.source_code = "extends Node\nvar calls: Array[String] = []\nvar hotseat: Node = null\nvar game_state: Node = null\nfunc run_phase(_grid, _turn, faction_id: String) -> void:\n\tcalls.append(faction_id)\n\tif hotseat.toggles < 3:\n\t\tgame_state.debug_hotseat_override = true\n"
 	tog_ai_script.reload()
@@ -719,13 +720,15 @@ func _init() -> void:
 	tm_tog.set_hotseat_controller(tog_hot)
 	await tm_tog.start_enemy_phase()
 	var guard_survives_toggling: bool = int(tog_hot.get("toggles")) == 3 \
-		and tm_tog.active_faction() == "blue" and gs.is_player_turn()
+		and tm_tog.active_faction() == "blue" and gs.is_player_turn() \
+		and tm_tog.get_unit_state(tog_red) == TurnManager.UnitState.DONE
 	if guard_survives_toggling:
-		print("OK  F9 repeated toggling in one phase doesn't trip the cycle guard")
+		print("OK  F9 repeated toggling does not refresh spent same-faction units")
 		passed += 1
 	else:
-		print("FAIL F9 guard refund: toggles=%s active=%s phase=%s" % [
-			tog_hot.get("toggles"), tm_tog.active_faction(), gs.current_phase])
+		print("FAIL F9 rerun state: toggles=%s active=%s phase=%s red_state=%s" % [
+			tog_hot.get("toggles"), tm_tog.active_faction(), gs.current_phase,
+			tm_tog.get_unit_state(tog_red)])
 		failed += 1
 	gs.set("debug_hotseat_override", false)
 

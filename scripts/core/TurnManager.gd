@@ -313,11 +313,13 @@ func start_enemy_phase() -> void:
 			_complete_round()
 	# Stage 4/5: run each consecutive non-blue faction controller, then hand back to blue.
 	var guard: int = _turn_order.size() + 1
+	var phase_started: Dictionary = {}
 	while active_faction() != "blue" and active_faction() != "":
 		guard -= 1
 		if guard < 0:
 			push_error("TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'")
 			break
+		var faction_id: String = active_faction()
 		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
 		# faction's phase (not just blue's).
 		check_victory_conditions()
@@ -325,17 +327,18 @@ func start_enemy_phase() -> void:
 			return
 		var gs := get_node_or_null("/root/GameState")
 		if gs:
-			gs.set_phase(gs.Phase.ENEMY, active_faction())
-			if _activation_mode == "WHOLE_PHASE":
+			gs.set_phase(gs.Phase.ENEMY, faction_id)
+			if _activation_mode == "WHOLE_PHASE" and not phase_started.get(faction_id, false):
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
-				_refresh_faction_units(active_faction())
-				_begin_phase(gs.get_living_units_of(active_faction()))
-		var was_debug_override: bool = _debug_hotseat_override_active_for(active_faction()) \
-			and not _is_hotseat_controlled(active_faction())
-		var controller := _controller_for(active_faction())
+				_refresh_faction_units(faction_id)
+				_begin_phase(gs.get_living_units_of(faction_id))
+				phase_started[faction_id] = true
+		var was_debug_override: bool = _debug_hotseat_override_active_for(faction_id) \
+			and not _is_hotseat_controlled(faction_id)
+		var controller := _controller_for(faction_id)
 		if controller != null:
-			await controller.run_phase(_grid, self, active_faction())
+			await controller.run_phase(_grid, self, faction_id)
 		if _map_over:
 			return
 		# F9 may flip while a controller is awaited. If it interrupts AI, rerun

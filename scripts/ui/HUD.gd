@@ -172,7 +172,9 @@ func apply_layout(layout: Dictionary) -> void:
 			if scale_v is float or scale_v is int:
 				scale_f = float(scale_v)
 		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
-		panel.position = _clamp_panel_on_screen(panel, base + offset)
+		var layout_pos: Vector2 = base + offset
+		panel.position = _clamp_panel_on_screen(
+			panel, _panel_position_from_layout_position(id, layout_pos, panel))
 
 
 # Loads the saved layout from SettingsManager and applies it. Called deferred from
@@ -201,7 +203,9 @@ func set_panel_layout(panel_id: String, offset: Vector2, scale_f: float) -> Vect
 		return Vector2.ZERO
 	var base: Vector2 = _layout_base_positions.get(panel_id, panel.position)
 	panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
-	panel.position = _clamp_panel_on_screen(panel, base + offset)
+	var layout_pos: Vector2 = base + offset
+	panel.position = _clamp_panel_on_screen(
+		panel, _panel_position_from_layout_position(panel_id, layout_pos, panel))
 	return panel.position
 
 
@@ -215,7 +219,8 @@ func current_layout() -> Dictionary:
 		if panel == null:
 			continue
 		var base: Vector2 = _layout_base_positions.get(id, panel.position)
-		var offset: Vector2 = panel.position - base
+		var layout_pos: Vector2 = _layout_position_from_panel_position(id, panel)
+		var offset: Vector2 = layout_pos - base
 		var scale_f: float = panel.scale.x
 		if offset != Vector2.ZERO or not is_equal_approx(scale_f, 1.0):
 			out[id] = { "offset": offset, "scale": scale_f }
@@ -225,6 +230,35 @@ func current_layout() -> Dictionary:
 # Restores every panel to its authored base layout (offset 0, scale 1).
 func reset_layout() -> void:
 	apply_layout({})
+
+
+# Terrain More Info lives above the compact terrain panel inside the same movable
+# VBox. Layout offsets are defined by the compact panel's top-left, so reset/editing
+# keeps the familiar HUD anchor even while the expanded box is visible.
+func _panel_position_from_layout_position(panel_id: String, layout_pos: Vector2,
+		panel: Control) -> Vector2:
+	if panel_id == "terrain_corner":
+		return layout_pos - _terrain_expanded_offset(panel.scale)
+	return layout_pos
+
+
+func _layout_position_from_panel_position(panel_id: String, panel: Control) -> Vector2:
+	if panel_id == "terrain_corner":
+		return panel.position + _terrain_expanded_offset(panel.scale)
+	return panel.position
+
+
+func _terrain_expanded_offset(scale_v: Vector2) -> Vector2:
+	if not _terrain_expanded or _terrain_more_panel == null or not _terrain_more_panel.visible:
+		return Vector2.ZERO
+	var corner := get_layout_panel("terrain_corner")
+	var separation: float = 0.0
+	if corner is BoxContainer:
+		separation = float((corner as BoxContainer).get_theme_constant("separation"))
+	var more_h: float = _terrain_more_panel.size.y
+	if more_h <= 0.0:
+		more_h = _terrain_more_panel.get_combined_minimum_size().y
+	return Vector2(0.0, (more_h + separation) * scale_v.y)
 
 
 func _populate_objective_panel() -> void:

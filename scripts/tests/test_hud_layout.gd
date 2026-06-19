@@ -58,6 +58,25 @@ func _init() -> void:
 		"reset_layout restores the authored base layout")
 	_ok(hud.current_layout().is_empty(), "current_layout is empty after reset")
 
+	# ---- reset_layout: terrain More Info stays anchored to the compact panel ----
+	var terrain_corner: Control = hud.get_layout_panel("terrain_corner")
+	var terrain_info: Control = terrain_corner.get_node("TerrainInfoPanel")
+	var terrain_base: Vector2 = terrain_info.get_global_rect().position
+	hud._terrain_expanded = true
+	hud._render_terrain_expanded(Vector2i(0, 0), "plain")
+	await process_frame
+	hud.apply_layout({ "terrain_corner": { "offset": Vector2(-80, -40), "scale": 1.25 } })
+	await process_frame
+	hud.reset_layout()
+	await process_frame
+	var terrain_after_reset: Vector2 = terrain_info.get_global_rect().position
+	_ok(terrain_after_reset.distance_to(terrain_base) < 1.0
+		and is_equal_approx(terrain_corner.scale.x, 1.0),
+		"reset_layout keeps expanded terrain More Info anchored to the compact panel")
+	hud._terrain_expanded = false
+	hud._terrain_more_panel.hide()
+	hud.reset_layout()
+
 	# ---- scale clamp: an out-of-range scale is clamped to [MIN, MAX] ----
 	hud.apply_layout({ "unit_info": { "offset": Vector2.ZERO, "scale": 9.0 } })
 	_ok(is_equal_approx(unit_panel.scale.x, hud.MAX_PANEL_SCALE),
