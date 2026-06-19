@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=6 format=3]
+[gd_resource type="Resource" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
@@ -19,6 +19,12 @@ uses_remaining = 1
 script = ExtResource("2")
 entry_type = "item"
 item_id = "second_seal"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_4"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "debuff_tonic"
 uses_remaining = 1
 
 [resource]
@@ -45,7 +51,7 @@ constitution = 18
 line_of_sight = 4
 weapon_wexp = {"lance": 130}
 skills = []
-inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3")]
+inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3"), SubResource("IE_4")]
 conditions = []
 gold = 0
 is_incapacitated = false

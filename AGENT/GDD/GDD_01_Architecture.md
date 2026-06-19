@@ -93,14 +93,15 @@ res://
 │   │   ├── thunder.tres
 │   │   ├── wind.tres
 │   │   └── heal_staff.tres
-│   ├── items/                     # 7 ItemData .tres files
+│   ├── items/                     # 8 ItemData .tres files
 │   │   ├── vulnerary.tres
 │   │   ├── elixir.tres
 │   │   ├── master_seal.tres
 │   │   ├── orion_bolt.tres
 │   │   ├── guiding_ring.tres
 │   │   ├── second_seal.tres
-│   │   └── strength_tonic.tres
+│   │   ├── strength_tonic.tres
+│   │   └── debuff_tonic.tres        # Map 950 validation-only stat-debuff item
 │   ├── skills/                    # 54 SkillData .tres files
 │   │   ├── renewal.tres
 │   │   ├── vantage.tres

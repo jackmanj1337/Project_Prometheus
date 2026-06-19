@@ -18,7 +18,7 @@ func _init() -> void:
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
 		and ResourceManifest.load_paths("res://data/weapons/").size() == 11
-		and ResourceManifest.load_paths("res://data/items/").size() == 7
+		and ResourceManifest.load_paths("res://data/items/").size() == 8
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
 	if manifest_ok:

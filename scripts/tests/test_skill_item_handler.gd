@@ -517,6 +517,30 @@ func _init() -> void:
 		print("FAIL W5c: usable=%s matched=%d inv=%d mods=%s" % [
 			tonic_usable, matched, tonic_data.inventory.size(), tonic_data.active_modifiers]); failed += 1
 
+	# V020-14 — debuff_tonic is a Map 950 validation item: a stat_buff with a
+	# NEGATIVE delta so testers can confirm lowered stats render in red. Verify it
+	# stamps a -4 strength modifier and is consumed, same path as strength_tonic.
+	var debuff_entry := InventoryEntry.make_item("debuff_tonic", 1)
+	var debuff_data: UnitData = load("res://data/roster/default/unit_02_mercenary.tres").duplicate(true)
+	debuff_data.inventory = [debuff_entry]
+	debuff_data.active_modifiers = []
+	var debuff_unit := MockUnit.new()
+	debuff_unit.setup(debuff_data)
+	root.add_child(debuff_unit)
+	var debuff_usable: bool = ih.can_apply_item(debuff_unit, debuff_entry)
+	ih.apply_item(debuff_unit, debuff_entry)
+	var debuff_matched: int = 0
+	for mod in debuff_data.active_modifiers:
+		if mod.get("stat", "") == "strength" and int(mod.get("delta", 0)) == -4 \
+				and String(mod.get("source", "")).begins_with("item:") \
+				and String(mod.get("duration_type", "")) == "turn":
+			debuff_matched += 1
+	if debuff_usable and debuff_matched == 1 and debuff_data.inventory.is_empty():
+		print("OK  V020-14: debuff_tonic applies a -4 strength turn modifier and is consumed"); passed += 1
+	else:
+		print("FAIL V020-14: usable=%s matched=%d inv=%d mods=%s" % [
+			debuff_usable, debuff_matched, debuff_data.inventory.size(), debuff_data.active_modifiers]); failed += 1
+
 	# W3b regression — playtest #214: a unit that started below max level with a
 	# promotion item in inventory should become eligible as soon as it hits the
 	# class max. can_apply_item must reflect the live data.level so the next

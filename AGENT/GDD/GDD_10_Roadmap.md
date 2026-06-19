@@ -178,8 +178,9 @@ do not treat it as a playtest blocker without verbose leak details.
        HUD nodes.
 9. [ ] **V020-13 — Explain Borderless vs Fullscreen.** User decision 2026-06-19:
        handbook-only for the next playtest; no permanent Settings helper text yet.
-10. [ ] **V020-14 — Add a stat-debuff validation item/fixture.** User decision
-        2026-06-19: make it a Map 950 validation-only test item, not general content.
+10. [x] **V020-14 — Add a stat-debuff validation item/fixture.** Added `debuff_tonic`
+        (`stat_buff` with a -4 strength delta) to the Map 950 fixed roster's cavalier;
+        validation-only, kept out of the regular roster/shop pipeline. Fixed 2026-06-19.
 
 **Needs rerun / still pending validation:**
 
