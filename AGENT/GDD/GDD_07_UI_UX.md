@@ -437,7 +437,7 @@ turn. There is no separate staff-preview panel in MVP.
 
 This is the live character-sheet overlay. It shows:
 
-- unit name, class, level, internal level, and EXP
+- unit name, class, level, internal level (labelled `Internal Lv`, not `Int`), and EXP
 - full core stat block using the effective display totals
 - inventory with remaining uses
 - equipped skills
@@ -472,7 +472,11 @@ The screen is read-only. It exists for inspection, not inventory management.
   stamped only at combat start (`duration_type="combat"`) and never live in
   `active_modifiers` outside a fight. `StatContributions` is the single authority
   the combat path also resolves through, and `test_stat_contributions.gd` is a
-  drift guard asserting the sheet and combat report identical numbers. (Aura skills
+  drift guard asserting the sheet and combat report identical numbers. Each bonus's
+  duration is shown by scope: combat-only sources render **"this combat"** (they
+  carry the `-1` sentinel with `duration_type="combat"`, so `StatBreakdown.format_duration`
+  must match the type before the negative-remaining "—" fallback), turn/round
+  sources show their remaining count, and permanent sources show "—". (Aura skills
   are M9 stubs that target hit/dodge/crit, not base stats, so they contribute
   nothing here yet.)
 

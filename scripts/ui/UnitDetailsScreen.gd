@@ -109,7 +109,7 @@ func _format_stats(unit: Node) -> String:
 		var left_link  := _stat_link(unit, pair[0])
 		var right_link := _stat_link(unit, pair[1])
 		lines.append("%s  %s" % [left_link, right_link])
-	lines.append("Int  %d" % d.internal_level)
+	lines.append("Internal Lv  %d" % d.internal_level)
 	lines.append("EXP  %d / 100" % d.exp)
 	return "\n".join(lines)
 

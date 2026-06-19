@@ -59,6 +59,9 @@ func _init() -> void:
 		and StatBreakdown.format_duration("turn", 3) == "3 turns"
 		and StatBreakdown.format_duration("map_turn", 2) == "2 rounds"
 		and StatBreakdown.format_duration("combat", 0) == "this combat"
+		# V020-08: Pair Up carries the -1 sentinel with a "combat" type; it must
+		# render as "this combat", not be swallowed by the negative-remaining "—".
+		and StatBreakdown.format_duration("combat", -1) == "this combat"
 		and StatBreakdown.format_duration("permanent", -1) == "—"
 		and StatBreakdown.format_duration("turn", -1) == "—"
 	)

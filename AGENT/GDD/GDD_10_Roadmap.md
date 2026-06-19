@@ -149,11 +149,11 @@ do not treat it as a playtest blocker without verbose leak details.
 
 **Small clarity / UX polish from the same return:**
 
-1. [ ] **V020-07 — Rename or explain `Int` on the character sheet.** Recommendation:
-       use `Internal Lv` and later add a More Info entry if needed.
-2. [ ] **V020-08 — Replace Pair Up bonus duration marker `(-)`.** Recommendation:
-       fix combat-duration formatting to show `this combat` first; only add support
-       names if the row remains readable.
+1. [x] **V020-07 — Rename or explain `Int` on the character sheet.** Renamed the
+       compact row to `Internal Lv`. Fixed 2026-06-19.
+2. [x] **V020-08 — Replace Pair Up bonus duration marker `(-)`.** `StatBreakdown.format_duration`
+       now matches `duration_type=="combat"` before the negative-remaining "—"
+       fallback, so combat-only bonuses (Pair Up) render `this combat`. Fixed 2026-06-19.
 3. [ ] **V020-09 — Show support partner name on the on-map HUD.** Recommendation:
        add a concise `Support: <name>` line beside the existing paired-bonus line.
 4. [x] **V020-16 — Split menu scale from HUD layout scale.** User decision

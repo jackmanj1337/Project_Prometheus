@@ -172,16 +172,19 @@ static func format_signed(value: int) -> String:
 	return "%+d" % value
 
 
-# Format the remaining-duration text. duration_type "permanent" or duration -1
-# means never auto-removed and is shown as a dash. "combat" duration shows
-# "this combat" so the player understands the scope without seeing a number.
+# Format the remaining-duration text. "combat" scope expires at end of combat
+# rather than on a turn counter, so it carries the -1 sentinel and must be
+# matched by type BEFORE the negative-remaining fallback (else Pair Up's "-1"
+# would print as a bare "—"). duration_type "permanent" or any other negative
+# remaining means never auto-removed and is shown as a dash.
 static func format_duration(duration_type: String, remaining: int) -> String:
+	if duration_type == "combat":
+		return "this combat"
 	if duration_type == "permanent" or remaining < 0:
 		return "—"
 	match duration_type:
 		"turn":     return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
 		"map_turn": return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
-		"combat":   return "this combat"
 		_:          return "%d" % remaining
 
 
