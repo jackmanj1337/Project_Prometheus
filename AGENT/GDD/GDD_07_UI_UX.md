@@ -825,7 +825,11 @@ The accessibility and parity contract the UI must honor across input methods and
 - **Per-panel HUD layout** (`hud_layout`, Display & Accessibility item 4): the player
   repositions and scales the five persistent HUD readouts (phase/turn labels, unit
   info, objective, terrain corner) via an in-map "Edit HUD Layout" mode (drag frames +
-  per-panel Scale, Reset/Done/Cancel). Persisted per panel as `{ offset, scale }` in
+  per-panel Scale, Reset/Done/Cancel). Editor affordances (V020-12): each panel frame
+  has a bright-red outline (yellow when selected) drawn with styleboxes, the scale
+  buttons read `Scale Panel −/+`, and every frame shows editor-only sample text whose
+  font scales with the panel so the chosen size is visible (the sample never touches
+  the live HUD nodes). Persisted per panel as `{ offset, scale }` in
   `SettingsManager.hud_layout`; applied by `HUD.apply_layout` with an on-screen clamp.
   Scope: the persistent readouts only — contextual menus (cursor-anchored) are not
   movable and use Menu Scale instead.

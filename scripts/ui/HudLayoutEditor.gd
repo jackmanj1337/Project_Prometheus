@@ -18,9 +18,19 @@ var _hud: Control = null
 var _start_layout: Dictionary = {}      # snapshot for Cancel
 var _selected_id: String = ""
 var _handles: Dictionary = {}           # panel_id -> Panel (drag frame)
+var _handle_labels: Dictionary = {}     # panel_id -> Label (id + sample text)
 var _dragging: bool = false
 
 var _scale_label: Label = null
+
+# Distinct outline styleboxes (V020-12): a bright-red border on every editable
+# panel, switched to yellow on the selected one — clearer than the old
+# self_modulate tint, which only dimmed the frame's whole colour.
+const _UNSELECTED_BORDER := Color(1, 0.25, 0.25, 1)   # bright red
+const _SELECTED_BORDER := Color(1, 0.95, 0.2, 1)      # yellow
+# Base font size for the in-frame sample text; scaled by each panel's scale so the
+# tester can see how big that panel's text will render at the chosen scale.
+const _SAMPLE_FONT_BASE := 16
 
 
 func _init() -> void:
@@ -53,9 +63,9 @@ func _build_toolbar() -> void:
 	title.text = "Edit HUD Layout — drag panels"
 	bar.add_child(title)
 
-	var minus := Button.new(); minus.text = "Scale −"; bar.add_child(minus)
+	var minus := Button.new(); minus.text = "Scale Panel −"; bar.add_child(minus)
 	_scale_label = Label.new(); _scale_label.text = "—"; bar.add_child(_scale_label)
-	var plus := Button.new(); plus.text = "Scale +"; bar.add_child(plus)
+	var plus := Button.new(); plus.text = "Scale Panel +"; bar.add_child(plus)
 	var reset := Button.new(); reset.text = "Reset"; bar.add_child(reset)
 	var done := Button.new(); done.text = "Done"; bar.add_child(done)
 	var cancel := Button.new(); cancel.text = "Cancel"; bar.add_child(cancel)
@@ -75,12 +85,16 @@ func _build_handles() -> void:
 		var frame := Panel.new()
 		frame.mouse_filter = Control.MOUSE_FILTER_STOP
 		var lbl := Label.new()
-		lbl.text = id
+		# Editor-only sample text: the panel id plus a dummy readout so the tester
+		# can judge font size at the current scale. This label lives on the editor
+		# frame, never on the live HUD, so it can't leak into gameplay.
+		lbl.text = "%s\nSample 123" % id
 		lbl.position = Vector2(4, 2)
 		frame.add_child(lbl)
 		frame.gui_input.connect(_on_handle_input.bind(id))
 		add_child(frame)
 		_handles[id] = frame
+		_handle_labels[id] = lbl
 
 
 # Positions each drag frame over its panel's current on-screen rect and tints the
@@ -94,9 +108,24 @@ func _refresh_handles() -> void:
 		var rect: Rect2 = panel.get_global_rect()
 		frame.global_position = rect.position
 		frame.size = rect.size
-		frame.self_modulate = (Color(0.4, 0.8, 1.0, 0.55) if id == _selected_id
-			else Color(1, 1, 1, 0.30))
+		var border: Color = _SELECTED_BORDER if id == _selected_id else _UNSELECTED_BORDER
+		frame.add_theme_stylebox_override("panel", _make_frame_style(border))
+		# Sample text grows/shrinks with the panel scale so the chosen size is visible.
+		var lbl: Label = _handle_labels.get(id)
+		if lbl != null:
+			lbl.add_theme_font_size_override(
+				"font_size", int(round(_SAMPLE_FONT_BASE * _scale_of(id))))
 	_update_scale_label()
+
+
+# Builds an outline stylebox: translucent fill so the panel underneath shows
+# through, with a thick coloured border that reads as the panel's editable edge.
+func _make_frame_style(border_color: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.15)
+	sb.border_color = border_color
+	sb.set_border_width_all(3)
+	return sb
 
 
 func _on_handle_input(event: InputEvent, id: String) -> void:

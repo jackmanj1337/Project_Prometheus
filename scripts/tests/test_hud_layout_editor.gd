@@ -37,6 +37,30 @@ func _init() -> void:
 	editor.open(hud)
 	_ok(editor.get_child_count() > 0, "open() builds the editor overlay")
 
+	# ---- V020-12: handles use red/yellow outline styleboxes + sample text ----
+	var any_id: String = ""
+	for id in editor._handles:
+		any_id = id
+		break
+	editor._selected_id = any_id
+	editor._refresh_handles()
+	var sel_style: StyleBox = editor._handles[any_id].get_theme_stylebox("panel")
+	_ok(sel_style is StyleBoxFlat and sel_style.border_color == Color(1, 0.95, 0.2, 1),
+		"selected handle uses the yellow outline stylebox (V020-12)")
+	var other_id: String = ""
+	for id in editor._handles:
+		if id != any_id:
+			other_id = id
+			break
+	if other_id != "":
+		var other_style: StyleBox = editor._handles[other_id].get_theme_stylebox("panel")
+		_ok(other_style is StyleBoxFlat and other_style.border_color == Color(1, 0.25, 0.25, 1),
+			"unselected handle uses the bright-red outline stylebox (V020-12)")
+	var sample_lbl: Label = editor._handle_labels.get(any_id)
+	_ok(sample_lbl != null and "Sample" in sample_lbl.text and any_id in sample_lbl.text,
+		"each handle shows editor-only sample text (V020-12)")
+	editor._selected_id = ""  # reset so the persistence checks below are unaffected
+
 	# ---- Done persists the current HUD layout to SettingsManager ----
 	hud.set_panel_layout("unit_info", Vector2(30, -12), 1.25)
 	editor._on_done()

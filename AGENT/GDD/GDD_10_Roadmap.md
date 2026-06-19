@@ -173,9 +173,10 @@ do not treat it as a playtest blocker without verbose leak details.
        Title uses `ClassData.display_name`; a selectable class row lists tier, traits,
        allowed weapon families, and skill unlocks, with `ClassData.description` shown
        in the More Info side panel. Fixed 2026-06-19.
-8. [ ] **V020-12 — Improve HUD layout editor affordances.** Rename scale buttons,
-       use red/yellow outlines, and show sample text in editor overlays, not in live
-       HUD nodes.
+8. [x] **V020-12 — Improve HUD layout editor affordances.** Scale buttons renamed
+       `Scale Panel −/+`, handles now use bright-red (yellow when selected) outline
+       styleboxes instead of `self_modulate`, and each frame shows editor-only sample
+       text whose font scales with the panel. Fixed 2026-06-19.
 9. [ ] **V020-13 — Explain Borderless vs Fullscreen.** User decision 2026-06-19:
        handbook-only for the next playtest; no permanent Settings helper text yet.
 10. [x] **V020-14 — Add a stat-debuff validation item/fixture.** Added `debuff_tonic`
