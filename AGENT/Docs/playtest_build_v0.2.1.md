@@ -1,18 +1,17 @@
 # Playtester Build Manifest - v0.2.1
 
-> **Status:** export pending — the binary fields below are placeholders to be
-> filled when the Windows `.exe` is exported. The release metadata
-> (`export_presets.cfg`, Main Menu `VersionLabel`, `environment_setup.md`) is
-> already at `v0.2.1`; only the artifact + hash remain.
+> **Status:** exported 2026-06-19. Windows debug `.exe` built from commit `6ecbc3b`
+> with Godot `4.6.stable`; the release metadata (`export_presets.cfg`, Main Menu
+> `VersionLabel`, `environment_setup.md`) is at `v0.2.1`.
 
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.1_debug.exe`
-- Source commit: `<FILL AT EXPORT>`
-- Exported: `<FILL AT EXPORT>`
+- Source commit: `6ecbc3b`
+- Exported: `2026-06-19`
 - Godot: `4.6.stable.official.89cea1439`
-- Size: `<FILL AT EXPORT>` bytes
-- SHA-256: `<FILL AT EXPORT>`
+- Size: `101255448` bytes
+- SHA-256: `334bf36f940fcae84f35bad5c01081215a1ece710312cc58011c5faabcf64637`
 
 The artifact is intentionally ignored by Git. v0.2.1 ships as **two files**: the
 executable and the single self-contained handbook
@@ -56,9 +55,17 @@ Editor + validation:
 
 Handbook-only: **V020-13** Borderless vs Fullscreen explanation (in the v0.2.1 handbook).
 
+Code-review follow-ups (review `AGENT/Code Reviews/code_review_2026-06-19.md`), folded into
+this binary:
+
+- Character-sheet **pair-jump** now bound to `next_unit` / `prev_unit` so the
+  "View Support/Lead" button is reachable without the mouse (#2).
+- Boosted/lowered stat colours unified onto one palette (#3); HUD-editor outline
+  styleboxes cached instead of re-allocated per refresh (#4).
+
 ## Verification
 
-- Full source suite: PASS (green at the source commit; pre-commit hook gates it).
-- Export / artifact hash: **pending** — fill the Artifact section after the Windows export.
+- Full source suite: PASS (48 suites green at commit `6ecbc3b`; pre-commit hook gates it).
+- Export: PASS — Windows debug `.exe` built headless, exit 0, SHA-256 recorded above.
 - All visual/input checks remain in `playtest_checklist_v0.2.1.md` and need a human pass
   on real Windows.
