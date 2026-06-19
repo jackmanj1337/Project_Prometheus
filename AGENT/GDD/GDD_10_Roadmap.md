@@ -104,6 +104,116 @@ features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
 
 ---
 
+## Playtest / Bug-Fix Round — v0.2.1 findings (2026-06-19)
+
+Live action list for the returned v0.2.1 pass. Evidence:
+
+- Returned checklist (tester's verbatim return, archived 2026-06-19):
+  `AGENT/Docs/playtest_checklist_v0.2.1_returned_2026-06-19.md`
+- Fix plan: `AGENT/Docs/playtest_v0.2.1_triage_plan_2026-06-19.md` (in progress)
+
+v0.2.1 re-verified the v0.2.0 fixes: **1.1/1.2/1.3/1.5 passed** (camera jitter,
+live map-zoom slider, forecast placement, one-based Seize coords). Items below are the
+new failures, requests, and reopened backlog from this return. Scope/ordering for the
+next build is decided in the triage plan; statuses here are open until scheduled.
+
+**Error-log check:** returned unmarked with no comment — treat as `NOT RUN` pending a
+rerun note, not a defect.
+
+**Confirmed bugs (re-verification failures):**
+
+1. [ ] **V021-01 — F9 hotseat mid-activation desync (re-fail of V020-04 surface).**
+       Manually-moved units stay DONE, but: (a) AI-moved units do not dim until phase
+       end; (b) taking control mid-phase, then handing back, lets the AI re-move every
+       unit regardless of expenditure; (c) toggling control *mid-movement* lands the
+       unit at its destination without spending movement. Tester recommendation: roll
+       game state back to the start of that unit's activation when hotseat toggles.
+       Likely `TurnManager` / `HotseatController` / `EnemyAI` activation-state seam.
+2. [ ] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
+       Info (re-fail of V020-06).** While Edit HUD Layout is open you can `Esc` the
+       Settings modal and still drive the map cursor / open other menus; and the reset
+       reflow still misplaces expanded terrain More Info "when you mess with it enough."
+       Modal-capture + reflow robustness.
+3. [ ] **V021-03 — HUD editor sample text escapes the panel bounds.** Editor sample
+       text should stay inside the panel rect and ideally match the real readout's
+       location/format. `HudLayoutEditor`.
+4. [ ] **V021-04 — Terrain panel resize breaks corner-snap.** Resizing the terrain
+       corner in the HUD editor stops it seating tightly in the corner. Tester ask:
+       clamp/lock the movable block so it can't overlap or run off-screen. `HUD` corner
+       anchoring + editor size bounds.
+5. [ ] **V021-06 — Directional selector axis inversion (re-fail of V020-10 selector).**
+       On the character sheet, Up moves the selection Left and Down moves it Right; it
+       only moves vertically when it can't move further horizontally. Should map Up/Down
+       to vertical traversal directly. `UnitDetailsScreen._input` selector model.
+6. [ ] **V021-07 — Map HUD pair-up line: drop stats, fix clipping (refines V020-09).**
+       Tester ask: remove the per-stat pair-up bonus line from the *map* HUD and raise
+       the default block position so the `Support: <name>` line is not cut off the
+       screen edge. (Stat breakdown still lives on the `I` sheet.) `HUD`.
+7. [ ] **V021-08 — Long menus clip top/bottom at large Menu Scale.** Menus stay centered
+       horizontally but the top and bottom of long menus (e.g. character sheet) get cut
+       off at large scale. Vertical centering/fit, separate from the crispness rework
+       (V021-18). `_apply_menu_scale` / menu-scale targets.
+
+**Clarity / content requests:**
+
+8. [ ] **V021-09 — Pair Up duration wording.** Change `(this combat)` to
+       `(until separated)` for Pair Up effects. `StatBreakdown.format_duration` /
+       contribution labels.
+9. [ ] **V021-10 — Relocate class summary into class More Info.** Move most of the
+       class-row detail (tier, traits, weapon families, skills) out of the inline sheet
+       row and into the class **More Info** side panel; keep the row compact.
+       `UnitDetailsScreen` + `MoreInfoContent`.
+10. [ ] **V021-11 — Movement type: explicit `infantry` tag + precedence hierarchy.**
+        Decision 2026-06-19: keep movement type as a `special_qualities` tag (no new
+        field). Add an explicit default **`infantry`** tag so every class's movement cost
+        is marked, define a precedence hierarchy (`flying > mounted > armoured >
+        light_footed > infantry`) to resolve multi-tag units, and surface the resolved
+        movement type in class More Info. `GridManager` keys off the resolved type;
+        effectiveness stays on `vulnerability_groups`. See triage plan Workstream C.
+11. [ ] **V021-12 — (bonus) Clickable skill info boxes in class More Info.** Class skills
+        listed in More Info should spawn their own description info boxes when
+        clicked/selected, reusing the stat selector model. Depends on V021-06 selector
+        fix. Stretch.
+
+**Reopened deferred issues (tester reopened explicitly):**
+
+12. [ ] **V021-13 — Map Menu backdrop click dismisses the menu.** ("try to implement
+        this soon.") Previously deferred.
+13. [ ] **V021-14 — Weapon names in the combat preview.** Forecast does not yet name the
+        equipped weapons; the sheet already shows full weapon stats. Reopened.
+14. [ ] **V021-15 — Directional More Info selector for forecast + terrain.** Extend the
+        character-sheet selector model to the combat forecast and terrain More Info
+        (currently F-cycle only). Reopened; pairs with V021-05 and V021-06.
+
+**New feature requests / design projects (need design before scheduling):**
+
+15. [ ] **V021-05 — Terrain More Info paging (DESIGN written).** Split the terrain panel's
+        text description and movement-cost table onto separate pages that the More Info key
+        (`F`) flips between, with one page fully hidden to free up viewable map area, and
+        room to add more pages. Full design:
+        `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md`. Couples with V021-07,
+        V021-15, and the mouse-only-mode terrain page button (V021-17).
+16. [ ] **V021-16 — Cancel-over-unit opens the character sheet.** Pressing Cancel
+        (keyboard or mouse) while hovering an *unselected* unit opens its sheet.
+        `MapCursor` cancel handling.
+17. [ ] **V021-17 — Mouse-only / touch cursor mode (DESIGN written).** A mode where the
+        map cursor does not follow mouse hover but jumps to the clicked tile, with a second
+        (non-moving) click selecting. Adds a terrain-panel page button or click-to-switch
+        in this mode. Touchscreen-relevant. Full design:
+        `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md` (re-introduces a third
+        `mouse_cursor` value). Couples with V021-05.
+18. [ ] **V021-18 — Crisp scaling rework (DESIGN).** Menu/HUD elements look soft at
+        non-1× scales because scaling zooms the rendered UI. Investigate resizing fonts
+        and element metrics instead of scaling the canvas. Larger rework; affects Menu
+        Scale and HUD Layout scaling.
+19. [ ] **V021-19 — Native 1440p / 4K + platform safe-areas (PLATFORM).** Add native
+        1440p and 4K resolution options; note Steam Deck and mobile resolutions, and keep
+        rounded corners / notches / hole-punches (safe-area insets) in mind for the
+        polished UI. Ties to OPEN-11 (Steam Deck) and the Renderer & Platform Targets
+        gate above.
+
+---
+
 ## Playtest / Bug-Fix Round — v0.2.0 findings (2026-06-19)
 
 Live action list for the returned v0.2.0 pass. Evidence:
