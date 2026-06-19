@@ -582,7 +582,7 @@ See GDD_01 → SettingsManager.
 │   Auto End Turn      [ On ▾ ]                     │
 │   Camera Edge Buffer [━━●━━━━] 2                  │
 │   Map Zoom           [━━●━━━━] 1.0x               │
-│   UI Scale           [━━●━━━━] 1.0x               │
+│   Menu Scale         [━━●━━━━] 1.0x               │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │
 │   Move Up               W / Up                    │
@@ -793,12 +793,10 @@ The accessibility and parity contract the UI must honor across input methods and
   `level_up_screen` (Show/Auto/Skip) let players reduce animation/wait time.
 - **Always-visible numbers:** all combat-relevant values (Hit/Dmg/Crit, terrain bonuses,
   WEXP, modifiers) are shown before commit (Attack Preview, Unit Details + More Info).
-- **UI scale** (`ui_scale_index` → `SettingsManager.UI_SCALE_LEVELS`, 0.75×–2.0×): a
-  Settings stepped slider scales the whole GUI uniformly via
-  `Window.content_scale_factor` (`_apply_ui_scale()`). Chosen over a font-only `Theme`
-  scalar because it scales fixed-size nodes too (nothing clips) and is
-  resolution-independent across desktop / Steam Deck / web. This is the OPEN-11
-  prerequisite for revisiting Steam Deck 16:10 "expand".
+- **Menu Scale** (`menu_scale_index` → `SettingsManager.MENU_SCALE_LEVELS`, 0.75×–2.0×):
+  a Settings stepped slider scales menu/modal panels through the shared
+  `menu_scale_targets` group. It does not change `Window.content_scale_factor`, so
+  persistent HUD readouts remain governed by HUD Layout.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
@@ -809,8 +807,8 @@ The accessibility and parity contract the UI must honor across input methods and
   info, objective, terrain corner) via an in-map "Edit HUD Layout" mode (drag frames +
   per-panel Scale, Reset/Done/Cancel). Persisted per panel as `{ offset, scale }` in
   `SettingsManager.hud_layout`; applied by `HUD.apply_layout` with an on-screen clamp.
-  Per-panel scale is local, so it composes on top of the global UI scale above. Scope:
-  the persistent readouts only — contextual menus (cursor-anchored) are not movable.
+  Scope: the persistent readouts only — contextual menus (cursor-anchored) are not
+  movable and use Menu Scale instead.
   Terrain More Info expands above the compact terrain panel; layout offsets anchor the
   compact panel so Reset/Edit keep it in place while the expanded box is open.
 

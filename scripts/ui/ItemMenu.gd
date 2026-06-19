@@ -2,6 +2,8 @@ class_name ItemMenu extends Control
 # Item selection menu. Dynamically builds one button per usable inventory item.
 # Emits item_chosen(entry) when the player picks one, or cancelled when dismissed.
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 signal item_chosen(entry: InventoryEntry)
 signal cancelled()
 
@@ -12,7 +14,17 @@ var _focused_idx: int = 0
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
+	_apply_menu_scale_from_settings()
 	hide()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(self, factor, false)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func show_for(unit: Node) -> void:
@@ -50,6 +62,7 @@ func show_for(unit: Node) -> void:
 
 	_focused_idx = 0
 	_buttons[0].grab_focus()
+	_apply_menu_scale_from_settings()
 	show()
 
 

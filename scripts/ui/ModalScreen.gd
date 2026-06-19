@@ -15,6 +15,8 @@ extends Control
 # (e.g. MapCursor's _input_suppressed flag listens for unit_details.closed) —
 # the base intentionally stays out of that mechanism.
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 # Generic close signal — emitted by the default _close(). Subclasses that
 # already publish their own signal (back_pressed, etc.) keep emitting it in
 # addition; nothing's listening to this generic one yet, but it's the contract
@@ -23,7 +25,21 @@ signal closed()
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
+	_apply_menu_scale_from_settings()
 	hide()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(_menu_scale_target(), factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
+
+
+func _menu_scale_target() -> Control:
+	return get_node_or_null("Panel") as Control
 
 
 # Closes on the "cancel" input action. Subclasses can override entirely if they

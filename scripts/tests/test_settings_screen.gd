@@ -34,6 +34,10 @@ func _init() -> void:
 		"Panel/ScrollContainer/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
 		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/SliderCameraBuffer",
 		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/LabelCameraBuffer",
+		"Panel/ScrollContainer/VBox/HBoxMapZoom/SliderMapZoom",
+		"Panel/ScrollContainer/VBox/HBoxMapZoom/LabelMapZoom",
+		"Panel/ScrollContainer/VBox/HBoxUIScale/SliderUIScale",
+		"Panel/ScrollContainer/VBox/HBoxUIScale/LabelUIScale",
 		"Panel/ScrollContainer/VBox/KeybindList",
 		"Panel/ScrollContainer/VBox/BtnBack",
 	]
@@ -45,6 +49,12 @@ func _init() -> void:
 			failed += 1
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
+
+	var menu_scale_title := screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale/LabelUIScaleTitle")
+	if menu_scale_title != null and String(menu_scale_title.get("text")) == "Menu Scale":
+		print("OK  display scale row is labeled Menu Scale"); passed += 1
+	else:
+		print("FAIL Menu Scale label missing or stale"); failed += 1
 
 	# Keybinding list is populated from the InputMap (#8).
 	var list := screen.get_node_or_null("Panel/ScrollContainer/VBox/KeybindList")

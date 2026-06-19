@@ -40,8 +40,8 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 @onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
 @onready var _slider_map_zoom: HSlider         = _vbox.get_node("HBoxMapZoom/SliderMapZoom")
 @onready var _label_map_zoom: Label            = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
-@onready var _slider_ui_scale: HSlider         = _vbox.get_node("HBoxUIScale/SliderUIScale")
-@onready var _label_ui_scale: Label            = _vbox.get_node("HBoxUIScale/LabelUIScale")
+@onready var _slider_menu_scale: HSlider       = _vbox.get_node("HBoxUIScale/SliderUIScale")
+@onready var _label_menu_scale: Label          = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_edit_hud: Button      = _vbox.get_node("BtnEditHudLayout")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
@@ -141,23 +141,23 @@ func _ready() -> void:
 	_slider_map_zoom.min_value = 0
 	_slider_map_zoom.max_value = CameraControllerS.ZOOM_LEVELS.size() - 1
 	_slider_map_zoom.step      = 1
-	# UI-scale slider sized from SettingsManager.UI_SCALE_LEVELS; value IS the index.
+	# Menu-scale slider sized from SettingsManager.MENU_SCALE_LEVELS; value IS the index.
 	var sm_for_range := get_node_or_null("/root/SettingsManager")
 	if sm_for_range != null:
-		_slider_ui_scale.min_value = 0
-		_slider_ui_scale.max_value = sm_for_range.UI_SCALE_LEVELS.size() - 1
-		_slider_ui_scale.step      = 1
+		_slider_menu_scale.min_value = 0
+		_slider_menu_scale.max_value = sm_for_range.MENU_SCALE_LEVELS.size() - 1
+		_slider_menu_scale.step      = 1
 
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
 	_slider_sfx.value_changed.connect(_on_sfx_changed)
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_slider_map_zoom.value_changed.connect(_on_map_zoom_changed)
-	_slider_ui_scale.value_changed.connect(_on_ui_scale_changed)
+	_slider_menu_scale.value_changed.connect(_on_menu_scale_changed)
 	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
-	# hide() is performed by ModalScreen._ready — don't duplicate it.
+	super._ready()
 
 
 func open() -> void:
@@ -175,8 +175,8 @@ func open() -> void:
 	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
 	_slider_map_zoom.value = sm.get("map_zoom_index")
 	_label_map_zoom.text   = _zoom_label(sm.get("map_zoom_index"))
-	_slider_ui_scale.value = sm.get("ui_scale_index")
-	_label_ui_scale.text   = _ui_scale_label(sm, sm.get("ui_scale_index"))
+	_slider_menu_scale.value = sm.get("menu_scale_index")
+	_label_menu_scale.text   = _menu_scale_label(sm, sm.get("menu_scale_index"))
 	# Schema-driven enum settings: select the index of the stored value (B5).
 	for s in _ENUM_SETTINGS:
 		var btn: OptionButton = _vbox.get_node(s["node"])
@@ -302,22 +302,22 @@ func _zoom_label(index: int) -> String:
 	return "%sx" % str(levels[i])
 
 
-# UI-scale slider: value IS the stored index into SettingsManager.UI_SCALE_LEVELS.
-# Applies live via SettingsManager._apply_ui_scale (Window.content_scale_factor).
-func _on_ui_scale_changed(value: float) -> void:
+# Menu-scale slider: value IS the stored index into SettingsManager.MENU_SCALE_LEVELS.
+# Applies live to menu/modal panels; HUD sizing stays under the HUD Layout editor.
+func _on_menu_scale_changed(value: float) -> void:
 	var idx: int = int(value)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm == null:
 		return
-	_label_ui_scale.text = _ui_scale_label(sm, idx)
-	sm.set("ui_scale_index", idx)
-	sm.call("_apply_ui_scale")
+	_label_menu_scale.text = _menu_scale_label(sm, idx)
+	sm.set("menu_scale_index", idx)
+	sm.call("_apply_menu_scale")
 	sm.call("save")
 
 
-# Formats a UI-scale index as a factor label, e.g. 1 -> "1.0x". Defensively clamped.
-func _ui_scale_label(sm: Object, index: int) -> String:
-	var levels: Array = sm.UI_SCALE_LEVELS
+# Formats a menu-scale index as a factor label, e.g. 1 -> "1.0x". Defensively clamped.
+func _menu_scale_label(sm: Object, index: int) -> String:
+	var levels: Array = sm.MENU_SCALE_LEVELS
 	var i: int = clampi(index, 0, levels.size() - 1)
 	return "%sx" % str(levels[i])
 

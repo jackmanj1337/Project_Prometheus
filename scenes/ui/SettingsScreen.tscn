@@ -260,7 +260,7 @@ layout_mode = 2
 [node name="LabelUIScaleTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxUIScale"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "UI Scale"
+text = "Menu Scale"
 
 [node name="SliderUIScale" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxUIScale"]
 layout_mode = 2

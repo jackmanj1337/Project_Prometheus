@@ -200,12 +200,19 @@ func _init() -> void:
 			and stub_menu.position.y >= 0
 			and stub_menu.position.x + stub_menu.size.x <= view.x
 			and stub_menu.position.y + stub_menu.size.y <= view.y)
-	if top_left_ok and bottom_right_ok:
+	stub_menu.scale = Vector2.ONE * 2.0
+	c1._place_menu_near(stub_menu, Vector2i(5, 5))
+	var scaled_size: Vector2 = stub_menu.size * stub_menu.scale
+	var scaled_ok: bool = (stub_menu.position.x >= 0
+			and stub_menu.position.y >= 0
+			and stub_menu.position.x + scaled_size.x <= view.x
+			and stub_menu.position.y + scaled_size.y <= view.y)
+	if top_left_ok and bottom_right_ok and scaled_ok:
 		print("OK  _place_menu_near keeps menu inside viewport (playtest 3 #4)")
 		passed += 1
 	else:
-		print("FAIL _place_menu_near: top_left=%s bottom_right=%s pos=%s view=%s" % [
-			top_left_ok, bottom_right_ok, stub_menu.position, view])
+		print("FAIL _place_menu_near: top_left=%s bottom_right=%s scaled=%s pos=%s view=%s" % [
+			top_left_ok, bottom_right_ok, scaled_ok, stub_menu.position, view])
 		failed += 1
 	stub_menu.queue_free()
 

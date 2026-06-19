@@ -12,8 +12,11 @@ extends Control
 @onready var _retry_btn: Button = $Panel/VBox/RetryButton
 @onready var _quit_btn: Button = $Panel/VBox/QuitButton
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
 	hide()
 	_retry_btn.pressed.connect(_on_retry)
 	_quit_btn.pressed.connect(_on_quit)
@@ -22,6 +25,15 @@ func _ready() -> void:
 		bus.map_victory.connect(_on_victory)
 		bus.map_defeat.connect(_on_defeat)
 		bus.map_resolved.connect(_on_map_resolved)
+	_apply_menu_scale_from_settings()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to($Panel, factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func _on_victory() -> void:

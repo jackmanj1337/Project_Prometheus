@@ -8,6 +8,7 @@ class_name ActionMenu extends Control
 # never disagree about what's available on a given tile.
 
 const TileActions = preload("res://scripts/shared/TileActions.gd")
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
 signal action_chosen(action: String)
 signal hidden_by_cancel()
@@ -28,6 +29,8 @@ var _buttons: Array[Button] = []
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
+	_apply_menu_scale_from_settings()
 	# Seize and Escape are the two map-objective entries; both sit between Equip
 	# and Wait so the always-available Wait stays at the bottom. Pair Up and Swap
 	# sit between Escape and Wait as the Pair Up section (Separate joins them in
@@ -47,6 +50,14 @@ func _ready() -> void:
 	_btn_separate.pressed.connect(func(): hide(); action_chosen.emit("separate"))
 	_btn_wait.pressed.connect(func():    hide(); action_chosen.emit("wait"))
 	hide()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(self, factor, false)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 # Show the menu and configure which buttons are active.
@@ -127,6 +138,7 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	_btn_swap.visible    = can_swap
 	_btn_separate.visible = can_separate
 	_btn_wait.visible    = true
+	_apply_menu_scale_from_settings()
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
 	_focused_idx = 0

@@ -89,7 +89,7 @@ func _ready() -> void:
 	_opt_auto_promote.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_leveling.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_pair_up.item_selected.connect(func(_i: int): _persist_rules())
-	# hide() is performed by ModalScreen._ready.
+	super._ready()
 
 
 func open() -> void:

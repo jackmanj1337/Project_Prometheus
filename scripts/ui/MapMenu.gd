@@ -7,6 +7,8 @@ signal settings_requested()
 signal quit_to_menu_requested()
 signal menu_closed()
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 @onready var _panel: PanelContainer = $Panel
 @onready var _end_turn_btn: Button = $Panel/VBox/EndTurnButton
 @onready var _settings_btn: Button = $Panel/VBox/SettingsButton
@@ -15,16 +17,27 @@ signal menu_closed()
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
 	hide()
 	_end_turn_btn.pressed.connect(_on_end_turn)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_to_menu_btn.pressed.connect(_on_quit_to_menu)
 	_close_btn.pressed.connect(_on_close)
+	_apply_menu_scale_from_settings()
 
 
 func open() -> void:
+	_apply_menu_scale_from_settings()
 	show()
 	_end_turn_btn.grab_focus()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(_panel, factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func _unhandled_input(event: InputEvent) -> void:

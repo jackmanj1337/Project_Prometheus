@@ -156,10 +156,10 @@ do not treat it as a playtest blocker without verbose leak details.
        names if the row remains readable.
 3. [ ] **V020-09 — Show support partner name on the on-map HUD.** Recommendation:
        add a concise `Support: <name>` line beside the existing paired-bonus line.
-4. [ ] **V020-16 — Split menu scale from HUD layout scale.** User decision
+4. [x] **V020-16 — Split menu scale from HUD layout scale.** User decision
        2026-06-19: do this after the bug fixes; `Menu Scale` affects modal/menu UI,
        HUD size/position stays under HUD Layout, and menus must stay centered at each
-       supported scale.
+       supported scale. Fixed 2026-06-19.
 5. [ ] **V020-15 — Add CON and LoS to the character sheet.** User decision
        2026-06-19: add the stats rather than only correcting handbook wording.
        Keep them uncapped (`—`) unless class caps are deliberately authored later.
@@ -402,20 +402,18 @@ otherwise — see the per-item coupling notes for why the order matters.
       `SettingsManager._apply_display()`. Aspect policy stays `keep` (letterbox) — the
       existing `canvas_items` + `keep` stretch letterboxes non-16:9 screens, so no
       `stretch/aspect` change was needed.
-3. [x] **UI scale (accessibility)** — Implemented. A Settings stepped slider scales
-      the whole GUI uniformly via `Window.content_scale_factor`
-      (`SettingsManager.UI_SCALE_LEVELS` 0.75×–2.0×, `_apply_ui_scale()`), chosen over
-      a font-only `Theme` scalar because it scales fixed-size nodes too (nothing
-      clips) and is resolution-independent across desktop / Steam Deck / web. A
-      separate text-only scalar can layer on later (overlaps item 4). See
-      `GDD_07_UI_UX.md` §Accessibility.
+3. [x] **Menu scale (accessibility)** — Implemented. A Settings stepped slider scales
+      menu/modal panels through the `menu_scale_targets` group
+      (`SettingsManager.MENU_SCALE_LEVELS` 0.75×–2.0×, `_apply_menu_scale()`).
+      `Window.content_scale_factor` stays at `1.0` so HUD readout size/position stays
+      under HUD Layout. Centered modal/menu panels are covered by `test_menu_scale.gd`.
 4. [x] **UI layout scale & movement** — Implemented (HUD readouts). The player
       repositions + scales the five persistent HUD panels via an in-map "Edit HUD
       Layout" mode (`HudLayoutEditor`), persisted per panel as `{ offset, scale }` in
-      `SettingsManager.hud_layout` and applied by `HUD.apply_layout` (on-screen clamp;
-      per-panel scale composes on top of item 3's global scale). Scope is the
-      persistent readouts only — the cursor-anchored contextual menus are not movable
-      (a later extension if wanted). See `GDD_07_UI_UX.md` §Accessibility. Tests:
+      `SettingsManager.hud_layout` and applied by `HUD.apply_layout` (on-screen clamp).
+      Scope is the persistent readouts only — cursor-anchored contextual menus use
+      Menu Scale and are not movable (a later extension if wanted). See
+      `GDD_07_UI_UX.md` §Accessibility. Tests:
       `test_hud_layout` (12) + `test_hud_layout_editor` (6); drag UX is playtest-verified.
 
 ---

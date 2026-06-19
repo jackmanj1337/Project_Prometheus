@@ -4,6 +4,7 @@ class_name LevelUpScreen extends Control
 
 # Renders the live confirm keybinding for the "press X to continue" prompt (#13).
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
 @onready var _label_name:   Label = $Panel/VBox/LabelName
 @onready var _label_level:  Label = $Panel/VBox/LabelLevel
@@ -25,10 +26,20 @@ var _queue: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_leveled_up.connect(_on_unit_leveled_up)
+	_apply_menu_scale_from_settings()
 	hide()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(_panel, factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array) -> void:
@@ -78,6 +89,7 @@ func _show_next() -> void:
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
 	_resize_panel_for_stats(_label_stats.text)
+	_apply_menu_scale_from_settings()
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"

@@ -121,15 +121,15 @@ func _init() -> void:
 
 	# ---- display section: defaults + reset (Display/Access items 2-3) ----
 	var disp_default_ok: bool = (sm.window_mode == "windowed"
-		and sm.resolution == "1280x720" and sm.ui_scale_index == 1)
+		and sm.resolution == "1280x720" and sm.menu_scale_index == 1)
 	sm.window_mode = "fullscreen"
 	sm.resolution = "1920x1080"
-	sm.ui_scale_index = 4
+	sm.menu_scale_index = 4
 	sm.reset_section_to_defaults("display")
 	var disp_reset_ok: bool = (sm.window_mode == "windowed"
-		and sm.resolution == "1280x720" and sm.ui_scale_index == 1)
+		and sm.resolution == "1280x720" and sm.menu_scale_index == 1)
 	if disp_default_ok and disp_reset_ok:
-		print("OK  display section defaults and resets (window/resolution/ui_scale)")
+		print("OK  display section defaults and resets (window/resolution/menu_scale)")
 		passed += 1
 	else:
 		print("FAIL display section: defaults=%s reset=%s" % [disp_default_ok, disp_reset_ok])

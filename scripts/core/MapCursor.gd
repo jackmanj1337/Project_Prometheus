@@ -582,6 +582,8 @@ func _place_menu_near(menu: Node, tile: Vector2i) -> void:
 	var menu_size: Vector2 = menu.size
 	if menu_size.x <= 0 or menu_size.y <= 0:
 		menu_size = menu.get_combined_minimum_size()
+	if menu is Control:
+		menu_size *= (menu as Control).scale
 	var pos := screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
 	# Flip to the unit's left if the menu would run off the right edge.
 	if pos.x + menu_size.x > view.x:

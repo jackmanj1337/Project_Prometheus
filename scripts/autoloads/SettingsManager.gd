@@ -45,16 +45,14 @@ var window_mode: String = "windowed"
 # any non-16:9 screen so absolute-offset scene nodes never push off-screen.
 var resolution: String = "1280x720"
 const RESOLUTION_CHOICES: Array[String] = ["1280x720", "1600x900", "1920x1080"]
-# Overall UI scale (item 3), an index into UI_SCALE_LEVELS. Default 1 == 1.0×.
-# Applied via Window.content_scale_factor so the whole GUI scales uniformly
-# (fixed-size nodes included), which is resolution-independent across desktop /
-# Steam Deck / web — the reason it is preferred over a font-only theme scalar.
-var ui_scale_index: int = 1
-const UI_SCALE_LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+# Menu/modal scale (item 3 split), an index into MENU_SCALE_LEVELS. Default 1 == 1.0×.
+# Applied only to menu/modal panels through the "menu_scale_targets" group so HUD
+# readouts stay controlled by the HUD Layout editor instead of a global window scale.
+var menu_scale_index: int = 1
+const MENU_SCALE_LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 # Per-panel HUD layout (item 4), keyed by stable panel id -> { "offset": Vector2,
 # "scale": float }. A missing entry = that panel's authored layout. Edited via the
-# in-map "Edit HUD Layout" mode and applied by HUD.apply_layout; composes on top of
-# the global ui_scale above (content_scale_factor) since per-panel scale is local.
+# in-map "Edit HUD Layout" mode and applied by HUD.apply_layout.
 var hud_layout: Dictionary = {}
 
 # --- Controls ---
@@ -73,7 +71,7 @@ func _ready() -> void:
 	load_settings()
 	_apply_audio()
 	_apply_display()
-	_apply_ui_scale()
+	_apply_menu_scale()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 
@@ -115,10 +113,12 @@ func load_settings() -> void:
 
 	window_mode = cfg.get_value("display", "window_mode", window_mode)
 	resolution  = cfg.get_value("display", "resolution",  resolution)
-	# Clamp on load so a stale/corrupt index never indexes past UI_SCALE_LEVELS.
-	ui_scale_index = clampi(
-		cfg.get_value("display", "ui_scale_index", ui_scale_index),
-		0, UI_SCALE_LEVELS.size() - 1)
+	# Clamp on load so a stale/corrupt index never indexes past MENU_SCALE_LEVELS.
+	# Migration: old builds stored this as ui_scale_index when it scaled the whole GUI.
+	menu_scale_index = clampi(
+		cfg.get_value("display", "menu_scale_index",
+			cfg.get_value("display", "ui_scale_index", menu_scale_index)),
+		0, MENU_SCALE_LEVELS.size() - 1)
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
 	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
 	hud_layout = cfg.get_value("display", "hud_layout", {})
@@ -146,7 +146,7 @@ func save() -> void:
 
 	cfg.set_value("display", "window_mode",    window_mode)
 	cfg.set_value("display", "resolution",     resolution)
-	cfg.set_value("display", "ui_scale_index", ui_scale_index)
+	cfg.set_value("display", "menu_scale_index", menu_scale_index)
 	cfg.set_value("display", "hud_layout",     hud_layout)
 
 	cfg.set_value("controls", "keybindings", keybindings)
@@ -176,10 +176,10 @@ func reset_section_to_defaults(section: String) -> void:
 		"display":
 			window_mode    = "windowed"
 			resolution     = "1280x720"
-			ui_scale_index = 1
+			menu_scale_index = 1
 			hud_layout     = {}
 			_apply_display()
-			_apply_ui_scale()
+			_apply_menu_scale()
 		"controls":
 			keybindings = {}
 			_apply_keybindings()
@@ -240,16 +240,18 @@ func _parse_resolution(res: String) -> Vector2i:
 	return Vector2i(int(parts[0]), int(parts[1]))
 
 
-# Scales the entire GUI uniformly via the root Window's content_scale_factor (item 3).
-# Resolution-independent on top of the project's canvas_items + keep stretch, so it
-# behaves consistently across desktop / Steam Deck / web — and unlike a font-only
-# scalar it scales fixed-size nodes too, so nothing clips. No-op if the window isn't
-# available yet (e.g. a direct test caller that bypasses _ready()).
-func _apply_ui_scale() -> void:
+func get_menu_scale() -> float:
+	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
+
+
+# Scales menu/modal panels only. The root Window scale is reset to 1.0 so the HUD
+# stays at authored size unless the HUD Layout editor changes a specific panel.
+func _apply_menu_scale() -> void:
 	var win := get_window()
 	if win != null:
-		win.content_scale_factor = UI_SCALE_LEVELS[
-			clampi(ui_scale_index, 0, UI_SCALE_LEVELS.size() - 1)]
+		win.content_scale_factor = 1.0
+	if is_inside_tree():
+		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_menu_scale())
 
 
 func _apply_keybindings() -> void:

@@ -9,14 +9,26 @@ extends Control
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _settings_screen: Control = $SettingsScreen
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
 	_new_game_btn.pressed.connect(_on_new_game)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
+	_apply_menu_scale_from_settings()
 	_new_game_btn.grab_focus()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to($Panel, factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func _on_new_game() -> void:
