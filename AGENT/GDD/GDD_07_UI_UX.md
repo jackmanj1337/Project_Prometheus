@@ -390,9 +390,10 @@ There is **no target-list panel**. Target selection happens on the map itself:
 
 **Size:** Content-sized three-column layout, clamped/repositioned to the viewport
 **Placement:** Anchored beside the defender (right, else left), kept inside the viewport,
-and nudged clear of the visible HUD panels (objective / unit-info / terrain corners) so
-it does not cover them (`AttackPreview._place_clear_of`). Avoidance is best-effort: a
-panel too tall to clear a HUD rect is left clamped on-screen rather than pushed off.
+and nudged clear of the visible HUD panels (objective / unit-info / terrain corners)
+and the defender tile so it does not cover them (`AttackPreview._place_clear_of`).
+Avoidance is best-effort: a panel too tall to clear an avoid rect is left clamped
+on-screen rather than pushed off.
 **Font size:** 18px
 
 ---
@@ -578,6 +579,8 @@ See GDD_01 → SettingsManager.
 │   Mouse Cursor       [ Enabled ▾ ]                │
 │   Auto End Turn      [ On ▾ ]                     │
 │   Camera Edge Buffer [━━●━━━━] 2                  │
+│   Map Zoom           [━━●━━━━] 1.0x               │
+│   UI Scale           [━━●━━━━] 1.0x               │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │
 │   Move Up               W / Up                    │
@@ -796,8 +799,9 @@ The accessibility and parity contract the UI must honor across input methods and
   prerequisite for revisiting Steam Deck 16:10 "expand".
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
-- **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): see `GDD_01_Architecture.md`
-  §Camera Zoom.
+- **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
+  immediately when a map is active and persists through `SettingsManager`; see
+  `GDD_01_Architecture.md` §Camera Zoom.
 - **Per-panel HUD layout** (`hud_layout`, Display & Accessibility item 4): the player
   repositions and scales the five persistent HUD readouts (phase/turn labels, unit
   info, objective, terrain corner) via an in-map "Edit HUD Layout" mode (drag frames +

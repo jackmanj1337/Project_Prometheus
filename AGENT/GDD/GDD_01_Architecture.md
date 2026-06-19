@@ -1404,6 +1404,9 @@ restarts.
 - Zoom re-frames on the cursor's tile, not the screen centre.
 - Camera clamping applies at every level (no blank space past the map). When a low
   zoom makes the whole map smaller than the viewport on an axis, that axis is centred.
+- At high zoom, the effective edge-scroll buffer is capped by the visible tile span
+  so the cursor still has a stable middle zone. Pressing zoom in/out past the
+  configured min/max is a no-op and does not reframe the camera.
 - The level is stored as `SettingsManager.map_zoom_index` (an index into
   `ZOOM_LEVELS`) and exposed as a stepped slider in the Settings screen.
 
@@ -1422,7 +1425,9 @@ at all levels. The public API is `set_zoom_index` / `step_zoom` / `reset_zoom`
 (re-frame on a focus tile) and `set_zoom_index_silent` (level-only, used at map load
 before the initial centre). `MapCursor._unhandled_input` maps the input actions onto
 `step_zoom` / `reset_zoom` and persists the result; `GameMap` applies the saved level
-on map load.
+on map load. When Settings is opened on an active map, `SettingsScreen` finds the
+live cursor through the `map_cursor` group and calls `MapCursor.apply_zoom_index()`
+so slider changes apply immediately and still persist through `SettingsManager`.
 
 ---
 

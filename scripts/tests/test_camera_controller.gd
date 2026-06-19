@@ -136,14 +136,24 @@ func _init() -> void:
 	_ok(is_equal_approx(cam.zoom.x, 1.5), "step_zoom(+1) moves to the next level (1.5x)")
 	# Clamp at the bottom: stepping out from index 0 stays at 0 (0.25x).
 	cc.set_zoom_index(0, Vector2i(5, 5))
+	var min_pos_before: Vector2 = cam.position
 	cc.step_zoom(-1, Vector2i(5, 5))
 	_ok(cc.get_zoom_index() == 0 and is_equal_approx(cam.zoom.x, 0.25),
 		"step_zoom clamps at the zoomed-out end")
+	_ok(cam.position == min_pos_before,
+		"step_zoom below min is a no-op and does not reframe")
 	# Clamp at the top: stepping in from the last index stays there (4x).
 	cc.set_zoom_index(cc.get_zoom_count() - 1, Vector2i(5, 5))
+	var max_pos_before: Vector2 = cam.position
 	cc.step_zoom(1, Vector2i(5, 5))
 	_ok(cc.get_zoom_index() == cc.get_zoom_count() - 1 and is_equal_approx(cam.zoom.x, 4.0),
 		"step_zoom clamps at the zoomed-in end")
+	_ok(cam.position == max_pos_before,
+		"step_zoom above max is a no-op and does not reframe")
+	_ok(cc._effective_edge_buffer(2, 5) == 2
+		and cc._effective_edge_buffer(2, 4) == 1
+		and cc._effective_edge_buffer(2, 2) == 0,
+		"effective edge buffer shrinks when the visible tile span is tiny")
 	# reset_zoom returns to the default level.
 	cc.reset_zoom(Vector2i(5, 5))
 	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX, "reset_zoom returns to 1.0x")

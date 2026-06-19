@@ -99,21 +99,34 @@ func keep_cursor_in_view(cursor_tile: Vector2i, edge_buffer: int) -> void:
 	var view: Vector2 = _visible_world_size()
 	var tiles_w: int = int(view.x / GameConstants.TILE_SIZE)
 	var tiles_h: int = int(view.y / GameConstants.TILE_SIZE)
+	var edge_x: int = _effective_edge_buffer(edge_buffer, tiles_w)
+	var edge_y: int = _effective_edge_buffer(edge_buffer, tiles_h)
 	# Camera2D.position is the view CENTRE (anchor_mode = DRAG_CENTER). Convert to
 	# the top-left tile so the edge-margin checks are correct — treating centre
 	# as top-left is the historical bug that let the cursor scroll off (playtest 1 #2).
 	var tl: Vector2i = _grid.world_to_tile(_camera.position - view * 0.5)
-	if cursor_tile.x < tl.x + edge_buffer:
-		tl.x = cursor_tile.x - edge_buffer
-	elif cursor_tile.x > tl.x + tiles_w - edge_buffer - 1:
-		tl.x = cursor_tile.x - tiles_w + edge_buffer + 1
-	if cursor_tile.y < tl.y + edge_buffer:
-		tl.y = cursor_tile.y - edge_buffer
-	elif cursor_tile.y > tl.y + tiles_h - edge_buffer - 1:
-		tl.y = cursor_tile.y - tiles_h + edge_buffer + 1
+	if cursor_tile.x < tl.x + edge_x:
+		tl.x = cursor_tile.x - edge_x
+	elif cursor_tile.x > tl.x + tiles_w - edge_x - 1:
+		tl.x = cursor_tile.x - tiles_w + edge_x + 1
+	if cursor_tile.y < tl.y + edge_y:
+		tl.y = cursor_tile.y - edge_y
+	elif cursor_tile.y > tl.y + tiles_h - edge_y - 1:
+		tl.y = cursor_tile.y - tiles_h + edge_y + 1
 	tl.x = clamp(tl.x, 0, max(0, _grid.map_width - tiles_w))
 	tl.y = clamp(tl.y, 0, max(0, _grid.map_height - tiles_h))
 	_camera.position = _grid.tile_to_world(tl) + view * 0.5
+
+
+func _effective_edge_buffer(edge_buffer: int, visible_tiles: int) -> int:
+	# At high zoom the visible span can be only a few tiles. A full 2-tile buffer
+	# leaves no stable middle zone, so ordinary one-tile cursor movement can make
+	# the camera jump back and forth. Cap the buffer to what the current span can
+	# actually support.
+	if visible_tiles <= 1:
+		return 0
+	var max_buffer: int = int((visible_tiles - 1) / 2)
+	return clampi(edge_buffer, 0, max_buffer)
 
 
 # Clamps a tile to the camera's currently visible tile rect. Used by the
@@ -249,7 +262,10 @@ func set_zoom_index(index: int, focus_tile: Vector2i,
 # Steps one level toward zoom-in (+1) or zoom-out (-1); clamps at the array ends.
 func step_zoom(direction: int, focus_tile: Vector2i,
 		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
-	return set_zoom_index(_zoom_index + direction, focus_tile, edge_buffer)
+	var target: int = clampi(_zoom_index + direction, 0, ZOOM_LEVELS.size() - 1)
+	if target == _zoom_index:
+		return _zoom_index
+	return set_zoom_index(target, focus_tile, edge_buffer)
 
 
 # Returns to the default 1× level, re-framed on `focus_tile`.

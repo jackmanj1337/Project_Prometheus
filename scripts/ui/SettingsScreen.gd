@@ -279,10 +279,14 @@ func _on_camera_buffer_changed(value: float) -> void:
 
 
 # The Map Zoom slider value IS the stored index into CameraController.ZOOM_LEVELS;
-# the label shows the human-readable factor (e.g. "1.5x"). The new level takes
-# effect on the next map load (and immediately if a map is active and re-reads it).
+# the label shows the human-readable factor (e.g. "1.5x"). When a map is active,
+# the live MapCursor applies the level immediately and re-frames on the cursor.
 func _on_map_zoom_changed(value: float) -> void:
-	var idx: int = int(value)
+	var idx: int = clampi(int(value), 0, CameraControllerS.ZOOM_LEVELS.size() - 1)
+	var cursor := get_tree().get_first_node_in_group("map_cursor")
+	if cursor != null and cursor.has_method("apply_zoom_index"):
+		idx = int(cursor.call("apply_zoom_index", idx))
+		_slider_map_zoom.set_value_no_signal(idx)
 	_label_map_zoom.text = _zoom_label(idx)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm:

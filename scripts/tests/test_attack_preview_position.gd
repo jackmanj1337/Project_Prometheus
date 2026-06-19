@@ -134,5 +134,16 @@ func _init() -> void:
 	else:
 		print("FAIL clamp: %s" % p_clamp); failed += 1
 
+	# 5) Defender tile avoidance uses the same helper path as HUD avoidance, so a
+	# forecast that starts over the defender slides clear instead of hiding the unit.
+	var defender_rect := AttackPreviewS._defender_avoid_rect(Vector2(640, 320), 64.0)
+	var p_defender: Vector2 = AttackPreviewS._place_clear_of(Vector2(620, 300),
+		psize, vw, [defender_rect] as Array[Rect2], m)
+	if not Rect2(p_defender, psize).intersects(defender_rect):
+		print("OK  _place_clear_of: pushes the panel clear of the defender tile"); passed += 1
+	else:
+		print("FAIL defender-avoid: %s still intersects %s" % [p_defender, defender_rect])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

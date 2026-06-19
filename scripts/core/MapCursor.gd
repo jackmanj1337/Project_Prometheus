@@ -78,6 +78,7 @@ var _awaiting_end_turn_confirm: bool = false
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
 
 func _ready() -> void:
+	add_to_group("map_cursor")
 	# The @export NodePaths to the HUDLayer menus resolve to null at scene-build
 	# time — the menus are declared after MapCursor in GameMap.tscn, so they don't
 	# exist yet when the exports are applied. _ready() runs after the whole tree is
@@ -1158,6 +1159,14 @@ func _camera_edge_buffer() -> int:
 	if sm != null:
 		return clampi(sm.camera_edge_buffer, 0, 5)
 	return CAMERA_EDGE_BUFFER
+
+
+# Applies an absolute map-zoom index from UI code outside the cursor input flow.
+# Re-frames on the live cursor tile and returns the clamped index actually used.
+func apply_zoom_index(index: int) -> int:
+	if _camera_ctrl == null:
+		return index
+	return _camera_ctrl.set_zoom_index(index, current_tile, _camera_edge_buffer())
 
 
 # Steps the map zoom one level (direction +1 in / -1 out), re-framing on the

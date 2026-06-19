@@ -432,11 +432,12 @@ func _reposition_for(defender: Node) -> void:
 	var panel_top: float = defender_screen.y + tile_px * 0.5 - panel_size.y * 0.5
 	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
 
-	# Nudge the panel clear of the HUD panels it would otherwise cover (the unit-info,
-	# objective, and terrain corners — playtest v0.1.4 #2.4) before committing the
-	# position. Degrades to the plain viewport clamp when the HUD isn't reachable.
+	# Nudge the panel clear of the HUD panels and the defender tile before committing
+	# the position. Degrades to the plain viewport clamp when the HUD isn't reachable.
+	var avoid: Array[Rect2] = _hud_avoid_rects()
+	avoid.append(_defender_avoid_rect(defender_screen, tile_px))
 	var placed: Vector2 = _place_clear_of(Vector2(panel_left, panel_top), panel_size,
-		view, _hud_avoid_rects(), float(PANEL_MARGIN_PX))
+		view, avoid, float(PANEL_MARGIN_PX))
 
 	_panel.position = placed
 	_panel.offset_right = _panel.offset_left + panel_size.x
@@ -459,6 +460,10 @@ func _hud_avoid_rects() -> Array[Rect2]:
 			if r.size.x > 0.0 and r.size.y > 0.0:
 				out.append(r)
 	return out
+
+
+static func _defender_avoid_rect(defender_screen: Vector2, tile_px: float) -> Rect2:
+	return Rect2(defender_screen, Vector2(tile_px, tile_px))
 
 
 # Pure placement helper (no node access, so it is unit-testable): start from `pos`

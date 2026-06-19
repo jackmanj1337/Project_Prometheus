@@ -121,19 +121,19 @@ do not treat it as a playtest blocker without verbose leak details.
 
 **Fix before the next playtest build:**
 
-1. [ ] **V020-01 — High-zoom camera jitter and over-max zoom reframe.** At `3x` /
+1. [x] **V020-01 — High-zoom camera jitter and over-max zoom reframe.** At `3x` /
        `4x`, camera panning jumps during left/right/down movement, and pressing zoom
        in past `4x` can reframe despite no zoom-level change. Plan: shrink the
        effective edge buffer for tiny visible spans and make already-clamped zoom
-       steps no-op.
-2. [ ] **V020-02 — Settings Map Zoom slider does not apply live.** The label and
+       steps no-op. Fixed 2026-06-19.
+2. [x] **V020-02 — Settings Map Zoom slider does not apply live.** The label and
        saved `map_zoom_index` update, but the active map camera does not change.
        Plan: route Settings changes through the live map/cursor camera-controller
-       path, preserving persistence.
-3. [ ] **V020-03 — Combat forecast overlaps defender under zoom.** The forecast can
+       path, preserving persistence. Fixed 2026-06-19.
+3. [x] **V020-03 — Combat forecast overlaps defender under zoom.** The forecast can
        land over the defender at several zoom levels/positions. Plan: treat the
        defender's screen rect as an avoid rect and fall back to above/below placement
-       when side placement plus camera pan cannot avoid overlap.
+       when side placement plus camera pan cannot avoid overlap. Fixed 2026-06-19.
 4. [ ] **V020-04 — F9 repeated hotseat toggling refreshes spent units.** Same-faction
        controller reruns re-enter `_refresh_faction_units()` / `_begin_phase()`, so
        DONE units can become READY again. Plan: skip phase-start refresh/ticks on F9
@@ -390,10 +390,11 @@ otherwise — see the per-item coupling notes for why the order matters.
       `+`/`-`/`0`) over eight levels 0.25×–4× (see `GDD_01_Architecture.md` §Camera
       Zoom). The zoom-aware view math is centralized in `CameraController`
       (`_visible_world_size()`); `MapCursor` drives the input and persists the level
-      as `SettingsManager.map_zoom_index`; `GameMap` applies it on map load. The one
-      known zoom-naive spot (`AttackPreview._reposition_for`, which offset by a raw
-      tile instead of the on-screen `TILE_SIZE × zoom`) is fixed. Tests in
-      `test_camera_controller.gd` (zoom-1 parity + 0.5×/2× framing/pan).
+      as `SettingsManager.map_zoom_index`; the Settings slider applies through the
+      live cursor when a map is active; `GameMap` applies it on map load. The known
+      zoom-naive forecast spots are fixed: screen-space tile offsets use
+      `TILE_SIZE × zoom`, and the defender tile is an avoid rect. Tests in
+      `test_camera_controller.gd` and `test_attack_preview_position.gd`.
 2. [x] **Display resolution options** — Implemented. Window-mode dropdown
       (Windowed / Borderless / Fullscreen) + a windowed-resolution picker
       (1280×720 / 1600×900 / 1920×1080) in Settings, persisted to `settings.cfg`
