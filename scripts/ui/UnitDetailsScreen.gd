@@ -99,11 +99,15 @@ func _format_stats(unit: Node) -> String:
 	# Two stats per row to keep the compact summary the player is used to.
 	# Each side of each row registers its own entry so F-cycling visits them
 	# all in the same left-to-right, top-to-bottom order they're read.
+	# Core combat stats first (unchanged scan order), then a final utility row for
+	# the uncapped support stats (V020-15: CON/LoS were handbook-expected but the
+	# sheet only showed Movement before).
 	var pairs: Array = [
 		["strength", "magic"],
 		["skill",    "speed"],
 		["defense",  "resistance"],
 		["luck",     "movement"],
+		["constitution", "line_of_sight"],
 	]
 	for pair in pairs:
 		var left_link  := _stat_link(unit, pair[0])

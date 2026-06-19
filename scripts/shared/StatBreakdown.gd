@@ -37,6 +37,8 @@ const STAT_LABELS: Dictionary = {
 	"resistance": "Res",
 	"luck":       "Lck",
 	"movement":   "Mov",
+	"constitution":  "Con",
+	"line_of_sight": "LoS",
 }
 
 # Friendly source labels for known modifier sources. Unknown sources fall back

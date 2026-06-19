@@ -441,7 +441,9 @@ turn. There is no separate staff-preview panel in MVP.
 This is the live character-sheet overlay. It shows:
 
 - unit name, class, level, internal level (labelled `Internal Lv`, not `Int`), and EXP
-- full core stat block using the effective display totals
+- full core stat block using the effective display totals, with a final utility-stat
+  row for **Constitution (`Con`)** and **Line of Sight (`LoS`)** — both intentionally
+  uncapped, so their breakdown shows class cap "—" (V020-15)
 - inventory with remaining uses
 - equipped skills
 - weapon ranks / WEXP progress

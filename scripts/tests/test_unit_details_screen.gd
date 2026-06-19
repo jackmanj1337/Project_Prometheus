@@ -111,6 +111,9 @@ func is_weapon_track_available(track: String) -> bool:
 		"[url=stat:strength]Str  [color=#61c454]11 [/color][/url]" in stats_text
 		and "[url=stat:movement]Mov  [color=#61c454]7  [/color][/url]" in stats_text
 		and "[url=stat:hp]HP" in stats_text
+		# V020-15: CON and LoS appear on the sheet as selectable utility-stat rows.
+		and "[url=stat:constitution]Con" in stats_text
+		and "[url=stat:line_of_sight]LoS" in stats_text
 	)
 	if stats_ok:
 		print("OK  stats panel renders selectable [url=...] rows with coloured current values")

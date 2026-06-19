@@ -161,9 +161,9 @@ do not treat it as a playtest blocker without verbose leak details.
        2026-06-19: do this after the bug fixes; `Menu Scale` affects modal/menu UI,
        HUD size/position stays under HUD Layout, and menus must stay centered at each
        supported scale. Fixed 2026-06-19.
-5. [ ] **V020-15 — Add CON and LoS to the character sheet.** User decision
-       2026-06-19: add the stats rather than only correcting handbook wording.
-       Keep them uncapped (`—`) unless class caps are deliberately authored later.
+5. [x] **V020-15 — Add CON and LoS to the character sheet.** Added a utility-stat
+       row (`Con` / `LoS`) with selectable More Info descriptions; both stay uncapped
+       (class cap shows "—"). Fixed 2026-06-19.
 6. [ ] **V020-10 — Add weapon stats to More Info and the full directional selector.**
        User decision 2026-06-19: this is before-next-playtest work, not just a
        long-term backlog item. Character-sheet selector first; reuse for forecast /

@@ -30,6 +30,8 @@ const STATS: Dictionary = {
 	"resistance": "Reduces magical damage taken (tomes and breath). Has no effect against physical attacks.",
 	"luck":       "Boosts hit, avoid, and crit avoid; also reduces incoming crit.",
 	"movement":   "Number of tiles the unit can move per turn before terrain costs.",
+	"constitution":  "Body/build stat. Affects rescue and Pair Up eligibility and reduces a weapon's weight penalty alongside Strength. Intentionally uncapped by class.",
+	"line_of_sight": "How many tiles the unit can see, used for fog-of-war vision once that system is active. Intentionally uncapped by class.",
 	"hp":         "Current and maximum hit points. Reaching 0 HP defeats the unit.",
 }
 
