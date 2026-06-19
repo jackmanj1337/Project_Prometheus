@@ -467,7 +467,12 @@ Ratified 2026-06-13 (June decision record):
 - **Steam Deck:** letterbox (keep 16:9) at first verification; revisit "expand" once
   UI-scale setting exists (OPEN-11).
 - **Web:** playtest channel.
-- **Gamepad:** with the key-rebind milestone.
+- **Gamepad:** with the key-rebind milestone. Known gap (noted 2026-06-19): the input
+  actions are keyboard/mouse-only — no `InputEventJoypad*` events are bound yet. So
+  features built action-first are controller-*ready* but not controller-*reachable* until
+  this lands. Example: the v0.2.1 unit-sheet pair-jump is bound to `next_unit` / `prev_unit`
+  (`UnitDetailsScreen._input`), which a gamepad can't trigger until those actions get
+  joypad bindings. Audit all actions for joypad events as part of this milestone.
 - **Mobile:** deferred.
 
 Cross-referenced in GDD_00 §Tech Stack; GDD_07 §Accessibility & Input Parity.
