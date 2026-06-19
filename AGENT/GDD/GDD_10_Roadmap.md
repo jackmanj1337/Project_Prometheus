@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-16
+**Last verified:** 2026-06-19
 
 ---
 
@@ -101,6 +101,93 @@ facings/tints, paired-partner button focus/order on the `I` sheet, New Game reop
 selection after Back, and the F9 on/off handoff during a live enemy phase. These ship
 in the **v0.2.0** combined playtest build alongside the Display & Accessibility
 features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
+
+---
+
+## Playtest / Bug-Fix Round — v0.2.0 findings (2026-06-19)
+
+Live action list for the returned v0.2.0 pass. Evidence:
+
+- Returned package: `AGENT/v0.2.0 playtest results/`
+- Completed checklist:
+  `AGENT/v0.2.0 playtest results/playtest_checklist_v0.2.0.md`
+- Tester log: `AGENT/v0.2.0 playtest results/godot.log`
+- Fix plan: `AGENT/Docs/playtest_v0.2.0_triage_plan_2026-06-19.md`
+
+The v0.2.0 log has no `DataManager`, `ERROR`, or `SCRIPT ERROR` lines. It only
+contains expected pre-M9 skill-stub warnings (`armsthrift`, `dash`, `disarm`) plus
+a generic `ObjectDB instances leaked at exit` warning; monitor the leak warning but
+do not treat it as a playtest blocker without verbose leak details.
+
+**Fix before the next playtest build:**
+
+1. [ ] **V020-01 — High-zoom camera jitter and over-max zoom reframe.** At `3x` /
+       `4x`, camera panning jumps during left/right/down movement, and pressing zoom
+       in past `4x` can reframe despite no zoom-level change. Plan: shrink the
+       effective edge buffer for tiny visible spans and make already-clamped zoom
+       steps no-op.
+2. [ ] **V020-02 — Settings Map Zoom slider does not apply live.** The label and
+       saved `map_zoom_index` update, but the active map camera does not change.
+       Plan: route Settings changes through the live map/cursor camera-controller
+       path, preserving persistence.
+3. [ ] **V020-03 — Combat forecast overlaps defender under zoom.** The forecast can
+       land over the defender at several zoom levels/positions. Plan: treat the
+       defender's screen rect as an avoid rect and fall back to above/below placement
+       when side placement plus camera pan cannot avoid overlap.
+4. [ ] **V020-04 — F9 repeated hotseat toggling refreshes spent units.** Same-faction
+       controller reruns re-enter `_refresh_faction_units()` / `_begin_phase()`, so
+       DONE units can become READY again. Plan: skip phase-start refresh/ticks on F9
+       same-faction reruns while retaining transient UI cleanup.
+5. [ ] **V020-05 — Seize objective text uses zero-based tile coordinates.** Map 002
+       authors `Vector2i(15, 2)` internally, but the objective HUD should display the
+       player-facing `(16, 3)`. Plan: render objective coordinates one-based without
+       changing evaluator data.
+6. [ ] **V020-06 — HUD reset misplaces Terrain More Info when expanded.** Resetting
+       HUD layout while terrain More Info is open can align the details box to the
+       compact panel's old top. Plan: reflow expanded terrain details after layout
+       apply/reset.
+
+**Small clarity / UX polish from the same return:**
+
+1. [ ] **V020-07 — Rename or explain `Int` on the character sheet.** Recommendation:
+       use `Internal Lv` and later add a More Info entry if needed.
+2. [ ] **V020-08 — Replace Pair Up bonus duration marker `(-)`.** Recommendation:
+       fix combat-duration formatting to show `this combat` first; only add support
+       names if the row remains readable.
+3. [ ] **V020-09 — Show support partner name on the on-map HUD.** Recommendation:
+       add a concise `Support: <name>` line beside the existing paired-bonus line.
+4. [ ] **V020-10 — Add weapon stats to More Info and improve directional selection.**
+       Recommendation: add weapon stats first; fold d-pad selector work into the
+       broader More Info inspection-mode backlog.
+5. [ ] **V020-11 — Add class summary / class features to the character sheet.**
+       Recommendation: use `ClassData.display_name`, `description`, weapon families,
+       special qualities, and class skill unlocks in a compact section.
+6. [ ] **V020-12 — Improve HUD layout editor affordances.** Rename scale buttons,
+       use red/yellow outlines, and show sample text in editor overlays, not in live
+       HUD nodes.
+7. [ ] **V020-13 — Explain Borderless vs Fullscreen.** Recommendation: add the
+       explanation to the next handbook first; only add permanent Settings helper text
+       if repeated confusion appears.
+8. [ ] **V020-14 — Add a stat-debuff validation item/fixture.** Recommendation: make
+       it Map 950 validation content, not a general balance item yet.
+
+**Needs decision or rerun:**
+
+- **UI scale semantics (F.1):** Tester reported that UI scale moves HUD/menu locations
+  and suggested separating menu scale from HUD scaling. Recommendation in the plan:
+  split this in the next display pass (`Menu Scale` for modal/menu UI; HUD layout
+  owns HUD size/position). Until approved, do not treat this as a confirmed defect.
+- **CON/LoS on character sheet (A.3):** The handbook expected CON/LoS rows, but the
+  sheet only exposes Movement from the non-core stat set. Recommendation: update the
+  next handbook/GDD wording unless CON/LoS become player-facing stats.
+- **E.6 oversized window on smaller monitor:** NOT RUN; keep pending validation.
+- **7.2 full Map 900 faction cycle:** unchecked with no comment; request a rerun note
+  before treating it as a defect.
+- **8.4 Strength Tonic expiration:** unchecked with no comment. A.4 confirmed the
+  immediate breakdown; the four-turn expiration still needs live confirmation.
+- **C.1/C.2 New Game comments:** no immediate fix recommended. The behavior passed
+  regression item 1.2, matches GDD_07, and is already covered by
+  `test_new_game_screen.gd`; campaign work will replace the flow later.
 
 ---
 
