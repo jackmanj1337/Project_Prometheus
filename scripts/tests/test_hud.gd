@@ -196,8 +196,10 @@ var team: String = "blue"
 
 		hud._show_unit(lead)
 		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
+		# V020-09: the panel also names the off-map support partner.
 		var lead_shows: bool = pu_label != null and pu_label.visible \
-			and "Paired" in pu_label.text and "Str" in pu_label.text
+			and "Paired" in pu_label.text and "Str" in pu_label.text \
+			and "Support: PU Support" in pu_label.text
 		hud._show_unit(supp)   # support is not the lead → indicator hidden
 		var supp_hides: bool = pu_label != null and not pu_label.visible
 		if lead_shows and supp_hides:

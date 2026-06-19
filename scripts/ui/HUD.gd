@@ -464,7 +464,12 @@ func _pairup_bonus_text(unit: Node) -> String:
 		var v: int = int(bonuses.get(stat, 0))
 		if v != 0:
 			parts.append("+%d %s" % [v, String(_STAT_SHORT[stat])])
-	return "Paired" if parts.is_empty() else "Paired  " + " ".join(parts)
+	var bonus_line: String = "Paired" if parts.is_empty() else "Paired  " + " ".join(parts)
+	# V020-09: name the off-map support so the player can see who they paired with
+	# without opening the character sheet. A second line keeps it compact.
+	if support.data != null and String(support.data.unit_name) != "":
+		return "%s\nSupport: %s" % [bonus_line, support.data.unit_name]
+	return bonus_line
 
 
 func _update_terrain(tile: Vector2i) -> void:

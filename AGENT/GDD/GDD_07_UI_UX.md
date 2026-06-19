@@ -237,7 +237,10 @@ by camera movement.
   contribution. The Pair Up bonus is a combat-only modifier (it is not in the
   unit's `active_modifiers` outside a fight), so `HUD._pairup_bonus_text` queries
   `PairUpBonusResolver` on demand — without this the panel gave no sign the pairing
-  did anything (playtest v0.1.4 #8.5). Supports are off-map and never displayed.
+  did anything (playtest v0.1.4 #8.5). A second `Support: <name>` line names the
+  off-map partner so the player can see who they paired with without opening the
+  character sheet (V020-09). Supports are off-map and never displayed as the panel's
+  own hovered unit.
 - On the map, a visible paired lead shows a small `PU` badge on the unit sprite.
   The marker is driven by `PairUpRegistry.pair_up_changed`, so Pair Up, Swap,
   Separate, clear, and snapshot restore all refresh the badge without polling.

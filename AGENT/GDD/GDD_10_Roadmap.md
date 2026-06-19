@@ -154,8 +154,9 @@ do not treat it as a playtest blocker without verbose leak details.
 2. [x] **V020-08 — Replace Pair Up bonus duration marker `(-)`.** `StatBreakdown.format_duration`
        now matches `duration_type=="combat"` before the negative-remaining "—"
        fallback, so combat-only bonuses (Pair Up) render `this combat`. Fixed 2026-06-19.
-3. [ ] **V020-09 — Show support partner name on the on-map HUD.** Recommendation:
-       add a concise `Support: <name>` line beside the existing paired-bonus line.
+3. [x] **V020-09 — Show support partner name on the on-map HUD.** Added a concise
+       `Support: <name>` line beneath the existing paired-bonus line in
+       `HUD._pairup_bonus_text`. Fixed 2026-06-19.
 4. [x] **V020-16 — Split menu scale from HUD layout scale.** User decision
        2026-06-19: do this after the bug fixes; `Menu Scale` affects modal/menu UI,
        HUD size/position stays under HUD Layout, and menus must stay centered at each
