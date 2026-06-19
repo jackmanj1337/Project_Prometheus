@@ -457,9 +457,16 @@ This is the live character-sheet overlay. It shows:
 The screen is read-only. It exists for inspection, not inventory management.
 
 **More Info integration:**
-- every stat, inventory entry, skill, and weapon-rank row is selectable
-- clicking a row or pressing `more_info` cycles the side panel
+- every class, stat, inventory entry, skill, and weapon-rank row is selectable
+- selection is driven three ways (V020-10): clicking a row, the cursor keys / d-pad
+  (`cursor_up`/`cursor_down`/`cursor_left`/`cursor_right`, handled in `_input` before
+  GUI focus navigation so arrows don't move button focus), or `more_info` (F) forward
+  cycling; the selected row is marked with a `▶` highlight
 - stat entries show authored description text plus the full stat breakdown
+- inventory **weapon** entries show their full stat block in the side panel —
+  Mt/Hit/Crit, Wt, range (resolved against the inspected unit), required rank +
+  family, uses, and effect tags (V020-10); item entries show their authored
+  description
 - the compact stat rows use the same `effective_display` value as the More Info
   breakdown, including Pair Up and other combat-only stat contributions
 

@@ -276,6 +276,29 @@ func is_weapon_track_available(track: String) -> bool:
 		print("FAIL more_info cycle index out of range: %d" % screen._current_index)
 		failed += 1
 
+	# V020-10: a weapon's More Info shows its full stat block, not generic text.
+	var wpn_text: String = screen._weapon_info_text("iron_sword")
+	var wpn_ok: bool = "Iron Sword" in wpn_text and "Mt 6" in wpn_text \
+		and "Hit 85" in wpn_text and "Wt 7" in wpn_text \
+		and "Uses 45" in wpn_text and "Sword" in wpn_text
+	if wpn_ok:
+		print("OK  weapon More Info renders the full stat block (V020-10)"); passed += 1
+	else:
+		print("FAIL weapon info: %s" % wpn_text); failed += 1
+
+	# V020-10: directional selection steps backward and marks the selected row so
+	# a d-pad / keyboard user can see the highlight move.
+	screen._move_selection(-1)
+	var marked: bool = false
+	for lbl in screen._section_labels:
+		if "▶" in lbl.text:
+			marked = true
+			break
+	if marked and screen._info_title.text != "":
+		print("OK  directional selection marks a row and previews it (V020-10)"); passed += 1
+	else:
+		print("FAIL directional selection produced no highlighted row"); failed += 1
+
 	# _close() hides the page, emits `closed`, and clears local state so the
 	# next open() starts from a clean slate.
 	var closed_seen := [false]

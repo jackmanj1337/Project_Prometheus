@@ -164,10 +164,11 @@ do not treat it as a playtest blocker without verbose leak details.
 5. [x] **V020-15 — Add CON and LoS to the character sheet.** Added a utility-stat
        row (`Con` / `LoS`) with selectable More Info descriptions; both stay uncapped
        (class cap shows "—"). Fixed 2026-06-19.
-6. [ ] **V020-10 — Add weapon stats to More Info and the full directional selector.**
-       User decision 2026-06-19: this is before-next-playtest work, not just a
-       long-term backlog item. Character-sheet selector first; reuse for forecast /
-       terrain More Info if scope allows.
+6. [x] **V020-10 — Add weapon stats to More Info and the full directional selector.**
+       Weapon entries now show Mt/Hit/Crit/Wt/range/rank/family/uses/effects in the
+       side panel; the character-sheet selector is navigable by cursor keys / d-pad
+       (handled in `_input`) with a `▶` row highlight, on top of click + F cycling.
+       Forecast / terrain More Info reuse remains future work. Fixed 2026-06-19.
 7. [x] **V020-11 — Add class summary / class features to the character sheet.**
        Title uses `ClassData.display_name`; a selectable class row lists tier, traits,
        allowed weapon families, and skill unlocks, with `ClassData.description` shown

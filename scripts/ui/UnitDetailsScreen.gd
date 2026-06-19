@@ -26,6 +26,10 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const _BOOST_COLOR := "#5fd35f"
 const _DEBUFF_COLOR := "#ff6b6b"
 
+# Marker prepended to the directionally-selected entry's row so a keyboard /
+# d-pad user can see which entry is highlighted (V020-10).
+const _SEL_MARK := "▶ "
+
 @onready var _title: Label             = $Panel/HBox/VBox/TitleLabel
 @onready var _class_lbl: RichTextLabel = $Panel/HBox/VBox/ClassLabel
 @onready var _stats: RichTextLabel     = $Panel/HBox/VBox/StatsLabel
@@ -55,6 +59,12 @@ var _entries: Array = []
 # blank.
 var _current_index: int = -1
 
+# The selectable section labels, in F-cycle / directional-nav order. Their
+# unhighlighted text is cached in _base_texts so the row highlight can be
+# re-applied without rebuilding every section on each keypress.
+var _section_labels: Array = []
+var _base_texts: Dictionary = {}
+
 
 func _ready() -> void:
 	_btn_pair.pressed.connect(_on_pair_button_pressed)
@@ -67,6 +77,9 @@ func _ready() -> void:
 	_inventory.meta_clicked.connect(_on_entry_clicked)
 	_skills.meta_clicked.connect(_on_entry_clicked)
 	_wexp.meta_clicked.connect(_on_entry_clicked)
+	# Section labels in declaration order — drives both F-cycling and the
+	# directional row highlight.
+	_section_labels = [_class_lbl, _stats, _inventory, _skills, _wexp]
 	super._ready()  # ModalScreen does the hide()
 
 
@@ -90,6 +103,11 @@ func open(unit: Node) -> void:
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
 	_update_pair_button(unit)
+	# Cache each section's unhighlighted text so the directional selector can mark
+	# a row without re-running the formatters (which would re-append to _entries).
+	_base_texts.clear()
+	for lbl in _section_labels:
+		_base_texts[lbl] = lbl.text
 	_reset_info_panel()
 	show()
 	_btn_back.grab_focus()
@@ -188,27 +206,27 @@ func _format_inventory(d: UnitData) -> String:
 	var lines: Array[String] = ["Inventory:"]
 	for entry in d.inventory:
 		var label: String = "?"
-		var category_key: String = "weapon"
-		var entry_key: String = ""
+		# entry_key encodes the kind AND the specific id ("weapon:iron_sword") so
+		# each row resolves to its own More Info — needed for per-weapon stats
+		# (V020-10). Earlier this collapsed every weapon onto a generic "weapon"
+		# key, so all weapons showed the same description.
+		var entry_key: String = "weapon:"
 		if entry.is_weapon():
 			var w: WeaponData = dm.get_weapon(entry.weapon_id) if (dm and entry.weapon_id != "") else null
 			label = w.display_name if w else entry.weapon_id
 			entry_key = "weapon:" + entry.weapon_id
-			category_key = "weapon"
 		elif entry.is_item():
 			var it: ItemData = dm.get_item(entry.item_id) if (dm and entry.item_id != "") else null
 			label = it.display_name if it else entry.item_id
 			entry_key = "item:" + entry.item_id
-			category_key = "item"
 		# -1 is the infinite-use sentinel — show ∞ rather than a literal "-1".
 		var uses: String = "∞" if entry.uses_remaining == -1 else str(entry.uses_remaining)
 		_entries.append({
 			"category": "inventory",
-			"key": category_key,
+			"key": entry_key,
 			"title": label,
-			"meta_key": entry_key,  # carried so clicks resolve to this row
 		})
-		lines.append("  [url=inventory:%s]%s  (%s)[/url]" % [category_key, label, uses])
+		lines.append("  [url=inventory:%s]%s  (%s)[/url]" % [entry_key, label, uses])
 	return "\n".join(lines)
 
 
@@ -319,6 +337,7 @@ func _on_entry_clicked(meta: Variant) -> void:
 		if e["category"] == category and e["key"] == key:
 			_current_index = i
 			break
+	_refresh_highlight()
 	_show_entry(category, key, _title_for(category, key))
 
 
@@ -344,6 +363,8 @@ func _show_entry(category: String, key: String, title: String) -> void:
 	# resolve them directly; everything else uses the shared authored text.
 	if category == "class":
 		_info_desc.text = _class_description(key)
+	elif category == "inventory":
+		_info_desc.text = _inventory_description(key)
 	else:
 		_info_desc.text = MoreInfoContent.describe(category, key)
 	if category == "stat" and _unit != null:
@@ -410,6 +431,53 @@ func _cap_line(bd: Dictionary) -> String:
 		_:          return "Class cap      [color=#ff5a5a]NO_CAP_DEFINED[/color]"
 
 
+# Routes an inventory entry key ("weapon:<id>" / "item:<id>") to the right
+# detail renderer. Weapons get a full stat block (V020-10); items show their
+# authored description; anything else falls back to the generic inventory text.
+func _inventory_description(key: String) -> String:
+	var sep: int = key.find(":")
+	var kind: String = key.substr(0, sep) if sep >= 0 else key
+	var id: String = key.substr(sep + 1) if sep >= 0 else ""
+	if kind == "weapon":
+		return _weapon_info_text(id)
+	if kind == "item":
+		return _item_info_text(id)
+	return MoreInfoContent.describe("inventory", kind)
+
+
+# Builds the More Info stat block for a weapon: the generic weapon blurb plus
+# Mt/Hit/Crit, Wt/Range, rank + family, uses, and any effect tags. Range is
+# resolved against the inspected unit so dynamic ranges (e.g. "MAG/2") read true.
+func _weapon_info_text(weapon_id: String) -> String:
+	var dm := get_node_or_null("/root/DataManager")
+	var w: WeaponData = dm.get_weapon(weapon_id) if (dm != null and weapon_id != "") else null
+	if w == null:
+		return MoreInfoContent.describe("inventory", "weapon")
+	var lines: Array[String] = [MoreInfoContent.describe("inventory", "weapon"), ""]
+	lines.append("[b]%s[/b]" % w.display_name)
+	lines.append("Mt %d   Hit %d   Crit %d" % [w.mt, w.hit, w.crit])
+	var rmin: int = w.get_range_min(_unit)
+	var rmax: int = w.get_range_max(_unit)
+	var rng_text: String = str(rmin) if rmin == rmax else "%d-%d" % [rmin, rmax]
+	lines.append("Wt %d   Rng %s" % [w.wt, rng_text])
+	# -1 uses = unbreakable/natural weapon; show ∞ rather than a literal "-1".
+	var uses_text: String = "∞" if w.uses < 0 else str(w.uses)
+	lines.append("Rank %s (%s)   Uses %s" % [w.required_rank, w.combat_family.capitalize(), uses_text])
+	if not w.effect_tags.is_empty():
+		lines.append("Effects: " + ", ".join(w.effect_tags))
+	return "\n".join(lines)
+
+
+# Builds the More Info text for an item: its authored description, falling back
+# to the generic item blurb when the item has no description of its own.
+func _item_info_text(item_id: String) -> String:
+	var dm := get_node_or_null("/root/DataManager")
+	var it: ItemData = dm.get_item(item_id) if (dm != null and item_id != "") else null
+	if it != null and it.description != "":
+		return it.description
+	return MoreInfoContent.describe("inventory", "item")
+
+
 # Returns the authored class description for a class id, or a safe fallback so the
 # side panel never shows a blank box for a class with no description text.
 func _class_description(class_id: String) -> String:
@@ -461,6 +529,20 @@ func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
 	return lines
 
 
+# Directional selection runs in _input (before GUI focus navigation) so the
+# cursor keys / d-pad drive the More Info highlight instead of moving focus
+# between the Back / View buttons — same pattern as ActionMenu.
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_left"):
+		_move_selection(-1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("cursor_down") or event.is_action_pressed("cursor_right"):
+		_move_selection(1)
+		get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Override the base: this screen also closes on the inspect_unit key
 	# (toggle behaviour — same key opens and dismisses it). The more_info
@@ -478,13 +560,46 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 # Advances the side-panel selection through _entries. First press shows the
-# first entry; each subsequent press moves forward one and wraps around.
+# first entry; each subsequent press moves forward one and wraps around. F-cycle
+# is forward-only; the cursor keys add backward movement via _move_selection.
 func _cycle_more_info() -> void:
+	_move_selection(1)
+
+
+# Moves the highlighted selection by `delta` (wrapping), updates the row marker,
+# and shows the entry in the side panel. The first press from "nothing selected"
+# lands on the first (delta>0) or last (delta<0) entry.
+func _move_selection(delta: int) -> void:
 	if _entries.is_empty():
 		return
-	_current_index = (_current_index + 1) % _entries.size()
+	if _current_index < 0:
+		_current_index = 0 if delta > 0 else _entries.size() - 1
+	else:
+		_current_index = (_current_index + delta) % _entries.size()
+		if _current_index < 0:
+			_current_index += _entries.size()
 	var e: Dictionary = _entries[_current_index]
+	_refresh_highlight()
 	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
+
+
+# Re-applies the row marker for the currently-selected entry. Each section label
+# is reset to its cached base text, then the one containing the selected entry's
+# [url=...] tag gets the marker inserted just inside the link.
+func _refresh_highlight() -> void:
+	for lbl in _section_labels:
+		lbl.text = String(_base_texts.get(lbl, lbl.text))
+	if _current_index < 0 or _current_index >= _entries.size():
+		return
+	var e: Dictionary = _entries[_current_index]
+	var needle: String = "[url=%s:%s]" % [String(e["category"]), String(e["key"])]
+	for lbl in _section_labels:
+		var base: String = String(_base_texts.get(lbl, ""))
+		var idx: int = base.find(needle)
+		if idx >= 0:
+			var insert_at: int = idx + needle.length()
+			lbl.text = base.substr(0, insert_at) + _SEL_MARK + base.substr(insert_at)
+			return
 
 
 # _close is inherited from ModalScreen — emits `closed` and hides. Override
@@ -493,5 +608,6 @@ func _close() -> void:
 	_unit = null
 	_paired_unit = null
 	_entries.clear()
+	_base_texts.clear()
 	_current_index = -1
 	super._close()
