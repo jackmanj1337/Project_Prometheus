@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-16
+**Last verified:** 2026-06-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
