@@ -108,8 +108,8 @@ func _refresh_handles() -> void:
 		var rect: Rect2 = panel.get_global_rect()
 		frame.global_position = rect.position
 		frame.size = rect.size
-		var border: Color = _SELECTED_BORDER if id == _selected_id else _UNSELECTED_BORDER
-		frame.add_theme_stylebox_override("panel", _make_frame_style(border))
+		var style: StyleBoxFlat = _selected_style() if id == _selected_id else _unselected_style()
+		frame.add_theme_stylebox_override("panel", style)
 		# Sample text grows/shrinks with the panel scale so the chosen size is visible.
 		var lbl: Label = _handle_labels.get(id)
 		if lbl != null:
@@ -118,8 +118,26 @@ func _refresh_handles() -> void:
 	_update_scale_label()
 
 
-# Builds an outline stylebox: translucent fill so the panel underneath shows
-# through, with a thick coloured border that reads as the panel's editable edge.
+# Two cached outline styleboxes (selected/unselected), built once and swapped by
+# reference — _refresh_handles runs every drag-move, so re-allocating a StyleBoxFlat
+# per panel per frame was needless churn. Translucent fill so the panel underneath
+# shows through, with a thick coloured border that reads as the editable edge.
+var _style_selected: StyleBoxFlat = null
+var _style_unselected: StyleBoxFlat = null
+
+
+func _selected_style() -> StyleBoxFlat:
+	if _style_selected == null:
+		_style_selected = _make_frame_style(_SELECTED_BORDER)
+	return _style_selected
+
+
+func _unselected_style() -> StyleBoxFlat:
+	if _style_unselected == null:
+		_style_unselected = _make_frame_style(_UNSELECTED_BORDER)
+	return _style_unselected
+
+
 func _make_frame_style(border_color: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0.15)

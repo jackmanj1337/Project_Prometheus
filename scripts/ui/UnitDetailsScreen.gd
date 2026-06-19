@@ -191,9 +191,9 @@ func _stat_link(unit: Node, stat_name: String) -> String:
 	var value_text: String = "%-3d" % current
 	var coloured: String
 	if current > base:
-		coloured = "[color=#61c454]%s[/color]" % value_text
+		coloured = "[color=%s]%s[/color]" % [_BOOST_COLOR, value_text]
 	elif current < base:
-		coloured = "[color=#d85b5b]%s[/color]" % value_text
+		coloured = "[color=%s]%s[/color]" % [_DEBUFF_COLOR, value_text]
 	else:
 		coloured = value_text
 	return "[url=stat:%s]%s  %s[/url]" % [stat_name, label, coloured]
@@ -534,6 +534,16 @@ func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
 # between the Back / View buttons — same pattern as ActionMenu.
 func _input(event: InputEvent) -> void:
 	if not visible:
+		return
+	# Dedicated pair-jump: next_unit / prev_unit jump straight to the paired
+	# partner (the "View Support/Lead" button) so a d-pad / controller user isn't
+	# limited to the mouse — _input alone consumes the cursor keys for the More Info
+	# highlight, so focus nav can never reach that button. Handled here (before focus
+	# nav) so it fires reliably; only active while a partner exists (button visible).
+	if _btn_pair.visible and (event.is_action_pressed("next_unit") \
+			or event.is_action_pressed("prev_unit")):
+		get_viewport().set_input_as_handled()
+		_on_pair_button_pressed()
 		return
 	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_left"):
 		_move_selection(-1)

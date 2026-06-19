@@ -108,8 +108,8 @@ func is_weapon_track_available(track: String) -> bool:
 	# current value. Boosted Strength shows green and the link is intact.
 	var stats_text: String = screen._stats.text
 	var stats_ok: bool = (
-		"[url=stat:strength]Str  [color=#61c454]11 [/color][/url]" in stats_text
-		and "[url=stat:movement]Mov  [color=#61c454]7  [/color][/url]" in stats_text
+		"[url=stat:strength]Str  [color=#5fd35f]11 [/color][/url]" in stats_text
+		and "[url=stat:movement]Mov  [color=#5fd35f]7  [/color][/url]" in stats_text
 		and "[url=stat:hp]HP" in stats_text
 		# V020-15: CON and LoS appear on the sheet as selectable utility-stat rows.
 		and "[url=stat:constitution]Con" in stats_text
@@ -158,7 +158,7 @@ func is_weapon_track_available(track: String) -> bool:
 		screen.open(stub_unit)
 		var bonuses: Dictionary = res_pair.call("bonuses_for", support_unit)
 		var expected_str: int = int(d.strength) + 2 + int(bonuses.get("strength", 0))
-		var compact_expected := "Str  [color=#61c454]%s[/color]" % ("%-3d" % expected_str)
+		var compact_expected := "Str  [color=#5fd35f]%s[/color]" % ("%-3d" % expected_str)
 		var compact_uses_pair: bool = compact_expected in screen._stats.text
 		var pair_button_visible: bool = screen._btn_pair.visible \
 			and screen._btn_pair.text == "View Support"
@@ -175,6 +175,21 @@ func is_weapon_track_available(track: String) -> bool:
 				compact_uses_pair, pair_button_visible, opened_support, returned_to_lead,
 				screen._stats.text, screen._title.text])
 			failed += 1
+		# V020 follow-up: the next_unit / prev_unit action jumps straight to the
+		# paired partner (no focus nav), so a d-pad user can reach the View
+		# Support/Lead button. Drive it through _input with a synthetic action event.
+		# Screen is back on the lead here, with the pair button visible.
+		var jump_ev := InputEventAction.new()
+		jump_ev.action = "next_unit"
+		jump_ev.pressed = true
+		screen._input(jump_ev)
+		if "Support Cavalier" in screen._title.text:
+			print("OK  next_unit action jumps to the paired partner (controller pair-jump)")
+			passed += 1
+		else:
+			print("FAIL next_unit pair-jump: title=%s" % screen._title.text); failed += 1
+		screen._on_pair_button_pressed()  # back to the lead for the remaining checks
+
 		reg_pair.call("clear")
 		gs_pair.call("reset_map_state")
 		support_unit.queue_free()

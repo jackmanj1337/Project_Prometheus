@@ -51,7 +51,7 @@ selector screen, and two nits. Full suite green (48 suites; `test_unit_details_s
 
 ## 3. Findings (all low severity)
 
-### #1 — Duplicate inventory rows highlight/select the first match (cosmetic)
+### #1 — Duplicate inventory rows highlight/select the first match (cosmetic — not fixed)
 `UnitDetailsScreen._format_inventory` keys each row `inventory:weapon:<id>`. A unit carrying
 two of the same weapon produces two `_entries` with identical category+key and two identical
 `[url=...]` tags. `_on_entry_clicked` (`break` on first match) and `_refresh_highlight`
@@ -62,7 +62,7 @@ and F-cycling appears to "stick" for one extra press. Not worth a fix unless dis
 metadata (uses/forge) later makes duplicates visually meaningful. If fixed, add a per-row
 ordinal to the key (`...:<id>#<n>`).
 
-### #2 — Arrow/d-pad keys can't reach the "View Support/Lead" button (controller gap)
+### #2 — Arrow/d-pad keys can't reach the "View Support/Lead" button (controller gap — Fixed)
 `UnitDetailsScreen._input` consumes all four cursor directions to drive the More Info
 highlight and calls `set_input_as_handled()`. Because game cursor keys are mirrored to the
 `ui_*` actions, focus navigation never sees them, so a controller/d-pad user can't move focus
@@ -72,17 +72,30 @@ friendly, the pair-jump affordance is effectively mouse-only on a gamepad. Sugge
 pair jump to a dedicated action (e.g. reuse the pair/confirm key) rather than relying on focus
 nav, or letting one cursor axis fall through to focus.
 
-### #3 — Two different green/red hex pairs for the same "boosted/lowered" meaning (clarity)
+**Fix:** bound the pair jump to the `next_unit` / `prev_unit` actions, handled in
+`_input` (before focus nav) and gated on the pair button being visible. Both toggle
+between lead/support since the relation is binary; controller-mappable later. New
+regression test in `test_unit_details_screen.gd` drives it via a synthetic
+`InputEventAction` (19/19).
+
+### #3 — Two different green/red hex pairs for the same "boosted/lowered" meaning (clarity — Fixed)
 The inline stat row (`_stat_link`) colours boosted `#61c454` / lowered `#d85b5b`, while the
 side-panel "Effective" line (`_format_mods_block`) uses the file constants `_BOOST_COLOR`
 `#5fd35f` / `_DEBUFF_COLOR` `#ff6b6b`. Same semantic, two palettes a few lines apart. Fold
 `_stat_link` onto the `_BOOST_COLOR`/`_DEBUFF_COLOR` constants for one source of truth.
 
-### #4 — `HudLayoutEditor._refresh_handles` allocates a StyleBoxFlat per panel per refresh (nit)
+**Fix:** `_stat_link` now uses the `_BOOST_COLOR`/`_DEBUFF_COLOR` constants; the three
+`test_unit_details_screen.gd` assertions that pinned the old inline `#61c454` were
+updated to `#5fd35f`.
+
+### #4 — `HudLayoutEditor._refresh_handles` allocates a StyleBoxFlat per panel per refresh (nit — Fixed)
 `_make_frame_style(...)` builds a fresh `StyleBoxFlat` for every editable panel on every
 `_refresh_handles`, which runs during drag. Editor-only and low panel count, so impact is
 negligible, but two cached styleboxes (selected/unselected) swapped by reference would avoid
 the per-frame churn.
+
+**Fix:** two lazily-built `_style_selected` / `_style_unselected` styleboxes, swapped by
+reference in `_refresh_handles` (`test_hud_layout_editor` 9/9 unchanged).
 
 ## 4. Design choices — questioned, and where I landed
 
@@ -106,3 +119,10 @@ the per-frame churn.
 - `TEST_JOBS=8 ./run_tests.sh` — all 48 suites green.
 - `check_docs.py` — 12/12 green.
 - No findings rise to a behavior-doc change (DoD#1 N/A); these are hygiene/UX notes.
+
+## 6. Resolution (2026-06-19)
+
+Findings #2 (controller pair-jump), #3 (stat colours), #4 (editor stylebox cache) fixed
+in the same session — see the per-finding **Fix** notes. #1 left as-is (cosmetic; identical
+content on duplicate rows). Full suite green (`test_unit_details_screen` 19),
+`check_docs` 12/12.
