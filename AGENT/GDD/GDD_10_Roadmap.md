@@ -156,30 +156,30 @@ do not treat it as a playtest blocker without verbose leak details.
        names if the row remains readable.
 3. [ ] **V020-09 — Show support partner name on the on-map HUD.** Recommendation:
        add a concise `Support: <name>` line beside the existing paired-bonus line.
-4. [ ] **V020-10 — Add weapon stats to More Info and improve directional selection.**
-       Recommendation: add weapon stats first; fold d-pad selector work into the
-       broader More Info inspection-mode backlog.
-5. [ ] **V020-11 — Add class summary / class features to the character sheet.**
+4. [ ] **V020-16 — Split menu scale from HUD layout scale.** User decision
+       2026-06-19: do this after the bug fixes; `Menu Scale` affects modal/menu UI,
+       HUD size/position stays under HUD Layout, and menus must stay centered at each
+       supported scale.
+5. [ ] **V020-15 — Add CON and LoS to the character sheet.** User decision
+       2026-06-19: add the stats rather than only correcting handbook wording.
+       Keep them uncapped (`—`) unless class caps are deliberately authored later.
+6. [ ] **V020-10 — Add weapon stats to More Info and the full directional selector.**
+       User decision 2026-06-19: this is before-next-playtest work, not just a
+       long-term backlog item. Character-sheet selector first; reuse for forecast /
+       terrain More Info if scope allows.
+7. [ ] **V020-11 — Add class summary / class features to the character sheet.**
        Recommendation: use `ClassData.display_name`, `description`, weapon families,
        special qualities, and class skill unlocks in a compact section.
-6. [ ] **V020-12 — Improve HUD layout editor affordances.** Rename scale buttons,
+8. [ ] **V020-12 — Improve HUD layout editor affordances.** Rename scale buttons,
        use red/yellow outlines, and show sample text in editor overlays, not in live
        HUD nodes.
-7. [ ] **V020-13 — Explain Borderless vs Fullscreen.** Recommendation: add the
-       explanation to the next handbook first; only add permanent Settings helper text
-       if repeated confusion appears.
-8. [ ] **V020-14 — Add a stat-debuff validation item/fixture.** Recommendation: make
-       it Map 950 validation content, not a general balance item yet.
+9. [ ] **V020-13 — Explain Borderless vs Fullscreen.** User decision 2026-06-19:
+       handbook-only for the next playtest; no permanent Settings helper text yet.
+10. [ ] **V020-14 — Add a stat-debuff validation item/fixture.** User decision
+        2026-06-19: make it a Map 950 validation-only test item, not general content.
 
-**Needs decision or rerun:**
+**Needs rerun / still pending validation:**
 
-- **UI scale semantics (F.1):** Tester reported that UI scale moves HUD/menu locations
-  and suggested separating menu scale from HUD scaling. Recommendation in the plan:
-  split this in the next display pass (`Menu Scale` for modal/menu UI; HUD layout
-  owns HUD size/position). Until approved, do not treat this as a confirmed defect.
-- **CON/LoS on character sheet (A.3):** The handbook expected CON/LoS rows, but the
-  sheet only exposes Movement from the non-core stat set. Recommendation: update the
-  next handbook/GDD wording unless CON/LoS become player-facing stats.
 - **E.6 oversized window on smaller monitor:** NOT RUN; keep pending validation.
 - **7.2 full Map 900 faction cycle:** unchecked with no comment; request a rerun note
   before treating it as a defect.

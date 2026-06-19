@@ -30,17 +30,22 @@ Fix before the next playtest build:
 4. `V020-04` — repeated F9 hotseat toggling refreshes already-spent units.
 5. `V020-05` — objective HUD displays Seize tile in zero-based coordinates.
 6. `V020-06` — HUD layout reset misplaces the terrain More Info panel when expanded.
+7. `V020-16` — split menu UI scale from HUD layout scale after the bug fixes.
 
-Small clarity / UX polish:
+Character sheet / More Info / validation work before the next playtest build:
 
-7. `V020-07` — rename or explain `Int` on the character sheet.
-8. `V020-08` — replace Pair Up bonus duration marker `(-)` with clearer scope text.
-9. `V020-09` — show support partner name on the on-map unit HUD.
-10. `V020-10` — add weapon stats to More Info and improve directional navigation.
-11. `V020-11` — add class summary / class features to the character sheet.
-12. `V020-12` — improve HUD layout editor affordances.
-13. `V020-13` — explain Borderless vs Fullscreen in tester-facing UI/docs.
-14. `V020-14` — add a debuff tonic or fixture for live red-stat validation.
+8. `V020-07` — rename or explain `Int` on the character sheet.
+9. `V020-08` — replace Pair Up bonus duration marker `(-)` with clearer scope text.
+10. `V020-09` — show support partner name on the on-map unit HUD.
+11. `V020-15` — add CON and LoS stats to the character sheet.
+12. `V020-11` — add class summary / class features to the character sheet.
+13. `V020-10` — add weapon stats to More Info and add the full directional selector.
+14. `V020-14` — add a Map 950 stat-debuff validation tonic/test item.
+
+Small polish / handbook work before the next playtest build:
+
+15. `V020-12` — improve HUD layout editor affordances.
+16. `V020-13` — explain Borderless vs Fullscreen in the next tester handbook only.
 
 No immediate implementation recommended:
 
@@ -53,20 +58,21 @@ No immediate implementation recommended:
   defect.
 - 8.4 was unchecked with no comment. A.4 confirmed the tonic breakdown immediately;
   the four-turn expiration still needs a live rerun.
-- A.3 works, but the handbook expected CON/LoS rows that are not shown on the
-  character sheet. Recommendation: update the next handbook/GDD wording unless
-  CON/LoS become player-relevant stats in the next UI slice.
 
 ## Recommended Order
 
-1. Camera/zoom cluster: `V020-01`, `V020-02`, `V020-03`.
-2. State-flow defects: `V020-04`, `V020-05`, `V020-06`.
-3. Low-risk clarity polish: `V020-07`, `V020-08`, `V020-09`, `V020-12`, `V020-13`.
-4. Broader More Info / character-sheet feature work: `V020-10`, `V020-11`,
-   `V020-14`.
+1. **Camera/zoom bug fixes:** `V020-01`, `V020-02`, `V020-03`.
+2. **State/objective/HUD bug fixes:** `V020-04`, `V020-05`, `V020-06`.
+3. **Approved post-bug-fix display split:** `V020-16`.
+4. **Character-sheet clarity and stat expansion:** `V020-07`, `V020-08`,
+   `V020-09`, `V020-15`, `V020-11`.
+5. **More Info before next playtest:** `V020-10`.
+6. **Validation fixture:** `V020-14`.
+7. **Polish and handbook:** `V020-12`, `V020-13`.
 
-This order keeps display regressions together, then fixes tactical-state defects,
-then handles UX polish that does not block objective/combat verification.
+This order fixes play-blocking regressions first, then lands the approved UI-scale
+split while the display code is still in focus, then expands the character sheet and
+More Info surfaces testers will use in the next pass.
 
 ## Workstream A — Camera Zoom and Forecast Placement
 
@@ -250,7 +256,41 @@ Plan:
 Recommendation: reflow rather than auto-close. Closing More Info during reset would
 hide the bug but surprise the player.
 
-## Workstream C — Character Sheet and More Info Clarity
+## Workstream C — Approved Post-Bug-Fix Display Split
+
+### V020-16 — Split Menu Scale From HUD Layout Scale
+
+Tester report: UI scale changes the location of HUD and menus. User decision
+2026-06-19: split this after the bug fixes, and make sure menus stay centered at
+each scale.
+
+Likely files:
+
+- `scripts/autoloads/SettingsManager.gd`
+- `scripts/ui/SettingsScreen.gd`
+- `scripts/ui/HUD.gd`
+- `scenes/ui/*.tscn`
+- `scripts/tests/test_settings_manager.gd`
+- `scripts/tests/test_settings_screen.gd`
+- `scripts/tests/test_hud_layout.gd`
+
+Plan:
+
+1. Replace or split the current global UI-scale setting so menu/modal UI can scale
+   without also changing HUD panel placement semantics.
+2. Keep HUD size/position under the HUD Layout editor (`hud_layout`) instead of the
+   menu-scale control.
+3. Verify Main Menu, New Game, Settings, Map Menu, combat forecast, item/action
+   menus, character sheet, and level-up/promotion/reclass modals stay centered or
+   intentionally anchored at every supported menu scale.
+4. Add tests around settings persistence and scene/modal centering where practical.
+5. Update GDD_07 and GDD_10 in the same implementation commit.
+
+Recommendation: name the player-facing control `Menu Scale`. Do not add a second
+HUD-scale slider unless playtesting shows the HUD Layout editor is too much work
+for simple HUD-size changes.
+
+## Workstream D — Character Sheet and More Info Clarity
 
 ### V020-07 — `Int` Label Is Unclear
 
@@ -313,6 +353,32 @@ Plan:
 Recommendation: add a single concise line, e.g. `Support: M950_Cavalier`, not a
 larger panel section.
 
+### V020-15 — Add CON and LoS to the Character Sheet
+
+Tester found that the A.3 handbook expected CON/LoS, but the live character sheet
+does not show them. User decision 2026-06-19: add the stats to the character sheet.
+
+Likely files:
+
+- `scripts/ui/UnitDetailsScreen.gd`
+- `scripts/shared/StatBreakdown.gd`
+- `scripts/shared/MoreInfoContent.gd`
+- `scripts/resources/ClassData.gd`
+- `scripts/tests/test_unit_details_screen.gd`
+- `AGENT/GDD/GDD_07_UI_UX.md`
+
+Plan:
+
+1. Add Constitution and Line of Sight rows to the character sheet stat block.
+2. Give both rows selectable More Info descriptions.
+3. Keep cap display as `—` because CON and LoS are intentionally uncapped by the
+   class-cap table.
+4. Verify the added rows do not crowd the compact sheet at small menu scales.
+5. Update GDD_07 and the next playtest handbook wording.
+
+Recommendation: place CON/LoS after Movement or in a final utility-stat row so the
+core combat stats keep their existing scan order.
+
 ### V020-10 — Weapon Stats and Directional More Info Navigation
 
 Tester requests:
@@ -330,12 +396,15 @@ Plan:
 1. Extend Unit Details inventory entries so a selected weapon shows Mt/Hit/Crit/Wt,
    range, rank, uses, effectiveness tags, and weapon family.
 2. Reuse `WeaponData` rather than duplicating display text by hand.
-3. Add directional focus movement inside More Info surfaces. `F` cycling already
-   exists, but d-pad/arrow movement needs a visible selector and stable entry grid.
-4. Add tests for weapon info rendering and keyboard/directional selection.
+3. Add the full selector before the next playtest: arrow keys / d-pad move a visible
+   highlight between selectable More Info entries, with confirm opening that entry.
+4. Keep `F` cycling as a shortcut on top of directional selection.
+5. Add tests for weapon info rendering and keyboard/directional selection.
 
-Recommendation: do weapon stats first as a bounded improvement; schedule the full
-directional selector with the broader More Info inspection-mode backlog.
+Recommendation: implement the selector on the character sheet first, then reuse the
+same focus model for combat forecast and terrain More Info if time allows before the
+next build. If scope gets tight, weapon stats + character-sheet selector are the
+minimum acceptance bar.
 
 ### V020-11 — Class Summary on Character Sheet
 
@@ -389,18 +458,16 @@ Tester question: "what is the difference between borderless and fullscreen?"
 
 Likely files:
 
-- `AGENT/Docs/playtest_checklist_v0.2.0.md` for next handbook wording
-- optionally `scripts/ui/SettingsScreen.gd` if adding a short helper label
+- next playtest handbook
 
 Plan:
 
 1. Add tester-facing wording in the next playtest handbook:
    Borderless = desktop-sized window without borders; Fullscreen = exclusive
    fullscreen mode.
-2. If this remains confusing, add a compact helper line in Settings.
+2. Do not add permanent Settings UI helper text for this pass.
 
-Recommendation: document it in the handbook first. Avoid adding permanent UI text
-unless multiple testers hit the same confusion.
+Recommendation: handbook-only for now.
 
 ### V020-14 — Debuff Tonic / Live Red-Stat Fixture
 
@@ -416,14 +483,17 @@ Likely files:
 
 Plan:
 
-1. Decide whether this should be a real item or a debug-only validation item.
-2. If real, give it normal item authoring, effect text, and inventory placement.
-3. If debug-only, place it only in Map 950 and name it clearly as a validation item.
+1. Author it as a Map 950 validation-only test item, not a general balance item.
+2. Give it clear test wording so players understand it exists to validate red
+   negative-stat display.
+3. Place it in the fixed Map 950 roster/inventory path used by the playtest.
+4. Add tests for item data validity and the red effective-stat display if the current
+   test coverage does not already hit that path.
 
-Recommendation: make it a Map 950 validation item only. A real debuff consumable is
-balance/content work, while this need is test coverage.
+Recommendation: keep the item out of the regular roster/shop pipeline until real
+debuff consumables are designed.
 
-## Decisions Needed
+## Decisions Resolved 2026-06-19
 
 ### UI Scale Semantics
 
@@ -438,23 +508,35 @@ Tradeoff:
 - Splitting menu scale from HUD scale gives players steadier in-map HUD placement,
   but it adds settings complexity and requires a GDD_07 behavior change.
 
-Recommendation: approve a split for the next display pass:
+Decision:
 
 - `Menu Scale` affects modal/menu UI.
 - HUD size/position are controlled by HUD Layout editor.
 - Optional later setting: `HUD follows menu scale` if accessibility testing needs it.
+- Menus must stay centered at each supported scale.
 
-Assumption until decided: do not change UI-scale semantics in the immediate bug-fix
-slice; treat F.1 as a design decision, not a confirmed defect.
+Completion order: after the immediate bug fixes (`V020-01` through `V020-06`) and
+before the character-sheet / More Info expansion.
 
 ### CON / LoS on Character Sheet
 
 The v0.2.0 handbook expected CON/LoS to be visible when testing uncapped stat caps,
 but the live sheet only shows Movement from the non-core stat set.
 
-Recommendation: update the next handbook and GDD_07 wording to say that the cap
-formatter can render uncapped stats, but the compact sheet only exposes Movement
-today. Add CON/LoS later only if they become player-facing decisions.
+Decision: add CON and LoS to the character sheet before the next playtest.
+
+### Full More Info Selector
+
+Decision: add the full directional selector to the before-next-playtest work list,
+not merely the long-term More Info backlog.
+
+### Debuff Validation Item
+
+Decision: make the stat-debuff tonic a Map 950 test item, not a normal content item.
+
+### Borderless vs Fullscreen Explanation
+
+Decision: document the difference in the next tester handbook only.
 
 ## Verification Plan
 
@@ -467,11 +549,18 @@ Run after approved implementation:
    - `scripts/tests/test_turn_manager.gd`
    - `scripts/tests/test_data_layer.gd`
    - `scripts/tests/test_hud_layout.gd`
+   - `scripts/tests/test_hud_layout_editor.gd`
+   - `scripts/tests/test_settings_manager.gd`
+   - `scripts/tests/test_settings_screen.gd`
    - `scripts/tests/test_unit_details_screen.gd`
+   - `scripts/tests/test_more_info_content.gd`
+   - `scripts/tests/test_skill_item_handler.gd`
    - `scripts/tests/test_hud.gd`
 3. Full suite: `TEST_JOBS=8 ./run_tests.sh`
 4. Manual Windows retest of v0.2.0 failed/unclear items:
-   D.1, D.3, D.6, F.1 decision result, G.5, H.3, 3.2, E.6, 7.2, 8.4.
+   D.1, D.3, D.6, Menu Scale at every supported level, G.5, H.3, 3.2, E.6,
+   7.2, 8.4, CON/LoS character-sheet rows, weapon More Info selector, and the
+   Map 950 debuff validation item.
 
 DoD reminders:
 
