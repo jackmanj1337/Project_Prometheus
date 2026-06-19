@@ -108,10 +108,11 @@ features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
 
 Live action list for the returned v0.2.0 pass. Evidence:
 
-- Returned package: `AGENT/v0.2.0 playtest results/`
-- Completed checklist:
-  `AGENT/v0.2.0 playtest results/playtest_checklist_v0.2.0.md`
-- Tester log: `AGENT/v0.2.0 playtest results/godot.log`
+- Completed checklist (tester's verbatim return, archived 2026-06-19):
+  `AGENT/Docs/playtest_checklist_v0.2.0_returned_2026-06-19.md`
+- Tester log + screenshots: removed from the working tree after triage; recoverable
+  from git history (last present under `AGENT/v0.2.0 playtest results/` before commit
+  `3b0a308`).
 - Fix plan: `AGENT/Docs/playtest_v0.2.0_triage_plan_2026-06-19.md`
 
 The v0.2.0 log has no `DataManager`, `ERROR`, or `SCRIPT ERROR` lines. It only

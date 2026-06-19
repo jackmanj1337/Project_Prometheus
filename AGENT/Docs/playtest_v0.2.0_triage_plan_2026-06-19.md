@@ -10,10 +10,11 @@ code changes wait for user approval.
 
 Evidence:
 
-- Returned checklist:
-  `AGENT/v0.2.0 playtest results/playtest_checklist_v0.2.0.md`
-- Tester log: `AGENT/v0.2.0 playtest results/godot.log`
-- Screenshots: `AGENT/v0.2.0 playtest results/*.png`
+- Returned checklist (archived 2026-06-19):
+  `AGENT/Docs/playtest_checklist_v0.2.0_returned_2026-06-19.md`
+- Tester log + screenshots: removed from the working tree after triage; recoverable
+  from git history (last present under `AGENT/v0.2.0 playtest results/` before commit
+  `3b0a308`).
 
 Log result: no `DataManager`, `ERROR`, or `SCRIPT ERROR` lines were reported.
 The log only shows expected pre-M9 skill stub warnings (`armsthrift`, `dash`,
