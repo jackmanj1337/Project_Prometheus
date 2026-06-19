@@ -441,6 +441,10 @@ turn. There is no separate staff-preview panel in MVP.
 This is the live character-sheet overlay. It shows:
 
 - unit name, class, level, internal level (labelled `Internal Lv`, not `Int`), and EXP
+- a compact **class summary** section (V020-11): the title uses `ClassData.display_name`,
+  and a selectable class row lists tier, traits (`special_qualities`), allowed weapon
+  families, and class skill unlocks; selecting it shows `ClassData.description` in the
+  More Info side panel
 - full core stat block using the effective display totals, with a final utility-stat
   row for **Constitution (`Con`)** and **Line of Sight (`LoS`)** — both intentionally
   uncapped, so their breakdown shows class cap "—" (V020-15)

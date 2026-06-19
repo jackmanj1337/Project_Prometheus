@@ -168,9 +168,10 @@ do not treat it as a playtest blocker without verbose leak details.
        User decision 2026-06-19: this is before-next-playtest work, not just a
        long-term backlog item. Character-sheet selector first; reuse for forecast /
        terrain More Info if scope allows.
-7. [ ] **V020-11 — Add class summary / class features to the character sheet.**
-       Recommendation: use `ClassData.display_name`, `description`, weapon families,
-       special qualities, and class skill unlocks in a compact section.
+7. [x] **V020-11 — Add class summary / class features to the character sheet.**
+       Title uses `ClassData.display_name`; a selectable class row lists tier, traits,
+       allowed weapon families, and skill unlocks, with `ClassData.description` shown
+       in the More Info side panel. Fixed 2026-06-19.
 8. [ ] **V020-12 — Improve HUD layout editor affordances.** Rename scale buttons,
        use red/yellow outlines, and show sample text in editor overlays, not in live
        HUD nodes.

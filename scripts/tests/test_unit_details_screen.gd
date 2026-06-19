@@ -121,6 +121,14 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL stats panel: %s" % stats_text); failed += 1
 
+	# V020-11: class summary section renders a selectable class row.
+	var class_text: String = screen._class_lbl.text
+	var class_ok: bool = "[url=class:soldier]" in class_text and "Class:" in class_text
+	if class_ok:
+		print("OK  class summary renders a selectable class row (V020-11)"); passed += 1
+	else:
+		print("FAIL class summary: %s" % class_text); failed += 1
+
 	# Compact stats use the same effective-display total as More Info, including
 	# combat-only Pair Up bonuses. The paired-unit button opens the hidden support
 	# sheet and then lets the player return to the lead.

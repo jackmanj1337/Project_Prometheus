@@ -27,6 +27,7 @@ const _BOOST_COLOR := "#5fd35f"
 const _DEBUFF_COLOR := "#ff6b6b"
 
 @onready var _title: Label             = $Panel/HBox/VBox/TitleLabel
+@onready var _class_lbl: RichTextLabel = $Panel/HBox/VBox/ClassLabel
 @onready var _stats: RichTextLabel     = $Panel/HBox/VBox/StatsLabel
 @onready var _inventory: RichTextLabel = $Panel/HBox/VBox/InventoryLabel
 @onready var _skills: RichTextLabel    = $Panel/HBox/VBox/SkillsLabel
@@ -61,6 +62,7 @@ func _ready() -> void:
 	# Each section label exposes selectable [url=...] entries; wire the
 	# meta_clicked signal so clicks open the corresponding More Info entry.
 	# RichTextLabel emits meta_clicked with the [url=...] meta value.
+	_class_lbl.meta_clicked.connect(_on_entry_clicked)
 	_stats.meta_clicked.connect(_on_entry_clicked)
 	_inventory.meta_clicked.connect(_on_entry_clicked)
 	_skills.meta_clicked.connect(_on_entry_clicked)
@@ -76,7 +78,13 @@ func open(unit: Node) -> void:
 	_entries.clear()
 	_current_index = -1
 	var d: UnitData = unit.data
-	_title.text = "%s — %s   Lv %d" % [d.unit_name, d.class_id, d.level]
+	# Title shows the friendly class display name (V020-11), falling back to the
+	# raw class_id only when class data is unavailable.
+	var cd: ClassData = _class_data_for(unit)
+	var class_display: String = cd.display_name if (cd != null and cd.display_name != "") else d.class_id
+	_title.text = "%s — %s   Lv %d" % [d.unit_name, class_display, d.level]
+	# Class summary is registered first so F-cycling tours it before the stats.
+	_class_lbl.text = _format_class(unit, cd)
 	_stats.text = _format_stats(unit)
 	_inventory.text = _format_inventory(d)
 	_skills.text = _format_skills(d)
@@ -85,6 +93,40 @@ func open(unit: Node) -> void:
 	_reset_info_panel()
 	show()
 	_btn_back.grab_focus()
+
+
+# Builds the compact class section (V020-11): a selectable class row plus one or
+# two lines of traits, allowed weapon families, and class skill unlocks. Clicking
+# it (or F-cycling to it) shows the full ClassData.description in the side panel.
+# Full class-catalog prose stays out of the sheet — this is an at-a-glance summary.
+func _format_class(unit: Node, class_data: ClassData) -> String:
+	var d: UnitData = unit.data
+	if class_data == null:
+		# No class data resolved — keep the row selectable on the raw id so the
+		# player still gets a (fallback) description rather than a dead row.
+		_entries.append({"category": "class", "key": d.class_id, "title": d.class_id})
+		return "[url=class:%s]Class: %s[/url]" % [d.class_id, d.class_id]
+	var display: String = class_data.display_name if class_data.display_name != "" else class_data.id
+	_entries.append({"category": "class", "key": class_data.id, "title": display})
+	var lines: Array[String] = [
+		"[url=class:%s]Class: %s  (Tier %d)[/url]" % [class_data.id, display, class_data.tier],
+	]
+	if not class_data.special_qualities.is_empty():
+		lines.append("  Traits: " + ", ".join(class_data.special_qualities))
+	var families: Array[String] = class_data.get_allowed_weapon_families()
+	if not families.is_empty():
+		var fam_labels: Array[String] = []
+		for f in families:
+			fam_labels.append(String(f).capitalize())
+		lines.append("  Weapons: " + ", ".join(fam_labels))
+	if not class_data.skill_unlocks.is_empty():
+		var unlock_parts: Array[String] = []
+		var levels: Array = class_data.skill_unlocks.keys()
+		levels.sort()
+		for lv in levels:
+			unlock_parts.append("Lv%d %s" % [int(lv), String(class_data.skill_unlocks[lv])])
+		lines.append("  Class skills: " + ", ".join(unlock_parts))
+	return "\n".join(lines)
 
 
 func _format_stats(unit: Node) -> String:
@@ -298,7 +340,12 @@ func _title_for(category: String, key: String) -> String:
 func _show_entry(category: String, key: String, title: String) -> void:
 	_info_title.text = title
 	_info_hint.visible = false
-	_info_desc.text = MoreInfoContent.describe(category, key)
+	# Class descriptions live on the ClassData resource, not in MoreInfoContent, so
+	# resolve them directly; everything else uses the shared authored text.
+	if category == "class":
+		_info_desc.text = _class_description(key)
+	else:
+		_info_desc.text = MoreInfoContent.describe(category, key)
 	if category == "stat" and _unit != null:
 		_info_mods.text = _format_mods_block(_unit, key)
 	else:
@@ -361,6 +408,17 @@ func _cap_line(bd: Dictionary) -> String:
 		"capped":   return "Class cap      %d" % int(bd["cap"])
 		"uncapped": return "Class cap      —"
 		_:          return "Class cap      [color=#ff5a5a]NO_CAP_DEFINED[/color]"
+
+
+# Returns the authored class description for a class id, or a safe fallback so the
+# side panel never shows a blank box for a class with no description text.
+func _class_description(class_id: String) -> String:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm != null:
+		var cd: ClassData = dm.get_class_data(class_id)
+		if cd != null and cd.description != "":
+			return cd.description
+	return "No class description available."
 
 
 # Resolves the inspected unit's ClassData via DataManager, or null if unavailable.

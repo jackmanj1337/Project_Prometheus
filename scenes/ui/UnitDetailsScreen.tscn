@@ -47,6 +47,13 @@ text = "Unit"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 
+[node name="ClassLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "Class"
+
 [node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
 layout_mode = 2
 bbcode_enabled = true
