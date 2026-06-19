@@ -177,8 +177,9 @@ do not treat it as a playtest blocker without verbose leak details.
        `Scale Panel −/+`, handles now use bright-red (yellow when selected) outline
        styleboxes instead of `self_modulate`, and each frame shows editor-only sample
        text whose font scales with the panel. Fixed 2026-06-19.
-9. [ ] **V020-13 — Explain Borderless vs Fullscreen.** User decision 2026-06-19:
-       handbook-only for the next playtest; no permanent Settings helper text yet.
+9. [x] **V020-13 — Explain Borderless vs Fullscreen.** Explanation added to the v0.2.1
+       playtest handbook (Part III); no permanent Settings helper text, per the decision.
+       Done 2026-06-19.
 10. [x] **V020-14 — Add a stat-debuff validation item/fixture.** Added `debuff_tonic`
         (`stat_buff` with a -4 strength delta) to the Map 950 fixed roster's cavalier;
         validation-only, kept out of the regular roster/shop pipeline. Fixed 2026-06-19.
