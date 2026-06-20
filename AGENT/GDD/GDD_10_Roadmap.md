@@ -140,6 +140,16 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 | M15 Part B — Remote Play | [DEFERRED] | §Milestone 15 Part B |
 | Phase 3 backlog (code health, content, systems, maps, polish, UI/UX) | [ ] backlog | §Phase 3 Backlog |
 
+### H. Planning backlog — items needing implementation-ready plans
+
+Upcoming items that lack a plan/design doc and are the candidates for planning sessions
+(none are blocked from *planning* by the current execution blockers). Full list +
+"what each plan should produce": `AGENT/Docs/planning_backlog_2026-06-20.md`. Clusters:
+input/controls (highest near-term leverage — input-mode impl plan, **V021-15 selector
+extraction**, key-rebind UI, gamepad binding audit), campaign/save (D-D prerequisites,
+CampaignRules wiring, between-map + suspend save), release-gate plans (D-A rename, DOC-012
+licensing, OPEN-5 broken-weapon), UI/UX enhancements, other systems, Maps 002–005.
+
 ---
 
 ## Forward Platform Workstreams (Web Debug + Input Modes)
@@ -2666,3 +2676,4 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
 | `AGENT/Docs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
 | `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
+| `AGENT/Docs/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
