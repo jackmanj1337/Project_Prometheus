@@ -225,10 +225,14 @@ rerun note, not a defect.
 
 **Reopened deferred issues (tester reopened explicitly):**
 
-12. [ ] **V021-13 — Map Menu backdrop click dismisses the menu.** ("try to implement
-        this soon.") Previously deferred.
-13. [ ] **V021-14 — Weapon names in the combat preview.** Forecast does not yet name the
-        equipped weapons; the sheet already shows full weapon stats. Reopened.
+12. [x] **V021-13 — Map Menu backdrop click dismisses the menu.** ("try to implement
+        this soon.") Previously deferred. **Done:** `MapMenu` handles `gui_input` on its
+        full-rect backdrop — a left-click outside the centered Panel calls `_on_close`.
+        Test: `test_map_menu`.
+13. [x] **V021-14 — Weapon names in the combat preview.** Forecast does not yet name the
+        equipped weapons; the sheet already shows full weapon stats. Reopened. **Done:**
+        a weapon row under each combatant name in `AttackPreview` (`_weapon_name`, scene
+        `AtkWeapon`/`DefWeapon`; "Unarmed" when none). Test: `test_attack_preview_selector`.
 14. [ ] **V021-15 — Directional More Info selector for forecast + terrain.** Extend the
         character-sheet selector model to the combat forecast and terrain More Info
         (currently F-cycle only). Reopened; pairs with V021-05 and V021-06.
@@ -241,9 +245,11 @@ rerun note, not a defect.
         room to add more pages. Full design:
         `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md`. Couples with V021-07,
         V021-15, and the mouse-only-mode terrain page button (V021-17).
-16. [ ] **V021-16 — Cancel-over-unit opens the character sheet.** Pressing Cancel
-        (keyboard or mouse) while hovering an *unselected* unit opens its sheet.
-        `MapCursor` cancel handling.
+16. [x] **V021-16 — Cancel-over-unit opens the character sheet.** Pressing Cancel
+        (keyboard or mouse) while hovering an *unselected* unit opens its sheet. **Done:**
+        `MapCursor._on_cancel` FREE state now opens the map menu on an empty tile and the
+        hovered unit's sheet otherwise (no active selection to clash with). Test:
+        `test_map_cursor`. `MapCursor` cancel handling.
 17. [ ] **V021-17 — Mouse-only / touch cursor mode (DESIGN written).** A mode where the
         map cursor does not follow mouse hover but jumps to the clicked tile, with a second
         (non-moving) click selecting. Adds a terrain-panel page button or click-to-switch

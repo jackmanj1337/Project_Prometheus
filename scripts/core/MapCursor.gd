@@ -501,9 +501,13 @@ func _on_confirm() -> void:
 func _on_cancel() -> void:
 	match _state:
 		State.FREE:
-			# Cancel on an empty tile opens the map menu (GDD_07).
+			# Cancel on an empty tile opens the map menu (GDD_07); over an
+			# unselected unit it opens that unit's character sheet (V021-16) — there
+			# is no active selection to deselect in FREE, so the two don't clash.
 			if _is_cursor_on_empty_tile():
 				_open_map_menu()
+			else:
+				_open_unit_details()
 		State.UNIT_SELECTED:
 			_deselect()
 		State.UNIT_MOVED:

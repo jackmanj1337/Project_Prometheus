@@ -27,6 +27,8 @@ class StubResolver extends Node:
 # position reads succeed without needing the real Unit class.
 class StubUnit extends Node2D:
 	var data = null
+	var _weapon = null
+	func get_equipped_weapon(): return _weapon
 
 
 func _init() -> void:
@@ -50,14 +52,26 @@ func _init() -> void:
 
 	var attacker := StubUnit.new()
 	attacker.data = _make_unit_data("Hero", 24, 30)
+	attacker._weapon = load("res://data/weapons/iron_sword.tres")
 	root.add_child(attacker)
 
 	var defender := StubUnit.new()
-	defender.data = _make_unit_data("Brigand", 18, 28)
+	defender.data = _make_unit_data("Brigand", 18, 28)  # no weapon → Unarmed
 	root.add_child(defender)
 
 	preview.show_preview(attacker, defender)
 	await process_frame
+
+	# ---- V021-14: forecast names each combatant's equipped weapon -------
+	var weapon_ok: bool = "Iron Sword" in preview._atk_weapon.text \
+		and preview._def_weapon.text == "Unarmed"
+	if weapon_ok:
+		print("OK  forecast names the equipped weapon (Unarmed when none) (V021-14)")
+		passed += 1
+	else:
+		print("FAIL V021-14 weapon names: atk=%s def=%s" % [
+			preview._atk_weapon.text, preview._def_weapon.text])
+		failed += 1
 	var panel_size_ok: bool = preview._panel.size.x >= 560.0 \
 		and preview._panel.size.x < root.get_visible_rect().size.x \
 		and preview._panel.size.y >= 110.0 \

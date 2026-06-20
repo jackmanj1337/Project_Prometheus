@@ -23,7 +23,21 @@ func _ready() -> void:
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_to_menu_btn.pressed.connect(_on_quit_to_menu)
 	_close_btn.pressed.connect(_on_close)
+	# V021-13: a click on the backdrop (this full-rect Control, outside the centered
+	# Panel) dismisses the menu — common modal behaviour. The Panel + its buttons are
+	# STOP children on top, so they consume their own clicks; only outside clicks
+	# reach this gui_input.
+	gui_input.connect(_on_backdrop_input)
 	_apply_menu_scale_from_settings()
+
+
+func _on_backdrop_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_close()
+		accept_event()
 
 
 func open() -> void:

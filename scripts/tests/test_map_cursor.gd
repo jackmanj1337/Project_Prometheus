@@ -412,6 +412,38 @@ func _init() -> void:
 		print("FAIL confirm-empty-menu: _state=%d opened=%s" % [c2._state, c2.map_menu.opened])
 		failed += 1
 
+	# ---- V021-16: FREE + cancel over an unselected unit → opens its sheet ----
+	_gs.all_units.clear()
+	var t_v16 := TurnManager.new(); root.add_child(t_v16)
+	var c_v16 := _make_cursor(t_v16)
+	var details_script := GDScript.new()
+	details_script.source_code = "extends Node\nsignal closed\nvar opened_unit = null\nfunc open(u): opened_unit = u\n"
+	details_script.reload()
+	c_v16.unit_details = details_script.new()
+	root.add_child(c_v16.unit_details)
+	var v16_unit := _make_unit(Vector2i(3, 3), "blue")
+	c_v16._set_tile(Vector2i(3, 3))
+	c_v16._on_cancel()  # FREE + cancel while hovering an unselected unit
+	if c_v16.unit_details.opened_unit == v16_unit:
+		print("OK  V021-16 FREE + cancel over an unselected unit opens its sheet")
+		passed += 1
+	else:
+		print("FAIL V021-16 sheet: opened=%s" % str(c_v16.unit_details.opened_unit))
+		failed += 1
+	# Cancel on an empty tile still opens the map menu, not the sheet.
+	c_v16.unit_details.opened_unit = null
+	c_v16.map_menu = map_menu_script.new()
+	root.add_child(c_v16.map_menu)
+	c_v16._set_tile(Vector2i(5, 5))  # empty
+	c_v16._on_cancel()
+	if c_v16.map_menu.opened and c_v16.unit_details.opened_unit == null:
+		print("OK  V021-16 FREE + cancel on empty tile still opens the map menu")
+		passed += 1
+	else:
+		print("FAIL V021-16 empty: menu=%s sheet=%s" % [
+			c_v16.map_menu.opened, str(c_v16.unit_details.opened_unit)])
+		failed += 1
+
 	# ---- FREE + cancel on an empty tile → opens the map menu ----
 	c2.unlock()                   # back to FREE
 	c2.map_menu.opened = false

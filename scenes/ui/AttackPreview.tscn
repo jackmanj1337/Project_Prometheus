@@ -32,6 +32,14 @@ scroll_active = false
 autowrap_mode = 0
 text = "Attacker"
 
+[node name="AtkWeapon" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+autowrap_mode = 0
+text = "--"
+
 [node name="AtkHP" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
@@ -84,6 +92,14 @@ fit_content = false
 scroll_active = false
 autowrap_mode = 0
 text = "Defender"
+
+[node name="DefWeapon" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+autowrap_mode = 0
+text = "--"
 
 [node name="DefHP" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2

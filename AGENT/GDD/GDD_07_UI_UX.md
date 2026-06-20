@@ -111,6 +111,7 @@ free
   → [confirm on controllable unit] → unit_selected
   → [confirm or cancel on an empty tile, or the open_menu key (M)]
         → map menu opens (cursor locked until it closes)
+  → [cancel over an unselected unit] → that unit's character sheet opens (V021-16)
 
 unit_selected
   → [confirm on move tile] → unit_moved (unit moves)
@@ -381,6 +382,9 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - Preview is calculated by `CombatResolver.preview_combat()` — no RNG
 - Confirm triggers `CombatResolver.resolve_combat()` (with RNG)
 - The current panel also shows weapon-triangle and effectiveness markers
+- A **weapon row** under each combatant's name shows the equipped weapon's display
+  name ("Unarmed" when none), so matchups read at a glance without opening the sheet
+  (V021-14). It's a plain readout, not a selectable More Info field.
 - Phase-1 More Info adds an info box on the right; `more_info` cycles through each
   preview field and clicking a field opens its description
 - The **Damage** field's More Info also shows each side's **Battle Speed** and the
@@ -578,6 +582,9 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.
 - `cancel` also closes the map menu.
+- A **left-click on the backdrop** (anywhere outside the centered panel) dismisses
+  the menu (V021-13), matching common modal behaviour — handled via the menu's
+  full-rect `gui_input`.
 
 ---
 

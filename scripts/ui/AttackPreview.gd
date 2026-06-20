@@ -22,6 +22,7 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 @onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
 @onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
 @onready var _atk_name: RichTextLabel      = $Panel/HBox/AttackerBox/AtkName
+@onready var _atk_weapon: RichTextLabel    = $Panel/HBox/AttackerBox/AtkWeapon
 @onready var _atk_hp: RichTextLabel        = $Panel/HBox/AttackerBox/AtkHP
 @onready var _atk_dmg: RichTextLabel       = $Panel/HBox/AttackerBox/AtkDmg
 @onready var _atk_hit: RichTextLabel       = $Panel/HBox/AttackerBox/AtkHit
@@ -29,6 +30,7 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 @onready var _atk_triangle: RichTextLabel  = $Panel/HBox/AttackerBox/AtkTriangle
 @onready var _atk_effective: RichTextLabel = $Panel/HBox/AttackerBox/AtkEffective
 @onready var _def_name: RichTextLabel      = $Panel/HBox/DefenderBox/DefName
+@onready var _def_weapon: RichTextLabel    = $Panel/HBox/DefenderBox/DefWeapon
 @onready var _def_hp: RichTextLabel        = $Panel/HBox/DefenderBox/DefHP
 @onready var _def_dmg: RichTextLabel       = $Panel/HBox/DefenderBox/DefDmg
 @onready var _def_hit: RichTextLabel       = $Panel/HBox/DefenderBox/DefHit
@@ -129,6 +131,9 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	# wrap and clip. The full name stays available through More Info.
 	_atk_name.text = _link("atk", "name", "Attacker",
 		_fit_name_to_column(atk_name, "", _atk_name))
+	# V021-14: name the equipped weapon under each combatant (the sheet already shows
+	# full weapon stats; the forecast just needs the name for at-a-glance matchups).
+	_atk_weapon.text = _weapon_name(attacker)
 	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
 	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
 	_atk_hp.text  = _link("atk", "hp", "HP",
@@ -158,6 +163,7 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	else:
 		_def_name.text = _link("def", "name", "Defender",
 			_fit_name_to_column(def_name_str, "", _def_name))
+	_def_weapon.text = _weapon_name(defender)
 	var def_hp_val: int = defender.data.hp if defender.data else 0
 	var def_hp_max: int = defender.data.max_hp if defender.data else 0
 	_def_hp.text = _link("def", "hp", "HP",
@@ -199,6 +205,14 @@ func hide_preview() -> void:
 # walking the tree so a future "add a stat below crit" doesn't accidentally
 # break selection ordering — the cycle order is exactly this declaration
 # order, which matches how the player reads the preview.
+# V021-14: the equipped weapon's display name for the forecast row, or "Unarmed".
+func _weapon_name(unit: Node) -> String:
+	if unit == null or not unit.has_method("get_equipped_weapon"):
+		return "Unarmed"
+	var w: WeaponData = unit.get_equipped_weapon()
+	return w.display_name if w != null and String(w.display_name) != "" else "Unarmed"
+
+
 func _all_selectable_labels() -> Array[RichTextLabel]:
 	return [
 		_atk_name, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle, _atk_effective,

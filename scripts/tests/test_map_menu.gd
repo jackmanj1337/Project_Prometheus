@@ -59,6 +59,19 @@ func _init() -> void:
 			menu.visible, events["end_turn"], events["closed"]])
 		failed += 1
 
+	# V021-13: a left-click on the backdrop dismisses the menu (emits menu_closed).
+	menu.open()
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	menu._on_backdrop_input(click)
+	if not menu.visible and events["closed"] == 2:
+		print("OK  V021-13 backdrop click dismisses the menu")
+		passed += 1
+	else:
+		print("FAIL V021-13 backdrop: visible=%s closed=%s" % [menu.visible, events["closed"]])
+		failed += 1
+
 	menu.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
