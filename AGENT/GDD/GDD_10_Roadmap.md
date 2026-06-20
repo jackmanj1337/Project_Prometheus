@@ -69,6 +69,140 @@ bulk condition/content work.
 
 ---
 
+## Open Items Register
+
+**Single-scroll index of every open, deferred, blocked, and to-verify item.** This is the
+navigation layer — the authoritative detail lives in the linked section of this file (or, for
+forward design work, the inline entry under *Forward Platform Workstreams*). Nothing tracked
+elsewhere (handoffs, check-back docs, design docs, session notes) is allowed to be the *only*
+home for an open thread; if it is open, it has a row here. Keep this table in sync when an item
+opens or closes (DoD#1).
+
+### A. Near-term builds & forward workstreams
+
+| Item | Status | Detail home |
+| --- | --- | --- |
+| v0.2.3 Display build — live-verify closeout (crispness/resolution gate) | [~] | §v0.2.1 findings V021-18 / V021-19; gate = Part I of `AGENT/Docs/playtest_checklist_v0.2.3.md` |
+| v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
+| Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
+| Input-mode / gamepad architecture (gamepad layer = keystone) + 4 open design decisions | [ ] | §Forward Platform Workstreams |
+
+### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
+
+| Item | Status | Detail home |
+| --- | --- | --- |
+| V021-04 — terrain corner-snap on editor scale | [ ] | §v0.2.1 findings (deferred to a live-verify follow-up) |
+| V021-15 — shared selector extraction (single joypad-wiring point) | [ ] | §v0.2.1 findings (deferred to the gamepad/key-rebind milestone) |
+| V021-12 — class-skill More Info drilldown | [ ] | Phase 3 Backlog §Polish |
+| V021-18 / V021-19 — crisp scaling + native 1440p/4K (live-verify remaining) | [~] | §v0.2.1 findings |
+
+### C. v0.2.2 live-verify check-backs (headless-tested only — eyeball in live play)
+
+Authoritative list: `AGENT/Docs/v0.2.2_review_checkbacks_2026-06-20.md`. Walk it during the
+v0.2.3 playtest triage. Threads: V021-01 mid-tween cancel (animate-then-snap-back), V021-02
+modal-capture (swallows all non-mouse input), V021-06 selector axes on a d-pad, V021-09 sheet
+wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
+
+### D. Forward primitives defined but with no producer yet
+
+| Item | Status | Lands with |
+| --- | --- | --- |
+| V021-09 duration labels `until_unequipped` / `until_end_of_map` (rendered, no producer) | [ ] | M8 conditions / M9 procs / equipped-item bonuses — author the label AND the lifecycle tick `duration_type` together |
+
+### E. Outstanding validation / rerun (not defects until reproduced)
+
+| Item | Status | Origin |
+| --- | --- | --- |
+| 8.4 — Strength Tonic 4-turn expiration (immediate breakdown confirmed; expiry not) | needs live confirm | v0.1.5.0 + v0.2.0 returns (one item) |
+| E.6 — oversized window on a smaller monitor | NOT RUN | v0.2.0 return |
+| 7.2 — full Map 900 faction cycle | unchecked, no comment | v0.2.0 return |
+| 3.1 — Routing Red does not win (Map 002) | NOT RUN | v0.1.5.0 return |
+| 7.4 — camera panning memory (fixture too small) | fixture gap, not a defect | v0.1.5.0 return |
+| C.1 / C.2 — New Game comments (no fix; campaign layer replaces flow) | accepted, deferred | v0.2.0 return |
+
+### F. Release gates & blockers (cross-cutting, not milestone-ordered)
+
+| Item | Status | Detail home |
+| --- | --- | --- |
+| D-A — public-identity rename (≤ first public RC) | gate | §Release Gates |
+| DOC-012 / OPEN-12 — legal/licensing review | blocking pre-1.0 gate | §Release Gates |
+| Remove playtest-2 debug aids (force-levelup #10, growth-boost #11) | release blocker | §Pre-Release Cleanup |
+| Remove F9 all-faction hotseat override | release blocker | §Pre-Release Cleanup |
+| Remove debug-mode HUD banner | release blocker | §Pre-Release Cleanup |
+| D-B / D-D — 1.0 definition + campaign prerequisites (deployment, shop, recruit) | gate / dependency edges | §Release Gates |
+
+### G. Deferred milestones & large backlog
+
+| Item | Status | Detail home |
+| --- | --- | --- |
+| M12 — Laguz System | [DEFERRED] | §Milestone 12 |
+| M13 — Awakening Supplement | [DEFERRED] | §Milestone 13 |
+| M15 Part B — Remote Play | [DEFERRED] | §Milestone 15 Part B |
+| Phase 3 backlog (code health, content, systems, maps, polish, UI/UX) | [ ] backlog | §Phase 3 Backlog |
+
+---
+
+## Forward Platform Workstreams (Web Debug + Input Modes)
+
+These two workstreams were ratified in design but, before this consolidation, lived only in
+handoff/design docs and session notes — they now have a tracked home here (indexed from the
+*Open Items Register* §A). Both sit **after** the v0.2.3 display build, which lands their shared
+renderer/scaling foundation. The §Release Gates *Renderer & Platform Targets* entry remains the
+platform-policy owner; this section is the build/sequencing owner.
+
+### Debug Web playtest build `[ ]`
+
+Private iPhone 14 Pro debug Web channel. **Not** mobile platform support — a debug playtest
+shell only. Starts the session after v0.2.3 is verified.
+
+- Plan: `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` (incl. "Release Infrastructure —
+  Do First": single version source, CI build matrix, itch.io/`butler` automated deploy).
+- Handoff: `AGENT/Docs/handoff_2026-06-20_web_debug.md`.
+- Carry-forward decisions: host on itch.io (unlisted) first; portrait emulator shell; fixed
+  16:9 Godot canvas; touch buttons outside the canvas; single-threaded export; PWA off;
+  debug drawer exposes F9 only; Web debug settings default `mouse_cursor` to `click`; build
+  label `v0.2.3-webdebug.1` (do not bump desktop metadata).
+- Slices: (1) Web export preset + metadata tests; (2) custom HTML shell; (3) Web input
+  bridge (`JavaScriptBridge`, pointer-id stuck-button cleanup); (4) build-cut + itch upload.
+- Open risks: iOS Safari Godot-Web quirks even single-threaded; iOS may not persist browser
+  storage (checklist must not depend on saved settings); itch embed needs a real-device smoke.
+
+### Input-mode / gamepad architecture `[ ]`
+
+Design: `AGENT/Docs/input_mode_architecture_design_2026-06-20.md`. Model input **modes, not
+platforms**: the gamepad mode is the shared backbone of Steam Deck + phone-with-controller +
+virtual-gamepad touch + the debug-web shell, so building it once unlocks all four. **Keystone
+dependency: zero gamepad bindings exist today.**
+
+- Setting = `Auto | Gamepad | Touch | Keyboard & Mouse`; active mode derived at runtime.
+- Detect-floor + conditional promotion (boot + every device connect/disconnect; platform-seeded
+  cold start). Gray-don't-hide unsupported modes **plus** a back-door fallback so a player who
+  arrives at a dead mode is never trapped. Nested tree: virtual gamepad under Touch,
+  `mouse_cursor` relocates under Keyboard & Mouse.
+- Sequencing: gamepad layer → Steam Deck (eventual, < mobile) → virtual-gamepad + web shell →
+  touch-native (the large, separate menu/interaction workstream).
+- This is the same thread as Release Gates *Renderer & Platform Targets* (gamepad gap) and
+  Phase 3 Backlog §UI/UX (Key rebinding UI; Gamepad & touch-screen support); it is their design
+  home. The V021-15 shared-selector extraction is the single joypad-wiring point and lands here.
+
+**Open design decisions (not yet settled — resolve before/at implementation):**
+
+1. **Default touch style** — Dedicated (native) vs Virtual gamepad opt-in. (Lean: Dedicated,
+   given the "proud to show strangers" goal; confirm.)
+2. **`mouse_cursor` cfg location** — keep `gameplay/mouse_cursor` or move to a new `[input]`
+   section grouping all input-mode keys. (Lean: new `[input]` section.)
+3. **Prompt/glyph swapping** (A/B vs tap hints per active mode) — in scope for the first mobile
+   release, or a polish follow-up?
+4. **Steam Deck resolution/aspect** — Deck is 1280×800 (16:10); `aspect=keep` letterboxes the
+   authored 16:9. Accept the bars or add a Deck-aware layout? (Defer.)
+
+**DoD when implemented:** update GDD input/controls chapter + Platform Targets + flip the
+roadmap status (DoD#1); add a `check_docs.py` guard for the new `input_mode` / `touch_controls`
+value-sets, mirroring the `mouse_cursor` value-set check [14] (DoD#2); add headless coverage for
+the detect-floor/promotion resolver and gray/fallback availability logic.
+
+---
+
 ## Playtest Follow-Up — Initial Responses (2026-06-16)
 
 Items below are implemented and ready for playtest / visual confirmation:
@@ -2528,3 +2662,7 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
 | `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
 | `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |
+| `AGENT/Docs/v0.2.2_review_checkbacks_2026-06-20.md` | v0.2.2 live-verify check-backs (Open Items Register §C/§D detail) |
+| `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
+| `AGENT/Docs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
+| `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |

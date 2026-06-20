@@ -3,6 +3,10 @@
 Status: Planned - starts AFTER the v0.2.3 display build lands
 Last verified: 2026-06-20
 
+> **Tracking home:** `AGENT/GDD/GDD_10_Roadmap.md` -> *Forward Platform Workstreams*
+> (Debug Web playtest build), indexed from the *Open Items Register* §A. This handoff holds
+> the implementation slices; the roadmap is the single-place index.
+
 ## Program order (decided 2026-06-20)
 
 **The v0.2.3 display build comes first; this web build is the session after it.** v0.2.3

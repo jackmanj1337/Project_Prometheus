@@ -11,6 +11,10 @@ Coupled work:
 This is a forward-looking architecture note. **No code changes yet** — it pins the
 design before the mobile / Steam Deck input work begins so new UI is built to fit it.
 
+> **Tracking home:** `AGENT/GDD/GDD_10_Roadmap.md` → *Forward Platform Workstreams*
+> (indexed from the *Open Items Register* §A). The four unsettled choices below are mirrored
+> there as the roadmap's "Open design decisions" so they resolve in one place.
+
 ## Goal
 
 Ship a mobile build we are proud to put in front of strangers, while reusing one
