@@ -22,6 +22,24 @@ class MockUnit extends Node:
 		data = d
 
 
+# Mock with a configurable special_qualities set, for the V021-11 movement-type tests.
+class MockTypedUnit extends Node:
+	var tile_position: Vector2i
+	var team: String = "blue"
+	var data: Resource
+	var qualities: Array = []
+
+	func has_quality(q: String) -> bool:
+		return q in qualities
+
+	func _init(tile: Vector2i, quals: Array, mov: int = 8) -> void:
+		tile_position = tile
+		qualities = quals
+		var d := UnitData.new()
+		d.movement = mov
+		data = d
+
+
 func _init() -> void:
 	print("=== GridManager Test ===")
 	var passed := 0
@@ -200,6 +218,51 @@ func get_equipped_weapon(): return _w
 		print("FAIL get_terrain_bonuses: forest=%s mountain=%s wall=%s plain=%s" % [
 			b_forest, b_mountain, b_wall, b_plain])
 		failed += 1
+
+	# --- V021-11: movement-type resolver + terrain costs ---
+	var mt_ok: bool = (
+		GameConstants.movement_type_of(["armoured", "mounted"]) == "mounted"  # precedence
+		and GameConstants.movement_type_of([]) == "infantry"                  # default
+		and GameConstants.movement_type_of(["laguz", "flying"]) == "flying"   # ignores non-move tag
+		and GameConstants.movement_type_of(["light_footed"]) == "light_footed"
+	)
+	if mt_ok:
+		print("OK  V021-11 movement_type_of resolves by precedence, ignores non-move tags"); passed += 1
+	else:
+		print("FAIL V021-11 movement_type_of"); failed += 1
+
+	# Flying ignores ground terrain (flat 1) but walls still block.
+	var flier := MockTypedUnit.new(Vector2i(0, 0), ["flying"])
+	if grid.get_move_cost(Vector2i(2, 2), flier) == 1 \
+			and grid.get_move_cost(Vector2i(3, 3), flier) == 1 \
+			and grid.get_move_cost(Vector2i(4, 4), flier) == GridManager.IMPASSABLE_MOVE_COST:
+		print("OK  V021-11 flier pays 1 on forest/mountain, blocked by wall"); passed += 1
+	else:
+		print("FAIL V021-11 flier costs: forest=%d mountain=%d wall=%d" % [
+			grid.get_move_cost(Vector2i(2, 2), flier), grid.get_move_cost(Vector2i(3, 3), flier),
+			grid.get_move_cost(Vector2i(4, 4), flier)]); failed += 1
+
+	# Desert: armoured/mounted pay 3, light_footed 1, infantry the base (2).
+	grid.set_terrain_fallback(Vector2i(0, 5), "desert")
+	var armoured := MockTypedUnit.new(Vector2i(0, 0), ["armoured"])
+	var light := MockTypedUnit.new(Vector2i(0, 0), ["light_footed"])
+	var foot := MockTypedUnit.new(Vector2i(0, 0), ["infantry"])
+	if grid.get_move_cost(Vector2i(0, 5), armoured) == 3 \
+			and grid.get_move_cost(Vector2i(0, 5), light) == 1 \
+			and grid.get_move_cost(Vector2i(0, 5), foot) == 2:
+		print("OK  V021-11 desert costs by resolved type (armoured 3, light 1, infantry 2)"); passed += 1
+	else:
+		print("FAIL V021-11 desert costs: armoured=%d light=%d infantry=%d" % [
+			grid.get_move_cost(Vector2i(0, 5), armoured), grid.get_move_cost(Vector2i(0, 5), light),
+			grid.get_move_cost(Vector2i(0, 5), foot)]); failed += 1
+	flier.queue_free(); armoured.queue_free(); light.queue_free(); foot.queue_free()
+
+	# get_move_costs_for_groups exposes the flying column (1 except wall).
+	if int(GridManager.get_move_costs_for_groups("mountain").get("flying", -1)) == 1 \
+			and int(GridManager.get_move_costs_for_groups("wall").get("flying", -1)) == GridManager.IMPASSABLE_MOVE_COST:
+		print("OK  V021-11 get_move_costs_for_groups includes flying (1 / wall impassable)"); passed += 1
+	else:
+		print("FAIL V021-11 flying group column"); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -116,6 +116,7 @@ static func get_move_costs_for_groups(terrain: String) -> Dictionary:
 			"mounted":  IMPASSABLE_MOVE_COST,
 			"armoured": IMPASSABLE_MOVE_COST,
 			"light":    IMPASSABLE_MOVE_COST,
+			"flying":   IMPASSABLE_MOVE_COST,  # walls block everyone (V021-11)
 		}
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 	var mounted: int = 3 if terrain == "desert" else base
@@ -126,6 +127,9 @@ static func get_move_costs_for_groups(terrain: String) -> Dictionary:
 		"mounted":  mounted,
 		"armoured": armoured,
 		"light":    light,
+		# Fliers ignore all ground terrain penalties; flat 1 on every non-wall tile
+		# (V021-11), so they cross river/sea/mountain freely.
+		"flying":   1,
 	}
 
 
@@ -151,15 +155,37 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 			if override != -1:
 				return override
 
+	# Resolve the unit's single movement type (V021-11) and key the cost off it,
+	# preserving the skill-override-first ordering above.
+	var move_type: String = _movement_type_of_unit(unit)
+
+	# Fliers ignore all ground terrain penalties; only walls (handled by is_passable
+	# / IMPASSABLE_MOVE_COST) block them.
+	if move_type == "flying":
+		return IMPASSABLE_MOVE_COST if terrain == "wall" else 1
+
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 
-	# Desert exception: armoured/mounted pay 3; light_footed units (mages, thieves, etc.) pay 1.
-	if terrain == "desert" and unit != null and unit.has_method("has_quality"):
-		if unit.has_quality("armoured") or unit.has_quality("mounted"):
+	# Desert exception: armoured/mounted pay 3; light_footed (mages, thieves, etc.)
+	# pay 1; infantry pays the base cost.
+	if terrain == "desert":
+		if move_type == "armoured" or move_type == "mounted":
 			return 3
-		if unit.has_quality("light_footed"):
+		if move_type == "light_footed":
 			return 1
 	return base
+
+
+# Resolves `unit`'s movement type by probing has_quality in VALID_MOVEMENT_TYPES
+# precedence order (same precedence GameConstants.movement_type_of uses on a raw
+# special_qualities array). Non-movement tags are never probed, so they're ignored.
+# Defaults to infantry for a null unit or a stub without has_quality.
+func _movement_type_of_unit(unit: Node) -> String:
+	if unit != null and unit.has_method("has_quality"):
+		for mt in GameConstants.VALID_MOVEMENT_TYPES:
+			if unit.has_quality(mt):
+				return mt
+	return "infantry"
 
 
 # Wall tiles are impassable to all units unless the Phasing skill is active.

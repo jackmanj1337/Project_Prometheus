@@ -128,6 +128,16 @@ func has_quality(quality: String) -> bool:
 	return quality in class_data.special_qualities
 
 
+# The unit's resolved movement type (V021-11): the single highest-precedence
+# movement tag in its class's special_qualities, or "infantry" by default. Used for
+# terrain-cost resolution (GridManager) and the class More Info display.
+func movement_type() -> String:
+	var class_data := _get_class_data()
+	if class_data == null:
+		return "infantry"
+	return GameConstants.movement_type_of(class_data.special_qualities)
+
+
 func has_vulnerability(group: String) -> bool:
 	if data == null:
 		return false

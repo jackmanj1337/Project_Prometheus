@@ -199,17 +199,25 @@ rerun note, not a defect.
        (M8 Hex / M9 procs) is not overloaded. DoD#2: `test_stat_breakdown` asserts every
        `VALID_DURATION_TYPES` value renders a non-empty label. `StatBreakdown`/
        `StatContributions`/`GameConstants`.
-9. [ ] **V021-10 — Relocate class summary into class More Info.** Move most of the
+9. [x] **V021-10 — Relocate class summary into class More Info.** Move most of the
        class-row detail (tier, traits, weapon families, skills) out of the inline sheet
-       row and into the class **More Info** side panel; keep the row compact.
-       `UnitDetailsScreen` + `MoreInfoContent`.
-10. [ ] **V021-11 — Movement type: explicit `infantry` tag + precedence hierarchy.**
+       row and into the class **More Info** side panel; keep the row compact. **Done:**
+       `_format_class` is now name + tier only; `_class_description` builds the relocated
+       detail (description, Movement, non-movement Traits, Weapons, Class skills). Test:
+       `test_unit_details_screen`. `UnitDetailsScreen`.
+10. [x] **V021-11 — Movement type: explicit `infantry` tag + precedence hierarchy.**
         Decision 2026-06-19: keep movement type as a `special_qualities` tag (no new
         field). Add an explicit default **`infantry`** tag so every class's movement cost
         is marked, define a precedence hierarchy (`flying > mounted > armoured >
         light_footed > infantry`) to resolve multi-tag units, and surface the resolved
-        movement type in class More Info. `GridManager` keys off the resolved type;
-        effectiveness stays on `vulnerability_groups`. See triage plan Workstream C.
+        movement type in class More Info. **Done:** `GameConstants.VALID_MOVEMENT_TYPES`
+        + `movement_type_of()` resolver; `infantry` added to the 11 untagged classes;
+        `GridManager.get_move_cost` keys off the resolved type (skill-override-first
+        preserved) and adds a flying column (flying = 1 except `wall`); resolved type
+        shown in class More Info; effectiveness stays on `vulnerability_groups`. DoD#2:
+        `check_docs.py` [13] enforces ≥1 movement type per class; GDD_03 quality table
+        reconciled (+`light_footed`, +`infantry`). Tests: `test_grid_manager` (+4),
+        `test_unit_details_screen`. `GridManager`/`GameConstants`/`Unit`/`data/classes`.
 11. [ ] **V021-12 — (bonus) Clickable skill info boxes in class More Info.** Class skills
         listed in More Info should spawn their own description info boxes when
         clicked/selected, reusing the stat selector model. Depends on V021-06 selector

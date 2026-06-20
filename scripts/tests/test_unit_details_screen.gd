@@ -129,6 +129,16 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL class summary: %s" % class_text); failed += 1
 
+	# V021-10: the inline class row is compact (no relocated detail), and the class
+	# More Info side panel carries the detail + the resolved movement type (V021-11).
+	var inline_compact: bool = not ("Weapons:" in class_text) and not ("Class skills:" in class_text)
+	var class_panel: String = screen._class_description("soldier")
+	var panel_has_detail: bool = "Movement:" in class_panel and "Infantry" in class_panel
+	if inline_compact and panel_has_detail:
+		print("OK  class detail relocated to More Info with resolved movement type (V021-10/11)"); passed += 1
+	else:
+		print("FAIL class relocation: compact=%s panel=%s" % [inline_compact, class_panel]); failed += 1
+
 	# Compact stats use the same effective-display total as More Info, including
 	# combat-only Pair Up bonuses. The paired-unit button opens the hidden support
 	# sheet and then lets the player return to the lead.

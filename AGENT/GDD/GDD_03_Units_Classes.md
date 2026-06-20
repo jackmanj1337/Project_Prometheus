@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-19
+**Last verified:** 2026-06-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -52,15 +52,31 @@ Tags on a unit (from class, or added by skills/items) affecting movement, combat
 
 | Quality | Effect |
 |---|---|
-| `flying` | Identity/vulnerability tag; flying movement costs use the planned terrain movement-category system |
-| `mounted` | Higher mobility/CON; Canto-style remainder movement deferred |
-| `armoured` | High DEF; affected by anti-armor weapons |
-| `dragon` | Affected by dragon-effective weapons |
-| `beast` | Affected by beast-effective weapons (Laguz land units) |
-| `laguz` | Has a shift gauge (Phase 2+, M12) |
+| `flying` | **Movement type** + vulnerability tag; fliers pay 1 on every non-wall tile |
+| `mounted` | **Movement type**: higher mobility/CON; anti-cavalry vulnerability; Canto deferred |
+| `armoured` | **Movement type**: high DEF; affected by anti-armor weapons |
+| `light_footed` | **Movement type**: mages/thieves; pays 1 in desert (no mount/armour penalty) |
+| `infantry` | **Movement type** (explicit default): plain foot movement, no terrain penalty/bonus |
+| `dragon` | Effectiveness tag (anti-dragon weapons) — **not** a movement type |
+| `beast` | Effectiveness tag (Laguz land units) — **not** a movement type |
+| `laguz` | Has a shift gauge (Phase 2+, M12) — **not** a movement type |
+
+**Movement type (V021-11).** The first five tags above are the movement-type subset
+(`GameConstants.VALID_MOVEMENT_TYPES`). Every class must declare **at least one**
+(enforced by `check_docs.py` [13]); `infantry` is the explicit default. A class may
+carry more than one (Great Knight = `armoured` + `mounted`), so
+`GameConstants.movement_type_of()` resolves a single type by descending precedence
+**`flying > mounted > armoured > light_footed > infantry`** for terrain cost and
+display. `GridManager.get_move_cost()` keys terrain cost off the resolved type (after
+skill overrides), and the character sheet shows it. Effectiveness is independent:
+`vulnerability_groups` still reads every tag, so an armoured+mounted unit is hit by
+all matching effective weapons regardless of its resolved movement type. The
+non-movement tags (`dragon`/`beast`/`laguz`) are ignored by the resolver.
 
 ### Anchors
-- Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`)
+- Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`, `movement_type`),
+  `scripts/shared/GameConstants.gd` (`VALID_MOVEMENT_TYPES`, `movement_type_of`),
+  `scripts/core/GridManager.gd` (`get_move_cost`, `get_move_costs_for_groups`)
 - Owner of effectiveness/vulnerability detail: GDD_04
 
 ---

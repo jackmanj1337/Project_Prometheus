@@ -146,25 +146,10 @@ func _format_class(unit: Node, class_data: ClassData) -> String:
 	var display: String = class_data.display_name if class_data.display_name != "" else class_data.id
 	_append_entry("class", class_data.id, display)
 	_grid_row += 1
-	var lines: Array[String] = [
-		"[url=class:%s]Class: %s  (Tier %d)[/url]" % [class_data.id, display, class_data.tier],
-	]
-	if not class_data.special_qualities.is_empty():
-		lines.append("  Traits: " + ", ".join(class_data.special_qualities))
-	var families: Array[String] = class_data.get_allowed_weapon_families()
-	if not families.is_empty():
-		var fam_labels: Array[String] = []
-		for f in families:
-			fam_labels.append(String(f).capitalize())
-		lines.append("  Weapons: " + ", ".join(fam_labels))
-	if not class_data.skill_unlocks.is_empty():
-		var unlock_parts: Array[String] = []
-		var levels: Array = class_data.skill_unlocks.keys()
-		levels.sort()
-		for lv in levels:
-			unlock_parts.append("Lv%d %s" % [int(lv), String(class_data.skill_unlocks[lv])])
-		lines.append("  Class skills: " + ", ".join(unlock_parts))
-	return "\n".join(lines)
+	# V021-10: keep the inline row compact (name + tier). Traits, weapon families,
+	# class-skill unlocks, and the resolved movement type now live in the class More
+	# Info side panel (_class_description), reached by selecting this row.
+	return "[url=class:%s]Class: %s  (Tier %d)[/url]" % [class_data.id, display, class_data.tier]
 
 
 func _format_stats(unit: Node) -> String:
@@ -508,11 +493,38 @@ func _item_info_text(item_id: String) -> String:
 # side panel never shows a blank box for a class with no description text.
 func _class_description(class_id: String) -> String:
 	var dm := get_node_or_null("/root/DataManager")
-	if dm != null:
-		var cd: ClassData = dm.get_class_data(class_id)
-		if cd != null and cd.description != "":
-			return cd.description
-	return "No class description available."
+	var cd: ClassData = dm.get_class_data(class_id) if dm != null else null
+	if cd == null:
+		return "No class description available."
+	# V021-10: the side panel carries the full class detail relocated off the compact
+	# inline row — description, resolved movement type, non-movement traits, weapon
+	# families, and class-skill unlocks.
+	var lines: Array[String] = []
+	if cd.description != "":
+		lines.append(cd.description)
+		lines.append("")
+	# V021-11: show the resolved movement type on its own line (not buried in Traits).
+	lines.append("Movement: " + GameConstants.movement_type_of(cd.special_qualities).capitalize())
+	var traits: Array[String] = []
+	for q in cd.special_qualities:
+		if not (q in GameConstants.VALID_MOVEMENT_TYPES):
+			traits.append(String(q))
+	if not traits.is_empty():
+		lines.append("Traits: " + ", ".join(traits))
+	var families: Array[String] = cd.get_allowed_weapon_families()
+	if not families.is_empty():
+		var fam_labels: Array[String] = []
+		for f in families:
+			fam_labels.append(String(f).capitalize())
+		lines.append("Weapons: " + ", ".join(fam_labels))
+	if not cd.skill_unlocks.is_empty():
+		var unlock_parts: Array[String] = []
+		var levels: Array = cd.skill_unlocks.keys()
+		levels.sort()
+		for lv in levels:
+			unlock_parts.append("Lv%d %s" % [int(lv), String(cd.skill_unlocks[lv])])
+		lines.append("Class skills: " + ", ".join(unlock_parts))
+	return "\n".join(lines)
 
 
 # Resolves the inspected unit's ClassData via DataManager, or null if unavailable.

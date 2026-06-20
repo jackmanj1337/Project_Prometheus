@@ -54,6 +54,31 @@ const VALID_VULNERABILITY_GROUPS: Array[String] = [
 const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
 const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
 
+# Movement-type subset of ClassData.special_qualities (V021-11), in DESCENDING
+# precedence. A class may carry more than one (Great Knight = armoured+mounted), so
+# movement_type_of() resolves to the single highest-precedence tag for terrain cost
+# and display. The array also holds non-movement tags (dragon/beast/laguz — M12/M13
+# effectiveness types) which the resolver ignores. Every class must declare at least
+# one of these (enforced by check_docs.py); `infantry` is the explicit default so a
+# class's movement cost is marked rather than inferred from absence.
+const VALID_MOVEMENT_TYPES: Array[String] = [
+	"flying", "mounted", "armoured", "light_footed", "infantry",
+]
+
+
+# Resolves a class/unit's single movement type from its special_qualities tags by
+# VALID_MOVEMENT_TYPES precedence (flying > mounted > armoured > light_footed >
+# infantry), ignoring non-movement tags. Defaults to "infantry" when none is present.
+# Flying wins cost resolution (fliers ignore ground terrain); among ground types the
+# mount/armour penalty dominates the light bonus. Effectiveness is independent —
+# vulnerability_groups still reads every tag, so an armoured+mounted unit is hit by
+# all matching effective weapons regardless of its resolved movement type.
+static func movement_type_of(special_qualities: Array) -> String:
+	for mt in VALID_MOVEMENT_TYPES:
+		if mt in special_qualities:
+			return mt
+	return "infantry"
+
 # Stat-modifier DISPLAY duration vocabulary (V021-09). This is the fixed set of
 # human-facing scope labels the character sheet renders via
 # StatBreakdown.format_duration; M8 conditions / M9 procs author against it so they

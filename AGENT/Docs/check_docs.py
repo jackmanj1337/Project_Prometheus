@@ -18,6 +18,7 @@ Checks:
  10. Version tag  — the current product_version must have a matching git tag
  11. Tree cover   — every top-level dir is named in the review procedure §2 map
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
+ 13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
 """
 
 import re
@@ -429,6 +430,33 @@ def check_rollup_score_header() -> None:
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
+# V021-11: every class resource must declare at least one movement type in its
+# special_qualities (the resolver defaults to infantry, but the tag must be authored
+# so movement cost is explicit, not inferred from absence). Mirrors
+# GameConstants.VALID_MOVEMENT_TYPES — keep the two in sync.
+_VALID_MOVEMENT_TYPES = {"flying", "mounted", "armoured", "light_footed", "infantry"}
+
+
+def check_class_movement_types() -> None:
+    classes_dir = ROOT / "data/classes"
+    if not classes_dir.is_dir():
+        return
+    sq_re = re.compile(r"special_qualities\s*=\s*\[([^\]]*)\]")
+    for tres in sorted(classes_dir.glob("*.tres")):
+        try:
+            text = tres.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        m = sq_re.search(text)
+        tags = set()
+        if m:
+            tags = {t.strip().strip('"') for t in m.group(1).split(",") if t.strip()}
+        if not (tags & _VALID_MOVEMENT_TYPES):
+            line_no = text[: m.start()].count("\n") + 1 if m else 1
+            _fail("class-movement-type", tres, line_no,
+                  f"class declares no movement type; add one of {sorted(_VALID_MOVEMENT_TYPES)}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -445,6 +473,7 @@ def main() -> None:
         ("[10] Release version tagged",    check_version_tag),
         ("[11] Review tree completeness",  check_tree_completeness),
         ("[12] Rollup score header",       check_rollup_score_header),
+        ("[13] Class movement types",      check_class_movement_types),
     ]
     for label, fn in steps:
         print(f"  {label}...")
