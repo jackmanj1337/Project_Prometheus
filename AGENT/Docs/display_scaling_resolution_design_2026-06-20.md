@@ -65,6 +65,12 @@ in the web plan. It only fixes the renderer/scaling/resolution foundation they b
   snap is the related cosmetic seam (bottom-right corner scales from a top-left pivot).
 - `project.godot` `[rendering]` — `default_texture_filter=0` (nearest) and
   `snap_2d_vertices_to_pixel=true`; **no `renderer/rendering_method` key** (so Forward+).
+- `project.godot` `[display]` — `window/stretch/mode="canvas_items"`, base viewport
+  `1280x720`, `window/stretch/aspect` unset (defaults to `keep`). This stretch foundation
+  already scales a 16:9 canvas crisply to any window/device — it is the same mechanism the
+  web 16:9 canvas relies on. Build with it; do not replace it.
+- **No UI Theme resource exists.** Screens use the engine default theme plus code-built
+  styleboxes (e.g. the HUD editor). There is no central font-size source to scale today.
 
 ## Design decisions
 
@@ -81,20 +87,29 @@ Recommendation: **accept.** Sequencing the renderer switch first de-risks both t
 
 ### D2 — Crisp Menu Scale: font/metric sizing, leave `Control.scale` at 1
 
-Replace the `Control.scale` zoom in `MenuScale.apply_to()` with crisp sizing:
+Replace the `Control.scale` zoom in `MenuScale.apply_to()` with crisp sizing.
 
-- Apply scale through **per-target Theme overrides / theme font sizes and minimum-size
-  metrics**, leaving `target.scale = Vector2.ONE` for menu/modal text surfaces.
+Why not just `content_scale_factor`: it is the natural DPI knob and the stretch system is
+already `canvas_items`, but it is **global** — it would scale the HUD and the game map too,
+re-breaking the v0.2.0 Menu/HUD split. So Menu Scale stays a menu-only mechanism. (Current
+code already resets `content_scale_factor` to 1.0 in `_apply_menu_scale()`; keep it global-1
+and scale menus via the theme path below.)
+
+- Introduce **one base UI Theme resource** (none exists today) and scale a menu by setting a
+  scaled Theme on the menu's **root** Control, which propagates font sizes/metrics to its
+  children. One scale point per menu — not per-node `theme_override` scattered across screens.
+  Leave `target.scale = Vector2.ONE` for menu/modal text surfaces.
 - Keep a requested-factor clamp equivalent to `_fit_factor()` so large menus (character
   sheet) still fit top/bottom at 2.0× — V021-08 must not regress.
 - Preserve contextual-menu anchoring for Action/Item/Weapon menus.
-- **Theme isolation:** clone a Theme per target or use local overrides so scaling one menu
-  never mutates another menu's baseline.
+- **Theme isolation:** derive a scaled Theme per factor from the base (or clone per root); do
+  not mutate the shared base resource in place.
 
 Keep the public `apply_menu_scale(factor)` / `MenuScale.apply_to()` API surface; many screens
 call it directly. Change the mechanism behind it, not the call sites.
 
-Recommendation: **accept** the font/metric path; avoid `Control.scale` for text.
+Recommendation: **accept** the base-theme/metric path; avoid `Control.scale` for text and
+keep `content_scale_factor` global at 1.
 
 ### D3 — HUD layout panel scale: stage, do not block v0.2.3 on it
 
@@ -116,19 +131,26 @@ build tolerates HUD-scale softness far better than menu-text softness.
   stretch/letterbox docs and tests change in the **same** commit — do not silently break 16:9.
 - The web canvas is a fixed 16:9 region by the web plan's design, so it stays inside this
   assumption; no desktop aspect change is required for the web build.
+- **Make `window/stretch/aspect="keep"` explicit** in `project.godot` (it is the unset
+  default today). Cheap now, and it stops a future contributor silently switching to
+  `expand` and breaking the 16:9 contract both desktop letterboxing and the web canvas rely
+  on. Resolution apply path is desktop `DisplayServer` only (see effort-saving E1).
 
 Recommendation: **accept** the 1440p/4K additions; hold the line on 16:9 for now.
 
 ### D5 — Safe-area / mobile policy: plumb margins, do not claim mobile support
 
-Define a single **safe-area margin** concept (default zero on desktop) so the HUD/menu layout
-can later inset from device-reserved regions. Desktop behavior is unchanged at default zero.
-The web shell supplies the actual inset via CSS `env(safe-area-inset-bottom)` outside the
-Godot canvas, so the engine side only needs the margin plumbing + documented default. Mobile
-stays **Deferred** as a platform until real touch safe-area APIs are wired — name it that way
-in GDD_10, not "supported".
+Define a single **safe-area provider** (one function/property, default zero on desktop) that
+HUD and menu anchoring read from — not a value sprinkled at call sites. Desktop behavior is
+unchanged at zero. The web shell handles the *bottom* inset via CSS `env(safe-area-inset-*)`
+outside the canvas, but a soon mobile web release will hit *in-canvas* insets (notch in
+landscape, rounded corners), so route anchoring through the provider **now** even while it
+returns zero. Later it gets fed from `DisplayServer.get_display_safe_area()` /
+`JavaScriptBridge` with zero re-plumbing. Mobile stays **Deferred** as a platform in GDD_10
+until those feeds are wired — name it that way, not "supported".
 
-Recommendation: **accept.** Plumbing-only, mobile explicitly deferred.
+Recommendation: **accept**, with the single-provider seam (not just a default-zero value) so
+the mobile feed is a one-line change later.
 
 ### D6 — Migration of saved settings
 
@@ -141,16 +163,38 @@ Recommendation: **accept.** Plumbing-only, mobile explicitly deferred.
 
 Recommendation: **accept.** No destructive migration in v0.2.3.
 
-## Open decisions for signoff
+## Decisions (signed off 2026-06-20)
 
-| Decision | Recommendation |
+User accepted D1-D6 on the condition they serve a mobile-friendly web release landing soon;
+that lens is now baked into D2/D4/D5 and the effort-saving section below.
+
+| Decision | Status |
 | --- | --- |
-| D1 renderer switch first, as its own commit | Accept |
-| D2 font/metric Menu Scale (no `Control.scale` for text) | Accept |
-| D3 HUD scale migration now vs staged | Stage; close V021-04 only if corner snap stays stable |
-| D4 add 1440p/4K, keep 16:9 | Accept |
-| D5 safe-area plumbing, mobile deferred | Accept |
-| D6 no destructive save migration | Accept |
+| D1 renderer switch first, as its own commit | Accepted |
+| D2 base-theme/metric Menu Scale (no `Control.scale` for text; `content_scale_factor` global at 1) | Accepted |
+| D3 HUD scale migration now vs staged | Accepted: stage; close V021-04 only if corner snap stays stable |
+| D4 add 1440p/4K, keep 16:9, make stretch aspect explicit | Accepted |
+| D5 single safe-area provider seam, mobile deferred | Accepted |
+| D6 no destructive save migration | Accepted |
+
+## Effort-saving choices for the coming mobile web release
+
+These are cheap to do now while the display code is already open, and expensive to retrofit
+once a mobile-friendly web release ships. Each is scoped to a few lines / one seam — none
+expand v0.2.3 into mobile support, they just stop us building the same surface twice.
+
+| ID | Choice now (cheap) | Rework it saves later (expensive) |
+| --- | --- | --- |
+| **E1** | Gate the resolution apply + `DisplayConfirmDialog` confirm/revert to **desktop only** (no `DisplayServer` window resize / confirm popup on Web). | Web/mobile inheriting a meaningless resolution dropdown + a 15s confirm dialog that can't apply, then unpicking it from the shared Settings screen. |
+| **E2** | Land V021-18 on **one base UI Theme** scaled at the menu root (D2), not scattered `theme_override`s. | Re-auditing every screen to add a DPI/auto-scale source when small-screen defaults are needed. |
+| **E3** | While reworking minimum-size metrics in the base theme, set a **minimum touch-target size** (~44px iOS HIG floor) on interactive menu controls. | Re-touching every menu's control metrics so on-canvas buttons are tappable on the phone. |
+| **E4** | Keep `get_menu_scale()` the **single source** of the applied factor; reserve room for an `"Auto"` level that derives from viewport size/DPI (don't hardcode index→factor anywhere else). | Restructuring the Menu Scale level system to add a per-device default the web build will want. |
+| **E5** | Make `window/stretch/aspect="keep"` **explicit** (D4); keep `content_scale_factor` global at 1 (D2). | A contributor flipping stretch to `expand` and breaking both desktop letterboxing and the web 16:9 canvas. |
+| **E6** | Route HUD/menu anchoring through the **single safe-area provider** (D5), returning zero on desktop. | Re-plumbing every anchor when the iPhone notch/home-indicator inset feed lands. |
+
+Sequencing note: E1, E5, and the renderer switch (D1) are near-free and should ride the
+earliest commits so the web track can branch off a clean, web-ready foundation. E2/E3/E6 are
+naturally part of the crisp-scale rework — do them in that commit, not as a later pass.
 
 ## DoD#1 — docs to update in the implementation commits
 
@@ -166,7 +210,10 @@ Recommendation: **accept.** No destructive migration in v0.2.3.
 - `RESOLUTION_CHOICES` must include `2560x1440` and `3840x2160`.
 - Menu Scale must not leave modal/menu text panels with `Control.scale != 1` (the crisp
   invariant) — assert via the test seam below, and add a doc/check guard if expressible.
-- (If a checkable safe-area or renderer rule is ratified, add its check here too.)
+- `project.godot` must set `renderer/rendering_method="gl_compatibility"` (D1) and
+  `window/stretch/aspect="keep"` (E5) — both are mechanical, checkable, web-load-bearing
+  rules; guard them in `check_docs.py` so neither silently reverts.
+- (If a checkable safe-area or touch-target rule is ratified, add its check here too.)
 
 ## Test plan
 
