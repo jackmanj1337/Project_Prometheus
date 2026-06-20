@@ -96,10 +96,13 @@ Error log: the Error-log check was returned unmarked with no comment. Treat as
    - `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md`
 5. **Split V021-18 + V021-19 into v0.2.3 (2026-06-20).** See the Build split above and
    Forward-Compatibility F4.
-6. **V021-01 depth → minimal, principled activation-boundary fix (2026-06-20).** Commit a
-   unit's position + DONE state atomically at activation end before any handoff; do **not**
-   build a general snapshot/rollback primitive here — that is M15B's call (Forward-Compat
-   F1). Veto path open if the tester's full-rollback ask is preferred.
+6. **V021-01 depth → rollback on handoff (user, 2026-06-20, supersedes the earlier
+   commit-then-yield).** On an F9 handoff, **return any unit that is actively moving or has
+   not yet taken a turn-ending action to the state it was in before it was selected**;
+   units that already completed a turn-ending action stay DONE. This reuses the existing
+   per-unit pre-move snapshot in `MapCursor` (`_original_tiles` + `_undo_move_and_reselect`,
+   the cancel-move path) rather than building new machinery, and it is the M15B/M10-aligned
+   primitive (Forward-Compat F1).
 7. **Duration-tag taxonomy (user, 2026-06-20).** Replace the ad-hoc `duration_type`
    strings with a fixed vocabulary (drives V021-09 and is inherited by M8/M9):
 
@@ -152,7 +155,9 @@ are down-payments, not throwaway fixes.
   inserts into the scheduler, and what **M8 (conditions tick at start of activation; sleep/
   stun set DONE)** keys off. There is already a snapshot/serialization seam (Pair Up
   snapshot persistence; mid-battle suspend save serializes `UnitData`) — extend it, don't
-  invent an F9-only path. Decision 6: minimal-principled boundary now; full rollback is M15B.
+  invent an F9-only path. Decision 6 (2026-06-20): build the **per-selection rollback** now
+  (reusing `MapCursor._original_tiles` / `_undo_move_and_reselect`) — it's the M15B/M10
+  primitive, and the machinery already exists for the cancel-move flow.
 - **F2 — `V021-09` must not overload `"combat"`.** M8 (Hex) and M9 combat procs use
   `duration_type="combat"`. The new taxonomy (Decision 7) gives Pair Up / tonics / items
   their own tags and reserves `this combat` for one-engagement effects, handing M8/M9 a
@@ -213,25 +218,28 @@ Plan:
 2. Define an activation boundary: a unit's READY→DONE transition and its committed
    position must both land at activation end, atomically, before the next unit or a
    control handoff.
-3. For the mid-movement toggle, **commit-then-yield** (Decision 6): finish/commit the
-   in-flight activation (apply move, set DONE) *before* yielding control on an F9 toggle,
-   so control never changes hands mid-activation. Do **not** build a general snapshot/
-   rollback primitive here — that belongs to M15B (see F1). If `EnemyAI` applies movement
-   via an interruptible tween, gate the F9 handoff to fire only on activation boundaries
-   (between units), not mid-step.
-4. Make AI-moved units dim (set DONE visual) at activation end, matching manual moves.
+3. On F9 handoff, **roll back any non-finalized unit to its pre-selection state**
+   (Decision 6): a unit that is mid-move or selected-but-not-yet-turn-ended returns to the
+   tile/state it held before selection and stays READY; a unit that already took a
+   turn-ending action stays DONE. Reuse `MapCursor._original_tiles` +
+   `_undo_move_and_reselect()` (the existing cancel-move snapshot) — extend it to fire on
+   handoff, not only on ActionMenu cancel. For an in-flight AI move via tween, cancel the
+   tween and restore the original tile.
+4. Make AI-moved units dim (set DONE visual) when they take a turn-ending action, matching
+   manual moves — so the dim state is truthful before phase end.
 
-Forward-compat (F1): the activation boundary this establishes — *position + READY→DONE
-commit atomically at activation end, before any control handoff* — is the seam **M15B
-(online)** serializes, **M10 (extra activation)** inserts into, and **M8 (sleep/stun set
-DONE at start of activation)** keys off. Reuse the existing snapshot/serialization seam
-(Pair Up snapshot persistence; suspend-save `UnitData` serialization) rather than a new
-F9-only path. This is the second patch at this seam (V020-04 was first); if a third is
-needed, escalate to a principled activation-state model under M15.
+Forward-compat (F1): the snapshot/rollback boundary this establishes — *a unit's
+pre-selection state is restorable until it takes a turn-ending action* — is exactly what
+**M15B (online)** serializes on handoff, **M10 (extra activation)** must respect, and **M8
+(sleep/stun finalize an activation)** keys off. Build it on the existing snapshot seams
+(`MapCursor._original_tiles`; Pair Up snapshot persistence; suspend-save `UnitData`
+serialization), not an F9-only path. This is the second patch at this seam (V020-04 was
+first); landing a real per-selection rollback here retires that debt rather than deferring
+it again.
 
-Open question for implementation: confirm whether `EnemyAI` applies movement in a single
-step or an interruptible tween — that decides whether step 3 needs the boundary-gated
-handoff. Resolve by reading `EnemyAI` move application before coding.
+Open question for implementation: confirm how `EnemyAI` applies movement (single step vs.
+interruptible tween) so step 3 cancels/restores correctly mid-move. Resolve by reading
+`EnemyAI` move application before coding.
 
 ## Workstream B — HUD Layout Editor & Terrain Panel (V021-02/03/04, and design V021-05)
 
@@ -363,9 +371,10 @@ Plan:
 3. Refactor `GridManager.get_move_cost()` / `get_move_costs_for_groups()` to key off the
    resolved movement type instead of ad-hoc `has_quality` checks — **preserving the
    skill-override-first ordering** (Acrobat/Pass/Nimble stubs and M9 `dash` are checked
-   before base cost; F3). Add a `flying` cost column (fliers ignore ground costs; river/sea
-   passable) so the set is complete. Keep the desert rule (mounted/armoured 3, light 1,
-   infantry base, flying per the flying rule).
+   before base cost; F3). Add a `flying` cost column: **flying = 1 for every terrain except
+   `wall`, which stays `IMPASSABLE_MOVE_COST`** (Decision 2026-06-20 — fliers ignore all
+   terrain penalties and cross river/sea, but walls block everyone). Keep the ground desert
+   rule (mounted/armoured 3, light 1, infantry base).
 4. Surface the resolved movement type as its own line in class More Info (V021-10), and
    stop listing movement tags under the generic `Traits:` line in `UnitDetailsScreen`
    (line 133) so movement type and genuine traits are visually separate.
@@ -374,8 +383,8 @@ Plan:
    that every class declares **≥1** movement type (not "exactly one" — `great_knight`
    carries two), enforced via `VALID_MOVEMENT_TYPES`.
 
-Open question for implementation: confirm the `flying` cost rule (full ground-ignore vs. a
-flat 1, with river/sea passable). Resolve before coding step 3.
+Flying cost rule: **resolved (2026-06-20)** — flat 1 on all terrain except `wall`
+(impassable). No remaining open question for this item.
 
 ### V021-12 — (stretch) clickable skill info boxes
 
