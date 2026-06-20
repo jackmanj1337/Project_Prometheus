@@ -233,14 +233,14 @@ by camera movement.
 - Hidden when cursor is on an empty tile with no unit
 - Size: ~300 × 110 px
 - Portrait: [PLACEHOLDER] 64×64 px class portrait
-- For a paired **lead**, a "Paired  +N Str +N Def …" line lists the support's
-  contribution. The Pair Up bonus is a combat-only modifier (it is not in the
-  unit's `active_modifiers` outside a fight), so `HUD._pairup_bonus_text` queries
-  `PairUpBonusResolver` on demand — without this the panel gave no sign the pairing
-  did anything (playtest v0.1.4 #8.5). A second `Support: <name>` line names the
-  off-map partner so the player can see who they paired with without opening the
-  character sheet (V020-09). Supports are off-map and never displayed as the panel's
-  own hovered unit.
+- For a paired **lead**, a `Support: <name>` line names the off-map partner so the
+  player can see who they paired with without opening the character sheet (V020-09).
+  **V021-07:** the per-stat `Paired +N Str +N Def …` deltas were removed from the
+  *map* HUD — they crowded the bottom-left panel and pushed the support name off the
+  screen edge; the full per-stat breakdown lives on the `I` character sheet (via
+  `StatContributions`). The default `UnitInfoPanel` position was also raised so the
+  block has headroom for its lines on the 720-tall reference viewport. Supports are
+  off-map and never displayed as the panel's own hovered unit.
 - On the map, a visible paired lead shows a small `PU` badge on the unit sprite.
   The marker is driven by `PairUpRegistry.pair_up_changed`, so Pair Up, Swap,
   Separate, clear, and snapshot restore all refresh the badge without polling.

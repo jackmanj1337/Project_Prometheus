@@ -64,12 +64,6 @@ var _mastery_label: Label = null
 # Shows the support's contribution when a paired LEAD is displayed.
 var _pairup_label: Label = null
 
-# Stat-key → short label used in the Pair Up bonus readout (matches handbook terms).
-const _STAT_SHORT: Dictionary = {
-	"strength": "Str", "magic": "Mag", "skill": "Skl", "speed": "Spd",
-	"defense": "Def", "resistance": "Res", "luck": "Lck",
-}
-
 # ── Per-panel HUD layout (Display & Accessibility item 4) ─────────────────────
 # Stable panel ids the player can reposition/scale. Order is the editor cycle order.
 const LAYOUT_PANEL_IDS: Array[String] = [
@@ -442,9 +436,11 @@ func _update_pairup_display(unit: Node) -> void:
 	_pairup_label.show()
 
 
-# "Paired  +3 Str +3 Def …" for a paired LEAD, else "". Only the lead is shown
-# (the support sits off-map and is never the displayed unit). Returns "Paired"
-# with no deltas if the support's table entry is all zeros.
+# "Support: <name>" for a paired LEAD, else "". Only the lead is shown (the support
+# sits off-map and is never the displayed unit). V021-07: the per-stat bonus deltas
+# were dropped from the *map* HUD — they crowded the panel and pushed the support
+# name off the screen edge — so the line names only the support partner. The full
+# per-stat breakdown still lives on the `I` character sheet (via StatContributions).
 func _pairup_bonus_text(unit: Node) -> String:
 	if unit == null or unit.data == null or unit.data.unit_id == "":
 		return ""
@@ -452,24 +448,12 @@ func _pairup_bonus_text(unit: Node) -> String:
 	if reg == null or not bool(reg.call("is_lead", unit.data.unit_id)):
 		return ""
 	var gs := get_node_or_null("/root/GameState")
-	var res := get_node_or_null("/root/PairUpBonusResolver")
-	if gs == null or res == null:
+	if gs == null:
 		return ""
 	var support: Node = gs.call("find_unit_by_id", reg.call("get_partner_id", unit.data.unit_id))
-	if support == null:
+	if support == null or support.data == null or String(support.data.unit_name) == "":
 		return ""
-	var bonuses: Dictionary = res.call("bonuses_for", support)
-	var parts: Array[String] = []
-	for stat in ["strength", "magic", "skill", "speed", "defense", "resistance", "luck"]:
-		var v: int = int(bonuses.get(stat, 0))
-		if v != 0:
-			parts.append("+%d %s" % [v, String(_STAT_SHORT[stat])])
-	var bonus_line: String = "Paired" if parts.is_empty() else "Paired  " + " ".join(parts)
-	# V020-09: name the off-map support so the player can see who they paired with
-	# without opening the character sheet. A second line keeps it compact.
-	if support.data != null and String(support.data.unit_name) != "":
-		return "%s\nSupport: %s" % [bonus_line, support.data.unit_name]
-	return bonus_line
+	return "Support: %s" % support.data.unit_name
 
 
 func _update_terrain(tile: Vector2i) -> void:

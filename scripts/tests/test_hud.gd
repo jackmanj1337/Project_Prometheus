@@ -196,14 +196,15 @@ var team: String = "blue"
 
 		hud._show_unit(lead)
 		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
-		# V020-09: the panel also names the off-map support partner.
+		# V021-07: the map HUD pair-up line now names only the off-map support — the
+		# per-stat bonus deltas were dropped (the full breakdown lives on the `I` sheet).
 		var lead_shows: bool = pu_label != null and pu_label.visible \
-			and "Paired" in pu_label.text and "Str" in pu_label.text \
-			and "Support: PU Support" in pu_label.text
+			and "Support: PU Support" in pu_label.text \
+			and not ("Paired" in pu_label.text) and not ("Str" in pu_label.text)
 		hud._show_unit(supp)   # support is not the lead → indicator hidden
 		var supp_hides: bool = pu_label != null and not pu_label.visible
 		if lead_shows and supp_hides:
-			print("OK  unit-info shows the Pair Up bonus on a paired lead, hides it otherwise (#8.5)")
+			print("OK  unit-info names the Pair Up support (no stat deltas) on a lead, hides it otherwise (V021-07)")
 			passed += 1
 		else:
 			print("FAIL pair-up indicator: lead_shows=%s supp_hides=%s text=%s" % [

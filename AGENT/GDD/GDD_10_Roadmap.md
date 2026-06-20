@@ -169,10 +169,13 @@ rerun note, not a defect.
        Left/Right step the flat order. Test: `test_unit_details_screen`. (The shared-selector
        extraction for V021-15 is deferred to that item — second consumer drives the
        abstraction.) `UnitDetailsScreen._input` selector model.
-6. [ ] **V021-07 — Map HUD pair-up line: drop stats, fix clipping (refines V020-09).**
+6. [x] **V021-07 — Map HUD pair-up line: drop stats, fix clipping (refines V020-09).**
        Tester ask: remove the per-stat pair-up bonus line from the *map* HUD and raise
        the default block position so the `Support: <name>` line is not cut off the
-       screen edge. (Stat breakdown still lives on the `I` sheet.) `HUD`.
+       screen edge. (Stat breakdown still lives on the `I` sheet.) **Done:**
+       `_pairup_bonus_text` now returns only `Support: <name>` (deltas + dead
+       `_STAT_SHORT` removed); `UnitInfoPanel` default `offset_top` raised 610→540.
+       Test: `test_hud`. `HUD`.
 7. [ ] **V021-08 — Long menus clip top/bottom at large Menu Scale.** Menus stay centered
        horizontally but the top and bottom of long menus (e.g. character sheet) get cut
        off at large scale. Vertical centering/fit, separate from the crispness rework

@@ -41,9 +41,9 @@ visible = false
 [node name="UnitInfoPanel" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_left = 8.0
-offset_top = 610.0
+offset_top = 540.0
 offset_right = 308.0
-offset_bottom = 712.0
+offset_bottom = 642.0
 mouse_filter = 2
 visible = false
 
