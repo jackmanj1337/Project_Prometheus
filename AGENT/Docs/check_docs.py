@@ -22,6 +22,7 @@ Checks:
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
  15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
  16. Resolutions  — RESOLUTION_CHOICES offers native 1440p + 4K (V021-19)
+ 17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
 """
 
 import re
@@ -535,6 +536,35 @@ def check_mouse_cursor_modes() -> None:
                   f"GDD_07 must document mouse_cursor mode `{mode}`")
 
 
+def check_duration_type_vocabulary() -> None:
+    """V021-09: GDD_07 must document every GameConstants.VALID_DURATION_TYPES value.
+
+    The vocabulary is enforced code-side by a test invariant (test_stat_breakdown asserts
+    each value renders a non-empty label), but nothing kept the GDD_07 §Character Sheet
+    list in sync with the const — a new duration type could land in code yet go undocumented.
+    This guard closes that gap (the doc-sync half of the V021-09 check-back). Mirrors the
+    mouse_cursor value-set check [14].
+    """
+    settings = ROOT / "scripts/shared/GameConstants.gd"
+    values = _parse_gd_string_array(settings, "VALID_DURATION_TYPES")
+    if values is None:
+        _fail("duration-vocab", settings, 1,
+              "could not parse VALID_DURATION_TYPES")
+        return
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        _fail("duration-vocab", gdd, 1, "GDD_07_UI_UX.md not found")
+        return
+    for value in values:
+        if f"`{value}`" not in content:
+            _fail("duration-vocab", gdd, 1,
+                  f"GDD_07 must document duration type `{value}` "
+                  "(VALID_DURATION_TYPES — keep the list in sync)")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -555,6 +585,7 @@ def main() -> None:
         ("[14] Mouse cursor modes",        check_mouse_cursor_modes),
         ("[15] Render/display config",     check_render_display_config),
         ("[16] Resolution choices",        check_resolution_choices),
+        ("[17] Duration-type vocabulary",  check_duration_type_vocabulary),
     ]
     for label, fn in steps:
         print(f"  {label}...")
