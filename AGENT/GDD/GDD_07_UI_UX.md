@@ -829,7 +829,11 @@ The accessibility and parity contract the UI must honor across input methods and
 - **Menu Scale** (`menu_scale_index` → `SettingsManager.MENU_SCALE_LEVELS`, 0.75×–2.0×):
   a Settings stepped slider scales menu/modal panels through the shared
   `menu_scale_targets` group. It does not change `Window.content_scale_factor`, so
-  persistent HUD readouts remain governed by HUD Layout.
+  persistent HUD readouts remain governed by HUD Layout. **V021-08:** `MenuScale.apply_to`
+  clamps the applied factor so a panel's scaled size always fits the viewport on both
+  axes (uniform, min-axis) — tall menus like the character sheet previously overflowed
+  the top/bottom edges at high scale and became unreachable. This is the layout-fit
+  fix; the separate crispness rework (V021-18, v0.2.3) replaces the `.scale` mechanism.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies

@@ -42,6 +42,8 @@ func _init() -> void:
 	for entry in contextual_cases:
 		await _check_context_menu_scale(String(entry[0]), String(entry[1]))
 
+	await _check_fit_clamp()
+
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
 
@@ -95,6 +97,30 @@ func _check_context_menu_scale(label: String, scene_path: String) -> void:
 		and node.pivot_offset == Vector2.ZERO
 	_ok(scales_from_top_left, "%s scales from top-left for cursor anchoring" % label)
 	node.queue_free()
+
+
+# V021-08: a menu taller than the viewport is clamped so its scaled height fits
+# (top + bottom stay reachable), while a small menu still scales to the full factor.
+func _check_fit_clamp() -> void:
+	var vp: Vector2 = root.get_visible_rect().size
+	var tall := Panel.new()
+	tall.size = Vector2(400, vp.y - 20.0)  # nearly the full viewport height already
+	root.add_child(tall)
+	await process_frame
+	MenuScale.apply_to(tall, 2.0, true)
+	var scaled_h: float = tall.size.y * tall.scale.y
+	_ok(scaled_h <= vp.y + 0.5 and tall.scale.y < 2.0,
+		"tall menu is clamped to fit the viewport height at large Menu Scale (V021-08)")
+	tall.queue_free()
+
+	var small := Panel.new()
+	small.size = Vector2(150, 150)
+	root.add_child(small)
+	await process_frame
+	MenuScale.apply_to(small, 2.0, true)
+	_ok(is_equal_approx(small.scale.x, 2.0),
+		"a small menu still scales to the full requested factor (V021-08)")
+	small.queue_free()
 
 
 func _visual_rect(control: Control) -> Rect2:

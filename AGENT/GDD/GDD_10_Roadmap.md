@@ -176,10 +176,12 @@ rerun note, not a defect.
        `_pairup_bonus_text` now returns only `Support: <name>` (deltas + dead
        `_STAT_SHORT` removed); `UnitInfoPanel` default `offset_top` raised 610→540.
        Test: `test_hud`. `HUD`.
-7. [ ] **V021-08 — Long menus clip top/bottom at large Menu Scale.** Menus stay centered
+7. [x] **V021-08 — Long menus clip top/bottom at large Menu Scale.** Menus stay centered
        horizontally but the top and bottom of long menus (e.g. character sheet) get cut
        off at large scale. Vertical centering/fit, separate from the crispness rework
-       (V021-18). `_apply_menu_scale` / menu-scale targets.
+       (V021-18). **Done:** `MenuScale.apply_to` clamps the applied factor so the scaled
+       panel fits the viewport on both axes (uniform); small menus still reach the full
+       factor. Test: `test_menu_scale` (+2). `MenuScale` / menu-scale targets.
 
 **Clarity / content requests:**
 
