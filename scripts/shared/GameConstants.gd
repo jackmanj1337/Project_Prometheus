@@ -54,6 +54,25 @@ const VALID_VULNERABILITY_GROUPS: Array[String] = [
 const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
 const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
 
+# Stat-modifier DISPLAY duration vocabulary (V021-09). This is the fixed set of
+# human-facing scope labels the character sheet renders via
+# StatBreakdown.format_duration; M8 conditions / M9 procs author against it so they
+# never reintroduce an ad-hoc string. NOTE: this is the *label*, not the tick point
+# — when a real modifier decrements is a separate concern carried by the lifecycle
+# duration_type on data.active_modifiers ("turn" = per-faction-phase, "map_turn" =
+# per round, "combat" = cleared at end of combat, "permanent" = never). The
+# 2026-06-20 M8 amendment maps "x turns" to the per-faction-phase ("turn") tick.
+#   this_combat     — one engagement (attack + its follow-ups/counters)
+#   until_separated — persists across combats until a Pair Up splits
+#   until_unequipped— persists while the granting weapon/item is held
+#   until_end_of_map— persists for the whole chapter
+#   x_turns         — counts down N turns, then expires
+#   permanent       — innate/class bonus; never expires (renders blank)
+const VALID_DURATION_TYPES: Array[String] = [
+	"this_combat", "until_separated", "until_unequipped",
+	"until_end_of_map", "x_turns", "permanent",
+]
+
 # Legacy authored keys that must be migrated in-repo instead of supported at load time.
 const LEGACY_WEXP_TRACKS: Array[String] = ["fire", "thunder", "wind"]
 

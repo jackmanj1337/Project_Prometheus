@@ -174,20 +174,36 @@ static func format_signed(value: int) -> String:
 	return "%+d" % value
 
 
-# Format the remaining-duration text. "combat" scope expires at end of combat
-# rather than on a turn counter, so it carries the -1 sentinel and must be
-# matched by type BEFORE the negative-remaining fallback (else Pair Up's "-1"
-# would print as a bare "—"). duration_type "permanent" or any other negative
-# remaining means never auto-removed and is shown as a dash.
+# Format the remaining-duration text for the character sheet. Handles both the
+# V021-09 display vocabulary (GameConstants.VALID_DURATION_TYPES) and the legacy
+# lifecycle types that real active_modifiers still carry (turn/map_turn/combat),
+# mapping each to the same human label. Scope labels that don't run on a counter
+# (this_combat, until_*, permanent) are matched by type BEFORE the negative-remaining
+# fallback, so their -1 sentinel doesn't print as a bare "—".
 static func format_duration(duration_type: String, remaining: int) -> String:
-	if duration_type == "combat":
-		return "this combat"
-	if duration_type == "permanent" or remaining < 0:
+	# Scope labels that don't run on a counter render regardless of `remaining`
+	# (they carry the -1 sentinel), so match them before the negative-remaining dash.
+	match duration_type:
+		"this_combat", "combat":
+			return "this combat"
+		"until_separated":
+			return "until separated"
+		"until_unequipped":
+			return "until unequipped"
+		"until_end_of_map":
+			return "until end of map"
+		"permanent":
+			return "—"
+	# Counter-based (x_turns/turn/map_turn) or unknown: a negative sentinel means
+	# never auto-removed → dash; otherwise show the count.
+	if remaining < 0:
 		return "—"
 	match duration_type:
-		"turn":     return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
-		"map_turn": return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
-		_:          return "%d" % remaining
+		"x_turns", "turn":
+			return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
+		"map_turn":
+			return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
+	return "%d" % remaining
 
 
 # Collects + groups modifiers for the requested stat. Same source ids are

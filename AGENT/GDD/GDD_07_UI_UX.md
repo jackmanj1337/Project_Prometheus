@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-19
+**Last verified:** 2026-06-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -459,9 +459,13 @@ The screen is read-only. It exists for inspection, not inventory management.
 **More Info integration:**
 - every class, stat, inventory entry, skill, and weapon-rank row is selectable
 - selection is driven three ways (V020-10): clicking a row, the cursor keys / d-pad
-  (`cursor_up`/`cursor_down`/`cursor_left`/`cursor_right`, handled in `_input` before
-  GUI focus navigation so arrows don't move button focus), or `more_info` (F) forward
-  cycling; the selected row is marked with a `▶` highlight
+  (handled in `_input` before GUI focus navigation so arrows don't move button focus),
+  or `more_info` (F) forward cycling; the selected row is marked with a `▶` highlight
+- the cursor keys follow the on-screen grid (V021-06): each entry records its visual
+  `(row, col)` during build (the stat block is two columns per row; skills share one
+  row), so **Up/Down** move to the nearest entry one row away (matching column) and
+  **Left/Right** step through the flat reading order. The earlier mapping pointed both
+  Up and Left at the same backward step, so Up/Down read as Left/Right across the grid.
 - stat entries show authored description text plus the full stat breakdown
 - inventory **weapon** entries show their full stat block in the side panel —
   Mt/Hit/Crit, Wt, range (resolved against the inspected unit), required rank +
@@ -489,12 +493,21 @@ The screen is read-only. It exists for inspection, not inventory management.
   `active_modifiers` outside a fight. `StatContributions` is the single authority
   the combat path also resolves through, and `test_stat_contributions.gd` is a
   drift guard asserting the sheet and combat report identical numbers. Each bonus's
-  duration is shown by scope: combat-only sources render **"this combat"** (they
-  carry the `-1` sentinel with `duration_type="combat"`, so `StatBreakdown.format_duration`
-  must match the type before the negative-remaining "—" fallback), turn/round
-  sources show their remaining count, and permanent sources show "—". (Aura skills
-  are M9 stubs that target hit/dodge/crit, not base stats, so they contribute
-  nothing here yet.)
+  duration is shown by **scope label** drawn from the fixed V021-09 vocabulary
+  (`GameConstants.VALID_DURATION_TYPES`, rendered by `StatBreakdown.format_duration`):
+  `this_combat` → "this combat", `until_separated` → "until separated" (Pair Up),
+  `until_unequipped` → "until unequipped", `until_end_of_map` → "until end of map",
+  `x_turns` → "N turns", `permanent` → "—" (always-on stat skills). **The label is
+  distinct from the lifecycle tick point.** A real `active_modifier` still carries its
+  own `duration_type` for *when it decrements/clears* (`turn` per faction phase,
+  `map_turn` per round, `combat` cleared at end of combat, `permanent` never) — Pair
+  Up, for instance, is stamped `combat` (recomputed each fight) yet displays "until
+  separated". `format_duration` accepts both the vocabulary and the legacy lifecycle
+  types and maps each to the same wording; scope labels are matched before the
+  negative-remaining "—" fallback so their `-1` sentinel isn't swallowed. M8
+  conditions / M9 procs author against this vocabulary so they never reintroduce an
+  ad-hoc string. (Aura skills are M9 stubs that target hit/dodge/crit, not base
+  stats, so they contribute nothing here yet.)
 
 This closes the v0.1.5.0 #8.5 surface gap: the Pair Up bonus now appears on the
 compact character sheet, the detailed stat breakdown, the HUD unit-info panel, and

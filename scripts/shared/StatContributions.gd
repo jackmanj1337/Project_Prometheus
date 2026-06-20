@@ -24,7 +24,9 @@ const _STAT_BONUS_EFFECT := "stat_bonus"
 
 # Returns combat-only contribution rows for one stat, each shaped like a
 # StatBreakdown mod row so they merge straight into the breakdown:
-#   {source_id, source_label, delta, duration_type:"combat", remaining:-1}
+#   {source_id, source_label, delta, duration_type, remaining:-1}
+# duration_type is a V021-09 display label (until_separated for Pair Up, permanent
+# for always-on stat skills), not the lifecycle tick type.
 #
 # deps keys (any may be absent — the matching source is then skipped):
 #   "registry"     PairUpRegistry  — is_lead / get_partner_id
@@ -58,7 +60,9 @@ static func _collect_pair_up(unit, stat_name: String, deps: Dictionary, out: Arr
 	var bonuses: Dictionary = res.call("bonuses_for", support)
 	var delta: int = int(bonuses.get(stat_name, 0))
 	if delta != 0:
-		out.append(_row("pair_up", "Pair Up", delta))
+		# Pair Up persists across combats until the pair separates (V021-09), even
+		# though combat stamps it as a duration_type="combat" lifecycle modifier.
+		out.append(_row("pair_up", "Pair Up", delta, "until_separated"))
 
 
 # Unconditional personal stat_bonus skills (Skill +2, Defense +2, …). Mirrors
@@ -86,14 +90,17 @@ static func _collect_stat_skills(unit, stat_name: String, deps: Dictionary, out:
 		var amount: int = int(skill.effect_params.get("amount", 0))
 		if amount != 0:
 			var label: String = String(skill.display_name) if String(skill.display_name) != "" else String(skill.id)
-			out.append(_row("skill:%s" % skill.id, label, amount))
+			# An unconditional personal stat skill is always on while the unit has it,
+			# so it reads as permanent (no expiry) rather than "this combat" (V021-09).
+			out.append(_row("skill:%s" % skill.id, label, amount, "permanent"))
 
 
-static func _row(source_id: String, source_label: String, delta: int) -> Dictionary:
+static func _row(source_id: String, source_label: String, delta: int,
+		duration_type: String = "this_combat") -> Dictionary:
 	return {
 		"source_id": source_id,
 		"source_label": source_label,
 		"delta": delta,
-		"duration_type": "combat",
+		"duration_type": duration_type,
 		"remaining": -1,
 	}

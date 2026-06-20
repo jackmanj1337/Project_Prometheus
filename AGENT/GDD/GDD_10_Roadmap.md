@@ -161,10 +161,14 @@ rerun note, not a defect.
        anchoring + editor size bounds. **Folded into V021-05** — the corner is a
        bottom-right-anchored VBox whose scale pivot is the same geometry the paging
        rework redefines; both are fixed together there.
-5. [ ] **V021-06 — Directional selector axis inversion (re-fail of V020-10 selector).**
+5. [x] **V021-06 — Directional selector axis inversion (re-fail of V020-10 selector).**
        On the character sheet, Up moves the selection Left and Down moves it Right; it
        only moves vertically when it can't move further horizontally. Should map Up/Down
-       to vertical traversal directly. `UnitDetailsScreen._input` selector model.
+       to vertical traversal directly. **Fixed:** each entry records a visual `(row, col)`
+       during build; Up/Down move to the nearest entry one row away (matching column),
+       Left/Right step the flat order. Test: `test_unit_details_screen`. (The shared-selector
+       extraction for V021-15 is deferred to that item — second consumer drives the
+       abstraction.) `UnitDetailsScreen._input` selector model.
 6. [ ] **V021-07 — Map HUD pair-up line: drop stats, fix clipping (refines V020-09).**
        Tester ask: remove the per-stat pair-up bonus line from the *map* HUD and raise
        the default block position so the `Support: <name>` line is not cut off the
@@ -176,13 +180,20 @@ rerun note, not a defect.
 
 **Clarity / content requests:**
 
-8. [ ] **V021-09 — Duration-tag taxonomy.** Decision 2026-06-20: replace ad-hoc
+8. [x] **V021-09 — Duration-tag taxonomy.** Decision 2026-06-20: replace ad-hoc
        `duration_type` strings with a fixed vocabulary rendered on the sheet and inherited
        by M8/M9 — `this combat` (one engagement incl. follow-ups/counters), `until
        separated` (Pair Up), `until unequipped` (held item/weapon), `until end of map`,
        `x turns`. Re-tag Pair Up→until separated, tonics→x turns, etc. Must not overload
-       the `combat` type M8 Hex / M9 procs use. `StatBreakdown`/`StatContributions` +
-       `GameConstants` vocabulary; see triage plan Workstream C.
+       the `combat` type M8 Hex / M9 procs use. **Done:** `GameConstants.VALID_DURATION_TYPES`
+       holds the vocabulary; `StatBreakdown.format_duration` renders it (and still accepts
+       the legacy lifecycle types for real `active_modifiers`); `StatContributions` re-tags
+       Pair Up→`until_separated` and always-on stat skills→`permanent`. **Label vs tick
+       point kept separate** (F2): the display tag is independent of the lifecycle
+       `duration_type` that controls *when* a modifier decrements/clears, so `combat`
+       (M8 Hex / M9 procs) is not overloaded. DoD#2: `test_stat_breakdown` asserts every
+       `VALID_DURATION_TYPES` value renders a non-empty label. `StatBreakdown`/
+       `StatContributions`/`GameConstants`.
 9. [ ] **V021-10 — Relocate class summary into class More Info.** Move most of the
        class-row detail (tier, traits, weapon families, skills) out of the inline sheet
        row and into the class **More Info** side panel; keep the row compact.

@@ -50,9 +50,15 @@ var _unit: Node = null
 var _paired_unit: Node = null
 
 # Ordered list of selectable entries built during populate. Each entry is
-# {"category": String, "key": String, "title": String}. `more_info` (F)
-# advances through this list; clicks jump straight to the matching entry.
+# {"category": String, "key": String, "title": String, "row": int, "col": int}.
+# `more_info` (F) advances through this list; clicks jump straight to the matching
+# entry; the cursor keys navigate the (row, col) grid (V021-06).
 var _entries: Array = []
+
+# Running visual-row counter used while the formatters build _entries, so each
+# entry records the on-screen row it renders on (most sections are one row per
+# entry; the stat block is two columns per row; skills share a single row).
+var _grid_row: int = 0
 
 # Index into _entries for the currently displayed side-panel entry. -1 means
 # no entry is selected yet — the hint is visible and description/mods are
@@ -89,6 +95,7 @@ func open(unit: Node) -> void:
 		return
 	_unit = unit
 	_entries.clear()
+	_grid_row = 0
 	_current_index = -1
 	var d: UnitData = unit.data
 	# Title shows the friendly class display name (V020-11), falling back to the
@@ -113,6 +120,17 @@ func open(unit: Node) -> void:
 	_btn_back.grab_focus()
 
 
+# Registers one selectable entry at the current visual row and the given column.
+# Row advancement is the caller's job (it knows when a visual row is complete), so
+# the stat block can put two entries on one row while single-column sections bump
+# the row per entry.
+func _append_entry(category: String, key: String, title: String, col: int = 0) -> void:
+	_entries.append({
+		"category": category, "key": key, "title": title,
+		"row": _grid_row, "col": col,
+	})
+
+
 # Builds the compact class section (V020-11): a selectable class row plus one or
 # two lines of traits, allowed weapon families, and class skill unlocks. Clicking
 # it (or F-cycling to it) shows the full ClassData.description in the side panel.
@@ -122,10 +140,12 @@ func _format_class(unit: Node, class_data: ClassData) -> String:
 	if class_data == null:
 		# No class data resolved — keep the row selectable on the raw id so the
 		# player still gets a (fallback) description rather than a dead row.
-		_entries.append({"category": "class", "key": d.class_id, "title": d.class_id})
+		_append_entry("class", d.class_id, d.class_id)
+		_grid_row += 1
 		return "[url=class:%s]Class: %s[/url]" % [d.class_id, d.class_id]
 	var display: String = class_data.display_name if class_data.display_name != "" else class_data.id
-	_entries.append({"category": "class", "key": class_data.id, "title": display})
+	_append_entry("class", class_data.id, display)
+	_grid_row += 1
 	var lines: Array[String] = [
 		"[url=class:%s]Class: %s  (Tier %d)[/url]" % [class_data.id, display, class_data.tier],
 	]
@@ -152,7 +172,8 @@ func _format_stats(unit: Node) -> String:
 	# HP is shown for context but is not selectable as a modifier-bearing
 	# stat row (max_hp tracking is a separate concern). Make it a plain link
 	# so the player can still read its More Info description.
-	_entries.append({"category": "stat", "key": "hp", "title": "HP"})
+	_append_entry("stat", "hp", "HP")
+	_grid_row += 1
 	var lines: Array[String] = [
 		"[url=stat:hp]HP   %d / %d[/url]" % [d.hp, d.max_hp],
 	]
@@ -170,8 +191,10 @@ func _format_stats(unit: Node) -> String:
 		["constitution", "line_of_sight"],
 	]
 	for pair in pairs:
-		var left_link  := _stat_link(unit, pair[0])
-		var right_link := _stat_link(unit, pair[1])
+		# Each pair is one visual row: left column, right column, then advance.
+		var left_link  := _stat_link(unit, pair[0], 0)
+		var right_link := _stat_link(unit, pair[1], 1)
+		_grid_row += 1
 		lines.append("%s  %s" % [left_link, right_link])
 	lines.append("Internal Lv  %d" % d.internal_level)
 	lines.append("EXP  %d / 100" % d.exp)
@@ -181,13 +204,13 @@ func _format_stats(unit: Node) -> String:
 # Builds one selectable stat row: friendly label, current colored value, and
 # registers an entry for F-cycling. Boosted = green, lowered = red, unchanged
 # = default colour — same convention the previous inline formatter used.
-func _stat_link(unit: Node, stat_name: String) -> String:
+func _stat_link(unit: Node, stat_name: String, col: int = 0) -> String:
 	var extra_mods: Array = StatContributions.for_stat(unit, stat_name, _contribution_deps())
 	var bd: Dictionary = StatBreakdown.build(unit, stat_name, null, extra_mods)
 	var label: String = bd["label"]
 	var current: int = bd["effective_display"]
 	var base: int = bd["base"]
-	_entries.append({"category": "stat", "key": stat_name, "title": label})
+	_append_entry("stat", stat_name, label, col)
 	var value_text: String = "%-3d" % current
 	var coloured: String
 	if current > base:
@@ -221,11 +244,8 @@ func _format_inventory(d: UnitData) -> String:
 			entry_key = "item:" + entry.item_id
 		# -1 is the infinite-use sentinel — show ∞ rather than a literal "-1".
 		var uses: String = "∞" if entry.uses_remaining == -1 else str(entry.uses_remaining)
-		_entries.append({
-			"category": "inventory",
-			"key": entry_key,
-			"title": label,
-		})
+		_append_entry("inventory", entry_key, label)
+		_grid_row += 1
 		lines.append("  [url=inventory:%s]%s  (%s)[/url]" % [entry_key, label, uses])
 	return "\n".join(lines)
 
@@ -265,9 +285,14 @@ func _format_skills(d: UnitData) -> String:
 	if d.skills.is_empty():
 		return "Skills: (none)"
 	var rendered: Array[String] = []
+	# All skills render inline on one line, so they share a single visual row;
+	# give each its own column so Left/Right step between them and Up/Down leave.
+	var skill_col: int = 0
 	for skill_id in d.skills:
-		_entries.append({"category": "skill", "key": skill_id, "title": skill_id})
+		_append_entry("skill", skill_id, skill_id, skill_col)
+		skill_col += 1
 		rendered.append("[url=skill:%s]%s[/url]" % [skill_id, skill_id])
+	_grid_row += 1
 	return "Skills: " + ", ".join(rendered)
 
 
@@ -295,7 +320,8 @@ func _format_weapon_wexp(unit: Node) -> String:
 			progress_text = "%d / %d to %s" % [total, GameConstants.minimum_wexp_for_rank(next_rank), next_rank]
 		var line := "%s  %s  %s" % [_display_track_name(track), rank, progress_text]
 		var available: bool = unit.has_method("is_weapon_track_available") and unit.is_weapon_track_available(track)
-		_entries.append({"category": "wexp", "key": track, "title": _display_track_name(track)})
+		_append_entry("wexp", track, _display_track_name(track))
+		_grid_row += 1
 		if available:
 			lines.append("[url=wexp:%s]%s[/url]" % [track, line])
 		else:
@@ -545,10 +571,19 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_on_pair_button_pressed()
 		return
-	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_left"):
+	# V021-06: Up/Down traverse the on-screen grid vertically; Left/Right step
+	# through the flat reading order. The old mapping pointed both Up and Left at
+	# the same -1 flat step, so Up/Down read as Left/Right across the stat grid.
+	if event.is_action_pressed("cursor_up"):
+		_move_vertical(-1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("cursor_down"):
+		_move_vertical(1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("cursor_left"):
 		_move_selection(-1)
 		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_down") or event.is_action_pressed("cursor_right"):
+	elif event.is_action_pressed("cursor_right"):
 		_move_selection(1)
 		get_viewport().set_input_as_handled()
 
@@ -591,6 +626,66 @@ func _move_selection(delta: int) -> void:
 	var e: Dictionary = _entries[_current_index]
 	_refresh_highlight()
 	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
+
+
+# V021-06: moves the selection one visual row up (dir<0) or down (dir>0), landing
+# on the entry in that row whose column is nearest the current one (so leaving the
+# right stat column lands under it, not back at the left). Wraps at the ends. The
+# first press from "nothing selected" behaves like a flat step, matching F-cycle.
+func _move_vertical(dir: int) -> void:
+	if _entries.is_empty():
+		return
+	if _current_index < 0:
+		_move_selection(1 if dir > 0 else -1)
+		return
+	var cur: Dictionary = _entries[_current_index]
+	var cur_row: int = int(cur.get("row", 0))
+	var cur_col: int = int(cur.get("col", 0))
+	var target_row: int = _adjacent_row(cur_row, dir)
+	if target_row == cur_row:
+		return
+	var best_idx: int = -1
+	var best_dist: int = 1 << 30
+	for i in _entries.size():
+		if int(_entries[i].get("row", 0)) != target_row:
+			continue
+		var dist: int = absi(int(_entries[i].get("col", 0)) - cur_col)
+		if dist < best_dist:
+			best_dist = dist
+			best_idx = i
+	if best_idx < 0:
+		return
+	_current_index = best_idx
+	var e: Dictionary = _entries[_current_index]
+	_refresh_highlight()
+	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
+
+
+# Returns the nearest row with entries strictly above (dir<0) or below (dir>0)
+# `from_row`, wrapping to the far end when none exists in that direction. Returns
+# `from_row` only when no other row exists at all.
+func _adjacent_row(from_row: int, dir: int) -> int:
+	var best: int = from_row
+	var found: bool = false
+	for e in _entries:
+		var r: int = int(e.get("row", 0))
+		if dir > 0 and r > from_row and (not found or r < best):
+			best = r
+			found = true
+		elif dir < 0 and r < from_row and (not found or r > best):
+			best = r
+			found = true
+	if found:
+		return best
+	# No row in that direction — wrap to the extreme row at the opposite end.
+	var wrap: int = from_row
+	var wfound: bool = false
+	for e in _entries:
+		var r: int = int(e.get("row", 0))
+		if (dir > 0 and (not wfound or r < wrap)) or (dir < 0 and (not wfound or r > wrap)):
+			wrap = r
+			wfound = true
+	return wrap if wfound else from_row
 
 
 # Re-applies the row marker for the currently-selected entry. Each section label

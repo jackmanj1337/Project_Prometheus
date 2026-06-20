@@ -314,6 +314,34 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL directional selection produced no highlighted row"); failed += 1
 
+	# V021-06: Up/Down move vertically across the stat grid; Left/Right horizontally.
+	# strength (row r, col 0) and magic (same row, col 1) are one stat row; skill
+	# (next row, col 0) is directly below strength.
+	var _idx_of := func(cat: String, key: String) -> int:
+		for i in screen._entries.size():
+			if screen._entries[i].get("category") == cat and screen._entries[i].get("key") == key:
+				return i
+		return -1
+	var str_idx: int = _idx_of.call("stat", "strength")
+	var mag_idx: int = _idx_of.call("stat", "magic")
+	var skl_idx: int = _idx_of.call("stat", "skill")
+	# Right from strength lands on magic (same row, next column).
+	screen._current_index = str_idx
+	var right_ev := InputEventAction.new(); right_ev.action = "cursor_right"; right_ev.pressed = true
+	screen._input(right_ev)
+	if screen._current_index == mag_idx:
+		print("OK  V021-06 Left/Right steps within a stat row (strength -> magic)"); passed += 1
+	else:
+		print("FAIL V021-06 horizontal: expected magic(%d) got %d" % [mag_idx, screen._current_index]); failed += 1
+	# Down from strength lands on skill (row below, same column) — not magic.
+	screen._current_index = str_idx
+	var down_ev := InputEventAction.new(); down_ev.action = "cursor_down"; down_ev.pressed = true
+	screen._input(down_ev)
+	if screen._current_index == skl_idx:
+		print("OK  V021-06 Down moves to the row below (strength -> skill)"); passed += 1
+	else:
+		print("FAIL V021-06 vertical: expected skill(%d) got %d" % [skl_idx, screen._current_index]); failed += 1
+
 	# _close() hides the page, emits `closed`, and clears local state so the
 	# next open() starts from a clean slate.
 	var closed_seen := [false]

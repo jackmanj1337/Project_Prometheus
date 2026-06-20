@@ -75,7 +75,11 @@ var mastery_skills: Array[String] = []
 # Active temporary stat modifiers. Each entry:
 #   { "stat": String, "delta": int, "source": String, "duration": int,
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
-# "duration" = -1 means never auto-removed. "permanent" type is never decremented.
+# This `duration_type` is the LIFECYCLE tick point (when the modifier decrements /
+# is cleared), NOT the display label — the character sheet's human scope wording is
+# the separate V021-09 vocabulary (GameConstants.VALID_DURATION_TYPES), mapped by
+# StatBreakdown.format_duration. "duration" = -1 means never auto-removed;
+# "permanent" type is never decremented.
 var active_modifiers: Array[Dictionary] = []
 
 # Per-map use counters for limited skills. Keys = skill.id, values = times used.

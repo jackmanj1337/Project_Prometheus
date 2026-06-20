@@ -70,6 +70,32 @@ func _init() -> void:
 	else:
 		print("FAIL format_duration"); failed += 1
 
+	# ---- V021-09: the display vocabulary renders distinct human labels ----
+	var vocab_ok: bool = (
+		StatBreakdown.format_duration("this_combat", -1) == "this combat"
+		and StatBreakdown.format_duration("until_separated", -1) == "until separated"
+		and StatBreakdown.format_duration("until_unequipped", -1) == "until unequipped"
+		and StatBreakdown.format_duration("until_end_of_map", -1) == "until end of map"
+		and StatBreakdown.format_duration("x_turns", 2) == "2 turns"
+		and StatBreakdown.format_duration("x_turns", 1) == "1 turn"
+	)
+	if vocab_ok:
+		print("OK  format_duration renders the V021-09 display vocabulary"); passed += 1
+	else:
+		print("FAIL V021-09 vocabulary labels"); failed += 1
+
+	# DoD#2: every ratified VALID_DURATION_TYPES value must render a non-empty label
+	# (no vocabulary entry may fall through to a bare/unhandled string).
+	var coverage_ok: bool = true
+	for dt in GameConstants.VALID_DURATION_TYPES:
+		if StatBreakdown.format_duration(dt, 1) == "":
+			coverage_ok = false
+			print("  unhandled duration type: %s" % dt)
+	if coverage_ok:
+		print("OK  format_duration handles every VALID_DURATION_TYPES entry (DoD#2)"); passed += 1
+	else:
+		print("FAIL VALID_DURATION_TYPES coverage"); failed += 1
+
 	# ---- null unit returns a safe empty shape -----------------------------
 	var empty: Dictionary = StatBreakdown.build(null, "strength")
 	if empty["stat"] == "strength" and empty["label"] == "Str" \
