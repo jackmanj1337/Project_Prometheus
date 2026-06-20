@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-19
+**Last verified:** 2026-06-20
 
 ---
 
@@ -114,8 +114,14 @@ Live action list for the returned v0.2.1 pass. Evidence:
 
 v0.2.1 re-verified the v0.2.0 fixes: **1.1/1.2/1.3/1.5 passed** (camera jitter,
 live map-zoom slider, forecast placement, one-based Seize coords). Items below are the
-new failures, requests, and reopened backlog from this return. Scope/ordering for the
-next build is decided in the triage plan; statuses here are open until scheduled.
+new failures, requests, and reopened backlog from this return.
+
+**Approved for implementation (2026-06-20)**, split into two builds: **v0.2.2** (fixes +
+UI + designed systems) and **v0.2.3 "Display Scaling & Resolution"** (`V021-18` + `V021-19`
+only — see F4 in the triage plan). Implementation playbook:
+`AGENT/Docs/handoff_2026-06-20.md`. A forward-compatibility review (2026-06-20) folded M8/
+M9/M12/M15 + input-parity linkages into the plan. Statuses here stay open until each item
+lands.
 
 **Error-log check:** returned unmarked with no comment — treat as `NOT RUN` pending a
 rerun note, not a defect.
@@ -156,9 +162,13 @@ rerun note, not a defect.
 
 **Clarity / content requests:**
 
-8. [ ] **V021-09 — Pair Up duration wording.** Change `(this combat)` to
-       `(until separated)` for Pair Up effects. `StatBreakdown.format_duration` /
-       contribution labels.
+8. [ ] **V021-09 — Duration-tag taxonomy.** Decision 2026-06-20: replace ad-hoc
+       `duration_type` strings with a fixed vocabulary rendered on the sheet and inherited
+       by M8/M9 — `this combat` (one engagement incl. follow-ups/counters), `until
+       separated` (Pair Up), `until unequipped` (held item/weapon), `until end of map`,
+       `x turns`. Re-tag Pair Up→until separated, tonics→x turns, etc. Must not overload
+       the `combat` type M8 Hex / M9 procs use. `StatBreakdown`/`StatContributions` +
+       `GameConstants` vocabulary; see triage plan Workstream C.
 9. [ ] **V021-10 — Relocate class summary into class More Info.** Move most of the
        class-row detail (tier, traits, weapon families, skills) out of the inline sheet
        row and into the class **More Info** side panel; keep the row compact.
@@ -202,15 +212,15 @@ rerun note, not a defect.
         in this mode. Touchscreen-relevant. Full design:
         `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md` (re-introduces a third
         `mouse_cursor` value). Couples with V021-05.
-18. [ ] **V021-18 — Crisp scaling rework (DESIGN).** Menu/HUD elements look soft at
-        non-1× scales because scaling zooms the rendered UI. Investigate resizing fonts
-        and element metrics instead of scaling the canvas. Larger rework; affects Menu
-        Scale and HUD Layout scaling.
-19. [ ] **V021-19 — Native 1440p / 4K + platform safe-areas (PLATFORM).** Add native
+18. [ ] **V021-18 — Crisp scaling rework (v0.2.3, DESIGN).** Menu/HUD elements look soft at
+        non-1× scales because scaling zooms the rendered UI (Control-node `.scale`).
+        Replace with theme font-size / control-metric scaling. Larger rework; affects Menu
+        Scale (v0.2.0 V020-16) and HUD Layout. **Split into v0.2.3** with V021-19 (F4).
+19. [ ] **V021-19 — Native 1440p / 4K + platform safe-areas (v0.2.3, PLATFORM).** Add native
         1440p and 4K resolution options; note Steam Deck and mobile resolutions, and keep
         rounded corners / notches / hole-punches (safe-area insets) in mind for the
         polished UI. Ties to OPEN-11 (Steam Deck) and the Renderer & Platform Targets
-        gate above.
+        gate above. **Split into v0.2.3** with V021-18 (one coupled display system).
 
 ---
 
