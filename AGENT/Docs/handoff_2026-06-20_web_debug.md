@@ -1,7 +1,22 @@
 # Implementation Handoff - Debug Web Playtest - 2026-06-20
 
-Status: Ready for implementation
+Status: Planned - starts AFTER the v0.2.3 display build lands
 Last verified: 2026-06-20
+
+## Program order (decided 2026-06-20)
+
+**The v0.2.3 display build comes first; this web build is the session after it.** v0.2.3
+lands the shared foundation - Compatibility renderer (D1), explicit `stretch/aspect=keep`
+(E5), crisp scaling, safe-area provider - so by the time this track starts:
+
+- The renderer is **already** Compatibility. Slice 1 below drops the renderer change and
+  becomes "Web preset + metadata tests" only. (Only redo the renderer here if v0.2.3 was
+  skipped.)
+- Text crispness (V021-18) is already shipped, so it is no longer a live-check risk.
+- The "Current State" notes below were written before v0.2.3; re-verify them at session
+  start (renderer, metadata, commit count will have moved).
+
+Do not start this track until v0.2.3 is implemented and verified, unless explicitly asked.
 
 ## Purpose
 
@@ -60,12 +75,15 @@ hosting UX.
 
 ## First Implementation Slice
 
-Recommended first commit: renderer + Web export preset + metadata tests.
+Recommended first commit: Web export preset + metadata tests. (Renderer switch to
+Compatibility is assumed already done by the v0.2.3 build per Program order above — verify
+`project.godot` has `rendering_method="gl_compatibility"` at session start; only add it here
+if v0.2.3 was skipped.)
 
 Touch:
 
-- `project.godot`
 - `export_presets.cfg`
+- `project.godot` (verify renderer only; no change expected post-v0.2.3)
 - `scripts/tests/test_release_metadata.gd` or a new focused Web export metadata test
 - `AGENT/Docs/environment_setup.md`
 - `AGENT/GDD/GDD_01_Architecture.md`
