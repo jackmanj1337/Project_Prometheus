@@ -160,6 +160,16 @@ handoff/design docs and session notes — they now have a tracked home here (ind
 renderer/scaling foundation. The §Release Gates *Renderer & Platform Targets* entry remains the
 platform-policy owner; this section is the build/sequencing owner.
 
+**Sequencing decision (2026-06-20j):** the input-mode design models the debug-web shell as a
+*consumer* of the gamepad layer ("the debug-web emulator shell == the Virtual-gamepad touch
+style", nearly free once the gamepad layer exists), but the Web build's slice 3 otherwise builds
+a bespoke throwaway `WebInputBridge`. To avoid building that throwaway twice, **plan the
+input-mode/gamepad layer before finalizing the Web build's input approach.** Planning order
+(docs-only, unblocked now): resolve the 4 open input-mode decisions → V021-15 selector extraction
+design → gamepad layer impl plan (folding in key-rebind UI + the gamepad binding audit) → *then*
+re-decide whether the Web shell rides the gamepad layer or keeps a throwaway bridge. This does
+not change v0.2.3 as the next execution build; it orders the *planning* track.
+
 ### Debug Web playtest build `[ ]`
 
 Private iPhone 14 Pro debug Web channel. **Not** mobile platform support — a debug playtest
