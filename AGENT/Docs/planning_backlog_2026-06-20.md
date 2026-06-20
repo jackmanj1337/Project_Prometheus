@@ -32,11 +32,13 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
     plan + headless test plan for the detect-floor/conditional-promotion resolver and
     gray/fallback logic, plus the DoD#2 `check_docs` guard spec for `input_mode` /
     `touch_controls` value-sets.
-- **V021-15 — shared selector extraction.**
-  - State: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
+- **V021-15 — shared selector extraction. ✅ DESIGN DONE (2026-06-20j):**
+  `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
+  - Was: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
     F-paging); no extraction design. It is the single joypad-wiring point.
-  - Plan should produce: a component design (focus model, input contract, how each of the
-    three consumers adopts it) so the gamepad-binding work has one wiring point.
+  - Produced: scope = extract a `SelectionCursor` navigation core + an input-routing/arbiter
+    convention (NOT a unified render widget); rendering stays per-surface; per-consumer
+    adoption notes + headless test plan. Implements with the gamepad layer.
 - **Key rebinding UI.**
   - State: `SettingsManager.rebind_action` exists; the capture UI does not; backlog bullet only.
   - Plan should produce: capture-UI flow (conflict handling, reset-to-default, persistence)

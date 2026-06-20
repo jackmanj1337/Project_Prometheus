@@ -92,7 +92,7 @@ opens or closes (DoD#1).
 | Item | Status | Detail home |
 | --- | --- | --- |
 | V021-04 — terrain corner-snap on editor scale | [ ] | §v0.2.1 findings (deferred to a live-verify follow-up) |
-| V021-15 — shared selector extraction (single joypad-wiring point) | [ ] | §v0.2.1 findings (deferred to the gamepad/key-rebind milestone) |
+| V021-15 — shared selector extraction (single joypad-wiring point) | [ ] design ready | §v0.2.1 findings; design `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` |
 | V021-12 — class-skill More Info drilldown | [ ] | Phase 3 Backlog §Polish |
 | V021-18 / V021-19 — crisp scaling + native 1440p/4K (live-verify remaining) | [~] | §v0.2.1 findings |
 
@@ -400,8 +400,11 @@ rerun note, not a defect.
         V021-06, forecast `_entries`/F-cycle, terrain F-paging V021-05); the remaining work
         is the *architectural* extraction into one shared selector component — the single
         joypad-wiring point for the gamepad/key-rebind milestone (F5). Refactoring three
-        working surfaces is best done there with live verification. Tracked in
-        `v0.2.2_review_checkbacks_2026-06-20.md`.
+        working surfaces is best done there with live verification. **Design ready
+        (2026-06-20j):** `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` —
+        scope = extract a `SelectionCursor` navigation core + an input-routing/arbiter
+        convention (NOT a unified render widget); rendering stays per-surface. Also tracked
+        in `v0.2.2_review_checkbacks_2026-06-20.md`.
 
 **New feature requests / design projects (need design before scheduling):**
 
@@ -2690,3 +2693,4 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
 | `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
 | `AGENT/Docs/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
+| `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` | V021-15 shared selector / More-Info navigation extraction design |
