@@ -24,14 +24,15 @@ planning session would write.
 Sequenced right after the Debug Web build; the gamepad layer is the keystone for Steam
 Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to plan.
 
-- **Input-mode / gamepad implementation plan.**
-  - State: architecture design exists (`input_mode_architecture_design_2026-06-20.md`) but
-    has **4 unresolved open decisions** and no build/test plan.
-  - Plan should produce: resolve the 4 decisions (default touch style; `mouse_cursor` cfg
-    location / `[input]` section; glyph swapping scope; Deck aspect), then a sliced build
-    plan + headless test plan for the detect-floor/conditional-promotion resolver and
-    gray/fallback logic, plus the DoD#2 `check_docs` guard spec for `input_mode` /
-    `touch_controls` value-sets.
+- **Input-mode / gamepad implementation plan. ✅ DECISIONS + GAMEPAD ARM DONE (2026-06-20j).**
+  - The 4 open decisions are resolved (see `input_mode_architecture_design_2026-06-20.md`
+    → Resolved decisions) and the **gamepad arm** has a full impl plan:
+    `gamepad_layer_implementation_plan_2026-06-20.md` (action map, focus wiring, bindings,
+    analog repeat, `input_mode_changed` seam, 4 slices, test plan).
+  - **Still to plan:** the broader Auto/Touch/K&M detect-floor/conditional-promotion
+    resolver + gray/back-door availability logic + the DoD#2 `check_docs` guard for the
+    `input_mode` / `touch_controls` value-sets (the gamepad plan implements only the gamepad
+    arm of the resolver + emits the signal).
 - **V021-15 — shared selector extraction. ✅ DESIGN DONE (2026-06-20j):**
   `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
   - Was: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
@@ -77,7 +78,9 @@ Larger; build from `campaign_rules_firming_notes_2026-05-25.md` (has open questi
 
 ## 4. UI / UX enhancements — backlog bullets, no plans
 
-Range-on-hover overlay; movement path arrows; individual unit threat range; grid-visibility
+Range-on-hover overlay; movement path arrows; **individual unit threat range (now a
+prerequisite — the gamepad contextual R3 danger-zone is gated on it; see
+`gamepad_layer_implementation_plan_2026-06-20.md` §4)**; grid-visibility
 slider; camera settings (edge-pan buffer + scroll responsiveness); attack-by-target
 selection; richer combat prediction (crit / triangle / effective flags); combat-prediction
 layout; minimap toggle. Each needs a short design before scheduling; several pair naturally

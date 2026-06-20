@@ -194,6 +194,16 @@ platforms**: the gamepad mode is the shared backbone of Steam Deck + phone-with-
 virtual-gamepad touch + the debug-web shell, so building it once unlocks all four. **Keystone
 dependency: zero gamepad bindings exist today.**
 
+**Gamepad-arm implementation plan (2026-06-20j):**
+`AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` — the locked 19-action map
+(direct/menu-only/contextual/excluded), the resolved focus wiring (bind joypad to BOTH the
+`ui_*` built-ins *and* the custom `cursor_*`/`confirm`/`cancel`, grounded in the hybrid menu
+model), the `project.godot` binding table, analog-stick auto-repeat, the `input_mode_changed`
+seam + focus-grab on mode switch, 4 build slices, and the headless test plan.
+**Dependency edge:** the contextual R3 danger-zone (per-enemy threat range) is gated on the
+UI/UX backlog item *individual unit threat range* — the plan ships the resolver + faction-wide
+arm now and leaves the per-enemy arm behind that feature.
+
 - Setting = `Auto | Gamepad | Touch | Keyboard & Mouse`; active mode derived at runtime.
 - Detect-floor + conditional promotion (boot + every device connect/disconnect; platform-seeded
   cold start). Gray-don't-hide unsupported modes **plus** a back-door fallback so a player who
@@ -2694,3 +2704,4 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
 | `AGENT/Docs/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
 | `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` | V021-15 shared selector / More-Info navigation extraction design |
+| `AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` | Gamepad input layer impl plan (action map, focus wiring, bindings, slices) |
