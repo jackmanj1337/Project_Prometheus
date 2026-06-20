@@ -223,8 +223,8 @@ rerun note, not a defect.
         `test_unit_details_screen`. `GridManager`/`GameConstants`/`Unit`/`data/classes`.
 11. [ ] **V021-12 — (bonus) Clickable skill info boxes in class More Info.** Class skills
         listed in More Info should spawn their own description info boxes when
-        clicked/selected, reusing the stat selector model. Depends on V021-06 selector
-        fix. Stretch.
+        clicked/selected, reusing the stat selector model. **Deferred to Polish phase**
+        by user decision 2026-06-20; do not hold v0.2.2 closeout for this.
 
 **Reopened deferred issues (tester reopened explicitly):**
 
@@ -2308,6 +2308,9 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] [PLACEHOLDER] All unit sprites and class portraits
 - [ ] [PLACEHOLDER] Terrain tile sprites
 - [ ] [PLACEHOLDER] UI panel art and Shift Gauge visual
+- [ ] **Class-skill More Info drilldown (V021-12)** — class-skill entries listed in class
+      More Info open their own description boxes when clicked/selected. Build with the
+      shared selector/input-parity work so keyboard, mouse, and gamepad paths stay aligned.
 - [ ] [PLACEHOLDER] Combat animations — hit, miss, crit, death
 - [ ] [PLACEHOLDER] Skill activation flash effects
 - [ ] [PLACEHOLDER] Music per phase and map

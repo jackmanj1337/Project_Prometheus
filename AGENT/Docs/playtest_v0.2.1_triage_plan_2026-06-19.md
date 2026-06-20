@@ -392,10 +392,11 @@ Plan:
 Flying cost rule: **resolved (2026-06-20)** — flat 1 on all terrain except `wall`
 (impassable). No remaining open question for this item.
 
-### V021-12 — (stretch) clickable skill info boxes
+### V021-12 — clickable skill info boxes
 
 After V021-06, let class-skill entries in More Info open their own description boxes via
-the same selector. Depends on the selector fix; schedule as stretch.
+the same selector. User decision 2026-06-20: defer to the Polish phase instead of holding
+v0.2.2 closeout; build alongside shared selector/input-parity work.
 
 ### V021-15 — Shared directional selector for forecast + terrain (reopened)
 
