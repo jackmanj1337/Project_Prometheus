@@ -865,6 +865,15 @@ The accessibility and parity contract the UI must honor across input methods and
   movable and use Menu Scale instead.
   Terrain More Info expands above the compact terrain panel; layout offsets anchor the
   compact panel so Reset/Edit keep it in place while the expanded box is open.
+  **Terrain More Info paging (V021-05):** the `more_info` key (`F`) cycles the terrain
+  surface **Hidden → Description → Movement → Hidden** (`_terrain_more_page`: −1 hidden,
+  0 description + tile actions, 1 the move-cost table incl. the Flying row). "Hidden" is
+  the default and fully hides the box so the map area behind it is reclaimed; the compact
+  readout stays visible. Pages are logical groupings of the existing expanded rows (no
+  scene-tree restructure), so the panel auto-sizes to the active page and
+  `_terrain_expanded_offset` derives the reflow from the active page's height — which
+  hardens the V021-02 reset bug (the offset is computed, never cached). `Def`/`Dodge`
+  live on the always-visible compact panel, so the movement page doesn't restate them.
 
 **Planned.**
 - **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the

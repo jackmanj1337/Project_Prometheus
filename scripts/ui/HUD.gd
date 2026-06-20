@@ -50,11 +50,17 @@ var _unit_is_selected: bool = false  # true while a player unit is actively sele
 var _selected_unit: Node = null  # the actively selected unit (fallback for empty tiles during selection — playtest 3 #6)
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 var _displayed_unit: Node = null  # unit currently shown in the info panel (null when hidden)
-# Phase 1 More Info terrain expansion. Toggled by the `more_info` action
-# when no higher-priority More Info panel is visible. Off by default — the
-# compact terrain readout stays the at-a-glance view; expanded mode is for
-# learning what the tile does.
-var _terrain_expanded: bool = false
+# Terrain More Info paging (V021-05). The `more_info` action (F) cycles the terrain
+# More Info surface through Hidden → Description → Movement → Hidden when no
+# higher-priority More Info panel is visible. "Hidden" fully hides the box (frees map
+# area); the compact terrain readout stays visible throughout. Logical pages: each
+# page shows a subset of the existing expanded rows, so the panel auto-sizes to the
+# active page and the reflow offset is derived from it (hardens the V021-02 reset bug).
+const TERRAIN_PAGE_HIDDEN: int = -1
+const TERRAIN_PAGE_DESCRIPTION: int = 0
+const TERRAIN_PAGE_MOVEMENT: int = 1
+const TERRAIN_PAGE_COUNT: int = 2
+var _terrain_more_page: int = TERRAIN_PAGE_HIDDEN
 
 # Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
@@ -243,15 +249,18 @@ func _layout_position_from_panel_position(panel_id: String, panel: Control) -> V
 
 
 func _terrain_expanded_offset(scale_v: Vector2) -> Vector2:
-	if not _terrain_expanded or _terrain_more_panel == null or not _terrain_more_panel.visible:
+	if _terrain_more_page < 0 or _terrain_more_panel == null or not _terrain_more_panel.visible:
 		return Vector2.ZERO
 	var corner := get_layout_panel("terrain_corner")
 	var separation: float = 0.0
 	if corner is BoxContainer:
 		separation = float((corner as BoxContainer).get_theme_constant("separation"))
-	var more_h: float = _terrain_more_panel.size.y
+	# Derive the offset from the *active page's* current height (V021-02/V021-05): only
+	# the visible page's rows contribute, so the panel min-size — and thus the reflow —
+	# tracks the page in view instead of a cached expanded height that drifts on reset.
+	var more_h: float = _terrain_more_panel.get_combined_minimum_size().y
 	if more_h <= 0.0:
-		more_h = _terrain_more_panel.get_combined_minimum_size().y
+		more_h = _terrain_more_panel.size.y
 	return Vector2(0.0, (more_h + separation) * scale_v.y)
 
 
@@ -469,13 +478,13 @@ func _update_terrain(tile: Vector2i) -> void:
 	var bonuses: Dictionary = _grid.get_terrain_bonuses(tile)
 	_terrain_def.text = "DEF  +%d" % int(bonuses["def"])
 	_terrain_dodge.text = "DODGE +%d" % int(bonuses["dodge"])
-	# Compact view = the three lines above. Expanded view adds the
-	# description, move-cost-by-group, and available tile actions.
-	if _terrain_expanded:
-		_render_terrain_expanded(tile, terrain)
+	# Compact view = the three lines above. The More Info box adds the paged content
+	# (Description page / Movement page) when not hidden (V021-05).
+	if _terrain_more_page >= 0:
+		_render_terrain_page(tile, terrain)
 	else:
-		# Collapsed: hide the whole More Info box. Row visibilities are kept in
-		# sync too so anything reading them sees the off state.
+		# Hidden: hide the whole More Info box so the map area behind it is reclaimed.
+		# Row visibilities are kept in sync so anything reading them sees the off state.
 		_terrain_more_panel.hide()
 		_terrain_desc.visible = false
 		_terrain_moves.visible = false
@@ -483,24 +492,35 @@ func _update_terrain(tile: Vector2i) -> void:
 		_terrain_hint.visible = true
 
 
-# Fills the expanded More Info rows. Visibility is set here so a tile with
-# no available actions still hides that row instead of showing a stray
-# header. Description always shows when expanded — MoreInfoContent guarantees
-# a fallback string for unknown terrain ids.
-func _render_terrain_expanded(tile: Vector2i, terrain: String) -> void:
+# Cycles the terrain More Info surface Hidden → Description → Movement → Hidden
+# (V021-05). Public so the mouse/touch mode (V021-17) can drive paging by click.
+func cycle_terrain_more_page() -> void:
+	_terrain_more_page += 1
+	if _terrain_more_page >= TERRAIN_PAGE_COUNT:
+		_terrain_more_page = TERRAIN_PAGE_HIDDEN
+	if _cursor_tile.x >= 0:
+		_update_terrain(_cursor_tile)
+
+
+# Renders the active More Info page. Each page shows a subset of the expanded rows
+# so the panel sizes to the page in view (Description = blurb + tile actions;
+# Movement = the move-cost table). Def/Dodge stay on the always-visible compact
+# panel, so the movement page doesn't restate them.
+func _render_terrain_page(tile: Vector2i, terrain: String) -> void:
 	_terrain_more_panel.show()
+	_terrain_hint.visible = false
+	var on_description: bool = _terrain_more_page == TERRAIN_PAGE_DESCRIPTION
+	var on_movement: bool = _terrain_more_page == TERRAIN_PAGE_MOVEMENT
 	_terrain_desc.text = MoreInfoContent.describe("terrain", terrain)
-	_terrain_desc.visible = true
-	_terrain_moves.text = _format_move_costs(terrain)
-	_terrain_moves.visible = true
+	_terrain_desc.visible = on_description
 	var actions_text: String = _format_tile_actions(tile)
 	_terrain_actions.text = actions_text
-	# Only show the actions row when there's something to say — empty list
-	# means no unit is selected or no action gates fire on this tile.
-	_terrain_actions.visible = actions_text != ""
-	_terrain_hint.visible = false
-	# Start each tile's More Info at the top so a long previous tile doesn't
-	# leave the box scrolled past this tile's description.
+	# Actions belong to the Description page, and only when there's something to say.
+	_terrain_actions.visible = on_description and actions_text != ""
+	_terrain_moves.text = _format_move_costs(terrain)
+	_terrain_moves.visible = on_movement
+	# Start each tile's page at the top so a long previous tile doesn't leave the box
+	# scrolled past this tile's content.
 	_terrain_scroll.scroll_vertical = 0
 
 
@@ -516,6 +536,7 @@ func _format_move_costs(terrain: String) -> String:
 		["mounted",  "Mounted"],
 		["armoured", "Armoured"],
 		["light",    "Light"],
+		["flying",   "Flying"],
 	]
 	for entry in group_labels:
 		var key: String = entry[0]
@@ -555,11 +576,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _higher_priority_more_info_visible():
 		return
 	get_viewport().set_input_as_handled()
-	_terrain_expanded = not _terrain_expanded
-	# Re-render the terrain panel against the current cursor tile so the
-	# transition is immediate rather than waiting for the next cursor move.
-	if _cursor_tile.x >= 0:
-		_update_terrain(_cursor_tile)
+	# Cycle Hidden → Description → Movement → Hidden (V021-05). The cycle re-renders
+	# against the current cursor tile so the transition is immediate.
+	cycle_terrain_more_page()
 
 
 # True when the combat preview or unit-details screen is open — those are

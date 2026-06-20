@@ -330,32 +330,49 @@ func can_escape(_u: Node, _t: Vector2i) -> bool: return false
 				hud._terrain_actions.visible, hud._terrain_hint.visible])
 		failed += 1
 
-	# Expand: description + move-costs + actions populated, hint hidden.
-	# Match a substring from MoreInfoContent.TERRAIN["forest"] so the test
-	# proves the lookup landed on the right entry without coupling to the
-	# exact authored copy.
-	hud._terrain_expanded = true
+	# V021-05 Description page: description + actions populated, move costs on the
+	# OTHER page (hidden here), hint hidden. Match a substring from
+	# MoreInfoContent.TERRAIN["forest"] to prove the lookup landed on the right entry.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._update_terrain(Vector2i(2, 2))
-	var expanded_ok: bool = (
+	var desc_page_ok: bool = (
 		hud._terrain_more_panel.visible
 		and hud._terrain_desc.visible
 		and "Slows most ground units" in hud._terrain_desc.text
+		and hud._terrain_actions.visible
+		and "Seize" in hud._terrain_actions.text
+		and not hud._terrain_moves.visible
+		and not hud._terrain_hint.visible
+	)
+	if desc_page_ok:
+		print("OK  V021-05 Description page shows description + actions (no move costs)")
+		passed += 1
+	else:
+		print("FAIL desc page: desc=%s|%s moves_vis=%s actions=%s|%s hint=%s" \
+			% [hud._terrain_desc.visible, hud._terrain_desc.text,
+				hud._terrain_moves.visible,
+				hud._terrain_actions.visible, hud._terrain_actions.text,
+				hud._terrain_hint.visible])
+		failed += 1
+
+	# V021-05 Movement page: move-cost table visible (incl. the V021-11 Flying row),
+	# description hidden.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_MOVEMENT
+	hud._update_terrain(Vector2i(2, 2))
+	var move_page_ok: bool = (
+		hud._terrain_more_panel.visible
 		and hud._terrain_moves.visible
 		and "Foot" in hud._terrain_moves.text
 		and "Mounted" in hud._terrain_moves.text
-		and hud._terrain_actions.visible
-		and "Seize" in hud._terrain_actions.text
-		and not hud._terrain_hint.visible
+		and "Flying" in hud._terrain_moves.text
+		and not hud._terrain_desc.visible
 	)
-	if expanded_ok:
-		print("OK  expanded terrain panel shows description, move costs, actions")
+	if move_page_ok:
+		print("OK  V021-05 Movement page shows the move-cost table incl. Flying (V021-11)")
 		passed += 1
 	else:
-		print("FAIL expanded render: desc=%s|%s moves=%s|%s actions=%s|%s hint=%s" \
-			% [hud._terrain_desc.visible, hud._terrain_desc.text,
-				hud._terrain_moves.visible, hud._terrain_moves.text,
-				hud._terrain_actions.visible, hud._terrain_actions.text,
-				hud._terrain_hint.visible])
+		print("FAIL move page: moves=%s|%s desc_vis=%s" \
+			% [hud._terrain_moves.visible, hud._terrain_moves.text, hud._terrain_desc.visible])
 		failed += 1
 
 	# Move-cost row uses "—" for impassable rather than the raw 999.
@@ -389,7 +406,8 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL W6a coord at (7,4): %q" % hud._terrain_coord.text); failed += 1
 
-	# Actions row hides when no unit is selected (deselect mid-expansion).
+	# Actions row hides when no unit is selected (on the Description page).
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._on_unit_deselected()
 	hud._update_terrain(Vector2i(0, 0))
 	if not hud._terrain_actions.visible:
@@ -397,15 +415,30 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL actions row visible without a selected unit"); failed += 1
 
-	# Collapse back to compact view: expansion rows hide, hint returns.
-	hud._terrain_expanded = false
+	# V021-05 Hidden state: the whole More Info box hides (frees map area), hint returns.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
 	hud._update_terrain(Vector2i(0, 0))
 	if not hud._terrain_desc.visible and not hud._terrain_moves.visible \
 			and not hud._terrain_actions.visible and hud._terrain_hint.visible \
 			and not hud._terrain_more_panel.visible:
-		print("OK  collapsing the panel restores the compact view"); passed += 1
+		print("OK  V021-05 Hidden page hides the whole More Info box"); passed += 1
 	else:
-		print("FAIL collapse: rows still visible"); failed += 1
+		print("FAIL hidden page: rows still visible"); failed += 1
+
+	# V021-05 F-cycle: Hidden → Description → Movement → Hidden.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
+	hud._cursor_tile = Vector2i(0, 0)
+	hud.cycle_terrain_more_page()
+	var cyc1: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_DESCRIPTION
+	hud.cycle_terrain_more_page()
+	var cyc2: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_MOVEMENT
+	hud.cycle_terrain_more_page()
+	var cyc3: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_HIDDEN \
+		and not hud._terrain_more_panel.visible
+	if cyc1 and cyc2 and cyc3:
+		print("OK  V021-05 more_info cycles Hidden → Description → Movement → Hidden"); passed += 1
+	else:
+		print("FAIL cycle: c1=%s c2=%s c3=%s" % [cyc1, cyc2, cyc3]); failed += 1
 
 	# More Info is a separate, bounded, scrollable box — not part of the basic
 	# stats panel. The scroll caps the visible height so long terrain text

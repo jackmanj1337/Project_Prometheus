@@ -141,16 +141,16 @@ rerun note, not a defect.
        uncommitted move through `cancel_transient_control_for_handoff()`. Tests:
        `test_enemy_ai` (re-move guard + mid-activation rollback), `test_map_cursor`
        (handoff cleanup). The M15B/M10 rollback primitive (GDD_01 §TurnManager).
-2. [~] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
+2. [x] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
        Info (re-fail of V020-06).** While Edit HUD Layout is open you can `Esc` the
        Settings modal and still drive the map cursor / open other menus; and the reset
        reflow still misplaces expanded terrain More Info "when you mess with it enough."
        Modal-capture + reflow robustness. **Input leak fixed:** `HudLayoutEditor._input`
-       now swallows every non-mouse input while open (routing `cancel` to its own Cancel
-       so it can't fall through and close the Settings screen). Test: `test_hud_layout_editor`.
-       **Reflow-hardening deferred to V021-05** — it depends on the expanded-panel "active
-       page size" the terrain-paging rework introduces; fixing it in isolation now would
-       be reworked there.
+       swallows every non-mouse input while open (routing `cancel` to its own Cancel so it
+       can't fall through and close the Settings screen). Test: `test_hud_layout_editor`.
+       **Reflow hardened with V021-05:** `_terrain_expanded_offset` derives the offset
+       from the active page's height (computed, never cached), so reset/edit cycles keep
+       the expanded box anchored. Test: `test_hud_layout`.
 3. [x] **V021-03 — HUD editor sample text escapes the panel bounds.** Editor sample
        text should stay inside the panel rect and ideally match the real readout's
        location/format. **Fixed:** each drag frame is `clip_contents = true` and the
@@ -158,9 +158,12 @@ rerun note, not a defect.
 4. [ ] **V021-04 — Terrain panel resize breaks corner-snap.** Resizing the terrain
        corner in the HUD editor stops it seating tightly in the corner. Tester ask:
        clamp/lock the movable block so it can't overlap or run off-screen. `HUD` corner
-       anchoring + editor size bounds. **Folded into V021-05** — the corner is a
-       bottom-right-anchored VBox whose scale pivot is the same geometry the paging
-       rework redefines; both are fixed together there.
+       anchoring + editor size bounds. **Still open — deferred to a live-verify
+       follow-up.** It's a pixel-accurate scale-pivot fix on the bottom-right-anchored
+       `TerrainCorner` (scale from the corner, not the top-left) that's hard to verify
+       headless and risks destabilising the working layout editor; V021-05 already shrank
+       the corner's default footprint (More Info defaults to Hidden). Tracked in
+       `v0.2.2_review_checkbacks_2026-06-20.md`. Editor-only cosmetic, not play-blocking.
 5. [x] **V021-06 — Directional selector axis inversion (re-fail of V020-10 selector).**
        On the character sheet, Up moves the selection Left and Down moves it Right; it
        only moves vertically when it can't move further horizontally. Should map Up/Down
@@ -235,16 +238,27 @@ rerun note, not a defect.
         `AtkWeapon`/`DefWeapon`; "Unarmed" when none). Test: `test_attack_preview_selector`.
 14. [ ] **V021-15 — Directional More Info selector for forecast + terrain.** Extend the
         character-sheet selector model to the combat forecast and terrain More Info
-        (currently F-cycle only). Reopened; pairs with V021-05 and V021-06.
+        (currently F-cycle only). Reopened; pairs with V021-05 and V021-06. **Deferred —
+        extraction not done.** All three surfaces already navigate (sheet grid selector
+        V021-06, forecast `_entries`/F-cycle, terrain F-paging V021-05); the remaining work
+        is the *architectural* extraction into one shared selector component — the single
+        joypad-wiring point for the gamepad/key-rebind milestone (F5). Refactoring three
+        working surfaces is best done there with live verification. Tracked in
+        `v0.2.2_review_checkbacks_2026-06-20.md`.
 
 **New feature requests / design projects (need design before scheduling):**
 
-15. [ ] **V021-05 — Terrain More Info paging (DESIGN written).** Split the terrain panel's
+15. [x] **V021-05 — Terrain More Info paging (DESIGN written).** Split the terrain panel's
         text description and movement-cost table onto separate pages that the More Info key
         (`F`) flips between, with one page fully hidden to free up viewable map area, and
         room to add more pages. Full design:
-        `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md`. Couples with V021-07,
-        V021-15, and the mouse-only-mode terrain page button (V021-17).
+        `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md`. **Done:**
+        `_terrain_more_page` (−1 Hidden / 0 Description+actions / 1 Movement table) cycled by
+        `cycle_terrain_more_page()`; Hidden fully hides the box (default). Implemented as
+        logical pages (visibility groupings of the existing rows, no scene restructure) so
+        the panel auto-sizes to the active page and the reflow is derived from it (closes
+        the V021-02 reflow half). `cycle_terrain_more_page` is public for V021-17. Test:
+        `test_hud` (+3). Couples with V021-07, V021-15, V021-17.
 16. [x] **V021-16 — Cancel-over-unit opens the character sheet.** Pressing Cancel
         (keyboard or mouse) while hovering an *unselected* unit opens its sheet. **Done:**
         `MapCursor._on_cancel` FREE state now opens the map menu on an empty tile and the

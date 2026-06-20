@@ -62,8 +62,8 @@ func _init() -> void:
 	var terrain_corner: Control = hud.get_layout_panel("terrain_corner")
 	var terrain_info: Control = terrain_corner.get_node("TerrainInfoPanel")
 	var terrain_base: Vector2 = terrain_info.get_global_rect().position
-	hud._terrain_expanded = true
-	hud._render_terrain_expanded(Vector2i(0, 0), "plain")
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
+	hud._render_terrain_page(Vector2i(0, 0), "plain")
 	await process_frame
 	hud.apply_layout({ "terrain_corner": { "offset": Vector2(-80, -40), "scale": 1.25 } })
 	await process_frame
@@ -73,7 +73,7 @@ func _init() -> void:
 	_ok(terrain_after_reset.distance_to(terrain_base) < 1.0
 		and is_equal_approx(terrain_corner.scale.x, 1.0),
 		"reset_layout keeps expanded terrain More Info anchored to the compact panel")
-	hud._terrain_expanded = false
+	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
 	hud._terrain_more_panel.hide()
 	hud.reset_layout()
 

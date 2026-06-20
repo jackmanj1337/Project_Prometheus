@@ -1,7 +1,9 @@
 # Terrain More Info Paging — Design (V021-05) — 2026-06-19
 
-Status: Planned — awaiting approval
-Last verified: 2026-06-19
+Status: Implemented (v0.2.2, 2026-06-20) — built as logical pages (visibility groupings
+of the existing expanded rows) rather than new container nodes; same Hidden→Description→
+Movement→Hidden contract. See GDD_07 §HUD Layout and `HUD.cycle_terrain_more_page`.
+Last verified: 2026-06-20
 
 ## Problem (tester, v0.2.1)
 
