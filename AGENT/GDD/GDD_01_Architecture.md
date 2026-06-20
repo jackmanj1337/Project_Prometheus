@@ -1067,8 +1067,9 @@ Camera clamps to map bounds so empty space is never shown.
 **Player display controls (Implemented — Display & Accessibility items 2–3).** The
 Settings screen lets the player choose a window mode (Windowed / Borderless /
 Fullscreen) and, in windowed mode, a 16:9 resolution (1280×720 / 1600×900 /
-1920×1080), persisted under `[display]` in `settings.cfg` and applied via
-`DisplayServer` in `SettingsManager._apply_display()`. The `Stretch/Aspect: keep`
+1920×1080 / 2560×1440 / 3840×2160), persisted under `[display]` in `settings.cfg`
+and applied via `DisplayServer` in `SettingsManager._apply_display()` (desktop only —
+see the E1 gate below). All choices are 16:9. The `Stretch/Aspect: keep`
 policy above letterboxes non-16:9 screens so the absolute-offset scene nodes stay
 on-screen. Menu/modal scale is player-set without changing the HUD's global window
 scale — see `GDD_07_UI_UX.md` §Accessibility. Player map zoom is the §Camera Zoom

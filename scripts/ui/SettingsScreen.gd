@@ -105,8 +105,9 @@ const _ENUM_SETTINGS: Array = [
 	},
 	{
 		"key": "resolution", "node": "HBoxResolution/OptResolution",
-		"values": ["1280x720", "1600x900", "1920x1080"],
-		"labels": ["1280 x 720", "1600 x 900", "1920 x 1080"],
+		"values": ["1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160"],
+		"labels": ["1280 x 720", "1600 x 900", "1920 x 1080", "2560 x 1440 (1440p)",
+			"3840 x 2160 (4K)"],
 		"apply": "_apply_display", "confirm": true,
 	},
 ]

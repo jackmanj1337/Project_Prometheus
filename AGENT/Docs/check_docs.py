@@ -21,6 +21,7 @@ Checks:
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
  15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
+ 16. Resolutions  — RESOLUTION_CHOICES offers native 1440p + 4K (V021-19)
 """
 
 import re
@@ -500,6 +501,20 @@ def check_render_display_config() -> None:
                   f"project.godot missing `{needle}` — {why}")
 
 
+def check_resolution_choices() -> None:
+    """V021-19: SettingsManager.RESOLUTION_CHOICES must offer native 1440p + 4K."""
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    choices = _parse_gd_string_array(settings, "RESOLUTION_CHOICES")
+    if choices is None:
+        _fail("resolution-choices", settings, 1,
+              "could not parse RESOLUTION_CHOICES")
+        return
+    for needed in ("2560x1440", "3840x2160"):
+        if needed not in choices:
+            _fail("resolution-choices", settings, 1,
+                  f"RESOLUTION_CHOICES must include native {needed!r} (V021-19)")
+
+
 def check_mouse_cursor_modes() -> None:
     """V021-17 fixes mouse_cursor to follow|click|disabled and GDD_07 must name them."""
     expected = ["follow", "click", "disabled"]
@@ -539,6 +554,7 @@ def main() -> None:
         ("[13] Class movement types",      check_class_movement_types),
         ("[14] Mouse cursor modes",        check_mouse_cursor_modes),
         ("[15] Render/display config",     check_render_display_config),
+        ("[16] Resolution choices",        check_resolution_choices),
     ]
     for label, fn in steps:
         print(f"  {label}...")

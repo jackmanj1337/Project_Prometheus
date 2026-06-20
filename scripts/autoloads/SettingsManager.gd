@@ -41,9 +41,12 @@ var map_zoom_index: int = 3
 var window_mode: String = "windowed"
 # Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
 # native screen size). Curated 16:9 list — the canvas_items + keep stretch letterboxes
-# any non-16:9 screen so absolute-offset scene nodes never push off-screen.
+# any non-16:9 screen so absolute-offset scene nodes never push off-screen. 1440p/4K
+# are native desktop options (V021-19); all stay 16:9 so the stretch contract holds.
 var resolution: String = "1280x720"
-const RESOLUTION_CHOICES: Array[String] = ["1280x720", "1600x900", "1920x1080"]
+const RESOLUTION_CHOICES: Array[String] = [
+	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
+]
 # Menu/modal scale (item 3 split), an index into MENU_SCALE_LEVELS. Default 1 == 1.0×.
 # Applied only to menu/modal panels through the "menu_scale_targets" group so HUD
 # readouts stay controlled by the HUD Layout editor instead of a global window scale.

@@ -146,8 +146,14 @@ func _init() -> void:
 	sm.reset_section_to_defaults("display")
 	var disp_reset_ok: bool = (sm.window_mode == "windowed"
 		and sm.resolution == "1280x720" and sm.menu_scale_index == 1)
-	if disp_default_ok and disp_reset_ok:
-		print("OK  display section defaults and resets (window/resolution/menu_scale)")
+	# V021-19: the curated list must offer native 1440p + 4K alongside the smaller modes,
+	# and they must parse to the expected pixel sizes.
+	var hi_res_ok: bool = (sm.RESOLUTION_CHOICES.has("2560x1440")
+		and sm.RESOLUTION_CHOICES.has("3840x2160")
+		and sm._parse_resolution("2560x1440") == Vector2i(2560, 1440)
+		and sm._parse_resolution("3840x2160") == Vector2i(3840, 2160))
+	if disp_default_ok and disp_reset_ok and hi_res_ok:
+		print("OK  display section defaults/resets + offers native 1440p/4K (V021-19)")
 		passed += 1
 	else:
 		print("FAIL display section: defaults=%s reset=%s" % [disp_default_ok, disp_reset_ok])
