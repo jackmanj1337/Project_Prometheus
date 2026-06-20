@@ -911,6 +911,18 @@ per faction phase. Same-faction controller replays, such as the debug F9 AI↔ho
 handoff, rerun the controller without rerunning `_refresh_faction_units()` or
 `_begin_phase()`, so units that already spent their action remain `DONE`.
 
+The **activation boundary** is enforced at the controller (V021-01). `EnemyAI.run_phase`
+skips any unit for which `can_unit_act()` is false, so a same-faction replay never
+re-moves a unit that already finished. Before acting a unit it snapshots the tile via
+`record_move_start()`; if the F9 override flips *mid-activation* (so `_act` bails before
+finalizing), the loop rolls that unit back to its activation-start tile and `READY` via
+`undo_move()` — a unit must either complete its turn (`DONE`) or be fully restored, never
+left moved-but-`READY`. The player/hotseat side gets the same guarantee through
+`MapCursor.cancel_transient_control_for_handoff()`, which calls
+`MapCursorSelection.undo_and_reselect()` (→ `undo_move()`) to back out an uncommitted move
+on handoff. This per-selection rollback is the primitive M15B (online serialize-on-handoff)
+and M10 (extra activation) inherit.
+
 ### `Unit.gd`
 
 `class_name Unit`. One scene instance per unit on the map; wraps a `UnitData`.

@@ -128,13 +128,19 @@ rerun note, not a defect.
 
 **Confirmed bugs (re-verification failures):**
 
-1. [ ] **V021-01 — F9 hotseat mid-activation desync (re-fail of V020-04 surface).**
+1. [x] **V021-01 — F9 hotseat mid-activation desync (re-fail of V020-04 surface).**
        Manually-moved units stay DONE, but: (a) AI-moved units do not dim until phase
        end; (b) taking control mid-phase, then handing back, lets the AI re-move every
        unit regardless of expenditure; (c) toggling control *mid-movement* lands the
        unit at its destination without spending movement. Tester recommendation: roll
        game state back to the start of that unit's activation when hotseat toggles.
-       Likely `TurnManager` / `HotseatController` / `EnemyAI` activation-state seam.
+       **Fixed** (per-selection rollback at the controller): `EnemyAI.run_phase` now skips
+       units where `can_unit_act()` is false (no re-move on replay) and rolls a unit
+       interrupted mid-activation back to its start tile + `READY` via
+       `record_move_start()`/`undo_move()`; the player side already backs out an
+       uncommitted move through `cancel_transient_control_for_handoff()`. Tests:
+       `test_enemy_ai` (re-move guard + mid-activation rollback), `test_map_cursor`
+       (handoff cleanup). The M15B/M10 rollback primitive (GDD_01 §TurnManager).
 2. [ ] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
        Info (re-fail of V020-06).** While Edit HUD Layout is open you can `Esc` the
        Settings modal and still drive the map cursor / open other menus; and the reset

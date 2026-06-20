@@ -18,13 +18,32 @@ func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void
 	for enemy in actors:
 		if turn._map_over or _debug_hotseat_override_active(turn):
 			return
-		if is_instance_valid(enemy):
-			# Pan the camera to the enemy and pause briefly so the player can
-			# follow the enemy phase (#7), then let it act.
-			await _focus_camera(enemy)
-			if _debug_hotseat_override_active(turn):
-				return
-			await _act(enemy, grid, turn, faction_id)
+		if not is_instance_valid(enemy):
+			continue
+		# V021-01: skip a unit that already finished an activation. On an F9
+		# control toggle the enemy phase is re-run for the same faction
+		# (TurnManager.start_enemy_phase rewinds its guard and loops); without
+		# this guard the AI would re-move every unit that already acted.
+		if not turn.can_unit_act(enemy):
+			continue
+		# Pan the camera to the enemy and pause briefly so the player can
+		# follow the enemy phase (#7), then let it act.
+		await _focus_camera(enemy)
+		if _debug_hotseat_override_active(turn):
+			return
+		# V021-01: snapshot the activation-start tile so a mid-activation F9
+		# handoff can roll the unit back to where it began instead of leaving it
+		# teleported-but-still-READY (the "moved without spending its turn" bug).
+		turn.record_move_start(enemy)
+		await _act(enemy, grid, turn, faction_id)
+		# If F9 flipped while this unit was acting, _act bailed before finalizing
+		# it (state still READY/MOVED). Roll it back to its activation-start tile
+		# and READY so the new controller — or a later AI re-run — inherits a
+		# clean, unspent unit. A unit that completed its turn stays DONE. (V021-01)
+		if is_instance_valid(enemy) and _debug_hotseat_override_active(turn) \
+				and turn.can_unit_act(enemy):
+			turn.undo_move(enemy)
+			return
 
 
 # Legacy aliases kept so older callers can still invoke the pre-M15 names while

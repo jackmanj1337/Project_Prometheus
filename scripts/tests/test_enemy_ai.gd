@@ -334,7 +334,7 @@ func _init() -> void:
 	# Stub GameState: EnemyAI reads per-faction unit buckets + hostility checks;
 	# GridManager reads all_units. Arrays are repopulated per test.
 	var act_gs_script := GDScript.new()
-	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\nfunc is_player_turn() -> bool: return false\n"
+	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nvar debug_hotseat_override: bool = false\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\nfunc is_player_turn() -> bool: return false\n"
 	act_gs_script.reload()
 	var act_gs: Node = act_gs_script.new()
 	act_gs.name = "GameState"
@@ -513,6 +513,62 @@ func _init() -> void:
 			str(hn_healer.tile_position), hn_healer.get("staff_heal_called"),
 			act_turn.get_unit_state(hn_healer)])
 		failed += 1
+
+	# ════════════════════════════════════════════════════════════════════════
+	# V021-01 — hotseat activation boundary: run_phase must not re-move spent
+	# units on an F9 re-run, and a mid-activation F9 handoff must roll the
+	# acting unit back to its activation-start tile (no "moved without spending
+	# its turn" teleport).
+	# ════════════════════════════════════════════════════════════════════════
+
+	# ---- run_phase skips a unit that already finished (no re-move on re-run) ----
+	var rm_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "red", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	var rm_player := _mk_act_unit(act_stub, Vector2i(4, 0), "blue", "basic", 20, "")
+	var rm_units: Array[Node] = [rm_enemy, rm_player]
+	act_gs.set("all_units", rm_units)
+	act_gs.set("players", [rm_player] as Array[Node])
+	act_gs.set("enemies", [rm_enemy] as Array[Node])
+	act_turn.set_unit_state(rm_enemy, TurnManager.UnitState.DONE)  # already acted
+	act_cr.set("resolve_called", false)
+	await ai.run_phase(act_grid, act_turn, "red")
+	if rm_enemy.tile_position == Vector2i(0, 0) and not act_cr.get("resolve_called") \
+			and act_turn.get_unit_state(rm_enemy) == TurnManager.UnitState.DONE:
+		print("OK  V021-01 run_phase: a DONE unit is not re-moved on re-run")
+		passed += 1
+	else:
+		print("FAIL V021-01 re-move guard: tile=%s resolve=%s state=%d" % [
+			str(rm_enemy.tile_position), act_cr.get("resolve_called"),
+			act_turn.get_unit_state(rm_enemy)])
+		failed += 1
+
+	# ---- mid-activation F9 flip rolls the unit back to its start tile + READY ----
+	# This stub flips the debug-hotseat override the instant it moves, simulating
+	# the player pressing F9 while an AI unit's move is in flight.
+	var rb_stub := GDScript.new()
+	rb_stub.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"red\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nvar gs_ref = null\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\nfunc snap_to_tile(t): tile_position = t\nfunc move_along_path(p):\n\ttile_position = p[p.size() - 1]\n\tif gs_ref != null: gs_ref.debug_hotseat_override = true\n\tawait get_tree().process_frame\n"
+	rb_stub.reload()
+	var rb_enemy := _mk_act_unit(rb_stub, Vector2i(0, 0), "red", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	rb_enemy.set("gs_ref", act_gs)
+	var rb_player := _mk_act_unit(act_stub, Vector2i(4, 0), "blue", "basic", 20, "")
+	act_gs.set("all_units", [rb_enemy, rb_player] as Array[Node])
+	act_gs.set("players", [rb_player] as Array[Node])
+	act_gs.set("enemies", [rb_enemy] as Array[Node])
+	act_gs.set("debug_hotseat_override", false)
+	act_cr.set("resolve_called", false)
+	await ai.run_phase(act_grid, act_turn, "red")
+	if rb_enemy.tile_position == Vector2i(0, 0) \
+			and act_turn.get_unit_state(rb_enemy) == TurnManager.UnitState.READY \
+			and not act_cr.get("resolve_called"):
+		print("OK  V021-01 run_phase: mid-activation F9 rolls the unit back to start + READY")
+		passed += 1
+	else:
+		print("FAIL V021-01 mid-move rollback: tile=%s state=%d resolve=%s" % [
+			str(rb_enemy.tile_position), act_turn.get_unit_state(rb_enemy),
+			act_cr.get("resolve_called")])
+		failed += 1
+	act_gs.set("debug_hotseat_override", false)
 
 	root.remove_child(act_gs)
 	act_gs.free()
