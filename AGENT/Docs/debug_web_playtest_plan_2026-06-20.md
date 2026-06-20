@@ -16,6 +16,63 @@ The first pass uses a mobile-emulator style layout:
 - The build stays debug-labeled and may keep debug-only aids that are gated by
   `OS.is_debug_build()`.
 
+## Release Infrastructure - Do First (added 2026-06-20)
+
+Land these before/around the manual build-cut so multi-platform releases do not stay manual.
+Items 1-2 are not web-specific, but the web release is the forcing function that makes them
+worth doing now. Item 3 is the researched cloud-deploy recommendation.
+
+### 1. Single version source
+
+Collapse the three hand-synced version strings - `export_presets.cfg`,
+`MainMenu.tscn` `VersionLabel`, `environment_setup.md` - into one source of truth (a
+`Version.gd` const or a `version.txt`) that all three read. This kills the desktop vs
+`v0.2.3-webdebug.1` drift risk called out in the hosting decisions below. `test_release_metadata.gd`
+then asserts the readers match the source instead of asserting three literals.
+
+### 2. CI build matrix (automated export)
+
+A GitHub Actions workflow that exports Windows + Web from one commit, runs
+`./run_tests.sh` + `check_docs.py`, hashes the artifacts, and fills the build manifest.
+This replaces the manual headless-export / SHA / manifest dance exactly when going
+multi-platform makes it most error-prone.
+
+- Use the `abarichello/godot-ci` Docker image (Godot engine + export templates baked in) -
+  the de-facto Godot CI image.
+- Matrix over `[windows, web]` referencing the named presets from `export_presets.cfg`
+  (quote preset names that contain spaces, e.g. `"Project Prometheus Web Debug"`).
+- `export_presets.cfg` must be committed (it is).
+
+### 3. Automated cloud deploy + handbook (researched recommendation)
+
+Recommended stack: **itch.io via `butler` inside the same GitHub Actions workflow.** This is
+the de-facto standard for Godot HTML5 playtest distribution and matches the existing
+itch.io-first hosting decision.
+
+- **Pipeline:** `abarichello/godot-ci` exports the Web preset, then
+  `butler push builds/web-debug <itch-user>/<game>:web-debug`.
+- **Secrets:** `BUTLER_API_KEY` (from the itch.io API-keys page - a dedicated butler key,
+  not the generic API key), plus the itch username + game slug.
+- **One-time manual itch setup:** set the page type to HTML embed and tag the channel
+  "HTML5 / Playable in browser"; set the page to unlisted/restricted/password for the
+  single tester; enable mobile-friendly. After that, re-pushing the **same channel** updates
+  the embed in place - the tester's link never changes.
+- **Single-thread payoff:** the already-chosen single-threaded export avoids the
+  SharedArrayBuffer COOP/COEP cross-origin-isolation requirement, so itch hosting works
+  without the per-game SharedArrayBuffer header toggle. This validates the single-thread
+  decision - keep it.
+- **Handbook alongside:** keep the HTML5 embed channel game-only. Publish
+  `playtest_checklist_web_debug_v0.2.3.md` via the workflow's **GitHub Release** (attach the
+  `.md`/PDF) and link it from the itch page description - one tester link for the game, one
+  for the handbook. (Alternative: a separate butler channel such as `web-debug-handbook` for
+  a downloadable; the Release is simpler for one tester.)
+- **Alternative host:** `abarichello/godot-ci` also templates GitHub Pages deploy
+  (`gh-pages` branch + deploy token). Keep it as the documented second choice - better later
+  for public/nightly Web builds, weaker for a private one-tester playtest.
+
+References: `abarichello/godot-ci` (GitHub Actions + Docker image, itch.io/GitHub Pages
+templates); itch.io butler manual "Pushing builds" (channel semantics + HTML5 tagging).
+
 ## Target Platform
 
 Primary target:

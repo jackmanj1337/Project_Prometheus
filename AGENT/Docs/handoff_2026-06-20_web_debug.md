@@ -10,7 +10,9 @@ display/accessibility backlog.
 
 Primary plan:
 
-- `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md`
+- `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` - note its new top section
+  "Release Infrastructure - Do First": single version source, CI build matrix, and the
+  researched itch.io/`butler` automated cloud deploy + handbook delivery.
 
 Related display handoff:
 
