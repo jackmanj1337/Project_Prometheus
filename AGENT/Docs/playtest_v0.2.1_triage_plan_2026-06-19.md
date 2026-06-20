@@ -324,6 +324,12 @@ Plan:
 
 Note for M8/M9: this vocabulary is the shared duration surface those milestones tag into —
 landing it here means they author against a stable enum instead of inventing strings.
+**Label vs tick point:** V021-09 defines the *displayed* label only; *when* a source
+decrements is its underlying duration_type — `turn` (start of the holder's faction phase)
+vs `map_turn` (round wrap). Per the **2026-06-20 M8 amendment** (GDD_02 §Status Conditions
+tick timing), M8 conditions use the per-faction-phase (`turn`) tick point for `x turns`
+durations, with behavioural effects enforced at activation. Keep the label and the
+tick-point concepts separate when implementing.
 
 ### V021-10 — Relocate class summary into More Info
 

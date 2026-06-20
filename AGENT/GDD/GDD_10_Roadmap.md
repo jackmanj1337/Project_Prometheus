@@ -637,11 +637,16 @@ their prescribed effects, and can be removed by Restore staves and Panacea items
 indicator appears. Verify all mechanical effects. Verify removal by Restore staff.
 
 > **Sequencing & dependency.** M8 lands **after M14 core** (the activation
-> scheduler, Decision 9). Conditions tick "at start of holder's turn" — this must
-> mean **start of the holder's *activation***, which is well-defined in both
-> `WHOLE_PHASE` and `ALTERNATING` modes (a unit always has an activation), rather
-> than start of a faction phase. Building M8 on the finished turn model avoids
-> re-wiring tick points later. See decisions log 2026-05-17, Decision 10.
+> scheduler, Decision 9). **Tick timing amended 2026-06-20** (supersedes the earlier
+> activation-based framing): split duration ticking from behavioural enforcement.
+> Condition **durations** (Poison damage + `turns_remaining` decrement) tick at the
+> **start of the holder's faction phase** — the existing `"turn"`-modifier + fort-heal
+> tick point, which degrades to round start in `ALTERNATING` mode — so "lasts N turns"
+> is counted once per round and M10 extra activations do not double-tick. **Behavioural
+> enforcement** (Sleep/Stun skip, Berserk, Silence) is applied at the unit's
+> **activation**. Building M8 on the existing `"turn"` tick point avoids new plumbing.
+> See GDD_02 §Status Conditions (tick timing) and
+> `campaign_rules_firming_notes_2026-05-25.md` (amended). Decisions log 2026-05-17 #10.
 
 ### Locked design decisions — 2026-05-25 review
 
@@ -719,8 +724,11 @@ func remove_condition(unit: Node, condition_type: String) -> void:
     EventBus.condition_removed.emit(unit, condition_type)
 
 func tick_conditions(unit: Node) -> void:
-    # Called by TurnManager at the start of the unit's turn.
-    # Apply per-turn effects, then decrement. Remove at 0.
+    # Called by TurnManager at the start of the holder's faction phase (the existing
+    # "turn"-modifier + fort-heal tick point; round start in ALTERNATING mode).
+    # Apply per-turn effects (Poison damage), then decrement. Remove at 0.
+    # NOTE: behavioural enforcement (Sleep/Stun skip, Berserk, Silence) is applied at
+    # the unit's activation, not here — see the enforcement hooks below.
     for condition in unit.data.conditions.duplicate():
         match condition["type"]:
             CONDITION_POISON:
@@ -761,11 +769,15 @@ func _update_unit_visual(unit: Node) -> void:
 ### Condition enforcement hooks
 
 ```gdscript
-# In TurnManager: start of each unit's activation (player and enemy)
+# DURATION TICK — In TurnManager: start of the holder's faction phase, for each of that
+# faction's units (the "turn"-modifier + fort-heal tick point; round start in ALTERNATING).
+# Applies Poison damage and decrements turns_remaining. Does NOT itself skip the activation.
 ConditionManager.tick_conditions(unit)
+
+# BEHAVIOURAL ENFORCEMENT — In TurnManager: at the unit's activation (player and enemy)
 if ConditionManager.has_condition(unit, "sleep") or ConditionManager.has_condition(unit, "stun"):
     TurnManager.set_unit_state(unit, UnitState.DONE)
-    return  # unit cannot act
+    return  # unit cannot act this phase (condition may have ticked earlier at phase start)
 
 # In CombatResolver._collect_combat_modifiers():
 if ConditionManager.has_condition(defender, "sleep") or ConditionManager.has_condition(defender, "stun"):
@@ -811,8 +823,11 @@ Handle in `SkillHandler.apply_trigger(attacker, "on_hit", context)` — if weapo
 - [ ] Implement `ConditionManager.has_condition()`
 - [ ] Implement `ConditionManager.clear_all_conditions()` (for Restore/Boon/Panacea)
 - [ ] Add `condition_applied` and `condition_removed` signals to `EventBus.gd`
-- [ ] Hook `tick_conditions()` into `TurnManager` at the start of each unit's activation
-- [ ] Hook Sleep and Stun lock into `TurnManager` to skip acting units
+- [ ] Hook `tick_conditions()` (duration tick) into `TurnManager` at the **start of the
+      holder's faction phase** — the existing `"turn"`-modifier + fort-heal tick point
+      (round start in `ALTERNATING`); not at activation
+- [ ] Hook Sleep and Stun lock into `TurnManager` at the unit's **activation** to skip
+      acting units (behavioural enforcement, separate from the duration tick)
 - [ ] Hook Sleep and Stun `defender_cannot_counter` flag into `CombatResolver`
 - [ ] Hook Silence check into `ActionMenu` to disable tome/staff options
 - [ ] Hook Berserk profile into `EnemyAI`; add `_run_berserk()` function

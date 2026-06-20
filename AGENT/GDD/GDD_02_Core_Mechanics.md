@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-16
+**Last verified:** 2026-06-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -533,7 +533,7 @@ authored-map objective contracts are owned by **GDD_06**.
 ## Status Conditions
 
 Status: **Target design** (locked design; build slots from the start) — Phase 2+ (M8)
-Last verified: 2026-06-13
+Last verified: 2026-06-20
 
 ### Summary
 Timed conditions stored on `UnitData`. Conditions are **not** skills.
@@ -553,6 +553,25 @@ Storage:
 @export var conditions: Array[Dictionary]
 # { "type": String, "turns_remaining": int }; extend only when a condition needs more.
 ```
+
+**Tick timing (amended 2026-06-20, supersedes the activation-based framing in the
+2026-05-25 lock).** Split duration ticking from behavioural enforcement:
+
+- **Duration ticking** — Poison's −3 HP and every condition's `turns_remaining`
+  decrement at the **start of the holder's faction phase**: the same tick point as
+  per-unit `"turn"`-duration modifiers and fort heal (see the whole-phase loop above).
+  Poison is therefore parallel to fort heal — a "start of your phase" HP effect. In
+  `ALTERNATING` mode (no discrete faction phase) this degrades to **round start**, exactly
+  like `"turn"` modifiers already do.
+- **Behavioural enforcement** — Sleep/Stun skipping the action, Berserk hijacking the
+  target choice, and Silence filtering the action menu are applied at the affected unit's
+  **activation** (when it would act), not at the duration tick. A unit asleep at its
+  faction-phase tick stays unable to act for that phase even though the tick already ran.
+
+This keeps "lasts N turns" counted once per round (so M10 extra-turn activations do not
+double-tick a condition) while preserving the activation-time feel of the disabling
+effects. `tick_conditions` (GDD_01) handles the duration half; `TurnManager` /
+`EnemyAI` / `ActionMenu` handle the enforcement half.
 
 **Condition/skill precedence (OPEN-2, Answered) — one general rule:**
 - Conditions are **not** skills: Nihil/skill-negators **never** block conditions.

@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-19
+**Last verified:** 2026-06-20
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -626,8 +626,11 @@ const CONDITION_STUN     := "stun"
 func apply_condition(unit: Node, condition_type: String, duration: int) -> void
 func remove_condition(unit: Node, condition_type: String) -> void
 func tick_conditions(unit: Node) -> void
-    # Called by TurnManager at the start of each unit's activation.
-    # Applies per-turn effects (e.g. Poison damage) and decrements durations.
+    # Called by TurnManager at the start of the holder's faction phase (the same
+    # tick point as "turn"-duration modifiers + fort heal; round-start in ALTERNATING
+    # mode). Applies per-turn effects (e.g. Poison damage) and decrements durations.
+    # Behavioural enforcement (Sleep/Stun skip, Berserk, Silence) is applied at the
+    # unit's activation, NOT here — see GDD_02 §Status Conditions tick timing.
 func has_condition(unit: Node, condition_type: String) -> bool
 func clear_all_conditions(unit: Node) -> void
     # Called by Restore staff and Panacea item.

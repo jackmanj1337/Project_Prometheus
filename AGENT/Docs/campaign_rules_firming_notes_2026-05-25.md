@@ -104,6 +104,7 @@ canonical docs:
 | 2 | Berserk targeting priority | **Highest projected damage** (hit/crit-weighted, post-mitigation) → nearest in tiles → lowest unit id. Reproducible under a fixed seed. |
 | 3 | Silence scope | **Tomes and staves only** — a filter on the action's `weapon_type`. No per-skill `silenceable` flag for M8. |
 | 4 | Condition schema discipline | **Minimal `{ type, turns_remaining }`.** Extra fields are added per-condition only when genuinely needed (e.g. Hex). |
+| 5 | Tick timing (**amended 2026-06-20**) | **Per-faction-phase duration ticking + activation-time enforcement** (supersedes the 2026-05-25 activation-based framing in GDD_10 §M8). Poison damage + `turns_remaining` decrement at the **start of the holder's faction phase** (the existing `"turn"`-modifier + fort-heal tick point; round start in `ALTERNATING`); Sleep/Stun skip, Berserk, and Silence are enforced at the unit's **activation**. Rationale: counts "lasts N turns" once per round (no M10 extra-turn double-tick), reuses an existing tick point, and keeps Poison parallel to fort heal. Canonical text: GDD_02 §Status Conditions (tick timing). |
 
 ### M9 — Skill Content
 
