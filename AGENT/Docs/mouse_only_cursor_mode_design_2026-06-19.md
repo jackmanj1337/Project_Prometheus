@@ -1,7 +1,7 @@
 # Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19
 
-Status: Planned — awaiting approval
-Last verified: 2026-06-19
+Status: Implemented
+Last verified: 2026-06-20
 
 ## Problem (tester, v0.2.1)
 
@@ -11,17 +11,16 @@ click, and a **second click that does not move the cursor** actually selects the
 In this mode the terrain panel needs a **next-page button** (or the whole panel switches
 when any part of it is clicked) since there is no hover-scroll.
 
-## Current implementation (what we build on)
+## Original implementation seam (what this built on)
 
-- `SettingsManager.mouse_cursor: String` already drives mouse behavior, currently
-  `"enabled"` (mouse motion moves the cursor) vs `"disabled"` (mouse motion ignored).
-  There is a **legacy migration comment** noting an older tri-state `"snap"|"disabled"` —
-  so the setting was historically multi-valued. Re-adding a third value is consistent with
-  the existing shape, not a new system.
-- `scripts/core/MapCursor.gd`:
-  - `_handle_mouse_motion()` (line 326) — gated off when `mouse_cursor == "disabled"`;
-    otherwise warps the cursor toward the pointer tile.
-  - `_handle_mouse_button()` (line 395) — click handling (select/confirm).
+- Before V021-17, `SettingsManager.mouse_cursor` drove `"enabled"` (mouse motion moves the
+  cursor) vs `"disabled"` (mouse motion ignored), with an older `mouse_targeting="snap"`
+  value still migrated on load.
+- V021-17 kept the same seams and expanded them to `follow|click|disabled`:
+  - `scripts/autoloads/SettingsManager.gd` owns `VALID_MOUSE_CURSOR_MODES` and legacy
+    normalization (`enabled→follow`, `snap→click`).
+  - `scripts/core/MapCursor.gd` keeps `_handle_mouse_motion()` / `_handle_mouse_button()`
+    as the only mouse cursor behavior entry points.
 - So we already have the seams: a settings value, a motion handler, and a click handler.
 
 ## Design
@@ -89,15 +88,19 @@ here but `click` mode is designed to be the foundation it maps onto.
 
 ## Integration checklist
 
-- [ ] `SettingsManager.mouse_cursor` accepts `follow|click|disabled`; loader migrates
+- [x] `SettingsManager.mouse_cursor` accepts `follow|click|disabled`; loader migrates
       legacy `enabled→follow`, `snap→click`.
-- [ ] `SettingsScreen` mouse-cursor dropdown gains the third option + label.
-- [ ] `MapCursor._handle_mouse_motion` inert in `click` mode.
-- [ ] `MapCursor._handle_mouse_button` implements relocate-then-select in `click` mode.
-- [ ] Terrain panel click cycles pages in `click` mode (reuses V021-05 `_cycle_terrain_more`).
-- [ ] Tests: `test_map_cursor.gd` — click mode relocates on first click, selects on
+- [x] `SettingsScreen` mouse-cursor dropdown gains the third option + label.
+- [x] `MapCursor._handle_mouse_motion` inert in `click` mode.
+- [x] `MapCursor._handle_mouse_button` implements relocate-then-select in `click` mode.
+- [x] Terrain panel click cycles pages in `click` mode (reuses V021-05 `_cycle_terrain_more`).
+- [x] Tests: `test_map_cursor.gd` — click mode relocates on first click, selects on
       second same-tile click, ignores motion; `test_settings_manager.gd` migration.
-- [ ] GDD_07 §Input/Accessibility updated in the same commit (DoD#1).
+- [x] GDD_07 §Input/Accessibility updated in the same commit (DoD#1).
+
+Implementation note (2026-06-20): terrain click paging is routed through `MapCursor` while
+HUD panels keep `MOUSE_FILTER_IGNORE`, preserving the existing "HUD doesn't eat map clicks"
+contract from `test_game_map_scene`.
 
 ## Open questions
 

@@ -18,13 +18,12 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
-# "enabled"|"disabled" — whether the mouse drives the on-map cursor at all.
-# When "enabled", mouse motion moves the cursor in FREE / UNIT_SELECTED states
-# and snaps to the nearest valid target in TARGETING. When "disabled", mouse
-# motion is ignored entirely so stray bumps don't move the cursor in keyboard
-# play (PT4 #1). Mouse *clicks* (confirm/cancel/middle-click danger toggle) are
-# intentional acts and remain active in both modes.
-var mouse_cursor: String = "enabled"
+# "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
+# follow: hover moves the cursor and targeting snaps to the nearest valid target.
+# click: hover is inert; first click moves the cursor, second same-tile click confirms.
+# disabled: mouse motion never moves the cursor. Clicks remain intentional actions.
+const VALID_MOUSE_CURSOR_MODES: Array[String] = ["follow", "click", "disabled"]
+var mouse_cursor: String = "follow"
 # Whether the player phase ends automatically once every unit has acted (#2).
 var auto_end_turn: bool = true
 # Tiles from the viewport edge that trigger a camera pan (#17). Default mirrors
@@ -91,15 +90,14 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	mouse_cursor      = cfg.get_value("gameplay", "mouse_cursor",      mouse_cursor)
-	# Migration (2026-05-20): the setting was renamed from mouse_targeting (values
-	# "snap"|"disabled") to mouse_cursor (values "enabled"|"disabled") because the
-	# old name covered only the TARGETING state. Honour an old cfg key once so
-	# saved preferences survive the rename. Remove this branch once no in-flight
-	# cfg files are likely to carry the legacy key.
+	mouse_cursor = normalize_mouse_cursor_mode(
+		cfg.get_value("gameplay", "mouse_cursor", mouse_cursor))
+	# Migration (2026-05-20/2026-06-20): old cfgs used mouse_targeting
+	# ("snap"|"disabled") and then mouse_cursor ("enabled"|"disabled").
+	# Keep both generations readable: enabled→follow, snap→click.
 	var legacy_mouse: String = cfg.get_value("gameplay", "mouse_targeting", "")
 	if legacy_mouse != "":
-		mouse_cursor = "disabled" if legacy_mouse == "disabled" else "enabled"
+		mouse_cursor = normalize_mouse_cursor_mode(legacy_mouse)
 	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
 	# Clamp on load: the SettingsScreen slider is limited to 0-5, but a hand-edited
 	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
@@ -139,6 +137,7 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
+	mouse_cursor = normalize_mouse_cursor_mode(mouse_cursor)
 	cfg.set_value("gameplay", "mouse_cursor",      mouse_cursor)
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
@@ -169,7 +168,7 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
-			mouse_cursor      = "enabled"
+			mouse_cursor      = "follow"
 			auto_end_turn      = true
 			camera_edge_buffer = 2
 			map_zoom_index     = 3
@@ -333,6 +332,19 @@ func rebind_action(action_name: String, event: InputEvent) -> void:
 	# the unchanged actions is cheap. Code review 2026-06-10 issue 2.9.
 	_mirror_game_keys_to_ui()
 	save()
+
+
+# Normalizes live and legacy mouse cursor values to the V021-17 vocabulary.
+static func normalize_mouse_cursor_mode(value: Variant) -> String:
+	var mode := String(value)
+	match mode:
+		"enabled":
+			return "follow"
+		"snap":
+			return "click"
+		"follow", "click", "disabled":
+			return mode
+	return "follow"
 
 
 # Returns per-tile Tween duration in seconds based on movement_speed setting

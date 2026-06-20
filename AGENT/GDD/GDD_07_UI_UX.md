@@ -348,8 +348,9 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - The valid target tiles are highlighted with overlay tiles — **red** for Attack
   targets, **green** for Staff (heal) targets.
 - The cursor snaps to the first valid target. Direction keys **cycle** the cursor
-  between valid target tiles (the list wraps). With the mouse, motion snaps the
-  cursor to the nearest valid target — unless `Mouse Cursor` is disabled.
+  between valid target tiles (the list wraps). With `Mouse Cursor = Follow`, mouse
+  motion snaps the cursor to the nearest valid target; `Click` waits for a click/tap
+  to move, and `Off` ignores mouse motion.
 - `confirm` on an Attack target opens the Attack Preview; `confirm` on a Staff target
   applies the heal immediately. `cancel` returns to the Action Menu.
 
@@ -620,7 +621,7 @@ See GDD_01 → SettingsManager.
 │   Movement Speed     [ Normal ▾ ]                 │
 │   Phase Banner       [ Show ▾ ]                   │
 │   Level Up Screen    [ Show ▾ ]                   │
-│   Mouse Cursor       [ Enabled ▾ ]                │
+│   Mouse Cursor       [ Follow ▾ ]                 │
 │   Auto End Turn      [ On ▾ ]                     │
 │   Camera Edge Buffer [━━●━━━━] 2                  │
 │   Map Zoom           [━━●━━━━] 1.0x               │
@@ -669,13 +670,18 @@ updates).
 **Level Up Screen** (`level_up_screen`, default `"show"`) — `Show` waits for a
 `confirm` press; `Auto` auto-dismisses after ~1.5 s; `Skip` shows only a brief pop-up.
 
-**Mouse Cursor** (`mouse_cursor`, default `"enabled"`) — `Enabled` lets mouse
-motion drive the on-map cursor (in `FREE` / `UNIT_SELECTED` it follows the
-pointer; in `TARGETING` it snaps to the nearest valid target). `Disabled` ignores
-mouse motion entirely in every state, so stray bumps cannot nudge the cursor
-during keyboard play (PT4 #1). Mouse *clicks* (confirm/cancel and the middle-
-click danger toggle) are intentional acts and remain active in both modes.
-Renamed from `mouse_targeting` 2026-05-20; the old cfg key still migrates.
+**Mouse Cursor** (`mouse_cursor`, default `follow`) — fixed vocabulary:
+`follow`, `click`, `disabled` (V021-17; enforced by DOC-011
+`check_docs.py`). `Follow` lets mouse motion drive the on-map cursor (in
+`FREE` / `UNIT_SELECTED` it follows the pointer; in `TARGETING` it snaps to the
+nearest valid target). `Click` makes hover inert: the first left-click/tap moves
+the cursor to that tile, and a second left-click/tap on the same tile confirms.
+In click mode, clicking the terrain panel cycles More Info pages
+Hidden → Description → Movement → Hidden. `Off` (`"disabled"`) ignores mouse
+motion entirely in every state, so stray bumps cannot nudge the cursor during
+keyboard play (PT4 #1). Right-click/cancel and middle-click danger toggling stay
+intentional mouse actions. Legacy values still load: `"enabled"` → `"follow"`;
+old `mouse_targeting="snap"` → `"click"`.
 
 **Auto End Turn** (`auto_end_turn`, default `true`) — when On, the acting human
 phase commits automatically after every controllable unit is `DONE`.
@@ -829,8 +835,11 @@ The accessibility and parity contract the UI must honor across input methods and
 - **Hotseat parity:** non-blue human (hotseat) phases use blue's commit/UI flow — only
   the commandable faction differs (GDD_02 §Turn Structure). No player has a UI affordance
   another lacks.
-- **Mouse Cursor toggle** (`mouse_cursor`): `Disabled` ignores all mouse *motion* so stray
-  bumps cannot nudge the cursor during keyboard play (PT4 #1); intentional clicks still fire.
+- **Mouse Cursor mode** (`mouse_cursor`, `follow|click|disabled`): `Follow` is hover-to-cursor,
+  `Click` is touch-friendly first-click move / second-click confirm, and `Disabled` ignores
+  all mouse *motion* so stray bumps cannot nudge the cursor during keyboard play (PT4 #1).
+  Click mode also lets a mouse/touch player cycle terrain More Info by clicking the terrain
+  panel.
 - **Pacing options:** `movement_speed` (Normal/Fast/Instant), `phase_banner` (Show/Skip),
   `level_up_screen` (Show/Auto/Skip) let players reduce animation/wait time.
 - **Always-visible numbers:** all combat-relevant values (Hit/Dmg/Crit, terrain bonuses,

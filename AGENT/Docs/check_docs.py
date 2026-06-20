@@ -19,6 +19,7 @@ Checks:
  11. Tree cover   — every top-level dir is named in the review procedure §2 map
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
+ 14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
 """
 
 import re
@@ -457,6 +458,41 @@ def check_class_movement_types() -> None:
                   f"class declares no movement type; add one of {sorted(_VALID_MOVEMENT_TYPES)}")
 
 
+def _parse_gd_string_array(path: Path, const_name: str) -> list[str] | None:
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    pattern = re.compile(
+        rf"const\s+{re.escape(const_name)}\s*:\s*Array\[String\]\s*=\s*\[(.*?)\]",
+        re.S,
+    )
+    match = pattern.search(content)
+    if not match:
+        return None
+    return re.findall(r'"([^"]+)"', match.group(1))
+
+
+def check_mouse_cursor_modes() -> None:
+    """V021-17 fixes mouse_cursor to follow|click|disabled and GDD_07 must name them."""
+    expected = ["follow", "click", "disabled"]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    modes = _parse_gd_string_array(settings, "VALID_MOUSE_CURSOR_MODES")
+    if modes != expected:
+        _fail("mouse-cursor-modes", settings, 1,
+              f"VALID_MOUSE_CURSOR_MODES must be {expected}, got {modes}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for mode in expected:
+        if f"`{mode}`" not in content:
+            _fail("mouse-cursor-modes", gdd, 1,
+                  f"GDD_07 must document mouse_cursor mode `{mode}`")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -474,6 +510,7 @@ def main() -> None:
         ("[11] Review tree completeness",  check_tree_completeness),
         ("[12] Rollup score header",       check_rollup_score_header),
         ("[13] Class movement types",      check_class_movement_types),
+        ("[14] Mouse cursor modes",        check_mouse_cursor_modes),
     ]
     for label, fn in steps:
         print(f"  {label}...")

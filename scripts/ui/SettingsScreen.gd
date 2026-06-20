@@ -84,8 +84,8 @@ const _ENUM_SETTINGS: Array = [
 	},
 	{
 		"key": "mouse_cursor", "node": "HBoxMouseCursor/OptMouseCursor",
-		"values": ["enabled", "disabled"],
-		"labels": ["Enabled", "Disabled"],
+		"values": ["follow", "click", "disabled"],
+		"labels": ["Follow", "Click", "Off"],
 	},
 	{
 		"key": "auto_end_turn", "node": "HBoxAutoEndTurn/OptAutoEndTurn",

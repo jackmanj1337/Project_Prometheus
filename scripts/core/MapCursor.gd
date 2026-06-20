@@ -326,12 +326,9 @@ func _toggle_danger_zone() -> void:
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 	if _camera == null or _grid == null:
 		return
-	# Player-controlled gate: when mouse_cursor is "disabled", a stray bump must
-	# not move the on-map cursor in any state (PT4 #1). Mouse *clicks* are still
-	# accepted as confirm/cancel — see _handle_mouse_button — because clicks are
-	# intentional and the toggle is scoped to cursor follow, not all mouse input.
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm != null and sm.mouse_cursor == "disabled":
+	# Only follow mode lets hover drive the cursor. Click mode is touch-friendly:
+	# hover is inert and the left button handles relocate-then-confirm instead.
+	if _mouse_cursor_mode() != "follow":
 		return
 	var tile := _mouse_tile_at(event.position)
 	match _state:
@@ -351,16 +348,21 @@ func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
 		# UNIT_MOVED (menu open) ignores mouse motion.
 
 
-# Mouse motion in TARGETING snaps the cursor to the valid target nearest the
-# pointer (Manhattan distance). The "is the mouse cursor enabled?" gate is
-# already enforced once in _handle_mouse_motion above, so this function runs
-# only when mouse_cursor == "enabled".
+# Mouse motion in TARGETING snaps the cursor to the valid target nearest the pointer.
+# The mode gate is already enforced once in _handle_mouse_motion above, so this runs
+# only when mouse_cursor == "follow".
 func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
 	if not _targeting.can_change_target():
 		return  # frozen while the attack preview is showing
+	var nearest := _nearest_target_tile(tile)
+	if nearest != current_tile:
+		_set_tile(nearest)
+
+
+func _nearest_target_tile(tile: Vector2i) -> Vector2i:
 	var tiles := _targeting.target_tiles()
 	if tiles.is_empty():
-		return
+		return current_tile
 	var nearest: Vector2i = tiles[0]
 	var best: int = _manhattan(tile, nearest)
 	for t in tiles:
@@ -368,8 +370,7 @@ func _handle_targeting_mouse_motion(tile: Vector2i) -> void:
 		if d < best:
 			best = d
 			nearest = t
-	if nearest != current_tile:
-		_set_tile(nearest)
+	return nearest
 
 
 # Step the cursor to the next/previous valid target. Right/Down advance, Left/Up
@@ -394,6 +395,18 @@ func _manhattan(a: Vector2i, b: Vector2i) -> int:
 
 func _handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		if _mouse_cursor_mode() == "click":
+			if _try_cycle_terrain_panel_at(event.position):
+				return
+			if _state == State.FREE or _state == State.UNIT_SELECTED or _state == State.TARGETING:
+				var tile := _mouse_tile_at(event.position)
+				if _state == State.TARGETING:
+					tile = _nearest_target_tile(tile)
+				else:
+					tile = _clamp_tile_to_view(tile)
+				if tile != current_tile:
+					_set_tile(tile, true)
+					return
 		_on_confirm()
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		_on_cancel()
@@ -468,6 +481,31 @@ func _maybe_pan_camera_for_mouse(screen_pos: Vector2) -> bool:
 	elif screen_pos.y >= view.y - px_buffer:
 		delta.y = 1
 	return _camera_ctrl.nudge_by_tiles(delta)
+
+
+func _mouse_cursor_mode() -> String:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return "follow"
+	if sm.has_method("normalize_mouse_cursor_mode"):
+		return String(sm.call("normalize_mouse_cursor_mode", sm.mouse_cursor))
+	var mode := String(sm.mouse_cursor)
+	if mode == "disabled":
+		return "disabled"
+	if mode == "click" or mode == "snap":
+		return "click"
+	return "follow"
+
+
+func _try_cycle_terrain_panel_at(screen_pos: Vector2) -> bool:
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud == null or not hud.has_method("terrain_corner_contains_screen_position") \
+			or not hud.has_method("cycle_terrain_more_page"):
+		return false
+	if not bool(hud.call("terrain_corner_contains_screen_position", screen_pos)):
+		return false
+	hud.call("cycle_terrain_more_page")
+	return true
 
 
 # ── State Machine ──────────────────────────────────────────────────────────

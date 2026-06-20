@@ -264,12 +264,16 @@ rerun note, not a defect.
         `MapCursor._on_cancel` FREE state now opens the map menu on an empty tile and the
         hovered unit's sheet otherwise (no active selection to clash with). Test:
         `test_map_cursor`. `MapCursor` cancel handling.
-17. [ ] **V021-17 — Mouse-only / touch cursor mode (DESIGN written).** A mode where the
+17. [x] **V021-17 — Mouse-only / touch cursor mode (DESIGN written).** A mode where the
         map cursor does not follow mouse hover but jumps to the clicked tile, with a second
         (non-moving) click selecting. Adds a terrain-panel page button or click-to-switch
         in this mode. Touchscreen-relevant. Full design:
         `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md` (re-introduces a third
-        `mouse_cursor` value). Couples with V021-05.
+        `mouse_cursor` value). Couples with V021-05. **Done:** `mouse_cursor` now uses the
+        fixed `follow|click|disabled` vocabulary (`enabled→follow`, legacy `snap→click`);
+        click mode ignores hover, first-click moves the cursor, second same-tile click
+        confirms, and terrain-panel clicks cycle the V021-05 pages. Tests:
+        `test_map_cursor`, `test_settings_manager`; DOC-011 check: mouse cursor modes.
 18. [ ] **V021-18 — Crisp scaling rework (v0.2.3, DESIGN).** Menu/HUD elements look soft at
         non-1× scales because scaling zooms the rendered UI (Control-node `.scale`).
         Replace with theme font-size / control-metric scaling. Larger rework; affects Menu

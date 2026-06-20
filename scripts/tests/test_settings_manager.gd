@@ -95,6 +95,24 @@ func _init() -> void:
 		print("FAIL movement speed: inst=%s fast=%s norm=%s" % [inst_ok, fast_ok, norm_ok])
 		failed += 1
 
+	# ---- V021-17: mouse_cursor vocabulary defaults, resets, and migrates legacy values ----
+	var modes_ok: bool = sm.VALID_MOUSE_CURSOR_MODES == ["follow", "click", "disabled"]
+	var mouse_default_ok: bool = sm.mouse_cursor == "follow"
+	var mouse_migration_ok: bool = (sm.normalize_mouse_cursor_mode("enabled") == "follow"
+		and sm.normalize_mouse_cursor_mode("snap") == "click"
+		and sm.normalize_mouse_cursor_mode("disabled") == "disabled"
+		and sm.normalize_mouse_cursor_mode("bad") == "follow")
+	sm.mouse_cursor = "click"
+	sm.reset_section_to_defaults("gameplay")
+	var mouse_reset_ok: bool = sm.mouse_cursor == "follow"
+	if modes_ok and mouse_default_ok and mouse_migration_ok and mouse_reset_ok:
+		print("OK  V021-17 mouse_cursor modes default/reset and migrate legacy values")
+		passed += 1
+	else:
+		print("FAIL mouse_cursor modes: modes=%s default=%s migration=%s reset=%s" % [
+			modes_ok, mouse_default_ok, mouse_migration_ok, mouse_reset_ok])
+		failed += 1
+
 	# ---- #2/#17: new gameplay settings exist with sane defaults + reset ----
 	var defaults_ok: bool = sm.auto_end_turn == true and sm.camera_edge_buffer == 2
 	sm.auto_end_turn = false

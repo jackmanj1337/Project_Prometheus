@@ -502,6 +502,11 @@ func cycle_terrain_more_page() -> void:
 		_update_terrain(_cursor_tile)
 
 
+func terrain_corner_contains_screen_position(screen_pos: Vector2) -> bool:
+	var corner := get_layout_panel("terrain_corner")
+	return corner != null and corner.visible and corner.get_global_rect().has_point(screen_pos)
+
+
 # Renders the active More Info page. Each page shows a subset of the expanded rows
 # so the panel sizes to the page in view (Description = blurb + tile actions;
 # Movement = the move-cost table). Def/Dodge stay on the always-visible compact

@@ -27,6 +27,7 @@ func _make_unit(tile: Vector2i, team_name: String, hp: int = 20) -> Unit:
 	d.hp = hp
 	d.max_hp = 20
 	d.movement = 5
+	d.class_id = "soldier"
 	var u: Unit = UnitScene.instantiate()
 	u.data = d
 	u.team = team_name
@@ -864,12 +865,10 @@ func _init() -> void:
 			orphan_lead.tile_position, orphan_lead.visible, c_orphan._state])
 		failed += 1
 
-	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
+	# ---- PT4 #1 / V021-17: mouse_cursor gates hover; click mode relocates then confirms ----
 	# Drive _handle_mouse_motion directly with a synthesized event. The function
-	# reads SettingsManager.mouse_cursor and bails before touching _set_tile when
-	# the setting is "disabled", so the cursor must stay put. When "enabled", the
-	# same motion must move it. Skips cleanly if the autoload isn't registered
-	# (e.g. someone runs this suite in isolation without --path).
+	# reads SettingsManager.mouse_cursor and only lets follow mode move on hover.
+	# Click mode then uses the left button as first-click relocate, second-click confirm.
 	var sm_mc := root.get_node_or_null("SettingsManager")
 	if sm_mc != null:
 		var t_mc := TurnManager.new(); root.add_child(t_mc)
@@ -886,12 +885,46 @@ func _init() -> void:
 		c_mc._handle_mouse_motion(ev)
 		var stayed: bool = c_mc.current_tile == Vector2i(0, 0)
 
-		sm_mc.mouse_cursor = "enabled"
+		sm_mc.mouse_cursor = "click"
+		c_mc._handle_mouse_motion(ev)
+		var click_hover_stayed: bool = c_mc.current_tile == Vector2i(0, 0)
+
+		sm_mc.mouse_cursor = "follow"
 		c_mc._handle_mouse_motion(ev)
 		var moved: bool = c_mc.current_tile == Vector2i(4, 4)
 
+		_gs.all_units.clear()
+		var t_click := TurnManager.new(); root.add_child(t_click)
+		var c_click := _make_cursor(t_click)
+		var click_unit := _make_unit(Vector2i(4, 4), "blue")
+		c_click._set_tile(Vector2i(0, 0))
+		var click_ev := InputEventMouseButton.new()
+		click_ev.button_index = MOUSE_BUTTON_LEFT
+		click_ev.position = _grid.tile_to_world(Vector2i(4, 4))
+		sm_mc.mouse_cursor = "click"
+		c_click._handle_mouse_button(click_ev)
+		var click_moved_only: bool = c_click.current_tile == Vector2i(4, 4) \
+			and c_click._state == FREE and c_click._selection.selected_unit == null
+		c_click._handle_mouse_button(click_ev)
+		var click_confirmed: bool = c_click._state == UNIT_SELECTED \
+			and c_click._selection.selected_unit == click_unit
+
+		var hud_script := GDScript.new()
+		hud_script.source_code = "extends Node\nvar cycles := 0\nfunc terrain_corner_contains_screen_position(_pos): return true\nfunc cycle_terrain_more_page(): cycles += 1\n"
+		hud_script.reload()
+		var hud_stub: Node = hud_script.new()
+		hud_stub.add_to_group("hud")
+		root.add_child(hud_stub)
+		var t_panel := TurnManager.new(); root.add_child(t_panel)
+		var c_panel := _make_cursor(t_panel)
+		c_panel._set_tile(Vector2i(0, 0))
+		c_panel._handle_mouse_button(click_ev)
+		var terrain_click_ok: bool = hud_stub.cycles == 1 and c_panel.current_tile == Vector2i(0, 0)
+		hud_stub.queue_free()
+
 		# Mouse motion near the viewport edge should nudge the camera on large maps
 		# instead of freezing camera follow entirely.
+		sm_mc.mouse_cursor = "follow"
 		var mouse_pan_w := _grid.map_width
 		var mouse_pan_h := _grid.map_height
 		_grid.map_width = 30
@@ -904,13 +937,15 @@ func _init() -> void:
 		_grid.map_width = mouse_pan_w
 		_grid.map_height = mouse_pan_h
 
-		sm_mc.mouse_cursor = "enabled"  # restore default
-		if stayed and moved and camera_panned:
-			print("OK  mouse_cursor=disabled ignores motion; enabled resumes and can pan camera")
+		sm_mc.mouse_cursor = "follow"  # restore default
+		if stayed and click_hover_stayed and moved and click_moved_only and click_confirmed \
+				and terrain_click_ok and camera_panned:
+			print("OK  mouse_cursor disabled/click/follow modes gate hover, click-select, and terrain paging")
 			passed += 1
 		else:
-			print("FAIL mouse_cursor gate/pan: stayed=%s moved=%s camera_panned=%s tile=%s" % [
-				stayed, moved, camera_panned, str(c_mc.current_tile)])
+			print("FAIL mouse_cursor modes: disabled_stayed=%s click_hover=%s moved=%s click_move=%s click_confirm=%s terrain=%s camera_panned=%s tile=%s" % [
+				stayed, click_hover_stayed, moved, click_moved_only, click_confirmed,
+				terrain_click_ok, camera_panned, str(c_mc.current_tile)])
 			failed += 1
 	else:
 		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")
