@@ -20,6 +20,7 @@ Checks:
  12. Rollup score — each full_review_rollup_* carries an anchored overall score
  13. Class moves  — every class .tres declares ≥1 VALID_MOVEMENT_TYPES tag (V021-11)
  14. Mouse modes  — SettingsManager/GDD agree on mouse_cursor values (V021-17)
+ 15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
 """
 
 import re
@@ -473,6 +474,32 @@ def _parse_gd_string_array(path: Path, const_name: str) -> list[str] | None:
     return re.findall(r'"([^"]+)"', match.group(1))
 
 
+def check_render_display_config() -> None:
+    """project.godot must pin the web-load-bearing renderer + stretch keys (V021-18/19).
+
+    The debug Web build and the v0.2.3 scaling rework both stand on two mechanical
+    settings: the Compatibility renderer (Web has no Forward+/Mobile) and an explicit
+    `keep` stretch aspect (so a contributor can't silently switch to `expand` and break
+    both desktop letterboxing and the 16:9 web canvas). Guard them so neither reverts.
+    """
+    project_godot = ROOT / "project.godot"
+    try:
+        content = project_godot.read_text(encoding="utf-8")
+    except OSError:
+        _fail("render-config", project_godot, 1, "project.godot not found")
+        return
+    required = {
+        'renderer/rendering_method="gl_compatibility"':
+            "renderer must be Compatibility for the Web export (D1)",
+        'window/stretch/aspect="keep"':
+            "stretch aspect must be explicit `keep` to hold the 16:9 contract (E5)",
+    }
+    for needle, why in required.items():
+        if needle not in content:
+            _fail("render-config", project_godot, 1,
+                  f"project.godot missing `{needle}` — {why}")
+
+
 def check_mouse_cursor_modes() -> None:
     """V021-17 fixes mouse_cursor to follow|click|disabled and GDD_07 must name them."""
     expected = ["follow", "click", "disabled"]
@@ -511,6 +538,7 @@ def main() -> None:
         ("[12] Rollup score header",       check_rollup_score_header),
         ("[13] Class movement types",      check_class_movement_types),
         ("[14] Mouse cursor modes",        check_mouse_cursor_modes),
+        ("[15] Render/display config",     check_render_display_config),
     ]
     for label, fn in steps:
         print(f"  {label}...")

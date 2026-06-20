@@ -197,12 +197,25 @@ func _apply_audio() -> void:
 	if sfx_idx    >= 0: AudioServer.set_bus_volume_db(sfx_idx,    linear_to_db(sfx_volume    / 100.0))
 
 
+# True on platforms where window mode + resolution are honourable display controls.
+# False on Web, where the canvas is sized/letterboxed by the browser + the stretch
+# system, so DisplayServer window resize and the confirm-or-revert dialog are
+# meaningless (E1, mobile-web prep). A single seam so neither _apply_display nor the
+# Settings screen plumbs the platform check independently. Desktop is unchanged.
+func is_display_config_supported() -> bool:
+	return not OS.has_feature("web")
+
+
 # Applies the window mode and (in windowed mode) the chosen resolution via
 # DisplayServer. Called at startup and whenever the display settings change. The
 # DisplayServer calls are safe no-ops on a headless server, so tests that never run
 # _ready() are unaffected. Fullscreen modes use the native screen size, so the
 # resolution is only meaningful — and only applied — in windowed mode.
 func _apply_display() -> void:
+	# E1: Web can't honour a DisplayServer resize/fullscreen change; skip it there so
+	# the browser/stretch system stays in control of the canvas.
+	if not is_display_config_supported():
+		return
 	match window_mode:
 		"fullscreen":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)

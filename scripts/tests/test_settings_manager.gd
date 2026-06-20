@@ -198,6 +198,18 @@ func _init() -> void:
 		print("FAIL window_centre_position: fit=%s clamp=%s" % [fit_ok, clamp_ok])
 		failed += 1
 
+	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
+	# The test runner is a desktop headless build (no "web" feature), so the seam
+	# must report supported here — i.e. desktop display config behaviour is unchanged.
+	# On a Web export OS.has_feature("web") flips it to false, gating _apply_display.
+	var display_supported_ok: bool = sm.is_display_config_supported() == true
+	if display_supported_ok:
+		print("OK  is_display_config_supported true on desktop (E1 gate inert off Web)")
+		passed += 1
+	else:
+		print("FAIL is_display_config_supported should be true on a desktop build")
+		failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

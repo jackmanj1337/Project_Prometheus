@@ -113,6 +113,14 @@ const _ENUM_SETTINGS: Array = [
 
 
 func _ready() -> void:
+	# E1: window mode + resolution are confirm-gated DisplayServer controls that Web
+	# can't honour. Hide those rows where display config isn't supported so the web
+	# build never shows a dropdown + 15s confirm dialog that can't apply. Desktop keeps
+	# every row. Defaults true if SettingsManager is somehow absent (desktop assumption).
+	var sm_for_display := get_node_or_null("/root/SettingsManager")
+	var display_supported: bool = sm_for_display == null \
+		or sm_for_display.call("is_display_config_supported")
+
 	# Schema-driven enum settings (B5).
 	for s in _ENUM_SETTINGS:
 		var btn: OptionButton = _vbox.get_node(s["node"])
@@ -122,6 +130,12 @@ func _ready() -> void:
 		btn.item_selected.connect(_on_enum_setting_changed.bind(s))
 		if s.get("hidden", false):
 			btn.visible = false
+		# Confirm-gated rows are the DisplayServer ones (window mode / resolution);
+		# hide their whole HBox row on platforms that can't apply them (E1).
+		if s.get("confirm", false) and not display_supported:
+			var row := btn.get_parent()
+			if row is Control:
+				(row as Control).visible = false
 
 	# Hand-wired sliders (different shape — value range, value label, save path).
 	_slider_master.min_value = 0

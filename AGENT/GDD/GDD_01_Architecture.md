@@ -1048,8 +1048,17 @@ Display/Window/Size/Viewport Width:   1280
 Display/Window/Size/Viewport Height:  720
 Display/Window/Stretch/Mode:          canvas_items
 Display/Window/Stretch/Aspect:        keep
+Rendering/Renderer/Rendering Method:  gl_compatibility  (+ .mobile = gl_compatibility)
 Rendering/2D/Snap/Snap 2D Vertices To Pixel: ON
 ```
+
+**Renderer = Compatibility (V021-18, web-load-bearing).** The project runs on the
+**Compatibility** renderer (`renderer/rendering_method="gl_compatibility"`), not
+Forward+. This is the renderer the debug Web build requires (Web has no Forward+/Mobile
+backend) and the game is 2D-only, so the Forward+ feature set is unused. The switch is
+pinned here so it can't silently revert; `check_docs.py` guards both this key and the
+explicit `Stretch/Aspect: keep` line (the 16:9 contract both desktop letterboxing and the
+web canvas rely on).
 
 Tile size: **64 × 64 pixels** (matches GDD_06 tileset spec)
 Visible tiles at native resolution: approximately **20 × 11**
@@ -1072,6 +1081,13 @@ Revert or the countdown reaching zero restores the previous value, re-applies it
 resets the dropdown. This guards the case where a wrong fullscreen/resolution leaves
 the screen unusable. Wired generically via a `"confirm": true` flag on the
 `SettingsScreen` enum-setting schema, so it covers both display-mode settings.
+
+**Desktop-only display config (E1, mobile-web prep).** Window mode + resolution are
+honoured only where the platform can apply them: `SettingsManager.is_display_config_supported()`
+returns `false` on Web (the browser + stretch system own the canvas), so `_apply_display()`
+skips the `DisplayServer` resize there and `SettingsScreen` hides the two confirm-gated rows.
+Desktop behaviour is unchanged. This is a single seam so the renderer/scaling foundation the
+debug Web build inherits never plumbs the platform check independently.
 
 > **Note:** earlier drafts of this document specified 32×32 tiles. The project
 > standardized on 64×64 to match the GDD_06 tileset spec and the placeholder
