@@ -847,11 +847,24 @@ The accessibility and parity contract the UI must honor across input methods and
 - **Menu Scale** (`menu_scale_index` → `SettingsManager.MENU_SCALE_LEVELS`, 0.75×–2.0×):
   a Settings stepped slider scales menu/modal panels through the shared
   `menu_scale_targets` group. It does not change `Window.content_scale_factor`, so
-  persistent HUD readouts remain governed by HUD Layout. **V021-08:** `MenuScale.apply_to`
-  clamps the applied factor so a panel's scaled size always fits the viewport on both
-  axes (uniform, min-axis) — tall menus like the character sheet previously overflowed
-  the top/bottom edges at high scale and became unreachable. This is the layout-fit
-  fix; the separate crispness rework (V021-18, v0.2.3) replaces the `.scale` mechanism.
+  persistent HUD readouts remain governed by HUD Layout. **Crisp scaling (V021-18 / D2,
+  v0.2.3):** `MenuScale.apply_to` leaves `Control.scale` at ONE and scales *type* instead
+  of bitmap-stretching the panel (the old blur source). A factor-scaled `Theme` (derived
+  from the engine default `default_font_size` + container metrics, cached per factor)
+  drives every default-sized label, and a tree-walk scales each explicit
+  `theme_override_font_sizes` / `theme_override_constants` off a captured base (titles,
+  etc.) without compounding on re-apply. Text is rendered at its true pixel size at every
+  factor, so it stays crisp. Centered panels are recentred at their natural size (the
+  CENTER anchor preset); a panel built around a `ScrollContainer` keeps its authored frame
+  and scrolls, everything else shrink-wraps to content. **V021-08 (clamp):** when a
+  grow-to-content menu's scaled content would overflow the viewport, the applied factor is
+  dialled down (uniform, min-axis) so its top/bottom stay reachable — now by reducing the
+  *font factor*, not the bitmap scale. `LevelUpScreen`'s panel was converted `Panel`→
+  `PanelContainer` (+ a `MarginContainer`) so it shrink-wraps the variable-length stat list
+  instead of the old manual offset juggling. *Deviation from the D2 design doc:* the scenes
+  still carry per-node font overrides, so we derive the theme at runtime and walk the
+  overrides rather than restyling all ~11 scenes onto one authored base Theme — factor 1 is
+  byte-identical to today, and an authored base Theme can later seed the derived theme.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies

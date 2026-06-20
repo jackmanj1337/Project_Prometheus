@@ -69,7 +69,7 @@ var data: StubData = StubData.new()
 	})
 	screen._show_next()
 	await process_frame
-	var stats_label: Label = screen.get_node("Panel/VBox/LabelStats")
+	var stats_label: Label = screen.get_node("Panel/Margin/VBox/LabelStats")
 	if "Learned" in stats_label.text and "Vantage" in stats_label.text:
 		print("OK  level-up panel announces a learned skill"); passed += 1
 	else:
@@ -103,13 +103,13 @@ var data: StubData = StubData.new()
 	screen._queue.append({"unit": queue_unit_c, "increases": {"speed": 1}})
 	screen._show_next()
 	await process_frame
-	var queue_names: Array[String] = [screen.get_node("Panel/VBox/LabelName").text]
+	var queue_names: Array[String] = [screen.get_node("Panel/Margin/VBox/LabelName").text]
 	screen._unhandled_input(confirm)
 	await process_frame
-	queue_names.append(screen.get_node("Panel/VBox/LabelName").text)
+	queue_names.append(screen.get_node("Panel/Margin/VBox/LabelName").text)
 	screen._unhandled_input(confirm)
 	await process_frame
-	queue_names.append(screen.get_node("Panel/VBox/LabelName").text)
+	queue_names.append(screen.get_node("Panel/Margin/VBox/LabelName").text)
 	screen._unhandled_input(confirm)
 	await process_frame
 	if queue_names == ["Queue A", "Queue B", "Queue C"] and not screen.visible:
@@ -124,7 +124,7 @@ var data: StubData = StubData.new()
 	})
 	screen._show_next()
 	await process_frame
-	var panel: Panel = screen.get_node("Panel")
+	var panel: PanelContainer = screen.get_node("Panel")
 	if panel.size.y > 200.0:
 		print("OK  panel grows for long level-up summaries"); passed += 1
 	else:

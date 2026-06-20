@@ -280,9 +280,13 @@ rerun note, not a defect.
         Scale (v0.2.0 V020-16) and HUD Layout. **Split into v0.2.3** with V021-19 (F4).
         **Done (2026-06-20):** foundation landed — renderer switched to `gl_compatibility`
         (D1), explicit `stretch/aspect=keep` (E5), desktop-only display gate (E1), all
-        check_docs-guarded. **Remaining:** the per-scene crisp font/metric Menu Scale (D2)
-        is staged to a focused, live-verified slice (heterogeneous scenes — reflow panels
-        vs fixed-scroll vs the plain-`Panel` LevelUpScreen need per-scene treatment).
+        check_docs-guarded. Crisp Menu Scale (D2) implemented — `MenuScale.apply_to` now
+        leaves `Control.scale==1` and scales type via a runtime-derived Theme + an
+        override-walk (no compounding); centered panels recentre at natural size; the
+        clamp reduces the font factor; `LevelUpScreen` converted `Panel`→`PanelContainer`.
+        `test_menu_scale` rewritten (23 checks) asserting crispness + the clamp.
+        **Remaining (live-verify):** confirm per-screen crispness + layout at 1.25–2.0× on
+        a real window before flipping `[x]`; HUD panel scale stays on `Control.scale` (D3).
 19. [~] **V021-19 — Native 1440p / 4K + platform safe-areas (v0.2.3, PLATFORM).** Add native
         1440p and 4K resolution options; note Steam Deck and mobile resolutions, and keep
         rounded corners / notches / hole-punches (safe-area insets) in mind for the

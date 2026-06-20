@@ -1,10 +1,12 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_menu_scale.gd
-# Verifies Menu Scale stays local to menu/modal panels and preserves centering at
-# every supported scale. HUD layout is covered separately by test_hud_layout.gd.
+# Verifies Menu Scale stays local to menu/modal panels, scales CRISPLY (type, not a
+# bitmap stretch — V021-18/D2), and preserves centering at every supported scale.
+# HUD layout is covered separately by test_hud_layout.gd.
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+const BASE_FONT := 16  # MenuScale._BASE_DEFAULT_FONT_SIZE (engine default)
 
 var _passed := 0
 var _failed := 0
@@ -42,6 +44,7 @@ func _init() -> void:
 	for entry in contextual_cases:
 		await _check_context_menu_scale(String(entry[0]), String(entry[1]))
 
+	await _check_crisp_type_scaling()
 	await _check_fit_clamp()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
@@ -65,9 +68,13 @@ func _check_centered_panel(label: String, scene_path: String, panel_path: String
 
 	var view_center: Vector2 = root.get_visible_rect().size * 0.5
 	var centered_all := true
+	var crisp_all := true
 	for factor in LEVELS:
 		node.call("apply_menu_scale", factor)
 		await process_frame
+		# Crisp: the panel must never bitmap-scale; text is sized via the theme.
+		if panel.scale != Vector2.ONE:
+			crisp_all = false
 		var rect: Rect2 = _visual_rect(panel)
 		var center: Vector2 = rect.position + rect.size * 0.5
 		if center.distance_to(view_center) > 2.0:
@@ -76,6 +83,7 @@ func _check_centered_panel(label: String, scene_path: String, panel_path: String
 				label, factor, center, view_center, rect])
 			break
 	_ok(centered_all, "%s stays visually centered at every menu scale" % label)
+	_ok(crisp_all, "%s scales type (Control.scale stays 1) not a bitmap stretch" % label)
 	node.queue_free()
 
 
@@ -93,32 +101,76 @@ func _check_context_menu_scale(label: String, scene_path: String) -> void:
 		return
 	node.call("apply_menu_scale", 2.0)
 	await process_frame
-	var scales_from_top_left: bool = node.scale == Vector2(2.0, 2.0) \
-		and node.pivot_offset == Vector2.ZERO
-	_ok(scales_from_top_left, "%s scales from top-left for cursor anchoring" % label)
+	# Contextual menus keep their cursor anchor (no recentre) and scale crisply:
+	# Control.scale stays 1 and the derived theme drives the larger text.
+	var crisp: bool = node.scale == Vector2.ONE
+	var themed: bool = node.theme != null and node.theme.default_font_size == BASE_FONT * 2
+	_ok(crisp and themed, "%s scales type from its cursor anchor (crisp, scale==1)" % label)
 	node.queue_free()
 
 
-# V021-08: a menu taller than the viewport is clamped so its scaled height fits
-# (top + bottom stay reachable), while a small menu still scales to the full factor.
+# Crisp mechanism: Control.scale stays 1, the derived theme scales default text,
+# explicit font-size overrides scale off a captured base, and re-applying at a new
+# factor never compounds (it reads the base, not the last scaled value).
+func _check_crisp_type_scaling() -> void:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)  # an explicit title-style size
+	vbox.add_child(label)
+	panel.add_child(vbox)
+	root.add_child(panel)
+	await process_frame
+
+	MenuScale.apply_to(panel, 2.0, true)
+	await process_frame
+	_ok(panel.scale == Vector2.ONE, "crisp: Control.scale stays 1 at 2.0x")
+	_ok(panel.theme != null and panel.theme.default_font_size == BASE_FONT * 2,
+		"derived theme scales default font size (16 -> 32) at 2.0x")
+	_ok(label.get_theme_font_size("font_size") == 40,
+		"explicit font-size override scales off its base (20 -> 40) at 2.0x")
+
+	# Re-apply at 1.0: everything returns to base, proving no compounding.
+	MenuScale.apply_to(panel, 1.0, true)
+	await process_frame
+	_ok(label.get_theme_font_size("font_size") == 20,
+		"override returns to base at 1.0x (re-apply never compounds)")
+	panel.queue_free()
+
+
+# V021-08 (crisp world): a grow-to-content menu taller than the viewport has its
+# factor dialled down so it still fits; a small menu reaches the full factor.
 func _check_fit_clamp() -> void:
 	var vp: Vector2 = root.get_visible_rect().size
-	var tall := Panel.new()
-	tall.size = Vector2(400, vp.y - 20.0)  # nearly the full viewport height already
+
+	# A PanelContainer whose content is already nearly viewport-tall: scaling to 2.0
+	# would overflow, so the clamp must reduce the applied theme factor.
+	var tall := PanelContainer.new()
+	var tall_box := VBoxContainer.new()
+	var rows: int = int(vp.y / float(BASE_FONT)) - 1  # ~fills the height at factor 1
+	for i in maxi(rows, 1):
+		var row := Label.new()
+		row.text = "row %d" % i
+		tall_box.add_child(row)
+	tall.add_child(tall_box)
 	root.add_child(tall)
 	await process_frame
 	MenuScale.apply_to(tall, 2.0, true)
-	var scaled_h: float = tall.size.y * tall.scale.y
-	_ok(scaled_h <= vp.y + 0.5 and tall.scale.y < 2.0,
-		"tall menu is clamped to fit the viewport height at large Menu Scale (V021-08)")
+	await process_frame
+	var fits: bool = tall.size.y <= vp.y + 0.5
+	var clamped: bool = tall.theme != null and tall.theme.default_font_size < BASE_FONT * 2
+	_ok(fits and clamped, "tall menu is clamped to fit the viewport height (V021-08)")
 	tall.queue_free()
 
-	var small := Panel.new()
-	small.size = Vector2(150, 150)
+	var small := PanelContainer.new()
+	var small_box := VBoxContainer.new()
+	small_box.add_child(Label.new())
+	small.add_child(small_box)
 	root.add_child(small)
 	await process_frame
 	MenuScale.apply_to(small, 2.0, true)
-	_ok(is_equal_approx(small.scale.x, 2.0),
+	await process_frame
+	_ok(small.theme != null and small.theme.default_font_size == BASE_FONT * 2,
 		"a small menu still scales to the full requested factor (V021-08)")
 	small.queue_free()
 

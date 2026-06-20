@@ -6,11 +6,11 @@ class_name LevelUpScreen extends Control
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
-@onready var _label_name:   Label = $Panel/VBox/LabelName
-@onready var _label_level:  Label = $Panel/VBox/LabelLevel
-@onready var _label_stats:  Label = $Panel/VBox/LabelStats
-@onready var _label_prompt: Label = $Panel/VBox/LabelPrompt
-@onready var _panel: Panel = $Panel
+@onready var _label_name:   Label = $Panel/Margin/VBox/LabelName
+@onready var _label_level:  Label = $Panel/Margin/VBox/LabelLevel
+@onready var _label_stats:  Label = $Panel/Margin/VBox/LabelStats
+@onready var _label_prompt: Label = $Panel/Margin/VBox/LabelPrompt
+@onready var _panel: PanelContainer = $Panel
 
 # Human-readable names for each growth stat (matches Unit._GROWTH_STATS order)
 const _STAT_NAMES: Dictionary = {
@@ -18,9 +18,6 @@ const _STAT_NAMES: Dictionary = {
 	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
 }
 const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
-const _PANEL_HALF_WIDTH := 120.0
-const _BASE_PANEL_HALF_HEIGHT := 100.0
-const _EXTRA_PANEL_LINE_HEIGHT := 18.0
 
 var _queue: Array[Dictionary] = []
 
@@ -88,7 +85,8 @@ func _show_next() -> void:
 			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
-	_resize_panel_for_stats(_label_stats.text)
+	# The PanelContainer shrink-wraps to the (now variable-length) stat list, and
+	# MenuScale recentres it — no manual offset juggling needed (V021-18).
 	_apply_menu_scale_from_settings()
 
 	var sm := get_node_or_null("/root/SettingsManager")
@@ -107,16 +105,6 @@ func _show_next() -> void:
 			if not is_instance_valid(self): return
 			_advance()
 		, CONNECT_ONE_SHOT)
-
-
-func _resize_panel_for_stats(stats_text: String) -> void:
-	var line_count: int = maxi(1, stats_text.split("\n").size())
-	var extra_lines: int = maxi(0, line_count - 5)
-	var half_height: float = _BASE_PANEL_HALF_HEIGHT + (extra_lines * _EXTRA_PANEL_LINE_HEIGHT)
-	_panel.offset_left = -_PANEL_HALF_WIDTH
-	_panel.offset_right = _PANEL_HALF_WIDTH
-	_panel.offset_top = -half_height
-	_panel.offset_bottom = half_height
 
 
 # Resolves a skill id to its display name via DataManager, falling back to the
