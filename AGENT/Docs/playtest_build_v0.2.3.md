@@ -7,11 +7,11 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.3_debug.exe`
-- Source commit: `<FILL AT EXPORT>`
+- Source commit: `76060ca`
 - Exported: `2026-06-20`
 - Godot: `4.6.stable.official.89cea1439`
-- Size: `<FILL AT EXPORT>` bytes
-- SHA-256: `<FILL AT EXPORT>`
+- Size: `101264440` bytes
+- SHA-256: `b92301f62a29523dc3b5adb3eb64e40e3afe9d8bfd5a70733d49791adadae107`
 
 The artifact is intentionally ignored by Git. v0.2.3 ships as **two files**: the
 executable and the single self-contained handbook
