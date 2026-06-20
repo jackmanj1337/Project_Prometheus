@@ -170,6 +170,16 @@ design → gamepad layer impl plan (folding in key-rebind UI + the gamepad bindi
 re-decide whether the Web shell rides the gamepad layer or keeps a throwaway bridge. This does
 not change v0.2.3 as the next execution build; it orders the *planning* track.
 
+**Resolution (2026-06-20j):** the re-decision is made — **neither**. A third path beats both:
+the Web shell goes **direct-touch (click-mode) primary, virtual-gamepad optional later**.
+Godot's default `emulate_mouse_from_touch` makes a tap an `InputEventMouseButton`, which the
+existing tested `mouse_cursor="click"` mode (V021-17) already handles, so the core needs no
+bespoke bridge and **no gamepad-layer dependency** — the Web build can ship right after v0.2.3
+as originally sequenced. Only a ~7-button HTML strip covers no-affordance actions. The
+virtual-gamepad style becomes a later optional toggle riding the gamepad layer. The
+"plan gamepad first" detour still paid off (it surfaced the decoder/menu facts and clarified
+the Web shell should not be the gamepad-validation vehicle — the Steam Deck is).
+
 ### Debug Web playtest build `[ ]`
 
 Private iPhone 14 Pro debug Web channel. **Not** mobile platform support — a debug playtest
@@ -179,13 +189,17 @@ shell only. Starts the session after v0.2.3 is verified.
   Do First": single version source, CI build matrix, itch.io/`butler` automated deploy).
 - Handoff: `AGENT/Docs/handoff_2026-06-20_web_debug.md`.
 - Carry-forward decisions: host on itch.io (unlisted) first; portrait emulator shell; fixed
-  16:9 Godot canvas; touch buttons outside the canvas; single-threaded export; PWA off;
-  debug drawer exposes F9 only; Web debug settings default `mouse_cursor` to `click`; build
-  label `v0.2.3-webdebug.1` (do not bump desktop metadata).
-- Slices: (1) Web export preset + metadata tests; (2) custom HTML shell; (3) Web input
-  bridge (`JavaScriptBridge`, pointer-id stuck-button cleanup); (4) build-cut + itch upload.
-- Open risks: iOS Safari Godot-Web quirks even single-threaded; iOS may not persist browser
-  storage (checklist must not depend on saved settings); itch embed needs a real-device smoke.
+  16:9 Godot canvas; **input = direct-touch/click-mode primary + a ~7-button HTML strip,
+  virtual-gamepad optional later (2026-06-20j; see sequencing Resolution above)**;
+  single-threaded export; PWA off; debug drawer exposes F9 only; Web debug settings default
+  `mouse_cursor` to `click`; build label `v0.2.3-webdebug.1` (do not bump desktop metadata).
+- Slices: (1) Web export preset + metadata tests; (2) custom HTML shell (canvas + ~7-button
+  strip); (3) thin strip bridge (`JavaScriptBridge`, pointer-id cleanup) — **after** smoking
+  that canvas taps drive the cursor via click-mode; (4) build-cut + itch upload.
+- Open risks: iOS Safari Godot-Web quirks even single-threaded; **the direct-touch plan
+  depends on `emulate_mouse_from_touch` working in iOS Safari Godot-Web (load-bearing —
+  smoke first)**; iOS may not persist browser storage (checklist must not depend on saved
+  settings); itch embed needs a real-device smoke.
 
 ### Input-mode / gamepad architecture `[ ]`
 

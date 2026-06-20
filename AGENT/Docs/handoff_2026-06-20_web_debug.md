@@ -59,7 +59,17 @@ Use these unless the user explicitly changes direction:
 - **Access:** unlisted/restricted/passworded itch.io page for the playtester.
 - **Layout:** portrait-first emulator shell.
 - **Game area:** fixed 16:9 Godot canvas.
-- **Controls:** touch buttons outside the canvas; no overlap with game visuals.
+- **Controls (decided 2026-06-20j — phased):** **direct-touch primary**, virtual-gamepad
+  optional later. The map and menus are driven by **taps** — Godot's default
+  `emulate_mouse_from_touch=true` turns a tap into an `InputEventMouseButton`, which the
+  existing, tested `mouse_cursor="click"` mode (V021-17) already handles as
+  tap-to-relocate-then-confirm, and Control buttons press on the emulated click. So the core
+  interaction needs **no bespoke input bridge**. Only a small HTML control strip outside the
+  canvas is needed for the ~7 actions with no on-screen tap affordance (Back/Cancel — touch
+  emulates only the left button; Menu; More Info; Inspect; Danger Zone; Zoom ±). The
+  **virtual-gamepad** style (on-screen pad synthesizing `InputEventJoypadButton`) is a
+  **later optional toggle** that rides the gamepad layer once it exists — out of scope for
+  this first build. (This drops the original bespoke action-name bridge entirely.)
 - **Renderer:** switch project to Compatibility globally.
 - **Web export:** single-threaded.
 - **PWA:** disabled for the first pass.
@@ -124,26 +134,35 @@ Required shell behavior:
 - Page does not scroll.
 - Top region contains the Godot canvas in a 16:9 frame.
 - Bottom control deck is reserved outside the canvas and padded with
-  `env(safe-area-inset-bottom)`.
-- All buttons use stable `data-action` attributes matching Godot action names.
+  `env(safe-area-inset-bottom)`. It holds only the **~7-button strip** (Back/Cancel, Menu,
+  More Info, Inspect, Danger Zone, Zoom ±) — not a full pad. The map/menus are tapped
+  directly on the canvas (see Controls decision).
+- Strip buttons use stable `data-action` attributes matching Godot action names.
 - A rotate-back fallback appears for landscape if portrait-only is chosen.
 
 ## Third Implementation Slice
 
-Recommended third commit: Web input bridge.
+Recommended third commit: the small HTML control-strip bridge (NOT a full input bridge —
+the map/menus already work by tap via touch→mouse emulation + click-mode; this is only the
+~7 no-affordance actions).
 
 Add:
 
-- `scripts/web/WebInputBridge.gd`
-- Focused test file for bridge action validation / stuck-button cleanup
+- `scripts/web/WebInputBridge.gd` (thin — strip buttons only)
+- Focused test file for action-name validation / stuck-button cleanup
 
 Implementation notes:
 
 - Load only when `OS.has_feature("web")` and custom feature `web_debug_touch` are true.
-- Use `JavaScriptBridge` to receive button state from the shell.
-- Route validated action names to `Input.action_press()` / `Input.action_release()`.
-- Track active pointer ids so `pointercancel`, `pointerleave`, and lost touches release
-  held actions.
+- Use `JavaScriptBridge` to receive strip-button state from the shell.
+- Route the ~7 validated action names to `Input.action_press()` / `Input.action_release()`.
+  (Forward-compat option: synthesize the eventual gamepad `InputEventJoypadButton` instead,
+  so the strip rides the gamepad layer later — decide at implementation; not required now.)
+- Track active pointer ids for the strip so `pointercancel`, `pointerleave`, and lost
+  touches release held actions.
+- **Verify first:** that a tap on the canvas already moves the cursor + confirms via
+  click-mode (the emulation path) before building the strip — if iOS Safari's Godot Web
+  does not emulate mouse from touch, the strip scope grows; that is the key smoke test.
 
 ## Build-Cut Slice
 
@@ -174,6 +193,10 @@ After the Web shell and bridge pass tests:
 ## Open Risks
 
 - iPhone Safari may still expose Godot Web quirks even with single-thread export.
+- **The direct-touch plan leans on `emulate_mouse_from_touch` working in iOS Safari's Godot
+  Web.** It is engine-level so should hold, but it is the load-bearing assumption — smoke it
+  on a real device before building the strip (see slice 3). If it fails, the strip must grow
+  to cover cursor movement (fallback toward the virtual-gamepad style).
 - Text crispness remains a risk until V021-18 lands; use Menu Scale and Map Zoom as the
   first workaround.
 - Browser storage on iOS may not persist settings; checklist should not depend on saved

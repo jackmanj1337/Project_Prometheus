@@ -192,8 +192,12 @@ sub-setting.)
 - **Reflow conversions** already underway (LevelUpScreen `Panel`→`PanelContainer`, etc.)
   are the down payment on the dual-UI constraint.
 - **Type-based crisp scaling** (V021-18) lets mobile default to a larger crisp factor.
-- **The debug-web emulator shell == the Virtual-gamepad touch style** — same mechanism;
-  building one is most of the other.
+- **The debug-web emulator shell** can ride either touch style. **Decided 2026-06-20j: the
+  first web build is direct-touch (click-mode) primary, with virtual-gamepad as a later
+  optional toggle** — because click-mode already works by tap via `emulate_mouse_from_touch`,
+  needs no gamepad layer, and is more ergonomic for a tactics map. The virtual-gamepad style
+  (on-screen pad synthesizing gamepad actions) still == the eventual mobile VG mechanism;
+  building it later for web is most of that other work.
 
 ## Sequencing (cheap-now, no-rework)
 

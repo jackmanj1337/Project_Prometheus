@@ -144,21 +144,29 @@ Layout:
 - Disable page scrolling and browser gestures on the control deck with CSS
   `touch-action: none`.
 
-### Input Bridge
+### Input (decided 2026-06-20j — direct-touch primary, thin strip bridge)
 
-Do not rely on synthetic keyboard events from JavaScript.
+**The map and menus are driven by taps, not a full button bridge.** Godot's default
+`emulate_mouse_from_touch=true` turns a canvas tap into an `InputEventMouseButton`, which
+the existing tested `mouse_cursor="click"` mode (V021-17) already handles
+(tap-to-relocate-then-confirm), and Control buttons press on the emulated click. So the core
+interaction needs **no bespoke bridge and no gamepad-layer dependency**. **Smoke this on a
+real device first** — it is the load-bearing assumption.
 
-Implement a Godot-side Web input bridge:
+Only a small Godot-side strip bridge is needed for the ~7 actions with no on-screen tap
+affordance (Back/Cancel — touch emulates only the left button; Menu; More Info; Inspect;
+Danger Zone; Zoom ±):
 
-- Recommended file: `scripts/web/WebInputBridge.gd`.
+- Recommended file: `scripts/web/WebInputBridge.gd` (thin — strip buttons only).
 - Load it only for Web debug builds, using `OS.has_feature("web")` plus a custom
   export feature such as `web_debug_touch`.
-- Expose a JavaScript callback through `JavaScriptBridge`.
-- The HTML shell calls the bridge with action names and pressed/released state.
-- The bridge calls `Input.action_press(action)` and `Input.action_release(action)`.
+- Expose a JavaScript callback through `JavaScriptBridge`; the HTML strip calls it with
+  action names + pressed/released state; the bridge calls
+  `Input.action_press/release(action)`. (Do not rely on synthetic keyboard events from JS.)
 
-This keeps every touch button mapped to the same action names that keyboard and
-mouse already use.
+The **virtual-gamepad** style (on-screen pad synthesizing `InputEventJoypadButton`) is a
+later optional toggle that rides the gamepad layer once it exists — out of scope here. This
+drops the original "every touch button is a bridged action" approach.
 
 ### First-Pass Button Deck
 
