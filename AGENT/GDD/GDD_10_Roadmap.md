@@ -139,6 +139,7 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 | M13 — Awakening Supplement | [DEFERRED] | §Milestone 13 |
 | M15 Part B — Remote Play | [DEFERRED] | §Milestone 15 Part B |
 | Phase 3 backlog (code health, content, systems, maps, polish, UI/UX) | [ ] backlog | §Phase 3 Backlog |
+| Apple Vision Pro reach (post-release; revisit after Safari-verified web release) | [DEFERRED] | §Release Gates → Renderer & Platform Targets |
 
 ### H. Planning backlog — items needing implementation-ready plans
 
@@ -859,6 +860,18 @@ Ratified 2026-06-13 (June decision record):
   (`UnitDetailsScreen._input`), which a gamepad can't trigger until those actions get
   joypad bindings. Audit all actions for joypad events as part of this milestone.
 - **Mobile:** deferred.
+- **Apple Vision Pro:** deferred (post-release). Revisit *after* the web release ships
+  and is Safari-verified — at which point the headset gets it nearly for free: Vision Pro's
+  Safari can load the hosted web build with no Apple Developer account, App Store, or build
+  changes (a flat windowed game; gaze+pinch maps to a single tap/click, which the
+  `mouse_cursor="click"` mode already handles — same axis as the direct-touch web input
+  decision). Heavier native routes exist but are not scheduled: an iPad-compatibility window
+  (unmodified Godot iOS export, needs the $99/yr Apple account + Mac/Xcode; auto-excluded if
+  the app uses raw motion sensors/GPS/NFC), and native visionOS export (windowed support
+  landed in Godot 4.5; immersive XR via a newest/least-proven plugin — Apple uses
+  RealityKit/ARKit/Metal, **not** OpenXR, so Quest/SteamVR XR knowledge does not transfer).
+  Load-bearing dependency is the same as the debug Web build: `emulate_mouse_from_touch`
+  working in iOS-Safari Godot-Web. Researched 2026-06-20.
 
 Cross-referenced in GDD_00 §Tech Stack; GDD_07 §Accessibility & Input Parity.
 
