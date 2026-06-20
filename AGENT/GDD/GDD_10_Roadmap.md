@@ -85,7 +85,7 @@ opens or closes (DoD#1).
 | v0.2.3 Display build — live-verify closeout (crispness/resolution gate) | [~] | §v0.2.1 findings V021-18 / V021-19; gate = Part I of `AGENT/Docs/playtest_checklist_v0.2.3.md` |
 | v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
 | Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
-| Input-mode / gamepad architecture (gamepad layer = keystone) + 4 open design decisions | [ ] | §Forward Platform Workstreams |
+| Input-mode / gamepad architecture (gamepad layer = keystone); 4 design decisions resolved 2026-06-20j, impl/test plan pending | [ ] | §Forward Platform Workstreams |
 
 ### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
 
@@ -205,16 +205,19 @@ dependency: zero gamepad bindings exist today.**
   Phase 3 Backlog §UI/UX (Key rebinding UI; Gamepad & touch-screen support); it is their design
   home. The V021-15 shared-selector extraction is the single joypad-wiring point and lands here.
 
-**Open design decisions (not yet settled — resolve before/at implementation):**
+**Design decisions — RESOLVED 2026-06-20j** (detail: `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` → Resolved decisions):
 
-1. **Default touch style** — Dedicated (native) vs Virtual gamepad opt-in. (Lean: Dedicated,
-   given the "proud to show strangers" goal; confirm.)
-2. **`mouse_cursor` cfg location** — keep `gameplay/mouse_cursor` or move to a new `[input]`
-   section grouping all input-mode keys. (Lean: new `[input]` section.)
-3. **Prompt/glyph swapping** (A/B vs tap hints per active mode) — in scope for the first mobile
-   release, or a polish follow-up?
-4. **Steam Deck resolution/aspect** — Deck is 1280×800 (16:10); `aspect=keep` letterboxes the
-   authored 16:9. Accept the bars or add a Deck-aware layout? (Defer.)
+1. **Default touch style → Dedicated (native), Virtual-gamepad interim.** Authored
+   `touch_controls` default is `dedicated`; touch resolves to Virtual gamepad until the
+   Dedicated layer (sequencing #4) ships.
+2. **Cfg location → reuse the existing `[controls]` section** (holds `keybindings` already;
+   reset wired). `input_mode` / `touch_controls` / relocated `mouse_cursor` all live there;
+   migrate `mouse_cursor` out of `[gameplay]` via the legacy read-old-write-new pattern.
+3. **Prompt/glyph swapping → polish follow-up, signal seam now.** Static touch hints in the
+   first single-mode release; route all prompts through `input_mode_changed` so the swap
+   system is additive later (real payoff is phone+controller / Deck).
+4. **Steam Deck resolution/aspect → accept letterbox, defer Deck-aware layout.** Deck is
+   lower-priority and later than mobile; not worth a third aspect target now.
 
 **DoD when implemented:** update GDD input/controls chapter + Platform Targets + flip the
 roadmap status (DoD#1); add a `check_docs.py` guard for the new `input_mode` / `touch_controls`

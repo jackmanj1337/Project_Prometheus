@@ -79,7 +79,8 @@ Input Mode:  [ Auto ▾ ]                         default = Auto (last detected 
   separate device.
 - The existing `mouse_cursor` setting (`follow | click | disabled`) relocates under
   **Keyboard & Mouse**. This is mostly a UI/organisation move of an existing,
-  already-migrated setting — the cfg key can stay or move to an `[input]` section.
+  already-migrated setting — the cfg key moves to the existing `[controls]` section
+  (resolved 2026-06-20j; see Resolved decisions).
 
 ## Detect floor + conditional promotion
 
@@ -205,16 +206,34 @@ sub-setting.)
 4. **Touch-native ("Dedicated") layer** — the large, separate menu/interaction
    workstream for the proud-to-show phone release. The only remaining expensive piece.
 
-## Open decisions (not yet settled)
+## Resolved decisions (2026-06-20j)
 
-- **Default touch style:** recommend **Dedicated** (native) given the "proud to show
-  strangers" goal, with Virtual gamepad as opt-in. (Leaning yes; confirm.)
-- **`mouse_cursor` cfg location:** keep `gameplay/mouse_cursor`, or move to a new
-  `[input]` section grouping all input-mode keys? (Lean: new `[input]` section.)
-- **Prompt/glyph swapping** (showing A/B vs tap hints per active mode): in-scope for the
-  first mobile release or a polish follow-up?
-- **Steam Deck resolution/aspect:** Deck is 1280×800 (16:10); `aspect=keep` letterboxes
-  the authored 16:9 slightly. Accept the bars or add a Deck-aware layout? (Defer.)
+All four open choices were settled this session (recommendations accepted). Mirrored in
+GDD_10 *Forward Platform Workstreams*.
+
+- **Default touch style → Dedicated (native), Virtual-gamepad interim.** The persisted
+  `touch_controls` default is `dedicated` (best stranger-facing feel; matches the goal).
+  Because Dedicated is sequencing item #4 (the last, most expensive layer), touch **resolves
+  to Virtual gamepad until the Dedicated layer ships** (the debug-web shell is already that
+  style). So the *authored default* is `dedicated`; the *availability gate* falls back to
+  `virtual_gamepad` while Dedicated does not exist.
+- **Cfg location → reuse the existing `[controls]` section** (not a new `[input]` section).
+  `settings.cfg` already has `[controls]` holding `keybindings`, and
+  `reset_section_to_defaults()` already handles `"controls"`. Put `input_mode`,
+  `touch_controls`, and the relocated `mouse_cursor` all under `[controls]` so input settings
+  are not fragmented across two sections. Migrate `mouse_cursor` out of `[gameplay]` with the
+  same one-version read-old-write-new pattern already used for the legacy `mouse_targeting`
+  key. (Reset semantics improve too: cursor mode then clears with "reset controls", not
+  "reset gameplay".)
+- **Prompt/glyph swapping → polish follow-up, but build the signal seam now.** The first
+  mobile release is single-mode (bare phone = always touch), so dynamic A/B-vs-tap swapping
+  has near-zero day-one payoff; its value is phone+controller and Steam Deck (both later).
+  Render static touch-appropriate hints in the first release, but route **all** prompts
+  through `input_mode_changed` from the start so the swap system is additive, not a retrofit.
+- **Steam Deck resolution/aspect → accept the letterbox bars; defer any Deck-aware layout.**
+  Deck (1280×800, 16:10) letterboxes slightly under `aspect=keep`. Deck is lower-priority and
+  later than mobile, so a third aspect target is not worth maintaining now. Revisit only if
+  Deck becomes a priority shipping target.
 
 ## Definition of done (when implemented)
 
