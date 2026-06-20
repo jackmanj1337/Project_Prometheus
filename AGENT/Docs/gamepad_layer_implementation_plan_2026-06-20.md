@@ -68,8 +68,16 @@ is necessary, not belt-and-suspenders:
 
 No double-movement: the custom menus consume `cursor_*` in `_input` (which runs before the
 viewport's default focus navigation), so the duplicate `ui_*` binding is swallowed there;
-on pure-focus screens only `ui_*` is handled. This must be **verified per menu** in the
-adoption pass (a menu that ever stops consuming `cursor_*` would double-step).
+on pure-focus screens only `ui_*` is handled. This relies on per-menu consume **discipline**,
+not structure — the durable fix (an input-context owner so exactly one context is live) is
+**Rebuild C, deferred to V021-15** (§5). For this plan, an adoption-pass audit + a test that
+asserts every cursor-handling menu consumes (§8) is the guard.
+
+**Single source of truth for accept/cancel:** keep `confirm`/`cancel` and
+`ui_accept`/`ui_cancel` carrying the **same event list** (so `Z` and gamepad `A` both
+activate a focused control, not just `ui_accept`'s defaults). This closes the pre-existing
+`confirm`-vs-`ui_accept` overlap (today they coincide only on Enter/Space) rather than
+leaving it coincidental.
 
 ## 3. The binding scheme (`project.godot` additions)
 
@@ -111,17 +119,49 @@ toggle only. The plan adds a small **contextual-action resolver** (read the curs
 tile → enemy? → per-unit range : faction range) so the same logic serves the gamepad R3 and
 the mouse right-click (parity). Tracked as a dependency in GDD_10 (Open Items Register).
 
-## 5. Analog-stick handling
+## 5. Map-cursor input rebuild — NOT a data edit (Rebuilds A + B)
 
-D-pad presses map cleanly to discrete `cursor_*` events. The **left stick** needs:
-- A deadzone (0.5 default) so resting drift does not move the cursor.
-- **Held-direction auto-repeat** — `is_action_pressed` fires once per press; a held stick
-  must repeat on a timer (initial delay ~0.35 s, repeat ~0.12 s) to step the map cursor and
-  menus continuously, matching held-arrow behaviour. Implement as a small repeat helper in
-  the input owner (see §6), emitting synthetic `cursor_*` presses; the `ui_*` focus system
-  already echoes, so only the custom map-cursor path needs the helper.
-- The **right stick** is reserved (camera pan is a possible later consumer; not in this
-  slice). Right-stick *click* = R3 (danger zone); left-stick *click* = L3 (zoom reset).
+**Finding (read 2026-06-20):** the §3 "add joypad events" approach is enough for menus and
+native controls, but **not for the map cursor**. `MapCursorInput` is keyboard-typed:
+`decode_key(event: InputEventKey)` is only called by MapCursor *after* it filters to key
+events, so a d-pad `InputEventJoypadButton` never reaches it; and the auto-repeat model
+(`arm_repeat` / `note_key_released` / `tick`) assumes discrete press/release edges, which an
+analog stick does not produce. So the map cursor needs a **rebuild**, not just bindings. The
+bones are already right: the `MapCursorInput.Intent` enum is a clean device-agnostic
+translation abstraction, and `is_action_pressed` (used inside the decoder) is already
+device-agnostic — only the *type signature* and MapCursor's key-only gating are bound to the
+keyboard.
+
+**Rebuild A — `MapCursorInput` → device-agnostic decoder (required for d-pad + stick):**
+- Widen `decode_key(event: InputEventKey)` → `decode(event: InputEvent)` and drop MapCursor's
+  key-event-only gate so `InputEventJoypadButton` (d-pad) flows through the same `Intent`
+  decode for free.
+- Add **polled analog** for the left stick: in `_process`, read
+  `Input.get_vector("cursor_left","cursor_right","cursor_up","cursor_down")` (built-in
+  deadzone) and feed the *existing* repeat timer (`arm_repeat`/`tick`) so a held stick steps
+  the cursor discretely. The stick has no release edge, so `note_key_released` is replaced for
+  the stick path by "vector returned to deadzone → clear repeat" (keys/d-pad keep the edge
+  path). Repeat timings stay `GameConstants.CURSOR_KEY_REPEAT_DELAY/RATE`.
+- Net: one decoder serves keyboard, d-pad, and stick; the `Intent` layer downstream is
+  unchanged. This is the real input-translation layer the game needs.
+
+**Rebuild B — zoom → polled analog strength (cheap win, fixes trigger-held):**
+- Zoom is edge-triggered today (`event.is_action_pressed("zoom_in")` in
+  `MapCursor._unhandled_input`). Keyboard held-repeat works only by OS key-echo, which analog
+  triggers do not emit — so a held trigger would zoom once. Rebuild to poll
+  `Input.get_action_strength("zoom_in")` / `"zoom_out"` in `_process`: free held-repeat AND
+  **proportional analog zoom speed** from the triggers. The keyboard/wheel keep their existing
+  feel (strength 0/1). Camera-trigger deadzone is smaller than the nav default so a light pull
+  starts zooming.
+
+The **right stick** is reserved (camera pan, a later consumer; not this slice). Right-stick
+*click* = R3 (danger zone); left-stick *click* = L3 (zoom reset).
+
+**Deferred to V021-15 (Rebuild C):** the structural fix for the §2 dual-vocabulary fragility
+— an input-context owner that guarantees exactly one of {map cursor, modal menu, selector} is
+live (replacing the `_input_suppressed` bool + per-menu consume discipline), letting menus
+move to native Godot focus. It subsumes the V021-15 selector arbiter, so it lands with that
+work, not here. See `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
 
 ## 6. Active-mode integration (ties to the input-mode design)
 
@@ -139,11 +179,14 @@ seam that design specified:
 
 ## 7. Build slices (cheap-now, testable per step)
 
-1. **Bindings + focus parity.** Add the joypad events (§3); verify every menu/screen is
-   navigable and activatable by pad (manual + the focus-consumption audit from §2). No new
-   GDScript beyond what parity needs. Pure unlock of Gamepad mode.
-2. **Left-stick repeat helper + map-cursor pad nav.** §5 auto-repeat; map cursor, zoom
-   triggers, unit-cycle bumpers, R3/L3 clicks.
+1. **Bindings + accept/cancel unification + focus parity.** Add the joypad events (§3),
+   make `confirm`/`cancel` share `ui_accept`/`ui_cancel`'s event lists (§2); verify every
+   menu/native-control screen is navigable + activatable by pad (manual + the consume audit
+   from §2). Unlocks Gamepad mode for menus/native controls.
+2. **Map-cursor decoder rebuild (A) + polled zoom (B).** §5 — widen `MapCursorInput.decode`
+   to all device events (d-pad), add left-stick `get_vector` polling into the existing repeat
+   timer, rebuild zoom to polled `get_action_strength` (analog triggers). Unit-cycle bumpers,
+   R3/L3 clicks. After this the map is fully pad-driven.
 3. **`input_mode_changed` seam + focus-grab on mode switch.** §6 — detection, signal,
    focus-grab/drop. Headless-test the detection + signal; live-verify the focus feel.
 4. **Contextual danger-zone resolver** (faction-wide arm now; per-enemy arm gated on the
@@ -151,15 +194,20 @@ seam that design specified:
    behind the feature flag/TODO with its dependency edge).
 
 Slices 1–2 deliver a fully pad-playable build (the Steam Deck / phone-with-controller
-target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish.
+target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish. **Rebuild C
+(input-context owner + native menu focus) is out of scope here — it lands with V021-15.**
 
 ## 8. Headless test plan
 
 - `test_input_bindings.gd` (new) — assert every gameplay action carries ≥1 joypad event and
   the debug actions carry **none** (mirrors the DoD#2 spirit; guards against a future
   binding regression). Cross-check the `ui_*` ↔ `cursor_*`/`confirm`/`cancel` pairing.
-- Left-stick repeat helper — unit-test the timer/echo logic (initial-delay then repeat;
-  release stops it) headless via simulated axis events.
+- `MapCursorInput` decoder rebuild — extend the existing `test_map_cursor_input` suite:
+  `decode(InputEvent)` returns the right `Intent` for a d-pad `InputEventJoypadButton` (not
+  just keys); the stick-vector → repeat-timer path arms on entering and clears on returning to
+  deadzone (parity with the keyboard `arm_repeat`/`note_key_released` tests).
+- Polled zoom — unit-test that `get_action_strength` polling yields held-repeat and that a
+  full vs partial trigger pull scales zoom speed (logic-level; the camera apply stays live).
 - `input_mode_changed` detection — feed synthetic `InputEventJoypadButton` /
   `InputEventKey` and assert the derived mode + one signal per real change (reuse the
   input-mode resolver tests when that lands).
@@ -185,10 +233,10 @@ target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish
 1. **Owner type** — extend `SettingsManager` vs a new `InputModeManager` autoload. Lean:
    small dedicated autoload (the design floats both); keeps `SettingsManager` persistence-
    focused and the runtime active-mode logic separate.
-2. **Trigger-as-button thresholds** — exact `JOY_AXIS_TRIGGER_*` cutoff + camera-zoom
-   deadzone (tune live).
-3. **Repeat helper home** — in the map-cursor input owner vs the mode manager. Lean:
-   map-cursor owner, since `ui_*` already echoes for menus and only the custom map path
-   needs it.
+2. **Trigger thresholds** — exact `JOY_AXIS_TRIGGER_*` deadzone + the zoom-strength→speed
+   curve (tune live).
+3. **Stick repeat vs analog feel** — the decoder reuses the discrete step+repeat timer for
+   the left stick (parity with keys). Confirm live that discrete stepping feels right, or
+   whether the stick wants a continuous glide instead (would diverge from the keyboard model).
 4. **Per-enemy threat range** — its own design before slice 4's contextual arm can fully
    ship (UI/UX backlog item). This plan ships the resolver + faction path regardless.

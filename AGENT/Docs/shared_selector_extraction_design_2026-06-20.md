@@ -94,6 +94,21 @@ Two rules, replacing today's ad-hoc split:
    This is the contract the gamepad layer's focus-grab subscribes to on
    `input_mode_changed`.
 
+### Absorbs the gamepad plan's "Rebuild C" (input-context owner)
+
+The gamepad layer plan (`AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` §2/§5)
+deferred its structural input fix to here, because it is the same job as the arbiter above.
+Today the "only one context is live" guarantee rests on a single `MapCursor._input_suppressed`
+bool **plus** per-menu `set_input_as_handled()` discipline — fragile, because a menu that
+ever stops consuming `cursor_*` would double-step once the gamepad binds d-pad to both
+`cursor_*` and `ui_*`. Rebuild C replaces that with an **input-context owner / stack** that
+guarantees exactly one of {map cursor, modal menu, More-Info selector} is live. With that in
+place, the custom menus (`ActionMenu` / `ItemMenu` / `WeaponMenu`) can drop their manual
+`_move_focus` / `_focused_idx` and move to **native Godot focus** (`ui_*`), since the owner —
+not per-menu consumption — enforces exclusivity. The arbiter in rule 2 is the More-Info slice
+of that same owner. Scope this together with the `SelectionCursor` extraction so the input
+layer is rebuilt once.
+
 ## Component 3 — the joypad-wiring point
 
 Because all three surfaces now route navigation through `cursor_*` + `more_info` via the
