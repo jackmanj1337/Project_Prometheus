@@ -140,7 +140,8 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
-	mouse_cursor = normalize_mouse_cursor_mode(mouse_cursor)
+	# mouse_cursor is normalized on load and whenever the SettingsScreen sets it, so
+	# it is already a canonical value here — save() just persists it (no mutation).
 	cfg.set_value("gameplay", "mouse_cursor",      mouse_cursor)
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)

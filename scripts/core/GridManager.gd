@@ -176,12 +176,17 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 	return base
 
 
-# Resolves `unit`'s movement type by probing has_quality in VALID_MOVEMENT_TYPES
-# precedence order (same precedence GameConstants.movement_type_of uses on a raw
-# special_qualities array). Non-movement tags are never probed, so they're ignored.
-# Defaults to infantry for a null unit or a stub without has_quality.
+# Resolves `unit`'s movement type. A real Unit exposes movement_type() (the single
+# source of truth, GameConstants.movement_type_of over its class qualities), so we
+# defer to it. Test stubs that only implement has_quality fall back to probing
+# VALID_MOVEMENT_TYPES in the same precedence order. Defaults to infantry for a null
+# unit or a stub with neither method.
 func _movement_type_of_unit(unit: Node) -> String:
-	if unit != null and unit.has_method("has_quality"):
+	if unit == null:
+		return "infantry"
+	if unit.has_method("movement_type"):
+		return String(unit.call("movement_type"))
+	if unit.has_method("has_quality"):
 		for mt in GameConstants.VALID_MOVEMENT_TYPES:
 			if unit.has_quality(mt):
 				return mt
