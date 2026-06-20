@@ -650,6 +650,10 @@ Ratified 2026-06-13 (June decision record):
 - **Steam Deck:** letterbox (keep 16:9) at first verification; revisit "expand" once
   UI-scale setting exists (OPEN-11).
 - **Web:** playtest channel.
+- **Debug Web playtest path:** target design recorded in
+  `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md`. First pass is a private debug Web
+  channel with a 16:9 Godot canvas and emulator-style touch controls outside the
+  game visuals; it does not promote mobile to a full platform target.
 - **Gamepad:** with the key-rebind milestone. Known gap (noted 2026-06-19): the input
   actions are keyboard/mouse-only — no `InputEventJoypad*` events are bound yet. So
   features built action-first are controller-*ready* but not controller-*reachable* until
