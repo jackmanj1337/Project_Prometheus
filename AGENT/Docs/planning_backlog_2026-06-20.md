@@ -103,9 +103,21 @@ Escape, Survive/Defend).
 
 ## Recommended next-session focus
 
-**The input/controls cluster (§1).** It is fully unblocked (docs-only), the highest
-near-term leverage (keystone for every non-keyboard platform), and sequenced right after
-the Debug Web build. Suggested order: resolve the input-mode 4 open decisions → write the
-**V021-15 shared selector extraction design** (the concrete first artifact and the single
-joypad-wiring point) → fold the key-rebind UI + gamepad binding audit into the input-mode
-implementation plan.
+**Finish the input/controls cluster (§1) — confirmed 2026-06-20.** The bulk of §1 landed
+2026-06-20j (sequencing decision, the input-mode 4 decisions, the V021-15 selector design,
+the gamepad-arm impl plan, and the Web-shell input resolution). The remaining §1 planning
+work — both fully unblocked, docs-only — is:
+
+1. **Broader input-mode resolver plan.** The gamepad plan built only the gamepad arm. Still
+   to plan: the Auto/Touch/K&M detect-floor + conditional-promotion resolver, the
+   gray-don't-hide + back-door fallback availability logic, and the DoD#2 `check_docs` guard
+   for the `input_mode` / `touch_controls` value-sets.
+2. **Key-rebind UI plan.** `SettingsManager.rebind_action` exists; plan the capture-UI flow
+   (conflict handling, reset-to-default, persistence) and how it composes with the
+   input-mode setting.
+
+After §1 closes, the next cluster is **§2 Campaign / save** (gates the 1.0 campaign, D-D).
+
+> Superseded recommendation (kept for provenance): the original text here recommended
+> starting §1 from the input-mode 4 decisions → V021-15 design → gamepad audit; all of that
+> is now done (2026-06-20j).
