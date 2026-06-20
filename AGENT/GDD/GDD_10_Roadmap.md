@@ -141,18 +141,26 @@ rerun note, not a defect.
        uncommitted move through `cancel_transient_control_for_handoff()`. Tests:
        `test_enemy_ai` (re-move guard + mid-activation rollback), `test_map_cursor`
        (handoff cleanup). The M15B/M10 rollback primitive (GDD_01 §TurnManager).
-2. [ ] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
+2. [~] **V021-02 — HUD layout editor input leak + reset still misplaces terrain More
        Info (re-fail of V020-06).** While Edit HUD Layout is open you can `Esc` the
        Settings modal and still drive the map cursor / open other menus; and the reset
        reflow still misplaces expanded terrain More Info "when you mess with it enough."
-       Modal-capture + reflow robustness.
-3. [ ] **V021-03 — HUD editor sample text escapes the panel bounds.** Editor sample
+       Modal-capture + reflow robustness. **Input leak fixed:** `HudLayoutEditor._input`
+       now swallows every non-mouse input while open (routing `cancel` to its own Cancel
+       so it can't fall through and close the Settings screen). Test: `test_hud_layout_editor`.
+       **Reflow-hardening deferred to V021-05** — it depends on the expanded-panel "active
+       page size" the terrain-paging rework introduces; fixing it in isolation now would
+       be reworked there.
+3. [x] **V021-03 — HUD editor sample text escapes the panel bounds.** Editor sample
        text should stay inside the panel rect and ideally match the real readout's
-       location/format. `HudLayoutEditor`.
+       location/format. **Fixed:** each drag frame is `clip_contents = true` and the
+       sample label is bounded to the frame and wraps. Test: `test_hud_layout_editor`.
 4. [ ] **V021-04 — Terrain panel resize breaks corner-snap.** Resizing the terrain
        corner in the HUD editor stops it seating tightly in the corner. Tester ask:
        clamp/lock the movable block so it can't overlap or run off-screen. `HUD` corner
-       anchoring + editor size bounds.
+       anchoring + editor size bounds. **Folded into V021-05** — the corner is a
+       bottom-right-anchored VBox whose scale pivot is the same geometry the paging
+       rework redefines; both are fixed together there.
 5. [ ] **V021-06 — Directional selector axis inversion (re-fail of V020-10 selector).**
        On the character sheet, Up moves the selection Left and Down moves it Right; it
        only moves vertically when it can't move further horizontally. Should map Up/Down

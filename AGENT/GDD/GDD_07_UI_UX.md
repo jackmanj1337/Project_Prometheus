@@ -829,7 +829,11 @@ The accessibility and parity contract the UI must honor across input methods and
   has a bright-red outline (yellow when selected) drawn with styleboxes, the scale
   buttons read `Scale Panel −/+`, and every frame shows editor-only sample text whose
   font scales with the panel so the chosen size is visible (the sample never touches
-  the live HUD nodes). Persisted per panel as `{ offset, scale }` in
+  the live HUD nodes; the frame clips it to its bounds so it can't overflow — V021-03).
+  The editor is a **hard modal** (V021-02): while it is open `HudLayoutEditor._input`
+  swallows every non-mouse input and routes `cancel` to its own Cancel, so the map
+  cursor / menus underneath stay inert even if the launching Settings screen is
+  dismissed. Persisted per panel as `{ offset, scale }` in
   `SettingsManager.hud_layout`; applied by `HUD.apply_layout` with an on-screen clamp.
   Scope: the persistent readouts only — contextual menus (cursor-anchored) are not
   movable and use Menu Scale instead.

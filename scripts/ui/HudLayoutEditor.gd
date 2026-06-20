@@ -37,6 +37,21 @@ func _init() -> void:
 	layer = 128  # above the HUD's CanvasLayer so the editor sits on top
 
 
+# The editor is a hard modal: while it is open it swallows every non-mouse input so
+# the map cursor / menus underneath can't be driven — even if the Settings screen that
+# launched it is dismissed out from under it (V021-02 input leak). Mouse events fall
+# through to the full-rect dimmer + drag frames. The `cancel` action closes the editor
+# (restoring the pre-edit layout, mirroring the Cancel button) and is consumed here so
+# it never reaches the Settings screen beneath. _input runs before _unhandled_input, so
+# this reliably preempts MapCursor / ModalScreen, which read cancel via _unhandled_input.
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouse:
+		return
+	if event.is_action_pressed("cancel"):
+		_on_cancel()
+	get_viewport().set_input_as_handled()
+
+
 # Opens the editor over `hud`. Captures the current layout so Cancel can restore it.
 func open(hud: Control) -> void:
 	_hud = hud
@@ -84,6 +99,9 @@ func _build_handles() -> void:
 			continue
 		var frame := Panel.new()
 		frame.mouse_filter = Control.MOUSE_FILTER_STOP
+		# V021-03: clip children to the frame rect so the sample text can never spill
+		# outside the panel it describes (the tester saw it escape the bounds).
+		frame.clip_contents = true
 		var lbl := Label.new()
 		# Editor-only sample text: the panel id plus a dummy readout so the tester
 		# can judge font size at the current scale. This label lives on the editor
@@ -115,6 +133,10 @@ func _refresh_handles() -> void:
 		if lbl != null:
 			lbl.add_theme_font_size_override(
 				"font_size", int(round(_SAMPLE_FONT_BASE * _scale_of(id))))
+			# V021-03: bound the label to the frame (minus its 4,2 inset) and let it
+			# wrap, so oversized sample text stays contained rather than overflowing.
+			lbl.size = (frame.size - Vector2(8, 4)).max(Vector2.ZERO)
+			lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_update_scale_label()
 
 

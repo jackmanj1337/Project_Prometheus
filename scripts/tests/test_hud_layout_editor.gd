@@ -94,6 +94,36 @@ func _init() -> void:
 	editor3._on_done()
 	_ok(sm.hud_layout.is_empty(), "Done after Reset saves an empty layout")
 
+	# ---- V021-03: handle frames clip their sample text to their bounds ----
+	var editor5: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor5)
+	editor5.open(hud)
+	var clip_id: String = ""
+	for id in editor5._handles:
+		clip_id = id
+		break
+	_ok(clip_id != "" and editor5._handles[clip_id].clip_contents,
+		"V021-03 handle frames clip sample text to their bounds")
+
+	# ---- V021-02: the cancel action closes the editor + restores the layout ----
+	# The editor is a hard modal — its _input swallows the cancel and routes it to
+	# Cancel, so it never reaches (and closes) the Settings screen beneath it.
+	hud.apply_layout({})                                  # clean authored base
+	editor5._on_cancel()                                  # discard the open() snapshot editor
+	var editor6: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor6)
+	editor6.open(hud)
+	hud.set_panel_layout("unit_info", Vector2(50, 50), 1.5)  # change to be discarded
+	var cancel_ev := InputEventAction.new()
+	cancel_ev.action = "cancel"
+	cancel_ev.pressed = true
+	editor6._input(cancel_ev)
+	await process_frame
+	_ok(panel.position == base and is_equal_approx(panel.scale.x, 1.0),
+		"V021-02 cancel input restores the pre-edit layout")
+	_ok(not is_instance_valid(editor6) or editor6.is_queued_for_deletion(),
+		"V021-02 cancel input closes the editor")
+
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
