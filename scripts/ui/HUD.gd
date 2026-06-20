@@ -185,13 +185,27 @@ func _apply_saved_layout() -> void:
 
 
 # Keeps a panel from being placed (or saved) fully off-screen: clamps the top-left so
-# at least _MIN_VISIBLE_PX of the scaled panel stays inside the viewport on each axis.
+# at least _MIN_VISIBLE_PX of the scaled panel stays inside the SAFE region on each
+# axis. The safe region is the viewport minus the safe-area insets (D5/E6) — zero on
+# desktop, so this is unchanged there; on a future mobile-web build the notch/home-
+# indicator margins shrink the clamp bounds with no further wiring.
 func _clamp_panel_on_screen(panel: Control, pos: Vector2) -> Vector2:
 	var view: Vector2 = get_viewport_rect().size
 	var sz: Vector2 = panel.size * panel.scale
-	pos.x = clampf(pos.x, _MIN_VISIBLE_PX - sz.x, view.x - _MIN_VISIBLE_PX)
-	pos.y = clampf(pos.y, _MIN_VISIBLE_PX - sz.y, view.y - _MIN_VISIBLE_PX)
+	var insets: Vector4i = _safe_area_insets()  # (left, top, right, bottom)
+	pos.x = clampf(pos.x, insets.x + _MIN_VISIBLE_PX - sz.x, view.x - insets.z - _MIN_VISIBLE_PX)
+	pos.y = clampf(pos.y, insets.y + _MIN_VISIBLE_PX - sz.y, view.y - insets.w - _MIN_VISIBLE_PX)
 	return pos
+
+
+# Reads the single safe-area provider (SettingsManager). Returns ZERO when the
+# autoload is absent (headless paths that build the HUD without it) so desktop and
+# tests are unaffected.
+func _safe_area_insets() -> Vector4i:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.has_method("get_safe_area_insets"):
+		return sm.call("get_safe_area_insets")
+	return Vector4i.ZERO
 
 
 # Live single-panel edit used by the layout editor: sets one panel's offset (from its

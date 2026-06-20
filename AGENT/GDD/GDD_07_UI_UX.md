@@ -883,6 +883,18 @@ The accessibility and parity contract the UI must honor across input methods and
   `_terrain_expanded_offset` derives the reflow from the active page's height — which
   hardens the V021-02 reset bug (the offset is computed, never cached). `Def`/`Dodge`
   live on the always-visible compact panel, so the movement page doesn't restate them.
+- **Safe-area provider (V021-19 / D5 / E6):** HUD edge-anchoring (`HUD._clamp_panel_on_screen`)
+  reads a single source — `SettingsManager.get_safe_area_insets()` → `Vector4i(left, top,
+  right, bottom)` — so the on-screen clamp respects unsafe screen margins (notch / rounded
+  corners / home-indicator). It returns **zero on desktop and in the browser** (the web
+  shell reserves its bottom inset via CSS outside the canvas), so desktop layout is
+  unchanged. A soon mobile-web release feeds real in-canvas insets by writing the one
+  `safe_area_insets` member (from `DisplayServer.get_display_safe_area()` / `JavaScriptBridge`)
+  with no call-site re-plumbing; mobile stays **Deferred** as a platform until that feed lands.
+- **HUD panel scale stays `panel.scale` for now (D3):** the per-panel HUD scale keeps using
+  `Control.scale`; the crisp font/metric rework (V021-18) is staged to menus/modals first
+  (the web-visible win). The bottom-right terrain-corner pivot polish (**V021-04**) remains
+  **Deferred** until the HUD migrates onto the crisp path.
 
 **Planned.**
 - **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the

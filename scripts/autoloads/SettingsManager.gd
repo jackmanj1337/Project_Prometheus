@@ -255,6 +255,23 @@ func _parse_resolution(res: String) -> Vector2i:
 	return Vector2i(int(parts[0]), int(parts[1]))
 
 
+# Single safe-area provider (D5/E6). Insets (left, top, right, bottom) in pixels of
+# the unsafe screen margins — notch / rounded corners / home-indicator on mobile,
+# zero on desktop and in the browser (the web shell reserves its bottom inset via CSS
+# OUTSIDE the canvas). HUD + menu edge-anchoring read this single source via
+# get_safe_area_insets(), so a soon mobile-web release can feed real in-canvas insets
+# (from DisplayServer.get_display_safe_area() / JavaScriptBridge) by writing this one
+# member — no call-site re-plumbing. Stays ZERO until that feed lands; mobile is
+# Deferred as a platform in GDD_10 until then.
+var safe_area_insets: Vector4i = Vector4i.ZERO
+
+
+# The single read seam for safe-area insets (see safe_area_insets). Returns zero on
+# desktop, so all edge-anchoring is unchanged there.
+func get_safe_area_insets() -> Vector4i:
+	return safe_area_insets
+
+
 func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
 

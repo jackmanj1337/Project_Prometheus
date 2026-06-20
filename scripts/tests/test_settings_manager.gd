@@ -216,6 +216,20 @@ func _init() -> void:
 		print("FAIL is_display_config_supported should be true on a desktop build")
 		failed += 1
 
+	# ---- safe-area provider: ZERO on desktop, reflects a fed inset (D5/E6) ----
+	# The single seam HUD/menu edge-anchoring reads. Zero on desktop/headless; a future
+	# mobile-web feed sets safe_area_insets and the getter mirrors it with no re-plumbing.
+	var safe_zero_ok: bool = sm.get_safe_area_insets() == Vector4i.ZERO
+	sm.safe_area_insets = Vector4i(1, 2, 3, 4)
+	var safe_feed_ok: bool = sm.get_safe_area_insets() == Vector4i(1, 2, 3, 4)
+	sm.safe_area_insets = Vector4i.ZERO
+	if safe_zero_ok and safe_feed_ok:
+		print("OK  safe-area provider ZERO on desktop, mirrors a fed inset (D5/E6)")
+		passed += 1
+	else:
+		print("FAIL safe-area provider: zero=%s feed=%s" % [safe_zero_ok, safe_feed_ok])
+		failed += 1
+
 	sm.free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

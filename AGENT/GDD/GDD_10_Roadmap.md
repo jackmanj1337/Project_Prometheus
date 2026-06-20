@@ -274,15 +274,25 @@ rerun note, not a defect.
         click mode ignores hover, first-click moves the cursor, second same-tile click
         confirms, and terrain-panel clicks cycle the V021-05 pages. Tests:
         `test_map_cursor`, `test_settings_manager`; DOC-011 check: mouse cursor modes.
-18. [ ] **V021-18 — Crisp scaling rework (v0.2.3, DESIGN).** Menu/HUD elements look soft at
+18. [~] **V021-18 — Crisp scaling rework (v0.2.3, DESIGN).** Menu/HUD elements look soft at
         non-1× scales because scaling zooms the rendered UI (Control-node `.scale`).
         Replace with theme font-size / control-metric scaling. Larger rework; affects Menu
         Scale (v0.2.0 V020-16) and HUD Layout. **Split into v0.2.3** with V021-19 (F4).
-19. [ ] **V021-19 — Native 1440p / 4K + platform safe-areas (v0.2.3, PLATFORM).** Add native
+        **Done (2026-06-20):** foundation landed — renderer switched to `gl_compatibility`
+        (D1), explicit `stretch/aspect=keep` (E5), desktop-only display gate (E1), all
+        check_docs-guarded. **Remaining:** the per-scene crisp font/metric Menu Scale (D2)
+        is staged to a focused, live-verified slice (heterogeneous scenes — reflow panels
+        vs fixed-scroll vs the plain-`Panel` LevelUpScreen need per-scene treatment).
+19. [~] **V021-19 — Native 1440p / 4K + platform safe-areas (v0.2.3, PLATFORM).** Add native
         1440p and 4K resolution options; note Steam Deck and mobile resolutions, and keep
         rounded corners / notches / hole-punches (safe-area insets) in mind for the
         polished UI. Ties to OPEN-11 (Steam Deck) and the Renderer & Platform Targets
         gate above. **Split into v0.2.3** with V021-18 (one coupled display system).
+        **Done (2026-06-20):** native `2560x1440` + `3840x2160` added to `RESOLUTION_CHOICES`
+        (check_docs-guarded); single safe-area provider seam `SettingsManager.get_safe_area_insets()`
+        wired into HUD edge-anchoring, returning zero on desktop (D5/E6). **Remaining:**
+        live resolution apply/confirm verification, and feeding real insets on the mobile-web
+        release (mobile stays **Deferred** until then).
 
 ---
 

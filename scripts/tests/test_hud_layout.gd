@@ -111,6 +111,23 @@ func _init() -> void:
 	_ok(is_equal_approx(turn_panel.scale.x, 1.0),
 		"apply_layout tolerates wrong-typed offset/scale without crashing")
 
+	# ---- safe-area insets shrink the on-screen clamp (D5/E6) ----
+	# A non-zero right/bottom inset must pull the clamp bound further inward than the
+	# bare _MIN_VISIBLE_PX edge, proving HUD anchoring reads the single safe-area seam.
+	# Desktop/headless insets are ZERO, so this is the only place the path is exercised.
+	var sm_node := root.get_node_or_null("/root/SettingsManager")
+	if sm_node != null:
+		var min_vis: float = hud._MIN_VISIBLE_PX
+		sm_node.safe_area_insets = Vector4i(0, 0, 40, 60)  # right=40, bottom=60
+		hud.apply_layout({ "unit_info": { "offset": Vector2(100000, 100000), "scale": 1.0 } })
+		_ok(unit_panel.position.x <= view.x - 40.0 - min_vis + 0.5
+			and unit_panel.position.y <= view.y - 60.0 - min_vis + 0.5,
+			"safe-area insets shrink the HUD on-screen clamp (D5/E6)")
+		sm_node.safe_area_insets = Vector4i.ZERO  # restore so later autoload reads see zero
+		hud.reset_layout()
+	else:
+		_ok(false, "SettingsManager autoload available for safe-area test")
+
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
