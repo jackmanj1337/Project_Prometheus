@@ -1,7 +1,7 @@
 # Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20)
 
 Status: Active — planning queue
-Last verified: 2026-06-20
+Last verified: 2026-06-21
 
 Upcoming roadmap items that do **not** yet have an implementation-ready plan or design
 doc. **None of these are blocked from *planning*** by the current execution blockers (no
@@ -29,10 +29,12 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
     → Resolved decisions) and the **gamepad arm** has a full impl plan:
     `gamepad_layer_implementation_plan_2026-06-20.md` (action map, focus wiring, bindings,
     analog repeat, `input_mode_changed` seam, 4 slices, test plan).
-  - **Still to plan:** the broader Auto/Touch/K&M detect-floor/conditional-promotion
-    resolver + gray/back-door availability logic + the DoD#2 `check_docs` guard for the
-    `input_mode` / `touch_controls` value-sets (the gamepad plan implements only the gamepad
-    arm of the resolver + emits the signal).
+  - **Broader resolver — ✅ PLAN DRAFTED (2026-06-21):**
+    `AGENT/Docs/input_mode_resolver_implementation_plan_2026-06-21.md` (Auto/Touch/K&M
+    detect-floor + conditional-promotion resolver, gray/back-door availability, the
+    `[controls]` persistence + `mouse_cursor` relocation, and the DoD#2 `check_docs` guards
+    for the `input_mode` / `touch_controls` value-sets). Drafted decision-free; the open
+    choices are in `AGENT/Docs/input_controls_open_decisions_2026-06-21.md` ([ICD-1..3]).
 - **V021-15 — shared selector extraction. ✅ DESIGN DONE (2026-06-20j):**
   `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
   - Was: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
@@ -40,10 +42,12 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
   - Produced: scope = extract a `SelectionCursor` navigation core + an input-routing/arbiter
     convention (NOT a unified render widget); rendering stays per-surface; per-consumer
     adoption notes + headless test plan. Implements with the gamepad layer.
-- **Key rebinding UI.**
-  - State: `SettingsManager.rebind_action` exists; the capture UI does not; backlog bullet only.
-  - Plan should produce: capture-UI flow (conflict handling, reset-to-default, persistence)
-    and how it composes with the input-mode setting.
+- **Key rebinding UI. ✅ PLAN DRAFTED (2026-06-21):**
+  `AGENT/Docs/key_rebind_ui_implementation_plan_2026-06-21.md` — capture-UI flow, conflict
+  handling, reset, per-device-slot model (so a K&M rebind can't wipe the pad binding), and
+  composition with the input-mode setting. Drafted decision-free; open choices in
+  `input_controls_open_decisions_2026-06-21.md` ([ICD-4..6]). Slice 1 (K&M rebinding) is
+  build-ready under the recommended answers.
 - **Gamepad binding audit.**
   - State: Platform Targets says "audit all actions for joypad events" — no plan; zero
     `InputEventJoypad*` bindings exist today.
@@ -103,20 +107,19 @@ Escape, Survive/Defend).
 
 ## Recommended next-session focus
 
-**Finish the input/controls cluster (§1) — confirmed 2026-06-20.** The bulk of §1 landed
-2026-06-20j (sequencing decision, the input-mode 4 decisions, the V021-15 selector design,
-the gamepad-arm impl plan, and the Web-shell input resolution). The remaining §1 planning
-work — both fully unblocked, docs-only — is:
+**§1 planning is now COMPLETE (drafted 2026-06-21).** The bulk landed 2026-06-20j; the two
+remaining plans were drafted 2026-06-21, both decision-free:
 
-1. **Broader input-mode resolver plan.** The gamepad plan built only the gamepad arm. Still
-   to plan: the Auto/Touch/K&M detect-floor + conditional-promotion resolver, the
-   gray-don't-hide + back-door fallback availability logic, and the DoD#2 `check_docs` guard
-   for the `input_mode` / `touch_controls` value-sets.
-2. **Key-rebind UI plan.** `SettingsManager.rebind_action` exists; plan the capture-UI flow
-   (conflict handling, reset-to-default, persistence) and how it composes with the
-   input-mode setting.
+1. **Broader input-mode resolver plan** — `input_mode_resolver_implementation_plan_2026-06-21.md`.
+2. **Key-rebind UI plan** — `key_rebind_ui_implementation_plan_2026-06-21.md`.
 
-After §1 closes, the next cluster is **§2 Campaign / save** (gates the 1.0 campaign, D-D).
+Every choice those two plans could not make is consolidated in
+`input_controls_open_decisions_2026-06-21.md` (**[ICD-1..7]**). **The next §1 step is a
+decisions pass on that register**, not more drafting — [ICD-1] (active-mode owner) and
+[ICD-4] (per-device binding model) are the two that unblock the most build work.
+
+After §1's decisions resolve, the next cluster is **§2 Campaign / save** (gates the 1.0
+campaign, D-D).
 
 > Superseded recommendation (kept for provenance): the original text here recommended
 > starting §1 from the input-mode 4 decisions → V021-15 design → gamepad audit; all of that
