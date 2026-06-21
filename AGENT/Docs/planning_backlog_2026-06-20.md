@@ -133,13 +133,17 @@ firming branch it came from.
 
 ## 3. Release gates needing a plan (not just execution)
 
-- **D-A — public-identity rename.** State: gate, no plan. Plan should produce: the
-  placeholder→project-owned name mapping table + the data-pass scope/order (faction, class,
-  item names, GDD prose, data strings).
-- **DOC-012 / OPEN-12 — legal/licensing.** State: blocking pre-1.0 gate, no research doc.
-  Plan should produce: source-corpus license research + attribution-strategy decision.
-- **OPEN-5 — broken-weapon degraded mode.** State: optional-rule bullet. Plan should
-  produce: the rule design + likely `CampaignRules` toggle.
+> **DRAFT PLANS + OPEN-QUESTIONS REGISTERS written 2026-06-21d** (all registers OPEN —
+> not yet walked/resolved): `public_identity_rename_open_questions_2026-06-21.md` [REN-1..5],
+> `legal_licensing_open_questions_2026-06-21.md` [LEG-1..5],
+> `broken_weapon_mode_open_questions_2026-06-21.md` [BWN-1..5]. See session note 2026-06-21d.
+
+- **D-A — public-identity rename.** State: gate; **draft + register [REN-1..5] drafted**
+  (rec: rename display-names only, keep ids; [REN-1] needs the user's actual names).
+- **DOC-012 / OPEN-12 — legal/licensing.** State: blocking pre-1.0 gate; **research/decision
+  register [LEG-1..5] drafted** (NOT a code plan; [LEG-1] needs the owner to name the corpus).
+- **OPEN-5 — broken-weapon degraded mode.** State: optional-rule bullet; **draft + register
+  [BWN-1..5] drafted** (rec: reuse `uses_remaining==0`, global penalty const, repair item).
 
 ## 4. UI / UX enhancements — backlog bullets, no plans
 
@@ -154,6 +158,11 @@ selection; richer combat prediction (crit / triangle / effective flags); combat-
 layout; minimap toggle. Each needs a short design before scheduling; several pair naturally
 (hover overlays + threat range + path arrows form one "map readability" plan).
 
+> **MAP-READABILITY CLUSTER drafted 2026-06-21d:** `map_readability_open_questions_2026-06-21.md`
+> [MRD-1..6] (hover-peek overlay + path arrows + the designed individual threat range +
+> grid-visibility slider; register OPEN). Camera settings / attack-by-target / richer
+> prediction / minimap remain separate un-planned bullets.
+
 ## 5. Other systems — backlog bullets, no plans
 
 Fog of war / LoS; rescue & carry; doors & chests (Pick/Unlock/Key); additional AI profiles
@@ -161,6 +170,18 @@ Fog of war / LoS; rescue & carry; doors & chests (Pick/Unlock/Key); additional A
 cap-management UI (manual skill swap, `max_inventory` trade UI); FE map sprite importer
 productionization (4 decisions already noted in the backlog); `DataManager._ready()`
 decomposition (named phases sketched, no full plan).
+
+> **DRAFT PLANS + REGISTERS written 2026-06-21d** (all OPEN; see session note 2026-06-21d):
+> `fog_of_war_los_open_questions_2026-06-21.md` [FOW-1..6] ·
+> `ai_profiles_open_questions_2026-06-21.md` [AIP-1..5] ·
+> `doors_chests_open_questions_2026-06-21.md` [DCH-1..6] ·
+> `stationary_weapons_open_questions_2026-06-21.md` [STW-1..6] ·
+> `map_sprite_importer_open_questions_2026-06-21.md` [IMP-1..6] ·
+> `datamanager_decomposition_open_questions_2026-06-21.md` [DMR-1..3].
+> **Cross-cutting:** doors/chests + siege share ONE `map_objects` tile-object model (do
+> doors/chests first; siege inherits it). **Still un-planned here:** rescue & carry (§2b/H3),
+> cap-management UI (folds into convoy §2b/D). Package A (`RngService`) draft =
+> `package_a_rngservice_open_questions_2026-06-21.md` [PKGA-1..4] (gaps only).
 
 ## 6. Maps
 
