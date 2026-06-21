@@ -59,22 +59,36 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
 
 ## 2. Campaign / save cluster — gates the 1.0 campaign (D-D)
 
-Larger; build from `campaign_rules_firming_notes_2026-05-25.md` (has open questions).
+**✅ PLAYER-FACING SCOPE FIRMED (2026-06-21b):**
+`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md` resolved branches A–J (spine,
+save model, prep, modding/homebrew, rewind hooks) and **tightened the MVP**. Next step =
+**the TECHNICAL plan**, not more player-facing firming. Build from that firming doc +
+`campaign_rules_firming_notes_2026-05-25.md` + `rng_determinism_design_2026-06-11.md` (rewind).
 
-- **CampaignRules contract + wiring into `GameState`.** State: stub class exists
-  (`exp_gaining_factions`), fields still loose on `GameState`, firming notes open. Plan
-  should produce: the full per-save rule schema (default + adjustable/locked per rule),
-  the `GameState` migration, and the snapshot-serializer changes.
-- **Between-map save / load.** State: backlog bullet. Plan should produce: the JSON
-  save schema + load flow + where it sits relative to the suspend save.
-- **Pre-battle deployment + convoy/trade + recruit (D-D prerequisites).** State: bullets,
-  "design together" intent, no plan. Plan should produce: one canonical roster/inventory
-  flow spanning deployment, convoy, trade, and the green→player recruit mechanic.
-- **Mid-battle suspend save.** State: field list in the backlog, no plan. Plan should
-  produce: the serialization plan (incl. activation-scheduler state) + the M15B disconnect
-  save-and-continue tie-in. **Forward dep:** also serialize the threat-range `_watch_set` +
-  `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4 — the watch set
-  must survive a mid-map suspend/resume).
+**MVP scope (firmed):** linear-but-overworld-ready progression graph · between-map prep
+(deploy/bench, per-map required/excluded/cap, player placement, manual save, launch) ·
+human-readable JSON saves (version + label + integrity hash) · in-app slots + filesystem
+export/import (single `.json`, zip-sniffing importer) · persistent re-loadable suspend ·
+Continue = resume-most-recent · multi-choice Game Over · rewind RULE+charges+defeat-entry
+(mechanic deferred to `RngService`/Package A) · rules player-locked/story-flippable/tinkerer-warned.
+**Deferred from MVP:** convoy (D), shop (E), recruit (F), Pair-Up persistence + Support + Rescue
+(H), campaign-PACK format (I3), the rewind mechanic (J). **Cross-version save transfer: not a
+concern until 1.0** (keep `format_version`, no migration code pre-1.0).
+
+The technical plan should produce:
+- **CampaignRules contract + `GameState` consolidation.** Full per-save rule schema + the
+  **story-flip mutation seam** (scripted, not player UI) + snapshot-serializer changes.
+- **Campaign save schema + serialize/deserialize seam** (isolated from file I/O): roster, gold,
+  items, progression-graph position, rules, rewind charges, slot metadata + `save_label` +
+  `format_version` + integrity hash. JSON save/load + **export/import** (zip-vs-json sniff) +
+  the **slot menu** + **Continue/Load** UI.
+- **Progression-graph node model** (linear-degenerate now, overworld-ready) + map data fields
+  (`required_units`/`excluded_units`/`deployment_cap`/deploy tiles/`next`).
+- **Prep screen** architecture (deploy/bench/placement/save/launch).
+- **Mid-battle suspend save** serializer (incl. activation-scheduler state + the M15B
+  save-and-continue tie-in). **Forward dep:** also serialize the threat-range `_watch_set` +
+  `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4).
+- A **decisions register** for the code-facing choices the firming left open.
 
 ## 3. Release gates needing a plan (not just execution)
 

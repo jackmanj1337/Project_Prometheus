@@ -20,6 +20,8 @@ campaign rules player-locked / story-flippable / tinkerer-warned.
 Up persistence + prep pairing (H1) · Support (H2) · Rescue (H3) · campaign-PACK format (I3) ·
 the actual rewind mechanic (J, needs `RngService`/Package A).
 **Hard dependencies:** rewind ⇒ `RngService` (Package A, `rng_determinism_design_2026-06-11.md`).
+**Cross-version save transfer:** NOT a concern until 1.0 (I5) — keep `format_version` as cheap
+insurance, but write no migration code pre-1.0; save compat may break freely between versions.
 **Forward-compat constraints baked in:** progression-graph node model (overworld later);
 serialize/deserialize seam + `format_version` (multi-file packs later); item/gold fields
 reserved (convoy/shop later); roster-growth save-supported (recruit later).
@@ -186,6 +188,13 @@ save export/import as the portability mechanism.
   format), not arbitrary paths — a platform wrinkle, not a format decision.
 - **I3 — Campaign-pack format.** **[DEFERRED]** Distributable campaign bundle (maps + roster
   + progression graph + rules) — design later. Likely the home for any zip-bundle/compression.
+- **I5 — Cross-version save transfer.** **[RESOLVED — not a concern until 1.0]** Loading an
+  older build's save in a newer game (or vice-versa) is **explicitly NOT a major concern
+  before the 1.0 release**. Pre-1.0 we may break save compatibility freely between versions —
+  do **not** invest in migration/back-compat code now. The cheap insurance we DO keep is the
+  `format_version` stamp (I2) + the serialize/deserialize seam, so that *if* migration is
+  wanted later it's possible — but writing migrations is out of scope until 1.0. Loaders may
+  simply refuse (or warn-and-continue per I4) on a `format_version` they don't recognize.
 - **I4 — Robustness / integrity.** **[RESOLVED] Integrity hash + tamper-aware warn-and-continue
   (NOT hard reject).** On **export**, attach an **integrity hash** computed over the save data.
   On **import/load**, recompute it: a mismatch raises a **warning** ("data was changed or
