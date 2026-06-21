@@ -1,6 +1,6 @@
 # Input / Controls — Open Decisions Register — 2026-06-21
 
-Status: Decisions pending
+Status: Decisions resolved (ICD-1..6 settled 2026-06-21; ICD-7 non-blocking)
 Last verified: 2026-06-21
 
 The single place to resolve every choice that the two remaining input/controls plans
@@ -23,7 +23,7 @@ DoD#1) mirror to GDD_10 if it changes a tracked status.
 
 ## ICD-1 — Active-mode owner: extend `SettingsManager` vs new `InputModeManager` autoload
 
-**Status:** OPEN — blocks both plans (foundational).
+**Status:** ✅ RESOLVED 2026-06-21 → **B, new `InputModeManager` autoload.**
 
 `SettingsManager` already owns the persisted settings (`mouse_cursor`, `keybindings`,
 the `[controls]` section, `reset_section_to_defaults`). The new work adds **runtime**
@@ -49,7 +49,7 @@ and this resolver plan land in the **same** owner. Resolve ICD-1 before either s
 
 ## ICD-2 — Resolver landing point: fold into gamepad slice 3, or a separate follow-up slice
 
-**Status:** OPEN — sequencing only (not architectural).
+**Status:** ✅ RESOLVED 2026-06-21 → **A, fold the full resolver into gamepad slice 3.**
 
 The gamepad plan's **slice 3** already builds "the gamepad arm of the resolver + the
 `input_mode_changed` signal + focus-grab on switch." The broader resolver (Auto/Touch/K&M
@@ -69,7 +69,8 @@ ICD-resolved owner per this plan" and this plan *is* slice 3's detail.
 
 ## ICD-3 — Touch detection vs `emulate_mouse_from_touch` (which event wins)
 
-**Status:** OPEN — needs a chosen strategy + live verification.
+**Status:** ✅ RESOLVED 2026-06-21 → **A, touch-first precedence.** Gated on an iOS Safari
+Godot-Web smoke test before it is trusted (load-bearing risk).
 
 With Godot's default `emulate_mouse_from_touch = true`, one finger tap emits **both** an
 `InputEventScreenTouch` **and** a synthesized `InputEventMouseButton`. Naive
@@ -90,7 +91,8 @@ constrains the resolver's detection routine and interacts with the web input mod
 
 ## ICD-4 — Per-action binding model: replace-all vs per-device slots
 
-**Status:** OPEN — blocks the key-rebind UI; also affects the gamepad bindings' durability.
+**Status:** ✅ RESOLVED 2026-06-21 → **A, per-device slots** (one K&M slot + one joypad slot
+per action; `rebind_action` gains a device-class filter).
 
 `SettingsManager.rebind_action(action, event)` today does `keybindings[action] = [event]`
 — it **overwrites the entire event list with one event**. Once gamepad bindings exist on
@@ -111,50 +113,60 @@ gated on confirmation.
 
 ## ICD-5 — Rebind UI scope: which actions are rebindable, and gamepad rebinding now or later
 
-**Status:** OPEN — shapes the rebind UI surface.
+**Status:** ✅ RESOLVED 2026-06-21.
 
-Two sub-questions:
+**5a — Rebindable set → ALL actions rebindable.** Every game action is rebindable (the
+universal nav/confirm/cancel set included). Two escape hatches make a self-trap fully
+recoverable, both required by this decision:
 
-**5a — Rebindable set.** The read-only list today shows 12 game actions
-(`_KEYBIND_LABELS`) + 2 debug rows (debug-build only).
+1. **A prominent "Reset Controls to Defaults" button that stays accessible at all times**
+   (backed by the existing `reset_section_to_defaults("controls")`).
+2. **The cfg as a last-resort hand-edit path** for a tinkerer who truly wedges themselves
+   — which forces the new consideration below.
 
-- **Option A (Recommended):** all 12 game actions rebindable; debug rows stay read-only;
-  universal nav/confirm/cancel rebindable too but with conflict protection (ICD-6).
-- **Option B:** lock the universal set (`cursor_*`, `confirm`, `cancel`) to avoid players
-  trapping themselves; only rebind the "verb" actions.
+> Debug rows (`_DEBUG_KEYBIND_LABELS`, debug-build only, slated for removal as release
+> blockers): "all actions" is read as **all player-facing game actions**. Debug rows may
+> be rebindable in debug builds for consistency since they never ship, but persisting a
+> binding for an action that won't exist in release is pointless — implementer's call,
+> default to leaving the debug rows read-only.
 
-Recommend **A** — conflict protection (ICD-6) plus "reset to defaults" (already in
-`reset_section_to_defaults("controls")`) make a self-trap recoverable, so there's no need
-to restrict the set.
+**5a-i — NEW consideration (raised with this decision): human-readable cfg serialization.**
+The hand-edit escape hatch only works if the saved bindings are *editable by hand*. Today
+`keybindings` stores serialized `InputEvent` **objects**, which `ConfigFile` writes as
+opaque `Object(InputEventKey, ...)` blobs — present but miserable to edit. To honour the
+hand-edit requirement, store bindings in a **human-readable form** (e.g. per-device-slot
+keycode names / mouse-button + joy-button indices as plain strings/ints) and rehydrate
+them into `InputEvent`s on load. This is a real change to the persistence format (pairs
+with the ICD-4 per-device-slot dict) — captured here, detailed in the rebind plan §1/§5.
 
-**5b — Device coverage at first ship.**
-
-- **Option A (Recommended):** capture-any-`InputEvent` UI (keyboard *and* joypad
-  capturable), but list/glyph polish for pad comes with the deferred prompt/glyph work.
-- **Option B:** keyboard rebinding only for v1; add pad rebind with the glyph system.
-
-Recommend **A** for capture (the capture flow is device-agnostic for free), **B-style**
-for display polish (gamepad glyph rendering is already the deferred polish item in the
-architecture design). I.e. *capture* any device now; *pretty pad glyphs* later.
+**5b — Device coverage → capture any device now, glyphs later.** The capture flow is
+device-agnostic for free, so accept both keyboard and joypad captures from v1; pad
+bindings render a **textual label** (e.g. "Pad A") until the deferred prompt/glyph system
+lands (architecture design's deferred polish item).
 
 ---
 
 ## ICD-6 — Rebind conflict policy
 
-**Status:** OPEN — blocks the rebind UI's capture flow.
+**Status:** ✅ RESOLVED 2026-06-21 → **B, Swap** (chosen over the recommendation).
 
-When a captured event already belongs to another action:
+When a captured event already belongs to another action, perform a **two-way swap within
+the same device slot** — never a silent single change:
 
-| Option | UX |
-|---|---|
-| **A. Block + warn** (Recommended) | Reject the capture, show "Already bound to <Action>", keep the old binding. Simplest, predictable, no surprise side-effects. |
-| **B. Swap** | Move the conflicting action to the just-vacated key. Slick but surprising; needs careful messaging. |
-| **C. Allow duplicates** | A key can fire two actions — almost never wanted; causes silent double-input bugs. |
+> Capturing input **E** for action **A**, where **E** is currently bound to action **B**
+> in the same device slot: **A receives E; B inherits A's previous binding for that slot.**
+> If A had no prior binding in that slot, B's slot is left empty (and shows as unbound).
 
-**Recommendation: A.** Pairs with the always-available "Reset Controls" escape hatch.
-Note the existing `_mirror_game_keys_to_ui` baseline machinery means conflicts can also
-exist against `ui_*` mirrors — the conflict check must run against the **game** actions
-(the mirror is derived), which the plan accounts for.
+Required behaviour for this to be safe (detailed in the rebind plan §2/§5):
+- **Clear messaging** — the confirmation/inline notice must state *both* changes ("Bound E
+  to A; moved B to <A's old input>"), since two bindings changed at once.
+- **Conflict scope is the matching device slot** — a keyboard capture only swaps against
+  the other action's keyboard slot; a pad capture only against pad slots (consistent with
+  ICD-4 per-device slots).
+- **Check against game actions only** — `_mirror_game_keys_to_ui` derives the `ui_*`
+  entries from the game actions, so the conflict scan runs over the game-action set, not
+  the `ui_*` mirror (checking the mirror would produce phantom conflicts).
+- **Esc is never swappable** — it stays the reserved capture-abort (rebind plan §5).
 
 ---
 
@@ -175,11 +187,12 @@ No action needed from you on ICD-7 now; they resolve at implementation/verify ti
 
 ## Resolution log
 
-| ID | Decision | Date | Where recorded |
+| ID | Decision | Date | Where applied |
 |---|---|---|---|
-| ICD-1 | _pending_ | | |
-| ICD-2 | _pending_ | | |
-| ICD-3 | _pending_ | | |
-| ICD-4 | _pending_ | | |
-| ICD-5 | _pending_ | | |
-| ICD-6 | _pending_ | | |
+| ICD-1 | New `InputModeManager` autoload (B) | 2026-06-21 | resolver plan §1, §2 |
+| ICD-2 | Fold full resolver into gamepad slice 3 (A) | 2026-06-21 | resolver plan §3, §8; gamepad plan slice 3 |
+| ICD-3 | Touch-first precedence + iOS smoke gate (A) | 2026-06-21 | resolver plan §2 |
+| ICD-4 | Per-device slots (A) | 2026-06-21 | rebind plan §1, §3 |
+| ICD-5 | All actions rebindable + always-on Reset + human-readable cfg; capture any device now, glyphs later | 2026-06-21 | rebind plan §1, §2, §5 |
+| ICD-6 | Swap (two-way, same device slot) (B) | 2026-06-21 | rebind plan §2, §5 |
+| ICD-7 | Tune-live; no decision | — | gamepad plan §10 |

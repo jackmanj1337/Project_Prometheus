@@ -33,8 +33,10 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
     `AGENT/Docs/input_mode_resolver_implementation_plan_2026-06-21.md` (Auto/Touch/K&M
     detect-floor + conditional-promotion resolver, gray/back-door availability, the
     `[controls]` persistence + `mouse_cursor` relocation, and the DoD#2 `check_docs` guards
-    for the `input_mode` / `touch_controls` value-sets). Drafted decision-free; the open
-    choices are in `AGENT/Docs/input_controls_open_decisions_2026-06-21.md` ([ICD-1..3]).
+    for the `input_mode` / `touch_controls` value-sets). **Decisions resolved 2026-06-21**
+    ([ICD-1] new `InputModeManager` autoload, [ICD-2] resolver = gamepad slice 3, [ICD-3]
+    touch-first detection) — **build-ready**; slice 1 (persistence + guards) has no
+    dependency. See `AGENT/Docs/input_controls_open_decisions_2026-06-21.md`.
 - **V021-15 — shared selector extraction. ✅ DESIGN DONE (2026-06-20j):**
   `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
   - Was: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
@@ -45,9 +47,11 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
 - **Key rebinding UI. ✅ PLAN DRAFTED (2026-06-21):**
   `AGENT/Docs/key_rebind_ui_implementation_plan_2026-06-21.md` — capture-UI flow, conflict
   handling, reset, per-device-slot model (so a K&M rebind can't wipe the pad binding), and
-  composition with the input-mode setting. Drafted decision-free; open choices in
-  `input_controls_open_decisions_2026-06-21.md` ([ICD-4..6]). Slice 1 (K&M rebinding) is
-  build-ready under the recommended answers.
+  composition with the input-mode setting. **Decisions resolved 2026-06-21** ([ICD-4]
+  per-device slots, [ICD-5] all actions rebindable + always-on Reset + human-readable cfg +
+  capture-any-device-now, [ICD-6] swap on conflict) — **build-ready**; slices 1–2 (persistence
+  foundation + K&M rebind UI) have no remaining dependency. See
+  `input_controls_open_decisions_2026-06-21.md`.
 - **Gamepad binding audit.**
   - State: Platform Targets says "audit all actions for joypad events" — no plan; zero
     `InputEventJoypad*` bindings exist today.
@@ -113,13 +117,12 @@ remaining plans were drafted 2026-06-21, both decision-free:
 1. **Broader input-mode resolver plan** — `input_mode_resolver_implementation_plan_2026-06-21.md`.
 2. **Key-rebind UI plan** — `key_rebind_ui_implementation_plan_2026-06-21.md`.
 
-Every choice those two plans could not make is consolidated in
-`input_controls_open_decisions_2026-06-21.md` (**[ICD-1..7]**). **The next §1 step is a
-decisions pass on that register**, not more drafting — [ICD-1] (active-mode owner) and
-[ICD-4] (per-device binding model) are the two that unblock the most build work.
+Every choice those two plans could not make was consolidated in
+`input_controls_open_decisions_2026-06-21.md` and **all resolved 2026-06-21** (ICD-1..6;
+ICD-7 is tune-live, non-blocking). **§1 is now fully build-ready** — both plans have a
+no-dependency first slice. The next §1 step is **execution**, not planning.
 
-After §1's decisions resolve, the next cluster is **§2 Campaign / save** (gates the 1.0
-campaign, D-D).
+After §1, the next planning cluster is **§2 Campaign / save** (gates the 1.0 campaign, D-D).
 
 > Superseded recommendation (kept for provenance): the original text here recommended
 > starting §1 from the input-mode 4 decisions → V021-15 design → gamepad audit; all of that

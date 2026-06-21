@@ -31,20 +31,28 @@ the signal now. This plan only *implements* those.
 
 ## 1. State model (the owner)
 
-The owner (type = **[ICD-1]**) holds:
+**Owner = a new `InputModeManager` autoload ([ICD-1] resolved).** It loads **after**
+`SettingsManager` and reads its three persisted values from it via `get_node_or_null` +
+`.get()/.call()` (headless-autoload pattern), keeping `SettingsManager` persistence-focused
+and the runtime resolver independently headless-testable. It holds:
 
-| Member | Kind | Values | Notes |
-|---|---|---|---|
-| `input_mode` | persisted | `auto \| gamepad \| touch \| mouse_keyboard` | `[controls]` cfg; default `auto` |
-| `touch_controls` | persisted | `dedicated \| virtual_gamepad` | `[controls]`; default `dedicated` |
-| `mouse_cursor` | persisted | `follow \| click \| disabled` | **relocated** from `[gameplay]` to `[controls]` (migration §4) |
-| `active_input_mode` | runtime | one of the 4 modes | derived; never persisted |
-| `_provisional_seed` | runtime | a mode | platform seed for the zero-input frame |
+**The persisted/runtime split follows the owner split:**
 
-Two `const` value-set arrays mirror the existing `VALID_MOUSE_CURSOR_MODES` pattern so the
-DoD#2 guard (§6) can parse them:
+| Member | Owner | Kind | Values | Notes |
+|---|---|---|---|---|
+| `input_mode` | `SettingsManager` | persisted | `auto \| gamepad \| touch \| mouse_keyboard` | `[controls]` cfg; default `auto` |
+| `touch_controls` | `SettingsManager` | persisted | `dedicated \| virtual_gamepad` | `[controls]`; default `dedicated` |
+| `mouse_cursor` | `SettingsManager` | persisted | `follow \| click \| disabled` | **relocated** from `[gameplay]` to `[controls]` (migration §4) |
+| `active_input_mode` | `InputModeManager` | runtime | one of the 4 modes | derived; never persisted |
+| `_provisional_seed` | `InputModeManager` | runtime | a mode | platform seed for the zero-input frame |
+
+The persisted values + their value-sets stay on `SettingsManager` (it owns `settings.cfg`
+load/save + the normalise-on-load step); `InputModeManager` reads them. Two `const`
+value-set arrays live on `SettingsManager` mirroring the existing `VALID_MOUSE_CURSOR_MODES`
+pattern so the DoD#2 guard (§6) can parse them:
 
 ```gdscript
+# on SettingsManager.gd, next to VALID_MOUSE_CURSOR_MODES
 const VALID_INPUT_MODES: Array[String] = ["auto", "gamepad", "touch", "mouse_keyboard"]
 const VALID_TOUCH_CONTROLS: Array[String] = ["dedicated", "virtual_gamepad"]
 ```
@@ -64,17 +72,19 @@ InputEventScreenTouch, InputEventScreenDrag → touch
 ```
 
 Subtleties this plan handles:
-- **Touch vs emulated mouse** — see **[ICD-3]** (touch-first precedence is the
-  recommended-but-unconfirmed strategy; the routine is structured so the chosen rule is a
-  single guard).
+- **Touch vs emulated mouse ([ICD-3] resolved → touch-first)** — if a real
+  `InputEventScreenTouch`/`Drag` was seen this frame (or within a short window), the
+  routine ignores the synthesized `InputEventMouseButton` for detection, so a tap does not
+  flip K&M ⇄ Touch. Keeps `emulate_mouse_from_touch` on (the V021-17 web tap path needs
+  it). **Gate:** smoke-test on real iOS Safari Godot-Web before trusting this.
 - **Joypad motion noise** — only motion past the input-map deadzone counts as a real
   gamepad event, so a resting stick's drift never flips the mode.
 - **Touch-style is not detectable** — `dedicated` vs `virtual_gamepad` both emit touch
   events, so detection only ever yields the *class* `touch`; the style comes from the
   `touch_controls` setting (architecture design, confirmed).
 
-The owner observes events via `_input` (an autoload Node receives `_input` while in-tree).
-Detection updates `active_input_mode` through the resolver (§3), not directly.
+`InputModeManager` observes events via `_input` (an autoload Node receives `_input` while
+in-tree). Detection updates `active_input_mode` through the resolver (§3), not directly.
 
 ## 3. The resolver (detect-floor + conditional promotion)
 
@@ -100,8 +110,10 @@ Rules (straight from the architecture design):
 `available_modes` is computed by §5. `provisional_seed` is set once at boot from the
 platform (mobile→touch, desktop→mouse_keyboard, Deck→gamepad).
 
-> Whether this resolver lands inside the gamepad plan's slice 3 or as a separate slice is
-> **[ICD-2]**.
+> **[ICD-2] resolved → this full resolver IS the gamepad plan's slice 3** (not a
+> gamepad-only stub + a later rewrite). The gamepad plan's §6/slice 3 reduces to "build
+> `InputModeManager` per this plan"; the detection + signal + resolver are shared code,
+> built once.
 
 ## 4. Persistence + the `mouse_cursor` relocation
 
@@ -187,14 +199,15 @@ visual gray state, and real-device connect/disconnect feel.
 
 1. **Persisted state + migration + value-set guards** — §1, §4, §6. Headless-testable,
    ships nothing visible. Lowest-risk first; unblocks the cfg layout the rest assumes.
-2. **Detection + resolver + signal** — §2, §3. (Per [ICD-2], this may *be* the gamepad
-   plan's slice 3 rather than a separate slice.) Headless-test the matrix; live-verify the
-   switch feel with the gamepad layer present.
+2. **Detection + resolver + signal** — §2, §3, in the new `InputModeManager` autoload.
+   **This is the gamepad plan's slice 3** ([ICD-2]). Headless-test the matrix; live-verify
+   the switch feel with the gamepad layer present.
 3. **Availability + selector grays** — §5 + the Settings UI gray/nest rendering. Live UI,
    so it follows the dual-UI-tax constraints (reflow, focus graph, touch targets).
 
-Slice 1 is fully independent and can land even before [ICD-1] picks the runtime owner
-(it's pure persistence on `SettingsManager`). Slices 2–3 need [ICD-1] + [ICD-2].
+Slice 1 is fully independent (pure persistence on `SettingsManager` — the consts +
+`normalize_*` + the `mouse_cursor` relocation), so it can land first. Slices 2–3 add the
+`InputModeManager` autoload and tie to the gamepad layer.
 
 ## 9. Definition of done
 
@@ -203,8 +216,10 @@ Slice 1 is fully independent and can land even before [ICD-1] picks the runtime 
 - DoD#2: the two `check_docs.py` guards (§6) land in the same change as the consts.
 - Tests: §7 headless coverage green; full suite + `check_docs` green per commit.
 
-## 10. Decisions this plan is waiting on
+## 10. Decisions — all resolved (2026-06-21)
 
-All in `input_controls_open_decisions_2026-06-21.md`: **[ICD-1]** owner type (blocks
-slices 2–3), **[ICD-2]** resolver landing point, **[ICD-3]** touch-vs-emulated detection.
-Slice 1 can proceed independent of all three.
+Per `input_controls_open_decisions_2026-06-21.md`: **[ICD-1]** → new `InputModeManager`
+autoload; **[ICD-2]** → the resolver IS gamepad slice 3 (built once, no stub); **[ICD-3]**
+→ touch-first detection, gated on an iOS Safari smoke test. **This plan is build-ready.**
+Slice 1 (persistence + value-set guards + `mouse_cursor` relocation) has no remaining
+dependency and is the recommended first commit.
