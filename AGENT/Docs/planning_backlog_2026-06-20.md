@@ -72,7 +72,9 @@ Larger; build from `campaign_rules_firming_notes_2026-05-25.md` (has open questi
   flow spanning deployment, convoy, trade, and the green→player recruit mechanic.
 - **Mid-battle suspend save.** State: field list in the backlog, no plan. Plan should
   produce: the serialization plan (incl. activation-scheduler state) + the M15B disconnect
-  save-and-continue tie-in.
+  save-and-continue tie-in. **Forward dep:** also serialize the threat-range `_watch_set` +
+  `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4 — the watch set
+  must survive a mid-map suspend/resume).
 
 ## 3. Release gates needing a plan (not just execution)
 
@@ -88,10 +90,10 @@ Larger; build from `campaign_rules_firming_notes_2026-05-25.md` (has open questi
 
 Range-on-hover overlay; movement path arrows; **individual unit threat range — ✅ DESIGNED
 2026-06-21 (`AGENT/Docs/individual_threat_range_design_2026-06-21.md`); unblocks the gamepad
-contextual R3 danger-zone. [TUR-1..3] RESOLVED (persistent watch set + display-mode cycle,
-darker-red watch layer + watched-enemy markers, contextual MMB); [TUR-4] minor polish open
-with recs. Slice 1 (extraction) build-ready; slice 2 needs editor/asset steps (darker-red
-tile + marker).**; grid-visibility
+contextual R3 danger-zone. [TUR-1..4] ALL RESOLVED (persistent watch set + display-mode
+cycle; darker-red watch layer + "D" markers; contextual MMB; auto-promote/demote, prune dead,
+survive phases + save/load). Slice 1 (extraction) build-ready; slice 2 needs one editor step
+(darker-red tile); slice 4 (save serialization) is a forward dep on §2.**; grid-visibility
 slider; camera settings (edge-pan buffer + scroll responsiveness); attack-by-target
 selection; richer combat prediction (crit / triangle / effective flags); combat-prediction
 layout; minimap toggle. Each needs a short design before scheduling; several pair naturally

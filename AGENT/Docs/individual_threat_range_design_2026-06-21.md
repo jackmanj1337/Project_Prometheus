@@ -108,11 +108,15 @@ membership edit always gives feedback). See section 4.
 > the **existing MMB / R3 action** for both the set edit and the mode cycle ([TUR-1]:
 > contextual MMB only, no separate hover/RMB affordance).
 
-> **[TUR-4] (minor, open):** when the player adds the first enemy to the watch set while
-> `_danger_mode` is `none` or `full`, do we auto-promote the mode to show it (`combined`),
-> or keep the controls orthogonal (membership edit only; marker shows, threat tiles don't
-> until they cycle)? *Rec: keep orthogonal — markers give feedback; auto-promote is a
-> surprise jump. Cheap to revisit live.*
+> **Auto-promote / demote ([TUR-4] resolved → auto).** The watch layer turns on when the
+> set goes empty→non-empty and off when it goes non-empty→empty, **without clobbering the
+> faction layer** the player may have had on:
+> - **First enemy added:** `none → selected`; `full → combined`. (`selected`/`combined`
+>   unchanged.)
+> - **Last enemy removed:** `selected → none`; `combined → full`. (`none`/`full` unchanged.)
+>
+> The manual MMB-over-empty cycle (`full→selected→combined→none→…`) still works on top of
+> this; auto only fires on the empty↔non-empty transition.
 
 ## 4. Render ([TUR-2] resolved → distinct darker red + watched markers)
 
@@ -122,12 +126,13 @@ Three render pieces:
 2. **Watch layer — a distinct *darker* red (new source 4, `OVERLAY_DARKER_RED`).** The
    `selected`/`combined` watch-set threat. Adding source 4 to the overlay `TileMapLayer` is
    an **editor step** (author/assign the tile) on top of the code constant.
-3. **Watched-enemy markers (new).** A per-unit marker so the player sees *which* enemies are
-   in `_watch_set` (not just their threat tiles). Rendered on each watched enemy's tile/unit
-   whenever the set is non-empty. The exact visual (a badge tile, a sprite outline, or a
-   modulate tint) is an implementation/asset detail — **needs a small asset** if a badge
-   tile is chosen. Recommend a lightweight unit-modulate or a dedicated marker tile so it
-   reads on top of any terrain.
+3. **Watched-enemy markers ([TUR-4] resolved → small "D").** Each watched enemy gets a small
+   **"D"** glyph in the **bottom-right corner of its tile**, rendered whenever it is in
+   `_watch_set` (independent of `_danger_mode`, so the set is always legible). A text glyph
+   needs **no new tile asset** — a small `Label`/drawn glyph anchored to the tile's
+   bottom-right is enough. **Placeholder:** flagged for the UI polish pass to review and
+   likely swap for a small eye (or similar) icon. (The darker-red overlay tile in piece 2
+   still needs authoring; the marker does not.)
 
 **Paint order (matters for `combined`):** `repaint()` clears the overlay, paints the faction
 layer first (source 3), then the watch layer on top (source 4) so a watched enemy's tiles
@@ -144,26 +149,35 @@ edit. A `_watch_set` edit while in `full` doesn't recompute faction at all.
 Two members replace the old single `_danger_zone_shown` bool on `MapCursor`:
 
 - **`_danger_mode: String`** = `none | full | selected | combined` (default `none`).
-- **`_watch_set`** = the picked enemies (store unit refs, or stable unit ids if refs can go
-  stale on death — see drop rules). Persistent across cursor moves.
+- **`_watch_set`** = the picked enemies, stored as **stable unit ids** (not raw refs) so a
+  defeated enemy can be pruned and a save can round-trip them. Persistent across cursor
+  moves, menus, phases, and save/load (see persistence).
 
-**The set does not follow the cursor** (that was the rejected live-follow model) — it only
-changes on an explicit MMB-over-enemy edit. The cursor moving never repaints.
+**The set does not follow the cursor** (the rejected live-follow model) — it changes only on
+an explicit MMB-over-enemy edit, which runs the auto-promote/demote rule (§3).
 
-**Drop / clear rules (extend today's danger-zone teardown):**
-- **FREE state only** — both controls are inert outside FREE (the overlay layer is owned by
-  a selected unit's movement range otherwise), exactly as the current toggle.
-- **On input-suppress / unit selection / phase change** — clear the overlay paint *and*
-  reset `_danger_mode = none`. **Open sub-point:** does `_watch_set` *membership* also clear,
-  or persist across these so the player's hand-picked set survives a phase? *Rec: clear the
-  paint + mode every time (matches today's "no stale overlay" guarantee), but **persist the
-  membership** within a map so the set isn't lost on every menu open; clear membership on
-  map load / objective change. Confirm live — folded into [TUR-4]'s family of polish calls.*
-- **Dead / removed watched enemy** — prune it from `_watch_set` on death so a stale ref
-  never paints (storing a unit id + validating on repaint is the safe form).
+**Persistence ([TUR-4] resolved → survives phases + mid-map save/load):**
+- **`_watch_set` and `_danger_mode` persist across phase changes, menus, and unit selection
+  within a map.** They are **not** reset by the teardown anymore.
+- **What teardown clears is only the *paint*, never the state.** Entering a non-FREE /
+  input-suppressed state (enemy phase, map menu) or selecting a unit (whose movement range
+  owns the overlay) calls `clear_overlays()` for the visual but **retains** `_watch_set` +
+  `_danger_mode`. Returning to FREE calls `repaint()`, which **recomputes from current unit
+  positions** — so a post-enemy-phase repaint is fresh, never stale (the original reason the
+  old toggle reset). FREE-state-only interaction is unchanged.
+- **Map load / new map:** `_watch_set` clears and `_danger_mode → none` (different enemies).
+- **Mid-map suspend save:** `_watch_set` (+ `_danger_mode`) are **serialized into the
+  suspend snapshot and restored on load**, then `repaint()`. This adds a small field to the
+  battle-state serializer — a **forward dependency on the campaign/save cluster** (§2
+  "mid-battle suspend save"); recorded there. Until that serializer exists, the set lives at
+  runtime only (still survives phases/menus, just not a save).
 
-A `repaint()` helper centralises the §3 table + §4 paint order; every edit/cycle/drop calls
-it (or `clear_overlays()` for `none`).
+**Defeated enemies:** on a watched enemy's death, prune its id from `_watch_set`; if that
+empties the set, the auto-demote rule (§3) fires (`selected→none` / `combined→full`).
+
+A `repaint()` helper centralises the §3 mode table + §4 paint order + markers; every
+edit / cycle / auto-promote-demote / return-to-FREE / load calls it (or `clear_overlays()`
+for the `none` paint).
 
 ## 6. Headless test plan
 
@@ -180,32 +194,34 @@ Extend `test_map_cursor` (the interaction state):
 - **Watch-set membership** — toggling two enemies builds a 2-member set; `selected` paints
   exactly their union; `combined` paints faction ∪ watch with watch tiles winning the shared
   cells (assert source 4 on an overlapping tile).
-- **Drop rules** — selection / input-suppress / phase change resets `_danger_mode=none` and
-  clears the paint; membership persistence follows the §5 rec.
-- **Prune on death** — a watched enemy dying is removed from `_watch_set` (no stale paint).
+- **Auto-promote / demote** — adding the first enemy: `none→selected`, `full→combined`;
+  removing the last: `selected→none`, `combined→full`; `selected`/`combined` (resp.
+  `none`/`full`) unchanged on add (resp. remove).
+- **Persistence** — selection / input-suppress / phase change clears the *paint* but
+  **retains** `_watch_set` + `_danger_mode`; a return-to-FREE `repaint()` recomputes from
+  current positions (assert fresh tiles after moving an enemy). Map load clears the set.
+- **Prune on death** — a watched enemy dying is removed from `_watch_set` (no stale paint);
+  if it was the last member, auto-demote fires.
+- **Save round-trip** (with the §2 serializer, when it lands) — `_watch_set` + `_danger_mode`
+  survive a suspend/resume.
 
-**Live-verify only:** the actual overlay colours, the darker-red distinction, the watched-
-enemy marker visual, and the feel of the cycle.
+**Live-verify only:** the actual overlay colours, the darker-red distinction, the "D"
+marker, and the feel of the cycle.
 
-## 7. Open decisions
+## 7. Decisions — all resolved (2026-06-21)
 
-Small enough to keep inline (recommendations given; resolve before coding):
-
-- **[TUR-1] Affordance — ✅ RESOLVED 2026-06-21 → contextual MMB toggle only.** The existing
-  `show_danger_zone` / MMB toggle becomes contextual (over enemy = per-unit, else faction);
-  the same resolver backs the gamepad R3. No separate hover/RMB preview.
-- **[TUR-2] Render distinction — ✅ RESOLVED 2026-06-21 → distinct *darker* red** (new 5th
-  overlay source `OVERLAY_DARKER_RED`; editor step required). See §4.
-- **[TUR-3] Interaction model — ✅ RESOLVED 2026-06-21 → persistent watch set + display-mode
-  cycle** (not static-vs-live-follow). MMB over an enemy adds/removes it from a persistent
-  `_watch_set`; MMB over empty terrain cycles `_danger_mode` through `full | selected |
-  combined | none`; watched enemies get a marker; faction + watch layer both shown in
-  `combined`, layered (§3, §4, §5).
-- **[TUR-4] Polish details — OPEN (minor, recommendations given, tune live):** (a) auto-
-  promote the mode when the first enemy is added vs. keep controls orthogonal (rec:
-  orthogonal); (b) `_watch_set` membership lifetime across menu/phase (rec: persist within a
-  map, clear on map load); (c) the exact watched-enemy marker visual + whether it needs a new
-  asset (rec: lightweight modulate/marker tile). All cheap to settle during slice 2 live-verify.
+- **[TUR-1] → contextual MMB only.** The `show_danger_zone` action (MMB / R3) drives
+  everything; no separate hover/RMB. Same resolver backs the gamepad R3.
+- **[TUR-2] → distinct *darker* red** watch layer (new 5th overlay source
+  `OVERLAY_DARKER_RED`; editor step) + watched-enemy markers. See §4.
+- **[TUR-3] → persistent watch set + display-mode cycle.** MMB over an enemy adds/removes it
+  from a persistent `_watch_set`; MMB over empty cycles `_danger_mode`
+  `full|selected|combined|none`; faction + watch shown layered in `combined` (§3, §4, §5).
+- **[TUR-4] → resolved:** (a) **auto-promote/demote** the watch layer on the empty↔non-empty
+  transition (§3); (b) **defeated enemies are pruned** from the set (§5); (c) the set +
+  mode **survive phases and mid-map save/load** (§5; serialization is a forward dep on §2);
+  (d) marker = a **small "D" bottom-right of the tile**, a placeholder to review in the UI
+  polish pass (likely an eye icon).
 
 ## 8. Build slices
 
@@ -213,17 +229,22 @@ Small enough to keep inline (recommendations given; resolve before coding):
    `get_enemy_danger_tiles` to use it; headless regression proves no faction-overlay change.
    Pure logic, fully independent, lands the reusable primitive.
 2. **Watch set + mode cycle + render** — §3 resolver replacing `_toggle_danger_zone`, the
-   `_danger_mode`/`_watch_set` state (§5), the `repaint()` helper + paint order (§4), the new
-   `OVERLAY_DARKER_RED` source, and the watched-enemy marker. **Editor/asset steps:** author
-   the source-4 darker-red tile and the marker visual. After this the mouse drives the full
-   feature. (Settle [TUR-4]'s polish details during this slice's live-verify.)
+   `_danger_mode`/`_watch_set` state + auto-promote/demote + prune-on-death + the
+   paint-only/retain-state persistence across phases (§5), the `repaint()` helper + paint
+   order (§4), the new `OVERLAY_DARKER_RED` source, and the "D" marker. **Editor step:**
+   author the source-4 darker-red overlay tile (the "D" marker is text — no asset). After
+   this the mouse drives the full feature; runtime persistence covers phases/menus.
 3. **Gamepad R3 arm** — hand off to `gamepad_layer_implementation_plan_2026-06-20.md` §4:
    bind R3 through the same resolver (R3-over-enemy edits the set, R3-over-empty cycles the
    mode). (Lands with the gamepad layer, not here.)
+4. **Save serialization** — add `_watch_set` + `_danger_mode` to the mid-battle suspend
+   snapshot. **Belongs to the §2 campaign/save cluster** ("mid-battle suspend save"), not
+   this feature; recorded as a forward dependency so it isn't forgotten. Until then the set
+   is runtime-only (survives phases, not a save).
 
 Slice 1 is the immediate, fully-headless win (the reusable primitive + regression). Slice 2
 delivers the player-visible feature (some live-verify for colours/marker). Slice 3 is the
-gamepad consumer.
+gamepad consumer; slice 4 is the save-serialization tie-in owned by §2.
 
 ## 9. Definition of done
 
@@ -233,6 +254,8 @@ gamepad consumer.
 - DoD#2: `_danger_mode` is a small fixed value-set (`none|full|selected|combined`) — if it is
   documented in GDD_07 as canonical, add a `check_docs` guard mirroring the mouse-cursor
   value-set check (parse a `const` array, assert GDD lists each). Confirm at implementation.
-- Editor/asset: the source-4 darker-red overlay tile and the watched-enemy marker are
-  authored before slice 2 can be live-verified.
+- Editor: the source-4 darker-red overlay tile is authored before slice 2 can be
+  live-verified (the "D" marker is text — no asset).
+- Forward dep: the §2 mid-battle suspend serializer must include `_watch_set` + `_danger_mode`
+  (slice 4); flag it in the §2 plan when that cluster is written.
 - Tests: §6 headless coverage green; full suite + `check_docs` green per commit.
