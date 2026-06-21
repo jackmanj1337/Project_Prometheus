@@ -86,9 +86,10 @@ Larger; build from `campaign_rules_firming_notes_2026-05-25.md` (has open questi
 
 ## 4. UI / UX enhancements — backlog bullets, no plans
 
-Range-on-hover overlay; movement path arrows; **individual unit threat range (now a
-prerequisite — the gamepad contextual R3 danger-zone is gated on it; see
-`gamepad_layer_implementation_plan_2026-06-20.md` §4)**; grid-visibility
+Range-on-hover overlay; movement path arrows; **individual unit threat range — ✅ DESIGNED
+2026-06-21 (`AGENT/Docs/individual_threat_range_design_2026-06-21.md`); unblocks the gamepad
+contextual R3 danger-zone. Slices 1–2 are build-ready (decisions [TUR-1..3] inline, all with
+recommendations).**; grid-visibility
 slider; camera settings (edge-pan buffer + scroll responsiveness); attack-by-target
 selection; richer combat prediction (crit / triangle / effective flags); combat-prediction
 layout; minimap toggle. Each needs a short design before scheduling; several pair naturally

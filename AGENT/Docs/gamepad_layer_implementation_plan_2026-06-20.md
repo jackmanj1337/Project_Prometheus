@@ -114,10 +114,14 @@ is contextual:
   (**does not exist** — this is the UI/UX backlog item "individual unit threat range").
 
 **Prerequisite dependency edge:** the per-enemy contextual mode requires implementing
-per-unit threat-range computation + render first. Until then, R3 binds to the faction-wide
-toggle only. The plan adds a small **contextual-action resolver** (read the cursor's hovered
-tile → enemy? → per-unit range : faction range) so the same logic serves the gamepad R3 and
-the mouse right-click (parity). Tracked as a dependency in GDD_10 (Open Items Register).
+per-unit threat-range computation + render first. **Now designed:**
+`AGENT/Docs/individual_threat_range_design_2026-06-21.md` — it extracts the per-unit
+primitive (`get_unit_threat_tiles`) and defines the shared **contextual resolver** (read the
+cursor's hovered tile → hostile enemy? → per-unit range : faction range) that serves both
+the gamepad R3 and the mouse toggle. That design's slices 1–2 are the prerequisite; this
+plan's slice 4 = its slice 3 (bind R3 through the same resolver). Until those land, R3 binds
+to the faction-wide toggle only. (Binding note: the existing toggle is **MMB**, not RMB —
+see that design §3.)
 
 ## 5. Map-cursor input rebuild — NOT a data edit (Rebuilds A + B)
 
@@ -238,5 +242,7 @@ target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish
 3. **Stick repeat vs analog feel** — the decoder reuses the discrete step+repeat timer for
    the left stick (parity with keys). Confirm live that discrete stepping feels right, or
    whether the stick wants a continuous glide instead (would diverge from the keyboard model).
-4. **Per-enemy threat range** — its own design before slice 4's contextual arm can fully
-   ship (UI/UX backlog item). This plan ships the resolver + faction path regardless.
+4. **Per-enemy threat range** — ✅ now designed in
+   `AGENT/Docs/individual_threat_range_design_2026-06-21.md` (its slices 1–2 are the
+   prerequisite; this plan's slice 4 binds R3 through that design's shared resolver). This
+   plan still ships the resolver + faction path regardless.
