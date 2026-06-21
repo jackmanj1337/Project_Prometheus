@@ -1,7 +1,8 @@
 # Package A (`RngService`) — Implementation Draft + Open Questions Register
 
 **Started:** 2026-06-21d
-**Status:** Planning draft — register OPEN. **Special case:** a near-complete build
+**Status:** [PKGA-1..4] **RESOLVED 2026-06-21f** (all recommendations accepted) — build-ready.
+**Special case:** a near-complete build
 guide already exists (`rng_determinism_design_2026-06-11.md`, two-RN update 2026-06-13).
 This doc does **not** re-derive that plan; it captures only the **gaps the session note
 flagged** — service shape confirmation, the roadmap home, save integration — as a
@@ -54,7 +55,8 @@ the *next execution milestone*, not a deferred Bucket-B insert.
 - **B — Keep the original Bucket B/E split** and just note §2 waits on Steps 1–3.
 - **Rec: A** — [CST-12] already made Package A a named, first execution step; the roadmap
   should reflect that single source of truth rather than two scattered buckets.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21f)** — new top-level milestone "Package A /
+  Determinism" ahead of §2, Steps 1–5 as its checklist, with a GDD_10 Open Items Register row.
 
 ### [PKGA-2] Build-order scope for the FIRST shippable slice  **[OPEN]**
 The doc's Step 1 (service + migration sweep + T1/T3/T4/T5/T7) ships standalone value
@@ -69,7 +71,9 @@ suspend + rewind) before §2?
 - **Rec: A** — Step 3 (suspend) is co-owned by §2's save plumbing (Continue flow, slot
   menu); building it twice is waste. Land the substrate (1–2), then let §2 absorb 3–4.
   Ties to [CST-13] (fold rewind into §2 vs hooks-only).
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21f)** — only Steps 1–2 (service + migration sweep +
+  snapshot contract) gate §2. Suspend (Step 3) and rewind (Step 4) interleave with §2's save
+  plumbing. Minimises the pre-§2 critical path; ties to [CST-13] (rewind hooks-only into §2).
 
 ### [PKGA-3] `CampaignRules.rewind_charges` field — land here or in §2?  **[OPEN]**
 Step 4 says "create the `CampaignRules` stub here if it doesn't exist." It exists but
@@ -81,7 +85,9 @@ lacks `rewind_charges`. [CST-4] hard-migrates all rule call sites in §2.
 - **Rec: B** — adding one rule field outside the consolidation invites a double-touch and
   a half-wired field. Package A Steps 1–2 don't need charges (rewind is Step 4). Let §2
   own every `CampaignRules` field in one pass; Package A's snapshot just reads it if present.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **B (RESOLVED 2026-06-21f)** — defer `rewind_charges` to §2's `CampaignRules`
+  consolidation ([CST-4]). Package A Steps 1–2 don't need it; the snapshot reads it only if
+  present. Avoids a half-wired field outside the consolidation pass.
 
 ### [PKGA-4] Two-RN hit model — confirm it lands with Step 1, not later  **[OPEN]**
 RULE-001 (two-RN: hit when `floor((r1+r2)/2) < displayed_hit`) is a **gameplay-feel**
@@ -94,7 +100,9 @@ migrate — but it changes balance the moment it lands.
 - **Rec: A** — splitting creates a save-breaking migration later (the exact thing §11
   avoids) for no benefit; the feel change is desired (classic FE "true hit"). Flag it in
   the playtest note so the balance shift is observed, not silent.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21f)** — ship two-RN "true hit" with Step 1 (one
+  change, no migration debt; M9 skills land on the final model). Flag the balance shift in
+  the next playtest note so it's observed, not silent.
 
 ## 4. Notes
 - No new test plan needed — the doc's T1–T7 are the contract. The only *new* test this

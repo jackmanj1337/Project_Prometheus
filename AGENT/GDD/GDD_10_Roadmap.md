@@ -86,7 +86,7 @@ opens or closes (DoD#1).
 | v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
 | Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
 | Input-mode / gamepad architecture (gamepad layer = keystone); §1 impl plans drafted + decisions (ICD-1..6) resolved 2026-06-21 — **build-ready, awaiting execution** | [ ] build-ready | §Forward Platform Workstreams |
-| Package A — `RngService` (determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` (gaps only — build guide already exists) | [ ] build-first, register OPEN | `AGENT/Docs/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
+| **Milestone — Package A / Determinism** (`RngService` determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` **RESOLVED 2026-06-21f**: own top-level milestone, **only Steps 1–2 gate §2** (3–4 interleave with §2), `rewind_charges` deferred to §2's [CST-4] consolidation, two-RN ships with Step 1 | [ ] build-ready (register resolved) | §Milestone — Package A / Determinism; `AGENT/Docs/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
 | Campaign / save cluster (§2) — player-facing firmed 2026-06-21b; **technical plan + decisions drafted 2026-06-21c** ([CST-1..12] resolved, [CST-13] at kickoff); gated behind Package A | [ ] planned, build-ready after Package A | §H + `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` + `campaign_save_open_decisions_2026-06-21.md` |
 | Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved); part of the map-readability cluster | [ ] design ready | `AGENT/Docs/individual_threat_range_design_2026-06-21.md`; cluster register `map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
 | Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register drafted 2026-06-21d | [ ] register OPEN | `AGENT/Docs/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
@@ -166,9 +166,10 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
 **Draft plans + OPEN-questions registers written 2026-06-21d** (session note 2026-06-21d;
 audit-corrected same session). Every READY candidate now has a code-grounded
 `AGENT/Docs/<item>_open_questions_2026-06-21.md` with a one-by-one decisions register
-(§1 ICD / §2 CST pattern). **All registers are OPEN — drafted, not yet walked/resolved.**
-Resume by walking one with the user (start: Package A — smallest, build-first):
-- **Tier 1:** Package A `RngService` `[PKGA-1..4]` (§A) · map-readability `[MRD-1..6]` (§A;
+(§1 ICD / §2 CST pattern). **`[PKGA-1..4]` RESOLVED 2026-06-21f (Package A now build-ready —
+see §Milestone — Package A / Determinism); all other registers remain OPEN — drafted, not yet
+walked/resolved.** Resume by building Package A, or walk another register with the user:
+- **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
   note `[MRD-3]` withdrawn — aggregate danger zone already built) · fog-of-war/LoS `[FOW-1..6]`.
 - **Tier 2:** AI profiles `[AIP-1..5]` (absorbs fog-scout / chest-looter / siege-operator
   follow-ups) · doors/chests `[DCH-1..6]` + stationary weapons `[STW-1..6]` (**share ONE
@@ -286,6 +287,43 @@ the contextual R3 rides that design when threat-range slices land.
 roadmap status (DoD#1); add a `check_docs.py` guard for the new `input_mode` / `touch_controls`
 value-sets, mirroring the `mouse_cursor` value-set check [14] (DoD#2); add headless coverage for
 the detect-floor/promotion resolver and gray/fallback availability logic.
+
+---
+
+## Milestone — Package A / Determinism
+
+**Status:** build-ready (register `[PKGA-1..4]` resolved 2026-06-21f). **Build FIRST, before the
+§2 campaign/save spine** ([CST-12]). This is the determinism substrate: a seeded `RngService`
+autoload, a single JSON-safe snapshot contract, and the hooks for suspend + rewind.
+
+**Authoritative build guide:** `AGENT/Docs/rng_determinism_design_2026-06-11.md` (§2 service, §6
+integration touch-list, §10 seven-test plan, §12 build order). Resolved register:
+`AGENT/Docs/package_a_rngservice_open_questions_2026-06-21.md`.
+
+**Resolved scope decisions (2026-06-21f):**
+- **[PKGA-1]** — this is its own top-level milestone (single source of truth over the design
+  doc's old Bucket B/E split).
+- **[PKGA-2]** — **only Steps 1–2 gate §2**; Steps 3–4 interleave with §2's save plumbing.
+- **[PKGA-3]** — `CampaignRules.rewind_charges` is **deferred to §2's [CST-4] consolidation**;
+  Package A's snapshot reads it only if present.
+- **[PKGA-4]** — the two-RN "true hit" model (RULE-001) **ships with Step 1**; flag the balance
+  shift in the next playtest note.
+
+**Build steps** (from build guide §12):
+- [ ] **Step 1 — `RngService` + migration sweep (GATES §2).** Autoload (after `EventBus`,
+      before `GameState`), seed mixer, §6 code touches (replace raw `randi()/randf()` in
+      `CombatResolver`, `Unit.level_up()`, `SkillHandler`), **two-RN true hit (RULE-001)**, tests
+      T1/T3/T4/T5/T7. T5 = the raw-RNG lint guard → lands in `run_tests.sh`/CI (DoD#2).
+- [ ] **Step 2 — Snapshot contract (GATES §2).** One JSON-safe `to_save_dict` across §8.1;
+      migrate the in-memory Retry snapshot onto it (also fixes [CST-2]'s non-JSON-safe snapshot);
+      T2 deep-equal round-trip.
+- [ ] **Step 3 — Suspend save** (interleaves with §2). §8.2 + Continue flow + T6. *Player-facing.*
+- [ ] **Step 4 — Rewind** (interleaves with §2; ties to [CST-13]). Checkpoint ring + Map Menu UI;
+      `rewind_charges` arrives via §2's [CST-4] consolidation. *Player-facing; mostly UI.*
+- [ ] **Step 5 (deferred, with M15B)** — result-payload protocol per §9.
+
+**DoD when implemented:** GDD_01 combat/RNG section + GDD_10 status flips (DoD#1); the T5 raw-RNG
+lint test in `run_tests.sh`/CI (DoD#2); two-RN balance note in the next playtest checklist.
 
 ---
 
