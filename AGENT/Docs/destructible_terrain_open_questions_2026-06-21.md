@@ -16,6 +16,11 @@ the 2026-05-13c code review (destructible locations force suspend saves).
 `effect_tags`), `scripts/resources/MapData.gd` (no object model; save-TODO).
 **Depends on:** **DCH build** (defines `map_objects` + the passability overlay this rides). Walk
 & build this AFTER DCH.
+**Converges with Map Events / Triggers ([MET], `map_events_triggers_open_questions_2026-06-21.md`,
+RESOLVED 2026-06-21h):** DTR's `on_break` event list is the **`object_broken` trigger's action
+list** on the shared MET runner; the `spawn` (reinforcement) seam DTR-5 flagged is owned by
+[MET-8]; the `flag` action rides MET's flag store. DTR may build first with a local action list,
+then migrate to the MET runner when it lands.
 **Pattern:** mirrors §1 ICD / §2 CST / DCH. Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 
 ---

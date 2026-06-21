@@ -170,7 +170,10 @@ audit-corrected same session). Every READY candidate now has a code-grounded
 see §Milestone — Package A / Determinism); `[DCH-1..6]` (2026-06-21g — doors/chests build-ready,
 unified `map_objects` model); `[DTR-1..8]` (2026-06-21g — destructible terrain build-ready, DCH
 fast-follow — breakables = roster-quarantined object-Units taking full unit damage, `on_break`
-event list). All other registers remain OPEN — drafted, not yet walked/resolved.**
+event list); `[MET-1..9]` (2026-06-21h — **Map Events / Triggers framework** build-ready — data
+`trigger→action` events on `MapData.map_events`; v1 triggers `unit_died`/`turn_reached`/
+`object_broken`, v1 actions `reveal_tiles`/`flag`/`spawn`; DTR's `on_break` folds in). All other
+registers remain OPEN — drafted, not yet walked/resolved.**
 Resume by building Package A, or walk another register with the user:
 - **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
   note `[MRD-3]` withdrawn — aggregate danger zone already built) · fog-of-war/LoS `[FOW-1..6]`.
@@ -181,12 +184,16 @@ Resume by building Package A, or walk another register with the user:
   stationary weapons `[STW-1..6]` (still OPEN; **inherits DCH's unified `map_objects` model** —
   do doors/chests first) · **destructible terrain `[DTR-1..8]` RESOLVED 2026-06-21g** (breakable
   walls/trees/crystals; DCH fast-follow, `destructible_terrain_open_questions_2026-06-21.md`) ·
+  **Map Events / Triggers `[MET-1..9]` RESOLVED 2026-06-21h** (data `trigger→action` framework;
+  `unit_died`/`turn_reached`/`object_broken` → `reveal_tiles`/`flag`/`spawn`; DTR's `on_break`
+  folds in; owns the mid-map spawn seam + flag store; `map_events_triggers_open_questions_2026-06-21.md`) ·
   sprite importer `[IMP-1..6]` ·
   `DataManager._ready()` decomposition `[DMR-1..3]` · broken-weapon `[BWN-1..5]` (§F) ·
   D-A rename `[REN-1..5]` (§F) · DOC-012 legal `[LEG-1..5]` (§F).
 - **Forward §2-schema reservations these surfaced** (later data-growth, not a reshape):
   `discovered_units` (fog), `ai_awake` (territorial), `map_objects_state` (doors/chests/siege),
-  `rewind_charges` (Package A defers to §2 CampaignRules consolidation).
+  `rewind_charges` (Package A defers to §2 CampaignRules consolidation), `map_events_fired` +
+  map-scoped & campaign-scoped flag stores (Map Events / Triggers `[MET-5]`/`[MET-6]`).
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 
