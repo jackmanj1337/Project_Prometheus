@@ -90,6 +90,39 @@ The technical plan should produce:
   `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4).
 - A **decisions register** for the code-facing choices the firming left open.
 
+## 2b. DEFERRED from the campaign/save MVP — do-not-forget tracker (firmed 2026-06-21b)
+
+These were explicitly scoped OUT of the campaign/save MVP during the player-facing firming
+(`campaign_save_player_facing_firming_2026-06-21.md`). The MVP save schema reserves room for
+them so each is **later data-growth, not a reshape** — but they still need their own design/
+plan when re-surfaced. Re-surface candidates **after the §2 spine lands**. Each names the
+firming branch it came from.
+
+- **Convoy / inventory (branch D).** Shared party convoy (item quantities + store), in-prep
+  trade, on-map convoy access, and `max_inventory = 8` enforcement (defined, unenforced today).
+  Save reserves `party_items`. Needs: convoy UX + per-unit inventory management plan.
+- **Shop / economy (branch E).** Between-map buy/sell shop spending `party_gold`; gold sinks/
+  sources; forge (E3) likely its own later item. Needs: economy + shop-screen plan.
+- **Recruit, green→player (branch F).** Interactive on-map Talk/Recruit action + roster-join
+  UX. Roster growth is already save-supported. Needs: recruit-mechanic design. (D-D prerequisite.)
+- **Pair Up persistence + prep pairing (branch H1).** Today pairings reset each map; making
+  them persist + manageable in prep needs the registry serialized into the save + prep UI.
+- **Support system (branch H2).** Ranks/affinity/conversations/bonuses; firming-notes prior =
+  version its data separately from map runtime state. Large new system. Needs: full design.
+- **Rescue system (branch H3).** Carry/drop, weight/CON, canto interactions; Pair-Up/Rescue
+  mutual-exclusion prior stands. Needs: full design.
+- **Campaign-PACK format + authoring tools (branch I3).** The distributable homebrew-campaign
+  bundle (maps + roster + progression graph + rules); likely home for zip-bundling/compression.
+  The MVP importer is built to **sniff zip-vs-json** so a pack imports with no migration. Needs:
+  pack-format + authoring/distribution plan.
+- **Rewind MECHANIC (branch J — distinct from the MVP hooks).** The MVP builds only the rule +
+  charge persistence + defeat-menu entry. The actual per-action Turnwheel is **hard-blocked on
+  `RngService` (Package A)** — `rng_determinism_design_2026-06-11.md`. Needs: Package A, then the
+  in-battle turnwheel UI + state-history capture/replay. **Sequencing question for the §2 plan:
+  where does Package A sit relative to this cluster?**
+- **Cross-version save migration (branch I5).** Loading old saves in new builds is **not a
+  concern until 1.0**; keep `format_version` as insurance, write no migration code pre-1.0.
+
 ## 3. Release gates needing a plan (not just execution)
 
 - **D-A — public-identity rename.** State: gate, no plan. Plan should produce: the

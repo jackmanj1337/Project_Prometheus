@@ -18,7 +18,8 @@ Over menu · rewind RULE + charge persistence + defeat-menu entry (mechanic via 
 campaign rules player-locked / story-flippable / tinkerer-warned.
 **Deferred from this cluster:** convoy/inventory (D) · shop/economy (E) · recruit (F) · Pair
 Up persistence + prep pairing (H1) · Support (H2) · Rescue (H3) · campaign-PACK format (I3) ·
-the actual rewind mechanic (J, needs `RngService`/Package A).
+the actual rewind mechanic (J, needs `RngService`/Package A). **Do-not-forget tracker:**
+`planning_backlog_2026-06-20.md` **§2b** lists each deferred item + what it needs to re-surface.
 **Hard dependencies:** rewind ⇒ `RngService` (Package A, `rng_determinism_design_2026-06-11.md`).
 **Cross-version save transfer:** NOT a concern until 1.0 (I5) — keep `format_version` as cheap
 insurance, but write no migration code pre-1.0; save compat may break freely between versions.
