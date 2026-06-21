@@ -89,7 +89,10 @@ The technical plan should produce:
 - **Prep screen** architecture (deploy/bench/placement/save/launch).
 - **Mid-battle suspend save** serializer (incl. activation-scheduler state + the M15B
   save-and-continue tie-in). **Forward dep:** also serialize the threat-range `_watch_set` +
-  `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4).
+  `_danger_mode` (`individual_threat_range_design_2026-06-21.md` §5/slice 4). **Reserve room
+  for the 2026-06-21d register forward-deps** (later data-growth, not a reshape):
+  `discovered_units` (fog), `ai_awake` (territorial AI), `map_objects_state` (doors/chests/
+  siege), `rewind_charges` (Package A → consolidated here per [PKGA-3]).
 - A **decisions register** for the code-facing choices the firming left open.
 
 ## 2b. DEFERRED from the campaign/save MVP — do-not-forget tracker (firmed 2026-06-21b)

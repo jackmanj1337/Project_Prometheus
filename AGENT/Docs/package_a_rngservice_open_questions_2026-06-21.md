@@ -42,10 +42,13 @@ The planning gap is **not** the algorithm; it is the three items below.
 ## 3. Open questions register
 
 ### [PKGA-1] Roadmap home for Package A  **[OPEN]**
-The session note says Package A "has a design doc but **no roadmap home**." Steps 1–2
-were tentatively slotted "Bucket B, before C4 (M9a)"; Steps 3–4 "new Bucket E". But
-[CST-12] re-sequenced Package A to go **before §2** — so the roadmap placement must be
-re-stated as the *next execution milestone*, not a Bucket-B insert.
+The session note says Package A "has a design doc but **no roadmap home**." **Audit
+2026-06-21d — precise state:** Package A IS referenced in `GDD_10` (Open Items Register
+§G/§H note + the `CampaignRules` rewind-charge line ~906), but only as a **deferred
+dependency** — it has **no near-term execution milestone**. The design doc §12 tentatively
+slots Steps 1–2 "Bucket B, before C4 (M9a)" and Steps 3–4 "new Bucket E". But [CST-12]
+re-sequenced Package A to go **before §2** — so the roadmap placement must be re-stated as
+the *next execution milestone*, not a deferred Bucket-B insert.
 - **A — New top-level milestone "Package A / Determinism" ahead of §2**, with Steps 1–5
   as its checklist; GDD_10 Open Items Register gets a row. Matches the [CST-12] decision.
 - **B — Keep the original Bucket B/E split** and just note §2 waits on Steps 1–3.

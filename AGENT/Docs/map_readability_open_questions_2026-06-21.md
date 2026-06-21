@@ -17,8 +17,16 @@ and minimap are *separate* §4 bullets, explicitly OUT of this cluster.
 
 - **Overlay infra exists.** `GridManager` owns an `_overlay: TileMapLayer` with four
   paint sources: `OVERLAY_BLUE` (move), `OVERLAY_RED` (attack), `OVERLAY_HEAL` (orange),
-  `OVERLAY_DARK_RED` (threat — added for the threat-range design). `_paint_overlay(tiles,
+  `OVERLAY_DARK_RED` (source 3 — the **faction danger zone**). `_paint_overlay(tiles,
   source_id)` is the single paint primitive.
+- **⚠️ CORRECTION (audit 2026-06-21d): the aggregate "all-enemies danger zone" ALREADY
+  EXISTS.** `GridManager.get_enemy_danger_tiles(viewer_faction)` (unions every hostile's
+  threat) + `show_enemy_danger_zone()` paint it on `OVERLAY_DARK_RED`, toggled by MMB /
+  `MapCursor.show_danger_zone`. The individual threat-range design then **integrates** it
+  as the `_danger_mode = full` state and **adds a 5th source** (`OVERLAY_DARKER_RED`,
+  source 4) for the per-unit watch layer, with a defined paint order (faction src 3 first,
+  watch src 4 on top). So aggregate danger + its relationship to individual threat are
+  **already designed/built — NOT this cluster's work** (see [MRD-3]).
 - **Range math exists and is reusable.** `get_movement_range`, `get_attack_range_from_tiles`,
   `get_staff_range_from_tiles`, `get_all_attack_tiles`, `dijkstra_costs`,
   `get_movement_path`. The hover overlay and path arrows are *new consumers* of these,
@@ -60,7 +68,10 @@ same tile, a deterministic precedence is needed so the player sees one unambiguo
 
 ### [MRD-1] Overlay precedence + stacking model  **[OPEN]**
 Multiple layers can claim one tile (e.g. my move range ∩ enemy threat). What does the
-player see?
+player see? **Note (audit):** the danger layers already have a defined internal order
+(faction src 3, then watch src 4 on top — from the threat-range design); this question is
+therefore only about how the move/attack/heal layers + the NEW hover-peek + path-arrows
+interleave with that existing danger overlay.
 - **A — Single fixed precedence, one color per tile** (e.g. selected-unit's own range
   wins on its own tiles; threat shows only on non-range tiles). Simplest; one source per
   tile via `_paint_overlay` ordering.
@@ -85,21 +96,24 @@ player see?
   input-mode work (§1). Offer A as a setting later if requested.
 - **Resolution:** _[OPEN]_
 
-### [MRD-3] Aggregate threat ("all enemies danger zone") vs individual — relationship  **[OPEN]**
-The individual design (`_watch_set`) tracks hand-picked units. The classic "danger zone"
-shows *all* enemies at once.
-- **A — Aggregate is just "watch every hostile"** — one toggle adds all hostiles to the
-  existing `_watch_set`; no new system, reuses the designed machinery + dark-red layer.
-- **B — Separate aggregate path** with its own union-of-ranges cache, distinct from the
-  individual watch set.
-- **Rec: A** — the design already supports a set of watched units; "all" is a population
-  of that set. One code path, one render layer, one save field. Cheaper now (per the
-  mobile-web "bias to cheap-now" memory).
-- **Resolution:** _[OPEN]_
+### [MRD-3] ~~Aggregate threat vs individual — relationship~~ **[RESOLVED-BY-EXISTING-DESIGN — audit 2026-06-21d]**
+**This question was based on a wrong assumption and is withdrawn.** The audit found the
+aggregate "all-enemies danger zone" is **already built** (`get_enemy_danger_tiles` /
+`show_enemy_danger_zone`, MMB) AND its relationship to the individual watch set is
+**already designed** in `individual_threat_range_design_2026-06-21.md`: `_danger_mode`
+cycles `full | selected | combined | none`, where `full` = the existing faction aggregate
+(source 3) and `selected` = the `_watch_set` (new source 4), `combined` layers both. The
+threat-range design **explicitly keeps faction (src 3) and watch (src 4) on separate
+layers** — so my draft rec ("add all hostiles to `_watch_set`") would have *contradicted*
+the resolved design. **No work here.** The only residual question this cluster owns is how
+the NEW hover-peek + path-arrows compose with that existing danger overlay — folded into
+[MRD-1]. (Kept as a numbered entry so [MRD-4..6] don't renumber across the session note /
+backlog / roadmap references.)
 
 ### [MRD-4] Live recompute performance for hover + arrows  **[OPEN]**
-Hover-peek and path-arrows recompute as the cursor moves. On a large map with many units,
-recomputing ranges per cursor tick could stutter (esp. web/mobile target).
+Hover-peek and path-arrows recompute as the cursor moves. `EventBus.cursor_moved` already
+fires on every tile change (`MapCursor`) — that's the existing hook both features ride. On a
+large map with many units, recomputing ranges per cursor tick could stutter (esp. web/mobile).
 - **A — Recompute every cursor move** (simplest; rely on the fact ranges are small floods).
 - **B — Debounce/cache:** recompute only after the cursor rests N ms on a new unit; cache
   the last hovered unit's range until the hovered unit changes.

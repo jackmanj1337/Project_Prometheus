@@ -42,6 +42,14 @@ Classic FE AI archetypes the four new profiles map to:
 The unifying new primitive is a **leash/anchor**: `(home_tile, aggro_radius, leash_radius)`.
 `territorial` and `guard_tile` are two configurations of it; `boss` = `guard_tile` + throne.
 
+**Cross-register convergence (audit 2026-06-21d):** three other registers defer an
+enemy-behavior follow-up to *this* system rather than inventing their own mini-AI — they
+should all land as new profiles here, not as parallel plans:
+- **Fog scout** ([FOW-3] → C) — a profile that respects fog (vs the default cheat).
+- **Chest looter** ([DCH-4] → B) — path-to-chest → open → flee (the classic thief race).
+- **Siege operator** ([STW-6] → B) — mount + fire an emplacement on the enemy phase.
+Each reuses the leash/target machinery below; folding them in here keeps one AI taxonomy.
+
 ## 3. Open questions register
 
 ### [AIP-1] Profile taxonomy — final set + naming  **[OPEN]**

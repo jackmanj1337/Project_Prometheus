@@ -86,8 +86,10 @@ opens or closes (DoD#1).
 | v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
 | Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
 | Input-mode / gamepad architecture (gamepad layer = keystone); §1 impl plans drafted + decisions (ICD-1..6) resolved 2026-06-21 — **build-ready, awaiting execution** | [ ] build-ready | §Forward Platform Workstreams |
-| Campaign / save cluster (§2) — **player-facing scope firmed 2026-06-21b**; technical plan next | [ ] firmed, plan pending | §H + `AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md` |
-| Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved) | [ ] design ready | §Phase 3 Backlog §UI/UX; `AGENT/Docs/individual_threat_range_design_2026-06-21.md` |
+| Package A — `RngService` (determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` (gaps only — build guide already exists) | [ ] build-first, register OPEN | `AGENT/Docs/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
+| Campaign / save cluster (§2) — player-facing firmed 2026-06-21b; **technical plan + decisions drafted 2026-06-21c** ([CST-1..12] resolved, [CST-13] at kickoff); gated behind Package A | [ ] planned, build-ready after Package A | §H + `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` + `campaign_save_open_decisions_2026-06-21.md` |
+| Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved); part of the map-readability cluster | [ ] design ready | `AGENT/Docs/individual_threat_range_design_2026-06-21.md`; cluster register `map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
+| Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register drafted 2026-06-21d | [ ] register OPEN | `AGENT/Docs/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
 
 ### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
 
@@ -126,8 +128,9 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 
 | Item | Status | Detail home |
 | --- | --- | --- |
-| D-A — public-identity rename (≤ first public RC) | gate | §Release Gates |
-| DOC-012 / OPEN-12 — legal/licensing review | blocking pre-1.0 gate | §Release Gates |
+| D-A — public-identity rename (≤ first public RC) — register `[REN-1..5]` drafted 2026-06-21d (rec: display-names only, keep ids; [REN-1] needs owner's names) | gate, register OPEN | §Release Gates; `AGENT/Docs/public_identity_rename_open_questions_2026-06-21.md` |
+| DOC-012 / OPEN-12 — legal/licensing review — research register `[LEG-1..5]` drafted 2026-06-21d ([LEG-1] needs owner to name source corpus + license) | blocking pre-1.0 gate, register OPEN | §Release Gates; `AGENT/Docs/legal_licensing_open_questions_2026-06-21.md` |
+| OPEN-5 — broken-weapon degraded mode — register `[BWN-1..5]` drafted 2026-06-21d (slots into §2 CampaignRules consolidation) | optional rule, register OPEN | GDD_04 §Inventory Management; `AGENT/Docs/broken_weapon_mode_open_questions_2026-06-21.md` |
 | Remove playtest-2 debug aids (force-levelup #10, growth-boost #11) | release blocker | §Pre-Release Cleanup |
 | Remove F9 all-faction hotseat override | release blocker | §Pre-Release Cleanup |
 | Remove debug-mode HUD banner | release blocker | §Pre-Release Cleanup |
@@ -159,6 +162,24 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   Support, Rescue, campaign-pack format, rewind *mechanic*/Package A, cross-version migration).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
+
+**Draft plans + OPEN-questions registers written 2026-06-21d** (session note 2026-06-21d;
+audit-corrected same session). Every READY candidate now has a code-grounded
+`AGENT/Docs/<item>_open_questions_2026-06-21.md` with a one-by-one decisions register
+(§1 ICD / §2 CST pattern). **All registers are OPEN — drafted, not yet walked/resolved.**
+Resume by walking one with the user (start: Package A — smallest, build-first):
+- **Tier 1:** Package A `RngService` `[PKGA-1..4]` (§A) · map-readability `[MRD-1..6]` (§A;
+  note `[MRD-3]` withdrawn — aggregate danger zone already built) · fog-of-war/LoS `[FOW-1..6]`.
+- **Tier 2:** AI profiles `[AIP-1..5]` (absorbs fog-scout / chest-looter / siege-operator
+  follow-ups) · doors/chests `[DCH-1..6]` + stationary weapons `[STW-1..6]` (**share ONE
+  `map_objects` tile-object model** — do doors/chests first) · sprite importer `[IMP-1..6]` ·
+  `DataManager._ready()` decomposition `[DMR-1..3]` · broken-weapon `[BWN-1..5]` (§F) ·
+  D-A rename `[REN-1..5]` (§F) · DOC-012 legal `[LEG-1..5]` (§F).
+- **Forward §2-schema reservations these surfaced** (later data-growth, not a reshape):
+  `discovered_units` (fog), `ai_awake` (territorial), `map_objects_state` (doors/chests/siege),
+  `rewind_charges` (Package A defers to §2 CampaignRules consolidation).
+- **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
+  cross-version save.
 
 ---
 
