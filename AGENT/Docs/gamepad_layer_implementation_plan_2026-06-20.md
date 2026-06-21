@@ -116,12 +116,14 @@ is contextual:
 **Prerequisite dependency edge:** the per-enemy contextual mode requires implementing
 per-unit threat-range computation + render first. **Now designed:**
 `AGENT/Docs/individual_threat_range_design_2026-06-21.md` — it extracts the per-unit
-primitive (`get_unit_threat_tiles`) and defines the shared **contextual resolver** (read the
-cursor's hovered tile → hostile enemy? → per-unit range : faction range) that serves both
-the gamepad R3 and the mouse toggle. That design's slices 1–2 are the prerequisite; this
-plan's slice 4 = its slice 3 (bind R3 through the same resolver). Until those land, R3 binds
-to the faction-wide toggle only. (Binding note: the existing toggle is **MMB**, not RMB —
-see that design §3.)
+primitive (`get_unit_threat_tiles`) and defines a shared **resolver** routing the
+`show_danger_zone` action by cursor context: **over a hostile enemy → toggle it in a
+persistent watch set; over empty terrain → cycle the display mode** (`full | selected |
+combined | none`). The same resolver serves the mouse MMB and the gamepad R3, so R3-over-
+enemy edits the set and R3-over-empty cycles the mode. That design's slices 1–2 are the
+prerequisite; this plan's slice 4 = its slice 3 (bind R3 through the resolver). Until those
+land, R3 binds to the faction-wide path only. (Binding note: the action is **MMB**, not RMB
+— see that design §3.)
 
 ## 5. Map-cursor input rebuild — NOT a data edit (Rebuilds A + B)
 
