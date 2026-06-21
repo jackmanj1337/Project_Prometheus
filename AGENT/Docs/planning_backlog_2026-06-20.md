@@ -59,11 +59,13 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
 
 ## 2. Campaign / save cluster — gates the 1.0 campaign (D-D)
 
-**✅ PLAYER-FACING SCOPE FIRMED (2026-06-21b):**
-`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md` resolved branches A–J (spine,
-save model, prep, modding/homebrew, rewind hooks) and **tightened the MVP**. Next step =
-**the TECHNICAL plan**, not more player-facing firming. Build from that firming doc +
-`campaign_rules_firming_notes_2026-05-25.md` + `rng_determinism_design_2026-06-11.md` (rewind).
+**✅ PLAYER-FACING SCOPE FIRMED (2026-06-21b)** then **✅ TECHNICAL PLAN + DECISIONS DRAFTED
+(2026-06-21):** `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` (architecture, schema,
+flows, slices) + `AGENT/Docs/campaign_save_open_decisions_2026-06-21.md` (**[CST-1..12] all
+RESOLVED**; one [CST-13] deferred to execution kickoff). Player-facing firming:
+`campaign_save_player_facing_firming_2026-06-21.md`. **KEY SEQUENCING ([CST-12] → C): Package A
+(`RngService`) is built FIRST, before the §2 spine** — so the next EXECUTION step is a Package A
+plan, then §2 slices 1–7. Otherwise §2 is build-ready.
 
 **MVP scope (firmed):** linear-but-overworld-ready progression graph · between-map prep
 (deploy/bench, per-map required/excluded/cap, player placement, manual save, launch) ·
@@ -115,13 +117,19 @@ firming branch it came from.
   bundle (maps + roster + progression graph + rules); likely home for zip-bundling/compression.
   The MVP importer is built to **sniff zip-vs-json** so a pack imports with no migration. Needs:
   pack-format + authoring/distribution plan.
-- **Rewind MECHANIC (branch J — distinct from the MVP hooks).** The MVP builds only the rule +
-  charge persistence + defeat-menu entry. The actual per-action Turnwheel is **hard-blocked on
-  `RngService` (Package A)** — `rng_determinism_design_2026-06-11.md`. Needs: Package A, then the
-  in-battle turnwheel UI + state-history capture/replay. **Sequencing question for the §2 plan:
-  where does Package A sit relative to this cluster?**
+- **Rewind MECHANIC (branch J — distinct from the MVP hooks).** The actual per-action Turnwheel
+  is blocked on `RngService` (Package A) — `rng_determinism_design_2026-06-11.md`. **Sequencing
+  RESOLVED (§2 technical plan, [CST-12] → C, 2026-06-21): Package A is built FIRST, before the §2
+  spine.** So the mechanic is unblocked by the time §2 lands. **Open follow-on ([CST-13],
+  deferred to §2 execution kickoff):** fold the Turnwheel mechanic INTO §2 vs ship §2 with rule+
+  charges+menu hooks and do the mechanic immediately after (rec: hooks-only, mechanic next).
+  Needs: Package A plan, then the in-battle turnwheel UI + state-history capture/replay.
 - **Cross-version save migration (branch I5).** Loading old saves in new builds is **not a
   concern until 1.0**; keep `format_version` as insurance, write no migration code pre-1.0.
+- **PvP / scenario mode (NEW — surfaced by §2 [CST-7], 2026-06-21).** A standalone non-campaign
+  match mode reusing the **preserved standings/rankings renderer** (the old GameOverScreen
+  ranking logic, kept extractable rather than deleted when the victory/defeat screens split). No
+  progression/save advance. Needs: scenario-mode design (setup, factions, win/rank, no campaign).
 
 ## 3. Release gates needing a plan (not just execution)
 
