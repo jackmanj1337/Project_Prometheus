@@ -181,6 +181,12 @@ Resume by walking one with the user (start: Package A — smallest, build-first)
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 
+**Dependency-sorted build order across all the above:** session note **2026-06-21e** sorts
+every open item by feature (F1–F8) and by dependency layer (L0 Package A → L1 §2 spine → L2
+FOW/AIP/DCH/BWN → L3 STW + AI cross-overs; independent track DMR/IMP/MRD; release-gate track
+REN→LEG). **Critical path to the playable campaign (D-D): Package A → §2 → DCH/AIP/FOW save
+slices.** Resume there.
+
 ---
 
 ## Forward Platform Workstreams (Web Debug + Input Modes)
