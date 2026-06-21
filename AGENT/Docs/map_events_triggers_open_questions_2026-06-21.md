@@ -96,6 +96,13 @@ The substrate signals available: `unit_died`, `turn_changed`, `phase_changed`, `
   `change_objective` wait for their own systems. **This IS the vocabulary DTR's `on_break` shares.**
 - **Resolution:** **A (RESOLVED 2026-06-21h)** — `reveal_tiles` + `flag` + `spawn` in v1
   (the shared `on_break` vocabulary); `loot`/`dialogue`/`change_objective` land with their seams.
+- **FOW convergence (2026-06-21j):** the Fog-of-War register adds two consumers of this
+  vocabulary. (1) **`reveal_tiles` is FOW's "closed room reveals on a map event" tool** — it
+  writes into fog's persistent revealed set; no new action needed. (2) FOW `[FOW-7]` adds a new
+  **`light`** action (light a brazier `map_object`, a fog vision source), and FOW `[FOW-2]`
+  reserves a future **`set_fog`/`set_weather`** action (timed/"blizzard rolls in" weather on a
+  `turn_reached` trigger). Add `light` to the action vocabulary when FOW builds; `set_fog` is a
+  later fast-follow. See `fog_of_war_los_open_questions_2026-06-21.md` §2a + [FOW-7].
 
 ### [MET-4] Trigger guards — optional flag/condition predicate  **[OPEN]**
 Branching narrative needs "fire only if flag X set / turn ≥ N / objective Y still open."

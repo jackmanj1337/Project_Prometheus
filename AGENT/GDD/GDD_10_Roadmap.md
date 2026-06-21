@@ -172,13 +172,22 @@ unified `map_objects` model); `[DTR-1..8]` (2026-06-21g — destructible terrain
 fast-follow — breakables = roster-quarantined object-Units taking full unit damage, `on_break`
 event list); `[MET-1..9]` (2026-06-21h — **Map Events / Triggers framework** build-ready — data
 `trigger→action` events on `MapData.map_events`; v1 triggers `unit_died`/`turn_reached`/
-`object_broken`, v1 actions `reveal_tiles`/`flag`/`spawn`; DTR's `on_break` folds in). All other
-registers remain OPEN — drafted, not yet walked/resolved.**
+`object_broken`, v1 actions `reveal_tiles`/`flag`/`spawn`; DTR's `on_break` folds in);
+`[FOW-1..7]` (2026-06-21j — **Fog of War / LoS** build-ready — flat-radius unit vision +
+`compute_visible_tiles()` seam, AI cheats v1 (symmetric fog = future `ai_respects_fog`
+CampaignRules rule), per-step ambush-interrupt reveal, `discovered_units` the only new save
+field; **fog authored as encounter/scenario data, not terrain**; new MVP scope folds into MET/DCH —
+event-revealed rooms via MET `reveal_tiles`, lightable braziers `[FOW-7]` = `map_objects` + new MET
+`light` action). All other registers remain OPEN — drafted, not yet walked/resolved.**
 Resume by building Package A, or walk another register with the user:
 - **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
-  note `[MRD-3]` withdrawn — aggregate danger zone already built) · fog-of-war/LoS `[FOW-1..6]`.
+  note `[MRD-3]` withdrawn — aggregate danger zone already built) · **fog-of-war/LoS `[FOW-1..7]`
+  RESOLVED 2026-06-21j** (`fog_of_war_los_open_questions_2026-06-21.md`; gated behind §2's
+  `discovered_units` save slice; symmetric-fog AI + timed/weather fog reserved as forward items).
 - **Tier 2:** AI profiles `[AIP-1..5]` (absorbs fog-scout / chest-looter / siege-operator
-  follow-ups) · doors/chests `[DCH-1..6]` **RESOLVED 2026-06-21g** (build-ready; owner chose the
+  follow-ups; **`[AIP-2]` fog-scout upstream now decided — FOW-3 → AI cheats v1, scout profile +
+  `ai_respects_fog` rule are the two future fog-aware paths**) · doors/chests `[DCH-1..6]`
+  **RESOLVED 2026-06-21g** (build-ready; owner chose the
   **UNIFIED `map_objects` model** — doors live in `map_objects` with a runtime passability
   overlay, authored terrain `grid` stays immutable; keys-first, fixed loot, no AI-loot v1) +
   stationary weapons `[STW-1..6]` (still OPEN; **inherits DCH's unified `map_objects` model** —
@@ -194,6 +203,12 @@ Resume by building Package A, or walk another register with the user:
   `discovered_units` (fog), `ai_awake` (territorial), `map_objects_state` (doors/chests/siege),
   `rewind_charges` (Package A defers to §2 CampaignRules consolidation), `map_events_fired` +
   map-scoped & campaign-scoped flag stores (Map Events / Triggers `[MET-5]`/`[MET-6]`).
+- **Forward design items surfaced by FOW (2026-06-21j, not built now):** `MapData`
+  terrain/encounter decomposition (reusable terrain base + per-encounter overlay carrying
+  roster + difficulty + fog + weather — fog authored as encounter data now so it migrates
+  automatically) · `CampaignRules.ai_respects_fog` (symmetric-fog AI) + accessibility fog
+  force-off (land in §2 consolidation) · new MET `light` action (braziers) + future MET
+  `set_fog`/`set_weather` action (timed/"blizzard rolls in" weather).
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 
