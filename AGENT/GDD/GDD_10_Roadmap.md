@@ -178,16 +178,22 @@ event list); `[MET-1..9]` (2026-06-21h — **Map Events / Triggers framework** b
 CampaignRules rule), per-step ambush-interrupt reveal, `discovered_units` the only new save
 field; **fog authored as encounter/scenario data, not terrain**; new MVP scope folds into MET/DCH —
 event-revealed rooms via MET `reveal_tiles`, lightable braziers `[FOW-7]` = `map_objects` + new MET
-`light` action). All other registers remain OPEN — drafted, not yet walked/resolved.**
+`light` action); `[AIP-1..5]` (2026-06-21k — **Additional AI profiles** build-ready — taxonomy =
+**two orthogonal axes + a `target_policy` modifier**, `boss` stays the `is_boss` compose flag;
+**MVP profile set** = `territorial`(latch) + `guard_tile` + `patrol`(re-evaluate) + `flee` +
+`target_policy` (`nearest`+`weakest`); leash data = optional `enemy_placements` keys with
+`GameConstants` defaults; `ai_awake` the only new save field; full canonical target list +
+fast-follow/gated buckets drafted in §2a). All other registers remain OPEN — drafted, not yet
+walked/resolved.**
 Resume by building Package A, or walk another register with the user:
 - **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
   note `[MRD-3]` withdrawn — aggregate danger zone already built) · **fog-of-war/LoS `[FOW-1..7]`
   RESOLVED 2026-06-21j** (`fog_of_war_los_open_questions_2026-06-21.md`; gated behind §2's
   `discovered_units` save slice; symmetric-fog AI + timed/weather fog reserved as forward items).
-- **Tier 2:** AI profiles `[AIP-1..5]` (absorbs fog-scout / chest-looter / siege-operator
-  follow-ups; **`[AIP-2]` fog-scout upstream now decided — FOW-3 → AI cheats v1, scout profile +
-  `ai_respects_fog` rule are the two future fog-aware paths**) · doors/chests `[DCH-1..6]`
-  **RESOLVED 2026-06-21g** (build-ready; owner chose the
+- **Tier 2:** **AI profiles `[AIP-1..5]` RESOLVED 2026-06-21k** (`ai_profiles_open_questions_2026-06-21.md`;
+  MVP = `territorial`/`guard_tile`/`patrol`/`flee` + `target_policy`; `ai_awake` save field rides
+  §2; gated profiles fog_scout/chest_looter/siege_operator land with FOW/DCH/STW) · doors/chests
+  `[DCH-1..6]` **RESOLVED 2026-06-21g** (build-ready; owner chose the
   **UNIFIED `map_objects` model** — doors live in `map_objects` with a runtime passability
   overlay, authored terrain `grid` stays immutable; keys-first, fixed loot, no AI-loot v1) +
   stationary weapons `[STW-1..6]` (still OPEN; **inherits DCH's unified `map_objects` model** —
