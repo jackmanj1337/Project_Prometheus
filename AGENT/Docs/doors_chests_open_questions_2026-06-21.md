@@ -1,7 +1,10 @@
 # Doors & Chests (§5) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d
-**Status:** Planning draft — register OPEN. New interaction verbs; contained.
+**Status:** [DCH-1..6] **RESOLVED 2026-06-21g** — build-ready (one owner override: [DCH-2]
+unified `map_objects` model). New interaction verbs; contained. **Defines the shared
+`map_objects` tile-object model that STW (stationary weapons) inherits.** Save ask:
+`map_objects_state` array reserved in the §2 schema.
 **Source:** `planning_backlog_2026-06-20.md` §5 ("Pick/Unlock/Key"); session note
 2026-06-21c Tier 2 #5.
 **Code:** `scripts/shared/TileActions.gd`, `scripts/resources/ItemData.gd`,
@@ -58,7 +61,9 @@ runtime → snapshot.
   "key"` exists), require no new system, and deliver the loop end-to-end. Lockpick skill and
   unlock staff are additive once the object model + action gate exist. Note B as the
   Thief-fantasy follow-up.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21g)** — keys first (reuse `item_type "key"`, zero new
+  systems, full loop end-to-end). Thief lockpick skill ([DCH-1]→B) and unlock staff (→C) are
+  fast-follows once the object model + action gate exist.
 
 ### [DCH-2] Map-object data model — new field vs extend placements  **[OPEN]**
 - **A — New `MapData.map_objects: Array[Dictionary]`** (doors/chests/future levers).
@@ -71,7 +76,15 @@ runtime → snapshot.
   with no new movement code; the door's key requirement rides a small side-table. Chests
   carry loot (not a movement property) so they want the object list. *Or* unify under A if
   the team prefers one model — flagged as the real fork.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **B — UNIFY (RESOLVED 2026-06-21g; owner override of the split rec)** — ONE
+  `MapData.map_objects: Array[Dictionary]` holds doors, chests, levers, and (later) stationary
+  weapons. **Consequence to build:** doors are no longer terrain codes, so a **runtime
+  passability overlay derived from `map_objects` state** is required — the pathfinder /
+  `GridManager` movement-cost layer treats a closed-or-locked door tile as blocked, and re-opens
+  it when the door's `open`/`locked` flag flips. **Upside bought:** the authored terrain `grid`
+  stays immutable (the `MapData` save-TODO is resolved via `map_objects_state`, NOT terrain
+  mutation), and STW inherits this single model. **Cost accepted:** bespoke door-passability
+  code instead of reusing `get_move_cost`/`is_passable` for free. This is slice 1's main work.
 
 ### [DCH-3] Chest loot source: authored item vs loot table vs convoy-bound  **[OPEN]**
 - **A — Authored fixed item per chest** (`loot_item_id` on the object). Deterministic,
@@ -81,7 +94,9 @@ runtime → snapshot.
 - **Rec: A** — FE chests are authored, not random; fixed loot needs no RNG dependency and is
   trivially deterministic for suspend/rewind. (A random chest would be a Package-A consumer
   — out of scope here.) Gold-instead-of-item is just a `loot_gold:int` variant.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21g)** — authored fixed `loot_item_id` (or `loot_gold`)
+  per chest. FE-classic, deterministic, no RNG/Package-A dependency, trivially correct under
+  suspend/rewind. A random-chest variant would be a Package-A consumer — out of scope here.
 
 ### [DCH-4] AI interaction: do enemies open doors / loot chests?  **[OPEN]**
 - **A — No AI interaction v1.** Doors/chests are player-only; enemies ignore them. Smallest;
@@ -92,7 +107,10 @@ runtime → snapshot.
   player-facing doors/chests first, then add a looter profile as a cross-item follow-up
   (cross-ref `ai_profiles_open_questions`). Enemy-locked doors that only *block* the player
   still work under A (no AI needed to open them).
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A v1 (RESOLVED 2026-06-21g)** — player-only doors/chests; enemies ignore
+  them (enemy-locked doors still block the player without any AI). The enemy-thief chest-race
+  lands later as a **looter AI profile** that converges in the AIP register (cross-ref
+  `ai_profiles_open_questions_2026-06-21.md`), not in this cluster.
 
 ### [DCH-5] Loot destination — convoy is deferred (§2b/D)  **[OPEN]**
 Opened-chest items need somewhere to go; the convoy/party-items system is deferred to §2b.
@@ -102,7 +120,9 @@ Opened-chest items need somewhere to go; the convoy/party-items system is deferr
 - **Rec: A** — direct-to-opener works today with zero convoy dependency and matches FE
   (you pick it up, inventory-full warns). When convoy lands (§2b/D), add "send to convoy"
   as an option. This keeps doors/chests un-blocked by the deferred economy cluster.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21g)** — loot goes to the opener's inventory; full
+  inventory warns/blocks (classic FE). Zero convoy dependency. When convoy lands (§2b/D), add
+  "send to convoy" as an option then.
 
 ### [DCH-6] Opened-state persistence (snapshot/§2)  **[OPEN]**
 An opened door (now passable) / looted chest (now empty) is mutable per-map state; the
@@ -113,14 +133,27 @@ An opened door (now passable) / looted chest (now empty) is mutable per-map stat
 - **Rec: A** — opened/looted is a latched event, not derivable. Reserve a `map_objects_state`
   array in the §2 schema; this register's only §2 ask. (Also resolves the `MapData` terrain
   save-TODO for the door-as-terrain case from [DCH-2].)
-- **Resolution:** _[OPEN]_
+- **Resolution:** **A (RESOLVED 2026-06-21g)** — snapshot per-object opened/looted state;
+  reserve a `map_objects_state` array in the §2 save schema (this register's only §2 ask).
+  Looting/opening is a latched one-way event, not re-derivable. **Note (post-[DCH-2] unify):**
+  with doors in `map_objects` (not terrain), `map_objects_state` is the SINGLE home for both
+  door open-state and chest looted-state — and it fully resolves the `MapData` runtime-terrain
+  save-TODO, since the authored `grid` is never mutated.
 
-## 4. Slice sketch (provisional)
-1. Object/terrain model ([DCH-2]) + `DataManager` validation + a test map with one door + one chest.
-2. `TileActions` wires `"activate"` (Open/Unlock) with the key-in-inventory gate ([DCH-1] → A).
-3. Door open → terrain flips passable; chest open → loot to opener ([DCH-5] → A).
-4. Snapshot opened/looted state ([DCH-6]); extend `test_snapshot_coverage`.
-5. (Fast-follow) Thief lockpick skill ([DCH-1] → B); enemy looter profile ([DCH-4] → B).
+## 4. Slice sketch (RESOLVED 2026-06-21g)
+1. **Unified `map_objects` model + passability overlay** ([DCH-2]→B unify): add
+   `MapData.map_objects: Array[Dictionary]` (`{type, tile, key_item_id, loot_item_id/loot_gold,
+   locked, open}`) + `DataManager` validation; build the **runtime door-passability overlay** so
+   `GridManager` movement/pathfinding treats a closed-or-locked door tile as blocked (authored
+   `grid` stays immutable). Test map with one door + one chest.
+2. `TileActions` wires `"activate"` (Open/Unlock) with the key-in-inventory gate ([DCH-1]→A,
+   keys first). Door adjacent / chest on-tile surfaces the action; keyless unit sees none.
+3. Door open → flip its `map_objects` state (overlay re-opens the tile); chest open → fixed loot
+   ([DCH-3]→A) to the opener's inventory, full-inventory warns ([DCH-5]→A).
+4. Snapshot opened/looted via the `map_objects_state` array ([DCH-6]→A; reserve in §2 schema);
+   extend `test_snapshot_coverage`.
+5. (Fast-follows) Thief lockpick skill ([DCH-1]→B) + unlock staff (→C); enemy looter profile
+   ([DCH-4]→B) lands in the AIP register, not here.
 
 ## 5. Test notes
 - Headless: a unit with a Door Key adjacent to a locked door sees the Open action; opening

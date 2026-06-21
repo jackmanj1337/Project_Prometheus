@@ -166,14 +166,18 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
 **Draft plans + OPEN-questions registers written 2026-06-21d** (session note 2026-06-21d;
 audit-corrected same session). Every READY candidate now has a code-grounded
 `AGENT/Docs/<item>_open_questions_2026-06-21.md` with a one-by-one decisions register
-(§1 ICD / §2 CST pattern). **`[PKGA-1..4]` RESOLVED 2026-06-21f (Package A now build-ready —
-see §Milestone — Package A / Determinism); all other registers remain OPEN — drafted, not yet
-walked/resolved.** Resume by building Package A, or walk another register with the user:
+(§1 ICD / §2 CST pattern). **RESOLVED so far: `[PKGA-1..4]` (2026-06-21f — Package A build-ready,
+see §Milestone — Package A / Determinism) and `[DCH-1..6]` (2026-06-21g — doors/chests build-ready,
+unified `map_objects` model). All other registers remain OPEN — drafted, not yet walked/resolved.**
+Resume by building Package A, or walk another register with the user:
 - **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
   note `[MRD-3]` withdrawn — aggregate danger zone already built) · fog-of-war/LoS `[FOW-1..6]`.
 - **Tier 2:** AI profiles `[AIP-1..5]` (absorbs fog-scout / chest-looter / siege-operator
-  follow-ups) · doors/chests `[DCH-1..6]` + stationary weapons `[STW-1..6]` (**share ONE
-  `map_objects` tile-object model** — do doors/chests first) · sprite importer `[IMP-1..6]` ·
+  follow-ups) · doors/chests `[DCH-1..6]` **RESOLVED 2026-06-21g** (build-ready; owner chose the
+  **UNIFIED `map_objects` model** — doors live in `map_objects` with a runtime passability
+  overlay, authored terrain `grid` stays immutable; keys-first, fixed loot, no AI-loot v1) +
+  stationary weapons `[STW-1..6]` (still OPEN; **inherits DCH's unified `map_objects` model** —
+  do doors/chests first) · sprite importer `[IMP-1..6]` ·
   `DataManager._ready()` decomposition `[DMR-1..3]` · broken-weapon `[BWN-1..5]` (§F) ·
   D-A rename `[REN-1..5]` (§F) · DOC-012 legal `[LEG-1..5]` (§F).
 - **Forward §2-schema reservations these surfaced** (later data-growth, not a reshape):

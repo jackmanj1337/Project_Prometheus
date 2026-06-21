@@ -2,6 +2,10 @@
 
 **Started:** 2026-06-21d
 **Status:** Planning draft — register OPEN. Mountable map objects; contained.
+**Model now settled upstream:** [DCH-2] RESOLVED 2026-06-21g to the **UNIFIED `map_objects`
+model** (owner override), so [STW-1]'s rec A (reuse `map_objects` with a `type:"siege_weapon"`
+entry) is the confirmed path — and DCH slice 1 builds the runtime tile-occupancy/passability
+overlay STW rides on. Walk this register AFTER doors/chests build.
 **Source:** `planning_backlog_2026-06-20.md` §5; roadmap line "already have WeaponData";
 session note 2026-06-21c Tier 2 #6.
 **Code:** `scripts/resources/WeaponData.gd`, `scripts/shared/TileActions.gd`,
