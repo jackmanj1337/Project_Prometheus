@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-20
+**Last verified:** 2026-06-21
 
 ---
 
@@ -85,7 +85,9 @@ opens or closes (DoD#1).
 | v0.2.3 Display build — live-verify closeout (crispness/resolution gate) | [~] | §v0.2.1 findings V021-18 / V021-19; gate = Part I of `AGENT/Docs/playtest_checklist_v0.2.3.md` |
 | v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
 | Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
-| Input-mode / gamepad architecture (gamepad layer = keystone); 4 design decisions resolved 2026-06-20j, impl/test plan pending | [ ] | §Forward Platform Workstreams |
+| Input-mode / gamepad architecture (gamepad layer = keystone); §1 impl plans drafted + decisions (ICD-1..6) resolved 2026-06-21 — **build-ready, awaiting execution** | [ ] build-ready | §Forward Platform Workstreams |
+| Campaign / save cluster (§2) — **player-facing scope firmed 2026-06-21b**; technical plan next | [ ] firmed, plan pending | §H + `AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md` |
+| Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved) | [ ] design ready | §Phase 3 Backlog §UI/UX; `AGENT/Docs/individual_threat_range_design_2026-06-21.md` |
 
 ### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
 
@@ -146,10 +148,17 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 Upcoming items that lack a plan/design doc and are the candidates for planning sessions
 (none are blocked from *planning* by the current execution blockers). Full list +
 "what each plan should produce": `AGENT/Docs/planning_backlog_2026-06-20.md`. Clusters:
-input/controls (highest near-term leverage — input-mode impl plan, **V021-15 selector
-extraction**, key-rebind UI, gamepad binding audit), campaign/save (D-D prerequisites,
-CampaignRules wiring, between-map + suspend save), release-gate plans (D-A rename, DOC-012
-licensing, OPEN-5 broken-weapon), UI/UX enhancements, other systems, Maps 002–005.
+- **Input/controls (§1)** — highest near-term leverage; impl plans drafted + decisions
+  resolved 2026-06-21 → **build-ready** (input-mode resolver, **V021-15 selector extraction**,
+  key-rebind UI, gamepad layer). See §A.
+- **Campaign/save (§2)** — **player-facing scope firmed 2026-06-21b**
+  (`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md`, branches A–J); the
+  **technical** plan (save schema, progression graph, prep screen, suspend serializer,
+  CampaignRules consolidation) is the next step. **Deferred sub-features have a do-not-forget
+  home in `planning_backlog_2026-06-20.md` §2b** (convoy, shop, recruit, Pair-Up persistence,
+  Support, Rescue, campaign-pack format, rewind *mechanic*/Package A, cross-version migration).
+- **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
+  enhancements, other systems, Maps 002–005.
 
 ---
 
@@ -216,8 +225,10 @@ dependency: zero gamepad bindings exist today.**
 model), the `project.godot` binding table, analog-stick auto-repeat, the `input_mode_changed`
 seam + focus-grab on mode switch, 4 build slices, and the headless test plan.
 **Dependency edge:** the contextual R3 danger-zone (per-enemy threat range) is gated on the
-UI/UX backlog item *individual unit threat range* — the plan ships the resolver + faction-wide
-arm now and leaves the per-enemy arm behind that feature.
+UI/UX backlog item *individual unit threat range* — **now DESIGNED 2026-06-21**
+(`AGENT/Docs/individual_threat_range_design_2026-06-21.md`, TUR-1..4 resolved), so the per-enemy
+arm has a design to build against; the gamepad plan ships the resolver + faction-wide arm now and
+the contextual R3 rides that design when threat-range slices land.
 
 - Setting = `Auto | Gamepad | Touch | Keyboard & Mouse`; active mode derived at runtime.
 - Detect-floor + conditional promotion (boot + every device connect/disconnect; platform-seeded
@@ -888,7 +899,12 @@ field from OPEN-4:
 
 **Next step (post-stub):** wire `CampaignRules` into `GameState` (replace loose fields
 with a `campaign_rules` member), update the snapshot serializer, and update `NewGameScreen`
-to populate the object. This is a Phase 3 task (requires campaign save/load design).
+to populate the object. This is a Phase 3 task within the §2 campaign/save cluster.
+**Player-facing scope is firmed** (2026-06-21b,
+`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md`); the consolidation now also
+owns the **story-flip mutation seam** (rules scriptable by authored events, never player UI)
+and a **rewind-charge** field (hooks only — mechanic needs `RngService`/Package A). The
+technical implementation plan is the next planning deliverable (Open Items Register §H).
 
 ### New Backlog Items (from June decisions)
 
@@ -2549,9 +2565,14 @@ review under `AGENT/Code Reviews/`).
 - [ ] **Movement path arrows** — draw the planned move path as directional
       arrow tiles from the unit to the cursor while in `UNIT_SELECTED`.
       `MapCursorSelection.plan_path_to` already computes the tile list.
-- [ ] **Individual unit threat range** — show one enemy's threat area on
-      hover/select, distinct from the existing all-enemies danger zone toggle
-      (`GridManager.get_enemy_danger_tiles`). Pairs with the hover feature above.
+- [ ] **Individual unit threat range** — **DESIGNED 2026-06-21**
+      (`AGENT/Docs/individual_threat_range_design_2026-06-21.md`; TUR-1..4 resolved). Contextual
+      MMB (cursor over a hostile enemy → that enemy's threat tiles; else faction): a persistent
+      `_watch_set` + `_danger_mode` cycle (`full|selected|combined|none`), darker-red watch
+      overlay + "D" markers, extraction of `get_unit_threat_tiles` from
+      `GridManager.get_enemy_danger_tiles`. Also backs the gamepad contextual R3. **Slice 4
+      forward-dep:** the watch set/mode must survive a mid-map suspend (→ §2 campaign/save).
+      3 slices (1–2 build-ready).
 - [ ] **Grid visibility slider** — a setting controlling terrain grid-line
       opacity (0 = hidden). New `SettingsManager` field + `SettingsScreen` row.
 - [ ] **Camera settings** — expose camera behaviour in Settings: edge-pan
