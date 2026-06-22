@@ -228,3 +228,85 @@ restore it or a reloaded map could re-sleep a woken room.
 - **Gated (land with parent feature, each as a new profile here — one taxonomy):**
   `fog_scout` (FOW [FOW-3]→C) · `chest_looter` (DCH [DCH-4]→B) · `siege_operator`
   (STW [STW-6]→B) · `buffer` (M9 staves) · `thief_steal` (steal mechanic) · `dancer`.
+
+## 7. Held MVP-spec refinements (NOT yet ratified) *(2026-06-21k)*
+
+Four refinements surfaced when walking the profiles in detail. The owner chose to **hold them
+until the eventual design plan is firmed up** rather than fold them into the MVP spec now.
+Recorded here so they are not lost; revisit before build.
+
+1. **`territorial` wakes when attacked (not just proximity).** Wake trigger = a player enters
+   `aggro_radius` of `home_tile` **OR** the unit took damage since its last activation; and
+   `aggro_radius` should be ≥ attack range so a sleeping archer can't passively snipe without
+   waking. *(Rec: adopt.)*
+2. **`patrol` v1 = leashed return-home, explicitly NOT a waypoint route-walker.** Clarify the
+   name: v1 `patrol` wakes on proximity and walks back to `home_tile` when disengaged. A true
+   route-patrol (walks an authored beat A→B→C while idle) is a richer, separate behavior →
+   deeper fast-follow. *(Rec: adopt the clarification; route-patrol stays future.)*
+3. **`flee` optional `goal_tile`.** With `goal_tile` = escape *toward* an exit (avoiding
+   threats); without = pure run-away. Covers escape-map runners / loot-carriers in MVP. This
+   is the same "move toward an authored tile" primitive Gap #2 (§8) needs. *(Rec: adopt.)*
+4. **`target_policy: "weakest"` concrete metric.** Define as: prefer a target it can **KO this
+   activation** (forecast-lethal); else the one it deals the most **proportional** damage to.
+   Must thread through the **move-tile choice** too (move to where you can hit the weakest),
+   not just the final target pick. *(Rec: adopt.)*
+
+## 8. Gap analysis — FE archetypes/scenarios the current plan can't yet express *(2026-06-21k)*
+
+Pressure-tested the resolved taxonomy + the sibling registers (MET events, DCH doors/chests,
+DTR destructible, FOW fog, M16 objectives, M14 factions) against the Fire Emblem catalog. The
+*disposition* axis is essentially complete; the gaps cluster in three layers. **None are
+scheduled yet — this is a forward design record.**
+
+### Layer 1 — Activation beyond proximity *(biggest gap; rides MET)*
+Our wake model (`territorial`/`patrol`) is **proximity-only**. A huge fraction of FE maps use
+**event/turn-driven aggression**: "on turn 6 the whole army charges," "after you cross the
+bridge the boss's squad activates" — regardless of player position. **Not expressible today:**
+MET actions are `reveal_tiles`/`flag`/`spawn` (no wake/profile-change action), and `territorial`
+only checks proximity, not a flag. **Fix (small, rides MET):** either a MET `set_aggro`/`wake`
+action, or have `territorial`/`patrol` honor a map-flag as an alternate wake trigger so a
+`turn_reached`→`flag` event wakes the room. *Design the proximity-aggro ↔ event-aggro bridge.*
+→ also a **MET cross-ref** (new candidate action).
+
+### Layer 2 — Goal-tile / objective-seeking movement *(rides the encounter layer)*
+Every planned disposition targets enemy **units**. FE has two big patterns that target **tiles**:
+- **Defend chapters** — enemies rush *your* throne/point to seize it ("advance to objective
+  tile and seize"). No disposition for it; `basic` only chases units.
+- **Escape AI** — an NPC sprints for the exit, or an enemy flees *with loot* toward a map edge.
+  This is the held `flee` + `goal_tile` refinement (§7.3).
+
+Both are the same missing primitive: **move toward an authored goal tile** (offensive seek or
+defensive escape). Connects to the FOW [FOW-2] encounter-layer idea — a Defend scenario is the
+same terrain as an Assault with the AI's goal tile flipped. → candidate new disposition
+(`seek_tile` / `advance`) + the `flee goal_tile` variant.
+
+### Layer 3 — Per-engagement combat sophistication *(a SEPARATE workstream from profiles)*
+Profiles are movement/disposition; FE AI is also smart *inside one engagement*. Barely speced:
+- **Weapon selection** — FE AI auto-equips the *best* weapon per fight (armorslayer vs knights,
+  effective bow vs fliers). Ours uses the equipped weapon. Big difficulty lever.
+- **Trade evaluation / cautious AI** — FE AI often *declines* a bad attack (won't suicide into a
+  counter). `kite` only addresses range; no general "skip an unfavorable attack." Ours always
+  attacks if able.
+- **Item-use AI** — drink a vulnerary when hurt. `retreat_when_low` only moves; doesn't self-heal.
+- **Value-based targeting** — even `weakest` is cruder than FE's "pick the engagement that does
+  the most damage / secures a kill across all reachable targets." Default `nearest` is crude.
+→ This is a **"combat AI" layer distinct from "profiles"** — a future workstream of its own.
+
+### Smaller / asterisked
+- **HP-threshold triggers** ("boss enrages at half HP," summoner phases) — MET has
+  `unit_died`/`turn_reached`/`object_broken` but **no `unit_hp_below`** trigger. Summoners
+  mostly work via `turn_reached`→`spawn`; the HP-reactive flip needs a new MET trigger. → MET cross-ref.
+- **Ambush spawns** (spawn *and act* same turn) — depends on whether MET's `spawn` action can
+  flag "acts immediately." Confirm in the MET spec. → MET cross-ref.
+- **Berserk / status-staff AI** — gated on M8/M9 content, but **berserk also breaks
+  `_living_hostiles_for_faction`** (it attacks *all* factions incl. its own) — a targeting-model
+  gap, not just content.
+- **AI opening doors / breaking walls to pursue** — deferred by plan (DCH no-AI-loot, [DTR-7]
+  no-AI-break v1). "Enemies smash through to swarm you" is a known v1 omission.
+- **Escort/follow** (stay near a protected NPC) and **lure/bait** (retreat to pull you in) —
+  niche; no home yet, minor.
+
+**Summary:** disposition axis ✓. Three real gaps FE leans on heavily — **(1) event/turn-driven
+aggression (MET↔aggro bridge), (2) goal-tile seeking (Defend + escape maps), (3) per-engagement
+combat smarts (weapon/item/trade)**. (1) and (2) are small and ride already-designed systems;
+(3) is a genuinely separate "combat AI" workstream. Revisit all three when firming the AI design.

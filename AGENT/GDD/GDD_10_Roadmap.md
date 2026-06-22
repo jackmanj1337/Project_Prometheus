@@ -215,6 +215,15 @@ Resume by building Package A, or walk another register with the user:
   automatically) · `CampaignRules.ai_respects_fog` (symmetric-fog AI) + accessibility fog
   force-off (land in §2 consolidation) · new MET `light` action (braziers) + future MET
   `set_fog`/`set_weather` action (timed/"blizzard rolls in" weather).
+- **Forward design items surfaced by the AIP gap analysis (2026-06-21k, not scheduled;**
+  **`ai_profiles_open_questions_2026-06-21.md` §8):** three FE patterns the resolved plan can't yet
+  express — (1) **event/turn-driven aggression** (MET `set_aggro`/`wake` action or flag-honoring
+  `territorial` — the proximity↔event aggro bridge) · (2) **goal-tile / objective-seeking movement**
+  (a `seek_tile`/`advance` disposition for Defend chapters + `flee goal_tile` for escape maps;
+  ties to the FOW encounter-layer idea) · (3) a **separate "combat AI" workstream** (auto-equip best
+  weapon, decline unfavorable trades, item-use, value-based targeting — distinct from movement
+  profiles). Plus MET growth: `unit_hp_below` trigger, `spawn`-acts-immediately flag. Four held
+  AIP MVP-spec refinements also recorded (register §7).
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 
