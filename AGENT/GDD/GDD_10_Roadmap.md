@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-21
+**Last verified:** 2026-06-22
 
 ---
 
@@ -224,6 +224,13 @@ Resume by building Package A, or walk another register with the user:
   weapon, decline unfavorable trades, item-use, value-based targeting — distinct from movement
   profiles). Plus MET growth: `unit_hp_below` trigger, `spawn`-acts-immediately flag. Four held
   AIP MVP-spec refinements also recorded (register §7).
+- **AI system design vision (2026-06-22a, `ai_system_design_vision_2026-06-22.md`):** AI as a
+  **composition engine** (Activation/Disposition/Engagement axes + grouping + difficulty),
+  profiles = presets, **author-defined difficulty bands** (modifier overlays on the encounter
+  layer — ties FOW-2 + §2), **presets-first data authoring** (campaign-save branch I) toward an
+  eventual GUI campaign editor, disposition visible by default + opt-in tutorial/easy action-
+  preview. The MVP AIP build must honor four cheap "don't-paint-into-a-corner" rules (vision §4)
+  so every §8 gap + difficulty + preview stays additive.
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 

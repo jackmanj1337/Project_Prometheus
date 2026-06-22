@@ -310,3 +310,13 @@ Profiles are movement/disposition; FE AI is also smart *inside one engagement*. 
 aggression (MET↔aggro bridge), (2) goal-tile seeking (Defend + escape maps), (3) per-engagement
 combat smarts (weapon/item/trade)**. (1) and (2) are small and ride already-designed systems;
 (3) is a genuinely separate "combat AI" workstream. Revisit all three when firming the AI design.
+
+## 9. Design vision (player-facing + campaign-builder + architecture) *(2026-06-22a)*
+The forward vision that this register's MVP must not paint into a corner is captured in
+**`AGENT/Docs/ai_system_design_vision_2026-06-22.md`**: AI as a **composition engine** (Activation
+/ Disposition / Engagement axes + grouping + difficulty), profiles as **presets**, **author-
+defined difficulty bands** (modifier overlays on the encounter layer), **presets-first data
+authoring** (branch I), and **disposition visible by default** + an opt-in tutorial/easy action-
+preview. Each §8 gap = "extend one axis." The doc's §4 lists the four cheap "don't-paint-into-a-
+corner" rules the MVP AIP build should honor (profiles resolve to an `AISpec`; disposition target
+is unit-or-tile; activation reads an optional flag; engagement is a function seam).
