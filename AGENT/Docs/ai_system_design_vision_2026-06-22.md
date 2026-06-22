@@ -46,15 +46,19 @@ Pillars (owner-confirmed 2026-06-22a):
 - **Predictable & deterministic.** Same board → same AI move, so the player can plan. Rides
   Package A determinism; the planner is a pure function of state (also powers §1's action-preview).
 - **Telegraphed by default.** The HUD shows **danger zones** (aggregate danger zone built;
-  per-unit threat range designed — MRD/TUR) **AND a per-enemy disposition/profile indicator**
-  (aggressive / guard / asleep / fleeing…), so the player can read intent at a glance and luring
-  is a legible tactic. *Disposition is visible by default* — not hidden.
+  per-unit threat range designed — MRD/TUR), which carry the **on-map** intent telegraph. The
+  per-enemy **disposition** (aggressive / guard / asleep / fleeing…) is **inspectable on the
+  character sheet** (the `I` screen) with a More Info page, **not** an always-on map glyph in v1
+  (**[AIP-13] RESOLVED 2026-06-22e** — owner reframe of the original "visible by default on the
+  map" pillar). So intent is readable two ways: danger overlays on the map + disposition on the
+  sheet; a richer on-map disposition badge stays forward polish.
 - **Optional action-preview** *(deferred feature)* — "what would this unit do if it acted right
-  now?" Rendered by dry-running the unit's planner against current state. **Author/difficulty-
-  gated** (recommended for tutorial chapters + easy modes), not always-on. **Caveat (owner):**
+  now?" Rendered by dry-running the unit's planner against current state. **Caveat (owner):**
   the preview is **non-binding** — it recomputes as earlier AI units act this phase, so it is a
-  snapshot prediction, not a promise. UX must signal "may change." → **[OPEN]** exact gating
-  surface (per-chapter flag vs difficulty band vs accessibility toggle).
+  snapshot prediction, not a promise. UX must signal "may change." **Gating surface RESOLVED
+  ([AIP-12], 2026-06-22e → all three, layered/OR):** a **per-chapter author flag**, a
+  **per-difficulty-band** marker, **or** a **player accessibility toggle** can each enable it; the
+  accessibility toggle wins over chapter/band defaults.
 - **Counterplay per behavior.** Every behavior has a learnable counter (lure a territorial group
   one at a time; bait an aggressor; block the looter's path; burst the boss before adds spawn).
 - **Personality/variety.** A boss reads differently from a grunt; higher difficulty feels like
@@ -90,18 +94,20 @@ Owner's vision: difficulty is **not** a fixed engine Normal/Hard/Lunatic — eac
 the difficulty levels it supports** (0..N), and the player picks from that set (one offered band ⇒
 no choice).
 
-- A **difficulty band** = `{ id, display_name, modifiers }`, where `modifiers` may include: stat
-  scaling, **extra units**, **extra/earlier reinforcements**, AI-option swaps (e.g., a smarter
-  `engagement` tier), and other knobs. It is an **overlay applied to the base encounter at map
-  load**, producing the effective roster + AI specs.
+- A **difficulty band** = `{ id, display_name, modifiers }`, where `modifiers` may include **stat
+  scaling**, **extra units**, and **extra/earlier reinforcements** — **NUMBERS ONLY** ([AIP-11]
+  RESOLVED 2026-06-22e). **No AI-option swaps at all** — not activation, not disposition, and **not
+  the engagement tier.** It is an **overlay applied to the base encounter at map load**, producing
+  the effective roster + scaled stats (the AI specs are untouched by the band).
 - **Persistence:** the chosen band is saved (campaign-save §2) and re-applied on load.
 - **Composition order** (later overrides earlier): base preset → per-placement overrides → group
-  inheritance → **difficulty overlay**.
-- **[OPEN]** band-modifier vocabulary (the closed set of knobs a band may set) — firm when the
-  encounter layer + §2 CampaignRules consolidation are designed.
-- **[OPEN]** whether difficulty may change *activation/disposition* (not just stats + engagement
-  tier + roster). Rec: allow engagement-tier + roster + stats first; gate disposition/activation
-  changes behind explicit author opt-in to avoid a band silently rewriting a map's pacing.
+  inheritance → **difficulty overlay** (overlay only touches stats + roster, never the axes).
+- **[AIP-11] RESOLVED 2026-06-22e → numbers only.** The closed band-modifier vocabulary is bounded
+  to `{stat scaling, roster adds, reinforcement adds}`; the exact `modifiers` keys still firm with
+  the encounter layer + §2 CampaignRules consolidation, but **no AI/axis knobs** are in scope. This
+  is simpler than the prior rec (engagement-tier + roster + stats). **Consequence:** a smarter
+  engagement tier can no longer be gated by a band — see §4/§6 (gate per-chapter author opt-in or a
+  global engine setting instead).
 
 ---
 
@@ -139,18 +145,23 @@ These four are cheap in v1 and make every §8 gap + difficulty + preview purely 
 
 ---
 
-## 5. Open sub-decisions (revisit when firming the AI design plan)
-- **[OPEN]** Action-preview gating surface (chapter flag / difficulty band / accessibility).
-- **[OPEN]** Difficulty band-modifier vocabulary (closed knob set); whether bands may touch
-  activation/disposition or only stats/roster/engagement-tier.
-- **[RESOLVED 2026-06-22c → AIP §2b]** Preset library — 8 starter presets
-  (`grunt`/`guard`/`sleeper`/`tethered`/`coward`/`runner`/`hunter`/`healer`) + composition-
+## 5. Open sub-decisions — **ALL RESOLVED 2026-06-22e** (AIP Group B closed)
+- **[RESOLVED 2026-06-22e → AIP-12]** Action-preview gating surface — **all three layered/OR**:
+  per-chapter author flag · per-difficulty-band marker · player accessibility toggle (accessibility
+  wins). Preview stays non-binding ("may change" UX).
+- **[RESOLVED 2026-06-22e → AIP-11]** Difficulty band-modifier vocabulary — **numbers only** (stat
+  scaling + roster/reinforcement adds); bands may **not** touch activation/disposition/engagement.
+- **[RESOLVED 2026-06-22c → AIP §2b]** Preset library — 9 starter presets
+  (`grunt`/`guard`/`sleeper`/`tethered`/`coward`/`runner`/`raider`/`hunter`/`healer`) + composition-
   precedence rules. **Plus an owner requirement: a MET `set_ai` action** so events can change a
   unit's/group's preset/axes at runtime (waking = the Activation-only case). See AIP §2b + MET [MET-3].
-- **[OPEN]** The four held AIP MVP-spec refinements (register §7) fold in as preset/axis defaults.
-- **[OPEN]** Disposition indicator visual language (icons/labels for the player-facing telegraph).
-- Cross-ref: MET growth for the bridge (`set_aggro`/`wake`, `unit_hp_below`, spawn-acts-immediately
-  — see `map_events_triggers_open_questions_2026-06-21.md` [MET-3] note).
+- **[RESOLVED 2026-06-22c → AIP-6/§7]** The four held AIP MVP-spec refinements fold in as preset/axis
+  defaults (ratified; `patrol`→`tethered`).
+- **[RESOLVED 2026-06-22e → AIP-13]** Disposition indicator — **character-sheet item + More Info
+  page**, not an always-on map glyph in v1 (see §1).
+- Cross-ref: MET growth for the bridge — `set_ai` CONFIRMED + first-build; spawn-acts-immediately
+  via `act_on_spawn`; **`unit_hp_below` DEFERRED** to a later MET extension ([AIP-15], 2026-06-22e)
+  — see `map_events_triggers_open_questions_2026-06-21.md` [MET-3] note.
 
 ---
 
@@ -168,9 +179,12 @@ when scheduling.**
   candidate actions while legal-move enumeration + execution stay the deterministic planner. Trains
   cheaply (CMA-ES over the heuristic weights, or regression/imitation on logged games), runs small +
   local + **deterministically** (a weight-sum / tiny MLP forward pass is implementable in GDScript),
-  and **drops straight into the Engagement-axis seam this vision already defines** — ideally as an
-  optional **high-difficulty engagement tier** ([§3] difficulty band), with the authored/heuristic
-  AI staying the legible default. ~80% of the "smarter AI" payoff at ~20% of the risk. *No
+  and **drops straight into the Engagement-axis seam this vision already defines** — as an optional
+  **smarter engagement tier**, with the authored/heuristic AI staying the legible default.
+  **Gating note (post [AIP-11]/[AIP-14], 2026-06-22e):** difficulty bands are numbers-only and may
+  **not** swap the engagement tier, so this ML/heuristic tier is gated by a **per-chapter author
+  opt-in or a global engine setting**, *not* a difficulty band. ~80% of the "smarter AI" payoff at
+  ~20% of the risk. *No
   rearchitecting needed precisely because the eval function is a pluggable seam — just don't bake it
   in.* Feasibility: **high / low-risk; weeks, not a research program.**
 - **Option B — value/policy net + shallow search (AlphaZero-lite).** The "if A isn't enough" rung.

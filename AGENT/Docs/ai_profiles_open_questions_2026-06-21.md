@@ -380,6 +380,12 @@ build-ready); these are what remains before the cluster is "finished." **Group A
 AI build; Group B blocks the full vision (post-MVP).** New/homeless items recorded here per the
 governance rule (every open thread needs a home).
 
+> **CLUSTER COMPLETE 2026-06-22e.** Group B `[AIP-11..16]` resolved this session — see the Group B
+> block below. The AIP register is now fully resolved (`[AIP-1..16]` + `[AIP-A11/A12]`); the first
+> build is spec'd in `ai_first_build_design_2026-06-22.md` and the post-MVP vision decisions are
+> closed. Nothing AI-side is now planning-blocked; the cluster is gated only on the build track
+> (Package A → §2 → first AI build).
+
 ### Group A — blocks the first AI build — **COMPLETE 2026-06-22c** ([AIP-6..10] + the two A11/A12 build-time sub-items below)
 - **[AIP-6]** Ratify the four held §7 MVP-spec refinements. **[RESOLVED 2026-06-22c]** — all four
   adopted as written ("good for starting points"), with the return-home profile **renamed
@@ -416,17 +422,51 @@ governance rule (every open thread needs a home).
   units; ungrouped units latch individually). `tethered` groups re-evaluate per-group against
   `leash_radius`. This is the FE "the room wakes together" staple and what authors expect from a squad.
 
-### Group B — blocks the full vision (post-MVP; several already framed in vision §5)
-- **[AIP-11]** Difficulty band-modifier vocabulary + whether bands may touch activation/disposition
-  or only stats/roster/engagement-tier. **[OPEN]** — vision §3/§5.
-- **[AIP-12]** Action-preview gating surface (chapter flag / difficulty band / accessibility) +
-  non-binding "may change" UX. **[OPEN]** — vision §5.
-- **[AIP-13]** Disposition-indicator visual language (icons/labels for the default telegraph). **[OPEN]** — vision §5.
-- **[AIP-14]** Combat-AI workstream (§8 gap 3) timing + engagement-tier ↔ difficulty-band coupling. **[OPEN]**.
-- **[AIP-15]** MET growth specifics. **Mostly resolved:** `set_ai` action = CONFIRMED + first-build
-  ([AIP-7]/[AIP-8]; schema now tracked as [AIP-A11]); spawn-acts-immediately = RESOLVED via
-  `act_on_spawn` ([AIP-9]). **Still OPEN (Group B / later):** the **`unit_hp_below` trigger** for
-  "boss enrages at half HP" / summoner phases. **[OPEN — `unit_hp_below` only]** — MET [MET-3].
-- **[AIP-16]** AI Pair-Up / Rescue usage (do enemy factions use those mechanics? likely defer). **[OPEN]**.
+### Group B — blocks the full vision (post-MVP) — **COMPLETE 2026-06-22e** ([AIP-11..16])
+- **[AIP-11]** Difficulty band-modifier vocabulary + whether bands may touch activation/disposition.
+  **[RESOLVED 2026-06-22e → NUMBERS ONLY]** — a difficulty band may scale **stats** and change
+  **roster size** (extra units / extra-or-earlier reinforcements) **only**. **No AI-option swaps at
+  all** — not activation, not disposition, and **not the engagement tier**. Difficulty = bigger
+  numbers + more enemies, period. This is simpler than the vision §3 rec (which would have allowed
+  engagement-tier + stat + roster). **Consequence:** the "engagement-tier ↔ difficulty-band
+  coupling" thread in [AIP-14] is **moot** — a smarter engagement tier (and the ML Option-A tier,
+  vision §6) can **not** be gated by a band; it needs a per-chapter author opt-in or a global engine
+  setting instead. The closed band-modifier vocabulary (the exact `modifiers` keys) still firms with
+  the encounter layer + §2 CampaignRules consolidation, but it is now bounded to `{stat scaling,
+  roster adds, reinforcement adds}` — no AI/axis knobs. Owner override of the vision rec.
+- **[AIP-12]** Action-preview gating surface + non-binding "may change" UX.
+  **[RESOLVED 2026-06-22e → ALL THREE SURFACES, layered/OR]** — the optional action-preview can be
+  turned on by **(a)** a per-chapter author flag, **(b)** a per-difficulty-band marker (author marks
+  which bands default it on), **or** **(c)** a player accessibility toggle. The accessibility toggle
+  can force it on regardless of chapter/band defaults (accessibility wins). The preview stays
+  **non-binding** (recomputes as earlier units act this phase) and the UX must signal "may change."
+- **[AIP-13]** Disposition-indicator presentation.
+  **[RESOLVED 2026-06-22e → CHARACTER SHEET + More Info page]** — disposition is **NOT** an
+  always-on on-map glyph in v1. It is shown as an **item on the character sheet** (the `I` screen)
+  with a **More Info page** explaining what that disposition means (reuses the existing sheet +
+  More Info pattern — cf. the weapon stat block / class-skill drilldown / CON-LoS rows). **Adjusts a
+  vision §1 pillar:** "disposition *visible by default* [on the map]" → "disposition *inspectable* on
+  the sheet." The on-map intent telegraph then rests entirely on the danger-zone (built) +
+  per-unit threat-range (designed, TUR) overlays; disposition itself is an inspection lookup. A
+  richer on-map disposition badge stays a forward polish item, not v1.
+- **[AIP-14]** Combat-AI workstream (§8 gap 3) timing + engagement-tier ↔ band coupling.
+  **[RESOLVED 2026-06-22e → DEFER to its own milestone; gate per-chapter/global, not band]** — the
+  engagement step stays the v1 "attack best target" **seam** (vision §4 rule 4) through the first AI
+  build **and** a playable campaign (Package A + §2 + first AI build shipped). The combat-AI layer
+  (auto weapon-select, trade-eval / decline-bad-attacks, item-use, value-based targeting) is then
+  **its own later milestone**. The "engagement-tier ↔ difficulty-band coupling" is **dropped** —
+  per [AIP-11] bands can't swap tiers, so a smarter engagement tier (incl. ML Option A) is gated by
+  **author opt-in (per-chapter) or a global engine setting**, never a difficulty band.
+- **[AIP-15]** MET growth specifics. **[RESOLVED 2026-06-22e — fully closed now]** — `set_ai`
+  action = CONFIRMED + first-build ([AIP-7]/[AIP-8]; schema = [AIP-A11]); spawn-acts-immediately =
+  RESOLVED via `act_on_spawn` ([AIP-9]). The last open piece, the **`unit_hp_below` trigger**
+  ("boss enrages at half HP" / summoner phases), is **DEFERRED to a later MET extension** — not in
+  the first build. Bosses/summoners use `turn_reached`→`spawn`/`set_ai` for phase changes meanwhile;
+  add `unit_hp_below` when an HP-reactive map actually needs it. → MET [MET-3].
+- **[AIP-16]** AI Pair-Up / Rescue usage. **[RESOLVED 2026-06-22e → DEFER; player-only in v1]** —
+  enemy and allied AI factions do **not** initiate Pair-Up or Rescue in v1. Revisit once the
+  campaign is playable and the mechanics are battle-tested on the player side; teaching the AI to
+  pair/rescue would add pair/rescue action options to the engagement axis — a later add.
 - *(pointer)* AI turn-pacing / skip-AI-animation / AI move speed = UI/UX backlog, AI-adjacent, not this cluster.
-- *(pointer)* ML faction-controller Option A = pre-1.0 consideration, vision §6.
+- *(pointer)* ML faction-controller Option A = pre-1.0 consideration, vision §6 (now gated
+  per-chapter/global, not by a difficulty band — see [AIP-11]/[AIP-14]).

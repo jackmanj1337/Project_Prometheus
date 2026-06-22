@@ -247,11 +247,24 @@ Resume by building Package A, or walk another register with the user:
     patch; groups wake together, latch per-group). **First-build spec written:**
     **`ai_first_build_design_2026-06-22.md`** (composition engine, data model, 9 presets, behaviors,
     `set_ai`/grouping, build slice + tests). **The AI cluster is design-complete for the first
-    build** — gated only by Package A + §2's `ai_awake` save slice. Group B = next AI session.
+    build** — gated only by Package A + §2's `ai_awake` save slice.
+  - **Group B `[AIP-11..16]` RESOLVED 2026-06-22e — the AI cluster is now FULLY design-complete**
+    (first build + full vision; nothing AI-side is planning-blocked). **[AIP-11]** difficulty bands =
+    **numbers only** (stat scaling + roster/reinforcement adds; **no** activation/disposition/
+    engagement-tier swaps) — consequence: a smarter engagement tier can't be band-gated. **[AIP-12]**
+    action-preview gating = **all three layered/OR** (per-chapter flag · per-band marker · player
+    accessibility toggle; accessibility wins; non-binding). **[AIP-13]** disposition = **character-
+    sheet item + More Info page**, not an always-on map glyph in v1 (on-map telegraph stays the
+    danger-zone/threat-range overlays; adjusts the vision §1 "visible by default" pillar). **[AIP-14]**
+    combat-AI workstream **deferred to its own later milestone**; engagement stays the v1 "attack best
+    target" seam; a smarter tier is gated per-chapter/global, **not** by a band ([AIP-11] consequence).
+    **[AIP-15]** `unit_hp_below` MET trigger **deferred** to a later MET extension (bosses use
+    `turn_reached`→`spawn`/`set_ai` meanwhile). **[AIP-16]** enemy/allied AI **does not** use Pair-Up/
+    Rescue in v1 (player-only; revisit post-playable-campaign).
   - **ML faction controller (vision §6, forward):** **Option A — learned evaluation function**
     (tiny weight-vector/value-MLP scoring candidate actions; deterministic; drops into the
-    Engagement-axis seam as an optional high-difficulty tier) is flagged to **seriously consider
-    before 1.0**. **Option C — full RL faction commander** is a personal education/amusement
+    Engagement-axis seam as an optional smarter tier — gated **per-chapter/global, not by a
+    difficulty band**, per [AIP-11]/[AIP-14]) is flagged to **seriously consider before 1.0**. **Option C — full RL faction commander** is a personal education/amusement
     experiment, **explicitly OFF the product roadmap** (fights determinism/legibility/moddability).
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
