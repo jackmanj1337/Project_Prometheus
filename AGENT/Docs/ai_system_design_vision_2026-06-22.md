@@ -145,3 +145,47 @@ These four are cheap in v1 and make every §8 gap + difficulty + preview purely 
 - **[OPEN]** Disposition indicator visual language (icons/labels for the player-facing telegraph).
 - Cross-ref: MET growth for the bridge (`set_aggro`/`wake`, `unit_hp_below`, spawn-acts-immediately
   — see `map_events_triggers_open_questions_2026-06-21.md` [MET-3] note).
+
+---
+
+## 6. Machine-learning faction controller — forward exploration *(side note 2026-06-22b)*
+
+A theoretical thread: a small **local** ML model plugged into the faction-control stream to command
+a faction. **Integration is a non-issue** — a controller is already a pure function `board state →
+PlannedAction stream` behind the player/AI/hotseat seam, so an ML brain is just another controller
+for one faction. The whole question is what goes in the box, and it splits into three ambition
+tiers. **Priority calls (owner, 2026-06-22b) recorded below; revisit the broad steps + feasibility
+when scheduling.**
+
+- **Option A — learn the *evaluation*, keep hand-written deterministic move-gen.**
+  **→ SERIOUSLY CONSIDER BEFORE 1.0 (owner).** A weight vector or tiny value-MLP that *scores*
+  candidate actions while legal-move enumeration + execution stay the deterministic planner. Trains
+  cheaply (CMA-ES over the heuristic weights, or regression/imitation on logged games), runs small +
+  local + **deterministically** (a weight-sum / tiny MLP forward pass is implementable in GDScript),
+  and **drops straight into the Engagement-axis seam this vision already defines** — ideally as an
+  optional **high-difficulty engagement tier** ([§3] difficulty band), with the authored/heuristic
+  AI staying the legible default. ~80% of the "smarter AI" payoff at ~20% of the risk. *No
+  rearchitecting needed precisely because the eval function is a pluggable seam — just don't bake it
+  in.* Feasibility: **high / low-risk; weeks, not a research program.**
+- **Option B — value/policy net + shallow search (AlphaZero-lite).** The "if A isn't enough" rung.
+  Feasible, moderate effort; watch determinism (NN float math isn't bit-identical cross-platform →
+  use outputs as a *ranking* into deterministic integer tie-breaks) + inference cost on
+  web/mobile/Deck. Not a near-term goal.
+- **Option C — full RL agent commanding the faction end-to-end.**
+  **→ FUN EXPERIMENT — for the owner's own education + amusement, NOT for player distribution
+  (owner).** Research-grade for a tactics game: the per-turn action space (reachable tile × action ×
+  target, across many units sequentially) is astronomically larger than chess/Go per move, and a
+  black-box commander fights the project's core values (authored, legible, moddable, telegraphed,
+  deterministic). Keep it as a personal sandbox, explicitly off the product roadmap.
+
+**Broad steps (any tier):** (1) formalize the MDP (state/action/reward/episode); (2) **headless
+deterministic sim harness** — *enabled directly by Package A determinism*; (3) grid-plane state
+encoding; (4) pick method (evolutionary/imitation for A; gradient-RL/self-play for B/C); (5) train
+offline in Python; (6) export a small model; (7) deterministic in-engine inference (GDScript forward
+pass for A; ONNX addon for B/C); (8) integrate behind the faction-controller seam, flag-gate, A/B
+against the heuristic AI.
+
+**Key constraints to remember:** branching factor (the reason A's "score, don't generate" framing
+wins), float determinism vs lockstep, "small + local" on web/mobile/Deck, and training-sim speed vs
+sim/engine drift. **Tension to respect:** ML is best as an *optional* tier, never the default brain,
+so it doesn't erode authorability/legibility/determinism.

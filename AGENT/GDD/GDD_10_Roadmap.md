@@ -231,6 +231,11 @@ Resume by building Package A, or walk another register with the user:
   eventual GUI campaign editor, disposition visible by default + opt-in tutorial/easy action-
   preview. The MVP AIP build must honor four cheap "don't-paint-into-a-corner" rules (vision §4)
   so every §8 gap + difficulty + preview stays additive.
+  - **ML faction controller (vision §6, forward):** **Option A — learned evaluation function**
+    (tiny weight-vector/value-MLP scoring candidate actions; deterministic; drops into the
+    Engagement-axis seam as an optional high-difficulty tier) is flagged to **seriously consider
+    before 1.0**. **Option C — full RL faction commander** is a personal education/amusement
+    experiment, **explicitly OFF the product roadmap** (fights determinism/legibility/moddability).
 - **GATED, not planned** (real upstream blockers): §2b deferrals, rewind *mechanic*, PvP mode,
   cross-version save.
 
