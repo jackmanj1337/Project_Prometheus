@@ -185,6 +185,13 @@ decomposition (named phases sketched, no full plan).
 > doors/chests first; siege inherits it). **Still un-planned here:** rescue & carry (§2b/H3),
 > cap-management UI (folds into convoy §2b/D). Package A (`RngService`) draft =
 > `package_a_rngservice_open_questions_2026-06-21.md` [PKGA-1..4] (gaps only).
+>
+> **STATUS UPDATE 2026-06-22e:** **RESOLVED** registers — PKGA `[PKGA-1..4]`, FOW `[FOW-1..7]`,
+> DCH `[DCH-1..6]`, DTR `[DTR-1..8]`, MET `[MET-1..9]`, and **AIP FULLY** (`[AIP-1..16]` +
+> `[AIP-A11/A12]`; Group A first-build spec = `ai_first_build_design_2026-06-22.md`, Group B closed
+> 2026-06-22e). **Still OPEN (next planning):** STW `[STW-1..6]` (picked for next session; inherits
+> DCH's `map_objects`), IMP `[IMP-1..6]`, DMR `[DMR-1..3]`, BWN `[BWN-1..5]`, MRD `[MRD-1..6]`, plus
+> release gates REN `[REN-1..5]` / LEG `[LEG-1..5]` (owner-input-blocked).
 
 ## 6. Maps
 

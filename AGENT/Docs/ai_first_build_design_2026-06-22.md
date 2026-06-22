@@ -154,10 +154,27 @@ deterministic tie-breaks, never introduce nondeterministic float ordering.
 
 ## 10. Deferred — seams that keep it additive
 
-- **Difficulty bands** → the `difficulty` layer of `resolve_ai_spec` (no-op stub now).
-- **Action-preview** → a dry-run of `plan_action` (pure already).
-- **Combat-AI workstream** (gap 3) → the Engagement function seam (invariant 4).
+*Scope below reflects the Group B resolutions (`[AIP-11..16]`, 2026-06-22e). All remain deferred
+seams — none is built in the first slice — but their final shape is now fixed, so the seam stubs
+can be written to the right contract.*
+
+- **Difficulty bands** → the `difficulty` layer of `resolve_ai_spec` (no-op stub now). **[AIP-11]:
+  numbers only** — when implemented this layer may scale **stats** and add **roster/reinforcements**
+  but must **not** mutate the resolved `AISpec` axes (activation/disposition/engagement). Keep the
+  band overlay applying to the roster/stat side, *not* the spec resolver's axis output.
+- **Action-preview** → a dry-run of `plan_action` (pure already). **[AIP-12]:** enabled by any of a
+  per-chapter author flag, a per-band marker, or a player accessibility toggle (accessibility wins);
+  non-binding ("may change") UX.
+- **Disposition telegraph** → **[AIP-13]: character-sheet item + More Info page** (not an on-map
+  glyph in v1). The runtime must expose the resolved disposition as a **queryable property** of the
+  unit so the `I`-sheet can read it; the on-map intent telegraph stays the danger-zone / threat-range
+  overlays.
+- **Combat-AI workstream** (gap 3) → the Engagement function seam (invariant 4). **[AIP-14]:** its
+  own later milestone; a smarter engagement tier is gated **per-chapter / global setting, NOT a
+  difficulty band** (forced by [AIP-11]).
 - **Fast-follow profiles / `unit_hp_below` / true route-patrol / AI pair-up-rescue** → new presets
-  or one new axis value each; never a rewrite.
+  or one new axis value each; never a rewrite. **[AIP-15]** `unit_hp_below` = a later MET trigger;
+  **[AIP-16]** enemy/allied pair-up/rescue is player-only in v1.
 - **Gated profiles** → land as new presets when FOW/DCH/STW/M8-M9 ship.
-- **ML eval (Option A)** → swaps the Engagement evaluator; feeds deterministic tie-breaks (vision §6).
+- **ML eval (Option A)** → swaps the Engagement evaluator; feeds deterministic tie-breaks (vision §6);
+  gated **per-chapter/global, not a band** ([AIP-11]/[AIP-14]).
