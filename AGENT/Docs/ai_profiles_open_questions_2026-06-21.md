@@ -84,7 +84,7 @@ taxonomy is small and composable rather than a long flat enum.
 | `thief_steal` | steal an item from a player, then flee | gated | steal mechanic |
 | `fog_scout` | respect fog / reveal (vs the default cheat) | gated | **FOW** ([FOW-3] → C) |
 | `chest_looter` | race to chest → open → flee (the thief race) | gated | **DCH** ([DCH-4] → B) |
-| `siege_operator` | mount + fire a ballista/emplacement on the enemy phase | gated | **STW** ([STW-6] → B) |
+| `siege_operator` | mount + fire a ballista/emplacement on the enemy phase | **STW v1** | **STW** ([STW-6] = B, RESOLVED 2026-06-22f — in STW v1 scope, not build-later) |
 | `dancer` | re-activate an ally (niche as an enemy) | gated | dance mechanic |
 
 **Modifier — `target_policy` (orthogonal; a placement key, NOT a profile — applies on top of any
@@ -107,7 +107,9 @@ disposition: sitting boss = `guard_tile` + `is_boss` + throne bonus; hunting bos
 - **Fast-follow (ungated, build anytime):** `retreat_when_low`, `kite`, `hunt` target policy,
   true route-patrol.
 - **Gated (land with parent feature):** `fog_scout` (FOW) · `chest_looter` (DCH) ·
-  `siege_operator` (STW) · `buffer` (M9 staves) · `thief_steal` (steal mech) · `dancer`.
+  `buffer` (M9 staves) · `thief_steal` (steal mech) · `dancer`. (`siege_operator` was here; **STW
+  [STW-6] = B (2026-06-22f) pulled it into STW v1** — still lands with its parent STW, now confirmed
+  in-scope rather than build-later.)
 
 ## 2b. Starter preset library — RESOLVED [AIP-7] *(2026-06-22c)*
 

@@ -192,12 +192,15 @@ Resume by building Package A, or walk another register with the user:
   `discovered_units` save slice; symmetric-fog AI + timed/weather fog reserved as forward items).
 - **Tier 2:** **AI profiles `[AIP-1..5]` RESOLVED 2026-06-21k** (`ai_profiles_open_questions_2026-06-21.md`;
   MVP = `territorial`/`guard_tile`/`tethered`/`flee` + `target_policy`; `ai_awake` save field rides
-  §2; gated profiles fog_scout/chest_looter/siege_operator land with FOW/DCH/STW) · doors/chests
+  §2; gated profiles fog_scout/chest_looter land with FOW/DCH; `siege_operator` pulled into STW v1
+  by [STW-6]=B 2026-06-22f) · doors/chests
   `[DCH-1..6]` **RESOLVED 2026-06-21g** (build-ready; owner chose the
   **UNIFIED `map_objects` model** — doors live in `map_objects` with a runtime passability
   overlay, authored terrain `grid` stays immutable; keys-first, fixed loot, no AI-loot v1) +
-  stationary weapons `[STW-1..6]` (still OPEN; **inherits DCH's unified `map_objects` model** —
-  do doors/chests first) · **destructible terrain `[DTR-1..8]` RESOLVED 2026-06-21g** (breakable
+  stationary weapons `[STW-1..6]` **RESOLVED 2026-06-22f** (build-ready; **inherits DCH's unified
+  `map_objects` model** — do doors/chests first; occupy-tile mount, move-and-fire allowed,
+  ammo on the object `-1`=∞, and **enemy AI siege use IN v1** via the promoted `siege_operator`
+  profile) · **destructible terrain `[DTR-1..8]` RESOLVED 2026-06-21g** (breakable
   walls/trees/crystals; DCH fast-follow, `destructible_terrain_open_questions_2026-06-21.md`) ·
   **Map Events / Triggers `[MET-1..9]` RESOLVED 2026-06-21h** (data `trigger→action` framework;
   `unit_died`/`turn_reached`/`object_broken` → `reveal_tiles`/`flag`/`spawn`; DTR's `on_break`
