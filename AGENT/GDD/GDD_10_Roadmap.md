@@ -243,6 +243,11 @@ Resume by building Package A, or walk another register with the user:
   `set_ai` payload [AIP-A11], group aggro semantics [AIP-A12]). Group B ([AIP-11..16]) blocks
   only the full vision (difficulty bands, action-preview, disposition visuals, combat-AI workstream,
   `unit_hp_below`, AI pair-up/rescue).
+  - **[AIP-A11]/[AIP-A12] RESOLVED 2026-06-22c** (`set_ai` = unit/`group_id` target + partial AISpec
+    patch; groups wake together, latch per-group). **First-build spec written:**
+    **`ai_first_build_design_2026-06-22.md`** (composition engine, data model, 9 presets, behaviors,
+    `set_ai`/grouping, build slice + tests). **The AI cluster is design-complete for the first
+    build** — gated only by Package A + §2's `ai_awake` save slice. Group B = next AI session.
   - **ML faction controller (vision §6, forward):** **Option A — learned evaluation function**
     (tiny weight-vector/value-MLP scoring candidate actions; deterministic; drops into the
     Engagement-axis seam as an optional high-difficulty tier) is flagged to **seriously consider

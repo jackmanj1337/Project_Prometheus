@@ -11,6 +11,10 @@ FOW-2 encounter-layer idea (`fog_of_war_los_open_questions_2026-06-21.md`); camp
 
 ---
 
+> **First-build spec (2026-06-22c):** the MVP slice of this vision is resolved and written up as an
+> implementable design at **`AGENT/Docs/ai_first_build_design_2026-06-22.md`**. This doc remains the
+> long-term north star; that doc is what to build first (against Package A).
+
 ## 0. The one idea: AI as composition, not a profile enum
 
 Today AI is a flat `match enemy.data.ai_profile` in `EnemyAI._act()`. Keeping that shape means

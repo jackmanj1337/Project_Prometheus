@@ -358,6 +358,11 @@ aggression (MET↔aggro bridge), (2) goal-tile seeking (Defend + escape maps), (
 combat smarts (weapon/item/trade)**. (1) and (2) are small and ride already-designed systems;
 (3) is a genuinely separate "combat AI" workstream. Revisit all three when firming the AI design.
 
+> **Build spec (2026-06-22c):** Group A is complete — the resolved decisions `[AIP-1..10]` +
+> `[AIP-A11/A12]` are synthesized into one implementable design at
+> **`AGENT/Docs/ai_first_build_design_2026-06-22.md`** (architecture, data model, presets,
+> behaviors, `set_ai`/grouping, build slice + tests, deferred seams). Build that against Package A.
+
 ## 9. Design vision (player-facing + campaign-builder + architecture) *(2026-06-22a)*
 The forward vision that this register's MVP must not paint into a corner is captured in
 **`AGENT/Docs/ai_system_design_vision_2026-06-22.md`**: AI as a **composition engine** (Activation
@@ -399,12 +404,17 @@ governance rule (every open thread needs a home).
   hardcoded to "player"). A green ally can be any preset and fights whoever its faction is hostile to.
 
 **Build-time sub-items pulled into the first build by [AIP-8] (small schema details, not design forks):**
-- **[AIP-A11]** **`set_ai` payload schema** — unit vs `group_id` target; whole-preset replace vs
-  per-axis patch. Now first-build (set_ai is MVP). *(Rec: support both — target = unit id or
-  `group_id`; payload = a partial `AISpec` patch so "wake" sets only Activation.)* **[OPEN — build-time]**
-- **[AIP-A12]** **`group_id` aggro semantics** — does one unit in a group spotting a player (or
-  taking damage) wake the **whole group**? *(Rec: yes — shared-aggro is the point of groups, and
-  the FE "room wakes together" staple; a group's wake latches per-group.)* **[OPEN — build-time]**
+- **[AIP-A11]** **`set_ai` payload schema. [RESOLVED 2026-06-22c]** — `set_ai` targets **a unit id
+  OR a `group_id`**, and its payload is a **partial `AISpec` patch** (any subset of preset /
+  activation / disposition / engagement / target_policy / goal_tile). Only the named fields change;
+  the rest of the resolved spec is untouched — so "wake a group" = `set_ai{ group_id, activation:
+  active }` and a full role-swap = `set_ai{ group_id, preset: "coward" }`. One action covers wake,
+  charge, retreat-script, and objective-flip.
+- **[AIP-A12]** **`group_id` aggro semantics. [RESOLVED 2026-06-22c]** — **yes, the group wakes
+  together**: any one member entering its `aggro_radius` **or** taking damage wakes the whole
+  `group_id`. Wake is tracked **per-group** (the `ai_awake` latch is keyed by group for grouped
+  units; ungrouped units latch individually). `tethered` groups re-evaluate per-group against
+  `leash_radius`. This is the FE "the room wakes together" staple and what authors expect from a squad.
 
 ### Group B — blocks the full vision (post-MVP; several already framed in vision §5)
 - **[AIP-11]** Difficulty band-modifier vocabulary + whether bands may touch activation/disposition
