@@ -230,7 +230,11 @@ Resume by building Package A, or walk another register with the user:
   layer — ties FOW-2 + §2), **presets-first data authoring** (campaign-save branch I) toward an
   eventual GUI campaign editor, disposition visible by default + opt-in tutorial/easy action-
   preview. The MVP AIP build must honor four cheap "don't-paint-into-a-corner" rules (vision §4)
-  so every §8 gap + difficulty + preview stays additive.
+  so every §8 gap + difficulty + preview stays additive. **Group A walk in progress (2026-06-22c):**
+  **[AIP-6]** ratified (4 §7 refinements; `patrol`→`tethered`); **[AIP-7]** resolved (8 starter
+  presets `grunt`/`guard`/`sleeper`/`tethered`/`coward`/`runner`/`hunter`/`healer` + precedence) —
+  **plus owner requirement: a MET `set_ai` action** to change a unit's/group's profile on event
+  triggers (confirmed, schema OPEN — see MET [MET-3]). [AIP-8..10] pending.
   - **ML faction controller (vision §6, forward):** **Option A — learned evaluation function**
     (tiny weight-vector/value-MLP scoring candidate actions; deterministic; drops into the
     Engagement-axis seam as an optional high-difficulty tier) is flagged to **seriously consider

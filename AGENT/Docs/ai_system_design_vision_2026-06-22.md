@@ -139,8 +139,10 @@ These four are cheap in v1 and make every §8 gap + difficulty + preview purely 
 - **[OPEN]** Action-preview gating surface (chapter flag / difficulty band / accessibility).
 - **[OPEN]** Difficulty band-modifier vocabulary (closed knob set); whether bands may touch
   activation/disposition or only stats/roster/engagement-tier.
-- **[OPEN]** Preset library — the recommended named presets to ship (docs + GUI), and their
-  axis bundles.
+- **[RESOLVED 2026-06-22c → AIP §2b]** Preset library — 8 starter presets
+  (`grunt`/`guard`/`sleeper`/`tethered`/`coward`/`runner`/`hunter`/`healer`) + composition-
+  precedence rules. **Plus an owner requirement: a MET `set_ai` action** so events can change a
+  unit's/group's preset/axes at runtime (waking = the Activation-only case). See AIP §2b + MET [MET-3].
 - **[OPEN]** The four held AIP MVP-spec refinements (register §7) fold in as preset/axis defaults.
 - **[OPEN]** Disposition indicator visual language (icons/labels for the player-facing telegraph).
 - Cross-ref: MET growth for the bridge (`set_aggro`/`wake`, `unit_hp_below`, spawn-acts-immediately

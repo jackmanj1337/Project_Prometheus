@@ -111,6 +111,14 @@ The substrate signals available: `unit_died`, `turn_changed`, `phase_changed`, `
   summoner phases (current triggers are `unit_died`/`turn_reached`/`object_broken`); (3) confirm
   the **`spawn` action can flag "acts immediately"** for FE ambush spawns ([MET-8] spawn mechanism).
   See `ai_profiles_open_questions_2026-06-21.md` §8.
+- **`set_ai` action — CONFIRMED REQUIREMENT (owner 2026-06-22c).** Promotes (1) above from a
+  candidate to a required action: a **`set_ai`** action changes a unit's or group's AI **preset or
+  individual axes** on an event trigger (e.g. "on turn 5 the `guard` squad becomes `grunt`"; "when
+  the boss dies the survivors become `coward`"). `set_aggro`/`wake` is the narrow case (Activation
+  axis only). Mechanically: it overrides the target's resolved `AISpec`; the AI planner reads the
+  new spec on the next activation. **OPEN schema:** unit vs `group_id` target; whole-preset vs
+  per-axis payload. Add `set_ai` to the action vocabulary when AI + MET build. See
+  `ai_profiles_open_questions_2026-06-21.md` §2b + [AIP-7]/[AIP-15].
 
 ### [MET-4] Trigger guards — optional flag/condition predicate  **[OPEN]**
 Branching narrative needs "fire only if flag X set / turn ≥ N / objective Y still open."

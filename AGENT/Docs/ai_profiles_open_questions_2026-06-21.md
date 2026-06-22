@@ -106,6 +106,37 @@ disposition: sitting boss = `guard_tile` + `is_boss` + throne bonus; hunting bos
 - **Gated (land with parent feature):** `fog_scout` (FOW) · `chest_looter` (DCH) ·
   `siege_operator` (STW) · `buffer` (M9 staves) · `thief_steal` (steal mech) · `dancer`.
 
+## 2b. Starter preset library — RESOLVED [AIP-7] *(2026-06-22c)*
+
+The presets-first authoring surface (vision §2). A **preset** = a named bundle over the three
+axes; authors write `ai: "<preset>"` and override one axis for special cases. Flavor names kept
+(owner: "keep them"). `sentry` collapsed into `guard` (owner) — `passive` + `guard_tile` are one
+`hold_tile` disposition differing only in `home_tile` default.
+
+| Preset | Activation | Disposition | Engagement | = profile |
+| --- | --- | --- | --- | --- |
+| `grunt` | always | pursue_unit | nearest | basic |
+| `guard` | always | hold_tile (`home_tile` = spawn unless authored) | nearest | passive/`guard_tile` unified (+`is_boss`→throne) |
+| `sleeper` | proximity (latch) | pursue when awake | nearest | territorial |
+| `tethered` | proximity (no latch) | pursue / return-home | nearest | tethered |
+| `coward` | always | flee (from threat) | — | flee |
+| `runner` | always | flee → `goal_tile` | — | flee + goal_tile |
+| `hunter` | always | pursue_unit | **weakest** | basic + focus-fire |
+| `healer` | always | reach injured ally | heal | (existing) |
+
+**Composition precedence** (later overrides earlier): base preset → placement axis override →
+group inheritance → difficulty overlay. Conflict rules: an override replaces **only its axis**;
+`target_policy` layers onto any *targeting* disposition; **`flee` ignores `target_policy`** (it
+isn't engaging).
+
+**Runtime profile change is a first-class authoring tool (owner requirement, 2026-06-22c):** a
+campaign author can **change a unit's or group's preset/axes on an event trigger** via a MET
+**`set_ai`** action (e.g., "on turn 5 the `guard` squad becomes `grunt`"; "when the boss dies the
+survivors become `coward`"). This generalizes the gap-1 event-aggro "wake" (waking = `set_ai`
+changing only the Activation axis). Mechanically clean in the composition engine: `set_ai`
+overrides the unit/group `AISpec`; the planner reads the new spec on the next activation (activation
+already reads event state — vision §4 rule 3). → confirmed MET action (see [MET-3] note + [AIP-15]).
+
 ## 3. Open questions register
 
 ### [AIP-1] Profile taxonomy — final set + naming  **[RESOLVED → two axes + modifier; boss = flag]**
@@ -333,9 +364,11 @@ governance rule (every open thread needs a home).
 - **[AIP-6]** Ratify the four held §7 MVP-spec refinements. **[RESOLVED 2026-06-22c]** — all four
   adopted as written ("good for starting points"), with the return-home profile **renamed
   `patrol` → `tethered`** (working name). See §7 (now ratified).
-- **[AIP-7]** Starter preset library (the recommended named presets shipped in docs + GUI) + the
-  **composition-precedence rules** (how base preset / placement override / group / difficulty layer;
-  conflict handling, e.g. `flee` ignores `target_policy`). **[OPEN]**
+- **[AIP-7]** Starter preset library + composition-precedence rules. **[RESOLVED 2026-06-22c]** —
+  8 presets (`grunt`/`guard`/`sleeper`/`tethered`/`coward`/`runner`/`hunter`/`healer`), flavor names
+  kept, `sentry` collapsed into `guard`; precedence base→placement→group→difficulty, `flee` ignores
+  `target_policy`. **Plus owner requirement: runtime profile change via a MET `set_ai` action.**
+  Full table + rules in §2b.
 - **[AIP-8]** §8 gap-scope: are gap 1 (event/turn aggression) & gap 2 (goal-tile seeking) **in the
   first build or fast-follow**? Driven by early content (a Defend map forces gap 2; a "charge on
   turn N" map forces gap 1). **[OPEN]**
@@ -351,8 +384,11 @@ governance rule (every open thread needs a home).
   non-binding "may change" UX. **[OPEN]** — vision §5.
 - **[AIP-13]** Disposition-indicator visual language (icons/labels for the default telegraph). **[OPEN]** — vision §5.
 - **[AIP-14]** Combat-AI workstream (§8 gap 3) timing + engagement-tier ↔ difficulty-band coupling. **[OPEN]**.
-- **[AIP-15]** MET growth specifics: `set_aggro`/`wake` action vs flag-honoring territorial,
-  `unit_hp_below` trigger, spawn-acts-immediately. **[OPEN]** — MET [MET-3].
+- **[AIP-15]** MET growth specifics. **CONFIRMED REQUIREMENT (owner 2026-06-22c): a `set_ai`
+  action** that changes a unit's/group's preset or axes on an event trigger (subsumes `set_aggro`/
+  `wake` — waking = `set_ai` on the Activation axis). Still OPEN: exact `set_ai` schema (unit vs
+  group target; whole-preset vs per-axis), the `unit_hp_below` trigger, spawn-acts-immediately.
+  **[OPEN — but `set_ai` existence is now required, not a candidate]** — MET [MET-3].
 - **[AIP-16]** AI Pair-Up / Rescue usage (do enemy factions use those mechanics? likely defer). **[OPEN]**.
 - *(pointer)* AI turn-pacing / skip-AI-animation / AI move speed = UI/UX backlog, AI-adjacent, not this cluster.
 - *(pointer)* ML faction-controller Option A = pre-1.0 consideration, vision §6.
