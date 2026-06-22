@@ -6,7 +6,7 @@ target list drafted (§2a). MVP grew past the original two profiles. Build-ready
 save field rides §2). Extends an existing system; contained.
 **Source:** `planning_backlog_2026-06-20.md` §5; session note 2026-06-21c Tier 2 #4.
 **Companion:** `GDD_08_Enemy_AI.md`. **Code:** `scripts/core/EnemyAI.gd`.
-**MVP profile set (owner-chosen):** `territorial` + `guard_tile` + `patrol` + `flee`, plus a
+**MVP profile set (owner-chosen):** `territorial` + `guard_tile` + `tethered` + `flee`, plus a
 `target_policy` placement modifier (`nearest` default + `weakest`), plus `is_boss` compose.
 **Pattern:** mirrors §1 ICD / §2 CST. Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 
@@ -69,7 +69,7 @@ taxonomy is small and composable rather than a long flat enum.
 | `passive` | hold position; attack only what's already in range | **built** | — |
 | `guard_tile` | pinned to a designated tile (throne/gate); attack in range, never leaves | **MVP** | `home_tile` (default spawn) |
 | `territorial` | sleep at home until a player enters `aggro_radius` → **latch** awake → `basic` | **MVP** | `home_tile`/`aggro_radius`/`leash_radius`; `ai_awake` save |
-| `patrol` | like `territorial` but **non-latching** — returns home / re-sleeps when players leave `leash_radius` | **MVP** | same leash keys; no latch |
+| `tethered` | like `territorial` but **non-latching** — returns home / re-sleeps when players leave `leash_radius` | **MVP** | same leash keys; no latch |
 | `flee` | every turn move to maximize distance from nearest threat; never engage (villagers, runners, cowards) | **MVP** | none (inverse pursuit) |
 | `retreat_when_low` | `basic` until below an HP threshold, then `flee` | fast-follow (ungated) | `retreat_hp_pct` key |
 | `kite` | prefer attacking from a tile where the target can't counter (mages/archers) | fast-follow (ungated) | counter-prediction in tile scoring |
@@ -100,7 +100,7 @@ disposition: sitting boss = `guard_tile` + `is_boss` + throne bonus; hunting bos
 `is_boss`. See [AIP-1].
 
 **Bucket summary:**
-- **MVP (this register builds):** `territorial`, `guard_tile`, `patrol`, `flee` + the
+- **MVP (this register builds):** `territorial`, `guard_tile`, `tethered`, `flee` + the
   `target_policy` modifier (`nearest`+`weakest`) + `is_boss` compose.
 - **Fast-follow (ungated, build anytime):** `retreat_when_low`, `kite`, `hunt` target policy.
 - **Gated (land with parent feature):** `fog_scout` (FOW) · `chest_looter` (DCH) ·
@@ -122,8 +122,8 @@ disposition: sitting boss = `guard_tile` + `is_boss` + throne bonus; hunting bos
   NOT a profile — `is_boss` (already on placements; existing boss `e8_knight_boss` is authored
   `ai_profile:"basic"` + `is_boss:true`) **composes** onto any disposition: sitting boss =
   `guard_tile` + `is_boss` + throne; hunting boss = `basic` + `is_boss`. **MVP profile set
-  grew** past the original two to `territorial` + `guard_tile` + `patrol` + `flee` + the
-  `target_policy` modifier (owner pulled `flee`, `patrol`, and `focus_weakest` into MVP).
+  grew** past the original two to `territorial` + `guard_tile` + `tethered` + `flee` + the
+  `target_policy` modifier (owner pulled `flee`, `tethered`, and `focus_weakest` into MVP).
 
 ### [AIP-2] Leash/anchor data: where does `home_tile` + radii live?  **[RESOLVED → A + C default]**
 `territorial`/`guard_tile` need a home tile + aggro/leash radii per unit.
@@ -156,10 +156,10 @@ Once a `territorial` unit wakes, does it stay awake?
   later if a map wants a true patrol. The wake-latch state is per-map runtime → reserve a
   snapshot field ([AIP-5]).
 - **Resolution: BOTH — as two distinct profiles (2026-06-21k).** `territorial` = **A (latch)**
-  — woken room stays awake, deterministic, `ai_awake` persisted ([AIP-5]). `patrol` = **B
+  — woken room stays awake, deterministic, `ai_awake` persisted ([AIP-5]). `tethered` = **B
   (re-evaluate)** — returns home / re-sleeps when players leave `leash_radius`. Keeping them
   as separate profiles (rather than one profile with a mode flag) keeps `territorial` dead
-  simple and gives authors an explicit choice. **Owner pulled `patrol` into MVP**, so B ships
+  simple and gives authors an explicit choice. **Owner pulled `tethered` into MVP**, so B ships
   now as its own profile rather than as a deferred polish behavior.
 
 ### [AIP-4] Data-driven thresholds vs hardcoded  **[RESOLVED → B]**
@@ -186,13 +186,13 @@ restore it or a reloaded map could re-sleep a woken room.
   serialized. One bool per unit; reserve it in the §2 schema (this register's only §2 ask).
   Update `test_snapshot_coverage` STATIC_FIELDS accordingly.
 - **Resolution: A (2026-06-21k).** `ai_awake: bool` per unit in the snapshot — the register's
-  **only new §2 field**. Applies to `territorial` (latched) only; `patrol` re-evaluates from
-  positions each turn so it needs no saved state (a `patrol` unit's home is its placement
+  **only new §2 field**. Applies to `territorial` (latched) only; `tethered` re-evaluates from
+  positions each turn so it needs no saved state (a `tethered` unit's home is its placement
   `home_tile`, already authored). Reserve `ai_awake` in the §2 schema and add it to
   `test_snapshot_coverage` STATIC_FIELDS when the field lands.
 
 ## 4. Slice sketch (revised 2026-06-21k — MVP = 4 profiles + target_policy)
-1. **Validator + data keys.** `_VALID_AI_PROFILES` += `territorial`, `guard_tile`, `patrol`,
+1. **Validator + data keys.** `_VALID_AI_PROFILES` += `territorial`, `guard_tile`, `tethered`,
    `flee`; add a `_VALID_TARGET_POLICIES = ["nearest", "weakest"]` validated set. New optional
    `enemy_placements` keys: `home_tile`, `aggro_radius`, `leash_radius`, `target_policy`.
    `GameConstants.DEFAULT_AGGRO_RADIUS`/`DEFAULT_LEASH_RADIUS` ([AIP-4]). **DoD#2:** extend the
@@ -201,18 +201,18 @@ restore it or a reloaded map could re-sleep a woken room.
 2. **`_act_guard_tile`** — pinned `passive` anchored on `home_tile` (default spawn).
 3. **`_act_territorial`** — sleep at home → latch awake when a player enters `aggro_radius` →
    delegate to `basic`; `ai_awake` snapshot field ([AIP-5]).
-4. **`_act_patrol`** — non-latching sibling: wake like territorial, but return toward
+4. **`_act_tethered`** — non-latching sibling: wake like territorial, but return toward
    `home_tile` / re-sleep when all players leave `leash_radius` (no saved state).
 5. **`_act_flee`** — move to maximize distance from the nearest threat within movement range;
    never attack (inverse of the `_find_nearest`/`_choose_move_tile` pursuit math).
 6. **`target_policy` modifier** — thread through the target-selection step (`_find_nearest`
-   call sites) so `weakest` focus-fire applies to `basic`/`territorial`/`patrol`/`guard_tile`.
+   call sites) so `weakest` focus-fire applies to `basic`/`territorial`/`tethered`/`guard_tile`.
 7. **`is_boss` compose** — `guard_tile` + throne-bonus, no new profile ([AIP-1]).
 
 ## 5. Test notes
 - Extend `test_enemy_ai`: `guard_tile` never leaves `home_tile`; `territorial` stays put until
   a player enters `aggro_radius`, then closes, and **stays awake** across a later turn even if
-  the player retreats (latch); `patrol` wakes the same way but **returns home / re-sleeps**
+  the player retreats (latch); `tethered` wakes the same way but **returns home / re-sleeps**
   when players leave `leash_radius`; `flee` increases its min-distance-to-threat each turn and
   never initiates combat; `target_policy: "weakest"` picks the killable/lowest-def target over
   the nearest.
@@ -221,7 +221,7 @@ restore it or a reloaded map could re-sleep a woken room.
 - `test_snapshot_coverage`: `ai_awake` covered.
 
 ## 6. Buckets & forward items (from §2a)
-- **MVP (this build):** `territorial`, `guard_tile`, `patrol`, `flee`, `target_policy`
+- **MVP (this build):** `territorial`, `guard_tile`, `tethered`, `flee`, `target_policy`
   (`nearest`+`weakest`), `is_boss` compose.
 - **Fast-follow (ungated):** `retreat_when_low` (+`retreat_hp_pct`), `kite` (avoid-counter
   tile scoring), `hunt:<unit_id>` target policy.
@@ -229,27 +229,28 @@ restore it or a reloaded map could re-sleep a woken room.
   `fog_scout` (FOW [FOW-3]→C) · `chest_looter` (DCH [DCH-4]→B) · `siege_operator`
   (STW [STW-6]→B) · `buffer` (M9 staves) · `thief_steal` (steal mechanic) · `dancer`.
 
-## 7. Held MVP-spec refinements (NOT yet ratified) *(2026-06-21k)*
+## 7. MVP-spec refinements — RATIFIED 2026-06-22c (was "held") *(2026-06-21k → 2026-06-22c)*
 
-Four refinements surfaced when walking the profiles in detail. The owner chose to **hold them
-until the eventual design plan is firmed up** rather than fold them into the MVP spec now.
-Recorded here so they are not lost; revisit before build.
+Four refinements surfaced when walking the profiles in detail; held 2026-06-21k, **all four
+RATIFIED 2026-06-22c as [AIP-6]** ("good for starting points"), with the return-home profile
+**renamed `patrol` → `tethered`** (working name; consistent with the `leash_radius` field, avoids
+the route-walker connotation of "patrol").
 
 1. **`territorial` wakes when attacked (not just proximity).** Wake trigger = a player enters
    `aggro_radius` of `home_tile` **OR** the unit took damage since its last activation; and
    `aggro_radius` should be ≥ attack range so a sleeping archer can't passively snipe without
-   waking. *(Rec: adopt.)*
-2. **`patrol` v1 = leashed return-home, explicitly NOT a waypoint route-walker.** Clarify the
-   name: v1 `patrol` wakes on proximity and walks back to `home_tile` when disengaged. A true
-   route-patrol (walks an authored beat A→B→C while idle) is a richer, separate behavior →
-   deeper fast-follow. *(Rec: adopt the clarification; route-patrol stays future.)*
+   waking. *(RATIFIED.)*
+2. **`tethered` (renamed from `patrol`) = leashed return-home, explicitly NOT a waypoint
+   route-walker.** v1 `tethered` wakes on proximity and walks back to `home_tile` when disengaged.
+   A true route-patrol (walks an authored beat A→B→C while idle) is a richer, separate behavior →
+   deeper fast-follow. *(RATIFIED + renamed.)*
 3. **`flee` optional `goal_tile`.** With `goal_tile` = escape *toward* an exit (avoiding
    threats); without = pure run-away. Covers escape-map runners / loot-carriers in MVP. This
-   is the same "move toward an authored tile" primitive Gap #2 (§8) needs. *(Rec: adopt.)*
+   is the same "move toward an authored tile" primitive Gap #2 (§8) needs. *(RATIFIED.)*
 4. **`target_policy: "weakest"` concrete metric.** Define as: prefer a target it can **KO this
    activation** (forecast-lethal); else the one it deals the most **proportional** damage to.
    Must thread through the **move-tile choice** too (move to where you can hit the weakest),
-   not just the final target pick. *(Rec: adopt.)*
+   not just the final target pick. *(RATIFIED.)*
 
 ## 8. Gap analysis — FE archetypes/scenarios the current plan can't yet express *(2026-06-21k)*
 
@@ -259,12 +260,12 @@ DTR destructible, FOW fog, M16 objectives, M14 factions) against the Fire Emblem
 scheduled yet — this is a forward design record.**
 
 ### Layer 1 — Activation beyond proximity *(biggest gap; rides MET)*
-Our wake model (`territorial`/`patrol`) is **proximity-only**. A huge fraction of FE maps use
+Our wake model (`territorial`/`tethered`) is **proximity-only**. A huge fraction of FE maps use
 **event/turn-driven aggression**: "on turn 6 the whole army charges," "after you cross the
 bridge the boss's squad activates" — regardless of player position. **Not expressible today:**
 MET actions are `reveal_tiles`/`flag`/`spawn` (no wake/profile-change action), and `territorial`
 only checks proximity, not a flag. **Fix (small, rides MET):** either a MET `set_aggro`/`wake`
-action, or have `territorial`/`patrol` honor a map-flag as an alternate wake trigger so a
+action, or have `territorial`/`tethered` honor a map-flag as an alternate wake trigger so a
 `turn_reached`→`flag` event wakes the room. *Design the proximity-aggro ↔ event-aggro bridge.*
 → also a **MET cross-ref** (new candidate action).
 
@@ -329,8 +330,9 @@ AI build; Group B blocks the full vision (post-MVP).** New/homeless items record
 governance rule (every open thread needs a home).
 
 ### Group A — blocks the first AI build
-- **[AIP-6]** Ratify the four held §7 MVP-spec refinements (territorial wake-on-attack; patrol =
-  leashed-return-home; flee `goal_tile`; `weakest` = KO-first threaded through move-tile). **[OPEN]**
+- **[AIP-6]** Ratify the four held §7 MVP-spec refinements. **[RESOLVED 2026-06-22c]** — all four
+  adopted as written ("good for starting points"), with the return-home profile **renamed
+  `patrol` → `tethered`** (working name). See §7 (now ratified).
 - **[AIP-7]** Starter preset library (the recommended named presets shipped in docs + GUI) + the
   **composition-precedence rules** (how base preset / placement override / group / difficulty layer;
   conflict handling, e.g. `flee` ignores `target_policy`). **[OPEN]**

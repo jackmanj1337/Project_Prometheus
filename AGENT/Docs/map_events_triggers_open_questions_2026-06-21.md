@@ -105,7 +105,7 @@ The substrate signals available: `unit_died`, `turn_changed`, `phase_changed`, `
   later fast-follow. See `fog_of_war_los_open_questions_2026-06-21.md` §2a + [FOW-7].
 - **AIP gap-analysis cross-ref (2026-06-21k):** the AI-profiles register (§8 gap analysis) found
   three FE patterns that need MET growth, none scheduled yet: (1) **event/turn-driven aggression**
-  — a candidate **`set_aggro`/`wake`** action (or have `territorial`/`patrol` honor a map-flag)
+  — a candidate **`set_aggro`/`wake`** action (or have `territorial`/`tethered` honor a map-flag)
   so a `turn_reached`→event can wake/charge a group regardless of player proximity (the proximity-
   aggro ↔ event-aggro bridge); (2) a **`unit_hp_below` trigger** for "boss enrages at half HP" /
   summoner phases (current triggers are `unit_died`/`turn_reached`/`object_broken`); (3) confirm
