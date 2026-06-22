@@ -186,14 +186,16 @@ decomposition (named phases sketched, no full plan).
 > cap-management UI (folds into convoy §2b/D). Package A (`RngService`) draft =
 > `package_a_rngservice_open_questions_2026-06-21.md` [PKGA-1..4] (gaps only).
 >
-> **STATUS UPDATE 2026-06-22f:** **RESOLVED** registers — PKGA `[PKGA-1..4]`, FOW `[FOW-1..7]`,
+> **STATUS UPDATE 2026-06-22g:** **RESOLVED** registers — PKGA `[PKGA-1..4]`, FOW `[FOW-1..7]`,
 > DCH `[DCH-1..6]`, DTR `[DTR-1..8]`, MET `[MET-1..9]`, **AIP FULLY** (`[AIP-1..16]` +
 > `[AIP-A11/A12]`; Group A first-build spec = `ai_first_build_design_2026-06-22.md`, Group B closed
-> 2026-06-22e), and **STW `[STW-1..6]` RESOLVED 2026-06-22f** (build-ready; inherits DCH's
+> 2026-06-22e), **STW `[STW-1..6]` RESOLVED 2026-06-22f** (build-ready; inherits DCH's
 > `map_objects`; occupy-tile mount, move-and-fire allowed, object-owned ammo, **enemy AI siege use
-> in v1** → `siege_operator` promoted into STW v1). **Still OPEN (next planning):** IMP `[IMP-1..6]`,
-> DMR `[DMR-1..3]`, BWN `[BWN-1..5]`, MRD `[MRD-1..6]`, plus release gates REN `[REN-1..5]` / LEG
-> `[LEG-1..5]` (owner-input-blocked).
+> in v1** → `siege_operator` promoted into STW v1), and **MRD `[MRD-1..6]` RESOLVED 2026-06-22g**
+> (build-ready; [MRD-1] C range∩threat blend + opaque hover/arrows · [MRD-2]/[MRD-4] B hold-to-peek,
+> compute-on-press · [MRD-5] A terrain-only `grid_dim` slider · [MRD-6] A threat-range first; TUR
+> folds in). **Still OPEN (next planning):** IMP `[IMP-1..6]`, DMR `[DMR-1..3]`, BWN `[BWN-1..5]`,
+> plus release gates REN `[REN-1..5]` / LEG `[LEG-1..5]` (owner-input-blocked).
 
 ## 6. Maps
 

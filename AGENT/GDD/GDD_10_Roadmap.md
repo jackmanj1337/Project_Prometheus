@@ -89,7 +89,7 @@ opens or closes (DoD#1).
 | **Milestone — Package A / Determinism** (`RngService` determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` **RESOLVED 2026-06-21f**: own top-level milestone, **only Steps 1–2 gate §2** (3–4 interleave with §2), `rewind_charges` deferred to §2's [CST-4] consolidation, two-RN ships with Step 1 | [ ] build-ready (register resolved) | §Milestone — Package A / Determinism; `AGENT/Docs/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
 | Campaign / save cluster (§2) — player-facing firmed 2026-06-21b; **technical plan + decisions drafted 2026-06-21c** ([CST-1..12] resolved, [CST-13] at kickoff); gated behind Package A | [ ] planned, build-ready after Package A | §H + `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` + `campaign_save_open_decisions_2026-06-21.md` |
 | Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved); part of the map-readability cluster | [ ] design ready | `AGENT/Docs/individual_threat_range_design_2026-06-21.md`; cluster register `map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
-| Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register drafted 2026-06-21d | [ ] register OPEN | `AGENT/Docs/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
+| Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register RESOLVED 2026-06-22g (build-ready) | [ ] register RESOLVED | `AGENT/Docs/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
 
 ### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
 
@@ -186,8 +186,11 @@ event-revealed rooms via MET `reveal_tiles`, lightable braziers `[FOW-7]` = `map
 fast-follow/gated buckets drafted in §2a). All other registers remain OPEN — drafted, not yet
 walked/resolved.**
 Resume by building Package A, or walk another register with the user:
-- **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]` (§A;
-  note `[MRD-3]` withdrawn — aggregate danger zone already built) · **fog-of-war/LoS `[FOW-1..7]`
+- **Tier 1:** Package A `RngService` `[PKGA-1..4]` **RESOLVED** (§A) · map-readability `[MRD-1..6]`
+  **RESOLVED 2026-06-22g** (§A; `[MRD-3]` withdrawn — aggregate danger zone already built; decided:
+  [MRD-1] C range∩threat-blend / hover+arrows opaque on top · [MRD-2] B hold-to-peek · [MRD-4] B
+  compute-on-press · [MRD-5] A terrain-only `grid_dim` slider · [MRD-6] A threat-range first;
+  threat-range `[TUR-1..4]` folds in) · **fog-of-war/LoS `[FOW-1..7]`
   RESOLVED 2026-06-21j** (`fog_of_war_los_open_questions_2026-06-21.md`; gated behind §2's
   `discovered_units` save slice; symmetric-fog AI + timed/weather fog reserved as forward items).
 - **Tier 2:** **AI profiles `[AIP-1..5]` RESOLVED 2026-06-21k** (`ai_profiles_open_questions_2026-06-21.md`;

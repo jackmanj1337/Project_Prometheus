@@ -1,7 +1,11 @@
 # Map-Readability Cluster (§4) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d
-**Status:** Planning draft — register OPEN.
+**Status:** **RESOLVED 2026-06-22g** — all open questions decided ([MRD-3] was already withdrawn);
+build-ready. All four owner decisions took the recs: **[MRD-1] C** (range∩threat blend, hover/arrows
+opaque on top) · **[MRD-2] B** (hold-to-peek) · **[MRD-5] A** (terrain-only dim slider) · **[MRD-6] A**
+(threat-range first). **[MRD-4] B** ratified as the technical consequence of [MRD-2] B (compute once
+on press). The threat-range piece (`individual_threat_range_design_2026-06-21.md`, [TUR-1..4]) folds in.
 **Source:** `planning_backlog_2026-06-20.md` §4; session note 2026-06-21c Tier 1 #2.
 **Companion:** `individual_threat_range_design_2026-06-21.md` ([TUR-1..4] resolved; the
 threat-range piece is DESIGNED and folds in here).
@@ -83,7 +87,11 @@ interleave with that existing danger overlay.
 - **Rec: C** — the move/attack vs threat overlap is exactly the info FE players want
   ("can I reach this safely?"), so blend those; but hover and arrows are transient
   cursor-driven feedback that should read instantly, so they sit on top opaque.
-- **Resolution:** _[OPEN]_
+- **Resolution: C — RESOLVED 2026-06-22g.** Range (move/attack/heal) and threat layers blend
+  where they overlap (the "reachable AND dangerous" tint); hover-peek + path-arrows are exclusive
+  opaque top layers that replace, not blend. Preserves the threat-range design's internal order
+  (faction src 3, watch src 4 on top); a small range∩threat blend palette is a build-time DoD#1
+  GDD_06 add (no string-keyed vocab → no `check_docs` guard).
 
 ### [MRD-2] Hover-peek: trigger model  **[OPEN]**
 - **A — Auto on cursor-rest over any unit** (no button; range appears when the cursor
@@ -94,7 +102,9 @@ interleave with that existing danger overlay.
 - **Rec: B** — auto-peek (A) repaints the overlay on every cursor tick (perf + visual
   noise, see [MRD-4]); a hold is intentional, gamepad-friendly, and composes with the
   input-mode work (§1). Offer A as a setting later if requested.
-- **Resolution:** _[OPEN]_
+- **Resolution: B — RESOLVED 2026-06-22g.** Hold-a-button to peek (press shows the hovered
+  unit's move+attack range, release hides). Maps to a gamepad button; computes once on press
+  ([MRD-4] B). Auto-peek (A) reserved as a later opt-in setting.
 
 ### [MRD-3] ~~Aggregate threat vs individual — relationship~~ **[RESOLVED-BY-EXISTING-DESIGN — audit 2026-06-21d]**
 **This question was based on a wrong assumption and is withdrawn.** The audit found the
@@ -120,7 +130,10 @@ large map with many units, recomputing ranges per cursor tick could stutter (esp
 - **Rec: B** — pairs with [MRD-2]'s hold-to-peek (compute once on press), and path-arrows
   only need the path to the *current* cursor tile (one `get_movement_path` call, already
   cheap). Caps worst-case repaint cost for the web/mobile target.
-- **Resolution:** _[OPEN]_
+- **Resolution: B — RESOLVED 2026-06-22g (ratified as the consequence of [MRD-2] B).** Hover-peek
+  computes the range once on button-press and caches it for the hovered unit; path-arrows recompute
+  only `get_movement_path` to the current cursor tile (already cheap). No per-cursor-tick range
+  flood. Both ride the existing `EventBus.cursor_moved` hook.
 
 ### [MRD-5] Grid-visibility slider: what it dims, and persistence  **[OPEN]**
 - **A — Dims terrain layer only** (`modulate.a` on the terrain `TileMapLayer`); units +
@@ -130,7 +143,10 @@ large map with many units, recomputing ranges per cursor tick could stutter (esp
   `SettingsManager` float `grid_dim` (0.0–0.5), default 0.0; DoD#2 guard for the value
   range in `check_docs.py` only if it becomes a string-keyed setting (a float needs no
   vocab guard). Add B later only if a playtester asks.
-- **Resolution:** _[OPEN]_
+- **Resolution: A — RESOLVED 2026-06-22g.** One `SettingsManager` float `grid_dim` (0.0–0.5,
+  default 0.0) modulating the terrain `TileMapLayer` only; units + overlays stay full opacity.
+  Persists via the existing `movement_speed`-style load/save plumbing. No `check_docs` guard
+  (float, not string-keyed). B reserved if a playtester asks.
 
 ### [MRD-6] Build order within the cluster  **[OPEN]**
 - **A — Threat-range slices first** (it's already designed, slice 1 build-ready), then
@@ -140,9 +156,11 @@ large map with many units, recomputing ranges per cursor tick could stutter (esp
 - **Rec: A** — the threat-range design is the most-specified and unblocks the gamepad R3
   danger-zone; doing it first banks the hardest piece and establishes the layer-precedence
   decision ([MRD-1]) that the others depend on. Slider is a 1-commit add any time.
-- **Resolution:** _[OPEN]_
+- **Resolution: A — RESOLVED 2026-06-22g.** Build order: threat-range slices 1–3 (per the existing
+  design; slice 4 save defers to §2) → layer-precedence model ([MRD-1] C) → hover-peek ([MRD-2]/
+  [MRD-4] B) → path-arrows → grid-dim slider ([MRD-5]). Matches §4 slice sketch below.
 
-## 4. Slice sketch (provisional, pending register)
+## 4. Slice sketch (RESOLVED 2026-06-22g — build order per [MRD-6] A)
 1. Threat-range slice 1–3 (per the existing design; slice 4 save defers to §2).
 2. Layer-precedence model ([MRD-1]) + aggregate toggle ([MRD-3]).
 3. Hover-peek ([MRD-2]/[MRD-4]).
