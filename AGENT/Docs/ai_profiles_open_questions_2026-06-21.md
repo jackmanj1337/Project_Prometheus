@@ -320,3 +320,37 @@ authoring** (branch I), and **disposition visible by default** + an opt-in tutor
 preview. Each §8 gap = "extend one axis." The doc's §4 lists the four cheap "don't-paint-into-a-
 corner" rules the MVP AIP build should honor (profiles resolve to an `AISpec`; disposition target
 is unit-or-tile; activation reads an optional flag; engagement is a function seam).
+
+## 10. Open decisions register — continued ([AIP-6..], opened 2026-06-22c)
+
+Audit (2026-06-22c) of every still-open AI decision. `[AIP-1..5]` are RESOLVED (MVP profiles
+build-ready); these are what remains before the cluster is "finished." **Group A blocks the first
+AI build; Group B blocks the full vision (post-MVP).** New/homeless items recorded here per the
+governance rule (every open thread needs a home).
+
+### Group A — blocks the first AI build
+- **[AIP-6]** Ratify the four held §7 MVP-spec refinements (territorial wake-on-attack; patrol =
+  leashed-return-home; flee `goal_tile`; `weakest` = KO-first threaded through move-tile). **[OPEN]**
+- **[AIP-7]** Starter preset library (the recommended named presets shipped in docs + GUI) + the
+  **composition-precedence rules** (how base preset / placement override / group / difficulty layer;
+  conflict handling, e.g. `flee` ignores `target_policy`). **[OPEN]**
+- **[AIP-8]** §8 gap-scope: are gap 1 (event/turn aggression) & gap 2 (goal-tile seeking) **in the
+  first build or fast-follow**? Driven by early content (a Defend map forces gap 2; a "charge on
+  turn N" map forces gap 1). **[OPEN]**
+- **[AIP-9]** Reinforcement-unit AI config — for MET-`spawn`ed units: profile / `group_id` /
+  activation authoring + whether they **act on spawn** (ambush; ties MET spawn-acts-immediately). **[OPEN]**
+- **[AIP-10]** Allied / green-NPC AI — confirm allied AI factions use the same composition system +
+  author control + faction-relation targeting (no special-casing). **[OPEN]**
+
+### Group B — blocks the full vision (post-MVP; several already framed in vision §5)
+- **[AIP-11]** Difficulty band-modifier vocabulary + whether bands may touch activation/disposition
+  or only stats/roster/engagement-tier. **[OPEN]** — vision §3/§5.
+- **[AIP-12]** Action-preview gating surface (chapter flag / difficulty band / accessibility) +
+  non-binding "may change" UX. **[OPEN]** — vision §5.
+- **[AIP-13]** Disposition-indicator visual language (icons/labels for the default telegraph). **[OPEN]** — vision §5.
+- **[AIP-14]** Combat-AI workstream (§8 gap 3) timing + engagement-tier ↔ difficulty-band coupling. **[OPEN]**.
+- **[AIP-15]** MET growth specifics: `set_aggro`/`wake` action vs flag-honoring territorial,
+  `unit_hp_below` trigger, spawn-acts-immediately. **[OPEN]** — MET [MET-3].
+- **[AIP-16]** AI Pair-Up / Rescue usage (do enemy factions use those mechanics? likely defer). **[OPEN]**.
+- *(pointer)* AI turn-pacing / skip-AI-animation / AI move speed = UI/UX backlog, AI-adjacent, not this cluster.
+- *(pointer)* ML faction-controller Option A = pre-1.0 consideration, vision §6.
