@@ -130,7 +130,7 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 | --- | --- | --- |
 | D-A — public-identity rename (≤ first public RC) — register `[REN-1..5]` drafted 2026-06-21d (rec: display-names only, keep ids; [REN-1] needs owner's names) | gate, register OPEN | §Release Gates; `AGENT/Docs/public_identity_rename_open_questions_2026-06-21.md` |
 | DOC-012 / OPEN-12 — legal/licensing review — research register `[LEG-1..5]` drafted 2026-06-21d ([LEG-1] needs owner to name source corpus + license) | blocking pre-1.0 gate, register OPEN | §Release Gates; `AGENT/Docs/legal_licensing_open_questions_2026-06-21.md` |
-| OPEN-5 — broken-weapon degraded mode — register `[BWN-1..5]` drafted 2026-06-21d (slots into §2 CampaignRules consolidation) | optional rule, register OPEN | GDD_04 §Inventory Management; `AGENT/Docs/broken_weapon_mode_open_questions_2026-06-21.md` |
+| OPEN-5 — broken-weapon degraded mode — register `[BWN-1..5]` **RESOLVED 2026-06-22h** (build-ready after §2 CampaignRules consolidation). Owner reframe: **per-weapon `break_behavior` (`destroy`/`degrade`) + CampaignRules default** (not one global toggle); penalty = global defaults + per-weapon overrides; **repair deferred to §2b/E shop** (no v1 item); penalty shown debuff-red on the character sheet; unified weapon-stat-delta display reserved for the weapon-upgrade system | optional rule, register RESOLVED | GDD_04 §Inventory Management; `AGENT/Docs/broken_weapon_mode_open_questions_2026-06-21.md` |
 | Remove playtest-2 debug aids (force-levelup #10, growth-boost #11) | release blocker | §Pre-Release Cleanup |
 | Remove F9 all-faction hotseat override | release blocker | §Pre-Release Cleanup |
 | Remove debug-mode HUD banner | release blocker | §Pre-Release Cleanup |

@@ -145,8 +145,12 @@ firming branch it came from.
   (rec: rename display-names only, keep ids; [REN-1] needs the user's actual names).
 - **DOC-012 / OPEN-12 — legal/licensing.** State: blocking pre-1.0 gate; **research/decision
   register [LEG-1..5] drafted** (NOT a code plan; [LEG-1] needs the owner to name the corpus).
-- **OPEN-5 — broken-weapon degraded mode.** State: optional-rule bullet; **draft + register
-  [BWN-1..5] drafted** (rec: reuse `uses_remaining==0`, global penalty const, repair item).
+- **OPEN-5 — broken-weapon degraded mode.** State: **register [BWN-1..5] RESOLVED 2026-06-22h**
+  (build-ready after §2 [CST-4]). Owner reframe → **per-weapon `break_behavior` (`destroy`/`degrade`)
+  + `CampaignRules` default** (not one global toggle); Broken still derived from `uses_remaining==0`
+  (no new `InventoryEntry` field); penalty = global `GameConstants` defaults + per-weapon overrides,
+  applied at `CombatResolver` + shown debuff-red on the character sheet; **repair deferred to the
+  §2b/E shop** (no v1 item); unified weapon-stat-delta display reserved for weapon-upgrades.
 
 ## 4. UI / UX enhancements — backlog bullets, no plans
 
@@ -194,8 +198,10 @@ decomposition (named phases sketched, no full plan).
 > in v1** → `siege_operator` promoted into STW v1), and **MRD `[MRD-1..6]` RESOLVED 2026-06-22g**
 > (build-ready; [MRD-1] C range∩threat blend + opaque hover/arrows · [MRD-2]/[MRD-4] B hold-to-peek,
 > compute-on-press · [MRD-5] A terrain-only `grid_dim` slider · [MRD-6] A threat-range first; TUR
-> folds in). **Still OPEN (next planning):** IMP `[IMP-1..6]`, DMR `[DMR-1..3]`, BWN `[BWN-1..5]`,
-> plus release gates REN `[REN-1..5]` / LEG `[LEG-1..5]` (owner-input-blocked).
+> folds in), and **BWN `[BWN-1..5]` RESOLVED 2026-06-22h** (build-ready after §2 [CST-4]; per-weapon
+> `break_behavior` + `CampaignRules` default, global+per-weapon penalty, repair deferred to §2b/E,
+> debuff-red character-sheet display). **Still OPEN (next planning):** IMP `[IMP-1..6]`, DMR
+> `[DMR-1..3]`, plus release gates REN `[REN-1..5]` / LEG `[LEG-1..5]` (owner-input-blocked).
 
 ## 6. Maps
 
