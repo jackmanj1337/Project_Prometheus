@@ -13,6 +13,17 @@ Legend: **[OPEN]** / **[ASKED]** / **[RESOLVED]**.
 
 ---
 
+> **⚠️ ASSET-LICENSING GATE — check FIRST, before sourcing/importing any art.** This importer
+> ingests art into the project; *which* art is legally allowed is governed by the **legal register's
+> art-asset licensing policy** — `legal_licensing_open_questions_2026-06-21.md` §4 ([LEG-4]). Summary
+> for a **public MIT + Commons Clause** repo: **committed art must be CC0 or OGA-BY**; "no-redistribute"
+> paid packs (PIPOYA / HEROES 99 / Zerie) are **build-only placeholder, never committed to source**;
+> **Fire Emblem fan art / rips are dev placeholder only — never in a public source repo**; commissioned
+> (owned) art is the cleanest path. The importer must never be treated as a license-laundering step —
+> verify the source's license against §4's whitelist *before* import. (Also informs `SPRITE_SOURCE_SIZE`
+> per §4.4: 32px first release ≈ fragmented CC0 + commission; the LPC CC0/OGA-BY subset is ~64px → the
+> later 64px tier.)
+
 ## 1. State today (code-grounded)
 
 - **The guide is a tutorial for the *initial* version**, not production. It hardcodes

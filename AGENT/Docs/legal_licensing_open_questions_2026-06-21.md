@@ -85,7 +85,9 @@ Beyond the rules corpus: sprites, tilesets, fonts, SFX have their own licenses.
 - **Rec: A (no real alternative for a public release)** — placeholder/ripped art is a hard
   blocker for any public build; the asset audit belongs in this gate. Cross-ref the
   `map_sprite_importer` plan (the pipeline that ingests *owned* art to replace placeholders).
-- **Resolution:** _[OPEN]_
+- **Resolution:** _[OPEN — sourcing/redistribution **policy** drafted in §4 (analysis 2026-06-22h);
+  the per-asset **audit** itself still runs at release. The `map_sprite_importer` register points
+  here as a pre-import gate.]_
 
 ### [LEG-5] When does this gate run, and what unblocks it?  **[OPEN]**
 - **A — After D-A rename, before the first public RC.** D-A removes FE identity; DOC-012
@@ -95,7 +97,59 @@ Beyond the rules corpus: sprites, tilesets, fonts, SFX have their own licenses.
   before any public release. It does not block internal/playtest builds.
 - **Resolution:** _[OPEN]_
 
-## 4. Notes
+## 4. Art-asset licensing policy (release-art sourcing) — analysis 2026-06-22h
+
+Expands [LEG-4] with the sourcing/redistribution policy worked out 2026-06-22h. **⚠️ Not legal
+advice** (see header). **Owner-stated inputs:** release under **MIT + Commons Clause** (source-
+available, no-sell); first-release art = **32px** FE-style; later tier = 64px. **Driving fact:** a
+**source-available public repo redistributes every committed file**, so the asset license — not the
+project license — governs what may ship in source.
+
+### 4.1 The governing principle
+- **Project license ≠ asset license.** MIT + Commons Clause covers the project's *original* work;
+  every third-party asset keeps **its own** license. You cannot relicense someone else's art by
+  committing it. Maintain a per-asset manifest (ties [LEG-3]: `ATTRIBUTION.md` / `ASSET_LICENSES`).
+- **The crux is redistribution, not price.** Shipping a "no-redistribute" pack *inside an exported
+  build* is normal, permitted use even for a free game. **Committing the raw asset files to the
+  public repo is redistribution of the assets as assets** — which most paid packs forbid. So the
+  filter is "public source tree," not "free game."
+
+### 4.2 License whitelist for anything committed to the public repo
+Ordered by fitness for a public MIT+Commons-Clause repo that **might monetize later**:
+1. **CC0** — redistributable, no attribution, survives a future switch to selling, no DRM clause. **Preferred.**
+2. **OGA-BY / CC-BY** — redistributable, attribution required, sale-safe (OGA-BY removes the DRM clause).
+- **Avoid:** **CC-BY-NC / "non-commercial"** (Commons Clause makes these *usable now* since you are
+  not selling, but they **permanently foreclose monetization** — a trap); **CC-BY-SA / GPL**
+  copyleft (redistributable but imposes ShareAlike on art derivatives + a Steam/iOS DRM-clause
+  problem); **"no-redistribute" paid packs** (PIPOYA / HEROES 99 / Zerie etc.) for *committed* art.
+
+### 4.3 Rules
+- **Committed (public-repo) art:** CC0 or OGA-BY only.
+- **No-redistribute paid packs:** allowed **only inside exported builds as placeholder**, never in
+  the public source tree.
+- **Fire Emblem fan art / rips:** dev placeholder **only**; **never** in a public source-available
+  repo (that *publishes* the infringement in source form). No license the project applies cures the
+  underlying Nintendo IP — you cannot license what you do not own. Cured only by *replacement*.
+- **Commission = cleanest for a source-available project.** With **full copyright assignment
+  (work-for-hire)** you own the art outright → license it freely, trivially public-repo-safe and
+  sale-safe, and you can order the **FE-specific classes no pack covers** (mounted cavalry,
+  pegasus/wyvern fliers). This sidesteps the entire per-asset compatibility maze.
+
+### 4.4 Resolution-tier interaction (informs the sprite importer / `SPRITE_SOURCE_SIZE`)
+- The biggest **public-repo-safe breadth source — the LPC generator restricted to CC0/OGA-BY layers
+  — is ~64px, not 32**, so it fits the **later 64px tier**, not the 32px first release.
+- For the **32px first release**, the redistributable pool collapses to **fragmented CC0
+  OpenGameArt sets** (piecemeal, no fliers/mounts) → **commission** is the reliable route to a
+  cohesive owned roster.
+
+### 4.5 Candidate sources (2026-06-22h scan; verify each license at use-time)
+- Public-repo-safe: **OpenGameArt** CC0/OGA-BY sets (32px, fragmented); **Kenney** (all CC0, weak on
+  FE-class characters); **LPC** CC0/OGA-BY subset (~64px, strong breadth, fits the 64px tier).
+- **Build-only placeholder (not committable):** PIPOYA 32×32 (4-dir, "no redistribute"); **HEROES
+  99** (32px, GBA-FE style, modular, great license **but** overworld 4-dir sprites still in
+  development — battle anims only today); Zerie Tiny RPG.
+
+## 5. Notes
 - This is the **one item on the list that is not a coding task** — its output is a decision
   record + an attribution file, not a code change (though [LEG-4]'s asset replacement is
   real work). Kept distinct so it isn't scheduled as an implementation slice.
