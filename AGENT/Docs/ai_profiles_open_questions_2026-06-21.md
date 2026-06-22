@@ -71,6 +71,7 @@ taxonomy is small and composable rather than a long flat enum.
 | `territorial` | sleep at home until a player enters `aggro_radius` → **latch** awake → `basic` | **MVP** | `home_tile`/`aggro_radius`/`leash_radius`; `ai_awake` save |
 | `tethered` | like `territorial` but **non-latching** — returns home / re-sleeps when players leave `leash_radius` | **MVP** | same leash keys; no latch |
 | `flee` | every turn move to maximize distance from nearest threat; never engage (villagers, runners, cowards) | **MVP** | none (inverse pursuit) |
+| `seek_tile` | advance toward an authored **goal tile** (e.g. seize the player's throne), engaging nearest en route — the Defend-chapter attacker | **MVP** *(owner pulled in 2026-06-22c, [AIP-8])* | `goal_tile` |
 | `retreat_when_low` | `basic` until below an HP threshold, then `flee` | fast-follow (ungated) | `retreat_hp_pct` key |
 | `kite` | prefer attacking from a tile where the target can't counter (mages/archers) | fast-follow (ungated) | counter-prediction in tile scoring |
 
@@ -100,9 +101,11 @@ disposition: sitting boss = `guard_tile` + `is_boss` + throne bonus; hunting bos
 `is_boss`. See [AIP-1].
 
 **Bucket summary:**
-- **MVP (this register builds):** `territorial`, `guard_tile`, `tethered`, `flee` + the
-  `target_policy` modifier (`nearest`+`weakest`) + `is_boss` compose.
-- **Fast-follow (ungated, build anytime):** `retreat_when_low`, `kite`, `hunt` target policy.
+- **MVP (this register builds):** `territorial`, `guard_tile`, `tethered`, `flee`, **`seek_tile`**
+  + the `target_policy` modifier (`nearest`+`weakest`) + `is_boss` compose + **event-driven
+  activation & the MET `set_ai` action** ([AIP-8] pulled the §8 gap-1/gap-2 capabilities into MVP).
+- **Fast-follow (ungated, build anytime):** `retreat_when_low`, `kite`, `hunt` target policy,
+  true route-patrol.
 - **Gated (land with parent feature):** `fog_scout` (FOW) · `chest_looter` (DCH) ·
   `siege_operator` (STW) · `buffer` (M9 staves) · `thief_steal` (steal mech) · `dancer`.
 
@@ -121,8 +124,12 @@ axes; authors write `ai: "<preset>"` and override one axis for special cases. Fl
 | `tethered` | proximity (no latch) | pursue / return-home | nearest | tethered |
 | `coward` | always | flee (from threat) | — | flee |
 | `runner` | always | flee → `goal_tile` | — | flee + goal_tile |
+| `raider` | always | seek_tile (`goal_tile`) | nearest | seek_tile (Defend-chapter attacker) |
 | `hunter` | always | pursue_unit | **weakest** | basic + focus-fire |
 | `healer` | always | reach injured ally | heal | (existing) |
+
+*(`raider` added 2026-06-22c with [AIP-8]; working name — rushes a goal tile, engaging en route.
+Mirror of `runner`, which flees toward a goal tile. 9 presets total now.)*
 
 **Composition precedence** (later overrides earlier): base preset → placement axis override →
 group inheritance → difficulty overlay. Conflict rules: an override replaces **only its axis**;
@@ -222,23 +229,30 @@ restore it or a reloaded map could re-sleep a woken room.
   `home_tile`, already authored). Reserve `ai_awake` in the §2 schema and add it to
   `test_snapshot_coverage` STATIC_FIELDS when the field lands.
 
-## 4. Slice sketch (revised 2026-06-21k — MVP = 4 profiles + target_policy)
+## 4. Slice sketch (revised 2026-06-22c — MVP now incl. `seek_tile` + event-activation, [AIP-8])
 1. **Validator + data keys.** `_VALID_AI_PROFILES` += `territorial`, `guard_tile`, `tethered`,
-   `flee`; add a `_VALID_TARGET_POLICIES = ["nearest", "weakest"]` validated set. New optional
-   `enemy_placements` keys: `home_tile`, `aggro_radius`, `leash_radius`, `target_policy`.
-   `GameConstants.DEFAULT_AGGRO_RADIUS`/`DEFAULT_LEASH_RADIUS` ([AIP-4]). **DoD#2:** extend the
-   boot validator (`DataManager`) AND add a `check_docs` guard mirroring the profile +
-   target-policy value-sets (same pattern as the `mouse_cursor`/movement-type checks).
+   `flee`, **`seek_tile`**; add `_VALID_TARGET_POLICIES = ["nearest", "weakest"]`. New optional
+   `enemy_placements` keys: `home_tile`, `aggro_radius`, `leash_radius`, `target_policy`,
+   **`goal_tile`**, **`group_id`**. `GameConstants.DEFAULT_AGGRO_RADIUS`/`DEFAULT_LEASH_RADIUS`
+   ([AIP-4]). **DoD#2:** extend the boot validator (`DataManager`) AND add a `check_docs` guard
+   mirroring the profile + target-policy value-sets (same pattern as `mouse_cursor`/movement-type).
 2. **`_act_guard_tile`** — pinned `passive` anchored on `home_tile` (default spawn).
-3. **`_act_territorial`** — sleep at home → latch awake when a player enters `aggro_radius` →
-   delegate to `basic`; `ai_awake` snapshot field ([AIP-5]).
+3. **`_act_territorial`** — sleep at home → latch awake when a player enters `aggro_radius` (or on
+   damage taken, §7) → delegate to `basic`; `ai_awake` snapshot field ([AIP-5]).
 4. **`_act_tethered`** — non-latching sibling: wake like territorial, but return toward
    `home_tile` / re-sleep when all players leave `leash_radius` (no saved state).
 5. **`_act_flee`** — move to maximize distance from the nearest threat within movement range;
-   never attack (inverse of the `_find_nearest`/`_choose_move_tile` pursuit math).
-6. **`target_policy` modifier** — thread through the target-selection step (`_find_nearest`
-   call sites) so `weakest` focus-fire applies to `basic`/`territorial`/`tethered`/`guard_tile`.
-7. **`is_boss` compose** — `guard_tile` + throne-bonus, no new profile ([AIP-1]).
+   never attack (inverse of the `_find_nearest`/`_choose_move_tile` pursuit math); optional
+   `goal_tile` → flee *toward* it (`runner`).
+6. **`_act_seek_tile`** *(MVP via [AIP-8])* — advance toward `goal_tile`, engaging nearest en route
+   (the `raider`/Defend-chapter attacker). Reuses the disposition planner's unit-or-tile target
+   abstraction (vision §4 rule 2).
+7. **Event-driven activation + `set_ai`** *(MVP via [AIP-8])* — activation reads an event/flag, and
+   a MET **`set_ai`** action overrides a unit's/`group_id`'s `AISpec` at runtime (the proximity↔
+   event-aggro bridge). Planner reads the new spec next activation (vision §4 rule 3).
+8. **`target_policy` modifier** — thread through the target-selection step (`_find_nearest`
+   call sites) so `weakest` focus-fire applies to any targeting disposition.
+9. **`is_boss` compose** — `guard_tile` + throne-bonus, no new profile ([AIP-1]).
 
 ## 5. Test notes
 - Extend `test_enemy_ai`: `guard_tile` never leaves `home_tile`; `territorial` stays put until
@@ -287,10 +301,11 @@ the route-walker connotation of "patrol").
 
 Pressure-tested the resolved taxonomy + the sibling registers (MET events, DCH doors/chests,
 DTR destructible, FOW fog, M16 objectives, M14 factions) against the Fire Emblem catalog. The
-*disposition* axis is essentially complete; the gaps cluster in three layers. **None are
-scheduled yet — this is a forward design record.**
+*disposition* axis is essentially complete; the gaps cluster in three layers. **Update
+2026-06-22c ([AIP-8]): Layers 1 & 2 are now pulled into the FIRST AI build** ("make them
+available"); Layer 3 remains a separate later workstream.
 
-### Layer 1 — Activation beyond proximity *(biggest gap; rides MET)*
+### Layer 1 — Activation beyond proximity *(biggest gap; rides MET)* — **NOW MVP ([AIP-8])**
 Our wake model (`territorial`/`tethered`) is **proximity-only**. A huge fraction of FE maps use
 **event/turn-driven aggression**: "on turn 6 the whole army charges," "after you cross the
 bridge the boss's squad activates" — regardless of player position. **Not expressible today:**
@@ -300,7 +315,7 @@ action, or have `territorial`/`tethered` honor a map-flag as an alternate wake t
 `turn_reached`→`flag` event wakes the room. *Design the proximity-aggro ↔ event-aggro bridge.*
 → also a **MET cross-ref** (new candidate action).
 
-### Layer 2 — Goal-tile / objective-seeking movement *(rides the encounter layer)*
+### Layer 2 — Goal-tile / objective-seeking movement *(rides the encounter layer)* — **NOW MVP ([AIP-8])**
 Every planned disposition targets enemy **units**. FE has two big patterns that target **tiles**:
 - **Defend chapters** — enemies rush *your* throne/point to seize it ("advance to objective
   tile and seize"). No disposition for it; `basic` only chases units.
@@ -369,9 +384,11 @@ governance rule (every open thread needs a home).
   kept, `sentry` collapsed into `guard`; precedence base→placement→group→difficulty, `flee` ignores
   `target_policy`. **Plus owner requirement: runtime profile change via a MET `set_ai` action.**
   Full table + rules in §2b.
-- **[AIP-8]** §8 gap-scope: are gap 1 (event/turn aggression) & gap 2 (goal-tile seeking) **in the
-  first build or fast-follow**? Driven by early content (a Defend map forces gap 2; a "charge on
-  turn N" map forces gap 1). **[OPEN]**
+- **[AIP-8]** §8 gap-scope. **[RESOLVED 2026-06-22c — BOTH in the first build]** ("let's make them
+  available"). Gap 1 (event/turn aggression) ships via the confirmed MET `set_ai` action + event/
+  flag-driven activation; gap 2 (goal-tile seeking) ships as the new **`seek_tile` disposition**
+  (preset `raider`) + the already-ratified `flee goal_tile` (`runner`). Enlarges the first AI build
+  but unlocks Defend chapters + scripted activation from day one.
 - **[AIP-9]** Reinforcement-unit AI config — for MET-`spawn`ed units: profile / `group_id` /
   activation authoring + whether they **act on spawn** (ambush; ties MET spawn-acts-immediately). **[OPEN]**
 - **[AIP-10]** Allied / green-NPC AI — confirm allied AI factions use the same composition system +

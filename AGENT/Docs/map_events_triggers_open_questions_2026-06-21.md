@@ -117,8 +117,10 @@ The substrate signals available: `unit_died`, `turn_changed`, `phase_changed`, `
   the boss dies the survivors become `coward`"). `set_aggro`/`wake` is the narrow case (Activation
   axis only). Mechanically: it overrides the target's resolved `AISpec`; the AI planner reads the
   new spec on the next activation. **OPEN schema:** unit vs `group_id` target; whole-preset vs
-  per-axis payload. Add `set_ai` to the action vocabulary when AI + MET build. See
-  `ai_profiles_open_questions_2026-06-21.md` §2b + [AIP-7]/[AIP-15].
+  per-axis payload. **Now FIRST-BUILD, not deferred** — [AIP-8] (2026-06-22c) pulled event-driven
+  aggression into the first AI build, so `set_ai` ships with the initial AI + MET work (alongside
+  the existing `turn_reached`/`unit_died`/`flag` triggers that drive it). See
+  `ai_profiles_open_questions_2026-06-21.md` §2b + [AIP-7]/[AIP-8]/[AIP-15].
 
 ### [MET-4] Trigger guards — optional flag/condition predicate  **[OPEN]**
 Branching narrative needs "fire only if flag X set / turn ≥ N / objective Y still open."
