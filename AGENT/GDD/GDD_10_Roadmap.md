@@ -237,7 +237,12 @@ Resume by building Package A, or walk another register with the user:
   triggers (confirmed, schema OPEN — see MET [MET-3]). **[AIP-8]** resolved — **both §8 gaps pulled
   into the first AI build** ("make them available"): event-driven aggression (`set_ai` +
   event/flag activation) AND goal-tile seeking (new **`seek_tile`** disposition, preset `raider`;
-  enables Defend chapters). [AIP-9..10] pending.
+  enables Defend chapters). **[AIP-9]** reinforcements carry same AI keys + `act_on_spawn`;
+  **[AIP-10]** allied/green NPCs use the same system + relation targeting. **Group A COMPLETE
+  2026-06-22c — the first AI build is spec-complete** (two build-time schema details remain:
+  `set_ai` payload [AIP-A11], group aggro semantics [AIP-A12]). Group B ([AIP-11..16]) blocks
+  only the full vision (difficulty bands, action-preview, disposition visuals, combat-AI workstream,
+  `unit_hp_below`, AI pair-up/rescue).
   - **ML faction controller (vision §6, forward):** **Option A — learned evaluation function**
     (tiny weight-vector/value-MLP scoring candidate actions; deterministic; drops into the
     Engagement-axis seam as an optional high-difficulty tier) is flagged to **seriously consider

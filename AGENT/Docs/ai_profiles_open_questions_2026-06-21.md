@@ -375,7 +375,7 @@ build-ready); these are what remains before the cluster is "finished." **Group A
 AI build; Group B blocks the full vision (post-MVP).** New/homeless items recorded here per the
 governance rule (every open thread needs a home).
 
-### Group A — blocks the first AI build
+### Group A — blocks the first AI build — **COMPLETE 2026-06-22c** ([AIP-6..10] + the two A11/A12 build-time sub-items below)
 - **[AIP-6]** Ratify the four held §7 MVP-spec refinements. **[RESOLVED 2026-06-22c]** — all four
   adopted as written ("good for starting points"), with the return-home profile **renamed
   `patrol` → `tethered`** (working name). See §7 (now ratified).
@@ -389,10 +389,22 @@ governance rule (every open thread needs a home).
   flag-driven activation; gap 2 (goal-tile seeking) ships as the new **`seek_tile` disposition**
   (preset `raider`) + the already-ratified `flee goal_tile` (`runner`). Enlarges the first AI build
   but unlocks Defend chapters + scripted activation from day one.
-- **[AIP-9]** Reinforcement-unit AI config — for MET-`spawn`ed units: profile / `group_id` /
-  activation authoring + whether they **act on spawn** (ambush; ties MET spawn-acts-immediately). **[OPEN]**
-- **[AIP-10]** Allied / green-NPC AI — confirm allied AI factions use the same composition system +
-  author control + faction-relation targeting (no special-casing). **[OPEN]**
+- **[AIP-9]** Reinforcement-unit AI config. **[RESOLVED 2026-06-22c]** — MET-`spawn`ed units carry
+  the **same AI keys** as a normal `enemy_placements` entry (preset/`ai_profile`, `group_id`,
+  `home_tile`, `goal_tile`, …), plus **`act_on_spawn: bool` (default false)**; `true` = the FE
+  ambush spawn (acts the turn it arrives). Resolves the MET spawn-acts-immediately asterisk.
+- **[AIP-10]** Allied / green-NPC AI. **[RESOLVED 2026-06-22c]** — allied AI factions use the
+  **same composition system, no special-casing**: author-assigned presets, targeting via the
+  existing faction-relation lookup (`_living_hostiles_for_faction` is already relation-based, not
+  hardcoded to "player"). A green ally can be any preset and fights whoever its faction is hostile to.
+
+**Build-time sub-items pulled into the first build by [AIP-8] (small schema details, not design forks):**
+- **[AIP-A11]** **`set_ai` payload schema** — unit vs `group_id` target; whole-preset replace vs
+  per-axis patch. Now first-build (set_ai is MVP). *(Rec: support both — target = unit id or
+  `group_id`; payload = a partial `AISpec` patch so "wake" sets only Activation.)* **[OPEN — build-time]**
+- **[AIP-A12]** **`group_id` aggro semantics** — does one unit in a group spotting a player (or
+  taking damage) wake the **whole group**? *(Rec: yes — shared-aggro is the point of groups, and
+  the FE "room wakes together" staple; a group's wake latches per-group.)* **[OPEN — build-time]**
 
 ### Group B — blocks the full vision (post-MVP; several already framed in vision §5)
 - **[AIP-11]** Difficulty band-modifier vocabulary + whether bands may touch activation/disposition
@@ -401,11 +413,10 @@ governance rule (every open thread needs a home).
   non-binding "may change" UX. **[OPEN]** — vision §5.
 - **[AIP-13]** Disposition-indicator visual language (icons/labels for the default telegraph). **[OPEN]** — vision §5.
 - **[AIP-14]** Combat-AI workstream (§8 gap 3) timing + engagement-tier ↔ difficulty-band coupling. **[OPEN]**.
-- **[AIP-15]** MET growth specifics. **CONFIRMED REQUIREMENT (owner 2026-06-22c): a `set_ai`
-  action** that changes a unit's/group's preset or axes on an event trigger (subsumes `set_aggro`/
-  `wake` — waking = `set_ai` on the Activation axis). Still OPEN: exact `set_ai` schema (unit vs
-  group target; whole-preset vs per-axis), the `unit_hp_below` trigger, spawn-acts-immediately.
-  **[OPEN — but `set_ai` existence is now required, not a candidate]** — MET [MET-3].
+- **[AIP-15]** MET growth specifics. **Mostly resolved:** `set_ai` action = CONFIRMED + first-build
+  ([AIP-7]/[AIP-8]; schema now tracked as [AIP-A11]); spawn-acts-immediately = RESOLVED via
+  `act_on_spawn` ([AIP-9]). **Still OPEN (Group B / later):** the **`unit_hp_below` trigger** for
+  "boss enrages at half HP" / summoner phases. **[OPEN — `unit_hp_below` only]** — MET [MET-3].
 - **[AIP-16]** AI Pair-Up / Rescue usage (do enemy factions use those mechanics? likely defer). **[OPEN]**.
 - *(pointer)* AI turn-pacing / skip-AI-animation / AI move speed = UI/UX backlog, AI-adjacent, not this cluster.
 - *(pointer)* ML faction-controller Option A = pre-1.0 consideration, vision §6.
