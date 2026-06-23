@@ -29,4 +29,5 @@
 | `PKGA-1..4` | Package A (`RngService`) — Implementation Draft + Open Questions Register | RESOLVED | 2026-06-21f | `registers/package_a_rngservice_open_questions_2026-06-21.md` |
 | `PXP-1..9` | Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/proficiency_xp_framework_open_questions_2026-06-23.md` |
 | `SHP-1..5` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/shop_economy_open_questions_2026-06-23.md` |
+| `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |

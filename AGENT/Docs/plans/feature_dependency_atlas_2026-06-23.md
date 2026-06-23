@@ -34,6 +34,7 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F9 | **Hub / PHB option-panel framework** (`[PHB]`) | ✅ firmed | F1 | shop, arena, training halls, skirmish, recruit-prep | decided |
 | F10 | **Canto / move-after-action** | ❌ not built | turn/action flow | Knight Ring, mounted QoL, rescue-canto interaction | scope (which classes/effects grant it) |
 | F11 | **Skill trigger/effect system** (GDD_05) | 🔧 built, needs effect_ids | combat loop | accessory effects, on-crossing grants, combat arts, gambits, many items | add effect_ids per feature (no new triggers — discipline) |
+| F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
 
 **Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**;
 the **only undecided foundation left is F10** (canto). F2/F3/F8/F9 decided and await build.
@@ -65,6 +66,7 @@ the **only undecided foundation left is F10** (canto). F2/F3/F8/F9 decided and a
 | Item skill effect_ids (negate_effectiveness/negate_crit/permanent_stat/advance_proficiency) | **S** ea | F11 | checklisted (IEQ §2f) |
 | Broken-weapon `[BWN]` · Stationary weapons `[STW]` | **S**/**M** | combat | firmed |
 | Skill content M9b (per-skill UX) | **L** | F11 | partial |
+| Skill-model expansion (personal / class-level / granted) `[SKL]` | **M** | F11,F12,F6 | firmed 2026-06-23l |
 
 ### Cluster C — Map / Tactical systems  (F8 + grid)
 | Feature | Size | Needs | Status |

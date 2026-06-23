@@ -41,7 +41,7 @@ build it.** This is step (1)'s worklist. Builds on `GDD_Feature_Index.md` (the i
 | UI / input / settings / accessibility | **Firmed / Designed** | GDD_07; input-mode design | gamepad reach = build, not P-F def |
 | AI behavior | **Designed** | GDD_08; `[AIP-…]` + AI vision | difficulty-band UX surfaced, design-complete |
 | Status conditions | **Designed** (M8) | GDD_02 §Status Conditions | minor UX check-backs only |
-| **Skills (per-skill behavior)** | **Partial** | GDD_05; M9b content | **GAP: per-skill player-facing behavior/feedback for the content set (M9b)** |
+| **Skills (per-skill behavior)** | **Partial** | GDD_05; M9b content | **GAP: per-skill player-facing behavior/feedback for the content set (M9b)**; skill-MODEL (personal/class-level/granted categories + grant/revoke) **firmed 2026-06-23l `[SKL-1..6]`** (F12 grant/revoke API) |
 | **Pair Up & Support** | **Partial** | GDD_05 | Pair Up firmed; **GAP: Support (H2) — ranks/affinity/convos/bonuses; Dual Strike/Guard/adjacent** |
 | **Inventory / convoy / shops / economy** | **Partial / GAP** | GDD_04 | inventory/trade exist; **GAP: convoy (D), shop + economy (E)** |
 | **Campaign flow & recruitment** | **Partial** | §2 firming; GDD_10 | flow firmed; **GAP: recruit mechanic (F)** |
