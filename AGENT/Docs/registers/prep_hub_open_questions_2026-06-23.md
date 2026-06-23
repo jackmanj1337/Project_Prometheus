@@ -1,8 +1,9 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED 2026-06-23
 Last verified: 2026-06-23
 Register: PHB-1..7
+Resolved-in: 2026-06-23k
 ---
 
 # Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions
@@ -70,7 +71,8 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 - **C — Full node/location/time** with a calendar now.
 - **Rec: A, with B's cadence flag added when shop/economy is firmed** — node scope is the only axis
   that exists today; cadence is a cheap, economy-driven add; a calendar (C) is overworld-era.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — node-scoped panels only in v1; per-panel
+  `one_shot`/restock cadence added with the shop/economy firming; calendar deferred to the overworld.
 
 ### [PHB-4] Non-battle / pure-hub nodes — does every node attach a battle?  **[OPEN]**
 - **A — Every node = exactly one map;** the hub rides the existing pre-battle prep. Keeps the firmed
@@ -105,7 +107,8 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 - **B — Theme carries mechanics** (e.g. a "shop town" implies discounts).
 - **Rec: A** — keep theme presentational; mechanical effects belong to the panels themselves
   (shop prices, etc.), not the skin.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — `theme`/`location_label` is cosmetic
+  (background art ref + label + optional music id); no mechanical effect.
 
 ### [PHB-7] Transaction persistence & suspend  **[OPEN]**
 - **A — Immediate commit:** buy/sell/convoy-move/training mutate persistent party state
@@ -114,7 +117,8 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 - **B — Transactional hub state** snapshotted into suspend.
 - **Rec: A** — the hub holds no state the party doesn't already hold; immediate commit matches the
   firmed "resume = latest between-map → prep" behavior and avoids a new save surface.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — transactions commit immediately to
+  persistent party state; no bespoke hub-suspend snapshot; re-entering prep re-derives the hub.
 
 ## 4. Notes
 - This pass is **player-facing + schema-shape only**; the build rides §2 + the §4a authoring contract.
@@ -128,6 +132,10 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 # Resolution Log
 (newest first)
 
+- **2026-06-23k — Detail batch (PHB-3/6/7) — register COMPLETE.** [PHB-3] **A** node-scoped panels
+  now; cadence (`one_shot`/restock) added with shop/economy; calendar = overworld-era. [PHB-6] **A**
+  theme is cosmetic (bg art + label + music id). [PHB-7] **A** transactions commit immediately to
+  party state; no hub-suspend snapshot.
 - **2026-06-23k — Structural batch (PHB-1/2/4/5).** [PHB-1] **C** flat list + cosmetic theme.
   [PHB-2] **A** opt-in per-node `prep_panels`. [PHB-4] **B-schema / A-scope** (owner) — `node_type`
   (battle|hub) is a first-class author-switchable field now; build battle-nodes first, pure hub nodes
