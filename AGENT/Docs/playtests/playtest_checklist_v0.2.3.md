@@ -48,9 +48,9 @@ code. **Everything needed for this test pass is in this one file.**
 - A monitor that can show **1440p or 4K** is useful for Part I §1.9 (otherwise mark it
   `NOT RUN`)
 - Executable: `Project_Prometheus_v0.2.3_debug.exe`
-- Expected file size: _see `AGENT/Docs/playtest_build_v0.2.3.md`._
+- Expected file size: _see `AGENT/Docs/playtests/playtest_build_v0.2.3.md`._
 - Expected SHA-256: _see the build manifest._
-- Build manifest: `AGENT/Docs/playtest_build_v0.2.3.md`
+- Build manifest: `AGENT/Docs/playtests/playtest_build_v0.2.3.md`
 
 The executable is a standalone debug build. It does not need Godot or an installer. Do
 not disable antivirus to run it. If Windows blocks it, record the exact message and

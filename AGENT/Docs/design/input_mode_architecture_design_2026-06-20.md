@@ -10,9 +10,9 @@ Status: Target design
 Last verified: 2026-06-20
 
 Coupled work:
-- `AGENT/Docs/display_scaling_resolution_design_2026-06-20.md` (crisp scaling, safe-area)
-- `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` + `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md`
-- `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md` (the existing `mouse_cursor` setting this absorbs)
+- `AGENT/Docs/design/display_scaling_resolution_design_2026-06-20.md` (crisp scaling, safe-area)
+- `AGENT/Docs/plans/debug_web_playtest_plan_2026-06-20.md` + `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md`
+- `AGENT/Docs/design/mouse_only_cursor_mode_design_2026-06-19.md` (the existing `mouse_cursor` setting this absorbs)
 
 This is a forward-looking architecture note. **No code changes yet** — it pins the
 design before the mobile / Steam Deck input work begins so new UI is built to fit it.

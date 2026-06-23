@@ -14,7 +14,7 @@ for the gamepad contextual R3 danger-zone (`gamepad_layer_implementation_plan_20
 §4: "R3 over an enemy → that enemy's threat range — does not exist yet").
 
 Coupled work:
-- `AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` §4 — the contextual R3 arm
+- `AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` §4 — the contextual R3 arm
   that consumes this; its per-enemy branch is gated on this design.
 
 > **Tracking home:** GDD_10 → *Open Items Register* §A (UI/UX) + Appendix C. Docs-only until

@@ -16,11 +16,11 @@ resolver, the gray-don't-hide + back-door availability logic, the persisted sett
 the DoD#2 value-set guards.
 
 Coupled work:
-- `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` — the architecture this
+- `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` — the architecture this
   implements; its *Resolved decisions* (4) are assumed settled and not re-opened here.
-- `AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` — the gamepad arm + slice 3
+- `AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` — the gamepad arm + slice 3
   signal seam this generalises (see [ICD-2] for whether they land together).
-- `AGENT/Docs/input_controls_open_decisions_2026-06-21.md` — every choice this plan could
+- `AGENT/Docs/registers/input_controls_open_decisions_2026-06-21.md` — every choice this plan could
   not make is deferred there by `[ICD-n]`.
 
 > **Tracking home:** GDD_10 → *Forward Platform Workstreams* (Input-mode / gamepad) +

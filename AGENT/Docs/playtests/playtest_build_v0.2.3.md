@@ -15,7 +15,7 @@
 
 The artifact is intentionally ignored by Git. v0.2.3 ships as **two files**: the
 executable and the single self-contained handbook
-`AGENT/Docs/playtest_checklist_v0.2.3.md`.
+`AGENT/Docs/playtests/playtest_checklist_v0.2.3.md`.
 
 ## Why v0.2.3 (and what happened to v0.2.2)
 

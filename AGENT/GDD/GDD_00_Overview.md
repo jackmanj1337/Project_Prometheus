@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-06-14
+**Last verified:** 2026-06-23
 **Governance:** `AGENT/Docs/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation

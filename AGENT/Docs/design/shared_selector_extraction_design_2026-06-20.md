@@ -10,10 +10,10 @@ Status: Target design
 Last verified: 2026-06-20
 
 Coupled work:
-- `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` (this is the single
+- `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` (this is the single
   joypad-wiring point that design depends on; gamepad layer = keystone)
 - `AGENT/Docs/archive/plans/more_info_mode_plan_2026-05-24.md` (the original More Info host pattern)
-- `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md` (surface 3 today)
+- `AGENT/Docs/design/terrain_more_info_paging_design_2026-06-19.md` (surface 3 today)
 
 > **Tracking home:** `AGENT/GDD/GDD_10_Roadmap.md` → v0.2.1 findings **V021-15** and
 > *Open Items Register* §B / §H. No code changes yet — this pins the component contract
@@ -102,7 +102,7 @@ Two rules, replacing today's ad-hoc split:
 
 ### Absorbs the gamepad plan's "Rebuild C" (input-context owner)
 
-The gamepad layer plan (`AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` §2/§5)
+The gamepad layer plan (`AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` §2/§5)
 deferred its structural input fix to here, because it is the same job as the arbiter above.
 Today the "only one context is live" guarantee rests on a single `MapCursor._input_suppressed`
 bool **plus** per-menu `set_input_as_handled()` discipline — fragile, because a menu that

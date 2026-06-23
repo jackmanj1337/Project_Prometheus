@@ -82,27 +82,27 @@ opens or closes (DoD#1).
 
 | Item | Status | Detail home |
 | --- | --- | --- |
-| v0.2.3 Display build — live-verify closeout (crispness/resolution gate) | [~] | §v0.2.1 findings V021-18 / V021-19; gate = Part I of `AGENT/Docs/playtest_checklist_v0.2.3.md` |
+| v0.2.3 Display build — live-verify closeout (crispness/resolution gate) | [~] | §v0.2.1 findings V021-18 / V021-19; gate = Part I of `AGENT/Docs/playtests/playtest_checklist_v0.2.3.md` |
 | v0.2.3 branch → `main` fast-forward merge (protected branch; PR-only, no `gh`/token in env) | [ ] | Session note 2026-06-20h "Still open" |
 | Debug Web playtest build (private iPhone channel — not mobile platform support) | [ ] | §Forward Platform Workstreams |
 | Input-mode / gamepad architecture (gamepad layer = keystone); §1 impl plans drafted + decisions (ICD-1..6) resolved 2026-06-21 — **build-ready, awaiting execution** | [ ] build-ready | §Forward Platform Workstreams |
-| **Milestone — Package A / Determinism** (`RngService` determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` **RESOLVED 2026-06-21f**: own top-level milestone, **only Steps 1–2 gate §2** (3–4 interleave with §2), `rewind_charges` deferred to §2's [CST-4] consolidation, two-RN ships with Step 1 | [ ] build-ready (register resolved) | §Milestone — Package A / Determinism; `AGENT/Docs/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
-| Campaign / save cluster (§2) — player-facing firmed 2026-06-21b; **technical plan + decisions drafted 2026-06-21c** ([CST-1..12] resolved, [CST-13] at kickoff); gated behind Package A | [ ] planned, build-ready after Package A | §H + `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` + `campaign_save_open_decisions_2026-06-21.md` |
-| Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved); part of the map-readability cluster | [ ] design ready | `AGENT/Docs/individual_threat_range_design_2026-06-21.md`; cluster register `map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
-| Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register RESOLVED 2026-06-22g (build-ready) | [ ] register RESOLVED | `AGENT/Docs/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
+| **Milestone — Package A / Determinism** (`RngService` determinism/snapshot/rewind substrate) — **build FIRST, before §2** ([CST-12]); register `[PKGA-1..4]` **RESOLVED 2026-06-21f**: own top-level milestone, **only Steps 1–2 gate §2** (3–4 interleave with §2), `rewind_charges` deferred to §2's [CST-4] consolidation, two-RN ships with Step 1 | [ ] build-ready (register resolved) | §Milestone — Package A / Determinism; `AGENT/Docs/design/rng_determinism_design_2026-06-11.md` (build guide) + `package_a_rngservice_open_questions_2026-06-21.md` |
+| Campaign / save cluster (§2) — player-facing firmed 2026-06-21b; **technical plan + decisions drafted 2026-06-21c** ([CST-1..12] resolved, [CST-13] at kickoff); gated behind Package A | [ ] planned, build-ready after Package A | §H + `AGENT/Docs/plans/campaign_save_technical_plan_2026-06-21.md` + `campaign_save_open_decisions_2026-06-21.md` |
+| Individual unit threat range (UI/UX; unblocks gamepad contextual R3) — **DESIGNED 2026-06-21** (TUR-1..4 resolved); part of the map-readability cluster | [ ] design ready | `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md`; cluster register `map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
+| Map-readability cluster (hover-peek + path arrows + threat range + grid-dim slider) — register RESOLVED 2026-06-22g (build-ready) | [ ] register RESOLVED | `AGENT/Docs/registers/map_readability_open_questions_2026-06-21.md` `[MRD-1..6]` |
 
 ### B. Open v0.2.1 (v0.2.2/v0.2.3) findings not yet closed
 
 | Item | Status | Detail home |
 | --- | --- | --- |
 | V021-04 — terrain corner-snap on editor scale | [ ] | §v0.2.1 findings (deferred to a live-verify follow-up) |
-| V021-15 — shared selector extraction (single joypad-wiring point) | [ ] design ready | §v0.2.1 findings; design `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` |
+| V021-15 — shared selector extraction (single joypad-wiring point) | [ ] design ready | §v0.2.1 findings; design `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md` |
 | V021-12 — class-skill More Info drilldown | [ ] | Phase 3 Backlog §Polish |
 | V021-18 / V021-19 — crisp scaling + native 1440p/4K (live-verify remaining) | [~] | §v0.2.1 findings |
 
 ### C. v0.2.2 live-verify check-backs (headless-tested only — eyeball in live play)
 
-Authoritative list: `AGENT/Docs/v0.2.2_review_checkbacks_2026-06-20.md`. Walk it during the
+Authoritative list: `AGENT/Docs/playtests/v0.2.2_review_checkbacks_2026-06-20.md`. Walk it during the
 v0.2.3 playtest triage. Threads: V021-01 mid-tween cancel (animate-then-snap-back), V021-02
 modal-capture (swallows all non-mouse input), V021-06 selector axes on a d-pad, V021-09 sheet
 wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
@@ -128,9 +128,9 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 
 | Item | Status | Detail home |
 | --- | --- | --- |
-| D-A — public-identity rename (≤ first public RC) — register `[REN-1..5]` drafted 2026-06-21d (rec: display-names only, keep ids; [REN-1] needs owner's names) | gate, register OPEN | §Release Gates; `AGENT/Docs/public_identity_rename_open_questions_2026-06-21.md` |
-| DOC-012 / OPEN-12 — legal/licensing review — research register `[LEG-1..5]` drafted 2026-06-21d ([LEG-1] needs owner to name source corpus + license) | blocking pre-1.0 gate, register OPEN | §Release Gates; `AGENT/Docs/legal_licensing_open_questions_2026-06-21.md` |
-| OPEN-5 — broken-weapon degraded mode — register `[BWN-1..5]` **RESOLVED 2026-06-22h** (build-ready after §2 CampaignRules consolidation). Owner reframe: **per-weapon `break_behavior` (`destroy`/`degrade`) + CampaignRules default** (not one global toggle); penalty = global defaults + per-weapon overrides; **repair deferred to §2b/E shop** (no v1 item); penalty shown debuff-red on the character sheet; unified weapon-stat-delta display reserved for the weapon-upgrade system | optional rule, register RESOLVED | GDD_04 §Inventory Management; `AGENT/Docs/broken_weapon_mode_open_questions_2026-06-21.md` |
+| D-A — public-identity rename (≤ first public RC) — register `[REN-1..5]` drafted 2026-06-21d (rec: display-names only, keep ids; [REN-1] needs owner's names) | gate, register OPEN | §Release Gates; `AGENT/Docs/registers/public_identity_rename_open_questions_2026-06-21.md` |
+| DOC-012 / OPEN-12 — legal/licensing review — research register `[LEG-1..5]` drafted 2026-06-21d ([LEG-1] needs owner to name source corpus + license) | blocking pre-1.0 gate, register OPEN | §Release Gates; `AGENT/Docs/registers/legal_licensing_open_questions_2026-06-21.md` |
+| OPEN-5 — broken-weapon degraded mode — register `[BWN-1..5]` **RESOLVED 2026-06-22h** (build-ready after §2 CampaignRules consolidation). Owner reframe: **per-weapon `break_behavior` (`destroy`/`degrade`) + CampaignRules default** (not one global toggle); penalty = global defaults + per-weapon overrides; **repair deferred to §2b/E shop** (no v1 item); penalty shown debuff-red on the character sheet; unified weapon-stat-delta display reserved for the weapon-upgrade system | optional rule, register RESOLVED | GDD_04 §Inventory Management; `AGENT/Docs/registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | Remove playtest-2 debug aids (force-levelup #10, growth-boost #11) | release blocker | §Pre-Release Cleanup |
 | Remove F9 all-faction hotseat override | release blocker | §Pre-Release Cleanup |
 | Remove debug-mode HUD banner | release blocker | §Pre-Release Cleanup |
@@ -150,18 +150,18 @@ wording ("until separated" / permanent "—"), V021-17 click-cursor mode feel.
 
 Upcoming items that lack a plan/design doc and are the candidates for planning sessions
 (none are blocked from *planning* by the current execution blockers). Full list +
-"what each plan should produce": `AGENT/Docs/planning_backlog_2026-06-20.md`. Clusters:
+"what each plan should produce": `AGENT/Docs/plans/planning_backlog_2026-06-20.md`. Clusters:
 - **Input/controls (§1)** — highest near-term leverage; impl plans drafted + decisions
   resolved 2026-06-21 → **build-ready** (input-mode resolver, **V021-15 selector extraction**,
   key-rebind UI, gamepad layer). See §A.
 - **Campaign/save (§2)** — **player-facing scope firmed 2026-06-21b**
-  (`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md`, branches A–J); the
+  (`AGENT/Docs/design/campaign_save_player_facing_firming_2026-06-21.md`, branches A–J); the
   **technical** plan + decisions (`campaign_save_technical_plan_2026-06-21.md`,
   `[CST-1..12]` RESOLVED) are written. **Deferred sub-features have a do-not-forget
   home in `planning_backlog_2026-06-20.md` §2b** (convoy, shop, recruit, Pair-Up persistence,
   Support, Rescue, campaign-pack format, rewind *mechanic*/Package A, cross-version migration).
   **DESIGN-side frontier (next, 2026-06-23):** the **designer/authoring** half is the open work —
-  framing + foundations map in `AGENT/Docs/campaign_save_expectations_and_foundations_2026-06-23.md`
+  framing + foundations map in `AGENT/Docs/design/campaign_save_expectations_and_foundations_2026-06-23.md`
   (substrate stack; player surface firmed; **designer authoring contract 4a–4e OPEN, no register yet**).
   Walk progress: **`[DMR-1..4]` RESOLVED** (L2 per-campaign load seam) → **`[ICO-1..6]` RESOLVED
   2026-06-23 — owner REFRAMED the content model to SELF-CONTAINED** (`campaign_content_overlay_open_questions_2026-06-23.md`;
@@ -337,7 +337,7 @@ the Web shell should not be the gamepad-validation vehicle — the Steam Deck is
 Private iPhone 14 Pro debug Web channel. **Not** mobile platform support — a debug playtest
 shell only. Starts the session after v0.2.3 is verified.
 
-- Plan: `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` (incl. "Release Infrastructure —
+- Plan: `AGENT/Docs/plans/debug_web_playtest_plan_2026-06-20.md` (incl. "Release Infrastructure —
   Do First": single version source, CI build matrix, itch.io/`butler` automated deploy).
 - Handoff: `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md`.
 - Carry-forward decisions: host on itch.io (unlisted) first; portrait emulator shell; fixed
@@ -355,20 +355,20 @@ shell only. Starts the session after v0.2.3 is verified.
 
 ### Input-mode / gamepad architecture `[ ]`
 
-Design: `AGENT/Docs/input_mode_architecture_design_2026-06-20.md`. Model input **modes, not
+Design: `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md`. Model input **modes, not
 platforms**: the gamepad mode is the shared backbone of Steam Deck + phone-with-controller +
 virtual-gamepad touch + the debug-web shell, so building it once unlocks all four. **Keystone
 dependency: zero gamepad bindings exist today.**
 
 **Gamepad-arm implementation plan (2026-06-20j):**
-`AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` — the locked 19-action map
+`AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` — the locked 19-action map
 (direct/menu-only/contextual/excluded), the resolved focus wiring (bind joypad to BOTH the
 `ui_*` built-ins *and* the custom `cursor_*`/`confirm`/`cancel`, grounded in the hybrid menu
 model), the `project.godot` binding table, analog-stick auto-repeat, the `input_mode_changed`
 seam + focus-grab on mode switch, 4 build slices, and the headless test plan.
 **Dependency edge:** the contextual R3 danger-zone (per-enemy threat range) is gated on the
 UI/UX backlog item *individual unit threat range* — **now DESIGNED 2026-06-21**
-(`AGENT/Docs/individual_threat_range_design_2026-06-21.md`, TUR-1..4 resolved), so the per-enemy
+(`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md`, TUR-1..4 resolved), so the per-enemy
 arm has a design to build against; the gamepad plan ships the resolver + faction-wide arm now and
 the contextual R3 rides that design when threat-range slices land.
 
@@ -383,7 +383,7 @@ the contextual R3 rides that design when threat-range slices land.
   Phase 3 Backlog §UI/UX (Key rebinding UI; Gamepad & touch-screen support); it is their design
   home. The V021-15 shared-selector extraction is the single joypad-wiring point and lands here.
 
-**Design decisions — RESOLVED 2026-06-20j** (detail: `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` → Resolved decisions):
+**Design decisions — RESOLVED 2026-06-20j** (detail: `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` → Resolved decisions):
 
 1. **Default touch style → Dedicated (native), Virtual-gamepad interim.** Authored
    `touch_controls` default is `dedicated`; touch resolves to Virtual gamepad until the
@@ -410,9 +410,9 @@ the detect-floor/promotion resolver and gray/fallback availability logic.
 §2 campaign/save spine** ([CST-12]). This is the determinism substrate: a seeded `RngService`
 autoload, a single JSON-safe snapshot contract, and the hooks for suspend + rewind.
 
-**Authoritative build guide:** `AGENT/Docs/rng_determinism_design_2026-06-11.md` (§2 service, §6
+**Authoritative build guide:** `AGENT/Docs/design/rng_determinism_design_2026-06-11.md` (§2 service, §6
 integration touch-list, §10 seven-test plan, §12 build order). Resolved register:
-`AGENT/Docs/package_a_rngservice_open_questions_2026-06-21.md`.
+`AGENT/Docs/registers/package_a_rngservice_open_questions_2026-06-21.md`.
 
 **Resolved scope decisions (2026-06-21f):**
 - **[PKGA-1]** — this is its own top-level milestone (single source of truth over the design
@@ -616,7 +616,7 @@ rerun note, not a defect.
         is the *architectural* extraction into one shared selector component — the single
         joypad-wiring point for the gamepad/key-rebind milestone (F5). Refactoring three
         working surfaces is best done there with live verification. **Design ready
-        (2026-06-20j):** `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` —
+        (2026-06-20j):** `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md` —
         scope = extract a `SelectionCursor` navigation core + an input-routing/arbiter
         convention (NOT a unified render widget); rendering stays per-surface. Also tracked
         in `v0.2.2_review_checkbacks_2026-06-20.md`.
@@ -627,7 +627,7 @@ rerun note, not a defect.
         text description and movement-cost table onto separate pages that the More Info key
         (`F`) flips between, with one page fully hidden to free up viewable map area, and
         room to add more pages. Full design:
-        `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md`. **Done:**
+        `AGENT/Docs/design/terrain_more_info_paging_design_2026-06-19.md`. **Done:**
         `_terrain_more_page` (−1 Hidden / 0 Description+actions / 1 Movement table) cycled by
         `cycle_terrain_more_page()`; Hidden fully hides the box (default). Implemented as
         logical pages (visibility groupings of the existing rows, no scene restructure) so
@@ -643,7 +643,7 @@ rerun note, not a defect.
         map cursor does not follow mouse hover but jumps to the clicked tile, with a second
         (non-moving) click selecting. Adds a terrain-panel page button or click-to-switch
         in this mode. Touchscreen-relevant. Full design:
-        `AGENT/Docs/mouse_only_cursor_mode_design_2026-06-19.md` (re-introduces a third
+        `AGENT/Docs/design/mouse_only_cursor_mode_design_2026-06-19.md` (re-introduces a third
         `mouse_cursor` value). Couples with V021-05. **Done:** `mouse_cursor` now uses the
         fixed `follow|click|disabled` vocabulary (`enabled→follow`, legacy `snap→click`);
         click mode ignores hover, first-click moves the cursor, second same-tile click
@@ -845,7 +845,7 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
       Soldier is a documented cap-less placeholder). Closes the #8.5 surface gap — the
       pair-up bonus now appears on the sheet, not just the HUD panel (verified by
       `test_pair_up_bonus_e2e.gd`). Auras stay M9 (stubs, hit/dodge/crit only). Design:
-      `AGENT/Docs/stat_breakdown_character_sheet_plan_2026-06-14.md`.
+      `AGENT/Docs/plans/stat_breakdown_character_sheet_plan_2026-06-14.md`.
 
 **Needs tester clarification (left unchecked on the returned handbook, no comment):**
 
@@ -1040,7 +1040,7 @@ Ratified 2026-06-13 (June decision record):
   UI-scale setting exists (OPEN-11).
 - **Web:** playtest channel.
 - **Debug Web playtest path:** target design recorded in
-  `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md`. First pass is a private debug Web
+  `AGENT/Docs/plans/debug_web_playtest_plan_2026-06-20.md`. First pass is a private debug Web
   channel with a 16:9 Godot canvas and emulator-style touch controls outside the
   game visuals; it does not promote mobile to a full platform target.
 - **Gamepad:** with the key-rebind milestone. Known gap (noted 2026-06-19): the input
@@ -1080,7 +1080,7 @@ field from OPEN-4:
 with a `campaign_rules` member), update the snapshot serializer, and update `NewGameScreen`
 to populate the object. This is a Phase 3 task within the §2 campaign/save cluster.
 **Player-facing scope is firmed** (2026-06-21b,
-`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md`); the consolidation now also
+`AGENT/Docs/design/campaign_save_player_facing_firming_2026-06-21.md`); the consolidation now also
 owns the **story-flip mutation seam** (rules scriptable by authored events, never player UI)
 and a **rewind-charge** field (hooks only — mechanic needs `RngService`/Package A). The
 technical implementation plan is the next planning deliverable (Open Items Register §H).
@@ -2430,7 +2430,7 @@ later. LAN first, online after.
 
 The full set of online design decisions — synchronization model, transport,
 matchmaking, reconnection, trust, army source, and more — is catalogued in
-`AGENT/Docs/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
+`AGENT/Docs/design/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
 ratified on 2026-05-17** — see `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md` for
 the recorded outcomes. The decisions that drive Part B's build:
 - **Sync model:** host-authoritative client-server (host owns the truth, validates
@@ -2745,7 +2745,7 @@ review under `AGENT/Code Reviews/`).
       arrow tiles from the unit to the cursor while in `UNIT_SELECTED`.
       `MapCursorSelection.plan_path_to` already computes the tile list.
 - [ ] **Individual unit threat range** — **DESIGNED 2026-06-21**
-      (`AGENT/Docs/individual_threat_range_design_2026-06-21.md`; TUR-1..4 resolved). Contextual
+      (`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md`; TUR-1..4 resolved). Contextual
       MMB (cursor over a hostile enemy → that enemy's threat tiles; else faction): a persistent
       `_watch_set` + `_danger_mode` cycle (`full|selected|combined|none`), darker-red watch
       overlay + "D" markers, extraction of `get_unit_threat_tiles` from
@@ -2925,10 +2925,10 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
 | `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
 | `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |
-| `AGENT/Docs/v0.2.2_review_checkbacks_2026-06-20.md` | v0.2.2 live-verify check-backs (Open Items Register §C/§D detail) |
-| `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
+| `AGENT/Docs/playtests/v0.2.2_review_checkbacks_2026-06-20.md` | v0.2.2 live-verify check-backs (Open Items Register §C/§D detail) |
+| `AGENT/Docs/plans/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
 | `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
-| `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
-| `AGENT/Docs/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
-| `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` | V021-15 shared selector / More-Info navigation extraction design |
-| `AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` | Gamepad input layer impl plan (action map, focus wiring, bindings, slices) |
+| `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
+| `AGENT/Docs/plans/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
+| `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md` | V021-15 shared selector / More-Info navigation extraction design |
+| `AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` | Gamepad input layer impl plan (action map, focus wiring, bindings, slices) |

@@ -704,7 +704,7 @@ All gameplay randomness flows through a hash-chained, context-seeded `RngService
 that rewind, suspend save, and Retry reproduce identical outcomes, and online play can
 be host-authoritative. This section is the **binding contract**; the implementation
 plan (code, integration sweep, tests, build order) is
-`AGENT/Docs/rng_determinism_design_2026-06-11.md`.
+`AGENT/Docs/design/rng_determinism_design_2026-06-11.md`.
 
 ### Specs (binding rules)
 
@@ -752,7 +752,7 @@ plan (code, integration sweep, tests, build order) is
 - Tests (target): determinism T1–T7 (replay, snapshot round-trip, butterfly/isolation,
   equip neutrality, raw-RNG lint, suspend round-trip, roll-order freeze)
 - Decisions: RNG-1…4, RULE-001, OPEN-13
-- Implementation plan: `AGENT/Docs/rng_determinism_design_2026-06-11.md`
+- Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG
 
 ---

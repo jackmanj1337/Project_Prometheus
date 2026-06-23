@@ -370,12 +370,12 @@ combat smarts (weapon/item/trade)**. (1) and (2) are small and ride already-desi
 
 > **Build spec (2026-06-22c):** Group A is complete — the resolved decisions `[AIP-1..10]` +
 > `[AIP-A11/A12]` are synthesized into one implementable design at
-> **`AGENT/Docs/ai_first_build_design_2026-06-22.md`** (architecture, data model, presets,
+> **`AGENT/Docs/design/ai_first_build_design_2026-06-22.md`** (architecture, data model, presets,
 > behaviors, `set_ai`/grouping, build slice + tests, deferred seams). Build that against Package A.
 
 ## 9. Design vision (player-facing + campaign-builder + architecture) *(2026-06-22a)*
 The forward vision that this register's MVP must not paint into a corner is captured in
-**`AGENT/Docs/ai_system_design_vision_2026-06-22.md`**: AI as a **composition engine** (Activation
+**`AGENT/Docs/design/ai_system_design_vision_2026-06-22.md`**: AI as a **composition engine** (Activation
 / Disposition / Engagement axes + grouping + difficulty), profiles as **presets**, **author-
 defined difficulty bands** (modifier overlays on the encounter layer), **presets-first data
 authoring** (branch I), and **disposition visible by default** + an opt-in tutorial/easy action-

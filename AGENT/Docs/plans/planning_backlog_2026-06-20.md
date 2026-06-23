@@ -36,22 +36,22 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
     `gamepad_layer_implementation_plan_2026-06-20.md` (action map, focus wiring, bindings,
     analog repeat, `input_mode_changed` seam, 4 slices, test plan).
   - **Broader resolver — ✅ PLAN DRAFTED (2026-06-21):**
-    `AGENT/Docs/input_mode_resolver_implementation_plan_2026-06-21.md` (Auto/Touch/K&M
+    `AGENT/Docs/plans/input_mode_resolver_implementation_plan_2026-06-21.md` (Auto/Touch/K&M
     detect-floor + conditional-promotion resolver, gray/back-door availability, the
     `[controls]` persistence + `mouse_cursor` relocation, and the DoD#2 `check_docs` guards
     for the `input_mode` / `touch_controls` value-sets). **Decisions resolved 2026-06-21**
     ([ICD-1] new `InputModeManager` autoload, [ICD-2] resolver = gamepad slice 3, [ICD-3]
     touch-first detection) — **build-ready**; slice 1 (persistence + guards) has no
-    dependency. See `AGENT/Docs/input_controls_open_decisions_2026-06-21.md`.
+    dependency. See `AGENT/Docs/registers/input_controls_open_decisions_2026-06-21.md`.
 - **V021-15 — shared selector extraction. ✅ DESIGN DONE (2026-06-20j):**
-  `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
+  `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md`.
   - Was: three surfaces navigate independently (sheet grid, forecast F-cycle, terrain
     F-paging); no extraction design. It is the single joypad-wiring point.
   - Produced: scope = extract a `SelectionCursor` navigation core + an input-routing/arbiter
     convention (NOT a unified render widget); rendering stays per-surface; per-consumer
     adoption notes + headless test plan. Implements with the gamepad layer.
 - **Key rebinding UI. ✅ PLAN DRAFTED (2026-06-21):**
-  `AGENT/Docs/key_rebind_ui_implementation_plan_2026-06-21.md` — capture-UI flow, conflict
+  `AGENT/Docs/plans/key_rebind_ui_implementation_plan_2026-06-21.md` — capture-UI flow, conflict
   handling, reset, per-device-slot model (so a K&M rebind can't wipe the pad binding), and
   composition with the input-mode setting. **Decisions resolved 2026-06-21** ([ICD-4]
   per-device slots, [ICD-5] all actions rebindable + always-on Reset + human-readable cfg +
@@ -66,8 +66,8 @@ Deck + phone-controller + virtual-gamepad + web shell. Entirely docs-only to pla
 ## 2. Campaign / save cluster — gates the 1.0 campaign (D-D)
 
 **✅ PLAYER-FACING SCOPE FIRMED (2026-06-21b)** then **✅ TECHNICAL PLAN + DECISIONS DRAFTED
-(2026-06-21):** `AGENT/Docs/campaign_save_technical_plan_2026-06-21.md` (architecture, schema,
-flows, slices) + `AGENT/Docs/campaign_save_open_decisions_2026-06-21.md` (**[CST-1..12] all
+(2026-06-21):** `AGENT/Docs/plans/campaign_save_technical_plan_2026-06-21.md` (architecture, schema,
+flows, slices) + `AGENT/Docs/registers/campaign_save_open_decisions_2026-06-21.md` (**[CST-1..12] all
 RESOLVED**; one [CST-13] deferred to execution kickoff). Player-facing firming:
 `campaign_save_player_facing_firming_2026-06-21.md`. **KEY SEQUENCING ([CST-12] → C): Package A
 (`RngService`) is built FIRST, before the §2 spine** — so the next EXECUTION step is a Package A
@@ -127,7 +127,7 @@ firming branch it came from.
   The MVP importer is built to **sniff zip-vs-json** so a pack imports with no migration. Needs:
   pack-format + authoring/distribution plan.
   - **CONTENT MODEL — RESOLVED 2026-06-23 (`[ICO-1..6]`, owner REFRAMED to SELF-CONTAINED).** Register:
-    `AGENT/Docs/campaign_content_overlay_open_questions_2026-06-23.md`. The pack carries **content**
+    `AGENT/Docs/registers/campaign_content_overlay_open_questions_2026-06-23.md`. The pack carries **content**
     (weapons/items/classes/skills, incl. **labels + art**), not just maps/roster/rules. **Model =
     SELF-CONTAINED, everything user-defined** (NOT the base+overlay fork — *this reverses the
     direction first set 2026-06-23a*). Each campaign is a **complete, independent bundle**; **no
@@ -187,7 +187,7 @@ firming branch it came from.
 ## 4. UI / UX enhancements — backlog bullets, no plans
 
 Range-on-hover overlay; movement path arrows; **individual unit threat range — ✅ DESIGNED
-2026-06-21 (`AGENT/Docs/individual_threat_range_design_2026-06-21.md`); unblocks the gamepad
+2026-06-21 (`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md`); unblocks the gamepad
 contextual R3 danger-zone. [TUR-1..4] ALL RESOLVED (persistent watch set + display-mode
 cycle; darker-red watch layer + "D" markers; contextual MMB; auto-promote/demote, prune dead,
 survive phases + save/load). Slice 1 (extraction) build-ready; slice 2 needs one editor step

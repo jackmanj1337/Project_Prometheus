@@ -15,8 +15,8 @@ The single place to resolve every choice that the two remaining input/controls p
 could **not** draft without a call from you. Both implementation plans are drafted
 decision-free and defer here by ID:
 
-- `AGENT/Docs/input_mode_resolver_implementation_plan_2026-06-21.md`
-- `AGENT/Docs/key_rebind_ui_implementation_plan_2026-06-21.md`
+- `AGENT/Docs/plans/input_mode_resolver_implementation_plan_2026-06-21.md`
+- `AGENT/Docs/plans/key_rebind_ui_implementation_plan_2026-06-21.md`
 
 The already-settled input/controls choices live in
 `input_mode_architecture_design_2026-06-20.md` → *Resolved decisions* (4 of them) and are

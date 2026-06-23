@@ -10,10 +10,10 @@ Status: Target design
 Last verified: 2026-06-20
 
 Coupled work:
-- `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` — this plan builds that
+- `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` — this plan builds that
   design's **sequencing item #1** (the gamepad layer = keystone for Deck, phone+controller,
   virtual-gamepad, and the debug-web shell).
-- `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` — V021-15: the single
+- `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md` — V021-15: the single
   joypad-wiring point this plan attaches More-Info navigation to.
 
 > **Tracking home:** `AGENT/GDD/GDD_10_Roadmap.md` → *Forward Platform Workstreams*
@@ -121,7 +121,7 @@ is contextual:
 
 **Prerequisite dependency edge:** the per-enemy contextual mode requires implementing
 per-unit threat-range computation + render first. **Now designed:**
-`AGENT/Docs/individual_threat_range_design_2026-06-21.md` — it extracts the per-unit
+`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` — it extracts the per-unit
 primitive (`get_unit_threat_tiles`) and defines a shared **resolver** routing the
 `show_danger_zone` action by cursor context: **over a hostile enemy → toggle it in a
 persistent watch set; over empty terrain → cycle the display mode** (`full | selected |
@@ -173,7 +173,7 @@ The **right stick** is reserved (camera pan, a later consumer; not this slice). 
 — an input-context owner that guarantees exactly one of {map cursor, modal menu, selector} is
 live (replacing the `_input_suppressed` bool + per-menu consume discipline), letting menus
 move to native Godot focus. It subsumes the V021-15 selector arbiter, so it lands with that
-work, not here. See `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md`.
+work, not here. See `AGENT/Docs/design/shared_selector_extraction_design_2026-06-20.md`.
 
 ## 6. Active-mode integration (ties to the input-mode design)
 
@@ -251,6 +251,6 @@ target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish
    the left stick (parity with keys). Confirm live that discrete stepping feels right, or
    whether the stick wants a continuous glide instead (would diverge from the keyboard model).
 4. **Per-enemy threat range** — ✅ now designed in
-   `AGENT/Docs/individual_threat_range_design_2026-06-21.md` (its slices 1–2 are the
+   `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` (its slices 1–2 are the
    prerequisite; this plan's slice 4 binds R3 through that design's shared resolver). This
    plan still ships the resolver + faction path regardless.

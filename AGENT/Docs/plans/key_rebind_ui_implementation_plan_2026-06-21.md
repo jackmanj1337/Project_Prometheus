@@ -15,11 +15,11 @@ what's missing is the capture flow, conflict handling, reset, and how it compose
 gamepad bindings and the input-mode setting.
 
 Coupled work:
-- `AGENT/Docs/gamepad_layer_implementation_plan_2026-06-20.md` — adds joypad events to the
+- `AGENT/Docs/plans/gamepad_layer_implementation_plan_2026-06-20.md` — adds joypad events to the
   same actions; the binding model must not wipe them ([ICD-4]).
-- `AGENT/Docs/input_mode_resolver_implementation_plan_2026-06-21.md` — `[controls]` cfg +
+- `AGENT/Docs/plans/input_mode_resolver_implementation_plan_2026-06-21.md` — `[controls]` cfg +
   the input-mode setting this composes with.
-- `AGENT/Docs/input_controls_open_decisions_2026-06-21.md` — open choices by `[ICD-n]`.
+- `AGENT/Docs/registers/input_controls_open_decisions_2026-06-21.md` — open choices by `[ICD-n]`.
 
 > **Tracking home:** GDD_10 → *Open Items Register* §A (Input/controls). Docs-only until
 > the [ICD-4]/[ICD-5]/[ICD-6] decisions land.

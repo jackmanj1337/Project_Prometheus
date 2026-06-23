@@ -258,7 +258,7 @@ hit RNs, then a crit RN on a hit, then skill activation rolls at their trigger s
 is the binding contract; reordering it is a save/replay-breaking change. Architecture,
 autoload order, snapshot persistence, accepted exploits, and the online model are owned
 by `GDD_01 → Determinism & RNG`; the build/implementation plan is
-`AGENT/Docs/rng_determinism_design_2026-06-11.md`.
+`AGENT/Docs/design/rng_determinism_design_2026-06-11.md`.
 
 **Mid-exchange weapon breakage (OPEN-3, Answered).** If a weapon breaks mid-exchange,
 it **cancels that unit's remaining strikes** in the exchange (consistent with
@@ -279,7 +279,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 - Code: `scripts/core/CombatResolver.gd` (target: `scripts/autoloads/RngService.gd`)
 - Tests: `scripts/tests/test_combat.gd` (target: RNG determinism T1–T7)
 - Decisions: RULE-001, RNG-1…4, OPEN-3, pipeline order
-- Reference: `GDD_Adoption_Matrix.md`; `AGENT/Docs/rng_determinism_design_2026-06-11.md`
+- Reference: `GDD_Adoption_Matrix.md`; `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 
 ---
 
