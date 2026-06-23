@@ -35,11 +35,20 @@ validate phase vs report phase** as explicit, individually testable steps, and d
 whether the in-progress `skill.validate()` loop and the two `push_error` loops should be
 unified.
 
+> **FORWARD DEP — campaign-overlay loading (campaign-PACK branch I3, direction set 2026-06-23).**
+> The campaign-content model (`planning_backlog_2026-06-20.md` §2b branch I3) is **base-load +
+> campaign-overlay**: core defaults from `res://data/`, then a selected campaign's content overlaid
+> (include-subset / override-by-id / add-new) on campaign-select — *not* the boot-time global-only
+> load today. **Keep the `_load_all()` phase parameterizable** (a load source/dir + an overlay pass),
+> so this decomposition doesn't bake in global-only boot loading. No need to build the overlay now;
+> just don't preclude it.
+
 ## 2. Draft plan
 
 Extract `_ready()` into three named phases, each a function:
 1. **`_load_all()`** — the four `_load_directory` calls (populates `_classes/_weapons/
-   _items/_skills`). Already exists as calls; wrap them.
+   _items/_skills`). Already exists as calls; wrap them. **(Leave room for a campaign-overlay
+   source per the forward-dep note above.)**
 2. **`_validate_all() -> Array[String]`** — folds the `skill.validate()` loop +
    `collect_validation_errors` + `collect_map_registry_validation_errors` into ONE pure
    function returning all errors. Today the skill `validate()` loop push_errors *separately*
