@@ -170,10 +170,14 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   `resolve_icon()`; DMR-4's `_apply_overlay()` merge → replace-load; heaviest build = the ICO-5 seed-copy/
   enumeration/repair path) → **RE-SEQUENCED 2026-06-23 (owner): finish the player-facing surface FIRST,
   then builder authority.** The designer authoring contract (4a–4e) is deferred behind a pass to *finish
-  defining all player-facing features* (`player_facing_scope_map_2026-06-23.md` — GAP clusters =
-  convoy/shop/recruit/support/rescue/PvP, each owed an A–J-style firming); the 4a–4e authority pass then
-  uses that feature list as its checklist, then implementation. Design is **not** gated by Package A
-  (that gates §2 *execution* only).
+  defining all player-facing features* (`player_facing_scope_map_2026-06-23.md`). **v1 scope broadly
+  defined 2026-06-23h (owner):** FIRM = convoy/shop/equip-items/recruit(+capture)/support/rescue/PvP +
+  all Tier-1 staples (dancer/canto/utility-staves/village-visit/difficulty+Casual-Phoenix) + skirmish
+  (auto/random-leveled); DISCUSS-and-plan = arena/combat-arts/battalions-gambits/movement-assists/
+  bonus-EXP/**training-halls (NEW)**; INVESTIGATE = avatar. **Cross-cutting: no wander area — the prep
+  screen is the author-parameterized between-chapter hub** (option panels per node), expanding the firmed
+  §2 branch C. The 4a–4e authority pass then uses that feature list as its checklist, then implementation.
+  Design is **not** gated by Package A (that gates §2 *execution* only).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
 

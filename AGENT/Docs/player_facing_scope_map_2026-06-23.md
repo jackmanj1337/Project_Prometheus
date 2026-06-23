@@ -49,41 +49,85 @@ All **Designed** (player-facing behavior specified), awaiting build — *not* ga
 - **Map readability / threat range** `[MRD-1..6]` + individual threat range `[TUR-1..4]`.
 - **Broken-weapon degraded mode** `[BWN-1..5]`.
 
-## 3. The GAP worklist — player-facing firming still owed
-These are the clusters with **undefined player-facing behavior**; finishing them completes step (1).
-Each wants an A–J-style firming pass (player experience first, code-side after):
+## 3. v1 player-facing scope (owner, 2026-06-23h) — broad definition
+
+Each item still needs an A–J-style firming pass (player experience first, code-side after); this
+section sets **what's in v1 and at what commitment level**, not the firmed behavior.
+
+### 3a. Cross-cutting design decisions (owner)
+- **NO wander-around area.** The **prep screen is the parameterized between-chapter hub**: the author
+  declares **which option panels + theme are available at each node / location / time** (e.g. convoy,
+  shop, arena, training hall, recruit, skirmish launch). **Expands the firmed §2 branch C** and revises
+  C4's "empty for MVP" — prep becomes the host for author-gated option panels. (Authoring side feeds the
+  later 4a–4e builder-authority pass: "which prep options does this node expose.")
+- **Skirmish / grind encounters — IN.** Accessed via a prep option (NOT free-roam), with enemy rosters
+  **auto-leveled / randomly-leveled**. Ties difficulty bands `[AIP-11]` (stat scaling) + EXP/economy
+  balance. Supports optional grinding without an overworld.
+- **Capture folds into Recruit (F)** — it's a recruitment mechanism, designed within that firming.
+
+### 3b. The v1 worklist (commitment-tagged)
+
+**FIRM — mechanics committed to v1 (define the behavior):**
 1. **Convoy / inventory management (branch D)** — shared store, prep trade, on-map access, `max_inventory=8`.
 2. **Shop / economy (branch E)** — between-map buy/sell, gold sources/sinks, (forge later).
-3. **Equip items / accessories (DIG MORE LATER — added 2026-06-23g).** Scaffolding exists but the
-   *mechanic* is undefined. Today: `InventoryEntry.entry_type=="equip"` + flat bonus fields
-   (`accuracy/damage/crit/dodge`) that `CombatResolver._apply_equip_item_modifiers()` applies
-   **passively for every equip entry held** (no equip/unequip action, no slot, no exclusivity); the
-   `until_unequipped` duration label renders but **has no producer**; the named equip items (Full Guard,
-   Iron Rune, Knight Ring, Wing Guard, Laguz Guard) are **Planned, not built**. **To firm:** passive-
-   while-held vs a real equip slot/toggle; exclusivity; which stats it may grant (the 4 combat fields
-   can't express +STR/+MOV — needs a `stat_buff`/`active_modifiers` path); the `until_unequipped`
-   lifecycle. **Reconcile the stale `InventoryEntry.gd` comment** ("M10 forging — no code reads this
-   yet") — `CombatResolver` *does* read those fields. Pairs with the convoy/inventory firming (1).
-4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX. (D-D prerequisite.)
+3. **Equip items / accessories** *(dig-more-later — 2026-06-23g)*. Scaffolding exists but the *mechanic*
+   is undefined: `InventoryEntry.entry_type=="equip"` + flat bonus fields (`accuracy/damage/crit/dodge`)
+   that `CombatResolver._apply_equip_item_modifiers()` applies **passively for every equip entry held**
+   (no equip/unequip action/slot/exclusivity); `until_unequipped` label renders **with no producer**;
+   named equip items (Full Guard, Iron Rune, Knight Ring, Wing Guard, Laguz Guard) **Planned**. To firm:
+   passive-while-held vs an equip slot/toggle; exclusivity; grantable stats (4 combat fields can't do
+   +STR/+MOV → needs `stat_buff`/`active_modifiers`); the lifecycle. **Reconcile the stale
+   `InventoryEntry.gd` "M10 forging — no code reads this yet" comment** (`CombatResolver` does). Pairs w/ (1).
+4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX; **includes Capture** as
+   a recruit mechanism. (D-D prerequisite.)
 5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.
-6. **Rescue system (branch H3)** — carry/drop, weight/CON, canto; Pair-Up/Rescue exclusivity prior.
+6. **Rescue system (branch H3)** — carry/drop, weight/CON, canto-interaction; Pair-Up/Rescue exclusivity prior.
 7. **PvP / scenario mode** — standalone non-campaign match (reuses the preserved standings renderer).
-8. *(Lighter)* **Skill content per-skill UX (M9b)** + **status-condition UX check-backs (M8)** — more
-   content/polish than net-new mechanic definition; can ride their build milestones.
+8. **Dancer / refresh** (Tier 1) — a unit action that grants an ally another action; M10 Extra-Turn is the
+   activation substrate, the Dance *action/unit* is the new design.
+9. **Canto** (Tier 1) — move-again-after-action (mounted); interacts with Rescue (6).
+10. **Utility staves** (Tier 1) — Warp / Rescue / Hammerne (+ the M8 Restore/offensive staves); teleport/repair utility.
+11. **Village / house visit** (Tier 1) — visit-tile → item/gold/recruit, **enemy can raze it** (time
+    pressure); composes over Map Events `[MET]` + doors `[DCH]` but is its own visit action + razable pattern.
+12. **Difficulty modes + Casual/Phoenix permadeath variants** (Tier 1) — player-facing mode selection +
+    Casual (dead units return after chapter) / Phoenix (revive next turn); rides `CampaignRules` + `[AIP-11]` bands.
+13. **Skirmish encounters** (per 3a) — author-gated prep option; auto/random-leveled rosters.
 
-> **Genre-scan candidates (raised 2026-06-23g, NOT yet triaged onto the worklist):** dancer/refresh
-> action · canto · utility staves (Warp/Rescue/Restore/Hammerne) · village/house visit (+razable) ·
-> difficulty modes + Casual/Phoenix permadeath variants · avatar/My Unit · between-chapter base hub ·
-> skirmish/grind encounters · arena · capture · combat arts · battalions/gambits/adjutants · movement
-> assists (reposition/shove/swap) · bonus-EXP award · 2nd-gen children · fatigue/biorhythm. Owner to
-> decide which are in-scope for an Awakening-derived game (see session note 2026-06-23g for the tiering).
+**DISCUSS & PLAN — in v1 consideration, design discussion before commit:**
+14. **Arena** — risk gold/EXP for combat (grind/gamble); a prep-hub option; ties economy (2) + bonus-EXP (18).
+15. **Combat arts / weapon arts** — spend durability/charge for a special attack (Three Houses–style).
+16. **Battalions / gambits** (± adjutants) — attached unit granting bonuses + an AoE gambit; pair-up-adjacent.
+17. **Movement assists** — reposition / shove / swap / pivot (ally-positioning actions).
+18. **Bonus-EXP award** — award banked EXP to chosen units (Tellius/3H); ties skirmish/economy/training.
+19. **Training halls (NEW — owner 2026-06-23h)** — a prep-hub option where a character **spends
+    resources** to obtain **NON-TRANSFERABLE** per-character benefits: **class XP · weapon XP · stat
+    bonuses · skills · other effects**. A character-investment sink (distinct from convoy/items, which are
+    transferable). Open: resource type (gold vs a dedicated training currency/points), caps, availability
+    gating. Relates to bonus-EXP (18), arena (14), shop/economy (2).
+
+**INVESTIGATE feasibility:**
+20. **Avatar / "My Unit"** (owner: "look into the possibility") — player-created unit (name / class /
+    stats / portrait). Feasibility Qs: does the roster/`UnitData` model support an author-less,
+    player-built unit; reuse of existing reclass/level systems; save-vs-campaign binding; story role
+    (avatar-as-lord?). **Action: a feasibility dive, then decide in/out.**
+
+**LIGHTER — ride build milestones (no standalone firming):**
+21. Skill content per-skill UX (M9b) + status-condition UX check-backs (M8).
+
+### 3c. Deferred / out of v1 (from the genre scan, not chosen)
+2nd-gen children units (Awakening) · fatigue (Thracia) · biorhythm (Tellius) · durability-free weapons
+(Fates) · Triangle Attack. (Revisit post-v1 if wanted.)
 
 ## 4. Sequencing (owner, 2026-06-23) + how this feeds the builder
-1. **Finish the §3 GAP worklist** (this pass) — so the full player-facing surface is firmed.
+1. **Firm the §3 v1 worklist** (this pass) — so the full player-facing surface is defined. **The
+   prep-as-hub decision (§3a) is foundational** — many FIRM/DISCUSS items (shop, arena, training hall,
+   recruit, skirmish) hang off it as author-gated prep option panels, so firm the hub framing early.
+   DISCUSS-and-plan items (14–19) need a design conversation before their behavior is firmed;
+   INVESTIGATE (20, avatar) needs a feasibility dive before it's in or out.
 2. **Then** the **campaign-builder authority pass** (the deferred 4a–4e authoring contract in
    `campaign_save_expectations_and_foundations_2026-06-23.md` §4): for each firmed feature, decide what
-   a campaign author may **include / configure / exclude / mandate**. This map's feature list becomes
-   that pass's checklist.
+   a campaign author may **include / configure / exclude / mandate** — incl. **which prep option panels a
+   node exposes** (§3a). This map's feature list becomes that pass's checklist.
 3. **Then** implementation (rides §2 + Package A execution).
 
 **Not gated by Package A** (that gates §2 *execution*). DoD: firming docs are planning artifacts; each
