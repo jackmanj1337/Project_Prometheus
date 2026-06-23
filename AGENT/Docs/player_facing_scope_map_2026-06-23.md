@@ -54,12 +54,29 @@ These are the clusters with **undefined player-facing behavior**; finishing them
 Each wants an A–J-style firming pass (player experience first, code-side after):
 1. **Convoy / inventory management (branch D)** — shared store, prep trade, on-map access, `max_inventory=8`.
 2. **Shop / economy (branch E)** — between-map buy/sell, gold sources/sinks, (forge later).
-3. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX. (D-D prerequisite.)
-4. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.
-5. **Rescue system (branch H3)** — carry/drop, weight/CON, canto; Pair-Up/Rescue exclusivity prior.
-6. **PvP / scenario mode** — standalone non-campaign match (reuses the preserved standings renderer).
-7. *(Lighter)* **Skill content per-skill UX (M9b)** + **status-condition UX check-backs (M8)** — more
+3. **Equip items / accessories (DIG MORE LATER — added 2026-06-23g).** Scaffolding exists but the
+   *mechanic* is undefined. Today: `InventoryEntry.entry_type=="equip"` + flat bonus fields
+   (`accuracy/damage/crit/dodge`) that `CombatResolver._apply_equip_item_modifiers()` applies
+   **passively for every equip entry held** (no equip/unequip action, no slot, no exclusivity); the
+   `until_unequipped` duration label renders but **has no producer**; the named equip items (Full Guard,
+   Iron Rune, Knight Ring, Wing Guard, Laguz Guard) are **Planned, not built**. **To firm:** passive-
+   while-held vs a real equip slot/toggle; exclusivity; which stats it may grant (the 4 combat fields
+   can't express +STR/+MOV — needs a `stat_buff`/`active_modifiers` path); the `until_unequipped`
+   lifecycle. **Reconcile the stale `InventoryEntry.gd` comment** ("M10 forging — no code reads this
+   yet") — `CombatResolver` *does* read those fields. Pairs with the convoy/inventory firming (1).
+4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX. (D-D prerequisite.)
+5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.
+6. **Rescue system (branch H3)** — carry/drop, weight/CON, canto; Pair-Up/Rescue exclusivity prior.
+7. **PvP / scenario mode** — standalone non-campaign match (reuses the preserved standings renderer).
+8. *(Lighter)* **Skill content per-skill UX (M9b)** + **status-condition UX check-backs (M8)** — more
    content/polish than net-new mechanic definition; can ride their build milestones.
+
+> **Genre-scan candidates (raised 2026-06-23g, NOT yet triaged onto the worklist):** dancer/refresh
+> action · canto · utility staves (Warp/Rescue/Restore/Hammerne) · village/house visit (+razable) ·
+> difficulty modes + Casual/Phoenix permadeath variants · avatar/My Unit · between-chapter base hub ·
+> skirmish/grind encounters · arena · capture · combat arts · battalions/gambits/adjutants · movement
+> assists (reposition/shove/swap) · bonus-EXP award · 2nd-gen children · fatigue/biorhythm. Owner to
+> decide which are in-scope for an Awakening-derived game (see session note 2026-06-23g for the tiering).
 
 ## 4. Sequencing (owner, 2026-06-23) + how this feeds the builder
 1. **Finish the §3 GAP worklist** (this pass) — so the full player-facing surface is firmed.
