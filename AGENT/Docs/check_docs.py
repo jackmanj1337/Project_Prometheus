@@ -23,6 +23,8 @@ Checks:
  15. Render cfg   — project.godot pins gl_compatibility + stretch aspect keep (V021-18/19)
  16. Resolutions  — RESOLUTION_CHOICES offers native 1440p + 4K (V021-19)
  17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
+ 18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
+ 19. Archive marks — archive/ docs carry a marker; Superseded targets resolve (DSR-4)
 """
 
 import re
@@ -47,7 +49,7 @@ def _is_historical(path: Path) -> bool:
             for i, line in enumerate(fh):
                 if i >= 10:
                     break
-                if re.search(r">\s*\*\*(Historical|ARCHIVED|Archived)\*\*", line):
+                if re.search(r">\s*\*\*(Historical|ARCHIVED|Archived|Superseded)\*\*", line):
                     return True
     except OSError:
         pass
@@ -565,6 +567,64 @@ def check_duration_type_vocabulary() -> None:
                   "(VALID_DURATION_TYPES — keep the list in sync)")
 
 
+# ── check 18: generated manifests are up to date ─────────────────────────────
+
+def check_generated_manifests() -> None:
+    """INDEX.md / REGISTERS.md must match `gen_docs_index.build()` (DSR-3).
+
+    The catalog is generated, not hand-maintained (roadmap §H rotted as prose). This
+    guard fails if a doc header changed without regenerating — run
+    `python3 AGENT/Docs/gen_docs_index.py`. Same self-consistency pattern as check 11.
+    """
+    docs_dir = ROOT / "AGENT/Docs"
+    sys.path.insert(0, str(docs_dir))
+    try:
+        import gen_docs_index  # noqa: E402  (lives beside this script)
+    except Exception as exc:  # pragma: no cover - import guard
+        _fail("gen-manifest", docs_dir / "gen_docs_index.py", 1,
+              f"could not import gen_docs_index: {exc}")
+        return
+    for name, content in gen_docs_index.build().items():
+        target = docs_dir / name
+        on_disk = target.read_text(encoding="utf-8") if target.exists() else None
+        if on_disk != content:
+            _fail("gen-manifest", target, 1,
+                  "out of date — run `python3 AGENT/Docs/gen_docs_index.py` and commit")
+
+
+# ── check 19: archive markers + supersession targets ─────────────────────────
+
+_SUPERSEDED_BY_RE = re.compile(r"Superseded\*\*\s*by\s*\[[^\]]*\]\(([^)]+)\)")
+
+
+def check_archive_markers() -> None:
+    """Archived docs must declare it; a `Superseded by [..](path)` target must exist (DSR-4).
+
+    Makes "which decision is live" unambiguous from inside any dead doc: every file under
+    AGENT/Docs/archive/ carries a Historical/ARCHIVED/Superseded marker in its first 10
+    lines, and any supersession link resolves to a real file.
+    """
+    docs_dir = ROOT / "AGENT/Docs"
+    archive_dir = docs_dir / "archive"
+    if archive_dir.is_dir():
+        for path in sorted(archive_dir.rglob("*.md")):
+            if not _is_historical(path):
+                _fail("archive-marker", path, 1,
+                      "file under archive/ lacks a Historical/ARCHIVED/Superseded marker "
+                      "in its first 10 lines")
+    # Supersession targets must resolve (scan all Docs markdown).
+    for path in sorted(docs_dir.rglob("*.md")):
+        try:
+            head = "\n".join(path.read_text(encoding="utf-8").splitlines()[:10])
+        except OSError:
+            continue
+        for m in _SUPERSEDED_BY_RE.finditer(head):
+            target = (path.parent / m.group(1)).resolve()
+            if not target.exists():
+                _fail("archive-marker", path, 1,
+                      f"'Superseded by' target does not exist: {m.group(1)!r}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -586,6 +646,8 @@ def main() -> None:
         ("[15] Render/display config",     check_render_display_config),
         ("[16] Resolution choices",        check_resolution_choices),
         ("[17] Duration-type vocabulary",  check_duration_type_vocabulary),
+        ("[18] Generated manifests",       check_generated_manifests),
+        ("[19] Archive markers",           check_archive_markers),
     ]
     for label, fn in steps:
         print(f"  {label}...")
