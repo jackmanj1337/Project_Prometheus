@@ -143,6 +143,13 @@ How much of the overlay *load path* do we lock in this refactor?
   stub that pushes a clear error if handed a non-empty overlay (so a premature caller fails loud,
   not silently). **Forward dep:** `campaign.content_dir` / overlay source shape is an I3 + §2
   `CampaignData` field — DMR only assumes "a source the loader can enumerate," not its format.
+- **UPDATE 2026-06-23 — `_apply_overlay()` MERGE superseded by a REPLACE-LOAD** (I3 register
+  `campaign_content_overlay_open_questions_2026-06-23.md` [ICO-1] = **self-contained**, owner reframe):
+  campaigns are self-contained (no `defaults ∪ overlay`), so `select_campaign()` *replaces* the content
+  dicts with the campaign's complete set rather than merging an overlay. The seam DMR-4 stood up
+  (`_load_all(source)` parameterization + `select_campaign()` entry) **still stands**; the
+  `_apply_overlay()` merge body is **retired** in favour of `_clear_content()` + `_load_all(campaign.dir)`.
+  Net: the seam work was not wasted; the merge semantics are simply dropped.
 
 ## 4. Notes
 - **Risk: low.** No data, schema, or player-facing change; the static validators are already

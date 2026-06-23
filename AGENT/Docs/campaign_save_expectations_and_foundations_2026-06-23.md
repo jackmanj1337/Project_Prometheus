@@ -25,13 +25,16 @@ here (§5).
 
 ## 1. The core insight everything hangs on
 The save stores **state by id** and **binds to a campaign id**. Everything else (units, weapons,
-items, classes, skills, rules, map placement) is **resolved by id against `defaults ∪ campaign
-overlay`** at load. Two consequences frame all the work below:
+items, classes, skills, rules, map placement) is **resolved by id against that campaign's own
+self-contained content set** at load. *(Reframed 2026-06-23: `[ICO-1]` — the model is
+**self-contained per-campaign packs**, not a `defaults ∪ overlay` merge; `select_campaign()`
+**replaces** the content rather than merging.)* Two consequences frame all the work below:
 - **Player interaction** is about *progressing and persisting* that state → already firmed (§2).
-- **Designer interaction** is about *authoring the defaults/overlay/graph/rules* that the state
-  resolves against → the open frontier (branch I3 + the eventual GUI builder).
-- The seam between them is the **`DataManager` base-load + campaign-overlay** path (`[DMR-1..3]`),
-  which does not yet exist (today it hard-loads global dirs only).
+- **Designer interaction** is about *authoring the self-contained content/graph/rules* a campaign
+  carries → the open frontier (branch I3 + the eventual GUI builder).
+- The seam between them is the **`DataManager` per-campaign load** path (`[DMR-1..4]`, RESOLVED) +
+  the **first-run `res://`→`user://` seed-copy + `user://` enumeration** (`[ICO-5]`); today it
+  hard-loads global `res://` dirs via the manifest only.
 
 ---
 
@@ -41,13 +44,15 @@ overlay`** at load. Two consequences frame all the work below:
 | --- | --- | --- | --- |
 | **L0 — `RngService` (Package A)** | determinism → meaningful suspend `rng{map_seed, history_hash}`, the rewind/Turnwheel substrate | `rng_determinism_design_2026-06-11.md` | build-ready; **gates §2 execution** |
 | **L1 — `SaveManager` + `SaveData` seam + `SaveCodec`** | I/O-free serialize/deserialize seam; JSON-primitive state by id; integrity hashes; export/import; slots | `[CST-1/2/9/10]` | designed |
-| **L2 — `DataManager` base-load + overlay** | resolve ids against `defaults ∪ overlay`; campaign-select triggers overlay load | `[DMR-1..4]` | **seam RESOLVED 2026-06-23** (load path parameterized; `_apply_overlay()` body = I3) |
-| **L3 — `CampaignData` graph + `MapData` + content library** | progression nodes (map refs, `next`, required/excluded/cap), reusable map geometry, weapons/items/classes/skills (+ labels, +art/icons) | graph `[CST-3/5/6]` designed; **content overlay (I3) OPEN** | mixed |
+| **L2 — `DataManager` per-campaign load** | `select_campaign()` loads a campaign's complete content set (replace); ids resolve against that one set | `[DMR-1..4]` | **seam RESOLVED 2026-06-23** (merge→replace-load per `[ICO-1]`) |
+| **L3 — `CampaignData` graph + `MapData` + content set** | progression nodes (map refs, `next`, required/excluded/cap), reusable map geometry, weapons/items/classes/skills (+ labels, +art/icons) | graph `[CST-3/5/6]` designed; **content model `[ICO-1..6]` RESOLVED 2026-06-23 (self-contained)** | mixed |
 | **L4 — `CampaignRules`** | per-save rule object; author mandates vs defaults; story-flip seam; rewind charges | `[CST-4/6/11]` | designed |
 
-**Three data tiers** (content model, set 2026-06-23a): (1) core defaults `res://data/` → (2) campaign
-**package** = authored content + labels + art (the overlay) → (3) per-playthrough **save** = state by
-id, binds to a campaign id. **Art lives in the package, never in the save.**
+**Two data tiers** (content model RESOLVED 2026-06-23, `[ICO-1..6]` — *self-contained*, supersedes the
+2026-06-23a overlay tiers): (1) campaign **package** = the campaign's **complete** content + labels +
+art, in `user://` (defaults are copied `res://`→`user://` on first run as the "default campaign") →
+(2) per-playthrough **save** = state by id, binds to a campaign id, resolves against **that campaign's
+own set**. **Art lives in the package, never in the save**, and is **raw-loaded** (no `.import`).
 
 ---
 
@@ -80,17 +85,19 @@ the substance of the next register walks. Five expectation clusters:
 - **4b. Rules authoring.** Per-rule **mandate (locked)** vs **default (player-editable)`; designate
   `protected_fields` (tamper-warning baseline + author additions); define story-flip points that call
   `apply_rule_flip`. (Seam firmed `[CST-4/6/11]`; the authoring surface is open.)
-- **4c. Content overlay authoring — branch I3 (the deepest open piece).** Inherit defaults, then
-  **include a subset / modify (relabel, re-art) / add new** weapons, items, classes, skills. Settles
-  via sub-decisions **a–e** (recs in `planning_backlog §2b`, NOT ratified):
-  (a) include model — inherit-all then add/override/**exclude**; (b) override granularity —
-  whole-resource-replace-by-id v1; (c) id namespacing — shared default namespace + collision-validate;
-  (d) default-content versioning — pack records the defaults version it overlays; (e) `res://` (shipped)
-  vs `user://` (authored). **Net-new schema:** an `icon` field on `WeaponData`/`ItemData` (items are
-  text-only today) → per-campaign item art for free once added.
-- **4d. Packaging & distribution — branch I3.** The distributable campaign bundle (maps + roster +
-  graph + rules + content overlay + art); zip vs json (importer already sniffs `PK\x03\x04` vs `{`);
-  default-content version stamping; no cross-version migration pre-1.0 (keep `format_version`).
+- **4c. Content authoring — branch I3 `[ICO-1..6]` RESOLVED 2026-06-23 (SELF-CONTAINED).** A campaign
+  authors a **complete, independent** content set (weapons/items/classes/skills + labels + art) — no
+  runtime inheritance. The builder seeds it by **copying the default-content palette** and the author
+  edits whole resources. Resolved: include = self-contained (a); override = whole-resource, no merge (b);
+  intent = authoring-time provenance `forked_from` only (c); versioning = provenance stamp
+  `builder_content_version`, no gate (d); location = copy `res://`→`user://` on first run + uniform
+  enumeration (e). **Net-new schema (f):** `icon: String` on `WeaponData`/`ItemData` + a `resolve_icon()`
+  raw-Image helper (field+seam now, UI render deferred).
+- **4d. Packaging & distribution — branch I3.** The distributable, **self-contained** campaign bundle
+  (maps + roster + graph + rules + complete content + art) living in `user://`; export/import (importer
+  already sniffs `PK\x03\x04` zip vs `{` json); `builder_content_version` provenance; no cross-version
+  migration pre-1.0 (keep `format_version`). **Heaviest build work: the ICO-5 first-run seed-copy +
+  `user://` enumeration + reset/repair path.**
 - **4e. The authoring tool.** GUI campaign editor vs hand-authored JSON. The firming deliberately kept
   saves/data human-readable + data-driven to keep both open; the GUI editor is the eventual authoring
   surface over 4a–4d (AI-vision §2/§GUI).
@@ -105,9 +112,9 @@ the substance of the next register walks. Five expectation clusters:
 | §2 technical decisions `[CST-1..12]` | decisions register | **firmed** |
 | `[CST-13]` rewind fold-in | decisions register | deferred to §2 exec kickoff |
 | L0 `RngService` | Package A design | build-ready (gates §2) |
-| L2 `DataManager` base+overlay seam `[DMR-1..4]` | DMR register | **RESOLVED 2026-06-23** (seam; body = I3) |
-| L3 content overlay model (I3 a–e) | planning_backlog §2b | **OPEN (direction only)** |
-| Item `icon` schema field | (none yet) | **OPEN — net-new** |
+| L2 `DataManager` per-campaign load seam `[DMR-1..4]` | DMR register | **RESOLVED 2026-06-23** (merge→replace-load per ICO-1) |
+| L3 content model (I3 `[ICO-1..6]`) | ICO register | **RESOLVED 2026-06-23 — self-contained** |
+| Item `icon` schema field | ICO register `[ICO-6]` | **RESOLVED** (String path + `resolve_icon()`; field now, render later) |
 | Designer authoring contract (4a–4e) | (this doc seeds it) | **OPEN — no register yet** |
 | GUI campaign editor | AI-vision §2/§GUI | OPEN (far) |
 
@@ -115,14 +122,16 @@ the substance of the next register walks. Five expectation clusters:
 
 ## 6. Recommended walk order (next sessions)
 The designer side is the leverage point, and it forces the substrate decisions in the right order:
-1. ~~**Walk `[DMR-1..3]`** (L2) — lock the base-load + campaign-overlay path.~~ **DONE 2026-06-23:**
-   `[DMR-1..4]` RESOLVED — seam parameterized (`_load_all(base, overlay=null)` + `select_campaign()` +
-   `_apply_overlay()` stub); merge semantics deferred to I3. `defaults ∪ overlay` load path is now real.
-2. **NEXT — open an I3 content-overlay register** — ratify sub-decisions a–e; **fill `_apply_overlay()`'s
-   body** (the [DMR-4] stub); add the item `icon` field as its first concrete schema consequence.
-3. **Draft the designer authoring contract (4a–4e)** as a register — the requirements the campaign
-   pack + GUI editor must support, independent of GUI-vs-JSON.
-4. Player side stays firmed; revisit only if 2–3 surface a forced change (flag it, don't silently edit).
+1. ~~**Walk `[DMR-1..3]`** (L2).~~ **DONE 2026-06-23:** `[DMR-1..4]` RESOLVED — load seam parameterized
+   (`_load_all(source)` + `select_campaign()`). *(Note: `[DMR-4]`'s `_apply_overlay()` merge was later
+   superseded by a replace-load when `[ICO-1]` chose self-contained.)*
+2. ~~**Open the I3 content register** — ratify a–e + item `icon`.~~ **DONE 2026-06-23:** `[ICO-1..6]`
+   RESOLVED — **owner reframed to SELF-CONTAINED** (no overlay); copy `res://`→`user://` on first run;
+   `icon: String` + `resolve_icon()`. Build weight moved to the ICO-5 seed-copy/enumeration/repair path.
+3. **NEXT — draft the designer authoring contract (4a–4e)** as a register — the requirements a campaign
+   pack + GUI editor must support (progression, rules mandates/defaults, the self-contained content set,
+   packaging), independent of GUI-vs-JSON.
+4. Player side stays firmed; revisit only if 3 surfaces a forced change (flag it, don't silently edit).
 
 **Build track is unchanged and independent:** Package A Step 1 (L0) is still the next *execution*
 step; the L2/L3/4x work above is *design* and is not gated by it.

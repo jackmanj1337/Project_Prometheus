@@ -162,11 +162,14 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   Support, Rescue, campaign-pack format, rewind *mechanic*/Package A, cross-version migration).
   **DESIGN-side frontier (next, 2026-06-23):** the **designer/authoring** half is the open work —
   framing + foundations map in `AGENT/Docs/campaign_save_expectations_and_foundations_2026-06-23.md`
-  (substrate stack L0–L4; player surface firmed; **designer authoring contract 4a–4e OPEN, no
-  register yet**). Walk progress: **`[DMR-1..4]` RESOLVED 2026-06-23** (L2 base+overlay load seam
-  parameterized; merge semantics deferred to I3) → **next: I3 content-overlay register** (sub-decisions
-  a–e + item `icon` field) → designer authoring contract. Design is **not** gated by Package A (that
-  gates §2 *execution* only).
+  (substrate stack; player surface firmed; **designer authoring contract 4a–4e OPEN, no register yet**).
+  Walk progress: **`[DMR-1..4]` RESOLVED** (L2 per-campaign load seam) → **`[ICO-1..6]` RESOLVED
+  2026-06-23 — owner REFRAMED the content model to SELF-CONTAINED** (`campaign_content_overlay_open_questions_2026-06-23.md`;
+  each campaign = a complete independent pack of user-defined assets, **no runtime overlay** — *reverses
+  the 2026-06-23a base+overlay direction*; copy `res://`→`user://` on first run; `icon: String` +
+  `resolve_icon()`; DMR-4's `_apply_overlay()` merge → replace-load; heaviest build = the ICO-5 seed-copy/
+  enumeration/repair path) → **next: the designer authoring contract (4a–4e)**. Design is **not** gated
+  by Package A (that gates §2 *execution* only).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
 

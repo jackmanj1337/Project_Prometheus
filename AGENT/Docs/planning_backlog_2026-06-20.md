@@ -120,33 +120,32 @@ firming branch it came from.
   bundle (maps + roster + progression graph + rules); likely home for zip-bundling/compression.
   The MVP importer is built to **sniff zip-vs-json** so a pack imports with no migration. Needs:
   pack-format + authoring/distribution plan.
-  - **CONTENT MODEL — DIRECTION SET 2026-06-23 (owner).** The pack also carries **content**
-    (weapons/items/classes/skills, incl. **labels + art**), not just maps/roster/rules. Model =
-    **shared DEFAULT content library ships with the game; each campaign INHERITS it, then the GUI
-    editor lets designers INCLUDE a subset / MODIFY (override) / ADD new content.** This is the
-    "base + per-campaign overlay" fork (chosen over independent-per-campaign). Enables e.g. the same
-    basic sword being "Iron Sword" in one campaign and "Bronze Katana" in another by overriding the
-    resource's `display_name`/art. **Why it's mostly cheap:** content is already **id-keyed +
-    resource-driven**, and `display_name` already lives ON the `WeaponData`/`ItemData` resource — so
-    relabeling = authoring an override `.tres`, no new theming system. **Three layers:** (1) core
-    defaults [`res://data/`], (2) **campaign package** [authored content + labels + art — where the
-    overlay lives], (3) per-playthrough **save** [state by id; binds to a campaign id; resolves ids
-    against defaults ∪ overlay]. **Keep art in the campaign package, never in the save.**
-  - **Sub-decisions the I3 register/build must settle (recs noted, NOT yet ratified):**
-    (a) **Include model** — rec: campaign *inherits all defaults*, then add/override/**exclude**
-    (friendlier than an opt-in whitelist). (b) **Override granularity** — rec: **whole-resource
-    replace by id** for v1 (field-level patch later if needed). (c) **ID namespacing** — campaign
-    content shares the default id namespace so override-by-id works; new ids validated against
-    collisions. (d) **Default-content versioning** — the pack records which default-content version
-    it overlays (so a later defaults change can't silently break a pack); ties the existing
-    `format_version`/no-pre-1.0-migration stance. (e) **`res://` vs `user://`** — shipped campaigns
-    in `res://`, user/GUI-authored in `user://`; asset/path loading differs.
-  - **DMR / DataManager dependency.** `DataManager._ready()` loads hardcoded global dirs today; this
-    model needs **base-load + campaign-overlay** loading on campaign-select. The DMR decomposition
-    `[DMR-1..3]` should leave room for a campaign-overlay load path (not bake in global-only). Also
-    the eventual **GUI campaign editor** (AI vision §2/§GUI) is the authoring surface for include/
-    modify/add. **Item ICONS are net-new** (no `icon` field on `WeaponData`/`ItemData` today, items
-    are text-only) — once added as a resource field they become per-campaign for free.
+  - **CONTENT MODEL — RESOLVED 2026-06-23 (`[ICO-1..6]`, owner REFRAMED to SELF-CONTAINED).** Register:
+    `AGENT/Docs/campaign_content_overlay_open_questions_2026-06-23.md`. The pack carries **content**
+    (weapons/items/classes/skills, incl. **labels + art**), not just maps/roster/rules. **Model =
+    SELF-CONTAINED, everything user-defined** (NOT the base+overlay fork — *this reverses the
+    direction first set 2026-06-23a*). Each campaign is a **complete, independent bundle**; **no
+    runtime inheritance/overlay** — `select_campaign(c)` *replaces* the content dicts with c's full
+    set. Default content ships with the **builder** as a copy-from palette and is **copied
+    `res://`→`user://` on first run**; the loader then uniformly enumerates `user://` campaign dirs;
+    all content art is **raw-loaded** (`Image.load_from_file`→`ImageTexture`). Relabel ("Iron Sword"
+    vs "Bronze Katana") is still cheap — id-keyed + `display_name` on the resource — but it's a
+    whole-resource copy in the campaign, not a runtime override. **Costs accepted:** content
+    duplication/bloat + **no central patch propagation** (fix a default → re-ship each campaign).
+    **Two tiers (art in the package, never the save):** (1) campaign package [complete content + art,
+    in `user://`], (2) per-playthrough **save** [state by id; binds to a campaign id; resolves against
+    **that campaign's own set**].
+  - **Resolved sub-decisions ([ICO-1..6], 2026-06-23):** include = **self-contained** (a); override
+    granularity = whole-resource, trivial w/o merge (b); override-intent = **authoring-time provenance
+    `forked_from` only**, no runtime validation (c); versioning = **provenance stamp
+    `builder_content_version`**, no load gate (d); location = **copy to `user://` on first run** +
+    uniform enumeration (e); **item `icon`** = new `@export var icon: String` on `WeaponData`+`ItemData`
+    + `resolve_icon()` raw-Image helper, **field+seam now / UI render deferred** (f).
+  - **DMR / DataManager dependency.** `[DMR-1..4]` RESOLVED 2026-06-23 — its `_apply_overlay()` *merge*
+    stub is **superseded by a replace-load** under self-contained (the `select_campaign()`/
+    `_load_all(source)` seam stands). **Heaviest new build work = the first-run seed-copy + `user://`
+    enumeration + reset/repair path (ICO-5)**, not a merge engine. The eventual **GUI campaign editor**
+    (AI vision §2/§GUI) is the authoring surface (copy-from-defaults → edit → write whole resources).
 - **Rewind MECHANIC (branch J — distinct from the MVP hooks).** The actual per-action Turnwheel
   is blocked on `RngService` (Package A) — `rng_determinism_design_2026-06-11.md`. **Sequencing
   RESOLVED (§2 technical plan, [CST-12] → C, 2026-06-21): Package A is built FIRST, before the §2
