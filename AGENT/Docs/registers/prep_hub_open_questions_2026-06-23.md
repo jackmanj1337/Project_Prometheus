@@ -50,14 +50,16 @@ How is "the hub" presented and modeled?
 - **Rec: C** — a flat panel list is enough for the linear-degenerate graph and reuses the firmed
   prep screen; a cosmetic theme/label gives author flavor without a navigation subsystem. Promote
   to B with the overworld.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → C]** (owner 2026-06-23k) — flat panel list **+** a cosmetic
+  `theme`/`location_label` per node; navigable named locations deferred to the overworld era.
 
 ### [PHB-2] Panel availability default — opt-in vs opt-out  **[OPEN]**
 - **A — Opt-in:** panels OFF by default; the node declares `prep_panels: [...]`. A node with none
   = today's deploy-only prep. Explicit; matches the mandate/default philosophy (authors opt in).
 - **B — Opt-out:** all panels available unless the node excludes them.
 - **Rec: A** — explicit per-node panel list; least surprising, and it is the clean §4a authoring hook.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — panels opt-in; node declares
+  `prep_panels: [...]`; empty ⇒ today's deploy-only prep.
 
 ### [PHB-3] Gating axes — what scopes a panel's availability  **[OPEN]**
 The owner phrased it "available at each node / location / time." "Time" has no substrate pre-overworld.
@@ -78,7 +80,13 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 - **Rec: A for v1** — preserves the firmed graph and the "every node launches a battle" model; the
   hub panels are reachable from the same pre-battle prep. Revisit B with the overworld (it is a graph
   shape change, not a panel change).
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → B-schema / A-scope]** (owner 2026-06-23k) — **model node type as a
+  first-class, author-switchable field NOW** (a node is freely re-typed between **battle** [has
+  `map_id` + prep + Begin Battle] and **hub** [prep/panels only, advances via "Continue" instead of
+  Begin Battle], and a battle node's `map_id` is freely re-pointed). **Build battle-nodes first
+  ("start small")**; a pure **hub** node is the **near-term** next increment, **not** overworld-gated.
+  Net: add `node_type` (battle|hub) to the progression-graph node; the firmed `node→map` is the
+  `battle` case. Begin Battle becomes "the commit action" generically (launch map, or advance node).
 
 ### [PHB-5] Hub flow & commit point  **[OPEN]**
 - **A — Free navigation, single commit:** the hub is a stateful screen; the player opens/closes
@@ -87,7 +95,9 @@ The owner phrased it "available at each node / location / time." "Time" has no s
 - **B — Linear wizard** (shop → convoy → deploy → begin).
 - **Rec: A** — free navigation is the genre expectation and keeps Begin Battle as the one
   irreversible step; everything before it is revisable.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — free navigation; the single commit is the
+  node-advance action (Begin Battle on a `battle` node, Continue on a `hub` node per [PHB-4]); manual
+  Save available throughout.
 
 ### [PHB-6] Theme — cosmetic vs mechanical  **[OPEN]**
 - **A — Cosmetic only:** `theme`/`location_label` = background art ref + label (+ optional music id);
@@ -112,3 +122,15 @@ The owner phrased it "available at each node / location / time." "Time" has no s
   not during firming (the §2 firming pattern).
 - Downstream panels (convoy/shop/arena/training/recruit/skirmish) each get their **own** firming
   register; this one only fixes the **container** they plug into.
+
+---
+
+# Resolution Log
+(newest first)
+
+- **2026-06-23k — Structural batch (PHB-1/2/4/5).** [PHB-1] **C** flat list + cosmetic theme.
+  [PHB-2] **A** opt-in per-node `prep_panels`. [PHB-4] **B-schema / A-scope** (owner) — `node_type`
+  (battle|hub) is a first-class author-switchable field now; build battle-nodes first, pure hub nodes
+  are the near-term next increment (not overworld-gated); Begin Battle generalizes to a node-advance
+  commit. [PHB-5] **A** free navigation, single commit. **Schema impact:** progression-graph node gains
+  `node_type` + `prep_panels: [...]` + `theme`/`location_label`. PHB-3/6/7 pending.
