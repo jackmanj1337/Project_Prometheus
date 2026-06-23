@@ -1,8 +1,9 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED 2026-06-23
 Last verified: 2026-06-23
 Register: SHP-1..5
+Resolved-in: 2026-06-23k
 ---
 
 # Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions
@@ -37,7 +38,13 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **B — Separate explicit buy/sell price fields** per item.
 - **Rec: A** — `cost` already exists as the canonical value; a single global sell-% is simplest and
   consistent with the author-rule pattern; per-item sell overrides can be added later as data growth.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → B+, resource-keyed]** (owner 2026-06-23k) — **separate buy and sell
+  amounts**, modeled as a **resource cost (required to buy) / resource yield (gained on sell)** structure
+  **organized by resource type**, NOT a single gold int + sell-%. v1 resource = **gold** (existing `cost`
+  becomes the gold buy amount); the structure is **extensible to other resources** (e.g. training-hall
+  points — scope map §3b #19). **[SHP-1b → multi-resource, gold-only in v1]** (owner) — build the
+  resource-keyed cost/yield structure (`resource_type → amount`) supporting N currencies; **v1 populates
+  only gold**; other currencies slot in later with no reshape (do NOT enumerate the currency set yet).
 
 ### [SHP-2] Buy and sell, or buy-only  **[OPEN]**
 - **A — Both buy and sell.** Sellable gated by `item_type` (key/non-sellable can't be sold); weapons
@@ -45,7 +52,8 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **B — Buy-only** (selling disabled).
 - **Rec: A** — the `item_type` "sellable"/"key" split already exists; both directions is the genre norm
   and gives the economy a second gold source. An author could disable selling via a rule later.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — both buy and sell; key/non-sellable gated by
+  `item_type`; weapons sellable by default.
 
 ### [SHP-3] Stock model — what a shop offers  **[OPEN]**
 - **A — Author-defined per-shop stock list, infinite quantity, one generic shop panel.** Each shop-panel
@@ -56,7 +64,9 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **C — Global shared catalog** (every shop sells the same list).
 - **Rec: A** — author-controlled per-shop stock, infinite qty, one flexible panel; restock cadence rides
   the economy-deferred PHB-3 flag; typed shops are unnecessary structure.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — author-defined per-shop stock list, infinite
+  quantity in v1, one generic panel (mixed weapons+items; categories display-only); restock cadence rides
+  the deferred PHB-3 flag.
 
 ### [SHP-4] Where bought items go  **[OPEN]**
 - **A — To convoy** (the single shared store, `[CNV-6]`); the player distributes via the adjacent convoy
@@ -64,7 +74,14 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **B — Directly onto a chosen unit** (inline, with `max_inventory` enforcement + convoy overflow).
 - **Rec: A** — purchases land in convoy; equipping/distributing is the convoy panel's job. Clean
   separation, no inline cap-handling in the shop. (B as a later convenience.)
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → context-dependent]** (owner 2026-06-23k) — **prep-hub shop → convoy**
+  (A); **battlefield shop → the accessing unit, overflow → convoy** (B). Surfaces a new **battlefield-shop**
+  context (a mid-battle armory/vendor the player *visits*). **Note:** the overflow-write to convoy is
+  narrower than full on-map convoy *management* — the `[CNV-5]` prep-only-convoy deferral still stands
+  (you can't browse/withdraw convoy at a battlefield shop, only overflow into it). **[SHP-4b → record rule now,
+  mechanic later]** (owner) — lock the destination rule now; **design the on-map shop-access mechanic
+  (visit-tile) with the village / Map-Events `[MET]` cluster** (#11), not this register's first build.
+  Shop firming's build focus = **prep shops**.
 
 ### [SHP-5] v1 gold ledger — sources & sinks  **[OPEN]**
 Today: only source = map `reward_gold`; no sinks. Shop is the first sink — the economy needs a stated
@@ -74,11 +91,31 @@ ledger to be balanceable.
   skirmish/bonus-EXP-adjacent; sinks = forge / arena bet / training-hall. Document, don't build.
 - **Rec: A** — record the ledger so balance is trackable; v1 is reward+sell vs shop-buy. Other flows land
   with their own firming registers.
-- **Resolution:** _[OPEN]_
+- **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — v1 sources = map `reward_gold` + selling;
+  v1 sink = shop buy. Forward sources/sinks (chests/villages/arena/skirmish/bonus; forge/arena-bet/
+  training) ride their own registers. Ledger generalizes to the SHP-1 resource model.
 
 ## 4. Notes
-- **Save impact (§2):** none new — `party_gold` already persists + snapshots. Shop stock is **campaign
-  content/authoring** (per-node), not save state.
+- **NEW schema — resource-keyed pricing (`[SHP-1]`):** a `resource_type → amount` cost/yield structure
+  replaces the flat single-`cost`-int + sell-% model for transactions; v1 populates **gold only**. Per-save
+  resource balances beyond `party_gold` are **forward** (added when a system needs them, e.g. training
+  points); v1 keeps `party_gold` (already persists/snapshots). Item `cost` field → the gold buy amount.
+- **Save impact (§2):** none new in v1 — `party_gold` already persists + snapshots. Shop stock is
+  **campaign content/authoring** (per-node), not save state.
+- **NEW forward surface — battlefield shops (`[SHP-4]`):** an on-map visit-tile armory/vendor; destination
+  rule fixed here (buy→accessing unit, overflow→convoy), access mechanic designed with village/`[MET]` (#11).
 - **Forge (E3) deferred** (scope map); the unified weapon-stat-delta display is reserved for weapon-upgrades
   (`[BWN]` note). Repair-at-shop for broken weapons is the `[BWN-1..5]` deferral target.
 - DoD: GDD chapter + `GDD_Feature_Index` row + roadmap status flip land **with the build**, not now.
+
+---
+
+# Resolution Log
+(newest first)
+
+- **2026-06-23k — register COMPLETE.** [SHP-1] **B+ resource-keyed** (separate buy/sell, `resource_type→
+  amount` cost/yield; **[SHP-1b]** multi-resource model, gold-only in v1). [SHP-2] **A** buy+sell, key
+  unsellable. [SHP-3] **A** author per-shop stock, infinite qty, generic panel. [SHP-4] **context-dependent**
+  — prep shop→convoy, battlefield shop→unit + convoy overflow; **[SHP-4b]** record rule now, on-map mechanic
+  designed with village/`[MET]`, build focus = prep shops. [SHP-5] **A** v1 ledger (sources reward+sell /
+  sink shop), generalizes to the resource model.
