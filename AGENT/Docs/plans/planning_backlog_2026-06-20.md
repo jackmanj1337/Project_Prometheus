@@ -109,6 +109,15 @@ them so each is **later data-growth, not a reshape** — but they still need the
 plan when re-surfaced. Re-surface candidates **after the §2 spine lands**. Each names the
 firming branch it came from.
 
+> **STATUS UPDATE 2026-06-23 — these are now COMMITTED v1 features, not "maybe-later."** The owner's v1
+> scope (`player_facing_scope_map_2026-06-23.md` §3b) **firms** convoy (D), shop/economy (E), equip items,
+> recruit + capture (F), Support (H2), Rescue (H3) — and PvP/scenario — **into v1**; each gets its own A–J
+> firming pass, sequenced behind the prep-as-hub keystone (scope map §3a/§4). They remain **out of the §2
+> *save-cluster* MVP** (still later slices), so this section stays valid as the **save-schema-reservation**
+> tracker — but read "re-surface" below as "firm per the scope map," **not** "decide whether they're in v1."
+> Still genuinely deferred beyond the firming pass: the rewind *mechanic* (branch J) and cross-version save
+> migration (branch I5).
+
 - **Convoy / inventory (branch D).** Shared party convoy (item quantities + store), in-prep
   trade, on-map convoy access, and `max_inventory = 8` enforcement (defined, unenforced today).
   Save reserves `party_items`. Needs: convoy UX + per-unit inventory management plan.
