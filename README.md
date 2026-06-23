@@ -21,9 +21,9 @@ ordering — it is the single roadmap owner. Not for the current runtime contrac
 
 For centralized practical workflows, use:
 
-- `AGENT/Docs/map_authoring_guide.md`
-- `AGENT/Docs/testing_guide.md`
-- `AGENT/Docs/campaign_rules.md`
+- `AGENT/Docs/guides/map_authoring_guide.md`
+- `AGENT/Docs/guides/testing_guide.md`
+- `AGENT/Docs/guides/campaign_rules.md`
 
 ## Current Runtime Highlights
 
@@ -46,7 +46,7 @@ Use this in a fresh clone or CI-style environment. It bootstraps Godot's
 import/class cache first, then runs the same suite.
 
 For validation-map roles, manual regression flow, and when to add automated
-coverage, start with `AGENT/Docs/testing_guide.md`.
+coverage, start with `AGENT/Docs/guides/testing_guide.md`.
 
 ## New Machine / Fresh Clone Setup
 
@@ -84,7 +84,7 @@ copied from `.env.example`, and the SSH key/host alias used by the `origin` remo
   roster on missing/failed roster setup.
 
 If you are adding content instead of changing engine logic, use
-`AGENT/Docs/map_authoring_guide.md` before touching `map_registry.json` or new
+`AGENT/Docs/guides/map_authoring_guide.md` before touching `map_registry.json` or new
 runtime-scanned folders.
 
 ## GitHub Actions

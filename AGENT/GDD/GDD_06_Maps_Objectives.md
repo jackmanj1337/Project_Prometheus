@@ -13,7 +13,7 @@ authored values) and the **objective + authored-map contracts**. The *combat eff
 terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
 (`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
 authoring workflow, registry entry shape, roster-policy rules, and export-manifest
-reminders, use `AGENT/Docs/map_authoring_guide.md`.
+reminders, use `AGENT/Docs/guides/map_authoring_guide.md`.
 
 ## Map System Overview
 

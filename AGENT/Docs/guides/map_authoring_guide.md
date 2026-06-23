@@ -10,7 +10,7 @@ For system rules and player-facing behavior, still read:
 
 1. `AGENT/GDD/GDD_06_Maps_Objectives.md`
 2. `AGENT/GDD/GDD_01_Architecture.md`
-3. `AGENT/Docs/testing_guide.md`
+3. `AGENT/Docs/guides/testing_guide.md`
 
 ## Minimum deliverables
 
@@ -178,7 +178,7 @@ Use this rough rule:
 - Update manual validation coverage when the authored content or player flow changes.
 - For new validation maps, document what the map is supposed to prove.
 
-Start from `AGENT/Docs/testing_guide.md` for the full checklist.
+Start from `AGENT/Docs/guides/testing_guide.md` for the full checklist.
 
 ## Recommended workflow
 

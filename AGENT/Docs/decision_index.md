@@ -38,7 +38,7 @@ but not yet applied to the GDD). Homes:
 | DOC-004 | Roadmap ownership | Answered | REG | Retire GDD_10a; GDD_10 owns. Apply in Stage 4. |
 | DOC-005 | Feature-index location | Applied | REG | `AGENT/GDD/GDD_Feature_Index.md` seeded (Stage 1.4). |
 | DOC-006 | Historical checklist/assumptions | Answered | REG | Merge+delete GDD_09 & GDD_Assumptions. Apply in Stage 5.2. |
-| DOC-007 | Manual-test playbook location | Answered | REG | Move GDD_Manual_Tasks → `AGENT/Docs/manual_test_playbook.md`. Stage 5.2. |
+| DOC-007 | Manual-test playbook location | Answered | REG | Move GDD_Manual_Tasks → `AGENT/Docs/guides/manual_test_playbook.md`. Stage 5.2. |
 | DOC-008 | Superseded-document policy | Answered | REG | Move/remove now, gated on lifecycle table. Stage 5. |
 | DOC-009 | Decision-log structure | Applied | REG | Dated records + this index. |
 | DOC-010 | Location of June reference contracts | Answered | REG | Move both to Docs; archive update-ref (Stage 5.2), merge RNG into GDD home (Stage 3.1). |

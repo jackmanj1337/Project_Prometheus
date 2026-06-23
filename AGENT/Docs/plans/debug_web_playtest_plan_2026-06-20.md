@@ -238,7 +238,7 @@ unless the checklist explicitly needs them.
    - Add `AGENT/Docs/playtest_checklist_web_debug_v0.2.3.md`.
    - Add `AGENT/Docs/playtest_build_web_debug_v0.2.3.md` after export with commit,
      file list, size/hash, host URL, and known caveats.
-   - Update `AGENT/Docs/environment_setup.md` with Web export commands after the
+   - Update `AGENT/Docs/guides/environment_setup.md` with Web export commands after the
      preset lands.
 
 6. **Export and host**

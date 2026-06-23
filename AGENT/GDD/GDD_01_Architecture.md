@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-20
+**Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -49,9 +49,9 @@ primary source for shipped behavior; use GDD_01–GDD_08 for that.
 
 Cross-cutting workflow guides:
 
-- `AGENT/Docs/map_authoring_guide.md`
-- `AGENT/Docs/testing_guide.md`
-- `AGENT/Docs/campaign_rules.md`
+- `AGENT/Docs/guides/map_authoring_guide.md`
+- `AGENT/Docs/guides/testing_guide.md`
+- `AGENT/Docs/guides/campaign_rules.md`
 
 ---
 
@@ -456,9 +456,9 @@ instead of substituting another roster behind the scenes.
 
 Practical follow-up guides:
 
-- map authoring and registry rules: `AGENT/Docs/map_authoring_guide.md`
-- campaign-rule ownership: `AGENT/Docs/campaign_rules.md`
-- validation expectations: `AGENT/Docs/testing_guide.md`
+- map authoring and registry rules: `AGENT/Docs/guides/map_authoring_guide.md`
+- campaign-rule ownership: `AGENT/Docs/guides/campaign_rules.md`
+- validation expectations: `AGENT/Docs/guides/testing_guide.md`
 
 ### `SettingsManager.gd`
 
@@ -667,7 +667,7 @@ campaign systems depend on.
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
 > `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
-> Evergreen rule reference: `AGENT/Docs/campaign_rules.md`.
+> Evergreen rule reference: `AGENT/Docs/guides/campaign_rules.md`.
 
 **Target design (consolidated `CampaignRules` + new fields).**
 - Consolidate the rule fields above into a single `CampaignRules` object referenced by
@@ -688,7 +688,7 @@ campaign systems depend on.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd` (current rule fields); `scripts/resources/CampaignRules.gd` (stub)
-- Guide: `AGENT/Docs/campaign_rules.md`
+- Guide: `AGENT/Docs/guides/campaign_rules.md`
 - Decisions: OPEN-4, OPEN-5, RNG-3, D-D
 - Roadmap: GDD_10 §Release Gates / CampaignRules Stub; EXP gating owner: GDD_02
 

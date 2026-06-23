@@ -2345,7 +2345,7 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 > `AGENT/Docs/archive/plans/implementation_plan_2026-05-21.md` remains the reference for the
 > architecture and validation scope. The WHOLE_PHASE validation map/launch path
 > and `Faction - Controller` HUD/banner text are implemented. Remaining Part-A
-> work is the manual acceptance checklist in `AGENT/Docs/manual_test_playbook.md`.
+> work is the manual acceptance checklist in `AGENT/Docs/guides/manual_test_playbook.md`.
 >
 > Part A is scoped to **WHOLE_PHASE maps only**; `ALTERNATING` hotseat remains
 > deferred. The `grant_extra_turn` checklist item below is still **blocked on M10**
@@ -2683,7 +2683,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 - [ ] Finish cap-management UI. `GameState.max_skills` is enforced for
       auto-equipped learned skills and defaults to 5; manual skill swapping is
       not built. `max_inventory` remains future-facing until trade/inventory UI.
-- [ ] Review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md` — align
+- [ ] Review and productionize `AGENT/Docs/guides/fe_map_sprite_importer_guide.md` — align
       naming/layout assumptions with project asset standards, add validation/error
       handling requirements, and define how imported outputs plug into faction-aware
       runtime data. **Decisions needed before implementation** (raised 2026-05-21):
@@ -2923,8 +2923,8 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
 | `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
 | `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
-| `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
-| `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |
+| `AGENT/Docs/guides/testing_guide.md` | Test execution and naming conventions |
+| `AGENT/Docs/guides/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |
 | `AGENT/Docs/playtests/v0.2.2_review_checkbacks_2026-06-20.md` | v0.2.2 live-verify check-backs (Open Items Register §C/§D detail) |
 | `AGENT/Docs/plans/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
 | `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |

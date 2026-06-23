@@ -7,7 +7,7 @@ Tasks here need action inside the Godot editor (or a tool run) — they are not 
 by editing `.gd` / `.tres` / `.tscn` / `.md` files directly. Each entry notes what
 breaks if it is skipped. Check items off as completed (`- [ ]` → `- [x]`).
 
-Use `AGENT/Docs/testing_guide.md` as the entry point for:
+Use `AGENT/Docs/guides/testing_guide.md` as the entry point for:
 
 - which automated command to run
 - which validation maps cover what

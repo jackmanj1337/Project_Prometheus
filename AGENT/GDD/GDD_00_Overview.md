@@ -86,7 +86,7 @@ are **not** authority sources; retrieve via Git history once removed:
   embedded in owning GDD chapters (GDD_02/03/06/07/08) or in design decisions.
   Retrieve via Git if needed (DOC-006).
 - `GDD_Manual_Tasks.md` — **Moved** (Stage 5.2, 2026-06-13); now at
-  `AGENT/Docs/manual_test_playbook.md` (DOC-007).
+  `AGENT/Docs/guides/manual_test_playbook.md` (DOC-007).
 
 ---
 

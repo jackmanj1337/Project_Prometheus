@@ -73,13 +73,13 @@ _NUMBERED_CHAPTERS = [
 ]
 
 _ACTIVE_GUIDE_FILES = [
-    ROOT / "AGENT/Docs/testing_guide.md",
-    ROOT / "AGENT/Docs/map_authoring_guide.md",
-    ROOT / "AGENT/Docs/environment_setup.md",
-    ROOT / "AGENT/Docs/campaign_rules.md",
-    ROOT / "AGENT/Docs/manual_test_playbook.md",
-    ROOT / "AGENT/Docs/Docker Instructions.md",
-    ROOT / "AGENT/Docs/new_machine_transfer_checklist.md",
+    ROOT / "AGENT/Docs/guides/testing_guide.md",
+    ROOT / "AGENT/Docs/guides/map_authoring_guide.md",
+    ROOT / "AGENT/Docs/guides/environment_setup.md",
+    ROOT / "AGENT/Docs/guides/campaign_rules.md",
+    ROOT / "AGENT/Docs/guides/manual_test_playbook.md",
+    ROOT / "AGENT/Docs/guides/Docker Instructions.md",
+    ROOT / "AGENT/Docs/guides/new_machine_transfer_checklist.md",
 ]
 
 # These are scanned for banned/broken paths but are not operational guides

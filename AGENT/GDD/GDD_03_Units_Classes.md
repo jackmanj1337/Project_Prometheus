@@ -300,5 +300,5 @@ entry (current classes default to A = 400 WEXP; S caps are opt-in).
 > (`GDD_10`, AWR-2), not this chapter.
 
 ### Anchors
-- Guide: `AGENT/Docs/map_authoring_guide.md` (authoring), GDD_01 (`ClassData` schema)
+- Guide: `AGENT/Docs/guides/map_authoring_guide.md` (authoring), GDD_01 (`ClassData` schema)
 - Roadmap: AWR-2

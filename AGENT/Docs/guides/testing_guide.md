@@ -45,7 +45,7 @@ Prefer adding or updating these whenever a change touches runtime logic.
 
 Primary location:
 
-- `AGENT/Docs/manual_test_playbook.md`
+- `AGENT/Docs/guides/manual_test_playbook.md`
 
 Use manual validation for:
 
@@ -149,7 +149,7 @@ If the underlying logic is also new, add both manual and automated coverage.
 
 ## Manual task ownership
 
-`AGENT/Docs/manual_test_playbook.md` is the detailed playbook. Keep it detailed, but
+`AGENT/Docs/guides/manual_test_playbook.md` is the detailed playbook. Keep it detailed, but
 use this file as the entry point.
 
 When updating manual tasks:

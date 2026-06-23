@@ -183,7 +183,7 @@ playbook, then link it from `testing_guide.md` and the feature index. It is not 
 game-design contract.
 
 **Answer:** Accepted 2026-06-13. Move `GDD_Manual_Tasks.md` to
-`AGENT/Docs/manual_test_playbook.md` and re-link from `testing_guide.md` and the
+`AGENT/Docs/guides/manual_test_playbook.md` and re-link from `testing_guide.md` and the
 feature index. Status: **Needs clarification -> Answered** (move executed only
 during the lifecycle/link-migration package, not now).
 
