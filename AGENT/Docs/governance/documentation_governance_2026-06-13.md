@@ -108,7 +108,7 @@ catalog content.
 
 **Structure:** dated decision-record files plus a central index.
 
-- **Index:** `AGENT/Docs/decision_index.md` — one row per decision ID with status
+- **Index:** `AGENT/Docs/decisions/decision_index.md` — one row per decision ID with status
   and a link to its home. Loaded when navigating decisions.
 - **Record files:** dated `AGENT/Docs/decision_record_YYYY-MM-DD_<slug>.md` for
   decisions made in a session. The consolidation register

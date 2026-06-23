@@ -6,7 +6,7 @@ are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
 **Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the **terrain/movement schema** (terrain types, movement categories,
 authored values) and the **objective + authored-map contracts**. The *combat effects* of

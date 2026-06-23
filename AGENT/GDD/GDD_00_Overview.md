@@ -4,7 +4,7 @@
 
 **Status:** Active — project entry point.
 **Last verified:** 2026-06-23
-**Governance:** `AGENT/Docs/documentation_governance_2026-06-13.md`
+**Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
 authority model, points to the feature and decision indices, and summarizes the
@@ -51,7 +51,7 @@ migration. Full table + the GDD section template: the governance doc.
 | Index | Purpose |
 |---|---|
 | `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, roadmap owner, code/data, tests, decisions, and reference source. |
-| `AGENT/Docs/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
+| `AGENT/Docs/decisions/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
 | `GDD_Adoption_Matrix.md` | Which Awakening corpus rules are adopted (target / with variation / rejected / deferred) and the GDD owner of each variation. |
 
 ### Document map (live set)
@@ -75,7 +75,7 @@ relevant feature rows; the GDD does not duplicate them.
 
 ### Documents being retired or migrated
 
-Per the lifecycle table (`AGENT/Docs/documentation_lifecycle_2026-06-13.md`), these
+Per the lifecycle table (`AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md`), these
 are **not** authority sources; retrieve via Git history once removed:
 
 - `GDD_09_Checklist.md` — **Deleted** (Stage 5.2, 2026-06-13); MVP build sequence,

@@ -2,18 +2,18 @@
 
 **Date opened:** 2026-06-13
 **Status:** Active — central navigation index for all project decisions (DOC-009).
-**Schema:** `documentation_governance_2026-06-13.md` → "Decision-Record Schema & ID
-Namespace (DOC-009)".
+**Schema:** `../governance/documentation_governance_2026-06-13.md` → "Decision-Record
+Schema & ID Namespace (DOC-009)".
 
 One row per decision ID. `Status` uses the governance vocabulary; `Applied` records
 where a decision is reflected in the numbered GDD / roadmap / code (blank = answered
 but not yet applied to the GDD). Homes:
 
-- **REG** = `documentation_consolidation_decisions_2026-06-12.md` (DOC-/RULE-/SET-)
+- **REG** = `../governance/documentation_consolidation_decisions_2026-06-12.md` (DOC-/RULE-/SET-)
 - **JUN** = `decision_record_2026-06-13_june_reference_import.md` (D-A…E, OPEN-, RNG-, PL#, pipeline)
-- **GOV** = `documentation_governance_2026-06-13.md`
-- **RNG** = `rng_determinism_design_2026-06-11.md`
-- **AWR** = `awakening_compatability_refactor_plan_2026-05-22.md`
+- **GOV** = `../governance/documentation_governance_2026-06-13.md`
+- **RNG** = `../design/rng_determinism_design_2026-06-11.md`
+- **AWR** = `../plans/awakening_compatability_refactor_plan_2026-05-22.md`
 
 ## ID Namespace (DOC-009)
 

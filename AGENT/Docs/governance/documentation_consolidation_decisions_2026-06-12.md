@@ -126,7 +126,7 @@ design, Planned, Deferred, Open decision, Historical, Superseded.
 prohibit unqualified phrases ("current," "complete," "canonical") in
 status-bearing sections. A feature may carry a **split status** (separate
 `Implemented` and `Target design` lines) during the migration period. The
-ratified table lives in `AGENT/Docs/documentation_governance_2026-06-13.md`.
+ratified table lives in `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 Status: **Applied** to governance artifact (not yet applied to numbered GDD).
 
 ### DOC-004 - Roadmap ownership

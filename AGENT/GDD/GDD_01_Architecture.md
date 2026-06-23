@@ -6,7 +6,7 @@ the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
 **Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns project structure, runtime ownership, autoload order, the
 resource/serialization schemas (`UnitData`, `ClassData`, `WeaponData`, `ItemData`,

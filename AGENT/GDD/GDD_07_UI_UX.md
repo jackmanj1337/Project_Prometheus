@@ -3,9 +3,9 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-20
+**Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the UI surfaces, input map, input parity (keyboard/mouse + hotseat),
 and accessibility contracts. Platform/renderer targets (desktop primary, Steam Deck

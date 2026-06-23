@@ -15,7 +15,7 @@ truth, governance compliance, and navigability.
 ## Scope
 
 Default: the live set — `AGENT/GDD/GDD_00`–`08`, `GDD_10_Roadmap.md`,
-`GDD_Feature_Index.md`, `GDD_Adoption_Matrix.md`, `AGENT/Docs/decision_index.md`, the
+`GDD_Feature_Index.md`, `GDD_Adoption_Matrix.md`, `AGENT/Docs/decisions/decision_index.md`, the
 governance + lifecycle docs, and the active guides. (Or specify a subset / a single
 chapter / a diff.) Historical and Superseded files are out of scope unless a live doc
 still links to one as authority.

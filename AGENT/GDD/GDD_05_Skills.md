@@ -6,7 +6,7 @@ value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
 **Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the skill system (data model, triggers, handler surface), **per-skill
 condition/skill precedence exceptions**, skill acquisition, and the **Pair Up & support**

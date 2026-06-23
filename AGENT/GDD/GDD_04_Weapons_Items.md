@@ -5,7 +5,7 @@
 in `GDD_Adoption_Matrix.md`).
 **Last verified:** 2026-06-14
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns weapon-family definitions, per-weapon/per-item data, the **rank-scaled
 triangle bonus table**, WEXP thresholds/caps/gain/migration detail, effectiveness data,

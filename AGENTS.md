@@ -16,7 +16,7 @@ make regular commits with related messages after each logical step.
 
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
-Documentation lifecycle definition-of-done (DoD#1, formerly PL#8): when a change alters behavior, update the affected GDD_01–08 section(s) AND flip the matching status in GDD_10_Roadmap.md in the SAME commit. Use the governance status vocabulary (AGENT/Docs/documentation_governance_2026-06-13.md) — never the words "current", "complete", or "canonical" in a status-bearing section. (Pairs with the DOC-011 CI documentation checks.)
+Documentation lifecycle definition-of-done (DoD#1, formerly PL#8): when a change alters behavior, update the affected GDD_01–08 section(s) AND flip the matching status in GDD_10_Roadmap.md in the SAME commit. Use the governance status vocabulary (AGENT/Docs/governance/documentation_governance_2026-06-13.md) — never the words "current", "complete", or "canonical" in a status-bearing section. (Pairs with the DOC-011 CI documentation checks.)
 
 Enforcement definition-of-done (DoD#2, formerly PL#9): when you ratify a mechanical, checkable rule (a vocabulary ban, a required header, a path convention), land its automated check in the SAME change — extend AGENT/Docs/check_docs.py. A written rule with no check rots; check_docs.py runs in the pre-commit hook and in CI (.github/workflows), so it is the durable enforcement, not prose.
 

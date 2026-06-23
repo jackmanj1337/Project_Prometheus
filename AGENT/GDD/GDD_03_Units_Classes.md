@@ -3,9 +3,9 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-20
+**Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns unit/class data structure, the starter roster, progression counters,
 promotion/reclass **relationships and class targets**, and the class-adoption plan.

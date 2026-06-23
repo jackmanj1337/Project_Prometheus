@@ -4,9 +4,9 @@
 are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns enemy AI behaviour, AI determinism/parity obligations, and AI
 performance constraints. Combat math is owned by `GDD_02`; the EnemyAI autoload + faction

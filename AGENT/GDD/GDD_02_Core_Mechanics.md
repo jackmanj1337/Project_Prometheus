@@ -5,7 +5,7 @@
 `GDD_Adoption_Matrix.md`).
 **Last verified:** 2026-06-23
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns combat resolution, the RNG/hit model, stats and derived combat
 values, terrain combat, WEXP, combat EXP, leveling, and promotion *trigger timing*.

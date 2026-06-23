@@ -2920,8 +2920,8 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/GDD/GDD_10_Roadmap.md` | **This file** — canonical Phase 2 roadmap, milestone specs, backlog |
 | `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md` | Decision 10 = ordering rule; design locks |
 | `AGENT/GDD/GDD_Feature_Index.md` | Feature → rule owner / roadmap owner routing table (DOC-005) |
-| `AGENT/Docs/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
-| `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
+| `AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
+| `AGENT/Docs/decisions/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
 | `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
 | `AGENT/Docs/guides/testing_guide.md` | Test execution and naming conventions |
 | `AGENT/Docs/guides/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |

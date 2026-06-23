@@ -18,17 +18,17 @@
 
 ## Governance & doc-system
 
-- [`documentation_consolidation_decisions_2026-06-12.md`](documentation_consolidation_decisions_2026-06-12.md) — Documentation Consolidation Decision Register — *Active - owner answers required*
-- [`documentation_governance_2026-06-13.md`](documentation_governance_2026-06-13.md) — Documentation Governance Standards — *Active - ratified governance for the doc*
-- [`documentation_lifecycle_2026-06-13.md`](documentation_lifecycle_2026-06-13.md) — Documentation File Lifecycle & Link-Migration Table — *Active — Phase 1 / Stage 1.1 deliverable*
-- [`documentation_review_instructions.md`](documentation_review_instructions.md) — Documentation Review Instructions — *in a status-bearing line (split-status "*
-- [`documentation_system_audit_2026-06-23.md`](documentation_system_audit_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Audit & Findings — *Active — audit input for the doc-reorg d*
-- [`documentation_system_design_2026-06-23.md`](documentation_system_design_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Design Register — *Active — ratified design for the `AGENT/*
+- [`governance/documentation_consolidation_decisions_2026-06-12.md`](governance/documentation_consolidation_decisions_2026-06-12.md) — Documentation Consolidation Decision Register — *Active - owner answers required*
+- [`governance/documentation_governance_2026-06-13.md`](governance/documentation_governance_2026-06-13.md) — Documentation Governance Standards — *Active - ratified governance for the doc*
+- [`governance/documentation_lifecycle_2026-06-13.md`](governance/documentation_lifecycle_2026-06-13.md) — Documentation File Lifecycle & Link-Migration Table — *Active — Phase 1 / Stage 1.1 deliverable*
+- [`governance/documentation_review_instructions.md`](governance/documentation_review_instructions.md) — Documentation Review Instructions — *in a status-bearing line (split-status "*
+- [`governance/documentation_system_audit_2026-06-23.md`](governance/documentation_system_audit_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Audit & Findings — *Active — audit input for the doc-reorg d*
+- [`governance/documentation_system_design_2026-06-23.md`](governance/documentation_system_design_2026-06-23.md) — Documentation Sorting / Storage / Retrieval — Design Register — *Active — ratified design for the `AGENT/*
 
 ## Decision records & index
 
-- [`decision_index.md`](decision_index.md) — Decision Index — *Active — central navigation index for al*
-- [`decision_record_2026-06-13_june_reference_import.md`](decision_record_2026-06-13_june_reference_import.md) — Decision Record — June Update-Reference Import (2026-06-13) — *Active decision record*
+- [`decisions/decision_index.md`](decisions/decision_index.md) — Decision Index — *Active — central navigation index for al*
+- [`decisions/decision_record_2026-06-13_june_reference_import.md`](decisions/decision_record_2026-06-13_june_reference_import.md) — Decision Record — June Update-Reference Import (2026-06-13) — *Active decision record*
 - [`design/online_play_design_decisions.md`](design/online_play_design_decisions.md) — Online Play — Design Decisions Catalogue — ***RATIFIED 2026-05-17.** All 20 decision*
 
 ## Open-question / decisions registers
