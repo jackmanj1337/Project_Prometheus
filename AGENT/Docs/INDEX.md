@@ -41,6 +41,7 @@
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
+- [`registers/equip_items_open_questions_2026-06-23.md`](registers/equip_items_open_questions_2026-06-23.md) — Equip Items / Accessories Firming (#3) — Player-Facing Design + Open Questions — *OPEN*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
