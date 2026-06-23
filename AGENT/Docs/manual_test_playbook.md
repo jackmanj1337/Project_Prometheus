@@ -14,7 +14,7 @@ Use `AGENT/Docs/testing_guide.md` as the entry point for:
 - when to update this file versus adding a headless test
 
 > Updated for the v0.1.4 playtester build on 2026-06-12. Use
-> `AGENT/Docs/playtest_checklist_v0.1.4.md` for the release-focused pass;
+> `AGENT/Docs/archive/playtests/playtest_checklist_v0.1.4.md` for the release-focused pass;
 > the broader class/Pair Up/More Info/hotseat passes remain pending below.
 
 ---
@@ -261,7 +261,7 @@ More Info / inspection mode:
 - [ ] Confirm the combat preview now shows crit, weapon triangle, and
       effectiveness markers in live play
   - Broken-layout reference:
-    `AGENT/Docs/2026-06-09 broken combat preview.png`
+    `AGENT/Docs/archive/evidence/2026-06-09 broken combat preview.png`
 - [ ] Confirm the terrain HUD expands with `F`, shows terrain descriptions for
       live terrain ids, and never falls back to placeholder text on common
       tiles
@@ -434,7 +434,7 @@ the closed list above.
 ### Pair Up Pass 1 Playtest
 
 Steps 1–4 + 6a + 6b of the Pair Up refactor are merged (see
-`AGENT/Docs/pair_up_combat_refactor_answers_2026-05-23.md` for the design
+`AGENT/Docs/archive/reference/pair_up_combat_refactor_answers_2026-05-23.md` for the design
 inputs). The headless suite covers registry, snapshot, combat-context, and
 bonus-resolver math, plus the ActionMenu visibility / emission contracts —
 the items below cover the parts that only show up in live play.
@@ -763,7 +763,7 @@ Run this after the hotseat validation map and the first map selector build land.
 Skipping it leaves the remaining M15 Part A acceptance criteria unverified and
 makes future multi-map regression testing slower and more error-prone.
 
-Reference plan: `AGENT/Docs/hotseat_test_map_plan_2026-05-21.md`
+Reference plan: `AGENT/Docs/archive/plans/hotseat_test_map_plan_2026-05-21.md`
 
 **Setup**
 

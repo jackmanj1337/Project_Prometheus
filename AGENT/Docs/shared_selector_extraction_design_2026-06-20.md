@@ -12,7 +12,7 @@ Last verified: 2026-06-20
 Coupled work:
 - `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` (this is the single
   joypad-wiring point that design depends on; gamepad layer = keystone)
-- `AGENT/Docs/more_info_mode_plan_2026-05-24.md` (the original More Info host pattern)
+- `AGENT/Docs/archive/plans/more_info_mode_plan_2026-05-24.md` (the original More Info host pattern)
 - `AGENT/Docs/terrain_more_info_paging_design_2026-06-19.md` (surface 3 today)
 
 > **Tracking home:** `AGENT/GDD/GDD_10_Roadmap.md` → v0.2.1 findings **V021-15** and

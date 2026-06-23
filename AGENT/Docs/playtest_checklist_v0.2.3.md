@@ -493,7 +493,7 @@ Settings → **Mouse Cursor**. Try each value:
 The maps and core combat systems were not the focus of this build, but the renderer
 change (§1.1) and the v0.2.2 UI changes touch a lot. If you have time after Parts I–II,
 run the **full per-map regression** from the v0.2.0 handbook
-(`AGENT/Docs/playtest_checklist_v0.2.0.md`, Part II: Maps 001–005, 900, 950).
+(`AGENT/Docs/archive/playtests/playtest_checklist_v0.2.0.md`, Part II: Maps 001–005, 900, 950).
 
 Most likely places a v0.2.2/v0.2.3 change could have regressed something:
 

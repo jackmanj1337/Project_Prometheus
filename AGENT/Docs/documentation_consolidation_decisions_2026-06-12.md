@@ -2,7 +2,7 @@
 
 **Date opened:** 2026-06-12
 **Status:** Active - owner answers required
-**Related plan:** `AGENT/Docs/documentation_consolidation_plan_2026-06-12.md`
+**Related plan:** `AGENT/Docs/archive/consolidation/documentation_consolidation_plan_2026-06-12.md`
 
 ## How to Use This File
 

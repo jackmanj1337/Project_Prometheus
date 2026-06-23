@@ -250,7 +250,7 @@ Immediate next pass:
   alternate effect or remain explicitly disabled
 
 Next-session preparation:
-- use `AGENT/Docs/pair_up_combat_refactor_questions_2026-05-23.md` as the
+- use `AGENT/Docs/archive/reference/pair_up_combat_refactor_questions_2026-05-23.md` as the
   starting question list before coding the next pass
 
 ### 6. Skill System Needs More Than More Skills

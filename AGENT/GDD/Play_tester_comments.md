@@ -2,7 +2,7 @@
 
 These are the raw May 2026 notes retained as evidence. They have been triaged
 into `AGENT/Docs/manual_test_playbook.md`; do not use this file as the current test
-plan. Use `AGENT/Docs/playtest_checklist_v0.1.4.md` for the current build.
+plan. Use `AGENT/Docs/archive/playtests/playtest_checklist_v0.1.4.md` for the current build.
 
 There are two maps labeled 001, please specify rout or faction demo
 Could not test for sieze or escape, as all maps are rout victory

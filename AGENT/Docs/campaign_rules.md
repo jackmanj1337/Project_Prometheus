@@ -158,5 +158,5 @@ of in `SettingsManager` or a one-off map flag.
 - `AGENT/GDD/GDD_02_Core_Mechanics.md` for battle-loop effects
 - `AGENT/GDD/GDD_03_Units_Classes.md` for progression-facing effects
 - `AGENT/GDD/GDD_07_UI_UX.md` for New Game and in-map player-facing surfaces
-- `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md` for the original
+- `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md` for the original
   decision discussion and historical context

@@ -177,7 +177,7 @@ print as `FAIL <name>: ...` and exit non-zero.
 ## When you sit down at the new machine
 
 1. Read the newest file in `AGENT/Session Notes/`.
-2. Read `AGENT/Docs/playtest_checklist_v0.2.1.md` to know what is
+2. Read `AGENT/Docs/archive/playtests/playtest_checklist_v0.2.1.md` to know what is
    shipped to testers and what remains open.
 3. `bash run_tests.sh` to confirm the environment is clean.
 4. Continue from the plan recorded in the newest session note.

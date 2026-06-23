@@ -57,7 +57,7 @@ retrieve via Git). This table tracks Phase 2.
 | M15 — Hotseat & Remote Control | [PART A IN VALIDATION / PART B DEFERRED] | Hotseat core landed 2026-05-21; remaining Part A work is validation/content; online design ratified 2026-05-17 |
 | M16 — Objective System | [COMPLETE] | Shipped 2026-05-20; per-group victory/defeat and standings live |
 
-**Implementation order** (dependency-clean — `AGENT/Docs/design_decisions_log_2026-05-17.md`,
+**Implementation order** (dependency-clean — `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md`,
 Decision 10, revised by the 2026-05-26 M9a promotion): **M14 stages 1–3 → M16 →
 M14 stages 4–5 (+content) → [current playtest/bug-fix round] → **Display &
 Accessibility controls** (near-term, see section below) → M9a (engine) → M8 →
@@ -339,7 +339,7 @@ shell only. Starts the session after v0.2.3 is verified.
 
 - Plan: `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` (incl. "Release Infrastructure —
   Do First": single version source, CI build matrix, itch.io/`butler` automated deploy).
-- Handoff: `AGENT/Docs/handoff_2026-06-20_web_debug.md`.
+- Handoff: `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md`.
 - Carry-forward decisions: host on itch.io (unlisted) first; portrait emulator shell; fixed
   16:9 Godot canvas; **input = direct-touch/click-mode primary + a ~7-button HTML strip,
   virtual-gamepad optional later (2026-06-20j; see sequencing Resolution above)**;
@@ -472,7 +472,7 @@ Manual visual confirmation still needed: `PU` badge placement on all common unit
 facings/tints, paired-partner button focus/order on the `I` sheet, New Game reopen
 selection after Back, and the F9 on/off handoff during a live enemy phase. These ship
 in the **v0.2.0** combined playtest build alongside the Display & Accessibility
-features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
+features; see `AGENT/Docs/archive/playtests/playtest_checklist_v0.2.0.md`.
 
 ---
 
@@ -481,8 +481,8 @@ features; see `AGENT/Docs/playtest_checklist_v0.2.0.md`.
 Live action list for the returned v0.2.1 pass. Evidence:
 
 - Returned checklist (tester's verbatim return, archived 2026-06-19):
-  `AGENT/Docs/playtest_checklist_v0.2.1_returned_2026-06-19.md`
-- Fix plan: `AGENT/Docs/playtest_v0.2.1_triage_plan_2026-06-19.md` (in progress)
+  `AGENT/Docs/archive/playtests/playtest_checklist_v0.2.1_returned_2026-06-19.md`
+- Fix plan: `AGENT/Docs/archive/playtests/playtest_v0.2.1_triage_plan_2026-06-19.md` (in progress)
 
 v0.2.1 re-verified the v0.2.0 fixes: **1.1/1.2/1.3/1.5 passed** (camera jitter,
 live map-zoom slider, forecast placement, one-based Seize coords). Items below are the
@@ -491,7 +491,7 @@ new failures, requests, and reopened backlog from this return.
 **Approved for implementation (2026-06-20)**, split into two builds: **v0.2.2** (fixes +
 UI + designed systems) and **v0.2.3 "Display Scaling & Resolution"** (`V021-18` + `V021-19`
 only — see F4 in the triage plan). Implementation playbook:
-`AGENT/Docs/handoff_2026-06-20.md`. A forward-compatibility review (2026-06-20) folded M8/
+`AGENT/Docs/archive/handoffs/handoff_2026-06-20.md`. A forward-compatibility review (2026-06-20) folded M8/
 M9/M12/M15 + input-parity linkages into the plan. Statuses here stay open until each item
 lands.
 
@@ -680,11 +680,11 @@ rerun note, not a defect.
 Live action list for the returned v0.2.0 pass. Evidence:
 
 - Completed checklist (tester's verbatim return, archived 2026-06-19):
-  `AGENT/Docs/playtest_checklist_v0.2.0_returned_2026-06-19.md`
+  `AGENT/Docs/archive/playtests/playtest_checklist_v0.2.0_returned_2026-06-19.md`
 - Tester log + screenshots: removed from the working tree after triage; recoverable
   from git history (last present under `AGENT/v0.2.0 playtest results/` before commit
   `3b0a308`).
-- Fix plan: `AGENT/Docs/playtest_v0.2.0_triage_plan_2026-06-19.md`
+- Fix plan: `AGENT/Docs/archive/playtests/playtest_v0.2.0_triage_plan_2026-06-19.md`
 
 The v0.2.0 log has no `DataManager`, `ERROR`, or `SCRIPT ERROR` lines. It only
 contains expected pre-M9 skill-stub warnings (`armsthrift`, `dash`, `disarm`) plus
@@ -773,8 +773,8 @@ do not treat it as a playtest blocker without verbose leak details.
 
 Live action list for the v0.1.5.0 return pass. Evidence:
 
-- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
-- Session error log: `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`
+- Completed handbook: `AGENT/Docs/archive/playtests/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
+- Session error log: `AGENT/Docs/archive/evidence/godot_v0.1.5.0_2026-06-14.log`
 
 The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
 1–7, plus 8.1–8.2, 8.6–8.11, and 9) — only the items below need action.
@@ -795,7 +795,7 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
        Lck 1}` **and** `HUD._show_unit` renders `Paired  +3 Str +2 Skl +3 Spd +3 Def
        +1 Lck`. It passes. So the in-build code path is correct; the failure is not
        reproducible headlessly. **Log reviewed (2026-06-14):** the tester's
-       `godot.log` (now `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`) is **clean** — the
+       `godot.log` (now `AGENT/Docs/archive/evidence/godot_v0.1.5.0_2026-06-14.log`) is **clean** — the
        only entries are the expected pre-M9 `armsthrift` / `dash` skill-stub warnings,
        and their backtraces show the combatant carrying `armsthrift`+`dash` (i.e. the
        Hero) attacking. There is **no** `PairUpBonusResolver` / table-load /
@@ -862,8 +862,8 @@ The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
 Items are the defects returned by the v0.1.4 live pass; all are resolved and were
 re-verified by the v0.1.5.0 pass above. Evidence:
 
-- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.4_returned_2026-06-14.md`
-- Error-log excerpt + counts: `AGENT/Docs/godot_v0.1.4_2026-06-14_sample.log`
+- Completed handbook: `AGENT/Docs/archive/playtests/playtest_checklist_v0.1.4_returned_2026-06-14.md`
+- Error-log excerpt + counts: `AGENT/Docs/archive/evidence/godot_v0.1.4_2026-06-14_sample.log`
 - Promotion-modal screenshot: `950MERC Promotion.png` (in `AGENT/Docs/`)
 
 Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
@@ -1123,7 +1123,7 @@ indicator appears. Verify all mechanical effects. Verify removal by Restore staf
 ### Locked design decisions — 2026-05-25 review
 
 These four open questions from the planning notes were resolved before
-implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+implementation begins. See `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`
 for the deliberation log.
 
 - **Poison lethality — configurable per source.** Poison damage **floors at 1 HP
@@ -1336,7 +1336,7 @@ is already in place from the MVP amendments.
 ### Locked design decisions — 2026-05-25 review
 
 These four open questions from the planning notes were resolved before
-implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+implementation begins. See `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`
 for the deliberation log.
 
 - **Internal M9a / M9b split (public roadmap unchanged).** Work M9 internally as
@@ -2223,7 +2223,7 @@ controllers are added in M15. The default configuration is the four armies **blu
 > criticality is deferred to its own AI task and is not part of M14 completion.
 
 Full design rationale, the architecture-seam analysis, and the staged breakdown live
-in `AGENT/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
+in `AGENT/Docs/archive/reference/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
 stages 1–4 + content of that document.
 
 **Supersedes** the Phase 3 Backlog item "Ally NPC phase" — green allies are a faction,
@@ -2342,7 +2342,7 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 > **Current state (refreshed 2026-06-11).** Core Part-A implementation landed on
 > 2026-05-21 (controller seam, `HotseatController`, generic phase commit flow,
 > cursor faction handoff, tests). The detailed build/test plan in
-> `AGENT/Docs/implementation_plan_2026-05-21.md` remains the reference for the
+> `AGENT/Docs/archive/plans/implementation_plan_2026-05-21.md` remains the reference for the
 > architecture and validation scope. The WHOLE_PHASE validation map/launch path
 > and `Faction - Controller` HUD/banner text are implemented. Remaining Part-A
 > work is the manual acceptance checklist in `AGENT/Docs/manual_test_playbook.md`.
@@ -2354,7 +2354,7 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 #### Locked design decisions — 2026-05-25 review
 
 These four Part-A open questions from the planning notes were resolved before
-implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+implementation begins. See `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`.
 
 - **Per-player keybindings — skip for Part A.** All hotseat slots share the
   existing single `InputMap` action set. Per-player keybinding profiles are
@@ -2431,7 +2431,7 @@ later. LAN first, online after.
 The full set of online design decisions — synchronization model, transport,
 matchmaking, reconnection, trust, army source, and more — is catalogued in
 `AGENT/Docs/online_play_design_decisions.md` (20 decisions, D1–D20). **All 20 were
-ratified on 2026-05-17** — see `AGENT/Docs/design_decisions_log_2026-05-17.md` for
+ratified on 2026-05-17** — see `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md` for
 the recorded outcomes. The decisions that drive Part B's build:
 - **Sync model:** host-authoritative client-server (host owns the truth, validates
   and broadcasts) — *not* lockstep, so no determinism burden.
@@ -2480,7 +2480,7 @@ the recorded outcomes. The decisions that drive Part B's build:
 objective system** — each map carries typed victory and defeat conditions evaluated
 **per aggression group** (`{blue,green}`, `{red}`, `{yellow}`, …), not for blue
 alone. The map ends with a **ranked-standings results screen**. This generalizes the
-feasibility doc §6 workstream (`AGENT/Docs/second_player_control_feasibility.md`);
+feasibility doc §6 workstream (`AGENT/Docs/archive/reference/second_player_control_feasibility.md`);
 the per-group decoupling supersedes §6's blue-centric framing — see decisions log
 2026-05-17, Decision 8.
 
@@ -2573,7 +2573,7 @@ group records an "eliminated on round N" field to drive the ordering.
 
 M16 itself is shipped. These five decisions govern the **objective-map followup**
 — authoring Maps 002–005 against the implemented condition system. See
-`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md` for the deliberation log.
+`AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md` for the deliberation log.
 
 - **Showcase plan — one map per primary objective type.** Maps 002–005 cover
   exactly the four types implemented in M16: **Seize**, **Defeat Boss**,
@@ -2652,7 +2652,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       toggles. When the between-map save/load, deployment, convoy, trade, and
       progression-management screens are designed, treat these as part of the same
       contract and answer the open questions in
-      `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+      `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`.
       Each campaign, including a single-map campaign, must be able to author a
       default value for every New Game rule and mark that rule as either
       player-adjustable or designer-locked. Store adjustable selections in that
@@ -2731,10 +2731,10 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 ### UI / UX & Settings
 
 Merged from the playtest findings docs ("Features to add to the to-do list" /
-"Add to later milestones"): `AGENT/Docs/playtest2_findings_2026-05-19.md` and
-`AGENT/Docs/playtest3_findings_2026-05-19.md`. These are deferred enhancements,
+"Add to later milestones"): `AGENT/Docs/archive/playtests/playtest2_findings_2026-05-19.md` and
+`AGENT/Docs/archive/playtests/playtest3_findings_2026-05-19.md`. These are deferred enhancements,
 not playtest bugs — the bugs are tracked separately (playtest 2 in
-`AGENT/Docs/playtest2_fix_plan_2026-05-19.md`, playtest 3 in the dated code
+`AGENT/Docs/archive/playtests/playtest2_fix_plan_2026-05-19.md`, playtest 3 in the dated code
 review under `AGENT/Code Reviews/`).
 
 - [ ] **Range display on hover** — show a unit's movement/attack range when the
@@ -2801,7 +2801,7 @@ review under `AGENT/Code Reviews/`).
 > ⚠️ **RELEASE BLOCKER** — must be cleared before any non-debug build ships.
 
 - [ ] **Remove the playtest 2 debug testing aids.** Two temporary aids were
-      added for playtest iteration (see `AGENT/Docs/playtest2_fix_plan_2026-05-19.md`
+      added for playtest iteration (see `AGENT/Docs/archive/playtests/playtest2_fix_plan_2026-05-19.md`
       items #10 and #11):
       - **#10** — force-level-up on any attack (debug flag in
         `CombatResolver.calculate_exp`).
@@ -2869,7 +2869,7 @@ the linked session notes and commit hashes.
 
 | Item | Shipped | Verification ref |
 |---|---|---|
-| Playtest 1 — all 13 findings | 2026-05-18 | `AGENT/Docs/manual_test_findings_analysis.md` (all ✅) |
+| Playtest 1 — all 13 findings | 2026-05-18 | `AGENT/Docs/archive/playtests/manual_test_findings_analysis.md` (all ✅) |
 | Playtest 2 — 17 fixes (#1–17) | 2026-05-19 | `AGENT/Session Notes/2026-05-19.md`; one commit per fix |
 | Playtest 3 — bugs #1–7, #21 | 2026-05-19 | commits `334a724 … 5b1a87c` |
 | Code reviews 2026-05-18/19/19c | 2026-05-20 | All Lows resolved; B-items see Tech Debt rows |
@@ -2918,7 +2918,7 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | Document | Purpose |
 |---|---|
 | `AGENT/GDD/GDD_10_Roadmap.md` | **This file** — canonical Phase 2 roadmap, milestone specs, backlog |
-| `AGENT/Docs/design_decisions_log_2026-05-17.md` | Decision 10 = ordering rule; design locks |
+| `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md` | Decision 10 = ordering rule; design locks |
 | `AGENT/GDD/GDD_Feature_Index.md` | Feature → rule owner / roadmap owner routing table (DOC-005) |
 | `AGENT/Docs/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
 | `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
@@ -2927,7 +2927,7 @@ D1 (pre-release cleanup) — gate at release time, not in milestone order
 | `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |
 | `AGENT/Docs/v0.2.2_review_checkbacks_2026-06-20.md` | v0.2.2 live-verify check-backs (Open Items Register §C/§D detail) |
 | `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` | Debug Web build plan (Forward Platform Workstreams detail) |
-| `AGENT/Docs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
+| `AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md` | Debug Web build implementation handoff |
 | `AGENT/Docs/input_mode_architecture_design_2026-06-20.md` | Input-mode / gamepad architecture design + open decisions |
 | `AGENT/Docs/planning_backlog_2026-06-20.md` | Items needing implementation-ready plans (Open Items Register §H) |
 | `AGENT/Docs/shared_selector_extraction_design_2026-06-20.md` | V021-15 shared selector / More-Info navigation extraction design |

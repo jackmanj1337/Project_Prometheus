@@ -9,9 +9,9 @@ Last verified: 2026-06-23
 Status: Target design
 Last verified: 2026-06-20
 
-Companion handoff: `AGENT/Docs/handoff_2026-06-20_v0.2.3.md`
+Companion handoff: `AGENT/Docs/archive/handoffs/handoff_2026-06-20_v0.2.3.md`
 Coupled work: `AGENT/Docs/debug_web_playtest_plan_2026-06-20.md` (+ its handoff
-`AGENT/Docs/handoff_2026-06-20_web_debug.md`)
+`AGENT/Docs/archive/handoffs/handoff_2026-06-20_web_debug.md`)
 
 ## Problem (v0.2.1 triage)
 

@@ -98,8 +98,8 @@ them as instructions.
 | `AGENT/Docs` superseded plans: `implementation_plan_2026-05-16*.md`, `implementation_plan_2026-05-21.md`, `class_skill_rebuild_plan_2026-05-21.md`, `m6_promotion_plan_2026-05-21.md`, `m7_second_seal_plan_2026-05-21.md`, `combat_preview_render_fix_plan_2026-06-10.md`, `more_info_mode_plan_2026-05-24.md` | — | Superseded | Implemented or replaced; supersession header in Stage 5.3. |
 | `AGENT/Docs` test/playtest history: `playtest1…4_findings_*.md`, `playtest2_fix_plan_2026-05-19.md`, `playtest_fix_plan_2026-06-09.md`, `playtest_triage_execution_plan_2026-05-26.md`, `playtest_build_v0.1.4.md`, `playtest_checklist_v0.1.3*.md`, `playtest_checklist_v0.1.4.md`, `manual_test_findings_analysis.md`, `hotseat_test_map_plan_2026-05-21.md`, `promotion_reclass_test_map_plan_2026-05-23.md`, `handoff_2026-06-09d.md` | — | Historical | Evidence; confirmed bugs migrate to roadmap tracker (Stage 4.2), then prose stays as history. |
 | `AGENT/Docs` design Q&A / feasibility: `pair_up_combat_refactor_questions/answers_2026-05-23.md`, `campaign_rules_firming_notes_2026-05-25.md`, `second_player_control_feasibility.md`, `d2_mapcursortargeting_design.md`, `d3_mapcursor_slicing_design.md` | — | Historical | Rationale preserved; useful content already in code/contracts. |
-| `AGENT/Docs/design_decisions_log_2026-05-17.md` | 1 | Historical | Superseded by the DOC-009 dated-record + index system; header in Stage 5.3. |
-| `AGENT/Docs/gdd_codebase_alignment_audit_2026-06-11.md` | 1 | Historical | Audit evidence feeding the consolidation; keep. |
+| `AGENT/Docs/archive/consolidation/design_decisions_log_2026-05-17.md` | 1 | Historical | Superseded by the DOC-009 dated-record + index system; header in Stage 5.3. |
+| `AGENT/Docs/archive/reference/gdd_codebase_alignment_audit_2026-06-11.md` | 1 | Historical | Audit evidence feeding the consolidation; keep. |
 
 ### E-special: active roadmap source
 

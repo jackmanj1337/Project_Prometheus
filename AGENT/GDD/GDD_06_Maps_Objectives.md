@@ -188,7 +188,7 @@ Condition becomes true when an allowed unit from the conditioning group uses the
 Seize action on the authored tile. **Eligibility comes from a per-unit
 `can_seize` tag** on `UnitData` — not from class data and not from a per-map
 `allowed_unit_ids` allowlist (locked 2026-05-25; see
-`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
+`AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
 the relevant lord-class units; new characters opt in by being tagged.
 
 #### `escape`
@@ -422,7 +422,7 @@ Last verified: 2026-06-13
 The objective-map followup authors four maps against the implemented
 `ObjectiveCondition` system to validate it through real content. See
 `GDD_10_Roadmap.md` § Milestone 16 → *Locked design decisions* and
-`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+`AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`.
 
 - **Showcase plan — one map per primary objective.** Maps 002–005 cover the
   four objective types one each: **Seize**, **Defeat Boss**, **Escape**,

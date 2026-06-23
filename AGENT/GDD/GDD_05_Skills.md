@@ -302,7 +302,7 @@ The handbook skill catalogue, listed to reserve `effect_id` strings before imple
 > 4. **Pair Up / Rescue out of M9.** No M9 skill content or engine code may depend on
 >    `pair_up`, `support`, or `rescue` semantics — those are campaign-rule features (see
 >    Pair Up & Support System below, and
->    `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`).
+>    `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`).
 
 **Generic skills (Phase 2):** Adept, Barrier (+2 RES), Cancel, Celerity (+2 MOV), Clear
 Vision (+2 LoS), Corrosion, Daunt (aura, reserved), Discipline, Focus, Fortunate (+2 LUK),

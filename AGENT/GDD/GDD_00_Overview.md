@@ -153,7 +153,7 @@ Status: **Known issue**
 Last verified: 2026-06-13
 
 - **Combat preview render** — Known issue (2026-06-10); fix tracked in
-  `AGENT/Docs/combat_preview_render_fix_plan_2026-06-10.md`.
+  `AGENT/Docs/archive/plans/combat_preview_render_fix_plan_2026-06-10.md`.
 
 The roadmap (`GDD_10_Roadmap.md`) owns the authoritative bug/pending-validation list;
 confirmed playtest defects are migrated there during roadmap consolidation. This
