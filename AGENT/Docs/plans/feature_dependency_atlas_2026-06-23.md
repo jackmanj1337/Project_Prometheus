@@ -117,6 +117,25 @@ shapes." F2/F3/F8/F9 are decided and just await build.
 - **Decided foundations (F2/F3/F8/F9) just need scheduling**, not more design.
 - **Cluster A is the in-flight build** (IEQ XL + PXP L) — the largest single commitment on the board.
 
+## 3b. Target-firming roadmap (dependency order — owner 2026-06-23l)
+The order in which we **define each un-firmed player-facing target** (the ⚠/✗ items). ⚠ first
+(deps now decided), then ✗ in dependency order. Each pass = a firming walk like IEQ/PXP.
+
+**Wave 0 — open foundations (gate the most, do first):**
+- **F1** save-schema lock (reserve fields) · **F7** resource pools end-shape (`[CEX-1..4]`; gates
+  spells + combat arts) · **F10** canto scope (gates rescue + Knight Ring).
+
+**Wave 1 — ⚠ ready now (deps decided):**
+- Flexible weapon triangle (`[CEX-9..12]`; deps F4✓/F5✓) · Per-map-use items (`[CEX-13]`; dep IEQ✓) ·
+  Learned spells (`[CEX-5..8]`; after F7) · Story items (`[CEX-14..16]`; tracking now, branching after F6) ·
+  Per-skill UX (M9b content).
+
+**Wave 2 — ✗ v1 worklist (dependency-ordered):**
+- Difficulty modes (#12; dep F4✓) · Dancer (#8) · Movement assists (#17) · Utility staves (#10) ·
+  Canto (#9=F10) → Rescue (#6) · Recruit/Capture (#4; after F6) · Village (#11; MET✓+F6) ·
+  Support (#5; large standalone) · PvP (#7) · Arena (#14) · Bonus-EXP (#18) ·
+  Combat arts (#15; after F7) · Battalions (#16) · Avatar (#20).
+
 ## 4. Foundation end-shapes
 **Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
 generic author-profile mechanism · **F5** = full author-extensible status system · **F6** = generic
