@@ -130,8 +130,11 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
 19. **Training halls (NEW — owner 2026-06-23h)** — a prep-hub option where a character **spends
     resources** to obtain **NON-TRANSFERABLE** per-character benefits: **class XP · weapon XP · stat
     bonuses · skills · other effects**. A character-investment sink (distinct from convoy/items, which are
-    transferable). Open: resource type (gold vs a dedicated training currency/points), caps, availability
-    gating. Relates to bonus-EXP (18), arena (14), shop/economy (2).
+    transferable). **Proficiency-XP slice FIRMED 2026-06-23l `[PXP-9]`**: a PHB option panel granting
+    authored `{track, xp_amount, resource cost}` into the unified `proficiency_xp` store (on-crossing
+    skill grants fire; shares `advance_proficiency` with the Arms Scroll item). Still open for the
+    *other* benefit types (class XP / stat / skill purchase), resource type, caps, gating. Relates to
+    bonus-EXP (18), arena (14), shop/economy (2).
 
 **INVESTIGATE feasibility:**
 20. **Avatar / "My Unit"** (owner: "look into the possibility") — player-created unit (name / class /

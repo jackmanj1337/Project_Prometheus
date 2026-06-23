@@ -2,7 +2,7 @@
 Type: register
 Status: RESOLVED 2026-06-23
 Last verified: 2026-06-23
-Register: PXP-1..8
+Register: PXP-1..9
 Resolved-in: 2026-06-23l
 ---
 
@@ -101,6 +101,24 @@ _(Owner may revisit item-track caps.)_
 ### [PXP-8] Save / schema — **RESOLVED: reserve in §2**
 `UnitData.proficiency_xp` replaces `weapon_wexp` in the save schema; `CampaignRules` gains the
 rank profiles + gain-source config (per-save). Reserve both now, fill on build.
+
+### [PXP-9] Training halls — **RESOLVED: authored XP-for-resources progression panel**
+A **fifth, player-driven** progression avenue (distinct from the PXP-5 in-combat gain sources):
+an authored hub service where the player **spends authored resources to add an authored amount
+of XP to an authored track**.
+- **Container:** a **PHB option panel** (`[PHB-1..7]`, opt-in `prep_panels`, node-scoped — same
+  pattern the shop uses). One of the queued hub-option panels (arena / skirmish / training).
+- **Authoring:** per training-hall entry = `{ track, xp_amount, cost }`, where `track` is any PXP
+  track (weapon-family / item-group / item-bond), `xp_amount` is the granted progression, and
+  `cost` is **resource-keyed** (reuses the `[SHP-1]` multi-resource cost model, gold-only v1).
+  An author may offer several entries (e.g. "Sword training: +30 sword XP for 500g").
+- **Mechanic:** applies straight through the unified store (`add` to `proficiency_xp[track]`,
+  clamped by the track's profile ceiling / weapon class cap per PXP-6); **on-crossing events
+  (PXP-4) still fire** — buying past an S threshold grants the mastery skill exactly as combat
+  gain would. Eligibility may reuse `req_flags` (e.g. a hall that only trains a unit's class line).
+- **Consumable twin:** the **Arms Scroll** stat item ("advance 1 proficiency to next rank") is the
+  *item* form of the same operation — both call a shared `advance_proficiency` path (consumable
+  effect_id + hall service). Forward surface: non-gold training currencies, per-unit caps.
 
 ## 4. Notes
 - **Connection to `[IEQ]`:** IEQ-3 legality reads ranks from this framework (accessory =

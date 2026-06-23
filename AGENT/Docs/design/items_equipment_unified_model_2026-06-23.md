@@ -166,6 +166,49 @@ the slot-capacity map. Serialize like `weapon_wexp` + inventory order (already s
 
 ---
 
+## 2f. Effect & trigger coverage for the drafted items (build checklist)
+
+The drafted accessories/items resolve onto the existing effect subsystems (modifiers + the
+skill trigger/dispatch system + consumable effect_ids) with a **small, enumerated** set of
+additions. **GDD_05's trigger discipline holds** — don't add a trigger if a wired trigger +
+`context.flags.*` can express it; `on_combat_apply_modifiers` is **already wired**, so the
+defensive effects need new **effect_ids**, not new triggers.
+
+| Drafted item | Mechanism | Add (owner) | Exists? |
+|---|---|---|---|
+| Knight Ward (+2 DEF/RES) | stat modifiers | — (modifier model, IEQ-5) | ✅ |
+| Full Guard | negate **all** effectiveness bonus | `negate_effectiveness` effect_id, params `{groups:"all"}`, trigger `on_combat_apply_modifiers` defender (GDD_05 + GDD_02) | ❌ new effect_id |
+| Wing Guard | negate **flying** effectiveness | `negate_effectiveness` `{groups:["flying"]}` | ❌ (same effect_id) |
+| Laguz Guard | negate **laguz** effectiveness | `negate_effectiveness` `{groups:["beast","dragon"]}` | ❌ (same effect_id) |
+| Iron Rune | defender crit immunity | `negate_crit` effect_id, `on_combat_apply_modifiers` defender (GDD_05 + GDD_02) | ❌ new effect_id |
+| Knight Ring | move-after-action (canto) | **canto mechanic** in the action/turn flow (M11) — *not* a skill effect_id | ❌ mechanic gap |
+| Knight Ward (+30% SPD growth) | growth-**rate** bonus | growth-rate modifier (affects level-up rolls / `growth_rates`, **not** flat `active_modifiers`) | ❌ model gap |
+| Arms Scroll | advance a proficiency rank | `advance_proficiency` consumable effect_id (shared with training halls, `[PXP-9]`) | ❌ new effect_id |
+| Boots / Dracoshield / Energy Drop / Secret Book / Goddess Icon / Seraph Robe | **permanent** stat boost | `permanent_stat` consumable effect_id (mutates base stat; current `stat_buff` is **temporary** only) | ❌ new effect_id |
+
+**Two genuine model gaps** (beyond "add an effect_id"), flagged for designers:
+1. **Canto / move-after-action** (Knight Ring) is a turn/action-flow mechanic (M11), not an
+   accessory effect — the accessory just *grants* it. Until canto lands, Knight Ring is blocked.
+2. **Growth-rate modifiers** (Knight Ward's +30% SPD growth) are distinct from flat stat
+   modifiers — they alter level-up rolls (`UnitData.growth_rates`/`growth_accumulators`), so
+   the modifier model (IEQ-5) needs a second "growth" channel, or these stay weapon/consumable-only.
+
+**Obvious gaps a future campaign designer will ask for** (none need a new trigger; each is an
+effect_id on a wired trigger + `context.flags`, unless noted):
+- **Status/condition immunity** (immune to poison/sleep/etc.) — `negate_condition` effect_id.
+- **Weapon `effect_tags` still unbuilt** (GDD_04 known gaps): `poison`, `heal_on_hit`,
+  `ignores_def`/`ignores_half_def`, `always_hits` — each = a `TAG_*` const + a `CombatResolver`
+  check (GDD_02/GDD_04).
+- **Movement-type grant/override** beyond canto (e.g. "treated as flying over water") — reuses
+  the movement-override stubs (`get_move_cost_override`, `can_pass_through_enemies`).
+- **Conditional stat bonuses** ("+DEF while HP full", "+Hit vs fliers") — `on_combat_apply_modifiers`
+  + `context.flags`, no new trigger.
+- **Skill grant** while held/equipped, and **on-rank-crossing** skill grant — already covered
+  (IEQ-5 effect grants + `[PXP-4]`).
+
+Owners at build: skill effect_ids → GDD_05; consumable effect_ids → GDD_04 / `ItemHandler`;
+combat hooks (effectiveness/crit) → GDD_02; canto → M11. Land per DoD with each build phase.
+
 ## 3. Reconcile — don't relitigate
 
 Firmed elsewhere; this review **builds on**, does not reopen:
