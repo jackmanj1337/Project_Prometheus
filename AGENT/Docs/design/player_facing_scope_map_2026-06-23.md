@@ -66,6 +66,13 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
   shop, arena, training hall, recruit, skirmish launch). **Expands the firmed §2 branch C** and revises
   C4's "empty for MVP" — prep becomes the host for author-gated option panels. (Authoring side feeds the
   later 4a–4e builder-authority pass: "which prep options does this node expose.")
+  **→ FIRMED 2026-06-23k as `[PHB-1..7]`** (`registers/prep_hub_open_questions_2026-06-23.md`): flat
+  panel list + cosmetic `theme`/`location_label`; **opt-in** per-node `prep_panels: [...]`; **`node_type`
+  battle|hub as a first-class, author-switchable field** (build battle-nodes first, pure hub nodes the
+  near-term next increment); **free-nav, single node-advance commit** (Begin Battle / Continue);
+  **node-scoped** gating (per-panel `one_shot`/restock added with shop/economy; calendar = overworld-era);
+  **immediate** transaction commit (no hub-suspend). Schema add: node gains `node_type` + `prep_panels` +
+  `theme`/`location_label`.
 - **Skirmish / grind encounters — IN.** Accessed via a prep option (NOT free-roam), with enemy rosters
   **auto-leveled / randomly-leveled**. Ties difficulty bands `[AIP-11]` (stat scaling) + EXP/economy
   balance. Supports optional grinding without an overworld.
