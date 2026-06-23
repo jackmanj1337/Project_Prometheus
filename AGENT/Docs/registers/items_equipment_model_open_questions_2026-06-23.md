@@ -54,13 +54,14 @@ capability; **an item may hold more than one at once** (multi-component, see bel
 
 ### [IEQ-3] Legality — **RESOLVED: per-component, independent**
 Each component carries its own gate, checked **only for the capability being exercised**:
-- **`weapon_component`** → existing weapon-WEXP track + `required_rank` + class weapon-family
-  allowance (`Unit._can_equip_rank`, **unchanged/healthy**).
-- **`accessory_component`** → new **item-proficiency** legality = a parallel rank track
-  (`UnitData.item_wexp`, mirroring `weapon_wexp`; reuses `GameConstants.minimum_wexp_for_rank`)
-  **AND** a per-item **flag predicate list** (`req_flags`: `class_group | unit_tag |
-  min_level | named_proficiency`). Item-WEXP **gain source deferred** — v1 grants item-rank by
-  class/level, not by use (no natural "use" event for a passive accessory).
+- **`weapon_component`** → weapon-family proficiency track + `required_rank` + class weapon-family
+  allowance (`Unit._can_equip_rank`, behavior preserved).
+- **`accessory_component`** → an **item-proficiency track** (group or item-bond) + a per-item
+  **flag predicate list** (`req_flags`: `class_group | unit_tag | min_level | named_proficiency`).
+- **The track/rank/gain model is owned by the Proficiency / XP Framework** (`[PXP-1..8]`,
+  `proficiency_xp_framework_open_questions_2026-06-23.md`) — one unified `proficiency_xp` store,
+  campaign-rules rank profiles, item-group + item-bond tracks, author-defined multi-source gain.
+  This **resolves** the gain source that was originally deferred here.
 - A unit may wield the weapon side without qualifying for the accessory side, and vice versa.
 
 ### Multi-component policy — **RESOLVED: ships in v1**
@@ -106,9 +107,9 @@ application in `CombatResolver._apply_equip_item_modifiers()`.
 
 ### [IEQ-8] Save / schema reservation — **RESOLVED: reserve in §2 now**
 Reserve in the save-cluster schema: `InventoryEntry.def_id`; **per-slot-type equipped
-pointers** per unit; `UnitData.item_wexp` (parallel to `weapon_wexp`); the resolved
-**slot-capacity map** (base + class override). Serialize like `weapon_wexp` + inventory order
-(already serialized). Fill on build.
+pointers** per unit; the unified **`UnitData.proficiency_xp`** store (replaces `weapon_wexp`,
+covers item tracks — owned by `[PXP-8]`); the resolved **slot-capacity map** (base + class
+override). Serialize like the existing WEXP store + inventory order. Fill on build.
 
 ### [IEQ-9] Code-debt + GDD reconciliation — **RESOLVED: lands with the build (DoD#1+#2)**
 - Fix `InventoryEntry.gd:21` header (separate accessories from forging; `forged_mods` stays
@@ -122,8 +123,9 @@ pointers** per unit; `UnitData.item_wexp` (parallel to `weapon_wexp`); the resol
   call sites, 11+8 `.tres`, DataManager validators, manifests, tests) isn't rewritten at once.
 - **Forging (M10) stays deferred + distinct** — `forged_mods` (instance) overlays the
   `weapon_component` (definition); this review only disentangles the comments, never absorbs forging.
-- **Item-WEXP gain source** deferred inside IEQ-3 — revisit when the tier table needs a
-  progression driver.
+- **Item proficiency, ranks, and XP gain** are owned by the **Proficiency / XP Framework**
+  (`[PXP-1..8]`) — resolved there, not deferred. The IEQ tier table (IEQ-4) keys off the rank
+  that framework derives.
 - **Reconcile-don't-relitigate:** weapon triangle/WEXP (GDD_04), `break_behavior` (`[BWN]`),
   convoy `Array[InventoryEntry]` (`[CNV]`), resource-keyed `cost` (`[SHP-1]`). The `ItemDef.cost`
   base field is the seam to the economy spine.

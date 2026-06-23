@@ -128,12 +128,15 @@ InventoryEntry (thin per-slot INSTANCE)
 
 ### 2b. Per-component, independent legality (`[IEQ-3]`)
 Each component gates itself, checked only for the capability being used:
-- **`WeaponComponent`** → existing weapon-WEXP track + `required_rank` + class family
-  (`Unit._can_equip_rank`, **unchanged**).
-- **`AccessoryComponent`** → new **item-proficiency** = a parallel rank track
-  (`UnitData.item_wexp`, mirroring `weapon_wexp`, reusing `minimum_wexp_for_rank`) **AND** a
-  per-item `req_flags` predicate list (`class_group | unit_tag | min_level | named_proficiency`).
-  Item-WEXP **gain source deferred** — v1 grants item-rank by class/level (no "use" event).
+- **`WeaponComponent`** → weapon-family proficiency track + `required_rank` + class family
+  (`Unit._can_equip_rank`, behavior preserved).
+- **`AccessoryComponent`** → an **item-proficiency track** (group or item-bond) + a per-item
+  `req_flags` predicate list (`class_group | unit_tag | min_level | named_proficiency`).
+- **Ranks/tracks/gain are owned by the unified Proficiency / XP Framework** (`[PXP-1..8]`,
+  `registers/proficiency_xp_framework_open_questions_2026-06-23.md`): one `proficiency_xp`
+  store, campaign-rules named rank profiles, item-group + item-bond tracks, and the
+  author-defined multi-source gain model. (This supersedes the earlier "parallel `item_wexp`,
+  gain deferred" sketch — gain is now resolved there.)
 
 ### 2c. Multi-component (ships v1) — independent, concurrent capabilities
 One item can be several things at once; each capability lives independently. The one

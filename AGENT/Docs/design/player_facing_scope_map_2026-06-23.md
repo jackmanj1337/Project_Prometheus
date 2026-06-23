@@ -31,7 +31,7 @@ build it.** This is step (1)'s worklist. Builds on `GDD_Feature_Index.md` (the i
 | --- | --- | --- | --- |
 | Combat calc & RNG | **Firmed** (target) | GDD_02 §Combat | none player-facing (two-RN = build/balance) |
 | Weapon triangle & rank bonuses | **Firmed** (target) | GDD_04 | none player-facing |
-| WEXP & equipment legality | **Firmed** | GDD_04 | none player-facing |
+| WEXP & equipment legality | **Re-firming** | GDD_04 → `[PXP-1..8]` | generalized into the unified Proficiency/XP Framework (campaign-rules rank profiles + names, group/bond item tracks, multi-source gain, on-crossing events); default profile non-breaking |
 | EXP / leveling / promotion / reclass | **Firmed** | GDD_03, GDD_02 | none (modals exist) |
 | Classes & class skills | **Firmed** (mechanic) | GDD_03, GDD_05 | content breadth = data, not a P-F mechanic gap |
 | Terrain & movement | **Firmed** | GDD_06 | none |
@@ -102,7 +102,10 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
    `def_id`; **per-component independent legality** (accessory = item-proficiency track + flags); **typed
    accessory slots** (slot_type + per-type capacity, campaign base + class override); conferral held|equipped|both;
    benefit tier table; modifier+effect-hook model wiring `until_unequipped`. **Staged build** (define → migrate
-   weapons→consumables→accessories). Pairs w/ (1).
+   weapons→consumables→accessories). Proficiency/ranks/XP owned by the **Proficiency/XP Framework**
+   (`[PXP-1..8]`, `registers/proficiency_xp_framework_open_questions_2026-06-23.md` — campaign-rules rank
+   profiles + names, group/bond item tracks, author-defined multi-source gain, on-crossing skill grants;
+   revisits GDD_04 WEXP non-breakingly). Pairs w/ (1).
 4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX; **includes Capture** as
    a recruit mechanism. (D-D prerequisite.)
 5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.

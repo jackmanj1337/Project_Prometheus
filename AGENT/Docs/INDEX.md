@@ -50,6 +50,7 @@
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/prep_hub_open_questions_2026-06-23.md`](registers/prep_hub_open_questions_2026-06-23.md) — Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/proficiency_xp_framework_open_questions_2026-06-23.md`](registers/proficiency_xp_framework_open_questions_2026-06-23.md) — Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/public_identity_rename_open_questions_2026-06-21.md`](registers/public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *OPEN*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
