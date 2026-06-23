@@ -228,9 +228,10 @@ Resume by building Package A, or walk another register with the user:
   folds in; owns the mid-map spawn seam + flag store; `map_events_triggers_open_questions_2026-06-21.md`) ·
   sprite importer `[IMP-1..6]` ·
   `DataManager._ready()` decomposition `[DMR-1..4]` **RESOLVED 2026-06-23** (refactor A/A/A + **new
-  [DMR-4]=A**: parameterize the campaign base+overlay **load seam** — `_load_all(base, overlay=null)`
-  + `select_campaign()` + `_apply_overlay()` stub — **merge semantics deferred to I3**; the L2 keystone
-  the designer side resolves through, behavior-preserving today) · broken-weapon `[BWN-1..5]` (§F) ·
+  [DMR-4]=A**: parameterize the per-campaign **load seam** — `_load_all(source)` + `select_campaign()`;
+  **SELF-CONTAINED replace-load, NOT a base+overlay merge** — the ICO reframe above superseded
+  `_apply_overlay()`; no merge engine to build; the L2 keystone the designer side resolves through,
+  behavior-preserving today) · broken-weapon `[BWN-1..5]` (§F) ·
   D-A rename `[REN-1..5]` (§F) · DOC-012 legal `[LEG-1..5]` (§F).
 - **Forward §2-schema reservations these surfaced** (later data-growth, not a reshape):
   `discovered_units` (fog), `ai_awake` (territorial), `map_objects_state` (doors/chests/siege),

@@ -11,9 +11,17 @@ Resolved-in: 2026-06-23d
 **Started:** 2026-06-21d
 **Last verified:** 2026-06-23
 **Status:** Register RESOLVED 2026-06-23 (`[DMR-1..4]`). Mostly a **pure refactor** (no player-facing
-behavior change); **[DMR-4]** adds the campaign base+overlay **load seam** — still behavior-preserving
-(the new `overlay_source` defaults null → identical boot to today; `select_campaign()` is new but
+behavior change); **[DMR-4]** adds the per-campaign **load seam** — still behavior-preserving
+(the new load-source param defaults to today's `res://data/` → identical boot; `select_campaign()` is new but
 unused until I3/§2 wires it). Build-ready.
+
+> **AMENDED post-resolution (2026-06-23, ICO reframe).** `[DMR-4]` was resolved (2026-06-23d) as a
+> **base+overlay merge** seam; the owner then reframed the content model to **SELF-CONTAINED** (`[ICO-1..6]`
+> RESOLVED 2026-06-23e, `campaign_content_overlay_open_questions_2026-06-23.md`). The seam survives but is now
+> a **replace-load, NOT a merge**: `select_campaign(c)` does `_load_all(c.content_dir)` and *replaces* the
+> content dicts — there is **no `_apply_overlay()` merge engine to build**. The overlay/merge wording in §1–§3
+> below is retained for provenance; **read it as replace-load.** Heaviest build is now the ICO-5 first-run
+> seed-copy (`res://`→`user://`) + `user://` enumeration, not a merge engine.
 **Source:** `planning_backlog_2026-06-20.md` §5 ("named phases sketched"); session note
 2026-06-21c Tier 2 #8.
 **Code:** `scripts/autoloads/DataManager.gd`. **Tests:** `test_data_manager.gd`,
