@@ -8,7 +8,6 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | OPEN | campaign_save_technical_plan_2026-06-21.md | `registers/campaign_save_open_decisions_2026-06-21.md` |
-| `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | OPEN | — | `registers/items_equipment_model_open_questions_2026-06-23.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
@@ -22,6 +21,7 @@
 | `FOW-1..7` | Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21j | `registers/fog_of_war_los_open_questions_2026-06-21.md` |
 | `ICD-1..7` | Input / Controls — Open Decisions Register — 2026-06-21 | RESOLVED | 2026-06-21 (ICD-7 non-blocking) | `registers/input_controls_open_decisions_2026-06-21.md` |
 | `ICO-1..6` | Campaign Content Overlay (branch I3) — Open Questions Register | RESOLVED | 2026-06-23e | `registers/campaign_content_overlay_open_questions_2026-06-23.md` |
+| `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/items_equipment_model_open_questions_2026-06-23.md` |
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
 | `MRD-1..6` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-22g | `registers/map_readability_open_questions_2026-06-21.md` |
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |

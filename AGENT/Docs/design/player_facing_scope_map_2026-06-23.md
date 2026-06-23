@@ -95,11 +95,14 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
    Re-derived the whole item/equipment/proficiency stack: weapons + WEXP are healthy; **equipment is
    half-built + model-split** (passive 4-field `InventoryEntry` bonus disconnected from `ItemData`,
    orphaned `until_unequipped`, stale `InventoryEntry.gd:21` header, named items exceed 4 fields).
-   **→ DESIGN-DOC + register OPEN 2026-06-23 `[IEQ-1..9]`**
+   **→ FIRMED 2026-06-23l `[IEQ-1..9]`**
    (`design/items_equipment_unified_model_2026-06-23.md` + `registers/items_equipment_model_open_questions_2026-06-23.md`;
-   **supersedes `[EQP-1..5]`**). Owner framing set: support **both** held + equipped conferral; legality =
-   parallel item-proficiency track **+** per-item flags; benefits **scale/expand** by flag/experience.
-   Remaining forks (data shape, slots, data-model unification, save schema, code-debt) walked in the register. Pairs w/ (1).
+   **supersedes `[EQP-1..5]`**): **composition** model — one `ItemDef` base + optional
+   `weapon`/`consumable`/`accessory` components (multi-component ships v1), `InventoryEntry` = thin instance →
+   `def_id`; **per-component independent legality** (accessory = item-proficiency track + flags); **typed
+   accessory slots** (slot_type + per-type capacity, campaign base + class override); conferral held|equipped|both;
+   benefit tier table; modifier+effect-hook model wiring `until_unequipped`. **Staged build** (define → migrate
+   weapons→consumables→accessories). Pairs w/ (1).
 4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX; **includes Capture** as
    a recruit mechanism. (D-D prerequisite.)
 5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.

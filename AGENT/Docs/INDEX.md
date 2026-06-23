@@ -43,7 +43,7 @@
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
-- [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *OPEN*
+- [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -63,7 +63,7 @@
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
 - [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`design/input_mode_architecture_design_2026-06-20.md`](design/input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
-- [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Active design vision — being firmed*
+- [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Target design — firmed, awaiting staged *
 - [`design/mouse_only_cursor_mode_design_2026-06-19.md`](design/mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*

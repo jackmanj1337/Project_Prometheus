@@ -1,16 +1,17 @@
 ---
 Type: design
-Status: Active design vision — being firmed
+Status: Target design — firmed, awaiting staged build
 Last verified: 2026-06-23
 ---
 
 # Items & Equipment — Unified Data-Model Review (ground-up)
 
 **Started:** 2026-06-23
-**Status:** Active design vision — ground-up review of the whole item/equipment/proficiency
-stack. The weapon + WEXP halves are **Implemented** and re-derived here to confirm; the
-equipment half is **half-built** and this doc defines its **Target** unified model. Open
-decisions are walked in the paired register (`[IEQ-1..9]`,
+**Status:** Target design — ground-up review of the whole item/equipment/proficiency stack;
+the model is **firmed** (register `[IEQ-1..9]` RESOLVED 2026-06-23l) and awaits a **staged
+build**. The weapon + WEXP halves are **Implemented** and re-derived here to confirm; the
+equipment half was **half-built** and this doc now defines the **decided** unified
+(composition) model. Decisions-of-record live in the paired register (`[IEQ-1..9]`,
 `registers/items_equipment_model_open_questions_2026-06-23.md`); this doc is the **map**.
 **Source:** owner-requested first-principles review (Session Note 2026-06-23k → Next session);
 scope map `player_facing_scope_map_2026-06-23.md` §3b #3. **Supersedes** the piecemeal
@@ -92,58 +93,73 @@ override), `strikes_per_attack` (Brave=2), `is_natural_weapon` (Laguz, deferred)
 
 ---
 
-## 2. Target unified model (owner-directed, 2026-06-23)
+## 2. The decided unified model (firmed 2026-06-23l)
 
-The owner's direction (the answers that shape this doc): support **both** held-benefit and
-equipped-benefit accessories; gate them with **both** a parallel proficiency rank track
-**and** per-item requirement flags; and allow an item's benefit to **differ or expand**
-based on flags and/or experience level. Four axes:
+Re-derived ground-up and firmed via `[IEQ-1..9]`. The keystone (`[IEQ-7]`) is **composition**;
+everything else attaches to it. Full decisions-of-record → the register; this is the shape.
 
-### 2a. Conferral mode — held vs equipped (BOTH supported, per-item)
-Each accessory declares **how its benefit is conferred**:
-- **Held-benefit** — applies while simply carried in inventory (today's passive behavior,
-  kept deliberately for some items, e.g. a passive ward).
-- **Equipped-benefit** — applies only when equipped into an accessory slot (exclusivity,
-  an equip action, sheet visibility).
-- An item may, in principle, declare both a held baseline and an expanded equipped tier
-  (ties into 2d scaling). → `[IEQ-1]`.
+### 2a. Composition — one `ItemDef` base + optional components (`[IEQ-7]`)
+A single **`ItemDef`** definition resource holds the genuinely-shared fields and carries
+**optional component sub-resources**; **an item may hold more than one** (multi-component):
 
-### 2b. Equip slots & exclusivity (for equipped-benefit items)
-Equipped-benefit accessories occupy an **accessory slot**; equipping is an action (prep /
-unit menu). Slot count + exclusivity → `[IEQ-2]` (rec: single accessory slot v1,
-rule-driven N later). Held-benefit items are **not** slot-bound (only their own
-held-stacking cap, if any).
+```
+ItemDef (base, shared by id)
+  id, display_name, description, cost, sellable
+  weapon_component:     WeaponComponent     = null
+  consumable_component: ConsumableComponent = null
+  accessory_component:  AccessoryComponent  = null
 
-### 2c. Legality gate — proficiency track **+** flags (COMBINED)
-Generalize `_can_equip_rank()` beyond weapons. An accessory's legality is a **conjunction** of:
-- **(i) a parallel proficiency rank track** — items/accessories gain their own
-  WEXP-style tracks + ranks, mirroring `weapon_wexp`. A unit must meet the item's
-  `required_rank` on its track to equip/hold-for-benefit it. Reuses the existing
-  rank-threshold machinery (`GameConstants.minimum_wexp_for_rank`).
-- **(ii) per-item requirement flags** — additional predicates an item declares
-  (class group, unit tag, min level, named proficiency). Evaluated AND-wise with (i).
-→ `[IEQ-3]`.
+InventoryEntry (thin per-slot INSTANCE)
+  entry_type retired → def_id -> ItemDef
+  uses_remaining, equipped pointer(s), forged_mods   # runtime state only
+```
 
-### 2d. Benefit scaling / tiering — by flag and/or proficiency level
-An accessory's effect is **not fixed**: it can differ or expand based on its proficiency
-**rank** and/or which **flags** the holder satisfies (e.g. a stronger bonus at higher item
-rank, or an extra effect for a matching class). Modeled as a **tier table** keyed by
-rank/flag → modifier-set. → `[IEQ-4]`.
+- **Definition vs instance** stays a two-layer split: `ItemDef` (shared template) vs
+  `InventoryEntry` (per-slot runtime). Only the **definition** layer consolidates.
+- Migrates: `WeaponData` → `WeaponComponent` (fields unchanged); `ItemData` effects →
+  `ConsumableComponent`; the inline `accuracy/damage/crit/dodge` retire into the
+  `AccessoryComponent` modifier model (2d).
+- **Cleanup wins:** the overloaded `ItemData.item_type` enum dissolves — `sellable`/`cost`
+  are base fields, a "key" is an item with no functional component; `uses` lives only on
+  durability-bearing components. `DataManager` gets one registry + `get_item_def(id)`.
+- **Staged migration** (NOT one drop): define the model, then migrate weapons → consumables
+  → accessories so healthy combat code (~15 weapon + ~11 item call sites, manifests, tests)
+  isn't rewritten at once.
 
-### 2e. Grantable stat/effect model — beyond the 4 combat fields
-An accessory grants a list of **general modifiers** (stat → delta, any stat incl.
-STR/DEF/MOV) applied at `until_unequipped` duration, **plus** optional **effect hooks**
-(movement-type change, skill grant, crit-immunity) for the named items. Reuses
-`add_modifier`/`active_modifiers`. The 4 flat fields become a convenience subset or migrate
-in. → `[IEQ-5]`. Wiring these as real `until_unequipped` modifiers gives the orphaned label
-(finding #3) its producer and makes bonuses sheet-visible → `[IEQ-6]`.
+### 2b. Per-component, independent legality (`[IEQ-3]`)
+Each component gates itself, checked only for the capability being used:
+- **`WeaponComponent`** → existing weapon-WEXP track + `required_rank` + class family
+  (`Unit._can_equip_rank`, **unchanged**).
+- **`AccessoryComponent`** → new **item-proficiency** = a parallel rank track
+  (`UnitData.item_wexp`, mirroring `weapon_wexp`, reusing `minimum_wexp_for_rank`) **AND** a
+  per-item `req_flags` predicate list (`class_group | unit_tag | min_level | named_proficiency`).
+  Item-WEXP **gain source deferred** — v1 grants item-rank by class/level (no "use" event).
 
-### 2f. Data-model unification (the architectural fork)
-Resolve finding #1: where does an accessory's definition live, and how does
-`InventoryEntry` reference it? Options span "extend `ItemData`" vs "new `AccessoryData`
-resource", with the inline 4 fields retired/migrated and `InventoryEntry.equip` reduced to
-a reference + an equipped-state pointer. → `[IEQ-7]`. Save/schema impact (per-unit equipped
-pointer; item-proficiency totals parallel to `weapon_wexp`) → `[IEQ-8]`.
+### 2c. Multi-component (ships v1) — independent, concurrent capabilities
+One item can be several things at once; each capability lives independently. The one
+coupling rule: **a dual weapon + equipped-accessory item gets its accessory bonus free when
+it is the equipped weapon** (weapon-equipped counts as equipped; no separate slot consumed).
+
+### 2d. Conferral, typed slots, tiers, effects (`[IEQ-1/2/4/5/6]`)
+- **Conferral** (`[IEQ-1]`): `AccessoryComponent.conferral = held | equipped | both`. Held =
+  applies while carried; equipped = occupies a slot; `both` = held baseline + an expanded
+  equipped tier.
+- **Typed slots** (`[IEQ-2]`): `AccessoryComponent.slot_type` (`helmet`, `ring`, …,
+  author-extensible) + a per-type **capacity map** (e.g. `{helmet:1, ring:2}`). Capacity =
+  **campaign base default → `ClassData` override (add/remove)** → per-unit modifiers deferred.
+- **Tiers** (`[IEQ-4]`): `AccessoryComponent.tiers`, keyed by item-rank and/or flag → a
+  modifier-set + effect-hook list. Held baseline = tier 0; higher tiers grow magnitude
+  and/or **add** effects.
+- **Stat/effect model** (`[IEQ-5]`): per tier, `modifiers` (any stat → delta, incl.
+  STR/DEF/MOV) + optional `effect_hooks` (movement-type, skill grant, crit-immunity) for the
+  named items. Reuses `add_modifier`/`active_modifiers`; the 4 flat fields migrate in.
+- **`until_unequipped` wiring** (`[IEQ-6]`): granted modifiers are real `until_unequipped`
+  active modifiers (removed on unequip/drop) → bonuses visible on the character sheet in +
+  out of combat, giving the orphaned label its producer.
+
+### 2e. Save/schema reservation (`[IEQ-8]`)
+Reserve in §2: `InventoryEntry.def_id`; per-slot-type equipped pointers; `UnitData.item_wexp`;
+the slot-capacity map. Serialize like `weapon_wexp` + inventory order (already serialized).
 
 ---
 
@@ -163,12 +179,13 @@ Firmed elsewhere; this review **builds on**, does not reopen:
 
 ---
 
-## 4. Open decisions → register `[IEQ-1..9]`
+## 4. Decisions-of-record → register `[IEQ-1..9]` (RESOLVED 2026-06-23l)
 
-The owner has set the **framing** (both conferral modes; track+flags legality; scaling on).
-The remaining forks — how each is declared in data, slot/exclusivity specifics, track design,
-the data-model unification, save schema, and the code-debt cleanup — are walked in
-`registers/items_equipment_model_open_questions_2026-06-23.md`.
+All nine questions plus the composition-driven additions (multi-component policy, typed
+slots, slot-capacity ownership, dual-occupancy rule) are **resolved** in
+`registers/items_equipment_model_open_questions_2026-06-23.md`. What remains is the **staged
+build**, not further design: define `ItemDef` + components → migrate weapons → consumables →
+accessories, reserving the §2 save fields and landing the code-debt cleanup with each phase.
 
 ## 5. Definition of done (when the build lands, not now)
 - Affected GDD_01 (schemas) + GDD_04 (items/equip/proficiency) sections updated AND the
