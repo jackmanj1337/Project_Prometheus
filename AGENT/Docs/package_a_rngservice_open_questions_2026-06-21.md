@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21f
+Last verified: 2026-06-23
+Register: PKGA-1..4
+Resolved-in: 2026-06-21f
+---
+
 # Package A (`RngService`) — Implementation Draft + Open Questions Register
 
 **Started:** 2026-06-21d

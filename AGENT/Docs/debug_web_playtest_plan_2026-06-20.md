@@ -1,3 +1,9 @@
+---
+Type: plan
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20
 
 Status: Target design - ready for implementation after decision signoff

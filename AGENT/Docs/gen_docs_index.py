@@ -104,10 +104,12 @@ def _lifecycle(status: str) -> str:
     s = status.upper()
     if "SUPERSEDED" in s:
         return "SUPERSEDED"
-    if "RESOLVED" in s:
-        return "RESOLVED"
+    # OPEN wins over RESOLVED: a register with any open item is OPEN even if it
+    # also records partial resolutions (e.g. "CST-1..12 RESOLVED, CST-13 OPEN").
     if "OPEN" in s:
         return "OPEN"
+    if "RESOLVED" in s:
+        return "RESOLVED"
     if "HISTORICAL" in s or "ARCHIVED" in s:
         return "Historical"
     return ""
@@ -235,7 +237,7 @@ def _index_md(docs: list[Doc]) -> str:
         lines.append("")
         for d in group:
             status = f" — *{d.lifecycle or d.status[:40]}*" if (d.lifecycle or d.status) else ""
-            lines.append(f"- [`{d.rel}`]({d.rel}) — {d.title}{status}")
+            lines.append(f"- [`{d.rel}`]({d.rel.replace(' ', '%20')}) — {d.title}{status}")
         lines.append("")
 
     if archived:
@@ -243,7 +245,7 @@ def _index_md(docs: list[Doc]) -> str:
         lines.append("")
         for d in sorted(archived, key=lambda d: d.rel):
             tag = d.lifecycle or "Historical"
-            lines.append(f"- [`{d.rel}`]({d.rel}) — {d.title} — *{tag}*")
+            lines.append(f"- [`{d.rel}`]({d.rel.replace(' ', '%20')}) — {d.title} — *{tag}*")
         lines.append("")
     return "\n".join(lines)
 

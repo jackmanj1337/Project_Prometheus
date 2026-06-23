@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-22f
+Last verified: 2026-06-23
+Register: STW-1..6
+Resolved-in: 2026-06-22f
+---
+
 # Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions
 
 **Started:** 2026-06-21d

@@ -1,3 +1,11 @@
+---
+Type: register
+Status: OPEN — CST-1..12 RESOLVED, CST-13 OPEN
+Last verified: 2026-06-23
+Register: CST-1..13
+Resolved-in: campaign_save_technical_plan_2026-06-21.md
+---
+
 # Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register
 
 **Started:** 2026-06-21

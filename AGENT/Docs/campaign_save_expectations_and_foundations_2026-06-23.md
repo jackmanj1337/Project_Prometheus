@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Active framing / driver
+Last verified: 2026-06-23
+---
+
 # Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing)
 
 **Started:** 2026-06-23

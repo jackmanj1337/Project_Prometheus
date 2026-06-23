@@ -1,3 +1,9 @@
+---
+Type: plan
+Status: DRAFT — CST-1..12 RESOLVED
+Last verified: 2026-06-23
+---
+
 # Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT)
 
 **Started:** 2026-06-21

@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20
 
 Status: Target design

@@ -1,3 +1,10 @@
+---
+Type: register
+Status: OPEN
+Last verified: 2026-06-23
+Register: IMP-1..6
+---
+
 # FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions
 
 **Started:** 2026-06-21d

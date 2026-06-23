@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Design vision
+Last verified: 2026-06-23
+---
+
 # AI System — Design Vision (player-facing · campaign-builder · architecture)
 
 **Started:** 2026-06-22

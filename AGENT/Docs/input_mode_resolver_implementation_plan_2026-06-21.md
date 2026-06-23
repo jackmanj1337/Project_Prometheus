@@ -1,3 +1,9 @@
+---
+Type: plan
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Input-Mode Resolver — Implementation Plan — 2026-06-21
 
 Status: Target design

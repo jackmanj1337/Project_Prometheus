@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21h
+Last verified: 2026-06-23
+Register: MET-1..9
+Resolved-in: 2026-06-21h
+---
+
 # Map Events / Triggers Framework — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21h

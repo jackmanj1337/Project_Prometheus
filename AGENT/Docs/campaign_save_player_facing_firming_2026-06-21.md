@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Player-facing firming — pass complete
+Last verified: 2026-06-23
+---
+
 # Campaign / Save Cluster — Player-Facing Firming
 
 **Started:** 2026-06-21

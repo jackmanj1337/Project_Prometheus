@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan
 
 **Status:** **Target design** — implementation plan for Package A (`RngService`),

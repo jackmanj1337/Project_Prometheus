@@ -1,3 +1,10 @@
+---
+Type: register
+Status: OPEN
+Last verified: 2026-06-23
+Register: REN-1..5
+---
+
 # D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions
 
 **Started:** 2026-06-21d

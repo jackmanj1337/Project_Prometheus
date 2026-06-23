@@ -1,3 +1,9 @@
+---
+Type: plan
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Gamepad Input Layer — Implementation Plan — 2026-06-20
 
 Status: Target design

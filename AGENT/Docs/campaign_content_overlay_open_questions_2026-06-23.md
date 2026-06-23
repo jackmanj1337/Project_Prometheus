@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-23
+Last verified: 2026-06-23
+Register: ICO-1..6
+Resolved-in: 2026-06-23e
+---
+
 # Campaign Content Overlay (branch I3) — Open Questions Register
 
 **Started:** 2026-06-23

@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-22g
+Last verified: 2026-06-23
+Register: MRD-1..6
+Resolved-in: 2026-06-22g
+---
+
 # Map-Readability Cluster (§4) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d

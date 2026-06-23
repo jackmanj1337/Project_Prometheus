@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-22h
+Last verified: 2026-06-23
+Register: BWN-1..5
+Resolved-in: 2026-06-22h
+---
+
 # OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions
 
 **Started:** 2026-06-21d

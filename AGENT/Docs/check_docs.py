@@ -32,6 +32,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# check 18 imports the sibling gen_docs_index module; without this the hook/CI runs
+# (which don't set PYTHONDONTWRITEBYTECODE) would drop an AGENT/Docs/__pycache__ on every
+# invocation. No-artifacts policy: never write bytecode from this tool.
+sys.dont_write_bytecode = True
+
 ROOT = Path(__file__).resolve().parent.parent.parent  # workspace root
 
 _failures: list[str] = []

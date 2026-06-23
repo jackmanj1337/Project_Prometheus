@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20
 
 Status: Target design

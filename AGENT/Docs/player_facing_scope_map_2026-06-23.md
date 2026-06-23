@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Active framing / driver
+Last verified: 2026-06-23
+---
+
 # Player-Facing Feature Scope Map (Firming Driver)
 
 **Started:** 2026-06-23

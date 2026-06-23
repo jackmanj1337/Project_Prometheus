@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Target design
+Last verified: 2026-06-23
+---
+
 # Individual Unit Threat Range — Design — 2026-06-21
 
 Status: Target design

@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21g
+Last verified: 2026-06-23
+Register: DTR-1..8
+Resolved-in: 2026-06-21g
+---
+
 # Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21g

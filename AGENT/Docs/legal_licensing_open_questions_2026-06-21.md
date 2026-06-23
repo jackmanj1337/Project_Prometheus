@@ -1,3 +1,10 @@
+---
+Type: register
+Status: OPEN
+Last verified: 2026-06-23
+Register: LEG-1..5
+---
+
 # DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions
 
 **Started:** 2026-06-21d

@@ -1,3 +1,9 @@
+---
+Type: design
+Status: Target design — build-ready
+Last verified: 2026-06-23
+---
+
 # AI First-Build Design — Composition Engine (MVP build spec)
 
 **Started:** 2026-06-22

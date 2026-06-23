@@ -1,3 +1,9 @@
+---
+Type: plan
+Status: Active — planning queue
+Last verified: 2026-06-23
+---
+
 # Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20)
 
 Status: Active — planning queue

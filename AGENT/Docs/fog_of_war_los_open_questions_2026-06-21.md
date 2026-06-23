@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21j
+Last verified: 2026-06-23
+Register: FOW-1..7
+Resolved-in: 2026-06-21j
+---
+
 # Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d

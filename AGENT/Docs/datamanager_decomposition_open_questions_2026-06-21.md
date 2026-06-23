@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-23
+Last verified: 2026-06-23
+Register: DMR-1..4
+Resolved-in: 2026-06-23d
+---
+
 # `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions
 
 **Started:** 2026-06-21d

@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21g
+Last verified: 2026-06-23
+Register: DCH-1..6
+Resolved-in: 2026-06-21g
+---
+
 # Doors & Chests (§5) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d

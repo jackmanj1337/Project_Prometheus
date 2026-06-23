@@ -7,7 +7,7 @@
 
 ## Guides & runbooks (active)
 
-- [`Docker Instructions.md`](Docker Instructions.md) — Godot + Claude Code + Codex — Terminal Dev Container
+- [`Docker Instructions.md`](Docker%20Instructions.md) — Godot + Claude Code + Codex — Terminal Dev Container
 - [`campaign_rules.md`](campaign_rules.md) — Campaign Rules
 - [`environment_setup.md`](environment_setup.md) — Environment Setup — Transfer to a New Machine
 - [`fe_map_sprite_importer_guide.md`](fe_map_sprite_importer_guide.md) — FE-Style Map Sprite Importer for Godot
@@ -41,54 +41,56 @@
 
 ## Open-question / decisions registers
 
-- [`ai_first_build_design_2026-06-22.md`](ai_first_build_design_2026-06-22.md) — AI First-Build Design — Composition Engine (MVP build spec) — *RESOLVED*
 - [`ai_profiles_open_questions_2026-06-21.md`](ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
-- [`ai_system_design_vision_2026-06-22.md`](ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision — drafted 2026-06-22a. Inf*
 - [`broken_weapon_mode_open_questions_2026-06-21.md`](broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`campaign_content_overlay_open_questions_2026-06-23.md`](campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
-- [`campaign_save_expectations_and_foundations_2026-06-23.md`](campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / navigation layer — Plan*
 - [`campaign_save_open_decisions_2026-06-21.md`](campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *OPEN*
-- [`campaign_save_technical_plan_2026-06-21.md`](campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`datamanager_decomposition_open_questions_2026-06-21.md`](datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`destructible_terrain_open_questions_2026-06-21.md`](destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`doors_chests_open_questions_2026-06-21.md`](doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`fog_of_war_los_open_questions_2026-06-21.md`](fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
-- [`individual_threat_range_design_2026-06-21.md`](individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`input_controls_open_decisions_2026-06-21.md`](input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
-- [`input_mode_resolver_implementation_plan_2026-06-21.md`](input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
-- [`key_rebind_ui_implementation_plan_2026-06-21.md`](key_rebind_ui_implementation_plan_2026-06-21.md) — Key-Rebind UI — Implementation Plan — 2026-06-21 — *Target design*
 - [`legal_licensing_open_questions_2026-06-21.md`](legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
 - [`map_events_triggers_open_questions_2026-06-21.md`](map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`map_readability_open_questions_2026-06-21.md`](map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`map_sprite_importer_open_questions_2026-06-21.md`](map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
 - [`package_a_rngservice_open_questions_2026-06-21.md`](package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
-- [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`public_identity_rename_open_questions_2026-06-21.md`](public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *OPEN*
 - [`stationary_weapons_open_questions_2026-06-21.md`](stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
 
 ## Design & vision docs
 
+- [`ai_first_build_design_2026-06-22.md`](ai_first_build_design_2026-06-22.md) — AI First-Build Design — Composition Engine (MVP build spec) — *Target design — build-ready*
+- [`ai_system_design_vision_2026-06-22.md`](ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
+- [`campaign_save_expectations_and_foundations_2026-06-23.md`](campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
+- [`campaign_save_player_facing_firming_2026-06-21.md`](campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`d2_mapcursortargeting_design.md`](d2_mapcursortargeting_design.md) — D2 Design — Extracting `MapCursorTargeting`
 - [`d3_mapcursor_slicing_design.md`](d3_mapcursor_slicing_design.md) — D3 Design — Extracting `MapCursorInput` and `MapCursorSelection`
 - [`display_scaling_resolution_design_2026-06-20.md`](display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
+- [`individual_threat_range_design_2026-06-21.md`](individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`input_mode_architecture_design_2026-06-20.md`](input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
 - [`mouse_only_cursor_mode_design_2026-06-19.md`](mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
-- [`rng_determinism_design_2026-06-11.md`](rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — ***Target design** — implementation plan *
+- [`player_facing_scope_map_2026-06-23.md`](player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
+- [`rng_determinism_design_2026-06-11.md`](rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*
 - [`shared_selector_extraction_design_2026-06-20.md`](shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`terrain_more_info_paging_design_2026-06-19.md`](terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
 
 ## Implementation plans
 
+- [`campaign_save_technical_plan_2026-06-21.md`](campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`class_skill_rebuild_plan_2026-05-21.md`](class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *page for the full class/skill track.*
 - [`combat_preview_render_fix_plan_2026-06-10.md`](combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10
-- [`debug_web_playtest_plan_2026-06-20.md`](debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design - ready for implementation*
+- [`debug_web_playtest_plan_2026-06-20.md`](debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
 - [`gamepad_layer_implementation_plan_2026-06-20.md`](gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
 - [`implementation_plan_2026-05-16.md`](implementation_plan_2026-05-16.md) — Implementation Plan — 2026-05-16
 - [`implementation_plan_2026-05-16d.md`](implementation_plan_2026-05-16d.md) — Implementation Plan — Code Review 2026-05-16 (d) Fixes — ***not started** — prepared for next sess*
 - [`implementation_plan_2026-05-21.md`](implementation_plan_2026-05-21.md) — Implementation Plan — M15 Part A: Hotseat Control — *Deferred on 2026-05-21. Core implementat*
+- [`input_mode_resolver_implementation_plan_2026-06-21.md`](input_mode_resolver_implementation_plan_2026-06-21.md) — Input-Mode Resolver — Implementation Plan — 2026-06-21 — *Target design*
+- [`key_rebind_ui_implementation_plan_2026-06-21.md`](key_rebind_ui_implementation_plan_2026-06-21.md) — Key-Rebind UI — Implementation Plan — 2026-06-21 — *Target design*
 - [`m6_promotion_plan_2026-05-21.md`](m6_promotion_plan_2026-05-21.md) — M6 — Promotion System Plan (implemented, 2026-05-21) — *implemented on branch `class-skill-rebui*
 - [`m7_second_seal_plan_2026-05-21.md`](m7_second_seal_plan_2026-05-21.md) — M7 — Second Seal Reclassing & Demotion Plan (implemented, 2026-05-21)
 - [`more_info_mode_plan_2026-05-24.md`](more_info_mode_plan_2026-05-24.md) — More Info Mode Plan — 2026-05-24
+- [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`promotion_reclass_test_map_plan_2026-05-23.md`](promotion_reclass_test_map_plan_2026-05-23.md) — Plan — Promotion / Reclass Validation Map — *Planning only.*
 - [`stat_breakdown_character_sheet_plan_2026-06-14.md`](stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`unit_progression_extraction_plan_2026-06-17.md`](unit_progression_extraction_plan_2026-06-17.md) — Unit Progression Extraction Plan — 2026-06-17
@@ -133,12 +135,10 @@
 ## Reference / feasibility / Q&A
 
 - [`campaign_rules_firming_notes_2026-05-25.md`](campaign_rules_firming_notes_2026-05-25.md) — Campaign Rules Firming Notes — 2026-05-25
-- [`campaign_save_player_facing_firming_2026-06-21.md`](campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *RESOLVED*
 - [`code_review_prep_v0.2.1_2026-06-19.md`](code_review_prep_v0.2.1_2026-06-19.md) — Code Review Prep — v0.2.1 (2026-06-19)
 - [`manual_test_findings_analysis.md`](manual_test_findings_analysis.md) — Manual Test Findings — Causes & Suggested Fixes
 - [`pair_up_combat_refactor_answers_2026-05-23.md`](pair_up_combat_refactor_answers_2026-05-23.md) — Pair Up Combat Refactor — Answers (2026-05-23) — *assignments for Pair Up-adjacent skills *
 - [`pair_up_combat_refactor_questions_2026-05-23.md`](pair_up_combat_refactor_questions_2026-05-23.md) — Pair Up Combat Refactor — Next Session Questions
-- [`player_facing_scope_map_2026-06-23.md`](player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver — Planned firmin*
 - [`second_player_control_feasibility.md`](second_player_control_feasibility.md) — Feasibility Review — Four-Faction Armies + Hotseat Manual Control — ***Discussion / planning only. No code ch*
 - [`v0.2.2_review_checkbacks_2026-06-20.md`](v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 

@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-22e
+Last verified: 2026-06-23
+Register: AIP-1..16
+Resolved-in: 2026-06-21k / 2026-06-22c / 2026-06-22e
+---
+
 # Additional AI Profiles (§5) — Draft Plan + Open Questions Register
 
 **Started:** 2026-06-21d

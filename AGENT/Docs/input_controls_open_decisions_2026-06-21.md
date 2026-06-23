@@ -1,3 +1,11 @@
+---
+Type: register
+Status: RESOLVED 2026-06-21
+Last verified: 2026-06-23
+Register: ICD-1..7
+Resolved-in: 2026-06-21 (ICD-7 non-blocking)
+---
+
 # Input / Controls — Open Decisions Register — 2026-06-21
 
 Status: Decisions resolved (ICD-1..6 settled 2026-06-21; ICD-7 non-blocking)
