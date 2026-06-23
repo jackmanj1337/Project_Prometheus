@@ -41,7 +41,7 @@ overlay`** at load. Two consequences frame all the work below:
 | --- | --- | --- | --- |
 | **L0 — `RngService` (Package A)** | determinism → meaningful suspend `rng{map_seed, history_hash}`, the rewind/Turnwheel substrate | `rng_determinism_design_2026-06-11.md` | build-ready; **gates §2 execution** |
 | **L1 — `SaveManager` + `SaveData` seam + `SaveCodec`** | I/O-free serialize/deserialize seam; JSON-primitive state by id; integrity hashes; export/import; slots | `[CST-1/2/9/10]` | designed |
-| **L2 — `DataManager` base-load + overlay** | resolve ids against `defaults ∪ overlay`; campaign-select triggers overlay load | `[DMR-1..3]` | **OPEN — keystone for the designer side** |
+| **L2 — `DataManager` base-load + overlay** | resolve ids against `defaults ∪ overlay`; campaign-select triggers overlay load | `[DMR-1..4]` | **seam RESOLVED 2026-06-23** (load path parameterized; `_apply_overlay()` body = I3) |
 | **L3 — `CampaignData` graph + `MapData` + content library** | progression nodes (map refs, `next`, required/excluded/cap), reusable map geometry, weapons/items/classes/skills (+ labels, +art/icons) | graph `[CST-3/5/6]` designed; **content overlay (I3) OPEN** | mixed |
 | **L4 — `CampaignRules`** | per-save rule object; author mandates vs defaults; story-flip seam; rewind charges | `[CST-4/6/11]` | designed |
 
@@ -105,7 +105,7 @@ the substance of the next register walks. Five expectation clusters:
 | §2 technical decisions `[CST-1..12]` | decisions register | **firmed** |
 | `[CST-13]` rewind fold-in | decisions register | deferred to §2 exec kickoff |
 | L0 `RngService` | Package A design | build-ready (gates §2) |
-| L2 `DataManager` base+overlay `[DMR-1..3]` | DMR register | **OPEN** |
+| L2 `DataManager` base+overlay seam `[DMR-1..4]` | DMR register | **RESOLVED 2026-06-23** (seam; body = I3) |
 | L3 content overlay model (I3 a–e) | planning_backlog §2b | **OPEN (direction only)** |
 | Item `icon` schema field | (none yet) | **OPEN — net-new** |
 | Designer authoring contract (4a–4e) | (this doc seeds it) | **OPEN — no register yet** |
@@ -115,13 +115,14 @@ the substance of the next register walks. Five expectation clusters:
 
 ## 6. Recommended walk order (next sessions)
 The designer side is the leverage point, and it forces the substrate decisions in the right order:
-1. **Walk `[DMR-1..3]`** (L2) — lock the base-load + campaign-overlay path so id-resolution against
-   `defaults ∪ overlay` is real. Everything in 4c/4d resolves through this.
-2. **Open an I3 content-overlay register** — ratify sub-decisions a–e; add the item `icon` field as
-   its first concrete schema consequence.
+1. ~~**Walk `[DMR-1..3]`** (L2) — lock the base-load + campaign-overlay path.~~ **DONE 2026-06-23:**
+   `[DMR-1..4]` RESOLVED — seam parameterized (`_load_all(base, overlay=null)` + `select_campaign()` +
+   `_apply_overlay()` stub); merge semantics deferred to I3. `defaults ∪ overlay` load path is now real.
+2. **NEXT — open an I3 content-overlay register** — ratify sub-decisions a–e; **fill `_apply_overlay()`'s
+   body** (the [DMR-4] stub); add the item `icon` field as its first concrete schema consequence.
 3. **Draft the designer authoring contract (4a–4e)** as a register — the requirements the campaign
    pack + GUI editor must support, independent of GUI-vs-JSON.
-4. Player side stays firmed; revisit only if 1–3 surface a forced change (flag it, don't silently edit).
+4. Player side stays firmed; revisit only if 2–3 surface a forced change (flag it, don't silently edit).
 
 **Build track is unchanged and independent:** Package A Step 1 (L0) is still the next *execution*
 step; the L2/L3/4x work above is *design* and is not gated by it.

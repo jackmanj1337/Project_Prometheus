@@ -163,9 +163,10 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   **DESIGN-side frontier (next, 2026-06-23):** the **designer/authoring** half is the open work —
   framing + foundations map in `AGENT/Docs/campaign_save_expectations_and_foundations_2026-06-23.md`
   (substrate stack L0–L4; player surface firmed; **designer authoring contract 4a–4e OPEN, no
-  register yet**). Recommended walk: `[DMR-1..3]` (L2 base+overlay load) → I3 content-overlay
-  register (sub-decisions a–e + item `icon` field) → designer authoring contract. Design is **not**
-  gated by Package A (that gates §2 *execution* only).
+  register yet**). Walk progress: **`[DMR-1..4]` RESOLVED 2026-06-23** (L2 base+overlay load seam
+  parameterized; merge semantics deferred to I3) → **next: I3 content-overlay register** (sub-decisions
+  a–e + item `icon` field) → designer authoring contract. Design is **not** gated by Package A (that
+  gates §2 *execution* only).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
 
@@ -215,7 +216,10 @@ Resume by building Package A, or walk another register with the user:
   `unit_died`/`turn_reached`/`object_broken` → `reveal_tiles`/`flag`/`spawn`; DTR's `on_break`
   folds in; owns the mid-map spawn seam + flag store; `map_events_triggers_open_questions_2026-06-21.md`) ·
   sprite importer `[IMP-1..6]` ·
-  `DataManager._ready()` decomposition `[DMR-1..3]` · broken-weapon `[BWN-1..5]` (§F) ·
+  `DataManager._ready()` decomposition `[DMR-1..4]` **RESOLVED 2026-06-23** (refactor A/A/A + **new
+  [DMR-4]=A**: parameterize the campaign base+overlay **load seam** — `_load_all(base, overlay=null)`
+  + `select_campaign()` + `_apply_overlay()` stub — **merge semantics deferred to I3**; the L2 keystone
+  the designer side resolves through, behavior-preserving today) · broken-weapon `[BWN-1..5]` (§F) ·
   D-A rename `[REN-1..5]` (§F) · DOC-012 legal `[LEG-1..5]` (§F).
 - **Forward §2-schema reservations these surfaced** (later data-growth, not a reshape):
   `discovered_units` (fog), `ai_awake` (territorial), `map_objects_state` (doors/chests/siege),
