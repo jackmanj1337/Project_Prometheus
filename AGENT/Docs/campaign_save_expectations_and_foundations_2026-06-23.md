@@ -128,10 +128,13 @@ The designer side is the leverage point, and it forces the substrate decisions i
 2. ~~**Open the I3 content register** — ratify a–e + item `icon`.~~ **DONE 2026-06-23:** `[ICO-1..6]`
    RESOLVED — **owner reframed to SELF-CONTAINED** (no overlay); copy `res://`→`user://` on first run;
    `icon: String` + `resolve_icon()`. Build weight moved to the ICO-5 seed-copy/enumeration/repair path.
-3. **NEXT — draft the designer authoring contract (4a–4e)** as a register — the requirements a campaign
-   pack + GUI editor must support (progression, rules mandates/defaults, the self-contained content set,
-   packaging), independent of GUI-vs-JSON.
-4. Player side stays firmed; revisit only if 3 surfaces a forced change (flag it, don't silently edit).
+3. **RE-SEQUENCED (owner, 2026-06-23): finish the player-facing surface FIRST, then builder authority.**
+   The designer authoring contract (4a–4e) is **deferred behind** a pass to *finish defining all
+   player-facing features* — you can't decide what the builder controls until the full player-facing
+   surface is firmed. Worklist + status map: `player_facing_scope_map_2026-06-23.md` (GAP clusters =
+   convoy/shop/recruit/support/rescue/PvP). **Then** the 4a–4e authority pass uses that feature list as
+   its checklist, **then** implementation.
+4. Player side stays firmed where already firmed; the GAP clusters in the scope map are the open work.
 
 **Build track is unchanged and independent:** Package A Step 1 (L0) is still the next *execution*
 step; the L2/L3/4x work above is *design* and is not gated by it.

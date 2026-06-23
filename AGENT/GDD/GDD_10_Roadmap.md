@@ -168,8 +168,12 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   each campaign = a complete independent pack of user-defined assets, **no runtime overlay** — *reverses
   the 2026-06-23a base+overlay direction*; copy `res://`→`user://` on first run; `icon: String` +
   `resolve_icon()`; DMR-4's `_apply_overlay()` merge → replace-load; heaviest build = the ICO-5 seed-copy/
-  enumeration/repair path) → **next: the designer authoring contract (4a–4e)**. Design is **not** gated
-  by Package A (that gates §2 *execution* only).
+  enumeration/repair path) → **RE-SEQUENCED 2026-06-23 (owner): finish the player-facing surface FIRST,
+  then builder authority.** The designer authoring contract (4a–4e) is deferred behind a pass to *finish
+  defining all player-facing features* (`player_facing_scope_map_2026-06-23.md` — GAP clusters =
+  convoy/shop/recruit/support/rescue/PvP, each owed an A–J-style firming); the 4a–4e authority pass then
+  uses that feature list as its checklist, then implementation. Design is **not** gated by Package A
+  (that gates §2 *execution* only).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
 
