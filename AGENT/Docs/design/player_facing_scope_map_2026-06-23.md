@@ -144,6 +144,15 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
 
 **LIGHTER — ride build milestones (no standalone firming):**
 21. Skill content per-skill UX (M9b) + status-condition UX check-backs (M8).
+22. **Candidate systems (NEW — owner 2026-06-23l, exploration)** — initial designs + feasibility/scope
+    drafted in `design/candidate_systems_2026-06-23.md`; player-interaction questions OPEN in
+    `[CEX-1..16]` (`registers/candidate_systems_open_questions_2026-06-23.md`). Five: **(A)** shared
+    resource pools (stamina/mana/HP costs) · **(B)** Three Houses-style learned spells (no inventory
+    slot; per-map uses or pool) · **(C)** author-flexible weapon triangle (custom hierarchy + stat/
+    condition effects) · **(D)** per-map-use items (recharging consumables) · **(E)** story/plot-item
+    tracking. Each reuses existing machinery; firming order = the **pending priority re-eval**. Shared
+    deps surfaced: `ConditionManager` (stub) trending foundational; A underpins B; E's branching needs
+    a campaign-flag/story-state store (not built).
 
 ### 3c. Deferred / out of v1 (from the genre scan, not chosen)
 2nd-gen children units (Awakening) · fatigue (Thracia) · biorhythm (Tellius) · durability-free weapons

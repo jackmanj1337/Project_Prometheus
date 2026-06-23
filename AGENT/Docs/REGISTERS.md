@@ -7,6 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `CEX-1..16` | Candidate Systems — Player-Interaction Open Questions | OPEN | — | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | OPEN | campaign_save_technical_plan_2026-06-21.md | `registers/campaign_save_open_decisions_2026-06-21.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |

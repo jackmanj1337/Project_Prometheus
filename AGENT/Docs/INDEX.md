@@ -37,6 +37,7 @@
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *OPEN*
+- [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *OPEN*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -61,6 +62,7 @@
 - [`design/ai_system_design_vision_2026-06-22.md`](design/ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
+- [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
 - [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`design/input_mode_architecture_design_2026-06-20.md`](design/input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
