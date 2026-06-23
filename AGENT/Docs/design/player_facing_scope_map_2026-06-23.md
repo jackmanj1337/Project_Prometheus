@@ -82,7 +82,15 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
 
 **FIRM — mechanics committed to v1 (define the behavior):**
 1. **Convoy / inventory management (branch D)** — shared store, prep trade, on-map access, `max_inventory=8`.
+   **→ FIRMED 2026-06-23k `[CNV-1..7]`** (`registers/convoy_inventory_open_questions_2026-06-23.md`):
+   convoy = `Array[InventoryEntry]` (state-preserving), single shared store (absorbs `party_items`),
+   author-defined `max_inventory` (enforced) + `convoy_capacity` (default unlimited), unrestricted prep
+   trade across the controlled faction's roster, prep-only access in v1 (richer on-map access forward).
 2. **Shop / economy (branch E)** — between-map buy/sell, gold sources/sinks, (forge later).
+   **→ FIRMED 2026-06-23k `[SHP-1..5]`** (`registers/shop_economy_open_questions_2026-06-23.md`):
+   resource-keyed buy/sell (multi-resource model, **gold-only in v1**), buy+sell (key unsellable), author
+   per-shop stock (infinite qty, generic panel), prep shop→convoy / **battlefield shop**→unit+overflow
+   (mechanic later w/ village/`[MET]`), v1 ledger = reward+sell / shop-buy.
 3. **Equip items / accessories** *(dig-more-later — 2026-06-23g)*. Scaffolding exists but the *mechanic*
    is undefined: `InventoryEntry.entry_type=="equip"` + flat bonus fields (`accuracy/damage/crit/dodge`)
    that `CombatResolver._apply_equip_item_modifiers()` applies **passively for every equip entry held**
