@@ -79,12 +79,23 @@ already cheap; *branching* needs this), recruit/capture conditions (#4), route b
 
 ---
 
-## Still open (decide next, or at scheduling)
+## F7 — Resource pools  *(end-shape: DECIDED 2026-06-23l — standalone foundation)*
 
-### F7 — Resource pools  *(end-shape: TBD — see `[CEX-1..4]`)*
-Whether pools are a standalone foundation (built before spells/combat-arts) vs grown per-feature;
-the player/refill/authoring shape is drafted in `[CEX-A]` (`[CEX-1..4]`). Decide alongside the
-learned-spell question (it depends on pools).
+**End-shape we support** (firmed via `[CEX-1..4]`):
+- **Pool types** = a `CampaignRules` profile (rides the F4 mechanism); per-unit **max** from class
+  (per-unit override later). A component **or skill** declares a `{pool, amount}` cost; multi-pool
+  costs allowed. Pools gate **weapon/spell use + skill activation** in v1 (movement later).
+- **Player surface:** pool bar on the unit sheet + combat/action preview; cost shown **pre-commit**;
+  empty pool greys the capability.
+- **Refill = author-selected mode** (a `CampaignRules` refill profile): per-map reset (v1 default)
+  **vs** "persist until the author refills" (climactic back-to-back battles). Plus **restoration
+  items** (`restore_pool` consumable effect_id — a "mana vulnerary", mirrors `heal_flat`) and
+  **Regen skills** (pool-over-time, mirrors Renewal).
+- **Gates:** the learned-spell system (`[CEX-B]`) and combat arts (#15) — both ride pools.
+**Save (F1):** current pool values persist only under non-reset refill modes — reserve a per-unit
+pool-state slot.
+
+## Still open (decide next, or at scheduling)
 
 ### F10 — Canto / move-after-action  *(end-shape: TBD)*
 Scope: which classes/effects grant canto, and the action-flow shape (move → act → move-remainder).

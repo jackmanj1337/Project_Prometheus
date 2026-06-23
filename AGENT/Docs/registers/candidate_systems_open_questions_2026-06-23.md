@@ -8,8 +8,9 @@ Register: CEX-1..16
 # Candidate Systems — Player-Interaction Open Questions
 
 **Started:** 2026-06-23 (session 2026-06-23l)
-**Status:** OPEN — the player-interaction question list for the five candidate systems drafted in
-`design/candidate_systems_2026-06-23.md`. **Not yet walked.** Each question is framed
+**Status:** OPEN (cluster **A resolved 2026-06-23l** → firms foundation **F7**; B–E still open). The
+player-interaction question list for the five candidate systems drafted in
+`design/candidate_systems_2026-06-23.md`. Each question is framed
 **player interaction → designer authoring → structural impact**, so answers define both how
 players use a system and how campaign designers configure it (and what that costs structurally).
 **Firming order = the pending priority re-evaluation** — these are exploratory, not scheduled.
@@ -19,25 +20,31 @@ players use a system and how campaign designers configure it (and what that cost
 
 ---
 
-## A. Shared resource pools
+## A. Shared resource pools — **RESOLVED 2026-06-23l (firms foundation F7)**
 
-### [CEX-1] Player spend surface — where/when does the pool show & deplete?  **[OPEN]**
-Pool bar on the unit sheet + combat preview? Does the player see the cost before committing a
-cast/attack, and is a cast blocked when the pool is empty (vs a fallback)? *Lean:* show on sheet +
-preview; empty pool = capability greyed out. **Structural:** a pool readout in the combat preview
-pipeline. **Resolution:** _[OPEN]_
+### [CEX-1] Player spend surface  **[RESOLVED]**
+Pool bar on the **unit sheet + combat/action preview**; the **cost is shown before the player
+commits** a cast/attack/skill; an empty pool **greys out** that capability. **Structural:** a pool
+readout in the combat-preview pipeline.
 
-### [CEX-2] Refill model — how do pools recover between/within maps?  **[OPEN]**
-Per-map reset / per-turn regen / rest-at-hub / never. Drives pacing and whether pools persist in
-the save. *Lean:* per-map reset v1 (no persistence), regen/rest later. **Designer:** a `CampaignRules`
-refill knob. **Resolution:** _[OPEN]_
+### [CEX-2] Refill model — **RESOLVED: author-controlled refill modes**  **[RESOLVED]**
+v1 ships **per-map reset**, but the end-shape is an **author-selected refill mode** (a `CampaignRules`
+refill profile, F4): e.g. per-map reset **vs** "**persist until the author refills**" (for climactic
+**back-to-back battles** that drain resources). Plus two restoration avenues, both reusing existing
+machinery:
+- **Pool-restoration items** — a "mana vulnerary": a `consumable_component` effect_id `restore_pool`
+  (`{pool, amount}`), mirroring `heal_flat` for HP.
+- **Regen skills** — a skill effect that restores pool over time (mirrors Renewal for HP).
 
-### [CEX-3] What may a pool gate — casting only, or also skills/movement?  **[OPEN]**
-Scope of the cost model. *Lean:* weapon/spell use v1; pool-gated skills/movement later. **Resolution:** _[OPEN]_
+### [CEX-3] What may a pool gate — **RESOLVED: weapon/spell use AND skills**  **[RESOLVED]**
+Pools gate **attacking/casting costs and skill activation** in v1 (a stamina-gated combat art is a
+first-class case). Movement stays free in v1 (later growth). **Structural:** cost hooks at the use
+site + at `SkillHandler` activation.
 
-### [CEX-4] Authoring home — who defines pool types & maxes?  **[OPEN]**
-`CampaignRules` defines pool types (PXP-profile pattern); class/unit sets maxes; component declares
-`{pool, amount}` cost. Confirm the split + whether an item can cost from multiple pools. **Resolution:** _[OPEN]_
+### [CEX-4] Authoring home — **RESOLVED: CampaignRules types + class/unit maxes**  **[RESOLVED]**
+Pool **types** = a `CampaignRules` profile (the **F4** mechanism); a unit's **max** comes from
+**class** (per-unit override later); a component/skill declares its `{pool, amount}` cost; **an item
+or skill may cost from multiple pools**.
 
 ## B. Learned spell system
 

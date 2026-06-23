@@ -29,15 +29,14 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F4 | **CampaignRules author-profile mechanism** | 🟡 ad-hoc | F1 | PXP ranks, flexible triangle, resource pools, difficulty modes | ✅ **decided 2026-06-23l: ONE generic "named author profile" mechanism** (end-shape in `design/foundations_end_shapes_2026-06-23.md`) |
 | F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves | ✅ **decided 2026-06-23l: FULL author-extensible system** (end-shape in foundations doc) |
 | F6 | **Campaign-flag / story-state store** | ❌ missing | F1, F8 | story-item branching, recruit conditions, route/difficulty branching, village outcomes | ✅ **decided 2026-06-23l: generic flag/variable store** (end-shape in foundations doc) |
-| F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2 | spells-from-pool, combat arts (charge), possibly gambits | **Build as a foundation** vs per-feature |
+| F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2, F4 | spells-from-pool, combat arts, skill costs | ✅ **decided 2026-06-23l: standalone foundation** (`[CEX-1..4]`; CampaignRules pool types, author refill modes, restore items/Regen skills, gates weapon/spell/skill use) |
 | F8 | **Map events / triggers** (`[MET]`) | ✅ firmed | grid/map | village, recruit, story branching, objectives | decided |
 | F9 | **Hub / PHB option-panel framework** (`[PHB]`) | ✅ firmed | F1 | shop, arena, training halls, skirmish, recruit-prep | decided |
 | F10 | **Canto / move-after-action** | ❌ not built | turn/action flow | Knight Ring, mounted QoL, rescue-canto interaction | scope (which classes/effects grant it) |
 | F11 | **Skill trigger/effect system** (GDD_05) | 🔧 built, needs effect_ids | combat loop | accessory effects, on-crossing grants, combat arts, gambits, many items | add effect_ids per feature (no new triggers — discipline) |
 
-**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 are the **currently-undecided
-foundations** that unlock whole feature clusters — they are the right subject for "deciding end
-shapes." F2/F3/F8/F9 are decided and just await build.
+**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**;
+the **only undecided foundation left is F10** (canto). F2/F3/F8/F9 decided and await build.
 
 ---
 
