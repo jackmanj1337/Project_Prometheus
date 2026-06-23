@@ -1,9 +1,19 @@
 ---
 Type: register
-Status: OPEN
+Status: Superseded 2026-06-23
 Last verified: 2026-06-23
 Register: EQP-1..5
 ---
+
+> **Superseded** by [`registers/items_equipment_model_open_questions_2026-06-23.md`](items_equipment_model_open_questions_2026-06-23.md)
+> (`[IEQ-1..9]`) and the design doc
+> [`design/items_equipment_unified_model_2026-06-23.md`](../design/items_equipment_unified_model_2026-06-23.md).
+> The owner redirected from this piecemeal equip walk to a ground-up review of the whole
+> item/equipment/proficiency stack. This register's 5 questions are absorbed and generalized
+> there (EQP-1→IEQ-1/2, EQP-2→IEQ-2, EQP-3→IEQ-5, EQP-4→IEQ-6, EQP-5→IEQ-9). **Body kept for
+> provenance — the Part 1 code-audit fed the new design doc.** Note: the §1 claim that the
+> `InventoryEntry.gd` "no code reads this yet" comment is false was a mis-attribution — that
+> comment is on `forged_mods` (accurate); the real fix is the line-21 *header* (see IEQ-9).
 
 # Equip Items / Accessories Firming (#3) — Player-Facing Design + Open Questions
 

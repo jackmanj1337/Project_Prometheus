@@ -91,14 +91,15 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
    resource-keyed buy/sell (multi-resource model, **gold-only in v1**), buy+sell (key unsellable), author
    per-shop stock (infinite qty, generic panel), prep shop→convoy / **battlefield shop**→unit+overflow
    (mechanic later w/ village/`[MET]`), v1 ledger = reward+sell / shop-buy.
-3. **Equip items / accessories** *(dig-more-later — 2026-06-23g)*. Scaffolding exists but the *mechanic*
-   is undefined: `InventoryEntry.entry_type=="equip"` + flat bonus fields (`accuracy/damage/crit/dodge`)
-   that `CombatResolver._apply_equip_item_modifiers()` applies **passively for every equip entry held**
-   (no equip/unequip action/slot/exclusivity); `until_unequipped` label renders **with no producer**;
-   named equip items (Full Guard, Iron Rune, Knight Ring, Wing Guard, Laguz Guard) **Planned**. To firm:
-   passive-while-held vs an equip slot/toggle; exclusivity; grantable stats (4 combat fields can't do
-   +STR/+MOV → needs `stat_buff`/`active_modifiers`); the lifecycle. **Reconcile the stale
-   `InventoryEntry.gd` "M10 forging — no code reads this yet" comment** (`CombatResolver` does). Pairs w/ (1).
+3. **Items & equipment — ground-up review** *(owner-redirected from piecemeal equip — 2026-06-23)*.
+   Re-derived the whole item/equipment/proficiency stack: weapons + WEXP are healthy; **equipment is
+   half-built + model-split** (passive 4-field `InventoryEntry` bonus disconnected from `ItemData`,
+   orphaned `until_unequipped`, stale `InventoryEntry.gd:21` header, named items exceed 4 fields).
+   **→ DESIGN-DOC + register OPEN 2026-06-23 `[IEQ-1..9]`**
+   (`design/items_equipment_unified_model_2026-06-23.md` + `registers/items_equipment_model_open_questions_2026-06-23.md`;
+   **supersedes `[EQP-1..5]`**). Owner framing set: support **both** held + equipped conferral; legality =
+   parallel item-proficiency track **+** per-item flags; benefits **scale/expand** by flag/experience.
+   Remaining forks (data shape, slots, data-model unification, save schema, code-debt) walked in the register. Pairs w/ (1).
 4. **Recruit — green→player (branch F)** — Talk/Recruit action + roster-join UX; **includes Capture** as
    a recruit mechanism. (D-D prerequisite.)
 5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.
