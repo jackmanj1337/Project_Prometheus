@@ -1,0 +1,127 @@
+# Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing)
+
+**Started:** 2026-06-23
+**Last verified:** 2026-06-23
+**Status:** Active framing / navigation layer — Planned design work indexed here, not yet walked.
+**Purpose:** One map of (a) what the save + campaign features **build on**, and (b) how **players**
+and **designers** interact with them — separating what is already firmed from the open frontier, so
+the follow-on register walks (DMR, I3, the designer authoring contract) have a shared starting point.
+
+**This doc decides nothing.** It is the navigation layer (like an index) over the substance, which
+lives in the linked registers/plans. When a linked register resolves, update the firmed/open index
+here (§5).
+
+## Companion docs (the substance)
+- **Player-facing (firmed):** `campaign_save_player_facing_firming_2026-06-21.md` (branches A–J).
+- **Technical plan (firmed):** `campaign_save_technical_plan_2026-06-21.md` (architecture + slices).
+- **Decisions register (firmed):** `campaign_save_open_decisions_2026-06-21.md` (`[CST-1..12]` RESOLVED;
+  `[CST-13]` deferred to §2 execution kickoff).
+- **Determinism substrate:** `rng_determinism_design_2026-06-11.md` (Package A / `RngService`).
+- **Content-model direction (open):** `planning_backlog_2026-06-20.md` §2b branch **I3** (set 2026-06-23a).
+- **DataManager decomposition (open):** `datamanager_decomposition_open_questions_2026-06-21.md` `[DMR-1..3]`.
+- **Roadmap home:** `GDD/GDD_10_Roadmap.md` Open Items Register §A (§2 cluster) + §H (planning backlog).
+
+---
+
+## 1. The core insight everything hangs on
+The save stores **state by id** and **binds to a campaign id**. Everything else (units, weapons,
+items, classes, skills, rules, map placement) is **resolved by id against `defaults ∪ campaign
+overlay`** at load. Two consequences frame all the work below:
+- **Player interaction** is about *progressing and persisting* that state → already firmed (§2).
+- **Designer interaction** is about *authoring the defaults/overlay/graph/rules* that the state
+  resolves against → the open frontier (branch I3 + the eventual GUI builder).
+- The seam between them is the **`DataManager` base-load + campaign-overlay** path (`[DMR-1..3]`),
+  which does not yet exist (today it hard-loads global dirs only).
+
+---
+
+## 2. What it builds on — the substrate stack (bottom → top)
+
+| Layer | What it provides | Owner / contract | Status |
+| --- | --- | --- | --- |
+| **L0 — `RngService` (Package A)** | determinism → meaningful suspend `rng{map_seed, history_hash}`, the rewind/Turnwheel substrate | `rng_determinism_design_2026-06-11.md` | build-ready; **gates §2 execution** |
+| **L1 — `SaveManager` + `SaveData` seam + `SaveCodec`** | I/O-free serialize/deserialize seam; JSON-primitive state by id; integrity hashes; export/import; slots | `[CST-1/2/9/10]` | designed |
+| **L2 — `DataManager` base-load + overlay** | resolve ids against `defaults ∪ overlay`; campaign-select triggers overlay load | `[DMR-1..3]` | **OPEN — keystone for the designer side** |
+| **L3 — `CampaignData` graph + `MapData` + content library** | progression nodes (map refs, `next`, required/excluded/cap), reusable map geometry, weapons/items/classes/skills (+ labels, +art/icons) | graph `[CST-3/5/6]` designed; **content overlay (I3) OPEN** | mixed |
+| **L4 — `CampaignRules`** | per-save rule object; author mandates vs defaults; story-flip seam; rewind charges | `[CST-4/6/11]` | designed |
+
+**Three data tiers** (content model, set 2026-06-23a): (1) core defaults `res://data/` → (2) campaign
+**package** = authored content + labels + art (the overlay) → (3) per-playthrough **save** = state by
+id, binds to a campaign id. **Art lives in the package, never in the save.**
+
+---
+
+## 3. Player interaction surface — FIRMED (pointers only, do not re-open)
+Authoritative: the firming doc (A–J) + technical plan. Summary of what a *player* touches:
+- **Start/structure** — New Game → **campaign selector** (everything-is-a-campaign) → rules screen
+  (mandated locked, defaults editable) → **prep**. Linear MVP over an overworld-ready graph. [A1–A3, CST-6]
+- **Prep / deploy** — per-node required (forced) + roster minus excluded; fill up to `deployment_cap`;
+  assign onto map start tiles; manual Save; Begin Battle. Benched units gain nothing. [C1–C3, CST-5]
+- **Persist** — in-app slots + filesystem export/import (single `.json`, zip-sniff importer);
+  auto + manual save; human-readable JSON + `save_label` + integrity hash. [B1/B2/B6, CST-9/10]
+- **Resume** — Continue = resume-most-recent (suspend if newest, else latest between-map → prep);
+  Load Game = slot picker. [A4]
+- **Suspend** — persistent, re-loadable, offered in the idle FREE state between committed actions
+  while the active faction is human-driven. [B3, CST-8]
+- **Defeat** — multi-choice Game Over (reload recent / reload any / main menu / [Rewind] when the
+  rule is on, charge count, grey at 0). [B5, CST-7/12]
+- **Rules visibility** — read-only rules view in prep/pause; explicit notice when a story event
+  flips a rule. [G1/G3]
+
+---
+
+## 4. Designer interaction surface — THE OPEN FRONTIER (expectations to define)
+The actor here is a **campaign author**. Nothing below has a firmed authoring contract yet; this is
+the substance of the next register walks. Five expectation clusters:
+
+- **4a. Progression authoring.** Declare graph nodes: `node_id`, `map_id` (→ `map_registry`), `next`
+  (linear now, branches/overworld later), and per-node `required_units` / `excluded_units` /
+  `deployment_cap`. (Schema shape firmed by `[CST-3/5]`; the *authoring experience* is open.)
+- **4b. Rules authoring.** Per-rule **mandate (locked)** vs **default (player-editable)`; designate
+  `protected_fields` (tamper-warning baseline + author additions); define story-flip points that call
+  `apply_rule_flip`. (Seam firmed `[CST-4/6/11]`; the authoring surface is open.)
+- **4c. Content overlay authoring — branch I3 (the deepest open piece).** Inherit defaults, then
+  **include a subset / modify (relabel, re-art) / add new** weapons, items, classes, skills. Settles
+  via sub-decisions **a–e** (recs in `planning_backlog §2b`, NOT ratified):
+  (a) include model — inherit-all then add/override/**exclude**; (b) override granularity —
+  whole-resource-replace-by-id v1; (c) id namespacing — shared default namespace + collision-validate;
+  (d) default-content versioning — pack records the defaults version it overlays; (e) `res://` (shipped)
+  vs `user://` (authored). **Net-new schema:** an `icon` field on `WeaponData`/`ItemData` (items are
+  text-only today) → per-campaign item art for free once added.
+- **4d. Packaging & distribution — branch I3.** The distributable campaign bundle (maps + roster +
+  graph + rules + content overlay + art); zip vs json (importer already sniffs `PK\x03\x04` vs `{`);
+  default-content version stamping; no cross-version migration pre-1.0 (keep `format_version`).
+- **4e. The authoring tool.** GUI campaign editor vs hand-authored JSON. The firming deliberately kept
+  saves/data human-readable + data-driven to keep both open; the GUI editor is the eventual authoring
+  surface over 4a–4d (AI-vision §2/§GUI).
+
+---
+
+## 5. Firmed-vs-open index (keep in sync as registers resolve)
+
+| Thread | Where | Status |
+| --- | --- | --- |
+| Player-facing flow (A–J) | firming doc | **firmed** |
+| §2 technical decisions `[CST-1..12]` | decisions register | **firmed** |
+| `[CST-13]` rewind fold-in | decisions register | deferred to §2 exec kickoff |
+| L0 `RngService` | Package A design | build-ready (gates §2) |
+| L2 `DataManager` base+overlay `[DMR-1..3]` | DMR register | **OPEN** |
+| L3 content overlay model (I3 a–e) | planning_backlog §2b | **OPEN (direction only)** |
+| Item `icon` schema field | (none yet) | **OPEN — net-new** |
+| Designer authoring contract (4a–4e) | (this doc seeds it) | **OPEN — no register yet** |
+| GUI campaign editor | AI-vision §2/§GUI | OPEN (far) |
+
+---
+
+## 6. Recommended walk order (next sessions)
+The designer side is the leverage point, and it forces the substrate decisions in the right order:
+1. **Walk `[DMR-1..3]`** (L2) — lock the base-load + campaign-overlay path so id-resolution against
+   `defaults ∪ overlay` is real. Everything in 4c/4d resolves through this.
+2. **Open an I3 content-overlay register** — ratify sub-decisions a–e; add the item `icon` field as
+   its first concrete schema consequence.
+3. **Draft the designer authoring contract (4a–4e)** as a register — the requirements the campaign
+   pack + GUI editor must support, independent of GUI-vs-JSON.
+4. Player side stays firmed; revisit only if 1–3 surface a forced change (flag it, don't silently edit).
+
+**Build track is unchanged and independent:** Package A Step 1 (L0) is still the next *execution*
+step; the L2/L3/4x work above is *design* and is not gated by it.

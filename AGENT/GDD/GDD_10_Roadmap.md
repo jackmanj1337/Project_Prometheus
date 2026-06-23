@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-22
+**Last verified:** 2026-06-23
 
 ---
 
@@ -156,10 +156,16 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   key-rebind UI, gamepad layer). See §A.
 - **Campaign/save (§2)** — **player-facing scope firmed 2026-06-21b**
   (`AGENT/Docs/campaign_save_player_facing_firming_2026-06-21.md`, branches A–J); the
-  **technical** plan (save schema, progression graph, prep screen, suspend serializer,
-  CampaignRules consolidation) is the next step. **Deferred sub-features have a do-not-forget
+  **technical** plan + decisions (`campaign_save_technical_plan_2026-06-21.md`,
+  `[CST-1..12]` RESOLVED) are written. **Deferred sub-features have a do-not-forget
   home in `planning_backlog_2026-06-20.md` §2b** (convoy, shop, recruit, Pair-Up persistence,
   Support, Rescue, campaign-pack format, rewind *mechanic*/Package A, cross-version migration).
+  **DESIGN-side frontier (next, 2026-06-23):** the **designer/authoring** half is the open work —
+  framing + foundations map in `AGENT/Docs/campaign_save_expectations_and_foundations_2026-06-23.md`
+  (substrate stack L0–L4; player surface firmed; **designer authoring contract 4a–4e OPEN, no
+  register yet**). Recommended walk: `[DMR-1..3]` (L2 base+overlay load) → I3 content-overlay
+  register (sub-decisions a–e + item `icon` field) → designer authoring contract. Design is **not**
+  gated by Package A (that gates §2 *execution* only).
 - **Release-gate plans** (D-A rename, DOC-012 licensing, OPEN-5 broken-weapon), UI/UX
   enhancements, other systems, Maps 002–005.
 
