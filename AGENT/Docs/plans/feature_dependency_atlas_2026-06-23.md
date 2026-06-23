@@ -26,9 +26,9 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F1 | **Save schema / Campaign cluster** (`[CST]`, §2) | ✅ firming done, build pending | — | *everything* persists here | **Lock the reserved schema** (proficiency_xp, equipped-slot pointers, slot maps, pools, known_spells, story flags) before builds reserve ad-hoc |
 | F2 | **Unified `ItemDef` + components** (`[IEQ]`) | ✅ firmed | F1 | accessories, consumables, spells, per-map items, story items, combat arts, forging | decided (composition) |
 | F3 | **Proficiency / XP framework** (`[PXP]`) | ✅ firmed | F1, F4 | equip legality, spell-learn-by-threshold, training halls, bonus-EXP, arena | decided |
-| F4 | **CampaignRules author-profile mechanism** | 🟡 ad-hoc | F1 | PXP ranks, flexible triangle, resource pools, difficulty modes | **Formalize as ONE generic "named author profile" mechanism** vs per-system copies |
-| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves | **Scope + build-now?** (conditions set, immunity, stacking, tick, display) |
-| F6 | **Campaign-flag / story-state store** | ❌ missing | F1, F8 | story-item branching, recruit conditions, route/difficulty branching, village outcomes | **Build a generic flag/variable store?** + scope |
+| F4 | **CampaignRules author-profile mechanism** | 🟡 ad-hoc | F1 | PXP ranks, flexible triangle, resource pools, difficulty modes | ✅ **decided 2026-06-23l: ONE generic "named author profile" mechanism** (end-shape in `design/foundations_end_shapes_2026-06-23.md`) |
+| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves | ✅ **decided 2026-06-23l: FULL author-extensible system** (end-shape in foundations doc) |
+| F6 | **Campaign-flag / story-state store** | ❌ missing | F1, F8 | story-item branching, recruit conditions, route/difficulty branching, village outcomes | ✅ **decided 2026-06-23l: generic flag/variable store** (end-shape in foundations doc) |
 | F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2 | spells-from-pool, combat arts (charge), possibly gambits | **Build as a foundation** vs per-feature |
 | F8 | **Map events / triggers** (`[MET]`) | ✅ firmed | grid/map | village, recruit, story branching, objectives | decided |
 | F9 | **Hub / PHB option-panel framework** (`[PHB]`) | ✅ firmed | F1 | shop, arena, training halls, skirmish, recruit-prep | decided |
@@ -117,7 +117,9 @@ shapes." F2/F3/F8/F9 are decided and just await build.
 - **Decided foundations (F2/F3/F8/F9) just need scheduling**, not more design.
 - **Cluster A is the in-flight build** (IEQ XL + PXP L) — the largest single commitment on the board.
 
-## 4. Foundation end-shapes to start deciding (this is the interactive next step)
-The decided foundations are settled; the **open** ones (F4·F5·F6·F7·F10) are where "deciding exactly
-what end shapes we want to support" applies. Walked as needed; F4 first (cheapest, broadest). Their
-detailed shapes will graduate into their own registers when picked up.
+## 4. Foundation end-shapes
+**Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
+generic author-profile mechanism · **F5** = full author-extensible status system · **F6** = generic
+campaign-flag/variable store. With F2/F3/F8/F9 already settled, the **remaining open foundations are
+F7** (resource pools — decide with the learned-spell question, `[CEX-A]`) **and F10** (canto scope).
+Each decided foundation graduates into its own register + build when scheduled.

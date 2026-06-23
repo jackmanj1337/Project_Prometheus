@@ -64,6 +64,7 @@
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*
 - [`design/display_scaling_resolution_design_2026-06-20.md`](design/display_scaling_resolution_design_2026-06-20.md) — Display Scaling & Resolution — Design (V021-18 / V021-19) — 2026-06-20 — *Target design*
+- [`design/foundations_end_shapes_2026-06-23.md`](design/foundations_end_shapes_2026-06-23.md) — Foundations — End-Shape Sketches — *Active — foundation end-shapes decided, *
 - [`design/individual_threat_range_design_2026-06-21.md`](design/individual_threat_range_design_2026-06-21.md) — Individual Unit Threat Range — Design — 2026-06-21 — *Target design*
 - [`design/input_mode_architecture_design_2026-06-20.md`](design/input_mode_architecture_design_2026-06-20.md) — Input Mode Architecture — Design — 2026-06-20 — *Target design*
 - [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Target design — firmed, awaiting staged *
