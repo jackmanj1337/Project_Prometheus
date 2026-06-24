@@ -90,7 +90,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 ### Cluster E — Roster / progression / campaign flow  (F1·F6)
 | Feature | Size | Needs | Status |
 |---|---|---|---|
-| Recruit / Capture (#4/F) | **L** | F6,F8 | GAP |
+| Recruit / Capture (#4/F) | **L** | F6,F8 | roster side firmed 2026-06-24h `[RCR]` (capture-carry → A2, conversation → A4) |
 | Support system (#5/H2) | **XL** | F1 | GAP |
 | Avatar / My Unit (#20) | **L** | F1 (roster/save/story cascade), F13 | firmed 2026-06-24g `[MCH]` |
 | Difficulty modes + Casual/Phoenix (#12) | **M** | F4 | Tier1 |
@@ -150,11 +150,14 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
   carry-drop (#6) · **battalion deployment/action side** (#16 ⇄ A1). *Why sync:* all add or re-grant
   on-map actions through the F10 window; rescue + shove share displacement logic.
-- **A3 — Roster identity & relationships** *(shared: roster + save — support levels, custom avatar,
-  recruited flags; support/conversation UI; F6 flags).* Support (#5) · Avatar / My Unit (#20) ·
-  Recruit/Capture (#4 ⇄ A4). *Why sync + do first:* Avatar is built on Supports; recruitment is often
-  support/conversation-gated; all three **expand roster/save schema together** — the biggest F1 risk,
-  so firm this cluster before the F1 lock.
+- **A3 — Roster identity & relationships** *(shared: roster + save — relationship ranks, custom
+  avatar, recruited flags; relationship/conversation UI; F6 flags).* Relationship (#5) · Avatar / My
+  Unit (#20) · Recruit/Capture (#4 ⇄ A4). *Why sync + do first:* Avatar is built on the relationship
+  system; recruitment is often relationship/conversation-gated; all three **expand roster/save schema
+  together** — the biggest F1 risk, so firm this cluster before the F1 lock. **Status (firmed
+  2026-06-24f/g/h):** `[REL-1..9]` · `[MCH-1..8]` (+ new foundation **F13**) · `[RCR-1..7]` (roster
+  side; capture-carry → A2, conversation → A4). **A3 roster/save schema is defined for the F1 lock;
+  next cluster: A1.**
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
   · Recruit/Capture conversation+flag side (#4 ⇄ A3). *Why sync:* same trigger+flag plumbing; Recruit
   straddles roster (A3) and events (A4).
