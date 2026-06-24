@@ -62,7 +62,7 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 | Feature | Size | Needs | Status |
 |---|---|---|---|
 | Status-condition build (M8) | **L** | → *is* F5 | designed |
-| Flexible weapon triangle (CEX-C) | **M** + cond. slice | F4, F5(cond) | exploration |
+| Flexible weapon triangle (CEX-C) | **M** + cond. slice | F4, F5(cond) | **firmed 2026-06-24b** (`[CEX-9..12,17]`; F4 `triangle` profile + reaver; conditions slice after F5) |
 | Weapon effect_tags gaps (poison/heal_on_hit/ignores_def/always_hits) | **S** ea | F5,F11 | designed-gap |
 | Item skill effect_ids (negate_effectiveness/negate_crit/permanent_stat/advance_proficiency) | **S** ea | F11 | checklisted (IEQ §2f) |
 | Broken-weapon `[BWN]` · Stationary weapons `[STW]` | **S**/**M** | combat | firmed |

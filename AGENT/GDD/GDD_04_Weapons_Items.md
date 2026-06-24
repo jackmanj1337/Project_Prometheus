@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-24
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -93,6 +93,16 @@ in GDD_02). The bonus magnitude is driven by the **equipped weapon's trained WEX
 Provenance: `GDD_Adoption_Matrix.md` → `awakening_lookup_tables.md` (Weapon Triangle
 Advantage Table / Weapon Triangle Participation). Not yet implemented — current behavior
 is the flat project bonus in GDD_02.
+
+**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
+The family list, relationship `matrix`, magnitude `effects`, and `reaver_multiplier` move into a
+**`CampaignRules` `triangle` profile** (F4). **`families`** is **author-extensible** and becomes the
+validation source for `triangle_family` (replacing the fixed `VALID_COMBAT_FAMILIES`); a family with
+no matrix row = neutral (bows/knives/staves unchanged). The **rank-scaled table above ships as an
+opt-in built-in `rank_scaled` profile**, while the **default profile stays the current flat ±10/±2**
+(non-breaking). `effects` generalize to **arbitrary stat-mods** (conditions deferred to **F5**).
+**Reaver** weapons set `weapon_component.reverses_triangle` (`[IEQ]`); an **odd** count across the
+two combatants inverts the result and ×`reaver_multiplier` (default 2). See `[CEX]` block C.
 
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),

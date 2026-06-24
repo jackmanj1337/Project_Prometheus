@@ -79,6 +79,11 @@ ItemDef. Reconcile with current **tome-weapons** (inventory) — coexist vs migr
 
 ## C. Author-flexible weapon triangle  (custom hierarchy + arbitrary effects)
 
+> **RESOLVED 2026-06-24b** → `[CEX-9..12, 17]` (register `candidate_systems_open_questions_2026-06-23.md`):
+> an F4 `triangle` profile (arbitrary matrix + author-extensible families + stat-mod `effects`,
+> flat default / opt-in `rank_scaled`), plus reaver weapons (`reverses_triangle`, odd-count inverts
+> ×`reaver_multiplier`). Conditions slice deferred to the F5 build.
+
 **Concept.** Authors define their **own** attack-type hierarchy and **what each advantage/
 disadvantage applies** — beyond flat Hit/Dmg, into stat bonuses/debuffs and **condition applications**.
 

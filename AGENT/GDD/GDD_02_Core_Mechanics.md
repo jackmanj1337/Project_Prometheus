@@ -212,6 +212,15 @@ For hybrid weapons, the **equipped weapon's trained WEXP track** sets the bonus
 magnitude; `triangle_family` only sets the relationship (no second hidden magic rank).
 Provenance + variation: `GDD_Adoption_Matrix.md`.
 
+**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
+The relationships (`matrix`), the magnitude `effects`, the family list, and `reaver_multiplier`
+become a **`CampaignRules` `triangle` profile** (F4). The matrix is an **arbitrary directed graph**
+(today's shape). `effects` generalize from Hit/Atk to **arbitrary stat-mods** (condition application
+deferred to the **F5** build). **Default profile = the current flat ±10/±2 (non-breaking); the
+rank-scaled table above ships as an opt-in built-in `rank_scaled` profile.** **Reaver weapons**
+(`weapon_component.reverses_triangle`) — an **odd** number across the two combatants inverts the
+result and ×`reaver_multiplier` (default 2); even cancels. See `[CEX]` block C.
+
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd`
 - Decisions: SET-003, RULE-013

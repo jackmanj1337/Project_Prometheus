@@ -1,14 +1,15 @@
 ---
 Type: register
 Status: OPEN
-Last verified: 2026-06-23
-Register: CEX-1..16
+Last verified: 2026-06-24
+Register: CEX-1..17
 ---
 
 # Candidate Systems — Player-Interaction Open Questions
 
 **Started:** 2026-06-23 (session 2026-06-23l)
-**Status:** OPEN (cluster **A resolved 2026-06-23l** → firms foundation **F7**; B–E still open). The
+**Status:** OPEN (cluster **A resolved 2026-06-23l** → firms foundation **F7**; cluster **C resolved
+2026-06-24b** → flexible weapon triangle, rides F4; B/D/E still open). The
 player-interaction question list for the five candidate systems drafted in
 `design/candidate_systems_2026-06-23.md`. Each question is framed
 **player interaction → designer authoring → structural impact**, so answers define both how
@@ -68,26 +69,54 @@ Today magic = tome **weapons** in inventory. Do learned spells **coexist** with 
 them? *Lean:* coexist v1 (a campaign chooses its idiom); don't force-migrate tomes. **Structural:**
 the biggest reconciliation fork for B. **Resolution:** _[OPEN]_
 
-## C. Author-flexible weapon triangle
+## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
 
-### [CEX-9] Player readout — how is a custom hierarchy + its effects shown?  **[OPEN]**
-The triangle/more-info UI is currently fixed to 3 families per triangle. How does a custom hierarchy
-+ its (possibly non-Hit/Dmg) effects read to the player? *Lean:* a data-driven matchup readout in the
-combat preview + more-info. **Resolution:** _[OPEN]_
+**Resolved model (2026-06-24b).** Lift the triangle into a **`CampaignRules` `triangle` profile**
+(the F4 author-profile mechanism). The profile carries:
+- **`families`** — author-extensible family list (default = current `VALID_COMBAT_FAMILIES`; becomes
+  the DataManager validation source for `triangle_family`). A family with **no matrix row = always
+  neutral** (bows/knives/staves keep "no triangle interaction").
+- **`matrix`** — an **arbitrary directed graph** `atk_family → { def_family → "advantage" |
+  "disadvantage" }` — exactly today's `WEAPON_TRIANGLE` shape (`dark` already beats all three anima).
+  "Multiple triangles" = **disjoint subgraphs in one matrix** (no separate concept needed).
+- **`effects`** — **arbitrary stat-mod sets** for `advantage`/`disadvantage` (`{hit, atk, avo, crit,
+  …}`), applied via the existing triangle/modifier path (no new engine). **May be flat OR a per-rank
+  table** keyed by the wielder's **trained WEXP rank in the equipped weapon's track** (GDD_04).
+- **`reaver_multiplier`** — magnitude multiplier when a reaver is involved (CEX-17; default 2).
 
-### [CEX-10] Effect vocabulary — what may an advantage/disadvantage apply?  **[OPEN]**
-Flat Hit/Dmg only, any stat mod (bonus/debuff), **condition application**, or a combo? *Lean:* stat-mod
-set v1 (reuses the modifier model); condition application later (blocked on `ConditionManager`).
-**Structural:** reuses modifiers; conditions need the stubbed manager built. **Resolution:** _[OPEN]_
+**Default profile = current flat ±10 Hit / ±2 Atk (non-breaking).** A built-in **`rank_scaled`**
+profile reproduces the **GDD_04 SET-003/RULE-013** table, opt-in per campaign.
 
-### [CEX-11] Hierarchy shape — strict cycle vs arbitrary directed graph?  **[OPEN]**
-Rock-paper-scissors cycles only, or arbitrary "A beats B and C, neutral to D"? *Lean:* arbitrary
-directed graph (a matrix, like the current `WEAPON_TRIANGLE` dict) — more expressive, same storage.
-**Resolution:** _[OPEN]_
+### [CEX-9] Player readout — how is a custom hierarchy + its effects shown?  **[RESOLVED]**
+**RESOLVED:** the combat preview shows the **net triangle stat deltas** + an
+**advantage / disadvantage / reversed** indicator; more-info shows the matchup row. **Data-driven
+over the `effects` set**, so custom (non-Hit/Atk) stats render generically. No fixed "3 families" UI.
 
-### [CEX-12] Authoring + scaling — profile home + rank-scaled magnitude?  **[OPEN]**
-Triangle profile in `CampaignRules` with a non-breaking default (PXP pattern); does magnitude scale
-by equipped rank (GDD_04 target)? *Lean:* yes, reuse a PXP-style profile for magnitude. **Resolution:** _[OPEN]_
+### [CEX-10] Effect vocabulary — what may an advantage/disadvantage apply?  **[RESOLVED]**
+**RESOLVED: arbitrary stat-mods v1** (any combination from the modifier model — Hit/Atk/Avo/Crit/…),
+reusing the existing modifier/triangle application. **Condition application is deferred to the F5
+(`ConditionManager`) build**; it rides the same `effects` slot when F5 lands.
+
+### [CEX-11] Hierarchy shape — strict cycle vs arbitrary directed graph?  **[RESOLVED]**
+**RESOLVED: arbitrary directed matrix** (already the storage shape). Disjoint groups in the matrix =
+separate triangles; an empty row = neutral participation. Same storage, fully author-defined.
+
+### [CEX-12] Authoring + scaling — profile home + rank-scaled magnitude?  **[RESOLVED]**
+**RESOLVED:** the `triangle` profile lives in `CampaignRules` (F4). **Default = flat (non-breaking);
+the GDD_04 rank-scaled table ships as an opt-in built-in `rank_scaled` profile.** Magnitude (when
+rank-scaled) is driven by the **equipped weapon's trained WEXP rank** — `triangle_family` only sets
+the relationship (no second hidden magic rank, per GDD_04).
+
+### [CEX-17] Reaver-style triangle reversal (Swordreaver etc.)  **[RESOLVED]**
+**RESOLVED:** a per-weapon **`reverses_triangle: bool`** (on the `weapon_component`, `[IEQ]`). In a
+matchup let **R** = the number of the two combatants' equipped weapons with `reverses_triangle` (0–2):
+- **R odd (1)** → **invert** the triangle result (advantage↔disadvantage; neutral stays neutral)
+  **and** multiply the magnitude by **`reaver_multiplier`** (profile, default 2) — the FE
+  "reverse + double" staple.
+- **R even (0 or 2)** → normal result, normal magnitude (two reavers cancel, GBA-style).
+A reaver only matters where a relationship already exists (it cannot create advantage out of a
+neutral matchup). **Structural:** one bool on `weapon_component` + the parity branch in the existing
+`_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
 
 ## D. Per-map-use items
 
