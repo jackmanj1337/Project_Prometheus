@@ -111,8 +111,16 @@ ItemDef (base, shared by id)
 
 InventoryEntry (thin per-slot INSTANCE)
   entry_type retired → def_id -> ItemDef
-  uses_remaining, equipped pointer(s), forged_mods   # runtime state only
+  uses_remaining, map_uses_remaining, equipped pointer(s), forged_mods   # runtime state only
 ```
+
+**Per-map-use consumables (`[CEX-13]`, firmed 2026-06-24c).** `ConsumableComponent` gains
+`uses_per_map: int` (-1 = not a per-map item). When set, the item is **pure-recharge**:
+`InventoryEntry.uses_remaining` stays **-1** (never consumed) and a per-instance
+**`map_uses_remaining`** counter (refilled to `uses_per_map` by `reset_map_state` at map start,
+mirroring `skill_use_counters`) gates use. Player readout = a **distinct "N/max ⟳" badge** + a
+"resets each map" tooltip (consumed items show `×N`). Future (out of v1): per-N-turns / charge-on-rest
+recharge intervals.
 
 - **Definition vs instance** stays a two-layer split: `ItemDef` (shared template) vs
   `InventoryEntry` (per-slot runtime). Only the **definition** layer consolidates.

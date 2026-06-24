@@ -112,6 +112,10 @@ CampaignRules profiles + the modifier model.
 
 ## D. Per-map-use items  (recharging consumables)
 
+> **RESOLVED 2026-06-24c** → `[CEX-13]`: **pure recharge** — `ConsumableComponent.uses_per_map` +
+> per-instance `InventoryEntry.map_uses_remaining` (refilled by `reset_map_state`); `uses_remaining`
+> stays -1 (never consumed); distinct "N/max ⟳" badge readout. No finite total cap in v1.
+
 **Concept.** Items whose uses **reset each map** (per-map charges) rather than decrementing
 permanently — e.g. a "3×/map" healing trinket.
 

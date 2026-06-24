@@ -9,7 +9,8 @@ Register: CEX-1..17
 
 **Started:** 2026-06-23 (session 2026-06-23l)
 **Status:** OPEN (cluster **A resolved 2026-06-23l** → firms foundation **F7**; cluster **C resolved
-2026-06-24b** → flexible weapon triangle, rides F4; B/D/E still open). The
+2026-06-24b** → flexible weapon triangle, rides F4; cluster **D resolved 2026-06-24c** → per-map-use
+items; B/E still open). The
 player-interaction question list for the five candidate systems drafted in
 `design/candidate_systems_2026-06-23.md`. Each question is framed
 **player interaction → designer authoring → structural impact**, so answers define both how
@@ -118,12 +119,19 @@ A reaver only matters where a relationship already exists (it cannot create adva
 neutral matchup). **Structural:** one bool on `weapon_component` + the parity branch in the existing
 `_get_triangle_result`/magnitude path; `reaver_multiplier` authorable on the profile.
 
-## D. Per-map-use items
+## D. Per-map-use items — **RESOLVED 2026-06-24c (pure recharge; reuses the per-map counter pattern)**
 
-### [CEX-13] Player distinction + structure — recharging vs consumed?  **[OPEN]**
-How does the player tell "3/3 this map" (recharges) from "3 uses" (consumed)? Structurally a
-`uses_per_map` field on `consumable_component` + a per-map counter (reuses `skill_use_counters` /
-`reset_map_state`). *Lean:* distinct UI affordance; reuse the counter pattern. **Resolution:** _[OPEN]_
+### [CEX-13] Player distinction + structure — recharging vs consumed?  **[RESOLVED]**
+**RESOLVED — pure recharge.** `ConsumableComponent.uses_per_map: int` (-1 = not per-map). When set:
+the item is **never consumed** (`InventoryEntry.uses_remaining` stays **-1**) and a per-instance
+**`InventoryEntry.map_uses_remaining`** counter — refilled to `uses_per_map` by `reset_map_state` at
+map start, mirroring `skill_use_counters` — gates each use. Per-**instance** (two trinkets track
+independently). **No finite total cap** in v1 (permanent recharging item).
+**Player readout:** a **distinct "N/max ⟳" badge** + a "resets each map" tooltip in inventory + the
+action menu; consumed items show `×N`. **Future (out of v1):** per-N-turns / charge-on-rest intervals.
+**Save (F1):** `map_uses_remaining` is per-map runtime — reserve only if a mid-map save persists
+runtime (same caveat as pool state). **Owners at build:** `[IEQ]` `ConsumableComponent` + `ItemHandler`
+(skip `consume_entry` when `uses_per_map` set; decrement the map counter instead).
 
 ## E. Story / plot-relevant item tracking
 

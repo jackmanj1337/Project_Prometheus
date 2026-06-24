@@ -51,7 +51,7 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 | `[PXP]` framework build (store, profiles, gain, training halls) | **L** | F1,F3,F4 | firmed |
 | Convoy `[CNV]` · Shop `[SHP]` | **M** ea | F1,F9 | firmed |
 | Forging (M10) | **M** | F2 | deferred |
-| Per-map-use items (CEX-D) | **S** | F2 | exploration |
+| Per-map-use items (CEX-D) | **S** | F2 | **firmed 2026-06-24c** (`[CEX-13]`; pure recharge, `uses_per_map` + per-instance map counter) |
 | Combat arts / weapon arts (#15) | **M** | F2,F7,F11 | DISCUSS |
 | Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | DISCUSS |
 | Learned spells (CEX-B) | **XL** | F1,F2,F3,F7 | exploration |
