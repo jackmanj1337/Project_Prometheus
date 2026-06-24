@@ -2,7 +2,7 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-24
-Register: CEX-1..17
+Register: CEX-1..19
 ---
 
 # Candidate Systems — Player-Interaction Open Questions
@@ -10,7 +10,9 @@ Register: CEX-1..17
 **Started:** 2026-06-23 (session 2026-06-23l)
 **Status:** OPEN (cluster **A resolved 2026-06-23l** → firms foundation **F7**; cluster **C resolved
 2026-06-24b** → flexible weapon triangle, rides F4; cluster **D resolved 2026-06-24c** → per-map-use
-items; B/E still open). The
+items; cluster **E resolved 2026-06-24d** → story/key items (tracking + locks now; event-mutation
+rides the MET build, persistent branching-state rides the F6 build); **B (learned spells) is the
+last open cluster**). The
 player-interaction question list for the five candidate systems drafted in
 `design/candidate_systems_2026-06-23.md`. Each question is framed
 **player interaction → designer authoring → structural impact**, so answers define both how
@@ -133,21 +135,48 @@ action menu; consumed items show `×N`. **Future (out of v1):** per-N-turns / ch
 runtime (same caveat as pool state). **Owners at build:** `[IEQ]` `ConsumableComponent` + `ItemHandler`
 (skip `consume_entry` when `uses_per_map` set; decrement the map counter instead).
 
-## E. Story / plot-relevant item tracking
+## E. Story / plot-relevant item tracking — **RESOLVED 2026-06-24d (tracking + locks now; mutation→MET, branching-state→F6)**
 
-### [CEX-14] Player visibility & lock — how do story items appear/behave?  **[OPEN]**
-Are plot items shown distinctly + locked from sell/drop/trade (like keys)? Is there a player-facing
-"quest items" readout? *Lean:* a `story` flag → sell/drop lock + distinct tag; player readout optional.
-**Resolution:** _[OPEN]_
+**Terminology.** `ItemDef.story: bool` is the flag (base-level, orthogonal to weapon/consumable/
+accessory components — a story item can be any of them); the **player-facing label is "Key Item."**
+"Story item" / "key item" are used interchangeably below.
 
-### [CEX-15] Designer branching hook — how do story items drive changes?  **[OPEN]**
-Via `[MET]` map-events/triggers (predicate "unit holds item X"). **This needs a campaign-flag /
-story-state store that does not exist yet** — tracking is cheap, *branching* on it is a larger
-dependency. *Lean:* ship tracking now; gate branching on the story-state build. **Resolution:** _[OPEN]_
+### [CEX-14] Player visibility & lock — how do story items appear/behave?  **[RESOLVED]**
+**RESOLVED — author-configurable locks.** `ItemDef` gains `story: bool` plus independent
+**`no_sell` / `no_drop` / `no_trade`** booleans. When `story = true` the **defaults** are
+`no_sell = true`, `no_drop = true`, `no_trade = false` (cannot be lost, but can be handed within the
+party; an author sets `no_trade = true` to **bind** a relic to its holder). The **More Info page
+auto-generates** a plain-language line describing the active locks (e.g. "Key Item — cannot be sold
+or dropped"). Inventory shows a **distinct inline tag**. (Replaces the old `item_type=="key"`/
+`"sellable"` enum, which dissolves with `[IEQ]`.)
 
-### [CEX-16] Tracking tool — what shape is the "plot items" view?  **[OPEN]**
-A designer registry/panel listing plot-relevant items + holder? A player quest log? *Lean:* designer
-tracking panel v1 (lists item + current holder across roster/convoy). **Resolution:** _[OPEN]_
+### [CEX-15] Story hooks — presence-as-flag + branching  **[RESOLVED]**
+**RESOLVED.** **Holding an item is itself a player-visible story flag.** "Unit/party holds item X" is
+a **`[MET]` trigger predicate** read **live from inventory** (roster + convoy) — **needs no F6 store**
+— usable to gate side-quest events and **recruitment conversations**. *Persistent* story STATE
+(quest stages, "spoke to NPC") still rides the **F6 flag store**, so those branches land **with the
+F6 build**; the holds-predicate ships independently with the `[MET]` work.
+
+### [CEX-16] Tracking tool + convoy integration  **[RESOLVED]**
+**RESOLVED.** (a) **Convoy "Key Items" view** — a dedicated sub-view; **key items are exempt from
+`convoy_capacity`** (reconcile `[CNV]` — they never count against the limit and can't be lost).
+(b) **Designer / GUI-editor tracking** — a key-items registry/panel listing each story item + its
+**current holder** across roster/convoy (a **derived scan**, no new storage). (c) Player surface =
+the inline tag + auto More-Info explanation (CEX-14).
+
+### [CEX-18] Story-event item mutation — relic upgraded / weakened / stolen / destroyed  **[RESOLVED]**
+**RESOLVED (design; rides the `[MET]` build).** New `[MET]` event **actions that target a specific
+item**: **upgrade / weaken** (modify the item — reuses the `forged_mods` overlay on `weapon_component`,
+and overlaps `[PXP]` **item-bond** for relics that grow with use), **steal/transfer** (move the entry
+to another unit/faction), **destroy** (remove the entry). These extend the `[MET]` action vocabulary
+and land with the MET/F6 build; the item model just needs to be mutable by id+holder (it is).
+
+### [CEX-19] Authoring validation — key item that can be permanently lost  **[RESOLVED]**
+**RESOLVED (build-time check).** Marking an item `story`/key must **warn** (GUI editor + a
+`DataManager.validate()` warning at load) when it has **finite uses** (a `weapon_component`/
+`consumable_component` that can break/exhaust) **AND no defined repair path** (Hammerne-class staff /
+shop repair / forge) — i.e. it could become **permanently lost**, breaking the plot. The warning
+lands **with the item-model build** (the .tres data doesn't exist yet), not as a docs check.
 
 ## Notes
 - **Cross-cutting dependencies** (design doc §Cross-cutting): `ConditionManager` (stub) is wanted by

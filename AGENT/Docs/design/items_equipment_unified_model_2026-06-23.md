@@ -105,6 +105,7 @@ A single **`ItemDef`** definition resource holds the genuinely-shared fields and
 ```
 ItemDef (base, shared by id)
   id, display_name, description, cost, sellable
+  story, no_sell, no_drop, no_trade          # [CEX-14] key/story-item flag + author locks
   weapon_component:     WeaponComponent     = null
   consumable_component: ConsumableComponent = null
   accessory_component:  AccessoryComponent  = null

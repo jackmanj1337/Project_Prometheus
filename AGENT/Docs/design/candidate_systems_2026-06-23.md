@@ -134,6 +134,13 @@ instead of permanently decrementing `InventoryEntry.uses_remaining`. Player-faci
 
 ## E. Story / plot-relevant item tracking
 
+> **RESOLVED 2026-06-24d** → `[CEX-14..16, 18, 19]`: `ItemDef.story` + author-configurable
+> `no_sell`/`no_drop`/`no_trade` locks (auto-explained in More Info); convoy **"Key Items" view**,
+> **capacity-exempt**; designer/editor tracking panel (derived holder scan); **holding item X = a live
+> `[MET]` predicate** (no F6) for side-quests/recruitment; **event item-mutation** (upgrade/weaken/
+> steal/destroy) rides the `[MET]` build; persistent branching-state rides **F6**; build-time
+> validation warns on a key item with finite uses + no repair path.
+
 **Concept.** Mark items as **plot-relevant** and **track** them, so the campaign/story layer can
 drive changes (events, branches) off who holds what — and so the player/designer can see them.
 

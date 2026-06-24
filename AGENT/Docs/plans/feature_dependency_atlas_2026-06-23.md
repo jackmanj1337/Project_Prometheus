@@ -56,7 +56,7 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 | Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | DISCUSS |
 | Learned spells (CEX-B) | **XL** | F1,F2,F3,F7 | exploration |
 | Resource pools (CEX-A) | **M** | F1,F2 → *is* F7 | exploration |
-| Story-item tracking (CEX-E) | **S** track / **XL** branch | F2 / F6 | exploration |
+| Story-item tracking (CEX-E) | **S** track / **XL** branch | F2 / F6 | **firmed 2026-06-24d** (`[CEX-14..16,18,19]`; tracking+locks+convoy now, mutation→MET, branching-state→F6) |
 
 ### Cluster B — Combat / Weapon mechanics  (F5·F11·F4)
 | Feature | Size | Needs | Status |

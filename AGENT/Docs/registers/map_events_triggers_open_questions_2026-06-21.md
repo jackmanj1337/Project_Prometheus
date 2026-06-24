@@ -64,6 +64,12 @@ matches fired signals against authored events, checks the guard, runs the action
 deferred point, and latches `once` events into the save. **DTR's `on_break` becomes the
 `object_broken` trigger's action list — same action vocabulary, no parallel system** ([MET-9]).
 
+**Cross-ref `[CEX-15, 18]` (story items, 2026-06-24d).** Two additions land here with the MET build:
+a **condition predicate "party/unit holds item X"** (read live from inventory + convoy — **needs no
+flag store**, so it ships with MET regardless of F6), and **item-targeting actions**
+`upgrade`/`weaken`/`steal`/`destroy`/`grant_item` (a relic mutated by story). Persistent story-state
+branching still rides the F6 flag store (`condition.flag`).
+
 ## 3. Open questions register
 
 ### [MET-1] Authoring model — typed Resource vs Dictionary array  **[OPEN]**

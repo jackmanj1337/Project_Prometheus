@@ -58,6 +58,9 @@ save serializer and the §4a authoring contract build on. Equip-items (#3) firms
 - **Resolution:** **[RESOLVED → author rule, default unlimited]** (owner 2026-06-23k) — add
   `CampaignRules.convoy_capacity` (mandate-or-default) with a **sentinel default = unlimited**
   (e.g. `-1`); an author may set a finite cap. Mirrors the CNV-3 author-defined per-unit cap.
+  - **Cross-ref `[CEX-16]` (2026-06-24d):** **key/story items (`ItemDef.story`) are exempt from
+    `convoy_capacity`** (never count against the cap, can't be lost) and surface in a dedicated
+    convoy **"Key Items" view**. The capacity count excludes story items.
 
 ### [CNV-3] `max_inventory = 8` enforcement — where/when  **[OPEN]**
 - **A — Enforce the per-unit 8-slot cap at every growth site** (prep trade, shop buy, on-map pickup,
