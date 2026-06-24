@@ -133,13 +133,36 @@ schema-heavy GAP/DISCUSS four), **then** lock F1, **then** build. The only work 
 beside this is the **next round of playtest results**; everything else is downstream of it. Chain:
 **define-all sweep → F1 schema-lock → all builds.**
 
-**Phase A — Define-all sweep (THE blocker; go through every un-firmed target):**
-- **In flight:** Learned spells / weapon sources (`[CEX-5..8, 20..23]`, cluster B) — eval/sort next.
-- **GAP/DISCUSS (schema-defining — take early in the sweep):** Support (#5; XL) · Recruit/Capture
-  (#4; F6) · Avatar / My Unit (#20; roster/save/story cascade) · Battalions / gambits (#16; F11).
-- **Remaining ✗ v1 worklist:** Difficulty modes (#12; F4✓) · Dancer (#8) · Movement assists (#17) ·
-  Utility staves (#10) · Rescue (#6; via F10) · Village (#11; MET✓+F6) · PvP (#7) · Arena (#14) ·
-  Bonus-EXP (#18) · Combat arts (#15; after F7) · Per-skill UX (#M9b, content).
+**Phase A — Define-all sweep (THE blocker; go through every un-firmed target).** Grouped by
+**shared-system overlap (owner 2026-06-24e)** so features that touch the same system are firmed **in
+sync** (design the shared schema/UX once, not N times). Two features deliberately straddle two
+clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), then A1, A2, A4, A5.
+
+- **A1 — Combat capabilities & attack/target flow** *(shared: weapon-source enum `[CEX-20]`, action
+  menu `[CEX-21]`, source+maneuver selection+targeting `[CEX-23]`, F7 pools, F11 triggers).*
+  Learned spells / weapon sources (`[CEX-5..8, 20..23]`, in flight) · Combat arts (#15) · Utility
+  staves (#10) · **gambit attack/area side** of Battalions (#16 ⇄ A2). *Why sync:* all are
+  "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
+  share **one** select→preview→target pattern or the UI forks per feature.
+- **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
+  Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
+  **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
+  carry-drop (#6) · **battalion deployment/action side** (#16 ⇄ A1). *Why sync:* all add or re-grant
+  on-map actions through the F10 window; rescue + shove share displacement logic.
+- **A3 — Roster identity & relationships** *(shared: roster + save — support levels, custom avatar,
+  recruited flags; support/conversation UI; F6 flags).* Support (#5) · Avatar / My Unit (#20) ·
+  Recruit/Capture (#4 ⇄ A4). *Why sync + do first:* Avatar is built on Supports; recruitment is often
+  support/conversation-gated; all three **expand roster/save schema together** — the biggest F1 risk,
+  so firm this cluster before the F1 lock.
+- **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
+  · Recruit/Capture conversation+flag side (#4 ⇄ A3). *Why sync:* same trigger+flag plumbing; Recruit
+  straddles roster (A3) and events (A4).
+- **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
+  death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
+  (#7). *Why sync:* all ride F4 profiles and/or the hub + EXP/economy; Casual/Phoenix death rules and
+  Arena death-risk share the permadeath-handling path.
+- **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
+  arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 
 **Phase B — F1 save-schema lock** (the last foundation pass; can only close once Phase A is done so it
 reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CEX-21]`) · accessory slot
