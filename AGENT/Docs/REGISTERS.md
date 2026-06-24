@@ -28,6 +28,7 @@
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |
 | `PKGA-1..4` | Package A (`RngService`) — Implementation Draft + Open Questions Register | RESOLVED | 2026-06-21f | `registers/package_a_rngservice_open_questions_2026-06-21.md` |
 | `PXP-1..9` | Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/proficiency_xp_framework_open_questions_2026-06-23.md` |
+| `REL-1..9` | Relationship System (#5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24f | `registers/relationship_system_open_questions_2026-06-24.md` |
 | `SHP-1..5` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/shop_economy_open_questions_2026-06-23.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
