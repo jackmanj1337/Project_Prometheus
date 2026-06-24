@@ -2,15 +2,16 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-24
-Register: STY-1..15
-Resolved-in: 2026-06-24j / 2026-06-24k
+Register: STY-1..16
+Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l
 ---
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
 
 **Started:** 2026-06-24 (session 2026-06-24j, the A1 "walk the idea" pass).
 **Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
-in + full F5 pulled forward); **STY-9..11 still OPEN** (AoE targeting / preview UX / battalion entity).
+in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9..11 still
+OPEN** (AoE targeting / preview UX / battalion entity).
 Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)**, the
 **gambit attack-side of Battalions (#16)**, and **utility + buff/debuff staves (#10)**. **Pattern:**
 mirrors `[CEX]`/`[RCR]`. Legend: **[OPEN]** / **[RESOLVED]**.
@@ -24,20 +25,25 @@ mirrors `[CEX]`/`[RCR]`. Legend: **[OPEN]** / **[RESOLVED]**.
 Combat arts, gambits, and non-lethal **capture** are all just styles. One pipeline serves all of them:
 **select source → select style → combined preview → re-derived targeting → pay combo cost → resolve.**
 
-A source carries an **`effect_kind`** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/
-`cure`/`inflict`/`bolster` for staves — `[STY-13]`) + a **`target_filter`**; a style may **override**
-them (`[STY-14]`). So "Attack" is just `strike` + hostile targeting, and staves are the same pipeline.
+A source + style carries a **SET of effects** (`[STY-13]`/`[STY-16]`), each an `EffectSpec` with a
+**kind** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/`cure`/`inflict`/`bolster`), a
+payload, a per-effect **`target_filter`**, and a **gate** (`always`/`on_hit`/`on_kill`). A style may
+**add or override** effects (`[STY-14]`); all effects resolve together on one use. So "Attack" is just a
+`strike` effect + hostile targeting, and staves are the same pipeline.
 
-| Action | Source | `effect_kind` | Style |
+| Action | Source | Effect set (kinds) | Style |
 |---|---|---|---|
 | Normal attack | weapon | `strike` | *(null)* |
 | Combat art | weapon (type-gated) | `strike` | single-target art |
 | Gambit | battalion gambit | `strike` | AoE |
-| Capture | weapon | `strike` | non-lethal (→ `sleep`) |
+| Capture | weapon | `strike` (non-lethal → `sleep` on would-be-kill) | non-lethal |
+| **Poison dagger** | weapon | `strike` **+** `inflict: poison` (on_hit) | *(null)* |
+| **Nosferatu / Sol** | weapon | `strike`(enemy) **+** `heal: self`(=dmg, on_hit) | *(null)* |
 | Heal staff | staff | `heal` | *(null)*; AoE-heal style optional |
 | Warp / Rescue staff | staff | `teleport` / `fetch` | *(null)* |
 | Hammerne / Restore | staff | `repair` / `cure` | *(null)* |
-| Debuff / buff staff | staff | `inflict` / `bolster` | *(null)*; rides F5 |
+| **Legendary staff** | staff | `heal` **+** `bolster` **+** `cure` | *(null)* |
+| Debuff / buff staff | staff | `inflict` / `bolster` (rides F5) | *(null)* |
 
 ---
 
@@ -98,27 +104,28 @@ Choosing a style **is** the unit's attack and **costs its one combat action** (m
 gambits both consume the combat action). It is **not** an extra action. Finer battalion action-economy
 edge-cases (e.g. gambit-then-move ordering, who spends the charge) are settled on the **A2** side.
 
-### [STY-13] Staves fold in via a source `effect_kind` + `target_filter`  **[RESOLVED 2026-06-24k]**
+### [STY-13] Staves fold in via an `effects` set + `target_filter`  **[RESOLVED 2026-06-24k; effects-set per `[STY-16]`]**
 Staves are already `[CEX-20]` sources (`combat_family == "staff"`), and the code already dispatches by
-effect (`is_healing_staff()` → heal resolver; offensive staves → damage resolver). **Formalize** that
-into two first-class **source** properties so "use a source" is the one pipeline (attack = `strike` +
-hostile target):
-- **`effect_kind`**: `strike | heal | teleport (Warp) | fetch (Rescue staff) | repair (Hammerne) |
-  cure (Restore) | inflict (debuff) | bolster (buff)` — extensible.
-- **`target_filter`**: `enemy | ally | self | empty_tile | weapon_holder | …`
-The resolver dispatches on `effect_kind`; targeting derives from `target_filter`. **Most staves =
-source + null style** (the verb is intrinsic to the source); styles still *may* layer (AoE-heal style
-over a Heal staff). **Disambiguation:** the **Rescue *staff*** (`effect_kind = fetch`, teleport an ally
+effect (`is_healing_staff()` → heal resolver; offensive staves → damage resolver) — and
+`WeaponData.effect_tags` is **already an `Array[String]`** (its comment anticipates `poison_on_hit`).
+**Formalize** that so "use a source" is the one pipeline (attack = a `strike` effect + hostile target):
+- **`effects`** (a **set** — generalizes `effect_tags`, see `[STY-16]`): each effect has a **kind** —
+  `strike | heal | teleport (Warp) | fetch (Rescue staff) | repair (Hammerne) | cure (Restore) |
+  inflict (debuff) | bolster (buff)` — extensible, with a payload + per-effect `target_filter` + gate.
+- **`target_filter`**: `enemy | ally | self | empty_tile | weapon_holder | …` (per effect).
+The resolver runs **each** effect; targeting derives from the effects' filters. **Most staves =
+source + null style** (the verbs are intrinsic to the source); styles still *may* layer (AoE-heal style
+over a Heal staff). **Disambiguation:** the **Rescue *staff*** (`fetch`, teleport an ally
 adjacent) is distinct from the **Rescue *carry* system** (#6/H3, physical carry/drop, A2). **Hammerne**
 (`repair`, `target = weapon_holder`) is the `[CEX-19]` story-item repair path; **Restore** (`cure`)
 calls `ConditionManager.remove_condition`.
 
-### [STY-14] A source may expose both aggressive AND beneficial styles; a style may override the verb  **[RESOLVED 2026-06-24k]**
-`effect_kind`/`target_filter` are the source **default**, but a **style may OVERRIDE them** — so one
-source can offer both **aggressive and beneficial** styles (designer refinement). A style is no longer
-only a "strike modifier": it may carry an optional `effect_kind` / `target_filter` override (e.g. a
+### [STY-14] A source may expose both aggressive AND beneficial styles; a style may add/override effects  **[RESOLVED 2026-06-24k; effects-set per `[STY-16]`]**
+The source's `effects`/`target_filter` are the **default**, but a **style may ADD effects to the set
+OR OVERRIDE them** — so one source can offer both **aggressive and beneficial** styles (designer
+refinement). A style is no longer only a "strike modifier": it may contribute its own effects (e.g. a
 beneficial style on an otherwise-offensive source, or an offensive style on a staff). This + buff/debuff
-staves means the **status payload rides F5** (`[STY-12]` — now a full build): `inflict` → apply
+staves means the **status payloads ride F5** (`[STY-12]` — now a full build): `inflict` → apply
 condition (sleep/silence/berserk), `bolster` → timed positive modifier. **`sleep` is shared by capture
 (`[STY-6]`) and the Sleep staff** — one condition, two features.
 
@@ -128,6 +135,27 @@ over the one pipeline** — Attack filters to `strike` sources + hostile targets
 utility-`effect_kind` sources + their `target_filter`. (Today `ActionMenu` already has Attack + Staff,
 gated by `is_healing_staff()`; offensive staves currently route through Attack, which is fine — they are
 `strike`-ish with a status payload.) Extends the `[CEX-21]` menu vocabulary; no separate pipeline.
+
+### [STY-16] A source+style combo carries MULTIPLE effects, resolved together  **[RESOLVED 2026-06-24l]**
+**A single use applies a *set* of effects, not one** (designer refinement; also matches the existing
+`WeaponData.effect_tags: Array[String]`, whose comment already anticipates `poison_on_hit`). Each effect
+is an **`EffectSpec`**:
+```
+{ kind,                 # strike | heal | inflict | bolster | cure | teleport | fetch | repair | …
+  payload,              # e.g. Mt source / heal formula / condition id+duration / stat-mod set
+  target_filter,        # per-effect: enemy | ally | self | … (effects in one combo may differ)
+  gate }                # when it fires: always | on_hit | on_kill  (reuses the F11 combat context)
+```
+The committed combo's effect set = **source effects ∪ style effects** (`[STY-14]`: a style may add or
+override). On commit they resolve **in listed order**, each gated by `gate`. Examples:
+- **Poison dagger** = `strike` (always) **+** `inflict: poison` (**gate `on_hit`**) → same enemy target.
+- **Legendary staff** = `heal` **+** `bolster: +stats` **+** `cure` → same ally target.
+- **Nosferatu / Sol (drain)** = `strike` (target `enemy`) **+** `heal: self` (target `self`,
+  payload = damage dealt, gate `on_hit`) — **per-effect `target_filter` differs within one use.**
+**Implications:** generalizes/replaces the single-`effect_kind` framing of `[STY-13]`; the
+combined-preview (`[STY-10]`) must show **all** effects (damage **and** "inflicts poison" **and** heal);
+cost (`[STY-5]`) is still per-*combo*, not per-effect; `inflict`/`bolster`/`cure` effects route through
+the full **F5** (`[STY-12]`). Reuses `effect_tags` as the storage seam (extended with payload+target+gate).
 
 ---
 
@@ -139,7 +167,9 @@ allies (friendly fire) or filters by faction. Design at the A1 build. **Resoluti
 
 ### [STY-10] Combined-preview UX  **[OPEN]**
 The `[CEX-23]` UI detail: how the forecast renders the *combined* source+style effect (deltas, range
-highlight, AoE footprint, total combo cost) before commit. Design at the A1 build. **Resolution:** _[OPEN]_
+highlight, AoE footprint, total combo cost) before commit — and **all `[STY-16]` effects in the set**
+(e.g. damage **and** "inflicts poison" **and** self-heal), each with its gate. Design at the A1 build.
+**Resolution:** _[OPEN]_
 
 ### [STY-11] Full battalion entity spec  **[OPEN — A2]**
 Attached-unit data model, assignment/prep UI, endurance & how it depletes, passive bonus aggregation,
