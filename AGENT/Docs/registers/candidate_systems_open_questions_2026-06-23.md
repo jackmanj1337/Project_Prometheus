@@ -84,6 +84,9 @@ other granted source, and Attack→target then fires it. No bespoke spell list, 
 per-row property on the granted list, independent of provenance). Per-map reuses `skill_use_counters`;
 pool = system A (F7); entry-uses = inventory durability; infinite = natural weapons. Per-source charge
 state is reserved in the save alongside the granted-list (F1).
+> **Extended by `[STY-5]` (2026-06-24j).** The XOR is per-*source storage*. A full attack is a
+> **source + style** combo, and the **style adds its own cost SET** (composable, not XOR) — the combo
+> cost = source per-use cost **+** the style's `{backend, amount}` components. See the `[STY]` register.
 
 ### [CEX-7] Learning surfaces in v1 + can spells be forgotten/swapped?  **[RESOLVED]**
 **Resolution: class-level + PXP-threshold surfaces v1; known list is EVER-GROWING in v1 (no loadout
@@ -223,6 +226,9 @@ maneuver/art id** whose effects re-derive range/stats/targeting before commit. *
 single-source** (equip a source → Attack → pick target) until the **combat-arts (#15) / gambits (#16)
 build**, where this rework lands alongside system A pools and the `[SKL]` combat arts. This is the
 largest UX/structural fork in the cluster, so deferring it keeps the F1 schema-lock moving.
+> **Now owned by the `[STY]` register (2026-06-24j).** The "maneuver" became the **style** half of the
+> **source + style** model; combat arts, gambits, and non-lethal capture are all styles over the
+> CEX-20 source. This resolution's "optional maneuver/art id" = a `style_id`. Design lives in `[STY]`.
 
 ## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
 

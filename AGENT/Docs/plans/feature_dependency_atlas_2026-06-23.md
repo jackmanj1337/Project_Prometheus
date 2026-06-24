@@ -53,7 +53,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 | Convoy `[CNV]` · Shop `[SHP]` | **M** ea | F1,F9 | firmed |
 | Forging (M10) | **M** | F2 | deferred |
 | Per-map-use items (CEX-D) | **S** | F2 | **firmed 2026-06-24c** (`[CEX-13]`; pure recharge, `uses_per_map` + per-instance map counter) |
-| Combat arts / weapon arts (#15) | **M** | F2,F7,F11 | DISCUSS |
+| Combat arts / weapon arts (#15) | **M** | F2,F7,F11 | **firmed 2026-06-24j** (`[STY-1..8]`; a **style** over a `[CEX-20]` source — unified source+style model, absorbs `[CEX-23]`) |
 | Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | DISCUSS |
 | Weapon-source / equip model (CEX-B-foundation) | **L** | F1,F2 | **firmed 2026-06-24i** (`[CEX-20..23]`; two-source union, `equipped_source` ref, auto-fallback by priority, combo-select deferred) |
 | Learned spells (CEX-B-application) | **M** | F1,F2,F7 | **firmed 2026-06-24i** (`[CEX-5..8]`; rides the weapon-source model — fold into Equip Weapon, per-source charge backend, ever-growing list v1) |
@@ -100,7 +100,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 ### Cluster F — Big standalone systems
 | Feature | Size | Needs | Status |
 |---|---|---|---|
-| Battalions / gambits (#16) | **L** | F11, action flow | DISCUSS |
+| Battalions / gambits (#16) | **L** | F11, action flow | **attack-side firmed 2026-06-24j** (`[STY-7]`; gambit = AoE **style** over a battalion-granted source, A1) · **battalion entity → A2** (`[STY-11]`, full 3H scope) |
 
 ### Cluster G — Infra / tooling / gates
 | Feature | Size | Needs | Status |
@@ -147,11 +147,14 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   arts (#15) · Utility staves (#10) · **gambit attack/area side** of Battalions (#16 ⇄ A2). *Why sync:*
   all are
   "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
-  share **one** select→preview→target pattern or the UI forks per feature.
+  share **one** select→preview→target pattern or the UI forks per feature. **This is now the
+  `[STY]` source + style model (firmed 2026-06-24j)** — arts, gambits, and non-lethal capture are all
+  *styles* over a `[CEX-20]` source; building it closes the deferred `[CEX-23]`.
   - **A1 exit checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
     fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
-    an intended art; maybe weigh range/Mt, not just slot order); (2) the deferred `[CEX-23]`
-    combo-select flow is designed/built here, not punted past A1.
+    an intended art/style; maybe weigh range/Mt, not just slot order); (2) build the `[STY]` source+style
+    pipeline (`[CEX-23]` combo-select) — designed here, not punted past A1; (3) resolve `[STY-9..10]`
+    (AoE targeting vocab + combined-preview UX) and the `[STY-12]` F5 pull-forward call.
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
   Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
@@ -177,9 +180,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 
 **Phase B — F1 save-schema lock** (the last foundation pass; can only close once Phase A is done so it
 reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CEX-21]`) · accessory slot
-maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** · story
-flags · `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **plus every
-field Phase A surfaces.**
+maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** ·
+**learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
+**captured/`sleep` state (`[STY-6]`/`[RCR]`)** · story flags · `map_uses_remaining` · triangle profile
+selection · `ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 

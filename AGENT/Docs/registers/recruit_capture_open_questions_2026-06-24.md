@@ -60,6 +60,11 @@ Talk-recruit (the faction flip) and the shared recruited-state are firmed here. 
 end-state** is defined: a captured enemy ends as **recruitable** (joins/recruited post-map or via the
 RCR-3 API). Capture's **physical carry/jail/release mechanic is deferred to A2** (it shares
 rescue/carry/displacement) — capture is a 3-way straddler, so its carry side firms with A2, not here.
+> **Combat-capture path added (2026-06-24j, `[STY-6]`).** Beyond talk-recruit, a unit can be captured
+> by a **non-lethal style**: it cannot drop below 1 HP and a would-be-lethal hit applies **`sleep`**
+> instead; the sleeping unit is the capture-enabling state the A2 carry consumes. The non-lethal
+> *attack* lands in A1 (`[STY]`); the **carry/jail/release stays A2** as above. Two capture paths now:
+> talk-recruit (this register / A4) and combat non-lethal (`[STY]` / A1 + carry A2).
 
 ### [RCR-6] Main-character eligibility — **RESOLVED: a recruited unit may be a main character**
 A recruited unit may carry the `[MCH]` main-character role; recruit conversations reuse the **F13**
