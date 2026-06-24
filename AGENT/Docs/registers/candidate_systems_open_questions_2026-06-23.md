@@ -115,19 +115,33 @@ button needs **≥2 equippable weapons** (`has_weapon_swap = get_equippable_weap
 `ActionMenu.gd`) and **every roster unit ships exactly one weapon**. `WeaponMenu` has **no test**; only
 the button-visibility toggle is covered (`test_action_menu`).
 
-### [CEX-20] Non-inventory weapon-source enumeration  **[OPEN]**
-Generalize `get_equippable_weapons()` / `_find_equipped_weapon()` to return the **union** of
-**inventory** + **known-list** (spells) + **class-innate** (`ClassData.natural_weapon_type` →
-fang/claw/fists — declared today but **never wired into combat**). Each returned row carries its charge
-backend (entry-uses / counter / pool / infinite). One enumerator simultaneously delivers spells, wires
-up the dangling `is_natural_weapon`/`natural_weapon_type`, and gives monster/boss innate attacks the
-same path. *Lean:* single enumerator, source tagged per row. **Resolution:** _[OPEN]_
+### [CEX-20] Two-source weapon enumeration (inventory + granted)  **[OPEN]**
+Generalize `get_equippable_weapons()` / `_find_equipped_weapon()` to return the **union** of just
+**two** sources — **not three**. (Discussion 2026-06-24e settled this: "source" only buys storage +
+lifecycle; combat consumes a `WeaponData` regardless. The only real behavioral fork is **physical
+object vs reference**.)
+- **Inventory** — physical items: occupy a slot, trade/drop, durability via `entry.uses`.
+- **Granted list** — every **non-inventory** `WeaponData` reference (spells, natural weapons,
+  accessory-conferred attacks, event grants). Each row carries a **provenance tag** —
+  `learned | class_innate | accessory | event` — **reusing the `[SKL]` pattern** (`[SKL-3]`
+  `retain_on_reclass` already models "class-innate vs earned"); this is **metadata, not a third
+  enumeration path**. Each row also carries its **charge backend** (entry-uses / counter / pool /
+  infinite) as an *independent* per-row property — e.g. a natural weapon is `class_innate` + infinite,
+  a learned spell is `learned` + counter/pool. **Do not conflate provenance with charge backend.**
+Class-innate is **not stored** — it is **recomputed from the class at runtime** (like class-active
+skills aggregate without being saved), so it contributes *into* the granted list rather than being a
+separate stored source. This single union delivers spells, wires up the dangling
+`is_natural_weapon`/`natural_weapon_type`, and gives monster/boss innate attacks the same path.
+*Lean:* one enumerator over two sources, provenance + charge tagged per row. **Resolution:** _[OPEN]_
 
 ### [CEX-21] Equipped source as a reference + action-menu vocabulary  **[OPEN]**
 Today "equipped" = the first usable inventory entry, and `set_equipped_weapon` **reorders
 `data.inventory`** — so it **cannot select** a spell or natural source (there is no entry to reorder).
-Design: a single **`equipped_source` reference** (inventory-entry id | known-list id | class-innate id)
-that `get_equipped_weapon()` resolves; reserve it in the **F1** save schema. Action-menu vocabulary:
+Design: a single **`equipped_source` reference** that `get_equipped_weapon()` resolves; with the
+two-source model (`[CEX-20]`) it distinguishes only **two** cases — **inventory-entry id** vs
+**granted-list id** (the granted row's provenance tag is read from the row, not encoded in the
+reference). Reserve it in the **F1** save schema (inventory + granted-list are the saved structures;
+class-innate granted rows are recomputed, not saved). Action-menu vocabulary:
 **Attack** (initiator, unchanged) · **Equip Weapon** (today's `WeaponMenu`, fed by `[CEX-20]`'s union;
 visibility keys off **union** size, not inventory size) · **Inventory** (use consumables now +
 accessory-equip later — likely **prep-only**, a scope flag). Keep **Attack** distinct from **Equip
