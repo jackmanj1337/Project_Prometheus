@@ -2,17 +2,18 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-24
-Register: STY-1..12
-Resolved-in: 2026-06-24j
+Register: STY-1..15
+Resolved-in: 2026-06-24j / 2026-06-24k
 ---
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
 
 **Started:** 2026-06-24 (session 2026-06-24j, the A1 "walk the idea" pass).
-**Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; STY-9..12 deferred to the build / later clusters.
-Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)** and
-the **gambit attack-side of Battalions (#16)**. **Pattern:** mirrors `[CEX]`/`[RCR]`. Legend:
-**[OPEN]** / **[RESOLVED]**.
+**Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
+in + full F5 pulled forward); **STY-9..11 still OPEN** (AoE targeting / preview UX / battalion entity).
+Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)**, the
+**gambit attack-side of Battalions (#16)**, and **utility + buff/debuff staves (#10)**. **Pattern:**
+mirrors `[CEX]`/`[RCR]`. Legend: **[OPEN]** / **[RESOLVED]**.
 
 ---
 
@@ -23,12 +24,20 @@ the **gambit attack-side of Battalions (#16)**. **Pattern:** mirrors `[CEX]`/`[R
 Combat arts, gambits, and non-lethal **capture** are all just styles. One pipeline serves all of them:
 **select source → select style → combined preview → re-derived targeting → pay combo cost → resolve.**
 
-| Action | Source | Style |
-|---|---|---|
-| Normal attack | weapon | *(null)* |
-| Combat art | weapon (type-gated) | single-target art |
-| Gambit | battalion gambit | AoE |
-| Capture | weapon | non-lethal |
+A source carries an **`effect_kind`** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/
+`cure`/`inflict`/`bolster` for staves — `[STY-13]`) + a **`target_filter`**; a style may **override**
+them (`[STY-14]`). So "Attack" is just `strike` + hostile targeting, and staves are the same pipeline.
+
+| Action | Source | `effect_kind` | Style |
+|---|---|---|---|
+| Normal attack | weapon | `strike` | *(null)* |
+| Combat art | weapon (type-gated) | `strike` | single-target art |
+| Gambit | battalion gambit | `strike` | AoE |
+| Capture | weapon | `strike` | non-lethal (→ `sleep`) |
+| Heal staff | staff | `heal` | *(null)*; AoE-heal style optional |
+| Warp / Rescue staff | staff | `teleport` / `fetch` | *(null)* |
+| Hammerne / Restore | staff | `repair` / `cure` | *(null)* |
+| Debuff / buff staff | staff | `inflict` / `bolster` | *(null)*; rides F5 |
 
 ---
 
@@ -65,6 +74,10 @@ A *source* keeps one storage backend (`[CEX-6]`: how its "ammo" is stored — du
 **combo cost = source per-use cost + the style's cost set**, all charged on commit. **Not XOR.** E.g. a
 Smash art = 2 weapon-uses **and** 3 stamina; a gambit = 1 battalion charge **and** a pool spend.
 Generalizes `[CEX-4]` ("may cost from multiple pools") to the whole combo.
+**Override (refinement 2026-06-24k):** a style may also **OVERRIDE the base source cost** (not just add
+to it) — `style.cost = { override_source_cost: bool, components: [...] }`. So a style can say "this use
+spends **0** weapon durability, only 5 pool," replacing the source's normal per-use cost. Default
+(`override_source_cost = false`) = additive as above.
 
 ### [STY-6] Capture as a non-lethal style  **[RESOLVED]**
 A **non-lethal** style **cannot reduce the target below 1 HP**; a hit that would otherwise be **lethal
@@ -85,6 +98,37 @@ Choosing a style **is** the unit's attack and **costs its one combat action** (m
 gambits both consume the combat action). It is **not** an extra action. Finer battalion action-economy
 edge-cases (e.g. gambit-then-move ordering, who spends the charge) are settled on the **A2** side.
 
+### [STY-13] Staves fold in via a source `effect_kind` + `target_filter`  **[RESOLVED 2026-06-24k]**
+Staves are already `[CEX-20]` sources (`combat_family == "staff"`), and the code already dispatches by
+effect (`is_healing_staff()` → heal resolver; offensive staves → damage resolver). **Formalize** that
+into two first-class **source** properties so "use a source" is the one pipeline (attack = `strike` +
+hostile target):
+- **`effect_kind`**: `strike | heal | teleport (Warp) | fetch (Rescue staff) | repair (Hammerne) |
+  cure (Restore) | inflict (debuff) | bolster (buff)` — extensible.
+- **`target_filter`**: `enemy | ally | self | empty_tile | weapon_holder | …`
+The resolver dispatches on `effect_kind`; targeting derives from `target_filter`. **Most staves =
+source + null style** (the verb is intrinsic to the source); styles still *may* layer (AoE-heal style
+over a Heal staff). **Disambiguation:** the **Rescue *staff*** (`effect_kind = fetch`, teleport an ally
+adjacent) is distinct from the **Rescue *carry* system** (#6/H3, physical carry/drop, A2). **Hammerne**
+(`repair`, `target = weapon_holder`) is the `[CEX-19]` story-item repair path; **Restore** (`cure`)
+calls `ConditionManager.remove_condition`.
+
+### [STY-14] A source may expose both aggressive AND beneficial styles; a style may override the verb  **[RESOLVED 2026-06-24k]**
+`effect_kind`/`target_filter` are the source **default**, but a **style may OVERRIDE them** — so one
+source can offer both **aggressive and beneficial** styles (designer refinement). A style is no longer
+only a "strike modifier": it may carry an optional `effect_kind` / `target_filter` override (e.g. a
+beneficial style on an otherwise-offensive source, or an offensive style on a staff). This + buff/debuff
+staves means the **status payload rides F5** (`[STY-12]` — now a full build): `inflict` → apply
+condition (sleep/silence/berserk), `bolster` → timed positive modifier. **`sleep` is shared by capture
+(`[STY-6]`) and the Sleep staff** — one condition, two features.
+
+### [STY-15] Action-menu framing for utility vs hostile  **[RESOLVED 2026-06-24k]**
+Keep **Attack** (`strike` / hostile framing) and **Staff/Use** (utility framing) as **two menu entries
+over the one pipeline** — Attack filters to `strike` sources + hostile targets; Staff/Use filters to
+utility-`effect_kind` sources + their `target_filter`. (Today `ActionMenu` already has Attack + Staff,
+gated by `is_healing_staff()`; offensive staves currently route through Attack, which is fine — they are
+`strike`-ish with a status payload.) Extends the `[CEX-21]` menu vocabulary; no separate pipeline.
+
 ---
 
 ## Deferred / build-time (still OPEN)
@@ -101,10 +145,14 @@ highlight, AoE footprint, total combo cost) before commit. Design at the A1 buil
 Attached-unit data model, assignment/prep UI, endurance & how it depletes, passive bonus aggregation,
 battalion EXP/leveling, adjutant/pair-up variant. Owned by the **A2** cluster. **Resolution:** _[OPEN]_
 
-### [STY-12] F5 pull-forward decision for capture/status  **[OPEN]**
-`[STY-4]` status + `[STY-6]` `sleep` both need F5 `ConditionManager`. Decide whether capture/status
-justify **building F5 (or just the `sleep` condition) earlier**, or whether the status slice waits for
-the scheduled F5 build. **Resolution:** _[OPEN]_
+### [STY-12] F5 pull-forward decision for capture/status  **[RESOLVED 2026-06-24k]**
+`[STY-4]` style-status + `[STY-6]` capture `sleep` + `[STY-14]` buff/debuff staves **all** need
+conditions, and `sleep` is shared by capture and the Sleep staff. **Resolution: build the FULL F5
+`ConditionManager` now**, pulled onto A1's critical path (designer call). F5 graduates from stub to a
+real foundation build (`scripts/autoloads/ConditionManager.gd` already declares `sleep`/`silence`/
+`berserk` and the `apply`/`remove`/`tick`/`has`/`clear` surface). Scope = the full condition framework
+(types, durations, ticking, immunities, stacking), not just `sleep`. This unblocks capture + style
+status + buff/debuff staves together. Also resolves the `[CEX-10]` triangle-condition slice deferral.
 
 ---
 
@@ -115,10 +163,14 @@ the scheduled F5 build. **Resolution:** _[OPEN]_
 - **Per-style charge state** (the `[STY-5]` style cost components that use counters/pools), alongside the
   `[CEX-6]`/`[CEX-20]` per-source charge state.
 - **Captured/`sleep` state** reserve coordinates with `[RCR]` (roster) + F5 (condition) + A2 (carry).
+- **Active-conditions state per unit** (type + remaining duration) — owned by the **full F5
+  `ConditionManager`** (`[STY-12]`); reserve at the lock (capture, style status, buff/debuff staves).
+- (`effect_kind` / `target_filter` are *source data-def*, not save state.)
 
 ## Notes
 - **DoD:** when this graduates to a build, it gets GDD owner updates (GDD_02 combat exchange, GDD_05
-  skills/`StyleDef`, GDD_04 weapons type-gate) + the `StyleDef` `.tres` + tests, **with the build**.
+  skills/`StyleDef` + F5/conditions, GDD_04 weapons type-gate, **GDD_07-ish staff `effect_kind`**) +
+  the `StyleDef` `.tres` + tests, **with the build**.
 - **Cross-refs:** `[CEX-20]` source enum · `[CEX-21]` equipped reference · `[CEX-6]` per-source charge
   (extended here) · `[CEX-23]` (absorbed) · `[SKL-3]` `requires_equip` cap · `[RCR-5]` capture-carry
   (A2) · F5 `ConditionManager` · F7 pools.

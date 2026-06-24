@@ -27,7 +27,7 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F2 | **Unified `ItemDef` + components** (`[IEQ]`) | ✅ firmed | F1 | accessories, consumables, spells, per-map items, story items, combat arts, forging | decided (composition) |
 | F3 | **Proficiency / XP framework** (`[PXP]`) | ✅ firmed | F1, F4 | equip legality, spell-learn-by-threshold, training halls, bonus-EXP, arena | decided |
 | F4 | **CampaignRules author-profile mechanism** | 🟡 ad-hoc | F1 | PXP ranks, flexible triangle, resource pools, difficulty modes | ✅ **decided 2026-06-23l: ONE generic "named author profile" mechanism** (end-shape in `design/foundations_end_shapes_2026-06-23.md`) |
-| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves | ✅ **decided 2026-06-23l: FULL author-extensible system** (end-shape in foundations doc) |
+| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves, **capture `sleep`, style status (`[STY]`)** | ✅ decided 2026-06-23l: FULL author-extensible system · **pulled onto A1's critical path 2026-06-24k (`[STY-12]`)** — build the full system within/before A1 (capture + style status + buff/debuff staves all need it) |
 | F6 | **Campaign-flag / story-state store** | ❌ missing | F1, F8 | story-item branching, recruit conditions, route/difficulty branching, village outcomes | ✅ **decided 2026-06-23l: generic flag/variable store** (end-shape in foundations doc) |
 | F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2, F4 | spells-from-pool, combat arts, skill costs | ✅ **decided 2026-06-23l: standalone foundation** (`[CEX-1..4]`; CampaignRules pool types, author refill modes, restore items/Regen skills, gates weapon/spell/skill use) |
 | F8 | **Map events / triggers** (`[MET]`) | ✅ firmed | grid/map | village, recruit, story branching, objectives | decided |
@@ -84,7 +84,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 |---|---|---|---|
 | Secondary Movement (#9) | **M** | turn flow → *is* F10 | Tier1 |
 | Dancer / refresh (#8) | **M** | action flow | Tier1 |
-| Utility staves (#10) | **M** | action flow | Tier1 |
+| Utility staves (#10) | **M** | action flow, F5 | **firmed 2026-06-24k** (`[STY-13..15]`; staves = `[CEX-20]` sources w/ a `effect_kind`+`target_filter` axis, fold into source+style; buff/debuff ride F5) |
 | Movement assists (#17) | **M** | action flow | DISCUSS |
 | Rescue system (#6) | **L** | F10, CON | Tier1 |
 
@@ -148,13 +148,16 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   all are
   "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
   share **one** select→preview→target pattern or the UI forks per feature. **This is now the
-  `[STY]` source + style model (firmed 2026-06-24j)** — arts, gambits, and non-lethal capture are all
-  *styles* over a `[CEX-20]` source; building it closes the deferred `[CEX-23]`.
+  `[STY]` source + style model (firmed 2026-06-24j/k)** — arts, gambits, non-lethal capture, **and
+  utility/buff/debuff staves** are all *styles or `effect_kind`s* over a `[CEX-20]` source; building it
+  closes the deferred `[CEX-23]`.
   - **A1 exit checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
     fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
     an intended art/style; maybe weigh range/Mt, not just slot order); (2) build the `[STY]` source+style
-    pipeline (`[CEX-23]` combo-select) — designed here, not punted past A1; (3) resolve `[STY-9..10]`
-    (AoE targeting vocab + combined-preview UX) and the `[STY-12]` F5 pull-forward call.
+    pipeline (`[CEX-23]` combo-select) + the `effect_kind`/`target_filter` source axis (`[STY-13]`) —
+    designed here, not punted past A1; (3) resolve `[STY-9..10]` (AoE targeting vocab + combined-preview
+    UX); (4) **build the full F5 `ConditionManager`** (`[STY-12]` — now on A1's critical path; unblocks
+    capture `sleep` + style status + buff/debuff staves).
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
   Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
@@ -182,8 +185,9 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CEX-21]`) · accessory slot
 maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** ·
 **learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
-**captured/`sleep` state (`[STY-6]`/`[RCR]`)** · story flags · `map_uses_remaining` · triangle profile
-selection · `ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
+**captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
+(full F5, `[STY-12]`)** · story flags · `map_uses_remaining` · triangle profile selection ·
+`ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 

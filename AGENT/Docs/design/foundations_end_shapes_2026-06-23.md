@@ -53,9 +53,13 @@ triangle, `[CEX-A]` pools, and difficulty modes are all *types* on the same mech
 
 **Reuses / feeds.** Stat-affecting conditions reuse `active_modifiers`; the duration/tick lifecycle
 already exists. **Feeds:** `[CEX-C]` triangle condition-application, the poison/heal_on_hit weapon
-tags, the condition-immunity accessory effect (`[IEQ]`/§2f), debuff staves, daunt-likes.
+tags, the condition-immunity accessory effect (`[IEQ]`/§2f), debuff staves, daunt-likes, **non-lethal
+capture `sleep` (`[STY-6]`) + style status (`[STY-4]`) + buff/debuff staves (`[STY-13..14]`)**.
 **Save (F1):** active conditions per unit persist (runtime state — reserve in §2).
 **Cost:** L — a load-bearing system several features queue behind; do it once, properly.
+**Timing (2026-06-24k):** **pulled onto A1's critical path** (`[STY-12]`) — capture, style status, and
+buff/debuff staves all need it, and `sleep` is shared by capture and the Sleep staff. Build the full
+system within/before A1 rather than deferring.
 
 ---
 
