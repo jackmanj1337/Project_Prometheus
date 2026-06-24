@@ -129,7 +129,7 @@ firming branch it came from.
   them persist + manageable in prep needs the registry serialized into the save + prep UI.
 - **Support system (branch H2).** Ranks/affinity/conversations/bonuses; firming-notes prior =
   version its data separately from map runtime state. Large new system. Needs: full design.
-- **Rescue system (branch H3).** Carry/drop, weight/CON, canto interactions; Pair-Up/Rescue
+- **Rescue system (branch H3).** Carry/drop, weight/CON, secondary-movement interactions; Pair-Up/Rescue
   mutual-exclusion prior stands. Needs: full design.
 - **Campaign-PACK format + authoring tools (branch I3).** The distributable homebrew-campaign
   bundle (maps + roster + progression graph + rules); likely home for zip-bundling/compression.

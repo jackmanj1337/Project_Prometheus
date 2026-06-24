@@ -86,7 +86,7 @@ override), `strikes_per_attack` (Brave=2), `is_natural_weapon` (Laguz, deferred)
    genuinely has no reader. The fix is the line-21 header, not line 11. The old `[EQP]`
    register mis-attributed this.)
 5. **Named items exceed the 4-field model** — Full Guard, Iron Rune (crit-immunity),
-   Knight Ring (move/canto), Wing Guard, Laguz Guard need stat/effect grants the 4 combat
+   Knight Ring (move/secondary-movement), Wing Guard, Laguz Guard need stat/effect grants the 4 combat
    fields can't express (+STR/+MOV, movement-type, immunity).
 6. **GDD_04 status mismatch** — its "Items & Economy" section lists equip items as
    "Planned (Phase 2)", but a half-built passive mechanic already exists in code.
@@ -181,14 +181,15 @@ defensive effects need new **effect_ids**, not new triggers.
 | Wing Guard | negate **flying** effectiveness | `negate_effectiveness` `{groups:["flying"]}` | ❌ (same effect_id) |
 | Laguz Guard | negate **laguz** effectiveness | `negate_effectiveness` `{groups:["beast","dragon"]}` | ❌ (same effect_id) |
 | Iron Rune | defender crit immunity | `negate_crit` effect_id, `on_combat_apply_modifiers` defender (GDD_05 + GDD_02) | ❌ new effect_id |
-| Knight Ring | move-after-action (canto) | **canto mechanic** in the action/turn flow (M11) — *not* a skill effect_id | ❌ mechanic gap |
+| Knight Ring | move-after-action (Secondary Movement) | accessory effect_id **grants a `secondary_movement` skill** — firmed 2026-06-24a (`[SMV]`, F10); was a mechanic gap | ❌ build pending (`[SMV]`) |
 | Knight Ward (+30% SPD growth) | growth-**rate** bonus | growth-rate modifier (affects level-up rolls / `growth_rates`, **not** flat `active_modifiers`) | ❌ model gap |
 | Arms Scroll | advance a proficiency rank | `advance_proficiency` consumable effect_id (shared with training halls, `[PXP-9]`) | ❌ new effect_id |
 | Boots / Dracoshield / Energy Drop / Secret Book / Goddess Icon / Seraph Robe | **permanent** stat boost | `permanent_stat` consumable effect_id (mutates base stat; current `stat_buff` is **temporary** only) | ❌ new effect_id |
 
-**Two genuine model gaps** (beyond "add an effect_id"), flagged for designers:
-1. **Canto / move-after-action** (Knight Ring) is a turn/action-flow mechanic (M11), not an
-   accessory effect — the accessory just *grants* it. Until canto lands, Knight Ring is blocked.
+**Model gaps flagged for designers** (beyond "add an effect_id"):
+1. **Secondary Movement / move-after-action** (Knight Ring) — **firmed 2026-06-24a as a granted
+   skill** (`[SMV]`, F10): the accessory effect_id grants a `secondary_movement` skill, so the
+   accessory just *grants* it (no longer an open model gap; build pending with `[SMV]`).
 2. **Growth-rate modifiers** (Knight Ward's +30% SPD growth) are distinct from flat stat
    modifiers — they alter level-up rolls (`UnitData.growth_rates`/`growth_accumulators`), so
    the modifier model (IEQ-5) needs a second "growth" channel, or these stay weapon/consumable-only.
@@ -199,7 +200,7 @@ effect_id on a wired trigger + `context.flags`, unless noted):
 - **Weapon `effect_tags` still unbuilt** (GDD_04 known gaps): `poison`, `heal_on_hit`,
   `ignores_def`/`ignores_half_def`, `always_hits` — each = a `TAG_*` const + a `CombatResolver`
   check (GDD_02/GDD_04).
-- **Movement-type grant/override** beyond canto (e.g. "treated as flying over water") — reuses
+- **Movement-type grant/override** beyond Secondary Movement (e.g. "treated as flying over water") — reuses
   the movement-override stubs (`get_move_cost_override`, `can_pass_through_enemies`).
 - **Conditional stat bonuses** ("+DEF while HP full", "+Hit vs fliers") — `on_combat_apply_modifiers`
   + `context.flags`, no new trigger.
@@ -207,7 +208,7 @@ effect_id on a wired trigger + `context.flags`, unless noted):
   (IEQ-5 effect grants + `[PXP-4]`).
 
 Owners at build: skill effect_ids → GDD_05; consumable effect_ids → GDD_04 / `ItemHandler`;
-combat hooks (effectiveness/crit) → GDD_02; canto → M11. Land per DoD with each build phase.
+combat hooks (effectiveness/crit) → GDD_02; Secondary Movement → `[SMV]` (M10). Land per DoD with each build phase.
 
 ## 3. Reconcile — don't relitigate
 

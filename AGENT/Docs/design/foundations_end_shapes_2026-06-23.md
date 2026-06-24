@@ -95,21 +95,21 @@ already cheap; *branching* needs this), recruit/capture conditions (#4), route b
 **Save (F1):** current pool values persist only under non-reset refill modes — reserve a per-unit
 pool-state slot.
 
-## F10 — Canto / move-after-action  *(end-shape: DECIDED 2026-06-24a — a parameterized skill)*
+## F10 — Secondary Movement / move-after-action  *(end-shape: DECIDED 2026-06-24a — a parameterized skill)*
 
-**End-shape we support** (firmed via `[CAN-1..11]`):
-- Canto = an ordinary **`SkillData`** (`effect_id="canto"`, passive) — **no bespoke engine**. Behavior
-  lives in `effect_params`: **`movement_mode ∈ {remaining, flat}`** (+ `flat_amount`) and an
-  author-configurable **`canto_actions`** set (which turn-ending actions open the window; default =
-  all; Wait never does).
+**End-shape we support** (firmed via `[SMV-1..11]`):
+- Secondary Movement = an ordinary **`SkillData`** (`effect_id="secondary_movement"`, passive) —
+  **no bespoke engine**. Behavior lives in `effect_params`: **`movement_mode ∈ {remaining, flat}`**
+  (+ `flat_amount`) and an author-configurable **`secondary_move_actions`** set (which turn-ending
+  actions open the window; default = all; Wait never does).
 - **Conferral = the existing skill-grant mechanisms** (`ClassData.skill_unlocks` — mounted classes
   carry it by default; `[SKL-4]` grant/revoke; `[IEQ]` accessory effect_ids = **Knight Ring**; F6
   story grants; `[PXP-4]` on-crossing). **Supersedes** GDD_10 M10's "automatic for all mounted."
-- **One new engine piece:** an action-flow hook (`UNIT_CANTO` MapCursor state) that, after a
-  canto-triggering action and before `DONE`, opens a remainder-move window (reuses the movement-range
+- **One new engine piece:** an action-flow hook (`UNIT_SECONDARY_MOVE` MapCursor state) that, after a
+  qualifying action and before `DONE`, opens a remainder-move window (reuses the movement-range
   computation + `grant_extra_turn` substrate), ending in **Wait only** (no second action).
-**Naming:** "Canto" = move-after-acting (repo-wide + FE-canonical); GDD_10 M10's earlier "Canto skill"
-(ally-refresh) is **renamed Reinvigorate**. **Save (F1):** none new — the skill grant already persists.
+**Naming:** the player-facing term is **Secondary Movement** (the unrelated Bard/Heron ally-refresh
+skill is **Reinvigorate**). **Save (F1):** none new — the skill grant already persists.
 
 ## Still open (decide next, or at scheduling)
 

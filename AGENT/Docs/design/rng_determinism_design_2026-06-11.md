@@ -218,7 +218,7 @@ mid-turn Trade).
 |---|---|
 | Every row in the §3 kind catalogue, for **every faction** — AI and hotseat actions chain identically to blue's | **Equip** (free, repeatable mid-turn — chaining it would be an infinite zero-cost reroll crank) |
 | Each level-up event (after its rolls are drawn) | Undone moves (not committed by definition) |
-| Future M10 extra activations (each committed Canto move / Dance / Galeforce action is its own event) | Menu open/close, cursor motion, danger-zone toggle, `inspect_unit`, More Info |
+| Future M10 extra activations (each committed Secondary Movement / Dance / Galeforce action is its own event) | Menu open/close, cursor motion, danger-zone toggle, `inspect_unit`, More Info |
 | | `preview_combat()` and all SkillHandler `preview` / `dry_run` paths |
 | | Phase changes, fort healing, condition ticks, `start_of_turn` skills (deterministic effects — no dice today; if a future per-turn effect needs dice, give it a chained `kind` of its own) |
 

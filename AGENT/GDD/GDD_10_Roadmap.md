@@ -172,7 +172,7 @@ Upcoming items that lack a plan/design doc and are the candidates for planning s
   then builder authority.** The designer authoring contract (4a–4e) is deferred behind a pass to *finish
   defining all player-facing features* (`player_facing_scope_map_2026-06-23.md`). **v1 scope broadly
   defined 2026-06-23h (owner):** FIRM = convoy/shop/equip-items/recruit(+capture)/support/rescue/PvP +
-  all Tier-1 staples (dancer/canto/utility-staves/village-visit/difficulty+Casual-Phoenix) + skirmish
+  all Tier-1 staples (dancer/secondary-movement/utility-staves/village-visit/difficulty+Casual-Phoenix) + skirmish
   (auto/random-leveled); DISCUSS-and-plan = arena/combat-arts/battalions-gambits/movement-assists/
   bonus-EXP/**training-halls (NEW)**; INVESTIGATE = avatar. **Cross-cutting: no wander area — the prep
   screen is the author-parameterized between-chapter hub** (option panels per node), expanding the firmed
@@ -1633,15 +1633,14 @@ Whirlwind, Holy Aura, Meteor-type siege tomes). This needs a thin AoE layer on t
 
 ## Milestone 10 — Extra-Turn & Movement-Remainder System
 
-> **Naming reconciled 2026-06-24a (`[CAN-1..11]`).** "Canto" repo-wide = **move-after-acting**
-> (the F10 movement-remainder mechanic; see *Canto — movement remainder* below). The ally-refresh
-> skill formerly called "Canto" here (Bard/Heron grant-an-ally-a-turn) is **renamed Reinvigorate**
-> to clear the collision (musical connotation dropped from the code).
+> **Naming (2026-06-24a, `[SMV-1..11]`).** Two distinct mechanics: **Secondary Movement** =
+> move-after-acting (the F10 movement-remainder mechanic; see *Secondary Movement* below) ·
+> **Reinvigorate** = the Bard/Heron ally-refresh skill (grant-an-ally-a-turn). Unrelated systems.
 
 **Goal:** Units with Reinvigorate (Bard line, Heron), Special Dance (Dancer), Galeforce,
 Encore, and Master Horseman can grant additional turns to themselves or allies within
-the rules of each skill; mounted/granted units with **Canto** may spend remaining movement
-after acting (`[CAN]`). **Test:** Use each extra-turn mechanic in a live map. Verify
+the rules of each skill; mounted/granted units with **Secondary Movement** may spend remaining
+movement after acting (`[SMV]`). **Test:** Use each extra-turn mechanic in a live map. Verify
 turn state transitions. Verify per-map/per-turn limits. Verify cursor and UI behave
 correctly during the extra turn.
 
@@ -1660,7 +1659,7 @@ func grant_extra_turn(unit: Node, options: Dictionary = {}) -> void:
     # options can include:
     #   "can_move": bool    (default true)
     #   "can_act": bool     (default true)
-    #   "is_self": bool     (true for Galeforce/Encore/Canto-remainder; false for Reinvigorate/Dance targets)
+    #   "is_self": bool     (true for Galeforce/Encore/Secondary-Movement; false for Reinvigorate/Dance targets)
     # Sets unit state to READY (or MOVED if can_move = false).
     # Emits EventBus.extra_turn_granted(unit).
     # The MapCursor must re-lock input until the extra turn is resolved.
@@ -1670,7 +1669,7 @@ func grant_extra_turn(unit: Node, options: Dictionary = {}) -> void:
 signal extra_turn_granted(unit: Node)  # add to EventBus.gd
 ```
 
-### Reinvigorate skill implementation  *(formerly "Canto"; renamed 2026-06-24a `[CAN]`)*
+### Reinvigorate skill implementation  *(renamed 2026-06-24a)*
 
 Reinvigorate is a `player_activated` class skill (ally-refresh). Triggering Reinvigorate:
 
@@ -1699,27 +1698,28 @@ func _execute_reinvigorate(reinvig_unit: Node) -> void:
     TurnManager.set_unit_state(reinvig_unit, TurnManager.UnitState.DONE)
 ```
 
-### Canto — movement remainder  *(F10; firmed `[CAN-1..11]` 2026-06-24a — SKILL-based)*
+### Secondary Movement — movement remainder  *(F10; firmed `[SMV-1..11]` 2026-06-24a — SKILL-based)*
 
 > **Superseded approach.** This subsection originally made the remainder an **automatic property of
-> all mounted classes**. Firmed 2026-06-24a (`[CAN-1..11]`): canto is instead a **parameterized
-> skill** (`effect_id="canto"`, `effect_params.movement_mode ∈ {remaining,flat}` +
-> `canto_actions`) **granted via the existing skill-grant mechanisms** — mounted classes simply
-> carry the canto skill in their `skill_unlocks` **by default**, and it can be granted to anyone
+> all mounted classes**. Firmed 2026-06-24a (`[SMV-1..11]`): it is instead a **parameterized skill**
+> (`effect_id="secondary_movement"`, `effect_params.movement_mode ∈ {remaining,flat}` +
+> `secondary_move_actions`) **granted via the existing skill-grant mechanisms** — mounted classes
+> simply carry the skill in their `skill_unlocks` **by default**, and it can be granted to anyone
 > (Knight Ring accessory effect_id, story/F6, `[PXP-4]`). The mechanics below still describe the
 > remainder *behavior*; the conferral is now skill-driven, not movement-type-hardwired.
 
-Canto: after taking a turn-ending action listed in the skill's `canto_actions`, the holder may
-spend movement before its turn ends. (Playtest 3 finding #17.) Built on `grant_extra_turn`:
+Secondary Movement: after taking a turn-ending action listed in the skill's `secondary_move_actions`,
+the holder may spend movement before its turn ends. (Playtest 3 finding #17.) Built on
+`grant_extra_turn`:
 
-- After the action resolves, if the unit has an active canto skill matching the action, call
-  `grant_extra_turn(unit, { "can_move": true, "can_act": false, "is_self": true })`
+- After the action resolves, if the unit has an active Secondary Movement skill matching the action,
+  call `grant_extra_turn(unit, { "can_move": true, "can_act": false, "is_self": true })`
   so it re-enters the active controller able to move but **not act again** (ends in Wait).
 - Budget = `movement_mode`: **remaining** (`move` minus tiles already spent) or **flat**
   (`effect_params.flat_amount`).
 - A unit that chose **Wait** gets no remainder.
-- **Knight Ring** (M11) grants a canto skill to a non-mounted holder via the `[IEQ]` accessory
-  effect_id → skill-grant path (resolves the IEQ §2f canto model gap), not a bespoke item flag.
+- **Knight Ring** (M11) grants a Secondary Movement skill to a non-mounted holder via the `[IEQ]`
+  accessory effect_id → skill-grant path (resolves the IEQ §2f model gap), not a bespoke item flag.
 
 ### Encore (Skald occult)
 
@@ -1778,12 +1778,12 @@ all allies within 3 spaces for 1 full round.
 - [ ] Implement Reinvigorate action in `ActionMenu`; select adjacent DONE allies
 - [ ] Implement Resonance modifier on Reinvigorate (up to 2 targets)
 - [ ] Implement Battle Cry modifier (stat boost on Reinvigorate targets)
-- [ ] Implement Canto (`[CAN]`): a `canto` skill (movement_mode remaining|flat + canto_actions);
-      mounted classes carry it by default; after a matching turn-ending action the holder spends
-      leftover/flat movement then Waits (playtest 3 #17)
-- [ ] Verify: a unit that selects Wait does NOT receive canto movement
-- [ ] Verify: canto remaining-mode range excludes already-spent tiles
-- [ ] Verify: Knight Ring grants a canto skill to a non-mounted holder
+- [ ] Implement Secondary Movement (`[SMV]`): a `secondary_movement` skill (movement_mode
+      remaining|flat + secondary_move_actions); mounted classes carry it by default; after a matching
+      turn-ending action the holder spends leftover/flat movement then Waits (playtest 3 #17)
+- [ ] Verify: a unit that selects Wait does NOT receive secondary movement
+- [ ] Verify: secondary-movement remaining-mode range excludes already-spent tiles
+- [ ] Verify: Knight Ring grants a Secondary Movement skill to a non-mounted holder
 - [ ] Implement Encore (self extra-turn after combat, 2× per turn max)
 - [ ] Implement Special Dance with consecutive-target tracking
 - [ ] Implement stat choice selection UI for Special Dance `[PLACEHOLDER UI]`

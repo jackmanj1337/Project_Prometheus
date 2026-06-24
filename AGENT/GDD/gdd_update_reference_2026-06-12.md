@@ -201,7 +201,7 @@ online determinism is **engine-local only** (host rolls, clients apply).
       - B13: Modifier-pipeline order doc — before C6 (M9b authoring).
       - B14: Condition/skill precedence ruling — before C5 (M8).
       - B15: M10 target activation state-machine **decision on paper**
-        (DONE becomes counter/state, Canto/Dance/Galeforce expressible) —
+        (DONE becomes counter/state, Secondary Movement/Dance/Galeforce expressible) —
         before C5, because M8 tick semantics ("start of holder's activation")
         must be written against the future shape.
       - B16: Content pipeline (CSV/spreadsheet → `.tres` generator under

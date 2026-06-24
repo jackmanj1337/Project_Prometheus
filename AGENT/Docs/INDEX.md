@@ -38,7 +38,6 @@
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *OPEN*
 - [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *OPEN*
-- [`registers/canto_open_questions_2026-06-24.md`](registers/canto_open_questions_2026-06-24.md) — Canto (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
@@ -54,6 +53,7 @@
 - [`registers/prep_hub_open_questions_2026-06-23.md`](registers/prep_hub_open_questions_2026-06-23.md) — Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/proficiency_xp_framework_open_questions_2026-06-23.md`](registers/proficiency_xp_framework_open_questions_2026-06-23.md) — Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/public_identity_rename_open_questions_2026-06-21.md`](registers/public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *OPEN*
+- [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/shop_economy_open_questions_2026-06-23.md`](registers/shop_economy_open_questions_2026-06-23.md) — Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*

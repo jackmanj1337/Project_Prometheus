@@ -14,7 +14,6 @@
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
-| `CAN-1..11` | Canto (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/canto_open_questions_2026-06-24.md` |
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
@@ -31,4 +30,5 @@
 | `PXP-1..9` | Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/proficiency_xp_framework_open_questions_2026-06-23.md` |
 | `SHP-1..5` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/shop_economy_open_questions_2026-06-23.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
+| `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
