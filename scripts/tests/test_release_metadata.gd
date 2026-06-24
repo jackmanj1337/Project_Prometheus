@@ -56,7 +56,7 @@ func _init() -> void:
 		print("FAIL Main Menu version label does not match v%s" % version)
 		failed += 1
 
-	var checklist_path := "res://AGENT/Docs/playtest_checklist_v%s.md" % version
+	var checklist_path := "res://AGENT/Docs/playtests/playtest_checklist_v%s.md" % version
 	if FileAccess.file_exists(checklist_path):
 		print("OK  current versioned playtest checklist exists")
 		passed += 1
@@ -65,7 +65,7 @@ func _init() -> void:
 		failed += 1
 
 	var setup_text := FileAccess.get_file_as_string(
-		"res://AGENT/Docs/environment_setup.md")
+		"res://AGENT/Docs/guides/environment_setup.md")
 	if "Currently at `v%s`" % version in setup_text \
 			and "Project_Prometheus_v%s_debug.exe" % version in setup_text:
 		print("OK  environment setup names the current build")
