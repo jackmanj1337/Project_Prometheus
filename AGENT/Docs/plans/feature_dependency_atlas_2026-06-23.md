@@ -35,10 +35,11 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F10 | **Secondary Movement / move-after-action** | ❌ not built | turn/action flow | Knight Ring, mounted QoL, rescue interaction | ✅ **decided 2026-06-24a: a parameterized SKILL (remaining\|flat) granted via the skill-grant mechanisms** (`[SMV-1..11]`; supersedes GDD_10 M10's automatic-mounted approach) |
 | F11 | **Skill trigger/effect system** (GDD_05) | 🔧 built, needs effect_ids | combat loop | accessory effects, on-crossing grants, combat arts, gambits, many items | add effect_ids per feature (no new triggers — discipline) |
 | F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
+| F13 | **Text indirection / localization-ready string layer** (`[MCH-6]`) | ❌ not built | F1 | dialogue, avatar/main-character names, relationship & recruit conversations, all UI text | ✅ **decided 2026-06-24g: ID-keyed templates + `unit_id` name lookup, no concatenation; Godot `tr()` when localized; convention now, multi-locale build deferred** |
 
-**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**
-and **F10 decided 2026-06-24a** → **all of F1–F12 now have decided end-shapes; only F1's
-schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
+**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**,
+**F10 decided 2026-06-24a**, **F13 decided 2026-06-24g** → **all of F1–F13 now have decided
+end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 
 ---
 
@@ -91,7 +92,7 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 |---|---|---|---|
 | Recruit / Capture (#4/F) | **L** | F6,F8 | GAP |
 | Support system (#5/H2) | **XL** | F1 | GAP |
-| Avatar / My Unit (#20) | **L** | F1 (roster/save/story cascade) | DISCUSS |
+| Avatar / My Unit (#20) | **L** | F1 (roster/save/story cascade), F13 | firmed 2026-06-24g `[MCH]` |
 | Difficulty modes + Casual/Phoenix (#12) | **M** | F4 | Tier1 |
 | PvP / scenario (#7) | **M** | reuses standings | Tier1 |
 
@@ -179,6 +180,7 @@ per-map items `[CEX-13]` (2026-06-24c) · story items `[CEX-14..16,18,19]` (2026
 **Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
 generic author-profile mechanism · **F5** = full author-extensible status system · **F6** = generic
 campaign-flag/variable store · **F7** = resource pools (`[CEX-1..4]`). **Decided 2026-06-24a:**
-**F10** = Secondary Movement as a parameterized skill (`[SMV-1..11]`). With F2/F3/F8/F9 already settled,
-**every foundation F1–F12 now has a decided end-shape** — only F1's schema-lock pass remains before
-builds. Each decided foundation graduates into its own register + build when scheduled.
+**F10** = Secondary Movement as a parameterized skill (`[SMV-1..11]`). **Decided 2026-06-24g:**
+**F13** = text indirection / localization-ready string layer (`[MCH-6]`). With F2/F3/F8/F9 already
+settled, **every foundation F1–F13 now has a decided end-shape** — only F1's schema-lock pass remains
+before builds. Each decided foundation graduates into its own register + build when scheduled.

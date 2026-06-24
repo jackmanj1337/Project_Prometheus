@@ -23,6 +23,7 @@
 | `ICD-1..7` | Input / Controls — Open Decisions Register — 2026-06-21 | RESOLVED | 2026-06-21 (ICD-7 non-blocking) | `registers/input_controls_open_decisions_2026-06-21.md` |
 | `ICO-1..6` | Campaign Content Overlay (branch I3) — Open Questions Register | RESOLVED | 2026-06-23e | `registers/campaign_content_overlay_open_questions_2026-06-23.md` |
 | `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/items_equipment_model_open_questions_2026-06-23.md` |
+| `MCH-1..8` | Main Character / Avatar (#20) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24g | `registers/main_character_avatar_open_questions_2026-06-24.md` |
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
 | `MRD-1..6` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-22g | `registers/map_readability_open_questions_2026-06-21.md` |
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |

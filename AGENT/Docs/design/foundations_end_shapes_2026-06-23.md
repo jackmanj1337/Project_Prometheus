@@ -111,14 +111,28 @@ pool-state slot.
 **Naming:** the player-facing term is **Secondary Movement** (the unrelated Bard/Heron ally-refresh
 skill is **Reinvigorate**). **Save (F1):** none new — the skill grant already persists.
 
+## F13 — Text indirection / localization-ready string layer  *(end-shape: DECIDED 2026-06-24g — convention now, build deferred)*
+Spun out of the Main Character / Avatar firming (`[MCH-6]`). **End-shape:** all author-facing
+story/UI text is **ID-keyed templates with named placeholders**; **unit references use `unit_id`**,
+resolved to a display name **at render time** via a lookup; **no sentence concatenation** (word order
+is language-specific). Resolution uses **Godot's native translation** (`tr()` / `TranslationServer`,
+CSV/PO tables) when localized; **per-campaign-pack string tables** (fits the self-contained content
+model). **Adopt the convention NOW, defer the multi-locale build** — retrofitting hardcoded/
+concatenated text later is the expensive part; authoring it right from the first line is near-free.
+**Enforcement (DoD#2):** the `check_docs.py` linter for hardcoded display names / concatenation lands
+**when the dialogue/story-text data format is built** — there is no target data to lint yet, so this
+is an **explicit deferral, not a skip**. **Save (F1):** none new (display names already keyed by
+`unit_id`). **Forward:** pluralization (`tr_n`), gender/pronoun variants, text expansion (German
+~+30%), CJK fonts, RTL, and the avatar **free-text-name** grammar edge (declension/gender languages).
+
 ## Still open (decide next, or at scheduling)
 
-*(none — all foundations F1–F12 now have decided end-shapes; only F1's schema-lock pass remains.)*
+*(none — all foundations F1–F13 now have decided end-shapes; only F1's schema-lock pass remains.)*
 
 ---
 
 ## Next step
 F4/F5/F6/F7/F10 end-shapes are all decided — each becomes its own register + build when scheduled.
-**All foundations F1–F12 are now decided**; only F1's schema-lock pass remains before builds. All of
+**All foundations F1–F13 are now decided**; only F1's schema-lock pass remains before builds. All of
 this feeds the **scheduling/priority session**, with the atlas
 (`plans/feature_dependency_atlas_2026-06-23.md`) as the dependency-ordered map.

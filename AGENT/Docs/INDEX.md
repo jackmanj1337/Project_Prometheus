@@ -46,6 +46,7 @@
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
+- [`registers/main_character_avatar_open_questions_2026-06-24.md`](registers/main_character_avatar_open_questions_2026-06-24.md) — Main Character / Avatar (#20) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
