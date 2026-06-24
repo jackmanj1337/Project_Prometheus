@@ -376,8 +376,10 @@ A unit may Move then take **one action**, or act in place. Shipped action flow:
 
 ### Known gaps
 - Trade, Shove, Rescue/carry, and class-specific field actions are future work.
-- **Canto / post-action remainder movement** (mounted/flying move after a turn-ending
-  action, then Wait) is a design target, **not** implemented.
+- **Canto / post-action remainder movement** (move after a turn-ending action, then Wait) —
+  **design firmed 2026-06-24a as a parameterized skill** (`[CAN-1..11]`; `effect_id="canto"`,
+  `movement_mode remaining|flat`, author `canto_actions`, granted via the skill-grant mechanisms);
+  **not** implemented. Build adds a `UNIT_CANTO` action-flow state here (`scripts/core/MapCursor.gd`).
 
 ### Anchors
 - Code: `scripts/core/TurnManager.gd`, `scripts/core/MapCursorSelection.gd`

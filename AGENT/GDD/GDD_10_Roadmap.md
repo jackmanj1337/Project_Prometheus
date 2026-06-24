@@ -1631,11 +1631,17 @@ Whirlwind, Holy Aura, Meteor-type siege tomes). This needs a thin AoE layer on t
 
 ---
 
-## Milestone 10 — Extra-Turn System (Canto and Dancer)
+## Milestone 10 — Extra-Turn & Movement-Remainder System
 
-**Goal:** Units with Canto (Bard line, Heron), Special Dance (Dancer), Galeforce,
+> **Naming reconciled 2026-06-24a (`[CAN-1..11]`).** "Canto" repo-wide = **move-after-acting**
+> (the F10 movement-remainder mechanic; see *Canto — movement remainder* below). The ally-refresh
+> skill formerly called "Canto" here (Bard/Heron grant-an-ally-a-turn) is **renamed Reinvigorate**
+> to clear the collision (musical connotation dropped from the code).
+
+**Goal:** Units with Reinvigorate (Bard line, Heron), Special Dance (Dancer), Galeforce,
 Encore, and Master Horseman can grant additional turns to themselves or allies within
-the rules of each skill. **Test:** Use each extra-turn mechanic in a live map. Verify
+the rules of each skill; mounted/granted units with **Canto** may spend remaining movement
+after acting (`[CAN]`). **Test:** Use each extra-turn mechanic in a live map. Verify
 turn state transitions. Verify per-map/per-turn limits. Verify cursor and UI behave
 correctly during the extra turn.
 
@@ -1654,7 +1660,7 @@ func grant_extra_turn(unit: Node, options: Dictionary = {}) -> void:
     # options can include:
     #   "can_move": bool    (default true)
     #   "can_act": bool     (default true)
-    #   "is_self": bool     (true for Galeforce/Encore; false for Canto/Dance targets)
+    #   "is_self": bool     (true for Galeforce/Encore/Canto-remainder; false for Reinvigorate/Dance targets)
     # Sets unit state to READY (or MOVED if can_move = false).
     # Emits EventBus.extra_turn_granted(unit).
     # The MapCursor must re-lock input until the extra turn is resolved.
@@ -1664,49 +1670,56 @@ func grant_extra_turn(unit: Node, options: Dictionary = {}) -> void:
 signal extra_turn_granted(unit: Node)  # add to EventBus.gd
 ```
 
-### Canto skill implementation
+### Reinvigorate skill implementation  *(formerly "Canto"; renamed 2026-06-24a `[CAN]`)*
 
-Canto is a `player_activated` class skill. Triggering Canto:
+Reinvigorate is a `player_activated` class skill (ally-refresh). Triggering Reinvigorate:
 
-- The Canto-holder selects one adjacent ally who is `DONE` this turn.
+- The Reinvigorate-holder selects one adjacent ally who is `DONE` this turn.
 - `TurnManager.grant_extra_turn(target)` is called.
 - Promotion modifiers:
-  - **Resonance** (Troubadour): Canto can target up to 2 adjacent allies instead of 1.
-  - **Battle Cry** (Skald): Canto target(s) gain +3 STR, MAG, SPD until end of their
+  - **Resonance** (Troubadour): Reinvigorate can target up to 2 adjacent allies instead of 1.
+  - **Battle Cry** (Skald): Reinvigorate target(s) gain +3 STR, MAG, SPD until end of their
     extra turn. Apply via `target.add_modifier()` with `duration_type = "combat"`.
-  - **Reverberate** (Heron): In animal form only — Canto targets ALL adjacent allies.
+  - **Reverberate** (Heron): In animal form only — Reinvigorate targets ALL adjacent allies.
     (Wire to M12 Laguz shift state check.)
 
 ```gdscript
-# In ActionMenu — add "Canto" option for units with the skill
-# Canto action handler:
-func _execute_canto(canto_unit: Node) -> void:
-    var max_targets: int = 2 if canto_unit.has_skill("resonance") else 1
+# In ActionMenu — add "Reinvigorate" option for units with the skill
+# Reinvigorate action handler:
+func _execute_reinvigorate(reinvig_unit: Node) -> void:
+    var max_targets: int = 2 if reinvig_unit.has_skill("resonance") else 1
     # Show target selection UI filtered to adjacent DONE allies
     # On confirm per target:
-    if canto_unit.has_skill("battle_cry"):
+    if reinvig_unit.has_skill("battle_cry"):
         target.add_modifier("strength", 3, "battle_cry", 1, "combat")
         target.add_modifier("magic", 3, "battle_cry_mag", 1, "combat")
         target.add_modifier("speed", 3, "battle_cry_spd", 1, "combat")
     TurnManager.grant_extra_turn(target)
-    # After max_targets resolved, canto_unit is set to DONE
-    TurnManager.set_unit_state(canto_unit, TurnManager.UnitState.DONE)
+    # After max_targets resolved, reinvig_unit is set to DONE
+    TurnManager.set_unit_state(reinvig_unit, TurnManager.UnitState.DONE)
 ```
 
-### Mounted-unit movement remainder
+### Canto — movement remainder  *(F10; firmed `[CAN-1..11]` 2026-06-24a — SKILL-based)*
 
-Beyond the Canto *skill*, all **mounted** classes (cavalry, fliers, etc.) should
-behave like classic Fire Emblem Canto: after taking any non-Wait action that does
-not itself end the turn, a mounted unit may spend its **remaining movement**
-before its turn ends. (Playtest 3 finding #17.) Built on `grant_extra_turn`:
+> **Superseded approach.** This subsection originally made the remainder an **automatic property of
+> all mounted classes**. Firmed 2026-06-24a (`[CAN-1..11]`): canto is instead a **parameterized
+> skill** (`effect_id="canto"`, `effect_params.movement_mode ∈ {remaining,flat}` +
+> `canto_actions`) **granted via the existing skill-grant mechanisms** — mounted classes simply
+> carry the canto skill in their `skill_unlocks` **by default**, and it can be granted to anyone
+> (Knight Ring accessory effect_id, story/F6, `[PXP-4]`). The mechanics below still describe the
+> remainder *behavior*; the conferral is now skill-driven, not movement-type-hardwired.
 
-- After a mounted unit's action resolves, if the unit has unused movement, call
+Canto: after taking a turn-ending action listed in the skill's `canto_actions`, the holder may
+spend movement before its turn ends. (Playtest 3 finding #17.) Built on `grant_extra_turn`:
+
+- After the action resolves, if the unit has an active canto skill matching the action, call
   `grant_extra_turn(unit, { "can_move": true, "can_act": false, "is_self": true })`
-  so it re-enters the active controller able to move but not act again.
-- The leftover range is the unit's `move` stat minus tiles already spent.
-- A unit that chose **Wait** (or any other turn-ending action) gets no remainder.
-- Knight Ring (M11 — "unit treated as Mounted for movement remainder") grants
-  this to a non-mounted holder via the same code path, gated on the item flag.
+  so it re-enters the active controller able to move but **not act again** (ends in Wait).
+- Budget = `movement_mode`: **remaining** (`move` minus tiles already spent) or **flat**
+  (`effect_params.flat_amount`).
+- A unit that chose **Wait** gets no remainder.
+- **Knight Ring** (M11) grants a canto skill to a non-mounted holder via the `[IEQ]` accessory
+  effect_id → skill-grant path (resolves the IEQ §2f canto model gap), not a bespoke item flag.
 
 ### Encore (Skald occult)
 
@@ -1762,13 +1775,15 @@ all allies within 3 spaces for 1 full round.
 
 - [ ] Add `grant_extra_turn()` to `TurnManager`
 - [ ] Add `extra_turn_granted` signal to `EventBus.gd`
-- [ ] Implement Canto action in `ActionMenu`; select adjacent DONE allies
-- [ ] Implement Resonance modifier on Canto (up to 2 targets)
-- [ ] Implement Battle Cry modifier (stat boost on Canto targets)
-- [ ] Implement mounted-unit movement remainder: after a non-Wait action a mounted
-      unit may spend leftover movement (playtest 3 #17)
-- [ ] Verify: a mounted unit that selects Wait does NOT receive leftover movement
-- [ ] Verify: a mounted unit's leftover-movement range excludes already-spent tiles
+- [ ] Implement Reinvigorate action in `ActionMenu`; select adjacent DONE allies
+- [ ] Implement Resonance modifier on Reinvigorate (up to 2 targets)
+- [ ] Implement Battle Cry modifier (stat boost on Reinvigorate targets)
+- [ ] Implement Canto (`[CAN]`): a `canto` skill (movement_mode remaining|flat + canto_actions);
+      mounted classes carry it by default; after a matching turn-ending action the holder spends
+      leftover/flat movement then Waits (playtest 3 #17)
+- [ ] Verify: a unit that selects Wait does NOT receive canto movement
+- [ ] Verify: canto remaining-mode range excludes already-spent tiles
+- [ ] Verify: Knight Ring grants a canto skill to a non-mounted holder
 - [ ] Implement Encore (self extra-turn after combat, 2× per turn max)
 - [ ] Implement Special Dance with consecutive-target tracking
 - [ ] Implement stat choice selection UI for Special Dance `[PLACEHOLDER UI]`
@@ -2050,7 +2065,7 @@ Add a flag check in `GameMap._ready()` after spawning units.
 - [ ] Implement `"nimble"` (Cat): `get_move_cost_override` returns 1 for all non-wall terrain
 - [ ] Implement `"tailwind"` (Hawk): aura skill — already wired in M9; activate now
 - [ ] Implement `"grace"` (Heron): `start_of_turn`; adjacent allies heal MAG HP
-- [ ] Implement `"reverberate"` (Heron): when Heron is in animal form and Canto is used,
+- [ ] Implement `"reverberate"` (Heron): when Heron is in animal form and Reinvigorate is used,
       target ALL adjacent allies rather than 1
 - [ ] Implement `"pounce"` (Cat occult): `player_activated`; after movement in a straight
       line, swap positions with enemy at the end of that line; make 3 consecutive attacks
@@ -2058,7 +2073,7 @@ Add a flag check in `GameMap._ready()` after spawning units.
       counterattack suppressed on attacks 2 and 3
 - [ ] Implement `"hit_and_run"` (Hawk occult): already specced in M9; ensure the
       "move after combat" hook respects Hawk's flying movement rules
-- [ ] Implement `"ancient_verse"` (Heron occult): `player_activated`; replaces Canto;
+- [ ] Implement `"ancient_verse"` (Heron occult): `player_activated`; replaces Reinvigorate;
       presents 3 choices — heal MAG HP, grant +DEF/RES equal to ¼ LUK, or restore
       2 weapon uses to equipped weapon
 - [ ] Implement `"vortex"` (Raven promotion): `player_activated`; attack as though using
@@ -2116,7 +2131,7 @@ signal unit_shifted(unit: Node, is_animal_form: bool)
 - [ ] Verify: shift applies correct +50% (or +25% with Feral Instincts) stat modifiers
 - [ ] Verify: natural weapons match the correct rank based on wexp
 - [ ] Verify: unshifted Laguz cannot initiate combat
-- [ ] Verify: Reverberate causes Canto to target all adjacent allies when Heron is shifted
+- [ ] Verify: Reverberate causes Reinvigorate to target all adjacent allies when Heron is shifted
 - [ ] Verify: Primal Tenacity preserves gauge value correctly between two maps
 - [ ] Verify: Wildheart stacks correctly with multiple copies of the skill
 - [ ] Verify: a Taguel and Manakete function identically to standard Laguz in terms of

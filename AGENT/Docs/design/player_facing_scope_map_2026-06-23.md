@@ -113,7 +113,11 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
 7. **PvP / scenario mode** — standalone non-campaign match (reuses the preserved standings renderer).
 8. **Dancer / refresh** (Tier 1) — a unit action that grants an ally another action; M10 Extra-Turn is the
    activation substrate, the Dance *action/unit* is the new design.
-9. **Canto** (Tier 1) — move-again-after-action (mounted); interacts with Rescue (6).
+9. **Canto** (Tier 1) — move-again-after-action; interacts with Rescue (6). **FIRMED 2026-06-24a
+   `[CAN-1..11]` (= foundation F10):** a parameterized **skill** (`effect_id="canto"`,
+   `movement_mode remaining|flat`, author `canto_actions`) granted via the skill-grant mechanisms
+   (mounted classes carry it by default; Knight Ring grants it). Renamed the old ally-refresh
+   "Canto" → **Reinvigorate**. Build pending.
 10. **Utility staves** (Tier 1) — Warp / Rescue / Hammerne (+ the M8 Restore/offensive staves); teleport/repair utility.
 11. **Village / house visit** (Tier 1) — visit-tile → item/gold/recruit, **enemy can raze it** (time
     pressure); composes over Map Events `[MET]` + doors `[DCH]` but is its own visit action + razable pattern.

@@ -95,15 +95,30 @@ already cheap; *branching* needs this), recruit/capture conditions (#4), route b
 **Save (F1):** current pool values persist only under non-reset refill modes — reserve a per-unit
 pool-state slot.
 
+## F10 — Canto / move-after-action  *(end-shape: DECIDED 2026-06-24a — a parameterized skill)*
+
+**End-shape we support** (firmed via `[CAN-1..11]`):
+- Canto = an ordinary **`SkillData`** (`effect_id="canto"`, passive) — **no bespoke engine**. Behavior
+  lives in `effect_params`: **`movement_mode ∈ {remaining, flat}`** (+ `flat_amount`) and an
+  author-configurable **`canto_actions`** set (which turn-ending actions open the window; default =
+  all; Wait never does).
+- **Conferral = the existing skill-grant mechanisms** (`ClassData.skill_unlocks` — mounted classes
+  carry it by default; `[SKL-4]` grant/revoke; `[IEQ]` accessory effect_ids = **Knight Ring**; F6
+  story grants; `[PXP-4]` on-crossing). **Supersedes** GDD_10 M10's "automatic for all mounted."
+- **One new engine piece:** an action-flow hook (`UNIT_CANTO` MapCursor state) that, after a
+  canto-triggering action and before `DONE`, opens a remainder-move window (reuses the movement-range
+  computation + `grant_extra_turn` substrate), ending in **Wait only** (no second action).
+**Naming:** "Canto" = move-after-acting (repo-wide + FE-canonical); GDD_10 M10's earlier "Canto skill"
+(ally-refresh) is **renamed Reinvigorate**. **Save (F1):** none new — the skill grant already persists.
+
 ## Still open (decide next, or at scheduling)
 
-### F10 — Canto / move-after-action  *(end-shape: TBD)*
-Scope: which classes/effects grant canto, and the action-flow shape (move → act → move-remainder).
-Foundation for Knight Ring (`[IEQ]`), mounted QoL, and the rescue-canto interaction (#6).
+*(none — all foundations F1–F12 now have decided end-shapes; only F1's schema-lock pass remains.)*
 
 ---
 
 ## Next step
-F4/F5/F6 end-shapes are decided — each becomes its own register + build when scheduled. F7/F10
-remain. All of this feeds the **scheduling/priority session**, with the atlas
+F4/F5/F6/F7/F10 end-shapes are all decided — each becomes its own register + build when scheduled.
+**All foundations F1–F12 are now decided**; only F1's schema-lock pass remains before builds. All of
+this feeds the **scheduling/priority session**, with the atlas
 (`plans/feature_dependency_atlas_2026-06-23.md`) as the dependency-ordered map.

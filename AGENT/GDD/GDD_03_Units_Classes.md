@@ -53,7 +53,7 @@ Tags on a unit (from class, or added by skills/items) affecting movement, combat
 | Quality | Effect |
 |---|---|
 | `flying` | **Movement type** + vulnerability tag; fliers pay 1 on every non-wall tile |
-| `mounted` | **Movement type**: higher mobility/CON; anti-cavalry vulnerability; Canto deferred |
+| `mounted` | **Movement type**: higher mobility/CON; anti-cavalry vulnerability; Canto = default-granted skill (`[CAN]`, not built) |
 | `armoured` | **Movement type**: high DEF; affected by anti-armor weapons |
 | `light_footed` | **Movement type**: mages/thieves; pays 1 in desert (no mount/armour penalty) |
 | `infantry` | **Movement type** (explicit default): plain foot movement, no terrain penalty/bonus |

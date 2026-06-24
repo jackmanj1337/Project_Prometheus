@@ -52,7 +52,7 @@ Last verified: 2026-06-13
 | Category | Description | Example |
 |---|---|---|
 | **Generic** | Any unit can hold these; not class-specific | Adept, Renewal, Nihil |
-| **Class (Starting)** | Granted at class creation | Pick (Thief), Canto (Bard) |
+| **Class (Starting)** | Granted at class creation | Pick (Thief), Reinvigorate (Bard) |
 | **Promotion** | Granted automatically at promotion | Hawkeye (Sniper) |
 | **Occult** | Powerful; granted via Occult Scroll after promotion | Deadeye (Sniper) |
 | **Laguz** | Laguz-only; granted at would-be promotion level | Nimble (Cat) |

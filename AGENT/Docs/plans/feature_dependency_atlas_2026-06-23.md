@@ -32,12 +32,13 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2, F4 | spells-from-pool, combat arts, skill costs | ✅ **decided 2026-06-23l: standalone foundation** (`[CEX-1..4]`; CampaignRules pool types, author refill modes, restore items/Regen skills, gates weapon/spell/skill use) |
 | F8 | **Map events / triggers** (`[MET]`) | ✅ firmed | grid/map | village, recruit, story branching, objectives | decided |
 | F9 | **Hub / PHB option-panel framework** (`[PHB]`) | ✅ firmed | F1 | shop, arena, training halls, skirmish, recruit-prep | decided |
-| F10 | **Canto / move-after-action** | ❌ not built | turn/action flow | Knight Ring, mounted QoL, rescue-canto interaction | scope (which classes/effects grant it) |
+| F10 | **Canto / move-after-action** | ❌ not built | turn/action flow | Knight Ring, mounted QoL, rescue-canto interaction | ✅ **decided 2026-06-24a: a parameterized SKILL (remaining\|flat) granted via the skill-grant mechanisms** (`[CAN-1..11]`; supersedes GDD_10 M10's automatic-mounted approach) |
 | F11 | **Skill trigger/effect system** (GDD_05) | 🔧 built, needs effect_ids | combat loop | accessory effects, on-crossing grants, combat arts, gambits, many items | add effect_ids per feature (no new triggers — discipline) |
 | F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
 
-**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**;
-the **only undecided foundation left is F10** (canto). F2/F3/F8/F9 decided and await build.
+**Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**
+and **F10 decided 2026-06-24a** → **all of F1–F12 now have decided end-shapes; only F1's
+schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 
 ---
 
@@ -123,8 +124,9 @@ The order in which we **define each un-firmed player-facing target** (the ⚠/�
 (deps now decided), then ✗ in dependency order. Each pass = a firming walk like IEQ/PXP.
 
 **Wave 0 — open foundations (gate the most, do first):**
-- **F1** save-schema lock (reserve fields) · **F7** resource pools end-shape (`[CEX-1..4]`; gates
-  spells + combat arts) · **F10** canto scope (gates rescue + Knight Ring).
+- **F1** save-schema lock (reserve fields) — **the last remaining Wave-0 item.** (F7 resource pools
+  firmed 2026-06-23l `[CEX-1..4]`; **F10 canto firmed 2026-06-24a `[CAN-1..11]`** = a parameterized
+  skill granted via the skill-grant mechanisms, gating rescue + Knight Ring.)
 
 **Wave 1 — ⚠ ready now (deps decided):**
 - Flexible weapon triangle (`[CEX-9..12]`; deps F4✓/F5✓) · Per-map-use items (`[CEX-13]`; dep IEQ✓) ·
@@ -140,6 +142,7 @@ The order in which we **define each un-firmed player-facing target** (the ⚠/�
 ## 4. Foundation end-shapes
 **Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
 generic author-profile mechanism · **F5** = full author-extensible status system · **F6** = generic
-campaign-flag/variable store. With F2/F3/F8/F9 already settled, the **remaining open foundations are
-F7** (resource pools — decide with the learned-spell question, `[CEX-A]`) **and F10** (canto scope).
-Each decided foundation graduates into its own register + build when scheduled.
+campaign-flag/variable store · **F7** = resource pools (`[CEX-1..4]`). **Decided 2026-06-24a:**
+**F10** = canto as a parameterized skill (`[CAN-1..11]`). With F2/F3/F8/F9 already settled,
+**every foundation F1–F12 now has a decided end-shape** — only F1's schema-lock pass remains before
+builds. Each decided foundation graduates into its own register + build when scheduled.
