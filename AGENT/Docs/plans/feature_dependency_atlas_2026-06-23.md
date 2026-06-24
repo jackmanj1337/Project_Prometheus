@@ -151,16 +151,18 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   `[STY]` source + style model (firmed 2026-06-24j/k)** — arts, gambits, non-lethal capture, **and
   utility/buff/debuff staves** are all *styles or `effect_kind`s* over a `[CEX-20]` source; building it
   closes the deferred `[CEX-23]`.
-  - **A1 exit checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
+  **A1 DESIGN COMPLETE 2026-06-24n** (`[STY-1..17]` all resolved bar `[STY-11]` battalion-entity → A2;
+  player flow + authoring surface in `design/source_style_player_and_authoring_2026-06-24.md`).
+  - **A1 BUILD checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
     fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
     an intended art/style; maybe weigh range/Mt, not just slot order); (2) build the `[STY]` source+style
-    pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`)
-    — designed here, not punted past A1; (3) build AoE/multi-target (`[STY-9]` firmed: shapes incl.
-    `rectangle`, friendly-fire = broad filter) + resolve `[STY-10]` (combined-preview UX, still open);
-    (4) **build the full F5 `ConditionManager`** (`[STY-12]` — now on A1's critical path; unblocks
-    capture `sleep` + style status + buff/debuff staves); (5) **extend the M14 faction model to the
-    directed 3-state relationship matrix** (`[STY-17]` — `are_hostile` → `relationship`; consumed by
-    targeting + AI; reserve runtime relationship-overrides in F1).
+    pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`);
+    (3) build AoE/multi-target (`[STY-9]`: shapes incl. `rectangle`; friendly-fire = broad filter) + the
+    generalized "effect forecast" preview (`[STY-10]`: one panel, footprint + focused-target cycle);
+    (4) **build the full F5 `ConditionManager`** (`[STY-12]` — on A1's critical path; unblocks capture
+    `sleep` + style status + buff/debuff staves); (5) **extend the M14 faction model to the directed
+    3-state relationship matrix** (`[STY-17]` — `are_hostile` → `relationship`; consumed by targeting +
+    AI; reserve runtime relationship-overrides in F1).
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
   Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /

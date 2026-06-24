@@ -3,7 +3,7 @@ Type: register
 Status: OPEN
 Last verified: 2026-06-24
 Register: STY-1..17
-Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m
+Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n
 ---
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
@@ -12,7 +12,9 @@ Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m
 **Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
 in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9 + STY-17
 RESOLVED 2026-06-24m** (AoE/multi-target vocab + friendly fire + directed faction relationship matrix);
-**STY-10..11 still OPEN** (combined-preview UX / battalion entity → A2).
+**STY-10 RESOLVED 2026-06-24n** (combined-preview UX — **A1 design complete**); **only STY-11 OPEN**
+(full battalion entity → A2). Player flow + authoring surface walked in
+`design/source_style_player_and_authoring_2026-06-24.md`.
 Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)**, the
 **gambit attack-side of Battalions (#16)**, and **utility + buff/debuff staves (#10)**. **Pattern:**
 mirrors `[CEX]`/`[RCR]`. Legend: **[OPEN]** / **[RESOLVED]**.
@@ -223,11 +225,23 @@ author opts in per style/effect by widening the filter to `any` (or adding `ally
 
 **Save (F1):** AoE adds **no** new save state (shapes are source/style data-def; selection is transient).
 
-### [STY-10] Combined-preview UX  **[OPEN]**
-The `[CEX-23]` UI detail: how the forecast renders the *combined* source+style effect (deltas, range
-highlight, AoE footprint, total combo cost) before commit — and **all `[STY-16]` effects in the set**
-(e.g. damage **and** "inflicts poison" **and** self-heal), each with its gate. Design at the A1 build.
-**Resolution:** _[OPEN]_
+### [STY-10] Combined-preview UX  **[RESOLVED 2026-06-24n]**
+The `[CEX-23]` UI detail: how the forecast renders the *combined* source+style effect before commit,
+across all action types (1v1 strike, utility/no-counter, AoE/multi-target) and **all `[STY-16]`
+effects** (damage **and** "inflicts poison" **and** self-heal), each with its gate. **Resolution
+(designer forks):**
+- **One generalized "effect forecast" panel** — evolve the existing `AttackPreview` (today: two
+  Attacker/Defender boxes of `Dmg×hits / Hit% / Crit% / Effective`) into a single component:
+  **1v1 `strike` = today's two-box view (back-compat); utility/no-counter = a single-sided readout;
+  AoE = footprint + focused-target (below).** One code path, consistent look, More-Info links retained.
+- **AoE/multi-target = footprint highlight + focused-target forecast (cycle).** Highlight the AoE
+  tiles on the map; show one detailed forecast for the **currently-focused** affected unit; cycle focus
+  through affected units. (Extends today's single forecast rather than replacing it.)
+- The panel lists **every effect** of the combo with its gate (e.g. "+ Poison (3t) **on hit**",
+  self-heal) and the **total combo cost** (the multi-resource `[STY-5]` set). Non-strike effects show
+  their own readout (heal amount, "→ Sleep (3)", "Warp →", "Repair +N uses").
+**Player flow + authoring surface** for the whole model are walked in the companion design doc
+`design/source_style_player_and_authoring_2026-06-24.md` (this session). **Save (F1):** none (transient).
 
 ### [STY-11] Full battalion entity spec  **[OPEN — A2]**
 Attached-unit data model, assignment/prep UI, endurance & how it depletes, passive bonus aggregation,
