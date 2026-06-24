@@ -55,7 +55,8 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 | Per-map-use items (CEX-D) | **S** | F2 | **firmed 2026-06-24c** (`[CEX-13]`; pure recharge, `uses_per_map` + per-instance map counter) |
 | Combat arts / weapon arts (#15) | **M** | F2,F7,F11 | DISCUSS |
 | Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | DISCUSS |
-| Learned spells (CEX-B) | **XL** | F1,F2,F3,F7 | exploration |
+| Weapon-source / equip model (CEX-B-foundation) | **L** | F1,F2 | **firmed 2026-06-24i** (`[CEX-20..23]`; two-source union, `equipped_source` ref, auto-fallback by priority, combo-select deferred) |
+| Learned spells (CEX-B-application) | **M** | F1,F2,F7 | **firmed 2026-06-24i** (`[CEX-5..8]`; rides the weapon-source model — fold into Equip Weapon, per-source charge backend, ever-growing list v1) |
 | Resource pools (CEX-A) | **M** | F1,F2 → *is* F7 | exploration |
 | Story-item tracking (CEX-E) | **S** track / **XL** branch | F2 / F6 | **firmed 2026-06-24d** (`[CEX-14..16,18,19]`; tracking+locks+convoy now, mutation→MET, branching-state→F6) |
 
@@ -141,8 +142,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 
 - **A1 — Combat capabilities & attack/target flow** *(shared: weapon-source enum `[CEX-20]`, action
   menu `[CEX-21]`, source+maneuver selection+targeting `[CEX-23]`, F7 pools, F11 triggers).*
-  Learned spells / weapon sources (`[CEX-5..8, 20..23]`, in flight) · Combat arts (#15) · Utility
-  staves (#10) · **gambit attack/area side** of Battalions (#16 ⇄ A2). *Why sync:* all are
+  Learned spells / weapon sources (`[CEX-5..8, 20..23]` **firmed 2026-06-24i** — foundation =
+  weapon-source/equip model, spells ride on it; combo-select `[CEX-23]` deferred to #15/#16) · Combat
+  arts (#15) · Utility staves (#10) · **gambit attack/area side** of Battalions (#16 ⇄ A2). *Why sync:*
+  all are
   "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
   share **one** select→preview→target pattern or the UI forks per feature.
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
@@ -170,14 +173,17 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 
 **Phase B — F1 save-schema lock** (the last foundation pass; can only close once Phase A is done so it
 reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CEX-21]`) · accessory slot
-maps · pools · known/**granted** list · story flags · `map_uses_remaining` · triangle profile
-selection · `ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
+maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** · story
+flags · `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **plus every
+field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 
 **Already firmed (the prior Wave-1, done):** flexible triangle `[CEX-9..12,17]` (2026-06-24b) ·
 per-map items `[CEX-13]` (2026-06-24c) · story items `[CEX-14..16,18,19]` (2026-06-24d) · F7 pools
-`[CEX-1..4]` (2026-06-23l) · F10 Secondary Movement `[SMV-1..11]` (2026-06-24a).
+`[CEX-1..4]` (2026-06-23l) · F10 Secondary Movement `[SMV-1..11]` (2026-06-24a) · **weapon-source/equip
+model + learned spells `[CEX-5..8, 20..23]` (2026-06-24i — closes the `[CEX]` register; all five
+candidate-system clusters resolved).**
 
 ## 4. Foundation end-shapes
 **Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
