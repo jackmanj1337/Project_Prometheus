@@ -2,16 +2,17 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-24
-Register: STY-1..16
-Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l
+Register: STY-1..17
+Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m
 ---
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
 
 **Started:** 2026-06-24 (session 2026-06-24j, the A1 "walk the idea" pass).
 **Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
-in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9..11 still
-OPEN** (AoE targeting / preview UX / battalion entity).
+in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9 + STY-17
+RESOLVED 2026-06-24m** (AoE/multi-target vocab + friendly fire + directed faction relationship matrix);
+**STY-10..11 still OPEN** (combined-preview UX / battalion entity → A2).
 Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)**, the
 **gambit attack-side of Battalions (#16)**, and **utility + buff/debuff staves (#10)**. **Pattern:**
 mirrors `[CEX]`/`[RCR]`. Legend: **[OPEN]** / **[RESOLVED]**.
@@ -29,7 +30,9 @@ A source + style carries a **SET of effects** (`[STY-13]`/`[STY-16]`), each an `
 **kind** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/`cure`/`inflict`/`bolster`), a
 payload, a per-effect **`target_filter`**, and a **gate** (`always`/`on_hit`/`on_kill`). A style may
 **add or override** effects (`[STY-14]`); all effects resolve together on one use. So "Attack" is just a
-`strike` effect + hostile targeting, and staves are the same pipeline.
+`strike` effect + hostile targeting, and staves are the same pipeline. **Targeting** = a per-effect
+`shape`/`origin` (`[STY-9]`) whose footprint units are filtered by each effect's `target_filter`,
+resolved against the **faction relationship matrix** (`[STY-17]`).
 
 | Action | Source | Effect set (kinds) | Style |
 |---|---|---|---|
@@ -157,13 +160,68 @@ combined-preview (`[STY-10]`) must show **all** effects (damage **and** "inflict
 cost (`[STY-5]`) is still per-*combo*, not per-effect; `inflict`/`bolster`/`cure` effects route through
 the full **F5** (`[STY-12]`). Reuses `effect_tags` as the storage seam (extended with payload+target+gate).
 
+### [STY-17] Faction relationship matrix — the "aggression matrix" `target_filter` resolves against  **[RESOLVED 2026-06-24m]**
+`target_filter` is **relative to the actor** and resolves against faction relationships. Today
+`GameState.are_hostile(a, b)` is **binary + symmetric** (hostile iff different `alliance_group`).
+**Upgrade to an author-defined, DIRECTED, 3-state relationship matrix** (designer call; mirrors the
+`[CEX-11]` triangle matrix):
+- **`relationship(from, to) ∈ { hostile | neutral | allied }`** — **directed** (A→B may differ from
+  B→A), enabling **neutral NPCs/villagers** and **one-way aggression** (passive-until-provoked).
+- **Default derives from today's alliance groups** (same group → `allied`, different → `hostile`; no
+  `neutral` by default) so existing maps are **non-breaking**.
+- **Authoring home:** per-`FactionData` stance overrides (a faction declares its stance toward others),
+  on `MapData` (factions are per-map), falling back to the group derivation.
+- **`target_filter` resolution:** `enemy` = `relationship(actor, target) == hostile`; `ally` = `allied`;
+  `neutral` = `neutral`; `any` = ignore relationship (friendly fire); `self`. **Cross-faction is free:**
+  `enemy` spans *all* hostile factions (blue's AoE hits red **and** yellow if both are hostile, not green).
+- **Consumers beyond targeting:** `EnemyAI` (target selection), EXP (`exp_gaining_factions`), objectives —
+  this is a **faction-model (M14) extension**, surfaced here but shared. `are_hostile()` becomes a shim
+  over `relationship() == hostile`.
+- **Counterattack vs stance (lean):** being attacked triggers a counter **regardless** of the defender's
+  stance (self-defense); a `neutral`/`allied` AI simply won't *initiate*. Keeps one-way aggression
+  meaningful. (Dynamic neutral→hostile "provoked" transitions = runtime; see Save.)
+- **Save (F1):** the authored matrix is **data** (not saved). **Reserve a runtime
+  faction-relationship-override store** for dynamic changes (provoked, `[MET]`-event-driven).
+
 ---
 
-## Deferred / build-time (still OPEN)
+## Deferred / build-time items  *(status per item)*
 
-### [STY-9] AoE targeting vocabulary + friendly-fire rules  **[OPEN]**
-Shape vocabulary (line / blast / cone / N-tile radius), origin rules, and whether an AoE style can hit
-allies (friendly fire) or filters by faction. Design at the A1 build. **Resolution:** _[OPEN]_
+### [STY-9] AoE / multi-target vocabulary + friendly-fire rules  **[RESOLVED 2026-06-24m]**
+A style/effect declares **`shape` + `origin_mode` + `range` (+ `direction` for directional shapes)**.
+Each shape is a **tile-template generator**; targeting derives the footprint, preview highlights it.
+
+**Shape vocabulary (all defined now; build incrementally):**
+- `single` — one tile/unit.
+- `multi(N)` — up to **N discrete** single-tile picks within range.
+- `blast(R)` — all tiles within distance **R** of the origin (**Manhattan/diamond default**; metric
+  author-overridable per shape later).
+- `line(L, width=1)` — straight line length **L** from origin along `direction`.
+- `cone(L)` — a wedge expanding outward from the actor, depth **L**.
+- `cross(R)` — the four cardinal arms of length **R** from the origin (a plus).
+- `rectangle(W, L, anchor_side)` — **(designer-requested)** a **W×L** rectangle **anchored by the
+  CENTER of a specified side**: that side's midpoint sits on the chosen tile and the rectangle extends
+  **L** deep away along `direction` (W = breadth across the anchored side). Lets you aim a directional
+  zone from the actor or a target tile.
+- `all_matching` — every unit on the map matching the effect's `target_filter` (global; no origin/range).
+
+**Origin mode:** `self_centered` (origin = actor) · `targeted_tile(range)` (pick a tile in range) ·
+`targeted_unit(range)` (a targeted tile that must hold a unit). Directional shapes (`line`/`cone`/
+`rectangle`) also take a **`direction`** — **4-way cardinal v1** (8-way later).
+
+**Resolution rules:**
+1. Gather units in the footprint.
+2. **Each `[STY-16]` effect applies to footprint units matching ITS OWN `target_filter`** (resolved via
+   the `[STY-17]` matrix). So one `strike + heal` blast can **damage enemies AND heal allies** in the
+   same area — per-effect filtering is the whole point.
+3. **Friendly fire = a broad `target_filter`** (`any`/includes allies) — **not a separate system.**
+4. **Obstruction (lean):** v1 shapes are **pure geometric tile-templates, no line-of-sight blocking**
+   (matches FE gambits/AoE staves); LoS-blocked shapes are a later growth.
+
+**Friendly fire decision:** AoE damage **defaults to `target_filter: enemy` (no friendly fire)**; an
+author opts in per style/effect by widening the filter to `any` (or adding `ally`). (`[STY-3 fork]`)
+
+**Save (F1):** AoE adds **no** new save state (shapes are source/style data-def; selection is transient).
 
 ### [STY-10] Combined-preview UX  **[OPEN]**
 The `[CEX-23]` UI detail: how the forecast renders the *combined* source+style effect (deltas, range
@@ -195,7 +253,9 @@ status + buff/debuff staves together. Also resolves the `[CEX-10]` triangle-cond
 - **Captured/`sleep` state** reserve coordinates with `[RCR]` (roster) + F5 (condition) + A2 (carry).
 - **Active-conditions state per unit** (type + remaining duration) — owned by the **full F5
   `ConditionManager`** (`[STY-12]`); reserve at the lock (capture, style status, buff/debuff staves).
-- (`effect_kind` / `target_filter` are *source data-def*, not save state.)
+- **Runtime faction-relationship overrides** (`[STY-17]`) — for dynamic provoked/`[MET]`-driven changes;
+  the *authored* matrix is map data (not saved). AoE shapes (`[STY-9]`) add **no** save state.
+- (`effects` / `target_filter` are *source/style data-def*, not save state.)
 
 ## Notes
 - **DoD:** when this graduates to a build, it gets GDD owner updates (GDD_02 combat exchange, GDD_05

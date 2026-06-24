@@ -154,10 +154,13 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   - **A1 exit checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
     fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
     an intended art/style; maybe weigh range/Mt, not just slot order); (2) build the `[STY]` source+style
-    pipeline (`[CEX-23]` combo-select) + the `effect_kind`/`target_filter` source axis (`[STY-13]`) —
-    designed here, not punted past A1; (3) resolve `[STY-9..10]` (AoE targeting vocab + combined-preview
-    UX); (4) **build the full F5 `ConditionManager`** (`[STY-12]` — now on A1's critical path; unblocks
-    capture `sleep` + style status + buff/debuff staves).
+    pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`)
+    — designed here, not punted past A1; (3) build AoE/multi-target (`[STY-9]` firmed: shapes incl.
+    `rectangle`, friendly-fire = broad filter) + resolve `[STY-10]` (combined-preview UX, still open);
+    (4) **build the full F5 `ConditionManager`** (`[STY-12]` — now on A1's critical path; unblocks
+    capture `sleep` + style status + buff/debuff staves); (5) **extend the M14 faction model to the
+    directed 3-state relationship matrix** (`[STY-17]` — `are_hostile` → `relationship`; consumed by
+    targeting + AI; reserve runtime relationship-overrides in F1).
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
   Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
@@ -186,8 +189,9 @@ reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CE
 maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** ·
 **learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
 **captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
-(full F5, `[STY-12]`)** · story flags · `map_uses_remaining` · triangle profile selection ·
-`ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
+(full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · story flags ·
+`map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **plus every field
+Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 
