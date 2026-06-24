@@ -201,6 +201,11 @@ AND no universal floor exists → **counter with nothing**. `can_counterattack` 
 today against the resolved source. **Scope note:** the fallback is single-source (it does not pick the
 in-range source among several usable ones) — range-aware/combo counter selection is part of `[CEX-23]`
 and **deferred with it**.
+> ⚠️ **REVISIT BEFORE A1 CLOSES.** The priority *order* (inventory-slot → granted → fists floor) is a
+> provisional first cut. It must be re-validated against the combat-arts (#15) and gambit (#16) designs
+> — once maneuvers/AoE can be the equipped "source", the fallback should not silently swap away from a
+> player's intended art, and "highest-priority usable" may want to weigh range/Mt, not just slot order.
+> Tracked in the atlas A1 exit checklist.
 
 ### [CEX-23] Rework attack-selection + target-acquisition for source/maneuver combinations  **[RESOLVED]**
 The current "equip a weapon, then **Attack → pick target**" flow assumes a single fixed source.

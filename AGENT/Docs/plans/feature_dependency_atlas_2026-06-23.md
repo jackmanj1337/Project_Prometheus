@@ -148,6 +148,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   all are
   "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
   share **one** select→preview→target pattern or the UI forks per feature.
+  - **A1 exit checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
+    fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
+    an intended art; maybe weigh range/Mt, not just slot order); (2) the deferred `[CEX-23]`
+    combo-select flow is designed/built here, not punted past A1.
 - **A2 — Map action-economy & movement assists** *(shared: post-move action window, Secondary
   Movement F10, granted-action / carry state).* Dancer / refresh (#8; note the existing
   **Reinvigorate** ally-refresh skill) · Movement assists — shove/smite/pivot/swap (#17) · Rescue /
