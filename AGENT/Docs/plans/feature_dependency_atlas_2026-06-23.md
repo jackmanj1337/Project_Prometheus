@@ -111,7 +111,10 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 ---
 
 ## 3. Build-order implications (for the scheduling session)
-- **F1 (save schema) first** — lock the reserved fields before any cluster reserves them ad-hoc.
+- **Define-all feature sweep first, THEN F1 (save schema)** (reprioritized 2026-06-24e; see §3b) —
+  F1 can only lock a complete schema once every un-firmed feature's persistence is known, so the
+  un-firmed-feature sweep is the blocker ahead of F1. F1 still precedes any cluster reserving fields
+  ad-hoc.
 - **The four undecided foundations gate the most:** F5 (conditions) unlocks Cluster B's richest
   half + flexible-triangle conditions; F6 (story-state) unlocks recruit/story/branching (Cluster E);
   F7 (pools) unlocks spells + combat arts; F4 (profile mechanism) is cheap and unlocks
@@ -119,25 +122,35 @@ schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
 - **Decided foundations (F2/F3/F8/F9) just need scheduling**, not more design.
 - **Cluster A is the in-flight build** (IEQ XL + PXP L) — the largest single commitment on the board.
 
-## 3b. Target-firming roadmap (dependency order — owner 2026-06-23l)
-The order in which we **define each un-firmed player-facing target** (the ⚠/✗ items). ⚠ first
-(deps now decided), then ✗ in dependency order. Each pass = a firming walk like IEQ/PXP.
+## 3b. Target-firming roadmap (dependency order — owner 2026-06-23l; **reprioritized 2026-06-24e**)
+The order in which we **define each un-firmed player-facing target** (the ⚠/✗ items). Each pass = a
+firming walk like IEQ/PXP.
 
-**Wave 0 — open foundations (gate the most, do first):**
-- **F1** save-schema lock (reserve fields) — **the last remaining Wave-0 item.** (F7 resource pools
-  firmed 2026-06-23l `[CEX-1..4]`; **F10 Secondary Movement firmed 2026-06-24a `[SMV-1..11]`** = a parameterized
-  skill granted via the skill-grant mechanisms, gating rescue + Knight Ring.)
+**Priority blocker (owner 2026-06-24e) — a full feature-definition sweep precedes the F1 schema-lock.**
+F1 must reserve a *whole* save schema; every un-firmed feature that persists state would otherwise
+force F1 to be re-opened. So we **define ALL remaining un-firmed targets first** (not just the
+schema-heavy GAP/DISCUSS four), **then** lock F1, **then** build. The only work that runs ahead of /
+beside this is the **next round of playtest results**; everything else is downstream of it. Chain:
+**define-all sweep → F1 schema-lock → all builds.**
 
-**Wave 1 — ⚠ ready now (deps decided):**
-- Flexible weapon triangle (`[CEX-9..12]`; deps F4✓/F5✓) · Per-map-use items (`[CEX-13]`; dep IEQ✓) ·
-  Learned spells (`[CEX-5..8]`; after F7) · Story items (`[CEX-14..16]`; tracking now, branching after F6) ·
-  Per-skill UX (M9b content).
+**Phase A — Define-all sweep (THE blocker; go through every un-firmed target):**
+- **In flight:** Learned spells / weapon sources (`[CEX-5..8, 20..23]`, cluster B) — eval/sort next.
+- **GAP/DISCUSS (schema-defining — take early in the sweep):** Support (#5; XL) · Recruit/Capture
+  (#4; F6) · Avatar / My Unit (#20; roster/save/story cascade) · Battalions / gambits (#16; F11).
+- **Remaining ✗ v1 worklist:** Difficulty modes (#12; F4✓) · Dancer (#8) · Movement assists (#17) ·
+  Utility staves (#10) · Rescue (#6; via F10) · Village (#11; MET✓+F6) · PvP (#7) · Arena (#14) ·
+  Bonus-EXP (#18) · Combat arts (#15; after F7) · Per-skill UX (#M9b, content).
 
-**Wave 2 — ✗ v1 worklist (dependency-ordered):**
-- Difficulty modes (#12; dep F4✓) · Dancer (#8) · Movement assists (#17) · Utility staves (#10) ·
-  Secondary Movement (#9=F10) → Rescue (#6) · Recruit/Capture (#4; after F6) · Village (#11; MET✓+F6) ·
-  Support (#5; large standalone) · PvP (#7) · Arena (#14) · Bonus-EXP (#18) ·
-  Combat arts (#15; after F7) · Battalions (#16) · Avatar (#20).
+**Phase B — F1 save-schema lock** (the last foundation pass; can only close once Phase A is done so it
+reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CEX-21]`) · accessory slot
+maps · pools · known/**granted** list · story flags · `map_uses_remaining` · triangle profile
+selection · `ItemDef.story`+lock flags · **plus every field Phase A surfaces.**
+
+**Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
+
+**Already firmed (the prior Wave-1, done):** flexible triangle `[CEX-9..12,17]` (2026-06-24b) ·
+per-map items `[CEX-13]` (2026-06-24c) · story items `[CEX-14..16,18,19]` (2026-06-24d) · F7 pools
+`[CEX-1..4]` (2026-06-23l) · F10 Secondary Movement `[SMV-1..11]` (2026-06-24a).
 
 ## 4. Foundation end-shapes
 **Decided 2026-06-23l** (end-shapes in `design/foundations_end_shapes_2026-06-23.md`): **F4** = one
