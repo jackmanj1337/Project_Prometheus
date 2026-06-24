@@ -17,7 +17,7 @@ func _init() -> void:
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
-		and ResourceManifest.load_paths("res://data/weapons/").size() == 11
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 12
 		and ResourceManifest.load_paths("res://data/items/").size() == 8
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
@@ -32,6 +32,15 @@ func _init() -> void:
 		print("OK  get_weapon resolves a known weapon id"); passed += 1
 	else:
 		print("FAIL get_weapon(iron_sword)"); failed += 1
+
+	# ---- fists demo weapon: 0 Mt, infinite uses, neutral martial-arts family ----
+	var fists = dm.get_weapon("fists")
+	if fists != null and fists.id == "fists" and fists.mt == 0 \
+			and fists.uses == -1 and fists.combat_family == "fist" \
+			and fists.is_natural_weapon and fists.get_triangle_family() == "fist":
+		print("OK  get_weapon resolves the fists demo weapon (0 Mt, ∞ uses, fist family)"); passed += 1
+	else:
+		print("FAIL get_weapon(fists) — expected 0 Mt / -1 uses / fist family"); failed += 1
 
 	# ---- get_weapon returns null for an unknown id (a push_error is expected) ----
 	if dm.get_weapon("no_such_weapon") == null:

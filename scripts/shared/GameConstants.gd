@@ -37,6 +37,10 @@ const VALID_COMBAT_FAMILIES: Array[String] = [
 	"sword", "lance", "axe", "bow",
 	"fire", "thunder", "wind", "light", "dark", "staff",
 	"beaststone", "dragonstone",
+	# Unarmed / martial-arts family. Demo home of the 0-Mt "Fists" weapon — a
+	# non-inventory-style fallback an author can grant to everyone or lock to a
+	# martial-artist class via ClassData.allowed_weapon_families.
+	"fist",
 ]
 
 # Canonical WEXP tracks. UnitData.weapon_wexp stores numeric progress against these
@@ -45,6 +49,7 @@ const VALID_WEXP_TRACKS: Array[String] = [
 	"sword", "lance", "axe", "bow",
 	"elemental_magic", "light", "dark", "staff",
 	"beaststone", "dragonstone",
+	"fist",
 ]
 
 const VALID_VULNERABILITY_GROUPS: Array[String] = [

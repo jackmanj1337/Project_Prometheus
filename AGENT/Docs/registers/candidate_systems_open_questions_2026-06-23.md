@@ -2,7 +2,7 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-24
-Register: CEX-1..19
+Register: CEX-1..23
 ---
 
 # Candidate Systems — Player-Interaction Open Questions
@@ -12,7 +12,8 @@ Register: CEX-1..19
 2026-06-24b** → flexible weapon triangle, rides F4; cluster **D resolved 2026-06-24c** → per-map-use
 items; cluster **E resolved 2026-06-24d** → story/key items (tracking + locks now; event-mutation
 rides the MET build, persistent branching-state rides the F6 build); **B (learned spells) is the
-last open cluster**). The
+last open cluster** — **expanded 2026-06-24e** into weapon-source / equip / action-menu scope with
+new open items **`CEX-20..23`** folded in for the upcoming evaluation session). The
 player-interaction question list for the five candidate systems drafted in
 `design/candidate_systems_2026-06-23.md`. Each question is framed
 **player interaction → designer authoring → structural impact**, so answers define both how
@@ -71,6 +72,83 @@ v1; ever-growing list v1, loadout cap later. **Designer:** the learning hooks al
 Today magic = tome **weapons** in inventory. Do learned spells **coexist** with tomes or **replace**
 them? *Lean:* coexist v1 (a campaign chooses its idiom); don't force-migrate tomes. **Structural:**
 the biggest reconciliation fork for B. **Resolution:** _[OPEN]_
+
+---
+
+### Session 2026-06-24e — merge analysis + non-inventory weapon sources (folded in; SEPARATE/SORT at the eval session)
+
+> All of the following is folded into cluster B for the priority re-eval. It is **exploratory, not
+> resolved** — the new items `CEX-20..23` stay **[OPEN]** and the existing `CEX-5..8` leans below are
+> *revised* but not ratified.
+
+**Combat is source-agnostic (code-verified).** Every computation in `CombatResolver`
+(`compute_hit_pct` / `compute_damage` / `compute_crit_pct` / triangle / effectiveness /
+`can_counterattack`) consumes a **`WeaponData`** obtained from `get_equipped_weapon()`; it never reads
+inventory. So a **learned spell, a Laguz natural weapon, and unarmed fists are the same structural
+thing** — a `WeaponData` *not* in inventory whose charge state is *not* an `InventoryEntry`. The whole
+seam is **two `Unit.gd` functions** (`_find_equipped_weapon`, `get_equippable_weapons`) that today
+iterate only `data.inventory`.
+
+**Merge direction (hybrid — chosen as the working lean, non-binding until eval).** A spell's
+*capability* = an `[IEQ]` `ItemDef{WeaponComponent}` (a tome minus the inventory slot); its
+*known/equip/learn lifecycle* reuses the **skill** model. No bespoke `known_spells` field, no separate
+Cast action. This **revises the leans** above:
+- **`[CEX-5]`** → fold casting into **Equip Weapon / weapon-select**; no dedicated Cast action
+  (combat is source-agnostic, so weapon-select already drives it).
+- **`[CEX-6]`** → a **charge-source abstraction**: a source is fired via *entry-uses* **XOR**
+  *per-map counter / pool* **XOR** *infinite* (natural). Author picks per source.
+- **`[CEX-7]`** → reuse **`[SKL-3]`** `earned`/equipped subset + `requires_equip` loadout cap +
+  existing learning hooks (`skill_unlocks`, `[PXP-4]`, learn consumable, `[PXP-9]`).
+- **`[CEX-8]`** → **largely dissolved**: a tome and a spell are the *same* `ItemDef{WeaponComponent}`;
+  the only difference is the reference path (inventory vs known-list), so "coexist" is free.
+
+**Demo asset landed (2026-06-24e).** `data/weapons/fists.tres` — **0 Mt**, **∞ uses** (`-1`), neutral
+in the triangle, `is_natural_weapon = true`; new **`fist`** combat family + WEXP track in
+`GameConstants`. Validates clean (`DataManager`). Designers choose **default-for-all** vs
+**martial-artist class** via `ClassData.allowed_weapon_families` (no engine change to demo it through
+inventory). Covered by `test_data_manager`.
+
+**Equip reality (code-verified).** The weapon-swap path is **fully built and wired** — `ActionMenu`
+"Equip" → `MapCursor._open_weapon_menu()` → `WeaponMenu` (instantiated in `GameMap.tscn`) →
+`weapon_chosen` → `set_equipped_weapon()` — but it has **never surfaced in playtesting**: the Equip
+button needs **≥2 equippable weapons** (`has_weapon_swap = get_equippable_weapons().size() >= 2`,
+`ActionMenu.gd`) and **every roster unit ships exactly one weapon**. `WeaponMenu` has **no test**; only
+the button-visibility toggle is covered (`test_action_menu`).
+
+### [CEX-20] Non-inventory weapon-source enumeration  **[OPEN]**
+Generalize `get_equippable_weapons()` / `_find_equipped_weapon()` to return the **union** of
+**inventory** + **known-list** (spells) + **class-innate** (`ClassData.natural_weapon_type` →
+fang/claw/fists — declared today but **never wired into combat**). Each returned row carries its charge
+backend (entry-uses / counter / pool / infinite). One enumerator simultaneously delivers spells, wires
+up the dangling `is_natural_weapon`/`natural_weapon_type`, and gives monster/boss innate attacks the
+same path. *Lean:* single enumerator, source tagged per row. **Resolution:** _[OPEN]_
+
+### [CEX-21] Equipped source as a reference + action-menu vocabulary  **[OPEN]**
+Today "equipped" = the first usable inventory entry, and `set_equipped_weapon` **reorders
+`data.inventory`** — so it **cannot select** a spell or natural source (there is no entry to reorder).
+Design: a single **`equipped_source` reference** (inventory-entry id | known-list id | class-innate id)
+that `get_equipped_weapon()` resolves; reserve it in the **F1** save schema. Action-menu vocabulary:
+**Attack** (initiator, unchanged) · **Equip Weapon** (today's `WeaponMenu`, fed by `[CEX-20]`'s union;
+visibility keys off **union** size, not inventory size) · **Inventory** (use consumables now +
+accessory-equip later — likely **prep-only**, a scope flag). Keep **Attack** distinct from **Equip
+Weapon** so re-targeting never forces re-selection. **Resolution:** _[OPEN]_
+
+### [CEX-22] Equipped attack method becomes unavailable on another player's turn  **[OPEN]**
+If a unit's equipped source becomes unusable **between its own turns** — weapon broke, spell out of
+charges, pool drained, or source revoked by a `[MET]` event — what happens when the unit is attacked
+and would **counterattack** on the enemy phase (or in any forced/reactive attack outside its owner's
+turn)? Options: auto-fallback to another usable source (by what priority?), fall back to a universal
+unarmed/fists if one exists, or counter with **nothing**. Touches `can_counterattack` (which reads
+`get_equipped_weapon()`). **Resolution:** _[OPEN]_
+
+### [CEX-23] Rework attack-selection + target-acquisition for source/maneuver combinations  **[OPEN]**
+The current "equip a weapon, then **Attack → pick target**" flow assumes a single fixed source.
+Reconsider the pattern to streamline **combinations** — choosing an attack source *together with* a
+combat maneuver/art that may alter the attack's **resource use, stats, range, or targeting rules**
+(e.g. an AoE maneuver, a longer-range variant, a mode that spends extra pool for more Mt). Implies the
+selection step and the **combat preview** must reflect the *combined* effect before commit, and
+targeting must **re-derive** range/rules from the chosen combo. Largest UX/structural fork in the
+cluster; interacts with system A (pools) and the `[SKL]` combat-art cases. **Resolution:** _[OPEN]_
 
 ## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
 
