@@ -2,8 +2,8 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-25
-Register: DSP-1..16
-Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16 cross-cutting non-standard-movement ruleset)
+Register: DSP-1..17
+Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin)
 ---
 
 # Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot)
@@ -51,6 +51,10 @@ resistance pipeline (DSP-13), the author-selectable invalid-destination outcome 
 framework invariants (DSP-15), and the preview/RNG surface (DSP-16). This generalized the old DSP-8/10
 leans (now subsumed). Player flow + author levers illustrated in
 `design/nonstandard_movement_and_displacement_2026-06-25.md`.
+**Session 2026-06-25g** — made the ruleset **campaign-default + per-source override for every rule**
+(DSP-17), added the **harmful-consequence relationship gate** (`[DSP-14]` — can't ring-out a non-hostile
+unit), and **forward-pinned a "Capture" victory type** (`escape with prisoner`) + the `captured:<id>`
+story/bonus-chapter flag.
 
 ---
 
@@ -171,6 +175,13 @@ levers (stage 3 is the only one that adds an RNG path). Rides **F5** for the `im
 - **`force_onto_invalid`** — place the unit on **normally-illegal terrain** (the sanctioned override of
   `[DSP-15]` inv. 3 — e.g. knock a foot unit into deep water → stranded + subject to that tile's
   on-entry effects). This is the deliberate environmental-kill / ring-out lever.
+**Harmful-consequence relationship gate (owner 2026-06-25g):** the **harmful** outcomes —
+`collision_damage` and `force_onto_invalid` — apply **only where the actor↔affected-unit relationship
+permits aggression** (`[STY-17]`: the unit is `hostile` to the actor, or the effect explicitly enables
+friendly fire). **Pure-positional** displacement onto a *valid* tile is relationship-agnostic (you may
+reposition allies/neutrals). So an auto-succeed Shove may slide a `neutral`-faction unit one tile but
+**cannot** route it off a cliff; a knockback sword targeting a `hostile` enemy can. See the worked
+examples under `[DSP-17]`.
 **Build staging:** v1 ships **`fail`** only; the other three reserved as opt-in author outcomes.
 
 ### [DSP-15] Framework invariants — **RESOLVED**
@@ -189,13 +200,45 @@ destination/footprint, plus — when configured — the **resistance result** (i
 outcome) and the **accuracy %** (`[DSP-13]` stage 3). Determinism: stages 1–2 are pure; only the
 accuracy roll consumes `RngService`, so most displacement is replay-deterministic without an RNG draw.
 
+### [DSP-17] Campaign-default rules + per-source overrides — **RESOLVED**
+(owner 2026-06-25g) The **entire** displacement ruleset — every resistance stage (`[DSP-13]`), every
+invalid-destination outcome (`[DSP-14]`), off-turn eligibility (`[DSP-12]`), and accuracy — is expressed
+as **`CampaignRules` displacement defaults** that any **effect source may override per-rule**. An author
+sets sane campaign-wide defaults once; individual sources opt into spicier behavior. **Resolution
+order:** per-source `EffectSpec` override → `CampaignRules` displacement default → framework default
+(`[DSP-15]`). Every rule is independently overridable (no all-or-nothing).
+- **Worked example A — knockback sword (hostile target).** Authors `accuracy: weapon_hit`,
+  `stat_contest: Str_vs_Con`, `on_invalid: [force_onto_invalid]`, `target_filter: enemy`. Result: when
+  it **hits** and the wielder's **Str > defender's Con**, it can shove a `hostile` enemy **off a cliff**
+  (lethal via the `[DSP-14]` gate — permitted, target is hostile).
+- **Worked example B — Shove action (cooperative).** Authors `accuracy: auto`, `resistance: none`,
+  `target_filter: ally|any`. It auto-succeeds positionally — but the **harmful** `force_onto_invalid`
+  outcome is **gated by relationship** (`[DSP-14]`), so it **cannot** shove a **non-aggressive
+  (`neutral`/`allied`) faction member off the same cliff**; it can only relocate them to a valid tile.
+- The default set + per-source overrides are **data-def** (`CampaignRules` + `EffectSpec`), **not save
+  state**.
+
+### Forward-pinned — "Capture" victory type + `captured:<id>` story flag (owner 2026-06-25g)
+Compose a new **`ObjectiveCondition.type` = `capture`** ("escape with prisoner"): like `escape`, but the
+escaping unit(s) must be **carrying a captured prisoner** (the `[DSP-5]` carry state) — on satisfaction
+the prisoners are extracted to the roster/jail. On each prisoner secured/extracted, set an **F6 flag
+`captured:<unit_id>`** that **MET (A4)** story events and **bonus-chapter** unlock conditions branch on.
+**Ownership:** composes `[DSP-5]` (carry) + the **objective system (M16, `ObjectiveCondition`/
+`TurnManager.check_victory_conditions`)** + `[RCR]` (roster capture) + **F6** flags + **A4** (story
+branching). **Pin:** firm the objective `type` with the objective-system build; firm the flag + story
+hooks with **A4**. **Reserve the `captured:<id>` flag at the F1 lock** (see `[DSP-11]`).
+
 ## 6. Save / F1 reservations  *(reserve at the Phase-B lock)*
 ### [DSP-11] — **[RESERVE]**
 - **`carrier_id` / `carried_id` pointer pair** per unit (mirrors the Pair-Up partner pointer) + the
   `CarryRegistry` snapshot.
 - **Captured/jail state** — coordinate the reserve with `[RCR]` (roster) + `[STY-6]` `sleep` + **F5**
   conditions + the `[STY-12]` active-conditions reserve (don't double-reserve `sleep`).
-- The **`displace` EffectSpec** is **source/style data-def, not save state** (like `[STY]` `effects`).
+- **`captured:<unit_id>` F6 flag(s)** — set on prisoner extraction; consumed by **A4** story events +
+  bonus-chapter unlocks (the "Capture" victory type, see `[DSP-17]` forward-pin). Reserve with the F6
+  flag store; coordinate ownership with `[RCR]` + A4.
+- The **`displace` EffectSpec** + the `[DSP-17]` campaign-default/override set are **source/style
+  data-def, not save state** (like `[STY]` `effects`).
 
 ---
 

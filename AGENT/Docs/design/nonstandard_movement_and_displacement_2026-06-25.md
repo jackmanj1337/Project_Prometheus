@@ -84,6 +84,11 @@ displace(target, mode, distance) →
   touches `RngService` (so most displacement stays deterministic, easing preview + replay).
 - **Distance under resistance** (build-detail option): a stat contest may **reduce** distance (a heavy
   unit gets shoved 1 instead of 2) rather than only binary-block — reserved on the payload.
+- **Campaign default + per-source override (`[DSP-17]`):** every rule above is a **`CampaignRules`
+  displacement default** that any source overrides per-rule (resolution = source → campaign → framework).
+- **Harmful-consequence relationship gate (`[DSP-14]`):** the **harmful** destination outcomes
+  (`collision_damage`, `force_onto_invalid`) apply only where the actor↔affected-unit relationship
+  **permits aggression** (`[STY-17]`). Pure-positional moves onto a valid tile are relationship-agnostic.
 
 ## 5. Player-facing edge-case rulings (worked examples)
 - **Shove an enemy onto a hazard tile** → the hazard's on-entry effect applies (invariant 4). Shoving a
@@ -91,6 +96,12 @@ displace(target, mode, distance) →
 - **Shove a foe toward a wall / off the map** → default `fail` (invariant 3 / `[DSP-14]` default). An
   author can instead grant that source `collision_damage` (smite-into-wall) or `force_onto_invalid`
   (knock into deep water → stranded + hazard) — opt-in, per displacement source.
+- **Knockback sword vs. cooperative Shove — the cliff (`[DSP-17]`/`[DSP-14]`):** a **knockback sword**
+  (`accuracy: weapon_hit`, `stat_contest: Str_vs_Con`, `on_invalid: force_onto_invalid`, target enemy)
+  **can** shove a `hostile` foe off a cliff when it hits and Str > Con. A **cooperative Shove**
+  (`accuracy: auto`, `resistance: none`, target ally/any) auto-succeeds positionally but **cannot** push
+  a `neutral`/`allied`-faction unit off that same cliff — the harmful `force_onto_invalid` outcome is
+  gated by the relationship (you may only *reposition* a non-hostile unit onto a valid tile).
 - **Shove/Warp a unit onto an Escape tile** → nothing auto-happens; the unit must still spend its
   Escape action (invariant 4). No "shove an ally to the exit to win."
 - **A unit that already acted is shoved/swapped/rescued** → it moves; it stays *done* (invariant 2). No
@@ -113,6 +124,7 @@ displace(target, mode, distance) →
 | **`displace` payload** | source/style `EffectSpec` (`[DSP-7]`) | mode (`push/pull/swap/to_side/blink`), distance/potency, direction source |
 | **resistance stages** | per-effect (`[DSP-13]`) | `immobile` tag · `ignores_immobile` bypass · static stat contest · to-hit accuracy |
 | **destination outcomes** | per-effect (`[DSP-14]`) | non-exclusive set: `fail` · `collision_damage` · `chain_push` · `force_onto_invalid` |
+| **campaign defaults + overrides** | `CampaignRules` + per-source (`[DSP-17]`) | every rule above: a campaign default any source overrides per-rule |
 | **off-turn eligibility** | per source/skill (`[DSP-12]`) | whether this displace may fire on enemy phase / as a reaction |
 | **`target_filter`** | per-effect (`[STY-17]`) | ally-shove vs enemy-knockback |
 | **F10 second-move eligibility** | per skill (`[SMV]` `secondary_move_actions`) | whether the displacing action opens a post-move window |
@@ -126,7 +138,16 @@ and graduates the rest as author levers later:
 - **Destination v1:** `fail` only. **Reserve** `collision_damage`, `chain_push`, `force_onto_invalid`.
 This keeps v1 free of new RNG/board-legality complexity while the authoring surface is fully designed.
 
+## 8. Forward note — "Capture" victory type + story flag (`[DSP-17]` pin)
+Carry's payoff at the campaign layer: a new **`ObjectiveCondition.type` = `capture`** ("escape with
+prisoner") — like `escape`, but the escaping unit must be **carrying a captured prisoner** (`[DSP-5]`);
+on success the prisoners are extracted to the roster/jail. Each extraction sets an **F6 flag
+`captured:<unit_id>`** that **MET (A4)** story events and **bonus-chapter** unlocks branch on. Composes
+`[DSP-5]` + the objective system (M16) + `[RCR]` + F6 + A4 — **firmed with those builds, not here**;
+the flag is reserved at the F1 lock (`[DSP-11]`).
+
 ## Cross-refs
-`[DSP-1..16]` (authoritative) · `[STY-7/10/16/17]` (effect axis + preview + relationship matrix) ·
-`[SMV]` (F10 window) · `[RCR-5]` (capture carry) · F4 `CampaignRules` · F5 `ConditionManager` ·
-`RngService` (the accuracy stage) · Pair-Up `OFF_MAP_TILE` (carry attach).
+`[DSP-1..17]` (authoritative) · `[STY-7/10/16/17]` (effect axis + preview + relationship matrix) ·
+`[SMV]` (F10 window) · `[RCR-5]` (capture carry) · `ObjectiveCondition`/`TurnManager` (victory types) ·
+F4 `CampaignRules` · F5 `ConditionManager` · F6 flags · `RngService` (the accuracy stage) · Pair-Up
+`OFF_MAP_TILE` (carry attach).
