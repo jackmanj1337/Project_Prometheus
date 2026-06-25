@@ -2,7 +2,7 @@
 Type: register
 Status: RESOLVED 2026-06-25
 Last verified: 2026-06-25
-Register: AGT-1..12
+Register: AGT-1..13
 Resolved-in: 2026-06-25j
 ---
 
@@ -62,9 +62,10 @@ net-new work is only the *targeted activated skill* that triggers it for one all
 
 ## 2. What this pass produced
 The activated/targeted skill shape (AGT-1/2/3), conferral (AGT-4), the caster-cost + refresh transition
-(AGT-5/6), the **author-tunable anti-loop tools** (AGT-7, owner call — *tools, not a baked rule*), and
-the composition/deferral set (AGT-8..12). Surfaced **one forward-pin**: a generic **action-rate-limit
-primitive** broader than action-grant (`§5`).
+(AGT-5/6), the **author-tunable anti-loop & balance levers** (AGT-7, owner call — *tools, not a baked
+rule*: caps · rate-limit · resource cost · source scarcity), the composition/deferral set (AGT-8..12),
+and **targeting cardinality** — single / multi-target / self (AGT-13). Surfaced **one forward-pin**: a
+generic **action-rate-limit primitive** broader than action-grant (`§5`).
 
 ---
 
@@ -98,9 +99,10 @@ selection logic:
 - **Range** = `effect_params.range` (default `1` = adjacent, classic Dance; authors may ship ranged
   Reinvigorate). Uses the same range/targeting machinery as other targeted skills.
 - **Refresh validity** = the target must be a unit that has **already committed this turn** —
-  `get_unit_state(target) != READY` (DONE or MOVED) — and `target != caster`. Refreshing a still-READY
-  ally is wasteful and disallowed. This is the note's *"re-granting an already-acted unit"* edge case,
-  and it falls straight out of the state enum.
+  `get_unit_state(target) != READY` (DONE or MOVED). Refreshing a still-READY ally is wasteful and
+  disallowed. This is the note's *"re-granting an already-acted unit"* edge case, and it falls straight
+  out of the state enum. (`target != caster` is the **single-target default**; self-targeting is an
+  author opt-in — see `[AGT-13]`.)
 - **Preview** = the `[STY-10]` effect-forecast panel shows the target and the granted scope; no RNG (the
   grant is deterministic — there is no accuracy stage, unlike `[DSP-13]`).
 
@@ -125,10 +127,11 @@ unit then re-enters the **active controller** (per M14 stage 5 — cursor/AI/hot
 MapCursor), replaying the normal action flow. **Action-economy invariant:** the transition is atomic and
 re-grants exactly the authored scope — it never grants more than one pending action at a time.
 
-### [AGT-7] Anti-loop = **author tools, not a baked engine rule** — **RESOLVED** (owner call)
+### [AGT-7] Anti-loop & balance = **author tools, not a baked engine rule** — **RESOLVED** (owner call)
 The degenerate case (Dancer A refreshes B, B refreshes A, forever) is **not** prevented by a hardcoded
-"a granted turn can't grant" flag. Instead the engine provides **two general, author-tunable tools**; an
-author composes them to set the balance they want (and the famous A↔B loop is closed by setting either):
+"a granted turn can't grant" flag. Instead the engine provides a set of **general, author-tunable
+levers** (none action-grant-specific); an author composes any subset to set the balance they want (the
+famous A↔B loop is closed by *any one* of them):
 
 1. **Per-unit "actions taken this turn" counter + refresh cap.** Net-new transient state: a
    `Unit.actions_taken_this_turn` counter, incremented on each turn-ending commit and **cleared in
@@ -142,6 +145,17 @@ author composes them to set the balance they want (and the famous A↔B loop is 
    serves "once per round" battalion gambits, limited staff uses, etc.). Action-grant is merely one
    consumer: an author caps "Dance" to N per round/phase from a given source. This is **not owned by this
    register** — it is pinned forward to the action/turn-flow foundation (`§5`).
+3. **Resource cost on the action-grant skill.** Reinvigorate is an ordinary skill, so it carries the
+   normal **multi-resource cost** axis (the `[STY]` composable cost model — uses/charges, an MP-like
+   pool, HP, a per-map limited resource, an item charge). An expensive Dance throttles spam
+   *economically* rather than by a hard rule: each refresh draws down a finite resource, so the chain
+   ends when the resource does. Composes with the caps above. (`max_uses_per_map/combat` on `SkillData`
+   is the simplest instance.)
+4. **Source scarcity (access control).** The bluntest lever, and free given `[AGT-4]`: because
+   action-grant reaches the roster only through the skill-grant paths, the author **controls how many
+   units can do it at all** — author *one* Dancer and the total refreshes available per turn are capped
+   at that single unit's action budget. No mechanism needed; scarcity of the *source* is itself the
+   balance.
 
 This keeps action-grant policy in authors' hands, matches how the displacement arc made every rule a
 `CampaignRules` default (`[DSP-17]`), and avoids hardwiring a single anti-loop opinion into the engine.
@@ -178,6 +192,28 @@ Mirrors `[DSP-17]`: the action-grant tunables — `grant_mode` default, the `[AG
 source/skill → campaign → framework). Authors set one sane default (e.g. "refreshable once per turn")
 and let specific spicy skills opt out.
 
+### [AGT-13] Targeting cardinality = single / multi / self — **RESOLVED**
+Action-grant must support more than one-ally-at-a-time. Cardinality is **not a new subsystem** — it
+reuses A1's targeting axes (the same the attack/effect pipeline already firmed), selected per-skill in
+`effect_params`:
+- **Single** (default) — one legal target per `[AGT-3]`.
+- **Multi-target** — reuses the **`[STY-9]` AoE / multi-target footprint** (shapes incl. `rectangle`,
+  plus the `target_filter` set). A "mass dance" / battlefield rally refreshes **every** unit in the
+  footprint that passes the filter + `[AGT-3]` validity (`state != READY`). Each refreshed unit runs the
+  refresh transition (`[AGT-6]`) independently; the `[AGT-7]` caps apply **per unit**. The `[STY-10]`
+  preview shows the footprint and which units it will refresh — the existing AoE forecast, no new panel.
+- **Self** — an author opt-in (`effect_params` lets `target_filter` **include the caster**), relaxing
+  `[AGT-3]`'s `target != caster` default. A self-refresh is a **"second wind"**: the caster spends the
+  action (→ `DONE` per `[AGT-5]`) and then re-grants *its own* just-spent turn. Distinct from `[SMV]`'s
+  self-grant (which is passive + move-only); this is the activated, full-turn self case. Because it
+  refreshes the actor with no second body involved, it is the **most loop-prone** shape and therefore the
+  one that leans hardest on the `[AGT-7]` levers (the `actions_taken_this_turn` cap, a resource cost) —
+  authors should not ship an uncapped, free self-refresh.
+
+All three are the *same* `grant_action` effect over the *same* substrate; cardinality only changes which
+units the effect enumerates. (`effect_params.targeting ∈ { single, area, self }`, with `area` carrying
+the `[STY-9]` shape/filter payload.)
+
 ---
 
 ## 4. Build hand-off (when scheduled)
@@ -185,13 +221,15 @@ and let specific spicy skills opt out.
   activated-skill targeting flow + the `actions_taken_this_turn` counter on the turn/action economy) ·
   GDD_03 (Dancer/Bard class default unlock) · GDD_10 M10 (reconcile Extra-Turn: the `is_self:false`
   branch of `grant_extra_turn`).
-- **Reuses, doesn't add:** `SkillData` (params + `is_player_activated` + `max_uses_*`), the skill
-  load/aggregate/persist stack, `grant_extra_turn` + the M14-stage-5 controller re-entry, the targeted-
-  skill range/`target_filter`/`[STY-17]`/`[STY-10]` machinery, `TurnManager`'s state enum + refresh.
-- **Net-new code:** the `effect_id="grant_action"` resolution, the `actions_taken_this_turn` transient
-  counter (increment-on-commit + clear-in-`_refresh_faction_units`) and its cap test in target validity,
-  Dancer/Bard `ClassData` default unlocks. (The `§5` rate-limit primitive is **separate** net-new work,
-  owned by the action-flow foundation.)
+- **Reuses, doesn't add:** `SkillData` (params + `is_player_activated` + `max_uses_*` + the `[STY]`
+  cost axis), the skill load/aggregate/persist stack, `grant_extra_turn` + the M14-stage-5 controller
+  re-entry, the targeted-skill range/`target_filter`/`[STY-17]`/`[STY-10]` machinery, the **`[STY-9]`
+  AoE footprint** for multi-target (`[AGT-13]`), `TurnManager`'s state enum + refresh.
+- **Net-new code:** the `effect_id="grant_action"` resolution (single/`area`/`self` enumeration over the
+  reused targeting axes), the `actions_taken_this_turn` transient counter (increment-on-commit +
+  clear-in-`_refresh_faction_units`) and its cap test in target validity, Dancer/Bard `ClassData`
+  default unlocks. (The `§5` rate-limit primitive is **separate** net-new work, owned by the action-flow
+  foundation.)
 - **DoD#1/#2 apply at build**, not at this firming (no behavior changed yet).
 
 ## 5. Forward-pin — generic "action-rate-limit" primitive (broader than A2)
