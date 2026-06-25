@@ -29,7 +29,8 @@ Combat arts, gambits, and non-lethal **capture** are all just styles. One pipeli
 **select source → select style → combined preview → re-derived targeting → pay combo cost → resolve.**
 
 A source + style carries a **SET of effects** (`[STY-13]`/`[STY-16]`), each an `EffectSpec` with a
-**kind** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/`cure`/`inflict`/`bolster`), a
+**kind** (`strike` by default; or `heal`/`teleport`/`fetch`/`repair`/`cure`/`inflict`/`bolster`/
+`displace`), a
 payload, a per-effect **`target_filter`**, and a **gate** (`always`/`on_hit`/`on_kill`). A style may
 **add or override** effects (`[STY-14]`); all effects resolve together on one use. So "Attack" is just a
 `strike` effect + hostile targeting, and staves are the same pipeline. **Targeting** = a per-effect
@@ -119,7 +120,8 @@ effect (`is_healing_staff()` → heal resolver; offensive staves → damage reso
 **Formalize** that so "use a source" is the one pipeline (attack = a `strike` effect + hostile target):
 - **`effects`** (a **set** — generalizes `effect_tags`, see `[STY-16]`): each effect has a **kind** —
   `strike | heal | teleport (Warp) | fetch (Rescue staff) | repair (Hammerne) | cure (Restore) |
-  inflict (debuff) | bolster (buff)` — extensible, with a payload + per-effect `target_filter` + gate.
+  inflict (debuff) | bolster (buff) | displace (shove/swap/pivot — added by [DSP-7], A2)` —
+  extensible, with a payload + per-effect `target_filter` + gate.
 - **`target_filter`**: `enemy | ally | self | empty_tile | weapon_holder | …` (per effect).
 The resolver runs **each** effect; targeting derives from the effects' filters. **Most staves =
 source + null style** (the verbs are intrinsic to the source); styles still *may* layer (AoE-heal style
