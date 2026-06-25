@@ -2,14 +2,15 @@
 Type: register
 Status: RESOLVED 2026-06-25n
 Last verified: 2026-06-25
-Register: VIL-1..8
-Resolved-in: 2026-06-25n
+Register: VIL-1..9
+Resolved-in: 2026-06-25n / 2026-06-25p (VIL-9 capture-victory addendum)
 ---
 
 # Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register
 
 **Started:** 2026-06-25n (first A4 sub-cluster — "story / event-driven map content").
-**Status:** [VIL-1..8] **RESOLVED 2026-06-25n** (end-shape-first walk; all owner calls taken).
+**Status:** [VIL-1..9] **RESOLVED** (VIL-1..8 2026-06-25n; VIL-9 capture-victory objective type added
+2026-06-25p) — end-shape-first walk; all owner calls taken.
 **A4 — Story / event-driven map content.** This pass firms **visitable / destructible villages
 (#11)** and, in doing so, pins the **A4 keystone substrate** every other A4 thread reuses: a new
 class of **player-initiated "interactive" MET trigger** fired from a unit action-menu entry. Village
@@ -157,6 +158,18 @@ off-map (`[DSP]`), or a story `remove`/despawn action.
   `[DSP]` (capture-carry + the Capture-victory pin), Escape objective, and A5 (this co-owns the
   death/removal disposition path with the A5 death-inventory rule set). Carried as A4 task #4.
 - **Resolution:** RESOLVED 2026-06-25n (rule) — forward-pinned to the objective system for build.
+
+### [VIL-9] Capture-victory objective type (the win-condition half of the `[DSP]` pin)  **[RESOLVED — addendum 2026-06-25p]**
+The `[DSP]` Capture-victory pin has two halves: the **removal-disposition** when a unit is captured
+(firmed in [VIL-8]) and the **win-by-capture** objective type (this item). **No genuine fork** — it
+mirrors the existing `seize`/`defeat_boss` patterns: a new **`ObjectiveCondition.type = capture`** over
+`unit_ids`, **satisfied when each named target is in the captured state** (its `captured:<id>` flag is
+set). The `captured:<id>` flag is produced by the **A2** capture-carry mechanic (`[DSP]`) /
+`[STY-6]` non-lethal `sleep` + carry-off — so *how* a target becomes captured stays A2; this item only
+defines the **objective that reads the flag.** Reuses the `ObjectiveCondition` `unit_ids` watcher; no
+new evaluation machinery.
+- **Resolution:** RESOLVED 2026-06-25p — `ObjectiveCondition.type=capture` over `unit_ids` satisfied by
+  the `captured:<id>` flag (set by A2); mirrors `seize`/`defeat_boss`. Build rides the objective system.
 
 ---
 
