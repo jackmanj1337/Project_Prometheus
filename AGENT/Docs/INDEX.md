@@ -65,6 +65,7 @@
 - [`registers/skill_model_open_questions_2026-06-23.md`](registers/skill_model_open_questions_2026-06-23.md) — Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design — *RESOLVED*
 - [`registers/source_style_combat_model_2026-06-24.md`](registers/source_style_combat_model_2026-06-24.md) — Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) — *RESOLVED*
 - [`registers/stationary_weapons_open_questions_2026-06-21.md`](registers/stationary_weapons_open_questions_2026-06-21.md) — Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions — *RESOLVED*
+- [`registers/village_events_open_questions_2026-06-25.md`](registers/village_events_open_questions_2026-06-25.md) — Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register — *RESOLVED*
 
 ## Design & vision docs
 

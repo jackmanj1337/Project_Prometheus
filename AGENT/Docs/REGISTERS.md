@@ -40,3 +40,4 @@
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
 | `STW-1..6` | Stationary Weapon Interaction — Ballista/Onager (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-22f | `registers/stationary_weapons_open_questions_2026-06-21.md` |
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | RESOLVED | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT]) | `registers/source_style_combat_model_2026-06-24.md` |
+| `VIL-1..8` | Village / Map Events (#11) + the Interactive-Trigger Substrate — Player-Facing Design + Open Questions Register | RESOLVED | 2026-06-25n | `registers/village_events_open_questions_2026-06-25.md` |

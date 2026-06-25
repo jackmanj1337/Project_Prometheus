@@ -82,7 +82,7 @@ task (`[STM-1]`) and F14 closes trivially.
 | Fog of War `[FOW]` · Destructible terrain `[DTR]` | **M** ea | grid | firmed |
 | Doors/chests `[DCH]` · Map readability `[MRD]`/`[TUR]` | **S**/**M** | grid | firmed |
 | Map events/triggers `[MET]` | **L** | grid → *is* F8 | firmed |
-| Village / house visit (#11) | **M** | F8,F2 | Tier1 |
+| Village / house visit (#11) | **M** | F8,F2 | firmed 2026-06-25n `[VIL-1..8]` — config over DTR object + MET runner + F6 + the interactive-trigger substrate |
 
 ### Cluster D — Unit actions / movement  (action+turn flow, F10)
 | Feature | Size | Needs | Status |
@@ -199,10 +199,20 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 > Emblem = the maximal config (`[BAT-7]`). Then A4 (incl. the `[STY-17]` provoke MET action), A5 (incl.
 > the loadout cap + the `[AGT §6]` non-combat-action EXP pin, now also pricing battalion-EXP `[BAT-6]`)
 > → **F1 schema-lock (Phase B).**
-- **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
-  · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a `[MET]` action that sets a faction
-  relationship + AI "provoke" transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c).
-  *Why sync:* same trigger+flag plumbing; Recruit straddles roster (A3) and events (A4).
+- **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11
+  — **firmed 2026-06-25n `[VIL-1..8]`**) · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a
+  `[MET]` action that sets a faction relationship + AI "provoke" transitions** (`[STY-17]` dynamic
+  neutral→hostile; pinned 2026-06-25c). *Why sync:* same trigger+flag plumbing; Recruit straddles
+  roster (A3) and events (A4).
+  > **A4 keystone (2026-06-25n):** the Village walk pinned the shared **interactive-trigger
+  > substrate** `[VIL-2]` — a *player-initiated* MET trigger fired from a `TileActions`/action-menu
+  > entry (sibling to Seize/Escape). **Visit + Recruit `talk` (`[RCR-3]`) + reserved `shop`/`activate`
+  > are its configs** — Recruit's conversation side reuses it, doesn't re-invent. Also pinned: the
+  > `TileActions` **discovery-list + required-characteristics + author-hideable (secret)** extension
+  > `[VIL-6/7]`, and the **objective removal-disposition rule** `[VIL-8]` (Rout/Eliminate key on
+  > hostile-to-player presence; escape/story-removal = author `pass|fail`) — a **forward-pin to the
+  > objective system**, co-owning the A5 death/removal-disposition path and absorbing the `[DSP]`
+  > Capture-victory pin.
 - **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
   death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
   (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
