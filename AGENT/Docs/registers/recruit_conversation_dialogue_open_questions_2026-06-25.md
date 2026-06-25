@@ -67,6 +67,11 @@ A **conversation** is an id-referenced authored asset that the **`dialogue` MET 
   story scenes. This realizes F13's deferred "dialogue-data format."
 - **Resolution:** RESOLVED 2026-06-25o — pin the rough end-shape as **F15** (🔶 not fully firmed —
   ratify the v1 line schema + reserved choice/command shape in the define-all sweep before F1).
+- **FLESHED 2026-06-25q → see `[DLG-1..10]`** (`registers/dialogue_conversation_system_open_questions_2026-06-25.md`).
+  The F15 end-user shape (unified overlay: layered scene over a script-style chat-log), the entry-list
+  data format, a three-tier effect taxonomy (character / portrait-transform / scene-wide), branching
+  choices, author-configurable pacing, staged build, and the plain-data-now + dedicated-editor-later
+  authoring call are now firmed there. One OPEN item: the **"reflect effect"** design TODO (`[DLG-9]`).
 
 ### [RCV-2] `talk` trigger = a config of the `[VIL-2]` interactive-trigger substrate  **[RESOLVED]**
 The `talk` trigger is the **unit-targeted** sibling of village `Visit`: the acting unit selects a

@@ -37,7 +37,7 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
 | F13 | **Text indirection / localization-ready string layer** (`[MCH-6]`) | ❌ not built | F1 | dialogue, avatar/main-character names, relationship & recruit conversations, all UI text | ✅ **decided 2026-06-24g: ID-keyed templates + `unit_id` name lookup, no concatenation; Godot `tr()` when localized; convention now, multi-locale build deferred** |
 | F14 | **Author-extensible stat model** (`[STM]`) | ❌ not built | F1, F4 | a Charisma/Charm stat, a Command/Authority proficiency for battalions (`[BAT-6]`/`[STM-2]`), author-defined campaign stats (legacy base stats kept) | 🔶 **NEWLY SURFACED 2026-06-25l — NOT yet firmed.** Direction: *evolution not rewrite* — the read path is already string-keyed + growths/caps are dicts, so add an `extra_stats` dict + a `CampaignRules` stat registry + a `get_effective_stat` fallback and de-hardcode the ~5 stat-list literals. **Ratify at the define-all sweep.** Plan in `registers/extensible_stat_model_open_questions_2026-06-25.md` |
-| F15 | **Dialogue / Conversation system** (`[RCV-1]`) | ❌ not built | F13, F8 | recruit conversations (`[RCV]`), village dialogue (`[VIL-4]`), support conversations (`[REL-6]`), main-character name-sub (`[MCH]`), story scenes | 🔶 **NEWLY SURFACED 2026-06-25o — rough end-shape pinned, NOT fully firmed.** A conversation = an id-referenced ordered list of forward-compatible entries (`line` v1 \| `choice` reserved \| `command` reserved); `line` = {speaker, F13 text-key, portrait/expression}; played by a `dialogue` MET action. **Data format + action hook committed now; presentation deferred; choice/command reserved so v1 line-only data won't be replaced.** Realizes F13's deferred dialogue-data format. **Ratify the v1 schema at the define-all sweep.** Plan in `registers/recruit_conversation_dialogue_open_questions_2026-06-25.md` |
+| F15 | **Dialogue / Conversation system** (`[DLG]`/`[RCV-1]`) | ❌ not built | F13, F8, art pipeline | recruit conversations (`[RCV]`), village dialogue (`[VIL-4]`), support conversations (`[REL-6]`), main-character name-sub (`[MCH]`), story scenes | 🔶 **END-USER SHAPE FLESHED 2026-06-25q `[DLG-1..10]`** (rough shape surfaced 2026-06-25o). **One overlay** = layered **scene region** (background = map-transparent \| special-bg + animated portraits) over a **script-style chat-log**; **one renderer** (map-as-background collapses battle-vs-scene). **Data = a flat addressable entry list** (`line`/`choice`/`command`/`label`; background = a command; F13 keys). **Three-tier effects** (A character-expression / B portrait-transform flip·move·scale / C scene-wide rain·fog·flashback), each `loop\|once`. **Branching choices** + author-configurable pacing (manual / skip-to-decision / auto). **Build staged** (v1 slice + full reserved); **authoring = plain data now + dedicated editor later**. **OPEN: the "reflect effect" `[DLG-9]`** (its own design pass). Plan in `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
 
 **Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**,
 **F10 decided 2026-06-24a**, **F13 decided 2026-06-24g** → **F1–F13 all have decided end-shapes; only
@@ -45,10 +45,11 @@ F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build
 carry only rough/not-fully-firmed end-shapes, both to be ratified in the define-all sweep before F1
 locks:** **F14 (stat model**, surfaced 2026-06-25l — adds the `extra_stats` + stat-registry save
 surface; **optional**, degrades to the bounded "add one Charisma stat" `[STM-1]`) and **F15
-(dialogue/conversation**, surfaced 2026-06-25o — the data format + `dialogue` action hook; presentation
-build deferred, `choice`/`command` entries reserved so v1 line-only data survives). Both are
-forward-compatible foundations whose *hooks* are committed now and whose v1 schema is ratified at the
-sweep.
+(dialogue/conversation**, surfaced 2026-06-25o, **end-user shape fleshed 2026-06-25q `[DLG-1..10]`** —
+unified overlay + entry-list format + three-tier effects + branching + staged build + plain-data/editor
+authoring; build deferred and **one OPEN item: the "reflect effect" `[DLG-9]`**). Both are
+forward-compatible foundations whose *hooks/shape* are committed now and whose remaining details (F14 v1
+schema; F15 v1 build-slice + the reflect-effect design) are settled at/after the sweep.
 
 ---
 
