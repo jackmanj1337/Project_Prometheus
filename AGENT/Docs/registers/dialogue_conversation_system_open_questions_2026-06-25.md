@@ -1,16 +1,16 @@
 ---
 Type: register
-Status: OPEN 2026-06-25q
+Status: RESOLVED 2026-06-25q
 Last verified: 2026-06-25
-Register: DLG-1..11
-Resolved-in: 2026-06-25q (DLG-1..8,10,11 RESOLVED; DLG-9 reflect-effect OPEN by design)
+Register: DLG-1..13
+Resolved-in: 2026-06-25q (all RESOLVED; DLG-9 reflect-effect resolved 2026-06-25q — rotation a build-time investigate)
 ---
 
 # Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions
 
 **Started:** 2026-06-25q (fleshes the F15 rough end-shape pinned in `[RCV-1]`).
-**Status:** **[DLG-1..8,10,11] RESOLVED 2026-06-25q**; **[DLG-9] (the "reflect effect") OPEN by
-design** — the owner asked to *flag* it for its own design pass, not resolve it now. Foundation **F15**.
+**Status:** **[DLG-1..13] RESOLVED 2026-06-25q** (incl. DLG-9 the reflect effect — walked same day;
+rotation feasibility is the one build-time investigate). Foundation **F15**.
 **Scope of this pass:** define the **end-user (viewing) shape** of a conversation, then read off the
 **data-format** and **authoring-tool** consequences (owner's stated goal). **Build is staged** (DLG-7):
 the format + renderer reserve the full vision; the first build is a slice. `[RCV-1]` pinned the rough
@@ -50,13 +50,16 @@ portraits (`[MCH]`), the MET `dialogue` action + `once` latch, and the F6 flag s
 ### [DLG-1] Unified overlay — end-user presentation  **[RESOLVED]**
 One full-screen overlay = **scene region (top)** + **chat-log region (bottom)**.
 - **Scene region** = a layered stage: a **background layer** (`map` shown through a toggleable
-  transparency **|** an authored `special-bg` raw-loaded asset) + a **portrait layer** (positioned
-  slots, active-speaker emphasis, animated per DLG-3).
+  transparency **|** an authored `special-bg` raw-loaded asset) + **stage elements** (positioned,
+  animated per DLG-3) composited by an **explicit layer system** (DLG-12). A **stage element** is any
+  animated entity — a speaker's portrait is the common case, but it **need not be a speaker or a
+  person** (DLG-13 decouples the stage from dialogue).
 - **Chat-log region** = a **script-style** running log (`SPEAKER: text`), scrollable for read-back;
   the current line appends.
 - **One renderer:** the only difference between a battle one-liner and a story scene is the background
   layer (map-transparent vs special-bg). Collapses the old "in-map box vs scene view" fork.
-- **Resolution:** RESOLVED 2026-06-25q.
+- **Resolution:** RESOLVED 2026-06-25q — stage of layered **stage elements** over a background, above a
+  script-log; element/layer model in DLG-12/DLG-13.
 
 ### [DLG-2] Data format — a flat, addressable entry list  **[RESOLVED]**
 A **Conversation** = `{ id, entries: Array }` of **forward-compatible, addressable** entries (extends
@@ -65,13 +68,15 @@ the `[RCV-1]` line/choice/command reservation):
   (cues = DLG-3 effects fired with the line).
 - **`choice`** = `{ prompt?: <F13 key>, options: [{ label: <F13 key>, goto?: <label>,
   set_flag?: <flag> }] }` (DLG-5).
-- **`command`** = a **scene op** (`set_background: map|<bg>`, portrait `enter`/`exit`/`move`, a DLG-3
-  effect, camera) **or** a **MET action** (e.g. `grant_item` mid-scene).
+- **`command`** = a **scene op** (`set_background: map|<bg>`, stage-element `enter`/`exit`/`move`/
+  `set_layer`, a DLG-3 effect, camera) **or** a **MET action** (e.g. `grant_item` mid-scene). Stage
+  elements are addressed by a **stable element id** independent of any speaker (DLG-13).
 - **`label`** = a jump target (choices/branches address it).
 - **Background as a `command`** (not a per-line field) is what lets the scene change mid-conversation.
   Branching = `label` + `goto`. Names/text/labels are **F13 keys, never concatenated.**
 - Plain data (Dictionary array or Resource) the runtime reads and a tool emits (DLG-8).
-- **Resolution:** RESOLVED 2026-06-25q.
+- **Resolution:** RESOLVED 2026-06-25q — entries reference stage elements by stable id; layer ops are
+  commands (DLG-12).
 
 ### [DLG-3] Effect / animation taxonomy — three tiers  **[RESOLVED]**
 Effects/animations span **three scopes**, each parameterized and carrying a **playback mode**,
@@ -137,16 +142,47 @@ editor** (timeline/node, **emits the same plain data**) is pinned as the eventua
 **dialogue-specific answer to the deferred 4a–4e "GUI editor vs hand-JSON"** authoring question.
 - **Resolution:** RESOLVED 2026-06-25q — plain-data format now; dedicated editor pinned as the tool.
 
-### [DLG-9] The **"reflect effect"** — flagged design TODO  **[OPEN — by design]**
-**Side note (owner ask 2026-06-25q): design a "reflect effect" as its own pass.** It is an effect
-defined chiefly by its **interaction matrix** — *how it actually interacts with each other effect
-type* (DLG-3 A character-expression, B portrait-transforms like flip/move/scale, C scene filters like
-rain/fog/flashback-transition) **and all the edge cases** (e.g. reflect + flip, reflect + move, reflect
-under a scene filter, reflect during a flashback transition, reflect + reflect). *(Working
-interpretation: a reflection/mirror visual of a portrait or the scene — to be confirmed when designed.)*
-**Not resolved now** — recorded so it is not lost.
-- **Status:** OPEN — needs a dedicated design pass producing the reflect × {A,B,C} interaction table +
-  edge-case rules + parameters.
+### [DLG-9] The **reflect effect** — design + interaction matrix  **[RESOLVED 2026-06-25q (rotation = build-time investigate)]**
+**Walked 2026-06-25q.** Reflect = a **mirror-across-an-axis** operation with **two modes** (owner):
+- **`in_place`** — mirror the stage element across an axis **in place, no duplicate**. Primary intent:
+  **flip a character's facing** (turn to face the other way) **without a separate asset**. (Generalizes
+  DLG-3(B) `flip` to an arbitrary axis.)
+- **`copy`** — render a **mirrored duplicate** at an offset (a character looking at their reflection in
+  a mirror / pool). Original stays; the copy is a second instance.
+- **Scope:** **both per-element and scene-wide** (a per-element reflection AND a scene-wide reflective
+  plane, e.g. a wet floor mirroring the whole stage).
+- **Render: LIVE** — the reflection continuously mirrors the source's **current composited state**, so
+  expression (A), transforms (B), and scene filters (C) appear in it automatically.
+- **Parameters (full set):** axis (horizontal-below / vertical-beside / **arbitrary angle**), opacity,
+  offset/gap, distortion/ripple, fade; the reflection (copy) has **its own layer** (DLG-12, default
+  behind the source) and can itself be targeted by B transforms. **Rotation of the reflection** =
+  supported in principle via the arbitrary-angle axis + a B `rotate`; **flagged "look into" at build**
+  (perf/asset feasibility) — the one residual investigate, not a design hole.
+
+**The unifying rule that resolves the matrix — a fixed per-element pipeline, re-applied live each frame:**
+> `source asset → (A) expression → (B) transforms (flip/move/scale/rotate) → reflect (mirror ± copy) →
+> layer composite (DLG-12) → (C) scene-wide filters`
+
+**Interaction matrix (reflect × …), LIVE:**
+- **× (A) expression** — propagates automatically; the reflection shows the current expression. No
+  conflict.
+- **× (B) flip** — both are mirrors → **may cancel or compound.** `in_place` reflect across the **same
+  axis** as a `flip` = **net identity (no-op)** — define explicitly; across **different** axes = compose
+  (h-flip + v-reflect = 180° turn). This is the headline edge case.
+- **× (B) move/scale/rotate** — applied **before** reflect in the pipeline, so the reflection mirrors
+  the moved/scaled/rotated element live; a `copy` reflection's position = `mirror(source pos)` across
+  the axis, updated live.
+- **× (C) scene filters (rain/fog/flashback)** — C is scene-wide and applies **after/over** reflect, so
+  the reflection (and a scene-wide reflective plane) gets the rain/fog wash too. A scene-wide reflective
+  plane reflects the **filtered** scene (rain shows in the water — intuitive). **Edge:** during a
+  full-scene **flashback wavy-transition**, a scene-wide reflect reflects a distorting scene — **suspend
+  scene-wide reflection for the duration of a full-scene transition** (perf + visual sanity).
+- **× reflect (double-reflect)** — `in_place` across the same axis twice = identity (composes as a
+  transform); **`copy` recursion is capped at depth 1** (a reflective plane does **not** reflect another
+  reflective plane) to avoid infinite/expensive recursion.
+- **Resolution:** RESOLVED 2026-06-25q — two-mode (`in_place|copy`) live mirror, both scopes, full
+  params; the fixed pipeline-order rule + the cancellation/recursion/transition edges above resolve the
+  interaction matrix. Rotation feasibility is the only build-time investigate.
 
 ### [DLG-10] F1 / save reservations (authoring vs persisted)  **[RESOLVED — amended by DLG-11]**
 - Conversation data, effect cues, character expression/animation sets, backgrounds = **authoring, not
@@ -189,6 +225,28 @@ very well**, because entries are an **ordered, addressable list**:
   `{conversation_id, cursor}` resume; log replay-derivable (linear) or via a `visited_trail`
   (branching); last-speaker derived; requires stable entry addresses; reserves `conversation_resume`.
 
+### [DLG-12] Explicit layer / z-order system  **[RESOLVED]**
+**Owner ask (2026-06-25q):** "who stands in front of who" must be **explicit and changeable.** Every
+**stage element** (DLG-13) **and** every effect carries an **explicit layer (z-index)**; compositing
+is by that order, not by insertion/spawn order. A **`set_layer`** command (DLG-2) reorders an element
+at runtime (a character steps forward; the reflection copy sits behind by default). The background is
+the bottom layer; scene-wide (C) filters/reflective planes declare their own layer band so authors can
+place a fog/reflection above or below specific elements.
+- **Resolution:** RESOLVED 2026-06-25q — explicit per-element + per-effect z-index; `set_layer`
+  command; deterministic, author-controlled compositing.
+
+### [DLG-13] Stage / speaker decoupling — "stage elements", not "portraits"  **[RESOLVED]**
+**Owner ask (2026-06-25q):** don't tie the stage to dialogue/speakers — the system must be able to
+render an **animated entity that has no lines** (or isn't a person). So the stage holds **stage
+elements** (any animated entity, addressed by a **stable element id**); **"speaker" is a role** a
+`line` references, and a speaker *may* resolve to a stage element — but stage elements **exist
+independently** of lines. Consequences: DLG-3 effects, DLG-9 reflect, and DLG-12 layers all operate on
+**stage elements** (not "portraits"); a conversation can drive a purely visual/animated scene with zero
+`line` entries (commands only). The script-log speaker labels (DLG-6) still resolve via F13, but that is
+a *log* concern, separate from the *stage*.
+- **Resolution:** RESOLVED 2026-06-25q — stage elements (animated entities) are first-class and
+  speaker-independent; portraits are the common case, not the model.
+
 ---
 
 ## Cross-references
@@ -197,4 +255,7 @@ very well**, because entries are an **ordered, addressable list**:
   name-sub (`[MCH]`), story scenes.
 - Consumes: **F13** (`[MCH-6]` text indirection), the campaign-pack **raw-load art pipeline**, the
   **MET** `dialogue` action + `once` latch, the **F6** two-scope flag store.
-- **DLG-9 (reflect effect)** is the one OPEN item — its own design pass.
+- **DLG-9 (reflect effect)** resolved 2026-06-25q (two-mode live mirror + interaction matrix); the only
+  residual is a **build-time rotation feasibility investigate**.
+- **DLG-12/DLG-13** generalize the stage: explicit layers + speaker-independent **stage elements** (the
+  system can render animated non-speaking entities), so DLG-3/DLG-9/DLG-12 operate on stage elements.
