@@ -105,7 +105,7 @@ task (`[STM-1]`) and F14 closes trivially.
 ### Cluster F — Big standalone systems
 | Feature | Size | Needs | Status |
 |---|---|---|---|
-| Battalions / gambits (#16) | **L** | F11, action flow | **attack-side firmed 2026-06-24j** (`[STY-7]`; gambit = AoE **style** over a battalion-granted source, A1) · **battalion entity firmed 2026-06-25k** (`[BAT-1..13]`; the **attached-augment** pattern — thin entity over reused Pair-Up attach + bonus-resolver + granted-source + rank-helpers; adjutant→Pair-Up, accessory→`[IEQ]`, Emblem = maximal config) |
+| Battalions / gambits (#16) | **L** | F11, action flow | **attack-side firmed 2026-06-24j** (`[STY-7]`; gambit = AoE **style** over a battalion-granted source, A1) · **battalion entity firmed 2026-06-25k** (`[BAT-1..13]`; the **attached-augment** pattern — thin entity over reused Pair-Up attach + bonus-resolver + granted-source + rank-helpers; adjutant→Pair-Up, accessory→`[IEQ]`, Emblem = maximal config) · **content/lifecycle `[BAT-14..16]` OPEN** (bonus content, resource model, destruction + host-death disposition) → define-all sweep before F1; host-death rides the A5 death-disposition rule set |
 
 ### Cluster G — Infra / tooling / gates
 | Feature | Size | Needs | Status |
@@ -188,8 +188,11 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 > **Cluster progress / next:** **A3 design ✅** (2026-06-24f/g/h) → **A1 design ✅** (2026-06-24i…
 > 2026-06-25c; `[CEX-5..8,20..24]` + `[STY-1..17]`, only `[STY-11]`→A2) → **A2 design ✅
 > (2026-06-25k):** displacement/carry sub-cluster `[DSP-1..17]` (2026-06-25e…i), action-grant
-> sub-cluster `[AGT-1..13]` (2026-06-25j), **battalion entity `[BAT-1..13]` (2026-06-25k)** — closing
-> `[STY-11]`, the last A2 item. **Framing settled:** the battalion is **neither** merged into items
+> sub-cluster `[AGT-1..13]` (2026-06-25j), **battalion entity architecture `[BAT-1..13]` (2026-06-25k)**
+> — closing `[STY-11]`, the last A2 item. **Battalion content/lifecycle `[BAT-14..16]` re-OPENed
+> 2026-06-25m** (bonus content, resource model, destruction + host-death disposition) — persistent-state
+> details into the define-all sweep before F1; host-death rides the A5 death-disposition rule set.
+> **Framing settled:** the battalion is **neither** merged into items
 > **nor** fully bespoke — it is the canonical config of a generic **attached-augment** entity (thin
 > `BattalionData` + `BattalionRegistry` over reused Pair-Up attach + bonus-resolver + granted-source +
 > rank-helpers, `[BAT-1]`); adjutant → Pair-Up (`[BAT-8]`), accessory/bond-ring → `[IEQ]` (`[BAT-9]`),
@@ -246,7 +249,7 @@ maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]
 (full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · **per-unit equip
 history (MRU) + player source-ordering (`[CEX-22]`)** · story flags ·
 `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **the battalion attach
-+ endurance/rank state (`[BAT-11]`)** · **(if F14/`[STM]` is taken) `UnitData.extra_stats` + the
++ endurance/rank state + the `[BAT-16]` disband/exhausted + attached-vs-pooled status (`[BAT-11]`/`[BAT-16]`)** · **(if F14/`[STM]` is taken) `UnitData.extra_stats` + the
 `CampaignRules` stat registry (`[STM-3]` §3)** · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).

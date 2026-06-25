@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: RESOLVED 2026-06-25
+Status: OPEN
 Last verified: 2026-06-25
-Register: BAT-1..13
-Resolved-in: 2026-06-25k
+Register: BAT-1..16
+Resolved-in: 2026-06-25k (BAT-1..13 — entity architecture)
 ---
 
 # Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions
@@ -11,6 +11,14 @@ Resolved-in: 2026-06-25k
 **Started:** 2026-06-25 (session 2026-06-25k). The **last sub-cluster of A2** — the full battalion
 *entity* (`[STY-11]`), after displacement (`[DSP-1..17]`) and action-grant (`[AGT-1..13]`). Resolves
 `[STY-11]`, the only remaining open item in the A1 `[STY]` register. Branch `docs-reorg-2026-06-23`.
+
+**Status (2026-06-25m):** the **entity architecture `[BAT-1..13]` stays RESOLVED** (the merge-vs-bespoke
+verdict + substrate map — do not relitigate). The register is **re-OPENed** to mark **`[BAT-14..16]`** —
+the **content & lifecycle** details deliberately left under-specified at the architecture pass: the
+**bonus content** (refines `[BAT-3]`), the **resource model** — resources / use / replenishment
+(consolidates + firms the `[BAT-5]` lean), and the **destruction + host-death lifecycle** (a genuine
+gap). These are **persistent-state decisions**, so they must be defined in the define-all sweep **before
+the F1 lock** — not hand-waved at build.
 
 **Thesis.** The battalion is **not "a battalion."** It is the canonical configuration of a generic
 **attached-augment entity**: a data entity bound to a host unit through a snapshot/restore **attach
@@ -200,6 +208,66 @@ curve / EXP amounts (`[BAT-6]`), bonus tables (`[BAT-3]`), gambit charge caps (`
 Enemy battalions query the **same** capability surface (the granted gambit source, the passive bonus, the
 endurance pool); the use heuristic (when to spend a gambit charge) is detailed when the AI work picks it
 up — no separate data (mirror `[AGT-10]`/`[SMV-10]`).
+
+---
+
+## 3b. OPEN — content & lifecycle (must be defined before F1)
+The architecture (`[BAT-1..13]`) said *how* a battalion attaches and confers; it deliberately did not
+pin *what* it confers, *what resources it runs on*, or *what happens to it across the unit lifecycle*.
+These three are now marked OPEN. All persist state, so they gate the F1 lock.
+
+### [BAT-14] Bonus content & shape — **OPEN** (refines `[BAT-3]`)
+`[BAT-3]` fixed the *pipeline* (a stat dict → combat modifiers, like a Pair-Up support bonus). Still to
+define: **what** a battalion confers and on **what stat axes**.
+- **Stat set:** which stats a bonus may touch — the existing seven combat stats, derived stats
+  (Hit/Avo/Crit), and/or the future Charm/Command axes (F14 `[STM]`). Does a battalion grant *only* flat
+  stat deltas, or also derived-combat modifiers (the `[STY]`/aura-style hit/dodge/crit layer)?
+- **Conditionality:** always-on while attached vs gated (terrain, adjacency to allies, vs a unit-type —
+  the 3H "effective vs cavalry" battalion flavor). v1 lean = **always-on flat block** (the simplest,
+  reuses `[BAT-3]` unchanged); conditional bonuses ride the existing skill/`[STY]` gate vocabulary if
+  authored.
+- **Rank scaling:** how the block scales with battalion rank (`[BAT-6]`) — a per-rank table vs a
+  multiplier. Lean = a **per-rank authored block** (table), mirroring class stat-cap tables.
+- **Owner:** the battalion build; **data-def, not engine** — but the *stat axes* it may touch depend on
+  F14 `[STM]` if Charm/Command are bonus targets.
+
+### [BAT-15] Resource model — resources, use, replenishment — **OPEN** (firms the `[BAT-5]` lean)
+`[BAT-5]` set the *mechanism* (a per-battalion counter consuming the `[AGT §5]` rate-limit/charge
+primitive) and a lean (per-map pool, refill at map start). To **firm**:
+- **What resources exist:** is "endurance" a *single* pool that the gambit spends, or are **gambit
+  charges** and **endurance** two distinct resources (3H has both — charges = per-battle gambit uses,
+  endurance = a longer-horizon attrition meter)? **Decide one-pool vs two-pool.** Lean = **two named
+  resources** (`charges` = per-map gambit budget via `[AGT §5]`; `endurance` = the attrition meter that
+  drives destruction, `[BAT-16]`), so destruction is decoupled from "out of gambit charges."
+- **What spends them:** gambit use spends a charge (`[BAT-4]`); does taking the host into combat / losing
+  the host's HP / time also drain endurance? (`[BAT-16]` depends on this answer.)
+- **Replenishment:** per-map refill (lean) vs carry-over with a between-map repair step (a prep-hub /
+  convoy "resupply battalion" action, reusing `[PHB]`) vs a paid repair (gold/`[SHP]`). Lean = **charges
+  refill each map; endurance is the persistent meter** that only recovers via an authored repair action.
+- **Owner:** the battalion build; all values = `CampaignRules` defaults per `[BAT-12]`. **Save (F1):**
+  persistent `endurance` (and rank/EXP, `[BAT-11]`); transient `charges` reset per map like other
+  `[AGT §5]` counters.
+
+### [BAT-16] Lifecycle — destruction & host-death disposition — **OPEN** (genuine gap)
+Neither "can a battalion be destroyed?" nor "what happens to it when its host dies?" was covered. Both
+are **persistent-state** questions and **must** be settled before F1.
+- **Destruction:** can a battalion be permanently lost? Lean = **endurance-zero = routed**, an authored
+  `CampaignRules` choice between **`disband`** (battalion destroyed/removed from the roster pool) and
+  **`exhausted`** (survives at 0 endurance — no gambit/bonus until repaired, the softer default).
+  Routed-via-disband is the harsh/Classic option; exhausted-and-repairable is the Casual-leaning default.
+- **Host death:** when the attached unit dies, the battalion does **not** die with it by default — it
+  **detaches and returns to the unassigned battalion pool** for reassignment in prep (the battalion is an
+  authored asset, like an unequipped item returning to convoy). Author override for harsher campaigns:
+  **`lost_with_host`** (the battalion is destroyed with its commander).
+- **Reconcile with the death pipeline:** route host-death battalion disposition through the **single
+  `handle_death` hook** the **Death-inventory disposition rule set** (A5, pinned 2026-06-25h) already
+  mandates — a battalion is part of the host's "loadout disposition," a sibling case to dropped/convoyed
+  inventory and the `[DSP-5]` "death while carrying" precedent. **Do not invent a second death hook.**
+  Edge cases inherit that rule set: no convoy/pool on this map → hold; Casual/Phoenix (#12) — a returning
+  unit reclaims its battalion; simultaneous deaths — per-unit resolution.
+- **Owner:** the battalion build **+ the A5 death-disposition rule set** (host-death is a disposition
+  mode there). **Save (F1):** the battalion's `disband`/`exhausted` state and its
+  attached-vs-pooled status (extends `[BAT-11]`).
 
 ---
 

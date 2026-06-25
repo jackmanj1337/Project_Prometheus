@@ -7,6 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `BAT-1..16` | Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions | OPEN | 2026-06-25k (BAT-1..13 — entity architecture) | `registers/battalion_attached_augment_open_questions_2026-06-25.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | OPEN | campaign_save_technical_plan_2026-06-21.md | `registers/campaign_save_open_decisions_2026-06-21.md` |
 | `DSP-1..17` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | OPEN | 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin) | `registers/displacement_carry_open_questions_2026-06-25.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
@@ -15,7 +16,6 @@
 | `STM-1..5` | Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) | OPEN | — | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
-| `BAT-1..13` | Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25k | `registers/battalion_attached_augment_open_questions_2026-06-25.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
