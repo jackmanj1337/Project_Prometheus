@@ -214,6 +214,16 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     *composes* `[IEQ]`/`[CNV]` (inventory/convoy) · `[CEX-14..16]` (Key-Item locks) · #12 (Casual/Phoenix)
     · `[DSP-14]` (a trigger). **Save/F1:** if `drop_on_tile` persists, reserve a per-map dropped-item
     stash; else no new state beyond convoy.
+  - **Non-combat-action EXP / proficiency path (NEW — pinned 2026-06-25j, from `[AGT]`).** Confirm +
+    generalize a **support-action EXP rule** so non-combat actions (Reinvigorate/`[AGT]`, the `[STY]`
+    non-attack effect set) can award progression. Code-grounded: the **level-EXP plumbing exists** —
+    `Unit.add_exp()` is shared and **staff use already calls it** (`STAFF_HEAL_EXP`), so the open part is
+    an **authored EXP amount per support action** (a `SkillData`/`CampaignRules` value, not a hardcoded
+    constant). **Proficiency EXP is the gap:** `add_wexp(track,…)` is **weapon-track keyed**, so
+    non-weapon skills have no proficiency path — decide whether support actions earn skill-mastery
+    progression at all, and on what track. *Owner:* **A5** (EXP economy / Bonus-EXP #18); *composes* the
+    staff-EXP precedent. Generalize rather than special-case each action. (Detail in
+    `registers/action_grant_open_questions_2026-06-25.md` §6.)
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 

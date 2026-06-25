@@ -64,8 +64,9 @@ net-new work is only the *targeted activated skill* that triggers it for one all
 The activated/targeted skill shape (AGT-1/2/3), conferral (AGT-4), the caster-cost + refresh transition
 (AGT-5/6), the **author-tunable anti-loop & balance levers** (AGT-7, owner call — *tools, not a baked
 rule*: caps · rate-limit · resource cost · source scarcity), the composition/deferral set (AGT-8..12),
-and **targeting cardinality** — single / multi-target / self (AGT-13). Surfaced **one forward-pin**: a
-generic **action-rate-limit primitive** broader than action-grant (`§5`).
+and **targeting cardinality** — single / multi-target / self (AGT-13). Surfaced **two forward-pins**: a
+generic **action-rate-limit primitive** (`§5`) and a **non-combat-action EXP / proficiency path** (`§6`,
+→ A5).
 
 ---
 
@@ -241,7 +242,26 @@ action-flow foundation + A5 `CampaignRules`; consumed by action-grant (`[AGT-7]`
 the remaining A2 pass), and utility staves. To be firmed when the battalion entity or the foundation
 pass picks it up; reserve any persistent rate-limit counters at F1 alongside `[AGT-11]`.
 
-## 6. Reconcile-don't-relitigate
+## 6. Forward-pin — non-combat-action EXP / proficiency path (→ A5 EXP economy)
+**Confirm that non-combat support actions — Reinvigorate, and the wider `[STY]` non-attack effect set —
+have a path to award EXP.** Code-grounded state today:
+- **Level EXP plumbing exists and has precedent.** `Unit.add_exp(amount)` (`scripts/units/Unit.gd:610`)
+  is the shared level-EXP path; **staff use already calls it** (`Unit.gd:482`,
+  `add_exp(GameConstants.STAFF_HEAL_EXP)`). So a non-combat action *can* grant level EXP — what's
+  missing is an **authored EXP amount for action-grant** (and other support actions): is Dance worth
+  EXP, how much, and is it a `SkillData`/`CampaignRules` value rather than a `GameConstants` constant
+  like `STAFF_HEAL_EXP`?
+- **Proficiency EXP is the real gap.** `Unit.add_wexp(track, amount)` (`Unit.gd:1175`) is **weapon-track
+  keyed** and combat-driven (`CombatResolver`). A Dance has **no weapon track**, so non-weapon skills
+  have **no proficiency-EXP path today**. Decide whether non-weapon support actions earn any proficiency
+  / skill-mastery progression at all, and if so on what track.
+
+**Owner = A5 (EXP economy / Bonus-EXP #18 cluster)**; surfaced here because action-grant is the first
+non-combat, non-staff action to raise it. **Not owned by this register** — pinned so the A5 EXP pass
+generalizes the staff-EXP precedent into a "support-action EXP" rule (authored amount + proficiency
+decision) rather than special-casing each action. Mirror-pinned in the atlas A5 bullet.
+
+## 7. Reconcile-don't-relitigate
 - Action-grant is the **`is_self:false` branch** of the *same* `grant_extra_turn` substrate `[SMV]` uses
   — **not** a second engine. Do not build a parallel refresh subsystem.
 - Anti-loop is **author-tunable tools** (`[AGT-7]`), **not** a hardcoded "danced units can't dance" rule —
