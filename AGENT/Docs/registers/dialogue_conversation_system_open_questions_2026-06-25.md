@@ -2,15 +2,16 @@
 Type: register
 Status: RESOLVED 2026-06-25q
 Last verified: 2026-06-25
-Register: DLG-1..13
-Resolved-in: 2026-06-25q (all RESOLVED; DLG-9 reflect-effect resolved 2026-06-25q — rotation a build-time investigate)
+Register: DLG-1..14
+Resolved-in: 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate
 ---
 
 # Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions
 
 **Started:** 2026-06-25q (fleshes the F15 rough end-shape pinned in `[RCV-1]`).
-**Status:** **[DLG-1..13] RESOLVED 2026-06-25q** (incl. DLG-9 the reflect effect — walked same day;
-rotation feasibility is the one build-time investigate). Foundation **F15**.
+**Status:** **[DLG-1..14] RESOLVED** (DLG-1..13 2026-06-25q incl. reflect DLG-9; **DLG-14 branch gating
+via the shared `[REQ]`/F16 Requirement system 2026-06-25r**). Rotation feasibility = the one build-time
+investigate. Foundation **F15**.
 **Scope of this pass:** define the **end-user (viewing) shape** of a conversation, then read off the
 **data-format** and **authoring-tool** consequences (owner's stated goal). **Build is staged** (DLG-7):
 the format + renderer reserve the full vision; the first build is a slice. `[RCV-1]` pinned the rough
@@ -247,9 +248,30 @@ a *log* concern, separate from the *stage*.
 - **Resolution:** RESOLVED 2026-06-25q — stage elements (animated entities) are first-class and
   speaker-independent; portraits are the common case, not the model.
 
+### [DLG-14] Branch gating via the shared Requirement system (F16)  **[RESOLVED]**
+**Owner ask (2026-06-25r):** make branch paths available based on flags / unit ids / class level /
+proficiency / stat / skill / item-location / etc. **These are NOT dialogue-specific** → dialogue reuses
+the shared **`[REQ]` Requirement/Predicate foundation (F16)**, not a private condition language.
+- **Gating granularity (owner): option + segment + whole conversation.** A `Requirement` may gate (a) a
+  single `choice` **option**, (b) a labeled **segment**, and (c) a **whole conversation** (a
+  precondition). **Reconcile (c):** when a conversation is launched by a MET trigger, the launching
+  `condition` (now a Requirement, `[REQ-8]`) already gates eligibility — **don't duplicate**; a
+  conversation-level `requires` is the convenience for **direct** (non-MET) invocation.
+- **Subject (owner: both modes):** dialogue supplies `speaker`/`participant:<role>` as the natural
+  subjects, and also allows `unit:<id>`/`party` (`[REQ-3]`).
+- **Gated-out option UX (owner: author's choice per option):** an option is **`hidden`** (secret path)
+  **or** **`shown_disabled`** with its rendered requirement (`[REQ-5]` → "[Requires: Lockpick]") —
+  mirrors `[VIL-6]`/`[VIL-7]` transparency-vs-secrecy. Per-option.
+- **History interplay:** branch taken is recorded by the `[DLG-11]` `visited_trail` (resume) + any
+  `choice` `set_flag` to `[F6]` (persistent) — gating predicates read those plus live unit/party state.
+- **Resolution:** RESOLVED 2026-06-25r — dialogue gating = `[REQ]`/F16 Requirements at option/segment/
+  conversation scope; subject per `[REQ-3]`; gated-out = per-option hidden|shown_disabled.
+
 ---
 
 ## Cross-references
+- **Branch gating** (`[DLG-14]`) consumes the shared **`[REQ]` Requirement system (F16)** — flags, unit
+  id, class/proficiency/stat level, skill/trait, item held/equipped/convoy.
 - Supersedes the rough F15 end-shape in **`[RCV-1]`** (which now points here); shared consumers:
   recruit (`[RCV]`), village (`[VIL-4]`), support (`[REL-6]` `unlock_conversation`), main-character
   name-sub (`[MCH]`), story scenes.

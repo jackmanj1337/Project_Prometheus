@@ -20,7 +20,7 @@
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
-| `DLG-1..13` | Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions | RESOLVED | 2026-06-25q (all RESOLVED; DLG-9 reflect-effect resolved 2026-06-25q — rotation a build-time investigate) | `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
+| `DLG-1..14` | Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions | RESOLVED | 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate | `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
 | `DTR-1..8` | Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/destructible_terrain_open_questions_2026-06-21.md` |
 | `EQP-1..5` | Equip Items / Accessories Firming (#3) — Player-Facing Design + Open Questions | SUPERSEDED | — | `registers/equip_items_open_questions_2026-06-23.md` |
@@ -38,6 +38,7 @@
 | `RCR-1..7` | Recruit / Capture (#4) — Roster-Side Design + Open Questions | RESOLVED | 2026-06-24h | `registers/recruit_capture_open_questions_2026-06-24.md` |
 | `RCV-1..6` | Recruit Conversation Side (#4 ⇄ A3, A4) + the shared Dialogue-System foundation (F15) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25o | `registers/recruit_conversation_dialogue_open_questions_2026-06-25.md` |
 | `REL-1..9` | Relationship System (#5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24f | `registers/relationship_system_open_questions_2026-06-24.md` |
+| `REQ-1..8` | Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25r (author-extension registry detail rides F4 / the define-all sweep) | `registers/requirement_predicate_system_open_questions_2026-06-25.md` |
 | `SHP-1..5` | Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/shop_economy_open_questions_2026-06-23.md` |
 | `SKL-1..6` | Skill Model Expansion — Personal / Class-Level / Granted Skills — Player-Facing Design | RESOLVED | 2026-06-23l | `registers/skill_model_open_questions_2026-06-23.md` |
 | `SMV-1..11` | Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24a | `registers/secondary_movement_open_questions_2026-06-24.md` |
