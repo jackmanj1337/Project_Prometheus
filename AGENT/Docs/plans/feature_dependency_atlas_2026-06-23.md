@@ -37,14 +37,18 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
 | F13 | **Text indirection / localization-ready string layer** (`[MCH-6]`) | ❌ not built | F1 | dialogue, avatar/main-character names, relationship & recruit conversations, all UI text | ✅ **decided 2026-06-24g: ID-keyed templates + `unit_id` name lookup, no concatenation; Godot `tr()` when localized; convention now, multi-locale build deferred** |
 | F14 | **Author-extensible stat model** (`[STM]`) | ❌ not built | F1, F4 | a Charisma/Charm stat, a Command/Authority proficiency for battalions (`[BAT-6]`/`[STM-2]`), author-defined campaign stats (legacy base stats kept) | 🔶 **NEWLY SURFACED 2026-06-25l — NOT yet firmed.** Direction: *evolution not rewrite* — the read path is already string-keyed + growths/caps are dicts, so add an `extra_stats` dict + a `CampaignRules` stat registry + a `get_effective_stat` fallback and de-hardcode the ~5 stat-list literals. **Ratify at the define-all sweep.** Plan in `registers/extensible_stat_model_open_questions_2026-06-25.md` |
+| F15 | **Dialogue / Conversation system** (`[RCV-1]`) | ❌ not built | F13, F8 | recruit conversations (`[RCV]`), village dialogue (`[VIL-4]`), support conversations (`[REL-6]`), main-character name-sub (`[MCH]`), story scenes | 🔶 **NEWLY SURFACED 2026-06-25o — rough end-shape pinned, NOT fully firmed.** A conversation = an id-referenced ordered list of forward-compatible entries (`line` v1 \| `choice` reserved \| `command` reserved); `line` = {speaker, F13 text-key, portrait/expression}; played by a `dialogue` MET action. **Data format + action hook committed now; presentation deferred; choice/command reserved so v1 line-only data won't be replaced.** Realizes F13's deferred dialogue-data format. **Ratify the v1 schema at the define-all sweep.** Plan in `registers/recruit_conversation_dialogue_open_questions_2026-06-25.md` |
 
 **Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**,
 **F10 decided 2026-06-24a**, **F13 decided 2026-06-24g** → **F1–F13 all have decided end-shapes; only
-F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build. **F14 (stat model) is
-NEWLY SURFACED 2026-06-25l and is the one foundation without a ratified end-shape** — it must be decided
-in the define-all sweep before F1 locks (it adds the `extra_stats` + stat-registry save surface). It is
-**optional**: if author-defined stats are not wanted, it degrades to the bounded "add one Charisma stat"
-task (`[STM-1]`) and F14 closes trivially.
+F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build. **Two foundations
+carry only rough/not-fully-firmed end-shapes, both to be ratified in the define-all sweep before F1
+locks:** **F14 (stat model**, surfaced 2026-06-25l — adds the `extra_stats` + stat-registry save
+surface; **optional**, degrades to the bounded "add one Charisma stat" `[STM-1]`) and **F15
+(dialogue/conversation**, surfaced 2026-06-25o — the data format + `dialogue` action hook; presentation
+build deferred, `choice`/`command` entries reserved so v1 line-only data survives). Both are
+forward-compatible foundations whose *hooks* are committed now and whose v1 schema is ratified at the
+sweep.
 
 ---
 
@@ -96,7 +100,7 @@ task (`[STM-1]`) and F14 closes trivially.
 ### Cluster E — Roster / progression / campaign flow  (F1·F6)
 | Feature | Size | Needs | Status |
 |---|---|---|---|
-| Recruit / Capture (#4/F) | **L** | F6,F8 | roster side firmed 2026-06-24h `[RCR]` (capture-carry → A2, conversation → A4) |
+| Recruit / Capture (#4/F) | **L** | F6,F8 | roster side firmed 2026-06-24h `[RCR]`; **conversation side firmed 2026-06-25o `[RCV]`** (`talk`=a `[VIL-2]` config · trigger-agnostic `recruit` action · author-choice directionality · damage-forfeit=author-condition · pins dialogue F15); capture-carry → A2 |
 | Support system (#5/H2) | **XL** | F1 | GAP |
 | Avatar / My Unit (#20) | **L** | F1 (roster/save/story cascade), F13 | firmed 2026-06-24g `[MCH]` |
 | Difficulty modes + Casual/Phoenix (#12) | **M** | F4 | Tier1 |
@@ -200,10 +204,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 > the loadout cap + the `[AGT §6]` non-combat-action EXP pin, now also pricing battalion-EXP `[BAT-6]`)
 > → **F1 schema-lock (Phase B).**
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11
-  — **firmed 2026-06-25n `[VIL-1..8]`**) · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a
-  `[MET]` action that sets a faction relationship + AI "provoke" transitions** (`[STY-17]` dynamic
-  neutral→hostile; pinned 2026-06-25c). *Why sync:* same trigger+flag plumbing; Recruit straddles
-  roster (A3) and events (A4).
+  — **firmed 2026-06-25n `[VIL-1..8]`**) · Recruit/Capture conversation+flag side (#4 ⇄ A3 — **firmed
+  2026-06-25o `[RCV-1..6]`**) · **a `[MET]` action that sets a faction relationship + AI "provoke"
+  transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c). *Why sync:* same trigger+flag
+  plumbing; Recruit straddles roster (A3) and events (A4).
   > **A4 keystone (2026-06-25n):** the Village walk pinned the shared **interactive-trigger
   > substrate** `[VIL-2]` — a *player-initiated* MET trigger fired from a `TileActions`/action-menu
   > entry (sibling to Seize/Escape). **Visit + Recruit `talk` (`[RCR-3]`) + reserved `shop`/`activate`
@@ -213,6 +217,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > hostile-to-player presence; escape/story-removal = author `pass|fail`) — a **forward-pin to the
   > objective system**, co-owning the A5 death/removal-disposition path and absorbing the `[DSP]`
   > Capture-victory pin.
+  > **A4 recruit side (2026-06-25o, `[RCV-1..6]`):** `talk` = a `[VIL-2]` config; the `recruit` action
+  > is **trigger-agnostic** (talk/village/turn/flag) over the `[RCR-3]` API; directionality = author's
+  > choice (`directed | symmetric`); damage-forfeit = author-composed condition, no engine rule. The
+  > walk pinned **dialogue as new foundation F15** (rough end-shape: a conversation = id-referenced
+  > `line`/reserved-`choice`/reserved-`command` entries played by a `dialogue` MET action; data format
+  > + hook now, presentation deferred) — shared by recruit/village/support/MCH/story.
 - **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
   death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
   (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
