@@ -206,8 +206,8 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11
   — **firmed 2026-06-25n `[VIL-1..8]`**) · Recruit/Capture conversation+flag side (#4 ⇄ A3 — **firmed
   2026-06-25o `[RCV-1..6]`**) · **a `[MET]` action that sets a faction relationship + AI "provoke"
-  transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c). *Why sync:* same trigger+flag
-  plumbing; Recruit straddles roster (A3) and events (A4).
+  transitions** (`[STY-17]` dynamic neutral→hostile — **firmed 2026-06-25p `[PRV-1..7]`**). *Why sync:*
+  same trigger+flag plumbing; Recruit straddles roster (A3) and events (A4).
   > **A4 keystone (2026-06-25n):** the Village walk pinned the shared **interactive-trigger
   > substrate** `[VIL-2]` — a *player-initiated* MET trigger fired from a `TileActions`/action-menu
   > entry (sibling to Seize/Escape). **Visit + Recruit `talk` (`[RCR-3]`) + reserved `shop`/`activate`
@@ -223,6 +223,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > walk pinned **dialogue as new foundation F15** (rough end-shape: a conversation = id-referenced
   > `line`/reserved-`choice`/reserved-`command` entries played by a `dialogue` MET action; data format
   > + hook now, presentation deferred) — shared by recruit/village/support/MCH/story.
+  > **A4 provoke side (2026-06-25p, `[PRV-1..7]`):** one `set_relationship(from,to,stance,scope)`
+  > primitive over the `[STY-17]`-reserved store; the **`set_relationship` MET action** + a reactive
+  > **`provoke_on_attacked`** stance flag are its two callers (not two systems). Store = **two layers**
+  > (faction-pair edges + per-unit overrides) × **two scopes** (map default + campaign). Full 3-state
+  > set (provoke/make-peace/ally-mid-battle); counter-regardless-of-stance kept; AI reads fresh per
+  > activation. Distinct from `[RCR-1]` recruit `team` flip. AI initiate behavior firms with the AI pass.
 - **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
   death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
   (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
@@ -266,7 +272,7 @@ reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CE
 maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** ·
 **learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
 **captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
-(full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · **per-unit equip
+(full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`/`[PRV-6]` — two layers: faction-pair edges + per-unit overrides; two scopes: map + campaign)** · **per-unit equip
 history (MRU) + player source-ordering (`[CEX-22]`)** · story flags ·
 `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **the battalion attach
 + endurance/rank state + the `[BAT-16]` disband/exhausted + attached-vs-pooled status (`[BAT-11]`/`[BAT-16]`)** · **(if F14/`[STM]` is taken) `UnitData.extra_stats` + the
