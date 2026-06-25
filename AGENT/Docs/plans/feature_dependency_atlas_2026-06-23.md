@@ -213,7 +213,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > **A4 keystone (2026-06-25n):** the Village walk pinned the shared **interactive-trigger
   > substrate** `[VIL-2]` — a *player-initiated* MET trigger fired from a `TileActions`/action-menu
   > entry (sibling to Seize/Escape). **Visit + Recruit `talk` (`[RCR-3]`) + reserved `shop`/`activate`
-  > are its configs** — Recruit's conversation side reuses it, doesn't re-invent. Also pinned: the
+  > are its configs.** **UNSCHEDULED GAP (noted 2026-06-25q):** the **`shop` + `activate` interactive-
+  > trigger configs** (the on-map *mechanic* for the `[SHP-4b]` battlefield-shop — economic rule already
+  > firmed — + a generic `activate` for levers/switches, partly overlapping `[DCH]` doors/chests) are
+  > **NOT yet walked**; a **small dedicated pass** (each is just another `[VIL-2]` config), best folded
+  > into **A5** (economy) or a short interactive-trigger-configs mini-walk. Recruit's conversation side
+  > reuses the substrate, doesn't re-invent. Also pinned: the
   > `TileActions` **discovery-list + required-characteristics + author-hideable (secret)** extension
   > `[VIL-6/7]`, and the **objective removal-disposition rule** `[VIL-8]` (Rout/Eliminate key on
   > hostile-to-player presence; escape/story-removal = author `pass|fail`) — a **forward-pin to the

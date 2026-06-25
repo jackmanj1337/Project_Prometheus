@@ -2,15 +2,15 @@
 Type: register
 Status: OPEN 2026-06-25q
 Last verified: 2026-06-25
-Register: DLG-1..10
-Resolved-in: 2026-06-25q (DLG-1..8,10 RESOLVED; DLG-9 reflect-effect OPEN by design)
+Register: DLG-1..11
+Resolved-in: 2026-06-25q (DLG-1..8,10,11 RESOLVED; DLG-9 reflect-effect OPEN by design)
 ---
 
 # Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions
 
 **Started:** 2026-06-25q (fleshes the F15 rough end-shape pinned in `[RCV-1]`).
-**Status:** **[DLG-1..8,10] RESOLVED 2026-06-25q**; **[DLG-9] (the "reflect effect") OPEN by design** —
-the owner asked to *flag* it for its own design pass, not resolve it now. Foundation **F15**.
+**Status:** **[DLG-1..8,10,11] RESOLVED 2026-06-25q**; **[DLG-9] (the "reflect effect") OPEN by
+design** — the owner asked to *flag* it for its own design pass, not resolve it now. Foundation **F15**.
 **Scope of this pass:** define the **end-user (viewing) shape** of a conversation, then read off the
 **data-format** and **authoring-tool** consequences (owner's stated goal). **Build is staged** (DLG-7):
 the format + renderer reserve the full vision; the first build is a slice. `[RCV-1]` pinned the rough
@@ -148,14 +148,46 @@ interpretation: a reflection/mirror visual of a portrait or the scene — to be 
 - **Status:** OPEN — needs a dedicated design pass producing the reflect × {A,B,C} interaction table +
   edge-case rules + parameters.
 
-### [DLG-10] F1 / save reservations  **[RESOLVED]**
+### [DLG-10] F1 / save reservations (authoring vs persisted)  **[RESOLVED — amended by DLG-11]**
 - Conversation data, effect cues, character expression/animation sets, backgrounds = **authoring, not
   saved.** Player pacing preference = **settings**, not save.
 - **Branch state persists via F6 flags** (DLG-5) — already reserved. One-time conversations played as a
   `once:true` MET event action ride `map_events_fired` (`[MET-5]`); reserve `conversations_seen` only
   if conversations become directly invokable outside an event latch (the `[RCV-6]` flag, unchanged).
-- **No new save field** beyond the F6/MET reservations.
-- **Resolution:** RESOLVED 2026-06-25q.
+- **For an atomic (run-to-completion) conversation, no new save field is needed.** **Mid-conversation
+  suspend is a separate reservation — see [DLG-11].** (This item originally claimed "no new save field";
+  DLG-11 amends it for the suspend-mid-conversation case.)
+- **Resolution:** RESOLVED 2026-06-25q — atomic playback needs no new field; mid-conversation → DLG-11.
+
+### [DLG-11] Mid-conversation save / "between speaker" suspend  **[RESOLVED]**
+**Owner ask (2026-06-25q):** support suspending **mid-conversation** ("between speaker" saves) — track
+the conversation history + who last finished a line. **The entry-list format (DLG-2) supports this
+very well**, because entries are an **ordered, addressable list**:
+- **Save granularity = entry boundaries ("between speaker")** — a save point sits **after a `line`
+  entry completes, before the next entry begins** (owner's framing). **No mid-typewriter state** is
+  ever serialized (no character-position cursor, no in-flight tween) — the renderer resumes by
+  re-presenting the current line settled.
+- **Resume state is tiny:** `conversation_resume = { conversation_id, cursor }`, where `cursor` is the
+  **stable entry id / index** of the resume point. **"Who last finished their line" is DERIVED**
+  (`entries[cursor].speaker`) — not stored separately.
+- **Chat-log history:**
+  - **Linear conversation** → the log is **replay-derivable** from the immutable authored `entries`
+    up to `cursor` (the prefix `entries[0..cursor]` filtered to `line`s). **Nothing to store.**
+  - **Branching conversation** (DLG-5 `choice`/`goto`) → the traversed path is **not** a simple
+    prefix, so persist a **`visited_trail`** = the ordered list of entry ids actually shown. It both
+    reconstructs the log AND records which branch was taken. Branch-set flags also persist in F6
+    (redundant safety / for cross-conversation reads).
+- **Format constraint this imposes:** entries need **stable addresses** (a stable id or a stable
+  authored index) so a `cursor`/`visited_trail` survives — a small requirement the DLG-8 editor honors.
+- **Ties:** this is a **suspend-save** concern (L1 `SaveManager`/`SaveData` + the `[MET-8]` deferred
+  runner — a playing `dialogue` action becomes part of the suspend snapshot). A mid-conversation
+  **hard save** (not just suspend) is allowed by the same state; whether the campaign *permits* saving
+  mid-conversation is a campaign-rules policy, not a format limit.
+- **F1 reservation (supersedes DLG-10's "no new field"):** a `conversation_resume` block in the
+  suspend/save snapshot = `{ conversation_id, cursor, visited_trail? }`.
+- **Resolution:** RESOLVED 2026-06-25q — entry-boundary ("between speaker") granularity; tiny
+  `{conversation_id, cursor}` resume; log replay-derivable (linear) or via a `visited_trail`
+  (branching); last-speaker derived; requires stable entry addresses; reserves `conversation_resume`.
 
 ---
 
