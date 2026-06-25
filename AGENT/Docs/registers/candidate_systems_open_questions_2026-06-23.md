@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: RESOLVED
-Last verified: 2026-06-24
+Last verified: 2026-06-25
 Register: CEX-1..23
 Resolved-in: 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i
 ---
@@ -201,14 +201,26 @@ enemy-phase counter and the unit's next own turn). **Priority order:** among sou
 (durability / charges / pool satisfied) → inventory slot order, then granted-list order; a **universal
 infinite source (fists, if the campaign defines one) is the guaranteed floor**. If nothing is usable
 AND no universal floor exists → **counter with nothing**. `can_counterattack` then evaluates range as
-today against the resolved source. **Scope note:** the fallback is single-source (it does not pick the
-in-range source among several usable ones) — range-aware/combo counter selection is part of `[CEX-23]`
-and **deferred with it**.
-> ⚠️ **REVISIT BEFORE A1 CLOSES.** The priority *order* (inventory-slot → granted → fists floor) is a
-> provisional first cut. It must be re-validated against the combat-arts (#15) and gambit (#16) designs
-> — once maneuvers/AoE can be the equipped "source", the fallback should not silently swap away from a
-> player's intended art, and "highest-priority usable" may want to weigh range/Mt, not just slot order.
-> Tracked in the atlas A1 exit checklist.
+today against the resolved source.
+>
+> **REVISITED & REFINED 2026-06-25 (marker cleared).** Re-validated against the finished `[STY]` model.
+> Two findings reshaped it: (a) **styles never fire on counters** (they are per-attack + `player_activated`,
+> `[STY-2]`/`[STY-8]`) — a counter is always `equipped_source` + null style, so the fallback only needs a
+> usable **source**, not a style; (b) the flat "inventory-slot → granted" order is replaced by a
+> **player-driven order + equip history**. The refined model (designer call):
+> - **Persistent auto-equip stays** (FE-style: the swap sticks for both the counter and the next own turn).
+> - **Fallback order = a player-orderable source priority**, falling *through* sources that are listed
+>   but currently unavailable (greyed, not removed). Default ordering = **most-recently-equipped still-
+>   usable source** (an **equip history / MRU** per unit); the player's explicit ordering overrides MRU;
+>   a universal infinite **fists** floor is last; nothing usable + no floor → **counter with nothing**.
+> - **Not range-aware by default** — the picked source may be out of range and thus **deny a counter**
+>   (an intentional build consideration, not a bug).
+> - **Opt-in skill = range-aware fallback:** a skill makes the resolver auto-select the highest-priority
+>   (most-recent) source that *would permit a counter* (usable **AND** in range). Build content (GDD_05);
+>   a passive flag the fallback resolver reads. Supersedes the old `[CEX-23]`-deferred range note for the
+>   counter case.
+> - **Save (F1):** reserve a per-unit **equip history (MRU)** + the **player source-ordering** (new
+>   runtime/persistent state beyond `equipped_source`).
 
 ### [CEX-23] Rework attack-selection + target-acquisition for source/maneuver combinations  **[RESOLVED]**
 The current "equip a weapon, then **Attack → pick target**" flow assumes a single fixed source.

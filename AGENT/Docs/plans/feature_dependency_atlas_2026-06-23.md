@@ -153,9 +153,11 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   closes the deferred `[CEX-23]`.
   **A1 DESIGN COMPLETE 2026-06-24n** (`[STY-1..17]` all resolved bar `[STY-11]` battalion-entity → A2;
   player flow + authoring surface in `design/source_style_player_and_authoring_2026-06-24.md`).
-  - **A1 BUILD checklist (must clear before A1 closes):** (1) **revisit the `[CEX-22]` auto-equip
-    fallback priority** — re-validate the order against the #15/#16 designs (don't auto-swap away from
-    an intended art/style; maybe weigh range/Mt, not just slot order); (2) build the `[STY]` source+style
+  - **A1 BUILD checklist (must clear before A1 closes):** (1) build the `[CEX-22]` auto-equip fallback
+    **(revisited & firmed 2026-06-25):** persistent swap; **player-orderable source priority + equip
+    history (MRU)** falling through unavailable sources; not range-aware by default; an **opt-in skill**
+    makes it range-aware (picks the highest-priority source that permits a counter); reserve MRU +
+    ordering in F1; (2) build the `[STY]` source+style
     pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`);
     (3) build AoE/multi-target (`[STY-9]`: shapes incl. `rectangle`; friendly-fire = broad filter) + the
     generalized "effect forecast" preview (`[STY-10]`: one panel, footprint + focused-target cycle);
@@ -191,7 +193,8 @@ reserves a complete schema): proficiency_xp · equipped-**source** pointer (`[CE
 maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]`/`[CEX-20]`)** ·
 **learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
 **captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
-(full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · story flags ·
+(full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · **per-unit equip
+history (MRU) + player source-ordering (`[CEX-22]`)** · story flags ·
 `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **plus every field
 Phase A surfaces.**
 
