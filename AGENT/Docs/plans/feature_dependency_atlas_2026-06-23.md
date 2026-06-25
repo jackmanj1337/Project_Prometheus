@@ -157,7 +157,9 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     **(revisited & firmed 2026-06-25):** persistent swap; **player-orderable source priority + equip
     history (MRU)** falling through unavailable sources; not range-aware by default; an **opt-in skill**
     makes it range-aware (picks the highest-priority source that permits a counter); reserve MRU +
-    ordering in F1; (2) build the `[STY]` source+style
+    ordering in F1. Two **universal built-in sources**: `fists` (infinite 0-Mt floor that *can* fight) +
+    `no_attack` (`[CEX-24]`, mandatory "Restrain" floor that *can't* initiate/counter, defaults to queue
+    bottom); (2) build the `[STY]` source+style
     pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`);
     (3) build AoE/multi-target (`[STY-9]`: shapes incl. `rectangle`; friendly-fire = broad filter) + the
     generalized "effect forecast" preview (`[STY-10]`: one panel, footprint + focused-target cycle);

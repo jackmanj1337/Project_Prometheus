@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED
 Last verified: 2026-06-25
-Register: CEX-1..23
-Resolved-in: 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i
+Register: CEX-1..24
+Resolved-in: 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25
 ---
 
 # Candidate Systems — Player-Interaction Open Questions
@@ -241,6 +241,25 @@ largest UX/structural fork in the cluster, so deferring it keeps the F1 schema-l
 > **Now owned by the `[STY]` register (2026-06-24j).** The "maneuver" became the **style** half of the
 > **source + style** model; combat arts, gambits, and non-lethal capture are all styles over the
 > CEX-20 source. This resolution's "optional maneuver/art id" = a `style_id`. Design lives in `[STY]`.
+
+### [CEX-24] Universal `no_attack` source — a mandatory "won't fight" floor  **[RESOLVED 2026-06-25]**
+The **inverse of `fists`** (`[CEX-20]`): an infinite, never-breaking source whose **effect set is empty**
+so it **cannot initiate AND cannot counter**. Equipping it (or letting the auto-equip fall to it) makes a
+unit **hold its hand** — the headline use is **not killing a weak recruitable on your own counterattack**
+(an alternative to the `[STY-6]` non-lethal capture style: don't strike back at all).
+- **Mandatory & universal:** present in **every** unit's known attack sources — a built-in granted row
+  on all units (recomputed like `class_innate`, **not saved**, **not removable**). Player-facing label is
+  author-skinnable (default **"Restrain"**); internal id `no_attack`.
+- **Behavior when it is the resolved `equipped_source`:** the **Attack** action is unavailable and
+  `can_counterattack()` returns **false**. Other actions (Staff/Use, Item) are unaffected — equipping
+  `no_attack` blocks *attacks*, not the whole turn. It takes **no styles** (`[STY]`).
+- **In the `[CEX-22]` fallback queue:** it is a valid **equip target** and a valid **queue entry**, but
+  **defaults to the BOTTOM** (below `fists`) so a breaking weapon never makes a unit accidentally
+  pacifist; the player promotes it (or equips it directly) to opt into "stop fighting." Choosing it as
+  the floor makes "**counter with nothing**" (`[CEX-22]`) an *explicit, equippable* state rather than the
+  mere absence of a usable source.
+- **Save (F1):** none new (universal built-in; the `equipped_source` pointer + `[CEX-22]` MRU/ordering
+  already reserved can reference it).
 
 ## C. Author-flexible weapon triangle — **RESOLVED 2026-06-24b (rides F4; conditions slice after F5)**
 

@@ -14,7 +14,7 @@
 | `STY-1..17` | Source + Style — Unified Combat-Action Model (combat arts · gambits · capture) | OPEN | 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n | `registers/source_style_combat_model_2026-06-24.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
-| `CEX-1..23` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i | `registers/candidate_systems_open_questions_2026-06-23.md` |
+| `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
