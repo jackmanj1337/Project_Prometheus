@@ -286,7 +286,8 @@ maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]
 **learned/equipped styles + the optional `style_id` attack half + per-style charge state (`[STY]`)** ·
 **captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
 (full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`/`[PRV-6]` — two layers: faction-pair edges + per-unit overrides; two scopes: map + campaign)** · **per-unit equip
-history (MRU) + player source-ordering (`[CEX-22]`)** · story flags ·
+history (MRU) + player source-ordering (`[CEX-22]`)** · **mid-conversation resume
+`conversation_resume = {conversation_id, cursor, visited_trail?}` for "between speaker" suspend (`[DLG-11]`; dialogue branch state otherwise rides F6)** · story flags ·
 `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **the battalion attach
 + endurance/rank state + the `[BAT-16]` disband/exhausted + attached-vs-pooled status (`[BAT-11]`/`[BAT-16]`)** · **(if F14/`[STM]` is taken) `UnitData.extra_stats` + the
 `CampaignRules` stat registry (`[STM-3]` §3)** · **plus every field Phase A surfaces.**
