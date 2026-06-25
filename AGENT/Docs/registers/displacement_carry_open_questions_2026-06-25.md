@@ -2,8 +2,8 @@
 Type: register
 Status: OPEN
 Last verified: 2026-06-25
-Register: DSP-1..11
-Resolved-in: 2026-06-25e (DSP-1..5,7 resolved; DSP-6,8,9,10 leans; DSP-11 reserve)
+Register: DSP-1..16
+Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16 cross-cutting non-standard-movement ruleset)
 ---
 
 # Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot)
@@ -41,9 +41,16 @@ plumbing rather than inventing new occupancy state.
   gate}`** axis and the **source `effects` set**; DSP-7 adds a **`displace`** effect kind onto it.
 
 ## 2. What this pass produced
-The shared occupancy primitive (DSP-1/2), the rescue/pair-up relationship + carry gating (DSP-3/4), the
-capture-carry deltas (DSP-5), the push family as a `displace` **effect kind** layerable into sources/
-styles **and** exposed as standalone skill-actions (DSP-7), and the remaining detail leans (DSP-6,8–11).
+**Session 2026-06-25e** — the shared occupancy primitive (DSP-1/2), the rescue/pair-up relationship +
+carry gating (DSP-3/4), the capture-carry deltas (DSP-5), and the push family as a `displace` **effect
+kind** layerable into sources/styles **and** exposed as standalone skill-actions (DSP-7), plus detail
+leans (DSP-6/9/11).
+**Session 2026-06-25f** — the **cross-cutting non-standard-movement ruleset** (DSP-12..16) that *all*
+position-changes-outside-the-move-action obey: off-turn/reactive timing (DSP-12), the composable
+resistance pipeline (DSP-13), the author-selectable invalid-destination outcome set (DSP-14), the six
+framework invariants (DSP-15), and the preview/RNG surface (DSP-16). This generalized the old DSP-8/10
+leans (now subsumed). Player flow + author levers illustrated in
+`design/nonstandard_movement_and_displacement_2026-06-25.md`.
 
 ---
 
@@ -112,10 +119,10 @@ window** so a carrier can move-then-drop. **Give/Take** handoff between two adja
 supported (FE Rescue→Take→Drop chain). Drop range / whether you may drop onto your own vacated tile →
 build detail.
 
-### [DSP-8] Push collision = blocked, no chain v1 — **[LEAN]**
-A `displace` whose destination is impassable or occupied **fails** (the action/effect is not offered, or
-the displace component no-ops while the rest of the attack resolves). **No chain-collision or
-collision-damage v1** (matches FE). Collision damage = a later growth on the `displace` payload.
+### [DSP-8] Push collision — **[SUPERSEDED by `[DSP-14]`]**
+The "blocked, no chain" lean is **subsumed** by the author-composable destination-handling set in
+`[DSP-14]`: `fail` is the v1 default (matches the old lean), with `collision_damage` / `chain_push` /
+`force_onto_invalid` reserved as opt-in author outcomes.
 
 ### [DSP-9] Action economy × F10 — **[LEAN]**
 A standalone carry-pickup, a drop, and a standalone push skill **each cost the unit's action** (like an
@@ -123,12 +130,66 @@ attack). When `displace` is an **attack effect** it rides the parent attack's ac
 consistent with `[STY-8]` "a style is the attack." The F10 second-move window opens per the acting
 skill's `secondary_move_actions` config — same rule as `[SMV]`.
 
-### [DSP-10] Forced-move landing effects — **[LEAN]**
-Landing-tile **terrain/trap** effects apply to a displaced or dropped unit (so shoving an enemy onto a
-hazard is a real tactic). **ZoC / attack-of-opportunity** on forced movement is **deferred** (no ZoC in
-the engine yet).
+### [DSP-10] Forced-move landing effects — **[SUBSUMED by `[DSP-15]` inv. 4]**
+Landing-tile terrain/trap effects apply to a displaced/dropped unit — generalized by the **"forced
+entry == normal entry"** invariant (`[DSP-15]` #4): a unit arriving by force obeys exactly the tile
+rules a walking unit would, including that **action-gated objectives (Seize/Escape) do NOT auto-fire**.
+**ZoC / attack-of-opportunity** on forced movement stays **deferred** (no ZoC in the engine yet; when
+built, forced movement ignores ZoC).
 
-## 5. Save / F1 reservations  *(reserve at the Phase-B lock)*
+## 5. Cross-cutting non-standard-movement ruleset (DSP-12..16) — **RESOLVED 2026-06-25f**
+These rulings govern **every** position change outside the regular move action — DSP `displace`/carry,
+the `[STY]` `teleport`/`fetch` staff effects, and environmental/event movers — so they share one
+framework. Player-facing flow + worked edge cases + the author-lever catalog are illustrated in
+`design/nonstandard_movement_and_displacement_2026-06-25.md` (navigation, not a second spec).
+
+### [DSP-12] Off-turn / reactive displacement — **RESOLVED**
+(owner 2026-06-25f) Displacement **may fire on any phase** — an enemy gambit shoves you on enemy phase;
+an on-hit knockback fires even on a counter; a reaction skill may shove the attacker. But it **never
+interrupts an in-progress exchange**: off-turn displace resolves as a **post-resolution consequence**,
+never cancelling an attack or denying a counter mid-exchange (the combat exchange stays atomic).
+Eligibility to fire off-turn is an **author flag per source/skill**. Consistent with `displace` being a
+source on-hit effect (`[DSP-7]`).
+
+### [DSP-13] Resistance pipeline — composable, staged — **RESOLVED**
+(owner 2026-06-25f) Whether a target is moved runs through up to **three author-composable stages**
+(any subset; none → always moves):
+1. **`immobile` tag** (immune) + a per-effect **`ignores_immobile`** bypass — binary, deterministic.
+2. **Static stat contest** — `potency` vs the target's weight/Con; deterministic. May **block** or
+   (build-option) **reduce distance** (a heavy unit gets shoved 1 instead of 2).
+3. **To-hit accuracy** — an optional displacement **accuracy %** that can miss like an attack; the
+   **only stochastic stage** → rides **`RngService`** + reuses the combat hit calc.
+**Build staging:** v1 ships **stage 1 only** (binary, deterministic); stages 2–3 reserved as author
+levers (stage 3 is the only one that adds an RNG path). Rides **F5** for the `immobile` condition/tag.
+
+### [DSP-14] Invalid-destination handling — non-exclusive author outcome set — **RESOLVED**
+(owner 2026-06-25f) When a computed destination is occupied/impassable/off-map, the author selects a
+**non-exclusive set** of outcomes for that displacement source:
+- **`fail`** — no move (v1 default; supersedes the old `[DSP-8]` lean).
+- **`collision_damage`** — damage scaled by target **terrain hardness / occupant**.
+- **`chain_push`** — the blocking unit is displaced too (cascade).
+- **`force_onto_invalid`** — place the unit on **normally-illegal terrain** (the sanctioned override of
+  `[DSP-15]` inv. 3 — e.g. knock a foot unit into deep water → stranded + subject to that tile's
+  on-entry effects). This is the deliberate environmental-kill / ring-out lever.
+**Build staging:** v1 ships **`fail`** only; the other three reserved as opt-in author outcomes.
+
+### [DSP-15] Framework invariants — **RESOLVED**
+The shared contract every non-standard position change obeys: (1) **atomic & discrete** (between
+actions, never mid-path); (2) **action-economy neutral** (neither spends nor restores the moved unit's
+action — the engine's *teleported-but-still-READY* state; carried unit costs nothing); (3) **destination
+default-valid for the moved unit, author-overridable** only via `[DSP-14]` `force_onto_invalid`;
+(4) **forced entry == normal entry** for tile consequences (on-entry terrain applies; action-gated
+Seize/Escape never auto-fire); (5) **phase-agnostic mechanic**, off-turn invocation author-gated and
+non-interrupting (`[DSP-12]`); (6) **undo parity** (own pre-confirm displacement undoes like a move; an
+opponent's forced movement of your units does not).
+
+### [DSP-16] Preview & RNG surface — **RESOLVED (lean)**
+The **effect-forecast preview** (`[STY-10]`) shows a `displace`'s outcome like any effect: the
+destination/footprint, plus — when configured — the **resistance result** (immune / stat-contest
+outcome) and the **accuracy %** (`[DSP-13]` stage 3). Determinism: stages 1–2 are pure; only the
+accuracy roll consumes `RngService`, so most displacement is replay-deterministic without an RNG draw.
+
+## 6. Save / F1 reservations  *(reserve at the Phase-B lock)*
 ### [DSP-11] — **[RESERVE]**
 - **`carrier_id` / `carried_id` pointer pair** per unit (mirrors the Pair-Up partner pointer) + the
   `CarryRegistry` snapshot.

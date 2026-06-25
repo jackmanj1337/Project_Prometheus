@@ -8,7 +8,7 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | OPEN | campaign_save_technical_plan_2026-06-21.md | `registers/campaign_save_open_decisions_2026-06-21.md` |
-| `DSP-1..11` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | OPEN | 2026-06-25e (DSP-1..5,7 resolved; DSP-6,8,9,10 leans; DSP-11 reserve) | `registers/displacement_carry_open_questions_2026-06-25.md` |
+| `DSP-1..16` | Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) | OPEN | 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16 cross-cutting non-standard-movement ruleset) | `registers/displacement_carry_open_questions_2026-06-25.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
