@@ -178,8 +178,13 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   system; recruitment is often relationship/conversation-gated; all three **expand roster/save schema
   together** — the biggest F1 risk, so firm this cluster before the F1 lock. **Status (firmed
   2026-06-24f/g/h):** `[REL-1..9]` · `[MCH-1..8]` (+ new foundation **F13**) · `[RCR-1..7]` (roster
-  side; capture-carry → A2, conversation → A4). **A3 roster/save schema is defined for the F1 lock;
-  next cluster: A1.**
+  side; capture-carry → A2, conversation → A4). **A3 roster/save schema is defined for the F1 lock.**
+
+> **Cluster progress / next:** **A3 design ✅** (2026-06-24f/g/h) → **A1 design ✅** (2026-06-24i…
+> 2026-06-25c; `[CEX-5..8,20..24]` + `[STY-1..17]`, only `[STY-11]`→A2) → **A2 design = NEXT
+> (scheduled 2026-06-25d):** battalion entity `[STY-11]`, capture carry `[RCR-5]`, movement assists
+> (#17/#6/#8), battalion deployment side (#16⇄A1), + the `[STY-8]`/`[STY-17]` leans. Then A4 (incl. the
+> `[STY-17]` provoke MET action), A5 (incl. the loadout cap) → **F1 schema-lock (Phase B).**
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
   · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a `[MET]` action that sets a faction
   relationship + AI "provoke" transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c).
