@@ -108,6 +108,9 @@ side** (`#16 ⇄ A2`) / its own build. So "full battalions" does **not** bloat A
 Choosing a style **is** the unit's attack and **costs its one combat action** (matches 3H: arts and
 gambits both consume the combat action). It is **not** an extra action. Finer battalion action-economy
 edge-cases (e.g. gambit-then-move ordering, who spends the charge) are settled on the **A2** side.
+**Counters carry NO style:** styles are player-initiated (`[STY-2]` `player_activated`), so an
+enemy-phase counterattack is always `equipped_source` + *null style* — the fallback (`[CEX-22]`) only
+ever needs a usable **source**, never a style.
 
 ### [STY-13] Staves fold in via an `effects` set + `target_filter`  **[RESOLVED 2026-06-24k; effects-set per `[STY-16]`]**
 Staves are already `[CEX-20]` sources (`combat_family == "staff"`), and the code already dispatches by
@@ -137,7 +140,7 @@ condition (sleep/silence/berserk), `bolster` → timed positive modifier. **`sle
 ### [STY-15] Action-menu framing for utility vs hostile  **[RESOLVED 2026-06-24k]**
 Keep **Attack** (`strike` / hostile framing) and **Staff/Use** (utility framing) as **two menu entries
 over the one pipeline** — Attack filters to `strike` sources + hostile targets; Staff/Use filters to
-utility-`effect_kind` sources + their `target_filter`. (Today `ActionMenu` already has Attack + Staff,
+utility-`effect` sources + their `target_filter`. (Today `ActionMenu` already has Attack + Staff,
 gated by `is_healing_staff()`; offensive staves currently route through Attack, which is fine — they are
 `strike`-ish with a status payload.) Extends the `[CEX-21]` menu vocabulary; no separate pipeline.
 
@@ -181,7 +184,11 @@ the full **F5** (`[STY-12]`). Reuses `effect_tags` as the storage seam (extended
   over `relationship() == hostile`.
 - **Counterattack vs stance (lean):** being attacked triggers a counter **regardless** of the defender's
   stance (self-defense); a `neutral`/`allied` AI simply won't *initiate*. Keeps one-way aggression
-  meaningful. (Dynamic neutral→hostile "provoked" transitions = runtime; see Save.)
+  meaningful. (Firms with A2 alongside the other combat-economy leans.)
+- **Dynamic "provoked" transitions — owned by A4 + AI (pinned 2026-06-25c):** the *trigger* mechanism
+  (what flips a relationship at runtime) = a **`[MET]` event action that sets a faction relationship
+  (A4)** + **AI provoke** (a `neutral` unit that is attacked becomes `hostile`, firming with the AI
+  work). STY-17 owns the matrix + state; A4/AI own the transitions.
 - **Save (F1):** the authored matrix is **data** (not saved). **Reserve a runtime
   faction-relationship-override store** for dynamic changes (provoked, `[MET]`-event-driven).
 
@@ -273,7 +280,7 @@ status + buff/debuff staves together. Also resolves the `[CEX-10]` triangle-cond
 
 ## Notes
 - **DoD:** when this graduates to a build, it gets GDD owner updates (GDD_02 combat exchange, GDD_05
-  skills/`StyleDef` + F5/conditions, GDD_04 weapons type-gate, **GDD_07-ish staff `effect_kind`**) +
+  skills/`StyleDef` + F5/conditions, GDD_04 weapons type-gate, **GDD_07-ish staff `effects`**) +
   the `StyleDef` `.tres` + tests, **with the build**.
 - **Cross-refs:** `[CEX-20]` source enum · `[CEX-21]` equipped reference · `[CEX-6]` per-source charge
   (extended here) · `[CEX-23]` (absorbed) · `[SKL-3]` `requires_equip` cap · `[RCR-5]` capture-carry

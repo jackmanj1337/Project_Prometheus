@@ -84,7 +84,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 |---|---|---|---|
 | Secondary Movement (#9) | **M** | turn flow → *is* F10 | Tier1 |
 | Dancer / refresh (#8) | **M** | action flow | Tier1 |
-| Utility staves (#10) | **M** | action flow, F5 | **firmed 2026-06-24k** (`[STY-13..15]`; staves = `[CEX-20]` sources w/ a `effect_kind`+`target_filter` axis, fold into source+style; buff/debuff ride F5) |
+| Utility staves (#10) | **M** | action flow, F5 | **firmed 2026-06-24k** (`[STY-13..16]`; staves = `[CEX-20]` sources w/ an `effects`(set)+`target_filter` axis, fold into source+style; buff/debuff ride F5) |
 | Movement assists (#17) | **M** | action flow | DISCUSS |
 | Rescue system (#6) | **L** | F10, CON | Tier1 |
 
@@ -149,7 +149,7 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   "non-standard attack capability + charge/pool cost + possibly altered range/targeting" — they must
   share **one** select→preview→target pattern or the UI forks per feature. **This is now the
   `[STY]` source + style model (firmed 2026-06-24j/k)** — arts, gambits, non-lethal capture, **and
-  utility/buff/debuff staves** are all *styles or `effect_kind`s* over a `[CEX-20]` source; building it
+  utility/buff/debuff staves** are all *styles or source `effects`* over a `[CEX-20]` source; building it
   closes the deferred `[CEX-23]`.
   **A1 DESIGN COMPLETE 2026-06-24n** (`[STY-1..17]` all resolved bar `[STY-11]` battalion-entity → A2;
   player flow + authoring surface in `design/source_style_player_and_authoring_2026-06-24.md`).
@@ -181,12 +181,14 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   side; capture-carry → A2, conversation → A4). **A3 roster/save schema is defined for the F1 lock;
   next cluster: A1.**
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
-  · Recruit/Capture conversation+flag side (#4 ⇄ A3). *Why sync:* same trigger+flag plumbing; Recruit
-  straddles roster (A3) and events (A4).
+  · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a `[MET]` action that sets a faction
+  relationship + AI "provoke" transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c).
+  *Why sync:* same trigger+flag plumbing; Recruit straddles roster (A3) and events (A4).
 - **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
   death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
-  (#7). *Why sync:* all ride F4 profiles and/or the hub + EXP/economy; Casual/Phoenix death rules and
-  Arena death-risk share the permadeath-handling path.
+  (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
+  2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
+  EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 
