@@ -194,6 +194,26 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
+  - **Death-inventory disposition rule set (NEW — pinned 2026-06-25h).** An **optional `CampaignRules`
+    profile** governing what happens to a unit's carried + equipped inventory when it dies. Modes
+    (author default + per-case overrides): `to_convoy` (no loss) · `lost` (destroyed) · `drop_on_tile`
+    (recoverable pickup) · `transfer_to_killer` (loot). **Single disposition path:** route **all** death
+    causes through one `handle_death` inventory step — today only `CombatResolver` calls
+    `unit.handle_death()`; non-combat deaths (F5 condition/poison ticks, hazard terrain, the `[DSP-14]`
+    `force_onto_invalid` ring-out, scripted/event death) must funnel through the same hook.
+    **Edge cases the rule set must define:** (1) **death out of combat** (no exchange); (2) **death
+    without a clear killer** — `transfer_to_killer` has no recipient → falls back to the profile's
+    no-killer disposition; (3) **death holding a Key Item** — Key-Item **locks** (`[CEX-14..16]`)
+    **override** disposition: a Key Item is **never `lost`** (always recovered to convoy / re-granted)
+    even under a harsh profile; (4) **no convoy on this map** → `to_convoy` fallback (pending stash /
+    drop-on-tile); (5) **Casual/Phoenix** (#12) — a returning unit gets its inventory back (it isn't
+    truly dead); (6) **PvP/skirmish** — no permanent loss; (7) **simultaneous deaths** (AoE wipe) —
+    per-unit resolution + drop ordering; (8) **enemy death** — loot/`drop_on_tile` incl. the
+    "droppable-item enemy" case; (9) **death while carrying** (`[DSP-5]`) — the carried unit drops per
+    DSP, the carrier's own inventory follows this rule. *Owner:* **A5** (rides F4 + the permadeath path);
+    *composes* `[IEQ]`/`[CNV]` (inventory/convoy) · `[CEX-14..16]` (Key-Item locks) · #12 (Casual/Phoenix)
+    · `[DSP-14]` (a trigger). **Save/F1:** if `drop_on_tile` persists, reserve a per-map dropped-item
+    stash; else no new state beyond convoy.
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 

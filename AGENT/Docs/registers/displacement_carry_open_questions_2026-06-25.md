@@ -228,6 +228,14 @@ the prisoners are extracted to the roster/jail. On each prisoner secured/extract
 branching). **Pin:** firm the objective `type` with the objective-system build; firm the flag + story
 hooks with **A4**. **Reserve the `captured:<id>` flag at the F1 lock** (see `[DSP-11]`).
 
+### Forward-pinned — death-inventory disposition rule set (surfaced by `[DSP-14]`)
+`[DSP-14]` `force_onto_invalid` can **kill a unit out of combat with no clear killer** (shoved into a
+chasm), which raises: *what happens to its inventory / Key Items?* This is **not** a displacement
+ruling — it is an **optional `CampaignRules` death-inventory profile** owned by **A5** (permadeath path;
+modes `to_convoy`/`lost`/`drop_on_tile`/`transfer_to_killer`; Key-Item locks `[CEX-14..16]` override to
+never-`lost`; a single `handle_death` disposition path for all death causes). **Full pin + edge-case
+list** in `plans/feature_dependency_atlas_2026-06-23.md` (A5 bullet, 2026-06-25h).
+
 ## 6. Save / F1 reservations  *(reserve at the Phase-B lock)*
 ### [DSP-11] — **[RESERVE]**
 - **`carrier_id` / `carried_id` pointer pair** per unit (mirrors the Pair-Up partner pointer) + the
