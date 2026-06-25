@@ -74,9 +74,14 @@ the `[RCV-1]` line/choice/command reservation):
 - **Resolution:** RESOLVED 2026-06-25q.
 
 ### [DLG-3] Effect / animation taxonomy — three tiers  **[RESOLVED]**
-Effects/animations span **three scopes**, each parameterized and carrying a **playback mode** (`loop`
-**|** `once` = play-once-then-hold-until-advanced), composable (B layers on a portrait, C over the
-whole scene):
+Effects/animations span **three scopes**, each parameterized and carrying a **playback mode**,
+composable (B layers on a portrait, C over the whole scene). **Playback modes:**
+- **`loop`** — loop indefinitely until the conversation advances.
+- **`once`** — play once, then hold the final frame until advanced.
+- **`loop_until <condition>`** — loop until a condition; the **canonical case = until the line's text
+  finishes scrolling** (a mouth-flap that runs while the typewriter reveal plays, then stops). The
+  condition is parameterized (text-reveal-complete is the headline; duration / named cue are later
+  extensions).
 - **(A) Character effects** — per-character portrait **expression** changes (tied to a character's
   expression/animation asset set; DLG-6).
 - **(B) Portrait transforms** — **generic, layer on ANY portrait**: **flip/mirror** (a simple
@@ -86,8 +91,13 @@ whole scene):
   characters**, a **wavy flashback transition**, colour/filter washes.
 - Authored as `command` entries or per-`line` `cues`. The vocabulary is **author-extensible** (new
   effect ids add without format change), mirroring the F4/F5 profile philosophy.
+- **Effect parameters include a `speed`** (playback rate) — per-effect, optional. Consider **also** a
+  **global player-facing animation-speed setting** (accessibility / preference; pairs with the DLG-4
+  pacing modes). *(Owner addition 2026-06-25q, "possibly" — pinned as a parameter; the global setting
+  is a soft reserve.)*
 - **Resolution:** RESOLVED 2026-06-25q — three-tier (character / portrait-transform / scene) effect
-  model, each with `loop|once` playback, composable.
+  model, each with `loop | once | loop_until<condition>` playback (the `loop_until` headline =
+  loop-until-text-finishes-scrolling, i.e. mouth-flap while talking), composable.
 
 ### [DLG-4] Player controls / pacing — author-configurable  **[RESOLVED]**
 All three modes exist; the author declares which are offered + the default:
