@@ -203,11 +203,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
 > Emblem = the maximal config (`[BAT-7]`). Then A4 (incl. the `[STY-17]` provoke MET action), A5 (incl.
 > the loadout cap + the `[AGT §6]` non-combat-action EXP pin, now also pricing battalion-EXP `[BAT-6]`)
 > → **F1 schema-lock (Phase B).**
-- **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11
-  — **firmed 2026-06-25n `[VIL-1..8]`**) · Recruit/Capture conversation+flag side (#4 ⇄ A3 — **firmed
-  2026-06-25o `[RCV-1..6]`**) · **a `[MET]` action that sets a faction relationship + AI "provoke"
-  transitions** (`[STY-17]` dynamic neutral→hostile — **firmed 2026-06-25p `[PRV-1..7]`**). *Why sync:*
-  same trigger+flag plumbing; Recruit straddles roster (A3) and events (A4).
+- **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* **DESIGN ✅
+  COMPLETE 2026-06-25p.** Village (#11 — **firmed 2026-06-25n `[VIL-1..9]`**) · Recruit/Capture
+  conversation+flag side (#4 ⇄ A3 — **firmed 2026-06-25o `[RCV-1..6]`**) · **a `[MET]` action that sets
+  a faction relationship + AI "provoke" transitions** (`[STY-17]` dynamic neutral→hostile — **firmed
+  2026-06-25p `[PRV-1..7]`**) · Capture-victory objective type (`[VIL-9]`, closes the `[DSP]` pin).
+  *Why sync:* same trigger+flag plumbing; Recruit straddles roster (A3) and events (A4).
   > **A4 keystone (2026-06-25n):** the Village walk pinned the shared **interactive-trigger
   > substrate** `[VIL-2]` — a *player-initiated* MET trigger fired from a `TileActions`/action-menu
   > entry (sibling to Seize/Escape). **Visit + Recruit `talk` (`[RCR-3]`) + reserved `shop`/`activate`
