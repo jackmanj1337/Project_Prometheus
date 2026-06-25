@@ -100,7 +100,7 @@ end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decide
 ### Cluster F — Big standalone systems
 | Feature | Size | Needs | Status |
 |---|---|---|---|
-| Battalions / gambits (#16) | **L** | F11, action flow | **attack-side firmed 2026-06-24j** (`[STY-7]`; gambit = AoE **style** over a battalion-granted source, A1) · **battalion entity → A2** (`[STY-11]`, full 3H scope) |
+| Battalions / gambits (#16) | **L** | F11, action flow | **attack-side firmed 2026-06-24j** (`[STY-7]`; gambit = AoE **style** over a battalion-granted source, A1) · **battalion entity firmed 2026-06-25k** (`[BAT-1..13]`; the **attached-augment** pattern — thin entity over reused Pair-Up attach + bonus-resolver + granted-source + rank-helpers; adjutant→Pair-Up, accessory→`[IEQ]`, Emblem = maximal config) |
 
 ### Cluster G — Infra / tooling / gates
 | Feature | Size | Needs | Status |
@@ -181,14 +181,16 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   side; capture-carry → A2, conversation → A4). **A3 roster/save schema is defined for the F1 lock.**
 
 > **Cluster progress / next:** **A3 design ✅** (2026-06-24f/g/h) → **A1 design ✅** (2026-06-24i…
-> 2026-06-25c; `[CEX-5..8,20..24]` + `[STY-1..17]`, only `[STY-11]`→A2) → **A2 design = IN PROGRESS:**
-> displacement/carry sub-cluster ✅ `[DSP-1..17]` (2026-06-25e…i), action-grant sub-cluster ✅
-> `[AGT-1..13]` (2026-06-25j) — **remaining A2 = the battalion entity `[STY-11]` (NEXT)** + the
-> battalion deployment side (#16⇄A1) + the `[STY-8]`/`[STY-17]` leans. **Open framing for the battalion
-> pass:** decide whether the battalion is its **own bespoke system** or **folds into the existing item +
-> proficiency systems** (a battalion = an equippable/loadout entity carrying a proficiency-like rank vs a
-> standalone unit-attachment). Then A4 (incl. the `[STY-17]` provoke MET action), A5 (incl. the loadout
-> cap + the `[AGT §6]` non-combat-action EXP pin) → **F1 schema-lock (Phase B).**
+> 2026-06-25c; `[CEX-5..8,20..24]` + `[STY-1..17]`, only `[STY-11]`→A2) → **A2 design ✅
+> (2026-06-25k):** displacement/carry sub-cluster `[DSP-1..17]` (2026-06-25e…i), action-grant
+> sub-cluster `[AGT-1..13]` (2026-06-25j), **battalion entity `[BAT-1..13]` (2026-06-25k)** — closing
+> `[STY-11]`, the last A2 item. **Framing settled:** the battalion is **neither** merged into items
+> **nor** fully bespoke — it is the canonical config of a generic **attached-augment** entity (thin
+> `BattalionData` + `BattalionRegistry` over reused Pair-Up attach + bonus-resolver + granted-source +
+> rank-helpers, `[BAT-1]`); adjutant → Pair-Up (`[BAT-8]`), accessory/bond-ring → `[IEQ]` (`[BAT-9]`),
+> Emblem = the maximal config (`[BAT-7]`). Then A4 (incl. the `[STY-17]` provoke MET action), A5 (incl.
+> the loadout cap + the `[AGT §6]` non-combat-action EXP pin, now also pricing battalion-EXP `[BAT-6]`)
+> → **F1 schema-lock (Phase B).**
 - **A4 — Story / event-driven map content** *(shared: MET `[F8]` + flag store `[F6]`).* Village (#11)
   · Recruit/Capture conversation+flag side (#4 ⇄ A3) · **a `[MET]` action that sets a faction
   relationship + AI "provoke" transitions** (`[STY-17]` dynamic neutral→hostile; pinned 2026-06-25c).

@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-06-24
+Status: RESOLVED 2026-06-25
+Last verified: 2026-06-25
 Register: STY-1..17
-Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n
+Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n / 2026-06-25k (STY-11 → [BAT])
 ---
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
@@ -12,8 +12,9 @@ Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n
 **Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
 in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9 + STY-17
 RESOLVED 2026-06-24m** (AoE/multi-target vocab + friendly fire + directed faction relationship matrix);
-**STY-10 RESOLVED 2026-06-24n** (combined-preview UX — **A1 design complete**); **only STY-11 OPEN**
-(full battalion entity → A2). Player flow + authoring surface walked in
+**STY-10 RESOLVED 2026-06-24n** (combined-preview UX — **A1 design complete**); **STY-11 RESOLVED
+2026-06-25k** (full battalion entity → the **attached-augment** pattern, register `[BAT-1..13]`) —
+**register now fully RESOLVED**. Player flow + authoring surface walked in
 `design/source_style_player_and_authoring_2026-06-24.md`.
 Absorbs the deferred **`[CEX-23]`** maneuver layer and is the A1 design for **combat arts (#15)**, the
 **gambit attack-side of Battalions (#16)**, and **utility + buff/debuff staves (#10)**. **Pattern:**
@@ -252,9 +253,15 @@ effects** (damage **and** "inflicts poison" **and** self-heal), each with its ga
 **Player flow + authoring surface** for the whole model are walked in the companion design doc
 `design/source_style_player_and_authoring_2026-06-24.md` (this session). **Save (F1):** none (transient).
 
-### [STY-11] Full battalion entity spec  **[OPEN — A2]**
+### [STY-11] Full battalion entity spec  **[RESOLVED 2026-06-25k → `[BAT-1..13]`]**
 Attached-unit data model, assignment/prep UI, endurance & how it depletes, passive bonus aggregation,
-battalion EXP/leveling, adjutant/pair-up variant. Owned by the **A2** cluster. **Resolution:** _[OPEN]_
+battalion EXP/leveling, adjutant/pair-up variant. Owned by the **A2** cluster. **Resolution:** the
+battalion is the canonical config of a generic **attached-augment entity** — a thin `BattalionData` +
+`BattalionRegistry` over **reused** plumbing (Pair-Up attach pattern, the bonus-resolver pipeline, the
+`[CEX-20]` granted-source union, the rank-threshold helpers), **not** merged into items and **not** fully
+bespoke (`[BAT-1]`). Adjutant → Pair-Up (`[BAT-8]`); accessories/bond-rings → `[IEQ]` (`[BAT-9]`); Emblem
+= the maximal config (`[BAT-7]`). Full spec in
+`registers/battalion_attached_augment_open_questions_2026-06-25.md`.
 
 ### [STY-12] F5 pull-forward decision for capture/status  **[RESOLVED 2026-06-24k]**
 `[STY-4]` style-status + `[STY-6]` capture `sleep` + `[STY-14]` buff/debuff staves **all** need
