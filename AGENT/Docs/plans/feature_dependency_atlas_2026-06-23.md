@@ -36,10 +36,15 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F11 | **Skill trigger/effect system** (GDD_05) | 🔧 built, needs effect_ids | combat loop | accessory effects, on-crossing grants, combat arts, gambits, many items | add effect_ids per feature (no new triggers — discipline) |
 | F12 | **Dynamic skill grant/revoke** (`[SKL-4]`) | ❌ not built | F11, F6 | story-event skills, skill shops, skill items, skill-grants-skill, PXP-4 on-crossing | ✅ **decided 2026-06-23l: general grant/revoke API + Granted category** (`[SKL-1..6]`) |
 | F13 | **Text indirection / localization-ready string layer** (`[MCH-6]`) | ❌ not built | F1 | dialogue, avatar/main-character names, relationship & recruit conversations, all UI text | ✅ **decided 2026-06-24g: ID-keyed templates + `unit_id` name lookup, no concatenation; Godot `tr()` when localized; convention now, multi-locale build deferred** |
+| F14 | **Author-extensible stat model** (`[STM]`) | ❌ not built | F1, F4 | a Charisma/Charm stat, a Command/Authority proficiency for battalions (`[BAT-6]`/`[STM-2]`), author-defined campaign stats (legacy base stats kept) | 🔶 **NEWLY SURFACED 2026-06-25l — NOT yet firmed.** Direction: *evolution not rewrite* — the read path is already string-keyed + growths/caps are dicts, so add an `extra_stats` dict + a `CampaignRules` stat registry + a `get_effective_stat` fallback and de-hardcode the ~5 stat-list literals. **Ratify at the define-all sweep.** Plan in `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 
 **Critical-path reading:** F1 gates all persistence; F4/F5/F6/F7 end-shapes **decided 2026-06-23l**,
-**F10 decided 2026-06-24a**, **F13 decided 2026-06-24g** → **all of F1–F13 now have decided
-end-shapes; only F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build.
+**F10 decided 2026-06-24a**, **F13 decided 2026-06-24g** → **F1–F13 all have decided end-shapes; only
+F1's schema-lock pass + the builds remain.** F2/F3/F8/F9 decided and await build. **F14 (stat model) is
+NEWLY SURFACED 2026-06-25l and is the one foundation without a ratified end-shape** — it must be decided
+in the define-all sweep before F1 locks (it adds the `extra_stats` + stat-registry save surface). It is
+**optional**: if author-defined stats are not wanted, it degrades to the bounded "add one Charisma stat"
+task (`[STM-1]`) and F14 closes trivially.
 
 ---
 
@@ -240,8 +245,9 @@ maps · pools · known/**granted** list **(with per-source charge state `[CEX-6]
 **captured/`sleep` state (`[STY-6]`/`[RCR]`)** · **active-conditions state (type + duration) per unit
 (full F5, `[STY-12]`)** · **runtime faction-relationship overrides (`[STY-17]`)** · **per-unit equip
 history (MRU) + player source-ordering (`[CEX-22]`)** · story flags ·
-`map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **plus every field
-Phase A surfaces.**
+`map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **the battalion attach
++ endurance/rank state (`[BAT-11]`)** · **(if F14/`[STM]` is taken) `UnitData.extra_stats` + the
+`CampaignRules` stat registry (`[STM-3]` §3)** · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 

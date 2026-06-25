@@ -146,6 +146,9 @@ battalion rank is not a weapon track, and `add_wexp` is weapon-keyed and class-c
 action EXP rule** (`[AGT §6]` forward-pin → A5 EXP-economy / Bonus-EXP #18): an authored amount, not a
 hardcoded constant, generalizing the `STAFF_HEAL_EXP` precedent. Reusing the *threshold helpers* while
 keeping the *storage/track* separate is the boundary — using `weapon_wexp` would be a category error.
+A battalion may *also* scale its behavior off the **host's** Charm stat / Command (Authority) proficiency
+— see the F14 stat-model pin `[STM-2]` (`registers/extensible_stat_model_open_questions_2026-06-25.md`);
+that command-proficiency *earn* path is the same `[AGT §6]`/A5 non-weapon-proficiency generalization.
 
 ### [BAT-7] Generalize the entity — battalion is config A; **Emblem/Engage ring is the maximal config** — **RESOLVED** (owner call)
 Author the data entity **generically as an attached-augment**, not as "the battalion type." The validation

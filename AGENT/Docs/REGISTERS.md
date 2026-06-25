@@ -12,6 +12,7 @@
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
+| `STM-1..5` | Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) | OPEN | — | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `BAT-1..13` | Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25k | `registers/battalion_attached_augment_open_questions_2026-06-25.md` |

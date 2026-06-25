@@ -45,6 +45,7 @@
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *OPEN*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
+- [`registers/extensible_stat_model_open_questions_2026-06-25.md`](registers/extensible_stat_model_open_questions_2026-06-25.md) — Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) — *OPEN*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
