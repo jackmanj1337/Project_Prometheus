@@ -322,11 +322,20 @@ an engine primitive" model (see the `[EXT]` register).
   and `xor` ship as named library compositions, not primitives** — all derive from `{not, truthy, sub,
   abs}` (e.g. `gt(a,b)=truthy(sub(a,b))`, `eq=not(truthy(abs(sub(a,b))))`). Equality on **computed/
   rounded** values is fragile → guidance recommends a tolerance band (`abs(sub) <= ε`).
-- **Logic↔predicate bridge = DEFERRED (owner):** arithmetic terms do **not** inline-embed predicates in
-  v1. To use a predicate in a formula, the author **sets a flag/result-key upstream** (a predicate writes
-  `[F6]`) and the term reads that flag as a `0/1` source — keeps terms **pure**, no new machinery (rides
-  existing `[F6]`/counter sources). A future `from_predicate` down-bridge (pure-predicates-only) is the
-  natural extension if demand appears (recorded in `[EXT]`).
+- **Logic↔predicate bridge = DEFERRED (owner), and the deferral splits in two by predicate purity:**
+  arithmetic terms do **not** inline-embed predicates in v1. The future `from_predicate` down-bridge
+  divides cleanly along the same pure/impure line that defines the rest of F16:
+  - **(i) Deterministic / pure predicates** (everything except `chance` — `flag`, `compare`, spatial,
+    relationship, item, condition reads…): **inlinable in principle**, since reading them keeps a term
+    pure. These are the candidate for a future **pure-only `from_predicate`** down-bridge (read the
+    predicate as `1.0/0`) if demand appears.
+  - **(ii) Chance-based / impure predicates** (`[REQ-10]` `chance`): **must NEVER be inlined into a
+    term** — doing so injects RNG/impurity and breaks the determinism/save-replay guarantee. A `chance`
+    result reaches a formula **only** via its **latched outcome** (the roll commits, latches to
+    `visited_trail`/`[F6]`, and the term then reads that latched `0/1` like any flag).
+  - **v1 substitute for both:** the **flag-upstream pattern** — a predicate (pure or a latched `chance`)
+    writes `[F6]`/a counter, and the term reads it as a `0/1` source. No new machinery; keeps terms pure.
+    (Recorded in `[EXT]`; the pure/impure split is what makes the eventual bridge safe.)
 - **Terms substitutable in numeric-value slots (uniform):** the schema tags each numeric param as a
   **value slot** (accepts a term) vs a **selector/id/enum/flag** (does not). v1 wires:
   - **REQ-10 `chance`** — the skew `input` and `base` become arithmetic terms; `operand: difference|ratio`

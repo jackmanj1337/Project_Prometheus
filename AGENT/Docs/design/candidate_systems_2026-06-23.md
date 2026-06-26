@@ -185,6 +185,25 @@ feature planning).
   (the REQ-10 latch already blocks reload-rerolls).
 - **Depends on** the `[EXT]` extensibility decision (how authors define a check's terms/profile).
 
+## G. "Reflect" effect primitive  (owner — discuss **before A5**)
+**Added 2026-06-26** (owner request; **not firmed** — a candidate to walk). **Timing override:** unlike
+A–F (which firm at the priority re-eval), the owner wants this **discussed before A5**.
+- **Idea:** a new **effect primitive `reflect`** — an effect that bounces some incoming
+  effect/damage/status back at its source. To be defined: what is reflected (damage · a condition · an
+  action), how much (a fixed amount · a fraction · an arithmetic `[REQ-16]` term), and the trigger/
+  condition under which it fires.
+- **⚠ Naming collision — disambiguate at the walk:** `[DLG-9]` already defines a *dialogue-visual*
+  **reflect** (an `in_place|copy` live portrait mirror). This candidate is a **gameplay/combat effect**,
+  unrelated to that presentation effect — the walk must pick a non-colliding id/name (e.g. `reflect_effect`
+  vs the DLG visual) so the two are never conflated.
+- **Likely reuses:** the F5 `ConditionManager`/effect-resolution path (it is an effect), `[REQ-16]`
+  arithmetic terms for the reflected magnitude, `[REQ]` predicates for the fire condition, and the combat
+  damage pipeline / `handle_death` hook for the bounce-back application.
+- **Open (its own walk):** reflected subject (damage/status/action) · magnitude model (flat/fraction/
+  term) · ordering vs mitigation/floor (does it reflect pre- or post-mitigation? interacts with the F5
+  lethal/floor projection `[REQ-15]`) · stacking with other reflects · whether it is a unit state, an
+  equipment effect, or a status condition.
+
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the
   earlier effect gaps (poison weapon tag, condition immunity). It's trending toward a **foundational

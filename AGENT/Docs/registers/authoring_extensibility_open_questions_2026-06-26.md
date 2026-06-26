@@ -50,8 +50,10 @@ what each EXT question looks like in practice:
   joining the dev team to build it** (the primitive-request channel **doubles as a contributor on-ramp**).
 - **EXT-6 (one model):** the **logic↔predicate bridge was DEFERRED** in favour of a **flag-upstream
   pattern** (a predicate writes `[F6]`; a term reads the flag as `0/1`) — keeping the two logic layers
-  decoupled for now. A future pure-only `from_predicate` down-bridge is the natural EXT-6 extension if
-  demand appears.
+  decoupled for now. The deferral **splits by purity**: a future `from_predicate` down-bridge would admit
+  **deterministic/pure predicates only**; **chance-based (`[REQ-10]`) predicates are permanently excluded**
+  from inlining (they reach a formula solely via their **latched** `0/1` outcome) — the same pure/impure
+  line that governs the rest of F16, which is what makes the eventual bridge safe.
 
 This does **not** pre-decide EXT-1 for the whole vocabulary (DLG effects, F4 profiles, MET) — it is one
 data point that **A is sufficient and content-model-clean for the math case**.
