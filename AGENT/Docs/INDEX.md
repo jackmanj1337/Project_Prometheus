@@ -42,7 +42,7 @@
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *OPEN*
 - [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *OPEN*
+- [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *RESOLVED*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/dialogue_conversation_system_open_questions_2026-06-25.md`](registers/dialogue_conversation_system_open_questions_2026-06-25.md) — Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions — *RESOLVED*

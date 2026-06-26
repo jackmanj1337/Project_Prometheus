@@ -250,9 +250,13 @@ end-shape + 2026-06-26f full walk) — the model is firmed and **`[RDR-1..11]` R
 elsewhere), whereas `cover` is **pre-application + reassignment** — it moves the **original** effect's
 target to a protector **before** it lands (the protector takes the original hit with **their** mitigation
 vs the original attacker, original kill-attribution = the FE Aegis/guardian "take the hit *instead of* my
-ally"). Same `[EXT]` interceptor family, `[STY-9]` selector, `CombatResolver` hook, and M8/A5
-dependencies as `redirect`. **Open** — register **`[CVR-1..6]`**
-(`registers/cover_intercept_open_questions_2026-06-26.md`); to walk next.
+ally"). Same `[EXT]` interceptor family, `[STY-9]` selector, RDR-12 `event` binding, RDR-13 cost model,
+and M8/A5 dependencies as `redirect`. **Walked + `[CVR-1..6]` RESOLVED 2026-06-26** (session 2026-06-26g):
+substitution = **per-hit intercept** (to-hit vs the ally, **mitigation + HP vs the protector**;
+**distinct from `[PRV]` provoke**, which is pre-decision aggro, not mid-combat interception); scope =
+**damage + conditions + displacement** (displacement = the shove vector re-applied to the protector from
+its own tile, via DSP). Needs a **pre-mitigation defender hook** in `CombatResolver` (earlier than
+`redirect`'s post-mitigation hook). Register `registers/cover_intercept_open_questions_2026-06-26.md`.
 
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the

@@ -1,68 +1,107 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED 2026-06-26
 Last verified: 2026-06-26
 Register: CVR-1..6
-Resolved-in: —
+Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..6 settled. Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`.
 ---
 
 # `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions
 
-**Started:** 2026-06-26 (session 2026-06-26f). **Spawned by** the `redirect` walk (`[RDR-9]`, owner call:
-"spec a sibling `cover` primitive now"). **Sibling of** `redirect` (`[RDR]`,
+**Started:** 2026-06-26 (session 2026-06-26f). **Spawned by** the `redirect` walk (`[RDR-9]`). **Walked +
+RESOLVED 2026-06-26** (session 2026-06-26g). **Sibling of** `redirect` (`[RDR]`,
 `registers/redirect_effect_open_questions_2026-06-26.md`) — same `[EXT]` interceptor family, opposite phase.
 
-**Status (OPEN):** model sketched, forks below; **owner-requested as a dedicated walk.**
+## Model (firmed)
+> `cover` is a **pre-mitigation** interceptor: for an incoming effect targeting a *protected* unit, a
+> **protector** (chosen by the `[STY-9]` selector) **takes the effect instead** — the blow is reassigned
+> before mitigation, so the **protector's own DEF/RES (or immunity, or displacement)** resolves it. The
+> protected unit takes nothing (or a `share`, CVR-2).
 
-## Model (sketch — confirm at the walk)
-> `cover` is a **pre-application** interceptor: for an incoming effect targeting a *protected* unit, it
-> **reassigns the original effect's target** to the cover-holder (or another unit) **before** the effect
-> lands. The protected unit takes nothing (or less); the new target takes the **original** effect — with
-> **that unit's own mitigation** against the **original attacker** and **original kill-attribution**.
+**Substitution = PER-HIT intercept (owner 2026-06-26).** To-hit/crit are decided vs the **original
+target** (the declared defender); on a landing hit, the **damage magnitude is computed with the
+PROTECTOR's mitigation** and applied to the protector. **NOT whole-exchange** (the protector does not
+become the defender for accuracy/counter purposes — that re-targets aggro, which is `[PRV]` provoke's job;
+see the distinction note). *(Minor build-time detail: accuracy is rolled vs the original target's avoid,
+not the protector's — no re-roll; flagged if it should instead roll vs the protector.)*
 
-**Why it is a distinct primitive, not a `redirect` mode** (the `[RDR-9]` boundary): `redirect` is
-**post-application + additive** — the holder already took the hit, and a **new, transformed**
-holder-attributed effect is emitted elsewhere. `cover` is **pre-application + reassignment** — the
-**original** effect changes target before resolving (original damage type, mitigation source, on-hit
-triggers, kill credit). `redirect.absorb=1.0 + target={ally}` *looks* like cover but is mechanically the
-additive case; cover is the real "take the hit **instead of** my ally" (FE Aegis / guardian / cover).
+### Distinct from `[PRV]` provoke (different layer + timing)
+- **Provoke** = diplomacy/**aggro**; changes the relationship matrix so an AI *decides* to attack someone
+  (pre-decision; `set_relationship` + `provoke_on_attacked`).
+- **Cover** = combat-resolution **damage interception**; the attacker's choice stands, the protector eats
+  the landed blow (mid-resolution).
+- They **stack** — a provoked enemy charges the healer; the knight covers the hit.
 
-## Shared with `redirect` (reuse, do not re-walk)
-- Trigger = `[REQ]` predicate over the incoming event.
-- Who-protects-whom = the **`[STY-9]`** selector (anchor + scope + filter) — e.g. "adjacent allies."
-- Determinism **class-2**; hook in **`CombatResolver`** before the holder's pipeline; the M8
-  source-bearing `effect_applied` event (RDR-7) is the same dependency.
+## Why it is a distinct primitive, not a `redirect` mode (the `[RDR-9]` boundary)
+`redirect` is **post-mitigation + additive** (the holder took the hit; a new transformed holder-attributed
+effect is emitted elsewhere). `cover` is **pre-mitigation + reassignment** — the **original** effect's
+defender changes before it resolves (protector's mitigation, original damage type/on-hit, original
+kill-attribution). `redirect.absorb=1.0 + target={ally}` *looks* like cover but emits a new
+holder-attributed effect; cover is the real "take the hit **instead of**."
+
+## Shared with `redirect` (reuse, not re-walked)
+- Trigger = `[REQ]` predicate + the **`event` subject** (RDR-12).
+- Who-protects-whom = the **`[STY-9]`** selector (anchor + scope + `target_filter`).
+- **Resource coupling** (RDR-13): a `cost: {pool, amount, subject}` clause (cover can cost uses/stamina).
+- Determinism **class-2**; the M8 source-bearing data (RDR-7) is the same dependency.
+- **One-hop termination:** a cover reassignment is flagged **non-coverable** (no cover-chains).
 
 ---
 
-## CVR-1 — Reassignment phase + interaction with `redirect`  `[OPEN]`
-`cover` runs **before** the effect lands (changes target); `redirect` runs **after**. Define the order
-when both apply (e.g. a covered ally that also has a `redirect`): does `cover` move the hit, then the new
-bearer's `redirect` fire? Likely yes — pin the pipeline position relative to RDR's resolution spine.
+## CVR-1 — Reassignment phase + interaction with `redirect`  `[RESOLVED]`
+`cover` hooks a **pre-mitigation defender-resolution** point in `CombatResolver` — **upstream** of
+`redirect`'s post-mitigation `effect_applied` hook. Order when both apply: cover swaps the defender to the
+protector → the protector's mitigation runs → if the **protector** has a `redirect`, it fires
+post-mitigation on the damage the protector took; the **ally's** `redirect` does **not** fire (the ally
+took nothing). Cover reassignments are **non-coverable** (one hop). *Forward-req: the combat pipeline must
+expose this pre-mitigation defender hook — earlier than the RDR-7 `effect_applied` event.*
 
-## CVR-2 — Partial cover vs full cover  `[OPEN]`
-Does the cover-bearer take the **whole** original effect, or a **fraction** (the rest still hits the
-protected unit)? A `[REQ-16]` term over the incoming value (mirror of `redirect.absorb`) is the natural
-shape — but on the **original** effect, so mitigation accounting differs. Confirm.
+## CVR-2 — Partial vs full cover  `[RESOLVED]`
+Default **full** (the protector takes the whole effect). A **`share`** `[REQ-16]` fraction term splits it
+(protector takes `share × incoming`, the ally takes the rest — **each through their own mitigation**,
+since the swap is pre-mitigation). Non-scalar (displacement, CVR-6) is **all-or-nothing** (no partial
+shove). Mirrors `redirect`'s absorb-as-term.
 
-## CVR-3 — Eligibility / range / who can cover whom  `[OPEN]`
-Adjacency? Same selector as redirect? Can a unit cover multiple allies; can multiple coverers contend for
-one hit (priority order)? Does the coverer need to be able to *survive*/*act*? Reuse `[STY-9]` + a
-priority rule.
+## CVR-3 — Eligibility / range / priority  `[RESOLVED]`
+The **`[STY-9]`** selector defines who-can-cover-whom (e.g. "adjacent allies"). When several units can
+cover one hit, a **deterministic priority** picks one: an author key (e.g. highest cover-priority /
+lowest-HP / nearest), fallback **nearest → unit-id**. The coverer must be **valid** (alive, present, not
+the original target). An optional **`cover_if_lethal`** flag (default **true** = sacrifice — the protector
+takes a blow that would kill it; mirror/inverse of `redirect.fires_on_death`) lets an author forbid
+suicidal cover. No valid protector → cover doesn't trigger, the ally takes the hit normally (no-op).
+Resource gate (RDR-13) applies (insufficient pool → no cover).
 
-## CVR-4 — Mitigation + attribution on the reassigned hit  `[OPEN]`
-Confirm: the reassigned effect uses the **cover-bearer's** mitigation vs the **original attacker**, keeps
-the **original** damage type / on-hit effects, and **kill-credit goes to the original attacker** (unlike
-`redirect`, where credit is the holder's). Define what the attacker's combat preview shows (it now targets
-a different unit than chosen).
+## CVR-4 — Mitigation + attribution + preview  `[RESOLVED]`
+The reassigned hit uses the **protector's** mitigation (DEF/RES, terrain) vs the **original attacker**,
+keeps the **original** damage type / on-hit / effect-tags, and **kill-credit + EXP go to the original
+attacker** (they killed the protector). The **ally gets no EXP** (took nothing). The attacker's combat
+**forecast must show the protector as the actual defender** (the target visibly changes pre-commit), and
+**AI target-evaluation reads the same forecast** (so the AI knows the hit lands on the protector).
 
-## CVR-5 — Death / disposition interaction (A5)  `[OPEN]`
-If the cover-bearer dies taking the hit, does the protected unit's slot/turn change? Feeds the same **A5**
-death-disposition + snapshot-then-resolve rule as `[RDR-8]`.
+## CVR-5 — Death / disposition (A5)  `[RESOLVED]`
+If the protector dies taking the blow, it rides the **`[RDR-8]` snapshot-then-resolve** A5 rule (mutual
+kills both die; deterministic disposition order); kill-credit → the original attacker. The ally is
+**unharmed**, with **no turn/position change**. Feeds the same A5 "simultaneous deaths" case.
 
-## CVR-6 — Scope: which effect kinds can be covered  `[OPEN]`
-Damage clearly; conditions/displacement? (mirror of `[RDR-6]`). Gated on the M8 taxonomy.
+## CVR-6 — Coverable effect kinds  `[RESOLVED]` (owner: damage + conditions + displacement)
+- **Damage** — per-hit intercept (CVR-1/4).
+- **Conditions** — the protector takes the condition **instead** (identity; the protector's
+  immunity/resist applies); the ally is spared.
+- **Displacement / forced-move** — the displacement **vector** is reassigned to the protector: the
+  **protector is displaced by that vector from the protector's own tile**, the ally stays put, obeying
+  **DSP** collision/validity (blocked/off-map → DSP partial/fizzle). All-or-nothing. (Per-kind transform,
+  mirroring `[RDR-2]`.) *(Alternative an author could want — pure negation, ally unmoved + protector
+  unaffected — is just immunity, not "instead of"; not the default.)*
+- Final enum pinned against the M8 taxonomy (shared with `[RDR-6]`).
+
+---
+
+## Forward-reqs (shared owners with `[RDR]`)
+- **`CombatResolver`:** a **pre-mitigation defender-resolution hook** for the cover swap (earlier than
+  RDR-7's post-mitigation `effect_applied` event) — *added to the atlas combat/F5 note.*
+- **A5:** cover deaths ride the `[RDR-8]` snapshot-then-resolve rule (already on the atlas A5 bullet).
+- **`[STY-9]`** selector + **RDR-12** `event` subject + **RDR-13** cost-pool model — all reused.
 
 ## Next step
-Dedicated `cover` walk (CVR-1..6), reusing the `redirect` resolution spine and the `[STY-9]` selector;
-coordinate CVR-5 with the A5 death-ordering decision alongside `[RDR-8]`.
+`cover` design is settled; build rides the same M8 / A1 / `CombatResolver` path as `redirect`, once the
+pre-mitigation defender hook + the shared forward-reqs land.
