@@ -35,7 +35,7 @@
 
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
-- [`registers/authoring_extensibility_open_questions_2026-06-26.md`](registers/authoring_extensibility_open_questions_2026-06-26.md) — Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions — *OPEN*
+- [`registers/authoring_extensibility_open_questions_2026-06-26.md`](registers/authoring_extensibility_open_questions_2026-06-26.md) — Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions — *RESOLVED*
 - [`registers/battalion_attached_augment_open_questions_2026-06-25.md`](registers/battalion_attached_augment_open_questions_2026-06-25.md) — Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions — *OPEN*
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*

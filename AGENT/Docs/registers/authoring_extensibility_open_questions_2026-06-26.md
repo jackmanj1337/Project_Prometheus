@@ -1,21 +1,24 @@
 ---
 Type: register
-Status: OPEN 2026-06-26
+Status: RESOLVED 2026-06-26
 Last verified: 2026-06-26
 Register: EXT-1..6
-Resolved-in: 2026-06-26 (EXT-1 model = A "A-plus" / EXT-2 content-fit / EXT-3 validation / EXT-4 determinism + EXT-5 *mechanism* — ratified off the `[REQ-16]` worked example); **still OPEN:** EXT-5 *cadence/process* + EXT-6 per-vocabulary confirmation (DLG effects · F4 profiles · MET)
+Resolved-in: 2026-06-26 — EXT-1..4 + EXT-5 *mechanism* ratified off the `[REQ-16]` worked example; **EXT-5 cadence + EXT-6 per-vocabulary confirmation (DLG effects · F4 profiles · MET) closed the same day** (the "one model = A" was already the convergent design — DLG-3/F5 self-describe as "mirroring the F4/F5 profile philosophy"). Key refinement: **EXT-4 determinism is per-output-path** (decision/predicate = pure+fixed-point+PkgA · state-mutation = deterministic ordered engine primitives+PkgA RNG · presentation = exempt, gating rides REQ).
 ---
 
 # Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions
 
 **Started:** 2026-06-26 (parked by the F16/`[REQ]` sweep; owner: **dedicated session NEXT, before
 A5**).
-**Status (updated 2026-06-26):** **EXT-1, EXT-2, EXT-3, EXT-4 RESOLVED** and **EXT-5 *mechanism*
-RESOLVED** — ratified directly off the `[REQ-16]` arithmetic-terms worked example (owner call: the
-answers were obvious once the math case was walked). **Still OPEN:** **EXT-5 cadence/process** (the
-release rhythm + triage for primitive requests) and **EXT-6 per-vocabulary confirmation** (an explicit
-check that `[DLG-3]` effects, F4 profiles, and `[MET]` adopt the A model with no divergence). The
-remaining walk is **much lighter than originally scoped** and likely **off the A5 critical path**.
+**Status (CLOSED 2026-06-26):** **EXT-1..6 RESOLVED.** EXT-1..4 + EXT-5 *mechanism* were ratified off
+the `[REQ-16]` arithmetic-terms worked example; **EXT-5 cadence and EXT-6 per-vocabulary confirmation
+closed the same day.** The headline finding: **"one model = A" was already the convergent design, not an
+imposition** — `[DLG-3]` effects and F5 conditions explicitly self-describe as "adding ids without format
+change, **mirroring the F4/F5 profile philosophy**," and `[MET]` is a declarative trigger→action
+composition. No vocabulary showed a genuine B-requirement (every B-temptation resolves to "ship a
+primitive" or "use the `table` profile pattern"). **Build-time hook:** when each vocabulary is built, a
+quick check that it adopts the A registry pattern + the per-output-path determinism rule (below) is all
+that the EXT-6 "confirmation" needs — there is no remaining design fork.
 **Why this exists:** the F16 `[REQ]` predicate vocabulary, the `[DLG-3]` effect taxonomy, and the F4
 CampaignRules profiles have all been called **"author-extensible"** with the *mechanism* glossed as
 "rides F4 / the sweep." That word makes a promise that is **not pinned**, and it matters because the
@@ -108,27 +111,46 @@ mutate state.
   reads compose freely; the single impure primitive (`chance`) is quarantined behind Package A + latch,
   and nothing reachable from a term may read wall-clock, re-roll, or mutate state.
 
-### [EXT-5] Who adds primitives + cadence  **[PARTIAL — mechanism RESOLVED 2026-06-26; cadence OPEN]**
+### [EXT-5] Who adds primitives + cadence  **[RESOLVED 2026-06-26]**
 Under A/C, new **primitive** predicate/effect/profile types are an engine concern — define the cadence
 and how authors request them. Under B, define the primitive set the expression layer exposes.
 - **Resolution (mechanism):** engine adds primitive **types**; authors get a **named-composition library**
   as the author-side relief valve (e.g. `gt/lt/ge/le/eq/ne` and `xor` shipped as compositions, not
   primitives) **plus a primitive-request channel that doubles as a contributor on-ramp** (request → maybe
   join the dev team to build it, per `[REQ-16]`'s complexity-budget guidance).
-- **STILL OPEN — cadence/process:** the release rhythm for landing requested primitives and the triage
-  process (which requests resolve to "compose it like this" vs a real new primitive). A lightweight
-  *process* detail, not a design fork.
+- **Resolution (cadence/process):** requested primitives ride the **normal release cadence** — no
+  separate track. Each request **triages three ways:** **(a)** "compose it like this" — a recipe, **no
+  engine change** (the common case); **(b)** a genuine new primitive — **batched into a release**, with
+  the requester's intended composition as its **spec + test**; **(c)** the **B-shaped tail** — logged as
+  *evidence*. The **volume of the (c) tail is the trigger to revisit the deferred B-exception** (EXT-1).
 
-### [EXT-6] One model for ALL author vocabularies  **[OPEN — narrowed to a per-vocabulary confirmation]**
+### [EXT-6] One model for ALL author vocabularies  **[RESOLVED 2026-06-26]**
 The decision should apply **uniformly** to: F16 `[REQ]` predicates/terms, `[DLG-3]` effects, F4
 CampaignRules profiles (incl. the `[REQ-10]` skew profile), and arguably `[MET]` actions/triggers.
 Avoid divergent extensibility models across the "author vocabularies." Pick one.
-- **Direction settled (2026-06-26): one model = A, uniformly** — no vocabulary shows a genuine
-  B-requirement (a novel effect / profile / action is a **primitive request**, not author code). **What
-  remains** is the honest confirmation step, not a fork: an explicit per-vocabulary pass verifying
-  **`[DLG-3]` effects**, **F4 profiles**, and **`[MET]` actions/triggers** each adopt A with no
-  divergence (and folding their "author-extensible" wording onto this answer). Low-risk; the only reason
-  it is not auto-closed is that asserting ≠ checking.
+- **Resolution: one model = A (the profile/registry pattern), uniformly — and it is already the
+  convergent design, not an imposition.** Per-vocabulary confirmation (2026-06-26):
+  - **F4 CampaignRules profiles** = the **reference implementation** of A: engine ships profile types
+    (`linear/sigmoid/table` + author-custom), authors parameterize, and **`table` already lets an author
+    define an arbitrary curve as data**. Pure functions; a novel profile = a primitive request.
+  - **`[DLG-3]` effects** = A, explicitly — the three-tier taxonomy + reflect "add ids without format
+    change, **mirroring the F4/F5 profile philosophy**"; authors parameterize (`speed` / `loop|once|
+    loop_until<cond>` / target) and compose via the fixed DLG-9 pipeline + DLG-12 layers (cues may even
+    *be* `[MET]` actions). The one B-temptation (custom easing/animation curves) → the **`table`
+    pattern**. Novel effect ids = primitive requests.
+  - **`[MET]` actions/triggers** = A: authors compose `trigger → guard → ordered action-list` as data;
+    the **side-effects live in the engine action primitives** (`spawn/flag/reveal_tiles`), run
+    deterministically at safe points (MET-8) with RNG via Package A. The author authors *composition*,
+    never the mutation logic. Novel actions = primitive requests.
+  - **No vocabulary has a genuine B-requirement** — every B-temptation resolves to "ship a primitive" or
+    "use the `table` pattern."
+- **Refinement (amends EXT-4): determinism is per-OUTPUT-PATH, not per-vocabulary.** Three classes:
+  **(1) decision/predicate** outputs (REQ, MET guards, `chance`) → **pure + fixed-point + Package-A RNG**;
+  **(2) state-mutation** outputs (MET actions) → **deterministic, ordered** engine primitives at safe
+  points, RNG via Package A; **(3) presentation** outputs (DLG visual render) → **determinism-EXEMPT**
+  (never feeds save/replay), only their *gating* (`loop_until<cond>`, branch conditions) rides
+  deterministic REQ. Consequence: an F4 profile feeding the `chance` odds inherits fixed-point (it crosses
+  into class 1), while a DLG cosmetic does not (no pointless fixed-point cost on visuals).
 
 ---
 
