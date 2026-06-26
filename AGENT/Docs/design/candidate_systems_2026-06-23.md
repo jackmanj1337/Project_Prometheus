@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active exploration — initial designs, open questions pending
-Last verified: 2026-06-23
+Last verified: 2026-06-26
 ---
 
 # Candidate Systems — Initial Designs, Feasibility & Scope
@@ -165,6 +165,25 @@ triggers (needs the story-state store).
 the `[IEQ]` item model + `[CNV]` convoy.
 
 ---
+
+## F. Comparison-skewed contest / skill-check system  (built on the `[REQ-10]` chance gate)
+**Added 2026-06-26** (surfaced by the F16/`[REQ]` work; **not firmed** — a candidate to revisit at
+feature planning).
+- **Idea:** a named, reusable **contest / skill-check** action — persuade · steal · intimidate ·
+  status-infliction · lockpick · "talk-down" — all of which are a **chance whose odds are skewed by a
+  comparison of two values** (mirrors combat hit math). The primitive **already exists** as `[REQ-10]`
+  (`chance` = base + an F4 skew profile over a difference/ratio of two `[REQ-9]` terms, rolled via
+  `RngService`/Package A, roll-once-and-latch).
+- **Why a candidate, not just a predicate:** REQ-10 gives the *gate*; a *feature* adds the
+  **player-facing action + UX** (a check prompt, the odds readout, success/fail outcomes, retry rules)
+  and authoring (which stat-vs-stat, the skew profile, on-success/on-fail effects). That is the part to
+  design.
+- **Reuses:** `[REQ-9/10]` (terms + chance), the F4 skew profile, Package A RNG, the `[DLG]` choice/
+  outcome flow (a dialogue choice can BE a check), the `[STY-6]` steal/capture path.
+- **Open (its own walk):** generic "check" action authors drop anywhere vs per-use-case configs over
+  one engine · on-fail consequences (alert/aggro via `[PRV]`? item break?) · retry/save-scum policy
+  (the REQ-10 latch already blocks reload-rerolls).
+- **Depends on** the `[EXT]` extensibility decision (how authors define a check's terms/profile).
 
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the

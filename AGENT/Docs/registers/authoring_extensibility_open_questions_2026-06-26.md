@@ -72,8 +72,9 @@ Recorded here so they are findable; each is a separate, non-blocking conversatio
   projection); the first build should ship a **subset**, the rest per-consumer. Which subset = a
   sweep/build call.
 - **Chance gate → a unified "skill-check / contest" feature** — `[REQ-10]` is reusable for
-  persuade/steal/intimidate/status-infliction; whether to build a named contest system on it is its own
-  design topic.
+  persuade/steal/intimidate/status-infliction. **Recorded as candidate F** in
+  `design/candidate_systems_2026-06-23.md` (its proper feature-planning home — revisit at the priority
+  re-eval), not just here.
 - **Projection sharing** — `[REQ-15]` outcome projection, the **F5** next-resolution API, and the
   combat **damage-preview UI** must share ONE projection; a build-sequencing concern.
 
