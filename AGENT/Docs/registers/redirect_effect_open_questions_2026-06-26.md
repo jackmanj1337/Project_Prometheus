@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-26
 Last verified: 2026-06-26
-Register: RDR-1..13
-Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26f); RDR-1..13 settled (RDR-12 `event`-context binding + RDR-13 resource coupling added later same session from composition stress-tests). Remaining items are forward-reqs on other owners (F5/M8 effect event, A5 death-ordering, `[STY-9]` selector, F16/REQ `event` subject, candidate-A/F7 cost-pool model) + a spawned sibling primitive `cover` (`[CVR]`), not open design forks on `redirect` itself.
+Register: RDR-1..14
+Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26f); RDR-1..14 settled (RDR-12 `event`-context binding + RDR-13 resource coupling from composition stress-tests; RDR-14 `gain` clause + the `emit.kind` amend to RDR-2 from the gap-closing pass, session 2026-06-26i). Remaining items are forward-reqs on other owners (F5/M8 effect event, A5 death-ordering, `[STY-9]` selector, F16/REQ `event` subject, candidate-A/F7 cost-pool model) + a spawned sibling primitive `cover` (`[CVR]`); residual family gaps tracked in `[ICP]`.
 ---
 
 # `redirect` — Combat Effect-Redirect Primitive — Open Questions
@@ -23,10 +23,11 @@ co-input (RDR-8), the **`[STY-9]`** shared selector — and a **spawned sibling 
 > holder and, for events matching a `[REQ]` predicate, **(a)** optionally **absorbs** a portion of the
 > effect off the holder (pre-application reduction, RDR-10) and **(b)** emits a **transformed effect at a
 > selected target-set** (post-application). "Reflect" (bounce at the dealer) is the **preset**
-> `target = {source}`; **full-absorb + bounce** = the parry/full-reflect fantasy. It may **gate on and
-> drain a resource pool** (RDR-13 — uses/charges, mana, a depleting barrier). Authored once as an engine
-> primitive, composed as data (`[EXT]` "one model = A"). Determinism **class-2** (state-mutation:
-> deterministic, ordered, safe-point, fixed-point, Package-A RNG).
+> `target = {source}`; **full-absorb + bounce** = the parry/full-reflect fantasy. It may **gate on +
+> drain** (RDR-13) **and/or fill** (RDR-14 `gain`) a resource pool — uses/charges, mana, a depleting
+> barrier, or lifesteal/shield-charge from the absorbed amount. Authored once as an engine primitive,
+> composed as data (`[EXT]` "one model = A"). Determinism **class-2** (state-mutation: deterministic,
+> ordered, safe-point, fixed-point, Package-A RNG).
 
 ## Deterministic resolution order (the spine RDR-1..13 hang off)
 1. Intercept the effect-application event on the holder; evaluate the `[REQ]` **trigger** predicate **and
@@ -38,12 +39,15 @@ co-input (RDR-8), the **`[STY-9]`** shared selector — and a **spawned sibling 
    magnitude(s)** (RDR-1).
 4. **Gate absorb** on target availability (RDR-11, default *proportional*) → **`effective_absorb`** (this
    is the value `absorbed_value` resolves to).
-5. **Deplete resources** (RDR-13): drain `cost.pool` by `cost.amount` (a term — e.g. `absorbed_value` for
-   a barrier, or a fixed `1` for uses), clamped to available.
+5. **Resource side-effects:** **deplete** (RDR-13) `cost.pool` by `cost.amount` and/or **fill** (RDR-14)
+   `gain.pool` by `gain.amount` (terms — e.g. `absorbed_value`), each clamped to the pool's range.
 6. Apply to holder: `holder_takes = incoming − effective_absorb` (through the holder's normal pipeline).
-7. **Emit** the redirected effect to each valid target through that target's pipeline, flagged
-   **non-redirectable** (RDR-3 termination).
+7. **Emit** the redirected effect to each valid target through that target's pipeline (its `emit.kind`
+   defaulting to the incoming kind, RDR-2), flagged **non-redirectable** (RDR-3 termination).
 8. Resolve deaths **snapshot-then-resolve** in A5's order (RDR-8).
+
+*(Each phase's selector/predicate re-evaluates against the board state **as of that phase** — a prior
+phase's mutation, e.g. an `[RCT]` swap, is visible to later phases; see `[RCT-6]`.)*
 
 ---
 
@@ -60,6 +64,10 @@ recorded on the condition instance** → forward-req on M8 (RDR-7). **Non-scalar
 forced-move, in scope per RDR-6) use a **per-kind transform** — e.g. re-emit the displacement with
 `target = source`, direction **recomputed from the new actor**; absorb on non-scalar is **all-or-nothing**
 (RDR-10).
+**Output-kind change (amend, 2026-06-26i):** the emitted effect carries an **`emit.kind`** field
+(**default = the incoming kind**); setting it lets the bounce change kind — e.g. incoming **damage** →
+emit a **heal** at a wounded ally (vampiric reflect), or **debuff → buff**. The magnitude term still reads
+`incoming_value`/`absorbed_value`; only the output effect template changes.
 
 ## RDR-3 — Read point + return pipeline + termination  `[RESOLVED]`
 Read the **post-mitigation actual** value applied to the holder; emit the bounce **through the target's
@@ -172,6 +180,18 @@ context subject** exposing the intercepted event's fields:
   (stamina/mana) ride **candidate A** (not yet firmed). Refill of a "uses" pool = the candidate-A
   CampaignRules refill rule (per-map / per-turn / hub-rest / never). *(Noted on the atlas.)*
 
+## RDR-14 — `gain` clause (lifesteal / charge / convert)  `[RESOLVED]` (gap-closing pass 2026-06-26i)
+The symmetric inverse of RDR-13's `cost`: a **`gain: { pool, amount, subject }`** clause **fills** a pool
+(HP / mana / a custom "shield" or "stored" pool) by a `[REQ-16]` term — typically `absorbed_value`,
+clamped to the pool's max. Closes the **lifesteal / absorb-into-resource** gap:
+- **"Absorb 5, heal 5"** = `absorb: min(incoming_value,5)` + `gain: {pool: hp, amount: absorbed_value}`.
+- **"Reflect a spell and gain mana from it"** = `gain: {pool: mana, amount: incoming_value}`.
+- **"Bank the absorbed damage"** = `gain: {pool: stored}` (a custom pool) — a **separate** on-attack
+  effect (F11) later reads + spends `stored` (the composable half of delayed release; the auto-scheduled
+  release is `[ICP-3]`).
+Same determinism footing as RDR-13 (pure term + class-2 side-effect; F7 pools save it). Runs at spine
+**step 5** alongside the drain.
+
 ---
 
 ## Worked-example recipes (double as build acceptance tests)
@@ -196,6 +216,9 @@ Author data in the Option-A data-tree style (illustrative, not pinned syntax):
   counter**). To instead make the new target a real defender that can **evade + counter**, use the
   **phase-0 `[RCT]`** forced swap (put that unit in the line of fire), not redirect. (See the three-phase
   family in `[RCT]`/`[CVR]`.)
+- **"Vampiric reflect"** (RDR-14 + `emit.kind`): `absorb: full`, `gain: {pool: hp, amount: absorbed_value}`
+  → take no damage and heal by it; or `target: lowest_hp_ally, emit.kind: heal, magnitude: incoming_value`
+  → send the would-be damage as healing to a wounded ally.
 
 ---
 
@@ -214,8 +237,7 @@ Author data in the Option-A data-tree style (illustrative, not pinned syntax):
 
 ## Next step
 - `redirect` design is settled; build rides the M8 / A1 path once the forward-reqs land.
-- **Walk the spawned `cover` sibling** — register `[CVR]` (pre-application effect-reassignment).
+- `cover` (`[CVR]`) walked; residual family-level gaps tracked in **`[ICP-1..6]`**.
 - Confirm the forward-reqs are picked up by their owners (all now on the atlas): **RDR-7** (F5
-  `effect_applied` event), **RDR-8** (A5 death-ordering), **RDR-12** (F16/REQ `event` subject), **RDR-13**
-  (candidate-A/F7 cost-pool model — and that `redirect` works against existing HP/item-`uses` pools
-  before candidate A firms).
+  `effect_applied` event), **RDR-8** (A5 death-ordering), **RDR-12** (F16/REQ `event` subject), **RDR-13/14**
+  (candidate-A/F7 cost-pool model — drain + fill).

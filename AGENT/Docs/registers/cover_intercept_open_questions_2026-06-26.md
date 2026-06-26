@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-26
 Last verified: 2026-06-26
-Register: CVR-1..6
-Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..6 settled. Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`.
+Register: CVR-1..7
+Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..7 settled (CVR-7 `share_disposition` ward added in the gap-closing pass, session 2026-06-26i). Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`.
 ---
 
 # `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions
@@ -101,6 +101,18 @@ kills both die; deterministic disposition order); kill-credit → the original a
   mirroring `[RDR-2]`.) *(Alternative an author could want — pure negation, ally unmoved + protector
   unaffected — is just immunity, not "instead of"; not the default.)*
 - Final enum pinned against the M8 taxonomy (shared with `[RDR-6]`).
+
+## CVR-7 — `share_disposition` (in-place ward)  `[RESOLVED]` (gap-closing pass 2026-06-26i)
+The CVR-2 `share` split gains a disposition for the shared portion: **`share_disposition: to_protector |
+negate`**. `to_protector` (default) = cover as specced (the protector takes the share). **`negate`** =
+the shared portion is **destroyed, not transferred** — the **ally takes less and nobody takes the rest**,
+the protector takes nothing. This closes the **in-place ward** gap (reduce an effect on a *third party*
+without moving it):
+- **"Adjacent ally takes 30% less"** = `share: 0.7→ally / 0.3 negated` (i.e. `share: 0.3,
+  share_disposition: negate`).
+- **`share: 1.0, share_disposition: negate`** = a reactive **full block** of the ally's hit (no protector
+  cost) — gate it with a `[REQ]` trigger + RDR-13 `cost`/uses so it isn't free.
+Pre-mitigation like the rest of cover; reuses the `[STY-9]` selector + the `share` term. No new hook.
 
 ---
 

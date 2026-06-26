@@ -75,7 +75,10 @@ deterministic priority (author key, fallback nearest→unit-id). Reactor must be
 Phases resolve in order **0 → 1 → 2** for one incoming attack: a reposition (0) can be followed by the new
 occupant's cover (1) and redirect (2). A reposition is **non-re-reactable** within the same attack (one
 hop — mirrors the RDR/CVR termination guard) to prevent swap chains/loops. Deaths from a phase-0 exchange
-ride the `[RDR-8]` snapshot-then-resolve A5 rule.
+ride the `[RDR-8]` snapshot-then-resolve A5 rule. **Board re-evaluation rule (family determinism):** each
+phase's selector/predicate evaluates against the board **as of that phase** — so a phase-0 swap is visible
+to phase-1 cover's "adjacent allies" and phase-2 redirect's selector. State the rule once; it is the
+snapshot point for the whole family.
 
 ## Next step
 Design settled; build rides the same M8 / A1 / `CombatResolver` path as `[RDR]`/`[CVR]`, **plus** the

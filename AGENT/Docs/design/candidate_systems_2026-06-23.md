@@ -272,6 +272,13 @@ pull/pivot), then **normal combat resolution** runs against the tile's new occup
 - **The one new cost:** RCT needs a **pre-resolution reaction trigger**, which bumps the F11 "no new
   triggers" discipline → build-time architecture sign-off. Everything else is `[DSP]` + `[STY-9]` +
   `[REQ]` + RDR-13 reuse. Register `registers/reactive_reposition_open_questions_2026-06-26.md`.
+- **Gap-audit (2026-06-26i):** three composition closers complete the family's operation set (block /
+  reduce / reflect / redirect / absorb / convert / split / copy / **ward**) — `[RDR-14]` **`gain`**
+  (lifesteal/charge), `[RDR-2]` **`emit.kind`** (damage→heal), `[CVR-7]` **`share_disposition: negate`**
+  (in-place ward) — plus a board-re-eval determinism rule. Residual gaps (per-strike latch, universal
+  effect event, delayed auto-release, forecast dry-run, undo transaction) are **forward-reqs/deferrals**,
+  tracked in **`[ICP-1..6]`** (`registers/interceptor_family_gaps_open_questions_2026-06-26.md`) — none
+  reopen the core model.
 
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the
