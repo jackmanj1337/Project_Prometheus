@@ -233,6 +233,13 @@ end-shape + 2026-06-26f full walk) — the model is firmed and **`[RDR-1..11]` R
   **parry/full-reflect** fantasy. `absorb_on_unavailable` (RDR-11, default **proportional**:
   `absorb × N_valid/N_intended`) decides whether absorption still applies when the target-set is
   missing/invalid (dead/environmental source).
+- **Resource coupling (RDR-13):** a `cost: {pool, amount(term), subject: holder|granting_item}` clause
+  reuses the F7 / candidate-A cost-pool model — one clause covers **uses/charges** (`amount: 1`),
+  **scaled cost** (mana = `incoming_value × 0.5`), and a **depleting barrier** (`amount: absorbed_value`
+  + `absorb: min(incoming_value, pool(holder, barrier))`). Gate = pure read; drain = the class-2
+  side-effect. Works against existing HP/item-`uses` pools before author-defined pools land.
+- **Event binding (RDR-12):** triggers/terms read the intercepted hit via a new F16/REQ **`event`
+  subject** (`kind`/`damage_class`/`magnitude`/`is_crit`/`range`/`source`/`condition_id`/`stacks`).
 - **Stacking:** multiple `redirect` effects each evaluate independently and emit their own effect (no
   auto-sum, for predictability); the combat **preview** must show the holder's reduced incoming (absorb)
   + the combined redirected total across **all** affected targets before commit.

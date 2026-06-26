@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-26
 Last verified: 2026-06-26
-Register: RDR-1..11
-Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26f); RDR-1..11 settled. Remaining items are forward-reqs on other owners (F5/M8 effect event, A5 death-ordering, `[STY-9]` selector) + a spawned sibling primitive `cover` (`[CVR]`), not open design forks on `redirect` itself.
+Register: RDR-1..13
+Resolved-in: 2026-06-26 — full design-walk (session 2026-06-26f); RDR-1..13 settled (RDR-12 `event`-context binding + RDR-13 resource coupling added later same session from composition stress-tests). Remaining items are forward-reqs on other owners (F5/M8 effect event, A5 death-ordering, `[STY-9]` selector, F16/REQ `event` subject, candidate-A/F7 cost-pool model) + a spawned sibling primitive `cover` (`[CVR]`), not open design forks on `redirect` itself.
 ---
 
 # `redirect` — Combat Effect-Redirect Primitive — Open Questions
@@ -23,21 +23,27 @@ co-input (RDR-8), the **`[STY-9]`** shared selector — and a **spawned sibling 
 > holder and, for events matching a `[REQ]` predicate, **(a)** optionally **absorbs** a portion of the
 > effect off the holder (pre-application reduction, RDR-10) and **(b)** emits a **transformed effect at a
 > selected target-set** (post-application). "Reflect" (bounce at the dealer) is the **preset**
-> `target = {source}`; **full-absorb + bounce** = the parry/full-reflect fantasy. Authored once as an
-> engine primitive, composed as data (`[EXT]` "one model = A"). Determinism **class-2** (state-mutation:
+> `target = {source}`; **full-absorb + bounce** = the parry/full-reflect fantasy. It may **gate on and
+> drain a resource pool** (RDR-13 — uses/charges, mana, a depleting barrier). Authored once as an engine
+> primitive, composed as data (`[EXT]` "one model = A"). Determinism **class-2** (state-mutation:
 > deterministic, ordered, safe-point, fixed-point, Package-A RNG).
 
-## Deterministic resolution order (the spine RDR-1..11 hang off)
-1. Intercept the effect-application event on the holder; evaluate the `[REQ]` **trigger** predicate. No
-   match → passthrough (holder takes full, no absorb).
+## Deterministic resolution order (the spine RDR-1..13 hang off)
+1. Intercept the effect-application event on the holder; evaluate the `[REQ]` **trigger** predicate **and
+   the resource gate** (pool ≥ activation cost, RDR-13). Fail → passthrough (holder takes full, no absorb,
+   no drain).
 2. Resolve the **target-set** via the `[STY-9]` selector (anchor + scope + `target_filter`); determine
    `N_intended` (matches that are real units) and `N_valid` (still alive/on-map).
-3. Compute **`absorb`** (RDR-10) and the **redirected magnitude(s)** (RDR-1).
-4. **Gate absorb** on target availability (RDR-11, default *proportional*).
-5. Apply to holder: `holder_takes = incoming − effective_absorb` (through the holder's normal pipeline).
-6. **Emit** the redirected effect to each valid target through that target's pipeline, flagged
+3. Compute **`absorb`** (RDR-10; may be bounded by a pool read, RDR-13) and the **redirected
+   magnitude(s)** (RDR-1).
+4. **Gate absorb** on target availability (RDR-11, default *proportional*) → **`effective_absorb`** (this
+   is the value `absorbed_value` resolves to).
+5. **Deplete resources** (RDR-13): drain `cost.pool` by `cost.amount` (a term — e.g. `absorbed_value` for
+   a barrier, or a fixed `1` for uses), clamped to available.
+6. Apply to holder: `holder_takes = incoming − effective_absorb` (through the holder's normal pipeline).
+7. **Emit** the redirected effect to each valid target through that target's pipeline, flagged
    **non-redirectable** (RDR-3 termination).
-7. Resolve deaths **snapshot-then-resolve** in A5's order (RDR-8).
+8. Resolve deaths **snapshot-then-resolve** in A5's order (RDR-8).
 
 ---
 
@@ -137,6 +143,54 @@ when the target-set has missing/invalid targets (source dead, environmental/no-u
 The gate keys on **target availability**, not on the emitted magnitude being >0 (a 0-magnitude bounce to a
 live target still counts as "landed").
 
+## RDR-12 — `event`-context binding for the trigger/terms  `[RESOLVED as forward-req on F16/REQ]`
+The `[REQ]` vocabulary has subjects for *speaker/participant/unit/party/item* but **no `event` subject** —
+yet `redirect` triggers and terms must read fields of the **intercepted event**. Surfaced by the
+composition stress-tests (reflect-spells / criteria). **Forward-req on F16/REQ:** add an **`event`
+context subject** exposing the intercepted event's fields:
+- `event.kind` (damage / condition / displacement …), `event.damage_class` (physical/magic),
+  `event.magnitude` (→ the **`incoming_value`** term variable), `event.is_crit`, `event.range`,
+  `event.source` (a unit subject → then `[REQ-11]` reads the source's equipped weapon
+  `combat_family`/`effect_tags`), `event.condition_id` / `event.stacks` (for condition subjects).
+- The **term-side** variables `incoming_value`, `absorbed_value` (= the effective post-RDR-11 absorb),
+  and `target_count` are already specified (RDR-1/10/11); RDR-12 adds the **predicate-side** `event.*`
+  reads. This is the single genuinely-new vocabulary surface the composition needs — everything else is
+  existing `[REQ]` / `[REQ-16]` / `[STY-9]`.
+
+## RDR-13 — Resource coupling (uses / drain / magnitude-bound)  `[RESOLVED]` (owner-added 2026-06-26)
+`redirect` may declare a **`cost: { pool, amount, subject }`** clause, reusing the generic cost/pool model
+(candidate A shared pools / the generalized `uses` field / F7 pools) — **not** a bespoke counter:
+- **`amount`** is a `[REQ-16]` term, so one clause covers **fixed uses** (`amount: 1`), **scaled cost**
+  (`amount: incoming_value × 0.5` → reflect a spell paid in mana), and a **depleting barrier**
+  (`amount: absorbed_value` → drain a pool by what was absorbed; pair with `absorb: min(incoming_value,
+  pool(holder, barrier))` so the barrier bounds and depletes — at 0 it passes through).
+- **`subject`** = `holder` (a unit pool: HP / stamina / mana) or `granting_item` (the granting item's
+  `uses`/durability), so an equipment-granted `redirect` can spend item charges.
+- **Determinism:** the **gate** (`pool ≥ cost`) is a pure read+compare on the **decision** path; the
+  **drain** is the **class-2 side-effect** (same as MET actions mutate). No new determinism surface.
+- **Dependency:** works against **existing** pools now (HP, item `uses`); **author-defined** pools
+  (stamina/mana) ride **candidate A** (not yet firmed). Refill of a "uses" pool = the candidate-A
+  CampaignRules refill rule (per-map / per-turn / hub-rest / never). *(Noted on the atlas.)*
+
+---
+
+## Worked-example recipes (double as build acceptance tests)
+Author data in the Option-A data-tree style (illustrative, not pinned syntax):
+- **"Absorb and reflect the first 5 points of damage"** (per-hit): `absorb: { min: [incoming_value, 5] }`,
+  `magnitude: absorbed_value`, `target: {anchor: source}`. *(A 5-point **total** depleting shield = the
+  RDR-13 barrier recipe.)*
+- **"Reflect the first two stacks of a condition"**: `trigger.all: [{kind: condition, condition_id:
+  poison}, {lt: [condition_count(holder, poison), 2]}]`, `absorb: {min: [incoming_value, {sub: [2,
+  condition_count(holder, poison)]}]}`, `magnitude: absorbed_value`, `transform: {condition_id: poison}`.
+- **"Reflect spells but not physical weapons"**: `trigger: {eq: [event.damage_class, magic]}` (or
+  `item_has_tag(event.source.equipped, spell)`), `magnitude: incoming_value`.
+- **"Reflect only attacks meeting criteria"**: `trigger` = any `[REQ]` tree — e.g. `{eq: [event.range,
+  1]}` (melee), `{lt: [hp_pct(holder), 50]}`, `{eq: [event.is_crit, true]}`, `{gt: [stat(event.source,
+  atk), stat(holder, def)]}`.
+- **"3 reflects per battle, then spent"**: `cost: {pool: redirect_charges, amount: 1}` (max 3, refill
+  per-map). **"Reflect a spell, paid in mana"**: `cost: {pool: mana, amount: {mul: [incoming_value,
+  0.5]}}`. **"5-point depleting barrier"**: the RDR-13 barrier recipe above.
+
 ---
 
 ## New edge cases surfaced by the walk (folded in above)
@@ -153,6 +207,9 @@ live target still counts as "landed").
   deterministic (stable sort); class-2, fixed-point, Package-A RNG.
 
 ## Next step
-- `redirect` design is settled; build rides the M8 / A1 path once RDR-7's forward-reqs land.
+- `redirect` design is settled; build rides the M8 / A1 path once the forward-reqs land.
 - **Walk the spawned `cover` sibling** — register `[CVR]` (pre-application effect-reassignment).
-- Confirm RDR-7 (F5 event) + RDR-8 (A5 ordering) are picked up by those owners (now noted on the atlas).
+- Confirm the forward-reqs are picked up by their owners (all now on the atlas): **RDR-7** (F5
+  `effect_applied` event), **RDR-8** (A5 death-ordering), **RDR-12** (F16/REQ `event` subject), **RDR-13**
+  (candidate-A/F7 cost-pool model — and that `redirect` works against existing HP/item-`uses` pools
+  before candidate A firms).
