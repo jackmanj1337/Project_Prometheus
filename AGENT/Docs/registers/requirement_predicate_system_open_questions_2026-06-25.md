@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-25r
 Last verified: 2026-06-26
-Register: REQ-1..14
-Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration); author-extension registry rides F4, condition-potency a forward-req on F5
+Register: REQ-1..15
+Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection); author-extension registry rides F4; condition potency/params/projection a forward-req on F5
 ---
 
 # Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions
@@ -252,7 +252,32 @@ state** so authors can gate on magnitude/time:
   on the F5 status model** — F5 must model a magnitude/stack dimension for potency to exist. Flagged for
   the F5 build (degrades gracefully: if F5 has no potency, the term is unavailable, not an error).
 - **Resolution:** RESOLVED 2026-06-26 — `condition_potency`/`duration`/`count` value terms over F5
-  state; potency pins a **forward-requirement on the F5 status model**.
+  state; potency pins a **forward-requirement on the F5 status model**. (Arbitrary params + outcome
+  projection → **REQ-15**.)
+
+### [REQ-15] Arbitrary condition parameters + outcome projection (owner add 2026-06-26)  **[RESOLVED — paired note on F5 + F16]**
+Generalize REQ-14 from the fixed potency/duration to **any parameter of a condition** AND its
+**projected outcome** — e.g. "**will the poison kill the unit, or leave it at 1 HP**".
+- **`condition_param:{subject, condition_id, param}`** — read **any** authored parameter on the active
+  `ConditionData` (potency/duration are the named special cases). Used via `compare`.
+- **Outcome projection — DELEGATES to F5 (do not re-derive in a predicate):**
+  - `condition_next_tick_damage:{subject, condition_id}` (term) — what F5 *would actually apply* next
+    resolution.
+  - `condition_would_kill(subject, condition_id)` · `condition_would_floor(subject, condition_id)`
+    (bool) — the projected outcome (kill vs floored-at-min, e.g. 1 HP). "Will the poison kill or leave
+    at 1" = `would_kill` vs `would_floor`.
+  - **Why delegate:** the lethal/floor rule + tick formula + any mitigation live in **F5**; a naive
+    `potency ≥ hp_current` would be wrong. The predicate asks F5 to compute the real outcome (the same
+    projection the damage-preview UI uses).
+- **F5 forward-requirements (the paired note on the ConditionManager):** (i) conditions **expose their
+  parameters introspectably** (so predicates/UI read them generically, not field-by-field); (ii) F5
+  owns **effect-resolution semantics incl. a lethal/floor parameter** (poison `lethal:false` → floors
+  at 1 HP; a doom/countdown `lethal:true` → can kill); (iii) F5 provides a **projection/preview API**
+  ("what would the next resolution do to this unit") that BOTH the damage-preview UI and these
+  predicates consume.
+- **Resolution:** RESOLVED 2026-06-26 — `condition_param` (any param) + F5-delegated outcome
+  projection (`next_tick_damage`/`would_kill`/`would_floor`); **F5 must expose params + a lethal/floor
+  param + a projection API** (paired forward-requirement, noted on the atlas F5 row).
 
 ---
 
