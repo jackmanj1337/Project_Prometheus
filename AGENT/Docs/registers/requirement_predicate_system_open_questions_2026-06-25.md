@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-25r
 Last verified: 2026-06-26
-Register: REQ-1..11
-Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 value-term compare, REQ-10 chance gate, REQ-11 item-property terms); author-extension registry detail rides F4 / the define-all sweep
+Register: REQ-1..14
+Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration); author-extension registry rides F4, condition-potency a forward-req on F5
 ---
 
 # Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions
@@ -102,10 +102,11 @@ Clean separations (do **not** merge):
   sources it can read, not things it absorbs.
 
 ### [REQ-7] F1 / save  **[RESOLVED]**
-Requirement **data is authoring** (not saved). Predicates **read** already-reserved state (F6 flags,
-unit stats/level/skills/inventory, convoy) — **no new save surface** introduced by F16 itself. **One
-exception:** the **REQ-10 `chance` latch** is persisted state, but it **rides** the `[DLG-11]`
-`visited_trail` / `[F6]` (no new top-level field).
+Requirement **data is authoring** (not saved). Predicates **read** already-reserved or runtime state
+(F6 flags, unit stats/level/skills/inventory/HP/pools, convoy, F5 conditions, `[REL]` ranks, grid
+position, turn/pair/carry state) — **no new save surface** introduced by F16 itself. **One exception:**
+the **REQ-10 `chance` latch** is persisted state, but it **rides** the `[DLG-11]` `visited_trail` /
+`[F6]` (no new top-level field).
 - **Resolution:** RESOLVED 2026-06-25r — authoring data; reads reserved state; adds nothing to the lock
   except the REQ-10 chance latch, which rides `visited_trail`/`[F6]`.
 
@@ -206,15 +207,66 @@ relic have the armorslayer tag", "is the targeted item a sword".
   context-resolved); item properties (numeric/string via `compare`, sets via `item_has_tag`/
   `item_has_effect`, identity via `item_is`); property vocab grounded in `[IEQ]`, author-extensible.
 
+### [REQ-12] Additional unit / resource / availability value-term sources (owner add 2026-06-26)  **[RESOLVED]**
+More value-term sources (all thin reads; usable in `compare`/`chance`):
+- **HP:** `hp_current` · `hp_max` (`UnitData.hp` / `max_hp`) · **`hp_pct`** (= current/max×100). The
+  **`pct` derived pattern generalizes** to any pool.
+- **Resource pools (F7, `[CEX-1..4]`):** `pool:<id>.current` · `pool:<id>.max` · `pool:<id>.pct`.
+- **Per-map ability availability:** `ability_uses_remaining:<skill/source id>` · `ability_available:<id>`
+  (bool) · `usable_ability_count` — over `skill_use_counters` / `map_uses_remaining` (`[CEX-13]`) /
+  charges (`[AGT §5]`, `[BAT-15]`); all `reset_map_state`-scoped.
+- **Attack styles / sources (`[STY]`):** `style_available:<id>` · `source_available:<id>` (bool) ·
+  `style_count` · `source_count` (total currently available, respecting the `[CEX-7]`/`[STY-3]` cap).
+- **Identity / class:** `class_id` · `movement_type` · `promoted` (bool) · `is_main_character` (`[MCH]`)
+  — via `compare ==` / a bare bool.
+- **Resolution:** RESOLVED 2026-06-26 — HP (+`pct`), F7 pools (+`pct`), per-map ability availability,
+  STY style/source availability+count, identity/class sources; author-extensible.
+
+### [REQ-13] Gap predicate families — spatial · runtime-state · relationship-rank · aggregate (owner: all four 2026-06-26)  **[RESOLVED]**
+Four families that **cannot** be expressed by combining the prior predicates; the owner folded **all
+four** into the v1 vocabulary (each an independent family; **build as a consumer needs it**):
+- **(a) Spatial / positional** — `adjacent(subjectA, subjectB)` · `distance(subjectA, subjectB) op N`
+  (grid **Manhattan** metric, the movement/`[DSP]` default) · `on_terrain(subject, terrain)` ·
+  `in_region(subject, region/zone)`. Reads `GridManager` + `MapData`. Subject(s) per REQ-3; a tile may
+  be named directly.
+- **(b) Runtime unit-state** — `has_acted` / `has_moved` / `can_act` (`TurnManager` `READY/MOVED/DONE`) ·
+  `is_deployed` · `is_paired` (`PairUpRegistry`) · `is_carried` / `is_rescuing` (`CarryRegistry`/`[DSP]`)
+  · `is_captured`/`asleep` (`[STY-6]`). Thin runtime reads.
+- **(c) Relationship / support rank** — `relationship_rank(a, b) op <rank>` reading the **`[REL]`**
+  pair-graph (ordinal → `compare`-able). Natural for dialogue ("if your bond with X ≥ A"). A pair-keyed
+  term, not a unit attribute.
+- **(d) Aggregate / count** — `count(<subject-set>, <Requirement>) op N` over a set (`party` · `faction`
+  · `in_region(...)` · `participants`): "≥3 units have skill X", "<2 fliers deployed". **Generalizes
+  REQ-3** any/all (`any` = count≥1, `all` = count==size). The one family that composes a sub-Requirement.
+- **Resolution:** RESOLVED 2026-06-26 — all four families in the v1 design; each reads existing runtime
+  state (grid / turn / pair-carry / `[REL]` / a party loop); build per-consumer; author-extensible.
+
+### [REQ-14] Active-condition potency & duration (owner Q 2026-06-26)  **[RESOLVED — potency = forward-req on F5]**
+`has_condition` (REQ-6) only tests **presence**. Add value-term sources reading **F5 active-condition
+state** so authors can gate on magnitude/time:
+- **`condition_potency:{subject, condition_id}`** — the stack/magnitude ("poison stack ≥ 3").
+- **`condition_duration:{subject, condition_id}`** — turns remaining ("sleep wears off next turn ≤ 1").
+- **`condition_count:{subject}`** — number of active conditions.
+- Used via `compare`. **Dependency:** `condition_duration`/`count` read F5's already-reserved
+  active-condition state (type + duration, `[STY-12]`); **`condition_potency` is a forward-requirement
+  on the F5 status model** — F5 must model a magnitude/stack dimension for potency to exist. Flagged for
+  the F5 build (degrades gracefully: if F5 has no potency, the term is unavailable, not an error).
+- **Resolution:** RESOLVED 2026-06-26 — `condition_potency`/`duration`/`count` value terms over F5
+  state; potency pins a **forward-requirement on the F5 status model**.
+
 ---
 
 ## Cross-references
 - **Foundation F16.** Consumed by: `[DLG-14]` (dialogue gating), MET `[MET-4]`, `[VIL-6]`, `[RCR-4]`,
   `[IEQ]` `req_flags`, objectives.
 - Reads (does not own): `[F6]` flags, unit data (`level`/`skills`/`get_effective_stat`/`proficiency`/
-  `inventory`), `[CNV]` convoy, F5 status (via `has_condition`), the `[PRV]`/`[STY-17]` relationship
-  (via a `relationship` predicate), and **item properties** (`[REQ-11]`) via the `[IEQ]` item model +
-  the `[CEX-21]` equipped-source pointer (equipped/held/targeted refs).
+  `inventory`/`hp`/`max_hp`), F7 pools (`[CEX-1..4]`), per-map counters (`skill_use_counters`/
+  `map_uses_remaining`/charges), `[STY]` styles/sources, `[CNV]` convoy, **item properties** (`[REQ-11]`
+  via `[IEQ]`/`[CEX-21]`), **F5 conditions** (presence + `[REQ-14]` potency/duration), the
+  `[PRV]`/`[STY-17]` relationship, **`[REL]` support ranks** (`[REQ-13c]`), and **grid/turn/pair-carry
+  runtime state** (`GridManager`/`MapData`, `TurnManager`, `PairUpRegistry`/`CarryRegistry` — `[REQ-13a/b]`).
+- **Forward-requirement:** `[REQ-14]` `condition_potency` needs the **F5 status model to carry a
+  magnitude/stack dimension** (degrades gracefully if absent).
 - Composition precedent: the objective AND/OR-group evaluator.
 - **REQ-10 `chance`** depends on **`RngService` / Package A (`[PKGA]`)** (seeded, rewind-safe) and a
   **CampaignRules (F4) skew profile** (`linear`/`sigmoid`/`table`); latch rides `[DLG-11]`/`[F6]`.
