@@ -32,6 +32,14 @@ not the protector's — no re-roll; flagged if it should instead roll vs the pro
   the landed blow (mid-resolution).
 - They **stack** — a provoked enemy charges the healer; the knight covers the hit.
 
+### Three-phase interceptor family + cover's boundary
+Cover is **phase 1** of a three-phase family (see `[RCT]`): **phase 0** = `reactive-reposition` (swap a
+unit into the tile pre-resolution → *full* substitution incl. evade + skills + **counter**); **phase 1** =
+cover (per-hit, mitigation only, ally's evade, **no counter** by default); **phase 2** = `redirect` (emit
+elsewhere). So **"retarget the attack to an arbitrary (even attacker-allied) unit that can dodge + counter"
+is NOT cover** — use phase-0 `[RCT]` (forced swap into the line of fire) or `[RDR]` (emit, no dodge/counter).
+Cover stays the partial, no-counter, ally's-evade intercept.
+
 ## Why it is a distinct primitive, not a `redirect` mode (the `[RDR-9]` boundary)
 `redirect` is **post-mitigation + additive** (the holder took the hit; a new transformed holder-attributed
 effect is emitted elsewhere). `cover` is **pre-mitigation + reassignment** — the **original** effect's

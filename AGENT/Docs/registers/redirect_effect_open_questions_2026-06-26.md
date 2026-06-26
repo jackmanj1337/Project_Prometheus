@@ -190,6 +190,12 @@ Author data in the Option-A data-tree style (illustrative, not pinned syntax):
 - **"3 reflects per battle, then spent"**: `cost: {pool: redirect_charges, amount: 1}` (max 3, refill
   per-map). **"Reflect a spell, paid in mana"**: `cost: {pool: mana, amount: {mul: [incoming_value,
   0.5]}}`. **"5-point depleting barrier"**: the RDR-13 barrier recipe above.
+- **"Absorb and send the blow at the attacker's own ally, once"** (friendly fire): `absorb: full`,
+  `target: { anchor: source, scope: …, target_filter: allies_of(source) }`, `cost: {pool: redirect_uses,
+  amount: 1}`. Delivers as a **fresh emit** (the new target's defense applies, **no dodge-roll / no
+  counter**). To instead make the new target a real defender that can **evade + counter**, use the
+  **phase-0 `[RCT]`** forced swap (put that unit in the line of fire), not redirect. (See the three-phase
+  family in `[RCT]`/`[CVR]`.)
 
 ---
 

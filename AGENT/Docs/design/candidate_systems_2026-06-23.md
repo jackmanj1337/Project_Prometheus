@@ -258,6 +258,21 @@ substitution = **per-hit intercept** (to-hit vs the ally, **mitigation + HP vs t
 its own tile, via DSP). Needs a **pre-mitigation defender hook** in `CombatResolver` (earlier than
 `redirect`'s post-mitigation hook). Register `registers/cover_intercept_open_questions_2026-06-26.md`.
 
+## I. `reactive-reposition` — phase-0 interceptor (on-targeted DSP swap)  (sibling of G/H)
+**Spawned 2026-06-26** (session 2026-06-26h) from an owner scenario ("the adjacent general swaps places
+with the targeted healer; the attack now resolves fully against the general — evade, defense, skills,
+counter — and the general stays put"). The **earliest** phase of the interceptor family: on a `[REQ]`+
+`event` trigger at **target-declaration**, a `[STY-9]` reactor does a **`[DSP]` reposition** (swap/shove/
+pull/pivot), then **normal combat resolution** runs against the tile's new occupant — so full substitution
+(incl. **counter**) is automatic, no special hook. **Walked + `[RCT-1..6]` RESOLVED 2026-06-26**.
+- **The interceptor family = three phases** (same `[STY-9]` selector + `[REQ]`/`event` trigger + RDR-13
+  cost; differ only by hook timing): **phase 0** `reactive-reposition` (`[RCT]`, full substitution +
+  counter) → **phase 1** `cover` (`[CVR]`, mitigation only) → **phase 2** `redirect` (`[RDR]`, emit
+  elsewhere). "How much substitutes" = which phase you author.
+- **The one new cost:** RCT needs a **pre-resolution reaction trigger**, which bumps the F11 "no new
+  triggers" discipline → build-time architecture sign-off. Everything else is `[DSP]` + `[STY-9]` +
+  `[REQ]` + RDR-13 reuse. Register `registers/reactive_reposition_open_questions_2026-06-26.md`.
+
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the
   earlier effect gaps (poison weapon tag, condition immunity). It's trending toward a **foundational
