@@ -133,7 +133,9 @@ than you".
     (REQ-11): numeric (`mt`/`hit`/`crit`/`wt`/`uses_remaining`/`cost`/`range`/`required_rank`-ordinal/…)
     or scalar-string (`combat_family`/`triangle_family`/`item_type`);
   - a **literal** constant.
-  Author-extensible (same F4-style registry).
+  Author-extensible (same F4-style registry). **NB:** what "author-extensible" means mechanically
+  (data-composition vs an expression layer vs engine-only) is an **OPEN cross-cutting question —
+  `[EXT-1..6]`**, a dedicated walk scheduled **before A5**.
 - **`compare`** predicate = `{ lhs: <term>, op, rhs: <term> }` — **both sides dynamic**, each side may
   name a **different subject/item** (the point of cross-subject/cross-item compare). Ordering ops
   (`< <= >= >`) are **numeric**; `==`/`!=` work on any **scalar** (number OR string, e.g. weapon
