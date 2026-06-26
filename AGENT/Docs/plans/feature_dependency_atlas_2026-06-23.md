@@ -27,7 +27,7 @@ implementation plan is written when that feature is **scheduled**. Sizes are rou
 | F2 | **Unified `ItemDef` + components** (`[IEQ]`) | ✅ firmed | F1 | accessories, consumables, spells, per-map items, story items, combat arts, forging | decided (composition) |
 | F3 | **Proficiency / XP framework** (`[PXP]`) | ✅ firmed | F1, F4 | equip legality, spell-learn-by-threshold, training halls, bonus-EXP, arena | decided |
 | F4 | **CampaignRules author-profile mechanism** | 🟡 ad-hoc | F1 | PXP ranks, flexible triangle, resource pools, difficulty modes | ✅ **decided 2026-06-23l: ONE generic "named author profile" mechanism** (end-shape in `design/foundations_end_shapes_2026-06-23.md`) |
-| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves, **capture `sleep`, style status (`[STY]`)** | ✅ decided 2026-06-23l: FULL author-extensible system · **pulled onto A1's critical path 2026-06-24k (`[STY-12]`)** — build the full system within/before A1 (capture + style status + buff/debuff staves all need it) · **forward-reqs from `[REQ-14]`/`[REQ-15]`:** model a **potency/stack** dimension; **expose condition params introspectably**; carry a **lethal/floor** param (poison floors at 1 vs a killing condition); and provide a **next-resolution projection/preview API** ("will this tick kill or leave at 1 HP") shared by the damage-preview UI + the predicate machine |
+| F5 | **ConditionManager / status system** (M8) | 🟡 stub | combat loop | status conditions UX, flexible-triangle conditions, poison/immunity tags, debuff staves, **capture `sleep`, style status (`[STY]`)** | ✅ decided 2026-06-23l: FULL author-extensible system · **pulled onto A1's critical path 2026-06-24k (`[STY-12]`)** — build the full system within/before A1 (capture + style status + buff/debuff staves all need it) · **forward-reqs from `[REQ-14]`/`[REQ-15]`:** model a **potency/stack** dimension; **expose condition params introspectably**; carry a **lethal/floor** param (poison floors at 1 vs a killing condition); and provide a **next-resolution projection/preview API** ("will this tick kill or leave at 1 HP") shared by the damage-preview UI + the predicate machine · **forward-req from `[RDR]`/`[CVR]` (redirect/cover, 2026-06-26f):** expose a **uniform source-bearing `effect_applied(kind, magnitude, source, target, flags)` event** with a **`redirectable` flag** for the `CombatResolver` interceptor, and **store the source on every condition instance** (condition bounce + per-tick reflect) |
 | F6 | **Campaign-flag / story-state store** | ❌ missing | F1, F8 | story-item branching, recruit conditions, route/difficulty branching, village outcomes | ✅ **decided 2026-06-23l: generic flag/variable store** (end-shape in foundations doc) |
 | F7 | **Resource pools** (stamina/mana/HP) | ❌ not built | F1, F2, F4 | spells-from-pool, combat arts, skill costs | ✅ **decided 2026-06-23l: standalone foundation** (`[CEX-1..4]`; CampaignRules pool types, author refill modes, restore items/Regen skills, gates weapon/spell/skill use) |
 | F8 | **Map events / triggers** (`[MET]`) | ✅ firmed | grid/map | village, recruit, story branching, objectives | decided |
@@ -177,7 +177,7 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     `no_attack` (`[CEX-24]`, mandatory "Restrain" floor that *can't* initiate/counter, defaults to queue
     bottom); (2) build the `[STY]` source+style
     pipeline (`[CEX-23]` combo-select) + the `effects`/`target_filter` source axis (`[STY-13]`/`[STY-16]`);
-    (3) build AoE/multi-target (`[STY-9]`: shapes incl. `rectangle`; friendly-fire = broad filter) + the
+    (3) build AoE/multi-target (`[STY-9]`: shapes incl. `rectangle`; friendly-fire = broad filter; **also the shared target-selector consumed by `[RDR]`/`[CVR]` redirect/cover**) + the
     generalized "effect forecast" preview (`[STY-10]`: one panel, footprint + focused-target cycle);
     (4) **build the full F5 `ConditionManager`** (`[STY-12]` — on A1's critical path; unblocks capture
     `sleep` + style status + buff/debuff staves); (5) **extend the M14 faction model to the directed
@@ -259,7 +259,7 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     **override** disposition: a Key Item is **never `lost`** (always recovered to convoy / re-granted)
     even under a harsh profile; (4) **no convoy on this map** → `to_convoy` fallback (pending stash /
     drop-on-tile); (5) **Casual/Phoenix** (#12) — a returning unit gets its inventory back (it isn't
-    truly dead); (6) **PvP/skirmish** — no permanent loss; (7) **simultaneous deaths** (AoE wipe) —
+    truly dead); (6) **PvP/skirmish** — no permanent loss; (7) **simultaneous deaths** (AoE wipe; **also `[RDR-8]` redirect/dying-thorns** — owner the **snapshot-then-resolve** rule: apply all HP, collect all at 0, run disposition in a deterministic order, mutual kills both die; a redirect kill credits the **holder** even if dead, for EXP/objectives) —
     per-unit resolution + drop ordering; (8) **enemy death** — loot/`drop_on_tile` incl. the
     "droppable-item enemy" case; (9) **death while carrying** (`[DSP-5]`) — the carried unit drops per
     DSP, the carrier's own inventory follows this rule. *Owner:* **A5** (rides F4 + the permadeath path);

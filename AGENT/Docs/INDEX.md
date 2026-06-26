@@ -42,6 +42,7 @@
 - [`registers/campaign_save_open_decisions_2026-06-21.md`](registers/campaign_save_open_decisions_2026-06-21.md) — Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register — *OPEN*
 - [`registers/candidate_systems_open_questions_2026-06-23.md`](registers/candidate_systems_open_questions_2026-06-23.md) — Candidate Systems — Player-Interaction Open Questions — *RESOLVED*
 - [`registers/convoy_inventory_open_questions_2026-06-23.md`](registers/convoy_inventory_open_questions_2026-06-23.md) — Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions — *RESOLVED*
+- [`registers/cover_intercept_open_questions_2026-06-26.md`](registers/cover_intercept_open_questions_2026-06-26.md) — `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions — *OPEN*
 - [`registers/datamanager_decomposition_open_questions_2026-06-21.md`](registers/datamanager_decomposition_open_questions_2026-06-21.md) — `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/destructible_terrain_open_questions_2026-06-21.md`](registers/destructible_terrain_open_questions_2026-06-21.md) — Destructible Terrain — Breakable Walls / Fellable Trees / Crystals (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/dialogue_conversation_system_open_questions_2026-06-25.md`](registers/dialogue_conversation_system_open_questions_2026-06-25.md) — Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions — *RESOLVED*
@@ -63,7 +64,7 @@
 - [`registers/public_identity_rename_open_questions_2026-06-21.md`](registers/public_identity_rename_open_questions_2026-06-21.md) — D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions — *OPEN*
 - [`registers/recruit_capture_open_questions_2026-06-24.md`](registers/recruit_capture_open_questions_2026-06-24.md) — Recruit / Capture (#4) — Roster-Side Design + Open Questions — *RESOLVED*
 - [`registers/recruit_conversation_dialogue_open_questions_2026-06-25.md`](registers/recruit_conversation_dialogue_open_questions_2026-06-25.md) — Recruit Conversation Side (#4 ⇄ A3, A4) + the shared Dialogue-System foundation (F15) — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/redirect_effect_open_questions_2026-06-26.md`](registers/redirect_effect_open_questions_2026-06-26.md) — `redirect` — Combat Effect-Redirect Primitive — Open Questions — *OPEN*
+- [`registers/redirect_effect_open_questions_2026-06-26.md`](registers/redirect_effect_open_questions_2026-06-26.md) — `redirect` — Combat Effect-Redirect Primitive — Open Questions — *RESOLVED*
 - [`registers/relationship_system_open_questions_2026-06-24.md`](registers/relationship_system_open_questions_2026-06-24.md) — Relationship System (#5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/requirement_predicate_system_open_questions_2026-06-25.md`](registers/requirement_predicate_system_open_questions_2026-06-25.md) — Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/secondary_movement_open_questions_2026-06-24.md`](registers/secondary_movement_open_questions_2026-06-24.md) — Secondary Movement (Move-After-Acting) — Player-Facing Design + Open Questions — *RESOLVED*

@@ -187,9 +187,10 @@ feature planning).
 
 ## G. `redirect` — combat effect-redirect primitive  (owner — discuss **before A5**)
 **Added 2026-06-26** (owner request). **Timing override:** unlike A–F (which firm at the priority
-re-eval), the owner wants this **discussed before A5**. **Walked 2026-06-26** (session 2026-06-26e) —
-the model is firmed to the shape below; residual forks tracked in register **`[RDR-1..9]`**
-(`registers/redirect_effect_open_questions_2026-06-26.md`).
+re-eval), the owner wants this **discussed before A5**. **Walked 2026-06-26** (sessions 2026-06-26e
+end-shape + 2026-06-26f full walk) — the model is firmed and **`[RDR-1..11]` RESOLVED**
+(`registers/redirect_effect_open_questions_2026-06-26.md`); the walk **spawned a sibling primitive
+`cover`** (see candidate H + register `[CVR]`).
 
 - **Conceptual model — an effect INTERCEPTOR.** `redirect` subscribes to incoming **effect-application
   events** on its holder; for events matching a predicate it emits a **transformed effect at a selected
@@ -227,9 +228,24 @@ the model is firmed to the shape below; residual forks tracked in register **`[R
   **(b) a shared unit-selector** (anchor + scope + predicate) — the **same** selector the spell/style AoE
   system needs, so build once, both consume. The interception hook belongs in **`CombatResolver`** (the
   only place that knows attacker→defender and owns death timing), not in `take_damage`.
+- **`absorb` (RDR-10):** a `[REQ-16]` term removes a portion of the incoming effect off the holder
+  **before it lands** (clamped `[0, incoming]`); `absorb = 0` = additive thorns, `absorb = full` = the
+  **parry/full-reflect** fantasy. `absorb_on_unavailable` (RDR-11, default **proportional**:
+  `absorb × N_valid/N_intended`) decides whether absorption still applies when the target-set is
+  missing/invalid (dead/environmental source).
 - **Stacking:** multiple `redirect` effects each evaluate independently and emit their own effect (no
-  auto-sum, for predictability); the combat **preview** must show the combined redirected total across
-  **all** affected targets before commit.
+  auto-sum, for predictability); the combat **preview** must show the holder's reduced incoming (absorb)
+  + the combined redirected total across **all** affected targets before commit.
+
+## H. `cover` — pre-application effect-reassignment primitive  (sibling of G — owner: spec now)
+**Spawned 2026-06-26** by the `redirect` walk (`[RDR-9]` scope boundary). The mirror of `redirect`:
+`redirect` is **post-application + additive** (holder took the hit; a new transformed effect is emitted
+elsewhere), whereas `cover` is **pre-application + reassignment** — it moves the **original** effect's
+target to a protector **before** it lands (the protector takes the original hit with **their** mitigation
+vs the original attacker, original kill-attribution = the FE Aegis/guardian "take the hit *instead of* my
+ally"). Same `[EXT]` interceptor family, `[STY-9]` selector, `CombatResolver` hook, and M8/A5
+dependencies as `redirect`. **Open** — register **`[CVR-1..6]`**
+(`registers/cover_intercept_open_questions_2026-06-26.md`); to walk next.
 
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the
