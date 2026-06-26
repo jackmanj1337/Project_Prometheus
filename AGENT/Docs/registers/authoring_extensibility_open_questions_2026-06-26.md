@@ -3,14 +3,19 @@ Type: register
 Status: OPEN 2026-06-26
 Last verified: 2026-06-26
 Register: EXT-1..6
-Resolved-in: —
+Resolved-in: 2026-06-26 (EXT-1 model = A "A-plus" / EXT-2 content-fit / EXT-3 validation / EXT-4 determinism + EXT-5 *mechanism* — ratified off the `[REQ-16]` worked example); **still OPEN:** EXT-5 *cadence/process* + EXT-6 per-vocabulary confirmation (DLG effects · F4 profiles · MET)
 ---
 
 # Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions
 
 **Started:** 2026-06-26 (parked by the F16/`[REQ]` sweep; owner: **dedicated session NEXT, before
 A5**).
-**Status:** **[EXT-1..6] OPEN** — a deliberate, scheduled design walk. **Not yet decided.**
+**Status (updated 2026-06-26):** **EXT-1, EXT-2, EXT-3, EXT-4 RESOLVED** and **EXT-5 *mechanism*
+RESOLVED** — ratified directly off the `[REQ-16]` arithmetic-terms worked example (owner call: the
+answers were obvious once the math case was walked). **Still OPEN:** **EXT-5 cadence/process** (the
+release rhythm + triage for primitive requests) and **EXT-6 per-vocabulary confirmation** (an explicit
+check that `[DLG-3]` effects, F4 profiles, and `[MET]` adopt the A model with no divergence). The
+remaining walk is **much lighter than originally scoped** and likely **off the A5 critical path**.
 **Why this exists:** the F16 `[REQ]` predicate vocabulary, the `[DLG-3]` effect taxonomy, and the F4
 CampaignRules profiles have all been called **"author-extensible"** with the *mechanism* glossed as
 "rides F4 / the sweep." That word makes a promise that is **not pinned**, and it matters because the
@@ -19,8 +24,8 @@ campaign content model is **self-contained packs of data + raw art with no code*
 evaluator logic." This register seeds the walk that settles what it *does* mean — **once, for all the
 author vocabularies** (EXT-6).
 
-**Candidate directions (to weigh next session — surfaced 2026-06-26, NOT chosen):**
-- **A — Data-composition only.** Authors parameterize + compose the engine-provided primitives and can
+**Candidate directions (surfaced 2026-06-26 — ✅ CHOSEN: A, as the "A-plus" hybrid, per EXT-1 below):**
+- **A — Data-composition only. ✅ CHOSEN.** Authors parameterize + compose the engine-provided primitives and can
   define new **named** Requirements/effects as data compositions ("macros"). New **primitive** types
   are engine-added over releases. No code in packs — fits the content model. ("Extensible" = a
   growable named library, data-only.)
@@ -60,33 +65,70 @@ data point that **A is sufficient and content-model-clean for the math case**.
 
 ## Open questions to walk
 
-### [EXT-1] The core meaning — A (compose-only) vs B (expression layer) vs C (engine-only)  **[OPEN]**
+### [EXT-1] The core meaning — A (compose-only) vs B (expression layer) vs C (engine-only)  **[RESOLVED 2026-06-26]**
 Pick the model. Drives everything below.
+- **Resolution: A — data-composition only, run as the "A-plus" hybrid.** `[REQ-16]` proved A is
+  sufficient **and** content-model-clean for the hardest case (live arithmetic), and the other
+  vocabularies already behave as Option-A data-composition today (DLG effects = a parameterized 3-tier
+  taxonomy; F4 profiles = `linear/sigmoid/table` + parameterize, where `table` already gives arbitrary
+  author curves as *data*; MET = an engine action-list composed with `[REQ]` conditions). **B stays a
+  narrow, evidence-gated future exception** (a single "expression-bodied" slot reusing A's eval tree),
+  paid for only if a primitive-request backlog proves the ceiling is real. **C rejected** — A keeps the
+  "extensible" promise honest without author code.
 
-### [EXT-2] Content-model fit  **[OPEN]**
+### [EXT-2] Content-model fit  **[RESOLVED 2026-06-26]**
 Packs are **data + raw art, no code** (self-contained model). Does the chosen option preserve that? B
 introduces author-authored logic (even sandboxed) — reconcile with "no code in packs," or scope it as a
 deliberate exception.
+- **Resolution: yes — A preserves "no code."** Compositions are **data trees**; the loader already
+  enumerates them. The one subtlety `[REQ-16]` surfaced and settled: a **string front-end is build-time
+  sugar that emits a validated tree** (the runtime evaluates data, never a string) → still no-code. Only
+  a hypothetical *runtime-interpreted* B-expression would need a scoped carve-out, and that is **deferred**
+  until evidence demands it.
 
-### [EXT-3] Validation & safety  **[OPEN]**
+### [EXT-3] Validation & safety  **[RESOLVED 2026-06-26]**
 How is an author composition/expression **validated** at load (`DataManager.validate`)? Bad references
 (unknown predicate type, missing subject, nonexistent stat/item), type errors (string vs numeric
 `compare`), and unbounded/contradictory Requirements. Fail-loud at build vs degrade.
+- **Resolution: structural load-validation against the engine primitive registry, fail-loud at build.**
+  `[REQ-16]` is the concrete template: op ∈ known set, arity, recursively-typed operands, required params
+  (e.g. `on_zero`), budget/depth bounds, **reject impure references**. Each vocabulary enumerates its own
+  registry (predicate/effect/profile types), but the **validation shape is uniform** — bad refs/type
+  errors/over-budget fail at load, not silently degrade.
 
-### [EXT-4] Determinism & save-safety  **[OPEN]**
+### [EXT-4] Determinism & save-safety  **[RESOLVED 2026-06-26]**
 Any author-defined logic must stay **deterministic** and **side-effect-free** for save/replay/rewind —
 especially around the **REQ-10 `chance`** gate (RNG only via `RngService`/Package A) and the
 `[DLG-11]` `visited_trail` latch. An expression layer must not be able to read wall-clock, re-roll, or
 mutate state.
+- **Resolution: author compositions are pure + side-effect-free; the only RNG is Package A's latched
+  `chance`; fixed-point for cross-platform determinism.** Demonstrated end-to-end by `[REQ-16]`
+  (fixed-point ×1000 → bit-identical across desktop/web/lockstep; the `chance` skew input stays pure, only
+  the roll touches Package A and **latches**). The governing rule is the **pure/impure split** — pure
+  reads compose freely; the single impure primitive (`chance`) is quarantined behind Package A + latch,
+  and nothing reachable from a term may read wall-clock, re-roll, or mutate state.
 
-### [EXT-5] Who adds primitives + cadence  **[OPEN]**
+### [EXT-5] Who adds primitives + cadence  **[PARTIAL — mechanism RESOLVED 2026-06-26; cadence OPEN]**
 Under A/C, new **primitive** predicate/effect/profile types are an engine concern — define the cadence
 and how authors request them. Under B, define the primitive set the expression layer exposes.
+- **Resolution (mechanism):** engine adds primitive **types**; authors get a **named-composition library**
+  as the author-side relief valve (e.g. `gt/lt/ge/le/eq/ne` and `xor` shipped as compositions, not
+  primitives) **plus a primitive-request channel that doubles as a contributor on-ramp** (request → maybe
+  join the dev team to build it, per `[REQ-16]`'s complexity-budget guidance).
+- **STILL OPEN — cadence/process:** the release rhythm for landing requested primitives and the triage
+  process (which requests resolve to "compose it like this" vs a real new primitive). A lightweight
+  *process* detail, not a design fork.
 
-### [EXT-6] One model for ALL author vocabularies  **[OPEN]**
+### [EXT-6] One model for ALL author vocabularies  **[OPEN — narrowed to a per-vocabulary confirmation]**
 The decision should apply **uniformly** to: F16 `[REQ]` predicates/terms, `[DLG-3]` effects, F4
 CampaignRules profiles (incl. the `[REQ-10]` skew profile), and arguably `[MET]` actions/triggers.
 Avoid divergent extensibility models across the "author vocabularies." Pick one.
+- **Direction settled (2026-06-26): one model = A, uniformly** — no vocabulary shows a genuine
+  B-requirement (a novel effect / profile / action is a **primitive request**, not author code). **What
+  remains** is the honest confirmation step, not a fork: an explicit per-vocabulary pass verifying
+  **`[DLG-3]` effects**, **F4 profiles**, and **`[MET]` actions/triggers** each adopt A with no
+  divergence (and folding their "author-extensible" wording onto this answer). Low-risk; the only reason
+  it is not auto-closed is that asserting ≠ checking.
 
 ---
 
