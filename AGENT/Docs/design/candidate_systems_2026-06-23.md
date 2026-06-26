@@ -185,24 +185,51 @@ feature planning).
   (the REQ-10 latch already blocks reload-rerolls).
 - **Depends on** the `[EXT]` extensibility decision (how authors define a check's terms/profile).
 
-## G. "Reflect" effect primitive  (owner — discuss **before A5**)
-**Added 2026-06-26** (owner request; **not firmed** — a candidate to walk). **Timing override:** unlike
-A–F (which firm at the priority re-eval), the owner wants this **discussed before A5**.
-- **Idea:** a new **effect primitive `reflect`** — an effect that bounces some incoming
-  effect/damage/status back at its source. To be defined: what is reflected (damage · a condition · an
-  action), how much (a fixed amount · a fraction · an arithmetic `[REQ-16]` term), and the trigger/
-  condition under which it fires.
-- **⚠ Naming collision — disambiguate at the walk:** `[DLG-9]` already defines a *dialogue-visual*
-  **reflect** (an `in_place|copy` live portrait mirror). This candidate is a **gameplay/combat effect**,
-  unrelated to that presentation effect — the walk must pick a non-colliding id/name (e.g. `reflect_effect`
-  vs the DLG visual) so the two are never conflated.
-- **Likely reuses:** the F5 `ConditionManager`/effect-resolution path (it is an effect), `[REQ-16]`
-  arithmetic terms for the reflected magnitude, `[REQ]` predicates for the fire condition, and the combat
-  damage pipeline / `handle_death` hook for the bounce-back application.
-- **Open (its own walk):** reflected subject (damage/status/action) · magnitude model (flat/fraction/
-  term) · ordering vs mitigation/floor (does it reflect pre- or post-mitigation? interacts with the F5
-  lethal/floor projection `[REQ-15]`) · stacking with other reflects · whether it is a unit state, an
-  equipment effect, or a status condition.
+## G. `redirect` — combat effect-redirect primitive  (owner — discuss **before A5**)
+**Added 2026-06-26** (owner request). **Timing override:** unlike A–F (which firm at the priority
+re-eval), the owner wants this **discussed before A5**. **Walked 2026-06-26** (session 2026-06-26e) —
+the model is firmed to the shape below; residual forks tracked in register **`[RDR-1..9]`**
+(`registers/redirect_effect_open_questions_2026-06-26.md`).
+
+- **Conceptual model — an effect INTERCEPTOR.** `redirect` subscribes to incoming **effect-application
+  events** on its holder; for events matching a predicate it emits a **transformed effect at a selected
+  target-set**. "Reflect" (bounce back at the dealer) is the **preset** `target = {source}`; the
+  primitive itself is the general "on-intercept → transform → emit at a target-set." Authored once as an
+  engine primitive, then composed as data (consistent with the closed `[EXT]` "one model = A" outcome).
+- **Resolved end-shape (owner, 2026-06-26):**
+  - **Subject = damage · conditions · other combat effects** (general, not damage-only) — see the
+    foundation dependency below.
+  - **Carrier = any source** — `redirect` is defined once as an effect; a **status condition, equipped
+    item, or class/unit trait** all GRANT it (the granted-source pattern, as battalions use). No bespoke
+    carrier.
+  - **Target = a target-selector** = `anchor` + spatial `scope` + `[REQ]` predicate (composes
+    `GridManager._tiles_in_range` + `_get_units()` + a REQ filter — no new spatial math).
+  - **`fires_on_death` = an author flag** (per-`redirect`), engine **default = dying-thorns** (fires
+    from the killing blow; the target may die simultaneously).
+- **Three new engine rules (recommended defaults — see `[RDR]`):** **(1) read point** = the
+  **post-mitigation actual** value, with the emitted effect applied **through the target's own pipeline**
+  (target's defenses + the F5 lethal/floor projection `[REQ-15]` apply); **(2) termination** = an emitted
+  effect is flagged **non-redirectable → one bounce only** (prevents thorns-vs-thorns and radiate
+  cascades — non-negotiable for determinism); **(3) death ordering** = the lethal blow defers disposition
+  to a safe point, `redirect` fires per `fires_on_death`, then all flagged deaths resolve in **A5's**
+  order — so `redirect` is a **co-input to the A5 death/removal-disposition decision** (the reason it is
+  walked pre-A5).
+- **Determinism class:** **class-2 state-mutation** in the per-output-path model — deterministic, ordered,
+  runs at safe points, fixed-point, RNG (if a magnitude term uses `chance`) via Package A.
+- **⚠ Naming — disambiguated.** `[DLG-9]` already defines a *dialogue-visual* `reflect` (portrait
+  mirror). The combat primitive is named **`redirect`** (general); the back-to-source preset may be
+  surfaced to authors as **`reflect`** but is a config of `redirect`, never the DLG visual.
+- **⚠ Foundation dependencies (the real cost — not in current code):** general `redirect` is **not
+  buildable on today's stubs.** `ConditionManager.gd` is a 37-line no-op until **M8**, and damage flows
+  through `Unit.take_damage(amount)` which applies an **already-mitigated** number and emits
+  `unit_damaged(self, amount)` **with no source**. So `redirect` requires the M8 build to expose **(a) a
+  uniform, source-bearing `effect_applied(kind, magnitude, source, target)` event** to intercept, and
+  **(b) a shared unit-selector** (anchor + scope + predicate) — the **same** selector the spell/style AoE
+  system needs, so build once, both consume. The interception hook belongs in **`CombatResolver`** (the
+  only place that knows attacker→defender and owns death timing), not in `take_damage`.
+- **Stacking:** multiple `redirect` effects each evaluate independently and emit their own effect (no
+  auto-sum, for predictability); the combat **preview** must show the combined redirected total across
+  **all** affected targets before commit.
 
 ## Cross-cutting dependencies (worth surfacing for the priority re-eval)
 - **`ConditionManager` is a stub** but is now wanted by **C** (triangle-conditions) **and** the
