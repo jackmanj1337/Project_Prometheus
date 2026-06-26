@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-25r
 Last verified: 2026-06-26
-Register: REQ-1..15
-Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection); author-extension registry rides F4; condition potency/params/projection a forward-req on F5
+Register: REQ-1..16
+Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 compare, REQ-10 chance, REQ-11 item-property, REQ-12 unit/pool/availability sources, REQ-13 spatial/state/relationship/aggregate families, REQ-14 condition potency/duration, REQ-15 condition params + outcome projection, REQ-16 fixed-point arithmetic value terms + number-domain booleans); author-extension registry rides F4; condition potency/params/projection a forward-req on F5; REQ-16 = the first `[EXT]` Option-A worked example
 ---
 
 # Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions
@@ -177,6 +177,11 @@ of two value terms** (REQ-9). The **one stateful/impure predicate** — all othe
 - **Save note (amends REQ-7):** the **latched roll outcome** is new state, but it **rides existing
   reserved surfaces** — the `visited_trail` (`[DLG-11]` `conversation_resume`) for in-conversation gates
   and `[F6]` for persistent results — **no new top-level save field.**
+- **REQ-16 generalization (2026-06-26):** the skew **`input`** and **`base`** are **arithmetic value
+  terms** (REQ-16), so `operand: difference|ratio` is just the `sub|div` special case (**subsumed**) —
+  this enables author-defined **custom contest curves** (`input = my_str*2 + my_skill − their_def`).
+  Skew `input`/`base` are evaluated **pure** at commit on the roll's state snapshot (**no new RNG
+  surface**); only the roll itself routes through RngService/Package A.
 - **Resolution:** RESOLVED 2026-06-26 — `chance` = base + F4 skew-profile over a difference|ratio of two
   terms, rolled via RngService/Package A, **roll-once-and-latch** (author `re_rollable`); the one impure
   predicate; latch rides `visited_trail`/`[F6]`.
@@ -281,6 +286,82 @@ Generalize REQ-14 from the fixed potency/duration to **any parameter of a condit
   projection (`next_tick_damage`/`would_kill`/`would_floor`); **F5 must expose params + a lethal/floor
   param + a projection API** (paired forward-requirement, noted on the atlas F5 row).
 
+### [REQ-16] Arithmetic value terms — fixed-point math + number-domain booleans (owner add 2026-06-26)  **[RESOLVED]**
+Generalize REQ-9 value terms from single leaf reads to **composable arithmetic**, so authors build
+derived numbers ("is STR+MAG > target's RES", "ratio of A to B > C^D") and scale effect magnitudes
+(`heal = mag/2 + 5`). Stays **Option A (data-composition)** — a recursive *data tree*, **not** an
+author-authored expression string (parsing is deferred build-time sugar) — so it adds **no code-in-packs**
+and no RNG/impurity. This is the **first worked example** of the `[EXT]` "fold a recurring request into
+an engine primitive" model (see the `[EXT]` register).
+- **Shape (generalizes the REQ-9 term):** a term is recursively
+  - leaf `{subject, source}` (REQ-9/11/12) · `{literal:<n>}` (author enters a human value; loader
+    scales), **or**
+  - compound `{op, operands:[term…], round?, on_zero?}`.
+  `compare` is unchanged — it just accepts richer terms.
+- **Number model = fixed-point, scale ×1000** (milli-units; human-readable in data/logs), 64-bit int
+  storage, **every node clamped** to ±MAX_FIXED (kills overflow, keeps ordering total, supplies the
+  `to_max` value). **Bit-deterministic across desktop/web/lockstep** — the reason fixed-point was chosen
+  over float (float `pow`/`div` results are not cross-platform identical → save/lockstep desync). Also
+  **restores safe `==`** on computed results (fragile under float).
+- **Operators (v1):** `add sub mul div pow min max abs neg` + number-domain booleans `not and or
+  truthy`. `min/max` variadic (≥2), `abs/neg/not/truthy` unary, the rest binary.
+  - **`pow` = integer exponents only** (`0^0 ≜ 1`; negative exponent via the divide path). Fractional
+    exponents need a deterministic fixed-point exp/log routine → **flagged build-investigate, deferred**.
+- **Rounding:** default **round-half-up** on every lossy op (`mul`/`div`/`pow`); per-node override
+  `round: floor|ceil`. (One rounding param on all lossy ops — supersedes separate `div_floor`/`div_ceil`
+  operators.)
+- **Divide-by-zero = required explicit `on_zero` policy** on every `div`: `to_max` (clamp ceiling —
+  "zero resistance ⇒ fully favored") · `to_zero` · `to_value:<term>` (fallback). A single global sentinel
+  is **wrong** (ratio-vs-resistance wants `to_max`; averages want `to_zero`) → the builder **forces a
+  choice** and hand-authored data **missing `on_zero` is a validate error**. **No "undefined"
+  propagation** — the number domain stays **total/closed**; "should not fire" cases use an explicit guard
+  predicate.
+- **Number-domain booleans:** rule **`>0` true / `≤0` false**, output canonical **`1.0`/`0`** (composes:
+  `3 * and(a,b)` ⇒ `3.0|0`). Primitive set is `not/and/or/truthy` (`or`/`truthy` are de-Morgan /
+  double-negation sugar over `not`+`and`, so the set is minimal). **Comparisons (`gt/lt/ge/le/eq/ne`)
+  and `xor` ship as named library compositions, not primitives** — all derive from `{not, truthy, sub,
+  abs}` (e.g. `gt(a,b)=truthy(sub(a,b))`, `eq=not(truthy(abs(sub(a,b))))`). Equality on **computed/
+  rounded** values is fragile → guidance recommends a tolerance band (`abs(sub) <= ε`).
+- **Logic↔predicate bridge = DEFERRED (owner):** arithmetic terms do **not** inline-embed predicates in
+  v1. To use a predicate in a formula, the author **sets a flag/result-key upstream** (a predicate writes
+  `[F6]`) and the term reads that flag as a `0/1` source — keeps terms **pure**, no new machinery (rides
+  existing `[F6]`/counter sources). A future `from_predicate` down-bridge (pure-predicates-only) is the
+  natural extension if demand appears (recorded in `[EXT]`).
+- **Terms substitutable in numeric-value slots (uniform):** the schema tags each numeric param as a
+  **value slot** (accepts a term) vs a **selector/id/enum/flag** (does not). v1 wires:
+  - **REQ-10 `chance`** — the skew `input` and `base` become arithmetic terms; `operand: difference|ratio`
+    **subsumed** (`= sub|div`), enabling **custom contest curves**. Skew input/base stay **pure**; only
+    the roll touches RngService/Package A (**no new RNG surface**). *(Amends REQ-10.)*
+  - **effect magnitudes** — condition potency, heal/damage amount, displacement distance, duration
+    (FE-style scaling effects).
+  - **deferred:** DLG presentation params (scale/move/speed) and F4 profile-internal params — rare, later.
+- **Complexity budget = author-declared, full headroom (owner):** **F4 CampaignRules** fields
+  **`max_formula_depth` + `max_formula_nodes`** (node-count is the better cost proxy; depth alone is
+  cheap), set **per pack for the author's target platform** — **no universal mobile ceiling**. The only
+  engine-enforced limit is an **absolute safety ceiling** (crash/stack protection, set high); to make
+  full headroom safe the **evaluator must be iterative (explicit stack), not native recursion**.
+  Validation checks each formula against the **pack's declared** budget (fail-loud at load). The guardrail
+  against abuse is **social/documentation**, not an engine refusal: authors are told it is easy to overdo,
+  to **warn their players** about device cost, and — on hitting a wall — to **request a new primitive (the
+  `[EXT]`/EXT-5 channel) and consider joining the dev team to build it** (the primitive-request channel
+  doubles as a **contributor on-ramp**).
+- **Validation (EXT-3):** op ∈ known set; arity matches; operands recursively resolve to **numeric**
+  terms (string-source terms like `combat_family` rejected); `on_zero` present on every `div`; depth/nodes
+  within the pack budget; no impure predicate reachable from a term.
+- **Authoring:** **tree-builder in v1**; a **string front-end** (`(str+mag) > res`) that **parses to the
+  validated tree** is a later add — still Option A (runtime evaluates the tree, not the string).
+  **Guidance deliverable (owner — guidebook + in-editor notes):** good formula/trigger construction,
+  `on_zero` recommendations, the **flag-upstream pattern**, the **eq-tolerance** tip, and the
+  **complexity-budget warning + primitive-request/contributor on-ramp**.
+- **Resolution:** RESOLVED 2026-06-26 — recursive fixed-point (×1000) arithmetic value terms (`add sub
+  mul div pow min max abs neg` + `not/and/or/truthy`), half-up rounding (`floor/ceil` override), required
+  `on_zero` on `div`, integer-exponent `pow`; number-domain booleans (`>0` true, output `1.0/0`) with
+  comparisons/`xor` as named compositions; predicate-bridge **deferred** (flag-upstream pattern); terms
+  substitutable in numeric value slots incl. REQ-10 skew `input`/`base` (subsumes `difference|ratio`) +
+  effect magnitudes; author-declared F4 complexity budget (`max_formula_depth`/`max_formula_nodes`, full
+  headroom, iterative evaluator + absolute safety ceiling); stays **Option A** (data tree, no pack code) —
+  the first `[EXT]` worked example.
+
 ---
 
 ## Cross-references
@@ -297,3 +378,7 @@ Generalize REQ-14 from the fixed potency/duration to **any parameter of a condit
 - Composition precedent: the objective AND/OR-group evaluator.
 - **REQ-10 `chance`** depends on **`RngService` / Package A (`[PKGA]`)** (seeded, rewind-safe) and a
   **CampaignRules (F4) skew profile** (`linear`/`sigmoid`/`table`); latch rides `[DLG-11]`/`[F6]`.
+- **REQ-16** arithmetic terms add two **F4 CampaignRules budget fields** (`max_formula_depth` /
+  `max_formula_nodes`, author-declared, full headroom) + an **iterative evaluator**; generalize the
+  REQ-10 skew `input`/`base`; need the existing `[F6]` flag/counter sources for the deferred
+  predicate-bridge (flag-upstream pattern). REQ-16 is the first **`[EXT]`** Option-A worked example.

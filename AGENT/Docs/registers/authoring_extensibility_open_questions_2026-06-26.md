@@ -32,6 +32,30 @@ author vocabularies** (EXT-6).
 
 ---
 
+## Worked example so far (2026-06-26) — `[REQ-16]` arithmetic terms leaned **A**, ahead of the formal EXT-1 call
+A focused walk of author math (`[REQ-16]`, in the F16 register) was settled **as an Option-A
+data-composition** — a recursive *data tree* of engine-provided ops (`add/sub/mul/div/pow/min/max/abs/neg`
++ number-domain booleans), **not** an author-authored expression string. It is a concrete preview of
+what each EXT question looks like in practice:
+- **EXT-1/2 (model & content-model fit):** chose **A** — no code in packs; a parser/string front-end, if
+  ever added, is **build-time sugar that emits the same validated tree** (runtime still evaluates data),
+  so it stays A.
+- **EXT-3 (validation):** structural — op∈set, arity, recursively-numeric operands, required `on_zero` on
+  `div`, depth/node budget; fail-loud at load.
+- **EXT-4 (determinism):** **fixed-point ×1000** for bit-determinism across desktop/web/lockstep; the
+  REQ-10 `chance` skew input stays pure (only the roll routes through Package A).
+- **EXT-5 (primitives & cadence):** comparisons (`gt/lt/eq…`) and `xor` ship as **named compositions**,
+  not primitives; the **complexity budget is author-declared with full headroom**, and the guardrail is
+  **social** — the guidebook tells authors to warn players, **request a new primitive, and consider
+  joining the dev team to build it** (the primitive-request channel **doubles as a contributor on-ramp**).
+- **EXT-6 (one model):** the **logic↔predicate bridge was DEFERRED** in favour of a **flag-upstream
+  pattern** (a predicate writes `[F6]`; a term reads the flag as `0/1`) — keeping the two logic layers
+  decoupled for now. A future pure-only `from_predicate` down-bridge is the natural EXT-6 extension if
+  demand appears.
+
+This does **not** pre-decide EXT-1 for the whole vocabulary (DLG effects, F4 profiles, MET) — it is one
+data point that **A is sufficient and content-model-clean for the math case**.
+
 ## Open questions to walk
 
 ### [EXT-1] The core meaning — A (compose-only) vs B (expression layer) vs C (engine-only)  **[OPEN]**
