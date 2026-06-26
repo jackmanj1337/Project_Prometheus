@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-25r
 Last verified: 2026-06-26
-Register: REQ-1..10
-Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 value-term compare, REQ-10 chance gate); author-extension registry detail rides F4 / the define-all sweep
+Register: REQ-1..11
+Resolved-in: 2026-06-25r (REQ-1..8) / 2026-06-26 (REQ-9 value-term compare, REQ-10 chance gate, REQ-11 item-property terms); author-extension registry detail rides F4 / the define-all sweep
 ---
 
 # Shared Requirement / Predicate System (Foundation F16) — Player-Facing Design + Open Questions
@@ -124,19 +124,27 @@ re-opened:
 Generalize the constant-comparison predicates (REQ-2 `class_level`/`stat`/`proficiency`) to compare
 **two dynamic values**, e.g. "is my level > yours", "is my STR > your DEF", "do I have more sword skill
 than you".
-- **Value term** = `{ subject (REQ-3), source }` resolving to a number. v1 sources mirror REQ-2
-  attributes: `level` · `stat:<name>` (`get_effective_stat`, string-keyed → F14) · `proficiency:<track>`
-  (rank or wexp) · `item_count:{item_id, location}` · `skill_count` · `gold` · a **literal** constant.
-  Author-extensible (same F4-style registry as predicate types).
-- **`compare`** predicate = `{ lhs: <term>, op: < | <= | == | != | >= | >, rhs: <term> }` — **both sides
-  dynamic**, and each side may name a **different subject** (the whole point of cross-subject compare).
-  Deterministic / pure read.
+- **Value term** = `{ source }` resolving to a scalar. v1 sources:
+  - **unit attributes** `{subject (REQ-3), attr}` — `level` · `stat:<name>` (`get_effective_stat`,
+    string-keyed → F14) · `proficiency:<track>` (rank or wexp) · `item_count:{item_id, location}` ·
+    `skill_count` · `gold`;
+  - **item properties** `{item_ref, property}` — a property of an **equipped / held / targeted** item
+    (REQ-11): numeric (`mt`/`hit`/`crit`/`wt`/`uses_remaining`/`cost`/`range`/`required_rank`-ordinal/…)
+    or scalar-string (`combat_family`/`triangle_family`/`item_type`);
+  - a **literal** constant.
+  Author-extensible (same F4-style registry).
+- **`compare`** predicate = `{ lhs: <term>, op, rhs: <term> }` — **both sides dynamic**, each side may
+  name a **different subject/item** (the point of cross-subject/cross-item compare). Ordering ops
+  (`< <= >= >`) are **numeric**; `==`/`!=` work on any **scalar** (number OR string, e.g. weapon
+  `combat_family == "sword"`). Deterministic / pure read.
 - **Generalizes REQ-2:** `stat(subject,name,op,n)` is sugar for `compare(term(subject,stat:name) op
-  literal(n))`; the constant predicates are the literal-`rhs` special case. Examples: my level > yours =
-  `compare(term(speaker,level) > term(participant:other,level))`; sword edge =
-  `compare(term(speaker,proficiency:sword) > term(participant:other,proficiency:sword))`.
-- **Resolution:** RESOLVED 2026-06-26 — reusable value terms (subject + source, incl. literal) + a
-  `compare(term op term)` predicate; REQ-2 constants are the literal-rhs case.
+  literal(n))`. Examples: my level > yours = `compare(term(speaker,level) > term(participant:other,
+  level))`; **my weapon's Mt > yours** = `compare(item_property(equipped(speaker),mt) >
+  item_property(equipped(participant:other),mt))`; **targeted item worth ≥ 5000** =
+  `compare(item_property(targeted,cost) >= literal(5000))`.
+- **Resolution:** RESOLVED 2026-06-26 — value terms span **unit attributes AND item properties**
+  (equipped/held/targeted, REQ-11) plus literals; `compare` does numeric ordering + scalar (num/string)
+  equality; REQ-2 constants are the literal-rhs case.
 
 ### [REQ-10] Chance gate — a comparison-skewed probabilistic predicate (owner add 2026-06-26)  **[RESOLVED]**
 A **`chance`** predicate: a gate that succeeds by a random roll whose odds are **skewed by a comparison
@@ -170,6 +178,34 @@ of two value terms** (REQ-9). The **one stateful/impure predicate** — all othe
   terms, rolled via RngService/Package A, **roll-once-and-latch** (author `re_rollable`); the one impure
   predicate; latch rides `visited_trail`/`[F6]`.
 
+### [REQ-11] Item references + item-property terms & set predicates (owner add 2026-06-26)  **[RESOLVED]**
+Let value terms (REQ-9) and predicates read **properties of a referenced item**, so authors can gate/
+compare on equipped/held/targeted item stats — "is my weapon's Mt higher than yours", "does the held
+relic have the armorslayer tag", "is the targeted item a sword".
+- **Item reference (`item_ref`)** — identifies *which* item, relative to a subject or the action context:
+  - **`equipped(subject)`** → the unit's equipped weapon/source (`get_equipped_weapon()` / the `[CEX-21]`
+    equipped-source pointer).
+  - **`held(subject, item_id | slot_index)`** → a specific inventory `InventoryEntry` / its `ItemDef`.
+  - **`targeted`** → the item the current action targets (steal / forge-repair / break-item event /
+    trade). **Context-resolved** (like `speaker`/`participant`): defined only where the consuming
+    context supplies a targeted item; elsewhere the predicate is **false/undefined** (never errors).
+- **Property vocabulary (grounded in the `[IEQ]` item model; author-extensible):**
+  - **numeric** → `mt` · `hit` · `crit` · `wt` · `uses` / `uses_remaining` · `cost`(worth) · `range` ·
+    `required_rank` (as an ordinal) · `strikes_per_attack` · `forged_mods.<k>` · equip-mods
+    (`accuracy`/`damage`/`crit`/`dodge`) — usable in `compare` (REQ-9).
+  - **scalar-string** → `combat_family` · `triangle_family` · `item_type` · `effect_id` ·
+    `required_rank` (as a rank letter) — usable in `compare` `==`/`!=`.
+  - **boolean** → `is_natural_weapon` · `uses_mag` — a bare predicate or `compare ==`.
+  - **set** → `effect_tags` (Array) — **not** a scalar, so a dedicated **`item_has_tag(item_ref, tag)`**
+    (and `item_has_effect(item_ref, effect_id)`) membership predicate; plus **`item_is(item_ref,
+    item_id)`** (the referenced item is a specific id).
+- **Subject reuse:** an `item_ref`'s owning unit uses the REQ-3 subject selector
+  (`speaker`/`participant`/`unit:<id>`/`party`), so cross-subject item compares work
+  (`equipped(speaker)` vs `equipped(participant:other)`).
+- **Resolution:** RESOLVED 2026-06-26 — `item_ref` = `equipped|held|targeted` (targeted is
+  context-resolved); item properties (numeric/string via `compare`, sets via `item_has_tag`/
+  `item_has_effect`, identity via `item_is`); property vocab grounded in `[IEQ]`, author-extensible.
+
 ---
 
 ## Cross-references
@@ -177,7 +213,8 @@ of two value terms** (REQ-9). The **one stateful/impure predicate** — all othe
   `[IEQ]` `req_flags`, objectives.
 - Reads (does not own): `[F6]` flags, unit data (`level`/`skills`/`get_effective_stat`/`proficiency`/
   `inventory`), `[CNV]` convoy, F5 status (via `has_condition`), the `[PRV]`/`[STY-17]` relationship
-  (via a `relationship` predicate).
+  (via a `relationship` predicate), and **item properties** (`[REQ-11]`) via the `[IEQ]` item model +
+  the `[CEX-21]` equipped-source pointer (equipped/held/targeted refs).
 - Composition precedent: the objective AND/OR-group evaluator.
 - **REQ-10 `chance`** depends on **`RngService` / Package A (`[PKGA]`)** (seeded, rewind-safe) and a
   **CampaignRules (F4) skew profile** (`linear`/`sigmoid`/`table`); latch rides `[DLG-11]`/`[F6]`.
