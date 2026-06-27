@@ -22,6 +22,12 @@ save field rides §2). Extends an existing system; contained.
 
 ## 1. State today (code-grounded)
 
+> **Related (`[D21]`, 2026-06-27d):** a faction's **control is author-assignable to a human** (co-op vs
+> AI, or a **human game-master** driving the normally-AI factions) — when a faction is human-controlled
+> its AI profile simply **does not run** for that faction. This is a control-assignment layer *above* the
+> profile system (online-play `[D21]` + M15 hotseat), not an AI-profile concern; recorded so the two
+> aren't conflated.
+
 - **Profile dispatch exists.** `EnemyAI._act()` switches on `enemy.data.ai_profile`:
   `"passive"` and `"healer"` have dedicated handlers; `"basic"` falls through to the
   default move-to-nearest-and-attack logic.

@@ -67,6 +67,10 @@ CampaignRules-level authoring config.
 PvP is a **consumer of the faction controller**, not a new control system: **hotseat (M15) local
 pass-and-play is the v1 path**; networked PvP rides the **ratified host-authoritative online architecture**.
 Both the buy phase and the battle run per controlling faction.
+> **Related (`[D21]`, 2026-06-27d):** the *same* per-faction control substrate also lets **regular story
+> campaigns** be multiplayer as an author decision — **co-op vs AI** or a **human game-master** driving the
+> normally-AI factions. PvP is the *competitive* use; co-op/GM are the *cooperative/authored* uses. One
+> control-assignment mechanism, three intents.
 
 ## [PVP-7] Death / loss = `death_mode` (no permanent loss across the match) — **RESOLVED**
 PvP rides the `[DIF-1]`/`[DTH]` death path with **no permanent roster loss** — rounds are self-contained;

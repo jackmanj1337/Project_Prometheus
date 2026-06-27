@@ -259,6 +259,26 @@ different game mode; defer it. Preset armies also keep maps balanced and authore
 
 ---
 
+### D21. Multiplayer on regular story campaigns — author-configurable per-faction control  `[LAN]` — **NEW 2026-06-27d (design-forward)**
+Beyond PvP (`[PVP]`), a **regular authored story campaign** should support multiplayer **as an author
+decision** — the same control substrate, different intent. **Per-faction control is author-configurable**:
+each faction is `control ∈ {ai, human}` (the ratified **D12** host-assigns-factions + **D5** AI-execution
++ the **M15** hotseat/faction controller already provide this). Two named author presets:
+- **(a) Co-op vs AI** — multiple humans share/split the player-side factions; the enemy/neutral factions
+  stay AI. (Several humans vs the AI.)
+- **(b) Human game-master** — a human is assigned the **traditionally-AI factions** and moves them
+  manually (a tabletop-DM experience), instead of (or alongside) the AI.
+
+**Author decides** which factions are human-assignable and whether co-op / GM are offered for a given
+campaign or map. **Reuse, not new architecture** — this is D12 faction-assignment + D5 AI-vs-human
+execution surfaced as an authoring choice; the GM "manual control of AI units" = simply assigning a
+normally-AI faction to a human controller. **Composes `[AIP]`** (a faction's AI is replaced by a human
+when assigned). **Forward:** firm with the M15 hotseat controller + the online build; recommendation =
+support both presets, author-gated. *(Distinct from `[PVP]`: that is competitive bring-your-own-army;
+this is co-op / GM over an authored campaign.)*
+
+---
+
 ## Summary — sequencing
 
 **Settle before the LAN step (M15 Part B, LAN):**
