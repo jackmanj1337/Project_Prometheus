@@ -285,6 +285,11 @@ Generalize REQ-14 from the fixed potency/duration to **any parameter of a condit
 - **Resolution:** RESOLVED 2026-06-26 — `condition_param` (any param) + F5-delegated outcome
   projection (`next_tick_damage`/`would_kill`/`would_floor`); **F5 must expose params + a lethal/floor
   param + a projection API** (paired forward-requirement, noted on the atlas F5 row).
+- **Reused pattern (2026-06-27b):** the AI valuation brain `[VAL-6]` applies this *same* delegate-don't-
+  re-derive projection pattern to **combat** — a `CombatResolver.forecast_outcome` API (naive trees
+  overcount because the strike series early-exits) — and the **context-scoped subject** idea (REQ-3
+  `speaker`/`participant`) to bind forecast terms to a candidate action. See
+  `ai_valuation_engagement_open_questions_2026-06-27.md`.
 
 ### [REQ-16] Arithmetic value terms — fixed-point math + number-domain booleans (owner add 2026-06-26)  **[RESOLVED]**
 Generalize REQ-9 value terms from single leaf reads to **composable arithmetic**, so authors build
