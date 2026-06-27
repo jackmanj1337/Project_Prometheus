@@ -238,8 +238,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > flag/predicate-driven win/lose**. **Walk it in the define-all sweep:** migrate the enum toward **F16
   > predicates** (or add a `flag_set`/predicate type) + decide the **F6 flag-store build** + optionally
   > an imperative **`end_map: victory|defeat`** action + the **re-check timing** (phase-poll vs
-  > event-driven). **Schema-affecting → before F1.** Detail + the two paths in the `[DTH-10]`
-  > forward-pin (`registers/death_inventory_disposition_open_questions_2026-06-27.md`).
+  > event-driven). **Schema-affecting → before F1.** **CONSOLIDATED 2026-06-27d into the typed
+  > campaign-variable store walk `[TCV-4]`** (`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`)
+  > — the closed-enum unlock + the F6-typed-store + the `[DIF-5]` author-exposed-tuning/custom-variable
+  > layers are one pre-F1 pass. Two paths also in the `[DTH-10]` forward-pin.
   > **A4 recruit side (2026-06-25o, `[RCV-1..6]`):** `talk` = a `[VIL-2]` config; the `recruit` action
   > is **trigger-agnostic** (talk/village/turn/flag) over the `[RCR-3]` API; directionality = author's
   > choice (`directed | symmetric`); damage-forfeit = author-composed condition, no engine rule. The
@@ -253,8 +255,13 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > set (provoke/make-peace/ally-mid-battle); counter-regardless-of-stance kept; AI reads fresh per
   > activation. Distinct from `[RCR-1]` recruit `team` flip. AI initiate behavior firms with the AI pass.
 - **A5 — Campaign meta-rules & EXP/economy** *(shared: F4 CampaignRules, hub/PHB, EXP economy,
-  death/permadeath rules).* Difficulty + Casual/Phoenix (#12) · Bonus-EXP (#18) · Arena (#14) · PvP
-  (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
+  death/permadeath rules).* **Difficulty + Casual/Phoenix (#12) — RESOLVED 2026-06-27d → `[DIF-1..7]`**
+  (`registers/difficulty_death_mode_open_questions_2026-06-27.md`: `death_mode` enum classic/casual/
+  phoenix replacing the permadeath binary; casual+phoenix return EMPTY per `[DTH-1]`; difficulty =
+  authored content variants + AIP overlay; player picks from an author-allowed set; the
+  author-exposed-tuning + custom-variable + tag-scoped-effect layers folded into `[TCV]`). · Bonus-EXP
+  (#18) · Arena (#14) · PvP (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)**
+  (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
   - **Death-inventory disposition rule set (pinned 2026-06-25h — RESOLVED 2026-06-27d, see

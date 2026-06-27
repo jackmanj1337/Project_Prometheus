@@ -14,6 +14,7 @@
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `STM-1..5` | Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) | OPEN | — | `registers/extensible_stat_model_open_questions_2026-06-25.md` |
+| `TCV-1..6` | Typed Campaign-Variable Store + Author-Exposed Tuning (F6 evolution) — Open Questions (PINNED, not yet firmed) | OPEN | — | `registers/typed_campaign_variable_store_open_questions_2026-06-27.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
@@ -21,6 +22,7 @@
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `CVR-1..7` | `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions | RESOLVED | 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..7 settled (CVR-7 `share_disposition` ward added in the gap-closing pass, session 2026-06-26i). Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`. | `registers/cover_intercept_open_questions_2026-06-26.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
+| `DIF-1..7` | Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/difficulty_death_mode_open_questions_2026-06-27.md` |
 | `DLG-1..14` | Dialogue / Conversation System (Foundation F15) — End-User Shape + Data Format + Open Questions | RESOLVED | 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate | `registers/dialogue_conversation_system_open_questions_2026-06-25.md` |
 | `DMR-1..4` | `DataManager._ready()` Decomposition (§5) — Draft Plan + Open Questions | RESOLVED | 2026-06-23d | `registers/datamanager_decomposition_open_questions_2026-06-21.md` |
 | `DTH-1..12` | Death-Inventory Disposition Rule Set (A5 keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/death_inventory_disposition_open_questions_2026-06-27.md` |
