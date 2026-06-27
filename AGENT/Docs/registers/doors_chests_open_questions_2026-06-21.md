@@ -11,7 +11,12 @@ Resolved-in: 2026-06-21g
 **Started:** 2026-06-21d
 **Status:** [DCH-1..6] **RESOLVED 2026-06-21g** — build-ready (one owner override: [DCH-2]
 unified `map_objects` model). New interaction verbs; contained. **Defines the shared
-`map_objects` tile-object model that STW (stationary weapons) inherits.** Save ask:
+`map_objects` tile-object model that STW (stationary weapons) inherits.**
+> **Generalized 2026-06-27d (`[SAC-1]`):** doors/chests are now **specialized types in the one unified
+> `map_objects`/`activate` model** that the A5 `shop`/`activate` walk firmed — levers/switches/shop/panel-
+> triggers are author-defined object types in the same model (each `activate` behavior carries its own
+> label, `[SAC-2]`). Don't build a parallel object system.
+Save ask:
 `map_objects_state` array reserved in the §2 schema.
 **Source:** `planning_backlog_2026-06-20.md` §5 ("Pick/Unlock/Key"); session note
 2026-06-21c Tier 2 #5.

@@ -318,7 +318,13 @@ items disperse via the normal chain, no snapshot/restore);
     progression at all, and on what track. *Owner:* **A5** (EXP economy / Bonus-EXP #18); *composes* the
     staff-EXP precedent. Generalize rather than special-case each action. (Detail in
     `registers/action_grant_open_questions_2026-06-25.md` §6.)
-  - **`shop` + `activate` interactive-trigger configs (FOLDED IN — owner call 2026-06-25q).** The
+  - **`shop` + `activate` interactive-trigger configs (FOLDED IN 2026-06-25q — RESOLVED 2026-06-27d →
+    `[SAC-1..12]`,** `registers/shop_activate_configs_open_questions_2026-06-27.md`**).** One **unified
+    `map_objects`/`activate` model** (generalizes `[DCH]`; each activate behavior self-labeled `[SAC-2]`);
+    on-map panel-triggers reuse the `[PHB]` panel UI with inline+named-ref variation (the **dual-surface**,
+    `[SAC-3/4]`); every shop assumes a **shopper** (on-map activator / prep selected-first) = the F16
+    subject for **dynamic pricing + conditional stock + dialogue-wrapped shops** (full-built, `[SAC-5..9]`);
+    destination unified buy→shopper/overflow→convoy (`[SAC-6]`). Original notes retained below. The
     shop/convoy/trade *economics* are firmed (`[SHP-1..5]`/`[CNV-1..7]`, 2026-06-23k); A5 now owns the
     **on-map mechanic**: the **`shop`** config (the `[SHP-4b]` battlefield-shop access — a unit visits a
     shop tile, buy→unit + overflow→convoy) and a generic **`activate`** config (levers/switches/objects;

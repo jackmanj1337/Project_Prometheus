@@ -74,7 +74,10 @@ already persists) and the §4a authoring contract (per-node shop stock).
 - **B — Directly onto a chosen unit** (inline, with `max_inventory` enforcement + convoy overflow).
 - **Rec: A** — purchases land in convoy; equipping/distributing is the convoy panel's job. Clean
   separation, no inline cap-handling in the shop. (B as a later convenience.)
-- **Resolution:** **[RESOLVED → context-dependent]** (owner 2026-06-23k) — **prep-hub shop → convoy**
+- **Resolution:** **[RESOLVED → context-dependent]** (owner 2026-06-23k; **unified 2026-06-27d `[SAC-6]`**:
+  with a **shopper** subject now assumed for prep too — on-map activator / prep selected-first — the rule
+  collapses to **buy→shopper, overflow→convoy** for all shops; an author may still route a prep shop to
+  convoy for bulk buying) — **prep-hub shop → convoy**
   (A); **battlefield shop → the accessing unit, overflow → convoy** (B). Surfaces a new **battlefield-shop**
   context (a mid-battle armory/vendor the player *visits*). **Note:** the overflow-write to convoy is
   narrower than full on-map convoy *management* — the `[CNV-5]` prep-only-convoy deferral still stands
@@ -107,7 +110,13 @@ ledger to be balanceable.
 - **Forge (E3) deferred** (scope map); the unified weapon-stat-delta display is reserved for weapon-upgrades
   (`[BWN]` note). Repair-at-shop for broken weapons is the `[BWN-1..5]` deferral target.
 - **FORWARD — parked future-discussion (2026-06-27b, owner): requirement-driven dynamic shops + dialogue
-  integration.** *Look into* making shop behavior conditional on **who is shopping** and on **map/campaign
+  integration. → RESOLVED 2026-06-27d (full design + build) in `[SAC-5..9]`**
+  (`registers/shop_activate_configs_open_questions_2026-06-27.md`): every shop assumes a **shopper**
+  subject (on-map activator / prep selected-first), against which **dynamic pricing** (per-entry
+  `requirement→[REQ-16] modifier`, `price=base×f(shopper.charm)`), **conditional stock** (per-entry F16
+  gate, `[VIL-6/7]` hidden/shown-disabled), and **dialogue-wrapped shops** (`shop` as a `[DLG]` command)
+  resolve; destination unified to **buy→shopper, overflow→convoy** (SAC-6). Original note retained:
+  *look into* making shop behavior conditional on **who is shopping** and on **map/campaign
   flags**, and on wrapping/entering shops through the dialogue system. Concretely:
   - **Dynamic pricing** — per-transaction price modifiers gated by an **F16 Requirement** (`[REQ]`), the
     multiplier computed by an **F16 arithmetic value-term** (`[REQ-16]`): e.g. *better prices for a high-Charm
