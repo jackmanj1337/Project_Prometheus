@@ -90,6 +90,10 @@ one extensibility model. The **engine computes the features** (`[VAL-6]`) and ex
 **v1 ships a default weighted-sum expressed AS a tree** (the "A-plus" / EXT porous-line pattern — authoring
 is data from day one, the relief valve stays open). Rejected: hardcoded GDScript sum (un-authorable,
 against the grain) and a fixed-feature/author-coefficients-only model (less expressive than the tree).
+**AIP coherence (Finding A, 2026-06-27b, owner — one valuation path):** the AIP `target_policy` values
+`nearest`/`weakest` (`[AIP]` §7.4) are **the default scoring-tree presets here**, NOT a separate
+target-selection path. MVP `weakest` (forecast-lethal else most-proportional) is the degenerate first slice
+of this scorer; they unify at the VAL build rather than forking into two valuation systems.
 
 ## VAL-6 — Forecast term-sources (the new authoring surface)  `[RESOLVED — VAL-6 walk, 2026-06-27b]`
 **This is REQ-15 applied to combat.** F16 terms read unit stats, not combat projections; the score-tree
@@ -132,7 +136,10 @@ whether an observer mis-values a unit rides `[PER-12]` (detection vs appraisal) 
 **Who acts in what order** is today a non-decision (registration/placement order). It becomes an
 **author-selectable campaign rule** `ai_activation_order` (CampaignRules; campaign-default + the standard
 per-map override cascade, mirroring `[FOW-3]`/`[DSP-17]`; validated value-set + `check_docs` guard at
-build per `[VAL-13]`). **Build all four** (owner: "build everything, let authors pick"):
+build per `[VAL-13]`). **AIP boundary (Finding B, 2026-06-27b):** this is a **faction-phase policy that
+sits ABOVE the per-unit `AISpec`** — consumed by the phase loop (`EnemyAI.run_phase` / `TurnManager`), not
+the AIP per-unit spec resolver. The AIP composition model (per-unit) and VAL-8 (per-phase order) are
+complementary layers. **Build all four** (owner: "build everything, let authors pick"):
 - `fixed` — placement order (today).
 - `priority_sort` — stable sort by a per-preset `activation_priority` key (supports/ranged early).
 - `greedy_best_first` — each step, execute the **highest-scoring `[VAL-1]` action across all not-yet-acted

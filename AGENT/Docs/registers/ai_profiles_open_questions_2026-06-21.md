@@ -305,7 +305,8 @@ the route-walker connotation of "patrol").
 4. **`target_policy: "weakest"` concrete metric.** Define as: prefer a target it can **KO this
    activation** (forecast-lethal); else the one it deals the most **proportional** damage to.
    Must thread through the **move-tile choice** too (move to where you can hit the weakest),
-   not just the final target pick. *(RATIFIED.)*
+   not just the final target pick. *(RATIFIED.)* **→ VAL amendment (2026-06-27b): `nearest`/`weakest`
+   become the default `[VAL]` scoring-tree presets, not a separate path — see the AIP-14 VAL amendment.**
 
 ## 8. Gap analysis — FE archetypes/scenarios the current plan can't yet express *(2026-06-21k)*
 
@@ -467,6 +468,22 @@ governance rule (every open thread needs a home).
   **its own later milestone**. The "engagement-tier ↔ difficulty-band coupling" is **dropped** —
   per [AIP-11] bands can't swap tiers, so a smarter engagement tier (incl. ML Option A) is gated by
   **author opt-in (per-chapter) or a global engine setting**, never a difficulty band.
+  - **VAL amendment (2026-06-27b — the deferred workstream is now design-walked):** this engagement/
+    combat-AI milestone has been walked end-shape-first as the **`[VAL]`** register
+    (`ai_valuation_engagement_open_questions_2026-06-27.md`): whole-action scoring over
+    `CombatResolver.preview_combat`, F16-tree scores, configurable `search_depth`, author-selectable
+    activation order. It plugs into the **Engagement function seam** (vision §4 rule 4) — building it into
+    today's `match` is the paint-into-corner this register warns against (`[VAL-10]`). **Finding A
+    resolution (owner, 2026-06-27b): one valuation path.** The `target_policy` values `nearest`/`weakest`
+    (§2a / §7.4) become the **default `[VAL]` scoring-tree presets**, NOT a separate target-selection code
+    path — so MVP `weakest` (forecast-lethal else most-proportional, §7.4) is the degenerate first slice of
+    `[VAL]`'s scoring, and they unify at the VAL build rather than forking.
+  - **Finding B (2026-06-27b — activation *order* boundary):** *which unit acts next* is a **faction-phase
+    policy** that sits **above** the per-unit `AISpec` — it lives in `CampaignRules`
+    (`ai_activation_order ∈ {fixed, priority_sort, greedy_best_first, random}`, `[VAL-8]`) and is consumed
+    by the phase loop (`EnemyAI.run_phase` / `TurnManager`), not by the per-unit spec resolver. The AIP
+    composition model (per-unit AISpec) and VAL-8 (per-phase order) are complementary layers; recorded here
+    so the ordering concern doesn't fall between the two designs.
 - **[AIP-15]** MET growth specifics. **[RESOLVED 2026-06-22e — fully closed now]** — `set_ai`
   action = CONFIRMED + first-build ([AIP-7]/[AIP-8]; schema = [AIP-A11]); spawn-acts-immediately =
   RESOLVED via `act_on_spawn` ([AIP-9]). The last open piece, the **`unit_hp_below` trigger**
