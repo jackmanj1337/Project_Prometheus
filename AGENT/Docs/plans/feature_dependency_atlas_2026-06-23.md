@@ -320,6 +320,13 @@ items disperse via the normal chain, no snapshot/restore);
     shop tile, buy→unit + overflow→convoy) and a generic **`activate`** config (levers/switches/objects;
     reconcile with `[DCH]` doors/chests). Both are just more **`[VIL-2]`** interactive-trigger configs
     over the existing substrate — a small walk. *Why here:* battlefield-shop is economy + hub-adjacent.
+    **Generalize (owner 2026-06-27d):** the on-map mechanic is **not shop-specific** — **most non-deploy
+    `[PHB]` prep panels** (shop · convoy · **arena `[BEA]`** · **bonus-EXP `[BEA]`** · training-hall #19 ·
+    recruit) should be **placeable on-map by map creators as `[VIL-2]` instances**, with **per-instance
+    variations** (this shop's stock, this arena's opponent table). I.e. the **prep-panel set and the
+    on-map interactive-trigger set are two surfaces over the same option panels** (`[PHB]` dual-surface);
+    **deployment is the prep-only exception**. The `shop`/`activate` walk should firm the shared
+    panel↔trigger contract, not just the shop case.
     **Parked forward (2026-06-27b, owner — discuss in this walk):** *requirement-driven dynamic shops* —
     F16-gated **dynamic pricing** (`price = base × f(stat:charm)`, the `[REQ-16]` magnitude-scaling pattern)
     + **conditional stock reveal/hide** (membership card / trait / `[F6]` flag, reusing the `[VIL-6/7]`

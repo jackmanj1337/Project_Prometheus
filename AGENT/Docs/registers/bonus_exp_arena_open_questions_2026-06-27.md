@@ -96,6 +96,10 @@ the pot) — the classic arena gamble. Authors pick per arena.
   **gold ledger** (`[SHP]`/`[CNV]`).
 - **Sibling not walked here:** Training Halls (#19) is the other prep-panel resource sink (scope map);
   out of this register's scope — same `[PHB]` container if/when taken.
+- **Dual-surface (owner 2026-06-27d):** both panels are also **placeable on-map** by map creators as
+  `[VIL-2]` instances with per-instance variations (an on-map arena with its own opponent table; a
+  bonus-EXP shrine) — the `[PHB]` dual-surface note; the shared panel↔trigger contract firms in the A5
+  `shop`/`activate` walk.
 
 ---
 

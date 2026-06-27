@@ -62,6 +62,15 @@ How is "the hub" presented and modeled?
 - **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — panels opt-in; node declares
   `prep_panels: [...]`; empty ⇒ today's deploy-only prep.
 
+> **Forward — panels are dual-surface (prep + on-map), owner 2026-06-27d.** The same option panels a node
+> exposes in prep should also be **placeable on-map by map creators** as `[VIL-2]` interactive-trigger
+> instances, with **per-instance variations** (a specific shop's stock, a specific arena's opponents).
+> **Most non-deploy panels** qualify — shop · convoy · arena (`[BEA]`) · bonus-EXP (`[BEA]`) ·
+> training-hall (#19) · recruit; **deploy/Save/Begin-Battle are the prep-only exceptions**. So a panel is
+> defined once and surfaced two ways (prep button **or** map trigger). The on-map shop (`[SHP-4b]`) is the
+> first instance; the **A5 `shop`/`activate` walk firms the shared panel↔trigger contract** (which panels
+> are placeable, the per-instance variation schema, and how a triggered panel reuses the prep-panel UI).
+
 ### [PHB-3] Gating axes — what scopes a panel's availability  **[OPEN]**
 The owner phrased it "available at each node / location / time." "Time" has no substrate pre-overworld.
 - **A — Node-only for v1:** each progression node declares its panels. Drop time/location as axes
