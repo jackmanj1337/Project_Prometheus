@@ -268,7 +268,9 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   (forget/swap, `requires_equip`) — RESOLVED 2026-06-27d → `[LDC-1..7]`** (generalize the skills
   earned/equipped/cap pattern; separate author-configurable per-category caps `max_skills`/`max_styles`/
   `max_sources`; reuse `[SKL-3]` `requires_equip`; swap-free-in-prep + optional author-gated `forget`; a
-  `[PHB]` prep panel) (`[CEX-7]`/`[STY-3]`; pinned
+  `[PHB]` prep panel; **caps are criteria-modifiable** values via `[REQ-16]`/modifiers (`[LDC-8]`: tier-3
+  → +2 skills, item → +2 styles) and the **style cap partitions per author-defined `style_group`**
+  (`[LDC-9]`: sword-arts cap independent of fire-magic cap)) (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
   - **Death-inventory disposition rule set (pinned 2026-06-25h — RESOLVED 2026-06-27d, see
