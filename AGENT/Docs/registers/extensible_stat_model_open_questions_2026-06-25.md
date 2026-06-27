@@ -1,20 +1,21 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED 2026-06-27
 Last verified: 2026-06-27
 Register: STM-1..5
-Resolved-in: —
+Resolved-in: 2026-06-27d
 ---
 
-# Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed)
+# Author-Extensible Stat Model (F14) — Migration Plan + Open Questions
 
-**Started:** 2026-06-25 (session 2026-06-25l). **Status: a PINNED EXPLORATION**, surfaced from the
-battalion pass (`[BAT-6]` rank + a "command/leadership" question) and a "do we have a Charisma stat"
-question. Captures the **migration plan** for evolving the stat model so campaign authors can add new
-stats, **with the legacy base stats kept for comparability**. **Not owner-ratified** — the decisions
-below are *recommended directions* to be confirmed when this is picked up in the define-all sweep /
-scheduling pass (atlas §3b). Owner = a new foundation **F14**; rides F1 (schema) + F4 (`CampaignRules`).
-Branch `docs-reorg-2026-06-23`.
+**Started:** 2026-06-25 (session 2026-06-25l). **RATIFIED 2026-06-27d (define-all sweep fold-in):
+owner took F14 — the author-extensible stat model (the `[STM-3]` path), not the hardcode-Charisma-only
+fallback.** Surfaced from the battalion pass (`[BAT-6]` rank + a "command/leadership" question) and a "do
+we have a Charisma stat" question. Captures the **migration plan** for evolving the stat model so
+campaign authors can add new stats, **with the legacy base stats kept for comparability**. Owner = a new
+foundation **F14**; rides F1 (schema) + F4 (`CampaignRules`). **Sequencing (`[STM-4]`): do the evolution
+first → Charisma/Command become author data (zero engine change), no double surgery.** Branch
+`docs-reorg-2026-06-23`.
 
 **Thesis.** The stat model is **already half data-driven**, so author-extensible stats are an
 *evolution, not a rewrite*. The asymmetry: the **read path is string-keyed** and **growths/caps/wexp are
@@ -65,7 +66,7 @@ The canonical FE/3H split, both supported:
 non-combat-proficiency-EXP gap** (`add_wexp` is weapon-track keyed). **Consuming** the rank is hours;
 **earning** it rides that pin. Battalion-side consumption is `get` + a threshold lookup.
 
-### [STM-3] Author-defined stats — the evolution (legacy base stats stay) — **DIRECTION (the migration plan)**
+### [STM-3] Author-defined stats — the evolution (legacy base stats stay) — **RESOLVED 2026-06-27d (F14 taken)**
 Evolution, not rewrite, because the read path + caps/growths are already data-driven. Four steps:
 1. **Parallel dict layer.** `UnitData.extra_stats: Dictionary` (name→value) + `ClassData` extra-stat
    bases/caps/growths (the dict shape `stat_caps`/growths already use).
@@ -87,13 +88,12 @@ days).**
 - **Save/schema:** `extra_stats` + the registry are **new persistent surface** → reserve at the F1 lock
   (see §3). This makes STM a member of the define-all sweep ahead of F1.
 
-### [STM-4] Sequencing — do the evolution first if author-stats is wanted at all — **OPEN (owner call at scheduling)**
-If author-defined stats is on the roadmap *at all*, do **`[STM-3]` first** — then **Charisma collapses to
-data** (an author adds a `charisma` row to the registry; **zero engine change**), and `[STM-1]`'s ~8
-hardcoded touch-points never get paid. If author-stats is *not* wanted, hardcode Charisma via `[STM-1]`.
-**Recommendation: STM-3-then-charisma-as-data**, because hardcoding Charisma now and adding extensibility
-later means doing the stat-list surgery twice. **Owner call, deferred to the prioritization/define-all
-sweep.**
+### [STM-4] Sequencing — do the evolution first — **RESOLVED 2026-06-27d → STM-3-then-charisma-as-data**
+**Owner took STM-3 (author-extensible stats).** So **Charisma collapses to data** (an author adds a
+`charisma` row to the registry; **zero engine change**), and `[STM-1]`'s ~8 hardcoded touch-points are
+never paid. (The hardcode-Charisma-only `[STM-1]` fallback is **not** taken.) Consistent with the systems
+that already assume author stats — `[TCV-3]` tag-scoped stat effects, `[REQ-16]` stat value-terms, and
+`[BAT-14]` bonuses targeting Charm/Command.
 
 ### [STM-5] Missing / undefined stat-information handling — **OPEN (look-into, owner 2026-06-27d)**
 Once stats are author-data (STM-3), the engine must define **what happens when stat information is

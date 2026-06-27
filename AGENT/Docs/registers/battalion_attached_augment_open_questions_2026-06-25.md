@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-06-25
+Status: RESOLVED 2026-06-27
+Last verified: 2026-06-27
 Register: BAT-1..16
-Resolved-in: 2026-06-25k (BAT-1..13 — entity architecture)
+Resolved-in: 2026-06-25k (BAT-1..13 — entity architecture) / 2026-06-27d (BAT-14..16 — content/lifecycle)
 ---
 
 # Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions
@@ -216,7 +216,12 @@ The architecture (`[BAT-1..13]`) said *how* a battalion attaches and confers; it
 pin *what* it confers, *what resources it runs on*, or *what happens to it across the unit lifecycle*.
 These three are now marked OPEN. All persist state, so they gate the F1 lock.
 
-### [BAT-14] Bonus content & shape — **OPEN** (refines `[BAT-3]`)
+### [BAT-14] Bonus content & shape — **RESOLVED 2026-06-27d** (refines `[BAT-3]`)
+**Owner (sweep fold-in):** the documented lean is taken — a battalion confers an **always-on flat
+per-rank block (table)**, may touch the **7 combat stats + derived (Hit/Avo/Crit) + the F14 author stats**
+(Charm/Command now exist, `[STM]` ratified `[STM-4]`); **conditional bonuses** (terrain/adjacency/vs-type)
+ride the **existing `[STY]`/skill gate vocabulary** when authored. Data-def, not engine. Below = the
+considered options.
 `[BAT-3]` fixed the *pipeline* (a stat dict → combat modifiers, like a Pair-Up support bonus). Still to
 define: **what** a battalion confers and on **what stat axes**.
 - **Stat set:** which stats a bonus may touch — the existing seven combat stats, derived stats
@@ -231,7 +236,14 @@ define: **what** a battalion confers and on **what stat axes**.
 - **Owner:** the battalion build; **data-def, not engine** — but the *stat axes* it may touch depend on
   F14 `[STM]` if Charm/Command are bonus targets.
 
-### [BAT-15] Resource model — resources, use, replenishment — **OPEN** (firms the `[BAT-5]` lean)
+### [BAT-15] Resource model — resources, use, replenishment — **RESOLVED 2026-06-27d (two-pool)** (firms the `[BAT-5]` lean)
+**Owner (sweep fold-in): TWO named resources** — **`charges`** = the per-map gambit budget (reuses the
+`[AGT §5]` rate-limit/charge primitive; **refills each map**) · **`endurance`** = a **persistent attrition
+meter** that drives destruction (`[BAT-16]`) and **recovers only via an authored repair** (a `[PHB]`/
+`[SHP]` resupply action). This **decouples** "out of gambit charges" from "worn down toward destruction"
+(the 3H model). Endurance drain = **authored** (gambit/combat/event triggers an author-set decrement), not
+a hidden auto-rule. All values = `CampaignRules` defaults (`[BAT-12]`). **Save (F1):** persistent
+`endurance` (+ rank/EXP `[BAT-11]`); transient `charges` reset per map. Below = the considered options.
 `[BAT-5]` set the *mechanism* (a per-battalion counter consuming the `[AGT §5]` rate-limit/charge
 primitive) and a lean (per-map pool, refill at map start). To **firm**:
 - **What resources exist:** is "endurance" a *single* pool that the gambit spends, or are **gambit
@@ -248,13 +260,13 @@ primitive) and a lean (per-map pool, refill at map start). To **firm**:
   persistent `endurance` (and rank/EXP, `[BAT-11]`); transient `charges` reset per map like other
   `[AGT §5]` counters.
 
-### [BAT-16] Lifecycle — destruction & host-death disposition — **OPEN** (genuine gap)
-Neither "can a battalion be destroyed?" nor "what happens to it when its host dies?" was covered. Both
-are **persistent-state** questions and **must** be settled before F1.
-- **Destruction:** can a battalion be permanently lost? Lean = **endurance-zero = routed**, an authored
-  `CampaignRules` choice between **`disband`** (battalion destroyed/removed from the roster pool) and
-  **`exhausted`** (survives at 0 endurance — no gambit/bonus until repaired, the softer default).
-  Routed-via-disband is the harsh/Classic option; exhausted-and-repairable is the Casual-leaning default.
+### [BAT-16] Lifecycle — destruction & host-death disposition — **RESOLVED 2026-06-27d**
+Both are **persistent-state** questions settled here (host-death was already routed to `[DTH]`).
+- **Destruction — RESOLVED (owner):** at **endurance-zero**, the default is **`exhausted`** (survives at
+  0 — no gambit/bonus until repaired; the soft, Casual-leaning default), with **`disband`** (permanently
+  removed from the roster pool — the harsh/Classic option) available as an **override at BOTH the
+  campaign level AND per-battalion** (a specific battalion can pin its own disband/exhausted behavior —
+  the same campaign-default + per-instance-override pattern as `[LDC-8]`/`[DTH-3]`).
 - **Host death:** when the attached unit dies, the battalion does **not** die with it by default — it
   **detaches and returns to the unassigned battalion pool** for reassignment in prep (the battalion is an
   authored asset, like an unequipped item returning to convoy). Author override for harsher campaigns:

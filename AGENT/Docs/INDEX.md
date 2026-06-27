@@ -37,7 +37,7 @@
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/ai_valuation_engagement_open_questions_2026-06-27.md`](registers/ai_valuation_engagement_open_questions_2026-06-27.md) — AI Combat Valuation / Engagement Brain — Open Questions — *RESOLVED*
 - [`registers/authoring_extensibility_open_questions_2026-06-26.md`](registers/authoring_extensibility_open_questions_2026-06-26.md) — Authoring Extensibility — What "Author-Extensible" Means Across the Vocabularies — Open Questions — *RESOLVED*
-- [`registers/battalion_attached_augment_open_questions_2026-06-25.md`](registers/battalion_attached_augment_open_questions_2026-06-25.md) — Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions — *OPEN*
+- [`registers/battalion_attached_augment_open_questions_2026-06-25.md`](registers/battalion_attached_augment_open_questions_2026-06-25.md) — Battalion Entity = the **Attached-Augment** Pattern — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/bonus_exp_arena_open_questions_2026-06-27.md`](registers/bonus_exp_arena_open_questions_2026-06-27.md) — Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/broken_weapon_mode_open_questions_2026-06-21.md`](registers/broken_weapon_mode_open_questions_2026-06-21.md) — OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions — *RESOLVED*
 - [`registers/campaign_content_overlay_open_questions_2026-06-23.md`](registers/campaign_content_overlay_open_questions_2026-06-23.md) — Campaign Content Overlay (branch I3) — Open Questions Register — *RESOLVED*
@@ -52,7 +52,7 @@
 - [`registers/difficulty_death_mode_open_questions_2026-06-27.md`](registers/difficulty_death_mode_open_questions_2026-06-27.md) — Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/displacement_carry_open_questions_2026-06-25.md`](registers/displacement_carry_open_questions_2026-06-25.md) — Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot) — *OPEN*
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
-- [`registers/extensible_stat_model_open_questions_2026-06-25.md`](registers/extensible_stat_model_open_questions_2026-06-25.md) — Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) — *OPEN*
+- [`registers/extensible_stat_model_open_questions_2026-06-25.md`](registers/extensible_stat_model_open_questions_2026-06-25.md) — Author-Extensible Stat Model (F14) — Migration Plan + Open Questions — *RESOLVED*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/grid_topology_hex_open_questions_2026-06-27.md`](registers/grid_topology_hex_open_questions_2026-06-27.md) — Grid Topology — Optional Hex-Grid Rule — Open Questions — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
