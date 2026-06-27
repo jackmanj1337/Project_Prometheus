@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-27
 Last verified: 2026-06-27
-Register: PER-1..11
-Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding. PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1])
+Register: PER-1..12
+Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1])
 ---
 
 # Perception / Masking — AI & Player Forecast Manipulation — Open Questions
@@ -72,6 +72,8 @@ Enumeration / valuation / forecast as above. Each stage is a distinct injection 
 - **Dependency:** there is **no AI scoring hook** today (`EnemyAI._find_nearest`). This field ships
   **inert** and activates with the forecast-driven valuation AI (`[CVR-4]`/`[RCT-1]`). Schema it now to
   avoid retrofit. The defender-bait goal is genuinely downstream of that AI work.
+- **See-through (appraisal):** this is an *appraisal* mask (misdirection), so it carries an optional F16
+  see-through contest — distinct from PER-6 detection. See **PER-12**.
 
 ## PER-5 — Stage-3 forecast visibility  `[RESOLVED — extends existing split]`
 - `forecast_hidden_to: "ai" | "player" | "both" | ""` (per-unit override of the PER-2A default).
@@ -80,7 +82,9 @@ Enumeration / valuation / forecast as above. Each stage is a distinct injection 
   reaction (the interceptor-family bait case, `[ICP-4]`).
 
 ## PER-6 — Reveal / pierce counterplay = an F16 consumer  `[RESOLVED — owner lock: spec now]`
-Two halves of one contest; **the contest is F16, not bespoke** (see header callout):
+This is the **detection** half (concealment); the **appraisal** half (misdirection) is **PER-12** — same
+F16 pattern, possibly the same or a different sight term. Two halves of one contest; **the contest is F16,
+not bespoke** (see header callout):
 - **Mask** (perceived unit): a `stealth_strength` term (or boolean in the simple mode).
 - **Pierce** (observer/scout): `pierce_strength` term + `pierce_share`:
   - `self` — only the scout sees through ("scout sees, nobody else").
@@ -156,6 +160,28 @@ PER-3 **two-hook** finding (a mask on only `get_attackable_enemies_from_tile` le
 *movement* via `_living_hostiles_for_faction`). Filtering both hooks fixes it. **TODO when built:** a test
 that an all-masked board makes the AI advance/hold without flailing.
 
+## PER-12 — Detection vs appraisal: two contest axes  `[RESOLVED — owner Q 2026-06-27]`
+"Sight that *finds* a unit" and "insight that *judges* a unit" are **distinct axes**:
+- **Detection** (stage 1) overcomes **concealment** — perceive a unit that is hiding (the ninja).
+  Contest = pierce vs `stealth_strength` (**PER-6**).
+- **Appraisal** (stage 2/3) overcomes **misdirection** — read the *true threat* of a unit that is
+  perceived but **disguised** (a healer made to look dangerous; the tough defender made to look juicy).
+- **Reframe (key):** a *genuinely* harmless unit (unarmed healer = 0 damage, no counter) is already read
+  as low-threat by **any full-fidelity forecast** — no sight needed to see the obvious. Appraisal only
+  matters when threat is **actively masked** (PER-4 `ai_target_weight`, PER-5 `forecast_hidden_to`).
+- **Gap this closes:** PER-6 specced only the *detection* contest; the appraisal masks (PER-4/PER-5) were
+  unconditional. Now **each appraisal mask carries an optional F16 see-through contest** (same pattern,
+  author-chosen term). Default = no contest (mask is flat) unless the author attaches one.
+- **"Same sight for both?" = content choice, not an engine fork:** point the detection and appraisal
+  contests at the **same term** (one `perception` stat → the scout who finds the ninja also reads the
+  healer truly) or **different terms** (`sight` vs `insight` → scout detects, tactician appraises). Both
+  work because every contest term is an **F16** value term.
+- **Relationship to threat-eval:** **detection gates *entry*** into the AI's target-eval (unperceived =
+  not evaluated); **appraisal-insight gates whether the masks *fool*** the evaluator once it is looking.
+  Both consume F16; the AI's eval reads the **post-mask, post-contest** valuation/forecast inputs.
+- **Per-audience:** appraisal masks carry the `ai | player | both` audience like all PER — a threat-
+  disguise can fool the AI, the player, or both; the insight to pierce it is contested per side.
+
 ---
 
 ## Net
@@ -165,6 +191,8 @@ that an all-masked board makes the AI advance/hold without flailing.
 - **Settled 2026-06-27:** PER-7 (union, no precedence), PER-8 (occupancy in v1 — `around|through` +
   `on_cross`/`on_stop` reusing `[DSP-14]`/`[DSP-12]`/`[DSP-1]`/`[DSP-2]`), PER-9 (communicated
   CampaignRules constant, sibling of `[FOW-3]`), PER-11 (no softlock; two-hook fix).
+- **Two contest axes (PER-12):** detection (PER-6, find the hidden) vs appraisal (PER-4/5 see-through,
+  judge the disguised) — same F16 pattern; one term unifies "sight", separate terms split it.
 - **Only residual = the PER-4 dependency** (valuation AI), and two *build-time revisits*: PER-9's shared
   display widget (lands with FoW/§2) and the PER-11 all-masked-board test.
 
