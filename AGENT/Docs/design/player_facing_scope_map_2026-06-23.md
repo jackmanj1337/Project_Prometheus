@@ -141,9 +141,10 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
     authored `{track, xp_amount, resource cost}` into the unified `proficiency_xp` store (on-crossing
     skill grants fire; shares `advance_proficiency` with the Arms Scroll item). Still open for the
     *other* benefit types (class XP / stat / skill purchase), resource type, caps, gating. Relates to
-    bonus-EXP (18), arena (14), shop/economy (2). **PvP dependency (2026-06-27d):** the `[PVP-3]`
-    buy-phase needs the stat/skill/class-XP purchase side of this — so #19's open benefit types gate
-    PvP's full buy-phase build.
+    bonus-EXP (18), arena (14), shop/economy (2). **NOW ON THE PRE-F1 LIST (owner 2026-06-27d) → must be
+    designed in the define-all sweep before the F1 lock:** it is the `[PVP-3]` buy-phase dependency AND
+    adds persistent per-character state (purchased stat bonuses / skills / class-XP) the F1 schema must
+    reserve. Atlas A5 sweep bullet.
 
 **INVESTIGATE feasibility:**
 20. **Avatar / "My Unit"** (owner: "look into the possibility") — player-created unit (name / class /
