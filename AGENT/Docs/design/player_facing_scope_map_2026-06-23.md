@@ -111,6 +111,9 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
 5. **Support system (branch H2)** — ranks/affinity/conversations/combat bonuses. Large.
 6. **Rescue system (branch H3)** — carry/drop, weight/CON, secondary-movement interaction; Pair-Up/Rescue exclusivity prior.
 7. **PvP / scenario mode** — standalone non-campaign match (reuses the preserved standings renderer).
+   **DESIGN RESOLVED 2026-06-27d → `[PVP-1..8]`** (a bring-your-own-army **PvP campaign**: hub + map
+   selector + freeform buy phase reusing the prep panels on an author budget; best-of-N; social-contract
+   trust per ratified D18; build-dep = training-hall #19 + M15 hotseat). Scopes the deferred D20(b).
 8. **Dancer / refresh** (Tier 1) — a unit action that grants an ally another action; M10 Extra-Turn is the
    activation substrate, the Dance *action/unit* is the new design.
 9. **Secondary Movement** (Tier 1) — move-again-after-action; interacts with Rescue (6). **FIRMED
@@ -138,7 +141,9 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
     authored `{track, xp_amount, resource cost}` into the unified `proficiency_xp` store (on-crossing
     skill grants fire; shares `advance_proficiency` with the Arms Scroll item). Still open for the
     *other* benefit types (class XP / stat / skill purchase), resource type, caps, gating. Relates to
-    bonus-EXP (18), arena (14), shop/economy (2).
+    bonus-EXP (18), arena (14), shop/economy (2). **PvP dependency (2026-06-27d):** the `[PVP-3]`
+    buy-phase needs the stat/skill/class-XP purchase side of this — so #19's open benefit types gate
+    PvP's full buy-phase build.
 
 **INVESTIGATE feasibility:**
 20. **Avatar / "My Unit"** (owner: "look into the possibility") — player-created unit (name / class /

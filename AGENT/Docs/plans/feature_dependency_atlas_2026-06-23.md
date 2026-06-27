@@ -264,7 +264,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   both are `[PHB]` opt-in prep panels; Bonus-EXP = a banked pool from authored `grant_bonus_exp` awards +
   optional difficulty scaling, spent via `add_exp` at a default-1:1 author-configurable cost curve; Arena
   = a sandboxed real `CombatResolver` fight, author lethal/safe toggle — lethal respects `death_mode` —
-  and author-choice single-or-escalating match loop). · PvP (#7) · **the style/source loadout cap
+  and author-choice single-or-escalating match loop). · **PvP (#7) — RESOLVED 2026-06-27d → `[PVP-1..8]`**
+  (scopes the deferred D20(b) bring-your-own-army as a **PvP campaign type**: hub + map-selector + a
+  freeform **buy phase reusing the prep panels** recruit/shop/training-hall-#19/bonus-EXP on an
+  author-defined budget; best-of-N + author inter-round bonuses via `[TCV]`; **social-contract trust, no
+  anti-cheat** per ratified D18; hotseat/online reuse; build-dep = training-hall #19 + M15). · **the
+  style/source loadout cap
   (forget/swap, `requires_equip`) — RESOLVED 2026-06-27d → `[LDC-1..7]`** (generalize the skills
   earned/equipped/cap pattern; separate author-configurable per-category caps `max_skills`/`max_styles`/
   `max_sources`; reuse `[SKL-3]` `requires_equip`; swap-free-in-prep + optional author-gated `forget`; a

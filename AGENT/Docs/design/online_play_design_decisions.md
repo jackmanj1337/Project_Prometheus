@@ -250,6 +250,13 @@ armies' units to come from somewhere.
 separate feature — an army builder, points balancing, validation — and effectively a
 different game mode; defer it. Preset armies also keep maps balanced and authored.
 
+> **Update 2026-06-27d:** (b) is now **scoped as a distinct PvP campaign mode** in
+> `registers/pvp_mode_open_questions_2026-06-27.md` `[PVP-1..8]` — a PvP campaign with a hub + map
+> selector + a **freeform buy phase reusing the prep panels** (recruit/shop/training-hall/bonus-EXP)
+> funded by an author-defined resource budget. **(a) preset armies stays the regular campaign's path;**
+> (b) is the opt-in PvP mode. The buy-phase "army builder" = the existing panels + a budget, **not** a
+> bespoke builder.
+
 ---
 
 ## Summary — sequencing
