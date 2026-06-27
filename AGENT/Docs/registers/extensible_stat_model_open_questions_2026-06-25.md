@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: OPEN
-Last verified: 2026-06-25
+Last verified: 2026-06-27
 Register: STM-1..5
 Resolved-in: —
 ---
@@ -42,7 +42,7 @@ enumerated as literals in ~5 places**. Closing that asymmetry is the whole job.
 - **`CampaignRules` exists** (`scripts/resources/CampaignRules.gd`) — the author-config home for a stat
   registry (F4 "named author profile" mechanism).
 
-## 2. The three asks this register answers
+## 2. The asks this register answers
 
 ### [STM-1] Charisma-equivalent stat — does not exist; adding ONE is moderate/mechanical — **DIRECTION**
 None exists. Adding a single *known* stat (e.g. `charisma`) is bounded but touches ~8 spots **because
@@ -94,6 +94,29 @@ hardcoded touch-points never get paid. If author-stats is *not* wanted, hardcode
 **Recommendation: STM-3-then-charisma-as-data**, because hardcoding Charisma now and adding extensibility
 later means doing the stat-list surgery twice. **Owner call, deferred to the prioritization/define-all
 sweep.**
+
+### [STM-5] Missing / undefined stat-information handling — **OPEN (look-into, owner 2026-06-27d)**
+Once stats are author-data (STM-3), the engine must define **what happens when stat information is
+absent** — a real robustness surface the migration plan only touches via the STM-3 read-path fallback.
+Facets to firm at the STM walk:
+- **Registered stat, missing per-entity value** (a unit/`ClassData`/item has no value for a stat that the
+  registry *does* declare) → **fall back to the registry `default`** (STM-3 read-path); missing **growth**
+  defaults to `0`, missing **cap** to uncapped (`-1`) — matches today's defaults. *Soft, never an error.*
+- **Reference to an UNREGISTERED stat** (a `[REQ-16]` term, skill/effect, `[TCV-3]` tag-scoped modifier,
+  or UI label names a stat not in `legacy_stats + registry.stats`) → **hard load-time validation error**
+  via the existing `DataManager` seam (`_check_stat_dict` / `_VALID_*`), not a silent runtime `0`. **Fail
+  loud at author time.** (The recommended policy split: *registered-but-unset = soft default; referenced-
+  but-unregistered = hard error.*)
+- **Save migration** — a save predating a stat's addition: absent key → registry default on load; a stat
+  later *removed* from the registry → stored values are ignored/dropped, never a crash.
+- **Cross-pack / imported content** — the campaign content model is **self-contained packs**, so within a
+  pack the registry is authoritative; an imported unit/item referencing a stat the active pack lacks hits
+  the same validation policy (reject or map at import).
+- **UI** — undefined stats in a campaign that doesn't define them must **not** render blank rows; display
+  iterates the active registry only.
+- **Composition note:** `[TCV-3]` (custom-variable tag-scoped stat effects) and `[REQ-16]` (stat value
+  terms) are the main *consumers* that can name a stat — they inherit this policy rather than defining
+  their own; walk them aware of STM-5.
 
 ---
 
