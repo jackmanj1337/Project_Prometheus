@@ -177,7 +177,10 @@ can be written to the right contract.*
   overlays.
 - **Combat-AI workstream** (gap 3) → the Engagement function seam (invariant 4). **[AIP-14]:** its
   own later milestone; a smarter engagement tier is gated **per-chapter / global setting, NOT a
-  difficulty band** (forced by [AIP-11]).
+  difficulty band** (forced by [AIP-11]). **Now design-walked** as the `[VAL]` register
+  (`registers/ai_valuation_engagement_open_questions_2026-06-27.md`, 2026-06-27b): whole-action scoring
+  over `preview_combat`, F16-tree scores, configurable `search_depth`, author-selectable activation order.
+  This pure-planner seam (§2) is its stated prerequisite (`[VAL-10]`).
 - **Fast-follow profiles / `unit_hp_below` / true route-patrol / AI pair-up-rescue** → new presets
   or one new axis value each; never a rewrite. **[AIP-15]** `unit_hp_below` = a later MET trigger;
   **[AIP-16]** enemy/allied pair-up/rescue is player-only in v1.

@@ -45,7 +45,8 @@ resolves**. The atlas **F11** row holds a deliberate *"no new triggers — disci
 one piece that is **not free**: it adds a pre-combat reaction phase. **Forward-req / owner-architecture
 call at build time.** The **combat forecast must reflect the post-reaction state** (show the real defender
 after the swap) — reuse the `[RDR-5]`/`[CVR-4]` preview principle and the AI target-eval reading the same
-forecast (no feel-bad surprise swaps).
+forecast (no feel-bad surprise swaps). The forecast-reading AI is now walked as `[VAL]`
+(`ai_valuation_engagement_open_questions_2026-06-27.md`, see `[VAL-12]`).
 
 ## RCT-2 — Reaction action = the `[DSP]` vocabulary  `[RESOLVED]`
 The action reuses **`[DSP-1..17]`** (swap default; `shove`/`pull`/`pivot`/`step-in-front` variants),

@@ -84,7 +84,8 @@ The reassigned hit uses the **protector's** mitigation (DEF/RES, terrain) vs the
 keeps the **original** damage type / on-hit / effect-tags, and **kill-credit + EXP go to the original
 attacker** (they killed the protector). The **ally gets no EXP** (took nothing). The attacker's combat
 **forecast must show the protector as the actual defender** (the target visibly changes pre-commit), and
-**AI target-evaluation reads the same forecast** (so the AI knows the hit lands on the protector).
+**AI target-evaluation reads the same forecast** (so the AI knows the hit lands on the protector). That AI
+is now walked as `[VAL]` (`ai_valuation_engagement_open_questions_2026-06-27.md`, see `[VAL-12]`).
 
 ## CVR-5 — Death / disposition (A5)  `[RESOLVED]`
 If the protector dies taking the blow, it rides the **`[RDR-8]` snapshot-then-resolve** A5 rule (mutual

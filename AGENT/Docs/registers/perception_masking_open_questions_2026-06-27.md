@@ -70,8 +70,9 @@ Enumeration / valuation / forecast as above. Each stage is a distinct injection 
 - `ai_target_weight: int` on the perceived unit — positive = lure/taunt, negative = soft-ignore. The
   general lever (the ninja's hard mask is the extreme; a big negative is soft-ignore).
 - **Dependency:** there is **no AI scoring hook** today (`EnemyAI._find_nearest`). This field ships
-  **inert** and activates with the forecast-driven valuation AI (`[CVR-4]`/`[RCT-1]`). Schema it now to
-  avoid retrofit. The defender-bait goal is genuinely downstream of that AI work.
+  **inert** and activates with the forecast-driven valuation AI — **now walked as `[VAL]`**
+  (`ai_valuation_engagement_open_questions_2026-06-27.md`); `ai_target_weight` is its Stage-2 multiplier
+  term `[VAL-7]`. Schema it now to avoid retrofit. The defender-bait goal is genuinely downstream of that AI.
 - **See-through (appraisal):** this is an *appraisal* mask (misdirection), so it carries an optional F16
   see-through contest — distinct from PER-6 detection. See **PER-12**.
 
@@ -187,7 +188,8 @@ that an all-masked board makes the AI advance/hold without flailing.
 ## Net
 - **Shippable now (vs the current AI):** PER-3 hard mask + PER-6 pierce/contest (enumeration is the only
   stage today's AI uses), PER-5 forecast visibility (small extension), PER-10 invariant.
-- **Inert until valuation AI:** PER-4 soft weight (`[CVR-4]`/`[RCT-1]` dependency).
+- **Inert until valuation AI:** PER-4 soft weight — its consumer is now `[VAL-7]` (the valuation brain,
+  walked 2026-06-27b); PER-12's appraisal value also lands with `[VAL]`.
 - **Settled 2026-06-27:** PER-7 (union, no precedence), PER-8 (occupancy in v1 — `around|through` +
   `on_cross`/`on_stop` reusing `[DSP-14]`/`[DSP-12]`/`[DSP-1]`/`[DSP-2]`), PER-9 (communicated
   CampaignRules constant, sibling of `[FOW-3]`), PER-11 (no softlock; two-hook fix).
