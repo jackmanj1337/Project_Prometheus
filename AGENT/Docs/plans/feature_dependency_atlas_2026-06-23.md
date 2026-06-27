@@ -338,6 +338,23 @@ history (MRU) + player source-ordering (`[CEX-22]`)** · **mid-conversation resu
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 
+**Phase C — deferred review findings (code gaps surfaced during design, to evaluate when the
+content/build phase resumes):**
+- **`on_level_up` skill trigger is declared but NOT wired** (found 2026-06-27d). `SkillData` lists
+  `on_level_up` as a trigger kind (`scripts/resources/SkillData.gd:7`), but `Unit.level_up()`
+  (`scripts/units/Unit.gd:823`) only emits `unit_leveled_up` for the level-up UI — there is **no
+  `SkillHandler` firing site**, so any skill authored to *react* to a level-up (e.g. an on-level stat
+  tweak / proc) never fires. **Action at Phase C content eval:** wire the trigger into `level_up()` (and
+  the promotion/reclass paths if intended) or drop the trigger kind. Pairs with the `[AGT §6]` /
+  skill-content work.
+- **Random level-up growth uses raw `randi()` (not yet deterministic)** (noted 2026-06-27d). `Unit.
+  _level_up_random` (`scripts/units/Unit.gd:1113`) rolls via `randi()` behind a `# rng-allow: pre-M9a
+  (RNG-1)` marker; only `growth_fixed` is deterministic today. **Already tracked** — the RNG-determinism
+  plan (`design/rng_determinism_design_2026-06-11.md`) defines the `"levelup"` chained RNG kind
+  (canonical per-stat roll order + unit-id commit order) and a §10 raw-`randi` lint; this is an **M9a
+  migration** item, not a new gap. Listed here only so the Phase C eval **cross-checks it has shipped**
+  before lockstep/online play relies on reproducible level-ups.
+
 **Already firmed (the prior Wave-1, done):** flexible triangle `[CEX-9..12,17]` (2026-06-24b) ·
 per-map items `[CEX-13]` (2026-06-24c) · story items `[CEX-14..16,18,19]` (2026-06-24d) · F7 pools
 `[CEX-1..4]` (2026-06-23l) · F10 Secondary Movement `[SMV-1..11]` (2026-06-24a) · **weapon-source/equip
