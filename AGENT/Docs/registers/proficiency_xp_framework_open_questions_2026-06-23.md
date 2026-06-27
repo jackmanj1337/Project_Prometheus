@@ -55,6 +55,12 @@ the three kinds (PXP-2).
 An item component declares its `proficiency_tracks` — a group id and/or its self-bond; an item
 may feed **both** a group and a bond at once.
 
+> **Extension (A5, `[AGT §6]`, 2026-06-27d):** *"an item declares its tracks"* generalizes to *"any
+> action **source** declares its tracks"* — a **skill/style/gambit source** (the Source+Style `[STY]`
+> abstraction) may likewise declare `proficiency_tracks`, so non-weapon support actions earn proficiency
+> via the existing `[PXP-5]` `active_use` gain source + an authored amount. No new track machinery; this
+> only widens *who* can declare a track. (Staves already gain as weapons.)
+
 ### [PXP-3] Rank profiles = campaign rules — **RESOLVED: named per-track profiles**
 `CampaignRules` holds **named rank profiles**, each = an ordered list of `{name, threshold}`
 (both the **threshold values AND the rank names** are authored). Each **track references a profile**

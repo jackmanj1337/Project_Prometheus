@@ -242,7 +242,25 @@ action-flow foundation + A5 `CampaignRules`; consumed by action-grant (`[AGT-7]`
 the remaining A2 pass), and utility staves. To be firmed when the battalion entity or the foundation
 pass picks it up; reserve any persistent rate-limit counters at F1 alongside `[AGT-11]`.
 
-## 6. Forward-pin — non-combat-action EXP / proficiency path (→ A5 EXP economy)
+## 6. Forward-pin — non-combat-action EXP / proficiency path (→ A5 EXP economy) — **RESOLVED 2026-06-27d (A5 walk)**
+**Resolution (owner, A5 session 2026-06-27d) — mostly REUSE, not a new system:**
+- **Level-EXP amount = a per-action authored field + a `CampaignRules` default.** Each action/skill/
+  source carries an `exp_award` (**default 0 = opt-in**); `CampaignRules` sets a global default/
+  multiplier; **one shared `award_action_exp(unit, action)` step** every action calls (generalizes the
+  staff precedent rather than special-casing). Replaces the hardcoded `GameConstants.STAFF_HEAL_EXP`.
+  **Anti-farm** rides the `§5` action-rate-limit primitive + authored balance (a repeatable Dance can be
+  `0`).
+- **Non-weapon proficiency = EXTEND `[PXP]`, not a new track system.** An action **source**
+  (skill/style/gambit) **declares `proficiency_tracks`** — generalizing `[PXP-2]`'s *"an item declares
+  its tracks"* to *"any **source** declares its tracks"* (the Source+Style `[STY]` "source" abstraction
+  is the carrier) — and earns via the `[PXP-5]` **`active_use`** gain source with an authored amount.
+  Reuses the `proficiency_xp` track-id store + rank profiles + caps. Recorded as an extension note in the
+  `[PXP]` register. (Staves already proficiency-gain as weapons, so this only adds the non-weapon sources.)
+- **Save/F1:** no new field — level-EXP rides `Unit.add_exp`; proficiency rides the `[PXP]`
+  `proficiency_xp` dict already reserved. `exp_award`/`proficiency_tracks` are authored data on the
+  action/source definitions.
+
+*Original forward-pin analysis (retained for context):*
 **Confirm that non-combat support actions — Reinvigorate, and the wider `[STY]` non-attack effect set —
 have a path to award EXP.** Code-grounded state today:
 - **Level EXP plumbing exists and has precedent.** `Unit.add_exp(amount)` (`scripts/units/Unit.gd:610`)

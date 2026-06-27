@@ -293,7 +293,13 @@ items disperse via the normal chain, no snapshot/restore);
     *composes* `[IEQ]`/`[CNV]` (inventory/convoy) · `[CEX-14..16]` (Key-Item locks) · #12 (Casual/Phoenix)
     · `[DSP-14]` (a trigger). **Save/F1:** if `drop_on_tile` persists, reserve a per-map dropped-item
     stash; else no new state beyond convoy.
-  - **Non-combat-action EXP / proficiency path (NEW — pinned 2026-06-25j, from `[AGT]`).** Confirm +
+  - **Non-combat-action EXP / proficiency path (pinned 2026-06-25j — RESOLVED 2026-06-27d, `[AGT §6]`).**
+    **Mostly reuse:** level-EXP = a per-action authored `exp_award` (default 0) + a `CampaignRules`
+    default, via one shared `award_action_exp` step (replaces `STAFF_HEAL_EXP`); anti-farm rides the
+    `[AGT §5]` rate-limit. Non-weapon **proficiency = extend `[PXP]`** — an action **source**
+    (skill/style/gambit) declares `proficiency_tracks` (generalizing PXP-2's "item declares" to "any
+    source declares"), earning via PXP-5 `active_use`. No new system; no new save field. Original pin
+    retained below. Confirm +
     generalize a **support-action EXP rule** so non-combat actions (Reinvigorate/`[AGT]`, the `[STY]`
     non-attack effect set) can award progression. Code-grounded: the **level-EXP plumbing exists** —
     `Unit.add_exp()` is shared and **staff use already calls it** (`STAFF_HEAL_EXP`), so the open part is
