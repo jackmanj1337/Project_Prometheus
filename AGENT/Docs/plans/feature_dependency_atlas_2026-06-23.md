@@ -282,6 +282,12 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     shop tile, buy→unit + overflow→convoy) and a generic **`activate`** config (levers/switches/objects;
     reconcile with `[DCH]` doors/chests). Both are just more **`[VIL-2]`** interactive-trigger configs
     over the existing substrate — a small walk. *Why here:* battlefield-shop is economy + hub-adjacent.
+    **Parked forward (2026-06-27b, owner — discuss in this walk):** *requirement-driven dynamic shops* —
+    F16-gated **dynamic pricing** (`price = base × f(stat:charm)`, the `[REQ-16]` magnitude-scaling pattern)
+    + **conditional stock reveal/hide** (membership card / trait / `[F6]` flag, reusing the `[VIL-6/7]`
+    hidden/shown-disabled + `[DLG-14]` gating model) + **F15 dialogue integration** (shop entered via /
+    wrapped in a `[DLG]` conversation; `shop` as a dialogue `command`). Additive + non-blocking; detail in
+    `registers/shop_economy_open_questions_2026-06-23.md` §4 (FORWARD note).
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 

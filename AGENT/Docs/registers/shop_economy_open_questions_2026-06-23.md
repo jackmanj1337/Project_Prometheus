@@ -106,6 +106,25 @@ ledger to be balanceable.
   rule fixed here (buy→accessing unit, overflow→convoy), access mechanic designed with village/`[MET]` (#11).
 - **Forge (E3) deferred** (scope map); the unified weapon-stat-delta display is reserved for weapon-upgrades
   (`[BWN]` note). Repair-at-shop for broken weapons is the `[BWN-1..5]` deferral target.
+- **FORWARD — parked future-discussion (2026-06-27b, owner): requirement-driven dynamic shops + dialogue
+  integration.** *Look into* making shop behavior conditional on **who is shopping** and on **map/campaign
+  flags**, and on wrapping/entering shops through the dialogue system. Concretely:
+  - **Dynamic pricing** — per-transaction price modifiers gated by an **F16 Requirement** (`[REQ]`), the
+    multiplier computed by an **F16 arithmetic value-term** (`[REQ-16]`): e.g. *better prices for a high-Charm
+    shopper* = `price = base × f(stat:charm)`. This is exactly the REQ-16 "scale a magnitude by a derived
+    number" worked-example pattern; the resource-keyed cost/yield structure (`[SHP-1]`) gains an optional
+    per-entry requirement→modifier.
+  - **Conditional stock (reveal/hide)** — per-stock-entry **F16 gate** (a trait, an item like a *membership
+    card*, or an `[F6]` flag) using the **already-designed hidden / shown-disabled model** from `[VIL-6/7]`
+    (tile-action discovery) and `[DLG-14]` (gated dialogue options) — *extra stock for members*, secret
+    shops, flag-revealed wares. No new gating machinery; another F16 consumer.
+  - **Dialogue integration (F15)** — a shop entered via / wrapped in a `[DLG]` conversation (shopkeeper
+    banter, haggling), and dialogue choices branching to the shop panel — i.e. `shop` as a dialogue
+    `command`, or a dialogue launching the `[VIL-2]`/`activate`/`shop` interactive-trigger. Reuses the F15
+    entry model + the F16 branch gating, doesn't invent shop-specific conversation code.
+  - **Status:** ADDITIVE + NON-BLOCKING (base shop economics stand without it; no F1/save impact beyond what
+    F16/F15 already reserve). **Revisit during/after the A5 shop on-map-mechanic walk** (`[SHP-4b]`), when
+    the `shop`/`activate` configs and the EXP/economy cluster are on the table.
 - DoD: GDD chapter + `GDD_Feature_Index` row + roadmap status flip land **with the build**, not now.
 
 ---
