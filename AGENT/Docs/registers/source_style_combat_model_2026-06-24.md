@@ -74,7 +74,9 @@ A style is offered for a given (unit, equipped source) when:
 type-gate)`  **∪**  `(the equipped weapon GRANTS the style)` — the **per-weapon override**: a weapon may
 confer a style while equipped, optionally gated on **the wielder matching requirements**. So a unit can
 carry a list of learned/equipped styles, and a weapon can also lend one. (Loadout cap on the learned
-list reuses `[SKL-3] requires_equip`, deferred like `[CEX-7]`.)
+list reuses `[SKL-3] requires_equip`, deferred like `[CEX-7]` — **RESOLVED 2026-06-27d → `[LDC-1..7]`**:
+separate author-configurable `max_styles` cap; swap freely in prep; weapon-granted styles are a separate
+per-weapon override, not a cap slot.)
 
 ### [STY-4] What a style may modify  **[RESOLVED]**
 **Stat-mods (Mt/Hit/Crit/…) + range override + AoE/targeting shape** ship in A1. **Status-effect

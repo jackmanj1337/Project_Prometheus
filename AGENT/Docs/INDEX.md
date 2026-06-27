@@ -59,6 +59,7 @@
 - [`registers/interceptor_family_gaps_open_questions_2026-06-26.md`](registers/interceptor_family_gaps_open_questions_2026-06-26.md) — Interceptor Family — Residual Gaps & Closure Paths — Open Questions — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
+- [`registers/loadout_cap_open_questions_2026-06-27.md`](registers/loadout_cap_open_questions_2026-06-27.md) — Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/main_character_avatar_open_questions_2026-06-24.md`](registers/main_character_avatar_open_questions_2026-06-24.md) — Main Character / Avatar (#20) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*

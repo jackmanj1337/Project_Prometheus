@@ -94,8 +94,11 @@ cap).** The learning hooks already exist (`skill_unlocks`, `[PXP-4]`, `learn_spe
 `[PXP-9]`). A loadout cap is added later by **reusing `[SKL-3]`'s `requires_equip`** mechanism (a
 granted source that counts against a slot cap, drawn from an earned superset); **forget/swap ships
 with that cap**, not in v1. (Designer fork decided: ever-growing now, cap later.)
-> **Cap pinned to A5 (2026-06-25c).** The loadout cap (forget/swap) is owned by **cluster A5**
-> (campaign meta-rules), where `CampaignRules.max_skills` already lives — not a current-cluster item.
+> **Cap pinned to A5 (2026-06-25c) — RESOLVED 2026-06-27d → `[LDC-1..7]`**
+> (`registers/loadout_cap_open_questions_2026-06-27.md`): generalize the skills earned/equipped/cap
+> pattern to styles + sources; **separate author-configurable per-category caps** (`max_skills` +
+> `max_styles` + `max_sources`); reuse `[SKL-3]` `requires_equip` (slot-bound vs passive); **swap freely
+> in prep, earned superset never lost**, permanent `forget` optional + author-gated; a `[PHB]` prep panel.
 
 ### [CEX-8] Coexistence with tome-weapons — spells replace inventory tomes, or both?  **[RESOLVED]**
 **Resolution: dissolved.** A tome and a learned spell are the **same** `ItemDef{WeaponComponent}`; the

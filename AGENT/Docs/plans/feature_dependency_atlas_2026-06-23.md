@@ -265,8 +265,10 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   optional difficulty scaling, spent via `add_exp` at a default-1:1 author-configurable cost curve; Arena
   = a sandboxed real `CombatResolver` fight, author lethal/safe toggle — lethal respects `death_mode` —
   and author-choice single-or-escalating match loop). · PvP (#7) · **the style/source loadout cap
-  (forget/swap, `requires_equip`)**
-  (`[CEX-7]`/`[STY-3]`; pinned
+  (forget/swap, `requires_equip`) — RESOLVED 2026-06-27d → `[LDC-1..7]`** (generalize the skills
+  earned/equipped/cap pattern; separate author-configurable per-category caps `max_skills`/`max_styles`/
+  `max_sources`; reuse `[SKL-3]` `requires_equip`; swap-free-in-prep + optional author-gated `forget`; a
+  `[PHB]` prep panel) (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
   - **Death-inventory disposition rule set (pinned 2026-06-25h — RESOLVED 2026-06-27d, see
