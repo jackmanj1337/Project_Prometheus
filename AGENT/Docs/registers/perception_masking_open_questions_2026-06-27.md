@@ -3,7 +3,7 @@ Type: register
 Status: OPEN 2026-06-27
 Last verified: 2026-06-27
 Register: PER-1..11
-Resolved-in: 2026-06-27 (PER-1..6, PER-10 design-locked in the perception walk) — remaining PER-7/8/11 OPEN, PER-9 DEFERRED
+Resolved-in: 2026-06-27 (PER-1..6, PER-10 design-locked in the perception walk; PER-7 union semantics + PER-8 occupancy deferral + PER-11 no-softlock/two-hook finding settled same day) — only PER-9 (UI tell) remains DEFERRED
 ---
 
 # Perception / Masking — AI & Player Forecast Manipulation — Open Questions
@@ -13,8 +13,9 @@ be hidden from the prediction without hiding them from reality" — to (a) dumb 
 difficulties and (b) bait enemies into traps.
 
 **Status (mixed):** the **model + control surfaces are design-locked** (PER-1..6, PER-10 — owner locks
-in the walk); **PER-4 is inert until the forecast-driven valuation AI exists**; PER-7/8/11 OPEN; PER-9
-DEFERRED. Nothing is built. No GDD/roadmap behavior change yet (design-capture only).
+in the walk); **PER-4 is inert until the forecast-driven valuation AI exists**; PER-7/8/11 settled
+2026-06-27 (see each); only **PER-9 (UI tell) DEFERRED**. Nothing is built. No GDD/roadmap behavior
+change yet (design-capture only).
 
 **The insight:** the AI/player decision is a **three-stage pipeline**, and manipulation = filtering the
 **inputs** at one stage. The two owner examples land on *different* stages, which is the whole shape.
@@ -56,10 +57,14 @@ Enumeration / valuation / forecast as above. Each stage is a distinct injection 
   `duration_type` lifecycle (add `"turn"`). Can target any stage; overrides the (A) default per unit/turn.
 
 ## PER-3 — Stage-1 hard targetability mask (the ninja)  `[RESOLVED — owner lock: hard + soft both]`
-- `hard_untargetable: bool` → removed from `get_attackable_enemies_from_tile` for the observer.
+- `hard_untargetable: bool` → removed from the observer's candidate list.
   **Works against the current nearest-target AI today** (the one piece shippable before valuation AI).
 - `audience: "ai" | "both"` — `ai` = player still sees & clicks (the ninja example); `both` = true
   stealth (no one targets). Player-only enumeration hiding is rejected (hostile UX).
+- **Two hooks, not one (PER-11 finding):** the AI queries targets in **two** places — `EnemyAI.
+  _living_hostiles_for_faction` (:91, drives *approach/movement*) and `GridManager.
+  get_attackable_enemies_from_tile` (:440, drives *the attack*). Stage-1 masking must filter **both**,
+  or a masked unit still attracts AI movement (the enemy walks up to an invisible target and flails).
 
 ## PER-4 — Stage-2 soft valuation bias (the defender-bait)  `[RESOLVED design — INERT, forward-req]`
 - `ai_target_weight: int` on the perceived unit — positive = lure/taunt, negative = soft-ignore. The
@@ -89,15 +94,23 @@ Two halves of one contest; **the contest is F16, not bespoke** (see header callo
 - **Consequence:** stage-1 targetability is **computed per-observer** — `is_targetable_by(observer)` runs
   the F16 contest + applies the share scope — not a stored bool.
 
-## PER-7 — Multi-observer precedence  `[OPEN]`
-When several scouts of differing `pierce_strength`/`pierce_share` observe one masked unit: proposed
-**"highest pierce_strength among contest-winners wins, then apply the widest share scope among winners."**
-Needs ratification (interacts with `faction`-share short-circuiting the per-observer evaluation).
+## PER-7 — Multi-observer resolution  `[RESOLVED — union, no precedence needed]`
+The proposed "highest pierce wins" framing was wrong: reveals are **purely additive/monotonic** — more
+sight only ever reveals more, never less. So there is **no precedence/tiebreak**. The contest is
+evaluated **per `(observer, unit)` pair** using *that observer's* `pierce_strength`; a unit U is
+targetable by observer X iff **∃ a winning observer O such that `X ∈ O.share_scope`** (self = {O}; aura =
+{O + allies in radius}; faction = whole faction). The reveal set is the **union** across all winners —
+`faction`-share from any single winner subsumes the rest automatically. Strength only matters *within*
+one observer's own contest, never compared between observers.
 
-## PER-8 — Occupancy vs targetability are separate  `[OPEN — design note]`
+## PER-8 — Occupancy vs targetability are separate  `[RESOLVED — v1 = targetability only; occupancy deferred]`
 "Unoccupiable space" (AI won't path onto/through the tile) is a **movement/occupancy** flag, NOT a
-targeting one. Keep them separate — an author may want untargetable-but-walkable. Decide whether to
-introduce a parallel `ai_pathing_mask` or leave occupancy out of v1.
+targeting one — keep them separate. **v1 = targetability masking only.** Normal occupancy already makes
+a unit's tile impassable to others, and the PER-3 two-hook fix already removes a masked unit from the
+AI's *approach* logic — so the two owner examples are fully served without an occupancy mask. A parallel
+`ai_pathing_mask` (let the AI route *through* the masked tile as if empty) is a later add if a use-case
+appears; deferring it foreclosing nothing. *(Reversible scope call — flag if the owner wants the
+true "walk-through-the-ghost" flavor in v1.)*
 
 ## PER-9 — Player-fog fairness tell  `[DEFERRED — UI]`
 Stage-3 blinding toward the *player* needs a tell ("forecast may be incomplete") or it feels unfair.
@@ -108,10 +121,13 @@ Every knob filters **enumeration/valuation/forecast inputs only** — **never `r
 unit is forced into combat (player click, forced effect), the real path is canonical and replay-safe. The
 existing `preview`/`dry_run` split (`preview_combat` snapshots and restores) is the precedent.
 
-## PER-11 — AI softlock fallback when all targets masked  `[OPEN — verify]`
-If a stage-1 mask hides *every* target, the aggressive AI must fall back to advance/hold
-(`EnemyAI._choose_move_tile`). Verify the existing fallback catches an empty candidate list before
-shipping stealth; add a test.
+## PER-11 — AI softlock fallback when all targets masked  `[RESOLVED — no softlock; verified in code]`
+Verified against `EnemyAI._act` (:78): **no hard softlock.** Each pass sets unit state
+(`MOVED`/`DONE`) unconditionally; empty hostiles → `DONE` (:92-94); empty *attackable* set → staff-heal
+attempt → `DONE` (:127). The loop always terminates. The real issue was behavioral, not a hang — see the
+PER-3 **two-hook** finding (a mask on only `get_attackable_enemies_from_tile` leaves the unit attracting
+*movement* via `_living_hostiles_for_faction`). Filtering both hooks fixes it. **TODO when built:** a test
+that an all-masked board makes the AI advance/hold without flailing.
 
 ---
 
@@ -119,7 +135,8 @@ shipping stealth; add a test.
 - **Shippable now (vs the current AI):** PER-3 hard mask + PER-6 pierce/contest (enumeration is the only
   stage today's AI uses), PER-5 forecast visibility (small extension), PER-10 invariant.
 - **Inert until valuation AI:** PER-4 soft weight (`[CVR-4]`/`[RCT-1]` dependency).
-- **Open:** PER-7 precedence, PER-8 occupancy split, PER-11 softlock fallback. **Deferred:** PER-9 tell.
+- **Settled 2026-06-27:** PER-7 (union, no precedence), PER-8 (v1 targetability-only, occupancy
+  deferred), PER-11 (no softlock; two-hook fix). **Deferred:** PER-9 tell (needs the UI layer).
 
 ## Cross-references
 - **Contest substrate = `[REQ-10]` / Foundation F16** (`requirement_predicate_system_open_questions_2026-06-25.md`).
