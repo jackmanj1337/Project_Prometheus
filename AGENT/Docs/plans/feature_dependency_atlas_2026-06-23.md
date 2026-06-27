@@ -238,10 +238,11 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > flag/predicate-driven win/lose**. **Walk it in the define-all sweep:** migrate the enum toward **F16
   > predicates** (or add a `flag_set`/predicate type) + decide the **F6 flag-store build** + optionally
   > an imperative **`end_map: victory|defeat`** action + the **re-check timing** (phase-poll vs
-  > event-driven). **Schema-affecting → before F1.** **CONSOLIDATED 2026-06-27d into the typed
-  > campaign-variable store walk `[TCV-4]`** (`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`)
-  > — the closed-enum unlock + the F6-typed-store + the `[DIF-5]` author-exposed-tuning/custom-variable
-  > layers are one pre-F1 pass. Two paths also in the `[DTH-10]` forward-pin.
+  > event-driven). **Schema-affecting → before F1.** **RESOLVED 2026-06-27d in `[TCV-4]`**
+  > (`registers/typed_campaign_variable_store_open_questions_2026-06-27.md`): **both paths** — a new
+  > flag/predicate-driven `ObjectiveCondition` type **and** an imperative `end_map: victory|defeat`
+  > action — with **event-driven re-check** + the phase-poll backstop. The F6-typed-store + the `[DIF-5]`
+  > tuning/custom-variable layers landed in the same walk.
   > **A4 recruit side (2026-06-25o, `[RCV-1..6]`):** `talk` = a `[VIL-2]` config; the `recruit` action
   > is **trigger-agnostic** (talk/village/turn/flag) over the `[RCR-3]` API; directionality = author's
   > choice (`directed | symmetric`); damage-forfeit = author-composed condition, no engine rule. The
@@ -369,7 +370,9 @@ history (MRU) + player source-ordering (`[CEX-22]`)** · **mid-conversation resu
 `conversation_resume = {conversation_id, cursor, visited_trail?}` for "between speaker" suspend (`[DLG-11]`; dialogue branch state otherwise rides F6)** · story flags ·
 `map_uses_remaining` · triangle profile selection · `ItemDef.story`+lock flags · **the battalion attach
 + endurance/rank state + the `[BAT-16]` disband/exhausted + attached-vs-pooled status (`[BAT-11]`/`[BAT-16]`)** · **F14/`[STM]` TAKEN (2026-06-27d): `UnitData.extra_stats` + the
-`CampaignRules` stat registry (`[STM-3]` §3)** · **plus every field Phase A surfaces.**
+`CampaignRules` stat registry (`[STM-3]` §3)** · **`[TCV]` typed campaign-variable store (campaign-scope
+persisted; the variable registry + player tunable picks) + the per-unit `groups`/tags field + objective-
+condition predicate/flag references (`[TCV-1/4/6]`)** · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 

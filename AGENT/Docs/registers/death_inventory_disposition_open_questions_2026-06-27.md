@@ -174,8 +174,9 @@ relevant event (flag/custody change) rather than only at phase boundaries. **(B)
 BEFORE the F1 schema-lock (Phase B) — and therefore before the Phase C evaluation/triage session.**
 It is **schema-affecting** (objective conditions referencing predicates/flags; the F6 store), so it
 cannot wait for the triage. Composes F16 + `[VIL-8]` + `[DLG]`/`[MET]`.
-**Now consolidated into `[TCV-4]`** (the typed campaign-variable store walk, 2026-06-27d) — the shared
-F6-typed-store unlock is designed once there, alongside the `[DIF-5]` tuning layers.
+**RESOLVED in `[TCV-4]`** (the typed campaign-variable store walk, 2026-06-27d): the open enum gets a
+**flag/predicate-driven `ObjectiveCondition` type** (the declarative path the custody objective needs) +
+an imperative `end_map` action + event-driven re-check. The DTH-10 custody objective rides that new type.
 
 ## [DTH-11] Save / F1 schema reserve — **forward to Phase B (F1 lock)**
 Reserve at the F1 schema-lock: **(a)** a **per-map dropped-item tile stash** *only if* `drop_on_tile` is

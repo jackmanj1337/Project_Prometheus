@@ -61,6 +61,10 @@ Each predicate = `{ type, subject (REQ-3), …params, op? }`. v1 types (each a 1
 - **`proficiency`** `{subject, track, op, rank}` → `weapon_rank_for_wexp(proficiency_xp)`.
 - **`stat`** `{subject, name, op, n}` → `get_effective_stat(name)` (string-keyed → F14 stats too).
 - **`has_skill` / `has_trait`** `{subject, id}` → `UnitData.skills`.
+  > **`[TCV-3]` group-membership (2026-06-27d):** "member of author-defined group X" reuses this family —
+  > a **`has_trait`/`in_group`** read over an **author-assignable per-unit `groups`/tags field** (extends
+  > the `ClassData` semantic tags). This is how `[TCV-3]` parametric effects scope "tagged enemies" (no
+  > bespoke tag matcher — units are selected by a `[REQ]` predicate like every other gate).
 - **`has_item`** `{subject, item_id, location: held|equipped|convoy}` → `inventory` + `[CNV]` convoy.
 - *(The `class_level`/`stat`/`proficiency` constant comparisons generalize to **REQ-9** value-term
   `compare(term op term)`; **REQ-10** adds a `chance` gate. These are the literal-rhs / probabilistic
