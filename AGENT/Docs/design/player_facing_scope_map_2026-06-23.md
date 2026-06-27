@@ -141,10 +141,12 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
     authored `{track, xp_amount, resource cost}` into the unified `proficiency_xp` store (on-crossing
     skill grants fire; shares `advance_proficiency` with the Arms Scroll item). Still open for the
     *other* benefit types (class XP / stat / skill purchase), resource type, caps, gating. Relates to
-    bonus-EXP (18), arena (14), shop/economy (2). **NOW ON THE PRE-F1 LIST (owner 2026-06-27d) → must be
-    designed in the define-all sweep before the F1 lock:** it is the `[PVP-3]` buy-phase dependency AND
-    adds persistent per-character state (purchased stat bonuses / skills / class-XP) the F1 schema must
-    reserve. Atlas A5 sweep bullet.
+    bonus-EXP (18), arena (14), shop/economy (2). **RESOLVED 2026-06-27d → `[THL-1..7]`**
+    (`registers/training_halls_open_questions_2026-06-27.md`): generalizes `[PXP-9]`'s `{benefit, amount,
+    cost}` to all benefit types (class XP→`add_exp`, weapon XP→`[PXP-9]`, skill→`earned_skills`+`[LDC]`,
+    stat→a new shared permanent-stat-gain primitive also backing stat-booster items); two-scope resource
+    model (roster multi-resource wallet + per-unit F7 pools); PHB cadence + per-offer caps; unblocks
+    `[PVP-3]`.
 
 **INVESTIGATE feasibility:**
 20. **Avatar / "My Unit"** (owner: "look into the possibility") — player-created unit (name / class /

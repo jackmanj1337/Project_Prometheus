@@ -47,9 +47,9 @@ bespoke army-builder**:
 - **equipment** → **shop `[SHP]`/`[SAC]`**;
 - **levels** → **bonus-EXP `[BEA]`** (pool spend → `add_exp`);
 - **stats / skills / weapon-XP** → **training-hall #19** (the "spend resources for stat/skill/XP" sink).
-**Dependency:** the stats/skills part needs **training-hall #19**, which is **not yet designed** (INVEST/
-DISCUSS) → PvP *design* is captured now, but the full buy-phase **build waits on #19**. (Buy-a-skill =
-add to `earned_skills` then equip per the `[LDC]` cap; buy-a-stat composes `[STM]`.)
+**Dependency:** the stats/skills part needs **training-hall #19** — **now DESIGN-RESOLVED `[THL-1..7]`**
+(2026-06-27d); the full buy-phase **build still waits on the `[THL]` build**. (Buy-a-skill = `[THL-2]` →
+`earned_skills` + the `[LDC]` cap; buy-a-stat = `[THL-3]` permanent stat-gain primitive over `[STM]`.)
 
 ## [PVP-4] Resource & inter-round model = fully author-defined — **RESOLVED**
 **Owner:** **author sets everything** — starting budgets (symmetric by default, **asymmetric/handicap

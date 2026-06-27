@@ -109,6 +109,11 @@ _(Owner may revisit item-track caps.)_
 rank profiles + gain-source config (per-save). Reserve both now, fill on build.
 
 ### [PXP-9] Training halls — **RESOLVED: authored XP-for-resources progression panel**
+> **Generalized 2026-06-27d (`[THL-1..7]`):** this proficiency slice is now the weapon-XP case of the
+> full training-hall service — the same `{benefit, amount, cost}` offer extended to class XP (`add_exp`),
+> **stat** (a new permanent-stat-gain primitive), **skill** (`earned_skills`+`[LDC]`), and a two-scope
+> resource model (roster wallet + per-unit F7 pools). `advance_proficiency` is unchanged.
+
 A **fifth, player-driven** progression avenue (distinct from the PXP-5 in-combat gain sources):
 an authored hub service where the player **spends authored resources to add an authored amount
 of XP to an authored track**.

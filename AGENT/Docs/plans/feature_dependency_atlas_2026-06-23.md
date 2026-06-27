@@ -349,14 +349,15 @@ items disperse via the normal chain, no snapshot/restore);
     hidden/shown-disabled + `[DLG-14]` gating model) + **F15 dialogue integration** (shop entered via /
     wrapped in a `[DLG]` conversation; `shop` as a dialogue `command`). Additive + non-blocking; detail in
     `registers/shop_economy_open_questions_2026-06-23.md` §4 (FORWARD note).
-  - **Training Halls (#19) — NOW ON THE PRE-F1 LIST (owner 2026-06-27d).** Promoted from DISCUSS/INVEST to
-    a **define-all-sweep item that must be designed before the F1 lock**, because (a) it is the
-    **`[PVP-3]` buy-phase dependency** (the stat/skill/class-XP purchase side) and (b) it adds
-    **persistent per-character state** (purchased stat bonuses / skills / class-XP) the F1 schema must
-    reserve. The **proficiency-XP slice is already firmed (`[PXP-9]`)**; the open part = the **other
-    benefit types** (class XP · **stat** · **skill** purchase), resource type, caps, gating. *Composes*
-    `[BEA]` (levels), `[SHP]`/`[SAC]` (resource sink), `[STM]` (stat purchase), `[SKL]`/`[LDC]` (skill
-    purchase → `earned_skills`). Scope-map #19.
+  - **Training Halls (#19) — RESOLVED 2026-06-27d → `[THL-1..7]`** (`registers/training_halls_open_questions_2026-06-27.md`).
+    A PHB prep service (on-map via `[SAC]`) generalizing `[PXP-9]`'s `{benefit, amount, cost}` offer to
+    **all benefit types**, each routing to its existing system: class XP→`add_exp` (= `[BEA]`), weapon
+    XP→`[PXP-9]`, **skill**→`earned_skills`+`[LDC]`, **stat**→a **new shared `apply_permanent_stat_gain`
+    primitive** (capped; *also backs FE stat-booster items*). **Resource model (owner-expanded): two
+    scopes** — a **roster multi-resource wallet** (`party_gold` + author resources e.g. activity points,
+    extends `[SHP-1]`) **and per-unit F7 pools** (`[CEX-1..4]`, e.g. motivation). Caps = PHB cadence +
+    optional per-offer cap; gates = `[REQ]`. **New save = the party resource wallet (+ optional purchase
+    counts).** Scope-map #19. *(Unblocks the `[PVP-3]` buy-phase.)*
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 
@@ -372,7 +373,9 @@ history (MRU) + player source-ordering (`[CEX-22]`)** · **mid-conversation resu
 + endurance/rank state + the `[BAT-16]` disband/exhausted + attached-vs-pooled status (`[BAT-11]`/`[BAT-16]`)** · **F14/`[STM]` TAKEN (2026-06-27d): `UnitData.extra_stats` + the
 `CampaignRules` stat registry (`[STM-3]` §3)** · **`[TCV]` typed campaign-variable store (campaign-scope
 persisted; the variable registry + player tunable picks) + the per-unit `groups`/tags field + objective-
-condition predicate/flag references (`[TCV-1/4/6]`)** · **plus every field Phase A surfaces.**
+condition predicate/flag references (`[TCV-1/4/6]`)** · **the `[THL-4/6]` roster multi-resource wallet
+(`party_gold` → `{resource_id: amount}`) + optional training purchase-counts (baked stat gains ride
+`extra_stats`; per-unit pools ride F7)** · **plus every field Phase A surfaces.**
 
 **Phase C — builds** (decided foundations F2/F3/F8/F9 + everything graduating from the sweep).
 

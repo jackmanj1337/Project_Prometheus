@@ -103,6 +103,9 @@ ledger to be balanceable.
   replaces the flat single-`cost`-int + sell-% model for transactions; v1 populates **gold only**. Per-save
   resource balances beyond `party_gold` are **forward** (added when a system needs them, e.g. training
   points); v1 keeps `party_gold` (already persists/snapshots). Item `cost` field → the gold buy amount.
+  > **Now needed (`[THL-4]`, 2026-06-27d):** training halls are that system — `party_gold` becomes a
+  > **roster multi-resource wallet** (`{resource_id: amount}`, e.g. gold + activity points), alongside
+  > **per-unit F7 pools** (motivation); a cost references a resource by `{id, scope}`. General capability.
 - **Save impact (§2):** none new in v1 — `party_gold` already persists + snapshots. Shop stock is
   **campaign content/authoring** (per-node), not save state.
 - **NEW forward surface — battlefield shops (`[SHP-4]`):** an on-map visit-tile armory/vendor; destination
