@@ -43,7 +43,9 @@ level for a friendly turn-based game"). Hotseat = trust the pass-and-play; onlin
 ## [PVP-3] Buy phase = freeform buy funded by a faction budget, reusing the prep panels — **RESOLVED**
 Each faction spends a **resource budget** to build its army via the **existing prep panels** — **no
 bespoke army-builder**:
-- **units** → **recruit `[RCR]`** (freeform: buy any unit from the authored available pool — owner);
+- **units** → **recruit `[RCR]`** (freeform: buy any unit from the authored available pool — owner) =
+  the **`[THL-8]` recruit-purchase** mechanism (grunt · authored · parametrically-generated · ransomed
+  prisoner);
 - **equipment** → **shop `[SHP]`/`[SAC]`**;
 - **levels** → **bonus-EXP `[BEA]`** (pool spend → `add_exp`);
 - **stats / skills / weapon-XP** → **training-hall #19** (the "spend resources for stat/skill/XP" sink).

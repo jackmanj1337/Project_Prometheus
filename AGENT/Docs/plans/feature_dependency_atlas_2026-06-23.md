@@ -353,11 +353,14 @@ items disperse via the normal chain, no snapshot/restore);
     A PHB prep service (on-map via `[SAC]`) generalizing `[PXP-9]`'s `{benefit, amount, cost}` offer to
     **all benefit types**, each routing to its existing system: class XP→`add_exp` (= `[BEA]`), weapon
     XP→`[PXP-9]`, **skill**→`earned_skills`+`[LDC]`, **stat**→a **new shared `apply_permanent_stat_gain`
-    primitive** (capped; *also backs FE stat-booster items*). **Resource model (owner-expanded): two
-    scopes** — a **roster multi-resource wallet** (`party_gold` + author resources e.g. activity points,
-    extends `[SHP-1]`) **and per-unit F7 pools** (`[CEX-1..4]`, e.g. motivation). Caps = PHB cadence +
-    optional per-offer cap; gates = `[REQ]`. **New save = the party resource wallet (+ optional purchase
-    counts).** Scope-map #19. *(Unblocks the `[PVP-3]` buy-phase.)*
+    primitive** (capped; *also backs FE stat-booster items*), **source/style**→`[CEX]`/`[STY]` lists +
+    `[LDC]` caps (`[THL-2]`), **+ recruit-purchase** (`[THL-8]`: add a unit via 4 modes — grunt · authored
+    · parametrically-generated (a **shared generator** with `[BEA-5]` arena opponents) · ransomed
+    prisoner `[RCR-5]`). **Resource model (owner-expanded): two scopes** — a **roster multi-resource
+    wallet** (`party_gold` + author resources e.g. activity points, extends `[SHP-1]`) **and per-unit F7
+    pools** (`[CEX-1..4]`, e.g. motivation). Caps = PHB cadence + optional per-offer cap; gates = `[REQ]`.
+    **New save = the party resource wallet (+ optional purchase counts; bought recruits ride the roster
+    save).** Scope-map #19. *(IS the `[PVP-3]` buy-phase.)*
 - **Cross-cutting (content, not a cluster):** Per-skill UX (#M9b) — folds into the skill-system UI;
   arts/gambits (A1) surface there as skill-like entries, so do it alongside A1.
 

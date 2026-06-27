@@ -2,7 +2,7 @@
 Type: register
 Status: RESOLVED 2026-06-27
 Last verified: 2026-06-27
-Register: THL-1..7
+Register: THL-1..8
 Resolved-in: 2026-06-27d
 ---
 
@@ -39,6 +39,10 @@ items/convoy):
 - **`weapon_xp` / proficiency** → `[PXP-9]` `advance_proficiency` (firmed).
 - **`stat`** → the new permanent stat-gain primitive (`[THL-3]`).
 - **`skill`** → add to `earned_skills`, equip via the `[LDC]` cap.
+- **`source`** (attack source — a weapon-source / granted spell) → add to the unit's `[CEX]` granted/known
+  source list, equip via the `[LDC]` `max_sources` cap (owner 2026-06-27d).
+- **`style`** (combat style / art / gambit-source) → add to `[STY]` `learned_styles`, equip via the
+  `[LDC]` `max_styles`/`style_group` cap (owner 2026-06-27d).
 - **`other_effects`** → author-composed effects (the `[STY]`/effect vocabulary, or a granted source) —
   open-ended, reuses the effect system.
 
@@ -64,15 +68,39 @@ Per-offer **F16 `[REQ]` gate** (class / level / flag / trait to unlock an offer 
 limits = the PHB `one_shot`/`restock_every_n` cadence + an optional author per-offer cap** (e.g. "this
 stat-up buyable 3× per unit"); the **resource cost is the main limiter** (`[THL-1]` `cap?`).
 
+## [THL-8] Buy recruits — add a unit to your faction, four source modes — **RESOLVED (owner 2026-06-27d)**
+A **recruit-purchase offer** (a roster-level service — same offer/cost/resource machinery, but it **adds a
+unit** rather than improving one; can live in a training hall or its own "recruitment" PHB panel). Pay a
+resource → a unit joins the faction roster via the **`[RCR-3]` `recruit()` API**. **Four author-selectable
+unit-source modes:**
+- **`grunt`** — a **generic author-defined template** unit (faceless filler).
+- **`authored`** — a specific **named author-made character** (from the campaign roster pool).
+- **`generated`** — **procedurally generated from authored parameters** (class · level/range · stat
+  ranges · equipment), via a **shared parametric unit generator** (the **"like the arena"** mechanism —
+  the same generator feeds `[BEA-5]` arena opponents; see note).
+- **`ransom`** — pay to recruit a **captured prisoner** (`[RCR-5]` capture end-state — a captured enemy is
+  recruitable; ransom = the resource-gated `recruit()` on it).
+Gating/caps reuse `[THL-5]` (a `[REQ]` gate per offer + author caps — e.g. a roster-size cap). **This is
+also the `[PVP-3]` PvP buy-phase recruit mechanism** (its "recruit any unit from the authored pool" = these
+modes).
+> **Shared capability — a parametric unit generator (note).** `generated` recruits and `[BEA-5]` arena
+> opponents both want **"build a unit from authored parameters on demand."** Treat it as **one generator**
+> (authored param spec → a unit), not two; `[BEA-5]`'s "authored opponent table" generalizes to "authored
+> table **or** a parametric spec." Cross-ref added there.
+
 ## [THL-6] Save / F1 schema reserve — **forward to Phase B (F1 lock)**
 Reserve: the **roster multi-resource wallet** (`party_gold` → a `{resource_id: amount}` dict) +
 **per-offer purchase counts** (only if author caps used). The **baked stat gains** ride `[STM]`
-`extra_stats`/base (already reserved); per-unit pools ride F7 (reserved); proficiency/skill grants ride
-already-reserved fields. So the **only new save surface = the party resource wallet + optional purchase
-counts**.
+`extra_stats`/base (already reserved); per-unit pools ride F7 (reserved); proficiency/skill/**source**/
+**style** grants ride already-reserved fields (`[CEX]`/`[STY]`/`earned_skills`). **Bought recruits**
+(`[THL-8]`) are **new roster units** → ride the roster/`UnitData` save (already reserved); the generator
+**param specs** + grunt/authored templates = **authoring data**, not save. So the **only new save surface =
+the party resource wallet + optional purchase counts**.
 
 ## [THL-7] Composition / cross-refs — **RESOLVED**
 `[PHB]` (container) + `[SAC]` (on-map placement) · `[PXP-9]` (weapon XP) · `[BEA]`/`add_exp` (class XP) ·
-`[STM]` (stat — `[THL-3]` primitive, shared with stat-booster items) · `[SKL]`/`[LDC]` (skill) · **F7
-pools `[CEX-1..4]`** + gold ledger + `[TCV]` (the two-scope resource model) · `[REQ]` (gates) · `[PVP-3]`
-(the buy-phase consumer this unblocks).
+`[STM]` (stat — `[THL-3]` primitive, shared with stat-booster items) · `[SKL]`/`[LDC]` (skill) · `[CEX]`
+(source) + `[STY]` (style), equip via `[LDC]` caps · **F7 pools `[CEX-1..4]`** + gold ledger + `[TCV]`
+(the two-scope resource model) · `[REQ]` (gates) · `[PVP-3]` (the buy-phase consumer this unblocks).
+- **`[THL-8]` recruit purchase:** `[RCR-3]` (`recruit()` API + roster) · `[RCR-5]` (capture/ransom) · the
+  **shared parametric unit generator** with `[BEA-5]` (arena opponents) · the roster/`UnitData` model.

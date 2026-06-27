@@ -63,6 +63,9 @@ An `arena` entry in `prep_panels`. Reuses F9 PHB; betting/payouts reuse the gold
 An arena match is a **real `CombatResolver` 1v1** in a sandbox; a **win pays gold + EXP + wexp** through
 the existing paths (no bespoke combat). **Opponent source = an authored opponent table per arena panel**
 (a content-pack list), optionally **level/tier-scaled** via the `[TCV]`/`[DIF]` difficulty variables.
+> **Shared parametric unit generator (`[THL-8]`, 2026-06-27d):** the opponent table generalizes to
+> "authored table **or** a **parametric spec** (class · level/range · stat ranges · equipment)" — the
+> **same on-demand unit generator** that `[THL-8]` `generated` recruits use. One generator, two consumers.
 
 ## [BEA-6] Risk = author lethal/safe toggle per arena; lethal still respects `death_mode` — **RESOLVED**
 **Owner: each arena panel declares `lethal` vs `safe`.**
