@@ -55,13 +55,20 @@ enemy; `main_character` is meaningless on the enemy side and falls through).
 
 ---
 
-## [DTH-1] Scope — always-run-then-restore (uniform path) — **RESOLVED**
-**Owner:** the disposition step runs **unconditionally**; revivability is resolved **inside** it, not by
-branching the call site on permadeath. Permanent death → walk the faction chain. **Revivable death**
-(Casual/Phoenix #12, PvP/skirmish #7) → take an **at-death loadout snapshot, hold it, and restore on
-return** (reuses the `GameState` snapshot/retry-restore pattern, `_map_start_snapshot` — already reused
-by `[DSP]`/`[BAT]`). One uniform code path; edge cases (5) Casual/Phoenix and (6) PvP become an internal
-branch, not a skipped step. *Cost:* a snapshot + restore on revivable deaths.
+## [DTH-1] Scope — disposition always runs; revived units return EMPTY (no restore) — **RESOLVED (revised 2026-06-27d)**
+**Owner:** the disposition step runs **unconditionally for every death via the same chain** — there is
+**no inventory hand-back branch**. Permanent death → unit gone, items dispersed per the faction chain.
+**Revivable death (Phoenix #12)** → the unit's items **disperse through the normal chain too** (to convoy
+by default), and the **revived unit returns with an EMPTY inventory**; the player re-equips from convoy.
+- **No at-death loadout snapshot / restore (owner, revising the earlier snapshot-and-restore call).**
+  Deliberately *not* re-handing items whose state may have **diverged since death** — durability spent,
+  weapon broken, item sold/traded out of convoy. Tracking "give back exactly what it held" against a
+  store that has since changed is the complexity this avoids.
+- *Net:* strictly simpler than snapshot-and-restore, and the path becomes **fully** uniform (revivable
+  = the same disposition; the unit merely respawns empty — no internal inventory branch at all).
+- **Scope note:** the owner called this out for **Phoenix**; the same rationale applies to **Casual
+  (#12)** — recommend the identical empty-on-revive rule; **PvP/skirmish (#7)** is moot (fresh loadout
+  per match). **Confirm the Casual/PvP scope in the imminent #12 walk.**
 
 ## [DTH-2] Disposition = author-ordered fall-through chain, per-item walk — **RESOLVED**
 See **The model** above. Chosen over a single-mode profile because the owner's recipient additions
@@ -149,8 +156,8 @@ A new **objective predicate** (owner pulled it into A5 from the death walk). Eac
 ## [DTH-11] Save / F1 schema reserve — **forward to Phase B (F1 lock)**
 Reserve at the F1 schema-lock: **(a)** a **per-map dropped-item tile stash** *only if* `drop_on_tile` is
 in play (tile → item list; persists mid-map); **(b)** **key-item custody tracking** (item → custody
-state) for DTH-10; **(c)** the **at-death loadout snapshot** for DTH-1 revivable restore (rides the
-existing `GameState` snapshot machinery — may need no new *persistent* field if revival is same-session).
+state) for DTH-10; **(c)** ~~at-death loadout snapshot for revivable restore~~ — **removed (DTH-1 revised
+2026-06-27d): revived units return empty, so no loadout snapshot/restore state is reserved.**
 Otherwise no new state beyond convoy.
 
 ## [DTH-12] Build deps & definition-of-done — **forward**

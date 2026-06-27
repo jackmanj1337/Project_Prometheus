@@ -253,7 +253,8 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
     (recipient links `transfer_to_killer`/`nearest_ally`/`main_character` · placement `to_convoy`/
     `drop_on_tile` · terminal `lost`; roster-order tie-break; recipient overflow continues the chain);
     **campaign default + per-faction** (player `[to_convoy]`, enemy `[lost]`+droppable); Key-Items walk
-    a **separate `lost`-banned chain**; **always-run-then-restore** (revivable death snapshots+restores);
+    a **separate `lost`-banned chain**; **disposition always runs** (Phoenix-revived units return EMPTY —
+items disperse via the normal chain, no snapshot/restore);
     **single `handle_death(ctx)` funnel + a `DeathDisposition` resolver**; the `key_item_removed_from_map`
     win/loss condition = a **custody state machine** (`[DTH-10]`). Original pin retained below for
     history. Modes (author default + per-case overrides): `to_convoy` (no loss) · `lost` (destroyed) ·
