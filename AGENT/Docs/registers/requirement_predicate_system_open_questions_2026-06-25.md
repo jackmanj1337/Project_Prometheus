@@ -172,8 +172,8 @@ of two value terms** (REQ-9). The **one stateful/impure predicate** — all othe
   boolean; **evaluation IS the roll** — so it is evaluated **on commit** (the choice is taken), not for
   passive preview. Pure predicates may be previewed freely; `chance` may not.
 - **General primitive (reuse):** comparison-skewed-chance also serves persuade/steal/intimidate, status
-  infliction, etc. — a shared "contest/check" gate, mirroring combat hit math; surfaced here, not
-  dialogue-only.
+  infliction, **the `[PER-6]` pierce-vs-stealth reveal contest**, etc. — a shared "contest/check" gate,
+  mirroring combat hit math; surfaced here, not dialogue-only.
 - **Save note (amends REQ-7):** the **latched roll outcome** is new state, but it **rides existing
   reserved surfaces** — the `visited_trail` (`[DLG-11]` `conversation_resume`) for in-conversation gates
   and `[F6]` for persistent results — **no new top-level save field.**
@@ -375,7 +375,7 @@ an engine primitive" model (see the `[EXT]` register).
 
 ## Cross-references
 - **Foundation F16.** Consumed by: `[DLG-14]` (dialogue gating), MET `[MET-4]`, `[VIL-6]`, `[RCR-4]`,
-  `[IEQ]` `req_flags`, objectives.
+  `[IEQ]` `req_flags`, objectives, **`[PER-6]` perception (the pierce-vs-stealth contest)**.
 - Reads (does not own): `[F6]` flags, unit data (`level`/`skills`/`get_effective_stat`/`proficiency`/
   `inventory`/`hp`/`max_hp`), F7 pools (`[CEX-1..4]`), per-map counters (`skill_use_counters`/
   `map_uses_remaining`/charges), `[STY]` styles/sources, `[CNV]` convoy, **item properties** (`[REQ-11]`
