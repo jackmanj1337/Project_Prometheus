@@ -264,7 +264,10 @@ are **persistent-state** questions and **must** be settled before F1.
   mandates — a battalion is part of the host's "loadout disposition," a sibling case to dropped/convoyed
   inventory and the `[DSP-5]` "death while carrying" precedent. **Do not invent a second death hook.**
   Edge cases inherit that rule set: no convoy/pool on this map → hold; Casual/Phoenix (#12) — a returning
-  unit reclaims its battalion; simultaneous deaths — per-unit resolution.
+  unit reclaims its battalion; simultaneous deaths — **snapshot-then-resolve per-unit in roster order**
+  (`[DTH-8]`). **Now RESOLVED** as `registers/death_inventory_disposition_open_questions_2026-06-27.md`
+  `[DTH-1..12]`; host-death = a faction disposition-chain case routed through `handle_death(ctx)`
+  (`[DTH-9]`).
 - **Owner:** the battalion build **+ the A5 death-disposition rule set** (host-death is a disposition
   mode there). **Save (F1):** the battalion's `disband`/`exhausted` state and its
   attached-vs-pooled status (extends `[BAT-11]`).

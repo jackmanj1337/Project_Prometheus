@@ -233,7 +233,10 @@ hooks with **A4**. **Reserve the `captured:<id>` flag at the F1 lock** (see `[DS
 chasm), which raises: *what happens to its inventory / Key Items?* This is **not** a displacement
 ruling — it is an **optional `CampaignRules` death-inventory profile** owned by **A5** (permadeath path;
 modes `to_convoy`/`lost`/`drop_on_tile`/`transfer_to_killer`; Key-Item locks `[CEX-14..16]` override to
-never-`lost`; a single `handle_death` disposition path for all death causes). **Full pin + edge-case
+never-`lost`; a single `handle_death` disposition path for all death causes). **Now RESOLVED** as
+`registers/death_inventory_disposition_open_questions_2026-06-27.md` `[DTH-1..12]`: the `[DSP-14]`
+ring-out is a no-clear-killer death cause → the recipient link fails and the item walks to the next
+chain link (`[DTH-7]`), resolved under snapshot-then-resolve ordering (`[DTH-8]`). **Full pin + edge-case
 list** in `plans/feature_dependency_atlas_2026-06-23.md` (A5 bullet, 2026-06-25h).
 
 ## 6. Save / F1 reservations  *(reserve at the Phase-B lock)*

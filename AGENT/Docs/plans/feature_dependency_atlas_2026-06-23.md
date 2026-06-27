@@ -246,10 +246,18 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)** (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
-  - **Death-inventory disposition rule set (NEW — pinned 2026-06-25h).** An **optional `CampaignRules`
-    profile** governing what happens to a unit's carried + equipped inventory when it dies. Modes
-    (author default + per-case overrides): `to_convoy` (no loss) · `lost` (destroyed) · `drop_on_tile`
-    (recoverable pickup) · `transfer_to_killer` (loot). **Single disposition path:** route **all** death
+  - **Death-inventory disposition rule set (pinned 2026-06-25h — RESOLVED 2026-06-27d, see
+    `registers/death_inventory_disposition_open_questions_2026-06-27.md` `[DTH-1..12]`).** An **optional
+    `CampaignRules` profile** governing what happens to a unit's carried + equipped inventory when it
+    dies. **Resolved shape:** disposition = an **author-ordered fall-through chain** walked per-item
+    (recipient links `transfer_to_killer`/`nearest_ally`/`main_character` · placement `to_convoy`/
+    `drop_on_tile` · terminal `lost`; roster-order tie-break; recipient overflow continues the chain);
+    **campaign default + per-faction** (player `[to_convoy]`, enemy `[lost]`+droppable); Key-Items walk
+    a **separate `lost`-banned chain**; **always-run-then-restore** (revivable death snapshots+restores);
+    **single `handle_death(ctx)` funnel + a `DeathDisposition` resolver**; the `key_item_removed_from_map`
+    win/loss condition = a **custody state machine** (`[DTH-10]`). Original pin retained below for
+    history. Modes (author default + per-case overrides): `to_convoy` (no loss) · `lost` (destroyed) ·
+    `drop_on_tile` (recoverable pickup) · `transfer_to_killer` (loot). **Single disposition path:** route **all** death
     causes through one `handle_death` inventory step — today only `CombatResolver` calls
     `unit.handle_death()`; non-combat deaths (F5 condition/poison ticks, hazard terrain, the `[DSP-14]`
     `force_onto_invalid` ring-out, scripted/event death) must funnel through the same hook.
