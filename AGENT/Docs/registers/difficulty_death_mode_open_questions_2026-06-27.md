@@ -69,7 +69,7 @@ call: **fold them into one consolidated pre-F1 "typed campaign-variable store" w
 **`[TCV]`** (which also absorbs the objective-extensibility / flag-driven win-loss pin). DIF owns only the
 death-mode + difficulty-variant selection that sits *on top of* that store.
 
-## [DIF-6] Composition with Bonus-EXP (#18) + Arena (#14) — **forward (to those A5 items)**
+## [DIF-6] Composition with Bonus-EXP (#18) + Arena (#14) — **RESOLVED 2026-06-27d → `[BEA]`**
 Difficulty variants/variables can **scale Bonus-EXP pools** (classic FE: harder = more bonus EXP to
 compensate) and **Arena death-risk** (under casual/phoenix, arena death isn't permanent — rides DIF-1).
 Detail deferred to the #18 (`[AGT §6]`/Bonus-EXP) and #14 (Arena) walks; recorded here so they wire to

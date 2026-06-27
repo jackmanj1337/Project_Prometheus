@@ -70,7 +70,7 @@ no save surface; the author-extension registry rides F4 / the sweep. **Net-simpl
 | Forging (M10) | **M** | F2 | deferred |
 | Per-map-use items (CEX-D) | **S** | F2 | **firmed 2026-06-24c** (`[CEX-13]`; pure recharge, `uses_per_map` + per-instance map counter) |
 | Combat arts / weapon arts (#15) | **M** | F2,F7,F11 | **firmed 2026-06-24j** (`[STY-1..8]`; a **style** over a `[CEX-20]` source — unified source+style model, absorbs `[CEX-23]`) |
-| Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | DISCUSS |
+| Bonus-EXP (#18) · Arena (#14) | **M** ea | F3,F9 | **RESOLVED 2026-06-27d `[BEA-1..9]`** (both = `[PHB]` panels; reuse `add_exp` / `CombatResolver` / gold ledger / `death_mode`) |
 | Weapon-source / equip model (CEX-B-foundation) | **L** | F1,F2 | **firmed 2026-06-24i** (`[CEX-20..23]`; two-source union, `equipped_source` ref, auto-fallback by priority, combo-select deferred) |
 | Learned spells (CEX-B-application) | **M** | F1,F2,F7 | **firmed 2026-06-24i** (`[CEX-5..8]`; rides the weapon-source model — fold into Equip Weapon, per-source charge backend, ever-growing list v1) |
 | Resource pools (CEX-A) | **M** | F1,F2 → *is* F7 | exploration |
@@ -259,8 +259,13 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   (`registers/difficulty_death_mode_open_questions_2026-06-27.md`: `death_mode` enum classic/casual/
   phoenix replacing the permadeath binary; casual+phoenix return EMPTY per `[DTH-1]`; difficulty =
   authored content variants + AIP overlay; player picks from an author-allowed set; the
-  author-exposed-tuning + custom-variable + tag-scoped-effect layers folded into `[TCV]`). · Bonus-EXP
-  (#18) · Arena (#14) · PvP (#7) · **the style/source loadout cap (forget/swap, `requires_equip`)**
+  author-exposed-tuning + custom-variable + tag-scoped-effect layers folded into `[TCV]`). · **Bonus-EXP
+  (#18) + Arena (#14) — RESOLVED 2026-06-27d → `[BEA-1..9]`** (`registers/bonus_exp_arena_open_questions_2026-06-27.md`:
+  both are `[PHB]` opt-in prep panels; Bonus-EXP = a banked pool from authored `grant_bonus_exp` awards +
+  optional difficulty scaling, spent via `add_exp` at a default-1:1 author-configurable cost curve; Arena
+  = a sandboxed real `CombatResolver` fight, author lethal/safe toggle — lethal respects `death_mode` —
+  and author-choice single-or-escalating match loop). · PvP (#7) · **the style/source loadout cap
+  (forget/swap, `requires_equip`)**
   (`[CEX-7]`/`[STY-3]`; pinned
   2026-06-25c — sits with `CampaignRules.max_skills`). *Why sync:* all ride F4 profiles and/or the hub +
   EXP/economy; Casual/Phoenix death rules and Arena death-risk share the permadeath-handling path.
