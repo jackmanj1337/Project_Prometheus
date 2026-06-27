@@ -1,6 +1,6 @@
 # Map Authoring Guide
 
-**Last verified:** 2026-06-13
+**Last verified:** 2026-06-27
 
 Use this guide when adding or changing a playable map. It centralizes the
 practical authoring steps that are otherwise split across `GDD_01`, `GDD_06`,
@@ -189,6 +189,29 @@ Start from `AGENT/Docs/guides/testing_guide.md` for the full checklist.
 5. Run targeted automated tests if code changed.
 6. Run or update the relevant manual validation steps.
 7. Fold any new evergreen rules back into `GDD_06` if the runtime contract changed.
+
+## Deceiving the player (hidden-information encounters)
+
+The `[PER]` perception/masking system (see `registers/perception_masking_open_questions_2026-06-27.md`)
+is built primarily to deceive the **AI** (mask units, skew threat, blind the forecast). When you want to
+pull a similar trick on the **player** — a "harmless villager" who is really the boss, a weak-looking
+defender who turns deadly once engaged — you do **not** need engine PER support. Two authoring patterns
+work with today's primitives:
+
+- **Real-unit swap via switch-teleport.** Place a genuine *decoy* unit (real stats, really weak). When
+  the deceit should be uncovered (the player commits / engages / steps adjacent), **teleport the decoy
+  off and the true unit in** on the same tile. The player fought what they saw; the swap reveals the
+  truth at the scripted moment. Reuses ordinary unit placement + a teleport/relocate action.
+- **Map-event condition change.** Use a **map event (MET)** trigger → action to **change the unit's
+  condition/stats** at the reveal moment — e.g. on `unit_died`/an adjacency or attack trigger, apply a
+  transform/buff that exposes the unit's real nature. Keep the deceit reversible and authored, not
+  hidden engine state.
+
+Pick swap when the *identity* changes (different unit), condition-change when the *same* unit's
+threat changes. Both keep the reveal as **authored, deterministic** content — consistent with the PER
+rule that deceit affects perception/presentation, never the canonical resolution. When engine-native
+player-facing masking lands (`[PER-9]` forecast-fidelity channels, `[PER-12]` appraisal), prefer it for
+runtime/per-unit deceit; these patterns remain the tool for **scripted, set-piece** reveals.
 
 ## Common mistakes
 
