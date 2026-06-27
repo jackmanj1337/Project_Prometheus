@@ -251,7 +251,11 @@ func get_unit_at(tile: Vector2i) -> Node:
 	return null
 
 
-# 4-direction adjacency (no diagonals per GDD_02)
+# 4-direction adjacency (no diagonals per GDD_02). This is the single geometry
+# seam: dijkstra_costs() iterates DIRS, so neighbour topology is defined here once.
+# Direction-based features (displacement/shove/swap/pivot, etc.) must read neighbours
+# via this seam rather than copying a 4-way literal — that keeps the parked hex-grid
+# option open (see registers/grid_topology_hex_open_questions_2026-06-27.md, [HEX-9]).
 const DIRS: Array[Vector2i] = [
 	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
 ]

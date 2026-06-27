@@ -263,6 +263,10 @@ list** in `plans/feature_dependency_atlas_2026-06-23.md` (A5 bullet, 2026-06-25h
 - **DoD (at build):** GDD_02 (combat/displacement) + GDD_05 (skills/`StyleDef`/effect kinds) + the
   carry/rescue UX, the `CampaignRules` carry profile (F4), `DisplacementService` + `CarryRegistry` +
   tests, and the GDD_10 roadmap status flip — all **with the build**.
+- **Forward-ward (`[HEX-9]`, 2026-06-27):** shove/swap/pivot/carry directions must be **sourced from
+  the geometry seam** (`GridManager`'s neighbour accessor), **not** a hard-coded 4-way `Vector2i`
+  literal. Hex topology is a parked future option (`registers/grid_topology_hex_open_questions_2026-06-27.md`);
+  a 4-way literal here would silently foreclose it. Costs nothing now, preserves the option.
 - **Cross-refs:** `[RCR-5]` capture-carry (settled here) · `[STY-6]` `sleep` · `[STY-9]` AoE/direction
   vocab · `[STY-10]` effect-forecast preview · `[STY-16]` EffectSpec set · `[STY-17]` relationship
   matrix / `target_filter` · `[SMV]` F10 window · Pair-Up (`PairUpRegistry`, `OFF_MAP_TILE`) · F4

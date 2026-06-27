@@ -51,6 +51,7 @@
 - [`registers/doors_chests_open_questions_2026-06-21.md`](registers/doors_chests_open_questions_2026-06-21.md) — Doors & Chests (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/extensible_stat_model_open_questions_2026-06-25.md`](registers/extensible_stat_model_open_questions_2026-06-25.md) — Author-Extensible Stat Model — Migration Plan + Open Questions (PINNED, not yet firmed) — *OPEN*
 - [`registers/fog_of_war_los_open_questions_2026-06-21.md`](registers/fog_of_war_los_open_questions_2026-06-21.md) — Fog of War / Line-of-Sight (§5) — Draft Plan + Open Questions Register — *RESOLVED*
+- [`registers/grid_topology_hex_open_questions_2026-06-27.md`](registers/grid_topology_hex_open_questions_2026-06-27.md) — Grid Topology — Optional Hex-Grid Rule — Open Questions — *RESOLVED*
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/interceptor_family_gaps_open_questions_2026-06-26.md`](registers/interceptor_family_gaps_open_questions_2026-06-26.md) — Interceptor Family — Residual Gaps & Closure Paths — Open Questions — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
