@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: OPEN 2026-06-27
+Status: RESOLVED 2026-06-27
 Last verified: 2026-06-27
 Register: PER-1..11
-Resolved-in: 2026-06-27 (PER-1..6, PER-10 design-locked in the perception walk; PER-7 union semantics + PER-8 occupancy deferral + PER-11 no-softlock/two-hook finding settled same day) — only PER-9 (UI tell) remains DEFERRED
+Resolved-in: 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding. PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1])
 ---
 
 # Perception / Masking — AI & Player Forecast Manipulation — Open Questions
@@ -12,10 +12,10 @@ Resolved-in: 2026-06-27 (PER-1..6, PER-10 design-locked in the perception walk; 
 be hidden from the prediction without hiding them from reality" — to (a) dumb down AI on easier
 difficulties and (b) bait enemies into traps.
 
-**Status (mixed):** the **model + control surfaces are design-locked** (PER-1..6, PER-10 — owner locks
-in the walk); **PER-4 is inert until the forecast-driven valuation AI exists**; PER-7/8/11 settled
-2026-06-27 (see each); only **PER-9 (UI tell) DEFERRED**. Nothing is built. No GDD/roadmap behavior
-change yet (design-capture only).
+**Status (RESOLVED):** the **model, control surfaces, contest, occupancy, and player-communication are
+all design-locked** (PER-1..11). The one residual is a *dependency*, not an open question: **PER-4 (the
+valuation-bias lever) is inert until the forecast-driven valuation AI exists** (`[CVR-4]`/`[RCT-1]`).
+Nothing is built. No GDD/roadmap behavior change yet (design-capture only).
 
 **The insight:** the AI/player decision is a **three-stage pipeline**, and manipulation = filtering the
 **inputs** at one stage. The two owner examples land on *different* stages, which is the whole shape.
@@ -103,18 +103,45 @@ targetable by observer X iff **∃ a winning observer O such that `X ∈ O.share
 `faction`-share from any single winner subsumes the rest automatically. Strength only matters *within*
 one observer's own contest, never compared between observers.
 
-## PER-8 — Occupancy vs targetability are separate  `[RESOLVED — v1 = targetability only; occupancy deferred]`
-"Unoccupiable space" (AI won't path onto/through the tile) is a **movement/occupancy** flag, NOT a
-targeting one — keep them separate. **v1 = targetability masking only.** Normal occupancy already makes
-a unit's tile impassable to others, and the PER-3 two-hook fix already removes a masked unit from the
-AI's *approach* logic — so the two owner examples are fully served without an occupancy mask. A parallel
-`ai_pathing_mask` (let the AI route *through* the masked tile as if empty) is a later add if a use-case
-appears; deferring it foreclosing nothing. *(Reversible scope call — flag if the owner wants the
-true "walk-through-the-ghost" flavor in v1.)*
+## PER-8 — Occupancy of a masked unit's tile  `[RESOLVED — owner: in v1, around|through + follow-up]`
+Occupancy is a **separate** axis from targetability (PER-3), authored per mask. For units that **cannot
+perceive** the masked unit:
+- **`stealth_pathing: around | through`** (default `around`).
+  - `around` — the tile is treated as **blocked/impassable** (normal occupancy). Simple, but a
+    pathfinder detour can itself leak "something is here."
+  - `through` — the tile is treated as **empty/passable**; unaware units may cross or stop on it.
+- **Follow-up when `through` (two cases, author-selectable):**
+  - **`on_cross`** — a unit moves *across* the tile without stopping. Default = nothing (true ghost);
+    opt-in = a **reactive trigger** (reveal / attack-of-opportunity / spring a trap — the "bait into
+    traps" use-case). Reuse the reactive/off-turn displacement path (`[DSP-12]`) + the reaction-family
+    event surface, **not** a bespoke movement hook.
+  - **`on_stop`** — a unit *ends its move on* the occupied tile (two units, one tile). **Reuse the
+    `[DSP-14]` invalid-destination outcome set** (`fail` = revert/re-route [default], `collision_damage`,
+    `chain_push`, `force_onto_invalid`) plus a perception-specific `reveal` outcome. The transient
+    two-on-one-tile state reuses the **PairUpRegistry off-map-sentinel** substrate (`[DSP-2]`); the move
+    itself rides the **`[DSP-1]`** occupancy-mutation primitive. Default = **reveal + `fail`** (the
+    intruder discovers the unit and the overlap is resolved by re-route).
+- **No new collision code** — PER-8 is a thin perception-aware front on the displacement framework.
 
-## PER-9 — Player-fog fairness tell  `[DEFERRED — UI]`
-Stage-3 blinding toward the *player* needs a tell ("forecast may be incomplete") or it feels unfair.
-UI-layer, post-schema.
+## PER-9 — Forecast fidelity = a two-channel campaign constant (+ debug override)  `[RESOLVED — owner: CampaignRules]`
+Forecast fidelity is **not** a per-feature UI tell — it is a **campaign/difficulty `CampaignRules` (F4)
+constant, communicated to the player alongside the other campaign rules** (the surface that shows
+difficulty modifiers at campaign start / settings). It declares **two channels** (owner 2026-06-27):
+- **Channel A — what humans see** (`player_forecast_fidelity`): the fidelity of the displayed forecast.
+- **Channel B — what the AI evaluates on** (`ai_forecast_fidelity`): the fidelity the AI's valuation reads.
+- **A and B may be equal** (full-info run) or diverge (e.g. honest player display + blinded/dumbed AI on
+  easy, or a fogged player + cheating AI). B is the **difficulty/dumb-down lever**; A is the
+  fairness/fog dial. The per-feature `forecast_hidden_to` (PER-5) and per-unit masks layer **on top** of
+  these run-wide baselines; the campaign constant is the floor everyone can read.
+- **Debug / author-testing override** (`forecast_reveal_all`, owner 2026-06-27): a dev/author switch that
+  **forces both channels to full fidelity** (and reveals masked units) — bypasses all PER blinding so the
+  author can verify the real picture. **Projection/display only — never touches `resolve_combat` (PER-10);
+  off in shipped runs.**
+- **Sibling of `[FOW-3]` `ai_respects_fog`:** both are run-wide "what each side knows vs reality" rules in
+  the **§2 CampaignRules consolidation** (channel B ≈ the AI-knowledge dial; A ≈ the player-fog dial).
+- **Display surface:** rides whatever renders campaign rules to the player — built with **fog-of-war / the
+  §2 CampaignRules consolidation** (neither built yet). The *decision* (two communicated channels + debug
+  override) is settled; **revisit only the shared display widget when FoW / §2 lands.**
 
 ## PER-10 — Determinism: perception filters projection inputs only  `[RESOLVED — hard rule]`
 Every knob filters **enumeration/valuation/forecast inputs only** — **never `resolve_combat()`**. If a
@@ -135,8 +162,11 @@ that an all-masked board makes the AI advance/hold without flailing.
 - **Shippable now (vs the current AI):** PER-3 hard mask + PER-6 pierce/contest (enumeration is the only
   stage today's AI uses), PER-5 forecast visibility (small extension), PER-10 invariant.
 - **Inert until valuation AI:** PER-4 soft weight (`[CVR-4]`/`[RCT-1]` dependency).
-- **Settled 2026-06-27:** PER-7 (union, no precedence), PER-8 (v1 targetability-only, occupancy
-  deferred), PER-11 (no softlock; two-hook fix). **Deferred:** PER-9 tell (needs the UI layer).
+- **Settled 2026-06-27:** PER-7 (union, no precedence), PER-8 (occupancy in v1 — `around|through` +
+  `on_cross`/`on_stop` reusing `[DSP-14]`/`[DSP-12]`/`[DSP-1]`/`[DSP-2]`), PER-9 (communicated
+  CampaignRules constant, sibling of `[FOW-3]`), PER-11 (no softlock; two-hook fix).
+- **Only residual = the PER-4 dependency** (valuation AI), and two *build-time revisits*: PER-9's shared
+  display widget (lands with FoW/§2) and the PER-11 all-masked-board test.
 
 ## Cross-references
 - **Contest substrate = `[REQ-10]` / Foundation F16** (`requirement_predicate_system_open_questions_2026-06-25.md`).
@@ -147,3 +177,10 @@ that an all-masked board makes the AI advance/hold without flailing.
   fidelity = AI capability). PER-4 is inert until this lands.
 - **Duration/lifecycle reuse:** `active_modifiers` `duration_type` (add `"turn"`), `skill_use_counters`.
 - **MET-4** ("richer predicates added later") and perception both consume F16 — one contest, two consumers.
+- **Occupancy (PER-8) = Displacement framework reuse:** `[DSP-1]` occupancy primitive, `[DSP-2]`
+  PairUpRegistry off-map sentinel (two-on-one-tile), `[DSP-12]` reactive/off-turn (the `on_cross`
+  trigger), `[DSP-14]` invalid-destination outcome set (the `on_stop` resolution). No new collision code.
+- **Fog-of-War family (PER-9 + PER-3/4):** `[FOW-3]` `ai_respects_fog` is the sibling rule — both wrap the
+  single AI-acquisition seam `EnemyAI._living_hostiles_for_faction` and both live in the **§2 CampaignRules
+  consolidation**. Perception's AI-blinding (PER-4) generalizes FOW-3; player-blinding (PER-9) is its
+  player-side twin. Revisit PER-9's display widget when FoW / §2 builds.

@@ -127,6 +127,9 @@ on unseen tiles.
     see (proves A).
   - **Cross-ref:** AIP `[AIP-2]` (fog-scout profile = C) now has its upstream decision —
     most enemies cheat, scout profile + the campaign rule are the two future fog-aware paths.
+  - **Cross-ref:** `[PER-9]` perception forecast-fidelity is the **same family** — a two-channel
+    CampaignRules constant (player-view A / AI-view B) that generalizes `ai_respects_fog` to the
+    combat forecast; both wrap the `_living_hostiles_for_faction` seam and share the §2 consolidation.
 
 ### [FOW-4] Vision recompute cadence + reveal-on-move  **[RESOLVED → A-full / per-step interrupt]**
 - **A — Recompute the active faction's visible set at phase start + after every committed

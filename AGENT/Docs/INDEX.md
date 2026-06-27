@@ -59,7 +59,7 @@
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
-- [`registers/perception_masking_open_questions_2026-06-27.md`](registers/perception_masking_open_questions_2026-06-27.md) — Perception / Masking — AI & Player Forecast Manipulation — Open Questions — *OPEN*
+- [`registers/perception_masking_open_questions_2026-06-27.md`](registers/perception_masking_open_questions_2026-06-27.md) — Perception / Masking — AI & Player Forecast Manipulation — Open Questions — *RESOLVED*
 - [`registers/prep_hub_open_questions_2026-06-23.md`](registers/prep_hub_open_questions_2026-06-23.md) — Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/proficiency_xp_framework_open_questions_2026-06-23.md`](registers/proficiency_xp_framework_open_questions_2026-06-23.md) — Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/provoke_relationship_action_open_questions_2026-06-25.md`](registers/provoke_relationship_action_open_questions_2026-06-25.md) — Provoke / Runtime Faction-Relationship MET Action (`[STY-17]` transition side, A4) — Player-Facing Design + Open Questions — *RESOLVED*
