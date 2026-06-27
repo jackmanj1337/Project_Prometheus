@@ -153,6 +153,29 @@ A new **objective predicate** (owner pulled it into A5 from the death walk). Eac
   there; this register owns the **custody-state definition + transition triggers**). Needs an item
   **custody query** `key_item_custody(item_id) -> state`.
 
+### Forward-pin — objective-system extensibility (the shared unlock; surfaced 2026-06-27d)
+DTH-10 can't actually land until the win/loss system stops being closed. **Code reality:**
+`ObjectiveCondition.type` is a **closed enum** (`rout/defeat_boss/seize/escape/survive/protect/
+turn_limit`, `scripts/resources/ObjectiveCondition.gd`), evaluated by `TurnManager.
+check_victory_conditions` (→ `EventBus.map_victory/defeat`) and **polled only at phase boundaries**;
+there is **no flag/predicate/event-driven type** and **no F6 flag store** (only debug-aid flags on
+`GameState`; `[MET]` is unbuilt and its v1 action set — `reveal_tiles`/`flag`/`spawn` — has no "end
+map"). The **same closed enum blocks three converging needs:**
+1. **A dialogue-driven victory/defeat** — a `[DLG]` `command` / `[MET]` action that ends the map or
+   sets a win/lose flag (the side-check that surfaced this);
+2. **this DTH-10 custody objective** (a new condition type);
+3. **any flag/predicate-driven win/lose.**
+
+**Two paths (to be chosen in the walk):** **(A) declarative** — migrate the objective enum toward
+**F16 predicates** (or add a `flag_set`/predicate type) + build the **F6 flag store**; re-check on the
+relevant event (flag/custody change) rather than only at phase boundaries. **(B) imperative** — a direct
+**`end_map: victory|defeat`** DLG/MET action emitting `map_victory/defeat`. A + B are complementary
+(declarative gate vs scripted beat). **Owner (2026-06-27d): this MUST be walked in the define-all sweep,
+BEFORE the F1 schema-lock (Phase B) — and therefore before the Phase C evaluation/triage session.**
+It is **schema-affecting** (objective conditions referencing predicates/flags; the F6 store), so it
+cannot wait for the triage. Scheduling home = the atlas A4 objective keystone. Composes F16 + `[VIL-8]`
++ `[DLG]`/`[MET]`.
+
 ## [DTH-11] Save / F1 schema reserve — **forward to Phase B (F1 lock)**
 Reserve at the F1 schema-lock: **(a)** a **per-map dropped-item tile stash** *only if* `drop_on_tile` is
 in play (tile → item list; persists mid-map); **(b)** **key-item custody tracking** (item → custody

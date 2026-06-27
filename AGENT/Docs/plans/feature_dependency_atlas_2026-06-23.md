@@ -229,6 +229,17 @@ clusters (noted ⇄). Suggested order = **A3 first** (highest F1-schema risk), t
   > hostile-to-player presence; escape/story-removal = author `pass|fail`) — a **forward-pin to the
   > objective system**, co-owning the A5 death/removal-disposition path and absorbing the `[DSP]`
   > Capture-victory pin.
+  > **Objective-system extensibility (NEW — pinned 2026-06-27d, MUST precede the F1 lock / Phase B,
+  > hence before the Phase C evaluation/triage session):** `ObjectiveCondition.type` is a **closed
+  > enum** today (`rout/defeat_boss/seize/escape/survive/protect/turn_limit`), **phase-boundary-polled**,
+  > with **no flag/predicate/event type and no F6 flag store**. This one closed enum blocks **(a) a
+  > dialogue-driven victory/defeat** (a `[DLG]` `command`/`[MET]` action that ends the map or sets a
+  > win/lose flag), **(b) the `[DTH-10]` `key_item_removed_from_map` custody objective**, and **(c) any
+  > flag/predicate-driven win/lose**. **Walk it in the define-all sweep:** migrate the enum toward **F16
+  > predicates** (or add a `flag_set`/predicate type) + decide the **F6 flag-store build** + optionally
+  > an imperative **`end_map: victory|defeat`** action + the **re-check timing** (phase-poll vs
+  > event-driven). **Schema-affecting → before F1.** Detail + the two paths in the `[DTH-10]`
+  > forward-pin (`registers/death_inventory_disposition_open_questions_2026-06-27.md`).
   > **A4 recruit side (2026-06-25o, `[RCV-1..6]`):** `talk` = a `[VIL-2]` config; the `recruit` action
   > is **trigger-agnostic** (talk/village/turn/flag) over the `[RCR-3]` API; directionality = author's
   > choice (`directed | symmetric`); damage-forfeit = author-composed condition, no engine rule. The
