@@ -69,7 +69,15 @@ How is "the hub" presented and modeled?
 > training-hall (#19) · recruit; **deploy/Save/Begin-Battle are the prep-only exceptions**. So a panel is
 > defined once and surfaced two ways (prep button **or** map trigger). The on-map shop (`[SHP-4b]`) is the
 > first instance; the **A5 `shop`/`activate` walk firms the shared panel↔trigger contract** (which panels
-> are placeable, the per-instance variation schema, and how a triggered panel reuses the prep-panel UI).
+> are placeable, the per-instance variation schema, and how a triggered panel reuses the prep-panel UI) —
+> **RESOLVED `[SAC-1..12]`** (the unified `map_objects`/`activate` model + the shopper subject).
+
+> **Candidate future panels (INVESTIGATE — owner 2026-06-27d, "look into").** Beyond the firmed set
+> (convoy/shop/arena/training-hall/recruit/skirmish), consider **side-content minigames** as additional
+> prep-panel activities (hence also on-map-placeable via the `[SAC]` dual-surface): a **casino** (gold
+> gambling — rides the gold ledger), **fishing**, a **multi-battle garden** (reuses `[BEA]` arena combat),
+> etc. None designed/scheduled — a feasibility dive per minigame decides in/out. Mirror-pinned in the
+> scope map's INVESTIGATE list (#23).
 
 ### [PHB-3] Gating axes — what scopes a panel's availability  **[OPEN]**
 The owner phrased it "available at each node / location / time." "Time" has no substrate pre-overworld.
