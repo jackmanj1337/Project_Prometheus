@@ -22,6 +22,33 @@ v1 scope decision and does not supersede the feature registers.
 - `AGENT/Docs/REGISTERS.md`
 - `AGENT/GDD/GDD_10_Roadmap.md`
 
+## Reprioritization Decisions - 2026-06-28
+
+This pass turns the initial triage into the scheduling input for the unified
+GDD rewrite. Use these decisions unless the owner explicitly changes the v1
+definition.
+
+| Decision | Outcome | Why it matters |
+|---|---|---|
+| V1 center of gravity | Bands 1-5 below are the conservative v1-core path. Band 6 is v1-lean/stretch. Bands 7-8 are optional, deferred, or parked. | Keeps the new GDD from treating every firmed design as a v1 promise. |
+| F1 before feature consumers | Package A, F1 manifest lock, SaveCodec, and the campaign spine precede any feature that adds persistent state. | Prevents ad-hoc fields and migration debt before the first real campaign save. |
+| Shared services before feature forks | Registries, action/effect primitives, resource ledger, occupancy, death lifecycle, and projection are build gates for their consumers. | Avoids per-feature runners and closed type-switches. |
+| Activity seam | `ActivityRegistry` / `ActivityRunner` stays `V1-optional`. Promote it to Band 6 only if v1 commits to one side activity; then build one first-party template and no public VM. | A side activity needs the seam; the core campaign does not need arbitrary scripting. |
+| Calendar-lite counters | Keep `total_maps_played` and `story_maps_played` as optional TCV-readable built-ins, built with F6/TCV only if v1 content uses map-count cadence. | Gives gardens/restocks/territory pressure a generic hook without adding a calendar system. |
+
+## Dependency Rules For Scheduling
+
+| Rule | Applies to |
+|---|---|
+| New author-facing vocabulary uses an open registry, not a closed enum/list plus `match`. | Objectives, AI profiles, map objects, activities, effects, stats, resource types, difficulty, predicates. |
+| New save state must have an F1 manifest row before implementation. | Any campaign, roster, party, map runtime, object runtime, or suspend field. |
+| State-changing authored actions route through the action/effect primitive contract. | MET actions, DLG commands, SAC activations, STY effects, shops, objectives, TCV actions. |
+| Costs and wallets route through the resource ledger. | Shops, training, arena, style/source costs, battalion charges, item uses, dynamic pricing. |
+| Non-standard placement routes through occupancy transactions. | Spawn, reinforcements, forced movement, carry/drop, hidden overlap, object-unit placement. |
+| Every death cause routes through `handle_death(ctx)` and `DeathDisposition`. | Combat, F5 ticks, hazards, ring-out, scripts, arena, cover/redirect, battalion host death. |
+| Forecasting delegates to the projection service. | Combat preview, F5 ticks, AI valuation, perception masking, source/style effects, F16 projection terms. |
+| Side activities use `launch_activity` through the activity seam when scheduled. | Prep panels, on-map activation, dialogue commands, and MET/story calls that start an activity. |
+
 ## Triage Labels
 
 | Label | Meaning |
@@ -156,8 +183,8 @@ Build or lock these before feature clusters start consuming their state.
 |---|---:|---|---|---|
 | Dialogue v1 slice | L | F13, F15, F16, MET | V1-core | Needed for recruit/village/story. Keep v1 slice focused on line/choice/command. |
 | Dialogue visual effects full set | M | F15 presentation registry | V1-optional | Presentation growth can follow the v1 dialogue slice. |
-| ActivityRegistry / ActivityRunner seam | M | registry manifest, action/effect bridge, PHB/SAC/DLG/MET | V1-optional | New 2026-06-28c triage item. If v1 includes any side activity, build the shared `launch_activity` seam first: prep, map activation, dialogue, and story/MET all call one registry/result bridge. Not required for core campaign v1. |
-| Activity template prototypes: grid puzzle / QTE / card table | M/L | ActivityRunner; resource ledger for blackjack; StagePresentation optional | Parked | Feasibility prototypes only. Use the three templates to validate the seam before considering public scripting: PuzzleScript-style grid puzzle, QTE/lockpick, blackjack/card-table. |
+| ActivityRegistry / ActivityRunner seam | M | registry manifest, action/effect bridge, PHB/SAC/DLG/MET | V1-optional | Decision 2026-06-28: keep optional for the core campaign. If a v1 side activity is committed, promote the seam to Band 6 and build the shared `launch_activity` bridge first: prep, map activation, dialogue, and story/MET all call one registry/result bridge. |
+| Activity template prototypes: grid puzzle / QTE / card table | M/L | ActivityRunner; resource ledger for blackjack; StagePresentation optional | Parked | Feasibility prototypes only. Promote exactly one first-party template with the seam if v1 commits to a side activity. Keep the other templates as validation evidence before public scripting: PuzzleScript-style grid puzzle, QTE/lockpick, blackjack/card-table. |
 | Designer authoring contract | S/M | registries, validation | V1-optional | Useful before public builder, not before hand-authored campaign. |
 | Public campaign builder / authoring GUI | XL | authoring contract, content-pack policy | Post-v1 | Do not schedule before gameplay v1 stabilizes. |
 | Campaign self-contained packaging `[ICO]` | M | F1, DataManager load seam | V1-lean | Important if sharing/importing campaigns is part of v1; otherwise stage after campaign spine. |
@@ -181,29 +208,44 @@ Build or lock these before feature clusters start consuming their state.
 | M13 Awakening supplement | XL | broad content/system compatibility | Post-v1 | Large content/system pack; defer. |
 | Arbitrary mini-game module / public scripting VM | XL/unknown | ActivityRegistry, content-pack trust policy, sandbox/VM decision | Parked | Do not schedule a general scripting VM for v1. Keep first-party scenes and validated templates ahead of public code. MiniScript/Wren-style VM remains evidence-gated after template prototypes. |
 
-## Suggested Build Bands
+## Reprioritized Dependency Bands
 
-This is a rough sequencing band, not a calendar.
+This is a dependency order, not a calendar. A later band can be designed while
+an earlier band is being built, but implementation should not consume a missing
+foundation or add unmanifested save state.
 
-| Band | Work |
-|---|---|
-| 0 | Package A / RNG, F1 manifest lock, SaveCodec/SaveData campaign spine. |
-| 1 | Registry manifest, action/effect contract, resource ledger, map object components, occupancy transaction, death lifecycle. |
-| 2 | F4/F6/F8/F9/F16/F13 foundation build slices and CampaignRules consolidation. |
-| 3 | IEQ/PXP/convoy/shop, map_objects/DCH/MET, dialogue v1, recruit/village, difficulty/death mode. |
-| 4 | F5 conditions, Source+Style, skill effects/grants, secondary movement/action grant, AI composition. |
-| 5 | V1-lean content packs: fog, destructibles, rescue/capture, supports, bonus EXP/training, combat arts/staves, map readability, input/gamepad. |
-| 6 | Optional/post-v1: activity seam/prototypes if wanted, battalions, PvP, arena, forging, perception/masking, advanced AI valuation, public authoring, online, hex, large supplement systems. |
+| Band | Priority | Work | Exit check |
+|---|---|---|---|
+| 0 | Pre-GDD scope lock | Use this triage to set the unified GDD scope: Bands 1-5 = conservative v1-core, Band 6 = v1-lean/stretch, Bands 7-8 = optional/deferred/parked. | GDD rewrite has one scope table and one dependency table instead of copying old roadmap prose. |
+| 1 | Determinism and save gate | Package A / `RngService`, F1 manifest lock, SaveCodec/SaveData, campaign envelope, CampaignRules/profile selections, old-save defaults. | No feature build adds state without an F1 row and fixture obligation. |
+| 2 | Shared authoring/runtime contracts | Registry manifest bootstrap, action/effect primitive runner, resource ledger/cost resolver, occupancy transaction service, death lifecycle funnel, projection service slice, DataManager validation seams. | Consumers can call shared APIs; tests cover unknown ids, failed transactions, blocked placement, death routing, and no-mutation projection. |
+| 3 | Core authoring foundations | F4 profiles, F6/TCV variables, F16 predicates/terms, F8 MET, F9 PHB panels, F13 text keys, F14 stat registry, F7 pools, calendar-lite counters only if v1 content uses them. | Story/event/economy/map content can be authored through registries and predicates, not one-off branches. |
+| 4 | Campaign loop vertical slice | F2 IEQ + F3 PXP, roster/party inventory, convoy, shop/economy, map_objects/DCH, MET spawns/events, village/house visit, dialogue v1 line/choice/command slice, recruit basics, difficulty/death mode. | One short campaign loop can move map -> victory/defeat -> prep -> next map with save/suspend coverage. |
+| 5 | Tactical v1 enrichment | F5 conditions, Source+Style, required skill effect ids/grants/loadout caps, utility staves, combat arts if selected, secondary movement, dancer/action grant, AI composition/profile registry, minimum combat AI improvement. | Core v1 maps have enough tactical variety without adding optional systems that multiply test surface. |
+| 6 | V1-lean/stretch packs | Rescue/carry/capture expansion, fog/LoS, destructibles, support/relationship minimum, bonus EXP, training halls, map readability, input resolver/gamepad/key rebinding, campaign packaging if sharing is in v1, ActivityRunner only if one side activity is committed. | Each slice has its prerequisites from Bands 1-5 and can be cut without breaking the core campaign promise. |
+| 7 | Optional after stable core | Arena, battalion/gambit narrow slice, stationary weapons, forging, PvP hotseat scenario, advanced AI valuation, activity template prototypes not selected for v1. | Schedule only after the campaign loop is stable enough to absorb extra permutations. |
+| 8 | Post-v1 / parked | Public campaign builder, public scripting VM, content-pack compatibility/resync, online play, perception/masking, hex topology, ML evaluation, Laguz, Awakening supplement, Apple Vision Pro/mobile reach. | Revisit after the first stable campaign release or an owner scope change. |
 
-## Immediate Recommendations
+## Feature Priority Changes From The Initial Pass
 
-1. Do not rewrite the GDD until Band 0 and the v1 scope decision are summarized
-   in one place.
-2. Treat F1 + shared foundation contracts as build gates, not optional cleanup.
-3. Keep v1 scope conservative: campaign spine, save/load/suspend, item/economy,
-   map events, dialogue/recruit/village, conditions/source-style enough to make
-   content work, and minimum AI.
-4. Explicitly defer public authoring, online play, hex, large supplements, and
-   arbitrary mini-games unless the owner changes the v1 definition. If side
-   activities enter v1, start with `ActivityRegistry`/`ActivityRunner` and one
-   validated template, not a public scripting VM.
+| Feature/group | Previous lean | Reprioritized lean | Reason |
+|---|---|---|---|
+| `ActivityRegistry` / `ActivityRunner` | V1-optional, loosely grouped with post-v1 mini-games | Stays V1-optional; conditional Band 6 if one v1 side activity is committed | The seam is right if side activities ship, but core campaign v1 should not pay for arbitrary scripting. |
+| Public mini-game scripting VM | Parked | Band 8 parked | Needs trust/sandbox/content-pack policy and evidence from first-party templates. |
+| Shared contracts | Spread across Bands 0-1 | Band 2 gate | They are dependency reducers; building consumers first recreates the same closed-switch problem in several systems. |
+| Calendar-lite map counters | V1-optional | Band 3 only when consumed | Counters should ride TCV as generic built-ins, not become a garden/restock-specific subsystem. |
+| Designer authoring contract | V1-optional | Narrow validation/id rules in Bands 1-3; full editor contract post-v1 | Stable ids and validation help v1 content; public builder UX does not block the short campaign. |
+| AI valuation | V1-lean | Minimum scorer in Band 5; advanced valuation in Band 7 | Basic AI quality matters for v1 maps; deeper search/perception coupling can wait. |
+| Training/bonus EXP/arena/PvP | Mixed V1-lean/optional | Bonus EXP/training can be Band 6; arena/PvP stay Band 7 | Training/bonus EXP reuse the economy/progression spine. Arena/PvP add separate balancing and death/economy cases. |
+
+## Consolidation Guidance
+
+1. Rewrite the GDD around the band split above, not the older milestone order in
+   `GDD_10_Roadmap.md`.
+2. In the new GDD, mark Bands 1-5 as the v1-core implementation path, Band 6 as
+   scoped stretch, and Bands 7-8 as deferred unless the owner changes v1.
+3. Update GDD_10 during consolidation so stale navigation points to
+   `REGISTERS.md`, this triage, the F1 inventory/lock docs, and the shared
+   foundation contracts.
+4. Keep public authoring, online play, hex, large supplements, arbitrary
+   mini-games, and the public scripting VM out of v1 by default.
