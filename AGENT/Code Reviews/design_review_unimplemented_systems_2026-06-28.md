@@ -63,6 +63,12 @@ artifact. Each field should record owner register, scope (`campaign`, `map`,
 default, serializer path, and test fixture. Treat the manifest as the thing that
 locks F1, not the prose list alone.
 
+**Walk note 2026-06-28:** accepted as an important Phase B concern, not a new
+feature-plan change. Phase B was already expected to do much of this work, but
+it should explicitly produce a **master F1 build document** where every schema
+field/reservation is tracked at least in prose before implementation consumes
+the schema.
+
 ### H2 - Action/effect execution is converging, but the shared contract is not concrete yet
 
 **Evidence:** Source+Style defines one combat-like pipeline with `EffectSpec`
