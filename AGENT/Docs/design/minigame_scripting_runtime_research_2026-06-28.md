@@ -184,6 +184,7 @@ host access unless a separate security decision explicitly accepts that risk.
   GDScript-written interpreter, or a declarative grid/activity DSL first?
 - What are the first three real minigames to prototype? Recommendation:
   blackjack, a QTE lockpick, and a PuzzleScript-style grid puzzle because they
-  stress different parts of the API.
+  stress different parts of the API. Initial specs:
+  [`minigame_activity_type_initial_specs_2026-06-28.md`](minigame_activity_type_initial_specs_2026-06-28.md).
 - Should online play treat activities as local-only presentation with bounded
   result validation, or should activity inputs/results enter deterministic logs?
