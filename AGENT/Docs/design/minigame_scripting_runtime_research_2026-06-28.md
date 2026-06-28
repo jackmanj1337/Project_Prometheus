@@ -78,6 +78,20 @@ stakes, parameters, and permitted result mappings.
   trusted editor conveniences, but not for public minigame code. See Godot's
   [Expression class docs](https://docs.godotengine.org/en/stable/classes/class_expression.html).
 
+## Tool / Project Comparator
+
+| Tool / approach | Could be used for | Pros | Cons | Other project uses if proven |
+|---|---|---|---|---|
+| Trusted Godot scenes | First-party built-in activities | Fastest path; fits current project; no public-code trust decision. | Not safe for public content packs; scene code is engine/trusted-plugin code. | Arena variants, fishing, casino, training drills, forging/repair panels. |
+| Declarative activity templates | QTEs, card/dice games, memory games, grid puzzles | Safest author path; structured validation; editor-friendly; fits open-registry model. | Less flexible than a real scripting language; each template needs design. | Lockpicks, riddles, camp tasks, map-object puzzles, tutorial sandboxes. |
+| MiniScript | Later small imperative VM | Designed for embedding; readable; host can expose a deliberately small API. | Requires integration/prototype; sandbox and host API are still our responsibility. | Author microgames, cutscene challenges, simple tutorial simulations. |
+| Wren | Later small imperative VM | Clean embedding model; explicit foreign bindings create a clear host boundary. | Native/GDExtension work; more programmer-facing than a template. | Same as MiniScript, if the project wants a stricter VM boundary. |
+| PuzzleScript-style rules | Grid/tile puzzles | Excellent fit for safe declarative puzzle logic. | Narrow domain; full PuzzleScript compatibility is a larger promise. | Sokoban rooms, mazes, switches, magic circuits, logic-gate puzzles. |
+| ink / Bitsy-style narrative flow | Narrative microgames | Strong model for choices, variables, and small story state. | Poor fit for arcade/timing/card-table mechanics. | Persuasion, clue selection, riddles, support conversations. |
+| PICO-8 / TIC-80-style fantasy-console API | Inspiration for a future activity API | Fixed canvas/input/callbacks and hard budgets are the right constraints. | More useful as design inspiration than as a direct dependency. | A small "activity console" API if public scripting becomes justified. |
+| Godot Lua add-ons | Candidate scripting route to audit later | May reduce custom VM work if a maintained sandboxable add-on fits exports. | Not vetted here; sandbox, platform/export support, and maintenance risk are unknown. | Broader trusted mod API only after a separate security decision. |
+| Godot `Expression` | Trusted editor formulas or local tools | Built into Godot and useful for controlled expressions. | Not a public-pack sandbox; exposed base instances can call host methods. | Editor conveniences only, not minigame code. |
+
 ## Utility Floor
 
 A scripting/activity runtime is only worth building if authors can make several
