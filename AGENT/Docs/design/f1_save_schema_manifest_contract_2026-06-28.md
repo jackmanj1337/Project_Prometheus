@@ -11,6 +11,10 @@ Last verified: 2026-06-28
 
 **Managed by:** [`design_review_foundation_fix_todo_2026-06-28.md`](design_review_foundation_fix_todo_2026-06-28.md).
 
+**Lock design:** [`f1_save_schema_lock_design_2026-06-28.md`](f1_save_schema_lock_design_2026-06-28.md).
+
+**Source inventory:** [`../plans/f1_schema_source_inventory_2026-06-28.md`](../plans/f1_schema_source_inventory_2026-06-28.md).
+
 **Purpose.** This is the master build document shape for F1. It turns the
 Phase B save-schema reserve list into a field-owned manifest before features
 start adding persistent state independently.
