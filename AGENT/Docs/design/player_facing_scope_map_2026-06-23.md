@@ -179,7 +179,10 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
       it.** Three cheap build-time disciplines (scene-backed activities not a closed type-switch · a
       generic result→effect bridge · an open activity registry) + the **deferred hard call: code trust**
       (loading pack `.gd`/`.tscn` crosses the `[ICO-5]` raw-load-art-only boundary). **Full pin in the
-      `[SAC]` "scene-backed activities / mini-game module seam" forward-note.**
+      `[SAC]` "scene-backed activities / mini-game module seam" forward-note.** Launch surfaces are
+      deliberately broader than prep/on-map: the same `launch_activity` primitive should be callable
+      from prep menus, map activations, dialogue commands, and `[MET]` story/map-event actions. Research:
+      [`design/minigame_scripting_runtime_research_2026-06-28.md`](minigame_scripting_runtime_research_2026-06-28.md).
     **Action: feasibility/scope dive, then decide in/out** — none designed or scheduled.
 
 ### 3c. Deferred / out of v1 (from the genre scan, not chosen)

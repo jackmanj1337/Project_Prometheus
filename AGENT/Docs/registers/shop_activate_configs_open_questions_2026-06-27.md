@@ -132,6 +132,9 @@ seam is cheap to reserve. **Three disciplines to bake into the `[SAC]`/`[PHB]` b
    `{outcome, score, payload}`; the host maps it to **existing effects** (gold/EXP/items/flag/`[TCV]`
    var/`[MET]` action/objective). The engine never needs to know what the game *is*.
 3. **Open activity registry** — a pack declares "activity X = scene Y"; not a hardcoded list.
+4. **Launch surfaces are plural.** The shared primitive is `launch_activity`: prep buttons, on-map
+   `activate` triggers, dialogue `command`s, and `[MET]` story/map-event actions all call the same
+   registry entry with caller-specific context. Do not make minigames prep-only or shop-only.
 **Local-only** (presentation layer; no determinism/lockstep burden — online D6 precedent), **atomic save**
 (like the arena), host validates **reward bounds** (no-anti-cheat, D18). **The one hard, deferred
 decision = code trust:** loading a mini-game = loading arbitrary `.gd`/`.tscn` from a pack, which crosses
@@ -139,7 +142,8 @@ the content-pack "**raw-load art only**" boundary (`[ICO-5]`). First-party/futur
 (res://); **modder packs with code** = a real security boundary → future call between
 first-party-whitelist / restricted-sandbox / accept-with-warning. Composes `[EXT]` (the seam is "engine
 provides the launch+result primitive; packs provide the scene") + the campaign-content-pack model.
-Mirror-pinned: scope-map #23.
+Mirror-pinned: scope-map #23. Research note:
+[`design/minigame_scripting_runtime_research_2026-06-28.md`](../design/minigame_scripting_runtime_research_2026-06-28.md).
 
 ## Cross-refs
 - **`[VIL-2]`** (trigger substrate) · **`[DCH]`** (the `map_objects` model + specialized door/chest types)

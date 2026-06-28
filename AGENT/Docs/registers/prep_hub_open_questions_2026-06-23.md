@@ -76,8 +76,11 @@ How is "the hub" presented and modeled?
 > (convoy/shop/arena/training-hall/recruit/skirmish), consider **side-content minigames** as additional
 > prep-panel activities (hence also on-map-placeable via the `[SAC]` dual-surface): a **casino** (gold
 > gambling — rides the gold ledger), **fishing**, a **multi-battle garden** (reuses `[BEA]` arena combat),
-> etc. None designed/scheduled — a feasibility dive per minigame decides in/out. Mirror-pinned in the
-> scope map's INVESTIGATE list (#23).
+> etc. None designed/scheduled — a feasibility dive per minigame decides in/out. **Launch note:** future
+> activities must not be prep-only; the shared `launch_activity` primitive should also be callable from
+> on-map activations, dialogue commands, and `[MET]` story/map-event actions. Mirror-pinned in the scope
+> map's INVESTIGATE list (#23) and researched in
+> [`design/minigame_scripting_runtime_research_2026-06-28.md`](../design/minigame_scripting_runtime_research_2026-06-28.md).
 
 ### [PHB-3] Gating axes — what scopes a panel's availability  **[OPEN]**
 The owner phrased it "available at each node / location / time." "Time" has no substrate pre-overworld.
