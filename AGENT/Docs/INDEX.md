@@ -101,6 +101,7 @@
 - [`design/items_equipment_unified_model_2026-06-23.md`](design/items_equipment_unified_model_2026-06-23.md) — Items & Equipment — Unified Data-Model Review (ground-up) — *Target design — firmed, awaiting staged *
 - [`design/mouse_only_cursor_mode_design_2026-06-19.md`](design/mouse_only_cursor_mode_design_2026-06-19.md) — Mouse-Only / Touch Cursor Mode — Design (V021-17) — 2026-06-19 — *Implemented*
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
+- [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/rng_determinism_design_2026-06-11.md`](design/rng_determinism_design_2026-06-11.md) — RNG Determinism, Rewind, Suspend Save & Online Model — Implementation Plan — *Target design*

@@ -174,6 +174,11 @@ with registry manifests and load-time registry validation. DoD#2 checks should
 verify "all referenced ids resolve to a registry entry" and "registries declare
 required primitive handlers", not "this hardcoded list contains every value".
 
+**Walk note 2026-06-28:** user requested a specific problem/fix list for H4.
+Created `AGENT/Docs/design/open_registry_conversion_checklist_2026-06-28.md`
+as the saved review checklist. It enumerates the closed-vocabulary danger areas
+and gives a recommended registry-shaped fix for each one.
+
 ### M1 - Resource/cost/accounting needs one transaction resolver
 
 **Evidence:** Source+Style has additive and override combo costs
