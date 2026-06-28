@@ -116,6 +116,31 @@ content/authoring**, not save. The **shopper is a session-scoped selection**, no
 
 ---
 
+---
+
+## Forward (INVESTIGATE, not part of the resolved SAC scope) — scene-backed activities / mini-game module seam
+**Owner 2026-06-28: don't architecturally block arbitrary mini-games** (blackjack/roulette · a
+flappy-bird/pac-man/galaga clone · memory-match · mazes · QTEs · sliding-block / logic-gate puzzles …)
+inside prep panels or on-map activities. These are **arbitrary interactive code**, NOT data configs over
+the tactical engine — so they need a *module* seam, not more config. **Almost certainly post-v1**, but the
+seam is cheap to reserve. **Three disciplines to bake into the `[SAC]`/`[PHB]` build:**
+1. **Scene-backed activities, not a closed type-switch.** Treat every panel/activity as **"launch a scene,
+   take a result"** — the built-in shop/arena panels are the engine's own scenes; a mini-game is the same
+   path with an authored scene. (Same closed-enum lesson as `[TCV-4]` objectives / `[AIP]` profiles.)
+2. **A generic result→effect bridge.** A mini-game is a **black box** launched with a **context**
+   (player unit/shopper · param dict · stakes · `[TCV]` vars) that returns a **typed result**
+   `{outcome, score, payload}`; the host maps it to **existing effects** (gold/EXP/items/flag/`[TCV]`
+   var/`[MET]` action/objective). The engine never needs to know what the game *is*.
+3. **Open activity registry** — a pack declares "activity X = scene Y"; not a hardcoded list.
+**Local-only** (presentation layer; no determinism/lockstep burden — online D6 precedent), **atomic save**
+(like the arena), host validates **reward bounds** (no-anti-cheat, D18). **The one hard, deferred
+decision = code trust:** loading a mini-game = loading arbitrary `.gd`/`.tscn` from a pack, which crosses
+the content-pack "**raw-load art only**" boundary (`[ICO-5]`). First-party/future-dev games = trivial
+(res://); **modder packs with code** = a real security boundary → future call between
+first-party-whitelist / restricted-sandbox / accept-with-warning. Composes `[EXT]` (the seam is "engine
+provides the launch+result primitive; packs provide the scene") + the campaign-content-pack model.
+Mirror-pinned: scope-map #23.
+
 ## Cross-refs
 - **`[VIL-2]`** (trigger substrate) · **`[DCH]`** (the `map_objects` model + specialized door/chest types)
   · **`[SHP-1/4/4b/§4]`** (economics, destination, dynamic dims) · **`[PHB]`** (panels + dual-surface) ·

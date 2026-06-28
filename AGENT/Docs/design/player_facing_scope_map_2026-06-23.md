@@ -165,13 +165,22 @@ section sets **what's in v1 and at what commitment level**, not the firmed behav
     tracking. Each reuses existing machinery; firming order = the **pending priority re-eval**. Shared
     deps surfaced: `ConditionManager` (stub) trending foundational; A underpins B; E's branching needs
     a campaign-flag/story-state store (not built).
-23. **Side-content minigames (INVESTIGATE feasibility — owner 2026-06-27d, "look into")** — optional
-    diversions such as a **casino** (gold gambling), **fishing**, a **multi-battle garden/arena variant**,
-    and similar. **Most would be `[PHB]` prep-panel activities** (siblings of shop/arena/training-hall)
-    and therefore **also on-map-placeable via the `[SAC]`/`[VIL-2]` dual-surface** (a casino tile, a
-    fishing spot). Reuse-leaning: gambling rides the gold ledger (`[SHP]`/`[CNV]`); a multi-battle garden
-    reuses `[BEA]` arena combat; rewards ride the EXP/economy. **Action: a feasibility/scope dive per
-    minigame, then decide in/out** — none designed or scheduled. Pinned in the `[PHB]` panel-set note.
+23. **Side-content minigames (INVESTIGATE feasibility — owner 2026-06-27d/28, "look into")** — **two
+    distinct categories:**
+    - **(a) Reuse-leaning side content** — **casino** (gold gambling), **fishing**, a **multi-battle
+      garden/arena variant**. Expressible as **`[PHB]` prep-panel activities** (on-map via `[SAC]`/
+      `[VIL-2]`) over **existing** machinery: gambling rides the gold ledger (`[SHP]`/`[CNV]`), a garden
+      reuses `[BEA]` arena combat, rewards ride the EXP/economy. Closer-in; per-minigame feasibility dive.
+    - **(b) Arbitrary interactive mini-game modules (owner 2026-06-28)** — blackjack/roulette · a
+      **flappy-bird / pac-man / galaga** clone · memory-match · **mazes** · **QTEs** · sliding-block /
+      logic-gate puzzles. These are **arbitrary interactive code**, NOT data configs — they need a
+      **module seam** (a self-contained **scene** launched with a context, returning a **typed result**
+      the host maps to standard effects). **Very likely post-v1; the ask = don't architecturally block
+      it.** Three cheap build-time disciplines (scene-backed activities not a closed type-switch · a
+      generic result→effect bridge · an open activity registry) + the **deferred hard call: code trust**
+      (loading pack `.gd`/`.tscn` crosses the `[ICO-5]` raw-load-art-only boundary). **Full pin in the
+      `[SAC]` "scene-backed activities / mini-game module seam" forward-note.**
+    **Action: feasibility/scope dive, then decide in/out** — none designed or scheduled.
 
 ### 3c. Deferred / out of v1 (from the genre scan, not chosen)
 2nd-gen children units (Awakening) · fatigue (Thracia) · biorhythm (Tellius) · durability-free weapons
