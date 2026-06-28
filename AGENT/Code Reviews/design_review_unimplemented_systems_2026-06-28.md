@@ -139,6 +139,12 @@ rules, hypothetical action, dry-run flag, RNG policy, and effect/interceptor
 pipeline participation. `resolve_combat()` stays canonical; all forecasts call
 the same projection layer.
 
+**Walk note 2026-06-28:** accepted. Created the master contract at
+`AGENT/Docs/design/projection_forecast_contract_2026-06-28.md`. Future F5,
+VAL, PER/FOW, STY preview, interceptor/redirect/cover, and F16 projection-term
+work should point back to that contract instead of creating separate forecast
+rules.
+
 ### H4 - Older closed vocabulary plans conflict with the newer open-registry rule
 
 **Evidence:** the current project instruction says author-facing extension
