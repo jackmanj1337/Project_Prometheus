@@ -398,6 +398,13 @@ content/build phase resumes):**
   (canonical per-stat roll order + unit-id commit order) and a §10 raw-`randi` lint; this is an **M9a
   migration** item, not a new gap. Listed here only so the Phase C eval **cross-checks it has shipped**
   before lockstep/online play relies on reproducible level-ups.
+- **`GameMap._spawn_unit` performs no occupancy check** (found 2026-06-28). `_spawn_unit`
+  (`scripts/core/GameMap.gd:221`) instantiates + places a unit with **no `GridManager.get_unit_at` guard**,
+  so two units can silently **double-occupy** a tile. Initial spawn works only by assuming authored-distinct
+  placements. **Action at build:** (a) a **`DataManager` load-time validation** flagging two units on one
+  spawn tile (fail-loud); (b) the `[MET-8]` reinforcement-spawn seam applies the **`spawn` occupancy
+  policy** (`[MET]` spawn note, 2026-06-28: `on_blocked = nearest_free→delay`). Pairs with the
+  reinforcement (`[MET]` `spawn`) build.
 
 **Already firmed (the prior Wave-1, done):** flexible triangle `[CEX-9..12,17]` (2026-06-24b) ·
 per-map items `[CEX-13]` (2026-06-24c) · story items `[CEX-14..16,18,19]` (2026-06-24d) · F7 pools

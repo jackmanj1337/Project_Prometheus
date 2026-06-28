@@ -110,6 +110,17 @@ The substrate signals available: `unit_died`, `turn_changed`, `phase_changed`, `
   `change_objective` wait for their own systems. **This IS the vocabulary DTR's `on_break` shares.**
 - **Resolution:** **A (RESOLVED 2026-06-21h)** — `reveal_tiles` + `flag` + `spawn` in v1
   (the shared `on_break` vocabulary); `loot`/`dialogue`/`change_objective` land with their seams.
+  > **`spawn` occupancy policy — POLICY DECISION (owner 2026-06-28).** When a `spawn` (reinforcement)
+  > targets a tile that is **occupied or invalid** at fire time, the default is **nearest-free-tile, then
+  > delay**: place the unit on the **nearest valid free tile** (deterministic search — increasing ring
+  > distance, tie-break by a fixed order, e.g. roster/reading order); if **no** free tile is found within
+  > the search bound, **delay** the spawn (re-attempt on a later turn) rather than dropping it. **Author-
+  > overridable** `on_blocked ∈ {nearest_free, delay, skip}` (default `nearest_free`→`delay`), mirroring
+  > the `[DSP-14]` invalid-destination outcome-set pattern. **Code note:** `GameMap._spawn_unit`
+  > (`GameMap.gd:221`) performs **no occupancy check today** — the `[MET-8]` public spawn seam must add it
+  > (it also covers a latent **initial-spawn double-occupy**: two authored placements on one tile must be
+  > caught by a **`DataManager` load-time validation**, fail-loud, not silently stacked). See atlas Phase C
+  > deferred-review findings.
 - **FOW convergence (2026-06-21j):** the Fog-of-War register adds two consumers of this
   vocabulary. (1) **`reveal_tiles` is FOW's "closed room reveals on a map event" tool** — it
   writes into fog's persistent revealed set; no new action needed. (2) FOW `[FOW-7]` adds a new

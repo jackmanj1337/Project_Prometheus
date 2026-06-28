@@ -196,6 +196,14 @@ default-valid for the moved unit, author-overridable** only via `[DSP-14]` `forc
 Seize/Escape never auto-fire); (5) **phase-agnostic mechanic**, off-turn invocation author-gated and
 non-interrupting (`[DSP-12]`); (6) **undo parity** (own pre-confirm displacement undoes like a move; an
 opponent's forced movement of your units does not).
+**(7) Multi-unit / AoE resolution order — POLICY DECISION (owner 2026-06-28):** when one displacement
+effect moves **several** units (an AoE/`[STY-9]` footprint shove), the per-unit `[DSP-1]` relocations
+resolve **in order of distance along the push vector, farthest-from-origin FIRST** — so each unit's
+destination is already vacated before the next resolves (a line of 3 shoved outward all land cleanly
+instead of the near units colliding). **Tie-break = roster order** (the `[DTH-8]` deterministic order),
+keeping it replay-deterministic. Each unit still runs its own `[DSP-13]` resistance + `[DSP-14]`
+invalid-handling (`chain_push` cascades a blocker); a non-directional/`burst` shape with no push vector
+falls back to roster order. Build-detail of the otherwise-RESOLVED framework.
 
 ### [DSP-16] Preview & RNG surface — **RESOLVED (lean)**
 The **effect-forecast preview** (`[STY-10]`) shows a `displace`'s outcome like any effect: the
