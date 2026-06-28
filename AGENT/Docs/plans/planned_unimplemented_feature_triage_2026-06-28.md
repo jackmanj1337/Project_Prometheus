@@ -64,6 +64,7 @@ Build or lock these before feature clusters start consuming their state.
 | F7 resource pools | M | F1, F2, F4 | V1-core | Spells, combat arts, skills, redirects, training resources. |
 | F8 MET framework | L | map/grid, F6 | V1-core | Villages, spawns, story flags, triggers, object break actions, objective changes. |
 | F9 PHB option-panel framework | M | F1 | V1-core | Prep hub services: shop, convoy, arena, bonus EXP, training, recruit prep. |
+| Map-completion counters / calendar-lite cadence | S/M | F1, CampaignData progression, F6/TCV, MET | V1-optional | New triage note 2026-06-28. Track `total_maps_played` and `story_maps_played` as generic campaign counters for "complete after N maps" systems: garden/brewing station timers, activity restock cadence, and territory-pressure mechanics like encroaching armies. Prefer counters as TCV-readable built-ins, not a full calendar. |
 | F10 Secondary Movement | M | action flow | V1-lean | FE-like staple and prerequisite for rescue interactions, but can be staged after core campaign spine. |
 | F11 skill trigger/effect expansion | M/L | combat loop, action/effect | V1-core | Existing skill system needs effect ids and one exception sign-off for reactive reposition. |
 | F12 dynamic skill grant/revoke | M | F11, F6 | V1-core | Story/event skills, item grants, skill shops, on-crossing grants. |
