@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-06-25
+Status: RESOLVED 2026-06-28
+Last verified: 2026-06-28
 Register: DSP-1..17
-Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin)
+Resolved-in: 2026-06-25e (DSP-1..5,7) / 2026-06-25f (DSP-12..16) / 2026-06-25g (DSP-17 campaign-default+override; relationship gate; Capture-victory pin) / 2026-06-27d (DSP-6/9/11 leans firmed — register CLOSED)
 ---
 
 # Displacement & Carry — Shared Spatial Primitive (rescue · capture-carry · shove/swap/pivot)
@@ -117,22 +117,25 @@ resolved by `DisplacementService` (DSP-1). It is surfaced **two ways**:
 
 ## 4. Detail leans (firm at build unless a fork emerges)
 
-### [DSP-6] Drop / Give-Take handoff through the F10 window — **[LEAN]**
-Drop places the carried unit on an **adjacent valid tile** (via DSP-1), inside the **F10 post-move
-window** so a carrier can move-then-drop. **Give/Take** handoff between two adjacent carriers is
-supported (FE Rescue→Take→Drop chain). Drop range / whether you may drop onto your own vacated tile →
-build detail.
+### [DSP-6] Drop / Give-Take handoff through the F10 window — **RESOLVED 2026-06-27d**
+Drop places the carried unit on a **valid tile within an author-configurable `drop_range`** (via DSP-1),
+inside the **F10 post-move window** so a carrier can move-then-drop. **Owner: `drop_range` is authorable**
+(default **1 = adjacent**, **includes the carrier's vacated origin tile**), so an author may allow
+longer-range "throws" — consistent with the open-registry/author-extensibility principle. **Give/Take**
+handoff between two adjacent carriers is supported (FE Rescue→Take→Drop chain). Target tiles obey the
+DSP-1 valid-tile rules; a drop onto a normally-invalid tile is the `[DSP-14]` `force_onto_invalid` path
+only if authored.
 
 ### [DSP-8] Push collision — **[SUPERSEDED by `[DSP-14]`]**
 The "blocked, no chain" lean is **subsumed** by the author-composable destination-handling set in
 `[DSP-14]`: `fail` is the v1 default (matches the old lean), with `collision_damage` / `chain_push` /
 `force_onto_invalid` reserved as opt-in author outcomes.
 
-### [DSP-9] Action economy × F10 — **[LEAN]**
+### [DSP-9] Action economy × F10 — **RESOLVED 2026-06-27d (lean confirmed)**
 A standalone carry-pickup, a drop, and a standalone push skill **each cost the unit's action** (like an
 attack). When `displace` is an **attack effect** it rides the parent attack's action (**no extra cost**),
 consistent with `[STY-8]` "a style is the attack." The F10 second-move window opens per the acting
-skill's `secondary_move_actions` config — same rule as `[SMV]`.
+skill's `secondary_move_actions` config — same rule as `[SMV]`. (Owner-confirmed, FE-standard.)
 
 ### [DSP-10] Forced-move landing effects — **[SUBSUMED by `[DSP-15]` inv. 4]**
 Landing-tile terrain/trap effects apply to a displaced/dropped unit — generalized by the **"forced
@@ -240,7 +243,7 @@ chain link (`[DTH-7]`), resolved under snapshot-then-resolve ordering (`[DTH-8]`
 list** in `plans/feature_dependency_atlas_2026-06-23.md` (A5 bullet, 2026-06-25h).
 
 ## 6. Save / F1 reservations  *(reserve at the Phase-B lock)*
-### [DSP-11] — **[RESERVE]**
+### [DSP-11] — **[RESERVE — confirmed 2026-06-27d, carried to the Phase B F1 lock]**
 - **`carrier_id` / `carried_id` pointer pair** per unit (mirrors the Pair-Up partner pointer) + the
   `CarryRegistry` snapshot.
 - **Captured/jail state** — coordinate the reserve with `[RCR]` (roster) + `[STY-6]` `sleep` + **F5**
