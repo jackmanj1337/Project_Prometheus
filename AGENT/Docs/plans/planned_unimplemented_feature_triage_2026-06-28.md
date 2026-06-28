@@ -17,6 +17,8 @@ v1 scope decision and does not supersede the feature registers.
 - [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md)
 - [`design_review_foundation_fix_todo_2026-06-28.md`](../design/design_review_foundation_fix_todo_2026-06-28.md)
 - [`f1_save_schema_lock_design_2026-06-28.md`](../design/f1_save_schema_lock_design_2026-06-28.md)
+- [`minigame_scripting_runtime_research_2026-06-28.md`](../design/minigame_scripting_runtime_research_2026-06-28.md)
+- [`minigame_activity_type_initial_specs_2026-06-28.md`](../design/minigame_activity_type_initial_specs_2026-06-28.md)
 - `AGENT/Docs/REGISTERS.md`
 - `AGENT/GDD/GDD_10_Roadmap.md`
 
@@ -79,8 +81,8 @@ Build or lock these before feature clusters start consuming their state.
 | Learned spells | M | F1, F2, F7 | V1-lean | Strong FE-like value; can ride source/equip build once F7 exists. |
 | Per-map-use items | S | F2, suspend runtime | V1-lean | Small, useful, and already designed; watch suspend counter state. |
 | Story-item tracking + locks | S track / XL branch | F2, F6, MET | V1-core for tracking; branch later | Tracking/locks are core. Large branching content can grow later. |
-| Convoy | M | F1, F9, IEQ | V1-core | Needed by death disposition defaults, prep, shops, inventory overflow. |
-| Shop / economy | M | F1, F9, resource ledger | V1-core | Core prep service and on-map panel trigger consumer. |
+| Convoy | M | F1, F9, IEQ | V1-core | Needed by death disposition defaults, prep, shops, inventory overflow. Detailed panel UI/UX should be designed at the start of the Band 3 convoy/shop slice, after F9/IEQ storage contracts are real enough to avoid throwaway screens. |
+| Shop / economy | M | F1, F9, resource ledger | V1-core | Core prep service and on-map panel trigger consumer. Detailed panel UI/UX should pair with convoy UI because buy destination, overflow, sell, and distribution all cross the same inventory surface. |
 | Forging | M | F2, shop/economy | Post-v1 | Useful but not required for first campaign stability. |
 | Combat arts / weapon arts | M | F2, F7, F11, STY | V1-lean | Good player value, but waits on Source+Style and pools. |
 | Bonus EXP | M | F3, F9, TCV | V1-lean | Valuable prep progression sink; not required for core map flow. |
@@ -153,6 +155,8 @@ Build or lock these before feature clusters start consuming their state.
 |---|---:|---|---|---|
 | Dialogue v1 slice | L | F13, F15, F16, MET | V1-core | Needed for recruit/village/story. Keep v1 slice focused on line/choice/command. |
 | Dialogue visual effects full set | M | F15 presentation registry | V1-optional | Presentation growth can follow the v1 dialogue slice. |
+| ActivityRegistry / ActivityRunner seam | M | registry manifest, action/effect bridge, PHB/SAC/DLG/MET | V1-optional | New 2026-06-28c triage item. If v1 includes any side activity, build the shared `launch_activity` seam first: prep, map activation, dialogue, and story/MET all call one registry/result bridge. Not required for core campaign v1. |
+| Activity template prototypes: grid puzzle / QTE / card table | M/L | ActivityRunner; resource ledger for blackjack; StagePresentation optional | Parked | Feasibility prototypes only. Use the three templates to validate the seam before considering public scripting: PuzzleScript-style grid puzzle, QTE/lockpick, blackjack/card-table. |
 | Designer authoring contract | S/M | registries, validation | V1-optional | Useful before public builder, not before hand-authored campaign. |
 | Public campaign builder / authoring GUI | XL | authoring contract, content-pack policy | Post-v1 | Do not schedule before gameplay v1 stabilizes. |
 | Campaign self-contained packaging `[ICO]` | M | F1, DataManager load seam | V1-lean | Important if sharing/importing campaigns is part of v1; otherwise stage after campaign spine. |
@@ -174,7 +178,7 @@ Build or lock these before feature clusters start consuming their state.
 | Apple Vision Pro reach | unknown | web/mobile polish | Parked | Revisit after Safari-verified web release. |
 | M12 Laguz system | XL | combat/transform systems | Post-v1 | Large special system; defer. |
 | M13 Awakening supplement | XL | broad content/system compatibility | Post-v1 | Large content/system pack; defer. |
-| Mini-game module seam / casino/fishing/garden | L/unknown | ActivityRegistry, PHB/SAC | Parked | Keep registry seam, but do not schedule arbitrary minigames for v1. |
+| Arbitrary mini-game module / public scripting VM | XL/unknown | ActivityRegistry, content-pack trust policy, sandbox/VM decision | Parked | Do not schedule a general scripting VM for v1. Keep first-party scenes and validated templates ahead of public code. MiniScript/Wren-style VM remains evidence-gated after template prototypes. |
 
 ## Suggested Build Bands
 
@@ -188,7 +192,7 @@ This is a rough sequencing band, not a calendar.
 | 3 | IEQ/PXP/convoy/shop, map_objects/DCH/MET, dialogue v1, recruit/village, difficulty/death mode. |
 | 4 | F5 conditions, Source+Style, skill effects/grants, secondary movement/action grant, AI composition. |
 | 5 | V1-lean content packs: fog, destructibles, rescue/capture, supports, bonus EXP/training, combat arts/staves, map readability, input/gamepad. |
-| 6 | Optional/post-v1: battalions, PvP, arena, forging, perception/masking, advanced AI valuation, public authoring, online, hex, large supplement systems. |
+| 6 | Optional/post-v1: activity seam/prototypes if wanted, battalions, PvP, arena, forging, perception/masking, advanced AI valuation, public authoring, online, hex, large supplement systems. |
 
 ## Immediate Recommendations
 
@@ -199,4 +203,6 @@ This is a rough sequencing band, not a calendar.
    map events, dialogue/recruit/village, conditions/source-style enough to make
    content work, and minimum AI.
 4. Explicitly defer public authoring, online play, hex, large supplements, and
-   arbitrary mini-games unless the owner changes the v1 definition.
+   arbitrary mini-games unless the owner changes the v1 definition. If side
+   activities enter v1, start with `ActivityRegistry`/`ActivityRunner` and one
+   validated template, not a public scripting VM.
