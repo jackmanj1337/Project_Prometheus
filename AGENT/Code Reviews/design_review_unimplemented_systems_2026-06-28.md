@@ -102,6 +102,14 @@ needed, but require all state-mutating primitives to declare: subjects, inputs,
 safe point, validation, dry-run support, commit result, RNG access, and save
 side effects.
 
+**Walk note 2026-06-28:** accepted. The follow-up should be a **master
+action/effect primitive contract document**, not a loose reminder scattered
+through feature plans. Each danger-area implementation note - MET actions, DLG
+commands, SAC activations/panel triggers, STY effects, TCV variable/objective
+actions, DTR `on_break`, FOW object actions, and shop/panel side effects -
+should point back to that master contract when those docs are next edited. The
+goal is a shared mutation contract, not one merged vocabulary.
+
 ### H3 - Forecast/projection work is being specified in feature silos
 
 **Evidence:** REQ-15 says condition outcome projection must delegate to F5 and
