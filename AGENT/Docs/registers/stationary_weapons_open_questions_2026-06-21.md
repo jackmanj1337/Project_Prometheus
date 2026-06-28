@@ -158,5 +158,6 @@ The unit's targeting must use the siege weapon's range, not its carried weapon's
 ## 5. Test notes
 - Headless: a unit on a siege tile gains 3–10 range targeting (assert `get_attackable_enemies
   _from_tile` returns far targets); off the tile, normal range. Firing decrements ammo;
-  `ammo == 0` removes the Fire action. A unit that moved can't fire ([STW-3]).
+  `ammo == 0` removes the Fire action. A unit that moved can still fire from a siege tile
+  ([STW-3]); the siege range disappears once the unit leaves the tile.
 - Snapshot round-trip restores `ammo`.

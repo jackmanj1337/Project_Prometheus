@@ -373,6 +373,10 @@ The test notes still say "A unit that moved can't fire"
 assert move-and-fire is allowed, and that the siege range disappears after the
 unit leaves the tile.
 
+**Walk note 2026-06-28:** corrected the STW test note in
+`AGENT/Docs/registers/stationary_weapons_open_questions_2026-06-21.md` to match
+the resolved move-and-fire behavior.
+
 ### L2 - Some navigation docs are stale enough to mislead implementation
 
 **Evidence:** GDD_10 still says "All other registers remain OPEN" in a block
@@ -393,6 +397,10 @@ instead of the later register/atlas state.
 **Recommendation:** leave it untouched for now per this review's scope. During
 the later unified GDD pass, explicitly retire or supersede stale navigation text
 instead of trying to patch every older statement in place.
+
+**Walk note 2026-06-28:** added
+`AGENT/Docs/plans/unified_gdd_pass_followups_2026-06-28.md` as a discoverable
+planning note for the unified GDD/v1 pass.
 
 ## Scheduled / Not Implemented Inventory
 

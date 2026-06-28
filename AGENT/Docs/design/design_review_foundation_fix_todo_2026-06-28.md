@@ -36,7 +36,7 @@ them.
 | Finding | Reason |
 |---|---|
 | L1 | STW contradiction is a targeted doc/test-note cleanup, not a shared foundation. |
-| L2 | Stale navigation text belongs in the later unified GDD/roadmap cleanup pass. |
+| L2 | Stale navigation text belongs in the later unified GDD/roadmap cleanup pass; tracked in [`../plans/unified_gdd_pass_followups_2026-06-28.md`](../plans/unified_gdd_pass_followups_2026-06-28.md). |
 
 ## Scheduling Notes
 
