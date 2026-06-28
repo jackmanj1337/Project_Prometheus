@@ -32,6 +32,12 @@ Highest-risk items to settle before major feature builds:
 5. Introduce one resource/cost transaction resolver before shops, styles,
    battalions, training, redirects, and arena land.
 
+**Foundation follow-up management:** shared-foundation findings from this review
+are tracked in
+`AGENT/Docs/design/design_review_foundation_fix_todo_2026-06-28.md`. That index
+links each foundation problem to its managing design/contract doc for later
+scheduling. L1 and L2 remain cleanup/navigation findings, not foundation docs.
+
 ## Findings
 
 ### H1 - The F1 save-schema lock is too broad to remain a prose reserve list

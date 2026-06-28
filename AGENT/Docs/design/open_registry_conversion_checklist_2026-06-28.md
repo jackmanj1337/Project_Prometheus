@@ -13,6 +13,10 @@ Last verified: 2026-06-28
 the recommended registry-shaped fix. It is a review checklist for future
 implementation, not a rewrite of existing plans.
 
+**Managed by:** [`design_review_foundation_fix_todo_2026-06-28.md`](design_review_foundation_fix_todo_2026-06-28.md).
+
+**Master contract:** [`registry_manifest_contract_2026-06-28.md`](registry_manifest_contract_2026-06-28.md).
+
 **Rule.** When a vocabulary can grow with authored content, adding content must
 mean adding data to a registry or composition, not editing a GDScript enum,
 constant list, or `match` branch. Engine releases may add new primitive

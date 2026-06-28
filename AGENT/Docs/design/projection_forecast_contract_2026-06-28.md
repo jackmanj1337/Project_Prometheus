@@ -13,6 +13,8 @@ Last verified: 2026-06-28
 "what would happen if this resolved?" without changing live game state. It is a
 shared contract, not a new feature vocabulary.
 
+**Managed by:** [`design_review_foundation_fix_todo_2026-06-28.md`](design_review_foundation_fix_todo_2026-06-28.md).
+
 **Non-goal.** This does not merge combat preview, condition preview, AI
 valuation, perception masking, and effect forecasts into one UI or one data
 format. Each consumer may present different information. They must share the
