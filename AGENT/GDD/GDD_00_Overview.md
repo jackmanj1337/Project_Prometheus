@@ -54,7 +54,7 @@ migration. Full table + the GDD section template: the governance doc.
 
 | Index | Purpose |
 |---|---|
-| `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, roadmap owner, code/data, tests, decisions, and reference source. |
+| `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, Track IDs, code/data, tests, decisions, and reference source. |
 | `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Exact work rows, Track IDs, dependencies, source docs, tests, and next actions. |
 | `AGENT/Docs/decisions/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
 | `GDD_Adoption_Matrix.md` | Which Awakening corpus rules are adopted (target / with variation / rejected / deferred) and the GDD owner of each variation. |

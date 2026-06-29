@@ -1,47 +1,66 @@
 # GDD Feature Index
 
-**Date opened:** 2026-06-13
-**Status:** Seed (DOC-005). Navigation only — **not** a second specification. Rule
-detail lives in the owning numbered-GDD chapter; this table only points to owners.
-**Linked from:** `GDD_00_Overview.md` (link added in Stage 2).
+**Status:** Active - feature lookup.
+**Last verified:** 2026-06-29
 
-## How to read this
+This is a navigation table, not a second specification. Rule detail lives in
+the owning numbered GDD chapter. Work rows, dependencies, source docs, tests,
+and next actions live in the Project Control Plane:
+[`AGENT/Docs/plans/project_control_plane_2026-06-29.md`](../Docs/plans/project_control_plane_2026-06-29.md).
 
-One row per feature group (plan §5). `Status` is a coarse pointer; the authoritative
-status lives in the owning chapter's section (governance status vocabulary). Cells
-marked **TBD (S3)** are populated as each chapter is rewritten in Stage 3 (code/data,
-test, and manual anchors are verified at that point, not asserted here). Section
-headings (`§ …`) are finalized during the Stage 3 rewrites.
+## How To Read This
 
-## Feature groups
+Use this index when you know the feature name but need the owning design
+chapter, Track ID, source evidence, or likely code/test surface.
 
-| Feature | Status | Rule owner | Arch. owner | Roadmap owner | Code/data anchors | Automated coverage | Manual coverage | Decisions | Reference source |
-|---|---|---|---|---|---|---|---|---|---|
-| Combat calculations & RNG | Split (project Implemented / corpus + two-RN Target) | GDD_02 §Combat Resolution & Hit RNG | GDD_01 §Determinism, Snapshot & Online Contract | GDD_10 §M9a (RNG engine); Phase 3 Backlog (RngService + T1–T7 fixture) | `CombatResolver.gd` (target `RngService.gd`) | `test_combat.gd` (target RNG T1–T7) | TBD (S3) | SET-001, RULE-001, RNG-1…4, pipeline order, OPEN-3/6/7 | `awakening_lookup_tables.md`, `awakening_core_systems.md` |
-| Weapon triangle & rank bonuses | Split (flat project Implemented / rank-scaled Target) | GDD_04 §Weapon Families & Triangle Membership, §S-Rank Weapon Bonus | GDD_02 §Combat Modifier Pipeline Order | GDD_10 §M11 (Content Expansion — rank-scaled table + S-rank engine) | `DataManager.gd` (`get_weapon_triangle_result`), `GameConstants.WEAPON_TRIANGLE` | `test_data_manager.gd` | TBD (S3) | SET-003, SET-005, RULE-002, RULE-013 | `awakening_weapons_physical.md`, `awakening_weapons_magic.md`, `awakening_lookup_tables.md` |
-| WEXP & equipment legality | Split (project thresholds Implemented / corpus Target) | GDD_04 §Weapon Proficiency (WEXP) | GDD_01 §Item/weapon data | GDD_10 §M11 (Content Expansion — corpus WEXP thresholds) | `DataManager.gd`, `GameConstants` (`WEXP_RANK_THRESHOLDS`) | `test_data_manager.gd`, `test_unit_stats.gd` | TBD (S3) | SET-004, RULE-003, RULE-004 | `awakening_lookup_tables.md` |
-| EXP, leveling, promotion & reclass | Split (project Implemented / corpus Target) | GDD_03 §Promotion, §Reclass, §Progression Counters (EXP/leveling math → GDD_02) | GDD_01 §UnitData/ClassData | AWR-2 (TBD slot) | `Unit.gd` (`promote`/`reclass`/`level_up`) | `test_unit_stats.gd`, `test_level_up_screen.gd` | `map_950_promotion_validation` | SET-006, SET-007, RULE-005, RULE-006, D-E, RULE-008 | `awakening_core_systems.md`, `awakening_archetypes.md` |
-| Classes & class skills | Split (project Implemented / corpus Target, AWR-2) | GDD_03 §Starter Roster & Classes / GDD_05 §Skill Acquisition | GDD_01 §ClassData | AWR-2 | `data/classes/`, `GameState.load_default_roster` | `test_unit_stats.gd` | TBD (S3) | SET-009, RULE-007, RULE-008, RULE-009, OPEN-9, OPEN-10 | `awakening_classes_base.md`, `awakening_classes_promoted.md`, `awakening_classes_special.md` |
-| Pair Up & support systems | Split (pass 1 Implemented / rest Deferred) | GDD_05 §Pair Up & Support System | GDD_01 §PairUpRegistry | GDD_10 §M13 (Awakening Supplement — DS/DG/adjacent support); Phase 3 Backlog (value migration RULE-012) | `PairUpRegistry.gd`, `PairUpBonusResolver.gd`, `PairUpBonusTable.gd` | `test_pair_up_registry.gd`, `test_pair_up_bonus_resolver.gd`, `test_pair_up_combat_context.gd` | TBD (S3) | SET-010, RULE-012, OPEN-1 | `awakening_core_systems.md` |
-| Terrain & movement categories | Split (Implemented + Target) | GDD_06 §Terrain & Movement | GDD_02 §Terrain | AWR-8 | `GridManager.gd` (`get_move_cost`, `TERRAIN_*_BONUS`) | `test_grid_manager.gd` | TBD (S3) | SET-008, RULE-010, RULE-011 | `awakening_lookup_tables.md` |
-| Objectives & map authoring | Implemented (pending verify) | GDD_06 §Objective System | — | GDD_10 §M16 (COMPLETE) | `TurnManager.gd` (`check_victory_conditions`), `ObjectiveCondition.gd`, `MapData.gd` | `test_turn_manager.gd` | `map_authoring_guide.md` | — | — |
-| Faction scheduling & controllers | Implemented | GDD_02 §Turn Structure (+ §Win/Loss Evaluation) | GDD_01 §TurnManager | — | `TurnManager.gd`, `HotseatController.gd` | `test_turn_manager.gd` | TBD (S3) | OPEN-6 | — |
-| Status conditions | Target design (M8) | GDD_02 §Status Conditions | — | GDD_10 §M8 (Status Conditions) | `ConditionManager.gd` (stub) | None yet (stub; M8) | TBD (S3) | OPEN-2 | `awakening_skills.md` (interactions) |
-| Skills | Mixed | GDD_05 §Skill System Overview, §Skill Acquisition | GDD_01 §SkillHandler | GDD_10 §M9a (engine), §M9b (content/data) | `SkillHandler.gd`, `SkillData.gd`, `data/skills/` | `test_skill_item_handler.gd` | TBD (S3) | OPEN-2, RULE-009 | `awakening_skills.md` |
-| Inventory, trade, convoy, shops & economy | Mixed (shops/recruit Planned) | GDD_04 §Items & Economy, §Inventory Management | GDD_01 §Inventory | GDD_10 Phase 3 Backlog (forging, shop, convoy; D-D prerequisite edge) | `ItemHandler.gd`, `ItemData.gd`, `GameState.gd` (`max_inventory`) | `test_skill_item_handler.gd`, `test_action_menu.gd`; trade/convoy/shops Planned | TBD (S3) | D-D, OPEN-5 | `awakening_items.md` |
-| Save, retry, suspend & rewind | Split (Retry Implemented / rest Target) | GDD_01 §Determinism, Snapshot & Online Contract | GDD_01 §Determinism, Snapshot & Online Contract | GDD_10 Phase 3 Backlog (suspend save; mid-battle serialization) | `GameState.gd` snapshot; impl. plan `AGENT/Docs/design/rng_determinism_design_2026-06-11.md` §8 | `test_snapshot_coverage.gd`, `test_game_state.gd` (Retry); suspend/rewind Target | TBD (S3) | RNG-2, RNG-3, OPEN-13 | — |
-| UI, input, settings & accessibility | Mixed | GDD_07 §Input System, §Accessibility & Input Parity | GDD_01 §SettingsManager | GDD_10 §Near-Term (Display & Accessibility Controls); Phase 3 Backlog (key rebind, gamepad) | `MapCursor.gd`, `SettingsManager.gd`, `scripts/ui/` | `test_settings_manager.gd`, `test_settings_screen.gd`, `test_hud.gd` | TBD (S3) | OPEN-11 (GDD_00) | — |
-| AI behavior | Split (basic profiles Implemented / scoring + parity Target) | GDD_08 §Implemented Profiles, §AI Determinism & Parity | GDD_01 §EnemyAI / §Determinism | GDD_10 §M14 stages 4–5 (COMPLETE); Phase 3 Backlog (scoring, additional profiles) | `EnemyAI.gd`, `GridManager.gd` (`dijkstra_costs`) | `test_enemy_ai.gd` | TBD (S3) | RNG-4, OPEN-4 | `awakening_core_systems.md` |
-| Campaign flow & recruitment | Planned | GDD_10 §Campaign / CampaignRules | GDD_01 §CampaignRules Contract | GDD_10 §Release Gates (D-B, D-D prerequisite edges); Phase 3 Backlog (deployment screen, CampaignRules stub — Stage 4.3) | `GameState.gd` (rule fields), `campaign_rules.md` | None yet (Planned) | TBD (S3) | D-B, D-D, OPEN-4 | — |
-| Online play | Deferred (post-1.0, M15B) | GDD_01 §Online seam | GDD_01 §Snapshot/result payload | M15B | RNG contract §9 | None (Deferred, post-1.0) | TBD (S3) | RNG-4 | `online_play_design_decisions.md` |
+`Code / tests` lists shipped anchors when known. Entries marked `target:` are
+planned or future anchors and are not asserted as existing files.
 
-## Backlog features (no owning chapter section yet)
+## Feature Groups
 
-| Feature | Status | Tracking | Decisions |
-|---|---|---|---|
-| Broken-weapon degraded mode | Backlog (optional rule) | GDD_10 §Release Gates (OPEN-5); Phase 3 Backlog §Systems | OPEN-5 |
-| `CampaignRules.exp_gaining_factions` | Stub created (Stage 4.3) | GDD_10 §Release Gates / CampaignRules Stub; GDD_01 §CampaignRules Contract | OPEN-4 |
+| Feature | Status summary | GDD owner | Track ID(s) | Decision / build source | Code / tests |
+|---|---|---|---|---|---|
+| Project tracking and GDD rewrite | Pending validation | `GDD_00`, `GDD_10` | `B0-GDD-COVERAGE`, `B0-CONTROL-PLANE`, `B0-DOC-ROLE-MANIFEST`, `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING`, `B0-VOCAB-NAMING` | `project_control_plane_2026-06-29.md`, `doc_role_manifest_2026-06-29.md`, `project_vocabulary_manifest_2026-06-29.md` | `AGENT/Docs/check_docs.py` |
+| Combat calculations and hit RNG | Split: project behavior Implemented; deterministic service Target design | `GDD_02`, `GDD_01` | `B1-PKGA`, `B2-PROJECTION` | `rng_determinism_design_2026-06-11.md`, `package_a_rngservice_open_questions_2026-06-21.md` | `CombatResolver.gd`; `test_combat.gd`; target: `RngService.gd` |
+| Save, retry, suspend, rewind | Split: Retry Implemented; campaign save/suspend Target design | `GDD_01`, `GDD_07` | `B1-F1`, `B1-SAVECODEC`, `B1-CST`, `B1-SUSPEND`, `B1-CAMPAIGN-RULES-SAVE` | `campaign_save_technical_plan_2026-06-21.md`, `f1_save_schema_lock_design_2026-06-28.md` | `GameState.gd`; `test_snapshot_coverage.gd`, `test_game_state.gd`; target: SaveCodec |
+| CampaignRules profiles and tunables | Planned | `GDD_01`, `GDD_02` | `B3-CAMPAIGN-RULES`, `B4-DIFFICULTY-DEATHMODE` | `difficulty_death_mode_open_questions_2026-06-27.md`, `campaign_rules.md` | `CampaignRules.gd`; target: profile registry tests |
+| Registry manifest and open registries | Target design | `GDD_01` | `B2-REGISTRY`, `B3-STAT-REGISTRY`, `B3-RESOURCE-POOLS`, `B5-AI-COMPOSITION` | `authoring_extensibility_open_questions_2026-06-26.md`, `registry_manifest_contract_2026-06-28.md` | target: registry validation tests |
+| Action/effect primitive runner | Target design | `GDD_01`, `GDD_06` | `B2-ACTION-EFFECT` | `action_effect_primitive_contract_2026-06-28.md` | target: invalid-action/no-mutation tests |
+| Resource ledger and cost resolver | Target design | `GDD_01`, `GDD_04`, `GDD_07` | `B2-RESOURCE-LEDGER`, `B3-RESOURCE-POOLS` | `resource_ledger_cost_resolver_contract_2026-06-28.md`, `training_halls_open_questions_2026-06-27.md` | target: transaction/refund tests |
+| Occupancy, displacement, rescue/carry | Target design | `GDD_01`, `GDD_02`, `GDD_06` | `B2-OCCUPANCY`, `B6-RESCUE-CARRY` | `occupancy_transaction_contract_2026-06-28.md`, `displacement_carry_open_questions_2026-06-25.md` | `GridManager.gd`, `Unit.gd`; target: occupancy rollback tests |
+| Death lifecycle and death inventory disposition | Target design | `GDD_01`, `GDD_02`, `GDD_04` | `B2-DEATH-LIFECYCLE`, `B4-DIFFICULTY-DEATHMODE` | `death_lifecycle_contract_2026-06-28.md`, `death_inventory_disposition_open_questions_2026-06-27.md` | `Unit.gd`, `CombatResolver.gd`; target: death funnel tests |
+| Typed campaign variables and predicates | Target design | `GDD_01`, `GDD_06`, `GDD_08` | `B3-TCV`, `B3-REQ`, `B3-CALENDAR-LITE` | `typed_campaign_variable_store_open_questions_2026-06-27.md`, `requirement_predicate_system_open_questions_2026-06-25.md` | target: type validation and predicate truth-table tests |
+| Map events / triggers | Target design | `GDD_06` | `B3-MET` | `map_events_triggers_open_questions_2026-06-21.md` | `MapData.gd`; target: trigger/action tests |
+| Prep hub / option panels | Target design | `GDD_07` | `B3-PHB` | `prep_hub_open_questions_2026-06-23.md` | target: panel routing/input tests |
+| Text indirection and dialogue presentation | Planned / Target design | `GDD_07`, `GDD_06` | `B3-TEXT`, `B4-DIALOGUE-V1` | `dialogue_conversation_system_open_questions_2026-06-25.md` | target: dialogue command/choice tests |
+| Weapon triangle, ranks, WEXP, equipment legality | Split: base project behavior Implemented; composition build Target design | `GDD_04`, `GDD_02` | `B3-CAMPAIGN-RULES`, `B4-IEQ`, `B4-PXP`, `B5-SOURCE-STYLE` | `items_equipment_model_open_questions_2026-06-23.md`, `proficiency_xp_framework_open_questions_2026-06-23.md` | `DataManager.gd`, `GameConstants.gd`; `test_data_manager.gd`, `test_unit_stats.gd` |
+| EXP, leveling, promotion, reclass | Split: core Implemented; expanded progression Planned | `GDD_03`, `GDD_02` | `B4-PXP`, `B4-PROMOTION-UI`, `CONTENT-V1` | `proficiency_xp_framework_open_questions_2026-06-23.md`, `planned_unimplemented_feature_triage_2026-06-28.md` | `Unit.gd`; `test_unit_stats.gd`, `test_level_up_screen.gd` |
+| Classes and class skills | Split: starter content Implemented; v1/full content Planned | `GDD_03`, `GDD_05` | `CONTENT-V1`, `CONTENT-POSTV1`, `B5-SKILLS-EFFECTS`, `B5-LOADOUT-CAPS` | `skill_model_open_questions_2026-06-23.md`, `planned_unimplemented_feature_triage_2026-06-28.md` | `data/classes/`, `data/skills/`; `test_unit_stats.gd` |
+| Pair Up and support systems | Split: Pair Up pass 1 Implemented; relationship/support minimum Target design | `GDD_05`, `GDD_03` | `B6-RELATIONSHIP-MIN`, `B8-AWAKENING` | `relationship_system_open_questions_2026-06-24.md` | `PairUpRegistry.gd`, `PairUpBonusResolver.gd`, `PairUpBonusTable.gd`; `test_pair_up_registry.gd`, `test_pair_up_bonus_resolver.gd`, `test_pair_up_combat_context.gd` |
+| Terrain and movement categories | Split: base terrain Implemented; movement extensions Target design | `GDD_06`, `GDD_02` | `B2-OCCUPANCY`, `B5-SECONDARY-MOVEMENT`, `B6-RESCUE-CARRY`, `B8-HEX` | `secondary_movement_open_questions_2026-06-24.md`, `grid_topology_hex_open_questions_2026-06-27.md` | `GridManager.gd`; `test_grid_manager.gd` |
+| Objectives and map authoring | Implemented with validation follow-up | `GDD_06` | `B3-REQ`, `B3-MET`, `VAL-OBJECTIVE-MAPS` | `map_events_triggers_open_questions_2026-06-21.md`, `typed_campaign_variable_store_open_questions_2026-06-27.md` | `TurnManager.gd`, `ObjectiveCondition.gd`, `MapData.gd`; `test_turn_manager.gd`, `map_authoring_guide.md` |
+| Faction scheduling and hotseat controllers | Implemented with validation follow-up | `GDD_02`, `GDD_07`, `GDD_01` | `VAL-HOTSEAT-A`, `B8-REMOTE-PLAY` | `online_play_design_decisions.md`, `manual_test_playbook.md` | `TurnManager.gd`, `HotseatController.gd`; `test_turn_manager.gd` |
+| Status conditions and duration lifecycle | Target design | `GDD_02`, `GDD_05` | `B5-CONDITIONS`, `B5-DURATION-LIFECYCLE` | `GDD_10_Roadmap.md`, `project_control_plane_2026-06-29.md` | `ConditionManager.gd`; target: condition expiry tests |
+| Skills, grants, loadout caps, action grants | Mixed | `GDD_05` | `B5-SKILLS-EFFECTS`, `B5-LOADOUT-CAPS`, `B5-ACTION-GRANT`, `B5-SECONDARY-MOVEMENT` | `skill_model_open_questions_2026-06-23.md`, `loadout_cap_open_questions_2026-06-27.md`, `action_grant_open_questions_2026-06-25.md` | `SkillHandler.gd`, `SkillData.gd`; `test_skill_item_handler.gd` |
+| Source + Style, combat arts, utility staves | Target design | `GDD_02`, `GDD_04`, `GDD_05` | `B5-SOURCE-STYLE`, `B5-UTILITY-STAVES` | `source_style_combat_model_2026-06-24.md`, `source_style_player_and_authoring_2026-06-24.md` | target: combat action/forecast tests |
+| Inventory, convoy, shops, economy | Mixed | `GDD_04`, `GDD_07` | `B4-IEQ`, `B4-CONVOY`, `B4-SHOP-ECONOMY`, `B7-BWN`, `B7-FORGING` | `items_equipment_model_open_questions_2026-06-23.md`, `convoy_inventory_open_questions_2026-06-23.md`, `shop_economy_open_questions_2026-06-23.md`, `broken_weapon_mode_open_questions_2026-06-21.md` | `ItemHandler.gd`, `ItemData.gd`, `GameState.gd`; `test_skill_item_handler.gd`, `test_action_menu.gd` |
+| Map objects, doors/chests, villages, destructibles, fog | Target design | `GDD_06`, `GDD_07` | `B4-MAP-OBJECTS`, `B4-DCH`, `B4-VILLAGE`, `B6-DTR`, `B6-FOW`, `B7-STATIONARY-WEAPONS` | `map_object_component_contract_2026-06-28.md`, `doors_chests_open_questions_2026-06-21.md`, `village_events_open_questions_2026-06-25.md`, `destructible_terrain_open_questions_2026-06-21.md`, `fog_of_war_los_open_questions_2026-06-21.md` | `MapData.gd`, `GridManager.gd`; target: object/fog tests |
+| Campaign loop, deployment, recruitment, difficulty/death mode | Planned / Target design | `GDD_01`, `GDD_03`, `GDD_06`, `GDD_07` | `B4-CAMPAIGN-LOOP`, `B4-PREP-DEPLOYMENT`, `B4-RECRUIT-BASIC`, `B4-DIFFICULTY-DEATHMODE` | `campaign_save_player_facing_firming_2026-06-21.md`, `recruit_capture_open_questions_2026-06-24.md`, `difficulty_death_mode_open_questions_2026-06-27.md` | `CampaignRules.gd`; target: campaign smoke tests |
+| AI behavior and valuation | Split: simple profiles Implemented; composition/valuation Target design | `GDD_08` | `B5-AI-COMPOSITION`, `B5-AI-MIN-SCORER`, `B7-AI-ADVANCED-VALUATION`, `B8-PERCEPTION`, `B8-ML-EVAL`, `VAL-M14-LEFTOVERS` | `ai_profiles_open_questions_2026-06-21.md`, `ai_first_build_design_2026-06-22.md`, `ai_valuation_engagement_open_questions_2026-06-27.md`, `perception_masking_open_questions_2026-06-27.md` | `EnemyAI.gd`, `GridManager.gd`; `test_enemy_ai.gd` |
+| UI, input, settings, inspection, tactical UX | Mixed | `GDD_07` | `B6-INPUT`, `B6-MRD`, `VAL-V023-DISPLAY`, `VAL-V021-12`, `UI-INSPECTION`, `UI-CAMERA-SETTINGS`, `UI-TACTICAL-UX` | `input_mode_resolver_implementation_plan_2026-06-21.md`, `gamepad_layer_implementation_plan_2026-06-20.md`, `key_rebind_ui_implementation_plan_2026-06-21.md`, `map_readability_open_questions_2026-06-21.md` | `MapCursor.gd`, `SettingsManager.gd`, `scripts/ui/`; `test_settings_manager.gd`, `test_settings_screen.gd`, `test_hud.gd` |
+| Platform, web debug, release gates | Mixed | `GDD_00`, `GDD_07` | `B6-WEB-DEBUG`, `REL-V023-MERGE`, `REL-1P0-SCOPE`, `REL-REN`, `REL-LEG`, `REL-PACKAGING` | `debug_web_playtest_plan_2026-06-20.md`, `public_identity_rename_open_questions_2026-06-21.md`, `legal_licensing_open_questions_2026-06-21.md` | `export_presets.cfg`; `test_release_metadata.gd`; release checklist target |
+| Campaign sharing/export/import and public authoring | Planned / Deferred split | `GDD_01`, `GDD_07` | `B6-CAMPAIGN-SHARING`, `B8-PUBLIC-BUILDER`, `B8-CONTENT-RESYNC` | `campaign_content_overlay_open_questions_2026-06-23.md`, `designer_authoring_contract_2026-06-28.md`, `content_pack_compatibility_resync_contract_2026-06-28.md` | target: import/export validation tests |
+| Bonus EXP, training halls, arena, PvP | Target design / optional split | `GDD_02`, `GDD_03`, `GDD_07` | `B6-PREP-PROGRESSION`, `B7-ARENA`, `B7-PVP` | `bonus_exp_arena_open_questions_2026-06-27.md`, `training_halls_open_questions_2026-06-27.md`, `pvp_mode_open_questions_2026-06-27.md` | target: prep-service and scenario flow tests |
+| Battalions, stationary weapons, advanced optional tactical systems | Deferred / optional | `GDD_02`, `GDD_05`, `GDD_06`, `GDD_08` | `B7-BATTALION`, `B7-STATIONARY-WEAPONS` | `battalion_attached_augment_open_questions_2026-06-25.md`, `stationary_weapons_open_questions_2026-06-21.md` | target: attachment/resource/siege tests |
+| Side activities and public scripting VM | Deferred | `GDD_07` | `B8-ACTIVITIES` | `minigame_scripting_runtime_research_2026-06-28.md`, `minigame_activity_type_initial_specs_2026-06-28.md` | target: activity prototype validation |
+| Laguz and Awakening supplement | Deferred | `GDD_03`, `GDD_04`, `GDD_05`, other chapters as needed | `B8-LAGUZ`, `B8-AWAKENING`, `CONTENT-POSTV1` | `gdd10_legacy_phase2_roadmap_2026-06-29.md`, content corpus docs | target: future content/system validation |
+| Art, audio, content, release cleanup | Planned / Deferred split | `GDD_07`, content-owning chapters | `CONTENT-V1`, `CONTENT-POSTV1`, `POLISH-ART`, `POLISH-AUDIO`, `CLEAN-DEBUG-AIDS`, `CLEAN-F9-HOTSEAT`, `CLEAN-DEBUG-HUD` | `project_control_plane_2026-06-29.md`, `GDD_10_Roadmap.md` | target: content load tests, visual/audio review, grep cleanup checks |
 
-> Anchors and exact section headings are filled in during Stage 3 chapter rewrites,
-> when code/test/manual coverage is verified per-chapter. Until then this index is a
-> routing table, not a coverage claim.
+## Wiring Follow-ups
+
+| Follow-up | Track ID |
+|---|---|
+| Add exact section anchors after `GDD_01`-`GDD_08` are rewritten. | `B0-FEATURE-INDEX-WIRING` |
+| Add exact F1 manifest row references after F1 is locked. | `B1-F1` |
+| Replace broad `target:` anchors with exact files/tests as implementation plans land. | Relevant feature row |
+| Resolve objective-map evidence conflict. | `VAL-OBJECTIVE-MAPS` |

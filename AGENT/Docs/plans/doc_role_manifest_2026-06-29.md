@@ -62,7 +62,7 @@ This is a target structure, not an enforcement check yet.
 | `AGENT/GDD/GDD_07_UI_UX.md` | `design_contract` | Active design contract | Owns UI/UX, input, PHB panels, dialogue presentation, validation surfaces. |
 | `AGENT/GDD/GDD_08_Enemy_AI.md` | `design_contract` | Active design contract | Owns AI composition, profile registry, valuation, perception deferrals. |
 | `AGENT/GDD/GDD_10_Roadmap.md` | `build_guide` | Active build guide | Rewrite around dependency bands and Track ID links. |
-| `AGENT/GDD/GDD_Feature_Index.md` | `feature_index` | Active feature lookup | Add Track IDs during wiring pass. |
+| `AGENT/GDD/GDD_Feature_Index.md` | `feature_index` | Active feature lookup | Track IDs are wired; exact section anchors follow GDD chapter rewrites. |
 | `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | `control_plane` | Active tracker | Row schema and Track IDs live here. |
 | `AGENT/Docs/plans/gdd10_active_work_coverage_matrix_2026-06-29.md` | `implementation_plan` | Active transition input | Keep until `GDD_10` rewrite and control-plane seeding are verified. |
 | `AGENT/Docs/plans/planned_unimplemented_feature_triage_2026-06-28.md` | `implementation_plan` | Active planning input | Scheduling source for dependency bands. |
