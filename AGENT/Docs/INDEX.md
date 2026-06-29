@@ -136,6 +136,7 @@
 - [`plans/living_project_tracking_system_plan_2026-06-29.md`](plans/living_project_tracking_system_plan_2026-06-29.md) — Living Project Tracking System Plan — *Active - planning input*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
+- [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/stat_breakdown_character_sheet_plan_2026-06-14.md`](plans/stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
 
