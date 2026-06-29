@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - review checklist
-Last verified: 2026-06-28
+Last verified: 2026-06-29
 ---
 
 # Open Registry Conversion Checklist
@@ -50,6 +50,7 @@ Primary sources:
 | F16 predicates | REQ defines a typed predicate vocabulary and arithmetic terms. This is already the model to copy. | Implement F16 as `PredicateRegistry`, `TermRegistry`, and `OperatorRegistry`. Built-in predicates are primitive handlers; author-defined requirements are named data compositions. Validate arity, subjects, types, and complexity budget. |
 | Objective custody / key-item predicates | DTH adds key-item custody objectives and TCV routes them through predicate/flag objective conditions. | Implement custody as a query primitive exposed to F16/ObjectiveCondition registry. Do not add a new objective-specific evaluator for each custody state. |
 | Stat names | STM identifies hardcoded stat lists (`STAT_KEYS`, `_GROWTH_STATS`, UI label dicts, `_VALID_STATS`). | Build the F14 stat registry: `legacy_stats + registry.stats`. Growth, caps, level-up, UI labels, validation, and formula terms iterate the registry. Add a guard against new direct base-stat field reads where registry access is required. |
+| Movement types and vulnerability groups | Movement types are enforced by `GameConstants.VALID_MOVEMENT_TYPES` and `check_docs.py`; vulnerability groups and weapon effectiveness still use fixed lists and tag switches. | Build separate movement-type and vulnerability-group registries. Classes declare one movement type and any vulnerability groups as data. Weapons declare `effective_against` vulnerability groups. Existing ids and multipliers ship as developer presets. |
 | Resource types and cost scopes | SHP and THL move from `party_gold` toward resource-keyed costs, roster wallets, and per-unit pools. | Add a `ResourceRegistry` and `CostResolver`. Resources declare id, scope, display, default, bounds, persistence, and spend/refill policy. Costs reference `{resource_id, scope}` and commit through one transaction API. |
 | Proficiency tracks and rank profiles | PXP replaces fixed WEXP tracks/ranks with track ids and named rank profiles, but current code validates against hardcoded WEXP tracks. | Build a `ProficiencyTrackRegistry` plus F4 rank-profile registry. Legacy weapon tracks are seeded data. Items, skills, styles, and battalions declare tracks through data. |
 | Skill / item / source effect ids | `SkillData.effect_id`, item `effect_id`, style grants, and on-crossing events will keep growing. | Add a shared effect-handler registry by domain: skill effects, item effects, action effects. Validation checks ids resolve to a handler with a declared schema. Grant/revoke, secondary movement, action-grant, and stat gains should be handlers, not ad hoc switches. |

@@ -140,6 +140,8 @@ Closed enums plus engine `match` branches need an explicit engine-only exception
 | Panels/services | PHB panel registry | `B3-PHB` |
 | Effects/actions | Action/effect registry | `B2-ACTION-EFFECT` |
 | Stat names | Stat registry | `B3-STAT-REGISTRY` |
+| Movement types | Movement type registry | `B3-MOVEMENT-VULN-REGISTRY` |
+| Vulnerability groups | Vulnerability group registry | `B3-MOVEMENT-VULN-REGISTRY` |
 | Resource types | Resource registry | `B3-RESOURCE-POOLS`, `B2-RESOURCE-LEDGER` |
 | Difficulty profiles | Difficulty/rule profile registry | `B3-CAMPAIGN-RULES`, `B4-DIFFICULTY-DEATHMODE` |
 | Predicates/terms | Requirement/predicate term registry | `B3-REQ` |

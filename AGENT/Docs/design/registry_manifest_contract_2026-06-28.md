@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - architecture contract
-Last verified: 2026-06-28
+Last verified: 2026-06-29
 ---
 
 # Registry Manifest Contract
@@ -50,6 +50,7 @@ The H4 checklist names the known candidates:
 - condition data and condition effect primitives,
 - F16 predicates, terms, and operators,
 - stat names,
+- movement types and vulnerability groups,
 - resource types and cost scopes,
 - proficiency tracks and rank profiles,
 - skill/item/source effect handlers,

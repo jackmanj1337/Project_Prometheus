@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - review checklist
-Last verified: 2026-06-28
+Last verified: 2026-06-29
 ---
 
 # Design Review Foundation Fix Todo
@@ -30,6 +30,8 @@ them.
 | M5 | Difficulty profile manifest | [`difficulty_profile_manifest_contract_2026-06-28.md`](difficulty_profile_manifest_contract_2026-06-28.md) | Model difficulty as a profile that references content variants, TCV presets, AI overlays, fog/perception rules, economy rates, death-mode offerings, and summary text. |
 | M6 | Content pack compatibility and resync | [`content_pack_compatibility_resync_contract_2026-06-28.md`](content_pack_compatibility_resync_contract_2026-06-28.md) | Define provenance, compatibility reporting, and future resync policy for self-contained campaign packs before public authoring. |
 | M7 | Death lifecycle funnel and enforcement | [`death_lifecycle_contract_2026-06-28.md`](death_lifecycle_contract_2026-06-28.md) | Make `handle_death(ctx)` and `DeathDisposition` the only death/disposition path once multiple death causes exist. |
+| U1 | Movement and vulnerability registries | [`../plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md`](../plans/movement_vulnerability_registry_implementation_plan_2026-06-29.md) | Replace movement-type and vulnerability-group closed lists with registry data; ship existing ids as developer presets. |
+| U2 | Stat registry implementation | [`../plans/stat_registry_implementation_plan_2026-06-29.md`](../plans/stat_registry_implementation_plan_2026-06-29.md) | Replace hardcoded stat enumerations with registry iteration and require stat readers to return 0 for missing runtime ids. |
 
 ## Excluded Findings
 
