@@ -25,7 +25,7 @@ Checks:
  17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
  18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
  19. Archive marks — archive/ docs carry a marker; Superseded targets resolve (DSR-4)
- 20. Control plane — tracker rows use the ratified schema and valid Track IDs
+ 20. Control plane — tracker rows use the ratified schema, prefixes, and valid Track IDs
 """
 
 import re
@@ -254,6 +254,10 @@ _CONTROL_PLANE_STATUSES = {
 _CONTROL_PLANE_BANDS = {str(i) for i in range(9)} | {
     "Validation", "Release gate", "Cleanup", "Content", "Polish", "UI",
 }
+_CONTROL_PLANE_TRACK_ID_PREFIXES = (
+    "B0-", "B1-", "B2-", "B3-", "B4-", "B5-", "B6-", "B7-", "B8-",
+    "VAL-", "REL-", "CLEAN-", "CONTENT-", "POLISH-", "UI-",
+)
 _TRACK_ID_RE = re.compile(r"`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`")
 _TRACK_ID_CELL_RE = re.compile(r"^`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`$")
 _MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
@@ -366,6 +370,9 @@ def check_control_plane_schema() -> None:
                       f"(first at line {track_ids[track_id]})")
             else:
                 track_ids[track_id] = line_no
+            if not track_id.startswith(_CONTROL_PLANE_TRACK_ID_PREFIXES):
+                _fail("control-plane", _CONTROL_PLANE, line_no,
+                      f"Track ID {track_id!r} does not use an allowed prefix")
 
         if cells[1] not in _CONTROL_PLANE_BANDS:
             _fail("control-plane", _CONTROL_PLANE, line_no,

@@ -12,8 +12,10 @@ unified GDD rewrite.
 **Purpose.** Define the preferred terms, Track ID prefixes, dependency-band
 names, retired aliases, and naming rules for active planning docs.
 
-This draft supports the future retired-vocabulary scan. It does not add
-`check_docs.py` enforcement yet.
+Track ID prefixes and band/queue values are enforced by
+[`check_docs.py`](../check_docs.py) through the Project Control Plane checks.
+The retired-vocabulary scan remains future work until the numbered GDD chapter
+rewrites remove or quarantine old milestone language.
 
 ## Status Vocabulary
 
@@ -54,8 +56,8 @@ prohibited status words named in `documentation_governance_2026-06-13.md`.
 | `POLISH-` | Polish queue | Use for art/audio polish. |
 | `UI-` | UI queue outside a dependency band | Use only for UI backlog that is not clearly a Band 6 input/accessibility row. |
 
-Do not introduce new Track ID prefixes until the Project Control Plane schema is
-updated and the enforcement check knows the prefix.
+Do not introduce new Track ID prefixes until this manifest and the Project
+Control Plane enforcement check both know the prefix.
 
 ## Dependency Band Names
 
@@ -143,11 +145,11 @@ Closed enums plus engine `match` branches need an explicit engine-only exception
 | Predicates/terms | Requirement/predicate term registry | `B3-REQ` |
 | Activities | Activity registry | `B8-ACTIVITIES` |
 
-## Future Enforcement Hooks
+## Enforcement Status
 
-| Check | Reads | Rule |
-|---|---|---|
-| Track ID pattern | Project Control Plane, this manifest | Track IDs must use an allowed prefix and uppercase slug. |
-| Band vocabulary | Project Control Plane, this manifest | Band/queue values must match the allowed names. |
-| Retired vocabulary scan | This manifest, active docs | Retired terms fail outside Historical/Superseded sections or quoted historical notes. |
-| Registry discipline | Project Control Plane, this manifest | Author-facing vocabulary work needs a registry impact note or exception. |
+| Check | State | Reads | Rule |
+|---|---|---|---|
+| Track ID pattern and prefix | Enforced | Project Control Plane; prefix list mirrors this manifest | Track IDs must use an allowed prefix and uppercase slug. |
+| Band vocabulary | Enforced | Project Control Plane, this manifest | Band/queue values must match the allowed names. |
+| Retired vocabulary scan | Backlog | This manifest, active docs | Retired terms fail outside Historical/Superseded sections or quoted historical notes. |
+| Registry discipline | Backlog | Project Control Plane, this manifest | Author-facing vocabulary work needs a registry impact note or exception. |

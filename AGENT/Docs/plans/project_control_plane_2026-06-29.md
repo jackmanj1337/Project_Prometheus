@@ -13,8 +13,8 @@ Last verified: 2026-06-29
 rewrite should link to. `GDD_10` becomes the readable build guide; this document
 owns the audit rows.
 
-The row schema, Track ID uniqueness, Track ID reachability, allowed statuses,
-allowed bands, and local markdown links are enforced by
+The row schema, Track ID uniqueness, Track ID reachability, allowed Track ID
+prefixes, allowed statuses, allowed bands, and local markdown links are enforced by
 [`check_docs.py`](../check_docs.py).
 
 ## Row Schema
@@ -45,7 +45,7 @@ Every tracker row uses these columns:
 | `B0-DOC-ROLE-MANIFEST` | 0 | Target design | Document role manifest | Define allowed document roles and role-separation rules for active docs. | `B0-CONTROL-PLANE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | no_save_guard | Future active-doc ownership check | Use during `GDD_10` and feature-index rewrite. |
 | `B0-GDD10-REWRITE` | 0 | Pending validation | `GDD_10` build-guide rewrite | Replace stale milestone prose with band narrative, next-work queue, and links to this tracker. | `B0-CONTROL-PLANE` | `GDD_10` | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) | no_save_guard | `check_docs.py`; link reachability after enforcement | Review the build guide, then wire `GDD_Feature_Index.md`. |
 | `B0-FEATURE-INDEX-WIRING` | 0 | Pending validation | Feature-index wiring | Add tracker IDs, GDD owners, decisions, plans, tests, and code/data anchors to `GDD_Feature_Index.md`. | `B0-CONTROL-PLANE` | `GDD_Feature_Index` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`GDD_Feature_Index.md`](../../GDD/GDD_Feature_Index.md) | no_save_guard | Future Track ID reachability check | Review broad rows and add exact section anchors after GDD chapter rewrites. |
-| `B0-VOCAB-NAMING` | 0 | Target design | Vocabulary and naming normalization | Make active docs use one vocabulary, organizational pattern, and naming convention. | `B0-CONTROL-PLANE` | All GDD chapters | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | no_save_guard | Future retired-vocabulary scan | Use the manifest during `GDD_10` and GDD chapter rewrites. |
+| `B0-VOCAB-NAMING` | 0 | Pending validation | Vocabulary and naming normalization | Make active docs use one vocabulary, organizational pattern, and naming convention. | `B0-CONTROL-PLANE` | All GDD chapters | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | no_save_guard | `check_docs.py` prefix/band checks; future retired-vocabulary scan | Normalize retired terms during GDD chapter rewrites. |
 
 ## Band 1 - Determinism And Save Gate
 
@@ -210,6 +210,7 @@ Every tracker row uses these columns:
 | Check | State | Depends on | Fails when |
 |---|---|---|---|
 | Control-plane schema | Enforced | `B0-CONTROL-PLANE` | A row misses required columns, uses an invalid status/band, or malformed Track ID. |
+| Track ID prefix vocabulary | Enforced | `B0-VOCAB-NAMING` | A control-plane Track ID uses a prefix not listed in the vocabulary manifest. |
 | Track ID uniqueness | Enforced | `B0-CONTROL-PLANE` | Two rows use the same Track ID. |
 | Track ID reachability | Enforced | `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING` | `GDD_10` or `GDD_Feature_Index` references a missing Track ID. |
 | Source path validity | Partly enforced | Stable path-field convention | A control-plane markdown link points to a missing file. |
