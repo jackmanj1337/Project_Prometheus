@@ -13,8 +13,9 @@ Last verified: 2026-06-29
 rewrite should link to. `GDD_10` becomes the readable build guide; this document
 owns the audit rows.
 
-This draft is not enforced yet. After the table shape survives review, ratify the
-schema and add `check_docs.py` enforcement in the same change.
+The row schema, Track ID uniqueness, Track ID reachability, allowed statuses,
+allowed bands, and local markdown links are enforced by
+[`check_docs.py`](../check_docs.py).
 
 ## Row Schema
 
@@ -40,7 +41,7 @@ Every tracker row uses these columns:
 | Track ID | Band | Status | Work item | Scope | Blocks / depends on | GDD owner | Decision source | Build source | Save / registry impact | Test / validation | Next action |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `B0-GDD-COVERAGE` | 0 | Implemented | `GDD_10` coverage audit | Map live `GDD_10` work into bands and transition buckets. | None | `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md) | no_save_guard | `check_docs.py` | Use this matrix to seed and revise this control plane. |
-| `B0-CONTROL-PLANE` | 0 | Planned | Control-plane schema ratification | Ratify row schema, ID patterns, bands, and required path fields. | `B0-GDD-COVERAGE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | this document | no_save_guard | Add `check_docs.py` checks after ratification. | Review this draft and decide schema changes. |
+| `B0-CONTROL-PLANE` | 0 | Implemented | Control-plane schema ratification | Ratify row schema, ID patterns, bands, and required path fields. | `B0-GDD-COVERAGE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | this document | no_save_guard | `check_docs.py` control-plane schema and Track ID reachability checks | Use the enforced schema when editing tracker rows. |
 | `B0-DOC-ROLE-MANIFEST` | 0 | Target design | Document role manifest | Define allowed document roles and role-separation rules for active docs. | `B0-CONTROL-PLANE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | no_save_guard | Future active-doc ownership check | Use during `GDD_10` and feature-index rewrite. |
 | `B0-GDD10-REWRITE` | 0 | Pending validation | `GDD_10` build-guide rewrite | Replace stale milestone prose with band narrative, next-work queue, and links to this tracker. | `B0-CONTROL-PLANE` | `GDD_10` | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) | no_save_guard | `check_docs.py`; link reachability after enforcement | Review the build guide, then wire `GDD_Feature_Index.md`. |
 | `B0-FEATURE-INDEX-WIRING` | 0 | Pending validation | Feature-index wiring | Add tracker IDs, GDD owners, decisions, plans, tests, and code/data anchors to `GDD_Feature_Index.md`. | `B0-CONTROL-PLANE` | `GDD_Feature_Index` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`GDD_Feature_Index.md`](../../GDD/GDD_Feature_Index.md) | no_save_guard | Future Track ID reachability check | Review broad rows and add exact section anchors after GDD chapter rewrites. |
@@ -204,23 +205,24 @@ Every tracker row uses these columns:
 | `UI-CAMERA-SETTINGS` | UI | Planned | Camera settings | Edge-pan buffer, responsiveness, and related camera settings. | None | `GDD_07` | `GDD_10` UI/UX backlog | needs small plan | Save: settings | Settings tests and manual check | Queue after higher-priority input/display work. |
 | `UI-TACTICAL-UX` | UI | Planned | Tactical UX improvements | Attack-by-target, richer forecast, combat prediction layout, minimap toggle. | `B2-PROJECTION` for richer forecast | `GDD_07`, `GDD_02` | `GDD_10` UI/UX backlog | needs plan | Save: settings/watch state maybe | UI/manual tests | Split projection-dependent items from simple UI items. |
 
-## Enforcement Backlog
+## Enforcement Status
 
-| Check | Depends on | Fails when |
-|---|---|---|
-| Control-plane schema | `B0-CONTROL-PLANE` ratified | A row misses required columns, uses an invalid status/band, or malformed Track ID. |
-| Track ID uniqueness | `B0-CONTROL-PLANE` ratified | Two rows use the same Track ID. |
-| Track ID reachability | `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING` | `GDD_10` or `GDD_Feature_Index` references a missing Track ID. |
-| Source path validity | Stable path-field convention | A path-like source points to a missing file. |
-| Active doc ownership | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | Active plans/design docs have no tracker row, feature-index row, or archive/supersession marker. |
-| Save-state discipline | F1 manifest shape ratified | A save-affecting row lacks an F1 reference or explicit `no_save_guard`. |
-| Registry discipline | Registry family vocabulary ratified | Author-facing vocabulary work lacks registry impact or a closed-list exception. |
-| Retired vocabulary scan | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | Retired terms appear in active prose outside Historical/Superseded sections. |
+| Check | State | Depends on | Fails when |
+|---|---|---|---|
+| Control-plane schema | Enforced | `B0-CONTROL-PLANE` | A row misses required columns, uses an invalid status/band, or malformed Track ID. |
+| Track ID uniqueness | Enforced | `B0-CONTROL-PLANE` | Two rows use the same Track ID. |
+| Track ID reachability | Enforced | `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING` | `GDD_10` or `GDD_Feature_Index` references a missing Track ID. |
+| Source path validity | Partly enforced | Stable path-field convention | A control-plane markdown link points to a missing file. |
+| Active doc ownership | Backlog | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | Active plans/design docs have no tracker row, feature-index row, or archive/supersession marker. |
+| Save-state discipline | Backlog | F1 manifest shape ratified | A save-affecting row lacks an F1 reference or explicit `no_save_guard`. |
+| Registry discipline | Backlog | Registry family vocabulary ratified | Author-facing vocabulary work lacks registry impact or a closed-list exception. |
+| Retired vocabulary scan | Backlog | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | Retired terms appear in active prose outside Historical/Superseded sections. |
 
 ## Immediate Next Actions
 
-1. Review this draft for row granularity and Track ID naming.
-2. Rewrite `GDD_10_Roadmap.md` as the human build guide, linking to Track IDs
-   instead of carrying all detail.
-3. Update `GDD_Feature_Index.md` with Track IDs during or immediately after the
-   `GDD_10` rewrite.
+1. Review the `GDD_10_Roadmap.md`, `GDD_Feature_Index.md`, and control-plane
+   rows for row granularity and missing anchors.
+2. Use `project_vocabulary_manifest_2026-06-29.md` during the numbered GDD
+   chapter rewrites so status, source, and implementation terms stay aligned.
+3. Start the first implementation build only after the relevant Band 1 save/RNG
+   rows are accepted or explicitly split.

@@ -73,7 +73,7 @@ foundations or add unmanifested save state.
 |---:|---|---|---|
 | 1 | `B0-GDD10-REWRITE` | Build-guide rewrite | This file now performs that role; review it for missing active rows before marking the row done. |
 | 2 | `B0-FEATURE-INDEX-WIRING` | Feature-index wiring | The feature index now has Track IDs; review broad rows and add exact section anchors after GDD chapter rewrites. |
-| 3 | `B0-CONTROL-PLANE` | Control-plane schema ratification | After this guide and feature index are reviewed, ratify the table schema and add checks. |
+| 3 | `B0-CONTROL-PLANE` | Control-plane schema ratification | Schema, Track ID uniqueness, and Track ID reachability are enforced by `check_docs.py`; keep row granularity under review. |
 | 4 | `B1-PKGA` | Package A / `RngService` | First implementation foundation; Steps 1-2 gate campaign/save work. |
 | 5 | `B1-F1` | F1 save schema lock | Required before features add persistent state. |
 | 6 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |

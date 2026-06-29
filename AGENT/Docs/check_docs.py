@@ -25,6 +25,7 @@ Checks:
  17. Duration vox — GDD_07 documents every VALID_DURATION_TYPES value (V021-09)
  18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
  19. Archive marks — archive/ docs carry a marker; Superseded targets resolve (DSR-4)
+ 20. Control plane — tracker rows use the ratified schema and valid Track IDs
 """
 
 import re
@@ -236,6 +237,164 @@ def check_feature_index_targets() -> None:
                 if not result.stdout.strip():
                     _fail("feature-index", feature_index, i,
                           f"listed file not found in repo: {name!r}")
+
+
+# ── check 20: project control-plane schema ─────────────────────────────────
+
+_CONTROL_PLANE = ROOT / "AGENT/Docs/plans/project_control_plane_2026-06-29.md"
+_CONTROL_PLANE_COLUMNS = [
+    "Track ID", "Band", "Status", "Work item", "Scope", "Blocks / depends on",
+    "GDD owner", "Decision source", "Build source", "Save / registry impact",
+    "Test / validation", "Next action",
+]
+_CONTROL_PLANE_STATUSES = {
+    "Planned", "Target design", "Pending validation", "Deferred",
+    "Open decision", "Known issue", "Historical", "Superseded", "Implemented",
+}
+_CONTROL_PLANE_BANDS = {str(i) for i in range(9)} | {
+    "Validation", "Release gate", "Cleanup", "Content", "Polish", "UI",
+}
+_TRACK_ID_RE = re.compile(r"`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`")
+_TRACK_ID_CELL_RE = re.compile(r"^`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`$")
+_MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+
+
+def _split_markdown_table_row(line: str) -> list[str]:
+    """Split a simple markdown table row while allowing escaped pipe characters."""
+    stripped = line.strip()
+    if not stripped.startswith("|"):
+        return []
+    if stripped.endswith("|"):
+        stripped = stripped[:-1]
+    stripped = stripped[1:]
+
+    cells: list[str] = []
+    current: list[str] = []
+    escaped = False
+    for char in stripped:
+        if char == "|" and not escaped:
+            cells.append("".join(current).strip())
+            current = []
+            escaped = False
+            continue
+        current.append(char)
+        escaped = char == "\\" and not escaped
+    cells.append("".join(current).strip())
+    return cells
+
+
+def _iter_local_markdown_links(line: str) -> list[str]:
+    links: list[str] = []
+    for match in _MARKDOWN_LINK_RE.finditer(line):
+        target = match.group(1).split("#", 1)[0].strip()
+        if not target or "://" in target or target.startswith("mailto:"):
+            continue
+        links.append(target)
+    return links
+
+
+def _iter_track_id_refs(path: Path) -> list[tuple[int, str]]:
+    refs: list[tuple[int, str]] = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return refs
+    for line_no, line in enumerate(lines, 1):
+        for match in _TRACK_ID_RE.finditer(line):
+            refs.append((line_no, match.group(1)))
+    return refs
+
+
+def check_control_plane_schema() -> None:
+    """Validate the ratified project tracker row schema and Track ID references."""
+    if not _CONTROL_PLANE.exists():
+        _fail("control-plane", _CONTROL_PLANE, 1, "project control plane not found")
+        return
+
+    lines = _CONTROL_PLANE.read_text(encoding="utf-8").splitlines()
+    in_tracker_table = False
+    table_count = 0
+    row_count = 0
+    track_ids: dict[str, int] = {}
+    local_refs: list[tuple[int, str]] = []
+
+    for line_no, line in enumerate(lines, 1):
+        for target in _iter_local_markdown_links(line):
+            if not (_CONTROL_PLANE.parent / target).resolve().exists():
+                _fail("control-plane", _CONTROL_PLANE, line_no,
+                      f"local markdown link does not resolve: {target!r}")
+
+        if line.startswith("| Track ID | Band | Status |"):
+            table_count += 1
+            in_tracker_table = True
+            columns = _split_markdown_table_row(line)
+            if columns != _CONTROL_PLANE_COLUMNS:
+                _fail("control-plane", _CONTROL_PLANE, line_no,
+                      "tracker table header does not match the ratified schema")
+            continue
+
+        if not in_tracker_table:
+            continue
+        if line.startswith("|---"):
+            continue
+        if not line.startswith("|"):
+            in_tracker_table = False
+            continue
+
+        cells = _split_markdown_table_row(line)
+        if len(cells) != len(_CONTROL_PLANE_COLUMNS):
+            _fail("control-plane", _CONTROL_PLANE, line_no,
+                  f"tracker row has {len(cells)} columns; expected "
+                  f"{len(_CONTROL_PLANE_COLUMNS)}")
+            continue
+
+        row_count += 1
+        for column, cell in zip(_CONTROL_PLANE_COLUMNS, cells):
+            if not cell:
+                _fail("control-plane", _CONTROL_PLANE, line_no,
+                      f"empty required field: {column}")
+
+        match = _TRACK_ID_CELL_RE.match(cells[0])
+        if not match:
+            _fail("control-plane", _CONTROL_PLANE, line_no,
+                  "Track ID cell must be one backticked uppercase hyphenated id")
+        else:
+            track_id = match.group(1)
+            if track_id in track_ids:
+                _fail("control-plane", _CONTROL_PLANE, line_no,
+                      f"duplicate Track ID {track_id!r} "
+                      f"(first at line {track_ids[track_id]})")
+            else:
+                track_ids[track_id] = line_no
+
+        if cells[1] not in _CONTROL_PLANE_BANDS:
+            _fail("control-plane", _CONTROL_PLANE, line_no,
+                  f"invalid Band {cells[1]!r}")
+        if cells[2] not in _CONTROL_PLANE_STATUSES:
+            _fail("control-plane", _CONTROL_PLANE, line_no,
+                  f"invalid Status {cells[2]!r}")
+
+        for match in _TRACK_ID_RE.finditer(line):
+            local_refs.append((line_no, match.group(1)))
+
+    if table_count == 0:
+        _fail("control-plane", _CONTROL_PLANE, 1, "no tracker tables found")
+    if row_count == 0:
+        _fail("control-plane", _CONTROL_PLANE, 1, "no tracker rows found")
+
+    for line_no, track_id in local_refs:
+        if track_id not in track_ids:
+            _fail("control-plane", _CONTROL_PLANE, line_no,
+                  f"unknown Track ID reference {track_id!r}")
+
+    for ref_doc in (
+        ROOT / "AGENT/GDD/GDD_10_Roadmap.md",
+        ROOT / "AGENT/GDD/GDD_Feature_Index.md",
+    ):
+        for line_no, track_id in _iter_track_id_refs(ref_doc):
+            if track_id not in track_ids:
+                _fail("control-plane", ref_doc, line_no,
+                      f"unknown Track ID reference {track_id!r}")
 
 
 # ── check 5: duplicate roadmap milestone headings ───────────────────────────
@@ -653,6 +812,7 @@ def main() -> None:
         ("[17] Duration-type vocabulary",  check_duration_type_vocabulary),
         ("[18] Generated manifests",       check_generated_manifests),
         ("[19] Archive markers",           check_archive_markers),
+        ("[20] Project control plane",     check_control_plane_schema),
     ]
     for label, fn in steps:
         print(f"  {label}...")
