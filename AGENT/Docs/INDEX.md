@@ -126,6 +126,7 @@
 ## Implementation plans
 
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
+- [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
 - [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Active - planning input*
 - [`plans/f1_schema_source_inventory_2026-06-28.md`](plans/f1_schema_source_inventory_2026-06-28.md) — F1 Schema Source Inventory — *Active - planning input*

@@ -408,8 +408,8 @@ A unit may Move then take **one action**, or act in place. Shipped action flow:
 
 ## Experience Points (EXP)
 
-Status: **Implemented**
-Last verified: 2026-06-13
+Status: **Split** — class EXP behavior **Implemented**; authored award profiles **Target design**
+Last verified: 2026-06-29
 
 ### Summary
 Symmetric combat/staff EXP; 100 EXP = one level, overflow carries.
@@ -422,6 +422,8 @@ Symmetric combat/staff EXP; 100 EXP = one level, overflow carries.
 
 The table is the shipped EXP-curve preset. Expanded campaign rules should load EXP curves
 or formula profiles from data rather than baking new balance tables into the resolver.
+Class EXP storage/lifecycle remains separate from PXP; the shared direction is authored
+award/profile data, not merged progression storage.
 
 | Lvl diff (acting − opp) | Kill | Damage only |
 |---|---|---|
@@ -437,6 +439,13 @@ or formula profiles from data rather than baking new balance tables into the res
 - **Staff/action EXP (Implemented):** heal staff currently awards a flat preset amount
   (`GameConstants.STAFF_HEAL_EXP`). Target `[AGT §6]`/`B4-PXP` moves non-combat EXP to
   authored action data (`exp_award`) with campaign defaults, not hardcoded staff logic.
+- **Class EXP / PXP boundary (Target design):** `UnitData.exp`, `level`,
+  `internal_level`, and `Unit.add_exp()` remain the class-level progression path.
+  PXP owns proficiency tracks (`weapon`, `item`, `source`, `action`). Training,
+  Bonus EXP, and authored actions should call sibling benefit handlers:
+  `class_exp -> add_exp(amount)` and `proficiency_xp -> advance_proficiency(track, amount)`.
+  See
+  `AGENT/Docs/plans/class_exp_pxp_boundary_plan_2026-06-29.md`.
 
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd` (`calculate_exp`), `GameConstants`
