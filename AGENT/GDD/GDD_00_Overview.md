@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-29
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -28,8 +28,12 @@ When documents disagree, use this order:
    contract, with each section's status label distinguishing implemented from target.
 3. **Code and tests** for shipped behavior, except where they contradict a ratified
    decision (in which case the code is a tracked gap, not the rule).
-4. **`GDD_10_Roadmap.md`** for work order, milestone scope, dependencies, and status.
-5. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+4. **Project Control Plane** (`AGENT/Docs/plans/project_control_plane_2026-06-29.md`)
+   for exact work rows, Track IDs, dependencies, source docs, tests, and next
+   actions.
+5. **`GDD_10_Roadmap.md`** for the human build guide: dependency-band narrative,
+   next-work queue, release/validation summaries, and links to Track IDs.
+6. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
    reference, binding only where an adoption-matrix entry has adopted it.
 
 > This order is written from **DOC-001**. The earlier D-C direction (corpus
@@ -51,6 +55,7 @@ migration. Full table + the GDD section template: the governance doc.
 | Index | Purpose |
 |---|---|
 | `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, roadmap owner, code/data, tests, decisions, and reference source. |
+| `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Exact work rows, Track IDs, dependencies, source docs, tests, and next actions. |
 | `AGENT/Docs/decisions/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
 | `GDD_Adoption_Matrix.md` | Which Awakening corpus rules are adopted (target / with variation / rejected / deferred) and the GDD owner of each variation. |
 
@@ -67,7 +72,7 @@ migration. Full table + the GDD section template: the governance doc.
 | `GDD_06_Maps_Objectives.md` | Terrain, movement categories, objectives, authored-map contracts |
 | `GDD_07_UI_UX.md` | UI/UX behavior, input, settings, accessibility |
 | `GDD_08_Enemy_AI.md` | AI behavior, parity obligations, performance constraints |
-| `GDD_10_Roadmap.md` | Sole roadmap owner — work order, milestones, dependencies, status |
+| `GDD_10_Roadmap.md` | Build guide — dependency-band narrative, next-work queue, validation/release summaries, Track ID links |
 
 Operational guides live in `AGENT/Docs` (`environment_setup.md`, `testing_guide.md`,
 `map_authoring_guide.md`, `fe_map_sprite_importer_guide.md`) and are linked from the

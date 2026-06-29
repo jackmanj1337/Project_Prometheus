@@ -169,6 +169,7 @@
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
+- [`archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md) — GDD_10 — Phase 2 Implementation Roadmap — *Historical*
 - [`archive/plans/hotseat_test_map_plan_2026-05-21.md`](archive/plans/hotseat_test_map_plan_2026-05-21.md) — Plan — Hotseat Validation Map + Map Selector — *Historical*
 - [`archive/plans/implementation_plan_2026-05-16.md`](archive/plans/implementation_plan_2026-05-16.md) — Implementation Plan — 2026-05-16 — *Historical*
 - [`archive/plans/implementation_plan_2026-05-16d.md`](archive/plans/implementation_plan_2026-05-16d.md) — Implementation Plan — Code Review 2026-05-16 (d) Fixes — *Historical*
