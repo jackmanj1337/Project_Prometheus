@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-24
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -126,7 +126,8 @@ The authored `.tres` weapons that ship today, and the corpus weapon roster they 
 
 **Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` are the
 source of truth; the tables below are a reference snapshot. One weapon per role for the
-MVP map; expand from the corpus tables in Phase 2.
+MVP map; expand from corpus/developer preset tables in later content passes. The engine
+must read weapon numbers, ranges, costs, effect tags, and WEXP values from data.
 
 Swords — Iron Sword (E, Mt 6/Hit 85), Steel Sword (D, Mt 9/Hit 75).
 Lances — Iron Lance (E, Mt 7/Hit 80), Javelin (E, Mt 6/Hit 75, range 1–2).
@@ -175,7 +176,7 @@ Proficiency`.
 
 **Target design.**
 - **Thresholds/caps (SET-004):** corpus values E = 1, D = 31, C = 71, B = 121, A = 181,
-  S = 251, Cap = 400.
+  S = 251, Cap = 400 as the built-in corpus preset.
 - **Gain timing (RULE-004):** per **valid use** (corpus-style), with weapon-defined
   exceptions; may change in a balance pass.
 - **Migration (RULE-003):** proportional within the current rank band. There is no
@@ -211,6 +212,10 @@ At S rank in a weapon track, the wielder gains a combat bonus with that weapon t
 engine** and **retire `s_rank_mastery`** as a pseudo/equipped skill. The +10/+5/+1
 magnitude is the project variation on the corpus rank-bonus table.
 
+The project extension is a built-in rank-bonus preset. The combat engine should read the
+selected bonus profile rather than hardcoding the numbers once CampaignRules profiles
+are built.
+
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd`, `scripts/shared/StatBreakdown.gd`
 - Decisions: SET-005, RULE-002
@@ -242,6 +247,9 @@ var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
 
 **Effect tags** are strings in `WeaponData.effect_tags`. **Reference them via the
 `GameConstants.TAG_*` constants — never raw strings** — so a typo is a compile error.
+These constants are the implemented built-in ids. Target IEQ/effectiveness work should
+validate source tags and defender groups through item/component registries so new
+campaign vulnerability groups are data additions where the same primitive applies.
 
 | Tag | `GameConstants` constant | Effect |
 |---|---|---|
@@ -312,6 +320,11 @@ total modifications; per-stat increment cost 150/300/450/600/750g (max 9,000g fu
 forged). Stored in the existing `InventoryEntry.forged_mods` dictionary (reserved — no
 code reads it yet, M10); unforged weapons leave it empty.
 
+The item `effect_id` and forging cost curve are authored data targets. Built-in curves
+support the current corpus/project presets; alternate campaign economies should select
+or author cost profiles through the resource ledger/cost resolver rather than adding
+shop-specific arithmetic branches.
+
 ### Anchors
 - Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`, `data/items/`
 - Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
@@ -349,6 +362,10 @@ Battlefield map objects (not inventory items), usable by non-mounted units with 
 proficiency at any rank: Ballista, Iron Ballista, Killer Ballista, Onager (AoE). All are
 effective vs Flying and ignore user STR. Implement as interactable tiles with a weapon
 definition embedded in `MapData`.
+
+Target implementation rides `B4-MAP-OBJECTS` and the map-object component registry.
+Weapon stats, mounting requirements, ammo, and on-activate behavior are authored object
+data; the named ballista/onager set is a developer preset library.
 
 ### Anchors
 - Owner of MapData/authored-map schema: GDD_06

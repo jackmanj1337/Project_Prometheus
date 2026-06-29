@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -24,7 +24,9 @@ Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
 string `grid` defines terrain and whose remaining fields define objectives,
 factions, placements, start tiles, camera start, and rewards.
 
-Maps are self-contained — adding a new map never requires code changes.
+Maps are self-contained — adding a new map never requires code changes. A campaign
+package should carry its map data, rosters, rules/presets, object data, and raw assets
+without depending on executable code.
 
 ---
 
@@ -63,6 +65,10 @@ bonuses; bonuses apply to the defender only, during combat (GDD_02).
 migrate (RULE-010). Flying is implemented via terrain movement-cost categories (Planned),
 never a terrain-ignoring special case. Provenance: `GDD_Adoption_Matrix.md` →
 `awakening_lookup_tables.md` (Terrain Categories / Movement Types).
+
+Terrain ids, movement categories, defense/dodge values, and healing profiles are
+developer presets over authorable terrain/rule data. New terrain with existing behavior
+should be data-only; new movement primitives go through the registry/primitive path.
 
 ### Known gaps
 - **Terrain ID mapping (RULE-011, Open decision → AWR-8):** sea / wall-building variants /
@@ -160,6 +166,12 @@ plus the richer `map_resolved(winner_group, standings)` summary for the newer
 results flow.
 
 ### Authored Condition Types
+
+The following condition ids are the implemented built-in objective predicate presets.
+Target `[TCV-4]`/`B3-REQ`/`B3-MET` generalizes objective conditions into an objective
+predicate/action registry plus `end_map` actions and event-driven re-checks. A new
+objective should be authorable as data when it composes existing predicates/actions; only
+new primitive predicates require engine work.
 
 #### `rout`
 The named faction or alliance group has no living units left. With an empty
@@ -379,13 +391,15 @@ Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
-- Doors are map objects (not tiles). Implement as `Node2D` with HP and a `is_open` flag.
-- Chests are similarly `Node2D` with a `loot_item_id` String.
-- A unit adjacent to a door/chest can interact via the Action Menu.
-- Doors can be opened with a Door Key or the `pick` skill (Thief).
-- Chests can be opened with a Chest Key or the `pick` skill.
+- Doors, chests, villages, shops, breakables, and stationary weapons use the unified
+  `map_objects` model (`B4-MAP-OBJECTS`, `[DCH]`, `[SAC]`), not bespoke node classes.
+- Each object authors its component ids, state fields, interaction options, HP/lock data,
+  loot, and ordered action/effect list.
+- The Action Menu exposes `activate`; the object/component registry decides which
+  interactions are legal for the acting unit.
+- Door/chest key and `pick` behavior are requirement/action data over the same registry.
 
-Door HP values from handbook:
+Door HP values from handbook are developer preset data:
 | Type | HP |
 |---|---|
 | Wooden Door | 25 |
@@ -404,11 +418,15 @@ Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
-- Each unit has a `LoS` stat (line of sight radius in tiles)
-- A `FogOfWarManager` node tracks which tiles are currently visible to the player
-- Tiles outside LoS of all player units are hidden (black overlay)
-- Enemies in hidden tiles are not drawn; their positions are unknown
-- A `Torch` item temporarily increases a unit's LoS by 4
+- Fog is encounter/scenario data on `MapData`/campaign content, not a global terrain-grid
+  property.
+- Each unit has an LoS stat or stat-registry equivalent used by the visibility rule.
+- A `FogOfWarManager` node tracks currently visible/discovered tiles for the relevant
+  viewer.
+- Hidden enemies are presentation/AI-acquisition concerns; AI-cheats vs symmetric fog is
+  a CampaignRules/profile choice.
+- Torch/brazier vision bonuses are authored item/object/effect data, with built-in
+  presets for common radius values.
 
 Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 
@@ -439,6 +457,10 @@ The objective-map followup authors four maps against the implemented
   or `protect`. Rout is added explicitly only where a full wipe should itself
   eliminate the group.
 
+These are validation-map authoring constraints, not engine limits. The target objective
+registry supports multi-condition victory/defeat sets and author-defined compositions as
+soon as the required predicates/actions exist.
+
 ---
 
 ## Adding a New Map (Checklist)
@@ -453,6 +475,7 @@ terrain. To add a map this way:
 - [ ] Author `factions`, `turn_order`, and `activation_mode` only when the map
       needs to override the default blue/green/red/yellow behavior
 - [ ] Author `victory_conditions` / `defeat_conditions` using `ObjectiveCondition`
+      built-ins today; target objective predicate/action registry after `B3-REQ`/`B3-MET`
 - [ ] Create enemy `UnitData` `.tres` files
 - [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
 

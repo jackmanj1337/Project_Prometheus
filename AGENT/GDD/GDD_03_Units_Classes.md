@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-24
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -73,6 +73,11 @@ skill overrides), and the character sheet shows it. Effectiveness is independent
 all matching effective weapons regardless of its resolved movement type. The
 non-movement tags (`dragon`/`beast`/`laguz`) are ignored by the resolver.
 
+These tags are the implemented starter vocabulary. As the registry work lands, movement
+types, vulnerability groups, and display/grouping metadata should become data-driven
+registries so a new campaign group is not added by editing a constants list unless it
+needs a new engine primitive.
+
 ### Anchors
 - Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`, `movement_type`),
   `scripts/shared/GameConstants.gd` (`VALID_MOVEMENT_TYPES`, `movement_type_of`),
@@ -89,7 +94,7 @@ Last verified: 2026-06-13
 ### Summary
 Six authored starter units load via `GameState.load_default_roster()`. Their `.tres`
 files are the authoritative source for stats/growths/skills; the table below is a
-reference snapshot.
+reference snapshot and developer-provided preset content, not an engine requirement.
 
 ### Specs
 
@@ -160,7 +165,9 @@ The fields that drive EXP-gain scaling and reclass behavior.
 - `lifetime_levels_gained` — monotonic; reserved for analytics / future enemy
   autoscaling. **Never** used to reduce player EXP unless a campaign rule says so.
 
-Internal level follows the corpus rule `Promoted Internal Level = 20 + Displayed Level`.
+Internal level follows the corpus preset rule `Promoted Internal Level = 20 + Displayed
+Level`. Campaign progression profiles may expose alternate formulas once the
+CampaignRules/profile layer owns them.
 
 **Implemented today:** `UnitData.internal_level` carries hidden progression for
 promotion/reclass; the explicit `exp_basis_level` / `lifetime_levels_gained` split is
@@ -260,6 +267,10 @@ Promotion items use the same eligibility gate as level-up promotion (no early
 promotion). Eligibility lives in each item's `effect_params`
 (`{ "allowed_classes": [...] }` / `{ "allowed_class_groups": [...] }`). Other handbook
 promotion items remain Planned content (not live resources).
+
+Target IEQ/action-effect work should keep item eligibility and permanent stat gains as
+authored item/action data. New item families should not add one-off branches to
+`ItemHandler` when an existing action/effect primitive can express them.
 
 ### Anchors
 - Code: `scripts/items/ItemHandler.gd`, `data/items/`

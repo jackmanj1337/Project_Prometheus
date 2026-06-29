@@ -4,7 +4,7 @@
 Pair Up pass 1 are **Implemented**; corpus skill acquisition, proc-RNG sourcing, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-24
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -24,7 +24,10 @@ Last verified: 2026-06-13
 
 ### Summary
 Skills are data-defined modifiers or triggered effects attached to units; the handler is
-a lookup table keyed by `effect_id` and trigger context.
+a lookup table keyed by `effect_id` and trigger context in the implemented build.
+Target skill/effect authoring resolves `effect_id` through the shared action/effect
+registry (`B2-ACTION-EFFECT`, `B5-SKILLS-EFFECTS`) so data-composed effects do not need
+new `SkillHandler` branches.
 
 ### Specs
 - Skills are `SkillData` resources in `data/skills/`, executed by `SkillHandler.gd`.
@@ -91,6 +94,10 @@ wired end to end.
 `on_kill`, `on_combat_end`, plus the WEXP and staff helper seams.
 **Reserved (Planned):** `on_defend`, `on_move`, `on_level_up`, `player_activated` —
 until callers are implemented.
+
+The table is the built-in trigger registry for the current engine. New trigger points
+are engine primitives; new skill behavior should first try existing trigger + context
+flags + action/effect composition before adding another trigger id.
 
 ### Known gaps
 - **Trigger discipline (M9, locked 2026-05-25):** do not add a new trigger during M9
@@ -287,7 +294,9 @@ Status: **Target design / Planned** (Phase 2, M9)
 Last verified: 2026-06-13
 
 ### Summary
-The handbook skill catalogue, listed to reserve `effect_id` strings before implementation.
+The handbook skill catalogue, listed to reserve built-in `effect_id` strings before
+implementation. These reservations are planned primitives or developer presets, not a
+closed ceiling on author-created data compositions.
 
 ### Specs
 
@@ -388,8 +397,11 @@ Last verified: 2026-06-13
 1. Create `data/skills/skill_name.tres` (New Resource → SkillData).
 2. Fill all fields, including a unique `effect_id`.
 3. If `effect_id` already exists (e.g. `stat_bonus`), configure via `effect_params`.
-4. If `effect_id` is **new**, add an implementation case to `SkillHandler.gd`.
-5. No other files need changing.
+4. If the desired behavior can be expressed as a named data composition of existing
+   primitives, add that composition to the relevant registry/library.
+5. If the desired behavior needs a genuinely new primitive, treat it as an engine change:
+   add the primitive, validation, tests, and docs in the same feature slice. Do not make
+   one-off content by adding another closed `match` arm.
 
 A handler reads `effect_params` and writes into the context's `atk_mod` / `def_mod`
 channel for the relevant side, returning `true` only when it actually applied — so a

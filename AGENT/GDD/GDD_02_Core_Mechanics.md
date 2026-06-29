@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-24
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -23,7 +23,9 @@ Last verified: 2026-06-13
 A square, orthogonally-navigated tile grid; one unit per tile.
 
 ### Specs
-- Square tile grid; orthogonal movement only (no diagonals).
+- Implemented topology: square tile grid; orthogonal movement only (no diagonals).
+  Optional hex topology is parked as `B8-HEX` and must enter through a topology
+  profile/accessor seam, not scattered distance constants.
 - Authored maps tested through 42×26 tiles.
 - Each tile has a terrain type affecting movement cost, defense, and dodge.
 - One unit per tile. Allied units can be passed through during movement; enemies cannot.
@@ -66,6 +68,10 @@ at least 1).
 movement categories are an adopted target; show both tables until code/data/maps
 migrate. Flying uses terrain movement-cost categories (Planned), never a
 terrain-ignoring special case.
+
+The tables above are shipped/developer preset data. Terrain bonuses, healing profiles,
+movement categories, and topology-specific distance rules should be loaded from
+authorable terrain/rule data as the CampaignRules and map-schema work lands.
 
 ### Known gaps
 - **Throne art currently reuses Fort behavior** — terrain ID mapping (sea, wall/building
@@ -132,6 +138,10 @@ Integer stats; combat values are derived per equipped weapon, rounded down, floo
 ### Specs
 
 Base stats: HP, STR, MAG, DEF, RES, SKL, SPD, LUK, MOV, CON, LoS (LoS is Phase 2+).
+This is the implemented starter stat set. The target stat model (`B3-STAT-REGISTRY`,
+`[STM]`) moves stat names, display metadata, missing-stat behavior, and derived-value
+inputs into a stat registry so adding Charisma/Command/etc. is data work plus engine
+primitive support where needed.
 
 **Implemented (project) derived values:**
 
@@ -246,8 +256,8 @@ and, on a hit, a crit. All randomness is sourced from the deterministic `RngServ
 3. Follow-up — if one unit's Battle Speed is **≥5** higher, it makes one extra attack.
 
 All attacks are determined **before** any are resolved (follow-up and counter checks
-run at the start), so mid-combat stat changes never alter the sequence. The default
-follow-up threshold is 5; a future campaign-settings layer may override it.
+run at the start), so mid-combat stat changes never alter the sequence. The shipped
+follow-up threshold preset is 5; CampaignRules/profile data may override it.
 - **Brave weapons** (`WeaponData.strikes_per_attack = 2`): the wielder strikes twice
   per attack slot, including counter and follow-up.
 - **Vantage** (skill): the defender counters *first*, before the attacker's strike.
@@ -410,6 +420,9 @@ Symmetric combat/staff EXP; 100 EXP = one level, overflow carries.
 - Level difference = acting unit's level − opponent's; `CombatResolver.calculate_exp()`
   indexes the table with `clamp(level_diff + 6, 0, 12)`.
 
+The table is the shipped EXP-curve preset. Expanded campaign rules should load EXP curves
+or formula profiles from data rather than baking new balance tables into the resolver.
+
 | Lvl diff (acting − opp) | Kill | Damage only |
 |---|---|---|
 | 6+ lower | 59 | 20 |
@@ -419,10 +432,11 @@ Symmetric combat/staff EXP; 100 EXP = one level, overflow carries.
 | 6+ higher | 1 | 0 |
 
 - **Enemy/AI EXP gating (OPEN-4, Target):** EXP gain is faction-gated via
-  `CampaignRules.exp_gaining_factions` (default Blue + Green; Red none). Designers may
-  override. Owner of the CampaignRules contract: GDD_01 (Stage 3.5).
-- **Staff EXP (Implemented):** flat 10 EXP (`GameConstants.STAFF_HEAL_EXP`); a
-  pre/post-promotion curve is a Phase 2 refinement.
+  `CampaignRules.exp_gaining_factions`; the shipped preset is Blue + Green, Red none.
+  Owner of the CampaignRules contract: GDD_01 (Stage 3.5).
+- **Staff/action EXP (Implemented):** heal staff currently awards a flat preset amount
+  (`GameConstants.STAFF_HEAL_EXP`). Target `[AGT §6]`/`B4-PXP` moves non-combat EXP to
+  authored action data (`exp_award`) with campaign defaults, not hardcoded staff logic.
 
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd` (`calculate_exp`), `GameConstants`
@@ -551,6 +565,11 @@ Last verified: 2026-06-20
 Timed conditions stored on `UnitData`. Conditions are **not** skills.
 
 ### Specs
+
+Condition rows below are developer-provided built-in condition presets. The target
+condition/effect build treats condition ids, potency/duration params, projection, and
+application effects as registry data backed by engine primitives (`B5-CONDITIONS`,
+`B2-ACTION-EFFECT`, `B3-REQ`).
 
 | Condition | Effect | Duration |
 |---|---|---|

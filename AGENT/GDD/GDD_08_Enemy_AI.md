@@ -4,7 +4,7 @@
 are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -26,10 +26,11 @@ non-blue faction authored as `controller = "AI"`, it awaits
 `EnemyAI.run_phase(grid, turn, faction_id)`, then advances to the next faction in the
 map's authored `turn_order`.
 
-Each enemy's behaviour is selected by its `UnitData.ai_profile` string. The dispatcher
-(`_act()`) reads that string and calls the matching routine. Adding a profile
-also requires adding it to `DataManager._VALID_AI_PROFILES`, authoring data,
-and adding behavior tests.
+Implemented behavior is selected by `UnitData.ai_profile`. This is a legacy closed
+dispatch path. Target `B5-AI-COMPOSITION` replaces it with an AISpec/profile registry:
+activation, disposition, engagement scoring, target policy, grouping, and difficulty
+overlays are data-composed profiles/presets. Adding a new author profile should not
+require a new `_act()` branch unless it needs a genuinely new engine primitive.
 
 > **MVP scope vs. design.** The implemented AI is deliberately simple: it moves toward
 > the nearest hostile target and attacks the nearest target in range — there is no
@@ -55,7 +56,7 @@ func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void
         if is_instance_valid(enemy):
             await _act(enemy, grid, turn)
 
-# Dispatch on ai_profile; each routine marks the unit DONE when finished.
+# Implemented legacy dispatch on ai_profile; target AISpec/profile registry replaces this.
 func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
     match enemy.data.ai_profile:
         "passive": await _act_passive(enemy, grid, turn)
@@ -68,6 +69,10 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
 set per unit via `MapData.enemy_placements`. Hostility is resolved through
 `GameState.are_hostile()` rather than assuming every non-blue unit is an enemy to
 every other non-blue unit.
+
+Target AISpec data lives with unit/map/faction/campaign authoring and is validated
+against the registry at load. `basic`, `passive`, and `healer` become developer-provided
+presets implemented by composing the shared planner primitives.
 
 ---
 
@@ -137,10 +142,11 @@ normal speed and 0.12 seconds at fast speed. Instant movement skips that delay.
 Status: **Planned** (separate tactical-AI task); enemy generation/autolevel **Not reviewed**
 Last verified: 2026-06-13
 
-Designed but not implemented. Register them in `_act()` and
-`DataManager._VALID_AI_PROFILES`, then add resource validation and behavior tests.
+Designed but not implemented. These are profile presets or compositions over the AI
+registry, not future `_act()` switch arms. Add validation and behavior tests with each
+profile/primitive.
 
-| Profile | Behaviour |
+| Preset/profile | Behaviour |
 |---|---|
 | `"territorial"` | Attacks any hostile unit that enters its patrol radius; otherwise stays put |
 | `"guard_tile"` | Never leaves a designated tile; attacks hostile units that come in range |
@@ -149,10 +155,11 @@ Designed but not implemented. Register them in `_act()` and
 
 ### Phase 2 Scoring Model (design backlog)
 
-When the basic profile is upgraded in the separate tactical-AI task, target selection should score each
-reachable target with `preview_combat()` — prioritising guaranteed kills, then
-low-HP targets, then expected damage, penalised by the counter-damage the enemy would
-take. Until then the AI uses the nearest-target rule above.
+When the basic profile is upgraded in the separate tactical-AI task, target selection
+uses the `[VAL]` scorer: an authorable F16/REQ term tree over engine forecast
+term-sources such as expected damage, would-kill, counter-damage, exposure, and target
+value. Nearest/weakest/aggressive behaviors become shipped scoring presets. Until then
+the AI uses the nearest-target rule above.
 
 ---
 
@@ -175,8 +182,9 @@ online play stay consistent.
 - **Online parity (RNG-4, post-1.0, M15B).** In online play the **host simulates AI** and
   broadcasts results through the `resolve_combat()`/`apply_combat_result()` + snapshot
   seams; clients never run a divergent AI. Determinism guarantees are engine-local.
-- **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`
-  (default Blue + Green; Red none) — owned by GDD_02 §EXP / GDD_01 §CampaignRules Contract.
+- **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`;
+  the shipped preset is Blue + Green, Red none — owned by GDD_02 §EXP / GDD_01
+  §CampaignRules Contract.
 
 ### Anchors
 - Code: `scripts/core/EnemyAI.gd`; target `scripts/autoloads/RngService.gd`

@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -21,13 +21,34 @@ they depend on.
 ## Core Philosophy: Data-Driven Design
 
 All game content — classes, weapons, items, skills, maps — is defined in **data files**,
-not in code. Game logic reads and executes these definitions at runtime. This means:
+not in code. Game logic reads and executes these definitions at runtime. Author-facing
+vocabularies follow the `[EXT]` rule: open registries and data compositions, not closed
+engine switches, unless a section explicitly marks an engine-only exception. This means:
 
 - Adding a new class = write a new `.tres` resource file, no code changes needed
-- Adding a new skill = write a skill resource, register its effect in SkillHandler
+- Adding a new skill that composes existing primitives = write a skill resource and
+  configure its effect/requirement data
 - Adding a new map = write a map data file and a Godot TileMap scene
 
-The only time code changes are needed is when introducing a **new type of mechanic**.
+The only time code changes are needed is when introducing a **new engine primitive**.
+Those primitives ship through the engine release cadence; content authors get a
+growable named library of data compositions and developer-provided presets.
+
+### Authoring Extension Boundary
+
+Status: **Target design**
+Last verified: 2026-06-29
+
+Public campaign packages are data + assets first. The in-app authoring surface must not
+run arbitrary executable code from shared campaigns. A future sandboxed scripting layer
+is allowed only as a bounded expansion; full unrestricted power-user access is forking
+the public source.
+
+The author-facing vocabulary families that must be registry-backed are tracked in the
+Project Control Plane and vocabulary manifest: objective predicates/actions, AI
+profiles/presets, map-object components, PHB panels, action/effect primitives, stat
+names, resource types, difficulty/rule profiles, requirement predicates/terms, and
+future activities.
 
 For the step-by-step "how do I add or validate one safely?" workflows, prefer
 the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
@@ -673,12 +694,16 @@ campaign systems depend on.
 - Consolidate the rule fields above into a single `CampaignRules` object referenced by
   `GameState` and serialized into the snapshot (`campaign_rules` key — see Determinism
   contract). Code stub created in **Stage 4.3**.
-- **`exp_gaining_factions` (OPEN-4):** which factions earn EXP; **default Blue + Green**,
-  Red none. Designers may override. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
-- **Rewind-charge pool (RNG-3):** bounded reroll/probe budget; **default 3–5, 0 =
-  ironman**. Owned by the determinism contract below.
-- **Follow-up threshold override:** the default Battle-Speed follow-up threshold (5) may be
-  campaign-overridable (GDD_02 §Combat Resolution).
+- Treat shipped rule numbers and relationships as selected rule-profile values, not
+  engine constants. Developer-provided presets support the project/corpus targets;
+  campaigns may select or override exposed profiles through validated data.
+- **`exp_gaining_factions` (OPEN-4):** which factions earn EXP; the shipped preset is
+  Blue + Green, Red none. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
+- **Rewind-charge pool (RNG-3):** bounded reroll/probe budget; shipped presets include
+  ironman-style zero charges and limited-charge values. Owned by the determinism
+  contract below.
+- **Follow-up threshold override:** the Battle-Speed follow-up threshold is read from
+  CampaignRules/profile data (GDD_02 §Combat Resolution).
 - **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
 
 ### Known gaps
@@ -1146,7 +1171,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var is_promoted: bool = false
 @export var internal_level: int = 1        # hidden progression state for promotion/reclass
 
-# Stats — FULL property names. Combat code reads these via Unit.get_effective_stat().
+# Stats — implemented storage fields. Combat code reads these via
+# Unit.get_effective_stat(); target B3-STAT-REGISTRY generalizes stat names/display.
 @export var max_hp: int = 0
 @export var hp: int = 0                    # current HP
 @export var strength: int = 0
@@ -1178,12 +1204,12 @@ var mastery_skills: Array[String] = []
 # Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
 @export var inventory: Array[InventoryEntry] = []
 
-# Conditions — Array of Dictionaries; see GDD_02 status conditions
+# Conditions — Array of Dictionaries; see GDD_02. Target: condition/effect registry.
 @export var conditions: Array[Dictionary] = []
 
 @export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold
 @export var is_incapacitated: bool = false  # permadeath flag
-@export var ai_profile: String = "basic"    # EnemyAI dispatch — see GDD_08
+@export var ai_profile: String = "basic"    # Implemented profile id; target AISpec/profile registry — see GDD_08
 @export var is_default_roster: bool = false # true for the 6 generated starter units
 
 # ── Phase 2 runtime state ────────────────────────────────────────────────────
@@ -1254,7 +1280,7 @@ class_name WeaponData extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
-@export var combat_family: String = ""    # canonical equip / skill family
+@export var combat_family: String = ""    # canonical equip / skill family; target profile data validates ids
 @export var wexp_track: String = ""       # canonical trained progression track
 @export var required_rank: String = "E"
 @export var mt: int = 0                   # staves: 0 (heal = 10 + MAG, computed separately)
@@ -1270,7 +1296,7 @@ class_name WeaponData extends Resource
 @export var uses: int = 1
 @export var cost: int = 0
 @export var wexp: int = 1                 # wEXP granted per successful hit
-@export var effect_tags: Array[String] = []   # see GDD_04 for the full tag list
+@export var effect_tags: Array[String] = []   # built-in ids today; target component/effect registry
 @export var uses_mag: bool = false        # true: MAG for damage, targets RES (tomes)
 @export var triangle_family: String = ""       # hybrid override for triangle checks
 @export var strikes_per_attack: int = 1   # 2 for Brave weapons
@@ -1360,11 +1386,11 @@ class_name ItemData extends Resource
 @export var display_name: String = ""
 @export var description: String = ""
 @export var item_type: String = ""
-    # "healing" | "stat" | "promotion" | "equip" | "key" | "sellable"
+    # implemented built-in ids; target item/component registry validates this
 @export var uses: int = 1                 # -1 = infinite / equippable
 @export var cost: int = 0
 @export var effect_id: String = ""
-    # ItemHandler: "heal_flat" | "heal_full" | "promote" | "reclass" | "stat_buff"
+    # implemented ItemHandler ids; target action/effect primitive registry validates this
 @export var effect_params: Dictionary = {}
 ```
 
@@ -1377,6 +1403,7 @@ class_name SkillData extends Resource
 @export var display_name: String = ""
 @export var description: String = ""
 @export var trigger: String = ""
+    # implemented built-in trigger ids:
     # "passive" | "start_of_turn" | "on_attack" | "on_defend" | "on_hit"
     # | "on_kill" | "on_damaged" | "on_combat_start" | "on_combat_end"
     # | "on_move" | "on_level_up" | "player_activated"
@@ -1386,7 +1413,7 @@ class_name SkillData extends Resource
 @export var activation_chance_stat: String = ""
     # e.g. "skill" — empty string if the skill always triggers
 @export var activation_divisor: int = 2    # 2 = SKL/2 % activation chance
-@export var effect_id: String = ""         # dispatched by SkillHandler
+@export var effect_id: String = ""         # implemented dispatch id; target effect registry
 @export var effect_params: Dictionary = {}
 @export var is_player_activated: bool = false
 @export var max_uses_per_map: int = -1     # -1 = unlimited (vs skill_use_counters)
@@ -1407,6 +1434,7 @@ class_name MapData extends Resource
 @export var enemy_placements: Array[Dictionary] = []
     # Each entry: { "unit_data_path": String, "tile": Vector2i,
     #               "ai_profile": String, "is_boss": bool, "faction": String? }
+    # Target: ai_profile resolves through the AI spec/profile registry, not a match branch.
 @export var reward_gold: int = 0
 @export var reward_items: Array[String] = []
 # Terrain string grid — one String per row; chars per GameMap._CHAR_TO_SOURCE
@@ -1426,6 +1454,12 @@ func get_faction(faction_id: String) -> FactionData
 Objective condition tiles are authored and evaluated in zero-based map coordinates.
 HUD display text converts tile coordinates to player-facing one-based coordinates
 only at render time.
+
+> **Registry migration note.** The field lists above describe the implemented resource
+> schema. Where comments name built-in ids, those ids are the developer preset library
+> for today's engine. The target registry rows (`B2-REGISTRY`, `B2-ACTION-EFFECT`,
+> `B3-REQ`, `B3-STAT-REGISTRY`, `B3-RESOURCE-POOLS`, `B5-AI-COMPOSITION`) are the
+> migration path that prevents new content from requiring one more GDScript `match`.
 
 ---
 

@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
 are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-23
+**Last verified:** 2026-06-29
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -201,6 +201,24 @@ map through `GameMap.tscn`.
 
 This screen is onboarding-relevant because the map registry is now the canonical
 launch surface for the validation maps and objective showcase maps.
+
+Target campaign starts will select a campaign package/slice first, then a map or saved
+campaign entry as appropriate. The current map dropdown is a developer/debug surface and
+validation preset, not the final builder-facing campaign browser.
+
+### Prep, Service, And Authoring Panels
+
+Status: **Target design**
+Last verified: 2026-06-29
+
+Prep services and on-map services use the shared PHB panel model. Shops, convoy,
+training, arena, villages, object activation panels, and future side activities should
+register panel/activity ids and data schemas; the UI opens the registered panel with an
+actor/context instead of branching on a closed panel enum.
+
+The public builder/authoring GUI is deferred (`B8-PUBLIC-BUILDER`). Until then, the
+portfolio path is data-only authoring through resources/manifests plus a slice-first web
+demo. Any later public scripting UI is bounded by the sandbox ceiling from SET-013.
 
 ---
 
