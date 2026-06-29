@@ -56,7 +56,7 @@ represent a separate release gate, validation item, or dependency.
 |---|---|---|---|
 | A: v0.2.3 Display build live-verify closeout | Validation | `VAL-V023-DISPLAY` | Keep as a validation row tied to GDD_07 and `playtests/playtest_checklist_v0.2.3.md`. |
 | A: v0.2.3 branch to `main` fast-forward merge | Release gate | `REL-V023-MERGE` | Keep separate from feature work. This is process/release plumbing. |
-| A: Debug Web playtest build | Validation / Band 6-adjacent | `PLAT-WEB-DEBUG` | Triage says useful but not core game-system v1. Track as private playtest channel work. |
+| A: Debug Web playtest build | Validation / Band 6-adjacent | `B6-WEB-DEBUG` | Triage says useful but not core game-system v1. Track as private playtest channel work. |
 | A: Input-mode / gamepad architecture | Band 6 | `B6-INPUT` | Parent for input-mode resolver, gamepad layer, key rebind UI, and selector extraction. |
 | A: Package A / Determinism | Band 1 | `B1-PKGA` | Direct row. Build first; Steps 1-2 gate campaign/save. |
 | A: Campaign / save cluster | Band 1 | `B1-CST` | Direct row. Depends on Package A and F1 save-schema lock. |
@@ -122,7 +122,7 @@ represent a separate release gate, validation item, or dependency.
 | Systems: doors and chests | Band 4 | `B4-MAP-OBJECTS` | Direct campaign-loop map-object row. |
 | Systems: pre-battle deployment screen | Band 4 | `B4-PREP-DEPLOYMENT` | Campaign-loop prerequisite with convoy/trade inventory flow. |
 | Systems: cap-management UI | Band 5 | `B5-LOADOUT-CAPS` | Loadout caps for skills/styles/sources; prep-only panel. |
-| Systems: FE map sprite importer | Band 6 / tooling | `TOOL-SPRITE-IMPORTER` | Useful production tooling; not a game-system blocker. |
+| Systems: FE map sprite importer | Band 6 / tooling | `B6-SPRITE-IMPORTER` | Useful production tooling; not a game-system blocker. |
 | Maps 002-005 | Validation / content | `VAL-OBJECTIVE-MAPS` | Conflicts with M16 checklist marking them done. Resolve during GDD_10 rewrite. |
 | Polish placeholders: sprites, portraits, terrain, UI art, animations | Polish | `POLISH-ART` | Keep separate from systems schedule. |
 | Polish: class-skill More Info drilldown | Validation / UI polish | `VAL-V021-12` | Same as Open Items Register. |

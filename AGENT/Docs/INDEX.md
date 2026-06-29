@@ -127,6 +127,7 @@
 
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
+- [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Active - planning input*
 - [`plans/f1_schema_source_inventory_2026-06-28.md`](plans/f1_schema_source_inventory_2026-06-28.md) — F1 Schema Source Inventory — *Active - planning input*
 - [`plans/feature_dependency_atlas_2026-06-23.md`](plans/feature_dependency_atlas_2026-06-23.md) — Feature Dependency Atlas & Foundations — *Active — planning input for the scheduli*
 - [`plans/gamepad_layer_implementation_plan_2026-06-20.md`](plans/gamepad_layer_implementation_plan_2026-06-20.md) — Gamepad Input Layer — Implementation Plan — 2026-06-20 — *Target design*
@@ -137,6 +138,7 @@
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
+- [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Active - planning input*
 - [`plans/stat_breakdown_character_sheet_plan_2026-06-14.md`](plans/stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
 
