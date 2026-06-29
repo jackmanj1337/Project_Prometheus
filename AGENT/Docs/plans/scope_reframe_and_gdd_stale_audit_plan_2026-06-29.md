@@ -43,8 +43,10 @@ Proposed wording to land in `GDD_00_Overview.md` and a dated decision record:
   chosen to shorten the path to a showable, complete-looking project. Sandboxed
   scripting is a later expansion, not a launch requirement.
 
-**Showable target.** The portfolio showpiece is a playable **web demo build**;
-it should become a tracked Control Plane row (see §7).
+**Showable target.** The portfolio showpiece is a playable **web demo build**,
+scoped **slice-first**: a polished, complete-looking playable mission/campaign
+slice first, then a demonstration that it was authored with the builder. It
+should become a tracked Control Plane row (see §7).
 
 These three goals replace any prior framing that treated the project primarily
 as a single authored game or a commercial release. **Owner-approved
@@ -139,6 +141,13 @@ in §2:
   the initial milestone is data-only authoring to reach a complete-looking
   project sooner. (Consistent with the existing art-pipeline licensing
   direction.)
+- **Roadmap impact — framing only.** The reframe does **not** re-sequence the
+  ratified Band 1->8 build order or reopen prior v1-scope decisions. The audit
+  removes/replaces stale assumptions and updates framing; it must **not** propose
+  reordering Control Plane rows. This keeps the audit bounded.
+- **Web demo scope — slice-first, then builder.** The demo leads with a polished
+  playable slice (the game + engineering quality), then shows it was authored
+  with the builder. Two-part; scope the Control Plane row accordingly.
 
 ## 7. Definition of done for the session
 
