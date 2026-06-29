@@ -8,8 +8,8 @@
 
 This is the starting page for any contributor. It defines the documentation
 authority model, points to the feature and decision indices, and summarizes the
-release definition, baseline, known issues, and platform targets. It does **not**
-hold rule detail — each rule lives in its owning numbered chapter.
+project scope, release definition, baseline, known issues, and platform targets. It
+does **not** hold rule detail — each rule lives in its owning numbered chapter.
 
 ---
 
@@ -95,17 +95,36 @@ are **not** authority sources; retrieve via Git history once removed:
 
 ---
 
-## Vision Statement
+## Project Scope (SET-011..014)
 
-A faithful digital adaptation of the Fire Emblem tabletop RPG ruleset, designed as a
-top-down grid-based turn-based strategy game. Built to be extensible — core systems are
-implemented first, with classes, maps, items, and skills added as self-contained data
-without requiring engine changes.
+Status: **Active**
+Last verified: 2026-06-29
+
+This project is first a learning project and portfolio display piece. Decisions optimize
+for demonstrable engineering quality, readable architecture, durable tests, and a
+showable result. Commercial-release optimization is not the primary lens.
+
+The secondary product direction is a flexible tactical-RPG builder. The engine should
+let users build and share campaigns with custom assets, maps, rosters, rules, and
+presentation data. Existing handbook/corpus values and project examples are useful as
+developer-provided presets and validation content; author-facing vocabularies should
+not require engine edits when new content variants are added.
+
+Power-user access has a clear boundary. Public source is the unlimited-access path:
+someone who wants full control can fork the repo and change the engine. In-app campaign
+authoring is data-only first, and any later in-app scripting must stay sandboxed. Shared
+campaign packages must not require executable code.
+
+The portfolio showpiece is a slice-first playable web demo: first a polished,
+complete-looking playable slice, then evidence that the slice was authored with the
+builder. This framing does not resequence the Band 1-8 build order; it is tracked by
+`REL-WEB-DEMO` in the Project Control Plane.
 
 ## Design Pillars
 
 1. **Rules-faithful** — combat math, weapon triangles, and stat interactions follow the
-   adopted corpus/handbook rules as closely as reasonable for a digital game.
+   adopted corpus/handbook rules as closely as reasonable for a digital game, while
+   treating those values as authorable presets where the engine exposes a rule profile.
 2. **Extensible by design** — all content lives in data files, not hardcoded logic.
 3. **Readable systems** — the player always has the numbers: hit, crit, and expected
    damage are shown before committing to an attack.
@@ -115,7 +134,8 @@ without requiring engine changes.
 
 ## Release Definition (D-B)
 
-**1.0 = all offline, non-pipeline features + one short playable campaign.**
+**1.0 = all offline, non-pipeline features + one short playable campaign**, framed as
+the first builder-authored portfolio slice rather than a commercial-content endpoint.
 
 - Campaign **content** for the short campaign is in 1.0; full content coverage is
   post-1.0 (M11 re-scoped).
@@ -174,9 +194,9 @@ Last verified: 2026-06-13
 | Aspect | Target | Source |
 |---|---|---|
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
-| Primary platform | Desktop (Windows, Mac, Linux) | — |
+| Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
 | Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; revisit once a UI-scale setting exists | OPEN-11 |
-| Web | Playtest distribution channel | OPEN-8 |
+| Web | Playtest distribution channel and slice-first portfolio demo target | OPEN-8, SET-014 |
 | Gamepad | Supported, landing with the key-rebinding milestone | — |
 | Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
 

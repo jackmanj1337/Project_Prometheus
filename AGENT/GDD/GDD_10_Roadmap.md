@@ -92,6 +92,7 @@ lost during foundation work.
 | `REL-REN` | Release gate | Owner must choose public naming direction before first public RC. |
 | `REL-LEG` | Release gate | Owner must identify source corpus/license before public release. |
 | `REL-PACKAGING` | Release gate | Draft release packaging flow after v0.2.3 process settles. |
+| `REL-WEB-DEMO` | Release gate | Draft the slice-first playable web-demo plan after the campaign-loop foundations are accepted. |
 
 ## Cleanup Queue
 

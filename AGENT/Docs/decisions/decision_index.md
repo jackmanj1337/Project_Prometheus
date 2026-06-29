@@ -78,6 +78,10 @@ but not yet applied to the GDD). Homes:
 | SET-008 | Terrain → corpus values/categories | Applied (Target design) | REG → GDD_06 §Terrain & Movement (3.6) |
 | SET-009 | Class definitions → corpus + Light/Dark task | Applied (Target design) | REG → GDD_03 §Starter Roster (3.2) |
 | SET-010 | Pair Up/supports → corpus eventual target | Applied (Planned values) | REG → GDD_05 §Pair Up & Support System (3.4) |
+| SET-011 | Project goal → learning and portfolio first | Applied | `decision_record_2026-06-29_scope_reframe.md` → `GDD_00_Overview.md` |
+| SET-012 | Product direction → tactical-RPG builder second | Applied | `decision_record_2026-06-29_scope_reframe.md` → `GDD_00_Overview.md` |
+| SET-013 | Authoring security boundary → data-only first, sandboxed ceiling, fork for full access | Applied | `decision_record_2026-06-29_scope_reframe.md` → `GDD_00_Overview.md` |
+| SET-014 | Portfolio target → slice-first playable web demo, no band resequencing | Applied | `decision_record_2026-06-29_scope_reframe.md` → `REL-WEB-DEMO` |
 
 ## D — June ratified decisions (deprecated short aliases)
 
