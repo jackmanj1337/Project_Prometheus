@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - architecture contract
-Last verified: 2026-06-28
+Last verified: 2026-06-29
 ---
 
 # Map Object Component Contract
@@ -36,7 +36,11 @@ Initial component families:
   passability.
 - `activatable`: creates one or more tile actions with labels, predicates, and
   action/effect primitive refs.
+- `cursor_activatable`: creates object actions that can be selected directly
+  with the cursor without a unit standing on the object tile.
 - `panel_trigger`: launches PHB/shop/arena/training panels with caller context.
+- `capturable_property`: tracks property owner, capture progress, eligibility
+  predicates, reset rules, income/repair hooks, and owner-change actions.
 - `vision_source`: emits LoS/fog/perception contributions such as lit braziers.
 - `attackable_object`: exposes HP, defenses, death/break route, and object-unit
   quarantine behavior.
@@ -69,10 +73,12 @@ Breakables that are represented as Units must be marked and filtered:
 1. Adding a new object type means adding registry data/components, not editing a
    type switch.
 2. TileActions asks object components for actions.
-3. GridManager asks passability components for overlays.
-4. FOW/perception asks vision components for light/vision sources.
-5. Save/load asks state serializers for fields.
-6. State mutations route through action/effect primitives when they affect game
+3. Cursor-driven object actions use component predicates instead of requiring a
+   unit to stand on every interactive tile.
+4. GridManager asks passability components for overlays.
+5. FOW/perception asks vision components for light/vision sources.
+6. Save/load asks state serializers for fields.
+7. State mutations route through action/effect primitives when they affect game
    state.
 
 ## Test Obligations
@@ -80,6 +86,8 @@ Breakables that are represented as Units must be marked and filtered:
 Tests should cover:
 - two objects on one tile exposing distinct action labels,
 - a state change updating passability and actions,
+- a cursor-activated object exposing actions without a unit on its tile,
+- a capturable property changing owner and preserving capture state on save/load,
 - breakable object-unit excluded from roster loops,
 - stationary weapon use/ammo state save/load,
 - brazier lit state contributing to vision,

@@ -34,6 +34,7 @@ definition.
 | F1 before feature consumers | Package A, F1 manifest lock, SaveCodec, and the campaign spine precede any feature that adds persistent state. | Prevents ad-hoc fields and migration debt before the first real campaign save. |
 | Shared services before feature forks | Registries, action/effect primitives, resource ledger, occupancy, death lifecycle, and projection are build gates for their consumers. | Avoids per-feature runners and closed type-switches. |
 | Campaign sharing/exporting | Campaign packaging/import/export is in v1 and belongs on Band 6 after the campaign/save spine exists. | Sharing campaigns is part of the first stable campaign promise, but it depends on the save/content-pack load seams. |
+| Campaign status artifacts | `CampaignStatusRecord` / `CampaignCompletionRecord` is V1-lean/stretch so the short web campaign can export carry-forward data for a larger same-author sequel. | Keep carry-forward as a compact portable artifact plus data-driven import rules, not a copied save file. |
 | Activity seam | Side activities are not needed for v1. `ActivityRegistry` / `ActivityRunner` and templates move to Band 8 parked unless the owner later changes scope. | The core campaign should not pay for side-activity infrastructure or public scripting. |
 | Calendar-lite counters | Keep `total_maps_played` and `story_maps_played` as optional TCV-readable built-ins, built with F6/TCV only if v1 content uses map-count cadence. | Gives gardens/restocks/territory pressure a generic hook without adding a calendar system. |
 
@@ -143,6 +144,7 @@ Build or lock these before feature clusters start consuming their state.
 | Fog of War / LoS | M | F1 discovered units, MET, map objects | V1-lean | Useful for campaign variety; symmetric AI/fidelity can stage. |
 | Map events / triggers `[MET]` | L | F8, action/effect, F6 | V1-core | Required for villages, recruits, spawns, story branching. |
 | Village / house visit | M | F8, F2, F6, F15 optional | V1-core | Classic map content; rides interactive-trigger substrate. |
+| On-map property capture | M/L | map_objects, occupancy, resource ledger, F6/TCV, F16/REQ, MET | V1-lean | Advance-Wars-style capturable properties as map-object components: owner state, capture progress, income/repair hooks, and objective integration. Capture/income should precede production. |
 | Map readability / individual threat range | M | UI/grid, suspend for watch set | V1-lean | Strong UX; some pieces already designed. |
 | Spawn occupancy policy | S/M | occupancy transaction, MET spawn | V1-core | Needed before reinforcements; prevents double-occupancy bugs. |
 | Grid topology / hex mode | L | grid seam | Parked | Documented thought experiment; not for v1 unless scope changes. |
@@ -165,6 +167,7 @@ Build or lock these before feature clusters start consuming their state.
 | Support / relationship system | XL | F1, F13, F15, PXP hooks | V1-lean | High player value but large. Consider a minimal relationship graph before full support content. |
 | Avatar / My Unit | L | F1, F13, relationships | V1-optional | Firmed, but story/UI cascade is large. Keep only if v1 identity depends on it. |
 | Difficulty + Casual/Phoenix | M | F4, DTH, TCV | V1-core | Player-facing campaign rules and death mode should land before broad playtest. |
+| CampaignStatusRecord / NG+ carry-forward | M | F1, campaign/save, TCV, campaign sharing/import | V1-lean | Portable record scanned at campaign start; player can choose a compatible record, choose none, or manually import from another system. Same-author sequel campaigns can map facts to vars/unlocks/resources. |
 | PvP / scenario | M | standings, PHB, training, M15/online for network | V1-optional | Previously firmed, but not needed for single-player campaign v1. Hotseat-only slice could stage. |
 | Battalions / gambits | L | F11, STY, Pair-Up attach, resource ledger, F14, DTH | V1-optional | Big, attractive feature; dependency-heavy. Consider post-core or a narrow v1 slice. |
 
@@ -174,6 +177,7 @@ Build or lock these before feature clusters start consuming their state.
 |---|---:|---|---|---|
 | AI first build / composition engine | M/L | Package A, F1 `ai_awake`, registry pattern | V1-core | Needed for campaign maps beyond current simple profiles. |
 | AI profile registry conversion | M | registry manifest, AIP | V1-core | Avoid closed `_VALID_AI_PROFILES` and profile `match` growth. |
+| AI recruitment / production choices | M/L | AI composition, minimum scorer, property recruitment, resource ledger | V1-optional | Start with deterministic budget-scripted purchases from authored recruit stores; research role/economy valuation terms for smarter later choices. |
 | `siege_operator` profile | S/M | STW, AI composition | V1-optional | Required only if stationary weapons remain v1. |
 | Combat AI valuation | L | projection, F16, AIP | V1-lean | Can stage after AI first build; improves quality but not schema blocker. |
 | ML evaluation function | XL/unknown | AI valuation, deterministic model | Parked | Education/experiment; not product v1. |
@@ -189,6 +193,7 @@ Build or lock these before feature clusters start consuming their state.
 | Designer authoring contract | S/M | registries, validation | V1-optional | Useful before public builder, not before hand-authored campaign. |
 | Public campaign builder / authoring GUI | XL | authoring contract, content-pack policy | Post-v1 | Do not schedule before gameplay v1 stabilizes. |
 | Campaign self-contained packaging `[ICO]` | M | F1, DataManager load seam | V1-lean | Owner decision 2026-06-29: campaign sharing/exporting is in v1. Build after the campaign/save spine and include import/export validation in the control plane. |
+| Property recruitment / production stores | L | property capture, PHB, PvP recruitment UI, resource ledger, occupancy, recruit basics | V1-optional | Author stock can come from store, store group, or campaign default inventory, with predicates for visibility/pricing and fixed/generated/custom unit offers. |
 | Content-pack compatibility/resync | M | packaging, authoring | Post-v1 | Public-authoring support gate, not core gameplay. |
 
 ## Platform / Tooling / Release Gates
@@ -223,8 +228,8 @@ foundation or add unmanifested save state.
 | 3 | Core authoring foundations | F4 profiles, F6/TCV variables, F16 predicates/terms, F8 MET, F9 PHB panels, F13 text keys, F14 stat registry, F7 pools, calendar-lite counters only if v1 content uses them. | Story/event/economy/map content can be authored through registries and predicates, not one-off branches. |
 | 4 | Campaign loop vertical slice | F2 IEQ + F3 PXP, roster/party inventory, convoy, shop/economy, map_objects/DCH, MET spawns/events, village/house visit, dialogue v1 line/choice/command slice, recruit basics, difficulty/death mode. | One short campaign loop can move map -> victory/defeat -> prep -> next map with save/suspend coverage. |
 | 5 | Tactical v1 enrichment | F5 conditions, Source+Style, required skill effect ids/grants/loadout caps, utility staves, combat arts if selected, secondary movement, dancer/action grant, AI composition/profile registry, minimum combat AI improvement. | Core v1 maps have enough tactical variety without adding optional systems that multiply test surface. |
-| 6 | V1-lean/stretch packs | Campaign sharing/export/import, rescue/carry/capture expansion, fog/LoS, destructibles, support/relationship minimum, bonus EXP, training halls, map readability, input resolver/gamepad/key rebinding. | Each slice has its prerequisites from Bands 1-5 and can be cut or staged, except campaign sharing/exporting is a v1 owner decision. |
-| 7 | Optional after stable core | Arena, battalion/gambit narrow slice, stationary weapons, forging, PvP hotseat scenario, advanced AI valuation. | Schedule only after the campaign loop is stable enough to absorb extra permutations. |
+| 6 | V1-lean/stretch packs | Campaign sharing/export/import, CampaignStatusRecord, property capture, rescue/carry/capture expansion, fog/LoS, destructibles, support/relationship minimum, bonus EXP, training halls, map readability, input resolver/gamepad/key rebinding. | Each slice has its prerequisites from Bands 1-5 and can be cut or staged, except campaign sharing/exporting is a v1 owner decision. |
+| 7 | Optional after stable core | Arena, battalion/gambit narrow slice, stationary weapons, forging, PvP hotseat scenario, property recruitment/production, AI recruitment choices, advanced AI valuation. | Schedule only after the campaign loop is stable enough to absorb extra permutations. |
 | 8 | Post-v1 / parked | Side activities, ActivityRunner, activity templates, public campaign builder, public scripting VM, content-pack compatibility/resync, online play, perception/masking, hex topology, ML evaluation, Laguz, Awakening supplement, Apple Vision Pro/mobile reach. | Revisit after the first stable campaign release or an owner scope change. |
 
 ## Feature Priority Changes From The Initial Pass
@@ -237,7 +242,10 @@ foundation or add unmanifested save state.
 | Calendar-lite map counters | V1-optional | Band 3 only when consumed | Counters should ride TCV as generic built-ins, not become a garden/restock-specific subsystem. |
 | Designer authoring contract | V1-optional | Narrow validation/id rules in Bands 1-3; full editor contract post-v1 | Stable ids and validation help v1 content; public builder UX does not block the short campaign. |
 | Campaign sharing/exporting | Conditional V1-lean | Band 6 v1 commitment | Owner decision 2026-06-29: include campaign sharing/exporting in v1 after the campaign/save spine exists. |
+| CampaignStatusRecord / NG+ carry-forward | Untracked | Band 6 V1-lean/stretch | Owner decision 2026-06-29: short web campaign should be able to export a portable record for same-author sequel imports. |
+| Property capture / production | Untracked | Capture in Band 6; recruitment/production in Band 7 | Capture is a map-object ownership/economy feature; production adds UI, spawning, recruit inventory, and AI choices. |
 | AI valuation | V1-lean | Minimum scorer in Band 5; advanced valuation in Band 7 | Basic AI quality matters for v1 maps; deeper search/perception coupling can wait. |
+| AI recruitment choices | Untracked | Scripted first pass in Band 7, advanced terms later | Avoid blocking production on a full strategic planner, but expose tags/roles/costs so smarter choices can be added. |
 | Training/bonus EXP/arena/PvP | Mixed V1-lean/optional | Bonus EXP/training can be Band 6; arena/PvP stay Band 7 | Training/bonus EXP reuse the economy/progression spine. Arena/PvP add separate balancing and death/economy cases. |
 
 ## Consolidation Guidance
