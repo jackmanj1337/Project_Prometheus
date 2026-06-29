@@ -33,14 +33,22 @@ Proposed wording to land in `GDD_00_Overview.md` and a dated decision record:
   users build and share their own campaigns with custom assets and custom
   rules. This is the product direction the design serves once the learning/
   portfolio bar is met.
-- **Power-user access with a security boundary.** Give power users expanded
-  access wherever feasible, while holding a defined security/trust boundary
-  (what runs, what loads, what is sandboxed). "Expanded access" is bounded, not
-  unlimited.
+- **Power-user access with a security boundary.** The true full-access path is
+  the source itself: the project ships its source code for public inspection
+  (likely **MIT + Commons Clause**), so anyone who wants unlimited control forks
+  the repo and changes whatever they want. In-app/internal authoring support is
+  therefore deliberately bounded and **will not exceed a sandboxed-scripting
+  ceiling**. The *initial* target is **data-only authoring** (assets + rule
+  config the engine reads; no executable scripts run from a shared campaign),
+  chosen to shorten the path to a showable, complete-looking project. Sandboxed
+  scripting is a later expansion, not a launch requirement.
 
-These three replace any prior framing that treated the project primarily as a
-single authored game or a commercial release. **Confirm the wording with the
-owner before ratifying** (see §6 open questions).
+**Showable target.** The portfolio showpiece is a playable **web demo build**;
+it should become a tracked Control Plane row (see §7).
+
+These three goals replace any prior framing that treated the project primarily
+as a single authored game or a commercial release. **Owner-approved
+2026-06-29** — wording ratified as drafted (see §6).
 
 > Note: this reframe is consistent with two directions already on record — the
 > self-contained per-campaign content pack model (campaign content reframe
@@ -115,13 +123,22 @@ Candidates flagged from memory/recent reframes — **verify in-file before actin
 - Platform-target prose that assumes a commercial launch rather than a portfolio
   web/demo build.
 
-## 6. Open questions for the owner (confirm at session start)
+## 6. Owner decisions (resolved 2026-06-29)
 
-- Exact wording of the §1 scope statement — sign-off before ratifying.
-- Does "portfolio display" imply a specific showable target (web demo, recorded
-  walkthrough) that should become a tracked Control Plane row?
-- How strict is the power-user security boundary — name the line (e.g. data-only
-  authoring, no arbitrary code execution from shared campaigns)?
+These were answered by the owner and are ratified inputs for the decision record
+in §2:
+
+- **Scope wording — approved as drafted.** The three-part statement in §1 stands:
+  learning/portfolio primary, builder secondary, bounded power-user access.
+- **Showable target — playable web demo build.** "Portfolio display" commits to
+  a playable browser build as the showpiece; add it as a tracked Control Plane
+  row next session.
+- **Security boundary — data-only first, sandboxed-scripting ceiling, fork for
+  full access.** The public source release (likely MIT + Commons Clause) is the
+  unlimited-access path. Internal support will never exceed sandboxed scripting;
+  the initial milestone is data-only authoring to reach a complete-looking
+  project sooner. (Consistent with the existing art-pipeline licensing
+  direction.)
 
 ## 7. Definition of done for the session
 
