@@ -26,6 +26,7 @@ Checks:
  18. Gen manifest — INDEX.md/REGISTERS.md match gen_docs_index.build() (DSR-3)
  19. Archive marks — archive/ docs carry a marker; Superseded targets resolve (DSR-4)
  20. Control plane — tracker rows use the ratified schema, prefixes, and valid Track IDs
+ 21. Autoload order — project.godot satisfies the Band 1/2 cross-plan autoload contracts
 """
 
 import re
@@ -796,6 +797,72 @@ def check_archive_markers() -> None:
                       f"'Superseded by' target does not exist: {m.group(1)!r}")
 
 
+# ── check 21: cross-plan autoload ordering ───────────────────────────────────
+
+# Ordering contracts the Band 1/2 implementation plans depend on but that live
+# only in plan prose today. Each pair is (earlier, later): if BOTH autoloads are
+# registered, `earlier` must load before `later`. Pairs naming an autoload that
+# does not exist yet (RngService, RegistryManager) are skipped, so this guard is
+# inert until that autoload lands — then it locks the order the moment it does.
+# Sources: band1_determinism_save_implementation_plan_2026-06-30 (RngService
+# after EventBus, before SettingsManager/GameState) and
+# band2_shared_runtime_contracts_implementation_plan_2026-06-30 (RegistryManager
+# before DataManager).
+_AUTOLOAD_ORDER_CONSTRAINTS = [
+    ("EventBus", "RngService",
+     "RngService must mix on EventBus-era state (Band 1 plan)"),
+    ("RngService", "GameState",
+     "GameState/gameplay services draw deterministic RNG (Band 1 plan)"),
+    ("RngService", "SettingsManager",
+     "RngService loads ahead of the settings/state block (Band 1 plan)"),
+    ("RegistryManager", "DataManager",
+     "DataManager validation asks RegistryManager for known ids (Band 2 plan)"),
+]
+
+
+def _parse_autoload_order(path: Path) -> list[str] | None:
+    """Return the autoload names in project.godot order, or None if unparseable."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    names: list[str] = []
+    in_section = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped == "[autoload]":
+            in_section = True
+            continue
+        if in_section:
+            # A new `[section]` header ends the autoload block.
+            if stripped.startswith("[") and stripped.endswith("]"):
+                break
+            m = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\s*=", stripped)
+            if m:
+                names.append(m.group(1))
+    return names
+
+
+def check_autoload_order() -> None:
+    """project.godot autoload order must satisfy the Band 1/2 plan contracts.
+
+    The RngService and RegistryManager dependencies are real cross-plan couplings
+    that otherwise only exist in plan prose — if Band 1 lands and someone places a
+    new autoload wrong, Band 2 boot breaks. This guard makes the contract durable
+    (DoD#2) while staying inert for autoloads that have not been added yet.
+    """
+    project_godot = ROOT / "project.godot"
+    order = _parse_autoload_order(project_godot)
+    if order is None:
+        _fail("autoload-order", project_godot, 22, "could not parse [autoload] section")
+        return
+    index = {name: i for i, name in enumerate(order)}
+    for earlier, later, why in _AUTOLOAD_ORDER_CONSTRAINTS:
+        if earlier in index and later in index and index[earlier] > index[later]:
+            _fail("autoload-order", project_godot, 22,
+                  f"`{earlier}` must load before `{later}` — {why}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -820,6 +887,7 @@ def main() -> None:
         ("[18] Generated manifests",       check_generated_manifests),
         ("[19] Archive markers",           check_archive_markers),
         ("[20] Project control plane",     check_control_plane_schema),
+        ("[21] Autoload order",            check_autoload_order),
     ]
     for label, fn in steps:
         print(f"  {label}...")
