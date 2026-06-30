@@ -1,9 +1,9 @@
 ---
 Type: register
 Status: RESOLVED 2026-06-23
-Last verified: 2026-06-23
-Register: CNV-1..7
-Resolved-in: 2026-06-23k
+Last verified: 2026-06-30
+Register: CNV-1..8
+Resolved-in: 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI)
 ---
 
 # Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions
@@ -115,6 +115,29 @@ Branch D listed "on-map convoy access" as forward intent. The mid-battle access 
 - **Resolution:** **[RESOLVED → A]** (owner 2026-06-23k) — stack identical items by id with a count
   badge (display only); partially-used items grouped by uses. Storage stays per-entry.
 
+### [CNV-8] Convoy panel UI — required functions (owner 2026-06-30)  **[RESOLVED]**
+The convoy `[PHB]` panel must eventually provide these functions (functional
+skeleton first per the Band 4 Q3 timing decision in
+[`band4_implementation_plan_handoff_2026-06-30.md`](../plans/band4_implementation_plan_handoff_2026-06-30.md);
+visual polish + full control-scheme support follow via `B6-INPUT`):
+- **Per-character inventory view** — show a selected unit's own inventory
+  alongside the convoy.
+- **Author-defined groups** — the convoy is broken into author-defined
+  categories, **plus an extra "All" category** that lists every item, with
+  **author-defined sorting options**.
+- **Per-item row fields (author-selected)** — name, uses info, count, base value,
+  stack value.
+- **Focused-item detail pane** — a "more info" section at the top giving a full
+  breakdown of the currently-focused item.
+Builds on the `[PHB]` panel surface + the `B6-INPUT` shared selector (a
+focus-driven detail pane). Storage stays the `[CNV-1]` per-entry
+`Array[InventoryEntry]`; groups, sorting, and stacking (`[CNV-7]`) are display
+concerns over it.
+- **Resolution:** **[RESOLVED → owner 2026-06-30]** — per-unit inventory view +
+  author-defined groups + an All category with author sorting + author-selected
+  row fields (name/uses/count/base value/stack value) + a focused-item detail
+  pane; functional-first, polish and full control schemes via `B6-INPUT`.
+
 ## 4. Notes
 - **Save impact (§2):** convoy serializes as state-by-id `InventoryEntry` records (uses + forge mods)
   on the per-save party; replaces/absorbs `party_items`; covered by the Retry snapshot + integrity hash.
@@ -130,6 +153,11 @@ Branch D listed "on-map convoy access" as forward intent. The mid-battle access 
 # Resolution Log
 (newest first)
 
+- **2026-06-30 — `[CNV-8]` convoy panel UI functions added (owner).** Per-unit
+  inventory view; author-defined groups + an All category with author sorting;
+  author-selected row fields (name/uses/count/base value/stack value); a
+  focused-item detail pane. Functional-first (keyboard+mouse), polish + full
+  control schemes via `B6-INPUT`. Captured for the Band 4 convoy plan.
 - **2026-06-23k — Detail batch (CNV-2/4/7) — register COMPLETE.** [CNV-2] **author rule, default
   unlimited** (`convoy_capacity`, sentinel `-1`). [CNV-4] **A, faction-scoped** — unrestricted across the
   controlled faction's active roster; implies a per-controlled-faction store (hotseat/PvP forward note).

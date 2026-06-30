@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: RESOLVED 2026-06-25q
-Last verified: 2026-06-25
+Last verified: 2026-06-30
 Register: DLG-1..14
 Resolved-in: 2026-06-25q (DLG-1..13) / 2026-06-25r (DLG-14 branch gating via F16); all RESOLVED — rotation a build-time investigate
 ---
@@ -134,6 +134,17 @@ recruit/village** without the whole VN system. Later tiers/branching/auto/skip *
 replacing authored data** (the owner's "useful foundation, not replaced" intent). Exact v1 slice
 content is a build-time call.
 - **Resolution:** RESOLVED 2026-06-25q — staged; v1 slice subset, full end-shape reserved.
+  > **v1 slice content (build decision, owner 2026-06-30)** — the `B4-DIALOGUE-V1`
+  > slice = entry types `line`/`choice`(`goto`+`set_flag`)/`label`; commands
+  > `set_background: map|<bg>` + **positioned static portraits** (`enter` at a
+  > location / `move` / `exit` / replace) + a MET passthrough
+  > (`set_var`/`flag`, `grant_item`, recruit hook); `[REQ]`/F16 gating at
+  > **option + conversation** scope (per-option `hidden|shown_disabled`); manual
+  > pacing; **atomic playback**. **Deferred:** the `[DLG-3]` animation/effect
+  > tiers, `[DLG-9]` reflect, `[DLG-4]` auto/skip pacing, camera, scene filters,
+  > runtime `[DLG-12]` `set_layer`, `[DLG-11]` mid-conversation suspend, and the
+  > `[DLG-8]` editor. Full detail in
+  > [`band4_implementation_plan_handoff_2026-06-30.md`](../plans/band4_implementation_plan_handoff_2026-06-30.md).
 
 ### [DLG-8] Authoring — plain data now + a dedicated editor later  **[RESOLVED]**
 The format is **plain data** (Dictionary/Resource the runtime reads); **simple linear conversations are

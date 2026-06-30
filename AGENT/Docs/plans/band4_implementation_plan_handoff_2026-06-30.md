@@ -12,9 +12,12 @@ Band 2, and Band 3 plans were drafted. This doc does not write the plan; it
 scopes it, lists read-first material, fixes the bootstrap order, names the
 decisions not to reopen, and surfaces the owner questions.
 
-**Deliverable to produce next session:** the Band 4 implementation plan under
-`AGENT/Docs/plans/` (see the Owner Question on one-combined-plan vs split), plus
-updated Band 4 control-plane rows, a regenerated docs index, and a commit.
+**Deliverable to produce next session:** **separate** Band 4 implementation
+plans under `AGENT/Docs/plans/` (owner decision `D1` below — not one combined
+plan), starting with the two internal sub-foundations (`B4-IEQ`,
+`B4-MAP-OBJECTS`); plus updated Band 4 control-plane rows, a regenerated docs
+index, and commits. The owner questions in this handoff are now **resolved** —
+see "Resolved Owner Decisions" below; draft against those.
 
 ## Gating Reality
 
@@ -119,22 +122,32 @@ Two internal sub-foundations gate the rest of the band: **`B4-IEQ` (items)** and
 
 ## Recommended Plan Shape
 
+Per `D1`, write **separate** plans, not one combined plan. Distinct plans:
+`B4-IEQ`, `B4-MAP-OBJECTS`, `B4-CONVOY`, `B4-SHOP-ECONOMY`, and the thin
+`B4-CAMPAIGN-LOOP` integration plan. The smaller consumers (`B4-PXP`,
+`B4-DIALOGUE-V1`, `B4-DCH`, `B4-VILLAGE`, `B4-RECRUIT-BASIC`,
+`B4-DIFFICULTY-DEATHMODE`, `B4-PREP-DEPLOYMENT`) may be grouped pragmatically but
+follow the bootstrap order. Start with `B4-IEQ` and `B4-MAP-OBJECTS`.
+
+Each plan:
+
 - Frontmatter: `Type: plan`, `Status: Active - implementation plan`,
   `Last verified: <date>`.
 - Purpose, scope, non-goals.
 - Dependency note: planning now; implementation after Band 1-3 gates.
-- Ordered slices following the bootstrap order above. Each slice carries:
-  files-to-touch, implementation steps, tests, F1/save rows, registry
-  obligations, and DoD#2 obligations (same per-slice shape as the Band 2/3
-  plans).
+- Ordered slices, each carrying files-to-touch, implementation steps, tests,
+  F1/save rows, registry obligations, and DoD#2 obligations (same per-slice
+  shape as the Band 2/3 plans).
 - Reuse the existing `map_object_component_contract`, `class_exp_pxp_boundary`,
   and `campaign_save_player_facing_firming` docs by reference instead of
   restating them.
-- Treat `B4-IEQ` as a staged migration plan (the current item model exists), not
-  a greenfield build — call out the migration steps explicitly.
-- After adding the plan: update the Band 4 control-plane rows to point at it, run
-  `python3 AGENT/Docs/gen_docs_index.py`, `python3 AGENT/Docs/check_docs.py`, and
-  `git diff --check`, then commit the plan and generated index together.
+- Treat `B4-IEQ` as a **staged migration** plan (the current item model exists),
+  not a greenfield build — call out the migration steps explicitly.
+- `B4-CAMPAIGN-LOOP` is the **integration** plan: it references the others and
+  proves the loop end to end; it does not restate their slices.
+- After adding each plan: update its Band 4 control-plane row(s) to point at it,
+  run `python3 AGENT/Docs/gen_docs_index.py`, `python3 AGENT/Docs/check_docs.py`,
+  and `git diff --check`, then commit the plan and generated index together.
 
 ## Decisions Not To Reopen
 
@@ -160,28 +173,53 @@ Two internal sub-foundations gate the rest of the band: **`B4-IEQ` (items)** and
 - `B4-PROMOTION-UI` stays conditional/deferred unless v1 content uses 3+
   promotion paths.
 
-## Owner Questions To Surface
+## Resolved Owner Decisions (2026-06-30)
 
-Raise these while drafting; do not assume answers:
+These were the open owner questions; all are now decided. Draft against them; do
+not reopen.
 
-- **One combined Band 4 plan, or split?** Band 4 is much larger and more
-  UI-heavy than Band 3. Options: (a) one combined plan with all slices; (b) two
-  standalone sub-plans for the internal sub-foundations `B4-IEQ` and
-  `B4-MAP-OBJECTS` (like the movement/stat sub-plans), plus a thinner
-  `B4-CAMPAIGN-LOOP` integration plan that references them. Recommendation: (b),
-  because IEQ is a staged migration and map-objects has its own design contract,
-  so each reads better as a focused plan.
-- **Minimum playable loop for `B4-CAMPAIGN-LOOP` v1.** What is the smallest set
-  of consumers the first playable loop must include? E.g. is shop/convoy
-  required for the first loop, or can the first loop be
-  prep -> map -> victory/defeat -> next map with only deployment + recruit +
-  difficulty, deferring shop/convoy to a fast-follow?
-- **Convoy + shop UI/UX timing.** Both rows owe a UI/UX plan and are flagged to
-  pair. Should the Band 4 plan include their UI design, or defer the UI layer to
-  a dedicated UX pass (intersecting the Band 6 `B6-MRD`/`B6-INPUT` UI work)?
-- **Dialogue v1 command set.** How narrow is "narrow"? Confirm the v1 command
-  vocabulary (line, choice, set_var/flag, `end_map`, recruit hook?) before
-  building, since recruit and village depend on it.
+**D1 — Plan structure: separate plans, not one combined plan.** Write `B4-IEQ`,
+`B4-MAP-OBJECTS`, `B4-CONVOY`, `B4-SHOP-ECONOMY`, and a thin `B4-CAMPAIGN-LOOP`
+integration plan as distinct plans; the smaller consumers may be grouped
+pragmatically but follow the bootstrap order. `B4-PROMOTION-UI` stays deferred
+until content needs 3+ promotion paths.
+
+**D2 — Minimum playable loop / sequencing.** **Convoy and shop are separable
+from the first playable loop for playtesting, but must follow closely.** The
+first `B4-CAMPAIGN-LOOP` slice proves map -> victory/defeat -> prep -> next map
+with save/suspend; convoy lands as a close fast-follow and shop closely after
+convoy (shared economy/PHB surfaces; pair the UX). The exact minimum-loop
+content is finalized inside the campaign-loop plan.
+
+**D3 — Convoy/shop UI/UX timing (was Q3).** Build functional panels on the
+`B3-PHB` surface now — **keyboard+mouse-first and visually rough** — with both
+consuming a thin **selector abstraction** that `B6-INPUT` later fills/extracts
+(flag the overlap so the selector is not built twice). Two firm commitments that
+are **not** dropped: (1) every planned control scheme (gamepad, key-rebind) gets
+full support via `B6-INPUT`; (2) UI polish lands as a follow-up. Convoy interface
+design targets are captured as `[CNV-8]` in the convoy register: per-character
+inventory view; author-defined groups + an "All" category with author-defined
+sorting; per-item rows showing author-selected fields from {name, uses info,
+count, base value, stack value}; and a top "more info" detail pane for the
+focused item.
+
+**D4 — Dialogue v1 command set (was Q4).** The `B4-DIALOGUE-V1` slice ships:
+- Entry types: `line`, `choice` (`goto` + `set_flag`), `label`.
+- Commands: `set_background: map | <bg>`; **positioned stage elements** — a
+  portrait can `enter` at an authored screen location, `move` to another
+  location, `exit`, and be replaced (exit+enter); plus a small MET-action
+  passthrough (`set_var`/`flag`, `grant_item`, the recruit hook).
+- `B3-REQ`/F16 branch gating at **option + conversation** scope (segment-scope
+  deferred), with per-option `hidden | shown_disabled`.
+- Manual pacing; **static** portraits; **atomic (run-to-completion) playback**.
+- **Deferred** (reserved by the format, layer in later without changing authored
+  data): the animation/expression effect tiers (`DLG-3`), the reflect effect
+  (`DLG-9`), auto-advance/skip-to-decision pacing (`DLG-4`), camera, scene-wide
+  filters, runtime `set_layer` (`DLG-12`), mid-conversation suspend (`DLG-11`),
+  and the dedicated editor (`DLG-8`).
+
+This is the `DLG-7` "v1 slice = build-time call" decision; the dialogue register
+`DLG-7` carries a pointer back here.
 
 ## Watchouts
 
