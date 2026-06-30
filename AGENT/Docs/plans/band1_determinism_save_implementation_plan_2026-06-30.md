@@ -30,7 +30,9 @@ This plan covers the first Band 1 implementation run:
 ## Non-Goals
 
 - Do not build the full Turnwheel mechanic in the first campaign/save kickoff.
-  Keep `[CST-13]` as a review item until the campaign/save spine is ready.
+  `[CST-13]` is resolved to hooks-only inside the campaign/save spine; the full
+  mechanic is the immediate follow-on after `SaveCodec`, `SaveData`, and
+  CampaignRules charge persistence exist.
 - Do not build full mid-battle suspend in this plan. `B1-SUSPEND` follows after
   `SaveCodec` / `SaveData` and exact runtime fields are locked.
 - Do not build the whole campaign loop in one step. This plan stops at the
@@ -101,9 +103,11 @@ Implementation checklist:
 - Run `rg -n "resolve_combat|apply_combat_result|set_unit_state|record_move_start|apply_item|record_seize|record_escape" scripts`.
 - Confirm the exact Godot version accepts the signed decimal mixer constants
   from the RNG design.
-- Decide the narrow combat event-record API before editing combat:
-  recommended path is to pass an explicit event record from combat callers and
-  store the same record on the combat result for `apply_combat_result`.
+- Use the official combat event-record API before editing combat:
+  `TurnManager.get_action_start_tile(unit)` supplies the pre-move tile;
+  combat callers pass `[attacker_id, from_tile, to_tile, defender_id]` into
+  `resolve_combat(attacker, defender, event_record := [])`; the result stores
+  the same record for `apply_combat_result`.
 
 Tests:
 
@@ -111,7 +115,7 @@ Tests:
 
 Docs:
 
-- If the event-record API exposes a real blocker, update
+- If the official event-record API exposes a real blocker, update
   [`band1_implementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band1_implementation_questions_review_2026-06-30.md)
   instead of pausing implementation.
 
@@ -127,7 +131,7 @@ Files to touch:
 - `scripts/core/CombatResolver.gd`
 - `scripts/core/MapCursorTargeting.gd`
 - `scripts/core/EnemyAI.gd`
-- `scripts/core/TurnManager.gd` if adding an accessor for action-start tiles
+- `scripts/core/TurnManager.gd`
 - `scripts/skills/SkillHandler.gd`
 - `scripts/units/Unit.gd`
 - `scripts/tests/test_rng_service.gd` (new)
@@ -147,7 +151,7 @@ Implementation steps:
    - Exact order: `GameConstants`, `EventBus`, `RngService`,
      `SettingsManager`, `GameState`, then the existing services.
 3. Add combat event-record plumbing.
-   - Recommended helper shape:
+   - Official helper shape:
      - `TurnManager.get_action_start_tile(unit)` returns the recorded move-start
        tile, falling back to `unit.tile_position`.
      - `CombatResolver.make_attack_event_record(attacker, defender, from_tile)`
@@ -448,7 +452,9 @@ commit:
 - `B1-CST` campaign graph and prep/results flow:
   `CampaignData`, SaveManager file I/O, campaign selector, prep deployment,
   victory/defeat screens, Continue/Load, autosave/manual slots, export/import.
-- Turnwheel mechanic: resolve `[CST-13]` at campaign/save execution kickoff.
+- Turnwheel mechanic: `[CST-13]` is resolved to hooks-only in the first
+  campaign/save spine pass; build the full mechanic as the immediate follow-on
+  after charge persistence exists.
 
 ## Definition Of Done
 
@@ -463,9 +469,9 @@ For each implementation slice:
 - If a mechanical rule is ratified, add the durable check in the same change.
 - Add a session note and newest-first index row before stopping.
 
-## Open Review Items
+## Resolved Review Items
 
 Implementation questions are tracked in
 [`band1_implementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band1_implementation_questions_review_2026-06-30.md).
-Do not block the plan on those questions unless a later code slice proves the
-recommended path is wrong.
+The two known questions were resolved 2026-06-30. Do not reopen them unless a
+later code slice proves the official path is wrong.

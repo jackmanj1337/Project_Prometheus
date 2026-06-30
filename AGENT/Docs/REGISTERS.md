@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | OPEN | campaign_save_technical_plan_2026-06-21.md | `registers/campaign_save_open_decisions_2026-06-21.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
@@ -18,6 +17,7 @@
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
 | `CNV-1..7` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/convoy_inventory_open_questions_2026-06-23.md` |
+| `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | RESOLVED | campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout | `registers/campaign_save_open_decisions_2026-06-21.md` |
 | `CVR-1..7` | `cover` — Pre-Application Effect-Reassignment Primitive — Open Questions | RESOLVED | 2026-06-26 — full design-walk (session 2026-06-26g); CVR-1..7 settled (CVR-7 `share_disposition` ward added in the gap-closing pass, session 2026-06-26i). Substitution = **per-hit intercept** (owner; distinct from `[PRV]` provoke); scope = **damage + conditions + displacement** (owner). Remaining items are forward-reqs (a **pre-mitigation defender-resolution hook** in `CombatResolver`; the M8 event; A5 death-ordering) shared with `[RDR]`. | `registers/cover_intercept_open_questions_2026-06-26.md` |
 | `DCH-1..6` | Doors & Chests (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21g | `registers/doors_chests_open_questions_2026-06-21.md` |
 | `DIF-1..7` | Difficulty & Death-Handling Modes (#12, A5) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/difficulty_death_mode_open_questions_2026-06-27.md` |

@@ -1,16 +1,16 @@
 ---
 Type: register
-Status: OPEN — CST-1..12 RESOLVED, CST-13 OPEN
-Last verified: 2026-06-23
+Status: RESOLVED
+Last verified: 2026-06-30
 Register: CST-1..13
-Resolved-in: campaign_save_technical_plan_2026-06-21.md
+Resolved-in: campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout
 ---
 
 # Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register
 
 **Started:** 2026-06-21
-**Last verified:** 2026-06-21
-**Status:** Decisions register OPEN — code-facing choices the player-facing firming left open.
+**Last verified:** 2026-06-30
+**Status:** Decisions register RESOLVED — code-facing choices the player-facing firming left open.
 **Companion plan:** `campaign_save_technical_plan_2026-06-21.md` (the draft implementation plan;
 references these as `[CST-n]`).
 **Drives:** the §2 implementation slices. Mirrors the §1 pattern
@@ -42,7 +42,7 @@ then forward seams.
 10. **[CST-10]** Save file/dir layout + Continue pointer + autosave-vs-manual slots
 11. **[CST-11]** Story-flip rule-mutation seam
 12. **[CST-12]** Package A (`RngService`) sequencing relative to this cluster
-13. **[CST-13]** Rewind mechanic fold-in (surfaced by CST-12; defer to §2 execution kickoff)
+13. **[CST-13]** Rewind mechanic fold-in (surfaced by CST-12; resolved 2026-06-30)
 
 ---
 
@@ -403,7 +403,7 @@ foundation is solid and the cluster builds on real determinism. **Consequences b
 
 ---
 
-## [CST-13] Rewind mechanic fold-in (surfaced by CST-12 → C)  **[OPEN — resolve at §2 execution kickoff]**
+## [CST-13] Rewind mechanic fold-in (surfaced by CST-12 → C)  **[RESOLVED → A]**
 With Package A built first, the actual Turnwheel mechanic is unblocked. Does it ship inside §2 or
 right after?
 
@@ -414,15 +414,23 @@ right after?
   rewind end-to-end; larger §2 scope.
 
 **Rec: A (lean).** Keep §2's spine focused; land the mechanic immediately after against the
-finished charge-persistence + RNG substrate. Not blocking until §2 execution begins — revisit
-then. (No need to decide during planning.)
+finished charge-persistence + RNG substrate.
 
-**Resolution:** _pending — defer to §2 execution kickoff._
+**Resolution:** **A (2026-06-30).** §2 / `B1-CST` ships rewind hooks only:
+CampaignRules rule/charge persistence, defeat-menu entry point, and save fields
+needed for the mechanic. The full Turnwheel mechanic is the immediate follow-on
+after `SaveCodec`, `SaveData`, and CampaignRules charge persistence exist. Do
+not fold full rewind execution into the first campaign/save spine pass.
 
 ---
 
 # Resolution Log
 (newest first)
+
+- **2026-06-30 — Band 1 implementation question closeout.** [CST-13] **A** —
+  §2 / `B1-CST` ships rewind hooks only (rule, charges, menu/save entry points);
+  the full Turnwheel mechanic is the immediate follow-on after `SaveCodec`,
+  `SaveData`, and CampaignRules charge persistence exist. Register now RESOLVED.
 
 - **2026-06-21 — Forward-seam batch resolved (batch 4) — register COMPLETE.** [CST-11] **A** —
   build the story-flip seam + `campaign_rule_flipped` notification only; trigger source deferred.

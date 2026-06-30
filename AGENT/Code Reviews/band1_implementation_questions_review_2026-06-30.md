@@ -6,16 +6,13 @@ it does not change implementation scope by itself.
 
 ## Executive Summary
 
-The Band 1 plan is implementation-ready, but two integration questions should be
-reviewed before the relevant code slice lands. Neither should block writing
-`RngService` or the F1 manifest. The highest-risk item is the combat RNG event
-record, because the ratified RNG identity includes the pre-move tile but the
-current `CombatResolver.resolve_combat(attacker, defender)` API receives only
-current unit nodes.
+The Band 1 plan is implementation-ready, and the two integration questions found
+while drafting it were resolved 2026-06-30. Neither blocks writing `RngService`
+or the F1 manifest.
 
 ## Issues Found
 
-### [Medium] Combat RNG event records need an explicit pre-move tile source
+### [Medium] Combat RNG event records need an explicit pre-move tile source — RESOLVED
 
 - **File & Line:** `scripts/core/CombatResolver.gd:658`,
   `scripts/core/MapCursorTargeting.gd:197`, `scripts/core/EnemyAI.gd:125`,
@@ -31,7 +28,8 @@ current unit nodes.
   distinct move-then-attack choices share dice.
 - **Root Cause:** Combat resolution predates Package A and was designed around
   unit nodes, not action identity records.
-- **Recommended Fix:** Add an explicit handoff in the first RNG slice:
+- **Resolution:** Official path adopted 2026-06-30. Add an explicit handoff in
+  the first RNG slice:
   `TurnManager.get_action_start_tile(unit)` returns the recorded origin or the
   current tile, and combat callers pass an event record into
   `resolve_combat(attacker, defender, event_record := [])`. Store the same record
@@ -40,21 +38,22 @@ current unit nodes.
   updates. The upside is a clear, reviewable action identity that works for
   player actions, AI actions, and headless tests.
 
-### [Low] `[CST-13]` still needs a later owner decision at campaign/save kickoff
+### [Low] `[CST-13]` Turnwheel scope — RESOLVED
 
 - **File & Line:** `AGENT/Docs/registers/campaign_save_open_decisions_2026-06-21.md:422`
 - **Problem:** With Package A built first, the full Turnwheel mechanic is
-  technically unblocked. The register leaves open whether it ships inside the
+  technically unblocked. The register left open whether it ships inside the
   campaign/save spine or as the immediate follow-on.
 - **Impact:** Folding Turnwheel into the first `B1-CST` implementation pass could
   make the campaign/save spine too large. Deferring too far could leave defeat
   menu hooks feeling incomplete.
 - **Root Cause:** `[CST-12]` re-sequenced Package A ahead of campaign/save after
   the original campaign/save plan had already scoped rewind as hooks-first.
-- **Recommended Fix:** Keep this Band 1 plan hooks/kickoff-only. Revisit
-  `[CST-13]` after `SaveCodec`, `SaveData`, and CampaignRules charge persistence
-  exist. Default recommendation remains hooks in the spine, full mechanic as the
-  immediate follow-on.
+- **Resolution:** Official path adopted 2026-06-30. Keep this Band 1 plan
+  hooks/kickoff-only. `B1-CST` ships rule/charge persistence, defeat-menu entry
+  point, and save fields needed for rewind. The full Turnwheel mechanic is the
+  immediate follow-on after `SaveCodec`, `SaveData`, and CampaignRules charge
+  persistence exist.
 - **Tradeoffs:** The user will need one small scope call later, but the first
   campaign/save implementation remains reviewable.
 
@@ -78,6 +77,5 @@ current unit nodes.
 ## Prioritized Action Plan
 
 1. Before editing combat RNG, add the explicit combat event-record API and tests.
-2. Keep `[CST-13]` as a review item until charge persistence exists.
-3. When `B1-CST` starts, decide whether Turnwheel is a spine slice or immediate
-   follow-on based on the size of the completed save/flow diff.
+2. Keep full Turnwheel execution out of the first `B1-CST` spine pass.
+3. Build Turnwheel as the immediate follow-on after charge persistence exists.
