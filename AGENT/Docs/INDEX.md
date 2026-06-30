@@ -128,6 +128,7 @@
 
 - [`plans/band1_determinism_save_implementation_plan_2026-06-30.md`](plans/band1_determinism_save_implementation_plan_2026-06-30.md) — Band 1 Determinism And Save Implementation Plan — *Active - implementation plan*
 - [`plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md`](plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md) — Band 2 Shared Runtime Contracts Implementation Plan — *Active - implementation plan*
+- [`plans/band3_implementation_plan_handoff_2026-06-30.md`](plans/band3_implementation_plan_handoff_2026-06-30.md) — Band 3 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*
 - [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*
