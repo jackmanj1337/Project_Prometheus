@@ -124,21 +124,24 @@ Docs:
 **Goal:** all gameplay dice route through deterministic event RNG, and future raw
 gameplay RNG is blocked by tests.
 
+This step is split into four sub-slices so each lands as a small, independently
+green, independently bisectable commit. The original single-commit form touched
+eight production files and migrated three unrelated RNG sites at once, which is
+hard to review and hard to bisect when a determinism test regresses.
+
+**Ordering constraint (do not reorder):** the raw-RNG guard must land *last*, in
+Slice 1d. While raw RNG still exists in `CombatResolver`, `Unit`, and
+`SkillHandler` (i.e. before Slices 1b/1c land), the guard would fail on
+still-present code. Slices 1a-1c each stay green on their own; the guard closes
+the door only once there is no raw gameplay RNG left to flag.
+
+### Slice 1a - RngService autoload (behavior-neutral)
+
 Files to touch:
 
 - `project.godot`
-- `scripts/autoloads/RngService.gd`
-- `scripts/core/CombatResolver.gd`
-- `scripts/core/MapCursorTargeting.gd`
-- `scripts/core/EnemyAI.gd`
-- `scripts/core/TurnManager.gd`
-- `scripts/skills/SkillHandler.gd`
-- `scripts/units/Unit.gd`
+- `scripts/autoloads/RngService.gd` (new)
 - `scripts/tests/test_rng_service.gd` (new)
-- `scripts/tests/test_rng_combat_determinism.gd` (new or folded into
-  `test_combat.gd` if simpler)
-- `scripts/tests/test_rng_usage_lint.gd` (new) or an equivalent shell guard in
-  `run_tests.sh`
 
 Implementation steps:
 
@@ -150,45 +153,7 @@ Implementation steps:
 2. Register `RngService` in `project.godot`.
    - Exact order: `GameConstants`, `EventBus`, `RngService`,
      `SettingsManager`, `GameState`, then the existing services.
-3. Add combat event-record plumbing.
-   - Official helper shape:
-     - `TurnManager.get_action_start_tile(unit)` returns the recorded move-start
-       tile, falling back to `unit.tile_position`.
-     - `CombatResolver.make_attack_event_record(attacker, defender, from_tile)`
-       returns `[attacker_id, from_tile, to_tile, defender_id]`.
-     - `resolve_combat(attacker, defender, event_record := [])` uses the passed
-       record or a deterministic fallback for headless tests.
-     - The result dictionary stores `rng_event_kind` and `rng_event_record`.
-     - `apply_combat_result` commits the stored record exactly once.
-   - Do not let `TurnManager` double-commit combat.
-4. Migrate `CombatResolver` hit and crit rolls.
-   - `resolve_combat` calls `RngService.begin_event("attack", record)` after
-     `combat_started` and before the first roll.
-   - Store the returned RNG in the combat context as `"rng"`.
-   - Hit uses the two-RN rule:
-     `floor((r1 + r2) / 2) < displayed_hit`.
-   - Crit draws only after a hit.
-   - Preserve the existing exchange order.
-5. Migrate `SkillHandler` activation rolls.
-   - Random activation reads `context["rng"]`.
-   - Preview paths still skip random activations and draw nothing.
-   - If `context["rng"]` is missing in a non-preview gameplay path, fail loudly
-     instead of silently falling back to raw RNG.
-6. Migrate `Unit.level_up`.
-   - `growth_random` wraps one `levelup` event per level:
-     `begin_event("levelup", [unit_id, new_level])`, draw stats in
-     `ClassData.STAT_KEYS` / `_GROWTH_STATS` order, then `commit_event`.
-   - `growth_fixed` draws nothing but still commits the levelup event.
-7. Commit non-dice event records for existing action paths where safe.
-   - `wait`, `seize`, `escape`, and `item` should commit once the action is
-     non-undoable.
-   - Equip remains neutral and must not commit.
-   - Trade, shove, pair-up, and other future actions can land with their owner
-     slices if they are not currently in the action surface.
-8. Add the raw-RNG guard.
-   - The guard must fail on `randi`, `randf`, `RandomNumberGenerator`, or
-     `randomize` in gameplay folders unless the line is in `RngService.gd` or
-     has an explicit allowed presentation/test exemption.
+   - This order is enforced by `check_docs.py` check 21 once the autoload exists.
 
 Tests:
 
@@ -197,26 +162,129 @@ Tests:
   - identical event + identical history repeats,
   - different committed history changes later events,
   - `to_save_dict` / `from_save_dict` preserves `map_seed` and `history_hash`.
+
+Docs and tracking:
+
+- Behavior-neutral: no GDD update. Note the new autoload on the `B1-PKGA` row.
+
+### Slice 1b - Combat RNG migration (behavior-changing: two-RN hit)
+
+Files to touch:
+
+- `scripts/core/CombatResolver.gd`
+- `scripts/core/MapCursorTargeting.gd`
+- `scripts/core/EnemyAI.gd`
+- `scripts/core/TurnManager.gd`
+- `scripts/tests/test_rng_combat_determinism.gd` (new or folded into
+  `test_combat.gd` if simpler)
+
+Implementation steps:
+
+1. Add combat event-record plumbing.
+   - `TurnManager.get_action_start_tile(unit)` returns the recorded move-start
+     tile, falling back to `unit.tile_position`.
+   - `CombatResolver.make_attack_event_record(attacker, defender, from_tile)`
+     returns `[attacker_id, from_tile, to_tile, defender_id]`.
+   - `resolve_combat(attacker, defender, event_record := [])` uses the passed
+     record or a deterministic fallback for headless tests.
+   - The result dictionary stores `rng_event_kind` and `rng_event_record`.
+   - `apply_combat_result` commits the stored record exactly once.
+   - Do not let `TurnManager` double-commit combat.
+2. Migrate `CombatResolver` hit and crit rolls.
+   - `resolve_combat` calls `RngService.begin_event("attack", record)` after
+     `combat_started` and before the first roll.
+   - Store the returned RNG in the combat context as `"rng"`.
+   - Hit uses the two-RN rule: `floor((r1 + r2) / 2) < displayed_hit`.
+   - Crit draws only after a hit.
+   - Preserve the existing exchange order.
+
+Tests:
+
 - `test_rng_combat_determinism.gd`
   - T1 replay determinism for a scripted attack sequence,
   - T3 butterfly/isolation with Wait or another committed action between two
     attacks,
-  - T4 equip neutrality,
   - T7 literal two-RN roll-order fixture.
-- `test_rng_usage_lint.gd`
-  - T5 raw gameplay RNG guard.
-- Existing suites that must stay green:
-  - `test_combat.gd`
-  - `test_skill_item_handler.gd`
-  - `test_enemy_ai.gd`
-  - `test_turn_manager.gd`
-  - `test_map_cursor.gd`
+- `test_combat.gd` and `test_enemy_ai.gd` must stay green. **Watchout:** any
+  existing fixture that hard-codes a single-RN hit/miss outcome must be rewritten
+  to the two-RN expectation in this same commit — "stay green" here means
+  *updated*, not unchanged.
 
 Docs and tracking:
 
-- Because this changes gameplay behavior, update `GDD_01`, `GDD_02`, and the
-  matching `B1-PKGA` control-plane row in the same implementation commit.
-- Add a playtest note that hit RNG is now two-RN true hit.
+- This changes player-visible hit math. Update `GDD_01`, `GDD_02`, and the
+  `B1-PKGA` row in the same commit, and add a playtest note that hit RNG is now
+  two-RN true hit.
+
+### Slice 1c - Growth and skill-activation migration
+
+Files to touch:
+
+- `scripts/skills/SkillHandler.gd`
+- `scripts/units/Unit.gd`
+- `scripts/tests/test_skill_item_handler.gd` (extend)
+
+Implementation steps:
+
+1. Migrate `SkillHandler` activation rolls.
+   - Random activation reads `context["rng"]`.
+   - Preview paths still skip random activations and draw nothing.
+   - If `context["rng"]` is missing in a non-preview gameplay path, fail loudly
+     instead of silently falling back to raw RNG.
+2. Migrate `Unit.level_up`.
+   - `growth_random` wraps one `levelup` event per level:
+     `begin_event("levelup", [unit_id, new_level])`, draw stats in
+     `ClassData.STAT_KEYS` / `_GROWTH_STATS` order, then `commit_event`.
+   - `growth_fixed` draws nothing but still commits the levelup event.
+
+Tests:
+
+- Extend `test_skill_item_handler.gd` for deterministic activation under a fixed
+  seed and for the loud-fail on missing `context["rng"]`.
+- Add a growth-determinism assertion (fixed seed reproduces the same stat gains).
+- `test_skill_item_handler.gd` and any level-up suite must stay green.
+
+Docs and tracking:
+
+- If growth/skill RNG ordering is documented anywhere in `GDD_02`, update it.
+  Otherwise note the migration on the `B1-PKGA` row.
+
+### Slice 1d - Non-dice event commits and the raw-RNG guard
+
+Files to touch:
+
+- `scripts/core/TurnManager.gd` (and the action commit points it owns)
+- `scripts/items/ItemHandler.gd`
+- `scripts/tests/test_rng_usage_lint.gd` (new) or an equivalent shell guard in
+  `run_tests.sh`
+
+Implementation steps:
+
+1. Commit non-dice event records for existing action paths where safe.
+   - `wait`, `seize`, `escape`, and `item` should commit once the action is
+     non-undoable.
+   - Equip remains neutral and must not commit.
+   - Trade, shove, pair-up, and other future actions can land with their owner
+     slices if they are not currently in the action surface.
+2. Add the raw-RNG guard (this must be the last sub-slice — see the ordering
+   constraint above).
+   - The guard must fail on `randi`, `randf`, `RandomNumberGenerator`, or
+     `randomize` in gameplay folders unless the line is in `RngService.gd` or
+     has an explicit allowed presentation/test exemption.
+
+Tests:
+
+- `test_rng_usage_lint.gd`
+  - T5 raw gameplay RNG guard (passes only because Slices 1b/1c removed all raw
+    gameplay RNG).
+- T4 equip neutrality (a committed action does not advance RNG, equip commits
+  nothing) — place here or in 1b, wherever the equip path is exercised.
+- Existing suites that must stay green: `test_turn_manager.gd`,
+  `test_map_cursor.gd`.
+
+Docs and tracking:
+
+- Update the `B1-PKGA` row to mark Step 1 complete once 1d lands.
 
 ## Slice 2 - `B1-PKGA` Step 2: Snapshot Contract
 
