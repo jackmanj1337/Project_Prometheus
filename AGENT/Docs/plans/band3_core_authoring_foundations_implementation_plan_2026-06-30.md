@@ -47,9 +47,10 @@ ordered slices:
 7. The map events/triggers framework (`B3-MET`).
 8. The prep-hub / option-panel framework (`B3-PHB`).
 9. Author resources and unit pools (`B3-RESOURCE-POOLS`).
-
-`B3-CALENDAR-LITE` stays deferred (documented, not built) unless a concrete v1
-cadence consumer is named.
+10. The in-world time substrate (`B3-CALENDAR-LITE`) — promoted from deferred
+    after the owner named concrete consumers (in-world date in dialogue,
+    overworld encounter spawning, post-combat date-advance events, shop refresh).
+    Substrate only; consumers stay in their own bands.
 
 ## Non-Goals
 
@@ -105,7 +106,12 @@ cadence consumer is named.
 - `PHB` is a flat opt-in `prep_panels` list with `node_type {battle|hub}`,
   free navigation, immediate transaction commit, no hub-suspend snapshot
   (`PHB-1..7`).
-- `B3-CALENDAR-LITE` stays deferred unless a concrete v1 consumer is named.
+- `B3-CALENDAR-LITE` is a **substrate-only** Band 3 slice (owner, 2026-06-30):
+  **per-node authored advance** (each progression node declares `advance_days`)
+  driving a campaign-scope day counter, with a **structured calendar**
+  (authored months/seasons) deriving day/month/year/season for dialogue and
+  triggers. Consumers (dialogue interpolation, shop refresh, overworld
+  encounter spawning) stay in their own bands.
 
 ## Dependency Note
 
@@ -609,13 +615,74 @@ Registry obligations: `resource_type` family (shared with the Band 2 ledger).
 DoD#2 obligations: extend the Band 2 direct-wallet-write guard to the keyed
 wallet and unit pools (writes only through `ResourceLedger`).
 
-## Slice 11 - `B3-CALENDAR-LITE` (Deferred)
+## Slice 11 - `B3-CALENDAR-LITE`: In-World Time Substrate
 
-Not built in the first run. Keep the `B3-CALENDAR-LITE` row `Deferred`. Add the
-`total_maps_played` / `story_maps_played` TCV-readable counters only when a
-concrete v1 content consumer (a garden/brew/restock/territory cadence) is named.
-If built later, they are campaign-scope `CampaignVars` (Slice 4) + an increment
-on map completion, with F1 rows and counter-increment tests.
+**Goal:** an authored advancing in-world date that dialogue, `REQ` formulas, and
+`MET` triggers can read — the substrate only. Promoted from deferred after the
+owner named consumers (in-world date in dialogue, overworld encounter spawning,
+post-combat date-advance events/dialogue, shop refresh). Owner decisions
+(2026-06-30): **per-node authored advance** + **structured calendar**.
+
+Depends on `B3-TCV` (Slice 4, the day counter is a campaign var), `B3-TEXT`
+(Slice 3, date formatting), `B3-MET` (Slice 8, date triggers), and `B1-CST`
+(progression nodes / campaign save).
+
+Files to create or touch:
+
+- `scripts/resources/CalendarDef.gd` (authored calendar: `start_date`,
+  `months: [{name, days, season?}]`, optional `year_label`)
+- `scripts/resources/CampaignData.gd` (per-node `advance_days`)
+- `scripts/calendar/CalendarClock.gd` (derive day/month/year/season + formatted
+  string from the flat day counter + `CalendarDef`)
+- `scripts/autoloads/CampaignVars.gd` (`campaign_day` campaign-scope counter +
+  derived `date.*` read sources)
+- `scripts/autoloads/MapEventManager.gd` (add `date_reached` / `date_advanced`
+  triggers)
+- `scripts/text/TextDB.gd` (date interpolation token)
+- `scripts/tests/test_calendar.gd`
+
+Implementation steps:
+
+1. Add `CalendarDef` as authored data (months with lengths/names/seasons); load
+   it through the registry as the campaign's calendar (open, not a hardcoded
+   Gregorian model).
+2. Store the flat in-world day as a campaign-scope `CampaignVars` counter
+   (`campaign_day`); `CalendarClock` derives `{day, month, year, season,
+   formatted}` from it — flat storage, structured derivation.
+3. **Per-node advance:** each progression node declares `advance_days`; on node
+   completion (post-combat for `battle` nodes, on Continue for `hub` nodes per
+   `PHB-4`) advance `campaign_day` by that amount once, latched against
+   re-advance on suspend/reload.
+4. Expose `date.day` / `date.month` / `date.year` / `date.season` and the
+   formatted string as `REQ`/TCV value sources and a `TextDB` interpolation
+   token, so dialogue and formulas read the date.
+5. Add `date_reached(target)` and `date_advanced` `MET` triggers so events and
+   dialogue fire when the date crosses a threshold or ticks (the post-combat
+   date-advance consumer).
+6. Do **not** build the consumers here: dialogue interpolation rides Band 4
+   dialogue, shop refresh rides Band 4 shop (point its `restock_every_n` cadence
+   at the date), and overworld encounter spawning rides the post-v1 overworld.
+
+Tests:
+
+- Completing nodes advances `campaign_day` by each node's `advance_days`; the
+  advance is latched (suspend/reload does not double-count).
+- `CalendarClock` derives the correct day/month/year/season across month
+  rollover for a fixed `CalendarDef`.
+- A formatted date string interpolates into a text key.
+- `date_reached`/`date_advanced` triggers fire at the right time.
+- A `compare` formula gating on `date.day` evaluates correctly.
+
+F1 obligations: reserve the `campaign_day` counter (campaign scope; rides the
+Slice 4 `CampaignVars` rows) and the per-node advance latch. `CalendarDef` and
+per-node `advance_days` are authoring data, not saved.
+
+Registry obligations: the `calendar` family (one per campaign) + the new
+`date_reached`/`date_advanced` `trigger_type` entries.
+
+DoD#2 obligations: add a check that `date.*` value sources and the date triggers
+resolve to registered ids, and that `campaign_day` is written only through the
+node-advance path (not ad-hoc).
 
 ## Implementation Commit Order
 
@@ -632,6 +699,7 @@ Recommended logical commits (each independently green and bisectable):
 8. `B3-MET` map events + objective opening.
 9. `B3-PHB` prep-hub container.
 10. `B3-RESOURCE-POOLS` two-scope resources.
+11. `B3-CALENDAR-LITE` in-world time substrate (after `TCV`, `TEXT`, `MET`).
 
 If a slice changes player-visible behavior, update the affected `GDD_01`,
 `GDD_02`, `GDD_03`, `GDD_06`, `GDD_07`, `GDD_08`, and/or `GDD_10_Roadmap.md`
@@ -659,6 +727,7 @@ godot --headless --path /workspace --script res://scripts/tests/test_roll_resolv
 godot --headless --path /workspace --script res://scripts/tests/test_map_events.gd
 godot --headless --path /workspace --script res://scripts/tests/test_prep_hub.gd
 godot --headless --path /workspace --script res://scripts/tests/test_resource_pools.gd
+godot --headless --path /workspace --script res://scripts/tests/test_calendar.gd
 ```
 
 Docs-only edits to this plan require:
@@ -671,19 +740,17 @@ git diff --check
 
 ## Open Owner Questions
 
-Three sequencing/scope decisions are provisionally chosen here and flagged for
-owner review in
+Tracked in
 [`band3_implementation_plan_review_2026-06-30.md`](../../Code%20Reviews/band3_implementation_plan_review_2026-06-30.md):
 
-1. **Per-map override scope.** Provisional: campaign-default scope only for v1
-   (matches `CRR-4`); `TCV` map-scope vars stay part of `TCV` core (not a
-   CampaignRules override). Revisit if a content case needs per-map rule
-   overrides.
-2. **Combat-roll-resolver placement.** Provisional: a late slice (Slice 7) in
-   this combined plan, not a separate follow-on — it is a small registry
-   promotion of two existing built-ins + one author tier.
-3. **`B3-RESOURCE-POOLS` inclusion.** Provisional: included as a substrate-only
-   slice (Slice 10, registry + two-scope wallet/pool data model), deferring all
-   training/shop wiring to Band 4 consumers.
-
-These do not block drafting; they may reorder or trim slices once confirmed.
+1. **Per-map override scope.** Recommendation (awaiting owner confirmation):
+   campaign-default scope only for v1 (matches `CRR-4`); `TCV` map-scope vars
+   stay part of `TCV` core (not a CampaignRules override), and `MET` `set_var`
+   covers mid-map runtime changes. Adding override scope later is additive.
+2. **Combat-roll-resolver placement.** **Accepted** — a late slice (Slice 7) in
+   this combined plan, not a separate follow-on.
+3. **`B3-RESOURCE-POOLS` inclusion.** **Accepted** — a substrate-only slice
+   (Slice 10), deferring training/shop wiring to Band 4 consumers.
+4. **`B3-CALENDAR-LITE`.** **Resolved (owner)** — promoted from deferred to a
+   substrate-only slice (Slice 11): per-node authored advance + structured
+   calendar; consumers stay in their own bands.

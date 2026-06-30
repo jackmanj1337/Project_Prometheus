@@ -66,11 +66,33 @@ three items below are genuine owner forks.
 - **Recommendation:** Keep the substrate-only slice in this plan; defer
   consumers.
 
+### Q4 — `B3-CALENDAR-LITE`: deferred, or a real Band 3 slice? (owner-raised)
+
+- **Why it was deferred originally:** the prior decision (unified-GDD-pass
+  follow-ups) introduced only two speculative counters
+  (`total_maps_played`/`story_maps_played`) with **no consumer reading them**.
+  The standing rule (don't build vocabulary before a consumer needs it) parked
+  it. "Needs a use case" meant *no named consumer*, not *hard*.
+- **Owner input (2026-06-30):** named four consumers — in-world date in
+  dialogue, overworld encounter spawning, post-combat date-advance
+  events/dialogue, and shop inventory refresh — which removes the deferral
+  basis.
+- **Resolution (owner):** promote to a **substrate-only** Band 3 slice
+  (Slice 11). Advance model = **per-node authored advance** (`advance_days` per
+  progression node). Representation = **structured calendar** (authored
+  months/seasons, derived from a flat day counter). Consumers stay in their own
+  bands (dialogue = Band 4, shop refresh = Band 4 / PHB cadence, overworld
+  spawns = post-v1 overworld).
+
 ## Decision Capture
 
 Record answers here when reviewed; if any answer changes, update the plan's
 slice order and the **Open Owner Questions** section in the same commit.
 
-- Q1: _pending_
-- Q2: _pending_
-- Q3: _pending_
+- Q1: _explained 2026-06-30; recommendation = campaign-default-only for v1;
+  awaiting owner confirmation._
+- Q2: **Accepted** (owner: "looks fine") — combat-roll-resolver is Slice 7.
+- Q3: **Accepted** (owner: "looks fine") — resource-pools is a substrate-only
+  slice.
+- Q4: **Resolved** (owner) — calendar-lite promoted to Slice 11, per-node
+  advance + structured calendar, substrate only.
