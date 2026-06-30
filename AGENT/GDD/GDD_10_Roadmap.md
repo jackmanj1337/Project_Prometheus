@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-06-29
+**Last verified:** 2026-06-30
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -71,12 +71,9 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B0-GDD10-REWRITE` | Build-guide rewrite | This file now performs that role; review it for missing active rows before marking the row done. |
-| 2 | `B0-FEATURE-INDEX-WIRING` | Feature-index wiring | The feature index now has Track IDs; review broad rows and add exact section anchors after GDD chapter rewrites. |
-| 3 | `B0-CONTROL-PLANE` | Control-plane schema ratification | Schema, Track ID uniqueness, and Track ID reachability are enforced by `check_docs.py`; keep row granularity under review. |
-| 4 | `B1-PKGA` | Package A / `RngService` | First implementation foundation; Steps 1-2 gate campaign/save work. |
-| 5 | `B1-F1` | F1 save schema lock | Required before features add persistent state. |
-| 6 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |
+| 1 | `B1-PKGA` | Package A / `RngService` | First implementation foundation; Steps 1-2 gate campaign/save work. |
+| 2 | `B1-F1` | F1 save schema lock | Required before features add persistent state. |
+| 3 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |
 
 ## Validation And Release Queues
 
@@ -105,9 +102,9 @@ work until a non-debug release is being cut.
 | `CLEAN-F9-HOTSEAT` | Remove F9 all-faction hotseat override. |
 | `CLEAN-DEBUG-HUD` | Remove debug-mode HUD banner ecosystem. |
 
-`CLEAN-STALE-GDD10` tracks stale navigation cleanup. This rewrite replaced the
-old active roadmap body; any remaining stale references should be handled during
-feature-index and GDD chapter rewrites.
+The stale `GDD_10` milestone body has been replaced by this Track-ID build
+guide. Future cleanup should happen in the owning tracker row or numbered GDD
+chapter rewrite, not by restoring legacy milestone order.
 
 ## Parked Or Post-v1 Work
 
@@ -143,7 +140,7 @@ When work changes:
 
 | Track ID | Follow-up |
 |---|---|
-| `B0-FEATURE-INDEX-WIRING` | Add Track IDs and updated source docs to `GDD_Feature_Index.md`. |
-| `B0-CONTROL-PLANE` | Decide whether the Project Control Plane row schema is ready for `check_docs.py` enforcement. |
+| `B0-GDD-ANCHORS` | Add exact feature-index section anchors during the numbered GDD chapter rewrites. |
+| `B0-VOCAB-NAMING` | Normalize retired terms during the numbered GDD chapter rewrites. |
 | `VAL-OBJECTIVE-MAPS` | Resolve the old contradiction where M16 marked Maps 002-005 done while the Phase 3 backlog left them open. |
 | `VAL-M14-LEFTOVERS` | Move any real tactical-AI work to `B5-AI-MIN-SCORER` or `B7-AI-ADVANCED-VALUATION`. |

@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-06-29
+Last verified: 2026-06-30
 ---
 
 # Project Control Plane
@@ -43,9 +43,10 @@ Every tracker row uses these columns:
 | `B0-GDD-COVERAGE` | 0 | Implemented | `GDD_10` coverage audit | Map live `GDD_10` work into bands and transition buckets. | None | `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md) | no_save_guard | `check_docs.py` | Use this matrix to seed and revise this control plane. |
 | `B0-CONTROL-PLANE` | 0 | Implemented | Control-plane schema ratification | Ratify row schema, ID patterns, bands, and required path fields. | `B0-GDD-COVERAGE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | this document | no_save_guard | `check_docs.py` control-plane schema and Track ID reachability checks | Use the enforced schema when editing tracker rows. |
 | `B0-DOC-ROLE-MANIFEST` | 0 | Target design | Document role manifest | Define allowed document roles and role-separation rules for active docs. | `B0-CONTROL-PLANE` | `GDD_00`, `GDD_10` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md) | no_save_guard | Future active-doc ownership check | Use during `GDD_10` and feature-index rewrite. |
-| `B0-GDD10-REWRITE` | 0 | Pending validation | `GDD_10` build-guide rewrite | Replace stale milestone prose with band narrative, next-work queue, and links to this tracker. | `B0-CONTROL-PLANE` | `GDD_10` | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) | no_save_guard | `check_docs.py`; link reachability after enforcement | Review the build guide, then wire `GDD_Feature_Index.md`. |
-| `B0-FEATURE-INDEX-WIRING` | 0 | Pending validation | Feature-index wiring | Add tracker IDs, GDD owners, decisions, plans, tests, and code/data anchors to `GDD_Feature_Index.md`. | `B0-CONTROL-PLANE` | `GDD_Feature_Index` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`GDD_Feature_Index.md`](../../GDD/GDD_Feature_Index.md) | no_save_guard | Future Track ID reachability check | Review broad rows and add exact section anchors after GDD chapter rewrites. |
+| `B0-GDD10-REWRITE` | 0 | Implemented | `GDD_10` build-guide rewrite | Replace stale milestone prose with band narrative, next-work queue, and links to this tracker. | `B0-CONTROL-PLANE` | `GDD_10` | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) | no_save_guard | `check_docs.py`; link reachability after enforcement | Keep future status and scope changes in the Project Control Plane. |
+| `B0-FEATURE-INDEX-WIRING` | 0 | Implemented | Feature-index wiring | Add tracker IDs, GDD owners, decisions, plans, tests, and code/data anchors to `GDD_Feature_Index.md`. | `B0-CONTROL-PLANE` | `GDD_Feature_Index` | [`living_project_tracking_system_plan_2026-06-29.md`](living_project_tracking_system_plan_2026-06-29.md) | [`GDD_Feature_Index.md`](../../GDD/GDD_Feature_Index.md) | no_save_guard | Future Track ID reachability check | Add exact section anchors through `B0-GDD-ANCHORS` during GDD chapter rewrites. |
 | `B0-VOCAB-NAMING` | 0 | Pending validation | Vocabulary and naming normalization | Make active docs use one vocabulary, organizational pattern, and naming convention. | `B0-CONTROL-PLANE` | All GDD chapters | [`unified_gdd_pass_followups_2026-06-28.md`](unified_gdd_pass_followups_2026-06-28.md) | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | no_save_guard | `check_docs.py` prefix/band checks; future retired-vocabulary scan | Normalize retired terms during GDD chapter rewrites. |
+| `B0-GDD-ANCHORS` | 0 | Planned | Numbered GDD exact anchors | Add exact feature-index anchors after the rewritten `GDD_01`-`GDD_08` sections have stable headings. | `B0-FEATURE-INDEX-WIRING`, `B0-VOCAB-NAMING` | `GDD_01`-`GDD_08`, `GDD_Feature_Index` | [`doc_role_manifest_2026-06-29.md`](doc_role_manifest_2026-06-29.md), [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | needs chapter rewrite pass | no_save_guard | Link checks after anchors exist | Fold into the numbered GDD chapter rewrite pass. |
 
 ## Band 1 - Determinism And Save Gate
 
@@ -197,7 +198,7 @@ Every tracker row uses these columns:
 | `CLEAN-DEBUG-AIDS` | Cleanup | Planned | Remove playtest-2 debug aids | Delete force-levelup and growth-boost debug test plumbing before non-debug release. | Release build planning | `GDD_10` | `GDD_10` Pre-Release Cleanup | direct grep list in `GDD_10` | no_save_guard | Full suite; grep checks | Keep queued until release hardening. |
 | `CLEAN-F9-HOTSEAT` | Cleanup | Planned | Remove F9 all-faction hotseat override | Delete temporary hotseat debug override ecosystem before non-debug release. | Release build planning | `GDD_10` | `GDD_10` Pre-Release Cleanup | direct grep list in `GDD_10` | no_save_guard | Full suite; grep checks | Keep queued until release hardening. |
 | `CLEAN-DEBUG-HUD` | Cleanup | Planned | Remove debug-mode HUD banner | Delete debug HUD banner and debug-flags signal ecosystem before non-debug release. | Release build planning | `GDD_10`, `GDD_07` | `GDD_10` Pre-Release Cleanup | direct grep list in `GDD_10` | no_save_guard | Full suite; grep checks | Keep queued until release hardening. |
-| `CLEAN-STALE-GDD10` | Cleanup | Pending validation | Retire stale roadmap navigation | Remove or archive superseded M8-M13 order, stale register sentence, old v1 scope, and Phase 3 umbrella labels. | `B0-GDD10-REWRITE` | `GDD_10` | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) plus archive copy | no_save_guard | `check_docs.py` | Verify feature-index and GDD chapter rewrites do not keep stale active roadmap language. |
+| `CLEAN-STALE-GDD10` | Cleanup | Implemented | Retire stale roadmap navigation | Remove or archive superseded M8-M13 order, stale register sentence, old v1 scope, and Phase 3 umbrella labels. | `B0-GDD10-REWRITE` | `GDD_10` | [`gdd10_active_work_coverage_matrix_2026-06-29.md`](gdd10_active_work_coverage_matrix_2026-06-29.md) | [`GDD_10_Roadmap.md`](../../GDD/GDD_10_Roadmap.md) plus archive copy | no_save_guard | `check_docs.py` | Keep future stale-language cleanup attached to the owning row. |
 
 ## Content, Polish, And UI Queues
 
@@ -227,9 +228,9 @@ Every tracker row uses these columns:
 
 ## Immediate Next Actions
 
-1. Review the `GDD_10_Roadmap.md`, `GDD_Feature_Index.md`, and control-plane
-   rows for row granularity and missing anchors.
-2. Use `project_vocabulary_manifest_2026-06-29.md` during the numbered GDD
+1. Use `project_vocabulary_manifest_2026-06-29.md` during the numbered GDD
    chapter rewrites so status, source, and implementation terms stay aligned.
+2. Add exact feature-index section anchors through `B0-GDD-ANCHORS` once
+   rewritten `GDD_01`-`GDD_08` headings are stable.
 3. Start the first implementation build only after the relevant Band 1 save/RNG
    rows are accepted or explicitly split.
