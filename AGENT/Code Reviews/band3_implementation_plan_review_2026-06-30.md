@@ -31,6 +31,11 @@ three items below are genuine owner forks.
 - **Cost if we change later:** Low — adding a per-map override layer is additive
   (a scope tag on the var/knob def + a resolution order), not a rewrite.
 - **Recommendation:** Keep campaign-default-only for v1.
+- **Resolution (owner, 2026-06-30):** Accepted — campaign-default-only for v1.
+  Per-map overrides are **delayed but given a named scheduled slot**: control-
+  plane row `B6-PER-MAP-OVERRIDES` (Band 6 stretch, status Deferred), depending
+  on `B3-TCV`/`B3-CAMPAIGN-RULES`/`B3-REQ` so it can only follow those
+  foundations.
 
 ### Q2 — `B3-COMBAT-ROLL-RESOLVER`: late slice or its own follow-on plan?
 
@@ -89,8 +94,8 @@ three items below are genuine owner forks.
 Record answers here when reviewed; if any answer changes, update the plan's
 slice order and the **Open Owner Questions** section in the same commit.
 
-- Q1: _explained 2026-06-30; recommendation = campaign-default-only for v1;
-  awaiting owner confirmation._
+- Q1: **Accepted** (owner) — campaign-default-only for v1; per-map overrides
+  tracked as the deferred `B6-PER-MAP-OVERRIDES` control-plane row.
 - Q2: **Accepted** (owner: "looks fine") — combat-roll-resolver is Slice 7.
 - Q3: **Accepted** (owner: "looks fine") — resource-pools is a substrate-only
   slice.

@@ -743,10 +743,11 @@ git diff --check
 Tracked in
 [`band3_implementation_plan_review_2026-06-30.md`](../../Code%20Reviews/band3_implementation_plan_review_2026-06-30.md):
 
-1. **Per-map override scope.** Recommendation (awaiting owner confirmation):
-   campaign-default scope only for v1 (matches `CRR-4`); `TCV` map-scope vars
-   stay part of `TCV` core (not a CampaignRules override), and `MET` `set_var`
-   covers mid-map runtime changes. Adding override scope later is additive.
+1. **Per-map override scope.** **Accepted** — campaign-default scope only for v1
+   (matches `CRR-4`); `TCV` map-scope vars stay part of `TCV` core (not a
+   CampaignRules override), and `MET` `set_var` covers mid-map runtime changes.
+   Per-map overrides are delayed but tracked as the deferred control-plane row
+   `B6-PER-MAP-OVERRIDES` (depends on `B3-TCV`/`B3-CAMPAIGN-RULES`/`B3-REQ`).
 2. **Combat-roll-resolver placement.** **Accepted** — a late slice (Slice 7) in
    this combined plan, not a separate follow-on.
 3. **`B3-RESOURCE-POOLS` inclusion.** **Accepted** — a substrate-only slice
