@@ -190,12 +190,24 @@ Implementation steps:
    - The result dictionary stores `rng_event_kind` and `rng_event_record`.
    - `apply_combat_result` commits the stored record exactly once.
    - Do not let `TurnManager` double-commit combat.
-2. Migrate `CombatResolver` hit and crit rolls.
+2. Migrate `CombatResolver` hit and crit rolls behind the author-selectable
+   roll-resolver seam (`[CRR-1..8]`, see
+   [`combat_roll_resolver_open_questions_2026-06-30.md`](../registers/combat_roll_resolver_open_questions_2026-06-30.md)).
    - `resolve_combat` calls `RngService.begin_event("attack", record)` after
      `combat_started` and before the first roll.
    - Store the returned RNG in the combat context as `"rng"`.
-   - Hit uses the two-RN rule: `floor((r1 + r2) / 2) < displayed_hit`.
-   - Crit draws only after a hit.
+   - **Do not hard-code the two-RN rule at the roll site.** Build a small pure
+     resolver seam now (`[CRR-2]`): the engine draws a resolver-declared, fixed
+     `rn_count` of `[0,100)` integers in canonical order and passes them to a
+     pure `did_hit(displayed_hit, rns) -> bool`.
+   - Ship two built-in resolvers: `two_roll` (RULE-001 default,
+     `(rns[0] + rns[1]) / 2 < hit`) and `single_roll` (`rns[0] < hit`).
+   - Select the resolver from `CampaignRules.hit_formula` (campaign default;
+     `two_roll` is the default value). Two built-ins = a bounded set, not a
+     content-growth enum; registry promotion + author tiers are the Band 3
+     follow-on `B3-COMBAT-ROLL-RESOLVER`, not this slice.
+   - Crit draws only after a hit. Keep crit a single draw for now; `[CRR-6]`
+     reserves the resolver family for crit/activation later.
    - Preserve the existing exchange order.
 
 Tests:
@@ -204,17 +216,23 @@ Tests:
   - T1 replay determinism for a scripted attack sequence,
   - T3 butterfly/isolation with Wait or another committed action between two
     attacks,
-  - T7 literal two-RN roll-order fixture.
+  - T7 literal roll-order fixture for **each** built-in resolver
+    (`single_roll` and `two_roll` reproduce their literal outcomes for fixed
+    `rns`).
 - `test_combat.gd` and `test_enemy_ai.gd` must stay green. **Watchout:** any
   existing fixture that hard-codes a single-RN hit/miss outcome must be rewritten
-  to the two-RN expectation in this same commit — "stay green" here means
-  *updated*, not unchanged.
+  to the configured resolver's expectation in this same commit — "stay green"
+  here means *updated*, not unchanged.
 
 Docs and tracking:
 
-- This changes player-visible hit math. Update `GDD_01`, `GDD_02`, and the
-  `B1-PKGA` row in the same commit, and add a playtest note that hit RNG is now
-  two-RN true hit.
+- This changes player-visible hit math **and** reframes a ratified rule. In the
+  same commit: update `GDD_01`, `GDD_02`, the RNG design doc, and the decision
+  log so RULE-001 reads as the **default** resolver preset, not the only hit rule
+  (`[CRR-1]`); update the `B1-PKGA` row; add a playtest note that the default hit
+  RNG is two-RN true hit and is now author-selectable.
+- F1: reserve a `campaign.hit_formula` manifest row in Slice 3 / Slice 6
+  (`[CRR-4]`).
 
 ### Slice 1c - Growth and skill-activation migration
 
@@ -491,7 +509,8 @@ Implementation steps:
 
 1. Produce the call-site grep list in the implementation PR/commit notes.
 2. Add or complete `CampaignRules` fields, including
-   `rewind_charges_per_map`.
+   `rewind_charges_per_map` and `hit_formula` (default `two_roll`; selects the
+   built-in roll resolver from Slice 1b — `[CRR-4]`).
 3. Add `GameState.campaign_rules`.
 4. Hard-migrate call sites to `gs.campaign_rules.<field>`.
 5. Delete loose fields after tests pass.
