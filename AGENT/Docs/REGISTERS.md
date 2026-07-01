@@ -7,6 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `FRG-1..18` | Forging / Weapon-and-Item Modification (`B7-FORGING`) — Research + Player-Facing Design + Open Questions | OPEN | (open) | `registers/forging_open_questions_2026-07-01.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
