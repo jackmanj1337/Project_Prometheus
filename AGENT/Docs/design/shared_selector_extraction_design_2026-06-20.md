@@ -1,8 +1,19 @@
 ---
 Type: design
 Status: Target design
-Last verified: 2026-06-23
+Last verified: 2026-07-01
 ---
+
+> **Band split (2026-07-01, review decision Q11).** **Component 1 (`SelectionCursor`,
+> the pure navigation core) is pulled forward into Band 4** and becomes the core
+> that the Band 4 `PanelSelector` (convoy/shop) is built on — one navigation core,
+> proven by convoy/shop first. **Components 2 & 3 (the input-context owner / arbiter
+> "Rebuild C" and the joypad-wiring point) stay in Band 6 (`B6-INPUT`)**, gated on
+> the input-mode-architecture + gamepad-layer keystone that convoy/shop do not need.
+> Band 6 EXTENDS — never replaces — the `PanelSelector` API and adopts this same
+> cursor core across the three More-Info surfaces. This resolves open question #3
+> below (yes, another selection model — `PanelSelector` — wants the same core).
+> Source: `AGENT/Code Reviews/band5_plus_preimplementation_questions_review_2026-06-30.md`.
 
 # Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20
 

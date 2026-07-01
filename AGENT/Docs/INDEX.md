@@ -93,6 +93,7 @@
 - [`design/action_effect_primitive_contract_2026-06-28.md`](design/action_effect_primitive_contract_2026-06-28.md) — Action / Effect Primitive Contract — *Active - architecture contract*
 - [`design/ai_first_build_design_2026-06-22.md`](design/ai_first_build_design_2026-06-22.md) — AI First-Build Design — Composition Engine (MVP build spec) — *Target design — build-ready*
 - [`design/ai_system_design_vision_2026-06-22.md`](design/ai_system_design_vision_2026-06-22.md) — AI System — Design Vision (player-facing · campaign-builder · architecture) — *Design vision*
+- [`design/campaign_asset_taxonomy_and_format_2026-07-01.md`](design/campaign_asset_taxonomy_and_format_2026-07-01.md) — Campaign Asset Taxonomy & On-Disk Format — *Active - architecture contract*
 - [`design/campaign_save_expectations_and_foundations_2026-06-23.md`](design/campaign_save_expectations_and_foundations_2026-06-23.md) — Campaign & Save — Expectations, Foundations & Interaction Surfaces (Framing) — *Active framing / driver*
 - [`design/campaign_save_player_facing_firming_2026-06-21.md`](design/campaign_save_player_facing_firming_2026-06-21.md) — Campaign / Save Cluster — Player-Facing Firming — *Player-facing firming — pass complete*
 - [`design/candidate_systems_2026-06-23.md`](design/candidate_systems_2026-06-23.md) — Candidate Systems — Initial Designs, Feasibility & Scope — *OPEN*

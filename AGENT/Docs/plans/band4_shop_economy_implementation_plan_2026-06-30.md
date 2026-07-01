@@ -134,8 +134,11 @@ Implementation checklist:
 - Confirm F1 rows exist for the roster multi-resource wallet and convoy store.
 - Confirm `ResourceLedger.quote()` and `commit()` support party-scoped costs.
 - Confirm `B4-CONVOY` exposes `give_item_to_unit_or_convoy()` or equivalent.
-- Confirm `PanelSelector` exists from the convoy plan or schedule it as the
-  first shared UI slice before shop UI.
+- Confirm `PanelSelector` (and the `SelectionCursor` core it is built on) exists
+  from the convoy plan, or schedule it as the first shared UI slice before shop
+  UI. Per the 2026-07-01 review Q11, `PanelSelector` wraps the pure
+  `SelectionCursor` navigation core (Component 1 of the selector-extraction
+  design), which lands in Band 4; the shop reuses both.
 - Decide whether the first shop slice is prep-only. Recommended first build is
   prep shop first, then on-map shop once `B4-MAP-OBJECTS` is ready.
 

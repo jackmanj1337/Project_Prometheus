@@ -260,19 +260,26 @@ Files to create or touch:
 
 - `scripts/ui/panels/ConvoyPanel.gd`
 - `scenes/ui/panels/ConvoyPanel.tscn`
+- `scripts/ui/shared/SelectionCursor.gd`
 - `scripts/ui/shared/PanelSelector.gd`
 - `scripts/ui/shared/FocusedDetailPane.gd`
 - `scripts/autoloads/RegistryManager.gd` or PHB panel registry data
 - `scripts/tests/test_convoy_panel.gd`
+- `scripts/tests/test_selection_cursor.gd`
 - `scripts/tests/test_panel_selector.gd`
 
 Implementation steps:
 
 1. Register a `convoy` PHB panel type.
 2. Add a selected-unit column and a convoy column.
-3. Add a shared `PanelSelector` that supports keyboard and mouse focus,
-   selection, cancellation, disabled rows, and a focus-changed signal. Keep the
-   API narrow so `B6-INPUT` can replace/fill controls later.
+3. Add a shared `PanelSelector` **built on the pure `SelectionCursor` logic core**
+   (Component 1 of `shared_selector_extraction_design_2026-06-20.md`, pulled
+   forward into Band 4 per the 2026-07-01 review decision Q11). `SelectionCursor`
+   is a headless-testable `RefCounted` owning the index/wrap/inactive navigation;
+   `PanelSelector` wraps it with keyboard and mouse focus, selection,
+   cancellation, disabled rows, and a focus-changed signal. Keep the API narrow so
+   `B6-INPUT` can EXTEND (not replace) it later; the arbiter / input-context owner
+   and gamepad wiring (Components 2-3) stay in Band 6.
 4. Add a focused item detail pane at the top.
 5. Render author-defined groups plus the required `All` group.
 6. Render author-selected row fields from:
