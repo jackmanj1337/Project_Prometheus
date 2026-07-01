@@ -145,8 +145,9 @@ text = ""
 
 [node name="InfoBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 6
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(300, 0)
 
 [node name="InfoTitle" type="Label" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
@@ -161,7 +162,8 @@ modulate = Color(0.7, 0.7, 0.75, 1)
 
 [node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 88)
+custom_minimum_size = Vector2(0, 144)
+size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = false
 scroll_active = true

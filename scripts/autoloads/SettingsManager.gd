@@ -47,11 +47,16 @@ var resolution: String = "1280x720"
 const RESOLUTION_CHOICES: Array[String] = [
 	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
 ]
-# Menu/modal scale (item 3 split), an index into MENU_SCALE_LEVELS. Default 1 == 1.0×.
+# Conservative decoration allowance for titled windowed mode. Godot sizes the
+# client area, while the OS adds title bar/borders outside it; keeping this margin
+# prevents monitor-sized windowed clients from hiding the title bar.
+const WINDOWED_DECORATION_MARGIN: Vector2i = Vector2i(96, 96)
+# Menu/modal scale (item 3 split), an index into MENU_SCALE_LEVELS. Default 2 == 1.0×.
 # Applied only to menu/modal panels through the "menu_scale_targets" group so HUD
 # readouts stay controlled by the HUD Layout editor instead of a global window scale.
-var menu_scale_index: int = 1
-const MENU_SCALE_LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+var menu_scale_index: int = 2
+const MENU_SCALE_SCHEMA_VERSION: int = 2
+const MENU_SCALE_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 # Per-panel HUD layout (item 4), keyed by stable panel id -> { "offset": Vector2,
 # "scale": float }. A missing entry = that panel's authored layout. Edited via the
 # in-map "Edit HUD Layout" mode and applied by HUD.apply_layout.
@@ -116,10 +121,15 @@ func load_settings() -> void:
 	resolution  = cfg.get_value("display", "resolution",  resolution)
 	# Clamp on load so a stale/corrupt index never indexes past MENU_SCALE_LEVELS.
 	# Migration: old builds stored this as ui_scale_index when it scaled the whole GUI.
-	menu_scale_index = clampi(
-		cfg.get_value("display", "menu_scale_index",
-			cfg.get_value("display", "ui_scale_index", menu_scale_index)),
-		0, MENU_SCALE_LEVELS.size() - 1)
+	# v2 prepends 0.5×, so old index values shift up one slot to preserve the
+	# selected factor (old 1 == 1.0×, new 2 == 1.0×).
+	var stored_menu_scale_index: int = cfg.get_value("display", "menu_scale_index",
+		cfg.get_value("display", "ui_scale_index", menu_scale_index))
+	var menu_scale_schema_version: int = int(cfg.get_value(
+		"display", "menu_scale_schema_version", 1))
+	if menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
+		stored_menu_scale_index += 1
+	menu_scale_index = clampi(stored_menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
 	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
 	hud_layout = cfg.get_value("display", "hud_layout", {})
@@ -150,6 +160,7 @@ func save() -> void:
 	cfg.set_value("display", "window_mode",    window_mode)
 	cfg.set_value("display", "resolution",     resolution)
 	cfg.set_value("display", "menu_scale_index", menu_scale_index)
+	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
 	cfg.set_value("display", "hud_layout",     hud_layout)
 
 	cfg.set_value("controls", "keybindings", keybindings)
@@ -179,7 +190,7 @@ func reset_section_to_defaults(section: String) -> void:
 		"display":
 			window_mode    = "windowed"
 			resolution     = "1280x720"
-			menu_scale_index = 1
+			menu_scale_index = 2
 			hud_layout     = {}
 			_apply_display()
 			_apply_menu_scale()
@@ -230,12 +241,13 @@ func _apply_display() -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			var size := _parse_resolution(resolution)
 			if size != Vector2i.ZERO:
+				var screen := DisplayServer.window_get_current_screen()
+				var usable := DisplayServer.screen_get_usable_rect(screen)
+				size = windowed_client_size_for_screen(size, usable.size)
 				DisplayServer.window_set_size(size)
 				# Re-centre the window on its screen after a resize.
-				var screen := DisplayServer.window_get_current_screen()
-				var origin := DisplayServer.screen_get_position(screen)
-				var screen_size := DisplayServer.screen_get_size(screen)
-				DisplayServer.window_set_position(window_centre_position(origin, screen_size, size))
+				DisplayServer.window_set_position(window_centre_position(
+					usable.position, usable.size, size))
 
 
 # Top-left position that centres a `size` window on a screen at `origin`/`screen_size`,
@@ -245,6 +257,26 @@ func _apply_display() -> void:
 func window_centre_position(origin: Vector2i, screen_size: Vector2i, size: Vector2i) -> Vector2i:
 	var offset := (screen_size - size) / 2
 	return origin + Vector2i(maxi(offset.x, 0), maxi(offset.y, 0))
+
+
+# Windowed mode should never request a client area so large the OS title bar
+# becomes unreachable. Exact monitor-size output belongs to Borderless or
+# Fullscreen; this helper keeps Windowed inside the usable screen while preserving
+# the 16:9 display contract.
+func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i) -> Vector2i:
+	if requested == Vector2i.ZERO or screen_size == Vector2i.ZERO:
+		return requested
+	var usable := Vector2i(
+		maxi(1, screen_size.x - WINDOWED_DECORATION_MARGIN.x),
+		maxi(1, screen_size.y - WINDOWED_DECORATION_MARGIN.y))
+	if requested.x <= usable.x and requested.y <= usable.y:
+		return requested
+	var width: int = mini(requested.x, usable.x)
+	var height: int = roundi(float(width) * 9.0 / 16.0)
+	if height > usable.y:
+		height = mini(requested.y, usable.y)
+		width = roundi(float(height) * 16.0 / 9.0)
+	return Vector2i(maxi(1, width), maxi(1, height))
 
 
 # Parses a "WxH" resolution string to a Vector2i; returns ZERO on a malformed value

@@ -967,5 +967,29 @@ func _init() -> void:
 	else:
 		print("SKIP camera buffer clamp (SettingsManager autoload absent)")
 
+	# V023-03: contextual action/item/weapon menus remember their tile anchor and
+	# recalc with the zoom-adjusted tile size instead of staying at a stale screen
+	# position.
+	var t_anchor := TurnManager.new(); root.add_child(t_anchor)
+	var c_anchor := _make_cursor(t_anchor)
+	var menu_anchor := Control.new()
+	menu_anchor.size = Vector2(120, 80)
+	menu_anchor.show()
+	root.add_child(menu_anchor)
+	c_anchor._camera.zoom = Vector2.ONE
+	c_anchor._place_menu_near(menu_anchor, Vector2i(1, 1))
+	var anchor_before: Vector2 = menu_anchor.position
+	c_anchor._camera.zoom = Vector2(2.0, 2.0)
+	c_anchor._reposition_context_menu_anchor()
+	var anchor_after: Vector2 = menu_anchor.position
+	if anchor_after.x > anchor_before.x and anchor_after.y == anchor_before.y:
+		print("OK  contextual menu anchor recalculates from tile + zoom (V023-03)")
+		passed += 1
+	else:
+		print("FAIL contextual menu anchor: before=%s after=%s" % [
+			anchor_before, anchor_after])
+		failed += 1
+	menu_anchor.queue_free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "archer"
 display_name = "Archer"
-description = "A ranged physical attacker. Cannot attack adjacent (range 1) targets."
+description = "A ranged physical attacker; bow range is determined by the equipped weapon."
 tier = 1
 base_hp = 16
 base_strength = 5

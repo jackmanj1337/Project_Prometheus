@@ -1,9 +1,9 @@
 # GDD_07 — UI & UX
 
 **Status:** Active contract — split status per section (most UI surfaces are
-**Implemented**; combat-animation feedback, key rebinding, and accessibility-scale work
-are **Planned**). UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-06-29
+**Implemented**; combat-animation feedback, key rebinding, and HUD scale polish are
+**Planned**). UI is project-specific; it has no corpus-adoption rows.
+**Last verified:** 2026-07-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -343,7 +343,10 @@ The menu is **contextual**. Unavailable actions are hidden entirely rather than 
 disabled, so the visible row set depends on the acting unit, tile, and current map.
 
 **Behavior:**
-- Menu appears adjacent to the unit's new tile; repositioned if too close to screen edge
+- Menu appears adjacent to the unit's new tile; repositioned if too close to screen edge.
+  The tile anchor is remembered while the menu is open, so map zoom or the Settings
+  Map Zoom slider re-place the contextual Action/Item/Weapon menu against the same tile
+  instead of leaving it at a stale screen position (V023-03).
 - Navigate with `cursor_up` / `cursor_down` (wraps, skipping disabled buttons);
   confirm with `confirm`; close with `cancel`
 - Closing with cancel triggers undo: unit returns to its pre-move tile
@@ -403,9 +406,15 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - The current panel also shows weapon-triangle and effectiveness markers
 - A **weapon row** under each combatant's name shows the equipped weapon's display
   name ("Unarmed" when none), so matchups read at a glance without opening the sheet
-  (V021-14). It's a plain readout, not a selectable More Info field.
+  (V021-14). It's a plain readout, not a selectable More Info field. These rows are
+  measured with the rest of the forecast rows so exported builds cannot collapse them
+  to zero height (V023-04).
+- Neutral weapon-triangle/effectiveness states render a low-emphasis gray `Neutral`
+  marker instead of a blank cycle-only row (V023-04).
 - Phase-1 More Info adds an info box on the right; `more_info` cycles through each
-  preview field and clicking a field opens its description
+  preview field and clicking a field opens its description. The info text is a bounded
+  scroll area with enough vertical fill to avoid clipping longer descriptions at large
+  display/zoom settings (V023-04).
 - The **Damage** field's More Info also shows each side's **Battle Speed** and the
   follow-up threshold (and who, if anyone, doubles) — the values needed to verify
   the follow-up math (handbook 8.3). `preview_combat()` returns
@@ -480,6 +489,8 @@ This is the live character-sheet overlay. It shows:
   the player inspect the hidden support unit without leaving the sheet
 
 The screen is read-only. It exists for inspection, not inventory management.
+The main sheet column lives inside a fixed, centered scroll frame, so Menu Scale keeps
+the modal centered while overflow content remains reachable at large factors (V023-02a).
 
 **More Info integration:**
 - every class, stat, inventory entry, skill, and weapon-rank row is selectable
@@ -569,7 +580,8 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 **Behavior:**
 - Stats that increased are shown with a `▲` marker and highlighted in yellow
 - Stats that did not increase are shown in white
-- Player presses `confirm` to dismiss
+- Player presses `confirm`/`cancel`, or left/right-clicks, to dismiss. Wheel and zoom
+  input are consumed while the popup is visible and do not dismiss it (V023-05).
 - If multiple level-ups occur at once (EXP overflow), show one screen per level
 - After dismissal, combat or turn resolution continues
 
@@ -862,7 +874,7 @@ The accessibility and parity contract the UI must honor across input methods and
   `level_up_screen` (Show/Auto/Skip) let players reduce animation/wait time.
 - **Always-visible numbers:** all combat-relevant values (Hit/Dmg/Crit, terrain bonuses,
   WEXP, modifiers) are shown before commit (Attack Preview, Unit Details + More Info).
-- **Menu Scale** (`menu_scale_index` → `SettingsManager.MENU_SCALE_LEVELS`, 0.75×–2.0×):
+- **Menu Scale** (`menu_scale_index` → `SettingsManager.MENU_SCALE_LEVELS`, 0.5×–2.0×):
   a Settings stepped slider scales menu/modal panels through the shared
   `menu_scale_targets` group. It does not change `Window.content_scale_factor`, so
   persistent HUD readouts remain governed by HUD Layout. **Crisp scaling (V021-18 / D2,
@@ -883,6 +895,10 @@ The accessibility and parity contract the UI must honor across input methods and
   still carry per-node font overrides, so we derive the theme at runtime and walk the
   overrides rather than restyling all ~11 scenes onto one authored base Theme — factor 1 is
   byte-identical to today, and an authored base Theme can later seed the derived theme.
+  **V023-01:** the Settings screen itself uses stable row label/control columns after each
+  live scale pass so dragging the Menu Scale slider does not move the slider under the
+  pointer. Existing saves migrate old scale indices forward one slot so adding `0.5×` does
+  not turn a saved `1.0×` into `0.75×`.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
@@ -914,6 +930,8 @@ The accessibility and parity contract the UI must honor across input methods and
   `_terrain_expanded_offset` derives the reflow from the active page's height — which
   hardens the V021-02 reset bug (the offset is computed, never cached). `Def`/`Dodge`
   live on the always-visible compact panel, so the movement page doesn't restate them.
+  Click-mode paging hit-tests both the compact panel and the expanded More Info panel, so
+  clicking the Movement page cycles back to Hidden reliably (V023-09a).
 - **Safe-area provider (V021-19 / D5 / E6):** HUD edge-anchoring (`HUD._clamp_panel_on_screen`)
   reads a single source — `SettingsManager.get_safe_area_insets()` → `Vector4i(left, top,
   right, bottom)` — so the on-screen clamp respects unsafe screen margins (notch / rounded

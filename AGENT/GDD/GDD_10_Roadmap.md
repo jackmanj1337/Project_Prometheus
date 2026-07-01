@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-06-30
+**Last verified:** 2026-07-01
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -82,7 +82,7 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
-| `VAL-V023-DISPLAY` | Validation | Run the v0.2.3 display live-verify gate. |
+| `VAL-V023-DISPLAY` | Validation | Rerun the v0.2.3 display gate after the implemented `V023-01..06`, `V023-08a`, and `V023-09a` repair pass. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |

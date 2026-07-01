@@ -30,14 +30,15 @@ const _DEBUFF_COLOR := "#ff6b6b"
 # d-pad user can see which entry is highlighted (V020-10).
 const _SEL_MARK := "▶ "
 
-@onready var _title: Label             = $Panel/HBox/VBox/TitleLabel
-@onready var _class_lbl: RichTextLabel = $Panel/HBox/VBox/ClassLabel
-@onready var _stats: RichTextLabel     = $Panel/HBox/VBox/StatsLabel
-@onready var _inventory: RichTextLabel = $Panel/HBox/VBox/InventoryLabel
-@onready var _skills: RichTextLabel    = $Panel/HBox/VBox/SkillsLabel
-@onready var _wexp: RichTextLabel      = $Panel/HBox/VBox/WexpLabel
-@onready var _btn_pair: Button         = $Panel/HBox/VBox/BtnPair
-@onready var _btn_back: Button         = $Panel/HBox/VBox/BtnBack
+@onready var _main_scroll: ScrollContainer = $Panel/HBox/MainScroll
+@onready var _title: Label             = $Panel/HBox/MainScroll/VBox/TitleLabel
+@onready var _class_lbl: RichTextLabel = $Panel/HBox/MainScroll/VBox/ClassLabel
+@onready var _stats: RichTextLabel     = $Panel/HBox/MainScroll/VBox/StatsLabel
+@onready var _inventory: RichTextLabel = $Panel/HBox/MainScroll/VBox/InventoryLabel
+@onready var _skills: RichTextLabel    = $Panel/HBox/MainScroll/VBox/SkillsLabel
+@onready var _wexp: RichTextLabel      = $Panel/HBox/MainScroll/VBox/WexpLabel
+@onready var _btn_pair: Button         = $Panel/HBox/MainScroll/VBox/BtnPair
+@onready var _btn_back: Button         = $Panel/HBox/MainScroll/VBox/BtnBack
 @onready var _info_title: Label        = $Panel/HBox/InfoVBox/InfoTitle
 @onready var _info_hint: Label         = $Panel/HBox/InfoVBox/InfoHint
 @onready var _info_desc: RichTextLabel = $Panel/HBox/InfoVBox/InfoDescription
@@ -117,6 +118,9 @@ func open(unit: Node) -> void:
 		_base_texts[lbl] = lbl.text
 	_reset_info_panel()
 	show()
+	_main_scroll.scroll_vertical = 0
+	_apply_menu_scale_from_settings()
+	call_deferred("_apply_menu_scale_from_settings")
 	_btn_back.grab_focus()
 
 

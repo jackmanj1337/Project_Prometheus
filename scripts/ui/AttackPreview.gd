@@ -47,13 +47,14 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const COLOR_ADVANTAGE    := "#61c454"
 const COLOR_DISADVANTAGE := "#d85b5b"
 const COLOR_EFFECTIVE    := "#eec84c"
+const COLOR_NEUTRAL      := "#9a9aa6"
 
 # Pixel gap between the defender's tile edge and the preview panel, and
 # between the panel and the viewport edge.
 const PANEL_MARGIN_PX: int = 16
 const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
-const INFO_COLUMN_MIN_WIDTH: float = 260.0
-const PANEL_DEFAULT_HEIGHT: float = 170.0
+const INFO_COLUMN_MIN_WIDTH: float = 300.0
+const PANEL_DEFAULT_HEIGHT: float = 230.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
 # Horizontal slack subtracted from the forecast column when deciding whether a
 # name fits on one line, so the ellipsis never butts right against the edge.
@@ -220,6 +221,14 @@ func _all_selectable_labels() -> Array[RichTextLabel]:
 	]
 
 
+func _all_forecast_rows() -> Array[RichTextLabel]:
+	return [
+		_atk_name, _atk_weapon, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle,
+		_atk_effective, _def_name, _def_weapon, _def_hp, _def_dmg, _def_hit, _def_crit,
+		_def_triangle, _def_effective,
+	]
+
+
 # Builds one selectable field. `title` is the side-panel title used when this
 # field is selected; `text` is the visible row text. Registering the entry
 # here keeps the _entries list in sync with the visible link order.
@@ -228,9 +237,8 @@ func _link(side: String, key: String, title: String, text: String) -> String:
 	return "[url=combat_field:%s:%s]%s[/url]" % [side, key, text]
 
 
-# Triangle marker. Neutral renders empty so the row doesn't reserve space
-# for a marker that has no meaning. Advantage/disadvantage wrap the text in
-# both [color] and [url] so the marker stays readable AND clickable.
+# Triangle marker. Neutral is visible so the row does not disappear when no
+# side has advantage; all states stay clickable and reachable by F-cycling.
 func _triangle_link(side: String, result: String) -> String:
 	match result:
 		"advantage":
@@ -240,11 +248,8 @@ func _triangle_link(side: String, result: String) -> String:
 			return _link(side, "triangle", "Weapon Triangle",
 				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE)
 		_:
-			# Still register the entry so the cycle visits it — but render
-			# blank text. Clicking nothing is impossible, so the entry is
-			# only reachable via the more_info cycle.
-			_entries.append({"side": side, "key": "triangle", "title": "Weapon Triangle"})
-			return ""
+			return _link(side, "triangle", "Weapon Triangle",
+				"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
 
 
 # Effectiveness marker. Mult is included so the player can tell Giantkiller's
@@ -253,9 +258,8 @@ func _effective_link(side: String, is_effective: bool, mult: float) -> String:
 	if is_effective:
 		return _link(side, "effectiveness", "Effectiveness",
 			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))])
-	# Same cycle-only registration as the neutral triangle case.
-	_entries.append({"side": side, "key": "effectiveness", "title": "Effectiveness"})
-	return ""
+	return _link(side, "effectiveness", "Effectiveness",
+		"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
 
 
 # Resets the side panel to its "nothing selected yet" hint state.
@@ -266,7 +270,7 @@ func _reset_info_panel() -> void:
 
 
 func _refresh_forecast_row_heights() -> void:
-	for label in _all_selectable_labels():
+	for label in _all_forecast_rows():
 		if label.text == "":
 			label.custom_minimum_size.y = 0.0
 			continue

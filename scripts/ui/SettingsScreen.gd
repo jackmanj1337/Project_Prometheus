@@ -29,6 +29,9 @@ const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 # 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
 const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd")
 
+const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
+const _SETTINGS_ROW_SEPARATION: int = 8
+
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
 @onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
@@ -201,7 +204,13 @@ func open() -> void:
 	# when a HUD exists (i.e. Settings opened via the in-map Map Menu, not the title).
 	_btn_edit_hud.disabled = get_tree().get_first_node_in_group("hud") == null
 	show()
+	_stabilize_settings_rows()
 	_btn_back.grab_focus()
+
+
+func apply_menu_scale(factor: float) -> void:
+	super.apply_menu_scale(factor)
+	_stabilize_settings_rows()
 
 
 func _close() -> void:
@@ -320,10 +329,10 @@ func _zoom_label(index: int) -> String:
 # Menu-scale slider: value IS the stored index into SettingsManager.MENU_SCALE_LEVELS.
 # Applies live to menu/modal panels; HUD sizing stays under the HUD Layout editor.
 func _on_menu_scale_changed(value: float) -> void:
-	var idx: int = int(value)
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm == null:
 		return
+	var idx: int = clampi(int(value), 0, sm.MENU_SCALE_LEVELS.size() - 1)
 	_label_menu_scale.text = _menu_scale_label(sm, idx)
 	sm.set("menu_scale_index", idx)
 	sm.call("_apply_menu_scale")
@@ -419,3 +428,21 @@ func _add_keybind_row(action: String, label: String) -> void:
 	row.add_child(name_label)
 	row.add_child(key_label)
 	_keybind_list.add_child(row)
+
+
+# The Settings screen scales live while the player drags Menu Scale. Keep row
+# geometry stable so the control column does not drift under the cursor mid-drag.
+func _stabilize_settings_rows() -> void:
+	if _vbox == null:
+		return
+	for child in _vbox.get_children():
+		if not (child is HBoxContainer):
+			continue
+		var row := child as HBoxContainer
+		row.add_theme_constant_override("separation", _SETTINGS_ROW_SEPARATION)
+		if row.get_child_count() == 0 or not (row.get_child(0) is Label):
+			continue
+		var title := row.get_child(0) as Label
+		title.custom_minimum_size.x = _SETTINGS_LABEL_COLUMN_WIDTH
+		title.clip_text = true
+		title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

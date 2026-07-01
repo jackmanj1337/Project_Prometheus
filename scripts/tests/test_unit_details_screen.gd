@@ -32,13 +32,14 @@ func _init() -> void:
 	# Every node the script's @onready vars depend on must exist after the
 	# More Info layout switch to Panel/HBox/{VBox, InfoVBox}.
 	var expected := [
-		"Panel/HBox/VBox/TitleLabel",
-		"Panel/HBox/VBox/StatsLabel",
-		"Panel/HBox/VBox/InventoryLabel",
-		"Panel/HBox/VBox/SkillsLabel",
-		"Panel/HBox/VBox/WexpLabel",
-		"Panel/HBox/VBox/BtnPair",
-		"Panel/HBox/VBox/BtnBack",
+		"Panel/HBox/MainScroll",
+		"Panel/HBox/MainScroll/VBox/TitleLabel",
+		"Panel/HBox/MainScroll/VBox/StatsLabel",
+		"Panel/HBox/MainScroll/VBox/InventoryLabel",
+		"Panel/HBox/MainScroll/VBox/SkillsLabel",
+		"Panel/HBox/MainScroll/VBox/WexpLabel",
+		"Panel/HBox/MainScroll/VBox/BtnPair",
+		"Panel/HBox/MainScroll/VBox/BtnBack",
 		"Panel/HBox/InfoVBox/InfoTitle",
 		"Panel/HBox/InfoVBox/InfoHint",
 		"Panel/HBox/InfoVBox/InfoDescription",
@@ -52,6 +53,16 @@ func _init() -> void:
 			failed += 1
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
+
+	var main_scroll := screen.get_node_or_null("Panel/HBox/MainScroll") as ScrollContainer
+	var panel := screen.get_node_or_null("Panel") as PanelContainer
+	if main_scroll != null and panel != null \
+			and main_scroll.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+		print("OK  character sheet main column uses a scroll frame (V023-02a)")
+		passed += 1
+	else:
+		print("FAIL character sheet scroll frame missing or disabled")
+		failed += 1
 
 	# open() populates the title from the unit and shows the page.
 	var d := UnitData.new()
@@ -138,6 +149,14 @@ func is_weapon_track_available(track: String) -> bool:
 		print("OK  class detail relocated to More Info with resolved movement type (V021-10/11)"); passed += 1
 	else:
 		print("FAIL class relocation: compact=%s panel=%s" % [inline_compact, class_panel]); failed += 1
+
+	var archer_panel: String = screen._class_description("archer")
+	if "equipped weapon" in archer_panel and not ("Cannot attack adjacent" in archer_panel):
+		print("OK  archer copy keeps bow range weapon-driven (V023-08a)")
+		passed += 1
+	else:
+		print("FAIL archer copy is stale: %s" % archer_panel)
+		failed += 1
 
 	# Compact stats use the same effective-display total as More Info, including
 	# combat-only Pair Up bonuses. The paired-unit button opens the hidden support

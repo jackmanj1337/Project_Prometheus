@@ -73,6 +73,7 @@ var _input_suppressed: bool = false
 # True while the "end turn with unacted units?" ConfirmationDialog is open.
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
+var _context_menu_anchor: Dictionary = {}
 
 
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
@@ -613,7 +614,7 @@ func _deselect() -> void:
 # (playtest 3 #4). Used by every per-unit popup — Action / Item / Weapon menus —
 # so the fix lands in one place. Call this AFTER the menu's show_for() so its
 # real size is known (menus hide unavailable rows, so the height varies).
-func _place_menu_near(menu: Node, tile: Vector2i) -> void:
+func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) -> void:
 	if menu == null or _grid == null:
 		return
 	var world_pos := _grid.tile_to_world(tile)
@@ -626,13 +627,31 @@ func _place_menu_near(menu: Node, tile: Vector2i) -> void:
 		menu_size = menu.get_combined_minimum_size()
 	if menu is Control:
 		menu_size *= (menu as Control).scale
-	var pos := screen_pos + Vector2(GameConstants.TILE_SIZE, 0)
+	var tile_px: float = float(GameConstants.TILE_SIZE)
+	if _camera != null and _camera.zoom.x > 0.0:
+		tile_px *= _camera.zoom.x
+	var pos := screen_pos + Vector2(tile_px + 4.0, 0)
 	# Flip to the unit's left if the menu would run off the right edge.
 	if pos.x + menu_size.x > view.x:
 		pos.x = screen_pos.x - menu_size.x
 	pos.x = clampf(pos.x, 0.0, maxf(0.0, view.x - menu_size.x))
 	pos.y = clampf(pos.y, 0.0, maxf(0.0, view.y - menu_size.y))
 	menu.position = pos
+	if remember_anchor:
+		_context_menu_anchor = {"menu": menu, "tile": tile}
+
+
+func _reposition_context_menu_anchor() -> void:
+	if _context_menu_anchor.is_empty():
+		return
+	var menu: Node = _context_menu_anchor.get("menu", null)
+	if menu == null or not is_instance_valid(menu):
+		_context_menu_anchor.clear()
+		return
+	if menu is CanvasItem and not (menu as CanvasItem).visible:
+		_context_menu_anchor.clear()
+		return
+	_place_menu_near(menu, _context_menu_anchor.get("tile", current_tile), false)
 
 
 func _show_action_menu() -> void:
@@ -1164,6 +1183,7 @@ func unlock() -> void:
 func cancel_transient_control_for_handoff() -> void:
 	_input_handler.clear_repeat()
 	_awaiting_end_turn_confirm = false
+	_context_menu_anchor.clear()
 	_hide_if_visible(action_menu)
 	_hide_if_visible(item_menu)
 	_hide_if_visible(weapon_menu)
@@ -1210,7 +1230,9 @@ func _camera_edge_buffer() -> int:
 func apply_zoom_index(index: int) -> int:
 	if _camera_ctrl == null:
 		return index
-	return _camera_ctrl.set_zoom_index(index, current_tile, _camera_edge_buffer())
+	var applied: int = _camera_ctrl.set_zoom_index(index, current_tile, _camera_edge_buffer())
+	_reposition_context_menu_anchor()
+	return applied
 
 
 # Steps the map zoom one level (direction +1 in / -1 out), re-framing on the
@@ -1220,6 +1242,7 @@ func _apply_zoom_step(direction: int) -> void:
 		return
 	var idx: int = _camera_ctrl.step_zoom(direction, current_tile, _camera_edge_buffer())
 	_persist_zoom_index(idx)
+	_reposition_context_menu_anchor()
 
 
 # Resets the map zoom to the default 1× level, re-framing on the cursor.
@@ -1228,6 +1251,7 @@ func _apply_zoom_reset() -> void:
 		return
 	var idx: int = _camera_ctrl.reset_zoom(current_tile, _camera_edge_buffer())
 	_persist_zoom_index(idx)
+	_reposition_context_menu_anchor()
 
 
 # Writes the chosen zoom index back to SettingsManager so it survives map changes

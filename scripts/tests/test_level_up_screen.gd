@@ -50,6 +50,31 @@ var data: StubData = StubData.new()
 	else:
 		print("FAIL left-click did not dismiss the panel"); failed += 1
 
+	# V023-05: mouse wheel and zoom actions are input to block, not dismissal.
+	screen._queue.append({"unit": stub_unit, "increases": {"hp": 1}})
+	screen._show_next()
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	screen._unhandled_input(wheel)
+	await process_frame
+	var wheel_kept_open: bool = screen.visible
+	var zoom := InputEventAction.new()
+	zoom.action = "zoom_in"
+	zoom.pressed = true
+	screen._unhandled_input(zoom)
+	await process_frame
+	var zoom_kept_open: bool = screen.visible
+	if wheel_kept_open and zoom_kept_open:
+		print("OK  wheel/zoom input is blocked without dismissing level-up (V023-05)")
+		passed += 1
+	else:
+		print("FAIL wheel/zoom dismissed level-up: wheel=%s zoom=%s" % [
+			wheel_kept_open, zoom_kept_open])
+		failed += 1
+	screen._advance()
+	await process_frame
+
 	# Confirm action still works after the change — guards against regression.
 	screen._queue.append({"unit": stub_unit, "increases": {"hp": 1}})
 	screen._show_next()

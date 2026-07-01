@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-29
+**Last verified:** 2026-07-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -112,7 +112,9 @@ reference snapshot and developer-provided preset content, not an engine requirem
 Base stats and personal growth rates are authored per unit in `data/roster/default/`
 (`.tres` = source of truth). Bows have `range_min_formula = "2"` — any bow-equipped unit
 cannot hit adjacent targets (a weapon property, not a class trait; enforced by
-`GridManager` + `CombatResolver.can_counterattack()`).
+`GridManager` + `CombatResolver.can_counterattack()`). The Archer class description
+therefore uses weapon-neutral wording: bow range comes from the equipped weapon
+(V023-08a).
 
 \* **Project-only promotion targets** (Sentinel, Mage Knight, Bishop, Paragon) are
 **Rejected** under RULE-007 — archived to Git history at class migration.

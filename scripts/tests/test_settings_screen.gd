@@ -56,6 +56,26 @@ func _init() -> void:
 	else:
 		print("FAIL Menu Scale label missing or stale"); failed += 1
 
+	# V023-01: live Menu Scale must not move the slider's control column under the
+	# pointer. SettingsScreen applies stable row columns after every scale pass.
+	screen.show()
+	var scale_slider: Control = screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale/SliderUIScale")
+	var slider_positions: Array[float] = []
+	if scale_slider != null:
+		for factor in [0.5, 1.0, 2.0]:
+			screen.apply_menu_scale(float(factor))
+			await process_frame
+			slider_positions.append(scale_slider.get_global_rect().position.x)
+	var slider_stable := slider_positions.size() == 3 \
+		and absf(slider_positions[0] - slider_positions[1]) <= 1.0 \
+		and absf(slider_positions[1] - slider_positions[2]) <= 1.0
+	if slider_stable:
+		print("OK  Menu Scale slider x-position stays stable during live scaling")
+		passed += 1
+	else:
+		print("FAIL Menu Scale slider drift: %s" % str(slider_positions))
+		failed += 1
+
 	# Keybinding list is populated from the InputMap (#8).
 	var list := screen.get_node_or_null("Panel/ScrollContainer/VBox/KeybindList")
 	if list != null and list.get_child_count() > 0:

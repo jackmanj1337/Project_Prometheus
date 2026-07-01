@@ -36,64 +36,72 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="VBox" type="VBoxContainer" parent="Panel/HBox"]
+[node name="MainScroll" type="ScrollContainer" parent="Panel/HBox"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+vertical_scroll_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel/HBox/MainScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Panel/HBox/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 text = "Unit"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 
-[node name="ClassLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="ClassLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 text = "Class"
 
-[node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 text = "Stats"
 
-[node name="InventoryLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="InventoryLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 text = "Inventory"
 
-[node name="SkillsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="SkillsLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 text = "Skills"
 
-[node name="WexpLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="WexpLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 text = "Weapon Ranks"
 
-[node name="BtnPair" type="Button" parent="Panel/HBox/VBox"]
+[node name="BtnPair" type="Button" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 visible = false
 text = "View Support"
 
-[node name="BtnBack" type="Button" parent="Panel/HBox/VBox"]
+[node name="BtnBack" type="Button" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 text = "Back"
 
 [node name="InfoVBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 10
 custom_minimum_size = Vector2(280, 0)
 
@@ -112,13 +120,14 @@ modulate = Color(0.7, 0.7, 0.75, 1)
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-fit_content = true
-scroll_active = false
+fit_content = false
+scroll_active = true
 text = ""
 
 [node name="InfoModifiers" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
 layout_mode = 2
+size_flags_vertical = 3
 bbcode_enabled = true
-fit_content = true
-scroll_active = false
+fit_content = false
+scroll_active = true
 text = ""

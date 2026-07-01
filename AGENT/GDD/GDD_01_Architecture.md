@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-29
+**Last verified:** 2026-07-01
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -1099,6 +1099,12 @@ policy above letterboxes non-16:9 screens so the absolute-offset scene nodes sta
 on-screen. Menu/modal scale is player-set without changing the HUD's global window
 scale — see `GDD_07_UI_UX.md` §Accessibility. Player map zoom is the §Camera Zoom
 section below.
+
+In **Windowed** mode, a selected client size that would hide the OS title bar is clamped
+to the largest 16:9 client area inside the usable display rect, with a conservative
+decoration margin (`SettingsManager.windowed_client_size_for_screen`, V023-06). Exact
+monitor-size output is reserved for Borderless (`WINDOW_MODE_FULLSCREEN`) and Fullscreen
+(`WINDOW_MODE_EXCLUSIVE_FULLSCREEN`), which are separate code paths.
 
 **Confirm-or-revert on risky display changes.** Changing window mode or resolution
 applies the new mode immediately (so the player can see it) but **defers the save

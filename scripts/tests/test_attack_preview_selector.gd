@@ -64,9 +64,11 @@ func _init() -> void:
 
 	# ---- V021-14: forecast names each combatant's equipped weapon -------
 	var weapon_ok: bool = "Iron Sword" in preview._atk_weapon.text \
-		and preview._def_weapon.text == "Unarmed"
+		and preview._atk_weapon.size.y > 0.0 \
+		and preview._def_weapon.text == "Unarmed" \
+		and preview._def_weapon.size.y > 0.0
 	if weapon_ok:
-		print("OK  forecast names the equipped weapon (Unarmed when none) (V021-14)")
+		print("OK  forecast names the equipped weapon with visible row height (V021-14/V023-04)")
 		passed += 1
 	else:
 		print("FAIL V021-14 weapon names: atk=%s def=%s" % [
@@ -88,7 +90,7 @@ func _init() -> void:
 		preview._atk_name, preview._atk_hp, preview._atk_dmg, preview._atk_hit,
 		preview._atk_crit, preview._atk_triangle, preview._atk_effective,
 		preview._def_name, preview._def_hp, preview._def_dmg, preview._def_hit,
-		preview._def_crit, preview._def_triangle,
+		preview._def_crit, preview._def_triangle, preview._def_effective,
 	]
 	var visible_height_failures: Array[String] = []
 	for label in forecast_rows:
@@ -143,6 +145,37 @@ func _init() -> void:
 		print("FAIL field link rendering: atk_dmg=%s def_hit=%s atk_tri=%s atk_eff=%s" \
 			% [atk_dmg_text, def_hit_text, atk_tri_text, atk_eff_text])
 		failed += 1
+
+	# V023-04: neutral triangle/effectiveness states are visible, not blank
+	# cycle-only entries.
+	var neutral_data := _make_preview_data()
+	neutral_data["attacker_triangle"] = "neutral"
+	neutral_data["defender_triangle"] = "neutral"
+	neutral_data["attacker_effective"] = false
+	neutral_data["defender_effective"] = false
+	resolver.preview_data = neutral_data
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var neutral_ok: bool = (
+		"■ Neutral" in preview._atk_triangle.text
+		and "■ Neutral" in preview._atk_effective.text
+		and "■ Neutral" in preview._def_triangle.text
+		and "■ Neutral" in preview._def_effective.text
+		and preview._atk_triangle.size.y > 0.0
+		and preview._atk_effective.size.y > 0.0
+	)
+	if neutral_ok:
+		print("OK  neutral triangle/effectiveness rows render visible gray Neutral markers")
+		passed += 1
+	else:
+		print("FAIL neutral rows: atk_tri=%s/%s atk_eff=%s/%s def_tri=%s def_eff=%s" % [
+			preview._atk_triangle.text, str(preview._atk_triangle.size),
+			preview._atk_effective.text, str(preview._atk_effective.size),
+			preview._def_triangle.text, preview._def_effective.text])
+		failed += 1
+	resolver.preview_data = _make_preview_data()
+	preview.show_preview(attacker, defender)
+	await process_frame
 
 	# ---- InfoBox starts in the hint state -------------------------------
 	if preview._info_hint.visible and preview._info_desc.text == "":

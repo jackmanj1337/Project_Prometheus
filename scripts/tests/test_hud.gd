@@ -440,6 +440,29 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL cycle: c1=%s c2=%s c3=%s" % [cyc1, cyc2, cyc3]); failed += 1
 
+	# V023-09a: click paging should hit both the compact panel and either expanded
+	# page. The movement page used to miss because only TerrainCorner's compact
+	# footprint was checked.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
+	hud._update_terrain(Vector2i(0, 0))
+	await process_frame
+	var compact_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_panel.get_global_rect().get_center())
+	var description_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_more_panel.get_global_rect().get_center())
+	hud._terrain_more_page = hud.TERRAIN_PAGE_MOVEMENT
+	hud._update_terrain(Vector2i(0, 0))
+	await process_frame
+	var movement_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_more_panel.get_global_rect().get_center())
+	if compact_hit and description_hit and movement_hit:
+		print("OK  V023-09a terrain click hit-test covers compact and expanded pages")
+		passed += 1
+	else:
+		print("FAIL terrain click hit-test: compact=%s desc=%s movement=%s" % [
+			compact_hit, description_hit, movement_hit])
+		failed += 1
+
 	# More Info is a separate, bounded, scrollable box — not part of the basic
 	# stats panel. The scroll caps the visible height so long terrain text
 	# scrolls instead of growing the panel off-screen.

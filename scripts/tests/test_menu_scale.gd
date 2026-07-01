@@ -5,7 +5,7 @@ extends SceneTree
 # HUD layout is covered separately by test_hud_layout.gd.
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
-const LEVELS: Array[float] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+const LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 const BASE_FONT := 16  # MenuScale._BASE_DEFAULT_FONT_SIZE (engine default)
 
 var _passed := 0
@@ -27,6 +27,7 @@ func _init() -> void:
 	var centered_cases: Array = [
 		["MapMenu", "res://scenes/ui/MapMenu.tscn", "Panel"],
 		["SettingsScreen", "res://scenes/ui/SettingsScreen.tscn", "Panel"],
+		["UnitDetailsScreen", "res://scenes/ui/UnitDetailsScreen.tscn", "Panel"],
 		["NewGameScreen", "res://scenes/ui/NewGameScreen.tscn", "Panel"],
 		["PromotionScreen", "res://scenes/ui/PromotionScreen.tscn", "Panel"],
 		["ReclassScreen", "res://scenes/ui/ReclassScreen.tscn", "Panel"],

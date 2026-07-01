@@ -139,13 +139,14 @@ func _init() -> void:
 
 	# ---- display section: defaults + reset (Display/Access items 2-3) ----
 	var disp_default_ok: bool = (sm.window_mode == "windowed"
-		and sm.resolution == "1280x720" and sm.menu_scale_index == 1)
+		and sm.resolution == "1280x720" and sm.menu_scale_index == 2
+		and sm.MENU_SCALE_LEVELS == [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0])
 	sm.window_mode = "fullscreen"
 	sm.resolution = "1920x1080"
 	sm.menu_scale_index = 4
 	sm.reset_section_to_defaults("display")
 	var disp_reset_ok: bool = (sm.window_mode == "windowed"
-		and sm.resolution == "1280x720" and sm.menu_scale_index == 1)
+		and sm.resolution == "1280x720" and sm.menu_scale_index == 2)
 	# V021-19: the curated list must offer native 1440p + 4K alongside the smaller modes,
 	# and they must parse to the expected pixel sizes.
 	var hi_res_ok: bool = (sm.RESOLUTION_CHOICES.has("2560x1440")
@@ -202,6 +203,22 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL window_centre_position: fit=%s clamp=%s" % [fit_ok, clamp_ok])
+		failed += 1
+
+	# V023-06: windowed native-size choices clamp inside the usable display so the
+	# OS title bar remains reachable. Borderless/fullscreen keep exact native modes
+	# through separate DisplayServer window modes, so this helper is windowed only.
+	var win_fit_ok: bool = sm.windowed_client_size_for_screen(
+		Vector2i(2560, 1440), Vector2i(3840, 2160)) == Vector2i(2560, 1440)
+	var win_clamped: Vector2i = sm.windowed_client_size_for_screen(
+		Vector2i(3840, 2160), Vector2i(3840, 2160))
+	var win_clamp_ok: bool = win_clamped.x < 3840 and win_clamped.y < 2160 \
+		and absf((float(win_clamped.x) / float(win_clamped.y)) - (16.0 / 9.0)) < 0.001
+	if win_fit_ok and win_clamp_ok:
+		print("OK  windowed client size keeps monitor-sized choices inside titled window bounds")
+		passed += 1
+	else:
+		print("FAIL windowed size clamp: fit=%s clamped=%s" % [win_fit_ok, win_clamped])
 		failed += 1
 
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----

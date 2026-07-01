@@ -103,6 +103,35 @@ Deferred homes:
 | `V023-10` | `B6-INPUT` | Right-click/backdrop close and touch-modal semantics should land with the shared input resolver/controller pass unless a quick input-polish pass pulls it forward. |
 | `V023-11` | `VAL-PLAYTEST-RERUN` | Request logs and a regression pass on the rerun before promoting new log/regression work. |
 
+## Implementation Results (2026-07-01)
+
+Implemented in the repair pass:
+
+- `V023-01`: added `0.5x` Menu Scale, preserved existing saved scale factors with
+  `menu_scale_schema_version`, and locked Settings row columns during live scaling.
+- `V023-02a`: converted the character-sheet main column to a fixed centered scroll frame
+  and re-applies Menu Scale after dynamic sheet population / paired-unit swaps.
+- `V023-03`: contextual Action/Item/Weapon menus remember their tile anchor and re-place
+  after map zoom or Settings Map Zoom changes.
+- `V023-04`: AttackPreview weapon rows are included in the measured row-height pass,
+  neutral triangle/effectiveness states render visible gray `Neutral` markers, and the
+  More Info description area has a larger bounded scroll/fill region.
+- `V023-05`: Level-Up consumes wheel/zoom and other non-dismissal input while visible;
+  only confirm/cancel/left/right click advance it.
+- `V023-06`: Windowed native-size choices clamp to a 16:9 client area inside the usable
+  display rect; Borderless and Fullscreen remain distinct `DisplayServer` modes.
+- `V023-08a`: Archer copy now says bow range comes from the equipped weapon.
+- `V023-09a`: terrain click paging hit-tests the compact panel and expanded More Info panel,
+  so the Movement page click cycles back to Hidden.
+
+Headless validation added/updated for these fixes:
+`test_settings_manager.gd`, `test_settings_screen.gd`, `test_menu_scale.gd`,
+`test_unit_details_screen.gd`, `test_map_cursor.gd`, `test_attack_preview_selector.gd`,
+`test_attack_preview_position.gd`, `test_level_up_screen.gd`, and `test_hud.gd`.
+
+Remaining gate: `VAL-V023-DISPLAY` stays **Pending validation** until a focused Windows
+display rerun confirms Part I visually on the target monitor/resolution setup.
+
 ## Workstream A - Settings Menu Scale (`V023-01`)
 
 Tester report:

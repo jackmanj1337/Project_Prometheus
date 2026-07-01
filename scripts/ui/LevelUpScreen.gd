@@ -145,10 +145,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "auto":
+		get_viewport().set_input_as_handled()
 		return  # timer handles dismissal; player input ignored in auto mode
-	# A click anywhere also dismisses (playtest 3 #2). Without this a mouse-only
-	# player is stuck on the panel — the keyboard confirm path was the only exit.
-	var clicked: bool = event is InputEventMouseButton and event.pressed
+	# A primary/back click dismisses (playtest 3 #2), but wheel events are also
+	# InputEventMouseButton in Godot. Treating every mouse button as dismiss
+	# lets map zoom close the popup, so only real click buttons advance it.
+	var clicked: bool = event is InputEventMouseButton and event.pressed \
+		and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]
 	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel") or clicked:
 		get_viewport().set_input_as_handled()
 		_advance()
+		return
+	get_viewport().set_input_as_handled()
