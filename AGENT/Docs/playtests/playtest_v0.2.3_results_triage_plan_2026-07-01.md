@@ -1,18 +1,18 @@
 ---
 Type: playtest
-Status: Planned - review needed
+Status: Planned - owner decisions recorded
 Last verified: 2026-07-01
 ---
 
 # v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01
 
-Status: Planned - review needed
+Status: Planned - owner decisions recorded
 Last verified: 2026-07-01
 
 ## Scope
 
-Planning-only triage for the returned v0.2.3 playtest. Do not merge these rows into the
-Project Control Plane until the owner review section below is walked.
+Planning-only triage for the returned v0.2.3 playtest. Owner review decisions are recorded
+below; merge approved rows into the Project Control Plane before implementation.
 
 Evidence:
 
@@ -37,8 +37,9 @@ Evidence:
    `UnitDetailsScreen.tscn` has no `ScrollContainer` despite the handbook saying it scrolls.
 3. **Weapon names conflict with the source commit.** The returned build reports weapon names
    missing, but `76060ca` contains `AtkWeapon`/`DefWeapon` nodes and `_weapon_name()` wiring,
-   and `test_attack_preview_selector.gd` asserts that row. First action is build-hash/source
-   verification before treating this as a normal UI defect.
+   and `test_attack_preview_selector.gd` asserts that row. Owner confirmed the tester ran
+   the expected SHA-256, so investigate this as real v0.2.3 build behavior rather than a
+   stale executable.
 4. **Level-up dismissal has a concrete likely cause.** `LevelUpScreen._unhandled_input()`
    dismisses on any pressed `InputEventMouseButton`; Godot mouse-wheel events are mouse
    buttons, so wheel zoom can dismiss the popup even while map input is suppressed.
@@ -51,10 +52,10 @@ Evidence:
 
 | ID | Result | Proposed pipeline home | Summary |
 |---|---|---|---|
-| `V023-01` | Confirmed UI issue | `VAL-V023-DISPLAY` | Settings Menu Scale live preview moves the slider row; add 0.5x scale option if approved. |
+| `V023-01` | Confirmed UI issue | `VAL-V023-DISPLAY` | Settings Menu Scale live preview moves the slider row; add 0.5x scale option. |
 | `V023-02` | Confirmed UI issue | `VAL-V023-DISPLAY`, later `UI-INSPECTION` | Character sheet does not scale/center/scroll consistently; consider page design separately. |
 | `V023-03` | Confirmed UI issue | `VAL-V023-DISPLAY` | Action/item/weapon menus need stronger tile anchoring and must re-anchor after map zoom. |
-| `V023-04` | Confirmed UI issue + build conflict | `VAL-V023-DISPLAY` | AttackPreview More Info clips; neutral triangle/effective rows are invisible; weapon row needs build verification. |
+| `V023-04` | Confirmed UI issue + source/build conflict | `VAL-V023-DISPLAY` | AttackPreview More Info clips; neutral triangle/effective rows are invisible; weapon row is missing despite matching build hash. |
 | `V023-05` | Confirmed bug | `VAL-V023-DISPLAY` | Level-up popup can be dismissed by zoom/wheel input; unrepro stretched panel needs monitor coverage. |
 | `V023-06` | Confirmed display issue | `VAL-V023-DISPLAY` | Windowed 1440p/4K can hide the OS title bar; document borderless vs exclusive fullscreen. |
 | `V023-07` | Polish follow-up | `VAL-V021-04` | HUD editor frame should include the expanded terrain More Info footprint. |
@@ -65,11 +66,11 @@ Evidence:
 
 ## Recommended Order
 
-1. **Verify the artifact first.** Ask for the SHA check result or rerun the supplied
-   `Project_Prometheus_v0.2.3_debug.exe` locally. The weapon-name conflict can be explained
-   by a mismatched binary, stale executable, or a real render/height bug hiding the rows.
-2. **Close the v0.2.3 display gate.** Fix `V023-01` through `V023-06` as one focused
+1. **Close the v0.2.3 display gate.** Fix `V023-01` through `V023-06` as one focused
    v0.2.4-style repair round, with `VAL-V023-DISPLAY` as the owning validation row.
+2. **Treat the weapon-row conflict as real build behavior.** The owner confirmed the
+   tester's hash matches the manifest, so `V023-04` should inspect row visibility, layout
+   height, and source path assumptions inside the actual exported build.
 3. **Fold small v0.2.2 checkbacks after display.** `V023-07`, `V023-08`, `V023-09`, and
    `V023-10` are useful but not the renderer/scale closeout gate.
 4. **Defer the larger character-sheet pagination redesign.** Fix centering/scrolling now;
@@ -98,8 +99,8 @@ Plan:
 1. Keep live preview. Do not add an Apply button unless the fixed-row solution fails.
 2. Convert Settings rows to a stable label/control/value column layout, or add a helper that
    locks the slider/control column x-position independent of label text scaling.
-3. Add `0.5` to `SettingsManager.MENU_SCALE_LEVELS` if approved, keeping default index at
-   1.0x and preserving old saved indices via a migration/clamp.
+3. Add `0.5` to `SettingsManager.MENU_SCALE_LEVELS`, keeping default index at 1.0x and
+   preserving old saved indices via a migration/clamp.
 4. Extend `test_menu_scale.gd` or `test_settings_screen.gd` to assert the Menu Scale slider
    global x-position does not drift across factor changes.
 
@@ -209,13 +210,16 @@ Research:
 
 Plan:
 
-1. Verify artifact hash/source first. If the tester binary hash differs, recut and rerun
-   `2.10`; do not patch source for a stale binary.
+1. Investigate why the matching v0.2.3 artifact hides the weapon rows despite source/test
+   coverage at `76060ca`: row height, panel sizing, export scene cache, and text colour/clip
+   are the first suspects.
 2. Wrap `InfoDescription` in a `ScrollContainer` or make the InfoBox a bounded scroll area
    so More Info text is readable at large Menu Scale / map zoom.
 3. Keep forecast columns wide enough after weapon rows and neutral markers are visible.
 4. Render neutral triangle/effectiveness rows as visible low-emphasis rows, not blank cycle
-   entries.
+   entries. Owner decision: neutral weapon-triangle row should show a gray square plus
+   `Neutral`; effectiveness should follow the same visible-neutral pattern unless a better
+   copy emerges in implementation.
 5. Add tests for visible weapon rows, neutral marker text/height, and More Info description
    non-zero visible area. Keep screenshot/live check for final fit.
 
@@ -414,7 +418,7 @@ Research:
 
 Plan:
 
-1. Add right-click/cancel on backdrop as a small input polish fix if approved.
+1. Add right-click/cancel on backdrop as a small input polish fix.
 2. For touch, keep inside-panel controls active and outside-panel taps dismiss. Do not block
    every outside input forever; that is frustrating on modal menus and inconsistent with the
    accepted left-click behavior.
@@ -433,11 +437,32 @@ comment. Treat this as `NOT RUN`.
 Plan:
 
 1. Ask for `godot.log` or a focused rerun after fixes.
-2. Add a short returned-results checklist for the next pass that includes the artifact hash,
-   the AttackPreview weapon-row check, and the level-up wheel-input check.
+2. Add a short returned-results checklist for the next pass that records the confirmed
+   artifact hash, the AttackPreview weapon-row check, and the level-up wheel-input check.
 3. Keep `VAL-PLAYTEST-RERUN` active until logs and regression scope are returned.
 
-## Owner Questions For Review
+## Owner Review Decisions (2026-07-01)
+
+1. **Character sheet short-term scope:** fix centering/scrolling now; defer page-based
+   character-sheet design to `UI-INSPECTION`.
+2. **0.5x Menu Scale:** try adding `0.5x` as a normal selectable level; keep `1.0x` as the
+   default.
+3. **Settings live preview:** keep live preview and fix the Settings slider drift.
+4. **Windowed native resolution policy:** clamp oversized windowed resolutions so the OS
+   title bar remains reachable.
+5. **Neutral combat marker copy:** show a gray square plus `Neutral` for no weapon-triangle
+   advantage. Use the same visible-neutral pattern for effectiveness unless implementation
+   finds better wording.
+6. **Terrain action requirement depth:** show action names plus one-line requirements now;
+   defer full requirement breakdowns until `[REQ]`/`[SAC]` descriptors exist.
+7. **Map Menu right-click:** right-click outside the Map Menu should close it.
+8. **Character sheet page controls later:** defer the `next_unit`/`prev_unit` page-control
+   decision until page design happens alongside the full controller scheme.
+9. **Weapon names missing:** owner confirmed the playtest build hash was
+   `B92301F62A29523DC3B5ADB3EB64E40E3AFE9D8BFD5A70733D49791ADADAE107`, matching the
+   v0.2.3 manifest. Treat the missing weapon row as a real v0.2.3 artifact issue.
+
+## Original Owner Questions
 
 1. **Character sheet short-term scope:** fix centering/scrolling now and defer page layout,
    or design pages before the next build? Recommendation: fix centering/scrolling now; page
@@ -461,7 +486,8 @@ Plan:
    `next_unit`/`prev_unit` be repurposed? Recommendation: no; they already handle paired-unit
    sheet jumps. Use tabs or a page selector after B6 input.
 9. **Weapon names missing:** can the tester confirm the SHA-256 they ran? Recommendation:
-   require hash confirmation before source changes for `V023-04`.
+   require hash confirmation before source changes for `V023-04`. Resolved: hash confirmed
+   matching the v0.2.3 manifest.
 
 ## Merge Notes
 
