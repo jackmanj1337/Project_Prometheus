@@ -1,18 +1,18 @@
 ---
 Type: playtest
-Status: Planned - owner decisions recorded
+Status: Planned - routed to control plane
 Last verified: 2026-07-01
 ---
 
 # v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01
 
-Status: Planned - owner decisions recorded
+Status: Planned - routed to control plane
 Last verified: 2026-07-01
 
 ## Scope
 
 Planning-only triage for the returned v0.2.3 playtest. Owner review decisions are recorded
-below; merge approved rows into the Project Control Plane before implementation.
+below; approved immediate and deferred rows are routed into the Project Control Plane.
 
 Evidence:
 
@@ -58,10 +58,10 @@ Evidence:
 | `V023-04` | Confirmed UI issue + source/build conflict | `VAL-V023-DISPLAY` | AttackPreview More Info clips; neutral triangle/effective rows are invisible; weapon row is missing despite matching build hash. |
 | `V023-05` | Confirmed bug | `VAL-V023-DISPLAY` | Level-up popup can be dismissed by zoom/wheel input; unrepro stretched panel needs monitor coverage. |
 | `V023-06` | Confirmed display issue | `VAL-V023-DISPLAY` | Windowed 1440p/4K can hide the OS title bar; document borderless vs exclusive fullscreen. |
-| `V023-07` | Polish follow-up | `VAL-V021-04` | HUD editor frame should include the expanded terrain More Info footprint. |
-| `V023-08` | Content/UI polish | `UI-INSPECTION` | Class More Info needs unit trait coverage, active movement-rule wording, and archer copy fix. |
-| `V023-09` | Design follow-up | `VAL-V022-CHECKBACKS`, later `B4-MAP-OBJECTS`/`SAC` | Terrain More Info should show tile name/header, default info page, all visible actions, and requirements. |
-| `V023-10` | Input polish | `B6-INPUT` or small v0.2.x fix | Map Menu should close on right-click/backdrop or block outside input consistently. |
+| `V023-07` | Deferred polish follow-up | `VAL-V021-04` | HUD editor frame should include the expanded terrain More Info footprint. |
+| `V023-08` | Split content/UI polish | now `VAL-V023-DISPLAY`; later `UI-INSPECTION` | Fix archer copy now; defer full unit-trait coverage and active trait aggregation. |
+| `V023-09` | Split design follow-up | now `VAL-V023-DISPLAY`; later `B4-MAP-OBJECTS`/`SAC` | Fix terrain click cycling now; defer full action/requirement descriptors. |
+| `V023-10` | Deferred input polish | `B6-INPUT` | Map Menu should close on right-click/backdrop or block outside input consistently. |
 | `V023-11` | Validation gap | `VAL-PLAYTEST-RERUN` | Regression pass and `godot.log` were not returned; request on rerun before promoting log/regression issues. |
 
 ## Recommended Order
@@ -71,10 +71,37 @@ Evidence:
 2. **Treat the weapon-row conflict as real build behavior.** The owner confirmed the
    tester's hash matches the manifest, so `V023-04` should inspect row visibility, layout
    height, and source path assumptions inside the actual exported build.
-3. **Fold small v0.2.2 checkbacks after display.** `V023-07`, `V023-08`, `V023-09`, and
-   `V023-10` are useful but not the renderer/scale closeout gate.
-4. **Defer the larger character-sheet pagination redesign.** Fix centering/scrolling now;
-   write a separate `UI-INSPECTION` design if we want pages and page-swapping controls.
+3. **Bundle only the tiny no-design fixes with the display pass.** Also fix `V023-08a`
+   archer copy and `V023-09a` terrain More Info click cycling if they stay small during
+   implementation.
+4. **Move the rest to their home bands.** `V023-07`, `V023-08b`, `V023-09b`, `V023-10`,
+   and the page-based half of `V023-02` should not block the display closeout.
+
+## Implementation Split (2026-07-01)
+
+Next session should start with this immediate set:
+
+| ID | Owner row | Scope |
+|---|---|---|
+| `V023-01` | `VAL-V023-DISPLAY` | Keep Settings live preview, add `0.5x`, and fix Menu Scale slider drift. |
+| `V023-02a` | `VAL-V023-DISPLAY` | Fix character-sheet centering, scaling, and scrolling. |
+| `V023-03` | `VAL-V023-DISPLAY` | Re-anchor contextual menus after map zoom and keep them tied to the tile. |
+| `V023-04` | `VAL-V023-DISPLAY` | Fit AttackPreview More Info, show gray-square `Neutral`, and restore weapon rows in the exported build. |
+| `V023-05` | `VAL-V023-DISPLAY` | Stop wheel/zoom input from dismissing Level-Up; re-check stretched popup on large monitors. |
+| `V023-06` | `VAL-V023-DISPLAY` | Clamp oversized windowed resolutions; keep exact native size for Borderless/Fullscreen. |
+| `V023-08a` | `VAL-V023-DISPLAY` | Fix `data/classes/archer.tres` copy so bow range comes from the equipped weapon. |
+| `V023-09a` | `VAL-V023-DISPLAY` | Make clicks anywhere inside the expanded terrain More Info page cycle pages reliably. |
+
+Deferred homes:
+
+| ID | New home | Deferred note |
+|---|---|---|
+| `V023-02b` | `UI-INSPECTION`, with `B6-INPUT` overlap | Revisit character-sheet pages and page controls only after the full controller scheme shows how many buttons are available. |
+| `V023-07` | `VAL-V021-04` | Fold the expanded terrain More Info footprint into the existing terrain corner-snap/editor-scale validation row. |
+| `V023-08b` | `UI-INSPECTION` | Full unit-trait display, active movement-rule source, and equipment/skill trait aggregation belong with the broader inspection-surface pass. |
+| `V023-09b` | `B4-MAP-OBJECTS` / `[SAC]` | Full "all visible tile actions plus requirements" needs a data-shaped descriptor/registry path, not a growing `TileActions` `match`. |
+| `V023-10` | `B6-INPUT` | Right-click/backdrop close and touch-modal semantics should land with the shared input resolver/controller pass unless a quick input-polish pass pulls it forward. |
+| `V023-11` | `VAL-PLAYTEST-RERUN` | Request logs and a regression pass on the rerun before promoting new log/regression work. |
 
 ## Workstream A - Settings Menu Scale (`V023-01`)
 
@@ -133,7 +160,7 @@ Research:
 - Unit swaps call `open(_paired_unit)` again but do not add a post-populate frame wait before
   scale/recenter, so dynamic label sizes can settle after placement.
 
-Short-term plan:
+Short-term plan (`V023-02a`, next session):
 
 1. Add `UnitDetailsScreen` to `test_menu_scale.gd` centered-scale coverage.
 2. Convert the sheet to a fixed centered frame with scrollable content, likely one
@@ -143,11 +170,12 @@ Short-term plan:
 4. Add tests for 0.75x, 1.0x, 2.0x: panel centered, `Control.scale == Vector2.ONE`, scroll
    containers visible when content exceeds frame, and top/bottom reachable.
 
-Longer UI pass:
+Longer UI pass (`V023-02b`, deferred to `UI-INSPECTION`):
 
 - Page-based sheet should be a separate `UI-INSPECTION` design. The existing
   `next_unit`/`prev_unit` actions already jump between lead/support sheets; reusing them for
-  pages would create an input conflict unless B6 input context resolves it first.
+  pages would create an input conflict unless B6 input context resolves it first. Review this
+  only after the full controller scheme is available.
 
 Likely files:
 
@@ -201,14 +229,15 @@ Research:
   `show_preview()`.
 - `AttackPreview.tscn` has `AtkWeapon` and `DefWeapon` rows.
 - `test_attack_preview_selector.gd` asserts "Iron Sword" and "Unarmed".
-- `git show 76060ca` confirms the build source commit contains this wiring. Treat missing
-  names as artifact mismatch or a row-size/render bug until verified.
+- `git show 76060ca` confirms the build source commit contains this wiring, and the owner
+  confirmed the tester's SHA-256 matches the v0.2.3 manifest. Treat missing names as an
+  exported-build row-size/render issue until verified.
 - The InfoBox description is a fixed-height `RichTextLabel` (`custom_minimum_size.y = 88`,
   `fit_content = false`) without a `ScrollContainer`, so longer More Info copy clips.
 - `_triangle_link()` and `_effective_link()` register neutral entries but render `""`, so
   More Info cycling can land on invisible rows.
 
-Plan:
+Plan (`V023-04`, next session):
 
 1. Investigate why the matching v0.2.3 artifact hides the weapon rows despite source/test
    coverage at `76060ca`: row height, panel sizing, export scene cache, and text colour/clip
@@ -245,7 +274,7 @@ Research:
 - `_unhandled_input()` dismisses on any pressed `InputEventMouseButton`; wheel up/down are
   mouse buttons in Godot, so scroll-wheel zoom can dismiss the panel.
 
-Plan:
+Plan (`V023-05`, next session):
 
 1. Dismiss only on `confirm`, `cancel`, left-click, or maybe right-click if approved.
 2. While visible, consume all other input events so nothing below sees zoom/open-menu/cursor
@@ -311,7 +340,7 @@ Research:
   More Info box, but the base edit intent is the compact terrain panel. This mismatch is
   visible when More Info is open.
 
-Plan:
+Deferred plan (`V023-07`, home: `VAL-V021-04`):
 
 1. When terrain More Info is visible, compute the editor handle from the union of compact
    terrain panel and expanded More Info panel.
@@ -340,17 +369,22 @@ Research:
 - Unit-level traits from skills/items are not shown in that class side panel.
 - `data/classes/archer.tres` still says: "Cannot attack adjacent (range 1) targets."
 
-Plan:
+Immediate plan (`V023-08a`, next session):
 
 1. Change archer description to weapon-neutral wording, e.g. "A ranged physical attacker;
    bow range is determined by the equipped weapon."
-2. In Class More Info, split:
+2. Add or extend `test_unit_details_screen.gd` only if the copy is exercised by existing
+   class-description UI tests.
+
+Deferred plan (`V023-08b`, home: `UI-INSPECTION`):
+
+1. In Class More Info, split:
    - `Movement rule:` resolved movement type plus precedence source.
    - `Class traits:` class `special_qualities` excluding movement tags.
    - `Unit traits:` class + unit/equipment traits when available.
-3. If unit/equipment trait aggregation is not clean yet, show class traits now and put a
-   follow-up under `UI-INSPECTION` for full unit trait resolution.
-4. Add or extend `test_unit_details_screen.gd`.
+2. Resolve unit/equipment trait aggregation in the broader inspection pass rather than
+   adding a one-off UI path here.
+3. Add or extend `test_unit_details_screen.gd`.
 
 Likely files:
 
@@ -380,18 +414,21 @@ Research:
   two hardwired actions, but the requested "all actions + requirements" surface grows with
   `[SAC]` map-object/action content and should become descriptor-driven.
 
-Plan:
+Immediate plan (`V023-09a`, next session):
 
 1. Fix click cycling so any click inside compact terrain or expanded More Info page cycles
    Hidden -> Description -> Movement -> Hidden, including the movement page.
-2. Add tile name/header to the expanded panel.
-3. Keep base compact info always visible; define whether "default page" means first expanded
+2. Keep base compact info always visible; define whether "default page" means first expanded
    page restates compact data or simply starts on Description.
-4. Add a short-term descriptor method for authored objective actions:
+
+Deferred plan (`V023-09b`, home: `B4-MAP-OBJECTS` / `[SAC]`):
+
+1. Add tile name/header to the expanded panel when the action-descriptor surface is designed.
+2. Add a short-term descriptor method for authored objective actions:
    `TileActions.describe_for_tile(tile, turn, unit = null)` returning visible actions with
    requirement text and availability. Keep it data-shaped so B4-MAP-OBJECTS/SAC can replace
    the hardcoded source later.
-5. Do not add more content-specific `match` branches for future shops/visits/activate
+3. Do not add more content-specific `match` branches for future shops/visits/activate
    beyond the existing placeholders.
 
 Likely files:
@@ -416,13 +453,13 @@ Research:
 - `_unhandled_input()` already closes on `cancel` or `open_menu`.
 - The menu's full-rect root handles backdrop clicks; panel children consume their own input.
 
-Plan:
+Deferred plan (`V023-10`, home: `B6-INPUT`):
 
 1. Add right-click/cancel on backdrop as a small input polish fix.
 2. For touch, keep inside-panel controls active and outside-panel taps dismiss. Do not block
    every outside input forever; that is frustrating on modal menus and inconsistent with the
    accepted left-click behavior.
-3. Add `test_map_menu.gd` coverage for right-click backdrop dismissal if implemented.
+3. Add `test_map_menu.gd` coverage for right-click backdrop dismissal when implemented.
 
 Likely files:
 
@@ -461,6 +498,9 @@ Plan:
 9. **Weapon names missing:** owner confirmed the playtest build hash was
    `B92301F62A29523DC3B5ADB3EB64E40E3AFE9D8BFD5A70733D49791ADADAE107`, matching the
    v0.2.3 manifest. Treat the missing weapon row as a real v0.2.3 artifact issue.
+10. **Implementation split:** do `V023-01..06`, `V023-08a`, and `V023-09a` next session;
+    route `V023-02b`, `V023-07`, `V023-08b`, `V023-09b`, `V023-10`, and `V023-11` to their
+    deferred home rows listed above.
 
 ## Original Owner Questions
 
