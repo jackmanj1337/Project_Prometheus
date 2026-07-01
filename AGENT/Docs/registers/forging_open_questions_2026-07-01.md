@@ -1,17 +1,19 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED
 Last verified: 2026-07-01
 Register: FRG-1..20
-Resolved-in: (open)
+Resolved-in: this register — Walkthrough Decisions (2026-07-01c), §3c; downstream B7-FORGING implementation plan
 ---
 
 # Forging / Weapon-and-Item Modification (`B7-FORGING`) — Research + Player-Facing Design + Open Questions
 
 **Started:** 2026-07-01.
-**Status:** Planning draft — register **OPEN**. Elevated from parked to a near-term
-design pass by the 2026-07-01 Band 5-8 walkthrough (Q15): the v1 demo campaign will
-include forging, so this must settle before any implementation plan.
+**Status:** Register **RESOLVED** by the 2026-07-01c owner walkthrough (all of
+`[FRG-1..20]` settled — see **§3c Walkthrough Decisions (2026-07-01c)**, the
+authoritative answers). Elevated from parked to a near-term design pass by the
+2026-07-01 Band 5-8 walkthrough (Q15): the v1 demo campaign includes forging.
+Next artifact is the `B7-FORGING` implementation plan built from §3c.
 **Row:** `B7-FORGING` (control plane — flag for a status bump to near-term).
 **Source:** `band5_plus_preimplementation_questions_review_2026-06-30.md` → Walkthrough
 Decisions (2026-07-01) Q15; substrate reserved by `items_equipment_unified_model_2026-06-23.md`
@@ -126,6 +128,86 @@ Owner steer on the first round. Details fold into the individual questions below
   durability"; "grants a specific combat art while equipped"; "effective vs ghosts".
 - **New `[FRG-19]`** (item-as-forge-cost) and **`[FRG-20]`** (forge ⇄ shop shared
   interface) added from this steer.
+
+## 3c. Walkthrough Decisions (2026-07-01c) — register RESOLVED
+
+Owner walked the full `[FRG-1..20]` register one question at a time (same pattern as
+the Band 5-8 review). These are the **authoritative settled answers**; the per-question
+sections below (§4) are kept for rationale but every tag is now RESOLVED. Notable
+outcome: the **v1 slice is larger than the earlier "+N stat bump" lean** — v1 ships
+**point allocation + live durability/repair + player-rename**, so the v1 content floor
+and engine seams grow accordingly.
+
+**Group A — upgrade model**
+- **[FRG-1] Upgrade shape — v1 = POINT ALLOCATION** (Group A option B), not `+N`. The
+  registry still accommodates `+N` (A) and transform (C) as data; only allocation is
+  authored for the demo.
+- **[FRG-2] Forgeable attributes — v1 = numeric weapon stats** (`mt/hit/crit/wt`, plus
+  `uses` via repair). Effect/ability grants land with [FRG-18]. Each target is a
+  registry-declared upgrade target, not a hardcoded field.
+- **[FRG-3] Repair — DEFAULT ON, and LIVE in v1** (durability is enabled in the demo).
+  Repair cost = an **author-provided formula** with access to: **base item, current
+  durability, max durability, item value, and current modifications**. Author may zero
+  it or exclude repair per forge/campaign. Same REQ-16 formula path as upgrade costs.
+- **[FRG-4] Transform — WANTED, not v1.** Overlay handling on transform is
+  **author-declared per transform op** (`rebase` = carry the overlay forward re-clamped,
+  or `reset` = fresh at the new base). Both are data on the op.
+
+**Group B — cost / resources**
+- **[FRG-5] Currency — gold-only for v1**; multi-resource + item-as-cost ([FRG-19]) later.
+- **[FRG-6] Cost curve — author-defined REQ-16 formula per op, DEFAULT FLAT.** Escalation
+  is opt-in data, no hardcoded cost table.
+- **[FRG-7] Frequency — v1 is RESOURCE-GATED ONLY** (no count cap). Eventually a
+  **per-map forge charge/allowance tied to the shop refresh cadence, sharing the same
+  gates as shop inventory** — a later author rule, not v1 engine work.
+- **[FRG-8] Materials — deferred past v1**; both resource-scoped and item-scoped
+  ([FRG-19]) reuse existing reward/shop/drop paths.
+
+**Group C — per-instance state**
+- **[FRG-9] `forged_mods` schema — OPERATION OVERLAY** (option B), confirmed: stores
+  applied ops (ids + params); registry derives effective deltas.
+- **[FRG-10] Effective-weapon-stat resolver — ACCEPTED as one seam** (`base + forged
+  deltas`); route CombatResolver, range, weapon menu, character sheet through it. The
+  load-bearing engine change; guard test that no combat path reads raw `weapon.mt` after.
+- **[FRG-11] Instance identity — PLAYER-RENAMABLE + NON-MERGEABLE.** Forged entry is
+  non-stackable/un-mergeable and carries a **saved player-set custom name** (new F1
+  field). Convoy merge keys off `forged_mods` emptiness.
+- **[FRG-12] Reversibility — PERMANENT** in v1. Reset/re-forge op trivial to add later
+  ([FRG-9]=B).
+- **[FRG-13] Caps / allocation model — author-written per-item rules:** a **total upgrade
+  point max**, a **per-stat upgrade max**, and a **per-stat upgrade step size**. **PLUS a
+  campaign rule:** whether adding **special effects counts against the forge upgrade-point
+  budget OR occupies its own slot resource** (a separate effect-slot pool). This is the
+  `ForgeUpgradeDef` schema shape the engine enforces.
+
+**Group D — service / UI / gating**
+- **[FRG-14] / [FRG-20] Surface — STANDALONE PHB forge panel for v1, on a SHARED
+  ResourceLedger transaction core** (option C) with an optional trade-in/consume input so
+  the shop can reuse it when transform lands. On-map / dialogue entry points come later.
+- **[FRG-15] Gating — v1 resource-gated only.** Availability + smith-rank become `B3-REQ`
+  predicates / shop-style gates later (per the [FRG-7] "same gates as shop inventory" steer).
+- **[FRG-16] Preview — before→after stat diff + `ResourceLedger.quote()` cost summary**
+  before commit; preview must equal commit (ledger invariant). Confirmed.
+
+**Group E — v1 slice**
+- **[FRG-17] v1 forging slice (settled):** **point-allocation** upgrade (total-point +
+  per-stat max + step size) on a weapon family, **gold** cost via author formula,
+  **durability + repair LIVE**, **standalone prep PHB forge panel**, **permanent**,
+  **player-renamable non-mergeable instances**, persisting per-instance through
+  save/convoy. Proves: upgrade registry, allocation UI, `forged_mods` op-overlay write,
+  effective-stat resolver, ledger spend (upgrade + repair formulas), rename + non-merge,
+  panel. Deferred: transform, effect grants, materials/item-cost, on-map/dialogue,
+  per-map charge cap, shop-folding.
+
+**Group F/G — stretch & extensions**
+- **[FRG-18] Effect / effect-bundle grants — WANTED (v2), ALWAYS STACKABLE, CAP-GATED.**
+  No exclusivity flag: bundles are limited only by the forge point/slot budget from the
+  [FRG-13] campaign rule. Routes through the Band 5 Q5 Source/Style effect registry; the
+  effective-weapon resolver ([FRG-10]) returns granted tags/actions/modifiers, not just stats.
+- **[FRG-19] Item-as-forge-cost — new `item` CostSpec scope on the ledger** (option A),
+  later. Atomic multi-cost commit (gold + item) with rollback on failure.
+- **[FRG-20] Forge⇄shop — shared transaction core, standalone forge panel in v1**; fold
+  the transform "trade-in → new def" flow into a shared surface when transform lands.
 
 ## 4. Open questions register
 
