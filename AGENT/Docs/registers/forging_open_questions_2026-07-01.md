@@ -235,6 +235,47 @@ Further owner detail after §3c, folding into [FRG-13], [FRG-14], [FRG-15], [FRG
   on a chosen item (item-in → restored, or item-in → new def). Repair is thus a distinct,
   transform-shaped UI action, not a row in the allocation grid.
 
+## 3e. Forge panel UI format — initial draft (2026-07-01c)
+
+Chosen layout: **two-pane, inline forecast**, reusing the shop panel's
+`PanelSelector` + `FocusedDetailPane` shape (per the [FRG-20] shared core). Panes
+collapse to a single stacked column on narrow / mobile-web screens.
+
+- **Left pane — item picker:** the forgeable items in inventory/convoy, each showing
+  its current forge state (e.g. `Iron Sword +2`, with any player name).
+- **Right pane — detail with mode tabs `[Upgrade] [Modify]`:**
+  - **Upgrade (point-allocation grid):** one row per forgeable stat showing
+    `base → new` **inline**, a `◂ +N ▸` stepper (step size = author data), the
+    **effective per-stat max** (`min(item, forge-instance)`), a running **Points x/total**
+    against the effective total-point cap, the **gold Cost** from `ResourceLedger.quote()`,
+    a **Name** field (rename → saved custom-name), and the **Forge** (commit) button.
+  - **Modify (reuses the transform UI):** an **item-operation list** — **Repair**
+    (`uses → uses`, formula cost) and **Transform** (`→ new def`, cost) as selectable
+    ops on the chosen item, with a **Confirm** button.
+- **Forecast is inline** on each row; the shown result must equal the committed result
+  (ledger preview==commit invariant, [FRG-16]).
+
+```
+UPGRADE                                            Gold 3,200
+┌Items─────┐ ┌ Iron Sword +2 ───────────────────┐
+│▸IronSwd+2│ │ [Upgrade]  Modify                 │
+│ SteelLnc │ │ Mt   6 → 7   ◂ +1 ▸   max +2      │
+│ Fire     │ │ Hit 85 → 85  ◂ +0 ▸   max +10     │
+│ Iron Bow │ │ Crit 0 → 0   ◂ +0 ▸   max +9      │
+│          │ │ Wt   5 → 5   ◂ -0 ▸   max -2      │
+│          │ │ Points 1/5          Cost 400g     │
+│          │ │ Name[Betrayer_]        [ Forge ]  │
+└──────────┘ └───────────────────────────────────┘
+
+MODIFY  (item-op list, reuses transform UI)
+             ┌ Iron Sword +2 ───────────────────┐
+             │  Upgrade  [Modify]                │
+             │ ▸ Repair    30/45 → 45/45    60g  │
+             │   Transform → Steel Sword   250g  │
+             │                     [ Confirm ]   │
+             └───────────────────────────────────┘
+```
+
 ## 4. Open questions register
 
 ### Group A — Upgrade model (what forging *does*)
