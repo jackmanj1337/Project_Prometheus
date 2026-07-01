@@ -209,6 +209,32 @@ and engine seams grow accordingly.
 - **[FRG-20] Forge⇄shop — shared transaction core, standalone forge panel in v1**; fold
   the transform "trade-in → new def" flow into a shared surface when transform lands.
 
+## 3d. Refinements (2026-07-01c, continued)
+
+Further owner detail after §3c, folding into [FRG-13], [FRG-14], [FRG-15], [FRG-20]:
+
+- **Per-forge-instance capability envelope (extends [FRG-13] + [FRG-15]).** Each forge
+  instance declares the envelope of upgrades it will perform, and may **clamp below the
+  item's own author-declared limits** — a lower **total modification-point cap** and lower
+  **per-stat caps**, each **fixed OR derived from the forge's predicate**. Effective cap at
+  a forge = **min(item author caps, forge-instance caps)**. This reuses the **same gating
+  shops use to hide inventory** (REQ predicates), so no bespoke forge-gating code.
+- **Target-item predicate context (new engine requirement).** The forge's offering/hide
+  predicates must be able to read the **candidate item instance** being worked on — its
+  **def/tags and current `forged_mods` (forge level)** — not just campaign/roster state.
+  This lets an author declare a smith that **refuses a key/quest item** (predicate over item
+  tags) or **refuses an item already upgraded beyond what the smith can perform** (predicate
+  over current forge level vs the forge's cap). This extends the shop-hide predicate subject
+  set — the one genuinely new gating dimension forging adds over shops.
+- **This is NOT a depleting per-visit charge count.** "How many upgrades" = the capped
+  envelope + eligibility above, not a consumable stock. No per-instance charge save field.
+  A separate per-map forge allowance ([FRG-7]) remains a later, distinct author rule.
+- **Forge panel UI = two modes ([FRG-14]).** (1) a **point-allocation grid** (per-stat +/−
+  under the effective caps, with live cost), and (2) a shared **"item operation" list** that
+  **reuses the transform UI**, where **repair and transform** both appear as selectable ops
+  on a chosen item (item-in → restored, or item-in → new def). Repair is thus a distinct,
+  transform-shaped UI action, not a row in the allocation grid.
+
 ## 4. Open questions register
 
 ### Group A — Upgrade model (what forging *does*)
