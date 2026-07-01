@@ -7,7 +7,7 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.4_debug.exe`
-- Source commit: `95d275c`
+- Source commit: `3741999`
 - Exported: `2026-07-01`
 - Godot: `4.6.stable.official.89cea1439`
 - Size: `101268928` bytes
