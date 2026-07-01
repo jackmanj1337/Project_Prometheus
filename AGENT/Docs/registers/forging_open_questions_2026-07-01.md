@@ -2,7 +2,7 @@
 Type: register
 Status: OPEN
 Last verified: 2026-07-01
-Register: FRG-1..18
+Register: FRG-1..20
 Resolved-in: (open)
 ---
 
@@ -100,45 +100,83 @@ The player-facing forging spec + the data model: (1) an **upgrade-operation / re
 
 ---
 
+## 3b. Direction recorded (2026-07-01b)
+
+Owner steer on the first round. Details fold into the individual questions below
+(affected ones now **[ASKED]**); exact parameters still to finalize before a plan.
+
+- **`[FRG-1]` — both shapes wanted, eventually.** (1) A **point-allocation** upgrade
+  with **author-controlled step counts + per-stat maximums** (PoR/RD family), and
+  (2) a **fixed-shape / transform** upgrade where the old item is **consumed and
+  transformed into an author-created base item** (Iron Sword→Steel Sword, or
+  Fire→Fire +3) — **possibly surfaced through the shop interface**. v1 still ships
+  one concrete path ([FRG-17]); the registry must accommodate both.
+- **`[FRG-3]` — repair defaults to YES**, included in forging, but **author
+  discretion**: an author may charge extra for it or exclude it per forge.
+- **`[FRG-4]` — transform is WANTED** (the fixed-shape half of `[FRG-1]`): consume
+  old `def_id` → new author base def, rebasing `forged_mods`.
+- **`[FRG-5]` — gold-only for v1 confirmed.** Other resources **will** be required
+  eventually, **including special *items* consumed as a forge cost** that don't
+  otherwise occupy a resource slot (an inventory/convoy item as material) — see the
+  expanded `[FRG-8]` and new `[FRG-19]`.
+- **`[FRG-9]` — store changes as operation overlays** (option B) — CONFIRMED.
+- **`[FRG-18]` — effect / effect-bundle grants WANTED eventually.** Worked examples
+  the model must express (mapped to substrate in the expanded `[FRG-18]`):
+  "+5 RES / −5 DEF while equipped"; "usable to restore 20 HP at the cost of 2
+  durability"; "grants a specific combat art while equipped"; "effective vs ghosts".
+- **New `[FRG-19]`** (item-as-forge-cost) and **`[FRG-20]`** (forge ⇄ shop shared
+  interface) added from this steer.
+
 ## 4. Open questions register
 
 ### Group A — Upgrade model (what forging *does*)
 
-#### [FRG-1] Upgrade shape for v1  **[OPEN]**
-- **A — Fixed `+N` levels** (Fates/Engage): each level applies an authored stat bundle; simplest UX,
-  simplest cost curve, simplest UI.
-- **B — Budgeted free-point allocation** (PoR/RD): player spends a point budget across Mt/Hit/Crit/Wt;
-  most flexible, hardest to balance + UI.
-- **C — Discrete recipe/upgrade nodes** (Triangle/3H): named upgrades that grant stats and/or abilities.
-- **Rec: model all three as an OPEN REGISTRY of upgrade operations, ship A as the v1 default UX.**
-  A `ForgeUpgradeDef` (id, applies-to filter, stat deltas / effect grants, cost, req/gate) is data;
-  "+N" is just an authored chain of upgrade ops. B and C are later authored data on the same registry,
-  not engine rewrites. *(End-shape: what does the player click in the demo — a "+1" button, or a
-  point allocator?)*
+#### [FRG-1] Upgrade shape  **[ASKED]**
+- **A — Fixed `+N` levels** (Fates/Engage): each level applies an authored stat bundle; simplest UX.
+- **B — Budgeted point allocation** (PoR/RD): player spends a point budget across Mt/Hit/Crit/Wt.
+- **C — Fixed-shape / transform** (Triangle/3H/Engage): consume the old item → an author-created new
+  base item (Iron→Steel, Fire→Fire +3), possibly via the shop interface ([FRG-20]).
+- **Direction (2026-07-01b): support B and C, eventually.** B must expose **author-controlled step
+  counts + per-stat maximums**; C consumes/transforms into a new author base def ([FRG-4]). Model all
+  shapes as an **OPEN REGISTRY of upgrade operations** — a `ForgeUpgradeDef` (id, applies-to filter,
+  stat deltas / effect grants / transform-target, cost, req/gate) is data; "+N" is just an authored
+  chain of ops. **v1 ships one concrete path** ([FRG-17]); the schema must not preclude B or C.
+- **Open parameter:** which single shape is the v1 demo path (lean: A/`+N` stat bump for the smallest
+  showcase, with the allocation + transform ops registerable but not necessarily authored in the demo).
 
-#### [FRG-2] Which attributes are forgeable  **[OPEN]**
-- Candidates: `mt`, `hit`, `crit`, `wt`, `uses`, and **`effect_tags` / ability grants** (engrave-style).
-- **Rec:** v1 = numeric weapon stats (`mt/hit/crit/wt`, maybe `uses`); **ability/effect grants deferred
-  to [FRG-18]**. Each forgeable attribute is a registry-declared upgrade target, not a hardcoded field
-  list — so adding "forge range" or "forge strikes" later is data.
+#### [FRG-2] Which attributes are forgeable  **[ASKED]**
+- Candidates: `mt`, `hit`, `crit`, `wt`, `uses`, and **`effect_tags` / effect-bundle / ability grants**
+  (the [FRG-18] archetypes).
+- **Direction (2026-07-01b):** both numeric stats **and** effect/ability grants are in scope eventually
+  (owner confirmed the [FRG-18] examples). v1 = numeric weapon stats (`mt/hit/crit/wt`, maybe `uses`);
+  effect grants land with [FRG-18]. Each forgeable attribute is a **registry-declared upgrade target**,
+  not a hardcoded field list — so adding "forge range" or "forge strikes" later is data.
 
-#### [FRG-3] Is **repair** (durability restore) part of forging?  **[OPEN]**
-- **A** — Repair is a forge service using `break_behavior`/uses (3H-style shared blacksmith).
-- **B** — Repair stays the deferred Hammerne staff (Band 5 Q6 deferred it) / out of scope.
-- **Rec: B for v1** unless the demo campaign uses durability; keep the seam so a repair op can register
-  on the same service later. *(Depends on whether the demo turns on finite weapon durability.)*
+#### [FRG-3] Is **repair** (durability restore) part of forging?  **[ASKED]**
+- **Direction (2026-07-01b): YES by default** — repair is a forge op on the shared service (3H-style),
+  restoring `uses`/clearing `break_behavior`. **Author discretion:** an author may **charge extra** for
+  it or **exclude** it per forge/campaign. So repair is a **default-on, author-toggleable, priced**
+  registered op — not a separate system, and not the Hammerne staff (which stays deferred, Band 5 Q6).
+- **Open parameter:** whether the v1 demo actually turns on finite weapon durability (if off, the repair
+  op registers but has nothing to restore in the demo). Confirm the repair cost default (free vs priced).
 
-#### [FRG-4] New-tier **transform** (Iron→Steel / Engage Transform) in scope?  **[OPEN]**
-- **Rec: out of v1**, but note it's expressible as an upgrade op that swaps `def_id` + resets
-  `forged_mods` — a later registered op, not a special case.
+#### [FRG-4] New-tier **transform** (Iron→Steel / Fire→Fire +3 / Engage Transform)  **[ASKED]**
+- **Direction (2026-07-01b): WANTED** (this is the fixed-shape half of [FRG-1]). A transform op
+  **consumes the old `def_id`** and produces an **author-created new base def**, rebasing
+  `forged_mods`. May be surfaced through the **shop interface** ([FRG-20]). Registered op, not a
+  special case; **out of the minimum v1 slice** unless the demo campaign needs it.
+- **Open parameter:** does a transform carry forward existing forged overlays onto the new base, or
+  reset them (Engage resets to Lv1)? Lean: **rebase** — new base def's stats + a fresh (or
+  author-mapped) overlay.
 
 ### Group B — Cost / resource model
 
-#### [FRG-5] Cost currency for v1  **[OPEN]**
-- **A — Gold only** (mirrors `[SHP-1]` v1), schema still multi-resource.
-- **B — Gold + materials/ores** (RD/3H/Engage), materials as registry resource ids.
-- **Rec: A**, with `CostSpec` shaped so a material resource id drops in without a code change
-  (`ResourceLedger` already multi-resource). Materials become content, not engine work.
+#### [FRG-5] Cost currency for v1  **[ASKED]**
+- **Direction (2026-07-01b): gold only for v1**, but the model must anticipate **(a) other
+  `ResourceLedger` resources** (materials/ores) and **(b) special *items* consumed as a forge cost**
+  that don't otherwise occupy a resource slot ([FRG-19]). Shape `CostSpec` so a material resource id
+  drops in with no code change (`ResourceLedger` already multi-resource); the item-as-cost path is the
+  one genuinely new dimension — see [FRG-19]. Materials remain content, not engine work.
 
 #### [FRG-6] Cost curve  **[OPEN]**
 - Flat per-op vs **exponential per level** (Engage). **Rec:** author-defined per upgrade op / via a
@@ -148,18 +186,22 @@ The player-facing forging spec + the data model: (1) an **upgrade-operation / re
 - **A** — Unlimited, gold/material-gated (RD). **B** — Per-map/chapter cap (PoR). **C** — Smith-rank
   gate only. **Rec: A** (simplest, economy-gated); a per-map cap is an optional author rule later.
 
-#### [FRG-8] Material sourcing *(only if [FRG-5]=B)*  **[OPEN]**
-- Map drops / shop stock / event rewards. **Rec:** defer with [FRG-5]; if adopted, materials are
-  `ResourceLedger` resources filled by existing reward/shop/drop paths — no new sink system.
+#### [FRG-8] Material sourcing  **[ASKED]**
+- Map drops / shop stock / event rewards. **Direction (2026-07-01b):** deferred past v1, but confirmed
+  as an eventual need. Two flavors: **resource-scoped materials** (`ResourceLedger` ids filled by
+  existing reward/shop/drop paths — no new sink system) and **item-scoped materials** (a real inventory
+  item consumed — [FRG-19]). No new sourcing system either way; both reuse rewards/shop/drops.
 
 ### Group C — Per-instance state (`forged_mods`)
 
-#### [FRG-9] `forged_mods` schema  **[OPEN]**
+#### [FRG-9] `forged_mods` schema  **[ASKED]**
 - **A — Raw stat-delta dict** (`{"mt": 2, "hit": 5}`): tiny, but lossy (can't audit/re-derive/reset).
 - **B — Applied-upgrade record** (`{"level": 2, "ops": ["forge_mt","forge_mt"], "params": {...}}`):
   replayable, supports caps/reset/UI history, larger.
-- **Rec: B** — store the applied upgrade ops; **derive** effective deltas via the registry. Enables
-  reset ([FRG-12]), caps ([FRG-13]), and honest previews. F1 must reserve the richer field.
+- **Direction (2026-07-01b): B — store changes as operation overlays (CONFIRMED).** `forged_mods`
+  holds the applied upgrade **ops** (ids + params); the registry **derives** effective deltas. Enables
+  reset ([FRG-12]), caps ([FRG-13]), transform rebasing ([FRG-4]), effect-bundle grants ([FRG-18]), and
+  honest previews. F1 must reserve the richer field, not a flat delta dict.
 
 #### [FRG-10] Effective-weapon-stat resolver seam  **[OPEN]**
 - **Rec:** add one resolver (e.g. `WeaponStats.effective(component, entry)`) that returns
@@ -184,10 +226,12 @@ The player-facing forging spec + the data model: (1) an **upgrade-operation / re
 ### Group D — Service / UI / where forging lives
 
 #### [FRG-14] Container surface  **[OPEN]**
-- **Rec:** mirror shops exactly — a `ForgeService` (quote/commit via `ResourceLedger`) + a PHB
-  **forge panel** (prep), an **on-map** panel-trigger, and a **dialogue command**. One service, one
-  panel, three entry points; reuse `PanelSelector`/`FocusedDetailPane`. Confirm this is the desired
-  surface (vs forge-inside-shop as a tab).
+- **Rec:** mirror shops — a `ForgeService` (quote/commit via `ResourceLedger`) + a PHB **forge panel**
+  (prep), an **on-map** panel-trigger, and a **dialogue command**. One service, three entry points;
+  reuse `PanelSelector`/`FocusedDetailPane`. **Note (2026-07-01b):** the owner wants fixed-shape /
+  transform upgrades ([FRG-1]C/[FRG-4]) **possibly surfaced through the shop interface** — so the forge
+  and shop panels may share a surface for the "buy the upgraded item / trade item in" flow. See
+  [FRG-20] for how forge and shop relate.
 
 #### [FRG-15] Availability / smith-rank gating  **[OPEN]**
 - Smithy available by story/campaign flag; smith "rank" gating which upgrades are offered (3H/Triangle).
@@ -206,26 +250,74 @@ The player-facing forging spec + the data model: (1) an **upgrade-operation / re
   save/convoy. Proves: upgrade registry, `forged_mods` write, effective-stat resolver, ledger spend,
   panel. Everything else (materials, allocation UI, repair, engrave, on-map/dialogue) layers on after.
 
-### Group F — Effect-package engraving (stretch)
+### Group F — Effect / effect-bundle grants (stretch)
 
-#### [FRG-18] Engrave-style effect packages  **[OPEN]**
-- Named packages that grant an **effect bundle** with tradeoffs, **exclusive** per weapon (Engage
-  engrave). **Rec: v2, and route through the Source/Style effect registry (Band 5 Q5)** rather than a
-  forge-specific effect system — an engrave is "attach an effect package to a weapon instance,"
-  which is the same effect vocabulary. Note the dependency; do not build in the v1 forging slice.
+#### [FRG-18] Effect / effect-bundle grants  **[ASKED]**
+- **Direction (2026-07-01b): WANTED eventually.** Named packages/ops that grant an **effect bundle**
+  (often with tradeoffs, and possibly exclusive per weapon, Engage-engrave style). **Route through the
+  Source/Style effect registry (Band 5 Q5)**, not a forge-specific effect system — a forge effect-grant
+  is "attach an effect package to a weapon instance," the same effect vocabulary. **v2 / not in the v1
+  slice.** Worked examples the model must express, mapped to substrate:
+
+  | Worked example | Mechanic | Substrate it reuses |
+  |---|---|---|
+  | "+5 RES / −5 DEF while equipped" | conditional **stat-swap bundle** on equip | accessory-style `until_unequipped` modifiers (`add_modifier`, StatBreakdown source); a bundle = several deltas under one grant |
+  | "usable to restore 20 HP at cost of 2 durability" | grants an **active ability** with a **durability cost** | Source/Style effect (heal) + `ResourceLedger` cost scoped to the item's `uses` (broken/degraded seam) |
+  | "grants a specific combat art while equipped" | grants an **action / combat art** while wielded | Source/Style **grant** (a granted action source, same idiom as Band 5 loadout "granted sources") |
+  | "effective against ghosts" | adds an **effectiveness / `effect_tag`** | `WeaponComponent.effect_tags` — a forge op appends a tag to the effective tag set |
+
+- **Design consequence:** because effect grants target the **weapon instance**, they layer through the
+  same `forged_mods` op-overlay ([FRG-9]) + effective-weapon resolver ([FRG-10]); "effective-tags" and
+  "granted actions/modifiers" become part of what the resolver returns, not just numeric stats.
+- **Open parameter:** are these grants **exclusive** (one bundle per weapon, Engage-style) or stackable
+  under the cap logic? Lean: author-declared per bundle (some exclusive, some stackable).
 
 ---
+
+### Group G — Cost/interface extensions (from 2026-07-01b steer)
+
+#### [FRG-19] Special **item** consumed as a forge cost  **[ASKED]**
+- **Direction (2026-07-01b): wanted eventually.** An author must be able to require a **specific
+  inventory/convoy item** as a forge material (consumed on commit) — a "special item that doesn't
+  normally occupy a resource slot," distinct from a `ResourceLedger` numeric resource.
+- **Design question:** model this as (A) a **new `CostSpec` scope** `item` (subject = an item def-id +
+  count located in shopper inventory/convoy, removed atomically on commit) — keeps one cost path and
+  one atomic commit; or (B) wrap every consumable item as an auto-registered `ResourceLedger` resource
+  whose balance = count-in-inventory. **Rec: A** — a first-class `item` cost scope on the ledger
+  keeps items as items (tradeable, stackable, story-flaggable) rather than shadow-resources, and the
+  ledger's atomic multi-cost commit already covers "gold + item" in one transaction. Confirm removal
+  order + rollback (a failed forge must not consume the item).
+- **F1:** no new saved field (items already persist); the forge just calls an item-removal on commit.
+
+#### [FRG-20] How do **forge and shop** relate?  **[OPEN]**
+- The owner wants fixed-shape/transform upgrades ([FRG-1]C/[FRG-4]) "possibly utilizing the shop
+  interface where the old item is consumed/transformed to create a new base item."
+- **Options:** (A) **separate panels**, forge references shop-style stock rows; (B) **forge is a shop
+  `destination_mode`/entry variant** — a stock row whose "buy" consumes a trade-in item + resources and
+  yields the upgraded/new def; (C) **shared transaction core**, two thin panels.
+- **Rec: C** — one `ResourceLedger`-backed transaction core with an optional **trade-in / consume**
+  input, presented as either a shop row or a forge row. This keeps "spend gold + consume Iron Sword →
+  receive Steel Sword" and "spend gold → +1 Mt on this instance" on the same commit path, differing
+  only in whether the output is a **new def** (transform) or a **mutated instance** (`forged_mods`).
+- **Open:** is the v1 demo forge a standalone panel, or already folded into the shop? Lean: standalone
+  forge panel for the v1 slice ([FRG-17]); shared-core refactor when transform lands.
 
 ## 5. Dependencies & downstream
 
 - **Upstream:** `B4-IEQ` (`ItemDef`/`WeaponComponent`, `InventoryEntry.forged_mods`, F1 rows),
   `B2-RESOURCE-LEDGER` + `B3-RESOURCE-POOLS` (cost path), `B3-REQ`/`REQ-16` (gates + cost formulas),
   `B3-PHB` + `PanelSelector` (panel), `B4-MAP-OBJECTS` (on-map trigger), `B4-DIALOGUE-V1` (command).
-- **F1 (save) reservations to confirm:** the richer `forged_mods` schema ([FRG-9]=B), any smith-rank
-  campaign var ([FRG-15]), and non-mergeable-instance identity ([FRG-11]).
-- **`B2-REGISTRY` families to add:** forge upgrade ops, forge cost resources (if materials), forgeable
-  attribute targets. All open registries, per AGENTS.md.
-- **Effect-package engraving ([FRG-18]) depends on Band 5 Q5** Source/Style effect registry landing.
+- **F1 (save) reservations to confirm:** the richer op-overlay `forged_mods` schema ([FRG-9]=B), any
+  smith-rank campaign var ([FRG-15]), and non-mergeable-instance identity ([FRG-11]).
+- **`ResourceLedger` extension:** an **`item` cost scope** ([FRG-19]) so a forge can consume a specific
+  inventory item atomically alongside gold — the one genuinely new cost dimension from the 2026-07-01b
+  steer; and a shared **transaction core** with an optional trade-in/consume input ([FRG-20]).
+- **`B2-REGISTRY` families to add:** forge upgrade ops (incl. point-allocation, transform, repair, and
+  effect-grant op kinds), forge cost resources (if materials), forgeable attribute targets. All open
+  registries, per AGENTS.md.
+- **Effect / effect-bundle grants ([FRG-18]) depend on Band 5 Q5** Source/Style effect registry (for
+  granted actions/combat-arts and effect bundles) plus the accessory `until_unequipped` modifier path
+  (for equipped stat-swap bundles).
 
 ---
 
