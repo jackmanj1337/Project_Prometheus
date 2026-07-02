@@ -306,6 +306,22 @@ Slice 1's data shape, not discovered in the cleanup slice.
   map content / campaign wrappers), drafted at the existing
   Band-1-3-accepted trigger. 4S-2 is covered by the Slice 8 edit.
 
+**Plan edits applied (2026-07-02, commit `a319da8`):** all high, medium, and
+low findings except C1 are now fixed in the plans — 1-1 (phantom API reworded),
+1-2 (`# rng-allow:` tag named, stale `pre-M9a` tags must be removed), 1-3
+(T-matrix mapping stated: T2 = Slice 2, T6 = `B1-SUSPEND`), 1-4 (placeholder
+filename update obligation), 1-5 (mixer-constant fallback), 2-1
+(`gs.campaign_rules.permadeath_enabled`), 2-2 (occupancy policies split into
+implemented vs registered-stub tiers), 2-3 (`project_combat()` = wrapper), 2-4
+(`DeathContext.object_ref` reserved), 3-1 (`visited_trail` linked), 3-2
+(boolean notation), 3-3 (text family, not per-key entries), 3-4 (calendar
+advances on victory only), 4I-1 (`InventoryEntry.instance_id` added to Slice 2
++ F1 rows), 4I-2 (id-parity invariant + validation), 4I-3 (default rank
+named), 4M-1 (degradation documented in SAC/GDD_07/control plane), 4C-1
+(`ConvoyService` owns the helper), and C3 (verification checklists appended to
+all four Band 4 plans). **Remaining open: C1 (Band 5 handoff)** — next
+session's planning target.
+
 ## Suggested Order Of Fixes
 
 1. **Owner decisions needed:** 4S-1 (sell-price source — blocks shop Slice 2),
