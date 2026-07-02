@@ -7,11 +7,11 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.5_debug.exe`
-- Source commit: `STUB`
+- Source commit: `a24a635`
 - Exported: `2026-07-02`
 - Godot: `4.6.stable.official.89cea1439`
-- Size: `STUB` bytes
-- SHA-256: `STUB`
+- Size: `101269376` bytes
+- SHA-256: `d1d758c21a845dcbff7594c7b7939e51fdfcec390faac45abbdea40569125bde`
 
 The artifact is intentionally ignored by Git. v0.2.5 ships as **two files**: the
 executable and the single self-contained handbook
@@ -61,8 +61,8 @@ remains **Pending validation** — the handbook's Part I passes on a real Window
 
 ## Verification
 
-- Full source suite: PASS (suites green; pre-commit hook gates it).
-- check_docs: PASS.
+- Full source suite: PASS (48 suites green; pre-commit hook gates it).
+- check_docs: PASS (21/21).
 - Release-metadata test (`test_release_metadata.gd`): PASS — preset name/path/product
   version, Main Menu label, checklist presence, and setup guide all agree at `v0.2.5`.
 - Export: PASS — Windows debug `.exe` built headless, SHA-256 recorded above.
