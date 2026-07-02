@@ -898,7 +898,14 @@ The accessibility and parity contract the UI must honor across input methods and
   **V023-01:** the Settings screen itself uses stable row label/control columns after each
   live scale pass so dragging the Menu Scale slider does not move the slider under the
   pointer. Existing saves migrate old scale indices forward one slot so adding `0.5×` does
-  not turn a saved `1.0×` into `0.75×`.
+  not turn a saved `1.0×` into `0.75×`; the shift only applies when the cfg actually
+  stored an index, so a pre-menu-scale cfg keeps the `1.0×` default (v0.2.5 guard).
+  **V023-01 vertical follow-up (v0.2.5):** the column lock only held the x-axis — rows
+  above the slider still changed height with the new font size, shifting it vertically
+  mid-drag. `SettingsScreen.apply_menu_scale` now anchors the slider's row: it captures
+  the row's on-screen y before the re-scale and restores it one (deferred-layout) frame
+  later via the panel `ScrollContainer`'s `scroll_vertical`. The compensation clamps at
+  the scroll extremes, where a small residual shift is accepted.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies

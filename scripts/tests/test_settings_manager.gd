@@ -221,6 +221,43 @@ func _init() -> void:
 		print("FAIL windowed size clamp: fit=%s clamped=%s" % [win_fit_ok, win_clamped])
 		failed += 1
 
+	# ---- menu-scale schema migration (V023-01, guarded in v0.2.5) ----
+	# v1 cfg with a stored index: shifts up one slot so the factor is preserved
+	# (old 1 == 1.0x -> new 2 == 1.0x after 0.5x was prepended).
+	var mig_cfg := ConfigFile.new()
+	mig_cfg.set_value("display", "menu_scale_index", 1)
+	mig_cfg.save(sm.SETTINGS_PATH)
+	var sm_v1: Node = SettingsManagerS.new()
+	sm_v1.load_settings()
+	var mig_shift_ok: bool = sm_v1.menu_scale_index == 2
+	sm_v1.free()
+	# v2 cfg: index already uses the new vocabulary — no shift.
+	mig_cfg.set_value("display", "menu_scale_index", 2)
+	mig_cfg.set_value("display", "menu_scale_schema_version", 2)
+	mig_cfg.save(sm.SETTINGS_PATH)
+	var sm_v2: Node = SettingsManagerS.new()
+	sm_v2.load_settings()
+	var mig_v2_ok: bool = sm_v2.menu_scale_index == 2
+	sm_v2.free()
+	# Cfg predating the menu-scale setting (no stored index at all): the default must
+	# NOT be shifted — that would silently land old configs on 1.25x instead of 1.0x.
+	var old_cfg := ConfigFile.new()
+	old_cfg.set_value("display", "window_mode", "windowed")
+	old_cfg.save(sm.SETTINGS_PATH)
+	var sm_old: Node = SettingsManagerS.new()
+	sm_old.load_settings()
+	var mig_absent_ok: bool = sm_old.menu_scale_index == 2
+	sm_old.free()
+	# Leave a current-schema cfg behind for anything loading it after this suite.
+	sm.save()
+	if mig_shift_ok and mig_v2_ok and mig_absent_ok:
+		print("OK  menu-scale migration shifts stored v1 indices only, never the default")
+		passed += 1
+	else:
+		print("FAIL menu-scale migration: shift=%s v2=%s absent=%s" % [
+			mig_shift_ok, mig_v2_ok, mig_absent_ok])
+		failed += 1
+
 	# ---- is_display_config_supported: true off Web (E1 desktop-only gate) ----
 	# The test runner is a desktop headless build (no "web" feature), so the seam
 	# must report supported here — i.e. desktop display config behaviour is unchanged.

@@ -76,6 +76,30 @@ func _init() -> void:
 		print("FAIL Menu Scale slider drift: %s" % str(slider_positions))
 		failed += 1
 
+	# V023-01 follow-up (v0.2.5): the slider must also hold its VERTICAL position —
+	# rows above it change height with the scale factor, so apply_menu_scale anchors
+	# the row by compensating with the ScrollContainer's scroll_vertical one frame
+	# later. Extra process_frame awaits let the deferred layout + anchor pass settle.
+	var scale_row: Control = screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale")
+	var row_y_stable := false
+	if scale_row != null:
+		screen.apply_menu_scale(1.0)
+		for i in 3:
+			await process_frame
+		var row_y_before: float = scale_row.global_position.y
+		screen.apply_menu_scale(2.0)
+		for i in 3:
+			await process_frame
+		var row_y_after: float = scale_row.global_position.y
+		row_y_stable = absf(row_y_after - row_y_before) <= 2.0
+		if not row_y_stable:
+			print("FAIL Menu Scale row y drift: before=%s after=%s" % [row_y_before, row_y_after])
+	if row_y_stable:
+		print("OK  Menu Scale row y-position stays anchored during live scaling")
+		passed += 1
+	else:
+		failed += 1
+
 	# Keybinding list is populated from the InputMap (#8).
 	var list := screen.get_node_or_null("Panel/ScrollContainer/VBox/KeybindList")
 	if list != null and list.get_child_count() > 0:

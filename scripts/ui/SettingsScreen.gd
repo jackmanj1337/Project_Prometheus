@@ -32,6 +32,7 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
 
+@onready var _scroll: ScrollContainer   = $Panel/ScrollContainer
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
 @onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
@@ -208,9 +209,26 @@ func open() -> void:
 	_btn_back.grab_focus()
 
 
+# V023-01 covered the horizontal axis (stable row columns); rows above the Menu
+# Scale slider still change height with the new font size, which shifted the
+# slider vertically out from under the pointer mid-drag. Anchor the row: capture
+# its on-screen y before the re-scale and restore it by scrolling.
 func apply_menu_scale(factor: float) -> void:
+	var row: Control = null
+	if _slider_menu_scale != null:
+		row = _slider_menu_scale.get_parent() as Control
+	var anchor_active: bool = visible and row != null and _scroll != null
+	var row_y: float = row.global_position.y if anchor_active else 0.0
 	super.apply_menu_scale(factor)
 	_stabilize_settings_rows()
+	if not anchor_active:
+		return
+	# Container layout is deferred, so the shifted position is only measurable on
+	# the next frame. scroll_vertical clamps itself, so when the scrollbar is at
+	# an extreme a small residual shift can remain — acceptable, still on screen.
+	await get_tree().process_frame
+	if is_instance_valid(row) and is_instance_valid(_scroll) and visible:
+		_scroll.scroll_vertical += roundi(row.global_position.y - row_y)
 
 
 func _close() -> void:

@@ -129,6 +129,15 @@ Headless validation added/updated for these fixes:
 `test_unit_details_screen.gd`, `test_map_cursor.gd`, `test_attack_preview_selector.gd`,
 `test_attack_preview_position.gd`, `test_level_up_screen.gd`, and `test_hud.gd`.
 
+Follow-up (2026-07-02, v0.2.5): the v0.2.4 rerun showed the `V023-01` column lock only
+held the slider's x-axis — rows above it still change height with the scale factor, so
+the slider drifted **vertically** mid-drag. `SettingsScreen.apply_menu_scale` now anchors
+the slider's row by compensating with the panel `ScrollContainer.scroll_vertical` one
+frame after the re-scale. The `menu_scale_schema_version` migration was also guarded to
+shift only *stored* indices — a cfg predating the menu-scale setting no longer has its
+in-memory `1.0x` default bumped to `1.25x`. Covered by `test_settings_screen.gd` (row-y
+anchor) and `test_settings_manager.gd` (migration matrix).
+
 Remaining gate: `VAL-V023-DISPLAY` stays **Pending validation** until a focused Windows
 display rerun confirms Part I visually on the target monitor/resolution setup.
 

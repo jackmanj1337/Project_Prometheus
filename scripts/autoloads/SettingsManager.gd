@@ -122,12 +122,16 @@ func load_settings() -> void:
 	# Clamp on load so a stale/corrupt index never indexes past MENU_SCALE_LEVELS.
 	# Migration: old builds stored this as ui_scale_index when it scaled the whole GUI.
 	# v2 prepends 0.5×, so old index values shift up one slot to preserve the
-	# selected factor (old 1 == 1.0×, new 2 == 1.0×).
+	# selected factor (old 1 == 1.0×, new 2 == 1.0×). The shift only applies when a
+	# value was actually stored — shifting the in-memory default would silently move
+	# a cfg that predates the menu-scale setting from 1.0× to 1.25×.
+	var has_stored_menu_scale: bool = cfg.has_section_key("display", "menu_scale_index") \
+		or cfg.has_section_key("display", "ui_scale_index")
 	var stored_menu_scale_index: int = cfg.get_value("display", "menu_scale_index",
 		cfg.get_value("display", "ui_scale_index", menu_scale_index))
 	var menu_scale_schema_version: int = int(cfg.get_value(
 		"display", "menu_scale_schema_version", 1))
-	if menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
+	if has_stored_menu_scale and menu_scale_schema_version < MENU_SCALE_SCHEMA_VERSION:
 		stored_menu_scale_index += 1
 	menu_scale_index = clampi(stored_menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
