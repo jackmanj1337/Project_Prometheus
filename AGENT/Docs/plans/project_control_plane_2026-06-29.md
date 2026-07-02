@@ -114,6 +114,12 @@ Every tracker row uses these columns:
 
 ## Band 5 - Tactical V1 Enrichment
 
+> **Plan handoff (2026-07-02):** the Band 5 implementation plans are scoped by
+> [`band5_implementation_plan_handoff_2026-07-02.md`](band5_implementation_plan_handoff_2026-07-02.md)
+> (four grouped plans; bootstrap order fixed; drafts against the settled Q1-Q7
+> walkthrough decisions of 2026-07-01). The Q2 effect manifest stays
+> demo-campaign-gated.
+
 | Track ID | Band | Status | Work item | Scope | Blocks / depends on | GDD owner | Decision source | Build source | Save / registry impact | Test / validation | Next action |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `B5-CONDITIONS` | 5 | Target design | Status conditions | ConditionManager implementation, duration lifecycle, poison/sleep/silence/berserk/stun, Restore/Panacea hooks. | `B1-F1`, `B2-PROJECTION` where forecasted | `GDD_02`, `GDD_05` | `GDD_10` M8 plus later duration amendments | needs updated implementation plan | Save: active conditions | Condition behavior and expiry tests | Rewrite M8 around registry/condition lifecycle before build. |

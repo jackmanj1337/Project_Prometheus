@@ -319,8 +319,19 @@ advances on victory only), 4I-1 (`InventoryEntry.instance_id` added to Slice 2
 + F1 rows), 4I-2 (id-parity invariant + validation), 4I-3 (default rank
 named), 4M-1 (degradation documented in SAC/GDD_07/control plane), 4C-1
 (`ConvoyService` owns the helper), and C3 (verification checklists appended to
-all four Band 4 plans). **Remaining open: C1 (Band 5 handoff)** — next
-session's planning target.
+all four Band 4 plans).
+
+**C1 RESOLVED (2026-07-02):**
+[`band5_implementation_plan_handoff_2026-07-02.md`](../Docs/plans/band5_implementation_plan_handoff_2026-07-02.md)
+is written. It drafts against the already-settled Q1-Q7 walkthrough decisions
+(2026-07-01) rather than reopening them, fixes the two-chain bootstrap order
+(conditions -> skills -> loadout/Source+Style -> staves/action-flow, with the
+AI chain parallel), recommends four grouped plans, and carries the Q2
+demo-campaign gate plus the `B5-DURATION-LIFECYCLE`/`B4-IEQ` boundary and the
+forging `[FRG-18]` dependency as explicit owner questions (Q-B5-1..4). **All
+audit findings are now closed.** Band 6 plans remain owed by their own
+control-plane row triggers (no handoff owed yet; several rows already carry
+build sources).
 
 ## Suggested Order Of Fixes
 
