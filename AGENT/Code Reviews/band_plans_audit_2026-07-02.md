@@ -291,6 +291,21 @@ Slice 1's data shape, not discovered in the cleanup slice.
 - The two resolved Band 1 review questions and the four resolved Band 3 owner
   questions are consistently reflected in the plan bodies.
 
+## Resolutions (2026-07-02, owner)
+
+- **4S-1 RESOLVED** as `[SHP-6]` in
+  [`shop_economy_open_questions_2026-06-23.md`](../Docs/registers/shop_economy_open_questions_2026-06-23.md):
+  sell price = campaign-default author-set `REQ-16` formula (default 50% of
+  value × percent durability remaining), plus a per-shop incoming-price
+  modifier symmetric with the outgoing buy modifiers; stock-entry
+  `sell_yields` = per-entry override. Wired into the shop plan Slices 1/2/5/8.
+- **C2 RESOLVED**: the thin
+  [`band4_campaign_loop_implementation_plan_2026-07-02.md`](../Docs/plans/band4_campaign_loop_implementation_plan_2026-07-02.md)
+  is written (finalizing the `D2` minimum loop); the seven remaining tracks are
+  owned by three grouped plans per handoff decision `D5` (enablers /
+  map content / campaign wrappers), drafted at the existing
+  Band-1-3-accepted trigger. 4S-2 is covered by the Slice 8 edit.
+
 ## Suggested Order Of Fixes
 
 1. **Owner decisions needed:** 4S-1 (sell-price source — blocks shop Slice 2),
