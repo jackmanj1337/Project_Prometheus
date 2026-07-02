@@ -50,18 +50,26 @@ Referenced by `String` path/id, resolved through the shared `AssetResolver`
 | Audio | music (BGM), SFX | **OGG Vorbis**; WAV allowed for short SFX |
 
 **Format rationale:** each is chosen for runtime raw-loadability without the
-editor import pipeline (the `[ICO-6]` constraint). The intended PNG path is
-`Image.load_from_file` -> `ImageTexture.create_from_image` — a well-worn Godot 4
-API, but **not yet built**: there is no runtime raw-load seam in the code today
-(the `res://` default tilesets still go through the editor `.import` pipeline).
-The load call is proven-in-principle for PNG; the OGG/TTF equivalents are the open
-spike below.
+editor import pipeline (the `[ICO-6]` constraint). The runtime seam is **not yet
+built** (the `res://` default tilesets still go through the editor `.import`
+pipeline), but the load API for every Tier-1 format is now **proven** — see the
+spike result below.
 
-> **OPEN SPIKE (blocks locking the loader seam):** verify the Godot 4 runtime
-> raw-load API for **OGG audio** and **TTF/OTF fonts** from `user://` in an
-> **exported** build. PNG is confirmed; the audio/font loaders are NOT. The
-> formats above are the target; the exact load call must be proven before the
-> asset loader is built. Do not assert an API here until the spike lands.
+> **SPIKE RETIRED (2026-07-02, Godot 4.6.stable):** the runtime raw-load API for
+> **OGG audio**, **TTF/OTF fonts**, and **WAV** from `user://` is confirmed in a
+> real **exported Linux template** (`OS.has_feature("editor") == false`, no
+> `.import`), not just the editor binary. Proven load calls:
+> - PNG: `Image.load_from_file(path)` -> `ImageTexture.create_from_image(img)`.
+> - OGG: `AudioStreamOggVorbis.load_from_file(path)` (and `load_from_buffer(bytes)`)
+>   — decoded a real 6.1 s stream from `user://`.
+> - WAV: `AudioStreamWAV.load_from_file(path)` (round-tripped `save_to_wav` ->
+>   load). MP3 (`AudioStreamMP3.load_from_file`) is also present if ever needed.
+> - TTF/OTF: `var f := FontFile.new(); f.load_dynamic_font(path)` — err 0, real
+>   font name + glyph metrics from a system DejaVu `.ttf` at `user://`.
+>
+> All are core-module bindings + core codecs (libvorbis/FreeType), so they survive
+> templating; the export test confirmed it rather than assuming it. Evidence:
+> session note `2026-07-02g`. **The loader seam is now unblocked to build.**
 
 ### Tier 1a — Sprite sheets & runtime slicing (owner decisions, 2026-07-02)
 
@@ -192,13 +200,17 @@ requiring an engine edit. Fallback chain (missing asset never crashes a pack):
 - **DoD#2:** if a checkable rule is ratified here (e.g. "Tier 1 media must be
   PNG/OGG/TTF", "Tier 2 pack data must be JSON"), land its `check_docs.py` guard
   in the same change.
-- **Sequencing:** the OGG/TTF raw-load spike must retire before the media loader
-  seam is locked; the sprite importer (`B6-SPRITE-IMPORTER`, `IMP-1..6`) stays
-  HELD until asset sourcing is decided, but consumes this taxonomy when it builds.
+- **Sequencing:** the OGG/TTF raw-load spike is **retired** (see the spike-result
+  block above) — the media loader seam is unblocked to build. When it is built,
+  DoD#2 fires: add the `check_docs.py` guards for "Tier 1 media = PNG/OGG/TTF(/WAV)"
+  and "sheet sidecars = per-file JSON". The sprite importer (`B6-SPRITE-IMPORTER`,
+  `IMP-1..6`) stays HELD until asset sourcing is decided, but consumes this
+  taxonomy when it builds.
 
 ## Open questions (resolve at implementation)
 
-1. **OGG/TTF raw-load API** (the spike above) — the one hard technical unknown.
+1. ~~**OGG/TTF raw-load API**~~ — **RESOLVED 2026-07-02** (spike retired above; all
+   Tier-1 loaders proven in an exported build).
 2. **Integrity hashing scope** — does the pack carry a manifest-level integrity
    hash over Tier 2 (like the save), and does it cover Tier 1 media too?
 3. **JSON schema versioning** — per-file `format_version` vs one pack-level
