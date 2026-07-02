@@ -25,6 +25,13 @@ committed art must be CC0 / OGA-BY (FE art is placeholder-only); all campaign ar
 by id/path** from `user://` per `[ICO-5/6]`; theme + assets resolve through the proposed
 `UiThemeDef` registry + `AssetResolver`, never a closed enum.
 
+**Art importer (`B6-SPRITE-IMPORTER`, `[IMP-1..6]`).** The tool that turns an FE-style character
+sheet into the per-class map sprites (§2) and feeds the `ClassData.sprite_id` seam is specified in
+`registers/map_sprite_importer_open_questions_2026-06-21.md` (OPEN, HELD) with the technique in
+`guides/fe_map_sprite_importer_guide.md`. It is the *ingestion* side of the unit-sprite rows below
+and owns the animation/`SPRITE_SOURCE_SIZE`/frame-slicing decisions this note flags as open — so the
+"animation scope" gap in §Gaps resolves **there**, not here.
+
 ---
 
 ## Legend — "special requirements"
@@ -171,7 +178,9 @@ panels multiply."
 ## Gaps / open questions for the UI/UX pass
 
 - **Animation scope:** are unit map sprites static or idle/move-animated? Drives whether §2 is one
-  frame or a sheet, and the whole 32px→64px pipeline cost.
+  frame or a sheet, and the whole 32px→64px pipeline cost. **Owned by the art importer**
+  (`B6-SPRITE-IMPORTER` / `[IMP-1..6]`, `registers/map_sprite_importer_open_questions_2026-06-21.md`)
+  — settle it there; this note just consumes the output.
 - **Autotile:** do terrain tiles need edge transitions, or flat per-type is acceptable for v1?
 - **Icon authoring source:** ship a CC0/OGA-BY starter atlas for the default campaign, or text-only
   until authors supply icons? (`[ICO]` allows text-only.)
