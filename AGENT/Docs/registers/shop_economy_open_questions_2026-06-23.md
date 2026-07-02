@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: RESOLVED 2026-06-23
-Last verified: 2026-06-23
-Register: SHP-1..5
-Resolved-in: 2026-06-23k
+Status: RESOLVED 2026-07-02
+Last verified: 2026-07-02
+Register: SHP-1..6
+Resolved-in: 2026-06-23k; SHP-6 in 2026-07-02 audit follow-up
 ---
 
 # Shop / Economy Firming (branch E, economy spine) — Player-Facing Design + Open Questions
@@ -98,6 +98,25 @@ ledger to be balanceable.
   v1 sink = shop buy. Forward sources/sinks (chests/villages/arena/skirmish/bonus; forge/arena-bet/
   training) ride their own registers. Ledger generalizes to the SHP-1 resource model.
 
+### [SHP-6] Sell-price source for items not in the shop's stock list  **[RESOLVED]**
+Raised by the Band 1-6 plan audit (`AGENT/Code Reviews/band_plans_audit_2026-07-02.md` finding 4S-1):
+`sell_yields` lives on `ShopStockEntry`, but the sell view lists the **shopper's whole inventory** —
+items that may match no stock entry of this shop. Where does their sell yield come from?
+- **A — Campaign-default sell formula** (an author-set `[REQ-16]` value term) applied to the item's
+  resource-keyed value; stock-entry `sell_yields` becomes an optional per-entry override.
+- **B — Only items matching a stock entry are sellable.**
+- **C — Optional `sell_yields` on `ItemDef` itself,** with stock-entry override.
+- **Resolution:** **[RESOLVED → A, durability-scaled + shop incoming modifier]** (owner 2026-07-02) —
+  sell price is a **campaign-default author-set formula** (a `[REQ-16]` value term over the item
+  subject). **Default: 50% of the item's value, further scaled by percent durability remaining**
+  (`uses_remaining / max_uses`; items without durability sell at the full formula result). In addition,
+  each shop may declare an **incoming-price modifier formula** applied to sells, **symmetric with the
+  outgoing (buy-side) dynamic price modifiers** from `[SAC-5..9]` — one shop can pay more/less for
+  goods exactly as it can charge more/less. Per-entry `sell_yields` on a stock entry overrides the
+  campaign formula result (before the shop incoming modifier). The formula scales each resource amount
+  of the item's resource-keyed value (`[SHP-1]`), so multi-resource yields need no reshape. No new save
+  surface — formulas are authoring data.
+
 ## 4. Notes
 - **NEW schema — resource-keyed pricing (`[SHP-1]`):** a `resource_type → amount` cost/yield structure
   replaces the flat single-`cost`-int + sell-% model for transactions; v1 populates **gold only**. Per-save
@@ -144,6 +163,10 @@ ledger to be balanceable.
 # Resolution Log
 (newest first)
 
+- **2026-07-02 — [SHP-6] RESOLVED (owner, audit follow-up).** Sell price = campaign-default
+  author-set `[REQ-16]` formula; default 50% of value × percent durability remaining; per-shop
+  **incoming**-price modifier formula symmetric with the outgoing buy modifiers; stock-entry
+  `sell_yields` = per-entry override. Raised by `band_plans_audit_2026-07-02.md` finding 4S-1.
 - **2026-06-23k — register COMPLETE.** [SHP-1] **B+ resource-keyed** (separate buy/sell, `resource_type→
   amount` cost/yield; **[SHP-1b]** multi-resource model, gold-only in v1). [SHP-2] **A** buy+sell, key
   unsellable. [SHP-3] **A** author per-shop stock, infinite qty, generic panel. [SHP-4] **context-dependent**

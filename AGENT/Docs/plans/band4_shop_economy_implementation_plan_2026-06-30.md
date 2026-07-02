@@ -62,7 +62,7 @@ This plan covers the first shop/economy implementation run:
 - [`band4_implementation_plan_handoff_2026-06-30.md`](band4_implementation_plan_handoff_2026-06-30.md)
 - [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md)
 - [`shop_economy_open_questions_2026-06-23.md`](../registers/shop_economy_open_questions_2026-06-23.md)
-  (`SHP-1..5`)
+  (`SHP-1..6`)
 - [`shop_activate_configs_open_questions_2026-06-27.md`](../registers/shop_activate_configs_open_questions_2026-06-27.md)
   (`SAC-5..9`)
 - [`convoy_inventory_open_questions_2026-06-23.md`](../registers/convoy_inventory_open_questions_2026-06-23.md)
@@ -86,6 +86,13 @@ This plan covers the first shop/economy implementation run:
   prep shop directly to convoy for bulk buying.
 - Conditional stock and dynamic pricing use `B3-REQ` / `REQ-16` over the shopper
   subject.
+- Sell price is a **campaign-default author-set formula** (`[SHP-6]`, owner
+  2026-07-02): a `REQ-16` value term over the item, default **50% of value ×
+  percent durability remaining** (no-durability items sell at the full formula
+  result). Each shop may declare an **incoming-price modifier** formula applied
+  to sells, symmetric with the outgoing buy-side modifiers. Stock-entry
+  `sell_yields` is an optional per-entry override of the campaign formula
+  result, applied before the shop incoming modifier.
 - Dialogue-wrapped shops use a dialogue command that launches the same shop
   panel; no shop-specific conversation system.
 
@@ -159,14 +166,24 @@ Files to create or touch:
 Implementation steps:
 
 1. Add `ShopConfig` with `id`, `label_key`, `stock`, optional category/group
-   display data, `destination_mode`, and optional named theme/presentation refs.
-2. Add `ShopStockEntry` with `item_def_id`, `buy_costs`, `sell_yields`,
+   display data, `destination_mode`, an optional `incoming_price_modifier`
+   (`REQ-16` value term applied to sells, symmetric with the buy-side
+   modifiers), and optional named theme/presentation refs.
+2. Add `ShopStockEntry` with `item_def_id`, `buy_costs`, optional `sell_yields`
+   (per-entry override of the campaign sell formula, `[SHP-6]`),
    optional `stock_gate`, `stock_unavailable_mode`, and optional dynamic price
    modifiers.
 3. Make `buy_costs` and `sell_yields` dictionaries keyed by resource id/scope.
-4. Validate item ids through `B4-IEQ`, resource ids through the resource
-   registry, predicates through `B3-REQ`, and price formulas through `REQ-16`.
-5. Seed one gold-only test shop fixture.
+4. Add the campaign-default sell formula as a `CampaignRules` field
+   (e.g. `sell_formula`, a `REQ-16` value term over the item subject) with the
+   built-in default preset `0.5 × value × durability_pct`
+   (`durability_pct = uses_remaining / max_uses`; `1.0` for no-durability
+   items). The formula scales each resource amount of the item's resource-keyed
+   value, so multi-resource yields need no reshape.
+5. Validate item ids through `B4-IEQ`, resource ids through the resource
+   registry, predicates through `B3-REQ`, and price formulas (including
+   `sell_formula` and `incoming_price_modifier`) through `REQ-16`.
+6. Seed one gold-only test shop fixture.
 
 Tests:
 
@@ -197,6 +214,11 @@ Implementation steps:
 1. Add `quote_buy(shop, stock_entry, shopper, ctx)` and
    `commit_buy(shop, stock_entry, shopper, ctx)`.
 2. Add `quote_sell(entry, seller, ctx)` and `commit_sell(entry, seller, ctx)`.
+   Sell-yield resolution order (`[SHP-6]`): matching stock-entry `sell_yields`
+   override if present, else the `CampaignRules.sell_formula` result over the
+   item's value and durability; then apply the shop's
+   `incoming_price_modifier`. Any sellable inventory item quotes a price —
+   membership in the shop's stock list is not required to sell.
 3. Use `ResourceLedger.quote()` for UI affordability and
    `ResourceLedger.commit()` for final mutation.
 4. Apply dynamic price modifiers before quote and record the resolved cost in
@@ -211,8 +233,14 @@ Tests:
 - Affordable buy spends gold and returns a structured transaction result.
 - Shortfall buy mutates nothing.
 - Sell credits the wallet and removes the sold entry from the seller.
+- An item in no stock entry of the shop sells at the campaign formula price.
+- A half-durability weapon sells for half its full-durability yield under the
+  default formula; a no-durability item sells at the undiscounted result.
+- A stock-entry `sell_yields` override wins over the campaign formula; the
+  shop `incoming_price_modifier` applies in both cases.
 - Key/story/non-sellable items are rejected.
-- Dynamic price quote equals commit for the same shopper/context.
+- Dynamic price quote equals commit for the same shopper/context (both
+  directions).
 
 F1 obligations: wallet rows are owned by `B3-RESOURCE-POOLS`; no shop stock rows
 unless persistent stock lands.
@@ -301,7 +329,8 @@ Implementation steps:
 1. Bind the shopper as the primary `B3-REQ` subject.
 2. Evaluate stock gates before rendering stock.
 3. Evaluate dynamic price modifiers through `REQ-16` value terms over the
-   shopper.
+   shopper — buy-side modifiers on quotes/commits of buys, and the shop
+   `incoming_price_modifier` on quotes/commits of sells (`[SHP-6]` symmetry).
 4. Clamp or reject invalid prices according to the ResourceLedger cost policy.
 5. Keep default behavior flat and author-optional.
 
@@ -385,7 +414,9 @@ Implementation checklist:
 - Remove direct shop-side `party_gold` mutations if any appeared during
   migration.
 - Update docs and fixtures so item `cost` is only the gold buy amount projection
-  of the resource-keyed price data.
+  of the resource-keyed price data, and sell prices flow only from the
+  `[SHP-6]` pipeline (campaign formula / stock override / incoming modifier) —
+  no hardcoded sell percentage anywhere.
 - Add a validation fixture for unknown resource ids and unknown item ids.
 - Run full Godot suite and docs checks.
 
