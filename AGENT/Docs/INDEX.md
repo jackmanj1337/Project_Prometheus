@@ -132,6 +132,7 @@
 - [`plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md`](plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md) — Band 2 Shared Runtime Contracts Implementation Plan — *Active - implementation plan*
 - [`plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md) — Band 3 Core Authoring Foundations Implementation Plan — *Active - implementation plan*
 - [`plans/band3_implementation_plan_handoff_2026-06-30.md`](plans/band3_implementation_plan_handoff_2026-06-30.md) — Band 3 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
+- [`plans/band4_campaign_loop_implementation_plan_2026-07-02.md`](plans/band4_campaign_loop_implementation_plan_2026-07-02.md) — Band 4 Campaign Loop Implementation Plan — *Active - implementation plan*
 - [`plans/band4_convoy_implementation_plan_2026-06-30.md`](plans/band4_convoy_implementation_plan_2026-06-30.md) — Band 4 Convoy Implementation Plan — *Active - implementation plan*
 - [`plans/band4_implementation_plan_handoff_2026-06-30.md`](plans/band4_implementation_plan_handoff_2026-06-30.md) — Band 4 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
 - [`plans/band4_items_equipment_implementation_plan_2026-06-30.md`](plans/band4_items_equipment_implementation_plan_2026-06-30.md) — Band 4 Items And Equipment Implementation Plan — *Active - implementation plan*

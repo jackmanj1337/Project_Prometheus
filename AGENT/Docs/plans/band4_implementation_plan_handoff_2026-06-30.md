@@ -221,6 +221,24 @@ focused item.
 This is the `DLG-7` "v1 slice = build-time call" decision; the dialogue register
 `DLG-7` carries a pointer back here.
 
+**D5 — Grouping of the seven smaller consumers (owner, 2026-07-02).** Decided
+while closing audit finding C2
+([`band_plans_audit_2026-07-02.md`](../../Code%20Reviews/band_plans_audit_2026-07-02.md)).
+The thin `B4-CAMPAIGN-LOOP` integration plan is now written
+([`band4_campaign_loop_implementation_plan_2026-07-02.md`](band4_campaign_loop_implementation_plan_2026-07-02.md)).
+The remaining seven tracks are owned by **three grouped plans**, drafted at the
+existing trigger (when the Band 1-3 contracts are accepted), following the
+bootstrap order:
+
+1. **Band 4 enablers plan** — `B4-PXP` + `B4-DIALOGUE-V1` (the two mid-order
+   prerequisites; PXP drafts from the existing class-EXP/PXP boundary plan).
+2. **Band 4 map-content plan** — `B4-DCH` + `B4-VILLAGE` + `B4-RECRUIT-BASIC`
+   (specialized map-object + dialogue consumers with shared fixtures).
+3. **Band 4 campaign-wrappers plan** — `B4-DIFFICULTY-DEATHMODE` +
+   `B4-PREP-DEPLOYMENT` (wrap the campaign/prep spine, not the map).
+
+`B4-PROMOTION-UI` stays conditional/deferred per `D1`.
+
 ## Watchouts
 
 - Do not start Band 4 implementation before Band 1-3 contracts are accepted and
