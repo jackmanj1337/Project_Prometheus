@@ -195,9 +195,10 @@ Implementation steps:
 
 1. Add `CampaignRules.convoy_capacity: int = -1` as unlimited sentinel.
 2. Add capacity calculation that excludes story/key items.
-3. Add a single `give_item_to_unit_or_convoy(unit, entry, reason)` helper:
-   target unit first, convoy overflow second, structured failure if both are
-   full.
+3. Add a single `ConvoyService.give_item_to_unit_or_convoy(unit, entry,
+   reason)` helper (owned by `ConvoyService`, matching the shop plan's call
+   sites): target unit first, convoy overflow second, structured failure if
+   both are full.
 4. Route map rewards, future shop purchases, chest loot, village rewards, and
    death-disposition item transfers through this helper as they land.
 5. Enforce `CampaignRules.max_inventory` on every item-add helper, not by
@@ -350,3 +351,21 @@ DoD#1 obligations: update `GDD_01`, `GDD_04`, `GDD_07`,
 
 DoD#2 obligations: add a test/check that rejects new direct writes to the legacy
 loose party item list.
+
+## Verification Checklist
+
+Same as the Band 2/3 plans. Run after each implementation slice:
+
+```bash
+python3 AGENT/Docs/check_docs.py
+git diff --check
+./run_tests.sh
+```
+
+Docs-only edits to this plan require:
+
+```bash
+python3 AGENT/Docs/gen_docs_index.py
+python3 AGENT/Docs/check_docs.py
+git diff --check
+```

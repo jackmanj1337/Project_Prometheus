@@ -248,7 +248,12 @@ Tests:
 - Two objects on one tile expose distinct labels.
 - Hidden object actions do not appear.
 - Shown-disabled object actions appear disabled when ActionMenu supports that
-  state; until then, keep them hidden and document the deferred UI state.
+  state; until then, keep them hidden and document the deferred UI state —
+  specifically: note the temporary `shown_disabled -> hidden` degradation on
+  the `SAC` register (`[SAC-1..12]`) and in the `GDD_07` section this slice
+  touches, and add a control-plane note on `B4-MAP-OBJECTS` so the degradation
+  is lifted when ActionMenu grows a disabled-row state (with `B6-INPUT`/UI
+  polish at the latest).
 - HUD More Info and ActionMenu show the same enabled object actions.
 - Seize/Escape regression tests stay green.
 
@@ -392,3 +397,21 @@ Implementation checklist:
 
 DoD#2 obligations: add a guard that prevents new map-object features from adding
 parallel `shop`/`visit`/`activate` switches instead of component records.
+
+## Verification Checklist
+
+Same as the Band 2/3 plans. Run after each implementation slice:
+
+```bash
+python3 AGENT/Docs/check_docs.py
+git diff --check
+./run_tests.sh
+```
+
+Docs-only edits to this plan require:
+
+```bash
+python3 AGENT/Docs/gen_docs_index.py
+python3 AGENT/Docs/check_docs.py
+git diff --check
+```

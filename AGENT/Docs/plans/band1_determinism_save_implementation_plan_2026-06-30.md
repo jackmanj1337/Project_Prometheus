@@ -102,10 +102,12 @@ Implementation checklist:
 - Run `rg -n "randi|randf|RandomNumberGenerator|randomize" scripts`.
 - Run `rg -n "resolve_combat|apply_combat_result|set_unit_state|record_move_start|apply_item|record_seize|record_escape" scripts`.
 - Confirm the exact Godot version accepts the signed decimal mixer constants
-  from the RNG design.
-- Use the official combat event-record API before editing combat:
-  `TurnManager.get_action_start_tile(unit)` supplies the pre-move tile;
-  combat callers pass `[attacker_id, from_tile, to_tile, defender_id]` into
+  from the RNG design. If it rejects them, re-express the same values as hex
+  integer literals; do not change the mixer math.
+- Note the agreed combat event-record API shape (this API does **not** exist
+  yet — Slice 1b adds it): `TurnManager.get_action_start_tile(unit)` supplies
+  the pre-move tile; combat callers pass
+  `[attacker_id, from_tile, to_tile, defender_id]` into
   `resolve_combat(attacker, defender, event_record := [])`; the result stores
   the same record for `apply_combat_result`.
 
@@ -213,6 +215,10 @@ Implementation steps:
 Tests:
 
 - `test_rng_combat_determinism.gd`
+  (T-numbers here and below are the §10 test matrix of
+  [`rng_determinism_design_2026-06-11.md`](../design/rng_determinism_design_2026-06-11.md);
+  full coverage across this plan: T1/T3/T7 in this slice, T4/T5 in Slice 1d,
+  T2 in Slice 2, T6 with the `B1-SUSPEND` follow-on)
   - T1 replay determinism for a scripted attack sequence,
   - T3 butterfly/isolation with Wait or another committed action between two
     attacks,
@@ -288,7 +294,13 @@ Implementation steps:
    constraint above).
    - The guard must fail on `randi`, `randf`, `RandomNumberGenerator`, or
      `randomize` in gameplay folders unless the line is in `RngService.gd` or
-     has an explicit allowed presentation/test exemption.
+     carries the existing exemption tag convention: an end-of-line
+     `# rng-allow: <reason>` comment (already used at the four current raw
+     sites as `# rng-allow: pre-M9a (RNG-1)`). Presentation/test exemptions use
+     the same tag with their reason.
+   - The migrated sites' stale `pre-M9a` tags must be **removed** by Slices
+     1b/1c along with the raw calls; the guard should also fail on any
+     surviving `pre-M9a` tag so a half-migrated site cannot hide behind it.
 
 Tests:
 
@@ -328,7 +340,7 @@ Implementation steps:
 
 Tests:
 
-- `test_rng_snapshot.gd`
+- `test_rng_snapshot.gd` (this is the design matrix's T2 snapshot round-trip)
   - snapshot, mutate RNG history, restore, and assert `map_seed` /
     `history_hash` deep-equal the original snapshot.
   - replay one attack after restore and assert it matches the original branch.
@@ -348,7 +360,10 @@ owner, and fixture obligation.
 
 Files to create or touch:
 
-- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-XX.md` (new)
+- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-XX.md` (new; `XX` is a
+  placeholder — the commit that creates the real file must also update this
+  plan's two references, Slice 5's file list, and the `B1-F1` control-plane
+  row to the final name)
 - `AGENT/Docs/plans/f1_schema_source_inventory_2026-06-28.md` if inventory
   cleanup is needed
 - `AGENT/Docs/plans/project_control_plane_2026-06-29.md`
@@ -536,6 +551,7 @@ commit:
 
 - `B1-SUSPEND`: active map suspend/save, live enemy state, turn/phase cursor,
   `_unit_states`, watch set, danger mode, pair/carry state, and RNG summary.
+  Carries the design matrix's T6 suspend round-trip test.
 - `B1-CST` campaign graph and prep/results flow:
   `CampaignData`, SaveManager file I/O, campaign selector, prep deployment,
   victory/defeat screens, Continue/Load, autosave/manual slots, export/import.

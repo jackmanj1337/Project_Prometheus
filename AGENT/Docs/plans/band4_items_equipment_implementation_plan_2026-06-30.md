@@ -141,10 +141,10 @@ Implementation checklist:
 
 - Run `rg -n "get_weapon|get_item|weapon_id|item_id|entry_type|is_equip|uses_remaining|IMPLEMENTED_EFFECT_IDS|_apply_equip_item_modifiers" scripts data`.
 - Confirm F1 rows exist or reserve them before code:
-  `InventoryEntry.def_id`, `InventoryEntry.uses_remaining`,
-  `InventoryEntry.map_uses_remaining`, `InventoryEntry.forged_mods`,
-  equipped accessory pointers by slot type, and per-unit slot capacity overrides
-  if this run adds them.
+  `InventoryEntry.def_id`, `InventoryEntry.instance_id`,
+  `InventoryEntry.uses_remaining`, `InventoryEntry.map_uses_remaining`,
+  `InventoryEntry.forged_mods`, equipped accessory pointers by slot type, and
+  per-unit slot capacity overrides if this run adds them.
 - Confirm `RegistryManager`, DataManager validate/report phases, `B3-REQ`, and
   `B3-STAT-REGISTRY` are in place.
 - Identify which compatibility shims can be behavior-preserving. Behavior
@@ -212,15 +212,21 @@ Files to touch:
 Implementation steps:
 
 1. Add `def_id` as the preferred definition reference.
-2. Keep `weapon_id`, `item_id`, and `entry_type` as compatibility fields until
+2. Add `instance_id`: a save-stable unique id assigned at entry creation
+   (Slice 5's modifier sources and convoy/transfer identity depend on it — two
+   identical Iron Swords must not share a key). Old saves/snapshots without
+   one get an id assigned on load; duplication for Retry deep-copies preserves
+   it, while creating a genuinely new entry mints a new id.
+3. Keep `weapon_id`, `item_id`, and `entry_type` as compatibility fields until
    their data is migrated.
-3. Add helper methods:
+4. Add helper methods:
    `get_definition_id()`, `has_weapon_component()`,
    `has_consumable_component()`, `has_accessory_component()`, and
    `is_legacy_entry()`.
-4. Add `map_uses_remaining` for per-map consumables, defaulting to `-1`.
-5. Add factory helpers for unified entries while keeping old factories intact.
-6. Update snapshot coverage for every new mutable runtime field.
+5. Add `map_uses_remaining` for per-map consumables, defaulting to `-1`.
+6. Add factory helpers for unified entries while keeping old factories intact.
+7. Update snapshot coverage for every new mutable runtime field (including
+   `instance_id` stability across snapshot/restore).
 
 Tests:
 
@@ -229,8 +235,8 @@ Tests:
 - Snapshot/restore deep-copies unified runtime fields.
 - Bad mixed ids report warnings or errors according to the migration policy.
 
-F1 obligations: `InventoryEntry.def_id` and `map_uses_remaining` rows must exist
-before code.
+F1 obligations: `InventoryEntry.def_id`, `InventoryEntry.instance_id`, and
+`map_uses_remaining` rows must exist before code.
 
 ## Slice 3 - Weapon Migration
 
@@ -254,6 +260,11 @@ Implementation steps:
 2. Keep `get_weapon(id)` as a compatibility shim until all weapon call sites are
    migrated, either returning a component adapter or a temporary legacy mirror.
 3. Convert weapon resources to item definitions with `weapon_component`.
+   **Id-parity invariant:** every migrated `ItemDef.id` must equal its source
+   `WeaponData`/`ItemData` id — old saves, `MapData.reward_items`, and fixture
+   references carry legacy ids, and the `def_id` migration is mechanical only
+   if ids match 1:1. Add a validation check that fails a migrated def whose id
+   differs from its source id.
 4. Update `Unit._find_equipped_weapon()`, range checks, durability, weapon
    menus, and combat to read the weapon component.
 5. Preserve inventory-front weapon equip semantics for this slice.
@@ -330,8 +341,8 @@ Implementation steps:
 2. Add capacity resolution: campaign default -> class override. Per-unit
    modifiers stay deferred unless explicitly pulled forward.
 3. Add `AccessoryService` or a small unit-local helper that applies and removes
-   `until_unequipped` modifiers with stable sources such as
-   `item:<entry-instance-id>:<stat>`.
+   `until_unequipped` modifiers with stable sources keyed by the Slice 2
+   `InventoryEntry.instance_id`: `item:<instance_id>:<stat>`.
 4. Implement held conferral, equipped conferral, and `both`.
 5. Implement dual weapon+accessory behavior: equipped weapon counts as equipped
    for its accessory side without consuming another slot.
@@ -368,7 +379,8 @@ Files to touch:
 Implementation steps:
 
 1. Add a narrow query helper such as `unit.get_item_proficiency_rank(track_id)`.
-2. Before `B4-PXP`, return the safe default rank and validate that rank-gated
+2. Before `B4-PXP`, return the safe default rank — the **lowest/base rank of
+   the track, the one that gates nothing** — and validate that rank-gated
    content is not active in fixtures.
 3. After `B4-PXP`, route the helper to the real proficiency store.
 4. Keep item tier selection data-driven and predicate-based.
@@ -405,3 +417,21 @@ Tests:
 
 DoD#2 obligations: add a guard that new item definitions use registry-backed
 components and do not add another closed item-type switch.
+
+## Verification Checklist
+
+Same as the Band 2/3 plans. Run after each implementation slice:
+
+```bash
+python3 AGENT/Docs/check_docs.py
+git diff --check
+./run_tests.sh
+```
+
+Docs-only edits to this plan require:
+
+```bash
+python3 AGENT/Docs/gen_docs_index.py
+python3 AGENT/Docs/check_docs.py
+git diff --check
+```

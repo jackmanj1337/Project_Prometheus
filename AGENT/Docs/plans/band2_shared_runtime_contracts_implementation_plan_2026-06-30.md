@@ -360,9 +360,14 @@ Implementation steps:
    collision policy, passability policy, fallback policy, and result sink.
 2. Add `PlacementResult` with `ok`, `failure_reason`, `from_tile`, `to_tile`,
    `fallback_used`, `queued`, `skipped`, and affected ids.
-3. Add policies:
-   `require_empty`, `nearest_free`, `delay`, `skip`, `swap`,
-   `overlap_hidden`, and `object_unit`.
+3. Add policies in two tiers:
+   - **Implemented and tested in this slice:** `require_empty`,
+     `nearest_free`, `delay`, and `skip` (the map-start spawn consumers).
+   - **Registered ids only, failing with a structured "not implemented"
+     result:** `swap`, `overlap_hidden`, and `object_unit` — their consumers
+     are later bands (displacement/carry, FOW/perception, `B4-MAP-OBJECTS`
+     Slice 7). Registering the ids now fixes the vocabulary; each owning slice
+     implements and tests its policy when it lands.
 4. Implement deterministic nearest-free search:
    tile distance first, then `y`, then `x`, then source order for batch
    placement.
@@ -417,14 +422,19 @@ Implementation steps:
 
 1. Add `DeathContext` with subject, source domain, source id, responsible actor,
    timing bucket, inventory snapshot, map/tile context, simultaneous group id,
-   death-mode refs, and result sink.
+   death-mode refs, an optional `object_ref` (reserved now, unused until
+   `B4-MAP-OBJECTS` Slice 7 routes object-unit breaks through this funnel and
+   needs the dying subject's owning object id), and result sink.
 2. Add `DeathResult` with `ok`, `subject_id`, `removed_from_map`,
    `incapacitated`, `custody_events`, `inventory_events`, `objective_events`,
    and UI/log messages.
 3. Add `DeathDisposition` as the single place for inventory/key-item/battalion
    hooks. The first implementation can preserve today's no-inventory behavior.
 4. Add `DeathLifecycle.handle_death(ctx)`.
-   - Set incapacitation according to existing `GameState.permadeath_enabled`.
+   - Set incapacitation according to `gs.campaign_rules.permadeath_enabled` —
+     Band 1 Slice 6 (`[CST-4]`) hard-migrates the loose
+     `GameState.permadeath_enabled` field away before Band 2 starts, so this
+     slice must read the consolidated rules owner, not the old field.
    - Release Pair Up support through the existing registry hook.
    - Unregister the unit.
    - Emit one death event/result.
@@ -491,8 +501,10 @@ Implementation steps:
    - resources,
    - event latches if present,
    - `RngService` committed state.
-6. Switch `AttackPreview` to call `ProjectionService.project_combat()` once the
-   wrapper passes tests.
+6. Switch `AttackPreview` to call `ProjectionService.project_combat()` — a
+   typed convenience wrapper that builds the `kind = "combat"`
+   `ProjectionContext` and delegates to `project(ctx)` — once the wrapper
+   passes tests.
 7. Defer deeper effect/condition/AI projection until those systems attach.
 
 Tests:

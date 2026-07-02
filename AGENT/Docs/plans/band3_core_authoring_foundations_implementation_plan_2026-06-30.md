@@ -230,8 +230,11 @@ Implementation steps:
 1. Add a `TextDB` that resolves `text_key -> string` from data tables, with a
    single missing-key policy (return a visible `#missing:<key>` sentinel and
    collect a validation warning, never crash).
-2. Register text ids as a registry family so keys validate at load (open family,
-   not a hardcoded list).
+2. Register the `text` **family** with `RegistryManager` and validate
+   referenced keys against the loaded data tables — do **not** create one
+   `RegistryEntry` resource per key (a campaign with thousands of lines must
+   not pay a per-key resource cost). Open family, not a hardcoded list; the
+   table is the key source of truth.
 3. Provide `tr_key(key, params := {})` for simple `{name}`-style substitution.
 4. Do not migrate existing UI strings wholesale; add the seam and one fixture
    table. Migration rides each consuming feature.
@@ -342,7 +345,9 @@ Implementation steps:
    terms, rolled via `RngService`, **roll-once-and-latch** (author
    `re_rollable`); skew `input`/`base` evaluated pure on the roll snapshot. The
    one impure predicate — evaluated on commit, never previewed. Latch rides
-   `visited_trail`/flag store; no new top-level save field.
+   `visited_trail`/flag store (the campaign-save trail field inventoried in
+   [`f1_schema_source_inventory_2026-06-28.md`](f1_schema_source_inventory_2026-06-28.md)
+   — its F1 row is the latch's owner); no new top-level save field.
 6. Build the remaining `REQ-11..15` families (item-property terms, HP/pool/
    ability/style availability sources, spatial/runtime-state/relationship/
    aggregate families, condition potency/param/projection) **per consumer
@@ -358,7 +363,8 @@ Tests:
 - `FormulaEvaluator`: arithmetic correctness at fixed-point scale; clamp on
   overflow; half-up + `floor`/`ceil`; `div` with each `on_zero` policy; missing
   `on_zero` is a validate error; `pow` integer exponents incl. `0^0 = 1`;
-  number-domain booleans output canonical `1.0/0`; budget overflow fails at load.
+  number-domain booleans output canonical `1.0` or `0.0` (fixed-point `1000` /
+  `0`); budget overflow fails at load.
 - `chance` (post-PKGA): fixed seed reproduces the roll; latch returns the same
   answer after save/reload and rewind; `re_rollable` clears the latch; never
   evaluated in preview.
@@ -650,9 +656,10 @@ Implementation steps:
    (`campaign_day`); `CalendarClock` derives `{day, month, year, season,
    formatted}` from it — flat storage, structured derivation.
 3. **Per-node advance:** each progression node declares `advance_days`; on node
-   completion (post-combat for `battle` nodes, on Continue for `hub` nodes per
-   `PHB-4`) advance `campaign_day` by that amount once, latched against
-   re-advance on suspend/reload.
+   completion (post-combat **victory** for `battle` nodes — defeat/Retry does
+   not advance the day — on Continue for `hub` nodes per `PHB-4`) advance
+   `campaign_day` by that amount once, latched against re-advance on
+   suspend/reload.
 4. Expose `date.day` / `date.month` / `date.year` / `date.season` and the
    formatted string as `REQ`/TCV value sources and a `TextDB` interpolation
    token, so dialogue and formulas read the date.

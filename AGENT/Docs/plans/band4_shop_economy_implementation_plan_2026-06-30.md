@@ -425,3 +425,21 @@ DoD#1 obligations: update `GDD_01`, `GDD_04`, `GDD_07`,
 
 DoD#2 obligations: add a test/check that shop transactions use
 `ResourceLedger`, not direct wallet mutation.
+
+## Verification Checklist
+
+Same as the Band 2/3 plans. Run after each implementation slice:
+
+```bash
+python3 AGENT/Docs/check_docs.py
+git diff --check
+./run_tests.sh
+```
+
+Docs-only edits to this plan require:
+
+```bash
+python3 AGENT/Docs/gen_docs_index.py
+python3 AGENT/Docs/check_docs.py
+git diff --check
+```
