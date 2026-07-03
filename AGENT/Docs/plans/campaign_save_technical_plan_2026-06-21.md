@@ -73,9 +73,11 @@ interludes + side-quests with no schema reshape.
 
 **Node identity rule (CNC-1, 2026-07-03):** `node_id` is the durable save/progression identity.
 The node's contents are author-editable references: `node_type`, `prep_panels`, chapter/story
-metadata, encounter pointer, and map pointer may change without creating a new node. The first
+metadata, encounter pointer, and map pointer may change without creating a new node. **Node slots
+rule (CNC-2):** use explicit slots; `prep_panels` entries are panel-instance refs, so a node can
+point to a specific shop stock list or arena roster rather than only a generic panel type. The first
 build may still use the legacy `map_id -> MapData` field, but campaign-node composition must stay
-adapter-friendly for the later split into **Battle Map** and **Battle Encounter** (`[CNC-2..10]`).
+adapter-friendly for the later split into **Battle Map** and **Battle Encounter** (`[CNC-3..10]`).
 
 **Everything-is-a-campaign [CST-6]:** there is ONE flow (campaign select → prep → launch). Every
 `map_registry` entry is auto-wrapped as a 1-node campaign (dev/test maps = `is_dev_only` campaigns,

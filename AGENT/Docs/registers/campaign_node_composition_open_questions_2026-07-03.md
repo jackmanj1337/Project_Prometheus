@@ -8,10 +8,11 @@ Register: CNC-1..10
 # Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions
 
 **Started:** 2026-07-03.
-**Status:** OPEN - one owner constraint is resolved: a `CampaignNode` keeps stable
-identity while its type and outbound references are author-editable. The remaining
-questions decide how nodes point to hub panels, story/chapter metadata, battle maps, and
-encounter layers.
+**Status:** OPEN - two owner constraints are resolved: a `CampaignNode` keeps stable
+identity while its type and outbound references are author-editable (`[CNC-1]`), and
+nodes use explicit reference slots with `prep_panels` entries pointing to specific panel
+instances (`[CNC-2]`). The remaining questions decide node-type vocabulary,
+story/chapter metadata, battle maps, and encounter layers.
 **Source:** owner follow-up after `[PUG]` partial resolution: the campaign plan must let
 the same campaign node change type and change the collection of hub panels, chapter
 metadata, or encounter layer it points to.
@@ -33,7 +34,10 @@ campaign package JSON format, and the future campaign builder.
   possible future story/activity types are open.
 - **Chapter** - story-facing grouping/label metadata, not the engine progression
   primitive.
-- **Hub Panel** - a `[PHB]` option-panel id exposed by a node.
+- **Hub Panel Type** - a `[PHB]` option-panel type, such as `shop`, `arena`, `convoy`,
+  or `skirmish`.
+- **Hub Panel Instance** - a specific configured instance of a hub panel type, such as
+  a shop with a particular stock list or an arena with a particular opponent roster.
 - **Battle Map** - reusable tactical terrain/layout.
 - **Battle Encounter** - the specific fight payload staged on a battle map: force,
   placements, objectives, rewards, events, visibility, and encounter rules.
@@ -63,7 +67,7 @@ node?
 - **Implication:** saves bind to `node_id`; content-pack resync/migration must decide what
   happens if the node's type or refs changed after a save was created.
 
-### [CNC-2] Node reference slots  **[OPEN]**
+### [CNC-2] Node reference slots  **[RESOLVED]**
 What fields can a node point to?
 - **A - Single overloaded `map_id` plus optional `prep_panels`.** Simple but keeps
   overloading "map" to mean terrain, encounter, and chapter.
@@ -71,8 +75,34 @@ What fields can a node point to?
   `battle_map_id` override.
 - **C - Generic `payload_refs` dictionary keyed by registry ids.** Most extensible; harder
   to validate and explain.
-- **Rec: B.** Explicit slots are readable and builder-friendly while still allowing each
-  referenced vocabulary to be an open registry.
+- **Resolution (2026-07-03): B, with panel instance refs.** Use explicit slots:
+  `chapter_id`, `prep_panels`, `encounter_id`, and a temporary legacy `map_id` adapter
+  while `MapData` is still monolithic. `prep_panels` is not a plain list of panel-type
+  strings; each entry is a **panel reference** that can identify a specific configured
+  panel instance.
+
+Example:
+
+```json
+{
+  "node_id": "ch01_market",
+  "node_type": "hub",
+  "chapter_id": "ch01",
+  "prep_panels": [
+    {"panel_type": "convoy"},
+    {"panel_type": "shop", "panel_instance_id": "ch01_armory"},
+    {"panel_type": "arena", "panel_instance_id": "rookie_ladder"}
+  ],
+  "next": ["ch01_battle"]
+}
+```
+
+- **Implication:** panel types are registered once, while panel instances carry per-use
+  config owned by that panel's data model: shop stock/prices, arena roster/risks,
+  training-hall benefits, skirmish encounter table, and so on.
+- **Validation rule:** if a panel type requires an instance, `panel_instance_id` must
+  resolve to a config of that type. Types with no per-instance config, such as a generic
+  convoy panel, may omit it.
 
 ### [CNC-3] Node type vocabulary  **[OPEN]**
 Do we keep `node_type` to `battle|hub`, or add `story` / `activity` node types now?
@@ -144,6 +174,6 @@ How much of this is hand-authored JSON vs GUI-builder-only?
 - `CampaignData` should treat `node_id` as durable and every reference field as mutable.
 - Do not use `MapData` as the design name for a full chapter or encounter. In prose,
   distinguish **Battle Map** from **Battle Encounter**.
-- `[PUG-4..7]` should remain OPEN until `[CNC-2..9]` are resolved.
+- `[PUG-4..7]` should remain OPEN until `[CNC-3..9]` are resolved.
 - The first loop can still build with legacy `map_id -> MapData`; the schema should leave a
   clear adapter path to `encounter_id -> battle_map_id`.
