@@ -24,6 +24,37 @@ must not start before the Band 1-3 gates and (for Source+Style) `B4-IEQ` land.
 
 ---
 
+## 0. Scope override — "WIDEN EVERYTHING" (owner 2026-07-03)
+
+The owner reframed the v1 showpiece as the **campaign builder** and chose the
+broadest builder palette. **This deliberately reverses two ratified decisions**
+for Band 5 v1 — recorded here so the override is explicit, not silent:
+
+- **Q5 (2026-07-01): "shape registry — interface now; single-tile = a 1-tile
+  shape; broad AoE later."** → v1 now ships real AoE shapes (`line/blast/cross`).
+- **Q5/Q6: "gambits, capture-carry, broad AoE are later consumers."** → v1 now
+  builds gambit-as-style (AoE + per-map charges), capture (non-lethal → `sleep` +
+  carry), and the shared displacement primitive (rescue/capture/shove/swap/pivot
+  on `B2-OCCUPANCY`). This pulls the resolved `displacement_carry` register (was
+  A2) into v1.
+
+**Boundary preserved:** the full **battalion entity** (STY-7 A2 — attached unit,
+endurance, passive contributions, leveling) stays deferred. Gambit-as-style needs
+only a granted AoE source + charges.
+
+**Cost:** this is real engine work added to Band 5 (Plan 2 grew from 6 to 8
+slices — the widened shape registry, plus a displacement/capture/gambit slice),
+not just data. Accepted because the varied builder palette is the showpiece.
+Rationale + the palette spec:
+[`band5_v1_content_manifest_2026-07-03.md`](../Docs/design/band5_v1_content_manifest_2026-07-03.md)
+§4/§4b and its scope-decision section.
+
+The manifest's "prune-not-carry" default is also **relaxed**: palette content
+unused by any single campaign is retained as something to build with, provided it
+is coherent and tested (only broken/placeholder content is pruned).
+
+---
+
 ## A. Handoff owner questions carried forward
 
 These were raised by the handoff and are still owner decisions; the plans made

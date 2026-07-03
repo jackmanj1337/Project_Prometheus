@@ -217,7 +217,11 @@ Implementation steps:
    (reachable tiles × usable sources × applicable styles × valid targets), in a
    deterministic order. **Styles and staves are enumerated, not just weapons**
    (C5): an enemy dancer, healer, or combat-artist scores its style/staff options
-   the same way it scores a plain attack.
+   the same way it scores a plain attack. With the widened palette (owner "widen
+   everything"), enumeration also covers **AoE shapes** (score the summed outcome
+   over every footprint tile), **gambits** (charge-limited AoE), and **capture**
+   (a non-lethal option scored via the same forecast) — the scorer treats them as
+   more tuples through the one Plan 2 forecast, not special cases.
 2. For each tuple, run the **Plan 2 projection** (the same forecast the player
    sees) and score with the registered terms:
    - **immediate projected outcome** (damage dealt / kill / heal from the

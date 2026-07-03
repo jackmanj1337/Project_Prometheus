@@ -36,11 +36,13 @@ Plan 1's condition substrate (the cure/inflict staves consume it).
    source/style (kind + payload + per-effect `target_filter` + gate), and
    style-adds-or-overrides-effects composition (`source effects ∪ style
    effects`).
-2. The four registries the model reads: **effect registry** (kinds),
+2. The four registries the model reads: **effect registry** (the full STY-16
+   kind set — `strike/heal/cure/condition_apply/bolster/displace/teleport/refresh`),
    **target-filter registry** (`enemy | ally | self | empty_tile |
-   weapon_holder | …`), **shape registry** (interface now; single-tile = a
-   1-tile shape), and the **cost model** (per-use component sets that read the
-   Band 2 resource ledger, never embed their own economy).
+   weapon_holder | any`), **shape registry** (**widened to real AoE:
+   single_tile/line/blast/cross**, owner "widen everything"), and the **cost
+   model** (per-use component sets incl. per-map charges, reading the Band 2
+   resource ledger — never embedding their own economy).
 3. A generalized **effect-forecast** rendering both damage and non-damage
    outcomes through `B2-PROJECTION`, reused by the player preview and the AI
    scorer (Plan 4).
@@ -49,7 +51,12 @@ Plan 1's condition substrate (the cure/inflict staves consume it).
 5. The remaining v1 utility-staff archetypes as data: Restore/Cure (proves Plan
    1 cure hooks), Rescue (positional; `B2-OCCUPANCY`), and a condition-inflicting
    staff (proves the condition apply path + F16 `REQ-10` contest).
-6. The **styles** and **granted-sources** loadout adapters registering into the
+6. **[WIDENED]** The **displacement primitive** (`displace` effect kind + carry
+   state on `B2-OCCUPANCY`, per the resolved `displacement_carry` register),
+   **capture** (non-lethal style → `sleep` + carry/jail), and **gambit-as-style**
+   (AoE source + per-map charges). The movement-assists (shove/swap/pivot) ride
+   the same primitive.
+7. The **styles** and **granted-sources** loadout adapters registering into the
    Plan 1 `LoadoutPanel` shell.
 
 The effect kinds, target filters, styles, and staff ids are **specified** in
@@ -67,8 +74,14 @@ pipeline lands.
 
 ## Non-Goals
 
-- Do not build gambits, capture-carry, or broad-AoE content. They are later
-  consumers of this finished pipeline (the shape registry already leaves room).
+- **[REVISED — owner "widen everything" 2026-07-03]** AoE shapes, gambit-as-style,
+  and capture-carry are now **v1** authorable primitives (§4/§4b of the manifest),
+  not deferred. Build them here. This reverses the Q5/Q6 "later consumer" line for
+  these three (recorded in the review doc).
+- Do **not** build the full **battalion entity** (STY-7 A2): assignment UI,
+  endurance, passive `StatContributions`, leveling. Gambit-as-style needs only a
+  granted AoE source + per-map charges, not an attached unit. The entity stays
+  deferred.
 - Do not build the casual-author preset library. Presets are later content that
   compose existing effect/filter/shape primitives — not engine work.
 - Do not build a second staff pipeline in the staves work: the Heal proof
@@ -92,7 +105,10 @@ pipeline lands.
 - [`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
   (§3 utility staves, §4 source+style content — the floor this plan ships).
 - [`source_style_combat_model_2026-06-24.md`](../registers/source_style_combat_model_2026-06-24.md)
-  (`STY-1..17`)
+  (`STY-1..17`; note the A1/A2 split for gambit/capture is superseded for v1 by
+  "widen everything")
+- [`displacement_carry_open_questions_2026-06-25.md`](../registers/displacement_carry_open_questions_2026-06-25.md)
+  (`DSP` — the displacement primitive Slice 6 builds)
 - [`source_style_player_and_authoring_2026-06-24.md`](../design/source_style_player_and_authoring_2026-06-24.md)
 - [`band5_conditions_skills_implementation_plan_2026-07-03.md`](band5_conditions_skills_implementation_plan_2026-07-03.md)
   (the condition substrate the cure/inflict staves consume, and the
@@ -133,7 +149,9 @@ Plan now; implement after gates. Minimum upstream gates before code:
 - `B2-PROJECTION` for the generalized effect-forecast.
 - `B2-ACTION-EFFECT` for effect execution.
 - `B3-REQ` for target filters and F16 `REQ-10` contests (inflict staff).
-- `B2-OCCUPANCY` for Rescue's positional mutation.
+- `B2-OCCUPANCY` — a **heavy** gate now: Rescue, the displacement primitive,
+  capture-carry, the shove/swap/pivot assists, and AoE footprint clipping all use
+  it (Slice 6, widened scope).
 - Plan 1's `ConditionManager` + cure hooks (Restore/Cure, inflict staves) and
   the `LoadoutPanel` shell (styles/sources adapters).
 
@@ -193,19 +211,23 @@ Implementation steps:
    (`{override_source_cost, components: [{backend, amount}]}`), `lethality`,
    binding/availability.
 3. Register effect-kind ids, target-filter ids, and shape ids through
-   `RegistryManager`. `strike`, `heal`, and a `condition_apply` kind seed the
-   built-in set.
-4. `TargetShape` interface with a single-tile default (`footprint(origin) →
-   [origin]`); AoE shapes register later without an engine edit.
-5. Validators: unknown effect kind / target filter / shape / cost backend;
-   malformed cost component.
+   `RegistryManager`. Seed the **full STY-16 kind set**: `strike, heal, cure,
+   condition_apply, bolster, displace, teleport, refresh`.
+4. `TargetShape` interface **with real AoE shapes built in v1** (owner "widen
+   everything"): `single_tile` (`footprint(origin) → [origin]`), `line`
+   (length + direction), `blast` (radius), `cross`. The interface stays open for
+   more shapes without an engine edit.
+5. Add `per_map_charges` as a cost backend (gambit-as-style spends it).
+6. Validators: unknown effect kind / target filter / shape / cost backend;
+   malformed cost component; AoE footprint bounds (clip at map edges/occupancy).
 
 Tests:
 
 - A `StyleDef` with a stat-mod + one added effect validates.
 - Unknown effect kind / target filter / shape reports a useful error.
-- `override_source_cost` cost set validates.
-- A single-tile shape footprints to its origin.
+- `override_source_cost` and `per_map_charges` cost sets validate.
+- Each shape footprints correctly: `single_tile` → origin; `line`/`blast`/`cross`
+  → the expected tile set, clipped at map bounds.
 
 F1 obligations: none (defs are content).
 
@@ -266,9 +288,11 @@ Files to touch:
 Implementation steps:
 
 1. Extend the projection layer to forecast the full effect set: damage, heal
-   amount, condition applied (+ contest odds), displacement, cost paid.
-2. Render non-damage outcomes in the preview (e.g. "Sleep 3 turns, 70%", "Heal
-   +12") alongside damage rows.
+   amount, condition applied (+ contest odds), displacement, cost paid, **and
+   every tile in an AoE footprint** (line/blast/cross) with its per-tile outcome.
+2. Render non-damage and multi-target outcomes in the preview (e.g. "Sleep 3
+   turns, 70%", "Heal +12", an AoE tile highlight with a per-target list)
+   alongside damage rows.
 3. Guarantee the forecast is the single source of truth: the AI scorer (Plan 4)
    calls the same projection — AI and UI never diverge (Q7 watchout).
 
@@ -344,7 +368,63 @@ consumable-use fields) before code.
 DoD#1 obligations: update `GDD_04`, `GDD_05`, `GDD_10` M8/M11 with the utility
 staves landing.
 
-## Slice 6 - Styles And Sources Loadout Adapters
+## Slice 6 - Displacement Primitive, Capture, And Gambit-As-Style
+
+**Goal:** the three widened primitives (owner "widen everything"), all on the
+shared pipeline + `B2-OCCUPANCY`. Reverses the Q5/Q6 deferral for these.
+
+Files to create or touch:
+
+- `scripts/core/DisplacementService.gd` (or a helper on the occupancy owner) —
+  the one occupancy-mutation primitive (per the resolved `displacement_carry`
+  register)
+- `scripts/core/CombatResolver.gd` (non-lethal damage cap for capture)
+- `scripts/skills/SkillHandler.gd` (the shove/swap/pivot assist actions)
+- fixture data: a Rescue is already in Slice 5; add a capture style, a gambit AoE
+  source, a shove/swap assist
+- `scripts/tests/test_displacement.gd`, `scripts/tests/test_capture.gd`,
+  `scripts/tests/test_gambit.gd`
+
+Implementation steps:
+
+1. **Displacement primitive:** implement the `displace` effect kind against one
+   occupancy-mutation primitive (move-a-unit with legality checks) and a **carry**
+   state (a unit holding another). Rescue (Slice 5) migrates onto it; the
+   movement-assists (shove / swap / pivot / smite) are data actions over the same
+   primitive.
+2. **Capture:** a **non-lethal** style — `CombatResolver` caps the hit so it
+   cannot reduce the target below 1 HP, and a would-be-lethal hit **applies
+   `sleep`** (§1 condition) instead. The sleeping unit is the capture-enabling
+   state; carry/jail-release rides the displacement primitive. Ties §1 + this
+   slice together.
+3. **Gambit-as-style:** an AoE source (a granted weapon/source with a `blast`/
+   `line`/`cross` shape) spending `per_map_charges`. **No battalion entity** —
+   provenance `battalion` on the granted list is enough; the attached unit stays
+   A2.
+4. Forecast: the effect forecast (Slice 3) renders the AoE footprint and every
+   affected tile's outcome; capture shows "downs to Sleep" not a kill.
+
+Tests:
+
+- A `displace` effect relocates a unit legally; occupied/illegal targets rejected.
+- Rescue and a shove/swap assist both run through the one primitive (no duplicate
+  occupancy code).
+- A capture hit that would kill instead leaves the target at ≥1 HP and asleep;
+  carry picks it up.
+- A gambit AoE hits every tile in its shape, consumes one charge, and refuses when
+  charges are 0.
+- The forecast shows the full AoE footprint and the capture "down-to-sleep".
+
+F1 obligations: carry state, per-source `charges_remaining`, and captured/jailed
+unit state need manifest rows before code.
+
+DoD#1 obligations: update `GDD_02`, `GDD_04`, `GDD_05`, `GDD_10` for capture,
+gambits, and the displacement primitive.
+
+DoD#2 obligations: guard that shove/swap/pivot/rescue/capture all register as data
+over the one displacement primitive, not separate occupancy paths.
+
+## Slice 7 - Styles And Sources Loadout Adapters
 
 **Goal:** register the styles and granted-sources adapters into the Plan 1
 `LoadoutPanel` shell — no panel edit.
@@ -383,7 +463,8 @@ edit to `LoadoutPanel` category logic.
 4. Slice 3 generalized effect forecast.
 5. Slice 4 proof consumers (hostile style + Heal staff).
 6. Slice 5 remaining utility-staff archetypes.
-7. Slice 6 styles/sources loadout adapters.
+7. Slice 6 displacement primitive + capture + gambit-as-style (widened).
+8. Slice 7 styles/sources loadout adapters.
 
 Do not start before `B4-IEQ`, `B3-RESOURCE-POOLS`, `B2-PROJECTION`,
 `B2-OCCUPANCY`, and Plan 1's condition substrate exist. Slices ship the §3/§4
