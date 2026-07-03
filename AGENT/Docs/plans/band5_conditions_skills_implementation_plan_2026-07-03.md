@@ -283,8 +283,10 @@ Implementation steps:
    `B2-ACTION-EFFECT` and lets the lifecycle store decrement/expire.
 4. Capability gating: add `unit_capability_suppressed(unit, tag)` reading the
    union of the unit's active conditions' `suppresses`. `ActionMenu` and the
-   action flow disable rows whose declared capability tag is suppressed. Sleep =
-   a def suppressing all tags.
+   action flow **show the row disabled-with-reason** (the Band 4 audit
+   `shown_disabled` convention — greyed row + the suppressing condition's name,
+   e.g. "Silenced", not a vanished row) so the player sees *why* the action is
+   unavailable (C7). Sleep = a def suppressing all tags.
 5. Berserk: `overrides_targeting` reroutes target selection (hostile-to-all)
    without touching capability suppression.
 6. Route condition application forecasts through `B2-PROJECTION` (poison tick,
@@ -294,6 +296,8 @@ Tests:
 
 - Poison ticks damage each activation and expires on schedule.
 - Silence disables the staff/skill action rows but not attack/move.
+- A suppressed row is **shown disabled with the condition's reason** ("Silenced"),
+  not removed from the menu (C7 — `shown_disabled` convention).
 - Sleep disables all action rows; waking (cure or duration) restores them.
 - Berserk retargets without suppressing capabilities.
 - `cure`/`clear_all_conditions` removes conditions and their lifecycle entries.

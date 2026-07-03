@@ -236,6 +236,12 @@ Implementation steps:
    `RngService` only if a profile intentionally randomizes — behind a
    `# rng-allow:` guard). Fall back to seek-tile/hold when no action scores
    positive.
+5. **Berserk override (C6):** when the acting unit has a condition with
+   `overrides_targeting` (berserk), the scorer's valid-target set is
+   **hostile-to-all** (every other unit, own side included) and the author profile
+   weights are bypassed — the condition's targeting override wins over the profile,
+   consistent with the Slice 3 targeting-override in the conditions plan. It stays
+   one enumeration path (berserk widens the target set), not a special scorer.
 
 Tests:
 
@@ -251,6 +257,9 @@ Tests:
 - Enumeration + tie-breaks are deterministic across runs (same seed → same
   choice).
 - Adding a fixture scorer term changes scoring with no `ActionScorer` loop edit.
+- **Berserk (C6):** a berserked AI unit targets any unit including its own side
+  (targeting override honored over the profile weights), and attacks the
+  best-scoring reachable target regardless of faction.
 
 F1 obligations: none (scoring is derived; `no_save_guard` on the scorer).
 

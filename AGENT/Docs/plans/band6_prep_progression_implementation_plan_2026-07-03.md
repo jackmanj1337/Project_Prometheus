@@ -15,8 +15,9 @@ Band 6 rows. Drafted from the RESOLVED registers `[BEA-1..9]`
 ([`bonus_exp_arena_open_questions_2026-06-27.md`](../registers/bonus_exp_arena_open_questions_2026-06-27.md))
 and `[THL-1..8]`
 ([`training_halls_open_questions_2026-06-27.md`](../registers/training_halls_open_questions_2026-06-27.md)),
-confirmed **in v1** by the owner (2026-07-03d). The control-plane split keeps
-**Arena** in `B7-ARENA` — this plan is bonus-EXP + training halls only.
+confirmed **in v1** by the owner (2026-07-03d). Covers bonus-EXP + training halls +
+recruit-purchase (`[THL-8]`, pulled in 2026-07-03d, Slice 5); **Arena** is the
+sibling [`band7_arena_implementation_plan_2026-07-03.md`](band7_arena_implementation_plan_2026-07-03.md).
 
 ## Purpose
 
@@ -56,17 +57,23 @@ This is a build plan only. It does not authorize starting before the gates land.
    system (`class_xp`→`add_exp`, `weapon_xp`→`advance_proficiency`, `stat`→the new
    primitive, `skill`→`earned_skills`, `source`→`[CEX]`, `style`→`[STY]`); per-offer
    `[REQ]` gate + PHB `one_shot`/`restock_every_n` cadence + optional per-offer cap.
+5. **Recruit-purchase (`[THL-8]`, pulled into v1 2026-07-03d).** A roster-**add**
+   offer — same offer/cost/resource machinery, but it adds a unit via the `[RCR-3]`
+   `recruit()` API. Four author-selectable source modes: `grunt` (generic template),
+   `authored` (a named character), `generated` (the **shared parametric generator**,
+   arena plan Slice 2), `ransom` (recruit a captured prisoner, `[RCR-5]`). This is
+   also the `[PVP-3]` buy-phase mechanism.
 
 ## Non-Goals
 
-- **Arena is OUT** — tracked separately as `B7-ARENA` (`[BEA-4..7]`). The control
-  plane explicitly splits bonus-EXP/training from arena. (Arena reuses the same
-  `[PHB]` container + gold ledger + `death_mode` when built.)
-- **Recruit-purchase (`[THL-8]`) is OUT of this plan** — the roster-**add** service
-  (grunt/authored/generated/ransom modes) is the `[PVP-3]` buy-phase mechanism and
-  ties to the parametric unit generator + `[RCR-3]` recruit API; it lands with the
-  `B7-PVP` / `B7-PROPERTY-RECRUITMENT` cluster. This plan is character-**investment**
-  only. *(If the owner wants it in v1, it is a fifth slice + those gates — flagged.)*
+- **Arena is a separate plan** —
+  [`band7_arena_implementation_plan_2026-07-03.md`](band7_arena_implementation_plan_2026-07-03.md)
+  (`B7-ARENA`, also pulled into v1 2026-07-03d). It is a sibling `[PHB]` panel, not
+  part of this plan; recruit-purchase (Slice 5) reuses its parametric generator.
+- **Recruit-purchase is now IN v1** (`[THL-8]`, owner 2026-07-03d — Slice 5). It
+  reuses the arena plan's shared parametric generator (Slice 2 there) and the
+  `[RCR-3]` `recruit()` API; the `B7-PVP` / `B7-PROPERTY-RECRUITMENT` cluster consume
+  this slice rather than owning it.
 - **No performance/efficiency-derived Bonus-EXP** (`[BEA-2]`) — authored awards only
   in v1; a metric-derived award can ride later.
 - **No new leveling code** — Bonus-EXP reuses `add_exp`/`level_up`/`LevelUpScreen`
@@ -120,6 +127,9 @@ Plan now; implement after gates. Minimum upstream gates:
   generalization. Hard gate for costs.
 - **`B3-TCV` / objective system** — the `grant_bonus_exp` award plumbing (+ `[DIF]`
   scaling). **`B3-REQ`** — per-offer gates.
+- **`B4-RECRUIT-BASIC` (`recruit()`) + the arena plan's parametric generator +
+  `[RCR-5]` (ransom)** — for the Slice 5 recruit-purchase modes only; slices 1-4
+  don't need them.
 - Nothing here is buildable against the live tree today beyond `add_exp` reuse —
   PHB, `[STM]`, the ledger, and `advance_proficiency` are all unbuilt; drafted
   against their planned APIs, same caveat as the other Band 6 plans.
@@ -280,14 +290,44 @@ DoD#1 obligations: update `GDD_03` (training hall / character investment) +
 DoD#2 obligations: the benefit-type set is an **open registry**, not an enum — no
 closed-set `check_docs` guard (adding a type is data + a route, per [EXT]).
 
-## Slice 5 - Recruit-Purchase (Deferred to B7 — Documented)
+## Slice 5 - Recruit-Purchase
 
-`[THL-8]` recruit-purchase (grunt/authored/generated/ransom) is the `[PVP-3]`
-buy-phase mechanism and shares the parametric unit generator with arena opponents
-(`[BEA-5]`). It lands with the `B7-PVP` / `B7-PROPERTY-RECRUITMENT` cluster (gates:
-`[RCR-3]` recruit API, the shared generator, `[RCR-5]` ransom, roster caps). Kept out
-of v1 prep-progression. **If the owner pulls it into v1, it is this slice plus those
-gates.**
+**Goal:** a roster-add offer with four source modes. **Gated on `B4-RECRUIT-BASIC`
+(`recruit()`) + the arena plan's generator (Slice 2) + `[RCR-5]` for ransom.**
+
+Files to touch:
+
+- a recruit-purchase offer (reuse the slice-4 offer/cost/gate/cap machinery)
+- the source-mode resolvers (grunt / authored / generated / ransom)
+- `scripts/tests/test_recruit_purchase.gd` (new)
+
+Implementation steps:
+
+1. A recruit-purchase offer: same `{cost, gate?, cap?}` machinery as slice 4, but
+   the effect **adds a unit** to the faction roster via the `[RCR-3]` `recruit()`
+   API rather than improving one.
+2. Four author-selectable source modes (`[THL-8]`): `grunt` (a generic author
+   template), `authored` (a named character from the campaign pool), `generated`
+   (the **shared parametric generator** — reuse the arena plan Slice 2 service, do
+   not build a second one), `ransom` (a captured prisoner recruited via `recruit()`
+   on the `[RCR-5]` capture end-state).
+3. Charge via slice 2's `charge`; gate with `[REQ]`; cap with the PHB cadence +
+   an optional roster-size cap.
+
+Tests:
+
+- Each source mode adds a unit: `grunt` from a template, `authored` the named unit,
+  `generated` a spec-built unit (via the shared generator), `ransom` a captured
+  prisoner.
+- The charge debits the right resource/scope; a roster-size cap refuses over-cap
+  purchases; a `[REQ]` gate hides the offer until it passes.
+
+F1 obligations: bought recruits are new roster units (ride the roster/`UnitData`
+save, already reserved); the generator param specs + grunt/authored templates are
+**authoring data**, not save — no new field (`[THL-6]`).
+
+DoD#1 obligations: update `GDD_03` (recruit-purchase / unit sources) + `GDD_07`
+(panel) + flip `GDD_10`.
 
 ## Implementation Commit Order
 
@@ -296,10 +336,13 @@ gates.**
 3. Slice 3 Bonus-EXP panel — **trails `B3-PHB` + `B3-TCV`**.
 4. Slice 4 training-hall panel — **trails `B3-PHB` + slices 1-2 + the per-system
    owners** (`[PXP-9]`, `[CEX]`, `[STY]`, `[LDC]`).
+5. Slice 5 recruit-purchase — **trails `B4-RECRUIT-BASIC` + the arena generator +
+   `[RCR-5]`** (reuses slice 4's offer machinery).
 
 Slices 3 and 4 both reuse the level path (`add_exp`, live today) but are gated by
-their PHB container. Arena (`B7-ARENA`) and recruit-purchase (`[THL-8]`, B7 cluster)
-are out.
+their PHB container. Slice 5 (recruit-purchase) reuses the arena plan's shared
+parametric generator — build it once, whichever consumer lands first. Arena itself
+is the sibling [`band7_arena_implementation_plan_2026-07-03.md`](band7_arena_implementation_plan_2026-07-03.md).
 
 ## Verification Checklist
 

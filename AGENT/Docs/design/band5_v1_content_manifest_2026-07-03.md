@@ -172,6 +172,10 @@ more; these four give authors a real AoE palette and are what gambits need.
   `on_hit`) to the base `strike` — proves style-adds-effect + condition-via-style.
 - **Fire AoE style** — a `strike` on a `blast` shape spending a pool — proves the
   widened shape registry.
+- **Sunder** — hostile combat-art style: `+Crit`/`-Hit` `bolster` on a `strike`
+  (a different stat-mod than Wrath Strike), costs weapon durability.
+- **Windsweep** — a melee `strike` that suppresses the enemy counter (a combat-flag
+  effect), range-gated — broadens the effect-kind palette.
 
 (The Heal staff, §3, is proof consumer #2, built once inside the substrate pass.)
 
@@ -299,11 +303,25 @@ into §4/§4b above. Scope consequences the plans absorb:
   Band 5 grows accordingly. This is accepted because the builder palette is the
   showpiece.
 
-## Open content picks (adjust freely; not engine decisions)
+## Content picks (RESOLVED 2026-07-03d; content flavor, adjust freely)
 
-- Exact poison magnitude (flat N vs % of max HP) and the fixed-N turn counts.
-- Which existing skill becomes the `on_level_up` / grant showcase.
-- Which combat arts beyond Wrath Strike / Poison Edge the demo ships.
-- Whether Berserk staff is v1 or deferred (it is the riskiest to balance).
+Concrete demo values chosen — none change the machinery the plans build:
 
-These are content flavor; none change the machinery the plans build.
+- **Poison magnitude = flat 3 HP/turn** (floors at 1, never lethal). The `%`
+  variant stays a data option authors can pick to showcase the "flat or %"
+  capability; the demo default is flat for predictability. **Fixed-N counts:**
+  `sleep` 3, `stun` 1, `berserk` 3 (as in §1); `poison`/`silence` run
+  `until_end_of_map`.
+- **`on_level_up` showcase = Aptitude** — a growth skill that fires on the
+  `on_level_up` trigger to nudge the level-up growth roll (proves the previously-
+  unwired engine trigger). **Grant/revoke showcase = generalize `rally_skill`
+  [HAVE]** — grants a temporary stat-bonus effect for a duration and revokes it on
+  expiry through the lifecycle store.
+- **Combat arts shipped:** Wrath Strike (+Mt/-Hit), Poison Edge (adds `poison`),
+  Fire AoE style (blast), plus **Sunder** (+Crit/-Hit `bolster` on a strike — a
+  different stat-mod than Wrath Strike) and **Windsweep** (a melee strike that
+  suppresses the enemy counter — exercises a combat-flag effect). Five arts give a
+  varied builder palette across the effect kinds.
+- **Berserk staff = IN v1.** It is the only showcase of the `overrides_targeting`
+  capability; the AI scorer honors the override (C6, AI plan Slice 3). Balance risk
+  is accepted for the builder-palette demo.

@@ -153,6 +153,7 @@
 - [`plans/band6_mutable_campaign_state_implementation_plan_2026-07-03.md`](plans/band6_mutable_campaign_state_implementation_plan_2026-07-03.md) — Band 6 Mutable Campaign State And Packaging Implementation Plan — *Active - implementation plan*
 - [`plans/band6_prep_progression_implementation_plan_2026-07-03.md`](plans/band6_prep_progression_implementation_plan_2026-07-03.md) — Band 6 Prep Progression Implementation Plan (Bonus-EXP + Training Halls) — *Active - implementation plan*
 - [`plans/band6_relationships_min_implementation_plan_2026-07-03.md`](plans/band6_relationships_min_implementation_plan_2026-07-03.md) — Band 6 Relationships Minimum Implementation Plan — *Active - implementation plan*
+- [`plans/band7_arena_implementation_plan_2026-07-03.md`](plans/band7_arena_implementation_plan_2026-07-03.md) — Band 7 Arena Implementation Plan — *Active - implementation plan*
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*

@@ -174,10 +174,17 @@ provisional calls where noted, but they want confirmation.
    full manifest now), Q-B5-2 (four-plan grouping), Q-B5-3/C1 (IEQ owns the
    `LifecycleStore`), Q-B5-4 (pull Source+Style forward), plus C5 (enemies use
    styles/staves). All folded into the plans, the manifest, and the control plane.
-2. Remaining are build-time notes, not owner gates: C6 (berserk + scorer test),
-   C7 (capability gating shows disabled-with-reason), and the manifest's "open
-   content picks" (poison magnitude, which skill showcases `on_level_up`, extra
-   combat arts) — content flavor, adjustable freely.
+2. **Done 2026-07-03d:** C6, C7, and the manifest content picks are resolved.
+   - **C6** — the AI plan Slice 3 now has an explicit berserk step + test: a
+     berserked AI unit's scorer honors the targeting-override (hostile-to-all,
+     own side included) over the profile weights, as one widened enumeration path.
+   - **C7** — the conditions plan Slice 3 adopts the `shown_disabled` convention
+     (suppressed rows shown greyed with the condition's reason, e.g. "Silenced",
+     not removed) + a test.
+   - **Content picks** — resolved in the manifest: poison = flat 3 HP/turn (%
+     stays a data option); `on_level_up` showcase = Aptitude, grant/revoke =
+     generalized `rally_skill`; combat arts = Wrath Strike + Poison Edge + Fire
+     AoE + Sunder + Windsweep; Berserk staff is in v1.
 3. Band 5 implementation stays gated on Band 1-3 + `B4-IEQ`. Intra-Band-5 order:
    conditions → Source+Style (pulled forward, parallel with skills/loadout) →
    staves/action-economy; the AI scorer (Plan 4 Slice 3) gates on Source+Style
