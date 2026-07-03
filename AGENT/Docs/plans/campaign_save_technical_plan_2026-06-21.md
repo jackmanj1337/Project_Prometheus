@@ -71,6 +71,12 @@ list — linear = single successor). `player_start_tiles` stay on `MapData` as p
 MVP traverses linearly; the same structure later carries an overworld selector + branches +
 interludes + side-quests with no schema reshape.
 
+**Node identity rule (CNC-1, 2026-07-03):** `node_id` is the durable save/progression identity.
+The node's contents are author-editable references: `node_type`, `prep_panels`, chapter/story
+metadata, encounter pointer, and map pointer may change without creating a new node. The first
+build may still use the legacy `map_id -> MapData` field, but campaign-node composition must stay
+adapter-friendly for the later split into **Battle Map** and **Battle Encounter** (`[CNC-2..10]`).
+
 **Everything-is-a-campaign [CST-6]:** there is ONE flow (campaign select → prep → launch). Every
 `map_registry` entry is auto-wrapped as a 1-node campaign (dev/test maps = `is_dev_only` campaigns,
 filtered from the player list); authored multi-node campaigns are peers. **Campaign-owned rules:**

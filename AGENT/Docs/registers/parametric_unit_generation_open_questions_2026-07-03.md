@@ -11,9 +11,10 @@ Register: PUG-1..10
 **Status:** OPEN — the shared generator core is partially resolved. `[PUG-1]`,
 `[PUG-2]`, `[PUG-3]`, `[PUG-9]`, and `[PUG-10]` are settled by the owner
 (2026-07-03g). Skirmish/encounter formatting remains OPEN because campaign-map
-structure needs a separate pass before locking the skirmish data shape. Earlier scope
-decision still stands: skirmish = prep-panel now, built against an overworld-ready
-shape so a later free-roam overworld is additive, not a rewrite (2026-07-03f).
+structure needs a separate pass before locking the skirmish data shape (`[CNC-1..10]`).
+Earlier scope decision still stands: skirmish = prep-panel now, built against an
+overworld-ready shape so a later free-roam overworld is additive, not a rewrite
+(2026-07-03f).
 **Source:** owner ask 2026-07-03f — "how the random unit generator is placed into an
 arena, used for random skirmish encounters (world map), and placed in the GUI editor to
 generate base units an author can modify and place into maps."
@@ -119,8 +120,8 @@ is an in-memory `UnitData`.
 - **B — An inline list on the panel** (no reusable resource).
 - **Current lean:** A first-class `ForceSpec` resource is still the likely reusable shape,
   but do not lock the schema until the campaign-map/skirmish structure pass decides how
-  generated forces attach to maps and progression nodes. Consumes `[DIF]`/`[TCV]` for
-  scaling (`[PUG-7]`).
+  generated forces attach to maps and progression nodes (`[CNC-2..9]`). Consumes
+  `[DIF]`/`[TCV]` for scaling (`[PUG-7]`).
 
 ### [PUG-5] `EncounterDef` — the overworld-ready atom  **[SCOPE DECIDED → shape OPEN / DEFERRED]**
 **Owner decision (2026-07-03f): build skirmish now against an overworld-ready shape.**
@@ -129,9 +130,9 @@ is an in-memory `UnitData`.
   **overworld tile/region** consuming an encounter table of `EncounterDef`s. Both fire the
   **same** launch path (generate force → spawn via `[PUG-3]` → run battle → reward).
 - **Open/deferred (2026-07-03g):** the exact `EncounterDef` schema and skirmish format
-  wait on a broader campaign-map structure pass. Keep the author-facing extension point
-  open-registry-shaped (`[EXT]`) so overworld/mission-board/random-event triggers can
-  reuse it later without engine edits.
+  wait on the campaign-node composition pass (`[CNC-1..10]`). Keep the author-facing
+  extension point open-registry-shaped (`[EXT]`) so overworld/mission-board/random-event
+  triggers can reuse it later without engine edits.
 
 ### [PUG-6] Skirmish container + map source  **[OPEN — deferred until campaign-map structure pass]**
 - **A — Skirmish is a `[PHB]` prep panel** (like arena/training/recruit), on-map placeable

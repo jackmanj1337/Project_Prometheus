@@ -7,6 +7,7 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
+| `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | OPEN | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `PUG-1..10` | Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register | OPEN | — | `registers/parametric_unit_generation_open_questions_2026-07-03.md` |
