@@ -339,7 +339,10 @@ F1 obligations: `custom_name` is a new saved field on `InventoryEntry`.
 Checklist (assert seams, add no behavior):
 
 - `ForgeUpgradeDef.kind` already admits `transform` and `effect_grant` (`[FRG-4]`, `[FRG-18]`)
-  — leave them unimplemented; the Modify Transform row stays disabled.
+  — leave them unimplemented; the Modify Transform row stays disabled. Note
+  (Q-B5-4, 2026-07-03): `B5-SOURCE-STYLE` was pulled forward, so the effect
+  registry `[FRG-18]` depends on lands earlier — `effect_grant` can be implemented
+  as soon as forging chooses to, without a separate Band 5 scheduling wait.
 - Cost path stays multi-resource so materials (`[FRG-8]`) and the future `item` cost scope
   (`[FRG-19]`) drop in without a service rewrite.
 - The shared transaction core keeps an optional trade-in/consume input for the later

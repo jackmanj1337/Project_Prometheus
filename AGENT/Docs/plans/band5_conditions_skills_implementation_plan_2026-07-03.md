@@ -51,15 +51,18 @@ the Band 1-3 gates and (for the accessory lifecycle producer) `B4-IEQ` land.
    the **skills adapter first** (`B5-LOADOUT-CAPS` shell only; styles/sources
    adapters land in Plan 2).
 
-The **Q2 required-v1 effect/condition manifest is DEFERRED** (demo-campaign
-gated). This plan builds the machinery and proves it with fixtures only; the
-manifest slots in as a late content slice.
+The **v1 effect/condition manifest is now specified** in
+[`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+(Q-B5-1 resolved 2026-07-03 — build the floor now, the demo consumes it). This
+plan builds the machinery **and** the §1/§2 floor content: the five conditions,
+the cure hooks, the ~50 coded skill effects carried through the registry
+conversion, the `on_level_up` trigger, and a grant/revoke skill.
 
 ## Non-Goals
 
-- Do not finalize the v1 effect/condition/staff manifest (Q2 — demo-campaign
-  gated). Build machinery + fixtures; leave the concrete id list to the content
-  slice.
+- Do not invent content beyond the manifest floor. Build the §1/§2 manifest ids;
+  content beyond the floor is later demo data, and unconsumed floor content is
+  pruned, not carried.
 - Do not build Source+Style, utility staves, action grants, or secondary
   movement here. They consume this foundation in Plans 2 and 3.
 - Do not build the styles or granted-sources loadout adapters — only the shell +
@@ -76,6 +79,8 @@ manifest slots in as a late content slice.
 - [`band5_implementation_plan_handoff_2026-07-02.md`](band5_implementation_plan_handoff_2026-07-02.md)
 - [`band5_plus_preimplementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band5_plus_preimplementation_questions_review_2026-06-30.md)
   → "Walkthrough Decisions (2026-07-01)" Q1, Q4.
+- [`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+  (§1 conditions + cure hooks, §2 skill effects — the content this plan ships).
 - [`skill_model_open_questions_2026-06-23.md`](../registers/skill_model_open_questions_2026-06-23.md)
 - [`loadout_cap_open_questions_2026-06-27.md`](../registers/loadout_cap_open_questions_2026-06-27.md)
 - [`band1_determinism_save_implementation_plan_2026-06-30.md`](band1_determinism_save_implementation_plan_2026-06-30.md)
@@ -400,8 +405,8 @@ shell without editing `LoadoutPanel` category logic.
 
 Land the `until_unequipped` producer join with `B4-IEQ` Slice 5 (one lifecycle
 engine, two producers). Do not start before the Band 1-3 gates and `B4-IEQ` (for
-the accessory producer) exist. The Q2 manifest is a later demo-gated content
-slice on top of this machinery.
+the accessory producer) exist. Slices 1/3/4 build the §1/§2 manifest content
+directly (no separate deferred content slice).
 
 ## Verification Checklist
 

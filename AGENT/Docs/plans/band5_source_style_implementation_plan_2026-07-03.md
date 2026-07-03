@@ -52,8 +52,18 @@ Plan 1's condition substrate (the cure/inflict staves consume it).
 6. The **styles** and **granted-sources** loadout adapters registering into the
    Plan 1 `LoadoutPanel` shell.
 
-Exact effect/staff ids are **Q2 demo-campaign-gated**; this plan builds the
-pipeline and proves it with fixtures + the four archetypes as machinery.
+The effect kinds, target filters, styles, and staff ids are **specified** in
+[`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+§3/§4 (Q-B5-1 resolved 2026-07-03). This plan builds the pipeline and ships that
+floor: the `strike/heal/cure/condition_apply/displace/refresh` kinds, the demo
+styles (Wrath Strike, Poison Edge), and the four staff archetypes.
+
+**Pulled forward (Q-B5-4 resolved 2026-07-03):** Source+Style is elevated to run
+as early as its hard gates allow (`B4-IEQ` + `B3-RESOURCE-POOLS` + conditions for
+the cure/inflict staves) — **in parallel with skills/loadout, not after them** —
+because the AI scorer (C5) and Band 7 forging (`FRG-18`) both consume its effect
+registry. Forging v1 no longer waits on a separate schedule; it builds once this
+pipeline lands.
 
 ## Non-Goals
 
@@ -71,13 +81,16 @@ pipeline and proves it with fixtures + the four archetypes as machinery.
 - Do not replace effect kinds, target filters, shapes, or cost backends with a
   closed `enum` + `match`.
 - Do not add saved source/style state without F1 manifest rows.
-- Do not finalize the v1 effect/staff manifest (Q2 — demo-campaign gated).
+- Do not invent content beyond the §3/§4 manifest floor; content beyond it is
+  later demo data.
 
 ## Source Docs
 
 - [`band5_implementation_plan_handoff_2026-07-02.md`](band5_implementation_plan_handoff_2026-07-02.md)
 - [`band5_plus_preimplementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band5_plus_preimplementation_questions_review_2026-06-30.md)
   → "Walkthrough Decisions (2026-07-01)" Q5, Q6.
+- [`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+  (§3 utility staves, §4 source+style content — the floor this plan ships).
 - [`source_style_combat_model_2026-06-24.md`](../registers/source_style_combat_model_2026-06-24.md)
   (`STY-1..17`)
 - [`source_style_player_and_authoring_2026-06-24.md`](../design/source_style_player_and_authoring_2026-06-24.md)
@@ -373,10 +386,11 @@ edit to `LoadoutPanel` category logic.
 7. Slice 6 styles/sources loadout adapters.
 
 Do not start before `B4-IEQ`, `B3-RESOURCE-POOLS`, `B2-PROJECTION`,
-`B2-OCCUPANCY`, and Plan 1 exist. The Q2 effect/staff manifest is a later
-demo-gated content slice on this pipeline. Note (Q-B5-4): the Band 7 forging
-`FRG-18` effect-grants depend on this effect registry; forging v1 waits and only
-reserves the seam.
+`B2-OCCUPANCY`, and Plan 1's condition substrate exist. Slices ship the §3/§4
+manifest content directly. **Pulled forward (Q-B5-4):** run this in parallel with
+Plan 1's skills/loadout slices, not after them — the AI scorer (Plan 4 Slice 3)
+and Band 7 forging (`FRG-18`) both gate on this pipeline, so it is on the critical
+path. Forging v1 builds once this lands (it no longer waits on a separate gate).
 
 ## Verification Checklist
 

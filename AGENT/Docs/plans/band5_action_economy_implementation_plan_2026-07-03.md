@@ -53,6 +53,8 @@ gates, `B2-OCCUPANCY`, and Plans 1-2 land.
 - [`band5_implementation_plan_handoff_2026-07-02.md`](band5_implementation_plan_handoff_2026-07-02.md)
 - [`band5_plus_preimplementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band5_plus_preimplementation_questions_review_2026-06-30.md)
   → "Walkthrough Decisions (2026-07-01)" Q3.
+- [`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+  (§6 Dance / action grant, §7 Canto / secondary movement).
 - [`action_grant_open_questions_2026-06-25.md`](../registers/action_grant_open_questions_2026-06-25.md)
 - [`secondary_movement_open_questions_2026-06-24.md`](../registers/secondary_movement_open_questions_2026-06-24.md)
 - [`band5_conditions_skills_implementation_plan_2026-07-03.md`](band5_conditions_skills_implementation_plan_2026-07-03.md)

@@ -63,6 +63,8 @@ gates land.
 - [`band5_implementation_plan_handoff_2026-07-02.md`](band5_implementation_plan_handoff_2026-07-02.md)
 - [`band5_plus_preimplementation_questions_review_2026-06-30.md`](../../Code%20Reviews/band5_plus_preimplementation_questions_review_2026-06-30.md)
   → "Walkthrough Decisions (2026-07-01)" Q7.
+- [`band5_v1_content_manifest_2026-07-03.md`](../design/band5_v1_content_manifest_2026-07-03.md)
+  (§8 AI profiles + scorer terms — the floor this plan ships).
 - [`ai_profiles_open_questions_2026-06-21.md`](../registers/ai_profiles_open_questions_2026-06-21.md)
   (`[AIP]`)
 - [`ai_first_build_design_2026-06-22.md`](../design/ai_first_build_design_2026-06-22.md)

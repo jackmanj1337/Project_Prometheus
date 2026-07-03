@@ -29,13 +29,14 @@ must not start before the Band 1-3 gates and (for Source+Style) `B4-IEQ` land.
 These were raised by the handoff and are still owner decisions; the plans made
 provisional calls where noted, but they want confirmation.
 
-- **Q-B5-1 (the Q2 gate) — carried, provisional.** The plans build **machinery +
-  fixtures** and mark the required-v1 effect/condition/staff id manifest as a
-  late demo-gated content slice (handoff lean: draft now, manifest deferred).
-  Confirm this, or schedule the demo-campaign design pass first. **`on_level_up`
-  is treated as an engine trigger and is wired in Plan 1 Slice 4 regardless** —
-  it is not deferrable content. *Recommendation: draft-now stands; the manifest
-  is content on finished machinery.*
+- **Q-B5-1 (the Q2 gate) — RESOLVED 2026-07-03: build the full manifest now.**
+  Owner reversed the deferral: the v1 content floor is specified up front in
+  [`band5_v1_content_manifest_2026-07-03.md`](../Docs/design/band5_v1_content_manifest_2026-07-03.md)
+  and the demo campaign is designed to consume it (the memory's "≥1
+  player-facing feature per code feature" floor). The plans now ship the manifest
+  content directly rather than deferring it to a late slice; `on_level_up` is
+  wired regardless. The prune-not-carry rule still holds for anything the shipped
+  demo leaves unconsumed.
 
 - **Q-B5-2 — provisionally confirmed.** The four-plan grouping is used as-is.
   Flag if you want the AI chain split further or the loadout shell pulled into
@@ -45,11 +46,13 @@ provisional calls where noted, but they want confirmation.
   **owned by `B4-IEQ`** (Slice 5); Band 5 (`B5-DURATION-LIFECYCLE`) adds the
   `until_end_of_map` + fixed-N modes and the condition/skill producers. See C1.
 
-- **Q-B5-4 (forging pull) — provisional: forging v1 waits.** Plan 2 reserves the
-  effect-registry seam that `FRG-18` needs but does **not** pull `B5-SOURCE-STYLE`
-  earlier. Confirm forging v1 waits (its non-`FRG-18` slices don't need the
-  registry), or elevate Source+Style in the sequence because the demo includes
-  forging.
+- **Q-B5-4 (forging pull) — RESOLVED 2026-07-03: pull Source+Style forward.**
+  `B5-SOURCE-STYLE` is elevated to run as early as its hard gates allow (`B4-IEQ`
+  + `B3-RESOURCE-POOLS` + conditions), in parallel with skills/loadout rather than
+  after them. The AI scorer (C5) and Band 7 forging (`FRG-18`) both consume its
+  effect registry, so it is on the critical path. Forging v1 no longer waits on a
+  separate schedule — it builds once Source+Style lands. Plan 2 Purpose /
+  Dependency / Commit Order and the control-plane `B5-SOURCE-STYLE` row updated.
 
 ---
 
@@ -136,14 +139,15 @@ provisional calls where noted, but they want confirmation.
 
 ## D. Recommended next steps
 
-1. **Done 2026-07-03:** C1 (IEQ owns the store) and C5 (enemies use styles/staves)
-   resolved by the owner and folded into the plans + control plane.
-2. Still open for the owner: Q-B5-1 (Q2 draft-now vs demo-first) and Q-B5-4
-   (forging pull). Both have provisional leans (draft-now; forging waits).
-3. Control-plane rows already point at the four plans; `B5-LOADOUT-CAPS` notes the
-   two-phase split (C4) and `B5-DURATION-LIFECYCLE` notes the IEQ store ownership
-   (C1). C6 (berserk + scorer) and C7 (disabled-with-reason) are build-time notes
-   for the owning slices.
-4. Band 5 implementation stays gated on Band 1-3 + `B4-IEQ`; these plans wait
-   behind those gates. Note the new intra-Band-5 gate: the AI scorer (Plan 4
-   Slice 3) now waits on Source+Style (Plan 2) per C5.
+1. **Done 2026-07-03:** all four owner questions resolved — Q-B5-1 (build the
+   full manifest now), Q-B5-2 (four-plan grouping), Q-B5-3/C1 (IEQ owns the
+   `LifecycleStore`), Q-B5-4 (pull Source+Style forward), plus C5 (enemies use
+   styles/staves). All folded into the plans, the manifest, and the control plane.
+2. Remaining are build-time notes, not owner gates: C6 (berserk + scorer test),
+   C7 (capability gating shows disabled-with-reason), and the manifest's "open
+   content picks" (poison magnitude, which skill showcases `on_level_up`, extra
+   combat arts) — content flavor, adjustable freely.
+3. Band 5 implementation stays gated on Band 1-3 + `B4-IEQ`. Intra-Band-5 order:
+   conditions → Source+Style (pulled forward, parallel with skills/loadout) →
+   staves/action-economy; the AI scorer (Plan 4 Slice 3) gates on Source+Style
+   (C5).
