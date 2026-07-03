@@ -38,10 +38,12 @@ the Band 1-3 gates and (for the accessory lifecycle producer) `B4-IEQ` land.
    capability tags (`attack`, `staff_use`, `skill_use`, `move`, `trade`, …) that
    actions declare they require; sleep suppresses all; berserk overrides target
    selection. Adding a condition or a gated capability stays pure data.
-3. Land the shared **duration-lifecycle store** (`B5-DURATION-LIFECYCLE`):
-   `until_unequipped` / `until_end_of_map` / fixed-N tick modes, with conditions
-   as the first Band 5 producer and IEQ equipment registering into the same
-   store.
+3. Add the Band 5 half of the **duration lifecycle** (`B5-DURATION-LIFECYCLE`):
+   `B4-IEQ` **owns and creates** the shared `LifecycleStore` (its Slice 5, for
+   `until_unequipped`); this plan adds the `until_end_of_map` + fixed-N tick
+   modes and registers conditions/skills as producers into that existing store.
+   One lifecycle engine, many producers — not a second implementation. (C1
+   resolved 2026-07-03: IEQ owns the store.)
 4. Convert `SkillHandler`'s hardcoded `_dispatch` seam into a
    registry-backed effect-id lookup (`B5-SKILLS-EFFECTS` machinery), add
    grant/revoke, and wire the `on_level_up` engine trigger.
@@ -90,9 +92,9 @@ manifest slots in as a late content slice.
   actions declare the tags they require. No per-condition engine branch.
 - Sleep suppresses all capabilities; berserk overrides target selection rather
   than suppressing capabilities.
-- Duration lifecycle is one store with many producers. `B4-IEQ`'s
-  `until_unequipped` equipment producer and Band 5 conditions/skills register
-  into it.
+- Duration lifecycle is one store with many producers, **owned and created by
+  `B4-IEQ`** (C1). Band 5 registers conditions/skills as producers and adds the
+  `until_end_of_map` + fixed-N modes; it does not build a second store.
 - Conditions, capability tags, effect ids, and duration modes are open
   registries / pure data.
 - Effects execute through `B2-ACTION-EFFECT`; forecasted conditions render
@@ -120,8 +122,9 @@ Plan now; implement after gates. Minimum upstream gates before code:
 - `B3-REQ` for loadout cap predicates and condition-apply target filters.
 - `B3-PHB` for the prep-hub panel host the `LoadoutPanel` mounts in.
 - `B3-STAT-REGISTRY` so poison/condition stat effects target author stats.
-- `B4-IEQ` (Slice 5 accessory lifecycle) for the `until_unequipped` producer
-  that registers into this plan's lifecycle store.
+- `B4-IEQ` (Slice 5 accessory lifecycle) **owns and creates** the shared
+  `LifecycleStore`. It is a hard gate for `B5-DURATION-LIFECYCLE`: Band 5 adds
+  modes + producers to the IEQ-owned store, so IEQ Slice 5 must land first (C1).
 
 ## Existing Code Touchpoints
 
@@ -208,43 +211,46 @@ F1 obligations: no saved state in this slice (defs are content, not save).
 DoD#2 obligations: add a validator test that a new `ConditionDef` + new
 capability tag load through registry data with no engine switch edit.
 
-## Slice 2 - Duration-Lifecycle Store
+## Slice 2 - Duration-Lifecycle Modes And Producers
 
-**Goal:** one lifecycle engine with `until_unequipped` / `until_end_of_map` /
-fixed-N tick modes, keyed by stable source, that many producers register into.
+**Goal:** extend the `B4-IEQ`-owned `LifecycleStore` with the `until_end_of_map`
++ fixed-N modes and register conditions/skills as producers. Do **not** create a
+second store (C1: IEQ owns and creates it in its Slice 5).
 
-Files to create or touch:
+Files to touch (extend, do not create the store):
 
-- `scripts/autoloads/LifecycleStore.gd` (or a `RefCounted` owned by an existing
-  autoload — pick per Band 2 service conventions)
-- `scripts/resources/UnitData.gd` (per-unit lifecycle entries)
-- `scripts/autoloads/TurnManager.gd` (end-of-map + tick hooks)
-- `scripts/tests/test_lifecycle_store.gd`
-- `scripts/tests/test_snapshot_coverage.gd`
+- the IEQ-owned `LifecycleStore` (add the two new modes + their tick/clear
+  handling if not already generic)
+- `scripts/core/TurnManager.gd` (end-of-map + tick hooks, if IEQ has not already
+  wired them)
+- `scripts/resources/UnitData.gd` (condition/skill lifecycle entries)
+- `scripts/tests/test_lifecycle_store.gd` (extend), `scripts/tests/test_snapshot_coverage.gd`
 
 Implementation steps:
 
-1. Add a lifecycle entry shape: `{ source_key, payload_ref, mode, remaining }`
-   where `mode ∈ {until_unequipped, until_end_of_map, fixed_n}` (mode ids are
-   registry data, not a closed enum) and `source_key` is stable and unique
-   (mirrors the `B4-IEQ` `item:<instance_id>:<stat>` convention).
-2. Add `register(entry)`, `remove(source_key)`, `tick(unit)` (decrements
-   fixed-N; fires expiry), and `clear_end_of_map()` hooks.
-3. `TurnManager` calls `tick` at the right activation point and
-   `clear_end_of_map()` on map clear/cancel. Confirm ordering against the
-   condition tick in Slice 3 (one tick pass, not two).
-4. Snapshot coverage: lifecycle entries are mutable runtime state — deep-copy
-   safe, survive suspend (except `until_unequipped`, re-derived from equipment on
-   load if cheaper — decide per Q-B5-3).
+1. Confirm the IEQ store's entry shape (`{ source_key, payload_ref, mode,
+   remaining }`, `source_key` stable/unique per the `item:<instance_id>:<stat>`
+   convention) already carries `mode` as registry data. Add the `until_end_of_map`
+   and `fixed_n` mode ids to the mode registry — no closed enum.
+2. Add the mode behavior the equipment producer did not need: `fixed_n`
+   decrements on tick and expires; `until_end_of_map` clears on `clear_end_of_map()`.
+   Reuse the store's existing `register` / `remove` / `tick` API.
+3. Ensure one tick pass: the condition tick (Slice 3) and the store tick run in a
+   single, ordered pass — not two competing decrements. Confirm against IEQ's
+   tick wiring.
+4. Snapshot coverage: `until_end_of_map` and `fixed_n` entries are mutable
+   runtime state — deep-copy safe, survive suspend mid-map. (`until_unequipped`
+   entries are IEQ's, re-derivable from equipment on load.)
 
 Tests:
 
-- Fixed-N entry decrements and expires on the right tick.
-- `until_end_of_map` entry clears on map clear, survives suspend mid-map.
-- `until_unequipped` entry removed when its producer deregisters.
-- Snapshot/restore round-trips lifecycle entries.
+- A `fixed_n` condition/skill entry decrements and expires on the right tick.
+- An `until_end_of_map` entry clears on map clear and survives suspend mid-map.
+- The condition tick and store tick decrement each entry exactly once.
+- Snapshot/restore round-trips the new-mode entries.
 
-F1 obligations: lifecycle-store entries need manifest rows before code.
+F1 obligations: the condition/skill lifecycle entries need manifest rows before
+code (the store's entry schema is IEQ's; Band 5's producer entries reuse it).
 
 ## Slice 3 - ConditionManager Behavior
 
@@ -387,7 +393,7 @@ shell without editing `LoadoutPanel` category logic.
 
 1. Slice 0 preflight (no code; gate confirmation + M8 checklist rewrite).
 2. Slice 1 `ConditionDef` + capability-tag registry.
-3. Slice 2 lifecycle store (shared engine).
+3. Slice 2 lifecycle modes + producers (extends the `B4-IEQ`-owned store — C1).
 4. Slice 3 `ConditionManager` behavior + capability gating.
 5. Slice 4 skill effect registry conversion + `on_level_up`.
 6. Slice 5 loadout shell + skills adapter.

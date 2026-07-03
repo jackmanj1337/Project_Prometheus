@@ -343,6 +343,14 @@ Implementation steps:
 3. Add `AccessoryService` or a small unit-local helper that applies and removes
    `until_unequipped` modifiers with stable sources keyed by the Slice 2
    `InventoryEntry.instance_id`: `item:<instance_id>:<stat>`.
+   **This slice owns and creates the shared `LifecycleStore`** — the single
+   duration-lifecycle engine (`{ source_key, payload_ref, mode, remaining }`,
+   `mode` as registry data). `until_unequipped` is its first mode; Band 5's
+   `B5-DURATION-LIFECYCLE` adds the `until_end_of_map` + fixed-N modes and
+   registers conditions/skills as producers into this same store (C1, resolved
+   2026-07-03 — one engine, many producers, not two implementations). Build the
+   store generically here (register / remove / tick / clear-end-of-map), even
+   though IEQ only needs `until_unequipped`.
 4. Implement held conferral, equipped conferral, and `both`.
 5. Implement dual weapon+accessory behavior: equipped weapon counts as equipped
    for its accessory side without consuming another slot.

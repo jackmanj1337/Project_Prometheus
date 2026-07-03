@@ -41,10 +41,9 @@ provisional calls where noted, but they want confirmation.
   Flag if you want the AI chain split further or the loadout shell pulled into
   its own plan.
 
-- **Q-B5-3 (duration-lifecycle boundary) — needs a decision; see concern C1.**
-  The plans build **one lifecycle store** (Plan 1 Slice 2) that both `B4-IEQ`
-  equipment (`until_unequipped`) and Band 5 conditions/skills register into. Open
-  sub-question below.
+- **Q-B5-3 (duration-lifecycle boundary) — RESOLVED via C1.** One lifecycle store,
+  **owned by `B4-IEQ`** (Slice 5); Band 5 (`B5-DURATION-LIFECYCLE`) adds the
+  `until_end_of_map` + fixed-N modes and the condition/skill producers. See C1.
 
 - **Q-B5-4 (forging pull) — provisional: forging v1 waits.** Plan 2 reserves the
   effect-registry seam that `FRG-18` needs but does **not** pull `B5-SOURCE-STYLE`
@@ -56,21 +55,17 @@ provisional calls where noted, but they want confirmation.
 
 ## B. New concerns surfaced while drafting
 
-- **C1 — the `until_unequipped` ownership seam (feeds Q-B5-3).** Plan 1 builds a
-  shared `LifecycleStore`, but `B4-IEQ` Slice 5 already builds an
-  `until_unequipped` producer/remover keyed by `item:<instance_id>:<stat>`.
-  Two clean options, and the plans should not both implement a store:
-  - (a) `B4-IEQ` builds the store; Band 5 registers into it. Cleaner if IEQ lands
-    first (it does — it's a Band 4 gate).
-  - (b) `B4-IEQ` keeps a local producer now; Band 5 generalizes it into the
-    shared store and migrates IEQ onto it.
-  *Recommendation: (a) — IEQ owns the store (it lands first), Band 5's
-  `B5-DURATION-LIFECYCLE` adds the `until_end_of_map` + fixed-N modes and the
-  condition/skill producers.* This makes `B5-DURATION-LIFECYCLE` a *mode +
-  producer* add, not a new engine — matches the row's "land with first producer,
-  not label-only" mandate. **Decision needed: which plan physically creates
-  `LifecycleStore`?** Plan 1 currently assumes it may need to; if (a), Plan 1
-  Slice 2 shrinks to "register conditions into the existing store."
+- **C1 — the `until_unequipped` ownership seam (feeds Q-B5-3). RESOLVED
+  2026-07-03: `B4-IEQ` owns the store.** `B4-IEQ` Slice 5 now builds the shared
+  `LifecycleStore` generically (`register` / `remove` / `tick` /
+  `clear_end_of_map`, `mode` as registry data) with `until_unequipped` as its
+  first mode. Band 5's `B5-DURATION-LIFECYCLE` (Plan 1 Slice 2) adds the
+  `until_end_of_map` + fixed-N modes and registers conditions/skills as
+  producers — one engine, many producers. Plan 1 Slice 2 shrank from "build a
+  store" to "extend the IEQ-owned store"; `B4-IEQ` Slice 5 gained the
+  build-it-generically note; the control-plane `B5-DURATION-LIFECYCLE` row
+  reflects the ownership. IEQ Slice 5 is now a hard gate for the Band 5
+  lifecycle work.
 
 - **C2 — `UnitData.conditions` save-schema migration.** The field today is
   `Array[Dictionary]` of `{ "type": "poison", "turns_remaining": 3 }`. Plan 1
@@ -98,15 +93,14 @@ provisional calls where noted, but they want confirmation.
   `B5-LOADOUT-CAPS` is "done enough to ship skills" after Plan 1 and "fully done"
   after Plan 2. Recommend the control-plane `B5-LOADOUT-CAPS` row note this split.
 
-- **C5 — does the v1 AI need to score styles/staves?** The AI chain is drafted as
-  parallel and can land before Plan 2. Its Slice 3 scorer scores **weapon
-  actions** at minimum; scoring styles/sources at parity needs Plan 2's
-  projection hooks. **Question: do v1 demo enemies wield styles or offensive
-  staves?** If no (typical for an early demo — enemies plain-attack), the scorer
-  needs only weapon tuples for v1 and the style-parity term is a Band 7 add. If
-  yes, the AI plan's Slice 3 must wait on Plan 2. *Recommendation: v1 enemies
-  plain-attack; style-scoring waits — but this is demo-campaign-dependent (ties
-  to Q-B5-1).*
+- **C5 — does the v1 AI need to score styles/staves? RESOLVED 2026-07-03: yes,
+  enemies use staves and styles.** The AI plan's Slice 3 scorer now enumerates
+  and scores source+style tuples (staves, dances, combat arts) at parity with
+  weapons, through the Plan 2 forecast. Consequence: **the scorer (Plan 4 Slice
+  3) now gates on Plan 2 (`B5-SOURCE-STYLE`)** — only the composition half
+  (Slices 1-2) stays parallel to the content chain. The AI plan's Purpose,
+  Dependency Note, Slice 3, and Commit Order were updated; a test was added for an
+  enemy healer/dancer choosing its staff/dance when it scores highest.
 
 - **C6 — berserk + the AI scorer.** Berserk "overrides target selection" (Q1). A
   berserked **AI-controlled** unit must have the scorer honor the override
@@ -142,12 +136,14 @@ provisional calls where noted, but they want confirmation.
 
 ## D. Recommended next steps
 
-1. Owner resolves Q-B5-1 / Q-B5-3 (via C1) / Q-B5-4, and the demo-facing C5.
-2. If C1 lands on option (a), trim Plan 1 Slice 2 to "register into the IEQ
-   store" and note the store's owner in both plans.
-3. Point the Band 5 control-plane rows at the four new plans; note the
-   `B5-LOADOUT-CAPS` two-phase split (C4) and the `B5-DURATION-LIFECYCLE`
-   store-owner decision (C1).
-4. Regenerate the docs index; `check_docs.py`; commit.
-5. Band 5 implementation stays gated on Band 1-3 + `B4-IEQ`; these plans wait
-   behind those gates.
+1. **Done 2026-07-03:** C1 (IEQ owns the store) and C5 (enemies use styles/staves)
+   resolved by the owner and folded into the plans + control plane.
+2. Still open for the owner: Q-B5-1 (Q2 draft-now vs demo-first) and Q-B5-4
+   (forging pull). Both have provisional leans (draft-now; forging waits).
+3. Control-plane rows already point at the four plans; `B5-LOADOUT-CAPS` notes the
+   two-phase split (C4) and `B5-DURATION-LIFECYCLE` notes the IEQ store ownership
+   (C1). C6 (berserk + scorer) and C7 (disabled-with-reason) are build-time notes
+   for the owning slices.
+4. Band 5 implementation stays gated on Band 1-3 + `B4-IEQ`; these plans wait
+   behind those gates. Note the new intra-Band-5 gate: the AI scorer (Plan 4
+   Slice 3) now waits on Source+Style (Plan 2) per C5.

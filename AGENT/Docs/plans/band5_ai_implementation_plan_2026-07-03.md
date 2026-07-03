@@ -25,9 +25,12 @@ profiles are registries from day one, so Band 7's valuation brain adds terms and
 multi-ply `search_depth` as new registered scorers on the same engine — no
 rewrite.
 
-This chain is nearly independent of the content chain and can be built in
-parallel; it only needs `B2-PROJECTION` (and the Plan 2 projection hooks if
-styles are to be scored at parity with weapons).
+The **composition** half (Slices 1-2) is independent of the content chain and
+runs in parallel. The **scorer** half (Slice 3) is **not** fully parallel:
+v1 enemies use styles and staves (C5 resolved 2026-07-03), so the scorer must
+enumerate and score source+style tuples at parity with weapons — which requires
+the Plan 2 generalized effect forecast. Slice 3 therefore gates on
+`B5-SOURCE-STYLE` (its projection hooks), not just `B2-PROJECTION`.
 
 This is a build plan only. It does not authorize starting before the Band 1-3
 gates land.
@@ -91,9 +94,10 @@ Plan now; implement after gates. Minimum upstream gates:
 - `B2-REGISTRY` for `AIProfileDef` and scorer-term ids.
 - `B1-F1` for the `ai_awake` save row.
 - `B3-MET` for `set_ai`, seek-tile targets, and group-wake triggers.
-- `B2-PROJECTION` for the scorer's outcome term; the Plan 2 projection hooks if
-  styles/sources are to be scored at parity with weapons (otherwise the scorer
-  scores weapon actions and treats styles as a later term source).
+- `B2-PROJECTION` for the scorer's outcome term, **and** the Plan 2
+  (`B5-SOURCE-STYLE`) generalized effect forecast — v1 enemies use styles/staves
+  (C5), so the scorer scores source+style tuples at parity with weapons. Slice 3
+  gates on Plan 2; Slices 1-2 do not.
 - `B1` `RngService` for deterministic tie-breaks / activation.
 
 ## Existing Code Touchpoints
@@ -207,8 +211,11 @@ Files to create or touch:
 
 Implementation steps:
 
-1. Enumerate legal `(action, target, weapon/source)` tuples for the acting unit
-   (reachable tiles × usable sources × valid targets), in a deterministic order.
+1. Enumerate legal `(action, target, source+style)` tuples for the acting unit
+   (reachable tiles × usable sources × applicable styles × valid targets), in a
+   deterministic order. **Styles and staves are enumerated, not just weapons**
+   (C5): an enemy dancer, healer, or combat-artist scores its style/staff options
+   the same way it scores a plain attack.
 2. For each tuple, run the **Plan 2 projection** (the same forecast the player
    sees) and score with the registered terms:
    - **immediate projected outcome** (damage dealt / kill / heal from the
@@ -227,6 +234,9 @@ Implementation steps:
 Tests:
 
 - Given a killable target in range, the scorer chooses the killing tuple.
+- An enemy with a healing staff heals a hurt ally when that scores above its
+  attack options; an enemy dancer refreshes an ally when that scores highest
+  (C5 — styles/staves are scored, not ignored).
 - Given lethal counter-danger, a cautious profile's survival term deters the
   attack; an aggressive profile's weights still take it.
 - Objective-pressure term moves a seize-profile unit toward the objective.
@@ -250,10 +260,11 @@ by the generic loop, not a hardcoded 4-term expression.
 3. Slice 2 composition (`set_ai`, seek-tile, group wake, `ai_awake`).
 4. Slice 3 minimum single-ply scorer.
 
-This chain runs parallel to Plans 1-3. Slice 3 needs `B2-PROJECTION` (and the
-Plan 2 projection hooks to score styles/sources at weapon parity). Band 7's
-valuation brain (`[VAL]`/`[PER]`/`search_depth`) plugs in as new registered
-scorer terms on this engine — do not pre-build them here.
+Slices 1-2 (composition) run parallel to Plans 1-3. **Slice 3 (scorer) gates on
+Plan 2 (`B5-SOURCE-STYLE`)**: v1 enemies use styles/staves (C5), so the scorer
+scores source+style tuples through the Plan 2 forecast — it is not weapon-only.
+Band 7's valuation brain (`[VAL]`/`[PER]`/`search_depth`) plugs in as new
+registered scorer terms on this engine — do not pre-build them here.
 
 ## Verification Checklist
 
