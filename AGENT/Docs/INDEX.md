@@ -147,6 +147,9 @@
 - [`plans/band5_conditions_skills_implementation_plan_2026-07-03.md`](plans/band5_conditions_skills_implementation_plan_2026-07-03.md) — Band 5 Conditions And Skill Effects Implementation Plan — *Active - implementation plan*
 - [`plans/band5_implementation_plan_handoff_2026-07-02.md`](plans/band5_implementation_plan_handoff_2026-07-02.md) — Band 5 Implementation Plan — Next-Session Handoff — *Active - next-session handoff*
 - [`plans/band5_source_style_implementation_plan_2026-07-03.md`](plans/band5_source_style_implementation_plan_2026-07-03.md) — Band 5 Source And Style Implementation Plan — *Active - implementation plan*
+- [`plans/band6_map_readability_implementation_plan_2026-07-03.md`](plans/band6_map_readability_implementation_plan_2026-07-03.md) — Band 6 Map Readability Implementation Plan — *Active - implementation plan*
+- [`plans/band6_mutable_campaign_state_implementation_plan_2026-07-03.md`](plans/band6_mutable_campaign_state_implementation_plan_2026-07-03.md) — Band 6 Mutable Campaign State And Packaging Implementation Plan — *Active - implementation plan*
+- [`plans/band6_relationships_min_implementation_plan_2026-07-03.md`](plans/band6_relationships_min_implementation_plan_2026-07-03.md) — Band 6 Relationships Minimum Implementation Plan — *Active - implementation plan*
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*
