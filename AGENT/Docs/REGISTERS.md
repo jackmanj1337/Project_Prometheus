@@ -9,7 +9,6 @@
 |---|---|---|---|---|
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
-| `PUG-1..10` | Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register | OPEN | — | `registers/parametric_unit_generation_open_questions_2026-07-03.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
@@ -46,6 +45,7 @@
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |
 | `PKGA-1..4` | Package A (`RngService`) — Implementation Draft + Open Questions Register | RESOLVED | 2026-06-21f | `registers/package_a_rngservice_open_questions_2026-06-21.md` |
 | `PRV-1..7` | Provoke / Runtime Faction-Relationship MET Action (`[STY-17]` transition side, A4) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25p | `registers/provoke_relationship_action_open_questions_2026-06-25.md` |
+| `PUG-1..10` | Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register | RESOLVED | — | `registers/parametric_unit_generation_open_questions_2026-07-03.md` |
 | `PVP-1..8` | PvP Mode (#7) — Bring-Your-Own-Army PvP Campaign — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/pvp_mode_open_questions_2026-06-27.md` |
 | `PXP-1..9` | Proficiency / XP Framework (weapons + items) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/proficiency_xp_framework_open_questions_2026-06-23.md` |
 | `RCR-1..7` | Recruit / Capture (#4) — Roster-Side Design + Open Questions | RESOLVED | 2026-06-24h | `registers/recruit_capture_open_questions_2026-06-24.md` |

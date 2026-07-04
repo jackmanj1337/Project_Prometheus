@@ -1,20 +1,24 @@
 ---
 Type: register
-Status: OPEN
-Last verified: 2026-07-03
+Status: RESOLVED
+Last verified: 2026-07-04
 Register: PUG-1..10
 ---
 
 # Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register
 
 **Started:** 2026-07-03 (session 2026-07-03f).
-**Status:** OPEN — the shared generator core is partially resolved. `[PUG-1]`,
-`[PUG-2]`, `[PUG-3]`, `[PUG-9]`, and `[PUG-10]` are settled by the owner
-(2026-07-03g). `[PUG-4..7]` (skirmish/encounter formatting) are **now UNBLOCKED**: the
-campaign-node composition pass they waited on resolved 2026-07-04 (`[CNC-1..10]` all
-RESOLVED). The skirmish data shape locks against `BattleEncounterDef` (`[CNC-4]`) fired by
-the shared launch primitive (`[CNC-8]/[CNC-9]`); these remain OPEN only pending their own
-resolution walk, no longer gated by CNC.
+**Status:** RESOLVED (2026-07-04) — all of `[PUG-1..10]` settled. The generator core
+(`[PUG-1/2/3/9/10]`) was resolved 2026-07-03g; the skirmish/encounter shape
+(`[PUG-4..8]`) resolved 2026-07-04 once the campaign-node composition pass (`[CNC-1..10]`)
+landed. **Keystone reconciliation:** PUG's `EncounterDef` **collapses into CNC-4's
+`BattleEncounterDef`** — a skirmish encounter is a `BattleEncounterDef` whose force
+(`force_spec` vs authored `enemy_placements`) and map (`map_pool` vs fixed `battle_map_id`)
+are generated/pooled instead of authored. `ForceSpec` is first-class (`[PUG-4]`); generated
+forces fill `enemy_start_tiles` spawn zones on `BattleMapDef` (`[PUG-6]`, a CNC-4 schema
+refinement); scaling is an open registry of terms over `[DIF]`/`[TCV]` (`[PUG-7]`); the
+editor freezes the same `generate_unit` roll (`[PUG-8]`). Skirmish stays a `[PHB]` prep
+panel; a later overworld is an additive trigger surface over the same encounter.
 Earlier scope decision still stands: skirmish = prep-panel now, built against an
 overworld-ready shape so a later free-roam overworld is additive, not a rewrite
 (2026-07-03f).
@@ -116,55 +120,75 @@ is an in-memory `UnitData`.
   generated-unit consumer; `_spawn_unit(u_data, tile, team)` already takes a `UnitData`,
   so only the placement-resolution front of `_spawn_units` needs to branch path-vs-instance.
 
-### [PUG-4] `ForceSpec` model  **[OPEN — deferred until campaign-map structure pass]**
+### [PUG-4] `ForceSpec` model  **[RESOLVED]**
 - **A — A resource `{entries: [{UnitSpec, count}], level_scaling, count_scaling}`** — a
   roster of specs with per-entry counts + scaling rules. Arena's ladder is a degenerate
   `ForceSpec` (1 entry, tiered); skirmish is a full one.
 - **B — An inline list on the panel** (no reusable resource).
-- **Current lean:** A first-class `ForceSpec` resource is still the likely reusable shape,
-  but do not lock the schema until the campaign-map/skirmish structure pass decides how
-  generated forces attach to maps and progression nodes (`[CNC-2..9]`). Consumes
-  `[DIF]`/`[TCV]` for scaling (`[PUG-7]`).
+- **Resolution (2026-07-04): A — a first-class `ForceSpec` resource.**
+  `{entries: [{UnitSpec, count}], level_scaling, count_scaling}`. Rolls each entry via
+  `generate_unit(spec, seed)` and produces in-memory `UnitData` placed through the
+  `[PUG-3]` spawn seam. Arena's ladder is a degenerate 1-entry `ForceSpec`; skirmish is a
+  full one. Consumes `[DIF]`/`[TCV]` for scaling (`[PUG-7]`). A `ForceSpec` populates a
+  `BattleEncounterDef.force_spec` (the generated alternative to authored
+  `enemy_placements`, see `[PUG-5]`).
 
-### [PUG-5] `EncounterDef` — the overworld-ready atom  **[SCOPE DECIDED → shape OPEN / DEFERRED]**
+### [PUG-5] `EncounterDef` — the overworld-ready atom  **[RESOLVED]**
 **Owner decision (2026-07-03f): build skirmish now against an overworld-ready shape.**
-- The reusable atom = **`EncounterDef` `{ForceSpec, map_source, reward}`**; a **trigger
-  surface** fires it. v1 trigger = the **skirmish prep panel**; a later trigger = an
-  **overworld tile/region** consuming an encounter table of `EncounterDef`s. Both fire the
-  **same** launch path (generate force → spawn via `[PUG-3]` → run battle → reward).
-- **Open/deferred (2026-07-03g):** the exact `EncounterDef` schema and skirmish format
-  wait on the campaign-node composition pass (`[CNC-1..10]`). Keep the author-facing
-  extension point open-registry-shaped (`[EXT]`) so overworld/mission-board/random-event
-  triggers can reuse it later without engine edits.
+- **Resolution (2026-07-04): unify — `EncounterDef` collapses into CNC-4's
+  `BattleEncounterDef`.** There is no separate `EncounterDef` wrapper. A
+  `BattleEncounterDef` gains two authored-OR-generated modes:
+  - **force:** authored `enemy_placements` **XOR** a generated `force_spec` (a `ForceSpec`,
+    `[PUG-4]`, rolled at launch).
+  - **map:** a fixed `battle_map_id` **XOR** a `map_pool` (pick/rotate from a set,
+    `[PUG-6]`).
+  - **reward:** the existing `reward_gold` / `reward_items` fields already on
+    `BattleEncounterDef`.
+- A **trigger surface** fires the encounter: v1 = the **skirmish prep panel**; a later
+  trigger = an **overworld tile/region** consuming an encounter table of
+  `BattleEncounterDef`s. Both fire the **same** launch path (resolve map from pool →
+  generate force via `[PUG-4]`/`[PUG-3]` → run battle → reward), per `[CNC-8]/[CNC-9]`.
+- The trigger surface stays open-registry-shaped (`[EXT]`) so
+  overworld/mission-board/random-event triggers reuse it without engine edits. This is the
+  keystone reconciliation the CNC pass unblocked — one encounter concept, not two.
 
-### [PUG-6] Skirmish container + map source  **[OPEN — deferred until campaign-map structure pass]**
+### [PUG-6] Skirmish container + map source  **[RESOLVED]**
 - **A — Skirmish is a `[PHB]` prep panel** (like arena/training/recruit), on-map placeable
   via `[SAC]`; its `map_source` = an **authored map pool** (pick/rotate one). Reuses the
   campaign-loop map launch.
 - **B — A bespoke skirmish flow** outside `[PHB]`.
-- **Current lean:** skirmish remains a `[PHB]` prep option by ratified scope, but the
-  concrete map-source format should wait until campaign-map structure is walked. Avoid
-  hardcoding a skirmish-only format ahead of that pass.
+- **Resolution (2026-07-04): A.** Skirmish is a `[PHB]` prep panel, on-map placeable via
+  `[SAC]`, reusing the campaign-loop map launch (`[CNC-8]/[CNC-9]`). Its map source is the
+  `map_pool` field on the `BattleEncounterDef` (`[PUG-5]`) — a set of `battle_map_id`s to
+  pick/rotate. **Schema refinement (feeds CNC-4):** because a generated force lands on a
+  pooled map, per-unit authored tiles cannot apply; `BattleMapDef` therefore carries
+  **`enemy_start_tiles`** (enemy spawn zones symmetric with `player_start_tiles`), which a
+  generated `ForceSpec` fills. This makes any force placeable on any map in the pool and
+  also serves mid-map reinforcements (`[DTR-5]`).
 
-### [PUG-7] Level/count scaling source (auto/random-leveled)  **[OPEN — deferred until campaign-map structure pass]**
+### [PUG-7] Level/count scaling source (auto/random-leveled)  **[RESOLVED]**
 The scope map calls for "auto/random-leveled rosters." Scale to what?
 - **A — Player average/max level;** **B — chapter/progress index;** **C — a `[TCV]`
   variable / `[DIF]` multiplier;** **D — a fixed authored band.**
-- **Current lean:** an author-selectable scaling rule referencing `[DIF]`/`[TCV]`
-  variables, defaulting to player-average + difficulty offset. Keep this as an open
-  registry of scaling terms, not a hardcoded `match`. Final defaults wait on the
-  campaign-map/skirmish structure pass.
+- **Resolution (2026-07-04): an open registry of scaling terms** referencing `[DIF]`/`[TCV]`
+  variables, defaulting to **player-average level + difficulty offset**. The scaling rule is
+  author-selectable per `ForceSpec` (`level_scaling` / `count_scaling`); scaling bases
+  (player-average, player-max, chapter/progress index, fixed band, TCV variable) are
+  registry terms read as data, **not** a hardcoded `match`, so a new base adds as content
+  (open-registry principle). A fixed authored band (D) is the degenerate constant term.
 
-### [PUG-8] Editor generate-and-bake — runtime vs authoring generation  **[OPEN]**
+### [PUG-8] Editor generate-and-bake — runtime vs authoring generation  **[RESOLVED]**
 - **A — The editor calls the SAME `generate_unit` primitive, then PERSISTS the result**
   as a concrete `UnitData` in the campaign pack; the roll is **frozen** on save. A
   "re-roll" re-rolls before save; after save it is a normal authored unit.
 - **B — A separate editor-only generator.**
-- **Rec: A.** One primitive, two persistence policies (runtime discards / re-rolls; editor
-  freezes). This also gives authors a fast baseline for the `.tres` files
-  `enemy_placements` needs — generate a plausible unit, tweak, place. Distinguish clearly
-  in docs: **runtime-generated** (ephemeral, re-rolled) vs **authoring-generated** (frozen,
-  editable).
+- **Resolution (2026-07-04): A.** One primitive, two persistence policies (runtime
+  discards / re-rolls; editor freezes). Gives authors a fast baseline for the `UnitData`
+  that `enemy_placements` needs — generate a plausible unit, tweak, place. Docs must
+  distinguish **runtime-generated** (ephemeral, re-rolled from a seed) vs
+  **authoring-generated** (frozen concrete `UnitData` after save). The named-character
+  freeze-provenance sub-detail (does a baked unit remember it was generated) stays a §6
+  forward reservation.
 
 ### [PUG-9] Equipment / inventory generation  **[RESOLVED]**
 - **A — Fixed loadout on the spec;** **B — a weighted equipment table** (by class/tier);
@@ -187,25 +211,28 @@ systems):
   policy; they do not get parallel generators. `ForceSpec` remains the likely multi-unit
   wrapper, but its exact schema stays open with `[PUG-4]`.
 
-## 4. Slice sketch (draft — not yet a build track; register OPEN)
+## 4. Slice sketch (register RESOLVED; ready to promote to a build track — see plan note below)
 
 1. **`UnitSpec` + `generate_unit(spec, seed)`** (`[PUG-1]`/`[PUG-2]`/`[PUG-9]`) — the atom.
    Buildable against live `UnitData`/`Unit` once `RngService` (`B1-PKGA`) lands. (This is
    arena plan Slice 2; this register generalizes its spec model.)
 2. **The spawn seam** (`[PUG-3]`) — `_spawn_units`/`enemy_placements` accept an in-memory
    `UnitData`. Small, load-bearing, unblocks every generated-unit consumer.
-3. **Campaign-map/skirmish structure pass** — decide how generated forces attach to
-   campaign maps/progression nodes before locking skirmish format.
+3. **`BattleMapDef` + `BattleEncounterDef` split** (`[CNC-4]`) with the `enemy_start_tiles`
+   spawn zones (`[PUG-6]`) and the authored-OR-generated force/map modes (`[PUG-5]`). This
+   is where the CNC-4 data-model split physically lands.
 4. **`ForceSpec` + scaling** (`[PUG-4]`/`[PUG-7]`) — the roster/count/level-scaling
-   resource consuming `[DIF]`/`[TCV]`; schema follows the campaign-map structure pass.
-5. **`EncounterDef` + the skirmish `[PHB]` panel** (`[PUG-5]`/`[PUG-6]`) — the panel
-   trigger fires an encounter payload (generate force → spawn → battle → reward) on the
-   chosen map source. Built overworld-ready (trigger surface is a registry), but exact
-   schema is deferred.
+   resource consuming `[DIF]`/`[TCV]` as an open registry of scaling terms; fills
+   `enemy_start_tiles` via the `[PUG-3]` seam.
+5. **The skirmish `[PHB]` panel** (`[PUG-5]`/`[PUG-6]`) — the panel trigger fires a
+   `BattleEncounterDef` (resolve map from `map_pool` → generate force → spawn → battle →
+   reward) via the shared `[CNC-8]/[CNC-9]` launch primitive. The trigger surface is an
+   open registry (`[EXT]`).
 6. **Editor generate-and-bake** (`[PUG-8]`) — the campaign builder's unit editor calls
    `generate_unit`, shows an editable result, freezes it to a pack `UnitData` on save.
 7. **(Later, additive) Overworld** — a free-roam surface whose tiles/regions carry
-   encounter tables of `EncounterDef`s, reusing slices 1-4 with a new trigger surface only.
+   encounter tables of `BattleEncounterDef`s, reusing slices 1-5 with a new trigger surface
+   only.
 
 ## 5. Test notes
 - `generate_unit(spec, seed)` is deterministic: same spec + seed → identical unit; ranges

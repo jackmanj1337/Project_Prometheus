@@ -136,11 +136,16 @@ When should `MapData` split into reusable terrain and encounter payload?
   monolithic `MapData` is split along the terrain/payload seam. A campaign node references an
   `encounter_id`; the encounter references a `battle_map_id`.
   - **`BattleMapDef`** (reusable terrain): `id`, `display_name`, `tilemap_scene_path`,
-    `grid`, `camera_start_tile`, `player_start_tiles` (deployment slots are terrain-fixed).
+    `grid`, `camera_start_tile`, `player_start_tiles` (deployment slots are terrain-fixed),
+    and **`enemy_start_tiles`** (enemy spawn zones symmetric with `player_start_tiles`,
+    added by `[PUG-6]` so a generated force can be placed on any map in a pool).
   - **`BattleEncounterDef`** (fight payload staged on a map): `id`, `battle_map_id`,
     `enemy_placements`, `factions`, `turn_order`, `activation_mode`, `victory_conditions`,
     `defeat_conditions`, `reward_gold`, `reward_items`, optional `deploy_slots` override
-    (a subset of the map's `player_start_tiles`).
+    (a subset of the map's `player_start_tiles`). **Authored-OR-generated modes (added by
+    `[PUG-5]`):** the force is authored `enemy_placements` XOR a generated `force_spec`
+    (a `ForceSpec`); the map is a fixed `battle_map_id` XOR a `map_pool` (pick/rotate). A
+    skirmish encounter is the fully-generated case.
 - **Implication:** the tactical runtime (`GameMap._spawn_units`, `TurnManager`) consumes a
   monolithic `MapData` today, so the campaign band must either compose the two defs into a
   runtime bundle at load or refactor the runtime to read both. Sequencing lands in the
