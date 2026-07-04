@@ -190,6 +190,8 @@
 - [`playtests/playtest_checklist_v0.2.4.md`](playtests/playtest_checklist_v0.2.4.md) — Playtester Handbook and Checklist - v0.2.4
 - [`playtests/playtest_checklist_v0.2.5.md`](playtests/playtest_checklist_v0.2.5.md) — Playtester Handbook and Checklist - v0.2.5
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
+- [`v0.2.5 playtest/playtest_build_v0.2.5.md`](v0.2.5%20playtest/playtest_build_v0.2.5.md) — Playtester Build Manifest - v0.2.5
+- [`v0.2.5 playtest/playtest_checklist_v0.2.5.md`](v0.2.5%20playtest/playtest_checklist_v0.2.5.md) — Playtester Handbook and Checklist - v0.2.5
 
 ## Reference / feasibility / Q&A
 
