@@ -252,13 +252,18 @@ func _init() -> void:
 	resolver.preview_data = _make_preview_data(false, true)
 	preview.show_preview(attacker, defender)
 	await process_frame
+	# V026-04b: Hit/Crit render as plain dash rows (not blanks) when there is no
+	# counter, so the triangle/effectiveness icons stay column-aligned. Plain text
+	# (no [url]) so the selector cycle never lands on a rate that doesn't exist.
 	var no_counter_ok: bool = (
 		preview._def_dmg.text == "[url=combat_field:def:damage]No counter[/url]"
 		and preview._def_dmg.size.y > 0.0
-		and preview._def_hit.text == ""
-		and preview._def_hit.size.y <= 0.0
-		and preview._def_crit.text == ""
-		and preview._def_crit.size.y <= 0.0
+		and preview._def_hit.text == "Hit  —"
+		and preview._def_hit.size.y > 0.0
+		and not ("[url=" in preview._def_hit.text)
+		and preview._def_crit.text == "Crit —"
+		and preview._def_crit.size.y > 0.0
+		and not ("[url=" in preview._def_crit.text)
 		and preview._def_name.text.ends_with("  [Vantage]")
 	)
 	if no_counter_ok:

@@ -191,8 +191,11 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		# line. We still register it as an entry so more_info cycle visits
 		# the defender side, but the description is a plain note.
 		_def_dmg.text = _link("def", "damage", "Damage", "No counter")
-		_def_hit.text = ""
-		_def_crit.text = ""
+		# Dashes, not blanks (V026-04b): keep the row heights so the triangle /
+		# effectiveness icons below stay aligned with the attacker column. Plain
+		# text (no _link) so More Info never describes a rate that doesn't exist.
+		_def_hit.text = "Hit  —"
+		_def_crit.text = "Crit —"
 		_def_triangle.text = _triangle_link("def", "neutral")
 		_def_effective.text = _effective_link("def", false, 1.0)
 
