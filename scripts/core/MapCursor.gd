@@ -627,21 +627,44 @@ func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) 
 		menu_size = menu.get_combined_minimum_size()
 	if menu is Control:
 		menu_size *= (menu as Control).scale
+	# Offset the menu one tile off the unit, but CAP the gap at one unzoomed tile
+	# (V025-03): at high zoom a full magnified tile (tile_px) launched the menu far
+	# from the unit and made it jitter, so cap the added gap so it hugs the unit.
 	var tile_px: float = float(GameConstants.TILE_SIZE)
 	if _camera != null and _camera.zoom.x > 0.0:
 		tile_px *= _camera.zoom.x
-	var pos := screen_pos + Vector2(tile_px + 4.0, 0)
-	# Flip to the unit's left if the menu would run off the right edge.
-	if pos.x + menu_size.x > view.x:
-		pos.x = screen_pos.x - menu_size.x
+	var gap_px: float = minf(tile_px, float(GameConstants.TILE_SIZE)) + 4.0
+	# Side stickiness (V025-03): keep the side chosen last time this same menu was
+	# placed (only across REPOSITIONS — a fresh open resets to the right), and only
+	# flip when the sticky side genuinely no longer fits. Without this, a small
+	# zoom/cursor change flipped the side and the menu jumped across the unit.
+	var sticky_side: String = ""
+	if not remember_anchor and _context_menu_anchor.get("menu", null) == menu:
+		sticky_side = String(_context_menu_anchor.get("side", ""))
+	var side: String = sticky_side if sticky_side != "" else "right"
+	var right_x: float = screen_pos.x + gap_px
+	var left_x: float = screen_pos.x - menu_size.x
+	# Flip only when the preferred side can't fit at all.
+	if side == "right" and right_x + menu_size.x > view.x:
+		side = "left"
+	elif side == "left" and left_x < 0.0:
+		side = "right"
+	var pos := Vector2(right_x if side == "right" else left_x, screen_pos.y)
 	pos.x = clampf(pos.x, 0.0, maxf(0.0, view.x - menu_size.x))
 	pos.y = clampf(pos.y, 0.0, maxf(0.0, view.y - menu_size.y))
 	menu.position = pos
 	if remember_anchor:
-		_context_menu_anchor = {"menu": menu, "tile": tile}
+		_context_menu_anchor = {"menu": menu, "tile": tile, "side": side}
+	elif _context_menu_anchor.get("menu", null) == menu:
+		_context_menu_anchor["side"] = side  # keep stickiness fresh across zoom
 
 
+# The shared zoom-reposition hook: re-anchors the open context menu AND the visible
+# attack preview (V025-04c) so both track their unit when the map zoom changes.
 func _reposition_context_menu_anchor() -> void:
+	# Re-anchor the combat preview beside its defender (no-op when hidden).
+	if attack_preview != null and attack_preview.has_method("reposition"):
+		attack_preview.reposition()
 	if _context_menu_anchor.is_empty():
 		return
 	var menu: Node = _context_menu_anchor.get("menu", null)

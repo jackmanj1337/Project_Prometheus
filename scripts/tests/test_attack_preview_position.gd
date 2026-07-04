@@ -145,5 +145,29 @@ func _init() -> void:
 		print("FAIL defender-avoid: %s still intersects %s" % [p_defender, defender_rect])
 		failed += 1
 
+	# ── V025-04c: reposition() re-anchor hook contract ──────────────────────────
+	# The screen-space placement is playtest-verified (canvas transforms don't
+	# resolve headless), but the hook's guards are unit-testable: reposition() must
+	# no-op when hidden/unanchored, and hide_preview() must clear the anchor defender
+	# so a zoom change never re-anchors to a stale unit.
+	var preview_packed := load("res://scenes/ui/AttackPreview.tscn")
+	if preview_packed != null:
+		var preview: Control = preview_packed.instantiate()
+		root.add_child(preview)
+		await process_frame
+		preview.reposition()  # hidden + no anchor defender: must be a safe no-op
+		var noop_safe: bool = not preview.visible and preview._anchor_defender == null
+		preview._anchor_defender = grid  # pretend anchored to some node
+		preview.hide_preview()
+		if noop_safe and preview._anchor_defender == null:
+			print("OK  V025-04c reposition no-ops when hidden; hide_preview clears the anchor")
+			passed += 1
+		else:
+			print("FAIL reposition/anchor contract: noop_safe=%s anchor=%s" % [
+				noop_safe, preview._anchor_defender]); failed += 1
+		preview.queue_free()
+	else:
+		print("FAIL could not load AttackPreview.tscn"); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

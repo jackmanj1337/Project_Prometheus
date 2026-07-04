@@ -92,6 +92,11 @@ var _def_battle_speed: int = 0
 var _follow_up_threshold: int = 5
 var _can_counter: bool = false
 
+# The defender the visible preview is anchored to, captured in show_preview() so a
+# zoom change can re-anchor the panel beside it — the same reposition-on-zoom the
+# context menus get (V025-04c). Cleared on hide so a stale defender is never used.
+var _anchor_defender: Node = null
+
 
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 	_camera = camera
@@ -194,12 +199,23 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	_refresh_forecast_row_heights()
 	_reset_info_panel()
 	_size_panel_to_content()
+	_anchor_defender = defender
 	_reposition_for(defender)
 	show()
 
 
 func hide_preview() -> void:
+	_anchor_defender = null
 	hide()
+
+
+# Re-anchors the visible preview beside its current defender. Called by MapCursor
+# when the map zoom changes so the panel tracks the unit the same way the context
+# menus do (V025-04c). No-op when hidden or without a live anchor defender.
+func reposition() -> void:
+	if not visible or _anchor_defender == null or not is_instance_valid(_anchor_defender):
+		return
+	_reposition_for(_anchor_defender)
 
 
 # Returns the labels that participate in selection. Hand-listed instead of
