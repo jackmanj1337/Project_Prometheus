@@ -368,8 +368,11 @@ Likely files: `scenes/ui/HUD.tscn`, `scripts/tests/test_hud.gd`.
    effectiveness default (Q6) recorded in Band 5 Slice 3; promotion-picker redesign +
    stats More-Info paged layout → `UI-INSPECTION`; terrain single-page redesign →
    `B4-MAP-OBJECTS`/`[SAC]` (overlaps `V023-09b`).
-5. **Cut v0.2.6** as the next display rerun; `VAL-V023-DISPLAY` flips only when §1.1,
-   §1.2, §1.3, §1.5, §1.6, §1.8 all pass live. **← next step**
+5. ~~**Cut v0.2.6**~~ DONE 2026-07-04 — `builds/Project_Prometheus_v0.2.6_debug.exe`
+   (source commit `75b3379`, SHA-256 `90a673e1…`), manifest
+   `playtest_build_v0.2.6.md`, handbook `playtest_checklist_v0.2.6.md`. Ships as three
+   files: exe + `._sc_` marker + handbook. **Next: live Windows display rerun;**
+   `VAL-V023-DISPLAY` flips only when §1.1, §1.2, §1.3, §1.5, §1.6, §1.8 all pass live.
 
 ## Merge Notes
 
