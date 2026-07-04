@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drr617qagos6n"
-path="res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"
+uid="uid://cplmgiplbbtj8"
+path="res://.godot/imported/windowed_4k_clamp_desktop_gap_2026-07-03.png-87a79680a886f4c16177e00966416187.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://AGENT/Docs/archive/evidence/2026-06-10 broken combat preview.png"
-dest_files=["res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"]
+source_file="res://AGENT/Docs/archive/evidence/windowed_4k_clamp_desktop_gap_2026-07-03.png"
+dest_files=["res://.godot/imported/windowed_4k_clamp_desktop_gap_2026-07-03.png-87a79680a886f4c16177e00966416187.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drr617qagos6n"
-path="res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"
+uid="uid://bboj6r86lp6m2"
+path="res://.godot/imported/promotion_picker_2x_top_bottom_cutoff_2026-07-03.png-83c35a562b3925f0f9643dd071655b98.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://AGENT/Docs/archive/evidence/2026-06-10 broken combat preview.png"
-dest_files=["res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"]
+source_file="res://AGENT/Docs/archive/evidence/promotion_picker_2x_top_bottom_cutoff_2026-07-03.png"
+dest_files=["res://.godot/imported/promotion_picker_2x_top_bottom_cutoff_2026-07-03.png-83c35a562b3925f0f9643dd071655b98.ctex"]
 
 [params]
 

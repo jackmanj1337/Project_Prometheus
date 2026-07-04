@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drr617qagos6n"
-path="res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"
+uid="uid://b31sohk7j3ukf"
+path="res://.godot/imported/unit_details_horizontal_scrollbar_back_button_2026-07-01.png-4a00315d166738c11a19a0110503257f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://AGENT/Docs/archive/evidence/2026-06-10 broken combat preview.png"
-dest_files=["res://.godot/imported/2026-06-10 broken combat preview.png-fb9e08b353aa7ab149be9b11fde939e0.ctex"]
+source_file="res://AGENT/Docs/archive/evidence/unit_details_horizontal_scrollbar_back_button_2026-07-01.png"
+dest_files=["res://.godot/imported/unit_details_horizontal_scrollbar_back_button_2026-07-01.png-4a00315d166738c11a19a0110503257f.ctex"]
 
 [params]
 
