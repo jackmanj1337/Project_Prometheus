@@ -63,6 +63,7 @@ text = "Choose a promoted class"
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+follow_focus = true
 
 [node name="Options" type="VBoxContainer" parent="Panel/VBox/OptionsScroll"]
 layout_mode = 2

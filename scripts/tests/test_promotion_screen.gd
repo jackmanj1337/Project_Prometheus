@@ -84,6 +84,31 @@ func _init() -> void:
 	else:
 		print("FAIL 2.0x vertical fit: view_h=%.0f panel.y=%.0f panel.h=%.0f top=%.1f bottom=%.1f" % [
 			view_h, panel.position.y, panel.size.y, top_margin, bottom_margin]); failed += 1
+	# V026-05b: directional keys must reach every class option. The buttons were
+	# always FOCUS_ALL, but without follow_focus the ScrollContainer left the newly
+	# focused button outside the visible frame at high scale — reading as "only the
+	# top class option is available via directional keys" (v0.2.6 playtest §1.5).
+	# Event-injected (push_input) per the input-routing test-fidelity rule.
+	var options_scroll: ScrollContainer = screen.get_node("Panel/VBox/OptionsScroll")
+	var follow_ok: bool = options_scroll.follow_focus
+	screen._buttons[0].grab_focus()
+	var key_down := InputEventKey.new()
+	key_down.keycode = KEY_DOWN
+	key_down.pressed = true
+	root.push_input(key_down)
+	await process_frame
+	var second_focused: bool = screen._buttons[1].has_focus()
+	var focused_rect: Rect2 = screen._buttons[1].get_global_rect()
+	var frame_rect: Rect2 = options_scroll.get_global_rect()
+	var focused_visible: bool = frame_rect.grow(1.0).encloses(focused_rect) \
+		or frame_rect.intersects(focused_rect)
+	if follow_ok and second_focused and focused_visible:
+		print("OK  V026-05b down-arrow reaches the second option and the list follows focus")
+		passed += 1
+	else:
+		print("FAIL V026-05b focus nav: follow_focus=%s second_focused=%s visible=%s" % [
+			follow_ok, second_focused, focused_visible])
+		failed += 1
 	screen.apply_menu_scale(1.0)
 	await process_frame
 
