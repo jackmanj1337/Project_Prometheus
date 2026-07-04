@@ -33,7 +33,7 @@ const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
 
 @onready var _scroll: ScrollContainer   = $Panel/ScrollContainer
-@onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/VBox
+@onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/Margin/VBox
 @onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
 @onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
 @onready var _slider_sfx: HSlider       = _vbox.get_node("HBoxSFX/SliderSFX")
@@ -467,8 +467,11 @@ const _KEYBIND_LABELS := {
 # Each toggles a GameState debug aid; the toggle handler itself lives on
 # GameState._unhandled_input and is also gated on OS.is_debug_build().
 const _DEBUG_KEYBIND_LABELS := {
-	"debug_toggle_force_levelup": "Debug: Force Level Up",
-	"debug_toggle_growth_boost":  "Debug: Growth Boost",
+	"debug_toggle_force_levelup":    "Debug: Force Level Up",
+	"debug_toggle_growth_boost":     "Debug: Growth Boost",
+	# V026-01c: the F9 hotseat override was toggleable but never listed here, so
+	# the in-game controls panel didn't show it (v0.2.6 playtest §1.1 report).
+	"debug_toggle_hotseat_override": "Debug: Hotseat All Factions",
 }
 
 

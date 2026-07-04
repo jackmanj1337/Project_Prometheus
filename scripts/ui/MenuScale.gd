@@ -31,6 +31,11 @@ const _BASE_DEFAULT_FONT_SIZE := 16
 # so re-applying at a new factor scales off the original, never compounding.
 const _BASE_META := "_menu_scale_base_overrides"
 
+# Meta key under which a scroll-frame panel stores its authored (scene) size, so
+# every recenter derives the frame from that base instead of from whatever size the
+# previous apply left behind (V026-01a).
+const _BASE_SIZE_META := "_menu_scale_base_size"
+
 # Container spacing/margin constants scaled in the derived Theme so layout density
 # tracks the font growth. Each entry is [theme_type, constant_name, base_value];
 # base values are the engine defaults. Per-node constant overrides are handled
@@ -215,5 +220,19 @@ static func _recenter(target: Control) -> void:
 		return
 	if not _has_scroll_container(target):
 		target.size = target.get_combined_minimum_size()
+	else:
+		# V026-01a: with horizontal scrolling disabled, the scaled rows' minimum
+		# width propagates up through the ScrollContainer — the layout pass then
+		# grows the panel rightward/downward AFTER this recenter ran, leaving it
+		# off-center until the next re-apply. Size the frame NOW from the authored
+		# base and the current content minimum (capped to the viewport) so the
+		# centering below is computed against the panel's real final size.
+		var base: Vector2 = target.get_meta(_BASE_SIZE_META, target.size)
+		target.set_meta(_BASE_SIZE_META, base)
+		var min_size: Vector2 = target.get_combined_minimum_size()
+		var vp: Vector2 = target.get_viewport_rect().size
+		target.size = Vector2(
+			minf(maxf(base.x, min_size.x), vp.x),
+			minf(maxf(base.y, min_size.y), vp.y))
 	target.set_anchors_and_offsets_preset(
 		Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)

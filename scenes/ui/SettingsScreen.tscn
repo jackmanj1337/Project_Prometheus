@@ -36,26 +36,31 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="VBox" type="VBoxContainer" parent="Panel/ScrollContainer"]
+[node name="Margin" type="MarginContainer" parent="Panel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 14
+
+[node name="VBox" type="VBoxContainer" parent="Panel/ScrollContainer/Margin"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="Panel/ScrollContainer/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Settings"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
 
-[node name="HBoxMaster" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMaster" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelMasterTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMaster"]
+[node name="LabelMasterTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMaster"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Master Volume"
 
-[node name="SliderMaster" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxMaster"]
+[node name="SliderMaster" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxMaster"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -63,21 +68,21 @@ max_value = 100.0
 step = 1.0
 value = 80.0
 
-[node name="LabelMaster" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMaster"]
+[node name="LabelMaster" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMaster"]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 text = "80"
 horizontal_alignment = 2
 
-[node name="HBoxMusic" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMusic" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelMusicTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMusic"]
+[node name="LabelMusicTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMusic"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Music Volume"
 
-[node name="SliderMusic" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxMusic"]
+[node name="SliderMusic" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxMusic"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -85,21 +90,21 @@ max_value = 100.0
 step = 1.0
 value = 70.0
 
-[node name="LabelMusic" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMusic"]
+[node name="LabelMusic" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMusic"]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 text = "70"
 horizontal_alignment = 2
 
-[node name="HBoxSFX" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxSFX" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelSFXTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxSFX"]
+[node name="LabelSFXTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxSFX"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "SFX Volume"
 
-[node name="SliderSFX" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxSFX"]
+[node name="SliderSFX" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxSFX"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -107,87 +112,87 @@ max_value = 100.0
 step = 1.0
 value = 90.0
 
-[node name="LabelSFX" type="Label" parent="Panel/ScrollContainer/VBox/HBoxSFX"]
+[node name="LabelSFX" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxSFX"]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 text = "90"
 horizontal_alignment = 2
 
-[node name="HSep1" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+[node name="HSep1" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="OptCombatAnim" type="OptionButton" parent="Panel/ScrollContainer/VBox"]
+[node name="OptCombatAnim" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="HBoxMovementSpeed" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMovementSpeed" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMovementSpeed"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Movement Speed"
 
-[node name="OptMovementSpeed" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxMovementSpeed"]
+[node name="OptMovementSpeed" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxPhaseBanner" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxPhaseBanner" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxPhaseBanner"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Phase Banner"
 
-[node name="OptPhaseBanner" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxPhaseBanner"]
+[node name="OptPhaseBanner" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxLevelUp" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxLevelUp" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxLevelUp"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxLevelUp"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Level-Up Screen"
 
-[node name="OptLevelUpScreen" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxLevelUp"]
+[node name="OptLevelUpScreen" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxLevelUp"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxMouseCursor" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMouseCursor" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMouseCursor"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Mouse Cursor"
 
-[node name="OptMouseCursor" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxMouseCursor"]
+[node name="OptMouseCursor" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxAutoEndTurn" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxAutoEndTurn" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxAutoEndTurn"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Auto-End Turn"
 
-[node name="OptAutoEndTurn" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxAutoEndTurn"]
+[node name="OptAutoEndTurn" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxCameraBuffer" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxCameraBuffer" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelCameraBufferTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+[node name="LabelCameraBufferTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Camera Pan Buffer"
 
-[node name="SliderCameraBuffer" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+[node name="SliderCameraBuffer" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -195,21 +200,21 @@ max_value = 5.0
 step = 1.0
 value = 2.0
 
-[node name="LabelCameraBuffer" type="Label" parent="Panel/ScrollContainer/VBox/HBoxCameraBuffer"]
+[node name="LabelCameraBuffer" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer"]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 text = "2"
 horizontal_alignment = 2
 
-[node name="HBoxMapZoom" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxMapZoom" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelMapZoomTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMapZoom"]
+[node name="LabelMapZoomTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMapZoom"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Map Zoom"
 
-[node name="SliderMapZoom" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxMapZoom"]
+[node name="SliderMapZoom" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxMapZoom"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -217,58 +222,58 @@ max_value = 7.0
 step = 1.0
 value = 3.0
 
-[node name="LabelMapZoom" type="Label" parent="Panel/ScrollContainer/VBox/HBoxMapZoom"]
+[node name="LabelMapZoom" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxMapZoom"]
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
 text = "1.0x"
 horizontal_alignment = 2
 
-[node name="HSepDisplay" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+[node name="HSepDisplay" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelDisplay" type="Label" parent="Panel/ScrollContainer/VBox"]
+[node name="LabelDisplay" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Display"
 theme_override_font_sizes/font_size = 18
 
-[node name="HBoxWindowMode" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxWindowMode" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxWindowMode"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxWindowMode"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Window Mode"
 
-[node name="OptWindowMode" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxWindowMode"]
+[node name="OptWindowMode" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxWindowMode"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HBoxResolution" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxResolution" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Panel/ScrollContainer/VBox/HBoxResolution"]
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxResolution"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Resolution"
 
-[node name="OptResolution" type="OptionButton" parent="Panel/ScrollContainer/VBox/HBoxResolution"]
+[node name="OptResolution" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxResolution"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LabelResolutionApplied" type="Label" parent="Panel/ScrollContainer/VBox/HBoxResolution"]
+[node name="LabelResolutionApplied" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxResolution"]
 layout_mode = 2
 text = ""
 modulate = Color(0.7, 0.7, 0.75, 1)
 
-[node name="HBoxUIScale" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="HBoxUIScale" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelUIScaleTitle" type="Label" parent="Panel/ScrollContainer/VBox/HBoxUIScale"]
+[node name="LabelUIScaleTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxUIScale"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Menu Scale"
 
-[node name="SliderUIScale" type="HSlider" parent="Panel/ScrollContainer/VBox/HBoxUIScale"]
+[node name="SliderUIScale" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxUIScale"]
 layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
@@ -276,31 +281,31 @@ max_value = 6.0
 step = 1.0
 value = 2.0
 
-[node name="LabelUIScale" type="Label" parent="Panel/ScrollContainer/VBox/HBoxUIScale"]
+[node name="LabelUIScale" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxUIScale"]
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
 text = "1.0x"
 horizontal_alignment = 2
 
-[node name="HSepControls" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+[node name="HSepControls" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="LabelControls" type="Label" parent="Panel/ScrollContainer/VBox"]
+[node name="LabelControls" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Controls"
 theme_override_font_sizes/font_size = 18
 
-[node name="KeybindList" type="VBoxContainer" parent="Panel/ScrollContainer/VBox"]
+[node name="KeybindList" type="VBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="HSep2" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+[node name="HSep2" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 
-[node name="BtnEditHudLayout" type="Button" parent="Panel/ScrollContainer/VBox"]
+[node name="BtnEditHudLayout" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Edit HUD Layout"
 
-[node name="BtnBack" type="Button" parent="Panel/ScrollContainer/VBox"]
+[node name="BtnBack" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 text = "Back"

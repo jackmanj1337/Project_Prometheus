@@ -24,23 +24,23 @@ func _init() -> void:
 
 	# Every node the SettingsScreen script's @onready vars depend on must exist.
 	var expected := [
-		"Panel/ScrollContainer/VBox/HBoxMaster/SliderMaster",
-		"Panel/ScrollContainer/VBox/HBoxMaster/LabelMaster",
-		"Panel/ScrollContainer/VBox/OptCombatAnim",
-		"Panel/ScrollContainer/VBox/HBoxMovementSpeed/OptMovementSpeed",
-		"Panel/ScrollContainer/VBox/HBoxPhaseBanner/OptPhaseBanner",
-		"Panel/ScrollContainer/VBox/HBoxLevelUp/OptLevelUpScreen",
-		"Panel/ScrollContainer/VBox/HBoxMouseCursor/OptMouseCursor",
-		"Panel/ScrollContainer/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
-		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/SliderCameraBuffer",
-		"Panel/ScrollContainer/VBox/HBoxCameraBuffer/LabelCameraBuffer",
-		"Panel/ScrollContainer/VBox/HBoxMapZoom/SliderMapZoom",
-		"Panel/ScrollContainer/VBox/HBoxMapZoom/LabelMapZoom",
-		"Panel/ScrollContainer/VBox/HBoxUIScale/SliderUIScale",
-		"Panel/ScrollContainer/VBox/HBoxUIScale/LabelUIScale",
-		"Panel/ScrollContainer/VBox/HBoxResolution/LabelResolutionApplied",
-		"Panel/ScrollContainer/VBox/KeybindList",
-		"Panel/ScrollContainer/VBox/BtnBack",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMaster/SliderMaster",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMaster/LabelMaster",
+		"Panel/ScrollContainer/Margin/VBox/OptCombatAnim",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed/OptMovementSpeed",
+		"Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner/OptPhaseBanner",
+		"Panel/ScrollContainer/Margin/VBox/HBoxLevelUp/OptLevelUpScreen",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor/OptMouseCursor",
+		"Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
+		"Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/SliderCameraBuffer",
+		"Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/LabelCameraBuffer",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/SliderMapZoom",
+		"Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/LabelMapZoom",
+		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale",
+		"Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScale",
+		"Panel/ScrollContainer/Margin/VBox/HBoxResolution/LabelResolutionApplied",
+		"Panel/ScrollContainer/Margin/VBox/KeybindList",
+		"Panel/ScrollContainer/Margin/VBox/BtnBack",
 	]
 	var all_present := true
 	for path in expected:
@@ -51,37 +51,41 @@ func _init() -> void:
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
 
-	var menu_scale_title := screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale/LabelUIScaleTitle")
+	var menu_scale_title := screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScaleTitle")
 	if menu_scale_title != null and String(menu_scale_title.get("text")) == "Menu Scale":
 		print("OK  display scale row is labeled Menu Scale"); passed += 1
 	else:
 		print("FAIL Menu Scale label missing or stale"); failed += 1
 
-	# V023-01: live Menu Scale must not move the slider's control column under the
-	# pointer. SettingsScreen applies stable row columns after every scale pass.
+	# V023-01: scaling must not move the slider's control column WITHIN the panel
+	# (stable row columns). Measured panel-relative since V026-01a: the panel itself
+	# now legitimately grows + recenters with the factor, and mid-drag track shift is
+	# impossible anyway because the scale only applies on drag release (V025-01a).
 	screen.show()
-	var scale_slider: Control = screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale/SliderUIScale")
-	var slider_positions: Array[float] = []
-	if scale_slider != null:
+	var scale_slider: Control = screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale")
+	var panel_for_slider: Control = screen.get_node_or_null("Panel")
+	var slider_offsets: Array[float] = []
+	if scale_slider != null and panel_for_slider != null:
 		for factor in [0.5, 1.0, 2.0]:
 			screen.apply_menu_scale(float(factor))
 			await process_frame
-			slider_positions.append(scale_slider.get_global_rect().position.x)
-	var slider_stable := slider_positions.size() == 3 \
-		and absf(slider_positions[0] - slider_positions[1]) <= 1.0 \
-		and absf(slider_positions[1] - slider_positions[2]) <= 1.0
+			slider_offsets.append(scale_slider.get_global_rect().position.x
+				- panel_for_slider.get_global_rect().position.x)
+	var slider_stable := slider_offsets.size() == 3 \
+		and absf(slider_offsets[0] - slider_offsets[1]) <= 1.0 \
+		and absf(slider_offsets[1] - slider_offsets[2]) <= 1.0
 	if slider_stable:
-		print("OK  Menu Scale slider x-position stays stable during live scaling")
+		print("OK  Menu Scale slider column stays stable within the panel during scaling")
 		passed += 1
 	else:
-		print("FAIL Menu Scale slider drift: %s" % str(slider_positions))
+		print("FAIL Menu Scale slider drift within panel: %s" % str(slider_offsets))
 		failed += 1
 
 	# V023-01 follow-up (v0.2.5): the slider must also hold its VERTICAL position —
 	# rows above it change height with the scale factor, so apply_menu_scale anchors
 	# the row by compensating with the ScrollContainer's scroll_vertical one frame
 	# later. Extra process_frame awaits let the deferred layout + anchor pass settle.
-	var scale_row: Control = screen.get_node_or_null("Panel/ScrollContainer/VBox/HBoxUIScale")
+	var scale_row: Control = screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxUIScale")
 	var row_y_stable := false
 	if scale_row != null:
 		screen.apply_menu_scale(1.0)
@@ -135,7 +139,7 @@ func _init() -> void:
 		print("SKIP menu-scale drag test (SettingsManager autoload absent)")
 
 	# Keybinding list is populated from the InputMap (#8).
-	var list := screen.get_node_or_null("Panel/ScrollContainer/VBox/KeybindList")
+	var list := screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/KeybindList")
 	if list != null and list.get_child_count() > 0:
 		print("OK  keybinding list populated (%d rows)" % list.get_child_count())
 		passed += 1
@@ -165,6 +169,55 @@ func _init() -> void:
 			print("FAIL debug rows missing: force_levelup=%s growth_boost=%s" \
 				% [has_force_levelup_row, has_growth_boost_row])
 			failed += 1
+		# V026-01c: the F9 hotseat override must be listed with the other debug rows.
+		var has_hotseat_row := false
+		for row in list.get_children():
+			if row.get_child_count() > 0 \
+					and String(row.get_child(0).get("text")) == "Debug: Hotseat All Factions":
+				has_hotseat_row = true
+		if has_hotseat_row:
+			print("OK  V026-01c hotseat debug keybinding row present"); passed += 1
+		else:
+			print("FAIL V026-01c hotseat debug keybinding row missing"); failed += 1
+
+	# V026-01b: a MarginContainer keeps the rows clear of the vertical scrollbar.
+	var margin := screen.get_node_or_null("Panel/ScrollContainer/Margin") as MarginContainer
+	if margin != null and margin.get_theme_constant("margin_right") > 0:
+		print("OK  V026-01b right margin present between rows and scrollbar"); passed += 1
+	else:
+		print("FAIL V026-01b scrollbar right margin missing"); failed += 1
+
+	# V026-01a: the FIRST scale apply on a fresh instance must leave the panel
+	# horizontally centered — previously the recenter ran against the authored frame
+	# size and the deferred layout then grew the panel rightward (off-center until a
+	# later re-apply "settled" it). Checked on a fresh instance because re-applies
+	# masked the bug.
+	var fresh: Control = packed.instantiate()
+	root.add_child(fresh)
+	await process_frame
+	var centered_ok := true
+	for factor in [2.0, 0.5]:
+		fresh.apply_menu_scale(float(factor))
+		for i in 2:
+			await process_frame
+		var panel := fresh.get_node_or_null("Panel") as Control
+		var vp_w: float = fresh.get_viewport_rect().size.x
+		var center_off: float = absf(
+			panel.global_position.x + panel.size.x * 0.5 - vp_w * 0.5)
+		var min_w: float = panel.get_combined_minimum_size().x
+		if center_off > 2.0:
+			centered_ok = false
+			print("FAIL V026-01a panel off-center at %sx: offset=%.1f" % [factor, center_off])
+		if panel.size.x + 0.5 < minf(min_w, vp_w):
+			centered_ok = false
+			print("FAIL V026-01a panel narrower than content at %sx: %.1f < %.1f" \
+				% [factor, panel.size.x, min_w])
+	if centered_ok:
+		print("OK  V026-01a first-apply keeps the settings panel centered at 2.0x/0.5x")
+		passed += 1
+	else:
+		failed += 1
+	fresh.queue_free()
 
 	# open() / _on_back() drive visibility. open() needs the SettingsManager
 	# autoload to read values from — skip the check cleanly when it is absent.
