@@ -26,14 +26,15 @@ color = Color(0.04, 0.04, 0.07, 0.97)
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 340.0
+offset_left = 260.0
 offset_top = 50.0
-offset_right = 940.0
+offset_right = 1020.0
 offset_bottom = 670.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel"]
 layout_mode = 2
+horizontal_scroll_mode = 0
 
 [node name="VBox" type="VBoxContainer" parent="Panel/ScrollContainer"]
 layout_mode = 2

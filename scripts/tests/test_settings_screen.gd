@@ -100,6 +100,39 @@ func _init() -> void:
 	else:
 		failed += 1
 
+	# V025-01b: the settings ScrollContainer must not scroll horizontally — at high
+	# scale the rows adapt/ellipsize within the (now wider) panel instead of summoning
+	# a horizontal scrollbar.
+	var scroll := screen.get_node_or_null("Panel/ScrollContainer") as ScrollContainer
+	if scroll != null and scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
+		print("OK  V025-01b settings horizontal scroll is disabled"); passed += 1
+	else:
+		print("FAIL settings h-scroll not disabled: mode=%s" % [
+			scroll.horizontal_scroll_mode if scroll != null else "<no scroll>"]); failed += 1
+
+	# V025-01a: while the Menu Scale slider is being DRAGGED, changing its value must
+	# only preview the label — it must NOT re-apply the scale (that shifts the track
+	# under the cursor and makes the value oscillate). Release commits the value.
+	if root.get_node_or_null("SettingsManager") != null and scale_slider != null:
+		var sm_drag := root.get_node_or_null("SettingsManager")
+		sm_drag.set("menu_scale_index", 1)  # a known committed baseline
+		screen._on_menu_scale_drag_started()
+		screen._on_menu_scale_changed(0)  # drag moved to a different step
+		var previewed_not_applied: bool = int(sm_drag.get("menu_scale_index")) == 1
+		screen._on_menu_scale_drag_ended(true)  # release commits the slider's value
+		var committed_on_release: bool = int(sm_drag.get("menu_scale_index")) \
+			== int(scale_slider.value)
+		if previewed_not_applied and committed_on_release:
+			print("OK  V025-01a Menu Scale previews during drag and commits on release")
+			passed += 1
+		else:
+			print("FAIL menu-scale drag: previewed_not_applied=%s committed=%s idx=%d slider=%d" % [
+				previewed_not_applied, committed_on_release,
+				int(sm_drag.get("menu_scale_index")), int(scale_slider.value)])
+			failed += 1
+	else:
+		print("SKIP menu-scale drag test (SettingsManager autoload absent)")
+
 	# Keybinding list is populated from the InputMap (#8).
 	var list := screen.get_node_or_null("Panel/ScrollContainer/VBox/KeybindList")
 	if list != null and list.get_child_count() > 0:

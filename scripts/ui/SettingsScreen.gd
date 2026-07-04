@@ -173,6 +173,11 @@ func _ready() -> void:
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_slider_map_zoom.value_changed.connect(_on_map_zoom_changed)
 	_slider_menu_scale.value_changed.connect(_on_menu_scale_changed)
+	# Menu Scale applies on drag RELEASE, not live per-step (V025-01a): re-scaling the
+	# screen mid-drag moves the slider track under the cursor, so the value oscillates
+	# between adjacent steps. During a drag we only preview the factor in the label.
+	_slider_menu_scale.drag_started.connect(_on_menu_scale_drag_started)
+	_slider_menu_scale.drag_ended.connect(_on_menu_scale_drag_ended)
 	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
 	_populate_keybindings()
@@ -344,17 +349,44 @@ func _zoom_label(index: int) -> String:
 	return "%sx" % str(levels[i])
 
 
+# True while the player is dragging the Menu Scale grabber. Used to suppress the
+# live re-scale during a drag (V025-01a) — see the drag_started/ended connections.
+var _menu_scale_dragging: bool = false
+
+
+func _on_menu_scale_drag_started() -> void:
+	_menu_scale_dragging = true
+
+
+# Drag finished: commit + apply the final value once. (`value_changed` on HSlider is
+# whether the value moved during the drag; we commit regardless so a release that
+# lands back on the start value still re-applies cleanly.)
+func _on_menu_scale_drag_ended(_value_changed: bool) -> void:
+	_menu_scale_dragging = false
+	_commit_menu_scale(_slider_menu_scale.value, true)
+
+
 # Menu-scale slider: value IS the stored index into SettingsManager.MENU_SCALE_LEVELS.
-# Applies live to menu/modal panels; HUD sizing stays under the HUD Layout editor.
+# During a drag we only preview the label (apply_live=false) so the track geometry
+# doesn't shift under the cursor; keyboard/step changes (no drag active) apply live.
 func _on_menu_scale_changed(value: float) -> void:
+	_commit_menu_scale(value, not _menu_scale_dragging)
+
+
+# Updates the preview label always; only when apply_live is true does it store the
+# index, re-apply the scale to every menu/modal panel, and save. During a drag it is
+# false, so nothing is mutated or re-scaled until release — the label just previews
+# the pending factor, leaving the slider track geometry stable under the cursor.
+func _commit_menu_scale(value: float, apply_live: bool) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm == null:
 		return
 	var idx: int = clampi(int(value), 0, sm.MENU_SCALE_LEVELS.size() - 1)
 	_label_menu_scale.text = _menu_scale_label(sm, idx)
-	sm.set("menu_scale_index", idx)
-	sm.call("_apply_menu_scale")
-	sm.call("save")
+	if apply_live:
+		sm.set("menu_scale_index", idx)
+		sm.call("_apply_menu_scale")
+		sm.call("save")
 
 
 # Formats a menu-scale index as a factor label, e.g. 1 -> "1.0x". Defensively clamped.
