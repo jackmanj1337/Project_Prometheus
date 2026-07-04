@@ -1,18 +1,18 @@
 ---
 Type: register
 Status: OPEN
-Last verified: 2026-07-03
+Last verified: 2026-07-04
 Register: CNC-1..10
 ---
 
 # Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions
 
 **Started:** 2026-07-03.
-**Status:** OPEN - two owner constraints are resolved: a `CampaignNode` keeps stable
-identity while its type and outbound references are author-editable (`[CNC-1]`), and
-nodes use explicit reference slots with `prep_panels` entries pointing to specific panel
-instances (`[CNC-2]`). The remaining questions decide node-type vocabulary,
-story/chapter metadata, battle maps, and encounter layers.
+**Status:** OPEN - `[CNC-1]` (stable node identity, mutable contents), `[CNC-2]` (explicit
+reference slots + panel-instance refs), and `[CNC-3]` (node-type vocabulary = `battle|hub`
+for v1, `node_type` read as data not a closed enum) are resolved. Remaining `[CNC-4..10]`
+decide the battle-map/encounter split, chapter metadata, valid compositions, save/resync,
+launch/completion semantics, skirmish attachment, and the JSON authoring shape.
 **Source:** owner follow-up after `[PUG]` partial resolution: the campaign plan must let
 the same campaign node change type and change the collection of hub panels, chapter
 metadata, or encounter layer it points to.
@@ -104,14 +104,23 @@ Example:
   resolve to a config of that type. Types with no per-instance config, such as a generic
   convoy panel, may omit it.
 
-### [CNC-3] Node type vocabulary  **[OPEN]**
+### [CNC-3] Node type vocabulary  **[RESOLVED]**
 Do we keep `node_type` to `battle|hub`, or add `story` / `activity` node types now?
 - **A - Keep `battle|hub` for v1.** Story-only beats are hub nodes with no deploy and an
   opening dialogue/event payload.
 - **B - Add `story` now.** Cleaner author intent, but another node flow.
 - **C - Add open-registry node types.** Future-proof, but too much before the first loop.
-- **Rec: A for build, reserve C for later.** `battle|hub` is already ratified; a node-type
-  registry can come after the first loop proves the base flows.
+- **Resolution (2026-07-04): A, but `node_type` is read as DATA, not a closed enum.** Ship
+  only the two ratified types (`battle|hub`) for the first loop — a story-only beat is a
+  `hub` node with no deploy and an opening dialogue/event payload. Crucially, the engine
+  must **not** hardcode a `match node_type` two-way switch: node launch and completion
+  dispatch on `node_type` as a data key (aligns with the AGENTS.md open-registry principle
+  and `[CNC-8]`), so adding a third type later (`story`, `activity`, …) is additive
+  content, not an engine edit. C (the full authored node-type registry) is deferred until
+  after the first loop proves the base `battle`/`hub` flows.
+- **Implication:** the campaign loader/dispatch keeps a small internal registry seeded with
+  `battle` and `hub`; `[CNC-8]` (launch/completion as an action/effect primitive output)
+  is the mechanism that keeps this open rather than a per-type `match`.
 
 ### [CNC-4] Battle map vs encounter layer split  **[OPEN]**
 When should `MapData` split into reusable terrain and encounter payload?
