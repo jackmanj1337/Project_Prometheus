@@ -221,6 +221,22 @@ func _init() -> void:
 		print("FAIL windowed size clamp: fit=%s clamped=%s" % [win_fit_ok, win_clamped])
 		failed += 1
 
+	# V025-06: applied_windowed_size() surfaces the clamped window size for the Settings
+	# readout. It returns a non-zero size for a valid resolution and ZERO for a malformed
+	# one (so the label leaves the row blank rather than showing garbage).
+	var prev_res: String = String(sm.get("resolution"))
+	sm.set("resolution", "1920x1080")
+	var applied_valid: Vector2i = sm.applied_windowed_size()
+	sm.set("resolution", "not-a-resolution")
+	var applied_bad: Vector2i = sm.applied_windowed_size()
+	sm.set("resolution", prev_res)
+	if applied_valid != Vector2i.ZERO and applied_bad == Vector2i.ZERO:
+		print("OK  applied_windowed_size returns a size for valid res, ZERO for malformed (V025-06)")
+		passed += 1
+	else:
+		print("FAIL applied_windowed_size: valid=%s bad=%s" % [applied_valid, applied_bad])
+		failed += 1
+
 	# ---- menu-scale schema migration (V023-01, guarded in v0.2.5) ----
 	# v1 cfg with a stored index: shifts up one slot so the factor is preserved
 	# (old 1 == 1.0x -> new 2 == 1.0x after 0.5x was prepended).

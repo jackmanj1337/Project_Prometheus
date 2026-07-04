@@ -46,6 +46,7 @@ const _SETTINGS_ROW_SEPARATION: int = 8
 @onready var _label_map_zoom: Label            = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
 @onready var _slider_menu_scale: HSlider       = _vbox.get_node("HBoxUIScale/SliderUIScale")
 @onready var _label_menu_scale: Label          = _vbox.get_node("HBoxUIScale/LabelUIScale")
+@onready var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_edit_hud: Button      = _vbox.get_node("BtnEditHudLayout")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
@@ -209,6 +210,7 @@ func open() -> void:
 	# The HUD layout editor edits the live in-map HUD, so the button is only usable
 	# when a HUD exists (i.e. Settings opened via the in-map Map Menu, not the title).
 	_btn_edit_hud.disabled = get_tree().get_first_node_in_group("hud") == null
+	_refresh_applied_size()
 	show()
 	_stabilize_settings_rows()
 	_btn_back.grab_focus()
@@ -302,6 +304,7 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 	sm.set(key, values[index])
 	if schema_row.has("apply"):
 		sm.call(schema_row["apply"])
+	_refresh_applied_size()  # V025-06: reflect the clamped window size in-game
 
 	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
 	add_child(dlg)
@@ -311,10 +314,31 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 		sm.set(key, prev_value)
 		if schema_row.has("apply"):
 			sm.call(schema_row["apply"])
+		_refresh_applied_size()
 		# Cfg was never saved with the new value, so the restore is in-memory only.
 		var btn: OptionButton = _vbox.get_node(schema_row["node"])
 		btn.selected = maxi(0, prev_index))
 	dlg.start()
+
+
+# V025-06: in windowed mode the requested resolution is clamped into the screen's
+# usable rect (so a 4K request on a 4K panel yields a smaller window, with desktop
+# visible around it — working as designed). Show the actually-applied size next to the
+# Resolution dropdown so the clamp is self-explaining. Blank in fullscreen/borderless
+# (native size) or when the applied size equals the request.
+func _refresh_applied_size() -> void:
+	if _label_resolution_applied == null:
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null or String(sm.get("window_mode")) != "windowed":
+		_label_resolution_applied.text = ""
+		return
+	var requested: Vector2i = sm.call("_parse_resolution", sm.get("resolution"))
+	var applied: Vector2i = sm.call("applied_windowed_size")
+	if applied != Vector2i.ZERO and applied != requested:
+		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
+	else:
+		_label_resolution_applied.text = ""
 
 
 func _on_camera_buffer_changed(value: float) -> void:

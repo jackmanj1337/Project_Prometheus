@@ -283,6 +283,21 @@ func windowed_client_size_for_screen(requested: Vector2i, screen_size: Vector2i)
 	return Vector2i(maxi(1, width), maxi(1, height))
 
 
+# The client size the current windowed resolution actually resolves to on the active
+# screen after the usable-rect clamp. Lets the Settings screen explain in-game why a
+# 4K request yields a smaller window (V025-06). Returns the raw parsed size when
+# display config is unsupported (web) or the screen usable rect can't be read.
+func applied_windowed_size() -> Vector2i:
+	var size := _parse_resolution(resolution)
+	if size == Vector2i.ZERO or not is_display_config_supported():
+		return size
+	var screen := DisplayServer.window_get_current_screen()
+	var usable := DisplayServer.screen_get_usable_rect(screen)
+	if usable.size == Vector2i.ZERO:
+		return size
+	return windowed_client_size_for_screen(size, usable.size)
+
+
 # Parses a "WxH" resolution string to a Vector2i; returns ZERO on a malformed value
 # so the caller leaves the window size untouched.
 func _parse_resolution(res: String) -> Vector2i:

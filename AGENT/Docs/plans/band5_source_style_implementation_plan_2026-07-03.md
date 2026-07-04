@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-07-03
+Last verified: 2026-07-04
 ---
 
 # Band 5 Source And Style Implementation Plan
@@ -295,12 +295,31 @@ Implementation steps:
    alongside damage rows.
 3. Guarantee the forecast is the single source of truth: the AI scorer (Plan 4)
    calls the same projection — AI and UI never diverge (Q7 watchout).
+4. **Forecast rows = data-driven registry (v0.2.5 triage Q5, `V025-04a`).** The row
+   set is an OPEN registry — each row is `{row_id, label, value_resolver, marker
+   style}` the engine reads, NOT a hardcoded row `match` (aligns with the
+   author-extensibility principle in AGENTS.md). The weapon triangle and
+   effectiveness become **two authored registry entries** an author can replace or
+   drop — e.g. a campaign with no weapon triangle that bases advantage on class tags
+   (air/water/land) supplies its own advantage row instead. This is why the v0.2.5
+   AttackPreview did NOT get a bespoke row-registry patch: it would build against the
+   old forecast internals this slice replaces.
+5. **Effectiveness presentation default (v0.2.5 triage Q6, `V025-04b`).** The default
+   effectiveness row style colors the per-hit **damage value green with a small
+   `!`/`Eff` glyph** (glyph required — color alone is invisible to ~5% of players, per
+   the v0.2.3 text-marker decision) instead of a second `■ Neutral` row; the triangle
+   row keeps its `■ Neutral` marker; the full effectiveness breakdown stays in More
+   Info. This is the *default* row style in the step-4 registry, replaceable per
+   campaign.
 
 Tests:
 
 - Damage forecast matches resolved damage.
 - A cure/heal forecast shows the restored amount / removed conditions.
 - A condition-inflict forecast shows contest odds matching the `REQ-10` result.
+- The forecast row set is registry-driven: adding/removing an advantage row is data,
+  not a `match` edit (Q5); the default effectiveness style renders green damage + glyph
+  with no standalone Neutral row (Q6).
 
 F1 obligations: none (forecast is derived, not saved).
 

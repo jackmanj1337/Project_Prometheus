@@ -255,6 +255,11 @@ text = "Resolution"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="LabelResolutionApplied" type="Label" parent="Panel/ScrollContainer/VBox/HBoxResolution"]
+layout_mode = 2
+text = ""
+modulate = Color(0.7, 0.7, 0.75, 1)
+
 [node name="HBoxUIScale" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
 layout_mode = 2
 

@@ -1,6 +1,6 @@
 # Testing Guide
 
-**Last verified:** 2026-06-13
+**Last verified:** 2026-07-04
 
 Use this guide to decide what to run after a change and where to document new
 coverage. It centralizes the project's current automated and manual validation
@@ -166,6 +166,31 @@ Useful sections already in place:
 - Pair Up pass 1 playtest
 - More Info phase 1 live playtest
 - hotseat validation playtest
+
+## Input-routing fixes: event injection, not direct handler calls (V025-13)
+
+When a bug is about **event routing** — *who receives or consumes an input*, not what a
+handler does with it — a test that calls the handler directly (`node._unhandled_input(ev)`,
+`node._gui_input(ev)`, `node._try_cycle_terrain_panel_at(...)`) does **not** exercise the
+bug. It bypasses the GUI-phase mouse delivery / `mouse_filter` consumption that decides
+which node the event reaches. Two v0.2.4 repairs passed headless tests this way and still
+failed on desktop, because on the real build a `mouse_filter = STOP` control ate the click
+before the direct-called handler would have seen it (level-up dismissal V025-05b; terrain
+page-cycling V025-08).
+
+The rule for any routing fix:
+
+1. **Ship a `push_input` event-injection test** — drive the event through the viewport so
+   real GUI picking/consumption runs, OR assert the structural invariant that guarantees
+   the routing (e.g. "root is `STOP` and every Panel descendant is `IGNORE`", "these
+   RichTextLabels are `IGNORE`"). Structural invariants are the reliable headless form,
+   because **headless GUI picking differs from desktop** — a headless `push_input` probe
+   can deliver a click to `_unhandled_input` that the desktop build consumes in the GUI
+   phase. Do not trust a headless click-delivery result as proof of desktop behavior.
+2. **Add a live-confirmation line to the next build's playtest checklist** — the desktop
+   behavior itself must be eyeballed once, since no headless test fully reproduces it.
+3. Direct handler calls remain fine for **logic** tests (what the handler does once it
+   receives the event).
 
 ## Common mistakes
 

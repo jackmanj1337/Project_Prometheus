@@ -38,6 +38,7 @@ func _init() -> void:
 		"Panel/ScrollContainer/VBox/HBoxMapZoom/LabelMapZoom",
 		"Panel/ScrollContainer/VBox/HBoxUIScale/SliderUIScale",
 		"Panel/ScrollContainer/VBox/HBoxUIScale/LabelUIScale",
+		"Panel/ScrollContainer/VBox/HBoxResolution/LabelResolutionApplied",
 		"Panel/ScrollContainer/VBox/KeybindList",
 		"Panel/ScrollContainer/VBox/BtnBack",
 	]

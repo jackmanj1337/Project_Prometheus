@@ -195,6 +195,7 @@
 
 ## Reference / feasibility / Q&A
 
+- [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 
 ## Archive (historical / superseded — kept, never deleted)
