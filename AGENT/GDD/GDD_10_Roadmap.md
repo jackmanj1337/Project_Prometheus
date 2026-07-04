@@ -82,7 +82,7 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
-| `VAL-V023-DISPLAY` | Validation | Rerun the v0.2.3 display gate via the **v0.2.5** build (`playtest_checklist_v0.2.5.md`) after the implemented `V023-01..06`, `V023-08a`, `V023-09a` repair pass plus the v0.2.5 vertical-drift and migration-guard fixes. |
+| `VAL-V023-DISPLAY` | Validation | v0.2.6 rerun returned 2026-07-04: most of Part I passes live; remaining §1.1/§1.3/§1.4 defects were diagnosed and fixed (`V026-01/03/04`, triage `playtest_v0.2.6_results_triage_plan_2026-07-04.md`). Cut the **v0.2.7** rerun of those three surfaces after the triage-review walkthrough. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |
