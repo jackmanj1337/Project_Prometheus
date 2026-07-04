@@ -61,6 +61,19 @@ func set_smoothing(enabled: bool) -> void:
 		_camera.position_smoothing_enabled = enabled
 
 
+# Pushes the camera's pending position/zoom into the viewport canvas transform NOW.
+# Camera2D normally defers that update to the end of the frame, so code that reads
+# screen positions (menu/preview anchoring, mouse->tile mapping) right after a
+# camera write would compute against the PREVIOUS view — at high zoom the reframe
+# moves the camera far, so the anchored panel landed visibly wrong until the next
+# no-op zoom input re-ran the placement (V026-03/V026-04a, screenshots in
+# archive/evidence 2026-07-04). Called after every write below that callers read
+# synchronously.
+func _flush_scroll() -> void:
+	if _camera != null and _camera.is_inside_tree():
+		_camera.force_update_scroll()
+
+
 # Centres the view on a world position. Use for instant placement (GameMap init).
 func center_at(world_pos: Vector2) -> void:
 	if _camera != null:
@@ -174,6 +187,8 @@ func pan_by_pixels(delta_px: Vector2) -> void:
 	target.x = clampf(target.x, min_x, max_x)
 	target.y = clampf(target.y, min_y, max_y)
 	_camera.position = target
+	# AttackPreview re-reads the defender's screen position right after this pan.
+	_flush_scroll()
 
 
 # Nudges the camera by whole tiles, clamped to the authored map bounds. Used by
@@ -192,6 +207,8 @@ func nudge_by_tiles(delta: Vector2i) -> bool:
 	if next_tl == tl:
 		return false
 	_camera.position = _grid.tile_to_world(next_tl) + view * 0.5
+	# Mouse edge-panning recomputes the pointed-at tile right after this nudge.
+	_flush_scroll()
 	return true
 
 
@@ -256,6 +273,9 @@ func set_zoom_index(index: int, focus_tile: Vector2i,
 	if _camera != null and _grid != null:
 		keep_cursor_in_view(focus_tile, edge_buffer)
 		_center_axes_smaller_than_view()
+	# MapCursor re-anchors the context menu / attack preview immediately after a
+	# zoom change — flush so those reads see the new view, not last frame's.
+	_flush_scroll()
 	return _zoom_index
 
 

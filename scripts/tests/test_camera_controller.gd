@@ -158,6 +158,24 @@ func _init() -> void:
 	cc.reset_zoom(Vector2i(5, 5))
 	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX, "reset_zoom returns to 1.0x")
 
+	# ---- V026-03/04a: camera writes must land in the canvas transform SAME-FRAME ----
+	# Camera2D defers its viewport-scroll update to end of frame, so the menu/preview
+	# re-anchoring MapCursor runs right after a zoom change read last frame's view (the
+	# panel landed visibly wrong at high zoom until a no-op zoom input re-ran it).
+	# CameraController._flush_scroll (force_update_scroll) makes the write synchronous.
+	cam.make_current()
+	await process_frame
+	cc.set_zoom_index(cc.DEFAULT_ZOOM_INDEX, Vector2i(5, 5))
+	await process_frame  # settle a known baseline transform
+	cc.set_zoom_index(6, far)  # 3.0x re-framed at the far corner — a large camera move
+	var xf: Transform2D = root.get_canvas_transform()  # read NOW, no frame await
+	var flush_scale_ok: bool = xf.get_scale().distance_to(Vector2(3.0, 3.0)) < 0.01
+	# DRAG_CENTER: the camera's world position must already map to the screen centre.
+	var flush_center_ok: bool = (xf * cam.position).distance_to(view_px * 0.5) < 1.0
+	_ok(flush_scale_ok and flush_center_ok,
+		"set_zoom_index flushes the canvas transform in the same frame (V026-03/04a)")
+	cc.reset_zoom(Vector2i(5, 5))
+
 	# ---- too-small map: a fully-visible map is centred, not pinned to a corner ----
 	grid.map_width = 4   # 4*64 = 256 px wide
 	grid.map_height = 3  # 3*64 = 192 px tall
