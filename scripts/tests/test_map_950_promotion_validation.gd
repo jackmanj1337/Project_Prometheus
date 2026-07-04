@@ -116,5 +116,24 @@ func _init() -> void:
 			else:
 				print("FAIL %d roster units failed validation" % bad_units); failed += 1
 
+	# V025-05e content asks: the skill-cap hero must actually sit AT the 5-skill cap so
+	# the "skill slots full" path is exercised, and the map must carry the 10 grind
+	# units the owner requested for repeated level-up / stat-cap testing.
+	var hero: Resource = load(roster_dir + "unit_12_hero_skill_cap.tres")
+	if hero != null and Array(hero.get("skills")).size() == 5:
+		print("OK  V025-05e skill-cap hero carries a full 5-skill loadout"); passed += 1
+	else:
+		print("FAIL hero skill count: %s" % [Array(hero.get("skills")).size() if hero != null else "<none>"])
+		failed += 1
+	var grind_count := 0
+	for p in placements:
+		if "grind" in String(p.get("unit_data_path", "")):
+			grind_count += 1
+	if grind_count >= 10:
+		print("OK  V025-05e map carries %d grind units for EXP/stat-cap testing" % grind_count)
+		passed += 1
+	else:
+		print("FAIL grind unit count: %d (want >= 10)" % grind_count); failed += 1
+
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

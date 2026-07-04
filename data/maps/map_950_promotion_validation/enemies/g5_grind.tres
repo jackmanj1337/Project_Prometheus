@@ -1,0 +1,41 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_sword"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_g5_grind"
+unit_name = "M950_G5_Grind"
+class_id = "mercenary"
+class_line_id = "mercenary"
+level = 1
+exp = 0
+is_promoted = false
+internal_level = 1
+max_hp = 12
+hp = 12
+strength = 3
+magic = 0
+defense = 2
+resistance = 1
+skill = 3
+speed = 4
+luck = 2
+movement = 5
+constitution = 6
+line_of_sight = 4
+weapon_wexp = {"sword": 1}
+skills = []
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false
