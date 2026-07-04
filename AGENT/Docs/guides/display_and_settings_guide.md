@@ -55,11 +55,12 @@ readout reflects what actually happened.
 ## settings.cfg (where settings live)
 
 All settings persist to a `ConfigFile` at `user://settings.cfg`
-(`SettingsManager.SETTINGS_PATH`). The `user://` path resolves per-OS:
+(`SettingsManager.SETTINGS_PATH`). With no custom user dir set and
+`config/name = "Fire Emblem RPG"`, the `user://` root resolves per-OS to:
 
-- Windows: `%APPDATA%\Godot\app_userdata\<project>\settings.cfg`
-- Linux: `~/.local/share/godot/app_userdata/<project>/settings.cfg`
-- macOS: `~/Library/Application Support/Godot/app_userdata/<project>/settings.cfg`
+- Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\settings.cfg`
+- Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/settings.cfg`
+- macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/settings.cfg`
 
 Notes:
 
@@ -74,6 +75,27 @@ Notes:
   so a pre-existing settings.cfg keeps the player's intended value. Deleting settings.cfg
   is always a safe hard reset to defaults.
 
+## godot.log (the engine log — where to find it)
+
+`godot.log` is Godot's **built-in file log**, not something this project writes by hand.
+The engine mirrors everything printed to stdout/stderr — `print()`, `push_error()`,
+`push_warning()`, and engine errors/warnings — into it. It is controlled by the project
+setting `debug/file_logging/enable_file_logging`, which **defaults to on for desktop**
+(off on web/mobile); this project doesn't override it, so desktop builds log and web
+builds don't.
+
+- **Location — a `logs/` SUBFOLDER, not next to settings.cfg:** `user://logs/godot.log`.
+  - Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs\godot.log`
+  - Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/logs/godot.log`
+  - macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/logs/godot.log`
+- **Rotation:** a fresh log starts each launch. Up to `max_log_files` (default **5**) are
+  kept — the current run is `godot.log`, earlier runs are timestamped beside it in the
+  same `logs/` folder. Grab `godot.log` right after reproducing the issue (before the
+  next launch rotates it out), or send the timestamped copy from that run.
+- **In the editor** the same content also appears live in the **Output** panel.
+- The log can be large (a v0.1.4 return was ~9 MB) because repeated errors accumulate —
+  zipping it is fine; the repeat counts are the useful signal.
+
 ## For playtesters
 
 If a windowed size looks "too small," check: (1) you're in **Windowed** mode — switch to
@@ -81,6 +103,6 @@ Borderless/Fullscreen to fill the monitor; (2) the **applied** size shown next t
 Resolution — that's the clamped result; (3) your **OS display scaling**, which changes
 the effective screen size the clamp uses.
 
-When reporting a display issue, please attach `godot.log` from the `user://` directory
-above (same folder as settings.cfg) — it captures the resolved sizes and any
-DisplayServer warnings that explain what the window actually did.
+When reporting any issue, attach **`godot.log`** from the `logs/` path above (see the
+godot.log section) — it captures resolved window sizes and any DisplayServer warnings
+that explain what the window actually did.
