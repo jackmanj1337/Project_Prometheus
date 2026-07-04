@@ -1,3 +1,18 @@
+---
+Type: playtest
+Status: Returned results - triaged in `playtest_v0.2.5_results_triage_plan_2026-07-04.md`
+Last verified: 2026-07-04
+---
+
+> Returned 2026-07-03 (tester comments inline below). Screenshot evidence moved to
+> `AGENT/Docs/archive/evidence/`: `levelup_first_show_narrow_panel_1080p_2026-07-03.png`
+> ("first level up screen"), `promotion_picker_baseline_1x_2026-07-03.png`
+> ("first autopromote"), `promotion_picker_2x_top_bottom_cutoff_2026-07-03.png`
+> ("2x zoom auto promote"), `promotion_picker_0p5x_2026-07-03.png`
+> ("0.5x zoom auto promote"), `windowed_4k_clamp_desktop_gap_2026-07-03.png`
+> ("4k windowed mode"), `unit_details_horizontal_scrollbar_back_button_2026-07-01.png`
+> ("zoomed in inventory scroll wheel"). `godot.log` was NOT returned with this pass.
+
 # Playtester Handbook and Checklist - v0.2.5
 
 This document is written for testers who have not read the design documents or source
