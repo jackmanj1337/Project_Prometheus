@@ -1,18 +1,23 @@
 ---
 Type: register
-Status: OPEN
+Status: RESOLVED
 Last verified: 2026-07-04
 Register: CNC-1..10
 ---
 
 # Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions
 
-**Started:** 2026-07-03.
-**Status:** OPEN - `[CNC-1]` (stable node identity, mutable contents), `[CNC-2]` (explicit
-reference slots + panel-instance refs), and `[CNC-3]` (node-type vocabulary = `battle|hub`
-for v1, `node_type` read as data not a closed enum) are resolved. Remaining `[CNC-4..10]`
-decide the battle-map/encounter split, chapter metadata, valid compositions, save/resync,
-launch/completion semantics, skirmish attachment, and the JSON authoring shape.
+**Started:** 2026-07-03. **Resolved:** 2026-07-04.
+**Status:** RESOLVED - all of `[CNC-1..10]` are settled. `[CNC-1]` stable node identity /
+mutable contents; `[CNC-2]` explicit reference slots + panel-instance refs; `[CNC-3]`
+node-type vocabulary = `battle|hub` for v1, `node_type` read as data not a closed enum;
+`[CNC-4]` **canonical split** into `BattleMapDef` + `BattleEncounterDef` (option A);
+`[CNC-5]` chapter = story-facing metadata over one-or-more nodes; `[CNC-6]` composition
+validation matrix owned by the campaign loader; `[CNC-7]` pre-1.0 hard save incompatibility
+on package edit; `[CNC-8]` node completion as an action/effect primitive dispatched on
+`node_type` as data; `[CNC-9]` skirmish = shared launch primitive, different trigger
+surfaces; `[CNC-10]` JSON is the hand-repairable source of truth, GUI builder writes it.
+`[PUG-4..7]` is now unblocked.
 **Source:** owner follow-up after `[PUG]` partial resolution: the campaign plan must let
 the same campaign node change type and change the collection of hub panels, chapter
 metadata, or encounter layer it points to.
@@ -122,67 +127,107 @@ Do we keep `node_type` to `battle|hub`, or add `story` / `activity` node types n
   `battle` and `hub`; `[CNC-8]` (launch/completion as an action/effect primitive output)
   is the mechanism that keeps this open rather than a per-type `match`.
 
-### [CNC-4] Battle map vs encounter layer split  **[OPEN]**
+### [CNC-4] Battle map vs encounter layer split  **[RESOLVED]**
 When should `MapData` split into reusable terrain and encounter payload?
 - **A - Split now:** `BattleMapDef` plus `BattleEncounterDef`.
 - **B - Keep `MapData` monolithic for first loop, but design schema as adapter-friendly.**
 - **C - Never split.**
-- **Rec: B.** First loop can use live `MapData`; skirmish/generation should target the
-  encounter-layer shape so the later split is additive.
+- **Resolution (2026-07-04): A - the canonical campaign data model is two resources.** The
+  monolithic `MapData` is split along the terrain/payload seam. A campaign node references an
+  `encounter_id`; the encounter references a `battle_map_id`.
+  - **`BattleMapDef`** (reusable terrain): `id`, `display_name`, `tilemap_scene_path`,
+    `grid`, `camera_start_tile`, `player_start_tiles` (deployment slots are terrain-fixed).
+  - **`BattleEncounterDef`** (fight payload staged on a map): `id`, `battle_map_id`,
+    `enemy_placements`, `factions`, `turn_order`, `activation_mode`, `victory_conditions`,
+    `defeat_conditions`, `reward_gold`, `reward_items`, optional `deploy_slots` override
+    (a subset of the map's `player_start_tiles`).
+- **Implication:** the tactical runtime (`GameMap._spawn_units`, `TurnManager`) consumes a
+  monolithic `MapData` today, so the campaign band must either compose the two defs into a
+  runtime bundle at load or refactor the runtime to read both. Sequencing lands in the
+  campaign band; the register locks the split as the target shape now (not deferred). The
+  legacy `map_id` slot from `[CNC-2]` is the migration bridge for un-split authored maps.
+  Skirmish/generation (`[PUG]`) targets the `BattleEncounterDef` shape directly.
 
-### [CNC-5] Chapter semantics  **[OPEN]**
+### [CNC-5] Chapter semantics  **[RESOLVED]**
 Is a chapter an engine node, a label, or a grouping?
 - **A - Chapter = one campaign node.** Simple but blocks multi-node chapters.
 - **B - Chapter = story-facing metadata/grouping over one or more nodes.**
 - **C - Chapter = battle encounter only.**
-- **Rec: B.** Keep `CampaignNode` as the engine primitive. `Chapter` should supply labels,
-  numbering, splash art, story grouping, and save-slot display.
+- **Resolution (2026-07-04): B.** `CampaignNode` stays the sole engine progression
+  primitive. `Chapter` is story-facing metadata supplying labels, numbering, splash art,
+  story grouping, and save-slot display over one or more nodes. A node carries an optional
+  `chapter_id` (see the `[CNC-6]` matrix); it must resolve to a `Chapter` metadata record.
 
-### [CNC-6] Valid node compositions  **[OPEN]**
+### [CNC-6] Valid node compositions  **[RESOLVED]**
 Which field combinations are legal?
-- Examples to settle:
-  - `hub` + `prep_panels` only.
-  - `hub` + chapter metadata + dialogue/event payload.
-  - `battle` + encounter only, where encounter points to battle map.
-  - `battle` + direct legacy `map_id` as an adapter.
-  - `battle` + `prep_panels` before launch.
-- **Rec:** define a validation matrix in `DataManager` / campaign loader, not scattered
-  per screen.
+- **Resolution (2026-07-04): a validation matrix owned by the campaign loader /
+  `DataManager`, evaluated once at load, not scattered per screen.**
 
-### [CNC-7] Save/resync behavior when a node changes type or refs  **[OPEN]**
+  | `node_type` | battle target | `prep_panels` | `chapter_id` | event payload |
+  |---|---|---|---|---|
+  | `battle` | **required** — `encounter_id` XOR legacy `map_id` | optional (pre-launch prep) | optional | optional |
+  | `hub` | **forbidden** — advances by Continue | optional (>=0) | optional | optional (story beat = hub + event, no deploy) |
+
+- **Rules:**
+  - A `battle` node must resolve exactly one battle target: `encounter_id` (preferred) XOR
+    the legacy `map_id` adapter. A `hub` node must not carry an encounter/map ref.
+  - Each `prep_panels` entry validates per the `[CNC-2]` rule (`panel_type` resolves; a
+    `panel_instance_id` is present iff the type requires per-instance config).
+  - A story-only beat is a `hub` node with an opening event payload and no deploy (per
+    `[CNC-3]`). A skirmish is a `prep_panel` of `panel_type:"skirmish"` bound to an
+    encounter-table instance (per `[CNC-9]`).
+  - `chapter_id`, when present on any node, must resolve to a `Chapter` record (`[CNC-5]`).
+
+### [CNC-7] Save/resync behavior when a node changes type or refs  **[RESOLVED]**
 If an author edits a node after a player has a save, what happens?
 - **A - Pre-1.0 hard incompatibility:** package edits invalidate old saves unless version
   matches.
 - **B - Best-effort resync by `node_id`, warning on missing/new refs.**
 - **C - Full migration hooks per package.**
-- **Rec: A for early builder iterations; B/C belong to the later content-resync contract.
-  Do not pretend this is free.
+- **Resolution (2026-07-04): A for the early builder iterations.** A package edit
+  invalidates old saves unless the version matches. Best-effort resync (B) and per-package
+  migration hooks (C) are a later content-resync contract, not built now. This is a
+  deliberate scope cut, not a free property — the save binds to `node_id` (`[CNC-1]`), but
+  we do not attempt to reconcile changed refs mid-development.
 
-### [CNC-8] Launch and completion semantics  **[OPEN]**
+### [CNC-8] Launch and completion semantics  **[RESOLVED]**
 What event advances a node?
 - `hub`: Continue / node-advance action.
 - `battle`: battle result (`victory`, `defeat`, possibly draw/PvP result).
 - story/dialogue payload: completion, choice branch, or MET action.
-- **Rec:** make node completion an action/effect primitive output, not a hardcoded
-  `match` per node type.
+- **Resolution (2026-07-04): node completion is an action/effect primitive output,
+  dispatched on `node_type` as a data key — never a hardcoded `match` per node type.** The
+  campaign loader keeps a small internal registry seeded with `battle` and `hub` completion
+  handlers; a node's launch/completion is resolved by looking up `node_type` in that
+  registry. This is the mechanism that keeps `[CNC-3]` open: a third type (`story`,
+  `activity`) registers a handler as additive content, not an engine edit. Aligns with the
+  AGENTS.md open-registry principle.
 
-### [CNC-9] Skirmish and generated encounters  **[OPEN - feeds PUG]**
+### [CNC-9] Skirmish and generated encounters  **[RESOLVED - feeds PUG]**
 How does a skirmish attach to the graph?
 - **A - A PHB panel launches an encounter table independent of graph nodes.**
 - **B - A node points to an encounter table; the panel chooses from that node's table.**
 - **C - Both via the same launch primitive; different trigger surfaces.**
-- **Rec: C.** This matches `[PUG-5]`: trigger surface changes, launch payload stays shared.
+- **Resolution (2026-07-04): C.** The same launch primitive (the `[CNC-8]` action/effect
+  output) fires from a graph node OR a PHB `skirmish` panel; only the trigger surface
+  differs, the launch payload (a `BattleEncounterDef`, possibly generated) stays shared.
+  Matches `[PUG-5]`. This resolves the `[CNC]` dependency that `[PUG-4..7]` waited on —
+  skirmish/encounter format can now be locked against the `BattleEncounterDef` shape.
 
-### [CNC-10] Authoring surface and JSON shape  **[OPEN]**
+### [CNC-10] Authoring surface and JSON shape  **[RESOLVED]**
 How much of this is hand-authored JSON vs GUI-builder-only?
-- **Rec:** JSON is the source of truth and the GUI editor writes it. The schema must be
-  readable enough for hand repair; the GUI can provide guardrails and previews.
+- **Resolution (2026-07-04): JSON is the source of truth and the GUI builder writes it.**
+  The schema stays readable enough for hand repair; the GUI provides guardrails and
+  previews on top. Neither surface is privileged over the other — the JSON is canonical and
+  the builder is a validated editor for it.
 
 ## 4. Immediate implications
 
 - `CampaignData` should treat `node_id` as durable and every reference field as mutable.
-- Do not use `MapData` as the design name for a full chapter or encounter. In prose,
-  distinguish **Battle Map** from **Battle Encounter**.
-- `[PUG-4..7]` should remain OPEN until `[CNC-3..9]` are resolved.
-- The first loop can still build with legacy `map_id -> MapData`; the schema should leave a
-  clear adapter path to `encounter_id -> battle_map_id`.
+- Do not use `MapData` as the design name for a full chapter or encounter. The canonical
+  model is split: **Battle Map** (`BattleMapDef`) vs **Battle Encounter**
+  (`BattleEncounterDef`), per `[CNC-4]`.
+- `[PUG-4..7]` is now **UNBLOCKED** — the skirmish/encounter format locks against the
+  `BattleEncounterDef` shape and the shared `[CNC-8]/[CNC-9]` launch primitive.
+- The legacy `map_id -> MapData` slot remains the migration adapter for un-split authored
+  maps while the campaign band composes/refactors the runtime onto the two-def model.

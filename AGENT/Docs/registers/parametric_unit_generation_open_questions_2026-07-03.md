@@ -10,8 +10,11 @@ Register: PUG-1..10
 **Started:** 2026-07-03 (session 2026-07-03f).
 **Status:** OPEN — the shared generator core is partially resolved. `[PUG-1]`,
 `[PUG-2]`, `[PUG-3]`, `[PUG-9]`, and `[PUG-10]` are settled by the owner
-(2026-07-03g). Skirmish/encounter formatting remains OPEN because campaign-map
-structure needs a separate pass before locking the skirmish data shape (`[CNC-1..10]`).
+(2026-07-03g). `[PUG-4..7]` (skirmish/encounter formatting) are **now UNBLOCKED**: the
+campaign-node composition pass they waited on resolved 2026-07-04 (`[CNC-1..10]` all
+RESOLVED). The skirmish data shape locks against `BattleEncounterDef` (`[CNC-4]`) fired by
+the shared launch primitive (`[CNC-8]/[CNC-9]`); these remain OPEN only pending their own
+resolution walk, no longer gated by CNC.
 Earlier scope decision still stands: skirmish = prep-panel now, built against an
 overworld-ready shape so a later free-roam overworld is additive, not a rewrite
 (2026-07-03f).

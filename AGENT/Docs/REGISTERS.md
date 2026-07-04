@@ -7,7 +7,6 @@
 
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
-| `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | OPEN | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `PUG-1..10` | Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register | OPEN | — | `registers/parametric_unit_generation_open_questions_2026-07-03.md` |
@@ -18,6 +17,7 @@
 | `BEA-1..9` | Bonus-EXP (#18) + Arena (#14) — EXP-Economy Prep Panels — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/bonus_exp_arena_open_questions_2026-06-27.md` |
 | `BWN-1..5` | OPEN-5 — Broken-Weapon Degraded Mode (§3) — Draft Plan + Open Questions | RESOLVED | 2026-06-22h | `registers/broken_weapon_mode_open_questions_2026-06-21.md` |
 | `CEX-1..24` | Candidate Systems — Player-Interaction Open Questions | RESOLVED | 2026-06-23l / 2026-06-24b / 2026-06-24c / 2026-06-24d / 2026-06-24i / 2026-06-25 | `registers/candidate_systems_open_questions_2026-06-23.md` |
+| `CNC-1..10` | Campaign Node Composition - Maps, Encounters, Chapters, and Hub Panels - Open Questions | RESOLVED | — | `registers/campaign_node_composition_open_questions_2026-07-03.md` |
 | `CNV-1..8` | Convoy / Inventory Firming (branch D, economy spine) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k (CNV-1..7) / 2026-06-30 (CNV-8 panel UI) | `registers/convoy_inventory_open_questions_2026-06-23.md` |
 | `CRR-1..8` | Combat Roll Resolver — Author-Selectable Hit Formula — Open Questions | RESOLVED | 2026-06-30 | `registers/combat_roll_resolver_open_questions_2026-06-30.md` |
 | `CST-1..13` | Campaign / Save Cluster (§2) — Open TECHNICAL Decisions Register | RESOLVED | campaign_save_technical_plan_2026-06-21.md / 2026-06-30 Band 1 implementation question closeout | `registers/campaign_save_open_decisions_2026-06-21.md` |
