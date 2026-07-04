@@ -191,7 +191,7 @@
 - [`playtests/playtest_checklist_v0.2.5.md`](playtests/playtest_checklist_v0.2.5.md) — Playtester Handbook and Checklist - v0.2.5
 - [`playtests/playtest_checklist_v0.2.5_returned_2026-07-04.md`](playtests/playtest_checklist_v0.2.5_returned_2026-07-04.md) — Playtester Handbook and Checklist - v0.2.5 — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
-- [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - owner walkthrough pending (rev*
+- [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - owner walkthrough DONE 2026-07*
 
 ## Reference / feasibility / Q&A
 

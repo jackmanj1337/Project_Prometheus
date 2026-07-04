@@ -1,6 +1,6 @@
 # v0.2.5 Playtest Triage — Owner Review Walkthrough - 2026-07-04
 
-Status: OPEN — walk one question at a time next session, record decisions inline
+Status: RESOLVED — Q1-Q14 walked with the owner 2026-07-04; decisions recorded below
 Companion: `AGENT/Docs/playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`
 (diagnosis + evidence per item; this doc holds only the decisions to debate).
 
@@ -222,8 +222,48 @@ adjusts this list; the intent is a focused display-gate closer, not a feature bu
 
 ---
 
-## Walkthrough Decisions (fill in next session)
+## Walkthrough Decisions (recorded 2026-07-04)
 
-_Record each Q's decision here as it is made, then: update the triage plan's workstream
-plans to match, route deferred items to their control-plane homes, and only then start
-the v0.2.6 fix pass._
+All 14 walked with the owner; every one took the recommended option except two owner
+additions (Q2 panel-widen, Q14 grind units), noted below.
+
+- **Q1 — Slider flicker:** Option A. Apply Menu Scale on `drag_ended` only; row label
+  previews the target factor during the drag; keyboard/step stays live.
+- **Q2 — Settings h-overflow:** Option A (disable horizontal scroll, rows adapt /
+  keybind list two-line above a threshold) **AND** widen the Settings panel itself
+  (owner add) so the adapt branch has more room before it triggers.
+- **Q3 — Sheet stats More-Info:** Option A. Adopt the tester's full-height layout now
+  (stat table fixed top, prose scroll bottom) as a layout-only change.
+- **Q4 — Contextual-menu jitter:** Option A. Side stickiness + offset cap (keep chosen
+  side, hug the unit at high zoom).
+- **Q5 — Author-extensible forecast:** Option A. Fold into Band 5's generalized-forecast
+  slice (rows = data-driven registry; triangle/effectiveness = replaceable authored
+  entries). No engine edit now.
+- **Q6 — Effectiveness presentation:** Option A. Green per-hit damage + small `!`/`Eff`
+  glyph; triangle keeps its `■ Neutral` marker; full breakdown in More Info. Becomes the
+  default row style in the Q5 registry later.
+- **Q7 — AttackPreview re-anchor:** Confirmed. Register the visible preview with the
+  existing context-menu zoom-reposition hook.
+- **Q8 — Level-up narrow panel:** Option A (both). Drop `autowrap_mode` on `LabelStats`
+  AND defer recenter/size one layout frame for all MenuScale grow-to-content panels;
+  mitigate the one-frame flash by showing transparent for that frame.
+- **Q9a — Level-up dismiss routing:** Confirmed `_gui_input` on the STOP root (keyboard
+  stays in `_unhandled_input`); needs one live desktop confirmation.
+- **Q9b — Right-click advance:** Keep left+right (cancel-as-continue idiom, already
+  ratified).
+- **Q10 — Promotion picker:** Option A. v0.2.6 = re-apply scale after rebuild + Options
+  ScrollContainer + padding trim; the list-left/details-right redesign goes to
+  `UI-INSPECTION` alongside the character-sheet page design (shared master/detail).
+- **Q11 — Windowed clamp:** explainer guide **yes**; Decision (b) = B1, show the applied
+  size next to the Resolution row (e.g. "3840x2160 → applied 1904x1071").
+- **Q12 — Terrain More Info:** Option A. Fix the click bug now (mouse_filter on the
+  RichTextLabels); take the single-page redesign as the *shape* of the `V023-09b`
+  descriptor surface, deferred to `B4-MAP-OBJECTS`/`[SAC]`.
+- **Q13 — Test-fidelity rule:** Adopt. Any event-routing fix ships a `push_input`
+  -injection test + a live-confirmation checklist line; direct handler calls stay fine
+  for logic tests. Land the rule in `AGENT/Docs/guides/testing_guide.md` with the
+  v0.2.6 fixes.
+- **Q14 — v0.2.6 scope:** Confirmed the focused display-gate-closer list (E1-E3, G, A,
+  B1-B2, D3, C, E5 content, explainer guide + handbook digest) **PLUS** (owner add)
+  **10 extra red units on the promotion validation map** usable for EXP grinding, to
+  test repeated level-ups and enforce stat caps.

@@ -1,12 +1,12 @@
 ---
 Type: playtest
-Status: Planned - owner walkthrough pending (review doc: `AGENT/Code Reviews/playtest_v0.2.5_triage_review_2026-07-04.md`)
+Status: Planned - owner walkthrough DONE 2026-07-04 (decisions in `AGENT/Code Reviews/playtest_v0.2.5_triage_review_2026-07-04.md`); v0.2.6 fix pass next
 Last verified: 2026-07-04
 ---
 
 # v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04
 
-Status: Planned - owner walkthrough pending
+Status: Planned - owner walkthrough DONE 2026-07-04; ready for the v0.2.6 fix pass
 Last verified: 2026-07-04
 
 ## Scope
@@ -97,14 +97,14 @@ Diagnosis (from source):
   horizontal scrolling, and rows are `HBoxContainer`s whose label + control + value
   minimum widths at 1.5-2.0x exceed the panel frame, so the container grows sideways.
 
-Fix plan (options for the flicker are an owner decision — review Q1):
+Fix plan (owner decisions Q1/Q2 recorded 2026-07-04):
 
-1. Either (A) apply the scale change on `drag_ended` only, showing the target value in
-   the row label during the drag; or (B) freeze the slider's track geometry during a
-   drag (capture the grabber/track rect at drag start, restore after layout).
-2. Disable horizontal scroll (`horizontal_scroll_mode = SCROLL_MODE_DISABLED`) and make
-   rows wrap or shrink: value labels autowrap/ellipsize, keybind rows two-line at high
-   factors (review Q2).
+1. **Q1 = Option A:** apply the scale change on `drag_ended` only, showing the target
+   value in the row label during the drag; keyboard/step changes stay live.
+2. **Q2 = Option A + panel widen:** disable horizontal scroll
+   (`horizontal_scroll_mode = SCROLL_MODE_DISABLED`) and make rows adapt (value labels
+   autowrap/ellipsize, keybind rows two-line above a factor threshold), AND widen the
+   Settings panel itself so the adapt branch has more room before it triggers.
 3. Regression tests: slider value stable across a simulated multi-step drag at 1.25x to
    2.0x; Settings VBox min width fits the panel frame at 2.0x.
 
@@ -281,6 +281,9 @@ v0.2.6 unblocked either way.
   skill in `data/roster/test/map_950_promotion_validation/unit_12_hero_skill_cap.tres`.
 - Give several Map 950 units a second/third weapon so weapon selection is testable
   (today e.g. `M950_Lvl19_Merc` carries a single Iron Sword).
+- **Owner add (Q14):** add **10 extra red (enemy) units** to the promotion validation
+  map (Map 950) usable as EXP-grind fodder, so the tester can drive repeated level-ups
+  on one unit and confirm stat caps are enforced at the ceiling.
 
 ## Workstream F - Windowed clamp explainer (`V025-06`)
 
@@ -347,8 +350,9 @@ Likely files: `scenes/ui/HUD.tscn`, `scripts/tests/test_hud.gd`.
 
 ## Recommended Order
 
-1. **Owner walkthrough of the review doc** (`AGENT/Code Reviews/
-   playtest_v0.2.5_triage_review_2026-07-04.md`) — Q1-Q13 pick the fix shapes.
+1. ~~**Owner walkthrough of the review doc**~~ — DONE 2026-07-04; all Q1-Q14 decisions
+   recorded in the review doc's "Walkthrough Decisions" section (all recommendations
+   taken; owner adds = Q2 panel-widen, Q14 grind units).
 2. **v0.2.6 repair pass (small, focused):** E1-E3 (level-up first-show size, click
    dismissal via `_gui_input`, promotion re-apply+scroll), G (terrain mouse_filter),
    A (slider flicker + h-scroll), B1-B2 (sheet wrap + Back button), D3 (preview
