@@ -64,6 +64,43 @@ func _init() -> void:
 		print("FAIL character sheet scroll frame missing or disabled")
 		failed += 1
 
+	# V025-02a: the main column must NOT scroll horizontally — long inventory/wexp
+	# rows wrap within the column instead of summoning a horizontal scrollbar.
+	if main_scroll != null and main_scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED:
+		print("OK  V025-02a character sheet horizontal scroll is disabled"); passed += 1
+	else:
+		print("FAIL sheet h-scroll not disabled: mode=%s" % [
+			main_scroll.horizontal_scroll_mode if main_scroll != null else "<none>"]); failed += 1
+
+	# V025-02b: the Back button must be shrink-centered with a bounded width, not
+	# stretched to fill the whole column.
+	var btn_back := screen.get_node_or_null("Panel/HBox/MainScroll/VBox/BtnBack") as Button
+	if btn_back != null and btn_back.size_flags_horizontal == Control.SIZE_SHRINK_CENTER \
+			and btn_back.custom_minimum_size.x > 0.0:
+		print("OK  V025-02b Back button is shrink-centered with a bounded width"); passed += 1
+	else:
+		print("FAIL Back button sizing: flags=%s min_x=%s" % [
+			btn_back.size_flags_horizontal if btn_back != null else "<none>",
+			btn_back.custom_minimum_size.x if btn_back != null else "<none>"]); failed += 1
+
+	# V025-02c: the stats More-Info panel puts the NUMBERS (modifier breakdown) above
+	# the PROSE (description), and the prose fills the full remaining height so a short
+	# description doesn't shrink the box. Assert order + that only the prose expands.
+	var info_mods := screen.get_node_or_null("Panel/HBox/InfoVBox/InfoModifiers") as Control
+	var info_desc := screen.get_node_or_null("Panel/HBox/InfoVBox/InfoDescription") as Control
+	if info_mods != null and info_desc != null \
+			and info_mods.get_index() < info_desc.get_index() \
+			and (info_desc.size_flags_vertical & Control.SIZE_EXPAND) != 0 \
+			and (info_mods.size_flags_vertical & Control.SIZE_EXPAND) == 0:
+		print("OK  V025-02c More-Info shows numbers above prose with a full-height prose box")
+		passed += 1
+	else:
+		print("FAIL More-Info layout: mods_idx=%s desc_idx=%s desc_flags=%s mods_flags=%s" % [
+			info_mods.get_index() if info_mods != null else "<none>",
+			info_desc.get_index() if info_desc != null else "<none>",
+			info_desc.size_flags_vertical if info_desc != null else "<none>",
+			info_mods.size_flags_vertical if info_mods != null else "<none>"]); failed += 1
+
 	# open() populates the title from the unit and shows the page.
 	var d := UnitData.new()
 	d.unit_name = "Test Knight"
