@@ -1,6 +1,6 @@
 # Environment Setup — Transfer to a New Machine
 
-**Last verified:** 2026-06-19
+**Last verified:** 2026-07-04
 
 Everything needed to bring this project up on a fresh machine and pick up
 work where this session left off.
@@ -145,6 +145,11 @@ From inside the container, after the image is built (or on the host
 with Godot 4.6 + export templates installed):
 
 ```bash
+# 0. Stamp the build FIRST — bakes commit+version+timestamp into build_info.json
+#    (so the exe can stamp its startup log) AND drops builds/._sc_ (the Godot
+#    self-contained marker that makes the exe write its logs next to itself).
+bash scripts/tools/prepare_build.sh
+
 # Debug build (slightly larger, useful for testers)
 godot --headless --path . \
     --export-debug "Project Prometheus v0.2.5" \
@@ -160,6 +165,22 @@ The preset name must match `export_presets.cfg[preset.0].name` exactly.
 Bumping the version means updating `name`, `export_path`, and
 `application/product_version` in that file plus the `VersionLabel.text`
 in `scenes/ui/MainMenu.tscn`.
+
+### Logs next to the exe (self-contained mode) — SHIP THE MARKER
+
+`scripts/tools/prepare_build.sh` writes an empty `builds/._sc_` marker. Godot's
+**self-contained mode** is triggered by that `._sc_` (or `_sc_`) file sitting next to
+the executable at runtime, which redirects `user://` — including `logs/godot.log` and
+`settings.cfg` — to a folder next to the exe instead of the OS `%APPDATA%` dir. So:
+
+- **The release zip MUST include `._sc_` alongside the `.exe`.** Without it the tester's
+  build reverts to the `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\...` location.
+- The game prints a `=== BUILD STAMP ===` block at the very top of `godot.log` on every
+  launch (`scripts/shared/BuildInfo.gd`, called from `Boot.gd`): version, git commit,
+  built-at, a fresh per-launch `started_at`, and the resolved `user_data_dir=` / `log=`
+  paths — so the log always self-reports exactly where it is and which build wrote it.
+- `build_info.json` is gitignored (a per-build artifact); dev/editor runs fall back to
+  the live git commit (tagged `-dev`) when it is absent.
 
 ## Running tests
 

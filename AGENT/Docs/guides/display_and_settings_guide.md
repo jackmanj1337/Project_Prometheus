@@ -84,7 +84,17 @@ setting `debug/file_logging/enable_file_logging`, which **defaults to on for des
 (off on web/mobile); this project doesn't override it, so desktop builds log and web
 builds don't.
 
-- **Location — a `logs/` SUBFOLDER, not next to settings.cfg:** `user://logs/godot.log`.
+- **Shipped builds are self-contained: the log lives NEXT TO THE EXE.** Release builds
+  ship a `._sc_` marker beside the executable (Godot self-contained mode), which
+  redirects `user://` — including `logs/godot.log` and `settings.cfg` — into a folder
+  next to the exe instead of `%APPDATA%`. So in a tester build, look in the game's own
+  folder: `<game folder>/…/logs/godot.log`.
+- **The log tells you where it is.** Every launch writes a `=== BUILD STAMP ===` block at
+  the top of `godot.log` with `user_data_dir=` and `log=` lines giving the exact resolved
+  paths, plus the build's version + git commit + a fresh `started_at` timestamp. If a
+  tester can open the log at all, the first lines say which build wrote it and where.
+- **Dev/editor runs are NOT self-contained** (no marker beside the editor binary), so
+  there the log stays at the OS location `user://logs/godot.log`:
   - Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs\godot.log`
   - Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/logs/godot.log`
   - macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/logs/godot.log`
