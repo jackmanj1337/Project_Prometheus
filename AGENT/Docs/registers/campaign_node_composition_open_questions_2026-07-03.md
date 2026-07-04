@@ -152,6 +152,10 @@ When should `MapData` split into reusable terrain and encounter payload?
   campaign band; the register locks the split as the target shape now (not deferred). The
   legacy `map_id` slot from `[CNC-2]` is the migration bridge for un-split authored maps.
   Skirmish/generation (`[PUG]`) targets the `BattleEncounterDef` shape directly.
+- **Build plan (2026-07-04):** the split is control-plane row `B4-ENCOUNTER-MODEL`, planned
+  in
+  [`skirmish_encounter_generation_implementation_plan_2026-07-04.md`](../plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md)
+  (Slices 1-2).
 
 ### [CNC-5] Chapter semantics  **[RESOLVED]**
 Is a chapter an engine node, a label, or a grouping?

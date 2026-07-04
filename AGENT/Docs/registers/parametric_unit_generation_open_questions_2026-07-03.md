@@ -211,7 +211,14 @@ systems):
   policy; they do not get parallel generators. `ForceSpec` remains the likely multi-unit
   wrapper, but its exact schema stays open with `[PUG-4]`.
 
-## 4. Slice sketch (register RESOLVED; ready to promote to a build track — see plan note below)
+## 4. Slice sketch (register RESOLVED — promoted to the build plan)
+
+> **Build plan (2026-07-04):**
+> [`skirmish_encounter_generation_implementation_plan_2026-07-04.md`](../plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md)
+> owns these slices under control-plane rows `B4-ENCOUNTER-MODEL` (spawn seam + the map/
+> encounter split) and `B7-SKIRMISH` (`ForceSpec`, scaling, skirmish panel, editor bake).
+> The generator core (Slice 1) stays with the arena plan's Slice 2.
+
 
 1. **`UnitSpec` + `generate_unit(spec, seed)`** (`[PUG-1]`/`[PUG-2]`/`[PUG-9]`) — the atom.
    Buildable against live `UnitData`/`Unit` once `RngService` (`B1-PKGA`) lands. (This is
