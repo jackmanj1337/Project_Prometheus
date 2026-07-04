@@ -463,6 +463,25 @@ func get_unit_at(_t: Vector2i): return null
 			compact_hit, description_hit, movement_hit])
 		failed += 1
 
+	# V025-08 structural invariant: the three More-Info RichTextLabels must be
+	# mouse_filter=IGNORE. RichTextLabel defaults to STOP, so a click landing on the
+	# text was consumed in the GUI phase and never reached MapCursor._unhandled_input's
+	# page-cycle (the v0.2.4 rect fix widened a hit-test the event never got to). The
+	# containers were already IGNORE; the labels were the leak.
+	var labels_ignore: bool = (
+		hud._terrain_desc.mouse_filter == Control.MOUSE_FILTER_IGNORE
+		and hud._terrain_moves.mouse_filter == Control.MOUSE_FILTER_IGNORE
+		and hud._terrain_actions.mouse_filter == Control.MOUSE_FILTER_IGNORE
+	)
+	if labels_ignore:
+		print("OK  V025-08 terrain More-Info labels are IGNORE so clicks reach page-cycling")
+		passed += 1
+	else:
+		print("FAIL terrain label mouse_filter: desc=%d moves=%d actions=%d (want %d)" % [
+			hud._terrain_desc.mouse_filter, hud._terrain_moves.mouse_filter,
+			hud._terrain_actions.mouse_filter, Control.MOUSE_FILTER_IGNORE])
+		failed += 1
+
 	# More Info is a separate, bounded, scrollable box — not part of the basic
 	# stats panel. The scroll caps the visible height so long terrain text
 	# scrolls instead of growing the panel off-screen.

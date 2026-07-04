@@ -102,6 +102,7 @@ mouse_filter = 2
 
 [node name="TerrainDescription" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
 layout_mode = 2
+mouse_filter = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
@@ -112,6 +113,7 @@ visible = false
 
 [node name="TerrainMoveCosts" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
 layout_mode = 2
+mouse_filter = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
@@ -120,6 +122,7 @@ visible = false
 
 [node name="TerrainActions" type="RichTextLabel" parent="TerrainCorner/TerrainMoreInfoPanel/Scroll/VBox"]
 layout_mode = 2
+mouse_filter = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false

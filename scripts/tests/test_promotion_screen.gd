@@ -43,7 +43,7 @@ func _init() -> void:
 
 	screen.open_for(unit, seal, Callable(signal_watcher, "on_completed"))
 	await process_frame
-	var options: VBoxContainer = screen.get_node("Panel/VBox/Options")
+	var options: VBoxContainer = screen.get_node("Panel/VBox/OptionsScroll/Options")
 	if screen.visible and options.get_child_count() == 2:
 		print("OK  promotion screen opens and lists the current class targets")
 		passed += 1
@@ -68,6 +68,24 @@ func _init() -> void:
 	else:
 		print("FAIL modal bounds: view_w=%.0f panel.x=%.0f panel.w=%.0f left=%.1f right=%.1f" % [
 			view_w, panel.position.x, panel.size.x, left_margin, right_margin]); failed += 1
+
+	# V025-05c: at max Menu Scale the picker used to clip top+bottom because _ready()
+	# scaled an empty Options box and nothing re-clamped after the buttons were built.
+	# With the Options ScrollContainer + re-apply-after-rebuild, the panel must stay
+	# within the viewport height at 2.0x (the list scrolls instead of overflowing).
+	screen.apply_menu_scale(2.0)
+	await process_frame
+	await process_frame  # let the fit clamp / recenter settle
+	var view_h: float = screen.get_viewport().get_visible_rect().size.y
+	var top_margin: float = panel.position.y
+	var bottom_margin: float = view_h - (panel.position.y + panel.size.y)
+	if top_margin >= -1.0 and bottom_margin >= -1.0:
+		print("OK  promotion modal fits the viewport height at 2.0x (V025-05c)"); passed += 1
+	else:
+		print("FAIL 2.0x vertical fit: view_h=%.0f panel.y=%.0f panel.h=%.0f top=%.1f bottom=%.1f" % [
+			view_h, panel.position.y, panel.size.y, top_margin, bottom_margin]); failed += 1
+	screen.apply_menu_scale(1.0)
+	await process_frame
 
 	var first_button: Button = options.get_child(0)
 	var first_label: String = first_button.text

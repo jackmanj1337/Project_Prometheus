@@ -20,32 +20,38 @@ offset_left = -120.0
 offset_top = -100.0
 offset_right = 120.0
 offset_bottom = 100.0
+mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
+mouse_filter = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
 [node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+mouse_filter = 2
 
 [node name="LabelName" type="Label" parent="Panel/Margin/VBox"]
+mouse_filter = 2
 text = "Unit_01"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 20
 
 [node name="LabelLevel" type="Label" parent="Panel/Margin/VBox"]
+mouse_filter = 2
 text = "Level Up!  Lv 2"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 16
 
 [node name="LabelStats" type="Label" parent="Panel/Margin/VBox"]
+mouse_filter = 2
 text = "HP +1\nStr +1"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 14
-autowrap_mode = 3
 
 [node name="LabelPrompt" type="Label" parent="Panel/Margin/VBox"]
+mouse_filter = 2
 text = "Press A to continue"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 12

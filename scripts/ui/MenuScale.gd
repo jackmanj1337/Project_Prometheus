@@ -77,6 +77,30 @@ static func apply_to(target: Control, factor: float, centered: bool = true) -> v
 		_recenter(target)
 
 
+# Deferred variant for grow-to-content panels whose content is sized dynamically
+# (dynamic labels, autowrap, freshly-built rows). On first show a grow-to-content
+# panel's combined_minimum_size is computed against un-laid-out children, which can
+# yield a degenerate (narrow/tall) frame that the CENTER/KEEP_SIZE anchors then pin
+# (V025-05a). We apply once immediately, then re-apply after one layout frame when
+# the children have real sizes. The panel is held transparent for that frame so the
+# pre-layout size never flashes on screen.
+static func apply_to_deferred(target: Control, factor: float, centered: bool = true) -> void:
+	if target == null:
+		return
+	if not target.is_inside_tree():
+		apply_to(target, factor, centered)
+		return
+	var prev_modulate := target.modulate
+	target.modulate.a = 0.0  # hide the pre-layout frame (mitigate the one-frame flash)
+	apply_to(target, factor, centered)
+	await target.get_tree().process_frame
+	if not is_instance_valid(target):
+		return
+	if target.is_inside_tree():
+		apply_to(target, factor, centered)
+	target.modulate = prev_modulate
+
+
 # Returns the panel's visual size for any lingering callers. Control.scale is now
 # always ONE, so this equals target.size; kept for API stability.
 static func scaled_size(target: Control) -> Vector2:

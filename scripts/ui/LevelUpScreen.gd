@@ -32,7 +32,9 @@ func _ready() -> void:
 
 
 func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to(_panel, factor, true)
+	# Deferred so the first-show sizing runs after the (dynamic) stat label has been
+	# laid out — otherwise the panel pins a degenerate narrow/tall frame (V025-05a).
+	MenuScale.apply_to_deferred(_panel, factor, true)
 
 
 func _apply_menu_scale_from_settings() -> void:
@@ -85,9 +87,6 @@ func _show_next() -> void:
 			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
-	# The PanelContainer shrink-wraps to the (now variable-length) stat list, and
-	# MenuScale recentres it — no manual offset juggling needed (V021-18).
-	_apply_menu_scale_from_settings()
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
@@ -97,7 +96,9 @@ func _show_next() -> void:
 	if confirm_key == "":
 		confirm_key = "confirm"
 	_label_prompt.text = "" if is_auto else "Press %s to continue" % confirm_key
+	# Show first so the panel and its labels lay out, THEN scale/recenter (deferred).
 	show()
+	_apply_menu_scale_from_settings()
 
 	if is_auto:
 		# SceneTreeTimer outlives nodes — guard against freed self on scene change.
@@ -140,6 +141,28 @@ func _advance() -> void:
 			bus.level_up_finished.emit()
 
 
+# Mouse clicks are handled here, not in _unhandled_input: the root is a full-rect
+# STOP control, so on desktop the GUI phase delivers (and consumes) mouse buttons
+# here before they can reach _unhandled_input — which is why the v0.2.4 click-dismiss
+# in _unhandled_input never fired on the real build (V025-05b). The whole Panel
+# subtree is mouse_filter=IGNORE in the scene so a click anywhere reaches this root.
+func _gui_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.level_up_screen == "auto":
+		accept_event()  # timer handles dismissal; swallow clicks in auto mode
+		return
+	# A primary/back click dismisses (playtest 3 #2), but wheel events are also
+	# InputEventMouseButton in Godot. Only real click buttons advance the panel.
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		accept_event()
+		_advance()
+
+
+# Keyboard dismissal only — mouse is handled in _gui_input (see note above). The
+# blanket set_input_as_handled keeps map key input frozen while the screen is open.
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
@@ -147,12 +170,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if sm and sm.level_up_screen == "auto":
 		get_viewport().set_input_as_handled()
 		return  # timer handles dismissal; player input ignored in auto mode
-	# A primary/back click dismisses (playtest 3 #2), but wheel events are also
-	# InputEventMouseButton in Godot. Treating every mouse button as dismiss
-	# lets map zoom close the popup, so only real click buttons advance it.
-	var clicked: bool = event is InputEventMouseButton and event.pressed \
-		and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]
-	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel") or clicked:
+	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		_advance()
 		return

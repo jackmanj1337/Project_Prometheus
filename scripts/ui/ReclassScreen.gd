@@ -36,6 +36,10 @@ func open_for(unit: Node, consume_entry: InventoryEntry = null,
 		return
 	_emit_reclass_started()
 	show()
+	# Re-apply scale after the options are built (same reason as PromotionScreen /
+	# V025-05c): _ready() scaled an empty Options box. The ScrollContainer keeps the
+	# panel a fixed frame, so this just re-centres it against real content.
+	_apply_menu_scale_from_settings()
 	_options_scroll.scroll_vertical = 0
 	_buttons[0].grab_focus()
 
