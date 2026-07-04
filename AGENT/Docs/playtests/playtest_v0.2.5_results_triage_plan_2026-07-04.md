@@ -1,12 +1,12 @@
 ---
 Type: playtest
-Status: Planned - owner walkthrough DONE 2026-07-04 (decisions in `AGENT/Code Reviews/playtest_v0.2.5_triage_review_2026-07-04.md`); v0.2.6 fix pass next
+Status: Planned - v0.2.6 fix pass IMPLEMENTED 2026-07-04 (decisions in `AGENT/Code Reviews/playtest_v0.2.5_triage_review_2026-07-04.md`); next = cut v0.2.6 build + live rerun
 Last verified: 2026-07-04
 ---
 
 # v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04
 
-Status: Planned - owner walkthrough DONE 2026-07-04; ready for the v0.2.6 fix pass
+Status: Planned - v0.2.6 fix pass IMPLEMENTED 2026-07-04; next = cut v0.2.6 build + live display rerun
 Last verified: 2026-07-04
 
 ## Scope
@@ -353,19 +353,23 @@ Likely files: `scenes/ui/HUD.tscn`, `scripts/tests/test_hud.gd`.
 1. ~~**Owner walkthrough of the review doc**~~ — DONE 2026-07-04; all Q1-Q14 decisions
    recorded in the review doc's "Walkthrough Decisions" section (all recommendations
    taken; owner adds = Q2 panel-widen, Q14 grind units).
-2. **v0.2.6 repair pass (small, focused):** E1-E3 (level-up first-show size, click
-   dismissal via `_gui_input`, promotion re-apply+scroll), G (terrain mouse_filter),
-   A (slider flicker + h-scroll), B1-B2 (sheet wrap + Back button), D3 (preview
-   re-anchor on zoom), C (anchor stickiness), E5 (validation-map content), each with
-   event-injection tests where input routing is involved.
-3. **Docs:** the display/settings explainer guide (F), with a tester-facing digest in
-   the v0.2.6 handbook; request `godot.log` prominently.
-4. **Route the design asks to their homes:** forecast-row registry → Band 5
-   source/style generalized forecast; promotion-picker redesign + stats More-Info
-   layout → `UI-INSPECTION` (unless pulled); terrain single-page redesign → decide in
-   review, overlaps `V023-09b` / `[SAC]`.
+2. ~~**v0.2.6 repair pass (small, focused):**~~ DONE 2026-07-04 (commits `45e923e`
+   E1-E3+G, `e975f16` A, then B1-B2/Q3, D3+C, E5, and the docs/Q11 pass). Shipped:
+   E1-E3 (level-up first-show size + `_gui_input` dismissal + promotion re-apply+scroll),
+   G (terrain mouse_filter), A (slider apply-on-release + h-scroll off + panel widen),
+   B1-B2 (sheet wrap + Back button) + Q3 (More-Info numbers-over-prose), D3 (preview
+   re-anchor on zoom), C (menu offset cap + side stickiness), E5 (5th skill + extra
+   weapons + 10 grind units), Q11 (applied-size readout). Structural-invariant /
+   event-routing tests added for every input-routing fix.
+3. ~~**Docs:**~~ DONE — `AGENT/Docs/guides/display_and_settings_guide.md` (F, also
+   answers V025-09) + the Q13 input-routing test-fidelity rule in `testing_guide.md`.
+   The tester-facing `godot.log` request lands in the v0.2.6 checklist at build-cut.
+4. ~~**Route the design asks to their homes:**~~ forecast-row registry (Q5) + green
+   effectiveness default (Q6) recorded in Band 5 Slice 3; promotion-picker redesign +
+   stats More-Info paged layout → `UI-INSPECTION`; terrain single-page redesign →
+   `B4-MAP-OBJECTS`/`[SAC]` (overlaps `V023-09b`).
 5. **Cut v0.2.6** as the next display rerun; `VAL-V023-DISPLAY` flips only when §1.1,
-   §1.2, §1.3, §1.5, §1.6, §1.8 all pass live.
+   §1.2, §1.3, §1.5, §1.6, §1.8 all pass live. **← next step**
 
 ## Merge Notes
 
