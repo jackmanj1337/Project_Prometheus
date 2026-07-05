@@ -375,14 +375,26 @@ func _on_resolution_written_back() -> void:
 # V025-06: in windowed mode the requested resolution is clamped into the screen's
 # usable rect (so a 4K request on a 4K panel yields a smaller window, with desktop
 # visible around it — working as designed). Show the actually-applied size next to the
-# Resolution dropdown so the clamp is self-explaining. Blank in fullscreen/borderless
-# (native size) or when the applied size equals the request.
+# Resolution dropdown so the clamp is self-explaining. Blank when the applied size
+# equals the request.
+# V027-05c (Q6): outside Windowed the dropdown is inert, so gray it out (the saved
+# request stays intact underneath and re-enables on return to Windowed) and pin the
+# readout to the native display size — the explainer text alone did not prevent the
+# "which resolution am I actually on?" confusion.
 func _refresh_applied_size() -> void:
 	if _label_resolution_applied == null:
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
-	if sm == null or String(sm.get("window_mode")) != "windowed":
+	if sm == null:
 		_label_resolution_applied.text = ""
+		return
+	var windowed: bool = String(sm.get("window_mode")) == "windowed"
+	_set_resolution_row_enabled(windowed)
+	if not windowed:
+		var native: Vector2i = DisplayServer.screen_get_size(
+			DisplayServer.window_get_current_screen())
+		_label_resolution_applied.text = \
+			"native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
 		return
 	var requested: Vector2i = sm.call("_parse_resolution", sm.get("resolution"))
 	var applied: Vector2i = sm.call("applied_windowed_size")
@@ -390,6 +402,14 @@ func _refresh_applied_size() -> void:
 		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
 	else:
 		_label_resolution_applied.text = ""
+
+
+func _set_resolution_row_enabled(enabled: bool) -> void:
+	for s in _ENUM_SETTINGS:
+		if String(s["key"]) == "resolution":
+			var btn: OptionButton = _vbox.get_node(s["node"])
+			btn.disabled = not enabled
+			return
 
 
 func _on_camera_buffer_changed(value: float) -> void:

@@ -20,7 +20,10 @@ Three modes, chosen in Settings → Window Mode (`SettingsManager.window_mode`):
   ignored.
 
 Fullscreen/Borderless always match the monitor, so the Resolution setting only takes
-effect in Windowed mode.
+effect in Windowed mode. To make that self-evident in-game, the Resolution dropdown is
+**grayed out outside Windowed mode** and the readout beside it shows the **native
+display size** (`native WxH`); the saved request is preserved underneath and the row
+re-enables intact on switching back to Windowed (V027-05c, Q6).
 
 ## The windowed clamp (why a 4K window is smaller than the screen)
 

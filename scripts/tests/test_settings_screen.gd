@@ -275,5 +275,42 @@ func _init() -> void:
 	else:
 		print("SKIP V027-04b dropdown (SettingsManager autoload absent)")
 
+	# ---- V027-05c (Q6): Resolution row grayed out outside Windowed ----
+	# In Borderless/Fullscreen the dropdown is inert: it must be disabled (saved
+	# request preserved underneath) and the readout pinned to the native display
+	# size. Returning to Windowed re-enables it with the request intact.
+	var sm_q6 := root.get_node_or_null("SettingsManager")
+	if sm_q6 != null:
+		var opt_q6: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxResolution/OptResolution")
+		var lbl_q6: Label = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxResolution/LabelResolutionApplied")
+		var prev_res_q6: String = String(sm_q6.get("resolution"))
+		var prev_mode_q6: String = String(sm_q6.get("window_mode"))
+		sm_q6.set("window_mode", "borderless")
+		sm_q6.set("resolution", "2560x1440")
+		screen.open()
+		# Headless can report a zero native size, in which case the label is blank.
+		var native_label_ok: bool = String(lbl_q6.text).begins_with("native ") \
+			or String(lbl_q6.text) == ""
+		var disabled_ok: bool = opt_q6.disabled and native_label_ok
+		sm_q6.set("window_mode", "windowed")
+		screen.open()
+		var reenabled_ok: bool = not opt_q6.disabled \
+			and String(sm_q6.get("resolution")) == "2560x1440" \
+			and opt_q6.selected == 3  # the preserved 1440p request
+		sm_q6.set("resolution", prev_res_q6)
+		sm_q6.set("window_mode", prev_mode_q6)
+		screen._on_back()
+		if disabled_ok and reenabled_ok:
+			print("OK  V027-05c Resolution row disabled outside Windowed, request preserved")
+			passed += 1
+		else:
+			print("FAIL V027-05c gray-out: disabled=%s label='%s' reenabled=%s sel=%d" % [
+				opt_q6.disabled, lbl_q6.text, reenabled_ok, opt_q6.selected])
+			failed += 1
+	else:
+		print("SKIP V027-05c gray-out (SettingsManager autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
