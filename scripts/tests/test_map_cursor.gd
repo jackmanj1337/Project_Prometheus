@@ -967,10 +967,13 @@ func _init() -> void:
 	else:
 		print("SKIP camera buffer clamp (SettingsManager autoload absent)")
 
-	# V023-03 / V025-03: contextual menus remember their tile anchor and re-anchor on
-	# zoom, but the placement gap is now CAPPED at one unzoomed tile so zooming in no
-	# longer launches the menu a full magnified tile away (the close-zoom jitter). The
-	# menu also keeps its chosen side across repositions instead of flipping.
+	# V023-03 / V025-03 / V027-02: contextual menus remember their tile anchor and
+	# re-anchor on zoom. Placement anchors to the tile's FAR edge plus a constant
+	# 4px gap (AttackPreview's model): the tile-width term scales with zoom but the
+	# gap beyond the edge does not, so the menu hugs the unit without covering it.
+	# (The old V025-03 cap on the WHOLE offset left the menu inside the zoomed tile
+	# at zoom > 1 — v0.2.7 §1.3.) The menu also keeps its chosen side across
+	# repositions instead of flipping.
 	var t_anchor := TurnManager.new(); root.add_child(t_anchor)
 	var c_anchor := _make_cursor(t_anchor)
 	var menu_anchor := Control.new()
@@ -979,22 +982,32 @@ func _init() -> void:
 	root.add_child(menu_anchor)
 	c_anchor._camera.zoom = Vector2.ONE
 	c_anchor._place_menu_near(menu_anchor, Vector2i(1, 1))
+	# screen_pos is stub-fixed in this harness (the canvas transform ignores the
+	# camera), so the anchor corner is the same at both zooms — only tile_px moves.
+	var anchor_screen: Vector2 = c_anchor.get_viewport().canvas_transform \
+		* _grid.tile_to_world(Vector2i(1, 1))
 	var gap_1x: Vector2 = menu_anchor.position
 	var side_1x: String = String(c_anchor._context_menu_anchor.get("side", ""))
-	# Zoom way in and reposition. With the offset cap the hug distance is unchanged
-	# (screen_pos is stub-fixed, so an uncapped offset would jump right by ~3 tiles).
+	var edge_1x_ok: bool = absf(
+		gap_1x.x - (anchor_screen.x + GameConstants.TILE_SIZE + 4.0)) <= 1.0
+	# Zoom way in and reposition: the on-screen tile is 4× wide, so the menu must
+	# sit fully clear of the ZOOMED tile rect, gap+ε past its far edge.
 	c_anchor._camera.zoom = Vector2(4.0, 4.0)
 	c_anchor._reposition_context_menu_anchor()
 	var gap_4x: Vector2 = menu_anchor.position
-	var offset_capped: bool = absf(gap_4x.x - gap_1x.x) <= 1.0 and gap_4x.y == gap_1x.y
+	var tile_px_4x: float = GameConstants.TILE_SIZE * 4.0
+	var edge_4x_ok: bool = absf(
+		gap_4x.x - (anchor_screen.x + tile_px_4x + 4.0)) <= 1.0 and gap_4x.y == gap_1x.y
+	var clear_of_tile: bool = gap_4x.x >= anchor_screen.x + tile_px_4x
 	var side_kept: bool = String(c_anchor._context_menu_anchor.get("side", "")) == side_1x \
 		and side_1x == "right"
-	if offset_capped and side_kept:
-		print("OK  contextual menu offset is capped + side sticky across zoom (V025-03)")
+	if edge_1x_ok and edge_4x_ok and clear_of_tile and side_kept:
+		print("OK  contextual menu hugs the zoomed tile's far edge + side sticky (V027-02)")
 		passed += 1
 	else:
-		print("FAIL contextual menu anchor: gap_1x=%s gap_4x=%s side_1x=%s side_after=%s" % [
-			gap_1x, gap_4x, side_1x, c_anchor._context_menu_anchor.get("side", "")])
+		print("FAIL contextual menu anchor: gap_1x=%s gap_4x=%s anchor=%s edge1x=%s edge4x=%s clear=%s side_1x=%s side_after=%s" % [
+			gap_1x, gap_4x, anchor_screen, edge_1x_ok, edge_4x_ok, clear_of_tile,
+			side_1x, c_anchor._context_menu_anchor.get("side", "")])
 		failed += 1
 	menu_anchor.queue_free()
 
