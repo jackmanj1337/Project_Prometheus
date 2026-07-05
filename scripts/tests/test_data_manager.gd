@@ -266,6 +266,7 @@ func _init() -> void:
 	var m_mode_err: bool = bad_map_errors.any(func(e): return "activation_mode 'ROUND_ROBIN'" in e)
 	var m_turn_err: bool = bad_map_errors.any(func(e): return "turn_order references unknown faction 'ghost'" in e)
 	var m_enemy_missing_err: bool = bad_map_errors.any(func(e): return "missing UnitData 'res://missing_enemy.tres'" in e)
+	var m_enemy_source_err: bool = bad_map_errors.any(func(e): return "exactly one of unit_data_path or unit_data" in e)
 	var m_enemy_faction_err: bool = bad_map_errors.any(func(e): return "enemy placement references unknown faction 'purple'" in e)
 	var m_enemy_ai_err: bool = bad_map_errors.any(func(e): return "enemy placement ai_profile 'berserk' is not valid" in e)
 	var m_enemy_tile_err: bool = bad_map_errors.any(func(e): return "enemy placement tile (9, 9) is outside the grid" in e)
@@ -279,16 +280,16 @@ func _init() -> void:
 	var m_bad_cond_err: bool = bad_map_errors.any(func(e): return "is not an ObjectiveCondition" in e)
 	if m_id_err and m_name_err and m_scene_err and m_reward_empty_err and m_reward_missing_err \
 			and m_grid_err and m_grid_len_err and m_start_dup_err and m_start_oob_err and m_cam_err \
-			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_faction_err \
+			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_source_err and m_enemy_faction_err \
 			and m_enemy_ai_err and m_enemy_tile_err and m_cond_group_err and m_seize_err \
 			and m_escape_err and m_escape_tile_err and m_survive_err and m_survive_tile_err \
 			and m_unknown_group_err and m_bad_cond_err:
 		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks"); passed += 1
 	else:
-		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
+		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_source=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
 			m_id_err, m_name_err, m_scene_err, m_reward_empty_err, m_reward_missing_err,
 			m_grid_err, m_grid_len_err, m_start_dup_err, m_start_oob_err, m_cam_err,
-			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_faction_err,
+			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_source_err, m_enemy_faction_err,
 			m_enemy_ai_err, m_enemy_tile_err, m_cond_group_err, m_seize_err,
 			m_escape_err, m_escape_tile_err, m_survive_err, m_survive_tile_err,
 			m_unknown_group_err, m_bad_cond_err, bad_map_errors])
@@ -332,6 +333,45 @@ func _init() -> void:
 			r_source_should_empty_err, registry_fixture_errors])
 		failed += 1
 
+	# ---- Map validation accepts inline UnitData enemy placements ─────────────
+	var inline_enemy := UnitData.new()
+	inline_enemy.unit_id = "inline_enemy"
+	inline_enemy.class_id = "soldier"
+	inline_enemy.max_hp = 20
+	inline_enemy.hp = 20
+	var inline_map := MapData.new()
+	inline_map.id = "inline_enemy_check"
+	inline_map.display_name = "inline enemy check"
+	inline_map.grid = ["..."] as Array[String]
+	inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	inline_map.enemy_placements = [
+		{"unit_data": inline_enemy, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		inline_map, "res://inline_enemy_map.tres", dm._classes, dm._items, {})
+	var ambiguous_map := MapData.new()
+	ambiguous_map.id = "ambiguous_enemy_check"
+	ambiguous_map.display_name = "ambiguous enemy check"
+	ambiguous_map.grid = ["..."] as Array[String]
+	ambiguous_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	ambiguous_map.enemy_placements = [
+		{"unit_data": inline_enemy,
+			"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
+			"tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var ambiguous_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		ambiguous_map, "res://ambiguous_enemy_map.tres", dm._classes, dm._items, {})
+	var inline_ok := inline_errors.is_empty()
+	var ambiguous_err := ambiguous_errors.any(func(e):
+		return "exactly one of unit_data_path or unit_data" in e)
+	if inline_ok and ambiguous_err:
+		print("OK  inline enemy placements validate, while mixed path+inline sources fail")
+		passed += 1
+	else:
+		print("FAIL inline enemy placement validation: inline=%s ambiguous=%s" % [
+			inline_errors, ambiguous_errors])
+		failed += 1
+
 	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----
 	var bad_unit := UnitData.new()
 	bad_unit.unit_id = "bad_u"
@@ -372,10 +412,31 @@ func _init() -> void:
 		dup_map, "res://dup_map.tres", dm._classes, dm._items, seen)
 	var dup_err_found: bool = dup_errors.any(func(e):
 		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
-	if dup_err_found:
-		print("OK  2.10: cross-source duplicate unit_id fires loud"); passed += 1
+	var dup_inline_unit := UnitData.new()
+	dup_inline_unit.unit_id = "e1_soldier"
+	dup_inline_unit.class_id = "soldier"
+	dup_inline_unit.max_hp = 20
+	dup_inline_unit.hp = 20
+	var dup_inline_map := MapData.new()
+	dup_inline_map.id = "dup_inline_unit_id_check"
+	dup_inline_map.display_name = "dup inline unit_id check"
+	dup_inline_map.grid = ["..."] as Array[String]
+	dup_inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	dup_inline_map.enemy_placements = [
+		{"unit_data": dup_inline_unit, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var seen_inline: Dictionary = {"e1_soldier": "roster file 'fake_roster.tres'"}
+	var dup_inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		dup_inline_map, "res://dup_inline_map.tres", dm._classes, dm._items, seen_inline)
+	var dup_inline_err_found: bool = dup_inline_errors.any(func(e):
+		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
+	if dup_err_found and dup_inline_err_found:
+		print("OK  2.10: cross-source duplicate unit_id fires loud for path and inline placements")
+		passed += 1
 	else:
-		print("FAIL 2.10 cross-source dup: %s" % dup_errors); failed += 1
+		print("FAIL 2.10 cross-source dup: path=%s inline=%s" % [
+			dup_errors, dup_inline_errors])
+		failed += 1
 
 	# ---- 2.7: hp/max_hp/level invariants ────────────────────────────────────
 	# Pre-2026-06-10 a unit with hp=50, max_hp=10 would load fine and render

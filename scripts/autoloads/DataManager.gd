@@ -408,22 +408,42 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 				map_path, str(placement)])
 			continue
 		var unit_path: String = String(placement.get("unit_data_path", ""))
-		if unit_path == "":
-			errors.append("DataManager: map '%s' has enemy placement missing unit_data_path" % map_path)
-		elif not ResourceLoader.exists(unit_path):
-			errors.append("DataManager: map '%s' enemy placement points at missing UnitData '%s'" % [
-				map_path, unit_path])
-		else:
-			var unit_loaded := load(unit_path)
-			if not (unit_loaded is UnitData):
-				errors.append("DataManager: map '%s' enemy placement '%s' did not load as UnitData" % [
-					map_path, unit_path])
-			elif String(unit_loaded.unit_id) == "":
-				errors.append("DataManager: map '%s' enemy placement '%s' has empty unit_id" % [
+		var inline_unit: Variant = placement.get("unit_data", null)
+		var has_unit_path := unit_path != ""
+		var has_inline_unit := inline_unit != null
+		var unit_loaded: UnitData = null
+		var unit_source := ""
+		if has_unit_path == has_inline_unit:
+			errors.append(
+				"DataManager: map '%s' enemy placement must provide exactly one of unit_data_path or unit_data"
+				% map_path)
+		elif has_unit_path:
+			unit_source = "enemy placement '%s'" % unit_path
+			if not ResourceLoader.exists(unit_path):
+				errors.append("DataManager: map '%s' enemy placement points at missing UnitData '%s'" % [
 					map_path, unit_path])
 			else:
+				var unit_resource := load(unit_path)
+				if not (unit_resource is UnitData):
+					errors.append("DataManager: map '%s' enemy placement '%s' did not load as UnitData" % [
+						map_path, unit_path])
+				else:
+					unit_loaded = unit_resource
+		else:
+			if not (inline_unit is UnitData):
+				errors.append("DataManager: map '%s' enemy placement unit_data is not UnitData" % map_path)
+			else:
+				unit_loaded = inline_unit
+				unit_source = "enemy placement inline unit_data"
+		if unit_loaded != null:
+			if String(unit_loaded.unit_id) == "":
+				errors.append("DataManager: map '%s' %s has empty unit_id" % [
+					map_path, unit_source])
+			else:
 				var uid: String = String(unit_loaded.unit_id)
-				var here: String = "enemy placement '%s'" % unit_path
+				var here: String = unit_source
+				if not has_unit_path:
+					here = "%s '%s'" % [unit_source, uid]
 				if seen_unit_ids.has(uid):
 					errors.append("DataManager: duplicate unit_id '%s' at %s (also at %s)" % [
 						uid, here, seen_unit_ids[uid]])
