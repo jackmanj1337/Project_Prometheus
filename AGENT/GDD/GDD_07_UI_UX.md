@@ -49,6 +49,7 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift + Tab | — |
 | `show_danger_zone` | Q (threat resolver) | Middle Click (threat resolver) |
+| `peek_range` | E (hold to peek) | — |
 | `inspect_unit` | I | — |
 | `more_info` | F | — |
 | `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
@@ -105,6 +106,13 @@ Adding a member auto-promotes the mode on the empty→non-empty transition
 opaque top layers). The set + mode survive phase changes, menus, and unit
 selection (teardown clears only the paint; a return to the free state recomputes
 it from current positions); a map load clears them.
+
+**Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
+unit under the cursor's reach — blue move range + red attack reach — as an
+exclusive opaque top layer over any threat overlay. The reach is computed once
+per hovered unit and cached: moving the cursor to a *different* unit recomputes,
+staying on the same unit reuses the cache (no per-tick recompute). Releasing the
+key clears the peek and restores the threat overlay.
 
 ### Cursor Key Repeat
 When a directional key is held:

@@ -535,7 +535,8 @@ const OVERLAY_LAYER_ATTACK := "attack_range"
 const OVERLAY_LAYER_HEAL := "heal_range"
 const OVERLAY_LAYER_FACTION_THREAT := "faction_threat"
 const OVERLAY_LAYER_WATCH_THREAT := "watch_threat"
-const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"
+const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"          # peek move range (blue)
+const OVERLAY_LAYER_HOVER_PEEK_ATTACK := "hover_peek_attack"  # peek attack reach (red)
 const OVERLAY_LAYER_PATH_ARROWS := "path_arrows"
 
 static var _overlay_registry: Dictionary = {}
@@ -553,6 +554,7 @@ static func _ensure_overlay_registry() -> void:
 	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30, true)
 	# Slices 3-4 register these as exclusive opaque top layers.
 	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100, false)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101, false)
 	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, false)
 
 

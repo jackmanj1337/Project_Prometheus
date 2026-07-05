@@ -86,6 +86,17 @@ var _danger_mode: String = DANGER_MODE_NONE
 var _watch_set: Dictionary = {}
 # World-space container for the watched-enemy "D" markers ([TUR-2]); built lazily.
 var _watch_marker_layer: Node2D = null
+
+# ── [MRD-2]/[MRD-4] Hover-to-peek range (B6-MRD slice 3) ─────────────────────
+# Hold peek_range (E) in FREE state to preview the unit under the cursor's
+# move+attack reach as an opaque top layer. Computed ONCE per hovered unit and
+# cached — moving to a DIFFERENT unit recomputes; staying on one reuses the cache
+# (no per-cursor-tick flood). _peek_compute_count is a test hook for cache hits.
+var _peek_active: bool = false
+var _peek_unit: Node = null
+var _peek_move: Array[Vector2i] = []
+var _peek_attack: Array[Vector2i] = []
+var _peek_compute_count: int = 0
 # True while the level-up screen is on-screen. Suppresses all cursor input
 # independently of _state, so a post-combat _finish_action setting _state=FREE
 # can't re-enable the cursor underneath the level-up screen (#12).
@@ -136,6 +147,8 @@ func _ready() -> void:
 		bus.reclass_finished.connect(_on_level_up_finished)
 		# Prune a defeated enemy from the threat watch set ([TUR-4]).
 		bus.unit_died.connect(_on_unit_died)
+		# Refresh the hover-peek when the cursor changes tile ([MRD-2]).
+		bus.cursor_moved.connect(_on_cursor_moved_peek)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -322,8 +335,13 @@ func _input(event: InputEvent) -> void:
 		if not event.pressed:
 			# Clear cursor key-repeat when the held direction key is released.
 			_input_handler.note_key_released(event)
+			# Release the hover-peek when its hold key comes up.
+			if event.is_action_released("peek_range"):
+				_end_peek()
 		elif not event.echo and event.is_action_pressed("show_danger_zone"):
 			_on_danger_zone_press()
+		elif not event.echo and event.is_action_pressed("peek_range"):
+			_begin_peek()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
 			_on_danger_zone_press()
@@ -404,6 +422,15 @@ func _cycle_danger_mode() -> void:
 func repaint() -> void:
 	if _grid == null:
 		return
+	var specs := _build_threat_specs()
+	if _peek_active:
+		_add_peek_specs(specs)  # peek sits on top of the threat overlay
+	_grid.repaint_overlays(specs)
+	_render_watch_markers()
+
+
+# The base threat overlay specs from _danger_mode + _watch_set (prunes first).
+func _build_threat_specs() -> Dictionary:
 	_prune_watch_set()
 	var specs: Dictionary = {}
 	var show_faction := _danger_mode == DANGER_MODE_FULL or _danger_mode == DANGER_MODE_COMBINED
@@ -418,8 +445,7 @@ func repaint() -> void:
 			"tiles": _watch_set_threat_tiles(),
 			"source": GridManager.OVERLAY_DARKER_RED,
 		}
-	_grid.repaint_overlays(specs)
-	_render_watch_markers()
+	return specs
 
 
 # The living units whose ids are in _watch_set, resolved from GameState.
@@ -526,6 +552,82 @@ func _clear_overlay_paint() -> void:
 	if _grid != null:
 		_grid.clear_overlays()
 	_clear_watch_markers()
+
+
+# ── [MRD-2]/[MRD-4] Hover-to-peek ────────────────────────────────────────────
+# Arm the peek and paint the hovered unit's reach. FREE state only, so it can't
+# fight a selected unit's move overlay.
+func _begin_peek() -> void:
+	if _grid == null or _state != State.FREE:
+		return
+	_peek_active = true
+	_peek_unit = null  # force a compute for the current hover
+	_refresh_peek()
+
+
+# Recompute the peek only when the hovered unit CHANGES; reuse the cache otherwise
+# ([MRD-4] B — computed once on press, no per-cursor-tick recompute).
+func _refresh_peek() -> void:
+	if not _peek_active or _grid == null:
+		return
+	var u := _grid.get_unit_at(current_tile)
+	if u != _peek_unit:
+		_peek_unit = u
+		if u != null:
+			_peek_move = _grid.get_movement_range(u)
+			if not _peek_move.has(u.tile_position):
+				_peek_move.append(u.tile_position)
+			# Attack reach beyond the move footprint (so blue move / red attack read
+			# distinctly, like a normal selection).
+			var move_set: Dictionary = {}
+			for t in _peek_move:
+				move_set[t] = true
+			_peek_attack = []
+			for t in _grid.get_all_attack_tiles(u, _peek_move):
+				if not move_set.has(t):
+					_peek_attack.append(t)
+			_peek_compute_count += 1
+		else:
+			_peek_move = []
+			_peek_attack = []
+	_repaint_with_peek()
+
+
+func _on_cursor_moved_peek(_tile: Vector2i) -> void:
+	if _peek_active:
+		_refresh_peek()
+
+
+# Release the peek and restore the base overlay (threat, or cleared).
+func _end_peek() -> void:
+	if not _peek_active:
+		return
+	_peek_active = false
+	_peek_unit = null
+	_peek_move = []
+	_peek_attack = []
+	if _state == State.FREE:
+		repaint()
+	elif _grid != null:
+		_grid.clear_overlays()
+
+
+func _add_peek_specs(specs: Dictionary) -> void:
+	specs[GridManager.OVERLAY_LAYER_HOVER_PEEK] = {
+		"tiles": _peek_move, "source": GridManager.OVERLAY_BLUE,
+	}
+	specs[GridManager.OVERLAY_LAYER_HOVER_PEEK_ATTACK] = {
+		"tiles": _peek_attack, "source": GridManager.OVERLAY_RED,
+	}
+
+
+func _repaint_with_peek() -> void:
+	if _grid == null:
+		return
+	var specs := _build_threat_specs()
+	_add_peek_specs(specs)
+	_grid.repaint_overlays(specs)
+	_render_watch_markers()
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:

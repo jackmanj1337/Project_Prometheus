@@ -729,6 +729,33 @@ func _init() -> void:
 	else:
 		print("FAIL [TUR] resolver not gated outside FREE"); failed += 1
 
+	# ---- [MRD-2] hover-to-peek range (B6-MRD slice 3) ----
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10._state = FREE
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	var peek_on := c10._peek_active and not c10._peek_move.is_empty()
+	var count_after_press := c10._peek_compute_count
+	c10._refresh_peek()                                  # same unit → cache hit
+	var cache_hit := c10._peek_compute_count == count_after_press
+	c10.current_tile = enemyB.tile_position
+	c10._on_cursor_moved_peek(enemyB.tile_position)      # new unit → recompute
+	var recomputed := c10._peek_compute_count == count_after_press + 1 and c10._peek_unit == enemyB
+	c10._end_peek()
+	var peek_off := not c10._peek_active and c10._peek_move.is_empty()
+	if peek_on and cache_hit and recomputed and peek_off:
+		print("OK  [MRD-2] hover-peek: press paints reach, same-unit cache-hit, new-unit recompute, release clears"); passed += 1
+	else:
+		print("FAIL [MRD-2] peek: on=%s hit=%s recompute=%s off=%s" % [peek_on, cache_hit, recomputed, peek_off]); failed += 1
+
+	c10._state = UNIT_SELECTED
+	c10._begin_peek()
+	if not c10._peek_active:
+		print("OK  [MRD-2] hover-peek ignored outside FREE state"); passed += 1
+	else:
+		print("FAIL [MRD-2] peek armed outside FREE"); failed += 1
+	c10._state = FREE
+
 	# ---- open_settings hotkey: locks the cursor and opens Settings (#3) ----
 	var t11 := TurnManager.new(); root.add_child(t11)
 	var c11 := _make_cursor(t11)
