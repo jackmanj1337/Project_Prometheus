@@ -8,13 +8,14 @@ class_name MapData extends Resource
 @export var display_name: String = ""
 @export var tilemap_scene_path: String = ""
 @export var player_start_tiles: Array[Vector2i] = []
-# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String,
+# Each entry: { "unit_data_path":String, "tile":Vector2i, "ai_profile":String?,
 #               "is_boss":bool, "faction":String? }
 # faction is optional; defaults to "red" for pre-C3 maps.
-# [PUG-3] spawn seam: a placement may instead carry an already-built in-memory
-# "unit_data":UnitData (generated forces, editor-baked units, reinforcements).
-# When present it is used directly (duplicated per map) and unit_data_path is
-# ignored. See GameMap._resolve_placement_unit_data.
+# [PUG-3] spawn seam: a placement must carry exactly one UnitData source,
+# either "unit_data_path":String or already-built "unit_data":UnitData
+# (generated forces, editor-baked units, reinforcements). The resolved unit is
+# duplicated per map. "ai_profile" is an explicit placement override; omission
+# preserves the UnitData profile. See GameMap._resolve_placement_unit_data.
 @export var enemy_placements: Array[Dictionary] = []
 @export var reward_gold: int = 0
 # Item IDs given at map completion

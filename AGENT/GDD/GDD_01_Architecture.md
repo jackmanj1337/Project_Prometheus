@@ -1438,8 +1438,11 @@ class_name MapData extends Resource
 @export var tilemap_scene_path: String = ""
 @export var player_start_tiles: Array[Vector2i] = []
 @export var enemy_placements: Array[Dictionary] = []
-    # Each entry: { "unit_data_path": String, "tile": Vector2i,
-    #               "ai_profile": String, "is_boss": bool, "faction": String? }
+    # Each entry carries exactly one UnitData source:
+    # { "unit_data_path": String OR "unit_data": UnitData,
+    #   "tile": Vector2i, "ai_profile": String?, "is_boss": bool, "faction": String? }
+    # "ai_profile" is an explicit placement override; omission preserves the
+    # UnitData profile.
     # Target: ai_profile resolves through the AI spec/profile registry, not a match branch.
 @export var reward_gold: int = 0
 @export var reward_items: Array[String] = []

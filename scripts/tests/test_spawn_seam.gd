@@ -2,11 +2,11 @@ extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_spawn_seam.gd
 #
 # [PUG-3] The spawn seam generalization: an enemy placement resolves to a
-# UnitData via EITHER an already-built in-memory `unit_data` instance OR a
-# `unit_data_path` resource path. Both paths flow through the SAME resolution
-# (GameMap._resolve_placement_unit_data), producing an equivalent fresh copy so
-# generated skirmish forces / editor-baked units / reinforcements can spawn
-# without ever writing a .tres. This tests the seam directly (no full scene).
+# UnitData via exactly one source: an already-built in-memory `unit_data`
+# instance OR a `unit_data_path` resource path. Both paths flow through the SAME
+# resolution (GameMap._resolve_placement_unit_data), producing an equivalent
+# fresh copy so generated skirmish forces / editor-baked units / reinforcements
+# can spawn without ever writing a .tres. This tests the seam directly.
 
 const ENEMY_PATH := "res://data/maps/map_001_rout/enemies/e1_soldier.tres"
 
@@ -34,11 +34,17 @@ func _init() -> void:
 	in_mem.unit_id = "gen_grunt_01"
 	in_mem.unit_name = "Generated Grunt"
 	in_mem.class_id = "soldier"
+	in_mem.ai_profile = "passive"
 	in_mem.max_hp = 20
 	in_mem.hp = 20
 	var mem_placement := {"unit_data": in_mem, "tile": Vector2i(4, 4)}
 	var from_mem: UnitData = gm._resolve_placement_unit_data(mem_placement)
-	if from_mem != null and from_mem.unit_id == "gen_grunt_01" and from_mem.max_hp == 20:
+	if (
+		from_mem != null
+		and from_mem.unit_id == "gen_grunt_01"
+		and from_mem.max_hp == 20
+		and from_mem.ai_profile == "passive"
+	):
 		print("OK  in-memory placement resolves to the built UnitData")
 		passed += 1
 	else:
@@ -59,17 +65,43 @@ func _init() -> void:
 		print("FAIL in-memory placement was not duplicated")
 		failed += 1
 
-	# 4. The instance wins when both keys are present (a stray path is ignored).
-	var both := {"unit_data": in_mem, "unit_data_path": "res://does/not/exist.tres", "tile": Vector2i.ZERO}
-	var from_both: UnitData = gm._resolve_placement_unit_data(both)
-	if from_both != null and from_both.unit_id == "gen_grunt_01":
-		print("OK  in-memory instance takes precedence over unit_data_path")
-		passed += 1
+	# 4. Placement keys are explicit overrides; omission preserves UnitData data.
+	if from_mem != null:
+		gm._apply_enemy_placement_overrides(from_mem, {})
+		if from_mem.ai_profile == "passive":
+			print("OK  omitted ai_profile preserves the UnitData profile")
+			passed += 1
+		else:
+			print("FAIL omitted ai_profile overwrote the UnitData profile")
+			failed += 1
 	else:
-		print("FAIL instance did not take precedence over path")
+		print("FAIL could not test omitted ai_profile because in-memory resolution failed")
 		failed += 1
 
-	# 5. Bad data (no instance, missing path) resolves to null so the caller skips.
+	# 5. Authored placements can still explicitly override ai_profile.
+	if from_mem != null:
+		gm._apply_enemy_placement_overrides(from_mem, {"ai_profile": "basic"})
+		if from_mem.ai_profile == "basic":
+			print("OK  explicit ai_profile overrides the UnitData profile")
+			passed += 1
+		else:
+			print("FAIL explicit ai_profile did not override the UnitData profile")
+			failed += 1
+	else:
+		print("FAIL could not test explicit ai_profile because in-memory resolution failed")
+		failed += 1
+
+	# 6. Ambiguous sources are rejected instead of choosing one silently.
+	var both := {"unit_data": in_mem, "unit_data_path": "res://does/not/exist.tres", "tile": Vector2i.ZERO}
+	var from_both: UnitData = gm._resolve_placement_unit_data(both)
+	if from_both == null:
+		print("OK  mixed unit_data + unit_data_path placement is rejected")
+		passed += 1
+	else:
+		print("FAIL mixed unit_data + unit_data_path placement was accepted")
+		failed += 1
+
+	# 7. Bad data (no instance, missing path) resolves to null so the caller skips.
 	var bad := {"tile": Vector2i.ZERO}
 	if gm._resolve_placement_unit_data(bad) == null:
 		print("OK  empty placement resolves to null (caller skips)")
@@ -78,7 +110,7 @@ func _init() -> void:
 		print("FAIL empty placement did not resolve to null")
 		failed += 1
 
-	# 6. Equivalence: a path unit and an in-memory unit built from the same source
+	# 8. Equivalence: a path unit and an in-memory unit built from the same source
 	# produce units with the same identity through the one seam.
 	var loaded_src := load(ENEMY_PATH) as UnitData
 	var equiv_placement := {"unit_data": loaded_src, "tile": Vector2i(5, 5)}
