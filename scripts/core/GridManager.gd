@@ -557,22 +557,37 @@ func get_enemy_danger_tiles(viewer_faction: String = "blue") -> Array[Vector2i]:
 			hostile = u.team != viewer_faction
 		if not hostile:
 			continue
-		if u.data == null or u.data.hp <= 0:
-			continue
-		# A healing-staff enemy threatens no tiles — keep it out of the danger zone.
-		if not _equipped_can_attack(u):
-			continue
-		# Reachable tiles (plus staying put), then the union of attack reach from
-		# all of them. get_all_attack_tiles dedups, so the extra current tile is safe.
-		var move_tiles := get_movement_range(u)
-		if not move_tiles.has(u.tile_position):
-			move_tiles.append(u.tile_position)
-		for t in get_all_attack_tiles(u, move_tiles):
+		# get_unit_threat_tiles applies the dead/healer guards and dedups per unit;
+		# the outer dict dedups across the whole hostile set. [TUR-1] extraction.
+		for t in get_unit_threat_tiles(u):
 			seen[t] = true
 	var out: Array[Vector2i] = []
 	for tile in seen.keys():
 		out.append(tile)
 	return out
+
+
+# [TUR-1] The threat area of a SINGLE unit: every tile it could move to (plus
+# staying put) AND the attack reach from each of those tiles (#11). Returns []
+# for a null/teamless/dead unit or one whose equipped weapon can't attack (a
+# healer threatens nothing). This is the reusable per-unit primitive:
+# get_enemy_danger_tiles unions it over the hostile set, and the contextual
+# watch-set threat view (`B6-MRD` slice 2) / gamepad R3 arm consume it directly.
+func get_unit_threat_tiles(unit: Node) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if unit == null or not ("team" in unit):
+		return out
+	if unit.data == null or unit.data.hp <= 0:
+		return out
+	# A healing-staff unit threatens no tiles — keep it out of the threat area.
+	if not _equipped_can_attack(unit):
+		return out
+	# Reachable tiles (plus staying put), then the union of attack reach from all
+	# of them. get_all_attack_tiles dedups, so the extra current tile is safe.
+	var move_tiles := get_movement_range(unit)
+	if not move_tiles.has(unit.tile_position):
+		move_tiles.append(unit.tile_position)
+	return get_all_attack_tiles(unit, move_tiles)
 
 
 # Paints the danger zone for `viewer_faction` (see get_enemy_danger_tiles) onto

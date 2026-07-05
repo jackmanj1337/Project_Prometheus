@@ -40,6 +40,29 @@ class MockTypedUnit extends Node:
 		data = d
 
 
+# Mock whose equipped weapon is a healing staff — used to prove a healer
+# contributes no threat tiles ([TUR-1]).
+class MockHealerUnit extends Node:
+	var tile_position: Vector2i
+	var team: String = "red"
+	var data: Resource
+	var _weapon: WeaponData
+
+	func has_quality(_q: String) -> bool:
+		return false
+
+	func get_equipped_weapon() -> WeaponData:
+		return _weapon
+
+	func _init(tile: Vector2i, weapon: WeaponData, mov: int = 6) -> void:
+		tile_position = tile
+		_weapon = weapon
+		var d := UnitData.new()
+		d.movement = mov
+		d.class_id = "cleric"
+		data = d
+
+
 func _init() -> void:
 	print("=== GridManager Test ===")
 	var passed := 0
@@ -263,6 +286,47 @@ func get_equipped_weapon(): return _w
 		print("OK  V021-11 get_move_costs_for_groups includes flying (1 / wall impassable)"); passed += 1
 	else:
 		print("FAIL V021-11 flying group column"); failed += 1
+
+	# --- [TUR-1] / B6-MRD Slice 1: per-unit threat extraction ---
+	# Build a fresh open 6x6 plains grid so movement isn't blocked by the earlier
+	# terrain fixture, and place one range-1 armed unit centrally.
+	var tgrid := GridManager.new()
+	for x in 6:
+		for y in 6:
+			tgrid.set_terrain_fallback(Vector2i(x, y), "plain")
+	var armed := MockUnit.new(Vector2i(3, 3), 2)  # mov 2, default range (1,1)
+	armed.data.max_hp = 10
+	armed.data.hp = 10
+	var threat := tgrid.get_unit_threat_tiles(armed)
+	# An armed unit threatens its reachable tiles' attack rings — strictly more
+	# than the 4 tiles adjacent to its start (movement widens the footprint).
+	var start_adjacent := 0
+	for d in GridManager.DIRS:
+		if threat.has(armed.tile_position + d):
+			start_adjacent += 1
+	if threat.size() > 4 and start_adjacent == 4:
+		print("OK  [TUR-1] get_unit_threat_tiles = reach ∪ attack-from-reach (%d tiles)" % threat.size()); passed += 1
+	else:
+		print("FAIL [TUR-1] threat tiles: size=%d adj=%d" % [threat.size(), start_adjacent]); failed += 1
+
+	# A null unit and a dead unit both threaten nothing.
+	var dead := MockUnit.new(Vector2i(2, 2), 4)
+	dead.data.hp = 0
+	if tgrid.get_unit_threat_tiles(null).is_empty() and tgrid.get_unit_threat_tiles(dead).is_empty():
+		print("OK  [TUR-1] null/dead unit threatens no tiles"); passed += 1
+	else:
+		print("FAIL [TUR-1] null/dead unit produced threat tiles"); failed += 1
+
+	# A healer (equipped healing staff) threatens no tiles even though it can move.
+	var staff := load("res://data/weapons/heal_staff.tres") as WeaponData
+	var healer := MockHealerUnit.new(Vector2i(3, 3), staff, 4)
+	healer.data.max_hp = 10
+	healer.data.hp = 10
+	if staff != null and staff.is_healing_staff() and tgrid.get_unit_threat_tiles(healer).is_empty():
+		print("OK  [TUR-1] a healer contributes no threat tiles"); passed += 1
+	else:
+		print("FAIL [TUR-1] healer threat: staff=%s tiles=%d" % [
+			staff, tgrid.get_unit_threat_tiles(healer).size()]); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
