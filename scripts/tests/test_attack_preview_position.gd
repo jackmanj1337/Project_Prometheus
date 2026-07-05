@@ -169,5 +169,44 @@ func _init() -> void:
 	else:
 		print("FAIL could not load AttackPreview.tscn"); failed += 1
 
+	# ── V027-03a: deferred first-show sizing re-pass contract ───────────────────
+	# The inflated-RichTextLabel first show is a rendered-layout artifact (playtest
+	# verified), so headless we verify the mechanism instead: _resize_after_layout
+	# holds the panel transparent for one frame, re-seeds the panel height off the
+	# settled minimums, restores alpha, and a superseded (stale) pass bails without
+	# clobbering the alpha a newer pass is holding.
+	var pv_packed := load("res://scenes/ui/AttackPreview.tscn")
+	if pv_packed != null:
+		var pv: Control = pv_packed.instantiate()
+		root.add_child(pv)
+		await process_frame
+		pv.show()
+		pv._anchor_defender = grid
+		# Simulate the frozen over-tall first-show frame.
+		pv._panel.offset_bottom = pv._panel.offset_top + 500.0
+		pv._resize_after_layout()
+		var held_transparent: bool = pv._panel.modulate.a == 0.0
+		await process_frame
+		await process_frame  # the re-pass resumes on the first tick; settle one more
+		var repass_h: float = pv._panel.offset_bottom - pv._panel.offset_top
+		var reseeded: bool = absf(repass_h - AttackPreviewS.PANEL_DEFAULT_HEIGHT) <= 0.5
+		var alpha_restored: bool = pv._panel.modulate.a == 1.0
+		# Generation guard: two passes in the same frame — only the newest restores.
+		pv._resize_after_layout()
+		pv._resize_after_layout()
+		await process_frame
+		await process_frame
+		var guard_ok: bool = pv._panel.modulate.a == 1.0
+		if held_transparent and reseeded and alpha_restored and guard_ok:
+			print("OK  V027-03a deferred re-pass re-seeds height, restores alpha, guards stale passes")
+			passed += 1
+		else:
+			print("FAIL V027-03a re-pass: transparent=%s h=%f reseeded=%s alpha=%s guard=%s" % [
+				held_transparent, repass_h, reseeded, alpha_restored, guard_ok])
+			failed += 1
+		pv.queue_free()
+	else:
+		print("FAIL could not load AttackPreview.tscn for V027-03a"); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
