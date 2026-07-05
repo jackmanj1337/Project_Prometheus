@@ -1,7 +1,7 @@
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the complete project review
-> **Last verified:** 2026-06-14
+> **Last verified:** 2026-07-05
 
 This is the top-level conductor for a **complete, skips-nothing review** of the
 entire project: code, scenes/data/assets, tests/CI/build, documentation, and the
@@ -23,6 +23,11 @@ Run a full audit when any of these is true:
 - It has been ≳ 4 weeks or ≳ 30 commits since the last full audit.
 - A large refactor branch (like `awakening-compatability-refactor`) is about to merge.
 - After a painful playtest round, to find the systemic cause, not just the symptoms.
+
+Soft reminder, not a gate: during session closeout, compare the newest
+`AGENT/Code Reviews/full_review_rollup_*.md` snapshot date/commit with the
+current branch. If the project is approaching the 4-week / 30-commit threshold,
+add "full audit due soon" to the next-session note.
 
 For everyday work use the lighter `/code-review` skill on the diff instead.
 

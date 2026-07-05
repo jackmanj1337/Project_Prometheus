@@ -328,9 +328,9 @@ flows verified only by headless tests, not by actual in-map play.
       confirm it is stored in `earned_skills` without being auto-equipped
 	- Unable to do this on a single map.
 	- v0.1.4 raises the default cap to five. M950's
-	  `unit_12_hero_skill_cap` starts with four equipped skills and earns
-	  Disarm at level 15, so it now verifies the fifth slot is filled. A
-	  separate six-skill fixture is still needed to live-test overflow.
+	  `unit_12_hero_skill_cap` starts with five equipped skills, so it verifies
+	  the cap-filled baseline. A separate six-skill/next-learn fixture is still
+	  needed to live-test overflow into `earned_skills`.
 - [ ] With **Auto Promote** enabled on New Game, level a promotable unit to its
       class cap and confirm the promotion prompt appears automatically after the
       level-up flow finishes

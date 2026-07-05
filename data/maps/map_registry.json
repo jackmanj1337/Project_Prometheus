@@ -35,7 +35,7 @@
     "map_data_path": "res://data/maps/map_950_promotion_validation/map_950_promotion_validation_data.tres",
     "roster_policy": "fixed_test_roster",
     "roster_source": "res://data/roster/test/map_950_promotion_validation/",
-    "description": "Test roster pre-staged for every promotion / reclass case (10 units, Master Seal / Second Seal / Orion Bolt / Guiding Ring in hand).",
+    "description": "Test roster pre-staged for promotion / reclass cases (Master Seal / Second Seal / Orion Bolt / Guiding Ring in hand).",
     "is_dev_only": false,
     "tags": ["class_test", "promotion_test", "reclass_test"]
   },

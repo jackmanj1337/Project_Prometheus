@@ -112,7 +112,7 @@ These defaults are chosen to keep the first playtest build small and reversible.
 - Use debug export: `godot --headless --export-debug "Project Prometheus Web Debug" builds/web-debug/index.html`.
 - Keep the Windows preset until the normal desktop playtest flow is replaced.
 - Exclude the same development-only paths as the Windows preset:
-  `AGENT/**`, `scripts/tests/**`, `scripts/tools/**`.
+  `AGENT/**`, `scripts/tests/**`, `scripts/tools/**`, `tools/**`.
 - Single-threaded export.
 - PWA disabled for the first pass to avoid service-worker cache confusion during
   rapid playtest iteration.
