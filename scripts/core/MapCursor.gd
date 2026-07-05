@@ -74,6 +74,9 @@ var _input_suppressed: bool = false
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
 var _context_menu_anchor: Dictionary = {}
+# True while a deferred re-anchor pass is pending (V027-03b): rapid zoom steps
+# coalesce into one next-frame re-place instead of stacking awaits.
+var _reanchor_queued: bool = false
 
 
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
@@ -664,7 +667,20 @@ func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) 
 
 # The shared zoom-reposition hook: re-anchors the open context menu AND the visible
 # attack preview (V025-04c) so both track their unit when the map zoom changes.
+# Runs once now, then once more one frame later (V027-03b belt-and-braces): any
+# transform or layout change that lands after this call heals automatically — the
+# automated version of the tester's manual "zoom past max" no-op re-place.
 func _reposition_context_menu_anchor() -> void:
+	_reposition_anchors_now()
+	if _reanchor_queued or not is_inside_tree():
+		return
+	_reanchor_queued = true  # coalesce: rapid zoom steps share one deferred pass
+	await get_tree().process_frame
+	_reanchor_queued = false
+	_reposition_anchors_now()
+
+
+func _reposition_anchors_now() -> void:
 	# Re-anchor the combat preview beside its defender (no-op when hidden).
 	if attack_preview != null and attack_preview.has_method("reposition"):
 		attack_preview.reposition()

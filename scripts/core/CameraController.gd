@@ -129,6 +129,10 @@ func keep_cursor_in_view(cursor_tile: Vector2i, edge_buffer: int) -> void:
 	tl.x = clamp(tl.x, 0, max(0, _grid.map_width - tiles_w))
 	tl.y = clamp(tl.y, 0, max(0, _grid.map_height - tiles_h))
 	_camera.position = _grid.tile_to_world(tl) + view * 0.5
+	# Menu/preview placement can run in the same frame as a cursor-driven scroll
+	# (V027-03b: the forecast landed stranded at the wall until a zoom wiggle
+	# re-placed it) — flush like every other synchronously-read write above.
+	_flush_scroll()
 
 
 func _effective_edge_buffer(edge_buffer: int, visible_tiles: int) -> int:

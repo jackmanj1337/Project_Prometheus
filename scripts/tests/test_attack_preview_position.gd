@@ -17,6 +17,23 @@ class StubGrid extends Node:
 	var map_height: int = 0
 
 
+# GridManager stand-in with the tile<->world math CameraController's framing
+# needs (mirrors GridManager.tile_to_world / world_to_tile). Sized like the
+# playtest map so both walls are farther apart than any zoomed view span.
+class WallGrid extends Node:
+	const MAP_W := 42
+	const MAP_H := 26
+	var map_width: int = MAP_W
+	var map_height: int = MAP_H
+
+	func tile_to_world(tile: Vector2i) -> Vector2:
+		return Vector2(tile.x * GameConstants.TILE_SIZE, tile.y * GameConstants.TILE_SIZE)
+
+	func world_to_tile(world: Vector2) -> Vector2i:
+		return Vector2i(
+			int(world.x) / GameConstants.TILE_SIZE, int(world.y) / GameConstants.TILE_SIZE)
+
+
 func _init() -> void:
 	print("=== AttackPreview Positioning Test ===")
 	var passed := 0
@@ -207,6 +224,95 @@ func _init() -> void:
 		pv.queue_free()
 	else:
 		print("FAIL could not load AttackPreview.tscn for V027-03a"); failed += 1
+
+	# ── V027-03b repro: wall placement at high zoom against a REAL current camera ─
+	# The v0.2.7 tester reported the right-wall misplacement fixed but "the same
+	# thing on the left wall" at max zoom. This drives the real placement path
+	# headless — current camera, flushed canvas transform (the V026-03/04a seam),
+	# real AttackPreview scene — sweeping defender tiles on both walls across the
+	# high zoom levels. The panel must land inside the viewport, clear of the
+	# defender's tile, and ADJACENT to it (beside either edge, or right-flush when
+	# the pan branch made room) — "somewhere on screen but away from the unit" is
+	# exactly the reported bug, so adjacency is the load-bearing assert.
+	var cam2 := Camera2D.new()
+	root.add_child(cam2)
+	cam2.make_current()
+	var grid2 := WallGrid.new()
+	root.add_child(grid2)
+	await process_frame
+	var cc2: RefCounted = CameraController.new()
+	cc2.setup(cam2, grid2)
+	var pv2_packed := load("res://scenes/ui/AttackPreview.tscn")
+	var pv2: Control = pv2_packed.instantiate()
+	root.add_child(pv2)
+	await process_frame
+	pv2.setup(cam2, grid2, cc2)
+	pv2.show()
+	pv2._size_panel_to_content()
+	await process_frame  # settle the panel's container minimum
+	var defender2 := Node2D.new()
+	root.add_child(defender2)
+	var view2: Vector2 = root.get_visible_rect().size
+	var margin2: float = float(AttackPreviewS.PANEL_MARGIN_PX)
+	var sweep_failed := 0
+	for wall_x in [0, 1, 2, WallGrid.MAP_W - 1]:
+		for zoom_idx in [5, 6, 7]:  # 2.0× / 3.0× / 4.0× — the high-zoom band
+			var t := Vector2i(wall_x, 13)
+			defender2.position = grid2.tile_to_world(t)
+			cc2.set_zoom_index(zoom_idx, t)
+			pv2._anchor_defender = defender2
+			pv2._reposition_for(defender2)
+			var tpx: float = float(GameConstants.TILE_SIZE) * cc2.get_zoom()
+			# Re-read AFTER placement — the pan branch may have moved the camera.
+			var dscr: Vector2 = defender2.get_global_transform_with_canvas().origin
+			var panel_sz: Vector2 = Vector2(pv2._panel.offset_right - pv2._panel.offset_left,
+				pv2._panel.offset_bottom - pv2._panel.offset_top)
+			var ppos: Vector2 = pv2._panel.position
+			var def_rect := Rect2(dscr, Vector2(tpx, tpx))
+			var in_view: bool = ppos.x >= 0.0 and ppos.y >= 0.0 \
+				and ppos.x + panel_sz.x <= view2.x and ppos.y + panel_sz.y <= view2.y
+			var clear2: bool = not Rect2(ppos, panel_sz).intersects(def_rect)
+			var beside_right: bool = absf(ppos.x - (dscr.x + tpx + margin2)) <= 1.0
+			var beside_left: bool = absf((ppos.x + panel_sz.x + margin2) - dscr.x) <= 1.0
+			var pan_flush: bool = absf(ppos.x - (view2.x - margin2 - panel_sz.x)) <= 1.0
+			if not (in_view and clear2 and (beside_right or beside_left or pan_flush)):
+				sweep_failed += 1
+				print("FAIL V027-03b wall sweep: tile=%s zoom=%.2f panel=%s size=%s def_screen=%s in_view=%s clear=%s right=%s left=%s pan=%s" % [
+					t, cc2.get_zoom(), ppos, panel_sz, dscr, in_view, clear2,
+					beside_right, beside_left, pan_flush])
+	if sweep_failed == 0:
+		print("OK  V027-03b wall sweep: panel adjacent + clear of defender on both walls at high zoom")
+		passed += 1
+	else:
+		failed += sweep_failed
+
+	# Same-frame placement after a cursor-driven scroll (keep_cursor_in_view):
+	# every other camera write callers read synchronously flushes the canvas
+	# transform (V026-03/04a); a placement in the same frame as a cursor scroll
+	# must see the settled view too, or the panel lands offset by the scroll delta.
+	cc2.set_zoom_index(7, Vector2i(20, 13))
+	await process_frame  # settle mid-map, far from the wall
+	var t_wall := Vector2i(0, 13)
+	defender2.position = grid2.tile_to_world(t_wall)
+	cc2.keep_cursor_in_view(t_wall, 2)  # cursor scroll to the left wall — no await
+	pv2._reposition_for(defender2)      # same-frame read
+	var tpx_w: float = float(GameConstants.TILE_SIZE) * cc2.get_zoom()
+	var dscr_w: Vector2 = defender2.get_global_transform_with_canvas().origin
+	var psize_w: Vector2 = Vector2(pv2._panel.offset_right - pv2._panel.offset_left,
+		pv2._panel.offset_bottom - pv2._panel.offset_top)
+	var ppos_w: Vector2 = pv2._panel.position
+	var clear_w: bool = not Rect2(ppos_w, psize_w).intersects(Rect2(dscr_w, Vector2(tpx_w, tpx_w)))
+	var beside_w: bool = absf(ppos_w.x - (dscr_w.x + tpx_w + margin2)) <= 1.0 \
+		or absf((ppos_w.x + psize_w.x + margin2) - dscr_w.x) <= 1.0 \
+		or absf(ppos_w.x - (view2.x - margin2 - psize_w.x)) <= 1.0
+	if clear_w and beside_w:
+		print("OK  V027-03b same-frame cursor-scroll placement reads a settled transform")
+		passed += 1
+	else:
+		print("FAIL V027-03b same-frame scroll: panel=%s size=%s def_screen=%s clear=%s beside=%s" % [
+			ppos_w, psize_w, dscr_w, clear_w, beside_w])
+		failed += 1
+	pv2.queue_free(); cam2.queue_free(); grid2.queue_free(); defender2.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
