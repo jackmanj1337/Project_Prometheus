@@ -351,6 +351,19 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
 			_on_danger_zone_press()
+	elif event is InputEventJoypadButton:
+		# Gamepad arm of the danger-zone resolver (gamepad plan §4): a pad-bound
+		# show_danger_zone press (R3) routes through the SAME resolver as Q/MMB,
+		# and peek_range gets press/release parity. Without this branch the
+		# key/mouse type gates above silently drop all joypad events. The
+		# project.godot joypad bindings land with gamepad plan slice 1.
+		if event.pressed:
+			if event.is_action_pressed("show_danger_zone"):
+				_on_danger_zone_press()
+			elif event.is_action_pressed("peek_range"):
+				_begin_peek()
+		elif event.is_action_released("peek_range"):
+			_end_peek()
 
 
 # [TUR-3] The single danger-zone resolver — MMB / show_danger_zone (and, later,

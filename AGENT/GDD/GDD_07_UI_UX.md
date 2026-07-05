@@ -84,8 +84,10 @@ Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
 authored as a placeholder colour; the "D" marker is the live-verify pass)
 Last verified: 2026-07-05
 
-The `show_danger_zone` action (MMB / Q, gamepad R3 later) drives two orthogonal
-pieces of state through one resolver, in the free cursor state only:
+The `show_danger_zone` action (MMB / Q; the input path also routes a pad-bound
+gamepad R3 press, though the pad binding itself lands with the gamepad layer's
+binding slice) drives two orthogonal pieces of state through one resolver, in
+the free cursor state only:
 
 - **Watch set** — a persistent set of hostile, attack-capable enemies the player
   hand-picks. The resolver over such an enemy toggles its membership (stored as

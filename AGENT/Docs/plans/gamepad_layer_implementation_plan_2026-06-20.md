@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Target design
-Last verified: 2026-06-23
+Last verified: 2026-07-05
 ---
 
 # Gamepad Input Layer — Implementation Plan — 2026-06-20
@@ -129,6 +129,15 @@ enemy → toggle it in a persistent watch set; over empty terrain → cycle the 
 plan's slice 4 is now unblocked**: bind R3 through `MapCursor._on_danger_zone_press()`
 (R3-over-enemy edits the set, R3-over-empty cycles the mode) — no new threat logic needed.
 (Binding note: the action is **MMB**, not RMB — see that design §3.)
+
+**Engine-side routing LANDED (2026-07-05).** `MapCursor._input` now routes
+`InputEventJoypadButton` presses through `show_danger_zone` → `_on_danger_zone_press()`
+(and `peek_range` press/release), closing the key/mouse type gate that silently dropped
+pad events. Covered by simulated-pad tests in `test_map_cursor.gd` (R3 bound at test
+runtime). Slice 4's **remaining work is only the §3 data edit** — the real
+`project.godot` joypad bindings land with slice 1 so all actions are wired once.
+(`peek_range` postdates the §1 locked action map and still needs a pad home when
+slice 1 wires bindings.)
 
 ## 5. Map-cursor input rebuild — NOT a data edit (Rebuilds A + B)
 

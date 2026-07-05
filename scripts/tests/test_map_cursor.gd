@@ -729,6 +729,76 @@ func _init() -> void:
 	else:
 		print("FAIL [TUR] resolver not gated outside FREE"); failed += 1
 
+	# ---- Simulated gamepad R3 routing (gamepad plan §4 slice 4, engine side) ----
+	# The real project.godot joypad bindings land with gamepad slice 1; here we
+	# bind R3 → show_danger_zone at test runtime and prove _input routes a raw
+	# InputEventJoypadButton through the same resolver as Q/MMB (the key/mouse
+	# type gates used to silently drop all pad events).
+	var r3_bind := InputEventJoypadButton.new()
+	r3_bind.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_bind.device = -1
+	InputMap.action_add_event("show_danger_zone", r3_bind)
+	var r3_press := InputEventJoypadButton.new()
+	r3_press.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_press.pressed = true
+
+	# R3 over empty terrain cycles the mode.
+	c10._state = FREE
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = Vector2i(5, 0)
+	c10._input(r3_press)
+	var pad_cycle := c10._danger_mode == "full" and c10._watch_set.is_empty()
+
+	# R3 over a hostile enemy toggles watch membership with auto-promote/demote.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position
+	c10._input(r3_press)
+	var pad_added := c10._watch_set.has("enemyA") and c10._danger_mode == "selected"
+	c10._input(r3_press)
+	var pad_removed := not c10._watch_set.has("enemyA") and c10._danger_mode == "none"
+
+	# An R3 RELEASE (pressed=false) must not fire the resolver.
+	var r3_release := InputEventJoypadButton.new()
+	r3_release.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_release.pressed = false
+	c10._input(r3_release)
+	var pad_release_inert := c10._watch_set.is_empty() and c10._danger_mode == "none"
+
+	# Suppressed input (menu open etc.) swallows pad presses like key/mouse.
+	c10._input_suppressed = true
+	c10._input(r3_press)
+	var pad_suppressed := c10._watch_set.is_empty() and c10._danger_mode == "none"
+	c10._input_suppressed = false
+	if pad_cycle and pad_added and pad_removed and pad_release_inert and pad_suppressed:
+		print("OK  [PAD] simulated R3 routes through the danger-zone resolver (cycle/toggle/release/suppress)"); passed += 1
+	else:
+		print("FAIL [PAD] R3 routing: cycle=%s add=%s rm=%s release=%s suppress=%s" % [
+			pad_cycle, pad_added, pad_removed, pad_release_inert, pad_suppressed]); failed += 1
+	InputMap.action_erase_event("show_danger_zone", r3_bind)
+
+	# Pad peek parity: a pad-bound peek_range press arms the peek, release ends
+	# it (the pad button choice is test-local; peek's real pad home is undecided).
+	var peek_bind := InputEventJoypadButton.new()
+	peek_bind.button_index = JOY_BUTTON_LEFT_STICK
+	peek_bind.device = -1
+	InputMap.action_add_event("peek_range", peek_bind)
+	var peek_press := InputEventJoypadButton.new()
+	peek_press.button_index = JOY_BUTTON_LEFT_STICK
+	peek_press.pressed = true
+	var peek_release := InputEventJoypadButton.new()
+	peek_release.button_index = JOY_BUTTON_LEFT_STICK
+	peek_release.pressed = false
+	c10.current_tile = enemyA.tile_position
+	c10._input(peek_press)
+	var pad_peek_on := c10._peek_active and not c10._peek_move.is_empty()
+	c10._input(peek_release)
+	var pad_peek_off := not c10._peek_active and c10._peek_move.is_empty()
+	if pad_peek_on and pad_peek_off:
+		print("OK  [PAD] simulated pad peek_range press arms hover-peek, release clears it"); passed += 1
+	else:
+		print("FAIL [PAD] pad peek: on=%s off=%s" % [pad_peek_on, pad_peek_off]); failed += 1
+	InputMap.action_erase_event("peek_range", peek_bind)
+
 	# ---- [MRD-2] hover-to-peek range (B6-MRD slice 3) ----
 	c10._danger_mode = "none"; c10._watch_set.clear()
 	c10._state = FREE
