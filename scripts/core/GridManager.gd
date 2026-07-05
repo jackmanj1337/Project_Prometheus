@@ -514,6 +514,63 @@ const OVERLAY_BLUE := 0
 const OVERLAY_RED := 1
 const OVERLAY_HEAL := 2
 const OVERLAY_DARK_RED := 3
+# [TUR-2] The watch-set threat layer — a distinct DARKER red so a hand-picked
+# enemy's threat reads inside the broader faction cloud. Adding source 4 to the
+# overlay TileMapLayer's TileSet is an editor step (the code constant is here).
+const OVERLAY_DARKER_RED := 4
+
+
+# ── [MRD-1] Overlay precedence registry ──────────────────────────────────────
+# Every overlay shares ONE overlay TileMapLayer, so paint ORDER decides the
+# winner of a shared cell (the last set_cell wins). Instead of hardcoding that
+# order in each repaint — a z-order match every new overlay would have to edit —
+# layers register {precedence, blend} here and painters iterate in ASCENDING
+# precedence (lower first, higher on top so it wins shared cells).
+#   blend=true  → coexists with lower layers (move/attack/heal range + threat).
+#   blend=false → an exclusive opaque top layer (hover-peek, path arrows).
+# Adding an overlay (healing zones, objective markers, …) is a registration, not
+# a repaint edit ([EXT], Q10 watchout).
+const OVERLAY_LAYER_MOVE := "move_range"
+const OVERLAY_LAYER_ATTACK := "attack_range"
+const OVERLAY_LAYER_HEAL := "heal_range"
+const OVERLAY_LAYER_FACTION_THREAT := "faction_threat"
+const OVERLAY_LAYER_WATCH_THREAT := "watch_threat"
+const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"
+const OVERLAY_LAYER_PATH_ARROWS := "path_arrows"
+
+static var _overlay_registry: Dictionary = {}
+
+
+# Seed the built-in layers once. Precedence gaps of 10 leave room to slot future
+# overlays between the existing ones without renumbering.
+static func _ensure_overlay_registry() -> void:
+	if not _overlay_registry.is_empty():
+		return
+	register_overlay_layer(OVERLAY_LAYER_MOVE, 10, true)
+	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10, true)
+	register_overlay_layer(OVERLAY_LAYER_HEAL, 10, true)
+	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20, true)
+	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30, true)
+	# Slices 3-4 register these as exclusive opaque top layers.
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100, false)
+	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, false)
+
+
+static func register_overlay_layer(layer_id: String, precedence: int, blend: bool = true) -> void:
+	_overlay_registry[layer_id] = {"precedence": precedence, "blend": blend}
+
+
+static func overlay_layer_precedence(layer_id: String) -> int:
+	_ensure_overlay_registry()
+	if _overlay_registry.has(layer_id):
+		return int(_overlay_registry[layer_id]["precedence"])
+	push_warning("GridManager: unregistered overlay layer '%s' — painting it last" % layer_id)
+	return 1 << 30  # unregistered layers paint last
+
+
+static func overlay_layer_blends(layer_id: String) -> bool:
+	_ensure_overlay_registry()
+	return _overlay_registry.has(layer_id) and bool(_overlay_registry[layer_id]["blend"])
 
 
 func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:
@@ -521,6 +578,24 @@ func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:
 		return
 	for t in tiles:
 		_overlay.set_cell(t, source_id, Vector2i.ZERO)
+
+
+# [MRD-1] Repaint the shared overlay from a set of layers, in registered
+# precedence order (ascending) so higher-precedence layers win shared cells.
+# `layer_specs` maps a registered layer_id -> { "tiles": Array[Vector2i],
+# "source": int }. Clears first, so passing {} turns the overlay off.
+func repaint_overlays(layer_specs: Dictionary) -> void:
+	if _overlay == null:
+		return
+	_overlay.clear()
+	var ids: Array = layer_specs.keys()
+	ids.sort_custom(func(a, b): return overlay_layer_precedence(a) < overlay_layer_precedence(b))
+	for id in ids:
+		var spec: Dictionary = layer_specs[id]
+		var tiles: Array[Vector2i] = []
+		if spec.has("tiles"):
+			tiles.assign(spec["tiles"])
+		_paint_overlay(tiles, int(spec.get("source", OVERLAY_DARK_RED)))
 
 
 func show_movement_overlay(tiles: Array[Vector2i]) -> void:

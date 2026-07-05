@@ -119,17 +119,16 @@ is contextual:
 - **R3, cursor over a specific enemy** → that enemy's individual threat range
   (**does not exist** — this is the UI/UX backlog item "individual unit threat range").
 
-**Prerequisite dependency edge:** the per-enemy contextual mode requires implementing
-per-unit threat-range computation + render first. **Now designed:**
-`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` — it extracts the per-unit
-primitive (`get_unit_threat_tiles`) and defines a shared **resolver** routing the
-`show_danger_zone` action by cursor context: **over a hostile enemy → toggle it in a
-persistent watch set; over empty terrain → cycle the display mode** (`full | selected |
-combined | none`). The same resolver serves the mouse MMB and the gamepad R3, so R3-over-
-enemy edits the set and R3-over-empty cycles the mode. That design's slices 1–2 are the
-prerequisite; this plan's slice 4 = its slice 3 (bind R3 through the resolver). Until those
-land, R3 binds to the faction-wide path only. (Binding note: the action is **MMB**, not RMB
-— see that design §3.)
+**Prerequisite dependency edge — SATISFIED (2026-07-05).** The per-enemy contextual mode
+required per-unit threat computation + the shared resolver first;
+`AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` designed it and
+**`B6-MRD` slices 1–2 have now landed** (`get_unit_threat_tiles` on `GridManager`; the
+`show_danger_zone` resolver on `MapCursor` routing by cursor context — **over a hostile
+enemy → toggle it in a persistent watch set; over empty terrain → cycle the display mode**
+`none|full|selected|combined`). The same resolver already serves the mouse MMB, so **this
+plan's slice 4 is now unblocked**: bind R3 through `MapCursor._on_danger_zone_press()`
+(R3-over-enemy edits the set, R3-over-empty cycles the mode) — no new threat logic needed.
+(Binding note: the action is **MMB**, not RMB — see that design §3.)
 
 ## 5. Map-cursor input rebuild — NOT a data edit (Rebuilds A + B)
 

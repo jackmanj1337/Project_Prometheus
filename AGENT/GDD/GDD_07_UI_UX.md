@@ -48,15 +48,17 @@ All input is handled through Godot's **Input Map** (defined in Project Settings)
 | `cancel` | X, Escape | Right Click |
 | `next_unit` | Tab | — |
 | `prev_unit` | Shift + Tab | — |
-| `show_danger_zone` | Q (toggle) | Middle Click (toggle) |
+| `show_danger_zone` | Q (threat resolver) | Middle Click (threat resolver) |
 | `inspect_unit` | I | — |
 | `more_info` | F | — |
 | `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
 | `open_settings` | O | — |
 | `debug_toggle_hotseat_override` | F9 | — |
 
-`show_danger_zone` is a **toggle** (press once to show the enemy threat area,
-again to hide it) and works only in the free cursor state. `open_settings`
+`show_danger_zone` is the **threat resolver** (free cursor state only, see
+*Threat Overlay* below): over a hostile attack-capable enemy it toggles that
+enemy's membership in a persistent **watch set**; over empty/terrain it cycles
+the **danger mode**. `open_settings`
 opens the Settings screen during a map (see Map Menu / Settings Screen below).
 `debug_toggle_hotseat_override` is debug-build-only; it temporarily routes every
 faction through hotseat control for live testing and is listed in the debug HUD
@@ -74,6 +76,35 @@ banner as `hotseat-all` while active.
 - **Hovering** over a tile with the mouse moves the cursor to that tile instantly
   (no movement delay — cursor teleports to hovered tile)
 - Mouse and keyboard cursor control can be mixed freely at any time
+
+### Threat Overlay
+
+Status: **Implemented** (watch set + mode cycle; darker-red watch tile art +
+the "D" marker are the live-verify presentation pass)
+Last verified: 2026-07-05
+
+The `show_danger_zone` action (MMB / Q, gamepad R3 later) drives two orthogonal
+pieces of state through one resolver, in the free cursor state only:
+
+- **Watch set** — a persistent set of hostile, attack-capable enemies the player
+  hand-picks. The resolver over such an enemy toggles its membership (stored as
+  stable unit ids, so a defeated enemy is pruned and a suspend save can
+  round-trip them). Each watched enemy shows a small **"D"** marker on its tile.
+- **Danger mode** — the overlay display mode, one of exactly **`none`**,
+  **`full`**, **`selected`**, **`combined`**. The resolver over empty terrain
+  cycles `full → selected → combined → none` (starting from `none → full`).
+  - `full` paints every hostile enemy's threat (dark red).
+  - `selected` paints the watch set's threat (a distinct darker red).
+  - `combined` paints both, with the watch set winning shared cells.
+  - `none` paints no threat.
+
+Adding a member auto-promotes the mode on the empty→non-empty transition
+(`none→selected`, `full→combined`); removing the last member auto-demotes it
+(`selected→none`, `combined→full`). The overlays share one layer, ordered by the
+[MRD-1] overlay precedence registry (range < faction threat < watch threat <
+opaque top layers). The set + mode survive phase changes, menus, and unit
+selection (teardown clears only the paint; a return to the free state recomputes
+it from current positions); a map load clears them.
 
 ### Cursor Key Repeat
 When a directional key is held:
@@ -709,8 +740,8 @@ the cursor to that tile, and a second left-click/tap on the same tile confirms.
 In click mode, clicking the terrain panel cycles More Info pages
 Hidden → Description → Movement → Hidden. `Off` (`"disabled"`) ignores mouse
 motion entirely in every state, so stray bumps cannot nudge the cursor during
-keyboard play (PT4 #1). Right-click/cancel and middle-click danger toggling stay
-intentional mouse actions. Legacy values still load: `"enabled"` → `"follow"`;
+keyboard play (PT4 #1). Right-click/cancel and the middle-click threat resolver
+(see *Threat Overlay*) stay intentional mouse actions. Legacy values still load: `"enabled"` → `"follow"`;
 old `mouse_targeting="snap"` → `"click"`.
 
 **Auto End Turn** (`auto_end_turn`, default `true`) — when On, the acting human

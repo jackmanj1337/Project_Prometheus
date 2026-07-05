@@ -628,23 +628,106 @@ func _init() -> void:
 			fwd_ok, back_ok, back2_ok, wrap_ok])
 		failed += 1
 
-	# ---- danger-zone toggle (#12) + FREE-state gating (#13) ----
+	# ---- [TUR] threat watch-set + danger-mode resolver (B6-MRD slice 2, #12/#13) ----
+	_gs.all_units.clear()
 	var t10 := TurnManager.new(); root.add_child(t10)
 	var c10 := _make_cursor(t10)
 	c10._state = FREE
-	c10._toggle_danger_zone()         # off → on
-	var dz_on := c10._danger_zone_shown
-	c10._toggle_danger_zone()         # on → off
-	var dz_off := not c10._danger_zone_shown
-	c10._state = UNIT_SELECTED
-	c10._toggle_danger_zone()         # gated while a unit is selected — stays off
-	var dz_gated := not c10._danger_zone_shown
-	if dz_on and dz_off and dz_gated:
-		print("OK  danger zone toggles in FREE, ignored while a unit is selected")
-		passed += 1
+	var enemyA := _make_unit(Vector2i(1, 1), "red"); enemyA.data.unit_id = "enemyA"
+	var enemyB := _make_unit(Vector2i(4, 4), "red"); enemyB.data.unit_id = "enemyB"
+	_make_unit(Vector2i(2, 2), "blue").data.unit_id = "ally1"
+
+	# Press routing: MMB over empty terrain cycles the mode (start none→full).
+	c10.current_tile = Vector2i(5, 0)
+	c10._on_danger_zone_press()
+	var route_cycle := c10._danger_mode == "full" and c10._watch_set.is_empty()
+
+	# MMB over a hostile enemy edits the watch set + auto-promote/demote.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position
+	c10._on_danger_zone_press()
+	var added := c10._watch_set.has("enemyA")
+	var promoted := c10._danger_mode == "selected"          # none→selected on first add
+	c10._on_danger_zone_press()
+	var removed := not c10._watch_set.has("enemyA")
+	var demoted := c10._danger_mode == "none"               # selected→none on last remove
+	if route_cycle and added and promoted and removed and demoted:
+		print("OK  [TUR] resolver: empty cycles mode; enemy edits watch-set + auto-promote/demote"); passed += 1
 	else:
-		print("FAIL danger toggle: on=%s off=%s gated=%s" % [dz_on, dz_off, dz_gated])
-		failed += 1
+		print("FAIL [TUR] resolver: cycle=%s add=%s promo=%s rm=%s demo=%s" % [
+			route_cycle, added, promoted, removed, demoted]); failed += 1
+
+	# Two-member watch set: threat union + a "D" marker on each watched tile.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	c10.current_tile = enemyB.tile_position; c10._on_danger_zone_press()
+	var two_members := c10._watch_set.size() == 2
+	var watch_tiles := c10._watch_set_threat_tiles()
+	var union_ok := watch_tiles.has(Vector2i(0, 1)) and watch_tiles.has(Vector2i(3, 4))
+	var markers := c10._watched_marker_tiles()
+	var marker_ok := markers.has(Vector2i(1, 1)) and markers.has(Vector2i(4, 4))
+	if two_members and union_ok and marker_ok:
+		print("OK  [TUR] two-member watch set unions threat + marks both tiles"); passed += 1
+	else:
+		print("FAIL [TUR] watch set: n=%d union=%s markers=%s" % [
+			c10._watch_set.size(), union_ok, marker_ok]); failed += 1
+
+	# full→combined on first add; combined→full on last remove (faction layer kept).
+	c10._danger_mode = "full"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	var full_to_combined := c10._danger_mode == "combined"
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	var combined_to_full := c10._danger_mode == "full" and c10._watch_set.is_empty()
+	if full_to_combined and combined_to_full:
+		print("OK  [TUR] auto-promote full→combined, demote combined→full"); passed += 1
+	else:
+		print("FAIL [TUR] full/combined: f2c=%s c2f=%s" % [full_to_combined, combined_to_full]); failed += 1
+
+	# Manual mode cycle over empty terrain: full→selected→combined→none→full.
+	c10._danger_mode = "full"; c10._watch_set.clear()
+	c10.current_tile = Vector2i(5, 0)
+	c10._on_danger_zone_press(); var m1 := c10._danger_mode
+	c10._on_danger_zone_press(); var m2 := c10._danger_mode
+	c10._on_danger_zone_press(); var m3 := c10._danger_mode
+	c10._on_danger_zone_press(); var m4 := c10._danger_mode
+	if m1 == "selected" and m2 == "combined" and m3 == "none" and m4 == "full":
+		print("OK  [TUR] mode cycles full→selected→combined→none→full"); passed += 1
+	else:
+		print("FAIL [TUR] cycle: %s→%s→%s→%s" % [m1, m2, m3, m4]); failed += 1
+
+	# Prune-on-death: a watched enemy dying is removed + auto-demotes if last.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()  # {enemyA}, selected
+	enemyA.data.hp = 0
+	c10._on_unit_died(enemyA)
+	var pruned := not c10._watch_set.has("enemyA")
+	var death_demote := c10._danger_mode == "none"
+	if pruned and death_demote:
+		print("OK  [TUR] prune-on-death removes the watched enemy + auto-demotes"); passed += 1
+	else:
+		print("FAIL [TUR] prune-on-death: pruned=%s demote=%s" % [pruned, death_demote]); failed += 1
+	enemyA.data.hp = 20
+
+	# Persistence: teardown clears the paint but RETAINS _watch_set + _danger_mode.
+	c10._danger_mode = "combined"; c10._watch_set.clear(); c10._watch_set["enemyB"] = true
+	c10._clear_overlay_paint()
+	var retained := c10._danger_mode == "combined" and c10._watch_set.has("enemyB")
+	c10._state = FREE
+	c10.repaint()  # return to FREE recomputes without error
+	if retained:
+		print("OK  [TUR] teardown clears paint but retains watch-set + mode"); passed += 1
+	else:
+		print("FAIL [TUR] state not retained through teardown"); failed += 1
+
+	# FREE-state gating (#13): the resolver is a no-op outside FREE.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10._state = UNIT_SELECTED
+	c10.current_tile = enemyB.tile_position
+	c10._on_danger_zone_press()
+	if c10._watch_set.is_empty() and c10._danger_mode == "none":
+		print("OK  [TUR] danger-zone resolver ignored while a unit is selected (#13)"); passed += 1
+	else:
+		print("FAIL [TUR] resolver not gated outside FREE"); failed += 1
 
 	# ---- open_settings hotkey: locks the cursor and opens Settings (#3) ----
 	var t11 := TurnManager.new(); root.add_child(t11)

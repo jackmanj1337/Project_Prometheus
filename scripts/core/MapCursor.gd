@@ -64,8 +64,28 @@ var _input_handler: MapCursorInput = MapCursorInput.new()
 @export var promotion_screen: Node = null
 @export var reclass_screen: Node = null
 
-# Whether the danger zone overlay is currently displayed
-var _danger_zone_shown: bool = false
+# ── [TUR] Threat watch-set + danger-mode (B6-MRD slice 2) ────────────────────
+# _danger_mode: which threat overlay the danger-zone action currently shows. A
+# fixed value-set (guarded by check_docs against GDD_07). MMB over empty terrain
+# cycles it; the manual cycle order is DANGER_MODE_CYCLE.
+const DANGER_MODE_NONE := "none"
+const DANGER_MODE_FULL := "full"
+const DANGER_MODE_SELECTED := "selected"
+const DANGER_MODE_COMBINED := "combined"
+const DANGER_MODE_CYCLE: Array[String] = [
+	DANGER_MODE_FULL, DANGER_MODE_SELECTED, DANGER_MODE_COMBINED, DANGER_MODE_NONE,
+]
+# The full danger-mode value-set as string literals — the parseable source of
+# truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the
+# mouse_cursor value-set check).
+const VALID_DANGER_MODES: Array[String] = ["none", "full", "selected", "combined"]
+var _danger_mode: String = DANGER_MODE_NONE
+# Hand-picked hostile enemies whose threat the player is watching, stored as
+# stable unit ids (not refs) so a defeated enemy prunes cleanly and a save can
+# round-trip them ([TUR-3]/[TUR-4]). Used as a set: id -> true.
+var _watch_set: Dictionary = {}
+# World-space container for the watched-enemy "D" markers ([TUR-2]); built lazily.
+var _watch_marker_layer: Node2D = null
 # True while the level-up screen is on-screen. Suppresses all cursor input
 # independently of _state, so a post-combat _finish_action setting _state=FREE
 # can't re-enable the cursor underneath the level-up screen (#12).
@@ -114,6 +134,8 @@ func _ready() -> void:
 		bus.promotion_finished.connect(_on_level_up_finished)
 		bus.reclass_started.connect(_on_level_up_started)
 		bus.reclass_finished.connect(_on_level_up_finished)
+		# Prune a defeated enemy from the threat watch set ([TUR-4]).
+		bus.unit_died.connect(_on_unit_died)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -301,27 +323,209 @@ func _input(event: InputEvent) -> void:
 			# Clear cursor key-repeat when the held direction key is released.
 			_input_handler.note_key_released(event)
 		elif not event.echo and event.is_action_pressed("show_danger_zone"):
-			_toggle_danger_zone()
+			_on_danger_zone_press()
 	elif event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_MIDDLE:
-			_toggle_danger_zone()
+			_on_danger_zone_press()
 
 
-# Flips the enemy danger-zone overlay on/off (#12). Available only in the FREE
-# cursor state: while a unit is selected the overlay layer is showing that unit's
-# movement range, and the danger zone would wipe it (#13).
-func _toggle_danger_zone() -> void:
+# [TUR-3] The single danger-zone resolver — MMB / show_danger_zone (and, later,
+# gamepad R3 through the same path). FREE state only (a selected unit's move
+# range owns the overlay otherwise, #13). Over a hostile attack-capable enemy it
+# toggles that enemy's watch-set membership; over anything else it cycles the
+# display mode. Then repaints from current positions.
+func _on_danger_zone_press() -> void:
 	if _grid == null or _state != State.FREE:
 		return
-	if _danger_zone_shown:
-		_grid.clear_overlays()
-		_danger_zone_shown = false
+	var u := _grid.get_unit_at(current_tile)
+	if u != null and _is_watchable_enemy(u):
+		_toggle_watch_member(u)
 	else:
-		# Paint from the perspective of the active controlling faction so a
-		# hotseat green player sees green's threats, not blue's (code review
-		# 2026-06-10 issue 2.4).
-		_grid.show_enemy_danger_zone(_controlling_faction)
-		_danger_zone_shown = true
+		_cycle_danger_mode()
+	repaint()
+
+
+# A hostile, living, attack-capable enemy the player can add to the watch set.
+# Attack-capability reuses get_unit_threat_tiles (empty for a healer/dead unit).
+func _is_watchable_enemy(u: Node) -> bool:
+	if u == null or not ("team" in u) or u.data == null or u.data.hp <= 0:
+		return false
+	if not _is_hostile_to_controller(u):
+		return false
+	return not _grid.get_unit_threat_tiles(u).is_empty()
+
+
+func _is_hostile_to_controller(u: Node) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("are_hostile"):
+		return gs.are_hostile(_controlling_faction, u.team)
+	return u.team != _controlling_faction  # headless fallback (binary hostility)
+
+
+# Add/remove an enemy from _watch_set, auto-promoting/demoting the mode on the
+# empty<->non-empty transition without clobbering a faction layer already up.
+func _toggle_watch_member(u: Node) -> void:
+	var id: String = u.data.unit_id
+	if id == "":
+		return
+	var was_empty := _watch_set.is_empty()
+	if _watch_set.has(id):
+		_watch_set.erase(id)
+	else:
+		_watch_set[id] = true
+	if was_empty and not _watch_set.is_empty():
+		# First enemy added: none→selected, full→combined ([TUR-4]).
+		if _danger_mode == DANGER_MODE_NONE:
+			_danger_mode = DANGER_MODE_SELECTED
+		elif _danger_mode == DANGER_MODE_FULL:
+			_danger_mode = DANGER_MODE_COMBINED
+	elif not was_empty and _watch_set.is_empty():
+		# Last enemy removed: selected→none, combined→full.
+		_auto_demote_on_empty()
+
+
+func _auto_demote_on_empty() -> void:
+	if _danger_mode == DANGER_MODE_SELECTED:
+		_danger_mode = DANGER_MODE_NONE
+	elif _danger_mode == DANGER_MODE_COMBINED:
+		_danger_mode = DANGER_MODE_FULL
+
+
+# MMB over empty terrain cycles full→selected→combined→none→full (start none→full).
+func _cycle_danger_mode() -> void:
+	var i := DANGER_MODE_CYCLE.find(_danger_mode)
+	_danger_mode = DANGER_MODE_CYCLE[(i + 1) % DANGER_MODE_CYCLE.size()]
+
+
+# [TUR] Recompute + paint the threat overlay from _danger_mode + _watch_set (in
+# the registry's precedence order so watch wins shared cells in `combined`), then
+# the watched-enemy markers. Recomputes from CURRENT positions, so it is never
+# stale after enemies move. Called after every edit and on return to FREE.
+func repaint() -> void:
+	if _grid == null:
+		return
+	_prune_watch_set()
+	var specs: Dictionary = {}
+	var show_faction := _danger_mode == DANGER_MODE_FULL or _danger_mode == DANGER_MODE_COMBINED
+	var show_watch := _danger_mode == DANGER_MODE_SELECTED or _danger_mode == DANGER_MODE_COMBINED
+	if show_faction:
+		specs[GridManager.OVERLAY_LAYER_FACTION_THREAT] = {
+			"tiles": _grid.get_enemy_danger_tiles(_controlling_faction),
+			"source": GridManager.OVERLAY_DARK_RED,
+		}
+	if show_watch:
+		specs[GridManager.OVERLAY_LAYER_WATCH_THREAT] = {
+			"tiles": _watch_set_threat_tiles(),
+			"source": GridManager.OVERLAY_DARKER_RED,
+		}
+	_grid.repaint_overlays(specs)
+	_render_watch_markers()
+
+
+# The living units whose ids are in _watch_set, resolved from GameState.
+func _watched_units() -> Array:
+	var out: Array = []
+	var gs := get_node_or_null("/root/GameState")
+	var units: Variant = gs.get("all_units") if gs != null else null
+	if not (units is Array):
+		return out
+	for u in units:
+		if u == null or u.data == null:
+			continue
+		if _watch_set.has(u.data.unit_id) and u.data.hp > 0:
+			out.append(u)
+	return out
+
+
+func _watch_set_threat_tiles() -> Array[Vector2i]:
+	var seen: Dictionary = {}
+	for u in _watched_units():
+		for t in _grid.get_unit_threat_tiles(u):
+			seen[t] = true
+	var out: Array[Vector2i] = []
+	for t in seen.keys():
+		out.append(t)
+	return out
+
+
+# Drop ids for enemies no longer present/alive; auto-demote if that empties the
+# set. Keeps the persistent set honest across phases, deaths, and (later) loads.
+func _prune_watch_set() -> void:
+	if _watch_set.is_empty():
+		return
+	var present: Dictionary = {}
+	var gs := get_node_or_null("/root/GameState")
+	var units: Variant = gs.get("all_units") if gs != null else null
+	if units is Array:
+		for u in units:
+			if u != null and u.data != null and u.data.hp > 0:
+				present[u.data.unit_id] = true
+	var removed_any := false
+	for id in _watch_set.keys():
+		if not present.has(id):
+			_watch_set.erase(id)
+			removed_any = true
+	if removed_any and _watch_set.is_empty():
+		_auto_demote_on_empty()
+
+
+# A watched enemy died — prune it (repaint only while its overlay could show).
+func _on_unit_died(_unit: Node) -> void:
+	if _watch_set.is_empty():
+		return
+	_prune_watch_set()
+	if _state == State.FREE:
+		repaint()
+
+
+# ── [TUR-2] Watched-enemy "D" markers ────────────────────────────────────────
+# Rendered whenever the set is non-empty, independent of _danger_mode, so the
+# player always sees which enemies are watched. Placeholder glyph — flagged for
+# the UI polish pass to review (likely an eye icon).
+func _watched_marker_tiles() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for u in _watched_units():
+		out.append(u.tile_position)
+	return out
+
+
+func _render_watch_markers() -> void:
+	if _watch_marker_layer == null:
+		_watch_marker_layer = Node2D.new()
+		_watch_marker_layer.name = "WatchMarkers"
+		# Parent under the (static, world-origin) grid when it's in the tree so the
+		# markers sit in world space and don't ride the moving cursor.
+		if _grid != null and _grid.is_inside_tree():
+			_grid.add_child(_watch_marker_layer)
+		elif get_parent() != null:
+			get_parent().add_child(_watch_marker_layer)
+		else:
+			add_child(_watch_marker_layer)
+	_clear_watch_markers()
+	if _grid == null:
+		return
+	for tile in _watched_marker_tiles():
+		var lbl := Label.new()
+		lbl.text = "D"
+		lbl.position = _grid.tile_to_world(tile) \
+			+ Vector2(GameConstants.TILE_SIZE * 0.6, GameConstants.TILE_SIZE * 0.5)
+		_watch_marker_layer.add_child(lbl)
+
+
+func _clear_watch_markers() -> void:
+	if _watch_marker_layer == null:
+		return
+	for c in _watch_marker_layer.get_children():
+		c.queue_free()
+
+
+# Clears the danger-overlay PAINT (and markers) but RETAINS _watch_set +
+# _danger_mode, so a teardown (selection, enemy phase, menu) hides the visual
+# while a later return-to-FREE repaint recomputes it fresh ([TUR] §5).
+func _clear_overlay_paint() -> void:
+	if _grid != null:
+		_grid.clear_overlays()
+	_clear_watch_markers()
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
@@ -567,12 +771,10 @@ func _is_cursor_on_empty_tile() -> bool:
 
 
 func _try_select_unit_at_cursor() -> void:
-	# A shown danger zone shares the one overlay layer with the selection overlays.
-	# Clear it before selecting so it can't bleed through the move range (#13).
-	if _danger_zone_shown:
-		if _grid != null:
-			_grid.clear_overlays()
-		_danger_zone_shown = false
+	# The danger overlay shares the one overlay layer with the selection overlays.
+	# Clear the paint before selecting so it can't bleed through the move range
+	# (#13); _watch_set + _danger_mode are retained and repaint on return to FREE.
+	_clear_overlay_paint()
 	# MapCursorSelection does the grid validation + overlay painting; the FSM state
 	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
 	if _selection.select_at(current_tile):
@@ -605,6 +807,7 @@ func _deselect() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
+	repaint()  # back to FREE: restore any retained threat overlay
 
 
 # ── State: UNIT_MOVED — ActionMenu dispatch ──────────────────────────────────
@@ -1187,17 +1390,15 @@ func _on_unit_details_closed() -> void:
 func lock() -> void:
 	_state = State.LOCKED
 	_input_handler.clear_repeat()
-	# Drop the danger zone when input is suppressed (map menu, enemy phase) — it is
-	# a FREE-state toggle, and leaving it painted would show a stale threat area
-	# after enemies move during their phase.
-	if _danger_zone_shown:
-		if _grid != null:
-			_grid.clear_overlays()
-		_danger_zone_shown = false
+	# Clear the danger-overlay paint when input is suppressed (map menu, enemy
+	# phase) so a stale threat area isn't shown after enemies move; the watch-set
+	# and mode are retained and repainted on return to FREE.
+	_clear_overlay_paint()
 
 
 func unlock() -> void:
 	_state = State.FREE
+	repaint()  # back to FREE: recompute the retained threat overlay from current positions
 
 
 # Called by TurnManager when a temporary debug controller handoff ends. It backs
@@ -1220,11 +1421,10 @@ func cancel_transient_control_for_handoff() -> void:
 	if _state == State.UNIT_MOVED or _state == State.TARGETING:
 		_selection.undo_and_reselect()
 	_selection.clear()
-	if _danger_zone_shown and _grid != null:
-		_grid.clear_overlays()
-	_danger_zone_shown = false
+	_clear_overlay_paint()
 	_input_suppressed = false
 	_state = State.FREE
+	repaint()  # back to FREE: restore any retained threat overlay
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()

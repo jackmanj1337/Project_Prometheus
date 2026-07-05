@@ -27,6 +27,7 @@ Checks:
  19. Archive marks — archive/ docs carry a marker; Superseded targets resolve (DSR-4)
  20. Control plane — tracker rows use the ratified schema, prefixes, and valid Track IDs
  21. Autoload order — project.godot satisfies the Band 1/2 cross-plan autoload contracts
+ 22. Danger vox   — GDD_07 documents every MapCursor.VALID_DANGER_MODES value ([TUR])
 """
 
 import re
@@ -710,6 +711,36 @@ def check_mouse_cursor_modes() -> None:
                   f"GDD_07 must document mouse_cursor mode `{mode}`")
 
 
+def check_danger_mode_vocabulary() -> None:
+    """[TUR] _danger_mode is a fixed value-set — GDD_07 must document every value.
+
+    The threat overlay's danger mode (B6-MRD slice 2) is one of a small fixed set
+    (none|full|selected|combined). Mirrors the mouse_cursor value-set check [14]:
+    parse the literal source-of-truth const and assert GDD_07 names each value, so
+    a new mode can't land in code yet go undocumented.
+    """
+    cursor = ROOT / "scripts/core/MapCursor.gd"
+    values = _parse_gd_string_array(cursor, "VALID_DANGER_MODES")
+    if values is None:
+        _fail("danger-mode-vocab", cursor, 1, "could not parse VALID_DANGER_MODES")
+        return
+    expected = ["none", "full", "selected", "combined"]
+    if sorted(values) != sorted(expected):
+        _fail("danger-mode-vocab", cursor, 1,
+              f"VALID_DANGER_MODES must be {expected}, got {values}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        _fail("danger-mode-vocab", gdd, 1, "GDD_07_UI_UX.md not found")
+        return
+    for value in values:
+        if f"`{value}`" not in content:
+            _fail("danger-mode-vocab", gdd, 1,
+                  f"GDD_07 must document danger mode `{value}`")
+
+
 def check_duration_type_vocabulary() -> None:
     """V021-09: GDD_07 must document every GameConstants.VALID_DURATION_TYPES value.
 
@@ -888,6 +919,7 @@ def main() -> None:
         ("[19] Archive markers",           check_archive_markers),
         ("[20] Project control plane",     check_control_plane_schema),
         ("[21] Autoload order",            check_autoload_order),
+        ("[22] Danger-mode vocabulary",    check_danger_mode_vocabulary),
     ]
     for label, fn in steps:
         print(f"  {label}...")

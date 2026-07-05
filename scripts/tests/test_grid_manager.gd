@@ -328,5 +328,36 @@ func get_equipped_weapon(): return _w
 		print("FAIL [TUR-1] healer threat: staff=%s tiles=%d" % [
 			staff, tgrid.get_unit_threat_tiles(healer).size()]); failed += 1
 
+	# --- [MRD-1] overlay precedence registry ---
+	# The watch layer must out-rank the faction layer (wins shared cells in
+	# `combined`); range layers sit below both (they blend under threat).
+	var p_move := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_MOVE)
+	var p_faction := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_FACTION_THREAT)
+	var p_watch := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_WATCH_THREAT)
+	if p_move < p_faction and p_faction < p_watch:
+		print("OK  [MRD-1] built-in overlay precedence: move < faction < watch"); passed += 1
+	else:
+		print("FAIL [MRD-1] precedence order: move=%d faction=%d watch=%d" % [p_move, p_faction, p_watch]); failed += 1
+
+	# Adding an overlay is a REGISTRATION, not a repaint edit: a fixture layer
+	# registered between faction and watch reports its precedence and sorts there.
+	GridManager.register_overlay_layer("fixture_healing_zone", 25, true)
+	var p_fix := GridManager.overlay_layer_precedence("fixture_healing_zone")
+	var layer_ids := [
+		GridManager.OVERLAY_LAYER_WATCH_THREAT, "fixture_healing_zone",
+		GridManager.OVERLAY_LAYER_MOVE, GridManager.OVERLAY_LAYER_FACTION_THREAT,
+	]
+	layer_ids.sort_custom(func(a, b): return GridManager.overlay_layer_precedence(a) < GridManager.overlay_layer_precedence(b))
+	var order_ok: bool = layer_ids[0] == GridManager.OVERLAY_LAYER_MOVE \
+		and layer_ids[1] == GridManager.OVERLAY_LAYER_FACTION_THREAT \
+		and layer_ids[2] == "fixture_healing_zone" \
+		and layer_ids[3] == GridManager.OVERLAY_LAYER_WATCH_THREAT
+	# An unregistered layer sorts last (paints on top).
+	var p_unknown := GridManager.overlay_layer_precedence("never_registered")
+	if p_fix == 25 and order_ok and p_unknown > p_watch:
+		print("OK  [MRD-1] a newly-registered layer slots by precedence (no repaint edit)"); passed += 1
+	else:
+		print("FAIL [MRD-1] fixture layer: p=%d order=%s unknown=%d" % [p_fix, order_ok, p_unknown]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
