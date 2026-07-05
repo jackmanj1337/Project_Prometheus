@@ -1,7 +1,7 @@
 ---
 Type: playtest
-Status: Returned results - obvious fixes IMPLEMENTED 2026-07-04 (decisions in `AGENT/Code Reviews/playtest_v0.2.6_triage_review_2026-07-04.md`); next = owner walkthrough, then cut the rerun build
-Last verified: 2026-07-04
+Status: Returned results - obvious fixes IMPLEMENTED 2026-07-04; owner walkthrough of Q1-Q7 COMPLETE 2026-07-05 (decisions in `AGENT/Code Reviews/playtest_v0.2.6_triage_review_2026-07-04.md`); next = cut the v0.2.7 rerun build
+Last verified: 2026-07-05
 ---
 
 # v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04
@@ -181,10 +181,15 @@ return before promoting it).
 1. ~~Implement the mechanical fixes~~ — DONE this session (commits in the session
    note 2026-07-04h): V026-01a/b/c, V026-03/04a flush, V026-04b dashes,
    V026-05c follow_focus. Full suite green.
-2. **Owner walkthrough of the review doc** (Q1-Q7) — decides the Back-button
-   model, the portable-log strategy, picker sizing, promotion re-trigger,
-   victory-screen stacking, and what (if anything) is pulled forward from the
-   UI-pass list.
+2. ~~Owner walkthrough of the review doc~~ — DONE 2026-07-05. Decisions
+   (full table in the review doc): **Q1 A** flicker/truncation → v0.2.7 handbook
+   asks; **Q2 C** Back-button keyboard access DEFERRED to `B6-INPUT` /
+   `UI-INSPECTION` (not special-cased now); **Q3 A** drop `._sc_`, document
+   `%APPDATA%` as primary; **Q4 A** cheap picker cap bump now, redesign stays with
+   `UI-INSPECTION`; **Q5 A** recoverable-promotion action lands with the
+   `B2-ACTION-EFFECT`/`[SAC]` registry, not a hardcoded row; **Q6 A** victory
+   waits for the progression queue to drain (own control-plane slice, does NOT
+   block the display gate); **Q7 A** lift the display digest into handbook §1.6.
 3. **Cut the rerun build** (v0.2.7) after the walkthrough: Part I shrinks to
    §1.1 (first-apply centering + padding + hotseat row), §1.3/§1.4 at high
    zoom, plus whatever Q-fixes land. §3.2 keeps the `%APPDATA%` path as the
