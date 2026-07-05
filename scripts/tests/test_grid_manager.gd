@@ -359,5 +359,26 @@ func get_equipped_weapon(): return _w
 	else:
 		print("FAIL [MRD-1] fixture layer: p=%d order=%s unknown=%d" % [p_fix, order_ok, p_unknown]); failed += 1
 
+	# --- [MRD-1] repaint_overlays paints in precedence order onto a real overlay ---
+	# With the source-4 darker-red watch tile authored, verify the whole
+	# precedence→paint path: watch (src 4) wins a cell shared with faction (src 3).
+	var pgrid := GridManager.new()
+	var ov := TileMapLayer.new()
+	ov.tile_set = load("res://assets/overlay_tileset.tres")
+	pgrid._overlay = ov
+	var faction_tiles: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)]
+	var watch_tiles: Array[Vector2i] = [Vector2i(1, 0)]  # overlaps faction at (1,0)
+	pgrid.repaint_overlays({
+		GridManager.OVERLAY_LAYER_FACTION_THREAT: {"tiles": faction_tiles, "source": GridManager.OVERLAY_DARK_RED},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {"tiles": watch_tiles, "source": GridManager.OVERLAY_DARKER_RED},
+	})
+	var shared_src := ov.get_cell_source_id(Vector2i(1, 0))       # watch wins → 4
+	var faction_only_src := ov.get_cell_source_id(Vector2i(0, 0)) # faction → 3
+	if shared_src == GridManager.OVERLAY_DARKER_RED and faction_only_src == GridManager.OVERLAY_DARK_RED:
+		print("OK  [MRD-1] repaint_overlays: watch (src4) wins the shared cell, faction (src3) elsewhere"); passed += 1
+	else:
+		print("FAIL [MRD-1] paint order: shared=%d faction=%d" % [shared_src, faction_only_src]); failed += 1
+	ov.free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

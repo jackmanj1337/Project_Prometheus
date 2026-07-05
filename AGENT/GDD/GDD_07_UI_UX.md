@@ -80,8 +80,8 @@ banner as `hotseat-all` while active.
 
 ### Threat Overlay
 
-Status: **Implemented** (watch set + mode cycle; darker-red watch tile art +
-the "D" marker are the live-verify presentation pass)
+Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
+authored as a placeholder colour; the "D" marker is the live-verify pass)
 Last verified: 2026-07-05
 
 The `show_danger_zone` action (MMB / Q, gamepad R3 later) drives two orthogonal

@@ -13,7 +13,7 @@ const TERRAIN_SOURCES := [
 	"plain", "forest", "mountain", "fort", "sea", "desert", "wall"
 ]
 const OVERLAY_SOURCES := [
-	"blue", "red", "green", "dark_red"
+	"blue", "red", "green", "dark_red", "darker_red"
 ]
 
 

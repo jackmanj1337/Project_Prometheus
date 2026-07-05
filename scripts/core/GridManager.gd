@@ -515,8 +515,9 @@ const OVERLAY_RED := 1
 const OVERLAY_HEAL := 2
 const OVERLAY_DARK_RED := 3
 # [TUR-2] The watch-set threat layer — a distinct DARKER red so a hand-picked
-# enemy's threat reads inside the broader faction cloud. Adding source 4 to the
-# overlay TileMapLayer's TileSet is an editor step (the code constant is here).
+# enemy's threat reads inside the broader faction cloud. Source 4 is authored in
+# assets/overlay_tileset.tres (generate_tilesets.gd OVERLAY_SOURCES[4] =
+# "darker_red"; placeholder colour from generate_placeholder_assets.gd).
 const OVERLAY_DARKER_RED := 4
 
 

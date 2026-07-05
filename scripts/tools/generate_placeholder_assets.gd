@@ -23,7 +23,10 @@ const OVERLAY_COLORS := {
 	"blue":     Color(0.30, 0.50, 1.00, 0.45),  # movement
 	"red":      Color(1.00, 0.30, 0.30, 0.45),  # attack
 	"green":    Color(1.00, 0.55, 0.10, 0.45),  # heal — orange for contrast (#6)
-	"dark_red": Color(0.55, 0.10, 0.10, 0.45),  # enemy danger
+	"dark_red": Color(0.55, 0.10, 0.10, 0.45),  # enemy danger (faction threat, src 3)
+	# Watch-set threat (src 4, [TUR-2]) — a darker, more opaque red so a hand-picked
+	# enemy's threat reads distinctly INSIDE the broader dark_red faction cloud.
+	"darker_red": Color(0.32, 0.00, 0.00, 0.60),
 }
 
 # Unit sprite colors (simple rectangle by team for now)
