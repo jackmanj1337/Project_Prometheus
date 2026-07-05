@@ -233,5 +233,47 @@ func _init() -> void:
 	else:
 		print("SKIP open()/back visibility (SettingsManager autoload absent)")
 
+	# ---- V027-04b: Resolution dropdown renders a write-back as "Custom (WxH)" ----
+	# A non-preset saved resolution (OS drag write-back, Q5) must show as a
+	# trailing display-only Custom item — the old find() silently selected the
+	# first preset. A live resolution_written_back re-syncs while the screen is
+	# open, and returning to a preset drops the Custom item again.
+	var sm_res := root.get_node_or_null("SettingsManager")
+	if sm_res != null:
+		var opt_res: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxResolution/OptResolution")
+		var preset_count: int = 0
+		for s in screen._ENUM_SETTINGS:
+			if String(s["key"]) == "resolution":
+				preset_count = (s["values"] as Array).size()
+		var prev_res: String = String(sm_res.get("resolution"))
+		var prev_mode: String = String(sm_res.get("window_mode"))
+		sm_res.set("window_mode", "windowed")
+		sm_res.set("resolution", "1800x1013")
+		screen.open()
+		var custom_ok: bool = opt_res.item_count == preset_count + 1 \
+			and opt_res.selected == preset_count \
+			and opt_res.get_item_text(preset_count) == "Custom (1800x1013)"
+		# A write-back landing while the screen is open re-syncs the dropdown.
+		sm_res.set("resolution", "1920x1080")
+		sm_res.emit_signal("resolution_written_back")
+		var resync_ok: bool = opt_res.item_count == preset_count and opt_res.selected == 2
+		# Re-opening on a preset keeps the plain preset list.
+		sm_res.set("resolution", "1280x720")
+		screen.open()
+		var preset_ok: bool = opt_res.item_count == preset_count and opt_res.selected == 0
+		sm_res.set("resolution", prev_res)
+		sm_res.set("window_mode", prev_mode)
+		screen._on_back()
+		if custom_ok and resync_ok and preset_ok:
+			print("OK  V027-04b Resolution dropdown: Custom item for write-backs, live re-sync")
+			passed += 1
+		else:
+			print("FAIL V027-04b dropdown: custom=%s resync=%s preset=%s items=%d sel=%d" % [
+				custom_ok, resync_ok, preset_ok, opt_res.item_count, opt_res.selected])
+			failed += 1
+	else:
+		print("SKIP V027-04b dropdown (SettingsManager autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
