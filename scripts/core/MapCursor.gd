@@ -111,6 +111,9 @@ var _input_suppressed: bool = false
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
 var _context_menu_anchor: Dictionary = {}
+# True while a deferred re-anchor pass is pending (V027-03b): rapid zoom steps
+# coalesce into one next-frame re-place instead of stacking awaits.
+var _reanchor_queued: bool = false
 
 
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
@@ -1018,13 +1021,16 @@ func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) 
 		menu_size = menu.get_combined_minimum_size()
 	if menu is Control:
 		menu_size *= (menu as Control).scale
-	# Offset the menu one tile off the unit, but CAP the gap at one unzoomed tile
-	# (V025-03): at high zoom a full magnified tile (tile_px) launched the menu far
-	# from the unit and made it jitter, so cap the added gap so it hugs the unit.
+	# Anchor to the tile's FAR edge plus a small constant gap (V027-02), the same
+	# model AttackPreview._reposition_for() uses. The tile-width term must scale
+	# with zoom (screen_pos is the tile's top-LEFT corner; the menu goes beyond the
+	# far edge), but the gap past the edge stays constant — V025-03's real intent.
+	# Capping the whole offset at one unzoomed tile made the menu sit INSIDE the
+	# zoomed tile at zoom > 1, drifting over the unit (v0.2.7 §1.3).
 	var tile_px: float = float(GameConstants.TILE_SIZE)
 	if _camera != null and _camera.zoom.x > 0.0:
 		tile_px *= _camera.zoom.x
-	var gap_px: float = minf(tile_px, float(GameConstants.TILE_SIZE)) + 4.0
+	const EDGE_GAP_PX := 4.0
 	# Side stickiness (V025-03): keep the side chosen last time this same menu was
 	# placed (only across REPOSITIONS — a fresh open resets to the right), and only
 	# flip when the sticky side genuinely no longer fits. Without this, a small
@@ -1033,8 +1039,8 @@ func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) 
 	if not remember_anchor and _context_menu_anchor.get("menu", null) == menu:
 		sticky_side = String(_context_menu_anchor.get("side", ""))
 	var side: String = sticky_side if sticky_side != "" else "right"
-	var right_x: float = screen_pos.x + gap_px
-	var left_x: float = screen_pos.x - menu_size.x
+	var right_x: float = screen_pos.x + tile_px + EDGE_GAP_PX
+	var left_x: float = screen_pos.x - menu_size.x - EDGE_GAP_PX
 	# Flip only when the preferred side can't fit at all.
 	if side == "right" and right_x + menu_size.x > view.x:
 		side = "left"
@@ -1052,7 +1058,20 @@ func _place_menu_near(menu: Node, tile: Vector2i, remember_anchor: bool = true) 
 
 # The shared zoom-reposition hook: re-anchors the open context menu AND the visible
 # attack preview (V025-04c) so both track their unit when the map zoom changes.
+# Runs once now, then once more one frame later (V027-03b belt-and-braces): any
+# transform or layout change that lands after this call heals automatically — the
+# automated version of the tester's manual "zoom past max" no-op re-place.
 func _reposition_context_menu_anchor() -> void:
+	_reposition_anchors_now()
+	if _reanchor_queued or not is_inside_tree():
+		return
+	_reanchor_queued = true  # coalesce: rapid zoom steps share one deferred pass
+	await get_tree().process_frame
+	_reanchor_queued = false
+	_reposition_anchors_now()
+
+
+func _reposition_anchors_now() -> void:
 	# Re-anchor the combat preview beside its defender (no-op when hidden).
 	if attack_preview != null and attack_preview.has_method("reposition"):
 		attack_preview.reposition()

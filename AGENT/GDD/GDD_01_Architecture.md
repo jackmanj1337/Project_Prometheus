@@ -1106,6 +1106,19 @@ decoration margin (`SettingsManager.windowed_client_size_for_screen`, V023-06). 
 monitor-size output is reserved for Borderless (`WINDOW_MODE_FULLSCREEN`) and Fullscreen
 (`WINDOW_MODE_EXCLUSIVE_FULLSCREEN`), which are separate code paths.
 
+**OS drag-resize write-back (V027-04b, Q5 owner decision).** While windowed, an OS
+resize (edge drag / maximize) **writes the actual client size back into the saved
+resolution** and persists it (`SettingsManager.apply_resize_write_back`, announced via
+`resolution_written_back`); the Resolution dropdown shows a non-preset value as a
+trailing display-only `Custom (WxH)` item, dropped again when a preset is picked.
+Programmatic resizes are excluded by comparing against the size `_apply_display`
+requested, and a drag never re-centres the window. Detection rides the viewport
+`size_changed` hook (V027-04a) that also re-applies Menu Scale after any resize
+(deferred + coalesced). Outside Windowed mode the Resolution dropdown is **disabled**
+with the readout pinned to the native display size; the saved request is preserved and
+the row re-enables intact on return to Windowed (V027-05c, Q6). Player-facing detail:
+`AGENT/Docs/guides/display_and_settings_guide.md`.
+
 **Confirm-or-revert on risky display changes.** Changing window mode or resolution
 applies the new mode immediately (so the player can see it) but **defers the save
 behind a 15-second confirm dialog** (`DisplayConfirmDialog`): Keep persists it, while

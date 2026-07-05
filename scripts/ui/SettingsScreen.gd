@@ -187,6 +187,9 @@ func _ready() -> void:
 	_slider_menu_scale.drag_ended.connect(_on_menu_scale_drag_ended)
 	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
+	# V027-04b: follow OS drag-resize write-backs live while the screen is open.
+	if sm_for_display != null and sm_for_display.has_signal("resolution_written_back"):
+		sm_for_display.connect("resolution_written_back", _on_resolution_written_back)
 	_populate_keybindings()
 	super._ready()
 
@@ -211,7 +214,13 @@ func open() -> void:
 	_slider_menu_scale.value = sm.get("menu_scale_index")
 	_label_menu_scale.text   = _menu_scale_label(sm, sm.get("menu_scale_index"))
 	# Schema-driven enum settings: select the index of the stored value (B5).
+	# Resolution re-syncs through its own helper — the saved value can be a
+	# non-preset "WxH" written back from an OS drag (V027-04b/Q5), which the
+	# plain find() would silently render as the first preset.
 	for s in _ENUM_SETTINGS:
+		if String(s["key"]) == "resolution":
+			_sync_resolution_dropdown(sm)
+			continue
 		var btn: OptionButton = _vbox.get_node(s["node"])
 		var values: Array = s["values"]
 		btn.selected = maxi(0, values.find(sm.get(s["key"])))
@@ -284,7 +293,9 @@ func _on_enum_setting_changed(index: int, schema_row: Dictionary) -> void:
 		return
 	var values: Array = schema_row["values"]
 	if index < 0 or index >= values.size():
-		return  # defensive — OptionButton.item_selected should always be in range
+		# Out-of-schema index: either defensive, or the trailing display-only
+		# "Custom (WxH)" resolution item (V027-04b) — already the current value.
+		return
 	# Risky display changes (resolution / window mode) apply immediately but defer the
 	# save behind a confirm-or-revert dialog, so a setting that blanks the screen
 	# auto-reverts (item 2 safety). Everything else saves straight away.
@@ -317,29 +328,81 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
 	add_child(dlg)
 	dlg.kept.connect(func() -> void:
-		sm.call("save"))
+		sm.call("save")
+		# Keeping a preset drops a leftover "Custom (WxH)" item (V027-04b).
+		if key == "resolution":
+			_sync_resolution_dropdown(sm))
 	dlg.reverted.connect(func() -> void:
 		sm.set(key, prev_value)
 		if schema_row.has("apply"):
 			sm.call(schema_row["apply"])
 		_refresh_applied_size()
 		# Cfg was never saved with the new value, so the restore is in-memory only.
-		var btn: OptionButton = _vbox.get_node(schema_row["node"])
-		btn.selected = maxi(0, prev_index))
+		# Resolution re-syncs through its helper — the previous value can be a
+		# non-preset write-back, which prev_index (find == -1) can't restore.
+		if key == "resolution":
+			_sync_resolution_dropdown(sm)
+		else:
+			var btn: OptionButton = _vbox.get_node(schema_row["node"])
+			btn.selected = maxi(0, prev_index))
 	dlg.start()
+
+
+# V027-04b (Q5): rebuilds the Resolution dropdown from the preset schema and
+# selects the saved value. A non-preset value (an OS drag-resize write-back)
+# gets a trailing display-only "Custom (WxH)" item; re-syncing after a preset
+# is chosen drops that item again. Selecting the Custom item itself is a no-op
+# (its index is outside the schema's values, which the generic handler ignores).
+func _sync_resolution_dropdown(sm: Object) -> void:
+	for s in _ENUM_SETTINGS:
+		if String(s["key"]) != "resolution":
+			continue
+		var btn: OptionButton = _vbox.get_node(s["node"])
+		_populate_option_button(btn, s["labels"])
+		var value: String = String(sm.get("resolution"))
+		var idx: int = (s["values"] as Array).find(value)
+		if idx >= 0:
+			btn.selected = idx
+		else:
+			btn.add_item("Custom (%s)" % value)
+			btn.selected = btn.item_count - 1
+		return
+
+
+# Live re-sync while the screen is open: an OS drag-resize wrote the applied
+# size into the saved resolution (V027-04b) — follow it in the dropdown/readout.
+func _on_resolution_written_back() -> void:
+	if not visible:
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		_sync_resolution_dropdown(sm)
+		_refresh_applied_size()
 
 
 # V025-06: in windowed mode the requested resolution is clamped into the screen's
 # usable rect (so a 4K request on a 4K panel yields a smaller window, with desktop
 # visible around it — working as designed). Show the actually-applied size next to the
-# Resolution dropdown so the clamp is self-explaining. Blank in fullscreen/borderless
-# (native size) or when the applied size equals the request.
+# Resolution dropdown so the clamp is self-explaining. Blank when the applied size
+# equals the request.
+# V027-05c (Q6): outside Windowed the dropdown is inert, so gray it out (the saved
+# request stays intact underneath and re-enables on return to Windowed) and pin the
+# readout to the native display size — the explainer text alone did not prevent the
+# "which resolution am I actually on?" confusion.
 func _refresh_applied_size() -> void:
 	if _label_resolution_applied == null:
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
-	if sm == null or String(sm.get("window_mode")) != "windowed":
+	if sm == null:
 		_label_resolution_applied.text = ""
+		return
+	var windowed: bool = String(sm.get("window_mode")) == "windowed"
+	_set_resolution_row_enabled(windowed)
+	if not windowed:
+		var native: Vector2i = DisplayServer.screen_get_size(
+			DisplayServer.window_get_current_screen())
+		_label_resolution_applied.text = \
+			"native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
 		return
 	var requested: Vector2i = sm.call("_parse_resolution", sm.get("resolution"))
 	var applied: Vector2i = sm.call("applied_windowed_size")
@@ -347,6 +410,14 @@ func _refresh_applied_size() -> void:
 		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
 	else:
 		_label_resolution_applied.text = ""
+
+
+func _set_resolution_row_enabled(enabled: bool) -> void:
+	for s in _ENUM_SETTINGS:
+		if String(s["key"]) == "resolution":
+			var btn: OptionButton = _vbox.get_node(s["node"])
+			btn.disabled = not enabled
+			return
 
 
 func _on_camera_buffer_changed(value: float) -> void:

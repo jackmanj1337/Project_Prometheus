@@ -6,6 +6,14 @@ extends SceneTree
 const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 
 
+# Counts group re-apply calls for the V027-04a resize-hook test.
+class ScaleTarget extends Control:
+	var calls: int = 0
+
+	func apply_menu_scale(_factor: float) -> void:
+		calls += 1
+
+
 # True when `action` has an InputEventKey bound to `keycode`.
 func _has_key(action: String, keycode: int) -> bool:
 	for ev in InputMap.action_get_events(action):
@@ -299,6 +307,81 @@ func _init() -> void:
 	else:
 		print("FAIL safe-area provider: zero=%s feed=%s" % [safe_zero_ok, safe_feed_ok])
 		failed += 1
+
+	# ---- V027-04b: OS drag-resize write-back core (Q5: full write-back) ----
+	# While windowed, an OS resize writes the actual client size into the saved
+	# resolution and announces it. The size _apply_display itself requested and
+	# degenerate sizes are ignored, so a dropdown apply never self-overwrites.
+	var sm_wb: Node = SettingsManagerS.new()
+	sm_wb.window_mode = "windowed"
+	sm_wb.resolution = "1280x720"
+	sm_wb._requested_window_size = Vector2i(1280, 720)
+	var wb_signals: Array = []
+	sm_wb.resolution_written_back.connect(func() -> void: wb_signals.append(true))
+	sm_wb.apply_resize_write_back(Vector2i(1280, 720))  # our own resize — no-op
+	var wb_own_ok: bool = sm_wb.resolution == "1280x720" and wb_signals.is_empty()
+	sm_wb.apply_resize_write_back(Vector2i.ZERO)        # degenerate — no-op
+	var wb_zero_ok: bool = sm_wb.resolution == "1280x720" and wb_signals.is_empty()
+	sm_wb.apply_resize_write_back(Vector2i(1800, 1013)) # an OS drag
+	var wb_written_ok: bool = sm_wb.resolution == "1800x1013" and wb_signals.size() == 1
+	# A second identical report (coalesced hook re-fires) is a no-op again.
+	sm_wb.apply_resize_write_back(Vector2i(1800, 1013))
+	var wb_repeat_ok: bool = wb_signals.size() == 1
+	# Persisted: a fresh instance loads the written-back custom size.
+	var sm_wb_reload: Node = SettingsManagerS.new()
+	sm_wb_reload.load_settings()
+	var wb_persist_ok: bool = sm_wb_reload.resolution == "1800x1013"
+	sm_wb_reload.free()
+	# Restore the cfg for anything loading it after this suite.
+	sm_wb.resolution = "1280x720"
+	sm_wb.save()
+	sm_wb.free()
+	if wb_own_ok and wb_zero_ok and wb_written_ok and wb_repeat_ok and wb_persist_ok:
+		print("OK  V027-04b write-back stores + persists OS sizes, skips our own resizes")
+		passed += 1
+	else:
+		print("FAIL V027-04b write-back: own=%s zero=%s written=%s repeat=%s persist=%s" % [
+			wb_own_ok, wb_zero_ok, wb_written_ok, wb_repeat_ok, wb_persist_ok])
+		failed += 1
+
+	# ---- V027-04a: viewport size_changed re-applies Menu Scale, coalesced ----
+	# Nothing re-applied Menu Scale on a window resize, so a post-resize content
+	# minimum change grew a live panel off-screen (v0.2.7 §1.6). The hook must fire
+	# the group re-apply, and many same-frame resize events (an OS drag) must
+	# coalesce into ONE deferred re-apply.
+	# Use the live autoload when present — adding a second SettingsManager would
+	# double-connect the hook and double-count the group calls. Autoloads only
+	# enter the tree after the first frame in --script mode, so settle first.
+	await process_frame
+	var sm_rz: Node = root.get_node_or_null("SettingsManager")
+	var sm_rz_owned: bool = false
+	if sm_rz == null:
+		sm_rz = SettingsManagerS.new()
+		root.add_child(sm_rz)  # _ready() connects viewport size_changed
+		sm_rz_owned = true
+		await process_frame
+	var scale_target := ScaleTarget.new()
+	scale_target.add_to_group("menu_scale_targets")
+	root.add_child(scale_target)
+	var calls_before: int = scale_target.calls
+	sm_rz.get_viewport().size_changed.emit()
+	sm_rz.get_viewport().size_changed.emit()
+	sm_rz.get_viewport().size_changed.emit()
+	await process_frame  # let the deferred re-apply run
+	var coalesced_ok: bool = scale_target.calls == calls_before + 1
+	sm_rz.get_viewport().size_changed.emit()
+	await process_frame
+	var refires_ok: bool = scale_target.calls == calls_before + 2
+	if coalesced_ok and refires_ok:
+		print("OK  V027-04a size_changed re-applies Menu Scale once per settled frame")
+		passed += 1
+	else:
+		print("FAIL V027-04a resize hook: before=%d after3=%d refire=%s" % [
+			calls_before, scale_target.calls, refires_ok])
+		failed += 1
+	scale_target.queue_free()
+	if sm_rz_owned:
+		sm_rz.queue_free()
 
 	sm.free()
 	# ---- [MRD-5] grid_dim round-trip + clamp + reset ----

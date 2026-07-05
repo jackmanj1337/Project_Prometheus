@@ -1,6 +1,6 @@
 # Display & Settings Guide
 
-**Last verified:** 2026-07-04
+**Last verified:** 2026-07-05
 
 Explains how the game's **window mode**, **resolution**, **OS display scaling**, and
 the on-disk **settings.cfg** interact — so window sizing that looks surprising (e.g. a
@@ -20,7 +20,10 @@ Three modes, chosen in Settings → Window Mode (`SettingsManager.window_mode`):
   ignored.
 
 Fullscreen/Borderless always match the monitor, so the Resolution setting only takes
-effect in Windowed mode.
+effect in Windowed mode. To make that self-evident in-game, the Resolution dropdown is
+**grayed out outside Windowed mode** and the readout beside it shows the **native
+display size** (`native WxH`); the saved request is preserved underneath and the row
+re-enables intact on switching back to Windowed (V027-05c, Q6).
 
 ## The windowed clamp (why a 4K window is smaller than the screen)
 
@@ -39,8 +42,30 @@ usable rect is the monitor minus a decoration margin (title bar + taskbar), so:
 Settings shows the actually-applied size next to the Resolution dropdown (e.g.
 `3840x2160 → applied 1904x1071`) so the clamp is self-explaining in-game
 (`SettingsManager.applied_windowed_size`). The window is re-centred on its screen after
-each resize (`window_centre_position`), clamped so a larger-than-screen window never
-centres its title bar off the top/left.
+each **setting-driven** resize — a Resolution/Window Mode apply (`window_centre_position`),
+clamped so a larger-than-screen window never centres its title bar off the top/left.
+An **OS drag-resize never re-centres** the window: you just placed it, moving it out from
+under you would be hostile. (An earlier playtest handbook claimed drag-resizes re-centre —
+that was wrong and is corrected here; V027-04b.)
+
+## OS drag-resize write-back (V027-04b, Q5 owner decision 2026-07-05)
+
+In Windowed mode, resizing the window **via the OS** (dragging an edge, maximizing)
+**writes the new client size back into the saved Resolution setting** — the setting
+follows reality rather than remembering a request the window no longer honours:
+
+- The write-back persists immediately (`SettingsManager.apply_resize_write_back`) and the
+  applied-size readout follows. Deliberate consequence (owner decision Q5→B): a drag
+  **overwrites** the previously chosen preset.
+- If the dragged size isn't one of the presets, the Resolution dropdown shows a trailing
+  display-only **`Custom (WxH)`** entry as the selected value. Picking any preset drops
+  the Custom entry again; selecting the Custom entry itself changes nothing (it *is* the
+  current value).
+- Programmatic resizes (applying the dropdown value) are excluded — the write-back only
+  fires when the size differs from what `_apply_display` itself requested, so a clamped
+  4K request does not overwrite itself with the clamped result.
+- Detection rides the same viewport `size_changed` hook that re-applies Menu Scale after
+  a resize (V027-04a), coalesced to one pass per settled frame.
 
 ## OS display scaling / DPI
 

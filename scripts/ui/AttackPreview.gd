@@ -97,6 +97,11 @@ var _can_counter: bool = false
 # context menus get (V025-04c). Cleared on hide so a stale defender is never used.
 var _anchor_defender: Node = null
 
+# Generation counter for the deferred sizing pass (V027-03a): each show_preview()
+# bumps it, so a re-pass that awakens after a newer show has taken over bails out
+# instead of restoring the panel alpha the newer pass is still holding at 0.
+var _deferred_show_id: int = 0
+
 
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
 	_camera = camera
@@ -205,6 +210,28 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	_anchor_defender = defender
 	_reposition_for(defender)
 	show()
+	_resize_after_layout()
+
+
+# Deferred second sizing pass (V027-03a): RichTextLabel content minimums read
+# INFLATED until one layout frame passes (the V025-05a first-show trap), so the
+# first open after boot froze an over-tall panel with dead tinted space under the
+# rows. Re-run size + placement one frame after every show; the panel is held
+# transparent for that frame so the over-tall frame never flashes on screen —
+# the same mitigation MenuScale.apply_to_deferred uses.
+func _resize_after_layout() -> void:
+	if not is_inside_tree():
+		return
+	_deferred_show_id += 1
+	var pass_id: int = _deferred_show_id
+	_panel.modulate.a = 0.0
+	await get_tree().process_frame
+	if pass_id != _deferred_show_id:
+		return  # a newer show owns the panel (and its alpha) now
+	if visible and _anchor_defender != null and is_instance_valid(_anchor_defender):
+		_size_panel_to_content()
+		_reposition_for(_anchor_defender)
+	_panel.modulate.a = 1.0
 
 
 func hide_preview() -> void:

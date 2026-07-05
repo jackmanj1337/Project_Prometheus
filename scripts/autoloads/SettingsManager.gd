@@ -37,13 +37,23 @@ var map_zoom_index: int = 3
 # preferences — they live on GameState, set via the New Game screen.
 
 # --- Display (Display & Accessibility items 2–3) ---
+# Emitted after an OS resize is written back into `resolution` (V027-04b/Q5) so
+# an open Settings screen can re-sync its Resolution dropdown + applied readout.
+signal resolution_written_back()
+
 # Window mode: "windowed" | "borderless" (windowed-fullscreen) | "fullscreen" (exclusive).
 var window_mode: String = "windowed"
 # Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
 # native screen size). Curated 16:9 list — the canvas_items + keep stretch letterboxes
 # any non-16:9 screen so absolute-offset scene nodes never push off-screen. 1440p/4K
 # are native desktop options (V021-19); all stay 16:9 so the stretch contract holds.
+# An OS drag-resize can also write a NON-preset "WxH" here (V027-04b/Q5 owner
+# decision: full write-back) — the Settings dropdown then shows it as "Custom".
 var resolution: String = "1280x720"
+# The client size _apply_display last requested (V027-04b): a size_changed that
+# matches it is our own programmatic resize; anything else while windowed is an
+# OS resize (edge drag / maximize) and gets written back into `resolution`.
+var _requested_window_size: Vector2i = Vector2i.ZERO
 const RESOLUTION_CHOICES: Array[String] = [
 	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
 ]
@@ -87,6 +97,12 @@ func _ready() -> void:
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 	_apply_grid_dim()
+	# V027-04a: nothing re-applied Menu Scale when the window size changed, so a
+	# post-resize content-minimum change (font re-measure under the new stretch
+	# scale) grew a live scroll-frame panel off-screen with nobody re-centering
+	# it — the V026-01a failure shape, resize-triggered. One hook self-heals this
+	# and every future "layout changed under a live menu" variant.
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 
 func load_settings() -> void:
@@ -259,6 +275,7 @@ func _apply_display() -> void:
 				var screen := DisplayServer.window_get_current_screen()
 				var usable := DisplayServer.screen_get_usable_rect(screen)
 				size = windowed_client_size_for_screen(size, usable.size)
+				_requested_window_size = size  # our resize — not an OS drag (V027-04b)
 				DisplayServer.window_set_size(size)
 				# Re-centre the window on its screen after a resize.
 				DisplayServer.window_set_position(window_centre_position(
@@ -339,11 +356,67 @@ func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
 
 
+# True while a deferred menu-scale re-apply is pending (V027-04a): an OS drag
+# fires many size_changed events, so they coalesce into one re-apply per settled
+# frame instead of one per event.
+var _menu_scale_reapply_queued: bool = false
+
+
+func _on_viewport_size_changed() -> void:
+	if _menu_scale_reapply_queued:
+		return
+	_menu_scale_reapply_queued = true
+	_reapply_menu_scale_after_resize.call_deferred()
+
+
+func _reapply_menu_scale_after_resize() -> void:
+	_menu_scale_reapply_queued = false
+	# Idempotent: apply_menu_scale overrides scale off each target's captured
+	# bases, so re-applying never compounds (the V021-08 contract).
+	_apply_menu_scale()
+	_maybe_write_back_os_resize()
+
+
+# V027-04b (Q5 owner decision: FULL write-back): while windowed, an OS resize
+# (edge drag, maximize) writes the actual client size back into the saved
+# resolution, so the setting follows reality. Programmatic resizes are excluded
+# by comparing against the size _apply_display requested. Deliberately NO
+# recentre here — re-centring a window the user just placed is hostile.
+func _maybe_write_back_os_resize() -> void:
+	# Headless has no real window (tests emit size_changed freely); web has no
+	# honourable window config at all.
+	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
+		return
+	if window_mode != "windowed":
+		return
+	var ds_mode := DisplayServer.window_get_mode()
+	if ds_mode != DisplayServer.WINDOW_MODE_WINDOWED \
+			and ds_mode != DisplayServer.WINDOW_MODE_MAXIMIZED:
+		return
+	apply_resize_write_back(DisplayServer.window_get_size())
+
+
+# The write-back core, split from the DisplayServer reads so it is testable
+# headless: records `actual` as the new saved resolution + request baseline,
+# persists it, and notifies listeners. No-op for degenerate sizes and for the
+# size we ourselves just requested.
+func apply_resize_write_back(actual: Vector2i) -> void:
+	if actual.x <= 0 or actual.y <= 0 or actual == _requested_window_size:
+		return
+	resolution = "%dx%d" % [actual.x, actual.y]
+	_requested_window_size = actual
+	save()
+	resolution_written_back.emit()
+
+
 # Scales menu/modal panels only. The root Window scale is reset to 1.0 so the HUD
 # stays at authored size unless the HUD Layout editor changes a specific panel.
 func _apply_menu_scale() -> void:
 	var win := get_window()
-	if win != null:
+	# Only write the reset when it changes something: Window.set_content_scale_factor
+	# emits size_changed even for a same-value write, which would re-queue the
+	# V027-04a resize hook forever (re-apply → size_changed → re-apply → …).
+	if win != null and win.content_scale_factor != 1.0:
 		win.content_scale_factor = 1.0
 	if is_inside_tree():
 		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_menu_scale())
