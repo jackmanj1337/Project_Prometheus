@@ -81,6 +81,12 @@ func _ready() -> void:
 	_apply_menu_scale()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
+	# V027-04a: nothing re-applied Menu Scale when the window size changed, so a
+	# post-resize content-minimum change (font re-measure under the new stretch
+	# scale) grew a live scroll-frame panel off-screen with nobody re-centering
+	# it — the V026-01a failure shape, resize-triggered. One hook self-heals this
+	# and every future "layout changed under a live menu" variant.
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 
 func load_settings() -> void:
@@ -328,11 +334,34 @@ func get_menu_scale() -> float:
 	return MENU_SCALE_LEVELS[clampi(menu_scale_index, 0, MENU_SCALE_LEVELS.size() - 1)]
 
 
+# True while a deferred menu-scale re-apply is pending (V027-04a): an OS drag
+# fires many size_changed events, so they coalesce into one re-apply per settled
+# frame instead of one per event.
+var _menu_scale_reapply_queued: bool = false
+
+
+func _on_viewport_size_changed() -> void:
+	if _menu_scale_reapply_queued:
+		return
+	_menu_scale_reapply_queued = true
+	_reapply_menu_scale_after_resize.call_deferred()
+
+
+func _reapply_menu_scale_after_resize() -> void:
+	_menu_scale_reapply_queued = false
+	# Idempotent: apply_menu_scale overrides scale off each target's captured
+	# bases, so re-applying never compounds (the V021-08 contract).
+	_apply_menu_scale()
+
+
 # Scales menu/modal panels only. The root Window scale is reset to 1.0 so the HUD
 # stays at authored size unless the HUD Layout editor changes a specific panel.
 func _apply_menu_scale() -> void:
 	var win := get_window()
-	if win != null:
+	# Only write the reset when it changes something: Window.set_content_scale_factor
+	# emits size_changed even for a same-value write, which would re-queue the
+	# V027-04a resize hook forever (re-apply → size_changed → re-apply → …).
+	if win != null and win.content_scale_factor != 1.0:
 		win.content_scale_factor = 1.0
 	if is_inside_tree():
 		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_menu_scale())
