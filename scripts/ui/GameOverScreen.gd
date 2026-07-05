@@ -14,6 +14,17 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
+# Victory/defeat presentation must sit UNDER pending level-ups and promotions, so
+# progression earned on the killing blow resolves before the battle ends
+# (V026-05d / B5-VICTORY-PROGRESSION-SEQ). CombatResolver awards EXP (→
+# level_up_started, and a queued promotion_available when auto-promote is on)
+# BEFORE handle_death fires unit_died → map_resolved, so by the time a result
+# lands one of these progression flags is already set. We hold the result and
+# present only once the level-up/promotion queue has drained.
+var _result_pending: bool = false
+var _level_up_active: bool = false
+var _promotion_active: bool = false
+
 
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
@@ -25,6 +36,11 @@ func _ready() -> void:
 		bus.map_victory.connect(_on_victory)
 		bus.map_defeat.connect(_on_defeat)
 		bus.map_resolved.connect(_on_map_resolved)
+		# Track the progression queue so presentation waits it out.
+		bus.level_up_started.connect(func(): _level_up_active = true)
+		bus.level_up_finished.connect(_on_level_up_finished)
+		bus.promotion_started.connect(func(): _promotion_active = true)
+		bus.promotion_finished.connect(_on_promotion_finished)
 	_apply_menu_scale_from_settings()
 
 
@@ -38,12 +54,12 @@ func _apply_menu_scale_from_settings() -> void:
 
 func _on_victory() -> void:
 	_title.text = "Victory!"
-	_show_overlay()
+	_request_present()
 
 
 func _on_defeat() -> void:
 	_title.text = "Defeat..."
-	_show_overlay()
+	_request_present()
 
 
 # M16 stage 4: paint the ranked standings under the title. Receives the same
@@ -54,6 +70,44 @@ func _on_map_resolved(winner_group: String, standings: Array) -> void:
 	if winner_group == "":
 		_title.text = "Draw"
 	_standings_label.text = _format_standings(winner_group, standings)
+	_request_present()
+
+
+# --- Present-after-progression gate (V026-05d) --------------------------------
+
+# Marks a result ready and tries to show it now. The common case (a victory with
+# no pending level-up/promotion) presents synchronously here, unchanged. When a
+# progression modal is up, presentation defers until the queue drains.
+func _request_present() -> void:
+	_result_pending = true
+	_try_present()
+
+
+# Shows the overlay only when no level-up/promotion is in flight. Idempotent: the
+# first successful call clears the pending flag so repeat/deferred calls are no-ops.
+func _try_present() -> void:
+	if not _result_pending:
+		return
+	if _level_up_active or _promotion_active:
+		return  # progression modal still up — re-checked when it finishes
+	_result_pending = false
+	_show_overlay()
+
+
+func _on_level_up_finished() -> void:
+	_level_up_active = false
+	# Defer the retry: a promotion queued behind this level-up starts SYNCHRONOUSLY
+	# during this same emit (PromotionScreen._on_level_up_finished → promotion_started),
+	# and signal-connection order is not guaranteed. Deferring lets that cascade set
+	# _promotion_active before we test, so we never present between the two modals.
+	if _result_pending:
+		call_deferred("_try_present")
+
+
+func _on_promotion_finished() -> void:
+	_promotion_active = false
+	if _result_pending:
+		call_deferred("_try_present")
 
 
 # Renders the standings as "N. <group label> [— turn X]" lines. The blue group

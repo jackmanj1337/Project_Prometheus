@@ -787,6 +787,13 @@ review 2026-06-14 #1) for resolution-robustness.
   (player unit stats and inventory are preserved from map start — not mid-map)
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
+- **Presents under pending progression** (`B5-VICTORY-PROGRESSION-SEQ`): a result that
+  lands while a level-up or promotion is still on screen is held, and the overlay appears
+  only once the level-up/promotion queue has drained — so progression earned on the
+  killing blow (kill → level up → promote → THEN victory) resolves first. `GameOverScreen`
+  tracks the `level_up_started/finished` + `promotion_started/finished` signals and defers
+  its present; a promotion queued behind a level-up starts synchronously during
+  `level_up_finished`, so the re-check is deferred a frame to let that cascade settle.
 - "Quit to Menu" resets map-scoped state and returns to `Boot.tscn`
 
 ---
