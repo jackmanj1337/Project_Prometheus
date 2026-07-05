@@ -1,6 +1,6 @@
 # v0.2.7 Playtest Triage — Owner Review Walkthrough - 2026-07-05
 
-Status: OPEN — awaiting owner walkthrough
+Status: RESOLVED — owner walkthrough complete 2026-07-05 (decisions below)
 Companion: `AGENT/Docs/playtests/playtest_v0.2.7_results_triage_plan_2026-07-05.md`
 (diagnosis + evidence per item; this doc holds the problems and the choices).
 
@@ -198,4 +198,32 @@ ordinary `menu_scale_targets` member today. Also: both v0.2.6 §1.1 loose ends
 
 ## Walkthrough Decisions
 
-_To be recorded during the owner walkthrough._
+Owner walkthrough 2026-07-05, one question at a time:
+
+- **Q1 → A.** Far-edge anchor + constant gap for `_place_menu_near()`, matching
+  AttackPreview's model; regression case at zoom 4 in `test_map_cursor.gd`.
+- **Q2 → A.** One-frame deferred re-pass after the forecast's first show
+  (hold-transparent mitigation as in `apply_to_deferred`).
+- **Q3 → A.** Repro-first: headless left-wall + max-zoom placement check in the
+  durable scene suite, fix what it shows; THEN the deferred one-frame re-anchor
+  after zoom repositions as belt-and-braces on both walls.
+- **Q4 → A.** SettingsManager connects viewport `size_changed` → deferred,
+  coalesced `_apply_menu_scale()`.
+- **Q5 → B (against recommendation A).** FULL WRITE-BACK: an OS drag-resize in
+  windowed mode writes the applied size back into the saved resolution setting,
+  and the readout follows; the Resolution dropdown gains a "Custom W×H" display
+  state for sizes not in the preset list. Accepted drawbacks: a drag overwrites
+  the previous request deliberately (owner prefers the handbook-promised
+  behaviour); custom-entry plumbing + persistence tests are in scope. Handbook
+  §1.6 stays as written EXCEPT the drag-triggered re-centre claim — recentre on
+  drag is NOT built (hostile to manual placement); correct that sentence.
+- **Q6 → A.** Outside Windowed: gray out the Resolution dropdown (saved request
+  preserved), applied readout shows "native W×H"; re-enable intact on return to
+  Windowed.
+- **Q7 → A.** Route both §1.1 notes to `UI-INSPECTION` (frame-size stability
+  across factors; MainMenu Menu-Scale exemption). Nothing built this cycle.
+  `V026-01d`/`V026-01e` close on this return.
+
+Build order (all on `docs-reorg-2026-06-23`, regression tests with each): Q1 →
+Q2 → Q3 (repro, fix, self-heal) → Q4 → Q5 (largest; includes handbook §1.6
+correction per DoD#1) → Q6; then cut **v0.2.8** as the §1.3/§1.4/§1.6 rerun.
