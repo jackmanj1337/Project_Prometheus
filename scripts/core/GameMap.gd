@@ -192,30 +192,45 @@ func _spawn_units() -> bool:
 			continue  # permadeath: skip dead units in future deployments
 		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
 
-	# Enemy/AI-controlled units: load each UnitData .tres referenced by
-	# enemy_placements. Optional placement key: "faction" (defaults to "red").
+	# Enemy/AI-controlled units. Each placement resolves to a UnitData via either
+	# an in-memory instance or a resource path (see _resolve_placement_unit_data).
+	# Optional placement key: "faction" (defaults to "red").
 	for placement in map_data.enemy_placements:
-		var path: String = placement.get("unit_data_path", "")
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
 		var faction_id: String = placement.get("faction", "red")
-		if path == "" or not ResourceLoader.exists(path):
-			push_warning("GameMap: bad enemy placement: " + str(placement))
-			continue
-		# ResourceLoader.exists() passed, but load() can still return null on a
-		# corrupt .tres — null-check before .duplicate() so we skip, not crash.
-		var loaded := load(path)
-		if loaded == null:
-			push_error("GameMap: failed to load enemy unit data at '%s' — skipping" % path)
-			continue
-		var u_data: UnitData = loaded.duplicate(true)  # fresh copy per map
+		var u_data: UnitData = _resolve_placement_unit_data(placement)
+		if u_data == null:
+			continue  # _resolve_placement_unit_data already logged why
 		u_data.ai_profile = placement.get("ai_profile", "basic")
 		# push_error + continue (not assert) so bad data is skipped in release
 		# builds, where assert() is stripped.
 		if u_data.unit_id == "":
-			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
+			push_error("GameMap: enemy placement has empty unit_id — set it on the UnitData: %s" % str(placement))
 			continue
 		_spawn_unit(u_data, tile, faction_id)
 	return true
+
+
+# [PUG-3] The spawn seam. An enemy placement carries EITHER an already-built
+# in-memory `unit_data` (generated skirmish forces, editor-baked units, mid-map
+# reinforcements) OR a `unit_data_path` resource path (authored maps). Returns a
+# fresh duplicate in both cases so the map owns its own copy; returns null (and
+# logs the reason) on bad data so the caller can skip, not crash.
+func _resolve_placement_unit_data(placement: Dictionary) -> UnitData:
+	var instance: UnitData = placement.get("unit_data", null) as UnitData
+	if instance != null:
+		return instance.duplicate(true)  # fresh copy per map
+	var path: String = placement.get("unit_data_path", "")
+	if path == "" or not ResourceLoader.exists(path):
+		push_warning("GameMap: bad enemy placement (no unit_data instance, missing/absent path): " + str(placement))
+		return null
+	# ResourceLoader.exists() passed, but load() can still return null on a
+	# corrupt .tres — null-check before .duplicate() so we skip, not crash.
+	var loaded := load(path)
+	if loaded == null:
+		push_error("GameMap: failed to load enemy unit data at '%s' — skipping" % path)
+		return null
+	return loaded.duplicate(true)  # fresh copy per map
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
