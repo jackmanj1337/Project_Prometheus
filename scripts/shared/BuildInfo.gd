@@ -33,8 +33,8 @@ static func load_info() -> Dictionary:
 
 # The startup stamp lines, written to the log by Boot so every log opens with the exact
 # build identity, a fresh run timestamp (proves the log was written THIS launch), and
-# the resolved user-data / log location (so a tester can always find the file — in a
-# self-contained build this points next to the exe).
+# the resolved user-data / log location (so a tester can always find the file — in an
+# exported build this is the OS user-data dir, e.g. %APPDATA%\...\logs\godot.log).
 static func stamp_lines() -> PackedStringArray:
 	var info := load_info()
 	# UTC ISO-8601; changes every launch so a stale log is obvious.

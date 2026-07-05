@@ -84,19 +84,16 @@ setting `debug/file_logging/enable_file_logging`, which **defaults to on for des
 (off on web/mobile); this project doesn't override it, so desktop builds log and web
 builds don't.
 
-- **Shipped builds are self-contained: the log lives NEXT TO THE EXE.** Release builds
-  ship a `._sc_` marker beside the executable (Godot self-contained mode), which
-  redirects `user://` — including `logs/godot.log` and `settings.cfg` — into a folder
-  next to the exe instead of `%APPDATA%`. So in a tester build, look in the game's own
-  folder: `<game folder>/…/logs/godot.log`.
-- **The log tells you where it is.** Every launch writes a `=== BUILD STAMP ===` block at
-  the top of `godot.log` with `user_data_dir=` and `log=` lines giving the exact resolved
-  paths, plus the build's version + git commit + a fresh `started_at` timestamp. If a
-  tester can open the log at all, the first lines say which build wrote it and where.
-- **Dev/editor runs are NOT self-contained** (no marker beside the editor binary), so
-  there the log stays at the OS location `user://logs/godot.log`:
+- **The log lives in the OS user-data dir (`%APPDATA%`), for both exported and dev/editor
+  runs.** Godot's self-contained (`._sc_`) marker is an editor/tools feature and is
+  ignored by exported projects, so `user://` — including `logs/godot.log` and
+  `settings.cfg` — resolves to the OS location, NOT next to the exe:
   - Windows: `%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs\godot.log`
   - Linux: `~/.local/share/godot/app_userdata/Fire Emblem RPG/logs/godot.log`
+- **The log tells you where it is.** Every launch writes a `=== BUILD STAMP ===` block at
+  the top of `godot.log` with `user_data_dir=` and `log=` lines giving the exact resolved
+  paths, plus the build's version + git commit + a fresh `started_at` timestamp. The
+  `log=` line is authoritative — a tester copies the exact path straight from it.
   - macOS: `~/Library/Application Support/Godot/app_userdata/Fire Emblem RPG/logs/godot.log`
 - **Rotation:** a fresh log starts each launch. Up to `max_log_files` (default **5**) are
   kept — the current run is `godot.log`, earlier runs are timestamped beside it in the
