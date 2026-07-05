@@ -114,6 +114,12 @@ per hovered unit and cached: moving the cursor to a *different* unit recomputes,
 staying on the same unit reuses the cache (no per-tick recompute). Releasing the
 key clears the peek and restores the threat overlay.
 
+**Movement path arrows.** While a unit is selected, a directional chain traces
+its cheapest path (`get_movement_path`) from the unit to the cursor tile, drawn
+above the blue move-range overlay. Only the path to the *current* cursor tile is
+recomputed as the cursor moves (no range recompute); it clears on move-commit or
+deselect. (Placeholder polyline render — UI polish may swap for arrow-tile art.)
+
 ### Cursor Key Repeat
 When a directional key is held:
 - First move: immediate
@@ -695,6 +701,7 @@ See GDD_01 → SettingsManager.
 │   Camera Edge Buffer [━━●━━━━] 2                  │
 │   Map Zoom           [━━●━━━━] 1.0x               │
 │   Menu Scale         [━━●━━━━] 1.0x               │
+│   Terrain Dim        [●━━━━━━] 0%                 │
 │   ─────────────────────────────────────────       │
 │   Controls                                        │
 │   Move Up               W / Up                    │
@@ -957,6 +964,11 @@ The accessibility and parity contract the UI must honor across input methods and
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
   immediately when a map is active and persists through `SettingsManager`; see
   `GDD_01_Architecture.md` §Camera Zoom.
+- **Terrain Dim** (`grid_dim`, 0%–50%, [MRD-5]): a Settings slider fades the terrain
+  `TileMapLayer` only (units + overlays stay full opacity) so threat/range overlays
+  read more clearly against busy terrain. Applied live to every layer in the
+  `grid_dim_target` group via `SettingsManager.set_grid_dim`; persists like the other
+  display floats. Default 0% (no dim).
 - **Per-panel HUD layout** (`hud_layout`, Display & Accessibility item 4): the player
   repositions and scales the five persistent HUD readouts (phase/turn labels, unit
   info, objective, terrain corner) via an in-map "Edit HUD Layout" mode (drag frames +

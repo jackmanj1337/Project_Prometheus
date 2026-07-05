@@ -301,5 +301,46 @@ func _init() -> void:
 		failed += 1
 
 	sm.free()
+	# ---- [MRD-5] grid_dim round-trip + clamp + reset ----
+	var sm_g: Node = SettingsManagerS.new()  # sm was freed above
+	sm_g.grid_dim = 0.3
+	sm_g.save()
+	sm_g.grid_dim = 0.0
+	sm_g.load_settings()
+	var grid_roundtrip: bool = is_equal_approx(sm_g.grid_dim, 0.3)
+	sm_g.set_grid_dim(1.0)
+	var grid_clamp_hi: bool = is_equal_approx(sm_g.grid_dim, 0.5)
+	sm_g.set_grid_dim(-1.0)
+	var grid_clamp_lo: bool = is_equal_approx(sm_g.grid_dim, 0.0)
+	sm_g.grid_dim = 0.4
+	sm_g.reset_section_to_defaults("display")
+	var grid_reset: bool = is_equal_approx(sm_g.grid_dim, 0.0)
+	sm_g.free()
+	if grid_roundtrip and grid_clamp_hi and grid_clamp_lo and grid_reset:
+		print("OK  [MRD-5] grid_dim round-trips, clamps to [0,0.5], resets to 0"); passed += 1
+	else:
+		print("FAIL [MRD-5] grid_dim: rt=%s hi=%s lo=%s reset=%s" % [
+			grid_roundtrip, grid_clamp_hi, grid_clamp_lo, grid_reset]); failed += 1
+
+	# ---- [MRD-5] _apply_grid_dim fades only terrain group members ----
+	var sm_dim: Node = SettingsManagerS.new()
+	root.add_child(sm_dim)  # _ready runs against the isolated user:// cfg
+	var terrain_stub := Node2D.new()       # a CanvasItem terrain stand-in
+	terrain_stub.add_to_group("grid_dim_target")
+	root.add_child(terrain_stub)
+	var non_terrain := Node2D.new()        # units/overlays: NOT in the group
+	root.add_child(non_terrain)
+	await process_frame  # nodes aren't is_inside_tree() until a frame passes
+	sm_dim.set_grid_dim(0.4)
+	var terrain_faded: bool = is_equal_approx(terrain_stub.modulate.a, 0.6)
+	var other_untouched: bool = is_equal_approx(non_terrain.modulate.a, 1.0)
+	sm_dim.set_grid_dim(0.0)
+	var terrain_restored: bool = is_equal_approx(terrain_stub.modulate.a, 1.0)
+	if terrain_faded and other_untouched and terrain_restored:
+		print("OK  [MRD-5] _apply_grid_dim fades only terrain group members"); passed += 1
+	else:
+		print("FAIL [MRD-5] apply: faded=%s other=%s restored=%s" % [
+			terrain_faded, other_untouched, terrain_restored]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

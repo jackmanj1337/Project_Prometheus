@@ -739,7 +739,7 @@ func _init() -> void:
 	c10._refresh_peek()                                  # same unit → cache hit
 	var cache_hit := c10._peek_compute_count == count_after_press
 	c10.current_tile = enemyB.tile_position
-	c10._on_cursor_moved_peek(enemyB.tile_position)      # new unit → recompute
+	c10._on_cursor_moved_overlays(enemyB.tile_position)  # new unit → recompute
 	var recomputed := c10._peek_compute_count == count_after_press + 1 and c10._peek_unit == enemyB
 	c10._end_peek()
 	var peek_off := not c10._peek_active and c10._peek_move.is_empty()
@@ -755,6 +755,40 @@ func _init() -> void:
 	else:
 		print("FAIL [MRD-2] peek armed outside FREE"); failed += 1
 	c10._state = FREE
+
+	# ---- movement path arrows (B6-MRD slice 4) ----
+	_gs.all_units.clear()
+	var t_pa := TurnManager.new(); root.add_child(t_pa)
+	var c_pa := _make_cursor(t_pa)
+	var pa_mover := _make_unit(Vector2i(0, 0), "blue"); pa_mover.data.unit_id = "mover"
+	c_pa._selection.selected_unit = pa_mover         # inject a selection
+	c_pa._state = UNIT_SELECTED
+	c_pa.current_tile = Vector2i(2, 0)
+	c_pa._refresh_path_arrows()
+	var pa_path := c_pa._path_arrow_tiles
+	var pa_dirs := c_pa._path_arrow_directions()
+	var ref_path := _grid.get_movement_path(pa_mover, Vector2i(2, 0))
+	var path_ends_ok := pa_path.size() >= 2 and pa_path[0] == Vector2i(0, 0) \
+		and pa_path[pa_path.size() - 1] == Vector2i(2, 0)
+	var dirs_ok := pa_dirs.size() == ref_path.size() - 1 and pa_path == ref_path
+	var all_cardinal := true
+	for d in pa_dirs:
+		if absi(d.x) + absi(d.y) != 1:
+			all_cardinal = false
+	# Recompute follows the cursor to a new tile ([MRD-4] B — cheap path only).
+	c_pa.current_tile = Vector2i(3, 1)
+	c_pa._on_cursor_moved_overlays(Vector2i(3, 1))
+	var followed := c_pa._path_arrow_tiles.size() >= 2 \
+		and c_pa._path_arrow_tiles[c_pa._path_arrow_tiles.size() - 1] == Vector2i(3, 1)
+	# Clears when no unit is selected.
+	c_pa._state = FREE
+	c_pa._refresh_path_arrows()
+	var pa_cleared := c_pa._path_arrow_tiles.is_empty()
+	if path_ends_ok and dirs_ok and all_cardinal and followed and pa_cleared:
+		print("OK  [MRD] path arrows track get_movement_path to the cursor; clear when unselected"); passed += 1
+	else:
+		print("FAIL [MRD] path arrows: ends=%s dirs=%s cardinal=%s follow=%s cleared=%s" % [
+			path_ends_ok, dirs_ok, all_cardinal, followed, pa_cleared]); failed += 1
 
 	# ---- open_settings hotkey: locks the cursor and opens Settings (#3) ----
 	var t11 := TurnManager.new(); root.add_child(t11)

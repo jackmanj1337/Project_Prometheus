@@ -228,6 +228,27 @@ layout_mode = 2
 text = "1.0x"
 horizontal_alignment = 2
 
+[node name="HBoxGridDim" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGridDimTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGridDim"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Terrain Dim"
+
+[node name="SliderGridDim" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxGridDim"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 0.5
+step = 0.05
+value = 0.0
+
+[node name="LabelGridDim" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGridDim"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "0%"
+horizontal_alignment = 2
+
 [node name="HSepDisplay" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 

@@ -61,6 +61,11 @@ const MENU_SCALE_LEVELS: Array[float] = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 # "scale": float }. A missing entry = that panel's authored layout. Edited via the
 # in-map "Edit HUD Layout" mode and applied by HUD.apply_layout.
 var hud_layout: Dictionary = {}
+# Grid-dim accessibility knob (B6-MRD slice 5 / [MRD-5]). Fades the TERRAIN
+# TileMapLayer only (units + overlays stay full opacity) so threat/range overlays
+# read more clearly against busy terrain. 0.0 = no dim, 0.5 = half-faded terrain.
+const GRID_DIM_MAX: float = 0.5
+var grid_dim: float = 0.0
 
 # --- Controls ---
 # { action_name: Array[InputEvent] }; applied to InputMap at startup
@@ -81,6 +86,7 @@ func _ready() -> void:
 	_apply_menu_scale()
 	_apply_keybindings()
 	_mirror_game_keys_to_ui()
+	_apply_grid_dim()
 
 
 func load_settings() -> void:
@@ -137,6 +143,8 @@ func load_settings() -> void:
 	# Stored as a Dictionary (ConfigFile round-trips Vector2/float Variants). HUD
 	# tolerates malformed/partial entries at apply time, so no clamp is needed here.
 	hud_layout = cfg.get_value("display", "hud_layout", {})
+	# Clamp on load: a hand-edited/corrupt cfg must never feed an out-of-range dim.
+	grid_dim = clampf(cfg.get_value("display", "grid_dim", grid_dim), 0.0, GRID_DIM_MAX)
 
 	keybindings = cfg.get_value("controls", "keybindings", {})
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
@@ -166,6 +174,7 @@ func save() -> void:
 	cfg.set_value("display", "menu_scale_index", menu_scale_index)
 	cfg.set_value("display", "menu_scale_schema_version", MENU_SCALE_SCHEMA_VERSION)
 	cfg.set_value("display", "hud_layout",     hud_layout)
+	cfg.set_value("display", "grid_dim",       grid_dim)
 
 	cfg.set_value("controls", "keybindings", keybindings)
 
@@ -196,8 +205,10 @@ func reset_section_to_defaults(section: String) -> void:
 			resolution     = "1280x720"
 			menu_scale_index = 2
 			hud_layout     = {}
+			grid_dim       = 0.0
 			_apply_display()
 			_apply_menu_scale()
+			_apply_grid_dim()
 		"controls":
 			keybindings = {}
 			_apply_keybindings()
@@ -336,6 +347,23 @@ func _apply_menu_scale() -> void:
 		win.content_scale_factor = 1.0
 	if is_inside_tree():
 		get_tree().call_group("menu_scale_targets", "apply_menu_scale", get_menu_scale())
+
+
+# Fades every terrain layer in the "grid_dim_target" group. Terrain only — units
+# and overlays stay full opacity ([MRD-5]). GameMap adds its terrain layer to the
+# group and applies on load; set_grid_dim re-applies live from the slider.
+func _apply_grid_dim() -> void:
+	if not is_inside_tree():
+		return
+	for node in get_tree().get_nodes_in_group("grid_dim_target"):
+		if node is CanvasItem:
+			node.modulate.a = 1.0 - grid_dim
+
+
+func set_grid_dim(value: float) -> void:
+	grid_dim = clampf(value, 0.0, GRID_DIM_MAX)
+	_apply_grid_dim()
+	save()
 
 
 func _apply_keybindings() -> void:

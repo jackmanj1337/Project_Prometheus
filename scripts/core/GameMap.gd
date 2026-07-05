@@ -60,6 +60,9 @@ func _ready() -> void:
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
 	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height)
+	# Grid-dim accessibility knob ([MRD-5]): the terrain layer joins the dim group
+	# so the Settings slider can fade it live; units + overlays stay full opacity.
+	_terrain_layer.add_to_group("grid_dim_target")
 	# Build the camera controller and share it with the cursor (B4) so save/restore
 	# state lives in exactly one place.
 	_camera_ctrl = CameraControllerS.new()
@@ -79,6 +82,8 @@ func _ready() -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null:
 		_camera_ctrl.set_zoom_index_silent(sm.get("map_zoom_index"))
+		# Apply the persisted terrain dim now that the layer is in the group.
+		_terrain_layer.modulate.a = 1.0 - clampf(float(sm.get("grid_dim")), 0.0, 0.5)
 	_camera_ctrl.set_smoothing(false)
 	_camera_ctrl.center_at(_get_camera_start())
 

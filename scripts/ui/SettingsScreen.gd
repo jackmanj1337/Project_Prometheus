@@ -44,6 +44,8 @@ const _SETTINGS_ROW_SEPARATION: int = 8
 @onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
 @onready var _slider_map_zoom: HSlider         = _vbox.get_node("HBoxMapZoom/SliderMapZoom")
 @onready var _label_map_zoom: Label            = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
+@onready var _slider_grid_dim: HSlider         = _vbox.get_node("HBoxGridDim/SliderGridDim")
+@onready var _label_grid_dim: Label            = _vbox.get_node("HBoxGridDim/LabelGridDim")
 @onready var _slider_menu_scale: HSlider       = _vbox.get_node("HBoxUIScale/SliderUIScale")
 @onready var _label_menu_scale: Label          = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
@@ -161,6 +163,9 @@ func _ready() -> void:
 	_slider_map_zoom.min_value = 0
 	_slider_map_zoom.max_value = CameraControllerS.ZOOM_LEVELS.size() - 1
 	_slider_map_zoom.step      = 1
+	_slider_grid_dim.min_value = 0.0
+	_slider_grid_dim.max_value = 0.5
+	_slider_grid_dim.step      = 0.05
 	# Menu-scale slider sized from SettingsManager.MENU_SCALE_LEVELS; value IS the index.
 	var sm_for_range := get_node_or_null("/root/SettingsManager")
 	if sm_for_range != null:
@@ -173,6 +178,7 @@ func _ready() -> void:
 	_slider_sfx.value_changed.connect(_on_sfx_changed)
 	_slider_camera_buffer.value_changed.connect(_on_camera_buffer_changed)
 	_slider_map_zoom.value_changed.connect(_on_map_zoom_changed)
+	_slider_grid_dim.value_changed.connect(_on_grid_dim_changed)
 	_slider_menu_scale.value_changed.connect(_on_menu_scale_changed)
 	# Menu Scale applies on drag RELEASE, not live per-step (V025-01a): re-scaling the
 	# screen mid-drag moves the slider track under the cursor, so the value oscillates
@@ -200,6 +206,8 @@ func open() -> void:
 	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
 	_slider_map_zoom.value = sm.get("map_zoom_index")
 	_label_map_zoom.text   = _zoom_label(sm.get("map_zoom_index"))
+	_slider_grid_dim.value = sm.get("grid_dim")
+	_label_grid_dim.text   = _grid_dim_label(sm.get("grid_dim"))
 	_slider_menu_scale.value = sm.get("menu_scale_index")
 	_label_menu_scale.text   = _menu_scale_label(sm, sm.get("menu_scale_index"))
 	# Schema-driven enum settings: select the index of the stored value (B5).
@@ -363,6 +371,20 @@ func _on_map_zoom_changed(value: float) -> void:
 	if sm:
 		sm.set("map_zoom_index", idx)
 		sm.call("save")
+
+
+# Grid-dim slider ([MRD-5]): fade the terrain layer live and persist. The setter
+# clamps + applies + saves, so this just relays the value and refreshes the label.
+func _on_grid_dim_changed(value: float) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.has_method("set_grid_dim"):
+		sm.call("set_grid_dim", value)
+	_label_grid_dim.text = _grid_dim_label(value)
+
+
+# Formats grid_dim (0.0-0.5) as a percentage, e.g. 0.25 -> "25%".
+func _grid_dim_label(value: float) -> String:
+	return "%d%%" % roundi(value * 100.0)
 
 
 # Formats a zoom index as a factor label, e.g. 3 -> "1.0x". Clamps defensively so a

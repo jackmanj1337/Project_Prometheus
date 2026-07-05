@@ -97,6 +97,12 @@ var _peek_unit: Node = null
 var _peek_move: Array[Vector2i] = []
 var _peek_attack: Array[Vector2i] = []
 var _peek_compute_count: int = 0
+
+# ── Movement path arrows (B6-MRD slice 4) ────────────────────────────────────
+# While a unit is selected, a directional chain from it along the cheapest path
+# to the cursor tile, recomputed only for the current cursor tile ([MRD-4] B).
+var _path_arrow_layer: Node2D = null
+var _path_arrow_tiles: Array[Vector2i] = []
 # True while the level-up screen is on-screen. Suppresses all cursor input
 # independently of _state, so a post-combat _finish_action setting _state=FREE
 # can't re-enable the cursor underneath the level-up screen (#12).
@@ -147,8 +153,8 @@ func _ready() -> void:
 		bus.reclass_finished.connect(_on_level_up_finished)
 		# Prune a defeated enemy from the threat watch set ([TUR-4]).
 		bus.unit_died.connect(_on_unit_died)
-		# Refresh the hover-peek when the cursor changes tile ([MRD-2]).
-		bus.cursor_moved.connect(_on_cursor_moved_peek)
+		# Refresh the hover-peek + movement path arrows on a cursor move ([MRD-2/4]).
+		bus.cursor_moved.connect(_on_cursor_moved_overlays)
 	# React to the targeting flow finishing or being backed out of.
 	_targeting.completed.connect(_on_targeting_completed)
 	_targeting.cancelled.connect(_on_targeting_cancelled)
@@ -552,6 +558,7 @@ func _clear_overlay_paint() -> void:
 	if _grid != null:
 		_grid.clear_overlays()
 	_clear_watch_markers()
+	_clear_path_arrows()
 
 
 # ── [MRD-2]/[MRD-4] Hover-to-peek ────────────────────────────────────────────
@@ -593,9 +600,11 @@ func _refresh_peek() -> void:
 	_repaint_with_peek()
 
 
-func _on_cursor_moved_peek(_tile: Vector2i) -> void:
+func _on_cursor_moved_overlays(_tile: Vector2i) -> void:
 	if _peek_active:
 		_refresh_peek()
+	if _state == State.UNIT_SELECTED:
+		_refresh_path_arrows()
 
 
 # Release the peek and restore the base overlay (threat, or cleared).
@@ -628,6 +637,61 @@ func _repaint_with_peek() -> void:
 	_add_peek_specs(specs)
 	_grid.repaint_overlays(specs)
 	_render_watch_markers()
+
+
+# ── Movement path arrows ─────────────────────────────────────────────────────
+# Recompute + draw the selected unit's cheapest path to the cursor. Clears when
+# no unit is selected or the cursor isn't a reachable destination (empty path).
+# Only the (cheap) path to the current cursor tile is recomputed — no range work.
+func _refresh_path_arrows() -> void:
+	if _grid == null:
+		return
+	var unit: Node = _selection.selected_unit if _selection != null else null
+	if _state != State.UNIT_SELECTED or unit == null:
+		_path_arrow_tiles = []
+	else:
+		_path_arrow_tiles = _grid.get_movement_path(unit, current_tile)
+	_render_path_arrows()
+
+
+# The consecutive step deltas of the drawn path — the test-facing surface.
+func _path_arrow_directions() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for i in range(1, _path_arrow_tiles.size()):
+		out.append(_path_arrow_tiles[i] - _path_arrow_tiles[i - 1])
+	return out
+
+
+func _render_path_arrows() -> void:
+	if _path_arrow_layer == null:
+		_path_arrow_layer = Node2D.new()
+		_path_arrow_layer.name = "PathArrows"
+		if _grid != null and _grid.is_inside_tree():
+			_grid.add_child(_path_arrow_layer)
+		elif get_parent() != null:
+			get_parent().add_child(_path_arrow_layer)
+		else:
+			add_child(_path_arrow_layer)
+		_path_arrow_layer.z_index = 100  # above the blue move-range overlay
+	for c in _path_arrow_layer.get_children():
+		c.queue_free()
+	if _grid == null or _path_arrow_tiles.size() < 2:
+		return
+	# A polyline through the path's tile centres — a no-art path indicator (UI
+	# polish may swap for directional arrow-tile art).
+	var line := Line2D.new()
+	line.width = 6.0
+	var half := Vector2(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE) * 0.5
+	for t in _path_arrow_tiles:
+		line.add_point(_grid.tile_to_world(t) + half)
+	_path_arrow_layer.add_child(line)
+
+
+func _clear_path_arrows() -> void:
+	_path_arrow_tiles = []
+	if _path_arrow_layer != null:
+		for c in _path_arrow_layer.get_children():
+			c.queue_free()
 
 
 func _handle_mouse_motion(event: InputEventMouseMotion) -> void:
@@ -881,6 +945,7 @@ func _try_select_unit_at_cursor() -> void:
 	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
 	if _selection.select_at(current_tile):
 		_state = State.UNIT_SELECTED
+		_refresh_path_arrows()  # draw the initial path to the cursor tile
 		var bus := get_node_or_null("/root/EventBus")
 		if bus:
 			bus.unit_selected.emit(_selection.selected_unit)
@@ -898,6 +963,7 @@ func _try_move_selected_to_cursor() -> void:
 	if path.is_empty():
 		return
 	_state = State.LOCKED  # block input during the move animation
+	_clear_path_arrows()   # the unit is committing to the path; drop the preview
 	await _selection.selected_unit.move_along_path(path)
 	_state = State.UNIT_MOVED
 	_show_action_menu()
@@ -906,6 +972,7 @@ func _try_move_selected_to_cursor() -> void:
 func _deselect() -> void:
 	_selection.clear()
 	_state = State.FREE
+	_clear_path_arrows()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
