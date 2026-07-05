@@ -635,7 +635,7 @@ func _init() -> void:
 	c10._state = FREE
 	var enemyA := _make_unit(Vector2i(1, 1), "red"); enemyA.data.unit_id = "enemyA"
 	var enemyB := _make_unit(Vector2i(4, 4), "red"); enemyB.data.unit_id = "enemyB"
-	_make_unit(Vector2i(2, 2), "blue").data.unit_id = "ally1"
+	var ally1 := _make_unit(Vector2i(2, 2), "blue"); ally1.data.unit_id = "ally1"
 
 	# Press routing: MMB over empty terrain cycles the mode (start none→full).
 	c10.current_tile = Vector2i(5, 0)
@@ -755,6 +755,57 @@ func _init() -> void:
 	else:
 		print("FAIL [MRD-2] peek armed outside FREE"); failed += 1
 	c10._state = FREE
+
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	var stale_count := c10._peek_compute_count
+	c10._state = UNIT_SELECTED
+	c10.current_tile = enemyB.tile_position
+	c10._on_cursor_moved_overlays(enemyB.tile_position)
+	var stale_cancelled := not c10._peek_active \
+		and c10._peek_move.is_empty() \
+		and c10._peek_attack.is_empty() \
+		and c10._peek_compute_count == stale_count
+	c10._state = FREE
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	c10.current_tile = ally1.tile_position
+	c10._try_select_unit_at_cursor()
+	var select_cleared_peek := c10._state == UNIT_SELECTED \
+		and c10._selection.selected_unit == ally1 \
+		and not c10._peek_active \
+		and c10._peek_move.is_empty() \
+		and c10._peek_attack.is_empty()
+	c10._deselect()
+	if stale_cancelled and select_cleared_peek:
+		print("OK  [MRD-2] hover-peek cancels cleanly when FREE control hands off to selection")
+		passed += 1
+	else:
+		print("FAIL [MRD-2] peek handoff: stale=%s select=%s" % [
+			stale_cancelled, select_cleared_peek])
+		failed += 1
+
+	var saved_overlay := _grid._overlay
+	var finish_overlay := TileMapLayer.new()
+	finish_overlay.tile_set = load("res://assets/overlay_tileset.tres")
+	_grid._overlay = finish_overlay
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyA"] = true
+	c10._selection.selected_unit = ally1
+	c10._state = UNIT_MOVED
+	c10._finish_action()
+	var finish_repainted := c10._state == FREE \
+		and c10._selection.selected_unit == null \
+		and finish_overlay.get_cell_source_id(Vector2i(0, 1)) == GridManager.OVERLAY_DARKER_RED
+	_grid._overlay = saved_overlay
+	finish_overlay.free()
+	if finish_repainted:
+		print("OK  [TUR] committed actions restore retained watched-threat overlay")
+		passed += 1
+	else:
+		print("FAIL [TUR] finish action did not repaint retained watched-threat overlay")
+		failed += 1
 
 	# ---- movement path arrows (B6-MRD slice 4) ----
 	_gs.all_units.clear()

@@ -577,6 +577,9 @@ func _begin_peek() -> void:
 func _refresh_peek() -> void:
 	if not _peek_active or _grid == null:
 		return
+	if _state != State.FREE:
+		_cancel_peek(false)
+		return
 	var u := _grid.get_unit_at(current_tile)
 	if u != _peek_unit:
 		_peek_unit = u
@@ -600,6 +603,15 @@ func _refresh_peek() -> void:
 	_repaint_with_peek()
 
 
+func _cancel_peek(restore_free_overlay: bool) -> void:
+	_peek_active = false
+	_peek_unit = null
+	_peek_move = []
+	_peek_attack = []
+	if restore_free_overlay and _state == State.FREE:
+		repaint()
+
+
 func _on_cursor_moved_overlays(_tile: Vector2i) -> void:
 	if _peek_active:
 		_refresh_peek()
@@ -611,14 +623,7 @@ func _on_cursor_moved_overlays(_tile: Vector2i) -> void:
 func _end_peek() -> void:
 	if not _peek_active:
 		return
-	_peek_active = false
-	_peek_unit = null
-	_peek_move = []
-	_peek_attack = []
-	if _state == State.FREE:
-		repaint()
-	elif _grid != null:
-		_grid.clear_overlays()
+	_cancel_peek(true)
 
 
 func _add_peek_specs(specs: Dictionary) -> void:
@@ -937,6 +942,7 @@ func _is_cursor_on_empty_tile() -> bool:
 
 
 func _try_select_unit_at_cursor() -> void:
+	_cancel_peek(false)
 	# The danger overlay shares the one overlay layer with the selection overlays.
 	# Clear the paint before selecting so it can't bleed through the move range
 	# (#13); _watch_set + _danger_mode are retained and repaint on return to FREE.
@@ -1223,6 +1229,7 @@ func _commit_escape() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
+	repaint()  # back to FREE: restore any retained threat overlay
 
 
 # ── State: TARGETING — delegated to MapCursorTargeting ───────────────────────
@@ -1377,6 +1384,7 @@ func _finish_action() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_deselected.emit()
+	repaint()  # back to FREE: restore any retained threat overlay
 
 
 # ── Map Menu / End Turn ──────────────────────────────────────────────────────
