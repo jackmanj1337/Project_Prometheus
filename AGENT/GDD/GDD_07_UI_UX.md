@@ -323,7 +323,12 @@ Font size: 40px, bold [PLACEHOLDER font]
 **Scene:** `ActionMenu.tscn`
 **Trigger:** After a controllable unit successfully moves (or confirms on its current tile)
 
-**Layout (positioned near the moved unit, offset to avoid covering it):**
+**Layout (positioned near the moved unit, offset to avoid covering it):** anchored to
+the unit tile's **far edge plus a constant 4px gap** (`MapCursor._place_menu_near`,
+V027-02) — the tile-width term scales with map zoom but the gap does not, the same
+model the Attack Preview uses, so the menu hugs the unit without covering it at any
+zoom. Flips to the left side when the right doesn't fit; keeps its side across zoom
+repositions (V025-03 stickiness).
 ```
 ┌────────────┐
 │  Attack    │
@@ -425,12 +430,19 @@ There is **no target-list panel**. Target selection happens on the map itself:
   `Attacker N vs Defender M … (defender cannot counter)` rather than hiding the
   defender's value.
 
-**Size:** Content-sized three-column layout, clamped/repositioned to the viewport
+**Size:** Content-sized three-column layout, clamped/repositioned to the viewport.
+On every show, sizing + placement re-run once one frame later with the panel held
+transparent (V027-03a): RichTextLabel content minimums read inflated until a layout
+frame passes, which used to freeze dead space under the rows on the first open.
 **Placement:** Anchored beside the defender (right, else left), kept inside the viewport,
 and nudged clear of the visible HUD panels (objective / unit-info / terrain corners)
 and the defender tile so it does not cover them (`AttackPreview._place_clear_of`).
 Avoidance is best-effort: a panel too tall to clear an avoid rect is left clamped
-on-screen rather than pushed off.
+on-screen rather than pushed off. Placement always reads a **settled canvas
+transform**: every camera write callers read synchronously — including cursor-driven
+scrolls (`keep_cursor_in_view`, V027-03b) — flushes via `force_update_scroll`
+(V026-03/04a), and the zoom-reposition hook re-runs once one frame later (coalesced)
+as a self-heal for anything that lands after it.
 **Font size:** 18px
 
 ---
@@ -913,6 +925,10 @@ The accessibility and parity contract the UI must honor across input methods and
   the row's on-screen y before the re-scale and restores it one (deferred-layout) frame
   later via the panel `ScrollContainer`'s `scroll_vertical`. The compensation clamps at
   the scroll extremes, where a small residual shift is accepted.
+  **V027-04a (resize self-heal):** `SettingsManager` re-applies Menu Scale on every
+  viewport `size_changed` (deferred, coalesced to one pass per settled frame) — a
+  window-size change used to grow a live scroll-frame panel off-screen with nobody
+  re-centering it, since re-apply only ran from the slider.
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
