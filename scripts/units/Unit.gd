@@ -832,12 +832,20 @@ func level_up() -> void:
 		return
 	var rates: Dictionary = _resolve_growth_rates(class_data)
 	var caps: Dictionary = class_data.stat_caps
+	# One chained "levelup" RNG event per level (RNG-1): begin before the growth
+	# draws, commit after them. growth_fixed draws nothing but still commits, so
+	# the dice chain is identical across leveling methods for the same actions.
+	var svc := get_node_or_null("/root/RngService") if is_inside_tree() else null
+	var event_record: Array[String] = [data.unit_id, str(data.level)]
 	var changes: Dictionary = {}
 	match method:
 		"growth_fixed":
 			changes = _level_up_fixed(rates, caps)
 		_:  # "growth_random" and any unknown value
-			changes = _level_up_random(rates, caps)
+			changes = _level_up_random(rates, caps,
+				svc.begin_event("levelup", event_record) if svc else null)
+	if svc:
+		svc.commit_event("levelup", event_record)
 	# Auto-learn any class skill whose unlock level matches the new level.
 	var learned: Array[Dictionary] = _grant_level_skills(class_data)
 	var bus := _bus()
@@ -1104,13 +1112,22 @@ func _debug_boosted_rate(rate: int) -> int:
 
 
 # Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
-func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
+# Draws one roll per stat in _GROWTH_STATS order from the levelup event RNG
+# (RNG-1; the order is part of the §5 canonical-roll-order contract). rng = null
+# is the no-RngService fallback for suites that exercise growth statistically —
+# production always passes the event RNG from level_up().
+func _level_up_random(rates: Dictionary, caps: Dictionary,
+		rng: RandomNumberGenerator = null) -> Dictionary:
+	if rng == null:
+		rng = RandomNumberGenerator.new()  # rng-allow: headless fallback when RngService is absent
+		rng.randomize()  # rng-allow: headless fallback when RngService is absent
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
-		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)  # rng-allow: pre-M9a (RNG-1)
+		var gain: int = guaranteed \
+			+ (1 if rng.randi_range(0, 99) < remainder else 0)  # rng-allow: draw from the RngService event RNG (RNG-1)
 		var applied: int = _apply_stat_gain(stat, gain, caps)
 		if applied > 0:
 			changes[stat] = applied

@@ -576,5 +576,53 @@ func _init() -> void:
 	else:
 		print("FAIL stub warn dedupe: %s" % sh._stub_warned); failed += 1
 
+	# ── B1-PKGA Slice 1c: activation rolls draw from the event RNG (RNG-1) ────
+	# Miracle (LUK% proc on on_damaged) is the only activation_chance_stat skill
+	# today; apply_trigger must roll it from context["rng"] and refuse to roll at
+	# all when a non-preview path forgot to begin an RNG event.
+	var svc: Node = load("res://scripts/autoloads/RngService.gd").new()
+	svc.name = "RngService"
+	root.add_child(svc)
+	var mir_data: UnitData = soldier_data.duplicate(true)
+	mir_data.skills.assign(["miracle"])
+	mir_data.luck = 50
+	var mir_unit := MockUnit.new()
+	mir_unit.setup(mir_data)
+	root.add_child(mir_unit)
+	svc.start_map(9001)
+	var mir_rec: Array[String] = ["mir", "1,1", "1,1", "e9"]
+
+	# Identical event seed → identical activation outcome (fixed-seed determinism).
+	var mir_ctx_a := {"damage": 20, "current_sim_hp": 10, "unit": mir_unit,
+		"rng": svc.begin_event("attack", mir_rec)}
+	sh.apply_trigger(mir_unit, "on_damaged", mir_ctx_a)
+	var mir_ctx_b := {"damage": 20, "current_sim_hp": 10, "unit": mir_unit,
+		"rng": svc.begin_event("attack", mir_rec)}
+	sh.apply_trigger(mir_unit, "on_damaged", mir_ctx_b)
+	var mir_valid: bool = mir_ctx_a["damage"] == 9 or mir_ctx_a["damage"] == 20
+	if mir_ctx_a["damage"] == mir_ctx_b["damage"] and mir_valid:
+		print("OK  1c: activation roll is deterministic under a fixed event seed"); passed += 1
+	else:
+		print("FAIL 1c determinism: %s vs %s" % [mir_ctx_a["damage"], mir_ctx_b["damage"]]); failed += 1
+
+	# Missing context["rng"] on a live path: loud fail, NO activation — even at
+	# chance 100, where a silent raw-RNG fallback would always have fired.
+	mir_unit.data.luck = 100
+	var mir_ctx_c := {"damage": 20, "current_sim_hp": 10, "unit": mir_unit}
+	sh.apply_trigger(mir_unit, "on_damaged", mir_ctx_c)  # pushes an error by design
+	if mir_ctx_c["damage"] == 20:
+		print("OK  1c: missing event RNG fails loudly and never falls back to raw RNG"); passed += 1
+	else:
+		print("FAIL 1c loud-fail: skill activated without an event RNG"); failed += 1
+
+	# Same chance-100 proc WITH the event RNG present always fires.
+	var mir_ctx_d := {"damage": 20, "current_sim_hp": 10, "unit": mir_unit,
+		"rng": svc.begin_event("attack", mir_rec)}
+	sh.apply_trigger(mir_unit, "on_damaged", mir_ctx_d)
+	if mir_ctx_d["damage"] == 9:
+		print("OK  1c: chance-100 activation fires from the event RNG"); passed += 1
+	else:
+		print("FAIL 1c chance-100: damage=%s (want 9)" % mir_ctx_d["damage"]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

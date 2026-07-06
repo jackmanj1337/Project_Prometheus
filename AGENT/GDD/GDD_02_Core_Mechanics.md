@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-29
+**Last verified:** 2026-07-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -279,9 +279,10 @@ on the outcome.
   figure** (`×3`); any skill damage-multiplier applies last; clamp to ≥0.
 - If the target's HP ≤ 0, the exchange stops — no further attacks land.
 
-**Determinism (RNG-1…4, see GDD_01).** Combat hit/crit dice come from `RngService`
-(hash-chained, context-seeded, Implemented 2026-07-06), not `randi()`; growth and
-skill-activation rolls are still raw until Slice 1c. The **canonical roll order** per
+**Determinism (RNG-1…4, see GDD_01).** All gameplay dice — combat hit/crit, skill
+activation, and level-up growth (chained `levelup` events) — come from `RngService`
+(hash-chained, context-seeded, Implemented 2026-07-06), not `randi()`. The
+**canonical roll order** per
 attack — the selected resolver's fixed `rn_count` of hit RNs, then a crit RN on a
 hit, then skill activation rolls at their trigger slots — is the binding contract;
 reordering it (including changing a resolver's draw count) is a save/replay-breaking
@@ -299,8 +300,6 @@ animation yet): `resolve_combat()` builds the list and draws rolls; `apply_comba
 commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ### Known gaps
-- Growth (`Unit.level_up`) and skill-activation (`SkillHandler`) rolls are still raw
-  `randi()` — B1-PKGA Slice 1c.
 - Resolvers are two engine built-ins for now; registry promotion + author tiers are
   `B3-COMBAT-ROLL-RESOLVER` (CRR-8).
 - Units with no usable equipped weapon cannot attack; counterattacking from a non-equipped

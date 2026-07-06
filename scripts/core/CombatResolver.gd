@@ -563,9 +563,12 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 		if sh:
 			var is_target_blocked: bool = context.get(
 				"attacker_skills_blocked" if is_counter else "defender_skills_blocked", false)
+			# Carries the event RNG so on_damaged activation rolls (Miracle)
+			# stay in this event's canonical draw sequence (§5).
 			var dmg_ctx2 := {
 				"damage": damage, "current_sim_hp": target_sim_hp,
 				"unit": target, "attacker": actor, "defender": target, "weapon": weapon,
+				"rng": rng,
 			}
 			# Nihil-blocked target: apply_trigger fires only NIHIL_EXEMPT_SKILLS.
 			dmg_ctx2 = sh.apply_trigger(target, "on_damaged", dmg_ctx2, false, is_target_blocked)

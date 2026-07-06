@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -772,16 +772,16 @@ plan (code, integration sweep, tests, build order) is
   save-breaking).
 
 ### Known gaps
-- Growth (`Unit.level_up`) and skill-activation (`SkillHandler`) rolls are still raw
-  `randi()` — Slice 1c. Non-dice event commits + the raw-RNG lint (T5) are Slice 1d;
-  snapshot persistence of RNG state (T2) is Step 2; suspend round-trip (T6) and
-  equip neutrality (T4) follow. Landed: T1 replay, T3 butterfly/isolation, T7
-  roll-order freeze, plus the RngService unit tests.
+- Non-dice event commits (wait/seize/escape/item/staff) + the raw-RNG lint (T5)
+  are Slice 1d; snapshot persistence of RNG state (T2) is Step 2; suspend
+  round-trip (T6) and equip neutrality (T4) follow. Landed: T1 replay, T3
+  butterfly/isolation, T7 roll-order freeze, growth + activation determinism
+  (Slice 1c, 2026-07-06), plus the RngService unit tests.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `CombatResolver.gd`, `TurnManager.gd`
-  (`get_action_start_tile`); pending Slice 1c: `SkillHandler.gd`, `Unit.gd`
-  (`level_up`)
+  (`get_action_start_tile`), `SkillHandler.gd` (activation from the event RNG),
+  `Unit.gd` (`level_up` chained `levelup` events)
 - Tests: `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7); pending: T2/T4/T5/T6
 - Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13

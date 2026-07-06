@@ -614,6 +614,50 @@ func _init() -> void:
 		print("FAIL growth_random rate-250: got min_gain=%d (expected ≥ 2)" % min_gain)
 		failed += 1
 
+	# ── B1-PKGA Slice 1c: growth rolls draw from the levelup event RNG ────────
+	# A fixed event seed must reproduce identical stat gains (RNG-1); the roll
+	# order (one draw per _GROWTH_STATS entry) is part of the §5 contract.
+	# This suite runs with the REAL autoloads (no stubs claimed the names in
+	# _init), so use the live /root/RngService — a second node with that name
+	# would be auto-renamed and level_up() would commit to the autoload instead.
+	var rng_svc: Node = rand_unit.get_node_or_null("/root/RngService")
+	rng_svc.start_map(31337)
+	var rates75 := {"hp": 75, "strength": 75, "magic": 75, "defense": 75,
+		"resistance": 75, "skill": 75, "speed": 75, "luck": 75}
+	var lv_rec: Array[String] = ["growth_det", "2"]
+	var det_a: Dictionary = rand_unit._level_up_random(rates75, {},
+		rng_svc.begin_event("levelup", lv_rec))
+	var det_b: Dictionary = rand_unit._level_up_random(rates75, {},
+		rng_svc.begin_event("levelup", lv_rec))
+	if det_a == det_b and not det_a.is_empty():
+		print("OK  1c: fixed levelup event seed reproduces identical stat gains")
+		passed += 1
+	else:
+		print("FAIL 1c growth determinism: %s vs %s" % [det_a, det_b])
+		failed += 1
+
+	# level_up() commits one "levelup" event per level — for growth_fixed too,
+	# so the dice chain is identical across leveling methods. Needs real class
+	# data: level_up() bails before the growth rolls without it.
+	rand_unit.data.class_id = "cavalier"
+	var hash_before: int = rng_svc.history_hash
+	rand_unit.level_up()
+	var hash_random: int = rng_svc.history_hash
+	var gs_lv := rand_unit.get_node_or_null("/root/GameState")
+	var saved_method: String = gs_lv.leveling_method if gs_lv else "growth_random"
+	if gs_lv:
+		gs_lv.leveling_method = "growth_fixed"
+	rand_unit.level_up()
+	var hash_fixed: int = rng_svc.history_hash
+	if gs_lv:
+		gs_lv.leveling_method = saved_method
+	if hash_random != hash_before and hash_fixed != hash_random:
+		print("OK  1c: level_up commits a levelup event (growth_fixed included)")
+		passed += 1
+	else:
+		print("FAIL 1c levelup commit: %d -> %d -> %d" % [hash_before, hash_random, hash_fixed])
+		failed += 1
+
 	# --- DEBUG AID #11: debug_growth_boost inflates growth rates by +300 ---
 	# Effective only in debug builds (the headless test binary is one). A rate-0
 	# stat becomes 300 → _debug_boosted_rate returns 300; restored to false after.

@@ -182,11 +182,21 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 			var combat_used: int = _combat_skill_uses.get(skill.id, 0)
 			if combat_used >= skill.max_uses_per_combat:
 				continue
-		# Roll activation chance from data if a stat is specified.
+		# Roll activation chance from data if a stat is specified. The draw comes
+		# from the current event's private RNG (context["rng"], seeded by
+		# RngService.begin_event — RNG-1); previews never reach here (skipped
+		# above), so a missing RNG in a live path is a plumbing bug: fail loudly
+		# and draw nothing rather than silently desync the dice chain with raw RNG.
 		if skill.activation_chance_stat != "":
+			var rng: RandomNumberGenerator = context.get("rng")
+			if rng == null:
+				push_error("SkillHandler: '%s' activation roll without context[\"rng\"] — "
+					% skill.id
+					+ "begin an RNG event before non-preview triggers (RNG-1)")
+				continue
 			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
 			var chance: int = stat_val / max(1, skill.activation_divisor)
-			if (randi() % 100) >= chance:  # rng-allow: pre-M9a (RNG-1)
+			if rng.randi_range(0, 99) >= chance:  # rng-allow: draw from the RngService event RNG (RNG-1)
 				continue
 		# Only count a use when the effect actually committed: a handler that
 		# declines (wrong weapon type, HP above threshold, Miracle on a non-lethal
