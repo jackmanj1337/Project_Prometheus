@@ -8,6 +8,7 @@ extends Node
 # save-system milestone — see §0b N2 in code_review_2026-05-13c.
 
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -453,33 +454,8 @@ func validate_restore_snapshot_state() -> Array[String]:
 
 
 func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[String]) -> void:
-	var required_array_keys := ["inventory", "conditions", "skills", "earned_skills",
-		"mastery_skills", "active_modifiers"]
-	var required_dict_keys := ["weapon_wexp", "skill_use_counters", "growth_accumulators"]
-	if not snap.has("hp") or not snap.has("max_hp"):
-		errors.append("GameState: snapshot entry %d is missing hp/max_hp" % index)
-	else:
-		var hp: int = int(snap.get("hp", -1))
-		var max_hp: int = int(snap.get("max_hp", -1))
-		if max_hp < 1:
-			errors.append("GameState: snapshot entry %d max_hp must be >= 1" % index)
-		if hp < 0:
-			errors.append("GameState: snapshot entry %d hp cannot be negative" % index)
-		elif max_hp >= 1 and hp > max_hp:
-			errors.append("GameState: snapshot entry %d hp %d exceeds max_hp %d" % [
-				index, hp, max_hp])
-	if snap.has("tile_position") and not (snap["tile_position"] is Vector2i):
-		errors.append("GameState: snapshot entry %d tile_position is not a Vector2i" % index)
-	for key in required_array_keys:
-		if not snap.has(key):
-			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
-		elif not (snap[key] is Array):
-			errors.append("GameState: snapshot entry %d '%s' is not an Array" % [index, key])
-	for key in required_dict_keys:
-		if not snap.has(key):
-			errors.append("GameState: snapshot entry %d is missing '%s'" % [index, key])
-		elif not (snap[key] is Dictionary):
-			errors.append("GameState: snapshot entry %d '%s' is not a Dictionary" % [index, key])
+	var dm := get_node_or_null("/root/DataManager")
+	errors.append_array(SaveCodec.validate_unit_snapshot_dict(snap, index, dm))
 
 
 # Deep-copies all player UnitData fields into _map_start_snapshot.
@@ -533,84 +509,8 @@ func restore_map_snapshot() -> bool:
 
 
 func _snapshot_unit_data(data: UnitData) -> Dictionary:
-	# Snapshot only the fields that can change during a map.
-	# Phase 2 runtime state (modifiers, conditions, counters) is included so a
-	# mid-battle suspend save can serialize everything without scene tree traversal.
-	# Deep-copy each InventoryEntry individually: Array.duplicate(true) copies the
-	# array but shares the Resource references, so combat use/durability would
-	# otherwise mutate the snapshot and break a Retry.
-	var inventory_copy: Array = []
-	for entry in data.inventory:
-		inventory_copy.append(entry.duplicate(true) if entry != null else null)
-	return {
-		"tile_position": data.tile_position,
-		"class_id": data.class_id,
-		"hp": data.hp,
-		"max_hp": data.max_hp,
-		"strength": data.strength,
-		"magic": data.magic,
-		"defense": data.defense,
-		"resistance": data.resistance,
-		"skill": data.skill,
-		"speed": data.speed,
-		"luck": data.luck,
-		"exp": data.exp,
-		"level": data.level,
-		"internal_level": data.internal_level,
-		"is_promoted": data.is_promoted,
-		"class_line_id": data.class_line_id,
-		"weapon_wexp": data.weapon_wexp.duplicate(true),
-		"inventory": inventory_copy,
-		"conditions": data.conditions.duplicate(true),
-		"skills": data.skills.duplicate(true),
-		"earned_skills": data.earned_skills.duplicate(true),
-		"mastery_skills": data.mastery_skills.duplicate(true),
-		"is_incapacitated": data.is_incapacitated,
-		# Phase 2 runtime state
-		"active_modifiers": data.active_modifiers.duplicate(true),
-		"skill_use_counters": data.skill_use_counters.duplicate(true),
-		"damage_taken_this_map": data.damage_taken_this_map,
-		"growth_accumulators": data.growth_accumulators.duplicate(true),
-		"shift_gauge": data.shift_gauge,
-		"is_shifted": data.is_shifted,
-	}
+	return SaveCodec.unit_data_to_dict(data)
 
 
 func _restore_unit_data(data: UnitData, snap: Dictionary) -> void:
-	# Use .get() with defaults so older snapshots missing newer fields don't crash.
-	data.tile_position = snap.get("tile_position", Vector2i.ZERO)
-	data.class_id = snap.get("class_id", data.class_id)
-	data.hp = snap.get("hp", data.max_hp)
-	data.max_hp = snap.get("max_hp", data.max_hp)
-	data.strength = snap.get("strength", data.strength)
-	data.magic = snap.get("magic", data.magic)
-	data.defense = snap.get("defense", data.defense)
-	data.resistance = snap.get("resistance", data.resistance)
-	data.skill = snap.get("skill", data.skill)
-	data.speed = snap.get("speed", data.speed)
-	data.luck = snap.get("luck", data.luck)
-	data.exp = snap.get("exp", 0)
-	data.level = snap.get("level", data.level)
-	data.internal_level = snap.get("internal_level", data.internal_level)
-	data.is_promoted = snap.get("is_promoted", data.is_promoted)
-	data.class_line_id = snap.get("class_line_id", data.class_line_id)
-	data.weapon_wexp = snap.get("weapon_wexp", {}).duplicate(true)
-	# Deep-copy each InventoryEntry on restore too, so repeated Retries each get a
-	# fresh copy rather than aliasing the one stored in the snapshot.
-	data.inventory.clear()
-	for entry in snap.get("inventory", []):
-		data.inventory.append(entry.duplicate(true) if entry != null else null)
-	data.conditions = snap.get("conditions", []).duplicate(true)
-	data.skills = snap.get("skills", []).duplicate(true)
-	data.earned_skills = snap.get("earned_skills", []).duplicate(true)
-	data.mastery_skills = snap.get("mastery_skills", []).duplicate(true)
-	data.is_incapacitated = snap.get("is_incapacitated", false)
-	# Phase 2 runtime state
-	# Default is [] — active_modifiers is Array[Dictionary]; an older snapshot missing
-	# the key must fall back to an empty Array, not an empty Dictionary.
-	data.active_modifiers = snap.get("active_modifiers", []).duplicate(true)
-	data.skill_use_counters = snap.get("skill_use_counters", {}).duplicate(true)
-	data.damage_taken_this_map = snap.get("damage_taken_this_map", 0)
-	data.growth_accumulators = snap.get("growth_accumulators", {}).duplicate(true)
-	data.shift_gauge = snap.get("shift_gauge", 0.0)
-	data.is_shifted = snap.get("is_shifted", false)
+	SaveCodec.apply_unit_dict(data, snap)

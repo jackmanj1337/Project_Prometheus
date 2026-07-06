@@ -614,6 +614,10 @@ func get_weapon(id: String) -> WeaponData:
 	return _weapons[id]
 
 
+func has_weapon(id: String) -> bool:
+	return _weapons.has(id)
+
+
 func get_item(id: String) -> ItemData:
 	if not _items.has(id):
 		push_error("DataManager: unknown item id '%s'" % id)

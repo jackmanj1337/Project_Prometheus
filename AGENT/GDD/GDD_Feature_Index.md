@@ -22,7 +22,7 @@ planned or future anchors and are not asserted as existing files.
 |---|---|---|---|---|---|
 | Project tracking and GDD rewrite | Mixed: tracker and build-guide wiring Implemented; chapter anchors/vocabulary follow-ups Planned/Pending validation | `GDD_00`, `GDD_10` | `B0-GDD-COVERAGE`, `B0-CONTROL-PLANE`, `B0-DOC-ROLE-MANIFEST`, `B0-GDD10-REWRITE`, `B0-FEATURE-INDEX-WIRING`, `B0-VOCAB-NAMING`, `B0-GDD-ANCHORS`, `CLEAN-STALE-GDD10` | `project_control_plane_2026-06-29.md`, `doc_role_manifest_2026-06-29.md`, `project_vocabulary_manifest_2026-06-29.md` | `AGENT/Docs/check_docs.py` |
 | Combat calculations and hit RNG | Split: project behavior Implemented; deterministic service Target design | `GDD_02`, `GDD_01` | `B1-PKGA`, `B2-PROJECTION` | `rng_determinism_design_2026-06-11.md`, `package_a_rngservice_open_questions_2026-06-21.md` | `CombatResolver.gd`; `test_combat.gd`; target: `RngService.gd` |
-| Save, retry, suspend, rewind | Split: Retry Implemented; F1 manifest Implemented; campaign save/suspend Target design | `GDD_01`, `GDD_07` | `B1-F1`, `B1-SAVECODEC`, `B1-CST`, `B1-SUSPEND`, `B1-CAMPAIGN-RULES-SAVE` | `campaign_save_technical_plan_2026-06-21.md`, `f1_save_schema_lock_design_2026-06-28.md`, `f1_save_schema_manifest_2026-07-06.md` | `GameState.gd`; `test_snapshot_coverage.gd`, `test_game_state.gd`; target: SaveCodec |
+| Save, retry, suspend, rewind | Split: Retry, F1 manifest, and SaveCodec foundation Implemented; campaign save/suspend Target design | `GDD_01`, `GDD_07` | `B1-F1`, `B1-SAVECODEC`, `B1-CST`, `B1-SUSPEND`, `B1-CAMPAIGN-RULES-SAVE` | `campaign_save_technical_plan_2026-06-21.md`, `f1_save_schema_lock_design_2026-06-28.md`, `f1_save_schema_manifest_2026-07-06.md` | `GameState.gd`, `SaveCodec.gd`; `test_snapshot_coverage.gd`, `test_game_state.gd`, `test_save_codec.gd` |
 | CampaignRules profiles and tunables | Planned | `GDD_01`, `GDD_02` | `B3-CAMPAIGN-RULES`, `B4-DIFFICULTY-DEATHMODE` | `difficulty_death_mode_open_questions_2026-06-27.md`, `campaign_rules.md` | `CampaignRules.gd`; target: profile registry tests |
 | Registry manifest, open registries, and data load seams | Target design / Planned split | `GDD_01` | `B2-REGISTRY`, `B2-DATAMANAGER-SEAMS`, `B3-MOVEMENT-VULN-REGISTRY`, `B3-STAT-REGISTRY`, `B3-RESOURCE-POOLS`, `B5-AI-COMPOSITION` | `authoring_extensibility_open_questions_2026-06-26.md`, `registry_manifest_contract_2026-06-28.md`, `datamanager_decomposition_open_questions_2026-06-21.md` | target: registry validation and loader cross-reference tests |
 | Action/effect primitive runner | Target design | `GDD_01`, `GDD_06` | `B2-ACTION-EFFECT` | `action_effect_primitive_contract_2026-06-28.md` | target: invalid-action/no-mutation tests |
@@ -63,6 +63,6 @@ planned or future anchors and are not asserted as existing files.
 | Follow-up | Track ID |
 |---|---|
 | Add exact section anchors after `GDD_01`-`GDD_08` are rewritten. | `B0-GDD-ANCHORS` |
-| Promote F1 manifest row ownership into serializer coverage checks after `SaveCodec` exists. | `B1-SAVECODEC` |
+| Promote F1 manifest row ownership into serializer coverage checks after `SaveData` exists. | `B1-SAVECODEC` |
 | Replace broad `target:` anchors with exact files/tests as implementation plans land. | Relevant feature row |
 | Resolve objective-map evidence conflict. | `VAL-OBJECTIVE-MAPS` |
