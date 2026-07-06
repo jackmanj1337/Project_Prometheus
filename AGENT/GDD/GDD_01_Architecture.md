@@ -722,9 +722,10 @@ campaign systems depend on.
 
 ## Determinism, Snapshot & Online Contract
 
-Status: **Split** — RNG-1 dice sourcing + event commits and the RNG-2 Retry
-snapshot **Implemented** (2026-07-06, B1-PKGA Steps 1-2); the generalized §8.1
-snapshot dict, suspend, and rewind **Target design**
+Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
+snapshot, and the I/O-free `SaveData` envelope are **Implemented** (2026-07-06,
+B1-PKGA Steps 1-2 and B1-SAVECODEC Slices 4-5); the generalized §8.1 snapshot
+dict, suspend, and rewind **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -768,9 +769,9 @@ plan (code, integration sweep, tests, build order) is
   checkpoint 0; suspend save = this dict to `user://suspend.sav`; rewind = a ring of
   these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
   delete-on-load — RNG-2 already blocks reload-scumming). The Retry-facing
-  unit/inventory snapshot already routes through `SaveCodec` as JSON-safe
-  dictionaries (2026-07-06, `B1-SAVECODEC` Slice 4); the top-level SaveData
-  envelope is the next slice.
+  unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,
+  and the top-level `SaveData` envelope now defines the I/O-free document seam
+  with locked-section defaults (2026-07-06, `B1-SAVECODEC` Slices 4-5).
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -779,14 +780,15 @@ plan (code, integration sweep, tests, build order) is
 - Package A Steps 1-2 are complete (2026-07-06): dice sourcing, non-dice event
   commits (wait/seize/escape/item/staff/pair actions, player and AI), the
   raw-RNG lint (T5), equip neutrality (T4), and the Retry snapshot carrying
-  `{map_seed, history_hash}` (T2). `B1-SAVECODEC` Slice 4 also landed
+  `{map_seed, history_hash}` (T2). `B1-SAVECODEC` Slices 4-5 also landed
   (2026-07-06): Retry unit/inventory snapshots now use JSON-safe `SaveCodec`
-  dictionaries. Remaining: the top-level `SaveData` envelope and old-save
-  defaults land with `B1-SAVECODEC` Slice 5; suspend round-trip (T6) with
-  `B1-SUSPEND`; rewind is Build Order Step 4.
+  dictionaries, and `SaveData` owns the top-level section defaults plus old-save
+  default fixtures. Remaining: CampaignRules consolidation in `B1-CST`, suspend
+  round-trip (T6) with `B1-SUSPEND`, and rewind as Build Order Step 4.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/save/SaveCodec.gd`;
+  `scripts/save/SaveData.gd`;
   `CombatResolver.gd`, `TurnManager.gd`
   (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
   (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`
@@ -796,7 +798,8 @@ plan (code, integration sweep, tests, build order) is
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
   `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
   wait-commit), `scripts/tests/test_rng_snapshot.gd` (T2),
-  `scripts/tests/test_save_codec.gd`; pending: T6 (`B1-SUSPEND`)
+  `scripts/tests/test_save_codec.gd`; `scripts/tests/test_save_data.gd`;
+  pending: T6 (`B1-SUSPEND`)
 - Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13
 - Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG

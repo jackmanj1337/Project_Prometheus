@@ -71,8 +71,8 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B1-SAVECODEC` | `SaveData` envelope | Slice 4 `SaveCodec` landed 2026-07-06; next add the top-level envelope and old-save defaults. |
-| 2 | `B1-CST` | Campaign/save spine | Starts the campaign loop and future suspend/save work after the codec/envelope fixtures exist. |
+| 1 | `B1-CST` | CampaignRules consolidation kickoff | `SaveCodec` and `SaveData` fixtures landed 2026-07-06; next move loose rule fields toward the campaign/save spine. |
+| 2 | `B1-SUSPEND` | Mid-battle suspend capstone | Starts after `B1-CST` defines the rule-save seam and can consume the locked runtime fields. |
 
 ## Validation And Release Queues
 
