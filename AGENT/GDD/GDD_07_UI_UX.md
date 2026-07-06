@@ -81,8 +81,9 @@ banner as `hotseat-all` while active.
 ### Threat Overlay
 
 Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
-authored as a placeholder colour; the "D" marker is the live-verify pass)
-Last verified: 2026-07-05
+authored as a placeholder colour; the "D" marker is the live-verify pass;
+suspend restore of watch-set/mode state landed with `B1-SUSPEND` Slice 1)
+Last verified: 2026-07-06
 
 The `show_danger_zone` action (MMB / Q; the input path also routes a pad-bound
 gamepad R3 press, though the pad binding itself lands with the gamepad layer's
@@ -107,7 +108,8 @@ Adding a member auto-promotes the mode on the empty→non-empty transition
 [MRD-1] overlay precedence registry (range < faction threat < watch threat <
 opaque top layers). The set + mode survive phase changes, menus, and unit
 selection (teardown clears only the paint; a return to the free state recomputes
-it from current positions); a map load clears them.
+it from live positions); a fresh map load clears them, while a suspend resume
+restores them from `suspend.watch_set` / `suspend.danger_mode`.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an

@@ -14,6 +14,7 @@ class_name MapCursor extends Node2D
 # so the in-game Camera Pan Buffer setting (#17) takes effect immediately.
 # Key-repeat timings now live in MapCursorInput.
 const CAMERA_EDGE_BUFFER: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 
 var current_tile: Vector2i = Vector2i(0, 0)
 var _grid: GridManager = null
@@ -1512,6 +1513,40 @@ func _open_map_menu() -> void:
 	# a close — flickering the menu shut on the very keystroke that opened it.
 	if is_inside_tree():
 		get_viewport().set_input_as_handled()
+
+
+func can_capture_suspend() -> bool:
+	if _state != State.FREE or _input_suppressed:
+		return false
+	if _turn != null:
+		return _turn.is_locally_controlled_faction(_turn.active_faction())
+	var gs := get_node_or_null("/root/GameState")
+	return gs != null and gs.is_player_turn()
+
+
+func capture_suspend_ui_state() -> Dictionary:
+	_prune_watch_set()
+	return {
+		"cursor_tile": current_tile,
+		"mode": "free",
+		"watch_set": _watch_set.keys(),
+		"danger_mode": _danger_mode,
+	}
+
+
+func apply_suspend_ui_state(suspend_state: Dictionary) -> void:
+	var tile: Vector2i = current_tile
+	if suspend_state.has("cursor_tile"):
+		tile = SaveCodec.vector2i_from_dict(suspend_state["cursor_tile"], current_tile)
+	_watch_set.clear()
+	for unit_id in suspend_state.get("watch_set", []):
+		var id: String = String(unit_id)
+		if id != "":
+			_watch_set[id] = true
+	var mode: String = String(suspend_state.get("danger_mode", DANGER_MODE_NONE))
+	_danger_mode = mode if mode in VALID_DANGER_MODES else DANGER_MODE_NONE
+	_set_tile(tile)
+	repaint()
 
 
 func _on_end_turn_requested() -> void:

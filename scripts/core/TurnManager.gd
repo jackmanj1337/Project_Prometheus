@@ -17,6 +17,8 @@ class_name TurnManager extends Node
 signal turn_changed(turn_number: int)
 signal phase_committed
 
+const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+
 enum UnitState { READY, MOVED, DONE }
 
 # Node -> UnitState
@@ -91,16 +93,7 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	# be wired on unit_moved (Decision 5 / 2026-05-17), but the 2026-05-20 review
 	# reversed it — escape is now a deliberate ActionMenu entry like Seize, so
 	# no movement hook is needed.
-	var bus := get_node_or_null("/root/EventBus")
-	if bus and not bus.unit_died.is_connected(_on_unit_died):
-		bus.unit_died.connect(_on_unit_died)
-	# A support dropped by a player-phase lead death spends its turn at once.
-	# PairUpRegistry announces it on EventBus so it need not know our scene path.
-	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
-		bus.support_orphaned.connect(_on_support_orphaned)
-	if bus and bus.has_signal("debug_flags_changed") \
-			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
-		bus.debug_flags_changed.connect(_on_debug_flags_changed)
+	_connect_runtime_signals()
 	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
 	# Begin the first faction's phase.
 	if active_faction() == "blue" or active_faction() == "":
@@ -114,6 +107,147 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 			var gs_for_first := get_node_or_null("/root/GameState")
 			if gs_for_first:
 				gs_for_first.set_phase(gs_for_first.Phase.ENEMY, active_faction())
+
+
+func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
+	_map_data = map_data
+	_grid = grid
+	_turn_order = _string_array_from_variant(turn_state.get("turn_order", []))
+	if _turn_order.is_empty():
+		_turn_order = _derive_turn_order(map_data)
+	_activation_mode = String(turn_state.get("activation_mode", _derive_activation_mode(map_data)))
+	_active_faction_idx = int(turn_state.get("active_faction_idx", 0))
+	if _active_faction_idx < 0 or _active_faction_idx >= _turn_order.size():
+		_active_faction_idx = 0
+	_unit_states.clear()
+	_original_tiles.clear()
+	_restore_unit_states(turn_state.get("unit_states", {}))
+	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
+	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
+	_group_eliminated_round = _int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
+	_map_over = false
+	var gs := get_node_or_null("/root/GameState")
+	if gs:
+		gs.turn_number = int(turn_state.get("turn_number", 1))
+		var phase_name: String = String(turn_state.get("phase", "player"))
+		gs.set_phase(gs.Phase.ENEMY if phase_name == "enemy" else gs.Phase.PLAYER, active_faction())
+	_connect_runtime_signals()
+	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
+
+
+func capture_suspend_turn_state() -> Dictionary:
+	var gs := get_node_or_null("/root/GameState")
+	return {
+		"turn_number": gs.turn_number if gs else 1,
+		"phase": _phase_name(gs),
+		"active_faction": active_faction(),
+		"active_faction_idx": _active_faction_idx,
+		"turn_order": _turn_order.duplicate(),
+		"activation_mode": _activation_mode,
+		"unit_states": _unit_states_by_id(),
+		"seize_records": _serialize_records(_seize_records),
+		"escape_records": _escape_records.duplicate(true),
+		"group_eliminated_round": _group_eliminated_round.duplicate(true),
+	}
+
+
+func _connect_runtime_signals() -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus and not bus.unit_died.is_connected(_on_unit_died):
+		bus.unit_died.connect(_on_unit_died)
+	# A support dropped by a player-phase lead death spends its turn at once.
+	# PairUpRegistry announces it on EventBus so it need not know our scene path.
+	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
+		bus.support_orphaned.connect(_on_support_orphaned)
+	if bus and bus.has_signal("debug_flags_changed") \
+			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
+		bus.debug_flags_changed.connect(_on_debug_flags_changed)
+
+
+func _phase_name(gs: Node) -> String:
+	if gs == null:
+		return "player"
+	return "enemy" if not gs.is_player_turn() else "player"
+
+
+func _unit_states_by_id() -> Dictionary:
+	var out: Dictionary = {}
+	for unit in _unit_states.keys():
+		if not is_instance_valid(unit) or unit.get("data") == null:
+			continue
+		var unit_id: String = String(unit.data.unit_id)
+		if unit_id != "":
+			out[unit_id] = int(_unit_states[unit])
+	return out
+
+
+func _restore_unit_states(states_by_id: Variant) -> void:
+	if not (states_by_id is Dictionary):
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	for unit_id in states_by_id.keys():
+		var unit: Node = gs.find_unit_by_id(String(unit_id))
+		if unit == null:
+			continue
+		_unit_states[unit] = int(states_by_id[unit_id])
+
+
+func _serialize_records(records: Array[Dictionary]) -> Array:
+	var out: Array = []
+	for record in records:
+		var next: Dictionary = record.duplicate(true)
+		if next.get("tile", null) is Vector2i:
+			next["tile"] = SaveCodec.vector2i_to_dict(next["tile"])
+		out.append(next)
+	return out
+
+
+func _deserialize_records(records: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (records is Array):
+		return out
+	for record in records:
+		if not (record is Dictionary):
+			continue
+		var next: Dictionary = record.duplicate(true)
+		if next.has("tile"):
+			next["tile"] = SaveCodec.vector2i_from_dict(next["tile"])
+		out.append(next)
+	return out
+
+
+func _dict_records_from_variant(records: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (records is Array):
+		return out
+	for record in records:
+		if record is Dictionary:
+			out.append(record.duplicate(true))
+	return out
+
+
+func _array_from_variant(value: Variant) -> Array:
+	return value.duplicate(true) if value is Array else []
+
+
+func _string_array_from_variant(value: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if not (value is Array):
+		return out
+	for item in value:
+		out.append(String(item))
+	return out
+
+
+func _int_dict_from_variant(value: Variant) -> Dictionary:
+	var out: Dictionary = {}
+	if not (value is Dictionary):
+		return out
+	for key in value.keys():
+		out[key] = int(value[key])
+	return out
 
 
 # Reads MapData.turn_order, MapData.factions, or falls back to the default

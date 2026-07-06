@@ -1,14 +1,13 @@
 extends Node
 # [NOTE — M-1] class_name cannot be used on autoload scripts in Godot 4, even with a
 # name that differs from the autoload name — Godot refuses to register the class_name.
-# TODO save-system: the current snapshot (_map_start_snapshot) is in-memory only and
-# covers player UnitData. Suspend saves additionally need: (a) live enemy UnitData state
-# (enemies are re-spawned fresh today — see GameMap._spawn_units), and (b) live terrain
-# mutations if MapData.grid ever diverges at runtime. Neither is in scope until the
-# save-system milestone — see §0b N2 in code_review_2026-05-13c.
+# Retry snapshots are in-memory map-start checkpoints. Active-map suspend now uses
+# SaveData and captures live units for every faction; future terrain/object mutation
+# fields should join the same map_runtime section when those systems land.
 
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 
 enum Phase { PLAYER, ENEMY }
@@ -154,6 +153,10 @@ var active_roster_source: String = ""
 var next_map_data_path: String = ""
 var next_map_roster_policy: String = ""
 var next_map_roster_source: String = ""
+# I/O-free suspend resume payload. SaveManager will eventually populate this
+# from disk; GameMap consumes it to spawn from live unit state instead of
+# authored placements.
+var next_map_suspend_payload: Dictionary = {}
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -320,6 +323,35 @@ func configure_next_map(map_path: String, roster_policy: String = "default_roste
 	next_map_data_path = map_path
 	next_map_roster_policy = roster_policy
 	next_map_roster_source = roster_source
+	next_map_suspend_payload.clear()
+
+
+func configure_suspend_resume(source: Variant) -> bool:
+	var save: RefCounted = source if source is SaveData else SaveDataScript.from_dict(source)
+	if save == null:
+		return false
+	var payload: Dictionary = save.to_dict()
+	var map_runtime: Dictionary = payload.get("map_runtime", {})
+	var map_path: String = String(map_runtime.get("map_path", ""))
+	if map_path == "":
+		push_error("GameState: suspend payload is missing map_runtime.map_path")
+		return false
+	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
+	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
+	player_roster = _player_roster_from_runtime_units(map_runtime.get("units", []))
+	roster_initialized = not player_roster.is_empty()
+	roster_load_failed = player_roster.is_empty()
+	active_roster_policy = "suspend_resume"
+	active_roster_source = map_path
+	next_map_data_path = map_path
+	next_map_roster_policy = "suspend_resume"
+	next_map_roster_source = map_path
+	next_map_suspend_payload = payload.duplicate(true)
+	return true
+
+
+func clear_suspend_resume() -> void:
+	next_map_suspend_payload.clear()
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.
@@ -398,6 +430,8 @@ func is_roster_ready_for_launch() -> bool:
 				and not player_roster.is_empty()
 		"keep_current_roster":
 			return not player_roster.is_empty()
+		"suspend_resume":
+			return not next_map_suspend_payload.is_empty()
 		_:
 			return false
 
@@ -408,6 +442,153 @@ func _clear_roster_launch_state() -> void:
 	roster_load_failed = false
 	active_roster_policy = ""
 	active_roster_source = ""
+
+
+func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
+	var save: RefCounted = SaveDataScript.new()
+	save.campaign["rules"] = _campaign_rules_to_dict()
+	save.party["resources"]["party_gold"] = party_gold
+	save.roster["units"] = []
+	for unit_data in player_roster:
+		if unit_data != null:
+			save.roster["units"].append(unit_data_to_runtime_dict(unit_data, "blue"))
+
+	save.map_runtime["map_id"] = map_data.id if map_data != null else ""
+	save.map_runtime["map_path"] = _current_map_path()
+	save.map_runtime["units"] = _runtime_units_to_array()
+	save.map_runtime["turn"] = turn_manager.call("capture_suspend_turn_state") \
+		if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state") else {}
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	save.map_runtime["pair_carry"] = {"pair_up": reg.call("serialize") if reg else {}}
+	var rng_svc := get_node_or_null("/root/RngService")
+	save.map_runtime["rng"] = rng_svc.call("to_save_dict") if rng_svc else {}
+
+	var suspend_ui: Dictionary = cursor.call("capture_suspend_ui_state") \
+		if cursor != null and cursor.has_method("capture_suspend_ui_state") else {}
+	save.suspend["kind"] = "map"
+	save.suspend["cursor_tile"] = suspend_ui.get("cursor_tile", null)
+	save.suspend["mode"] = suspend_ui.get("mode", "free")
+	save.suspend["watch_set"] = suspend_ui.get("watch_set", [])
+	save.suspend["danger_mode"] = suspend_ui.get("danger_mode", "none")
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+func unit_data_to_runtime_dict(data: UnitData, faction_id: String = "") -> Dictionary:
+	var out: Dictionary = _snapshot_unit_data(data)
+	# Suspend must rebuild live enemies that have no roster resource on load, so
+	# it carries static identity/config beside the mutable snapshot fields.
+	out["unit_id"] = data.unit_id
+	out["unit_name"] = data.unit_name
+	out["faction"] = faction_id
+	out["movement"] = data.movement
+	out["constitution"] = data.constitution
+	out["line_of_sight"] = data.line_of_sight
+	out["growth_rates"] = data.growth_rates.duplicate(true)
+	out["reclass_options"] = data.reclass_options.duplicate()
+	out["can_seize"] = data.can_seize
+	out["gold"] = data.gold
+	out["ai_profile"] = data.ai_profile
+	out["is_default_roster"] = data.is_default_roster
+	out["shift_profile_id"] = data.shift_profile_id
+	return out
+
+
+func unit_data_from_runtime_dict(unit_dict: Dictionary) -> UnitData:
+	var data := UnitData.new()
+	data.unit_id = String(unit_dict.get("unit_id", ""))
+	data.unit_name = String(unit_dict.get("unit_name", ""))
+	data.movement = _variant_int(unit_dict.get("movement", 0), 0)
+	data.constitution = _variant_int(unit_dict.get("constitution", 0), 0)
+	data.line_of_sight = _variant_int(unit_dict.get("line_of_sight", 4), 4)
+	data.growth_rates = unit_dict.get("growth_rates", {}).duplicate(true) \
+		if unit_dict.get("growth_rates", {}) is Dictionary else {}
+	data.reclass_options = _string_array_from_variant(unit_dict.get("reclass_options", []))
+	data.can_seize = bool(unit_dict.get("can_seize", false))
+	data.gold = _variant_int(unit_dict.get("gold", 1000), 1000)
+	data.ai_profile = String(unit_dict.get("ai_profile", "basic"))
+	data.is_default_roster = bool(unit_dict.get("is_default_roster", false))
+	data.shift_profile_id = String(unit_dict.get("shift_profile_id", ""))
+	_restore_unit_data(data, unit_dict)
+	return data
+
+
+func _runtime_units_to_array() -> Array:
+	var out: Array = []
+	for unit in all_units:
+		if not is_instance_valid(unit) or unit.get("data") == null:
+			continue
+		var faction_id: String = String(unit.get("team")) if "team" in unit else ""
+		out.append(unit_data_to_runtime_dict(unit.data, faction_id))
+	return out
+
+
+func _player_roster_from_runtime_units(units: Variant) -> Array[UnitData]:
+	var out: Array[UnitData] = []
+	if not (units is Array):
+		return out
+	for unit_entry in units:
+		if not (unit_entry is Dictionary):
+			continue
+		if String(unit_entry.get("faction", "")) != "blue":
+			continue
+		out.append(unit_data_from_runtime_dict(unit_entry))
+	return out
+
+
+func _campaign_rules_to_dict() -> Dictionary:
+	return {
+		"death_mode": "classic" if campaign_rules.permadeath_enabled else "casual",
+		"leveling_method": campaign_rules.leveling_method,
+		"auto_promote_at_max_level": campaign_rules.auto_promote_at_max_level,
+		"pair_up_enabled": campaign_rules.pair_up_enabled,
+		"max_skills": campaign_rules.max_skills,
+		"max_inventory": campaign_rules.max_inventory,
+		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
+		"hit_formula": campaign_rules.hit_formula,
+		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
+	}
+
+
+func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
+	if not (rules_dict is Dictionary):
+		return
+	var normalized: Dictionary = SaveDataScript.from_dict({"campaign": {"rules": rules_dict}}).campaign["rules"]
+	campaign_rules.permadeath_enabled = normalized.get("death_mode", "casual") == "classic"
+	campaign_rules.leveling_method = String(normalized.get("leveling_method", "growth_random"))
+	campaign_rules.auto_promote_at_max_level = bool(normalized.get("auto_promote_at_max_level", false))
+	campaign_rules.pair_up_enabled = bool(normalized.get("pair_up_enabled", true))
+	campaign_rules.max_skills = _variant_int(normalized.get("max_skills", 5), 5)
+	campaign_rules.max_inventory = _variant_int(normalized.get("max_inventory", 8), 8)
+	campaign_rules.exp_gaining_factions = _string_array_from_variant(
+		normalized.get("exp_gaining_factions", ["blue", "green"]))
+	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
+	campaign_rules.rewind_charges_per_map = _variant_int(
+		normalized.get("rewind_charges_per_map", 4), 4)
+
+
+func _current_map_path() -> String:
+	if next_map_data_path != "":
+		return next_map_data_path
+	if map_data != null and map_data.resource_path != "":
+		return map_data.resource_path
+	return ""
+
+
+func _string_array_from_variant(value: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if not (value is Array):
+		return out
+	for item in value:
+		out.append(String(item))
+	return out
+
+
+func _variant_int(value: Variant, default_value: int) -> int:
+	if value is int:
+		return int(value)
+	if value is float and absf(float(value) - float(int(value))) < 0.00001:
+		return int(value)
+	return default_value
 
 
 func validate_restore_snapshot_state() -> Array[String]:

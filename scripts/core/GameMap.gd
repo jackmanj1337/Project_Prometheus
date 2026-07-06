@@ -44,7 +44,11 @@ var map_data: MapData = null
 
 func _ready() -> void:
 	var gs := get_node_or_null("/root/GameState")
+	var resume_payload: Dictionary = {}
 	if gs:
+		var raw_payload: Variant = gs.get("next_map_suspend_payload")
+		if raw_payload is Dictionary:
+			resume_payload = raw_payload.duplicate(true)
 		# Fresh map boot must not inherit stale scene-scoped unit state from a
 		# prior battle. This is especially important after returning to the main
 		# menu from an in-progress map in an exported build.
@@ -96,23 +100,31 @@ func _ready() -> void:
 
 	if not _spawn_units():
 		return
-	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
+	var is_resuming := not resume_payload.is_empty()
+	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start.
+	# A suspend resume keeps the serialized mid-map runtime state intact instead
+	# of running map-start resets over it.
 	if gs:
-		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
-		for u in gs.get("all_units") as Array:
-			if u.has_method("reset_map_state"):
-				u.reset_map_state()
+		if not is_resuming:
+			# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
+			for u in gs.get("all_units") as Array:
+				if u.has_method("reset_map_state"):
+					u.reset_map_state()
 		gs.set("map_data", map_data)
-		gs.call("take_map_snapshot")
+		if not is_resuming:
+			gs.call("take_map_snapshot")
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
 		_hud.setup(_grid, _turn_manager, _attack_preview, _unit_details_screen)
-	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
-	# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
-	# its unit/terrain panels from the start tile.
-	_place_cursor_at_start()
-	# Kick off the first player phase
-	_turn_manager.start_map(map_data, _grid)
+	if is_resuming:
+		_apply_suspend_resume(resume_payload)
+	else:
+		# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
+		# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
+		# its unit/terrain panels from the start tile.
+		_place_cursor_at_start()
+		# Kick off the first player phase.
+		_turn_manager.start_map(map_data, _grid)
 
 
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
@@ -177,6 +189,9 @@ func _spawn_units() -> bool:
 	if gs == null:
 		push_error("GameMap: GameState autoload missing")
 		return false
+	var resume_payload: Variant = gs.get("next_map_suspend_payload")
+	if resume_payload is Dictionary and not resume_payload.is_empty():
+		return _spawn_units_from_suspend(resume_payload)
 	if not bool(gs.call("is_roster_ready_for_launch")):
 		push_error("GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')" % [
 			String(gs.get("next_map_roster_policy")),
@@ -215,6 +230,41 @@ func _spawn_units() -> bool:
 			continue
 		_spawn_unit(u_data, tile, faction_id)
 	return true
+
+
+func _spawn_units_from_suspend(payload: Dictionary) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var units: Array = payload.get("map_runtime", {}).get("units", [])
+	if units.is_empty():
+		push_error("GameMap: suspend payload has no map_runtime.units")
+		return false
+	for unit_entry in units:
+		if not (unit_entry is Dictionary):
+			push_error("GameMap: suspend payload unit entry is not a Dictionary: %s" % str(unit_entry))
+			continue
+		var u_data: UnitData = gs.call("unit_data_from_runtime_dict", unit_entry)
+		if u_data == null or u_data.unit_id == "":
+			push_error("GameMap: suspend payload unit has no unit_id: %s" % str(unit_entry))
+			continue
+		var faction_id: String = String(unit_entry.get("faction", "red"))
+		_spawn_unit(u_data, u_data.tile_position, faction_id)
+	return true
+
+
+func _apply_suspend_resume(payload: Dictionary) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	var map_runtime: Dictionary = payload.get("map_runtime", {})
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("restore", map_runtime.get("pair_carry", {}).get("pair_up", {}))
+	var rng_svc := get_node_or_null("/root/RngService")
+	if rng_svc != null and map_runtime.get("rng", {}) is Dictionary \
+			and not map_runtime.get("rng", {}).is_empty():
+		rng_svc.call("from_save_dict", map_runtime["rng"])
+	_turn_manager.start_map_from_suspend(map_data, _grid, map_runtime.get("turn", {}))
+	_cursor.apply_suspend_ui_state(payload.get("suspend", {}))
+	if gs:
+		gs.call("clear_suspend_resume")
 
 
 # [PUG-3] The spawn seam. An enemy placement carries exactly one UnitData source:

@@ -183,15 +183,21 @@ static func _normalize_roster(source: Variant, root: Dictionary) -> Dictionary:
 
 static func _normalize_map_runtime(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_map_runtime())
+	out["map_id"] = _as_string(out.get("map_id", ""), "")
+	out["map_path"] = _as_string(out.get("map_path", ""), "")
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
 	out["flags"] = _string_array_from_variant(out.get("flags", []))
 	out["events_fired"] = _string_array_from_variant(out.get("events_fired", []))
 	out["discovered_units"] = _string_array_from_variant(out.get("discovered_units", []))
 	out["units"] = _array_from_variant(out.get("units", []))
+	out["turn"] = _normalize_turn(out.get("turn", {}))
 	out["rng"] = _dict_from_variant(out.get("rng", {}))
 	if not out["rng"].is_empty():
-		out["rng"]["map_seed"] = _as_int(out["rng"].get("map_seed", 0), 0)
-		out["rng"]["history_hash"] = _as_int(out["rng"].get("history_hash", 0), 0)
+		# Godot JSON parses large integers through a lossy numeric path. Store
+		# RNG timeline fields as decimal strings in SaveData while RngService keeps
+		# using ints in memory.
+		out["rng"]["map_seed"] = _rng_int_string(out["rng"].get("map_seed", 0))
+		out["rng"]["history_hash"] = _rng_int_string(out["rng"].get("history_hash", 0))
 	return out
 
 
@@ -199,8 +205,23 @@ static func _normalize_suspend(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_suspend())
 	out["pending_action"] = _with_defaults(out.get("pending_action", {}), _default_suspend()["pending_action"])
 	out["cursor_tile"] = _vector_dict_or_null(out.get("cursor_tile", null))
-	out["watch_set"] = _vector_array_from_variant(out.get("watch_set", []))
+	out["watch_set"] = _string_array_from_variant(out.get("watch_set", []))
 	out["danger_mode"] = _as_string(out.get("danger_mode", "none"), "none")
+	return out
+
+
+static func _normalize_turn(source: Variant) -> Dictionary:
+	var out := _with_defaults(source, _default_map_runtime()["turn"])
+	out["turn_number"] = _as_int(out.get("turn_number", 1), 1)
+	out["phase"] = _as_string(out.get("phase", "player"), "player")
+	out["active_faction"] = _as_string(out.get("active_faction", ""), "")
+	out["active_faction_idx"] = _as_int(out.get("active_faction_idx", 0), 0)
+	out["turn_order"] = _string_array_from_variant(out.get("turn_order", []))
+	out["activation_mode"] = _as_string(out.get("activation_mode", "WHOLE_PHASE"), "WHOLE_PHASE")
+	out["unit_states"] = _int_dict_from_variant(out.get("unit_states", {}))
+	out["seize_records"] = _array_from_variant(out.get("seize_records", []))
+	out["escape_records"] = _array_from_variant(out.get("escape_records", []))
+	out["group_eliminated_round"] = _int_dict_from_variant(out.get("group_eliminated_round", {}))
 	return out
 
 
@@ -235,8 +256,9 @@ func _validate_rng(rng_data: Variant) -> Array[String]:
 	var errors: Array[String] = []
 	if not (rng_data is Dictionary) or rng_data.is_empty():
 		return errors
-	if not (rng_data.get("map_seed") is int) or not (rng_data.get("history_hash") is int):
-		errors.append("SaveData: map_runtime.rng must carry int map_seed and history_hash")
+	if not _is_rng_value(rng_data.get("map_seed")) \
+			or not _is_rng_value(rng_data.get("history_hash")):
+		errors.append("SaveData: map_runtime.rng must carry int or decimal-string map_seed and history_hash")
 	return errors
 
 
@@ -344,6 +366,8 @@ static func _default_roster() -> Dictionary:
 
 static func _default_map_runtime() -> Dictionary:
 	return {
+		"map_id": "",
+		"map_path": "",
 		"vars": {},
 		"flags": [],
 		"objective_latches": {},
@@ -351,6 +375,18 @@ static func _default_map_runtime() -> Dictionary:
 		"objects": {},
 		"discovered_units": [],
 		"units": [],
+		"turn": {
+			"turn_number": 1,
+			"phase": "player",
+			"active_faction": "",
+			"active_faction_idx": 0,
+			"turn_order": [],
+			"activation_mode": "WHOLE_PHASE",
+			"unit_states": {},
+			"seize_records": [],
+			"escape_records": [],
+			"group_eliminated_round": {},
+		},
 		"pair_carry": {},
 		"relationship_overrides": {},
 		"relationship_gain_counters": {},
@@ -410,6 +446,15 @@ static func _string_array_from_variant(value: Variant) -> Array[String]:
 	return out
 
 
+static func _int_dict_from_variant(value: Variant) -> Dictionary:
+	var out: Dictionary = {}
+	if not (value is Dictionary):
+		return out
+	for key in value.keys():
+		out[key] = _as_int(value[key], 0)
+	return out
+
+
 static func _vector_array_from_variant(value: Variant) -> Array:
 	var out: Array = []
 	if not (value is Array):
@@ -437,6 +482,24 @@ static func _as_int(value: Variant, default_value: int) -> int:
 	if value is float and absf(float(value) - float(int(value))) < 0.00001:
 		return int(value)
 	return default_value
+
+
+static func _rng_int_string(value: Variant) -> String:
+	if value is String and String(value).is_valid_int():
+		return String(value)
+	if value is int:
+		return str(value)
+	if value is float and absf(float(value) - float(int(value))) < 0.00001:
+		return str(int(value))
+	return "0"
+
+
+static func _is_rng_int_string(value: Variant) -> bool:
+	return value is String and String(value).is_valid_int()
+
+
+static func _is_rng_value(value: Variant) -> bool:
+	return value is int or _is_rng_int_string(value)
 
 
 static func _as_string(value: Variant, default_value: String) -> String:

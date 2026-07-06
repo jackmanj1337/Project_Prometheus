@@ -382,6 +382,9 @@ snapshot. No `class_name` — Godot 4 forbids `class_name` on an autoload script
 ```gdscript
 extends Node
 
+const SaveDataScript = preload("res://scripts/save/SaveData.gd")
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+
 enum Phase { PLAYER, ENEMY }
 
 # --- Alliance / faction model ---
@@ -393,19 +396,14 @@ const _DEFAULT_ALLIANCE_GROUPS: Dictionary = {
 }
 var _alliance_groups: Dictionary = _DEFAULT_ALLIANCE_GROUPS.duplicate()
 
-# --- Per-campaign gameplay rules (set by New Game / future save flow) ---
-var permadeath_enabled: bool = false
-var leveling_method: String = "growth_random"
-var auto_promote_at_max_level: bool = false
-var pair_up_enabled: bool = true
-var max_skills: int = 5
-var max_inventory: int = 8
+# --- Per-save gameplay rules (set by New Game / future save flow) ---
+var campaign_rules: CampaignRules = CampaignRulesScript.new()
 
 # --- Debug-only testing aids ---
 var debug_force_levelup: bool = false
 var debug_growth_boost: bool = false
 
-# --- Current map state ---
+# --- Live map state ---
 var current_phase: Phase = Phase.PLAYER
 var turn_number: int = 1
 var all_units: Array[Node] = []
@@ -419,12 +417,15 @@ var party_items: Array[String] = []
 var next_map_data_path: String = ""
 var next_map_roster_policy: String = "default_roster"
 var next_map_roster_source: String = ""
+# I/O-free suspend resume payload consumed by GameMap before unit spawn.
+var next_map_suspend_payload: Dictionary = {}
 
 # --- Map-start snapshot — used by Retry ---
 var _map_start_snapshot: Array[Dictionary] = []
 var _snapshot_party_gold: int = 0
 var _snapshot_party_items: Array[String] = []
 var _snapshot_pair_up_registry: Dictionary = {}
+var _snapshot_rng: Dictionary = {}
 
 func are_hostile(a_id: String, b_id: String) -> bool
 func get_alliance_group(faction_id: String) -> String
@@ -440,6 +441,8 @@ func is_player_turn() -> bool
 func reset_map_state() -> void
 func configure_next_map(map_path: String, roster_policy := "default_roster",
         roster_source := "") -> void
+func configure_suspend_resume(source: Variant) -> bool
+func clear_suspend_resume() -> void
 func load_default_roster() -> bool
 func load_roster_from_directory(roster_path: String,
         roster_policy := "fixed_test_roster") -> bool
@@ -450,7 +453,11 @@ func take_map_snapshot() -> void
     # so Retry rewinds HP, inventory, class changes, pairings, and rewards together.
 func restore_map_snapshot() -> void
     # Restores the snapshotted roster/economy/pairings, then resets map state.
-    # The caller reloads the current scene after this returns.
+    # The caller reloads the battle scene after this returns.
+func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
+    # Builds the I/O-free SaveData document for an active-map suspend.
+func unit_data_to_runtime_dict(data: UnitData, faction_id := "") -> Dictionary
+func unit_data_from_runtime_dict(unit_dict: Dictionary) -> UnitData
 ```
 
 ### New Game / Map Launch Flow
@@ -725,9 +732,11 @@ rule fields are not retained as shims.
 ## Determinism, Snapshot & Online Contract
 
 Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
-snapshot, and the I/O-free `SaveData` envelope are **Implemented** (2026-07-06,
-B1-PKGA Steps 1-2 and B1-SAVECODEC Slices 4-5); the generalized §8.1 snapshot
-dict, suspend, and rewind **Target design**
+snapshot, the I/O-free `SaveData` envelope, and the active-map suspend
+serializer/scene-restore foundation are **Implemented** (2026-07-06, B1-PKGA
+Steps 1-2, B1-SAVECODEC Slices 4-5, B1-SUSPEND Slice 1); disk SaveManager /
+Continue lifecycle, object/AI future fields, the generalized §8.1 snapshot dict,
+and rewind are **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -747,6 +756,9 @@ plan (code, integration sweep, tests, build order) is
 - **RNG-2 — RNG state lives in the snapshot.** `{map_seed, history_hash}` serializes
   into every map snapshot (Retry, rewind checkpoints, suspend save); replaying the
   identical committed-action sequence reproduces outcomes byte-for-byte.
+  `RngService` keeps those values as 64-bit integers in memory; persistent
+  `SaveData` documents write them as decimal strings so Godot JSON cannot round
+  large hashes.
 - **RNG-3 — Accepted exploits, priced by rewind charges.** Probing and Wait-to-reroll
   are knowingly permitted, bounded by a `CampaignRules` rewind-charge pool (default 3–5;
   0 = ironman). No further anti-manipulation machinery.
@@ -774,6 +786,15 @@ plan (code, integration sweep, tests, build order) is
   unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,
   and the top-level `SaveData` envelope now defines the I/O-free document seam
   with locked-section defaults (2026-07-06, `B1-SAVECODEC` Slices 4-5).
+- **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
+  a `SaveData` document between committed actions while the cursor is in free,
+  unsuppressed local control: map id/path, live unit runtime dictionaries for all
+  factions, turn/scheduler cursor, per-unit activation states, objective bookkeeping,
+  PairUpRegistry, RNG timeline, cursor tile, and MRD watch-set/danger-mode state.
+  `GameState.configure_suspend_resume()` stages that document; `GameMap` then spawns
+  from `map_runtime.units` instead of authored placements and restores
+  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. This is the scene
+  restore seam only; SaveManager disk I/O and Main Menu Continue own file lifecycle.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -786,23 +807,26 @@ plan (code, integration sweep, tests, build order) is
   (2026-07-06): Retry unit/inventory snapshots now use JSON-safe `SaveCodec`
   dictionaries, and `SaveData` owns the top-level section defaults plus old-save
   default fixtures. `B1-CST` kickoff also moved live rule ownership into
-  `GameState.campaign_rules` and expanded save-rule defaults. Remaining: suspend
-  round-trip (T6) with `B1-SUSPEND`, and rewind as Build Order Step 4.
+  `GameState.campaign_rules` and expanded save-rule defaults. `B1-SUSPEND` Slice 1
+  now restores active-map live enemies, scheduler state, PairUp, RNG, and MRD cursor
+  state from `SaveData.map_runtime` / `SaveData.suspend`. Remaining: SaveManager
+  disk file I/O, Map Menu Suspend & Quit, Main Menu Continue/delete lifecycle,
+  future object/AI runtime fields, and rewind as Build Order Step 4.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/save/SaveCodec.gd`;
-  `scripts/save/SaveData.gd`;
+  `scripts/save/SaveData.gd`; `scripts/core/GameMap.gd`;
   `CombatResolver.gd`, `TurnManager.gd`
   (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
   (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`
   events), `MapCursor.gd` / `MapCursorTargeting.gd` / `EnemyAI.gd` (non-dice
-  commit points)
+  commit points and suspend cursor state)
 - Tests: `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
   `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
   wait-commit), `scripts/tests/test_rng_snapshot.gd` (T2),
   `scripts/tests/test_save_codec.gd`; `scripts/tests/test_save_data.gd`;
-  pending: T6 (`B1-SUSPEND`)
+  `scripts/tests/test_suspend_map_runtime.gd` (T6 scene restore)
 - Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13
 - Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG
