@@ -187,8 +187,8 @@ locked
 
 ## Screens and Panels
 
-Status: **Implemented** (MVP screens); save/Continue + combat-animation feedback **Planned**
-Last verified: 2026-06-13
+Status: **Split** — MVP screens and suspend Continue are **Implemented**; manual save slots + combat-animation feedback are **Planned**
+Last verified: 2026-07-06
 
 ---
 
@@ -202,18 +202,20 @@ Last verified: 2026-06-13
 ┌─────────────────────────────────┐
 │    [PLACEHOLDER — Game Title]   │
 │                                 │
+│         [ Continue ]     (greyed if no suspend save)
 │         [ New Game ]            │
-│         [ Continue ]     (greyed if no save — Phase 2)
 │         [ Settings ]            │
 │         [ Quit ]                │
 └─────────────────────────────────┘
 ```
 
 **Behavior:**
+- "Continue" → loads `user://saves/suspend.json` through `SaveManager`, stages
+  the payload on `GameState`, and launches `GameMap`. It is disabled when no
+  suspend save exists; load failure opens an error dialog and stays on Main Menu.
 - "New Game" → opens the `NewGameScreen` overlay
-- "Continue" → load save (Phase 2)
 - "Settings" → opens Settings screen (see below); available from MVP onwards
-- For MVP: "New Game", "Settings", and "Quit" are functional
+- For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
 
 ---
 

@@ -736,9 +736,9 @@ Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
 snapshot, the I/O-free `SaveData` envelope, the active-map suspend
 serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
-B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit); Continue
-lifecycle, object/AI future fields, the generalized §8.1 snapshot dict, and rewind
-are **Target design**
+B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit, Main Menu
+Continue/delete lifecycle); object/AI future fields, the generalized §8.1 snapshot
+dict, and rewind are **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -799,7 +799,9 @@ plan (code, integration sweep, tests, build order) is
   now owns disk I/O for the dedicated `user://saves/suspend.json` slot and the
   `saves_index.json` last-played pointer. Map Menu `Suspend & Quit` writes that
   file from the free/local-control boundary before returning to `Boot.tscn`;
-  Main Menu owns the remaining Continue lifecycle.
+  Main Menu `Continue` loads it through `SaveManager`, stages it through
+  `GameState.configure_suspend_resume()`, and launches `GameMap`. The suspend
+  file is deleted when a map result is requested, not when it is loaded.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -817,7 +819,8 @@ plan (code, integration sweep, tests, build order) is
   state from `SaveData.map_runtime` / `SaveData.suspend`. The `SaveManager` disk
   seam now writes/reads/deletes that document at `user://saves/suspend.json`, and
   Map Menu `Suspend & Quit` writes it from the existing free/local-control gate.
-  Remaining: Main Menu Continue/delete lifecycle, future object/AI runtime fields,
+  Main Menu `Continue` and result-time suspend cleanup now close the implemented
+  lifecycle. Remaining: future object/AI runtime fields when those systems exist,
   and rewind as Build Order Step 4.
 
 ### Anchors
@@ -830,6 +833,8 @@ plan (code, integration sweep, tests, build order) is
   commit points and suspend cursor state)
 - Tests: `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
+  `scripts/tests/test_main_menu.gd` (Continue load/failure UX),
+  `scripts/tests/test_game_over_sequencing.gd` (result-time suspend cleanup),
   `scripts/tests/test_save_manager.gd` (suspend disk slot),
   `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
   wait-commit), `scripts/tests/test_rng_snapshot.gd` (T2),

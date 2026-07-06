@@ -6,15 +6,25 @@ extends SceneTree
 # earned on the killing blow (kill boss -> level up -> promote -> THEN victory)
 # resolves before the battle-end overlay appears.
 
+const SaveDataScript = preload("res://scripts/save/SaveData.gd")
+const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+
+const TEST_SAVE_DIR := "user://test_game_over_suspend_cleanup"
+
 
 func _init() -> void:
 	print("=== GameOver Sequencing Test ===")
 	var passed := 0
 	var failed := 0
+	_clean_test_dir()
 
 	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
 	bus.name = "EventBus"
 	root.add_child(bus)
+	var save_manager: Node = SaveManagerScript.new()
+	save_manager.name = "SaveManager"
+	save_manager.configure_save_dir_for_tests(TEST_SAVE_DIR)
+	root.add_child(save_manager)
 	await process_frame
 
 	var packed := load("res://scenes/ui/GameOverScreen.tscn")
@@ -27,14 +37,17 @@ func _init() -> void:
 	await process_frame
 
 	# --- Case 1: a plain victory with no progression presents immediately --------
+	save_manager.save_suspend(_make_suspend_save())
 	bus.map_victory.emit()
 	bus.map_resolved.emit("blue", [])
 	await process_frame
-	if screen.visible and screen.get_node("Panel/VBox/Title").text == "Victory!":
-		print("OK  victory with no pending progression presents immediately"); passed += 1
+	if screen.visible and screen.get_node("Panel/VBox/Title").text == "Victory!" \
+			and not save_manager.has_suspend():
+		print("OK  victory presents immediately and deletes the suspend save"); passed += 1
 	else:
-		print("FAIL immediate victory: visible=%s title=%s" % [
-			screen.visible, screen.get_node("Panel/VBox/Title").text]); failed += 1
+		print("FAIL immediate victory: visible=%s title=%s has_suspend=%s" % [
+			screen.visible, screen.get_node("Panel/VBox/Title").text,
+			save_manager.has_suspend()]); failed += 1
 
 	# Reset the overlay for the sequencing case (mirror a fresh map).
 	screen.hide()
@@ -72,7 +85,29 @@ func _init() -> void:
 			hidden_during_levelup, hidden_during_promotion, visible_after_queue]); failed += 1
 
 	screen.queue_free()
+	save_manager.queue_free()
 	bus.queue_free()
+	_clean_test_dir()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _make_suspend_save() -> RefCounted:
+	var save: RefCounted = SaveDataScript.new()
+	save.map_runtime["map_id"] = "map_001"
+	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
+	save.suspend["kind"] = "map"
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+func _clean_test_dir() -> void:
+	var err := DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	if err != OK and err != ERR_ALREADY_EXISTS:
+		push_error("test_game_over_sequencing: failed to create test dir: %s" % error_string(err))
+		return
+	var dir := DirAccess.open(TEST_SAVE_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		dir.remove(file_name)

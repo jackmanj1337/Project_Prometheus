@@ -24,6 +24,7 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 var _result_pending: bool = false
 var _level_up_active: bool = false
 var _promotion_active: bool = false
+var _suspend_deleted_for_result: bool = false
 
 
 func _ready() -> void:
@@ -79,6 +80,7 @@ func _on_map_resolved(winner_group: String, standings: Array) -> void:
 # no pending level-up/promotion) presents synchronously here, unchanged. When a
 # progression modal is up, presentation defers until the queue drains.
 func _request_present() -> void:
+	_delete_suspend_after_resolution()
 	_result_pending = true
 	_try_present()
 
@@ -135,6 +137,15 @@ func _format_standings(winner_group: String, standings: Array) -> String:
 func _show_overlay() -> void:
 	show()
 	_retry_btn.grab_focus()
+
+
+func _delete_suspend_after_resolution() -> void:
+	if _suspend_deleted_for_result:
+		return
+	_suspend_deleted_for_result = true
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and save_manager.has_method("delete_suspend"):
+		save_manager.call("delete_suspend")
 
 
 func _unhandled_input(event: InputEvent) -> void:
