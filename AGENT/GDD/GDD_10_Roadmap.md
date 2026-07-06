@@ -71,8 +71,8 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B1-F1` | F1 save schema lock | Required before features add persistent state. `B1-PKGA` Steps 1-2 (its gate) landed 2026-07-06. |
-| 2 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |
+| 1 | `B1-SAVECODEC` | Save codec foundation | `B1-F1` manifest lock landed 2026-07-06; the next step is the JSON-safe serializer shared by Retry and persistent saves. |
+| 2 | `B1-SAVECODEC` and `B1-CST` | `SaveData` envelope and campaign/save spine | Starts the campaign loop and future suspend/save work after the codec foundation exists. |
 
 ## Validation And Release Queues
 

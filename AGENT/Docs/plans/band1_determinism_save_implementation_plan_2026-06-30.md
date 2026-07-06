@@ -360,10 +360,7 @@ owner, and fixture obligation.
 
 Files to create or touch:
 
-- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-XX.md` (new; `XX` is a
-  placeholder — the commit that creates the real file must also update this
-  plan's two references, Slice 5's file list, and the `B1-F1` control-plane
-  row to the final name)
+- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-06.md`
 - `AGENT/Docs/plans/f1_schema_source_inventory_2026-06-28.md` if inventory
   cleanup is needed
 - `AGENT/Docs/plans/project_control_plane_2026-06-29.md`
@@ -477,7 +474,7 @@ Files to create or touch:
 
 - `scripts/save/SaveData.gd`
 - `scripts/tests/test_save_data.gd`
-- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-XX.md`
+- `AGENT/Docs/plans/f1_save_schema_manifest_2026-07-06.md`
 
 Implementation steps:
 

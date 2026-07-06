@@ -28,6 +28,7 @@ Checks:
  20. Control plane — tracker rows use the ratified schema, prefixes, and valid Track IDs
  21. Autoload order — project.godot satisfies the Band 1/2 cross-plan autoload contracts
  22. Danger vox   — GDD_07 documents every MapCursor.VALID_DANGER_MODES value ([TUR])
+ 23. F1 manifest  — save-schema manifest rows keep the locked B1-F1 shape
 """
 
 import re
@@ -264,6 +265,26 @@ _TRACK_ID_RE = re.compile(r"`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`")
 _TRACK_ID_CELL_RE = re.compile(r"^`([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)`$")
 _MARKDOWN_LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
+_F1_MANIFEST = ROOT / "AGENT/Docs/plans/f1_save_schema_manifest_2026-07-06.md"
+_F1_MANIFEST_COLUMNS = [
+    "Field path", "Owner", "Scope", "Lifecycle", "Default / migration",
+    "Serializer owner", "Retry behavior", "Suspend behavior", "Fixtures",
+    "Row status", "Source",
+]
+_F1_MANIFEST_SCOPES = {
+    "campaign", "campaign_rules", "roster_unit", "party_inventory",
+    "map_runtime", "object_runtime", "unit_runtime", "transient_suspend",
+    "settings", "authoring_data", "derived",
+}
+_F1_MANIFEST_ROW_STATUSES = {
+    "v1", "dormant_reserve", "post_v1_deferred", "explicit_no_save",
+}
+_F1_MANIFEST_FIXTURES = {
+    "codec_roundtrip", "old_save_default", "migration_default",
+    "campaign_carry", "map_reset", "retry_restore", "suspend_restore",
+    "reference_validation", "no_save_guard",
+}
+
 
 def _split_markdown_table_row(line: str) -> list[str]:
     """Split a simple markdown table row while allowing escaped pipe characters."""
@@ -404,6 +425,98 @@ def check_control_plane_schema() -> None:
             if track_id not in track_ids:
                 _fail("control-plane", ref_doc, line_no,
                       f"unknown Track ID reference {track_id!r}")
+
+
+def _strip_md_code(value: str) -> str:
+    stripped = value.strip()
+    if stripped.startswith("`") and stripped.endswith("`"):
+        return stripped[1:-1].strip()
+    return stripped
+
+
+def _extract_md_code_values(value: str) -> list[str]:
+    found = re.findall(r"`([^`]+)`", value)
+    if found:
+        return [v.strip() for v in found if v.strip()]
+    stripped = value.strip()
+    return [stripped] if stripped else []
+
+
+def check_f1_manifest_shape() -> None:
+    """Validate the B1-F1 save-schema manifest row shape.
+
+    This is intentionally a shape check, not serializer coverage. It keeps the
+    locked Markdown manifest reviewable until `B1-SAVECODEC` gives the checks a
+    real codec surface to compare against.
+    """
+    if not _F1_MANIFEST.exists():
+        _fail("f1-manifest", _F1_MANIFEST, 1, "F1 save-schema manifest not found")
+        return
+
+    lines = _F1_MANIFEST.read_text(encoding="utf-8").splitlines()
+    in_manifest_table = False
+    table_count = 0
+    row_count = 0
+
+    for line_no, line in enumerate(lines, 1):
+        if line.startswith("| Field path | Owner | Scope |"):
+            table_count += 1
+            in_manifest_table = True
+            columns = _split_markdown_table_row(line)
+            if columns != _F1_MANIFEST_COLUMNS:
+                _fail("f1-manifest", _F1_MANIFEST, line_no,
+                      "manifest table header does not match the locked B1-F1 schema")
+            continue
+
+        if not in_manifest_table:
+            continue
+        if line.startswith("|---"):
+            continue
+        if not line.startswith("|"):
+            in_manifest_table = False
+            continue
+
+        cells = _split_markdown_table_row(line)
+        if len(cells) != len(_F1_MANIFEST_COLUMNS):
+            _fail("f1-manifest", _F1_MANIFEST, line_no,
+                  f"manifest row has {len(cells)} columns; expected "
+                  f"{len(_F1_MANIFEST_COLUMNS)}")
+            continue
+
+        row_count += 1
+        for column, cell in zip(_F1_MANIFEST_COLUMNS, cells):
+            if not cell:
+                _fail("f1-manifest", _F1_MANIFEST, line_no,
+                      f"empty required field: {column}")
+            if re.search(r"\b(TBD|TODO|placeholder)\b", cell, re.IGNORECASE):
+                _fail("f1-manifest", _F1_MANIFEST, line_no,
+                      f"{column} still contains unfinished marker text")
+
+        field_path = cells[0].strip()
+        if not (field_path.startswith("`") and field_path.endswith("`")):
+            _fail("f1-manifest", _F1_MANIFEST, line_no,
+                  "Field path must be one backticked path or field-family id")
+
+        for scope in _extract_md_code_values(cells[2]):
+            if scope not in _F1_MANIFEST_SCOPES:
+                _fail("f1-manifest", _F1_MANIFEST, line_no,
+                      f"unknown F1 scope {scope!r}")
+
+        for fixture in _extract_md_code_values(cells[8]):
+            if fixture not in _F1_MANIFEST_FIXTURES:
+                _fail("f1-manifest", _F1_MANIFEST, line_no,
+                      f"unknown F1 fixture key {fixture!r}")
+
+        row_status = _strip_md_code(cells[9])
+        if row_status not in _F1_MANIFEST_ROW_STATUSES:
+            _fail("f1-manifest", _F1_MANIFEST, line_no,
+                  f"invalid Row status {row_status!r}")
+
+    if table_count != 1:
+        _fail("f1-manifest", _F1_MANIFEST, 1,
+              f"expected exactly one manifest table, found {table_count}")
+    if row_count == 0:
+        _fail("f1-manifest", _F1_MANIFEST, 1, "manifest has no rows")
 
 
 # ── check 5: duplicate roadmap milestone headings ───────────────────────────
@@ -920,6 +1033,7 @@ def main() -> None:
         ("[20] Project control plane",     check_control_plane_schema),
         ("[21] Autoload order",            check_autoload_order),
         ("[22] Danger-mode vocabulary",    check_danger_mode_vocabulary),
+        ("[23] F1 save-schema manifest",   check_f1_manifest_shape),
     ]
     for label, fn in steps:
         print(f"  {label}...")

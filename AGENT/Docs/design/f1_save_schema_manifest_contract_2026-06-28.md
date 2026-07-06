@@ -26,8 +26,10 @@ Every saved field needs a manifest row before implementation consumes it.
 Required row fields:
 - `field_path`: JSON path or resource path used by the serializer.
 - `owner`: feature/register that owns the field.
-- `scope`: `campaign`, `map`, `unit`, `object`, `inventory`, `settings`, or
-  `transient_suspend`.
+- `scope`: one of the scope names in the source inventory glossary
+  (`campaign`, `campaign_rules`, `roster_unit`, `party_inventory`,
+  `map_runtime`, `object_runtime`, `unit_runtime`, `transient_suspend`,
+  `settings`, `authoring_data`, or `derived`).
 - `lifetime`: when the value is created, reset, carried forward, or deleted.
 - `default`: migration-safe default for old saves.
 - `migration_rule`: what happens when loading a save without the field.
@@ -36,6 +38,8 @@ Required row fields:
 - `authoring_source`: map data, campaign data, runtime event, player choice, or
   generated state.
 - `retry_behavior`: whether Retry restores, recomputes, or clears the field.
+- `row_status`: `v1`, `dormant_reserve`, `post_v1_deferred`, or
+  `explicit_no_save`.
 
 ## Required Consumers
 

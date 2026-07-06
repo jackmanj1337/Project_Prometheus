@@ -34,6 +34,7 @@ coupled field family.
 | Retry behavior | Restored, recomputed, cleared, or not applicable. |
 | Suspend behavior | Restored, recomputed, cleared, or not applicable. |
 | Fixtures | Required fixture classes from the fixture matrix. |
+| Row status | `v1`, `dormant_reserve`, `post_v1_deferred`, or `explicit_no_save`. |
 | Source | Register/design source that introduced the row. |
 
 ## Scope / Lifecycle Glossary
