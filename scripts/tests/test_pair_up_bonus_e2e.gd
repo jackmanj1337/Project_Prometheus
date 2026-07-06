@@ -61,7 +61,8 @@ func _init() -> void:
 	# Clean slate, then mimic the live New Game state: Pair Up enabled.
 	gs.call("reset_map_state")
 	reg.call("clear")
-	gs.set("pair_up_enabled", true)
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	rules.pair_up_enabled = true
 
 	# Real Unit nodes, duplicated data so the test never mutates the on-disk .tres.
 	var hero: Node = UnitScene.instantiate()

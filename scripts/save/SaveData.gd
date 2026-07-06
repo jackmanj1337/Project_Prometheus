@@ -130,8 +130,17 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 		for key in source.keys():
 			out[key] = source[key]
 	out["hit_formula"] = _as_string(out.get("hit_formula", "two_roll"), "two_roll")
+	out["leveling_method"] = _as_string(out.get("leveling_method", "growth_random"), "growth_random")
+	out["auto_promote_at_max_level"] = bool(out.get("auto_promote_at_max_level", false))
+	out["pair_up_enabled"] = bool(out.get("pair_up_enabled", true))
+	out["max_skills"] = _as_int(out.get("max_skills", 5), 5)
+	out["max_inventory"] = _as_int(out.get("max_inventory", 8), 8)
+	out["exp_gaining_factions"] = _string_array_from_variant(
+		out.get("exp_gaining_factions", ["blue", "green"]))
+	out["rewind_charges_per_map"] = _as_int(out.get("rewind_charges_per_map", 4), 4)
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
+	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
 	out.erase("permadeath_enabled")
 	return out
 
@@ -298,7 +307,15 @@ static func _default_campaign() -> Dictionary:
 		"node_id": "",
 		"cleared_nodes": [],
 		"rules": {
+			"death_mode": "casual",
+			"leveling_method": "growth_random",
+			"auto_promote_at_max_level": false,
+			"pair_up_enabled": true,
+			"max_skills": 5,
+			"max_inventory": 8,
+			"exp_gaining_factions": ["blue", "green"],
 			"hit_formula": "two_roll",
+			"rewind_charges_per_map": 4,
 			"profile_selections": {},
 			"exposed_tunables": {},
 			"pxp_profiles": {},

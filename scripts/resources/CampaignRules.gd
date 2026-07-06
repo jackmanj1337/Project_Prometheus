@@ -4,10 +4,10 @@ class_name CampaignRules extends Resource
 # disk) and from per-map launch state.
 #
 # Authority: GDD_01 §CampaignRules Contract
-# Status: Stub (Stage 4.3). Fields are loose on GameState today; consolidation
-# into this class is Target design. Use GameState's rule fields until then.
+# Status: live per-save rule object. GameState owns one instance and callers read
+# rules through GameState.campaign_rules.
 
-# --- Implemented rule fields (mirrored from GameState; not yet wired) ---
+# --- Implemented rule fields ---
 
 # Whether defeated allied units are permanently lost for the run.
 @export var permadeath_enabled: bool = false
@@ -27,18 +27,18 @@ class_name CampaignRules extends Resource
 # Maximum inventory slots per unit (future-facing; not yet enforced).
 @export var max_inventory: int = 8
 
-# --- Target design fields (not yet wired into the engine) ---
-
 # Which faction ids earn EXP from combat. Default: player (blue) + ally (green).
 # Red (enemy) does not gain EXP by default. Designers may override per campaign.
 # See GDD_01 §CampaignRules Contract, OPEN-4, and GDD_02 §EXP.
 @export var exp_gaining_factions: Array[String] = ["blue", "green"]
 
 # Hit-roll resolver preset (CRR-4): "two_roll" (RULE-001 default, true-hit curve)
-# or "single_roll" (displayed = real odds). Read by CombatResolver's resolver
-# seam once GameState.campaign_rules is wired (Band 1 Slice 6); until then the
-# engine default applies. Registry promotion is B3-COMBAT-ROLL-RESOLVER.
+# or "single_roll" (displayed = real odds). Registry promotion is
+# B3-COMBAT-ROLL-RESOLVER.
 @export var hit_formula: String = "two_roll"
+
+# Per-map rewind budget. Zero is the ironman-style no-rewind preset.
+@export var rewind_charges_per_map: int = 4
 
 
 # Returns a CampaignRules with all project defaults applied.

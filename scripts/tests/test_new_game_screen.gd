@@ -67,10 +67,8 @@ func _init() -> void:
 		gs_script.source_code = """
 extends Node
 var next_map_data_path: String = ""
-var permadeath_enabled: bool = false
-var auto_promote_at_max_level: bool = false
-var leveling_method: String = "growth_random"
-var pair_up_enabled: bool = true
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+var campaign_rules = CampaignRulesScript.make_default()
 """
 		gs_script.reload()
 		gs_node = gs_script.new()
@@ -97,21 +95,22 @@ var pair_up_enabled: bool = true
 	# (no Start) must be remembered. The on-change handler writes through to
 	# GameState; open() seeds the controls back from it.
 	if gs_node != null:
-		var want_pair := not bool(gs_node.get("pair_up_enabled"))
-		var want_auto := not bool(gs_node.get("auto_promote_at_max_level"))
+		var rules: CampaignRules = gs_node.get("campaign_rules") as CampaignRules
+		var want_pair := not rules.pair_up_enabled
+		var want_auto := not rules.auto_promote_at_max_level
 		pair_opt.selected = 1 if want_pair else 0
 		pair_opt.item_selected.emit(pair_opt.selected)   # as a click would
 		auto_opt.selected = 1 if want_auto else 0
 		auto_opt.item_selected.emit(auto_opt.selected)
 		# Note: no _on_start() — this is the "closed without starting" path.
-		var persisted_ok: bool = bool(gs_node.get("pair_up_enabled")) == want_pair \
-			and bool(gs_node.get("auto_promote_at_max_level")) == want_auto
+		var persisted_ok: bool = rules.pair_up_enabled == want_pair \
+			and rules.auto_promote_at_max_level == want_auto
 		if persisted_ok:
 			print("OK  rule toggles persist to GameState on change (no Start needed)"); passed += 1
 		else:
 			print("FAIL rule persistence: pair=%s want=%s | auto=%s want=%s" % [
-				gs_node.get("pair_up_enabled"), want_pair,
-				gs_node.get("auto_promote_at_max_level"), want_auto])
+				rules.pair_up_enabled, want_pair,
+				rules.auto_promote_at_max_level, want_auto])
 			failed += 1
 	else:
 		print("SKIP rule persistence (GameState autoload absent)")

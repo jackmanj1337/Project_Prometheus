@@ -20,6 +20,13 @@ func _mk_unit(team_name: String, hp: int, unit_id: String = "") -> Node:
 	return u
 
 
+func _has_property(obj: Object, property_name: String) -> bool:
+	for info in obj.get_property_list():
+		if String(info.get("name", "")) == property_name:
+			return true
+	return false
+
+
 func _init() -> void:
 	print("=== GameState Test ===")
 	var passed := 0
@@ -43,11 +50,39 @@ func _init() -> void:
 	root.add_child(pair_reg)
 	await process_frame
 
-	if gs.max_skills == 5:
-		print("OK  max_skills defaults to 5")
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules != null \
+			and not rules.permadeath_enabled \
+			and rules.leveling_method == "growth_random" \
+			and not rules.auto_promote_at_max_level \
+			and rules.pair_up_enabled \
+			and rules.max_skills == 5 \
+			and rules.max_inventory == 8 \
+			and rules.exp_gaining_factions == (["blue", "green"] as Array[String]) \
+			and rules.hit_formula == "two_roll" \
+			and rules.rewind_charges_per_map == 4:
+		print("OK  CampaignRules defaults match the campaign/save contract")
 		passed += 1
 	else:
-		print("FAIL max_skills default: %d" % gs.max_skills)
+		print("FAIL CampaignRules defaults: %s" % [rules])
+		failed += 1
+
+	var loose_fields_gone := true
+	for field in [
+		"permadeath_enabled",
+		"leveling_method",
+		"auto_promote_at_max_level",
+		"pair_up_enabled",
+		"max_skills",
+		"max_inventory",
+		"exp_gaining_factions",
+	]:
+		loose_fields_gone = loose_fields_gone and not _has_property(gs, field)
+	if loose_fields_gone:
+		print("OK  loose GameState rule fields are removed")
+		passed += 1
+	else:
+		print("FAIL loose GameState rule field still exists")
 		failed += 1
 
 	# ---- register_unit adds the unit to all_units ----

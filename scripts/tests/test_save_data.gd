@@ -87,6 +87,12 @@ func _init() -> void:
 		and defaulted.integrity == {"payload_hash": "old-payload", "schema_hash": "old-schema"} \
 		and defaulted.campaign["rules"]["hit_formula"] == "single_roll" \
 		and defaulted.campaign["rules"]["death_mode"] == "casual" \
+		and defaulted.campaign["rules"]["leveling_method"] == "growth_random" \
+		and defaulted.campaign["rules"]["pair_up_enabled"] == true \
+		and defaulted.campaign["rules"]["max_skills"] == 5 \
+		and defaulted.campaign["rules"]["max_inventory"] == 8 \
+		and defaulted.campaign["rules"]["exp_gaining_factions"] == ["blue", "green"] \
+		and defaulted.campaign["rules"]["rewind_charges_per_map"] == 4 \
 		and defaulted.party["resources"]["party_gold"] == 777 \
 		and defaulted.roster["units"].size() == 1 \
 		and defaulted.header["campaign_id"] == "legacy_campaign" \

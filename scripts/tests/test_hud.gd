@@ -176,7 +176,8 @@ var team: String = "blue"
 	if gs_pu != null and reg_pu != null and res_pu != null:
 		gs_pu.call("reset_map_state")
 		reg_pu.call("clear")
-		gs_pu.set("pair_up_enabled", true)
+		var pu_rules: CampaignRules = gs_pu.get("campaign_rules") as CampaignRules
+		pu_rules.pair_up_enabled = true
 		var lead: Node = stub_unit_script.new()
 		var lead_data := UnitData.new()
 		lead_data.unit_name = "PU Lead"; lead_data.class_id = "soldier"; lead_data.unit_id = "hud_lead"

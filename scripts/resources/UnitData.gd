@@ -41,7 +41,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var weapon_wexp: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
-# GameState.max_skills caps how many of these can be equipped once M6 lands.
+# GameState.campaign_rules.max_skills caps how many of these can be equipped.
 @export var skills: Array[String] = []
 # Every skill this unit has ever learned. `skills` is the currently equipped
 # subset; future battle-prep skill swapping will draw from this full list.

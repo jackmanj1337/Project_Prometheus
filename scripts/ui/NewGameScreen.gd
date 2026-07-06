@@ -38,7 +38,7 @@ signal back_pressed()
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
 
-# OptLeveling index → GameState.leveling_method value.
+# OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
@@ -96,11 +96,13 @@ func open() -> void:
 	# Seed the controls from GameState so reopening shows the current choices.
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
+		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
 		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
-		_opt_permadeath.selected = int(gs.get("permadeath_enabled"))  # 0=Off, 1=On
-		_opt_auto_promote.selected = int(gs.get("auto_promote_at_max_level"))  # 0=Off, 1=On
-		_opt_leveling.selected   = maxi(0, _LEVELING_OPTIONS.find(gs.get("leveling_method")))
-		_opt_pair_up.selected    = int(gs.get("pair_up_enabled"))  # 0=Off, 1=On
+		if rules != null:
+			_opt_permadeath.selected = int(rules.permadeath_enabled)  # 0=Off, 1=On
+			_opt_auto_promote.selected = int(rules.auto_promote_at_max_level)  # 0=Off, 1=On
+			_opt_leveling.selected = maxi(0, _LEVELING_OPTIONS.find(rules.leveling_method))
+			_opt_pair_up.selected = int(rules.pair_up_enabled)  # 0=Off, 1=On
 	else:
 		_opt_map.selected = 0
 	show()
@@ -122,10 +124,14 @@ func _persist_rules() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
-	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
-	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
-	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-	gs.set("pair_up_enabled", bool(_opt_pair_up.selected))  # 0=Off, 1=On
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		push_error("NewGameScreen: GameState.campaign_rules missing — cannot apply rules.")
+		return
+	rules.permadeath_enabled = bool(_opt_permadeath.selected)  # 0=Off, 1=On
+	rules.auto_promote_at_max_level = bool(_opt_auto_promote.selected)  # 0=Off, 1=On
+	rules.leveling_method = _LEVELING_OPTIONS[_opt_leveling.selected]
+	rules.pair_up_enabled = bool(_opt_pair_up.selected)  # 0=Off, 1=On
 
 
 func _on_start() -> void:

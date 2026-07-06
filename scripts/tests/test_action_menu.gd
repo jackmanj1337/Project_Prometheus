@@ -340,12 +340,13 @@ func _init() -> void:
 				separate_shown, separate_hidden_blocked, separate_emits]); failed += 1
 		var gs := root.get_node_or_null("/root/GameState")
 		if gs != null:
-			var prior_pair_up_enabled: bool = bool(gs.get("pair_up_enabled"))
-			gs.set("pair_up_enabled", false)
+			var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+			var prior_pair_up_enabled: bool = rules.pair_up_enabled
+			rules.pair_up_enabled = false
 			reg.call("clear")
 			am.show_for(paired_unit_a, adj_grid)
 			var hidden_when_disabled: bool = not am._btn_pair_up.visible
-			gs.set("pair_up_enabled", prior_pair_up_enabled)
+			rules.pair_up_enabled = prior_pair_up_enabled
 			if hidden_when_disabled:
 				print("OK  Pair Up hidden when the campaign setting disables it"); passed += 1
 			else:

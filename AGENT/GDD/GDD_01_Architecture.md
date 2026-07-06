@@ -662,21 +662,21 @@ func clear_all_conditions(unit: Node) -> void
 
 ## CampaignRules Contract
 
-Status: **Split** — the live per-save rule fields are **Implemented** (on `GameState`);
-consolidation into a `CampaignRules` object is **Target design** (stub created Stage 4.3);
-`exp_gaining_factions` field is **Stub** (`scripts/resources/CampaignRules.gd`)
-Last verified: 2026-06-13
+Status: **Split** — the live per-save `CampaignRules` object is **Implemented**
+(2026-07-06, `B1-CST` kickoff); authored rule-profile registries and
+campaign-node mandate/default seeding remain **Target design**
+Last verified: 2026-07-06
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
 the save/runtime state — distinct from global app **settings** (`SettingsManager`, on
-disk) and from per-map **launch state**. Today these rules live as loose fields on
-`GameState`; the contract consolidates them and adds the fields the determinism, EXP, and
-campaign systems depend on.
+disk) and from per-map **launch state**. `GameState.campaign_rules` is the live
+source of truth; rule call sites read fields from that object, and loose `GameState`
+rule fields are not retained as shims.
 
 ### Specs
 
-**Implemented (live per-save fields on `GameState`).**
+**Implemented (live per-save fields on `GameState.campaign_rules`).**
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -686,37 +686,39 @@ campaign systems depend on.
 | `pair_up_enabled` | bool | Enables Pair Up actions (GDD_05 §Pair Up) |
 | `max_skills` | int (5) | Equipped-skill cap (GDD_05) |
 | `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
+| `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
+| `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
+| `rewind_charges_per_map` | int (4) | Per-map rewind budget; `0` is the ironman-style no-rewind preset |
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
 > `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
 > Evergreen rule reference: `AGENT/Docs/guides/campaign_rules.md`.
 
-**Target design (consolidated `CampaignRules` + new fields).**
-- Consolidate the rule fields above into a single `CampaignRules` object referenced by
-  `GameState` and serialized into the snapshot (`campaign_rules` key — see Determinism
-  contract). Code stub created in **Stage 4.3**.
+**Target design (author profiles, mandates, and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not
   engine constants. Developer-provided presets support the project/corpus targets;
   campaigns may select or override exposed profiles through validated data.
-- **`exp_gaining_factions` (OPEN-4):** which factions earn EXP; the shipped preset is
-  Blue + Green, Red none. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
-- **Rewind-charge pool (RNG-3):** bounded reroll/probe budget; shipped presets include
-  ironman-style zero charges and limited-charge values. Owned by the determinism
-  contract below.
+- `CampaignData` seeds mandated/default rule values when a campaign starts; the save
+  records the resulting per-save values.
+- `CombatResolver` still needs to consume `exp_gaining_factions` for EXP gating.
 - **Follow-up threshold override:** the Battle-Speed follow-up threshold is read from
   CampaignRules/profile data (GDD_02 §Combat Resolution).
 - **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
 
 ### Known gaps
-- `CampaignRules` class stub created (`scripts/resources/CampaignRules.gd`), but not
-  yet wired into `GameState`. Fields remain loose on `GameState`; consolidation and
-  snapshot integration are a Phase 3 task (requires campaign save/load design).
+- The live object is wired, New Game writes into it, and `SaveData` carries matching
+  rule defaults plus legacy `permadeath_enabled` load tolerance. Remaining work:
+  `SaveManager` file I/O, `CampaignData` mandate/default seeding, the authored
+  rule-profile registry, EXP faction gating, and UI for locked/editable rule values.
 
 ### Anchors
-- Code: `scripts/autoloads/GameState.gd` (current rule fields); `scripts/resources/CampaignRules.gd` (stub)
+- Code: `scripts/autoloads/GameState.gd`, `scripts/resources/CampaignRules.gd`,
+  `scripts/save/SaveData.gd`
+- Tests: `scripts/tests/test_game_state.gd`, `scripts/tests/test_save_data.gd`,
+  Pair Up / New Game / Unit progression suites
 - Guide: `AGENT/Docs/guides/campaign_rules.md`
 - Decisions: OPEN-4, OPEN-5, RNG-3, D-D
-- Roadmap: GDD_10 §Release Gates / CampaignRules Stub; EXP gating owner: GDD_02
+- Roadmap: GDD_10 `B1-CST`; EXP gating owner: GDD_02
 
 ---
 
@@ -783,7 +785,8 @@ plan (code, integration sweep, tests, build order) is
   `{map_seed, history_hash}` (T2). `B1-SAVECODEC` Slices 4-5 also landed
   (2026-07-06): Retry unit/inventory snapshots now use JSON-safe `SaveCodec`
   dictionaries, and `SaveData` owns the top-level section defaults plus old-save
-  default fixtures. Remaining: CampaignRules consolidation in `B1-CST`, suspend
+  default fixtures. `B1-CST` kickoff also moved live rule ownership into
+  `GameState.campaign_rules` and expanded save-rule defaults. Remaining: suspend
   round-trip (T6) with `B1-SUSPEND`, and rewind as Build Order Step 4.
 
 ### Anchors

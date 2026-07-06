@@ -482,7 +482,7 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 	add_exp(GameConstants.STAFF_HEAL_EXP)
 
 
-# Called when HP reaches 0. If permadeath is on (per GameState), flags the
+# Called when HP reaches 0. If permadeath is on (per CampaignRules), flags the
 # UnitData as incapacitated so the unit cannot be redeployed; otherwise the
 # data is preserved for the next map. Either way the scene node is freed.
 func handle_death() -> void:
@@ -491,7 +491,8 @@ func handle_death() -> void:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	var pair_up := get_node_or_null("/root/PairUpRegistry") if is_inside_tree() else null
 	if gs:
-		if gs.permadeath_enabled:
+		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+		if rules != null and rules.permadeath_enabled:
 			data.is_incapacitated = true
 		if pair_up != null and pair_up.has_method("release_support_from_fallen_lead"):
 			pair_up.release_support_from_fallen_lead(self)
@@ -772,7 +773,8 @@ func _class_data_for(class_id: String) -> ClassData:
 
 func _maybe_emit_promotion_available() -> void:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	if gs == null or not bool(gs.get("auto_promote_at_max_level")) or not can_promote():
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	if rules == null or not rules.auto_promote_at_max_level or not can_promote():
 		return
 	var bus := _bus()
 	if bus:
@@ -826,7 +828,8 @@ func level_up() -> void:
 	data.level += 1
 	data.internal_level += 1
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	var method: String = gs.leveling_method if gs else "growth_random"
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	var method: String = rules.leveling_method if rules != null else "growth_random"
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
@@ -1096,7 +1099,8 @@ func _clamp_stats_to_caps(target_class: ClassData) -> void:
 
 func _max_equipped_skills() -> int:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	return int(gs.get("max_skills")) if gs != null else 5
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	return rules.max_skills if rules != null else 5
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see

@@ -832,7 +832,8 @@ func _init() -> void:
 	if pu_reg != null and pu_res != null and pu_gs != null:
 		pu_reg.call("clear")
 		pu_gs.call("reset_map_state")
-		pu_gs.set("pair_up_enabled", true)  # PairUpRegistry.pair() is gated on this
+		var pu_rules: CampaignRules = pu_gs.get("campaign_rules") as CampaignRules
+		pu_rules.pair_up_enabled = true  # PairUpRegistry.pair() is gated on this
 		# Lead: soldier, Str 10, iron sword. Support: cavalier, Str 10 → flat +1 Str
 		# + floor(10/4)=+2 = +3 Str contribution. Defender: no weapon (no counter, no
 		# triangle), Def 5, so per-hit damage stays positive both ways.

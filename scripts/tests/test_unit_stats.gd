@@ -99,6 +99,11 @@ func _init() -> void:
 			dm, gs, bus, pair_reg])
 		quit(1)
 		return
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		print("BAIL: GameState.campaign_rules missing")
+		quit(1)
+		return
 
 	# --- C3: unit tint reads FactionData.color when authored ---
 	var md_c3 := MapData.new()
@@ -120,7 +125,7 @@ func _init() -> void:
 	unit.apply_faction_visual(null)
 
 	# --- Pair Up map badge: paired leads show a small on-map marker ---
-	gs.set("pair_up_enabled", true)
+	rules.pair_up_enabled = true
 	pair_reg.call("clear")
 	unit.data.unit_id = "badge_lead"
 	var badge: Label = unit.get_node_or_null("PairUpBadge")
@@ -455,7 +460,7 @@ func _init() -> void:
 	watcher.prompt_target = auto_unit
 	bus.promotion_available.connect(Callable(watcher, "on_prompt"))
 	await process_frame
-	gs.auto_promote_at_max_level = true
+	rules.auto_promote_at_max_level = true
 	auto_unit.add_exp(5)
 	if auto_data.level == 2 and auto_data.exp == 0 and watcher.prompt_count == 1:
 		print("OK  auto-promote emits promotion_available at class cap when enabled")
@@ -476,7 +481,7 @@ func _init() -> void:
 	root.add_child(no_prompt_unit)
 	await process_frame
 	var prompt_before: int = watcher.prompt_count
-	gs.auto_promote_at_max_level = false
+	rules.auto_promote_at_max_level = false
 	no_prompt_unit.add_exp(5)
 	if no_prompt_data.level == 2 and no_prompt_data.exp == 0 \
 			and watcher.prompt_count == prompt_before:
@@ -503,7 +508,7 @@ func _init() -> void:
 	await process_frame
 	watcher.prompt_target = atmax_unit
 	var atmax_prompt_before: int = watcher.prompt_count
-	gs.auto_promote_at_max_level = true
+	rules.auto_promote_at_max_level = true
 	atmax_unit.add_exp(50)  # discarded at cap, but should still prompt
 	if atmax_data.level == promo_base.max_level and atmax_data.exp == 0 \
 			and watcher.prompt_count == atmax_prompt_before + 1:
@@ -513,7 +518,7 @@ func _init() -> void:
 		print("FAIL add_exp at max: lvl=%d exp=%d prompts=%d before=%d" % [
 			atmax_data.level, atmax_data.exp, watcher.prompt_count, atmax_prompt_before])
 		failed += 1
-	gs.auto_promote_at_max_level = false
+	rules.auto_promote_at_max_level = false
 
 	promo_base.max_level = saved_base_max_level
 	promo_base.promotes_to = saved_base_promotes_to
@@ -644,13 +649,14 @@ func _init() -> void:
 	rand_unit.level_up()
 	var hash_random: int = rng_svc.history_hash
 	var gs_lv := rand_unit.get_node_or_null("/root/GameState")
-	var saved_method: String = gs_lv.leveling_method if gs_lv else "growth_random"
-	if gs_lv:
-		gs_lv.leveling_method = "growth_fixed"
+	var rules_lv: CampaignRules = (gs_lv.get("campaign_rules") as CampaignRules) if gs_lv else null
+	var saved_method: String = rules_lv.leveling_method if rules_lv != null else "growth_random"
+	if rules_lv != null:
+		rules_lv.leveling_method = "growth_fixed"
 	rand_unit.level_up()
 	var hash_fixed: int = rng_svc.history_hash
-	if gs_lv:
-		gs_lv.leveling_method = saved_method
+	if rules_lv != null:
+		rules_lv.leveling_method = saved_method
 	if hash_random != hash_before and hash_fixed != hash_random:
 		print("OK  1c: level_up commits a levelup event (growth_fixed included)")
 		passed += 1
@@ -723,7 +729,7 @@ func _init() -> void:
 	await process_frame
 	var sc := ClassData.new()
 	sc.skill_unlocks = {1: "vantage", 10: "wrath"}
-	gs.max_skills = 1
+	rules.max_skills = 1
 	skill_data.level = 10
 	var learned1: Array = skill_unit._grant_level_skills(sc)  # → wrath
 	skill_data.level = 1
@@ -740,7 +746,7 @@ func _init() -> void:
 		print("FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s" % [
 			skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3])
 		failed += 1
-	gs.max_skills = 5
+	rules.max_skills = 5
 
 	# --- N6/F1: a newly created level-1 unit receives its class level-1 skill once ---
 	var init_skill_unit: Unit = unit_scene.instantiate()

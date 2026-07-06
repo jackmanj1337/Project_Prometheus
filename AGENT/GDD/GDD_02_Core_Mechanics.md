@@ -447,8 +447,9 @@ award/profile data, not merged progression storage.
 | 1 / 2 / 3 / 4 / 5 higher | 25 / 19 / 13 / 7 / 3 | 8 / 6 / 4 / 2 / 1 |
 | 6+ higher | 1 | 0 |
 
-- **Enemy/AI EXP gating (OPEN-4, Target):** EXP gain is faction-gated via
-  `CampaignRules.exp_gaining_factions`; the shipped preset is Blue + Green, Red none.
+- **Enemy/AI EXP gating (OPEN-4, Target):** `CampaignRules.exp_gaining_factions`
+  exists on the live per-save rule object; `CombatResolver` still needs to consume
+  it. The shipped preset is Blue + Green, Red none.
   Owner of the CampaignRules contract: GDD_01 (Stage 3.5).
 - **Staff/action EXP (Implemented):** heal staff currently awards a flat preset amount
   (`GameConstants.STAFF_HEAL_EXP`). Target `[AGT §6]`/`B4-PXP` moves non-combat EXP to
@@ -470,11 +471,11 @@ award/profile data, not merged progression storage.
 ## Leveling Up
 
 Status: **Implemented** (Random + Fixed); other methods **Planned**
-Last verified: 2026-06-13
+Last verified: 2026-07-06
 
 ### Specs
 At 100 EXP: level +1, EXP resets (overflow carries), stats rise per the save's
-`GameState.leveling_method`.
+`GameState.campaign_rules.leveling_method`.
 
 | Method | Description |
 |---|---|
@@ -538,10 +539,10 @@ resets to 1; progression preserved in `internal_level`; promoted skills learn at
 ## Permadeath
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-07-06
 
 ### Specs
-Controlled by `GameState.permadeath_enabled`.
+Controlled by `GameState.campaign_rules.permadeath_enabled`.
 - **ON:** at 0 HP the unit leaves the map; `UnitData` is retained and flagged
   `is_incapacitated = true`; cannot be deployed later; never deleted (revival/viewing
   possible).

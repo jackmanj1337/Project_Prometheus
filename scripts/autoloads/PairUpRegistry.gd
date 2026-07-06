@@ -68,7 +68,7 @@ func pair(lead_id: String, support_id: String) -> bool:
 	return true
 
 
-# Gates pair() on the campaign-level GameState.pair_up_enabled flag. Returns
+# Gates pair() on the campaign-level GameState.campaign_rules flag. Returns
 # true when the autoload is absent (headless tests that omit GameState) or
 # when the registry instance is not in the scene tree (direct-instance unit
 # tests). The is_inside_tree() check matches the cross-autoload idiom used
@@ -82,7 +82,8 @@ func _campaign_allows_pair_up() -> bool:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return true
-	return bool(gs.get("pair_up_enabled"))
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	return true if rules == null else rules.pair_up_enabled
 
 
 # Removes both sides of the pair this unit belongs to. Returns false if the

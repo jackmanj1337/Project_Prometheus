@@ -204,7 +204,8 @@ func is_weapon_track_available(track: String) -> bool:
 	if gs_pair != null and reg_pair != null and res_pair != null:
 		gs_pair.call("reset_map_state")
 		reg_pair.call("clear")
-		gs_pair.set("pair_up_enabled", true)
+		var pair_rules: CampaignRules = gs_pair.get("campaign_rules") as CampaignRules
+		pair_rules.pair_up_enabled = true
 		var support_data := UnitData.new()
 		support_data.unit_id = "details_support"
 		support_data.unit_name = "Support Cavalier"

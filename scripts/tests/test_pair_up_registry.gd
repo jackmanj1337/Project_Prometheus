@@ -214,15 +214,16 @@ func _init() -> void:
 			print("OK  GameState.reset_map_state clears the registry"); passed += 1
 		else:
 			print("FAIL reset_map_state left pairings live"); failed += 1
-		# Campaign gate: when GameState.pair_up_enabled is false, pair() refuses
+		# Campaign gate: when GameState.campaign_rules.pair_up_enabled is false, pair() refuses
 		# new pairings but separate/restore/queries still work on existing ones.
 		live_reg.call("clear")
 		live_reg.pair("chrom", "lissa")  # established while gate is open
-		var prior_enabled: bool = bool(gs.get("pair_up_enabled"))
-		gs.set("pair_up_enabled", false)
+		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+		var prior_enabled: bool = rules.pair_up_enabled
+		rules.pair_up_enabled = false
 		var refused_disabled: bool = not live_reg.pair("robin", "lucina")
 		var sep_still_works: bool = live_reg.separate("chrom")
-		gs.set("pair_up_enabled", prior_enabled)  # restore default for other tests
+		rules.pair_up_enabled = prior_enabled  # restore default for other tests
 		if refused_disabled and sep_still_works \
 				and not live_reg.is_paired("chrom") and not live_reg.is_paired("robin"):
 			print("OK  campaign gate: pair refused while disabled, separate still works"); passed += 1

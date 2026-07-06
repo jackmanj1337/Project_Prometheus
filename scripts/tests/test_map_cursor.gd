@@ -64,7 +64,7 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nvar pair_up_enabled: bool = true\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
+	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"

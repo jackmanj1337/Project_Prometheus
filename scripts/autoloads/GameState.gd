@@ -9,6 +9,7 @@ extends Node
 
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -58,20 +59,9 @@ func get_alliance_group(faction_id: String) -> String:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-# Per-save gameplay rules. Set by the New Game screen; the save-system milestone
-# will serialize these into the save file. Defaults cover the direct-boot dev path.
-var permadeath_enabled: bool = false
-var leveling_method: String = "growth_random"
-var auto_promote_at_max_level: bool = false
-# Campaign-level Pair Up toggle. Default On (Awakening behavior). When false,
-# PairUpRegistry.pair() refuses to create new pairings; existing pairings from
-# a snapshot are still restored and separable so the rule can be flipped
-# mid-campaign without leaving the save in an inconsistent state.
-var pair_up_enabled: bool = true
-# max_skills now gates auto-equipped learned skills (M6.3), but there is still
-# no battle-prep UI for manual swapping. max_inventory remains future-facing.
-var max_skills: int = 5
-var max_inventory: int = 8
+# Per-save gameplay rules. Defaults cover direct-boot development maps until the
+# campaign selector seeds this from authored CampaignData.
+var campaign_rules: CampaignRules = CampaignRulesScript.make_default()
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
 # Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
