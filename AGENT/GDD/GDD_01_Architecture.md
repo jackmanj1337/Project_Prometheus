@@ -715,8 +715,9 @@ rule fields are not retained as shims.
 ### Known gaps
 - The live object is wired, New Game writes into it, and `SaveData` carries matching
   rule defaults plus legacy `permadeath_enabled` load tolerance. Remaining work:
-  `SaveManager` file I/O, `CampaignData` mandate/default seeding, the authored
-  rule-profile registry, EXP faction gating, and UI for locked/editable rule values.
+  `CampaignData` mandate/default seeding, the authored rule-profile registry, EXP
+  faction gating, and UI for locked/editable rule values. `SaveManager` now owns
+  the dedicated active-map suspend file I/O path.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/resources/CampaignRules.gd`,
@@ -732,11 +733,12 @@ rule fields are not retained as shims.
 ## Determinism, Snapshot & Online Contract
 
 Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
-snapshot, the I/O-free `SaveData` envelope, and the active-map suspend
-serializer/scene-restore foundation are **Implemented** (2026-07-06, B1-PKGA
-Steps 1-2, B1-SAVECODEC Slices 4-5, B1-SUSPEND Slice 1); disk SaveManager /
-Continue lifecycle, object/AI future fields, the generalized §8.1 snapshot dict,
-and rewind are **Target design**
+snapshot, the I/O-free `SaveData` envelope, the active-map suspend
+serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
+**Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
+B1-SUSPEND Slice 1, SaveManager disk seam); Map Menu Suspend & Quit, Continue
+lifecycle, object/AI future fields, the generalized §8.1 snapshot dict, and
+rewind are **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -793,8 +795,10 @@ plan (code, integration sweep, tests, build order) is
   PairUpRegistry, RNG timeline, cursor tile, and MRD watch-set/danger-mode state.
   `GameState.configure_suspend_resume()` stages that document; `GameMap` then spawns
   from `map_runtime.units` instead of authored placements and restores
-  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. This is the scene
-  restore seam only; SaveManager disk I/O and Main Menu Continue own file lifecycle.
+  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. `SaveManager`
+  now owns disk I/O for the dedicated `user://saves/suspend.json` slot and the
+  `saves_index.json` last-played pointer; Map Menu and Main Menu own the remaining
+  user-facing lifecycle.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -809,13 +813,14 @@ plan (code, integration sweep, tests, build order) is
   default fixtures. `B1-CST` kickoff also moved live rule ownership into
   `GameState.campaign_rules` and expanded save-rule defaults. `B1-SUSPEND` Slice 1
   now restores active-map live enemies, scheduler state, PairUp, RNG, and MRD cursor
-  state from `SaveData.map_runtime` / `SaveData.suspend`. Remaining: SaveManager
-  disk file I/O, Map Menu Suspend & Quit, Main Menu Continue/delete lifecycle,
-  future object/AI runtime fields, and rewind as Build Order Step 4.
+  state from `SaveData.map_runtime` / `SaveData.suspend`. The `SaveManager` disk
+  seam now writes/reads/deletes that document at `user://saves/suspend.json`.
+  Remaining: Map Menu Suspend & Quit, Main Menu Continue/delete lifecycle, future
+  object/AI runtime fields, and rewind as Build Order Step 4.
 
 ### Anchors
-- Code: `scripts/autoloads/RngService.gd`; `scripts/save/SaveCodec.gd`;
-  `scripts/save/SaveData.gd`; `scripts/core/GameMap.gd`;
+- Code: `scripts/autoloads/RngService.gd`; `scripts/autoloads/SaveManager.gd`;
+  `scripts/save/SaveCodec.gd`; `scripts/save/SaveData.gd`; `scripts/core/GameMap.gd`;
   `CombatResolver.gd`, `TurnManager.gd`
   (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
   (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`
@@ -823,6 +828,7 @@ plan (code, integration sweep, tests, build order) is
   commit points and suspend cursor state)
 - Tests: `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
+  `scripts/tests/test_save_manager.gd` (suspend disk slot),
   `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
   wait-commit), `scripts/tests/test_rng_snapshot.gd` (T2),
   `scripts/tests/test_save_codec.gd`; `scripts/tests/test_save_data.gd`;
