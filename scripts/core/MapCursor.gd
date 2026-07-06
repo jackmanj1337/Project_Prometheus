@@ -111,6 +111,7 @@ var _input_suppressed: bool = false
 # True while the "end turn with unacted units?" ConfirmationDialog is open.
 # Prevents _on_map_menu_closed from unlocking the cursor before the dialog resolves.
 var _awaiting_end_turn_confirm: bool = false
+var _map_menu_suspend_available: bool = false
 var _context_menu_anchor: Dictionary = {}
 # True while a deferred re-anchor pass is pending (V027-03b): rapid zoom steps
 # coalesce into one next-frame re-place instead of stacking awaits.
@@ -141,6 +142,8 @@ func _ready() -> void:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
 		map_menu.settings_requested.connect(_on_settings_requested)
+		if map_menu.has_signal("suspend_and_quit_requested"):
+			map_menu.suspend_and_quit_requested.connect(_on_suspend_and_quit_requested)
 		map_menu.quit_to_menu_requested.connect(_on_quit_to_menu_requested)
 	if settings_screen:
 		settings_screen.back_pressed.connect(_on_settings_closed)
@@ -1506,6 +1509,9 @@ func _cycle_to_next_unit(step: int) -> void:
 func _open_map_menu() -> void:
 	if map_menu == null:
 		return
+	_map_menu_suspend_available = can_capture_suspend()
+	if map_menu.has_method("set_suspend_available"):
+		map_menu.call("set_suspend_available", _map_menu_suspend_available)
 	lock()
 	map_menu.open()
 	# Consume the triggering press. Without this the same keystroke keeps
@@ -1581,6 +1587,7 @@ func _on_end_turn_requested() -> void:
 
 
 func _on_map_menu_closed() -> void:
+	_map_menu_suspend_available = false
 	if _awaiting_end_turn_confirm:
 		return
 	if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
@@ -1588,15 +1595,40 @@ func _on_map_menu_closed() -> void:
 	unlock()
 
 
+func _on_suspend_and_quit_requested() -> void:
+	if not _can_write_suspend_from_menu():
+		push_error("MapCursor: suspend requested outside a free local-control boundary")
+		_map_menu_suspend_available = false
+		unlock()
+		return
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = "Suspend and return to the main menu?\nYou can continue from this point later."
+	dlg.confirmed.connect(func():
+		dlg.queue_free()
+		if _write_suspend_save():
+			_return_to_main_menu()
+		else:
+			_map_menu_suspend_available = false
+			_show_suspend_failed_dialog()
+	)
+	dlg.canceled.connect(func():
+		_map_menu_suspend_available = false
+		dlg.queue_free()
+		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+			return
+		unlock()
+	)
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_cancel_button().grab_focus()
+
+
 func _on_quit_to_menu_requested() -> void:
 	var dlg := ConfirmationDialog.new()
 	dlg.dialog_text = "Return to the main menu?\nUnsaved map progress will be lost."
 	dlg.confirmed.connect(func():
 		dlg.queue_free()
-		var gs := get_node_or_null("/root/GameState")
-		if gs:
-			gs.call("reset_map_state")
-		get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
+		_return_to_main_menu()
 	)
 	dlg.canceled.connect(func():
 		dlg.queue_free()
@@ -1607,6 +1639,57 @@ func _on_quit_to_menu_requested() -> void:
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
 	dlg.get_cancel_button().grab_focus()
+
+
+func _can_write_suspend_from_menu() -> bool:
+	if _input_suppressed:
+		return false
+	if _map_menu_suspend_available:
+		if _turn != null:
+			return _turn.is_locally_controlled_faction(_turn.active_faction())
+		var gs := get_node_or_null("/root/GameState")
+		return gs != null and gs.is_player_turn()
+	return can_capture_suspend()
+
+
+func _write_suspend_save() -> bool:
+	if not _can_write_suspend_from_menu():
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if gs == null or not gs.has_method("capture_suspend_save"):
+		push_error("MapCursor: GameState cannot capture suspend save")
+		return false
+	if save_manager == null or not save_manager.has_method("save_suspend"):
+		push_error("MapCursor: SaveManager cannot write suspend save")
+		return false
+	var save: Variant = gs.call("capture_suspend_save", _turn, self)
+	if save == null:
+		push_error("MapCursor: suspend capture returned null")
+		return false
+	return bool(save_manager.call("save_suspend", save))
+
+
+func _show_suspend_failed_dialog() -> void:
+	var dlg := AcceptDialog.new()
+	dlg.dialog_text = "Suspend save failed.\nMap progress was not saved."
+	dlg.confirmed.connect(func():
+		dlg.queue_free()
+		if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+			return
+		unlock()
+	)
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_ok_button().grab_focus()
+
+
+func _return_to_main_menu() -> void:
+	_map_menu_suspend_available = false
+	var gs := get_node_or_null("/root/GameState")
+	if gs:
+		gs.call("reset_map_state")
+	get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
 
 
 # ── Settings ─────────────────────────────────────────────────────────────────

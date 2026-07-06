@@ -658,6 +658,7 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 ┌──────────────────┐
 │   End Turn       │
 │   Settings       │
+│   Suspend & Quit │
 │   Quit to Menu   │
 │   Close          │
 └──────────────────┘
@@ -670,6 +671,10 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
+- `Suspend & Quit`: available only when the cursor opened the menu from a free,
+  local-control boundary. It confirms, writes `user://saves/suspend.json`
+  through `SaveManager`, then returns to `Boot.tscn`; if the write fails, a
+  failure dialog keeps the player on the map.
 - `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.

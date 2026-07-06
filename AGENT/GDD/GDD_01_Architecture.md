@@ -736,9 +736,9 @@ Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
 snapshot, the I/O-free `SaveData` envelope, the active-map suspend
 serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
-B1-SUSPEND Slice 1, SaveManager disk seam); Map Menu Suspend & Quit, Continue
-lifecycle, object/AI future fields, the generalized §8.1 snapshot dict, and
-rewind are **Target design**
+B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit); Continue
+lifecycle, object/AI future fields, the generalized §8.1 snapshot dict, and rewind
+are **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -797,8 +797,9 @@ plan (code, integration sweep, tests, build order) is
   from `map_runtime.units` instead of authored placements and restores
   `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. `SaveManager`
   now owns disk I/O for the dedicated `user://saves/suspend.json` slot and the
-  `saves_index.json` last-played pointer; Map Menu and Main Menu own the remaining
-  user-facing lifecycle.
+  `saves_index.json` last-played pointer. Map Menu `Suspend & Quit` writes that
+  file from the free/local-control boundary before returning to `Boot.tscn`;
+  Main Menu owns the remaining Continue lifecycle.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -814,9 +815,10 @@ plan (code, integration sweep, tests, build order) is
   `GameState.campaign_rules` and expanded save-rule defaults. `B1-SUSPEND` Slice 1
   now restores active-map live enemies, scheduler state, PairUp, RNG, and MRD cursor
   state from `SaveData.map_runtime` / `SaveData.suspend`. The `SaveManager` disk
-  seam now writes/reads/deletes that document at `user://saves/suspend.json`.
-  Remaining: Map Menu Suspend & Quit, Main Menu Continue/delete lifecycle, future
-  object/AI runtime fields, and rewind as Build Order Step 4.
+  seam now writes/reads/deletes that document at `user://saves/suspend.json`, and
+  Map Menu `Suspend & Quit` writes it from the existing free/local-control gate.
+  Remaining: Main Menu Continue/delete lifecycle, future object/AI runtime fields,
+  and rewind as Build Order Step 4.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/autoloads/SaveManager.gd`;

@@ -7,6 +7,7 @@ extends SceneTree
 
 const MapCursorS = preload("res://scripts/core/MapCursor.gd")
 const UnitScene  = preload("res://scenes/units/Unit.tscn")
+const SaveManagerS = preload("res://scripts/autoloads/SaveManager.gd")
 
 # MapCursor.State enum values (FREE, UNIT_SELECTED, UNIT_MOVED, TARGETING, LOCKED).
 const FREE          := 0
@@ -14,6 +15,7 @@ const UNIT_SELECTED := 1
 const UNIT_MOVED    := 2
 const TARGETING     := 3
 const LOCKED        := 4
+const TEST_SAVE_DIR := "user://test_map_cursor_suspend"
 
 var _grid: GridManager
 var _gs: Node          # stub GameState at /root/GameState — feeds GridManager.get_unit_at
@@ -48,6 +50,18 @@ func _make_cursor(turn: TurnManager) -> MapCursor:
 	return c
 
 
+func _clean_test_save_dir() -> void:
+	var err := DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	if err != OK and err != ERR_ALREADY_EXISTS:
+		push_error("test_map_cursor: failed to create suspend test dir: %s" % error_string(err))
+		return
+	var dir := DirAccess.open(TEST_SAVE_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		dir.remove(file_name)
+
+
 func _init() -> void:
 	print("=== MapCursor FSM Test ===")
 	var passed := 0
@@ -64,11 +78,16 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
+	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nconst SaveDataScript = preload(\"res://scripts/save/SaveData.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\nfunc capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:\n\tvar save: RefCounted = SaveDataScript.new()\n\tsave.map_runtime[\"map_id\"] = \"test_map\"\n\tsave.map_runtime[\"map_path\"] = \"res://data/maps/map_001_rout/map_001_data.tres\"\n\tsave.suspend[\"kind\"] = \"map\"\n\treturn SaveDataScript.from_dict(save.to_dict())\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
 	root.add_child(_gs)
+	_clean_test_save_dir()
+	var save_manager: Node = SaveManagerS.new()
+	save_manager.name = "SaveManager"
+	save_manager.configure_save_dir_for_tests(TEST_SAVE_DIR)
+	root.add_child(save_manager)
 	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
 	pair_reg.name = "PairUpRegistry"
 	root.add_child(pair_reg)
@@ -411,6 +430,25 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL confirm-empty-menu: _state=%d opened=%s" % [c2._state, c2.map_menu.opened])
+		failed += 1
+
+	# ---- Suspend & Quit writes the captured SaveData through SaveManager ----
+	_clean_test_save_dir()
+	var t_suspend := TurnManager.new()
+	root.add_child(t_suspend)
+	t_suspend._turn_order = ["blue"]
+	var c_suspend := _make_cursor(t_suspend)
+	c_suspend._map_menu_suspend_available = true
+	var wrote_suspend: bool = c_suspend._write_suspend_save()
+	var loaded_suspend: RefCounted = save_manager.load_suspend()
+	if wrote_suspend and loaded_suspend != null \
+			and loaded_suspend.map_runtime["map_id"] == "test_map" \
+			and loaded_suspend.suspend["kind"] == "map":
+		print("OK  Suspend & Quit writes active-map SaveData to SaveManager")
+		passed += 1
+	else:
+		print("FAIL suspend write: wrote=%s loaded=%s" % [
+			wrote_suspend, loaded_suspend.to_dict() if loaded_suspend != null else null])
 		failed += 1
 
 	# ---- V021-16: FREE + cancel over an unselected unit → opens its sheet ----

@@ -71,7 +71,7 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B1-SUSPEND` | Mid-battle suspend capstone | Slice 1 landed 2026-07-06: active-map `SaveData` capture and scene restore now cover live units, scheduler state, PairUp, RNG, and MRD cursor state. SaveManager disk file landed next. Remaining: Map Menu Suspend & Quit, Continue/delete lifecycle. |
+| 1 | `B1-SUSPEND` | Mid-battle suspend capstone | Slice 1 landed 2026-07-06: active-map `SaveData` capture and scene restore now cover live units, scheduler state, PairUp, RNG, and MRD cursor state. SaveManager disk file and Map Menu Suspend & Quit landed next. Remaining: Continue/delete lifecycle. |
 | 2 | `B6-INPUT` | Controller input pass | Restores the queued gamepad slice after the Band 1 save spine gate. |
 
 ## Validation And Release Queues
