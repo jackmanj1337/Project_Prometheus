@@ -23,6 +23,7 @@ boot_splash/show_image=false
 
 GameConstants="*res://scripts/shared/GameConstants.gd"
 EventBus="*res://scripts/autoloads/EventBus.gd"
+RngService="*res://scripts/autoloads/RngService.gd"
 SettingsManager="*res://scripts/autoloads/SettingsManager.gd"
 GameState="*res://scripts/autoloads/GameState.gd"
 DataManager="*res://scripts/autoloads/DataManager.gd"
