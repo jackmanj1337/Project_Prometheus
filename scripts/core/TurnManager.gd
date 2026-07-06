@@ -572,6 +572,40 @@ func get_action_start_tile(unit: Node) -> Vector2i:
 	return _original_tiles.get(unit, unit.tile_position)
 
 
+# ── RNG event commits (rng_determinism_design §3/§4) ─────────────────────────
+# Non-dice actions (wait/seize/escape/item/staff/pair actions) commit their
+# event record here at the moment they become non-undoable, advancing the
+# deterministic dice chain (RNG-1). Dice-bearing kinds (attack, levelup) commit
+# inside their own resolution paths — never route those through here, or the
+# chain advances twice for one action.
+func commit_action_event(kind: String, record: Array[String]) -> void:
+	var svc := get_node_or_null("/root/RngService")
+	if svc != null:
+		svc.commit_event(kind, record)
+
+
+# §3 identity field for the acting unit ("-" when the actor has no data).
+func unit_event_id(unit: Node) -> String:
+	if unit == null or unit.get("data") == null:
+		return "-"
+	return unit.data.unit_id
+
+
+# §3 tile field: internal 0-based "x,y", NOT the 1-based display coords.
+static func tile_field(tile: Vector2i) -> String:
+	return "%d,%d" % [tile.x, tile.y]
+
+
+# The common [unit_id, from_tile, to_tile] record shape (wait; prefix for item).
+func make_move_record(unit: Node) -> Array[String]:
+	var to_tile: Vector2i = unit.tile_position if unit != null else Vector2i.ZERO
+	return [
+		unit_event_id(unit),
+		tile_field(get_action_start_tile(unit)),
+		tile_field(to_tile),
+	]
+
+
 func undo_move(unit: Node) -> void:
 	if unit == null:
 		return

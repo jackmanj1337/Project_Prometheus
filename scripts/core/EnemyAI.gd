@@ -90,6 +90,9 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		return
 	var hostiles: Array[Node] = _living_hostiles_for_faction(gs, acting_faction)
 	if hostiles.is_empty():
+		# Nothing to fight: this action is a committed Wait and must advance the
+		# RNG chain like a player Wait would (RNG-1: AI chains identically).
+		turn.commit_action_event("wait", turn.make_move_record(enemy))
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 
@@ -112,9 +115,13 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 
-	# Attack the nearest targetable player from the new position; fall back to staff heal.
+	# Attack the nearest targetable player from the new position; fall back to
+	# staff heal. Exactly one RNG event commits per completed action: attack
+	# commits in apply_combat_result, staff inside _try_staff_heal, and a unit
+	# that did neither commits a Wait (RNG-1: AI chains identically to blue).
 	if _debug_hotseat_override_active(turn):
 		return
+	var acted := false
 	if is_instance_valid(enemy):
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
@@ -128,10 +135,13 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 					enemy, target, turn.get_action_start_tile(enemy))
 				var result: Dictionary = cr.resolve_combat(enemy, target, record)
 				cr.apply_combat_result(result, enemy, target)
+				acted = true
 		else:
-			_try_staff_heal(enemy, grid)
+			acted = _try_staff_heal(enemy, grid, turn)
 
 	if is_instance_valid(enemy):
+		if not acted:
+			turn.commit_action_event("wait", turn.make_move_record(enemy))
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 
 
@@ -143,6 +153,7 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 	if _debug_hotseat_override_active(turn):
 		return
+	var attacked := false
 	if is_instance_valid(enemy):
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
@@ -155,7 +166,11 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 					enemy, target, turn.get_action_start_tile(enemy))
 				var result: Dictionary = cr.resolve_combat(enemy, target, record)
 				cr.apply_combat_result(result, enemy, target)
+				attacked = true
 	if is_instance_valid(enemy):
+		# A passive unit with nothing in range committed a Wait (RNG-1).
+		if not attacked:
+			turn.commit_action_event("wait", turn.make_move_record(enemy))
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 
 
@@ -166,6 +181,7 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
 		return
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
+		turn.commit_action_event("wait", turn.make_move_record(enemy))
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
@@ -184,9 +200,14 @@ func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
 		turn.set_unit_state(enemy, TurnManager.UnitState.MOVED)
 	if _debug_hotseat_override_active(turn):
 		return
+	var healed := false
 	if is_instance_valid(enemy):
-		_try_staff_heal(enemy, grid)
+		healed = _try_staff_heal(enemy, grid, turn)
 	if is_instance_valid(enemy):
+		# A healer with no valid heal committed a Wait (RNG-1); the heal itself
+		# commits a "staff" event inside _try_staff_heal.
+		if not healed:
+			turn.commit_action_event("wait", turn.make_move_record(enemy))
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 
 
@@ -256,23 +277,35 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 
 
 # Heals the most-injured ally in range if the enemy carries a staff.
-func _try_staff_heal(enemy: Node, grid: GridManager) -> void:
+# Returns true when a heal actually happened (the caller commits a Wait RNG
+# event otherwise, so every completed AI action advances the chain exactly once).
+func _try_staff_heal(enemy: Node, grid: GridManager, turn: TurnManager = null) -> bool:
 	if not enemy.has_method("get_equipped_weapon"):
-		return
+		return false
 	var weapon: WeaponData = enemy.get_equipped_weapon()
 	if weapon == null or not weapon.is_healing_staff():
-		return
+		return false
 	var heal_targets: Array[Node] = grid.get_healable_allies(enemy)
 	if heal_targets.is_empty():
-		return
+		return false
 	# Pick most injured ally (lowest current HP)
 	var target: Node = heal_targets[0]
 	for t in heal_targets:
 		if is_instance_valid(t) and t.data.hp < target.data.hp:
 			target = t
 	if not is_instance_valid(target):
-		return
+		return false
+	# Commit the staff RNG event BEFORE the heal, mirroring the player path
+	# (§3 record; heal EXP level-ups must chain on the post-staff hash, §4).
+	if turn != null:
+		turn.commit_action_event("staff", [
+			turn.unit_event_id(enemy),
+			TurnManager.tile_field(turn.get_action_start_tile(enemy)),
+			TurnManager.tile_field(enemy.tile_position),
+			turn.unit_event_id(target),
+		] as Array[String])
 	enemy.perform_staff_heal(target, weapon)
+	return true
 
 
 # Returns the unit from `units` with the lowest real pathfinding cost from `from_unit`.

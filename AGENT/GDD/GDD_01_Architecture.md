@@ -772,18 +772,22 @@ plan (code, integration sweep, tests, build order) is
   save-breaking).
 
 ### Known gaps
-- Non-dice event commits (wait/seize/escape/item/staff) + the raw-RNG lint (T5)
-  are Slice 1d; snapshot persistence of RNG state (T2) is Step 2; suspend
-  round-trip (T6) and equip neutrality (T4) follow. Landed: T1 replay, T3
-  butterfly/isolation, T7 roll-order freeze, growth + activation determinism
-  (Slice 1c, 2026-07-06), plus the RngService unit tests.
+- Package A Step 1 is complete (Slices 1a-1d, 2026-07-06): dice sourcing,
+  non-dice event commits (wait/seize/escape/item/staff/pair actions, player and
+  AI), the raw-RNG lint (T5), and equip neutrality (T4). Remaining: snapshot
+  persistence of RNG state (T2) is Step 2; suspend round-trip (T6) follows with
+  `B1-SUSPEND`.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `CombatResolver.gd`, `TurnManager.gd`
-  (`get_action_start_tile`), `SkillHandler.gd` (activation from the event RNG),
-  `Unit.gd` (`level_up` chained `levelup` events)
+  (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
+  (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`
+  events), `MapCursor.gd` / `MapCursorTargeting.gd` / `EnemyAI.gd` (non-dice
+  commit points)
 - Tests: `scripts/tests/test_rng_service.gd`,
-  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7); pending: T2/T4/T5/T6
+  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
+  `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
+  wait-commit); pending: T2 (Step 2), T6 (`B1-SUSPEND`)
 - Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13
 - Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG

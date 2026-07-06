@@ -308,7 +308,9 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd`, `scripts/autoloads/RngService.gd`
 - Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_rng_service.gd`,
-  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7; T2/T4/T5/T6 pending)
+  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
+  `scripts/tests/test_rng_usage_lint.gd` (T5); T2 pending (Step 2), T6 pending
+  (`B1-SUSPEND`)
 - Decisions: RULE-001, RNG-1…4, CRR-1..8, OPEN-3, pipeline order
 - Reference: `GDD_Adoption_Matrix.md`; `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 

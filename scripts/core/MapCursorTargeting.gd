@@ -223,6 +223,16 @@ func _apply_staff_heal(cursor_tile: Vector2i) -> void:
 	# the entry, and a later get_equipped_weapon() could return null / the wrong type.
 	var weapon: WeaponData = _unit.get_equipped_weapon()
 	if weapon != null:
+		# Commit the staff RNG event BEFORE the heal (§3: [healer_id, from_tile,
+		# to_tile, target_id]): heal EXP can level the healer, and those chained
+		# levelup events must sit on the post-staff hash (§4 ordering).
+		if _turn != null and _turn.has_method("commit_action_event"):
+			_turn.commit_action_event("staff", [
+				_unit.data.unit_id if _unit.data != null else "-",
+				TurnManager.tile_field(_turn.get_action_start_tile(_unit)),
+				TurnManager.tile_field(_unit.tile_position),
+				target.data.unit_id if target.data != null else "-",
+			] as Array[String])
 		_unit.perform_staff_heal(target, weapon)
 	_clear_overlays()
 	_sub = _Sub.IDLE

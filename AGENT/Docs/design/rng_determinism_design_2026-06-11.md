@@ -463,9 +463,10 @@ T1+T3 are the spec's teeth; T7 is the tripwire for M9 authors.
 
 Each step ships standalone value; 1–2 fit the current stabilization window.
 
-- [ ] **Step 1 — RngService + migration sweep.** Autoload, mixer, §6 code
+- [x] **Step 1 — RngService + migration sweep.** Autoload, mixer, §6 code
       touches, T1/T3/T4/T5/T7. *Value: reproducible combat tests immediately;
-      M9 lands on the final dice architecture.*
+      M9 lands on the final dice architecture.* **Done 2026-07-06** (B1-PKGA
+      Slices 1a-1d).
 - [ ] **Step 2 — Snapshot contract.** `to_save_dict` across §8.1; migrate the
       Retry snapshot onto it; T2. *Value: Retry hardened; every future
       milestone's runtime state has one place to register.*

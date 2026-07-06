@@ -1161,6 +1161,10 @@ func _on_pair_up_resolved(lead: Node, support: Node) -> void:
 	# keeps the sprite from rendering on the lead's tile.
 	support.tile_position = _PairUpRegistryScript.OFF_MAP_TILE
 	support.visible = false
+	# Committed pair action advances the RNG chain (§3: [unit_id, partner]).
+	if _turn != null:
+		_turn.commit_action_event("pair_up",
+			[lead.data.unit_id, support.data.unit_id] as Array[String])
 	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
 		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
 	# _finish_action marks the lead DONE and clears selection. The lead stays
@@ -1204,6 +1208,10 @@ func _commit_swap_roles() -> void:
 			else:
 				new_lead.tile_position = lead_tile
 			new_lead.visible = true
+			# Committed swap advances the RNG chain (§3: [unit_id, partner]).
+			if _turn != null:
+				_turn.commit_action_event("swap",
+					[old_lead.data.unit_id, new_lead.data.unit_id] as Array[String])
 			# Swap spends the joint action: the off-map old lead is marked DONE
 			# here; the on-map new lead is handed to _finish_action below.
 			if _turn != null and old_lead.data.hp > 0:
@@ -1229,6 +1237,10 @@ func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> 
 	else:
 		support.tile_position = target_tile
 	support.visible = true
+	# Committed separate advances the RNG chain (§3: [unit_id, partner_or_tile]).
+	if _turn != null:
+		_turn.commit_action_event("separate",
+			[lead.data.unit_id, TurnManager.tile_field(target_tile)] as Array[String])
 	if _turn != null and is_instance_valid(support) and support.data.hp > 0:
 		_turn.set_unit_state(support, TurnManager.UnitState.DONE)
 	_finish_action()
@@ -1239,7 +1251,13 @@ func _on_separate_resolved(lead: Node, support: Node, target_tile: Vector2i) -> 
 # objectives — a seize-victory or seize-defeat may resolve the map here.
 func _commit_seize() -> void:
 	if _turn != null and _selection.selected_unit != null:
-		_turn.record_seize(_selection.selected_unit)
+		var u: Node = _selection.selected_unit
+		# Commit the RNG event before record_seize — seizing can resolve the
+		# map, and the chain must already include this action if it does.
+		_turn.commit_action_event("seize", [
+			_turn.unit_event_id(u), TurnManager.tile_field(u.tile_position),
+		] as Array[String])
+		_turn.record_seize(u)
 	_finish_action()
 
 
@@ -1253,6 +1271,12 @@ func _commit_escape() -> void:
 	if _turn == null or _selection.selected_unit == null:
 		_finish_action()
 		return
+	# Commit the RNG event before record_escape — it frees the unit and erases
+	# its TurnManager bookkeeping, so the record must be built first.
+	_turn.commit_action_event("escape", [
+		_turn.unit_event_id(_selection.selected_unit),
+		TurnManager.tile_field(_selection.selected_unit.tile_position),
+	] as Array[String])
 	_turn.record_escape(_selection.selected_unit)
 	# selected_unit is now queue_freed; mirror _finish_action's bookkeeping
 	# without touching the (freed) unit.
@@ -1333,20 +1357,41 @@ func _apply_item_effect(entry: InventoryEntry) -> bool:
 		return true
 	var item: ItemData = ih.get_item_data(entry)
 	if item != null and item.effect_id == "promote" and promotion_screen != null:
+		_pending_item_id = entry.item_id
 		promotion_screen.open_for(_selection.selected_unit, entry,
 			Callable(self, "_on_promotion_item_confirmed"),
 			Callable(self, "_on_promotion_item_cancelled"))
 		return false
 	if item != null and item.effect_id == "reclass" and reclass_screen != null:
+		_pending_item_id = entry.item_id
 		reclass_screen.open_for(_selection.selected_unit, entry,
 			Callable(self, "_on_promotion_item_confirmed"),
 			Callable(self, "_on_promotion_item_cancelled"))
 		return false
+	_commit_item_event(entry.item_id)
 	ih.apply_item(_selection.selected_unit, entry)
 	return true
 
 
+# RNG event for a committed item use (§3: [unit_id, from_tile, to_tile, item_id]).
+# Committed before apply_item so any future item-granted EXP/level-up chains
+# AFTER the item event, matching the attack→levelup ordering rule (§4).
+func _commit_item_event(item_id: String) -> void:
+	if _turn == null or _selection.selected_unit == null:
+		return
+	var record: Array[String] = _turn.make_move_record(_selection.selected_unit)
+	record.append(item_id)
+	_turn.commit_action_event("item", record)
+
+
+# Stashed by _apply_item_effect while a promotion/reclass screen is open, so the
+# confirm callback can commit the RNG event for the item that opened it.
+var _pending_item_id: String = ""
+
+
 func _on_promotion_item_confirmed() -> void:
+	_commit_item_event(_pending_item_id)
+	_pending_item_id = ""
 	_finish_action()
 
 
@@ -1382,6 +1427,10 @@ func _on_weapon_menu_cancelled() -> void:
 
 # Commit the move as a Wait action — unit is marked DONE via _finish_action().
 func _commit_wait() -> void:
+	# Wait is a committed action: it advances the RNG chain (RNG-1) so it can
+	# re-seed later dice — the design's accepted Wait-to-reroll exploit (RNG-3).
+	if _turn != null and _selection.selected_unit != null:
+		_turn.commit_action_event("wait", _turn.make_move_record(_selection.selected_unit))
 	_finish_action()
 
 

@@ -510,6 +510,11 @@ func _init() -> void:
 	var waiter := _make_unit(Vector2i(0, 0), "blue")
 	c5._selection.selected_unit = waiter
 	c5._state = UNIT_MOVED
+	# B1-PKGA Slice 1d: a committed Wait must advance the RNG chain (RNG-1/RNG-3
+	# Wait-to-reroll). This suite runs with the REAL RngService autoload.
+	var rng_svc := root.get_node_or_null("/root/RngService")
+	rng_svc.start_map(4242)
+	var wait_hash_before: int = rng_svc.history_hash
 	c5._on_action_chosen("wait")
 	if c5._state == FREE and c5._selection.selected_unit == null \
 			and t5.get_unit_state(waiter) == TurnManager.UnitState.DONE:
@@ -518,6 +523,36 @@ func _init() -> void:
 	else:
 		print("FAIL wait: _state=%d selected=%s unit_state=%d" \
 			% [c5._state, str(c5._selection.selected_unit), t5.get_unit_state(waiter)])
+		failed += 1
+	if rng_svc.history_hash != wait_hash_before:
+		print("OK  1d: a committed Wait advances the RNG chain")
+		passed += 1
+	else:
+		print("FAIL 1d: Wait did not advance history_hash")
+		failed += 1
+
+	# ---- T4 equip neutrality: the weapon-swap flow never touches the chain ----
+	# Equip is free and repeatable mid-turn; if it ever committed an RNG event it
+	# would be an infinite zero-cost reroll crank (design §4 "Never advances").
+	# A stub ActionMenu is required: with action_menu null, _show_action_menu's
+	# headless fallback commits a Wait, which is NOT the production equip path.
+	var equip_menu_script := GDScript.new()
+	equip_menu_script.source_code = "extends Control\nsignal action_chosen(a)\nsignal hidden_by_cancel\nfunc show_for(_u, _tile, _g): pass\n"
+	equip_menu_script.reload()
+	c5.action_menu = equip_menu_script.new()
+	root.add_child(c5.action_menu)
+	var equipper := _make_unit(Vector2i(3, 0), "blue")
+	equipper.data.inventory = [InventoryEntry.make_weapon("iron_sword", 10)]
+	c5._selection.selected_unit = equipper
+	var equip_hash_before: int = rng_svc.history_hash
+	c5._on_weapon_chosen(equipper.data.inventory[0])
+	c5._on_weapon_chosen(equipper.data.inventory[0])  # repeat swap — still free
+	c5._selection.selected_unit = null
+	if rng_svc.history_hash == equip_hash_before:
+		print("OK  1d/T4: equip swaps never advance the RNG chain")
+		passed += 1
+	else:
+		print("FAIL 1d/T4: equip advanced history_hash")
 		failed += 1
 
 	# ---- _finish_action liveness guard: a dead unit is NOT written into _unit_states ----
