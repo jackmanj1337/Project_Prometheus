@@ -6,6 +6,12 @@ extends Node
 # (e.g. active_modifiers, skill_use_counters). preview_combat() snapshots and restores
 # unit state around exactly these writes so the forecast leaves no trace.
 #
+# RNG: all rolls draw from the per-event RNG in context["rng"] (RngService,
+# RNG-1) in the CANONICAL ROLL ORDER — per strike: the hit resolver's fixed
+# rn_count of 0-99 draws, then a crit draw only on a hit, then skill-activation
+# draws at their trigger slots. Reordering is save/replay-breaking. Authority:
+# AGENT/Docs/design/rng_determinism_design_2026-06-11.md §5.
+#
 # ── Combat Context Dictionary Schema ────────────────────────────────────────
 # Built by _build_combat_context(); extended by skills during trigger processing.
 # All keys present from construction unless marked [skill-added].
@@ -28,6 +34,12 @@ extends Node
 #                                          wanting "am I the initiator?" should compare against
 #                                          `context.attacker` directly (no faction needed).
 #   "turn_number"           int          — GameState.turn_number at combat start
+#   "rng"                   RandomNumberGenerator — the event's private RNG, seeded by
+#                                          RngService.begin_event("attack", record). ALL
+#                                          combat/skill rolls must draw from it (RNG-1).
+#                                          Set by resolve_combat(); absent in previews.
+#   "hit_formula"           String       — hit-roll resolver id ("two_roll"/"single_roll",
+#                                          CRR-2/CRR-4). Set by resolve_combat().
 #   "atk_mod"               Dictionary   — attacker modifiers:
 #       "accuracy"          int          — flat hit modifier
 #       "damage"            int          — flat damage modifier
@@ -65,6 +77,83 @@ const _EXP_TABLE: Array = [
 const _ALWAYS_USE_DURABILITY: Array[String] = [
 	"bow", "fire", "thunder", "wind", "light", "dark", "staff",
 ]
+
+
+# ── Hit-Roll Resolver Seam (CRR-2) ──────────────────────────────────────────
+# The engine draws a resolver-declared, FIXED rn_count of 0-99 integers from the
+# event RNG in canonical order, then asks a pure predicate did_hit(hit, rns).
+# The formula never draws RNs itself — that keeps the draw count outcome-
+# independent (RNG-1) and replay/suspend/online-safe (CRR-7). Two built-ins is
+# a bounded engine set, not a content-growth enum; promotion to an author
+# registry is the Band 3 follow-on B3-COMBAT-ROLL-RESOLVER (CRR-8).
+
+const DEFAULT_HIT_FORMULA := "two_roll"
+
+# id -> {"rn_count": int, "predicate": Callable(displayed_hit, rns) -> bool}
+var _hit_resolvers: Dictionary = {
+	"two_roll":    {"rn_count": 2, "predicate": _hit_two_roll},
+	"single_roll": {"rn_count": 1, "predicate": _hit_single_roll},
+}
+
+
+# RULE-001 default: hit when floor((r1 + r2) / 2) < displayed hit. GDScript
+# integer division of non-negative ints IS the floor, so `/ 2` matches the rule.
+static func _hit_two_roll(displayed_hit: int, rns: Array[int]) -> bool:
+	return (rns[0] + rns[1]) / 2 < displayed_hit
+
+
+# Classic single-RN true-odds roll.
+static func _hit_single_roll(displayed_hit: int, rns: Array[int]) -> bool:
+	return rns[0] < displayed_hit
+
+
+# How many 0-99 draws the resolver consumes per strike (always consumed, even
+# on a miss — the roll order must never depend on the outcome).
+func hit_rn_count(formula: String) -> int:
+	return _hit_resolvers.get(formula, _hit_resolvers[DEFAULT_HIT_FORMULA])["rn_count"]
+
+
+# Pure hit predicate — public so the T7 roll-order fixtures can assert each
+# built-in's literal outcomes without running a full combat.
+func did_hit(formula: String, displayed_hit: int, rns: Array[int]) -> bool:
+	var resolver: Dictionary = _hit_resolvers.get(
+		formula, _hit_resolvers[DEFAULT_HIT_FORMULA])
+	return resolver["predicate"].call(displayed_hit, rns)
+
+
+# CampaignRules.hit_formula selects the resolver (CRR-4; campaign-default
+# scope). GameState.campaign_rules lands with the Slice 6 CampaignRules
+# consolidation — until then gs.get() returns null and the default applies.
+func _current_hit_formula() -> String:
+	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	if gs != null:
+		var rules: Variant = gs.get("campaign_rules")
+		if rules != null:
+			var formula: Variant = rules.get("hit_formula")
+			if formula is String and _hit_resolvers.has(formula):
+				return formula
+	return DEFAULT_HIT_FORMULA
+
+
+# ── RNG Event Records (design §3) ───────────────────────────────────────────
+
+# Canonical "attack" event record: [attacker_id, from_tile, to_tile, defender_id]
+# with tiles as "x,y" internal 0-based coords. from_tile is the PRE-MOVE tile
+# (TurnManager.get_action_start_tile) so a unit's chosen destination changes its
+# own dice, per the ratified every-committed-action rule.
+func make_attack_event_record(attacker: Node, defender: Node,
+		from_tile: Vector2i) -> Array[String]:
+	var atk_id: String = attacker.data.unit_id \
+		if attacker != null and attacker.data != null else "-"
+	var def_id: String = defender.data.unit_id \
+		if defender != null and defender.data != null else "-"
+	var to_tile: Vector2i = attacker.tile_position if attacker != null else Vector2i.ZERO
+	return [
+		atk_id,
+		"%d,%d" % [from_tile.x, from_tile.y],
+		"%d,%d" % [to_tile.x, to_tile.y],
+		def_id,
+	]
 
 
 # ── Context Construction ─────────────────────────────────────────────────────
@@ -447,14 +536,24 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	var crit_pct := compute_crit_pct(actor, target, weapon, crit_ctx)
 	var base_dmg := compute_damage(actor, target, weapon, dmg_ctx)
 
-	var did_hit: bool  = (randi() % 100) < hit_pct  # rng-allow: pre-M9a (RNG-1)
+	# Hit roll via the resolver seam (CRR-2): draw the resolver's FIXED rn_count
+	# from the event RNG in canonical order (§5), then ask the pure predicate.
+	# All draws are consumed even on a miss so roll order never depends on outcome.
+	var rng: RandomNumberGenerator = context["rng"]
+	var formula: String = context.get("hit_formula", DEFAULT_HIT_FORMULA)
+	var hit_rns: Array[int] = []
+	for _i in hit_rn_count(formula):
+		hit_rns.append(rng.randi_range(0, 99))  # rng-allow: draw from the RngService event RNG (RNG-1)
+	var strike_hit: bool = did_hit(formula, hit_pct, hit_rns)
 	var did_crit: bool = false
 	var damage: int    = 0
 
-	if did_hit:
+	if strike_hit:
 		if sh:
 			sh.apply_trigger(actor, "on_hit", context, false, context.get(blocked_key, false))
-		did_crit = (randi() % 100) < crit_pct  # rng-allow: pre-M9a (RNG-1)
+		# Crit stays a single draw, only after a hit (§5; CRR-6 reserves the
+		# resolver family for crit/activation later).
+		did_crit = rng.randi_range(0, 99) < crit_pct  # rng-allow: draw from the RngService event RNG (RNG-1)
 		damage = base_dmg * 3 if did_crit else base_dmg
 		var dmg_mult: float = actor_mod["damage_multiplier"]
 		if dmg_mult != 1.0:
@@ -473,18 +572,18 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 			damage = dmg_ctx2.get("damage", damage)
 
 	# on_kill
-	if did_hit and damage >= target_sim_hp and sh:
+	if strike_hit and damage >= target_sim_hp and sh:
 		sh.apply_trigger(actor, "on_kill", context, false, context.get(blocked_key, false))
 
 	var loses_use: bool = false
 	if weapon != null:
-		loses_use = (weapon.combat_family in _ALWAYS_USE_DURABILITY) or did_hit
+		loses_use = (weapon.combat_family in _ALWAYS_USE_DURABILITY) or strike_hit
 
 	return {
 		"attacker":        actor,
 		"defender":        target,
 		"weapon":          weapon,
-		"hit":             did_hit,
+		"hit":             strike_hit,
 		"crit":            did_crit,
 		"damage":          damage,
 		"loses_durability": loses_use,
@@ -655,7 +754,8 @@ func _run_strike_series(actor: Node, target: Node, context: Dictionary, is_count
 	return target_sim_hp
 
 
-func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
+func resolve_combat(attacker: Node, defender: Node,
+		event_record: Array[String] = []) -> Dictionary:
 	# combat_started fires before any RNG is rolled — it marks the fight starting,
 	# not the apply phase. preview_combat is the side-effect-free forecast and
 	# must NOT emit this. See EventBus.gd signal comment (B2).
@@ -663,7 +763,24 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 	if bus:
 		bus.combat_started.emit(attacker, defender)
 
+	# Seed this event's private RNG (RNG-1). Callers pass the canonical record
+	# (with the real pre-move from_tile); direct/headless callers get a
+	# deterministic fallback record built from the units' current tiles.
+	var record: Array[String] = event_record
+	if record.is_empty():
+		record = make_attack_event_record(attacker, defender,
+			attacker.tile_position if attacker != null else Vector2i.ZERO)
 	var context := _build_combat_context(attacker, defender)
+	context["hit_formula"] = _current_hit_formula()
+	var rng_svc := get_node_or_null("/root/RngService") if is_inside_tree() else null
+	if rng_svc != null:
+		context["rng"] = rng_svc.begin_event("attack", record)
+	else:
+		# Suites that don't load the RngService autoload still resolve, on a
+		# fixed-seed local RNG. Production always has the autoload.
+		var fallback := RandomNumberGenerator.new()  # rng-allow: headless fallback when RngService is absent
+		fallback.seed = 1
+		context["rng"] = fallback
 	_collect_combat_modifiers(context)
 	var sh := get_node_or_null("/root/SkillHandler")
 
@@ -733,11 +850,15 @@ func resolve_combat(attacker: Node, defender: Node) -> Dictionary:
 
 	# attacker_exp / defender_exp are NOT included here — they're computed by
 	# apply_combat_result() from the exchanges that actually landed, then set on this dict.
+	# rng_event_kind/record carry the event identity so apply_combat_result can
+	# commit it to the RNG chain exactly once.
 	return {
-		"exchanges":     exchanges,
-		"attacker_died": attacker_died,
-		"defender_died": defender_died,
-		"context":       context,
+		"exchanges":        exchanges,
+		"attacker_died":    attacker_died,
+		"defender_died":    defender_died,
+		"context":          context,
+		"rng_event_kind":   "attack",
+		"rng_event_record": record,
 	}
 
 
@@ -777,6 +898,17 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 			def_unit.data.damage_taken_this_map += hp_before - def_unit.data.hp
 		# No break here — the full exchange list is iterated so both units can die
 		# in a mutual-kill scenario and both get handle_death() called below.
+
+	# Commit this attack to the RNG chain exactly once, BEFORE EXP/level-up —
+	# levelup events must begin on the post-attack hash (design §4 ordering).
+	# The once-guard lives on the result dict so a double apply cannot advance
+	# the chain twice; TurnManager must never commit combat events itself.
+	if not result.get("rng_committed", false):
+		result["rng_committed"] = true
+		var rng_svc := get_node_or_null("/root/RngService") if is_inside_tree() else null
+		if rng_svc != null and result.has("rng_event_record"):
+			rng_svc.commit_event(result.get("rng_event_kind", "attack"),
+				result["rng_event_record"])
 
 	# Derive death and EXP from final HP after every exchange is applied.
 	var defender_died: bool = defender.data.hp <= 0

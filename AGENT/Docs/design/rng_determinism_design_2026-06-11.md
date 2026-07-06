@@ -21,6 +21,16 @@ by RULE-001**.
 **Consumers:** rewind (Turnwheel-style), mid-battle suspend save, Retry,
 reproducible headless tests, M15 Part B host-authoritative online play.
 
+> **Amendment (2026-07-06):** B1-PKGA Slice 1b landed — `RngService` autoload +
+> the combat hit/crit migration, with tests T1/T3/T7 green
+> (`test_rng_service.gd`, `test_rng_combat_determinism.gd`). Per
+> [`combat_roll_resolver_open_questions_2026-06-30.md`](../registers/combat_roll_resolver_open_questions_2026-06-30.md)
+> (CRR-1..8), RULE-001 is reframed as the **default preset** of the
+> author-selectable hit-roll resolver seam (`two_roll`; `single_roll` is the
+> second built-in; selection = `CampaignRules.hit_formula`). Growth/skill
+> migration (Slice 1c), the raw-RNG guard (Slice 1d), and snapshot persistence
+> (Step 2) remain outstanding.
+
 ---
 
 ## Decision Records
@@ -241,6 +251,9 @@ exactly this order, mirroring the exchange list built by `resolve_combat()`:
       `floor((r1 + r2) / 2) < displayed_hit`** (the resolved/displayed hit
       chance). **Both draws are always consumed, even on a miss** — the count
       is fixed so the roll order never depends on the outcome.
+      *(Clarified 2026-07-06, CRR-2: the per-strike hit-RN count is the
+      selected resolver's fixed `rn_count` — default `two_roll` = 2; changing
+      it is save-breaking as already stated.)*
    2. **Crit roll** — drawn **only if the hit landed** (a miss consumes two
       rolls, a hit consumes three; this is fine because the consumer is private
       to the event).

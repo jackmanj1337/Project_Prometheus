@@ -34,6 +34,12 @@ class_name CampaignRules extends Resource
 # See GDD_01 §CampaignRules Contract, OPEN-4, and GDD_02 §EXP.
 @export var exp_gaining_factions: Array[String] = ["blue", "green"]
 
+# Hit-roll resolver preset (CRR-4): "two_roll" (RULE-001 default, true-hit curve)
+# or "single_roll" (displayed = real odds). Read by CombatResolver's resolver
+# seam once GameState.campaign_rules is wired (Band 1 Slice 6); until then the
+# engine default applies. Registry promotion is B3-COMBAT-ROLL-RESOLVER.
+@export var hit_formula: String = "two_roll"
+
 
 # Returns a CampaignRules with all project defaults applied.
 static func make_default() -> CampaignRules:

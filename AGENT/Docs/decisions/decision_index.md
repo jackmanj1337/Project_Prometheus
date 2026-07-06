@@ -50,7 +50,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Applied / Notes |
 |----|-------|--------|------|-----------------|
-| RULE-001 | Exact two-RN hit model | Applied (Target design) | REG | Option A (two 0–99, floor avg). **Supersedes single-roll hit.** Documented in GDD_02 §Combat Resolution & GDD_01 §Determinism (Stage 3.1); code is Package A. |
+| RULE-001 | Exact two-RN hit model | Applied (Implemented 2026-07-06) | REG | Option A (two 0–99, floor avg). Default resolver preset among author-selectable resolvers (CRR-1); selection = `CampaignRules.hit_formula`. Single-roll survives as the selectable `single_roll` built-in, no longer the shipped rule. In GDD_02 §Combat Resolution & GDD_01 §Determinism. |
 | RULE-002 | S-rank bonus | Applied (Target design) | REG | +10 Hit/+5 Crit/+1 Dmg via combat engine; retire `s_rank_mastery`. In GDD_04 §S-Rank Weapon Bonus (3.3). |
 | RULE-003 | WEXP migration | Applied (Target design) | REG | Option B (proportional within rank); runtime conversion. In GDD_04 §Weapon Proficiency (3.3). |
 | RULE-004 | WEXP gain timing | Applied (Target design) | REG | Per valid use; may change in a balance pass. In GDD_04 §Weapon Proficiency (3.3). |
@@ -97,7 +97,7 @@ but not yet applied to the GDD). Homes:
 
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
-| RNG-1 | Hash-chained context-seeded dice | Applied (Target design) | RNG→GDD_01 | Roll order amended by RULE-001. In GDD_01 §Determinism (3.1). |
+| RNG-1 | Hash-chained context-seeded dice | Applied (Split) | RNG→GDD_01 | Roll order amended by RULE-001/CRR. Combat Implemented 2026-07-06 (B1-PKGA Slice 1b); growth/skill pending Slice 1c. In GDD_01 §Determinism (3.1). |
 | RNG-2 | RNG state in snapshot contract | Applied (Target design) | RNG→GDD_01 | Blocks reload-scumming. In GDD_01 §Determinism (3.1). |
 | RNG-3 | Accepted exploits priced by rewind charges | Applied (Target design) | RNG→GDD_01 | In GDD_01 §Determinism (3.1). |
 | RNG-4 | Online play host-authoritative | Applied (Target design) | RNG→GDD_01 | M15B; engine-local determinism. In GDD_01 §Determinism (3.1). |

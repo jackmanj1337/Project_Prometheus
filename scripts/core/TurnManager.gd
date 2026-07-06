@@ -247,6 +247,9 @@ func _refresh_faction_units(faction_id: String) -> void:
 		return
 	for u in gs.get_living_units_of(faction_id):
 		_unit_states[u] = UnitState.READY
+		# Drop any leftover pre-move tile (e.g. a force-ended phase) so
+		# get_action_start_tile never reports a previous turn's move start.
+		_original_tiles.erase(u)
 		if u.has_method("reset_appearance"):
 			u.reset_appearance()
 
@@ -452,6 +455,7 @@ func end_alternating_activation() -> void:
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
 			_unit_states[u] = UnitState.READY
+			_original_tiles.erase(u)  # same stale-pre-move-tile guard as _refresh_faction_units
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
 	_tick_unit_modifiers(gs.all_units, "map_turn")
@@ -463,6 +467,12 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	if unit == null:
 		return
 	_unit_states[unit] = state
+	if state == UnitState.DONE:
+		# The action is committed — spend the recorded pre-move tile so a later
+		# action without a move can't inherit it (get_action_start_tile must
+		# reflect THIS action only; stale entries would desync replay because
+		# _original_tiles is not part of the snapshot contract).
+		_original_tiles.erase(unit)
 	if state == UnitState.DONE and unit.has_method("set_done_appearance"):
 		unit.set_done_appearance()
 	# When the last locally-human-controlled unit finishes, end the phase
@@ -550,6 +560,16 @@ func request_end_phase() -> void:
 func record_move_start(unit: Node) -> void:
 	if unit:
 		_original_tiles[unit] = unit.tile_position
+
+
+# Pre-move tile of the unit's in-flight action, falling back to its live tile
+# when no move was recorded (e.g. attack-in-place). RNG event records use this
+# as from_tile (rng_determinism_design §3) so the chosen path destination is
+# part of the action's dice identity.
+func get_action_start_tile(unit: Node) -> Vector2i:
+	if unit == null:
+		return Vector2i.ZERO
+	return _original_tiles.get(unit, unit.tile_position)
 
 
 func undo_move(unit: Node) -> void:

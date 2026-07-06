@@ -242,7 +242,7 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 	position = _grid.tile_to_world(current_tile)
 	# Inject the targeting flow's scene-tree dependencies now that _grid is known.
 	_targeting.setup(_grid, attack_preview, get_node_or_null("/root/CombatResolver"),
-		_controlling_faction)
+		_controlling_faction, _turn)
 	# AttackPreview needs the camera + camera controller so it can anchor
 	# itself beside the defender and pan the view when the panel does not
 	# fit. has_method guard keeps test stubs (StubPreview) working.

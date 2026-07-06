@@ -342,7 +342,7 @@ func _init() -> void:
 
 	# Stub CombatResolver: records resolve_combat so the attack tests can assert it.
 	var act_cr_script := GDScript.new()
-	act_cr_script.source_code = "extends Node\nvar resolve_called: bool = false\nvar last_target = null\nfunc resolve_combat(_a, b):\n\tresolve_called = true\n\tlast_target = b\n\treturn {}\nfunc apply_combat_result(_r, _a, _b): pass\n"
+	act_cr_script.source_code = "extends Node\nvar resolve_called: bool = false\nvar last_target = null\nfunc make_attack_event_record(_a, _d, _t):\n\tvar rec: Array[String] = []\n\treturn rec\nfunc resolve_combat(_a, b, _record = []):\n\tresolve_called = true\n\tlast_target = b\n\treturn {}\nfunc apply_combat_result(_r, _a, _b): pass\n"
 	act_cr_script.reload()
 	var act_cr: Node = act_cr_script.new()
 	act_cr.name = "CombatResolver"

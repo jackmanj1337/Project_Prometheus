@@ -241,8 +241,9 @@ result and ×`reaver_multiplier` (default 2); even cancels. See `[CEX]` block C.
 
 ## Combat Resolution & Hit RNG
 
-Status: **Split** — exchange flow **Implemented**; two-RN hit model **Target design** (RULE-001)
-Last verified: 2026-06-13
+Status: **Split** — exchange flow **Implemented**; two-RN hit model **Implemented**
+(2026-07-06) as the default preset of the author-selectable resolver seam (CRR-1)
+Last verified: 2026-07-06
 
 ### Summary
 An attack resolves a pre-built exchange list; each strike rolls a hit (two-RN model)
@@ -262,22 +263,31 @@ follow-up threshold preset is 5; CampaignRules/profile data may override it.
   per attack slot, including counter and follow-up.
 - **Vantage** (skill): the defender counters *first*, before the attacker's strike.
 
-**Hit/crit per strike — two-RN model (RULE-001, Target design).** Each strike draws
-**two** integers 0–99 (`r1`, `r2`) and hits when `floor((r1 + r2) / 2) < To-Hit %`.
-A crit roll is drawn **only if the hit landed**. Both hit draws are always consumed
-(miss = 2 draws, hit = 3) so the roll order never depends on the outcome.
-- This **supersedes** the former single-roll rule (`randi() % 100`, `roll < pct`).
+**Hit/crit per strike — two-RN model (RULE-001, Implemented 2026-07-06).** RULE-001
+is the **default** among author-selectable hit resolvers (CRR-1). Hit resolution goes
+through a pure-predicate seam (CRR-2): the engine draws the selected resolver's fixed
+`rn_count` of 0–99 integers from the event RNG in canonical order, then calls a pure
+`did_hit(displayed_hit, rns)` predicate. Two built-ins ship: `two_roll` (RULE-001
+default — two RNs, hit when `floor((r1 + r2) / 2) < To-Hit %`) and `single_roll`
+(one RN, `rns[0] < To-Hit %`); `CampaignRules.hit_formula` selects the resolver.
+A crit roll is drawn **only if the hit landed**. All of a resolver's hit draws are
+always consumed (two_roll: miss = 2 draws, hit = 3) so the roll order never depends
+on the outcome.
+- The former single-roll rule survives only as the selectable `single_roll` built-in;
+  it is no longer the shipped default.
 - Damage = the Derived value (DEF/RES subtracted once). A critical **triples the final
   figure** (`×3`); any skill damage-multiplier applies last; clamp to ≥0.
 - If the target's HP ≤ 0, the exchange stops — no further attacks land.
 
-**Determinism (RNG-1…4, see GDD_01).** All gameplay dice come from `RngService` (hash-
-chained, context-seeded), not `randi()`. The **canonical roll order** per attack — two
-hit RNs, then a crit RN on a hit, then skill activation rolls at their trigger slots —
-is the binding contract; reordering it is a save/replay-breaking change. Architecture,
-autoload order, snapshot persistence, accepted exploits, and the online model are owned
-by `GDD_01 → Determinism & RNG`; the build/implementation plan is
-`AGENT/Docs/design/rng_determinism_design_2026-06-11.md`.
+**Determinism (RNG-1…4, see GDD_01).** Combat hit/crit dice come from `RngService`
+(hash-chained, context-seeded, Implemented 2026-07-06), not `randi()`; growth and
+skill-activation rolls are still raw until Slice 1c. The **canonical roll order** per
+attack — the selected resolver's fixed `rn_count` of hit RNs, then a crit RN on a
+hit, then skill activation rolls at their trigger slots — is the binding contract;
+reordering it (including changing a resolver's draw count) is a save/replay-breaking
+change. Architecture, autoload order, snapshot persistence, accepted exploits, and
+the online model are owned by `GDD_01 → Determinism & RNG`; the build/implementation
+plan is `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`.
 
 **Mid-exchange weapon breakage (OPEN-3, Answered).** If a weapon breaks mid-exchange,
 it **cancels that unit's remaining strikes** in the exchange (consistent with
@@ -289,15 +299,18 @@ animation yet): `resolve_combat()` builds the list and draws rolls; `apply_comba
 commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ### Known gaps
-- Two-RN model and `RngService` are **Target design** — not yet implemented (Package A,
-  RngService Build Order Step 1).
+- Growth (`Unit.level_up`) and skill-activation (`SkillHandler`) rolls are still raw
+  `randi()` — B1-PKGA Slice 1c.
+- Resolvers are two engine built-ins for now; registry promotion + author tiers are
+  `B3-COMBAT-ROLL-RESOLVER` (CRR-8).
 - Units with no usable equipped weapon cannot attack; counterattacking from a non-equipped
   inventory weapon is Phase 2+.
 
 ### Anchors
-- Code: `scripts/core/CombatResolver.gd` (target: `scripts/autoloads/RngService.gd`)
-- Tests: `scripts/tests/test_combat.gd` (target: RNG determinism T1–T7)
-- Decisions: RULE-001, RNG-1…4, OPEN-3, pipeline order
+- Code: `scripts/core/CombatResolver.gd`, `scripts/autoloads/RngService.gd`
+- Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_rng_service.gd`,
+  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7; T2/T4/T5/T6 pending)
+- Decisions: RULE-001, RNG-1…4, CRR-1..8, OPEN-3, pipeline order
 - Reference: `GDD_Adoption_Matrix.md`; `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 
 ---

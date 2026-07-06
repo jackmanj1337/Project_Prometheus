@@ -27,6 +27,9 @@ signal separate_resolved(lead: Node, support: Node, target_tile: Vector2i)
 var _grid: GridManager = null
 var _attack_preview: Node = null
 var _combat_resolver: Node = null
+# TurnManager, for the RNG event record's pre-move from_tile (may be null in
+# headless tests — the record then falls back to the unit's live tile).
+var _turn: Node = null
 # Faction id the cursor currently controls. Used by the attack/heal-target gates
 # (M14 stage 1) — "valid enemy" = `target.team != _controlling_faction`, "valid
 # ally" = same. Defaults to "blue" so 3-arg test callers stay valid. Stage 2
@@ -45,11 +48,12 @@ var _preview_target: Node = null
 # combat_resolver may be null — combat resolution is skipped (matches the old `if cr:`).
 # controlling_faction defaults to "blue" so 3-arg test callers stay valid.
 func setup(grid: GridManager, attack_preview: Node, combat_resolver: Node,
-		controlling_faction: String = "blue") -> void:
+		controlling_faction: String = "blue", turn: Node = null) -> void:
 	_grid = grid
 	_attack_preview = attack_preview
 	_combat_resolver = combat_resolver
 	_controlling_faction = controlling_faction
+	_turn = turn
 
 
 # Called when the active controlling faction changes mid-map (M14 stage 5).
@@ -194,7 +198,14 @@ func _resolve_attack(target: Node) -> void:
 		_attack_preview.hide_preview()
 	_preview_target = null
 	if target != null and _combat_resolver != null:
-		var result: Dictionary = _combat_resolver.resolve_combat(_unit, target)
+		# Canonical "attack" event record (RNG-1): from_tile is the pre-move
+		# tile so the chosen destination is part of the action's dice identity.
+		var from_tile: Vector2i = _unit.tile_position
+		if _turn != null and _turn.has_method("get_action_start_tile"):
+			from_tile = _turn.get_action_start_tile(_unit)
+		var record: Array[String] = _combat_resolver.make_attack_event_record(
+			_unit, target, from_tile)
+		var result: Dictionary = _combat_resolver.resolve_combat(_unit, target, record)
 		_combat_resolver.apply_combat_result(result, _unit, target)
 	_clear_overlays()
 	_sub = _Sub.IDLE

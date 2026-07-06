@@ -122,7 +122,11 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 			var target: Node = _find_nearest(enemy, targets)
 			var cr := get_node_or_null("/root/CombatResolver")
 			if cr and is_instance_valid(target):
-				var result: Dictionary = cr.resolve_combat(enemy, target)
+				# AI attacks chain identically to blue's (RNG-1): same canonical
+				# event record, pre-move tile from the record_move_start above.
+				var record: Array[String] = cr.make_attack_event_record(
+					enemy, target, turn.get_action_start_tile(enemy))
+				var result: Dictionary = cr.resolve_combat(enemy, target, record)
 				cr.apply_combat_result(result, enemy, target)
 		else:
 			_try_staff_heal(enemy, grid)
@@ -146,7 +150,10 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 			var target: Node = _find_nearest(enemy, targets)
 			var cr := get_node_or_null("/root/CombatResolver")
 			if cr and is_instance_valid(target):
-				var result: Dictionary = cr.resolve_combat(enemy, target)
+				# Passive units attack in place — from_tile == live tile.
+				var record: Array[String] = cr.make_attack_event_record(
+					enemy, target, turn.get_action_start_tile(enemy))
+				var result: Dictionary = cr.resolve_combat(enemy, target, record)
 				cr.apply_combat_result(result, enemy, target)
 	if is_instance_valid(enemy):
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)

@@ -185,6 +185,7 @@ res://
     │   ├── GameState.gd
     │   ├── PairUpBonusResolver.gd
     │   ├── PairUpRegistry.gd
+    │   ├── RngService.gd              # deterministic dice (RNG-1..4, CRR)
     │   └── SettingsManager.gd
     ├── core/
     │   ├── Boot.gd
@@ -721,8 +722,9 @@ campaign systems depend on.
 
 ## Determinism, Snapshot & Online Contract
 
-Status: **Target design** (binding rules ratified; `RngService` is Package A, not yet built)
-Last verified: 2026-06-13
+Status: **Split** — RNG-1 dice sourcing + combat migration **Implemented** (2026-07-06,
+B1-PKGA Slices 1a+1b); snapshot persistence (RNG-2), suspend, rewind **Target design**
+Last verified: 2026-07-06
 
 ### Summary
 All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
@@ -748,11 +750,14 @@ plan (code, integration sweep, tests, build order) is
   broadcasts result payloads through the `resolve_combat()` / `apply_combat_result()` +
   snapshot seams; determinism guarantees are **engine-local**. The custom mixer is still
   mandatory (protects suspend saves across Godot upgrades).
-- **Canonical roll order (binding).** Per `attack` event: per strike, **two hit RNs**
-  (0–99; hit when `floor((r1+r2)/2) < To-Hit`, RULE-001), then a **crit RN only on a
-  hit**, then skill-activation rolls at their trigger slots; then `levelup` events
-  (one growth roll per stat in `ClassData.STAT_KEYS` order). Reordering — including
-  reverting to a single hit RN — is a **save/replay-breaking** change.
+- **Canonical roll order (binding).** Per `attack` event: per strike, the **selected
+  hit resolver's fixed `rn_count`** of 0–99 hit RNs (CRR-1..8) — default `two_roll` =
+  RULE-001 (two RNs, hit when `floor((r1+r2)/2) < To-Hit`); `single_roll` is the
+  second built-in (`rns[0] < To-Hit`, one RN); selection lives in
+  `CampaignRules.hit_formula` — then a **crit RN only on a hit**, then
+  skill-activation rolls at their trigger slots; then `levelup` events (one growth
+  roll per stat in `ClassData.STAT_KEYS` order). Reordering — including changing a
+  resolver's draw count — is a **save/replay-breaking** change.
 - **Frame-atomicity (already true).** Combat resolves within one frame
   (`resolve_combat()` builds + rolls; `apply_combat_result()` commits); snapshots exist
   only **between** committed actions, so there is no mid-exchange state to serialize.
@@ -767,16 +772,19 @@ plan (code, integration sweep, tests, build order) is
   save-breaking).
 
 ### Known gaps
-- `RngService` autoload, the migration sweep off raw `randi()`, and tests T1–T7 are
-  **not built** (Package A, Build Order Step 1). Until then combat uses the inline
-  single-roll path noted under CombatResolver.
+- Growth (`Unit.level_up`) and skill-activation (`SkillHandler`) rolls are still raw
+  `randi()` — Slice 1c. Non-dice event commits + the raw-RNG lint (T5) are Slice 1d;
+  snapshot persistence of RNG state (T2) is Step 2; suspend round-trip (T6) and
+  equip neutrality (T4) follow. Landed: T1 replay, T3 butterfly/isolation, T7
+  roll-order freeze, plus the RngService unit tests.
 
 ### Anchors
-- Code (target): `scripts/autoloads/RngService.gd`; touches `CombatResolver.gd`,
-  `SkillHandler.gd`, `Unit.gd` (`level_up`), `TurnManager.gd`, `GameState.gd`
-- Tests (target): determinism T1–T7 (replay, snapshot round-trip, butterfly/isolation,
-  equip neutrality, raw-RNG lint, suspend round-trip, roll-order freeze)
-- Decisions: RNG-1…4, RULE-001, OPEN-13
+- Code: `scripts/autoloads/RngService.gd`; `CombatResolver.gd`, `TurnManager.gd`
+  (`get_action_start_tile`); pending Slice 1c: `SkillHandler.gd`, `Unit.gd`
+  (`level_up`)
+- Tests: `scripts/tests/test_rng_service.gd`,
+  `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7); pending: T2/T4/T5/T6
+- Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13
 - Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG
 
@@ -849,13 +857,17 @@ combat-context dictionary schema.
 extends Node
 
 # Phase 1 — build the exchange list and roll RNG. No HP/EXP applied yet.
-func resolve_combat(attacker: Node, defender: Node) -> Dictionary
+# event_record = [attacker_id, "fromX,fromY", "toX,toY", defender_id];
+# from_tile is the pre-move tile via TurnManager.get_action_start_tile(unit).
+func resolve_combat(attacker: Node, defender: Node, event_record: Array[String] = []) -> Dictionary
 # Returns {
 #   "exchanges": [ { attacker, defender, weapon, hit, crit, damage,
 #                    loses_durability, is_counter, is_follow_up } ],
 #   "attacker_died": bool,   # from the simulated HP
 #   "defender_died": bool,
 #   "context": Dictionary,
+#   "rng_event_kind": String,        # "attack"
+#   "rng_event_record": Array,       # the event record rolled against
 # }
 
 # Phase 2 — commit the result: durability, HP (take_damage), wEXP, EXP, deaths.
@@ -881,10 +893,12 @@ func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int
 ```
 
 > Battle speed is not a CombatResolver method — it is `Unit.battle_speed()`.
-> **Hit/crit roll — status split.** *Implemented:* inline single-roll
-> `(randi() % 100) < pct`. *Target design:* the **two-RN** model (RULE-001) sourced
-> from `RngService` — see GDD_02 → Combat Resolution and "Determinism, Snapshot &
-> Online Contract" below.
+> **Hit/crit roll — Implemented (2026-07-06).** Rolls draw from the `RngService`
+> per-event RNG (seeded by `begin_event("attack", record)`; `apply_combat_result()`
+> commits the event exactly once, before EXP) through the pure-predicate resolver
+> seam (CRR-2): `two_roll` (RULE-001) is the default, `single_roll` selectable via
+> `CampaignRules.hit_formula`. See GDD_02 → Combat Resolution and "Determinism,
+> Snapshot & Online Contract" above.
 
 ### `TurnManager.gd`
 
@@ -1551,8 +1565,8 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order (`project.godot [autoload]`) is the full twelve:
-`GameConstants → EventBus → SettingsManager → GameState → DataManager →
+Project registration order (`project.godot [autoload]`) is the full thirteen:
+`GameConstants → EventBus → RngService → SettingsManager → GameState → DataManager →
 ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI →
 PairUpRegistry → PairUpBonusResolver`.
 Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
@@ -1565,10 +1579,9 @@ can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,
 `SkillHandler`, and `ItemHandler` are autoload singletons reached via
 `get_node_or_null("/root/...")` — they are not scene nodes.
 
-**Target design (Package A):** `RngService` (see "Determinism, Snapshot & Online
-Contract") inserts into this order **after `EventBus`, before `SettingsManager`** — it
-has no dependencies and must exist before anything rolls — making the list thirteen:
-`GameConstants → EventBus → RngService → SettingsManager → GameState → …`.
+`RngService` (see "Determinism, Snapshot & Online Contract") sits **after `EventBus`,
+before `SettingsManager`** — it has no dependencies and must exist before anything
+rolls (Implemented 2026-07-06, B1-PKGA Slice 1a).
 
 ### Export-safe content loading
 
