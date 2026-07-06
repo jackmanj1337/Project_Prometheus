@@ -98,7 +98,7 @@ but not yet applied to the GDD). Homes:
 | ID | Title | Status | Home | Notes |
 |----|-------|--------|------|-------|
 | RNG-1 | Hash-chained context-seeded dice | Applied (Split) | RNG→GDD_01 | Roll order amended by RULE-001/CRR. All dice sourcing Implemented 2026-07-06 (B1-PKGA Slices 1b+1c: combat, activation, growth); non-dice event commits pending Slice 1d. In GDD_01 §Determinism (3.1). |
-| RNG-2 | RNG state in snapshot contract | Applied (Target design) | RNG→GDD_01 | Blocks reload-scumming. In GDD_01 §Determinism (3.1). |
+| RNG-2 | RNG state in snapshot contract | Applied (Split) | RNG→GDD_01 | Blocks reload-scumming. Retry snapshot carries {map_seed, history_hash} 2026-07-06 (B1-PKGA Step 2); suspend/rewind snapshots pending. In GDD_01 §Determinism (3.1). |
 | RNG-3 | Accepted exploits priced by rewind charges | Applied (Target design) | RNG→GDD_01 | In GDD_01 §Determinism (3.1). |
 | RNG-4 | Online play host-authoritative | Applied (Target design) | RNG→GDD_01 | M15B; engine-local determinism. In GDD_01 §Determinism (3.1). |
 

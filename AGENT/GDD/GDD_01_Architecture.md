@@ -722,8 +722,9 @@ campaign systems depend on.
 
 ## Determinism, Snapshot & Online Contract
 
-Status: **Split** — RNG-1 dice sourcing + combat migration **Implemented** (2026-07-06,
-B1-PKGA Slices 1a+1b); snapshot persistence (RNG-2), suspend, rewind **Target design**
+Status: **Split** — RNG-1 dice sourcing + event commits and the RNG-2 Retry
+snapshot **Implemented** (2026-07-06, B1-PKGA Steps 1-2); the generalized §8.1
+snapshot dict, suspend, and rewind **Target design**
 Last verified: 2026-07-06
 
 ### Summary
@@ -772,11 +773,12 @@ plan (code, integration sweep, tests, build order) is
   save-breaking).
 
 ### Known gaps
-- Package A Step 1 is complete (Slices 1a-1d, 2026-07-06): dice sourcing,
-  non-dice event commits (wait/seize/escape/item/staff/pair actions, player and
-  AI), the raw-RNG lint (T5), and equip neutrality (T4). Remaining: snapshot
-  persistence of RNG state (T2) is Step 2; suspend round-trip (T6) follows with
-  `B1-SUSPEND`.
+- Package A Steps 1-2 are complete (2026-07-06): dice sourcing, non-dice event
+  commits (wait/seize/escape/item/staff/pair actions, player and AI), the
+  raw-RNG lint (T5), equip neutrality (T4), and the Retry snapshot carrying
+  `{map_seed, history_hash}` (T2). Remaining: the generalized one-Dictionary
+  snapshot contract (§8.1 of the design doc) lands with `B1-SAVECODEC`; suspend
+  round-trip (T6) with `B1-SUSPEND`; rewind is Build Order Step 4.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `CombatResolver.gd`, `TurnManager.gd`
@@ -787,7 +789,8 @@ plan (code, integration sweep, tests, build order) is
 - Tests: `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
   `scripts/tests/test_rng_usage_lint.gd` (T5), `test_map_cursor.gd` (T4 +
-  wait-commit); pending: T2 (Step 2), T6 (`B1-SUSPEND`)
+  wait-commit), `scripts/tests/test_rng_snapshot.gd` (T2); pending: T6
+  (`B1-SUSPEND`)
 - Decisions: RNG-1…4, RULE-001, CRR-1..8, OPEN-13
 - Implementation plan: `AGENT/Docs/design/rng_determinism_design_2026-06-11.md`
 - Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG

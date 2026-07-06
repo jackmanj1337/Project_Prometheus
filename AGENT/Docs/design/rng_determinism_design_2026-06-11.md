@@ -467,9 +467,11 @@ Each step ships standalone value; 1–2 fit the current stabilization window.
       touches, T1/T3/T4/T5/T7. *Value: reproducible combat tests immediately;
       M9 lands on the final dice architecture.* **Done 2026-07-06** (B1-PKGA
       Slices 1a-1d).
-- [ ] **Step 2 — Snapshot contract.** `to_save_dict` across §8.1; migrate the
+- [x] **Step 2 — Snapshot contract.** `to_save_dict` across §8.1; migrate the
       Retry snapshot onto it; T2. *Value: Retry hardened; every future
-      milestone's runtime state has one place to register.*
+      milestone's runtime state has one place to register.* **Done for Retry
+      2026-07-06** (B1-PKGA Slice 2: `GameState._snapshot_rng` + T2); the
+      generalized one-Dictionary §8.1 capture lands with `B1-SAVECODEC`.
 - [ ] **Step 3 — Suspend save.** §8.2 + Continue flow + T6. *Player-facing.*
 - [ ] **Step 4 — Rewind.** Checkpoint ring + Map Menu UI + charges on
       `CampaignRules` (create the stub resource here if it doesn't exist yet).

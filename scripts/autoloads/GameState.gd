@@ -175,6 +175,11 @@ var _snapshot_party_items: Array[String] = []
 # otherwise) so a Retry restores them exactly. Lives here rather than on the
 # registry so all map-scoped snapshot state is owned by one author.
 var _snapshot_pair_up_registry: Dictionary = {}
+# RNG timeline snapshot (RNG-2): {map_seed, history_hash} from
+# RngService.to_save_dict(). Restoring it restores the dice timeline, so a
+# Retry replays identical committed actions to identical outcomes. Empty when
+# the autoload is absent (headless suites that stub the tree).
+var _snapshot_rng: Dictionary = {}
 
 
 func register_unit(unit: Node) -> void:
@@ -437,6 +442,13 @@ func validate_restore_snapshot_state() -> Array[String]:
 				errors.append("GameState: snapshot party_items item '%s' not found" % item_id)
 	if not (_snapshot_pair_up_registry is Dictionary):
 		errors.append("GameState: snapshot Pair Up registry is not a Dictionary")
+	# RNG snapshot (RNG-2): empty = legitimately captured without the autoload;
+	# non-empty must carry both timeline ints or the restore would silently
+	# desync the dice chain.
+	if not _snapshot_rng.is_empty():
+		if not (_snapshot_rng.get("map_seed") is int) \
+				or not (_snapshot_rng.get("history_hash") is int):
+			errors.append("GameState: snapshot rng must carry int map_seed and history_hash")
 	return errors
 
 
@@ -483,6 +495,10 @@ func take_map_snapshot() -> void:
 	# (e.g. headless tests that omit the autoload).
 	var reg := get_node_or_null("/root/PairUpRegistry")
 	_snapshot_pair_up_registry = reg.call("serialize") if reg else {}
+	# RNG timeline (RNG-2): captured with the rest of the map-start state so a
+	# Retry restores the dice chain, not just unit/party data.
+	var rng_svc := get_node_or_null("/root/RngService")
+	_snapshot_rng = rng_svc.call("to_save_dict") if rng_svc else {}
 
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.
@@ -506,6 +522,12 @@ func restore_map_snapshot() -> bool:
 	var reg := get_node_or_null("/root/PairUpRegistry")
 	if reg:
 		reg.call("restore", _snapshot_pair_up_registry)
+	# Restore the dice timeline (RNG-2) after validation, before the caller
+	# reloads the scene: replaying the identical committed-action sequence now
+	# reproduces identical outcomes. Skipped when no RNG state was captured.
+	var rng_svc := get_node_or_null("/root/RngService")
+	if rng_svc != null and not _snapshot_rng.is_empty():
+		rng_svc.call("from_save_dict", _snapshot_rng)
 	# Caller is responsible for reloading the scene after this returns.
 	return true
 

@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-06
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -71,9 +71,8 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B1-PKGA` | Package A / `RngService` | First implementation foundation; Steps 1-2 gate campaign/save work. |
-| 2 | `B1-F1` | F1 save schema lock | Required before features add persistent state. |
-| 3 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |
+| 1 | `B1-F1` | F1 save schema lock | Required before features add persistent state. `B1-PKGA` Steps 1-2 (its gate) landed 2026-07-06. |
+| 2 | `B1-SAVECODEC` and `B1-CST` | Save codec and campaign/save spine | Starts the campaign loop and future suspend/save work. |
 
 ## Validation And Release Queues
 
