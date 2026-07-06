@@ -780,7 +780,7 @@ plan (code, integration sweep, tests, build order) is
 - **Snapshot contract.** Generalize `GameState.take_map_snapshot()` into one
   `Dictionary` (`schema_version`, `map_id`, `campaign_rules`, `rng`, `turn`, `party`,
   `pair_up`, `units[]` including non-`@export` runtime fields). Retry = restore
-  checkpoint 0; suspend save = this dict to `user://suspend.sav`; rewind = a ring of
+  checkpoint 0; suspend save = this dict to `user://saves/suspend.json`; rewind = a ring of
   these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
   delete-on-load — RNG-2 already blocks reload-scumming). The Retry-facing
   unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,

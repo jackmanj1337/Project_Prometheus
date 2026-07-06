@@ -357,7 +357,7 @@ gate.
 - Trigger: Map Menu → "Suspend & Quit" (and optionally on quit-to-menu
   confirm). Only available in the free-cursor state — which, given §7, is the
   only state that exists between frames anyway.
-- Storage: capture → `user://suspend.sav` (JSON via `FileAccess`, or
+- Storage: capture → `user://saves/suspend.json` (JSON via `FileAccess`, or
   `ConfigFile`; JSON preferred — diffable in bug reports). Single slot.
 - Main Menu "Continue" un-greys when the file exists; loading routes through
   the existing launch-state plumbing (`configure_next_map` + a
