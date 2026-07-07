@@ -1,8 +1,8 @@
 # GDD_07 — UI & UX
 
 **Status:** Active contract — split status per section (most UI surfaces are
-**Implemented**; combat-animation feedback, gamepad key-rebind capture, and HUD scale
-polish are **Planned**). UI is project-specific; it has no corpus-adoption rows.
+**Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
+UI is project-specific; it has no corpus-adoption rows.
 **Last verified:** 2026-07-07
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
@@ -31,9 +31,9 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 ## Input System
 
 Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
-headless map-cursor decoder, profile-ready keybind persistence, and keyboard/mouse
-rebind UI slices); live controller feel and gamepad rebind capture **Target design** /
-pending validation.
+headless map-cursor decoder, profile-ready keybind persistence, and key-rebind capture
+for keyboard/mouse + gamepad); live controller feel **Target design** / pending
+validation.
 Last verified: 2026-07-07
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
@@ -802,29 +802,26 @@ phase commits automatically after every controllable unit is `DONE`.
 of tiles from the viewport edge that trigger camera panning. The value is
 clamped when loaded from the settings file.
 
-#### Controls (editable keyboard/mouse)
+#### Controls (editable)
 
 A **Controls** section lists every game action and the bindings read live from the
 `InputMap` when the screen opens (`_populate_keybindings()` builds one row per action).
-Normal game-action rows expose a keyboard/mouse **Rebind** button; debug-only rows stay
-read-only. Captures are staged in a pending buffer and do not touch the live `InputMap`
-until **Apply**. A same-slot conflict marks both rows red and disables Apply; each
-conflicting row exposes **Clear**, which leaves that keyboard/mouse slot unbound. **Revert**
+Normal game-action rows expose keyboard/mouse and gamepad capture buttons; debug-only rows
+stay read-only. Captures are staged in a pending buffer and do not touch the live
+`InputMap` until **Apply**. A same-slot conflict marks both rows red and disables Apply;
+each conflicting row exposes **Clear**, which leaves that device slot unbound. **Revert**
 discards pending edits, and **Reset Controls** is always visible.
 
 `SettingsManager` persists the backing model under `[controls].profiles`: the active
 `"Default"` profile maps each action to `{"kbd": token, "pad": token}` using
 hand-editable strings (`Z`, `Mouse1`, `JoyA`, `JoyAxis5+`). Old `Object(InputEvent...)`
-cfg blobs migrate into that profile shape. Gamepad capture into the `pad` slot is deferred;
-pad labels still render from the live InputMap.
+cfg blobs migrate into that profile shape.
 
 #### Hidden / not yet implemented
 
 - **Combat Animations** (`combat_animations`) — a `SettingsManager` field with an
   `OptCombatAnim` control that is **hidden**: no combat-animation system consumes the
   setting yet (MVP combat is instant). It will be shown when that system lands.
-- **Gamepad key-rebind capture** — keyboard/mouse capture already stages/applies through
-  the Controls section; pad capture into the `pad` slot remains the deferred Phase 3.
 - **Permadeath** and **Leveling Method** are *not* on the Settings screen — they are
   per-save rules chosen on the **New Game** screen and stored on `GameState`.
 
@@ -947,8 +944,8 @@ Last verified: 2026-06-13
 
 ## Accessibility & Input Parity
 
-Status: **Split** — implemented options listed below **Implemented**; gamepad
-key-rebind capture **Planned**
+Status: **Split** — implemented options listed below **Implemented**; combat-animation
+toggle **Planned**
 Last verified: 2026-06-15
 
 ### Summary
@@ -962,6 +959,9 @@ The accessibility and parity contract the UI must honor across input methods and
   keeping debug actions keyboard-only. `SettingsManager._mirror_game_keys_to_ui()`
   mirrors `cursor_*`/`confirm`/`cancel` onto Godot `ui_*` so menus and the map
   cursor share bindings.
+- **Key rebinding:** Settings exposes keyboard/mouse and gamepad capture for every
+  normal game action. Captures stage in a pending buffer; same-slot conflicts block Apply
+  until Clear/Revert/recapture resolves them. Debug-only actions stay read-only.
 - **Hotseat parity:** non-blue human (hotseat) phases use blue's commit/UI flow — only
   the commandable faction differs (GDD_02 §Turn Structure). No player has a UI affordance
   another lacks.
@@ -1073,11 +1073,6 @@ The accessibility and parity contract the UI must honor across input methods and
   **Deferred** until the HUD migrates onto the crisp path.
 
 **Planned.**
-- **Gamepad key rebinding UI:** `SettingsManager` stores/applies profile-ready
-  per-device binding slots with plain tokens, and the Settings screen stages/applies
-  keyboard/mouse captures with conflict blocking. Capturing real gamepad events into the
-  `pad` slot remains scheduled with the **gamepad** milestone (GDD_00 §Platform Targets,
-  OPEN-11).
 - **Combat-animation toggle** (`combat_animations`): scaffolded but hidden until a
   combat-animation system consumes it.
 

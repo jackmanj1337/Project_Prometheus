@@ -32,6 +32,7 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
 const _KEYBIND_SLOT_KBD := "kbd"
+const _KEYBIND_SLOT_PAD := "pad"
 const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 
 @onready var _scroll: ScrollContainer   = $Panel/ScrollContainer
@@ -58,7 +59,9 @@ const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 var _pending_keybindings: Dictionary = {}
 var _keybind_rows: Dictionary = {}
 var _keybind_conflicts: Dictionary = {}
+var _keybind_conflict_slots: Dictionary = {}
 var _capturing_action: String = ""
+var _capturing_slot: String = ""
 var _btn_apply_keybindings: Button = null
 var _btn_revert_keybindings: Button = null
 
@@ -250,9 +253,11 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		_abort_keybind_capture()
 		return
-	if not _is_keyboard_mouse_event(event):
+	if not _event_matches_slot(event, _capturing_slot):
 		return
-	if not event.is_pressed():
+	if event is InputEventJoypadMotion and absf(event.axis_value) < 0.5:
+		return
+	if not (event is InputEventJoypadMotion) and not event.is_pressed():
 		return
 	var captured := event.duplicate()
 	if captured is InputEventKey:
@@ -260,7 +265,11 @@ func _input(event: InputEvent) -> void:
 		captured.pressed = false
 	elif captured is InputEventMouseButton:
 		captured.pressed = false
-	_stage_keybind_event(_capturing_action, captured)
+	elif captured is InputEventJoypadButton:
+		captured.pressed = false
+	elif captured is InputEventJoypadMotion:
+		captured.axis_value = -1.0 if captured.axis_value < 0.0 else 1.0
+	_stage_keybind_event(_capturing_action, _capturing_slot, captured)
 
 
 # V023-01 covered the horizontal axis (stable row columns); rows above the Menu
@@ -648,10 +657,18 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 	if editable:
 		rebind_button = Button.new()
 		rebind_button.name = "BtnRebind_%s" % action
-		rebind_button.text = "Rebind"
+		rebind_button.text = "K&M"
 		rebind_button.custom_minimum_size = Vector2(92, 0)
-		rebind_button.pressed.connect(func() -> void: _begin_keybind_capture(action))
+		rebind_button.pressed.connect(
+			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_KBD))
 		row.add_child(rebind_button)
+		var pad_button := Button.new()
+		pad_button.name = "BtnPadRebind_%s" % action
+		pad_button.text = "Pad"
+		pad_button.custom_minimum_size = Vector2(72, 0)
+		pad_button.pressed.connect(
+			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_PAD))
+		row.add_child(pad_button)
 		clear_button = Button.new()
 		clear_button.name = "BtnClear_%s" % action
 		clear_button.text = "Clear"
@@ -662,6 +679,7 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 		"row": row,
 		"label": key_label,
 		"rebind": rebind_button,
+		"pad_rebind": row.get_node_or_null("BtnPadRebind_%s" % action),
 		"clear": clear_button,
 		"editable": editable,
 	}
@@ -693,27 +711,40 @@ func _add_keybind_footer() -> void:
 	_keybind_list.add_child(row)
 
 
-func _begin_keybind_capture(action: String) -> void:
+func _begin_keybind_capture(action: String, slot: String) -> void:
 	if not _KEYBIND_LABELS.has(action):
 		return
+	if slot != _KEYBIND_SLOT_KBD and slot != _KEYBIND_SLOT_PAD:
+		return
 	_capturing_action = action
+	_capturing_slot = slot
 	_refresh_keybind_rows()
 
 
 func _abort_keybind_capture() -> void:
 	_capturing_action = ""
+	_capturing_slot = ""
 	_refresh_keybind_rows()
 
 
-func _stage_keybind_event(action: String, event: InputEvent) -> void:
-	_pending_keybindings[action] = {_KEYBIND_SLOT_KBD: event}
+func _stage_keybind_event(action: String, slot: String, event: InputEvent) -> void:
+	var slots: Dictionary = _pending_keybindings.get(action, {}).duplicate()
+	slots[slot] = event
+	_pending_keybindings[action] = slots
 	_capturing_action = ""
+	_capturing_slot = ""
 	_refresh_keybind_rows()
 
 
 func _clear_pending_keybind(action: String) -> void:
-	_pending_keybindings[action] = {_KEYBIND_SLOT_KBD: ""}
+	var slot := _first_conflict_slot(action)
+	if slot == "":
+		slot = _KEYBIND_SLOT_KBD
+	var slots: Dictionary = _pending_keybindings.get(action, {}).duplicate()
+	slots[slot] = ""
+	_pending_keybindings[action] = slots
 	_capturing_action = ""
+	_capturing_slot = ""
 	_refresh_keybind_rows()
 
 
@@ -725,12 +756,14 @@ func _apply_pending_keybindings() -> void:
 		sm.call("apply_keybindings", _pending_keybindings)
 	_pending_keybindings.clear()
 	_capturing_action = ""
+	_capturing_slot = ""
 	_populate_keybindings()
 
 
 func _discard_pending_keybindings() -> void:
 	_pending_keybindings.clear()
 	_capturing_action = ""
+	_capturing_slot = ""
 	_populate_keybindings()
 
 
@@ -740,6 +773,7 @@ func _reset_keybindings_to_defaults() -> void:
 		sm.call("reset_section_to_defaults", "controls")
 	_pending_keybindings.clear()
 	_capturing_action = ""
+	_capturing_slot = ""
 	_populate_keybindings()
 
 
@@ -750,12 +784,17 @@ func _refresh_keybind_rows() -> void:
 		var row: HBoxContainer = info["row"]
 		var label: Label = info["label"]
 		var rebind_button: Button = info["rebind"]
+		var pad_button: Button = info["pad_rebind"]
 		var clear_button: Button = info["clear"]
 		var conflict: bool = _keybind_conflicts.has(action)
 		label.text = _keybind_label_for_action(action)
 		row.modulate = _KEYBIND_CONFLICT_COLOR if conflict else Color.WHITE
 		if rebind_button != null:
-			rebind_button.text = "Press key..." if _capturing_action == action else "Rebind"
+			rebind_button.text = "Press key..." \
+				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_KBD else "K&M"
+		if pad_button != null:
+			pad_button.text = "Press pad..." \
+				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_PAD else "Pad"
 		if clear_button != null:
 			clear_button.visible = conflict
 	if _btn_apply_keybindings != null:
@@ -767,30 +806,40 @@ func _refresh_keybind_rows() -> void:
 
 func _recompute_keybind_conflicts() -> void:
 	_keybind_conflicts = {}
-	var seen := {}
-	for action in _KEYBIND_LABELS:
-		var event := _effective_kbd_event(action)
-		if event == null:
-			continue
-		var sig := _event_signature(event)
-		if sig == "":
-			continue
-		if not seen.has(sig):
-			seen[sig] = []
-		(seen[sig] as Array).append(action)
-	for sig in seen:
-		var actions: Array = seen[sig]
-		if actions.size() < 2:
-			continue
-		for action in actions:
-			_keybind_conflicts[action] = true
+	_keybind_conflict_slots = {}
+	for slot in [_KEYBIND_SLOT_KBD, _KEYBIND_SLOT_PAD]:
+		var seen := {}
+		for action in _KEYBIND_LABELS:
+			var event := _effective_slot_event(action, slot)
+			if event == null:
+				continue
+			var sig := _event_signature(event)
+			if sig == "":
+				continue
+			if not seen.has(sig):
+				seen[sig] = []
+			(seen[sig] as Array).append(action)
+		for sig in seen:
+			var actions: Array = seen[sig]
+			if actions.size() < 2:
+				continue
+			for action in actions:
+				_keybind_conflicts[action] = true
+				if not _keybind_conflict_slots.has(action):
+					_keybind_conflict_slots[action] = {}
+				(_keybind_conflict_slots[action] as Dictionary)[slot] = true
 
 
 func _keybind_label_for_action(action: String) -> String:
 	var labels: Array[String] = []
-	var kbd := _effective_kbd_event(action)
+	var kbd := _effective_slot_event(action, _KEYBIND_SLOT_KBD)
 	labels.append(InputDisplay.binding_to_string(kbd) if kbd != null else "(unbound)")
-	if InputMap.has_action(action):
+	if _pending_keybindings.has(action) \
+			and (_pending_keybindings[action] as Dictionary).has(_KEYBIND_SLOT_PAD):
+		var pad := _effective_slot_event(action, _KEYBIND_SLOT_PAD)
+		if pad != null:
+			labels.append(InputDisplay.binding_to_string(pad))
+	elif InputMap.has_action(action):
 		for event in InputMap.action_get_events(action):
 			if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 				var pad_label := InputDisplay.binding_to_string(event)
@@ -799,23 +848,39 @@ func _keybind_label_for_action(action: String) -> String:
 	return " / ".join(labels)
 
 
-func _effective_kbd_event(action: String) -> InputEvent:
+func _effective_slot_event(action: String, slot: String) -> InputEvent:
 	if _pending_keybindings.has(action):
-		var slot_value: Variant = (_pending_keybindings[action] as Dictionary).get(
-			_KEYBIND_SLOT_KBD, null)
-		if slot_value is InputEvent:
-			return slot_value
-		return null
+		var slots: Dictionary = _pending_keybindings[action]
+		if slots.has(slot):
+			var slot_value: Variant = slots.get(slot, null)
+			if slot_value is InputEvent:
+				return slot_value
+			return null
 	if not InputMap.has_action(action):
 		return null
 	for event in InputMap.action_get_events(action):
-		if _is_keyboard_mouse_event(event):
+		if _event_matches_slot(event, slot):
 			return event
 	return null
 
 
-func _is_keyboard_mouse_event(event: Variant) -> bool:
-	return event is InputEventKey or event is InputEventMouseButton
+func _event_matches_slot(event: Variant, slot: String) -> bool:
+	if slot == _KEYBIND_SLOT_KBD:
+		return event is InputEventKey or event is InputEventMouseButton
+	if slot == _KEYBIND_SLOT_PAD:
+		return event is InputEventJoypadButton or event is InputEventJoypadMotion
+	return false
+
+
+func _first_conflict_slot(action: String) -> String:
+	if not _keybind_conflict_slots.has(action):
+		return ""
+	var slots: Dictionary = _keybind_conflict_slots[action]
+	if slots.has(_KEYBIND_SLOT_KBD):
+		return _KEYBIND_SLOT_KBD
+	if slots.has(_KEYBIND_SLOT_PAD):
+		return _KEYBIND_SLOT_PAD
+	return ""
 
 
 func _event_signature(event: InputEvent) -> String:
@@ -825,6 +890,10 @@ func _event_signature(event: InputEvent) -> String:
 			code, event.ctrl_pressed, event.shift_pressed, event.alt_pressed, event.meta_pressed]
 	if event is InputEventMouseButton:
 		return "mouse:%d" % event.button_index
+	if event is InputEventJoypadButton:
+		return "pad_button:%d" % event.button_index
+	if event is InputEventJoypadMotion:
+		return "pad_axis:%d:%s" % [event.axis, -1 if event.axis_value < 0.0 else 1]
 	return ""
 
 

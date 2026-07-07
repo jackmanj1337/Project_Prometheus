@@ -21,6 +21,15 @@ func _has_key(action: String, keycode: int) -> bool:
 	return false
 
 
+func _has_joy_button(action: String, button_index: int) -> bool:
+	if not InputMap.has_action(action):
+		return false
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and ev.button_index == button_index:
+			return true
+	return false
+
+
 func _restore_action_events(action: String, events: Array[InputEvent]) -> void:
 	InputMap.action_erase_events(action)
 	for ev in events:
@@ -201,8 +210,11 @@ func _init() -> void:
 
 		var debug_rows_read_only: bool = screen._keybind_rows.has("debug_toggle_force_levelup") \
 			and screen._keybind_rows["debug_toggle_force_levelup"]["rebind"] == null \
+			and screen._keybind_rows["debug_toggle_force_levelup"]["pad_rebind"] == null \
 			and screen._keybind_rows["debug_toggle_growth_boost"]["rebind"] == null \
-			and screen._keybind_rows["debug_toggle_hotseat_override"]["rebind"] == null
+			and screen._keybind_rows["debug_toggle_growth_boost"]["pad_rebind"] == null \
+			and screen._keybind_rows["debug_toggle_hotseat_override"]["rebind"] == null \
+			and screen._keybind_rows["debug_toggle_hotseat_override"]["pad_rebind"] == null
 		if debug_rows_read_only:
 			print("OK  debug keybinding rows stay read-only"); passed += 1
 		else:
@@ -306,6 +318,39 @@ func _init() -> void:
 			print("OK  Reset Controls restores default keybindings"); passed += 1
 		else:
 			print("FAIL Reset Controls did not restore defaults"); failed += 1
+
+		var confirm_pad_rebind: Button = screen._keybind_rows["confirm"]["pad_rebind"]
+		confirm_pad_rebind.pressed.emit()
+		var pad_capture_started: bool = screen._capturing_action == "confirm" \
+			and screen._capturing_slot == "pad" \
+			and confirm_pad_rebind.text == "Press pad..."
+		var ev_pad_b := InputEventJoypadButton.new()
+		ev_pad_b.button_index = JOY_BUTTON_B
+		ev_pad_b.pressed = true
+		screen._input(ev_pad_b)
+		apply_btn = screen._btn_apply_keybindings
+		cancel_info = screen._keybind_rows["cancel"]
+		var pad_conflict: bool = screen._keybind_conflicts.has("confirm") \
+			and screen._keybind_conflicts.has("cancel") \
+			and apply_btn.disabled \
+			and (screen._keybind_rows["confirm"]["clear"] as Button).visible \
+			and (cancel_info["clear"] as Button).visible
+		(cancel_info["clear"] as Button).pressed.emit()
+		apply_btn = screen._btn_apply_keybindings
+		apply_btn.pressed.emit()
+		var pad_applied: bool = pad_capture_started \
+			and pad_conflict \
+			and _has_key("confirm", KEY_Z) \
+			and _has_joy_button("confirm", JOY_BUTTON_B) \
+			and not _has_joy_button("cancel", JOY_BUTTON_B)
+		if pad_applied:
+			print("OK  pad capture stages conflicts and applies only the pad slot")
+			passed += 1
+		else:
+			print("FAIL pad capture/apply: started=%s conflict=%s applied=%s" % [
+				pad_capture_started, pad_conflict, pad_applied]); failed += 1
+
+		screen._reset_keybindings_to_defaults()
 		_restore_action_events("confirm", saved_confirm)
 		_restore_action_events("cancel", saved_cancel)
 		sm_bind.call("_mirror_game_keys_to_ui")
