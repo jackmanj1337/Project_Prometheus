@@ -201,6 +201,7 @@
 - [`playtests/playtest_checklist_v0.2.7.md`](playtests/playtest_checklist_v0.2.7.md) — Playtester Handbook and Checklist - v0.2.7
 - [`playtests/playtest_checklist_v0.2.7_returned_2026-07-05.md`](playtests/playtest_checklist_v0.2.7_returned_2026-07-05.md) — Playtester Handbook and Checklist - v0.2.7
 - [`playtests/playtest_checklist_v0.2.8.md`](playtests/playtest_checklist_v0.2.8.md) — Playtester Handbook and Checklist - v0.2.8
+- [`playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md`](playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md) — Playtester Handbook and Checklist - v0.2.8
 - [`playtests/playtest_checklist_v0.3.0.md`](playtests/playtest_checklist_v0.3.0.md) — Playtester Handbook and Checklist - v0.3.0
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*

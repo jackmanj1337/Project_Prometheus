@@ -1,0 +1,47 @@
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.47 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.2.8  commit=ab81a21  built_at=2026-07-05T22:45:47Z
+started_at=2026-07-07T02:55:24Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.2.8_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+WARNING: SkillHandler._apply_unimplemented: stub called for 'bastion' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:440)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:446)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:212)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:194)
+       [4] _collect_combat_modifiers (res://scripts/core/CombatResolver.gd:174)
+       [5] preview_combat (res://scripts/core/CombatResolver.gd:562)
+       [6] show_preview (res://scripts/ui/AttackPreview.gd:127)
+       [7] _confirm_attack_target (res://scripts/core/MapCursorTargeting.gd:185)
+       [8] handle_confirm (res://scripts/core/MapCursorTargeting.gd:106)
+       [9] _on_confirm (res://scripts/core/MapCursor.gd:540)
+       [10] _handle_mouse_button (res://scripts/core/MapCursor.gd:414)
+       [11] _unhandled_input (res://scripts/core/MapCursor.gd:244)
+WARNING: SkillHandler._apply_unimplemented: stub called for 'iron_wall' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:440)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:446)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:212)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:194)
+       [4] _collect_combat_modifiers (res://scripts/core/CombatResolver.gd:174)
+       [5] preview_combat (res://scripts/core/CombatResolver.gd:562)
+       [6] show_preview (res://scripts/ui/AttackPreview.gd:127)
+       [7] _confirm_attack_target (res://scripts/core/MapCursorTargeting.gd:185)
+       [8] handle_confirm (res://scripts/core/MapCursorTargeting.gd:106)
+       [9] _on_confirm (res://scripts/core/MapCursor.gd:540)
+       [10] _handle_mouse_button (res://scripts/core/MapCursor.gd:414)
+       [11] _unhandled_input (res://scripts/core/MapCursor.gd:244)
+=== BUILD STAMP ===
+version=0.2.8  commit=ab81a21  built_at=2026-07-05T22:45:47Z
+started_at=2026-07-07T03:10:35Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.2.8_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
