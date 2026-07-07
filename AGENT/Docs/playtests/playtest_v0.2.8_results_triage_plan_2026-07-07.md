@@ -123,14 +123,39 @@ source (`SettingsManager.gd:392-396`). A maximize button is a window state, not 
 chosen windowed client resolution; saving it as `Custom (3840x2071)` creates the
 readout confusion in V028-02 and may produce odd relaunch behavior.
 
-**Fix recommendation:** treat maximize separately from edge-drag resize:
+**Root cause (owner asked why this bug keeps returning, 2026-07-07):** the
+recenter is a *one-shot imperative offset-bake*, not a standing layout constraint.
+`MenuScale._recenter()` (`scripts/ui/MenuScale.gd:218-238`) hard-sets `target.size`
+then calls `set_anchors_and_offsets_preset(PRESET_CENTER, PRESET_MODE_KEEP_SIZE)`,
+which bakes absolute pixel offsets against the panel size *at that instant*. Godot
+computes the panel's real final size in a *later* deferred layout pass, so whenever
+the final size differs the baked offsets are stale and the panel sits off-center
+until the next re-apply ("wiggling"). This is ONE bug patched per-trigger four
+times: V025-05a (first show), V026-01a (2.0x apply), V027-04a (edge drag), and now
+V028-03 (maximize, whose window-mode change reflows across several frames so the
+single deferred re-apply fires too early again). No `CenterContainer` exists in the
+scenes and no reactive `resized` hook is connected, so centering only re-runs on the
+coalesced viewport `size_changed` or an explicit re-apply.
 
-- re-center menu-scale targets after maximize with a second settled-frame pass;
-- do not persist maximized client size as the saved `resolution`, unless the owner
-  explicitly wants "maximized" to become a saved window state;
-- cover with a headless-safe unit test around the state decision and a live
-  Windows check in the next handbook, because the real OS maximize timing cannot
-  be fully proven headless.
+**Fix decision (owner walkthrough Q2, 2026-07-07):** fix the cause, not the
+trigger.
+
+- **Section 1.6 (now):** connect each `menu_scale_targets` panel's own `resized`
+  signal to a guarded re-center, so centering re-runs at the moment the engine
+  actually changes the panel size (every trigger, including maximize). Add a
+  re-entrancy guard (skip when size unchanged) so the emitted `resized` does not
+  loop; retire the frame-timing crutches (`apply_to_deferred` deferral, coalesced
+  viewport-only hook) once green.
+- **Broader UI pass (later):** the clean structural form wraps each centered panel
+  in a `CenterContainer` and deletes imperative `_recenter`; folded into
+  `UI-VIEWPORT-ASPECT` (~11 scenes; scroll panels need `custom_minimum_size`).
+- **Write-back (orthogonal, Option A):** maximize is a window STATE, not a chosen
+  resolution. Stop persisting the maximized client size as saved `resolution`
+  (`SettingsManager.gd:392-396`); restore the prior windowed size on unmaximize.
+  Edge drags still write back.
+- cover with a headless-safe unit test around the write-back state decision and the
+  re-center-on-resize behavior, plus a live Windows maximize check in the next
+  handbook, because the real OS maximize timing cannot be fully proven headless.
 
 ### V028-04 - Aspect-ratio / black-bars policy revisit
 
@@ -149,7 +174,10 @@ windowed readout/maximize behavior.
 
 ## Sequencing
 
-1. Owner walkthrough of the companion review questions:
+1. Owner walkthrough of the companion review questions COMPLETE 2026-07-07
+   (Q1=A structured status API; Q2=root-cause reactive `resized` re-center +
+   Option A no-persist-maximize; Q3=A route to `UI-VIEWPORT-ASPECT`): see the
+   Walkthrough Decisions section of
    `AGENT/Code Reviews/playtest_v0.2.8_triage_review_2026-07-07.md`.
 2. Land the decided section 1.6 fixes on the release line:
    - custom/readout semantics (`V028-02`);
