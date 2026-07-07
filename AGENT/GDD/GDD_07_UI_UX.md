@@ -578,6 +578,11 @@ the modal centered while overflow content remains reachable at large factors (V0
   row), so **Up/Down** move to the nearest entry one row away (matching column) and
   **Left/Right** step through the flat reading order. The earlier mapping pointed both
   Up and Left at the same backward step, so Up/Down read as Left/Right across the grid.
+- the selection model is backed by `SelectionCursor`, shared UI navigation logic that
+  supports sparse visual rows. The sheet adds a terminal `Back` control zone (V026-02e):
+  moving down past the last content row focuses `Back`, and `confirm` closes the sheet.
+  This keeps Back reachable by keyboard/gamepad even though the sheet consumes cursor
+  directions before Godot focus navigation.
 - stat entries show authored description text plus the full stat breakdown
 - inventory **weapon** entries show their full stat block in the side panel —
   Mt/Hit/Crit, Wt, range (resolved against the inspected unit), required rank +

@@ -370,7 +370,8 @@ func is_weapon_track_available(track: String) -> bool:
 
 	# V020-10: directional selection steps backward and marks the selected row so
 	# a d-pad / keyboard user can see the highlight move.
-	screen._move_selection(-1)
+	screen._selector.set_index(0)
+	screen._move_selection(1)
 	var marked: bool = false
 	for lbl in screen._section_labels:
 		if "▶" in lbl.text:
@@ -393,7 +394,7 @@ func is_weapon_track_available(track: String) -> bool:
 	var mag_idx: int = _idx_of.call("stat", "magic")
 	var skl_idx: int = _idx_of.call("stat", "skill")
 	# Right from strength lands on magic (same row, next column).
-	screen._current_index = str_idx
+	screen._selector.set_index(str_idx)
 	var right_ev := InputEventAction.new(); right_ev.action = "cursor_right"; right_ev.pressed = true
 	screen._input(right_ev)
 	if screen._current_index == mag_idx:
@@ -401,13 +402,33 @@ func is_weapon_track_available(track: String) -> bool:
 	else:
 		print("FAIL V021-06 horizontal: expected magic(%d) got %d" % [mag_idx, screen._current_index]); failed += 1
 	# Down from strength lands on skill (row below, same column) — not magic.
-	screen._current_index = str_idx
+	screen._selector.set_index(str_idx)
 	var down_ev := InputEventAction.new(); down_ev.action = "cursor_down"; down_ev.pressed = true
 	screen._input(down_ev)
 	if screen._current_index == skl_idx:
 		print("OK  V021-06 Down moves to the row below (strength -> skill)"); passed += 1
 	else:
 		print("FAIL V021-06 vertical: expected skill(%d) got %d" % [skl_idx, screen._current_index]); failed += 1
+
+	# V026-02e: the selector owns the Back button too. Moving down from the last
+	# content row focuses Back, and Confirm activates it without relying on a mouse.
+	var back_idx: int = _idx_of.call("control", "back")
+	var back_closed_seen := [false]
+	screen.closed.connect(func(): back_closed_seen[0] = true, CONNECT_ONE_SHOT)
+	screen._selector.set_index(back_idx - 1)
+	screen._input(down_ev)
+	var reached_back: bool = screen._current_index == back_idx and btn_back.has_focus()
+	var confirm_ev := InputEventAction.new(); confirm_ev.action = "confirm"; confirm_ev.pressed = true
+	screen._input(confirm_ev)
+	if reached_back and back_closed_seen[0] and not screen.visible:
+		print("OK  V026-02e selector reaches Back and Confirm closes the sheet")
+		passed += 1
+	else:
+		print("FAIL V026-02e Back selector: reached=%s closed=%s visible=%s idx=%d back_idx=%d focus=%s" % [
+			reached_back, back_closed_seen[0], screen.visible, screen._current_index,
+			back_idx, btn_back.has_focus()])
+		failed += 1
+	screen.open(stub_unit)
 
 	# _close() hides the page, emits `closed`, and clears local state so the
 	# next open() starts from a clean slate.

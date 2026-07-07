@@ -62,6 +62,29 @@ func _init() -> void:
 			down_ok, ragged_ok, wrap_ok, cursor.index])
 		failed += 1
 
+	var sparse: RefCounted = SelectionCursor.new()
+	sparse.configure_positions([
+		Vector2i(0, 0),
+		Vector2i(1, 0),
+		Vector2i(2, 0),
+		Vector2i(2, 1),
+		Vector2i(3, 0),
+		Vector2i(3, 1),
+	])
+	sparse.set_index(0)
+	sparse.move_2d(1, 0)
+	var hp_ok: bool = sparse.index == 1
+	sparse.set_index(3)
+	sparse.move_2d(1, 0)
+	var nearest_col_ok: bool = sparse.index == 5
+	if hp_ok and nearest_col_ok:
+		print("OK  sparse grid positions preserve visual rows and nearest columns")
+		passed += 1
+	else:
+		print("FAIL sparse grid: hp=%s nearest_col=%s index=%d" % [
+			hp_ok, nearest_col_ok, sparse.index])
+		failed += 1
+
 	var quiet_cursor: RefCounted = SelectionCursor.new()
 	var quiet_seen: Array[int] = []
 	quiet_cursor.changed.connect(func(index: int): quiet_seen.append(index))

@@ -20,6 +20,7 @@ const ClassData        = preload("res://scripts/resources/ClassData.gd")
 const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
 const StatContributions = preload("res://scripts/shared/StatContributions.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
+const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
 # net debuff is currently lowering below its base+class value.
@@ -65,6 +66,7 @@ var _grid_row: int = 0
 # no entry is selected yet — the hint is visible and description/mods are
 # blank.
 var _current_index: int = -1
+var _selector: RefCounted = SelectionCursor.new()
 
 # The selectable section labels, in F-cycle / directional-nav order. Their
 # unhighlighted text is cached in _base_texts so the row highlight can be
@@ -74,6 +76,7 @@ var _base_texts: Dictionary = {}
 
 
 func _ready() -> void:
+	_selector.changed.connect(_on_selector_changed)
 	_btn_pair.pressed.connect(_on_pair_button_pressed)
 	_btn_back.pressed.connect(_close)
 	# Each section label exposes selectable [url=...] entries; wire the
@@ -98,6 +101,7 @@ func open(unit: Node) -> void:
 	_entries.clear()
 	_grid_row = 0
 	_current_index = -1
+	_selector.reset()
 	var d: UnitData = unit.data
 	# Title shows the friendly class display name (V020-11), falling back to the
 	# raw class_id only when class data is unavailable.
@@ -111,6 +115,8 @@ func open(unit: Node) -> void:
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
 	_update_pair_button(unit)
+	_append_control_entry("back", "Back")
+	_configure_selector()
 	# Cache each section's unhighlighted text so the directional selector can mark
 	# a row without re-running the formatters (which would re-append to _entries).
 	_base_texts.clear()
@@ -133,6 +139,22 @@ func _append_entry(category: String, key: String, title: String, col: int = 0) -
 		"category": category, "key": key, "title": title,
 		"row": _grid_row, "col": col,
 	})
+
+
+func _append_control_entry(key: String, title: String) -> void:
+	_entries.append({
+		"category": "control", "key": key, "title": title,
+		"row": _grid_row, "col": 0,
+	})
+	_grid_row += 1
+
+
+func _configure_selector() -> void:
+	var positions: Array[Vector2i] = []
+	for entry_any in _entries:
+		var entry: Dictionary = entry_any
+		positions.append(Vector2i(int(entry.get("row", 0)), int(entry.get("col", 0))))
+	_selector.configure_positions(positions, true, false)
 
 
 # Builds the compact class section (V020-11): a selectable class row plus one or
@@ -350,10 +372,8 @@ func _on_entry_clicked(meta: Variant) -> void:
 	for i in _entries.size():
 		var e: Dictionary = _entries[i]
 		if e["category"] == category and e["key"] == key:
-			_current_index = i
+			_selector.set_index(i)
 			break
-	_refresh_highlight()
-	_show_entry(category, key, _title_for(category, key))
 
 
 # Picks the best human-readable title for the side panel. Inventory and skill
@@ -587,6 +607,10 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_on_pair_button_pressed()
 		return
+	if event.is_action_pressed("confirm") and _current_entry_is_control("back"):
+		get_viewport().set_input_as_handled()
+		_close()
+		return
 	# V021-06: Up/Down traverse the on-screen grid vertically; Left/Right step
 	# through the flat reading order. The old mapping pointed both Up and Left at
 	# the same -1 flat step, so Up/Down read as Left/Right across the stat grid.
@@ -631,17 +655,7 @@ func _cycle_more_info() -> void:
 # and shows the entry in the side panel. The first press from "nothing selected"
 # lands on the first (delta>0) or last (delta<0) entry.
 func _move_selection(delta: int) -> void:
-	if _entries.is_empty():
-		return
-	if _current_index < 0:
-		_current_index = 0 if delta > 0 else _entries.size() - 1
-	else:
-		_current_index = (_current_index + delta) % _entries.size()
-		if _current_index < 0:
-			_current_index += _entries.size()
-	var e: Dictionary = _entries[_current_index]
-	_refresh_highlight()
-	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
+	_selector.advance(delta)
 
 
 # V021-06: moves the selection one visual row up (dir<0) or down (dir>0), landing
@@ -649,59 +663,30 @@ func _move_selection(delta: int) -> void:
 # right stat column lands under it, not back at the left). Wraps at the ends. The
 # first press from "nothing selected" behaves like a flat step, matching F-cycle.
 func _move_vertical(dir: int) -> void:
-	if _entries.is_empty():
-		return
-	if _current_index < 0:
-		_move_selection(1 if dir > 0 else -1)
-		return
-	var cur: Dictionary = _entries[_current_index]
-	var cur_row: int = int(cur.get("row", 0))
-	var cur_col: int = int(cur.get("col", 0))
-	var target_row: int = _adjacent_row(cur_row, dir)
-	if target_row == cur_row:
-		return
-	var best_idx: int = -1
-	var best_dist: int = 1 << 30
-	for i in _entries.size():
-		if int(_entries[i].get("row", 0)) != target_row:
-			continue
-		var dist: int = absi(int(_entries[i].get("col", 0)) - cur_col)
-		if dist < best_dist:
-			best_dist = dist
-			best_idx = i
-	if best_idx < 0:
-		return
-	_current_index = best_idx
-	var e: Dictionary = _entries[_current_index]
+	_selector.move_2d(dir, 0)
+
+
+func _on_selector_changed(index: int) -> void:
+	_current_index = index
 	_refresh_highlight()
+	if _current_index < 0 or _current_index >= _entries.size():
+		_reset_info_panel()
+		return
+	var e: Dictionary = _entries[_current_index]
+	if String(e.get("category", "")) == "control":
+		_reset_info_panel()
+		if String(e.get("key", "")) == "back":
+			_btn_back.grab_focus()
+		return
+	_btn_back.release_focus()
 	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
 
 
-# Returns the nearest row with entries strictly above (dir<0) or below (dir>0)
-# `from_row`, wrapping to the far end when none exists in that direction. Returns
-# `from_row` only when no other row exists at all.
-func _adjacent_row(from_row: int, dir: int) -> int:
-	var best: int = from_row
-	var found: bool = false
-	for e in _entries:
-		var r: int = int(e.get("row", 0))
-		if dir > 0 and r > from_row and (not found or r < best):
-			best = r
-			found = true
-		elif dir < 0 and r < from_row and (not found or r > best):
-			best = r
-			found = true
-	if found:
-		return best
-	# No row in that direction — wrap to the extreme row at the opposite end.
-	var wrap: int = from_row
-	var wfound: bool = false
-	for e in _entries:
-		var r: int = int(e.get("row", 0))
-		if (dir > 0 and (not wfound or r < wrap)) or (dir < 0 and (not wfound or r > wrap)):
-			wrap = r
-			wfound = true
-	return wrap if wfound else from_row
+func _current_entry_is_control(key: String) -> bool:
+	if _current_index < 0 or _current_index >= _entries.size():
+		return false
+	var e: Dictionary = _entries[_current_index]
+	return String(e.get("category", "")) == "control" and String(e.get("key", "")) == key
 
 
 # Re-applies the row marker for the currently-selected entry. Each section label
@@ -728,6 +713,7 @@ func _refresh_highlight() -> void:
 func _close() -> void:
 	_unit = null
 	_paired_unit = null
+	_selector.reset()
 	_entries.clear()
 	_base_texts.clear()
 	_current_index = -1

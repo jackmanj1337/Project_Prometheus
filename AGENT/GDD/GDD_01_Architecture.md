@@ -238,6 +238,7 @@ res://
     │   ├── PhaseBanner.gd
     │   ├── PromotionScreen.gd
     │   ├── ReclassScreen.gd
+    │   ├── SelectionCursor.gd
     │   ├── SettingsScreen.gd
     │   ├── UnitDetailsScreen.gd
     │   └── WeaponMenu.gd
