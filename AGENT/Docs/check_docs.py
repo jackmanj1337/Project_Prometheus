@@ -30,6 +30,8 @@ Checks:
  22. Danger vox   — GDD_07 documents every MapCursor.VALID_DANGER_MODES value ([TUR])
  23. F1 manifest  — save-schema manifest rows keep the locked B1-F1 shape
  24. Gamepad binds — B6-INPUT gameplay actions stay pad-bound; debug actions do not
+ 25. Input modes  — SettingsManager/GDD agree on input_mode values
+ 26. Touch controls — SettingsManager/GDD agree on touch_controls values
 """
 
 import re
@@ -825,6 +827,46 @@ def check_mouse_cursor_modes() -> None:
                   f"GDD_07 must document mouse_cursor mode `{mode}`")
 
 
+def check_input_modes() -> None:
+    """B6-INPUT fixes input_mode to auto|gamepad|touch|mouse_keyboard."""
+    expected = ["auto", "gamepad", "touch", "mouse_keyboard"]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    modes = _parse_gd_string_array(settings, "VALID_INPUT_MODES")
+    if modes != expected:
+        _fail("input-modes", settings, 1,
+              f"VALID_INPUT_MODES must be {expected}, got {modes}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for mode in expected:
+        if f"`{mode}`" not in content:
+            _fail("input-modes", gdd, 1,
+                  f"GDD_07 must document input_mode `{mode}`")
+
+
+def check_touch_controls() -> None:
+    """B6-INPUT fixes touch_controls to dedicated|virtual_gamepad."""
+    expected = ["dedicated", "virtual_gamepad"]
+    settings = ROOT / "scripts/autoloads/SettingsManager.gd"
+    modes = _parse_gd_string_array(settings, "VALID_TOUCH_CONTROLS")
+    if modes != expected:
+        _fail("touch-controls", settings, 1,
+              f"VALID_TOUCH_CONTROLS must be {expected}, got {modes}")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for mode in expected:
+        if f"`{mode}`" not in content:
+            _fail("touch-controls", gdd, 1,
+                  f"GDD_07 must document touch_controls `{mode}`")
+
+
 def check_danger_mode_vocabulary() -> None:
     """[TUR] _danger_mode is a fixed value-set — GDD_07 must document every value.
 
@@ -1133,6 +1175,8 @@ def main() -> None:
         ("[22] Danger-mode vocabulary",    check_danger_mode_vocabulary),
         ("[23] F1 save-schema manifest",   check_f1_manifest_shape),
         ("[24] Gamepad bindings",          check_gamepad_bindings),
+        ("[25] Input modes",               check_input_modes),
+        ("[26] Touch controls",            check_touch_controls),
     ]
     for label, fn in steps:
         print(f"  {label}...")

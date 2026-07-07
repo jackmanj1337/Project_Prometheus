@@ -18,12 +18,6 @@ var movement_speed: String = "normal"
 var phase_banner: String = "show"
 # "show"|"auto"|"skip"
 var level_up_screen: String = "show"
-# "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
-# follow: hover moves the cursor and targeting snaps to the nearest valid target.
-# click: hover is inert; first click moves the cursor, second same-tile click confirms.
-# disabled: mouse motion never moves the cursor. Clicks remain intentional actions.
-const VALID_MOUSE_CURSOR_MODES: Array[String] = ["follow", "click", "disabled"]
-var mouse_cursor: String = "follow"
 # Whether the player phase ends automatically once every unit has acted (#2).
 var auto_end_turn: bool = true
 # Tiles from the viewport edge that trigger a camera pan (#17). Default mirrors
@@ -82,6 +76,17 @@ const GRID_DIM_MAX: float = 0.5
 var grid_dim: float = 0.0
 
 # --- Controls ---
+const VALID_INPUT_MODES: Array[String] = ["auto", "gamepad", "touch", "mouse_keyboard"]
+const VALID_TOUCH_CONTROLS: Array[String] = ["dedicated", "virtual_gamepad"]
+# Persisted preference; InputModeManager resolves this into the live active mode.
+var input_mode: String = "auto"
+var touch_controls: String = "dedicated"
+# "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
+# follow: hover moves the cursor and targeting snaps to the nearest valid target.
+# click: hover is inert; first click moves the cursor, second same-tile click confirms.
+# disabled: mouse motion never moves the cursor. Clicks remain intentional actions.
+const VALID_MOUSE_CURSOR_MODES: Array[String] = ["follow", "click", "disabled"]
+var mouse_cursor: String = "follow"
 # Active profile name plus profile-ready binding maps. Each profile stores only
 # player overrides; missing slots fall back to the project InputMap defaults.
 const KEYBINDING_DEFAULT_PROFILE := "Default"
@@ -179,14 +184,6 @@ func load_settings() -> void:
 	movement_speed    = cfg.get_value("gameplay", "movement_speed",    movement_speed)
 	phase_banner      = cfg.get_value("gameplay", "phase_banner",      phase_banner)
 	level_up_screen   = cfg.get_value("gameplay", "level_up_screen",   level_up_screen)
-	mouse_cursor = normalize_mouse_cursor_mode(
-		cfg.get_value("gameplay", "mouse_cursor", mouse_cursor))
-	# Migration (2026-05-20/2026-06-20): old cfgs used mouse_targeting
-	# ("snap"|"disabled") and then mouse_cursor ("enabled"|"disabled").
-	# Keep both generations readable: enabled→follow, snap→click.
-	var legacy_mouse: String = cfg.get_value("gameplay", "mouse_targeting", "")
-	if legacy_mouse != "":
-		mouse_cursor = normalize_mouse_cursor_mode(legacy_mouse)
 	auto_end_turn      = cfg.get_value("gameplay", "auto_end_turn",      auto_end_turn)
 	# Clamp on load: the SettingsScreen slider is limited to 0-5, but a hand-edited
 	# or corrupt cfg could feed an out-of-range value into the camera-scroll math.
@@ -221,6 +218,10 @@ func load_settings() -> void:
 	# Clamp on load: a hand-edited/corrupt cfg must never feed an out-of-range dim.
 	grid_dim = clampf(cfg.get_value("display", "grid_dim", grid_dim), 0.0, GRID_DIM_MAX)
 
+	input_mode = normalize_input_mode(cfg.get_value("controls", "input_mode", input_mode))
+	touch_controls = normalize_touch_controls(
+		cfg.get_value("controls", "touch_controls", touch_controls))
+	mouse_cursor = _load_mouse_cursor_mode(cfg)
 	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
 	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
 	var migrated_keybindings := false
@@ -251,9 +252,6 @@ func save() -> void:
 	cfg.set_value("gameplay", "movement_speed",    movement_speed)
 	cfg.set_value("gameplay", "phase_banner",      phase_banner)
 	cfg.set_value("gameplay", "level_up_screen",   level_up_screen)
-	# mouse_cursor is normalized on load and whenever the SettingsScreen sets it, so
-	# it is already a canonical value here — save() just persists it (no mutation).
-	cfg.set_value("gameplay", "mouse_cursor",      mouse_cursor)
 	cfg.set_value("gameplay", "auto_end_turn",      auto_end_turn)
 	cfg.set_value("gameplay", "camera_edge_buffer", camera_edge_buffer)
 	cfg.set_value("gameplay", "map_zoom_index",     map_zoom_index)
@@ -265,6 +263,11 @@ func save() -> void:
 	cfg.set_value("display", "hud_layout",     hud_layout)
 	cfg.set_value("display", "grid_dim",       grid_dim)
 
+	cfg.set_value("controls", "input_mode", input_mode)
+	cfg.set_value("controls", "touch_controls", touch_controls)
+	# Normalized on load and whenever SettingsScreen sets it; save() writes only
+	# the new controls key while legacy gameplay keys remain readable.
+	cfg.set_value("controls", "mouse_cursor", mouse_cursor)
 	cfg.set_value("controls", "active_profile", active_profile)
 	cfg.set_value("controls", "profiles", profiles)
 
@@ -286,7 +289,6 @@ func reset_section_to_defaults(section: String) -> void:
 			movement_speed    = "normal"
 			phase_banner      = "show"
 			level_up_screen   = "show"
-			mouse_cursor      = "follow"
 			auto_end_turn      = true
 			camera_edge_buffer = 2
 			map_zoom_index     = 3
@@ -300,6 +302,9 @@ func reset_section_to_defaults(section: String) -> void:
 			_apply_menu_scale()
 			_apply_grid_dim()
 		"controls":
+			input_mode = "auto"
+			touch_controls = "dedicated"
+			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
 			profiles = {KEYBINDING_DEFAULT_PROFILE: {}}
 			_ensure_active_keybinding_profile()
@@ -924,6 +929,32 @@ static func normalize_mouse_cursor_mode(value: Variant) -> String:
 		"follow", "click", "disabled":
 			return mode
 	return "follow"
+
+
+static func normalize_input_mode(value: Variant) -> String:
+	var mode := String(value)
+	if mode in VALID_INPUT_MODES:
+		return mode
+	return "auto"
+
+
+static func normalize_touch_controls(value: Variant) -> String:
+	var mode := String(value)
+	if mode in VALID_TOUCH_CONTROLS:
+		return mode
+	return "dedicated"
+
+
+func _load_mouse_cursor_mode(cfg: ConfigFile) -> String:
+	if cfg.has_section_key("controls", "mouse_cursor"):
+		return normalize_mouse_cursor_mode(cfg.get_value("controls", "mouse_cursor", mouse_cursor))
+	if cfg.has_section_key("gameplay", "mouse_cursor"):
+		return normalize_mouse_cursor_mode(cfg.get_value("gameplay", "mouse_cursor", mouse_cursor))
+	# Migration (2026-05-20/2026-06-20): old cfgs used mouse_targeting
+	# ("snap"|"disabled") before mouse_cursor existed. Keep it readable.
+	if cfg.has_section_key("gameplay", "mouse_targeting"):
+		return normalize_mouse_cursor_mode(cfg.get_value("gameplay", "mouse_targeting", mouse_cursor))
+	return mouse_cursor
 
 
 # Returns per-tile Tween duration in seconds based on movement_speed setting

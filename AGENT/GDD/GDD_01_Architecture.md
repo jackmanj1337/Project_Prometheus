@@ -516,14 +516,13 @@ var combat_animations: String = "all"      # "all"|"player_only"|"enemy_only"|"n
 var movement_speed: String = "normal"       # "normal" | "fast" | "instant"
 var phase_banner: String = "show"           # "show" | "skip"
 var level_up_screen: String = "show"        # "show" | "auto" | "skip"
-var mouse_cursor: String = "enabled"        # "enabled" | "disabled"
-                                            # When "disabled", mouse motion does not
-                                            # move the on-map cursor in any state.
-                                            # Mouse clicks (confirm/cancel) still fire.
 var auto_end_turn: bool = true              # end phase when every acting unit is DONE
 var camera_edge_buffer: int = 2             # clamped 0-5 tiles
 
 # --- Controls ---
+var input_mode: String = "auto"             # "auto" | "gamepad" | "touch" | "mouse_keyboard"
+var touch_controls: String = "dedicated"    # "dedicated" | "virtual_gamepad"
+var mouse_cursor: String = "follow"         # "follow" | "click" | "disabled"
 var active_profile: String = "Default"
 var profiles: Dictionary = {"Default": {}} # profile -> action -> {"kbd": token, "pad": token}
 var keybindings: Dictionary = {}
@@ -536,6 +535,8 @@ func _ready() -> void:
 
 func load_settings() -> void
     # Reads user://settings.cfg via ConfigFile; falls back to defaults per key.
+    # Persists input_mode, touch_controls, mouse_cursor, and keybinding profiles
+    # under [controls]; legacy [gameplay].mouse_cursor / mouse_targeting still load.
     # Migrates old [controls].keybindings Object(InputEvent) blobs into
     # [controls].profiles["Default"] plain tokens.
     # Stale permadeath/leveling_method keys from old config files are ignored.
@@ -566,11 +567,12 @@ func get_movement_speed_seconds() -> float
     # Per-tile tween duration: "normal" -> 0.12 | "fast" -> 0.06 | "instant" -> 0.0
 ```
 
-Controls persistence uses the profile-ready shape ratified by `B6-INPUT`: `[controls]`
-stores `active_profile = "Default"` and `profiles`, where each profile maps
-`action -> {"kbd": token, "pad": token}`. Tokens are hand-editable strings such as `Z`,
-`Shift+Tab`, `Mouse1`, `JoyA`, `JoyButton15`, and `JoyAxis5+`; an empty token leaves that
-device slot unbound. Only the active profile is applied to Godot's global `InputMap`.
+Controls persistence uses the shape ratified by `B6-INPUT`: `[controls]` stores
+`input_mode`, `touch_controls`, `mouse_cursor`, `active_profile = "Default"`, and
+`profiles`, where each profile maps `action -> {"kbd": token, "pad": token}`. Tokens are
+hand-editable strings such as `Z`, `Shift+Tab`, `Mouse1`, `JoyA`, `JoyButton15`, and
+`JoyAxis5+`; an empty token leaves that device slot unbound. Only the active profile is
+applied to Godot's global `InputMap`.
 
 ### `DataManager.gd`
 

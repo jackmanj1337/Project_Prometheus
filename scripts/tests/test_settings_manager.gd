@@ -249,15 +249,40 @@ func _init() -> void:
 		and sm.normalize_mouse_cursor_mode("snap") == "click"
 		and sm.normalize_mouse_cursor_mode("disabled") == "disabled"
 		and sm.normalize_mouse_cursor_mode("bad") == "follow")
+	var input_mode_ok: bool = sm.VALID_INPUT_MODES == ["auto", "gamepad", "touch", "mouse_keyboard"] \
+		and sm.normalize_input_mode("gamepad") == "gamepad" \
+		and sm.normalize_input_mode("bad") == "auto"
+	var touch_controls_ok: bool = sm.VALID_TOUCH_CONTROLS == ["dedicated", "virtual_gamepad"] \
+		and sm.normalize_touch_controls("virtual_gamepad") == "virtual_gamepad" \
+		and sm.normalize_touch_controls("bad") == "dedicated"
 	sm.mouse_cursor = "click"
-	sm.reset_section_to_defaults("gameplay")
-	var mouse_reset_ok: bool = sm.mouse_cursor == "follow"
-	if modes_ok and mouse_default_ok and mouse_migration_ok and mouse_reset_ok:
-		print("OK  V021-17 mouse_cursor modes default/reset and migrate legacy values")
+	sm.input_mode = "gamepad"
+	sm.touch_controls = "virtual_gamepad"
+	sm.reset_section_to_defaults("controls")
+	var controls_reset_ok: bool = sm.mouse_cursor == "follow" \
+		and sm.input_mode == "auto" and sm.touch_controls == "dedicated"
+	var legacy_mouse_cfg := ConfigFile.new()
+	legacy_mouse_cfg.set_value("gameplay", "mouse_cursor", "click")
+	legacy_mouse_cfg.save(sm.SETTINGS_PATH)
+	var sm_mouse_legacy: Node = SettingsManagerS.new()
+	sm_mouse_legacy.load_settings()
+	var legacy_mouse_loaded_ok: bool = sm_mouse_legacy.mouse_cursor == "click"
+	sm_mouse_legacy.save()
+	var migrated_mouse_cfg := ConfigFile.new()
+	migrated_mouse_cfg.load(sm.SETTINGS_PATH)
+	var legacy_mouse_written_ok: bool = migrated_mouse_cfg.has_section_key("controls", "mouse_cursor") \
+		and not migrated_mouse_cfg.has_section_key("gameplay", "mouse_cursor")
+	sm_mouse_legacy.free()
+	sm.reset_section_to_defaults("controls")
+	if modes_ok and mouse_default_ok and mouse_migration_ok and input_mode_ok \
+			and touch_controls_ok and controls_reset_ok and legacy_mouse_loaded_ok \
+			and legacy_mouse_written_ok:
+		print("OK  controls input modes and mouse_cursor default/reset + legacy migration")
 		passed += 1
 	else:
-		print("FAIL mouse_cursor modes: modes=%s default=%s migration=%s reset=%s" % [
-			modes_ok, mouse_default_ok, mouse_migration_ok, mouse_reset_ok])
+		print("FAIL controls modes: mouse_modes=%s mouse_default=%s mouse_migration=%s input=%s touch=%s reset=%s legacy_load=%s legacy_write=%s" % [
+			modes_ok, mouse_default_ok, mouse_migration_ok, input_mode_ok, touch_controls_ok,
+			controls_reset_ok, legacy_mouse_loaded_ok, legacy_mouse_written_ok])
 		failed += 1
 
 	# ---- #2/#17: new gameplay settings exist with sane defaults + reset ----
