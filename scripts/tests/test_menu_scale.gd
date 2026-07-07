@@ -47,6 +47,7 @@ func _init() -> void:
 
 	await _check_crisp_type_scaling()
 	await _check_fit_clamp()
+	await _check_reactive_recenter()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
@@ -174,6 +175,32 @@ func _check_fit_clamp() -> void:
 	_ok(small.theme != null and small.theme.default_font_size == BASE_FONT * 2,
 		"a small menu still scales to the full requested factor (V021-08)")
 	small.queue_free()
+
+
+# V028-03 root cause: a centered panel the ENGINE grows AFTER the initial center used
+# to sit off-center until a manual re-apply (the recurring maximize/resize bug). The
+# reactive `resized` hook must re-center it with NO further apply_to call.
+func _check_reactive_recenter() -> void:
+	var view_center: Vector2 = root.get_visible_rect().size * 0.5
+	# A Container so its combined_minimum_size tracks the child (a plain Control does not).
+	var panel := PanelContainer.new()
+	var child := Control.new()
+	child.custom_minimum_size = Vector2(200, 120)
+	panel.add_child(child)
+	root.add_child(panel)
+	await process_frame
+	MenuScale.apply_to(panel, 1.0, true)
+	await process_frame
+	# Grow the content: the engine resizes the panel in a later layout pass, which
+	# historically left it off-center. Only the reactive hook re-centers here.
+	child.custom_minimum_size = Vector2(480, 360)
+	await process_frame
+	await process_frame
+	var rect: Rect2 = _visual_rect(panel)
+	var center: Vector2 = rect.position + rect.size * 0.5
+	_ok(center.distance_to(view_center) <= 2.0,
+		"reactive hook re-centers a panel the engine grows after apply (V028-03 root cause)")
+	panel.queue_free()
 
 
 func _visual_rect(control: Control) -> Rect2:

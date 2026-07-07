@@ -1177,8 +1177,8 @@ monitor-size output is reserved for Borderless (`WINDOW_MODE_FULLSCREEN`) and Fu
 (`WINDOW_MODE_EXCLUSIVE_FULLSCREEN`), which are separate code paths.
 
 **OS drag-resize write-back (V027-04b, Q5 owner decision).** While windowed, an OS
-resize (edge drag / maximize) **writes the actual client size back into the saved
-resolution** and persists it (`SettingsManager.apply_resize_write_back`, announced via
+**edge drag** **writes the actual client size back into the saved resolution** and
+persists it (`SettingsManager.apply_resize_write_back`, announced via
 `resolution_written_back`); the Resolution dropdown shows a non-preset value as a
 trailing display-only `Custom (WxH)` item, dropped again when a preset is picked.
 Programmatic resizes are excluded by comparing against the size `_apply_display`
@@ -1188,10 +1188,30 @@ requested, and a drag never re-centres the window. Detection rides the viewport
 with the readout pinned to the native display size; the saved request is preserved and
 the row re-enables intact on return to Windowed (V027-05c, Q6). Player-facing detail:
 `AGENT/Docs/guides/display_and_settings_guide.md`.
-The v0.2.8 return found one remaining validation issue: custom write-back values are
-observed client sizes, but the readout can still route them through the preset-request
-clamp explanation (`V028-02`), and maximize needs a separate settled re-center /
-write-back policy (`V028-03`).
+
+**Maximize is a window STATE, not a resolution (V028-03, Q2 owner decision).** The
+Windows maximize button is no longer written back as a saved resolution — persisting a
+maximized client size produced the misleading `Custom (3840x2071)` readout and odd
+relaunch sizing. `SettingsManager.resize_write_back_action` (a pure, headless-testable
+policy over the current + previously observed `DisplayServer.window_get_mode`) returns
+`ignore` while maximized and `restore` on the maximize→windowed transition (re-applying
+the saved windowed size); only a genuine windowed resize writes back. The recurring
+"menu re-centers on resize instead of staying put" symptom is fixed at the cause in
+`MenuScale` — see `GDD_07_UI_UX.md` §Accessibility (reactive `resized` re-center).
+
+**Window-size vocabulary (V028-02, Q1).** The saved `resolution` string carries two
+meanings the Settings readout must not conflate, exposed through the structured
+`SettingsManager.windowed_size_status()`:
+- **preset request** — one of the curated 16:9 `RESOLUTION_CHOICES`; a *request* the
+  usable-rect clamp may shrink before applying, so the readout shows `→ applied WxH`
+  only when the clamp changes it;
+- **client size** — the actual windowed client area the OS gives us; a non-preset
+  `Custom (WxH)` write-back is *already* a client size, so it is shown as
+  `client WxH` and **never** re-run through the 16:9 request clamp;
+- **native display size** — the monitor's full size, shown while Borderless/Fullscreen
+  disable the Resolution row;
+- **viewport / canvas size** — the fixed 16:9 logical viewport the game renders into,
+  letterboxed into whichever client size is active (unchanged by these controls).
 
 **Confirm-or-revert on risky display changes.** Changing window mode or resolution
 applies the new mode immediately (so the player can see it) but **defers the save

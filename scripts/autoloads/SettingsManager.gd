@@ -54,6 +54,10 @@ var resolution: String = "1280x720"
 # matches it is our own programmatic resize; anything else while windowed is an
 # OS resize (edge drag / maximize) and gets written back into `resolution`.
 var _requested_window_size: Vector2i = Vector2i.ZERO
+# Last DisplayServer window mode the resize hook observed (V028-03/Q2). Lets the hook
+# tell a maximize->windowed transition (restore the saved size) apart from a genuine
+# windowed edge drag (write the new size back). -1 until first observed.
+var _last_window_mode: int = -1
 const RESOLUTION_CHOICES: Array[String] = [
 	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
 ]
@@ -326,6 +330,26 @@ func applied_windowed_size() -> Vector2i:
 	return windowed_client_size_for_screen(size, usable.size)
 
 
+# Structured window-size status for the Settings readout (V028-02/Q1). The saved
+# `resolution` string carries two DIFFERENT meanings and the readout must not conflate
+# them (that produced the "Custom (3840x2071) -> applied 3563x2004" confusion):
+#   - a PRESET (one of RESOLUTION_CHOICES) is a REQUEST the usable-rect clamp may shrink
+#     before it is applied — so showing "requested -> applied" is meaningful there;
+#   - a CUSTOM "WxH" written back by an OS resize (V027-04b) is ALREADY the observed
+#     client size and must NOT be re-run through the 16:9 request clamp.
+# Keys: "kind" ("preset"|"custom"); "requested" (Vector2i parsed from the saved
+# string); "applied" (the clamp result for a preset, identical to requested for custom).
+func windowed_size_status() -> Dictionary:
+	var requested := _parse_resolution(resolution)
+	var is_preset: bool = RESOLUTION_CHOICES.has(resolution)
+	var applied := applied_windowed_size() if is_preset else requested
+	return {
+		"kind": "preset" if is_preset else "custom",
+		"requested": requested,
+		"applied": applied,
+	}
+
+
 # Parses a "WxH" resolution string to a Vector2i; returns ZERO on a malformed value
 # so the caller leaves the window size untouched.
 func _parse_resolution(res: String) -> Vector2i:
@@ -377,23 +401,52 @@ func _reapply_menu_scale_after_resize() -> void:
 	_maybe_write_back_os_resize()
 
 
-# V027-04b (Q5 owner decision: FULL write-back): while windowed, an OS resize
-# (edge drag, maximize) writes the actual client size back into the saved
-# resolution, so the setting follows reality. Programmatic resizes are excluded
-# by comparing against the size _apply_display requested. Deliberately NO
-# recentre here — re-centring a window the user just placed is hostile.
+# V027-04b (Q5 owner decision: FULL write-back): while windowed, an OS EDGE DRAG
+# writes the actual client size back into the saved resolution, so the setting follows
+# reality. Programmatic resizes are excluded by comparing against the size
+# _apply_display requested. Deliberately NO recentre here — re-centring a window the
+# user just placed is hostile.
+#
+# V028-03/Q2 refinement: a Windows MAXIMIZE is a transient window STATE, not a chosen
+# windowed resolution, so its client size must NOT be persisted (that produced the
+# "Custom (3840x2071)" readout). The policy lives in resize_write_back_action() so it
+# is testable headless; this method only supplies the live DisplayServer reads.
 func _maybe_write_back_os_resize() -> void:
 	# Headless has no real window (tests emit size_changed freely); web has no
 	# honourable window config at all.
 	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
 		return
-	if window_mode != "windowed":
-		return
 	var ds_mode := DisplayServer.window_get_mode()
-	if ds_mode != DisplayServer.WINDOW_MODE_WINDOWED \
-			and ds_mode != DisplayServer.WINDOW_MODE_MAXIMIZED:
-		return
-	apply_resize_write_back(DisplayServer.window_get_size())
+	var action := resize_write_back_action(ds_mode, _last_window_mode)
+	_last_window_mode = ds_mode
+	match action:
+		"write_back":
+			apply_resize_write_back(DisplayServer.window_get_size())
+		"restore":
+			# Just left maximize: restore the chosen windowed size rather than
+			# persisting the transient restored client size. _apply_display re-requests
+			# the saved resolution (so apply_resize_write_back's own-resize guard makes
+			# the follow-up size_changed a no-op).
+			_apply_display()
+
+
+# Pure resize-write-back policy (V028-03/Q2), split from the DisplayServer reads so it
+# is testable headless. Given the current window mode and the previously observed one,
+# returns the action for an OS resize event:
+#   "write_back" — persist the observed client size (a genuine windowed edge drag);
+#   "restore"    — the window just left maximize; re-apply the saved windowed size;
+#   "ignore"     — not a windowed OS resize we act on (maximize itself, or non-windowed).
+func resize_write_back_action(ds_mode: int, last_mode: int) -> String:
+	if window_mode != "windowed":
+		return "ignore"
+	# Never persist the maximized client size — maximize is a window state, not a res.
+	if ds_mode == DisplayServer.WINDOW_MODE_MAXIMIZED:
+		return "ignore"
+	if ds_mode != DisplayServer.WINDOW_MODE_WINDOWED:
+		return "ignore"
+	if last_mode == DisplayServer.WINDOW_MODE_MAXIMIZED:
+		return "restore"
+	return "write_back"
 
 
 # The write-back core, split from the DisplayServer reads so it is testable

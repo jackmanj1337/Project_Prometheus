@@ -71,7 +71,7 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `VAL-V023-DISPLAY` | v0.2.8 section 1.6 fix triage | v0.2.8 returned 2026-07-07: section 1.3 and 1.4 pass, but section 1.6 still fails on custom-size readout semantics and Windows maximize recentering. |
+| 1 | `VAL-V023-DISPLAY` | Cut a section 1.6-only rerun build | Section 1.6 fix pass IMPLEMENTED 2026-07-07 (custom vs preset size status, maximize = window state not saved resolution, reactive `resized` menu re-center); needs a focused rerun build + live Windows maximize check before the gate can close. |
 | 2 | `B6-INPUT` | Input-mode seam / live controller validation | Bindings/menu parity and the headless map-cursor decoder landed; remaining controller feel, deadzones, device mapping, and visual comfort are in the v0.3.0 playtest checklist, while the input-mode/focus seam remains the next code slice if controller polish continues. |
 
 ## Validation And Release Queues
@@ -81,7 +81,7 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
-| `VAL-V023-DISPLAY` | Validation | v0.2.8 returned 2026-07-07: section 1.3 action-menu anchoring and section 1.4 forecast placement pass; section 1.6 still fails on custom-size readout semantics and Windows maximize recentering. Triage: `playtest_v0.2.8_results_triage_plan_2026-07-07.md`; owner review: `playtest_v0.2.8_triage_review_2026-07-07.md`. |
+| `VAL-V023-DISPLAY` | Validation | v0.2.8 returned 2026-07-07: section 1.3 action-menu anchoring and section 1.4 forecast placement pass. Section 1.6 fix pass IMPLEMENTED 2026-07-07 (`windowed_size_status` preset-vs-custom, `resize_write_back_action` maximize policy, reactive `MenuScale._recenter`; tests green) — awaiting a section-1.6-only rerun build + live Windows maximize check to close the gate. Triage: `playtest_v0.2.8_results_triage_plan_2026-07-07.md`; owner review: `playtest_v0.2.8_triage_review_2026-07-07.md`. |
 | `VAL-V030-GAMEPAD` | Validation | Run the v0.3.0 gamepad live checklist: real controller mapping, stick deadzone/repeat feel, held-trigger zoom feel, menu focus comfort, Steam Deck/Windows pad sanity, and screenshots/notes for any visual overlap. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |

@@ -404,8 +404,19 @@ func _refresh_applied_size() -> void:
 		_label_resolution_applied.text = \
 			"native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
 		return
-	var requested: Vector2i = sm.call("_parse_resolution", sm.get("resolution"))
-	var applied: Vector2i = sm.call("applied_windowed_size")
+	# V028-02/Q1: render from the structured window-size status so a preset REQUEST and
+	# a custom OBSERVED client size are not conflated. A custom size (OS resize
+	# write-back) is already the applied client size, so it is shown as-is and never
+	# re-run through the 16:9 request clamp — the source of the old
+	# "Custom (3840x2071) -> applied 3563x2004" nonsense.
+	var status: Dictionary = sm.call("windowed_size_status")
+	if String(status.get("kind", "preset")) == "custom":
+		var client: Vector2i = status.get("applied", Vector2i.ZERO)
+		_label_resolution_applied.text = \
+			"client %dx%d" % [client.x, client.y] if client != Vector2i.ZERO else ""
+		return
+	var requested: Vector2i = status.get("requested", Vector2i.ZERO)
+	var applied: Vector2i = status.get("applied", Vector2i.ZERO)
 	if applied != Vector2i.ZERO and applied != requested:
 		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
 	else:

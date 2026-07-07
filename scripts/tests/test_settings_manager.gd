@@ -254,6 +254,50 @@ func _init() -> void:
 		print("FAIL applied_windowed_size: valid=%s bad=%s" % [applied_valid, applied_bad])
 		failed += 1
 
+	# ---- V028-02 (Q1): windowed_size_status separates preset REQUEST from custom size ----
+	# The saved `resolution` means two different things and the readout must not
+	# conflate them: a preset is a request the clamp may shrink; a written-back custom
+	# size is already the observed client size and must never be re-run through the clamp.
+	var sm_ws: Node = SettingsManagerS.new()
+	sm_ws.window_mode = "windowed"
+	sm_ws.resolution = "1920x1080"  # a preset request
+	var st_preset: Dictionary = sm_ws.windowed_size_status()
+	var ws_preset_ok: bool = String(st_preset.get("kind")) == "preset" \
+		and st_preset.get("requested") == Vector2i(1920, 1080)
+	sm_ws.resolution = "3840x2071"  # a non-preset OS write-back = observed client size
+	var st_custom: Dictionary = sm_ws.windowed_size_status()
+	var ws_custom_ok: bool = String(st_custom.get("kind")) == "custom" \
+		and st_custom.get("requested") == Vector2i(3840, 2071) \
+		and st_custom.get("applied") == Vector2i(3840, 2071)  # NOT re-clamped
+	sm_ws.free()
+	if ws_preset_ok and ws_custom_ok:
+		print("OK  V028-02 windowed_size_status tags preset vs custom, no re-clamp of custom")
+		passed += 1
+	else:
+		print("FAIL V028-02 status: preset=%s custom=%s" % [st_preset, st_custom]); failed += 1
+
+	# ---- V028-03 (Q2): maximize is a window STATE, never a persisted resolution ----
+	var sm_mx: Node = SettingsManagerS.new()
+	sm_mx.window_mode = "windowed"
+	var MODE_W := DisplayServer.WINDOW_MODE_WINDOWED
+	var MODE_M := DisplayServer.WINDOW_MODE_MAXIMIZED
+	# A plain windowed edge drag writes the observed size back.
+	var act_drag_ok: bool = sm_mx.resize_write_back_action(MODE_W, MODE_W) == "write_back"
+	# Entering maximize is ignored — the maximized client size is never persisted.
+	var act_max_ok: bool = sm_mx.resize_write_back_action(MODE_M, MODE_W) == "ignore"
+	# Leaving maximize restores the saved windowed size instead of writing back.
+	var act_restore_ok: bool = sm_mx.resize_write_back_action(MODE_W, MODE_M) == "restore"
+	# Outside windowed mode nothing is written back.
+	sm_mx.window_mode = "borderless"
+	var act_nonwin_ok: bool = sm_mx.resize_write_back_action(MODE_W, MODE_W) == "ignore"
+	sm_mx.free()
+	if act_drag_ok and act_max_ok and act_restore_ok and act_nonwin_ok:
+		print("OK  V028-03 resize policy: drag=write_back, maximize=ignore, un-maximize=restore")
+		passed += 1
+	else:
+		print("FAIL V028-03 policy: drag=%s max=%s restore=%s nonwin=%s" % [
+			act_drag_ok, act_max_ok, act_restore_ok, act_nonwin_ok]); failed += 1
+
 	# ---- menu-scale schema migration (V023-01, guarded in v0.2.5) ----
 	# v1 cfg with a stored index: shifts up one slot so the factor is preserved
 	# (old 1 == 1.0x -> new 2 == 1.0x after 0.5x was prepended).

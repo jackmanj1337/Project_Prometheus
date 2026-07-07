@@ -998,9 +998,20 @@ The accessibility and parity contract the UI must honor across input methods and
   later via the panel `ScrollContainer`'s `scroll_vertical`. The compensation clamps at
   the scroll extremes, where a small residual shift is accepted.
   **V027-04a (resize self-heal):** `SettingsManager` re-applies Menu Scale on every
-  viewport `size_changed` (deferred, coalesced to one pass per settled frame) — a
-  window-size change used to grow a live scroll-frame panel off-screen with nobody
-  re-centering it, since re-apply only ran from the slider.
+  viewport `size_changed` (deferred, coalesced to one pass per settled frame) — this
+  re-runs the V021-08 fit-clamp and the OS-resize write-back when the *window* changes.
+  **V028-03 (reactive re-center, root cause):** centering itself is now a standing
+  reactive constraint, not a per-trigger deferred bake. Each centered panel's own
+  `resized` signal drives `MenuScale._recenter`, so it re-centers at the exact frame the
+  *panel* size settles. The previous code hard-set `target.size` then baked absolute
+  CENTER offsets against the size at that instant; Godot computes the real final size in
+  a later deferred layout pass, so any post-bake growth left the panel off-center until
+  the next explicit re-apply — one bug patched per-trigger four times (V025-05a first
+  show, V026-01a 2.0× apply, V027-04a edge drag, V028-03 Windows maximize, whose
+  window-mode change reflows across several frames so a single deferred re-apply fired
+  too early). A re-entrancy guard skips the nested pass emitted by our own size write.
+  (The clean structural form — wrap each panel in a `CenterContainer` and delete the
+  imperative `_recenter` — is deferred to `UI-VIEWPORT-ASPECT`.)
 - **Display controls** (window mode + windowed resolution): see
   `GDD_01_Architecture.md` §Rendering and Display Settings.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies

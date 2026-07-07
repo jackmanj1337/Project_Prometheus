@@ -39,9 +39,28 @@ usable rect is the monitor minus a decoration margin (title bar + taskbar), so:
   clamp working as designed — the title bar stays reachable and the aspect stays 16:9.
 - To fill the whole monitor, use **Borderless** or **Fullscreen** instead.
 
-Settings shows the actually-applied size next to a **preset** Resolution choice (e.g.
-`3840x2160 -> applied 1904x1071`) so the clamp is self-explaining in-game
-(`SettingsManager.applied_windowed_size`). That label is meant for preset **requests**,
+### What the size numbers mean (V028-02)
+
+The readout beside the Resolution dropdown speaks a small vocabulary, so it is worth
+being precise about which size is which (the app reads these from
+`SettingsManager.windowed_size_status()`):
+
+- **preset request** — a size you pick from the Resolution dropdown. It is a *request*:
+  in Windowed mode the usable-rect clamp may shrink it, so the readout shows
+  `→ applied WxH` **only when the clamp actually changed it** (e.g.
+  `3840x2160 → applied 1904x1071`).
+- **client size** — the actual windowed client area (the game view) the OS gave you. A
+  size written back from an OS resize is *already* a client size, so it shows as
+  `client WxH` and is **never** re-run through the 16:9 request clamp. (Before v0.2.9
+  this was mistakenly compared against the clamp, producing nonsense like
+  `Custom (3840x2071) → applied 3563x2004`; that is fixed.)
+- **native display size** — your monitor's full size, shown as `native WxH` while
+  Borderless/Fullscreen have the Resolution row grayed out.
+- **viewport / canvas size** — the fixed 16:9 logical resolution the game renders into.
+  The stretch system letterboxes it into whichever client size is active; these controls
+  never change it.
+
+The `→ applied` label is meant for preset **requests** only,
 not for custom sizes written back from the OS. The window is re-centred on its screen
 after each **setting-driven** resize - a Resolution/Window Mode apply
 (`window_centre_position`) - clamped so a larger-than-screen window never centres its
@@ -51,13 +70,13 @@ claimed drag-resizes re-centre - that was wrong and is corrected here; V027-04b.
 
 ## OS drag-resize write-back (V027-04b, Q5 owner decision 2026-07-05)
 
-In Windowed mode, resizing the window **via the OS** (dragging an edge, maximizing)
-**writes the new client size back into the saved Resolution setting** — the setting
-follows reality rather than remembering a request the window no longer honours:
+In Windowed mode, resizing the window **by dragging an edge** **writes the new client
+size back into the saved Resolution setting** — the setting follows reality rather than
+remembering a request the window no longer honours:
 
 - The write-back persists immediately (`SettingsManager.apply_resize_write_back`) and the
-  applied-size readout follows. Deliberate consequence (owner decision Q5→B): a drag
-  **overwrites** the previously chosen preset.
+  readout follows, showing the new size as a **`client WxH`** value. Deliberate
+  consequence (owner decision Q5→B): a drag **overwrites** the previously chosen preset.
 - If the dragged size isn't one of the presets, the Resolution dropdown shows a trailing
   display-only **`Custom (WxH)`** entry as the selected value. Picking any preset drops
   the Custom entry again; selecting the Custom entry itself changes nothing (it *is* the
@@ -68,13 +87,15 @@ follows reality rather than remembering a request the window no longer honours:
 - Detection rides the same viewport `size_changed` hook that re-applies Menu Scale after
   a resize (V027-04a), coalesced to one pass per settled frame.
 
-Known v0.2.8 validation issue: edge-drag custom sizes and maximized-window sizes need
-clearer UI semantics. A `Custom (WxH)` value is already an observed client size, while
-the `-> applied` label is a preset-request clamp explanation. v0.2.8 can still compare a
-custom value against the clamp path and show confusing output such as
-`Custom (3840x2071) -> applied 3563x2004`; this is tracked as `V028-02`. The Windows
-maximize button can also leave the Settings panel off-center until a later re-apply;
-this is tracked as `V028-03`.
+**The Windows maximize button is treated as a window STATE, not a resolution (V028-03,
+owner decision Q2 2026-07-07).** Maximizing no longer overwrites your saved Resolution
+with the maximized client size (which used to produce a stray `Custom (3840x2071)`);
+`SettingsManager.resize_write_back_action` ignores the maximized state, and **un-maximizing
+restores your chosen windowed size**. The old symptom where the Settings panel drifted
+off-center after maximizing (and only re-centered after another size/scale change) is
+fixed at the cause: each menu panel now re-centers reactively from its own `resized`
+signal the instant the engine settles the new size, instead of guessing the settle frame
+with a deferred re-apply (see `GDD_07_UI_UX.md` §Accessibility).
 
 ## OS display scaling / DPI
 

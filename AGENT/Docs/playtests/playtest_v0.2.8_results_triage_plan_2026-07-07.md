@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-07; v0.2.8 closes section 1.3/1.4 but leaves section 1.6 pending
+Status: Returned results - diagnosed 2026-07-07; v0.2.8 closes section 1.3/1.4; section 1.6 fix pass implemented 2026-07-07, awaiting a focused rerun build + live validation
 Last verified: 2026-07-07
 ---
 
@@ -179,10 +179,17 @@ windowed readout/maximize behavior.
    Option A no-persist-maximize; Q3=A route to `UI-VIEWPORT-ASPECT`): see the
    Walkthrough Decisions section of
    `AGENT/Code Reviews/playtest_v0.2.8_triage_review_2026-07-07.md`.
-2. Land the decided section 1.6 fixes on the release line:
-   - custom/readout semantics (`V028-02`);
-   - maximize recenter/write-back policy (`V028-03`);
-   - guide/handbook wording for the measured sizes.
-3. Cut a focused rerun build for section 1.6 only.
+2. Section 1.6 fixes IMPLEMENTED 2026-07-07 on `v0.3.0-features` (tests green):
+   - custom/readout semantics (`V028-02`): `SettingsManager.windowed_size_status()`
+     tags preset request vs custom client size; `SettingsScreen` shows `client WxH`
+     for a custom write-back and never re-runs it through the 16:9 request clamp.
+   - maximize recenter/write-back policy (`V028-03`): `resize_write_back_action()`
+     ignores the maximized state (never persisted) and restores the saved windowed
+     size on un-maximize; centering is fixed at the cause via a reactive `resized`
+     re-center in `MenuScale._recenter` (re-entrancy guarded), replacing the
+     per-trigger deferred bakes.
+   - guide/handbook wording for the measured sizes (preset request / client size /
+     native display size / viewport-canvas size) updated in the display guide + GDD_01.
+3. Cut a focused rerun build for section 1.6 only (with a live Windows maximize check).
 4. When section 1.6 passes live, flip `VAL-V023-DISPLAY` and proceed to
    `REL-V023-MERGE` / `B6-WEB-DEBUG`.
