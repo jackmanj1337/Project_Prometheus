@@ -7,13 +7,13 @@
 ## Artifact
 
 - Path: `builds/Project_Prometheus_v0.2.9_debug.exe`
-- Source commit: `PENDING_SOURCE_COMMIT`
-- Baked build stamp (`build_info.json`): version `0.2.9`, commit `PENDING_SOURCE_COMMIT`,
-  built_at `PENDING_BUILT_AT`
+- Source commit: `3dddefc`
+- Baked build stamp (`build_info.json`): version `0.2.9`, commit `3dddefc`,
+  built_at `2026-07-07T06:35:12Z`
 - Exported: `2026-07-07`
 - Godot: `4.6.stable.official.89cea1439`
-- Size: `PENDING_SIZE` bytes
-- SHA-256: `PENDING_SHA256`
+- Size: `101375272` bytes
+- SHA-256: `fb064f2a24bab20d8854c5ecbeda04f078463e170e0be9f22ec3c8e5816cf3f8`
 
 The artifact is intentionally ignored by Git. v0.2.9 ships as **two files**: the
 executable and the single self-contained handbook
