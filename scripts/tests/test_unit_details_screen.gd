@@ -428,6 +428,30 @@ func is_weapon_track_available(track: String) -> bool:
 			reached_back, back_closed_seen[0], screen.visible, screen._current_index,
 			back_idx, btn_back.has_focus()])
 		failed += 1
+
+	# ---- B6-INPUT focus seam: input-mode subscriber overrides ----
+	# This screen navigates by SelectionCursor, so a switch to gamepad seeds the
+	# selector at the first entry (only when nothing is selected yet) rather than
+	# grabbing a button; a switch to touch clears the highlight.
+	screen.open(stub_unit)
+	screen._selector.reset()
+	screen._on_input_mode_changed("gamepad")
+	var seeded: bool = screen._current_index == 0
+	# A second gamepad switch must not clobber an existing selection.
+	screen._selector.set_index(2)
+	screen._on_input_mode_changed("gamepad")
+	var kept_selection: bool = screen._current_index == 2
+	# Switching to touch clears the selection highlight.
+	screen._on_input_mode_changed("touch")
+	var cleared: bool = screen._current_index == -1
+	if seeded and kept_selection and cleared:
+		print("OK  B6-INPUT focus seam: gamepad seeds selector, keeps selection, touch clears")
+		passed += 1
+	else:
+		print("FAIL focus seam: seeded=%s kept=%s cleared=%s idx=%d" % [
+			seeded, kept_selection, cleared, screen._current_index])
+		failed += 1
+
 	screen.open(stub_unit)
 
 	# _close() hides the page, emits `closed`, and clears local state so the

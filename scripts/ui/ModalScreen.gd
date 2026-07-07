@@ -27,7 +27,73 @@ signal closed()
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
 	_apply_menu_scale_from_settings()
+	_connect_input_mode_changed()
 	hide()
+
+
+# B6-INPUT focus seam: every modal subscribes to InputModeManager.input_mode_changed
+# so a live input-scheme switch keeps focus coherent. Switching TO gamepad while the
+# modal is open grabs a sensible default focus (the d-pad needs a focus anchor to move
+# from). Switching TO touch drops the stale focus highlight (a lingering ring with no
+# pointer/stick looks broken). Switching TO mouse_keyboard is deliberately left alone:
+# that mode lumps mouse AND keyboard together, and a keyboard user still wants the
+# highlight — yanking it would regress keyboard nav. Guarded so the base stays inert
+# when the autoload is absent (headless scenes without it).
+func _connect_input_mode_changed() -> void:
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed") \
+			and not imm.is_connected("input_mode_changed", _on_input_mode_changed):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
+
+
+func _on_input_mode_changed(mode: String) -> void:
+	# Only the visible modal reacts; hidden ones ignore the switch (many share this base).
+	if not visible:
+		return
+	match mode:
+		"gamepad":
+			_grab_default_focus()
+		"touch":
+			_release_stale_focus()
+
+
+# Virtual: the control that should receive focus when a gamepad becomes active while
+# this modal is open. Default is the first focusable control under Panel; subclasses
+# with a preferred entry point (e.g. a Back button) override this.
+func _focus_default() -> Control:
+	return _first_focusable(_menu_scale_target())
+
+
+func _grab_default_focus() -> void:
+	var target := _focus_default()
+	if target != null and target.is_visible_in_tree():
+		target.grab_focus()
+
+
+# Drops focus only when the focused control belongs to THIS modal, so a mode switch
+# never yanks focus away from an unrelated surface.
+func _release_stale_focus() -> void:
+	var vp := get_viewport()
+	if vp == null:
+		return
+	var focused := vp.gui_get_focus_owner()
+	if focused != null and is_ancestor_of(focused):
+		focused.release_focus()
+
+
+# Depth-first search for the first visible, focusable Control under root_node.
+func _first_focusable(root_node: Node) -> Control:
+	if root_node == null:
+		return null
+	for child in root_node.get_children():
+		if child is Control:
+			var c := child as Control
+			if c.visible and c.focus_mode != Control.FOCUS_NONE:
+				return c
+		var nested := _first_focusable(child)
+		if nested != null:
+			return nested
+	return null
 
 
 func apply_menu_scale(factor: float) -> void:

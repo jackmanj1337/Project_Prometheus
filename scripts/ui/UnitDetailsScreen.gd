@@ -93,6 +93,21 @@ func _ready() -> void:
 	super._ready()  # ModalScreen does the hide()
 
 
+# B6-INPUT focus seam overrides: this screen navigates via its SelectionCursor (row
+# markers), not raw GUI focus, so the base's "grab first focusable" would fight the
+# selector. On a switch to gamepad seed the selector at the first entry (if nothing is
+# selected yet); on a switch to touch clear the highlight entirely along with any
+# button focus.
+func _grab_default_focus() -> void:
+	if _current_index < 0 and not _entries.is_empty():
+		_selector.advance(1)
+
+
+func _release_stale_focus() -> void:
+	super._release_stale_focus()
+	_selector.reset()
+
+
 # Populates the panel from `unit` and shows it. A null/invalid unit is ignored.
 func open(unit: Node) -> void:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:

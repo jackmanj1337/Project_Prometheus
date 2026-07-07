@@ -308,6 +308,13 @@ func apply_menu_scale(factor: float) -> void:
 		_scroll.scroll_vertical += roundi(row.global_position.y - row_y)
 
 
+# B6-INPUT focus seam: on a live switch to gamepad while Settings is open, land focus
+# on Back — the same entry point open() uses — rather than the first slider deep in the
+# scrollable list.
+func _focus_default() -> Control:
+	return _btn_back
+
+
 func _close() -> void:
 	# Subclass override: emit back_pressed (consumed by MainMenu and MapMenu's
 	# Settings button) in addition to ModalScreen.closed. Then super() emits

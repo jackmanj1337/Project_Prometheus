@@ -832,11 +832,17 @@ preference; `InputModeManager` resolves the runtime `active_input_mode`, emits
 unavailable — so a stale saved mode is safe. Availability comes from
 `InputModeManager.available_modes()` via `SettingsScreen._apply_mode_availability`.
 
+**Focus-grab subscribers.** The shared `ModalScreen` base subscribes every modal to
+`input_mode_changed`. While a modal is visible, a live switch **to gamepad** grabs a
+sensible default focus (`_focus_default()` — overridable; the base picks the first
+focusable control, `SettingsScreen` picks Back, `UnitDetailsScreen` seeds its
+`SelectionCursor`). A switch **to touch** drops the stale focus highlight
+(`_release_stale_focus()`). A switch to `mouse_keyboard` is deliberately left alone —
+that mode lumps mouse and keyboard together, and keyboard nav still wants the
+highlight. Hidden modals ignore the switch.
+
 #### Hidden / not yet implemented
 
-- **Focus-grab subscribers** — modal/menu surfaces subscribing to
-  `input_mode_changed` (grab a default focus on switch to gamepad, drop stale focus
-  highlight on switch away) are a later `B6-INPUT` slice.
 - **Touch Controls** (`touch_controls`, default `dedicated`) — fixed vocabulary:
   `dedicated`, `virtual_gamepad` (enforced by DOC-011 `check_docs.py`). Until
   the dedicated touch layer ships, the resolver can still fall back to the virtual

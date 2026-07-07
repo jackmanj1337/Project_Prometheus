@@ -529,5 +529,36 @@ func _init() -> void:
 	else:
 		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
+	# ---- B6-INPUT: focus-grab subscriber (ModalScreen base) ----
+	# A live switch to gamepad while the screen is open grabs the Back button (its
+	# _focus_default override); a switch to touch drops the focus highlight. A switch
+	# while hidden is a no-op. mouse_keyboard is left alone (keyboard nav keeps focus).
+	if root.get_node_or_null("SettingsManager") != null:
+		screen.open()
+		var back_btn: Button = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/BtnBack")
+		screen._on_input_mode_changed("gamepad")
+		var grabbed_back: bool = back_btn != null and back_btn.has_focus()
+		screen._on_input_mode_changed("touch")
+		var released: bool = screen.get_viewport().gui_get_focus_owner() == null
+		# Hidden screens ignore the switch: re-grab, hide, then a gamepad switch must
+		# not move focus back into the hidden screen.
+		screen._on_input_mode_changed("gamepad")
+		screen.hide()
+		screen.get_viewport().gui_release_focus()
+		screen._on_input_mode_changed("gamepad")
+		var hidden_noop: bool = screen.get_viewport().gui_get_focus_owner() == null
+		screen.show()
+		screen._on_back()
+		if grabbed_back and released and hidden_noop:
+			print("OK  B6-INPUT focus-grab: gamepad grabs Back, touch releases, hidden no-op")
+			passed += 1
+		else:
+			print("FAIL focus-grab: grabbed=%s released=%s hidden_noop=%s" % [
+				grabbed_back, released, hidden_noop])
+			failed += 1
+	else:
+		print("SKIP focus-grab subscriber (SettingsManager autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

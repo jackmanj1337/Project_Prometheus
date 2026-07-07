@@ -605,9 +605,12 @@ static func resolve_input_mode(setting: String, last_detected: String,
 
 `input_mode_changed` emits only on real active-mode changes. The Settings gray-state
 input-mode selector reads `available_modes()` to disable unsupported modes without
-hiding them (`SettingsScreen._apply_mode_availability`). Focus-grab subscribers and
-prompt swapping attach to this signal in later `B6-INPUT` slices; the resolver itself
-is headless-tested in `test_input_mode_manager.gd`.
+hiding them (`SettingsScreen._apply_mode_availability`). The shared `ModalScreen` base
+subscribes every modal to `input_mode_changed`: a switch to gamepad grabs a default
+focus (`_focus_default()`), a switch to touch drops the stale highlight, and a switch
+to `mouse_keyboard` is left alone (keyboard nav keeps its highlight). Prompt swapping
+attaches to this signal in a later `B6-INPUT` slice; the resolver itself is
+headless-tested in `test_input_mode_manager.gd`.
 
 ### `DataManager.gd`
 
