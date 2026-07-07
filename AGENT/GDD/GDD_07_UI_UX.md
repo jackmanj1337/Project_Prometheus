@@ -31,11 +31,15 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 ## Input System
 
 Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control
-slice); map-cursor analog decode and key rebinding **Target design**.
+and headless map-cursor decoder slices); live controller feel and key rebinding
+**Target design** / pending validation.
 Last verified: 2026-07-07
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
+`MapCursorInput.decode(event)` translates keyboard and d-pad/button events into
+state-agnostic intents; `_process()` polls the cursor vector for left-stick
+movement and the zoom action strengths for held LT/RT zoom.
 
 ### Action Definitions
 
@@ -128,11 +132,16 @@ above the blue move-range overlay. Only the path to the *current* cursor tile is
 recomputed as the cursor moves (no range recompute); it clears on move-commit or
 deselect. (Placeholder polyline render — UI polish may swap for arrow-tile art.)
 
-### Cursor Key Repeat
-When a directional key is held:
+### Cursor Direction Repeat
+When a directional key, d-pad direction, or left-stick direction is held:
 - First move: immediate
 - Delay before repeat begins: 0.25 seconds
 - Repeat rate: every 0.10 seconds
+
+Held map zoom uses the same initial delay, then repeats on a strength-scaled
+timer so a full trigger pull steps faster than a partial pull. The exact
+deadzone/feel for real controllers is a v0.3.0 playtest item, not a headless
+claim.
 
 ---
 

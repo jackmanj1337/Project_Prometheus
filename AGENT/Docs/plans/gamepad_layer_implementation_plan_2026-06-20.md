@@ -206,10 +206,12 @@ seam that design specified:
    make `confirm`/`cancel` share `ui_accept`/`ui_cancel`'s event lists (§2); verify every
    menu/native-control screen is navigable + activatable by pad (manual + the consume audit
    from §2). Unlocks Gamepad mode for menus/native controls.
-2. **Map-cursor decoder rebuild (A) + polled zoom (B).** §5 — widen `MapCursorInput.decode`
-   to all device events (d-pad), add left-stick `get_vector` polling into the existing repeat
-   timer, rebuild zoom to polled `get_action_strength` (analog triggers). Unit-cycle bumpers,
-   R3/L3 clicks. After this the map is fully pad-driven.
+2. **Map-cursor decoder rebuild (A) + polled zoom (B).** **Implemented headless
+   2026-07-07.** `MapCursorInput.decode(event)` now accepts d-pad/pad button events,
+   left-stick movement polls `Input.get_vector()` into the existing repeat timer, and
+   held zoom polls `Input.get_action_strength()` so LT/RT repeat and strength-scaled
+   cadence are testable. Unit-cycle bumpers, R3, and L3 route through the existing map
+   actions. Real controller feel/deadzones/device mapping still require live validation.
 3. **`input_mode_changed` seam + focus-grab on mode switch.** §6 — detection, signal,
    focus-grab/drop. Headless-test the detection + signal; live-verify the focus feel.
 4. **Contextual danger-zone resolver** (faction-wide arm now; per-enemy arm gated on the
@@ -225,12 +227,13 @@ target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish
 - `test_input_bindings.gd` (new) — assert every gameplay action carries ≥1 joypad event and
   the debug actions carry **none** (mirrors the DoD#2 spirit; guards against a future
   binding regression). Cross-check the `ui_*` ↔ `cursor_*`/`confirm`/`cancel` pairing.
-- `MapCursorInput` decoder rebuild — extend the existing `test_map_cursor_input` suite:
-  `decode(InputEvent)` returns the right `Intent` for a d-pad `InputEventJoypadButton` (not
+- `MapCursorInput` decoder rebuild — covered by `test_map_cursor_input.gd`:
+  `decode(InputEvent)` returns the right `Intent` for d-pad/pad button events (not
   just keys); the stick-vector → repeat-timer path arms on entering and clears on returning to
-  deadzone (parity with the keyboard `arm_repeat`/`note_key_released` tests).
-- Polled zoom — unit-test that `get_action_strength` polling yields held-repeat and that a
-  full vs partial trigger pull scales zoom speed (logic-level; the camera apply stays live).
+  deadzone (parity with the keyboard `arm_repeat`/`note_released` tests).
+- Polled zoom — covered by `test_map_cursor.gd`: `get_action_strength` polling yields
+  held-repeat, ignores keyboard echo, and a full vs partial trigger pull scales zoom speed
+  at the logic level; real camera/controller feel remains live-verify.
 - `input_mode_changed` detection — feed synthetic `InputEventJoypadButton` /
   `InputEventKey` and assert the derived mode + one signal per real change (reuse the
   input-mode resolver tests when that lands).
@@ -257,10 +260,11 @@ target); slice 3 makes mode-switching graceful; slice 4 is the contextual polish
    small dedicated autoload (the design floats both); keeps `SettingsManager` persistence-
    focused and the runtime active-mode logic separate.
 2. **Trigger thresholds** — exact `JOY_AXIS_TRIGGER_*` deadzone + the zoom-strength→speed
-   curve (tune live).
+   curve (implemented headless with a conservative curve; tune live in the v0.3.0 playtest).
 3. **Stick repeat vs analog feel** — the decoder reuses the discrete step+repeat timer for
-   the left stick (parity with keys). Confirm live that discrete stepping feels right, or
-   whether the stick wants a continuous glide instead (would diverge from the keyboard model).
+   the left stick (parity with keys). Confirm live in the v0.3.0 playtest that discrete
+   stepping feels right, or whether the stick wants a continuous glide instead (would diverge
+   from the keyboard model).
 4. **Per-enemy threat range** — ✅ now designed in
    `AGENT/Docs/design/individual_threat_range_design_2026-06-21.md` (its slices 1–2 are the
    prerequisite; this plan's slice 4 binds R3 through that design's shared resolver). This

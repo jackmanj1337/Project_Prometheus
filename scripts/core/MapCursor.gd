@@ -117,6 +117,14 @@ var _context_menu_anchor: Dictionary = {}
 # coalesce into one next-frame re-place instead of stacking awaits.
 var _reanchor_queued: bool = false
 
+# Held map-zoom repeat. Trigger axes do not emit keyboard-style repeat events, so
+# _process polls action strength and steps the discrete zoom level on a timer.
+const ZOOM_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
+const ZOOM_REPEAT_RATE_FAST: float = 0.12
+const ZOOM_REPEAT_RATE_SLOW: float = 0.35
+var _zoom_held_direction: int = 0
+var _zoom_held_timer: float = 0.0
+
 
 # ── Setup & Lifecycle ──────────────────────────────────────────────────────
 
@@ -274,21 +282,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	# before the cursor-move branches so a scroll-to-zoom isn't also read as a
 	# mouse button. Zoom re-frames on the cursor's current tile and persists the
 	# chosen level so it survives map changes and restarts.
-	if event.is_action_pressed("zoom_in"):
+	if _is_fresh_action_press(event, "zoom_in"):
 		_apply_zoom_step(1)
+		_arm_zoom_repeat(1)
 		return
-	if event.is_action_pressed("zoom_out"):
+	if _is_fresh_action_press(event, "zoom_out"):
 		_apply_zoom_step(-1)
+		_arm_zoom_repeat(-1)
 		return
-	if event.is_action_pressed("zoom_reset"):
+	if _is_fresh_action_press(event, "zoom_reset"):
 		_apply_zoom_reset()
+		_clear_zoom_repeat()
 		return
 	if event is InputEventMouseMotion:
 		_handle_mouse_motion(event)
 	elif event is InputEventMouseButton and event.pressed:
 		_handle_mouse_button(event)
-	elif event is InputEventKey and event.pressed and not event.echo:
-		_handle_key_press(event)
+	elif _is_discrete_pressed_event(event):
+		_handle_discrete_press(event)
 
 
 func _process(delta: float) -> void:
@@ -297,19 +308,43 @@ func _process(delta: float) -> void:
 	# so the cursor doesn't drift out of a menu/targeting context.
 	if _input_suppressed:
 		_input_handler.clear_repeat()
+		_clear_zoom_repeat()
 		return
+	if _state == State.LOCKED:
+		_input_handler.clear_repeat()
+		_clear_zoom_repeat()
+		return
+	var zoom_dir := _poll_held_zoom(delta)
+	if zoom_dir != 0:
+		_apply_zoom_step(zoom_dir)
 	if _state != State.FREE and _state != State.UNIT_SELECTED:
 		_input_handler.clear_repeat()
 		return
-	var d := _input_handler.tick(delta)
+	var d := _input_handler.poll_direction(delta)
 	if d != Vector2i.ZERO:
 		move_cursor(d)
 
 
-func _handle_key_press(event: InputEventKey) -> void:
-	# MapCursorInput decodes the key into a state-agnostic intent; the FSM here
+func _is_discrete_pressed_event(event: InputEvent) -> bool:
+	if event is InputEventKey:
+		return event.pressed and not event.echo
+	if event is InputEventJoypadButton:
+		return event.pressed
+	if event is InputEventAction:
+		return event.pressed
+	return false
+
+
+func _is_fresh_action_press(event: InputEvent, action: String) -> bool:
+	if event is InputEventKey and event.echo:
+		return false
+	return event.is_action_pressed(action)
+
+
+func _handle_discrete_press(event: InputEvent) -> void:
+	# MapCursorInput decodes the event into a state-agnostic intent; the FSM here
 	# decides what a MOVE means per _state (free move / target cycle / ignored).
-	var decoded := _input_handler.decode_key(event)
+	var decoded := _input_handler.decode(event)
 	match decoded["intent"]:
 		MapCursorInput.Intent.MOVE:
 			var dir: Vector2i = decoded["dir"]
@@ -339,15 +374,15 @@ func _handle_key_press(event: InputEventKey) -> void:
 			_open_unit_details()
 
 
-# Resets cursor key-repeat on key release, and flips the enemy danger-zone
+# Resets cursor key-repeat on release, and flips the enemy danger-zone
 # toggle on a show_danger_zone press or a middle-mouse click (#12).
 func _input(event: InputEvent) -> void:
 	if _input_suppressed:
 		return
 	if event is InputEventKey:
 		if not event.pressed:
-			# Clear cursor key-repeat when the held direction key is released.
-			_input_handler.note_key_released(event)
+			# Clear cursor repeat when the held direction key is released.
+			_input_handler.note_released(event)
 			# Release the hover-peek when its hold key comes up.
 			if event.is_action_released("peek_range"):
 				_end_peek()
@@ -369,8 +404,10 @@ func _input(event: InputEvent) -> void:
 				_on_danger_zone_press()
 			elif event.is_action_pressed("peek_range"):
 				_begin_peek()
-		elif event.is_action_released("peek_range"):
-			_end_peek()
+		else:
+			_input_handler.note_released(event)
+			if event.is_action_released("peek_range"):
+				_end_peek()
 
 
 # [TUR-3] The single danger-zone resolver — MMB / show_danger_zone (and, later,
@@ -1748,6 +1785,7 @@ func _open_unit_details() -> void:
 		return
 	_input_suppressed = true
 	_input_handler.clear_repeat()
+	_clear_zoom_repeat()
 	unit_details.open(unit)
 	# Consume the triggering press so UnitDetailsScreen._unhandled_input doesn't
 	# treat the same inspect_unit keystroke as a close.
@@ -1766,6 +1804,7 @@ func _on_unit_details_closed() -> void:
 func lock() -> void:
 	_state = State.LOCKED
 	_input_handler.clear_repeat()
+	_clear_zoom_repeat()
 	# Clear the danger-overlay paint when input is suppressed (map menu, enemy
 	# phase) so a stale threat area isn't shown after enemies move; the watch-set
 	# and mode are retained and repainted on return to FREE.
@@ -1782,6 +1821,7 @@ func unlock() -> void:
 # from a clean state instead of inheriting a half-open menu or moved unit.
 func cancel_transient_control_for_handoff() -> void:
 	_input_handler.clear_repeat()
+	_clear_zoom_repeat()
 	_awaiting_end_turn_confirm = false
 	_context_menu_anchor.clear()
 	_hide_if_visible(action_menu)
@@ -1851,6 +1891,42 @@ func _apply_zoom_reset() -> void:
 	var idx: int = _camera_ctrl.reset_zoom(current_tile, _camera_edge_buffer())
 	_persist_zoom_index(idx)
 	_reposition_context_menu_anchor()
+
+
+func _arm_zoom_repeat(direction: int) -> void:
+	if direction == 0:
+		_clear_zoom_repeat()
+		return
+	_zoom_held_direction = direction
+	_zoom_held_timer = ZOOM_REPEAT_DELAY
+
+
+func _clear_zoom_repeat() -> void:
+	_zoom_held_direction = 0
+	_zoom_held_timer = 0.0
+
+
+func _poll_held_zoom(delta: float) -> int:
+	var zoom_in_strength := Input.get_action_strength("zoom_in")
+	var zoom_out_strength := Input.get_action_strength("zoom_out")
+	var strength: float = maxf(zoom_in_strength, zoom_out_strength)
+	if strength <= 0.0:
+		_clear_zoom_repeat()
+		return 0
+	var direction := 1 if zoom_in_strength >= zoom_out_strength else -1
+	if direction != _zoom_held_direction:
+		_arm_zoom_repeat(direction)
+		return direction
+	_zoom_held_timer -= delta
+	if _zoom_held_timer <= 0.0:
+		_zoom_held_timer = _zoom_repeat_rate(strength)
+		return _zoom_held_direction
+	return 0
+
+
+func _zoom_repeat_rate(strength: float) -> float:
+	var t: float = clampf(strength, 0.0, 1.0)
+	return lerpf(ZOOM_REPEAT_RATE_SLOW, ZOOM_REPEAT_RATE_FAST, t)
 
 
 # Writes the chosen zoom index back to SettingsManager so it survives map changes

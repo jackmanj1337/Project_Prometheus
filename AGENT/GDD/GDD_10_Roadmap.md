@@ -71,7 +71,7 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B6-INPUT` | Controller map-cursor pass | Slice 1 bindings/menu parity landed; next is the device-agnostic map-cursor decoder, left-stick repeat, and held trigger zoom. |
+| 1 | `B6-INPUT` | Input-mode seam / live controller validation | Bindings/menu parity and the headless map-cursor decoder landed; remaining controller feel, deadzones, device mapping, and visual comfort are in the v0.3.0 playtest checklist, while the input-mode/focus seam remains the next code slice if controller polish continues. |
 
 ## Validation And Release Queues
 
@@ -81,6 +81,7 @@ lost during foundation work.
 | Track ID | Queue | Action |
 |---|---|---|
 | `VAL-V023-DISPLAY` | Validation | v0.2.7 rerun returned 2026-07-05: §1.1/§1.5 pass, §1.3/§1.4/§1.6 failed → diagnosed `V027-01..05` and the fix pass landed same day (Q1-Q6, triage `playtest_v0.2.7_results_triage_plan_2026-07-05.md`). Cut the **v0.2.8** rerun of §1.3/§1.4/§1.6 only. |
+| `VAL-V030-GAMEPAD` | Validation | Run the v0.3.0 gamepad live checklist: real controller mapping, stick deadzone/repeat feel, held-trigger zoom feel, menu focus comfort, Steam Deck/Windows pad sanity, and screenshots/notes for any visual overlap. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |

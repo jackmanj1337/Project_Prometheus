@@ -120,6 +120,63 @@ func _init() -> void:
 		print("FAIL unlock(): _state=%d" % c1._state)
 		failed += 1
 
+	# ---- B6-INPUT: d-pad event + polled stick movement drive the live cursor ----
+	var c_pad := _make_cursor(TurnManager.new())
+	var dpad_right := InputEventJoypadButton.new()
+	dpad_right.button_index = JOY_BUTTON_DPAD_RIGHT
+	dpad_right.pressed = true
+	c_pad._unhandled_input(dpad_right)
+	var dpad_moved := c_pad.current_tile == Vector2i(1, 0)
+	Input.action_press("cursor_down", 1.0)
+	c_pad._process(0.01)
+	var stick_first := c_pad.current_tile == Vector2i(1, 1)
+	c_pad._process(0.20)
+	var stick_waited := c_pad.current_tile == Vector2i(1, 1)
+	c_pad._process(0.10)
+	var stick_repeated := c_pad.current_tile == Vector2i(1, 2)
+	Input.action_release("cursor_down")
+	c_pad._process(0.01)
+	var stick_cleared := c_pad._input_handler._held_dir == Vector2i.ZERO
+	if dpad_moved and stick_first and stick_waited and stick_repeated and stick_cleared:
+		print("OK  gamepad d-pad and polled stick move cursor with repeat")
+		passed += 1
+	else:
+		print("FAIL gamepad cursor move: dpad=%s first=%s waited=%s repeated=%s cleared=%s tile=%s held=%s" % [
+			dpad_moved, stick_first, stick_waited, stick_repeated, stick_cleared,
+			str(c_pad.current_tile), str(c_pad._input_handler._held_dir)])
+		failed += 1
+
+	# ---- B6-INPUT: held zoom action repeats and trigger strength affects cadence ----
+	var c_zoom := _make_cursor(TurnManager.new())
+	c_zoom._camera_ctrl.set_zoom_index_silent(c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX)
+	Input.action_press("zoom_in", 1.0)
+	c_zoom._process(0.01)
+	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
+	c_zoom._process(0.20)
+	var zoom_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
+	c_zoom._process(0.10)
+	var zoom_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 2
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	var zoom_cleared := c_zoom._zoom_held_direction == 0
+	var strength_scales := c_zoom._zoom_repeat_rate(1.0) < c_zoom._zoom_repeat_rate(0.4)
+	var echo_zoom := InputEventKey.new()
+	echo_zoom.keycode = 61  # "=" / zoom_in
+	echo_zoom.pressed = true
+	echo_zoom.echo = true
+	var idx_before_echo: int = c_zoom._camera_ctrl.get_zoom_index()
+	c_zoom._unhandled_input(echo_zoom)
+	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
+	if zoom_first and zoom_waited and zoom_repeated and zoom_cleared and strength_scales \
+			and echo_ignored:
+		print("OK  held zoom repeats, scales by strength, and ignores key echo")
+		passed += 1
+	else:
+		print("FAIL held zoom: first=%s waited=%s repeated=%s cleared=%s scales=%s echo=%s idx=%d dir=%d" % [
+			zoom_first, zoom_waited, zoom_repeated, zoom_cleared, strength_scales, echo_ignored,
+			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
+		failed += 1
+
 	# ---- cancel_transient_control_for_handoff backs out an uncommitted move ----
 	var t_cleanup := TurnManager.new()
 	root.add_child(t_cleanup)
