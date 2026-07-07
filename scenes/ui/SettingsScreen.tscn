@@ -160,6 +160,18 @@ text = "Level-Up Screen"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxInputMode" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxInputMode"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Input Mode"
+
+[node name="OptInputMode" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxInputMode"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HBoxMouseCursor" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 

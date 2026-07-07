@@ -102,6 +102,16 @@ const _ENUM_SETTINGS: Array = [
 		"labels": ["Show", "Auto", "Skip"],
 	},
 	{
+		# B6-INPUT input-mode/focus seam: the active input scheme. "availability" marks
+		# this row for the gray-state pass — modes unsupported on the current platform
+		# (e.g. Touch on desktop) are shown DISABLED, not hidden, so the vocabulary stays
+		# visible/self-documenting while the engine's resolver still falls back at runtime.
+		"key": "input_mode", "node": "HBoxInputMode/OptInputMode",
+		"values": ["auto", "gamepad", "touch", "mouse_keyboard"],
+		"labels": ["Auto", "Gamepad", "Touch", "Mouse & Keyboard"],
+		"availability": true,
+	},
+	{
 		"key": "mouse_cursor", "node": "HBoxMouseCursor/OptMouseCursor",
 		"values": ["follow", "click", "disabled"],
 		"labels": ["Follow", "Click", "Off"],
@@ -148,6 +158,10 @@ func _ready() -> void:
 		# bind() partials the schema row into the handler so we have one
 		# generic _on_enum_setting_changed instead of seven hand-rolled ones.
 		btn.item_selected.connect(_on_enum_setting_changed.bind(s))
+		# Gray-state rows (B6-INPUT input_mode): disable the items whose value is not
+		# available on this platform instead of hiding the whole row.
+		if s.get("availability", false):
+			_apply_mode_availability(btn, s)
 		if s.get("hidden", false):
 			btn.visible = false
 		# Confirm-gated rows are the DisplayServer ones (window mode / resolution);
@@ -460,6 +474,21 @@ func _refresh_applied_size() -> void:
 		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
 	else:
 		_label_resolution_applied.text = ""
+
+
+# B6-INPUT gray-state selector: reads InputModeManager.available_modes() (a
+# platform-availability dict keyed by mode value) and disables the dropdown items
+# whose value is unsupported here. Auto/Gamepad/Mouse&Keyboard stay live on desktop;
+# Touch shows disabled (visible but unselectable). InputModeManager's resolver still
+# falls back at runtime if a saved value is unavailable, so a stale saved mode is safe.
+func _apply_mode_availability(btn: OptionButton, schema_row: Dictionary) -> void:
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm == null:
+		return
+	var available: Dictionary = imm.call("available_modes")
+	var values: Array = schema_row["values"]
+	for i in values.size():
+		btn.set_item_disabled(i, not bool(available.get(String(values[i]), true)))
 
 
 func _set_resolution_row_enabled(enabled: bool) -> void:

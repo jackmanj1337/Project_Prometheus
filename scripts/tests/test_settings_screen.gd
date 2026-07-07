@@ -61,6 +61,7 @@ func _init() -> void:
 		"Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed/OptMovementSpeed",
 		"Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner/OptPhaseBanner",
 		"Panel/ScrollContainer/Margin/VBox/HBoxLevelUp/OptLevelUpScreen",
+		"Panel/ScrollContainer/Margin/VBox/HBoxInputMode/OptInputMode",
 		"Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor/OptMouseCursor",
 		"Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
 		"Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/SliderCameraBuffer",
@@ -488,6 +489,45 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP V027-05c gray-out (SettingsManager autoload absent)")
+
+	# ---- B6-INPUT: input-mode gray-state selector ----
+	# The Input Mode dropdown lists every mode; ones unsupported on this platform are
+	# DISABLED (visible, unselectable), not hidden. Headless runs as a non-mobile
+	# desktop build, so Touch must be disabled while Auto/Gamepad/Mouse&Keyboard stay
+	# live. The saved value still round-trips through open().
+	var imm := root.get_node_or_null("InputModeManager")
+	var sm_mode := root.get_node_or_null("SettingsManager")
+	if imm != null and sm_mode != null:
+		var opt_mode: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxInputMode/OptInputMode")
+		var available: Dictionary = imm.call("available_modes")
+		var mode_values := ["auto", "gamepad", "touch", "mouse_keyboard"]
+		var items_ok: bool = opt_mode != null and opt_mode.item_count == mode_values.size()
+		var disable_ok := true
+		if items_ok:
+			for i in mode_values.size():
+				var want_disabled: bool = not bool(available.get(mode_values[i], true))
+				if opt_mode.is_item_disabled(i) != want_disabled:
+					disable_ok = false
+			# Touch is unavailable on a desktop/headless build → must be disabled.
+			if not opt_mode.is_item_disabled(mode_values.find("touch")):
+				disable_ok = false
+		var prev_mode_val: String = String(sm_mode.get("input_mode"))
+		sm_mode.set("input_mode", "gamepad")
+		screen.open()
+		var roundtrip_ok: bool = opt_mode != null \
+			and opt_mode.selected == mode_values.find("gamepad")
+		sm_mode.set("input_mode", prev_mode_val)
+		screen._on_back()
+		if items_ok and disable_ok and roundtrip_ok:
+			print("OK  B6-INPUT input-mode selector grays unsupported modes, round-trips value")
+			passed += 1
+		else:
+			print("FAIL input-mode selector: items=%s disable=%s roundtrip=%s" % [
+				items_ok, disable_ok, roundtrip_ok])
+			failed += 1
+	else:
+		print("SKIP input-mode selector (InputModeManager/SettingsManager absent)")
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

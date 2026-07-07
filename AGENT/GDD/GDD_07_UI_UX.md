@@ -822,13 +822,21 @@ discards pending edits, and **Reset Controls** is always visible.
 hand-editable strings (`Z`, `Mouse1`, `JoyA`, `JoyAxis5+`). Old `Object(InputEvent...)`
 cfg blobs migrate into that profile shape.
 
+The **Input Mode** dropdown (`input_mode`, default `auto`) exposes the fixed
+vocabulary `auto`, `gamepad`, `touch`, `mouse_keyboard` (enforced by DOC-011
+`check_docs.py`). It is a **gray-state selector**: modes unsupported on the current
+platform (e.g. `touch` on desktop) are shown **disabled**, not hidden, so the
+vocabulary stays visible and self-documenting. The chosen value is the persisted
+preference; `InputModeManager` resolves the runtime `active_input_mode`, emits
+`input_mode_changed`, and still falls back at runtime if a saved value is
+unavailable — so a stale saved mode is safe. Availability comes from
+`InputModeManager.available_modes()` via `SettingsScreen._apply_mode_availability`.
+
 #### Hidden / not yet implemented
 
-- **Input Mode** (`input_mode`, default `auto`) — fixed vocabulary:
-  `auto`, `gamepad`, `touch`, `mouse_keyboard` (enforced by DOC-011
-  `check_docs.py`). This is the persisted preference; `InputModeManager` resolves
-  the runtime `active_input_mode` and emits `input_mode_changed`. The Settings selector
-  and focus-grab subscribers are later `B6-INPUT` slices.
+- **Focus-grab subscribers** — modal/menu surfaces subscribing to
+  `input_mode_changed` (grab a default focus on switch to gamepad, drop stale focus
+  highlight on switch away) are a later `B6-INPUT` slice.
 - **Touch Controls** (`touch_controls`, default `dedicated`) — fixed vocabulary:
   `dedicated`, `virtual_gamepad` (enforced by DOC-011 `check_docs.py`). Until
   the dedicated touch layer ships, the resolver can still fall back to the virtual

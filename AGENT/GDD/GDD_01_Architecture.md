@@ -603,10 +603,11 @@ static func resolve_input_mode(setting: String, last_detected: String,
     # detect-floor when an explicit mode is unavailable.
 ```
 
-`input_mode_changed` emits only on real active-mode changes. Focus-grab subscribers,
-prompt swapping, and the Settings gray-state selector attach to this signal in later
-`B6-INPUT` slices; the resolver itself is headless-tested in
-`test_input_mode_manager.gd`.
+`input_mode_changed` emits only on real active-mode changes. The Settings gray-state
+input-mode selector reads `available_modes()` to disable unsupported modes without
+hiding them (`SettingsScreen._apply_mode_availability`). Focus-grab subscribers and
+prompt swapping attach to this signal in later `B6-INPUT` slices; the resolver itself
+is headless-tested in `test_input_mode_manager.gd`.
 
 ### `DataManager.gd`
 
