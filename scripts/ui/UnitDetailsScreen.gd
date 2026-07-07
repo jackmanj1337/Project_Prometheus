@@ -21,6 +21,7 @@ const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
 const StatContributions = preload("res://scripts/shared/StatContributions.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
 # net debuff is currently lowering below its base+class value.
@@ -369,8 +370,16 @@ func _display_track_name(track: String) -> String:
 func _reset_info_panel() -> void:
 	_info_title.text = "More Info"
 	_info_hint.visible = true
+	_info_hint.text = InputDisplay.more_info_hint(self, "entry")
 	_info_desc.text = ""
 	_info_mods.text = ""
+
+
+# ModalScreen hook: re-render the More Info hint's key/glyph on an input-scheme
+# switch. Only meaningful while the hint is showing (nothing selected).
+func _refresh_input_prompts(_mode: String) -> void:
+	if _info_hint.visible:
+		_info_hint.text = InputDisplay.more_info_hint(self, "entry")
 
 
 # RichTextLabel.meta_clicked passes the [url=...] meta value. We expect

@@ -27,8 +27,32 @@ func _ready() -> void:
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_leveled_up.connect(_on_unit_leveled_up)
+	# Prompt/glyph swapping (B6-INPUT): re-render the "press X to continue" prompt
+	# when the input scheme changes while the screen is up.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
 	_apply_menu_scale_from_settings()
 	hide()
+
+
+func _on_input_mode_changed(_mode: String) -> void:
+	if visible:
+		_update_confirm_prompt()
+
+
+# Renders the dismissal prompt for the active input scheme: blank in auto mode,
+# else "Press <key/glyph> to continue" using the live confirm binding (keyboard key
+# or brand-correct pad label). Falls back to the word "confirm" if nothing is bound.
+func _update_confirm_prompt() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.level_up_screen == "auto":
+		_label_prompt.text = ""
+		return
+	var confirm_label: String = InputDisplay.live_action_prompt("confirm", self)
+	if confirm_label == "":
+		confirm_label = "confirm"
+	_label_prompt.text = "Press %s to continue" % confirm_label
 
 
 func apply_menu_scale(factor: float) -> void:
@@ -90,12 +114,9 @@ func _show_next() -> void:
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
-	# Show the real confirm keybinding rather than a hardcoded "A" (#13). Falls
-	# back to "confirm" if no key is bound (e.g. only a mouse button).
-	var confirm_key: String = InputDisplay.first_key_for_action("confirm")
-	if confirm_key == "":
-		confirm_key = "confirm"
-	_label_prompt.text = "" if is_auto else "Press %s to continue" % confirm_key
+	# Show the real confirm binding rather than a hardcoded "A" (#13), following the
+	# active input scheme (keyboard key or brand-correct pad glyph, B6-INPUT).
+	_update_confirm_prompt()
 	# Show first so the panel and its labels lay out, THEN scale/recenter (deferred).
 	show()
 	_apply_menu_scale_from_settings()

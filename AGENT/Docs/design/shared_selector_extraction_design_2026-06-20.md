@@ -18,7 +18,19 @@ Last verified: 2026-07-01
 # Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20
 
 Status: Target design
-Last verified: 2026-06-20
+Last verified: 2026-07-07
+
+> **Implementation status (2026-07-07).** **Component 1 (`SelectionCursor`) is fully
+> adopted** across all three More-Info surfaces: `UnitDetailsScreen` (2-D grid, landed
+> earlier), and now `AttackPreview` (1-D forward cycle) and the `HUD` terrain pager
+> (`has_inactive` = the -1 Hidden stop). Component 3's single joypad attach point exists
+> (the `cursor_*` / `more_info` / `confirm` / `cancel` actions carry pad bindings, and the
+> gamepad prompt labels swap by brand via `InputDisplay`). **Component 2's full "Rebuild C"
+> input-context owner/stack is NOT done** — exclusivity still rests on the existing
+> `MapCursor._input_suppressed` bool + per-surface `set_input_as_handled()` discipline and
+> the `HUD._higher_priority_more_info_visible()` arbiter check. Rebuilding that into a first-
+> class input-context owner (so the custom menus can drop `_move_focus` for native `ui_*`)
+> remains open and is non-blocking for the v0.3.0 build.
 
 Coupled work:
 - `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` (this is the single

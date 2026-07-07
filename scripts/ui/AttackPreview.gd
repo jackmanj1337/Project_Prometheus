@@ -17,6 +17,7 @@ extends Control
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
@@ -127,7 +128,20 @@ func _ready() -> void:
 	for label in _all_selectable_labels():
 		label.meta_clicked.connect(_on_entry_clicked)
 	_selector.changed.connect(_on_selector_changed)
+	# Prompt/glyph swapping (B6-INPUT): re-render the More Info hint when the input
+	# scheme changes. AttackPreview is not a ModalScreen, so it subscribes directly.
+	# Guarded so headless scenes without the autoload stay inert.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
 	hide()
+
+
+func _on_input_mode_changed(_mode: String) -> void:
+	# Only refresh while the hint is showing (nothing selected); a selected entry
+	# shows a description, not a control prompt.
+	if visible and _info_hint.visible:
+		_info_hint.text = InputDisplay.more_info_hint(self, "value")
 
 
 func show_preview(attacker: Node, defender: Node) -> void:
@@ -326,6 +340,7 @@ func _effective_link(side: String, is_effective: bool, mult: float) -> String:
 func _reset_info_panel() -> void:
 	_info_title.text = "More Info"
 	_info_hint.visible = true
+	_info_hint.text = InputDisplay.more_info_hint(self, "value")
 	_info_desc.text = ""
 
 

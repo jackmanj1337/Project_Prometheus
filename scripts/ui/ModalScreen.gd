@@ -55,6 +55,15 @@ func _on_input_mode_changed(mode: String) -> void:
 			_grab_default_focus()
 		"touch":
 			_release_stale_focus()
+	# Prompt/glyph swapping (B6-INPUT): runs for EVERY mode so a modal showing a
+	# "press F / press X" hint re-renders it for the new scheme. Default is a no-op.
+	_refresh_input_prompts(mode)
+
+
+# Virtual: re-render any on-screen input prompts (key labels / pad glyphs) for `mode`.
+# Overridden by modals that print a control hint; the base has none.
+func _refresh_input_prompts(_mode: String) -> void:
+	pass
 
 
 # Virtual: the control that should receive focus when a gamepad becomes active while

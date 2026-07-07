@@ -13,6 +13,7 @@ extends Control
 const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
 const TileActions     = preload("res://scripts/shared/TileActions.gd")
 const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay    = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -101,6 +102,12 @@ func _ready() -> void:
 	# has_inactive=true makes -1 a real stop in the cycle (matching the old int wrap).
 	_terrain_pager.configure(TERRAIN_PAGE_COUNT, 1, true, true)
 	_terrain_pager.changed.connect(_on_terrain_page_changed)
+	# Prompt/glyph swapping (B6-INPUT): re-render the compact terrain "press F / press X"
+	# hint when the input scheme changes. Guarded so headless scenes stay inert.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
+	_refresh_terrain_hint()
 	_unit_panel.hide()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -534,6 +541,16 @@ func _on_terrain_page_changed(index: int) -> void:
 	_terrain_more_page = index
 	if _cursor_tile.x >= 0:
 		_update_terrain(_cursor_tile)
+
+
+# Re-render the compact terrain hint's key/glyph for the active input scheme.
+func _on_input_mode_changed(_mode: String) -> void:
+	_refresh_terrain_hint()
+
+
+func _refresh_terrain_hint() -> void:
+	if _terrain_hint != null:
+		_terrain_hint.text = InputDisplay.more_info_hint(self, "")
 
 
 func terrain_corner_contains_screen_position(screen_pos: Vector2) -> bool:

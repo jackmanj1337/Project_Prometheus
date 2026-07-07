@@ -81,6 +81,18 @@ banner as `hotseat-all` while active.
 > equivalents drive menus exactly as they drive the map cursor. Saved bindings use
 > per-device slots (`kbd`, `pad`), so rebinding one device class preserves the other.
 
+> **On-screen prompts follow the active scheme (B6-INPUT prompt swapping).** Player-facing
+> control hints — the level-up "Press _X_ to continue" line and the More Info hints on the
+> combat forecast, character sheet, and compact terrain panel — render the binding for the
+> **active input mode** (`InputModeManager.active_input_mode`) and re-render live when the
+> scheme changes. In keyboard/touch modes they show the key (or a tap verb); in gamepad mode
+> they show the **brand-correct pad label**. Because SDL normalizes button _position_
+> (`JOY_BUTTON_A` = physical bottom on every pad), the bindings are brand-correct with no
+> per-brand code; only the printed label differs — Nintendo swaps the A/B and X/Y positions
+> vs Xbox, PlayStation prints ✕ ○ □ △. Brand is classified heuristically from
+> `Input.get_joy_name()` (Godot has no native controller-type API), so a wrong guess is
+> cosmetic, never a mis-input. `InputDisplay` owns the mode/brand-aware prompt helpers.
+
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
 - **Right Click:** Same as pressing `cancel`
@@ -583,6 +595,11 @@ the modal centered while overflow content remains reachable at large factors (V0
   moving down past the last content row focuses `Back`, and `confirm` closes the sheet.
   This keeps Back reachable by keyboard/gamepad even though the sheet consumes cursor
   directions before Godot focus navigation.
+- all three More-Info surfaces route navigation through this one `SelectionCursor` core
+  (B6-INPUT selector adoption): the character sheet (2-D grid), the combat forecast
+  (`AttackPreview`, 1-D forward cycle), and the terrain pager (`HUD`, with the -1 = Hidden
+  inactive stop). One core = one place the gamepad d-pad wiring attaches. Pure refactor —
+  navigation behaviour on each surface is unchanged.
 - stat entries show authored description text plus the full stat breakdown
 - inventory **weapon** entries show their full stat block in the side panel —
   Mt/Hit/Crit, Wt, range (resolved against the inspected unit), required rank +
