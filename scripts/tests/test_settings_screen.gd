@@ -1,8 +1,30 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_settings_screen.gd
 # Verifies SettingsScreen.tscn instantiates, the nodes its script's @onready vars
-# expect resolve, the opaque Dimmer exists (#1), and the read-only keybinding
-# list is populated from the InputMap (#8).
+# expect resolve, the opaque Dimmer exists (#1), and the keybinding list/capture
+# flow is wired to staged SettingsManager changes.
+
+
+func _row_label_text(row: Node) -> String:
+	if row == null or row.get_child_count() == 0:
+		return ""
+	var label := row.get_child(0) as Label
+	return label.text if label != null else ""
+
+
+func _has_key(action: String, keycode: int) -> bool:
+	if not InputMap.has_action(action):
+		return false
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey and ev.keycode == keycode:
+			return true
+	return false
+
+
+func _restore_action_events(action: String, events: Array[InputEvent]) -> void:
+	InputMap.action_erase_events(action)
+	for ev in events:
+		InputMap.action_add_event(action, ev)
 
 func _init() -> void:
 	print("=== SettingsScreen Test ===")
@@ -154,11 +176,9 @@ func _init() -> void:
 		var has_force_levelup_row := false
 		var has_growth_boost_row := false
 		for row in list.get_children():
-			# Each row is HBoxContainer( name_label, key_label ); read the first
-			# child's text to find the debug entries by their display label.
-			if row.get_child_count() == 0:
-				continue
-			var label_text: String = String(row.get_child(0).get("text"))
+			# Each row is HBoxContainer( name_label, key_label, optional controls );
+			# read the first child's text to find debug entries by display label.
+			var label_text: String = _row_label_text(row)
 			if label_text == "Debug: Force Level Up":
 				has_force_levelup_row = true
 			elif label_text == "Debug: Growth Boost":
@@ -172,13 +192,125 @@ func _init() -> void:
 		# V026-01c: the F9 hotseat override must be listed with the other debug rows.
 		var has_hotseat_row := false
 		for row in list.get_children():
-			if row.get_child_count() > 0 \
-					and String(row.get_child(0).get("text")) == "Debug: Hotseat All Factions":
+			if _row_label_text(row) == "Debug: Hotseat All Factions":
 				has_hotseat_row = true
 		if has_hotseat_row:
 			print("OK  V026-01c hotseat debug keybinding row present"); passed += 1
 		else:
 			print("FAIL V026-01c hotseat debug keybinding row missing"); failed += 1
+
+		var debug_rows_read_only: bool = screen._keybind_rows.has("debug_toggle_force_levelup") \
+			and screen._keybind_rows["debug_toggle_force_levelup"]["rebind"] == null \
+			and screen._keybind_rows["debug_toggle_growth_boost"]["rebind"] == null \
+			and screen._keybind_rows["debug_toggle_hotseat_override"]["rebind"] == null
+		if debug_rows_read_only:
+			print("OK  debug keybinding rows stay read-only"); passed += 1
+		else:
+			print("FAIL debug keybinding rows exposed edit controls"); failed += 1
+
+	# ---- B6-INPUT rebind UI slice: staged K&M capture + conflict flow ----
+	var sm_bind := root.get_node_or_null("SettingsManager")
+	if sm_bind != null and list != null:
+		var saved_confirm: Array[InputEvent] = []
+		for ev in InputMap.action_get_events("confirm"):
+			saved_confirm.append(ev)
+		var saved_cancel: Array[InputEvent] = []
+		for ev in InputMap.action_get_events("cancel"):
+			saved_cancel.append(ev)
+		screen._reset_keybindings_to_defaults()
+		var confirm_info: Dictionary = screen._keybind_rows["confirm"]
+		var confirm_rebind: Button = confirm_info["rebind"]
+		var apply_btn: Button = screen._btn_apply_keybindings
+		var revert_btn: Button = screen._btn_revert_keybindings
+
+		confirm_rebind.pressed.emit()
+		var capture_started: bool = screen._capturing_action == "confirm" \
+			and confirm_rebind.text == "Press key..."
+		var ev_y := InputEventKey.new()
+		ev_y.keycode = KEY_Y
+		ev_y.pressed = true
+		screen._input(ev_y)
+		var staged_not_live: bool = screen._pending_keybindings.has("confirm") \
+			and not _has_key("confirm", KEY_Y) \
+			and apply_btn.disabled == false
+		revert_btn.pressed.emit()
+		apply_btn = screen._btn_apply_keybindings
+		var reverted: bool = screen._pending_keybindings.is_empty() \
+			and not _has_key("confirm", KEY_Y) \
+			and apply_btn.disabled
+		if capture_started and staged_not_live and reverted:
+			print("OK  rebind capture stages pending key without touching live InputMap")
+			passed += 1
+		else:
+			print("FAIL staged capture: started=%s staged=%s reverted=%s" % [
+				capture_started, staged_not_live, reverted]); failed += 1
+
+		confirm_rebind = screen._keybind_rows["confirm"]["rebind"]
+		apply_btn = screen._btn_apply_keybindings
+		confirm_rebind.pressed.emit()
+		var ev_x := InputEventKey.new()
+		ev_x.keycode = KEY_X
+		ev_x.pressed = true
+		screen._input(ev_x)
+		var cancel_info: Dictionary = screen._keybind_rows["cancel"]
+		var conflict_rows_red: bool = screen._keybind_conflicts.has("confirm") \
+			and screen._keybind_conflicts.has("cancel") \
+			and (screen._keybind_rows["confirm"]["row"] as HBoxContainer).modulate \
+				== screen._KEYBIND_CONFLICT_COLOR \
+			and (cancel_info["row"] as HBoxContainer).modulate \
+				== screen._KEYBIND_CONFLICT_COLOR
+		var conflict_blocks_apply: bool = apply_btn.disabled \
+			and (screen._keybind_rows["confirm"]["clear"] as Button).visible \
+			and (cancel_info["clear"] as Button).visible
+		if conflict_rows_red and conflict_blocks_apply:
+			print("OK  conflicting staged key marks both rows and disables Apply")
+			passed += 1
+		else:
+			print("FAIL conflict state: rows=%s apply=%s" % [
+				conflict_rows_red, conflict_blocks_apply]); failed += 1
+
+		var cancel_clear: Button = cancel_info["clear"]
+		cancel_clear.pressed.emit()
+		var cancel_label: Label = screen._keybind_rows["cancel"]["label"]
+		var clear_resolved: bool = screen._keybind_conflicts.is_empty() \
+			and not apply_btn.disabled \
+			and cancel_label.text.find("(unbound)") >= 0
+		apply_btn.pressed.emit()
+		var applied: bool = _has_key("confirm", KEY_X) \
+			and not _has_key("cancel", KEY_X) \
+			and screen._pending_keybindings.is_empty()
+		if clear_resolved and applied:
+			print("OK  Clear resolves conflict and Apply commits the pending batch")
+			passed += 1
+		else:
+			print("FAIL clear/apply: resolved=%s applied=%s" % [
+				clear_resolved, applied]); failed += 1
+
+		confirm_rebind = screen._keybind_rows["confirm"]["rebind"]
+		confirm_rebind.pressed.emit()
+		var ev_escape := InputEventKey.new()
+		ev_escape.keycode = KEY_ESCAPE
+		ev_escape.pressed = true
+		screen._input(ev_escape)
+		var escape_aborted: bool = screen._capturing_action == "" \
+			and screen._pending_keybindings.is_empty()
+		if escape_aborted:
+			print("OK  Esc aborts capture without staging a binding"); passed += 1
+		else:
+			print("FAIL Esc did not abort capture"); failed += 1
+
+		var reset_btn: Button = list.get_node("KeybindActions/BtnResetKeybindings")
+		reset_btn.pressed.emit()
+		var reset_ok: bool = _has_key("confirm", KEY_Z) and _has_key("cancel", KEY_X)
+		if reset_ok:
+			print("OK  Reset Controls restores default keybindings"); passed += 1
+		else:
+			print("FAIL Reset Controls did not restore defaults"); failed += 1
+		_restore_action_events("confirm", saved_confirm)
+		_restore_action_events("cancel", saved_cancel)
+		sm_bind.call("_mirror_game_keys_to_ui")
+	else:
+		print("SKIP keybind capture tests (SettingsManager/list absent)")
 
 	# V026-01b: a MarginContainer keeps the rows clear of the vertical scrollbar.
 	var margin := screen.get_node_or_null("Panel/ScrollContainer/Margin") as MarginContainer

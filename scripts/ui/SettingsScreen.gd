@@ -1,5 +1,5 @@
 extends "res://scripts/ui/ModalScreen.gd"
-# Settings screen: audio sliders, gameplay toggles, a read-only keybinding list,
+# Settings screen: audio sliders, gameplay toggles, an editable keybinding list,
 # and a back button. Reads values from SettingsManager on open(); writes back on
 # every change. A full-rect opaque Dimmer makes the screen modal (#1); the inner
 # content lives in a ScrollContainer so it never overflows the panel.
@@ -10,7 +10,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Enum settings (the seven OptionButtons) are driven by _ENUM_SETTINGS below
 # (B5 / 05-19 review §4). Adding a new enum setting is one schema row plus a
 # named OptionButton in the scene — no new @onready / connect / _on_*_changed
-# triplet per setting. Sliders and the read-only keybindings list stay hand-
+# triplet per setting. Sliders and the keybindings list stay hand-
 # wired because their shape (signal, label-update, value range) doesn't fit
 # the OptionButton template.
 #
@@ -31,6 +31,8 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 
 const _SETTINGS_LABEL_COLUMN_WIDTH: float = 340.0
 const _SETTINGS_ROW_SEPARATION: int = 8
+const _KEYBIND_SLOT_KBD := "kbd"
+const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 
 @onready var _scroll: ScrollContainer   = $Panel/ScrollContainer
 @onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/Margin/VBox
@@ -52,6 +54,13 @@ const _SETTINGS_ROW_SEPARATION: int = 8
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
 @onready var _btn_edit_hud: Button      = _vbox.get_node("BtnEditHudLayout")
 @onready var _btn_back: Button          = _vbox.get_node("BtnBack")
+
+var _pending_keybindings: Dictionary = {}
+var _keybind_rows: Dictionary = {}
+var _keybind_conflicts: Dictionary = {}
+var _capturing_action: String = ""
+var _btn_apply_keybindings: Button = null
+var _btn_revert_keybindings: Button = null
 
 # Data-driven schema for the OptionButton-style settings. Each row:
 #   key:    SettingsManager field name (used for both get/set)
@@ -228,9 +237,30 @@ func open() -> void:
 	# when a HUD exists (i.e. Settings opened via the in-map Map Menu, not the title).
 	_btn_edit_hud.disabled = get_tree().get_first_node_in_group("hud") == null
 	_refresh_applied_size()
+	_discard_pending_keybindings()
 	show()
 	_stabilize_settings_rows()
 	_btn_back.grab_focus()
+
+
+func _input(event: InputEvent) -> void:
+	if _capturing_action == "":
+		return
+	get_viewport().set_input_as_handled()
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_abort_keybind_capture()
+		return
+	if not _is_keyboard_mouse_event(event):
+		return
+	if not event.is_pressed():
+		return
+	var captured := event.duplicate()
+	if captured is InputEventKey:
+		captured.echo = false
+		captured.pressed = false
+	elif captured is InputEventMouseButton:
+		captured.pressed = false
+	_stage_keybind_event(_capturing_action, captured)
 
 
 # V023-01 covered the horizontal axis (stable row columns); rows above the Menu
@@ -579,40 +609,223 @@ const _DEBUG_KEYBIND_LABELS := {
 }
 
 
-# Builds the read-only binding rows from the live InputMap (#8). Each row is a
-# title label + the key/mouse/pad inputs bound to that action. Rebinding is deferred.
+# Builds the binding rows from the live InputMap (#8). Regular game actions are
+# editable for their keyboard/mouse slot; debug-only rows stay read-only.
 # Debug-only rows are appended in debug builds so they show right after the
 # regular bindings — release builds never render them.
 func _populate_keybindings() -> void:
 	for child in _keybind_list.get_children():
 		child.queue_free()
+	_keybind_rows = {}
 	for action in _KEYBIND_LABELS:
-		_add_keybind_row(action, _KEYBIND_LABELS[action])
+		_add_keybind_row(action, _KEYBIND_LABELS[action], true)
 	if OS.is_debug_build():
 		for action in _DEBUG_KEYBIND_LABELS:
-			_add_keybind_row(action, _DEBUG_KEYBIND_LABELS[action])
+			_add_keybind_row(action, _DEBUG_KEYBIND_LABELS[action], false)
+	_add_keybind_footer()
+	_refresh_keybind_rows()
 
 
 # Helper: builds one row in the keybinding list. Extracted so both the regular
 # and debug-only loops can reuse it. Silently skips actions not in InputMap.
-func _add_keybind_row(action: String, label: String) -> void:
+func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 	if not InputMap.has_action(action):
 		return
-	# InputDisplay renders modifiers and pad labels, so Shift+Tab and Pad A stay
-	# legible until the later glyph/rebind UI pass.
 	var row := HBoxContainer.new()
+	row.set_meta("keybind_action", action)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
 	name_label.text = label
 	name_label.custom_minimum_size = Vector2(200, 0)
 	var key_label := Label.new()
-	key_label.text = InputDisplay.bindings_for_action(action)
 	key_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	key_label.clip_text = true
 	key_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(name_label)
 	row.add_child(key_label)
+	var rebind_button: Button = null
+	var clear_button: Button = null
+	if editable:
+		rebind_button = Button.new()
+		rebind_button.name = "BtnRebind_%s" % action
+		rebind_button.text = "Rebind"
+		rebind_button.custom_minimum_size = Vector2(92, 0)
+		rebind_button.pressed.connect(func() -> void: _begin_keybind_capture(action))
+		row.add_child(rebind_button)
+		clear_button = Button.new()
+		clear_button.name = "BtnClear_%s" % action
+		clear_button.text = "Clear"
+		clear_button.custom_minimum_size = Vector2(72, 0)
+		clear_button.pressed.connect(func() -> void: _clear_pending_keybind(action))
+		row.add_child(clear_button)
+	_keybind_rows[action] = {
+		"row": row,
+		"label": key_label,
+		"rebind": rebind_button,
+		"clear": clear_button,
+		"editable": editable,
+	}
 	_keybind_list.add_child(row)
+
+
+func _add_keybind_footer() -> void:
+	var row := HBoxContainer.new()
+	row.name = "KeybindActions"
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	_btn_apply_keybindings = Button.new()
+	_btn_apply_keybindings.name = "BtnApplyKeybindings"
+	_btn_apply_keybindings.text = "Apply"
+	_btn_apply_keybindings.pressed.connect(_apply_pending_keybindings)
+	row.add_child(_btn_apply_keybindings)
+	_btn_revert_keybindings = Button.new()
+	_btn_revert_keybindings.name = "BtnRevertKeybindings"
+	_btn_revert_keybindings.text = "Revert"
+	_btn_revert_keybindings.pressed.connect(_discard_pending_keybindings)
+	row.add_child(_btn_revert_keybindings)
+	var reset_button := Button.new()
+	reset_button.name = "BtnResetKeybindings"
+	reset_button.text = "Reset Controls"
+	reset_button.pressed.connect(_reset_keybindings_to_defaults)
+	row.add_child(reset_button)
+	_keybind_list.add_child(row)
+
+
+func _begin_keybind_capture(action: String) -> void:
+	if not _KEYBIND_LABELS.has(action):
+		return
+	_capturing_action = action
+	_refresh_keybind_rows()
+
+
+func _abort_keybind_capture() -> void:
+	_capturing_action = ""
+	_refresh_keybind_rows()
+
+
+func _stage_keybind_event(action: String, event: InputEvent) -> void:
+	_pending_keybindings[action] = {_KEYBIND_SLOT_KBD: event}
+	_capturing_action = ""
+	_refresh_keybind_rows()
+
+
+func _clear_pending_keybind(action: String) -> void:
+	_pending_keybindings[action] = {_KEYBIND_SLOT_KBD: ""}
+	_capturing_action = ""
+	_refresh_keybind_rows()
+
+
+func _apply_pending_keybindings() -> void:
+	if _pending_keybindings.is_empty() or not _keybind_conflicts.is_empty():
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.has_method("apply_keybindings"):
+		sm.call("apply_keybindings", _pending_keybindings)
+	_pending_keybindings.clear()
+	_capturing_action = ""
+	_populate_keybindings()
+
+
+func _discard_pending_keybindings() -> void:
+	_pending_keybindings.clear()
+	_capturing_action = ""
+	_populate_keybindings()
+
+
+func _reset_keybindings_to_defaults() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		sm.call("reset_section_to_defaults", "controls")
+	_pending_keybindings.clear()
+	_capturing_action = ""
+	_populate_keybindings()
+
+
+func _refresh_keybind_rows() -> void:
+	_recompute_keybind_conflicts()
+	for action in _keybind_rows:
+		var info: Dictionary = _keybind_rows[action]
+		var row: HBoxContainer = info["row"]
+		var label: Label = info["label"]
+		var rebind_button: Button = info["rebind"]
+		var clear_button: Button = info["clear"]
+		var conflict: bool = _keybind_conflicts.has(action)
+		label.text = _keybind_label_for_action(action)
+		row.modulate = _KEYBIND_CONFLICT_COLOR if conflict else Color.WHITE
+		if rebind_button != null:
+			rebind_button.text = "Press key..." if _capturing_action == action else "Rebind"
+		if clear_button != null:
+			clear_button.visible = conflict
+	if _btn_apply_keybindings != null:
+		_btn_apply_keybindings.disabled = _pending_keybindings.is_empty() \
+			or not _keybind_conflicts.is_empty()
+	if _btn_revert_keybindings != null:
+		_btn_revert_keybindings.disabled = _pending_keybindings.is_empty()
+
+
+func _recompute_keybind_conflicts() -> void:
+	_keybind_conflicts = {}
+	var seen := {}
+	for action in _KEYBIND_LABELS:
+		var event := _effective_kbd_event(action)
+		if event == null:
+			continue
+		var sig := _event_signature(event)
+		if sig == "":
+			continue
+		if not seen.has(sig):
+			seen[sig] = []
+		(seen[sig] as Array).append(action)
+	for sig in seen:
+		var actions: Array = seen[sig]
+		if actions.size() < 2:
+			continue
+		for action in actions:
+			_keybind_conflicts[action] = true
+
+
+func _keybind_label_for_action(action: String) -> String:
+	var labels: Array[String] = []
+	var kbd := _effective_kbd_event(action)
+	labels.append(InputDisplay.binding_to_string(kbd) if kbd != null else "(unbound)")
+	if InputMap.has_action(action):
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+				var pad_label := InputDisplay.binding_to_string(event)
+				if pad_label != "":
+					labels.append(pad_label)
+	return " / ".join(labels)
+
+
+func _effective_kbd_event(action: String) -> InputEvent:
+	if _pending_keybindings.has(action):
+		var slot_value: Variant = (_pending_keybindings[action] as Dictionary).get(
+			_KEYBIND_SLOT_KBD, null)
+		if slot_value is InputEvent:
+			return slot_value
+		return null
+	if not InputMap.has_action(action):
+		return null
+	for event in InputMap.action_get_events(action):
+		if _is_keyboard_mouse_event(event):
+			return event
+	return null
+
+
+func _is_keyboard_mouse_event(event: Variant) -> bool:
+	return event is InputEventKey or event is InputEventMouseButton
+
+
+func _event_signature(event: InputEvent) -> String:
+	if event is InputEventKey:
+		var code: int = event.keycode if event.keycode != 0 else event.physical_keycode
+		return "key:%d:%s:%s:%s:%s" % [
+			code, event.ctrl_pressed, event.shift_pressed, event.alt_pressed, event.meta_pressed]
+	if event is InputEventMouseButton:
+		return "mouse:%d" % event.button_index
+	return ""
 
 
 # The Settings screen scales live while the player drags Menu Scale. Keep row
