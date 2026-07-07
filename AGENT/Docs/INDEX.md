@@ -68,6 +68,7 @@
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_readability_open_questions_2026-06-21.md`](registers/map_readability_open_questions_2026-06-21.md) — Map-Readability Cluster (§4) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/map_sprite_importer_open_questions_2026-06-21.md`](registers/map_sprite_importer_open_questions_2026-06-21.md) — FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions — *OPEN*
+- [`registers/objectdb_leak_audit_2026-07-07.md`](registers/objectdb_leak_audit_2026-07-07.md) — ObjectDB Leaked-Instance Audit (2026-07-07) — *RESOLVED*
 - [`registers/package_a_rngservice_open_questions_2026-06-21.md`](registers/package_a_rngservice_open_questions_2026-06-21.md) — Package A (`RngService`) — Implementation Draft + Open Questions Register — *RESOLVED*
 - [`registers/parametric_unit_generation_open_questions_2026-07-03.md`](registers/parametric_unit_generation_open_questions_2026-07-03.md) — Parametric Unit Generation — Shared Generator, Skirmish Encounters, Editor Bake — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/perception_masking_open_questions_2026-06-27.md`](registers/perception_masking_open_questions_2026-06-27.md) — Perception / Masking — AI & Player Forecast Manipulation — Open Questions — *RESOLVED*
