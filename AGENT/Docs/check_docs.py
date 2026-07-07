@@ -29,6 +29,7 @@ Checks:
  21. Autoload order — project.godot satisfies the Band 1/2 cross-plan autoload contracts
  22. Danger vox   — GDD_07 documents every MapCursor.VALID_DANGER_MODES value ([TUR])
  23. F1 manifest  — save-schema manifest rows keep the locked B1-F1 shape
+ 24. Gamepad binds — B6-INPUT gameplay actions stay pad-bound; debug actions do not
 """
 
 import re
@@ -854,6 +855,103 @@ def check_danger_mode_vocabulary() -> None:
                   f"GDD_07 must document danger mode `{value}`")
 
 
+def _project_input_action_block(project_godot: Path, action: str) -> str | None:
+    try:
+        content = project_godot.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = re.search(rf"^{re.escape(action)}=\{{(.*?)^\}}", content, re.S | re.M)
+    return match.group(1) if match else None
+
+
+def _block_has_joy_button(block: str, button_index: int) -> bool:
+    pattern = rf"Object\(InputEventJoypadButton,[^\n]*\"button_index\":{button_index}\b"
+    return re.search(pattern, block) is not None
+
+
+def _block_has_joy_axis(block: str, axis: int, axis_value: float) -> bool:
+    pattern = (
+        rf"Object\(InputEventJoypadMotion,[^\n]*\"axis\":{axis}\b"
+        rf"[^\n]*\"axis_value\":{axis_value:.1f}\b"
+    )
+    return re.search(pattern, block) is not None
+
+
+def check_gamepad_bindings() -> None:
+    """B6-INPUT slice 1: normal gameplay actions are pad-bound; debug actions are not."""
+    project_godot = ROOT / "project.godot"
+    button_cases = {
+        "confirm": 0,
+        "cancel": 1,
+        "more_info": 2,
+        "inspect_unit": 3,
+        "peek_range": 4,
+        "open_menu": 6,
+        "zoom_reset": 7,
+        "show_danger_zone": 8,
+        "prev_unit": 9,
+        "next_unit": 10,
+        "cursor_up": 11,
+        "cursor_down": 12,
+        "cursor_left": 13,
+        "cursor_right": 14,
+    }
+    for action, button_index in button_cases.items():
+        block = _project_input_action_block(project_godot, action)
+        if block is None:
+            _fail("gamepad-bindings", project_godot, 1,
+                  f"missing input action `{action}`")
+            continue
+        if not _block_has_joy_button(block, button_index):
+            _fail("gamepad-bindings", project_godot, 1,
+                  f"`{action}` must include joypad button {button_index}")
+
+    axis_cases = [
+        ("cursor_up", 1, -1.0),
+        ("cursor_down", 1, 1.0),
+        ("cursor_left", 0, -1.0),
+        ("cursor_right", 0, 1.0),
+        ("zoom_out", 4, 1.0),
+        ("zoom_in", 5, 1.0),
+    ]
+    for action, axis, axis_value in axis_cases:
+        block = _project_input_action_block(project_godot, action)
+        if block is None:
+            _fail("gamepad-bindings", project_godot, 1,
+                  f"missing input action `{action}`")
+            continue
+        if not _block_has_joy_axis(block, axis, axis_value):
+            _fail("gamepad-bindings", project_godot, 1,
+                  f"`{action}` must include joypad axis {axis}/{axis_value:.1f}")
+
+    for action in (
+        "open_settings",
+        "debug_toggle_force_levelup",
+        "debug_toggle_growth_boost",
+        "debug_toggle_hotseat_override",
+    ):
+        block = _project_input_action_block(project_godot, action)
+        if block is not None and "InputEventJoypad" in block:
+            _fail("gamepad-bindings", project_godot, 1,
+                  f"`{action}` must stay without direct joypad bindings")
+
+    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    try:
+        gdd_content = gdd.read_text(encoding="utf-8")
+    except OSError:
+        _fail("gamepad-bindings", gdd, 1, "GDD_07_UI_UX.md not found")
+        return
+    for label in (
+        "Pad A", "Pad B", "Pad X", "Pad Y", "View", "Start", "L3", "R3",
+        "LB", "RB", "D-pad Up", "D-pad Down", "D-pad Left", "D-pad Right",
+        "Left Stick Up", "Left Stick Down", "Left Stick Left", "Left Stick Right",
+        "LT", "RT",
+    ):
+        if label not in gdd_content:
+            _fail("gamepad-bindings", gdd, 1,
+                  f"GDD_07 must document gamepad binding label `{label}`")
+
+
 def check_duration_type_vocabulary() -> None:
     """V021-09: GDD_07 must document every GameConstants.VALID_DURATION_TYPES value.
 
@@ -1034,6 +1132,7 @@ def main() -> None:
         ("[21] Autoload order",            check_autoload_order),
         ("[22] Danger-mode vocabulary",    check_danger_mode_vocabulary),
         ("[23] F1 save-schema manifest",   check_f1_manifest_shape),
+        ("[24] Gamepad bindings",          check_gamepad_bindings),
     ]
     for label, fn in steps:
         print(f"  {label}...")

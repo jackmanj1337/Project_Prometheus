@@ -568,8 +568,8 @@ const _DEBUG_KEYBIND_LABELS := {
 }
 
 
-# Builds the read-only keybinding rows from the live InputMap (#8). Each row is a
-# title label + the key(s) bound to that action. Rebinding is deferred to Phase 2.
+# Builds the read-only binding rows from the live InputMap (#8). Each row is a
+# title label + the key/mouse/pad inputs bound to that action. Rebinding is deferred.
 # Debug-only rows are appended in debug builds so they show right after the
 # regular bindings — release builds never render them.
 func _populate_keybindings() -> void:
@@ -587,14 +587,18 @@ func _populate_keybindings() -> void:
 func _add_keybind_row(action: String, label: String) -> void:
 	if not InputMap.has_action(action):
 		return
-	# InputDisplay renders modifiers, so Shift+Tab shows as "Shift+Tab" — the
-	# previous-unit binding is no longer indistinguishable from "Tab" (#3).
+	# InputDisplay renders modifiers and pad labels, so Shift+Tab and Pad A stay
+	# legible until the later glyph/rebind UI pass.
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var name_label := Label.new()
 	name_label.text = label
 	name_label.custom_minimum_size = Vector2(200, 0)
 	var key_label := Label.new()
-	key_label.text = InputDisplay.keys_for_action(action)
+	key_label.text = InputDisplay.bindings_for_action(action)
+	key_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	key_label.clip_text = true
+	key_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(name_label)
 	row.add_child(key_label)
 	_keybind_list.add_child(row)

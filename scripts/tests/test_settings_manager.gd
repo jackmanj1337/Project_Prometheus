@@ -22,6 +22,13 @@ func _has_key(action: String, keycode: int) -> bool:
 	return false
 
 
+func _has_joy_button(action: String, button_index: int) -> bool:
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and ev.button_index == button_index:
+			return true
+	return false
+
+
 func _init() -> void:
 	print("=== SettingsManager Test ===")
 	var passed := 0
@@ -77,11 +84,13 @@ func _init() -> void:
 	var has_new: bool = _has_key("ui_accept", KEY_Y)
 	var has_old: bool = _has_key("ui_accept", KEY_Z)
 	var has_engine: bool = _has_key("ui_accept", KEY_ENTER)
-	if has_new and not has_old and has_engine:
-		print("OK  2.9: rebind drops the old key from ui_accept and keeps Enter"); passed += 1
+	var has_confirm_pad: bool = _has_joy_button("confirm", JOY_BUTTON_A)
+	var has_ui_pad: bool = _has_joy_button("ui_accept", JOY_BUTTON_A)
+	if has_new and not has_old and has_engine and has_confirm_pad and has_ui_pad:
+		print("OK  2.9: rebind drops old key, keeps Enter, and preserves Pad A"); passed += 1
 	else:
-		print("FAIL 2.9 rebind mirror: new=%s old=%s engine=%s" % [
-			has_new, has_old, has_engine])
+		print("FAIL 2.9 rebind mirror: new=%s old=%s engine=%s pad=%s ui_pad=%s" % [
+			has_new, has_old, has_engine, has_confirm_pad, has_ui_pad])
 		failed += 1
 	# Restore the original confirm binding so subsequent tests see the same
 	# InputMap they started with.

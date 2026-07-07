@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-06
+**Last verified:** 2026-07-07
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -71,7 +71,7 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B6-INPUT` | Controller input pass | Restores the queued gamepad slice after the Band 1 suspend lifecycle. |
+| 1 | `B6-INPUT` | Controller map-cursor pass | Slice 1 bindings/menu parity landed; next is the device-agnostic map-cursor decoder, left-stick repeat, and held trigger zoom. |
 
 ## Validation And Release Queues
 

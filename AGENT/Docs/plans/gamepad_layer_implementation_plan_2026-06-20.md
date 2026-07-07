@@ -1,13 +1,13 @@
 ---
 Type: plan
 Status: Target design
-Last verified: 2026-07-05
+Last verified: 2026-07-07
 ---
 
 # Gamepad Input Layer — Implementation Plan — 2026-06-20
 
 Status: Target design
-Last verified: 2026-06-20
+Last verified: 2026-07-07
 
 Coupled work:
 - `AGENT/Docs/design/input_mode_architecture_design_2026-06-20.md` — this plan builds that
@@ -41,6 +41,7 @@ All 19 input-map actions, audited against every non-test `is_action_*` call site
 | `zoom_reset` | 0 | L3 (left-stick click) | Camera (low-frequency) |
 | `open_settings` | O | — (via Start → Settings) | Menu-only |
 | `show_danger_zone` | Q / MMB | R3 (right-stick click) | Contextual (see §4) |
+| `peek_range` | E | View / Back (hold) | Map primary (post-MRD addition) |
 | `debug_toggle_force_levelup` | F2 | — | Excluded (release blocker) |
 | `debug_toggle_growth_boost` | F3 | — | Excluded (release blocker) |
 | `debug_toggle_hotseat_override` | F1 | — | Excluded (release blocker) |
@@ -106,6 +107,7 @@ Add joypad events to the existing actions (Godot `JoyButton` / `JoyAxis`; SDL/Xb
 | `zoom_out` | `JOY_AXIS_TRIGGER_LEFT` (4) past threshold |
 | `zoom_reset` | `JOY_BUTTON_LEFT_STICK` (7, L3) |
 | `show_danger_zone` | `JOY_BUTTON_RIGHT_STICK` (8, R3) |
+| `peek_range` | `JOY_BUTTON_BACK` (4, View/Back) |
 
 Per-action deadzone stays the input-map default (0.5) except the camera triggers, which
 want a smaller deadzone so a light pull starts zooming. Edit via the Godot editor or by
@@ -199,7 +201,8 @@ seam that design specified:
 
 ## 7. Build slices (cheap-now, testable per step)
 
-1. **Bindings + accept/cancel unification + focus parity.** Add the joypad events (§3),
+1. **Bindings + accept/cancel unification + focus parity.** **Implemented 2026-07-07.**
+   Add the joypad events (§3),
    make `confirm`/`cancel` share `ui_accept`/`ui_cancel`'s event lists (§2); verify every
    menu/native-control screen is navigable + activatable by pad (manual + the consume audit
    from §2). Unlocks Gamepad mode for menus/native controls.

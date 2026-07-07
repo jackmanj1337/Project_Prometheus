@@ -443,9 +443,34 @@ func _apply_keybindings() -> void:
 	for action in keybindings:
 		if not InputMap.has_action(action):
 			continue
+		var default_joypad_events := _joypad_events_for_action(action)
+		var saved_has_joypad := false
 		InputMap.action_erase_events(action)
 		for event in keybindings[action]:
+			if not (event is InputEvent):
+				continue
+			saved_has_joypad = saved_has_joypad or _is_joypad_event(event)
 			InputMap.action_add_event(action, event)
+		# Legacy saved bindings are keyboard/mouse-only arrays. Keep the newly
+		# authored default pad slot until the per-device rebind model lands.
+		if not saved_has_joypad:
+			for event in default_joypad_events:
+				if not InputMap.action_has_event(action, event):
+					InputMap.action_add_event(action, event)
+
+
+func _joypad_events_for_action(action: String) -> Array[InputEvent]:
+	var out: Array[InputEvent] = []
+	if not InputMap.has_action(action):
+		return out
+	for event in InputMap.action_get_events(action):
+		if _is_joypad_event(event):
+			out.append(event)
+	return out
+
+
+func _is_joypad_event(event: Variant) -> bool:
+	return event is InputEventJoypadButton or event is InputEventJoypadMotion
 
 
 const _UI_MIRROR: Dictionary = {

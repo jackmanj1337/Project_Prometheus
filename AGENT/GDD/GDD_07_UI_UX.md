@@ -30,31 +30,35 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 
 ## Input System
 
-Status: **Implemented** (keyboard + mouse parity); key rebinding **Planned** (Phase 2)
-Last verified: 2026-06-16
+Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control
+slice); map-cursor analog decode and key rebinding **Target design**.
+Last verified: 2026-07-07
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
 
 ### Action Definitions
 
-| Action | Primary Keys | Mouse |
-|---|---|---|
-| `cursor_up` | W, Up Arrow | — |
-| `cursor_down` | S, Down Arrow | — |
-| `cursor_left` | A, Left Arrow | — |
-| `cursor_right` | D, Right Arrow | — |
-| `confirm` | Z, Enter, Space | Left Click |
-| `cancel` | X, Escape | Right Click |
-| `next_unit` | Tab | — |
-| `prev_unit` | Shift + Tab | — |
-| `show_danger_zone` | Q (threat resolver) | Middle Click (threat resolver) |
-| `peek_range` | E (hold to peek) | — |
-| `inspect_unit` | I | — |
-| `more_info` | F | — |
-| `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile |
-| `open_settings` | O | — |
-| `debug_toggle_hotseat_override` | F9 | — |
+| Action | Primary Keys | Mouse | Gamepad |
+|---|---|---|---|
+| `cursor_up` | W, Up Arrow | — | D-pad Up / Left Stick Up |
+| `cursor_down` | S, Down Arrow | — | D-pad Down / Left Stick Down |
+| `cursor_left` | A, Left Arrow | — | D-pad Left / Left Stick Left |
+| `cursor_right` | D, Right Arrow | — | D-pad Right / Left Stick Right |
+| `confirm` | Z, Enter, Space | Left Click | Pad A |
+| `cancel` | X, Escape | Right Click | Pad B |
+| `next_unit` | Tab | — | RB |
+| `prev_unit` | Shift + Tab | — | LB |
+| `show_danger_zone` | Q (threat resolver) | Middle Click (threat resolver) | R3 |
+| `peek_range` | E (hold to peek) | — | View (hold) |
+| `inspect_unit` | I | — | Pad Y |
+| `more_info` | F | — | Pad X |
+| `open_menu` | M; also confirm/cancel on an empty tile | Left/Right Click on an empty tile | Start |
+| `open_settings` | O | — | via Start -> Settings |
+| `zoom_in` | = | Wheel Up | RT |
+| `zoom_out` | - | Wheel Down | LT |
+| `zoom_reset` | 0 | — | L3 |
+| `debug_toggle_hotseat_override` | F9 | — | — |
 
 `show_danger_zone` is the **threat resolver** (free cursor state only, see
 *Threat Overlay* below): over a hostile attack-capable enemy it toggles that
@@ -68,8 +72,10 @@ banner as `hotseat-all` while active.
 > **Menus and the game's keys.** Menus (Main Menu, Map Menu, Settings, the
 > Action / Item menus) navigate via Godot's built-in `ui_*` actions.
 > `SettingsManager._mirror_game_keys_to_ui()` copies the `cursor_*` / `confirm` /
-> `cancel` bindings onto `ui_*` at startup, so WASD / Z / X drive menus exactly
-> as they drive the map cursor.
+> `cancel` bindings onto `ui_*` at startup, so WASD / Z / X and their pad
+> equivalents drive menus exactly as they drive the map cursor. If an old
+> keyboard-only saved binding exists, SettingsManager preserves the default pad
+> slot until the per-device rebind UI lands.
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
@@ -85,9 +91,7 @@ authored as a placeholder colour; the "D" marker is the live-verify pass;
 suspend restore of watch-set/mode state landed with `B1-SUSPEND` Slice 1)
 Last verified: 2026-07-06
 
-The `show_danger_zone` action (MMB / Q; the input path also routes a pad-bound
-gamepad R3 press, though the pad binding itself lands with the gamepad layer's
-binding slice) drives two orthogonal pieces of state through one resolver, in
+The `show_danger_zone` action (MMB / Q / R3) drives two orthogonal pieces of state through one resolver, in
 the free cursor state only:
 
 - **Watch set** — a persistent set of hostile, attack-capable enemies the player
@@ -935,9 +939,11 @@ The accessibility and parity contract the UI must honor across input methods and
 ### Specs
 
 **Implemented.**
-- **Input parity:** every gameplay action is reachable by keyboard *and* mouse;
-  `SettingsManager._mirror_game_keys_to_ui()` mirrors `cursor_*`/`confirm`/`cancel` onto
-  Godot `ui_*` so menus and the map cursor share bindings.
+- **Input parity:** every gameplay action is reachable by keyboard and mouse;
+  the first gamepad binding slice adds pad defaults for normal-play actions while
+  keeping debug actions keyboard-only. `SettingsManager._mirror_game_keys_to_ui()`
+  mirrors `cursor_*`/`confirm`/`cancel` onto Godot `ui_*` so menus and the map
+  cursor share bindings.
 - **Hotseat parity:** non-blue human (hotseat) phases use blue's commit/UI flow — only
   the commandable faction differs (GDD_02 §Turn Structure). No player has a UI affordance
   another lacks.
