@@ -826,8 +826,9 @@ cfg blobs migrate into that profile shape.
 
 - **Input Mode** (`input_mode`, default `auto`) — fixed vocabulary:
   `auto`, `gamepad`, `touch`, `mouse_keyboard` (enforced by DOC-011
-  `check_docs.py`). This is the persisted preference; the runtime
-  `active_input_mode` resolver and Settings selector are the next `B6-INPUT` slice.
+  `check_docs.py`). This is the persisted preference; `InputModeManager` resolves
+  the runtime `active_input_mode` and emits `input_mode_changed`. The Settings selector
+  and focus-grab subscribers are later `B6-INPUT` slices.
 - **Touch Controls** (`touch_controls`, default `dedicated`) — fixed vocabulary:
   `dedicated`, `virtual_gamepad` (enforced by DOC-011 `check_docs.py`). Until
   the dedicated touch layer ships, the resolver can still fall back to the virtual

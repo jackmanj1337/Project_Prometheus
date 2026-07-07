@@ -183,6 +183,7 @@ res://
     │   ├── DataManager.gd
     │   ├── EventBus.gd
     │   ├── GameState.gd
+    │   ├── InputModeManager.gd
     │   ├── PairUpBonusResolver.gd
     │   ├── PairUpRegistry.gd
     │   ├── RngService.gd              # deterministic dice (RNG-1..4, CRR)
@@ -573,6 +574,39 @@ Controls persistence uses the shape ratified by `B6-INPUT`: `[controls]` stores
 hand-editable strings such as `Z`, `Shift+Tab`, `Mouse1`, `JoyA`, `JoyButton15`, and
 `JoyAxis5+`; an empty token leaves that device slot unbound. Only the active profile is
 applied to Godot's global `InputMap`.
+
+### `InputModeManager.gd`
+
+Runtime resolver for the input-mode architecture. Registered as an autoload after
+`SettingsManager` so it can read the persisted `[controls]` values without making
+settings persistence stateful.
+
+```gdscript
+extends Node
+
+signal input_mode_changed(mode: String)
+
+var active_input_mode: String = "mouse_keyboard" # runtime, not persisted
+var last_detected_input_mode: String = ""
+
+func _input(event: InputEvent) -> void
+    # Classifies real input events as "mouse_keyboard", "gamepad", or "touch";
+    # ignores sub-deadzone joypad drift and suppresses emulated mouse immediately
+    # after touch events.
+
+func note_detected_input_mode(mode: String) -> void
+    # Updates last-detected mode and resolves active_input_mode.
+
+static func resolve_input_mode(setting: String, last_detected: String,
+        available: Dictionary, provisional_seed: String) -> String
+    # Implements Auto-follow, explicit pinning while available, and fallback to
+    # detect-floor when an explicit mode is unavailable.
+```
+
+`input_mode_changed` emits only on real active-mode changes. Focus-grab subscribers,
+prompt swapping, and the Settings gray-state selector attach to this signal in later
+`B6-INPUT` slices; the resolver itself is headless-tested in
+`test_input_mode_manager.gd`.
 
 ### `DataManager.gd`
 
@@ -1659,14 +1693,15 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order (`project.godot [autoload]`) is the full thirteen:
-`GameConstants → EventBus → RngService → SettingsManager → GameState → DataManager →
-ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI →
+Project registration order (`project.godot [autoload]`) is the full fourteen:
+`GameConstants → EventBus → RngService → SettingsManager → InputModeManager →
+GameState → DataManager → ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI →
 PairUpRegistry → PairUpBonusResolver`.
 Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
 must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
-settings from disk but does not push values to GameState; GameState pulls them
-in its own `_ready()` instead.
+settings from disk but does not push values to GameState; `InputModeManager` reads
+settings and owns only runtime input-mode state; GameState pulls app settings in its
+own `_ready()` instead.
 
 `ConditionManager` is a stub until M8. It must be registered now so other systems
 can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,

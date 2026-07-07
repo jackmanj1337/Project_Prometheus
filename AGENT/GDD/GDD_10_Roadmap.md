@@ -72,7 +72,7 @@ foundations or add unmanifested save state.
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
 | 1 | `VAL-V023-DISPLAY` | Cut a section 1.6-only rerun build | Section 1.6 fix pass IMPLEMENTED 2026-07-07 (custom vs preset size status, maximize = window state not saved resolution, reactive `resized` menu re-center); needs a focused rerun build + live Windows maximize check before the gate can close. |
-| 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, and persisted `input_mode` / `touch_controls` values landed. Controller feel, deadzones, device mapping, and visual comfort stay in the v0.3.0 playtest checklist. Remaining code: `InputModeManager` resolver/focus signal plus broader selector adoption/arbiter work. |
+| 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, persisted `input_mode` / `touch_controls`, and `InputModeManager.input_mode_changed` landed. Controller feel, deadzones, device mapping, and visual comfort stay in the v0.3.0 playtest checklist. Remaining code: focus-grab subscribers, Settings gray-state selector, and broader selector/arbiter adoption. |
 
 ## Validation And Release Queues
 

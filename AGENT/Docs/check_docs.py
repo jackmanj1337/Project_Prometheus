@@ -1089,9 +1089,10 @@ def check_archive_markers() -> None:
 # does not exist yet (RngService, RegistryManager) are skipped, so this guard is
 # inert until that autoload lands — then it locks the order the moment it does.
 # Sources: band1_determinism_save_implementation_plan_2026-06-30 (RngService
-# after EventBus, before SettingsManager/GameState) and
-# band2_shared_runtime_contracts_implementation_plan_2026-06-30 (RegistryManager
-# before DataManager).
+# after EventBus, before SettingsManager/GameState),
+# input_controls_open_decisions_2026-06-21 (InputModeManager after SettingsManager),
+# and band2_shared_runtime_contracts_implementation_plan_2026-06-30
+# (RegistryManager before DataManager).
 _AUTOLOAD_ORDER_CONSTRAINTS = [
     ("EventBus", "RngService",
      "RngService must mix on EventBus-era state (Band 1 plan)"),
@@ -1099,6 +1100,10 @@ _AUTOLOAD_ORDER_CONSTRAINTS = [
      "GameState/gameplay services draw deterministic RNG (Band 1 plan)"),
     ("RngService", "SettingsManager",
      "RngService loads ahead of the settings/state block (Band 1 plan)"),
+    ("SettingsManager", "InputModeManager",
+     "InputModeManager reads persisted controls settings (ICD-1)"),
+    ("InputModeManager", "GameState",
+     "Input-mode runtime state belongs in the settings/input block before gameplay state"),
     ("RegistryManager", "DataManager",
      "DataManager validation asks RegistryManager for known ids (Band 2 plan)"),
 ]
