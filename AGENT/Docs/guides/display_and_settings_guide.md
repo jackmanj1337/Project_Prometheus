@@ -1,6 +1,6 @@
 # Display & Settings Guide
 
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-07
 
 Explains how the game's **window mode**, **resolution**, **OS display scaling**, and
 the on-disk **settings.cfg** interact — so window sizing that looks surprising (e.g. a
@@ -39,14 +39,15 @@ usable rect is the monitor minus a decoration margin (title bar + taskbar), so:
   clamp working as designed — the title bar stays reachable and the aspect stays 16:9.
 - To fill the whole monitor, use **Borderless** or **Fullscreen** instead.
 
-Settings shows the actually-applied size next to the Resolution dropdown (e.g.
-`3840x2160 → applied 1904x1071`) so the clamp is self-explaining in-game
-(`SettingsManager.applied_windowed_size`). The window is re-centred on its screen after
-each **setting-driven** resize — a Resolution/Window Mode apply (`window_centre_position`),
-clamped so a larger-than-screen window never centres its title bar off the top/left.
-An **OS drag-resize never re-centres** the window: you just placed it, moving it out from
-under you would be hostile. (An earlier playtest handbook claimed drag-resizes re-centre —
-that was wrong and is corrected here; V027-04b.)
+Settings shows the actually-applied size next to a **preset** Resolution choice (e.g.
+`3840x2160 -> applied 1904x1071`) so the clamp is self-explaining in-game
+(`SettingsManager.applied_windowed_size`). That label is meant for preset **requests**,
+not for custom sizes written back from the OS. The window is re-centred on its screen
+after each **setting-driven** resize - a Resolution/Window Mode apply
+(`window_centre_position`) - clamped so a larger-than-screen window never centres its
+title bar off the top/left. An **OS drag-resize never re-centres** the window: you just
+placed it, moving it out from under you would be hostile. (An earlier playtest handbook
+claimed drag-resizes re-centre - that was wrong and is corrected here; V027-04b.)
 
 ## OS drag-resize write-back (V027-04b, Q5 owner decision 2026-07-05)
 
@@ -66,6 +67,14 @@ follows reality rather than remembering a request the window no longer honours:
   4K request does not overwrite itself with the clamped result.
 - Detection rides the same viewport `size_changed` hook that re-applies Menu Scale after
   a resize (V027-04a), coalesced to one pass per settled frame.
+
+Known v0.2.8 validation issue: edge-drag custom sizes and maximized-window sizes need
+clearer UI semantics. A `Custom (WxH)` value is already an observed client size, while
+the `-> applied` label is a preset-request clamp explanation. v0.2.8 can still compare a
+custom value against the clamp path and show confusing output such as
+`Custom (3840x2071) -> applied 3563x2004`; this is tracked as `V028-02`. The Windows
+maximize button can also leave the Settings panel off-center until a later re-apply;
+this is tracked as `V028-03`.
 
 ## OS display scaling / DPI
 

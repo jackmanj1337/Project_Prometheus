@@ -1188,6 +1188,10 @@ requested, and a drag never re-centres the window. Detection rides the viewport
 with the readout pinned to the native display size; the saved request is preserved and
 the row re-enables intact on return to Windowed (V027-05c, Q6). Player-facing detail:
 `AGENT/Docs/guides/display_and_settings_guide.md`.
+The v0.2.8 return found one remaining validation issue: custom write-back values are
+observed client sizes, but the readout can still route them through the preset-request
+clamp explanation (`V028-02`), and maximize needs a separate settled re-center /
+write-back policy (`V028-03`).
 
 **Confirm-or-revert on risky display changes.** Changing window mode or resolution
 applies the new mode immediately (so the player can see it) but **defers the save

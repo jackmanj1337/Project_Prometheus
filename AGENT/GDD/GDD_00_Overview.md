@@ -189,13 +189,13 @@ summary is a pointer, not the tracker.
 ## Platform Targets
 
 Status: **Target design** (renderer/platform decisions ratified; verification pending)
-Last verified: 2026-06-13
+Last verified: 2026-07-07
 
 | Aspect | Target | Source |
 |---|---|---|
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
 | Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
-| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; revisit once a UI-scale setting exists | OPEN-11 |
+| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
 | Web | Playtest distribution channel and slice-first portfolio demo target | OPEN-8, SET-014 |
 | Gamepad | Supported, landing with the key-rebinding milestone | — |
 | Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
