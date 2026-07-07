@@ -523,7 +523,8 @@ var auto_end_turn: bool = true              # end phase when every acting unit i
 var camera_edge_buffer: int = 2             # clamped 0-5 tiles
 
 # --- Controls ---
-# { action_name: Array[InputEvent] }; applied to InputMap at startup.
+var active_profile: String = "Default"
+var profiles: Dictionary = {"Default": {}} # profile -> action -> {"kbd": token, "pad": token}
 var keybindings: Dictionary = {}
 
 func _ready() -> void:
@@ -534,6 +535,8 @@ func _ready() -> void:
 
 func load_settings() -> void
     # Reads user://settings.cfg via ConfigFile; falls back to defaults per key.
+    # Migrates old [controls].keybindings Object(InputEvent) blobs into
+    # [controls].profiles["Default"] plain tokens.
     # Stale permadeath/leveling_method keys from old config files are ignored.
 
 func save() -> void
@@ -548,17 +551,25 @@ func _apply_audio() -> void
     # editor bus order does not matter; missing buses are silently skipped.
 
 func _apply_keybindings() -> void
-    # InputMap.action_erase_events() + action_add_event() per bound action.
+    # Restores authored InputMap defaults, then applies active-profile slot overrides.
+    # Missing slots keep defaults; bad hand-edited tokens fall back to that slot's default.
 
 func _mirror_game_keys_to_ui() -> void
     # Copies the cursor_*/confirm/cancel events onto Godot's built-in ui_* actions
     # so menus (which navigate via ui_*) respond to the same keys as in-game (WASD/Z/X).
 
 func set_volume(bus_name: String, value: int) -> void   # updates var, applies, saves
-func rebind_action(action_name: String, event: InputEvent) -> void
+func rebind_action(action_name: String, event: InputEvent, device_slot: String = "") -> void
+func apply_keybindings(pending: Dictionary) -> void
 func get_movement_speed_seconds() -> float
     # Per-tile tween duration: "normal" -> 0.12 | "fast" -> 0.06 | "instant" -> 0.0
 ```
+
+Controls persistence uses the profile-ready shape ratified by `B6-INPUT`: `[controls]`
+stores `active_profile = "Default"` and `profiles`, where each profile maps
+`action -> {"kbd": token, "pad": token}`. Tokens are hand-editable strings such as `Z`,
+`Shift+Tab`, `Mouse1`, `JoyA`, `JoyButton15`, and `JoyAxis5+`; an empty token leaves that
+device slot unbound. Only the active profile is applied to Godot's global `InputMap`.
 
 ### `DataManager.gd`
 

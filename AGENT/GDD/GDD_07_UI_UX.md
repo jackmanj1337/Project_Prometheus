@@ -1,8 +1,8 @@
 # GDD_07 — UI & UX
 
 **Status:** Active contract — split status per section (most UI surfaces are
-**Implemented**; combat-animation feedback, key rebinding, and HUD scale polish are
-**Planned**). UI is project-specific; it has no corpus-adoption rows.
+**Implemented**; combat-animation feedback, editable key-rebind UI, and HUD scale polish
+are **Planned**). UI is project-specific; it has no corpus-adoption rows.
 **Last verified:** 2026-07-07
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
@@ -30,9 +30,9 @@ The UI is inspired by **Fire Emblem: The Blazing Blade (GBA)**. Key principles:
 
 ## Input System
 
-Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control
-and headless map-cursor decoder slices); live controller feel and key rebinding
-**Target design** / pending validation.
+Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
+headless map-cursor decoder, and profile-ready keybind persistence slices); live
+controller feel and editable key-rebind UI **Target design** / pending validation.
 Last verified: 2026-07-07
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
@@ -77,9 +77,8 @@ banner as `hotseat-all` while active.
 > Action / Item menus) navigate via Godot's built-in `ui_*` actions.
 > `SettingsManager._mirror_game_keys_to_ui()` copies the `cursor_*` / `confirm` /
 > `cancel` bindings onto `ui_*` at startup, so WASD / Z / X and their pad
-> equivalents drive menus exactly as they drive the map cursor. If an old
-> keyboard-only saved binding exists, SettingsManager preserves the default pad
-> slot until the per-device rebind UI lands.
+> equivalents drive menus exactly as they drive the map cursor. Saved bindings use
+> per-device slots (`kbd`, `pad`), so rebinding one device class preserves the other.
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
@@ -806,17 +805,20 @@ clamped when loaded from the settings file.
 
 A **Controls** section lists every game action and the key(s) bound to it,
 read live from the `InputMap` when the screen opens (`_populate_keybindings()`
-builds one row per action). It is **display-only** — there is no rebind UI in the
-MVP. `SettingsManager` already stores a `keybindings` dictionary and applies it to
-the `InputMap` at startup, so a rebind UI is the only missing piece (Phase 2).
+builds one row per action). It is **display-only** — the editable capture UI is the
+remaining Phase 2 surface. `SettingsManager` already persists the rebind-ready backing
+model under `[controls].profiles`: the active `"Default"` profile maps each action to
+`{"kbd": token, "pad": token}` using hand-editable strings (`Z`, `Mouse1`, `JoyA`,
+`JoyAxis5+`). Old `Object(InputEvent...)` cfg blobs migrate into that profile shape.
 
 #### Hidden / not yet implemented
 
 - **Combat Animations** (`combat_animations`) — a `SettingsManager` field with an
   `OptCombatAnim` control that is **hidden**: no combat-animation system consumes the
   setting yet (MVP combat is instant). It will be shown when that system lands.
-- **Key rebinding** — the Controls section above is read-only; letting the player
-  reassign keys is Phase 2.
+- **Editable key-rebind UI** — the Controls section above is read-only; letting the
+  player stage/apply captures is Phase 2. The persistence foundation is already in
+  place through `SettingsManager.rebind_action` / `apply_keybindings`.
 - **Permadeath** and **Leveling Method** are *not* on the Settings screen — they are
   per-save rules chosen on the **New Game** screen and stored on `GameState`.
 
@@ -939,7 +941,8 @@ Last verified: 2026-06-13
 
 ## Accessibility & Input Parity
 
-Status: **Split** — implemented options listed below **Implemented**; key rebinding **Planned**
+Status: **Split** — implemented options listed below **Implemented**; editable
+key-rebind UI **Planned**
 Last verified: 2026-06-15
 
 ### Summary
@@ -1064,9 +1067,10 @@ The accessibility and parity contract the UI must honor across input methods and
   **Deferred** until the HUD migrates onto the crisp path.
 
 **Planned.**
-- **Key rebinding UI:** `SettingsManager` already stores/applies a `keybindings` dict; the
-  rebind surface is the only missing piece, scheduled with the **gamepad** milestone
-  (GDD_00 §Platform Targets, OPEN-11).
+- **Key rebinding UI:** `SettingsManager` stores/applies profile-ready per-device
+  binding slots with plain tokens; the editable capture/conflict/apply surface is the
+  remaining piece, scheduled with the **gamepad** milestone (GDD_00 §Platform Targets,
+  OPEN-11).
 - **Combat-animation toggle** (`combat_animations`): scaffolded but hidden until a
   combat-animation system consumes it.
 

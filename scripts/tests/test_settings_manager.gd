@@ -76,10 +76,13 @@ func _init() -> void:
 	var saved_confirm: Array[InputEvent] = []
 	for ev in InputMap.action_get_events("confirm"):
 		saved_confirm.append(ev)
+	var saved_cancel: Array[InputEvent] = []
+	for ev in InputMap.action_get_events("cancel"):
+		saved_cancel.append(ev)
 	var new_confirm := InputEventKey.new()
 	new_confirm.keycode = KEY_Y
-	# rebind_action calls save() — point user:// at a throwaway path so we don't
-	# clobber the real settings.cfg from inside the test run.
+	# rebind_action calls save(); the assertions below inspect that generated cfg
+	# and reset controls afterward so later tests start from authored defaults.
 	sm.rebind_action("confirm", new_confirm)
 	var has_new: bool = _has_key("ui_accept", KEY_Y)
 	var has_old: bool = _has_key("ui_accept", KEY_Z)
@@ -92,11 +95,138 @@ func _init() -> void:
 		print("FAIL 2.9 rebind mirror: new=%s old=%s engine=%s pad=%s ui_pad=%s" % [
 			has_new, has_old, has_engine, has_confirm_pad, has_ui_pad])
 		failed += 1
+	var cfg_text := FileAccess.get_file_as_string(ProjectSettings.globalize_path(sm.SETTINGS_PATH))
+	var cfg_plain_ok: bool = cfg_text.find("profiles") >= 0 \
+		and cfg_text.find("active_profile") >= 0 \
+		and cfg_text.find("Object(InputEvent") == -1 \
+		and cfg_text.find("\"Y\"") >= 0
+	if cfg_plain_ok:
+		print("OK  keybind save uses profile-ready plain tokens, not Object(InputEvent) blobs")
+		passed += 1
+	else:
+		print("FAIL keybind cfg was not plain/profile-ready:\n%s" % cfg_text)
+		failed += 1
+	# A pad rebind replaces only the pad slot; the keyboard slot stays on Y.
+	var new_confirm_pad := InputEventJoypadButton.new()
+	new_confirm_pad.button_index = JOY_BUTTON_B
+	sm.rebind_action("confirm", new_confirm_pad)
+	var pad_rebind_ok: bool = _has_key("confirm", KEY_Y) \
+		and _has_joy_button("confirm", JOY_BUTTON_B)
+	if pad_rebind_ok:
+		print("OK  pad rebind keeps the keyboard slot intact")
+		passed += 1
+	else:
+		print("FAIL pad rebind did not preserve keyboard slot")
+		failed += 1
+	# Batch apply accepts token/event dictionaries and commits both slots together.
+	var cancel_key := InputEventKey.new()
+	cancel_key.keycode = KEY_C
+	sm.apply_keybindings({
+		"cancel": {
+			"kbd": cancel_key,
+			"pad": "JoyX",
+		}
+	})
+	var batch_apply_ok: bool = _has_key("cancel", KEY_C) \
+		and _has_joy_button("cancel", JOY_BUTTON_X)
+	if batch_apply_ok:
+		print("OK  apply_keybindings commits pending kbd/pad slots as a batch")
+		passed += 1
+	else:
+		print("FAIL apply_keybindings batch did not apply both slots")
+		failed += 1
+	# Round-trip through settings.cfg rehydrates the plain tokens into InputEvents.
+	InputMap.action_erase_events("confirm")
+	for ev in saved_confirm:
+		InputMap.action_add_event("confirm", ev)
+	InputMap.action_erase_events("cancel")
+	for ev in saved_cancel:
+		InputMap.action_add_event("cancel", ev)
+	var sm_roundtrip: Node = SettingsManagerS.new()
+	sm_roundtrip.load_settings()
+	sm_roundtrip._apply_keybindings()
+	sm_roundtrip._mirror_game_keys_to_ui()
+	var roundtrip_ok: bool = _has_key("confirm", KEY_Y) \
+		and _has_joy_button("confirm", JOY_BUTTON_B) \
+		and _has_key("cancel", KEY_C) \
+		and _has_joy_button("cancel", JOY_BUTTON_X) \
+		and _has_key("ui_accept", KEY_Y) \
+		and _has_joy_button("ui_accept", JOY_BUTTON_B)
+	sm_roundtrip.free()
+	if roundtrip_ok:
+		print("OK  plain-token keybindings reload and mirror correctly")
+		passed += 1
+	else:
+		print("FAIL plain-token reload/mirror failed")
+		failed += 1
+	# A bad hand-edited token falls back to that action's default slot.
+	var bad_cfg := ConfigFile.new()
+	bad_cfg.set_value("controls", "active_profile", "Default")
+	bad_cfg.set_value("controls", "profiles", {
+		"Default": {
+			"confirm": {
+				"kbd": "NotARealKey",
+				"pad": "JoyA",
+			}
+		}
+	})
+	bad_cfg.save(sm.SETTINGS_PATH)
+	InputMap.action_erase_events("confirm")
+	for ev in saved_confirm:
+		InputMap.action_add_event("confirm", ev)
+	var sm_bad: Node = SettingsManagerS.new()
+	sm_bad.load_settings()
+	sm_bad._apply_keybindings()
+	var bad_fallback_ok: bool = _has_key("confirm", KEY_Z) \
+		and _has_joy_button("confirm", JOY_BUTTON_A)
+	sm_bad.free()
+	if bad_fallback_ok:
+		print("OK  invalid keybind token falls back to the default slot")
+		passed += 1
+	else:
+		print("FAIL invalid keybind token did not fall back to default")
+		failed += 1
+	# Old Object(InputEvent...) cfg blobs migrate into Default profile tokens.
+	var legacy_key := InputEventKey.new()
+	legacy_key.keycode = KEY_U
+	var legacy_pad := InputEventJoypadButton.new()
+	legacy_pad.button_index = JOY_BUTTON_Y
+	var legacy_cfg := ConfigFile.new()
+	legacy_cfg.set_value("controls", "keybindings", {"confirm": [legacy_key, legacy_pad]})
+	legacy_cfg.save(sm.SETTINGS_PATH)
+	InputMap.action_erase_events("confirm")
+	for ev in saved_confirm:
+		InputMap.action_add_event("confirm", ev)
+	var sm_legacy: Node = SettingsManagerS.new()
+	sm_legacy.load_settings()
+	var legacy_profile: Dictionary = sm_legacy.profiles.get("Default", {})
+	var legacy_confirm: Dictionary = legacy_profile.get("confirm", {})
+	var legacy_profile_ok: bool = String(legacy_confirm.get("kbd", "")) == "U" \
+		and String(legacy_confirm.get("pad", "")) == "JoyY"
+	var legacy_text := FileAccess.get_file_as_string(ProjectSettings.globalize_path(sm.SETTINGS_PATH))
+	var legacy_written_new_ok: bool = legacy_text.find("keybindings") == -1 \
+		and legacy_text.find("Object(InputEvent") == -1 \
+		and legacy_text.find("profiles") >= 0
+	sm_legacy._apply_keybindings()
+	var legacy_apply_ok: bool = _has_key("confirm", KEY_U) \
+		and _has_joy_button("confirm", JOY_BUTTON_Y)
+	sm_legacy.reset_section_to_defaults("controls")
+	sm_legacy.free()
+	if legacy_profile_ok and legacy_written_new_ok and legacy_apply_ok:
+		print("OK  legacy Object(InputEvent) keybind cfg migrates to Default profile tokens")
+		passed += 1
+	else:
+		print("FAIL legacy migration: profile=%s written=%s apply=%s\n%s" % [
+			legacy_profile_ok, legacy_written_new_ok, legacy_apply_ok, legacy_text])
+		failed += 1
 	# Restore the original confirm binding so subsequent tests see the same
 	# InputMap they started with.
 	InputMap.action_erase_events("confirm")
 	for ev in saved_confirm:
 		InputMap.action_add_event("confirm", ev)
+	InputMap.action_erase_events("cancel")
+	for ev in saved_cancel:
+		InputMap.action_add_event("cancel", ev)
 	sm._mirror_game_keys_to_ui()
 
 	# ---- get_movement_speed_seconds maps each speed setting ----

@@ -82,7 +82,14 @@ const GRID_DIM_MAX: float = 0.5
 var grid_dim: float = 0.0
 
 # --- Controls ---
-# { action_name: Array[InputEvent] }; applied to InputMap at startup
+# Active profile name plus profile-ready binding maps. Each profile stores only
+# player overrides; missing slots fall back to the project InputMap defaults.
+const KEYBINDING_DEFAULT_PROFILE := "Default"
+const KEYBINDING_SLOT_KBD := "kbd"
+const KEYBINDING_SLOT_PAD := "pad"
+var active_profile: String = KEYBINDING_DEFAULT_PROFILE
+var profiles: Dictionary = {KEYBINDING_DEFAULT_PROFILE: {}}
+# Active profile view: { action_name: { "kbd": token, "pad": token } }.
 var keybindings: Dictionary = {}
 
 # Baseline ui_* events captured at startup BEFORE the first mirror, so a later
@@ -91,6 +98,54 @@ var keybindings: Dictionary = {}
 # events. Without this, rebinding "confirm" from Z to Y would leave Z attached
 # to ui_accept indefinitely. Code review 2026-06-10 issue 2.9.
 var _ui_baseline_events: Dictionary = {}
+# Project InputMap events captured before any user rebind is applied. This lets
+# reset/default fallback restore authored keyboard, mouse, and pad defaults.
+var _action_baseline_events: Dictionary = {}
+var _actions_with_applied_keybindings: Dictionary = {}
+
+const _JOY_BUTTON_TOKENS: Dictionary = {
+	JOY_BUTTON_A: "JoyA",
+	JOY_BUTTON_B: "JoyB",
+	JOY_BUTTON_X: "JoyX",
+	JOY_BUTTON_Y: "JoyY",
+	JOY_BUTTON_BACK: "JoyView",
+	JOY_BUTTON_START: "JoyStart",
+	JOY_BUTTON_LEFT_STICK: "JoyL3",
+	JOY_BUTTON_RIGHT_STICK: "JoyR3",
+	JOY_BUTTON_LEFT_SHOULDER: "JoyLB",
+	JOY_BUTTON_RIGHT_SHOULDER: "JoyRB",
+	JOY_BUTTON_DPAD_UP: "JoyDpadUp",
+	JOY_BUTTON_DPAD_DOWN: "JoyDpadDown",
+	JOY_BUTTON_DPAD_LEFT: "JoyDpadLeft",
+	JOY_BUTTON_DPAD_RIGHT: "JoyDpadRight",
+}
+const _JOY_BUTTON_ALIASES: Dictionary = {
+	"JoyA": JOY_BUTTON_A,
+	"JoyB": JOY_BUTTON_B,
+	"JoyX": JOY_BUTTON_X,
+	"JoyY": JOY_BUTTON_Y,
+	"JoyView": JOY_BUTTON_BACK,
+	"View": JOY_BUTTON_BACK,
+	"JoyBack": JOY_BUTTON_BACK,
+	"JoyStart": JOY_BUTTON_START,
+	"Start": JOY_BUTTON_START,
+	"JoyL3": JOY_BUTTON_LEFT_STICK,
+	"L3": JOY_BUTTON_LEFT_STICK,
+	"JoyR3": JOY_BUTTON_RIGHT_STICK,
+	"R3": JOY_BUTTON_RIGHT_STICK,
+	"JoyLB": JOY_BUTTON_LEFT_SHOULDER,
+	"LB": JOY_BUTTON_LEFT_SHOULDER,
+	"JoyRB": JOY_BUTTON_RIGHT_SHOULDER,
+	"RB": JOY_BUTTON_RIGHT_SHOULDER,
+	"JoyDpadUp": JOY_BUTTON_DPAD_UP,
+	"DpadUp": JOY_BUTTON_DPAD_UP,
+	"JoyDpadDown": JOY_BUTTON_DPAD_DOWN,
+	"DpadDown": JOY_BUTTON_DPAD_DOWN,
+	"JoyDpadLeft": JOY_BUTTON_DPAD_LEFT,
+	"DpadLeft": JOY_BUTTON_DPAD_LEFT,
+	"JoyDpadRight": JOY_BUTTON_DPAD_RIGHT,
+	"DpadRight": JOY_BUTTON_DPAD_RIGHT,
+}
 
 
 func _ready() -> void:
@@ -166,7 +221,21 @@ func load_settings() -> void:
 	# Clamp on load: a hand-edited/corrupt cfg must never feed an out-of-range dim.
 	grid_dim = clampf(cfg.get_value("display", "grid_dim", grid_dim), 0.0, GRID_DIM_MAX)
 
-	keybindings = cfg.get_value("controls", "keybindings", {})
+	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
+	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
+	var migrated_keybindings := false
+	if raw_profiles is Dictionary and not (raw_profiles as Dictionary).is_empty():
+		profiles = _normalize_keybinding_profiles(raw_profiles)
+	else:
+		# One-version migration from the old {action: Array[InputEvent]} cfg blob.
+		profiles = {
+			KEYBINDING_DEFAULT_PROFILE: _normalize_keybinding_map(
+				cfg.get_value("controls", "keybindings", {}))
+		}
+		migrated_keybindings = cfg.has_section_key("controls", "keybindings")
+	_ensure_active_keybinding_profile()
+	if migrated_keybindings:
+		save()
 	# Old settings.cfg files may still carry stale permadeath/leveling_method keys
 	# under [gameplay] — harmless, they are simply never read.
 
@@ -196,7 +265,8 @@ func save() -> void:
 	cfg.set_value("display", "hud_layout",     hud_layout)
 	cfg.set_value("display", "grid_dim",       grid_dim)
 
-	cfg.set_value("controls", "keybindings", keybindings)
+	cfg.set_value("controls", "active_profile", active_profile)
+	cfg.set_value("controls", "profiles", profiles)
 
 	var err := cfg.save(SETTINGS_PATH)
 	if err != OK:
@@ -230,8 +300,11 @@ func reset_section_to_defaults(section: String) -> void:
 			_apply_menu_scale()
 			_apply_grid_dim()
 		"controls":
-			keybindings = {}
+			active_profile = KEYBINDING_DEFAULT_PROFILE
+			profiles = {KEYBINDING_DEFAULT_PROFILE: {}}
+			_ensure_active_keybinding_profile()
 			_apply_keybindings()
+			_mirror_game_keys_to_ui()
 	save()
 
 
@@ -493,37 +566,256 @@ func set_grid_dim(value: float) -> void:
 
 
 func _apply_keybindings() -> void:
+	_capture_action_baseline_if_needed()
+	var actions_to_refresh := {}
+	for action in _actions_with_applied_keybindings:
+		actions_to_refresh[action] = true
 	for action in keybindings:
-		if not InputMap.has_action(action):
-			continue
-		var default_joypad_events := _joypad_events_for_action(action)
-		var saved_has_joypad := false
-		InputMap.action_erase_events(action)
-		for event in keybindings[action]:
-			if not (event is InputEvent):
-				continue
-			saved_has_joypad = saved_has_joypad or _is_joypad_event(event)
-			InputMap.action_add_event(action, event)
-		# Legacy saved bindings are keyboard/mouse-only arrays. Keep the newly
-		# authored default pad slot until the per-device rebind model lands.
-		if not saved_has_joypad:
-			for event in default_joypad_events:
-				if not InputMap.action_has_event(action, event):
-					InputMap.action_add_event(action, event)
+		actions_to_refresh[action] = true
+	for action in actions_to_refresh:
+		_restore_action_baseline(String(action))
+	for action in keybindings:
+		_apply_keybinding_slots(String(action), keybindings[action])
+	_actions_with_applied_keybindings = {}
+	for action in keybindings:
+		_actions_with_applied_keybindings[action] = true
 
 
-func _joypad_events_for_action(action: String) -> Array[InputEvent]:
-	var out: Array[InputEvent] = []
+func _capture_action_baseline_if_needed() -> void:
+	if not _action_baseline_events.is_empty():
+		return
+	for action in InputMap.get_actions():
+		var events: Array[InputEvent] = []
+		for event in InputMap.action_get_events(action):
+			if event is InputEvent:
+				events.append(event)
+		_action_baseline_events[action] = events
+
+
+func _restore_action_baseline(action: String) -> void:
 	if not InputMap.has_action(action):
-		return out
+		return
+	InputMap.action_erase_events(action)
+	for event in _action_baseline_events.get(action, [] as Array[InputEvent]):
+		if event is InputEvent:
+			InputMap.action_add_event(action, event)
+
+
+func _apply_keybinding_slots(action: String, slots: Variant) -> void:
+	if not InputMap.has_action(action) or not (slots is Dictionary):
+		return
+	for slot in [KEYBINDING_SLOT_KBD, KEYBINDING_SLOT_PAD]:
+		if not (slots as Dictionary).has(slot):
+			continue
+		_erase_slot_events(action, slot)
+		var token := String((slots as Dictionary).get(slot, "")).strip_edges()
+		if token == "":
+			continue
+		var event := _event_from_token(token)
+		if event == null or _slot_for_event(event) != slot:
+			event = _default_event_for_slot(action, slot)
+		if event != null:
+			InputMap.action_add_event(action, event)
+
+
+func _erase_slot_events(action: String, slot: String) -> void:
+	var kept: Array[InputEvent] = []
 	for event in InputMap.action_get_events(action):
-		if _is_joypad_event(event):
-			out.append(event)
+		if _slot_for_event(event) != slot:
+			kept.append(event)
+	InputMap.action_erase_events(action)
+	for event in kept:
+		InputMap.action_add_event(action, event)
+
+
+func _default_event_for_slot(action: String, slot: String) -> InputEvent:
+	for event in _action_baseline_events.get(action, [] as Array[InputEvent]):
+		if event is InputEvent and _slot_for_event(event) == slot:
+			return event
+	return null
+
+
+func _slot_for_event(event: Variant) -> String:
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		return KEYBINDING_SLOT_PAD
+	if event is InputEventKey or event is InputEventMouseButton:
+		return KEYBINDING_SLOT_KBD
+	return ""
+
+
+func _normalize_slot_name(slot: String) -> String:
+	var value := slot.strip_edges().to_lower()
+	match value:
+		"keyboard", "key", "mouse", "keyboard_mouse", "keyboard/mouse", "kbd":
+			return KEYBINDING_SLOT_KBD
+		"gamepad", "joypad", "pad":
+			return KEYBINDING_SLOT_PAD
+		_:
+			return ""
+
+
+func _normalize_keybinding_profiles(raw_profiles: Variant) -> Dictionary:
+	var out := {}
+	if not (raw_profiles is Dictionary):
+		out[KEYBINDING_DEFAULT_PROFILE] = {}
+		return out
+	for profile_name in raw_profiles:
+		var profile_key := String(profile_name).strip_edges()
+		if profile_key == "":
+			continue
+		out[profile_key] = _normalize_keybinding_map((raw_profiles as Dictionary)[profile_name])
+	if out.is_empty():
+		out[KEYBINDING_DEFAULT_PROFILE] = {}
 	return out
 
 
-func _is_joypad_event(event: Variant) -> bool:
-	return event is InputEventJoypadButton or event is InputEventJoypadMotion
+func _normalize_keybinding_map(raw_bindings: Variant) -> Dictionary:
+	var out := {}
+	if not (raw_bindings is Dictionary):
+		return out
+	for action in raw_bindings:
+		var action_name := String(action)
+		var slots := _normalize_keybinding_slots((raw_bindings as Dictionary)[action])
+		if not slots.is_empty():
+			out[action_name] = slots
+	return out
+
+
+func _normalize_keybinding_slots(raw_slots: Variant) -> Dictionary:
+	var out := {}
+	if raw_slots is Array:
+		for raw_event in raw_slots:
+			if not (raw_event is InputEvent):
+				continue
+			var slot := _slot_for_event(raw_event)
+			if slot != "" and not out.has(slot):
+				out[slot] = _event_to_token(raw_event)
+		return out
+	if not (raw_slots is Dictionary):
+		return out
+	for raw_slot in raw_slots:
+		var slot := _normalize_slot_name(String(raw_slot))
+		if slot == "":
+			continue
+		var token: String = _token_from_variant((raw_slots as Dictionary)[raw_slot])
+		out[slot] = token
+	return out
+
+
+func _token_from_variant(value: Variant) -> String:
+	if value == null:
+		return ""
+	if value is InputEvent:
+		return _event_to_token(value)
+	return String(value).strip_edges()
+
+
+func _ensure_active_keybinding_profile() -> void:
+	if active_profile.strip_edges() == "":
+		active_profile = KEYBINDING_DEFAULT_PROFILE
+	if not profiles.has(KEYBINDING_DEFAULT_PROFILE) or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary):
+		profiles[KEYBINDING_DEFAULT_PROFILE] = {}
+	if not profiles.has(active_profile) or not (profiles[active_profile] is Dictionary):
+		active_profile = KEYBINDING_DEFAULT_PROFILE
+	keybindings = profiles[active_profile]
+
+
+func _sync_active_keybinding_profile() -> void:
+	if active_profile.strip_edges() == "":
+		active_profile = KEYBINDING_DEFAULT_PROFILE
+	if not profiles.has(KEYBINDING_DEFAULT_PROFILE) or not (profiles[KEYBINDING_DEFAULT_PROFILE] is Dictionary):
+		profiles[KEYBINDING_DEFAULT_PROFILE] = {}
+	profiles[active_profile] = keybindings
+
+
+func _event_to_token(event: InputEvent) -> String:
+	if event is InputEventKey:
+		var parts: Array[String] = []
+		if event.ctrl_pressed:
+			parts.append("Ctrl")
+		if event.shift_pressed:
+			parts.append("Shift")
+		if event.alt_pressed:
+			parts.append("Alt")
+		if event.meta_pressed:
+			parts.append("Meta")
+		var code: int = event.keycode if event.keycode != 0 else event.physical_keycode
+		parts.append(OS.get_keycode_string(code))
+		return "+".join(parts)
+	if event is InputEventMouseButton:
+		return "Mouse%d" % event.button_index
+	if event is InputEventJoypadButton:
+		return _JOY_BUTTON_TOKENS.get(event.button_index, "JoyButton%d" % event.button_index)
+	if event is InputEventJoypadMotion:
+		var suffix := "+" if event.axis_value >= 0.0 else "-"
+		return "JoyAxis%d%s" % [event.axis, suffix]
+	return ""
+
+
+func _event_from_token(token: String) -> InputEvent:
+	var clean := token.strip_edges()
+	if clean == "":
+		return null
+	if clean.begins_with("Mouse"):
+		var button_text := clean.trim_prefix("Mouse")
+		if button_text.is_valid_int():
+			var mouse := InputEventMouseButton.new()
+			mouse.device = -1
+			mouse.button_index = int(button_text)
+			return mouse
+	if clean.begins_with("JoyAxis"):
+		var axis_text := clean.trim_prefix("JoyAxis")
+		var sign := 1.0
+		if axis_text.ends_with("-"):
+			sign = -1.0
+			axis_text = axis_text.trim_suffix("-")
+		elif axis_text.ends_with("+"):
+			axis_text = axis_text.trim_suffix("+")
+		if axis_text.is_valid_int():
+			var motion := InputEventJoypadMotion.new()
+			motion.device = -1
+			motion.axis = int(axis_text)
+			motion.axis_value = sign
+			return motion
+	if _JOY_BUTTON_ALIASES.has(clean):
+		var button := InputEventJoypadButton.new()
+		button.device = -1
+		button.button_index = int(_JOY_BUTTON_ALIASES[clean])
+		return button
+	if clean.begins_with("JoyButton"):
+		var button_text := clean.trim_prefix("JoyButton")
+		if button_text.is_valid_int():
+			var button := InputEventJoypadButton.new()
+			button.device = -1
+			button.button_index = int(button_text)
+			return button
+	return _key_event_from_token(clean)
+
+
+func _key_event_from_token(token: String) -> InputEventKey:
+	var parts := token.split("+", false)
+	if parts.is_empty():
+		return null
+	var key_name := parts[parts.size() - 1].strip_edges()
+	var keycode := OS.find_keycode_from_string(key_name)
+	if keycode == 0:
+		return null
+	var event := InputEventKey.new()
+	event.device = -1
+	event.keycode = keycode
+	for i in range(parts.size() - 1):
+		match parts[i].strip_edges().to_lower():
+			"ctrl", "control":
+				event.ctrl_pressed = true
+			"shift":
+				event.shift_pressed = true
+			"alt":
+				event.alt_pressed = true
+			"meta", "cmd", "command":
+				event.meta_pressed = true
+			_:
+				return null
+	return event
 
 
 const _UI_MIRROR: Dictionary = {
@@ -587,13 +879,36 @@ func set_volume(bus_name: String, value: int) -> void:
 	save()
 
 
-func rebind_action(action_name: String, event: InputEvent) -> void:
-	keybindings[action_name] = [event]
+func rebind_action(action_name: String, event: InputEvent, device_slot: String = "") -> void:
+	var slot := _normalize_slot_name(device_slot) if device_slot != "" else _slot_for_event(event)
+	if slot == "":
+		push_warning("SettingsManager: unsupported input event for rebind: %s" % event)
+		return
+	var slots: Dictionary = keybindings.get(action_name, {}).duplicate()
+	slots[slot] = _event_to_token(event)
+	keybindings[action_name] = slots
+	_sync_active_keybinding_profile()
 	_apply_keybindings()
 	# Re-mirror so the ui_* actions consumed by menus track the new binding —
 	# rebinding "confirm" must also re-anchor "ui_accept". _mirror_game_keys_to_ui
 	# is idempotent (action_has_event guards every add) so the redundant call on
 	# the unchanged actions is cheap. Code review 2026-06-10 issue 2.9.
+	_mirror_game_keys_to_ui()
+	save()
+
+
+func apply_keybindings(pending: Dictionary) -> void:
+	for action in pending:
+		var existing: Dictionary = keybindings.get(String(action), {}).duplicate()
+		var slots := _normalize_keybinding_slots(pending[action])
+		for slot in slots:
+			existing[slot] = slots[slot]
+		if existing.is_empty():
+			keybindings.erase(String(action))
+		else:
+			keybindings[String(action)] = existing
+	_sync_active_keybinding_profile()
+	_apply_keybindings()
 	_mirror_game_keys_to_ui()
 	save()
 
