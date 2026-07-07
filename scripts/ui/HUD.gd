@@ -12,6 +12,7 @@ extends Control
 
 const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
 const TileActions     = preload("res://scripts/shared/TileActions.gd")
+const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -60,7 +61,13 @@ const TERRAIN_PAGE_HIDDEN: int = -1
 const TERRAIN_PAGE_DESCRIPTION: int = 0
 const TERRAIN_PAGE_MOVEMENT: int = 1
 const TERRAIN_PAGE_COUNT: int = 2
+# _terrain_more_page mirrors _terrain_pager.index and is what every reader/test uses.
+# The pager is the shared SelectionCursor with the inactive (-1 = Hidden) stop enabled,
+# so the terrain pager, the sheet grid, and the forecast list all navigate through one
+# core — the single point the gamepad d-pad wiring attaches to (B6-INPUT selector
+# adoption). configure() runs in _ready; advance() runs in cycle_terrain_more_page().
 var _terrain_more_page: int = TERRAIN_PAGE_HIDDEN
+var _terrain_pager: RefCounted = SelectionCursor.new()
 
 # Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
@@ -90,6 +97,10 @@ var _layout_base_positions: Dictionary = {}
 func _ready() -> void:
 	# Discoverable by the in-map "Edit HUD Layout" launcher without a hard node path.
 	add_to_group("hud")
+	# The terrain pager cycles Hidden(-1) → Description(0) → Movement(1) → Hidden.
+	# has_inactive=true makes -1 a real stop in the cycle (matching the old int wrap).
+	_terrain_pager.configure(TERRAIN_PAGE_COUNT, 1, true, true)
+	_terrain_pager.changed.connect(_on_terrain_page_changed)
 	_unit_panel.hide()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -508,10 +519,19 @@ func _update_terrain(tile: Vector2i) -> void:
 
 # Cycles the terrain More Info surface Hidden → Description → Movement → Hidden
 # (V021-05). Public so the mouse/touch mode (V021-17) can drive paging by click.
+# Delegates to the shared cursor; the `changed` handler mirrors the page and
+# re-renders. Sync-then-advance because callers/tests may set _terrain_more_page
+# directly — production paging always flows through here, so it never desyncs.
 func cycle_terrain_more_page() -> void:
-	_terrain_more_page += 1
-	if _terrain_more_page >= TERRAIN_PAGE_COUNT:
-		_terrain_more_page = TERRAIN_PAGE_HIDDEN
+	if _terrain_pager.index != _terrain_more_page:
+		_terrain_pager.set_index(_terrain_more_page)
+	_terrain_pager.advance(1)
+
+
+# Cursor callback: mirror the active page and re-render against the current cursor
+# tile so the transition is immediate (index -1 hides the box via _update_terrain).
+func _on_terrain_page_changed(index: int) -> void:
+	_terrain_more_page = index
 	if _cursor_tile.x >= 0:
 		_update_terrain(_cursor_tile)
 

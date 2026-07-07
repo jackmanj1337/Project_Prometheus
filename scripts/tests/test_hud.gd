@@ -436,10 +436,14 @@ func get_unit_at(_t: Vector2i): return null
 	hud.cycle_terrain_more_page()
 	var cyc3: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_HIDDEN \
 		and not hud._terrain_more_panel.visible
-	if cyc1 and cyc2 and cyc3:
+	# B6-INPUT: the cycle flows through the shared SelectionCursor (has_inactive stop),
+	# so the pager index tracks the mirrored page across the full loop.
+	var pager_synced: bool = hud._terrain_pager.index == hud._terrain_more_page \
+		and hud._terrain_pager.index == hud.TERRAIN_PAGE_HIDDEN
+	if cyc1 and cyc2 and cyc3 and pager_synced:
 		print("OK  V021-05 more_info cycles Hidden → Description → Movement → Hidden"); passed += 1
 	else:
-		print("FAIL cycle: c1=%s c2=%s c3=%s" % [cyc1, cyc2, cyc3]); failed += 1
+		print("FAIL cycle: c1=%s c2=%s c3=%s pager=%s" % [cyc1, cyc2, cyc3, pager_synced]); failed += 1
 
 	# V023-09a: click paging should hit both the compact panel and either expanded
 	# page. The movement page used to miss because only TerrainCorner's compact
