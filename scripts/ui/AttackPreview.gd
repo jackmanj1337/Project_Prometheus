@@ -16,6 +16,7 @@ extends Control
 
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
+const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
@@ -76,7 +77,15 @@ var _entries: Array = []
 
 # Index into _entries for the currently displayed side-panel entry. -1 means
 # nothing is selected yet — InfoHint is visible and InfoDescription is empty.
+# Mirrors _selector.index; kept as a plain field so existing readers/tests don't
+# have to reach into the cursor.
 var _current_index: int = -1
+
+# Shared navigation core (B6-INPUT selector adoption). 1-D forward/back cycle over
+# the _entries list, no inactive stop — the same core UnitDetailsScreen uses, so
+# the gamepad d-pad wiring attaches in one place. Rendering stays per-surface:
+# `changed` drives _show_entry / _reset_info_panel.
+var _selector: RefCounted = SelectionCursor.new()
 
 # Full, untruncated combatant names captured each show_preview(). The name rows
 # may be shortened with an ellipsis to fit their column, so More Info reads from
@@ -117,6 +126,7 @@ func _ready() -> void:
 	# [url=combat_field:KEY] meta string is parsed in _on_entry_clicked.
 	for label in _all_selectable_labels():
 		label.meta_clicked.connect(_on_entry_clicked)
+	_selector.changed.connect(_on_selector_changed)
 	hide()
 
 
@@ -205,6 +215,10 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		_def_effective.text = _effective_link("def", false, 1.0)
 
 	_refresh_forecast_row_heights()
+	# Reconfigure the cursor for this show's entry count and reset it to -1 so every
+	# preview opens on the hint state (reset emits `changed(-1)` → _reset_info_panel).
+	_selector.configure(_entries.size(), 1, true, false)
+	_selector.reset()
 	_reset_info_panel()
 	_size_panel_to_content()
 	_anchor_defender = defender
@@ -385,8 +399,7 @@ func _on_entry_clicked(meta: Variant) -> void:
 	for i in _entries.size():
 		var e: Dictionary = _entries[i]
 		if e["side"] == side and e["key"] == key:
-			_current_index = i
-			_show_entry(e)
+			_selector.set_index(i)
 			return
 
 
@@ -434,12 +447,20 @@ func _battle_speed_note() -> String:
 
 # Advances through _entries. First press shows the first entry; subsequent
 # presses move forward one and wrap. Same semantics as UnitDetailsScreen so
-# the player only has to learn one F behaviour across both surfaces.
+# the player only has to learn one F behaviour across both surfaces. Delegates
+# to the shared cursor; the `changed` handler does the rendering.
 func _cycle_more_info() -> void:
-	if _entries.is_empty():
+	_selector.advance(1)
+
+
+# Cursor callback: mirror the index and render. -1 (or out of range) restores the
+# hint state; any valid index shows that entry's More Info in the side panel.
+func _on_selector_changed(index: int) -> void:
+	_current_index = index
+	if index < 0 or index >= _entries.size():
+		_reset_info_panel()
 		return
-	_current_index = (_current_index + 1) % _entries.size()
-	_show_entry(_entries[_current_index])
+	_show_entry(_entries[index])
 
 
 func _unhandled_input(event: InputEvent) -> void:

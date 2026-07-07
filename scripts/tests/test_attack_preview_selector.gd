@@ -248,6 +248,34 @@ func _init() -> void:
 			% [seen.size(), preview._entries.size()])
 		failed += 1
 
+	# ---- The shared SelectionCursor drives selection (B6-INPUT adoption) -
+	# _current_index is a mirror of _selector.index; clicking, cycling, and the
+	# reset-on-show all flow through the cursor. Locks the refactor so a future
+	# edit can't quietly reintroduce a private index.
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var cursor_start_ok: bool = preview._selector.index == -1 \
+		and preview._current_index == -1
+	preview._cycle_more_info()
+	var cursor_step_ok: bool = preview._selector.index == 0 \
+		and preview._current_index == 0
+	preview._on_entry_clicked("combat_field:def:hp")
+	var def_hp_idx: int = -1
+	for i in preview._entries.size():
+		var entry: Dictionary = preview._entries[i]
+		if entry["side"] == "def" and entry["key"] == "hp":
+			def_hp_idx = i
+			break
+	var cursor_click_ok: bool = preview._selector.index == def_hp_idx \
+		and preview._current_index == def_hp_idx
+	if cursor_start_ok and cursor_step_ok and cursor_click_ok:
+		print("OK  selection flows through the shared SelectionCursor"); passed += 1
+	else:
+		print("FAIL cursor adoption: start=%s step=%s click=%s (sel=%d cur=%d def_hp=%d)" % [
+			cursor_start_ok, cursor_step_ok, cursor_click_ok,
+			preview._selector.index, preview._current_index, def_hp_idx])
+		failed += 1
+
 	# ---- No-counter layout keeps the visible defender row readable ------
 	resolver.preview_data = _make_preview_data(false, true)
 	preview.show_preview(attacker, defender)
