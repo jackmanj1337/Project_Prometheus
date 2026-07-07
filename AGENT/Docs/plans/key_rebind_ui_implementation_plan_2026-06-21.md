@@ -55,7 +55,9 @@ blobs in `settings.cfg`. Change the persisted format to a **per-device-slot, hum
 shape** and rehydrate to `InputEvent`s on load:
 
 ```
-keybindings[action] = { "kbd": "<keycode/mouse token>", "pad": "<joy button/axis token>" }
+# profile-ready shape ([ICD-8] structure-now):
+active_profile = "Default"
+profiles["Default"][action] = { "kbd": "<keycode/mouse token>", "pad": "<joy button/axis token>" }
 ```
 
 - Tokens are plain strings/ints (e.g. `"Z"`, `"Mouse1"`, `"JoyA"`, `"JoyAxis5+"`), not
@@ -66,37 +68,53 @@ keybindings[action] = { "kbd": "<keycode/mouse token>", "pad": "<joy button/axis
 - This is a one-version migration from the old object form (read-old-write-new, same
   pattern as `mouse_targeting`/`ui_scale_index`). Detailed token table at implementation.
 
+**Profile-ready nesting ([ICD-8], added 2026-07-07).** From the start, the per-device-slot
+maps are nested under a named profile with `active_profile = "Default"`; the live
+`keybindings` is a view of `profiles[active_profile]`. This ships in the v0.3.0 rebind
+foundation so that adding the **profile management UI in a later v1 slice** is purely
+additive (dropdown + create/rename/delete/duplicate/switch) with **no second format
+migration**. The profile *UI* is out of scope for v0.3.0; only the profile-ready *shape*
+lands now. `InputMap` is global, so only the active profile is applied (switching re-applies).
+
 ## 2. UI flow (the capture interaction)
 
-Convert each read-only row to an editable row:
+Convert each read-only row to an editable row, driven by a **staged pending buffer**
+([ICD-6] amended 2026-07-07 → batch apply-block):
 
 ```
-[ Action name ]   [ current key glyph ]   [ Rebind ]   ( [ Pad ] if 5b=A )
+[ Action name ]   [ current key glyph ]   [ Rebind ]   ( [ Pad ] if 5b=A )   ( [ Clear ] when in conflict )
+                                                                     [ Apply ]  [ Revert ]  (screen-level)
 ```
 
 - **Rebind** button → row enters **capture mode**: button text → "Press a key…",
   the row highlights, all other input to the screen is suppressed.
 - The next eligible `InputEvent` (filtered by device class for the slot being rebound —
-  see [ICD-4]) is captured:
-  - **Esc / cancel** aborts capture, restores the prior binding (Esc is reserved for
+  see [ICD-4]) is captured into the **pending buffer** (NOT applied live):
+  - **Esc / cancel** aborts capture, restores the prior pending value (Esc is reserved for
     cancel, never bindable to a game action through this flow).
-  - A **conflict** (event already bound to another game action **in the same device slot**)
-    triggers a **two-way swap** ([ICD-6]): capturing input E for action A where E belongs
-    to B → A gets E, **B inherits A's previous binding for that slot** (B's slot is left
-    empty if A had none). The inline notice must state *both* changes ("Bound E to A; moved
-    B to <A's old input>") since two bindings changed at once.
-  - Otherwise call `SettingsManager.rebind_action(action, event)` (per-device-slot variant
-    per [ICD-4]); the row re-renders from `InputDisplay`.
+  - A **conflict** (event already assigned to another game action **in the same device
+    slot**, live or pending) marks **both** rows in **conflict (red)**. Nothing is applied.
+    Each conflicting row shows a **Clear** affordance; clearing either side resolves the
+    collision (a legitimate A↔B swap is a two-tap manual gesture). Conflict scan runs over
+    the game-action set only (never the `ui_*` mirror — §5).
+  - Otherwise the row shows the new (pending) glyph, staged.
+- **Apply** button (screen-level) → **disabled while any conflict is unresolved**; when
+  enabled, commits the whole pending set at once via a batch
+  `SettingsManager.apply_keybindings(pending)` (per-device-slot per [ICD-4]), re-runs the
+  mirror once, saves, and repaints from `InputDisplay`.
+- **Revert** button (screen-level) → discards the pending buffer, repaint from the live
+  `keybindings`. Free because staged edits were never applied.
 - **Reset Controls** button (screen-level, **always visible/accessible** per [ICD-5a]) →
-  `reset_section_to_defaults("controls")` then `_populate_keybindings()` to repaint. This is
-  the always-available self-trap escape hatch that lets every action — including the
-  universal nav/confirm/cancel — stay rebindable. Backed up by the hand-editable cfg (§1a)
-  as the ultimate recovery path.
+  `reset_section_to_defaults("controls")` then repaint. The always-available self-trap escape
+  hatch. **Self-trap safety is stronger under the batch model:** because staged edits are
+  not live, a player can never rebind confirm/cancel out from under themselves mid-edit —
+  Apply stays reachable via the still-applied bindings. Backed up by the hand-editable cfg
+  (§1a) as the ultimate recovery path.
 
 Capture is implemented with a focused modal state on `SettingsScreen` (a `_capturing`
-member + the target action/slot), consuming input in `_input` during capture so the
-captured event never also triggers a game action. **No new scene** — extend the existing
-list rows.
+member + the target action/slot) plus a `_pending` binding buffer, consuming input in
+`_input` during capture so the captured event never also triggers a game action. **No new
+scene** — extend the existing list rows.
 
 ## 3. Composition with the gamepad layer ([ICD-4])
 
@@ -135,22 +153,24 @@ guarantees the rebind flow is *non-destructive* to them.
   the always-visible Reset (§2) + hand-editable cfg (§1a) make any self-trap recoverable.
   Debug rows default to read-only (they ship in debug builds only and are slated for
   removal — persisting bindings for them is pointless; implementer's call).
-- **Swap can vacate a slot** — under the [ICD-6] swap, if A had no prior binding in the
-  device slot, the swapped action B is left **unbound for that device** (shows "unbound").
-  This is acceptable and recoverable (rebind it, or Reset). There is no separate
-  "unbind to nothing" *button* — vacancy only ever arises as a swap side-effect.
-- **Persistence** — `rebind_action` saves; the human-readable format (§1a) is what gets
-  written, so the cfg stays hand-editable.
+- **Clear vacates a slot** — the per-row Clear ([ICD-6] amended) leaves that action
+  **unbound for that device** (shows "unbound"). Acceptable and recoverable (rebind it, or
+  Reset). Clear exists specifically to resolve a conflict (and, incidentally, as the only
+  "unbind to nothing" affordance).
+- **Persistence** — `apply_keybindings` saves the committed set; the human-readable,
+  profile-nested format (§1a) is what gets written, so the cfg stays hand-editable.
 
 ## 6. Headless test plan
 
 Extend `test_settings_screen.gd`:
-- A Rebind button enters capture state; a synthetic `InputEventKey` calls
-  `rebind_action` with that event and the row re-renders the new glyph.
-- A captured event that conflicts with another action **swaps** ([ICD-6]): A gets the new
-  input, B inherits A's old binding for that slot; assert both rows update.
-- A swap where A had no prior slot binding leaves B unbound for that device.
-- Esc during capture aborts and restores the prior binding.
+- A Rebind button enters capture state; a synthetic `InputEventKey` stages into `_pending`
+  and the row re-renders the new glyph **without** touching live `keybindings`.
+- A captured event that conflicts with another action marks **both rows red** and
+  **disables Apply** ([ICD-6] amended); the per-row **Clear** on either side re-enables it.
+- **Apply** commits the pending set via `apply_keybindings` (live `keybindings` now match)
+  and repaints; **Revert** discards the pending buffer (live unchanged).
+- Clear on a row leaves that action unbound for the device.
+- Esc during capture aborts and restores the prior pending value.
 - "Reset Controls" repopulates rows to defaults.
 - Debug rows expose no Rebind button.
 
@@ -171,19 +191,24 @@ real-device pad capture.
 The decisions re-ordered this: the persistence foundation lands first so we never ship the
 old object-blob cfg and re-migrate.
 
-1. **Binding-model + persistence foundation** ([ICD-4] + [ICD-5a-i]) — `keybindings` becomes
-   the per-device-slot dict with **human-readable token** serialization + the one-version
-   migration from the old object form; `rebind_action` gains the device-class slot filter.
-   Headless-testable, no UI change yet; independent of the gamepad layer (the K&M slot
-   stands alone). Lowest-risk first.
-2. **Editable K&M rebind UI** — convert rows to editable, capture flow, **swap** conflict
-   ([ICD-6]), always-visible Reset ([ICD-5a]). Shippable keyboard-only.
+1. **Binding-model + persistence foundation** ([ICD-4] + [ICD-5a-i] + [ICD-8]) —
+   `keybindings` becomes the per-device-slot dict with **human-readable token**
+   serialization, **nested under an implicit `"Default"` profile** (`active_profile`,
+   `profiles[...]`) for profile-readiness, + the one-version migration from the old object
+   form; `rebind_action` gains the device-class slot filter and a batch
+   `apply_keybindings(pending)` companion. Headless-testable, no UI change yet; independent
+   of the gamepad layer (the K&M slot stands alone). Lowest-risk first.
+2. **Editable K&M rebind UI** — convert rows to editable, capture flow, **batch apply-block
+   conflict** ([ICD-6] amended: pending buffer, red conflicts disable Apply, per-row Clear,
+   Revert), always-visible Reset ([ICD-5a]). Shippable keyboard-only.
 3. **Pad capture + textual pad labels** ([ICD-5b]) — capture joypad events into the pad
    slot; sequence with the gamepad bindings; pretty glyphs deferred to the prompt/glyph
    system.
 
 Slices 1–2 are the near-term, fully-unblocked deliverable. Slice 3 sequences with the
 gamepad layer (which supplies the default pad bindings the rebind UI then edits).
+**Out of scope for v0.3.0:** the profile-management UI ([ICD-8]) — a later v1 slice; only
+the profile-ready *shape* lands in slice 1.
 
 ## 8. Definition of done
 
@@ -199,5 +224,7 @@ gamepad layer (which supplies the default pad bindings the rebind UI then edits)
 
 Per `input_controls_open_decisions_2026-06-21.md`: **[ICD-4]** per-device slots;
 **[ICD-5a]** all actions rebindable + always-on Reset; **[ICD-5a-i]** human-readable cfg
-serialization; **[ICD-5b]** capture any device now, glyphs later; **[ICD-6]** swap on
-conflict. **This plan is build-ready** — slices 1–2 have no remaining dependency.
+serialization; **[ICD-5b]** capture any device now, glyphs later; **[ICD-6]** ~~swap~~
+**amended 2026-07-07 → batch apply-block + per-row clear**; **[ICD-8]** named profiles —
+structure now, UI in a later v1 slice (not v0.3.0). **This plan is build-ready** — slices
+1–2 have no remaining dependency.

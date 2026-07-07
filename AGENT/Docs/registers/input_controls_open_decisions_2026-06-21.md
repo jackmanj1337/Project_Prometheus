@@ -2,8 +2,8 @@
 Type: register
 Status: RESOLVED 2026-06-21
 Last verified: 2026-06-23
-Register: ICD-1..7
-Resolved-in: 2026-06-21 (ICD-7 non-blocking)
+Register: ICD-1..8
+Resolved-in: 2026-06-21 (ICD-7 non-blocking); ICD-6 amended + ICD-8 added 2026-07-07
 ---
 
 # Input / Controls — Open Decisions Register — 2026-06-21
@@ -156,25 +156,63 @@ lands (architecture design's deferred polish item).
 
 ## ICD-6 — Rebind conflict policy
 
-**Status:** ✅ RESOLVED 2026-06-21 → **B, Swap** (chosen over the recommendation).
+**Status:** ✅ RESOLVED 2026-06-21 → **B, Swap**; ⚠️ **AMENDED 2026-07-07 → batch
+apply-block + per-row clear (supersedes swap).**
 
-When a captured event already belongs to another action, perform a **two-way swap within
-the same device slot** — never a silent single change:
+> **Amendment rationale (2026-07-07, owner).** The live two-way swap silently mutated a
+> *second* action on every conflicting capture — surprising, hard to revert, and it applied
+> bindings live (so a player could rebind confirm/cancel out from under themselves
+> mid-edit). Replaced with a **staged/batch model** that resolves all three problems:
+> edits are revertable, no action changes without the player's action, and — because staged
+> edits are not live — the player **cannot self-trap mid-edit** (Apply stays reachable via
+> the still-applied bindings, complementing the ICD-5 always-visible Reset).
 
-> Capturing input **E** for action **A**, where **E** is currently bound to action **B**
-> in the same device slot: **A receives E; B inherits A's previous binding for that slot.**
-> If A had no prior binding in that slot, B's slot is left empty (and shows as unbound).
+**Batch apply-block model:**
 
-Required behaviour for this to be safe (detailed in the rebind plan §2/§5):
-- **Clear messaging** — the confirmation/inline notice must state *both* changes ("Bound E
-  to A; moved B to <A's old input>"), since two bindings changed at once.
-- **Conflict scope is the matching device slot** — a keyboard capture only swaps against
-  the other action's keyboard slot; a pad capture only against pad slots (consistent with
-  ICD-4 per-device slots).
+> Rebind captures accumulate in a **pending buffer**; nothing is applied to the live
+> `InputMap`/`keybindings` until the player presses **Apply**. A captured event that
+> collides with another action **in the same device slot** marks **both** rows in
+> **conflict (red)**. **Apply is disabled while any conflict is unresolved.** Each
+> conflicting row carries a **per-row "clear"** affordance so the player resolves the
+> collision in one click (clearing either side); a legitimate A↔B swap is thus a two-tap
+> manual gesture, not an automatic engine move.
+
+Required behaviour (detailed in the rebind plan §2/§5):
+- **Staged, revertable** — a **Cancel/Revert** discards the pending buffer; **Apply**
+  commits the whole pending set at once (batch `apply_keybindings(pending)`), not per-capture.
+- **Conflict scope is the matching device slot** — a keyboard capture only conflicts against
+  other keyboard slots; a pad capture only against pad slots (consistent with ICD-4
+  per-device slots).
 - **Check against game actions only** — `_mirror_game_keys_to_ui` derives the `ui_*`
   entries from the game actions, so the conflict scan runs over the game-action set, not
   the `ui_*` mirror (checking the mirror would produce phantom conflicts).
-- **Esc is never swappable** — it stays the reserved capture-abort (rebind plan §5).
+- **Esc is never bindable** — it stays the reserved capture-abort (rebind plan §5).
+- **Clear vacates a slot** — clearing a row leaves that action unbound for the device
+  (shows "unbound"), recoverable by rebinding or Reset.
+
+---
+
+## ICD-8 — Named control-scheme profiles (added 2026-07-07)
+
+**Status:** ✅ RESOLVED 2026-07-07 → **structure for it now, build the profile UI in a
+later v1 slice (NOT in v0.3.0).**
+
+Multiple named, switchable keybinding sets ("Default", "Southpaw", …) the player can create
+and switch between. A profile is just a **named map of `action → {kbd, pad}`** — pure data,
+no engine type-switch (aligns with the `[EXT]` open-registry principle). It composes cleanly
+with ICD-4 per-device slots: the slot dict becomes the *value* inside a profile, so the slot
++ human-readable serialization work (ICD-4 / ICD-5a-i) is **not** thrown away by adding
+profiles later.
+
+| Option | Trade-off |
+|---|---|
+| **A. Structure-for-later now, UI in a later v1 slice** (chosen) | Slice-1 persistence nests today's map under an implicit `"Default"` profile from the start (`profiles["Default"][action] = {kbd,pad}`, `active_profile = "Default"`). Adding real profiles later is then **additive** — a dropdown + create/rename/delete/duplicate/switch methods — with **no second format migration**. Cheap insurance; no v0.3.0 scope creep. |
+| **B. Build full profiles in v0.3.0** | ~1 extra slice now (profile UI + manage methods + scoped reset); not required for the v0.3.0 rebind win. |
+
+**Owner decision (2026-07-07):** profiles belong in **v1** but **not v0.3.0**. Take Option A
+— ship the profile-ready persistence shape in the v0.3.0 rebind foundation; defer the
+profile management UI to a later v1 slice. `InputMap` is global, so only the active profile
+is applied at a time (switching re-applies) — no engine constraint blocks this.
 
 ---
 
@@ -202,5 +240,6 @@ No action needed from you on ICD-7 now; they resolve at implementation/verify ti
 | ICD-3 | Touch-first precedence + iOS smoke gate (A) | 2026-06-21 | resolver plan §2 |
 | ICD-4 | Per-device slots (A) | 2026-06-21 | rebind plan §1, §3 |
 | ICD-5 | All actions rebindable + always-on Reset + human-readable cfg; capture any device now, glyphs later | 2026-06-21 | rebind plan §1, §2, §5 |
-| ICD-6 | Swap (two-way, same device slot) (B) | 2026-06-21 | rebind plan §2, §5 |
+| ICD-6 | ~~Swap (two-way, same device slot) (B)~~ **AMENDED → batch apply-block + per-row clear** | 2026-06-21; amended 2026-07-07 | rebind plan §2, §5 |
 | ICD-7 | Tune-live; no decision | — | gamepad plan §10 |
+| ICD-8 | Named profiles — structure now, UI in later v1 slice (not v0.3.0) (A) | 2026-07-07 | rebind plan §1a, §7 |
