@@ -2,13 +2,13 @@ extends Node
 
 signal input_mode_changed(mode: String)
 
+const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
+
 const MODE_AUTO := "auto"
 const MODE_GAMEPAD := "gamepad"
 const MODE_TOUCH := "touch"
 const MODE_MOUSE_KEYBOARD := "mouse_keyboard"
-const VALID_INPUT_MODES: Array[String] = [
-	MODE_AUTO, MODE_GAMEPAD, MODE_TOUCH, MODE_MOUSE_KEYBOARD,
-]
+const VALID_INPUT_MODES: Array[String] = SettingsManagerS.VALID_INPUT_MODES
 const TOUCH_MOUSE_SUPPRESSION_MSEC := 150
 const JOY_MOTION_DEADZONE := 0.5
 
@@ -105,10 +105,7 @@ static func resolve_input_mode(setting: String, last_detected: String,
 
 
 static func normalize_input_mode(value: Variant) -> String:
-	var mode := String(value)
-	if mode in VALID_INPUT_MODES:
-		return mode
-	return MODE_AUTO
+	return SettingsManagerS.normalize_input_mode(value)
 
 
 static func platform_seed() -> String:

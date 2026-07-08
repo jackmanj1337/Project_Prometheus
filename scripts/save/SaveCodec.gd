@@ -29,11 +29,11 @@ static func vector2i_to_dict(value: Vector2i) -> Dictionary:
 static func vector2i_from_dict(value: Variant, default_value: Vector2i = Vector2i.ZERO) -> Vector2i:
 	if value is Dictionary:
 		return Vector2i(
-			_as_int(value.get("x", default_value.x), default_value.x),
-			_as_int(value.get("y", default_value.y), default_value.y)
+			as_int(value.get("x", default_value.x), default_value.x),
+			as_int(value.get("y", default_value.y), default_value.y)
 		)
 	if value is Array and value.size() >= 2:
-		return Vector2i(_as_int(value[0], default_value.x), _as_int(value[1], default_value.y))
+		return Vector2i(as_int(value[0], default_value.x), as_int(value[1], default_value.y))
 	return default_value
 
 
@@ -58,13 +58,13 @@ static func inventory_entry_from_dict(data: Variant) -> InventoryEntry:
 	entry.entry_type = String(data.get("entry_type", ""))
 	entry.weapon_id = String(data.get("weapon_id", ""))
 	entry.item_id = String(data.get("item_id", ""))
-	entry.uses_remaining = _as_int(data.get("uses_remaining", 0), 0)
+	entry.uses_remaining = as_int(data.get("uses_remaining", 0), 0)
 	entry.forged_mods = data.get("forged_mods", {}).duplicate(true) \
 		if data.get("forged_mods", {}) is Dictionary else {}
-	entry.accuracy = _as_int(data.get("accuracy", 0), 0)
-	entry.damage = _as_int(data.get("damage", 0), 0)
-	entry.crit = _as_int(data.get("crit", 0), 0)
-	entry.dodge = _as_int(data.get("dodge", 0), 0)
+	entry.accuracy = as_int(data.get("accuracy", 0), 0)
+	entry.damage = as_int(data.get("damage", 0), 0)
+	entry.crit = as_int(data.get("crit", 0), 0)
+	entry.dodge = as_int(data.get("dodge", 0), 0)
 	return entry
 
 
@@ -121,32 +121,32 @@ static func unit_data_to_dict(data: UnitData) -> Dictionary:
 static func apply_unit_dict(data: UnitData, snap: Dictionary) -> void:
 	data.tile_position = vector2i_from_dict(snap.get("tile_position", {}), Vector2i.ZERO)
 	data.class_id = String(snap.get("class_id", data.class_id))
-	data.hp = _as_int(snap.get("hp", data.max_hp), data.max_hp)
-	data.max_hp = _as_int(snap.get("max_hp", data.max_hp), data.max_hp)
-	data.strength = _as_int(snap.get("strength", data.strength), data.strength)
-	data.magic = _as_int(snap.get("magic", data.magic), data.magic)
-	data.defense = _as_int(snap.get("defense", data.defense), data.defense)
-	data.resistance = _as_int(snap.get("resistance", data.resistance), data.resistance)
-	data.skill = _as_int(snap.get("skill", data.skill), data.skill)
-	data.speed = _as_int(snap.get("speed", data.speed), data.speed)
-	data.luck = _as_int(snap.get("luck", data.luck), data.luck)
-	data.exp = _as_int(snap.get("exp", 0), 0)
-	data.level = _as_int(snap.get("level", data.level), data.level)
-	data.internal_level = _as_int(snap.get("internal_level", data.internal_level), data.internal_level)
+	data.hp = as_int(snap.get("hp", data.max_hp), data.max_hp)
+	data.max_hp = as_int(snap.get("max_hp", data.max_hp), data.max_hp)
+	data.strength = as_int(snap.get("strength", data.strength), data.strength)
+	data.magic = as_int(snap.get("magic", data.magic), data.magic)
+	data.defense = as_int(snap.get("defense", data.defense), data.defense)
+	data.resistance = as_int(snap.get("resistance", data.resistance), data.resistance)
+	data.skill = as_int(snap.get("skill", data.skill), data.skill)
+	data.speed = as_int(snap.get("speed", data.speed), data.speed)
+	data.luck = as_int(snap.get("luck", data.luck), data.luck)
+	data.exp = as_int(snap.get("exp", 0), 0)
+	data.level = as_int(snap.get("level", data.level), data.level)
+	data.internal_level = as_int(snap.get("internal_level", data.internal_level), data.internal_level)
 	data.is_promoted = bool(snap.get("is_promoted", data.is_promoted))
 	data.class_line_id = String(snap.get("class_line_id", data.class_line_id))
-	data.weapon_wexp = _int_dict_from_variant(snap.get("weapon_wexp", {}))
+	data.weapon_wexp = int_dict_from_variant(snap.get("weapon_wexp", {}))
 	data.inventory = inventory_entries_from_array(snap.get("inventory", []))
 	data.conditions = _dict_array_from_variant(snap.get("conditions", []))
-	data.skills = _string_array_from_variant(snap.get("skills", []))
-	data.earned_skills = _string_array_from_variant(snap.get("earned_skills", []))
-	data.mastery_skills = _string_array_from_variant(snap.get("mastery_skills", []))
+	data.skills = string_array_from_variant(snap.get("skills", []))
+	data.earned_skills = string_array_from_variant(snap.get("earned_skills", []))
+	data.mastery_skills = string_array_from_variant(snap.get("mastery_skills", []))
 	data.is_incapacitated = bool(snap.get("is_incapacitated", false))
 	data.active_modifiers = _dict_array_from_variant(snap.get("active_modifiers", []))
-	data.skill_use_counters = _int_dict_from_variant(snap.get("skill_use_counters", {}))
-	data.damage_taken_this_map = _as_int(snap.get("damage_taken_this_map", 0), 0)
-	data.growth_accumulators = _int_dict_from_variant(snap.get("growth_accumulators", {}))
-	data.shift_gauge = _as_int(snap.get("shift_gauge", 0), 0)
+	data.skill_use_counters = int_dict_from_variant(snap.get("skill_use_counters", {}))
+	data.damage_taken_this_map = as_int(snap.get("damage_taken_this_map", 0), 0)
+	data.growth_accumulators = int_dict_from_variant(snap.get("growth_accumulators", {}))
+	data.shift_gauge = as_int(snap.get("shift_gauge", 0), 0)
 	data.is_shifted = bool(snap.get("is_shifted", false))
 
 
@@ -160,8 +160,8 @@ static func validate_unit_snapshot_dict(snap: Dictionary, index: int,
 		if not _is_json_int(snap.get("hp")) or not _is_json_int(snap.get("max_hp")):
 			errors.append("%s hp/max_hp must be whole numbers" % prefix)
 		else:
-			var hp := _as_int(snap.get("hp"), -1)
-			var max_hp := _as_int(snap.get("max_hp"), -1)
+			var hp := as_int(snap.get("hp"), -1)
+			var max_hp := as_int(snap.get("max_hp"), -1)
 			if max_hp < 1:
 				errors.append("%s max_hp must be >= 1" % prefix)
 			if hp < 0:
@@ -229,7 +229,7 @@ static func validate_inventory_entry_dict(entry_data: Variant, path: String,
 	return errors
 
 
-static func _string_array_from_variant(value: Variant) -> Array[String]:
+static func string_array_from_variant(value: Variant) -> Array[String]:
 	var out: Array[String] = []
 	if not (value is Array):
 		return out
@@ -253,12 +253,12 @@ static func _dict_array_from_variant(value: Variant) -> Array[Dictionary]:
 	return out
 
 
-static func _int_dict_from_variant(value: Variant) -> Dictionary:
+static func int_dict_from_variant(value: Variant) -> Dictionary:
 	var out: Dictionary = {}
 	if not (value is Dictionary):
 		return out
 	for key in value.keys():
-		out[key] = _as_int(value[key], 0)
+		out[key] = as_int(value[key], 0)
 	return out
 
 
@@ -270,5 +270,5 @@ static func _is_json_int(value: Variant) -> bool:
 	return false
 
 
-static func _as_int(value: Variant, default_value: int) -> int:
+static func as_int(value: Variant, default_value: int) -> int:
 	return int(value) if _is_json_int(value) else default_value

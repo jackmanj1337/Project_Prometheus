@@ -502,7 +502,7 @@ func unit_data_from_runtime_dict(unit_dict: Dictionary) -> UnitData:
 	data.line_of_sight = _variant_int(unit_dict.get("line_of_sight", 4), 4)
 	data.growth_rates = unit_dict.get("growth_rates", {}).duplicate(true) \
 		if unit_dict.get("growth_rates", {}) is Dictionary else {}
-	data.reclass_options = _string_array_from_variant(unit_dict.get("reclass_options", []))
+	data.reclass_options = SaveCodec.string_array_from_variant(unit_dict.get("reclass_options", []))
 	data.can_seize = bool(unit_dict.get("can_seize", false))
 	data.gold = _variant_int(unit_dict.get("gold", 1000), 1000)
 	data.ai_profile = String(unit_dict.get("ai_profile", "basic"))
@@ -559,7 +559,7 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.pair_up_enabled = bool(normalized.get("pair_up_enabled", true))
 	campaign_rules.max_skills = _variant_int(normalized.get("max_skills", 5), 5)
 	campaign_rules.max_inventory = _variant_int(normalized.get("max_inventory", 8), 8)
-	campaign_rules.exp_gaining_factions = _string_array_from_variant(
+	campaign_rules.exp_gaining_factions = SaveCodec.string_array_from_variant(
 		normalized.get("exp_gaining_factions", ["blue", "green"]))
 	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
 	campaign_rules.rewind_charges_per_map = _variant_int(
@@ -572,15 +572,6 @@ func _current_map_path() -> String:
 	if map_data != null and map_data.resource_path != "":
 		return map_data.resource_path
 	return ""
-
-
-func _string_array_from_variant(value: Variant) -> Array[String]:
-	var out: Array[String] = []
-	if not (value is Array):
-		return out
-	for item in value:
-		out.append(String(item))
-	return out
 
 
 func _variant_int(value: Variant, default_value: int) -> int:

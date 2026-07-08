@@ -42,7 +42,7 @@ func apply_dict(source: Variant) -> void:
 	if not (source is Dictionary):
 		return
 	var data: Dictionary = source
-	format_version = _as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
+	format_version = SaveCodec.as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
 	save_label = _as_string(data.get("save_label", ""), "")
 	integrity = _normalize_integrity(data.get("integrity", {}))
 	campaign = _normalize_campaign(data.get("campaign", {}), data)
@@ -115,11 +115,11 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	var out := _with_defaults(source, _default_campaign())
 	out["campaign_id"] = _as_string(out.get("campaign_id", ""), "")
 	out["node_id"] = _as_string(out.get("node_id", ""), "")
-	out["cleared_nodes"] = _string_array_from_variant(out.get("cleared_nodes", []))
+	out["cleared_nodes"] = SaveCodec.string_array_from_variant(out.get("cleared_nodes", []))
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
-	out["flags"] = _string_array_from_variant(out.get("flags", []))
+	out["flags"] = SaveCodec.string_array_from_variant(out.get("flags", []))
 	out["rules"] = _normalize_rules(raw_campaign.get("rules", {}), root)
-	out["recruited_flags"] = _string_array_from_variant(out.get("recruited_flags", []))
+	out["recruited_flags"] = SaveCodec.string_array_from_variant(out.get("recruited_flags", []))
 	return out
 
 
@@ -132,11 +132,11 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 	out["leveling_method"] = _as_string(out.get("leveling_method", "growth_random"), "growth_random")
 	out["auto_promote_at_max_level"] = bool(out.get("auto_promote_at_max_level", false))
 	out["pair_up_enabled"] = bool(out.get("pair_up_enabled", true))
-	out["max_skills"] = _as_int(out.get("max_skills", 5), 5)
-	out["max_inventory"] = _as_int(out.get("max_inventory", 8), 8)
-	out["exp_gaining_factions"] = _string_array_from_variant(
+	out["max_skills"] = SaveCodec.as_int(out.get("max_skills", 5), 5)
+	out["max_inventory"] = SaveCodec.as_int(out.get("max_inventory", 8), 8)
+	out["exp_gaining_factions"] = SaveCodec.string_array_from_variant(
 		out.get("exp_gaining_factions", ["blue", "green"]))
-	out["rewind_charges_per_map"] = _as_int(out.get("rewind_charges_per_map", 4), 4)
+	out["rewind_charges_per_map"] = SaveCodec.as_int(out.get("rewind_charges_per_map", 4), 4)
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
@@ -155,7 +155,7 @@ static func _normalize_party(source: Variant, root: Dictionary) -> Dictionary:
 	elif root.has("party_gold"):
 		legacy_gold = root["party_gold"]
 	if legacy_gold != null and not out["resources"].has("party_gold"):
-		out["resources"]["party_gold"] = _as_int(legacy_gold, 0)
+		out["resources"]["party_gold"] = SaveCodec.as_int(legacy_gold, 0)
 	out.erase("party_gold")
 	out.erase("gold")
 
@@ -169,7 +169,7 @@ static func _normalize_party(source: Variant, root: Dictionary) -> Dictionary:
 	if out.has("items") and out["convoy"].get("entries", []).is_empty():
 		out["convoy"]["entries"] = _array_from_variant(out["items"])
 	out.erase("items")
-	out["bonus_exp"] = _as_int(out.get("bonus_exp", 0), 0)
+	out["bonus_exp"] = SaveCodec.as_int(out.get("bonus_exp", 0), 0)
 	out["training_purchase_counts"] = _dict_from_variant(out.get("training_purchase_counts", {}))
 	return out
 
@@ -191,9 +191,9 @@ static func _normalize_map_runtime(source: Variant) -> Dictionary:
 	out["map_id"] = _as_string(out.get("map_id", ""), "")
 	out["map_path"] = _as_string(out.get("map_path", ""), "")
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
-	out["flags"] = _string_array_from_variant(out.get("flags", []))
-	out["events_fired"] = _string_array_from_variant(out.get("events_fired", []))
-	out["discovered_units"] = _string_array_from_variant(out.get("discovered_units", []))
+	out["flags"] = SaveCodec.string_array_from_variant(out.get("flags", []))
+	out["events_fired"] = SaveCodec.string_array_from_variant(out.get("events_fired", []))
+	out["discovered_units"] = SaveCodec.string_array_from_variant(out.get("discovered_units", []))
 	out["units"] = _array_from_variant(out.get("units", []))
 	out["turn"] = _normalize_turn(out.get("turn", {}))
 	out["rng"] = _dict_from_variant(out.get("rng", {}))
@@ -210,23 +210,23 @@ static func _normalize_suspend(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_suspend())
 	out["pending_action"] = _with_defaults(out.get("pending_action", {}), _default_suspend()["pending_action"])
 	out["cursor_tile"] = _vector_dict_or_null(out.get("cursor_tile", null))
-	out["watch_set"] = _string_array_from_variant(out.get("watch_set", []))
+	out["watch_set"] = SaveCodec.string_array_from_variant(out.get("watch_set", []))
 	out["danger_mode"] = _as_string(out.get("danger_mode", "none"), "none")
 	return out
 
 
 static func _normalize_turn(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_map_runtime()["turn"])
-	out["turn_number"] = _as_int(out.get("turn_number", 1), 1)
+	out["turn_number"] = SaveCodec.as_int(out.get("turn_number", 1), 1)
 	out["phase"] = _as_string(out.get("phase", "player"), "player")
 	out["active_faction"] = _as_string(out.get("active_faction", ""), "")
-	out["active_faction_idx"] = _as_int(out.get("active_faction_idx", 0), 0)
-	out["turn_order"] = _string_array_from_variant(out.get("turn_order", []))
+	out["active_faction_idx"] = SaveCodec.as_int(out.get("active_faction_idx", 0), 0)
+	out["turn_order"] = SaveCodec.string_array_from_variant(out.get("turn_order", []))
 	out["activation_mode"] = _as_string(out.get("activation_mode", "WHOLE_PHASE"), "WHOLE_PHASE")
-	out["unit_states"] = _int_dict_from_variant(out.get("unit_states", {}))
+	out["unit_states"] = SaveCodec.int_dict_from_variant(out.get("unit_states", {}))
 	out["seize_records"] = _array_from_variant(out.get("seize_records", []))
 	out["escape_records"] = _array_from_variant(out.get("escape_records", []))
-	out["group_eliminated_round"] = _int_dict_from_variant(out.get("group_eliminated_round", {}))
+	out["group_eliminated_round"] = SaveCodec.int_dict_from_variant(out.get("group_eliminated_round", {}))
 	return out
 
 
@@ -236,14 +236,14 @@ static func _normalize_header(source: Variant, campaign_data: Dictionary,
 	derived["campaign_id"] = _as_string(campaign_data.get("campaign_id", ""), "")
 	derived["node_id"] = _as_string(campaign_data.get("node_id", ""), "")
 	derived["party"]["count"] = _array_from_variant(roster_data.get("units", [])).size()
-	derived["party"]["gold"] = _as_int(
+	derived["party"]["gold"] = SaveCodec.as_int(
 		_dict_from_variant(party_data.get("resources", {})).get("party_gold", 0), 0)
 	var out := _with_defaults(source, derived)
-	out["badges"] = _string_array_from_variant(out.get("badges", []))
+	out["badges"] = SaveCodec.string_array_from_variant(out.get("badges", []))
 	out["party"] = _with_defaults(out.get("party", {}), derived["party"])
-	out["party"]["count"] = _as_int(out["party"].get("count", derived["party"]["count"]),
+	out["party"]["count"] = SaveCodec.as_int(out["party"].get("count", derived["party"]["count"]),
 		derived["party"]["count"])
-	out["party"]["gold"] = _as_int(out["party"].get("gold", derived["party"]["gold"]),
+	out["party"]["gold"] = SaveCodec.as_int(out["party"].get("gold", derived["party"]["gold"]),
 		derived["party"]["gold"])
 	out["party"]["lord"] = _as_string(out["party"].get("lord", ""), "")
 	if _as_string(out.get("campaign_id", ""), "") == "":
@@ -442,24 +442,6 @@ static func _array_from_variant(value: Variant) -> Array:
 	return value.duplicate(true) if value is Array else []
 
 
-static func _string_array_from_variant(value: Variant) -> Array[String]:
-	var out: Array[String] = []
-	if not (value is Array):
-		return out
-	for item in value:
-		out.append(String(item))
-	return out
-
-
-static func _int_dict_from_variant(value: Variant) -> Dictionary:
-	var out: Dictionary = {}
-	if not (value is Dictionary):
-		return out
-	for key in value.keys():
-		out[key] = _as_int(value[key], 0)
-	return out
-
-
 static func _vector_array_from_variant(value: Variant) -> Array:
 	var out: Array = []
 	if not (value is Array):
@@ -479,14 +461,6 @@ static func _vector_dict_or_null(value: Variant) -> Variant:
 	if value is Dictionary or value is Array:
 		return SaveCodec.vector2i_to_dict(SaveCodec.vector2i_from_dict(value))
 	return null
-
-
-static func _as_int(value: Variant, default_value: int) -> int:
-	if value is int:
-		return value
-	if value is float and absf(float(value) - float(int(value))) < 0.00001:
-		return int(value)
-	return default_value
 
 
 static func _rng_int_string(value: Variant) -> String:

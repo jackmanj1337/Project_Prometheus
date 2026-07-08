@@ -112,7 +112,7 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
 	_map_data = map_data
 	_grid = grid
-	_turn_order = _string_array_from_variant(turn_state.get("turn_order", []))
+	_turn_order = SaveCodec.string_array_from_variant(turn_state.get("turn_order", []))
 	if _turn_order.is_empty():
 		_turn_order = _derive_turn_order(map_data)
 	_activation_mode = String(turn_state.get("activation_mode", _derive_activation_mode(map_data)))
@@ -124,7 +124,7 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 	_restore_unit_states(turn_state.get("unit_states", {}))
 	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
 	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
-	_group_eliminated_round = _int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
+	_group_eliminated_round = SaveCodec.int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
 	_map_over = false
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -230,24 +230,6 @@ func _dict_records_from_variant(records: Variant) -> Array[Dictionary]:
 
 func _array_from_variant(value: Variant) -> Array:
 	return value.duplicate(true) if value is Array else []
-
-
-func _string_array_from_variant(value: Variant) -> Array[String]:
-	var out: Array[String] = []
-	if not (value is Array):
-		return out
-	for item in value:
-		out.append(String(item))
-	return out
-
-
-func _int_dict_from_variant(value: Variant) -> Dictionary:
-	var out: Dictionary = {}
-	if not (value is Dictionary):
-		return out
-	for key in value.keys():
-		out[key] = int(value[key])
-	return out
 
 
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
