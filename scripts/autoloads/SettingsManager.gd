@@ -4,6 +4,14 @@ extends Node
 
 const SETTINGS_PATH := "user://settings.cfg"
 
+# --- Signals ---
+# Emitted after save() completes so runtime managers can re-read in-memory
+# values without SettingsScreen knowing every consumer.
+signal settings_changed()
+# Emitted after an OS resize is written back into `resolution` (V027-04b/Q5) so
+# an open Settings screen can re-sync its Resolution dropdown + applied readout.
+signal resolution_written_back()
+
 # --- Audio (0–100 int scale) ---
 var master_volume: int = 80
 var music_volume: int = 70
@@ -31,10 +39,6 @@ var map_zoom_index: int = 3
 # preferences — they live on GameState, set via the New Game screen.
 
 # --- Display (Display & Accessibility items 2–3) ---
-# Emitted after an OS resize is written back into `resolution` (V027-04b/Q5) so
-# an open Settings screen can re-sync its Resolution dropdown + applied readout.
-signal resolution_written_back()
-
 # Window mode: "windowed" | "borderless" (windowed-fullscreen) | "fullscreen" (exclusive).
 var window_mode: String = "windowed"
 # Windowed resolution as "WxH"; only applied in windowed mode (fullscreen uses the
@@ -274,6 +278,7 @@ func save() -> void:
 	var err := cfg.save(SETTINGS_PATH)
 	if err != OK:
 		push_error("SettingsManager: failed to save settings: %s" % error_string(err))
+	settings_changed.emit()
 
 
 # Resets one section ("audio"|"controls"|"gameplay") to defaults and saves.

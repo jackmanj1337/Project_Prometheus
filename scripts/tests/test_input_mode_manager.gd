@@ -84,5 +84,33 @@ func _init() -> void:
 		"input_mode_changed emits only on real active-mode changes", passed, failed)
 	manager.free()
 
+	var settings := root.get_node_or_null("SettingsManager")
+	if settings == null:
+		settings = load("res://scripts/autoloads/SettingsManager.gd").new()
+		settings.name = "SettingsManager"
+		root.add_child(settings)
+		await process_frame
+	var prev_input_mode: String = String(settings.get("input_mode"))
+	settings.set("input_mode", "auto")
+	settings.call("save")
+	var live_manager: Node = InputModeManagerS.new()
+	root.add_child(live_manager)
+	await process_frame
+	var live_seen: Array[String] = []
+	live_manager.input_mode_changed.connect(func(mode: String): live_seen.append(mode))
+	settings.set("input_mode", "gamepad")
+	settings.call("save")
+	_ok(String(live_manager.get("active_input_mode")) == "gamepad"
+			and live_seen == ["gamepad"],
+		"SettingsManager save signal refreshes active input mode immediately", passed, failed)
+	live_manager.set("last_detected_input_mode", "")
+	live_manager.set("_provisional_seed", "mouse_keyboard")
+	settings.call("reset_section_to_defaults", "controls")
+	_ok(String(live_manager.get("active_input_mode")) == "mouse_keyboard",
+		"controls reset signal re-resolves input mode without an input event", passed, failed)
+	settings.set("input_mode", prev_input_mode)
+	settings.call("save")
+	live_manager.free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed[0], failed[0]])
 	quit(0 if failed[0] == 0 else 1)

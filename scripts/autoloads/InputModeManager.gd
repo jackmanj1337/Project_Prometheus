@@ -21,6 +21,10 @@ var _last_touch_ticks_msec: int = -1000000
 
 func _ready() -> void:
 	_provisional_seed = platform_seed()
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings != null and settings.has_signal("settings_changed") \
+			and not settings.is_connected("settings_changed", _refresh_active_input_mode):
+		settings.connect("settings_changed", _refresh_active_input_mode)
 	_refresh_active_input_mode()
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
