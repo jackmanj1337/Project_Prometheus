@@ -1,0 +1,69 @@
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.3.0  commit=7b23412  built_at=2026-07-08T07:02:14Z
+started_at=2026-07-08T21:21:32Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+WARNING: SkillHandler._apply_unimplemented: stub called for 'armsthrift' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:450)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:456)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:222)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:204)
+       [4] _resolve_single_attack (res://scripts/core/CombatResolver.gd:518)
+       [5] _resolve_strike (res://scripts/core/CombatResolver.gd:620)
+       [6] _run_strike_series (res://scripts/core/CombatResolver.gd:749)
+       [7] resolve_combat (res://scripts/core/CombatResolver.gd:816)
+       [8] _resolve_attack (res://scripts/core/MapCursorTargeting.gd:208)
+       [9] handle_confirm (res://scripts/core/MapCursorTargeting.gd:118)
+       [10] _on_confirm (res://scripts/core/MapCursor.gd:969)
+       [11] _handle_discrete_press (res://scripts/core/MapCursor.gd:361)
+       [12] _unhandled_input (res://scripts/core/MapCursor.gd:302)
+WARNING: SkillHandler._apply_unimplemented: stub called for 'indoor_fighter' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:450)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:456)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:222)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:204)
+       [4] _collect_combat_modifiers (res://scripts/core/CombatResolver.gd:265)
+       [5] preview_combat (res://scripts/core/CombatResolver.gd:664)
+       [6] show_preview (res://scripts/ui/AttackPreview.gd:151)
+       [7] _confirm_attack_target (res://scripts/core/MapCursorTargeting.gd:189)
+       [8] handle_confirm (res://scripts/core/MapCursorTargeting.gd:110)
+       [9] _on_confirm (res://scripts/core/MapCursor.gd:969)
+       [10] _handle_discrete_press (res://scripts/core/MapCursor.gd:361)
+       [11] _unhandled_input (res://scripts/core/MapCursor.gd:302)
+=== BUILD STAMP ===
+version=0.3.0  commit=7b23412  built_at=2026-07-08T07:02:14Z
+started_at=2026-07-08T21:26:29Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== BUILD STAMP ===
+version=0.3.0  commit=7b23412  built_at=2026-07-08T07:02:14Z
+started_at=2026-07-08T21:52:52Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== BUILD STAMP ===
+version=0.3.0  commit=7b23412  built_at=2026-07-08T07:02:14Z
+started_at=2026-07-08T21:55:21Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+=== BUILD STAMP ===
+version=0.3.0  commit=7b23412  built_at=2026-07-08T07:02:14Z
+started_at=2026-07-08T21:55:26Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.0_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
