@@ -18,7 +18,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 | 2 | Determinism: state+RNG+combat | 7 | `02_determinism.md` | DONE | 1 High, 2 Low | (this commit) |
 | 3 | Input model & settings persist | 3 | `03_input_model.md` | DONE | 1 Med, 2 Low | (this commit) |
 | 4 | Input display & rebind UI | 2 | `04_input_display.md` | DONE | 1 Med (+carried half), 2 Low | (this commit) |
-| 5 | Map/turn core | 5 | `05_map_turn_core.md` | TODO | — | — |
+| 5 | Map/turn core | 5 | `05_map_turn_core.md` | DONE | 1 High (carried), 4 Low | (this commit) |
 | 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | TODO | — | — |
 | 7 | General/integration & rollup | (all) | `code_review_v0.3.0_full_scan_2026-07-XX.md` | TODO | — | — |
 
@@ -73,3 +73,20 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   exactly. No correctness bugs. Next: Pass 5 (map/turn core, 5 files) — includes the
   `GameMap.start_map()` High fix site + the `MapCursor` arm-on-decode ordering flagged
   in Pass 3.
+
+- 2026-07-08 — Pass 5 (map/turn core): read all 5 files at head + their diffs and
+  suites, cross-read `RngService`/`MapCursorInput`. **1 High (carried, re-CONFIRMED)
+  + 4 Low (1 nit).** H1 = `GameMap._ready()` never calls `RngService.start_map()` on
+  the fresh path — `map_seed` stays `0` and `history_hash` bleeds across maps; fix site
+  localized to `GameMap.gd:114-115` (seed before `take_map_snapshot`, fresh branch
+  only; resume path already restores via `from_save_dict`). L1 dead
+  `TurnManager._array_from_variant` (`:231`); L2 unused overlay `blend` metadata +
+  `overlay_layer_blends()` (`GridManager.gd:562-576` — `repaint_overlays` uses
+  precedence+opacity, never the flag); L3 nit `_pending_item_id` not cleared on
+  promotion cancel (benign); L4 keyboard-held zoom now auto-repeats via
+  `_poll_held_zoom` (behavior change, likely intended). Positives: no raw RNG in any
+  of the 5; **the Pass-3 arm-on-decode concern resolves CLEAN** (edge arms `_held_dir`
+  before the same-frame poll ticks the DELAY timer → no double-move); `_original_tiles.erase()`
+  guards defuse the stale pre-move-tile desync in the RNG record path; overlay
+  precedence registry is a proper open registry. Next: Pass 6 (UI screens, selection &
+  misc data, 18 files) — carries the Pass-6 registry-debt Medium (`DataManager`).
