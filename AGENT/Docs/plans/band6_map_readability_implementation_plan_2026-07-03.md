@@ -186,11 +186,12 @@ Implementation steps:
    `repaint()` recomputes from current positions (fresh, never stale). Map load
    clears the set.
 4. **Overlay precedence registry (`[MRD-1]` C):** layers register a
-   `{layer_id, precedence, blend|replace}` entry; the paint resolver reads it so
-   range (move/attack/heal) + threat **blend** where they overlap, and hover-peek
-   + path-arrows (slices 3-4) register as exclusive opaque top layers. Adding a
-   layer (danger tiles, healing zones, objective markers) is a registration, not a
-   `repaint()` edit.
+   `{layer_id, precedence}` entry; the paint resolver reads it so range
+   (move/attack/heal) sits below threat and hover-peek + path-arrows (slices 3-4)
+   register as opaque top layers. Any distinct overlap/blend look belongs to the
+   authored overlay tile sources, not registry metadata. Adding a layer (danger
+   tiles, healing zones, objective markers) is a registration, not a `repaint()`
+   edit.
 
 Tests:
 

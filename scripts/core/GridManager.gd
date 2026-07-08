@@ -525,10 +525,8 @@ const OVERLAY_DARKER_RED := 4
 # Every overlay shares ONE overlay TileMapLayer, so paint ORDER decides the
 # winner of a shared cell (the last set_cell wins). Instead of hardcoding that
 # order in each repaint — a z-order match every new overlay would have to edit —
-# layers register {precedence, blend} here and painters iterate in ASCENDING
+# layers register precedence here and painters iterate in ASCENDING
 # precedence (lower first, higher on top so it wins shared cells).
-#   blend=true  → coexists with lower layers (move/attack/heal range + threat).
-#   blend=false → an exclusive opaque top layer (hover-peek, path arrows).
 # Adding an overlay (healing zones, objective markers, …) is a registration, not
 # a repaint edit ([EXT], Q10 watchout).
 const OVERLAY_LAYER_MOVE := "move_range"
@@ -548,19 +546,18 @@ static var _overlay_registry: Dictionary = {}
 static func _ensure_overlay_registry() -> void:
 	if not _overlay_registry.is_empty():
 		return
-	register_overlay_layer(OVERLAY_LAYER_MOVE, 10, true)
-	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10, true)
-	register_overlay_layer(OVERLAY_LAYER_HEAL, 10, true)
-	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20, true)
-	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30, true)
-	# Slices 3-4 register these as exclusive opaque top layers.
-	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100, false)
-	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101, false)
-	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, false)
+	register_overlay_layer(OVERLAY_LAYER_MOVE, 10)
+	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10)
+	register_overlay_layer(OVERLAY_LAYER_HEAL, 10)
+	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20)
+	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101)
+	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110)
 
 
-static func register_overlay_layer(layer_id: String, precedence: int, blend: bool = true) -> void:
-	_overlay_registry[layer_id] = {"precedence": precedence, "blend": blend}
+static func register_overlay_layer(layer_id: String, precedence: int) -> void:
+	_overlay_registry[layer_id] = {"precedence": precedence}
 
 
 static func overlay_layer_precedence(layer_id: String) -> int:
@@ -569,11 +566,6 @@ static func overlay_layer_precedence(layer_id: String) -> int:
 		return int(_overlay_registry[layer_id]["precedence"])
 	push_warning("GridManager: unregistered overlay layer '%s' — painting it last" % layer_id)
 	return 1 << 30  # unregistered layers paint last
-
-
-static func overlay_layer_blends(layer_id: String) -> bool:
-	_ensure_overlay_registry()
-	return _overlay_registry.has(layer_id) and bool(_overlay_registry[layer_id]["blend"])
 
 
 func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:

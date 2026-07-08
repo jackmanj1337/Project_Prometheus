@@ -341,7 +341,7 @@ func get_equipped_weapon(): return _w
 
 	# Adding an overlay is a REGISTRATION, not a repaint edit: a fixture layer
 	# registered between faction and watch reports its precedence and sorts there.
-	GridManager.register_overlay_layer("fixture_healing_zone", 25, true)
+	GridManager.register_overlay_layer("fixture_healing_zone", 25)
 	var p_fix := GridManager.overlay_layer_precedence("fixture_healing_zone")
 	var layer_ids := [
 		GridManager.OVERLAY_LAYER_WATCH_THREAT, "fixture_healing_zone",
