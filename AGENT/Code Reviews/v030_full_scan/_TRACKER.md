@@ -19,7 +19,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 | 3 | Input model & settings persist | 3 | `03_input_model.md` | DONE | 1 Med, 2 Low | (this commit) |
 | 4 | Input display & rebind UI | 2 | `04_input_display.md` | DONE | 1 Med (+carried half), 2 Low | (this commit) |
 | 5 | Map/turn core | 5 | `05_map_turn_core.md` | DONE | 1 High (carried), 4 Low | (this commit) |
-| 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | TODO | — | — |
+| 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | DONE | 1 Med (carried), 3 Low | (this commit) |
 | 7 | General/integration & rollup | (all) | `code_review_v0.3.0_full_scan_2026-07-XX.md` | TODO | — | — |
 
 Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
@@ -90,3 +90,28 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   guards defuse the stale pre-move-tile desync in the RNG record path; overlay
   precedence registry is a proper open registry. Next: Pass 6 (UI screens, selection &
   misc data, 18 files) — carries the Pass-6 registry-debt Medium (`DataManager`).
+
+- 2026-07-08 — Pass 6 (UI screens, selection & misc data): read full diffs for all 18
+  files + full current context for the new/refactored cores (`SelectionCursor`,
+  `ModalScreen` seam, `UnitDetailsScreen`, `AttackPreview`, `HUD` terrain pager,
+  `MenuScale._recenter`); cross-read `RngService` event API + `SaveCodec` `has_weapon`
+  consumer + `NewGameScreen._on_start`; sampled the selector/data/details suites.
+  **1 Medium (carried, re-CONFIRMED) + 3 Low (1 nit). No new correctness bugs.** M1 =
+  DataManager closed author-facing vocabularies (`_VALID_AI_PROFILES` `[AIP]` /
+  `_VALID_OBJECTIVE_TYPES` `[TCV-4]` / `_VALID_STATS` `[STM]` / roster-policy /
+  activation-mode) — closed allow-lists needing an engine edit to extend; PRE-EXISTING,
+  not introduced by this delta (diff only touched the placement XOR validation +
+  `has_weapon`); fix belongs to the register resolutions. L1 `SelectionCursor.configure()`
+  sets `index=-1` on shrink without emitting `changed` (benign; all 3 consumers
+  re-render after configure). L2 `NewGameScreen._on_start` launches even when
+  `_persist_rules` no-ops on null `campaign_rules` (dead-defensive; GameState always
+  inits rules). L3 nit re-clicking the selected entry is now a no-op. **Positives:**
+  `Unit.level_up()` RNG begin/commit is CORRECT per the documented contract (dice =
+  begin+commit, non-dice = commit-only, `begin_event` is pure) — the `growth_fixed`
+  commit-only path is intended, not an asymmetry bug; no raw RNG except the annotated
+  headless fallback drawing from the passed event RNG; CampaignRules read-migration
+  consistent + null-guarded across all 5 consumers; MenuScale reactive re-center has a
+  sound re-entrancy guard; ModalScreen focus seam is a clean virtual-override design;
+  SelectionCursor has real targeted coverage. Next: Pass 7 (general/integration &
+  rollup) — the consolidated `code_review_v0.3.0_full_scan_*.md` with the 38/38
+  coverage assertion + updated score.
