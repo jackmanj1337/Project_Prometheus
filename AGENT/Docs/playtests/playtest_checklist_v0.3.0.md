@@ -49,7 +49,9 @@ source code. **Everything needed for this test pass is in this one file.**
 - A monitor that can show **1440p or 4K** is useful for Part VII (otherwise mark
   the 4K sub-checks `NOT RUN`).
 - Executable: `Project_Prometheus_v0.3.0_debug.exe`.
-- Expected file size / SHA-256: _see `AGENT/Docs/playtests/playtest_build_v0.3.0.md`._
+- Expected file size / SHA-256: `101406640` bytes /
+  `d003060b300e28ab8e7a0e94234505ef17f62562b51ac49b937de66f1222c5da`
+  (also recorded in `AGENT/Docs/playtests/playtest_build_v0.3.0.md`).
 
 The executable is a standalone debug build. It does not need Godot or an
 installer. Do not disable antivirus to run it. If Windows blocks it, record the
