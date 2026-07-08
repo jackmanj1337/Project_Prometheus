@@ -15,7 +15,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 |---|---|---:|---|---|---:|---|
 | 0 | Setup & scope lock | — | `00_scope.md` | DONE | — | (this commit) |
 | 1 | Save/persistence codec | 3 | `01_save_persistence.md` | DONE | 7 (all Low) | (this commit) |
-| 2 | Determinism: state+RNG+combat | 7 | `02_determinism.md` | TODO | — | — |
+| 2 | Determinism: state+RNG+combat | 7 | `02_determinism.md` | DONE | 1 High, 2 Low | (this commit) |
 | 3 | Input model & settings persist | 3 | `03_input_model.md` | TODO | — | — |
 | 4 | Input display & rebind UI | 2 | `04_input_display.md` | TODO | — | — |
 | 5 | Map/turn core | 5 | `05_map_turn_core.md` | TODO | — | — |
@@ -33,3 +33,13 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   needless index read on the MainMenu path (L1); dead `_vector_array_from_variant`
   (L2); non-atomic single-slot `save_suspend` write (L6). No correctness bugs; the
   carried High (`start_map`) is Pass 2/5. Next: Pass 2 (determinism: state+RNG+combat).
+- 2026-07-08 — Pass 2 (determinism: state+RNG+combat): read all 7 files at head +
+  their RNG/suspend tests, plus the `GameMap`/`TurnManager` seam (Pass 5) to confirm
+  the carried High in-context. **1 High, 2 Low.** H1 = fresh maps never call
+  `RngService.start_map()` (grep-confirmed: `GameMap.gd:127` calls
+  `TurnManager.start_map`, not `RngService.start_map`) → `map_seed` stays `0` (zero
+  cross-session entropy) and `history_hash` bleeds between maps; snapshot/resume are
+  unaffected. Fix site is Pass 5 `GameMap` (seed before `take_map_snapshot`). L1 stale
+  `_current_hit_formula` comment (campaign_rules already live); L2
+  `_string_array_from_variant` duplicated ×4. `_original_tiles` stale-tile hazard is
+  explicitly defused (positive). Next: Pass 3 (input model & settings persist).
