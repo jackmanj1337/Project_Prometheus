@@ -9,6 +9,7 @@
 |---|---|---|---|---|
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
 | `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
+| `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
 | `AIP-1..16` | Additional AI Profiles (§5) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21k / 2026-06-22c / 2026-06-22e | `registers/ai_profiles_open_questions_2026-06-21.md` |
@@ -40,7 +41,6 @@
 | `LDC-1..9` | Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/loadout_cap_open_questions_2026-06-27.md` |
 | `MCH-1..8` | Main Character / Avatar (#20) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24g | `registers/main_character_avatar_open_questions_2026-06-24.md` |
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
-| `MRD-1..6` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | RESOLVED | 2026-06-22g | `registers/map_readability_open_questions_2026-06-21.md` |
 | `ODB-1` | ObjectDB Leaked-Instance Audit (2026-07-07) | RESOLVED | — | `registers/objectdb_leak_audit_2026-07-07.md` |
 | `PER-1..12` | Perception / Masking — AI & Player Forecast Manipulation — Open Questions | RESOLVED | 2026-06-27 — full perception walk in one session. PER-1..6/10 design-locked; PER-7 union (no precedence); PER-8 occupancy in v1 (around|through + DSP-14/DSP-12 follow-ups); PER-9 = a two-channel (player-view A / AI-view B, may be equal) communicated CampaignRules constant + debug reveal-all override (sibling of [FOW-3]); PER-11 no-softlock + two-hook finding; PER-12 detection-vs-appraisal = two F16 contest axes (same or different sight term, author's choice). PER-4 RESOLVED-but-INERT (forward-req on the valuation AI [CVR-4]/[RCT-1]) | `registers/perception_masking_open_questions_2026-06-27.md` |
 | `PHB-1..7` | Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23k | `registers/prep_hub_open_questions_2026-06-23.md` |

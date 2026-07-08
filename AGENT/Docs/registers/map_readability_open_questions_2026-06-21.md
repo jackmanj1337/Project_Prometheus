@@ -1,9 +1,9 @@
 ---
 Type: register
-Status: RESOLVED 2026-06-22g
-Last verified: 2026-06-23
-Register: MRD-1..6
-Resolved-in: 2026-06-22g
+Status: Split - MRD-1..7 RESOLVED; MRD-8 Open decision (deferred to [PER])
+Last verified: 2026-07-08
+Register: MRD-1..8
+Resolved-in: MRD-1..6 2026-06-22g; MRD-7 2026-07-08
 ---
 
 # Map-Readability Cluster (§4) — Draft Plan + Open Questions Register
@@ -180,3 +180,36 @@ large map with many units, recomputing ranges per cursor tick could stutter (esp
   union for aggregate) — extends the threat-range design's test plan.
 - Path arrows: assert the arrow-tile sequence equals `get_movement_path` direction deltas.
 - Settings: `grid_dim` round-trips through `SettingsManager` (extend `test_settings_manager`).
+
+## 6. Post-v0.3.0-playtest additions (2026-07-08)
+
+### [MRD-7] Overlay concurrency: watch threat vs selection/menus  **[RESOLVED 2026-07-08]**
+
+From the v0.3.0 live return (V030-MRD-01, `playtest_v0.3.0_results_triage_plan_2026-07-08.md`):
+watch "D" markers die when the overlay hides; selecting a unit or opening the pause menu
+clears the threat overlay; the movement selector cannot coexist with threat (hover-peek can,
+because `MapCursor.repaint()` composes peek into the same spec dict). Root cause of the
+non-coexistence: `MapCursorSelection.gd:53`/`:104` and the targeting flow still call the
+pre-registry `show_movement_overlay()`/`clear_overlays()` API directly instead of composing
+through `repaint_overlays`.
+
+- **Resolution (owner walkthrough Q3, `playtest_v0.3.0_triage_review_2026-07-08.md`):**
+  - **Unconditional plumbing:** route selection/targeting/menu-exit repaints through the
+    registry compose path; render "D" markers whenever the watch set is non-empty.
+  - **Shared cells (threatened tile inside movement range): prototype BOTH candidates** —
+    (i) border-through (watch threat paints an edge/border tile variant on covered cells) and
+    (ii) second-`TileMapLayer` true stacking (translucent threat tint over/under movement) —
+    behind a debug toggle; compare with headless screenshots (`UI-INSPECTION` mockup pipeline)
+    first, then let the rerun build's live pass pick the winner.
+
+### [MRD-8] Cursor-traced manual pathing  **[OPEN — deferred to [PER]]**
+
+Tester request (v0.3.0 return, Part V): unit movement should prefer the path traced with the
+cursor (up to movement limits) instead of always auto-shortest, so a player can route around
+a suspected fog ambush or a known trap. Path arrows already display the traced route; only
+movement RESOLUTION snaps to shortest.
+
+- **Status:** deliberately deferred (owner walkthrough Q5, 2026-07-08). Design it with the
+  perception/masking work ([PER]) where "path around what you believe" has meaning — fog and
+  traps do not exist as systems yet. Until then, every playtest handbook carries a short
+  "recorded requests" note listing this item so the tester sees it tracked, not dropped.

@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-08; both gates stay open (gamepad menu focus/feel fails, section 1.6 narrowed further); suspend/resume regression `V030-SUS-01` is the top defect; fix passes pending
+Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED same day; both gates stay open (gamepad menu focus/feel fails, section 1.6 narrowed further); suspend/resume regression `V030-SUS-01` is the top defect; fix passes scoped
 Last verified: 2026-07-08
 ---
 
@@ -324,10 +324,17 @@ section-1.6-only rerun; flip the row only on that live pass, then proceed
 
 ## Sequencing
 
-1. Owner walkthrough of the companion review questions Q1-Q5
-   (`AGENT/Code Reviews/playtest_v0.3.0_triage_review_2026-07-08.md`):
-   Q1 Input Mode semantics; Q2 PS glyphs vs words; Q3 overlay concurrency
-   design; Q4 maximized readout label; Q5 cursor-traced pathing scope.
+1. Owner walkthrough Q1-Q5 DECIDED 2026-07-08 (see the Walkthrough Decisions
+   section of `AGENT/Code Reviews/playtest_v0.3.0_triage_review_2026-07-08.md`):
+   Q1 = relabel the Settings row **Input Mode → Input Prompts**, behavior
+   unchanged (devices never blocked; internal keys untouched); Q2 = brand-correct
+   WORDS now + brand the rebind rows, real glyphs ride `UI-INSPECTION`; Q3 =
+   registry-compose plumbing unconditional, then prototype BOTH shared-cell
+   treatments (border-through vs second-layer stacking) behind a toggle and
+   compare via headless screenshots then the live rerun ([MRD-7]); Q4 = show
+   `Maximized (WxH)` live while maximized, persistence unchanged; Q5 =
+   cursor-traced pathing backlogged with [PER] as [MRD-8], with a "recorded
+   requests" note in every future handbook.
 2. `V030-SUS-01` fix pass with failing-first headless repro tests
    (`test_suspend_map_runtime.gd` extensions) — top defect.
 3. `V030-GP-01/02/03` fix pass (focus scroll-follow + one menu repeat policy +
@@ -337,6 +344,7 @@ section-1.6-only rerun; flip the row only on that live pass, then proceed
 5. Update the affected GDD sections + control-plane rows with each
    behavior-changing fix (DoD#1), then cut ONE focused rerun build covering
    controller Parts I-II, suspend section 9, and section 1.6, with an explicit
-   relaunch-persistence step.
+   relaunch-persistence step, the [MRD-7] shared-cell comparison toggle, and a
+   "recorded requests" note ([MRD-8] cursor-traced pathing).
 6. Flip `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` only on that live pass, then
    `REL-V023-MERGE` / `B6-WEB-DEBUG` per the kit.

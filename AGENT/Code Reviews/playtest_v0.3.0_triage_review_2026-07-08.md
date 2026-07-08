@@ -1,6 +1,6 @@
 # v0.3.0 Playtest Triage - Owner Review Walkthrough - 2026-07-08
 
-Status: OPEN - awaiting owner decisions Q1-Q5
+Status: DECIDED 2026-07-08 - see Walkthrough Decisions; fix passes scoped
 Companion: `AGENT/Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md`
 
 The v0.3.0 return leaves both gates open, but the failures are well-localized:
@@ -114,4 +114,39 @@ can route around a suspected fog ambush or a known trap.
 
 ## Walkthrough Decisions
 
-_Record owner decisions here, then route them into the fix passes._
+Owner decisions 2026-07-08:
+
+- **Q1 — Relabel, keep behavior (owner variant of A).** The Settings row is
+  renamed from **Input Mode** to **Input Prompts** so the label matches what it
+  does (prompts + menu focus scheme); devices are never blocked. No behavioral
+  change; update the row label, any caption, the display guide/GDD_07 wording,
+  and the next handbook's terms section. Internal setting keys (`input_mode`
+  et al.) stay as-is so saves/tests/check_docs vocabularies are untouched.
+- **Q2 — A. Words now, glyphs later.** Ship brand-correct words ("Square",
+  "Cross") and brand the rebind rows through the same
+  `InputDisplay.joypad_button_label` helper; real button glyphs ride the
+  `UI-INSPECTION` font/theme pass. The first-connected-pad branding bug
+  (V030-INP-02) is fixed regardless via last-used-pad device tracking.
+- **Q3 — Prototype BOTH shared-cell treatments and compare.** The registry
+  compose plumbing is unconditional: route selection/targeting/menu paths
+  through the same `repaint_overlays` compose that peek uses, and render "D"
+  markers whenever the watch set is non-empty. For SHARED cells, build both
+  candidates — (i) border-through: watch threat paints an edge/border variant
+  on covered cells; (ii) second-layer true stacking: a second `TileMapLayer`
+  renders threat as a translucent tint over/under movement — behind a debug
+  toggle, generate headless screenshot comparisons first (the `UI-INSPECTION`
+  mockup pipeline), and let the rerun build carry the toggle so the live pass
+  picks the winner.
+- **Q4 — A. Live truth + state tag.** While maximized the readout shows
+  `Maximized (WxH)` from the actual client size (mirroring `native WxH` for
+  Borderless/Fullscreen); on un-maximize it returns to the saved windowed
+  readout. Persistence policy unchanged (maximize is never written back).
+- **Q5 — A, plus a handbook note.** Cursor-traced manual pathing is backlogged
+  with the perception/fog work ([PER]) and recorded as [MRD-8] in the
+  map-readability register. Every future handbook carries a short "recorded
+  requests" note listing it, so the tester can see it is tracked rather than
+  dropped.
+
+Routing: Q1/Q2 → the `B6-INPUT` fix pass (V030-GP-01..03 + V030-INP-02); Q3 →
+`B6-MRD` V030-MRD-01 slice; Q4 → the V030-DSP-01 fix; Q5 → [MRD-8] + handbook
+template.
