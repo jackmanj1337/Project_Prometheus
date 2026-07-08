@@ -74,6 +74,19 @@ foundations or add unmanifested save state.
 | 1 | `VAL-V023-DISPLAY` | Run v0.3.0 live section 1.6 validation | v0.3.0 build cut 2026-07-08 (`playtest_build_v0.3.0.md`) with the section 1.6 checks in handbook Part VII; needs live Windows drag/maximize/restore validation before the gate can close. |
 | 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, InputMap-derived keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, persisted `input_mode` / `touch_controls`, `InputModeManager.input_mode_changed`, the Settings gray-state input-mode selector, the `ModalScreen` focus-grab subscribers, the shared-`SelectionCursor` adoption across all three More-Info surfaces (AttackPreview forecast + HUD terrain pager now route through the same core as the sheet), and mode/brand-aware prompt swapping (`InputDisplay` renders the active scheme's key or brand-correct pad label; level-up + More-Info hints re-render live) landed. The v0.3.0 playtest build is cut; controller feel, deadzones, device mapping, and visual comfort now need handbook Part I live validation. |
 
+## While Waiting For v0.3.0 Return
+
+These are safe next-session candidates while the tester has the v0.3.0 build.
+Keep gameplay/code changes separate from the shipped artifact unless we
+intentionally cut a new build.
+
+| Priority | Track ID / area | To-do | Notes |
+|---:|---|---|---|
+| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Prepare the v0.3.0 return triage kit. | Create the returned-checklist copy pattern, triage-plan skeleton, and pass/fail routing for gamepad and display outcomes. Lowest risk; docs/process only. |
+| 2 | `B2-REGISTRY` plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Start the open-registry debt stream. | Convert the known closed vocabularies toward registries: objective conditions `[TCV-4]`, AI profiles `[AIP]`, and stat names/model `[STM]`. Best technical progress; use a separate commit stream from v0.3.0 validation. |
+| 3 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
+| 4 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |
+
 ## Validation And Release Queues
 
 These are not blocked by the full Band 1-5 build path, but they should not be
