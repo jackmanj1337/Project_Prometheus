@@ -54,6 +54,9 @@ draft/source-art holding area, not an integrated Godot asset path: it has no `.i
 sidecars, no theme `.tres`, and no sidecar slice-margin metadata. If adopted, copy
 curated assets into the real asset/default-pack tree and reference them by id through
 `UiThemeDef` / `AssetResolver`; do not bake `Draft UI assets/` paths into scenes.
+Additional CC0 tiopalada source archives are tracked beside it (`Dark Dwellers`,
+`Dragon Regalia`, and Font Kits I-III), but they still need an inventory pass before
+being mapped into the checklist below.
 
 | Checklist area | Pack fit | Candidate sheets | Remaining gaps |
 |---|---|---|---|
