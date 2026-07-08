@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Reference / research (not a spec)
-Last verified: 2026-07-02
+Last verified: 2026-07-08
 ---
 
 # UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass
@@ -42,6 +42,36 @@ and owns the animation/`SPRITE_SOURCE_SIZE`/frame-slicing decisions this note fl
 - **states** = needs normal / hover / pressed / disabled / focused variants.
 - **anim** = multi-frame sprite sheet or animation.
 - **SDF** = signed-distance-field font/glyph for clean scaling (matters for display-scaling + web).
+
+---
+
+## Candidate pack coverage — Draft UI assets
+
+Surveyed 2026-07-08: `Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/` contains
+51 raw PNG sheets plus `README.html`. The readme identifies the source as **Tiny RPG -
+Mana Soul GUI** by Gabriel "tiopalada" Lima, marked **CC0 1.0**. This folder is a
+draft/source-art holding area, not an integrated Godot asset path: it has no `.import`
+sidecars, no theme `.tres`, and no sidecar slice-margin metadata. If adopted, copy
+curated assets into the real asset/default-pack tree and reference them by id through
+`UiThemeDef` / `AssetResolver`; do not bake `Draft UI assets/` paths into scenes.
+
+| Checklist area | Pack fit | Candidate sheets | Remaining gaps |
+|---|---|---|---|
+| §1 Map cursor / selection highlight | Partial | `20250421cursorTarget-Sheet.png`, `20250421horizontalCursor*.png`, `20250421verticalCursor*.png`, `20250422mouse*.png` | Still need a tested 64px board cursor, tint strategy, and overlay-tile replacement. |
+| §2 HP / meter bars | Partial | `20250421barA/B/C-Sheet.png` | Need readable in-map HP sizing and forecast/boss/siege meter variants. |
+| §3 Portrait / speaker frame | Partial | `20250425portraitFrame-Sheet.png`, `20250420manaSoulHeader*.png` | Frame only: still need portraits, silhouette fallback, and nameplate/stage background assets. |
+| §4 Panel / window frame | Strong | `20250420manaSoul9SlicesA-F-Sheet.png` | Need slice margins, StyleBox/NinePatch import settings, and scale/readability checks. |
+| §4 Buttons | Strong | `20250421manaSoulButtonA-C-Sheet.png`, `20250425close/help/options/exit/more/lessButton-Sheet.png` | Need state mapping for normal/hover/pressed/disabled/focused; disabled may be theme tint. |
+| §4 Headers / tabs / dividers / list rows | Good | `20250420manaSoulHeader*.png`, `20250420manaTabA-G-Sheet.png`, cursor strips | Need a row-selection convention and dense-panel readability checks. |
+| §5 Registry icons | Weak | `20250423*Frame-Sheet.png`, arrow/button sheets | Equipment slot frames are useful chrome, but they are not weapon/stat/skill/condition/resource icon atlases. |
+| §6 Combat feedback / VFX | Weak | cursor and bar sheets may be reusable | No hit/crit/heal spark, damage popup, reward flourish, or phase-banner animation. |
+| §§7-10 Fonts / backgrounds / audio / branding | None | — | Need fonts, backgrounds, SFX/music, export icon, and splash/boot art from other sources. |
+
+Fast menu-prototype path: build one mockup-only Godot `Control` scene that loads a
+temporary Theme from copied pack assets and renders static versions of the Action Menu,
+UnitDetails, AttackPreview, and a shop/convoy-style list. Keep it data-light: sample
+labels and numbers are enough. Validate screenshots at the supported menu scales before
+any production panel consumes the assets.
 
 ---
 
