@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED same day; both gates stay open (gamepad menu focus/feel fails, section 1.6 narrowed further); suspend/resume regression `V030-SUS-01` is the top defect; fix passes scoped
+Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); two holdouts need live repro (New Game focus gap, one-axis drag readout); fix passes scoped, build next session
 Last verified: 2026-07-08
 ---
 
@@ -101,21 +101,28 @@ have any directional repeat". On the New Game screen the highlight disappears
 for one press between permadeath→auto promote, auto promote→leveling,
 leveling→pair up, and pair up→start (but not map→permadeath or start→back).
 
-**Diagnosis directions:**
+**Diagnosis (run 2026-07-08, second pass):**
 
-- Settings is a scroll-frame panel; pad focus moves via Godot focus neighbors
-  but nothing calls `ScrollContainer.ensure_control_visible()` on focus change,
-  so focus walks off-screen and appears stuck. A focus-follows-scroll hook on
-  the settings scroll frame (or the shared `ModalScreen` base) is the likely
-  fix point.
-- Menu focus movement is event-driven (`ui_*` presses) with no repeat policy;
-  the map cursor's repeat timer (`MapCursorInput`) never applies to modals.
-  Decide one repeat policy for menu navigation (likely in the shared
-  `SelectionCursor` / `ModalScreen` seam) instead of per-screen hacks.
-- The New Game one-press gap pattern (every second transition, recovering on
-  the next press) smells like focus passing through a focusable but
-  non-highlighting control (for example the option's value/toggle child taking
-  focus before the next row). Verify the focus chain in `NewGameScreen`.
+- **Scroll half CONFIRMED:** the SettingsScreen `ScrollContainer`
+  (`scenes/ui/SettingsScreen.tscn:35`) has no `follow_focus = true`. Only
+  `PromotionScreen.tscn:66` and `ReclassScreen.tscn:66` carry it — the exact
+  bug class fixed at V026-05b, recurring on Settings. Fix: set `follow_focus`
+  on the Settings scroll frame (and audit the other scroll-frame modals).
+- **Repeat half:** engine focus navigation moves exactly one step per press
+  with no joypad echo, and no screen owns a repeat policy. Fix seam shared
+  with V030-GP-02 below: one owned menu repeat/deadzone policy.
+- **New Game focus gap DOWNGRADED — scene chain exonerated.** A headless
+  probe (with SettingsManager keybinds applied) walked the chain with both
+  keyboard `ui_down` and real `InputEventJoypadButton` d-pad presses:
+  OptMap → OptPermadeath → OptAutoPromote → OptLeveling → OptPairUp →
+  BtnStart → BtnBack, one row per press, and
+  `find_valid_focus_neighbor(SIDE_BOTTOM)` resolves every hop. The live
+  one-press gap is NOT the focus chain. Live-only suspects, in order:
+  (i) `ModalScreen._focus_default()` firing on an `input_mode_changed` flip
+  (mouse↔pad alternation steals one press to re-grab default focus);
+  (ii) stick release overshoot past center emitting a transient `ui_up`;
+  (iii) theme focus-style rendering on `OptionButton`. Needs a live repro
+  with instrumentation before fixing.
 
 **Routing:** gate blocker for `VAL-V030-GAMEPAD`; implementation under
 `B6-INPUT` (focus seam already flagged as the open feature-branch option).
@@ -125,12 +132,18 @@ leveling→pair up, and pair up→start (but not map→permadeath or start→bac
 Tester (section 2): map cursor feel is good; the action menu, equip menu, and
 character sheet feel "too fast and occasionally stops weirdly".
 
-**Diagnosis direction:** in-map stick movement goes through the tuned
-`MapCursorInput` repeat timer, but menu navigation consumes raw SDL-generated
-`ui_*` echoes from the analog stick, which repeat at the engine default rate
-and drop out near the deadzone (the "weird stops"). Same fix seam as
-V030-GP-01's repeat policy: route menu stick navigation through one owned
-repeat/deadzone policy rather than engine echoes.
+**Diagnosis CONFIRMED (2026-07-08):** two navigation systems fail differently.
+The custom menus (`ActionMenu._input`, `scripts/ui/ActionMenu.gd:162-167`;
+`UnitDetailsScreen._input`, `scripts/ui/UnitDetailsScreen.gd:621+`) move
+selection via stateless per-event `event.is_action_pressed("cursor_*")`, and
+`cursor_down` is bound to the left-stick axis — so while the stick is held,
+every analog value fluctuation above the threshold delivers another motion
+event that reports "pressed" and steps the menu again ("too fast"), and when
+the value stabilizes no events arrive at all ("occasionally stops weirdly").
+The map cursor is immune because `MapCursorInput` polls through its tuned
+repeat timer. Settings (engine focus navigation) correctly steps once per
+press but has no repeat. Fix: one owned menu repeat/deadzone policy (the
+`SelectionCursor`/`ModalScreen` seam), replacing per-event action checks.
 
 **Routing:** gate blocker for `VAL-V030-GAMEPAD`; `B6-INPUT`.
 
@@ -140,10 +153,14 @@ Tester (section 3): triggers work but are "too sensitive"; the tester rebound
 zoom to d-pad up/down for the rest of the pass. L3 reset is good. Section 12.4
 adds: "Consider adding sensitivity sliders to the triggers and joysticks".
 
-**Fix direction:** soften the default trigger response (higher press threshold
-and/or slower base repeat in the held-zoom strength scaling in
-`MapCursorInput`), and take the sliders as a follow-on settings feature
-(`B6-INPUT` backlog), not a rerun blocker.
+**Diagnosis CONFIRMED (2026-07-08):** `MapCursor._poll_held_zoom`
+(`scripts/core/MapCursor.gd:1909-1924`) has **no activation threshold** — the
+only gate is `strength <= 0.0` (`:1913`), so the lightest trigger contact
+fires an immediate zoom step (`:1919`) and arms the repeat, whose rate lerps
+down to `ZOOM_REPEAT_RATE_FAST = 0.12s` at full pull (`:123`, `:1927-1929`).
+Fix: add a press threshold (~0.25) before any step, keep the strength scaling
+above it (and consider softening the fast rate); the sensitivity sliders stay
+`B6-INPUT` backlog, not a rerun blocker.
 
 **Routing:** gate blocker (feel item) for `VAL-V030-GAMEPAD`; `B6-INPUT`.
 
@@ -204,24 +221,43 @@ to move"; paired support units render at the `(-1,-1)` placeholder; suspend +
 resume while debug-controlling the red team leaves cursor/menus dead; the turn
 counter is wrong until a full round completes.
 
-**Sub-defects (fix + headless repro test each):**
+**Sub-defects — all four root causes CONFIRMED by source trace (2026-07-08).
+Fix + failing-first headless repro test each:**
 
-- **(a) Units unable to move after resume.** Restore path:
-  `GameMap._spawn_units_from_suspend` (`scripts/core/GameMap.gd:240`) then
-  `TurnManager.start_map_from_suspend` (`scripts/core/GameMap.gd:269`). Check
-  whether restored scheduler/unit state re-marks units as acted or never
-  releases the local-control gate.
-- **(b) Pair-up support units visible off-map.** The support unit's stored
-  position is the off-map sentinel; the restore spawns its node visibly
-  instead of re-attaching it hidden to the lead via `PairUpRegistry`.
-- **(c) Debug red-team control + suspend/resume corrupts input.** The suspend
-  payload captures the debug faction-control state (or the cursor gate) and
-  restores an unplayable combination. Decide whether debug control state
-  belongs in the payload at all; blocking suspend during debug control is an
-  acceptable v1 answer.
-- **(d) Turn counter wrong until a full round.** The HUD turn label reads its
-  value before `start_map_from_suspend` restores the turn dict, or the restore
-  writes the turn number after the banner/HUD init reads it.
+- **(a) "Visually refreshed but unable to move" — the VISUAL is the bug.**
+  `TurnManager._restore_unit_states` (`scripts/core/TurnManager.gd:184-194`)
+  writes `_unit_states[unit] = int(...)` directly, bypassing
+  `set_unit_state` (`:582-593`) whose DONE branch applies
+  `unit.set_done_appearance()`. Restored DONE units keep the fresh-spawn
+  sprite tint, so they LOOK ready while `can_unit_act` correctly refuses
+  them. Fix: apply the appearance side effect during restore (route through
+  `set_unit_state` or re-apply appearance after the state fill).
+- **(b) Pair-up supports rendered at `(-1,-1)`.** Pairing hides the support
+  at the sentinel (`MapCursor.gd:1203-1204`: `tile_position = OFF_MAP_TILE;
+  visible = false`), and that sentinel is what the payload serializes. On
+  resume `GameMap._spawn_units_from_suspend` (`GameMap.gd:240-258`) spawns
+  EVERY payload unit through the normal visible `_spawn_unit` path, and
+  `PairUpRegistry.restore` (`PairUpRegistry.gd:193-195`) restores only the id
+  dictionary — nothing re-hides the support node. Fix: after registry
+  restore, re-apply node state for support-role units (hide + keep sentinel),
+  or skip spawning units whose tile is the sentinel and re-attach them.
+- **(c) Debug red-team suspend resumes into a driverless phase.**
+  `start_map_from_suspend` (`TurnManager.gd:112-135`) restores
+  `_active_faction_idx` and calls `gs.set_phase(ENEMY, ...)` for a non-blue
+  capture — which locks the cursor (`MapCursor.gd:214-217`) — but NOTHING
+  re-enters the awaited faction-scheduler loop (`TurnManager.gd:~430-486`)
+  that drives non-blue phases, so no controller ever acts and no unlock ever
+  comes: cursor frozen, menus unopenable. The debug-hotseat latch is also
+  re-derived from the CURRENT flags at restore (`:135`), which are off after
+  a relaunch. Fix decision needed: gate Suspend & Quit to the blue phase
+  (cheap v1 answer) OR make restore re-enter the scheduler loop for a
+  non-blue active faction.
+- **(d) Turn counter stale until the next full round.** Restore assigns
+  `gs.turn_number` directly (`TurnManager.gd:131`) and never emits;
+  `turn_changed` is only emitted by `_complete_round`, and the HUD label
+  updates only via `_on_turn_changed` (`scripts/ui/HUD.gd:374`, `:663`). Fix:
+  emit `turn_changed` (or refresh the HUD from `gs.turn_number`) at the end
+  of the restore.
 
 **Routing:** `B1-SUSPEND` (+ `B1-CST` for payload contract). Extend
 `test_suspend_map_runtime.gd` with post-resume actability, support-unit
@@ -242,20 +278,25 @@ readout, no re-clamp of custom sizes, reactive re-centering through
 maximize/un-maximize, maximize never persisted (`resize_write_back_action`,
 `scripts/autoloads/SettingsManager.gd:522-533`).
 
-**What to diagnose:**
+**What to diagnose (updated after the 2026-07-08 diagnosis run):**
 
-- One-axis drag: the write-back path (`_maybe_write_back_os_resize` →
-  `apply_resize_write_back`, `SettingsManager.gd:495-543`) should fire on any
-  windowed client-size change; if only bar-growing drags miss, either the
-  root-window `size_changed` coalescing under `stretch/aspect=keep` skips
-  them or the SettingsScreen readout refresh is not subscribed to
-  `resolution_written_back` for that case. Reproduce first; the readout must
-  report the real client size per the section 11 vocabulary.
-- Maximized readout: intentionally NOT persisted, but the on-screen label
-  still says `client 2368x1310` while maximized (stale). Display truth and
-  persistence are separable: show the actual maximized client (or a
-  `Maximized` tag) without writing it back. Owner question Q4 confirms the
-  desired label.
+- One-axis drag: **the code path reads correct end-to-end** — the readout is
+  signal-driven (`SettingsScreen.gd:217-218` subscribes
+  `resolution_written_back`; `:434-440` refreshes), and
+  `_maybe_write_back_os_resize` → `apply_resize_write_back`
+  (`SettingsManager.gd:495-543`) has no branch that would skip a one-axis
+  drag (the only guards are non-windowed/maximized modes and
+  `actual == _requested_window_size`). The failure could NOT be reproduced
+  headless (no real OS window events). Do NOT guess a fix: either reproduce
+  live on Windows, or ship the rerun with temporary instrumentation (a log
+  line in `_on_viewport_size_changed` and `apply_resize_write_back`) so the
+  returned log pins whether `size_changed` fires at all on bar-growing drags
+  under `stretch/aspect=keep`.
+- Maximized readout: DECIDED (owner Q4) — show live `Maximized (WxH)` from
+  the actual client size while maximized, mirroring `native WxH`; on
+  un-maximize return to the saved windowed readout; persistence unchanged.
+  Implementation sites confirmed: `SettingsManager.windowed_size_status()` +
+  `SettingsScreen._refresh_applied_size`.
 - Add explicit quit/relaunch persistence of a dragged size to the rerun
   handbook — the tester did not confirm it this pass.
 
