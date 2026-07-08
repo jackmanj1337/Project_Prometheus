@@ -1,10 +1,10 @@
 # Playtester Handbook and Checklist - v0.3.0
 
-> **Draft - do not ship yet.** This is a working tester-pass draft for the
-> planned v0.3.0 build. Finalize it only after the v0.3.0 release-delta review,
-> the known blocker fixes, and the final build manifest/hash are done. In
-> particular, re-check the Input Mode prompt-refresh expectations and the rebind
-> action list before cutting the build.
+> **Pre-build checklist - fill manifest/hash at build cut.** The v0.3.0
+> release-delta and full-scan blocker fixes are landed. This checklist is the
+> live validation vehicle for `VAL-V030-GAMEPAD` and the remaining
+> `VAL-V023-DISPLAY` §1.6 gate. Before shipping it to testers, cut the executable
+> and add `playtest_build_v0.3.0.md` with the final file size and SHA-256.
 
 This document is written for testers who have not read the design documents or
 source code. **Everything needed for this test pass is in this one file.**
@@ -13,7 +13,8 @@ source code. **Everything needed for this test pass is in this one file.**
 > display reruns. It bundles a large batch of work that has never been in a
 > tester's hands, so this pass is broad. It covers, in order:
 >
-> 1. **Controller support** (Part I) — full gamepad mapping, stick/trigger feel.
+> 1. **Controller support** (Part I / `VAL-V030-GAMEPAD`) — full gamepad
+>    mapping, stick/trigger feel.
 > 2. **Input mode + on-screen prompts** (Part II) — the new Settings *Input Mode*
 >    row and the button-prompt swapping between keyboard and controller.
 > 3. **Key rebinding** (Part III) — the new Settings capture UI.
@@ -21,7 +22,8 @@ source code. **Everything needed for this test pass is in this one file.**
 > 5. **Map readability** (Part V) — threat overlay, range peek, path arrows,
 >    terrain dimming, on keyboard/mouse.
 > 6. **Combat hit feel** (Part VI) — a heads-up about a deliberate hit-math change.
-> 7. **Display close-out §1.6** (Part VII) — the last item holding the display gate.
+> 7. **Display close-out §1.6** (Part VII / `VAL-V023-DISPLAY`) — the last item
+>    holding the display gate.
 > 8. **Regression + logs** (Part VIII).
 
 > **Please read — deliberate changes that are NOT bugs.** Two things changed on
@@ -54,7 +56,8 @@ The executable is a standalone debug build. It does not need Godot or an
 installer. Do not disable antivirus to run it. If Windows blocks it, record the
 exact message and contact the person who supplied the build.
 
-Optional PowerShell integrity check (compare against the manifest hash):
+Optional PowerShell integrity check (compare against the manifest hash after the
+build is cut):
 
 ```powershell
 Get-FileHash .\Project_Prometheus_v0.3.0_debug.exe -Algorithm SHA256
@@ -140,7 +143,10 @@ keyboard-only. On controller use **Start → Settings**.
 
 Use a controller for this whole part. If **Input Mode** is set to **Auto**
 (default), simply picking up the controller and pressing a button switches the
-game into gamepad prompts.
+game into gamepad prompts. This part closes `VAL-V030-GAMEPAD` only when it runs
+on real controller hardware; headless tests already cover the code path, but
+they cannot prove stick feel, deadzones, device labeling, focus comfort, or
+visual overlap.
 
 ## 1. Controller Mapping Sanity
 
@@ -400,7 +406,9 @@ percentage over many combats._
 # Part VII — Display close-out (§1.6 Windowed sizing)
 
 This is the **last item holding the display gate** and the reason the earlier
-v0.2.x reruns existed. The Settings screen is all you need. Open it with `O`.
+v0.2.x reruns existed. The v0.2.8 return already passed the action-menu
+anchoring and combat-forecast display checks; only §1.6 windowed sizing remains.
+The Settings screen is all you need. Open it with `O`.
 
 ## 11. Windowed Sizing: Size Readout + Windows Maximize (V028-02 / V028-03)
 
@@ -489,6 +497,20 @@ the exe.
 
 **Tester comments:** _Paste the BUILD STAMP block here (the `log=` line is the
 exact path)._
+
+---
+
+## 12.3 Gate result summary
+
+Only fill this out after the relevant section passes completely.
+
+- [ ] **`VAL-V030-GAMEPAD` can close:** Part I controller checks passed on real
+  hardware, with any controller model notes recorded above.
+- [ ] **`VAL-V023-DISPLAY` can close:** Part VII §1.6 windowed sizing passed on a
+  real Windows display, including maximize/un-maximize behavior.
+
+**Tester comments:** _If either gate stays open, write the failing item number
+and repro here._
 
 ---
 
