@@ -1,10 +1,9 @@
 # Playtester Handbook and Checklist - v0.3.0
 
-> **Pre-build checklist - fill manifest/hash at build cut.** The v0.3.0
-> release-delta and full-scan blocker fixes are landed. This checklist is the
-> live validation vehicle for `VAL-V030-GAMEPAD` and the remaining
-> `VAL-V023-DISPLAY` §1.6 gate. Before shipping it to testers, cut the executable
-> and add `playtest_build_v0.3.0.md` with the final file size and SHA-256.
+> **Release checklist.** The v0.3.0 release-delta and full-scan blocker fixes are
+> landed. This handbook is the live validation vehicle for `VAL-V030-GAMEPAD` and
+> the remaining `VAL-V023-DISPLAY` §1.6 gate. Use it with
+> `playtest_build_v0.3.0.md`, which records the final file size and SHA-256.
 
 This document is written for testers who have not read the design documents or
 source code. **Everything needed for this test pass is in this one file.**
@@ -49,15 +48,14 @@ source code. **Everything needed for this test pass is in this one file.**
   label swapping in Part II.
 - A monitor that can show **1440p or 4K** is useful for Part VII (otherwise mark
   the 4K sub-checks `NOT RUN`).
-- Executable: `Project_Prometheus_v0.3.0_debug.exe` once the build is cut.
+- Executable: `Project_Prometheus_v0.3.0_debug.exe`.
 - Expected file size / SHA-256: _see `AGENT/Docs/playtests/playtest_build_v0.3.0.md`._
 
 The executable is a standalone debug build. It does not need Godot or an
 installer. Do not disable antivirus to run it. If Windows blocks it, record the
 exact message and contact the person who supplied the build.
 
-Optional PowerShell integrity check (compare against the manifest hash after the
-build is cut):
+Optional PowerShell integrity check (compare against the manifest hash):
 
 ```powershell
 Get-FileHash .\Project_Prometheus_v0.3.0_debug.exe -Algorithm SHA256
@@ -462,18 +460,57 @@ maximize/un-maximize._
 
 ---
 
-# Part VIII — Regression and logs
+# Part VIII — Feature Sweep, Regressions, and Logs
 
-## 12.1 Quick regression
+## 12.1 Full feature sweep
 
-Play a few turns on any map: move, attack, use an item, end the turn, open/close
-each menu. Report anything that regressed versus normal play.
+After Parts I-VII, spend at least 20-30 minutes playing normally. Use this as a
+coverage map: each row names what to test and the fastest way to stress it. If
+time is short, prioritize the rows marked **High attention** in §12.2.
 
-- [ ] **No regressions noticed.**
+| Area | How best to test it | Expected / watch for |
+|---|---|---|
+| Main Menu | Launch, read the version label, start New Game, return via Quit. | Version reads `v0.3.0`; buttons focus/click correctly; no stale Continue unless a suspend exists. |
+| Map start | Start a fresh map after changing settings. | Units/enemies spawn once, camera/cursor start sensible, no crash or duplicate map load. |
+| Turn flow | Move several units, end turn, watch enemy phase, regain player phase. | Units cannot act twice; enemy phase completes; phase banners and active-unit cycling stay sane. |
+| Movement/cancel | Select units, preview paths, cancel before and after choosing a tile. | Paths/arrows clear correctly; cancel returns to the prior state without losing input. |
+| Combat forecast | Preview melee and ranged attacks from both screen edges. | Forecast appears on screen, values fit, More Info cycles cleanly, chosen target matches forecast. |
+| Combat resolution | Fight several combats, including misses and kills if possible. | HP, deaths, EXP, and map occupancy update correctly; no softlock after combat. |
+| Items / inventory | Open item and weapon menus; use or equip what is available. | Menus open/close, disabled options stay disabled, inventory text does not clip. |
+| Unit details | Open unit details on player and enemy units; cycle More Info. | Stats, skills, inventory, Back focus, and prompt text stay readable at 1.0x and 2.0x Menu Scale. |
+| Pair Up | Pair and unpair units if the current map/setup allows it. | Lead/support state survives combat, turn changes, and suspend/resume. Mark `NOT RUN` if no pair-up setup is available. |
+| Level-up modal | Trigger a level-up naturally or with `F10`; close it with keyboard and controller. | Prompt matches active input mode; modal blocks map input until dismissed, then releases cleanly. |
+| Settings persistence | Change display, input mode, keybinds, and terrain dim; close/reopen Settings and relaunch. | Applied settings persist; Revert/Reset do what they say; no stale prompt or focus state. |
+| Game over / quit paths | Lose a unit/map if practical, or use menu quit paths. | Game-over/quit screens accept input and return to the correct place without corrupting Continue. |
+
+- [ ] **Full feature sweep completed or every skipped row is marked `NOT RUN`
+  with a reason.**
+
+**Tester comments:** _Enter row-by-row notes here. Include map, unit, step,
+actual result, expected result, and repro for any failure._
+
+## 12.2 Regression tests needing special attention
+
+These deserve extra focus because they were recent release blockers, high-risk
+fixes, or areas where automated tests cannot prove the real player experience.
+
+| Regression | Why it matters | Best stress test |
+|---|---|---|
+| **Windowed sizing / maximize (§11)** | This is the remaining `VAL-V023-DISPLAY` gate from the v0.2.x returns. | Repeat §11 at 1.0x and 2.0x Menu Scale; drag to a custom size, maximize, restore, quit, relaunch. |
+| **Real controller feel (§1-5)** | Headless tests cover routing, not stick deadzone, trigger feel, pad labels, or comfort. | Use only a controller for a full turn cycle; try light stick tilt, held stick, held LT/RT, Start menu, R3, and View/Back. |
+| **Input mode prompt refresh (§6-7)** | Recent fix added live prompt/focus updates after settings changes. | Leave a prompt visible, switch Input Mode and physical device, and confirm the prompt changes without reopening the screen. |
+| **Keybind conflict coverage (§8)** | Rebind rows now come from the live InputMap; missing actions caused unbindable controls and hidden conflicts. | Confirm More Info, Peek Range, and all zoom rows exist; deliberately create a conflict; verify Apply is blocked. |
+| **Suspend/Continue state (§9)** | Suspend touches save data, map reconstruction, RNG state, Pair Up, and watch-set persistence. | Suspend after moving, attacking, toggling a watch marker, and pairing if possible; relaunch the exe before Continue. |
+| **Fresh-map RNG startup** | A release-blocker fix moved fresh maps onto a real per-map seed. | Start a fresh map, fight several combats, use Retry/New Game if available, and watch for repeated identical outcomes or stale state. |
+| **Threat/readability overlays (§10)** | Watch sets, peek overlays, path arrows, and terrain dim share overlay precedence. | Toggle Q/R3, hold E/View, move the cursor between units, plot/cancel paths, and change Terrain Dim while overlays are visible. |
+| **Combat forecast and UI scaling** | Prior display returns found forecast/menu placement and clipping bugs. | Open forecasts and unit details at both screen edges with Menu Scale 0.5x, 1.0x, and 2.0x; include screenshots for any clipping. |
+
+- [ ] **High-attention regressions were stressed, with notes for every failure
+  or `NOT RUN` item.**
 
 **Tester comments:** _Enter comments here._
 
-## 12.2 Return the log
+## 12.3 Return the log
 
 The log lives in your Windows **user-data folder** under `%APPDATA%`, not beside
 the exe.
@@ -500,7 +537,7 @@ exact path)._
 
 ---
 
-## 12.3 Gate result summary
+## 12.4 Gate result summary
 
 Only fill this out after the relevant section passes completely.
 
