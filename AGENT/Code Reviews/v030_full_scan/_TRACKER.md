@@ -16,7 +16,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 | 0 | Setup & scope lock | — | `00_scope.md` | DONE | — | (this commit) |
 | 1 | Save/persistence codec | 3 | `01_save_persistence.md` | DONE | 7 (all Low) | (this commit) |
 | 2 | Determinism: state+RNG+combat | 7 | `02_determinism.md` | DONE | 1 High, 2 Low | (this commit) |
-| 3 | Input model & settings persist | 3 | `03_input_model.md` | TODO | — | — |
+| 3 | Input model & settings persist | 3 | `03_input_model.md` | DONE | 1 Med, 2 Low | (this commit) |
 | 4 | Input display & rebind UI | 2 | `04_input_display.md` | TODO | — | — |
 | 5 | Map/turn core | 5 | `05_map_turn_core.md` | TODO | — | — |
 | 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | TODO | — | — |
@@ -43,3 +43,17 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   `_current_hit_formula` comment (campaign_rules already live); L2
   `_string_array_from_variant` duplicated ×4. `_original_tiles` stale-tile hazard is
   explicitly defused (positive). Next: Pass 3 (input model & settings persist).
+- 2026-07-08 — Pass 3 (input model & settings persist): read all 3 files at head +
+  their suites, cross-read `SettingsScreen`'s input_mode row (Pass 4) for the
+  consumer side. **1 Medium (carried, re-confirmed), 2 Low.** M1 = changing Settings
+  → Input Mode does not refresh active mode/prompts until the next input event:
+  `InputModeManager._refresh_active_input_mode` is private + only runs on
+  `_ready`/`_input`/joy-hotplug, and the `input_mode` row has no `"apply"` hook —
+  so the setting looks inert until an unrelated event nudges the resolver. Fix spans
+  Pass 3 (add a public `refresh_from_settings`) + Pass 4 (call it from the row +
+  `reset_section_to_defaults`). L1 = input-mode vocab + `normalize_input_mode`
+  duplicated across `SettingsManager`/`InputModeManager` (two sources of truth,
+  extends Pass1 L4 / Pass2 L2). L2 = `available_modes()` rebuilt + `OS.has_feature`
+  re-queried per input event (cache once). Flagged the `MapCursorInput` decode+poll
+  double-drive seam for Pass 5's `MapCursor` (arm-on-decode ordering). Next: Pass 4
+  (input display & rebind UI).
