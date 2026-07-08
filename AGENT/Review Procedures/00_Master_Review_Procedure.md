@@ -54,17 +54,17 @@ Coverage map (so nothing falls between pillars):
   `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
   one-off scripts) and its pytest suite** → **Pillar 4**
 - `scenes/**.tscn`, **all `*.tres` wherever they live** (`data/**`, `assets/**`,
-  repo-root), `assets/**`, `*.import`, `*.uid` sidecars, stray/empty top-level
-  dirs, autoload *wiring* → **Pillar 3**
+  repo-root), `assets/**`, `Draft UI assets/`, `*.import`, `*.uid` sidecars,
+  stray/empty top-level dirs, autoload *wiring* → **Pillar 3**
 - `AGENT/GDD/**`, `AGENT/Docs/**` guides + governance, `README.md` → **Pillar 2**
 - `AGENT/Session Notes/**`, git history, decision index/records, playtest
   findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
 
 Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
-`builds/` [gitignored artifacts], `data/`, `scenes/`, `scripts/`, `tools/`) and the
-root config files map to exactly one pillar above. The §3 tree-completeness
-preflight enforces this each run, and `check_docs.py` check 11 fails if a new
-top-level dir appears that this map does not mention.
+`builds/` [gitignored artifacts], `Draft UI assets/`, `data/`, `scenes/`,
+`scripts/`, `tools/`) and the root config files map to exactly one pillar above.
+The §3 tree-completeness preflight enforces this each run, and `check_docs.py`
+check 11 fails if a new top-level dir appears that this map does not mention.
 
 If a finding spans two pillars, the discovering pillar files it and tags it
 `[CROSS]`; the rollup (§7) reconciles cross-pillar findings.
