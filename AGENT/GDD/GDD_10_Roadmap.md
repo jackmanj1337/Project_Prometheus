@@ -71,18 +71,20 @@ foundations or add unmanifested save state.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `VAL-V023-DISPLAY` | Run v0.3.0 live section 1.6 validation | v0.3.0 build cut 2026-07-08 (`playtest_build_v0.3.0.md`) with the section 1.6 checks in handbook Part VII; needs live Windows drag/maximize/restore validation before the gate can close. |
-| 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, InputMap-derived keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, persisted `input_mode` / `touch_controls`, `InputModeManager.input_mode_changed`, the Settings gray-state input-mode selector, the `ModalScreen` focus-grab subscribers, the shared-`SelectionCursor` adoption across all three More-Info surfaces (AttackPreview forecast + HUD terrain pager now route through the same core as the sheet), and mode/brand-aware prompt swapping (`InputDisplay` renders the active scheme's key or brand-correct pad label; level-up + More-Info hints re-render live) landed. The v0.3.0 playtest build is cut; controller feel, deadzones, device mapping, and visual comfort now need handbook Part I live validation. |
+| 1 | `B1-SUSPEND` | Fix the returned V030-SUS-01 suspend/resume defects | v0.3.0 return (2026-07-08): after Continue units cannot move, pair-up supports render at the off-map placeholder, debug red-team control + resume corrupts input, and the turn counter restores wrong. Top defect in [`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md); failing-first repro tests in `test_suspend_map_runtime.gd`, then fix. |
+| 2 | `B6-INPUT` | Fix the returned V030-GP-01/02/03 + V030-INP-02 controller failures | v0.3.0 return: controller focus cannot scroll Settings, menus lack directional repeat, New Game focus highlight gaps, menu stick cadence too fast, LT/RT zoom too sensitive, and prompts brand from the first-connected pad instead of the pad in use. Gate blockers for `VAL-V030-GAMEPAD`; owner questions Q1/Q2 in [`playtest_v0.3.0_triage_review_2026-07-08.md`](../Code Reviews/playtest_v0.3.0_triage_review_2026-07-08.md). |
+| 3 | `VAL-V023-DISPLAY` | Fix V030-DSP-01 section 1.6 residue, then a focused rerun | v0.3.0 return live-validated the v0.2.8 fix core (custom client readout, no re-clamp, reactive centering, no maximize persistence). Remaining: one-axis drag readout, stale maximized `client WxH` label (owner Q4), and an explicit relaunch-persistence check in the rerun handbook. |
 
 ## While Waiting For v0.3.0 Return
 
-These are safe next-session candidates while the tester has the v0.3.0 build.
-Keep gameplay/code changes separate from the shipped artifact unless we
-intentionally cut a new build.
+The v0.3.0 return arrived and was triaged 2026-07-08 via the return triage kit
+([`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md));
+the fix passes moved into the Next Work Queue above. The remaining rows stay
+safe parallel candidates while owner review Q1-Q5 is open.
 
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Use the v0.3.0 return triage kit. | Kit created: [`playtest_v0.3.0_return_triage_kit_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_return_triage_kit_2026-07-08.md). It owns the returned-checklist copy pattern, evidence intake, triage-plan skeleton, and pass/fail routing for gamepad and display outcomes. |
+| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Return intake DONE 2026-07-08. | Kit executed: returned checklist copied ([`playtest_checklist_v0.3.0_returned_2026-07-08.md`](../Docs/playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md)), evidence archived, triage plan + owner review written. Both gates stay open; see the Next Work Queue. |
 | 2 | `B2-REGISTRY` plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Start the open-registry debt stream. | Convert the known closed vocabularies toward registries: objective conditions `[TCV-4]`, AI profiles `[AIP]`, and stat names/model `[STM]`. Best technical progress; use a separate commit stream from v0.3.0 validation. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
@@ -95,8 +97,8 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
-| `VAL-V023-DISPLAY` | Validation | v0.3.0 build cut 2026-07-08 (`playtest_build_v0.3.0.md`); run handbook Part VII on real Windows hardware to validate custom-size readout, drag persistence, and maximize/un-maximize centering before closing the gate. Use the v0.3.0 return triage kit for intake/routing. Prior triage: `playtest_v0.2.8_results_triage_plan_2026-07-07.md`; owner review: `playtest_v0.2.8_triage_review_2026-07-07.md`. |
-| `VAL-V030-GAMEPAD` | Validation | v0.3.0 build cut 2026-07-08 (`playtest_build_v0.3.0.md`); run handbook Part I for real controller mapping, stick deadzone/repeat feel, held-trigger zoom feel, menu focus comfort, Steam Deck/Windows pad sanity, and screenshots/notes for any visual overlap. Use the v0.3.0 return triage kit for intake/routing. |
+| `VAL-V023-DISPLAY` | Validation | v0.3.0 returned 2026-07-08: v0.2.8 fix core held live (client readout, no re-clamp, centering, no maximize persistence); gate stays open on V030-DSP-01 (one-axis drag readout, maximized label, relaunch persistence). Fix, then a section-1.6-only rerun. Triage: `playtest_v0.3.0_results_triage_plan_2026-07-08.md`. |
+| `VAL-V030-GAMEPAD` | Validation | v0.3.0 returned 2026-07-08: mapping and mixed-input pass, but menu focus scroll/repeat (V030-GP-01), menu stick cadence (V030-GP-02), and trigger sensitivity (V030-GP-03) fail live. Gate stays open; fix under `B6-INPUT`, then a focused controller rerun. Triage: `playtest_v0.3.0_results_triage_plan_2026-07-08.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |

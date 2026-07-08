@@ -1,0 +1,117 @@
+# v0.3.0 Playtest Triage - Owner Review Walkthrough - 2026-07-08
+
+Status: OPEN - awaiting owner decisions Q1-Q5
+Companion: `AGENT/Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md`
+
+The v0.3.0 return leaves both gates open, but the failures are well-localized:
+controller MENU navigation (focus scroll/repeat/cadence/trigger feel) rather
+than mapping, and a narrow section 1.6 residue. Suspend/Continue is the one
+broad regression. The straightforward defects (`V030-SUS-01`, `V030-GP-01/02/03`,
+the first-connected-pad brand bug) need no decision — they are queued in the
+triage plan sequencing. These five questions are the ones that change what the
+fix passes build.
+
+Format per question: context -> options with drawbacks -> recommendation first.
+After owner decisions, record them at the bottom and route them to the fix pass.
+
+---
+
+## Q1. What should an explicit Input Mode actually do? (`V030-INP-01`)
+
+The tester expected **Input Mode: Gamepad** to block keyboard input; today an
+explicit mode only drives prompts and menu focus, and every device keeps
+working (which is also what let section 5 mixed-input pass cleanly).
+
+- **Option A (recommended): prompts/focus only — fix the handbook wording, not
+  the code.** Explicit mode pins the prompt/focus scheme; devices are never
+  rejected. This is the friendliest behavior (a pad player can still touch the
+  mouse) and matches the shipped resolver design.
+  - Drawback: "Input Mode" reads stronger than it is; the Settings row may
+    need a caption ("affects prompts & menu focus").
+- **Option B: explicit mode filters device events.** Gamepad mode ignores
+  keyboard/mouse gameplay input (Settings stays reachable).
+  - Drawback: self-inflicted lockouts (choose Gamepad, unplug pad, stuck);
+    needs an escape hatch and more test surface for little player value.
+- **Option C: keep Auto only; drop explicit modes.**
+  - Drawback: throws away shipped, working persistence for no reported harm.
+
+## Q2. PlayStation prompt glyphs: real symbols or words? (`V030-INP-02`)
+
+PS prompts currently print the word "Square". Real ✕○□△ glyphs need font
+coverage in the UI font (and a fallback when a pad is GENERIC).
+
+- **Option A (recommended): ship brand-correct WORDS now ("Square"/"Cross"),
+  add real glyphs with the `UI-INSPECTION` font/theme pass.** The active bug
+  worth fixing now is the first-connected-pad branding, which is independent.
+  - Drawback: words read less polished until the theme pass lands.
+- **Option B: add a glyph-capable font now.**
+  - Drawback: font licensing/pipeline work dragged into a bugfix rerun; the
+    draft-UI font kits are already queued for evaluation under `UI-INSPECTION`.
+- **Option C: use Unicode approximations (✕○□△) from the existing font.**
+  - Drawback: renders inconsistently across fonts/platforms; can look worse
+    than words.
+
+## Q3. Threat overlay + watch markers: what may coexist? (`V030-MRD-01`)
+
+Watch "D" markers die with the overlay; selecting any unit or opening the
+pause menu clears the overlay; the movement selector and threat overlay are
+mutually exclusive (peek is not). The tester wants concurrent layers with
+distinct textures or a strong border.
+
+- **Option A (recommended): make watch-set threat a STANDING layer.** Watched
+  enemies' ranges + "D" markers persist through selection, menus, and overlay
+  cycling; the overlay cycle only governs the all-enemies display; movement
+  selection draws OVER standing threat with a distinct border/texture so both
+  read. This is what the precedence-ordered overlay registry was built for.
+  - Drawback: needs a real visual-distinction asset decision (border vs
+    texture) — small `UI-INSPECTION` coupling.
+- **Option B: keep modal overlays, just restore state after menus/selection.**
+  - Drawback: fixes the annoyance, ignores the actual request (seeing threat
+    while plotting a move is the point of a watch list).
+- **Option C: full concurrent-overlay compositing for every layer.**
+  - Drawback: readability soup and a much bigger visual design problem than
+    the watch-set case needs.
+
+## Q4. What should the size readout say while maximized? (`V030-DSP-01`)
+
+Maximize is (correctly) never persisted, but the readout keeps the stale
+pre-maximize `client WxH` label while maximized.
+
+- **Option A (recommended): show the live truth with a state tag.** While
+  maximized show `Maximized (WxH)` from the actual client size, dropdown
+  selection unchanged; on un-maximize return to the saved windowed readout.
+  Mirrors how Borderless/Fullscreen show `native WxH`.
+  - Drawback: one more readout state to test.
+- **Option B: freeze the readout at the saved windowed size (status quo),
+  document it in the handbook.**
+  - Drawback: the label says `client` but is not the client size — the same
+    class of lie V028-02 removed.
+- **Option C: gray the Resolution row out entirely while maximized.**
+  - Drawback: hides useful information and adds a fourth row-state.
+
+## Q5. Cursor-traced manual pathing: v1 scope or backlog? (`V030-FRQ-01`)
+
+Request: unit movement should prefer the path the player traced with the
+cursor (up to movement limits) instead of always auto-shortest — so a player
+can route around a suspected fog ambush or a known trap.
+
+- **Option A (recommended): backlog it with the perception/fog work.** The
+  stated motivations are fog and traps — neither system exists yet. Design it
+  as part of `[PER]` (perception/masking), where "path around what you
+  believe" has meaning. Record it in the map-readability/movement register now
+  so it is not lost.
+  - Drawback: a tester-visible request sits unaddressed for a while.
+- **Option B: implement waypoint pathing now.** Path arrows already trace the
+  cursor route; movement resolution snaps to shortest. Persist the traced
+  route when legal.
+  - Drawback: real path-planner + input work in the middle of a
+    blocker-fix/rerun cycle, with no fog/trap payoff yet.
+- **Option C: middle ground — honor the traced path only when its cost equals
+  the shortest path.**
+  - Drawback: subtle, hard to explain, and still planner surgery.
+
+---
+
+## Walkthrough Decisions
+
+_Record owner decisions here, then route them into the fix passes._

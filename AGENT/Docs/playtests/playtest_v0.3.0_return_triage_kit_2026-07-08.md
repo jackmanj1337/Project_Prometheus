@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Pending validation - v0.3.0 return triage prep; awaiting returned checklist/logs
+Status: Implemented - return intake executed 2026-07-08; results in `playtest_v0.3.0_results_triage_plan_2026-07-08.md`
 Last verified: 2026-07-08
 ---
 
@@ -143,19 +143,23 @@ the owning rows:
 
 ## Return Triage Checklist
 
-- [ ] Returned checklist copied with front matter.
-- [ ] Screenshots/logs moved into `AGENT/Docs/archive/evidence/`.
-- [ ] Build hash/source stamp verified against `playtest_build_v0.3.0.md`.
-- [ ] `godot.log` BUILD STAMP pasted or logged as missing.
-- [ ] Findings First section written before fix recommendations.
-- [ ] Gate routing recorded for both validation rows.
+- [x] Returned checklist copied with front matter.
+- [x] Screenshots/logs moved into `AGENT/Docs/archive/evidence/`.
+- [x] Build hash/source stamp verified against `playtest_build_v0.3.0.md`
+  (all BUILD STAMPs read commit `7b23412`).
+- [x] `godot.log` BUILD STAMP pasted or logged as missing (archived logs carry
+  the stamps; the returned checklist's 12.3 paste slot was left empty by the
+  tester, covered by the attached logs).
+- [x] Findings First section written before fix recommendations.
+- [x] Gate routing recorded for both validation rows.
 - [ ] Any behavior-changing fix updates the owning GDD section and control-plane
-  row in the same commit.
-- [ ] `python3 AGENT/Docs/gen_docs_index.py` run after doc additions/renames.
-- [ ] `python3 AGENT/Docs/check_docs.py` passes before commit.
+  row in the same commit. (No fixes landed at intake time; applies to the
+  upcoming `V030-*` fix passes.)
+- [x] `python3 AGENT/Docs/gen_docs_index.py` run after doc additions/renames.
+- [x] `python3 AGENT/Docs/check_docs.py` passes before commit.
 
 ## Immediate Next Step
 
-Wait for the returned v0.3.0 checklist, log, screenshots, controller models, and
-tester environment details. Until then, keep any code work separate from this
-validation stream so the shipped artifact remains traceable.
+Intake executed 2026-07-08. Continue in
+`playtest_v0.3.0_results_triage_plan_2026-07-08.md` (fix sequencing) and
+`AGENT/Code Reviews/playtest_v0.3.0_triage_review_2026-07-08.md` (owner Q1-Q5).
