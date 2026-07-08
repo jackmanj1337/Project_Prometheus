@@ -126,7 +126,6 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 	var out := _with_defaults(root.get("rules", {}), _default_campaign()["rules"])
 	if source is Dictionary:
-		_merge_missing(out, source)
 		for key in source.keys():
 			out[key] = source[key]
 	out["hit_formula"] = _as_string(out.get("hit_formula", "two_roll"), "two_roll")
