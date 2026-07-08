@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
 UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-07-07
+**Last verified:** 2026-07-08
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -764,7 +764,7 @@ See GDD_01 → SettingsManager.
 │   Controls                                        │
 │   Move Up               W / Up                    │
 │   Confirm               Z / Enter / Space         │
-│   ... (one row per game action — read-only)        │
+│   ... (one row per game action — editable)         │
 │   ─────────────────────────────────────────       │
 │                   [ Back ]                        │
 └──────────────────────────────────────────────────┘
@@ -1004,9 +1004,10 @@ The accessibility and parity contract the UI must honor across input methods and
   keeping debug actions keyboard-only. `SettingsManager._mirror_game_keys_to_ui()`
   mirrors `cursor_*`/`confirm`/`cancel` onto Godot `ui_*` so menus and the map
   cursor share bindings.
-- **Key rebinding:** Settings exposes keyboard/mouse and gamepad capture for every
-  normal game action. Captures stage in a pending buffer; same-slot conflicts block Apply
-  until Clear/Revert/recapture resolves them. Debug-only actions stay read-only.
+- **Key rebinding:** Settings derives rows from the live `InputMap` and exposes
+  keyboard/mouse and gamepad capture for every normal game action. Captures stage in a
+  pending buffer; same-slot conflicts block Apply until Clear/Revert/recapture resolves
+  them. Debug-only actions stay read-only.
 - **Hotseat parity:** non-blue human (hotseat) phases use blue's commit/UI flow — only
   the commandable faction differs (GDD_02 §Turn Structure). No player has a UI affordance
   another lacks.

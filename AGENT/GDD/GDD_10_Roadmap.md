@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-07
+**Last verified:** 2026-07-08
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -72,7 +72,7 @@ foundations or add unmanifested save state.
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
 | 1 | `VAL-V023-DISPLAY` | Cut a section 1.6-only rerun build | Section 1.6 fix pass IMPLEMENTED 2026-07-07 (custom vs preset size status, maximize = window state not saved resolution, reactive `resized` menu re-center); needs a focused rerun build + live Windows maximize check before the gate can close. |
-| 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, persisted `input_mode` / `touch_controls`, `InputModeManager.input_mode_changed`, the Settings gray-state input-mode selector, the `ModalScreen` focus-grab subscribers, the shared-`SelectionCursor` adoption across all three More-Info surfaces (AttackPreview forecast + HUD terrain pager now route through the same core as the sheet), and mode/brand-aware prompt swapping (`InputDisplay` renders the active scheme's key or brand-correct pad label; level-up + More-Info hints re-render live) landed. Controller feel, deadzones, device mapping, and visual comfort stay in the v0.3.0 playtest checklist — the headless code path is now complete. |
+| 2 | `B6-INPUT` | Input-mode seam / shared selector adoption / live controller validation | Bindings/menu parity, the headless map-cursor decoder, profile-ready keybind persistence, InputMap-derived keyboard/mouse + gamepad capture-conflict-apply UI, `SelectionCursor`, UnitDetails Back focus zone, persisted `input_mode` / `touch_controls`, `InputModeManager.input_mode_changed`, the Settings gray-state input-mode selector, the `ModalScreen` focus-grab subscribers, the shared-`SelectionCursor` adoption across all three More-Info surfaces (AttackPreview forecast + HUD terrain pager now route through the same core as the sheet), and mode/brand-aware prompt swapping (`InputDisplay` renders the active scheme's key or brand-correct pad label; level-up + More-Info hints re-render live) landed. Controller feel, deadzones, device mapping, and visual comfort stay in the v0.3.0 playtest checklist — the headless code path is now complete. |
 
 ## Validation And Release Queues
 

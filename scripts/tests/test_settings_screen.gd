@@ -177,6 +177,17 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL keybinding list empty or missing"); failed += 1
+	var derived_actions_present: bool = true
+	for action in ["more_info", "peek_range", "zoom_in", "zoom_out", "zoom_reset"]:
+		var info: Dictionary = screen._keybind_rows.get(action, {})
+		if info.is_empty() or info.get("rebind") == null or info.get("pad_rebind") == null:
+			derived_actions_present = false
+	if derived_actions_present:
+		print("OK  keybinding rows include all shipped gameplay InputMap actions")
+		passed += 1
+	else:
+		print("FAIL keybinding rows missing derived gameplay actions")
+		failed += 1
 
 	# Debug-only rows: visible in debug builds, absent in release. Headless
 	# tests run via the Godot binary which is a debug build, so the assertion
@@ -235,6 +246,26 @@ func _init() -> void:
 		var confirm_rebind: Button = confirm_info["rebind"]
 		var apply_btn: Button = screen._btn_apply_keybindings
 		var revert_btn: Button = screen._btn_revert_keybindings
+
+		confirm_rebind.pressed.emit()
+		var ev_f := InputEventKey.new()
+		ev_f.keycode = KEY_F
+		ev_f.pressed = true
+		screen._input(ev_f)
+		var derived_conflict: bool = screen._keybind_conflicts.has("confirm") \
+			and screen._keybind_conflicts.has("more_info") \
+			and apply_btn.disabled
+		revert_btn.pressed.emit()
+		if derived_conflict:
+			print("OK  conflict scan includes derived gameplay actions")
+			passed += 1
+		else:
+			print("FAIL derived action conflict was not detected")
+			failed += 1
+		confirm_info = screen._keybind_rows["confirm"]
+		confirm_rebind = confirm_info["rebind"]
+		apply_btn = screen._btn_apply_keybindings
+		revert_btn = screen._btn_revert_keybindings
 
 		confirm_rebind.pressed.emit()
 		var capture_started: bool = screen._capturing_action == "confirm" \

@@ -288,6 +288,9 @@ Open **Settings** and find the controls / keybinding rows.
 
 ## 8. Rebinding, Conflicts, and Reset
 
+Confirm normal gameplay rows include **More Info**, **Peek Range**, and **Zoom In /
+Zoom Out / Reset Zoom**.
+
 Try rebinding an action (e.g. change **Confirm** or **Toggle Threat Range**),
 both a keyboard key and — if listed — a controller button. Then deliberately
 bind two different actions to the **same** key to create a conflict.

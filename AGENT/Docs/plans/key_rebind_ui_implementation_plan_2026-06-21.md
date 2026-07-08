@@ -146,9 +146,10 @@ guarantees the rebind flow is *non-destructive* to them.
 - **Esc reserved** — capture always treats Esc/`ui_cancel` as abort, so a player can't
   bind away their only escape. (Cancel/back as a *game* action is still rebindable to a
   different key; Esc-the-abort is a capture-flow reservation, not an InputMap change.)
-- **Conflict against `ui_*` mirrors** — conflict detection runs against the **game**
-  actions only (the `ui_*` entries are derived by the mirror; checking them would produce
-  phantom conflicts). The plan checks `_KEYBIND_LABELS` keys, not `ui_*`.
+- **Conflict against `ui_*` mirrors** — conflict detection runs against the live
+  `InputMap`'s editable **game** actions only (excluding `ui_*` mirrors and debug-only
+  actions; the `ui_*` entries are derived by the mirror, so checking them would produce
+  phantom conflicts).
 - **All actions rebindable** ([ICD-5a]) — including the universal nav/confirm/cancel set;
   the always-visible Reset (§2) + hand-editable cfg (§1a) make any self-trap recoverable.
   Debug rows default to read-only (they ship in debug builds only and are slated for
@@ -198,9 +199,10 @@ old object-blob cfg and re-migrate.
    form; `rebind_action` gains the device-class slot filter and a batch
    `apply_keybindings(pending)` companion. Headless-testable, no UI change yet; independent
    of the gamepad layer (the K&M slot stands alone). Lowest-risk first.
-2. **Editable K&M rebind UI** — convert rows to editable, capture flow, **batch apply-block
-   conflict** ([ICD-6] amended: pending buffer, red conflicts disable Apply, per-row Clear,
-   Revert), always-visible Reset ([ICD-5a]). Shippable keyboard-only.
+2. **Editable K&M rebind UI** — derive rows from the live `InputMap`, convert rows to
+   editable, capture flow, **batch apply-block conflict** ([ICD-6] amended: pending buffer,
+   red conflicts disable Apply, per-row Clear, Revert), always-visible Reset ([ICD-5a]).
+   Shippable keyboard-only.
 3. **Pad capture + textual pad labels** ([ICD-5b]) — capture joypad events into the pad
    slot; sequence with the gamepad bindings; pretty glyphs deferred to the prompt/glyph
    system.
@@ -215,9 +217,9 @@ the profile-ready *shape* lands in slice 1.
 - DoD#1: update GDD_07 (the keybinding/rebind UI section moves from "read-only" to
   "editable") + flip the matching GDD_10 status in the same commit.
 - DoD#2: no new value-set vocabulary here, so no new `check_docs` guard is required (the
-  binding *content* is player data, not a fixed vocabulary). If the rebindable-action set
-  is documented in GDD_07 as canonical, add a guard that `_KEYBIND_LABELS` keys match the
-  documented list (same mirror-the-const pattern) — confirm at implementation.
+  binding *content* is player data, not a fixed vocabulary). The rebindable-action set is
+  intentionally derived from the live `InputMap`; GDD_07 must not document a canonical
+  closed list.
 - Tests: §6 headless coverage green; full suite + `check_docs` green per commit.
 
 ## 9. Decisions — all resolved (2026-06-21)

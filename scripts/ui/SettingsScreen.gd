@@ -626,8 +626,31 @@ func _populate_option_button(btn: OptionButton, labels: Array) -> void:
 		btn.add_item(String(lbl))
 
 
-# Game actions shown in the read-only keybinding list, in display order (#8).
-const _KEYBIND_LABELS := {
+# Optional display order for known actions. Actions not listed here are still
+# shown after these, sorted by action id, so adding a new player action to the
+# InputMap does not require a SettingsScreen edit.
+const _KEYBIND_ORDER_HINTS: Array[String] = [
+	"cursor_up",
+	"cursor_down",
+	"cursor_left",
+	"cursor_right",
+	"confirm",
+	"cancel",
+	"next_unit",
+	"prev_unit",
+	"show_danger_zone",
+	"peek_range",
+	"open_menu",
+	"open_settings",
+	"inspect_unit",
+	"more_info",
+	"zoom_in",
+	"zoom_out",
+	"zoom_reset",
+]
+
+# Optional display labels. Missing entries fall back to a humanized action id.
+const _KEYBIND_LABEL_OVERRIDES := {
 	"cursor_up": "Move Up",
 	"cursor_down": "Move Down",
 	"cursor_left": "Move Left",
@@ -639,13 +662,19 @@ const _KEYBIND_LABELS := {
 	"open_menu": "Map Menu",
 	"open_settings": "Settings",
 	"inspect_unit": "Unit Details",
+	"more_info": "More Info",
 	"show_danger_zone": "Toggle Threat Range",
+	"peek_range": "Peek Range",
+	"zoom_in": "Zoom In",
+	"zoom_out": "Zoom Out",
+	"zoom_reset": "Reset Zoom",
 }
 
-# Debug-only keybindings shown in the list only when OS.is_debug_build().
+# Debug-only label overrides. Debug actions are discovered from InputMap by
+# prefix and shown read-only only when OS.is_debug_build().
 # Each toggles a GameState debug aid; the toggle handler itself lives on
 # GameState._unhandled_input and is also gated on OS.is_debug_build().
-const _DEBUG_KEYBIND_LABELS := {
+const _DEBUG_KEYBIND_LABEL_OVERRIDES := {
 	"debug_toggle_force_levelup":    "Debug: Force Level Up",
 	"debug_toggle_growth_boost":     "Debug: Growth Boost",
 	# V026-01c: the F9 hotseat override was toggleable but never listed here, so
@@ -662,13 +691,63 @@ func _populate_keybindings() -> void:
 	for child in _keybind_list.get_children():
 		child.queue_free()
 	_keybind_rows = {}
-	for action in _KEYBIND_LABELS:
-		_add_keybind_row(action, _KEYBIND_LABELS[action], true)
+	for action in _editable_keybind_actions():
+		_add_keybind_row(action, _keybind_display_label(action), true)
 	if OS.is_debug_build():
-		for action in _DEBUG_KEYBIND_LABELS:
-			_add_keybind_row(action, _DEBUG_KEYBIND_LABELS[action], false)
+		for action in _debug_keybind_actions():
+			_add_keybind_row(action, _keybind_display_label(action), false)
 	_add_keybind_footer()
 	_refresh_keybind_rows()
+
+
+func _editable_keybind_actions() -> Array[String]:
+	var out: Array[String] = []
+	for raw_action in InputMap.get_actions():
+		var action := String(raw_action)
+		if _is_editable_keybind_action(action):
+			out.append(action)
+	out.sort_custom(_sort_keybind_actions)
+	return out
+
+
+func _debug_keybind_actions() -> Array[String]:
+	var out: Array[String] = []
+	for raw_action in InputMap.get_actions():
+		var action := String(raw_action)
+		if _is_debug_keybind_action(action):
+			out.append(action)
+	out.sort()
+	return out
+
+
+func _is_editable_keybind_action(action: String) -> bool:
+	return InputMap.has_action(action) \
+		and not action.begins_with("ui_") \
+		and not _is_debug_keybind_action(action)
+
+
+func _is_debug_keybind_action(action: String) -> bool:
+	return action.begins_with("debug_")
+
+
+func _sort_keybind_actions(a: String, b: String) -> bool:
+	var ai := _KEYBIND_ORDER_HINTS.find(a)
+	var bi := _KEYBIND_ORDER_HINTS.find(b)
+	if ai == -1 and bi == -1:
+		return a < b
+	if ai == -1:
+		return false
+	if bi == -1:
+		return true
+	return ai < bi
+
+
+func _keybind_display_label(action: String) -> String:
+	if _KEYBIND_LABEL_OVERRIDES.has(action):
+		return String(_KEYBIND_LABEL_OVERRIDES[action])
+	if _DEBUG_KEYBIND_LABEL_OVERRIDES.has(action):
+		return String(_DEBUG_KEYBIND_LABEL_OVERRIDES[action])
+	return action.replace("_", " ").capitalize()
 
 
 # Helper: builds one row in the keybinding list. Extracted so both the regular
@@ -748,7 +827,7 @@ func _add_keybind_footer() -> void:
 
 
 func _begin_keybind_capture(action: String, slot: String) -> void:
-	if not _KEYBIND_LABELS.has(action):
+	if not _is_editable_keybind_action(action):
 		return
 	if slot != _KEYBIND_SLOT_KBD and slot != _KEYBIND_SLOT_PAD:
 		return
@@ -845,7 +924,7 @@ func _recompute_keybind_conflicts() -> void:
 	_keybind_conflict_slots = {}
 	for slot in [_KEYBIND_SLOT_KBD, _KEYBIND_SLOT_PAD]:
 		var seen := {}
-		for action in _KEYBIND_LABELS:
+		for action in _editable_keybind_actions():
 			var event := _effective_slot_event(action, slot)
 			if event == null:
 				continue
