@@ -17,7 +17,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 | 1 | Save/persistence codec | 3 | `01_save_persistence.md` | DONE | 7 (all Low) | (this commit) |
 | 2 | Determinism: state+RNG+combat | 7 | `02_determinism.md` | DONE | 1 High, 2 Low | (this commit) |
 | 3 | Input model & settings persist | 3 | `03_input_model.md` | DONE | 1 Med, 2 Low | (this commit) |
-| 4 | Input display & rebind UI | 2 | `04_input_display.md` | TODO | — | — |
+| 4 | Input display & rebind UI | 2 | `04_input_display.md` | DONE | 1 Med (+carried half), 2 Low | (this commit) |
 | 5 | Map/turn core | 5 | `05_map_turn_core.md` | TODO | — | — |
 | 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | TODO | — | — |
 | 7 | General/integration & rollup | (all) | `code_review_v0.3.0_full_scan_2026-07-XX.md` | TODO | — | — |
@@ -57,3 +57,19 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   re-queried per input event (cache once). Flagged the `MapCursorInput` decode+poll
   double-drive seam for Pass 5's `MapCursor` (arm-on-decode ordering). Next: Pass 4
   (input display & rebind UI).
+- 2026-07-08 — Pass 4 (input display & rebind UI): read both files at head + their
+  suites (`test_settings_screen` 24, `test_input_display` 7), cross-read
+  `InputModeManager` + `project.godot [input]`. **1 Medium (carried, re-CONFIRMED) +
+  the Pass-4 half of Pass-3's Medium; 2 Low.** M1 = `_KEYBIND_LABELS`
+  (`SettingsScreen.gd:630`) omits 5 shipped player actions (`more_info`, `peek_range`,
+  `zoom_in/out/reset`) — grep-confirmed live consumers — so they're unbindable AND
+  invisible to the conflict scan (rebinding a listed action onto e.g. default `F` =
+  silent double-bind). M2 (not double-counted) = the input_mode row has no `"apply"`
+  hook + reset doesn't refresh `InputModeManager`; fix-shape wrinkle: the `sm.call(apply)`
+  hook can't reach an InputModeManager method — prefer a SettingsManager→manager
+  settings-changed signal. L1 `pad_rebind` stored via node-path re-fetch vs in-scope
+  local; L2 `more_info_hint_for` hardcodes "F" fallback when unbound. Contract check
+  positive: InputDisplay/SettingsScreen mode strings match `InputModeManager` `MODE_*`
+  exactly. No correctness bugs. Next: Pass 5 (map/turn core, 5 files) — includes the
+  `GameMap.start_map()` High fix site + the `MapCursor` arm-on-decode ordering flagged
+  in Pass 3.
