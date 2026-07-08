@@ -38,6 +38,11 @@ func _init() -> void:
 		gs = load("res://scripts/autoloads/GameState.gd").new()
 		gs.name = "GameState"
 		root.add_child(gs)
+	var rng_svc := root.get_node_or_null("RngService")
+	if rng_svc == null:
+		rng_svc = load("res://scripts/autoloads/RngService.gd").new()
+		rng_svc.name = "RngService"
+		root.add_child(rng_svc)
 	await process_frame
 	gs.reset_map_state()
 	gs.load_default_roster()
@@ -221,6 +226,21 @@ func _init() -> void:
 		print("FAIL TurnManager not initialized")
 		failed += 1
 
+	# Fresh maps seed the gameplay RNG before the Retry snapshot, so Retry starts
+	# from a real per-map seed instead of the default zero seed.
+	var first_rng_snapshot: Dictionary = gs.get("_snapshot_rng") if gs else {}
+	if rng_svc != null and int(rng_svc.get("map_seed")) != 0 \
+			and int(rng_svc.get("history_hash")) == 0 \
+			and int(first_rng_snapshot.get("map_seed", 0)) != 0 \
+			and int(first_rng_snapshot.get("history_hash", -1)) == 0:
+		print("OK  fresh GameMap seeds RngService before the Retry snapshot")
+		passed += 1
+	else:
+		print("FAIL fresh map rng seed/snapshot: live=%s snapshot=%s" % [
+			rng_svc.call("to_save_dict") if rng_svc else {},
+			first_rng_snapshot])
+		failed += 1
+
 	# MapCursor menu references must resolve at runtime. If they are null the
 	# action menu and map menu never open and the Item submenu never shows
 	# (playtest findings #4 / #10).
@@ -338,6 +358,7 @@ func _init() -> void:
 			"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
 			"fixed_test_roster",
 			"res://data/roster/test/map_900_hotseat_validation/")
+		rng_svc.call("commit_event", "wait", ["rng_test_unit", "1,1", "1,1"] as Array[String])
 		var hotseat_instance: Node = packed.instantiate()
 		root.add_child(hotseat_instance)
 		await process_frame
@@ -360,6 +381,17 @@ func _init() -> void:
 		else:
 			print("FAIL hotseat map spawn count/factions: count=%d green=%s" % [
 				hotseat_units.get_child_count(), hotseat_green_found])
+			failed += 1
+		var second_rng_snapshot: Dictionary = gs.get("_snapshot_rng")
+		if int(rng_svc.get("map_seed")) != 0 and int(rng_svc.get("history_hash")) == 0 \
+				and int(second_rng_snapshot.get("map_seed", 0)) != 0 \
+				and int(second_rng_snapshot.get("history_hash", -1)) == 0:
+			print("OK  second same-session fresh GameMap resets RNG history before snapshot")
+			passed += 1
+		else:
+			print("FAIL second fresh map rng history: live=%s snapshot=%s" % [
+				rng_svc.call("to_save_dict"),
+				second_rng_snapshot])
 			failed += 1
 
 		# A fresh map boot must wipe stale map-scoped GameState data left behind

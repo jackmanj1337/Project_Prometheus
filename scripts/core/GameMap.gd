@@ -110,6 +110,11 @@ func _ready() -> void:
 			for u in gs.get("all_units") as Array:
 				if u.has_method("reset_map_state"):
 					u.reset_map_state()
+			# Seed before the Retry snapshot so a replay restores this map's
+			# timeline instead of the previous map's RNG state.
+			var rng_svc := get_node_or_null("/root/RngService")
+			if rng_svc != null:
+				rng_svc.call("start_map")
 		gs.set("map_data", map_data)
 		if not is_resuming:
 			gs.call("take_map_snapshot")
