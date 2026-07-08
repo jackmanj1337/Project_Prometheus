@@ -20,7 +20,7 @@ pass, and do exactly that one pass (read → write findings file → flip row to
 | 4 | Input display & rebind UI | 2 | `04_input_display.md` | DONE | 1 Med (+carried half), 2 Low | (this commit) |
 | 5 | Map/turn core | 5 | `05_map_turn_core.md` | DONE | 1 High (carried), 4 Low | (this commit) |
 | 6 | UI screens, selection & misc data | 18 | `06_ui_misc.md` | DONE | 1 Med (carried), 3 Low | (this commit) |
-| 7 | General/integration & rollup | (all) | `code_review_v0.3.0_full_scan_2026-07-XX.md` | TODO | — | — |
+| 7 | General/integration & rollup | (all) | `code_review_v0.3.0_full_scan_2026-07-08.md` | DONE | 1 High, 3 Med, 20 Low | (this commit) |
 
 Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
 
@@ -90,6 +90,21 @@ Total production files covered by passes 1–6: **38** (3+7+3+2+5+18).
   guards defuse the stale pre-move-tile desync in the RNG record path; overlay
   precedence registry is a proper open registry. Next: Pass 6 (UI screens, selection &
   misc data, 18 files) — carries the Pass-6 registry-debt Medium (`DataManager`).
+
+- 2026-07-08 — Pass 7 (general/integration & rollup, FINAL): read across passes 1–6,
+  hunted cross-cutting/seam issues, and wrote the consolidated
+  `code_review_v0.3.0_full_scan_2026-07-08.md`. **Rollup totals: 1 High, 3 Medium, 20
+  Low; zero new correctness bugs across all 38 files. Overall health 6/10** (holds with
+  the composed 6/10 delta review — same carried High + Mediums, more thoroughly read).
+  Carried findings folded: H1 = fresh `GameMap` never calls `RngService.start_map()`
+  (fix site `GameMap.gd:114-115`, release blocker); M1 = Settings input-mode change
+  doesn't refresh prompts (Pass 3 root + Pass 4 wiring, counted once); M2 = rebind UI
+  omits 5 actions + conflict blind spot; M3 = DataManager closed vocabularies
+  (pre-existing registry debt → register resolutions). Four cross-cutting themes named:
+  closed-vocabulary-vs-open-registry (×3), duplicated coercers/vocab (×3), "tests seed,
+  production forgets" (H1), and speculative-abstraction/dead code. §4 records the seams
+  verified CLEAN so re-reviews don't re-chase them; §5 asserts 38/38 coverage.
+  check_docs 26/26 + RNG guard green (docs-only). **Scan COMPLETE — no next pass.**
 
 - 2026-07-08 — Pass 6 (UI screens, selection & misc data): read full diffs for all 18
   files + full current context for the new/refactored cores (`SelectionCursor`,
