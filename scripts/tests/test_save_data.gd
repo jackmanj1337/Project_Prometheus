@@ -109,6 +109,18 @@ func _init() -> void:
 		print("FAIL old-save defaults: %s" % [defaulted.to_dict()])
 		failed += 1
 
+	var malformed_convoy: RefCounted = SaveDataScript.from_dict({
+		"party": {"convoy": {"entries": "bad"}, "items": [item_dict]},
+	})
+	var convoy_fallback_ok: bool = malformed_convoy.party["convoy"]["entries"].size() == 1 \
+		and malformed_convoy.party["convoy"]["entries"][0]["item_id"] == "vulnerary"
+	if convoy_fallback_ok:
+		print("OK  malformed convoy entries fall back to legacy items with warning")
+		passed += 1
+	else:
+		print("FAIL malformed convoy fallback: %s" % [malformed_convoy.party])
+		failed += 1
+
 	var bad_refs: RefCounted = SaveDataScript.from_dict({
 		"party": {"convoy": {"entries": [
 			{"entry_type": "item", "item_id": "missing_vulnerary",

@@ -160,6 +160,12 @@ static func _normalize_party(source: Variant, root: Dictionary) -> Dictionary:
 	out.erase("gold")
 
 	out["convoy"] = _with_defaults(out.get("convoy", {}), {"entries": []})
+	var convoy_entries: Variant = out["convoy"].get("entries", [])
+	if convoy_entries is Array:
+		out["convoy"]["entries"] = _array_from_variant(convoy_entries)
+	else:
+		push_warning("SaveData: dropped malformed party.convoy.entries; expected Array")
+		out["convoy"]["entries"] = []
 	if out.has("items") and out["convoy"].get("entries", []).is_empty():
 		out["convoy"]["entries"] = _array_from_variant(out["items"])
 	out.erase("items")

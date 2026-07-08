@@ -139,6 +139,21 @@ func _init() -> void:
 		print("FAIL repeated restore alias: uses=%d" % restored_again.inventory[0].uses_remaining)
 		failed += 1
 
+	var malformed_arrays: Dictionary = parsed_unit.duplicate(true)
+	malformed_arrays["conditions"] = [{"type": "poison"}, "bad"]
+	malformed_arrays["active_modifiers"] = ["bad", {"stat": "strength", "delta": 1}]
+	var restored_malformed := UnitData.new()
+	SaveCodec.apply_unit_dict(restored_malformed, malformed_arrays)
+	var drop_ok: bool = restored_malformed.conditions.size() == 1 \
+		and restored_malformed.active_modifiers.size() == 1
+	if drop_ok:
+		print("OK  malformed condition/modifier entries drop with warning")
+		passed += 1
+	else:
+		print("FAIL malformed array drop: conditions=%s modifiers=%s" % [
+			restored_malformed.conditions, restored_malformed.active_modifiers])
+		failed += 1
+
 	var bad := unit_dict.duplicate(true)
 	bad["inventory"] = [
 		{"entry_type": "weapon", "weapon_id": "missing_sword", "uses_remaining": 1,

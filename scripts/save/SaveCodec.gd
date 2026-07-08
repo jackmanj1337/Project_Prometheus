@@ -241,10 +241,15 @@ static func _string_array_from_variant(value: Variant) -> Array[String]:
 static func _dict_array_from_variant(value: Variant) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if not (value is Array):
+		if value != null:
+			push_warning("SaveCodec: dropped malformed dictionary array; expected Array")
 		return out
-	for item in value:
+	for i in value.size():
+		var item: Variant = value[i]
 		if item is Dictionary:
 			out.append(item.duplicate(true))
+		else:
+			push_warning("SaveCodec: dropped non-Dictionary array entry at index %d" % i)
 	return out
 
 
