@@ -60,6 +60,15 @@ static func is_growth_stat(id: String) -> bool:
 	return id in GROWTH_STAT_IDS
 
 
+# Whether a stat id is known to the engine at all — a growth stat OR a display-only
+# stat. This is the "registered" set for [STM-5] reference validation: an authored
+# resource that NAMES a stat outside this set is a typo / unregistered reference and
+# must fail loud at load time, not read as a silent runtime 0. (Non-schema slice:
+# the author-declared CampaignRules registry that will WIDEN this set is F1-gated.)
+static func is_registered_stat(id: String) -> bool:
+	return id in GROWTH_STAT_IDS or id in DISPLAY_ONLY_STAT_IDS
+
+
 # Short label for a stat id; falls back to the capitalised id so a new or unknown
 # stat renders readably instead of crashing the UI (preserves the old fallbacks).
 static func label_for(id: String) -> String:

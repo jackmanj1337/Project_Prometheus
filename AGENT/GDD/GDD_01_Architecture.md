@@ -1342,6 +1342,10 @@ var tile_position: Vector2i = Vector2i.ZERO
 # id list + short labels live there, read by ClassData/Unit/DataManager/UI
 # instead of ~7 hardcoded copies. The base-stat @export -> Dictionary STORAGE
 # migration and the author-declared CampaignRules stat registry stay F1-gated.
+# [STM-5] reference policy: an authored resource that NAMES a stat outside the
+# registry (skill activation_chance_stat, class growth/cap dict keys, Pair Up
+# scaling_stats/class_bonuses) fails LOUD at DataManager boot — never a silent 0;
+# a registered stat left unset stays a soft default (read-path fallback).
 @export var max_hp: int = 0
 @export var hp: int = 0                    # current HP
 @export var strength: int = 0

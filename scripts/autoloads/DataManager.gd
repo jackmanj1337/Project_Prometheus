@@ -15,6 +15,10 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+# Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
+# references ([STM-5]) are validated here at boot alongside the other content so a
+# typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
+const _PAIR_UP_TABLE_PATH := "res://data/pair_up/pair_up_bonus_table.tres"
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
 const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
@@ -39,6 +43,8 @@ func _ready() -> void:
 	for err in collect_validation_errors(_classes, _weapons, _items, _skills):
 		push_error(err)
 	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes, _items):
+		push_error(err)
+	for err in collect_pair_up_validation_errors(_PAIR_UP_TABLE_PATH):
 		push_error(err)
 
 
@@ -103,6 +109,13 @@ static func _check_stat_dict(cls, field: String, dict: Dictionary, errors: Array
 	for key in ClassData.STAT_KEYS:
 		if not dict.has(key):
 			errors.append("DataManager: class '%s' %s missing stat key '%s'" % [cls.id, field, key])
+	# [STM-5] Referenced-but-unregistered stat = hard load error (not a silent 0).
+	# growth_rates / stat_caps are growth-stat dicts, so any extra key is a typo'd or
+	# unknown stat reference — reject it loudly against the StatRegistry vocabulary.
+	for key in dict.keys():
+		if not StatRegistry.is_growth_stat(String(key)):
+			errors.append("DataManager: class '%s' %s references unknown stat '%s'" % [
+				cls.id, field, String(key)])
 
 
 static func _check_weapon_wexp_dict(owner_id: String, field: String, dict: Dictionary,
@@ -293,6 +306,39 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 	for err in collect_map_data_validation_errors(map_data, map_path, classes, items,
 			seen_unit_ids):
 		errors.append(err)
+
+
+# [STM-5] Pair Up bonus table stat-reference validation. `scaling_stats` and every
+# inner key of `class_bonuses` name a stat; a typo (e.g. "strngth") would otherwise
+# scale/bonus a phantom stat as a silent 0. Absent table = no error (Pair Up simply
+# contributes nothing), matching the resolver's tolerant load. Loaded from a path
+# (mirrors collect_map_registry_validation_errors) so tests can point it elsewhere.
+static func collect_pair_up_validation_errors(table_path: String) -> Array[String]:
+	var errors: Array[String] = []
+	if not ResourceLoader.exists(table_path):
+		return errors
+	var table: Resource = load(table_path)
+	if table == null:
+		errors.append("DataManager: pair-up bonus table failed to load at %s" % table_path)
+		return errors
+	_check_pair_up_stat_refs(table, errors)
+	return errors
+
+
+# Resource-level ref check, split out so tests can drive a constructed table
+# without writing a .tres to disk (path loader above wraps it for the boot pass).
+static func _check_pair_up_stat_refs(table: Resource, errors: Array[String]) -> void:
+	var scaling_stats: PackedStringArray = table.get("scaling_stats")
+	for stat in scaling_stats:
+		if not StatRegistry.is_registered_stat(String(stat)):
+			errors.append("DataManager: pair-up table scaling_stats references unknown stat '%s'" % String(stat))
+	var class_bonuses: Dictionary = table.get("class_bonuses")
+	for class_id in class_bonuses.keys():
+		var block: Dictionary = class_bonuses[class_id]
+		for stat in block.keys():
+			if not StatRegistry.is_registered_stat(String(stat)):
+				errors.append("DataManager: pair-up table class_bonuses['%s'] references unknown stat '%s'" % [
+					String(class_id), String(stat)])
 
 
 # `seen_unit_ids` is unit_id -> source description (e.g. "roster file '...'"
@@ -698,4 +744,12 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 		if not AIProfileRegistry.is_valid_profile(unit.ai_profile):
 			errors.append("DataManager: unit '%s' ai_profile '%s' is not valid" % [
 				unit.unit_id, unit.ai_profile])
+		# [STM-5] personal growth_rates is a PARTIAL override dict (only the stats an
+		# author bumps), so unlike the class dicts it needs no presence check — but a
+		# key outside the growth-stat vocabulary is a typo that would add a phantom 0
+		# growth. Reject it loudly, same policy as the class dicts.
+		for stat in unit.growth_rates.keys():
+			if not StatRegistry.is_growth_stat(String(stat)):
+				errors.append("DataManager: unit '%s' growth_rates references unknown stat '%s'" % [
+					unit.unit_id, String(stat)])
 	return errors

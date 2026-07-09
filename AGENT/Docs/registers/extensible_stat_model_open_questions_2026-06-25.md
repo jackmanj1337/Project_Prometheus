@@ -100,7 +100,19 @@ never paid. (The hardcode-Charisma-only `[STM-1]` fallback is **not** taken.) Co
 that already assume author stats — `[TCV-3]` tag-scoped stat effects, `[REQ-16]` stat value-terms, and
 `[BAT-14]` bonuses targeting Charm/Command.
 
-### [STM-5] Missing / undefined stat-information handling — **OPEN (look-into, owner 2026-06-27d)**
+### [STM-5] Missing / undefined stat-information handling — **RESOLVED (read/validation policy) 2026-07-09f; storage/save-migration facets stay F1-gated**
+> **RESOLVED 2026-07-09f (session 2026-07-09f):** the policy split is ratified and the
+> *referenced-but-unregistered = hard load error* half is IMPLEMENTED for every authored
+> stat-name reference site that exists today: skill `activation_chance_stat` (pre-existing),
+> class `player_growth_rates`/`enemy_growth_rates`/`stat_caps` dict keys (`DataManager
+> ._check_stat_dict` now rejects unknown keys), and the Pair Up table's `scaling_stats` +
+> `class_bonuses` inner keys (`DataManager.collect_pair_up_validation_errors`). "Registered"
+> for this non-schema slice = `StatRegistry.GROWTH_STAT_IDS + DISPLAY_ONLY_STAT_IDS`
+> (`is_registered_stat`). The *registered-but-unset = soft default* half is already true via
+> the read path. The remaining facets below — save migration, cross-pack import, and the
+> UI-iterates-the-active-registry rule — ride the `extra_stats`/`CampaignRules` **storage**
+> slice and stay **F1-gated**; they become live once the author registry widens the set.
+
 Once stats are author-data (STM-3), the engine must define **what happens when stat information is
 absent** — a real robustness surface the migration plan only touches via the STM-3 read-path fallback.
 Facets to firm at the STM walk:

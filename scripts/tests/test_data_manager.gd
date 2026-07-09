@@ -466,5 +466,61 @@ func _init() -> void:
 			level_err, max_err, neg_err, over_err, inv_errs])
 		failed += 1
 
+	# ---- [STM-5]: referenced-but-unregistered stat = hard load error ----------
+	# A stat NAMED in authored data but absent from the StatRegistry vocabulary is a
+	# typo, not a silent 0. Class growth/cap dicts reject unknown keys; the Pair Up
+	# table rejects unknown scaling / class-bonus stats.
+	var stm5_class := ClassData.new()
+	stm5_class.id = "stm5_c"
+	# A full growth table plus one bogus stat key — the 8 real keys keep the
+	# "missing key" path quiet so this asserts the NEW unknown-key rejection alone.
+	var full_growth := {}
+	for k in ClassData.STAT_KEYS:
+		full_growth[k] = 40
+	full_growth["strngth"] = 45  # typo → unregistered stat reference
+	stm5_class.player_growth_rates = full_growth
+	var stm5_errs: Array[String] = DataManagerS.collect_validation_errors(
+		{"stm5_c": stm5_class}, {}, {}, {})
+	var stm5_unknown_err: bool = stm5_errs.any(func(e):
+		return "class 'stm5_c' player_growth_rates references unknown stat 'strngth'" in e)
+	# The real StatRegistry stats in the same dict must NOT be flagged.
+	var stm5_no_false_pos: bool = not stm5_errs.any(func(e):
+		return "references unknown stat 'hp'" in e or "references unknown stat 'strength'" in e)
+	# Pair Up: constructed table with a bogus scaling stat + bogus bonus stat.
+	var bad_table: Resource = load("res://scripts/resources/PairUpBonusTable.gd").new()
+	bad_table.scaling_stats = PackedStringArray(["strength", "wisdom"])  # wisdom unregistered
+	bad_table.class_bonuses = {"hero": {"skill": 2, "charisma": 1}}       # charisma unregistered
+	var pu_errs: Array[String] = []
+	DataManagerS._check_pair_up_stat_refs(bad_table, pu_errs)
+	var pu_scaling_err: bool = pu_errs.any(func(e):
+		return "scaling_stats references unknown stat 'wisdom'" in e)
+	var pu_bonus_err: bool = pu_errs.any(func(e):
+		return "class_bonuses['hero'] references unknown stat 'charisma'" in e)
+	var pu_no_false_pos: bool = not pu_errs.any(func(e):
+		return "unknown stat 'strength'" in e or "unknown stat 'skill'" in e)
+	# The shipped on-disk table must validate clean.
+	var real_pu_errs: Array[String] = DataManagerS.collect_pair_up_validation_errors(
+		"res://data/pair_up/pair_up_bonus_table.tres")
+	# Unit personal growth_rates (partial override dict) rejects a typo'd stat key
+	# without demanding the other stats be present.
+	var stm5_unit := UnitData.new()
+	stm5_unit.unit_id = "stm5_u"
+	stm5_unit.class_id = "cavalier"
+	stm5_unit.growth_rates = {"speed": 10, "wisdom": 5}  # wisdom unregistered; partial is fine
+	var stm5_unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
+		[stm5_unit], dm._classes)
+	var stm5_unit_err: bool = stm5_unit_errs.any(func(e):
+		return "unit 'stm5_u' growth_rates references unknown stat 'wisdom'" in e)
+	var stm5_unit_no_fp: bool = not stm5_unit_errs.any(func(e):
+		return "growth_rates references unknown stat 'speed'" in e)
+	if stm5_unknown_err and stm5_no_false_pos and pu_scaling_err and pu_bonus_err \
+			and pu_no_false_pos and real_pu_errs.is_empty() and stm5_unit_err and stm5_unit_no_fp:
+		print("OK  [STM-5] unregistered stat refs fail loud (class/pair-up/unit); registered stats + shipped table pass"); passed += 1
+	else:
+		print("FAIL [STM-5]: class_unknown=%s class_no_fp=%s pu_scaling=%s pu_bonus=%s pu_no_fp=%s real_clean=%s unit=%s unit_no_fp=%s errs=%s / %s / %s" % [
+			stm5_unknown_err, stm5_no_false_pos, pu_scaling_err, pu_bonus_err, pu_no_false_pos,
+			real_pu_errs.is_empty(), stm5_unit_err, stm5_unit_no_fp, stm5_errs, pu_errs, stm5_unit_errs])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
