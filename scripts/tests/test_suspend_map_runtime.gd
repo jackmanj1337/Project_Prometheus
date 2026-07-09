@@ -6,6 +6,15 @@ extends SceneTree
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
 
+# V030-SUS-01 (d): captures turn_changed emitted during restore so the test can
+# assert the HUD-refresh signal fires (a plain local can't be mutated from the
+# lambda by reference; a member var can — GDScript lambda capture rule).
+var _restore_turn_changed_value: int = -1
+
+
+func _on_restore_turn_changed(turn_number: int) -> void:
+	_restore_turn_changed_value = turn_number
+
 
 func _ensure_autoload(name: String, path: String) -> Node:
 	var node := root.get_node_or_null(name)
@@ -64,12 +73,39 @@ func _init() -> void:
 	boss.data.hp = 4
 	boss.snap_to_tile(Vector2i(10, 11))
 	pair_reg.call("pair", blue_a_id, blue_b_id)
+	# Mirror MapCursor's pair flow (MapCursor.gd:1203-1204): the support is moved
+	# to the off-map sentinel and hidden, and that sentinel tile is what the
+	# payload serializes. Without this the test wouldn't reproduce the (-1,-1)
+	# render — pair() alone only writes the registry dict.
+	blue_b.snap_to_tile(PairUpRegistryScript.OFF_MAP_TILE)
+	blue_b.visible = false
 	turn._activation_mode = "ALTERNATING"
 	turn._turn_order = ["blue", "red"] as Array[String]
 	turn._active_faction_idx = 1
 	turn._unit_states[blue_a] = TurnManager.UnitState.DONE
 	turn._unit_states[boss] = TurnManager.UnitState.READY
 	gs.turn_number = 3
+	gs.set_phase(gs.Phase.ENEMY, "red")
+	# V030-SUS-01 (c): Suspend & Quit must be gated to the blue player phase, so
+	# capture is refused during a non-blue (here red) phase and allowed in blue.
+	# This prevents restoring into a driverless phase with a frozen cursor.
+	# HOTSEAT the red faction so the OLD behaviour (gate on
+	# is_locally_controlled_faction) would have ALLOWED capture during red — the
+	# failing-first condition. The new blue-only gate refuses it.
+	if turn._map_data != null:
+		for f in turn._map_data.factions:
+			if f != null and f.id == "red":
+				f.controller = "HOTSEAT"
+	var suspend_gated_non_blue: bool = not cursor.can_capture_suspend()
+	gs.set_phase(gs.Phase.PLAYER, "blue")
+	var suspend_allowed_blue: bool = cursor.can_capture_suspend()
+	if suspend_gated_non_blue and suspend_allowed_blue:
+		print("OK  suspend capture is gated to the blue player phase")
+		passed += 1
+	else:
+		print("FAIL suspend gate: non_blue_refused=%s blue_allowed=%s" % [
+			suspend_gated_non_blue, suspend_allowed_blue])
+		failed += 1
 	gs.set_phase(gs.Phase.ENEMY, "red")
 	rng.commit_event("wait", [blue_a_id, "1,9", "1,9"] as Array[String])
 	var rng_at_suspend: Dictionary = rng.to_save_dict()
@@ -103,6 +139,10 @@ func _init() -> void:
 		return
 
 	var resumed_map: Node = packed.instantiate()
+	# Connect BEFORE add_child: start_map_from_suspend runs inside GameMap._ready
+	# (fired by add_child), so a listener attached afterward would miss the emit.
+	var resumed_turn_early: TurnManager = resumed_map.get_node("TurnManager")
+	resumed_turn_early.turn_changed.connect(_on_restore_turn_changed)
 	root.add_child(resumed_map)
 	await process_frame
 	var resumed_units: Node = resumed_map.get_node("UnitsContainer")
@@ -167,6 +207,58 @@ func _init() -> void:
 			resumed_cursor._danger_mode,
 			gs.next_map_suspend_payload,
 		])
+		failed += 1
+
+	# V030-SUS-01 (a): a restored DONE unit must LOOK done. Restore fills
+	# _unit_states directly, so without the fix the sprite keeps its fresh-spawn
+	# tint even though can_unit_act correctly refuses it — the "looks ready but
+	# won't move" symptom. Compare the sprite modulate against the darkened base.
+	var resumed_blue_sprite: Sprite2D = resumed_blue.get_node("Sprite2D") if resumed_blue != null else null
+	# set_done_appearance darkens the unit's team-colour base, so derive the
+	# expectation from that base rather than white.
+	var blue_base: Color = resumed_blue.get("_base_modulate") if resumed_blue != null else Color.WHITE
+	var expected_done_modulate: Color = blue_base.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
+	var done_appearance_ok: bool = resumed_blue_sprite != null \
+		and resumed_blue_sprite.modulate.is_equal_approx(expected_done_modulate)
+	if done_appearance_ok:
+		print("OK  restored DONE unit shows the done (darkened) appearance")
+		passed += 1
+	else:
+		print("FAIL done appearance: sprite_modulate=%s expected=%s" % [
+			str(resumed_blue_sprite.modulate) if resumed_blue_sprite != null else "no-sprite",
+			expected_done_modulate,
+		])
+		failed += 1
+
+	# V030-SUS-01 (b): the paired support (blue_b) was hidden at OFF_MAP_TILE when
+	# the pair formed. Resume spawns every payload unit visible via _spawn_unit and
+	# PairUpRegistry.restore is dict-only, so without the fix the support renders at
+	# (-1,-1). It must stay hidden and off-map after resume.
+	var resumed_support: Node = _find_unit(resumed_units, "unit_02_mercenary")
+	var off_map: Vector2i = PairUpRegistryScript.OFF_MAP_TILE
+	var support_hidden_ok: bool = resumed_support != null \
+		and resumed_support.tile_position == off_map \
+		and not resumed_support.visible
+	if support_hidden_ok:
+		print("OK  restored paired support stays hidden at the off-map sentinel")
+		passed += 1
+	else:
+		print("FAIL support restore: support=%s tile=%s visible=%s" % [
+			resumed_support,
+			str(resumed_support.tile_position) if resumed_support != null else "missing",
+			str(resumed_support.visible) if resumed_support != null else "missing",
+		])
+		failed += 1
+
+	# V030-SUS-01 (d): restore assigns gs.turn_number directly and (without the
+	# fix) never emits turn_changed, so the HUD label stays stale until the next
+	# round boundary. The restore must emit turn_changed with the restored value.
+	var turn_changed_ok: bool = _restore_turn_changed_value == 3
+	if turn_changed_ok:
+		print("OK  restore emits turn_changed so the HUD refreshes immediately")
+		passed += 1
+	else:
+		print("FAIL turn_changed: captured=%d expected=3" % _restore_turn_changed_value)
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

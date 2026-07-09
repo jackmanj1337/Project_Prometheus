@@ -212,8 +212,8 @@ locked
 
 ## Screens and Panels
 
-Status: **Split** — MVP screens and suspend Continue are **Implemented**; manual save slots + combat-animation feedback are **Planned**
-Last verified: 2026-07-06
+Status: **Split** — MVP screens are **Implemented**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); manual save slots + combat-animation feedback are **Planned**
+Last verified: 2026-07-09
 
 ---
 
@@ -238,6 +238,12 @@ Last verified: 2026-07-06
 - "Continue" → loads `user://saves/suspend.json` through `SaveManager`, stages
   the payload on `GameState`, and launches `GameMap`. It is disabled when no
   suspend save exists; load failure opens an error dialog and stays on Main Menu.
+  On restore (V030-SUS-01, fixed 2026-07-09): units whose serialized state is
+  DONE re-apply the darkened DONE appearance (so a spent unit reads as spent, not
+  as an actable one it silently refuses); a paired support restored onto the
+  off-map sentinel `(-1,-1)` stays hidden instead of drawing at the placeholder;
+  and the restore emits `turn_changed` so the HUD turn counter reflects the
+  restored turn immediately rather than after the next round boundary.
 - "New Game" → opens the `NewGameScreen` overlay
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
@@ -708,10 +714,15 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
-- `Suspend & Quit`: available only when the cursor opened the menu from a free,
-  local-control boundary. It confirms, writes `user://saves/suspend.json`
-  through `SaveManager`, then returns to `Boot.tscn`; if the write fails, a
-  failure dialog keeps the player on the map.
+- `Suspend & Quit`: available only when the cursor opened the menu from a free
+  boundary **during the blue player phase**. It confirms, writes
+  `user://saves/suspend.json` through `SaveManager`, then returns to
+  `Boot.tscn`; if the write fails, a failure dialog keeps the player on the map.
+  The blue-phase gate is the v1 answer to V030-SUS-01 (c): a non-blue capture
+  (e.g. debug-hotseating the red team) would restore a phase that locks the
+  cursor but never re-enters the awaited faction scheduler, leaving the resumed
+  map with a frozen cursor and no way to act. Restoring the scheduler loop for a
+  non-blue active faction is the deferred alternative.
 - `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.

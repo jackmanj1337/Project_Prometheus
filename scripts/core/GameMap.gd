@@ -36,6 +36,9 @@ const _CHAR_TO_SOURCE := {
 # the same instance — keeps save/restore state consistent across phase changes.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 const HotseatControllerS = preload("res://scripts/core/HotseatController.gd")
+# Autoload scripts carry no class_name, so preload the script to read its
+# OFF_MAP_TILE sentinel (same pattern MapCursor uses).
+const PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
 
@@ -252,7 +255,14 @@ func _spawn_units_from_suspend(payload: Dictionary) -> bool:
 			push_error("GameMap: suspend payload unit has no unit_id: %s" % str(unit_entry))
 			continue
 		var faction_id: String = String(unit_entry.get("faction", "red"))
-		_spawn_unit(u_data, u_data.tile_position, faction_id)
+		var spawned: Node = _spawn_unit(u_data, u_data.tile_position, faction_id)
+		# V030-SUS-01 (b): a paired support was parked at the off-map sentinel and
+		# hidden when the pair formed (MapCursor.gd:1203-1204), and that sentinel
+		# is what the payload serialized. _spawn_unit renders every unit visible,
+		# so re-hide any unit restored onto the sentinel — otherwise the support
+		# draws at (-1,-1). PairUpRegistry.restore (dict-only) can't do this.
+		if spawned != null and u_data.tile_position == PairUpRegistryScript.OFF_MAP_TILE:
+			spawned.visible = false
 	return true
 
 
@@ -313,7 +323,7 @@ func _apply_enemy_placement_overrides(u_data: UnitData, placement: Dictionary) -
 		u_data.ai_profile = String(placement.get("ai_profile", u_data.ai_profile))
 
 
-func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
+func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 	# Surface malformed inventory data (bad/empty entry_type, missing weapon_id/item_id)
 	# at spawn — fails loud here rather than as a confusing null mid-combat.
 	for entry in u_data.inventory:
@@ -327,6 +337,7 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.call("register_unit", unit)
+	return unit
 
 
 # Asserts all rows are the expected length and contain only known terrain chars.

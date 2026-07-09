@@ -133,6 +133,12 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 		gs.set_phase(gs.Phase.ENEMY if phase_name == "enemy" else gs.Phase.PLAYER, active_faction())
 	_connect_runtime_signals()
 	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
+	# V030-SUS-01 (d): turn_number is assigned directly above and is otherwise
+	# only announced by _complete_round, so the HUD (which updates on
+	# turn_changed) would show a stale count until the next round boundary. Emit
+	# now so the label reflects the restored turn immediately.
+	if gs:
+		turn_changed.emit(gs.turn_number)
 
 
 func capture_suspend_turn_state() -> Dictionary:
@@ -191,7 +197,14 @@ func _restore_unit_states(states_by_id: Variant) -> void:
 		var unit: Node = gs.find_unit_by_id(String(unit_id))
 		if unit == null:
 			continue
-		_unit_states[unit] = int(states_by_id[unit_id])
+		var state: int = int(states_by_id[unit_id])
+		_unit_states[unit] = state
+		# V030-SUS-01 (a): the direct dict fill above bypasses set_unit_state's
+		# DONE appearance side effect, so a restored DONE unit would keep its
+		# fresh-spawn tint and LOOK ready while can_unit_act correctly refuses it.
+		# Re-apply the appearance here (freshly spawned units already read READY).
+		if state == UnitState.DONE and unit.has_method("set_done_appearance"):
+			unit.set_done_appearance()
 
 
 func _serialize_records(records: Array[Dictionary]) -> Array:

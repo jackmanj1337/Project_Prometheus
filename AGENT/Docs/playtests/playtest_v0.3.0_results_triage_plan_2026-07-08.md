@@ -1,7 +1,7 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); two holdouts need live repro (New Game focus gap, one-axis drag readout); fix passes scoped, build next session
-Last verified: 2026-07-08
+Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); two holdouts need live repro (New Game focus gap, one-axis drag readout); V030-SUS-01 (all four sub-defects) FIXED 2026-07-09 (Pending validation, awaiting live rerun); remaining fix passes (GP/DSP) build next
+Last verified: 2026-07-09
 ---
 
 # v0.3.0 Playtest Results Triage And Fix Plan - 2026-07-08
@@ -221,6 +221,10 @@ to move"; paired support units render at the `(-1,-1)` placeholder; suspend +
 resume while debug-controlling the red team leaves cursor/menus dead; the turn
 counter is wrong until a full round completes.
 
+**STATUS: all four FIXED 2026-07-09** (Pending validation — awaiting the live
+section-9 rerun). Failing-first headless repros landed in
+`test_suspend_map_runtime.gd` (8 checks, full suite green). Fixes below.
+
 **Sub-defects — all four root causes CONFIRMED by source trace (2026-07-08).
 Fix + failing-first headless repro test each:**
 
@@ -232,6 +236,8 @@ Fix + failing-first headless repro test each:**
   sprite tint, so they LOOK ready while `can_unit_act` correctly refuses
   them. Fix: apply the appearance side effect during restore (route through
   `set_unit_state` or re-apply appearance after the state fill).
+  **FIXED 2026-07-09:** `_restore_unit_states` (`TurnManager.gd`) now calls
+  `set_done_appearance()` for any restored DONE unit.
 - **(b) Pair-up supports rendered at `(-1,-1)`.** Pairing hides the support
   at the sentinel (`MapCursor.gd:1203-1204`: `tile_position = OFF_MAP_TILE;
   visible = false`), and that sentinel is what the payload serializes. On
@@ -241,6 +247,8 @@ Fix + failing-first headless repro test each:**
   dictionary — nothing re-hides the support node. Fix: after registry
   restore, re-apply node state for support-role units (hide + keep sentinel),
   or skip spawning units whose tile is the sentinel and re-attach them.
+  **FIXED 2026-07-09:** `_spawn_units_from_suspend` (`GameMap.gd`) re-hides any
+  unit whose serialized tile is `OFF_MAP_TILE` right after spawning it.
 - **(c) Debug red-team suspend resumes into a driverless phase.**
   `start_map_from_suspend` (`TurnManager.gd:112-135`) restores
   `_active_faction_idx` and calls `gs.set_phase(ENEMY, ...)` for a non-blue
@@ -252,12 +260,21 @@ Fix + failing-first headless repro test each:**
   a relaunch. Fix decision needed: gate Suspend & Quit to the blue phase
   (cheap v1 answer) OR make restore re-enter the scheduler loop for a
   non-blue active faction.
+  **FIXED 2026-07-09 — DECISION: gate to the blue player phase (cheap v1).**
+  `MapCursor.can_capture_suspend` now returns true only when
+  `GameState.is_player_turn()` (was `_turn.is_locally_controlled_faction(...)`,
+  which allowed a debug-hotseat red capture). With the gate, restore never
+  loads a non-blue phase, so the debug-hotseat latch re-derivation at
+  `TurnManager.gd:135` is moot (documented in-code). Scheduler re-entry on a
+  non-blue restore remains the deferred alternative.
 - **(d) Turn counter stale until the next full round.** Restore assigns
   `gs.turn_number` directly (`TurnManager.gd:131`) and never emits;
   `turn_changed` is only emitted by `_complete_round`, and the HUD label
   updates only via `_on_turn_changed` (`scripts/ui/HUD.gd:374`, `:663`). Fix:
   emit `turn_changed` (or refresh the HUD from `gs.turn_number`) at the end
   of the restore.
+  **FIXED 2026-07-09:** `start_map_from_suspend` (`TurnManager.gd`) emits
+  `turn_changed(gs.turn_number)` at the end of restore.
 
 **Routing:** `B1-SUSPEND` (+ `B1-CST` for payload contract). Extend
 `test_suspend_map_runtime.gd` with post-resume actability, support-unit
