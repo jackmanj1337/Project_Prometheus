@@ -1337,7 +1337,11 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var internal_level: int = 1        # hidden progression state for promotion/reclass
 
 # Stats — implemented storage fields. Combat code reads these via
-# Unit.get_effective_stat(); target B3-STAT-REGISTRY generalizes stat names/display.
+# Unit.get_effective_stat(). The stat NAME/LABEL vocabulary is now unified in
+# scripts/core/StatRegistry.gd (B3-STAT-REGISTRY, non-schema slice landed): the
+# id list + short labels live there, read by ClassData/Unit/DataManager/UI
+# instead of ~7 hardcoded copies. The base-stat @export -> Dictionary STORAGE
+# migration and the author-declared CampaignRules stat registry stay F1-gated.
 @export var max_hp: int = 0
 @export var hp: int = 0                    # current HP
 @export var strength: int = 0
@@ -1510,8 +1514,7 @@ class_name ClassData extends Resource
 @export var promotes_to: Array[String] = []
 @export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
-const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
-    "resistance", "skill", "speed", "luck"]
+const STAT_KEYS: Array[String] = StatRegistry.GROWTH_STAT_IDS  # single stat vocabulary (B3-STAT-REGISTRY)
 @export var player_growth_rates: Dictionary = {}
 @export var enemy_growth_rates: Dictionary = {}
 @export var stat_caps: Dictionary = {}

@@ -13,6 +13,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 # engine seam) rather than a closed const — adding a profile no longer needs a
 # DataManager edit. See AIProfileRegistry.gd.
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
@@ -121,17 +122,12 @@ static func _check_weapon_wexp_dict(owner_id: String, field: String, dict: Dicti
 				owner_id, field, track])
 
 
-# Valid stat names skills may name in activation_chance_stat. Hoisted to module
-# scope so it can be a static const (consts inside a static func can't capture
-# instance state; this is pure data, so module scope is the right home).
-const _VALID_STATS: Array[String] = ["strength", "magic", "skill", "speed", "luck",
-									 "defense", "resistance", "hp"]
-
-
 static func _check_skill_refs(skills: Dictionary, errors: Array[String]) -> void:
 	for skill in skills.values():
 		if skill.activation_chance_stat != "":
-			if not (skill.activation_chance_stat in _VALID_STATS):
+			# Valid activation-chance stats = the growth stats, read from the single
+			# StatRegistry vocabulary (was the local _VALID_STATS copy).
+			if not StatRegistry.is_growth_stat(skill.activation_chance_stat):
 				errors.append("DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
 					% [skill.id, skill.activation_chance_stat])
 		# Skills whose effect_params name a combat family (faires, breakers) must

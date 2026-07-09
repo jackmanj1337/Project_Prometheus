@@ -2,6 +2,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Modal promotion picker. Used both by auto-promotion at class cap and by
 # promotion items (Master Seal, class-restricted seals, etc.).
 
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+
 @onready var _label_title: Label = $Panel/VBox/TitleLabel
 @onready var _label_unit: Label = $Panel/VBox/LabelUnit
 @onready var _label_hint: Label = $Panel/VBox/LabelHint
@@ -160,24 +162,8 @@ func _skill_name(skill_id: String) -> String:
 
 
 func _stat_short_name(stat: String) -> String:
-	match stat:
-		"hp":
-			return "HP"
-		"strength":
-			return "Str"
-		"magic":
-			return "Mag"
-		"defense":
-			return "Def"
-		"resistance":
-			return "Res"
-		"skill":
-			return "Skl"
-		"speed":
-			return "Spd"
-		"luck":
-			return "Luk"
-	return stat
+	# Delegates to the single StatRegistry label vocabulary (was a local match copy).
+	return StatRegistry.label_for(stat)
 
 
 func _promotion_preview_text(target_class: ClassData) -> String:

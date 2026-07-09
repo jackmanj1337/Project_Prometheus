@@ -5,6 +5,7 @@ class_name LevelUpScreen extends Control
 # Renders the live confirm keybinding for the "press X to continue" prompt (#13).
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 @onready var _label_name:   Label = $Panel/Margin/VBox/LabelName
 @onready var _label_level:  Label = $Panel/Margin/VBox/LabelLevel
@@ -12,11 +13,6 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 @onready var _label_prompt: Label = $Panel/Margin/VBox/LabelPrompt
 @onready var _panel: PanelContainer = $Panel
 
-# Human-readable names for each growth stat (matches Unit._GROWTH_STATS order)
-const _STAT_NAMES: Dictionary = {
-	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
-	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
-}
 const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
 
 var _queue: Array[Dictionary] = []
@@ -99,7 +95,7 @@ func _show_next() -> void:
 	var stats_text := ""
 	for stat in increases:
 		if increases[stat] > 0:
-			stats_text += "%s  +%d\n" % [_STAT_NAMES.get(stat, stat), increases[stat]]
+			stats_text += "%s  +%d\n" % [StatRegistry.label_for(stat), increases[stat]]
 	if stats_text == "":
 		stats_text = "(No stats increased)\n"
 	# Announce any class skills learned at this level (Unit.skill_unlocks grant).

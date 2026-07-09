@@ -5,6 +5,7 @@ class_name Unit extends Node2D
 # reclass/second-seal state machine all live here.)
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -820,7 +821,9 @@ func _clamp_to_cap(value: int, cap: int) -> int:
 # Two methods: growth_random (RNG-based, rate > 100 gives guaranteed gains)
 # and growth_fixed (deterministic accumulator, always predictable progression).
 # Emits unit_leveled_up with the dictionary of changes for the level-up screen.
-const _GROWTH_STATS := ["hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"]
+# Growth-roll set + order sourced from the single StatRegistry vocabulary; the
+# RNG draws one roll per stat in this order (order is part of the §5 contract).
+const _GROWTH_STATS := StatRegistry.GROWTH_STAT_IDS
 
 func level_up() -> void:
 	if data == null:

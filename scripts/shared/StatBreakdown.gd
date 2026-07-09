@@ -26,20 +26,10 @@ extends RefCounted
 #     ]
 #   }
 
-# Friendly short labels keyed by canonical stat name. Anything not in here
-# falls back to the capitalised stat id so a new stat never crashes the UI.
-const STAT_LABELS: Dictionary = {
-	"strength":   "Str",
-	"magic":      "Mag",
-	"skill":      "Skl",
-	"speed":      "Spd",
-	"defense":    "Def",
-	"resistance": "Res",
-	"luck":       "Lck",
-	"movement":   "Mov",
-	"constitution":  "Con",
-	"line_of_sight": "LoS",
-}
+# Stat short labels now live in the single StatRegistry vocabulary; label_for_stat
+# delegates there (was a local STAT_LABELS copy that disagreed with the level-up
+# screen on Luck).
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 # Friendly source labels for known modifier sources. Unknown sources fall back
 # to the raw id so debugging output still tells you what is going on.
@@ -150,9 +140,7 @@ static func _class_decomposition(class_data, stat_name: String, base_value: int)
 # Returns the friendly short label for a stat id, falling back to the id
 # capitalised so unknown stats still render readably.
 static func label_for_stat(stat_name: String) -> String:
-	if STAT_LABELS.has(stat_name):
-		return STAT_LABELS[stat_name]
-	return stat_name.capitalize()
+	return StatRegistry.label_for(stat_name)
 
 
 # Returns the friendly source label. Sources are often namespaced

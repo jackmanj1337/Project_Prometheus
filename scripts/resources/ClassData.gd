@@ -1,6 +1,7 @@
 class_name ClassData extends Resource
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 @export var id: String = ""
 @export var display_name: String = ""
@@ -41,9 +42,10 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 @export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
 
-# Stat keys recognised in growth_rates / stat_caps dictionaries.
-const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
-	"resistance", "skill", "speed", "luck"]
+# Stat keys recognised in growth_rates / stat_caps dictionaries. Sourced from the
+# single StatRegistry vocabulary (the growth-stat set) so this list is no longer a
+# hand-maintained copy — see StatRegistry.gd.
+const STAT_KEYS: Array[String] = StatRegistry.GROWTH_STAT_IDS
 
 # Growth rates, keys = STAT_KEYS, values 0–100+. Two tables per the GDD:
 #   - player_growth_rates: added to a player unit's personal growths at level-up.
