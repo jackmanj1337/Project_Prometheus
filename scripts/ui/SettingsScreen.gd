@@ -461,8 +461,8 @@ func _refresh_applied_size() -> void:
 	if not windowed:
 		var native: Vector2i = DisplayServer.screen_get_size(
 			DisplayServer.window_get_current_screen())
-		_label_resolution_applied.text = \
-			"native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
+		_label_resolution_applied.text = _applied_size_text(false, false, Vector2i.ZERO,
+			native, {})
 		return
 	# V028-02/Q1: render from the structured window-size status so a preset REQUEST and
 	# a custom OBSERVED client size are not conflated. A custom size (OS resize
@@ -470,17 +470,34 @@ func _refresh_applied_size() -> void:
 	# re-run through the 16:9 request clamp — the source of the old
 	# "Custom (3840x2071) -> applied 3563x2004" nonsense.
 	var status: Dictionary = sm.call("windowed_size_status")
+	_label_resolution_applied.text = _applied_size_text(true, _display_window_is_maximized(),
+		_display_window_client_size(), Vector2i.ZERO, status)
+
+
+func _applied_size_text(windowed: bool, maximized: bool, live_client: Vector2i,
+		native: Vector2i, status: Dictionary) -> String:
+	if not windowed:
+		return "native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
+	if maximized:
+		return "Maximized (%dx%d)" % [live_client.x, live_client.y] \
+			if live_client != Vector2i.ZERO else "Maximized"
 	if String(status.get("kind", "preset")) == "custom":
 		var client: Vector2i = status.get("applied", Vector2i.ZERO)
-		_label_resolution_applied.text = \
-			"client %dx%d" % [client.x, client.y] if client != Vector2i.ZERO else ""
-		return
+		return "client %dx%d" % [client.x, client.y] if client != Vector2i.ZERO else ""
 	var requested: Vector2i = status.get("requested", Vector2i.ZERO)
 	var applied: Vector2i = status.get("applied", Vector2i.ZERO)
 	if applied != Vector2i.ZERO and applied != requested:
-		_label_resolution_applied.text = "→ applied %dx%d" % [applied.x, applied.y]
-	else:
-		_label_resolution_applied.text = ""
+		return "→ applied %dx%d" % [applied.x, applied.y]
+	return ""
+
+
+func _display_window_is_maximized() -> bool:
+	return DisplayServer.get_name() != "headless" \
+		and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MAXIMIZED
+
+
+func _display_window_client_size() -> Vector2i:
+	return DisplayServer.window_get_size() if DisplayServer.get_name() != "headless" else Vector2i.ZERO
 
 
 # B6-INPUT gray-state selector: reads InputModeManager.available_modes() (a

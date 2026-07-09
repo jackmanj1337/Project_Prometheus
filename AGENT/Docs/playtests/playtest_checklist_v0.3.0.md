@@ -429,6 +429,9 @@ The Settings screen is all you need. Open it with `O`.
   saved Resolution. It is **not** re-run through the request clamp.
 - **native display size** — your monitor's full size, shown as **`native W×H`**
   while Borderless/Fullscreen have the Resolution row grayed out.
+- **maximized client size** — a temporary Windowed maximize state, shown as
+  **`Maximized (W×H)`** from the live window interior while maximized. It is not
+  saved as your Resolution.
 
 **Now test it** (in **Settings → Window Mode = Windowed** unless a step says otherwise):
 
@@ -452,9 +455,11 @@ first, then maximize.
   re-centre), and the dragged size **persists**: quit and relaunch and the window
   returns at that size.
 - **(b)** The Settings panel **stays centered** the whole time you maximize — **no
-  drift, no wiggle, no need to nudge a slider to fix it**. When you
-  **un-maximize**, the window returns to your **chosen windowed size**, and the
-  saved Resolution is **not** left showing a giant maximized `Custom` value.
+  drift, no wiggle, no need to nudge a slider to fix it**. While maximized, the
+  readout shows **`Maximized (W×H)`** from the live client size. When you
+  **un-maximize**, the window returns to your **chosen windowed size**, the
+  readout returns to that saved windowed value, and the saved Resolution is
+  **not** left showing a giant maximized `Custom` value.
 
 - [ ] **This item works as expected.**
 

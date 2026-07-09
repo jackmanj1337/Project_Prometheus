@@ -1089,7 +1089,12 @@ The accessibility and parity contract the UI must honor across input methods and
   (The clean structural form — wrap each panel in a `CenterContainer` and delete the
   imperative `_recenter` — is deferred to `UI-VIEWPORT-ASPECT`.)
 - **Display controls** (window mode + windowed resolution): see
-  `GDD_01_Architecture.md` §Rendering and Display Settings.
+  `GDD_01_Architecture.md` §Rendering and Display Settings. The Settings
+  readout distinguishes preset requests, custom client sizes, native
+  Borderless/Fullscreen size, and transient maximize state: while a Windowed
+  window is maximized it shows live **`Maximized (W×H)`** from the actual client
+  size, then returns to the saved windowed readout on restore; maximize is still
+  never persisted as a Resolution value.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
   immediately when a map is active and persists through `SettingsManager`; see
   `GDD_01_Architecture.md` §Camera Zoom.

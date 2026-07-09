@@ -343,11 +343,12 @@ maximize/un-maximize, maximize never persisted (`resize_write_back_action`,
   line in `_on_viewport_size_changed` and `apply_resize_write_back`) so the
   returned log pins whether `size_changed` fires at all on bar-growing drags
   under `stretch/aspect=keep`.
-- Maximized readout: DECIDED (owner Q4) — show live `Maximized (WxH)` from
-  the actual client size while maximized, mirroring `native WxH`; on
-  un-maximize return to the saved windowed readout; persistence unchanged.
-  Implementation sites confirmed: `SettingsManager.windowed_size_status()` +
-  `SettingsScreen._refresh_applied_size`.
+- Maximized readout: FIXED 2026-07-09 pending live validation — Windowed +
+  maximized now shows live `Maximized (WxH)` from the actual client size,
+  mirroring `native WxH`; on un-maximize it returns to the saved windowed
+  readout; persistence unchanged. Covered headlessly by
+  `test_settings_screen.gd` formatter assertions. Implementation sites:
+  `SettingsManager.windowed_size_status()` + `SettingsScreen._refresh_applied_size`.
 - Add explicit quit/relaunch persistence of a dragged size to the rerun
   handbook — the tester did not confirm it this pass.
 
@@ -400,10 +401,11 @@ gap still needs live repro/instrumentation. Section 4's overlay notes route to
 
 Section 11 is unchecked, but the returned evidence live-validates the v0.2.8
 fix core (custom client readout, no re-clamp, reactive centering, no maximize
-persistence). Remaining: one-axis drag readout, maximized-readout label, and
-relaunch persistence confirmation. Fix under `V030-DSP-01`, then a
-section-1.6-only rerun; flip the row only on that live pass, then proceed
-`REL-V023-MERGE` / `B6-WEB-DEBUG`.
+persistence). Maximized-readout label fixed 2026-07-09 with headless coverage.
+Remaining: one-axis drag readout needs live repro/instrumentation, and relaunch
+persistence confirmation needs an explicit rerun step. Run section-1.6-only
+coverage; flip the row only on that live pass, then proceed `REL-V023-MERGE` /
+`B6-WEB-DEBUG`.
 
 ### Non-gate routing
 
@@ -433,7 +435,8 @@ section-1.6-only rerun; flip the row only on that live pass, then proceed
    (`test_suspend_map_runtime.gd` extensions) — top defect.
 3. `V030-GP-01/02/03` fix pass plus the `V030-INP-01/02` label/brand fixes —
    DONE 2026-07-09 with headless coverage; live validation still pending.
-4. `V030-DSP-01` repro + fix (one-axis write-back/readout, maximized label).
+4. `V030-DSP-01` remaining display pass: live-repro/instrument the one-axis
+   write-back/readout path and rerun the maximized-label fix live.
 5. Update the affected GDD sections + control-plane rows with each
    behavior-changing fix (DoD#1), then cut ONE focused rerun build covering
    controller Parts I-II, suspend section 9, and section 1.6, with an explicit

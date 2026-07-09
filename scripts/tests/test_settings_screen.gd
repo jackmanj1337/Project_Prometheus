@@ -537,6 +537,23 @@ func _init() -> void:
 	else:
 		print("SKIP V027-05c gray-out (SettingsManager autoload absent)")
 
+	# V030-DSP-01/Q4: a maximized window is a transient window state, so show its
+	# live client size without writing it back into the saved Resolution value.
+	var max_label: String = screen._applied_size_text(true, true, Vector2i(2368, 1310),
+		Vector2i.ZERO, {})
+	var custom_label: String = screen._applied_size_text(true, false, Vector2i.ZERO,
+		Vector2i.ZERO, {"kind": "custom", "applied": Vector2i(1800, 1013)})
+	var native_label: String = screen._applied_size_text(false, false, Vector2i.ZERO,
+		Vector2i(3840, 2160), {})
+	if max_label == "Maximized (2368x1310)" and custom_label == "client 1800x1013" \
+			and native_label == "native 3840x2160":
+		print("OK  V030-DSP-01 applied-size text distinguishes Maximized/client/native")
+		passed += 1
+	else:
+		print("FAIL V030-DSP-01 labels: max=%s custom=%s native=%s" % [
+			max_label, custom_label, native_label])
+		failed += 1
+
 	# ---- B6-INPUT: input-mode gray-state selector ----
 	# The Input Mode dropdown lists every mode; ones unsupported on this platform are
 	# DISABLED (visible, unselectable), not hidden. Headless runs as a non-mobile
