@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: RESOLVED 2026-06-27
-Last verified: 2026-06-27
+Last verified: 2026-07-09
 Register: STM-1..5
 Resolved-in: 2026-06-27d
 ---
@@ -83,7 +83,12 @@ days).**
 **Gotchas:**
 - **Direct field access (`data.strength`) bypasses the registry** — fine for legacy stats, but author
   stats must *only* be addressed by name. Add a `check_docs`/lint guard banning **new** direct base-stat
-  field reads (steer to `get_effective_stat`).
+  field reads (steer to `get_effective_stat`). **Narrow-v1 guard LANDED 2026-07-09f** as check_docs `[27]`:
+  it bans re-introducing the two forms the `StatRegistry` unification (7221664) removed — a hardcoded
+  growth-stat *list* literal (`==GROWTH_STAT_IDS`) or a stat-*label* map (`{"strength":"Str",…}`) outside
+  `StatRegistry.gd`. The direct-field-read half stays deferred until the F1 storage slice makes those reads
+  wrong (owner-scoped 2026-07-09f — legacy fields intentionally still allowed, so a field-read grep would
+  false-positive on `SaveCodec`/`PromotionScreen`).
 - **Stable iteration order** for the registry (display order + deterministic growth-roll RNG).
 - **Save/schema:** `extra_stats` + the registry are **new persistent surface** → reserve at the F1 lock
   (see §3). This makes STM a member of the define-all sweep ahead of F1.

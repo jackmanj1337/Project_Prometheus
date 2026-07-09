@@ -32,6 +32,7 @@ Checks:
  24. Gamepad binds — B6-INPUT gameplay actions stay pad-bound; debug actions do not
  25. Input modes  — SettingsManager/GDD agree on input_mode values
  26. Touch controls — SettingsManager/GDD agree on touch_controls values
+ 27. Stat guard   — no NEW hardcoded growth-stat list / stat-label map outside StatRegistry (B3-STAT-REGISTRY DoD#2)
 """
 
 import re
@@ -1152,6 +1153,73 @@ def check_autoload_order() -> None:
                   f"`{earlier}` must load before `{later}` — {why}")
 
 
+# ── check 27: stat-vocabulary registry guard (B3-STAT-REGISTRY DoD#2) ──────────
+
+# The narrow-v1 guard for the stat-vocabulary unification (session 2026-07-09e):
+# StatRegistry.gd is now the ONE source of the growth-stat set and the short
+# stat-label map. This guard stops that debt from silently regrowing — a fresh
+# `["hp","strength",...]` growth list or `{"strength":"Str",...}` label map in some
+# other file — WITHOUT false-positiving on the many legitimate individual stat-id
+# reads (SaveCodec's field allow-list, CombatResolver reading strength/magic,
+# WeaponData scaling codes, MoreInfoContent's long-form stat descriptions,
+# PairUpBonusTable.scaling_stats' deliberately-different subset). It therefore
+# triggers on two EXACT shapes only, not on stat-id count. Owner-scoped narrow v1
+# (2026-07-09f): direct base-stat field reads (data.strength) are intentionally
+# NOT guarded yet — legacy fields stay allowed until the F1 storage slice makes
+# those reads wrong. Register: extensible_stat_model_open_questions_2026-06-25 §STM-3.
+_STAT_GUARD_ARRAY_RE = re.compile(r"\[([^\[\]]*?)\]", re.S)
+_STAT_GUARD_STR_RE = re.compile(r'"([^"]+)"')
+
+
+def check_stat_registry_guard() -> None:
+    registry = ROOT / "scripts/core/StatRegistry.gd"
+    growth = _parse_gd_string_array(registry, "GROWTH_STAT_IDS")
+    display = _parse_gd_string_array(registry, "DISPLAY_ONLY_STAT_IDS")
+    if growth is None or display is None:
+        _fail("stat-registry-guard", registry, 1,
+              "could not parse GROWTH_STAT_IDS / DISPLAY_ONLY_STAT_IDS")
+        return
+    growth_set = set(growth)
+    all_ids = growth_set | set(display)
+    # A stat-id key mapped to a SHORT no-space abbreviation value (i.e. a label
+    # like "Str"), distinct from MoreInfoContent's sentence-length descriptions.
+    label_re = re.compile(
+        r'"(' + "|".join(re.escape(s) for s in sorted(all_ids)) + r')"\s*:\s*"([^"\s]{1,5})"'
+    )
+
+    scripts_dir = ROOT / "scripts"
+    for path in sorted(scripts_dir.rglob("*.gd")):
+        if path.name == "StatRegistry.gd":
+            continue
+        if "tests" in path.relative_to(scripts_dir).parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+
+        # Shape A — a re-introduced growth-stat LIST: an array literal whose exact
+        # string-element set equals GROWTH_STAT_IDS. Equality (not superset) spares
+        # SaveCodec's allow-list (extra fields) and PairUpBonusTable (7-id subset).
+        for m in _STAT_GUARD_ARRAY_RE.finditer(text):
+            if set(_STAT_GUARD_STR_RE.findall(m.group(1))) == growth_set:
+                line_no = text[: m.start()].count("\n") + 1
+                _fail("stat-registry-guard", path, line_no,
+                      "hardcoded growth-stat list duplicates StatRegistry.GROWTH_STAT_IDS "
+                      "— read the registry instead (B3-STAT-REGISTRY DoD#2)")
+
+        # Shape B — a re-introduced stat-LABEL map: ≥3 `"stat_id": "<abbrev>"`
+        # short-value entries. MoreInfoContent's sentence values are spared by the
+        # ≤5-char no-space value bound.
+        label_hits = label_re.findall(text)
+        if len(label_hits) >= 3:
+            first = label_re.search(text)
+            line_no = text[: first.start()].count("\n") + 1 if first else 1
+            _fail("stat-registry-guard", path, line_no,
+                  "hardcoded stat-label map duplicates StatRegistry.STAT_LABELS "
+                  "— use StatRegistry.label_for() instead (B3-STAT-REGISTRY DoD#2)")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1182,6 +1250,7 @@ def main() -> None:
         ("[24] Gamepad bindings",          check_gamepad_bindings),
         ("[25] Input modes",               check_input_modes),
         ("[26] Touch controls",            check_touch_controls),
+        ("[27] Stat registry guard",       check_stat_registry_guard),
     ]
     for label, fn in steps:
         print(f"  {label}...")
