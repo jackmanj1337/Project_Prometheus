@@ -95,12 +95,27 @@ static func detect_brand(joy_name: String) -> int:
 	return Brand.GENERIC
 
 
-# Brand of the first connected joypad (GENERIC when none is attached).
-static func active_pad_brand() -> int:
+# Brand of a specific joypad device, or the first connected joypad when no device
+# is supplied. Live prompt callers should prefer active_pad_brand_for_tree() so
+# multi-pad sessions brand from the pad that most recently sent input.
+static func active_pad_brand(device_id: int = -1) -> int:
+	if device_id >= 0:
+		return detect_brand(Input.get_joy_name(device_id))
 	var pads := Input.get_connected_joypads()
 	if pads.is_empty():
 		return Brand.GENERIC
 	return detect_brand(Input.get_joy_name(pads[0]))
+
+
+# Brand from the InputModeManager's last active joypad. Falls back to the old
+# first-connected behavior when the manager is unavailable (headless helper calls).
+static func active_pad_brand_for_tree(tree_node: Node) -> int:
+	var device_id := -1
+	if tree_node != null:
+		var imm := tree_node.get_node_or_null("/root/InputModeManager")
+		if imm != null and imm.has_method("active_joypad_device"):
+			device_id = int(imm.call("active_joypad_device"))
+	return active_pad_brand(device_id)
 
 
 # The label the player actually sees printed on THEIR pad for a positional button
@@ -174,14 +189,14 @@ static func active_mode(tree_node: Node) -> String:
 # whatever the player is currently holding. `tree_node` is any node in the tree (to
 # reach /root/InputModeManager); mouse_keyboard + GENERIC when it can't be reached.
 static func live_action_prompt(action: String, tree_node: Node) -> String:
-	return action_prompt(action, active_mode(tree_node), active_pad_brand())
+	return action_prompt(action, active_mode(tree_node), active_pad_brand_for_tree(tree_node))
 
 
 # Mode-appropriate "how to open More Info" hint. `subject` is the clickable noun
 # ("value" for the forecast, "entry" for the sheet); pass "" for the compact terrain
 # prompt, which has nothing to click. Reads live mode + brand from the tree.
 static func more_info_hint(tree_node: Node, subject: String) -> String:
-	return more_info_hint_for(active_mode(tree_node), subject, active_pad_brand())
+	return more_info_hint_for(active_mode(tree_node), subject, active_pad_brand_for_tree(tree_node))
 
 
 # Pure core of more_info_hint (no tree/autoload access) so it is unit-testable. The

@@ -14,7 +14,7 @@ source code. **Everything needed for this test pass is in this one file.**
 >
 > 1. **Controller support** (Part I / `VAL-V030-GAMEPAD`) — full gamepad
 >    mapping, stick/trigger feel.
-> 2. **Input mode + on-screen prompts** (Part II) — the new Settings *Input Mode*
+> 2. **Input prompts + on-screen prompts** (Part II) — the new Settings *Input Prompts*
 >    row and the button-prompt swapping between keyboard and controller.
 > 3. **Key rebinding** (Part III) — the new Settings capture UI.
 > 4. **Suspend & Continue** (Part IV) — save a battle mid-map and resume it.
@@ -129,9 +129,10 @@ keyboard-only. On controller use **Start → Settings**.
 
 - **Menu Scale:** the Settings slider that scales menus/modals only (not the
   HUD). It runs **0.5× to 2.0×**.
-- **Input Mode:** the new Settings row that tells the game which control scheme
+- **Input Prompts:** the Settings row that tells the game which control scheme
   to assume for on-screen prompts and menu focus (**Auto**, **Keyboard & Mouse**,
-  **Gamepad**, or **Touch**). **Auto** follows the last device you used.
+  **Gamepad**, or **Touch**). It does not block other physical devices.
+  **Auto** follows the last device you used.
 - **Windowed mode:** a normal titled, movable window (as opposed to Borderless or
   Fullscreen, which fill the monitor). The **Resolution** dropdown only matters here.
 - **Watch set:** the set of enemies you have marked to keep their threat range
@@ -141,7 +142,7 @@ keyboard-only. On controller use **Start → Settings**.
 
 # Part I — Controller
 
-Use a controller for this whole part. If **Input Mode** is set to **Auto**
+Use a controller for this whole part. If **Input Prompts** is set to **Auto**
 (default), simply picking up the controller and pressing a button switches the
 game into gamepad prompts. This part closes `VAL-V030-GAMEPAD` only when it runs
 on real controller hardware; headless tests already cover the code path, but
@@ -236,14 +237,14 @@ Switch between controller and keyboard/mouse during one map.
 
 ---
 
-# Part II — Input Mode & On-Screen Prompts
+# Part II — Input Prompts & On-Screen Prompts
 
-This part checks the new **Input Mode** Settings row and the button prompts that
+This part checks the new **Input Prompts** Settings row and the button prompts that
 swap between keyboard keys and controller buttons.
 
-## 6. Input Mode Selector
+## 6. Input Prompts Selector
 
-Open **Settings** (`O`, or Start → Settings) and find the **Input Mode** row.
+Open **Settings** (`O`, or Start → Settings) and find the **Input Prompts** row.
 
 **Expected**
 
@@ -277,9 +278,10 @@ PlayStation-layout pad, repeat with it.**
   you do not have to reopen the panel.
 - On a **Nintendo** pad, the printed A/B and X/Y **labels** match the physical
   button that actually confirms/cancels (Nintendo swaps A/B and X/Y positions vs
-  Xbox). On a **PlayStation** pad, prompts print the ✕ ○ □ △ symbols. The button
-  that acts is correct **regardless of the label** — a wrong-looking label that
-  still works is a cosmetic note, not an input failure.
+  Xbox). On a **PlayStation** pad, prompts print brand-correct words such as
+  **Cross** and **Square**. The button that acts is correct **regardless of the
+  label** — a wrong-looking label that still works is a cosmetic note, not an
+  input failure.
 
 - [ ] **This item works as expected.**
 
@@ -500,7 +502,7 @@ fixes, or areas where automated tests cannot prove the real player experience.
 |---|---|---|
 | **Windowed sizing / maximize (§11)** | This is the remaining `VAL-V023-DISPLAY` gate from the v0.2.x returns. | Repeat §11 at 1.0x and 2.0x Menu Scale; drag to a custom size, maximize, restore, quit, relaunch. |
 | **Real controller feel (§1-5)** | Headless tests cover routing, not stick deadzone, trigger feel, pad labels, or comfort. | Use only a controller for a full turn cycle; try light stick tilt, held stick, held LT/RT, Start menu, R3, and View/Back. |
-| **Input mode prompt refresh (§6-7)** | Recent fix added live prompt/focus updates after settings changes. | Leave a prompt visible, switch Input Mode and physical device, and confirm the prompt changes without reopening the screen. |
+| **Input prompt refresh (§6-7)** | Recent fix added live prompt/focus updates after settings changes. | Leave a prompt visible, switch Input Prompts and physical device, and confirm the prompt changes without reopening the screen. |
 | **Keybind conflict coverage (§8)** | Rebind rows now come from the live InputMap; missing actions caused unbindable controls and hidden conflicts. | Confirm More Info, Peek Range, and all zoom rows exist; deliberately create a conflict; verify Apply is blocked. |
 | **Suspend/Continue state (§9)** | Suspend touches save data, map reconstruction, RNG state, Pair Up, and watch-set persistence. | Suspend after moving, attacking, toggling a watch marker, and pairing if possible; relaunch the exe before Continue. |
 | **Fresh-map RNG startup** | A release-blocker fix moved fresh maps onto a real per-map seed. | Start a fresh map, fight several combats, use Retry/New Game if available, and watch for repeated identical outcomes or stale state. |

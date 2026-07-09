@@ -9,6 +9,7 @@ class_name ActionMenu extends Control
 
 const TileActions = preload("res://scripts/shared/TileActions.gd")
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 signal action_chosen(action: String)
 signal hidden_by_cancel()
@@ -26,6 +27,11 @@ signal hidden_by_cancel()
 
 var _focused_idx: int = 0
 var _buttons: Array[Button] = []
+
+# One owned repeat/deadzone policy for vertical navigation (V030-GP-01/02). Polling
+# it in _process replaces the old per-event cursor_up/down checks, which stepped
+# once per analog fluctuation ("too fast") and stalled when the stick stabilised.
+var _repeat := MenuRepeatPolicy.new()
 
 
 func _ready() -> void:
@@ -148,6 +154,9 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 			_focused_idx = i
 			break
 	_buttons[_focused_idx].grab_focus()
+	# Start the repeat policy clean so a stick held from before the menu opened
+	# doesn't carry a stale step into the fresh menu.
+	_repeat.clear()
 	show()
 
 
@@ -156,15 +165,28 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
+		_repeat.clear()
 		hide()
 		hidden_by_cancel.emit()
 		return
-	if event.is_action_pressed("cursor_up"):
+	# Vertical stepping is driven by the polled repeat policy in _process. We still
+	# consume the directional events here so engine focus navigation (ui_up/down,
+	# same d-pad/stick) can't ALSO move focus and double-step the menu.
+	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_down") \
+			or event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
+		get_viewport().set_input_as_handled()
+
+
+# Polls the shared repeat/deadzone policy each frame while open. A held stick or key
+# steps at a tuned delay+rate; a tap steps once. clear() on hide keeps re-open clean.
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	var step := _repeat.poll(delta)
+	if step.y < 0:
 		_move_focus(-1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_down"):
+	elif step.y > 0:
 		_move_focus(1)
-		get_viewport().set_input_as_handled()
 
 
 # True iff `unit` has at least one adjacent (4-cardinal) ally with a unit_id

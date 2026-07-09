@@ -34,6 +34,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel"]
 layout_mode = 2
+follow_focus = true
 horizontal_scroll_mode = 0
 
 [node name="Margin" type="MarginContainer" parent="Panel/ScrollContainer"]
@@ -166,7 +167,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxInputMode"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "Input Mode"
+text = "Input Prompts"
 
 [node name="OptInputMode" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxInputMode"]
 layout_mode = 2

@@ -120,6 +120,7 @@ var _reanchor_queued: bool = false
 # Held map-zoom repeat. Trigger axes do not emit keyboard-style repeat events, so
 # _process polls action strength and steps the discrete zoom level on a timer.
 const ZOOM_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
+const ZOOM_PRESS_THRESHOLD: float = 0.25
 const ZOOM_REPEAT_RATE_FAST: float = 0.12
 const ZOOM_REPEAT_RATE_SLOW: float = 0.35
 var _zoom_held_direction: int = 0
@@ -1915,7 +1916,7 @@ func _poll_held_zoom(delta: float) -> int:
 	var zoom_in_strength := Input.get_action_strength("zoom_in")
 	var zoom_out_strength := Input.get_action_strength("zoom_out")
 	var strength: float = maxf(zoom_in_strength, zoom_out_strength)
-	if strength <= 0.0:
+	if strength < ZOOM_PRESS_THRESHOLD:
 		_clear_zoom_repeat()
 		return 0
 	var direction := 1 if zoom_in_strength >= zoom_out_strength else -1
@@ -1930,7 +1931,8 @@ func _poll_held_zoom(delta: float) -> int:
 
 
 func _zoom_repeat_rate(strength: float) -> float:
-	var t: float = clampf(strength, 0.0, 1.0)
+	var t: float = clampf((strength - ZOOM_PRESS_THRESHOLD) / (1.0 - ZOOM_PRESS_THRESHOLD),
+		0.0, 1.0)
 	return lerpf(ZOOM_REPEAT_RATE_SLOW, ZOOM_REPEAT_RATE_FAST, t)
 
 

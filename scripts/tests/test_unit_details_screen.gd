@@ -6,6 +6,14 @@ extends SceneTree
 # `more_info` cycle. Tracks the Phase 1 More Info migration from
 # AGENT/Docs/more_info_mode_plan_2026-05-24.md.
 
+
+func _poll_action(screen: Control, action: String) -> void:
+	Input.action_press(action, 1.0)
+	screen._process(0.016)
+	Input.action_release(action)
+	screen._process(0.016)
+
+
 func _init() -> void:
 	print("=== UnitDetailsScreen Test ===")
 	var passed := 0
@@ -62,6 +70,12 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL character sheet scroll frame missing or disabled")
+		failed += 1
+	if main_scroll != null and main_scroll.follow_focus:
+		print("OK  character sheet scroll follows controller/keyboard focus")
+		passed += 1
+	else:
+		print("FAIL character sheet scroll follow_focus disabled")
 		failed += 1
 
 	# V025-02a: the main column must NOT scroll horizontally — long inventory/wexp
@@ -395,16 +409,14 @@ func is_weapon_track_available(track: String) -> bool:
 	var skl_idx: int = _idx_of.call("stat", "skill")
 	# Right from strength lands on magic (same row, next column).
 	screen._selector.set_index(str_idx)
-	var right_ev := InputEventAction.new(); right_ev.action = "cursor_right"; right_ev.pressed = true
-	screen._input(right_ev)
+	_poll_action(screen, "cursor_right")
 	if screen._current_index == mag_idx:
 		print("OK  V021-06 Left/Right steps within a stat row (strength -> magic)"); passed += 1
 	else:
 		print("FAIL V021-06 horizontal: expected magic(%d) got %d" % [mag_idx, screen._current_index]); failed += 1
 	# Down from strength lands on skill (row below, same column) — not magic.
 	screen._selector.set_index(str_idx)
-	var down_ev := InputEventAction.new(); down_ev.action = "cursor_down"; down_ev.pressed = true
-	screen._input(down_ev)
+	_poll_action(screen, "cursor_down")
 	if screen._current_index == skl_idx:
 		print("OK  V021-06 Down moves to the row below (strength -> skill)"); passed += 1
 	else:
@@ -416,7 +428,7 @@ func is_weapon_track_available(track: String) -> bool:
 	var back_closed_seen := [false]
 	screen.closed.connect(func(): back_closed_seen[0] = true, CONNECT_ONE_SHOT)
 	screen._selector.set_index(back_idx - 1)
-	screen._input(down_ev)
+	_poll_action(screen, "cursor_down")
 	var reached_back: bool = screen._current_index == back_idx and btn_back.has_focus()
 	var confirm_ev := InputEventAction.new(); confirm_ev.action = "confirm"; confirm_ev.pressed = true
 	screen._input(confirm_ev)

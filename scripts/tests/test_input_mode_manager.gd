@@ -47,12 +47,15 @@ func _init() -> void:
 	mouse_ev.button_index = MOUSE_BUTTON_LEFT
 	var pad_ev := InputEventJoypadButton.new()
 	pad_ev.button_index = JOY_BUTTON_A
+	pad_ev.device = 4
 	var stick_ev := InputEventJoypadMotion.new()
 	stick_ev.axis = JOY_AXIS_LEFT_X
 	stick_ev.axis_value = 0.75
+	stick_ev.device = 7
 	var drift_ev := InputEventJoypadMotion.new()
 	drift_ev.axis = JOY_AXIS_LEFT_X
 	drift_ev.axis_value = 0.1
+	drift_ev.device = 8
 	var touch_ev := InputEventScreenTouch.new()
 	_ok(InputModeManagerS.event_to_input_mode(key_ev) == "mouse_keyboard"
 			and InputModeManagerS.event_to_input_mode(mouse_ev) == "mouse_keyboard",
@@ -62,6 +65,10 @@ func _init() -> void:
 		"joypad button and real stick movement detect gamepad mode", passed, failed)
 	_ok(InputModeManagerS.event_to_input_mode(drift_ev) == "",
 		"sub-deadzone joypad motion is ignored", passed, failed)
+	_ok(InputModeManagerS.event_joypad_device(pad_ev) == 4
+			and InputModeManagerS.event_joypad_device(stick_ev) == 7
+			and InputModeManagerS.event_joypad_device(drift_ev) == -1,
+		"joypad device tracking ignores drift and records the active pad", passed, failed)
 	_ok(InputModeManagerS.event_to_input_mode(touch_ev) == "touch",
 		"screen touch detects touch mode", passed, failed)
 
@@ -83,6 +90,19 @@ func _init() -> void:
 	_ok(seen == ["gamepad", "mouse_keyboard"],
 		"input_mode_changed emits only on real active-mode changes", passed, failed)
 	manager.free()
+
+	var tracker: Node = InputModeManagerS.new()
+	root.add_child(tracker)
+	await process_frame
+	tracker._input(pad_ev)
+	var tracked_button: bool = int(tracker.get("last_active_joypad_device")) == 4
+	tracker._input(drift_ev)
+	var ignored_drift: bool = int(tracker.get("last_active_joypad_device")) == 4
+	tracker._input(stick_ev)
+	var tracked_stick: bool = int(tracker.get("last_active_joypad_device")) == 7
+	_ok(tracked_button and ignored_drift and tracked_stick,
+		"InputModeManager remembers the last joypad that sent real input", passed, failed)
+	tracker.free()
 
 	var settings := root.get_node_or_null("SettingsManager")
 	if settings == null:

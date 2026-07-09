@@ -22,6 +22,7 @@ const StatContributions = preload("res://scripts/shared/StatContributions.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
+const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
 # net debuff is currently lowering below its base+class value.
@@ -68,6 +69,11 @@ var _grid_row: int = 0
 # blank.
 var _current_index: int = -1
 var _selector: RefCounted = SelectionCursor.new()
+
+# One owned repeat/deadzone policy for directional entry navigation (V030-GP-02).
+# Polled in _process — replaces the old per-event cursor_* checks that stepped
+# once per analog fluctuation and stalled when the stick value stabilised.
+var _repeat := MenuRepeatPolicy.new()
 
 # The selectable section labels, in F-cycle / directional-nav order. Their
 # unhighlighted text is cached in _base_texts so the row highlight can be
@@ -118,6 +124,7 @@ func open(unit: Node) -> void:
 	_grid_row = 0
 	_current_index = -1
 	_selector.reset()
+	_repeat.clear()
 	var d: UnitData = unit.data
 	# Title shows the friendly class display name (V020-11), falling back to the
 	# raw class_id only when class data is unavailable.
@@ -635,21 +642,31 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_close()
 		return
-	# V021-06: Up/Down traverse the on-screen grid vertically; Left/Right step
-	# through the flat reading order. The old mapping pointed both Up and Left at
-	# the same -1 flat step, so Up/Down read as Left/Right across the stat grid.
-	if event.is_action_pressed("cursor_up"):
+	# Directional stepping is driven by the polled repeat policy in _process
+	# (V030-GP-02). We still consume the directional events here so engine focus
+	# navigation (ui_* on the same d-pad/stick) can't ALSO move focus.
+	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_down") \
+			or event.is_action_pressed("cursor_left") or event.is_action_pressed("cursor_right") \
+			or event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down") \
+			or event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+		get_viewport().set_input_as_handled()
+
+
+# Polls the shared repeat/deadzone policy each frame while open. Up/Down traverse
+# the on-screen grid vertically; Left/Right step the flat reading order (V021-06).
+# A held stick/key steps at a tuned delay+rate; a tap steps once.
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	var step := _repeat.poll(delta)
+	if step.y < 0:
 		_move_vertical(-1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_down"):
+	elif step.y > 0:
 		_move_vertical(1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_left"):
+	elif step.x < 0:
 		_move_selection(-1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_right"):
+	elif step.x > 0:
 		_move_selection(1)
-		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -738,6 +755,7 @@ func _close() -> void:
 	_unit = null
 	_paired_unit = null
 	_selector.reset()
+	_repeat.clear()
 	_entries.clear()
 	_base_texts.clear()
 	_current_index = -1

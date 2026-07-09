@@ -948,19 +948,26 @@ func _recompute_keybind_conflicts() -> void:
 func _keybind_label_for_action(action: String) -> String:
 	var labels: Array[String] = []
 	var kbd := _effective_slot_event(action, _KEYBIND_SLOT_KBD)
-	labels.append(InputDisplay.binding_to_string(kbd) if kbd != null else "(unbound)")
+	labels.append(_binding_label_for_row(kbd) if kbd != null else "(unbound)")
 	if _pending_keybindings.has(action) \
 			and (_pending_keybindings[action] as Dictionary).has(_KEYBIND_SLOT_PAD):
 		var pad := _effective_slot_event(action, _KEYBIND_SLOT_PAD)
 		if pad != null:
-			labels.append(InputDisplay.binding_to_string(pad))
+			labels.append(_binding_label_for_row(pad))
 	elif InputMap.has_action(action):
 		for event in InputMap.action_get_events(action):
 			if event is InputEventJoypadButton or event is InputEventJoypadMotion:
-				var pad_label := InputDisplay.binding_to_string(event)
+				var pad_label := _binding_label_for_row(event)
 				if pad_label != "":
 					labels.append(pad_label)
 	return " / ".join(labels)
+
+
+func _binding_label_for_row(event: InputEvent) -> String:
+	if event is InputEventJoypadButton:
+		var brand := InputDisplay.active_pad_brand_for_tree(self)
+		return InputDisplay.joypad_button_label((event as InputEventJoypadButton).button_index, brand)
+	return InputDisplay.binding_to_string(event)
 
 
 func _effective_slot_event(action: String, slot: String) -> InputEvent:

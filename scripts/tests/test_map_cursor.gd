@@ -149,6 +149,12 @@ func _init() -> void:
 	# ---- B6-INPUT: held zoom action repeats and trigger strength affects cadence ----
 	var c_zoom := _make_cursor(TurnManager.new())
 	c_zoom._camera_ctrl.set_zoom_index_silent(c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX)
+	Input.action_press("zoom_in", 0.10)
+	c_zoom._process(0.01)
+	var zoom_threshold_blocks: bool = c_zoom._camera_ctrl.get_zoom_index() \
+		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
 	Input.action_press("zoom_in", 1.0)
 	c_zoom._process(0.01)
 	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
@@ -167,14 +173,15 @@ func _init() -> void:
 	var idx_before_echo: int = c_zoom._camera_ctrl.get_zoom_index()
 	c_zoom._unhandled_input(echo_zoom)
 	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
-	if zoom_first and zoom_waited and zoom_repeated and zoom_cleared and strength_scales \
-			and echo_ignored:
-		print("OK  held zoom repeats, scales by strength, and ignores key echo")
+	if zoom_threshold_blocks and zoom_first and zoom_waited and zoom_repeated and zoom_cleared \
+			and strength_scales and echo_ignored:
+		print("OK  held zoom threshold blocks grazes, repeats, scales by strength, and ignores key echo")
 		passed += 1
 	else:
-		print("FAIL held zoom: first=%s waited=%s repeated=%s cleared=%s scales=%s echo=%s idx=%d dir=%d" % [
-			zoom_first, zoom_waited, zoom_repeated, zoom_cleared, strength_scales, echo_ignored,
-			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
+		print("FAIL held zoom: threshold=%s first=%s waited=%s repeated=%s cleared=%s scales=%s echo=%s idx=%d dir=%d" % [
+			zoom_threshold_blocks, zoom_first, zoom_waited, zoom_repeated, zoom_cleared,
+			strength_scales, echo_ignored, c_zoom._camera_ctrl.get_zoom_index(),
+			c_zoom._zoom_held_direction])
 		failed += 1
 
 	# ---- cancel_transient_control_for_handoff backs out an uncommitted move ----

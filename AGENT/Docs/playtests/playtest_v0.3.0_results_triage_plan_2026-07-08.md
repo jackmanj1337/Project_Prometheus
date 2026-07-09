@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); two holdouts need live repro (New Game focus gap, one-axis drag readout); V030-SUS-01 (all four sub-defects) FIXED 2026-07-09 (Pending validation, awaiting live rerun); remaining fix passes (GP/DSP) build next
+Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); V030-SUS-01 all four sub-defects FIXED 2026-07-09 (Pending validation); V030-GP-01/02/03 plus V030-INP-01/02 fixes landed 2026-07-09 (Pending validation); two holdouts need live repro (New Game focus gap, one-axis drag readout); DSP/MRD work remains
 Last verified: 2026-07-09
 ---
 
@@ -124,6 +124,18 @@ leveling→pair up, and pair up→start (but not map→permadeath or start→bac
   (iii) theme focus-style rendering on `OptionButton`. Needs a live repro
   with instrumentation before fixing.
 
+**STATUS: scroll-follow + menu-repeat portions FIXED 2026-07-09** (Pending
+validation — awaiting the live controller rerun). `SettingsScreen.tscn` now
+sets `follow_focus = true`; `UnitDetailsScreen.tscn` was audited into the same
+state. `ActionMenu` and `UnitDetailsScreen` now share `MenuRepeatPolicy`, a
+polled directional repeat/deadzone helper, instead of per-event
+`cursor_*` stepping. Headless coverage: `test_settings_screen.gd`,
+`test_unit_details_screen.gd`, `test_action_menu.gd`, and the new
+`test_menu_repeat_policy.gd`.
+
+**Holdout:** the New Game focus gap still needs live repro/instrumentation; the
+headless focus chain remains exonerated, so no speculative fix landed.
+
 **Routing:** gate blocker for `VAL-V030-GAMEPAD`; implementation under
 `B6-INPUT` (focus seam already flagged as the open feature-branch option).
 
@@ -145,6 +157,14 @@ repeat timer. Settings (engine focus navigation) correctly steps once per
 press but has no repeat. Fix: one owned menu repeat/deadzone policy (the
 `SelectionCursor`/`ModalScreen` seam), replacing per-event action checks.
 
+**STATUS: FIXED 2026-07-09** (Pending validation — awaiting the live controller
+rerun). `scripts/shared/MenuRepeatPolicy.gd` owns the custom-menu
+delay/repeat/deadzone policy; `ActionMenu` polls it for vertical focus and
+`UnitDetailsScreen` polls it for its directional selector. Directional input
+events are still consumed in `_input` so engine focus navigation cannot
+double-step the same menu. Headless coverage: `test_menu_repeat_policy.gd`,
+`test_action_menu.gd`, and `test_unit_details_screen.gd`.
+
 **Routing:** gate blocker for `VAL-V030-GAMEPAD`; `B6-INPUT`.
 
 ### V030-GP-03 - Held LT/RT zoom too sensitive
@@ -161,6 +181,13 @@ down to `ZOOM_REPEAT_RATE_FAST = 0.12s` at full pull (`:123`, `:1927-1929`).
 Fix: add a press threshold (~0.25) before any step, keep the strength scaling
 above it (and consider softening the fast rate); the sensitivity sliders stay
 `B6-INPUT` backlog, not a rerun blocker.
+
+**STATUS: FIXED 2026-07-09** (Pending validation — awaiting the live controller
+rerun). `MapCursor._poll_held_zoom()` now ignores trigger strength below
+`ZOOM_PRESS_THRESHOLD = 0.25`; repeat speed is normalized across the remaining
+pull range so light pulls above threshold repeat slower than full pulls.
+Headless coverage: `test_map_cursor.gd` asserts a 0.10-strength graze does not
+zoom and full pulls still delay/repeat/ignore key echo.
 
 **Routing:** gate blocker (feel item) for `VAL-V030-GAMEPAD`; `B6-INPUT`.
 
@@ -183,10 +210,13 @@ Tester (section 6): "input mode selector exists, but it does not seem to block
 input but does change prompts." Touch will be tested later on a touchscreen
 Windows machine. Auto/explicit persistence was not explicitly contradicted.
 
-**Routing:** owner question Q1 (should an explicit mode gate device events, or
-only prompts/focus?). If prompts/focus-only is confirmed, fix the HANDBOOK
-expectation text rather than the code, and re-verify persistence in the rerun.
-`B6-INPUT`.
+**STATUS: DECIDED + RELABELED 2026-07-09** (Pending validation — awaiting the
+live controller rerun). Owner Q1 resolved this as prompts/focus-only behavior:
+explicit choices do not block other devices. The Settings row now reads
+**Input Prompts** while the internal `input_mode` key/vocabulary stays
+unchanged. Headless coverage: `test_settings_screen.gd`.
+
+**Routing:** re-verify persistence and expectation text in the rerun. `B6-INPUT`.
 
 ### V030-INP-02 - Pad-to-pad prompt brand, PS symbols, rebind-row labels
 
@@ -199,20 +229,24 @@ brand-specific labels.
 `Input.get_connected_joypads()[0]` — first-connected wins regardless of which
 pad emitted the events (`scripts/shared/InputDisplay.gd:99-103`).
 
-**Fix direction:**
+**STATUS: FIRST-CONNECTED BRAND BUG FIXED 2026-07-09** (Pending validation —
+awaiting a dual-pad live rerun). `InputModeManager` now records
+`last_active_joypad_device` from real joypad button/motion events, ignoring
+sub-deadzone stick drift. `InputDisplay.live_action_prompt()` and
+`more_info_hint()` brand from that last active pad through
+`active_pad_brand_for_tree()`, falling back to first-connected only when the
+manager is unavailable. Settings rebind rows now use the same brand-aware
+button-label helper for joypad buttons.
 
-- Track the device id of the last joypad event (the input-mode resolver
-  already classifies every event; carry `event.device` through
-  `InputModeManager`) and brand prompts from that pad.
-- Owner question Q2 on PS glyphs: printing real ✕○□△ needs font glyph
-  coverage; words are the cheap fallback. Decide before polishing.
-- Extend the Settings rebind rows through the same brand-aware label helper
-  used by prompts (`InputDisplay.joypad_button_label`).
+**Remaining polish:**
+
+- Owner Q2 chose brand-correct words now; real glyphs ride `UI-INSPECTION`.
 
 **Routing:** cosmetic-to-functional mix; the wrong-brand PROMPT with correct
 physical behavior is cosmetic per the gate rules, so this does not by itself
-hold `VAL-V030-GAMEPAD`, but the first-connected bug is cheap and should ride
-the same fix pass. `B6-INPUT`.
+hold `VAL-V030-GAMEPAD`, but the first-connected bug rode the same fix pass.
+Headless coverage: `test_input_mode_manager.gd`, `test_input_display.gd`, and
+`test_settings_screen.gd`. `B6-INPUT`.
 
 ### V030-SUS-01 - Suspend/Continue restore defects (top defect)
 
@@ -355,10 +389,12 @@ cross-check against the `[ODB-1]` audit, which covered test-harness leaks only.
 
 Part I sections 1-4 did not pass on real hardware (focus trap, no menu
 repeat, menu stick cadence, trigger sensitivity). Per the triage kit rules the
-row stays open. Control-plane next action: fix `V030-GP-01/02/03` (+ the
-V030-INP-02 brand fix riding along) under `B6-INPUT`, land automated coverage
-where headless-safe, then cut a focused controller rerun. Section 4's overlay
-notes route to `B6-MRD` and do not block the gate by themselves.
+row stays open. Code fixes for Settings/UnitDetails scroll-follow, custom-menu
+repeat/deadzone, held-trigger threshold, the Input Prompts relabel, and
+last-active-pad branding landed 2026-07-09 with headless coverage. Control-plane
+next action: cut a focused controller rerun for Parts I-II; the New Game focus
+gap still needs live repro/instrumentation. Section 4's overlay notes route to
+`B6-MRD` and do not block the gate by themselves.
 
 ### `VAL-V023-DISPLAY` — stays `Pending validation`, narrowed to V030-DSP-01
 
@@ -395,9 +431,8 @@ section-1.6-only rerun; flip the row only on that live pass, then proceed
    requests" note in every future handbook.
 2. `V030-SUS-01` fix pass with failing-first headless repro tests
    (`test_suspend_map_runtime.gd` extensions) — top defect.
-3. `V030-GP-01/02/03` fix pass (focus scroll-follow + one menu repeat policy +
-   trigger retune) plus the `V030-INP-02` last-device brand fix; headless
-   coverage where provable.
+3. `V030-GP-01/02/03` fix pass plus the `V030-INP-01/02` label/brand fixes —
+   DONE 2026-07-09 with headless coverage; live validation still pending.
 4. `V030-DSP-01` repro + fix (one-axis write-back/readout, maximized label).
 5. Update the affected GDD sections + control-plane rows with each
    behavior-changing fix (DoD#1), then cut ONE focused rerun build covering

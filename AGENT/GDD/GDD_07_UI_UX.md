@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
 UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-07-08
+**Last verified:** 2026-07-09
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -34,7 +34,7 @@ Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
 headless map-cursor decoder, profile-ready keybind persistence, and key-rebind capture
 for keyboard/mouse + gamepad); live controller feel **Target design** / pending
 validation.
-Last verified: 2026-07-07
+Last verified: 2026-07-09
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -89,9 +89,11 @@ banner as `hotseat-all` while active.
 > they show the **brand-correct pad label**. Because SDL normalizes button _position_
 > (`JOY_BUTTON_A` = physical bottom on every pad), the bindings are brand-correct with no
 > per-brand code; only the printed label differs — Nintendo swaps the A/B and X/Y positions
-> vs Xbox, PlayStation prints ✕ ○ □ △. Brand is classified heuristically from
-> `Input.get_joy_name()` (Godot has no native controller-type API), so a wrong guess is
-> cosmetic, never a mis-input. `InputDisplay` owns the mode/brand-aware prompt helpers.
+> vs Xbox, and PlayStation prints words such as `Cross` / `Square` until the `UI-INSPECTION`
+> glyph pass proves font coverage. Brand is classified heuristically from the last active
+> joypad device's `Input.get_joy_name()` (Godot has no native controller-type API), so a
+> wrong guess is cosmetic, never a mis-input. `InputDisplay` owns the mode/brand-aware
+> prompt helpers; `InputModeManager` owns last-active-pad tracking.
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`
@@ -150,10 +152,15 @@ When a directional key, d-pad direction, or left-stick direction is held:
 - Delay before repeat begins: 0.25 seconds
 - Repeat rate: every 0.10 seconds
 
-Held map zoom uses the same initial delay, then repeats on a strength-scaled
-timer so a full trigger pull steps faster than a partial pull. The exact
-deadzone/feel for real controllers is a v0.3.0 playtest item, not a headless
-claim.
+Custom modal menus that own selection (`ActionMenu`, `UnitDetailsScreen`) use
+the same 0.25s / 0.10s policy through `MenuRepeatPolicy` instead of per-event
+stick-axis stepping, so a held stick/key has one immediate step followed by
+stable repeat.
+
+Held map zoom ignores LT/RT values below a 0.25 activation threshold, then uses
+the same initial delay and repeats on a strength-scaled timer above that
+threshold. A full trigger pull steps faster than a partial pull. The exact
+feel for real controllers is a v0.3.0 rerun item, not a headless claim.
 
 ---
 
@@ -850,13 +857,16 @@ discards pending edits, and **Reset Controls** is always visible.
 hand-editable strings (`Z`, `Mouse1`, `JoyA`, `JoyAxis5+`). Old `Object(InputEvent...)`
 cfg blobs migrate into that profile shape.
 
-The **Input Mode** dropdown (`input_mode`, default `auto`) exposes the fixed
+The **Input Prompts** dropdown (`input_mode`, default `auto`) exposes the fixed
 vocabulary `auto`, `gamepad`, `touch`, `mouse_keyboard` (enforced by DOC-011
-`check_docs.py`). It is a **gray-state selector**: modes unsupported on the current
-platform (e.g. `touch` on desktop) are shown **disabled**, not hidden, so the
-vocabulary stays visible and self-documenting. The chosen value is the persisted
-preference; `InputModeManager` resolves the runtime `active_input_mode`, emits
-`input_mode_changed`, and still falls back at runtime if a saved value is
+`check_docs.py`). The visible label is deliberately prompt-focused: the setting
+changes prompts and focus defaults, not which physical devices are allowed. It
+is a **gray-state selector**: modes unsupported on the current platform (e.g.
+`touch` on desktop) are shown **disabled**, not hidden, so the vocabulary stays
+visible and self-documenting. The chosen value is the persisted preference;
+`InputModeManager` resolves the runtime `active_input_mode`, emits
+`input_mode_changed`, records the last joypad device that sent real input for
+brand-aware prompts, and still falls back at runtime if a saved value is
 unavailable — so a stale saved mode is safe. Availability comes from
 `InputModeManager.available_modes()` via `SettingsScreen._apply_mode_availability`.
 

@@ -14,6 +14,7 @@ const JOY_MOTION_DEADZONE := 0.5
 
 var active_input_mode: String = MODE_MOUSE_KEYBOARD
 var last_detected_input_mode: String = ""
+var last_active_joypad_device: int = -1
 
 var _provisional_seed: String = MODE_MOUSE_KEYBOARD
 var _last_touch_ticks_msec: int = -1000000
@@ -31,6 +32,9 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	var joy_device := event_joypad_device(event)
+	if joy_device >= 0:
+		last_active_joypad_device = joy_device
 	var mode := detect_event_mode_with_touch_guard(event)
 	if mode != "":
 		note_detected_input_mode(mode)
@@ -77,8 +81,20 @@ func _settings_value(key: String, fallback: String) -> String:
 	return String(value) if value != null else fallback
 
 
-func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
+func _on_joy_connection_changed(device: int, connected: bool) -> void:
+	if not connected and device == last_active_joypad_device:
+		last_active_joypad_device = -1
 	_refresh_active_input_mode()
+
+
+# Returns the last joypad that sent real input and is still connected. Falls back to
+# the first connected pad so zero-input gamepad mode still has a usable prompt brand.
+func active_joypad_device() -> int:
+	var pads := Input.get_connected_joypads()
+	for pad in pads:
+		if int(pad) == last_active_joypad_device:
+			return last_active_joypad_device
+	return int(pads[0]) if not pads.is_empty() else -1
 
 
 static func event_to_input_mode(event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE) -> String:
@@ -91,6 +107,15 @@ static func event_to_input_mode(event: InputEvent, joy_deadzone: float = JOY_MOT
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		return MODE_TOUCH
 	return ""
+
+
+static func event_joypad_device(event: InputEvent, joy_deadzone: float = JOY_MOTION_DEADZONE) -> int:
+	if event is InputEventJoypadButton:
+		return event.device
+	if event is InputEventJoypadMotion:
+		var motion := event as InputEventJoypadMotion
+		return motion.device if absf(motion.axis_value) >= joy_deadzone else -1
+	return -1
 
 
 static func resolve_input_mode(setting: String, last_detected: String,

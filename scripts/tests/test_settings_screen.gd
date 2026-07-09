@@ -83,6 +83,16 @@ func _init() -> void:
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
 
+	var input_prompt_label := screen.get_node_or_null(
+		"Panel/ScrollContainer/Margin/VBox/HBoxInputMode/Label") as Label
+	if input_prompt_label != null and input_prompt_label.text == "Input Prompts":
+		print("OK  Input Mode row is relabeled Input Prompts (prompt-only semantics)")
+		passed += 1
+	else:
+		print("FAIL input prompt label: %s" % [
+			input_prompt_label.text if input_prompt_label != null else "<none>"])
+		failed += 1
+
 	var menu_scale_title := screen.get_node_or_null("Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScaleTitle")
 	if menu_scale_title != null and String(menu_scale_title.get("text")) == "Menu Scale":
 		print("OK  display scale row is labeled Menu Scale"); passed += 1
@@ -146,6 +156,12 @@ func _init() -> void:
 	else:
 		print("FAIL settings h-scroll not disabled: mode=%s" % [
 			scroll.horizontal_scroll_mode if scroll != null else "<no scroll>"]); failed += 1
+	if scroll != null and scroll.follow_focus:
+		print("OK  settings scroll follows controller/keyboard focus")
+		passed += 1
+	else:
+		print("FAIL settings scroll follow_focus disabled")
+		failed += 1
 
 	# V025-01a: while the Menu Scale slider is being DRAGGED, changing its value must
 	# only preview the label — it must NOT re-apply the scale (that shifts the track
