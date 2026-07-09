@@ -206,6 +206,7 @@
 - [`playtests/playtest_checklist_v0.2.8.md`](playtests/playtest_checklist_v0.2.8.md) — Playtester Handbook and Checklist - v0.2.8
 - [`playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md`](playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md) — Playtester Handbook and Checklist - v0.2.8
 - [`playtests/playtest_checklist_v0.2.9.md`](playtests/playtest_checklist_v0.2.9.md) — Playtester Handbook and Checklist - v0.2.9
+- [`playtests/playtest_checklist_v0.3.0.d.md`](playtests/playtest_checklist_v0.3.0.d.md) — Playtester Handbook and Checklist - v0.3.0.d (Focused Rerun) — *Focused rerun handbook - pending live Wi*
 - [`playtests/playtest_checklist_v0.3.0.md`](playtests/playtest_checklist_v0.3.0.md) — Playtester Handbook and Checklist - v0.3.0
 - [`playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md`](playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md) — v0.3.0 Focused Rerun Checklist - 2026-07-09 — *Focused rerun checklist - pending rerun *
 - [`playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md`](playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md) — Playtester Handbook and Checklist - v0.3.0 — *Returned results - triaged in `playtest_*
