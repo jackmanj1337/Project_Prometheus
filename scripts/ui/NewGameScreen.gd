@@ -41,6 +41,9 @@ signal back_pressed()
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+# Temporary v0.3.0 rerun logging for the live-only New Game focus gap. Remove
+# after the controller log proves whether focus is stolen, released, or hidden.
+const V030_FOCUS_TRACE_ENABLED := true
 const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
 	{
 		"id": "map_001",
@@ -89,6 +92,7 @@ func _ready() -> void:
 	_opt_auto_promote.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_leveling.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_pair_up.item_selected.connect(func(_i: int): _persist_rules())
+	_connect_v030_focus_trace()
 	super._ready()
 
 
@@ -107,6 +111,28 @@ func open() -> void:
 		_opt_map.selected = 0
 	show()
 	_btn_start.grab_focus()
+	_v030_trace_focus("open_grabbed_start")
+
+
+func _on_input_mode_changed(mode: String) -> void:
+	if not visible:
+		return
+	_v030_trace_focus("input_mode_changed_before", {"mode": mode})
+	super._on_input_mode_changed(mode)
+	_v030_trace_focus.call_deferred("input_mode_changed_after", {"mode": mode})
+
+
+func _input(event: InputEvent) -> void:
+	if not visible or not V030_FOCUS_TRACE_ENABLED:
+		return
+	var actions := _v030_direction_actions_for_event(event)
+	if actions.is_empty():
+		return
+	_v030_trace_focus("direction_input_before", {
+		"actions": ",".join(actions),
+		"event": _v030_event_summary(event),
+	})
+	_v030_trace_focus_after_input.call_deferred(",".join(actions), _v030_event_summary(event))
 
 
 func _close() -> void:
@@ -202,3 +228,73 @@ func _load_map_options() -> Array[Dictionary]:
 		push_warning("NewGameScreen: map registry had no valid entries — using fallback entries")
 		return _FALLBACK_MAP_OPTIONS.duplicate(true)
 	return out
+
+
+func _connect_v030_focus_trace() -> void:
+	if not V030_FOCUS_TRACE_ENABLED:
+		return
+	for control in [_opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
+			_opt_pair_up, _btn_start, _btn_back]:
+		var c := control as Control
+		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
+		c.focus_exited.connect(_v030_trace_control_focus.bind(c, "exited"))
+
+
+func _v030_direction_actions_for_event(event: InputEvent) -> Array[String]:
+	var out: Array[String] = []
+	for action in ["ui_up", "ui_down", "cursor_up", "cursor_down"]:
+		if event.is_action_pressed(action):
+			out.append("%s:pressed" % action)
+		elif event.is_action_released(action):
+			out.append("%s:released" % action)
+	return out
+
+
+func _v030_trace_control_focus(control: Control, phase: String) -> void:
+	_v030_trace_focus("focus_%s" % phase, {"control": _v030_control_label(control)})
+
+
+func _v030_trace_focus_after_input(actions: String, event_summary: String) -> void:
+	_v030_trace_focus("direction_input_after", {
+		"actions": actions,
+		"event": event_summary,
+	})
+
+
+func _v030_trace_focus(label: String, extra: Dictionary = {}) -> void:
+	if not V030_FOCUS_TRACE_ENABLED or not visible or DisplayServer.get_name() == "headless":
+		return
+	var fields := {
+		"label": label,
+		"focus": _v030_control_label(get_viewport().gui_get_focus_owner()),
+		"map": _opt_map.selected,
+		"permadeath": _opt_permadeath.selected,
+		"auto_promote": _opt_auto_promote.selected,
+		"leveling": _opt_leveling.selected,
+		"pair_up": _opt_pair_up.selected,
+	}
+	for key in extra:
+		fields[key] = extra[key]
+	print("V030-NG-FOCUS %s" % fields)
+
+
+func _v030_control_label(control: Control) -> String:
+	if control == null:
+		return "<none>"
+	return String(control.name)
+
+
+func _v030_event_summary(event: InputEvent) -> String:
+	if event is InputEventJoypadMotion:
+		var motion := event as InputEventJoypadMotion
+		return "JoyMotion device=%d axis=%d value=%.3f" % [
+			motion.device, motion.axis, motion.axis_value]
+	if event is InputEventJoypadButton:
+		var button := event as InputEventJoypadButton
+		return "JoyButton device=%d button=%d pressed=%s" % [
+			button.device, button.button_index, button.pressed]
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		return "Key code=%d pressed=%s echo=%s" % [
+			key.physical_keycode, key.pressed, key.echo]
+	return event.as_text()

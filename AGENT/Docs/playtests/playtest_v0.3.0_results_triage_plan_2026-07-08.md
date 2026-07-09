@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); V030-SUS-01 all four sub-defects FIXED 2026-07-09 (Pending validation); V030-GP-01/02/03 plus V030-INP-01/02 fixes landed 2026-07-09 (Pending validation); two holdouts need live repro (New Game focus gap, one-axis drag readout); DSP/MRD work remains
+Status: Returned results - diagnosed 2026-07-08; owner walkthrough Q1-Q5 DECIDED and root causes source-confirmed the same day (suspend a-d, Settings follow_focus, menu stick cadence, trigger threshold, pad brand); V030-SUS-01 all four sub-defects FIXED 2026-07-09 (Pending validation); V030-GP-01/02/03 plus V030-INP-01/02 fixes landed 2026-07-09 (Pending validation); live diagnostics added 2026-07-09 for the New Game focus and one-axis drag holdouts; DSP/MRD work remains
 Last verified: 2026-07-09
 ---
 
@@ -133,8 +133,11 @@ polled directional repeat/deadzone helper, instead of per-event
 `test_unit_details_screen.gd`, `test_action_menu.gd`, and the new
 `test_menu_repeat_policy.gd`.
 
-**Holdout:** the New Game focus gap still needs live repro/instrumentation; the
-headless focus chain remains exonerated, so no speculative fix landed.
+**Holdout:** the New Game focus gap still needs live repro; the headless focus
+chain remains exonerated, so no speculative fix landed. Temporary rerun logging
+landed 2026-07-09 under `V030-NG-FOCUS` to capture focus owner, directional
+input events, and `input_mode_changed` focus grabs while the New Game modal is
+visible.
 
 **Routing:** gate blocker for `VAL-V030-GAMEPAD`; implementation under
 `B6-INPUT` (focus seam already flagged as the open feature-branch option).
@@ -339,10 +342,11 @@ maximize/un-maximize, maximize never persisted (`resize_write_back_action`,
   drag (the only guards are non-windowed/maximized modes and
   `actual == _requested_window_size`). The failure could NOT be reproduced
   headless (no real OS window events). Do NOT guess a fix: either reproduce
-  live on Windows, or ship the rerun with temporary instrumentation (a log
-  line in `_on_viewport_size_changed` and `apply_resize_write_back`) so the
-  returned log pins whether `size_changed` fires at all on bar-growing drags
-  under `stretch/aspect=keep`.
+  live on Windows. Temporary rerun logging landed 2026-07-09 under
+  `V030-DSP-TRACE` in `_on_viewport_size_changed`,
+  `_maybe_write_back_os_resize`, and `apply_resize_write_back`, so the returned
+  log pins whether `size_changed` fires at all on bar-growing drags under
+  `stretch/aspect=keep`.
 - Maximized readout: FIXED 2026-07-09 pending live validation — Windowed +
   maximized now shows live `Maximized (WxH)` from the actual client size,
   mirroring `native WxH`; on un-maximize it returns to the saved windowed
@@ -435,12 +439,14 @@ coverage; flip the row only on that live pass, then proceed `REL-V023-MERGE` /
    (`test_suspend_map_runtime.gd` extensions) — top defect.
 3. `V030-GP-01/02/03` fix pass plus the `V030-INP-01/02` label/brand fixes —
    DONE 2026-07-09 with headless coverage; live validation still pending.
-4. `V030-DSP-01` remaining display pass: live-repro/instrument the one-axis
-   write-back/readout path and rerun the maximized-label fix live.
+4. `V030-DSP-01` remaining display pass: run the focused rerun build with
+   `V030-DSP-TRACE` logging, live-repro the one-axis write-back/readout path,
+   and rerun the maximized-label fix live.
 5. Update the affected GDD sections + control-plane rows with each
    behavior-changing fix (DoD#1), then cut ONE focused rerun build covering
    controller Parts I-II, suspend section 9, and section 1.6, with an explicit
    relaunch-persistence step, the [MRD-7] shared-cell comparison toggle, and a
-   "recorded requests" note ([MRD-8] cursor-traced pathing).
+   "recorded requests" note ([MRD-8] cursor-traced pathing). The focused rerun
+   checklist is `playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md`.
 6. Flip `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` only on that live pass, then
    `REL-V023-MERGE` / `B6-WEB-DEBUG` per the kit.

@@ -56,6 +56,9 @@ var _requested_window_size: Vector2i = Vector2i.ZERO
 # tell a maximize->windowed transition (restore the saved size) apart from a genuine
 # windowed edge drag (write the new size back). -1 until first observed.
 var _last_window_mode: int = -1
+# Temporary v0.3.0 rerun logging for V030-DSP-01. Remove after the Windows
+# one-axis drag log proves whether viewport size_changed fires for bar-only drags.
+const V030_RESIZE_TRACE_ENABLED := true
 const RESOLUTION_CHOICES: Array[String] = [
 	"1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160",
 ]
@@ -470,6 +473,9 @@ var _menu_scale_reapply_queued: bool = false
 
 
 func _on_viewport_size_changed() -> void:
+	_v030_trace_resize("viewport_size_changed", {
+		"queued": _menu_scale_reapply_queued,
+	})
 	if _menu_scale_reapply_queued:
 		return
 	_menu_scale_reapply_queued = true
@@ -498,9 +504,18 @@ func _maybe_write_back_os_resize() -> void:
 	# Headless has no real window (tests emit size_changed freely); web has no
 	# honourable window config at all.
 	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
+		_v030_trace_resize("resize_probe_skipped", {
+			"display_supported": is_display_config_supported(),
+			"display": DisplayServer.get_name(),
+		})
 		return
 	var ds_mode := DisplayServer.window_get_mode()
 	var action := resize_write_back_action(ds_mode, _last_window_mode)
+	_v030_trace_resize("resize_probe", {
+		"action": action,
+		"ds_mode": _window_mode_name(ds_mode),
+		"last_mode": _window_mode_name(_last_window_mode),
+	})
 	_last_window_mode = ds_mode
 	match action:
 		"write_back":
@@ -537,12 +552,60 @@ func resize_write_back_action(ds_mode: int, last_mode: int) -> String:
 # persists it, and notifies listeners. No-op for degenerate sizes and for the
 # size we ourselves just requested.
 func apply_resize_write_back(actual: Vector2i) -> void:
-	if actual.x <= 0 or actual.y <= 0 or actual == _requested_window_size:
+	if actual.x <= 0 or actual.y <= 0:
+		_v030_trace_resize("write_back_skipped", {
+			"actual": actual,
+			"reason": "degenerate",
+		})
+		return
+	if actual == _requested_window_size:
+		_v030_trace_resize("write_back_skipped", {
+			"actual": actual,
+			"reason": "matches_requested",
+		})
 		return
 	resolution = "%dx%d" % [actual.x, actual.y]
 	_requested_window_size = actual
+	_v030_trace_resize("write_back_apply", {
+		"actual": actual,
+	})
 	save()
 	resolution_written_back.emit()
+
+
+func _v030_trace_resize(label: String, extra: Dictionary = {}) -> void:
+	if not V030_RESIZE_TRACE_ENABLED or DisplayServer.get_name() == "headless":
+		return
+	var fields := {
+		"label": label,
+		"display": DisplayServer.get_name(),
+		"setting_mode": window_mode,
+		"saved_resolution": resolution,
+		"requested": _requested_window_size,
+		"viewport": get_viewport().get_visible_rect().size,
+		"window": DisplayServer.window_get_size(),
+		"ds_mode": _window_mode_name(DisplayServer.window_get_mode()),
+		"last_mode": _window_mode_name(_last_window_mode),
+	}
+	for key in extra:
+		fields[key] = extra[key]
+	print("V030-DSP-TRACE %s" % fields)
+
+
+func _window_mode_name(mode: int) -> String:
+	match mode:
+		DisplayServer.WINDOW_MODE_WINDOWED:
+			return "windowed"
+		DisplayServer.WINDOW_MODE_MINIMIZED:
+			return "minimized"
+		DisplayServer.WINDOW_MODE_MAXIMIZED:
+			return "maximized"
+		DisplayServer.WINDOW_MODE_FULLSCREEN:
+			return "fullscreen"
+		DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+			return "exclusive_fullscreen"
+		_:
+			return "unknown:%d" % mode
 
 
 # Scales menu/modal panels only. The root Window scale is reset to 1.0 so the HUD
