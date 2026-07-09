@@ -856,6 +856,54 @@ func _init() -> void:
 	else:
 		print("FAIL [TUR] state not retained through teardown"); failed += 1
 
+	# MRD-7: selection and targeting overlays must COMPOSE with retained watch
+	# threat instead of clearing it through the old one-off paint APIs.
+	var saved_mrd_overlay := _grid._overlay
+	var mrd_overlay := TileMapLayer.new()
+	mrd_overlay.tile_set = load("res://assets/overlay_tileset.tres")
+	_grid._overlay = mrd_overlay
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyB"] = true
+	c10._state = FREE
+	c10.current_tile = ally1.tile_position
+	c10._try_select_unit_at_cursor()
+	var watched_after_select := false
+	for t in c10._watch_set_threat_tiles():
+		if mrd_overlay.get_cell_source_id(t) == GridManager.OVERLAY_DARKER_RED:
+			watched_after_select = true
+			break
+	var selected_composed: bool = c10._state == UNIT_SELECTED \
+		and watched_after_select \
+		and not c10._selection.movement_tiles.is_empty()
+	var ally2 := _make_unit(Vector2i(2, 3), "blue")
+	ally2.data.unit_id = "ally2"
+	mrd_overlay.clear()
+	c10._selection.selected_unit = ally1
+	c10._state = UNIT_MOVED
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyB"] = true
+	c10._enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+	var watched_after_targeting := false
+	for t in c10._watch_set_threat_tiles():
+		if mrd_overlay.get_cell_source_id(t) == GridManager.OVERLAY_DARKER_RED:
+			watched_after_targeting = true
+			break
+	var targeting_composed: bool = c10._state == TARGETING \
+		and watched_after_targeting \
+		and not c10._targeting.target_tiles().is_empty()
+	_grid._overlay = saved_mrd_overlay
+	mrd_overlay.free()
+	if selected_composed and targeting_composed:
+		print("OK  [MRD-7] selection/targeting overlays compose with watched threat")
+		passed += 1
+	else:
+		print("FAIL [MRD-7] compose: select=%s target=%s watch_select=%s watch_target=%s state=%d" % [
+			selected_composed, targeting_composed, watched_after_select,
+			watched_after_targeting, c10._state])
+		failed += 1
+
 	# FREE-state gating (#13): the resolver is a no-op outside FREE.
 	c10._danger_mode = "none"; c10._watch_set.clear()
 	c10._state = UNIT_SELECTED

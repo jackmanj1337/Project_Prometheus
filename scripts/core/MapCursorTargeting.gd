@@ -75,28 +75,42 @@ func begin(mode: int, unit: Unit) -> Array[Vector2i]:
 	if mode == Mode.ATTACK:
 		for enemy in _grid.get_attackable_enemies_from_tile(unit, unit.tile_position):
 			_tiles.append(enemy.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_attack_overlay(_tiles)
 	elif mode == Mode.PAIR_UP:
 		# Adjacent unpaired allies. Visually reuses the heal overlay — Pair Up
 		# is the "friendly target" pattern, same as a staff heal in terms of
 		# what the player is picking among.
 		for ally in _get_adjacent_unpaired_allies(unit):
 			_tiles.append(ally.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	elif mode == Mode.SEPARATE:
 		for tile in _get_adjacent_separate_tiles(unit):
 			_tiles.append(tile)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	else:
 		for ally in _grid.get_healable_allies(unit):
 			_tiles.append(ally.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	_sub = _Sub.IDLE if _tiles.is_empty() else _Sub.CHOOSING
+	if not _tiles.is_empty():
+		_grid.repaint_overlays(overlay_specs())
 	return _tiles
+
+
+# Targeting overlay specs for the registry compose path. MapCursor merges these
+# with retained threat/watch specs so target selection can coexist with danger
+# overlays ([MRD-7]); direct unit tests still get the standalone target paint.
+func overlay_specs() -> Dictionary:
+	var specs: Dictionary = {}
+	if _tiles.is_empty():
+		return specs
+	if _mode == Mode.ATTACK:
+		specs[GridManager.OVERLAY_LAYER_ATTACK] = {
+			"tiles": _tiles,
+			"source": GridManager.OVERLAY_RED,
+		}
+	else:
+		specs[GridManager.OVERLAY_LAYER_HEAL] = {
+			"tiles": _tiles,
+			"source": GridManager.OVERLAY_HEAL,
+		}
+	return specs
 
 
 # Called by MapCursor._on_confirm while in State.TARGETING. cursor_tile is the

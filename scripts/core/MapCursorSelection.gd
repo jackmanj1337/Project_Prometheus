@@ -50,23 +50,40 @@ func select_at(tile: Vector2i) -> bool:
 		return false
 	selected_unit = unit
 	movement_tiles = _grid.get_movement_range(unit)
-	_grid.show_movement_overlay(movement_tiles)
-	# A healing-staff user has no attack reach, but does have a heal reach —
-	# paint the heal overlay around the movement range so the player can see
-	# where the staff can reach when planning the move (playtest 3 #3).
-	_paint_action_overlay(unit)
+	_grid.repaint_overlays(overlay_specs())
 	return true
+
+
+# Selection overlay specs for the registry compose path. MapCursor merges these
+# with retained threat/watch specs so movement range can coexist with danger
+# overlays ([MRD-7]); direct unit tests still get a complete selection paint.
+func overlay_specs() -> Dictionary:
+	var specs: Dictionary = {}
+	if selected_unit == null:
+		return specs
+	specs[GridManager.OVERLAY_LAYER_MOVE] = {
+		"tiles": movement_tiles,
+		"source": GridManager.OVERLAY_BLUE,
+	}
+	_add_action_overlay_specs(specs, selected_unit)
+	return specs
 
 
 # Branches the action-range overlay by what the unit has equipped: heal overlay
 # for healing staves, attack overlay otherwise. Shared by select_at and
 # undo_and_reselect so the two paths can't drift.
-func _paint_action_overlay(unit: Node) -> void:
+func _add_action_overlay_specs(specs: Dictionary, unit: Node) -> void:
 	var w: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
 	if w != null and w.is_healing_staff():
-		_grid.show_heal_overlay(_grid.get_staff_range_from_tiles(unit, movement_tiles))
+		specs[GridManager.OVERLAY_LAYER_HEAL] = {
+			"tiles": _grid.get_staff_range_from_tiles(unit, movement_tiles),
+			"source": GridManager.OVERLAY_HEAL,
+		}
 	else:
-		_grid.show_attack_overlay(_grid.get_attack_range_from_tiles(unit, movement_tiles))
+		specs[GridManager.OVERLAY_LAYER_ATTACK] = {
+			"tiles": _grid.get_attack_range_from_tiles(unit, movement_tiles),
+			"source": GridManager.OVERLAY_RED,
+		}
 
 
 # Port of MapCursor._try_move_selected_to_cursor's validation half. If `tile` is a
@@ -101,8 +118,7 @@ func undo_and_reselect() -> void:
 	# Recompute and redisplay overlays so the player can pick a different destination.
 	if _grid != null and selected_unit != null:
 		movement_tiles = _grid.get_movement_range(selected_unit)
-		_grid.show_movement_overlay(movement_tiles)
-		_paint_action_overlay(selected_unit)
+		_grid.repaint_overlays(overlay_specs())
 
 
 # Clears overlays, nulls the selected unit, empties the movement tiles. Used by both

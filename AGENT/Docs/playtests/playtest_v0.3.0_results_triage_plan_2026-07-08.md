@@ -207,6 +207,15 @@ registry (this is exactly the registry's job: make watch markers a standing
 layer instead of a mode). Owner question Q3 in the companion review. Re-verify
 section 4 in the gamepad rerun, but do not treat as a mapping failure.
 
+**STATUS: PARTIAL FIX 2026-07-09.** The unconditional compose plumbing for
+selection and targeting landed: `MapCursorSelection` and `MapCursorTargeting`
+now expose overlay layer specs, and `MapCursor` merges them with retained
+threat/watch specs through `GridManager.repaint_overlays`. `test_map_cursor.gd`
+covers selecting a unit and entering Pair Up targeting while a watched threat
+remains painted. Remaining MRD-7 work is the shared-cell visual prototype:
+border-through vs second-`TileMapLayer` stacking behind a toggle, with headless
+screenshot comparison before live selection.
+
 ### V030-INP-01 - Input Mode semantics + Touch NOT RUN
 
 Tester (section 6): "input mode selector exists, but it does not seem to block

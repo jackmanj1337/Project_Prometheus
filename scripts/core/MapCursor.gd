@@ -493,6 +493,27 @@ func repaint() -> void:
 	_render_watch_markers()
 
 
+# Merge transient interaction overlays into the retained threat/watch layers.
+# Selection and targeting own their local tile sets; MapCursor owns the
+# cross-mode threat state, so the composition happens here ([MRD-7]).
+func _repaint_composed_overlays(extra_specs: Dictionary = {}) -> void:
+	if _grid == null:
+		return
+	var specs := _build_threat_specs()
+	for id in extra_specs:
+		specs[id] = extra_specs[id]
+	_grid.repaint_overlays(specs)
+	_render_watch_markers()
+
+
+func _repaint_selection_overlays() -> void:
+	_repaint_composed_overlays(_selection.overlay_specs())
+
+
+func _repaint_targeting_overlays() -> void:
+	_repaint_composed_overlays(_targeting.overlay_specs())
+
+
 # The base threat overlay specs from _danger_mode + _watch_set (prunes first).
 func _build_threat_specs() -> Dictionary:
 	_prune_watch_set()
@@ -1009,6 +1030,7 @@ func _try_select_unit_at_cursor() -> void:
 	# write and the EventBus relay stay here (a RefCounted slice can't get_node).
 	if _selection.select_at(current_tile):
 		_state = State.UNIT_SELECTED
+		_repaint_selection_overlays()
 		_refresh_path_arrows()  # draw the initial path to the cursor tile
 		var bus := get_node_or_null("/root/EventBus")
 		if bus:
@@ -1340,6 +1362,7 @@ func _enter_targeting(mode: int) -> void:
 		_show_action_menu()
 		return
 	_state = State.TARGETING
+	_repaint_targeting_overlays()
 	# Snap the cursor to the first valid target via _set_tile, so cursor_moved fires
 	# (HUD updates to the target) and the camera scrolls to keep it on screen.
 	_set_tile(tiles[0])
@@ -1488,6 +1511,7 @@ func _undo_move_and_reselect() -> void:
 	# destination, away from the unit that still owns the action.
 	if _selection.selected_unit != null:
 		_set_tile(_selection.selected_unit.tile_position)
+	_repaint_selection_overlays()
 
 
 func _finish_action() -> void:
