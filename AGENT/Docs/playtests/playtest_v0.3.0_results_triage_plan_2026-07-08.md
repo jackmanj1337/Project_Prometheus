@@ -207,14 +207,17 @@ registry (this is exactly the registry's job: make watch markers a standing
 layer instead of a mode). Owner question Q3 in the companion review. Re-verify
 section 4 in the gamepad rerun, but do not treat as a mapping failure.
 
-**STATUS: PARTIAL FIX 2026-07-09.** The unconditional compose plumbing for
+**STATUS: PROTOTYPES READY 2026-07-09.** The unconditional compose plumbing for
 selection and targeting landed: `MapCursorSelection` and `MapCursorTargeting`
 now expose overlay layer specs, and `MapCursor` merges them with retained
 threat/watch specs through `GridManager.repaint_overlays`. `test_map_cursor.gd`
 covers selecting a unit and entering Pair Up targeting while a watched threat
-remains painted. Remaining MRD-7 work is the shared-cell visual prototype:
-border-through vs second-`TileMapLayer` stacking behind a toggle, with headless
-screenshot comparison before live selection.
+remains painted. `GridManager.shared_cell_mode` also now prototypes both
+shared-cell treatments behind the debug **F8** cycle: `border_through` combined
+sources and `stacked` second-`TileMapLayer` mode, covered by
+`test_grid_manager.gd`, `test_map_cursor.gd`, and `test_mrd_scene.gd`.
+Remaining MRD-7 work is focused live comparison, making the chosen presentation
+the shipped mode, and removing the temporary F8 cycle.
 
 ### V030-INP-01 - Input Mode semantics + Touch NOT RUN
 
@@ -438,9 +441,9 @@ coverage; flip the row only on that live pass, then proceed `REL-V023-MERGE` /
    Q1 = relabel the Settings row **Input Mode → Input Prompts**, behavior
    unchanged (devices never blocked; internal keys untouched); Q2 = brand-correct
    WORDS now + brand the rebind rows, real glyphs ride `UI-INSPECTION`; Q3 =
-   registry-compose plumbing unconditional, then prototype BOTH shared-cell
-   treatments (border-through vs second-layer stacking) behind a toggle and
-   compare via headless screenshots then the live rerun ([MRD-7]); Q4 = show
+   registry-compose plumbing unconditional, prototype BOTH shared-cell
+   treatments (border-through vs second-layer stacking) behind F8, then
+   compare in the focused live rerun ([MRD-7]); Q4 = show
    `Maximized (WxH)` live while maximized, persistence unchanged; Q5 =
    cursor-traced pathing backlogged with [PER] as [MRD-8], with a "recorded
    requests" note in every future handbook.
@@ -454,7 +457,7 @@ coverage; flip the row only on that live pass, then proceed `REL-V023-MERGE` /
 5. Update the affected GDD sections + control-plane rows with each
    behavior-changing fix (DoD#1), then cut ONE focused rerun build covering
    controller Parts I-II, suspend section 9, and section 1.6, with an explicit
-   relaunch-persistence step, the [MRD-7] shared-cell comparison toggle, and a
+   relaunch-persistence step, the [MRD-7] shared-cell comparison modes, and a
    "recorded requests" note ([MRD-8] cursor-traced pathing). The focused rerun
    checklist is `playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md`.
 6. Flip `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` only on that live pass, then

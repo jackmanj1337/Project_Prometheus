@@ -14,7 +14,8 @@ extends SceneTree
 #   5. hover-peek paints as an opaque top layer and clears on release
 #   6. path arrows track get_movement_path and clear on deselect
 #   7. grid_dim fades the terrain layer ONLY
-#   8. a simulated gamepad R3 press drives the resolver end-to-end
+#   8. the optional stacked overlay lane is wired in the shipped scene
+#   9. a simulated gamepad R3 press drives the resolver end-to-end
 #
 # Pixel-level appearance (colour legibility, "D" glyph, arrow art) still needs
 # a real display and stays with the display/controller polish pass.
@@ -88,6 +89,7 @@ func _init() -> void:
 	var grid: GridManager = instance.get_node("GridManager")
 	var cursor: MapCursor = instance.get_node("MapCursor")
 	var overlay: TileMapLayer = instance.get_node("TileMapLayer_Overlay")
+	var overlay_top: TileMapLayer = instance.get_node("TileMapLayer_OverlayTop")
 	var terrain: TileMapLayer = instance.get_node("TileMapLayer_Terrain")
 
 	# A hostile attack-capable enemy the resolver can watch.
@@ -217,6 +219,7 @@ func _init() -> void:
 	sm._apply_grid_dim()
 	var dimmed: bool = absf(terrain.modulate.a - 0.6) < 0.001
 	var others_full: bool = overlay.modulate.a == 1.0 \
+		and overlay_top.modulate.a == 1.0 \
 		and instance.get_node("UnitsContainer").modulate.a == 1.0
 	sm.grid_dim = 0.0
 	sm._apply_grid_dim()
@@ -225,7 +228,31 @@ func _init() -> void:
 		"[MRD-5] grid_dim 0.4 → terrain a=0.6, overlays/units untouched, 0.0 restores",
 		"dim=%s others=%s undo=%s" % [dimmed, others_full, undimmed])
 
-	# ---- 8. Simulated gamepad R3 drives the resolver end-to-end ----
+	# ---- 8. Optional stacked overlay lane is wired in the shipped scene ----
+	var shared_tile := Vector2i(2, 2)
+	var lane_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	grid.repaint_overlays(lane_specs)
+	var lane_base_source := overlay.get_cell_source_id(shared_tile)
+	var lane_top_source := overlay_top.get_cell_source_id(shared_tile)
+	var lane_ok: bool = lane_base_source == GridManager.OVERLAY_DARKER_RED \
+		and lane_top_source == GridManager.OVERLAY_BLUE
+	grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
+	grid.clear_overlays()
+	_check(lane_ok,
+		"[MRD-7] shipped GameMap wires the optional second overlay lane",
+		"base=%d top=%d" % [lane_base_source, lane_top_source])
+
+	# ---- 9. Simulated gamepad R3 drives the resolver end-to-end ----
 	# R3 is bound at test runtime (the real project.godot pad bindings land with
 	# gamepad plan slice 1); the press goes through the engine input pipeline,
 	# not a direct method call, so this covers dispatch → MapCursor._input.

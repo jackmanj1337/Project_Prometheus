@@ -85,6 +85,7 @@ func _init() -> void:
 		"debug_toggle_force_levelup",
 		"debug_toggle_growth_boost",
 		"debug_toggle_hotseat_override",
+		"debug_cycle_mrd_shared_overlay",
 	]:
 		_record(not _has_any_joypad(action),
 			"%s stays keyboard-only" % action, counters)

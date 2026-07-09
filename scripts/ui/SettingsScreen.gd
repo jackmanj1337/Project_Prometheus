@@ -697,6 +697,7 @@ const _DEBUG_KEYBIND_LABEL_OVERRIDES := {
 	# V026-01c: the F9 hotseat override was toggleable but never listed here, so
 	# the in-game controls panel didn't show it (v0.2.6 playtest §1.1 report).
 	"debug_toggle_hotseat_override": "Debug: Hotseat All Factions",
+	"debug_cycle_mrd_shared_overlay": "Debug: MRD Overlay Mode",
 }
 
 

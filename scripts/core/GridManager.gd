@@ -9,8 +9,10 @@ var map_height: int = 0
 # Assigned by GameMap when the map loads
 var _tilemap: TileMapLayer = null
 
-# Overlay layer for movement/attack/heal/danger highlights (4 colored tiles)
+# Base overlay layer for movement/attack/heal/danger highlights.
 var _overlay: TileMapLayer = null
+# Optional prototype overlay lane for MRD-7 shared-cell visual comparisons.
+var _overlay_top: TileMapLayer = null
 
 # Optional fallback when no TileMapLayer is assigned (tests, headless).
 # Maps Vector2i tile -> String terrain type.
@@ -59,12 +61,12 @@ func _hostile(a: Node, b: Node) -> bool:
 
 # Called by GameMap during _ready() to wire the layers.
 func setup(terrain_layer: TileMapLayer, overlay_layer: TileMapLayer,
-		width: int, height: int) -> void:
+		width: int, height: int, overlay_top_layer: TileMapLayer = null) -> void:
 	_tilemap = terrain_layer
 	_overlay = overlay_layer
+	_overlay_top = overlay_top_layer
 	map_width = width
 	map_height = height
-
 
 # Out-of-bounds tiles count as walls so callers don't need explicit bounds checks.
 func get_terrain_at(tile: Vector2i) -> String:
@@ -519,6 +521,12 @@ const OVERLAY_DARK_RED := 3
 # assets/overlay_tileset.tres (generate_tilesets.gd OVERLAY_SOURCES[4] =
 # "darker_red"; placeholder colour from generate_placeholder_assets.gd).
 const OVERLAY_DARKER_RED := 4
+const OVERLAY_BLUE_ON_DARK_RED := 5
+const OVERLAY_RED_ON_DARK_RED := 6
+const OVERLAY_HEAL_ON_DARK_RED := 7
+const OVERLAY_BLUE_ON_DARKER_RED := 8
+const OVERLAY_RED_ON_DARKER_RED := 9
+const OVERLAY_HEAL_ON_DARKER_RED := 10
 
 
 # ── [MRD-1] Overlay precedence registry ──────────────────────────────────────
@@ -540,24 +548,56 @@ const OVERLAY_LAYER_PATH_ARROWS := "path_arrows"
 
 static var _overlay_registry: Dictionary = {}
 
+const OVERLAY_ROLE_RANGE := "range"
+const OVERLAY_ROLE_THREAT := "threat"
+const OVERLAY_ROLE_EXCLUSIVE := "exclusive"
+
+const SHARED_CELL_SINGLE := "single_layer"
+const SHARED_CELL_BORDER_THROUGH := "border_through"
+const SHARED_CELL_STACKED := "stacked"
+
+const SHARED_CELL_MODES := {
+	SHARED_CELL_SINGLE: {"label": "Single layer"},
+	SHARED_CELL_BORDER_THROUGH: {"label": "Threat center + range border"},
+	SHARED_CELL_STACKED: {"label": "Second overlay layer"},
+}
+
+const _RANGE_ON_THREAT_SOURCES := {
+	OVERLAY_BLUE: {
+		OVERLAY_DARK_RED: OVERLAY_BLUE_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_BLUE_ON_DARKER_RED,
+	},
+	OVERLAY_RED: {
+		OVERLAY_DARK_RED: OVERLAY_RED_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_RED_ON_DARKER_RED,
+	},
+	OVERLAY_HEAL: {
+		OVERLAY_DARK_RED: OVERLAY_HEAL_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_HEAL_ON_DARKER_RED,
+	},
+}
+
+var shared_cell_mode: String = SHARED_CELL_SINGLE
+
 
 # Seed the built-in layers once. Precedence gaps of 10 leave room to slot future
 # overlays between the existing ones without renumbering.
 static func _ensure_overlay_registry() -> void:
 	if not _overlay_registry.is_empty():
 		return
-	register_overlay_layer(OVERLAY_LAYER_MOVE, 10)
-	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10)
-	register_overlay_layer(OVERLAY_LAYER_HEAL, 10)
-	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20)
-	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30)
-	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100)
-	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101)
-	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110)
+	register_overlay_layer(OVERLAY_LAYER_MOVE, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_HEAL, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20, OVERLAY_ROLE_THREAT)
+	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30, OVERLAY_ROLE_THREAT)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100, OVERLAY_ROLE_EXCLUSIVE)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101, OVERLAY_ROLE_EXCLUSIVE)
+	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, OVERLAY_ROLE_EXCLUSIVE)
 
 
-static func register_overlay_layer(layer_id: String, precedence: int) -> void:
-	_overlay_registry[layer_id] = {"precedence": precedence}
+static func register_overlay_layer(layer_id: String, precedence: int,
+		role: String = OVERLAY_ROLE_RANGE) -> void:
+	_overlay_registry[layer_id] = {"precedence": precedence, "role": role}
 
 
 static func overlay_layer_precedence(layer_id: String) -> int:
@@ -568,11 +608,91 @@ static func overlay_layer_precedence(layer_id: String) -> int:
 	return 1 << 30  # unregistered layers paint last
 
 
-func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:
-	if _overlay == null:
+static func overlay_layer_role(layer_id: String) -> String:
+	_ensure_overlay_registry()
+	if _overlay_registry.has(layer_id):
+		return String(_overlay_registry[layer_id].get("role", OVERLAY_ROLE_RANGE))
+	return OVERLAY_ROLE_RANGE
+
+
+func set_shared_cell_mode(mode: String) -> void:
+	if not SHARED_CELL_MODES.has(mode):
+		push_warning("GridManager: unknown shared-cell overlay mode '%s'" % mode)
+		return
+	shared_cell_mode = mode
+	if shared_cell_mode != SHARED_CELL_STACKED:
+		_clear_top_overlay()
+
+
+func _clear_top_overlay() -> void:
+	if _overlay_top != null:
+		_overlay_top.clear()
+
+
+func _paint_overlay(tiles: Array[Vector2i], source_id: int,
+		target: TileMapLayer = null) -> void:
+	var layer := target if target != null else _overlay
+	if layer == null:
 		return
 	for t in tiles:
-		_overlay.set_cell(t, source_id, Vector2i.ZERO)
+		layer.set_cell(t, source_id, Vector2i.ZERO)
+
+
+func _sorted_overlay_ids(layer_specs: Dictionary) -> Array:
+	var ids: Array = layer_specs.keys()
+	ids.sort_custom(func(a, b): return overlay_layer_precedence(a) < overlay_layer_precedence(b))
+	return ids
+
+
+func _spec_tiles(spec: Dictionary) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	if spec.has("tiles"):
+		tiles.assign(spec["tiles"])
+	return tiles
+
+
+func _paint_single_layer(layer_specs: Dictionary) -> void:
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		_paint_overlay(_spec_tiles(spec), int(spec.get("source", OVERLAY_DARK_RED)))
+
+
+func _paint_stacked_layers(layer_specs: Dictionary) -> void:
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		var role := overlay_layer_role(id)
+		var target := _overlay if role == OVERLAY_ROLE_THREAT else _overlay_top
+		_paint_overlay(_spec_tiles(spec), source, target)
+
+
+func _range_source_on_threat(range_source: int, threat_source: int) -> int:
+	var by_threat: Dictionary = _RANGE_ON_THREAT_SOURCES.get(range_source, {})
+	return int(by_threat.get(threat_source, range_source))
+
+
+func _paint_border_through(layer_specs: Dictionary) -> void:
+	var threat_sources: Dictionary = {}
+	var ids := _sorted_overlay_ids(layer_specs)
+	for id in ids:
+		if overlay_layer_role(id) != OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		for tile in _spec_tiles(spec):
+			threat_sources[tile] = source
+			_overlay.set_cell(tile, source, Vector2i.ZERO)
+	for id in ids:
+		var role := overlay_layer_role(id)
+		if role == OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		for tile in _spec_tiles(spec):
+			var paint_source := source
+			if role == OVERLAY_ROLE_RANGE and threat_sources.has(tile):
+				paint_source = _range_source_on_threat(source, int(threat_sources[tile]))
+			_overlay.set_cell(tile, paint_source, Vector2i.ZERO)
 
 
 # [MRD-1] Repaint the shared overlay from a set of layers, in registered
@@ -583,25 +703,27 @@ func repaint_overlays(layer_specs: Dictionary) -> void:
 	if _overlay == null:
 		return
 	_overlay.clear()
-	var ids: Array = layer_specs.keys()
-	ids.sort_custom(func(a, b): return overlay_layer_precedence(a) < overlay_layer_precedence(b))
-	for id in ids:
-		var spec: Dictionary = layer_specs[id]
-		var tiles: Array[Vector2i] = []
-		if spec.has("tiles"):
-			tiles.assign(spec["tiles"])
-		_paint_overlay(tiles, int(spec.get("source", OVERLAY_DARK_RED)))
+	_clear_top_overlay()
+	if shared_cell_mode == SHARED_CELL_STACKED and _overlay_top != null:
+		_paint_stacked_layers(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_BORDER_THROUGH:
+		_paint_border_through(layer_specs)
+	else:
+		_paint_single_layer(layer_specs)
 
 
 func show_movement_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_BLUE)
 
 
 func show_attack_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_RED)
 
 
 func show_heal_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_HEAL)
 
 
@@ -665,6 +787,7 @@ func get_unit_threat_tiles(unit: Node) -> Array[Vector2i]:
 func show_enemy_danger_zone(viewer_faction: String = "blue") -> void:
 	if _overlay == null:
 		return
+	_clear_top_overlay()
 	_paint_overlay(get_enemy_danger_tiles(viewer_faction), OVERLAY_DARK_RED)
 
 
@@ -673,3 +796,4 @@ func clear_overlays() -> void:
 	if _overlay == null:
 		return
 	_overlay.clear()
+	_clear_top_overlay()

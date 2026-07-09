@@ -76,6 +76,11 @@ const DANGER_MODE_COMBINED := "combined"
 const DANGER_MODE_CYCLE: Array[String] = [
 	DANGER_MODE_FULL, DANGER_MODE_SELECTED, DANGER_MODE_COMBINED, DANGER_MODE_NONE,
 ]
+const DEBUG_SHARED_CELL_MODE_CYCLE: Array[String] = [
+	GridManager.SHARED_CELL_SINGLE,
+	GridManager.SHARED_CELL_BORDER_THROUGH,
+	GridManager.SHARED_CELL_STACKED,
+]
 # The full danger-mode value-set as string literals — the parseable source of
 # truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the
 # mouse_cursor value-set check).
@@ -277,6 +282,8 @@ func set_controlling_faction(faction_id: String) -> void:
 # ── Input Handling ──────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _handle_debug_shared_cell_mode_cycle(event):
+		return
 	if _input_suppressed or _state == State.LOCKED:
 		return
 	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
@@ -340,6 +347,32 @@ func _is_fresh_action_press(event: InputEvent, action: String) -> bool:
 	if event is InputEventKey and event.echo:
 		return false
 	return event.is_action_pressed(action)
+
+
+func _handle_debug_shared_cell_mode_cycle(event: InputEvent) -> bool:
+	if not OS.is_debug_build() or _grid == null:
+		return false
+	if event is InputEventKey and event.echo:
+		return false
+	if not event.is_action_pressed("debug_cycle_mrd_shared_overlay"):
+		return false
+	var idx := DEBUG_SHARED_CELL_MODE_CYCLE.find(_grid.shared_cell_mode)
+	var next_idx := 0 if idx == -1 else (idx + 1) % DEBUG_SHARED_CELL_MODE_CYCLE.size()
+	_grid.set_shared_cell_mode(DEBUG_SHARED_CELL_MODE_CYCLE[next_idx])
+	_repaint_current_overlay_state()
+	print("MRD shared-cell overlay mode: %s" % _grid.shared_cell_mode)
+	return true
+
+
+func _repaint_current_overlay_state() -> void:
+	if _peek_active:
+		_repaint_with_peek()
+	elif _state == State.UNIT_SELECTED:
+		_repaint_selection_overlays()
+	elif _state == State.TARGETING:
+		_repaint_targeting_overlays()
+	else:
+		repaint()
 
 
 func _handle_discrete_press(event: InputEvent) -> void:

@@ -22,6 +22,7 @@ const _CHAR_TO_SOURCE := {
 
 @onready var _terrain_layer: TileMapLayer = $TileMapLayer_Terrain
 @onready var _overlay_layer: TileMapLayer = $TileMapLayer_Overlay
+@onready var _overlay_top_layer: TileMapLayer = $TileMapLayer_OverlayTop
 @onready var _units_container: Node2D = $UnitsContainer
 @onready var _grid: GridManager = $GridManager
 @onready var _cursor: MapCursor = $MapCursor
@@ -66,7 +67,7 @@ func _ready() -> void:
 	if not _validate_map(map_data.grid, map_width, map_height):
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
-	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height)
+	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height, _overlay_top_layer)
 	# Grid-dim accessibility knob ([MRD-5]): the terrain layer joins the dim group
 	# so the Settings slider can fade it live; units + overlays stay full opacity.
 	_terrain_layer.add_to_group("grid_dim_target")

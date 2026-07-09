@@ -132,7 +132,31 @@ If a one-axis drag does not update the readout, return the log with
 
 Notes:
 
-## 5. Recorded Requests
+## 5. MRD-7 Shared-Cell Overlay Comparison
+
+Run this on a map with at least one watched enemy and one player unit whose
+movement or target range overlaps that watched threat.
+
+1. Use R3/Q/MMB over an enemy to add a watched threat and show its "D" marker.
+2. Select a player unit whose movement range overlaps that threat.
+3. Press **F8** to cycle `single_layer` -> `border_through` -> `stacked`.
+   The log prints `MRD shared-cell overlay mode: ...` after each cycle.
+4. Repeat once while entering attack/staff/pair-up targeting.
+
+Expected:
+
+- The watched-threat paint and "D" marker remain visible through selection and
+  targeting.
+- `border_through` reads as threat colour with a strong movement/target border.
+- `stacked` reads as a blended threat + movement/target tile.
+- Pick the clearer presentation for the shipped mode.
+
+- [ ] MRD-7 shared-cell presentation picked, or screenshots/log notes explain
+  why neither prototype is acceptable.
+
+Notes:
+
+## 6. Recorded Requests
 
 Do not mark these as new v0.3.0 defects unless the behavior is worse than the
 original return:

@@ -29,6 +29,15 @@ const OVERLAY_COLORS := {
 	"darker_red": Color(0.32, 0.00, 0.00, 0.60),
 }
 
+const OVERLAY_SHARED_BORDER_PAIRS := {
+	"blue_on_dark_red": ["dark_red", "blue"],
+	"red_on_dark_red": ["dark_red", "red"],
+	"green_on_dark_red": ["dark_red", "green"],
+	"blue_on_darker_red": ["darker_red", "blue"],
+	"red_on_darker_red": ["darker_red", "red"],
+	"green_on_darker_red": ["darker_red", "green"],
+}
+
 # Unit sprite colors (simple rectangle by team for now)
 const UNIT_COLORS := {
 	"player":  Color(0.30, 0.55, 0.95, 1.0),  # blue
@@ -41,6 +50,13 @@ func _init() -> void:
 		_save_solid_png("res://assets/sprites/terrain/%s.png" % name, TERRAIN_COLORS[name])
 	for name in OVERLAY_COLORS.keys():
 		_save_solid_png("res://assets/sprites/ui/overlay_%s.png" % name, OVERLAY_COLORS[name])
+	for name in OVERLAY_SHARED_BORDER_PAIRS.keys():
+		var pair: Array = OVERLAY_SHARED_BORDER_PAIRS[name]
+		_save_shared_border_png(
+			"res://assets/sprites/ui/overlay_%s.png" % name,
+			OVERLAY_COLORS[pair[0]],
+			OVERLAY_COLORS[pair[1]]
+		)
 	for name in UNIT_COLORS.keys():
 		_save_solid_png("res://assets/sprites/units/unit_%s.png" % name, UNIT_COLORS[name])
 	# Cursor: white outlined hollow square
@@ -52,6 +68,21 @@ func _init() -> void:
 func _save_solid_png(path: String, color: Color) -> void:
 	var img := Image.create(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE, false, Image.FORMAT_RGBA8)
 	img.fill(color)
+	var abs_path := ProjectSettings.globalize_path(path)
+	img.save_png(abs_path)
+
+
+# Combined shared-cell prototype tile: the center keeps the threat colour while
+# the movement/target colour is a strong border, so one TileMapLayer can show
+# both meanings on the same tile ([MRD-7]).
+func _save_shared_border_png(path: String, fill_color: Color, border_color: Color) -> void:
+	var img := Image.create(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE, false, Image.FORMAT_RGBA8)
+	img.fill(fill_color)
+	var border: int = 6
+	for x in GameConstants.TILE_SIZE:
+		for y in GameConstants.TILE_SIZE:
+			if x < border or x >= GameConstants.TILE_SIZE - border or y < border or y >= GameConstants.TILE_SIZE - border:
+				img.set_pixel(x, y, Color(border_color.r, border_color.g, border_color.b, 0.85))
 	var abs_path := ProjectSettings.globalize_path(path)
 	img.save_png(abs_path)
 

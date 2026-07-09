@@ -904,6 +904,42 @@ func _init() -> void:
 			watched_after_targeting, c10._state])
 		failed += 1
 
+	# Debug-only live comparison aid: F8 cycles shared-cell render modes and
+	# repaints the current overlay state so the focused rerun can compare modes.
+	var saved_debug_overlay := _grid._overlay
+	var saved_debug_top := _grid._overlay_top
+	var debug_overlay := TileMapLayer.new()
+	var debug_top := TileMapLayer.new()
+	debug_overlay.tile_set = load("res://assets/overlay_tileset.tres")
+	debug_top.tile_set = debug_overlay.tile_set
+	_grid._overlay = debug_overlay
+	_grid._overlay_top = debug_top
+	_grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
+	c10._state = FREE
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyB"] = true
+	var debug_cycle := InputEventAction.new()
+	debug_cycle.action = "debug_cycle_mrd_shared_overlay"
+	debug_cycle.pressed = true
+	c10._unhandled_input(debug_cycle)
+	var cycled_to_border: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_BORDER_THROUGH \
+		and not debug_overlay.get_used_cells().is_empty()
+	c10._unhandled_input(debug_cycle)
+	var cycled_to_stacked: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_STACKED
+	_grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
+	_grid._overlay = saved_debug_overlay
+	_grid._overlay_top = saved_debug_top
+	debug_overlay.free()
+	debug_top.free()
+	if cycled_to_border and cycled_to_stacked:
+		print("OK  [MRD-7] debug shared-cell mode cycle repaints overlays")
+		passed += 1
+	else:
+		print("FAIL [MRD-7] debug mode cycle: border=%s stacked=%s mode=%s" % [
+			cycled_to_border, cycled_to_stacked, _grid.shared_cell_mode])
+		failed += 1
+
 	# FREE-state gating (#13): the resolver is a no-op outside FREE.
 	c10._danger_mode = "none"; c10._watch_set.clear()
 	c10._state = UNIT_SELECTED

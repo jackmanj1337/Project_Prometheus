@@ -380,5 +380,62 @@ func get_equipped_weapon(): return _w
 		print("FAIL [MRD-1] paint order: shared=%d faction=%d" % [shared_src, faction_only_src]); failed += 1
 	ov.free()
 
+	# --- [MRD-7] shared-cell visual prototypes ---
+	# The border-through prototype keeps one overlay layer by replacing a shared
+	# range+threat cell with a combined "threat center + range border" source.
+	var shared_grid := GridManager.new()
+	var shared_base := TileMapLayer.new()
+	var shared_top := TileMapLayer.new()
+	shared_base.tile_set = load("res://assets/overlay_tileset.tres")
+	shared_top.tile_set = shared_base.tile_set
+	shared_grid._overlay = shared_base
+	shared_grid._overlay_top = shared_top
+	var shared_tile := Vector2i(4, 4)
+	var move_only := Vector2i(5, 4)
+	var watch_only := Vector2i(6, 4)
+	var shared_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, watch_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_BORDER_THROUGH)
+	shared_grid.repaint_overlays(shared_specs)
+	var border_shared := shared_base.get_cell_source_id(shared_tile)
+	var border_move := shared_base.get_cell_source_id(move_only)
+	var border_watch := shared_base.get_cell_source_id(watch_only)
+	var border_top_empty := shared_top.get_used_cells().is_empty()
+	if border_shared == GridManager.OVERLAY_BLUE_ON_DARKER_RED \
+			and border_move == GridManager.OVERLAY_BLUE \
+			and border_watch == GridManager.OVERLAY_DARKER_RED \
+			and border_top_empty:
+		print("OK  [MRD-7] border-through mode paints a combined source on shared cells"); passed += 1
+	else:
+		print("FAIL [MRD-7] border mode: shared=%d move=%d watch=%d top_empty=%s" % [
+			border_shared, border_move, border_watch, border_top_empty]); failed += 1
+
+	# The stacked prototype paints retained threat on the base layer and range on
+	# the second TileMapLayer, so the renderer alpha-composes both meanings.
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	shared_grid.repaint_overlays(shared_specs)
+	var stacked_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var stacked_top_shared := shared_top.get_cell_source_id(shared_tile)
+	var stacked_base_watch := shared_base.get_cell_source_id(watch_only)
+	var stacked_top_move := shared_top.get_cell_source_id(move_only)
+	if stacked_base_shared == GridManager.OVERLAY_DARKER_RED \
+			and stacked_top_shared == GridManager.OVERLAY_BLUE \
+			and stacked_base_watch == GridManager.OVERLAY_DARKER_RED \
+			and stacked_top_move == GridManager.OVERLAY_BLUE:
+		print("OK  [MRD-7] stacked mode separates threat and range across overlay layers"); passed += 1
+	else:
+		print("FAIL [MRD-7] stacked mode: base_shared=%d top_shared=%d base_watch=%d top_move=%d" % [
+			stacked_base_shared, stacked_top_shared, stacked_base_watch, stacked_top_move]); failed += 1
+	shared_base.free()
+	shared_top.free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

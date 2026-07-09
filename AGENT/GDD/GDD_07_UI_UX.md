@@ -106,7 +106,8 @@ banner as `hotseat-all` while active.
 
 Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
 authored as a placeholder colour; "D" markers; suspend restore of
-watch-set/mode state; MRD-7 selection/targeting compose plumbing)
+watch-set/mode state; MRD-7 selection/targeting compose plumbing and
+shared-cell visual prototypes)
 Last verified: 2026-07-09
 
 The `show_danger_zone` action (MMB / Q / R3) drives two orthogonal pieces of state through one resolver, in
@@ -135,9 +136,13 @@ restores them from `suspend.watch_set` / `suspend.danger_mode`.
 
 Selection and targeting overlays are built as registry layer specs and composed
 with retained threat specs, so selecting a unit or entering attack/staff/pair-up
-targeting does not clear watched-threat paint or "D" markers ([MRD-7]). The
-final shared-cell presentation treatment for a threatened tile inside movement
-range remains a prototype choice under `B6-MRD`.
+targeting does not clear watched-threat paint or "D" markers ([MRD-7]).
+Threatened tiles inside movement/target range have two prototype render modes:
+`border_through` bakes threat colour into the tile center with a strong
+range-colour border on the shared overlay layer; `stacked` paints retained
+threat on the base overlay and range on a second `TileMapLayer`. The default
+remains `single_layer` until the focused live rerun picks the presentation; debug
+builds can cycle the three modes with **F8** for that comparison pass.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
