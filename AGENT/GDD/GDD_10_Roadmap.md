@@ -69,6 +69,14 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+> **Focused rerun build CUT 2026-07-09 as `v0.3.0.d`** (source `e19ac9b`) — the
+> live vehicle for all four items below. Handbook:
+> [`playtest_checklist_v0.3.0.d.md`](../Docs/playtests/playtest_checklist_v0.3.0.d.md);
+> manifest (size/SHA-256):
+> [`playtest_build_v0.3.0.d.md`](../Docs/playtests/playtest_build_v0.3.0.d.md).
+> Deliver the exe + handbook, then triage the returned logs
+> (V030-NG-FOCUS, V030-DSP-TRACE markers) and the MRD-7 pick.
+
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
 | 1 | `B1-SUSPEND` | V030-SUS-01 suspend/resume fixes — Pending validation (fixed 2026-07-09, awaiting live rerun) | v0.3.0 return (2026-07-08): after Continue units cannot move, pair-up supports render at the off-map placeholder, debug red-team control + resume corrupts input, and the turn counter restores wrong. All four fixed 2026-07-09 with failing-first repros in `test_suspend_map_runtime.gd`: (a) restore now re-applies the DONE appearance, (b) support restored onto the off-map sentinel stays hidden, (c) Suspend & Quit gated to the blue player phase, (d) restore emits `turn_changed` so the HUD refreshes. Suite green; flip to Implemented on the live section-9 rerun. Detail in [`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md). |

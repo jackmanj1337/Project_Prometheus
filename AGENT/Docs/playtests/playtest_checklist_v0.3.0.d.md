@@ -40,8 +40,10 @@ narrow on purpose: do the sections below, keep every log, and return them.
   — it exercises the button-label swapping.
 - A monitor you can run in Windowed mode and drag/resize for §4.
 - Executable: `Project_Prometheus_v0.3.0.d_debug.exe`.
-- Expected file size / SHA-256 are recorded in
-  `AGENT/Docs/playtests/playtest_build_v0.3.0.d.md`. Verify before running.
+- Expected file size / SHA-256: `101496496` bytes /
+  `cff6a6bcb67c8f7b58471b462d54bc8bfafa115112dea463bce244d5d7627efd`
+  (also recorded in `AGENT/Docs/playtests/playtest_build_v0.3.0.d.md`). Verify
+  before running.
 
 The executable is a standalone debug build. It needs no Godot install and no
 installer. Do not disable antivirus to run it. If Windows blocks it, record the
