@@ -13,14 +13,16 @@ extends RefCounted
 # DataManager (boot) and EnemyAI (runtime) read it without autoload-ordering
 # constraints in headless mode.
 #
-# STEPS 1-2 SCOPE (this change): only the dispositions with behaviors that ship
-# today are registered — pursue_unit, hold_tile, heal — so the valid-id set stays
-# exactly the three shipped profiles (basic/passive/healer); no author-facing
-# vocabulary is opened ahead of its behavior. The MVP presets + dispositions
-# (grunt/guard/sleeper/tethered/coward/runner/raider/hunter, and
-# territorial/tethered/flee/seek_tile + the `weakest` target_policy) land in
-# build-slice steps 3-4 — gated on the `ai_awake` save slice (see GDD_10
-# "Gated build items").
+# SCOPE (non-schema, incremental): the dispositions with behaviors that ship
+# today are registered — pursue_unit, hold_tile, heal. Alongside the three legacy
+# profiles (basic/passive/healer) we ship `hunter` — the design-§9 `weakest`
+# target_policy pulled forward as a NON-SCHEMA slice: it reuses the existing
+# pursue_unit disposition and needs no `ai_awake` save field, so it is unblocked.
+# The rest of the MVP presets + dispositions (grunt/guard/sleeper/tethered/coward/
+# runner/raider, and territorial/tethered/flee/seek_tile) still land in build-slice
+# step 3 — gated on the `ai_awake` save slice (see GDD_10 "Gated build items").
+# Discipline: only open the vocabulary that ships a behavior — no `weakest` id
+# without _select_target honouring it, no preset without its disposition.
 
 const AISpecScript = preload("res://scripts/core/AISpec.gd")
 
@@ -30,12 +32,20 @@ const DISP_PURSUE_UNIT := "pursue_unit"
 const DISP_HOLD_TILE := "hold_tile"
 const DISP_HEAL := "heal"
 
+# Target-selection (engagement) policies EnemyAI._select_target implements. Both
+# ship a real behavior; validated so a typo'd profile can't request an unknown one.
+const ENG_NEAREST := "nearest"
+const ENG_WEAKEST := "weakest"
+const VALID_ENGAGEMENTS := [ENG_NEAREST, ENG_WEAKEST]
+
 # Author-facing profile id -> resolved axes. The three legacy names stay first
-# class so existing content and saves keep resolving unchanged.
+# class so existing content and saves keep resolving unchanged; `hunter` adds the
+# weakest-target focus-fire behavior on the existing pursue_unit disposition.
 const PROFILES := {
-	"basic":   {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": "nearest"},
-	"passive": {"activation": "always", "disposition": DISP_HOLD_TILE,   "engagement": "nearest"},
-	"healer":  {"activation": "always", "disposition": DISP_HEAL,        "engagement": "nearest"},
+	"basic":   {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_NEAREST},
+	"passive": {"activation": "always", "disposition": DISP_HOLD_TILE,   "engagement": ENG_NEAREST},
+	"healer":  {"activation": "always", "disposition": DISP_HEAL,        "engagement": ENG_NEAREST},
+	"hunter":  {"activation": "always", "disposition": DISP_PURSUE_UNIT, "engagement": ENG_WEAKEST},
 }
 
 # Fallback profile used when an id is not registered. Matches EnemyAI's old

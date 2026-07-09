@@ -13,4 +13,8 @@ extends RefCounted
 # behavior consumes them so we do not carry speculative dead fields.
 var activation: String = "always"
 var disposition: String = "pursue_unit"
+# Target-selection policy (design §9 `target_policy`): "nearest" picks the closest
+# hostile (path cost); "weakest" focus-fires the lowest-HP hostile. The targeting
+# dispositions (pursue_unit, hold_tile) honour this; heal/flee ignore it. Both
+# shipped values thread a real behavior — see EnemyAI._select_target.
 var engagement: String = "nearest"

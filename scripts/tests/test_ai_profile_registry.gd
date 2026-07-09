@@ -27,11 +27,14 @@ func _init() -> void:
 	else:
 		print("FAIL is_valid_profile accepted an unknown profile"); failed += 1
 
-	# ---- valid_profile_ids: exactly the three shipped profiles (no vocabulary
-	# opened ahead of its behavior in steps 1-2) ----
+	# ---- valid_profile_ids: exactly the shipped profiles — the 3 legacy names plus
+	# `hunter` (the non-schema weakest-target slice). No vocabulary is opened ahead
+	# of its behavior: every id here resolves to a disposition/engagement EnemyAI
+	# honours today. ----
 	var ids: Array = AIProfileRegistry.valid_profile_ids()
-	if ids.size() == 3 and ids.has("basic") and ids.has("passive") and ids.has("healer"):
-		print("OK  valid_profile_ids = the three shipped profiles"); passed += 1
+	if ids.size() == 4 and ids.has("basic") and ids.has("passive") and ids.has("healer") \
+			and ids.has("hunter"):
+		print("OK  valid_profile_ids = the shipped profiles (basic/passive/healer/hunter)"); passed += 1
 	else:
 		print("FAIL valid_profile_ids = %s" % str(ids)); failed += 1
 
@@ -60,6 +63,29 @@ func _init() -> void:
 		print("OK  resolve_ai_spec(unknown) falls back to pursue_unit"); passed += 1
 	else:
 		print("FAIL resolve_ai_spec(unknown) fallback"); failed += 1
+
+	# ---- hunter: shipped weakest-target profile on the existing pursue_unit
+	# disposition (non-schema target_policy slice) ----
+	var hunter: RefCounted = AIProfileRegistry.resolve_ai_spec("hunter")
+	if hunter.disposition == AIProfileRegistry.DISP_PURSUE_UNIT \
+			and hunter.engagement == AIProfileRegistry.ENG_WEAKEST \
+			and hunter.activation == "always" \
+			and AIProfileRegistry.is_valid_profile("hunter"):
+		print("OK  resolve_ai_spec(hunter) -> pursue_unit / always / weakest, boot-valid"); passed += 1
+	else:
+		print("FAIL resolve_ai_spec(hunter): %s/%s/%s valid=%s" % [
+			hunter.activation, hunter.disposition, hunter.engagement,
+			AIProfileRegistry.is_valid_profile("hunter")]); failed += 1
+
+	# Every registered profile's engagement must be a known policy (no typo'd axis).
+	var all_eng_valid := true
+	for pid in AIProfileRegistry.valid_profile_ids():
+		if not (AIProfileRegistry.resolve_ai_spec(pid).engagement in AIProfileRegistry.VALID_ENGAGEMENTS):
+			all_eng_valid = false
+	if all_eng_valid:
+		print("OK  every profile's engagement is a VALID_ENGAGEMENTS value"); passed += 1
+	else:
+		print("FAIL a profile declares an unknown engagement policy"); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

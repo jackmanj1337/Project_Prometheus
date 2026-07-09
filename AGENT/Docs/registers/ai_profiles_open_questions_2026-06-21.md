@@ -1,7 +1,7 @@
 ---
 Type: register
 Status: RESOLVED 2026-06-22e
-Last verified: 2026-06-23
+Last verified: 2026-07-09
 Register: AIP-1..16
 Resolved-in: 2026-06-21k / 2026-06-22c / 2026-06-22e
 ---
@@ -268,6 +268,14 @@ restore it or a reloaded map could re-sleep a woken room.
    event-aggro bridge). Planner reads the new spec next activation (vision §4 rule 3).
 8. **`target_policy` modifier** — thread through the target-selection step (`_find_nearest`
    call sites) so `weakest` focus-fire applies to any targeting disposition.
+   > **Engine behaviour + `hunter` preset LANDED 2026-07-09f (non-schema slice):** `EnemyAI
+   > ._select_target()` now dispatches `nearest`/`weakest` (design §9) across the targeting
+   > dispositions, and the `AIProfileRegistry` `hunter` profile
+   > (`always`/`pursue_unit`/`weakest`) ships it. Pulled forward from step 4 because it reuses
+   > the existing `pursue_unit` disposition and needs no `ai_awake` save field. Determinism
+   > preserved (no RNG in selection; `nearest` path byte-identical). STILL GATED: the
+   > author-facing **per-placement `target_policy` key** (§2a) rides the `enemy_placements`
+   > save-schema at the F1 lock — only the profile-resolved axis is open today.
 9. **`is_boss` compose** — `guard_tile` + throne-bonus, no new profile ([AIP-1]).
 
 ## 5. Test notes

@@ -579,6 +579,52 @@ func _init() -> void:
 	if real_combat_resolver != null:
 		root.add_child(real_combat_resolver)
 
+	# ---- _find_weakest / _select_target: engagement policy (target_policy) ----
+	# Positions chosen so nearest != weakest: the strong unit is closest, the weak
+	# unit is farthest. Proves the policy actually redirects target selection.
+	var eng_from: Node = stub_script.new(); eng_from.set("tile_position", Vector2i(0, 0))
+	var strong_u: Node = stub_script.new(); strong_u.set("tile_position", Vector2i(1, 0))
+	var mid_u: Node = stub_script.new(); mid_u.set("tile_position", Vector2i(3, 0))
+	var weak_u: Node = stub_script.new(); weak_u.set("tile_position", Vector2i(6, 0))
+	for pair in [[strong_u, 20], [mid_u, 12], [weak_u, 5]]:
+		var d := UnitData.new(); d.max_hp = 20; d.hp = pair[1]
+		pair[0].set("data", d)
+		root.add_child(pair[0])
+	root.add_child(eng_from)
+	var eng_units: Array[Node] = [strong_u, mid_u, weak_u]
+	var w_pick: Node = ai._find_weakest(eng_from, eng_units)
+	var AIProfileRegistryS = load("res://scripts/core/AIProfileRegistry.gd")
+	var sel_weak: Node = ai._select_target(eng_from, eng_units, AIProfileRegistryS.ENG_WEAKEST)
+	var sel_near: Node = ai._select_target(eng_from, eng_units, AIProfileRegistryS.ENG_NEAREST)
+	# Nearest-path proof: the "nearest" dispatch is byte-identical to _find_nearest,
+	# so existing (all-nearest) profiles' selection — and thus their RNG chain — is
+	# unchanged by this change.
+	var near_unchanged: bool = sel_near == ai._find_nearest(eng_from, eng_units)
+	# Determinism: repeated weakest picks are stable.
+	var w_deterministic: bool = ai._find_weakest(eng_from, eng_units) == w_pick
+	if w_pick == weak_u and sel_weak == weak_u and sel_near == strong_u \
+			and near_unchanged and w_deterministic:
+		print("OK  _select_target: weakest focus-fires low-HP unit, nearest unchanged & deterministic")
+		passed += 1
+	else:
+		print("FAIL _select_target: w_pick=%s sel_weak=%s sel_near=%s near_unchanged=%s det=%s" % [
+			w_pick, sel_weak, sel_near, near_unchanged, w_deterministic])
+		failed += 1
+
+	# ---- _find_weakest tie-break: equal HP → nearer wins ----
+	var tie_a: Node = stub_script.new(); tie_a.set("tile_position", Vector2i(5, 0))
+	var tie_b: Node = stub_script.new(); tie_b.set("tile_position", Vector2i(2, 0))
+	for tnode in [tie_a, tie_b]:
+		var td := UnitData.new(); td.max_hp = 20; td.hp = 7
+		tnode.set("data", td)
+		root.add_child(tnode)
+	if ai._find_weakest(eng_from, [tie_a, tie_b] as Array[Node]) == tie_b:
+		print("OK  _find_weakest tie: equal HP breaks toward the nearer unit")
+		passed += 1
+	else:
+		print("FAIL _find_weakest tie-break")
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
 

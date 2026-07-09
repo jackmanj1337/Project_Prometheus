@@ -36,16 +36,25 @@ Implemented behavior is selected by `UnitData.ai_profile`. The former closed
 const. Adding a profile is one registry entry + one disposition handler — no engine
 `match` edit (`B5-AI-COMPOSITION`, invariant 1: "no behavior hardcoded in a match").
 
-The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, the
-`weakest` target policy, grouping, event/`set_ai` activation, and difficulty
-overlays — are build-slice steps 3-6 and stay **Planned**; step 3 is gated on the
-`ai_awake` save-slice (see `GDD_10` "Gated build items"). The handlers still plan and
-execute inline; a pure `plan_action` (the action-preview dry-run + `[VAL]`
-prerequisite) rides step 3.
+The **`engagement` axis** (design §9 `target_policy`) is honoured by the targeting
+dispositions via `EnemyAI._select_target()`: `nearest` (the closest hostile by path
+cost — the byte-identical legacy behaviour) and `weakest` (focus-fire the lowest-HP
+hostile; ties break toward the nearer unit). The shipped **`hunter`** profile
+(`always`/`pursue_unit`/`weakest`) selects it — a non-schema slice pulled forward from
+step 4 because it reuses the existing `pursue_unit` disposition and needs no `ai_awake`
+save field. No RNG is drawn in target selection, so existing `nearest` profiles' chain
+is unchanged.
+
+The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, grouping,
+event/`set_ai` activation, and difficulty overlays — are build-slice steps 3-6 and stay
+**Planned**; step 3 is gated on the `ai_awake` save-slice (see `GDD_10` "Gated build
+items"). The handlers still plan and execute inline; a pure `plan_action` (the
+action-preview dry-run + `[VAL]` prerequisite) rides step 3.
 
 > **MVP scope vs. design.** The implemented AI is deliberately simple: it moves toward
-> the nearest hostile target and attacks the nearest target in range — there is no
-> kill-score heuristic and no counter-damage avoidance yet. The richer
+> and attacks a hostile chosen by the profile's `engagement` policy (`nearest`, or
+> `weakest` focus-fire for `hunter`) — there is no full kill-score heuristic and no
+> counter-damage avoidance yet. The richer
 > scoring/positioning model and the extra profiles at the end of this document are
 > Phase 2 work. This document describes the **implemented** behaviour first, then the
 > design backlog.

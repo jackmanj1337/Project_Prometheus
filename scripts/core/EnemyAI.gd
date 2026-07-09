@@ -96,7 +96,9 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		# Unknown disposition is unreachable (boot validation rejects unknown
 		# profiles); mirror the old `_: pass` by falling back to pursue_unit.
 		handler = _disposition_pursue_unit
-	await handler.call(enemy, grid, turn, acting_faction)
+	# The resolved spec threads through so each handler's target-selection step can
+	# honour the engagement policy (nearest vs weakest) instead of assuming nearest.
+	await handler.call(enemy, grid, turn, acting_faction, spec)
 
 
 # Disposition id -> handler Callable — the single seam a new AI behavior
@@ -113,7 +115,8 @@ func _disposition_handlers() -> Dictionary:
 # pursue_unit disposition (the former inline `basic` path): advance toward the
 # nearest hostile, attack from the best reachable tile, staff-heal fallback, else
 # commit a Wait. Behavior + RNG chain unchanged from the pre-registry dispatch.
-func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: String = "red") -> void:
+func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager,
+		acting_faction: String = "red", spec: RefCounted = null) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
@@ -125,9 +128,11 @@ func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager,
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 		return
 
-	var nearest: Node = _find_nearest(enemy, hostiles, grid)
+	# Pick the unit to advance toward per the engagement policy (nearest / weakest);
+	# `weakest` threads into the move-tile pick too (design §9).
+	var pursue_target: Node = _select_target(enemy, hostiles, _engagement_of(spec), grid)
 	var move_tiles: Array[Vector2i] = grid.get_movement_range(enemy)
-	var best_tile: Vector2i = _choose_move_tile(enemy, nearest, hostiles, move_tiles, grid)
+	var best_tile: Vector2i = _choose_move_tile(enemy, pursue_target, hostiles, move_tiles, grid)
 
 	if best_tile != enemy.tile_position:
 		var path := grid.get_movement_path(enemy, best_tile)
@@ -155,7 +160,7 @@ func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager,
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
 		if not targets.is_empty():
-			var target: Node = _find_nearest(enemy, targets)
+			var target: Node = _select_target(enemy, targets, _engagement_of(spec))
 			var cr := get_node_or_null("/root/CombatResolver")
 			if cr and is_instance_valid(target):
 				# AI attacks chain identically to blue's (RNG-1): same canonical
@@ -176,7 +181,8 @@ func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager,
 
 # hold_tile disposition (the former `passive` path): hold position; only attack
 # if a player is already in attack range. Behavior + RNG chain unchanged.
-func _disposition_hold_tile(enemy: Node, grid: GridManager, turn: TurnManager, _acting_faction: String = "red") -> void:
+func _disposition_hold_tile(enemy: Node, grid: GridManager, turn: TurnManager,
+		_acting_faction: String = "red", spec: RefCounted = null) -> void:
 	if _debug_hotseat_override_active(turn):
 		return
 	if is_instance_valid(enemy):
@@ -188,7 +194,7 @@ func _disposition_hold_tile(enemy: Node, grid: GridManager, turn: TurnManager, _
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
 		if not targets.is_empty():
-			var target: Node = _find_nearest(enemy, targets)
+			var target: Node = _select_target(enemy, targets, _engagement_of(spec))
 			var cr := get_node_or_null("/root/CombatResolver")
 			if cr and is_instance_valid(target):
 				# Passive units attack in place — from_tile == live tile.
@@ -207,7 +213,10 @@ func _disposition_hold_tile(enemy: Node, grid: GridManager, turn: TurnManager, _
 # heal disposition (the former `healer` path): move toward injured allies, heal
 # the most-injured one in range. Behavior + RNG chain unchanged.
 func _disposition_heal(enemy: Node, grid: GridManager, turn: TurnManager,
-		acting_faction: String = "red") -> void:
+		acting_faction: String = "red", _spec: RefCounted = null) -> void:
+	# Engagement policy does not apply to healing — the heal target is the most-
+	# injured ally, not a hostile — so `_spec` is accepted only for a uniform
+	# handler signature (the dispatch calls every handler the same way).
 	if _debug_hotseat_override_active(turn):
 		return
 	var gs := get_node_or_null("/root/GameState")
@@ -278,8 +287,10 @@ func _choose_heal_move_tile(enemy: Node, move_tiles: Array[Vector2i],
 
 # Among move_tiles, pick the tile from which the enemy can attack a player.
 # Prefer tiles adjacent to the nearest player; fall back to simply closing distance.
-func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
+func _choose_move_tile(enemy: Node, approach_target: Node, all_players: Array[Node],
 		move_tiles: Array[Vector2i], grid: GridManager) -> Vector2i:
+	# `approach_target` is the engagement-selected unit to close on (nearest or, for
+	# focus-fire profiles, the weakest); the pick threads through to the move tile.
 	var best_attack_tile: Vector2i = enemy.tile_position
 	var best_attack_dist: int = GameConstants.INT_MAX
 	for tile in move_tiles:
@@ -287,20 +298,20 @@ func _choose_move_tile(enemy: Node, nearest: Node, all_players: Array[Node],
 			if not is_instance_valid(player):
 				continue
 			if grid.can_attack_from_tile(enemy, tile, player):
-				var d: int = absi(tile.x - nearest.tile_position.x) \
-					+ absi(tile.y - nearest.tile_position.y)
+				var d: int = absi(tile.x - approach_target.tile_position.x) \
+					+ absi(tile.y - approach_target.tile_position.y)
 				if d < best_attack_dist:
 					best_attack_dist = d
 					best_attack_tile = tile
 	if best_attack_dist < GameConstants.INT_MAX:
 		return best_attack_tile
 
-	# No attack possible — move as close to nearest player as possible
+	# No attack possible — move as close to the approach target as possible
 	var best_move: Vector2i = enemy.tile_position
 	var best_dist: int = GameConstants.INT_MAX
 	for tile in move_tiles:
-		var d: int = absi(tile.x - nearest.tile_position.x) \
-			+ absi(tile.y - nearest.tile_position.y)
+		var d: int = absi(tile.x - approach_target.tile_position.x) \
+			+ absi(tile.y - approach_target.tile_position.y)
 		if d < best_dist:
 			best_dist = d
 			best_move = tile
@@ -337,6 +348,55 @@ func _try_staff_heal(enemy: Node, grid: GridManager, turn: TurnManager = null) -
 		] as Array[String])
 	enemy.perform_staff_heal(target, weapon)
 	return true
+
+
+# Engagement-policy dispatch: which hostile a targeting disposition goes after.
+# "nearest" preserves the pre-registry behavior byte-for-byte (so existing profiles'
+# RNG chain is unchanged); "weakest" focus-fires the lowest-HP hostile. Any other
+# value (incl. a null spec on the fallback path) is treated as nearest.
+func _select_target(from_unit: Node, units: Array[Node], engagement: String,
+		grid: GridManager = null) -> Node:
+	if engagement == AIProfileRegistry.ENG_WEAKEST:
+		return _find_weakest(from_unit, units, grid)
+	return _find_nearest(from_unit, units, grid)
+
+
+# Null-safe read of the engagement axis; defaults to nearest when the spec is
+# absent (the unreachable-disposition fallback, or a direct handler call in a test).
+func _engagement_of(spec: RefCounted) -> String:
+	if spec == null:
+		return AIProfileRegistry.ENG_NEAREST
+	return spec.engagement
+
+
+# Returns the unit from `units` with the lowest current HP (focus-fire). Ties break
+# toward the nearer unit — path cost when `grid` is supplied, else Manhattan — then
+# by array order (first wins), so the pick is fully deterministic given a
+# deterministic candidate list. No RNG is drawn here; combat draws happen later.
+func _find_weakest(from_unit: Node, units: Array[Node], grid: GridManager = null) -> Node:
+	var costs: Dictionary = {}
+	if grid != null:
+		costs = grid.dijkstra_costs(from_unit.tile_position, GameConstants.INT_MAX, true, null)
+	var best: Node = null
+	var best_hp: int = GameConstants.INT_MAX
+	var best_dist: int = GameConstants.INT_MAX
+	for u in units:
+		if not is_instance_valid(u) or u.data == null:
+			continue
+		var hp: int = u.data.hp
+		var dist: int
+		if grid != null:
+			dist = costs.get(u.tile_position, GameConstants.INT_MAX)
+		else:
+			dist = absi(u.tile_position.x - from_unit.tile_position.x) \
+				+ absi(u.tile_position.y - from_unit.tile_position.y)
+		# Strictly-less on the (hp, dist) pair — first-in-array wins a full tie,
+		# mirroring _find_nearest's tie discipline.
+		if hp < best_hp or (hp == best_hp and dist < best_dist):
+			best_hp = hp
+			best_dist = dist
+			best = u
+	return best
 
 
 # Returns the unit from `units` with the lowest real pathfinding cost from `from_unit`.
