@@ -5,6 +5,10 @@ extends Node
 # Used to recognise (and skip) paired supports parked off the grid. See the guard
 # in _living_hostiles_for_faction.
 const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+# Composition-engine seam: profile id -> AISpec (activation/disposition/engagement).
+# Replaces the closed `match enemy.data.ai_profile` below (invariant 1). See
+# AGENT/Docs/design/ai_first_build_design_2026-06-22.md §2.
+const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 
 # Runs one faction's living units sequentially.
 # Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
@@ -74,17 +78,42 @@ func _focus_camera(unit: Node) -> void:
 		await get_tree().create_timer(delay).timeout
 
 
-# One enemy's turn: dispatch on ai_profile, then mark DONE.
+# One enemy's turn: resolve the unit's AISpec and dispatch to its disposition
+# handler, then the handler marks the unit DONE. The disposition table is the
+# composition-engine seam that replaced `match enemy.data.ai_profile` (invariant
+# 1: no behavior hardcoded in a match) — adding a behavior is one registry id +
+# one handler entry, never an engine `match` edit. The handlers still plan and
+# execute inline; extracting a pure `plan_action` (the deferred action-preview
+# dry-run + [VAL] prerequisite) rides build-slice step 3 with the new dispositions.
 func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: String = "red") -> void:
 	if enemy.data == null:
 		return
 	if _debug_hotseat_override_active(turn):
 		return
-	match enemy.data.ai_profile:
-		"passive": await _act_passive(enemy, grid, turn, acting_faction); return
-		"healer":  await _act_healer(enemy, grid, turn, acting_faction);  return
-		_: pass  # "basic" falls through to standard logic
+	var spec: RefCounted = AIProfileRegistry.resolve_ai_spec(enemy.data.ai_profile)
+	var handler: Callable = _disposition_handlers().get(spec.disposition, Callable())
+	if not handler.is_valid():
+		# Unknown disposition is unreachable (boot validation rejects unknown
+		# profiles); mirror the old `_: pass` by falling back to pursue_unit.
+		handler = _disposition_pursue_unit
+	await handler.call(enemy, grid, turn, acting_faction)
 
+
+# Disposition id -> handler Callable — the single seam a new AI behavior
+# registers on. Rebuilt per call (cheap; a few entries) so the Callables always
+# bind the live `self`.
+func _disposition_handlers() -> Dictionary:
+	return {
+		AIProfileRegistry.DISP_PURSUE_UNIT: _disposition_pursue_unit,
+		AIProfileRegistry.DISP_HOLD_TILE:   _disposition_hold_tile,
+		AIProfileRegistry.DISP_HEAL:        _disposition_heal,
+	}
+
+
+# pursue_unit disposition (the former inline `basic` path): advance toward the
+# nearest hostile, attack from the best reachable tile, staff-heal fallback, else
+# commit a Wait. Behavior + RNG chain unchanged from the pre-registry dispatch.
+func _disposition_pursue_unit(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: String = "red") -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
@@ -145,8 +174,9 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 
 
-# Passive: hold position; only attack if a player is already in attack range.
-func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_faction: String = "red") -> void:
+# hold_tile disposition (the former `passive` path): hold position; only attack
+# if a player is already in attack range. Behavior + RNG chain unchanged.
+func _disposition_hold_tile(enemy: Node, grid: GridManager, turn: TurnManager, _acting_faction: String = "red") -> void:
 	if _debug_hotseat_override_active(turn):
 		return
 	if is_instance_valid(enemy):
@@ -174,8 +204,9 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 		turn.set_unit_state(enemy, TurnManager.UnitState.DONE)
 
 
-# Healer: move toward injured allies, heal the most-injured one in range.
-func _act_healer(enemy: Node, grid: GridManager, turn: TurnManager,
+# heal disposition (the former `healer` path): move toward injured allies, heal
+# the most-injured one in range. Behavior + RNG chain unchanged.
+func _disposition_heal(enemy: Node, grid: GridManager, turn: TurnManager,
 		acting_faction: String = "red") -> void:
 	if _debug_hotseat_override_active(turn):
 		return

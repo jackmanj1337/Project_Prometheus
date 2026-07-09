@@ -95,10 +95,16 @@ remaining rows stay safe parallel candidates.
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Return intake DONE 2026-07-08. | Kit executed: returned checklist copied ([`playtest_checklist_v0.3.0_returned_2026-07-08.md`](../Docs/playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md)), evidence archived, triage plan + owner review written. Both gates stay open; see the Next Work Queue. |
-| 2 | `B2-REGISTRY` plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Start the open-registry debt stream. | Convert the known closed vocabularies toward registries: objective conditions `[TCV-4]`, AI profiles `[AIP]`, and stat names/model `[STM]`. Best technical progress; use a separate commit stream from v0.3.0 validation. |
+| 2 | `B2-REGISTRY` plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Start the open-registry debt stream. | Convert the known closed vocabularies toward registries: objective conditions `[TCV-4]`, AI profiles `[AIP]`, and stat names/model `[STM]`. Best technical progress; use a separate commit stream from v0.3.0 validation. **AI (`B5-AI-COMPOSITION`) is in progress:** build-slice steps 1-2 of `ai_first_build_design_2026-06-22.md` (AISpec + `resolve_ai_spec` + pure planner seam replacing the closed `match`, porting `basic`/`passive`/`healer` with zero behavior change) land now — no save-schema touch, so unblocked. **Objective conditions `[TCV-4]` stay planning-only** here: they are pre-F1 schema-affecting (reference the `[TCV-1]` typed var store + `[REQ]` predicates), so do not build ahead of the F1 schema-lock. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |
+
+### Gated build items (blocked, tracked so they aren't lost)
+
+| Track ID | Blocked item | Blocked on |
+|---|---|---|
+| `B5-AI-COMPOSITION` (step 3+) | The MVP dispositions + activation from `ai_first_build_design_2026-06-22.md` §9 steps 3-6: `territorial`/`tethered` (sleep+latch / leashed return-home), `flee` (±`goal_tile`), `seek_tile`, the `target_policy` `weakest` thread, group-keyed aggro, and the MET `set_ai` action. | **Band 1 / F1 save-slice.** `territorial`/`tethered` need the `ai_awake` per-unit (per-`group_id`) snapshot field ([AIP-5]); adding a save field is a schema-affecting change that must wait for the F1 schema-lock rather than front-run it. Steps 1-2 (the planner seam) land now because they touch no save schema; resume step 3 once the save envelope admits `ai_awake`. |
 
 ## Validation And Release Queues
 

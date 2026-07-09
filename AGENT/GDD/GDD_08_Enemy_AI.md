@@ -26,11 +26,22 @@ non-blue faction authored as `controller = "AI"`, it awaits
 `EnemyAI.run_phase(grid, turn, faction_id)`, then advances to the next faction in the
 map's authored `turn_order`.
 
-Implemented behavior is selected by `UnitData.ai_profile`. This is a legacy closed
-dispatch path. Target `B5-AI-COMPOSITION` replaces it with an AISpec/profile registry:
-activation, disposition, engagement scoring, target policy, grouping, and difficulty
-overlays are data-composed profiles/presets. Adding a new author profile should not
-require a new `_act()` branch unless it needs a genuinely new engine primitive.
+Implemented behavior is selected by `UnitData.ai_profile`. The former closed
+`match enemy.data.ai_profile` was replaced (build-slice steps 1-2 of
+`ai_first_build_design_2026-06-22.md`) by the **AISpec composition seam**:
+`AIProfileRegistry.resolve_ai_spec()` maps a profile id to an `AISpec`
+(`activation`/`disposition`/`engagement`), and `EnemyAI._act()` dispatches through a
+`disposition id -> handler` table. Boot validation (`DataManager`) now queries
+`AIProfileRegistry.is_valid_profile()` instead of a closed `_VALID_AI_PROFILES`
+const. Adding a profile is one registry entry + one disposition handler — no engine
+`match` edit (`B5-AI-COMPOSITION`, invariant 1: "no behavior hardcoded in a match").
+
+The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, the
+`weakest` target policy, grouping, event/`set_ai` activation, and difficulty
+overlays — are build-slice steps 3-6 and stay **Planned**; step 3 is gated on the
+`ai_awake` save-slice (see `GDD_10` "Gated build items"). The handlers still plan and
+execute inline; a pure `plan_action` (the action-preview dry-run + `[VAL]`
+prerequisite) rides step 3.
 
 > **MVP scope vs. design.** The implemented AI is deliberately simple: it moves toward
 > the nearest hostile target and attacks the nearest target in range — there is no
@@ -56,13 +67,21 @@ func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void
         if is_instance_valid(enemy):
             await _act(enemy, grid, turn)
 
-# Implemented legacy dispatch on ai_profile; target AISpec/profile registry replaces this.
+# AISpec composition seam (replaced the closed `match enemy.data.ai_profile`).
 func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
-    match enemy.data.ai_profile:
-        "passive": await _act_passive(enemy, grid, turn)
-        "healer":  await _act_healer(enemy, grid, turn)
-        _:         # "basic" — the default; standard close-and-attack logic
-            ...
+    var spec := AIProfileRegistry.resolve_ai_spec(enemy.data.ai_profile)
+    var handler: Callable = _disposition_handlers().get(spec.disposition, Callable())
+    if not handler.is_valid():
+        handler = _disposition_pursue_unit  # unreachable; mirrors the old `_: pass`
+    await handler.call(enemy, grid, turn, faction_id)
+
+# The single seam a new behavior registers on — no engine `match` edit.
+func _disposition_handlers() -> Dictionary:
+    return {
+        AIProfileRegistry.DISP_PURSUE_UNIT: _disposition_pursue_unit,  # was "basic"
+        AIProfileRegistry.DISP_HOLD_TILE:   _disposition_hold_tile,    # was "passive"
+        AIProfileRegistry.DISP_HEAL:        _disposition_heal,         # was "healer"
+    }
 ```
 
 `ai_profile` is stored on `UnitData` (`@export var ai_profile: String = "basic"`) and

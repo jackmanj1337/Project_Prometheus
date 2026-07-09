@@ -9,11 +9,14 @@ extends Node
 # exist yet during DataManager._ready). Const access only — no instance needed.
 const ItemHandlerScript = preload("res://scripts/items/ItemHandler.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
+# AI profiles are validated against the open AIProfileRegistry (the composition
+# engine seam) rather than a closed const — adding a profile no longer needs a
+# DataManager edit. See AIProfileRegistry.gd.
+const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
 const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
-const _VALID_AI_PROFILES := ["basic", "passive", "healer"]
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -468,7 +471,7 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 			errors.append("DataManager: map '%s' enemy placement references unknown faction '%s'" % [
 				map_path, placement_faction])
 		var ai_profile: String = String(placement.get("ai_profile", "basic"))
-		if not (ai_profile in _VALID_AI_PROFILES):
+		if not AIProfileRegistry.is_valid_profile(ai_profile):
 			errors.append("DataManager: map '%s' enemy placement ai_profile '%s' is not valid" % [
 				map_path, ai_profile])
 		if placement.has("tile"):
@@ -696,7 +699,7 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 			if int(unit.weapon_wexp[track]) < 0:
 				errors.append("DataManager: unit '%s' weapon_wexp['%s'] cannot be negative" % [
 					unit.unit_id, track_id])
-		if not (unit.ai_profile in _VALID_AI_PROFILES):
+		if not AIProfileRegistry.is_valid_profile(unit.ai_profile):
 			errors.append("DataManager: unit '%s' ai_profile '%s' is not valid" % [
 				unit.unit_id, unit.ai_profile])
 	return errors
