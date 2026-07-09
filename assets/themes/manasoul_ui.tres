@@ -1,0 +1,106 @@
+[gd_resource type="Theme" load_steps=11 format=3]
+
+; Mana Soul GUI theme (CC0, tiopalada) — first vertical-slice wiring of the
+; Draft UI assets into the engine. Panels use the 96x96 ornate 9-slice frame;
+; Buttons use two frames of the 384x22 button strip (blue normal + darker
+; pressed), with hover/disabled/focus derived via modulate_color so we don't
+; have to guess at per-state art. Texture/content margins are hand-set from
+; measured border geometry and are the main things to fine-tune in-editor.
+
+[ext_resource type="Texture2D" uid="uid://cwwlj5obp7bon" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250420manaSoul9SlicesA-Sheet.png" id="1_panel"]
+[ext_resource type="Texture2D" uid="uid://crd4uvoolhm8x" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250421manaSoulButtonA-Sheet.png" id="2_btn"]
+
+; Button strip is 384x22 = 4 frames of 96x22. Frame 2 (blue) = normal, frame 3
+; (darker blue) = pressed. Regions are the easy thing to re-point if the frame
+; semantics differ from what the sheet suggests.
+[sub_resource type="AtlasTexture" id="Atlas_btn_normal"]
+atlas = ExtResource("2_btn")
+region = Rect2(192, 0, 96, 22)
+
+[sub_resource type="AtlasTexture" id="Atlas_btn_pressed"]
+atlas = ExtResource("2_btn")
+region = Rect2(288, 0, 96, 22)
+
+; Panel: ornate corners ~20px; content inset 14px so children clear the border.
+[sub_resource type="StyleBoxTexture" id="SB_panel"]
+texture = ExtResource("1_panel")
+texture_margin_left = 20.0
+texture_margin_top = 20.0
+texture_margin_right = 20.0
+texture_margin_bottom = 20.0
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxTexture" id="SB_btn_normal"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 14.0
+texture_margin_top = 4.0
+texture_margin_right = 14.0
+texture_margin_bottom = 4.0
+content_margin_left = 12.0
+content_margin_top = 3.0
+content_margin_right = 12.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxTexture" id="SB_btn_hover"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 14.0
+texture_margin_top = 4.0
+texture_margin_right = 14.0
+texture_margin_bottom = 4.0
+content_margin_left = 12.0
+content_margin_top = 3.0
+content_margin_right = 12.0
+content_margin_bottom = 3.0
+modulate_color = Color(1.25, 1.25, 1.15, 1)
+
+[sub_resource type="StyleBoxTexture" id="SB_btn_pressed"]
+texture = SubResource("Atlas_btn_pressed")
+texture_margin_left = 14.0
+texture_margin_top = 4.0
+texture_margin_right = 14.0
+texture_margin_bottom = 4.0
+content_margin_left = 12.0
+content_margin_top = 3.0
+content_margin_right = 12.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxTexture" id="SB_btn_disabled"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 14.0
+texture_margin_top = 4.0
+texture_margin_right = 14.0
+texture_margin_bottom = 4.0
+content_margin_left = 12.0
+content_margin_top = 3.0
+content_margin_right = 12.0
+content_margin_bottom = 3.0
+modulate_color = Color(0.5, 0.5, 0.55, 0.55)
+
+[sub_resource type="StyleBoxTexture" id="SB_btn_focus"]
+texture = SubResource("Atlas_btn_normal")
+texture_margin_left = 14.0
+texture_margin_top = 4.0
+texture_margin_right = 14.0
+texture_margin_bottom = 4.0
+content_margin_left = 12.0
+content_margin_top = 3.0
+content_margin_right = 12.0
+content_margin_bottom = 3.0
+modulate_color = Color(1.45, 1.4, 0.95, 1)
+
+[resource]
+Button/colors/font_color = Color(0.93, 0.92, 0.82, 1)
+Button/colors/font_hover_color = Color(1, 1, 0.9, 1)
+Button/colors/font_pressed_color = Color(1, 1, 0.85, 1)
+Button/colors/font_disabled_color = Color(0.6, 0.6, 0.62, 1)
+Button/colors/font_focus_color = Color(1, 1, 0.9, 1)
+Button/styles/normal = SubResource("SB_btn_normal")
+Button/styles/hover = SubResource("SB_btn_hover")
+Button/styles/pressed = SubResource("SB_btn_pressed")
+Button/styles/disabled = SubResource("SB_btn_disabled")
+Button/styles/focus = SubResource("SB_btn_focus")
+Panel/styles/panel = SubResource("SB_panel")
+PanelContainer/styles/panel = SubResource("SB_panel")
