@@ -1,6 +1,6 @@
 # Display & Settings Guide
 
-**Last verified:** 2026-07-07
+**Last verified:** 2026-07-10
 
 Explains how the game's **window mode**, **resolution**, **OS display scaling**, and
 the on-disk **settings.cfg** interact — so window sizing that looks surprising (e.g. a
@@ -84,14 +84,17 @@ remembering a request the window no longer honours:
 - Programmatic resizes (applying the dropdown value) are excluded — the write-back only
   fires when the size differs from what `_apply_display` itself requested, so a clamped
   4K request does not overwrite itself with the clamped result.
-- Detection rides the same viewport `size_changed` hook that re-applies Menu Scale after
-  a resize (V027-04a), coalesced to one pass per settled frame.
+- Detection rides both viewport and root-Window `size_changed` hooks, coalesced to one
+  pass per settled frame. The root-Window hook exists because one-axis edge drags under
+  the kept 16:9 viewport can change the OS client size without changing the viewport.
 
 **The Windows maximize button is treated as a window STATE, not a resolution (V028-03,
 owner decision Q2 2026-07-07).** Maximizing no longer overwrites your saved Resolution
 with the maximized client size (which used to produce a stray `Custom (3840x2071)`);
 `SettingsManager.resize_write_back_action` ignores the maximized state, and **un-maximizing
-restores your chosen windowed size**. The old symptom where the Settings panel drifted
+restores your chosen windowed size**. Settings still refreshes its live readout from the
+settled display-size notification, so a maximized Windowed window shows `Maximized (WxH)`
+without persisting that size. The old symptom where the Settings panel drifted
 off-center after maximizing (and only re-centered after another size/scale change) is
 fixed at the cause: each menu panel now re-centers reactively from its own `resized`
 signal the instant the engine settles the new size, instead of guessing the settle frame

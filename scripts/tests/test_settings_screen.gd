@@ -537,6 +537,40 @@ func _init() -> void:
 	else:
 		print("SKIP V027-05c gray-out (SettingsManager autoload absent)")
 
+	# V030D-DSP-01: maximize/restored resizes do not emit resolution_written_back
+	# because the resolution must not be persisted. The Settings readout still has
+	# to refresh from SettingsManager's settled display-size notification.
+	var sm_live_size := root.get_node_or_null("SettingsManager")
+	if sm_live_size != null and sm_live_size.has_signal("display_size_changed"):
+		var lbl_live: Label = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxResolution/LabelResolutionApplied")
+		var opt_live: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxResolution/OptResolution")
+		var prev_live_res: String = String(sm_live_size.get("resolution"))
+		var prev_live_mode: String = String(sm_live_size.get("window_mode"))
+		sm_live_size.set("window_mode", "borderless")
+		sm_live_size.set("resolution", "1800x1013")
+		screen.open()
+		var before_live_text: String = String(lbl_live.text)
+		sm_live_size.set("window_mode", "windowed")
+		sm_live_size.emit_signal("display_size_changed")
+		await process_frame
+		var display_signal_refresh_ok: bool = String(lbl_live.text) == "client 1800x1013" \
+			and before_live_text != String(lbl_live.text) \
+			and not opt_live.disabled
+		sm_live_size.set("resolution", prev_live_res)
+		sm_live_size.set("window_mode", prev_live_mode)
+		screen._on_back()
+		if display_signal_refresh_ok:
+			print("OK  V030D-DSP-01 Settings readout refreshes on display_size_changed")
+			passed += 1
+		else:
+			print("FAIL V030D-DSP-01 display signal refresh: before='%s' after='%s' disabled=%s" % [
+				before_live_text, lbl_live.text, opt_live.disabled])
+			failed += 1
+	else:
+		print("SKIP V030D-DSP-01 display signal refresh (SettingsManager autoload absent)")
+
 	# V030-DSP-01/Q4: a maximized window is a transient window state, so show its
 	# live client size without writing it back into the saved Resolution value.
 	var max_label: String = screen._applied_size_text(true, true, Vector2i(2368, 1310),

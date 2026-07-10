@@ -571,21 +571,34 @@ func _init() -> void:
 	var scale_target := ScaleTarget.new()
 	scale_target.add_to_group("menu_scale_targets")
 	root.add_child(scale_target)
+	var display_resize_signals: Array = []
+	if sm_rz.has_signal("display_size_changed"):
+		sm_rz.connect("display_size_changed", func() -> void:
+			display_resize_signals.append(true))
 	var calls_before: int = scale_target.calls
 	sm_rz.get_viewport().size_changed.emit()
 	sm_rz.get_viewport().size_changed.emit()
 	sm_rz.get_viewport().size_changed.emit()
 	await process_frame  # let the deferred re-apply run
 	var coalesced_ok: bool = scale_target.calls == calls_before + 1
+	var first_signal_ok: bool = display_resize_signals.size() == 1
 	sm_rz.get_viewport().size_changed.emit()
 	await process_frame
 	var refires_ok: bool = scale_target.calls == calls_before + 2
-	if coalesced_ok and refires_ok:
-		print("OK  V027-04a size_changed re-applies Menu Scale once per settled frame")
+	var second_signal_ok: bool = display_resize_signals.size() == 2
+	var calls_after_viewport: int = scale_target.calls
+	sm_rz.get_window().size_changed.emit()
+	sm_rz.get_window().size_changed.emit()
+	await process_frame
+	var window_hook_ok: bool = scale_target.calls == calls_after_viewport + 1 \
+		and display_resize_signals.size() == 3
+	if coalesced_ok and first_signal_ok and refires_ok and second_signal_ok and window_hook_ok:
+		print("OK  V027-04a resize hooks re-apply Menu Scale and announce settled size")
 		passed += 1
 	else:
-		print("FAIL V027-04a resize hook: before=%d after3=%d refire=%s" % [
-			calls_before, scale_target.calls, refires_ok])
+		print("FAIL V027-04a resize hook: before=%d calls=%d coalesced=%s refire=%s signals=%d window=%s" % [
+			calls_before, scale_target.calls, coalesced_ok, refires_ok,
+			display_resize_signals.size(), window_hook_ok])
 		failed += 1
 	scale_target.queue_free()
 	if sm_rz_owned:

@@ -64,6 +64,7 @@ var _capturing_action: String = ""
 var _capturing_slot: String = ""
 var _btn_apply_keybindings: Button = null
 var _btn_revert_keybindings: Button = null
+var _display_refresh_queued: bool = false
 
 # Data-driven schema for the OptionButton-style settings. Each row:
 #   key:    SettingsManager field name (used for both get/set)
@@ -214,8 +215,11 @@ func _ready() -> void:
 	_btn_edit_hud.pressed.connect(_on_edit_hud_layout)
 	_btn_back.pressed.connect(_on_back)
 	# V027-04b: follow OS drag-resize write-backs live while the screen is open.
-	if sm_for_display != null and sm_for_display.has_signal("resolution_written_back"):
-		sm_for_display.connect("resolution_written_back", _on_resolution_written_back)
+	if sm_for_display != null:
+		if sm_for_display.has_signal("resolution_written_back"):
+			sm_for_display.connect("resolution_written_back", _on_resolution_written_back)
+		if sm_for_display.has_signal("display_size_changed"):
+			sm_for_display.connect("display_size_changed", _on_display_size_changed)
 	_populate_keybindings()
 	super._ready()
 
@@ -438,6 +442,19 @@ func _on_resolution_written_back() -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm != null:
 		_sync_resolution_dropdown(sm)
+		_refresh_applied_size()
+
+
+func _on_display_size_changed() -> void:
+	if not visible or _display_refresh_queued:
+		return
+	_display_refresh_queued = true
+	_refresh_display_size_deferred.call_deferred()
+
+
+func _refresh_display_size_deferred() -> void:
+	_display_refresh_queued = false
+	if visible:
 		_refresh_applied_size()
 
 

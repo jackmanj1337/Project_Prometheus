@@ -11,6 +11,9 @@ signal settings_changed()
 # Emitted after an OS resize is written back into `resolution` (V027-04b/Q5) so
 # an open Settings screen can re-sync its Resolution dropdown + applied readout.
 signal resolution_written_back()
+# Emitted after any observed window/viewport resize pass settles. This includes
+# maximized/restored transitions that deliberately do not write back `resolution`.
+signal display_size_changed()
 
 # --- Audio (0–100 int scale) ---
 var master_volume: int = 80
@@ -172,8 +175,13 @@ func _ready() -> void:
 	# post-resize content-minimum change (font re-measure under the new stretch
 	# scale) grew a live scroll-frame panel off-screen with nobody re-centering
 	# it — the V026-01a failure shape, resize-triggered. One hook self-heals this
-	# and every future "layout changed under a live menu" variant.
+	# and every future "layout changed under a live menu" variant. Also listen to
+	# the root Window: with stretch/aspect=keep, one-axis edge drags can change the
+	# OS client size without changing the stretched viewport size.
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	var win := get_window()
+	if win != null:
+		win.size_changed.connect(_on_window_size_changed)
 
 
 func load_settings() -> void:
@@ -473,7 +481,15 @@ var _menu_scale_reapply_queued: bool = false
 
 
 func _on_viewport_size_changed() -> void:
-	_v030_trace_resize("viewport_size_changed", {
+	_queue_resize_refresh("viewport_size_changed")
+
+
+func _on_window_size_changed() -> void:
+	_queue_resize_refresh("window_size_changed")
+
+
+func _queue_resize_refresh(trace_label: String) -> void:
+	_v030_trace_resize(trace_label, {
 		"queued": _menu_scale_reapply_queued,
 	})
 	if _menu_scale_reapply_queued:
@@ -488,6 +504,7 @@ func _reapply_menu_scale_after_resize() -> void:
 	# bases, so re-applying never compounds (the V021-08 contract).
 	_apply_menu_scale()
 	_maybe_write_back_os_resize()
+	display_size_changed.emit()
 
 
 # V027-04b (Q5 owner decision: FULL write-back): while windowed, an OS EDGE DRAG

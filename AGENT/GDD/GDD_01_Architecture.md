@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-07-09
+**Last verified:** 2026-07-10
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -1234,9 +1234,11 @@ persists it (`SettingsManager.apply_resize_write_back`, announced via
 `resolution_written_back`); the Resolution dropdown shows a non-preset value as a
 trailing display-only `Custom (WxH)` item, dropped again when a preset is picked.
 Programmatic resizes are excluded by comparing against the size `_apply_display`
-requested, and a drag never re-centres the window. Detection rides the viewport
-`size_changed` hook (V027-04a) that also re-applies Menu Scale after any resize
-(deferred + coalesced). Outside Windowed mode the Resolution dropdown is **disabled**
+requested, and a drag never re-centres the window. Detection rides both viewport
+and root-Window `size_changed` hooks (V027-04a / V030D-DSP-02) because
+`stretch/aspect=keep` can hide bar-only OS client-size changes from the viewport;
+the hooks also re-apply Menu Scale after any resize (deferred + coalesced).
+Outside Windowed mode the Resolution dropdown is **disabled**
 with the readout pinned to the native display size; the saved request is preserved and
 the row re-enables intact on return to Windowed (V027-05c, Q6). Player-facing detail:
 `AGENT/Docs/guides/display_and_settings_guide.md`.
@@ -1247,7 +1249,9 @@ maximized client size produced the misleading `Custom (3840x2071)` readout and o
 relaunch sizing. `SettingsManager.resize_write_back_action` (a pure, headless-testable
 policy over the current + previously observed `DisplayServer.window_get_mode`) returns
 `ignore` while maximized and `restore` on the maximize→windowed transition (re-applying
-the saved windowed size); only a genuine windowed resize writes back. The recurring
+the saved windowed size); only a genuine windowed resize writes back. Settled resize
+passes emit `display_size_changed`, so Settings refreshes the live maximized readout
+even when no `resolution_written_back` signal is appropriate. The recurring
 "menu re-centers on resize instead of staying put" symptom is fixed at the cause in
 `MenuScale` — see `GDD_07_UI_UX.md` §Accessibility (reactive `resized` re-center).
 

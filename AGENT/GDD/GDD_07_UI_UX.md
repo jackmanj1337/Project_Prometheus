@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
 UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-07-09
+**Last verified:** 2026-07-10
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -1094,9 +1094,10 @@ The accessibility and parity contract the UI must honor across input methods and
   the row's on-screen y before the re-scale and restores it one (deferred-layout) frame
   later via the panel `ScrollContainer`'s `scroll_vertical`. The compensation clamps at
   the scroll extremes, where a small residual shift is accepted.
-  **V027-04a (resize self-heal):** `SettingsManager` re-applies Menu Scale on every
-  viewport `size_changed` (deferred, coalesced to one pass per settled frame) — this
-  re-runs the V021-08 fit-clamp and the OS-resize write-back when the *window* changes.
+  **V027-04a / V030D-DSP-02 (resize self-heal):** `SettingsManager` re-applies
+  Menu Scale from viewport and root-Window `size_changed` signals (deferred, coalesced
+  to one pass per settled frame). The root-Window signal covers one-axis edge drags
+  where the OS client size changes but the kept 16:9 viewport does not.
   **V028-03 (reactive re-center, root cause):** centering itself is now a standing
   reactive constraint, not a per-trigger deferred bake. Each centered panel's own
   `resized` signal drives `MenuScale._recenter`, so it re-centers at the exact frame the
@@ -1114,8 +1115,10 @@ The accessibility and parity contract the UI must honor across input methods and
   readout distinguishes preset requests, custom client sizes, native
   Borderless/Fullscreen size, and transient maximize state: while a Windowed
   window is maximized it shows live **`Maximized (W×H)`** from the actual client
-  size, then returns to the saved windowed readout on restore; maximize is still
-  never persisted as a Resolution value.
+  size, then returns to the saved windowed readout on restore. Settings listens to
+  the settled display-size notification, so this label refreshes even when maximize
+  correctly avoids a Resolution write-back; maximize is still never persisted as a
+  Resolution value.
 - **Map zoom** (0.25×–4×, scroll wheel / `+`/`-`/`0`): the Settings slider applies
   immediately when a map is active and persists through `SettingsManager`; see
   `GDD_01_Architecture.md` §Camera Zoom.
