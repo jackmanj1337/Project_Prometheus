@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=11 format=3]
+[gd_resource type="Theme" load_steps=12 format=3]
 
 ; Mana Soul GUI theme (CC0, tiopalada) — first vertical-slice wiring of the
 ; Draft UI assets into the engine. Panels use the 96x96 ornate 9-slice frame;
@@ -9,6 +9,11 @@
 
 [ext_resource type="Texture2D" uid="uid://cwwlj5obp7bon" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250420manaSoul9SlicesA-Sheet.png" id="1_panel"]
 [ext_resource type="Texture2D" uid="uid://crd4uvoolhm8x" path="res://Draft UI assets/tiopalada_tinyrpg_manasoulgui_v_1_0/20250421manaSoulButtonA-Sheet.png" id="2_btn"]
+; Default font under test — swap this one path to try another kit (all CC0):
+;   Font Kit I  : TinyRPG-FineFantasyStrategies / -BrilliantStrength / -BadgeFont
+;   Font Kit II : Tiny RPG - Mana Branch / Mana Root / Mana Trunk
+;   Font Kit III: Tiny RPG - Vampire Ire / Necro Romance / Forbidden Denizens
+[ext_resource type="FontFile" uid="uid://ljv4a7coodam" path="res://Draft UI assets/tinyrpgfontkit01_v1_2/TinyRPG-FineFantasyStrategies.ttf" id="3_font"]
 
 ; Button strip is 384x22 = 4 frames of 96x22. Frame 2 (blue) = normal, frame 3
 ; (darker blue) = pressed. Regions are the easy thing to re-point if the frame
@@ -40,9 +45,9 @@ texture_margin_top = 4.0
 texture_margin_right = 14.0
 texture_margin_bottom = 4.0
 content_margin_left = 12.0
-content_margin_top = 3.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 3.0
+content_margin_bottom = 7.0
 
 [sub_resource type="StyleBoxTexture" id="SB_btn_hover"]
 texture = SubResource("Atlas_btn_normal")
@@ -51,9 +56,9 @@ texture_margin_top = 4.0
 texture_margin_right = 14.0
 texture_margin_bottom = 4.0
 content_margin_left = 12.0
-content_margin_top = 3.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 3.0
+content_margin_bottom = 7.0
 modulate_color = Color(1.25, 1.25, 1.15, 1)
 
 [sub_resource type="StyleBoxTexture" id="SB_btn_pressed"]
@@ -63,9 +68,9 @@ texture_margin_top = 4.0
 texture_margin_right = 14.0
 texture_margin_bottom = 4.0
 content_margin_left = 12.0
-content_margin_top = 3.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 3.0
+content_margin_bottom = 7.0
 
 [sub_resource type="StyleBoxTexture" id="SB_btn_disabled"]
 texture = SubResource("Atlas_btn_normal")
@@ -74,9 +79,9 @@ texture_margin_top = 4.0
 texture_margin_right = 14.0
 texture_margin_bottom = 4.0
 content_margin_left = 12.0
-content_margin_top = 3.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 3.0
+content_margin_bottom = 7.0
 modulate_color = Color(0.5, 0.5, 0.55, 0.55)
 
 [sub_resource type="StyleBoxTexture" id="SB_btn_focus"]
@@ -86,12 +91,14 @@ texture_margin_top = 4.0
 texture_margin_right = 14.0
 texture_margin_bottom = 4.0
 content_margin_left = 12.0
-content_margin_top = 3.0
+content_margin_top = 7.0
 content_margin_right = 12.0
-content_margin_bottom = 3.0
+content_margin_bottom = 7.0
 modulate_color = Color(1.45, 1.4, 0.95, 1)
 
 [resource]
+default_font = ExtResource("3_font")
+default_font_size = 16
 Button/colors/font_color = Color(0.93, 0.92, 0.82, 1)
 Button/colors/font_hover_color = Color(1, 1, 0.9, 1)
 Button/colors/font_pressed_color = Color(1, 1, 0.85, 1)
