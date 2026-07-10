@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-05
+**Last verified:** 2026-07-10
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -103,7 +103,7 @@ Create a single shared `TileSet` resource used by all maps.
 > `terrain_type` custom data layer and assigns each tile's value.
 
 ### Runtime TileMapLayer Setup
-The shared `GameMap` scene contains two TileMapLayers:
+The shared `GameMap` scene contains three TileMapLayers:
 
 1. `TileMapLayer_Terrain` — the actual map tiles; uses the shared TileSet
 2. `TileMapLayer_Overlay` — a second layer for movement/attack highlights;
@@ -112,6 +112,12 @@ The shared `GameMap` scene contains two TileMapLayers:
    - Tile 1: Red (attack range)
    - Tile 2: Green (heal range)
    - Tile 3: Dark red (enemy danger zone)
+   - Tile 4: Darker red (watched-threat danger zone)
+   - Tiles 5-10: shared-cell border-through prototype sources
+   - Tiles 11-40: generated threat-perimeter edge-mask sources for the
+     `stacked_perimeter` MRD-7 candidate
+3. `TileMapLayer_OverlayTop` — optional second overlay lane for MRD-7 stacked
+   range/target fill above retained threat paint
 
 ### Reading Terrain in Code
 ```gdscript

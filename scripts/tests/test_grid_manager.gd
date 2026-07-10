@@ -434,6 +434,56 @@ func get_equipped_weapon(): return _w
 	else:
 		print("FAIL [MRD-7] stacked mode: base_shared=%d top_shared=%d base_watch=%d top_move=%d" % [
 			stacked_base_shared, stacked_top_shared, stacked_base_watch, stacked_top_move]); failed += 1
+
+	# The stacked-perimeter candidate keeps the stacked fill, then swaps threat
+	# base tiles to edge-mask sources computed from the union of threatened tiles.
+	var isolated := {Vector2i(0, 0): true}
+	var line := {Vector2i(0, 0): true, Vector2i(1, 0): true}
+	var concave := {Vector2i(0, 0): true, Vector2i(1, 0): true, Vector2i(0, 1): true}
+	var iso_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), isolated)
+	var line_left_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), line)
+	var line_right_mask: int = GridManager.threat_perimeter_mask(Vector2i(1, 0), line)
+	var concave_corner_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), concave)
+	var masks_ok: bool = iso_mask == 15 \
+		and line_left_mask == (GridManager.PERIMETER_EDGE_TOP \
+			| GridManager.PERIMETER_EDGE_BOTTOM | GridManager.PERIMETER_EDGE_LEFT) \
+		and line_right_mask == (GridManager.PERIMETER_EDGE_TOP \
+			| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_BOTTOM) \
+		and concave_corner_mask == (GridManager.PERIMETER_EDGE_TOP | GridManager.PERIMETER_EDGE_LEFT)
+	if masks_ok:
+		print("OK  [MRD-7] perimeter masks cover isolated, adjacent, and concave threat tiles"); passed += 1
+	else:
+		print("FAIL [MRD-7] perimeter masks: iso=%d line=(%d,%d) concave=%d" % [
+			iso_mask, line_left_mask, line_right_mask, concave_corner_mask]); failed += 1
+
+	var threat_adjacent := Vector2i(4, 5)
+	var perimeter_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, threat_adjacent] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED_PERIMETER)
+	shared_grid.repaint_overlays(perimeter_specs)
+	var perimeter_expected_mask: int = GridManager.PERIMETER_EDGE_TOP \
+		| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_LEFT
+	var perimeter_expected_source: int = GridManager.threat_perimeter_source(
+		GridManager.OVERLAY_DARKER_RED, perimeter_expected_mask)
+	var perimeter_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var perimeter_top_shared := shared_top.get_cell_source_id(shared_tile)
+	var perimeter_top_move := shared_top.get_cell_source_id(move_only)
+	if perimeter_base_shared == perimeter_expected_source \
+			and perimeter_top_shared == GridManager.OVERLAY_BLUE \
+			and perimeter_top_move == GridManager.OVERLAY_BLUE:
+		print("OK  [MRD-7] stacked-perimeter mode paints threat edge masks under range fill"); passed += 1
+	else:
+		print("FAIL [MRD-7] stacked-perimeter: base=%d want=%d top_shared=%d top_move=%d" % [
+			perimeter_base_shared, perimeter_expected_source,
+			perimeter_top_shared, perimeter_top_move]); failed += 1
 	shared_base.free()
 	shared_top.free()
 

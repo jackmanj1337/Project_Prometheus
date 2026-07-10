@@ -155,6 +155,12 @@ func _init() -> void:
 		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
 	Input.action_release("zoom_in")
 	c_zoom._process(0.01)
+	Input.action_press("zoom_in", 0.30)
+	c_zoom._process(0.01)
+	var zoom_partial_blocks: bool = c_zoom._camera_ctrl.get_zoom_index() \
+		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
 	Input.action_press("zoom_in", 1.0)
 	c_zoom._process(0.01)
 	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
@@ -166,6 +172,7 @@ func _init() -> void:
 	c_zoom._process(0.01)
 	var zoom_cleared := c_zoom._zoom_held_direction == 0
 	var strength_scales := c_zoom._zoom_repeat_rate(1.0) < c_zoom._zoom_repeat_rate(0.4)
+	var repeat_floor_ok := is_equal_approx(c_zoom._zoom_repeat_rate(1.0), 0.18)
 	var echo_zoom := InputEventKey.new()
 	echo_zoom.keycode = 61  # "=" / zoom_in
 	echo_zoom.pressed = true
@@ -173,15 +180,16 @@ func _init() -> void:
 	var idx_before_echo: int = c_zoom._camera_ctrl.get_zoom_index()
 	c_zoom._unhandled_input(echo_zoom)
 	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
-	if zoom_threshold_blocks and zoom_first and zoom_waited and zoom_repeated and zoom_cleared \
-			and strength_scales and echo_ignored:
+	if zoom_threshold_blocks and zoom_partial_blocks and zoom_first and zoom_waited \
+			and zoom_repeated and zoom_cleared and strength_scales and repeat_floor_ok \
+			and echo_ignored:
 		print("OK  held zoom threshold blocks grazes, repeats, scales by strength, and ignores key echo")
 		passed += 1
 	else:
-		print("FAIL held zoom: threshold=%s first=%s waited=%s repeated=%s cleared=%s scales=%s echo=%s idx=%d dir=%d" % [
-			zoom_threshold_blocks, zoom_first, zoom_waited, zoom_repeated, zoom_cleared,
-			strength_scales, echo_ignored, c_zoom._camera_ctrl.get_zoom_index(),
-			c_zoom._zoom_held_direction])
+		print("FAIL held zoom: threshold=%s partial=%s first=%s waited=%s repeated=%s cleared=%s scales=%s floor=%s echo=%s idx=%d dir=%d" % [
+			zoom_threshold_blocks, zoom_partial_blocks, zoom_first, zoom_waited,
+			zoom_repeated, zoom_cleared, strength_scales, repeat_floor_ok, echo_ignored,
+			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
 		failed += 1
 
 	# ---- cancel_transient_control_for_handoff backs out an uncommitted move ----
@@ -960,17 +968,20 @@ func _init() -> void:
 		and not debug_overlay.get_used_cells().is_empty()
 	c10._unhandled_input(debug_cycle)
 	var cycled_to_stacked: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_STACKED
+	c10._unhandled_input(debug_cycle)
+	var cycled_to_stacked_perimeter: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_STACKED_PERIMETER
 	_grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
 	_grid._overlay = saved_debug_overlay
 	_grid._overlay_top = saved_debug_top
 	debug_overlay.free()
 	debug_top.free()
-	if cycled_to_border and cycled_to_stacked:
+	if cycled_to_border and cycled_to_stacked and cycled_to_stacked_perimeter:
 		print("OK  [MRD-7] debug shared-cell mode cycle repaints overlays")
 		passed += 1
 	else:
-		print("FAIL [MRD-7] debug mode cycle: border=%s stacked=%s mode=%s" % [
-			cycled_to_border, cycled_to_stacked, _grid.shared_cell_mode])
+		print("FAIL [MRD-7] debug mode cycle: border=%s stacked=%s perimeter=%s mode=%s" % [
+			cycled_to_border, cycled_to_stacked, cycled_to_stacked_perimeter,
+			_grid.shared_cell_mode])
 		failed += 1
 
 	# FREE-state gating (#13): the resolver is a no-op outside FREE.

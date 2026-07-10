@@ -527,6 +527,9 @@ const OVERLAY_HEAL_ON_DARK_RED := 7
 const OVERLAY_BLUE_ON_DARKER_RED := 8
 const OVERLAY_RED_ON_DARKER_RED := 9
 const OVERLAY_HEAL_ON_DARKER_RED := 10
+const OVERLAY_DARK_RED_PERIMETER_START := 11
+const OVERLAY_DARKER_RED_PERIMETER_START := 26
+const OVERLAY_PERIMETER_MASK_COUNT := 15
 
 
 # ── [MRD-1] Overlay precedence registry ──────────────────────────────────────
@@ -555,12 +558,19 @@ const OVERLAY_ROLE_EXCLUSIVE := "exclusive"
 const SHARED_CELL_SINGLE := "single_layer"
 const SHARED_CELL_BORDER_THROUGH := "border_through"
 const SHARED_CELL_STACKED := "stacked"
+const SHARED_CELL_STACKED_PERIMETER := "stacked_perimeter"
 
 const SHARED_CELL_MODES := {
 	SHARED_CELL_SINGLE: {"label": "Single layer"},
 	SHARED_CELL_BORDER_THROUGH: {"label": "Threat center + range border"},
 	SHARED_CELL_STACKED: {"label": "Second overlay layer"},
+	SHARED_CELL_STACKED_PERIMETER: {"label": "Second overlay layer + threat perimeter"},
 }
+
+const PERIMETER_EDGE_TOP := 1
+const PERIMETER_EDGE_RIGHT := 2
+const PERIMETER_EDGE_BOTTOM := 4
+const PERIMETER_EDGE_LEFT := 8
 
 const _RANGE_ON_THREAT_SOURCES := {
 	OVERLAY_BLUE: {
@@ -620,8 +630,12 @@ func set_shared_cell_mode(mode: String) -> void:
 		push_warning("GridManager: unknown shared-cell overlay mode '%s'" % mode)
 		return
 	shared_cell_mode = mode
-	if shared_cell_mode != SHARED_CELL_STACKED:
+	if not _shared_cell_mode_uses_top_overlay(shared_cell_mode):
 		_clear_top_overlay()
+
+
+func _shared_cell_mode_uses_top_overlay(mode: String) -> bool:
+	return mode == SHARED_CELL_STACKED or mode == SHARED_CELL_STACKED_PERIMETER
 
 
 func _clear_top_overlay() -> void:
@@ -666,6 +680,58 @@ func _paint_stacked_layers(layer_specs: Dictionary) -> void:
 		_paint_overlay(_spec_tiles(spec), source, target)
 
 
+static func threat_perimeter_mask(tile: Vector2i, threat_tiles: Dictionary) -> int:
+	var mask := 0
+	if not threat_tiles.has(tile + Vector2i(0, -1)):
+		mask |= PERIMETER_EDGE_TOP
+	if not threat_tiles.has(tile + Vector2i(1, 0)):
+		mask |= PERIMETER_EDGE_RIGHT
+	if not threat_tiles.has(tile + Vector2i(0, 1)):
+		mask |= PERIMETER_EDGE_BOTTOM
+	if not threat_tiles.has(tile + Vector2i(-1, 0)):
+		mask |= PERIMETER_EDGE_LEFT
+	return mask
+
+
+static func threat_perimeter_source(threat_source: int, mask: int) -> int:
+	var clamped_mask: int = clampi(mask, 0, OVERLAY_PERIMETER_MASK_COUNT)
+	if clamped_mask == 0:
+		return threat_source
+	match threat_source:
+		OVERLAY_DARK_RED:
+			return OVERLAY_DARK_RED_PERIMETER_START + clamped_mask - 1
+		OVERLAY_DARKER_RED:
+			return OVERLAY_DARKER_RED_PERIMETER_START + clamped_mask - 1
+		_:
+			return threat_source
+
+
+func _threat_union(layer_specs: Dictionary) -> Dictionary:
+	var threat_tiles: Dictionary = {}
+	for id in _sorted_overlay_ids(layer_specs):
+		if overlay_layer_role(id) != OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		for tile in _spec_tiles(spec):
+			threat_tiles[tile] = true
+	return threat_tiles
+
+
+func _paint_stacked_perimeter(layer_specs: Dictionary) -> void:
+	var threat_tiles := _threat_union(layer_specs)
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		var role := overlay_layer_role(id)
+		if role == OVERLAY_ROLE_THREAT:
+			for tile in _spec_tiles(spec):
+				var mask := threat_perimeter_mask(tile, threat_tiles)
+				var paint_source := threat_perimeter_source(source, mask)
+				_overlay.set_cell(tile, paint_source, Vector2i.ZERO)
+		else:
+			_paint_overlay(_spec_tiles(spec), source, _overlay_top)
+
+
 func _range_source_on_threat(range_source: int, threat_source: int) -> int:
 	var by_threat: Dictionary = _RANGE_ON_THREAT_SOURCES.get(range_source, {})
 	return int(by_threat.get(threat_source, range_source))
@@ -704,7 +770,9 @@ func repaint_overlays(layer_specs: Dictionary) -> void:
 		return
 	_overlay.clear()
 	_clear_top_overlay()
-	if shared_cell_mode == SHARED_CELL_STACKED and _overlay_top != null:
+	if shared_cell_mode == SHARED_CELL_STACKED_PERIMETER and _overlay_top != null:
+		_paint_stacked_perimeter(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_STACKED and _overlay_top != null:
 		_paint_stacked_layers(layer_specs)
 	elif shared_cell_mode == SHARED_CELL_BORDER_THROUGH:
 		_paint_border_through(layer_specs)

@@ -80,6 +80,7 @@ const DEBUG_SHARED_CELL_MODE_CYCLE: Array[String] = [
 	GridManager.SHARED_CELL_SINGLE,
 	GridManager.SHARED_CELL_BORDER_THROUGH,
 	GridManager.SHARED_CELL_STACKED,
+	GridManager.SHARED_CELL_STACKED_PERIMETER,
 ]
 # The full danger-mode value-set as string literals — the parseable source of
 # truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the
@@ -125,9 +126,9 @@ var _reanchor_queued: bool = false
 # Held map-zoom repeat. Trigger axes do not emit keyboard-style repeat events, so
 # _process polls action strength and steps the discrete zoom level on a timer.
 const ZOOM_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
-const ZOOM_PRESS_THRESHOLD: float = 0.25
-const ZOOM_REPEAT_RATE_FAST: float = 0.12
-const ZOOM_REPEAT_RATE_SLOW: float = 0.35
+const ZOOM_PRESS_THRESHOLD: float = 0.35
+const ZOOM_REPEAT_RATE_FAST: float = 0.18
+const ZOOM_REPEAT_RATE_SLOW: float = 0.45
 var _zoom_held_direction: int = 0
 var _zoom_held_timer: float = 0.0
 

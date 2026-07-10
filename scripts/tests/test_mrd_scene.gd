@@ -228,28 +228,33 @@ func _init() -> void:
 		"[MRD-5] grid_dim 0.4 → terrain a=0.6, overlays/units untouched, 0.0 restores",
 		"dim=%s others=%s undo=%s" % [dimmed, others_full, undimmed])
 
-	# ---- 8. Optional stacked overlay lane is wired in the shipped scene ----
+	# ---- 8. Optional stacked-perimeter overlay lane is wired in the shipped scene ----
 	var shared_tile := Vector2i(2, 2)
+	var adjacent_threat := Vector2i(2, 3)
 	var lane_specs := {
 		GridManager.OVERLAY_LAYER_MOVE: {
 			"tiles": [shared_tile] as Array[Vector2i],
 			"source": GridManager.OVERLAY_BLUE,
 		},
 		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
-			"tiles": [shared_tile] as Array[Vector2i],
+			"tiles": [shared_tile, adjacent_threat] as Array[Vector2i],
 			"source": GridManager.OVERLAY_DARKER_RED,
 		},
 	}
-	grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED_PERIMETER)
 	grid.repaint_overlays(lane_specs)
+	var expected_mask: int = GridManager.PERIMETER_EDGE_TOP \
+		| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_LEFT
+	var expected_perimeter_source: int = GridManager.threat_perimeter_source(
+		GridManager.OVERLAY_DARKER_RED, expected_mask)
 	var lane_base_source := overlay.get_cell_source_id(shared_tile)
 	var lane_top_source := overlay_top.get_cell_source_id(shared_tile)
-	var lane_ok: bool = lane_base_source == GridManager.OVERLAY_DARKER_RED \
+	var lane_ok: bool = lane_base_source == expected_perimeter_source \
 		and lane_top_source == GridManager.OVERLAY_BLUE
 	grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
 	grid.clear_overlays()
 	_check(lane_ok,
-		"[MRD-7] shipped GameMap wires the optional second overlay lane",
+		"[MRD-7] shipped GameMap wires the stacked-perimeter overlay lane",
 		"base=%d top=%d" % [lane_base_source, lane_top_source])
 
 	# ---- 9. Simulated gamepad R3 drives the resolver end-to-end ----

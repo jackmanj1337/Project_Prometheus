@@ -137,12 +137,16 @@ restores them from `suspend.watch_set` / `suspend.danger_mode`.
 Selection and targeting overlays are built as registry layer specs and composed
 with retained threat specs, so selecting a unit or entering attack/staff/pair-up
 targeting does not clear watched-threat paint or "D" markers ([MRD-7]).
-Threatened tiles inside movement/target range have two prototype render modes:
+Threatened tiles inside movement/target range have four debug render modes:
+`single_layer`, `border_through`, `stacked`, and `stacked_perimeter`.
 `border_through` bakes threat colour into the tile center with a strong
 range-colour border on the shared overlay layer; `stacked` paints retained
-threat on the base overlay and range on a second `TileMapLayer`. The default
-remains `single_layer` until the focused live rerun picks the presentation; debug
-builds can cycle the three modes with **F8** for that comparison pass.
+threat on the base overlay and range on a second `TileMapLayer`;
+`stacked_perimeter` keeps that stacked fill and swaps threat tiles to generated
+edge-mask sources based on the union of threatened tiles, creating one outline
+around each contiguous threat area. The default remains `single_layer` until the
+focused live rerun accepts a presentation; debug builds can cycle the four modes
+with **F8** for that comparison pass.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
@@ -173,10 +177,11 @@ the shared `ModalScreen` vertical repeat path. Horizontal input stays with the
 focused control, so sliders and option buttons keep their own left/right
 behavior.
 
-Held map zoom ignores LT/RT values below a 0.25 activation threshold, then uses
+Held map zoom ignores LT/RT values below a 0.35 activation threshold, then uses
 the same initial delay and repeats on a strength-scaled timer above that
-threshold. A full trigger pull steps faster than a partial pull. The exact
-feel for real controllers is a v0.3.0 rerun item, not a headless claim.
+threshold (0.45s slow floor to 0.18s full-pull floor). A full trigger pull steps
+faster than a partial pull. The exact feel for real controllers is a v0.3.0 rerun
+item, not a headless claim.
 
 ---
 

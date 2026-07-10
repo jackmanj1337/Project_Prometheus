@@ -17,6 +17,8 @@ const OVERLAY_SOURCES := [
 	"blue_on_dark_red", "red_on_dark_red", "green_on_dark_red",
 	"blue_on_darker_red", "red_on_darker_red", "green_on_darker_red",
 ]
+const PERIMETER_THREAT_SOURCES := ["dark_red", "darker_red"]
+const PERIMETER_MASK_COUNT := 15
 
 
 func _init() -> void:
@@ -53,8 +55,9 @@ func _make_terrain_tileset() -> void:
 func _make_overlay_tileset() -> void:
 	var tileset := TileSet.new()
 	tileset.tile_size = Vector2i(GameConstants.TILE_SIZE, GameConstants.TILE_SIZE)
-	for i in OVERLAY_SOURCES.size():
-		var name: String = OVERLAY_SOURCES[i]
+	var sources := _overlay_sources()
+	for i in sources.size():
+		var name: String = sources[i]
 		var tex: Texture2D = load("res://assets/sprites/ui/overlay_%s.png" % name)
 		var src := TileSetAtlasSource.new()
 		src.texture = tex
@@ -62,3 +65,12 @@ func _make_overlay_tileset() -> void:
 		src.create_tile(Vector2i.ZERO)
 		tileset.add_source(src, i)
 	ResourceSaver.save(tileset, "res://assets/overlay_tileset.tres")
+
+
+func _overlay_sources() -> Array[String]:
+	var sources: Array[String] = []
+	sources.assign(OVERLAY_SOURCES)
+	for name in PERIMETER_THREAT_SOURCES:
+		for mask in range(1, PERIMETER_MASK_COUNT + 1):
+			sources.append("%s_perimeter_%02d" % [name, mask])
+	return sources
