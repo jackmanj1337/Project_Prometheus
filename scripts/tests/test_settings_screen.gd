@@ -286,6 +286,13 @@ func _init() -> void:
 		confirm_rebind.pressed.emit()
 		var capture_started: bool = screen._capturing_action == "confirm" \
 			and confirm_rebind.text == "Press key..."
+		# During capture the base ModalScreen up/down focus repeat must be off, so
+		# holding a direction to rebind it does not scroll focus off the row.
+		if not screen._modal_focus_repeat_enabled():
+			print("OK  modal focus repeat suppressed while capturing a keybind")
+			passed += 1
+		else:
+			print("FAIL modal focus repeat active during keybind capture"); failed += 1
 		var ev_y := InputEventKey.new()
 		ev_y.keycode = KEY_Y
 		ev_y.pressed = true

@@ -291,6 +291,14 @@ func _input(event: InputEvent) -> void:
 	_stage_keybind_event(_capturing_action, _capturing_slot, captured)
 
 
+# While capturing a new keybind the modal must not steal ui_up/ui_down: the base
+# ModalScreen polls those actions directly for focus repeat, so holding a
+# direction to rebind it would scroll focus off the capture row. Opting out here
+# suppresses both the base _process nav and the _input consumption during capture.
+func _modal_focus_repeat_enabled() -> bool:
+	return _capturing_action == ""
+
+
 # V023-01 covered the horizontal axis (stable row columns); rows above the Menu
 # Scale slider still change height with the new font size, which shifted the
 # slider vertically out from under the pointer mid-drag. Anchor the row: capture
