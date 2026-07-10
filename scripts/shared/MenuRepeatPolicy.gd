@@ -36,6 +36,7 @@ var _pos_y: String = "cursor_down"
 
 var _held_dir: Vector2i = Vector2i.ZERO
 var _held_timer: float = 0.0
+var _wait_for_neutral: bool = false
 
 
 # Optional: override the polled action set (e.g. the ui_* engine-focus vocabulary).
@@ -54,8 +55,12 @@ func _init(neg_x: String = "cursor_left", pos_x: String = "cursor_right",
 # Releasing to centre clears the timer so the next press fires immediately again.
 func poll(delta: float) -> Vector2i:
 	var dir := _direction_from_actions()
+	if _wait_for_neutral:
+		if dir == Vector2i.ZERO:
+			_wait_for_neutral = false
+		return Vector2i.ZERO
 	if dir == Vector2i.ZERO:
-		clear()
+		_reset_repeat()
 		return Vector2i.ZERO
 	if dir != _held_dir:
 		_held_dir = dir
@@ -69,8 +74,14 @@ func poll(delta: float) -> Vector2i:
 
 
 # Drop any held direction and reset the timer (call when the owning menu hides,
-# so a re-open starts clean and never carries a stale held step).
+# so a re-open starts clean and never carries a stale held step). If a direction
+# is already held at clear-time, wait until the stick/key returns to neutral.
 func clear() -> void:
+	_wait_for_neutral = _direction_from_actions() != Vector2i.ZERO
+	_reset_repeat()
+
+
+func _reset_repeat() -> void:
 	_held_dir = Vector2i.ZERO
 	_held_timer = 0.0
 
@@ -78,9 +89,18 @@ func clear() -> void:
 # Dominant cardinal from the live ui_* actions. Input.get_vector applies the
 # per-action deadzone, so a resting stick reads ZERO and no jitter leaks through.
 func _direction_from_actions() -> Vector2i:
-	var v := Input.get_vector(_neg_x, _pos_x, _neg_y, _pos_y)
+	var v := Vector2(
+		_action_strength(_pos_x) - _action_strength(_neg_x),
+		_action_strength(_pos_y) - _action_strength(_neg_y)
+	)
 	if is_zero_approx(v.length()):
 		return Vector2i.ZERO
 	if absf(v.x) >= absf(v.y):
 		return Vector2i(1 if v.x > 0.0 else -1, 0)
 	return Vector2i(0, 1 if v.y > 0.0 else -1)
+
+
+func _action_strength(action: String) -> float:
+	if action == "":
+		return 0.0
+	return Input.get_action_strength(action)

@@ -34,7 +34,7 @@ Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
 headless map-cursor decoder, profile-ready keybind persistence, and key-rebind capture
 for keyboard/mouse + gamepad); live controller feel **Target design** / pending
 validation.
-Last verified: 2026-07-09
+Last verified: 2026-07-10
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -167,6 +167,11 @@ Custom modal menus that own selection (`ActionMenu`, `UnitDetailsScreen`) use
 the same 0.25s / 0.10s policy through `MenuRepeatPolicy` instead of per-event
 stick-axis stepping, so a held stick/key has one immediate step followed by
 stable repeat.
+
+Engine-focus modals (`SettingsScreen`, `NewGameScreen`, Promotion/Reclass) use
+the shared `ModalScreen` vertical repeat path. Horizontal input stays with the
+focused control, so sliders and option buttons keep their own left/right
+behavior.
 
 Held map zoom ignores LT/RT values below a 0.25 activation threshold, then uses
 the same initial delay and repeats on a strength-scaled timer above that
@@ -473,10 +478,10 @@ There is **no target-list panel**. Target selection happens on the map itself:
 
 - The valid target tiles are highlighted with overlay tiles — **red** for Attack
   targets, **green** for Staff (heal) targets.
-- The cursor snaps to the first valid target. Direction keys **cycle** the cursor
-  between valid target tiles (the list wraps). With `Mouse Cursor = Follow`, mouse
-  motion snaps the cursor to the nearest valid target; `Click` waits for a click/tap
-  to move, and `Off` ignores mouse motion.
+- The cursor snaps to the first valid target. Direction keys, d-pad directions,
+  and the left stick **cycle** the cursor between valid target tiles (the list wraps).
+  With `Mouse Cursor = Follow`, mouse motion snaps the cursor to the nearest valid
+  target; `Click` waits for a click/tap to move, and `Off` ignores mouse motion.
 - `confirm` on an Attack target opens the Attack Preview; `confirm` on a Staff target
   applies the heal immediately. `cancel` returns to the Action Menu.
 
@@ -889,6 +894,11 @@ focusable control, `SettingsScreen` picks Back, `UnitDetailsScreen` seeds its
 (`_release_stale_focus()`). A switch to `mouse_keyboard` is deliberately left alone —
 that mode lumps mouse and keyboard together, and keyboard nav still wants the
 highlight. Hidden modals ignore the switch.
+
+Visible engine-focus modals also contain focus: if focus navigation escapes to a
+background control while the modal is open, the modal reclaims focus. This is backed
+by a MainMenu-hosted New Game regression test so the live parent scene, not only the
+isolated modal scene, is covered.
 
 #### Hidden / not yet implemented
 

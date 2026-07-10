@@ -88,14 +88,14 @@ func _init() -> void:
 	# always FOCUS_ALL, but without follow_focus the ScrollContainer left the newly
 	# focused button outside the visible frame at high scale — reading as "only the
 	# top class option is available via directional keys" (v0.2.6 playtest §1.5).
-	# Event-injected (push_input) per the input-routing test-fidelity rule.
+	# ModalScreen now owns engine-focus directional repeat and consumes the raw
+	# ui_down event before Godot's default focus search can leak outside the modal.
 	var options_scroll: ScrollContainer = screen.get_node("Panel/VBox/OptionsScroll")
 	var follow_ok: bool = options_scroll.follow_focus
 	screen._buttons[0].grab_focus()
-	var key_down := InputEventKey.new()
-	key_down.keycode = KEY_DOWN
-	key_down.pressed = true
-	root.push_input(key_down)
+	Input.action_press("ui_down", 1.0)
+	screen._process(0.016)
+	Input.action_release("ui_down")
 	await process_frame
 	var second_focused: bool = screen._buttons[1].has_focus()
 	var focused_rect: Rect2 = screen._buttons[1].get_global_rect()

@@ -311,9 +311,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	# Auto-repeat only applies to free cursor movement. If the state changed
-	# while a key was held (e.g. confirmed into TARGETING), drop the held dir
-	# so the cursor doesn't drift out of a menu/targeting context.
+	# Auto-repeat applies to free cursor movement and targeting selection. Other
+	# states drop the held dir so the cursor doesn't drift through menus.
 	if _input_suppressed:
 		_input_handler.clear_repeat()
 		_clear_zoom_repeat()
@@ -325,6 +324,11 @@ func _process(delta: float) -> void:
 	var zoom_dir := _poll_held_zoom(delta)
 	if zoom_dir != 0:
 		_apply_zoom_step(zoom_dir)
+	if _state == State.TARGETING:
+		var target_dir := _input_handler.poll_direction(delta)
+		if target_dir != Vector2i.ZERO:
+			_cycle_target(target_dir)
+		return
 	if _state != State.FREE and _state != State.UNIT_SELECTED:
 		_input_handler.clear_repeat()
 		return
@@ -390,6 +394,7 @@ func _handle_discrete_press(event: InputEvent) -> void:
 				State.TARGETING:
 					# Arrows step between valid targets instead of moving freely.
 					_cycle_target(dir)
+					_input_handler.arm_repeat(dir)
 				# UNIT_MOVED (ActionMenu owns input) ignores direction keys entirely.
 		MapCursorInput.Intent.CONFIRM:
 			_on_confirm()

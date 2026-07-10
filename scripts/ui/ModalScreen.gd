@@ -16,6 +16,7 @@ extends Control
 # the base intentionally stays out of that mechanism.
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const ModalMenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 # Generic close signal — emitted by the default _close(). Subclasses that
 # already publish their own signal (back_pressed, etc.) keep emitting it in
@@ -23,12 +24,19 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 # for any new modal that doesn't need a custom signal name.
 signal closed()
 
+var _modal_repeat := ModalMenuRepeatPolicy.new("", "", "ui_up", "ui_down")
+
 
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
 	_apply_menu_scale_from_settings()
 	_connect_input_mode_changed()
 	hide()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED:
+		_modal_repeat.clear()
 
 
 # B6-INPUT focus seam: every modal subscribes to InputModeManager.input_mode_changed
@@ -97,12 +105,82 @@ func _first_focusable(root_node: Node) -> Control:
 	for child in root_node.get_children():
 		if child is Control:
 			var c := child as Control
-			if c.visible and c.focus_mode != Control.FOCUS_NONE:
+			if c.visible and c.focus_mode != Control.FOCUS_NONE and not _is_focus_disabled(c):
 				return c
 		var nested := _first_focusable(child)
 		if nested != null:
 			return nested
 	return null
+
+
+func _input(event: InputEvent) -> void:
+	if not visible or not _modal_focus_repeat_enabled():
+		return
+	if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
+		get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if not visible or not _modal_focus_repeat_enabled():
+		return
+	_enforce_focus_containment()
+	var step := _modal_repeat.poll(delta)
+	if step.y < 0:
+		_move_modal_focus(-1)
+	elif step.y > 0:
+		_move_modal_focus(1)
+
+
+# Virtual: custom-selector modals can opt out if they own directional polling.
+func _modal_focus_repeat_enabled() -> bool:
+	return true
+
+
+func _enforce_focus_containment() -> void:
+	var vp := get_viewport()
+	if vp == null:
+		return
+	var focused := vp.gui_get_focus_owner()
+	if focused != null and not is_ancestor_of(focused):
+		_grab_default_focus()
+
+
+func _move_modal_focus(delta: int) -> void:
+	var focusables := _focusable_controls(_menu_scale_target())
+	if focusables.is_empty():
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	var idx := focusables.find(focused)
+	if idx == -1:
+		var default_focus := _focus_default()
+		idx = focusables.find(default_focus)
+		if idx == -1:
+			idx = 0
+	else:
+		idx = wrapi(idx + delta, 0, focusables.size())
+	focusables[idx].grab_focus()
+
+
+func _focusable_controls(root_node: Node) -> Array[Control]:
+	var out: Array[Control] = []
+	_collect_focusable_controls(root_node, out)
+	return out
+
+
+func _collect_focusable_controls(root_node: Node, out: Array[Control]) -> void:
+	if root_node == null:
+		return
+	for child in root_node.get_children():
+		if child is Control:
+			var c := child as Control
+			if c.is_visible_in_tree() and c.focus_mode != Control.FOCUS_NONE \
+					and not _is_focus_disabled(c):
+				out.append(c)
+		_collect_focusable_controls(child, out)
+
+
+func _is_focus_disabled(control: Control) -> bool:
+	return control is BaseButton and (control as BaseButton).disabled
 
 
 func apply_menu_scale(factor: float) -> void:
@@ -132,5 +210,6 @@ func _unhandled_input(event: InputEvent) -> void:
 # emit their per-screen signal (back_pressed / closed-with-args / etc.) and do
 # any teardown before calling super() or hide() themselves.
 func _close() -> void:
+	_modal_repeat.clear()
 	closed.emit()
 	hide()

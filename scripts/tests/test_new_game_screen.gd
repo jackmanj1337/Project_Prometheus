@@ -139,6 +139,40 @@ var campaign_rules = CampaignRulesScript.make_default()
 	else:
 		print("SKIP map last-launched behavior (GameState/map options unavailable)")
 
+	# ---- modal focus containment and repeat in the live MainMenu parent ----
+	if gs_node != null:
+		var menu_packed := load("res://scenes/ui/MainMenu.tscn")
+		var menu: Control = menu_packed.instantiate()
+		root.add_child(menu)
+		await process_frame
+		var modal: Control = menu.get_node("NewGameScreen")
+		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
+		var modal_map: OptionButton = modal.get_node("Panel/VBox/HBoxMap/OptMap")
+		var modal_permadeath: OptionButton = modal.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
+		menu._on_new_game()
+		await process_frame
+		background_continue.grab_focus()
+		modal._process(0.016)
+		var focus_owner := modal.get_viewport().gui_get_focus_owner()
+		var contained_focus := modal.is_ancestor_of(focus_owner)
+		modal_map.grab_focus()
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var repeated_down := focus_owner == modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+		menu.queue_free()
+		if contained_focus and repeated_down:
+			print("OK  MainMenu-hosted NewGame modal contains focus and repeats down")
+			passed += 1
+		else:
+			print("FAIL modal focus: contained=%s repeated_down=%s focus=%s" % [
+				contained_focus, repeated_down, focus_owner])
+			failed += 1
+	else:
+		print("SKIP modal focus containment (GameState unavailable)")
+
 	if created_gs and gs_node != null:
 		gs_node.queue_free()
 

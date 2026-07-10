@@ -726,6 +726,39 @@ func _init() -> void:
 		print("FAIL targeting-cancel cursor: tile=%s" % str(c8.current_tile))
 		failed += 1
 
+	# ---- B6-INPUT: polled stick cycles Pair Up targets while targeting ----
+	_gs.all_units.clear()
+	var t_target := TurnManager.new(); root.add_child(t_target)
+	var c_target := _make_cursor(t_target)
+	var lead_target := _make_unit(Vector2i(2, 2), "blue")
+	lead_target.data.unit_id = "lead_target"
+	var support_up := _make_unit(Vector2i(2, 1), "blue")
+	support_up.data.unit_id = "support_up"
+	var support_down := _make_unit(Vector2i(2, 3), "blue")
+	support_down.data.unit_id = "support_down"
+	c_target._selection.selected_unit = lead_target
+	c_target._state = UNIT_MOVED
+	c_target._enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+	var target_started := c_target._state == TARGETING \
+		and c_target.current_tile == support_up.tile_position
+	Input.action_press("cursor_down", 1.0)
+	c_target._process(0.01)
+	var target_stick_first := c_target.current_tile == support_down.tile_position
+	c_target._process(0.20)
+	var target_stick_waited := c_target.current_tile == support_down.tile_position
+	c_target._process(0.10)
+	var target_stick_repeated := c_target.current_tile == support_up.tile_position
+	Input.action_release("cursor_down")
+	c_target._process(0.01)
+	if target_started and target_stick_first and target_stick_waited and target_stick_repeated:
+		print("OK  polled stick cycles Pair Up targets with repeat")
+		passed += 1
+	else:
+		print("FAIL stick target cycle: started=%s first=%s waited=%s repeated=%s tile=%s" % [
+			target_started, target_stick_first, target_stick_waited,
+			target_stick_repeated, str(c_target.current_tile)])
+		failed += 1
+
 	# ---- _cycle_to_next_unit is a no-op outside FREE ----
 	var t9 := TurnManager.new(); root.add_child(t9)
 	var c9 := _make_cursor(t9)

@@ -124,15 +124,18 @@ func _on_input_mode_changed(mode: String) -> void:
 
 func _input(event: InputEvent) -> void:
 	if not visible or not V030_FOCUS_TRACE_ENABLED:
+		super._input(event)
 		return
 	var actions := _v030_direction_actions_for_event(event)
 	if actions.is_empty():
+		super._input(event)
 		return
 	_v030_trace_focus("direction_input_before", {
 		"actions": ",".join(actions),
 		"event": _v030_event_summary(event),
 	})
 	_v030_trace_focus_after_input.call_deferred(",".join(actions), _v030_event_summary(event))
+	super._input(event)
 
 
 func _close() -> void:
