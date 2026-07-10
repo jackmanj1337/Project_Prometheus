@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-09
+**Last verified:** 2026-07-10
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -69,32 +69,35 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
-> **Focused rerun build CUT 2026-07-09 as `v0.3.0.d`** (source `e19ac9b`) — the
-> live vehicle for all four items below. Handbook:
+> **Focused rerun build `v0.3.0.d` RETURNED 2026-07-10** (source `e19ac9b`) —
+> the live vehicle for the items below. Handbook:
 > [`playtest_checklist_v0.3.0.d.md`](../Docs/playtests/playtest_checklist_v0.3.0.d.md);
 > manifest (size/SHA-256):
 > [`playtest_build_v0.3.0.d.md`](../Docs/playtests/playtest_build_v0.3.0.d.md).
-> Deliver the exe + handbook, then triage the returned logs
-> (V030-NG-FOCUS, V030-DSP-TRACE markers) and the MRD-7 pick.
+> Returned checklist:
+> [`playtest_checklist_v0.3.0.d_returned_2026-07-10.md`](../Docs/playtests/playtest_checklist_v0.3.0.d_returned_2026-07-10.md).
+> Triage + review plan:
+> [`playtest_v0.3.0.d_results_triage_plan_2026-07-10.md`](../Docs/playtests/playtest_v0.3.0.d_results_triage_plan_2026-07-10.md).
+> Suspend validated; gamepad/display stay open; MRD-7 routes to a
+> stacked-plus-perimeter candidate.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `B1-SUSPEND` | V030-SUS-01 suspend/resume fixes — Pending validation (fixed 2026-07-09, awaiting live rerun) | v0.3.0 return (2026-07-08): after Continue units cannot move, pair-up supports render at the off-map placeholder, debug red-team control + resume corrupts input, and the turn counter restores wrong. All four fixed 2026-07-09 with failing-first repros in `test_suspend_map_runtime.gd`: (a) restore now re-applies the DONE appearance, (b) support restored onto the off-map sentinel stays hidden, (c) Suspend & Quit gated to the blue player phase, (d) restore emits `turn_changed` so the HUD refreshes. Suite green; flip to Implemented on the live section-9 rerun. Detail in [`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md). |
-| 2 | `B6-INPUT` | Live-validate the V030-GP/INP controller fix pass | v0.3.0 return: controller focus cannot scroll Settings, menus lack directional repeat, New Game focus highlight gaps, menu stick cadence too fast, LT/RT zoom too sensitive, and prompts brand from the first-connected pad instead of the pad in use. Headless fix pass landed 2026-07-09: Settings/UnitDetails `follow_focus`, shared `MenuRepeatPolicy`, LT/RT 0.25 threshold, Settings relabel to Input Prompts, last-active-pad branding, and brand-aware rebind labels. Gate stays open pending the focused live controller rerun; New Game focus gap still needs live repro/instrumentation. |
-| 3 | `VAL-V023-DISPLAY` | Live-repro the remaining V030-DSP-01 section 1.6 residue, then a focused rerun | v0.3.0 return live-validated the v0.2.8 fix core (custom client readout, no re-clamp, reactive centering, no maximize persistence). Maximized label fixed 2026-07-09 with headless formatter coverage: Windowed + maximized now shows live `Maximized (WxH)`. Remaining: one-axis drag readout needs live repro/instrumentation, plus an explicit relaunch-persistence check in the rerun handbook. |
-| 4 | `B6-MRD` | Live-pick MRD-7 shared-cell visual treatment | MRD-7 compose plumbing and both prototype render modes landed 2026-07-09: `border_through` combined sources and `stacked` second-`TileMapLayer` mode, cycled in debug builds with F8. Remaining: compare in the focused live rerun, then make the chosen presentation the shipped mode and remove the temporary F8 cycle. |
+| 1 | `B6-INPUT` | Fix the remaining V030D-GP controller defects | v0.3.0.d return (2026-07-10): Settings now scrolls, action menu feels good, and trigger zoom improved, but Settings still lacks directional repeat, New Game focus still has invisible steps, the live log shows focus escaping to Main Menu buttons while the New Game modal is open, joystick cannot cycle attack/Pair Up targets, and trigger zoom still wants a conservative feel tune. Review/fix plan: [`playtest_v0.3.0.d_triage_review_2026-07-10.md`](../Code%20Reviews/playtest_v0.3.0.d_triage_review_2026-07-10.md). |
+| 2 | `VAL-V023-DISPLAY` | Fix the remaining V030D-DSP resize/readout defects | v0.3.0.d return (2026-07-10): relaunch persistence passed, but one-axis drag still fails and maximized state labels as `Custom` instead of `Maximized`. The returned display diagnostic log only captured startup/maximized rows, suggesting the viewport hook misses bar-only OS client-size changes. |
+| 3 | `B6-MRD` | Build the MRD-7 stacked-perimeter candidate | The focused rerun rejected the single-layer treatment, accepted `stacked` and `border_through` as readable, and supplied a sketch for stacked fill plus a perimeter outline around the whole threatened area. Next: implement `stacked_perimeter`, then remove the temporary debug F8 cycle once accepted. |
+| 4 | `UI-INSPECTION` | Route Main Menu 2.0x overlap evidence | v0.3.0.d returned a fresh screenshot showing Continue overlapping the title at 2.0x Menu Scale. Keep this under the existing `V027-05a` scale-safe Main Menu layout task. |
 
-## While Waiting For v0.3.0 Return
+## Parallel Queue
 
 The v0.3.0 return arrived and was triaged 2026-07-08 via the return triage kit
 ([`playtest_v0.3.0_results_triage_plan_2026-07-08.md`](../Docs/playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md));
-the fix passes moved into the Next Work Queue above. Owner review Q1-Q5 was
-DECIDED the same day (see the triage review's Walkthrough Decisions); the
-remaining rows stay safe parallel candidates.
+the focused v0.3.0.d rerun returned 2026-07-10 and moved the remaining fixes
+into the Next Work Queue above. The rows below stay safe parallel candidates.
 
 | Priority | Track ID / area | To-do | Notes |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Return intake DONE 2026-07-08. | Kit executed: returned checklist copied ([`playtest_checklist_v0.3.0_returned_2026-07-08.md`](../Docs/playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md)), evidence archived, triage plan + owner review written. Both gates stay open; see the Next Work Queue. |
+| 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | Focused rerun intake DONE 2026-07-10. | v0.3.0.d returned checklist copied ([`playtest_checklist_v0.3.0.d_returned_2026-07-10.md`](../Docs/playtests/playtest_checklist_v0.3.0.d_returned_2026-07-10.md)), evidence archived, and triage/review plan written. Both gates stay open; see the Next Work Queue. |
 | 2 | `B2-REGISTRY` plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Start the open-registry debt stream. | Convert the known closed vocabularies toward registries: objective conditions `[TCV-4]`, AI profiles `[AIP]`, and stat names/model `[STM]`. Best technical progress; use a separate commit stream from v0.3.0 validation. **AI (`B5-AI-COMPOSITION`) is in progress:** build-slice steps 1-2 of `ai_first_build_design_2026-06-22.md` (AISpec + `resolve_ai_spec` + pure planner seam replacing the closed `match`, porting `basic`/`passive`/`healer` with zero behavior change) land now — no save-schema touch, so unblocked. **Stat registry (`B3-STAT-REGISTRY`) non-schema slice landed:** the stat NAME/LABEL vocabulary is unified in `scripts/core/StatRegistry.gd` (id list + short labels), read by ClassData/Unit/DataManager/LevelUp/StatBreakdown/Promotion/Reclass instead of ~7 hardcoded copies (reconciled the Luck label to "Lck"); zero growth-roll/RNG change (order preserved). The base-stat `@export` -> Dictionary STORAGE migration + author-declared `CampaignRules` stat registry (`[STM-3]`) stay F1-gated — see Gated build items. **Follow-ups landed (session 2026-07-09f, non-schema):** a check_docs `[27]` guard bans re-introducing the removed hardcoded stat list/label shapes (DoD#2); the `[STM-5]` reference policy is implemented — an authored resource naming a stat outside the registry (skill `activation_chance_stat`, class growth/cap dict keys, Pair Up `scaling_stats`/`class_bonuses`) hard-fails at DataManager boot instead of contributing a silent 0; and the **AI `weakest` target_policy** (`[AIP]` design §9) shipped as the `hunter` profile (`always`/`pursue_unit`/`weakest`) via `EnemyAI._select_target` — a non-schema slice (reuses `pursue_unit`, no `ai_awake` field), determinism preserved. The author-facing per-placement `target_policy` key stays F1-gated. **Objective conditions `[TCV-4]` stay planning-only** here: they are pre-F1 schema-affecting (reference the `[TCV-1]` typed var store + `[REQ]` predicates), so do not build ahead of the F1 schema-lock. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
@@ -114,8 +117,8 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
-| `VAL-V023-DISPLAY` | Validation | v0.3.0 returned 2026-07-08: v0.2.8 fix core held live (client readout, no re-clamp, centering, no maximize persistence); maximized label fixed 2026-07-09 with headless formatter coverage. Gate stays open on V030-DSP-01 for one-axis drag live repro/instrumentation and relaunch persistence. Then run a section-1.6-only rerun. Triage: `playtest_v0.3.0_results_triage_plan_2026-07-08.md`. |
-| `VAL-V030-GAMEPAD` | Validation | v0.3.0 returned 2026-07-08: mapping and mixed-input pass, but menu focus scroll/repeat (V030-GP-01), menu stick cadence (V030-GP-02), and trigger sensitivity (V030-GP-03) fail live. B6-INPUT fix pass landed 2026-07-09 with headless coverage; gate stays open for the focused controller rerun. Triage: `playtest_v0.3.0_results_triage_plan_2026-07-08.md`. |
+| `VAL-V023-DISPLAY` | Validation | v0.3.0.d returned 2026-07-10: relaunch persistence passed, but one-axis drag still fails and maximized state labels as `Custom`. Gate stays open for live readout refresh plus OS-window-size one-axis detection before the next focused rerun. Triage: `playtest_v0.3.0.d_results_triage_plan_2026-07-10.md`. |
+| `VAL-V030-GAMEPAD` | Validation | v0.3.0.d returned 2026-07-10: Settings scrolls and action menu feels good, but Settings repeat is missing, New Game focus leaks outside its modal, joystick cannot cycle attack/Pair Up targets, and trigger zoom still needs tuning. Gate stays open for the modal/focus/targeting fixes in the review plan. Triage: `playtest_v0.3.0.d_results_triage_plan_2026-07-10.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |

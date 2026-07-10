@@ -209,6 +209,7 @@
 - [`playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md`](playtests/playtest_checklist_v0.2.8_returned_2026-07-07.md) — Playtester Handbook and Checklist - v0.2.8
 - [`playtests/playtest_checklist_v0.2.9.md`](playtests/playtest_checklist_v0.2.9.md) — Playtester Handbook and Checklist - v0.2.9
 - [`playtests/playtest_checklist_v0.3.0.d.md`](playtests/playtest_checklist_v0.3.0.d.md) — Playtester Handbook and Checklist - v0.3.0.d (Focused Rerun) — *Focused rerun handbook - pending live Wi*
+- [`playtests/playtest_checklist_v0.3.0.d_returned_2026-07-10.md`](playtests/playtest_checklist_v0.3.0.d_returned_2026-07-10.md) — Playtester Handbook and Checklist - v0.3.0.d (Focused Rerun) — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.3.0.md`](playtests/playtest_checklist_v0.3.0.md) — Playtester Handbook and Checklist - v0.3.0
 - [`playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md`](playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md) — v0.3.0 Focused Rerun Checklist - 2026-07-09 — *Focused rerun checklist - pending rerun *
 - [`playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md`](playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md) — Playtester Handbook and Checklist - v0.3.0 — *Returned results - triaged in `playtest_*
@@ -217,6 +218,7 @@
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
 - [`playtests/playtest_v0.2.7_results_triage_plan_2026-07-05.md`](playtests/playtest_v0.2.7_results_triage_plan_2026-07-05.md) — v0.2.7 Playtest Results Triage And Fix Plan - 2026-07-05 — *Returned results - diagnosed 2026-07-05;*
 - [`playtests/playtest_v0.2.8_results_triage_plan_2026-07-07.md`](playtests/playtest_v0.2.8_results_triage_plan_2026-07-07.md) — v0.2.8 Playtest Results Triage And Fix Plan - 2026-07-07 — *Returned results - diagnosed 2026-07-07;*
+- [`playtests/playtest_v0.3.0.d_results_triage_plan_2026-07-10.md`](playtests/playtest_v0.3.0.d_results_triage_plan_2026-07-10.md) — v0.3.0.d Playtest Results Triage And Review Plan - 2026-07-10 — *OPEN*
 - [`playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md`](playtests/playtest_v0.3.0_results_triage_plan_2026-07-08.md) — v0.3.0 Playtest Results Triage And Fix Plan - 2026-07-08 — *Returned results - diagnosed 2026-07-08;*
 - [`playtests/playtest_v0.3.0_return_triage_kit_2026-07-08.md`](playtests/playtest_v0.3.0_return_triage_kit_2026-07-08.md) — v0.3.0 Playtest Return Triage Kit - 2026-07-08 — *Implemented - return intake executed 202*
 
