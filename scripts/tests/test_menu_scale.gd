@@ -48,6 +48,7 @@ func _init() -> void:
 	await _check_crisp_type_scaling()
 	await _check_fit_clamp()
 	await _check_reactive_recenter()
+	await _check_fit_to_rect()
 
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
@@ -200,6 +201,45 @@ func _check_reactive_recenter() -> void:
 	var center: Vector2 = rect.position + rect.size * 0.5
 	_ok(center.distance_to(view_center) <= 2.0,
 		"reactive hook re-centers a panel the engine grows after apply (V028-03 root cause)")
+	panel.queue_free()
+
+
+# V027-05a: apply_to_fit_rect grows/shrinks toward a caller-supplied rect (not
+# necessarily the full viewport) instead of only ever shrinking a requested
+# factor down. Built for MainMenu's "pinned-large home screen" exemption, but
+# tested here directly against a synthetic panel like the rest of this file's
+# MenuScale-internals checks.
+func _check_fit_to_rect() -> void:
+	var panel := PanelContainer.new()
+	var vbox := VBoxContainer.new()
+	for i in 3:
+		vbox.add_child(Button.new())
+	panel.add_child(vbox)
+	root.add_child(panel)
+	await process_frame
+
+	var native_size: Vector2 = panel.get_combined_minimum_size()
+
+	# Grow: a generous rect should yield a panel noticeably bigger than the
+	# factor-1 baseline, fully inside the rect.
+	var big_rect := Rect2(Vector2(40, 40), Vector2(900, 600))
+	MenuScale.apply_to_fit_rect(panel, big_rect)
+	await process_frame
+	var grown: Rect2 = _visual_rect(panel)
+	_ok(panel.size.y > native_size.y * 1.3,
+		"apply_to_fit_rect grows a panel beyond its factor-1 size when given a generous rect")
+	_ok(big_rect.encloses(grown) or (big_rect.size - grown.size).length() < 2.0,
+		"apply_to_fit_rect keeps the grown panel within the available rect")
+
+	# Shrink: a tight-but-realistic rect (above the content's fixed-padding
+	# floor) should yield a panel that fits fully inside it.
+	var small_rect := Rect2(Vector2(10, 10), Vector2(220, 160))
+	MenuScale.apply_to_fit_rect(panel, small_rect)
+	await process_frame
+	var shrunk: Rect2 = _visual_rect(panel)
+	_ok(small_rect.encloses(shrunk) or (small_rect.size - shrunk.size).length() < 2.0,
+		"apply_to_fit_rect shrinks a panel to fit within a tight available rect")
+
 	panel.queue_free()
 
 

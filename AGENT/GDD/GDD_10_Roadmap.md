@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-10
+**Last verified:** 2026-07-11
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -86,7 +86,7 @@ foundations or add unmanifested save state.
 | 1 | `B6-INPUT` | Live-validate the V030D-GP controller defect fixes | v0.3.0.d return (2026-07-10): Settings repeat, New Game modal focus containment, joystick attack/Pair Up target cycling, and trigger zoom feel failed live. Headless fixes landed 2026-07-10: `ModalScreen` vertical repeat + focus containment, `MenuRepeatPolicy.clear()` wait-for-neutral latch, polled-stick target cycling through `MapCursor` targeting, and a conservative LT/RT zoom tune (`0.35` press threshold, `0.45s`→`0.18s` repeat range). Gate still needs live controller validation. Review/fix plan: [`playtest_v0.3.0.d_triage_review_2026-07-10.md`](../Code%20Reviews/playtest_v0.3.0.d_triage_review_2026-07-10.md). |
 | 2 | `VAL-V023-DISPLAY` | Live-validate the V030D-DSP resize/readout fixes | v0.3.0.d return (2026-07-10): relaunch persistence passed, but one-axis drag still fails and maximized state labels as `Custom` instead of `Maximized`. Headless fixes landed 2026-07-10: resize detection now listens to the root Window as well as the viewport, and Settings refreshes its readout from a settled display-size signal even when no Resolution write-back occurs. Gate still needs live Windows validation. |
 | 3 | `B6-MRD` | Live-review the MRD-7 stacked-perimeter candidate | The focused rerun rejected the single-layer treatment, accepted `stacked` and `border_through` as readable, and supplied a sketch for stacked fill plus a perimeter outline around the whole threatened area. `stacked_perimeter` landed headlessly 2026-07-10 with generated edge-mask sources and F8 cycle coverage. Next: live acceptance, then remove the temporary debug F8 cycle once accepted. |
-| 4 | `UI-INSPECTION` | Route Main Menu 2.0x overlap evidence | v0.3.0.d returned a fresh screenshot showing Continue overlapping the title at 2.0x Menu Scale. Keep this under the existing `V027-05a` scale-safe Main Menu layout task. |
+| 4 | `UI-INSPECTION` | Route Main Menu 2.0x overlap evidence | v0.3.0.d returned a fresh screenshot showing Continue overlapping the title at 2.0x Menu Scale. `V027-05a` (the scale-safe Main Menu layout task this fed) landed headlessly 2026-07-11 on `agent/claude/2026-07-11/ui-theme-rollout`: Main Menu is now exempt from the shared Menu Scale setting and instead fills the space between the title and version label via `MenuScale.apply_to_fit_rect()`, which cannot overlap either by construction. Pending a Windows-host visual confirmation (this container cannot render pixels) before this row closes. |
 
 ## Parallel Queue
 

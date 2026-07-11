@@ -8,8 +8,17 @@ extends Control
 @onready var _quit_btn: Button = $Panel/VBox/QuitButton
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _settings_screen: Control = $SettingsScreen
+@onready var _title_label: Label = $TitleLabel
+@onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
+# V027-05a: MainMenu is a "pinned-large home screen" — exempt from the user's
+# Menu Scale setting, always shown as big as the screen comfortably allows.
+# This is the padding kept clear around the grown panel and between it and the
+# fixed TitleLabel/VersionLabel siblings it must never overlap (that overlap,
+# at 2.0x Menu Scale under the old shared-scale behavior, was V030-REG-01).
+const _AVAILABLE_MARGIN := 24.0
 
 
 func _ready() -> void:
@@ -20,7 +29,7 @@ func _ready() -> void:
 	_quit_btn.pressed.connect(_on_quit)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
-	_apply_menu_scale_from_settings()
+	apply_menu_scale(1.0)
 	_refresh_continue_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
@@ -28,12 +37,28 @@ func _ready() -> void:
 		_new_game_btn.grab_focus()
 
 
-func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to($Panel, factor, true)
+# `factor` is intentionally ignored (V027-05a) — MainMenu stays a
+# `menu_scale_targets` member purely to piggyback on SettingsManager's existing
+# window/viewport resize-refresh plumbing (it calls apply_menu_scale on every
+# group member on both a Menu Scale change AND a debounced resize), not because
+# it follows the shared user setting. The panel always grows/shrinks to the
+# largest size that fits between the title and version label.
+func apply_menu_scale(_factor: float) -> void:
+	MenuScale.apply_to_fit_rect($Panel, _available_rect())
 
 
-func _apply_menu_scale_from_settings() -> void:
-	apply_menu_scale(MenuScale.factor_from_settings(self))
+# The rect the Panel is allowed to fill: full viewport width (inset by the
+# margin) and the vertical band between the title's bottom edge and the version
+# label's top edge (also inset), so growing the panel can never cover either.
+# get_rect() (not get_global_rect()) deliberately: it's LOCAL to MainMenu, the
+# same space $Panel.position lives in, since Title/Version/Panel are siblings.
+func _available_rect() -> Rect2:
+	var vp: Vector2 = get_viewport_rect().size
+	var top: float = _title_label.get_rect().end.y + _AVAILABLE_MARGIN
+	var bottom: float = _version_label.get_rect().position.y - _AVAILABLE_MARGIN
+	return Rect2(
+		Vector2(_AVAILABLE_MARGIN, top),
+		Vector2(maxf(vp.x - _AVAILABLE_MARGIN * 2.0, 0.0), maxf(bottom - top, 0.0)))
 
 
 func _refresh_continue_state() -> void:

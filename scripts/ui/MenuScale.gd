@@ -132,6 +132,53 @@ static func scaled_size(target: Control) -> Vector2:
 	return target.size * target.scale
 
 
+# V027-05a: grows OR shrinks `target` (a non-scroll, grow-to-content panel) to the
+# largest size that fits `available` — a caller-supplied rect that may be smaller
+# than the full viewport, e.g. to avoid overlapping fixed sibling UI the caller
+# knows about (MainMenu's title/version labels; the overlap this exists to avoid
+# is exactly what V030-REG-01 was). Unlike apply_to()/_clamp_to_viewport (which
+# only ever shrink a requested factor down toward a fit, never grow it), this
+# scales proportionally toward `available` in either direction, then centers the
+# panel within it — NOT within the full viewport, since `available` may be offset.
+# `min_factor`/`max_factor` bound the result so a degenerate (near-zero or huge)
+# `available` rect can't produce an illegible or absurd panel.
+#
+# Size does not scale perfectly proportionally with factor — default_font_size
+# and container separation scale, but a Button's own StyleBox padding (baked into
+# the engine default theme, since these targets carry no custom Theme) does not,
+# so it's a fixed additive term. A single proportional estimate from the factor-1
+# baseline under- or overshoots because of that fixed term; iterating a few times
+# (each pass re-estimates from the PREVIOUS pass's actual measured size, not the
+# original baseline) converges to within a couple pixels — confirmed empirically
+# against MainMenu's real button panel. The final pass is a hard shrink-only
+# safety clamp so a slow-converging or oscillating case can never end up
+# overflowing `available`, whatever the iteration count settled on.
+static func apply_to_fit_rect(target: Control, available: Rect2,
+		min_factor: float = 0.5, max_factor: float = 3.0) -> void:
+	if target == null or not target.is_inside_tree():
+		return
+	target.scale = Vector2.ONE
+	var f := 1.0
+	_apply_type_scale(target, f)
+	for i in 5:
+		var next_f := clampf(_fit_factor(_panel_size(target), available.size, f), min_factor, max_factor)
+		if is_equal_approx(next_f, f):
+			break
+		f = next_f
+		_apply_type_scale(target, f)
+	# Unconditional final guarantee: never let the panel overflow `available`, even
+	# if that means going below min_factor on a pathologically small rect — staying
+	# inside the caller's bounds (e.g. not overlapping MainMenu's title/version
+	# labels) always wins over the readability floor. Deliberately NOT clamped to
+	# [min_factor, max_factor] — this pass only ever shrinks further, never grows.
+	var sz := _panel_size(target)
+	if sz.x > available.size.x + 0.5 or sz.y > available.size.y + 0.5:
+		f = maxf(_fit_factor(sz, available.size, f), 0.0)
+		_apply_type_scale(target, f)
+	target.size = _panel_size(target)
+	target.position = available.position + (available.size - target.size) * 0.5
+
+
 # --- internals ---------------------------------------------------------------
 
 
@@ -209,13 +256,20 @@ static func _clamp_to_viewport(target: Control, factor: float) -> float:
 	var vp: Vector2 = target.get_viewport_rect().size
 	if vp.x <= 0.0 or vp.y <= 0.0:
 		return factor
-	var sz := _panel_size(target)
-	if sz.x <= 0.0 or sz.y <= 0.0:
-		return factor
-	var fit: float = minf(vp.x / sz.x, vp.y / sz.y)
-	if fit >= 1.0:
-		return factor
-	return maxf(factor * fit, 0.0)
+	var fit := _fit_factor(_panel_size(target), vp, factor)
+	return factor if fit >= factor else fit
+
+
+# The factor that would make a panel measured at `sz` (itself produced by
+# `base_factor`) exactly touch `available` on its tightest axis: >`base_factor`
+# grows, <`base_factor` shrinks. `_clamp_to_viewport` only ever takes the shrink
+# direction (min against the unclamped factor); `apply_to_fit_rect` takes this
+# value directly, so it can grow too.
+static func _fit_factor(sz: Vector2, available: Vector2, base_factor: float) -> float:
+	if sz.x <= 0.0 or sz.y <= 0.0 or available.x <= 0.0 or available.y <= 0.0:
+		return base_factor
+	var fit: float = minf(available.x / sz.x, available.y / sz.y)
+	return maxf(base_factor * fit, 0.0)
 
 
 # The size a centered panel should occupy. A panel built around a ScrollContainer

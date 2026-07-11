@@ -35,6 +35,37 @@ func _init() -> void:
 	root.add_child(menu)
 	await process_frame
 
+	# V027-05a: MainMenu is exempt from the shared Menu Scale setting — it
+	# always fills the space between the title and version label instead
+	# (a "pinned-large home screen"), and must never overlap either.
+	var panel: Control = menu.get_node("Panel")
+	var title: Control = menu.get_node("TitleLabel")
+	var version: Control = menu.get_node("VersionLabel")
+	var size_before_slider_call: Vector2 = panel.size
+	menu.call("apply_menu_scale", 2.0)  # simulates a Menu Scale slider push
+	await process_frame
+	if panel.size.is_equal_approx(size_before_slider_call):
+		print("OK  Panel ignores the Menu Scale slider factor (V027-05a exemption)")
+		passed += 1
+	else:
+		print("FAIL Panel changed size on apply_menu_scale(2.0): before=%s after=%s" % [
+			size_before_slider_call, panel.size])
+		failed += 1
+	if not panel.get_rect().intersects(title.get_rect()) \
+			and not panel.get_rect().intersects(version.get_rect()):
+		print("OK  Panel does not overlap TitleLabel or VersionLabel (V030-REG-01)")
+		passed += 1
+	else:
+		print("FAIL Panel overlaps a sibling label: panel=%s title=%s version=%s" % [
+			panel.get_rect(), title.get_rect(), version.get_rect()])
+		failed += 1
+	if panel.size.y > 210.0:  # old fixed authored height was 210px (300..510)
+		print("OK  Panel grew beyond its old fixed authored size to fill available space")
+		passed += 1
+	else:
+		print("FAIL Panel did not grow beyond its old fixed size: size=%s" % [panel.size])
+		failed += 1
+
 	var continue_btn: Button = menu.get_node("Panel/VBox/ContinueButton")
 	if continue_btn.disabled:
 		print("OK  Continue is disabled when no suspend save exists")

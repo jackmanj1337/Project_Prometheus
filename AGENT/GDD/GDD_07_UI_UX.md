@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
 UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-07-10
+**Last verified:** 2026-07-11
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -240,8 +240,8 @@ locked
 
 ## Screens and Panels
 
-Status: **Split** — MVP screens are **Implemented**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); manual save slots + combat-animation feedback are **Planned**
-Last verified: 2026-07-09
+Status: **Split** — MVP screens are **Implemented**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); the V027-05a Main Menu scale exemption is **Implemented** headlessly, **Pending validation** for the visual result (fixed 2026-07-11, this container cannot render pixels — awaiting a Windows-host look); manual save slots + combat-animation feedback are **Planned**
+Last verified: 2026-07-11
 
 ---
 
@@ -261,6 +261,18 @@ Last verified: 2026-07-09
 │         [ Quit ]                │
 └─────────────────────────────────┘
 ```
+
+**Scaling (V027-05a, Implemented, 2026-07-11):** Main Menu is exempt from the
+shared Menu Scale setting — a "pinned-large home screen" instead of an ordinary
+`menu_scale_targets` member. `MainMenu.gd.apply_menu_scale()` ignores the
+factor SettingsManager passes it and instead calls
+`MenuScale.apply_to_fit_rect()` against the vertical band between the title
+and version label, growing (or shrinking) the Panel to the largest size that
+fits there without overlapping either — the overlap this specifically avoids
+is `V030-REG-01` (Continue overlapping the title at the old shared 2.0x Menu
+Scale). MainMenu stays in the `menu_scale_targets` group only to reuse
+SettingsManager's existing debounced window/viewport resize-refresh call, not
+because it follows the shared setting.
 
 **Behavior:**
 - "Continue" → loads `user://saves/suspend.json` through `SaveManager`, stages
