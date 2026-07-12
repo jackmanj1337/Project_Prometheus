@@ -26,6 +26,12 @@ signal closed()
 
 var _modal_repeat := ModalMenuRepeatPolicy.new("", "", "ui_up", "ui_down")
 
+# V031-GP-02: true while a capture-mode UI (an OptionButton dropdown or any other
+# embedded popup Window) was active on the previous poll frame. Tracked so the
+# frame the popup closes can re-latch the repeat policy to neutral instead of
+# instantly stepping from a direction still held from inside the popup.
+var _capture_ui_was_active: bool = false
+
 
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
@@ -114,7 +120,7 @@ func _first_focusable(root_node: Node) -> Control:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or not _modal_focus_repeat_enabled():
+	if not visible or not _modal_focus_repeat_enabled() or _capture_ui_active():
 		return
 	if event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
 		get_viewport().set_input_as_handled()
@@ -123,12 +129,39 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not visible or not _modal_focus_repeat_enabled():
 		return
+	# V031-GP-02 standdown: the repeat policy polls the process-global Input
+	# singleton, which cannot see that an open popup is capturing the event
+	# stream — without this gate every press inside a dropdown also stepped the
+	# panel's focus behind it (v0.3.1 live return). Containment is skipped too,
+	# so it never fights the popup for focus.
+	if _capture_ui_active():
+		_capture_ui_was_active = true
+		return
+	if _capture_ui_was_active:
+		_capture_ui_was_active = false
+		# clear()'s wait-for-neutral latch swallows a direction still held from
+		# inside the popup, so closing it never causes a surprise focus step.
+		_modal_repeat.clear()
+		return
 	_enforce_focus_containment()
 	var step := _modal_repeat.poll(delta)
 	if step.y < 0:
 		_move_modal_focus(-1)
 	elif step.y > 0:
 		_move_modal_focus(1)
+
+
+# True while any embedded popup Window (OptionButton dropdown, context menu, …)
+# is visible in this modal's viewport. The game runs single-window with embedded
+# subwindows, so an open popup always registers here.
+func _capture_ui_active() -> bool:
+	var vp := get_viewport()
+	if vp == null:
+		return false
+	for w in vp.get_embedded_subwindows():
+		if w.visible:
+			return true
+	return false
 
 
 # Virtual: custom-selector modals can opt out if they own directional polling.

@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (most UI surfaces are
 **Implemented**; combat-animation feedback and HUD scale polish are **Planned**).
 UI is project-specific; it has no corpus-adoption rows.
-**Last verified:** 2026-07-10
+**Last verified:** 2026-07-12
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -34,7 +34,7 @@ Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
 headless map-cursor decoder, profile-ready keybind persistence, and key-rebind capture
 for keyboard/mouse + gamepad); live controller feel **Target design** / pending
 validation.
-Last verified: 2026-07-10
+Last verified: 2026-07-12
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -178,7 +178,12 @@ map cursor keeps 0.25s / 0.10s.
 Engine-focus modals (`SettingsScreen`, `NewGameScreen`, Promotion/Reclass) use
 the shared `ModalScreen` vertical repeat path. Horizontal input stays with the
 focused control, so sliders and option buttons keep their own left/right
-behavior.
+behavior. While a capture-mode UI is active — an open `OptionButton` dropdown
+or any other embedded popup Window — the polled repeat and focus containment
+stand down entirely, and the popup-close frame re-latches the repeat to
+neutral, so picking from a dropdown never moves the panel focus behind it
+(V031-GP-02, fixed 2026-07-12; the polled `Input` singleton cannot see event
+capture, so the standdown is checked explicitly).
 
 Held map zoom ignores LT/RT values below a 0.35 activation threshold. Any pull
 past the threshold steps the zoom once, then repeats on one constant slow

@@ -162,6 +162,34 @@ var campaign_rules = CampaignRulesScript.make_default()
 		var repeated_down := focus_owner == modal_permadeath
 		Input.action_release("ui_down")
 		modal._process(0.016)
+
+		# V031-GP-02: while an OptionButton popup (a capture-mode embedded Window)
+		# is open, polled focus stepping stands down — a held direction must NOT
+		# move the panel focus behind the popup, and the popup-close frame
+		# re-latches the repeat so the still-held direction doesn't step either.
+		modal_permadeath.grab_focus()
+		modal_map.show_popup()
+		await process_frame
+		var popup_seen: bool = modal._capture_ui_active()
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var popup_stood_down := focus_owner == modal_permadeath
+		modal_map.get_popup().hide()
+		await process_frame
+		modal._process(0.016)  # close frame: re-latch, no step
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var close_frame_latched := focus_owner == modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var steps_after_neutral := focus_owner != modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+
 		menu.queue_free()
 		if contained_focus and repeated_down:
 			print("OK  MainMenu-hosted NewGame modal contains focus and repeats down")
@@ -169,6 +197,13 @@ var campaign_rules = CampaignRulesScript.make_default()
 		else:
 			print("FAIL modal focus: contained=%s repeated_down=%s focus=%s" % [
 				contained_focus, repeated_down, focus_owner])
+			failed += 1
+		if popup_seen and popup_stood_down and close_frame_latched and steps_after_neutral:
+			print("OK  open dropdown stands down polled focus stepping and re-latches on close")
+			passed += 1
+		else:
+			print("FAIL popup standdown: seen=%s stood_down=%s latched=%s after_neutral=%s focus=%s" % [
+				popup_seen, popup_stood_down, close_frame_latched, steps_after_neutral, focus_owner])
 			failed += 1
 	else:
 		print("SKIP modal focus containment (GameState unavailable)")
