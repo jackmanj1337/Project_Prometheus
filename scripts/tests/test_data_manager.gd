@@ -175,6 +175,28 @@ func _init() -> void:
 			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace")])
 		failed += 1
 
+	# A tiny generated source proves path parameterization independently of the
+	# shipped res://data tree. Validation is covered above; this fixture isolates
+	# catalogue replacement without committing duplicate content resources.
+	var fixture_source := "user://test_data_manager/alternate_source"
+	var fixture_ok := _write_alternate_source_fixture(fixture_source)
+	dm._clear_content()
+	dm._load_all(fixture_source)
+	var alternate_ids := [dm._classes.keys(), dm._weapons.keys(), dm._items.keys(), dm._skills.keys()]
+	var alternate_ok: bool = fixture_ok \
+			and alternate_ids[0] == ["fixture_class"] \
+			and alternate_ids[1] == ["fixture_weapon"] \
+			and alternate_ids[2] == ["fixture_item"] \
+			and alternate_ids[3] == ["fixture_skill"]
+	dm._clear_content()
+	dm._load_all(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	if alternate_ok:
+		print("OK  alternate content root replace-loads all four catalogues")
+		passed += 1
+	else:
+		print("FAIL alternate content root: fixture=%s ids=%s" % [fixture_ok, alternate_ids])
+		failed += 1
+
 	# ---- B6: bad fixtures fire the right errors ----
 	# Hand-build minimal ad-hoc resources and assert each invalid field surfaces.
 	# The collector is pure, so we drive it with fixture dicts and never mutate
@@ -558,3 +580,24 @@ func _init() -> void:
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _write_alternate_source_fixture(source: String) -> bool:
+	for family in ["classes", "weapons", "items", "skills"]:
+		var absolute_dir := ProjectSettings.globalize_path(source.path_join(family))
+		if DirAccess.make_dir_recursive_absolute(absolute_dir) != OK:
+			return false
+
+	var fixture_class := ClassData.new()
+	fixture_class.id = "fixture_class"
+	var fixture_weapon := WeaponData.new()
+	fixture_weapon.id = "fixture_weapon"
+	var fixture_item := ItemData.new()
+	fixture_item.id = "fixture_item"
+	var fixture_skill := SkillData.new()
+	fixture_skill.id = "fixture_skill"
+
+	return ResourceSaver.save(fixture_class, source.path_join("classes/fixture_class.tres")) == OK \
+			and ResourceSaver.save(fixture_weapon, source.path_join("weapons/fixture_weapon.tres")) == OK \
+			and ResourceSaver.save(fixture_item, source.path_join("items/fixture_item.tres")) == OK \
+			and ResourceSaver.save(fixture_skill, source.path_join("skills/fixture_skill.tres")) == OK
