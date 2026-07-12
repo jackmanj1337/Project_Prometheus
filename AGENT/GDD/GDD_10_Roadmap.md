@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-11
+**Last verified:** 2026-07-12
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -158,6 +158,7 @@ Do not schedule these for v1 unless the owner explicitly changes scope:
 | `B8-PERCEPTION` | Perception / masking. |
 | `B8-ML-EVAL` | ML evaluation experiment. |
 | `B8-VISION-PRO` | Apple Vision Pro reach. |
+| `B8-TILE-RESCALE` | `GameConstants.TILE_SIZE` rescale for native-res pixel art; cost/refactor assessment in [`tile_size_native_res_rescale_assessment_2026-07-12.md`](../Docs/design/tile_size_native_res_rescale_assessment_2026-07-12.md). |
 
 ## Update Discipline
 

@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-10
+Last verified: 2026-07-12
 ---
 
 # Project Control Plane
@@ -190,6 +190,7 @@ Every tracker row uses these columns:
 | `B8-PERCEPTION` | 8 | Deferred | Perception / masking | Forecast fidelity, hidden effects, traps, and AI/player perception split. | `B2-PROJECTION`, `B3-REQ`, `B7-AI-ADVANCED-VALUATION` | `GDD_08`, `GDD_02` | [`perception_masking_open_questions_2026-06-27.md`](../registers/perception_masking_open_questions_2026-06-27.md) | needs future plan | Save: no_save_guard unless hidden state added | Forecast/fidelity tests later | Park unless v1 scope changes. |
 | `B8-ML-EVAL` | 8 | Deferred | ML evaluation experiment | Optional learned evaluation function or research experiment, not product v1. | `B7-AI-ADVANCED-VALUATION` | `GDD_08` | [`ai_valuation_engagement_open_questions_2026-06-27.md`](../registers/ai_valuation_engagement_open_questions_2026-06-27.md) | none | no_save_guard | none | Keep off product roadmap until owner revisits. |
 | `B8-VISION-PRO` | 8 | Deferred | Apple Vision Pro reach | Revisit after Safari-verified web release. | `B6-WEB-DEBUG` | `GDD_00`, `GDD_07` | `GDD_10` Renderer & Platform Targets | none | no_save_guard | Safari/web validation later | Park. |
+| `B8-TILE-RESCALE` | 8 | Deferred | `GameConstants.TILE_SIZE` rescale for native-res art | Change `TILE_SIZE` (e.g. 64->16) to author gameplay art at native pixel-art resolution, and close the gaps where art/scene data don't automatically derive from the constant. | Real terrain/unit/cursor art sourced at the target resolution (not yet tracked) | `GDD_06`, `GDD_07` | [`tile_size_native_res_rescale_assessment_2026-07-12.md`](../design/tile_size_native_res_rescale_assessment_2026-07-12.md) | needs future implementation plan | no_save_guard | Proposed texture-dimension assertion; full visual regression after any change | Revisit only if real art sourcing at a non-64px native resolution is greenlit. |
 
 ## Validation Queue
 
