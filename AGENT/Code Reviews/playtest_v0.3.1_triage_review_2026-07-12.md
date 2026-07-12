@@ -1,6 +1,6 @@
 # v0.3.1 Playtest Triage - Code Review Plan - 2026-07-12
 
-Status: PLANNED - root causes diagnosed from returned live evidence + source; implement before the next focused rerun
+Status: DECIDED - root causes diagnosed from returned live evidence + source; owner decisions locked 2026-07-12 (see per-finding "Owner decision" lines); fix stream follows
 Scope: returned `v0.3.1` checklist, the three v0.3.1 logs, both drag screenshots,
 and the code paths behind each V031-* issue.
 Companion: `AGENT/Docs/playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md`
@@ -115,6 +115,11 @@ minimum playable client (960x540 or half the smallest preset;
 `RESOLUTION_CHOICES` floor is `1280x720`, owner call). Pure-function
 testable alongside R2's settle policy.
 
+**Owner decision (2026-07-12): leave unclamped — no action.** A dragged size,
+however extreme, is the user's choice and relaunch honors it. R2's
+settle-then-persist still removes the *mid-drag transient* class of weird
+persists on its own.
+
 ### R4 (MEDIUM) - `V031-GP-05`: View Support / View Lead unreachable; character sheet never scrolls with selection
 
 Evidence: tester §1 note — both keyboard and pad skip the buttons; the sheet
@@ -167,6 +172,11 @@ precisely what "too sensitive" keeps pointing at) and raise the threshold to
 promote the `B6-INPUT` sensitivity sliders — three strikes is the signal that
 feel is per-player, not per-constant.
 
+**Owner decision (2026-07-12): drop strength scaling entirely.** Any pull past
+the activation threshold steps once, then repeats at the constant slow cadence
+(`0.45s`); pull depth changes nothing. Sensitivity sliders stay `B6-INPUT`
+backlog to revisit later.
+
 ### R7 (LOW) - `V031-GP-01`: no focus lookahead in scrolling lists
 
 `ScrollContainer.follow_focus` scrolls the focused control just barely into
@@ -177,9 +187,10 @@ focused row in the movement direction. Headless-assertable on scroll offsets.
 
 ### R8 (MEDIUM) - `V031-MRD-01`: requested dual outline cannot be expressed by the current perimeter tiles
 
-The tester's spec: bright-red strong outline around the **watched** threat
-area, dark-red around the **entire** danger area, both rendered **above
-units**, dark over bright on overlap.
+The tester's spec (color assignment corrected by the owner 2026-07-12):
+**dark-red** strong outline around the **watched** threat area, **bright-red**
+around the **entire** danger area, both rendered **above units**, with the
+dark watch outline drawn **over** the bright general-danger outline.
 
 Current machinery (`scripts/core/GridManager.gd:683-732`):
 `_paint_stacked_perimeter` bakes perimeter edges as tile *alternates* into the
@@ -193,11 +204,12 @@ Possible fix — a dedicated draw surface instead of more tile art: a
 `ThreatPerimeterOverlay` `Node2D` with `z_index` above the unit layer whose
 `_draw()` renders edge polylines. Feed it **two** tile unions (watch-only, and
 watch+faction) computed from the existing tested
-`threat_perimeter_mask()` helper; draw bright (watch) first, dark (danger)
-second so dark wins overlaps; line width/colors as exported constants for the
-next F8 comparison. Stacked fill stays on the existing layers underneath, and
-the F8 cycle gains this as the fifth mode rather than replacing
-`stacked_perimeter` until the owner accepts it live.
+`threat_perimeter_mask()` helper; draw bright (general danger union) first,
+dark (watch union) second so the dark watch outline wins overlaps; line
+width/colors as exported constants for the next F8 comparison. Stacked fill
+stays on the existing layers underneath, and the F8 cycle gains this as the
+fifth mode (`dual_outline`) rather than replacing `stacked_perimeter` until
+the owner accepts it live.
 
 Tests: pure edge-mask tests for the two-union split (watched subset vs full
 union, shared edges, concave shapes); keep `test_mrd_scene.gd` nonblank
@@ -207,11 +219,13 @@ screenshot coverage for the new mode.
 
 1. **R1** popup standdown in `ModalScreen` (functional, one seam, headless-provable).
 2. **R4** character-sheet pair entry + selection scrolling (functional reach bug).
-3. **R2 + R3** display settle-then-persist + poll reconciliation + clamp (gate
-   closer; policy tests headless, stall verification live).
+3. **R2** display settle-then-persist + poll reconciliation (gate closer;
+   policy tests headless, stall verification live). R3 clamp declined — skip.
 4. **R5 + R7** cadence constants + scroll lookahead (small, same screens as R4).
-5. **R6** zoom: constant-rate + higher threshold now; sliders if flagged again.
-6. **R8** MRD-7 dual-outline draw surface, new F8 mode.
+5. **R6** zoom: constant slow repeat, no strength scaling (owner-decided);
+   sliders stay backlog.
+6. **R8** MRD-7 `dual_outline` draw surface, new F8 mode (dark watch outline
+   over bright general-danger outline, above units).
 7. Diagnostics (`V030-NG-FOCUS`, `V030-DSP-TRACE`) and F8 stay until their
    gates close; remove in one release-cleanup commit.
 

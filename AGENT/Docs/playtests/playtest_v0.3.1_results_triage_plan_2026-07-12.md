@@ -139,9 +139,11 @@ the stall itself is likely not headlessly reproducible.
 ### V031-DSP-01b — Degenerate size persisted (`491x1913`)
 
 The 2026-07-12 launch booted with `saved_resolution "491x1913"` — a 491-px
-wide window was persisted by live write-back at some point. Add a sanity
-clamp on write-back (minimum size, e.g. the smallest preset) so a mid-drag or
-degenerate OS size can never become the relaunch size. Headless-testable.
+wide window was persisted by live write-back at some point, plausibly a
+genuine left-edge width drag during testing. **Owner decision (2026-07-12):
+leave persisted sizes unclamped** — a dragged size is the user's choice.
+V031-DSP-01's settle-then-persist removes the mid-drag-transient persist class
+by itself. No further action.
 
 ### V031-DSP-02 — Maximize readout: PASSED
 
@@ -151,10 +153,12 @@ No action beyond removing diagnostics at release cleanup.
 ### V031-MRD-01 — Dual-outline candidate requested
 
 No current F8 mode ships. Build the requested candidate on top of
-`stacked_perimeter`'s edge-mask machinery: two perimeter outlines — bright red
-around the union of the **watched** threat cells, dark red around the union of
-the **entire** danger area — both drawn on a layer above unit sprites, dark
-over bright where they overlap. Keep stacked fill underneath. Edge-mask
+`stacked_perimeter`'s edge-mask machinery: two perimeter outlines — **dark
+red** around the union of the **watched** threat cells, **bright red** around
+the union of the **entire** danger area (color assignment confirmed by the
+owner 2026-07-12) — both drawn on a layer above unit sprites, the dark watch
+outline over the bright one where they overlap. Keep stacked fill underneath.
+Edge-mask
 generation is already tested; the new work is the second mask source, the
 z-order lift above units, and the two-tone line style. Headless edge-mask
 tests credible; the look itself needs the next live pass.
@@ -171,7 +175,7 @@ three logs used all carry correct stamps. No action.
 |---|---|---|
 | `B1-SUSPEND` | §6 passed | No change — stays Implemented / live-validated. |
 | `VAL-V030-GAMEPAD` | §1/§2 fail on specifics; §3 passes | Keep Pending validation. Fix `V031-GP-02` (popup input standdown) and `V031-GP-05` (details scroll + skipped buttons); tune `GP-03`/`GP-04`; add `GP-01` scroll margin. |
-| `VAL-V023-DISPLAY` | Maximize + relaunch-to-saved pass; one-axis drag fails | Keep Pending validation. Fix `V031-DSP-01` (no window mutation during live drag; settle-then-persist) + `V031-DSP-01b` clamp. |
+| `VAL-V023-DISPLAY` | Maximize + relaunch-to-saved pass; one-axis drag fails | Keep Pending validation. Fix `V031-DSP-01` (settle-then-persist + poll reconciliation). `V031-DSP-01b` clamp declined by owner 2026-07-12 — no action. |
 | `B6-MRD` / MRD-7 | No accepted mode; refined candidate specified | Build `V031-MRD-01` dual-outline candidate; F8 cycle stays until a candidate is accepted live. |
 | `UI-INSPECTION` | Notes only | Carry `V031-GP-06` keybind focus order + focus scroll-margin styling into the UI pass. |
 | `B6-INPUT` | Backlog pressure | If `GP-04` tuning fails a third time, promote the sensitivity sliders. |
@@ -181,8 +185,9 @@ three logs used all carry correct stamps. No action.
 1. Code review + fixes for the gamepad class: `V031-GP-02` popup standdown,
    `V031-GP-05` details scroll/focus chain, `GP-03`/`GP-04` cadence tunes,
    `GP-01` scroll margin.
-2. Display: diagnose and fix `V031-DSP-01` (record-only during live resize,
-   settle-then-persist) and add the `DSP-01b` write-back clamp + tests.
+2. Display: fix `V031-DSP-01` (record-only during live resize,
+   settle-then-persist, poll reconciliation) + tests. No size clamp
+   (`DSP-01b` declined).
 3. MRD-7: implement the dual-outline candidate behind the existing F8 cycle.
 4. Diagnostics (`V030-NG-FOCUS`, `V030-DSP-TRACE`) and F8 stay in until their
    gates close, then come out in one release-cleanup commit.
