@@ -14,11 +14,10 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 # DataManager edit. See AIProfileRegistry.gd.
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
-const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+const DEFAULT_CONTENT_SOURCE := "res://data"
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
-const _PAIR_UP_TABLE_PATH := "res://data/pair_up/pair_up_bonus_table.tres"
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
 const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
@@ -34,18 +33,52 @@ var _skills: Dictionary = {}
 
 
 func _ready() -> void:
-	_load_directory("res://data/classes/", _classes)
-	_load_directory("res://data/weapons/", _weapons)
-	_load_directory("res://data/items/", _items)
-	_load_directory("res://data/skills/", _skills)
+	_clear_content()
+	_load_all(DEFAULT_CONTENT_SOURCE)
+	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
+
+
+# Content sources are self-contained data roots. Keeping path construction here
+# makes the future campaign-pack switch a replace-load instead of a merge.
+func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
+	_load_directory(source.path_join("classes"), _classes)
+	_load_directory(source.path_join("weapons"), _weapons)
+	_load_directory(source.path_join("items"), _items)
+	_load_directory(source.path_join("skills"), _skills)
+
+
+func _clear_content() -> void:
+	_classes.clear()
+	_weapons.clear()
+	_items.clear()
+	_skills.clear()
+
+
+# Runs the complete validation composition for one loaded source. SkillData's
+# missing-field diagnostics remain warnings; hard cross-reference failures are
+# collected and reported through the single error channel below.
+func _validate_all(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 	for skill in _skills.values():
 		skill.validate()
-	for err in collect_validation_errors(_classes, _weapons, _items, _skills):
+	var errors := collect_validation_errors(_classes, _weapons, _items, _skills)
+	errors.append_array(collect_map_registry_validation_errors(
+		source.path_join("maps/map_registry.json"), _classes, _items))
+	errors.append_array(collect_pair_up_validation_errors(
+		source.path_join("pair_up/pair_up_bonus_table.tres")))
+	return errors
+
+
+func _report(errors: Array[String]) -> void:
+	for err in errors:
 		push_error(err)
-	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes, _items):
-		push_error(err)
-	for err in collect_pair_up_validation_errors(_PAIR_UP_TABLE_PATH):
-		push_error(err)
+
+
+# Inert until campaign selection is wired. Callers provide a complete content
+# root; old catalogues are cleared before the replacement source is loaded.
+func select_campaign_source(source: String) -> void:
+	_clear_content()
+	_load_all(source)
+	_report(_validate_all(source))
 
 
 # Small Band 2 seam: content validators can ask the shared registry without

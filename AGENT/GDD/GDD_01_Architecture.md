@@ -627,15 +627,15 @@ var _skills: Dictionary = {}
 # of truth, shared with CombatResolver. DataManager no longer holds its own copy.
 
 func _ready() -> void:
-    _load_directory("res://data/classes/", _classes)
-    _load_directory("res://data/weapons/", _weapons)
-    _load_directory("res://data/items/", _items)
-    _load_directory("res://data/skills/", _skills)
-    for skill in _skills.values():
-        skill.validate()
-    for err in collect_validation_errors(_classes, _weapons, _items, _skills):
-        push_error(err)
+    _clear_content()
+    _load_all(DEFAULT_CONTENT_SOURCE)
+    _report(_validate_all(DEFAULT_CONTENT_SOURCE))
 
+func _clear_content() -> void
+func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void
+func _validate_all(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]
+func _report(errors: Array[String]) -> void
+func select_campaign_source(source: String) -> void
 static func collect_validation_errors(classes, weapons, items, skills) -> Array[String]
 func _load_directory(path: String, target: Dictionary) -> void
 func get_class_data(id: String) -> ClassData   # named *_data, not get_class, to avoid
@@ -648,6 +648,12 @@ func get_skill(id: String) -> SkillData
 func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String
     # "advantage" | "disadvantage" | "neutral" — reads GameConstants.WEAPON_TRIANGLE.
 ```
+
+`DEFAULT_CONTENT_SOURCE` is `res://data`. A content source is a self-contained
+data root containing the same catalogue, map-registry, and Pair Up paths. The
+campaign-source seam is replace-load: it clears all four catalogues before loading
+and validating the new root; it does not merge content. Nothing selects or persists
+an alternate source yet.
 
 ### `EventBus.gd`
 

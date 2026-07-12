@@ -150,6 +150,31 @@ func _init() -> void:
 	else:
 		print("FAIL live map validation: %s" % [live_map_errors]); failed += 1
 
+	# ---- B2-DATAMANAGER-SEAMS: named phases preserve default boot ----
+	var boot_ids := {
+		"classes": dm._classes.keys(),
+		"weapons": dm._weapons.keys(),
+		"items": dm._items.keys(),
+		"skills": dm._skills.keys(),
+	}
+	var phase_errors: Array[String] = dm._validate_all()
+	dm._classes["stale_before_replace"] = ClassData.new()
+	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	var replace_ids := {
+		"classes": dm._classes.keys(),
+		"weapons": dm._weapons.keys(),
+		"items": dm._items.keys(),
+		"skills": dm._skills.keys(),
+	}
+	if phase_errors.is_empty() and replace_ids == boot_ids \
+			and not dm._classes.has("stale_before_replace"):
+		print("OK  DataManager phases validate clean and default replace-load preserves catalogue ids")
+		passed += 1
+	else:
+		print("FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s" % [
+			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace")])
+		failed += 1
+
 	# ---- B6: bad fixtures fire the right errors ----
 	# Hand-build minimal ad-hoc resources and assert each invalid field surfaces.
 	# The collector is pure, so we drive it with fixture dicts and never mutate
