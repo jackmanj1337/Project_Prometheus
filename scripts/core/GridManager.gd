@@ -14,6 +14,10 @@ var _overlay: TileMapLayer = null
 # Optional prototype overlay lane for MRD-7 shared-cell visual comparisons.
 var _overlay_top: TileMapLayer = null
 
+# Lazily-created dual-outline draw surface (V031-MRD-01) — a Node2D that
+# strokes the threat perimeters above unit sprites; see _ensure_perimeter_overlay.
+var _perimeter_overlay: Node2D = null
+
 # Optional fallback when no TileMapLayer is assigned (tests, headless).
 # Maps Vector2i tile -> String terrain type.
 var _terrain_fallback: Dictionary = {}
@@ -559,13 +563,17 @@ const SHARED_CELL_SINGLE := "single_layer"
 const SHARED_CELL_BORDER_THROUGH := "border_through"
 const SHARED_CELL_STACKED := "stacked"
 const SHARED_CELL_STACKED_PERIMETER := "stacked_perimeter"
+const SHARED_CELL_DUAL_OUTLINE := "dual_outline"
 
 const SHARED_CELL_MODES := {
 	SHARED_CELL_SINGLE: {"label": "Single layer"},
 	SHARED_CELL_BORDER_THROUGH: {"label": "Threat center + range border"},
 	SHARED_CELL_STACKED: {"label": "Second overlay layer"},
 	SHARED_CELL_STACKED_PERIMETER: {"label": "Second overlay layer + threat perimeter"},
+	SHARED_CELL_DUAL_OUTLINE: {"label": "Stacked fill + dual outline above units"},
 }
+
+const ThreatPerimeterOverlayScript = preload("res://scripts/core/ThreatPerimeterOverlay.gd")
 
 const PERIMETER_EDGE_TOP := 1
 const PERIMETER_EDGE_RIGHT := 2
@@ -632,10 +640,13 @@ func set_shared_cell_mode(mode: String) -> void:
 	shared_cell_mode = mode
 	if not _shared_cell_mode_uses_top_overlay(shared_cell_mode):
 		_clear_top_overlay()
+	if shared_cell_mode != SHARED_CELL_DUAL_OUTLINE:
+		_clear_perimeter_overlay()
 
 
 func _shared_cell_mode_uses_top_overlay(mode: String) -> bool:
-	return mode == SHARED_CELL_STACKED or mode == SHARED_CELL_STACKED_PERIMETER
+	return mode == SHARED_CELL_STACKED or mode == SHARED_CELL_STACKED_PERIMETER \
+		or mode == SHARED_CELL_DUAL_OUTLINE
 
 
 func _clear_top_overlay() -> void:
@@ -717,6 +728,34 @@ func _threat_union(layer_specs: Dictionary) -> Dictionary:
 	return threat_tiles
 
 
+# Pure world-space outline geometry for the perimeter of `tiles` (a tile->bool
+# set): a flat [from, to, from, to, ...] point-pair list built from the same
+# edge-mask logic the stacked_perimeter tile variants use. Pure + static so
+# the dual-outline geometry is testable headless without a canvas.
+static func perimeter_edge_segments(tiles: Dictionary, tile_size: int) -> PackedVector2Array:
+	var segments := PackedVector2Array()
+	for tile_any in tiles:
+		var tile: Vector2i = tile_any
+		var mask := threat_perimeter_mask(tile, tiles)
+		if mask == 0:
+			continue
+		var origin := Vector2(tile.x * tile_size, tile.y * tile_size)
+		var size := float(tile_size)
+		if mask & PERIMETER_EDGE_TOP:
+			segments.append(origin)
+			segments.append(origin + Vector2(size, 0))
+		if mask & PERIMETER_EDGE_RIGHT:
+			segments.append(origin + Vector2(size, 0))
+			segments.append(origin + Vector2(size, size))
+		if mask & PERIMETER_EDGE_BOTTOM:
+			segments.append(origin + Vector2(0, size))
+			segments.append(origin + Vector2(size, size))
+		if mask & PERIMETER_EDGE_LEFT:
+			segments.append(origin)
+			segments.append(origin + Vector2(0, size))
+	return segments
+
+
 func _paint_stacked_perimeter(layer_specs: Dictionary) -> void:
 	var threat_tiles := _threat_union(layer_specs)
 	for id in _sorted_overlay_ids(layer_specs):
@@ -730,6 +769,46 @@ func _paint_stacked_perimeter(layer_specs: Dictionary) -> void:
 				_overlay.set_cell(tile, paint_source, Vector2i.ZERO)
 		else:
 			_paint_overlay(_spec_tiles(spec), source, _overlay_top)
+
+
+# V031-MRD-01 `dual_outline`: the stacked fill underneath, plus two world-space
+# outlines drawn above unit sprites — bright red around every threatened tile,
+# dark red around the watched subset, dark over bright (owner spec 2026-07-12).
+func _paint_dual_outline(layer_specs: Dictionary) -> void:
+	_paint_stacked_layers(layer_specs)
+	var overlay := _ensure_perimeter_overlay()
+	if overlay == null:
+		return
+	var watch_tiles: Dictionary = {}
+	if layer_specs.has(OVERLAY_LAYER_WATCH_THREAT):
+		for tile in _spec_tiles(layer_specs[OVERLAY_LAYER_WATCH_THREAT]):
+			watch_tiles[tile] = true
+	overlay.set_perimeters(
+		perimeter_edge_segments(_threat_union(layer_specs), GameConstants.TILE_SIZE),
+		perimeter_edge_segments(watch_tiles, GameConstants.TILE_SIZE))
+
+
+# Lazily creates the outline draw surface (same pattern as MapCursor's
+# PathArrows layer). Null on headless grids with no real overlay layer (the
+# pure-logic fallback grid). Created even before this grid enters the tree —
+# the child simply starts rendering when the grid does.
+func _ensure_perimeter_overlay() -> Node2D:
+	if _perimeter_overlay != null:
+		return _perimeter_overlay
+	if _overlay == null:
+		return null
+	_perimeter_overlay = ThreatPerimeterOverlayScript.new()
+	_perimeter_overlay.name = "ThreatPerimeterOverlay"
+	# Above unit sprites (z 0) so the outlines read over units per the owner
+	# spec; below the transient movement path arrows (z 100).
+	_perimeter_overlay.z_index = 90
+	add_child(_perimeter_overlay)
+	return _perimeter_overlay
+
+
+func _clear_perimeter_overlay() -> void:
+	if _perimeter_overlay != null:
+		_perimeter_overlay.clear()
 
 
 func _range_source_on_threat(range_source: int, threat_source: int) -> int:
@@ -770,7 +849,10 @@ func repaint_overlays(layer_specs: Dictionary) -> void:
 		return
 	_overlay.clear()
 	_clear_top_overlay()
-	if shared_cell_mode == SHARED_CELL_STACKED_PERIMETER and _overlay_top != null:
+	_clear_perimeter_overlay()
+	if shared_cell_mode == SHARED_CELL_DUAL_OUTLINE and _overlay_top != null:
+		_paint_dual_outline(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_STACKED_PERIMETER and _overlay_top != null:
 		_paint_stacked_perimeter(layer_specs)
 	elif shared_cell_mode == SHARED_CELL_STACKED and _overlay_top != null:
 		_paint_stacked_layers(layer_specs)

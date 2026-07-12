@@ -456,6 +456,27 @@ func get_equipped_weapon(): return _w
 		print("FAIL [MRD-7] perimeter masks: iso=%d line=(%d,%d) concave=%d" % [
 			iso_mask, line_left_mask, line_right_mask, concave_corner_mask]); failed += 1
 
+	# V031-MRD-01: pure world-space outline segments from the same edge masks
+	# (tile size 64). An isolated tile strokes 4 edges (8 points); a two-tile
+	# line strokes 6 (12 points) and never the shared inner edge.
+	var iso_segments := GridManager.perimeter_edge_segments(isolated, 64)
+	var line_segments := GridManager.perimeter_edge_segments(line, 64)
+	var seg_counts_ok: bool = iso_segments.size() == 8 and line_segments.size() == 12
+	var inner_edge_absent := true
+	var seg_scan := 0
+	while seg_scan + 1 < line_segments.size():
+		var seg_a: Vector2 = line_segments[seg_scan]
+		var seg_b: Vector2 = line_segments[seg_scan + 1]
+		if (seg_a == Vector2(64, 0) and seg_b == Vector2(64, 64)) \
+				or (seg_a == Vector2(64, 64) and seg_b == Vector2(64, 0)):
+			inner_edge_absent = false
+		seg_scan += 2
+	if seg_counts_ok and inner_edge_absent:
+		print("OK  [MRD-7] dual-outline segments stroke perimeters only, never shared inner edges"); passed += 1
+	else:
+		print("FAIL [MRD-7] outline segments: iso=%d line=%d inner_absent=%s" % [
+			iso_segments.size(), line_segments.size(), inner_edge_absent]); failed += 1
+
 	var threat_adjacent := Vector2i(4, 5)
 	var perimeter_specs := {
 		GridManager.OVERLAY_LAYER_MOVE: {
@@ -484,6 +505,50 @@ func get_equipped_weapon(): return _w
 		print("FAIL [MRD-7] stacked-perimeter: base=%d want=%d top_shared=%d top_move=%d" % [
 			perimeter_base_shared, perimeter_expected_source,
 			perimeter_top_shared, perimeter_top_move]); failed += 1
+	# V031-MRD-01 dual_outline: stacked fill stays on the tile layers, and the
+	# perimeter draw surface receives two world-space outlines — bright around
+	# EVERY threatened tile, dark around the WATCHED subset (dark drawn over
+	# bright by the overlay node's draw order).
+	root.add_child(shared_grid)  # the outline surface is a live child node
+	var faction_far := Vector2i(8, 8)
+	var dual_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_FACTION_THREAT: {
+			"tiles": [faction_far] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARK_RED,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, threat_adjacent] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_DUAL_OUTLINE)
+	shared_grid.repaint_overlays(dual_specs)
+	var outline: Node2D = shared_grid._perimeter_overlay
+	var dual_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var dual_top_shared := shared_top.get_cell_source_id(shared_tile)
+	# Watch pair (4,4)+(4,5) = 6 edges (12 points); danger union adds the
+	# isolated faction tile = 10 edges (20 points).
+	var dual_ok: bool = outline != null \
+		and outline._watch_segments.size() == 12 \
+		and outline._danger_segments.size() == 20 \
+		and dual_base_shared == GridManager.OVERLAY_DARKER_RED \
+		and dual_top_shared == GridManager.OVERLAY_BLUE
+	# Switching away from dual_outline clears the stroked outlines.
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	var dual_cleared: bool = outline == null or (outline._watch_segments.is_empty() \
+		and outline._danger_segments.is_empty())
+	if dual_ok and dual_cleared:
+		print("OK  [MRD-7] dual_outline splits watch/danger perimeters above the stacked fill"); passed += 1
+	else:
+		print("FAIL [MRD-7] dual_outline: outline=%s watch=%d danger=%d base=%d top=%d cleared=%s" % [
+			outline, outline._watch_segments.size() if outline != null else -1,
+			outline._danger_segments.size() if outline != null else -1,
+			dual_base_shared, dual_top_shared, dual_cleared]); failed += 1
+	shared_grid.queue_free()
 	shared_base.free()
 	shared_top.free()
 

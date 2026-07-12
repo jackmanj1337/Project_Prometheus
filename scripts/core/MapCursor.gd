@@ -81,6 +81,7 @@ const DEBUG_SHARED_CELL_MODE_CYCLE: Array[String] = [
 	GridManager.SHARED_CELL_BORDER_THROUGH,
 	GridManager.SHARED_CELL_STACKED,
 	GridManager.SHARED_CELL_STACKED_PERIMETER,
+	GridManager.SHARED_CELL_DUAL_OUTLINE,
 ]
 # The full danger-mode value-set as string literals — the parseable source of
 # truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the

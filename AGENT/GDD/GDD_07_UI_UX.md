@@ -107,8 +107,8 @@ banner as `hotseat-all` while active.
 Status: **Implemented** (watch set + mode cycle; source-4 darker-red watch tile
 authored as a placeholder colour; "D" markers; suspend restore of
 watch-set/mode state; MRD-7 selection/targeting compose plumbing and
-shared-cell visual prototypes)
-Last verified: 2026-07-09
+shared-cell visual prototypes including the v0.3.1-requested dual outline)
+Last verified: 2026-07-12
 
 The `show_danger_zone` action (MMB / Q / R3) drives two orthogonal pieces of state through one resolver, in
 the free cursor state only:
@@ -137,16 +137,22 @@ restores them from `suspend.watch_set` / `suspend.danger_mode`.
 Selection and targeting overlays are built as registry layer specs and composed
 with retained threat specs, so selecting a unit or entering attack/staff/pair-up
 targeting does not clear watched-threat paint or "D" markers ([MRD-7]).
-Threatened tiles inside movement/target range have four debug render modes:
-`single_layer`, `border_through`, `stacked`, and `stacked_perimeter`.
-`border_through` bakes threat colour into the tile center with a strong
-range-colour border on the shared overlay layer; `stacked` paints retained
-threat on the base overlay and range on a second `TileMapLayer`;
+Threatened tiles inside movement/target range have five debug render modes:
+`single_layer`, `border_through`, `stacked`, `stacked_perimeter`, and
+`dual_outline`. `border_through` bakes threat colour into the tile center with
+a strong range-colour border on the shared overlay layer; `stacked` paints
+retained threat on the base overlay and range on a second `TileMapLayer`;
 `stacked_perimeter` keeps that stacked fill and swaps threat tiles to generated
 edge-mask sources based on the union of threatened tiles, creating one outline
-around each contiguous threat area. The default remains `single_layer` until the
-focused live rerun accepts a presentation; debug builds can cycle the four modes
-with **F8** for that comparison pass.
+around each contiguous threat area. `dual_outline` (V031-MRD-01, the
+v0.3.1-requested candidate, 2026-07-12) keeps the stacked fill and strokes two
+strong world-space outlines on a `ThreatPerimeterOverlay` draw surface rendered
+**above unit sprites**: a bright-red line around the union of ALL threatened
+tiles and a dark-red line around the WATCHED subset, dark drawn over bright on
+shared edges (colours/widths are exported placeholders for the live
+comparison). The default remains `single_layer` until the focused live rerun
+accepts a presentation; debug builds can cycle the five modes with **F8** for
+that comparison pass.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
