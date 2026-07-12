@@ -61,10 +61,8 @@ Coverage map (so nothing falls between pillars):
   findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
 
 Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
-`builds/` [gitignored artifacts], `ui_previews/` [gitignored artifacts —
-`scripts/tools/ui_inspection_preview.gd` output], `Draft UI assets/`, `data/`,
-`scenes/`, `scripts/`, `tools/`) and the root config files map to exactly one
-pillar above.
+`builds/` [gitignored artifacts], `Draft UI assets/`, `data/`, `scenes/`,
+`scripts/`, `tools/`) and the root config files map to exactly one pillar above.
 The §3 tree-completeness preflight enforces this each run, and `check_docs.py`
 check 11 fails if a new top-level dir appears that this map does not mention.
 

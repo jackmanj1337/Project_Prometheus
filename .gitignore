@@ -40,7 +40,3 @@ __pycache__/
 # Per-build stamp baked by scripts/prepare_build.sh before export (commit + version +
 # timestamp). Regenerated every build; the editor falls back to live git when absent.
 /build_info.json
-
-# UI-INSPECTION headless preview harness output (scripts/tools/ui_inspection_preview.gd).
-# Review artifacts regenerated on demand — not committed content.
-/ui_previews/

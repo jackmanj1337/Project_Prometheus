@@ -46,14 +46,6 @@ const _RECENTER_GUARD_META := "_menu_scale_recentering"
 # re-center. Connected once per target and survives repeated apply_to calls (V028-03).
 const _RESIZE_HOOKED_META := "_menu_scale_resize_hooked"
 
-# Meta key under which a target's pre-existing (authored/design) theme is captured the
-# first time apply_to touches it, so every later _scaled_theme() call derives from the
-# real base instead of the previously-assigned scaled theme (V030-BUG-01: MenuScale used
-# to reassign `target.theme` to a bare Theme.new() unconditionally, silently discarding
-# any custom theme — e.g. manasoul_ui.tres — that scene authoring had set directly on the
-# target node).
-const _BASE_THEME_META := "_menu_scale_base_theme"
-
 # Container spacing/margin constants scaled in the derived Theme so layout density
 # tracks the font growth. Each entry is [theme_type, constant_name, base_value];
 # base values are the engine defaults. Per-node constant overrides are handled
@@ -138,26 +130,17 @@ static func scaled_size(target: Control) -> Vector2:
 # Assigns the factor-scaled Theme (default text + container metrics) and scales
 # every explicit font-size / constant override under the target off its base.
 static func _apply_type_scale(target: Control, factor: float) -> void:
-	if not target.has_meta(_BASE_THEME_META):
-		# First touch: capture whatever theme scene authoring put on this node (or null)
-		# BEFORE we ever overwrite it, so it survives every future rescale.
-		target.set_meta(_BASE_THEME_META, target.theme)
-	var base_theme: Theme = target.get_meta(_BASE_THEME_META)
-	target.theme = _scaled_theme(factor, base_theme)
+	target.theme = _scaled_theme(factor)
 	_scale_overrides(target, factor)
 
 
 # Builds (and caches) a Theme whose default font size and container spacing are
-# scaled by `factor`, derived from `base_theme` (the target's original authored theme)
-# if it has one, or from engine defaults otherwise. Deriving from base_theme preserves
-# any custom StyleBoxes/fonts it defines — only the default font size and the spacing
-# constants below are overridden on top.
-static func _scaled_theme(factor: float, base_theme: Theme) -> Theme:
-	var base_id := base_theme.get_instance_id() if base_theme != null else 0
-	var key := "%d:%d" % [roundi(factor * 1000.0), base_id]  # stable cache key for float factors
+# scaled by `factor`. Derived fresh from engine defaults so factor 1 == default.
+static func _scaled_theme(factor: float) -> Theme:
+	var key := roundi(factor * 1000.0)  # stable cache key for float factors
 	if _theme_cache.has(key):
 		return _theme_cache[key]
-	var theme: Theme = base_theme.duplicate() if base_theme != null else Theme.new()
+	var theme := Theme.new()
 	theme.default_font_size = roundi(_BASE_DEFAULT_FONT_SIZE * factor)
 	for entry in _SCALED_CONSTANTS:
 		theme.set_constant(entry[1], entry[0], roundi(int(entry[2]) * factor))
