@@ -125,6 +125,13 @@ const CURSOR_KEY_REPEAT_DELAY: float = 0.25  # initial hold delay before auto-re
 const CURSOR_KEY_REPEAT_RATE: float = 0.10   # per-step delay during auto-repeat
 const CURSOR_CAMERA_EDGE_BUFFER: int = 2     # tiles from viewport edge that trigger camera pan
 
+# Menu held-direction repeat timings (GDD_07 / V031-GP-03). Menus step between
+# discrete rows/entries, so they read best slower than map-cursor travel — the
+# v0.3.1 live return called the shared 0.10s cadence "a little fast" in the
+# Action Menu / character sheet.
+const MENU_KEY_REPEAT_DELAY: float = 0.30  # initial hold delay before auto-repeat
+const MENU_KEY_REPEAT_RATE: float = 0.15   # per-step delay during auto-repeat
+
 # Combat thresholds
 const FOLLOW_UP_SPEED_THRESHOLD: int = 5    # SPD advantage needed to attack twice (GDD_02)
 

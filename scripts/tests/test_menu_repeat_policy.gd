@@ -16,7 +16,7 @@ func _init() -> void:
 
 	Input.action_press("cursor_down", 1.0)
 	_check(policy.poll(0.016) == Vector2i(0, 1), "fresh press steps immediately")
-	_check(policy.poll(0.20) == Vector2i.ZERO, "held direction waits through repeat delay")
+	_check(policy.poll(0.25) == Vector2i.ZERO, "held direction waits through repeat delay")
 	_check(policy.poll(0.06) == Vector2i(0, 1), "held direction repeats after delay")
 	Input.action_release("cursor_down")
 	_check(policy.poll(0.016) == Vector2i.ZERO, "release clears held direction")

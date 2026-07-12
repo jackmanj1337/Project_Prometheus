@@ -168,20 +168,26 @@ When a directional key, d-pad direction, or left-stick direction is held:
 - Repeat rate: every 0.10 seconds
 
 Custom modal menus that own selection (`ActionMenu`, `UnitDetailsScreen`) use
-the same 0.25s / 0.10s policy through `MenuRepeatPolicy` instead of per-event
-stick-axis stepping, so a held stick/key has one immediate step followed by
-stable repeat.
+a slower menu-specific 0.30s / 0.15s policy through `MenuRepeatPolicy` instead
+of per-event stick-axis stepping, so a held stick/key has one immediate step
+followed by stable repeat. Menus stepped at the map-cursor cadence until the
+v0.3.1 return called that "a little fast" for discrete rows (V031-GP-03,
+2026-07-12); `MENU_KEY_REPEAT_DELAY/RATE` now own the menu timing while the
+map cursor keeps 0.25s / 0.10s.
 
 Engine-focus modals (`SettingsScreen`, `NewGameScreen`, Promotion/Reclass) use
 the shared `ModalScreen` vertical repeat path. Horizontal input stays with the
 focused control, so sliders and option buttons keep their own left/right
 behavior.
 
-Held map zoom ignores LT/RT values below a 0.35 activation threshold, then uses
-the same initial delay and repeats on a strength-scaled timer above that
-threshold (0.45s slow floor to 0.18s full-pull floor). A full trigger pull steps
-faster than a partial pull. The exact feel for real controllers is a v0.3.0 rerun
-item, not a headless claim.
+Held map zoom ignores LT/RT values below a 0.35 activation threshold. Any pull
+past the threshold steps the zoom once, then repeats on one constant slow
+cadence (0.45s initial delay and per-step rate) — pull depth does not change
+the speed. The earlier strength-scaled timer (0.45s to 0.18s by pull depth)
+kept reading as "too sensitive" on live returns and was removed by owner
+decision on the v0.3.1 return (2026-07-12, V031-GP-04); per-player sensitivity
+sliders remain a `B6-INPUT` backlog item. The live feel check rides the next
+focused rerun.
 
 ---
 

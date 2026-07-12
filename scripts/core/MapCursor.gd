@@ -125,10 +125,13 @@ var _reanchor_queued: bool = false
 
 # Held map-zoom repeat. Trigger axes do not emit keyboard-style repeat events, so
 # _process polls action strength and steps the discrete zoom level on a timer.
-const ZOOM_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
+# V031-GP-04 owner decision (2026-07-12): pull depth does NOT change the cadence —
+# any pull past the threshold steps once, then repeats at one constant slow rate.
+# (The previous strength-scaled 0.45s->0.18s lerp kept reading as "too sensitive"
+# on live returns; sensitivity sliders remain B6-INPUT backlog.)
 const ZOOM_PRESS_THRESHOLD: float = 0.35
-const ZOOM_REPEAT_RATE_FAST: float = 0.18
-const ZOOM_REPEAT_RATE_SLOW: float = 0.45
+const ZOOM_REPEAT_DELAY: float = 0.45   # matches the repeat rate for a uniform cadence
+const ZOOM_REPEAT_RATE: float = 0.45
 var _zoom_held_direction: int = 0
 var _zoom_held_timer: float = 0.0
 
@@ -1988,15 +1991,9 @@ func _poll_held_zoom(delta: float) -> int:
 		return direction
 	_zoom_held_timer -= delta
 	if _zoom_held_timer <= 0.0:
-		_zoom_held_timer = _zoom_repeat_rate(strength)
+		_zoom_held_timer = ZOOM_REPEAT_RATE
 		return _zoom_held_direction
 	return 0
-
-
-func _zoom_repeat_rate(strength: float) -> float:
-	var t: float = clampf((strength - ZOOM_PRESS_THRESHOLD) / (1.0 - ZOOM_PRESS_THRESHOLD),
-		0.0, 1.0)
-	return lerpf(ZOOM_REPEAT_RATE_SLOW, ZOOM_REPEAT_RATE_FAST, t)
 
 
 # Writes the chosen zoom index back to SettingsManager so it survives map changes

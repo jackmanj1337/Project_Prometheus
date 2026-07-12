@@ -146,7 +146,9 @@ func _init() -> void:
 			str(c_pad.current_tile), str(c_pad._input_handler._held_dir)])
 		failed += 1
 
-	# ---- B6-INPUT: held zoom action repeats and trigger strength affects cadence ----
+	# ---- B6-INPUT / V031-GP-04: held zoom repeats at one constant slow cadence ----
+	# Owner decision 2026-07-12: pull depth does not change the rate — any pull past
+	# the threshold steps once, then repeats every ZOOM_REPEAT_RATE seconds.
 	var c_zoom := _make_cursor(TurnManager.new())
 	c_zoom._camera_ctrl.set_zoom_index_silent(c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX)
 	Input.action_press("zoom_in", 0.10)
@@ -164,15 +166,24 @@ func _init() -> void:
 	Input.action_press("zoom_in", 1.0)
 	c_zoom._process(0.01)
 	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
-	c_zoom._process(0.20)
+	c_zoom._process(0.40)
 	var zoom_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
 	c_zoom._process(0.10)
 	var zoom_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 2
 	Input.action_release("zoom_in")
 	c_zoom._process(0.01)
 	var zoom_cleared := c_zoom._zoom_held_direction == 0
-	var strength_scales := c_zoom._zoom_repeat_rate(1.0) < c_zoom._zoom_repeat_rate(0.4)
-	var repeat_floor_ok := is_equal_approx(c_zoom._zoom_repeat_rate(1.0), 0.18)
+	# A partial pull past the threshold repeats on the SAME timing as a full pull.
+	Input.action_press("zoom_in", 0.50)
+	c_zoom._process(0.01)
+	var partial_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
+	c_zoom._process(0.40)
+	var partial_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
+	c_zoom._process(0.10)
+	var partial_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 4
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	var rate_constant := is_equal_approx(c_zoom.ZOOM_REPEAT_RATE, c_zoom.ZOOM_REPEAT_DELAY)
 	var echo_zoom := InputEventKey.new()
 	echo_zoom.keycode = 61  # "=" / zoom_in
 	echo_zoom.pressed = true
@@ -181,14 +192,15 @@ func _init() -> void:
 	c_zoom._unhandled_input(echo_zoom)
 	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
 	if zoom_threshold_blocks and zoom_partial_blocks and zoom_first and zoom_waited \
-			and zoom_repeated and zoom_cleared and strength_scales and repeat_floor_ok \
-			and echo_ignored:
-		print("OK  held zoom threshold blocks grazes, repeats, scales by strength, and ignores key echo")
+			and zoom_repeated and zoom_cleared and partial_first and partial_waited \
+			and partial_repeated and rate_constant and echo_ignored:
+		print("OK  held zoom threshold blocks grazes, repeats at one constant slow cadence, and ignores key echo")
 		passed += 1
 	else:
-		print("FAIL held zoom: threshold=%s partial=%s first=%s waited=%s repeated=%s cleared=%s scales=%s floor=%s echo=%s idx=%d dir=%d" % [
+		print("FAIL held zoom: threshold=%s partial_block=%s first=%s waited=%s repeated=%s cleared=%s pfirst=%s pwaited=%s prepeated=%s const=%s echo=%s idx=%d dir=%d" % [
 			zoom_threshold_blocks, zoom_partial_blocks, zoom_first, zoom_waited,
-			zoom_repeated, zoom_cleared, strength_scales, repeat_floor_ok, echo_ignored,
+			zoom_repeated, zoom_cleared, partial_first, partial_waited, partial_repeated,
+			rate_constant, echo_ignored,
 			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
 		failed += 1
 
