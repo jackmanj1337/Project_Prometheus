@@ -1,6 +1,6 @@
 # v0.3.1 Playtest Triage - Code Review Plan - 2026-07-12
 
-Status: DECIDED - root causes diagnosed from returned live evidence + source; owner decisions locked 2026-07-12 (see per-finding "Owner decision" lines); fix stream follows
+Status: IMPLEMENTED - owner decisions locked and the full fix stream landed headlessly 2026-07-12 (R1 `1bd9d32`, R2 `977e65b`, R4+R7 `30be616`, R5+R6 `8e947ac`, R8 `e9569bb`; R3 declined). Live confirmation rides the next focused rerun.
 Scope: returned `v0.3.1` checklist, the three v0.3.1 logs, both drag screenshots,
 and the code paths behind each V031-* issue.
 Companion: `AGENT/Docs/playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md`
