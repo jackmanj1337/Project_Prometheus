@@ -8,10 +8,19 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
+	var registry_manager: Node = load("res://scripts/autoloads/RegistryManager.gd").new()
+	registry_manager.name = "RegistryManager"
+	root.add_child(registry_manager)
 	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
 	dm.name = "DataManager"
 	root.add_child(dm)   # entering the tree runs _ready → loads every catalogue
 	await process_frame
+
+	if dm.is_registered_id("resource_types", "party_gold") \
+			and not dm.is_registered_id("resource_types", "missing_wallet"):
+		print("OK  DataManager asks RegistryManager for known ids"); passed += 1
+	else:
+		print("FAIL DataManager registry query seam"); failed += 1
 
 	# ---- export-safe manifests enumerate the live content catalogues ----
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
