@@ -138,6 +138,11 @@ func open(unit: Node) -> void:
 	_skills.text = _format_skills(d)
 	_wexp.text = _format_weapon_wexp(unit)
 	_update_pair_button(unit)
+	# V031-GP-05: the pair button is a selectable entry so d-pad / keyboard
+	# traversal reaches it (before this it was mouse- or Tab/RB-only — the
+	# v0.3.1 tester reported the focus selector skipping it entirely).
+	if _btn_pair.visible:
+		_append_control_entry("pair", _btn_pair.text)
 	_append_control_entry("back", "Back")
 	_configure_selector()
 	# Cache each section's unhighlighted text so the directional selector can mark
@@ -628,11 +633,11 @@ func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
-	# Dedicated pair-jump: next_unit / prev_unit jump straight to the paired
-	# partner (the "View Support/Lead" button) so a d-pad / controller user isn't
-	# limited to the mouse — _input alone consumes the cursor keys for the More Info
-	# highlight, so focus nav can never reach that button. Handled here (before focus
-	# nav) so it fires reliably; only active while a partner exists (button visible).
+	# Dedicated pair-jump shortcut: next_unit / prev_unit jump straight to the
+	# paired partner without walking the entry list. Since V031-GP-05 the View
+	# Support/Lead button is ALSO a selectable "pair" entry reachable by normal
+	# traversal — this shortcut stays for one-press convenience. Only active
+	# while a partner exists (button visible).
 	if _btn_pair.visible and (event.is_action_pressed("next_unit") \
 			or event.is_action_pressed("prev_unit")):
 		get_viewport().set_input_as_handled()
@@ -641,6 +646,12 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("confirm") and _current_entry_is_control("back"):
 		get_viewport().set_input_as_handled()
 		_close()
+		return
+	# V031-GP-05: confirm on the selectable pair entry activates it, same as
+	# clicking the View Support / View Lead button.
+	if event.is_action_pressed("confirm") and _current_entry_is_control("pair"):
+		get_viewport().set_input_as_handled()
+		_on_pair_button_pressed()
 		return
 	# Directional stepping is driven by the polled repeat policy in _process
 	# (V030-GP-02). We still consume the directional events here so engine focus
@@ -716,11 +727,32 @@ func _on_selector_changed(index: int) -> void:
 	var e: Dictionary = _entries[_current_index]
 	if String(e.get("category", "")) == "control":
 		_reset_info_panel()
-		if String(e.get("key", "")) == "back":
-			_btn_back.grab_focus()
+		# grab_focus scrolls the button into view via MainScroll.follow_focus.
+		match String(e.get("key", "")):
+			"back":
+				_btn_back.grab_focus()
+			"pair":
+				_btn_pair.grab_focus()
 		return
 	_btn_back.release_focus()
+	_btn_pair.release_focus()
+	# V031-GP-05: the selector moves a text highlight, not GUI focus, so
+	# follow_focus never fires for it — scroll the owning section into view
+	# explicitly so selection drives the sheet like Settings does.
+	var lbl := _section_label_for_entry(e)
+	if lbl != null and _main_scroll.is_ancestor_of(lbl):
+		_main_scroll.ensure_control_visible(lbl)
 	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
+
+
+# The section label whose text carries `e`'s [url=...] tag (the same needle
+# _refresh_highlight uses to place the row marker).
+func _section_label_for_entry(e: Dictionary) -> RichTextLabel:
+	var needle: String = "[url=%s:%s]" % [String(e["category"]), String(e["key"])]
+	for lbl in _section_labels:
+		if String(_base_texts.get(lbl, "")).find(needle) >= 0:
+			return lbl
+	return null
 
 
 func _current_entry_is_control(key: String) -> bool:

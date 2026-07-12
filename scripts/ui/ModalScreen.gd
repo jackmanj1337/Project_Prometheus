@@ -192,6 +192,34 @@ func _move_modal_focus(delta: int) -> void:
 	else:
 		idx = wrapi(idx + delta, 0, focusables.size())
 	focusables[idx].grab_focus()
+	_apply_focus_lookahead(focusables[idx])
+
+
+# Virtual: the ScrollContainer that should keep lookahead context around the
+# focused row (V031-GP-01), or null when the modal doesn't scroll. Subclasses
+# with a scrolling focus list (SettingsScreen) override this.
+func _focus_scroll_container() -> ScrollContainer:
+	return null
+
+
+# V031-GP-01: `ScrollContainer.follow_focus` scrolls a focused row just barely
+# into view, so the tester couldn't see what the next step moves toward. After
+# a focus step, nudge the scroll so ~1.5 rows of context stay visible past the
+# focused control in both directions (clamped at the list ends by the scrollbar).
+func _apply_focus_lookahead(ctrl: Control) -> void:
+	var scroll := _focus_scroll_container()
+	if scroll == null or ctrl == null or not ctrl.is_inside_tree() \
+			or not scroll.is_ancestor_of(ctrl):
+		return
+	var lookahead: float = ctrl.get_global_rect().size.y * 1.5
+	var view := scroll.get_global_rect()
+	var rect := ctrl.get_global_rect()
+	var above := (view.position.y + lookahead) - rect.position.y
+	var below := rect.end.y - (view.end.y - lookahead)
+	if above > 0.0:
+		scroll.scroll_vertical -= int(ceilf(above))
+	elif below > 0.0:
+		scroll.scroll_vertical += int(ceilf(below))
 
 
 func _focusable_controls(root_node: Node) -> Array[Control]:

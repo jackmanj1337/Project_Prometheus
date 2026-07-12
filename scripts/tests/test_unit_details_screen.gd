@@ -271,6 +271,46 @@ func is_weapon_track_available(track: String) -> bool:
 			print("FAIL next_unit pair-jump: title=%s" % screen._title.text); failed += 1
 		screen._on_pair_button_pressed()  # back to the lead for the remaining checks
 
+		# V031-GP-05: the pair button is also a selectable "pair" control entry —
+		# plain directional traversal (not just the pair-jump shortcut) reaches
+		# it, focuses the button, and confirm activates it.
+		var pair_entry_idx := -1
+		for i in screen._entries.size():
+			var entry_any: Dictionary = screen._entries[i]
+			if String(entry_any.get("category", "")) == "control" \
+					and String(entry_any.get("key", "")) == "pair":
+				pair_entry_idx = i
+				break
+		var pair_entry_registered: bool = pair_entry_idx != -1
+		var walk_guard := 0
+		while screen._current_index != pair_entry_idx and walk_guard <= screen._entries.size():
+			screen._move_selection(1)
+			walk_guard += 1
+		var pair_focused: bool = screen._btn_pair.has_focus()
+		var confirm_ev := InputEventAction.new()
+		confirm_ev.action = "confirm"
+		confirm_ev.pressed = true
+		screen._input(confirm_ev)
+		var confirm_swapped: bool = "Support Cavalier" in screen._title.text
+		screen._on_pair_button_pressed()  # back to the lead again
+		# Selection scrolling resolves the owning section label as its target
+		# (the custom selector moves a text highlight, so follow_focus can't).
+		var wexp_entry: Dictionary = {}
+		for entry_any2 in screen._entries:
+			if String(entry_any2.get("category", "")) == "wexp":
+				wexp_entry = entry_any2
+				break
+		var scroll_label_resolves: bool = not wexp_entry.is_empty() \
+			and screen._section_label_for_entry(wexp_entry) == screen._wexp
+		if pair_entry_registered and pair_focused and confirm_swapped and scroll_label_resolves:
+			print("OK  V031-GP-05 traversal reaches the pair entry, confirm activates it, sections resolve for scroll")
+			passed += 1
+		else:
+			print("FAIL V031-GP-05: registered=%s focused=%s swapped=%s label=%s idx=%d cur=%d" % [
+				pair_entry_registered, pair_focused, confirm_swapped, scroll_label_resolves,
+				pair_entry_idx, screen._current_index])
+			failed += 1
+
 		reg_pair.call("clear")
 		gs_pair.call("reset_map_state")
 		support_unit.queue_free()

@@ -143,6 +143,13 @@ const _ENUM_SETTINGS: Array = [
 ]
 
 
+# V031-GP-01: Settings scrolls with focus; route the base class's lookahead
+# nudge at the shared ScrollContainer so ~1.5 rows of context stay visible
+# past the focused row.
+func _focus_scroll_container() -> ScrollContainer:
+	return _scroll
+
+
 func _ready() -> void:
 	# E1: window mode + resolution are confirm-gated DisplayServer controls that Web
 	# can't honour. Hide those rows where display config isn't supported so the web

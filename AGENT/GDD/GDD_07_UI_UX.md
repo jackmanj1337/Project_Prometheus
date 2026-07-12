@@ -640,6 +640,15 @@ the modal centered while overflow content remains reachable at large factors (V0
   moving down past the last content row focuses `Back`, and `confirm` closes the sheet.
   This keeps Back reachable by keyboard/gamepad even though the sheet consumes cursor
   directions before Godot focus navigation.
+- the `View Support` / `View Lead` button is likewise a selectable **pair** control
+  entry when a partner exists (V031-GP-05, 2026-07-12): traversal visits it just
+  before `Back`, focusing the button, and `confirm` activates it — previously it was
+  reachable only by mouse or the `next_unit`/`prev_unit` pair-jump shortcut, which the
+  v0.3.1 tester read as the focus selector "skipping" it. The pair-jump shortcut stays.
+- selection drives the scroll (V031-GP-05): the custom selector moves a text highlight,
+  not GUI focus, so `follow_focus` alone never fired for content rows — on each
+  selection change the sheet scrolls the owning section label into view
+  (`ensure_control_visible`), and the control entries scroll via their real focus grab.
 - all three More-Info surfaces route navigation through this one `SelectionCursor` core
   (B6-INPUT selector adoption): the character sheet (2-D grid), the combat forecast
   (`AttackPreview`, 1-D forward cycle), and the terrain pager (`HUD`, with the -1 = Hidden
@@ -782,6 +791,10 @@ key (O) during a map
 The Settings screen is a single panel — **not tabbed**. A full-rect opaque
 `Dimmer` behind the panel makes it modal (the screen behind is fully hidden).
 The panel's contents live in a `ScrollContainer` so the list never overflows.
+Focus stepping keeps ~1.5 rows of lookahead context visible past the focused
+row in the movement direction (V031-GP-01, 2026-07-12) — `follow_focus` alone
+scrolled the focused row just barely into view, so the tester couldn't see
+what the next step moved toward.
 It is an overlay opened with `open()` and dismissed by the `Back` button or the
 `cancel` action. Each
 control writes its change to `SettingsManager` immediately (volume via `set_volume()`,
