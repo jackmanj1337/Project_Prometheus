@@ -216,6 +216,7 @@
 - [`playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md`](playtests/playtest_checklist_v0.3.0_focused_rerun_2026-07-09.md) — v0.3.0 Focused Rerun Checklist - 2026-07-09 — *Focused rerun checklist - pending rerun *
 - [`playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md`](playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md) — Playtester Handbook and Checklist - v0.3.0 — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.3.1.md`](playtests/playtest_checklist_v0.3.1.md) — Playtester Handbook and Checklist - v0.3.1 (Focused Rerun) — *Focused rerun handbook - pending live Wi*
+- [`playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md`](playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md) — Playtester Handbook and Checklist - v0.3.1 (Focused Rerun) — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*

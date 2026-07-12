@@ -1,0 +1,146 @@
+Godot Engine v4.6.stable.official.89cea1439 - https://godotengine.org
+OpenGL API 3.3.0 - Build 32.0.101.6647 - Compatibility - Using Device: Intel - Intel(R) Graphics
+
+=== BUILD STAMP ===
+version=0.3.1  commit=c7ce311  built_at=2026-07-10T05:41:42Z
+started_at=2026-07-10T19:55:21Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.1_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=83 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=83 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnBack" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=83 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=83 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnBack" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPairUp", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPairUp", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPairUp", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPairUp", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPairUp", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=87 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=87 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=4194322 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=4194322 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=4194322 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=4194322 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=4194322 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:pressed,cursor_down:pressed", "event": "Key code=4194322 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=4194322 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_down:released,cursor_down:released", "event": "Key code=4194322 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptLeveling", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptLeveling" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptAutoPromote", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptPermadeath", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:pressed,cursor_up:pressed", "event": "Key code=4194320 pressed=true echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptPermadeath" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptMap", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptMap" }
+V030-NG-FOCUS { "label": "direction_input_before", "focus": "OptMap", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "direction_input_after", "focus": "OptMap", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "actions": "ui_up:released,cursor_up:released", "event": "Key code=4194320 pressed=false echo=false" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptMap" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnBack", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnBack" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnBack" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptMap", "map": 0, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptMap" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 3, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptMap" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptAutoPromote", "map": 3, "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 3, "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptAutoPromote" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptPairUp", "map": 3, "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 3, "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "OptPairUp" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "map": 3, "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "map": 3, "permadeath": 0, "auto_promote": 1, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+MRD shared-cell overlay mode: border_through
+MRD shared-cell overlay mode: stacked
+MRD shared-cell overlay mode: stacked_perimeter
+WARNING: SkillHandler._apply_unimplemented: stub called for 'hawkeye' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:450)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:456)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:222)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:204)
+       [4] _collect_combat_modifiers (res://scripts/core/CombatResolver.gd:265)
+       [5] resolve_combat (res://scripts/core/CombatResolver.gd:787)
+       [6] _disposition_pursue_unit (res://scripts/core/EnemyAI.gd:170)
+       [7] _act (res://scripts/core/EnemyAI.gd:101)
+       [8] run_phase (res://scripts/core/EnemyAI.gd:42)
+       [9] _focus_camera (res://scripts/core/EnemyAI.gd:78)
+WARNING: SkillHandler._apply_unimplemented: stub called for 'armsthrift' — implement in M9 (repeats suppressed)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_stub_once (res://scripts/skills/SkillHandler.gd:450)
+       [1] _apply_unimplemented (res://scripts/skills/SkillHandler.gd:456)
+       [2] _execute_skill (res://scripts/skills/SkillHandler.gd:222)
+       [3] apply_trigger (res://scripts/skills/SkillHandler.gd:204)
+       [4] _resolve_single_attack (res://scripts/core/CombatResolver.gd:518)
+       [5] _resolve_strike (res://scripts/core/CombatResolver.gd:620)
+       [6] _run_strike_series (res://scripts/core/CombatResolver.gd:749)
+       [7] resolve_combat (res://scripts/core/CombatResolver.gd:821)
+       [8] _disposition_pursue_unit (res://scripts/core/EnemyAI.gd:170)
+       [9] move_along_path (res://scripts/units/Unit.gd:569)
+=== BUILD STAMP ===
+version=0.3.1  commit=c7ce311  built_at=2026-07-10T05:41:42Z
+started_at=2026-07-10T20:32:13Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.1_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+MRD shared-cell overlay mode: border_through
+MRD shared-cell overlay mode: stacked
+MRD shared-cell overlay mode: stacked_perimeter
+MRD shared-cell overlay mode: single_layer
+MRD shared-cell overlay mode: border_through
+MRD shared-cell overlay mode: stacked
+MRD shared-cell overlay mode: stacked_perimeter
+MRD shared-cell overlay mode: single_layer
+MRD shared-cell overlay mode: border_through
+MRD shared-cell overlay mode: stacked
+MRD shared-cell overlay mode: stacked_perimeter
+=== BUILD STAMP ===
+version=0.3.1  commit=c7ce311  built_at=2026-07-10T05:41:42Z
+started_at=2026-07-10T20:38:38Z
+exe=E:/Utilities/ObsidianPortable/Project_Prometheus_v0.3.1_debug.exe
+user_data_dir=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/Patron/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
