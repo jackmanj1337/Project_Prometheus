@@ -566,8 +566,15 @@ func resize_write_back_action(ds_mode: int, last_mode: int) -> String:
 
 # The write-back core, split from the DisplayServer reads so it is testable
 # headless: records `actual` as the new saved resolution + request baseline,
-# persists it, and notifies listeners. No-op for degenerate sizes and for the
-# size we ourselves just requested.
+# schedules the disk persist, and notifies listeners. No-op for degenerate
+# sizes and for the size we ourselves just requested.
+#
+# V031-DSP-01: the persist is settle-then-save, not per-event. The v0.3.1 live
+# return proved a Windows edge drag fires many size events, and this method used
+# to run a synchronous ConfigFile save() inside the OS resize modal loop on every
+# one of them — heavy main-thread work exactly where the event stream later
+# stalled. Memory state and the readout still update per event; the disk write
+# coalesces to one save per settled drag.
 func apply_resize_write_back(actual: Vector2i) -> void:
 	if actual.x <= 0 or actual.y <= 0:
 		_v030_trace_resize("write_back_skipped", {
@@ -586,8 +593,74 @@ func apply_resize_write_back(actual: Vector2i) -> void:
 	_v030_trace_resize("write_back_apply", {
 		"actual": actual,
 	})
-	save()
+	_queue_resize_settle_save()
 	resolution_written_back.emit()
+
+
+# ── V031-DSP-01: settle-then-persist + poll reconciliation ──────────────────
+
+# One disk write per settled resize instead of one per size event. Re-arming the
+# one-shot timer on every write-back means the save fires RESIZE_SETTLE_SAVE_DELAY
+# after the LAST observed size change.
+const RESIZE_SETTLE_SAVE_DELAY: float = 0.75
+var _resize_save_pending: bool = false
+var _settle_save_timer: Timer = null
+
+
+func _queue_resize_settle_save() -> void:
+	_resize_save_pending = true
+	# Out-of-tree instances (headless policy tests) have no frame loop to run a
+	# Timer; persist immediately — the settle window only matters for live drags.
+	if not is_inside_tree():
+		_flush_resize_settle_save()
+		return
+	if _settle_save_timer == null:
+		_settle_save_timer = Timer.new()
+		_settle_save_timer.one_shot = true
+		_settle_save_timer.timeout.connect(_flush_resize_settle_save)
+		add_child(_settle_save_timer)
+	_settle_save_timer.start(RESIZE_SETTLE_SAVE_DELAY)
+
+
+func _flush_resize_settle_save() -> void:
+	if not _resize_save_pending:
+		return
+	_resize_save_pending = false
+	_v030_trace_resize("write_back_settle_saved", {})
+	save()
+
+
+# A quit mid-settle must not lose the dragged size.
+func _exit_tree() -> void:
+	_flush_resize_settle_save()
+
+
+# Low-frequency reconciliation poll. The v0.3.1 return proved size-changed
+# delivery can stop entirely mid-drag (the one-axis drag stalled at 1125x633
+# while the OS window grew to ~975 tall, and no event ever arrived for the
+# final size). Comparing the real OS window size against the last observed
+# value and feeding the same coalesced refresh path a missed signal would have
+# guarantees the readout and saved size converge once the drag ends — even if
+# the stall itself is never fully explained.
+const RESIZE_POLL_INTERVAL: float = 0.5
+var _resize_poll_accum: float = 0.0
+var _last_polled_window_size: Vector2i = Vector2i.ZERO
+
+
+func _process(delta: float) -> void:
+	if not is_display_config_supported() or DisplayServer.get_name() == "headless":
+		return
+	_resize_poll_accum += delta
+	if _resize_poll_accum < RESIZE_POLL_INTERVAL:
+		return
+	_resize_poll_accum = 0.0
+	var size := DisplayServer.window_get_size()
+	if _last_polled_window_size == Vector2i.ZERO:
+		_last_polled_window_size = size
+		return
+	if size != _last_polled_window_size:
+		_last_polled_window_size = size
+		_queue_resize_refresh("poll_size_mismatch")
 
 
 func _v030_trace_resize(label: String, extra: Dictionary = {}) -> void:

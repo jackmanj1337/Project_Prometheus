@@ -601,6 +601,44 @@ func _init() -> void:
 			display_resize_signals.size(), window_hook_ok])
 		failed += 1
 	scale_target.queue_free()
+
+	# ---- V031-DSP-01: in-tree write-back defers the disk persist (settle) ----
+	# Memory + readout update immediately, but save() waits for the settle
+	# window so an OS drag does one disk write, not one per size event. Reuse
+	# the in-tree instance from the V027-04a block; flush manually (the timer's
+	# timeout path) rather than awaiting 0.75s of frames.
+	var st_prev_mode: String = sm_rz.window_mode
+	var st_prev_res: String = sm_rz.resolution
+	sm_rz.window_mode = "windowed"
+	sm_rz.resolution = "1280x720"
+	sm_rz._requested_window_size = Vector2i(1280, 720)
+	sm_rz.save()
+	sm_rz.apply_resize_write_back(Vector2i(1500, 900))
+	var st_pending_ok: bool = sm_rz._resize_save_pending and sm_rz.resolution == "1500x900"
+	var st_probe: Node = SettingsManagerS.new()
+	st_probe.load_settings()
+	var st_deferred_ok: bool = st_probe.resolution == "1280x720"
+	st_probe.free()
+	sm_rz._flush_resize_settle_save()
+	var st_flushed_ok: bool = not sm_rz._resize_save_pending
+	var st_probe2: Node = SettingsManagerS.new()
+	st_probe2.load_settings()
+	var st_persisted_ok: bool = st_probe2.resolution == "1500x900"
+	st_probe2.free()
+	# A flush with nothing pending must not re-save (no infinite settle loops).
+	sm_rz._flush_resize_settle_save()
+	sm_rz.window_mode = st_prev_mode
+	sm_rz.resolution = st_prev_res
+	sm_rz._requested_window_size = Vector2i.ZERO
+	sm_rz.save()
+	if st_pending_ok and st_deferred_ok and st_flushed_ok and st_persisted_ok:
+		print("OK  V031-DSP-01 write-back updates memory immediately and persists on settle")
+		passed += 1
+	else:
+		print("FAIL V031-DSP-01 settle: pending=%s deferred=%s flushed=%s persisted=%s" % [
+			st_pending_ok, st_deferred_ok, st_flushed_ok, st_persisted_ok])
+		failed += 1
+
 	if sm_rz_owned:
 		sm_rz.queue_free()
 

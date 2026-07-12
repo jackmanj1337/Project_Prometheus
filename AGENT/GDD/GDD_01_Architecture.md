@@ -4,7 +4,7 @@
 **Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
 the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
 CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-07-10
+**Last verified:** 2026-07-12
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -1238,6 +1238,18 @@ requested, and a drag never re-centres the window. Detection rides both viewport
 and root-Window `size_changed` hooks (V027-04a / V030D-DSP-02) because
 `stretch/aspect=keep` can hide bar-only OS client-size changes from the viewport;
 the hooks also re-apply Menu Scale after any resize (deferred + coalesced).
+**Settle-then-persist + poll reconciliation (V031-DSP-01, 2026-07-12).** The
+write-back updates memory and the readout per size event, but the disk `save()`
+coalesces behind a re-armed 0.75s settle timer (one write per drag, flushed on
+quit) — the previous per-event synchronous save ran inside the Windows resize
+modal loop, exactly where the v0.3.1 return showed the event stream stalling
+mid-drag with the readout frozen at a stale size. Because that stall proved
+`size_changed` delivery can stop entirely, `SettingsManager._process` also
+polls `DisplayServer.window_get_size()` every 0.5s (desktop only) and feeds a
+detected mismatch into the same coalesced refresh path a missed signal would
+have taken, so the readout and saved size always converge after a drag ends.
+A dragged size is persisted as-is — the owner declined a minimum-size clamp
+(V031-DSP-01b, 2026-07-12).
 Outside Windowed mode the Resolution dropdown is **disabled**
 with the readout pinned to the native display size; the saved request is preserved and
 the row re-enables intact on return to Windowed (V027-05c, Q6). Player-facing detail:
