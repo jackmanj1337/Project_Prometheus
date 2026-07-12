@@ -122,6 +122,7 @@
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/occupancy_transaction_contract_2026-06-28.md`](design/occupancy_transaction_contract_2026-06-28.md) — Occupancy Transaction Contract — *Active - architecture contract*
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
+- [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
