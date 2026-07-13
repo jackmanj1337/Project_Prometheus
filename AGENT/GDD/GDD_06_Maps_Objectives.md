@@ -38,7 +38,7 @@ Last verified: 2026-06-13
 ### Summary
 This section owns the terrain **schema** (terrain types + their movement/defense data) and
 the movement-cost model. The *combat application* of the DEF/Dodge/heal values is owned by
-`GDD_02 §Terrain`; the two tables are kept in sync.
+`GDD_02 §Terrain`, which links here rather than repeating the value table.
 
 ### Specs
 
@@ -119,42 +119,33 @@ The shared `GameMap` scene contains three TileMapLayers:
 3. `TileMapLayer_OverlayTop` — optional second overlay lane for MRD-7 stacked
    range/target fill above retained threat paint
 
-### Reading Terrain in Code
-```gdscript
-# In GridManager.gd
-func get_terrain_at(tile: Vector2i) -> String:
-    var tile_data = _tilemap.get_cell_tile_data(tile)
-    if tile_data == null:
-        return "wall"   # Out-of-bounds treated as wall
-    return tile_data.get_custom_data("terrain_type")
-```
+`GridManager.get_terrain_at()` reads the TileSet custom-data value; missing/out-of-bounds
+cells resolve to `wall`. Exact implementation belongs to production code.
 
 ---
 
-## Camera
+## Tactical Camera
 
-The `Camera2D` node is a child of `GameMap`. It follows the `MapCursor` position.
+Status: **Implemented**
+Last verified: 2026-07-13
 
-```gdscript
-# Camera clamp settings — set after map loads based on map dimensions
-camera.limit_left   = 0
-camera.limit_top    = 0
-camera.limit_right  = map_width  * GameConstants.TILE_SIZE
-camera.limit_bottom = map_height * GameConstants.TILE_SIZE
-```
+`CameraController` is the sole production writer of tactical-camera position. It keeps
+the cursor within the configured edge buffer, accounts for zoom when measuring the
+visible world, clamps each axis to map bounds, and centers maps smaller than the view.
+Player-phase cursor movement is immediate; AI tracking temporarily enables smoothing.
+Each faction's last view is restored when its phase returns. Zoom and edge-buffer
+settings presentation are owned by `GDD_07`.
 
-Camera scrolling behavior:
-- When the cursor moves within 2 tiles of the viewport edge, the camera pans to keep
-  the cursor at least 3 tiles from any edge
-- Camera movement is instantaneous (no smoothing) for MVP — matches GBA FE feel
-- Set `Camera2D.position_smoothing_enabled = false`
+### Anchors
+- Code: `scripts/core/CameraController.gd`, `scripts/core/MapCursor.gd`
+- Settings owner: `GDD_07 §Settings`
 
 ---
 
 ## Objective System
 
-Status: **Implemented** (objective evaluation); Phase 3 showcase maps **Planned** (M16)
-Last verified: 2026-06-13
+Status: **Implemented**
+Last verified: 2026-07-13
 
 Objectives are now authored as typed `ObjectiveCondition` resources grouped by
 alliance group:
@@ -234,28 +225,11 @@ opposing units remaining.
 
 ## MapData Resource
 
-```gdscript
-# scripts/resources/MapData.gd — see GDD_01 → MapData.gd for the authoritative list
-class_name MapData extends Resource
-
-@export var id: String
-@export var display_name: String
-@export var tilemap_scene_path: String              # reserved; not instanced by current runtime
-@export var player_start_tiles: Array[Vector2i]
-@export var enemy_placements: Array[Dictionary]
-# enemy_placement dict: exactly one of "unit_data_path": String OR "unit_data": UnitData,
-# plus "tile": Vector2i, "ai_profile": String?, "is_boss": bool, "faction": String?.
-# "ai_profile" is an explicit placement override; omission preserves the UnitData profile.
-@export var reward_gold: int = 0
-@export var reward_items: Array[String]             # item IDs granted at map completion
-@export var grid: Array[String]                     # terrain string grid (data-driven maps)
-@export var camera_start_tile: Vector2i             # (-1,-1) = centroid of player starts
-@export var factions: Array[FactionData]
-@export var turn_order: Array[String]
-@export var activation_mode: String = "WHOLE_PHASE"
-@export var victory_conditions: Dictionary          # alliance_group -> Array[ObjectiveCondition]
-@export var defeat_conditions: Dictionary
-```
+`MapData` binds identity/display, terrain source, camera/start tiles, faction scheduling,
+unit placements, grouped objective conditions, and completion rewards. A placement must
+provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
+AI/faction/boss fields refine that placement. The exact typed field list is owned by
+`GDD_01` and `scripts/resources/MapData.gd`.
 
 ---
 
@@ -446,15 +420,14 @@ Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 
 ---
 
-## Phase 3 Maps 002–005 — Authoring Rules (locked 2026-05-25)
+## Objective Showcase Maps 002–005
 
-Status: **Planned** (M16; design locked 2026-05-25)
-Last verified: 2026-06-13
+Status: **Implemented**
+Last verified: 2026-07-13
 
-The objective-map followup authors four maps against the implemented
-`ObjectiveCondition` system to validate it through real content. See
-`GDD_10_Roadmap.md` § Milestone 16 → *Locked design decisions* and
-`AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`.
+Four selector-visible maps exercise the implemented `ObjectiveCondition` system through
+authored content. `test_game_map_scene.gd` boots every map with its expected roster and
+enemy count; `test_turn_manager.gd` covers the corresponding resolution semantics.
 
 - **Showcase plan — one map per primary objective.** Maps 002–005 cover the
   four objective types one each: **Seize**, **Defeat Boss**, **Escape**,
@@ -479,20 +452,6 @@ soon as the required predicates/actions exist.
 
 ## Adding a New Map (Checklist)
 
-The current runtime supports data-driven string-grid maps.
-
-### Data-driven
-The map layout lives in `MapData.grid`. No editor painting is required for
-terrain. To add a map this way:
-- [ ] Create `MapData.tres` with a `grid` string array using the legend `. F M T S D W`
-- [ ] Fill `player_start_tiles`, `enemy_placements`, rewards, and camera start
-- [ ] Author `factions`, `turn_order`, and `activation_mode` only when the map
-      needs to override the default blue/green/red/yellow behavior
-- [ ] Author `victory_conditions` / `defeat_conditions` using `ObjectiveCondition`
-      built-ins today; target objective predicate/action registry after `B3-REQ`/`B3-MET`
-- [ ] Create enemy `UnitData` `.tres` files
-- [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
-
-Editor-painted map scenes are not currently instanced. `tilemap_scene_path` is
-reserved schema only; implement and test that loading path before documenting
-editor-painted maps as supported.
+The operational checklist lives in `AGENT/Docs/guides/map_authoring_guide.md`. The
+current runtime supports data-driven string-grid maps; `tilemap_scene_path` remains
+reserved and editor-painted scenes are not instanced.

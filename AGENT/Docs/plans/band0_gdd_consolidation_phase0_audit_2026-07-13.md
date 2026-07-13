@@ -180,6 +180,12 @@ path, the skill cap points to `CampaignRules`, and stale M9 status prose routes 
 control plane. Exact runtime signatures and the operational skill checklist moved out
 of the design contract; the checklist now lives with campaign-content authoring.
 
+`GDD_06_Maps_Objectives.md` is reconciled. Tactical-camera prose now matches the shared
+controller, exact `MapData` fields route to their schema owner, and the operational map
+checklist routes to the content guide. Maps 002-005 are classified Implemented from
+their authored resources, selector boot coverage, and objective-resolution tests;
+`VAL-OBJECTIVE-MAPS` and its stale `GDD_10` follow-up are closed.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved
