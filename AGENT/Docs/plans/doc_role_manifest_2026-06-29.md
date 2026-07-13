@@ -125,5 +125,6 @@ marker.
 | Check | Reads | Rule |
 |---|---|---|
 | Active doc ownership | This manifest, Project Control Plane, Feature Index | Enforced: active plans/design docs need a direct tracker/index link or an entry in the Active Source Ownership Map. |
+| Feature owner anchors | Feature Index, numbered GDD headings | Enforced: every feature row links to one or more reachable GDD section fragments. |
 | Role separation | This manifest, `GDD_10`, Project Control Plane | `GDD_10` must not duplicate the full control-plane table; the control plane must not become long-form design prose. |
 | Generated index discipline | Generated file headers | Generated indexes must be refreshed after active-doc path/header changes. |

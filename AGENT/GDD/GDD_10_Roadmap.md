@@ -182,6 +182,6 @@ When work changes:
 
 ## Known Follow-ups
 
-| Track ID | Follow-up |
-|---|---|
-| `B0-GDD-ANCHORS` | Add exact feature-index section anchors during the numbered GDD chapter rewrites. |
+No completed Band 0 documentation task remains queued here. Future owner-heading or
+scope changes must update the exact Feature Index links and their control-plane rows
+in the same change.

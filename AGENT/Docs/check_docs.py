@@ -227,7 +227,7 @@ def _before_match_has_target(line: str, match_start: int) -> bool:
 
 
 def check_feature_index_targets() -> None:
-    """Each .gd file in GDD_Feature_Index.md (not marked as target) must exist in the repo."""
+    """Feature-index code targets and exact GDD-owner anchors must resolve."""
     feature_index = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
     if not feature_index.exists():
         _fail("feature-index", feature_index, 1, "file not found")
@@ -248,6 +248,44 @@ def check_feature_index_targets() -> None:
                 if not result.stdout.strip():
                     _fail("feature-index", feature_index, i,
                           f"listed file not found in repo: {name!r}")
+
+    heading_cache: dict[Path, set[str]] = {}
+    with open(feature_index, encoding="utf-8") as fh:
+        for i, line in enumerate(fh, 1):
+            if not line.startswith("|"):
+                continue
+            cells = _split_markdown_table_row(line)
+            if len(cells) != 6 or cells[0] in {"Feature", "---"}:
+                continue
+            owner_links = list(_MARKDOWN_LINK_RE.finditer(cells[2]))
+            if not owner_links:
+                _fail("feature-index-anchor", feature_index, i,
+                      "GDD owner cell must contain an exact Markdown section link")
+                continue
+            for match in owner_links:
+                target = match.group(1)
+                if "#" not in target:
+                    _fail("feature-index-anchor", feature_index, i,
+                          f"GDD owner link lacks a section fragment: {target!r}")
+                    continue
+                file_part, fragment = target.split("#", 1)
+                owner_path = (feature_index.parent / file_part).resolve()
+                if not owner_path.exists():
+                    _fail("feature-index-anchor", feature_index, i,
+                          f"GDD owner file does not resolve: {file_part!r}")
+                    continue
+                if owner_path not in heading_cache:
+                    headings: set[str] = set()
+                    for owner_line in owner_path.read_text(encoding="utf-8").splitlines():
+                        heading = re.match(r"^#{1,6}\s+(.+?)\s*$", owner_line)
+                        if heading:
+                            text = heading.group(1).replace("`", "").lower()
+                            text = re.sub(r"[^\w\- ]", "", text)
+                            headings.add(re.sub(r"\s+", "-", text).strip("-"))
+                    heading_cache[owner_path] = headings
+                if fragment not in heading_cache[owner_path]:
+                    _fail("feature-index-anchor", feature_index, i,
+                          f"GDD owner fragment does not resolve: {target!r}")
 
 
 # ── check 20: project control-plane schema ─────────────────────────────────

@@ -319,6 +319,12 @@ instead of relying on the former all-in-one entry file.
 
 ## Validation Matrix
 
+Phase 4 completed on 2026-07-13: all 37 Feature Index rows now link to exact
+reachable GDD headings; `check_docs.py` rejects missing fragments and a controlled
+bad-fragment fixture proved the failure path. `B0-GDD-ANCHORS` and
+`B0-GDD-CONSOLIDATION` are Implemented, and no completed Band 0 item remains in
+the GDD 10 follow-up queue.
+
 | Change | Focused validation | Required shared validation |
 |---|---|---|
 | Phase 0 tracker/audit | Control-plane dependency and link inspection | `gen_docs_index.py`, `check_docs.py`, `git diff --check` |
