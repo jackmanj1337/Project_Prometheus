@@ -192,6 +192,23 @@ func _init() -> void:
 	else:
 		print("FAIL Unit_01 placement: " + str(soldier))
 		failed += 1
+	# Map-start placement defaults to nearest_free. A collision must displace the
+	# later unit instead of dropping it or aborting the map.
+	if soldier:
+		var fallback_data: UnitData = soldier.data.duplicate(true)
+		fallback_data.unit_id = "fallback_spawn_test"
+		fallback_data.unit_name = "FallbackSpawnTest"
+		var fallback_unit: Unit = instance._place_and_spawn(
+			fallback_data, soldier.tile_position, "red")
+		if fallback_unit != null and fallback_unit.tile_position != soldier.tile_position:
+			print("OK  occupied map-start tile falls back to a nearest free tile")
+			passed += 1
+		else:
+			print("FAIL map-start nearest-free fallback: %s" % str(fallback_unit))
+			failed += 1
+		if fallback_unit != null:
+			gs.unregister_unit(fallback_unit)
+			fallback_unit.queue_free()
 	# Boss enemy E8 should be at (39, 12)
 	var boss: Unit = null
 	for child in units_container.get_children():
@@ -462,6 +479,33 @@ func _init() -> void:
 			passed += 1
 		else:
 			print("FAIL GameMap silently spawned %d units without explicit roster prep" % bad_units.get_child_count())
+			failed += 1
+
+		# An individual no-free-tile result is logged and skipped, but is not a
+		# structural boot failure. Use a zero-sized grid to force that result.
+		var blocked_data := UnitData.new()
+		blocked_data.unit_id = "blocked_spawn_test"
+		blocked_data.unit_name = "BlockedSpawnTest"
+		gs.player_roster.assign([blocked_data])
+		gs.roster_initialized = true
+		gs.roster_load_failed = false
+		gs.configure_next_map("res://test_map.tres", "keep_current_roster", "")
+		var blocked_map := MapData.new()
+		blocked_map.player_start_tiles.assign([Vector2i.ZERO])
+		bad_boot_instance.map_data = blocked_map
+		var blocked_grid: GridManager = bad_boot_instance.get_node("GridManager")
+		var saved_width: int = blocked_grid.map_width
+		var saved_height: int = blocked_grid.map_height
+		blocked_grid.map_width = 0
+		blocked_grid.map_height = 0
+		var placement_failure_nonfatal: bool = bad_boot_instance._spawn_units()
+		blocked_grid.map_width = saved_width
+		blocked_grid.map_height = saved_height
+		if placement_failure_nonfatal and bad_units.get_child_count() == 0:
+			print("OK  a no-free-tile placement skips the unit without failing map spawn")
+			passed += 1
+		else:
+			print("FAIL placement failure aborted map spawn or created a unit")
 			failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

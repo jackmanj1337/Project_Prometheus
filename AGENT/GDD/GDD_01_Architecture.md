@@ -1714,8 +1714,11 @@ func get_faction(faction_id: String) -> FactionData
 
 Map-start unit placement is implemented through the `OccupancyService` autoload
 (2026-07-13, `B2-OCCUPANCY`). `GameMap` resolves a registry-backed policy before
-its private instancing seam. `require_empty`, deterministic `nearest_free`,
-runtime-only `delay`, and `skip` are active; `swap`, `overlap_hidden`, and
+its private instancing seam. Normal map-start spawning defaults to deterministic
+`nearest_free`: authored collisions or impassable cells warn when displaced, and
+a no-free-tile result skips only that unit rather than aborting map boot.
+`require_empty`, runtime-only `delay`, and `skip` remain active policies;
+`swap`, `overlap_hidden`, and
 `object_unit` are reserved policy rows that return `not_implemented` until their
 owning feature slices land. Normal traversed movement and exact suspend-state
 restoration retain their existing paths.

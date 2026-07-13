@@ -213,7 +213,6 @@ func _spawn_units() -> bool:
 		push_error("GameMap: prepared launch roster is empty")
 		return false
 
-	var all_placed := true
 	# Player units: roster slot N → player_start_tiles[N]
 	for i in roster.size():
 		if i >= map_data.player_start_tiles.size():
@@ -221,8 +220,7 @@ func _spawn_units() -> bool:
 		var u_data: UnitData = roster[i] as UnitData
 		if u_data == null or u_data.is_incapacitated:
 			continue  # permadeath: skip dead units in future deployments
-		if _place_and_spawn(u_data, map_data.player_start_tiles[i], "blue") == null:
-			all_placed = false
+		_place_and_spawn(u_data, map_data.player_start_tiles[i], "blue")
 
 	# Enemy/AI-controlled units. Each placement resolves to a UnitData via exactly
 	# one source, either an in-memory instance or a resource path.
@@ -240,9 +238,8 @@ func _spawn_units() -> bool:
 		if u_data.unit_id == "":
 			push_error("GameMap: enemy placement has empty unit_id — set it on the UnitData: %s" % str(placement))
 			continue
-		if _place_and_spawn(u_data, tile, faction_id) == null:
-			all_placed = false
-	return all_placed
+		_place_and_spawn(u_data, tile, faction_id)
+	return true
 
 
 func _spawn_units_from_suspend(payload: Dictionary) -> bool:
@@ -348,7 +345,7 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 # Public/non-standard placement resolves policy before this method reaches the
 # private instancing seam. Normal movement remains owned by Unit/GridManager.
 func _place_and_spawn(u_data: UnitData, desired_tile: Vector2i, team: String,
-		policy: String = "require_empty") -> Unit:
+		policy: String = "nearest_free") -> Unit:
 	var occupancy := get_node_or_null("/root/OccupancyService")
 	if occupancy == null:
 		push_error("GameMap: OccupancyService autoload missing")
@@ -362,6 +359,9 @@ func _place_and_spawn(u_data: UnitData, desired_tile: Vector2i, team: String,
 		push_error("GameMap: could not place unit '%s' at %s (%s)" % [
 			u_data.unit_id, str(desired_tile), result.failure_reason])
 		return null
+	if result.fallback_used:
+		push_warning("GameMap: unit '%s' moved from authored tile %s to nearest free tile %s" % [
+			u_data.unit_id, str(desired_tile), str(result.to_tile)])
 	return _spawn_unit(u_data, result.to_tile, team)
 
 
