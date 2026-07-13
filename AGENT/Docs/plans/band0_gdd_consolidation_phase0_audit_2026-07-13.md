@@ -175,6 +175,11 @@ numeric fields. Item effects reflect the live dispatcher, the inventory limit po
 `CampaignRules`, and selling is correctly classified as Planned because no production
 sell action or shop UI exists.
 
+`GDD_05_Skills.md` is reconciled. Proc RNG is now classified from the shipped event-RNG
+path, the skill cap points to `CampaignRules`, and stale M9 status prose routes to the
+control plane. Exact runtime signatures and the operational skill checklist moved out
+of the design contract; the checklist now lives with campaign-content authoring.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved

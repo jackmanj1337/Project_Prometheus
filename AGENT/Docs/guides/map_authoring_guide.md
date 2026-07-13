@@ -1,10 +1,10 @@
-# Map Authoring Guide
+# Map And Campaign Content Authoring Guide
 
 **Last verified:** 2026-07-13
 
-Use this guide when adding or changing a playable map. It centralizes the
-practical authoring steps that are otherwise split across `GDD_01`, `GDD_06`,
-`README.md`, and validation notes.
+Use this guide when adding or changing playable maps and their supporting class,
+roster, or skill content. It centralizes practical authoring steps while the numbered
+GDD chapters retain system rules and player-facing behavior.
 
 For system rules and player-facing behavior, still read:
 
@@ -139,6 +139,21 @@ Adding content that uses existing primitives should not require a code change. A
 engine mechanic needs its own design contract and tests rather than a class-specific
 runtime branch. `GDD_03` owns class behavior and relationships; `GDD_01` owns the exact
 `ClassData`/`UnitData` schemas.
+
+## Skill authoring
+
+To add a skill, author `data/skills/<id>.tres` as `SkillData` and choose a trigger and
+`effect_id` from the implemented registries. Reuse an existing effect with
+`effect_params` whenever it expresses the behavior. Verify that the skill id is unique,
+the trigger is wired by a live caller, and any limited-use or random activation has
+focused coverage.
+
+If existing primitives cannot express the behavior, treat the new primitive as engine
+work: add its registry entry/handler, validation, tests, and owning GDD contract in the
+same feature slice. Do not add a content-specific branch merely to support one `.tres`.
+Effect handlers report whether they actually applied so declined effects do not consume
+limited uses. `GDD_05` owns trigger/effect behavior; `GDD_01` owns the exact `SkillData`
+and combat-context schemas.
 
 ## Registry entry
 

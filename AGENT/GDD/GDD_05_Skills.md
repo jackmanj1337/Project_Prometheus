@@ -1,10 +1,10 @@
 # GDD_05 — Skills
 
-**Status:** Active contract — split status per section (the implemented skill handler +
-Pair Up pass 1 are **Implemented**; corpus skill acquisition, proc-RNG sourcing, Pair Up
+**Status:** Active contract — split status per section (the skill handler, proc-RNG
+sourcing, and Pair Up pass 1 are **Implemented**; corpus skill acquisition, Pair Up
 value migration, Dual Strike/Guard, and supports are **Target design / Planned /
 Deferred**, tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-29
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -32,14 +32,14 @@ new `SkillHandler` branches.
 ### Specs
 - Skills are `SkillData` resources in `data/skills/`, executed by `SkillHandler.gd`.
   They are **not hardcoded per class** — a unit carries a list of skill IDs.
-- **Equipped cap: 5** (`GameState.max_skills`). No manual equip UI yet; the cap gates
+- **Equipped cap: 5** (`CampaignRules.max_skills`). No manual equip UI yet; the cap gates
   auto-equipped learned skills. Earned mastery skills (`UnitData.mastery_skills`, e.g.
   `s_rank_mastery`) **never** count against the cap. A future campaign-settings layer may
   override the default — the five-skill default is **Implemented**.
 
 ### Anchors
 - Code: `scripts/skills/SkillHandler.gd` (autoload), `scripts/resources/SkillData.gd`,
-  `data/skills/`, `scripts/autoloads/GameState.gd` (`max_skills`)
+  `data/skills/`, `scripts/resources/CampaignRules.gd` (`max_skills`)
 - Tests: `scripts/tests/test_skill_item_handler.gd`
 - Schema owner: GDD_01 (`SkillData`, combat-context); equipped/earned split owner: GDD_03
 
@@ -122,15 +122,10 @@ mutates a shared combat-context `Dictionary` in place.
 ### Specs
 `CombatResolver`, `TurnManager`, and `GridManager` call `apply_trigger()`; it iterates
 equipped (`UnitData.skills`) **and** earned mastery skills (`UnitData.mastery_skills`).
-
-```gdscript
-# scripts/skills/SkillHandler.gd  (autoload)
-# preview        — exclude random-activation skills (a forecast must be deterministic)
-# skills_blocked — set by an opponent's Nihil; only NIHIL_EXEMPT_SKILLS still fire
-# dry_run        — run effects but do NOT persist limited-use counters (preview only)
-func apply_trigger(unit, trigger, context, preview := false,
-        skills_blocked := false, dry_run := false) -> Dictionary
-```
+Preview calls exclude random activations, Nihil-blocked calls admit only explicit
+exemptions, and dry runs apply forecast effects without persisting limited-use counters.
+The exact callable signature and combat-context fields live with the runtime contract in
+`GDD_01` and production code.
 
 - Per skill, `apply_trigger` enforces `max_uses_per_map` / `max_uses_per_combat`, rolls
   `activation_chance_stat / activation_divisor` if set, then dispatches via a
@@ -152,20 +147,21 @@ func apply_trigger(unit, trigger, context, preview := false,
 
 ## Skill Activation & RNG
 
-Status: **Split** — proc-rate formula **Implemented**; deterministic RNG sourcing **Target design** (RNG-1, OPEN-2)
-Last verified: 2026-06-13
+Status: **Implemented**
+Last verified: 2026-07-13
 
 ### Summary
 Random-activation ("proc") skills roll an activation chance; that roll must come from the
 deterministic event stream, not `randi()`.
 
 ### Specs
-- **Implemented:** rate = `activation_chance_stat / activation_divisor` (e.g. SKL-based);
-  combat preview excludes random-activation skills so the forecast stays deterministic.
-- **Target design:** proc skills draw from the **event RNG at their trigger slot** in the
-  canonical roll order (after the two hit RNs and crit RN — see GDD_02 §Combat Resolution
-  and the determinism contract in GDD_01). Reordering skill rolls is a save/replay-breaking
-  change.
+- Rate = `activation_chance_stat / activation_divisor` (for example, SKL-based); combat
+  preview excludes random-activation skills so the forecast stays deterministic.
+- Live proc skills draw from the current `RngService` event's private RNG supplied in
+  the trigger context. A missing RNG on a live random trigger is an error and consumes
+  no fallback randomness.
+- Proc draws occur at their declared trigger slots in the canonical roll order. Moving
+  a skill roll or changing its draw count is a save/replay-breaking change.
 
 ### Anchors
 - Code: `scripts/skills/SkillHandler.gd` (`apply_trigger` activation gate)
@@ -300,15 +296,15 @@ closed ceiling on author-created data compositions.
 
 ### Specs
 
-> **M9 implementation rules — locked 2026-05-25.** See `GDD_10_Roadmap.md` § Milestone 9
-> → *Locked design decisions*.
-> 1. **M9a / M9b split.** M9a closes engine work (every `apply_trigger()` arm + helpers)
->    against a minimal test set *before* M9b authors the bulk of skill `.tres` data.
+> **Implementation rules.** Exact state and sequencing are owned by control-plane row
+> `B5-SKILLS-EFFECTS` and its linked plan.
+> 1. Close each required engine primitive and its focused tests before bulk-authoring
+>    the corresponding skill `.tres` data.
 > 2. **Trigger discipline — strict reuse, flags first** (see Skill Triggers).
 > 3. **Effect computation — hybrid.** Threshold/state-dependent effects (Resolve's ≤50%
 >    gate, Frenzy, Aegis halving) are evaluated **at query time**; static passives (Zeal,
 >    Tough) remain stored modifiers added at initialisation.
-> 4. **Pair Up / Rescue out of M9.** No M9 skill content or engine code may depend on
+> 4. **Pair Up / Rescue remain separate consumers.** Skill-effect work must not depend on
 >    `pair_up`, `support`, or `rescue` semantics — those are campaign-rule features (see
 >    Pair Up & Support System below, and
 >    `AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`).
@@ -328,7 +324,7 @@ to Rejected classes (RULE-007) are dropped with their classes.
 
 ### Anchors
 - Code: `scripts/skills/SkillHandler.gd` (`_apply_unimplemented` placeholders)
-- Roadmap: GDD_10 §M9 (M9a/M9b)
+- Tracking: `B5-SKILLS-EFFECTS`
 - Owner of class roster: GDD_03; Reference: `awakening_skills.md`
 
 ---
@@ -394,30 +390,11 @@ Status: **Reference** (process, not a rule)
 Last verified: 2026-06-13
 
 ### Specs
-1. Create `data/skills/skill_name.tres` (New Resource → SkillData).
-2. Fill all fields, including a unique `effect_id`.
-3. If `effect_id` already exists (e.g. `stat_bonus`), configure via `effect_params`.
-4. If the desired behavior can be expressed as a named data composition of existing
-   primitives, add that composition to the relevant registry/library.
-5. If the desired behavior needs a genuinely new primitive, treat it as an engine change:
-   add the primitive, validation, tests, and docs in the same feature slice. Do not make
-   one-off content by adding another closed `match` arm.
-
-A handler reads `effect_params` and writes into the context's `atk_mod` / `def_mod`
-channel for the relevant side, returning `true` only when it actually applied — so a
-limited-use skill is not charged a use when it declines:
-```gdscript
-func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
-    var is_atk: bool = (unit == context.get("attacker"))
-    var w: WeaponData = context.get("attacker_weapon") if is_atk \
-        else context.get("defender_weapon")
-    if w == null or w.weapon_type != skill.effect_params.get("weapon_type", ""):
-        return false                       # declined — no limited use consumed
-    var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
-    mod["damage"] += skill.effect_params.get("bonus", 5)
-    return true
-```
+The operational checklist lives in `AGENT/Docs/guides/map_authoring_guide.md`
+(`Skill authoring`). This chapter retains trigger semantics, player-facing effects,
+acquisition, and precedence contracts.
 
 ### Anchors
 - Code: `scripts/skills/SkillHandler.gd`, `scripts/resources/SkillData.gd`
+- Guide: `AGENT/Docs/guides/map_authoring_guide.md`
 - Schema owner: GDD_01

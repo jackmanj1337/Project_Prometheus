@@ -12,7 +12,7 @@
 - [`guides/environment_setup.md`](guides/environment_setup.md) — Environment Setup — Transfer to a New Machine
 - [`guides/fe_map_sprite_importer_guide.md`](guides/fe_map_sprite_importer_guide.md) — FE-Style Map Sprite Importer for Godot
 - [`guides/manual_test_playbook.md`](guides/manual_test_playbook.md) — Manual Test Playbook
-- [`guides/map_authoring_guide.md`](guides/map_authoring_guide.md) — Map Authoring Guide
+- [`guides/map_authoring_guide.md`](guides/map_authoring_guide.md) — Map And Campaign Content Authoring Guide
 - [`guides/new_machine_transfer_checklist.md`](guides/new_machine_transfer_checklist.md) — New Machine / Environment Transfer Checklist — *Active — operational runbook for moving *
 - [`guides/testing_guide.md`](guides/testing_guide.md) — Testing Guide
 
