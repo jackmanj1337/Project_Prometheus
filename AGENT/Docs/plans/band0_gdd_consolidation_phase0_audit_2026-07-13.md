@@ -169,6 +169,12 @@ authored movement types and no longer duplicates the changing promotion graph. U
 class-authoring steps moved to the existing map/roster guide, while the Map 950 tonic
 validation rationale moved to the manual test playbook.
 
+`GDD_04_Weapons_Items.md` is reconciled. The weapon-family and asset summaries now
+match the accepted registry vocabulary and authored resources without duplicating their
+numeric fields. Item effects reflect the live dispatcher, the inventory limit points to
+`CampaignRules`, and selling is correctly classified as Planned because no production
+sell action or shop UI exists.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved
