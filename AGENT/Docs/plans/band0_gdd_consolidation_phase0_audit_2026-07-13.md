@@ -158,6 +158,12 @@ effects while `GDD_06` owns authored terrain/movement/map behavior. Conditions
 also require a deliberate summary/detail split between core mechanics and
 skills; Phase 2 must preserve that boundary instead of deleting either section.
 
+`GDD_02_Core_Mechanics.md` is reconciled. Terrain authoring and movement tables now
+live only with `GDD_06`; WEXP thresholds, caps, migration, and economy formulas route
+to `GDD_04`; promotion state changes route to `GDD_03`. The action table no longer
+claims that unimplemented Trade or Shove ships, and mid-exchange weapon breakage is
+classified from its production implementation and focused regression coverage.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved

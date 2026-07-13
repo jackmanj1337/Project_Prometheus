@@ -8,9 +8,11 @@
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns combat resolution, the RNG/hit model, stats and derived combat
-values, terrain combat, WEXP, combat EXP, leveling, and promotion *trigger timing*.
-Class definitions, promotion targets, and progression *relationships* are owned by
-`GDD_03`. Determinism architecture (autoloads, snapshot/save) is owned by `GDD_01`.
+values, terrain combat application, combat-facing WEXP behavior, combat EXP,
+leveling, and promotion *trigger timing*. `GDD_03` owns class definitions,
+promotion targets, and progression relationships; `GDD_04` owns weapon/WEXP data
+and economy; `GDD_06` owns terrain/movement authoring. Determinism architecture
+(autoloads, snapshot/save) is owned by `GDD_01`.
 
 ---
 
@@ -43,46 +45,29 @@ Status: **Split** — project values **Implemented**; corpus values **Target des
 Last verified: 2026-06-13
 
 ### Summary
-Terrain grants the defender DEF/Dodge and sets movement cost; some tiles heal.
+Terrain contributes authored DEF/Dodge values to the defender during combat and
+may apply a start-of-phase heal. `GDD_06 §Terrain & Movement` owns terrain ids,
+movement costs, movement categories, and the full authored value table.
 
 ### Specs
 
-**Implemented (project values).** Terrain bonuses apply to the **defending unit only**;
-attackers get none. Bonuses are added during combat and never permanently modify stats.
-
-| Terrain | DEF | Dodge | Move | Notes |
-|---|---|---|---|---|
-| Plain | 0 | 0 | 1 | |
-| Forest | +1 | +15 | 2 | |
-| Mountain | +2 | +20 | 3 | |
-| Fort | +2 | +30 | 1 | Heals per turn (see fort heal below) |
-| Sea | 0 | +10 | 2 | |
-| Desert | 0 | +5 | 2 | Armoured/Mounted cost 3; Magic/Thief line cost 1 |
-| Wall / Building | — | — | Impassable | |
+**Implemented (project behavior).** Terrain bonuses apply to the **defending unit
+only**; attackers get none. `CombatResolver` reads the defender's terrain DEF and
+Dodge during value calculation. These bonuses never permanently modify unit stats.
 
 **Fort/throne heal (OPEN-7, Answered).** A unit standing on a healing tile recovers
 `heal = max(1, floor(0.10 × max_hp))` at start of turn (Renewal rounding — guarantees
 at least 1).
 
-**Target design (corpus terrain, SET-008/RULE-010).** Corpus terrain values and
-movement categories are an adopted target; show both tables until code/data/maps
-migrate. Flying uses terrain movement-cost categories (Planned), never a
-terrain-ignoring special case.
-
-The tables above are shipped/developer preset data. Terrain bonuses, healing profiles,
-movement categories, and topology-specific distance rules should be loaded from
-authorable terrain/rule data as the CampaignRules and map-schema work lands.
-
-### Known gaps
-- **Throne art currently reuses Fort behavior** — terrain ID mapping (sea, wall/building
-  variants, throne) is **Open decision**, deferred to roadmap **AWR-8** (RULE-011). Do
-  not assume name-equality mappings.
+**Target design.** Terrain bonuses and healing profiles become authorable terrain/rule
+data. Corpus values, movement categories, topology rules, and the unresolved terrain-id
+mapping remain with `GDD_06`; combat consumes the resolved values without owning their
+names or balance tables.
 
 ### Anchors
 - Code: `scripts/core/GridManager.gd`; terrain data resources
 - Decisions: SET-008, RULE-010, RULE-011, OPEN-7
-- Reference: `awakening_lookup_tables.md` (terrain/movement); `GDD_Adoption_Matrix.md`
-- Owner of authored map/terrain schema: GDD_06
+- Owner of authored terrain/movement contracts: `GDD_06 §Terrain & Movement`
 
 ---
 
@@ -318,8 +303,8 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ## Weapon Durability
 
-Status: **Split** — project model **Implemented**; breakage-cancels-strikes **Target design** (OPEN-3)
-Last verified: 2026-06-13
+Status: **Implemented**; broken-weapon degraded mode **Planned** (OPEN-5)
+Last verified: 2026-07-13
 
 ### Specs
 - Melee/thrown weapons lose 1 use only on a **successful hit**.
@@ -344,34 +329,23 @@ Status: **Split** — project thresholds/gain **Implemented**; corpus migration 
 Last verified: 2026-06-13
 
 ### Summary
-Units accumulate numeric WEXP per weapon track; rank letters derive from thresholds.
+Successful combat hits grant the equipped weapon's authored WEXP to its trained track;
+rank and cap data are owned by `GDD_04` and class baselines/caps by `GDD_03`.
 
 ### Specs
 
-**Implemented (project).**
-- Per-track totals, e.g. `{ "sword": 100, "lance": 40 }`.
-- Each successful hit grants `weapon.wexp` to that track; ranks derive via
-  `GameConstants.WEXP_RANK_THRESHOLDS`.
-- A unit equips only weapons at/below its current rank for that type.
-- Class resources author WEXP baselines/caps; promotion/reclass raise a unit to at
-  least the new class's baselines for gained tracks. Gain stops at the class's authored
-  cap (default A; explicit S-cap classes may exist).
-- **S-rank bonus:** applies at the S-rank step of the pipeline; values owned by
-  GDD_04 §S-Rank Weapon Bonus (not restated here).
+**Implemented (project combat behavior).** Each successful combat hit calls
+`Unit.add_wexp(weapon.wexp_track, weapon.wexp)`. Equip eligibility reads the derived
+rank for that track, and the S-rank bonus occupies its declared combat-pipeline step.
 
-**Target design.**
-- **WEXP thresholds/caps (SET-004):** corpus values E=1, D=31, C=71, B=121, A=181,
-  S=251, Cap=400.
-- **Gain timing (RULE-004):** per **valid use** (corpus-style), weapon-defined
-  exceptions; may change in a balance pass.
-- **Migration (RULE-003):** proportional within current rank; no persistent save to
-  migrate, so this governs runtime/in-session conversion. Formula in the register.
-- **Rank bonuses (SET-005/RULE-002):** move rank bonuses into the **combat engine**;
-  retire `s_rank_mastery` as a pseudo/equipped skill. The S-rank extension
-  is the project variation (values owned by GDD_04 §S-Rank Weapon Bonus).
+**Target design.** RULE-004 changes award timing to each valid use, with authored
+exceptions. SET-005/RULE-002 move rank bonuses into the combat engine instead of the
+`s_rank_mastery` pseudo-skill. Threshold values, caps, proportional migration, and
+bonus magnitudes are intentionally not repeated here; see `GDD_04 §Weapon Proficiency`
+and `§S-Rank Weapon Bonus`.
 
 ### Anchors
-- Code: `scripts/autoloads/DataManager.gd`, `GameConstants` (`WEXP_RANK_THRESHOLDS`)
+- Code: `scripts/core/CombatResolver.gd`, `scripts/units/Unit.gd`
 - Decisions: SET-004, SET-005, RULE-002, RULE-003, RULE-004
 - Owner of weapon-rank detail/economy: GDD_04
 - Reference: `awakening_lookup_tables.md`; `GDD_Adoption_Matrix.md`
@@ -384,8 +358,10 @@ Status: **Implemented** (with noted future actions)
 Last verified: 2026-06-13
 
 ### Specs
-A unit may Move then take **one action**, or act in place. Shipped action flow:
-**Move, Attack, Staff, Item, Equip, Wait, Seize, Escape, Pair Up, Swap, Separate**.
+A unit may Move then take **one action**, or act in place. The shipped Action Menu
+offers context-valid **Attack, Staff, Item, Equip, Seize, Escape, Pair Up, Swap,
+Separate,** and **Wait**. Movement precedes the menu; Equip is a free menu operation
+that returns to it.
 
 | Action | Ends turn? | Notes |
 |---|---|---|
@@ -394,13 +370,8 @@ A unit may Move then take **one action**, or act in place. Shipped action flow:
 | Staff | Yes | Heal ally in range; awards EXP + WEXP |
 | Use Item | Yes | Consumes one use |
 | Equip Weapon | No | Switch active weapon |
-| Trade | No* | Adjacent ally; ends turn only if already moved |
-| Shove | Yes | Push adjacent non-mounted ally 1 tile |
 | Pair Up / Swap / Separate | Yes | When campaign Pair Up enabled |
 | Wait / Seize / Escape | Yes | Wait ends turn; Seize/Escape are objective actions |
-| Class Ability | Yes | If it requires an action |
-
-> *Trade: may still act if not yet moved this turn.
 
 > **Swap** trades the lead and support roles within an existing pair: the new
 > lead (the former support) takes the on-map tile and becomes visible, the former
@@ -513,10 +484,10 @@ progression relationships are owned by **GDD_03**.
 
 ### Specs
 
-**Implemented (project).** A unit may promote at its class `max_level` with an authored
-`promotes_to`; promotion items use the same gate (no early promotion). Visible level
-resets to 1; progression preserved in `internal_level`; promoted skills learn at their
-`skill_unlocks` levels.
+**Implemented (project timing).** Reaching the class eligibility gate queues the
+promotion screen after EXP/action processing. Promotion items enter the same screen
+through the eligibility contract. The target list and resulting class/stat/WEXP/skill
+changes are owned by `GDD_03 §Promotion` and `§Promotion Items`.
 
 **Target design (RULE-005).**
 - **Seals** permit promotion at **level 10**; **campaign settings** may additionally
@@ -673,12 +644,12 @@ Status: **Implemented - ledger groundwork** (shops **Planned**)
 Last verified: 2026-07-13
 
 ### Specs
-- Shared `GameState.party_gold` treasury; map rewards add once on map resolve
-  through `ResourceLedger`'s registered party-wallet credit path.
-- Fixed party/unit costs share side-effect-free quote, atomic commit, and
+- Combat/map resolution credits the shared `GameState.party_gold` treasury through
+  `ResourceLedger`'s registered party-wallet path.
+- Fixed party/unit costs support side-effect-free quote, atomic commit, and
   recorded-delta refund results. Dynamic formulas and resource pools remain Planned.
-- Sale price: `floor(base_cost × (uses_remaining / max_uses) / 2)`.
-- Shops are Phase 2 (scenes); a campaign-mode prerequisite (D-D).
+- Selling, price formulas, shops, forging, and inventory economy are owned by
+  `GDD_04 §Items & Economy`; none are combat-resolution contracts.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/autoloads/ResourceLedger.gd`
