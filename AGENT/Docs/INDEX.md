@@ -138,6 +138,7 @@
 ## Implementation plans
 
 - [`plans/band0_gdd_consolidation_handoff_2026-07-13.md`](plans/band0_gdd_consolidation_handoff_2026-07-13.md) — Band 0 GDD Consolidation — Next-Session Handoff — *Planned*
+- [`plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md`](plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md) — Band 0 GDD Consolidation — Phase 0 Audit And Implementation Plan — *Active - audit and implementation plan*
 - [`plans/band1_determinism_save_implementation_plan_2026-06-30.md`](plans/band1_determinism_save_implementation_plan_2026-06-30.md) — Band 1 Determinism And Save Implementation Plan — *Active - implementation plan*
 - [`plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md`](plans/band2_shared_runtime_contracts_implementation_plan_2026-06-30.md) — Band 2 Shared Runtime Contracts Implementation Plan — *Active - implementation plan*
 - [`plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md`](plans/band3_core_authoring_foundations_implementation_plan_2026-06-30.md) — Band 3 Core Authoring Foundations Implementation Plan — *Active - implementation plan*
