@@ -28,7 +28,7 @@ Counts are physical lines and level-two headings at the start of Phase 0.
 
 | Document | Lines | `##` sections | Primary role and Phase 2 disposition |
 |---|---:|---:|---|
-| `GDD_00_Overview.md` | 219 | 10 | Authority and navigation index; retain scope/release/platform summaries and remove status ownership that belongs to the control plane. |
+| `GDD_00_Overview.md` | 219 | 10 | Authority and navigation index; Phase 2 reconciled 2026-07-13 — scope/release/platform summaries retained, stale issue/status ownership removed, and exact work routed to the control plane. |
 | `GDD_01_Architecture.md` | 1907 | 12 | Architecture and shared contracts; split after cross-domain UI/camera prose and operational guidance are routed to their owners. |
 | `GDD_02_Core_Mechanics.md` | 686 | 18 | Combat, turns, EXP, conditions, and death-mode behavior; link weapon/economy/progression detail to `GDD_03`/`GDD_04`. |
 | `GDD_03_Units_Classes.md` | 317 | 9 | Roster, classes, promotion, reclass, and progression; move the operational class-authoring checklist to an existing guide. |
@@ -143,6 +143,15 @@ passed after its removal.
 | Operational `Adding Future Classes`, `Adding a New Skill`, and `Adding a New Map` sections | Existing operational guides | Move unique author instructions to the appropriate guide and leave a short contract link; do not delete unique steps. |
 | Exact script signatures and resource pseudo-code mixed with architecture principles in `GDD_01` | Split runtime/data contract files | Preserve binding fields and invariants; remove stale code transcription where a direct code anchor is clearer. |
 | Exact work status in `GDD_00`/`GDD_10` prose | Project Control Plane | Retain readable summaries and link exact rows; do not duplicate row-level next actions. |
+
+### Phase 2 progress (2026-07-13)
+
+`GDD_00_Overview.md` is reconciled. Its authority order now distinguishes
+ratified design, shipped evidence, tracker state, domain contracts, supporting
+sources, and historical evidence. Navigation includes the build guide and
+generated indexes; the stale combat-preview issue snapshot was removed; release,
+baseline, and platform prose now route exact state through existing Track IDs.
+No player-facing behavior or release scope changed.
 
 Terrain is intentionally split rather than duplicated: `GDD_02` owns combat
 effects while `GDD_06` owns authored terrain/movement/map behavior. Conditions
