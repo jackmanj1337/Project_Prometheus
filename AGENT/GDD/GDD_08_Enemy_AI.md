@@ -1,10 +1,10 @@
 # GDD_08 — Enemy AI
 
-**Status:** Active contract — split status per section (the basic/passive/healer profiles
-are **Implemented**; the tactical scoring model, extra profiles, and enemy
+**Status:** Active contract — split status per section (the basic/passive/healer/hunter
+profiles are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-09
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -63,35 +63,13 @@ action-preview dry-run + `[VAL]` prerequisite) rides step 3.
 
 ## Architecture
 
-```gdscript
-# scripts/core/EnemyAI.gd  (autoload)
-extends Node
+Status: **Implemented foundation**; additional dispositions **Planned**
+Last verified: 2026-07-13
 
-# Awaited by TurnManager.start_enemy_phase() for one acting faction at a time.
-func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
-    var gs := get_node_or_null("/root/GameState")
-    if gs == null or grid == null or faction_id == "":
-        return
-    for enemy in gs.get_living_units_of(faction_id):
-        if is_instance_valid(enemy):
-            await _act(enemy, grid, turn)
-
-# AISpec composition seam (replaced the closed `match enemy.data.ai_profile`).
-func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
-    var spec := AIProfileRegistry.resolve_ai_spec(enemy.data.ai_profile)
-    var handler: Callable = _disposition_handlers().get(spec.disposition, Callable())
-    if not handler.is_valid():
-        handler = _disposition_pursue_unit  # unreachable; mirrors the old `_: pass`
-    await handler.call(enemy, grid, turn, faction_id)
-
-# The single seam a new behavior registers on — no engine `match` edit.
-func _disposition_handlers() -> Dictionary:
-    return {
-        AIProfileRegistry.DISP_PURSUE_UNIT: _disposition_pursue_unit,  # was "basic"
-        AIProfileRegistry.DISP_HOLD_TILE:   _disposition_hold_tile,    # was "passive"
-        AIProfileRegistry.DISP_HEAL:        _disposition_heal,         # was "healer"
-    }
-```
+`TurnManager` awaits `EnemyAI.run_phase()` once per AI-controlled faction. Each unit's
+profile resolves through `AIProfileRegistry` to an `AISpec` containing activation,
+disposition, and engagement ids; the disposition handler then plans and performs the
+turn. Hostility always goes through `GameState.are_hostile()`.
 
 `ai_profile` is stored on `UnitData` (`@export var ai_profile: String = "basic"`) and
 set per unit via `MapData.enemy_placements`. Hostility is resolved through
@@ -106,8 +84,8 @@ presets implemented by composing the shared planner primitives.
 
 ## Implemented Profiles
 
-Status: **Implemented** (`basic`, `passive`, `healer`)
-Last verified: 2026-06-13
+Status: **Implemented** (`basic`, `passive`, `healer`, `hunter`)
+Last verified: 2026-07-13
 
 ### `"basic"` — the default
 
@@ -144,6 +122,12 @@ brings the most-injured ally into staff range (tie-broken by terrain DEF + Dodge
 safer positioning), moves there, then heals via `Unit.perform_staff_heal()`. A healer
 never attacks.
 
+### `"hunter"`
+
+Uses the same pursue-unit disposition as `basic`, but selects the lowest-HP hostile;
+equal-HP targets break toward the nearer unit. Movement and final attack selection use
+the same engagement policy, and repeated choices are deterministic.
+
 ---
 
 ## Combat Forecast — `preview_combat()`
@@ -176,10 +160,13 @@ profile/primitive.
 
 | Preset/profile | Behaviour |
 |---|---|
-| `"territorial"` | Attacks any hostile unit that enters its patrol radius; otherwise stays put |
-| `"guard_tile"` | Never leaves a designated tile; attacks hostile units that come in range |
-| `"aggressive"` | Like basic but ignores the counter-damage penalty in scoring |
-| `"boss"` | Like basic but with terrain-optimal positioning; uses items |
+| `"territorial"` | Sleeps until a hostile enters its patrol radius, then latches awake |
+| `"tethered"` | Pursues within a leash and returns toward its authored home tile |
+| `"flee"` | Maximizes distance from threats, optionally toward an authored goal tile |
+| `"seek_tile"` | Advances toward an authored goal tile |
+
+Guard/aggressive/boss behavior can be composed from activation, disposition,
+engagement, and scorer presets rather than becoming separate engine switch arms.
 
 ### Phase 2 Scoring Model (design backlog)
 
@@ -193,8 +180,8 @@ the AI uses the nearest-target rule above.
 
 ## AI Determinism & Parity
 
-Status: **Target design** (parity obligations; binding once `RngService` lands — RNG-4)
-Last verified: 2026-06-13
+Status: **Split** — engine-local determinism **Implemented**; online parity **Deferred**
+Last verified: 2026-07-13
 
 ### Summary
 AI decisions must be reproducible so replay, rewind, suspend, and host-authoritative
@@ -215,7 +202,7 @@ online play stay consistent.
   §CampaignRules Contract.
 
 ### Anchors
-- Code: `scripts/core/EnemyAI.gd`; target `scripts/autoloads/RngService.gd`
+- Code: `scripts/core/EnemyAI.gd`, `scripts/autoloads/RngService.gd`
 - Decisions: RNG-4, OPEN-4
 - Owner of the determinism contract: GDD_01 §Determinism, Snapshot & Online Contract
 

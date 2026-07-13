@@ -186,6 +186,12 @@ checklist routes to the content guide. Maps 002-005 are classified Implemented f
 their authored resources, selector boot coverage, and objective-resolution tests;
 `VAL-OBJECTIVE-MAPS` and its stale `GDD_10` follow-up are closed.
 
+`GDD_08_Enemy_AI.md` is reconciled. The architecture section now states the composition
+contract without transcribing production code, `hunter` is included in the shipped
+profile set, future dispositions match the active Band 5 plan, and deterministic AI is
+split from deferred online parity. The former M14 leftover is fully routed to the Band 5
+minimum scorer and Band 7 advanced valuation rows, closing `VAL-M14-LEFTOVERS`.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved
