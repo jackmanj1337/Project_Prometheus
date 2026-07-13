@@ -33,6 +33,9 @@ Checks:
  25. Input modes  — SettingsManager/GDD agree on input_mode values
  26. Touch controls — SettingsManager/GDD agree on touch_controls values
  27. Stat guard   — no NEW hardcoded growth-stat list / stat-label map outside StatRegistry (B3-STAT-REGISTRY DoD#2)
+ 28. Gold writes  — gameplay party-gold mutation stays behind ResourceLedger
+ 29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
+ 30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
 """
 
 import re
@@ -1082,6 +1085,82 @@ def check_archive_markers() -> None:
                       f"'Superseded by' target does not exist: {m.group(1)!r}")
 
 
+# ── check 30: active plan/design ownership (B0-DOC-ROLE-MANIFEST) ───────────
+
+_ROLE_MANIFEST = ROOT / "AGENT/Docs/plans/doc_role_manifest_2026-06-29.md"
+_FEATURE_INDEX = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
+_OWNERSHIP_MAP_HEADING = "## Active Source Ownership Map"
+
+
+def _role_manifest_owner_paths() -> set[Path]:
+    """Return plan/design source paths explicitly mapped by the role manifest."""
+    try:
+        lines = _ROLE_MANIFEST.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        _fail("active-doc-ownership", _ROLE_MANIFEST, 1, "role manifest is missing")
+        return set()
+
+    mapped: set[Path] = set()
+    in_map = False
+    for line_no, line in enumerate(lines, 1):
+        if line.strip() == _OWNERSHIP_MAP_HEADING:
+            in_map = True
+            continue
+        if in_map and line.startswith("## "):
+            break
+        if not in_map:
+            continue
+        for target in _iter_local_markdown_links(line):
+            path = (_ROLE_MANIFEST.parent / target).resolve()
+            if path.suffix != ".md" or path.parent.name not in {"plans", "design"}:
+                continue
+            if not path.exists():
+                _fail("active-doc-ownership", _ROLE_MANIFEST, line_no,
+                      f"ownership-map source does not exist: {target!r}")
+                continue
+            if _is_historical(path):
+                _fail("active-doc-ownership", _ROLE_MANIFEST, line_no,
+                      f"ownership-map source is Historical/Superseded: {target!r}")
+                continue
+            mapped.add(path)
+
+    if not in_map:
+        _fail("active-doc-ownership", _ROLE_MANIFEST, 1,
+              f"missing {_OWNERSHIP_MAP_HEADING!r} section")
+    return mapped
+
+
+def check_active_doc_ownership() -> None:
+    """Active plan/design docs need a direct owner or explicit manifest mapping.
+
+    A filename in the Project Control Plane or Feature Index is a direct owner
+    link. Cross-cutting sources that would make those navigation tables noisy
+    must instead be named in the role manifest's ownership map. Historical and
+    Superseded docs are lifecycle evidence and are outside this active check.
+    """
+    direct_sources = ""
+    for path in (_CONTROL_PLANE, _FEATURE_INDEX):
+        try:
+            direct_sources += path.read_text(encoding="utf-8")
+        except OSError:
+            _fail("active-doc-ownership", path, 1, "ownership source is missing")
+
+    mapped = _role_manifest_owner_paths()
+    source_dirs = (
+        ROOT / "AGENT/Docs/plans",
+        ROOT / "AGENT/Docs/design",
+    )
+    for source_dir in source_dirs:
+        for path in sorted(source_dir.glob("*.md")):
+            if path == _CONTROL_PLANE or _is_historical(path):
+                continue
+            if path.name in direct_sources or path.resolve() in mapped:
+                continue
+            _fail("active-doc-ownership", path, 1,
+                  "active plan/design source has no Project Control Plane or "
+                  "Feature Index link and no role-manifest ownership-map entry")
+
+
 # ── check 21: cross-plan autoload ordering ───────────────────────────────────
 
 # Ordering contracts the Band 1/2 implementation plans depend on but that live
@@ -1304,6 +1383,7 @@ def main() -> None:
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
+        ("[30] Active doc ownership",      check_active_doc_ownership),
     ]
     for label, fn in steps:
         print(f"  {label}...")

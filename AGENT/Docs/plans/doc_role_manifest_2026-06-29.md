@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Active - planning input
-Last verified: 2026-06-29
+Status: Implemented - ownership check
+Last verified: 2026-07-13
 ---
 
 # Document Role Manifest
@@ -10,10 +10,8 @@ Last verified: 2026-06-29
 rewrite.
 
 **Purpose.** Define what each active documentation family is allowed to own.
-This manifest supports future `check_docs.py` enforcement for role separation,
-active-doc ownership, and stale planning-doc cleanup.
-
-This is a target structure, not an enforcement check yet.
+This manifest supports `check_docs.py` enforcement for active-doc ownership and
+the later role-separation work in the GDD consolidation.
 
 ## Role Rules
 
@@ -77,14 +75,51 @@ plane as a group rather than one row per document.
 
 | Exception | Allowed while | Required cleanup |
 |---|---|---|
-| GDD rewrite transition artifacts | `B0-GDD10-REWRITE` and `B0-FEATURE-INDEX-WIRING` remain open | Archive or mark superseded after their content is folded into the control plane and GDD rewrite. |
 | Existing implementation plans | Their owning feature row says `needs implementation plan` or points to the plan | Add direct Track ID links during feature-index wiring. |
 | Research notes | Their topic is deferred or parked | Keep as source evidence, not schedule authority. |
 
-## Future Enforcement Hooks
+The former blanket `GDD rewrite transition artifacts` exception expired when
+`B0-GDD10-REWRITE` and `B0-FEATURE-INDEX-WIRING` became Implemented. Remaining
+transition and research sources must now have an explicit owner below.
+
+## Active Source Ownership Map
+
+These non-historical plan/design sources are intentionally grouped under a
+tracker row rather than linked individually from the Project Control Plane or
+Feature Index. `check_docs.py` treats this table as the explicit exception map;
+remove a row when the source gains a direct tracker/index link or a lifecycle
+marker.
+
+| Source | Owner | Reason / exit condition |
+|---|---|---|
+| [`band3_implementation_plan_handoff_2026-06-30.md`](band3_implementation_plan_handoff_2026-06-30.md) | Band 3 rows, led by `B3-REQ` | Input to the combined Band 3 plan; remove after direct source wiring or supersession marking. |
+| [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Cross-feature dependency evidence used by the control-plane/GDD reconciliation. |
+| [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) | `B0-GDD-CONSOLIDATION` | Pre-control-plane queue evidence; classify its unique detail during consolidation. |
+| [`registry_nonschema_slices_handoff_2026-07-09.md`](registry_nonschema_slices_handoff_2026-07-09.md) | `B3-STAT-REGISTRY`, `B5-AI-COMPOSITION` | Implementation evidence for those registry rows. |
+| [`scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) | `B0-GDD-CONSOLIDATION` | Scope/stale-assumption audit input; classify after the chapter pass. |
+| [`stat_breakdown_character_sheet_plan_2026-06-14.md`](stat_breakdown_character_sheet_plan_2026-06-14.md) | `UI-INSPECTION` | Implemented design record retained for inspection-surface detail. |
+| [`v0.4.0_review_fix_handoff_2026-07-13.md`](v0.4.0_review_fix_handoff_2026-07-13.md) | `B2-OCCUPANCY` and adjacent Band 2 rows | v0.4 review/fix evidence; reclassify with release closeout. |
+| [`v0.4_next_session_handoff_2026-07-13.md`](v0.4_next_session_handoff_2026-07-13.md) | `B2-DATAMANAGER-SEAMS` and adjacent Band 2 rows | v0.4 execution evidence; reclassify with release closeout. |
+| [`ai_system_design_vision_2026-06-22.md`](../design/ai_system_design_vision_2026-06-22.md) | `B5-AI-COMPOSITION` | Supporting AI design vision. |
+| [`campaign_asset_taxonomy_and_format_2026-07-01.md`](../design/campaign_asset_taxonomy_and_format_2026-07-01.md) | `B6-CAMPAIGN-SHARING` | Supporting campaign-package asset contract. |
+| [`campaign_save_expectations_and_foundations_2026-06-23.md`](../design/campaign_save_expectations_and_foundations_2026-06-23.md) | `B1-CST` | Campaign/save framing evidence. |
+| [`candidate_systems_2026-06-23.md`](../design/candidate_systems_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Early feature-scope evidence to reconcile against tracker rows. |
+| [`design_review_foundation_fix_todo_2026-06-28.md`](../design/design_review_foundation_fix_todo_2026-06-28.md) | `B0-GDD-CONSOLIDATION` | Cross-foundation review evidence to reconcile against implemented rows. |
+| [`difficulty_profile_manifest_contract_2026-06-28.md`](../design/difficulty_profile_manifest_contract_2026-06-28.md) | `B4-DIFFICULTY-DEATHMODE` | Supporting difficulty authoring contract. |
+| [`f1_save_schema_manifest_contract_2026-06-28.md`](../design/f1_save_schema_manifest_contract_2026-06-28.md) | `B1-F1` | Source contract for the implemented F1 manifest. |
+| [`foundations_end_shapes_2026-06-23.md`](../design/foundations_end_shapes_2026-06-23.md) | Band 2/3 foundation rows, led by `B2-REGISTRY` | Shared end-shape evidence; keep grouped until per-row reconciliation. |
+| [`input_mode_architecture_design_2026-06-20.md`](../design/input_mode_architecture_design_2026-06-20.md) | `B6-INPUT` | Supporting input-mode contract. |
+| [`items_equipment_unified_model_2026-06-23.md`](../design/items_equipment_unified_model_2026-06-23.md) | `B4-IEQ` | Supporting item/equipment composition contract. |
+| [`mouse_only_cursor_mode_design_2026-06-19.md`](../design/mouse_only_cursor_mode_design_2026-06-19.md) | `B6-INPUT` | Implemented input design evidence. |
+| [`open_registry_conversion_checklist_2026-06-28.md`](../design/open_registry_conversion_checklist_2026-06-28.md) | `B2-REGISTRY` | Cross-registry conversion evidence. |
+| [`player_facing_scope_map_2026-06-23.md`](../design/player_facing_scope_map_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Scope evidence to reconcile against control-plane rows. |
+| [`terrain_more_info_paging_design_2026-06-19.md`](../design/terrain_more_info_paging_design_2026-06-19.md) | `UI-INSPECTION` | Implemented inspection design evidence. |
+| [`ui_ux_art_asset_research_2026-07-02.md`](../design/ui_ux_art_asset_research_2026-07-02.md) | `UI-INSPECTION` | Supporting UI asset research. |
+
+## Enforcement Hooks
 
 | Check | Reads | Rule |
 |---|---|---|
-| Active doc ownership | This manifest, `AGENT/Docs/INDEX.md`, Project Control Plane | Active plans/design docs need a Track ID, feature-index row, generated-index exception, or archive/supersession marker. |
+| Active doc ownership | This manifest, Project Control Plane, Feature Index | Enforced: active plans/design docs need a direct tracker/index link or an entry in the Active Source Ownership Map. |
 | Role separation | This manifest, `GDD_10`, Project Control Plane | `GDD_10` must not duplicate the full control-plane table; the control plane must not become long-form design prose. |
 | Generated index discipline | Generated file headers | Generated indexes must be refreshed after active-doc path/header changes. |
