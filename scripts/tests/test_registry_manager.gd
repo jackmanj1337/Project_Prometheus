@@ -37,6 +37,14 @@ func _init() -> void:
 	else:
 		print("FAIL malformed schema errors: %s" % [schema_errors]); failed += 1
 
+	var undocumented_mutation = _entry("undocumented_mutation", "test_handler")
+	undocumented_mutation.kind = "mutation"
+	var mutation_errors: Array[String] = catalog.register_entry(undocumented_mutation)
+	if mutation_errors.any(func(error): return "must declare save_fields" in error):
+		print("OK  mutating primitives must declare their save fields"); passed += 1
+	else:
+		print("FAIL missing mutation save-field guard: %s" % [mutation_errors]); failed += 1
+
 	var later = _entry("zeta", "test_handler")
 	later.priority = 0
 	var sooner = _entry("beta", "test_handler")

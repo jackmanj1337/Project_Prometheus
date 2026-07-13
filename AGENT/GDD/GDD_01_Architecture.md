@@ -50,6 +50,25 @@ profiles/presets, map-object components, PHB panels, action/effect primitives, s
 names, resource types, difficulty/rule profiles, requirement predicates/terms, and
 future activities.
 
+### Action/Effect Execution Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+State-changing authored actions use a structured `ActionRequest`, `ActionContext`,
+and `ActionResult`. `ActionEffectRunner` resolves the request's primitive entry
+through `RegistryManager`, validates required subjects and the declared parameter
+schema, and only then invokes the engine-owned handler. Unknown primitives,
+unavailable handlers, missing subjects, and malformed parameters return structured
+failures before mutation. Dry-run requests follow the same validation path and do
+not invoke a handler.
+
+The first proof primitive, `apply_active_modifier`, is shared by the existing item
+domain and a map-event fixture. It reports `UnitData.active_modifiers` as its touched
+save field; all registry entries marked as mutations must declare at least one save
+field. Requirement-gated availability remains owned by `B3-REQ`, and broader item,
+map-event, dialogue, economy, and objective migrations remain later consumers.
+
 For the step-by-step "how do I add or validate one safely?" workflows, prefer
 the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
 GDD chapter.

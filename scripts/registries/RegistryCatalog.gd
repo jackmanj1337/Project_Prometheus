@@ -51,6 +51,8 @@ func validate_entry(entry: Resource) -> Array[String]:
 		if not (spec is Dictionary) or String(spec.get("type", "")) == "":
 			errors.append("RegistryCatalog: entry '%s' parameter '%s' needs a schema dictionary with type" % [
 				entry.id, String(param_id)])
+	if entry.kind == "mutation" and entry.save_fields.is_empty():
+		errors.append("RegistryCatalog: mutating entry '%s' must declare save_fields" % entry.id)
 	for part in entry.composition:
 		var handler_id := String(part.get("primitive_handler", ""))
 		if handler_id == "" or not _primitive_handlers.has(handler_id):
