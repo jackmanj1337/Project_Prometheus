@@ -62,6 +62,12 @@ Every tracker row uses these columns:
 
 ## Band 2 - Shared Authoring And Runtime Contracts
 
+**v0.4.0 release gate:** all seven rows below are in scope. Review and release
+evidence is tracked in
+[`v0.4.0_release_checklist_2026-07-13.md`](v0.4.0_release_checklist_2026-07-13.md);
+Implemented row status does not replace the checklist's review, build, and smoke
+gates.
+
 | Track ID | Band | Status | Work item | Scope | Blocks / depends on | GDD owner | Decision source | Build source | Save / registry impact | Test / validation | Next action |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `B2-REGISTRY` | 2 | Implemented | Registry manifest contract | Bootstrap open registries for author-facing vocabularies. | `B1-F1` | `GDD_01` | [`authoring_extensibility_open_questions_2026-06-26.md`](../registers/authoring_extensibility_open_questions_2026-06-26.md) | [`band2_shared_runtime_contracts_implementation_plan_2026-06-30.md`](band2_shared_runtime_contracts_implementation_plan_2026-06-30.md), [`registry_manifest_contract_2026-06-28.md`](../design/registry_manifest_contract_2026-06-28.md) | Registry: all author-facing vocabularies; no saved state in Slice 1 | `test_registry_manager.gd` (duplicate, unknown handler, schema, ordering, data-defined load, manifests); DataManager query regression | **Slice 1 implemented 2026-07-12:** `RegistryEntry`, pure `RegistryCatalog`, and the `RegistryManager` autoload load export-safe developer presets for `action_primitives`, `resource_types`, and `occupancy_policies`; required metadata, handlers, schemas, composition refs, duplicates, and deterministic ordering validate headlessly. Next consumer is blocked on sequencing: decide whether to follow plan order into `B2-ACTION-EFFECT` (whose control-plane row also names unbuilt `B3-REQ`) or pull forward the behavior-neutral portion of `B2-DATAMANAGER-SEAMS`. |

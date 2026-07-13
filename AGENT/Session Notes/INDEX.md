@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13g](2026-07-13g.md) — **v0.4.0 release checklist defined:** seven Band 2 slices bounded, review evidence specified, deliberate deferrals recorded, and RC gates established.
 - [2026-07-13f](2026-07-13f.md) — **B2 Projection combat adapter implemented:** typed forecast contract, Attack Preview delegation, no-mutation/RNG guards, and all 75 suites green.
 - [2026-07-13e](2026-07-13e.md) — **B2 Death Lifecycle groundwork implemented:** structured death/disposition funnel, deterministic mutual-death snapshots, classic/casual behavior, and all 74 suites green.
 - [2026-07-13d](2026-07-13d.md) — **B2 Occupancy groundwork implemented:** registry-dispatched spawn policies, deterministic fallback, map-start delegation, overlap validation, and all 73 suites green.

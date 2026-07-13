@@ -69,6 +69,14 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+### v0.4.0 release gate
+
+v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
+checklist is [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
+All seven rows are implemented; the next session is a full-delta code review
+against that checklist. Metadata/export work starts only after review findings
+are resolved. Band 3 consumers are outside this release boundary.
+
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —
 > the live vehicle for the items below. Handbook:
 > [`playtest_checklist_v0.3.1.md`](../Docs/playtests/playtest_checklist_v0.3.1.md);
