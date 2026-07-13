@@ -125,7 +125,7 @@ Control Plane enforcement check both know the prefix.
 | Track IDs | Uppercase prefix, hyphen, uppercase slug. Examples: `B1-F1`, `B4-IEQ`, `VAL-V021-12`, `REL-LEG`. |
 | Band references | Use `Band N` on first use in prose; table cells may use `N` only in the Project Control Plane band column. |
 | Queue names | Use `Validation`, `Release gate`, `Cleanup`, `Content`, `Polish`, or `UI` exactly. |
-| GDD file references | Use numbered filenames: `GDD_01_Architecture.md`, not "architecture doc." |
+| GDD file references | Use numbered filenames, including the owning companion when split: `GDD_01_Runtime_Contracts.md`, not "architecture doc." |
 | Register references | Use the register id when useful, such as `[TCV-1..6]`, and link the register file when the row needs source authority. |
 | Source docs | Prefer repo-relative paths in code spans or Markdown links. |
 | Acronyms | Expand on first use in rewritten GDD prose unless the acronym is in a table headed by source IDs. |

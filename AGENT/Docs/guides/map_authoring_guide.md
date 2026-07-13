@@ -9,7 +9,7 @@ GDD chapters retain system rules and player-facing behavior.
 For system rules and player-facing behavior, still read:
 
 1. `AGENT/GDD/GDD_06_Maps_Objectives.md`
-2. `AGENT/GDD/GDD_01_Architecture.md`
+2. `AGENT/GDD/GDD_01_Data_Contracts.md`
 3. `AGENT/Docs/guides/testing_guide.md`
 
 ## Minimum deliverables

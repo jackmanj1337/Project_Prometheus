@@ -70,7 +70,9 @@ migration. Full table + the GDD section template: the governance doc.
 | File | Owns |
 |---|---|
 | `GDD_00_Overview.md` | This file — authority model, indices, release definition, platform targets |
-| `GDD_01_Architecture.md` | Project structure, data/serialization contracts, autoload order, snapshot/RNG seams |
+| `GDD_01_Architecture.md` | Project structure, scene/autoload composition, extension boundaries |
+| `GDD_01_Runtime_Contracts.md` | CampaignRules, deterministic events, snapshots, shared runtime service boundaries |
+| `GDD_01_Data_Contracts.md` | Resource schemas, persistence fields, validation and authoring bindings |
 | `GDD_02_Core_Mechanics.md` | Grid, turns, combat resolution, RNG model, EXP, permadeath, terrain combat |
 | `GDD_03_Units_Classes.md` | Units, classes, progression, promotion, reclass |
 | `GDD_04_Weapons_Items.md` | Weapons, items, weapon triangle, WEXP, economy-facing rules |

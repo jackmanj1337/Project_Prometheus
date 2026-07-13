@@ -1,7 +1,8 @@
 # Campaign Rules
 
-**Last verified:** 2026-06-13
-**See also:** `GDD_01_Architecture.md` §CampaignRules Contract; `scripts/resources/CampaignRules.gd` (stub created Stage 4.3)
+**Last verified:** 2026-07-13
+**See also:** `GDD_01_Runtime_Contracts.md` §CampaignRules Contract;
+`scripts/resources/CampaignRules.gd`
 
 This file is the evergreen reference for campaign-level gameplay rules chosen at
 `New Game` and carried by the current save/runtime state.
@@ -10,7 +11,7 @@ Use it together with:
 
 1. `AGENT/GDD/GDD_02_Core_Mechanics.md`
 2. `AGENT/GDD/GDD_03_Units_Classes.md`
-3. `AGENT/GDD/GDD_01_Architecture.md`
+3. `AGENT/GDD/GDD_01_Runtime_Contracts.md`
 
 ## Current rule set
 
@@ -24,13 +25,13 @@ The current New Game flow exposes these gameplay rule toggles:
 Map selection travels through the same launch flow, but it is launch state, not
 itself a campaign rule.
 
-These values are written into `GameState` before the map starts. They are not
-global app settings.
+These values are written into `GameState.campaign_rules` before the map starts.
+They are not global app settings.
 
 If this distinction is ignored, the likely bug is rules leaking between saves or
 being treated as user preferences instead of save-specific gameplay state.
 
-## Current `GameState` fields
+## Current `CampaignRules` fields
 
 The live campaign-rule fields are:
 
@@ -38,6 +39,11 @@ The live campaign-rule fields are:
 - `leveling_method: String`
 - `auto_promote_at_max_level: bool`
 - `pair_up_enabled: bool`
+- `max_skills: int`
+- `max_inventory: int`
+- `exp_gaining_factions: Array[String]`
+- `hit_formula: String`
+- `rewind_charges_per_map: int`
 
 The current launch-routing fields that travel with New Game setup are:
 
@@ -45,8 +51,8 @@ The current launch-routing fields that travel with New Game setup are:
 - `next_map_roster_policy: String`
 - `next_map_roster_source: String`
 
-These are not the full long-term campaign-save schema, but they are the current
-runtime contract.
+The rule object and launch-routing fields are serialized through the save/runtime
+contracts; authored profile selection and several later consumers remain planned.
 
 ## Rule meanings
 

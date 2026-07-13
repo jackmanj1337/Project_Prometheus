@@ -30,7 +30,7 @@ the later role-separation work in the GDD consolidation.
 | Role ID | Allowed paths | Owns | Must not own | Control-plane rule |
 |---|---|---|---|---|
 | `authority_index` | `AGENT/GDD/GDD_00_Overview.md` | Authority model, release definition, navigation entry points. | Feature detail, work queues, register deliberation. | May link to tracker rows but does not duplicate them. |
-| `design_contract` | `AGENT/GDD/GDD_01_Architecture.md` through `AGENT/GDD/GDD_08_Enemy_AI.md` | Short rule/design contracts by domain. | Long deliberation history or full build schedule. | Every active feature should point to one or more GDD owners. |
+| `design_contract` | Numbered `AGENT/GDD/GDD_01*.md` through `AGENT/GDD/GDD_08_Enemy_AI.md` contracts | Short rule/design contracts by domain. | Long deliberation history or full build schedule. | Every active feature should point to one or more GDD owners. |
 | `build_guide` | `AGENT/GDD/GDD_10_Roadmap.md` | Human build guide, dependency-band narrative, next-work queue, release/validation summaries. | Full control-plane table, stale milestone checklist detail. | Links to Track IDs; does not own row schema. |
 | `control_plane` | `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Row-per-work-item tracker, dependencies, owners, sources, tests, next actions. | Long-form design explanation, historical session narrative. | Source for Track IDs and tracker schema. |
 | `feature_index` | `AGENT/GDD/GDD_Feature_Index.md` | Feature lookup from feature name to GDD owner, Track ID, decisions, plans, tests, and code/data anchors. | Roadmap sequencing or deliberation. | References Track IDs after wiring pass. |
@@ -51,7 +51,9 @@ the later role-separation work in the GDD consolidation.
 | Path | Role ID | Status after rewrite | Notes |
 |---|---|---|---|
 | `AGENT/GDD/GDD_00_Overview.md` | `authority_index` | Active entry point | Should point to `GDD_10`, feature index, generated indexes, and governance. |
-| `AGENT/GDD/GDD_01_Architecture.md` | `design_contract` | Active design contract | Owns save/schema/registry/action/resource/occupancy/death/projection architecture. |
+| `AGENT/GDD/GDD_01_Architecture.md` | `design_contract` | Active entry contract | Owns project composition, scene/autoload responsibility, and extension boundaries. |
+| `AGENT/GDD/GDD_01_Runtime_Contracts.md` | `design_contract` | Active companion contract | Owns CampaignRules, deterministic events, snapshots, and shared runtime boundaries. |
+| `AGENT/GDD/GDD_01_Data_Contracts.md` | `design_contract` | Active companion contract | Owns resource schemas, persistence fields, validation, and authoring bindings. |
 | `AGENT/GDD/GDD_02_Core_Mechanics.md` | `design_contract` | Active design contract | Owns combat, turns, EXP, conditions, Source+Style combat behavior. |
 | `AGENT/GDD/GDD_03_Units_Classes.md` | `design_contract` | Active design contract | Owns roster, classes, progression, stats, avatar/relationship hooks. |
 | `AGENT/GDD/GDD_04_Weapons_Items.md` | `design_contract` | Active design contract | Owns IEQ, convoy, shop/economy, sources/equipment, story items. |

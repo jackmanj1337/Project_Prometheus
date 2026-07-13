@@ -271,6 +271,22 @@ The migration commits will also search owner-family references such as bare
 `GDD_01`/`GDD_07`, update the role manifest and `check_docs.py` path assumptions,
 and preserve historical references unless they are live links that would break.
 
+### Heading migration table
+
+| Former `GDD_01_Architecture.md` heading | Active owner |
+|---|---|
+| Core Philosophy, Folder Structure, Scene Node Trees, Autoload Singletons, Implementation Notes | `GDD_01_Architecture.md` (Autoload Singletons condensed as Autoload Composition) |
+| CampaignRules Contract | `GDD_01_Runtime_Contracts.md#campaignrules-contract` |
+| Determinism, Snapshot & Online Contract | `GDD_01_Runtime_Contracts.md#determinism-snapshot--online-contract` |
+| Key Script Function Signatures | `GDD_01_Runtime_Contracts.md#shared-runtime-service-boundaries` (exact signatures remain code-owned) |
+| Resource Class Definitions | `GDD_01_Data_Contracts.md#resource-class-definitions` |
+| Rendering and Display Settings | `GDD_07_UI_UX.md` pending the GDD 07 split |
+| Input Map | `GDD_07_UI_UX.md` pending the GDD 07 split |
+| Camera Zoom | `GDD_06_Maps_Objectives.md#tactical-camera` and the GDD 07 settings contract |
+
+The GDD 01 split completed on 2026-07-13. Its before/after stable-ID sets are
+identical; no pre-existing Markdown fragment link required a redirect.
+
 ## Commit-Sized Schedule
 
 1. **Phase 0:** correct the tracker order and add this audit/plan.

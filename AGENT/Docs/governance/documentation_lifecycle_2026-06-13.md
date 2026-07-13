@@ -47,7 +47,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 | Doc | Status | Action | Stage |
 |---|---|---|---|
 | `GDD_00_Overview.md` | Active entry point | **rewrite** (authority model, status vocab, indices, platform targets) | 2.1 |
-| `GDD_01_Architecture.md` | Active contract | **rewrite** (data/serialization, RNG autoload, pipeline order, CampaignRules) — DONE 2026-06-13 | 3.5 |
+| `GDD_01_Architecture.md` + runtime/data companions | Active contracts | **split by ownership** (composition, runtime, data) — DONE 2026-07-13 | Band 0 consolidation |
 | `GDD_02_Core_Mechanics.md` | Active contract | **rewrite** (two-RN, modifier pipeline, combat rulings; absorb RNG binding rules) | 3.1 |
 | `GDD_03_Units_Classes.md` | Active contract | **rewrite** (progression, promotion/reclass, class corpus adoption) | 3.2 |
 | `GDD_04_Weapons_Items.md` | Active contract | **rewrite** (triangle, rank bonuses, WEXP, economy) — DONE 2026-06-13 | 3.3 |
