@@ -436,7 +436,7 @@ When these templates are implemented, add tests for:
 
 - Minigame runtime research:
   [`minigame_scripting_runtime_research_2026-06-28.md`](minigame_scripting_runtime_research_2026-06-28.md).
-- `[SAC]` scene-backed activities / mini-game module seam:
+- `[SAC]` scene-backed activities / `ActivityRunner` seam:
   [`../registers/shop_activate_configs_open_questions_2026-06-27.md`](../registers/shop_activate_configs_open_questions_2026-06-27.md).
 - `[DLG]` dialogue/cutscene stage and command model:
   [`../registers/dialogue_conversation_system_open_questions_2026-06-25.md`](../registers/dialogue_conversation_system_open_questions_2026-06-25.md).

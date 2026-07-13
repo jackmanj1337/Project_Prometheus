@@ -185,6 +185,5 @@ When work changes:
 | Track ID | Follow-up |
 |---|---|
 | `B0-GDD-ANCHORS` | Add exact feature-index section anchors during the numbered GDD chapter rewrites. |
-| `B0-VOCAB-NAMING` | Normalize retired terms during the numbered GDD chapter rewrites. |
 | `VAL-OBJECTIVE-MAPS` | Resolve the old contradiction where M16 marked Maps 002-005 done while the Phase 3 backlog left them open. |
 | `VAL-M14-LEFTOVERS` | Move any real tactical-AI work to `B5-AI-MIN-SCORER` or `B7-AI-ADVANCED-VALUATION`. |

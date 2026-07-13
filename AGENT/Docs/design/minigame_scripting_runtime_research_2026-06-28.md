@@ -7,7 +7,7 @@ Last verified: 2026-06-28
 # Minigame Scripting Runtime Research
 
 **Started:** 2026-06-28. Research follow-up to scope-map #23 and the `[SAC]`
-scene-backed activity / mini-game module seam.
+scene-backed activity / `ActivityRunner` seam.
 
 **Purpose.** Decide what a small sandboxed author-facing activity runtime would
 need before it is worth building, and keep the near-term architecture from

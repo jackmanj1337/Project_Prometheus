@@ -36,6 +36,7 @@ Checks:
  28. Gold writes  — gameplay party-gold mutation stays behind ResourceLedger
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
+ 31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
 """
 
 import re
@@ -1161,6 +1162,94 @@ def check_active_doc_ownership() -> None:
                   "Feature Index link and no role-manifest ownership-map entry")
 
 
+# ── check 31: retired active vocabulary (B0-VOCAB-NAMING) ──────────────────
+
+_VOCABULARY_MANIFEST = ROOT / "AGENT/Docs/plans/project_vocabulary_manifest_2026-06-29.md"
+_RETIRED_VOCAB_HEADING = "## Retired Or Limited Terms"
+_RETIRED_VOCAB_EXEMPTION = "<!-- retired-vocabulary: historical-quotation -->"
+
+
+def _retired_vocabulary_terms() -> list[str]:
+    """Read the retired-term column from the vocabulary manifest."""
+    try:
+        lines = _VOCABULARY_MANIFEST.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        _fail("retired-vocabulary", _VOCABULARY_MANIFEST, 1,
+              "vocabulary manifest is missing")
+        return []
+
+    terms: list[str] = []
+    in_table = False
+    for line_no, line in enumerate(lines, 1):
+        if line.strip() == _RETIRED_VOCAB_HEADING:
+            in_table = True
+            continue
+        if in_table and line.startswith("## "):
+            break
+        if not in_table or not line.startswith("|") or line.startswith("|---"):
+            continue
+        cells = _split_markdown_table_row(line)
+        if not cells or cells[0] == "Term":
+            continue
+        term = cells[0].strip().strip("`\"'")
+        if not term:
+            _fail("retired-vocabulary", _VOCABULARY_MANIFEST, line_no,
+                  "retired-vocabulary row has an empty Term cell")
+            continue
+        terms.append(term)
+
+    if not in_table:
+        _fail("retired-vocabulary", _VOCABULARY_MANIFEST, 1,
+              f"missing {_RETIRED_VOCAB_HEADING!r} section")
+    if not terms:
+        _fail("retired-vocabulary", _VOCABULARY_MANIFEST, 1,
+              "retired-vocabulary table has no terms")
+    return terms
+
+
+def check_retired_vocabulary() -> None:
+    """Reject retired terms in active GDD/Docs prose.
+
+    Archives, session notes, and whole-file Historical/Superseded sources are
+    lifecycle evidence rather than active prose. The vocabulary manifest must
+    name the terms it bans, fenced command/examples are inert, and a preserved
+    quotation must carry the explicit one-line exemption marker.
+    """
+    terms = _retired_vocabulary_terms()
+    if not terms:
+        return
+    term_patterns = [
+        (term, re.compile(re.escape(term), re.IGNORECASE)) for term in terms
+    ]
+    scan_paths = sorted((ROOT / "AGENT/GDD").glob("*.md"))
+    scan_paths += sorted((ROOT / "AGENT/Docs").rglob("*.md"))
+
+    archive_dir = (ROOT / "AGENT/Docs/archive").resolve()
+    for path in scan_paths:
+        resolved = path.resolve()
+        if path == _VOCABULARY_MANIFEST or resolved.is_relative_to(archive_dir):
+            continue
+        if _is_historical(path):
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+
+        in_fence = False
+        for line_no, line in enumerate(lines, 1):
+            if line.lstrip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence or _RETIRED_VOCAB_EXEMPTION in line:
+                continue
+            for term, pattern in term_patterns:
+                if pattern.search(line):
+                    _fail("retired-vocabulary", path, line_no,
+                          f"retired term {term!r}; use the manifest replacement or "
+                          f"mark a genuine quotation with {_RETIRED_VOCAB_EXEMPTION}")
+
+
 # ── check 21: cross-plan autoload ordering ───────────────────────────────────
 
 # Ordering contracts the Band 1/2 implementation plans depend on but that live
@@ -1384,6 +1473,7 @@ def main() -> None:
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
         ("[30] Active doc ownership",      check_active_doc_ownership),
+        ("[31] Retired vocabulary",       check_retired_vocabulary),
     ]
     for label, fn in steps:
         print(f"  {label}...")

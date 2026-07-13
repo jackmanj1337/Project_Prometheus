@@ -181,9 +181,9 @@ plane must seed them even though the legacy roadmap has no clean row yet.
 | Source | Problem | Rewrite action |
 |---|---|---|
 | `GDD_10` status snapshot and implementation-order prose | Old M8-M13 sequence no longer matches the dependency-band schedule. | Replace with human-readable band narrative and next-work queue. |
-| Planning backlog sentence: "All other registers remain OPEN" | Later sessions resolved many registers. | Delete or replace with a pointer to generated `AGENT/Docs/REGISTERS.md`. |
+| Planning backlog sentence: "All other registers remain OPEN" | Later sessions resolved many registers. | Delete or replace with a pointer to generated `AGENT/Docs/REGISTERS.md`. <!-- retired-vocabulary: historical-quotation --> |
 | Planning backlog v1 scope paragraph from 2026-06-23h | It predates the 2026-06-28/29 reprioritization and owner decisions. | Supersede with Bands 1-8 scope table. |
-| "Phase 3 Post-Awakening" backlog label | It implies M12/M13 still precede most backlog work. | Split into control-plane rows by dependency band, release gate, validation, cleanup, content, and polish. |
+| "Phase 3 Post-Awakening" backlog label | It implies M12/M13 still precede most backlog work. | Split into control-plane rows by dependency band, release gate, validation, cleanup, content, and polish. <!-- retired-vocabulary: historical-quotation --> |
 | M11 all-handbook/all-Awakening content scope | It mixes v1 campaign content with post-v1 supplement content. | Split into `CONTENT-V1` and `CONTENT-POSTV1`. |
 | M16 checklist vs Phase 3 Maps 002-005 backlog | One section marks objective-map work done while another leaves it open. | Resolve to one validation/content row with an evidence link. |
 

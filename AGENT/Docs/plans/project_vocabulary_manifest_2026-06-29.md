@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: Active - planning input
-Last verified: 2026-06-29
+Status: Implemented - retired-term enforcement
+Last verified: 2026-07-13
 ---
 
 # Project Vocabulary Manifest
@@ -14,8 +14,11 @@ names, retired aliases, and naming rules for active planning docs.
 
 Track ID prefixes and band/queue values are enforced by
 [`check_docs.py`](../check_docs.py) through the Project Control Plane checks.
-The retired-vocabulary scan remains future work until the numbered GDD chapter
-rewrites remove or quarantine old milestone language.
+The retired-vocabulary scan covers active GDD and Docs prose. Historical or
+Superseded files, archives, session notes, fenced examples, and lines explicitly
+marked `<!-- retired-vocabulary: historical-quotation -->` are evidence rather
+than active vocabulary. Use that marker only when preserving the retired words
+is necessary to explain an earlier decision or migration.
 
 ## Status Vocabulary
 
@@ -153,5 +156,5 @@ Closed enums plus engine `match` branches need an explicit engine-only exception
 |---|---|---|---|
 | Track ID pattern and prefix | Enforced | Project Control Plane; prefix list mirrors this manifest | Track IDs must use an allowed prefix and uppercase slug. |
 | Band vocabulary | Enforced | Project Control Plane, this manifest | Band/queue values must match the allowed names. |
-| Retired vocabulary scan | Backlog | This manifest, active docs | Retired terms fail outside Historical/Superseded sections or quoted historical notes. |
+| Retired vocabulary scan | Enforced | This manifest, active GDD/Docs prose | Retired terms fail outside lifecycle evidence, fenced examples, or lines marked `<!-- retired-vocabulary: historical-quotation -->`. |
 | Registry discipline | Backlog | Project Control Plane, this manifest | Author-facing vocabulary work needs a registry impact note or exception. |

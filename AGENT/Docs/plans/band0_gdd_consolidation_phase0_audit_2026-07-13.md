@@ -107,7 +107,7 @@ list. The active-doc scan found these classes:
 
 | Class | Evidence | Disposition |
 |---|---|---|
-| Actionable active terminology | `minigame_activity_type_initial_specs_2026-06-28.md:439`, `minigame_scripting_runtime_research_2026-06-28.md:10`, `player_facing_scope_map_2026-06-23.md:182`, `shop_activate_configs_open_questions_2026-06-27.md:121` use `mini-game module seam`. | Replace with `Side activities`, `ActivityRunner`, or the specific public scripting VM concept in Phase 1. |
+| Actionable active terminology | `minigame_activity_type_initial_specs_2026-06-28.md:439`, `minigame_scripting_runtime_research_2026-06-28.md:10`, `player_facing_scope_map_2026-06-23.md:182`, `shop_activate_configs_open_questions_2026-06-27.md:121` used `mini-game module seam`. | Replaced with the specific `ActivityRunner` seam in Phase 1b. <!-- retired-vocabulary: historical-quotation --> |
 | Resolved-decision history | `prep_hub_open_questions_2026-06-23.md:32` records the no-wander-area decision; `datamanager_decomposition_open_questions_2026-06-21.md:136` records the superseded campaign-overlay model. | Preserve as decision evidence; mark the line as historical/superseded context if needed for a checkable exemption. |
 | Transition/audit quotation | The coverage matrix, unified-pass follow-up, review evidence, this handoff, and tracking-system plan quote retired language to identify it. | Preserve; the checker needs a narrow quotation/evidence exemption. |
 | Manifest self-definition | The preferred/retired term tables necessarily contain every banned phrase. | Exclude the vocabulary manifest itself from failures. |
@@ -118,6 +118,18 @@ whose first-ten-line lifecycle marker is Historical/Superseded, exempt the
 manifest's own term tables, and support a narrow marked historical-quotation
 form. Focused temporary fixtures must prove both a real failure and every
 supported exemption.
+
+### Phase 1b result (2026-07-13)
+
+The four actionable activity-seam references now use `ActivityRunner`; the
+tracking-system recommendation no longer repeats a retired consolidation term.
+Decision/audit quotations carry the explicit
+`<!-- retired-vocabulary: historical-quotation -->` marker. Check 31 reads the
+retired-term table from the vocabulary manifest and scans active GDD/Docs prose
+while excluding archives, session notes, lifecycle-marked files, the manifest's
+own definition table, fenced examples, and marked quotations. A controlled
+active-GDD probe failed on the retired activity-seam term and the clean corpus
+passed after its removal.
 
 ## Duplicate Contract Map
 

@@ -133,7 +133,7 @@ load-phase errors don't flow through `_validate_all`.
 ### [DMR-4] Campaign base+overlay load seam — how far to design now  **[RESOLVED → A]**
 The L2 keystone the campaign **designer** side resolves through (framing doc
 `campaign_save_expectations_and_foundations_2026-06-23.md`): the save resolves ids against
-`defaults ∪ campaign overlay`, but `DataManager` only loads global `res://data/` at boot today.
+`defaults ∪ campaign overlay`, but `DataManager` only loads global `res://data/` at boot today. <!-- retired-vocabulary: historical-quotation -->
 How much of the overlay *load path* do we lock in this refactor?
 - **A — Parameterize the seam now; defer merge semantics to I3.** `_load_all(base_source,
   overlay_source := null)` + a `select_campaign(campaign)` / re-resolve entry point that calls

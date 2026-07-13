@@ -179,7 +179,7 @@
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
-- [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Active - planning input*
+- [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
 - [`plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](plans/scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) — Next-Session Plan — Scope Reframe + GDD Stale-Assumption Audit — *Active - planning input*
 - [`plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md`](plans/skirmish_encounter_generation_implementation_plan_2026-07-04.md) — Skirmish, Encounter Model & Unit Generation Implementation Plan — *Active - implementation plan*

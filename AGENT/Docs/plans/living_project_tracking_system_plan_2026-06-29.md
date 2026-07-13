@@ -29,9 +29,9 @@ that blocked execution planning.
 
 ## Recommendation
 
-Do **not** merge every design into one giant GDD or make `GDD_10_Roadmap.md`
-carry all detail. That would recreate the problem: one long file with stale
-status prose.
+Do **not** merge every design into a single document or make
+`GDD_10_Roadmap.md` carry all detail. That would recreate the problem: one long
+file with stale status prose.
 
 Use a **single control plane** instead:
 

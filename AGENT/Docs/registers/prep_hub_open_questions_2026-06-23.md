@@ -29,7 +29,7 @@ firmed prep core (C1–C3: deploy/bench/placement/Save/Begin Battle, `[CST-5]`).
   `CampaignData`; `player_start_tiles` stay on `MapData`.
 - **Everything is a campaign** (`[CST-6]`): every map auto-wraps as a 1-node campaign; the
   progression graph is linear-degenerate now, overworld-ready later.
-- **Owner cross-cutting decisions already set** (scope map §3a): no free-roam/wander area;
+- **Owner cross-cutting decisions already set** (scope map §3a): no free-roam/wander area; <!-- retired-vocabulary: historical-quotation -->
   skirmish is a prep option (not free-roam); capture folds into recruit.
 - **Save/resume firmed:** Continue/Load resolve to "latest between-map → prep"; suspend is the
   in-battle mechanism, not a hub concern.

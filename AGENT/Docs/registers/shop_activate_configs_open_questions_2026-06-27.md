@@ -118,7 +118,7 @@ content/authoring**, not save. The **shopper is a session-scoped selection**, no
 
 ---
 
-## Forward (INVESTIGATE, not part of the resolved SAC scope) — scene-backed activities / mini-game module seam
+## Forward (INVESTIGATE, not part of the resolved SAC scope) — scene-backed activities / `ActivityRunner` seam
 **Owner 2026-06-28: don't architecturally block arbitrary mini-games** (blackjack/roulette · a
 flappy-bird/pac-man/galaga clone · memory-match · mazes · QTEs · sliding-block / logic-gate puzzles …)
 inside prep panels or on-map activities. These are **arbitrary interactive code**, NOT data configs over
