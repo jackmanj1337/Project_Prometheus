@@ -88,5 +88,23 @@ func _init() -> void:
 	else:
 		print("FAIL recorded refund: %s gold=%d" % [recorded_refund.failure_reason, game_state.party_gold]); failed += 1
 
+	# A failed multi-record refund must not claim it applied earlier reverse deltas.
+	game_state.party_gold = 20
+	unit.gold = 0
+	var credited: RefCounted = ledger.commit([
+		CostSpecScript.fixed("party_gold", "party", 5),
+		CostSpecScript.fixed("unit_gold", "unit", -10, "unit"),
+	], {"unit": unit})
+	unit.gold = 0
+	var failed_refund: RefCounted = ledger.refund(credited)
+	if not failed_refund.ok and failed_refund.wallets_touched.is_empty() \
+			and failed_refund.deltas.is_empty() and game_state.party_gold == 15 \
+			and unit.gold == 0:
+		print("OK  failed refund reports no unapplied wallet deltas"); passed += 1
+	else:
+		print("FAIL failed refund reporting: wallets=%s deltas=%s party=%d unit=%d" % [
+			failed_refund.wallets_touched, failed_refund.deltas,
+			game_state.party_gold, unit.gold]); failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

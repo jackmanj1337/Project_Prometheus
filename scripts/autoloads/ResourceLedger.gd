@@ -44,6 +44,7 @@ func refund(transaction: RefCounted, _ctx: Dictionary = {}) -> RefCounted:
 			refund_result.shortfalls[reverse["resource_id"]] = -(current + int(reverse["delta"]))
 			return refund_result
 		refund_result._wallet_records.append(reverse)
+	for reverse in refund_result._wallet_records:
 		_record_public_delta(refund_result, reverse)
 	_apply_records(refund_result._wallet_records)
 	refund_result.ok = true

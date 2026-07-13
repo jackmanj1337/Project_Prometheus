@@ -535,6 +535,8 @@ There is **no target-list panel**. Target selection happens on the map itself:
 - If attacker gets a follow-up, show `×2 attacks` below their crit
 - Preview calls `ProjectionService.project_combat()`, whose combat adapter delegates
   to `CombatResolver.preview_combat()` — no committed RNG or live-state mutation
+- A failed projection clears the prior More Info selection list, so stale forecast
+  rows cannot remain navigable after the preview becomes invalid
 - Confirm triggers `CombatResolver.resolve_combat()` (with RNG)
 - The current panel also shows weapon-triangle and effectiveness markers
 - A **weapon row** under each combatant's name shows the equipped weapon's display

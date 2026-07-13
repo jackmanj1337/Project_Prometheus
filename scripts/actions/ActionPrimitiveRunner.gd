@@ -65,8 +65,9 @@ func handler_id_for(primitive_id: String) -> String:
 
 func _commit_active_modifier(params: Dictionary, context: RefCounted, entry: Resource):
 	var target: Node = context.subjects["target"]
-	target.add_modifier(String(params.stat), int(params.delta), String(params.source),
-		int(params.duration), String(params.duration_type))
+	target.add_modifier(String(params.get("stat", "")), int(params.get("delta", 0)),
+		String(params.get("source", "")), int(params.get("duration", 0)),
+		String(params.get("duration_type", "")))
 	var result: Variant = ActionResultScript.success()
 	if target.data != null and "unit_id" in target.data:
 		result.affected_ids.append(String(target.data.unit_id))

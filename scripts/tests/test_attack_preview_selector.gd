@@ -14,8 +14,8 @@ extends SceneTree
 # — this file focuses on selector state only.
 
 
-# Tiny resolver stub so show_preview can pull a Dictionary without booting
-# the real CombatResolver autoload.
+# Tiny resolver stub used by the real ProjectionService so show_preview can pull
+# a Dictionary without booting the real CombatResolver autoload.
 class StubResolver extends Node:
 	var preview_data: Dictionary = {}
 
@@ -36,8 +36,8 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
-	# Install the CombatResolver stub before instantiating the preview so
-	# show_preview's get_node_or_null("/root/CombatResolver") resolves it.
+	# Install the CombatResolver stub before autoload registration completes so
+	# ProjectionService's resolver lookup reaches this deterministic fixture.
 	var resolver := StubResolver.new()
 	resolver.name = "CombatResolver"
 	resolver.preview_data = _make_preview_data()
@@ -395,6 +395,17 @@ func _init() -> void:
 		print("OK  show_preview is safe without camera injection"); passed += 1
 	else:
 		print("FAIL show_preview without camera left preview hidden")
+		failed += 1
+
+	# A failed projection must invalidate the previous selector state instead of
+	# leaving stale rows available through More Info navigation.
+	resolver.free()
+	preview.show_preview(attacker, defender)
+	if preview._entries.is_empty() and preview._current_index == -1:
+		print("OK  failed projection clears stale selector entries"); passed += 1
+	else:
+		print("FAIL failed projection retained %d selector entries at index %d" % [
+			preview._entries.size(), preview._current_index])
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

@@ -4,6 +4,7 @@ const RegistryManagerScript = preload("res://scripts/autoloads/RegistryManager.g
 const RunnerScript = preload("res://scripts/actions/ActionPrimitiveRunner.gd")
 const RequestScript = preload("res://scripts/actions/ActionRequest.gd")
 const ContextScript = preload("res://scripts/actions/ActionContext.gd")
+const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 
 
 class MockUnit extends Node:
@@ -20,6 +21,16 @@ class MockUnit extends Node:
 			"duration": duration,
 			"duration_type": duration_type,
 		})
+
+
+class StubRegistry extends Node:
+	var registry_entry: Resource
+
+	func has_entry(family: String, id: String) -> bool:
+		return family == "action_primitives" and id == registry_entry.id
+
+	func entry(_family: String, _id: String) -> Resource:
+		return registry_entry
 
 
 func _init() -> void:
@@ -77,6 +88,34 @@ func _init() -> void:
 		print("OK  successful commit reports affected ids and save fields"); passed += 1
 	else:
 		print("FAIL success result: %s %s" % [unit.data.active_modifiers, committed.failure_reason]); failed += 1
+
+	# Optional schema fields must reach the handler through their neutral defaults
+	# instead of crashing after validation succeeds.
+	var optional_entry: Resource = RegistryEntryScript.new()
+	optional_entry.id = "optional_modifier"
+	optional_entry.family = "action_primitives"
+	optional_entry.primitive_handler = "apply_active_modifier"
+	optional_entry.subjects.assign(["actor", "target"])
+	optional_entry.params_schema = {
+		"stat": {"type": "string"},
+		"delta": {"type": "int"},
+		"source": {"type": "string"},
+		"duration": {"type": "int"},
+		"duration_type": {"type": "string"},
+	}
+	var stub_registry := StubRegistry.new()
+	stub_registry.registry_entry = optional_entry
+	var optional_runner = RunnerScript.new(stub_registry)
+	unit.data.active_modifiers.clear()
+	var optional_result = optional_runner.commit(RequestScript.new("optional_modifier", {}), context)
+	if optional_result.ok and unit.data.active_modifiers.size() == 1 \
+			and unit.data.active_modifiers[0] == {
+				"stat": "", "delta": 0, "source": "", "duration": 0, "duration_type": ""}:
+		print("OK  omitted optional parameters commit with neutral defaults"); passed += 1
+	else:
+		print("FAIL optional parameter defaults: %s %s" % [
+			optional_result.failure_reason, unit.data.active_modifiers]); failed += 1
+	unit.data.active_modifiers.clear()
 
 	# A second domain reuses the same primitive and refreshes the same source.
 	var map_params := valid_params.duplicate(true)

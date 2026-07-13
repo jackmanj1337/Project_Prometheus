@@ -16,12 +16,6 @@ func _init() -> void:
 	root.add_child(dm)   # entering the tree runs _ready → loads every catalogue
 	await process_frame
 
-	if dm.is_registered_id("resource_types", "party_gold") \
-			and not dm.is_registered_id("resource_types", "missing_wallet"):
-		print("OK  DataManager asks RegistryManager for known ids"); passed += 1
-	else:
-		print("FAIL DataManager registry query seam"); failed += 1
-
 	# ---- export-safe manifests enumerate the live content catalogues ----
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (

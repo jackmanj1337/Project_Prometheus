@@ -61,7 +61,8 @@ through `RegistryManager`, validates required subjects and the declared paramete
 schema, and only then invokes the engine-owned handler. Unknown primitives,
 unavailable handlers, missing subjects, and malformed parameters return structured
 failures before mutation. Dry-run requests follow the same validation path and do
-not invoke a handler.
+not invoke a handler. Parameters omitted from schemas that mark them optional reach
+the handler through neutral defaults rather than failing after validation.
 
 The first proof primitive, `apply_active_modifier`, is shared by the existing item
 domain and a map-event fixture. It reports `UnitData.active_modifiers` as its touched
@@ -80,7 +81,8 @@ transient non-mutating records, committed atomically across multiple wallets, an
 refunded from the recorded committed deltas. Every result is a structured
 `ResourceTransaction` containing wallet ids, deltas, shortfalls, and a failure
 reason. Unknown resources, unresolved subjects, unsupported scopes, formula terms,
-and insufficient balances fail before any wallet changes.
+and insufficient balances fail before any wallet changes. A failed refund reports
+only its shortfall; its public wallet/delta fields never claim unapplied reversals.
 
 The first registry-backed adapters expose the existing `GameState.party_gold` and
 legacy `UnitData.gold` fields. Victory gold now credits the party adapter while item
@@ -1720,8 +1722,9 @@ a no-free-tile result skips only that unit rather than aborting map boot.
 `require_empty`, runtime-only `delay`, and `skip` remain active policies;
 `swap`, `overlap_hidden`, and
 `object_unit` are reserved policy rows that return `not_implemented` until their
-owning feature slices land. Normal traversed movement and exact suspend-state
-restoration retain their existing paths.
+owning feature slices land. Runtime-only delayed requests are cleared at fresh map
+start so scene references cannot leak between battles. Normal traversed movement
+and exact suspend-state restoration retain their existing paths.
 
 Objective condition tiles are authored and evaluated in zero-based map coordinates.
 HUD display text converts tile coordinates to player-facing one-based coordinates

@@ -149,12 +149,11 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	if projection == null:
 		return
 	var result = projection.project_combat(attacker, defender)
+	_entries.clear()
+	_current_index = -1
 	if not result.valid:
 		return
 	var p: Dictionary = result.visible_outcome
-
-	_entries.clear()
-	_current_index = -1
 
 	# Battle Speed + follow-up threshold for the Damage field's More Info (8.3).
 	_atk_battle_speed = int(p.get("attacker_battle_speed", 0))

@@ -47,11 +47,20 @@ func _init() -> void:
 	gs.reset_map_state()
 	gs.load_default_roster()
 	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var occupancy := root.get_node_or_null("OccupancyService")
+	if occupancy != null:
+		occupancy.delayed_requests.append(RefCounted.new())
 
 	# Add to root so @onready and _ready run
 	root.add_child(instance)
 	# One frame to let _ready complete
 	await process_frame
+	if occupancy != null and occupancy.delayed_requests.is_empty():
+		print("OK  map start clears scene-scoped delayed placement requests")
+		passed += 1
+	else:
+		print("FAIL map start retained delayed placement requests")
+		failed += 1
 
 	# Verify expected child nodes exist
 	for child in ["TileMapLayer_Terrain", "TileMapLayer_Overlay", "UnitsContainer",

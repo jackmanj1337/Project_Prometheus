@@ -81,13 +81,6 @@ func select_campaign_source(source: String) -> void:
 	_report(_validate_all(source))
 
 
-# Small Band 2 seam: content validators can ask the shared registry without
-# owning its storage or duplicating its vocabulary.
-func is_registered_id(family: String, id: String) -> bool:
-	var registry_manager := get_node_or_null("/root/RegistryManager")
-	return registry_manager != null and registry_manager.has_entry(family, id)
-
-
 # Pure validator: returns the list of cross-reference errors as strings.
 # Split out from _ready (B6) so tests can drive it with fixture data without
 # capturing push_error. _ready loops over the result and emits each via

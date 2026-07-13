@@ -48,6 +48,9 @@ var map_data: MapData = null
 
 
 func _ready() -> void:
+	var occupancy := get_node_or_null("/root/OccupancyService")
+	if occupancy != null:
+		occupancy.call("clear_delayed")
 	var gs := get_node_or_null("/root/GameState")
 	var resume_payload: Dictionary = {}
 	if gs:
