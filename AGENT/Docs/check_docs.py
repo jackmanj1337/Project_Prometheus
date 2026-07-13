@@ -821,7 +821,7 @@ def check_mouse_cursor_modes() -> None:
         _fail("mouse-cursor-modes", settings, 1,
               f"VALID_MOUSE_CURSOR_MODES must be {expected}, got {modes}")
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
     try:
         content = gdd.read_text(encoding="utf-8")
     except OSError:
@@ -841,7 +841,7 @@ def check_input_modes() -> None:
         _fail("input-modes", settings, 1,
               f"VALID_INPUT_MODES must be {expected}, got {modes}")
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
     try:
         content = gdd.read_text(encoding="utf-8")
     except OSError:
@@ -861,7 +861,7 @@ def check_touch_controls() -> None:
         _fail("touch-controls", settings, 1,
               f"VALID_TOUCH_CONTROLS must be {expected}, got {modes}")
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
     try:
         content = gdd.read_text(encoding="utf-8")
     except OSError:
@@ -890,7 +890,7 @@ def check_danger_mode_vocabulary() -> None:
         _fail("danger-mode-vocab", cursor, 1,
               f"VALID_DANGER_MODES must be {expected}, got {values}")
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
     try:
         content = gdd.read_text(encoding="utf-8")
     except OSError:
@@ -982,7 +982,7 @@ def check_gamepad_bindings() -> None:
             _fail("gamepad-bindings", project_godot, 1,
                   f"`{action}` must stay without direct joypad bindings")
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Input_Cursor.md"
     try:
         gdd_content = gdd.read_text(encoding="utf-8")
     except OSError:
@@ -1015,7 +1015,7 @@ def check_duration_type_vocabulary() -> None:
               "could not parse VALID_DURATION_TYPES")
         return
 
-    gdd = ROOT / "AGENT/GDD/GDD_07_UI_UX.md"
+    gdd = ROOT / "AGENT/GDD/GDD_07_Screens_Panels.md"
     try:
         content = gdd.read_text(encoding="utf-8")
     except OSError:

@@ -30,7 +30,7 @@ the later role-separation work in the GDD consolidation.
 | Role ID | Allowed paths | Owns | Must not own | Control-plane rule |
 |---|---|---|---|---|
 | `authority_index` | `AGENT/GDD/GDD_00_Overview.md` | Authority model, release definition, navigation entry points. | Feature detail, work queues, register deliberation. | May link to tracker rows but does not duplicate them. |
-| `design_contract` | Numbered `AGENT/GDD/GDD_01*.md` through `AGENT/GDD/GDD_08_Enemy_AI.md` contracts | Short rule/design contracts by domain. | Long deliberation history or full build schedule. | Every active feature should point to one or more GDD owners. |
+| `design_contract` | Numbered `AGENT/GDD/GDD_01*.md` through `AGENT/GDD/GDD_08_Enemy_AI.md` contracts, including approved GDD 01/07 companions | Short rule/design contracts by domain. | Long deliberation history or full build schedule. | Every active feature should point to one or more GDD owners. |
 | `build_guide` | `AGENT/GDD/GDD_10_Roadmap.md` | Human build guide, dependency-band narrative, next-work queue, release/validation summaries. | Full control-plane table, stale milestone checklist detail. | Links to Track IDs; does not own row schema. |
 | `control_plane` | `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Row-per-work-item tracker, dependencies, owners, sources, tests, next actions. | Long-form design explanation, historical session narrative. | Source for Track IDs and tracker schema. |
 | `feature_index` | `AGENT/GDD/GDD_Feature_Index.md` | Feature lookup from feature name to GDD owner, Track ID, decisions, plans, tests, and code/data anchors. | Roadmap sequencing or deliberation. | References Track IDs after wiring pass. |
@@ -59,7 +59,9 @@ the later role-separation work in the GDD consolidation.
 | `AGENT/GDD/GDD_04_Weapons_Items.md` | `design_contract` | Active design contract | Owns IEQ, convoy, shop/economy, sources/equipment, story items. |
 | `AGENT/GDD/GDD_05_Skills.md` | `design_contract` | Active design contract | Owns skills, grants, loadout caps, action grants, secondary movement. |
 | `AGENT/GDD/GDD_06_Maps_Objectives.md` | `design_contract` | Active design contract | Owns maps, MET, map objects, objectives, villages, fog, spawn policy. |
-| `AGENT/GDD/GDD_07_UI_UX.md` | `design_contract` | Active design contract | Owns UI/UX, input, PHB panels, dialogue presentation, validation surfaces. |
+| `AGENT/GDD/GDD_07_UI_UX.md` | `design_contract` | Active entry contract | Owns cross-cutting UI state, feedback, accessibility, and parity. |
+| `AGENT/GDD/GDD_07_Input_Cursor.md` | `design_contract` | Active companion contract | Owns input bindings/modes, repeat policy, cursor, and threat interaction. |
+| `AGENT/GDD/GDD_07_Screens_Panels.md` | `design_contract` | Active companion contract | Owns the screen/panel catalog, settings, and per-surface behavior. |
 | `AGENT/GDD/GDD_08_Enemy_AI.md` | `design_contract` | Active design contract | Owns AI composition, profile registry, valuation, perception deferrals. |
 | `AGENT/GDD/GDD_10_Roadmap.md` | `build_guide` | Active build guide | Rewrite around dependency bands and Track ID links. |
 | `AGENT/GDD/GDD_Feature_Index.md` | `feature_index` | Active feature lookup | Track IDs are wired; exact section anchors follow GDD chapter rewrites. |

@@ -280,12 +280,22 @@ and preserve historical references unless they are live links that would break.
 | Determinism, Snapshot & Online Contract | `GDD_01_Runtime_Contracts.md#determinism-snapshot--online-contract` |
 | Key Script Function Signatures | `GDD_01_Runtime_Contracts.md#shared-runtime-service-boundaries` (exact signatures remain code-owned) |
 | Resource Class Definitions | `GDD_01_Data_Contracts.md#resource-class-definitions` |
-| Rendering and Display Settings | `GDD_07_UI_UX.md` pending the GDD 07 split |
-| Input Map | `GDD_07_UI_UX.md` pending the GDD 07 split |
+| Rendering and Display Settings | `GDD_00_Overview.md#platform-targets` plus the display/settings guide and `GDD_07_Screens_Panels.md#settings-screen` |
+| Input Map | `GDD_07_Input_Cursor.md#input-system` |
 | Camera Zoom | `GDD_06_Maps_Objectives.md#tactical-camera` and the GDD 07 settings contract |
 
 The GDD 01 split completed on 2026-07-13. Its before/after stable-ID sets are
 identical; no pre-existing Markdown fragment link required a redirect.
+
+| Former `GDD_07_UI_UX.md` heading | Active owner |
+|---|---|
+| Design Reference, UI State Machine, Visual Feedback Summary, Accessibility & Input Parity | `GDD_07_UI_UX.md` |
+| Input System, Action Definitions, Mouse Behavior, Threat Overlay, Cursor Direction Repeat, Cursor System | `GDD_07_Input_Cursor.md` |
+| Screens and Panels and every named screen/panel subsection | `GDD_07_Screens_Panels.md` |
+
+The GDD 07 split completed on 2026-07-13. Its before/after stable-ID sets are
+identical; the documentation vocabulary checks now read the owning companion
+instead of relying on the former all-in-one entry file.
 
 ## Commit-Sized Schedule
 

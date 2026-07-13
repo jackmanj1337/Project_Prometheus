@@ -78,7 +78,9 @@ migration. Full table + the GDD section template: the governance doc.
 | `GDD_04_Weapons_Items.md` | Weapons, items, weapon triangle, WEXP, economy-facing rules |
 | `GDD_05_Skills.md` | Skills, triggers/precedence, Pair Up/support, status conditions |
 | `GDD_06_Maps_Objectives.md` | Terrain, movement categories, objectives, authored-map contracts |
-| `GDD_07_UI_UX.md` | UI/UX behavior, input, settings, accessibility |
+| `GDD_07_UI_UX.md` | Cross-cutting UI state, feedback, accessibility, and parity |
+| `GDD_07_Input_Cursor.md` | Input bindings/modes, repeat policy, cursor and threat interaction |
+| `GDD_07_Screens_Panels.md` | Screen/panel catalog, settings and per-surface behavior |
 | `GDD_08_Enemy_AI.md` | AI behavior, parity obligations, performance constraints |
 | `GDD_10_Roadmap.md` | Build guide — dependency-band narrative, next-work queue, validation/release summaries, Track ID links |
 
