@@ -1,6 +1,6 @@
 # Map Authoring Guide
 
-**Last verified:** 2026-06-27
+**Last verified:** 2026-07-13
 
 Use this guide when adding or changing a playable map. It centralizes the
 practical authoring steps that are otherwise split across `GDD_01`, `GDD_06`,
@@ -121,6 +121,24 @@ Current runtime rule:
   `roster_policy`
 - a bad or missing roster no longer falls back to `default_roster` inside
   `GameMap`
+
+## Class and roster authoring
+
+When a map or campaign needs a new class, author `data/classes/<id>.tres` as a
+`ClassData` resource and fill every required field. In particular:
+
+- author promotion paths explicitly, using an empty array when none exist;
+- give every usable WEXP track both a baseline and an authored
+  `weapon_wexp_caps` entry (the project preset defaults to A = 400; S is opt-in);
+- declare at least one movement type, using `infantry` as the explicit default;
+- update every roster or map unit that references the class;
+- extend automated coverage or a validation map when progression, equipment, or
+  class-change behavior is affected.
+
+Adding content that uses existing primitives should not require a code change. A new
+engine mechanic needs its own design contract and tests rather than a class-specific
+runtime branch. `GDD_03` owns class behavior and relationships; `GDD_01` owns the exact
+`ClassData`/`UnitData` schemas.
 
 ## Registry entry
 

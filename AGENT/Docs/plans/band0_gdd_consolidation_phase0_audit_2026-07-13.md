@@ -164,6 +164,11 @@ to `GDD_04`; promotion state changes route to `GDD_03`. The action table no long
 claims that unimplemented Trade or Shove ships, and mid-exchange weapon breakage is
 classified from its production implementation and focused regression coverage.
 
+`GDD_03_Units_Classes.md` is reconciled. Its starter roster snapshot now matches the
+authored movement types and no longer duplicates the changing promotion graph. Unique
+class-authoring steps moved to the existing map/roster guide, while the Map 950 tonic
+validation rationale moved to the manual test playbook.
+
 ## Contradictions And Drift
 
 ### Mechanically resolved

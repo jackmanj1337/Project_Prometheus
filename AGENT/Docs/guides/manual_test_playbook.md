@@ -288,6 +288,9 @@ flows verified only by headless tests, not by actual in-map play.
 - Preferred launch path:
   1. `Map 001` for starter-skill / level-up / unit-details checks
   2. `Map 950 - Promotion Validation` for promotion and reclass checks
+- The Map 950 fixed roster's cavalier carries `debuff_tonic`, a validation-only
+  negative `stat_buff`. Use it to confirm lowered stats render red in previews and
+  the character sheet; it is intentionally outside the regular roster/shop pipeline.
 - Expected rosters:
   - `Map 001` should load the normal default campaign roster
   - `Map 950` should load the fixed promotion/reclass validation roster with

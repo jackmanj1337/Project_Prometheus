@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-01
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -100,14 +100,14 @@ reference snapshot and developer-provided preset content, not an engine requirem
 
 **Implemented (project roster).** All units start level 1.
 
-| Slot | Unit | Class | Start WEXP | Skills | Qualities | Promotes To |
-|---|---|---|---|---|---|---|
-| 1 | Unit_01 | Cavalier | Lance D | `discipline` | mounted | Paladin, Great Knight |
-| 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | — | Hero, Sentinel* |
-| 3 | Unit_03 | Archer | Bow D | `bowfaire` | — | Ranger, Sniper |
-| 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | — | Mage Knight*, Sage |
-| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | — | Bishop*, Paragon* |
-| 6 | Unit_06 | Knight | Lance D | `resolve` | armoured | General, Great Knight |
+| Slot | Unit | Class | Start WEXP | Skills | Movement type |
+|---|---|---|---|---|---|
+| 1 | Unit_01 | Cavalier | Lance D | `discipline` | mounted |
+| 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | infantry |
+| 3 | Unit_03 | Archer | Bow D | `bowfaire` | infantry |
+| 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | light-footed |
+| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | light-footed |
+| 6 | Unit_06 | Knight | Lance D | `resolve` | armoured |
 
 Base stats and personal growth rates are authored per unit in `data/roster/default/`
 (`.tres` = source of truth). Bows have `range_min_formula = "2"` — any bow-equipped unit
@@ -116,8 +116,9 @@ cannot hit adjacent targets (a weapon property, not a class trait; enforced by
 therefore uses weapon-neutral wording: bow range comes from the equipped weapon
 (V023-08a).
 
-\* **Project-only promotion targets** (Sentinel, Mage Knight, Bishop, Paragon) are
-**Rejected** under RULE-007 — archived to Git history at class migration.
+The live `ClassData.promotes_to` arrays own the project-preset promotion graph; do not
+duplicate that changing graph in this roster snapshot. Project-only targets are
+**Rejected** under RULE-007 and remain available until the corpus class migration.
 † **Cleric "Light E"** is an **Open decision** (OPEN-10), deferred to the Light/Dark
 design pass (RULE-009); do not author a one-off tome or drop it prematurely.
 
@@ -210,10 +211,7 @@ trigger timing in GDD_02).
 
 ### Anchors
 - Code: `scripts/units/Unit.gd` (`promote`), `scripts/ui/PromotionScreen.gd`
-- Manual: `data/maps/map_950_promotion_validation/` — its fixed roster's cavalier
-  carries the `debuff_tonic` validation item (V020-14): a `stat_buff` with a
-  negative delta so testers can confirm lowered stats render red on previews and
-  the character sheet. Validation-only; kept out of the regular roster/shop pipeline.
+- Manual validation: `AGENT/Docs/guides/manual_test_playbook.md` (`Map 950`)
 - Decisions: SET-006, RULE-005 (timing → GDD_02)
 - Reference: `awakening_core_systems.md`, `awakening_appendices.md`
 
@@ -303,15 +301,10 @@ Status: **Reference** (process, not a rule)
 Last verified: 2026-06-13
 
 ### Specs
-To add a class: author `data/classes/<id>.tres` (`ClassData`), fill all fields incl.
-promotion paths (empty array if none), update referencing roster/map data, add/extend
-tests or validation maps if progression/equipment flow changes. No code changes unless a
-new mechanic is introduced. Every usable WEXP track needs an authored `weapon_wexp_caps`
-entry (current classes default to A = 400 WEXP; S caps are opt-in).
-
-> Class **priority/order** for the corpus migration is owned by the roadmap
-> (`GDD_10`, AWR-2), not this chapter.
+The operational checklist lives in `AGENT/Docs/guides/map_authoring_guide.md`
+(`Class and roster authoring`). This contract retains class behavior and relationships;
+class migration priority/order remains with `GDD_10` row AWR-2.
 
 ### Anchors
-- Guide: `AGENT/Docs/guides/map_authoring_guide.md` (authoring), GDD_01 (`ClassData` schema)
+- Guide: `AGENT/Docs/guides/map_authoring_guide.md` (class/roster authoring), GDD_01 (`ClassData` schema)
 - Roadmap: AWR-2
