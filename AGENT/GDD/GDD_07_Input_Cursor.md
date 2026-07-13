@@ -122,7 +122,7 @@ restores them from `suspend.watch_set` / `suspend.danger_mode`.
 Selection and targeting overlays are built as registry layer specs and composed
 with retained threat specs, so selecting a unit or entering attack/staff/pair-up
 targeting does not clear watched-threat paint or "D" markers ([MRD-7]).
-Threatened tiles inside movement/target range have five debug render modes:
+Threatened tiles inside movement/target range support five renderer modes:
 `single_layer`, `border_through`, `stacked`, `stacked_perimeter`, and
 `dual_outline`. `border_through` bakes threat colour into the tile center with
 a strong range-colour border on the shared overlay layer; `stacked` paints
@@ -134,10 +134,12 @@ v0.3.1-requested candidate, 2026-07-12) keeps the stacked fill and strokes two
 strong world-space outlines on a `ThreatPerimeterOverlay` draw surface rendered
 **above unit sprites**: a bright-red line around the union of ALL threatened
 tiles and a dark-red line around the WATCHED subset, dark drawn over bright on
-shared edges (colours/widths are exported placeholders for the live
-comparison). The default remains `single_layer` until the focused live rerun
-accepts a presentation; debug builds can cycle the five modes with **F8** for
-that comparison pass.
+shared edges. The v0.3.2 live return accepted `dual_outline`, so it is now the
+fixed default and the temporary F8 comparison control has been removed. Action
+Menu retains the acting unit's movement range composed with threat/watch layers;
+Map Menu retains only threat/watch. Both suppress path arrows and hover peek.
+Enemy-phase locking and map/suspend restoration still clear paint so positions
+are recomputed before display.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
@@ -176,14 +178,14 @@ neutral, so picking from a dropdown never moves the panel focus behind it
 (V031-GP-02, fixed 2026-07-12; the polled `Input` singleton cannot see event
 capture, so the standdown is checked explicitly).
 
-Held map zoom ignores LT/RT values below a 0.35 activation threshold. Any pull
+Held map zoom ignores LT/RT values below a 0.85 activation threshold. Any pull
 past the threshold steps the zoom once, then repeats on one constant slow
-cadence (0.45s initial delay and per-step rate) — pull depth does not change
+cadence (0.65s initial delay and per-step rate) — pull depth does not change
 the speed. The earlier strength-scaled timer (0.45s to 0.18s by pull depth)
 kept reading as "too sensitive" on live returns and was removed by owner
-decision on the v0.3.1 return (2026-07-12, V031-GP-04); per-player sensitivity
-sliders remain a `B6-INPUT` backlog item. The live feel check rides the next
-focused rerun.
+decision on the v0.3.2 return (2026-07-13, V032-D1); per-player sensitivity
+sliders remain a `B6-INPUT` backlog item. The new feel still requires a focused
+live controller rerun.
 
 ---
 
@@ -255,4 +257,3 @@ Settings-screen layout and persistence details are owned by
 [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md).
 
 ---
-

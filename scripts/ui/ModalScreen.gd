@@ -204,16 +204,18 @@ func _focus_scroll_container() -> ScrollContainer:
 
 # V031-GP-01: `ScrollContainer.follow_focus` scrolls a focused row just barely
 # into view, so the tester couldn't see what the next step moves toward. After
-# a focus step, nudge the scroll so ~1.5 rows of context stay visible past the
-# focused control in both directions (clamped at the list ends by the scrollbar).
+# a focus step, keep up to three row heights of context visible. The margin is
+# capped below half the viewport so small/high-scale layouts cannot overflow.
 func _apply_focus_lookahead(ctrl: Control) -> void:
 	var scroll := _focus_scroll_container()
 	if scroll == null or ctrl == null or not ctrl.is_inside_tree() \
 			or not scroll.is_ancestor_of(ctrl):
 		return
-	var lookahead: float = ctrl.get_global_rect().size.y * 1.5
 	var view := scroll.get_global_rect()
 	var rect := ctrl.get_global_rect()
+	var desired: float = rect.size.y * 3.0
+	var viewport_cap: float = maxf(0.0, (view.size.y - rect.size.y) * 0.5)
+	var lookahead: float = minf(desired, viewport_cap)
 	var above := (view.position.y + lookahead) - rect.position.y
 	var below := rect.end.y - (view.end.y - lookahead)
 	if above > 0.0:

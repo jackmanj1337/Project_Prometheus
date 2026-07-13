@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13o](2026-07-13o.md) — **v0.3.2 fixes implemented:** full-pull slower trigger zoom, scale-aware three-row focus lookahead, retained menu threat overlays, accepted dual-outline default, and F8 removed; all 75 suites green.
 - [2026-07-13n](2026-07-13n.md) — **Band 0 GDD consolidation completed:** GDD 02-06/08 reconciled, GDD 01/07 split with stable IDs preserved, all 37 Feature Index rows exact-anchored and enforced, all Band 0 rows implemented, and all 75 suites green.
 - [2026-07-13m](2026-07-13m.md) — **Band 0 Phase 1 finished and Phase 2 started:** retired-vocabulary enforcement proven, `B0-VOCAB-NAMING` implemented, and `GDD_00` authority/status ownership reconciled; `GDD_02` next.
 - [2026-07-13l](2026-07-13l.md) — **Band 0 GDD consolidation started:** tracker dependency corrected, Phase 0 audit/plan committed, 23 active source candidates explicitly owned, and active plan/design ownership enforcement proven; vocabulary enforcement next.

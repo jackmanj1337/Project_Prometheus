@@ -76,13 +76,6 @@ const DANGER_MODE_COMBINED := "combined"
 const DANGER_MODE_CYCLE: Array[String] = [
 	DANGER_MODE_FULL, DANGER_MODE_SELECTED, DANGER_MODE_COMBINED, DANGER_MODE_NONE,
 ]
-const DEBUG_SHARED_CELL_MODE_CYCLE: Array[String] = [
-	GridManager.SHARED_CELL_SINGLE,
-	GridManager.SHARED_CELL_BORDER_THROUGH,
-	GridManager.SHARED_CELL_STACKED,
-	GridManager.SHARED_CELL_STACKED_PERIMETER,
-	GridManager.SHARED_CELL_DUAL_OUTLINE,
-]
 # The full danger-mode value-set as string literals — the parseable source of
 # truth for the check_docs guard that keeps GDD_07 in sync (DoD#2, mirrors the
 # mouse_cursor value-set check).
@@ -126,13 +119,11 @@ var _reanchor_queued: bool = false
 
 # Held map-zoom repeat. Trigger axes do not emit keyboard-style repeat events, so
 # _process polls action strength and steps the discrete zoom level on a timer.
-# V031-GP-04 owner decision (2026-07-12): pull depth does NOT change the cadence —
-# any pull past the threshold steps once, then repeats at one constant slow rate.
-# (The previous strength-scaled 0.45s->0.18s lerp kept reading as "too sensitive"
-# on live returns; sensitivity sliders remain B6-INPUT backlog.)
-const ZOOM_PRESS_THRESHOLD: float = 0.35
-const ZOOM_REPEAT_DELAY: float = 0.45   # matches the repeat rate for a uniform cadence
-const ZOOM_REPEAT_RATE: float = 0.45
+# V032-D1: require a deliberate near-full pull, then use the same slow cadence
+# in both directions. Pull depth above the threshold never changes the rate.
+const ZOOM_PRESS_THRESHOLD: float = 0.85
+const ZOOM_REPEAT_DELAY: float = 0.65
+const ZOOM_REPEAT_RATE: float = 0.65
 var _zoom_held_direction: int = 0
 var _zoom_held_timer: float = 0.0
 
@@ -287,8 +278,6 @@ func set_controlling_faction(faction_id: String) -> void:
 # ── Input Handling ──────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _handle_debug_shared_cell_mode_cycle(event):
-		return
 	if _input_suppressed or _state == State.LOCKED:
 		return
 	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
@@ -356,21 +345,6 @@ func _is_fresh_action_press(event: InputEvent, action: String) -> bool:
 	if event is InputEventKey and event.echo:
 		return false
 	return event.is_action_pressed(action)
-
-
-func _handle_debug_shared_cell_mode_cycle(event: InputEvent) -> bool:
-	if not OS.is_debug_build() or _grid == null:
-		return false
-	if event is InputEventKey and event.echo:
-		return false
-	if not event.is_action_pressed("debug_cycle_mrd_shared_overlay"):
-		return false
-	var idx := DEBUG_SHARED_CELL_MODE_CYCLE.find(_grid.shared_cell_mode)
-	var next_idx := 0 if idx == -1 else (idx + 1) % DEBUG_SHARED_CELL_MODE_CYCLE.size()
-	_grid.set_shared_cell_mode(DEBUG_SHARED_CELL_MODE_CYCLE[next_idx])
-	_repaint_current_overlay_state()
-	print("MRD shared-cell overlay mode: %s" % _grid.shared_cell_mode)
-	return true
 
 
 func _repaint_current_overlay_state() -> void:
@@ -1204,6 +1178,11 @@ func _show_action_menu() -> void:
 	# Passing _turn lets the menu compute the M16 Seize gate.
 	action_menu.show_for(_selection.selected_unit, _grid, _turn)
 	_place_menu_near(action_menu, _selection.selected_unit.tile_position)
+	# Menus suppress hover/path transients, but the Action Menu keeps the acting
+	# unit's movement range composed with the retained threat/watch layers.
+	_cancel_peek(false)
+	_clear_path_arrows()
+	_repaint_selection_overlays()
 
 
 # Fired when ActionMenu's cancel key is pressed while the menu is open
@@ -1617,7 +1596,10 @@ func _open_map_menu() -> void:
 	_map_menu_suspend_available = can_capture_suspend()
 	if map_menu.has_method("set_suspend_available"):
 		map_menu.call("set_suspend_available", _map_menu_suspend_available)
-	lock()
+	lock(false)
+	# Map Menu has no active movement selection: retain only freshly recomputed
+	# base threat and watched markers while cursor input is suppressed.
+	repaint()
 	map_menu.open()
 	# Consume the triggering press. Without this the same keystroke keeps
 	# propagating to MapMenu._unhandled_input, which treats open_menu/cancel as
@@ -1874,14 +1856,14 @@ func _on_unit_details_closed() -> void:
 
 # ── Lock / Unlock ────────────────────────────────────────────────────────────
 
-func lock() -> void:
+func lock(clear_transient_overlays: bool = true) -> void:
 	_state = State.LOCKED
 	_input_handler.clear_repeat()
 	_clear_zoom_repeat()
-	# Clear the danger-overlay paint when input is suppressed (map menu, enemy
-	# phase) so a stale threat area isn't shown after enemies move; the watch-set
-	# and mode are retained and repainted on return to FREE.
-	_clear_overlay_paint()
+	# Phase changes and load/restore use the default cleanup so stale positions
+	# cannot survive enemy movement. Menu callers may retain recomputed threat.
+	if clear_transient_overlays:
+		_clear_overlay_paint()
 
 
 func unlock() -> void:

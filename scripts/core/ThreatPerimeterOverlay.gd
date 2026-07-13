@@ -14,8 +14,7 @@ extends Node2D
 # No `class_name`: GridManager preloads this script (same headless --script
 # test convention as MenuRepeatPolicy / InputDisplay).
 
-# Placeholder colours/widths pending live F8 comparison; exported so the next
-# tuning pass needs no code edit.
+# Live-accepted dual-outline colours/widths remain exported for future tuning.
 @export var danger_color: Color = Color(1.0, 0.25, 0.2, 0.95)   # bright red — whole danger area
 @export var watch_color: Color = Color(0.55, 0.02, 0.02, 0.95)  # dark red — watched subset
 @export var danger_width: float = 4.0

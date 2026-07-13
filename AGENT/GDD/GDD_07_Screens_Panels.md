@@ -558,8 +558,9 @@ key (O) during a map
 The Settings screen is a single panel — **not tabbed**. A full-rect opaque
 `Dimmer` behind the panel makes it modal (the screen behind is fully hidden).
 The panel's contents live in a `ScrollContainer` so the list never overflows.
-Focus stepping keeps ~1.5 rows of lookahead context visible past the focused
-row in the movement direction (V031-GP-01, 2026-07-12) — `follow_focus` alone
+Focus stepping keeps up to three row heights of lookahead context visible past
+the focused row, capped below half the viewport at large Menu Scale values
+(V032-D2, 2026-07-13) — `follow_focus` alone
 scrolled the focused row just barely into view, so the tester couldn't see
 what the next step moved toward.
 It is an overlay opened with `open()` and dismissed by the `Back` button or the
@@ -776,4 +777,3 @@ There is **no separate `VictoryScreen` scene** — `GameOverScreen.tscn` /
 the emitted outcome and may render multi-group standings below the header.
 
 ---
-

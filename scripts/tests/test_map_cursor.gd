@@ -157,7 +157,7 @@ func _init() -> void:
 		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
 	Input.action_release("zoom_in")
 	c_zoom._process(0.01)
-	Input.action_press("zoom_in", 0.30)
+	Input.action_press("zoom_in", 0.84)
 	c_zoom._process(0.01)
 	var zoom_partial_blocks: bool = c_zoom._camera_ctrl.get_zoom_index() \
 		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
@@ -166,7 +166,7 @@ func _init() -> void:
 	Input.action_press("zoom_in", 1.0)
 	c_zoom._process(0.01)
 	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
-	c_zoom._process(0.40)
+	c_zoom._process(0.60)
 	var zoom_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
 	c_zoom._process(0.10)
 	var zoom_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 2
@@ -174,10 +174,10 @@ func _init() -> void:
 	c_zoom._process(0.01)
 	var zoom_cleared := c_zoom._zoom_held_direction == 0
 	# A partial pull past the threshold repeats on the SAME timing as a full pull.
-	Input.action_press("zoom_in", 0.50)
+	Input.action_press("zoom_in", 0.85)
 	c_zoom._process(0.01)
 	var partial_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
-	c_zoom._process(0.40)
+	c_zoom._process(0.60)
 	var partial_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
 	c_zoom._process(0.10)
 	var partial_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 4
@@ -955,45 +955,6 @@ func _init() -> void:
 		print("FAIL [MRD-7] compose: select=%s target=%s watch_select=%s watch_target=%s state=%d" % [
 			selected_composed, targeting_composed, watched_after_select,
 			watched_after_targeting, c10._state])
-		failed += 1
-
-	# Debug-only live comparison aid: F8 cycles shared-cell render modes and
-	# repaints the current overlay state so the focused rerun can compare modes.
-	var saved_debug_overlay := _grid._overlay
-	var saved_debug_top := _grid._overlay_top
-	var debug_overlay := TileMapLayer.new()
-	var debug_top := TileMapLayer.new()
-	debug_overlay.tile_set = load("res://assets/overlay_tileset.tres")
-	debug_top.tile_set = debug_overlay.tile_set
-	_grid._overlay = debug_overlay
-	_grid._overlay_top = debug_top
-	_grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
-	c10._state = FREE
-	c10._danger_mode = "selected"
-	c10._watch_set.clear()
-	c10._watch_set["enemyB"] = true
-	var debug_cycle := InputEventAction.new()
-	debug_cycle.action = "debug_cycle_mrd_shared_overlay"
-	debug_cycle.pressed = true
-	c10._unhandled_input(debug_cycle)
-	var cycled_to_border: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_BORDER_THROUGH \
-		and not debug_overlay.get_used_cells().is_empty()
-	c10._unhandled_input(debug_cycle)
-	var cycled_to_stacked: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_STACKED
-	c10._unhandled_input(debug_cycle)
-	var cycled_to_stacked_perimeter: bool = _grid.shared_cell_mode == GridManager.SHARED_CELL_STACKED_PERIMETER
-	_grid.set_shared_cell_mode(GridManager.SHARED_CELL_SINGLE)
-	_grid._overlay = saved_debug_overlay
-	_grid._overlay_top = saved_debug_top
-	debug_overlay.free()
-	debug_top.free()
-	if cycled_to_border and cycled_to_stacked and cycled_to_stacked_perimeter:
-		print("OK  [MRD-7] debug shared-cell mode cycle repaints overlays")
-		passed += 1
-	else:
-		print("FAIL [MRD-7] debug mode cycle: border=%s stacked=%s perimeter=%s mode=%s" % [
-			cycled_to_border, cycled_to_stacked, cycled_to_stacked_perimeter,
-			_grid.shared_cell_mode])
 		failed += 1
 
 	# FREE-state gating (#13): the resolver is a no-op outside FREE.

@@ -142,7 +142,12 @@ func _init() -> void:
 	_check(marker_ok, "[TUR-2] one \"D\" marker Label rendered for the watched enemy",
 		"live markers=%d" % markers.size())
 
-	# ---- 4. lock() clears paint + markers but retains state; unlock repaints ----
+	# ---- 4. phase lock clears; menu lock retains freshly recomputed threat ----
+	cursor.lock(false)
+	cursor.repaint()
+	await process_frame
+	var menu_retained := not overlay.get_used_cells().is_empty() \
+		and not _live_children(instance.find_child("WatchMarkers", true, false)).is_empty()
 	cursor.lock()
 	await process_frame  # let queued marker frees process
 	var locked_clear := overlay.get_used_cells().is_empty() \
@@ -151,9 +156,9 @@ func _init() -> void:
 	cursor.unlock()
 	src4 = _cells_with_source(overlay, GridManager.OVERLAY_DARKER_RED)
 	var repainted := threat.keys().all(func(t): return src4.has(t))
-	_check(locked_clear and retained and repainted,
-		"[TUR] lock clears paint, retains watch-set + mode; unlock repaints",
-		"clear=%s retained=%s repainted=%s" % [locked_clear, retained, repainted])
+	_check(menu_retained and locked_clear and retained and repainted,
+		"[TUR] menu lock retains threat; phase lock clears; unlock repaints",
+		"menu=%s clear=%s retained=%s repainted=%s" % [menu_retained, locked_clear, retained, repainted])
 
 	# ---- 5. Hover-peek paints as an opaque top layer, release restores ----
 	# With the faction threat showing, a peek over the enemy must WIN its shared
@@ -170,9 +175,10 @@ func _init() -> void:
 			shared = t
 			break
 	var peek_painted := not peek_move.is_empty() \
-		and overlay.get_cell_source_id(peek_move.keys()[0]) in \
+		and overlay_top.get_cell_source_id(peek_move.keys()[0]) in \
 			[GridManager.OVERLAY_BLUE, GridManager.OVERLAY_RED]
-	var peek_wins := shared != null and overlay.get_cell_source_id(shared) == GridManager.OVERLAY_BLUE
+	var peek_wins := shared != null \
+		and overlay_top.get_cell_source_id(shared) == GridManager.OVERLAY_BLUE
 	cursor._end_peek()
 	var restored := shared != null \
 		and overlay.get_cell_source_id(shared) == GridManager.OVERLAY_DARK_RED

@@ -144,8 +144,7 @@ const _ENUM_SETTINGS: Array = [
 
 
 # V031-GP-01: Settings scrolls with focus; route the base class's lookahead
-# nudge at the shared ScrollContainer so ~1.5 rows of context stay visible
-# past the focused row.
+# nudge at the shared ScrollContainer so scale-aware context stays visible.
 func _focus_scroll_container() -> ScrollContainer:
 	return _scroll
 
@@ -730,7 +729,6 @@ const _DEBUG_KEYBIND_LABEL_OVERRIDES := {
 	# V026-01c: the F9 hotseat override was toggleable but never listed here, so
 	# the in-game controls panel didn't show it (v0.2.6 playtest §1.1 report).
 	"debug_toggle_hotseat_override": "Debug: Hotseat All Factions",
-	"debug_cycle_mrd_shared_overlay": "Debug: MRD Overlay Mode",
 }
 
 

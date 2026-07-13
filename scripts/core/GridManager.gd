@@ -595,7 +595,7 @@ const _RANGE_ON_THREAT_SOURCES := {
 	},
 }
 
-var shared_cell_mode: String = SHARED_CELL_SINGLE
+var shared_cell_mode: String = SHARED_CELL_DUAL_OUTLINE
 
 
 # Seed the built-in layers once. Precedence gaps of 10 leave room to slot future

@@ -718,6 +718,10 @@ func _move_vertical(dir: int) -> void:
 	_selector.move_2d(dir, 0)
 
 
+func _focus_scroll_container() -> ScrollContainer:
+	return _main_scroll
+
+
 func _on_selector_changed(index: int) -> void:
 	_current_index = index
 	_refresh_highlight()
@@ -731,8 +735,10 @@ func _on_selector_changed(index: int) -> void:
 		match String(e.get("key", "")):
 			"back":
 				_btn_back.grab_focus()
+				_apply_focus_lookahead(_btn_back)
 			"pair":
 				_btn_pair.grab_focus()
+				_apply_focus_lookahead(_btn_pair)
 		return
 	_btn_back.release_focus()
 	_btn_pair.release_focus()
@@ -742,6 +748,7 @@ func _on_selector_changed(index: int) -> void:
 	var lbl := _section_label_for_entry(e)
 	if lbl != null and _main_scroll.is_ancestor_of(lbl):
 		_main_scroll.ensure_control_visible(lbl)
+		_apply_focus_lookahead(lbl)
 	_show_entry(String(e["category"]), String(e["key"]), String(e["title"]))
 
 

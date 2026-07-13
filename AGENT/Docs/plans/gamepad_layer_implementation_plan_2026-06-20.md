@@ -45,7 +45,6 @@ All 19 input-map actions, audited against every non-test `is_action_*` call site
 | `debug_toggle_force_levelup` | F2 | — | Excluded (release blocker) |
 | `debug_toggle_growth_boost` | F3 | — | Excluded (release blocker) |
 | `debug_toggle_hotseat_override` | F1 | — | Excluded (release blocker) |
-| `debug_cycle_mrd_shared_overlay` | F8 | — | Excluded (temporary MRD-7 live-comparison aid) |
 
 Result: the full normal-play set fits a standard controller with **zero button-combos** —
 the pause menu absorbs the long tail. Debug toggles stay keyboard-only (they are slated
