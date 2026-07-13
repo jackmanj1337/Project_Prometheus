@@ -4,10 +4,11 @@ const RegistryCatalogScript = preload("res://scripts/registries/RegistryCatalog.
 const RegistryEntryScript = preload("res://scripts/resources/RegistryEntry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 
-const PRESET_DIRECTORIES: Array[String] = [
-	"res://data/registries/action_primitives/",
-	"res://data/registries/resource_types/",
-	"res://data/registries/occupancy_policies/",
+const DEFAULT_CONTENT_SOURCE := "res://data"
+const REQUIRED_FAMILIES: Array[String] = [
+	"action_primitives",
+	"resource_types",
+	"occupancy_policies",
 ]
 const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
@@ -30,12 +31,13 @@ func _ready() -> void:
 		push_error(error)
 
 
-func reload_presets() -> Array[String]:
+func reload_presets(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 	_catalog = RegistryCatalogScript.new()
 	_load_errors.clear()
 	for handler_id in BUILTIN_PRIMITIVE_HANDLERS:
 		_load_errors.append_array(_catalog.register_primitive_handler(handler_id))
-	for directory in PRESET_DIRECTORIES:
+	for family in REQUIRED_FAMILIES:
+		var directory := source.path_join("registries").path_join(family)
 		for path in ResourceManifest.load_paths(directory):
 			var resource := ResourceLoader.load(path)
 			if resource == null or resource.get_script() != RegistryEntryScript:
@@ -43,6 +45,9 @@ func reload_presets() -> Array[String]:
 				continue
 			for error in _catalog.register_entry(resource):
 				_load_errors.append("RegistryManager: %s (%s)" % [error, path])
+		if _catalog.ids(family).is_empty():
+			_load_errors.append("RegistryManager: source '%s' has no valid entries for required family '%s'" % [
+				source, family])
 	return _load_errors.duplicate()
 
 

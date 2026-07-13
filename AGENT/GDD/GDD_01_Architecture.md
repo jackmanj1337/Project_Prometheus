@@ -706,10 +706,12 @@ func get_weapon_triangle_result(attacker_type: String, defender_type: String) ->
 ```
 
 `DEFAULT_CONTENT_SOURCE` is `res://data`. A content source is a self-contained
-data root containing the same catalogue, map-registry, and Pair Up paths. The
-campaign-source seam is replace-load: it clears all four catalogues before loading
-and validating the new root; it does not merge content. Nothing selects or persists
-an alternate source yet.
+data root containing the same catalogue, registry-family, map-registry, and Pair Up
+paths. The campaign-source seam is strict replace-load: it clears all four
+catalogues and rebuilds all required registry families from the selected root before
+validation; it does not merge content or inherit omitted default families. A missing
+registry family stays empty and reports a load error. Nothing selects or persists an
+alternate source yet.
 
 ### `EventBus.gd`
 

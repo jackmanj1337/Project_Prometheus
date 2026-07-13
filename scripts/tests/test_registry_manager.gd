@@ -78,6 +78,36 @@ func _init() -> void:
 	else:
 		print("FAIL preset loading: %s" % [manager.load_errors()]); failed += 1
 
+	var alternate_source := "user://test_registry_manager/alternate_source"
+	var alternate_written := _write_registry_source(alternate_source)
+	var alternate_errors: Array[String] = manager.reload_presets(alternate_source)
+	if alternate_written and alternate_errors.is_empty() \
+			and manager.has_entry("action_primitives", "fixture_action") \
+			and manager.has_entry("resource_types", "fixture_resource") \
+			and manager.has_entry("occupancy_policies", "fixture_occupancy") \
+			and not manager.has_entry("resource_types", "party_gold"):
+		print("OK  reload strictly replaces presets from the selected content source"); passed += 1
+	else:
+		print("FAIL alternate registry source: written=%s errors=%s" % [
+			alternate_written, alternate_errors]); failed += 1
+
+	var partial_source := "user://test_registry_manager/partial_source"
+	var partial_written := _write_registry_family(
+		partial_source, "action_primitives", "partial_action", "apply_active_modifier")
+	var partial_errors: Array[String] = manager.reload_presets(partial_source)
+	var reports_resource: bool = partial_errors.any(func(error):
+		return "required family 'resource_types'" in error)
+	var reports_occupancy: bool = partial_errors.any(func(error):
+		return "required family 'occupancy_policies'" in error)
+	if partial_written and manager.has_entry("action_primitives", "partial_action") \
+			and manager.ids("resource_types").is_empty() \
+			and manager.ids("occupancy_policies").is_empty() \
+			and reports_resource and reports_occupancy:
+		print("OK  omitted registry families stay empty and report loud errors"); passed += 1
+	else:
+		print("FAIL strict missing-family handling: %s" % [partial_errors]); failed += 1
+	manager.reload_presets()
+
 	manager.queue_free()
 	await process_frame
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
@@ -96,3 +126,21 @@ func _entry(id: String, handler: String):
 	result.docs_text = "Test registry entry."
 	result.test_fixture = {"value": 1}
 	return result
+
+
+func _write_registry_source(source: String) -> bool:
+	return _write_registry_family(
+		source, "action_primitives", "fixture_action", "apply_active_modifier") \
+		and _write_registry_family(
+			source, "resource_types", "fixture_resource", "party_gold_wallet") \
+		and _write_registry_family(
+			source, "occupancy_policies", "fixture_occupancy", "require_empty_placement")
+
+
+func _write_registry_family(source: String, family: String, id: String, handler: String) -> bool:
+	var directory := source.path_join("registries").path_join(family)
+	if DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory)) != OK:
+		return false
+	var entry = _entry(id, handler)
+	entry.family = family
+	return ResourceSaver.save(entry, directory.path_join("%s.tres" % id)) == OK

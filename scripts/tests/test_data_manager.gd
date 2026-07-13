@@ -153,6 +153,8 @@ func _init() -> void:
 	}
 	var phase_errors: Array[String] = dm._validate_all()
 	dm._classes["stale_before_replace"] = ClassData.new()
+	registry_manager.reload_presets("user://test_data_manager/missing_registry_source")
+	var registry_was_cleared: bool = registry_manager.ids("resource_types").is_empty()
 	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
 	var replace_ids := {
 		"classes": dm._classes.keys(),
@@ -160,13 +162,17 @@ func _init() -> void:
 		"items": dm._items.keys(),
 		"skills": dm._skills.keys(),
 	}
+	var registry_was_restored: bool = registry_manager.has_entry("resource_types", "party_gold") \
+		and registry_manager.has_entry("occupancy_policies", "nearest_free")
 	if phase_errors.is_empty() and replace_ids == boot_ids \
-			and not dm._classes.has("stale_before_replace"):
-		print("OK  DataManager phases validate clean and default replace-load preserves catalogue ids")
+			and not dm._classes.has("stale_before_replace") \
+			and registry_was_cleared and registry_was_restored:
+		print("OK  DataManager replace-load restores catalogues and source registries")
 		passed += 1
 	else:
-		print("FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s" % [
-			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace")])
+		print("FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s registry=%s/%s" % [
+			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace"),
+			registry_was_cleared, registry_was_restored])
 		failed += 1
 
 	# A tiny generated source proves path parameterization independently of the

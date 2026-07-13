@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - architecture contract
-Last verified: 2026-06-29
+Last verified: 2026-07-13
 ---
 
 # Registry Manifest Contract
@@ -66,6 +66,9 @@ The H4 checklist names the known candidates:
 4. Reject unknown ids at load time where possible.
 5. Sort deterministic output by explicit priority, then stable id.
 6. Surface structured errors usable by a future editor.
+7. Reload every required family from the selected self-contained content source
+   with strict replacement. Omitted families stay empty and report loud errors;
+   developer presets are not merged into campaign data.
 
 ## Closed-List Exception
 

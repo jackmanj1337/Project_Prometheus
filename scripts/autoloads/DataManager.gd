@@ -78,7 +78,14 @@ func _report(errors: Array[String]) -> void:
 func select_campaign_source(source: String) -> void:
 	_clear_content()
 	_load_all(source)
-	_report(_validate_all(source))
+	var errors: Array[String] = []
+	var registry_manager := get_node_or_null("/root/RegistryManager")
+	if registry_manager == null:
+		errors.append("DataManager: RegistryManager is unavailable")
+	else:
+		errors.append_array(registry_manager.call("reload_presets", source))
+	errors.append_array(_validate_all(source))
+	_report(errors)
 
 
 # Pure validator: returns the list of cross-reference errors as strings.

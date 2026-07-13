@@ -374,6 +374,9 @@ Implementation steps:
 5. Add a validation-mode path that checks placement without instancing nodes.
 6. Migrate `GameMap._spawn_units()` to ask `OccupancyService` before each
    `_spawn_unit()` call.
+   Exact suspend restoration intentionally bypasses this normal-spawn policy:
+   it restores serialized tiles byte-for-byte, and the direct-spawn guard is
+   deliberately scoped to fresh map-start placement.
 7. Keep `_spawn_unit()` private to instancing after a successful placement
    result. Public spawn APIs should call the service.
 8. Extend DataManager map validation to catch player/enemy start overlap through
