@@ -13,7 +13,11 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
 	"party_gold_wallet",
 	"unit_gold_wallet",
+	"require_empty_placement",
 	"nearest_free_placement",
+	"delay_placement",
+	"skip_placement",
+	"unimplemented_placement",
 ]
 
 var _catalog: RefCounted

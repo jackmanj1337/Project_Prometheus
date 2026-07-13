@@ -541,6 +541,9 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 		else:
 			var enemy_tile: Vector2i = placement.get("tile", Vector2i.ZERO)
 			var tile_key := "%d,%d" % [enemy_tile.x, enemy_tile.y]
+			if seen_player_tiles.has(tile_key):
+				errors.append("DataManager: map '%s' enemy placement tile %s overlaps a player start" % [
+					map_path, str(enemy_tile)])
 			if seen_enemy_tiles.has(tile_key):
 				errors.append("DataManager: map '%s' has duplicate enemy placement tile %s" % [
 					map_path, str(enemy_tile)])

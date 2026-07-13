@@ -40,6 +40,7 @@ const HotseatControllerS = preload("res://scripts/core/HotseatController.gd")
 # Autoload scripts carry no class_name, so preload the script to read its
 # OFF_MAP_TILE sentinel (same pattern MapCursor uses).
 const PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+const OccupancyContextScript = preload("res://scripts/placement/OccupancyContext.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
 
@@ -212,6 +213,7 @@ func _spawn_units() -> bool:
 		push_error("GameMap: prepared launch roster is empty")
 		return false
 
+	var all_placed := true
 	# Player units: roster slot N → player_start_tiles[N]
 	for i in roster.size():
 		if i >= map_data.player_start_tiles.size():
@@ -219,7 +221,8 @@ func _spawn_units() -> bool:
 		var u_data: UnitData = roster[i] as UnitData
 		if u_data == null or u_data.is_incapacitated:
 			continue  # permadeath: skip dead units in future deployments
-		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
+		if _place_and_spawn(u_data, map_data.player_start_tiles[i], "blue") == null:
+			all_placed = false
 
 	# Enemy/AI-controlled units. Each placement resolves to a UnitData via exactly
 	# one source, either an in-memory instance or a resource path.
@@ -237,8 +240,9 @@ func _spawn_units() -> bool:
 		if u_data.unit_id == "":
 			push_error("GameMap: enemy placement has empty unit_id — set it on the UnitData: %s" % str(placement))
 			continue
-		_spawn_unit(u_data, tile, faction_id)
-	return true
+		if _place_and_spawn(u_data, tile, faction_id) == null:
+			all_placed = false
+	return all_placed
 
 
 func _spawn_units_from_suspend(payload: Dictionary) -> bool:
@@ -339,6 +343,26 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 	if gs:
 		gs.call("register_unit", unit)
 	return unit
+
+
+# Public/non-standard placement resolves policy before this method reaches the
+# private instancing seam. Normal movement remains owned by Unit/GridManager.
+func _place_and_spawn(u_data: UnitData, desired_tile: Vector2i, team: String,
+		policy: String = "require_empty") -> Unit:
+	var occupancy := get_node_or_null("/root/OccupancyService")
+	if occupancy == null:
+		push_error("GameMap: OccupancyService autoload missing")
+		return null
+	var context: RefCounted = OccupancyContextScript.create(
+		u_data, desired_tile, policy, u_data.unit_id)
+	context.source = self
+	context.reason = "map_start_spawn"
+	var result: RefCounted = occupancy.call("place", context, _grid)
+	if not result.ok:
+		push_error("GameMap: could not place unit '%s' at %s (%s)" % [
+			u_data.unit_id, str(desired_tile), result.failure_reason])
+		return null
+	return _spawn_unit(u_data, result.to_tile, team)
 
 
 # Asserts all rows are the expected length and contain only known terrain chars.

@@ -4,7 +4,7 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-10
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -351,6 +351,13 @@ Auto-deployed in slot order (Unit_01 first):
 | Unit_06 (Knight) | 6 | (2, 11) |
 
 ### Enemy Placements
+
+Map-start placements are checked by the implemented `B2-OCCUPANCY` transaction
+service before unit instancing. Authored player/enemy overlaps fail validation;
+runtime `require_empty` prevents accidental double occupancy. The shared policy
+registry also provides deterministic `nearest_free`, `delay`, and `skip` for
+later spawn consumers. Swap, hidden overlap, and object-unit behavior remain
+reserved until their owning slices implement them.
 
 | # | File | Tile | Class | Level | Weapon | Item | AI | Notes |
 |---|---|---|---|---|---|---|---|---|

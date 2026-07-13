@@ -1686,6 +1686,14 @@ class_name MapData extends Resource
 func get_faction(faction_id: String) -> FactionData
 ```
 
+Map-start unit placement is implemented through the `OccupancyService` autoload
+(2026-07-13, `B2-OCCUPANCY`). `GameMap` resolves a registry-backed policy before
+its private instancing seam. `require_empty`, deterministic `nearest_free`,
+runtime-only `delay`, and `skip` are active; `swap`, `overlap_hidden`, and
+`object_unit` are reserved policy rows that return `not_implemented` until their
+owning feature slices land. Normal traversed movement and exact suspend-state
+restoration retain their existing paths.
+
 Objective condition tiles are authored and evaluated in zero-based map coordinates.
 HUD display text converts tile coordinates to player-facing one-based coordinates
 only at render time.

@@ -1247,6 +1247,30 @@ def check_party_gold_transaction_guard() -> None:
                   "(B2-RESOURCE-LEDGER DoD#2)")
 
 
+# ── check 29: public spawn occupancy guard (B2-OCCUPANCY DoD#2) ──────────────
+
+def check_spawn_occupancy_guard() -> None:
+    """GameMap's normal spawn flow must resolve OccupancyService first."""
+    path = ROOT / "scripts/core/GameMap.gd"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        _fail("spawn-occupancy-guard", path, 1, "GameMap.gd is missing")
+        return
+    helper = re.search(
+        r"func _place_and_spawn\b(?P<body>.*?)(?=\nfunc |\Z)", text, re.DOTALL)
+    if helper is None or '"/root/OccupancyService"' not in helper.group("body") \
+            or 'occupancy.call("place"' not in helper.group("body"):
+        _fail("spawn-occupancy-guard", path, 1,
+              "_place_and_spawn must resolve OccupancyService.place before instancing "
+              "(B2-OCCUPANCY DoD#2)")
+    spawn_flow = re.search(r"func _spawn_units\(\).*?(?=\nfunc |\Z)", text, re.DOTALL)
+    if spawn_flow is None or "_spawn_unit(" in spawn_flow.group(0):
+        _fail("spawn-occupancy-guard", path, 1,
+              "_spawn_units bypasses _place_and_spawn occupancy policy "
+              "(B2-OCCUPANCY DoD#2)")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1279,6 +1303,7 @@ def main() -> None:
         ("[26] Touch controls",            check_touch_controls),
         ("[27] Stat registry guard",       check_stat_registry_guard),
         ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
+        ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
     ]
     for label, fn in steps:
         print(f"  {label}...")

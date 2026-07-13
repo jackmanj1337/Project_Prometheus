@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "swap"
+family = "occupancy_policies"
+label_key = "registry.occupancy.swap"
+owner_feature = "B6-RESCUE-CARRY"
+kind = "placement"
+primitive_handler = "unimplemented_placement"
+subjects = Array[String](["unit", "tile"])
+docs_text = "Reserved for explicit displacement swaps."
+test_fixture = {"implemented": false}
