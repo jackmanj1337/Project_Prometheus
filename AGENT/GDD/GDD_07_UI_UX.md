@@ -533,7 +533,8 @@ There is **no target-list panel**. Target selection happens on the map itself:
   the defender side collapses to a `No counter` readout and omits the normal
   hit/crit rows
 - If attacker gets a follow-up, show `×2 attacks` below their crit
-- Preview is calculated by `CombatResolver.preview_combat()` — no RNG
+- Preview calls `ProjectionService.project_combat()`, whose combat adapter delegates
+  to `CombatResolver.preview_combat()` — no committed RNG or live-state mutation
 - Confirm triggers `CombatResolver.resolve_combat()` (with RNG)
 - The current panel also shows weapon-triangle and effectiveness markers
 - A **weapon row** under each combatant's name shows the equipped weapon's display

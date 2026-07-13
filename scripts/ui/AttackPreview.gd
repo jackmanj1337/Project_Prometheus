@@ -145,10 +145,13 @@ func _on_input_mode_changed(_mode: String) -> void:
 
 
 func show_preview(attacker: Node, defender: Node) -> void:
-	var cr := get_node_or_null("/root/CombatResolver")
-	if cr == null:
+	var projection := get_node_or_null("/root/ProjectionService")
+	if projection == null:
 		return
-	var p: Dictionary = cr.preview_combat(attacker, defender)
+	var result = projection.project_combat(attacker, defender)
+	if not result.valid:
+		return
+	var p: Dictionary = result.visible_outcome
 
 	_entries.clear()
 	_current_index = -1

@@ -1058,6 +1058,16 @@ func get_follow_up_attacker(a: Node, b: Node) -> Node   # null if no follow-up
 func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int
 ```
 
+`ProjectionService` is the implemented shared forecast entry point
+(`B2-PROJECTION`, 2026-07-13). `project(ctx)` accepts a typed
+`ProjectionContext`; `project_combat(attacker, defender)` builds that context and
+delegates to `CombatResolver.preview_combat()` without re-deriving combat math.
+Its `ProjectionResult` carries the audience-visible outcome, knowledge flags,
+state deltas/events for later adapters, odds-only RNG metadata, warnings, and a
+test/debug-only real outcome. The combat adapter guards RNG history and party
+gold and has fixture coverage for mutable unit state. Effect, condition, AI,
+perception, and predicate adapters remain with their owning tracks.
+
 > Battle speed is not a CombatResolver method — it is `Unit.battle_speed()`.
 > **Hit/crit roll — Implemented (2026-07-06).** Rolls draw from the `RngService`
 > per-event RNG (seeded by `begin_event("attack", record)`; `apply_combat_result()`
