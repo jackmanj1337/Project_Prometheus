@@ -1,7 +1,7 @@
 ---
 Type: design
 Status: Active - architecture contract
-Last verified: 2026-06-28
+Last verified: 2026-07-13
 ---
 
 # Projection / Forecast Contract
@@ -63,6 +63,12 @@ pure calculators used by resolution, but it must not commit state itself.
 8. **Projection explains its limits.** Output carries flags describing omitted
    information, uncertain rolls, hidden targets, blocked actions, and any
    consumer-visible warnings.
+
+**v0.4 combat-adapter enforcement boundary.** The lightweight per-call runtime
+guard snapshots only committed `RngService` history and `GameState.party_gold`,
+because Attack Preview invokes projection on cursor movement. Regression coverage
+separately proves byte-identical actor/target HP, active modifiers, counters, and
+inventory. The no-live-mutation invariant is broader than the cheap runtime guard.
 
 ## 3. ProjectionContext
 

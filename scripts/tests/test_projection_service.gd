@@ -3,6 +3,7 @@ extends SceneTree
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
 const WeaponDataScript = preload("res://scripts/resources/WeaponData.gd")
+const InventoryEntryScript = preload("res://scripts/resources/InventoryEntry.gd")
 
 var _passed := 0
 var _failed := 0
@@ -101,6 +102,15 @@ func _check(condition: bool, label: String) -> void:
 		_failed += 1
 
 
+func _mutable_unit_state_bytes(unit: Node) -> PackedByteArray:
+	return var_to_bytes_with_objects({
+		"hp": unit.data.hp,
+		"active_modifiers": unit.data.active_modifiers,
+		"skill_use_counters": unit.data.skill_use_counters,
+		"inventory": unit.data.inventory,
+	})
+
+
 func _init() -> void:
 	await process_frame
 	var projection := root.get_node_or_null("ProjectionService")
@@ -114,14 +124,19 @@ func _init() -> void:
 
 	var attacker := _make_unit("projection_attacker", "blue", Vector2i.ZERO)
 	var defender := _make_unit("projection_defender", "red", Vector2i(1, 0))
+	attacker.data.active_modifiers.append({
+		"stat": "strength", "delta": 2, "source": "projection_fixture",
+		"duration": 1, "duration_type": "turn"})
+	defender.data.active_modifiers.append({
+		"stat": "defense", "delta": 1, "source": "projection_fixture",
+		"duration": 1, "duration_type": "turn"})
+	attacker.data.inventory.append(InventoryEntryScript.make_weapon("iron_sword", 40))
+	defender.data.inventory.append(InventoryEntryScript.make_item("vulnerary", 3))
 	var direct: Dictionary = combat.preview_combat(attacker, defender)
 	var rng_before: Dictionary = rng.to_save_dict().duplicate(true)
 	var gold_before: int = game_state.party_gold
-	var attacker_before: Dictionary = {
-		"hp": attacker.data.hp,
-		"modifiers": attacker.data.active_modifiers.duplicate(true),
-		"counters": attacker.data.skill_use_counters.duplicate(true),
-	}
+	var attacker_before := _mutable_unit_state_bytes(attacker)
+	var defender_before := _mutable_unit_state_bytes(defender)
 	var result = projection.project_combat(attacker, defender, "test")
 	_check(result.valid and result.visible_outcome == direct,
 		"combat projection delegates to the existing preview math")
@@ -130,10 +145,9 @@ func _init() -> void:
 		"projection reports odds without committed draws")
 	_check(rng.to_save_dict() == rng_before and game_state.party_gold == gold_before,
 		"projection preserves RNG and resource save fields")
-	_check(attacker.data.hp == attacker_before["hp"] \
-		and attacker.data.active_modifiers == attacker_before["modifiers"] \
-		and attacker.data.skill_use_counters == attacker_before["counters"],
-		"projection preserves mutable unit state")
+	_check(_mutable_unit_state_bytes(attacker) == attacker_before \
+		and _mutable_unit_state_bytes(defender) == defender_before,
+		"projection preserves both units' HP, modifiers, counters, and inventory bytes")
 	var invalid = projection.project_combat(attacker, null)
 	_check(not invalid.valid and invalid.failure_reason == "missing_target",
 		"invalid combat target returns a structured failure")
