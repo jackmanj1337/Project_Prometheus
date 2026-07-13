@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13k](2026-07-13k.md) — **Band 0 GDD consolidation handoff prepared:** dedicated next-session branch, audit-to-split sequence, autonomous authority boundary, inverted anchor dependency flagged, and one owner-decision packet policy.
 - [2026-07-13j](2026-07-13j.md) — **v0.4.0 review gate closed:** all Low cleanup, projection byte-snapshot coverage, strict source-relative registry reload, and all 75 suites green; release metadata/build/smoke/handoff next.
 - [2026-07-13i](2026-07-13i.md) — **v0.4.0 RC blockers fixed:** single death funnel + resolver-level mutual-death snapshots, nearest-free nonfatal map-start placement, and all 75 suites green; cleanup batch is next.
 - [2026-07-13h](2026-07-13h.md) — **v0.4.0 full-delta code review:** 3 Medium RC blockers (circular death fallback, map boot aborts on placement failure, mutual-death untested) + 8 Low; all five decisions taken and fix handoff written. No code changed.
