@@ -341,7 +341,7 @@ shop-specific arithmetic branches.
 ## Inventory Management
 
 Status: **Implemented** (limit not yet enforced; Trade designed-only)
-Last verified: 2026-06-13
+Last verified: 2026-07-13
 
 ### Specs
 - One inventory per unit (`UnitData.inventory`), a flat `Array[InventoryEntry]`; each
@@ -349,6 +349,10 @@ Last verified: 2026-06-13
 - **Limit:** 8 slots (`GameState.max_inventory`) — **NOT yet enforced** (no inventory UI).
 - **Trade** is designed but not implemented; no current action moves entries between units.
 - Items and weapons cannot be used during the enemy phase.
+- Death snapshots the inventory into `DeathContext` before removal, then routes it
+  through `DeathDisposition`. The groundwork disposition is a no-op, so classic and
+  casual deaths preserve the existing inventory data unchanged; custody, drops, and
+  key-item transfer remain later inventory-system work.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd` (`max_inventory`), `scripts/resources/UnitData.gd`

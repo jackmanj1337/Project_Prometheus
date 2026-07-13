@@ -88,6 +88,20 @@ rewards retain their existing append behavior. Dynamic formula terms, persistent
 holds, custom resource pools, and shop/training consumers remain with their owning
 later tracks.
 
+### Death Lifecycle Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+All production combat deaths enter `DeathLifecycle.handle_death(DeathContext)`.
+The context snapshots identity, inventory, tile, source, responsible actor, and a
+simultaneous-death group before disposition begins. `DeathDisposition` is the one
+future custody/inventory hook; its initial implementation is deliberately a no-op.
+The lifecycle reads `GameState.campaign_rules`, releases Pair Up support,
+unregisters the unit, emits `unit_died` once, and queues the scene node for removal.
+`Unit.handle_death()` remains only as a compatibility wrapper. Non-combat causes,
+object teardown, key-item custody, and battalion disposition remain later consumers.
+
 For the step-by-step "how do I add or validate one safely?" workflows, prefer
 the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
 GDD chapter.

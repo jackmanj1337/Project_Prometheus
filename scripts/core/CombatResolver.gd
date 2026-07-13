@@ -935,11 +935,35 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 	if defender.has_method("clear_combat_modifiers"):
 		defender.clear_combat_modifiers()
 
-	# Handle deaths after all exchanges — defender first so kill credit stays with attacker.
-	if defender_died and defender.has_method("handle_death"):
-		defender.handle_death()
-	if attacker_died and attacker.has_method("handle_death"):
-		attacker.handle_death()
+	# Snapshot both contexts before either disposition runs, then preserve the
+	# established defender-first deterministic resolution order.
+	var death_group := ""
+	if defender_died and attacker_died:
+		death_group = "combat:%s:%s" % [
+			str(attacker.data.get("unit_id")), str(defender.data.get("unit_id"))]
+	var defender_ctx: RefCounted = null
+	var attacker_ctx: RefCounted = null
+	if defender_died:
+		defender_ctx = DeathContextScript.from_subject(defender, "combat", "attack")
+		defender_ctx.responsible_actor = attacker
+		defender_ctx.simultaneous_group_id = death_group
+	if attacker_died:
+		attacker_ctx = DeathContextScript.from_subject(attacker, "combat", "counterattack")
+		attacker_ctx.responsible_actor = defender
+		attacker_ctx.simultaneous_group_id = death_group
+	var lifecycle := get_node_or_null("/root/DeathLifecycle") if is_inside_tree() else null
+	if defender_ctx != null:
+		if lifecycle != null:
+			lifecycle.handle_death(defender_ctx)
+		elif defender.has_method("handle_death"):
+			defender.handle_death()
+	if attacker_ctx != null:
+		if lifecycle != null:
+			lifecycle.handle_death(attacker_ctx)
+		elif attacker.has_method("handle_death"):
+			attacker.handle_death()
 
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)
+# Explicit preload keeps headless parse independent of the global class cache.
+const DeathContextScript = preload("res://scripts/death/DeathContext.gd")

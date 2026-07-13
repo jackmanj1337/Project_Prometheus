@@ -6,6 +6,8 @@ class_name Unit extends Node2D
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
+const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -486,22 +488,13 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 # Called when HP reaches 0. If permadeath is on (per CampaignRules), flags the
 # UnitData as incapacitated so the unit cannot be redeployed; otherwise the
 # data is preserved for the next map. Either way the scene node is freed.
-func handle_death() -> void:
+func handle_death() -> RefCounted:
 	if data == null:
-		return
-	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	var pair_up := get_node_or_null("/root/PairUpRegistry") if is_inside_tree() else null
-	if gs:
-		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
-		if rules != null and rules.permadeath_enabled:
-			data.is_incapacitated = true
-		if pair_up != null and pair_up.has_method("release_support_from_fallen_lead"):
-			pair_up.release_support_from_fallen_lead(self)
-		gs.unregister_unit(self)
-	var bus := _bus()
-	if bus:
-		bus.unit_died.emit(self)
-	queue_free()
+		return DeathResultScript.failure("death subject has no unit data")
+	var lifecycle := get_node_or_null("/root/DeathLifecycle") if is_inside_tree() else null
+	if lifecycle == null:
+		return DeathResultScript.failure("DeathLifecycle is unavailable")
+	return lifecycle.handle_death(DeathContextScript.from_subject(self, "compatibility", "unit.handle_death"))
 
 
 # ---- Inventory / Durability ----

@@ -539,7 +539,7 @@ resets to 1; progression preserved in `internal_level`; promoted skills learn at
 ## Permadeath
 
 Status: **Implemented**
-Last verified: 2026-07-06
+Last verified: 2026-07-13
 
 ### Specs
 Controlled by `GameState.campaign_rules.permadeath_enabled`.
@@ -550,9 +550,12 @@ Controlled by `GameState.campaign_rules.permadeath_enabled`.
   flag set.
 - **Game Over:** if a designated required unit (e.g. the lord) dies, the map ends in
   defeat → retry screen, regardless of the setting.
+- Combat now delegates both classic and casual removal through the shared death
+  lifecycle. Mutual-death contexts are snapshotted before either unit is disposed
+  and resolve defender first, then attacker, preserving deterministic ordering.
 
 ### Anchors
-- Code: `scripts/autoloads/GameState.gd`
+- Code: `scripts/autoloads/GameState.gd`, `scripts/autoloads/DeathLifecycle.gd`
 
 ---
 

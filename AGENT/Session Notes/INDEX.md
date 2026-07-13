@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13e](2026-07-13e.md) — **B2 Death Lifecycle groundwork implemented:** structured death/disposition funnel, deterministic mutual-death snapshots, classic/casual behavior, and all 74 suites green.
 - [2026-07-13d](2026-07-13d.md) — **B2 Occupancy groundwork implemented:** registry-dispatched spawn policies, deterministic fallback, map-start delegation, overlap validation, and all 73 suites green.
 - [2026-07-13c](2026-07-13c.md) — **B2 Resource Ledger groundwork implemented:** fixed party/unit costs, quote/reserve/atomic commit/recorded refund, victory-gold delegation, direct-write guard, and all 72 suites green.
 - [2026-07-13b](2026-07-13b.md) — **B2 Action/Effect contract groundwork implemented:** typed request/context/result, registry-backed validation and handler resolution, no-mutation failures/dry-run, `apply_active_modifier`, and behavior-neutral `stat_buff` delegation; all 71 suites green.
