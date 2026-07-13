@@ -4,14 +4,14 @@
 
 [resource]
 script = ExtResource("1")
-id = "party_gold"
+id = "unit_gold"
 family = "resource_types"
-label_key = "registry.resource.party_gold"
+label_key = "registry.resource.unit_gold"
 owner_feature = "B2-RESOURCE-LEDGER"
 kind = "wallet"
-primitive_handler = "party_gold_wallet"
+primitive_handler = "unit_gold_wallet"
 params_schema = {}
-subjects = Array[String](["party"])
-save_fields = Array[String](["party.resources.party_gold"])
-docs_text = "The campaign party's shared gold wallet."
+subjects = Array[String](["unit"])
+save_fields = Array[String](["map_runtime.units[].gold"])
+docs_text = "A campaign unit's individual legacy gold wallet."
 test_fixture = {"amount": 100}

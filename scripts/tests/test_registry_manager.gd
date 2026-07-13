@@ -72,6 +72,7 @@ func _init() -> void:
 	if manager.load_errors().is_empty() \
 			and manager.has_entry("action_primitives", "apply_active_modifier") \
 			and manager.has_entry("resource_types", "party_gold") \
+			and manager.has_entry("resource_types", "unit_gold") \
 			and manager.has_entry("occupancy_policies", "nearest_free"):
 		print("OK  export-safe preset manifests load all three starter families"); passed += 1
 	else:

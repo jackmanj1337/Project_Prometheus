@@ -39,6 +39,12 @@ func _init() -> void:
 	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
 	pair_reg.name = "PairUpRegistry"
 	root.add_child(pair_reg)
+	var registry: Node = load("res://scripts/autoloads/RegistryManager.gd").new()
+	registry.name = "RegistryManager"
+	root.add_child(registry)
+	var ledger: Node = load("res://scripts/autoloads/ResourceLedger.gd").new()
+	ledger.name = "ResourceLedger"
+	root.add_child(ledger)
 	await process_frame
 
 	# Victory/defeat emission counters (Arrays — captured by reference by the lambdas).
@@ -46,6 +52,21 @@ func _init() -> void:
 	var defeats := [0]
 	bus.map_victory.connect(func(): victories[0] += 1)
 	bus.map_defeat.connect(func(): defeats[0] += 1)
+
+	# ---- victory reward credits the existing party wallet through the ledger ----
+	var reward_tm := TurnManager.new()
+	root.add_child(reward_tm)
+	var reward_map := MapData.new()
+	reward_map.reward_gold = 75
+	reward_map.reward_items = ["vulnerary"] as Array[String]
+	reward_tm._map_data = reward_map
+	gs.party_gold = 25
+	gs.party_items.clear()
+	reward_tm._apply_victory_rewards(gs)
+	if gs.party_gold == 100 and gs.party_items == ["vulnerary"]:
+		print("OK  victory reward preserves gold credit and item append behavior"); passed += 1
+	else:
+		print("FAIL victory reward: gold=%d items=%s" % [gs.party_gold, gs.party_items]); failed += 1
 
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
 	var tm := TurnManager.new()

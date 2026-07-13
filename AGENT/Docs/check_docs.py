@@ -1220,6 +1220,33 @@ def check_stat_registry_guard() -> None:
                   "— use StatRegistry.label_for() instead (B3-STAT-REGISTRY DoD#2)")
 
 
+# ── check 28: party-gold transaction guard (B2-RESOURCE-LEDGER DoD#2) ─────────
+
+_PARTY_GOLD_WRITE_RE = re.compile(r"\bparty_gold\s*(?:\+=|-=|=)")
+_PARTY_GOLD_WRITE_ALLOW = {
+    Path("scripts/autoloads/GameState.gd"),
+    Path("scripts/autoloads/ResourceLedger.gd"),
+}
+
+
+def check_party_gold_transaction_guard() -> None:
+    """Gameplay consumers must mutate party gold through ResourceLedger."""
+    scripts_dir = ROOT / "scripts"
+    for path in sorted(scripts_dir.rglob("*.gd")):
+        relative = path.relative_to(ROOT)
+        if relative in _PARTY_GOLD_WRITE_ALLOW or "tests" in relative.parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for match in _PARTY_GOLD_WRITE_RE.finditer(text):
+            line_no = text[:match.start()].count("\n") + 1
+            _fail("party-gold-transaction-guard", path, line_no,
+                  "direct party_gold write bypasses ResourceLedger atomicity "
+                  "(B2-RESOURCE-LEDGER DoD#2)")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1251,6 +1278,7 @@ def main() -> None:
         ("[25] Input modes",               check_input_modes),
         ("[26] Touch controls",            check_touch_controls),
         ("[27] Stat registry guard",       check_stat_registry_guard),
+        ("[28] Party-gold ledger guard",   check_party_gold_transaction_guard),
     ]
     for label, fn in steps:
         print(f"  {label}...")

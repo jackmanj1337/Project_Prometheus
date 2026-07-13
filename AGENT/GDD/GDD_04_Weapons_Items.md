@@ -19,7 +19,7 @@ owned by `GDD_01`. Class WEXP baselines/caps live in `GDD_03`.
 ## Weapon System Overview
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-07-13
 
 ### Summary
 Weapons are `WeaponData` resources in `data/weapons/`; units carry weapons and items
@@ -313,6 +313,9 @@ corpus item roster is the adoption target (provenance `awakening_items.md`).
 the matching `WeaponData.uses` / `ItemData.uses`. Equip items (uses = −1) sell for
 `floor(base_cost / 2)`. Gold is the shared `GameState.party_gold` treasury (GDD_02 owns
 the economy summary; shops are a D-D campaign prerequisite, Planned).
+The shared ledger contract now supports fixed party/unit quote, atomic commit, and
+recorded-delta refund operations, but selling and future shop UI have not yet been
+migrated as consumers.
 
 **Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
 Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20
@@ -326,7 +329,8 @@ or author cost profiles through the resource ledger/cost resolver rather than ad
 shop-specific arithmetic branches.
 
 ### Anchors
-- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`, `data/items/`
+- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`,
+  `scripts/autoloads/ResourceLedger.gd`, `data/items/`
 - Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
 - Owner of economy/gold summary: GDD_02 §Gold & Economy
 - Decisions: D-D (shops as campaign prerequisite)

@@ -664,15 +664,18 @@ Last verified: 2026-06-13
 
 ## Gold & Economy (combat-adjacent)
 
-Status: **Implemented** (shops **Planned**)
-Last verified: 2026-06-13
+Status: **Implemented - ledger groundwork** (shops **Planned**)
+Last verified: 2026-07-13
 
 ### Specs
-- Shared `GameState.party_gold` treasury; map rewards add once on map resolve.
+- Shared `GameState.party_gold` treasury; map rewards add once on map resolve
+  through `ResourceLedger`'s registered party-wallet credit path.
+- Fixed party/unit costs share side-effect-free quote, atomic commit, and
+  recorded-delta refund results. Dynamic formulas and resource pools remain Planned.
 - Sale price: `floor(base_cost × (uses_remaining / max_uses) / 2)`.
 - Shops are Phase 2 (scenes); a campaign-mode prerequisite (D-D).
 
 ### Anchors
-- Code: `scripts/autoloads/GameState.gd`
+- Code: `scripts/autoloads/GameState.gd`, `scripts/autoloads/ResourceLedger.gd`
 - Owner of item/economy detail: GDD_04
 - Decisions: D-D

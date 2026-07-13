@@ -12,6 +12,7 @@ const PRESET_DIRECTORIES: Array[String] = [
 const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
 	"party_gold_wallet",
+	"unit_gold_wallet",
 	"nearest_free_placement",
 ]
 

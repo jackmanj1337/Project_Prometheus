@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13c](2026-07-13c.md) — **B2 Resource Ledger groundwork implemented:** fixed party/unit costs, quote/reserve/atomic commit/recorded refund, victory-gold delegation, direct-write guard, and all 72 suites green.
 - [2026-07-13b](2026-07-13b.md) — **B2 Action/Effect contract groundwork implemented:** typed request/context/result, registry-backed validation and handler resolution, no-mutation failures/dry-run, `apply_active_modifier`, and behavior-neutral `stat_buff` delegation; all 71 suites green.
 - [2026-07-13](2026-07-13.md) — **v0.4 next-session handoff prepared:** Action/Effect contract-only slice first, safe fallbacks recorded, v0.3.2 return preempts at a clean commit; branch queued for push.
 - [2026-07-12d](2026-07-12d.md) — **B2 DataManager seam underway:** explicit clear/load/validate/report phases plus inert self-contained campaign replace-load; default-source regression green, alternate fixture next.

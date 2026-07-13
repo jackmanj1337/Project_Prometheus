@@ -18,6 +18,7 @@ signal turn_changed(turn_number: int)
 signal phase_committed
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -1208,7 +1209,15 @@ func can_escape(unit: Node, tile: Vector2i) -> bool:
 
 func _apply_victory_rewards(gs: Node) -> void:
 	if _map_data.reward_gold > 0:
-		gs.party_gold += _map_data.reward_gold
+		var ledger := get_node_or_null("/root/ResourceLedger")
+		if ledger == null:
+			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
+		else:
+			var cost = CostSpecScript.fixed(
+				"party_gold", "party", -_map_data.reward_gold)
+			var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
+			if not transaction.ok:
+				push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
 	for item_id in _map_data.reward_items:
 		gs.party_items.append(item_id)
 

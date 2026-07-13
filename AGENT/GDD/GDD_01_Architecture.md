@@ -69,6 +69,25 @@ save field; all registry entries marked as mutations must declare at least one s
 field. Requirement-gated availability remains owned by `B3-REQ`, and broader item,
 map-event, dialogue, economy, and objective migrations remain later consumers.
 
+### Resource Transaction Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+`ResourceLedger` is the shared affordability and mutation path for registered
+wallets. Fixed `CostSpec` records can be quoted without mutation, reserved as
+transient non-mutating records, committed atomically across multiple wallets, and
+refunded from the recorded committed deltas. Every result is a structured
+`ResourceTransaction` containing wallet ids, deltas, shortfalls, and a failure
+reason. Unknown resources, unresolved subjects, unsupported scopes, formula terms,
+and insufficient balances fail before any wallet changes.
+
+The first registry-backed adapters expose the existing `GameState.party_gold` and
+legacy `UnitData.gold` fields. Victory gold now credits the party adapter while item
+rewards retain their existing append behavior. Dynamic formula terms, persistent
+holds, custom resource pools, and shop/training consumers remain with their owning
+later tracks.
+
 For the step-by-step "how do I add or validate one safely?" workflows, prefer
 the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
 GDD chapter.
