@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-13j](2026-07-13j.md) — **v0.4.0 review gate closed:** all Low cleanup, projection byte-snapshot coverage, strict source-relative registry reload, and all 75 suites green; release metadata/build/smoke/handoff next.
 - [2026-07-13i](2026-07-13i.md) — **v0.4.0 RC blockers fixed:** single death funnel + resolver-level mutual-death snapshots, nearest-free nonfatal map-start placement, and all 75 suites green; cleanup batch is next.
 - [2026-07-13h](2026-07-13h.md) — **v0.4.0 full-delta code review:** 3 Medium RC blockers (circular death fallback, map boot aborts on placement failure, mutual-death untested) + 8 Low; all five decisions taken and fix handoff written. No code changed.
 - [2026-07-13g](2026-07-13g.md) — **v0.4.0 release checklist defined:** seven Band 2 slices bounded, review evidence specified, deliberate deferrals recorded, and RC gates established.
