@@ -97,6 +97,8 @@ All production combat deaths enter `DeathLifecycle.handle_death(DeathContext)`.
 The context snapshots identity, inventory, tile, source, responsible actor, and a
 simultaneous-death group before disposition begins. `DeathDisposition` is the one
 future custody/inventory hook; its initial implementation is deliberately a no-op.
+`DeathLifecycle` is the sole implementation: combat reports a missing autoload as
+an error and stops death processing instead of entering a compatibility fallback.
 The lifecycle reads `GameState.campaign_rules`, releases Pair Up support,
 unregisters the unit, emits `unit_died` once, and queues the scene node for removal.
 `Unit.handle_death()` remains only as a compatibility wrapper. Non-combat causes,

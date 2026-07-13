@@ -952,16 +952,13 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 		attacker_ctx.responsible_actor = defender
 		attacker_ctx.simultaneous_group_id = death_group
 	var lifecycle := get_node_or_null("/root/DeathLifecycle") if is_inside_tree() else null
+	if lifecycle == null and (defender_ctx != null or attacker_ctx != null):
+		push_error("CombatResolver cannot process death without /root/DeathLifecycle")
+		return
 	if defender_ctx != null:
-		if lifecycle != null:
-			lifecycle.handle_death(defender_ctx)
-		elif defender.has_method("handle_death"):
-			defender.handle_death()
+		lifecycle.handle_death(defender_ctx)
 	if attacker_ctx != null:
-		if lifecycle != null:
-			lifecycle.handle_death(attacker_ctx)
-		elif attacker.has_method("handle_death"):
-			attacker.handle_death()
+		lifecycle.handle_death(attacker_ctx)
 
 	if bus:
 		bus.combat_resolved.emit(attacker, defender, result)

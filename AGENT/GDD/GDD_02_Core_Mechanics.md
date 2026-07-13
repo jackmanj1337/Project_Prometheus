@@ -553,6 +553,8 @@ Controlled by `GameState.campaign_rules.permadeath_enabled`.
 - Combat now delegates both classic and casual removal through the shared death
   lifecycle. Mutual-death contexts are snapshotted before either unit is disposed
   and resolve defender first, then attacker, preserving deterministic ordering.
+  Resolver-level coverage verifies the shared group, responsible actors, entry
+  tiles, and inventory snapshots across that disposition boundary.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/autoloads/DeathLifecycle.gd`
