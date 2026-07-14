@@ -85,8 +85,11 @@ Every tracker row uses these columns:
 evidence is tracked in
 [`v0.4.0_release_checklist_2026-07-13.md`](v0.4.0_release_checklist_2026-07-13.md);
 Implemented row status does not replace the checklist's review, build, and smoke
-gates. The desktop-browser artifact and itch.io publication path are scoped in
-[`desktop_web_itch_release_handoff_2026-07-14.md`](desktop_web_itch_release_handoff_2026-07-14.md).
+gates. The active Windows build and smoke path is scoped in
+[`v0.4.0_windows_headless_release_handoff_2026-07-14.md`](v0.4.0_windows_headless_release_handoff_2026-07-14.md).
+The desktop-browser artifact and itch.io publication path in
+[`desktop_web_itch_release_handoff_2026-07-14.md`](desktop_web_itch_release_handoff_2026-07-14.md)
+is on hold.
 
 | Track ID | Band | Status | Work item | Scope | Blocks / depends on | GDD owner | Decision source | Build source | Save / registry impact | Test / validation | Next action |
 |---|---|---|---|---|---|---|---|---|---|---|---|
