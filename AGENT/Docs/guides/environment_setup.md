@@ -152,12 +152,12 @@ bash scripts/tools/prepare_build.sh
 
 # Debug build (slightly larger, useful for testers)
 godot --headless --path . \
-    --export-debug "Project Prometheus v0.3.1" \
+    --export-debug "Project Prometheus v0.3.5" \
     builds/Project_Prometheus_v0.3.5_debug.exe
 
 # Release build
 godot --headless --path . \
-    --export-release "Project Prometheus v0.3.1" \
+    --export-release "Project Prometheus v0.3.5" \
     builds/Project_Prometheus_v0.3.5.exe
 ```
 

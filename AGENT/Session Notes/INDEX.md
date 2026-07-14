@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-14a](2026-07-14a.md) — **v0.3.5 focused rerun cut:** v0.3.4 UI returns repaired, rendered-width and monotonic-scroll tests green, and hashed Windows build/checklist ready.
+
 - [2026-07-14](2026-07-14.md) — **v0.3.4 focused rerun cut:** four v0.3.3-return repairs implemented, faction threat-view suspend migration covered, all 75 suites green, and hashed Windows build/checklist ready.
 
 - [2026-07-13o](2026-07-13o.md) — **v0.3.3 focused rerun cut:** full-pull slower trigger zoom, scale-aware three-row focus lookahead, retained menu threat overlays, accepted dual-outline default, F8 removed, checklist and hashed Windows build ready.
