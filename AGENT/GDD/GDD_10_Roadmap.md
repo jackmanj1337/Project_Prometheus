@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-14
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -69,6 +69,24 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+### v0.3.3 returned-playtest defects
+
+The v0.3.3 focused rerun returned on 2026-07-14. The permanent checklist and
+root-cause packet are
+[`playtest_checklist_v0.3.3_returned_2026-07-14.md`](../Docs/playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md)
+and
+[`playtest_v0.3.3_results_triage_plan_2026-07-14.md`](../Docs/playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md).
+
+| Order | Track ID | To-do | Decision state |
+|---:|---|---|---|
+| 1 | `VAL-V030-GAMEPAD` | Stop raw joy-axis zoom from bypassing the 0.85 threshold and double-stepping; add ramp/repress coverage. | No decision; implement the source-confirmed single-owner input fix. |
+| 2 | `B6-MRD` | Isolate watch sets, danger mode, markers, and suspend state by controlling faction. | Faction ownership is recommended; player/seat ownership expands scope. |
+| 3 | `UI-INSPECTION` | Size Action Menu from scaled label/content width so 2x labels stay inside button art. | No decision unless fixed-width art is required. |
+| 4 | `UI-INSPECTION` | Measure Settings focus lookahead from visual list rows, including mixed-height slider rows. | No decision; preserve the viewport cap. |
+
+Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
+Pending validation; `B6-MRD` and `UI-INSPECTION` retain the defects above.
+
 ### v0.4.0 release gate
 
 v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
@@ -93,9 +111,9 @@ are resolved. Band 3 consumers are outside this release boundary.
 
 | Order | Track ID | Work item | Why next |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` | Live-validate the implemented v0.3.2 zoom tune | **Implemented headlessly 2026-07-13:** existing zoom levels retained; LT/RT now require `0.85` strength and share a `0.65s` initial delay/rate. Focus lookahead is shared by Settings and Unit Details, targets three row heights, and clamps below half the viewport. Run one narrow controller/UI rerun. |
-| 2 | `B6-MRD` | Live-confirm retained threat display under menus | **Implemented headlessly 2026-07-13:** `dual_outline` is the fixed default and F8 is removed. Action Menu composes movement with base threat/watch; Map Menu retains only base threat/watch; both clear peek/path transients, while phase/load cleanup still clears paint. Run the focused menu-transition check. |
-| 3 | `UI-INSPECTION` | Carry deferred UI-pass notes | V032-D2 is confirmed as menu-list focus lookahead: implement the shared scale-aware margin in the order-1 slice. Also carry the keybind-grid focus order note (V031-GP-06, left-right-then-down vs straight down) and the existing `V027-05a` 2.0x Main Menu overlap task. |
+| 1 | `VAL-V030-GAMEPAD` | Fix the v0.3.3 trigger double-consumption defect | Raw joy-axis events bypass the polling threshold and can step once below 0.85, then again when polling crosses it. Route analog triggers exclusively through the threshold-aware poller and retest. |
+| 2 | `B6-MRD` | Decide and implement watch-view ownership | Menu threat retention and `dual_outline` passed, but one global watch set leaks markers across faction handoffs. Per-faction state is recommended; include suspend migration. |
+| 3 | `UI-INSPECTION` | Fix the two v0.3.3 high-scale layout findings | Make Action Menu width content-driven at 2x and calculate lookahead from visual owner rows rather than leaf slider height. Keep the existing deferred keybind/Main Menu tasks queued. |
 
 ## Parallel Queue
 
