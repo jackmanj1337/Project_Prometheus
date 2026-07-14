@@ -60,10 +60,21 @@ func _ready() -> void:
 
 func apply_menu_scale(factor: float) -> void:
 	MenuScale.apply_to(self, factor, false)
+	_fit_width_to_visible_labels()
 
 
 func _apply_menu_scale_from_settings() -> void:
 	apply_menu_scale(MenuScale.factor_from_settings(self))
+
+
+# The ornate button style has substantial scaled insets. Size from each visible
+# button's real themed minimum so labels remain inside the art at every scale.
+func _fit_width_to_visible_labels() -> void:
+	var required_width := 128.0
+	for button in _buttons:
+		if button.visible:
+			required_width = maxf(required_width, button.get_combined_minimum_size().x)
+	custom_minimum_size.x = required_width
 
 
 # Show the menu and configure which buttons are active.

@@ -79,13 +79,13 @@ and
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
-| 1 | `VAL-V030-GAMEPAD` | Stop raw joy-axis zoom from bypassing the 0.85 threshold and double-stepping; add ramp/repress coverage. | No decision; implement the source-confirmed single-owner input fix. |
-| 2 | `B6-MRD` | Isolate watch sets, danger mode, markers, and suspend state by controlling faction. | Resolved 2026-07-14: watch state belongs to the controlling faction; do not add player/seat ownership. |
-| 3 | `UI-INSPECTION` | Size Action Menu from scaled label/content width so 2x labels stay inside button art. | No decision unless fixed-width art is required. |
-| 4 | `UI-INSPECTION` | Measure Settings focus lookahead from visual list rows, including mixed-height slider rows. | No decision; preserve the viewport cap. |
+| 1 | `VAL-V030-GAMEPAD` | Implemented 2026-07-14: raw joy-axis zoom no longer bypasses the 0.85 threshold or double-consumes a pull; final live validation remains. | Single-owner polling fix implemented with event-path regression coverage. |
+| 2 | `B6-MRD` | Implemented 2026-07-14: watch sets, danger mode, markers, pruning, and versioned suspend state are isolated by controlling faction. | Watch state belongs to the controlling faction; no player/seat ownership. |
+| 3 | `UI-INSPECTION` | Implemented 2026-07-14: Action Menu width follows visible scaled button minimums with a 128px floor. | Await 1x/2x Windows screenshots. |
+| 4 | `UI-INSPECTION` | Implemented 2026-07-14: focus lookahead measures visual owner rows and upcoming visible sibling heights. | Await final 2x Windows screenshots. |
 
 Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
-Pending validation; `B6-MRD` and `UI-INSPECTION` retain the defects above. The
+Pending validation; the repaired surfaces require the focused rerun. The
 next-session execution packet is
 [`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
 

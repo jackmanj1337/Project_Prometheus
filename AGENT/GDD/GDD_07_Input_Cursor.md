@@ -19,7 +19,7 @@ Status: **Implemented** (keyboard + mouse parity; gamepad binding/menu-control,
 headless map-cursor decoder, profile-ready keybind persistence, and key-rebind capture
 for keyboard/mouse + gamepad); live controller feel **Target design** / pending
 validation.
-Last verified: 2026-07-12
+Last verified: 2026-07-14
 
 All input is handled through Godot's **Input Map** (defined in Project Settings).
 `MapCursor.gd` is the primary input handler during gameplay.
@@ -101,7 +101,10 @@ the free cursor state only:
 - **Watch set** — a persistent set of hostile, attack-capable enemies the player
   hand-picks. The resolver over such an enemy toggles its membership (stored as
   stable unit ids, so a defeated enemy is pruned and a suspend save can
-  round-trip them). Each watched enemy shows a small **"D"** marker on its tile.
+  round-trip them). Each controlling faction owns an independent watch set and
+  mode; only the active faction's markers/view render. Members that die or cease
+  to be hostile to that owning faction are pruned. Each watched enemy shows a
+  small **"D"** marker on its tile.
 - **Danger mode** — the overlay display mode, one of exactly **`none`**,
   **`full`**, **`selected`**, **`combined`**. The resolver over empty terrain
   cycles `full → selected → combined → none` (starting from `none → full`).
@@ -117,7 +120,8 @@ Adding a member auto-promotes the mode on the empty→non-empty transition
 opaque top layers). The set + mode survive phase changes, menus, and unit
 selection (teardown clears only the paint; a return to the free state recomputes
 it from live positions); a fresh map load clears them, while a suspend resume
-restores them from `suspend.watch_set` / `suspend.danger_mode`.
+restores every faction view from the versioned
+`suspend.threat_views_by_faction` field.
 
 Selection and targeting overlays are built as registry layer specs and composed
 with retained threat specs, so selecting a unit or entering attack/staff/pair-up
@@ -181,7 +185,9 @@ capture, so the standdown is checked explicitly).
 Held map zoom ignores LT/RT values below a 0.85 activation threshold. Any pull
 past the threshold steps the zoom once, then repeats on one constant slow
 cadence (0.65s initial delay and per-step rate) — pull depth does not change
-the speed. The earlier strength-scaled timer (0.45s to 0.18s by pull depth)
+the speed. Analog trigger motion is consumed only by this threshold-aware
+poller; discrete keyboard and mouse zoom presses remain immediate. The earlier
+strength-scaled timer (0.45s to 0.18s by pull depth)
 kept reading as "too sensitive" on live returns and was removed by owner
 decision on the v0.3.2 return (2026-07-13, V032-D1); per-player sensitivity
 sliders remain a `B6-INPUT` backlog item. The new feel still requires a focused

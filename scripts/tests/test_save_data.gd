@@ -40,7 +40,11 @@ func _init() -> void:
 	save.map_runtime["rng"] = {"map_seed": 12345, "history_hash": 67890}
 	save.suspend["kind"] = "map"
 	save.suspend["cursor_tile"] = SaveCodec.vector2i_to_dict(Vector2i(4, 6))
-	save.suspend["watch_set"] = ["enemy_a"]
+	save.suspend["threat_views_version"] = 1
+	save.suspend["threat_views_by_faction"] = {
+		"blue": {"watch_set": ["enemy_a"], "danger_mode": "combined"},
+		"red": {"watch_set": ["ally_a"], "danger_mode": "selected"},
+	}
 
 	var parsed: Variant = JSON.parse_string(JSON.stringify(save.to_dict()))
 	var restored: RefCounted = SaveDataScript.from_dict(parsed)
@@ -60,7 +64,9 @@ func _init() -> void:
 		and restored.roster["units"][0]["inventory"]["entries"][0]["weapon_id"] == "iron_lance" \
 		and restored.map_runtime["rng"] == {"map_seed": "12345", "history_hash": "67890"} \
 		and restored.suspend["cursor_tile"] == {"x": 4, "y": 6} \
-		and restored.suspend["watch_set"] == ["enemy_a"] \
+		and restored.suspend["threat_views_version"] == 1 \
+		and restored.suspend["threat_views_by_faction"]["blue"]["watch_set"] == ["enemy_a"] \
+		and restored.suspend["threat_views_by_faction"]["red"]["danger_mode"] == "selected" \
 		and restored.validate(RefValidator.new()).is_empty()
 	if roundtrip_ok:
 		print("OK  test_save_data_campaign_roundtrip: envelope survives JSON")

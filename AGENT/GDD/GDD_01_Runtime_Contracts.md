@@ -137,7 +137,9 @@ plan (code, integration sweep, tests, build order) is
   a `SaveData` document between committed actions while the cursor is in free,
   unsuppressed local control: map id/path, live unit runtime dictionaries for all
   factions, turn/scheduler cursor, per-unit activation states, objective bookkeeping,
-  PairUpRegistry, RNG timeline, cursor tile, and MRD watch-set/danger-mode state.
+  PairUpRegistry, RNG timeline, cursor tile, and versioned per-controlling-faction
+  MRD threat views (`watch_set` + `danger_mode`). Legacy single-view suspend fields
+  load as the saved controlling faction's view.
   `GameState.configure_suspend_resume()` stages that document; `GameMap` then spawns
   from `map_runtime.units` instead of authored placements and restores
   `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. `SaveManager`

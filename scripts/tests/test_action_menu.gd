@@ -4,6 +4,8 @@ extends SceneTree
 # logic. Uses a stub grid (so the enemy / heal-target lists are fully controlled)
 # and real weapon resources for the is_healing_staff() check.
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 var _unit_stub: GDScript
 var _grid_stub: GDScript
 
@@ -158,6 +160,19 @@ func _init() -> void:
 		print("OK  ActionMenu has a non-zero size (%s)" % str(am.size)); passed += 1
 	else:
 		print("FAIL ActionMenu size is zero: %s" % str(am.size)); failed += 1
+
+	# V033-UI-02: all scaled visible labels contribute their themed minimum width.
+	var labels_fit := true
+	for factor in [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]:
+		am.apply_menu_scale(factor)
+		await process_frame
+		for button in am._buttons:
+			if button.visible and am.custom_minimum_size.x + 0.01 < button.get_combined_minimum_size().x:
+				labels_fit = false
+	if labels_fit and am.custom_minimum_size.x >= 128.0:
+		print("OK  ActionMenu width fits visible themed labels at every Menu Scale"); passed += 1
+	else:
+		print("FAIL ActionMenu scaled label width: min=%s" % am.custom_minimum_size.x); failed += 1
 
 	# ---- choosing an action hides the menu (it used to linger on screen) ----
 	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))

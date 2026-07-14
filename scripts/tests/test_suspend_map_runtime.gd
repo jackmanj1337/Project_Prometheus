@@ -110,7 +110,7 @@ func _init() -> void:
 	rng.commit_event("wait", [blue_a_id, "1,9", "1,9"] as Array[String])
 	var rng_at_suspend: Dictionary = rng.to_save_dict()
 	cursor._watch_set.clear()
-	cursor._watch_set[boss_id] = true
+	cursor._watch_set[blue_a_id] = true
 	cursor._danger_mode = "combined"
 	cursor._set_tile(Vector2i(8, 8))
 
@@ -122,8 +122,8 @@ func _init() -> void:
 		and int(payload["map_runtime"]["turn"]["unit_states"].get(blue_a_id, -1)) == TurnManager.UnitState.DONE \
 		and String(payload["map_runtime"]["turn"]["active_faction"]) == "red" \
 		and int(payload["map_runtime"]["rng"].get("map_seed", 0)) == rng_at_suspend["map_seed"] \
-		and boss_id in payload["suspend"]["watch_set"] \
-		and String(payload["suspend"]["danger_mode"]) == "combined"
+		and blue_a_id in payload["suspend"]["threat_views_by_faction"]["red"]["watch_set"] \
+		and String(payload["suspend"]["threat_views_by_faction"]["red"]["danger_mode"]) == "combined"
 	if payload_ok:
 		print("OK  capture payload carries units, scheduler, RNG, and MRD UI state")
 		passed += 1
@@ -187,7 +187,7 @@ func _init() -> void:
 		and int(resumed_rng.get("history_hash", 0)) == int(rng_at_suspend.get("history_hash", 0))
 	var pair_restored: bool = bool(pair_reg.call("is_paired", blue_a_id))
 	var cursor_restored: bool = resumed_cursor.current_tile == Vector2i(8, 8) \
-		and resumed_cursor._watch_set.has("e8_knight_boss") \
+		and resumed_cursor._watch_set.has(blue_a_id) \
 		and resumed_cursor._danger_mode == "combined"
 	var payload_cleared: bool = gs.next_map_suspend_payload.is_empty()
 	var side_state_restored: bool = rng_restored and pair_restored and cursor_restored and payload_cleared

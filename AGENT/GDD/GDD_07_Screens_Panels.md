@@ -231,6 +231,9 @@ repositions (V025-03 stickiness).
 
 The menu is **contextual**. Unavailable actions are hidden entirely rather than shown
 disabled, so the visible row set depends on the acting unit, tile, and current map.
+Its 128px design width is a floor: at larger Menu Scale values the panel expands
+to the widest visible label plus the active button style margins, so text remains
+inside the ornate frame.
 
 **Behavior:**
 - Menu appears adjacent to the unit's new tile; repositioned if too close to screen edge.
@@ -560,7 +563,9 @@ The Settings screen is a single panel — **not tabbed**. A full-rect opaque
 The panel's contents live in a `ScrollContainer` so the list never overflows.
 Focus stepping keeps up to three row heights of lookahead context visible past
 the focused row, capped below half the viewport at large Menu Scale values
-(V032-D2, 2026-07-13) — `follow_focus` alone
+(V032-D2, 2026-07-13). A focused leaf such as a slider resolves to its owning
+visual list row, and the margin sums the next three visible sibling row heights;
+this preserves context across mixed-height controls. `follow_focus` alone
 scrolled the focused row just barely into view, so the tester couldn't see
 what the next step moved toward.
 It is an overlay opened with `open()` and dismissed by the `Back` button or the

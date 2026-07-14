@@ -211,9 +211,12 @@ func _apply_focus_lookahead(ctrl: Control) -> void:
 	if scroll == null or ctrl == null or not ctrl.is_inside_tree() \
 			or not scroll.is_ancestor_of(ctrl):
 		return
+	var row := _visual_scroll_row(scroll, ctrl)
 	var view := scroll.get_global_rect()
-	var rect := ctrl.get_global_rect()
-	var desired: float = rect.size.y * 3.0
+	var rect := row.get_global_rect()
+	var desired := _next_visual_rows_height(row, 3)
+	if desired <= 0.0:
+		desired = rect.size.y * 3.0
 	var viewport_cap: float = maxf(0.0, (view.size.y - rect.size.y) * 0.5)
 	var lookahead: float = minf(desired, viewport_cap)
 	var above := (view.position.y + lookahead) - rect.position.y
@@ -222,6 +225,33 @@ func _apply_focus_lookahead(ctrl: Control) -> void:
 		scroll.scroll_vertical -= int(ceilf(above))
 	elif below > 0.0:
 		scroll.scroll_vertical += int(ceilf(below))
+
+
+# Resolve a leaf focus target (for example an HSlider) to the row directly
+# owned by the scrolling content container.
+func _visual_scroll_row(scroll: ScrollContainer, ctrl: Control) -> Control:
+	var row := ctrl
+	while row.get_parent() is Control and row.get_parent().get_parent() != scroll:
+		row = row.get_parent() as Control
+	return row
+
+
+func _next_visual_rows_height(row: Control, count: int) -> float:
+	var parent := row.get_parent()
+	if parent == null:
+		return 0.0
+	var siblings := parent.get_children()
+	var index := siblings.find(row)
+	var height := 0.0
+	var found := 0
+	for i in range(index + 1, siblings.size()):
+		var sibling := siblings[i]
+		if sibling is Control and sibling.is_visible_in_tree():
+			height += (sibling as Control).get_global_rect().size.y
+			found += 1
+			if found == count:
+				break
+	return height
 
 
 func _focusable_controls(root_node: Node) -> Array[Control]:

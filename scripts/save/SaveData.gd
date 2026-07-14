@@ -212,6 +212,14 @@ static func _normalize_suspend(source: Variant) -> Dictionary:
 	out["cursor_tile"] = _vector_dict_or_null(out.get("cursor_tile", null))
 	out["watch_set"] = SaveCodec.string_array_from_variant(out.get("watch_set", []))
 	out["danger_mode"] = _as_string(out.get("danger_mode", "none"), "none")
+	out["threat_views_version"] = SaveCodec.as_int(out.get("threat_views_version", 0), 0)
+	var views := _dict_from_variant(out.get("threat_views_by_faction", {}))
+	for faction_id in views:
+		var view := _dict_from_variant(views[faction_id])
+		view["watch_set"] = SaveCodec.string_array_from_variant(view.get("watch_set", []))
+		view["danger_mode"] = _as_string(view.get("danger_mode", "none"), "none")
+		views[faction_id] = view
+	out["threat_views_by_faction"] = views
 	return out
 
 
@@ -411,6 +419,8 @@ static func _default_suspend() -> Dictionary:
 		"mode": null,
 		"watch_set": [],
 		"danger_mode": "none",
+		"threat_views_version": 0,
+		"threat_views_by_faction": {},
 	}
 
 

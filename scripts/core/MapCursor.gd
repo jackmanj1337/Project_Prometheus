@@ -85,6 +85,10 @@ var _danger_mode: String = DANGER_MODE_NONE
 # stable unit ids (not refs) so a defeated enemy prunes cleanly and a save can
 # round-trip them ([TUR-3]/[TUR-4]). Used as a set: id -> true.
 var _watch_set: Dictionary = {}
+# Each controlling faction owns an independent threat view. The two fields above
+# remain the active view so existing overlay code stays simple; this dictionary
+# stores inactive views and is synchronized on faction handoff/save.
+var _threat_views_by_faction: Dictionary = {}
 # World-space container for the watched-enemy "D" markers ([TUR-2]); built lazily.
 var _watch_marker_layer: Node2D = null
 
@@ -270,9 +274,13 @@ func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null,
 # hotseat hand-off). Re-points the selection + targeting slices so the cursor
 # starts respecting the new faction's units immediately.
 func set_controlling_faction(faction_id: String) -> void:
+	_store_active_threat_view()
 	_controlling_faction = faction_id
+	_load_threat_view(faction_id)
 	_selection.set_controlling_faction(faction_id)
 	_targeting.set_controlling_faction(faction_id)
+	if _state == State.FREE:
+		repaint()
 
 
 # ── Input Handling ──────────────────────────────────────────────────────────
@@ -284,11 +292,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	# before the cursor-move branches so a scroll-to-zoom isn't also read as a
 	# mouse button. Zoom re-frames on the cursor's current tile and persists the
 	# chosen level so it survives map changes and restarts.
-	if _is_fresh_action_press(event, "zoom_in"):
+	# Analog triggers are thresholded and repeated exclusively by
+	# _poll_held_zoom(). Consuming their motion event here caused a below-threshold
+	# step followed by a second step when polling crossed 0.85.
+	var analog_trigger_event := event is InputEventJoypadMotion \
+		and (event.is_action("zoom_in") or event.is_action("zoom_out"))
+	if not analog_trigger_event and _is_fresh_action_press(event, "zoom_in"):
 		_apply_zoom_step(1)
 		_arm_zoom_repeat(1)
 		return
-	if _is_fresh_action_press(event, "zoom_out"):
+	if not analog_trigger_event and _is_fresh_action_press(event, "zoom_out"):
 		_apply_zoom_step(-1)
 		_arm_zoom_repeat(-1)
 		return
@@ -586,7 +599,8 @@ func _prune_watch_set() -> void:
 	var units: Variant = gs.get("all_units") if gs != null else null
 	if units is Array:
 		for u in units:
-			if u != null and u.data != null and u.data.hp > 0:
+			if u != null and u.data != null and u.data.hp > 0 \
+					and _is_hostile_to_controller(u):
 				present[u.data.unit_id] = true
 	var removed_any := false
 	for id in _watch_set.keys():
@@ -1624,11 +1638,12 @@ func can_capture_suspend() -> bool:
 
 func capture_suspend_ui_state() -> Dictionary:
 	_prune_watch_set()
+	_store_active_threat_view()
 	return {
 		"cursor_tile": current_tile,
 		"mode": "free",
-		"watch_set": _watch_set.keys(),
-		"danger_mode": _danger_mode,
+		"threat_views_version": 1,
+		"threat_views_by_faction": _serialize_threat_views(),
 	}
 
 
@@ -1636,15 +1651,55 @@ func apply_suspend_ui_state(suspend_state: Dictionary) -> void:
 	var tile: Vector2i = current_tile
 	if suspend_state.has("cursor_tile"):
 		tile = SaveCodec.vector2i_from_dict(suspend_state["cursor_tile"], current_tile)
-	_watch_set.clear()
-	for unit_id in suspend_state.get("watch_set", []):
-		var id: String = String(unit_id)
-		if id != "":
-			_watch_set[id] = true
-	var mode: String = String(suspend_state.get("danger_mode", DANGER_MODE_NONE))
-	_danger_mode = mode if mode in VALID_DANGER_MODES else DANGER_MODE_NONE
+	_threat_views_by_faction.clear()
+	var saved_views: Variant = suspend_state.get("threat_views_by_faction", {})
+	if saved_views is Dictionary and not saved_views.is_empty():
+		for faction_id in saved_views:
+			_threat_views_by_faction[String(faction_id)] = _normalize_threat_view(saved_views[faction_id])
+	else:
+		# Legacy suspend saves owned one global view. Assign it to the faction
+		# controlling the cursor at load time so old saves remain usable.
+		_threat_views_by_faction[_controlling_faction] = _normalize_threat_view({
+			"watch_set": suspend_state.get("watch_set", []),
+			"danger_mode": suspend_state.get("danger_mode", DANGER_MODE_NONE),
+		})
+	_load_threat_view(_controlling_faction)
 	_set_tile(tile)
 	repaint()
+
+
+func _store_active_threat_view() -> void:
+	if _controlling_faction == "":
+		return
+	_threat_views_by_faction[_controlling_faction] = {
+		"watch_set": _watch_set.keys(),
+		"danger_mode": _danger_mode,
+	}
+
+
+func _load_threat_view(faction_id: String) -> void:
+	var view: Dictionary = _normalize_threat_view(_threat_views_by_faction.get(faction_id, {}))
+	_watch_set.clear()
+	for unit_id in view["watch_set"]:
+		_watch_set[String(unit_id)] = true
+	_danger_mode = String(view["danger_mode"])
+
+
+func _normalize_threat_view(source: Variant) -> Dictionary:
+	var view: Dictionary = source if source is Dictionary else {}
+	var ids: Array[String] = SaveCodec.string_array_from_variant(view.get("watch_set", []))
+	var mode: String = String(view.get("danger_mode", DANGER_MODE_NONE))
+	return {
+		"watch_set": ids,
+		"danger_mode": mode if mode in VALID_DANGER_MODES else DANGER_MODE_NONE,
+	}
+
+
+func _serialize_threat_views() -> Dictionary:
+	var out: Dictionary = {}
+	for faction_id in _threat_views_by_faction:
+		out[String(faction_id)] = _normalize_threat_view(_threat_views_by_faction[faction_id])
+	return out
 
 
 func _on_end_turn_requested() -> void:

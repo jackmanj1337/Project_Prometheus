@@ -191,16 +191,22 @@ func _init() -> void:
 	var idx_before_echo: int = c_zoom._camera_ctrl.get_zoom_index()
 	c_zoom._unhandled_input(echo_zoom)
 	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
+	var trigger_motion := InputEventJoypadMotion.new()
+	trigger_motion.axis = JOY_AXIS_TRIGGER_RIGHT
+	trigger_motion.axis_value = 1.0
+	var idx_before_motion: int = c_zoom._camera_ctrl.get_zoom_index()
+	c_zoom._unhandled_input(trigger_motion)
+	var trigger_event_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_motion
 	if zoom_threshold_blocks and zoom_partial_blocks and zoom_first and zoom_waited \
 			and zoom_repeated and zoom_cleared and partial_first and partial_waited \
-			and partial_repeated and rate_constant and echo_ignored:
+			and partial_repeated and rate_constant and echo_ignored and trigger_event_ignored:
 		print("OK  held zoom threshold blocks grazes, repeats at one constant slow cadence, and ignores key echo")
 		passed += 1
 	else:
-		print("FAIL held zoom: threshold=%s partial_block=%s first=%s waited=%s repeated=%s cleared=%s pfirst=%s pwaited=%s prepeated=%s const=%s echo=%s idx=%d dir=%d" % [
+		print("FAIL held zoom: threshold=%s partial_block=%s first=%s waited=%s repeated=%s cleared=%s pfirst=%s pwaited=%s prepeated=%s const=%s echo=%s trigger_event=%s idx=%d dir=%d" % [
 			zoom_threshold_blocks, zoom_partial_blocks, zoom_first, zoom_waited,
 			zoom_repeated, zoom_cleared, partial_first, partial_waited, partial_repeated,
-			rate_constant, echo_ignored,
+			rate_constant, echo_ignored, trigger_event_ignored,
 			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
 		failed += 1
 
@@ -861,6 +867,23 @@ func _init() -> void:
 	else:
 		print("FAIL [TUR] watch set: n=%d union=%s markers=%s" % [
 			c10._watch_set.size(), union_ok, marker_ok]); failed += 1
+
+	# V033-MRD-01: each controlling faction restores only its own view.
+	c10._danger_mode = "combined"
+	c10._watch_set.clear(); c10._watch_set["enemyA"] = true
+	c10.set_controlling_faction("red")
+	var red_starts_clean := c10._watch_set.is_empty() and c10._danger_mode == "none"
+	c10._watch_set["ally1"] = true; c10._danger_mode = "selected"
+	c10.set_controlling_faction("blue")
+	var blue_restored := c10._watch_set.keys() == ["enemyA"] and c10._danger_mode == "combined"
+	c10.set_controlling_faction("red")
+	var red_restored := c10._watch_set.keys() == ["ally1"] and c10._danger_mode == "selected"
+	c10.set_controlling_faction("blue")
+	if red_starts_clean and blue_restored and red_restored:
+		print("OK  [TUR] faction handoff isolates blue/red threat views"); passed += 1
+	else:
+		print("FAIL [TUR] faction views: clean=%s blue=%s red=%s views=%s" % [
+			red_starts_clean, blue_restored, red_restored, c10._threat_views_by_faction]); failed += 1
 
 	# full→combined on first add; combined→full on last remove (faction layer kept).
 	c10._danger_mode = "full"; c10._watch_set.clear()

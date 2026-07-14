@@ -20,6 +20,12 @@ and resolved solutions are in
 Watch ownership is resolved per controlling faction; implementation resumes from
 [`v0.3.3_playtest_fix_handoff_2026-07-14.md`](v0.3.3_playtest_fix_handoff_2026-07-14.md).
 
+**Fix status (2026-07-14):** `VAL-V030-GAMEPAD` now routes analog trigger zoom
+only through the 0.85 threshold poller; `B6-MRD` owns versioned independent
+threat views per controlling faction; and `UI-INSPECTION` now sizes Action Menu
+from scaled visible content and measures focus lookahead from visual rows. All
+four repairs are implemented headlessly and await the v0.3.4 live rerun.
+
 The row schema, Track ID uniqueness, Track ID reachability, allowed Track ID
 prefixes, allowed statuses, allowed bands, and local markdown links are enforced by
 [`check_docs.py`](../check_docs.py).

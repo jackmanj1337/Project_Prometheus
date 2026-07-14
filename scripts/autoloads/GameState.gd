@@ -468,8 +468,8 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 	save.suspend["kind"] = "map"
 	save.suspend["cursor_tile"] = suspend_ui.get("cursor_tile", null)
 	save.suspend["mode"] = suspend_ui.get("mode", "free")
-	save.suspend["watch_set"] = suspend_ui.get("watch_set", [])
-	save.suspend["danger_mode"] = suspend_ui.get("danger_mode", "none")
+	save.suspend["threat_views_version"] = suspend_ui.get("threat_views_version", 1)
+	save.suspend["threat_views_by_faction"] = suspend_ui.get("threat_views_by_faction", {})
 	return SaveDataScript.from_dict(save.to_dict())
 
 
