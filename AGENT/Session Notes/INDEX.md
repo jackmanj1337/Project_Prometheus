@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-14g](2026-07-14g.md) — **`B1-CST` Slice 2 Implemented:** `CampaignManager` autoload walks the progression graph (position, node advance, results handoff), `DataManager` gained the cached map-registry entry lookup, and `GameOverScreen` gained the campaign "Next" route. A win records; only the results commit advances, so Retry cannot double-advance. Slice 3 (campaign saves) is the last spine slice.
 - [2026-07-14f](2026-07-14f.md) — **`B1-CST` Slice 1 Implemented:** `CampaignData`/`CampaignNode` JSON progression graph, the seeded `proving_grounds` campaign, DataManager catalogue loading with loud structural/reference validation, plus a `.uid` sidecar hygiene commit. Slice 2 (prep/results flow) is next.
 - [2026-07-14e](2026-07-14e.md) — **All agent work pushed; save spine queued:** v0.4.0 reconfirmed green while the playtest is out, both agent branches published, and `B1-CST` chosen as the next slice with a sequenced handoff.
 - [2026-07-14d](2026-07-14d.md) — **v0.4.0 Windows build cut:** metadata/build gates closed, hashed x86-64 debug artifact and full smoke checklist ready; live Windows return pending.
