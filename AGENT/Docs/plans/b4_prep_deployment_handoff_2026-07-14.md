@@ -108,16 +108,42 @@ launch paths that have no prep screen (see landmines) rather than deleting it.
 
 ## Recommended slicing
 
-1. **Slice 1 - the deployment plan seam (no UI).** `GameState` carries the plan;
-   `GameMap._spawn_units` consumes it and falls back to today's roster-order rule
-   when it is absent. Node constraints (`required_units` / `excluded_units` /
-   `deployment_cap`) get a validator that answers "is this plan legal for this
-   node". Fully testable headless, and it lands the risky part first.
+1. **Slice 1 - the deployment plan seam (no UI). IMPLEMENTED 2026-07-14** (see
+   `AGENT/Session Notes/2026-07-14j.md`). `GameState.next_map_deployment` carries
+   the plan; `GameMap._spawn_units` consumes it and falls back to today's
+   roster-order rule when it is absent; `scripts/shared/DeploymentPlan.gd`
+   validates it against the party, `player_start_tiles`, and the node constraints.
+   Shipped contract: `GDD_01_Data_Contracts.md` §Deployment Plan Contract - read
+   that, not this plan.
 2. **Slice 2 - the PrepScreen.** A screen (not a modal overlay - it is a
    destination, and `launch_current_node` routes to it) listing the eligible party,
    a deploy toggle per unit, placement onto `player_start_tiles`, and Begin Battle.
    Reroute `launch_current_node` here; that is the one-line change the picker
    handoff promised.
+
+   **Prep has TWO entrances, and that is a design constraint, not a detail.**
+   Decided 2026-07-14: a campaign **Retry reroutes to prep** so the player may
+   redeploy after a loss, and it covers **both defeat and victory** retries (a
+   victory-retry already replays the same node with the result dropped, so there
+   is no reason deployment should be frozen for it). One rule: on a campaign map,
+   Retry always means "replay this map, and you may redeploy first."
+
+   This works only if the **PrepScreen is a PURE PLAN-AUTHORING SCREEN**: it reads
+   the launch `GameState` already has staged (`next_map_data_path` +
+   `player_roster`), authors a plan, and hands off to `GameMap`. It must NEVER
+   re-apply the roster policy or re-resolve the map binding - all staging stays in
+   `launch_current_node`. If prep instead routes *through* `launch_current_node`,
+   Retry breaks badly: on a first node that call re-applies `default_roster` and
+   reloads the party from disk, throwing away the snapshot-restored one (levels,
+   gold, the restored RNG timeline).
+
+   Why Retry is cheap here: `GameOverScreen._on_retry` is already map-scoped and
+   does NOT go through `launch_current_node` - it clears the pending result, calls
+   `GameState.restore_map_snapshot()`, and reloads the scene. That snapshot restore
+   is what makes redeployment coherent: it rolls the party back to map-start state,
+   so units that fell during the map are alive again and the eligible list is
+   correct. And the Slice 1 plan already survives a Retry, so it is the natural
+   pre-selection when prep opens rather than something to rework.
 3. **Slice 3 - manual save.** A Save button on prep over `write_campaign_slot`,
    with a player-supplied label and an id the allow-list accepts. Nothing else in
    the game needs to change - the picker already lists whatever gets written.
@@ -154,6 +180,18 @@ launch paths that have no prep screen (see landmines) rather than deleting it.
   case does (block launch? warn?) rather than letting it fall through.
 - **Additive, as ever.** A launch path with no prep plan must behave exactly as it
   does today.
+- **The Retry reroute (Slice 2) has two guards, and both are easy to miss.**
+  - **The bare single-map launch has no campaign and no prep**, so Retry there must
+    keep `reload_current_scene()` exactly as it does today. Gate the reroute on an
+    active campaign or `NewGameScreen`'s Retry dies.
+  - **Retry after a SUSPEND RESUME is the nasty one.** A resumed map never takes a
+    map-start snapshot (`GameMap` skips `take_map_snapshot` when `is_resuming`), so
+    `restore_map_snapshot()` already fails its own validation on that path - and
+    `next_map_suspend_payload` is still staged, which means `GameMap` would take the
+    suspend spawn path and **ignore the deployment plan entirely**. The player would
+    author a deployment that silently does nothing. Either skip the reroute when a
+    suspend payload is present, or clear the payload explicitly before routing to
+    prep. Decide it; do not let it fall through.
 
 ## Tests owed
 
@@ -165,6 +203,11 @@ launch paths that have no prep screen (see landmines) rather than deleting it.
   `player_start_tiles` is rejected.
 - `test_campaign_manager`: `launch_current_node` routes to prep for a campaign and
   the bare map launch is untouched.
+- `test_game_over_sequencing`: a campaign Retry (after defeat AND after victory)
+  routes to prep with the party rolled back to map-start state and the previous
+  plan pre-selected; a Retry on the bare single-map launch still reloads the map
+  directly; a Retry on a suspend-resumed map does not strand the player on a prep
+  screen whose plan the suspend spawn path would ignore.
 - Prep screen: the eligible list honors required/excluded, Begin Battle is gated
   until the plan is legal, and manual save writes a slot the picker then lists.
 - Manual save: a rejected slot id fails loudly and writes nothing (the allow-list's

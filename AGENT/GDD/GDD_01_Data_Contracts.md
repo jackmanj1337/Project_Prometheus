@@ -517,7 +517,9 @@ Rules this contract fixes:
   player deploys again. Same reasoning as the unpersisted pending result above,
   and it means no new F1 save row is owed. It DOES survive a **Retry**, which
   reloads the map scene without reconfiguring the launch, so a replay redeploys
-  the units the player actually chose.
+  the units the player actually chose. When the prep screen lands (Slice 2), a
+  campaign Retry reroutes to it — the surviving plan becomes the pre-selection
+  the player may then change, rather than a fixed redeployment.
 - **The `[CST-5]` node constraints are consumed here, for the first time.**
   `CampaignNode.required_units` / `excluded_units` / `deployment_cap` have been
   authored and validated since `B1-CST` Slice 1 with no reader; prep is that
