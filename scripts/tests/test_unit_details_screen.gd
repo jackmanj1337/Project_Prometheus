@@ -71,11 +71,11 @@ func _init() -> void:
 	else:
 		print("FAIL character sheet scroll frame missing or disabled")
 		failed += 1
-	if main_scroll != null and main_scroll.follow_focus:
-		print("OK  character sheet scroll follows controller/keyboard focus")
+	if main_scroll != null and not main_scroll.follow_focus:
+		print("OK  character sheet lookahead is the sole focus-scroll owner")
 		passed += 1
 	else:
-		print("FAIL character sheet scroll follow_focus disabled")
+		print("FAIL character sheet has competing engine and custom focus scrolling")
 		failed += 1
 
 	# V025-02a: the main column must NOT scroll horizontally — long inventory/wexp

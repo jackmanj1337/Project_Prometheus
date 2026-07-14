@@ -174,6 +174,25 @@ func _init() -> void:
 	else:
 		print("FAIL ActionMenu scaled label width: min=%s" % am.custom_minimum_size.x); failed += 1
 
+	# V034-UI-01: reducing the minimum alone leaves a free-standing Control at its
+	# previous width. Verify the rendered panel shrinks across the live transition.
+	am.apply_menu_scale(2.0)
+	for button in am._buttons:
+		button.visible = button == am._btn_separate or button == am._btn_wait
+	am._fit_width_to_visible_labels()
+	var long_rendered_width: float = am.size.x
+	am._btn_separate.visible = false
+	am._fit_width_to_visible_labels()
+	var short_rendered_width: float = am.size.x
+	if short_rendered_width < long_rendered_width \
+			and is_equal_approx(short_rendered_width, am.custom_minimum_size.x):
+		print("OK  ActionMenu rendered width shrinks with a shorter action list")
+		passed += 1
+	else:
+		print("FAIL ActionMenu stale rendered width: long=%s short=%s min=%s" % [
+			long_rendered_width, short_rendered_width, am.custom_minimum_size.x])
+		failed += 1
+
 	# ---- choosing an action hides the menu (it used to linger on screen) ----
 	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))
 	var chose := [""]

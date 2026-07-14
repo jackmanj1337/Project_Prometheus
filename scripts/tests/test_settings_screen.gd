@@ -156,11 +156,40 @@ func _init() -> void:
 	else:
 		print("FAIL settings h-scroll not disabled: mode=%s" % [
 			scroll.horizontal_scroll_mode if scroll != null else "<no scroll>"]); failed += 1
-	if scroll != null and scroll.follow_focus:
-		print("OK  settings scroll follows controller/keyboard focus")
+	if scroll != null and not scroll.follow_focus:
+		print("OK  settings lookahead is the sole focus-scroll owner")
 		passed += 1
 	else:
-		print("FAIL settings scroll follow_focus disabled")
+		print("FAIL settings has competing engine and custom focus scrolling")
+		failed += 1
+
+	# V034-UI-02: traverse without wrapping and require the scrollbar to move only
+	# in the direction of travel. This catches the live opposite-end oscillation.
+	var monotonic_down := scroll != null
+	if scroll != null:
+		screen.apply_menu_scale(2.0)
+		for i in 3:
+			await process_frame
+		var focusables: Array[Control] = screen._focusable_controls(screen._menu_scale_target())
+		if focusables.size() > 1:
+			scroll.scroll_vertical = 0
+			focusables[0].grab_focus()
+			var previous_scroll := scroll.scroll_vertical
+			for i in range(1, focusables.size()):
+				screen._move_modal_focus(1)
+				await process_frame
+				await process_frame
+				if scroll.scroll_vertical < previous_scroll:
+					monotonic_down = false
+					break
+				previous_scroll = scroll.scroll_vertical
+		else:
+			monotonic_down = false
+	if monotonic_down:
+		print("OK  V034-UI-02 Settings scroll is monotonic during downward traversal")
+		passed += 1
+	else:
+		print("FAIL V034-UI-02 Settings scroll jumped opposite to focus travel")
 		failed += 1
 
 	# V025-01a: while the Menu Scale slider is being DRAGGED, changing its value must

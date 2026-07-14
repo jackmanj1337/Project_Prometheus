@@ -229,6 +229,7 @@
 - [`playtests/playtest_checklist_v0.3.3.md`](playtests/playtest_checklist_v0.3.3.md) — Playtester Handbook and Checklist - v0.3.3 (Focused Rerun) — *Focused rerun handbook - pending live Wi*
 - [`playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md`](playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md) — Returned Playtester Handbook and Checklist - v0.3.3 (Focused Rerun) — *Historical*
 - [`playtests/playtest_checklist_v0.3.4.md`](playtests/playtest_checklist_v0.3.4.md) — Playtester Handbook and Checklist - v0.3.4 — *Focused rerun handbook - pending live Wi*
+- [`playtests/playtest_checklist_v0.3.4_returned_2026-07-14.md`](playtests/playtest_checklist_v0.3.4_returned_2026-07-14.md) — Returned Playtester Handbook and Checklist - v0.3.4 — *Historical*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -241,6 +242,7 @@
 - [`playtests/playtest_v0.3.1_return_triage_kit_2026-07-12.md`](playtests/playtest_v0.3.1_return_triage_kit_2026-07-12.md) — v0.3.1 Focused-Rerun Return Triage Kit - 2026-07-12 — *Planned - ready for returned v0.3.1 evid*
 - [`playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md`](playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) — v0.3.2 Playtest Results and Root-Cause Triage — *RESOLVED*
 - [`playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md) — v0.3.3 Playtest Results and Root-Cause Triage — *RESOLVED*
+- [`playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md) — v0.3.4 Playtest Results and Root-Cause Triage — *Repairs implemented - pending v0.3.5 liv*
 
 ## Reference / feasibility / Q&A
 

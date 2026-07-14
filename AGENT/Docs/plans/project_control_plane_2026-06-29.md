@@ -24,7 +24,11 @@ Watch ownership is resolved per controlling faction; implementation resumes from
 only through the 0.85 threshold poller; `B6-MRD` owns versioned independent
 threat views per controlling faction; and `UI-INSPECTION` now sizes Action Menu
 from scaled visible content and measures focus lookahead from visual rows. All
-four repairs are implemented headlessly and await the v0.3.4 live rerun.
+four repairs reached v0.3.4 live validation. Trigger zoom and faction threat
+views passed. The two UI paths returned bounded regressions: stale rendered
+Action Menu width and competing focus-scroll ownership. Both are repaired with
+focused regression coverage and await the v0.3.5 live rerun; see
+[`playtest_v0.3.4_results_triage_plan_2026-07-14.md`](../playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md).
 
 The row schema, Track ID uniqueness, Track ID reachability, allowed Track ID
 prefixes, allowed statuses, allowed bands, and local markdown links are enforced by

@@ -75,6 +75,9 @@ func _fit_width_to_visible_labels() -> void:
 		if button.visible:
 			required_width = maxf(required_width, button.get_combined_minimum_size().x)
 	custom_minimum_size.x = required_width
+	# A minimum-size reduction does not shrink an already-expanded free-standing
+	# Control. Set the rendered width too, before MapCursor measures and places it.
+	size.x = required_width
 
 
 # Show the menu and configure which buttons are active.

@@ -564,10 +564,11 @@ The panel's contents live in a `ScrollContainer` so the list never overflows.
 Focus stepping keeps up to three row heights of lookahead context visible past
 the focused row, capped below half the viewport at large Menu Scale values
 (V032-D2, 2026-07-13). A focused leaf such as a slider resolves to its owning
-visual list row, and the margin sums the next three visible sibling row heights;
-this preserves context across mixed-height controls. `follow_focus` alone
-scrolled the focused row just barely into view, so the tester couldn't see
-what the next step moved toward.
+visual list row, and the margin sums up to three visible sibling rows in the
+direction of travel. The lookahead path is the sole scroll owner on Settings and
+Unit Details: it assigns one absolute content-coordinate target after layout
+settles. This preserves mixed-height context without competing with
+`ScrollContainer.follow_focus` or jumping between list ends (V034-UI-02).
 It is an overlay opened with `open()` and dismissed by the `Back` button or the
 `cancel` action. Each
 control writes its change to `SettingsManager` immediately (volume via `set_volume()`,
