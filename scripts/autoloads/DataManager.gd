@@ -28,6 +28,10 @@ var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
+# Campaign progression graphs, keyed by campaign_id. Authored as JSON (not .tres)
+# per [CST-3], so they load through their own directory pass rather than
+# _load_directory's resource loader.
+var _campaigns: Dictionary = {}
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
@@ -45,6 +49,7 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	_load_directory(source.path_join("weapons"), _weapons)
 	_load_directory(source.path_join("items"), _items)
 	_load_directory(source.path_join("skills"), _skills)
+	_load_campaign_directory(source.path_join("campaigns"))
 
 
 func _clear_content() -> void:
@@ -52,6 +57,7 @@ func _clear_content() -> void:
 	_weapons.clear()
 	_items.clear()
 	_skills.clear()
+	_campaigns.clear()
 
 
 # Runs the complete validation composition for one loaded source. SkillData's
@@ -60,11 +66,15 @@ func _clear_content() -> void:
 func _validate_all(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 	for skill in _skills.values():
 		skill.validate()
+	var registry_path := source.path_join("maps/map_registry.json")
 	var errors := collect_validation_errors(_classes, _weapons, _items, _skills)
-	errors.append_array(collect_map_registry_validation_errors(
-		source.path_join("maps/map_registry.json"), _classes, _items))
+	errors.append_array(collect_map_registry_validation_errors(registry_path, _classes, _items))
 	errors.append_array(collect_pair_up_validation_errors(
 		source.path_join("pair_up/pair_up_bonus_table.tres")))
+	# Campaign nodes bind to map_registry ids, so campaigns are cross-checked
+	# against the registry's id vocabulary once the registry itself is validated.
+	errors.append_array(collect_campaign_validation_errors(
+		_campaigns, collect_map_registry_ids(registry_path)))
 	return errors
 
 
@@ -241,6 +251,84 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 		for group_id in cls.class_groups:
 			groups[String(group_id)] = true
 	return groups
+
+
+# --- Campaigns ([CST-3] progression graphs) ---------------------------------
+
+# Parses every authored campaign JSON in `dir_path` into `target` (campaign_id ->
+# CampaignData). Structural problems and a missing/unreadable directory are
+# collected as errors, matching the loud-failure policy the map registry and the
+# registry catalogue already use — a campaign that half-loads would strand a run.
+static func load_campaigns(dir_path: String, target: Dictionary,
+		errors: Array[String]) -> void:
+	var campaign_paths: Array[String] = ResourceManifest.load_paths(dir_path)
+	if campaign_paths.is_empty():
+		errors.append("DataManager: no campaigns found at %s" % dir_path)
+		return
+	for path in campaign_paths:
+		if not FileAccess.file_exists(path):
+			errors.append("DataManager: campaign file missing at %s" % path)
+			continue
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		var campaign := CampaignData.parse(parsed, path, errors)
+		if campaign == null:
+			continue
+		if target.has(campaign.campaign_id):
+			errors.append("DataManager: duplicate campaign_id '%s' at %s" % [
+				campaign.campaign_id, path])
+			continue
+		target[campaign.campaign_id] = campaign
+
+
+# Cross-reference pass: every node's map binding must resolve to a map_registry
+# id. Structural graph checks already ran in CampaignData.parse.
+static func collect_campaign_validation_errors(campaigns: Dictionary,
+		known_map_ids: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for campaign in campaigns.values():
+		for node in campaign.nodes:
+			if node.map_id != "" and not known_map_ids.has(node.map_id):
+				errors.append("DataManager: campaign '%s' node '%s' references unknown map id '%s'" % [
+					campaign.campaign_id, node.node_id, node.map_id])
+	return errors
+
+
+# The map-id vocabulary campaigns bind against. Parse errors are the map
+# registry validator's job, so a broken registry simply yields no ids here.
+static func collect_map_registry_ids(registry_path: String) -> Dictionary:
+	var ids := {}
+	if not FileAccess.file_exists(registry_path):
+		return ids
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+	if not (parsed is Array):
+		return ids
+	for entry in (parsed as Array):
+		if entry is Dictionary:
+			var entry_id: String = String((entry as Dictionary).get("id", ""))
+			if entry_id != "":
+				ids[entry_id] = true
+	return ids
+
+
+func _load_campaign_directory(dir_path: String) -> void:
+	var errors: Array[String] = []
+	load_campaigns(dir_path, _campaigns, errors)
+	_report(errors)
+
+
+func get_campaign(id: String) -> CampaignData:
+	if not _campaigns.has(id):
+		push_error("DataManager: unknown campaign id '%s'" % id)
+		return null
+	return _campaigns[id]
+
+
+func has_campaign(id: String) -> bool:
+	return _campaigns.has(id)
+
+
+func get_all_campaigns() -> Dictionary:
+	return _campaigns
 
 
 static func collect_map_registry_validation_errors(registry_path: String,

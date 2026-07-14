@@ -69,6 +69,19 @@ foundations or add unmanifested save state.
 
 ## Next Work Queue
 
+### B1-CST campaign / save spine
+
+The largest unblocked bottleneck: all three dependencies are Implemented and
+eleven open tracks wait on it. Sequenced slices are in
+[`b1_cst_save_spine_handoff_2026-07-14.md`](../Docs/plans/b1_cst_save_spine_handoff_2026-07-14.md).
+A returned v0.4.0 playtest preempts this work.
+
+| Order | Track ID | To-do | Decision state |
+|---:|---|---|---|
+| 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; nodes bind by `map_id` until `B4-ENCOUNTER-MODEL` splits map/encounter. |
+| 2 | `B1-CST` Slice 2 | Prep -> map -> victory/defeat -> results -> next node flow. Victory gold routes through `ResourceLedger`. | Target design. Owns the flow only; prep/deployment screens stay with `B4-PREP-DEPLOYMENT`. |
+| 3 | `B1-CST` Slice 3 | Full campaign saves: campaign envelope, Continue/Load against the `SaveManager` disk seam, autosave and manual slots. | Target design. Every new persisted field registers in the F1 manifest in the same commit. |
+
 ### v0.3.3 returned-playtest defects
 
 The v0.3.3 focused rerun returned on 2026-07-14. The permanent checklist and

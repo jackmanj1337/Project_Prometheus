@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -342,6 +342,63 @@ and exact suspend-state restoration retain their existing paths.
 Objective condition tiles are authored and evaluated in zero-based map coordinates.
 HUD display text converts tile coordinates to player-facing one-based coordinates
 only at render time.
+
+### CampaignData Contract
+
+Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
+2026-07-14); campaign-owned rule mandates/defaults and the prep/results flow
+that consumes the graph are **Target design**.
+
+A campaign is an ordered progression graph. Unlike every other content resource
+it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
+portable, hand-editable document so `B6-CAMPAIGN-SHARING` can later ship it as a
+file. Documents live in `data/campaigns/` and are enumerated by the sibling
+`resource_manifest.json` like any other export-scanned directory.
+
+```gdscript
+class_name CampaignData extends Resource
+@export var campaign_id: String = ""      # durable save identity (campaign.campaign_id)
+@export var label: String = ""
+@export var description: String = ""
+@export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
+@export var start_node_id: String = ""    # defaults to the first authored node
+@export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
+
+static func parse(raw: Variant, source_path: String, errors: Array[String]) -> CampaignData
+func node_ids() -> Array[String]          # authored order, deterministic
+func get_node_by_id(node_id: String) -> CampaignNode   # null for unknown — never a fallback
+func has_node(node_id: String) -> bool
+func next_node_ids_of(node_id: String) -> Array[String]
+
+class_name CampaignNode extends Resource
+@export var node_id: String = ""          # durable progression identity [CNC-1]
+@export var label: String = ""
+@export var map_id: String = ""           # binds to a map_registry id
+@export var next_node_ids: Array[String] = []   # empty = terminal; many = branch
+@export var required_units: Array[String] = []  # [CST-5] deployment constraints live
+@export var excluded_units: Array[String] = []  #   on the NODE, not the map
+@export var deployment_cap: int = -1            # -1 = uncapped
+
+func is_terminal() -> bool
+```
+
+`DataManager` loads campaigns in the same catalogue pass as classes/weapons/
+items/skills and validates them in two stages, both **loud** (`push_error`,
+matching the map registry and registry catalogue): `CampaignData.parse` rejects
+structural defects (missing `campaign_id`/`map_id`, duplicate or unreachable
+nodes, a successor or `start_node_id` that names no node, a unit that is both
+required and excluded, a `deployment_cap` of 0), and
+`DataManager.collect_campaign_validation_errors` rejects a node bound to a
+`map_id` outside the map registry. A campaign too broken to represent parses to
+`null` rather than half-loading a run the player cannot finish.
+
+Node bindings are deliberately `map_id` only. `B4-ENCOUNTER-MODEL` later splits
+that into a battle-map / battle-encounter pair; binding by map id today is the
+adapter-friendly shape `[CNC-3]` asked for. Node contents are author-editable
+without breaking saves — only `node_id` is durable identity.
+
+Shipped campaign: `data/campaigns/proving_grounds.json`, a linear five-node run
+over the shipped objective maps (rout, seize, boss, escape, defend).
 
 > **Registry migration note.** The field lists above describe the implemented resource
 > schema. Where comments name built-in ids, those ids are the developer preset library

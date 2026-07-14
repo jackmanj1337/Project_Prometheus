@@ -182,16 +182,18 @@ func _init() -> void:
 	var fixture_ok := _write_alternate_source_fixture(fixture_source)
 	dm._clear_content()
 	dm._load_all(fixture_source)
-	var alternate_ids := [dm._classes.keys(), dm._weapons.keys(), dm._items.keys(), dm._skills.keys()]
+	var alternate_ids := [dm._classes.keys(), dm._weapons.keys(), dm._items.keys(), dm._skills.keys(),
+		dm._campaigns.keys()]
 	var alternate_ok: bool = fixture_ok \
 			and alternate_ids[0] == ["fixture_class"] \
 			and alternate_ids[1] == ["fixture_weapon"] \
 			and alternate_ids[2] == ["fixture_item"] \
-			and alternate_ids[3] == ["fixture_skill"]
+			and alternate_ids[3] == ["fixture_skill"] \
+			and alternate_ids[4] == ["fixture_campaign"]
 	dm._clear_content()
 	dm._load_all(DataManagerS.DEFAULT_CONTENT_SOURCE)
 	if alternate_ok:
-		print("OK  alternate content root replace-loads all four catalogues")
+		print("OK  alternate content root replace-loads every catalogue")
 		passed += 1
 	else:
 		print("FAIL alternate content root: fixture=%s ids=%s" % [fixture_ok, alternate_ids])
@@ -583,10 +585,22 @@ func _init() -> void:
 
 
 func _write_alternate_source_fixture(source: String) -> bool:
-	for family in ["classes", "weapons", "items", "skills"]:
+	for family in ["classes", "weapons", "items", "skills", "campaigns"]:
 		var absolute_dir := ProjectSettings.globalize_path(source.path_join(family))
 		if DirAccess.make_dir_recursive_absolute(absolute_dir) != OK:
 			return false
+
+	# Campaigns are authored JSON, not .tres, so the fixture writes the document
+	# and its manifest by hand (a content source must carry its own campaigns).
+	if not _write_json(source.path_join("campaigns/fixture_campaign.json"), {
+			"campaign_id": "fixture_campaign",
+			"label": "Fixture Campaign",
+			"nodes": [{"node_id": "n1", "map_id": "map_001", "next": []}],
+		}):
+		return false
+	if not _write_json(source.path_join("campaigns/resource_manifest.json"),
+			["fixture_campaign.json"]):
+		return false
 
 	var fixture_class := ClassData.new()
 	fixture_class.id = "fixture_class"
@@ -601,3 +615,11 @@ func _write_alternate_source_fixture(source: String) -> bool:
 			and ResourceSaver.save(fixture_weapon, source.path_join("weapons/fixture_weapon.tres")) == OK \
 			and ResourceSaver.save(fixture_item, source.path_join("items/fixture_item.tres")) == OK \
 			and ResourceSaver.save(fixture_skill, source.path_join("skills/fixture_skill.tres")) == OK
+
+
+func _write_json(path: String, payload: Variant) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(payload))
+	return true
