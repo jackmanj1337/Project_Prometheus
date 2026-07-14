@@ -1,10 +1,20 @@
 ---
 Type: plan
-Status: Target design
+Status: Implemented
 Last verified: 2026-07-14
 ---
 
 # `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14
+
+> **Implemented 2026-07-14** (`4d96b1a`) - the picker landed and `B1-CST` Slice 3
+> is closed. The shipped surface contract is
+> [GDD_07 - Screens And Panels](../../GDD/GDD_07_Screens_Panels.md) §Load Game
+> Screen; read that, not this plan, for how the picker behaves. One deviation from
+> the Recommended shape below: the picker does **not** call
+> `MainMenu._load_campaign_slot` directly - it emits `slot_load_requested` and
+> MainMenu runs the restore, which keeps Continue and Load Game on one path and
+> leaves the eventual prep reroute a one-line change. Manual save remains
+> unbuilt and remains `B4-PREP-DEPLOYMENT`'s.
 
 Successor to [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md);
 [`b1_cst_save_spine_handoff_2026-07-14.md`](b1_cst_save_spine_handoff_2026-07-14.md)

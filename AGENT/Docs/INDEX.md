@@ -139,7 +139,7 @@
 
 - [`plans/b1_cst_save_spine_handoff_2026-07-14.md`](plans/b1_cst_save_spine_handoff_2026-07-14.md) — `B1-CST` Save Spine Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md) — `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14 — *Implemented 2026-07-14*
-- [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Target design*
+- [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Implemented*
 - [`plans/band0_gdd_consolidation_handoff_2026-07-13.md`](plans/band0_gdd_consolidation_handoff_2026-07-13.md) — Band 0 GDD Consolidation — Next-Session Handoff — *Planned*
 - [`plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md`](plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md) — Band 0 GDD Consolidation — Phase 0 Audit And Implementation Plan — *Active - audit and implementation plan*
 - [`plans/band1_determinism_save_implementation_plan_2026-06-30.md`](plans/band1_determinism_save_implementation_plan_2026-06-30.md) — Band 1 Determinism And Save Implementation Plan — *Active - implementation plan*
