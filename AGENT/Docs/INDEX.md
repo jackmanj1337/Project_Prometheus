@@ -204,6 +204,7 @@
 - [`playtests/playtest_build_v0.3.0.md`](playtests/playtest_build_v0.3.0.md) — Playtester Build Manifest - v0.3.0
 - [`playtests/playtest_build_v0.3.1.md`](playtests/playtest_build_v0.3.1.md) — Playtester Build Manifest - v0.3.1
 - [`playtests/playtest_build_v0.3.3.md`](playtests/playtest_build_v0.3.3.md) — Playtester Build Manifest - v0.3.3 — *Exported - pending live Windows/controll*
+- [`playtests/playtest_build_v0.3.4.md`](playtests/playtest_build_v0.3.4.md) — Playtester Build Manifest - v0.3.4 — *Exported - pending live Windows/controll*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
