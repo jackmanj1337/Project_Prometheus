@@ -114,6 +114,116 @@ func _init() -> void:
 			complete_ok, cm.get("launched")])
 		failed += 1
 
+	# --- Slice 3: the Load Game picker ------------------------------------------
+	cm.set("complete", false)
+	_clean_test_dir()
+	var load_btn: Button = menu.get_node("Panel/VBox/LoadGameButton")
+	var picker: Control = menu.get_node("LoadGameScreen")
+	menu._refresh_load_state()
+	if load_btn.disabled:
+		print("OK  Load Game is disabled when no campaign slot exists")
+		passed += 1
+	else:
+		print("FAIL Load Game enabled with no slots on disk")
+		failed += 1
+
+	save_manager.save_slot("autosave", _make_campaign_save())
+	save_manager.save_slot("manual_01", _make_campaign_save("Before the seize"))
+	menu._refresh_load_state()
+	if not load_btn.disabled:
+		print("OK  Load Game enables once a campaign slot is written")
+		passed += 1
+	else:
+		print("FAIL Load Game stayed disabled after writing a slot")
+		failed += 1
+
+	# The picker lists newest first — manual_01 was written after the autosave.
+	picker.open()
+	await process_frame
+	var listed: Array[String] = picker.get_slot_ids()
+	var expected_order: Array[String] = ["manual_01", "autosave"]
+	if listed == expected_order:
+		print("OK  The picker lists a row per slot, newest first")
+		passed += 1
+	else:
+		print("FAIL picker order: %s" % [listed])
+		failed += 1
+
+	# The autosave is the row that gets overwritten under the player, so it is marked.
+	var autosave_text: String = _row_load_button(picker, "autosave").text
+	var manual_text: String = _row_load_button(picker, "manual_01").text
+	if autosave_text.contains("[Autosave]") and not manual_text.contains("[Autosave]") \
+			and manual_text.contains("Before the seize") and manual_text.contains("proving_grounds"):
+		print("OK  The picker marks the autosave and renders each row from its header")
+		passed += 1
+	else:
+		print("FAIL row text: autosave=%s manual=%s" % [autosave_text, manual_text])
+		failed += 1
+
+	# Activating a row goes through MainMenu's restore path, not a second copy of it.
+	gs.set("resumed_campaign_id", "")
+	cm.set("launched", false)
+	_row_load_button(picker, "manual_01").pressed.emit()
+	if String(gs.get("resumed_campaign_id")) == "proving_grounds" and bool(cm.get("launched")):
+		print("OK  Activating a row restores through GameState and launches the parked node")
+		passed += 1
+	else:
+		print("FAIL row activate: campaign=%s launched=%s" % [
+			gs.get("resumed_campaign_id"), cm.get("launched")])
+		failed += 1
+
+	# A corrupt slot is still listed (its file exists) — loading it must fail loudly.
+	gs.set("resumed_campaign_id", "")
+	cm.set("launched", false)
+	_write_text(save_manager.get_slot_path("manual_01"), "{ not json")
+	_row_load_button(picker, "manual_01").pressed.emit()
+	if String(gs.get("resumed_campaign_id")) == "" and not bool(cm.get("launched")) \
+			and _consume_error_dialog(menu):
+		print("OK  A corrupt slot shows the error dialog and does not stage GameState")
+		passed += 1
+	else:
+		print("FAIL corrupt slot: campaign=%s launched=%s" % [
+			gs.get("resumed_campaign_id"), cm.get("launched")])
+		failed += 1
+
+	# Deleting the Continue target must drop its row AND disable Continue: SaveManager
+	# clears the pointer, and the picker tells MainMenu to redraw.
+	save_manager.save_slot("manual_01", _make_campaign_save("Before the seize"))
+	picker.open()
+	await process_frame
+	menu._refresh_menu_state()
+	var pointed_at_manual: bool = String(save_manager.get_continue_target().get("slot_id", "")) == "manual_01"
+	picker._delete_slot("manual_01")
+	await process_frame
+	var only_autosave: Array[String] = ["autosave"]
+	if pointed_at_manual and picker.get_slot_ids() == only_autosave \
+			and not save_manager.has_slot("manual_01"):
+		print("OK  Deleting a slot removes its row")
+		passed += 1
+	else:
+		print("FAIL delete: pointed=%s rows=%s" % [pointed_at_manual, picker.get_slot_ids()])
+		failed += 1
+
+	# The autosave is still on disk, so Continue falls back to it rather than going dead.
+	if not continue_btn.disabled and not load_btn.disabled:
+		print("OK  Continue falls back to the surviving slot after the target is deleted")
+		passed += 1
+	else:
+		print("FAIL after delete: continue_disabled=%s load_disabled=%s" % [
+			continue_btn.disabled, load_btn.disabled])
+		failed += 1
+
+	# With every slot gone there is nothing to continue or load.
+	picker._delete_slot("autosave")
+	await process_frame
+	if continue_btn.disabled and load_btn.disabled and picker.get_slot_ids().is_empty():
+		print("OK  Deleting the last slot disables both Continue and Load Game")
+		passed += 1
+	else:
+		print("FAIL last delete: continue_disabled=%s load_disabled=%s rows=%s" % [
+			continue_btn.disabled, load_btn.disabled, picker.get_slot_ids()])
+		failed += 1
+
 	menu.queue_free()
 	gs.queue_free()
 	cm.queue_free()
@@ -143,10 +253,15 @@ func _make_suspend_save() -> RefCounted:
 	return SaveDataScript.from_dict(save.to_dict())
 
 
+# The picker builds each row's Load button at runtime; find it by the row's slot id.
+func _row_load_button(picker: Control, slot_id: String) -> Button:
+	return picker.get_node("Panel/VBox/Scroll/Rows/Row_%s/LoadButton" % slot_id) as Button
+
+
 # A between-map campaign save: a position and a party, and no live map.
-func _make_campaign_save() -> RefCounted:
+func _make_campaign_save(label: String = "Autosave") -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
-	save.save_label = "Autosave"
+	save.save_label = label
 	save.campaign["campaign_id"] = "proving_grounds"
 	save.campaign["node_id"] = "node_02_seize"
 	save.campaign["cleared_nodes"] = ["node_01_rout"]

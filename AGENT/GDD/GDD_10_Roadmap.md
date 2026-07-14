@@ -71,16 +71,21 @@ foundations or add unmanifested save state.
 
 ### B1-CST campaign / save spine
 
-The largest unblocked bottleneck: all three dependencies are Implemented and
-eleven open tracks wait on it. Sequenced slices are in
+**All three slices are Implemented (2026-07-14)** — a campaign runs end to end:
+the graph is authored, the position walks it, and the run survives a quit. The
+sequenced slices are in
 [`b1_cst_save_spine_handoff_2026-07-14.md`](../Docs/plans/b1_cst_save_spine_handoff_2026-07-14.md).
-A returned v0.4.0 playtest preempts this work.
+What the spine deliberately does **not** own, and where it went: the manual-save
+surface and prep/deployment (`B4-PREP-DEPLOYMENT`), the campaign selector and
+branch-node choice (`B6-CAMPAIGN-SHARING`, which also owns [CST-6]'s
+"every map is a 1-node campaign" auto-wrap), and a dedicated `MapResultsScreen`.
+A returned v0.4.0 playtest preempts follow-on work here.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; nodes bind by `map_id` until `B4-ENCOUNTER-MODEL` splits map/encounter. |
 | 2 | `B1-CST` Slice 2 | **Implemented 2026-07-14:** `CampaignManager` autoload walks the graph (active campaign, current node, cleared nodes), resolves a node's `map_id` through the new `DataManager.get_map_registry_entry`, and drives the map launch; victory/defeat/results route through the existing `EventBus` map signals and `GameOverScreen` gained the campaign "Next" route. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win RECORDS a result; the position advances only when the results surface commits it, so Retry cannot double-advance. Persists nothing (Slice 3 owns the envelope). Prep/deployment screens stay with `B4-PREP-DEPLOYMENT`; branch-node choice stays with the campaign selector. |
-| 3 | `B1-CST` Slice 3 | **Split** — save spine **Implemented 2026-07-14**; load/save UI **Target design**. Implemented: the campaign envelope serializer (`CampaignManager.capture_campaign_state`/`restore_campaign_state`), the between-map campaign save document (`GameState.capture_campaign_save`/`configure_campaign_resume`, carrying no `map_runtime`), `SaveManager` campaign slots beside the suspend save (allow-listed slot ids, index rows, `write_seq` ordering), autosave on node commit, and Continue routing to the newest of suspend/slot. Target design: the Load Game slot picker (the `list_slots`/`load_slot`/`delete_slot` seam it calls is built and tested). Handoff: [`b1_cst_slice3_load_picker_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md). | The envelope reuses the reserved `campaign.campaign_id` / `node_id` / `cleared_nodes[]` F1 rows — Slice 3 added no new persisted field. The pending result is deliberately NOT persisted: a save taken mid-results restores parked on the current node, so a reload cannot commit a map that was never played. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14): a manual campaign slot is a BETWEEN-map action, and prep is the only between-map screen the technical plan (§4) gives it — mid-map saving is already the suspend save's job. `CampaignManager.write_campaign_slot` is built and tested, waiting for that screen. Slice 3 flips to Implemented when the picker lands. |
+| 3 | `B1-CST` Slice 3 | **Implemented 2026-07-14:** the campaign envelope serializer (`CampaignManager.capture_campaign_state`/`restore_campaign_state`), the between-map campaign save document (`GameState.capture_campaign_save`/`configure_campaign_resume`, carrying no `map_runtime`), `SaveManager` campaign slots beside the suspend save (allow-listed slot ids, index rows, `write_seq` ordering), autosave on node commit, Continue routing to the newest of suspend/slot, and the **Load Game slot picker** (`LoadGameScreen`, a MainMenu overlay: rows newest-first from `list_slots`, the autosave marked, load through the same restore path as Continue, delete behind a confirm). Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | The envelope reuses the reserved `campaign.campaign_id` / `node_id` / `cleared_nodes[]` F1 rows — Slice 3 added no new persisted field. The pending result is deliberately NOT persisted: a save taken mid-results restores parked on the current node, so a reload cannot commit a map that was never played. The picker renders from the index's mirrored header, so listing saves never opens N files. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14): a manual campaign slot is a BETWEEN-map action, and prep is the only between-map screen the technical plan (§4) gives it — mid-map saving is already the suspend save's job. `CampaignManager.write_campaign_slot` is built and tested, waiting for that screen. |
 
 ### v0.3.3 returned-playtest defects
 

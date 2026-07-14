@@ -15,8 +15,8 @@ Cross-cutting navigation, feedback, and accessibility remain in
 
 ## Screens and Panels
 
-Status: **Split** — MVP screens are **Implemented**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); manual save slots + combat-animation feedback are **Planned**
-Last verified: 2026-07-09
+Status: **Split** — MVP screens are **Implemented**; the campaign Load Game picker is **Implemented 2026-07-14**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); the manual-save surface (now owned by `B4-PREP-DEPLOYMENT`) + combat-animation feedback are **Planned**
+Last verified: 2026-07-14
 
 ---
 
@@ -30,7 +30,8 @@ Last verified: 2026-07-09
 ┌─────────────────────────────────┐
 │    [PLACEHOLDER — Game Title]   │
 │                                 │
-│         [ Continue ]     (greyed if no suspend save)
+│         [ Continue ]     (greyed if there is no save to continue)
+│         [ Load Game ]    (greyed if no campaign slot exists)
 │         [ New Game ]            │
 │         [ Settings ]            │
 │         [ Quit ]                │
@@ -38,18 +39,67 @@ Last verified: 2026-07-09
 ```
 
 **Behavior:**
-- "Continue" → loads `user://saves/suspend.json` through `SaveManager`, stages
-  the payload on `GameState`, and launches `GameMap`. It is disabled when no
-  suspend save exists; load failure opens an error dialog and stays on Main Menu.
-  On restore (V030-SUS-01, fixed 2026-07-09): units whose serialized state is
+- "Continue" → resumes the **most recently written** save, which is one of two
+  different documents, and `SaveManager.get_continue_target()` reports which:
+  a **suspend** save (mid-map) stages onto `GameState` and launches `GameMap`;
+  a **campaign slot** (between-map) restores the position and party and launches
+  the node the party is parked on. It is disabled when there is nothing to
+  continue; load failure opens an error dialog and stays on Main Menu. A
+  campaign that has no node left to play reports that it is complete rather than
+  failing into an empty launch.
+  On suspend restore (V030-SUS-01, fixed 2026-07-09): units whose serialized state is
   DONE re-apply the darkened DONE appearance (so a spent unit reads as spent, not
   as an actable one it silently refuses); a paired support restored onto the
   off-map sentinel `(-1,-1)` stays hidden instead of drawing at the placeholder;
   and the restore emits `turn_changed` so the HUD turn counter reflects the
   restored turn immediately rather than after the next round boundary.
+- "Load Game" → opens the `LoadGameScreen` overlay (see below). Disabled when
+  `SaveManager.list_slots()` is empty, so a player with no campaign save sees the
+  pre-campaign menu with Load greyed out.
 - "New Game" → opens the `NewGameScreen` overlay
 - "Settings" → opens Settings screen (see below); available from MVP onwards
 - For MVP: "Continue", "New Game", "Settings", and "Quit" are functional
+
+---
+
+### Load Game Screen
+
+**Scene:** `LoadGameScreen.tscn`
+**Trigger:** "Load Game" from the Main Menu
+Status: **Implemented 2026-07-14** (`B1-CST` Slice 3)
+
+A modal overlay child of Main Menu (`open()` / hide, no scene change), listing the
+written campaign slots. **Read-only: this screen loads and deletes, it never
+writes a save.** Writing a manual campaign slot is a *between-map* action and
+belongs to the prep screen (`B4-PREP-DEPLOYMENT`);
+`CampaignManager.write_campaign_slot` is built and waits for it. Mid-map saving is
+already the suspend save's job.
+
+**Behavior:**
+- One row per slot, from `SaveManager.list_slots()`: the save's label, its
+  campaign/node position, party size and gold, and the save time. Every field is
+  mirrored into the saves index at write time, so drawing the list never opens or
+  validates N save files.
+- Rows are **newest first**, ordered by a monotonic `write_seq` rather than the
+  timestamp (`saved_at_unix` has whole-second resolution, so two saves written in
+  the same second would tie). The timestamp is display only.
+- The campaign **autosave** — written by the campaign flow on every node commit —
+  is a normal row, marked `[Autosave]` so the player can tell apart the save that
+  gets overwritten under them from one they wrote themselves.
+- Activating a row runs the **same restore path as Continue** (stage onto
+  `GameState`, then `CampaignManager.launch_current_node()`), so the two cannot
+  drift apart. A slot that fails to load (corrupt or version-mismatched) opens the
+  same error dialog Continue uses and stages nothing.
+- Each row offers **Delete** behind a confirmation. Deleting the slot Continue
+  pointed at also clears that pointer, so Continue falls back to whatever is still
+  on disk, or disables when nothing is.
+- A row whose save file has vanished is skipped by `list_slots`, so the picker can
+  never offer a save it cannot load.
+- Back returns to the Main Menu without reloading the scene.
+
+Because there is no prep screen yet, loading a slot currently launches its parked
+node straight into `GameMap`. When `B4-PREP-DEPLOYMENT` lands, that launch reroutes
+to prep — the call sits in one place (`MainMenu._load_campaign_slot`).
 
 ---
 
