@@ -12,7 +12,9 @@ v0.4.0 release checklist's smoke gate.
 ## Before testing
 
 - Executable: `Project_Prometheus_v0.4.0_debug.exe`
-- Expected byte size and SHA-256: copy from `playtest_build_v0.4.0.md`.
+- Expected byte size: `101840832`
+- Expected SHA-256:
+  `651bc28deca99724bef1a7a438350defc47fb6cdebd479050d4ad8140cc326a2`
 - Windows version/device: ____________________
 - Tester/date: ____________________
 - Keyboard/mouse used: ____________________

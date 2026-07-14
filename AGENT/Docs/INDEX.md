@@ -188,7 +188,7 @@
 - [`plans/stat_registry_implementation_plan_2026-06-29.md`](plans/stat_registry_implementation_plan_2026-06-29.md) — Stat Registry Implementation Plan — *Active - implementation plan*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
 - [`plans/v0.3.3_playtest_fix_handoff_2026-07-14.md`](plans/v0.3.3_playtest_fix_handoff_2026-07-14.md) — v0.3.3 Playtest Fix Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
-- [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - code-review gate closed; metada*
+- [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - metadata and build gates closed*
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*
 - [`plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md`](plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md) — v0.4.0 Windows Headless Build and Smoke-Test Handoff — *Planned - decision-free headless executi*
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
@@ -209,6 +209,7 @@
 - [`playtests/playtest_build_v0.3.4.md`](playtests/playtest_build_v0.3.4.md) — Playtester Build Manifest - v0.3.4 — *Exported - pending live Windows/controll*
 - [`playtests/playtest_build_v0.3.5.md`](playtests/playtest_build_v0.3.5.md) — Playtester Build Manifest - v0.3.5 — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.3.6.md`](playtests/playtest_build_v0.3.6.md) — Playtester Build Manifest - v0.3.6 — *Exported - owner-accepted live pass*
+- [`playtests/playtest_build_v0.4.0.md`](playtests/playtest_build_v0.4.0.md) — v0.4.0 Windows Playtest Build — *Exported - pending live Windows smoke*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
