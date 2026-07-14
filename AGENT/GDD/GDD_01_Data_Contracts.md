@@ -346,9 +346,10 @@ only at render time.
 ### CampaignData Contract
 
 Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
-2026-07-14) and the runtime flow that walks it **Implemented** (`B1-CST`
-Slice 2, 2026-07-14, see §CampaignManager Contract below); campaign-owned rule
-mandates/defaults and the campaign save envelope are **Target design**.
+2026-07-14), the runtime flow that walks it **Implemented** (`B1-CST`
+Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
+envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
+mandates/defaults are **Target design**.
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -403,7 +404,7 @@ over the shipped objective maps (rout, seize, boss, escape, defend).
 
 ### CampaignManager Contract
 
-Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14).
+Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14; persistence added in Slice 3, 2026-07-14).
 
 `CampaignData` is the graph; the `CampaignManager` autoload is what **walks** it.
 It holds the campaign RUNTIME position and owns the prep -> map ->
@@ -411,7 +412,7 @@ victory/defeat -> results -> next node flow. It is registered after `DataManager
 (it resolves campaigns and map bindings through the catalogue).
 
 ```gdscript
-# Runtime position — NOT persisted until Slice 3 registers the campaign envelope.
+# The campaign position. Persisted as the F1 campaign envelope (Slice 3).
 var active_campaign_id: String = ""   # "" == no campaign == every handler no-ops
 var current_node_id: String = ""      # the node that launches next; "" == complete
 var cleared_node_ids: Array[String] = []
@@ -422,10 +423,16 @@ func launch_current_node() -> bool                 # resolve map binding -> Game
 func resolve_launch_params(node: CampaignNode) -> Dictionary   # map_data_path / roster_policy / roster_source
 func get_pending_result() -> Dictionary            # results state handoff
 func has_pending_victory() -> bool
-func commit_pending_result() -> bool               # the ONLY thing that advances the position
+func commit_pending_result() -> bool               # the ONLY thing that advances the position; autosaves
 func clear_pending_result() -> void                # Retry drops the unapplied result
 func is_campaign_active() -> bool
 func is_campaign_complete() -> bool
+
+# Persistence (Slice 3) — the serializer seam. SaveManager owns every user:// path.
+func capture_campaign_state() -> Dictionary        # exactly campaign_id / node_id / cleared_nodes
+func restore_campaign_state(source: Variant) -> bool   # ids must resolve or the load fails
+func write_autosave() -> bool                      # the reserved "autosave" slot
+func write_campaign_slot(slot_id: String, save_label: String) -> bool   # the manual-save seam
 ```
 
 Rules this contract fixes:
@@ -447,9 +454,22 @@ Rules this contract fixes:
   1-node campaign" auto-wrap is deferred to the campaign selector.
 - **Branch nodes take the first authored successor** until the branch-choice UI
   lands with `B6-CAMPAIGN-SHARING`; authored order is the ordering contract.
-- **Persists nothing.** Slice 3 registers `campaign.campaign_id`,
-  `campaign.node_id`, and `campaign.cleared_nodes[]` in the F1 manifest and adds
-  the serializer.
+- **The position persists; the pending result does not.** `capture_campaign_state`
+  writes exactly the reserved F1 rows `campaign.campaign_id` / `campaign.node_id` /
+  `campaign.cleared_nodes[]` — Slice 3 added no new persisted field. The pending
+  result is deliberately excluded: it is discarded on quit, so a save taken while
+  the results surface is up restores parked on the current node and the map is
+  simply replayed. Persisting it would let a reload commit a win for a map that
+  was never played that session.
+- **A restore is all-or-nothing.** `restore_campaign_state` validates the campaign
+  id, the node id, and every cleared node against the authored graph BEFORE it
+  writes any state; an id that does not resolve fails loud and leaves no campaign
+  active, rather than half-restoring a position the graph cannot walk. An empty
+  `campaign_id` is a valid save (the bare single-map launch), not a corrupt one.
+- **The commit is the autosave point.** `commit_pending_result` advances the
+  position and then writes the `autosave` slot — the moment the party is parked
+  between maps is exactly the state a campaign slot holds, so every route that
+  advances the campaign autosaves rather than each results surface remembering to.
 
 Map bindings resolve through `DataManager.get_map_registry_entry(map_id)` /
 `has_map_registry_entry(map_id)` — the registry is cached in the catalogue pass,

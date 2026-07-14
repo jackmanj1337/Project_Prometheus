@@ -1,6 +1,7 @@
 extends Control
-# Main menu: Continue resumes a suspend save, New Game opens the NewGameScreen
-# overlay, Settings opens the SettingsScreen overlay, and Quit exits.
+# Main menu: Continue resumes the most recent save (a mid-map suspend or a
+# between-map campaign slot), New Game opens the NewGameScreen overlay, Settings
+# opens the SettingsScreen overlay, and Quit exits.
 
 @onready var _continue_btn: Button = $Panel/VBox/ContinueButton
 @onready var _new_game_btn: Button = $Panel/VBox/NewGameButton
@@ -43,14 +44,30 @@ func _refresh_continue_state() -> void:
 		or not bool(save_manager.call("has_continue_save"))
 
 
+# Continue resumes the most recently written save, which is one of two different
+# documents: a mid-map suspend (resumes into the live board) or a campaign slot
+# (resumes parked between maps, and launches the node the party is sitting on).
+# SaveManager owns which is newest; this only routes on the kind it reports.
 func _on_continue() -> void:
-	if _load_continue_save():
-		get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
-
-
-func _load_continue_save() -> bool:
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if save_manager == null or not save_manager.has_method("load_suspend"):
+	if save_manager == null or not save_manager.has_method("get_continue_target"):
+		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+		_refresh_continue_state()
+		return
+	var target: Dictionary = save_manager.call("get_continue_target")
+	match String(target.get("kind", "")):
+		"suspend":
+			if _load_suspend_save(save_manager):
+				get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+		"slot":
+			_load_campaign_slot(save_manager, String(target.get("slot_id", "")))
+		_:
+			_show_continue_error("There is no save to continue.")
+			_refresh_continue_state()
+
+
+func _load_suspend_save(save_manager: Node) -> bool:
+	if not save_manager.has_method("load_suspend"):
 		_show_continue_error("Continue is unavailable.\nNo save service was found.")
 		_refresh_continue_state()
 		return false
@@ -67,6 +84,40 @@ func _load_continue_save() -> bool:
 	if not bool(gs.call("configure_suspend_resume", save)):
 		_show_continue_error("Could not resume the suspend save.\nMap progress was not resumed.")
 		_refresh_continue_state()
+		return false
+	return true
+
+
+# A campaign slot restores the position and party, then launches the parked node.
+# CampaignManager owns the launch (it resolves the node's map binding), so this
+# does not change scene itself.
+func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
+	if not save_manager.has_method("load_slot"):
+		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+		_refresh_continue_state()
+		return false
+	var save: Variant = save_manager.call("load_slot", slot_id)
+	if save == null:
+		_show_continue_error("Could not load the campaign save.\nProgress was not resumed.")
+		_refresh_continue_state()
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	var cm := get_node_or_null("/root/CampaignManager")
+	if gs == null or cm == null or not gs.has_method("configure_campaign_resume"):
+		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
+		_refresh_continue_state()
+		return false
+	if not bool(gs.call("configure_campaign_resume", save)):
+		_show_continue_error("Could not resume the campaign save.\nProgress was not resumed.")
+		_refresh_continue_state()
+		return false
+	# A finished campaign has no node left to launch — say so rather than failing
+	# into an error on an empty position.
+	if bool(cm.call("is_campaign_complete")):
+		_show_continue_error("This campaign is already complete.")
+		return false
+	if not bool(cm.call("launch_current_node")):
+		_show_continue_error("Could not launch the next battle.\nThe campaign node may be misconfigured.")
 		return false
 	return true
 

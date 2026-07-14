@@ -473,6 +473,87 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 	return SaveDataScript.from_dict(save.to_dict())
 
 
+# The BETWEEN-map campaign save (B1-CST Slice 3): the party parked on a campaign
+# node, with no live map. The counterpart to capture_suspend_save, which
+# serializes a map in progress.
+#
+# map_runtime and suspend are deliberately left at their empty defaults. That is
+# what distinguishes the two documents on load: a save with no map_runtime.map_path
+# cannot be resumed into a board, and must route through the campaign launch path
+# (CampaignManager.launch_current_node) instead.
+func capture_campaign_save(save_label: String = "") -> RefCounted:
+	var save: RefCounted = SaveDataScript.new()
+	save.save_label = save_label
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm == null or not cm.has_method("capture_campaign_state"):
+		push_error("GameState: CampaignManager cannot capture the campaign envelope")
+		return null
+	var envelope: Dictionary = cm.call("capture_campaign_state")
+	save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+	save.campaign["node_id"] = String(envelope.get("node_id", ""))
+	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
+		envelope.get("cleared_nodes", []))
+	save.campaign["rules"] = _campaign_rules_to_dict()
+
+	save.party["resources"]["party_gold"] = party_gold
+	save.roster["units"] = []
+	for unit_data in player_roster:
+		if unit_data != null:
+			save.roster["units"].append(unit_data_to_runtime_dict(unit_data, "blue"))
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+# Restores a between-map campaign save: the campaign position, the rules, and the
+# party the player earned. Does NOT change scene — launching the parked node is
+# CampaignManager's seam, so the caller (Continue / Load) decides when to leave
+# the menu.
+func configure_campaign_resume(source: Variant) -> bool:
+	var save: RefCounted = source if source is SaveData else SaveDataScript.from_dict(source)
+	if save == null:
+		return false
+	var payload: Dictionary = save.to_dict()
+	var campaign_dict: Dictionary = payload.get("campaign", {})
+
+	# Everything that can reject the save is checked BEFORE any live state is
+	# written, so a bad save leaves the running game untouched instead of
+	# half-loaded: an unknown campaign/node id, or a save with no party to play.
+	var roster: Array[UnitData] = _roster_from_save_units(payload.get("roster", {}).get("units", []))
+	if roster.is_empty():
+		push_error("GameState: campaign save carries no player roster")
+		return false
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm == null or not cm.has_method("restore_campaign_state"):
+		push_error("GameState: CampaignManager is unavailable")
+		return false
+	if not bool(cm.call("restore_campaign_state", campaign_dict)):
+		return false  # CampaignManager already reported which id failed to resolve
+
+	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
+	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", 0))
+	player_roster = roster
+	roster_initialized = true
+	roster_load_failed = false
+	active_roster_policy = "campaign_resume"
+	active_roster_source = ""
+	# A slot load is not a suspend resume; drop any stale mid-map payload so the
+	# next launch builds a fresh board.
+	clear_suspend_resume()
+	return true
+
+
+# roster.units is the player's party by definition, so every entry converts —
+# unlike map_runtime.units, which is the mixed live board and must be filtered by
+# faction (_player_roster_from_runtime_units).
+func _roster_from_save_units(units: Variant) -> Array[UnitData]:
+	var out: Array[UnitData] = []
+	if not (units is Array):
+		return out
+	for unit_entry in units:
+		if unit_entry is Dictionary:
+			out.append(unit_data_from_runtime_dict(unit_entry))
+	return out
+
+
 func unit_data_to_runtime_dict(data: UnitData, faction_id: String = "") -> Dictionary:
 	var out: Dictionary = _snapshot_unit_data(data)
 	# Suspend must rebuild live enemies that have no roster resource on load, so

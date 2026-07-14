@@ -42,6 +42,10 @@ func _init() -> void:
 	_test_retry_does_not_advance(cm, bus)
 	_test_campaign_completes_on_terminal_node(cm, bus)
 	_test_single_map_launch_unaffected(cm, bus)
+	_test_campaign_envelope_roundtrip(cm)
+	_test_restore_rejects_unresolvable_ids(cm)
+	_test_restore_of_a_bare_map_save(cm)
+	_test_pending_result_is_not_position_state(cm, bus)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -203,3 +207,109 @@ func _test_single_map_launch_unaffected(cm: Node, bus: Node) -> void:
 			and not cm.is_campaign_active()
 			and not cm.is_campaign_complete(),
 		"a map won with no campaign active records nothing")
+
+
+# --- Slice 3: the campaign save envelope --------------------------------------
+
+# The envelope is exactly the three F1 manifest fields, and a restore must land
+# the position back where the capture took it.
+func _test_campaign_envelope_roundtrip(cm: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	cm.cleared_node_ids.append("node_01_rout")
+	cm.current_node_id = "node_02_seize"
+
+	var envelope: Dictionary = cm.capture_campaign_state()
+	_check(envelope.get("campaign_id", "") == "proving_grounds"
+			and envelope.get("node_id", "") == "node_02_seize"
+			and envelope.get("cleared_nodes", []) == ["node_01_rout"]
+			and envelope.size() == 3,
+		"capture_campaign_state writes exactly the campaign envelope", str(envelope))
+
+	cm.end_campaign()
+	_check(cm.restore_campaign_state(envelope)
+			and cm.active_campaign_id == "proving_grounds"
+			and cm.current_node_id == "node_02_seize"
+			and cm.cleared_node_ids == ["node_01_rout"]
+			and cm.is_campaign_active(),
+		"restore_campaign_state puts the position back where the capture took it")
+
+	# The captured array must not alias the live one, or a later clear would edit
+	# the save that was already taken.
+	var captured: Dictionary = cm.capture_campaign_state()
+	cm.cleared_node_ids.append("node_02_seize")
+	_check(captured.get("cleared_nodes", []) == ["node_01_rout"],
+		"the captured envelope does not alias the live cleared list",
+		str(captured.get("cleared_nodes", [])))
+	cm.end_campaign()
+
+
+# The manifest's reference_validation obligation for the row: ids must resolve or
+# the load fails — and a failed load must leave NO campaign active, never a
+# half-restored position the graph cannot walk.
+func _test_restore_rejects_unresolvable_ids(cm: Node) -> void:
+	cm.end_campaign()
+	_check(not cm.restore_campaign_state({"campaign_id": "no_such_campaign", "node_id": "node_01_rout"})
+			and not cm.is_campaign_active(),
+		"restore rejects a save naming an unknown campaign")
+
+	cm.end_campaign()
+	_check(not cm.restore_campaign_state({"campaign_id": "proving_grounds", "node_id": "no_such_node"})
+			and not cm.is_campaign_active(),
+		"restore rejects a save naming an unknown node")
+
+	cm.end_campaign()
+	_check(not cm.restore_campaign_state({
+				"campaign_id": "proving_grounds",
+				"node_id": "node_02_seize",
+				"cleared_nodes": ["node_01_rout", "no_such_node"],
+			})
+			and not cm.is_campaign_active(),
+		"restore rejects a save naming an unknown cleared node")
+
+	# "" is the campaign-complete position (walked off the end of the graph), not
+	# an unknown node — it must load, and load AS complete.
+	cm.end_campaign()
+	_check(cm.restore_campaign_state({
+				"campaign_id": "proving_grounds",
+				"node_id": "",
+				"cleared_nodes": ["node_01_rout"],
+			})
+			and cm.is_campaign_active()
+			and cm.is_campaign_complete(),
+		"restore accepts the completed-campaign position")
+	cm.end_campaign()
+
+
+# The bare single-map launch persists no campaign, so its save carries an empty
+# campaign id. That is a valid document, not a corrupt one.
+func _test_restore_of_a_bare_map_save(cm: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	_check(cm.restore_campaign_state({"campaign_id": "", "node_id": "", "cleared_nodes": []})
+			and not cm.is_campaign_active()
+			and cm.current_node_id == ""
+			and cm.cleared_node_ids.is_empty(),
+		"restoring a save with no campaign leaves no campaign active")
+
+
+# A save taken while the results surface is up must restore parked on the current
+# node — the pending win is discarded, so a reload cannot commit a map that was
+# never played this session.
+func _test_pending_result_is_not_position_state(cm: Node, bus: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	bus.map_victory.emit()
+	_check(cm.has_pending_victory(), "a win is pending before the save is taken")
+
+	var envelope: Dictionary = cm.capture_campaign_state()
+	_check(envelope.get("node_id", "") == "node_01_rout"
+			and envelope.get("cleared_nodes", []) == []
+			and not envelope.has("pending_result"),
+		"the envelope holds the parked node, not the uncommitted win", str(envelope))
+
+	cm.end_campaign()
+	cm.restore_campaign_state(envelope)
+	_check(not cm.has_pending_victory()
+			and cm.get_pending_result().is_empty()
+			and cm.current_node_id == "node_01_rout"
+			and not cm.is_node_cleared("node_01_rout"),
+		"the restored campaign holds no pending result and is parked on the node")
+	cm.end_campaign()

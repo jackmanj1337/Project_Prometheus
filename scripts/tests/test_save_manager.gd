@@ -1,88 +1,193 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_save_manager.gd
-# B1-CST / B1-SUSPEND: disk I/O seam for active-map suspend saves.
+# B1-CST / B1-SUSPEND: the disk I/O seam for the two save documents —
+# the mid-map SUSPEND save, and the between-map campaign SLOTS (Slice 3).
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
 
 const TEST_SAVE_DIR := "user://test_save_manager"
 
+var _passed := 0
+var _failed := 0
+
 
 func _init() -> void:
 	print("=== SaveManager Test ===")
-	var passed := 0
-	var failed := 0
 	_clean_test_dir()
 
 	var manager: Node = SaveManagerScript.new()
 	manager.configure_save_dir_for_tests(TEST_SAVE_DIR)
 
-	var suspend_save: RefCounted = _make_suspend_save()
-	var write_ok: bool = manager.save_suspend(suspend_save)
-	var file_exists: bool = FileAccess.file_exists(manager.get_suspend_path())
-	var index: Dictionary = manager.load_index()
-	var last_played: Dictionary = manager.get_last_played()
-	if write_ok and file_exists \
-			and String(last_played.get("kind", "")) == "suspend" \
-			and String(last_played.get("path", "")) == manager.get_suspend_path() \
-			and index.has("last_played"):
-		print("OK  save_suspend_writes_file_and_continue_pointer")
-		passed += 1
-	else:
-		print("FAIL suspend write/index: write=%s file=%s index=%s last=%s" % [
-			write_ok, file_exists, index, last_played])
-		failed += 1
-
-	var loaded: RefCounted = manager.load_suspend()
-	if loaded != null \
-			and loaded.map_runtime["map_id"] == "map_001" \
-			and loaded.map_runtime["map_path"] == "res://data/maps/map_001_rout/map_001_data.tres" \
-			and loaded.map_runtime["rng"] == {"map_seed": "123", "history_hash": "456"} \
-			and loaded.suspend["kind"] == "map":
-		print("OK  load_suspend_roundtrips_saved_SaveData")
-		passed += 1
-	else:
-		print("FAIL suspend load: %s" % [loaded.to_dict() if loaded != null else null])
-		failed += 1
-
-	if manager.has_continue_save():
-		print("OK  has_continue_save_tracks_suspend_slot")
-		passed += 1
-	else:
-		print("FAIL continue availability false after save")
-		failed += 1
-
-	if manager.delete_suspend() \
-			and not FileAccess.file_exists(manager.get_suspend_path()) \
-			and manager.get_last_played().is_empty():
-		print("OK  delete_suspend_removes_file_and_continue_pointer")
-		passed += 1
-	else:
-		print("FAIL suspend delete: file=%s last=%s" % [
-			FileAccess.file_exists(manager.get_suspend_path()), manager.get_last_played()])
-		failed += 1
-
-	_write_text(manager.get_suspend_path(), "{ not json")
-	if manager.load_suspend() == null:
-		print("OK  load_suspend_rejects_invalid_json")
-		passed += 1
-	else:
-		print("FAIL invalid JSON loaded")
-		failed += 1
-
-	_write_text(manager.get_suspend_path(), JSON.stringify({"format_version": 99}, "\t", true))
-	if manager.load_suspend() == null:
-		print("OK  load_suspend_rejects_unsupported_version")
-		passed += 1
-	else:
-		print("FAIL unsupported save version loaded")
-		failed += 1
+	_test_suspend_write_and_load(manager)
+	_test_suspend_rejects_bad_documents(manager)
+	_test_slot_write_and_load(manager)
+	_test_slot_ids_are_allow_listed(manager)
+	_test_continue_routes_to_the_newest_document(manager)
+	_test_slot_listing(manager)
+	_test_slot_delete(manager)
 
 	manager.free()
 	_clean_test_dir()
-	print("Results: %d passed, %d failed" % [passed, failed])
-	quit(1 if failed > 0 else 0)
+	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
+	quit(1 if _failed > 0 else 0)
 
+
+func _check(ok: bool, label: String, detail: String = "") -> void:
+	if ok:
+		print("OK  %s" % label)
+		_passed += 1
+	else:
+		print("FAIL %s%s" % [label, ("" if detail == "" else " — %s" % detail)])
+		_failed += 1
+
+
+# --- Suspend save (mid-map) ---------------------------------------------------
+
+func _test_suspend_write_and_load(manager: Node) -> void:
+	var write_ok: bool = manager.save_suspend(_make_suspend_save())
+	var last_played: Dictionary = manager.get_last_played()
+	_check(write_ok
+			and FileAccess.file_exists(manager.get_suspend_path())
+			and String(last_played.get("kind", "")) == "suspend"
+			and String(last_played.get("path", "")) == manager.get_suspend_path()
+			and manager.load_index().has("last_played"),
+		"save_suspend writes the file and the continue pointer", str(last_played))
+
+	var loaded: RefCounted = manager.load_suspend()
+	_check(loaded != null
+			and loaded.map_runtime["map_id"] == "map_001"
+			and loaded.map_runtime["map_path"] == "res://data/maps/map_001_rout/map_001_data.tres"
+			and loaded.map_runtime["rng"] == {"map_seed": "123", "history_hash": "456"}
+			and loaded.suspend["kind"] == "map",
+		"load_suspend round-trips the saved SaveData",
+		str(loaded.to_dict() if loaded != null else null))
+
+	_check(manager.has_continue_save(), "has_continue_save tracks the suspend save")
+
+	_check(manager.delete_suspend()
+			and not FileAccess.file_exists(manager.get_suspend_path())
+			and manager.get_last_played().is_empty(),
+		"delete_suspend removes the file and the continue pointer")
+
+
+func _test_suspend_rejects_bad_documents(manager: Node) -> void:
+	_write_text(manager.get_suspend_path(), "{ not json")
+	_check(manager.load_suspend() == null, "load_suspend rejects invalid JSON")
+
+	_write_text(manager.get_suspend_path(), JSON.stringify({"format_version": 99}, "\t", true))
+	_check(manager.load_suspend() == null, "load_suspend rejects an unsupported format_version")
+	manager.delete_suspend()
+
+
+# --- Campaign slots (between-map) ---------------------------------------------
+
+func _test_slot_write_and_load(manager: Node) -> void:
+	var write_ok: bool = manager.save_slot("autosave", _make_campaign_save())
+	var last_played: Dictionary = manager.get_last_played()
+	_check(write_ok
+			and manager.has_slot("autosave")
+			and FileAccess.file_exists(manager.get_slot_path("autosave"))
+			and String(last_played.get("kind", "")) == "slot"
+			and String(last_played.get("slot_id", "")) == "autosave",
+		"save_slot writes the slot file and points continue at it", str(last_played))
+
+	var loaded: RefCounted = manager.load_slot("autosave")
+	_check(loaded != null
+			and loaded.campaign["campaign_id"] == "proving_grounds"
+			and loaded.campaign["node_id"] == "node_02_seize"
+			and loaded.campaign["cleared_nodes"] == ["node_01_rout"]
+			and loaded.party["resources"]["party_gold"] == 250,
+		"load_slot round-trips the campaign envelope and party",
+		str(loaded.to_dict()["campaign"] if loaded != null else null))
+
+	# The between-map save carries no live board: that absence is what routes a
+	# slot load through the campaign launch path instead of a map resume.
+	_check(loaded != null
+			and String(loaded.map_runtime.get("map_path", "")) == ""
+			and loaded.suspend.get("kind", null) == null,
+		"a campaign slot carries no map_runtime or suspend block")
+
+	_check(manager.load_slot("never_written") == null,
+		"load_slot returns null for a slot that was never written")
+
+
+# Slot ids become filenames, so an id outside the allow-list must be refused
+# rather than sanitized — it must never resolve to a path outside the save dir.
+func _test_slot_ids_are_allow_listed(manager: Node) -> void:
+	_check(SaveManagerScript.is_valid_slot_id("autosave")
+			and SaveManagerScript.is_valid_slot_id("slot_01")
+			and SaveManagerScript.is_valid_slot_id("manual-3"),
+		"plain slot ids are valid")
+
+	_check(not SaveManagerScript.is_valid_slot_id("")
+			and not SaveManagerScript.is_valid_slot_id("../../evil")
+			and not SaveManagerScript.is_valid_slot_id("a/b")
+			and not SaveManagerScript.is_valid_slot_id("save.json"),
+		"path-escaping slot ids are refused")
+
+	_check(not manager.save_slot("../evil", _make_campaign_save())
+			and manager.get_slot_path("../evil") == ""
+			and not FileAccess.file_exists("%s/../evil.json" % TEST_SAVE_DIR),
+		"save_slot refuses to write through an escaping slot id")
+
+
+# Continue resumes whichever document was written LAST — the two kinds are
+# separate files, so the index pointer is the only thing that can order them.
+func _test_continue_routes_to_the_newest_document(manager: Node) -> void:
+	# Slot was written most recently (previous test).
+	var target: Dictionary = manager.get_continue_target()
+	_check(String(target.get("kind", "")) == "slot"
+			and String(target.get("slot_id", "")) == "autosave",
+		"continue routes to the campaign slot when it is newest", str(target))
+
+	manager.save_suspend(_make_suspend_save())
+	target = manager.get_continue_target()
+	_check(String(target.get("kind", "")) == "suspend",
+		"continue routes to the suspend save when it is newest", str(target))
+
+	# The pointed-at document going missing must not strand Continue on it: the
+	# slot is still on disk and is still continuable.
+	manager.delete_suspend()
+	target = manager.get_continue_target()
+	_check(String(target.get("kind", "")) == "slot"
+			and String(target.get("slot_id", "")) == "autosave"
+			and manager.has_continue_save(),
+		"continue falls back to the surviving save when the newest is gone", str(target))
+
+
+func _test_slot_listing(manager: Node) -> void:
+	manager.save_slot("manual_01", _make_campaign_save("Manual save"))
+	var rows: Array[Dictionary] = manager.list_slots()
+	var ids: Array = []
+	for row in rows:
+		ids.append(String(row.get("slot_id", "")))
+	_check(rows.size() == 2 and ids.has("autosave") and ids.has("manual_01"),
+		"list_slots returns a row per written slot", str(ids))
+	_check(String(rows[0].get("slot_id", "")) == "manual_01"
+			and String(rows[0].get("label", "")) == "Manual save"
+			and String(rows[0].get("header", {}).get("node_id", "")) == "node_02_seize",
+		"slot rows are newest first and carry the picker's label and header",
+		str(rows[0]))
+
+	# A row whose file was removed behind our back must not be offered: the picker
+	# must never list a save that cannot be loaded.
+	DirAccess.open(TEST_SAVE_DIR).remove("manual_01.json")
+	var survivors: Array[Dictionary] = manager.list_slots()
+	_check(survivors.size() == 1 and String(survivors[0].get("slot_id", "")) == "autosave",
+		"a slot whose file has vanished is not listed", str(survivors))
+
+
+func _test_slot_delete(manager: Node) -> void:
+	_check(manager.delete_slot("autosave")
+			and not manager.has_slot("autosave")
+			and manager.list_slots().is_empty(),
+		"delete_slot removes the file and its index row")
+	_check(not manager.has_continue_save() and manager.get_continue_target().is_empty(),
+		"deleting the continue target leaves nothing to continue")
+
+
+# --- Fixtures -----------------------------------------------------------------
 
 func _make_suspend_save() -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
@@ -94,6 +199,18 @@ func _make_suspend_save() -> RefCounted:
 	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
 	save.map_runtime["rng"] = {"map_seed": 123, "history_hash": 456}
 	save.suspend["kind"] = "map"
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+# A between-map campaign save: a position + a party, and no live map.
+func _make_campaign_save(label: String = "Autosave") -> RefCounted:
+	var save: RefCounted = SaveDataScript.new()
+	save.save_label = label
+	save.campaign["campaign_id"] = "proving_grounds"
+	save.campaign["node_id"] = "node_02_seize"
+	save.campaign["cleared_nodes"] = ["node_01_rout"]
+	save.party["resources"]["party_gold"] = 250
+	save.roster["units"] = [{"unit_id": "lyn", "unit_name": "Lyn"}]
 	return SaveDataScript.from_dict(save.to_dict())
 
 

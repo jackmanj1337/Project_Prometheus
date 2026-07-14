@@ -1,6 +1,6 @@
 extends Node
-# B1-CST Slice 2 — the campaign RUNTIME position and the prep -> map ->
-# victory/defeat -> results -> next node flow.
+# B1-CST Slices 2-3 — the campaign RUNTIME position, the prep -> map ->
+# victory/defeat -> results -> next node flow, and the campaign save envelope.
 #
 # Authority: GDD_01 §CampaignData Contract, GDD_05 §Campaign Flow
 # Slice 1 (CampaignData/CampaignNode + DataManager loading) built the authored
@@ -8,14 +8,17 @@ extends Node
 # active, which node the party is parked on, and which nodes are cleared.
 #
 # Scope guards:
-# - Persists NOTHING. The position is runtime-only until Slice 3 registers the
-#   campaign envelope (campaign.campaign_id / node_id / cleared_nodes[]) in the
-#   F1 save manifest. An unregistered persisted field is a bug.
+# - Owns the POSITION, not the disk. capture_campaign_state/restore_campaign_state
+#   are the serializer seam; SaveManager owns every user:// path, and the three
+#   fields they move are the F1 manifest row campaign.campaign_id / node_id /
+#   cleared_nodes[]. A persisted field with no manifest row is a bug.
 # - Owns the FLOW, not the prep SCREENS. Roster selection, trade, and deployment
 #   UI belong to B4-PREP-DEPLOYMENT; the campaign selector belongs to
 #   B6-CAMPAIGN-SHARING.
 # - Additive only. With no campaign active every handler here no-ops, so the bare
 #   single-map launch from NewGameScreen behaves exactly as it did before.
+
+const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
@@ -270,6 +273,10 @@ func commit_pending_result() -> bool:
 	current_node_id = next_id  # "" == terminal node cleared == campaign complete
 	_active_node_id = ""
 	_pending_result.clear()
+	# The commit IS the between-map moment — the position just advanced and the
+	# party is parked. Autosaving here means every route that advances the campaign
+	# autosaves, rather than each results surface having to remember to.
+	write_autosave()
 	return true
 
 
@@ -277,6 +284,121 @@ func commit_pending_result() -> bool:
 # its outcome must not advance the campaign.
 func clear_pending_result() -> void:
 	_pending_result.clear()
+
+
+# --- Persistence (Slice 3) ----------------------------------------------------
+
+# The campaign envelope: exactly the three position fields, matching the F1
+# manifest row campaign.campaign_id / node_id / cleared_nodes[].
+#
+# The pending result is deliberately NOT position state. It is discarded on quit,
+# so a save taken while the results surface is up restores parked on the current
+# node — the map is simply replayed. Persisting it would mean a save could restore
+# holding an uncommitted win, and committing it after a reload would advance a
+# campaign whose map was never actually played this session.
+func capture_campaign_state() -> Dictionary:
+	return {
+		"campaign_id": active_campaign_id,
+		"node_id": current_node_id,
+		"cleared_nodes": cleared_node_ids.duplicate(),
+	}
+
+
+# Restores the position from a save's campaign envelope. Every id is validated
+# against the authored graph before ANY state is written: a save that names an
+# unknown campaign, an unknown node, or an unknown cleared node fails loud and
+# leaves no campaign active, rather than half-restoring a position the graph
+# cannot walk. This is the manifest's reference_validation obligation for the row
+# ("ids must resolve or load fails").
+func restore_campaign_state(source: Variant) -> bool:
+	if not (source is Dictionary):
+		push_error("CampaignManager: campaign envelope is not a Dictionary")
+		return false
+	var envelope: Dictionary = source
+
+	# An empty campaign id is a valid save: the bare single-map launch persists no
+	# campaign. Restore it as "no campaign active" rather than an error.
+	var campaign_id: String = String(envelope.get("campaign_id", ""))
+	if campaign_id == "":
+		end_campaign()
+		return true
+
+	var campaign := _get_campaign(campaign_id)
+	if campaign == null:
+		push_error("CampaignManager: save names unknown campaign '%s'" % campaign_id)
+		return false
+
+	# "" is the campaign-complete position (walked off the end of the graph); any
+	# other id must resolve to an authored node.
+	var node_id: String = String(envelope.get("node_id", ""))
+	if node_id != "" and not campaign.has_node(node_id):
+		push_error("CampaignManager: save names unknown node '%s' in campaign '%s'" % [
+			node_id, campaign_id])
+		return false
+
+	var cleared: Array[String] = []
+	var raw_cleared: Variant = envelope.get("cleared_nodes", [])
+	if not (raw_cleared is Array):
+		push_error("CampaignManager: save campaign.cleared_nodes is not an Array")
+		return false
+	for entry in raw_cleared:
+		var cleared_id: String = String(entry)
+		if not campaign.has_node(cleared_id):
+			push_error("CampaignManager: save names unknown cleared node '%s' in campaign '%s'" % [
+				cleared_id, campaign_id])
+			return false
+		if not cleared_id in cleared:  # a duplicate is tolerable; a wrong id is not
+			cleared.append(cleared_id)
+
+	active_campaign_id = campaign_id
+	current_node_id = node_id
+	cleared_node_ids = cleared
+	# Runtime-only: nothing is on a map yet, and no result is in flight.
+	_active_node_id = ""
+	_pending_result.clear()
+	return true
+
+
+# Writes the campaign autosave slot. Returns false if the save could not be
+# written; a caller that cares (a manual save) should surface that, while the
+# autosave path only logs — a failed autosave must not block the player from
+# continuing to the next map.
+func write_autosave() -> bool:
+	return write_campaign_slot(SaveManagerScript.AUTOSAVE_SLOT, _autosave_label())
+
+
+# Writes the parked position + party to a campaign slot. This is the seam the
+# manual-save UI calls with its own slot id.
+func write_campaign_slot(slot_id: String, save_label: String) -> bool:
+	if not is_campaign_active():
+		return false  # a bare single-map launch has no campaign to save
+	var gs := get_node_or_null("/root/GameState")
+	var sm := get_node_or_null("/root/SaveManager")
+	if gs == null or sm == null or not gs.has_method("capture_campaign_save") \
+			or not sm.has_method("save_slot"):
+		# No disk seam wired (headless tests drive the position directly). The
+		# position is still correct in memory; only persistence is skipped.
+		return false
+	var save: Variant = gs.call("capture_campaign_save", save_label)
+	if save == null:
+		push_error("CampaignManager: campaign save capture failed for slot '%s'" % slot_id)
+		return false
+	if not bool(sm.call("save_slot", slot_id, save)):
+		push_error("CampaignManager: failed to write campaign slot '%s'" % slot_id)
+		return false
+	return true
+
+
+# Slot rows are what the load picker shows, so the label names the position the
+# save restores to: the node the party is parked ON, not the one just cleared.
+func _autosave_label() -> String:
+	var campaign := get_active_campaign()
+	var campaign_label: String = campaign.label if campaign != null else active_campaign_id
+	if is_campaign_complete():
+		return "%s - Complete" % campaign_label
+	var node := get_current_node()
+	var node_label: String = node.label if node != null and node.label != "" else current_node_id
+	return "%s - %s" % [campaign_label, node_label]
 
 
 # Successor for the linear MVP case. A branching node (multiple successors) needs
