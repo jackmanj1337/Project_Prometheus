@@ -202,6 +202,11 @@ func _focus_scroll_container() -> ScrollContainer:
 	return null
 
 
+# Deferred lookahead requests are coalesced: held input may move focus again before
+# the layout frame settles, and only the newest focus owner may adjust the scroll.
+var _focus_lookahead_generation: int = 0
+
+
 # V031-GP-01: `ScrollContainer.follow_focus` scrolls a focused row just barely
 # into view, so the tester couldn't see what the next step moves toward. After
 # a focus step, keep up to three row heights of context visible. The margin is
@@ -211,10 +216,15 @@ func _apply_focus_lookahead(ctrl: Control, direction: int = 0) -> void:
 	if scroll == null or ctrl == null or not ctrl.is_inside_tree() \
 			or not scroll.is_ancestor_of(ctrl):
 		return
+	_focus_lookahead_generation += 1
+	var generation := _focus_lookahead_generation
 	# Container geometry settles after focus changes. Reading global rectangles in
 	# the same frame caused corrections based on the previous scroll position.
 	await get_tree().process_frame
 	if not is_instance_valid(scroll) or not is_instance_valid(ctrl):
+		return
+	if generation != _focus_lookahead_generation \
+			or get_viewport().gui_get_focus_owner() != ctrl:
 		return
 	var row := _visual_scroll_row(scroll, ctrl)
 	var view := scroll.get_global_rect()
@@ -225,23 +235,33 @@ func _apply_focus_lookahead(ctrl: Control, direction: int = 0) -> void:
 	# Convert the row to content coordinates and assign one absolute target. This
 	# avoids accumulated corrections and makes the margin follow travel direction.
 	var content_top: float = float(scroll.scroll_vertical) + rect.position.y - view.position.y
-	var target := float(scroll.scroll_vertical)
-	if direction < 0:
+	var current := float(scroll.scroll_vertical)
+	var target := current
+	# Preserve the current scroll while the requested context is already visible.
+	# This makes lookahead a bounded reveal, not a recenter on every focus step.
+	if direction < 0 and content_top - lookahead < current:
 		target = content_top - lookahead
-	elif direction > 0:
+	elif direction > 0 and content_top + rect.size.y + lookahead > current + view.size.y:
 		target = content_top + rect.size.y + lookahead - view.size.y
 	elif rect.position.y < view.position.y:
 		target = content_top
 	elif rect.end.y > view.end.y:
 		target = content_top + rect.size.y - view.size.y
-	scroll.scroll_vertical = maxi(0, roundi(target))
+	var bar := scroll.get_v_scroll_bar()
+	var maximum := maxf(0.0, bar.max_value - bar.page) if bar != null else target
+	scroll.scroll_vertical = roundi(clampf(target, 0.0, maximum))
 
 
 # Resolve a leaf focus target (for example an HSlider) to the row directly
 # owned by the scrolling content container.
 func _visual_scroll_row(scroll: ScrollContainer, ctrl: Control) -> Control:
 	var row := ctrl
-	while row.get_parent() is Control and row.get_parent().get_parent() != scroll:
+	while row.get_parent() is Control:
+		# Settings has ScrollContainer -> MarginContainer -> VBoxContainer -> rows.
+		# Stopping only at a direct child of ScrollContainer returned the entire VBox,
+		# so its document-height rectangle sent every correction to an endpoint.
+		if row.get_parent() is VBoxContainer:
+			break
 		row = row.get_parent() as Control
 	return row
 

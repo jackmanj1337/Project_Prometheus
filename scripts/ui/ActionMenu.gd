@@ -33,6 +33,11 @@ var _buttons: Array[Button] = []
 # once per analog fluctuation ("too fast") and stalled when the stick stabilised.
 var _repeat := MenuRepeatPolicy.new()
 
+# The button texture's arrows extend farther inward than its StyleBox content
+# margins. Reserve this visual safe area per side so large text never reaches the
+# ornament even though Godot's calculated minimum technically contains the label.
+const _BUTTON_ORNAMENT_SAFE_MARGIN := 28.0
+
 
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
@@ -73,11 +78,19 @@ func _fit_width_to_visible_labels() -> void:
 	var required_width := 128.0
 	for button in _buttons:
 		if button.visible:
-			required_width = maxf(required_width, button.get_combined_minimum_size().x)
+			var font := button.get_theme_font("font")
+			var font_size := button.get_theme_font_size("font_size")
+			var text_width := font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT,
+					-1.0, font_size).x
+			var scale_factor := float(font_size) / 16.0
+			var ornament_width := _BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * scale_factor
+			required_width = maxf(required_width,
+					maxf(button.get_combined_minimum_size().x, text_width + ornament_width))
 	custom_minimum_size.x = required_width
-	# A minimum-size reduction does not shrink an already-expanded free-standing
-	# Control. Set the rendered width too, before MapCursor measures and places it.
-	size.x = required_width
+	# Minimum-size reductions do not shrink an already-expanded free-standing
+	# Control. Reset both rendered axes before MapCursor measures and places it;
+	# otherwise a previously tall action list leaves a near-viewport-height frame.
+	size = Vector2(required_width, get_combined_minimum_size().y)
 
 
 # Show the menu and configure which buttons are active.

@@ -166,30 +166,58 @@ func _init() -> void:
 	# V034-UI-02: traverse without wrapping and require the scrollbar to move only
 	# in the direction of travel. This catches the live opposite-end oscillation.
 	var monotonic_down := scroll != null
+	var monotonic_up := scroll != null
+	var bounded_steps := scroll != null
+	var down_positions: Array[int] = []
+	var up_positions: Array[int] = []
 	if scroll != null:
 		screen.apply_menu_scale(2.0)
 		for i in 3:
 			await process_frame
 		var focusables: Array[Control] = screen._focusable_controls(screen._menu_scale_target())
 		if focusables.size() > 1:
-			scroll.scroll_vertical = 0
 			focusables[0].grab_focus()
+			await process_frame
+			scroll.scroll_vertical = 0
 			var previous_scroll := scroll.scroll_vertical
 			for i in range(1, focusables.size()):
+				var before := scroll.scroll_vertical
 				screen._move_modal_focus(1)
 				await process_frame
 				await process_frame
+				down_positions.append(scroll.scroll_vertical)
 				if scroll.scroll_vertical < previous_scroll:
 					monotonic_down = false
 					break
+				if scroll.scroll_vertical - before > scroll.size.y + 1:
+					bounded_steps = false
+				previous_scroll = scroll.scroll_vertical
+			focusables[-1].grab_focus()
+			await process_frame
+			var bar := scroll.get_v_scroll_bar()
+			scroll.scroll_vertical = roundi(maxf(0.0, bar.max_value - bar.page))
+			previous_scroll = scroll.scroll_vertical
+			for i in range(focusables.size() - 2, -1, -1):
+				var before := scroll.scroll_vertical
+				screen._move_modal_focus(-1)
+				await process_frame
+				await process_frame
+				up_positions.append(scroll.scroll_vertical)
+				if scroll.scroll_vertical > previous_scroll:
+					monotonic_up = false
+					break
+				if before - scroll.scroll_vertical > scroll.size.y + 1:
+					bounded_steps = false
 				previous_scroll = scroll.scroll_vertical
 		else:
 			monotonic_down = false
-	if monotonic_down:
-		print("OK  V034-UI-02 Settings scroll is monotonic during downward traversal")
+	if monotonic_down and monotonic_up and bounded_steps:
+		print("OK  Settings scroll is monotonic and bounded in both directions")
 		passed += 1
 	else:
-		print("FAIL V034-UI-02 Settings scroll jumped opposite to focus travel")
+		print("FAIL Settings scroll: down=%s up=%s bounded=%s" % [
+			monotonic_down, monotonic_up, bounded_steps])
+		print("     down=%s up=%s" % [down_positions, up_positions])
 		failed += 1
 
 	# V025-01a: while the Menu Scale slider is being DRAGGED, changing its value must

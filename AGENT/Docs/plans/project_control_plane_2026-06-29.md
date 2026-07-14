@@ -26,9 +26,11 @@ threat views per controlling faction; and `UI-INSPECTION` now sizes Action Menu
 from scaled visible content and measures focus lookahead from visual rows. All
 four repairs reached v0.3.4 live validation. Trigger zoom and faction threat
 views passed. The two UI paths returned bounded regressions: stale rendered
-Action Menu width and competing focus-scroll ownership. Both are repaired with
-focused regression coverage and await the v0.3.5 live rerun; see
-[`playtest_v0.3.4_results_triage_plan_2026-07-14.md`](../playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md).
+Action Menu width and competing focus-scroll ownership. v0.3.5 removed those
+specific failures but exposed stale rendered height, insufficient ornament-safe
+label space, and a visual-row resolver that measured the entire Settings document.
+Both repairs now have bidirectional/bounded regression coverage and await v0.3.6;
+see [`playtest_v0.3.5_results_triage_plan_2026-07-14.md`](../playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md).
 
 The row schema, Track ID uniqueness, Track ID reachability, allowed Track ID
 prefixes, allowed statuses, allowed bands, and local markdown links are enforced by

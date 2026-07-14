@@ -81,11 +81,11 @@ and
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` | Implemented 2026-07-14: raw joy-axis zoom no longer bypasses the 0.85 threshold or double-consumes a pull; final live validation remains. | Single-owner polling fix implemented with event-path regression coverage. |
 | 2 | `B6-MRD` | Implemented 2026-07-14: watch sets, danger mode, markers, pruning, and versioned suspend state are isolated by controlling faction. | Watch state belongs to the controlling faction; no player/seat ownership. |
-| 3 | `UI-INSPECTION` | v0.3.4 found stale rendered width after a long-to-short Action Menu transition; fixed by assigning the computed content width before placement. | Await v0.3.5 1x/2x Windows screenshots. |
-| 4 | `UI-INSPECTION` | v0.3.4 found competing engine/custom focus scrolling; fixed with one direction-aware absolute lookahead owner. | Await v0.3.5 bidirectional live traversal. |
+| 3 | `UI-INSPECTION` | v0.3.5 exposed stale rendered height and insufficient ornate-button safe area; both axes now shrink-wrap and scaled labels reserve the ornament region. | Await v0.3.6 1x/2x Windows screenshots. |
+| 4 | `UI-INSPECTION` | v0.3.5 proved oscillation fixed but exposed endpoint jumps: row resolution returned the full Settings document. Visual-row resolution, request coalescing, and bounded reveal are implemented. | Await v0.3.6 bidirectional live traversal. |
 
 Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
-Pending validation; the repaired surfaces require the focused rerun. The
+Pending validation; the repaired surfaces require the v0.3.6 focused rerun. The
 next-session execution packet is
 [`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
 
