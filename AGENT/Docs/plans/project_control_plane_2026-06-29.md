@@ -14,9 +14,11 @@ rewrite should link to. `GDD_10` becomes the readable build guide; this document
 owns the audit rows.
 
 **Latest intake:** v0.3.3 returned 2026-07-14. Four findings are routed into
-the existing `VAL-V030-GAMEPAD`, `B6-MRD`, and `UI-INSPECTION` rows. Root causes,
-solution proposals, and the one open ownership decision are in
+the existing `VAL-V030-GAMEPAD`, `B6-MRD`, and `UI-INSPECTION` rows. Root causes
+and resolved solutions are in
 [`playtest_v0.3.3_results_triage_plan_2026-07-14.md`](../playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md).
+Watch ownership is resolved per controlling faction; implementation resumes from
+[`v0.3.3_playtest_fix_handoff_2026-07-14.md`](v0.3.3_playtest_fix_handoff_2026-07-14.md).
 
 The row schema, Track ID uniqueness, Track ID reachability, allowed Track ID
 prefixes, allowed statuses, allowed bands, and local markdown links are enforced by

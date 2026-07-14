@@ -1,4 +1,4 @@
-Status: Planned - triaged; one owner decision before implementation
+Status: Planned - owner decisions resolved; ready for fix pass
 Last verified: 2026-07-14
 
 # v0.3.3 Playtest Results and Root-Cause Triage
@@ -22,7 +22,7 @@ still establish four actionable findings:
 |---|---|---|---|
 | `V033-GP-01` trigger threshold/double step | Medium | `VAL-V030-GAMEPAD` | Failed; gate stays Pending validation |
 | `V033-UI-01` 2x focus lookahead around slider rows | Low | `UI-INSPECTION` | Partial pass; bounded correction |
-| `V033-MRD-01` watch state leaks between faction turns | Medium | `B6-MRD` | New defect; owner decision required |
+| `V033-MRD-01` watch state leaks between faction turns | Medium | `B6-MRD` | New defect; per-faction ownership resolved |
 | `V033-UI-02` Action Menu text exceeds button art | Medium | `UI-INSPECTION` | New live UI regression |
 
 The menu threat-composition behavior itself passed: Action Menu and Map Menu
@@ -101,12 +101,12 @@ shape as the controlling faction's state for backward compatibility. Tests must
 cover blue/red/green isolation, allied-faction hostility rules, death pruning,
 phase repaint, and suspend round-trip.
 
-**Owner decision (`V033-D1`).** Should watch state be per controlling faction
-(recommended, matching the tester request and existing per-faction camera view)
-or per local player/seat (better only if allied factions controlled by one player
-should deliberately share watches)? The current runtime has faction identity but
-no durable player-seat identity, so per-player ownership expands scope and save
-schema beyond this defect.
+**Resolved owner decision (`V033-D1`, 2026-07-14).** Watch state belongs to each
+controlling faction. Allied factions do not share watch selections merely because
+one local player may control both. This matches the tester request, the existing
+per-faction camera-view boundary, and the runtime's durable identity model. A
+future player/seat identity system may explicitly add sharing policy; this fix
+must not infer player ownership or widen the save model for it.
 
 ## V033-UI-02 - Action Menu text exceeds button art
 
@@ -136,7 +136,7 @@ width is the accessibility-safe default and preserves the selected font.
 
 1. Fix `V033-GP-01`; it is a contained input correctness bug and keeps the
    gamepad validation gate open.
-2. Resolve `V033-D1`, then implement faction-scoped watch state and its suspend
+2. Implement resolved `V033-D1` faction-scoped watch state and its suspend
    migration together.
 3. Fix Action Menu content sizing before the next UI-themed build.
 4. Correct focus lookahead row measurement and add mixed-height 2x coverage.

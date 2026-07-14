@@ -186,6 +186,7 @@
 - [`plans/stat_breakdown_character_sheet_plan_2026-06-14.md`](plans/stat_breakdown_character_sheet_plan_2026-06-14.md) — Character-Sheet Stat Breakdown — Design & Plan (2026-06-14) — *Implemented (2026-06-14) — Stage A + the*
 - [`plans/stat_registry_implementation_plan_2026-06-29.md`](plans/stat_registry_implementation_plan_2026-06-29.md) — Stat Registry Implementation Plan — *Active - implementation plan*
 - [`plans/unified_gdd_pass_followups_2026-06-28.md`](plans/unified_gdd_pass_followups_2026-06-28.md) — Unified GDD Pass Followups — *Active - planning note*
+- [`plans/v0.3.3_playtest_fix_handoff_2026-07-14.md`](plans/v0.3.3_playtest_fix_handoff_2026-07-14.md) — v0.3.3 Playtest Fix Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/v0.4.0_release_checklist_2026-07-13.md`](plans/v0.4.0_release_checklist_2026-07-13.md) — v0.4.0 Release Checklist — *Active - code-review gate closed; metada*
 - [`plans/v0.4.0_review_fix_handoff_2026-07-13.md`](plans/v0.4.0_review_fix_handoff_2026-07-13.md) — v0.4.0 Review Fix Handoff - 2026-07-13 — *Implemented - fix pass closed the v0.4.0*
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
@@ -237,7 +238,7 @@
 - [`playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md`](playtests/playtest_v0.3.1_results_triage_plan_2026-07-12.md) — v0.3.1 Playtest Results Triage Plan - 2026-07-12 — *OPEN*
 - [`playtests/playtest_v0.3.1_return_triage_kit_2026-07-12.md`](playtests/playtest_v0.3.1_return_triage_kit_2026-07-12.md) — v0.3.1 Focused-Rerun Return Triage Kit - 2026-07-12 — *Planned - ready for returned v0.3.1 evid*
 - [`playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md`](playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) — v0.3.2 Playtest Results and Root-Cause Triage — *RESOLVED*
-- [`playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md) — v0.3.3 Playtest Results and Root-Cause Triage — *Planned - triaged; one owner decision be*
+- [`playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md) — v0.3.3 Playtest Results and Root-Cause Triage — *RESOLVED*
 
 ## Reference / feasibility / Q&A
 
