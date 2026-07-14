@@ -64,10 +64,17 @@ shaped, per [CST-3] and [CST-5]/[CST-6]. Do not reopen them.
 
 ### Slice 2 - prep/results flow
 
+> **Slice 1 landed 2026-07-14** (`bad3317`). Slice 2 has its own code-grounded
+> handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md).
+> Read that first - it records the verified seams, including that step 2 below is
+> **already satisfied**.
+
 1. Add the campaign entry points named by the technical plan: prep -> map ->
    victory/defeat -> results -> next node.
 2. Route victory gold through `ResourceLedger` (v0.4.0 already forbids direct
-   `party_gold` writes; documentation check 28 enforces this).
+   `party_gold` writes; documentation check 28 enforces this). **Already done:**
+   `TurnManager._apply_victory_rewards` commits a negative `party_gold` `CostSpec`
+   through the ledger - do not re-plumb it.
 3. Keep roster selection, trade, and deployment UI out of this slice. This slice
    owns the *flow*, not the prep screens - `B4-PREP-DEPLOYMENT` owns those.
 4. Tests: node advance on victory, defeat handling, and results state handoff.
