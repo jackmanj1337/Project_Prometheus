@@ -1,10 +1,25 @@
 ---
 Type: plan
-Status: Planned - ready for next-session implementation
+Status: Implemented 2026-07-14
 Last verified: 2026-07-14
 ---
 
 # `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14
+
+> **Implemented 2026-07-14.** `CampaignManager` (`scripts/autoloads/CampaignManager.gd`)
+> owns the campaign runtime position and the flow; `DataManager.get_map_registry_entry`
+> closed the map-lookup gap; `GameOverScreen` gained the campaign "Next" route.
+> Covered by `scripts/tests/test_campaign_manager.gd`. The contract now lives in
+> `GDD_01_Data_Contracts.md` §CampaignManager Contract - read that, not this plan.
+>
+> **One deviation from the "Recommended shape" below:** victory does NOT advance
+> the node. It records a pending result, and the position advances only when the
+> results surface commits it - the only shape that satisfies the retry landmine,
+> since Retry replays the same map. See the contract for the reasoning.
+>
+> Next: **Slice 3** (campaign saves) registers `campaign.campaign_id` /
+> `campaign.node_id` / `campaign.cleared_nodes[]` in the F1 manifest and adds the
+> serializer.
 
 Successor to [`b1_cst_save_spine_handoff_2026-07-14.md`](b1_cst_save_spine_handoff_2026-07-14.md),
 which remains the parent plan. That document's Slice 2 section is the contract;

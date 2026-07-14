@@ -346,8 +346,9 @@ only at render time.
 ### CampaignData Contract
 
 Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
-2026-07-14); campaign-owned rule mandates/defaults and the prep/results flow
-that consumes the graph are **Target design**.
+2026-07-14) and the runtime flow that walks it **Implemented** (`B1-CST`
+Slice 2, 2026-07-14, see §CampaignManager Contract below); campaign-owned rule
+mandates/defaults and the campaign save envelope are **Target design**.
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -399,6 +400,61 @@ without breaking saves — only `node_id` is durable identity.
 
 Shipped campaign: `data/campaigns/proving_grounds.json`, a linear five-node run
 over the shipped objective maps (rout, seize, boss, escape, defend).
+
+### CampaignManager Contract
+
+Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14).
+
+`CampaignData` is the graph; the `CampaignManager` autoload is what **walks** it.
+It holds the campaign RUNTIME position and owns the prep -> map ->
+victory/defeat -> results -> next node flow. It is registered after `DataManager`
+(it resolves campaigns and map bindings through the catalogue).
+
+```gdscript
+# Runtime position — NOT persisted until Slice 3 registers the campaign envelope.
+var active_campaign_id: String = ""   # "" == no campaign == every handler no-ops
+var current_node_id: String = ""      # the node that launches next; "" == complete
+var cleared_node_ids: Array[String] = []
+
+func start_campaign(campaign_id: String) -> bool   # seeds at start_node_id; unknown id fails loud
+func end_campaign() -> void
+func launch_current_node() -> bool                 # resolve map binding -> GameState.configure_next_map -> GameMap
+func resolve_launch_params(node: CampaignNode) -> Dictionary   # map_data_path / roster_policy / roster_source
+func get_pending_result() -> Dictionary            # results state handoff
+func has_pending_victory() -> bool
+func commit_pending_result() -> bool               # the ONLY thing that advances the position
+func clear_pending_result() -> void                # Retry drops the unapplied result
+func is_campaign_active() -> bool
+func is_campaign_complete() -> bool
+```
+
+Rules this contract fixes:
+
+- **A win records; the commit advances.** `EventBus.map_victory` / `map_defeat`
+  record a result against the node that was actually launched, and
+  `map_resolved` enriches it with the ranked standings. The position moves only
+  when the results surface calls `commit_pending_result` (`GameOverScreen`'s
+  "Next"). Advancing on the victory signal itself would break **Retry**, which
+  replays the same map: the campaign would sit on node N+1 while node N is
+  replayed, and a second win would skip a node. Retry calls
+  `clear_pending_result`.
+- **Defeat parks.** No clear, no advance — the campaign stays on the current node.
+- **The party carries.** The first node of a run seeds the party from the map
+  registry's authored `roster_policy`; every later node launches with
+  `keep_current_roster`, or levels and gold would reset each map.
+- **Additive.** With no campaign active every handler no-ops, so the bare
+  single-map launch (`NewGameScreen`) is unchanged. `[CST-6]`'s "every map is a
+  1-node campaign" auto-wrap is deferred to the campaign selector.
+- **Branch nodes take the first authored successor** until the branch-choice UI
+  lands with `B6-CAMPAIGN-SHARING`; authored order is the ordering contract.
+- **Persists nothing.** Slice 3 registers `campaign.campaign_id`,
+  `campaign.node_id`, and `campaign.cleared_nodes[]` in the F1 manifest and adds
+  the serializer.
+
+Map bindings resolve through `DataManager.get_map_registry_entry(map_id)` /
+`has_map_registry_entry(map_id)` — the registry is cached in the catalogue pass,
+so the campaign flow does not re-read `map_registry.json` from disk. An unknown
+map id is a loud error, never a fallback launch.
 
 > **Registry migration note.** The field lists above describe the implemented resource
 > schema. Where comments name built-in ids, those ids are the developer preset library

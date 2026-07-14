@@ -9,6 +9,7 @@ extends Control
 
 @onready var _title: Label = $Panel/VBox/Title
 @onready var _standings_label: Label = $Panel/VBox/Standings
+@onready var _next_btn: Button = $Panel/VBox/NextButton
 @onready var _retry_btn: Button = $Panel/VBox/RetryButton
 @onready var _quit_btn: Button = $Panel/VBox/QuitButton
 
@@ -30,6 +31,7 @@ var _suspend_deleted_for_result: bool = false
 func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
 	hide()
+	_next_btn.pressed.connect(_on_next)
 	_retry_btn.pressed.connect(_on_retry)
 	_quit_btn.pressed.connect(_on_quit)
 	var bus := get_node_or_null("/root/EventBus")
@@ -135,8 +137,52 @@ func _format_standings(winner_group: String, standings: Array) -> String:
 
 
 func _show_overlay() -> void:
+	_refresh_campaign_route()
 	show()
-	_retry_btn.grab_focus()
+	# A campaign win leads forward, so Next takes focus when it is offered;
+	# otherwise the pre-campaign default (Retry) is unchanged.
+	if _next_btn.visible:
+		_next_btn.grab_focus()
+	else:
+		_retry_btn.grab_focus()
+
+
+# B1-CST Slice 2: with a campaign active, a win routes on to the next node. The
+# button stays hidden for a bare single-map launch and for a defeat (which parks
+# the campaign on the same node — Retry and Quit are the only ways out).
+func _refresh_campaign_route() -> void:
+	var cm := _campaign_manager()
+	if cm == null or not bool(cm.call("has_pending_victory")):
+		_next_btn.visible = false
+		return
+	var result: Dictionary = cm.call("get_pending_result")
+	_next_btn.visible = true
+	_next_btn.text = "Finish Campaign" if bool(result.get("campaign_complete", false)) else "Next Battle"
+
+
+func _campaign_manager() -> Node:
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm == null or not bool(cm.call("is_campaign_active")):
+		return null
+	return cm
+
+
+# Commits the win to the campaign position, then launches the next node. On the
+# terminal node the run is over, so the commit completes the campaign and we drop
+# back to the menu.
+func _on_next() -> void:
+	var cm := _campaign_manager()
+	if cm == null or not bool(cm.call("commit_pending_result")):
+		return
+	if bool(cm.call("is_campaign_complete")):
+		cm.call("end_campaign")
+		_quit_to_menu()
+		return
+	if not bool(cm.call("launch_current_node")):
+		# The node failed to launch (bad map binding / no valid roster); it already
+		# push_error'd. Stay on the results screen rather than dumping the player
+		# into a broken map.
+		_next_btn.visible = false
 
 
 func _delete_suspend_after_resolution() -> void:
@@ -156,6 +202,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_retry() -> void:
+	# The same map is about to be replayed, so its result must not advance the
+	# campaign — drop it before the reload (B1-CST Slice 2 retry rule).
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm and cm.has_method("clear_pending_result"):
+		cm.call("clear_pending_result")
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.has_method("restore_map_snapshot"):
 		gs.restore_map_snapshot()
@@ -163,6 +214,15 @@ func _on_retry() -> void:
 
 
 func _on_quit() -> void:
+	# Quitting to the menu abandons the run: the campaign position is runtime-only
+	# until Slice 3 persists it, so leaving the map ends the campaign.
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm and cm.has_method("end_campaign"):
+		cm.call("end_campaign")
+	_quit_to_menu()
+
+
+func _quit_to_menu() -> void:
 	# Return to Boot/MainMenu — Boot re-routes to MainMenu in non-dev builds
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.has_method("reset_map_state"):

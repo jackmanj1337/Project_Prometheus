@@ -759,12 +759,21 @@ review 2026-06-14 #1) for resolution-robustness.
 
         DEFEAT / VICTORY / DRAW
 
+   [ Next Battle ]      <- campaign win only; hidden otherwise
    [ Retry Map ]
    [ Quit to Menu ]
 ```
 
+- "Next Battle" appears **only when a campaign is active and the map was won**
+  (`B1-CST` Slice 2). It commits the win to the campaign position
+  (`CampaignManager.commit_pending_result`) and launches the next node; on the
+  terminal node it reads "Finish Campaign" and returns to the menu. It is hidden
+  for a bare single-map launch and for a defeat, which parks the campaign on the
+  same node. It takes focus when shown; otherwise Retry keeps focus as before.
 - "Retry Map" reloads the current map from scratch
-  (player unit stats and inventory are preserved from map start — not mid-map)
+  (player unit stats and inventory are preserved from map start — not mid-map).
+  With a campaign active it also **drops the unapplied result**, so replaying a
+  won map cannot advance the campaign twice.
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
 - **Presents under pending progression** (`B5-VICTORY-PROGRESSION-SEQ`): a result that

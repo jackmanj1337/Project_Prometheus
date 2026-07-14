@@ -33,6 +33,10 @@ var _skills: Dictionary = {}
 # _load_directory's resource loader.
 var _campaigns: Dictionary = {}
 
+# Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
+# so the campaign runtime resolves a node's launch parameters through this cache.
+var _map_registry: Dictionary = {}
+
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
 
@@ -50,6 +54,9 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	_load_directory(source.path_join("items"), _items)
 	_load_directory(source.path_join("skills"), _skills)
 	_load_campaign_directory(source.path_join("campaigns"))
+	# Cached so campaign node -> map launches resolve through the catalogue
+	# instead of each caller re-reading map_registry.json from disk.
+	_load_map_registry(source.path_join("maps/map_registry.json"))
 
 
 func _clear_content() -> void:
@@ -58,6 +65,7 @@ func _clear_content() -> void:
 	_items.clear()
 	_skills.clear()
 	_campaigns.clear()
+	_map_registry.clear()
 
 
 # Runs the complete validation composition for one loaded source. SkillData's
@@ -293,21 +301,48 @@ static func collect_campaign_validation_errors(campaigns: Dictionary,
 	return errors
 
 
-# The map-id vocabulary campaigns bind against. Parse errors are the map
-# registry validator's job, so a broken registry simply yields no ids here.
-static func collect_map_registry_ids(registry_path: String) -> Dictionary:
-	var ids := {}
+# The map registry keyed by id. Parse errors are the map registry validator's
+# job, so a broken registry simply yields no entries here.
+static func load_map_registry_entries(registry_path: String) -> Dictionary:
+	var entries := {}
 	if not FileAccess.file_exists(registry_path):
-		return ids
+		return entries
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
 	if not (parsed is Array):
-		return ids
+		return entries
 	for entry in (parsed as Array):
 		if entry is Dictionary:
 			var entry_id: String = String((entry as Dictionary).get("id", ""))
 			if entry_id != "":
-				ids[entry_id] = true
+				entries[entry_id] = entry
+	return entries
+
+
+# The map-id vocabulary campaigns bind against.
+static func collect_map_registry_ids(registry_path: String) -> Dictionary:
+	var ids := {}
+	for entry_id in load_map_registry_entries(registry_path):
+		ids[entry_id] = true
 	return ids
+
+
+func _load_map_registry(registry_path: String) -> void:
+	_map_registry = load_map_registry_entries(registry_path)
+
+
+# The full registry entry (map_data_path, roster_policy, roster_source, …) for a
+# map id. Campaign nodes bind by map id ([CNC-3]) and need the entry to launch,
+# so the campaign flow resolves through here rather than re-reading the registry
+# from disk. Unknown ids fail loud: launching "nothing" would strand a run.
+func get_map_registry_entry(map_id: String) -> Dictionary:
+	if not _map_registry.has(map_id):
+		push_error("DataManager: unknown map registry id '%s'" % map_id)
+		return {}
+	return _map_registry[map_id]
+
+
+func has_map_registry_entry(map_id: String) -> bool:
+	return _map_registry.has(map_id)
 
 
 func _load_campaign_directory(dir_path: String) -> void:
