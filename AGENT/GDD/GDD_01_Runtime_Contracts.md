@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-14
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
