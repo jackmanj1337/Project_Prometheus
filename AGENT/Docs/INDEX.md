@@ -166,6 +166,7 @@
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*
 - [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*
+- [`plans/desktop_web_itch_release_handoff_2026-07-14.md`](plans/desktop_web_itch_release_handoff_2026-07-14.md) — Desktop Web / itch.io Release — Next-Session Handoff — *Planned*
 - [`plans/doc_role_manifest_2026-06-29.md`](plans/doc_role_manifest_2026-06-29.md) — Document Role Manifest — *Implemented - ownership check*
 - [`plans/f1_save_schema_manifest_2026-07-06.md`](plans/f1_save_schema_manifest_2026-07-06.md) — F1 Save Schema Manifest — *Active - schema manifest*
 - [`plans/f1_schema_source_inventory_2026-06-28.md`](plans/f1_schema_source_inventory_2026-06-28.md) — F1 Schema Source Inventory — *Active - planning input*
