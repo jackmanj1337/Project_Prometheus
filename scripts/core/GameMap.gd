@@ -41,6 +41,8 @@ const HotseatControllerS = preload("res://scripts/core/HotseatController.gd")
 # OFF_MAP_TILE sentinel (same pattern MapCursor uses).
 const PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
 const OccupancyContextScript = preload("res://scripts/placement/OccupancyContext.gd")
+# B4-PREP-DEPLOYMENT: validates the explicit deployment plan before it is spawned.
+const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
 
@@ -216,7 +218,14 @@ func _spawn_units() -> bool:
 		push_error("GameMap: prepared launch roster is empty")
 		return false
 
-	# Player units: roster slot N → player_start_tiles[N]
+	# Player units. An explicit deployment plan (chosen at prep) wins when present.
+	# Without one, keep the historical inference — roster slot N →
+	# player_start_tiles[N] — so a launch path with no prep screen (the bare
+	# single-map launch) behaves exactly as it did before B4-PREP-DEPLOYMENT.
+	var plan: Variant = gs.get("next_map_deployment")
+	if plan is Dictionary and not (plan as Dictionary).is_empty():
+		return _spawn_units_from_plan(plan as Dictionary, roster) and _spawn_enemy_units()
+
 	for i in roster.size():
 		if i >= map_data.player_start_tiles.size():
 			break
@@ -225,10 +234,50 @@ func _spawn_units() -> bool:
 			continue  # permadeath: skip dead units in future deployments
 		_place_and_spawn(u_data, map_data.player_start_tiles[i], "blue")
 
-	# Enemy/AI-controlled units. Each placement resolves to a UnitData via exactly
-	# one source, either an in-memory instance or a resource path.
-	# Optional placement keys: "faction" (defaults to "red"), "ai_profile"
-	# (explicit override; omission preserves the UnitData profile).
+	return _spawn_enemy_units()
+
+
+# Spawns the player side from an explicit deployment plan: unit_id -> start tile.
+#
+# Revalidates before spawning. Prep already gates Begin Battle on a legal plan, so
+# an illegal plan arriving here means the party or the map changed underneath it —
+# and spawning a half-legal board (a fallen unit, two units stacked on one tile)
+# is worse than refusing to launch, which is how this function already treats an
+# unprepared roster.
+func _spawn_units_from_plan(plan: Dictionary, roster: Array) -> bool:
+	var party: Array[UnitData] = []
+	for entry in roster:
+		if entry is UnitData:
+			party.append(entry)
+
+	# The node carries the deployment constraints ([CST-5]); a bare single-map
+	# launch has no campaign position, and a null node simply skips them.
+	var node: CampaignNode = null
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("get_current_node"):
+		node = cm.call("get_current_node")
+
+	var errors: Array[String] = DeploymentPlanS.validate(
+		plan, party, node, map_data.player_start_tiles)
+	if not errors.is_empty():
+		for err in errors:
+			push_error(err)
+		return false
+
+	for key in plan:
+		var unit_id: String = String(key)
+		for unit_data in party:
+			if unit_data.unit_id == unit_id:
+				_place_and_spawn(unit_data, plan[key], "blue")
+				break
+	return true
+
+
+# Enemy/AI-controlled units. Each placement resolves to a UnitData via exactly
+# one source, either an in-memory instance or a resource path.
+# Optional placement keys: "faction" (defaults to "red"), "ai_profile"
+# (explicit override; omission preserves the UnitData profile).
+func _spawn_enemy_units() -> bool:
 	for placement in map_data.enemy_placements:
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
 		var faction_id: String = placement.get("faction", "red")

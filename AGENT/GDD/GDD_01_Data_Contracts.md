@@ -476,6 +476,64 @@ Map bindings resolve through `DataManager.get_map_registry_entry(map_id)` /
 so the campaign flow does not re-read `map_registry.json` from disk. An unknown
 map id is a loud error, never a fallback launch.
 
+### Deployment Plan Contract
+
+Status: **Split** — the plan seam and its validator are **Implemented**
+(`B4-PREP-DEPLOYMENT` Slice 1, 2026-07-14); the prep screen that authors a plan
+and the manual-save surface beside it are **Planned**.
+
+The deployment plan is the player's answer to "who fights this map, and where do
+they stand". It replaces an **inference** with a **choice**: before this slice,
+`GameMap` derived the player's side from roster order truncated by the start-tile
+count — a fallback that merely looked like a decision.
+
+```gdscript
+# GameState — launch staging, beside next_map_data_path / next_map_roster_policy.
+var next_map_deployment: Dictionary = {}    # unit_id (String) -> start tile (Vector2i)
+func set_next_map_deployment(plan: Dictionary) -> void
+func clear_next_map_deployment() -> void
+
+# scripts/shared/DeploymentPlan.gd — the validator, with two consumers: prep (to
+# gate Begin Battle) and GameMap (to refuse an illegal plan). `node` may be null.
+static func validate(plan: Dictionary, roster: Array[UnitData], node: CampaignNode,
+		start_tiles: Array[Vector2i]) -> Array[String]   # empty == legal
+```
+
+Rules this contract fixes:
+
+- **The plan is a Dictionary keyed by `unit_id`,** which structurally forbids
+  deploying one unit twice. Two units on one tile, a tile that is not a
+  `MapData.player_start_tiles` entry, a unit outside the party, and a plan larger
+  than the start-tile count are all rejected by the validator instead.
+- **An empty plan means "no prep screen ran", not "deploy nobody".** `GameMap`
+  then keeps the historical roster-order rule, so the bare single-map launch —
+  which has no campaign position at all — behaves exactly as it did before prep
+  existed. Additive, as ever.
+- **`GameMap` revalidates before it spawns.** Prep gates Begin Battle on a legal
+  plan, so an illegal plan reaching the map means the party or the map changed
+  underneath it; the launch fails loud rather than spawning a half-legal board.
+- **The plan is NOT persisted.** It is chosen at prep and consumed at launch, and
+  a campaign save is parked BETWEEN maps — so a reload lands back on prep and the
+  player deploys again. Same reasoning as the unpersisted pending result above,
+  and it means no new F1 save row is owed. It DOES survive a **Retry**, which
+  reloads the map scene without reconfiguring the launch, so a replay redeploys
+  the units the player actually chose.
+- **The `[CST-5]` node constraints are consumed here, for the first time.**
+  `CampaignNode.required_units` / `excluded_units` / `deployment_cap` have been
+  authored and validated since `B1-CST` Slice 1 with no reader; prep is that
+  reader, which is why no schema change was owed. `deployment_cap` is `-1` for
+  uncapped (and `CampaignData` rejects `0`).
+- **A fallen `required_unit` is EXCUSED, not a launch block.** Under permadeath a
+  dead unit stays in the roster (spawn skips it), so a node can legitimately
+  require a unit the player has lost. Blocking would strand the campaign: no legal
+  plan for that node could ever exist again, and the player's only recovery would
+  be an older save. Whether a key death should END the run is a campaign-rules
+  question (permadeath game-over), not a prep-validation one. A required unit that
+  was never in the party at all is a different thing — an authoring error — and
+  still fails loud.
+- **Benched units gain nothing** (campaign flow technical plan §4): a unit left
+  out of the plan is never spawned, so it accrues no XP, levels, or items.
+
 > **Registry migration note.** The field lists above describe the implemented resource
 > schema. Where comments name built-in ids, those ids are the developer preset library
 > for today's engine. The target registry rows (`B2-REGISTRY`, `B2-ACTION-EFFECT`,

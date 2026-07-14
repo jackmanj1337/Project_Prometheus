@@ -157,6 +157,17 @@ var next_map_roster_source: String = ""
 # from disk; GameMap consumes it to spawn from live unit state instead of
 # authored placements.
 var next_map_suspend_payload: Dictionary = {}
+# B4-PREP-DEPLOYMENT: the explicit deployment chosen at prep — unit_id -> player
+# start tile. EMPTY means no prep screen ran, and GameMap keeps its historical
+# roster-order inference, so the bare single-map launch behaves exactly as it did
+# before prep existed.
+#
+# Deliberately NOT persisted: a campaign save is parked BETWEEN maps, so a reload
+# lands back on prep and the player deploys again (the same reasoning that keeps
+# the pending map result out of the save). It DOES survive a Retry, which reloads
+# the map scene without reconfiguring the launch — so a replay redeploys the units
+# the player actually chose, rather than silently falling back to roster order.
+var next_map_deployment: Dictionary = {}
 
 # Deep copy taken at map start; used by the Retry button to restore state
 var _map_start_snapshot: Array[Dictionary] = []
@@ -324,6 +335,19 @@ func configure_next_map(map_path: String, roster_policy: String = "default_roste
 	next_map_roster_policy = roster_policy
 	next_map_roster_source = roster_source
 	next_map_suspend_payload.clear()
+	# Selecting a map invalidates any plan authored against the previous one — its
+	# tiles belonged to a different board. Prep stages its plan AFTER this call.
+	next_map_deployment.clear()
+
+
+# Stages the prep screen's deployment for the next launch. Copied, so prep can
+# keep editing its working plan without mutating what GameMap will spawn.
+func set_next_map_deployment(plan: Dictionary) -> void:
+	next_map_deployment = plan.duplicate(true)
+
+
+func clear_next_map_deployment() -> void:
+	next_map_deployment.clear()
 
 
 func configure_suspend_resume(source: Variant) -> bool:
@@ -347,6 +371,9 @@ func configure_suspend_resume(source: Variant) -> bool:
 	next_map_roster_policy = "suspend_resume"
 	next_map_roster_source = map_path
 	next_map_suspend_payload = payload.duplicate(true)
+	# A suspend resume rebuilds the board from the serialized live units, so any
+	# staged plan is stale — it described a fresh deployment, not a map in progress.
+	next_map_deployment.clear()
 	return true
 
 
@@ -536,8 +563,10 @@ func configure_campaign_resume(source: Variant) -> bool:
 	active_roster_policy = "campaign_resume"
 	active_roster_source = ""
 	# A slot load is not a suspend resume; drop any stale mid-map payload so the
-	# next launch builds a fresh board.
+	# next launch builds a fresh board, and any deployment staged for the run that
+	# was in progress before the load.
 	clear_suspend_resume()
+	next_map_deployment.clear()
 	return true
 
 

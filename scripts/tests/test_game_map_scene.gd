@@ -517,5 +517,101 @@ func _init() -> void:
 			print("FAIL placement failure aborted map spawn or created a unit")
 			failed += 1
 
+	# ---- B4-PREP-DEPLOYMENT Slice 1: the explicit deployment plan ----
+	# The plan is the whole point of prep: deployment stops being INFERRED from
+	# roster order and becomes a choice GameMap consumes.
+	var map_for_plan: MapData = load("res://data/maps/map_001_rout/map_001_data.tres")
+	var start_tiles: Array[Vector2i] = map_for_plan.player_start_tiles
+
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var roster: Array[UnitData] = gs.player_roster
+	# Deliberately NOT roster order: the THIRD roster unit takes the FIRST start
+	# tile. Roster-order inference could never produce this placement, so passing
+	# proves the plan was consumed rather than re-derived.
+	gs.set_next_map_deployment({
+		roster[2].unit_id: start_tiles[0],
+		roster[0].unit_id: start_tiles[1],
+	})
+	var plan_instance: Node = packed.instantiate()
+	root.add_child(plan_instance)
+	await process_frame
+	var planned: Array[Node] = _blue_units(plan_instance)
+	if planned.size() == 2 \
+			and _tile_of(planned, roster[2].unit_id) == start_tiles[0] \
+			and _tile_of(planned, roster[0].unit_id) == start_tiles[1]:
+		print("OK  an explicit plan deploys the named units on the named tiles")
+		passed += 1
+	else:
+		print("FAIL plan spawned %d blue units: %s" % [planned.size(), _describe(planned)])
+		failed += 1
+
+	# An illegal plan must refuse to launch rather than spawn a half-legal board —
+	# prep gates Begin Battle, so a bad plan here means the party or map changed
+	# underneath it.
+	var before_illegal: int = plan_instance.get_node("UnitsContainer").get_child_count()
+	gs.set_next_map_deployment({"not_in_the_party": start_tiles[0]})
+	var illegal_spawned: bool = plan_instance._spawn_units()
+	if not illegal_spawned \
+			and plan_instance.get_node("UnitsContainer").get_child_count() == before_illegal:
+		print("OK  GameMap refuses an illegal plan instead of spawning a partial board")
+		passed += 1
+	else:
+		print("FAIL GameMap spawned from an illegal deployment plan")
+		failed += 1
+	plan_instance.queue_free()
+	await process_frame
+
+	# No plan = every launch path that has no prep screen (the bare single-map
+	# launch). It must behave EXACTLY as it did before this slice: roster slot N
+	# onto player_start_tiles[N], truncated by the tile count.
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	gs.clear_next_map_deployment()
+	var fallback_instance: Node = packed.instantiate()
+	root.add_child(fallback_instance)
+	await process_frame
+	var fallback_blue: Array[Node] = _blue_units(fallback_instance)
+	var expected_count: int = mini(gs.player_roster.size(), start_tiles.size())
+	if fallback_blue.size() == expected_count \
+			and _tile_of(fallback_blue, gs.player_roster[0].unit_id) == start_tiles[0] \
+			and _tile_of(fallback_blue, gs.player_roster[1].unit_id) == start_tiles[1]:
+		print("OK  an absent plan falls back to the roster-order rule unchanged")
+		passed += 1
+	else:
+		print("FAIL fallback spawned %d blue units (expected %d): %s" % [
+			fallback_blue.size(), expected_count, _describe(fallback_blue)])
+		failed += 1
+	fallback_instance.queue_free()
+	await process_frame
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+# The player-faction units spawned into a GameMap instance. UnitsContainer holds
+# the enemy placements too, so the deployment assertions must filter by faction.
+static func _blue_units(map_instance: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	for child in map_instance.get_node("UnitsContainer").get_children():
+		if "team" in child and child.team == "blue":
+			out.append(child)
+	return out
+
+
+# Tile the named unit stands on, or (-999, -999) if it never deployed — a
+# sentinel no start tile can equal, so a missing unit fails its assertion.
+static func _tile_of(units: Array[Node], unit_id: String) -> Vector2i:
+	for unit in units:
+		if unit.data != null and unit.data.unit_id == unit_id:
+			return unit.tile_position
+	return Vector2i(-999, -999)
+
+
+static func _describe(units: Array[Node]) -> String:
+	var out: Array[String] = []
+	for unit in units:
+		out.append("%s@%s" % [unit.data.unit_id, unit.tile_position])
+	return ", ".join(out)
