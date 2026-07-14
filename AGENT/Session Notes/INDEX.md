@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-14e](2026-07-14e.md) — **All agent work pushed; save spine queued:** v0.4.0 reconfirmed green while the playtest is out, both agent branches published, and `B1-CST` chosen as the next slice with a sequenced handoff.
 - [2026-07-14d](2026-07-14d.md) — **v0.4.0 Windows build cut:** metadata/build gates closed, hashed x86-64 debug artifact and full smoke checklist ready; live Windows return pending.
 
 - [2026-07-14c](2026-07-14c.md) — **v0.3.6 return accepted:** all focused behavior checks passed, missing evidence qualified, and later visual rechecks routed to `UI-INSPECTION`.
