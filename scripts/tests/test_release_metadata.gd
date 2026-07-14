@@ -7,6 +7,7 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
+	var expected_version := "0.4.0"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
@@ -23,9 +24,9 @@ func _init() -> void:
 		"preset.0.options", "application/product_version", "")
 	var expected_path := "./builds/Project_Prometheus_v%s_debug.exe" % version
 
-	if not version.is_empty() and export_path == expected_path \
+	if version == expected_version and export_path == expected_path \
 			and product_version == version:
-		print("OK  export preset name, path, and product version agree")
+		print("OK  export preset name, path, and product version are v%s" % expected_version)
 		passed += 1
 	else:
 		print("FAIL export metadata: name=%s path=%s product=%s" % [
