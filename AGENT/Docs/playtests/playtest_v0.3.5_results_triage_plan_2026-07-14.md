@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Repairs implemented - pending v0.3.6 live validation
+Status: v0.3.6 live pass accepted - visual polish deferred
 Last verified: 2026-07-14
 ---
 
@@ -40,8 +40,16 @@ recentering to a bounded reveal only when requested context lies outside the
 viewport. Coverage traverses Settings in both directions and requires monotonic,
 viewport-bounded corrections.
 
-## v0.3.6 live gate
+## v0.3.6 live gate - accepted
 
-Repeat Action Menu long-to-short transitions at 1.0x and 2.0x, then traverse
-Settings and Unit Details bidirectionally at 0.5x, 1.0x, and 2.0x. Close the UI
-findings only after the complete checklist and requested screenshots return.
+The returned v0.3.6 checklist passed every behavior box for Action Menu
+long/short transitions and bidirectional Settings/Unit Details traversal. The
+owner accepted both surfaces for now and explicitly requested a recheck during
+the broader UI pass. The return omitted its requested metadata, log, and eight
+screenshots, so it closes this focused behavior gate without claiming a complete
+evidence package. See
+[`playtest_checklist_v0.3.6_returned_2026-07-14.md`](playtest_checklist_v0.3.6_returned_2026-07-14.md).
+
+Action Menu ornament spacing/shrink-wrap and Settings focus-scroll context now
+remain as visual-quality review items under `UI-INSPECTION`; they are not open
+v0.3.6 correctness defects.

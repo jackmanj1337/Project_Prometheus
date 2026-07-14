@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-14c](2026-07-14c.md) — **v0.3.6 return accepted:** all focused behavior checks passed, missing evidence qualified, and later visual rechecks routed to `UI-INSPECTION`.
+
 - [2026-07-14b](2026-07-14b.md) — **v0.3.6 focused rerun cut:** Action Menu full shrink-wrap/ornament clearance and bounded visual-row focus scrolling repaired, all 75 suites green, hashed Windows build ready.
 
 - [2026-07-14a](2026-07-14a.md) — **v0.3.5 focused rerun cut:** v0.3.4 UI returns repaired, rendered-width and monotonic-scroll tests green, and hashed Windows build/checklist ready.

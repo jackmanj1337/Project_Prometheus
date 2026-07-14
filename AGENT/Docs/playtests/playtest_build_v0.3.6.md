@@ -1,6 +1,6 @@
 ---
 Type: playtest
-Status: Exported - pending live Windows validation
+Status: Exported - owner-accepted live pass
 Last verified: 2026-07-14
 ---
 
@@ -39,4 +39,7 @@ This narrow rerun validates the v0.3.5-return repairs:
 - Export emitted non-fatal cache/editor-settings warnings because the container
   cannot write `/home/vscode/.cache/godot`; packing and artifact validation
   succeeded.
-- Manual validation: pending; follow the v0.3.6 checklist on Windows.
+- Manual validation: PASS by returned checklist; all behavior boxes passed.
+  Build metadata, log, and requested screenshots were not returned, so the
+  result is owner-accepted rather than a complete evidence package. Visual
+  polish is deferred to `UI-INSPECTION`.
