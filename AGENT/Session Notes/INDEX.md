@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15af](2026-07-15af.md) — Added nonblocking audit cadence, exact commit ownership, evidence-matrix enforcement, quiet export smoke, and a pinned formatting toolchain.
 - [2026-07-15ae](2026-07-15ae.md) — Completed decision vocabulary, import-budget, documentation-governance, and open objective/item registry phases; all 100 suites green.
 - [2026-07-15ad](2026-07-15ad.md) — Ratified the split decision/delivery vocabulary and adjustable import-budget direction, then wrote the complete post-audit goal handoff.
 - [2026-07-15ac](2026-07-15ac.md) — Ran the full five-pillar campaign/save audit, wrote the requirement/evidence matrix, fixed import/resume/export transaction risks and tracker drift, and left the branch green for push.
