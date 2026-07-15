@@ -64,8 +64,14 @@ Adding a portrait, icon, or other group that reuses a registered loader is data
 registration and requires no resolver switch edit. Resolution is scoped to one
 campaign root, rejects paths that escape that root, and produces a structured
 repair report for missing optional assets instead of crashing the pack. PNG,
-TTF/OTF, OGG, and WAV raw-loader primitives exist; package archive installation
-and JSON asset-catalogue loading remain `B6-CAMPAIGN-SHARING` work.
+TTF/OTF, OGG, and WAV raw-loader primitives exist. `PackManifest` plus the
+canonical Tier-2 catalogue validate structured package content in memory, and
+`CampaignArchivePreflight` inspects actual ZIP central-directory metadata before
+extraction. It rejects unsafe/ambiguous paths, collisions, symlinks and special
+files, caller-bounded entry/byte totals, unindexed files, and save-shaped JSON.
+Preflight is read-only and leaves activation, save state, and installed-pack
+storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
+work.
 
 ### Action/Effect Execution Boundary
 

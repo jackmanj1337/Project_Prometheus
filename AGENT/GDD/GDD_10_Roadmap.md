@@ -91,9 +91,14 @@ validate package compatibility, safe unique Tier-2 document identities/paths,
 and registry-dispatched content-family schemas without installing or selecting
 anything. The first concrete validator set now proves a complete campaign/map/
 roster/class fixture and all cross-document ids. The package remains incomplete:
-archive install/export and selector UI
-follow these seams. The next implementation unit is the staged, rollback-safe
-archive preflight in the [B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
+pure ZIP preflight now verifies the actual format and central-directory metadata,
+normalizes the one-root package namespace, rejects collisions/unsafe paths/
+symlinks/special files, applies caller-supplied entry and byte limits, validates
+all structured content in memory, and excludes unindexed or save-shaped files.
+It performs no extraction or installed-state writes. Transactional staged install,
+deterministic export, and selector UI follow these seams. The next implementation
+unit is rollback-safe staged install in the
+[B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
 installed-pack discovery and selector activation remain separate later consumers.
 
 | Order | Track ID | To-do | Decision state |

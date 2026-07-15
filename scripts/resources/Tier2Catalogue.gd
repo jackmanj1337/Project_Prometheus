@@ -105,6 +105,34 @@ static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier
 	return catalogue if errors.is_empty() else null
 
 
+# Validates already-decoded archive documents without extracting them. Keys in
+# raw_documents are the normalized pack-relative paths from the catalogue.
+static func validate_campaign_documents(catalogue: Tier2Catalogue,
+		raw_documents: Dictionary, errors: Array[String]) -> bool:
+	var validator_set = preload("res://scripts/resources/CampaignTier2Validators.gd")
+	var validators: Dictionary = validator_set.registry()
+	for entry in catalogue.entries:
+		var kind: String = entry["kind"]
+		var identity := "%s\n%s" % [kind, entry["id"]]
+		if not validators.has(kind) or typeof(validators[kind]) != TYPE_CALLABLE \
+				or not (validators[kind] as Callable).is_valid():
+			errors.append("Tier2Catalogue: '%s/%s' has no registered validator" % [
+				kind, entry["id"]])
+			continue
+		if not raw_documents.has(entry["path"]):
+			errors.append("Tier2Catalogue: missing required JSON '%s'" % entry["path"])
+			continue
+		var before := errors.size()
+		validators[kind].call(
+			raw_documents[entry["path"]].duplicate(true), entry.duplicate(true), errors)
+		if errors.size() == before:
+			catalogue.documents[identity] = raw_documents[entry["path"]]
+	if not errors.is_empty():
+		return false
+	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
+	return errors.is_empty()
+
+
 func get_document(kind: String, id: String) -> Variant:
 	return documents.get("%s\n%s" % [kind, id])
 
