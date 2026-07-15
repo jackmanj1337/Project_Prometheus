@@ -96,6 +96,7 @@ marker.
 
 | Source | Owner | Reason / exit condition |
 |---|---|---|
+| [`v040_post_build_code_review_fix_handoff_2026-07-15.md`](v040_post_build_code_review_fix_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-STATUS` | Post-v0.4.0 persistence/campaign-flow repair handoff; retire after the four fixes land and completion-record follow-up is routed. |
 | [`band3_implementation_plan_handoff_2026-06-30.md`](band3_implementation_plan_handoff_2026-06-30.md) | Band 3 rows, led by `B3-REQ` | Input to the combined Band 3 plan; remove after direct source wiring or supersession marking. |
 | [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Cross-feature dependency evidence used by the control-plane/GDD reconciliation. |
 | [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) | `B0-GDD-CONSOLIDATION` | Pre-control-plane queue evidence; classify its unique detail during consolidation. |
