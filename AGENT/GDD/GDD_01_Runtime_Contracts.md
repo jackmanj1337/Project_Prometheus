@@ -324,9 +324,21 @@ import and export. Import runs hostile preflight before the transactional
 installer and reports validation errors or optional-media repair counts without
 leaving the screen. Export offers validated installed package identities and
 uses the deterministic exporter, including its mandatory output re-preflight.
-The local picker boundary admits at most 4096 entries, 64 MiB per entry, and
-512 MiB for both the outer archive and total compressed/uncompressed data; these
-are allocation safety ceilings, not format-version compatibility predicates.
+All player-selected artifact budgets are owned by
+`scripts/resources/ImportBudgets.gd`. Campaign archive entry-count, per-entry,
+compressed-total, and uncompressed-total caps remain separate from portable-save
+budgets because package media dominates archive size. `CampaignArchivePreflight`
+rejects the outer archive before buffering and accepts caller-supplied limits for
+tests and build tools.
+
+Portable JSON saves use the configuration owner's desktop warning and maximum.
+Crossing the warning produces an acknowledgement warning but still runs integrity,
+schema, and reference validation; crossing the maximum hard-rejects before the file
+is buffered. Platform-specific values, including a future stricter Web ceiling,
+must be selected by `ImportBudgets` rather than copied into UI/parser code. Change
+budgets only there, keep campaign and save budgets independent, rerun
+`test_save_import_budgets.gd`, and record new representative evidence before
+raising or lowering a platform limit.
 
 Tier-2 activation adapts validated JSON into existing runtime Resource types in
 memory, then atomically replaces the `DataManager` campaign/class/map/roster
@@ -336,13 +348,15 @@ reactivate only the matching service-owned installed path before resolving any
 campaign, map, roster, or class id. An empty identity selects shipped content;
 partial identity is invalid, and save files never supply filesystem paths.
 
-Anchors: `scripts/resources/CampaignArchivePreflight.gd`,
+Anchors: `scripts/resources/ImportBudgets.gd`,
+`scripts/resources/CampaignArchivePreflight.gd`,
 `scripts/resources/CampaignPackInstaller.gd`,
 `scripts/resources/CampaignPackExporter.gd`,
 `scripts/resources/CampaignPackRegistry.gd`,
 `scripts/resources/CampaignTier2RuntimeAdapter.gd`,
 `scripts/resources/Tier2Catalogue.gd`, `scripts/assets/AssetResolver.gd`; tests:
-`test_campaign_archive_preflight.gd`, `test_campaign_pack_installer.gd`,
+`test_campaign_archive_preflight.gd`, `test_save_import_budgets.gd`,
+`test_campaign_pack_installer.gd`,
 `test_campaign_pack_exporter.gd`, `test_campaign_pack_registry.gd`.
 Runtime/save tests: `test_campaign_tier2_runtime_adapter.gd`,
 `test_campaign_pack_save_identity.gd`. Player-surface test:

@@ -8,14 +8,13 @@ extends Node
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const SaveIntegrity = preload("res://scripts/save/SaveIntegrity.gd")
+const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
 const LAST_PLAYED_SLOT := "slot"
 
 const MID_MAP_SLOT := "resume_battle"
-const MAX_PORTABLE_SAVE_BYTES := 64 * 1024 * 1024
-
 var save_dir: String = DEFAULT_SAVE_DIR
 
 # Failure seam used only by the disk-transaction regression suite.
@@ -192,17 +191,29 @@ func export_slot(slot_id: String, destination_path: String) -> Dictionary:
 	return result
 
 
-func inspect_portable_save(source_path: String) -> Dictionary:
+func inspect_portable_save(source_path: String,
+		warning_bytes: int = -1, maximum_bytes: int = -1) -> Dictionary:
 	var result := {"ok": false, "errors": [], "warnings": [], "save": null,
 		"artifact_kind": "unknown"}
+	if warning_bytes < 0:
+		warning_bytes = ImportBudgetConfig.portable_save_warning_bytes()
+	if maximum_bytes < 0:
+		maximum_bytes = ImportBudgetConfig.portable_save_maximum_bytes()
+	if warning_bytes < 0 or maximum_bytes < 1 or warning_bytes > maximum_bytes:
+		result["errors"].append("Portable-save import budgets are invalid.")
+		return result
 	var file := FileAccess.open(source_path, FileAccess.READ)
 	if file == null:
 		result["errors"].append("The selected file could not be opened.")
 		return result
 	var source_size := file.get_length()
-	if source_size > MAX_PORTABLE_SAVE_BYTES:
+	if source_size > maximum_bytes:
 		result["errors"].append("The selected save exceeds the portable-save size limit.")
 		return result
+	if source_size > warning_bytes:
+		result["warnings"].append(
+			"This save is unusually large (%s); verify its source before importing."
+			% String.humanize_size(source_size))
 	var bytes := file.get_buffer(source_size)
 	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
 		result["artifact_kind"] = "campaign_pack"
@@ -213,7 +224,7 @@ func inspect_portable_save(source_path: String) -> Dictionary:
 	if parsed.is_empty():
 		result["errors"].append("The selected file is not a campaign save JSON object.")
 		return result
-	result["warnings"] = SaveIntegrity.verify(parsed)
+	result["warnings"].append_array(SaveIntegrity.verify(parsed))
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
 	var errors: Array[String] = save.validate(_data_manager())
 	if not errors.is_empty():
@@ -225,8 +236,9 @@ func inspect_portable_save(source_path: String) -> Dictionary:
 
 
 func import_portable_save(source_path: String, slot_id: String,
-		acknowledge_warnings: bool = false) -> Dictionary:
-	var result := inspect_portable_save(source_path)
+		acknowledge_warnings: bool = false, warning_bytes: int = -1,
+		maximum_bytes: int = -1) -> Dictionary:
+	var result := inspect_portable_save(source_path, warning_bytes, maximum_bytes)
 	if not result["ok"]:
 		return result
 	if not result["warnings"].is_empty() and not acknowledge_warnings:

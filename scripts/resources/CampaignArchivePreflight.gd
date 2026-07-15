@@ -31,7 +31,8 @@ class Result extends RefCounted:
 	var entries: Array[Dictionary] = []
 
 
-# Limits are caller-owned until player-facing package budgets are ratified.
+# Player-facing defaults come from ImportBudgets through CampaignLibraryScreen;
+# explicit limits keep hostile-fixture and build-tool overrides small and testable.
 static func inspect_zip(archive_path: String, limits: Limits) -> Result:
 	var result := Result.new()
 	if limits == null:

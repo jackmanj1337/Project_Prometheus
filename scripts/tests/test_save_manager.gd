@@ -4,6 +4,7 @@ extends SceneTree
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 
 const TEST_SAVE_DIR := "user://test_save_manager"
 
@@ -237,6 +238,32 @@ func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
 	var clean: Dictionary = manager.inspect_portable_save(portable)
 	_check(clean["ok"] and clean["warnings"].is_empty(),
 		"an untouched portable save verifies without warnings", str(clean))
+	var large_warning: Dictionary = manager.inspect_portable_save(
+		portable, 1, ImportBudgetConfig.portable_save_maximum_bytes())
+	_check(large_warning["ok"] and large_warning["warnings"].size() == 1 \
+			and "unusually large" in String(large_warning["warnings"][0]),
+		"warning budget reports an unusually large valid save without rejecting it",
+		str(large_warning))
+	var warned_for_size: Dictionary = manager.import_portable_save(
+		portable, "large_import", false, 1, ImportBudgetConfig.portable_save_maximum_bytes())
+	_check(not warned_for_size["ok"] \
+			and warned_for_size.get("requires_acknowledgement", false) \
+			and not manager.has_slot("large_import"),
+		"large-save warning uses the normal acknowledgement boundary")
+	var accepted_large: Dictionary = manager.import_portable_save(
+		portable, "large_import", true, 1, ImportBudgetConfig.portable_save_maximum_bytes())
+	_check(accepted_large["ok"] and manager.has_slot("large_import"),
+		"acknowledging a size warning imports the schema-validated save")
+	manager.delete_slot("large_import")
+	var malformed_large := TEST_SAVE_DIR.path_join("malformed_large.json")
+	_write_text(malformed_large, "{ malformed payload padded above warning }")
+	var malformed_result: Dictionary = manager.import_portable_save(
+		malformed_large, "malformed_import", false, 1, 1024)
+	_check(not malformed_result["ok"] \
+			and not malformed_result.get("requires_acknowledgement", false) \
+			and not malformed_result["errors"].is_empty() \
+			and not manager.has_slot("malformed_import"),
+		"large-file warning never bypasses JSON/schema rejection")
 
 	parsed["campaign"]["node_id"] = "tampered_node"
 	_write_text(portable, JSON.stringify(parsed, "\t", true))
@@ -259,7 +286,7 @@ func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
 
 	var oversized := TEST_SAVE_DIR.path_join("oversized.json")
 	var oversized_file := FileAccess.open(oversized, FileAccess.WRITE)
-	oversized_file.seek(SaveManagerScript.MAX_PORTABLE_SAVE_BYTES)
+	oversized_file.seek(ImportBudgetConfig.portable_save_maximum_bytes())
 	oversized_file.store_8(0)
 	oversized_file.close()
 	var oversized_result: Dictionary = manager.inspect_portable_save(oversized)

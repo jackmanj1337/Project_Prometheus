@@ -9,10 +9,7 @@ const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
 const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
 const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
-
-const MAX_ENTRIES := 4096
-const MAX_ENTRY_BYTES := 64 * 1024 * 1024
-const MAX_ARCHIVE_BYTES := 512 * 1024 * 1024
+const ImportBudgetConfig = preload("res://scripts/resources/ImportBudgets.gd")
 
 @onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
 @onready var _import_button: Button = $Panel/VBox/BtnImport
@@ -134,5 +131,9 @@ static func _failure_text(prefix: String, errors: Array[String]) -> String:
 
 
 static func _limits():
-	return Preflight.Limits.new(MAX_ENTRIES, MAX_ENTRY_BYTES, MAX_ENTRY_BYTES,
-		MAX_ARCHIVE_BYTES, MAX_ARCHIVE_BYTES)
+	return Preflight.Limits.new(
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_ENTRIES,
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_ENTRY_COMPRESSED_BYTES,
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES,
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_COMPRESSED_BYTES,
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES)
