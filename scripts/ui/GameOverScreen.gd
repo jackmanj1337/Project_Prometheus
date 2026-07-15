@@ -215,8 +215,14 @@ func _on_retry() -> void:
 	# (restore_history(0)) — the same rollback the old party-only snapshot did, now
 	# sourced from the unified within-map ledger.
 	var gs := get_node_or_null("/root/GameState")
+	var restored := false
 	if gs and gs.has_method("restore_history"):
-		gs.restore_history(0)
+		restored = bool(gs.restore_history(0))
+	# Campaign retries return to prep so deployment can change. A bare map and a
+	# suspend-resumed map retain the historical direct reload behavior.
+	if restored and cm and cm.has_method("route_retry_to_prep") \
+			and bool(cm.call("route_retry_to_prep")):
+		return
 	get_tree().reload_current_scene()
 
 

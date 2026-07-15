@@ -15,8 +15,11 @@ Cross-cutting navigation, feedback, and accessibility remain in
 
 ## Screens and Panels
 
-Status: **Split** — MVP screens are **Implemented**; the campaign Load Game picker is **Implemented 2026-07-14**; the V030-SUS-01 suspend Continue restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun); the manual-save surface (now owned by `B4-PREP-DEPLOYMENT`) + combat-animation feedback are **Planned**
-Last verified: 2026-07-14
+Status: **Split** — MVP screens, the campaign Load Game picker, and the campaign
+Prep/manual-save screen are **Implemented**; the V030-SUS-01 suspend Continue
+restore fixes are **Pending validation** (fixed 2026-07-09, awaiting live rerun);
+combat-animation feedback is **Planned**
+Last verified: 2026-07-15
 
 ---
 
@@ -146,8 +149,26 @@ validation preset, not the final builder-facing campaign browser.
 
 ### Prep, Service, And Authoring Panels
 
-Status: **Target design**
-Last verified: 2026-06-29
+Status: **Split** — campaign deployment and manual save are **Implemented
+2026-07-15**; registered service panels are **Target design**
+Last verified: 2026-07-15
+
+**Scene:** `PrepScreen.tscn`
+**Trigger:** launching or retrying a campaign node
+
+Prep is a full destination screen, not a modal. It lists every living,
+non-excluded party member; required units are selected and locked. Deploy toggles
+choose the fighting party up to the node/map limit, and Up/Down orders each unit
+onto the numbered `MapData.player_start_tiles`. Begin Battle stays disabled until
+`DeploymentPlan.validate` accepts the plan, then stages it on `GameState` and
+enters `GameMap` without reapplying roster policy.
+
+Every campaign launch parks here. Campaign Retry first restores ledger entry 0,
+then returns here with the previous deployment preselected; bare-map and
+suspend-resumed retries retain direct map reload. The screen also writes manual
+campaign saves through `CampaignManager.write_campaign_slot`. Slot ids are
+player-supplied filenames, so invalid ids are rejected rather than sanitized;
+the optional label is display-only and successful slots appear in Load Game.
 
 Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should

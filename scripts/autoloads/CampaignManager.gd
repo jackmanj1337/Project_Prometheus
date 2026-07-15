@@ -21,6 +21,7 @@ extends Node
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
+const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
 
 # --- Runtime position --------------------------------------------------------
@@ -165,9 +166,8 @@ func is_node_cleared(node_id: String) -> bool:
 
 # --- Launch (the "prep -> map" seam) -----------------------------------------
 
-# Resolves the current node's map binding through the map registry and hands off
-# to the existing GameState launch seam. The prep SCREENS are not this slice; this
-# is the entry point they will eventually call.
+# Resolves the current node's map binding, prepares the party, then parks on prep.
+# Prep only authors a deployment plan; it must never reapply the roster policy.
 func launch_current_node() -> bool:
 	var node := get_current_node()
 	if node == null:
@@ -193,7 +193,7 @@ func launch_current_node() -> bool:
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
-	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
+	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
 
@@ -240,7 +240,35 @@ func launch_prepared_node() -> bool:
 		String(_prepared_launch["roster_policy"]), String(_prepared_launch["roster_source"]))
 	_active_node_id = current_node_id
 	_prepared_launch.clear()
+	get_tree().change_scene_to_file(_PREP_SCENE)
+	return true
+
+
+# Prep's one-way handoff after it has staged a legal deployment plan.
+func begin_prepared_battle() -> bool:
+	if not is_campaign_active() or _active_node_id == "":
+		push_error("CampaignManager: no prepared campaign battle to begin")
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or (gs.get("next_map_deployment") as Dictionary).is_empty():
+		push_error("CampaignManager: prep has not staged a deployment plan")
+		return false
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
+	return true
+
+
+# Retry has already restored ledger entry 0. Keep that restored party and launch
+# staging intact; only replace the map scene with prep so the plan can be edited.
+func route_retry_to_prep() -> bool:
+	if not is_campaign_active() or _active_node_id == "":
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var suspend_payload: Variant = gs.get("next_map_suspend_payload")
+	if suspend_payload is Dictionary and not suspend_payload.is_empty():
+		return false
+	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
 

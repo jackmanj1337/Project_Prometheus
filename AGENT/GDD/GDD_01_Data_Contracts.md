@@ -497,9 +497,9 @@ map id is a loud error, never a fallback launch.
 
 ### Deployment Plan Contract
 
-Status: **Split** — the plan seam and its validator are **Implemented**
-(`B4-PREP-DEPLOYMENT` Slice 1, 2026-07-14); the prep screen that authors a plan
-and the manual-save surface beside it are **Planned**.
+Status: **Implemented 2026-07-15** — the plan seam, validator, PrepScreen author,
+campaign routing, and manual-save surface are built (`B4-PREP-DEPLOYMENT`
+Slices 1-3).
 
 The deployment plan is the player's answer to "who fights this map, and where do
 they stand". It replaces an **inference** with a **choice**: before this slice,
@@ -534,11 +534,11 @@ Rules this contract fixes:
 - **The plan is NOT persisted.** It is chosen at prep and consumed at launch, and
   a campaign save is parked BETWEEN maps — so a reload lands back on prep and the
   player deploys again. Same reasoning as the unpersisted pending result above,
-  and it means no new F1 save row is owed. It DOES survive a **Retry**, which
-  reloads the map scene without reconfiguring the launch, so a replay redeploys
-  the units the player actually chose. When the prep screen lands (Slice 2), a
-  campaign Retry reroutes to it — the surviving plan becomes the pre-selection
-  the player may then change, rather than a fixed redeployment.
+  and it means no new F1 save row is owed. It DOES survive a **Retry**. Campaign
+  Retry restores ledger entry 0 and reroutes to PrepScreen, where the surviving
+  plan is the editable pre-selection. Bare-map Retry still reloads directly, and
+  suspend-resumed Retry never enters prep because its serialized live board would
+  ignore a fresh deployment plan.
 - **The `[CST-5]` node constraints are consumed here, for the first time.**
   `CampaignNode.required_units` / `excluded_units` / `deployment_cap` have been
   authored and validated since `B1-CST` Slice 1 with no reader; prep is that
