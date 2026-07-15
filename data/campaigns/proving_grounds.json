@@ -1,5 +1,7 @@
 {
   "campaign_id": "proving_grounds",
+  "author_id": "project_prometheus",
+  "campaign_version": "1.0.0",
   "label": "The Proving Grounds",
   "description": "Linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
   "is_dev_only": false,

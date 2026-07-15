@@ -31,12 +31,17 @@ extends "res://scripts/ui/ModalScreen.gd"
 signal back_pressed()
 
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
+const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
 @onready var _opt_run: OptionButton          = $Panel/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
 @onready var _opt_pair_up: OptionButton    = $Panel/VBox/HBoxPairUp/OptPairUp
+@onready var _opt_status: OptionButton = $Panel/VBox/HBoxStatus/OptStatus
+@onready var _btn_import_status: Button = $Panel/VBox/BtnImportStatus
+@onready var _status_feedback: Label = $Panel/VBox/StatusFeedback
+@onready var _status_dialog: FileDialog = $StatusImportDialog
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
 @onready var _btn_manage_campaigns: Button = $Panel/VBox/BtnManageCampaigns
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
@@ -48,6 +53,8 @@ const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
 # after the controller log proves whether focus is stolen, released, or hidden.
 const V030_FOCUS_TRACE_ENABLED := true
 var _run_options: Array[Dictionary] = []
+var _status_options: Array[Dictionary] = []
+var _status_store := CampaignStatusStoreScript.new()
 
 
 func _ready() -> void:
@@ -67,9 +74,13 @@ func _ready() -> void:
 	_opt_run.item_selected.connect(_on_run_selected)
 	_btn_start.pressed.connect(_on_start)
 	_btn_manage_campaigns.pressed.connect(_on_manage_campaigns)
+	_btn_import_status.pressed.connect(func(): _status_dialog.popup_centered_ratio(0.7))
+	_status_dialog.file_selected.connect(_on_status_file_selected)
 	_btn_back.pressed.connect(_on_back)
 	_campaign_library.back_pressed.connect(_on_campaign_library_back)
 	_campaign_library.campaigns_changed.connect(_on_campaigns_changed)
+	if not _run_options.is_empty():
+		_on_run_selected(_opt_run.selected)
 	# Persist the rule toggles to GameState the moment they change, so closing the
 	# panel WITHOUT pressing Start still remembers them on reopen (playtest v0.1.4
 	# #1.2). open() seeds the controls back from these same GameState fields. These
@@ -176,6 +187,9 @@ func _on_start() -> void:
 		return
 	if not bool(cm.call("start_campaign", campaign_id)):
 		return
+	if not _apply_selected_status_record(cm, gs, run):
+		cm.call("end_campaign")
+		return
 	_record_started_run(run)
 	# Campaign defaults seed the controls; only editable defaults write back.
 	# Mandates remain locked at the value CampaignManager just applied.
@@ -186,6 +200,7 @@ func _on_start() -> void:
 
 func _on_run_selected(index: int) -> void:
 	_apply_rule_authority(_run_options[index])
+	_refresh_status_options(_run_options[index])
 
 
 func _refresh_run_options() -> void:
@@ -201,6 +216,9 @@ func _refresh_run_options() -> void:
 			_run_options.append({
 				"label": campaign.label,
 				"campaign_id": campaign.campaign_id,
+				"author_id": campaign.author_id,
+				"campaign_version": campaign.campaign_version,
+				"compatible_status_sources": campaign.compatible_status_sources.duplicate(true),
 				"rules": _authored_rule_rows(
 					campaign.rule_overrides, campaign.mandated_rule_ids),
 			})
@@ -217,6 +235,10 @@ func _refresh_run_options() -> void:
 				"label": "%s — %s %s" % [campaign["label"],
 					summary["package_id"], summary["package_version"]],
 				"campaign_id": campaign["campaign_id"],
+				"author_id": campaign.get("author_id", summary["package_id"]),
+				"campaign_version": campaign.get("campaign_version", "1.0.0"),
+				"compatible_status_sources": campaign.get(
+					"compatible_status_sources", []).duplicate(true),
 				"package_id": summary["package_id"],
 				"package_version": summary["package_version"],
 				"package_path": summary["path"],
@@ -232,6 +254,64 @@ func _refresh_run_options() -> void:
 				_opt_run.selected = index
 				break
 	_select_preferred_run()
+
+
+func _status_target(run: Dictionary) -> Dictionary:
+	return {
+		"author_id": String(run.get("author_id", run.get("package_id", "project_prometheus"))),
+		"campaign_id": String(run.get("campaign_id", "")),
+		"campaign_version": String(run.get("campaign_version", "1.0.0")),
+		"compatible_status_sources": run.get("compatible_status_sources", []).duplicate(true),
+	}
+
+
+func _refresh_status_options(run: Dictionary) -> void:
+	_status_options = [{"label": "None — start clean"}]
+	for loaded in _status_store.scan_compatible(_status_target(run)):
+		var record: Dictionary = loaded.get("record", {})
+		_status_options.append({
+			"label": "%s %s — %s" % [record.get("campaign_id", "Campaign"),
+				record.get("campaign_version", ""), record.get("created_at_utc", "")],
+			"record": record.duplicate(true),
+			"manual_foreign": false,
+		})
+	_opt_status.clear()
+	for option in _status_options:
+		_opt_status.add_item(String(option["label"]))
+	_opt_status.selected = 0
+	_status_feedback.text = "%d compatible record(s) found" % (_status_options.size() - 1)
+
+
+func _on_status_file_selected(path: String) -> void:
+	var loaded := _status_store.load_record(path)
+	if loaded.is_empty():
+		_status_feedback.text = "Import failed: %s" % "; ".join(_status_store.last_errors)
+		return
+	var record: Dictionary = loaded["record"]
+	_status_options.append({
+		"label": "Manual: %s %s" % [record.get("campaign_id", "Campaign"),
+			record.get("campaign_version", "")],
+		"record": record.duplicate(true),
+		"manual_foreign": true,
+	})
+	_opt_status.add_item(_status_options[-1]["label"])
+	_opt_status.selected = _status_options.size() - 1
+	_status_feedback.text = "Manual record ready; its source will be recorded in this run"
+
+
+func _apply_selected_status_record(cm: Node, gs: Node, run: Dictionary) -> bool:
+	if _opt_status.selected <= 0 or _opt_status.selected >= _status_options.size():
+		return true
+	var option: Dictionary = _status_options[_opt_status.selected]
+	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
+	if state == null or not _status_store.import_into(option["record"],
+			_status_target(run), state, bool(option.get("manual_foreign", false))):
+		_status_feedback.text = "Import failed: %s" % "; ".join(_status_store.last_errors)
+		return false
+	if not bool(cm.call("import_carry_forward_facts", state.carry_forward_facts)):
+		_status_feedback.text = "Import failed: campaign facts were rejected"
+		return false
+	return true
 
 
 func _activate_run_source(run: Dictionary) -> bool:

@@ -195,6 +195,9 @@ class_name ClassData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
+@export var author_id: String = ""          # status-record compatibility identity
+@export var campaign_version: String = "1.0.0"
+@export var compatible_status_sources: Array[Dictionary] = []
 @export var tier: int = 1
 @export var max_level: int = 20
 @export var base_hp: int = 0
@@ -419,6 +422,26 @@ run; New Game locks visible mandated controls while allowing defaults to change,
 and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
 Each node may also author `rule_overrides`; these are transient map-layer values,
 not permanent edits to the campaign defaults.
+
+### CampaignStatusRecord Contract
+
+Status: **Implemented 2026-07-15** (`B6-CAMPAIGN-STATUS`)
+
+A status record is portable player state, not a full save and never pack content.
+Its fixed envelope is `format_version`, `record_id`, `author_id`, `campaign_id`,
+`campaign_version`, `created_at_utc`, `completion`, `facts`, `counters`, and a
+SHA-256 `checksum`. `facts` and `counters` are open dictionaries; adding a story
+fact requires no resource-field or engine-switch edit.
+
+Completion exports the active store's carry-forward facts plus the compact
+ending/maps/turns subset. New Game scans records automatically for same-campaign
+NG+ or an authored `compatible_status_sources` row (author, source campaign, and
+optional accepted version list). It always offers **None**. Foreign records are
+absent from automatic results and require the explicit manual import action.
+Checksum/schema failure changes no new-run state. A successful choice writes the
+source identity/checksum to `MutableCampaignState.imported_record_ref`, copies
+facts into its `carry_forward_facts`, and seeds the normal open `campaign.vars`
+store used by conditions/predicates.
 
 ### Campaign Tier-1 Asset References
 

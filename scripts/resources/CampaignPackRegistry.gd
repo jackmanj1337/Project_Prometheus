@@ -83,6 +83,11 @@ func _discover_candidate(path: String, directory_id: String,
 		campaigns.append({
 			"campaign_id": String(entry["id"]),
 			"label": String(document.get("label", entry["id"])),
+			"author_id": String(document.get("author_id", manifest.id)),
+			"campaign_version": String(document.get("campaign_version", "1.0.0")),
+			"compatible_status_sources": document.get(
+				"compatible_status_sources", []).duplicate(true) \
+				if document.get("compatible_status_sources", []) is Array else [],
 			"rules": document.get("rules", {}).duplicate(true) \
 				if document.get("rules", {}) is Dictionary else {},
 		})

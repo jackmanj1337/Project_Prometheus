@@ -45,6 +45,9 @@ func _init() -> void:
 		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
 		"Panel/VBox/HBoxLeveling/OptLeveling",
 		"Panel/VBox/HBoxPairUp/OptPairUp",
+		"Panel/VBox/HBoxStatus/OptStatus",
+		"Panel/VBox/BtnImportStatus",
+		"StatusImportDialog",
 		"Panel/VBox/BtnManageCampaigns",
 		"Panel/VBox/BtnStart",
 		"Panel/VBox/BtnBack",
@@ -94,6 +97,13 @@ func _init() -> void:
 		print("OK  pair-up selector is present with Off/On choices"); passed += 1
 	else:
 		print("FAIL pair-up selector missing or not populated"); failed += 1
+
+	var status_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxStatus/OptStatus")
+	if status_opt != null and status_opt.item_count >= 1 \
+			and status_opt.get_item_text(0) == "None — start clean":
+		print("OK  carry-forward selector always offers a clean None choice"); passed += 1
+	else:
+		print("FAIL carry-forward None choice missing"); failed += 1
 
 	screen._apply_rule_authority({"rules": {
 		"death_mode": {"authority": "mandate", "value": "classic"},

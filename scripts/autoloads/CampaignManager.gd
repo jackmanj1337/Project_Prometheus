@@ -19,6 +19,7 @@ extends Node
 #   single-map launch from NewGameScreen behaves exactly as it did before.
 
 const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTriggerRegistry.gd")
+const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
@@ -142,6 +143,65 @@ func set_campaign_var(var_id: String, value: Variant) -> bool:
 		return false
 	campaign_vars[var_id] = value
 	return true
+
+
+func set_carry_forward_fact(fact_id: String, value: Variant) -> bool:
+	if not set_campaign_var(fact_id, value):
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
+	if state == null:
+		return false
+	state.carry_forward_facts[fact_id] = value
+	return true
+
+
+func import_carry_forward_facts(facts: Variant) -> bool:
+	if not (facts is Dictionary):
+		return false
+	for fact_id in facts:
+		if not (fact_id is String) or String(fact_id) == "":
+			return false
+	for fact_id in facts:
+		campaign_vars[fact_id] = facts[fact_id]
+	return true
+
+
+func active_status_target() -> Dictionary:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return {}
+	return {
+		"author_id": campaign.author_id,
+		"campaign_id": campaign.campaign_id,
+		"campaign_version": campaign.campaign_version,
+		"compatible_status_sources": campaign.compatible_status_sources.duplicate(true),
+	}
+
+
+# Terminal results call this before ending the runtime campaign. The record is
+# deliberately separate from the full save and contains only portable facts.
+func export_completion_status_record() -> Dictionary:
+	if not is_campaign_complete():
+		return {}
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return {}
+	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
+	if state == null:
+		return {}
+	var store := CampaignStatusStoreScript.new()
+	return store.export_completion(active_status_target(), state, {
+		"completed": true,
+		"ending_id": String(campaign_vars.get("ending_id", "")),
+		"route_id": String(campaign_vars.get("route_id", "")),
+		"rank_id": String(campaign_vars.get("rank_id", "")),
+	}, {
+		"maps_completed": cleared_node_ids.size(),
+		"turns_taken": int(campaign_vars.get("turns_taken", 0)),
+	})
 
 
 func is_campaign_active() -> bool:

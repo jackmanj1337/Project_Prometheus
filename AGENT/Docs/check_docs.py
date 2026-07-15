@@ -1585,6 +1585,27 @@ def check_mutable_campaign_rule_contract() -> None:
                   f"F1 manifest is missing required field {field}")
 
 
+# ── check 35: CampaignStatusRecord envelope/open facts (Q8 DoD#2) ───────────
+
+def check_campaign_status_record_contract() -> None:
+    """Keep the portable envelope fixed while story facts remain data-shaped."""
+    record_path = ROOT / "scripts/resources/CampaignStatusRecord.gd"
+    text = record_path.read_text(encoding="utf-8")
+    required = ("format_version", "record_id", "author_id", "campaign_id",
+                "campaign_version", "created_at_utc", "completion", "facts",
+                "counters", "checksum")
+    for field in required:
+        if f'"{field}"' not in text:
+            _fail("campaign-status-contract", record_path, 1,
+                  f"CampaignStatusRecord envelope is missing {field}")
+    forbidden_named_facts = ("villages_saved", "units_recruited",
+                             "story_flags", "losses")
+    for field in forbidden_named_facts:
+        if f"var {field}" in text or f"@export var {field}" in text:
+            _fail("campaign-status-contract", record_path, 1,
+                  f"status fact {field} must remain a facts-dictionary key")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1623,6 +1644,7 @@ def main() -> None:
         ("[32] Campaign asset boundary",  check_campaign_asset_boundary),
         ("[33] Durable mid-map policy",   check_durable_mid_map_policy),
         ("[34] Mutable campaign rules",   check_mutable_campaign_rule_contract),
+        ("[35] Campaign status record",   check_campaign_status_record_contract),
     ]
     for label, fn in steps:
         print(f"  {label}...")

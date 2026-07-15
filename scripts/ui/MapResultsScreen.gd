@@ -146,6 +146,8 @@ func _on_continue() -> void:
 		return
 	_save_status_label.text = "Save: autosaved"
 	if bool(cm.call("is_campaign_complete")):
+		if cm.has_method("export_completion_status_record"):
+			cm.call("export_completion_status_record")
 		cm.call("end_campaign")
 		_quit_to_menu()
 		return

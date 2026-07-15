@@ -21,6 +21,11 @@ const SINGLE_MAP_PREFIX := "single_map__"
 # Player-facing campaign name and blurb for the future campaign selector.
 @export var label: String = ""
 @export var description: String = ""
+@export var author_id: String = ""
+@export var campaign_version: String = "1.0.0"
+# Source descriptors accepted for carry-forward. Each row may name author_id,
+# campaign_id, and optional campaign_versions[]; adding rows is authored data.
+@export var compatible_status_sources: Array[Dictionary] = []
 
 # Dev/test campaigns are filtered out of the player-facing list ([CST-6]).
 @export var is_dev_only: bool = false
@@ -49,6 +54,7 @@ static func make_single_map(entry: Dictionary) -> CampaignData:
 	campaign.campaign_id = single_map_campaign_id(map_id)
 	campaign.label = String(entry.get("label", map_id))
 	campaign.description = String(entry.get("description", "Single-map campaign."))
+	campaign.author_id = String(entry.get("author_id", "project_prometheus"))
 	campaign.is_dev_only = bool(entry.get("is_dev_only", false))
 	campaign.start_node_id = "map"
 	var node := CampaignNode.new()
@@ -74,6 +80,13 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 	campaign.campaign_id = String(doc.get("campaign_id", ""))
 	campaign.label = String(doc.get("label", ""))
 	campaign.description = String(doc.get("description", ""))
+	campaign.author_id = String(doc.get("author_id", ""))
+	campaign.campaign_version = String(doc.get("campaign_version", "1.0.0"))
+	var raw_status_sources: Variant = doc.get("compatible_status_sources", [])
+	if raw_status_sources is Array:
+		for source in raw_status_sources:
+			if source is Dictionary:
+				campaign.compatible_status_sources.append(source.duplicate(true))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
 	var raw_rules: Variant = doc.get("rules", {})
 	if not (raw_rules is Dictionary):

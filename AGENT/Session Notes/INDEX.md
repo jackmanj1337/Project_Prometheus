@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15z](2026-07-15z.md) — Implemented checksummed CampaignStatusRecord completion export plus New Game compatible scan, None/manual import, and open fact seeding.
 - [2026-07-15y](2026-07-15y.md) — Implemented the open three-layer campaign-rule resolver and shared mutable patch/fact store across campaign saves, suspend, and Retry/Rewind ledger state.
 - [2026-07-15x](2026-07-15x.md) — Split victory into MapResultsScreen, added validated explicit successor choice, and preserved shared standings/progression sequencing with all 95 suites green.
 - [2026-07-15w](2026-07-15w.md) — Closed audit gaps for portable save transfer/integrity warnings and campaign-authored default/mandate rule authority with locked New Game controls and save persistence.

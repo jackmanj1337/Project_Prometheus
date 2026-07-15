@@ -133,6 +133,12 @@ store also reserves open carry-forward facts and imported-record identity for
 `B6-CAMPAIGN-STATUS`. Campaign, suspend, and ledger paths round-trip the proper
 layers, including old-save empty-store migration and Retry/Rewind rollback.
 
+Status: **Implemented 2026-07-15** for `B6-CAMPAIGN-STATUS` Slice 4.
+Completed runs export compact checksummed status records. New Game supports
+same-campaign/declared-sequel scan, None, and explicit manual foreign import;
+facts and source identity enter the shared mutable store and campaign-variable
+path. Corrupt/incompatible automatic imports are inert.
+
 ### B1-LEDGER unified persistence & undo
 
 Retry, Rewind, and Suspend become three reads of ONE within-map history — a

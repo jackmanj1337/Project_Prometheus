@@ -137,6 +137,7 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
 - `Auto Promote` — Off / On
 - `Leveling` — Random / Fixed
 - `Pair Up` — Off / On
+- `Carry Forward` — None or a compatible checksummed CampaignStatusRecord
 
 **Behavior:**
 - Every row calls `CampaignManager.start_campaign()` and
@@ -156,6 +157,11 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   `last_started`, then `last_imported`, then the deterministic first row. Starting
   records exact `{campaign_id, package_id, package_version}`; successful import
   records the first non-dev campaign in the imported pack without activating it.
+- Selecting a campaign scans the status-record store for same-campaign or
+  author-declared compatible sources. **None** remains the default clean start.
+  **Import Status Record** validates a foreign JSON/checksum through an explicit
+  manual path and labels it separately. The chosen record is applied only after
+  campaign start succeeds; failure ends the staged run without partial facts.
 - Back returns to the Main Menu without reloading the scene
 - **Manage Campaigns** opens a modal package library. Import chooses a ZIP from
   the filesystem, displays structured validation or optional-asset repair

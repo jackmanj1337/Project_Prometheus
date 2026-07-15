@@ -35,9 +35,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -170.0
+offset_top = -235.0
 offset_right = 200.0
-offset_bottom = 170.0
+offset_bottom = 235.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
@@ -113,12 +113,33 @@ custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="HBoxStatus" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelStatus" type="Label" parent="Panel/VBox/HBoxStatus"]
+layout_mode = 2
+text = "Carry Forward"
+custom_minimum_size = Vector2(160, 0)
+
+[node name="OptStatus" type="OptionButton" parent="Panel/VBox/HBoxStatus"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="HSep" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
 
 [node name="BtnManageCampaigns" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Manage Campaigns..."
+
+[node name="BtnImportStatus" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Import Status Record..."
+
+[node name="StatusFeedback" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "0 compatible record(s) found"
+autowrap_mode = 2
 
 [node name="BtnStart" type="Button" parent="Panel/VBox"]
 layout_mode = 2
@@ -129,3 +150,9 @@ layout_mode = 2
 text = "Back"
 
 [node name="CampaignLibraryScreen" parent="." instance=ExtResource("2_library")]
+
+[node name="StatusImportDialog" type="FileDialog" parent="."]
+title = "Import Campaign Status Record"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.json ; Campaign status record")
