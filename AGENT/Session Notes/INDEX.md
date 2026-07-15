@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15m](2026-07-15m.md) — Ratified the campaign-pack/engine boundary and delivery sequence; queued rollback-safe staged archive installation as the next bounded implementation slice.
 - [2026-07-15l](2026-07-15l.md) — Completed campaign archive slice 2: pure actual-ZIP hostile preflight, safe one-root paths/types/collisions, caller-owned byte limits, in-memory structured validation, and save/unindexed-file exclusion.
 - [2026-07-15k](2026-07-15k.md) — Completed campaign archive slice 1: concrete open Tier-2 validators, a complete campaign/map/roster/class fixture, and whole-pack cross-reference rejection.
 - [2026-07-15j](2026-07-15j.md) — Queued the next `B6-CAMPAIGN-SHARING` unit: concrete Tier-2 validators, hostile-archive preflight, staged rollback-safe installation, then deterministic export; discovery and runtime selection explicitly remain later consumers.

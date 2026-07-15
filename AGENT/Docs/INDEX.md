@@ -168,6 +168,8 @@
 - [`plans/band6_relationships_min_implementation_plan_2026-07-03.md`](plans/band6_relationships_min_implementation_plan_2026-07-03.md) — Band 6 Relationships Minimum Implementation Plan — *Active - implementation plan*
 - [`plans/band7_arena_implementation_plan_2026-07-03.md`](plans/band7_arena_implementation_plan_2026-07-03.md) — Band 7 Arena Implementation Plan — *Active - implementation plan*
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
+- [`plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md`](plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md) — Campaign Pack Boundary - Next-Session Handoff — *Planned - ready for next-session impleme*
+- [`plans/campaign_pack_engine_boundary_plan_2026-07-15.md`](plans/campaign_pack_engine_boundary_plan_2026-07-15.md) — Campaign Pack / Engine Boundary And Delivery Plan — *Planned - ownership boundary ratified; i*
 - [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*
 - [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*

@@ -96,6 +96,8 @@ marker.
 
 | Source | Owner | Reason / exit condition |
 |---|---|---|
+| [`campaign_pack_boundary_next_session_handoff_2026-07-15.md`](campaign_pack_boundary_next_session_handoff_2026-07-15.md) | `B6-CAMPAIGN-SHARING` | Execution handoff for staged transactional installation; retire after archive slice 3 lands. |
+| [`campaign_pack_engine_boundary_plan_2026-07-15.md`](campaign_pack_engine_boundary_plan_2026-07-15.md) | `B1-LEDGER`, `B4-PREP-DEPLOYMENT`, `B6-CAMPAIGN-SHARING` | Cross-track ownership boundary and delivery order; retire after direct tracker sources absorb the boundary and all five milestones land. |
 | [`v040_post_build_code_review_fix_handoff_2026-07-15.md`](v040_post_build_code_review_fix_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-STATUS` | Post-v0.4.0 persistence/campaign-flow repair handoff; retire after the four fixes land and completion-record follow-up is routed. |
 | [`band3_implementation_plan_handoff_2026-06-30.md`](band3_implementation_plan_handoff_2026-06-30.md) | Band 3 rows, led by `B3-REQ` | Input to the combined Band 3 plan; remove after direct source wiring or supersession marking. |
 | [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Cross-feature dependency evidence used by the control-plane/GDD reconciliation. |
