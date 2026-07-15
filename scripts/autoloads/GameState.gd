@@ -9,6 +9,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
@@ -64,6 +65,10 @@ func get_alliance_group(faction_id: String) -> String:
 # campaign selector seeds this from authored CampaignData.
 var campaign_rules: CampaignRules = CampaignRulesScript.make_default()
 var mandated_campaign_rules: Array[String] = []
+var mutable_campaign_state: MutableCampaignState = MutableCampaignStateScript.new()
+var per_map_rule_overrides: Dictionary = {}
+var active_mid_map_rule_overrides: Dictionary = {}
+var _authored_campaign_rule_values: Dictionary = {}
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
 # Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
@@ -379,6 +384,9 @@ func configure_suspend_resume(source: Variant) -> bool:
 			push_error("GameState: suspend campaign envelope could not be restored")
 			return false
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
+	if not restore_mutable_campaign_state(campaign_dict):
+		push_error("GameState: suspend mutable campaign state is malformed")
+		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
 	party_items = restored_items
 	player_roster = _player_roster_from_runtime_units(map_runtime.get("units", []))
@@ -538,6 +546,9 @@ func get_save_slot_classes() -> Array[Dictionary]:
 
 func apply_campaign_rule_overrides(overrides: Variant,
 		mandated_rules: Variant = []) -> void:
+	mutable_campaign_state = MutableCampaignStateScript.new()
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(mandated_rules)
 	if overrides is Dictionary and not overrides.is_empty():
 		var merged := _campaign_rules_to_dict()
@@ -548,6 +559,122 @@ func apply_campaign_rule_overrides(overrides: Variant,
 
 func is_campaign_rule_mandated(rule_id: String) -> bool:
 	return rule_id in mandated_campaign_rules
+
+
+# New Game calls this after applying editable player choices. From then on,
+# temporary/effective mirroring must not rewrite the persisted bottom layer.
+func commit_current_campaign_rules_as_defaults() -> void:
+	_authored_campaign_rule_values = _campaign_rules_to_dict()
+
+
+# Three-layer open resolver: triggered mid-map > node/map > effective campaign
+# default. A mandate freezes the authored campaign value above both overlays.
+func get_effective_campaign_rule(rule_id: String, fallback: Variant = null) -> Variant:
+	var defaults := _authored_campaign_rule_values \
+		if not _authored_campaign_rule_values.is_empty() else _campaign_rules_to_dict()
+	var value: Variant = defaults.get(rule_id, fallback)
+	if not is_campaign_rule_mandated(rule_id) \
+			and mutable_campaign_state.has_patch(rule_id):
+		value = mutable_campaign_state.patched_value(rule_id, value)
+	if is_campaign_rule_mandated(rule_id):
+		return value
+	if per_map_rule_overrides.has(rule_id):
+		value = per_map_rule_overrides[rule_id]
+	if active_mid_map_rule_overrides.has(rule_id):
+		value = active_mid_map_rule_overrides[rule_id]
+	return value
+
+
+func begin_campaign_map_rules(overrides: Variant) -> bool:
+	if not (overrides is Dictionary):
+		return false
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
+	for rule_id in overrides:
+		if not (rule_id is String) or String(rule_id) == "" \
+				or is_campaign_rule_mandated(String(rule_id)):
+			continue
+		per_map_rule_overrides[rule_id] = overrides[rule_id]
+	_sync_all_effective_rules()
+	return true
+
+
+func end_campaign_map_rules() -> void:
+	var affected: Array = per_map_rule_overrides.keys()
+	for rule_id in active_mid_map_rule_overrides:
+		if not rule_id in affected:
+			affected.append(rule_id)
+	per_map_rule_overrides.clear()
+	active_mid_map_rule_overrides.clear()
+	for rule_id in affected:
+		_apply_effective_rule_to_live(String(rule_id))
+
+
+func apply_rule_flip(rule_id: String, value: Variant, reason: String,
+		revert_scope: String = "end_of_map") -> bool:
+	if rule_id == "" or revert_scope not in ["end_of_map", "permanent"] \
+			or is_campaign_rule_mandated(rule_id):
+		return false
+	if revert_scope == "permanent":
+		if not mutable_campaign_state.append_rule_patch(rule_id, value, reason):
+			return false
+	else:
+		active_mid_map_rule_overrides[rule_id] = value
+	_apply_effective_rule_to_live(rule_id)
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("campaign_rule_flipped"):
+		bus.emit_signal("campaign_rule_flipped", rule_id, value, reason, revert_scope)
+	return true
+
+
+func capture_mutable_campaign_state() -> Dictionary:
+	return {
+		"mutable_state": mutable_campaign_state.to_dict(),
+		"per_map_overrides": per_map_rule_overrides.duplicate(true),
+		"active_mid_map_overrides": active_mid_map_rule_overrides.duplicate(true),
+	}
+
+
+func restore_mutable_campaign_state(campaign: Dictionary) -> bool:
+	var staged := MutableCampaignStateScript.new()
+	if not staged.apply_dict(campaign.get("mutable_state", {})):
+		return false
+	var per_map: Variant = campaign.get("per_map_overrides", {})
+	var mid_map: Variant = campaign.get("active_mid_map_overrides", {})
+	if not (per_map is Dictionary) or not (mid_map is Dictionary):
+		return false
+	mutable_campaign_state = staged
+	per_map_rule_overrides = per_map.duplicate(true)
+	active_mid_map_rule_overrides = mid_map.duplicate(true)
+	_sync_all_effective_rules()
+	return true
+
+
+func _sync_all_effective_rules() -> void:
+	var rule_ids: Dictionary = {}
+	for patch in mutable_campaign_state.rule_patches:
+		rule_ids[String(patch.get("rule_id", ""))] = true
+	for rule_id in per_map_rule_overrides:
+		rule_ids[rule_id] = true
+	for rule_id in active_mid_map_rule_overrides:
+		rule_ids[rule_id] = true
+	for rule_id in rule_ids:
+		_apply_effective_rule_to_live(String(rule_id))
+
+
+# Existing systems read typed CampaignRules properties directly. Mirror an
+# effective data-layer value into a matching property so the resolver governs
+# those call sites without a closed rule-id switch. death_mode is the one legacy
+# serialized alias and is normalized at the save boundary.
+func _apply_effective_rule_to_live(rule_id: String) -> void:
+	var value: Variant = get_effective_campaign_rule(rule_id)
+	if rule_id == "death_mode":
+		campaign_rules.permadeath_enabled = String(value) == "classic"
+		return
+	for property in campaign_rules.get_property_list():
+		if String(property.get("name", "")) == rule_id:
+			campaign_rules.set(rule_id, value)
+			return
 
 
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
@@ -564,7 +691,8 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 			save.campaign["flags"] = SaveCodec.string_array_from_variant(
 				envelope.get("flags", []))
 			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
-	save.campaign["rules"] = _campaign_rules_to_dict()
+	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
+	_write_mutable_campaign_state(save.campaign)
 	save.party["resources"]["party_gold"] = party_gold
 	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
 	save.roster["units"] = []
@@ -629,7 +757,12 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 		"items": party_items.duplicate(),
 		"roster": _player_roster_snapshot_array(),
 	}
-	return {"map_runtime": map_runtime, "suspend": suspend, "party": party}
+	return {
+		"map_runtime": map_runtime,
+		"suspend": suspend,
+		"party": party,
+		"campaign_rules_state": capture_mutable_campaign_state(),
+	}
 
 
 # The player roster serialized as _snapshot_unit_data dicts in roster order — the
@@ -740,7 +873,8 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 		envelope.get("cleared_nodes", []))
 	save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
 	save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
-	save.campaign["rules"] = _campaign_rules_to_dict()
+	save.campaign["rules"] = _campaign_rule_defaults_to_dict()
+	_write_mutable_campaign_state(save.campaign)
 
 	save.party["resources"]["party_gold"] = party_gold
 	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
@@ -784,6 +918,9 @@ func configure_campaign_resume(source: Variant) -> bool:
 		return false  # CampaignManager already reported which id failed to resolve
 
 	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
+	if not restore_mutable_campaign_state(campaign_dict):
+		push_error("GameState: campaign save mutable state is malformed")
+		return false
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", 0))
 	party_items = restored_items
 	player_roster = roster
@@ -806,6 +943,13 @@ func _capture_campaign_package_identity(campaign: Dictionary) -> void:
 	var identity: Dictionary = dm.call("active_package_identity")
 	campaign["package_id"] = String(identity.get("package_id", ""))
 	campaign["package_version"] = String(identity.get("package_version", ""))
+
+
+func _write_mutable_campaign_state(campaign: Dictionary) -> void:
+	var state := capture_mutable_campaign_state()
+	campaign["mutable_state"] = state["mutable_state"]
+	campaign["per_map_overrides"] = state["per_map_overrides"]
+	campaign["active_mid_map_overrides"] = state["active_mid_map_overrides"]
 
 
 # Content must be active before campaign/map/unit ids are resolved. Empty
@@ -967,6 +1111,14 @@ func _campaign_rules_to_dict() -> Dictionary:
 	}
 
 
+func _campaign_rule_defaults_to_dict() -> Dictionary:
+	if _authored_campaign_rule_values.is_empty():
+		return _campaign_rules_to_dict()
+	var out := _authored_campaign_rule_values.duplicate(true)
+	out["mandated_rules"] = mandated_campaign_rules.duplicate()
+	return out
+
+
 func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	if not (rules_dict is Dictionary):
 		return
@@ -988,6 +1140,7 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(
 		normalized.get("mandated_rules", []))
+	_authored_campaign_rule_values = normalized.duplicate(true)
 
 
 func _current_map_path() -> String:
@@ -1046,6 +1199,15 @@ func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 		if not _is_ledger_rng_value(rng_dict.get("map_seed")) \
 				or not _is_ledger_rng_value(rng_dict.get("history_hash")):
 			errors.append("GameState: ledger entry rng must carry int or decimal-string timeline values")
+	var rules_state: Variant = entry.get("campaign_rules_state", {})
+	if not (rules_state is Dictionary):
+		errors.append("GameState: ledger campaign rule state is not a Dictionary")
+	else:
+		var staged := MutableCampaignStateScript.new()
+		if not staged.apply_dict(rules_state.get("mutable_state", {})) \
+				or not (rules_state.get("per_map_overrides", {}) is Dictionary) \
+				or not (rules_state.get("active_mid_map_overrides", {}) is Dictionary):
+			errors.append("GameState: ledger campaign rule state is malformed")
 	return errors
 
 
@@ -1099,6 +1261,9 @@ func restore_history(index: int) -> bool:
 	party_gold = int(party.get("gold", party_gold))
 	party_items = SaveCodec.string_array_from_variant(party.get("items", []))
 	reset_map_state()
+	# Rule flips and their permanence are part of the same decision boundary as
+	# board/economy state; Retry/Rewind must abandon mutations from the old future.
+	restore_mutable_campaign_state(entry.get("campaign_rules_state", {}))
 	# reset_map_state cleared the registry + ledger; reapply the entry's pairings so
 	# the restore lands on the same paired layout. Done AFTER reset so the
 	# clear-then-restore order is deterministic.

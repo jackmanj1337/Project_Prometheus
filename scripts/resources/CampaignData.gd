@@ -149,6 +149,8 @@ static func _parse_node(raw: Variant, index: int, campaign_id: String, seen_ids:
 	node.next_node_ids = _string_array(doc.get("next", []))
 	node.required_units = _string_array(doc.get("required_units", []))
 	node.excluded_units = _string_array(doc.get("excluded_units", []))
+	node.rule_overrides = doc.get("rule_overrides", {}).duplicate(true) \
+		if doc.get("rule_overrides", {}) is Dictionary else {}
 
 	if node.node_id == "":
 		errors.append("CampaignData: campaign '%s' node %d is missing 'node_id'" % [campaign_id, index])

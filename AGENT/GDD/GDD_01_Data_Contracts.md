@@ -382,6 +382,7 @@ class_name CampaignNode extends Resource
 @export var required_units: Array[String] = []  # [CST-5] deployment constraints live
 @export var excluded_units: Array[String] = []  #   on the NODE, not the map
 @export var deployment_cap: int = -1            # -1 = uncapped
+@export var rule_overrides: Dictionary = {}     # open rule-id -> map value layer
 
 func is_terminal() -> bool
 ```
@@ -416,6 +417,8 @@ An authored `rules` entry may be `{authority:"mandate", value:...}` (locked) or
 editable defaults. `CampaignManager` seeds both values and mandate ids before a
 run; New Game locks visible mandated controls while allowing defaults to change,
 and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
+Each node may also author `rule_overrides`; these are transient map-layer values,
+not permanent edits to the campaign defaults.
 
 ### Campaign Tier-1 Asset References
 
@@ -532,8 +535,8 @@ Rules this contract fixes:
 - **A win records; the commit advances.** `EventBus.map_victory` / `map_defeat`
   record a result against the node that was actually launched, and
   `map_resolved` enriches it with the ranked standings. The position moves only
-  when the results surface calls `commit_pending_result` (`GameOverScreen`'s
-  "Next"). Advancing on the victory signal itself would break **Retry**, which
+  when `MapResultsScreen` calls `commit_pending_result`. Advancing on the victory
+  signal itself would break **Retry**, which
   replays the same map: the campaign would sit on node N+1 while node N is
   replayed, and a second win would skip a node. Retry calls
   `clear_pending_result`.
@@ -548,8 +551,9 @@ Rules this contract fixes:
   generated one-node campaigns and therefore use the same prep, result, save,
   Retry, and source-identity lifecycle. Direct state configuration remains only
   as an engine/test seam; campaign handlers still no-op safely without an active run.
-- **Branch nodes take the first authored successor** until the branch-choice UI
-  lands with `B6-CAMPAIGN-SHARING`; authored order is the ordering contract.
+- **Branch nodes require an explicit choice.** The results surface lists valid
+  destination labels in authored order. No successor, preparation, autosave, or
+  position mutation occurs until the player selects a real outgoing edge.
 - **The position and campaign author state persist; the pending result does not.**
   `capture_campaign_state` writes the reserved F1 position, `campaign.flags`, and
   `campaign.vars` rows. Flags are a deduplicated open string vocabulary; vars are

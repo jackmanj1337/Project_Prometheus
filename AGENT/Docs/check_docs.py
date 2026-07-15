@@ -1558,6 +1558,33 @@ def check_durable_mid_map_policy() -> None:
                 break
 
 
+# ── check 34: mutable campaign rule contract (Q13 DoD#2) ────────────────────
+
+def check_mutable_campaign_rule_contract() -> None:
+    """Keep the fixed revert vocabulary and required F1 region synchronized."""
+    runtime = ROOT / "AGENT/GDD/GDD_01_Runtime_Contracts.md"
+    runtime_text = runtime.read_text(encoding="utf-8")
+    if "`revert_scope` vocabulary `end_of_map|permanent`" not in runtime_text:
+        _fail("mutable-rule-contract", runtime, 1,
+              "document revert_scope exactly as end_of_map|permanent")
+
+    game_state = ROOT / "scripts/autoloads/GameState.gd"
+    code_text = game_state.read_text(encoding="utf-8")
+    if 'revert_scope not in ["end_of_map", "permanent"]' not in code_text:
+        _fail("mutable-rule-contract", game_state, 1,
+              "runtime revert_scope vocabulary drifted from the GDD")
+
+    manifest_text = _F1_MANIFEST.read_text(encoding="utf-8")
+    for field in ("campaign.mutable_state.rule_patches[]",
+                  "campaign.mutable_state.carry_forward_facts",
+                  "campaign.mutable_state.imported_record_ref",
+                  "campaign.per_map_overrides",
+                  "campaign.active_mid_map_overrides"):
+        if field not in manifest_text:
+            _fail("mutable-rule-contract", _F1_MANIFEST, 1,
+                  f"F1 manifest is missing required field {field}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1595,6 +1622,7 @@ def main() -> None:
         ("[31] Retired vocabulary",       check_retired_vocabulary),
         ("[32] Campaign asset boundary",  check_campaign_asset_boundary),
         ("[33] Durable mid-map policy",   check_durable_mid_map_policy),
+        ("[34] Mutable campaign rules",   check_mutable_campaign_rule_contract),
     ]
     for label, fn in steps:
         print(f"  {label}...")

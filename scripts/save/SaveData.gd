@@ -166,6 +166,10 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	out["flags"] = SaveCodec.string_array_from_variant(out.get("flags", []))
 	out["rules"] = _normalize_rules(raw_campaign.get("rules", {}), root)
 	out["recruited_flags"] = SaveCodec.string_array_from_variant(out.get("recruited_flags", []))
+	out["mutable_state"] = _dict_from_variant(out.get("mutable_state", {}))
+	out["per_map_overrides"] = _dict_from_variant(out.get("per_map_overrides", {}))
+	out["active_mid_map_overrides"] = _dict_from_variant(
+		out.get("active_mid_map_overrides", {}))
 	return out
 
 
@@ -457,6 +461,13 @@ static func _default_campaign() -> Dictionary:
 		"flags": [],
 		"relationship_graph": {},
 		"recruited_flags": [],
+		"mutable_state": {
+			"rule_patches": [],
+			"carry_forward_facts": {},
+			"imported_record_ref": {},
+		},
+		"per_map_overrides": {},
+		"active_mid_map_overrides": {},
 		"key_item_custody": {},
 		"pvp": null,
 	}

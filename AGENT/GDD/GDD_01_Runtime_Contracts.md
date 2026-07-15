@@ -70,6 +70,24 @@ values and mandate ids; New Game disables mandated controls, applies player
 choices only to defaults, and the rules codec persists `mandated_rules[]` in
 between-map and mid-map saves.
 
+**Mutable rule layers (Implemented 2026-07-15, `B6-PER-MAP-OVERRIDES`).**
+`GameState.get_effective_campaign_rule(rule_id)` resolves, highest first,
+active mid-map override → node `rule_overrides` → effective campaign default.
+Mandates short-circuit both overlay layers. `apply_rule_flip` accepts the fixed
+`revert_scope` vocabulary `end_of_map|permanent`: the first writes only the
+active map layer, while the second appends an ordered `{rule_id,value,reason,source}`
+patch to `MutableCampaignState`. Existing typed `CampaignRules` properties mirror
+effective values, while unknown fixture/future ids use the same dictionary
+resolver without an engine switch. Map launch seeds the node layer; commit or
+campaign cancel clears temporary layers.
+
+The same mutable store owns open `carry_forward_facts` and
+`imported_record_ref`, preventing CampaignStatusRecord from creating a parallel
+persistence path. Permanent patches and facts persist in campaign saves;
+per-map/active overrides additionally persist in suspend and every ledger
+checkpoint, so Retry/Rewind abandons rule mutations from the discarded future.
+Old saves default to an empty store.
+
 **Target design (author profiles and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not
   engine constants. Developer-provided presets support the project/corpus targets;
@@ -80,9 +98,7 @@ between-map and mid-map saves.
 - **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
 
 ### Known gaps
-- The live object is wired, New Game writes into it, and `SaveData` carries matching
-  rule defaults plus legacy `permadeath_enabled` load tolerance. Remaining work:
-  the authored rule-profile registry and EXP faction gating.
+- The authored rule-profile registry and EXP faction gating remain later consumers.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/resources/CampaignRules.gd`,

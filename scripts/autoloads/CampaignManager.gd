@@ -106,6 +106,9 @@ func start_campaign(campaign_id: String) -> bool:
 # Drops the run. Called when the player quits to menu; also the reset seam tests
 # use between cases.
 func end_campaign() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
 	active_campaign_id = ""
 	current_node_id = ""
 	cleared_node_ids.clear()
@@ -197,6 +200,8 @@ func launch_current_node() -> bool:
 		push_error("CampaignManager: node '%s' has no valid roster for policy '%s'" % [
 			node.node_id, roster_policy])
 		return false
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", node.rule_overrides)
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
@@ -245,6 +250,8 @@ func launch_prepared_node() -> bool:
 		return false
 	gs.call("configure_next_map", String(_prepared_launch["map_data_path"]),
 		String(_prepared_launch["roster_policy"]), String(_prepared_launch["roster_source"]))
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
 	_prepared_launch.clear()
 	get_tree().change_scene_to_file(_PREP_SCENE)
@@ -305,6 +312,7 @@ func resolve_launch_params(node: CampaignNode) -> Dictionary:
 		"map_data_path": String(entry.get("map_data_path", "")),
 		"roster_policy": roster_policy,
 		"roster_source": roster_source,
+		"rule_overrides": node.rule_overrides.duplicate(true),
 	}
 
 
@@ -451,6 +459,9 @@ func commit_pending_result() -> bool:
 	if not is_node_cleared(node_id):
 		cleared_node_ids.append(node_id)
 	current_node_id = next_id  # "" == terminal node cleared == campaign complete
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
 	_active_node_id = ""
 	_pending_result.clear()
 	# The commit IS the between-map moment — the position just advanced and the

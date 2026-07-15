@@ -161,6 +161,11 @@ outcome while a different committed decision advances a different history chain.
 - Ledger: `scripts/save/MapLedger.gd`
 - Rule owner: `GDD_01 §CampaignRules Contract`
 
+Campaign nodes may author an open `rule_overrides` dictionary. It becomes the
+middle layer only while that node's map is active, below triggered mid-map flips
+and above effective campaign defaults. A mandate cannot be shadowed. The layer
+is included in suspend/ledger state and clears on map commit or campaign cancel.
+
 ---
 
 ## Objective System

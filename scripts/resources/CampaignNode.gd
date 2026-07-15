@@ -35,6 +35,10 @@ class_name CampaignNode extends Resource
 # Max units the player may deploy. -1 = uncapped.
 @export var deployment_cap: int = -1
 
+# Rule-agnostic per-map layer. Keys are CampaignRules ids; values shadow campaign
+# defaults for this node unless the campaign mandates that rule.
+@export var rule_overrides: Dictionary = {}
+
 
 func is_terminal() -> bool:
 	return next_node_ids.is_empty()

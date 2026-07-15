@@ -58,6 +58,10 @@ signal map_defeat()
 # ranked-standings results screen consumes this directly; the existing
 # blue-perspective signals stay for back-compat.
 signal map_resolved(winner_group: String, standings: Array)
+# Open rule-id mutation seam. revert_scope is documented and validated as
+# end_of_map|permanent; consumers receive the authored reason for presentation.
+signal campaign_rule_flipped(rule_id: String, value: Variant, reason: String,
+	revert_scope: String)
 # Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).
 # Lets the HUD's DEBUG MODE banner re-render the list of active aids in real
 # time when a flag is toggled from the remote debugger. DEBUG AID — remove with

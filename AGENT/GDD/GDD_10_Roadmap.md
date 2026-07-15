@@ -121,6 +121,18 @@ remain separate builder work.
 | 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph and resolves launches; the dedicated `MapResultsScreen` owns victory/Continue while `GameOverScreen` owns defeat. Branch nodes expose authored successor labels and require a validated explicit choice. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win RECORDS a result; successor choice and launch preparation occur before commit, autosave, or position movement. Terminal and single-successor nodes remain prompt-free. Shared standings formatting preserves the future PvP/scenario seam. |
 | 3 | `B1-CST` Slice 3 | **Implemented 2026-07-15:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper warnings. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore validates mutable shapes and item references before applying; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer stage and replace as one rollback-capable transaction. Portable import hard-rejects only parse/schema/version failure; whole/protected hash mismatches warn and require acknowledgement. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
 
+### B6 mutable campaign rule state
+
+Status: **Implemented 2026-07-15** for `B6-PER-MAP-OVERRIDES` Slices 1-2.
+
+The open three-layer resolver now applies triggered mid-map overrides above
+node-authored `rule_overrides` above effective campaign defaults, with mandates
+short-circuiting both overlays. `end_of_map` flips remain temporary;
+`permanent` flips append to the shared `MutableCampaignState` patch log. The
+store also reserves open carry-forward facts and imported-record identity for
+`B6-CAMPAIGN-STATUS`. Campaign, suspend, and ledger paths round-trip the proper
+layers, including old-save empty-store migration and Retry/Rewind rollback.
+
 ### B1-LEDGER unified persistence & undo
 
 Retry, Rewind, and Suspend become three reads of ONE within-map history — a

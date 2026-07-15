@@ -156,6 +156,8 @@ func _persist_rules() -> void:
 		rules.leveling_method = _LEVELING_OPTIONS[_opt_leveling.selected]
 	if not _opt_pair_up.disabled:
 		rules.pair_up_enabled = bool(_opt_pair_up.selected)  # 0=Off, 1=On
+	if gs.has_method("commit_current_campaign_rules_as_defaults"):
+		gs.call("commit_current_campaign_rules_as_defaults")
 
 
 func _on_start() -> void:
