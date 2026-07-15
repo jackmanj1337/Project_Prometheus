@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15ah](2026-07-15ah.md) — Enforced pinned format/lint in both approved GitHub workflows and local hooks, with all 100 suites green.
 - [2026-07-15ag](2026-07-15ag.md) — Applied the pinned whole-tree GDScript format baseline; all 100 suites remained green.
 - [2026-07-15af](2026-07-15af.md) — Added nonblocking audit cadence, exact commit ownership, evidence-matrix enforcement, quiet export smoke, and a pinned formatting toolchain.
 - [2026-07-15ae](2026-07-15ae.md) — Completed decision vocabulary, import-budget, documentation-governance, and open objective/item registry phases; all 100 suites green.
