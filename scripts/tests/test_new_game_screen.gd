@@ -7,6 +7,23 @@ func _init() -> void:
 	print("=== NewGameScreen Test ===")
 	var passed := 0
 	var failed := 0
+	if root.get_node_or_null("RegistryManager") == null:
+		var registry_manager: Node = load("res://scripts/autoloads/RegistryManager.gd").new()
+		registry_manager.name = "RegistryManager"
+		root.add_child(registry_manager)
+	if root.get_node_or_null("DataManager") == null:
+		var data_manager: Node = load("res://scripts/autoloads/DataManager.gd").new()
+		data_manager.name = "DataManager"
+		root.add_child(data_manager)
+	if root.get_node_or_null("SaveManager") == null:
+		var save_manager: Node = load("res://scripts/autoloads/SaveManager.gd").new()
+		save_manager.name = "SaveManager"
+		save_manager.configure_save_dir_for_tests("user://test_new_game_preferences")
+		root.add_child(save_manager)
+		DirAccess.make_dir_recursive_absolute("user://test_new_game_preferences")
+		var preference_dir := DirAccess.open("user://test_new_game_preferences")
+		for file_name in preference_dir.get_files():
+			preference_dir.remove(file_name)
 
 	var packed := load("res://scenes/ui/NewGameScreen.tscn")
 	if packed == null:
@@ -24,7 +41,6 @@ func _init() -> void:
 	# Every node the NewGameScreen script's @onready vars depend on must exist.
 	var expected := [
 		"Panel/VBox/HBoxRun/OptRun",
-		"Panel/VBox/HBoxMap/OptMap",
 		"Panel/VBox/HBoxPermadeath/OptPermadeath",
 		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
 		"Panel/VBox/HBoxLeveling/OptLeveling",
@@ -42,28 +58,30 @@ func _init() -> void:
 	if all_present:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
 
-	var map_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxMap/OptMap")
 	var run_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxRun/OptRun")
-	if run_opt != null and run_opt.item_count == 2 \
-			and run_opt.get_item_text(1) == "The Proving Grounds":
-		print("OK  run selector exposes the campaign beside the developer map path"); passed += 1
-	else:
-		print("FAIL run selector missing the campaign choice"); failed += 1
-
+	var has_proving := false
+	var has_single_map := false
 	if run_opt != null:
-		run_opt.selected = 1
-		run_opt.item_selected.emit(1)
-		var campaign_owns_map := map_opt.disabled
-		run_opt.selected = 0
-		run_opt.item_selected.emit(0)
-		if campaign_owns_map and not map_opt.disabled:
-			print("OK  campaign selection disables only its inapplicable map picker"); passed += 1
-		else:
-			print("FAIL run selection did not toggle the developer map picker"); failed += 1
-	if map_opt != null and map_opt.item_count >= 8:
-		print("OK  map selector is populated from the registry source"); passed += 1
+		for index in run_opt.item_count:
+			has_proving = has_proving or run_opt.get_item_text(index) == "The Proving Grounds"
+			has_single_map = has_single_map or run_opt.get_item_text(index) == "Map 001 - Rout"
+	if has_proving and has_single_map and screen.get_node_or_null("Panel/VBox/HBoxMap") == null:
+		print("OK  every map and authored run share the one campaign selector"); passed += 1
 	else:
-		print("FAIL map selector missing or empty"); failed += 1
+		print("FAIL unified campaign selector proving=%s single=%s" % [
+			has_proving, has_single_map]); failed += 1
+	var save_manager: Node = root.get_node("SaveManager")
+	save_manager.record_campaign_imported({
+		"campaign_id": CampaignData.single_map_campaign_id("map_001")})
+	screen._select_preferred_run()
+	var imported_selected: bool = screen._run_options[run_opt.selected]["campaign_id"] \
+		== CampaignData.single_map_campaign_id("map_001")
+	save_manager.record_campaign_started({"campaign_id": "proving_grounds"})
+	screen._select_preferred_run()
+	if imported_selected and screen._run_options[run_opt.selected]["campaign_id"] == "proving_grounds":
+		print("OK  selector prefers last-started, else most-recently-imported"); passed += 1
+	else:
+		print("FAIL campaign selector preference"); failed += 1
 
 	var auto_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxAutoPromote/OptAutoPromote")
 	if auto_opt != null and auto_opt.item_count == 2:
@@ -148,30 +166,6 @@ var campaign_rules = CampaignRulesScript.make_default()
 	else:
 		print("SKIP rule persistence (GameState autoload absent)")
 
-	# ---- map selection keeps last-launched semantics until Start ----
-	# Unlike the rule toggles above, the Map dropdown is a launch choice. Closing
-	# without Start must not rewrite GameState.next_map_data_path; reopening seeds
-	# from the last configured/launched map path.
-	if gs_node != null and map_opt != null and map_opt.item_count > 1:
-		var original_path: String = screen._map_options[0]["map_data_path"]
-		gs_node.set("next_map_data_path", original_path)
-		screen.open()
-		map_opt.selected = 1
-		screen._on_back()
-		screen.open()
-		var map_kept_last_launch: bool = map_opt.selected == 0 \
-			and String(gs_node.get("next_map_data_path")) == original_path
-		screen._on_back()
-		if map_kept_last_launch:
-			print("OK  map dropdown reopens on last launched map, not unsaved selection")
-			passed += 1
-		else:
-			print("FAIL map last-launched behavior: selected=%d path=%s want=%s" % [
-				map_opt.selected, String(gs_node.get("next_map_data_path")), original_path])
-			failed += 1
-	else:
-		print("SKIP map last-launched behavior (GameState/map options unavailable)")
-
 	# ---- modal focus containment and repeat in the live MainMenu parent ----
 	if gs_node != null:
 		var menu_packed := load("res://scenes/ui/MainMenu.tscn")
@@ -180,7 +174,7 @@ var campaign_rules = CampaignRulesScript.make_default()
 		await process_frame
 		var modal: Control = menu.get_node("NewGameScreen")
 		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
-		var modal_map: OptionButton = modal.get_node("Panel/VBox/HBoxMap/OptMap")
+		var modal_run: OptionButton = modal.get_node("Panel/VBox/HBoxRun/OptRun")
 		var modal_permadeath: OptionButton = modal.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
 		menu._on_new_game()
 		await process_frame
@@ -188,7 +182,7 @@ var campaign_rules = CampaignRulesScript.make_default()
 		modal._process(0.016)
 		var focus_owner := modal.get_viewport().gui_get_focus_owner()
 		var contained_focus := modal.is_ancestor_of(focus_owner)
-		modal_map.grab_focus()
+		modal_run.grab_focus()
 		Input.action_press("ui_down", 1.0)
 		modal._process(0.016)
 		focus_owner = modal.get_viewport().gui_get_focus_owner()
@@ -201,7 +195,7 @@ var campaign_rules = CampaignRulesScript.make_default()
 		# move the panel focus behind the popup, and the popup-close frame
 		# re-latches the repeat so the still-held direction doesn't step either.
 		modal_permadeath.grab_focus()
-		modal_map.show_popup()
+		modal_run.show_popup()
 		await process_frame
 		var popup_seen: bool = modal._capture_ui_active()
 		Input.action_press("ui_down", 1.0)
@@ -209,7 +203,7 @@ var campaign_rules = CampaignRulesScript.make_default()
 		modal._process(0.016)
 		focus_owner = modal.get_viewport().gui_get_focus_owner()
 		var popup_stood_down := focus_owner == modal_permadeath
-		modal_map.get_popup().hide()
+		modal_run.get_popup().hide()
 		await process_frame
 		modal._process(0.016)  # close frame: re-latch, no step
 		focus_owner = modal.get_viewport().gui_get_focus_owner()

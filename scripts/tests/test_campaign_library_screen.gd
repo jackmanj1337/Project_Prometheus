@@ -16,6 +16,16 @@ func _run() -> void:
 	var passed := 0
 	var failed := 0
 	Installer._remove_tree(Registry.DEFAULT_STORAGE_ROOT)
+	var save_manager := root.get_node_or_null("SaveManager")
+	if save_manager == null:
+		save_manager = load("res://scripts/autoloads/SaveManager.gd").new()
+		save_manager.name = "SaveManager"
+		root.add_child(save_manager)
+	save_manager.configure_save_dir_for_tests("user://test_campaign_library_saves")
+	DirAccess.make_dir_recursive_absolute("user://test_campaign_library_saves")
+	var save_dir := DirAccess.open("user://test_campaign_library_saves")
+	for file_name in save_dir.get_files():
+		save_dir.remove(file_name)
 	var source := Registry.installed_path(Registry.DEFAULT_STORAGE_ROOT, ROOT, "1.0")
 	_write_pack(source)
 	var screen: Control = load("res://scenes/ui/CampaignLibraryScreen.tscn").instantiate()
@@ -46,8 +56,10 @@ func _run() -> void:
 	screen._on_import_file_selected(archive)
 	var installed := Registry.new(Registry.DEFAULT_STORAGE_ROOT).refresh()
 	var identity_after: Dictionary = dm.call("active_package_identity") if dm else {}
+	var preferences: Array[Dictionary] = save_manager.campaign_preference_candidates()
 	if installed.size() == 1 and signal_state["changed"] == 1 \
-			and identity_after == identity_before:
+			and identity_after == identity_before and preferences.size() == 1 \
+			and preferences[0]["campaign_id"] == "library_campaign":
 		print("OK  import installs, signals discovery refresh, and remains inert"); passed += 1
 	else:
 		print("FAIL import callback installed=%d changed=%d inert=%s" % [

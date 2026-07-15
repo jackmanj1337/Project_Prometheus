@@ -80,6 +80,7 @@ func _on_import_file_selected(path: String) -> void:
 		_show_result(_failure_text("Import failed", result.errors))
 		return
 	_refresh_packages()
+	_record_import_preference(result.package_id, result.package_version)
 	campaigns_changed.emit()
 	var message := "Imported %s %s." % [result.package_id, result.package_version]
 	if not result.repair_report.is_empty():
@@ -106,6 +107,24 @@ func _show_result(message: String) -> void:
 	_result_dialog.dialog_text = message
 	_result_dialog.popup_centered()
 	_result_dialog.get_ok_button().grab_focus()
+
+
+func _record_import_preference(package_id: String, package_version: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("record_campaign_imported"):
+		return
+	for summary in _summaries:
+		if summary["package_id"] != package_id or summary["package_version"] != package_version:
+			continue
+		for campaign in summary["campaigns"]:
+			if bool(campaign.get("is_dev_only", false)):
+				continue
+			manager.call("record_campaign_imported", {
+				"campaign_id": campaign["campaign_id"],
+				"package_id": package_id,
+				"package_version": package_version,
+			})
+			return
 
 
 static func _failure_text(prefix: String, errors: Array[String]) -> String:

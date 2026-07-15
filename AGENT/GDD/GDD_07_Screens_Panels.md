@@ -127,42 +127,35 @@ Between-map slot loads route to the implemented Prep screen through
 
 The live new-game flow is no longer a direct jump into `Map 001`. It is a modal
 setup screen that writes per-run rules onto `GameState.campaign_rules`, then
-launches a shipped or installed campaign through prep, or a chosen developer map
-directly.
+launches a shipped, generated one-map, or installed campaign through one prep path.
 
 **Current options:**
-- `Run` — `The Proving Grounds`, every campaign from a validated installed-pack
-  summary, or the retained `Single Map (Developer)` path. Installed rows show
-  campaign label plus exact pack id/version.
-- `Map` — populated from `data/maps/map_registry.json`
+- `Campaign` — authored campaigns plus one generated one-node campaign per map
+  registry entry. Installed rows show campaign label plus exact pack id/version;
+  `is_dev_only` rows are excluded outside debug builds.
 - `Permadeath` — Off / On
 - `Auto Promote` — Off / On
 - `Leveling` — Random / Fixed
 - `Pair Up` — Off / On
 
 **Behavior:**
-- `The Proving Grounds` calls `CampaignManager.start_campaign()` and
-  `launch_current_node()`, entering prep at the first of its five nodes; campaign
-  progression owns the map choice, so the developer map picker is disabled
+- Every row calls `CampaignManager.start_campaign()` and
+  `launch_current_node()`. Authored runs enter their first node; generated rows
+  enter their sole map node. There is no direct-map bypass.
 - An installed row activates its exact Tier-2 `{package_id, package_version}`
   through `DataManager` before `CampaignManager.start_campaign()`. A failed
   activation stays on New Game with the prior source intact. Choosing a shipped
   row after an installed campaign restores `res://data` first.
-- Selecting a map also selects its roster policy (`default_roster`, fixed test roster,
-  or keep-current when that mode is authored later)
 - The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through
   to `GameState.campaign_rules` the moment they change, so closing the panel with Back and reopening
-  it remembers the choices — Start is not required to persist them. (The `Map`
-  selection and roster are only configured on Start.)
+  it remembers the choices — Start is not required to persist them.
 - Campaign-authored rule rows seed each control. An `authority: mandate` row is
   visibly disabled and cannot be overwritten; an `authority: default` row seeds
   an editable choice. This authority list persists with the save.
-- The `Map` dropdown seeds from `GameState.next_map_data_path`, which represents the
-  last configured/launched map. Choosing a different map and backing out without Start
-  does not overwrite that path, so reopening the screen returns to the last launched
-  selection rather than an unsaved dropdown choice.
-- Starting the run calls `GameState.configure_next_map(...)`, applies the roster
-  policy, then changes to `GameMap.tscn`
+- Selection defaults to the first still-installed identity in this order:
+  `last_started`, then `last_imported`, then the deterministic first row. Starting
+  records exact `{campaign_id, package_id, package_version}`; successful import
+  records the first non-dev campaign in the imported pack without activating it.
 - Back returns to the Main Menu without reloading the scene
 - **Manage Campaigns** opens a modal package library. Import chooses a ZIP from
   the filesystem, displays structured validation or optional-asset repair
@@ -170,12 +163,8 @@ directly.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
 
-This screen is onboarding-relevant because the map registry is now the canonical
-launch surface for the validation maps and objective showcase maps.
-
-Campaign starts select a shipped or installed campaign package/slice first, then
-its authored node. The map dropdown remains a developer/debug surface and
-validation preset, not a builder-facing campaign browser.
+This screen is onboarding-relevant because every map-registry entry now reaches
+the same campaign/prep/save lifecycle as authored multi-map content.
 
 ### Prep, Service, And Authoring Panels
 

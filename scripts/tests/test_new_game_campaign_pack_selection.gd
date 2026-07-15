@@ -23,14 +23,20 @@ func _run() -> void:
 	root.add_child(screen)
 	await process_frame
 	var run_opt: OptionButton = screen.get_node("Panel/VBox/HBoxRun/OptRun")
-	if run_opt.item_count == 3 and "Selector Campaign" in run_opt.get_item_text(2) \
-			and ROOT in run_opt.get_item_text(2):
+	var installed_index := -1
+	for index in screen._run_options.size():
+		if screen._run_options[index].get("package_id", "") == ROOT \
+				and screen._run_options[index].get("campaign_id", "") == "selector_campaign":
+			installed_index = index
+			break
+	if installed_index >= 0 and "Selector Campaign" in run_opt.get_item_text(installed_index) \
+			and ROOT in run_opt.get_item_text(installed_index):
 		print("OK  New Game appends validated installed campaigns with pack identity"); passed += 1
 	else:
 		print("FAIL installed selector rows: count=%d" % run_opt.item_count); failed += 1
 
 	var dm: Node = root.get_node("DataManager")
-	var run: Dictionary = screen._run_options[2]
+	var run: Dictionary = screen._run_options[installed_index]
 	if screen._activate_run_source(run) \
 			and dm.call("active_package_identity")["package_id"] == ROOT \
 			and dm.call("has_campaign", "selector_campaign"):
@@ -51,7 +57,9 @@ func _run() -> void:
 		print("FAIL package campaign launch resources"); failed += 1
 	cm.call("end_campaign")
 
-	if screen._activate_run_source(screen._run_options[1]) \
+	var shipped_run: Dictionary = screen._run_options.filter(func(entry: Dictionary) -> bool:
+		return entry.get("campaign_id", "") == "proving_grounds")[0]
+	if screen._activate_run_source(shipped_run) \
 			and dm.call("active_package_identity")["package_id"] == "" \
 			and dm.call("has_campaign", "proving_grounds"):
 		print("OK  selecting a shipped run restores the shipped content source"); passed += 1

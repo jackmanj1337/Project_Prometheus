@@ -75,6 +75,7 @@ func _discover_candidate(path: String, directory_id: String,
 		_append_candidate_errors(path, catalogue_errors)
 		return
 	var campaigns: Array[Dictionary] = []
+	var campaign_ids := {}
 	for entry in catalogue.entries:
 		if entry["kind"] != "campaign":
 			continue
@@ -85,6 +86,21 @@ func _discover_candidate(path: String, directory_id: String,
 			"rules": document.get("rules", {}).duplicate(true) \
 				if document.get("rules", {}) is Dictionary else {},
 		})
+		campaign_ids[String(entry["id"])] = true
+	for entry in catalogue.entries:
+		if entry["kind"] != "map_registry":
+			continue
+		for map_entry in catalogue.get_document("map_registry", entry["id"]):
+			var map_id := String(map_entry.get("id", ""))
+			var synthetic_id := CampaignData.single_map_campaign_id(map_id)
+			if map_id.is_empty() or campaign_ids.has(synthetic_id):
+				continue
+			campaigns.append({
+				"campaign_id": synthetic_id,
+				"label": String(map_entry.get("label", map_id)),
+				"rules": {},
+				"is_dev_only": bool(map_entry.get("is_dev_only", false)),
+			})
 	campaigns.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a["campaign_id"] < b["campaign_id"])
 	_summaries.append({

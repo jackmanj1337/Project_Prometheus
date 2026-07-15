@@ -28,6 +28,15 @@ func _init() -> void:
 		print("OK  DataManager loads the shipped campaign through the catalogue path"); passed += 1
 	else:
 		print("FAIL shipped campaign did not load: %s" % [shipped]); failed += 1
+	var single_map_id := CampaignData.single_map_campaign_id("map_900_hotseat_validation")
+	var single_map: CampaignData = dm.get_campaign(single_map_id)
+	if single_map != null and single_map.is_dev_only \
+			and single_map.nodes.size() == 1 \
+			and single_map.nodes[0].map_id == "map_900_hotseat_validation" \
+			and single_map.nodes[0].is_terminal():
+		print("OK  map registry entries auto-wrap as deterministic one-node campaigns"); passed += 1
+	else:
+		print("FAIL generated single-map campaign: %s" % [single_map]); failed += 1
 
 	var live_errors: Array[String] = DataManagerScript.collect_campaign_validation_errors(
 		dm.get_all_campaigns(),

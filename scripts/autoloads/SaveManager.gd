@@ -282,6 +282,43 @@ func get_last_played() -> Dictionary:
 	return last_played if last_played is Dictionary else {}
 
 
+func record_campaign_started(identity: Dictionary) -> bool:
+	return _record_campaign_preference("last_started", identity)
+
+
+func record_campaign_imported(identity: Dictionary) -> bool:
+	return _record_campaign_preference("last_imported", identity)
+
+
+func campaign_preference_candidates() -> Array[Dictionary]:
+	var preference: Variant = load_index().get("campaign_preference", {})
+	if not (preference is Dictionary):
+		return []
+	var out: Array[Dictionary] = []
+	for key in ["last_started", "last_imported"]:
+		var identity: Variant = preference.get(key, {})
+		if identity is Dictionary and not String(identity.get("campaign_id", "")).is_empty():
+			out.append(identity.duplicate(true))
+	return out
+
+
+func _record_campaign_preference(kind: String, identity: Dictionary) -> bool:
+	if kind not in ["last_started", "last_imported"] \
+			or String(identity.get("campaign_id", "")).is_empty():
+		return false
+	var index := load_index()
+	var preference: Dictionary = index.get("campaign_preference", {}).duplicate(true) \
+		if index.get("campaign_preference", {}) is Dictionary else {}
+	preference[kind] = {
+		"campaign_id": String(identity.get("campaign_id", "")),
+		"package_id": String(identity.get("package_id", "")),
+		"package_version": String(identity.get("package_version", "")),
+		"recorded_at_unix": int(Time.get_unix_time_from_system()),
+	}
+	index["campaign_preference"] = preference
+	return _write_index(index)
+
+
 func _row_for_slot(slot_id: String) -> Dictionary:
 	var slots := _slots_from_index(load_index())
 	var row: Variant = slots.get(slot_id, {})

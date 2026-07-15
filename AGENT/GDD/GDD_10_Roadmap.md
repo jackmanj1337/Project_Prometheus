@@ -75,12 +75,11 @@ foundations or add unmanifested save state.
 the graph is authored, the position walks it, and the run survives a quit. The
 sequenced slices are in
 [`b1_cst_save_spine_handoff_2026-07-14.md`](../Docs/plans/b1_cst_save_spine_handoff_2026-07-14.md).
-What the spine deliberately does **not** own, and where it went: the manual-save
-surface and prep/deployment (`B4-PREP-DEPLOYMENT`), the package-aware campaign
-selector and branch-node choice (`B6-CAMPAIGN-SHARING`, which also owns [CST-6]'s
-"every map is a 1-node campaign" auto-wrap), and a dedicated `MapResultsScreen`.
-A provisional New Game choice now exposes the shipped five-node `proving_grounds`
-campaign for end-to-end testing without claiming the package-browser slice.
+What the spine deliberately did **not** own, and where it went: manual-save
+and prep/deployment landed under `B4-PREP-DEPLOYMENT`; package-aware selection,
+map-registry one-node auto-wrap, and last-started/imported preference landed under
+`B6-CAMPAIGN-SHARING`. Branch-node choice and a dedicated `MapResultsScreen`
+remain the campaign-presentation gaps.
 A returned v0.4.0 playtest preempts follow-on work here.
 
 `B6-CAMPAIGN-SHARING` has now started with isolated package prerequisites:

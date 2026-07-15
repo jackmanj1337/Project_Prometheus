@@ -13,11 +13,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 #       VBox
 #         Label "New Game"
 #         HBoxRun
-#           Label "Run"
-#           OptionButton (node name: OptRun)  # Single Map / Proving Grounds
-#         HBoxMap
-#           Label "Map"
-#           OptionButton (node name: OptMap)
+#           Label "Campaign"
+#           OptionButton (node name: OptRun)
 #         HBoxPermadeath
 #           Label "Permadeath"
 #           OptionButton (node name: OptPermadeath)  # Off / On
@@ -35,7 +32,6 @@ signal back_pressed()
 
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
-@onready var _opt_map: OptionButton          = $Panel/VBox/HBoxMap/OptMap
 @onready var _opt_run: OptionButton          = $Panel/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
@@ -48,40 +44,14 @@ const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPack
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
-const _BUILT_IN_RUN_OPTIONS: Array[Dictionary] = [
-	{"label": "Single Map (Developer)", "campaign_id": ""},
-	{"label": "The Proving Grounds", "campaign_id": "proving_grounds"},
-]
-const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 # Temporary v0.3.0 rerun logging for the live-only New Game focus gap. Remove
 # after the controller log proves whether focus is stolen, released, or hidden.
 const V030_FOCUS_TRACE_ENABLED := true
-const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
-	{
-		"id": "map_001",
-		"label": "Map 001 - Rout",
-		"map_data_path": "res://data/maps/map_001_rout/map_001_data.tres",
-		"roster_policy": "default_roster",
-		"roster_source": "",
-	},
-	{
-		"id": "map_001_c3_factions",
-		"label": "Map 001 - Faction Demo",
-		"map_data_path": "res://data/maps/map_001_rout/map_001_c3_factions_data.tres",
-		"roster_policy": "default_roster",
-		"roster_source": "",
-	},
-]
-var _map_options: Array[Dictionary] = []
 var _run_options: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	_refresh_run_options()
-	_map_options = _load_map_options()
-	_opt_map.clear()
-	for entry in _map_options:
-		_opt_map.add_item(entry["label"])
 	_opt_permadeath.clear()
 	_opt_permadeath.add_item("Off")
 	_opt_permadeath.add_item("On")
@@ -120,7 +90,6 @@ func open() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
-		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
 		_opt_run.selected = 0
 		if rules != null:
 			_opt_permadeath.selected = int(rules.permadeath_enabled)  # 0=Off, 1=On
@@ -128,8 +97,8 @@ func open() -> void:
 			_opt_leveling.selected = maxi(0, _LEVELING_OPTIONS.find(rules.leveling_method))
 			_opt_pair_up.selected = int(rules.pair_up_enabled)  # 0=Off, 1=On
 	else:
-		_opt_map.selected = 0
 		_opt_run.selected = 0
+	_select_preferred_run()
 	_on_run_selected(_opt_run.selected)
 	show()
 	_btn_start.grab_focus()
@@ -199,36 +168,21 @@ func _on_start() -> void:
 	if not _activate_run_source(run):
 		return
 	var campaign_id: String = String(run["campaign_id"])
-	if campaign_id != "":
-		var cm := get_node_or_null("/root/CampaignManager")
-		if cm == null:
-			push_error("NewGameScreen: CampaignManager autoload missing — cannot start campaign.")
-			return
-		if not bool(cm.call("start_campaign", campaign_id)):
-			return
-		# Campaign defaults seed the controls; only editable defaults write back.
-		# Mandates remain locked at the value CampaignManager just applied.
-		_persist_rules()
-		if not bool(cm.call("launch_current_node")):
-			cm.call("end_campaign")
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm == null:
+		push_error("NewGameScreen: CampaignManager autoload missing — cannot start campaign.")
 		return
+	if not bool(cm.call("start_campaign", campaign_id)):
+		return
+	_record_started_run(run)
+	# Campaign defaults seed the controls; only editable defaults write back.
+	# Mandates remain locked at the value CampaignManager just applied.
 	_persist_rules()
-	var map_entry: Dictionary = _map_options[_opt_map.selected]
-	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
-		map_entry.get("roster_source", ""))
-	if not _apply_roster_policy(gs, map_entry["roster_policy"], map_entry.get("roster_source", "")):
-		push_error("NewGameScreen: roster setup failed for map '%s' (%s)" % [
-			map_entry.get("label", map_entry["map_data_path"]),
-			map_entry["roster_policy"],
-		])
-		return
-	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+	if not bool(cm.call("launch_current_node")):
+		cm.call("end_campaign")
 
 
 func _on_run_selected(index: int) -> void:
-	# The map picker remains visible as an explicit developer path, but it is not
-	# actionable while a campaign owns progression and map selection.
-	_opt_map.disabled = String(_run_options[index]["campaign_id"]) != ""
 	_apply_rule_authority(_run_options[index])
 
 
@@ -236,23 +190,27 @@ func _refresh_run_options() -> void:
 	var previous := _run_options[_opt_run.selected].duplicate(true) \
 		if not _run_options.is_empty() and _opt_run.selected >= 0 \
 			and _opt_run.selected < _run_options.size() else {}
-	_run_options = _BUILT_IN_RUN_OPTIONS.duplicate(true)
+	_run_options = []
 	var dm := get_node_or_null("/root/DataManager")
-	if dm != null and dm.has_method("get_campaign") and dm.has_method("has_campaign"):
-		for index in _run_options.size():
-			var campaign_id := String(_run_options[index].get("campaign_id", ""))
-			if campaign_id.is_empty():
+	if dm != null and dm.has_method("get_all_campaigns"):
+		for campaign: CampaignData in dm.call("get_all_campaigns").values():
+			if campaign == null or campaign.is_dev_only and not OS.is_debug_build():
 				continue
-			if not bool(dm.call("has_campaign", campaign_id)):
-				continue
-			var campaign: CampaignData = dm.call("get_campaign", campaign_id)
-			if campaign != null:
-				_run_options[index]["rules"] = _authored_rule_rows(
-					campaign.rule_overrides, campaign.mandated_rule_ids)
+			_run_options.append({
+				"label": campaign.label,
+				"campaign_id": campaign.campaign_id,
+				"rules": _authored_rule_rows(
+					campaign.rule_overrides, campaign.mandated_rule_ids),
+			})
+	_run_options.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return "%s\n%s" % [a["label"], a["campaign_id"]] \
+			< "%s\n%s" % [b["label"], b["campaign_id"]])
 	var registry := CampaignPackRegistryScript.new(
 		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
 	for summary in registry.refresh():
 		for campaign in summary["campaigns"]:
+			if bool(campaign.get("is_dev_only", false)) and not OS.is_debug_build():
+				continue
 			_run_options.append({
 				"label": "%s — %s %s" % [campaign["label"],
 					summary["package_id"], summary["package_version"]],
@@ -271,6 +229,7 @@ func _refresh_run_options() -> void:
 			if _same_run_identity(_run_options[index], previous):
 				_opt_run.selected = index
 				break
+	_select_preferred_run()
 
 
 func _activate_run_source(run: Dictionary) -> bool:
@@ -293,6 +252,25 @@ static func _same_run_identity(a: Dictionary, b: Dictionary) -> bool:
 	return a.get("campaign_id", "") == b.get("campaign_id", "") \
 		and a.get("package_id", "") == b.get("package_id", "") \
 		and a.get("package_version", "") == b.get("package_version", "")
+
+
+func _select_preferred_run() -> void:
+	if _run_options.is_empty():
+		return
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager == null or not save_manager.has_method("campaign_preference_candidates"):
+		return
+	for preferred in save_manager.call("campaign_preference_candidates"):
+		for index in _run_options.size():
+			if _same_run_identity(_run_options[index], preferred):
+				_opt_run.selected = index
+				return
+
+
+func _record_started_run(run: Dictionary) -> void:
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if save_manager != null and save_manager.has_method("record_campaign_started"):
+		save_manager.call("record_campaign_started", run)
 
 
 func _on_back() -> void:
@@ -349,55 +327,10 @@ static func _authored_rule_rows(overrides: Dictionary,
 	return rows
 
 
-func _selected_map_index_for(map_path: String) -> int:
-	for i in _map_options.size():
-		if _map_options[i]["map_data_path"] == map_path:
-			return i
-	return 0
-
-
-func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String = "") -> bool:
-	match roster_policy:
-		"default_roster":
-			return bool(gs.call("load_default_roster"))
-		"fixed_test_roster":
-			if roster_source == "":
-				push_warning("NewGameScreen: fixed_test_roster missing roster_source — using default roster")
-				return false
-			return bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
-		"keep_current_roster":
-			return bool(gs.call("is_roster_ready_for_launch"))
-		_:
-			push_warning("NewGameScreen: unknown roster policy '%s' — using default roster" % roster_policy)
-			return false
-
-
-func _load_map_options() -> Array[Dictionary]:
-	if not FileAccess.file_exists(_MAP_REGISTRY_PATH):
-		push_warning("NewGameScreen: map registry missing at %s — using fallback entries" % _MAP_REGISTRY_PATH)
-		return _FALLBACK_MAP_OPTIONS.duplicate(true)
-	var raw_text := FileAccess.get_file_as_string(_MAP_REGISTRY_PATH)
-	var parsed: Variant = JSON.parse_string(raw_text)
-	if not (parsed is Array):
-		push_warning("NewGameScreen: map registry did not parse as an array — using fallback entries")
-		return _FALLBACK_MAP_OPTIONS.duplicate(true)
-	var out: Array[Dictionary] = []
-	for entry in parsed:
-		if not (entry is Dictionary):
-			continue
-		if entry.get("label", "") == "" or entry.get("map_data_path", "") == "":
-			continue
-		out.append(entry)
-	if out.is_empty():
-		push_warning("NewGameScreen: map registry had no valid entries — using fallback entries")
-		return _FALLBACK_MAP_OPTIONS.duplicate(true)
-	return out
-
-
 func _connect_v030_focus_trace() -> void:
 	if not V030_FOCUS_TRACE_ENABLED:
 		return
-	for control in [_opt_run, _opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
+	for control in [_opt_run, _opt_permadeath, _opt_auto_promote, _opt_leveling,
 			_opt_pair_up, _btn_start, _btn_manage_campaigns, _btn_back]:
 		var c := control as Control
 		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
@@ -431,7 +364,6 @@ func _v030_trace_focus(label: String, extra: Dictionary = {}) -> void:
 	var fields := {
 		"label": label,
 		"focus": _v030_control_label(get_viewport().gui_get_focus_owner()),
-		"map": _opt_map.selected,
 		"permadeath": _opt_permadeath.selected,
 		"auto_promote": _opt_auto_promote.selected,
 		"leveling": _opt_leveling.selected,

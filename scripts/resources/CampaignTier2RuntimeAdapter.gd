@@ -130,6 +130,8 @@ static func _build_map_registry(catalogue: Tier2Catalogue, result: Result) -> vo
 					String(raw.get("map_data_id", ""))),
 				"roster_policy": "campaign_pack_roster",
 				"roster_source": roster_id,
+				"description": String(raw.get("description", "Single-map campaign.")),
+				"is_dev_only": bool(raw.get("is_dev_only", false)),
 			}
 
 

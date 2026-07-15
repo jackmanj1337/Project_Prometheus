@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_slot_listing(manager)
 	_test_slot_transaction_rolls_back_on_index_failure(manager)
 	_test_portable_save_transfer_and_integrity(manager)
+	_test_campaign_preference_order(manager)
 	_test_slot_delete(manager)
 
 	manager.free()
@@ -251,6 +252,20 @@ func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
 	_check(not sniffed["ok"] and sniffed["artifact_kind"] == "campaign_pack",
 		"portable importer sniffs ZIP and routes campaign packages to Manage Campaigns")
 	manager.delete_slot("imported_01")
+
+
+func _test_campaign_preference_order(manager: Node) -> void:
+	manager.record_campaign_imported({"campaign_id": "imported_campaign",
+		"package_id": "pack", "package_version": "1.0"})
+	var imported_only: Array[Dictionary] = manager.campaign_preference_candidates()
+	manager.record_campaign_started({"campaign_id": "played_campaign"})
+	var with_started: Array[Dictionary] = manager.campaign_preference_candidates()
+	_check(imported_only.size() == 1 \
+			and imported_only[0]["campaign_id"] == "imported_campaign" \
+			and with_started.size() == 2 \
+			and with_started[0]["campaign_id"] == "played_campaign" \
+			and with_started[1]["campaign_id"] == "imported_campaign",
+		"campaign preference orders last-started before most-recently-imported")
 
 
 func _test_slot_delete(manager: Node) -> void:

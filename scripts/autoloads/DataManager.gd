@@ -63,6 +63,7 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	# Cached so campaign node -> map launches resolve through the catalogue
 	# instead of each caller re-reading map_registry.json from disk.
 	_load_map_registry(source.path_join("maps/map_registry.json"))
+	_register_single_map_campaigns()
 
 
 func _clear_content() -> void:
@@ -130,6 +131,7 @@ func select_tier2_campaign_source(source: String, package_id: String,
 	_classes = adapted.classes
 	_campaigns = adapted.campaigns
 	_map_registry = adapted.map_registry
+	_register_single_map_campaigns()
 	_pack_maps = adapted.maps
 	_pack_rosters = adapted.rosters
 	_active_package_id = adapted.package_id
@@ -389,6 +391,18 @@ static func collect_map_registry_ids(registry_path: String) -> Dictionary:
 
 func _load_map_registry(registry_path: String) -> void:
 	_map_registry = load_map_registry_entries(registry_path)
+
+
+func _register_single_map_campaigns() -> void:
+	for map_id in _map_registry:
+		var entry: Dictionary = _map_registry[map_id]
+		var campaign := CampaignData.make_single_map(entry)
+		if campaign == null:
+			continue
+		if _campaigns.has(campaign.campaign_id):
+			push_error("DataManager: generated single-map campaign id collides with authored campaign '%s'" % campaign.campaign_id)
+			continue
+		_campaigns[campaign.campaign_id] = campaign
 
 
 # The full registry entry (map_data_path, roster_policy, roster_source, …) for a

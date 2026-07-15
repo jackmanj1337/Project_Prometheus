@@ -404,6 +404,13 @@ without breaking saves — only `node_id` is durable identity.
 Shipped campaign: `data/campaigns/proving_grounds.json`, a linear five-node run
 over the shipped objective maps (rout, seize, boss, escape, defend).
 
+`DataManager` deterministically auto-wraps every map-registry entry as
+`single_map__{map_id}` with one terminal `map` node. The wrapper inherits label,
+description, and `is_dev_only`; the same helper is applied after Tier-2 package
+activation, and pack discovery exposes matching inert selector summaries. An
+authored collision with the reserved generated id fails loud instead of silently
+replacing either campaign.
+
 An authored `rules` entry may be `{authority:"mandate", value:...}` (locked) or
 `{authority:"default", value:...}` (editable). Legacy direct values normalize as
 editable defaults. `CampaignManager` seeds both values and mandate ids before a
@@ -537,9 +544,10 @@ Rules this contract fixes:
   saves also round-trip temporary flat party item ids through
   `party.convoy.entries[]`, preserving duplicates and treating an empty saved
   list as an explicit clear.
-- **Additive.** With no campaign active every handler no-ops, so the bare
-  single-map launch (`NewGameScreen`) is unchanged. `[CST-6]`'s "every map is a
-  1-node campaign" auto-wrap is deferred to the campaign selector.
+- **One player path.** New Game has no bare-map bypass: map-registry entries are
+  generated one-node campaigns and therefore use the same prep, result, save,
+  Retry, and source-identity lifecycle. Direct state configuration remains only
+  as an engine/test seam; campaign handlers still no-op safely without an active run.
 - **Branch nodes take the first authored successor** until the branch-choice UI
   lands with `B6-CAMPAIGN-SHARING`; authored order is the ordering contract.
 - **The position and campaign author state persist; the pending result does not.**
@@ -554,8 +562,9 @@ Rules this contract fixes:
   id, the node id, every cleared node, flag/var shapes, convoy item references,
   rules, and roster before it
   writes any state; an id that does not resolve fails loud and leaves no campaign
-  active, rather than half-restoring a position the graph cannot walk. An empty
-  `campaign_id` is a valid save (the bare single-map launch), not a corrupt one.
+  active, rather than half-restoring a position the graph cannot walk. Legacy
+  engine/test documents may still carry an empty campaign id, but New Game no
+  longer authors that shape.
 - **The commit is the autosave point.** `commit_pending_result` advances the
   position and then writes the `autosave` slot — the moment the party is parked
   between maps is exactly the state a campaign slot holds, so every route that
@@ -611,9 +620,8 @@ Rules this contract fixes:
   `MapData.player_start_tiles` entry, a unit outside the party, and a plan larger
   than the start-tile count are all rejected by the validator instead.
 - **An empty plan means "no prep screen ran", not "deploy nobody".** `GameMap`
-  then keeps the historical roster-order rule, so the bare single-map launch —
-  which has no campaign position at all — behaves exactly as it did before prep
-  existed. Additive, as ever.
+  keeps the historical roster-order fallback for direct engine/test launches;
+  New Game's generated single-map campaigns run Prep like every other campaign.
 - **`GameMap` revalidates before it spawns.** Prep gates Begin Battle on a legal
   plan, so an illegal plan reaching the map means the party or the map changed
   underneath it; the launch fails loud rather than spawning a half-legal board.

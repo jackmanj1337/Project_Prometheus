@@ -21,8 +21,10 @@ func _init() -> void:
 	if summaries.size() == 2 \
 			and summaries[0]["package_id"] == "alpha" \
 			and summaries[1]["package_id"] == "zeta" \
-			and summaries[0]["campaigns"] == [{"campaign_id": "a_campaign",
-				"label": "Alpha", "rules": {}}]:
+			and summaries[0]["campaigns"].any(func(row: Dictionary) -> bool:
+				return row["campaign_id"] == "a_campaign" and row["label"] == "Alpha") \
+			and summaries[0]["campaigns"].any(func(row: Dictionary) -> bool:
+				return row["campaign_id"] == CampaignData.single_map_campaign_id("map_01")):
 		print("OK  valid installed packs produce deterministic campaign summaries"); passed += 1
 	else:
 		print("FAIL discovery summaries: %s" % [summaries]); failed += 1
@@ -36,7 +38,7 @@ func _init() -> void:
 
 	var found := registry.find("zeta", "2.0")
 	found["campaigns"].clear()
-	if registry.find("zeta", "2.0")["campaigns"].size() == 1 \
+	if registry.find("zeta", "2.0")["campaigns"].size() == 2 \
 			and registry.find("missing", "1.0").is_empty():
 		print("OK  summary reads are deep-copy cached and exact-identity keyed"); passed += 1
 	else:

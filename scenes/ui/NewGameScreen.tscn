@@ -58,22 +58,10 @@ layout_mode = 2
 
 [node name="LabelRun" type="Label" parent="Panel/VBox/HBoxRun"]
 layout_mode = 2
-text = "Run"
+text = "Campaign"
 custom_minimum_size = Vector2(160, 0)
 
 [node name="OptRun" type="OptionButton" parent="Panel/VBox/HBoxRun"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HBoxMap" type="HBoxContainer" parent="Panel/VBox"]
-layout_mode = 2
-
-[node name="LabelMap" type="Label" parent="Panel/VBox/HBoxMap"]
-layout_mode = 2
-text = "Map"
-custom_minimum_size = Vector2(160, 0)
-
-[node name="OptMap" type="OptionButton" parent="Panel/VBox/HBoxMap"]
 layout_mode = 2
 size_flags_horizontal = 3
 

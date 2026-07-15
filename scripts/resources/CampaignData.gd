@@ -13,6 +13,7 @@ class_name CampaignData extends Resource
 # DataManager), never a silent skip that would strand a player mid-campaign.
 
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+const SINGLE_MAP_PREFIX := "single_map__"
 
 # Durable campaign identity. Saves store this in campaign.campaign_id.
 @export var campaign_id: String = ""
@@ -34,6 +35,28 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 @export var nodes: Array[CampaignNode] = []
 @export var rule_overrides: Dictionary = {}
 @export var mandated_rule_ids: Array[String] = []
+
+
+static func single_map_campaign_id(map_id: String) -> String:
+	return SINGLE_MAP_PREFIX + map_id
+
+
+static func make_single_map(entry: Dictionary) -> CampaignData:
+	var map_id := String(entry.get("id", ""))
+	if map_id.is_empty():
+		return null
+	var campaign := CampaignData.new()
+	campaign.campaign_id = single_map_campaign_id(map_id)
+	campaign.label = String(entry.get("label", map_id))
+	campaign.description = String(entry.get("description", "Single-map campaign."))
+	campaign.is_dev_only = bool(entry.get("is_dev_only", false))
+	campaign.start_node_id = "map"
+	var node := CampaignNode.new()
+	node.node_id = "map"
+	node.label = campaign.label
+	node.map_id = map_id
+	campaign.nodes.append(node)
+	return campaign
 
 
 # Parses one authored campaign document. Appends every structural problem to
