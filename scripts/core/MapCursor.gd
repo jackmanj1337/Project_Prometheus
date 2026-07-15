@@ -1627,13 +1627,13 @@ func _open_map_menu() -> void:
 func can_capture_suspend() -> bool:
 	if _state != State.FREE or _input_suppressed:
 		return false
-	# V030-SUS-01 (c): gate Suspend & Quit to the blue player phase only (v1
-	# answer). A non-blue capture (e.g. debug-hotseating the red team) restores
-	# a phase that locks the cursor but never re-enters the awaited faction
-	# scheduler, so resume comes up with a frozen cursor and no way to act. The
-	# blue-phase gate sidesteps that until restore can re-enter the scheduler.
-	# With this gate, start_map_from_suspend never restores a non-blue phase, so
-	# the debug-hotseat latch re-derivation there (TurnManager.gd:135) is moot.
+	# CST-8: a committed-action boundary is suspendable for every locally
+	# controlled faction. AI phases remain excluded even when the cursor happens
+	# to be idle; restoring a local non-blue phase re-enters HotseatController.
+	if _turn != null:
+		return _turn.is_locally_controlled_faction(_turn.active_faction())
+	# Keep the blue-player fallback for isolated cursor tests/scenes that do not
+	# wire a TurnManager, but production maps always use the scheduler above.
 	var gs := get_node_or_null("/root/GameState")
 	return gs != null and gs.is_player_turn()
 

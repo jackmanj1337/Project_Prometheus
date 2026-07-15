@@ -170,6 +170,8 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	out["per_map_overrides"] = _dict_from_variant(out.get("per_map_overrides", {}))
 	out["active_mid_map_overrides"] = _dict_from_variant(
 		out.get("active_mid_map_overrides", {}))
+	out["protected_fields"] = SaveCodec.string_array_from_variant(
+		out.get("protected_fields", []))
 	return out
 
 
@@ -468,6 +470,7 @@ static func _default_campaign() -> Dictionary:
 		},
 		"per_map_overrides": {},
 		"active_mid_map_overrides": {},
+		"protected_fields": [],
 		"key_item_custody": {},
 		"pvp": null,
 	}

@@ -141,12 +141,25 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 		gs.set_phase(gs.Phase.ENEMY if phase_name == "enemy" else gs.Phase.PLAYER, active_faction())
 	_connect_runtime_signals()
 	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
+	var restored_faction := active_faction()
+	if restored_faction != "blue" and is_locally_controlled_faction(restored_faction):
+		# Resume the same awaited local-faction driver used during an uninterrupted
+		# hotseat phase. Deferred entry lets GameMap finish restoring cursor/UI state
+		# before HotseatController retargets and unlocks the cursor.
+		call_deferred("_resume_suspended_local_phase", restored_faction)
 	# V030-SUS-01 (d): turn_number is assigned directly above and is otherwise
 	# only announced by _complete_round, so the HUD (which updates on
 	# turn_changed) would show a stale count until the next round boundary. Emit
 	# now so the label reflects the restored turn immediately.
 	if gs:
 		turn_changed.emit(gs.turn_number)
+
+
+func _resume_suspended_local_phase(faction_id: String) -> void:
+	if active_faction() != faction_id or not is_locally_controlled_faction(faction_id):
+		return
+	if _hotseat_controller != null:
+		await _hotseat_controller.run_phase(_grid, self, faction_id)
 
 
 func capture_suspend_turn_state() -> Dictionary:

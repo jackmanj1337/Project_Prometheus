@@ -195,9 +195,6 @@ class_name ClassData extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
-@export var author_id: String = ""          # status-record compatibility identity
-@export var campaign_version: String = "1.0.0"
-@export var compatible_status_sources: Array[Dictionary] = []
 @export var tier: int = 1
 @export var max_level: int = 20
 @export var base_hp: int = 0
@@ -365,6 +362,10 @@ class_name CampaignData extends Resource
 @export var campaign_id: String = ""      # durable save identity (campaign.campaign_id)
 @export var label: String = ""
 @export var description: String = ""
+@export var author_id: String = ""        # status-record compatibility identity
+@export var campaign_version: String = "1.0.0"
+@export var compatible_status_sources: Array[Dictionary] = []
+@export var protected_fields: Array[String] = [] # dotted save paths added to protected hash
 @export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
 @export var start_node_id: String = ""    # defaults to the first authored node
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
@@ -422,6 +423,10 @@ run; New Game locks visible mandated controls while allowing defaults to change,
 and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
 Each node may also author `rule_overrides`; these are transient map-layer values,
 not permanent edits to the campaign defaults.
+
+`protected_fields` is stamped into each save and interpreted as dotted paths from
+the save root. These author additions join the mandatory progression/rules
+baseline in the protected SHA-256 projection; they never replace that baseline.
 
 ### CampaignStatusRecord Contract
 

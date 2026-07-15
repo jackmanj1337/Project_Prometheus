@@ -15,6 +15,8 @@ func _init() -> void:
 	root.add_child(bus)
 	var gs: Node = GameStateScript.new()
 	root.add_child(gs)
+	var notice: Control = load("res://scenes/ui/RuleFlipNotification.tscn").instantiate()
+	root.add_child(notice)
 	await process_frame
 
 	gs._apply_campaign_rules_dict({"pair_up_enabled": true, "max_skills": 5})
@@ -29,6 +31,9 @@ func _init() -> void:
 			and gs.get_effective_campaign_rule("pair_up_enabled") == true
 			and gs.mutable_campaign_state.rule_patches.is_empty(),
 		"end-of-map flips beat the map layer without entering the patch log")
+	_check(notice.visible and notice.get_node("Panel/Label").text.contains("Pair Up Enabled")
+			and notice.get_node("Panel/Label").text.contains("event"),
+		"the story-flip seam presents a player-facing rule-change notification")
 	gs.end_campaign_map_rules()
 	_check(gs.get_effective_campaign_rule("pair_up_enabled") == true
 			and gs.campaign_rules.pair_up_enabled == true,

@@ -42,6 +42,10 @@ func _init() -> void:
 	var plan: Dictionary = screen.build_plan()
 	_check(not plan.is_empty() and screen.validation_errors().is_empty(),
 		"prep seeds a legal explicit deployment")
+	_check(screen.get_node("Margin/VBox/RulesSummary").text.begins_with("Rules (read only):")
+			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Pair Up Enabled")
+			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Rewind Charges Per Map"),
+		"prep presents the entire effective campaign ruleset as a read-only summary")
 
 	var first_id := String(screen._selected_ids[0])
 	var first_tile: Vector2i = plan[first_id]

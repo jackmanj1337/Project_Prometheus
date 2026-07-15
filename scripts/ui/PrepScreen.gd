@@ -5,6 +5,7 @@ const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 
 @onready var _title: Label = $Margin/VBox/Title
 @onready var _summary: Label = $Margin/VBox/Summary
+@onready var _rules_summary: Label = $Margin/VBox/RulesSummary
 @onready var _rows: VBoxContainer = $Margin/VBox/Scroll/Rows
 @onready var _validation: Label = $Margin/VBox/Validation
 @onready var _begin_button: Button = $Margin/VBox/Actions/BeginButton
@@ -51,7 +52,20 @@ func _load_launch_context() -> bool:
 	_title.text = _node.label if _node.label != "" else "Battle Prep"
 	_summary.text = "Choose up to %s units. Deployment order maps to the numbered start tiles." % \
 		("%d" % _deployment_limit() if _node.deployment_cap != -1 else "%d" % _map_data.player_start_tiles.size())
+	_refresh_rules_summary(gs)
 	return true
+
+
+func _refresh_rules_summary(gs: Node) -> void:
+	if not gs.has_method("get_campaign_rule_summary"):
+		_rules_summary.text = ""
+		return
+	var parts: Array[String] = []
+	for row in gs.call("get_campaign_rule_summary"):
+		var suffix := " [locked]" if bool(row.get("mandated", false)) else ""
+		parts.append("%s: %s%s" % [String(row.get("rule_id", "")).capitalize(),
+			str(row.get("value", "")), suffix])
+	_rules_summary.text = "Rules (read only): %s" % " · ".join(parts)
 
 
 func _deployment_limit() -> int:

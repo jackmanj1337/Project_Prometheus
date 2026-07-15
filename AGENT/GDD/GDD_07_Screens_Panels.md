@@ -188,6 +188,11 @@ onto the numbered `MapData.player_start_tiles`. Begin Battle stays disabled unti
 `DeploymentPlan.validate` accepts the plan, then stages it on `GameState` and
 enters `GameMap` without reapplying roster policy.
 
+Above deployment, Prep shows the effective campaign rules as a read-only summary;
+mandated values carry a locked marker. On-map story flips raise a transient
+notification with the changed rule, new value, authored reason, and whether the
+change lasts for this map or the campaign.
+
 Every campaign launch parks here. Campaign Retry first restores ledger entry 0,
 then returns here with the previous deployment preselected; bare-map and
 suspend-resumed retries retain direct map reload. The screen also writes manual
@@ -637,15 +642,14 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
-- `Suspend & Quit`: available only when the cursor opened the menu from a free
-  boundary **during the blue player phase**. It confirms, writes the normal named
+- `Suspend & Quit`: available only when the cursor opened the menu from a free,
+  unsuppressed committed-action boundary controlled by a **local human faction**
+  (blue, an authored hotseat faction, or the F9 hotseat override). AI-controlled
+  boundaries remain unavailable. It confirms, writes the normal named
   slot `resume_battle` (including the whole rewind ledger) through `SaveManager`, then returns to
   `Boot.tscn`; if the write fails, a failure dialog keeps the player on the map.
-  The blue-phase gate is the v1 answer to V030-SUS-01 (c): a non-blue capture
-  (e.g. debug-hotseating the red team) would restore a phase that locks the
-  cursor but never re-enters the awaited faction scheduler, leaving the resumed
-  map with a frozen cursor and no way to act. Restoring the scheduler loop for a
-  non-blue active faction is the deferred alternative.
+  A resumed non-blue local phase re-enters `HotseatController` after map/UI state
+  restoration, retargeting and unlocking the cursor for the restored faction.
 - `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.

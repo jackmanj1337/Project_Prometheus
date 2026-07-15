@@ -170,7 +170,7 @@
 - [`plans/band7_forging_implementation_plan_2026-07-01.md`](plans/band7_forging_implementation_plan_2026-07-01.md) — Band 7 Forging Implementation Plan — *Active - implementation plan*
 - [`plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md`](plans/campaign_pack_boundary_next_session_handoff_2026-07-15.md) — Campaign Pack Boundary - Next-Session Handoff — *Implemented - archive storage/import/exp*
 - [`plans/campaign_pack_engine_boundary_plan_2026-07-15.md`](plans/campaign_pack_engine_boundary_plan_2026-07-15.md) — Campaign Pack / Engine Boundary And Delivery Plan — *Planned - ownership boundary ratified; i*
-- [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *RESOLVED*
+- [`plans/campaign_save_technical_plan_2026-06-21.md`](plans/campaign_save_technical_plan_2026-06-21.md) — Campaign / Save Cluster (§2) — Technical Implementation Plan (DRAFT) — *Historical*
 - [`plans/campaign_status_property_recruitment_plan_2026-06-29.md`](plans/campaign_status_property_recruitment_plan_2026-06-29.md) — Campaign Status, Property Capture, Recruit Stores, And Strategic AI — *Active - planning input*
 - [`plans/class_exp_pxp_boundary_plan_2026-06-29.md`](plans/class_exp_pxp_boundary_plan_2026-06-29.md) — Class EXP And PXP Boundary Plan — *Active - implementation plan*
 - [`plans/debug_web_playtest_plan_2026-06-20.md`](plans/debug_web_playtest_plan_2026-06-20.md) — Debug Web Playtest Plan - iPhone 14 Pro - 2026-06-20 — *Target design*

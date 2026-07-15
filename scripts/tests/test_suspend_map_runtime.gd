@@ -86,26 +86,39 @@ func _init() -> void:
 	turn._unit_states[boss] = TurnManager.UnitState.READY
 	gs.turn_number = 3
 	gs.set_phase(gs.Phase.ENEMY, "red")
-	# V030-SUS-01 (c): Suspend & Quit must be gated to the blue player phase, so
-	# capture is refused during a non-blue (here red) phase and allowed in blue.
-	# This prevents restoring into a driverless phase with a frozen cursor.
-	# HOTSEAT the red faction so the OLD behaviour (gate on
-	# is_locally_controlled_faction) would have ALLOWED capture during red — the
-	# failing-first condition. The new blue-only gate refuses it.
+	# CST-8: committed-action boundaries are suspendable for any locally
+	# controlled faction, including a non-blue hotseat phase, but never for AI.
+	var red_faction: FactionData = null
 	if turn._map_data != null:
 		for f in turn._map_data.factions:
 			if f != null and f.id == "red":
+				red_faction = f
 				f.controller = "HOTSEAT"
-	var suspend_gated_non_blue: bool = not cursor.can_capture_suspend()
+		if red_faction == null:
+			red_faction = FactionData.new()
+			red_faction.id = "red"
+			red_faction.controller = "HOTSEAT"
+			turn._map_data.factions.append(red_faction)
+	# Model the idle boundary exposed by HotseatController.run_phase(). Directly
+	# changing GameState to ENEMY above correctly locked the cursor first.
+	cursor.unlock()
+	var suspend_allowed_hotseat: bool = cursor.can_capture_suspend()
+	if red_faction != null:
+		red_faction.controller = "BASIC"
+	var suspend_refused_ai: bool = not cursor.can_capture_suspend()
+	if red_faction != null:
+		red_faction.controller = "HOTSEAT"
+	turn._active_faction_idx = 0
 	gs.set_phase(gs.Phase.PLAYER, "blue")
 	var suspend_allowed_blue: bool = cursor.can_capture_suspend()
-	if suspend_gated_non_blue and suspend_allowed_blue:
-		print("OK  suspend capture is gated to the blue player phase")
+	if suspend_allowed_hotseat and suspend_refused_ai and suspend_allowed_blue:
+		print("OK  suspend capture allows local blue/hotseat phases and rejects AI")
 		passed += 1
 	else:
-		print("FAIL suspend gate: non_blue_refused=%s blue_allowed=%s" % [
-			suspend_gated_non_blue, suspend_allowed_blue])
+		print("FAIL suspend gate: hotseat_allowed=%s ai_refused=%s blue_allowed=%s" % [
+			suspend_allowed_hotseat, suspend_refused_ai, suspend_allowed_blue])
 		failed += 1
+	turn._active_faction_idx = 1
 	gs.set_phase(gs.Phase.ENEMY, "red")
 	rng.commit_event("wait", [blue_a_id, "1,9", "1,9"] as Array[String])
 	var rng_at_suspend: Dictionary = rng.to_save_dict()
@@ -143,6 +156,10 @@ func _init() -> void:
 			gs.history_size(), payload["ledger"].size()])
 		quit(1)
 		return
+	# The fixture map is authored as AI and DataManager returns a fresh resolved
+	# copy on the second scene boot. F9 exercises the same local-controller route
+	# without changing the production campaign asset just for this runtime test.
+	gs.debug_hotseat_override = true
 
 	var resumed_map: Node = packed.instantiate()
 	# Connect BEFORE add_child: start_map_from_suspend runs inside GameMap._ready
@@ -156,6 +173,15 @@ func _init() -> void:
 	var resumed_cursor: MapCursor = resumed_map.get_node("MapCursor")
 	var resumed_boss: Node = _find_unit(resumed_units, "e8_knight_boss")
 	var resumed_blue: Node = _find_unit(resumed_units, "unit_01_cavalier")
+	var local_driver_restored: bool = resumed_cursor._state == MapCursor.State.FREE \
+		and resumed_cursor._controlling_faction == "red"
+	if local_driver_restored:
+		print("OK  resume re-enters the red hotseat driver and unlocks its cursor")
+		passed += 1
+	else:
+		print("FAIL local driver restore: state=%s faction=%s" % [
+			resumed_cursor._state, resumed_cursor._controlling_faction])
+		failed += 1
 
 	var enemy_restored: bool = resumed_boss != null \
 		and resumed_boss.data.hp == 4 \
@@ -266,6 +292,7 @@ func _init() -> void:
 	else:
 		print("FAIL turn_changed: captured=%d expected=3" % _restore_turn_changed_value)
 		failed += 1
+	gs.debug_hotseat_override = false
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

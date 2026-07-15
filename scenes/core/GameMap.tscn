@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/GameMap.gd" id="1_gamemap"]
 [ext_resource type="Script" path="res://scripts/core/GridManager.gd" id="2_grid"]
@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/PromotionScreen.tscn" id="20_promotionscreen"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ReclassScreen.tscn" id="21_reclassscreen"]
 [ext_resource type="PackedScene" path="res://scenes/ui/MapResultsScreen.tscn" id="22_results"]
+[ext_resource type="PackedScene" path="res://scenes/ui/RuleFlipNotification.tscn" id="23_rule_notice"]
 
 [node name="GameMap" type="Node2D"]
 script = ExtResource("1_gamemap")
@@ -110,6 +111,8 @@ layer = 20
 [node name="GameOverScreen" parent="GameOverLayer" instance=ExtResource("15_gameover")]
 
 [node name="MapResultsScreen" parent="GameOverLayer" instance=ExtResource("22_results")]
+
+[node name="RuleFlipNotification" parent="HUDMainLayer" instance=ExtResource("23_rule_notice")]
 
 [node name="SettingsLayer" type="CanvasLayer" parent="."]
 layer = 15

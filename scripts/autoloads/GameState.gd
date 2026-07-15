@@ -585,6 +585,27 @@ func get_effective_campaign_rule(rule_id: String, fallback: Variant = null) -> V
 	return value
 
 
+func get_campaign_rule_summary() -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	# Show the entire effective ruleset, including engine defaults the campaign
+	# author did not override. Authored values influence authority/effective value,
+	# not whether a live rule disappears from the player's read-only view.
+	var ids: Array = _campaign_rules_to_dict().keys()
+	for rule_id in _authored_campaign_rule_values:
+		if rule_id not in ids:
+			ids.append(rule_id)
+	ids.sort()
+	for rule_id in ids:
+		if String(rule_id) == "mandated_rules":
+			continue
+		rows.append({
+			"rule_id": String(rule_id),
+			"value": get_effective_campaign_rule(String(rule_id)),
+			"mandated": is_campaign_rule_mandated(String(rule_id)),
+		})
+	return rows
+
+
 func begin_campaign_map_rules(overrides: Variant) -> bool:
 	if not (overrides is Dictionary):
 		return false
@@ -943,6 +964,11 @@ func _capture_campaign_package_identity(campaign: Dictionary) -> void:
 	var identity: Dictionary = dm.call("active_package_identity")
 	campaign["package_id"] = String(identity.get("package_id", ""))
 	campaign["package_version"] = String(identity.get("package_version", ""))
+	var cm := get_node_or_null("/root/CampaignManager")
+	var active: CampaignData = cm.call("get_active_campaign") \
+		if cm != null and cm.has_method("get_active_campaign") else null
+	if active != null:
+		campaign["protected_fields"] = active.protected_fields.duplicate()
 
 
 func _write_mutable_campaign_state(campaign: Dictionary) -> void:

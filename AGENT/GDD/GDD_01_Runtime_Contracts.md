@@ -88,6 +88,11 @@ per-map/active overrides additionally persist in suspend and every ledger
 checkpoint, so Retry/Rewind abandons rule mutations from the discarded future.
 Old saves default to an empty store.
 
+Every successful `apply_rule_flip` emits `campaign_rule_flipped`; GameMap shows a
+bounded player-facing notification containing rule, value, reason, and temporary
+versus permanent scope. Prep renders the effective rules and mandate locks as a
+read-only summary, so the player can inspect the run contract between maps.
+
 **Target design (author profiles and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not
   engine constants. Developer-provided presets support the project/corpus targets;

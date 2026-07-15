@@ -26,6 +26,7 @@ const SINGLE_MAP_PREFIX := "single_map__"
 # Source descriptors accepted for carry-forward. Each row may name author_id,
 # campaign_id, and optional campaign_versions[]; adding rows is authored data.
 @export var compatible_status_sources: Array[Dictionary] = []
+@export var protected_fields: Array[String] = []
 
 # Dev/test campaigns are filtered out of the player-facing list ([CST-6]).
 @export var is_dev_only: bool = false
@@ -87,6 +88,7 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 		for source in raw_status_sources:
 			if source is Dictionary:
 				campaign.compatible_status_sources.append(source.duplicate(true))
+	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
 	var raw_rules: Variant = doc.get("rules", {})
 	if not (raw_rules is Dictionary):
