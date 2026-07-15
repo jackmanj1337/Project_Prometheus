@@ -225,9 +225,9 @@ plan (code, integration sweep, tests, build order) is
 
 Status: **Split** — manifest/catalogue validation, hostile ZIP preflight, and
 rollback-safe staged installation, deterministic export, and preflighted
-byte-exact round trips are **Implemented** (2026-07-15,
-`B6-CAMPAIGN-SHARING`); discovery, selection, and runtime activation remain
-**Planned**
+byte-exact round trips, and validated installed-pack discovery are
+**Implemented** (2026-07-15, `B6-CAMPAIGN-SHARING`); selection and runtime
+activation remain **Planned**
 Last verified: 2026-07-15
 
 Campaign packs contain indexed authored JSON and approved pack-scoped media;
@@ -251,12 +251,19 @@ It cannot include campaign slots, suspend state, `.godot` caches, or unrelated
 files because those paths never enter the admitted set. The completed archive
 must pass the same hostile preflight used by import before it is returned.
 
+`CampaignPackRegistry` scans only `installed/{id}/{version}` directories,
+revalidates each manifest/catalogue and path identity, and caches deterministic
+read-only summaries containing pack provenance and authored campaign labels.
+Malformed candidates remain excluded with diagnostics. Refresh reconstructs the
+cache from disk so deleted or repaired packs cannot leave stale selector rows.
+
 Anchors: `scripts/resources/CampaignArchivePreflight.gd`,
 `scripts/resources/CampaignPackInstaller.gd`,
 `scripts/resources/CampaignPackExporter.gd`,
+`scripts/resources/CampaignPackRegistry.gd`,
 `scripts/resources/Tier2Catalogue.gd`, `scripts/assets/AssetResolver.gd`; tests:
 `test_campaign_archive_preflight.gd`, `test_campaign_pack_installer.gd`,
-`test_campaign_pack_exporter.gd`.
+`test_campaign_pack_exporter.gd`, `test_campaign_pack_registry.gd`.
 
 ---
 

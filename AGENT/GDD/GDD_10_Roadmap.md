@@ -103,8 +103,10 @@ validation, and promotion failures clean staging without touching installed or
 runtime/save state. Deterministic export now admits only validated indexed data
 and approved media in lexical order, excludes saves/caches/unrelated files by
 construction, and re-preflights its artifact; export/import tests preserve every
-admitted byte. Installed-pack discovery and selector activation are the next
-separate consumers.
+admitted byte. Installed-pack discovery now revalidates path identity and the
+complete catalogue into deterministic cached summaries while excluding broken
+candidates. The next unit is the explicit Tier-2 runtime adapter and New Game
+selection; activation cannot use the existing shipped `.tres` loader directly.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
