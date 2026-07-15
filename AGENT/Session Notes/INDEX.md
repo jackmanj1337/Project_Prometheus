@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15ak](2026-07-15ak.md) — Branch-wide campaign/save closeout and next-session handoff for the returned v0.4.0 `d12eb33` log/checklist pair.
 - [2026-07-15aj](2026-07-15aj.md) — Completed the requirement-by-requirement follow-up audit; only returned live Windows evidence remains open.
 - [2026-07-15ai](2026-07-15ai.md) — Exported the fresh traceable Windows campaign/save artifact and prepared the complete live-return checklist.
 - [2026-07-15ah](2026-07-15ah.md) — Enforced pinned format/lint in both approved GitHub workflows and local hooks, with all 100 suites green.

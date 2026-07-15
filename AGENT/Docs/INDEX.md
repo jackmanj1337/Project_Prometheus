@@ -272,6 +272,7 @@
 - [`playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md) — v0.3.3 Playtest Results and Root-Cause Triage — *RESOLVED*
 - [`playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md) — v0.3.4 Playtest Results and Root-Cause Triage — *Repairs implemented - pending v0.3.5 liv*
 - [`playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md) — v0.3.5 Playtest Results and Root-Cause Triage — *v0.3.6 live pass accepted - visual polis*
+- [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
 ## Reference / feasibility / Q&A
 
