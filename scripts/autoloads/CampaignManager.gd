@@ -18,7 +18,7 @@ extends Node
 # - Additive only. With no campaign active every handler here no-ops, so the bare
 #   single-map launch from NewGameScreen behaves exactly as it did before.
 
-const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTriggerRegistry.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
 const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
@@ -58,9 +58,12 @@ var _active_node_id: String = ""
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
+var _autosave_triggers := AutosaveTriggerRegistryScript.new()
 
 
 func _ready() -> void:
+	for trigger_id in ["battle_start", "battle_end", "menu_area_exit", "shop_exit"]:
+		_autosave_triggers.register(trigger_id, _handle_autosave_trigger)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus == null:
 		return
@@ -93,6 +96,9 @@ func start_campaign(campaign_id: String) -> bool:
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("apply_campaign_rule_overrides"):
+		gs.call("apply_campaign_rule_overrides", campaign.rule_overrides)
 	return true
 
 
@@ -253,6 +259,7 @@ func begin_prepared_battle() -> bool:
 	if gs == null or (gs.get("next_map_deployment") as Dictionary).is_empty():
 		push_error("CampaignManager: prep has not staged a deployment plan")
 		return false
+	dispatch_autosave_trigger("battle_start")
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
 	return true
 
@@ -516,8 +523,39 @@ func restore_campaign_state(source: Variant) -> bool:
 # autosave path only logs — a failed autosave must not block the player from
 # continuing to the next map.
 func write_autosave() -> bool:
-	return write_campaign_slot(SaveManagerScript.AUTOSAVE_SLOT, _autosave_label(),
-		"auto", "campaign_progress")
+	var results := dispatch_autosave_trigger("battle_end")
+	return results.any(func(value): return bool(value))
+
+
+func dispatch_autosave_trigger(trigger_id: String, context: Dictionary = {}) -> Array:
+	# Custom author ids use the identical registry path; registration is additive,
+	# never a hardcoded trigger enum or match branch.
+	if not _autosave_triggers.has_trigger(trigger_id):
+		_autosave_triggers.register(trigger_id, _handle_autosave_trigger)
+	return _autosave_triggers.dispatch(trigger_id, context)
+
+
+func _handle_autosave_trigger(trigger_id: String, context: Dictionary) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var sm := get_node_or_null("/root/SaveManager")
+	if gs == null or sm == null or not gs.has_method("capture_save") \
+			or not sm.has_method("save_automatic"):
+		return false
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		return false
+	var wrote_any := false
+	for rule in rules.autosave_rules:
+		if String(rule.get("trigger", "")) != trigger_id or int(rule.get("keep", 0)) <= 0:
+			continue
+		var turn_manager: Node = context.get("turn_manager", null)
+		var cursor: Node = context.get("cursor", null)
+		var save: Variant = gs.call("capture_save", String(rule.get("label", "Autosave")),
+			turn_manager, cursor)
+		if save != null and bool(sm.call("save_automatic", String(rule.get("rule_id", "")),
+				int(rule.get("keep", 0)), save)):
+			wrote_any = true
+	return wrote_any
 
 
 # Writes the parked position + party to a campaign slot. This is the seam the

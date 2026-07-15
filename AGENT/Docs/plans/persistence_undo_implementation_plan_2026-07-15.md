@@ -210,7 +210,7 @@ player mid-battle, not just retained by prune.
 - **DoD:** `GDD_07_Screens_Panels.md` (Load/Save UI, suspend row), `GDD_01`
   (one save-document namespace), roadmap; index regenerated.
 
-## Phase 5 — Save policy + autosave triggers + the two safety rules
+## Phase 5 — Save policy + autosave triggers + the two safety rules (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** author-tunable slot-class policy, an open-registry trigger set for
 autosave, and both safety rules landed *with their checks*.

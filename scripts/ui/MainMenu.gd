@@ -109,7 +109,10 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 			_refresh_continue_state()
 			return false
 		if change_scene:
-			get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+			if get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn") != OK:
+				_show_continue_error("Could not open the restored battle scene.")
+				return false
+			_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 		return true
 	var cm := get_node_or_null("/root/CampaignManager")
 	if gs == null or cm == null or not gs.has_method("configure_campaign_resume"):
@@ -128,7 +131,19 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 	if not bool(cm.call("launch_current_node")):
 		_show_continue_error("Could not launch the next battle.\nThe campaign node may be misconfigured.")
 		return false
+	_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 	return true
+
+
+func _consume_loaded_slot_if_required(save_manager: Node, slot_id: String, gs: Node) -> void:
+	if not save_manager.has_method("should_consume_on_load") or gs == null:
+		return
+	if not gs.has_method("get_save_slot_classes"):
+		return
+	if bool(save_manager.call("should_consume_on_load", slot_id,
+			gs.call("get_save_slot_classes"))):
+		if not bool(save_manager.call("delete_slot", slot_id)):
+			push_error("MainMenu: failed to consume loaded slot '%s'" % slot_id)
 
 
 # Compatibility seam for existing callers while all slots now route through one

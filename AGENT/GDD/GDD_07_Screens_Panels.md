@@ -86,6 +86,11 @@ the reserved mid-map `resume_battle` slot through the same store.
 - Rows are **newest first**, ordered by a monotonic `write_seq` rather than the
   timestamp (`saved_at_unix` has whole-second resolution, so two saves written in
   the same second would tie). The timestamp is display only.
+- Manual writes obey the campaign's first compatible `save_slot_classes` entry;
+  a full class refuses a new id but still permits replacing one of its existing
+  manual rows. `consumed_on_load` removes a row only after restore and scene
+  routing succeed. Autosave rows live outside those counts and rotate only within
+  their own `origin:auto` + `rule_id` pool.
 - An `origin:auto` save — written by the campaign flow on node commit today — is
   a normal row, marked `[Autosave]` so the player can tell apart the save that
   gets overwritten under them from one they wrote themselves.
@@ -103,9 +108,8 @@ the reserved mid-map `resume_battle` slot through the same store.
   never offer a save it cannot load.
 - Back returns to the Main Menu without reloading the scene.
 
-Because there is no prep screen yet, loading a slot currently launches its parked
-node straight into `GameMap`. When `B4-PREP-DEPLOYMENT` lands, that launch reroutes
-to prep — the call sits in one place (`MainMenu._load_campaign_slot`).
+Between-map slot loads route to the implemented Prep screen through
+`CampaignManager.launch_current_node`; mid-map rows restore directly into GameMap.
 
 ---
 

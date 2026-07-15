@@ -12,6 +12,8 @@ class_name CampaignData extends Resource
 # or malformed campaign is a LOUD error (collected here, push_error'd by
 # DataManager), never a silent skip that would strand a player mid-campaign.
 
+const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+
 # Durable campaign identity. Saves store this in campaign.campaign_id.
 @export var campaign_id: String = ""
 
@@ -30,6 +32,7 @@ class_name CampaignData extends Resource
 # the JSON declares them, so a campaign listing is stable across runs and
 # platforms (no dictionary iteration order, no path sort).
 @export var nodes: Array[CampaignNode] = []
+@export var rule_overrides: Dictionary = {}
 
 
 # Parses one authored campaign document. Appends every structural problem to
@@ -48,6 +51,22 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 	campaign.label = String(doc.get("label", ""))
 	campaign.description = String(doc.get("description", ""))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
+	var raw_rules: Variant = doc.get("rules", {})
+	if not (raw_rules is Dictionary):
+		errors.append("CampaignData: campaign '%s' rules must be an object" % campaign.campaign_id)
+	else:
+		campaign.rule_overrides = raw_rules.duplicate(true)
+		if campaign.rule_overrides.has("save_slot_classes") \
+				or campaign.rule_overrides.has("autosave_rules"):
+			var slot_classes: Variant = campaign.rule_overrides.get(
+				"save_slot_classes", SavePolicy.classic_gba())
+			var autosave_rules: Variant = campaign.rule_overrides.get(
+				"autosave_rules", SavePolicy.default_autosave_rules())
+			errors.append_array(SavePolicy.validate(slot_classes, autosave_rules,
+				int(campaign.rule_overrides.get("rewind_charges_per_map", 4))))
+			for warning in SavePolicy.builder_warnings(slot_classes,
+					int(campaign.rule_overrides.get("rewind_charges_per_map", 4))):
+				push_warning("CampaignData '%s': %s" % [campaign.campaign_id, warning])
 
 	if campaign.campaign_id == "":
 		errors.append("CampaignData: '%s' is missing 'campaign_id'" % source_path)

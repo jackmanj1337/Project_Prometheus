@@ -2,6 +2,7 @@ class_name SaveData
 extends RefCounted
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 
 const FORMAT_VERSION := 1
 const TOP_LEVEL_KEYS: Array[String] = [
@@ -94,6 +95,9 @@ func validate(data_manager: Object = null) -> Array[String]:
 		errors.append("SaveData: integrity.schema_hash must be a String")
 	errors.append_array(_validate_rng(map_runtime.get("rng", {})))
 	errors.append_array(_validate_ledger())
+	errors.append_array(SavePolicy.validate(campaign.get("rules", {}).get("save_slot_classes", []),
+		campaign.get("rules", {}).get("autosave_rules", []),
+		SaveCodec.as_int(campaign.get("rules", {}).get("rewind_charges_per_map", 4), 4)))
 	errors.append_array(_validate_inventory_refs(data_manager))
 	return errors
 
@@ -177,6 +181,10 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 	# B1-LEDGER Phase 2: within-map ledger retention budgets (-1 = infinite tier).
 	out["undo_activations"] = SaveCodec.as_int(out.get("undo_activations", 0), 0)
 	out["undo_rounds"] = SaveCodec.as_int(out.get("undo_rounds", 0), 0)
+	out["save_slot_classes"] = SavePolicy.normalize_slot_classes(
+		out.get("save_slot_classes", SavePolicy.classic_gba()))
+	out["autosave_rules"] = SavePolicy.normalize_autosave_rules(
+		out.get("autosave_rules", SavePolicy.default_autosave_rules()))
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
@@ -431,6 +439,8 @@ static func _default_campaign() -> Dictionary:
 			"rewind_charges_per_map": 4,
 			"undo_activations": 0,
 			"undo_rounds": 0,
+			"save_slot_classes": SavePolicy.classic_gba(),
+			"autosave_rules": SavePolicy.default_autosave_rules(),
 			"profile_selections": {},
 			"exposed_tunables": {},
 			"pxp_profiles": {},

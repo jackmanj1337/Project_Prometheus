@@ -40,13 +40,28 @@ rule fields are not retained as shims.
 | `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
-| `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one, and `0` disables Rewind |
+| `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one; `0` disables and `-1` is infinite |
 | `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
+| `save_slot_classes` | Array[Dictionary] | Manual slot pools: `{count, accepts, consumed_on_load, label}`; accepts `between_map`, `mid_map`, or `any` |
+| `autosave_rules` | Array[Dictionary] | Independent automatic pools: `{rule_id, trigger, keep, label, consumed_on_load:false}` |
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
 > `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
 > Evergreen rule reference: `AGENT/Docs/guides/campaign_rules.md`.
+
+**Save policy and autosave registry (B1-LEDGER Phase 5, Implemented 2026-07-15).**
+Campaign JSON may override the two policy lists. Manual counts are enforced by the
+first compatible slot class; load consumes a slot only after its full restore and
+scene route succeeds. Autosave triggers are open string ids dispatched through
+`AutosaveTriggerRegistry`, including shipped `battle_start`, `battle_end`,
+`menu_area_exit`, and `shop_exit` plus author custom ids. `keep` rotates only rows
+whose structural metadata is `origin:auto` with the same `rule_id`; manual and
+other-rule rows are absent from the candidate set and guarded by an assertion.
+The prior node-commit autosave is now the default `battle_end` rule. Empty rules
+disable autosave. Three preset shapes (GBA 3+1, single-consumable, 30-any) are pure
+data. A non-blocking builder warning reports durable `mid_map` classes unless
+`rewind_charges_per_map = -1`; `check_docs.py` check 33 enforces it for shipped JSON.
 
 **Target design (author profiles, mandates, and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not

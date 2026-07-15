@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15u](2026-07-15u.md) — Completed save policy and autosave: authored slot classes, open triggers, independent safe rotation, consumed loads, infinite Rewind, and durable-mid_map warning enforcement.
 - [2026-07-15t](2026-07-15t.md) — Unified all saves into one transactional named-slot namespace with intrinsic kind labels, origin/rule metadata, whole-ledger mid-map persistence, and one Continue/Load path.
 - [2026-07-15s](2026-07-15s.md) — Completed live deterministic player Rewind: coalesced activation/round pushes, authoritative charge spending, economy/RNG restore, transactional branching, and Map Menu surface.
 - [2026-07-15r](2026-07-15r.md) — Completed installed-campaign New Game selection, exact Tier-2 activation before campaign start, package map/roster launch resolution, and switching back to shipped content.

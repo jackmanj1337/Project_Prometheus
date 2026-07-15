@@ -53,7 +53,7 @@ func open() -> void:
 	_suspend_and_quit_btn.disabled = not _suspend_available
 	var gs := get_node_or_null("/root/GameState")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
-	_rewind_btn.text = "Rewind (%d)" % charges
+	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
 	_rewind_btn.disabled = gs == null or not bool(gs.call("can_rewind"))
 	show()
 	_end_turn_btn.grab_focus()

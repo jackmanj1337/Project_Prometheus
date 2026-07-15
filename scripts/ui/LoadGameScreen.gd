@@ -33,8 +33,6 @@ signal slot_load_requested(slot_id: String)
 # pointed at the slot that just went away.
 signal slots_changed()
 
-const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
-
 @onready var _rows: VBoxContainer = $Panel/VBox/Scroll/Rows
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
 @onready var _empty_label: Label = $Panel/VBox/EmptyLabel

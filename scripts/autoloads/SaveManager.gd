@@ -6,14 +6,12 @@ extends Node
 # map_runtime.map_path: populated means mid-map; empty means between-map.
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
+const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
 const LAST_PLAYED_SLOT := "slot"
 
-# The campaign autosave is a reserved slot id, written by the campaign flow after
-# a node is committed. Manual slots are any other valid id.
-const AUTOSAVE_SLOT := "autosave"
 const MID_MAP_SLOT := "resume_battle"
 
 var save_dir: String = DEFAULT_SAVE_DIR
@@ -93,11 +91,22 @@ func save_slot(slot_id: String, source: Variant, origin: String = "manual",
 		return false
 	save.origin = origin
 	save.rule_id = rule_id
+	if origin == "auto" and has_slot(slot_id):
+		var existing := _row_for_slot(slot_id)
+		# Structural invariant: no automatic write path may name a manual slot or
+		# another autosave rule's pool.
+		if String(existing.get("origin", "manual")) != "auto" \
+				or String(existing.get("rule_id", "")) != rule_id:
+			push_error("SaveManager: autosave '%s' cannot overwrite slot '%s'" % [rule_id, slot_id])
+			return false
 	var errors: Array[String] = save.validate(_data_manager())
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
 		return false
 	var payload: Dictionary = save.to_dict()
+	if origin == "manual" and not _manual_write_allowed(slot_id,
+			String(payload.get("header", {}).get("save_kind", "between_map"))):
+		return false
 	var index := load_index()
 	var slots: Dictionary = _slots_from_index(index)
 	slots[slot_id] = _slot_index_row(path, payload, index)
@@ -107,6 +116,53 @@ func save_slot(slot_id: String, source: Variant, origin: String = "manual",
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 	}
 	return _commit_slot_transaction(path, payload, index)
+
+
+# Writes into a rule-owned rotation pool. Candidate selection contains ONLY
+# origin:auto rows with the same rule_id; manual and other-rule rows never enter it.
+func save_automatic(rule_id: String, keep: int, source: Variant) -> bool:
+	if rule_id.is_empty() or keep <= 0:
+		return false
+	var candidates: Array[Dictionary] = []
+	for row in list_slots():
+		if String(row.get("origin", "manual")) == "auto" \
+				and String(row.get("rule_id", "")) == rule_id:
+			candidates.append(row)
+	var target_id := ""
+	if candidates.size() >= keep:
+		var target: Dictionary = candidates[candidates.size() - 1] # oldest; list is newest-first
+		assert(String(target.get("origin", "")) != "manual")
+		target_id = String(target.get("slot_id", ""))
+	else:
+		var suffix := 1
+		while target_id.is_empty():
+			var candidate := "auto_%s_%02d" % [rule_id, suffix]
+			if not has_slot(candidate):
+				target_id = candidate
+			suffix += 1
+	var written := save_slot(target_id, source, "auto", rule_id)
+	if written:
+		_trim_automatic_pool(rule_id, keep)
+	return written
+
+
+func _trim_automatic_pool(rule_id: String, keep: int) -> void:
+	var owned: Array[Dictionary] = []
+	for row in list_slots():
+		if String(row.get("origin", "manual")) == "auto" \
+				and String(row.get("rule_id", "")) == rule_id:
+			owned.append(row)
+	# list_slots is newest-first; anything after keep is an owned stale rotation.
+	for i in range(keep, owned.size()):
+		assert(String(owned[i].get("origin", "")) != "manual")
+		delete_slot(String(owned[i].get("slot_id", "")))
+
+
+func should_consume_on_load(slot_id: String, slot_classes: Variant) -> bool:
+	var row := _row_for_slot(slot_id)
+	var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+	return not row.is_empty() and SavePolicy.is_consumed_on_load(
+		slot_classes, String(header.get("save_kind", "between_map")))
 
 
 func load_slot(slot_id: String) -> RefCounted:
@@ -159,6 +215,54 @@ func get_last_played() -> Dictionary:
 	var index := load_index()
 	var last_played: Variant = index.get("last_played", {})
 	return last_played if last_played is Dictionary else {}
+
+
+func _row_for_slot(slot_id: String) -> Dictionary:
+	var slots := _slots_from_index(load_index())
+	var row: Variant = slots.get(slot_id, {})
+	return row.duplicate(true) if row is Dictionary else {}
+
+
+func _manual_write_allowed(slot_id: String, save_kind: String) -> bool:
+	var existing := _row_for_slot(slot_id)
+	if not existing.is_empty():
+		if String(existing.get("origin", "manual")) != "manual":
+			push_error("SaveManager: manual save cannot replace an automatic pool slot")
+			return false
+		return true
+	var classes := _active_slot_classes()
+	var target_index := _class_index_for_kind(classes, save_kind)
+	if target_index < 0:
+		push_error("SaveManager: save policy accepts no '%s' manual slots" % save_kind)
+		return false
+	var used := 0
+	for row in list_slots():
+		if String(row.get("origin", "manual")) != "manual":
+			continue
+		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+		if _class_index_for_kind(classes, String(header.get("save_kind", "between_map"))) \
+				== target_index:
+			used += 1
+	if used >= int(classes[target_index].get("count", 0)):
+		push_error("SaveManager: manual '%s' slot class is full" % save_kind)
+		return false
+	return true
+
+
+func _active_slot_classes() -> Array[Dictionary]:
+	if is_inside_tree():
+		var gs := get_node_or_null("/root/GameState")
+		if gs != null and gs.has_method("get_save_slot_classes"):
+			return SavePolicy.normalize_slot_classes(gs.call("get_save_slot_classes"))
+	return SavePolicy.classic_gba()
+
+
+func _class_index_for_kind(classes: Array[Dictionary], save_kind: String) -> int:
+	for i in classes.size():
+		if int(classes[i].get("count", 0)) > 0 \
+				and String(classes[i].get("accepts", "")) in [save_kind, SavePolicy.ANY]:
+			return i
+	return -1
 
 
 func _is_slot_resumable(slot_id: String) -> bool:

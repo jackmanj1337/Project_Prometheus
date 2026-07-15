@@ -38,8 +38,10 @@ Checks:
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
  31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
  32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
+ 33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
 """
 
+import json
 import re
 import subprocess
 import sys
@@ -1517,6 +1519,45 @@ def check_campaign_asset_boundary() -> None:
             if path.suffix.lower() not in _PACK_MEDIA_EXTENSIONS:
                 _fail("campaign-asset-boundary", path, 1,
                       "Tier-1 pack media must be PNG/JPG, TTF/OTF, OGG, or WAV")
+
+
+# ── check 33: durable mid-map policy warning (B1-LEDGER Phase 5 DoD#2) ───────
+
+def check_durable_mid_map_policy() -> None:
+    """Authored durable battle reloads may not silently bypass finite Rewind."""
+    guide = ROOT / "AGENT/Docs/guides/campaign_rules.md"
+    required = "durable mid_map saves require infinite rewind"
+    if required not in guide.read_text(encoding="utf-8"):
+        _fail("save-policy-warning", guide, 1,
+              f"campaign rules guide must carry the exact warning: {required!r}")
+
+    for path in sorted((ROOT / "data/campaigns").glob("*.json")):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue  # the catalogue validator owns malformed JSON reporting
+        if not isinstance(document, dict):
+            continue
+        rules = document.get("rules", {})
+        if not isinstance(rules, dict):
+            continue
+        classes = rules.get("save_slot_classes", [])
+        rewind = rules.get("rewind_charges_per_map", 4)
+        if rewind == -1 or not isinstance(classes, list):
+            continue
+        for entry in classes:
+            if not isinstance(entry, dict):
+                continue
+            durable_mid = (entry.get("accepts") in {"mid_map", "any"}
+                           and not entry.get("consumed_on_load", False)
+                           and entry.get("count", 0) > 0)
+            if durable_mid:
+                _fail("save-policy-warning", path, 1,
+                      "durable mid_map slot class requires "
+                      "rules.rewind_charges_per_map = -1")
+                break
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1553,6 +1594,7 @@ def main() -> None:
         ("[30] Active doc ownership",      check_active_doc_ownership),
         ("[31] Retired vocabulary",       check_retired_vocabulary),
         ("[32] Campaign asset boundary",  check_campaign_asset_boundary),
+        ("[33] Durable mid-map policy",   check_durable_mid_map_policy),
     ]
     for label, fn in steps:
         print(f"  {label}...")

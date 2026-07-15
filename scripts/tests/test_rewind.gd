@@ -31,7 +31,8 @@ func _run() -> void:
 	data.max_hp = 20
 	data.hp = 20
 	data.movement = 5
-	gs.set("player_roster", [data])
+	var roster: Array[UnitData] = [data]
+	gs.set("player_roster", roster)
 	gs.set("roster_initialized", true)
 	gs.set("party_gold", 500)
 	gs.set("party_items", ["vulnerary"] as Array[String])
@@ -93,6 +94,15 @@ func _run() -> void:
 	else:
 		print("FAIL rewind RNG: replay=%s same=%s diverged=%s" % [
 			replay_hash, identical_hash, diverged_hash]); failed += 1
+
+	gs.get("campaign_rules").rewind_charges_per_map = -1
+	gs.call("begin_map_rewind_budget")
+	gs.call("push_history", tm, null, "activation")
+	gs.call("push_history", tm, null, "activation")
+	if gs.call("rewind_last_action", tm, null) and gs.get("rewind_charges_left") == -1:
+		print("OK  infinite campaign rewind remains spendable without decrement"); passed += 1
+	else:
+		print("FAIL infinite rewind budget"); failed += 1
 
 	gs.set("rewind_charges_left", 0)
 	if not gs.call("can_rewind") and not gs.call("rewind_last_action", tm, null):

@@ -46,6 +46,8 @@ The live campaign-rule fields are:
 - `rewind_charges_per_map: int`
 - `undo_activations: int`
 - `undo_rounds: int`
+- `save_slot_classes: Array[Dictionary]`
+- `autosave_rules: Array[Dictionary]`
 
 The current launch-routing fields that travel with New Game setup are:
 
@@ -109,10 +111,37 @@ tier may legitimately be infinite); `0` keeps none beyond round-0.
 starts with that many charges and every successful Rewind consumes one. The undo
 fields only express retention depth; while Rewind is enabled, runtime floors the
 fine tier to `rewind_charges_per_map + 1` checkpoints so all authored charges can
-actually be spent. `0` charges is the no-rewind/ironman-style preset. A rewind
+actually be spent. `0` charges is the no-rewind/ironman-style preset; `-1` is an
+infinite spend meter and retains the full fine tier. A rewind
 restores the checkpoint's board, party economy, PairUp and RNG state, then drops
 the abandoned future; replaying the same actions therefore reproduces the same
 outcomes rather than rerolling luck.
+
+### Save slot classes and autosave rules
+
+`save_slot_classes` is a list of
+`{count, accepts, consumed_on_load, label}` dictionaries. `accepts` is
+`between_map`, `mid_map`, or `any`. The runtime ships three pure-data preset
+shapes: classic GBA-style 3 between-map + 1 consumed suspend, one consumable
+interchangeable slot, and 30 durable interchangeable slots. Counts apply only to
+manual saves. A consumed slot is deleted only after the complete restore/scene
+route succeeds; policy is enforced at save/load/UI boundaries, not cryptographically
+inside the document format.
+
+`autosave_rules` is an independent list of
+`{rule_id, trigger, keep, label, consumed_on_load:false}` dictionaries. Trigger ids
+use the open `AutosaveTriggerRegistry`: shipped bindings are `battle_start`,
+`battle_end`, `menu_area_exit`, and `shop_exit`, while campaign systems may dispatch
+custom string ids through the same registry. An empty list disables autosave.
+Each rule rotates only `origin:auto` slots carrying its own `rule_id`; manual slots
+and other rules' pools never enter the overwrite candidate set.
+
+Builder warning (non-blocking): **durable mid_map saves require infinite rewind**
+(`rewind_charges_per_map = -1`). A durable battle reload combined with finite
+decision-undo charges would bypass the authored budget. Consumed mid-map slots are
+safe, as are all durable between-map slots because they replay a full battle rather
+than undoing an activation. `check_docs.py` enforces this rule for shipped campaign
+JSON, while `CampaignData.parse` reports it for authored packages.
 
 The design direction already locked in the project docs is:
 

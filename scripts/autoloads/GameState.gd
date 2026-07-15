@@ -390,8 +390,9 @@ func configure_suspend_resume(source: Variant) -> bool:
 	next_map_roster_source = map_path
 	next_map_suspend_payload = payload.duplicate(true)
 	_map_ledger = staged_ledger
-	rewind_charges_left = maxi(0, int(map_runtime.get("rewind_charges_left",
-		campaign_rules.rewind_charges_per_map)))
+	var saved_charges := int(map_runtime.get("rewind_charges_left",
+		campaign_rules.rewind_charges_per_map))
+	rewind_charges_left = -1 if saved_charges < 0 else maxi(0, saved_charges)
 	# A suspend resume rebuilds the board from the serialized live units, so any
 	# staged plan is stale — it described a fresh deployment, not a map in progress.
 	next_map_deployment.clear()
@@ -530,6 +531,18 @@ func capture_save(save_label: String = "", turn_manager: Node = null,
 	return capture_campaign_save(save_label)
 
 
+func get_save_slot_classes() -> Array[Dictionary]:
+	return campaign_rules.save_slot_classes.duplicate(true)
+
+
+func apply_campaign_rule_overrides(overrides: Variant) -> void:
+	if overrides is Dictionary and not overrides.is_empty():
+		var merged := _campaign_rules_to_dict()
+		for key in overrides:
+			merged[key] = overrides[key]
+		_apply_campaign_rules_dict(merged)
+
+
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
 	_capture_campaign_package_identity(save.campaign)
@@ -647,17 +660,21 @@ func peek_history(index: int) -> Dictionary:
 # boundary is always retained. Called after each live push once Phase 3 wires them.
 func prune_history() -> void:
 	var fine_keep := campaign_rules.undo_activations
-	if campaign_rules.rewind_charges_per_map > 0:
+	if campaign_rules.rewind_charges_per_map < 0:
+		fine_keep = MapLedgerScript.BUDGET_INFINITE
+	elif campaign_rules.rewind_charges_per_map > 0:
 		fine_keep = maxi(fine_keep, campaign_rules.rewind_charges_per_map + 1)
 	_map_ledger.prune(fine_keep, campaign_rules.undo_rounds)
 
 
 func begin_map_rewind_budget() -> void:
-	rewind_charges_left = maxi(0, campaign_rules.rewind_charges_per_map)
+	rewind_charges_left = campaign_rules.rewind_charges_per_map \
+		if campaign_rules.rewind_charges_per_map < 0 \
+		else maxi(0, campaign_rules.rewind_charges_per_map)
 
 
 func can_rewind() -> bool:
-	return rewind_charges_left > 0 and _map_ledger.size() > 1
+	return rewind_charges_left != 0 and _map_ledger.size() > 1
 
 
 func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
@@ -680,8 +697,9 @@ func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
 	payload["party"]["resources"]["party_gold"] = int(entry_party.get("gold", 0))
 	payload["party"]["convoy"]["entries"] = _party_item_ids_to_convoy_entries(
 		entry_party.get("items", []))
-	var restored_charges := maxi(0, int(payload["map_runtime"].get(
-		"rewind_charges_left", rewind_charges_left)) - 1)
+	var target_charges := int(payload["map_runtime"].get(
+		"rewind_charges_left", rewind_charges_left))
+	var restored_charges := -1 if target_charges < 0 else maxi(0, target_charges - 1)
 	payload["map_runtime"]["rewind_charges_left"] = restored_charges
 	if not configure_suspend_resume(payload):
 		return false
@@ -936,6 +954,8 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
 		"undo_activations": campaign_rules.undo_activations,
 		"undo_rounds": campaign_rules.undo_rounds,
+		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
+		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
 	}
 
 
@@ -956,6 +976,8 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 		normalized.get("rewind_charges_per_map", 4), 4)
 	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
+	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
+	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
 
 
 func _current_map_path() -> String:
