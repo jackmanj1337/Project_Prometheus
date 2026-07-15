@@ -69,12 +69,12 @@ Last verified: 2026-07-15
 **Scene:** `LoadGameScreen.tscn`
 **Trigger:** "Load Game" from the Main Menu
 Status: **Implemented 2026-07-14** (`B1-CST` Slice 3)
+Last verified: 2026-07-15
 
 A modal overlay child of Main Menu (`open()` / hide, no scene change), listing the
 written slots of either intrinsic kind. It loads, deletes, and transfers existing
-saves; writing fresh manual campaign progress remains a *between-map* action and
-belongs to the prep screen (`B4-PREP-DEPLOYMENT`);
-`CampaignManager.write_campaign_slot` is built and waits for it. Map Menu writes
+saves. Prep writes fresh manual campaign progress as a *between-map* action through
+`CampaignManager.write_campaign_slot` (`B4-PREP-DEPLOYMENT`). Map Menu writes
 the reserved mid-map `resume_battle` slot through the same store.
 
 **Behavior:**
@@ -893,6 +893,7 @@ review 2026-06-14 #1) for resolution-robustness.
 ### Map Results Screen
 
 Status: **Implemented 2026-07-15** (`CST-7`)
+Last verified: 2026-07-15
 
 `MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
 reward/casualty/progression summaries, campaign save status, and Continue. It waits

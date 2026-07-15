@@ -935,6 +935,14 @@ func configure_campaign_resume(source: Variant) -> bool:
 	if restored_items.is_empty() \
 			and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty():
 		return false
+	# Validate the final mutable-rule layer before package activation or campaign
+	# position writes. This is the last independently fallible resume component.
+	var staged_mutable := MutableCampaignStateScript.new()
+	if not staged_mutable.apply_dict(campaign_dict.get("mutable_state", {})) \
+			or not (campaign_dict.get("per_map_overrides", {}) is Dictionary) \
+			or not (campaign_dict.get("active_mid_map_overrides", {}) is Dictionary):
+		push_error("GameState: campaign save mutable state is malformed")
+		return false
 	if not bool(cm.call("restore_campaign_state", campaign_dict)):
 		return false  # CampaignManager already reported which id failed to resolve
 

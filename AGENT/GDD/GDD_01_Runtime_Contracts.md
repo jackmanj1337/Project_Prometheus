@@ -309,6 +309,9 @@ validated manifest, canonical Tier-2 catalogue, and approved `assets/` media.
 It cannot include campaign slots, suspend state, `.godot` caches, or unrelated
 files because those paths never enter the admitted set. The completed archive
 must pass the same hostile preflight used by import before it is returned.
+Preflight rejects an archive whose outer file length exceeds the compressed
+budget before allocating its bytes. Export replacement stages the new artifact
+beside the destination and restores the previous artifact if promotion fails.
 
 `CampaignPackRegistry` scans only `installed/{id}/{version}` directories,
 revalidates each manifest/catalogue and path identity, and caches deterministic
@@ -322,8 +325,8 @@ installer and reports validation errors or optional-media repair counts without
 leaving the screen. Export offers validated installed package identities and
 uses the deterministic exporter, including its mandatory output re-preflight.
 The local picker boundary admits at most 4096 entries, 64 MiB per entry, and
-512 MiB total compressed/uncompressed data; these are allocation safety ceilings,
-not format-version compatibility predicates.
+512 MiB for both the outer archive and total compressed/uncompressed data; these
+are allocation safety ceilings, not format-version compatibility predicates.
 
 Tier-2 activation adapts validated JSON into existing runtime Resource types in
 memory, then atomically replaces the `DataManager` campaign/class/map/roster

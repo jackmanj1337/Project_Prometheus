@@ -19,6 +19,17 @@ if [[ -f scripts/ci/check_rng_usage.sh ]]; then
 	bash scripts/ci/check_rng_usage.sh || exit 1
 fi
 
+# 1c. Keep the fast structural/tooling checks aligned with CI. These run before
+# the docs-only early exit because scene/parser regressions can come from meta files.
+if [[ -f tools/godot-analyzer-mcp/tests/test_tools.py ]]; then
+	echo "pre-commit: running analyzer tool tests..."
+	python3 tools/godot-analyzer-mcp/tests/test_tools.py || exit 1
+fi
+if [[ -f scripts/ci/check_scene_integrity.py ]]; then
+	echo "pre-commit: running scene-integrity check..."
+	python3 scripts/ci/check_scene_integrity.py || exit 1
+fi
+
 # 2. GDScript test suite.
 if [[ "${SKIP_TESTS:-}" == "1" ]]; then
 	echo "pre-commit: SKIP_TESTS=1 set — skipping test suite"

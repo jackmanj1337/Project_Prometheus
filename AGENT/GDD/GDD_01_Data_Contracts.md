@@ -350,6 +350,7 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
+Last verified: 2026-07-15
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -431,6 +432,7 @@ baseline in the protected SHA-256 projection; they never replace that baseline.
 ### CampaignStatusRecord Contract
 
 Status: **Implemented 2026-07-15** (`B6-CAMPAIGN-STATUS`)
+Last verified: 2026-07-15
 
 A status record is portable player state, not a full save and never pack content.
 Its fixed envelope is `format_version`, `record_id`, `author_id`, `campaign_id`,
@@ -446,11 +448,13 @@ absent from automatic results and require the explicit manual import action.
 Checksum/schema failure changes no new-run state. A successful choice writes the
 source identity/checksum to `MutableCampaignState.imported_record_ref`, copies
 facts into its `carry_forward_facts`, and seeds the normal open `campaign.vars`
-store used by conditions/predicates.
+store used by conditions/predicates. Re-export stages the replacement record and
+rolls back to the prior record if filesystem promotion fails.
 
 ### Campaign Tier-1 Asset References
 
 Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15).
+Last verified: 2026-07-15
 
 `WeaponData.icon` and `ItemData.icon` are optional string ids/pack-relative paths,
 not `Texture2D` fields. `AssetResolver` resolves those references inside a selected
@@ -470,6 +474,7 @@ belong to the package catalogue/validator/installer and `DataManager` seams.
 Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15); manifest/catalogue,
 archive pipeline, discovery, Tier-2 runtime adaptation, explicit campaign
 selection, and player-facing package import/export are shipped.
+Last verified: 2026-07-15
 
 `PackManifest` parses the package identity document at `manifest.json`. Its
 required fields are `id`, `version`, `builder_content_version`, and integer
@@ -521,6 +526,7 @@ a complete replacement set before `DataManager` swaps live registries.
 ### CampaignManager Contract
 
 Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14; persistence added in Slice 3, 2026-07-14).
+Last verified: 2026-07-15
 
 `CampaignData` is the graph; the `CampaignManager` autoload is what **walks** it.
 It holds the campaign RUNTIME position and owns the prep -> map ->
@@ -627,6 +633,7 @@ map id is a loud error, never a fallback launch.
 Status: **Implemented 2026-07-15** — the plan seam, validator, PrepScreen author,
 campaign routing, and manual-save surface are built (`B4-PREP-DEPLOYMENT`
 Slices 1-3).
+Last verified: 2026-07-15
 
 The deployment plan is the player's answer to "who fights this map, and where do
 they stand". It replaces an **inference** with a **choice**: before this slice,

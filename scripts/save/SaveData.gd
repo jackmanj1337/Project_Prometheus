@@ -103,6 +103,33 @@ func validate(data_manager: Object = null) -> Array[String]:
 		campaign.get("rules", {}).get("autosave_rules", []),
 		SaveCodec.as_int(campaign.get("rules", {}).get("rewind_charges_per_map", 4), 4)))
 	errors.append_array(_validate_inventory_refs(data_manager))
+	errors.append_array(_validate_mutable_campaign_state())
+	return errors
+
+
+func _validate_mutable_campaign_state() -> Array[String]:
+	var errors: Array[String] = []
+	var state: Variant = campaign.get("mutable_state", {})
+	if not (state is Dictionary):
+		errors.append("SaveData: campaign.mutable_state must be an object")
+		return errors
+	var patches: Variant = state.get("rule_patches", [])
+	if not (patches is Array):
+		errors.append("SaveData: campaign.mutable_state.rule_patches must be an array")
+	else:
+		for index in patches.size():
+			if not (patches[index] is Dictionary) \
+					or String(patches[index].get("rule_id", "")).is_empty():
+				errors.append("SaveData: campaign.mutable_state.rule_patches[%d] is malformed" % index)
+	var facts: Variant = state.get("carry_forward_facts", {})
+	if not (facts is Dictionary):
+		errors.append("SaveData: campaign.mutable_state.carry_forward_facts must be an object")
+	else:
+		for fact_id in facts:
+			if not (fact_id is String) or String(fact_id).is_empty():
+				errors.append("SaveData: campaign mutable facts contain an invalid id")
+	if not (state.get("imported_record_ref", {}) is Dictionary):
+		errors.append("SaveData: campaign.mutable_state.imported_record_ref must be an object")
 	return errors
 
 

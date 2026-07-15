@@ -78,18 +78,19 @@ sequenced slices are in
 What the spine deliberately did **not** own, and where it went: manual-save
 and prep/deployment landed under `B4-PREP-DEPLOYMENT`; package-aware selection,
 map-registry one-node auto-wrap, and last-started/imported preference landed under
-`B6-CAMPAIGN-SHARING`. Branch-node choice and a dedicated `MapResultsScreen`
-remain the campaign-presentation gaps.
-A returned v0.4.0 playtest preempts follow-on work here.
+`B6-CAMPAIGN-SHARING`. Explicit branch-node choice, the dedicated
+`MapResultsScreen`, and the full defeat recovery menu are also Implemented.
+Live Windows validation of these new surfaces remains a release qualifier.
 
-`B6-CAMPAIGN-SHARING` has now started with isolated package prerequisites:
+`B6-CAMPAIGN-SHARING` is Implemented from its isolated package prerequisites
+through player-facing transfer:
 `AssetResolver` provides pack-scoped raw-media loader primitives behind open
 asset-group/id/fallback registrations, including repair reporting and path
 containment. `PackManifest` and the canonical Tier-2 catalogue parser now
 validate package compatibility, safe unique Tier-2 document identities/paths,
 and registry-dispatched content-family schemas without installing or selecting
 anything. The first concrete validator set now proves a complete campaign/map/
-roster/class fixture and all cross-document ids. The package remains incomplete:
+roster/class fixture and all cross-document ids. The package pipeline includes
 pure ZIP preflight now verifies the actual format and central-directory metadata,
 normalizes the one-root package namespace, rejects collisions/unsafe paths/
 symlinks/special files, applies caller-supplied entry and byte limits, validates
@@ -119,7 +120,7 @@ remain separate builder work.
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; nodes bind by `map_id` until `B4-ENCOUNTER-MODEL` splits map/encounter. |
 | 2 | `B1-CST` Slice 2 | **Implemented 2026-07-15:** `CampaignManager` walks the graph; `MapResultsScreen` owns victory/Continue and explicit branch choice; `GameOverScreen` owns defeat with Retry, most-recent/any save load, Rewind, and Main Menu. Handoff: [`b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](../Docs/plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md). | A win records before validated choice/preparation/commit/autosave. Defeat recovery reuses the unified slot discriminator and deterministic ledger rewind. Shared standings formatting preserves the future PvP/scenario seam. |
-| 3 | `B1-CST` Slice 3 | **Implemented 2026-07-15:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper warnings. Suspend is available at idle committed-action boundaries for every locally controlled faction and resumes non-blue hotseat control through the same controller driver. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore validates mutable shapes and item references before applying; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer stage and replace as one rollback-capable transaction. Portable import hard-rejects only parse/schema/version failure; whole/protected hash mismatches warn and require acknowledgement. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
+| 3 | `B1-CST` Slice 3 | **Implemented 2026-07-15:** the campaign envelope and between-map save round-trip position, flags/vars, rules, roster, gold, and party-item convoy compatibility; `SaveManager` owns transactional campaign slots and the **Load Game slot picker**. Terminal autosaves are retained as completion records but excluded from Continue. Successor map/roster preparation now precedes result commit. Portable save transfer exports one integrity-stamped JSON and imports through ZIP/JSON sniffing plus acknowledged tamper warnings. Suspend is available at idle committed-action boundaries for every locally controlled faction and resumes non-blue hotseat control through the same controller driver. Surface contract: [GDD_07 — Screens And Panels](GDD_07_Screens_Panels.md) §Load Game Screen. | Restore stages mutable state and validates item references before package/campaign mutation; duplicate items carry and explicit empty fields clear stale state. Slot + index row + Continue pointer and portable artifact replacement use rollback-capable staged promotion. Portable import rejects artifacts above 64 MiB before buffering and hard-rejects parse/schema/version failure; whole/protected hash mismatches warn and require acknowledgement. The pending result is deliberately NOT persisted and remains retryable when successor validation fails. **The manual-save surface is reassigned to `B4-PREP-DEPLOYMENT`** (2026-07-14). |
 
 ### B6 mutable campaign rule state
 
@@ -137,7 +138,8 @@ Status: **Implemented 2026-07-15** for `B6-CAMPAIGN-STATUS` Slice 4.
 Completed runs export compact checksummed status records. New Game supports
 same-campaign/declared-sequel scan, None, and explicit manual foreign import;
 facts and source identity enter the shared mutable store and campaign-variable
-path. Corrupt/incompatible automatic imports are inert.
+path. Corrupt/incompatible automatic imports are inert. Replacement export uses
+staged promotion with rollback so a failed finalize preserves the prior record.
 
 ### B1-LEDGER unified persistence & undo
 

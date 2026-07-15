@@ -73,6 +73,19 @@ func _init() -> void:
 			and cm.campaign_flags == ["live_flag"],
 		"malformed mutable state fails without partial apply")
 
+	var malformed_patch: Dictionary = save.to_dict()
+	malformed_patch["campaign"]["mutable_state"]["rule_patches"] = [{"reason": "missing id"}]
+	cm.active_campaign_id = "proving_grounds"
+	cm.current_node_id = "node_01_rout"
+	cm.campaign_flags = ["unchanged"] as Array[String]
+	gs.party_gold = 888
+	_check(not gs.configure_campaign_resume(malformed_patch)
+			and cm.active_campaign_id == "proving_grounds"
+			and cm.current_node_id == "node_01_rout"
+			and cm.campaign_flags == ["unchanged"]
+			and gs.party_gold == 888,
+		"late mutable-patch rejection occurs before campaign state changes")
+
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 

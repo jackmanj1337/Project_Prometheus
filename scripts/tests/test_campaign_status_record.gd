@@ -28,6 +28,13 @@ func _init() -> void:
 		{"maps_completed": 5}, "record_fixed")
 	_check(not exported.is_empty() and FileAccess.file_exists(exported.get("path", "")),
 		"a completed run exports a compact checksummed record")
+	var first_record := FileAccess.get_file_as_string(exported["path"])
+	var replaced: Dictionary = store.export_completion(source, state,
+		{"completed": true, "ending_id": "ending_a"},
+		{"maps_completed": 5}, "record_fixed")
+	_check(not replaced.is_empty() and FileAccess.get_file_as_string(exported["path"]) == first_record \
+			and not FileAccess.file_exists(exported["path"] + ".bak"),
+		"status export replaces an existing record through staged promotion")
 
 	var same_campaign: Array[Dictionary] = store.scan_compatible(source)
 	var sequel := {

@@ -66,19 +66,30 @@ func export_zip(pack_root: String, archive_path: String,
 		result.errors.append_array(result.preflight.errors)
 		DirAccess.remove_absolute(temporary)
 		return result
-	if FileAccess.file_exists(archive_path):
-		var remove_error := DirAccess.remove_absolute(archive_path)
-		if remove_error != OK:
-			result.errors.append("Cannot replace export destination: %s" % error_string(remove_error))
-			DirAccess.remove_absolute(temporary)
-			return result
-	var rename_error := DirAccess.rename_absolute(temporary, archive_path)
-	if rename_error != OK:
-		result.errors.append("Cannot finalize campaign-pack export: %s" % error_string(rename_error))
-		DirAccess.remove_absolute(temporary)
+	if not _promote_with_rollback(temporary, archive_path, result.errors):
 		return result
 	result.exported = true
 	return result
+
+
+static func _promote_with_rollback(temporary: String, destination: String,
+		errors: Array[String]) -> bool:
+	var backup := destination + ".bak"
+	DirAccess.remove_absolute(backup)
+	if FileAccess.file_exists(destination) \
+			and DirAccess.rename_absolute(destination, backup) != OK:
+		errors.append("Cannot stage the previous export destination")
+		DirAccess.remove_absolute(temporary)
+		return false
+	var rename_error := DirAccess.rename_absolute(temporary, destination)
+	if rename_error == OK:
+		DirAccess.remove_absolute(backup)
+		return true
+	if FileAccess.file_exists(backup):
+		DirAccess.rename_absolute(backup, destination)
+	errors.append("Cannot finalize campaign-pack export: %s" % error_string(rename_error))
+	DirAccess.remove_absolute(temporary)
+	return false
 
 
 func _write_archive(root: String, package_id: String, admitted: Array[String],

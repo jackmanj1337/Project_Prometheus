@@ -55,7 +55,7 @@ func has_entry(family: String, id: String) -> bool:
 	return _catalog != null and _catalog.has_entry(family, id)
 
 
-func entry(family: String, id: String):
+func entry(family: String, id: String) -> Resource:
 	if _catalog == null:
 		return null
 	return _catalog.entry(family, id)

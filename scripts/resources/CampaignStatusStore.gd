@@ -42,13 +42,25 @@ func export_completion(target: Dictionary, mutable_state: MutableCampaignState,
 		return {}
 	file.store_string(JSON.stringify(record.to_dict(), "  ", false) + "\n")
 	file.close()
-	if FileAccess.file_exists(path):
-		DirAccess.remove_absolute(path)
-	if DirAccess.rename_absolute(temp, path) != OK:
-		DirAccess.remove_absolute(temp)
+	if not _promote_with_rollback(temp, path):
 		last_errors.append("Could not finalize campaign status record")
 		return {}
 	return {"path": path, "record": record.to_dict()}
+
+
+static func _promote_with_rollback(temp: String, path: String) -> bool:
+	var backup := path + ".bak"
+	DirAccess.remove_absolute(backup)
+	if FileAccess.file_exists(path) and DirAccess.rename_absolute(path, backup) != OK:
+		DirAccess.remove_absolute(temp)
+		return false
+	if DirAccess.rename_absolute(temp, path) == OK:
+		DirAccess.remove_absolute(backup)
+		return true
+	if FileAccess.file_exists(backup):
+		DirAccess.rename_absolute(backup, path)
+	DirAccess.remove_absolute(temp)
+	return false
 
 
 func scan_compatible(target: Dictionary) -> Array[Dictionary]:

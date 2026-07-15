@@ -41,7 +41,13 @@ static func inspect_zip(archive_path: String, limits: Limits) -> Result:
 	if file == null:
 		result.errors.append("Cannot open archive '%s'" % archive_path)
 		return result
-	var bytes := file.get_buffer(file.get_length())
+	var archive_size := file.get_length()
+	# Enforce the outer artifact budget before buffering any attacker-controlled
+	# bytes. Entry limits cannot protect memory if the whole ZIP is allocated first.
+	if archive_size > limits.max_total_compressed:
+		result.errors.append("Archive file exceeds compressed size limit")
+		return result
+	var bytes := file.get_buffer(archive_size)
 	if bytes.size() < 4 or bytes.decode_u32(0) != 0x04034b50:
 		result.errors.append("Artifact is not a ZIP archive (local header signature missing)")
 		return result

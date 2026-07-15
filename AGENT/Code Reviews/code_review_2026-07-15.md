@@ -1,9 +1,9 @@
 # Pillar 1 — Code Review (2026-07-15)
 
-Procedure: `AGENT/Review Procedures/01_Code_Pillar.md`  
-Previous substantive review: `AGENT/Code Reviews/code_review_v0.3.0_release_delta_2026-07-07.md`  
-Snapshot: `agent/codex/2026-07-15/prep-save-followup` at `08b3b5c2aa5dfb1e773a87d07890b9c7629ef1b3`  
-Scope: all 122 non-test `scripts/**/*.gd` files, with a line-by-line risk pass over the 94 files changed since the prior review snapshot `b7bcfd2ec6738e857faced0f92abb76bf4b2b3d8`  
+Procedure: `AGENT/Review Procedures/01_Code_Pillar.md`
+Previous substantive review: `AGENT/Code Reviews/code_review_v0.3.0_release_delta_2026-07-07.md`
+Snapshot: `agent/codex/2026-07-15/prep-save-followup` at `08b3b5c2aa5dfb1e773a87d07890b9c7629ef1b3`
+Scope: all 122 non-test `scripts/**/*.gd` files, with a line-by-line risk pass over the 94 files changed since the prior review snapshot `b7bcfd2ec6738e857faced0f92abb76bf4b2b3d8`
 Baseline supplied by the full-audit orchestrator: `check_docs.py` 35/35 PASS; `bash run_tests.sh` 98 suites PASS; RNG usage guard PASS; Godot 4.6.3, Python 3.12.13, pytest 9.1.1, gh 2.96; gdlint/gdformat unavailable.
 
 **Score:** 6/10

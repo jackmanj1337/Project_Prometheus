@@ -169,5 +169,16 @@ func _init() -> void:
 		print("FAIL version guard: %s" % [version_errors])
 		failed += 1
 
+	var bad_mutable: RefCounted = SaveDataScript.from_dict({
+		"campaign": {"mutable_state": {"rule_patches": [{"reason": "no id"}]}},
+	})
+	var mutable_errors: Array[String] = bad_mutable.validate()
+	if mutable_errors.any(func(error): return "rule_patches[0] is malformed" in error):
+		print("OK  malformed mutable campaign patches fail save validation")
+		passed += 1
+	else:
+		print("FAIL mutable-state validation: %s" % [mutable_errors])
+		failed += 1
+
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

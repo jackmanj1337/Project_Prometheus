@@ -14,6 +14,7 @@ const INDEX_FILENAME := "saves_index.json"
 const LAST_PLAYED_SLOT := "slot"
 
 const MID_MAP_SLOT := "resume_battle"
+const MAX_PORTABLE_SAVE_BYTES := 64 * 1024 * 1024
 
 var save_dir: String = DEFAULT_SAVE_DIR
 
@@ -198,7 +199,11 @@ func inspect_portable_save(source_path: String) -> Dictionary:
 	if file == null:
 		result["errors"].append("The selected file could not be opened.")
 		return result
-	var bytes := file.get_buffer(file.get_length())
+	var source_size := file.get_length()
+	if source_size > MAX_PORTABLE_SAVE_BYTES:
+		result["errors"].append("The selected save exceeds the portable-save size limit.")
+		return result
+	var bytes := file.get_buffer(source_size)
 	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
 		result["artifact_kind"] = "campaign_pack"
 		result["errors"].append("This ZIP is a campaign package. Import it from New Game > Manage Campaigns.")
@@ -491,13 +496,30 @@ func _write_json_file(path: String, value: Dictionary) -> bool:
 
 
 func _write_json_absolute(path: String, value: Dictionary) -> bool:
-	var file := FileAccess.open(path, FileAccess.WRITE)
+	var temporary := "%s.tmp-%d-%d" % [path, Time.get_ticks_usec(), OS.get_process_id()]
+	var file := FileAccess.open(temporary, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify(value, "\t", true))
 	file.flush()
 	file.close()
-	return true
+	return _promote_absolute_file(temporary, path)
+
+
+func _promote_absolute_file(temporary: String, destination: String) -> bool:
+	var backup := "%s.bak" % destination
+	DirAccess.remove_absolute(backup)
+	if FileAccess.file_exists(destination) \
+			and DirAccess.rename_absolute(destination, backup) != OK:
+		DirAccess.remove_absolute(temporary)
+		return false
+	if DirAccess.rename_absolute(temporary, destination) == OK:
+		DirAccess.remove_absolute(backup)
+		return true
+	if FileAccess.file_exists(backup):
+		DirAccess.rename_absolute(backup, destination)
+	DirAccess.remove_absolute(temporary)
+	return false
 
 
 func _replace_staged(staged_path: String, destination_path: String, backup_path: String) -> bool:

@@ -228,6 +228,11 @@ func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
 	_check(exported["ok"] and String(parsed.get("integrity", {}).get("payload_hash", "")) != "" \
 			and String(parsed.get("integrity", {}).get("schema_hash", "")) != "",
 		"portable export writes one JSON document with both integrity hashes")
+	var first_export := FileAccess.get_file_as_string(portable)
+	var replacement: Dictionary = manager.export_slot("autosave", portable)
+	_check(replacement["ok"] and FileAccess.get_file_as_string(portable) == first_export \
+			and not FileAccess.file_exists(portable + ".bak"),
+		"portable export replaces an existing artifact through staged promotion")
 
 	var clean: Dictionary = manager.inspect_portable_save(portable)
 	_check(clean["ok"] and clean["warnings"].is_empty(),
@@ -251,6 +256,16 @@ func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
 	var sniffed: Dictionary = manager.inspect_portable_save(zip_path)
 	_check(not sniffed["ok"] and sniffed["artifact_kind"] == "campaign_pack",
 		"portable importer sniffs ZIP and routes campaign packages to Manage Campaigns")
+
+	var oversized := TEST_SAVE_DIR.path_join("oversized.json")
+	var oversized_file := FileAccess.open(oversized, FileAccess.WRITE)
+	oversized_file.seek(SaveManagerScript.MAX_PORTABLE_SAVE_BYTES)
+	oversized_file.store_8(0)
+	oversized_file.close()
+	var oversized_result: Dictionary = manager.inspect_portable_save(oversized)
+	_check(not oversized_result["ok"] and oversized_result["errors"].any(
+		func(error): return "size limit" in String(error)),
+		"portable importer rejects oversized artifacts before buffering")
 	manager.delete_slot("imported_01")
 
 

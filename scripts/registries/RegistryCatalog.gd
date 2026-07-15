@@ -69,7 +69,7 @@ func has_entry(family: String, id: String) -> bool:
 	return _entries.has(family) and (_entries[family] as Dictionary).has(id)
 
 
-func entry(family: String, id: String):
+func entry(family: String, id: String) -> Resource:
 	if not has_entry(family, id):
 		return null
 	return (_entries[family] as Dictionary)[id]

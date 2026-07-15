@@ -11,7 +11,7 @@ func _init(registry: Node = null) -> void:
 	_handlers["apply_active_modifier"] = _commit_active_modifier
 
 
-func validate(request: RefCounted, context: RefCounted):
+func validate(request: RefCounted, context: RefCounted) -> ActionResult:
 	if request == null or request.primitive_id.strip_edges() == "":
 		return ActionResultScript.failure("invalid_request", "Action primitive id is required.")
 	if context == null:
@@ -48,7 +48,7 @@ func validate(request: RefCounted, context: RefCounted):
 	return ActionResultScript.success()
 
 
-func commit(request: RefCounted, context: RefCounted):
+func commit(request: RefCounted, context: RefCounted) -> ActionResult:
 	var validation: Variant = validate(request, context)
 	if not validation.ok or context.dry_run:
 		return validation
@@ -63,7 +63,7 @@ func handler_id_for(primitive_id: String) -> String:
 	return String(_registry.entry("action_primitives", primitive_id).primitive_handler)
 
 
-func _commit_active_modifier(params: Dictionary, context: RefCounted, entry: Resource):
+func _commit_active_modifier(params: Dictionary, context: RefCounted, entry: Resource) -> ActionResult:
 	var target: Node = context.subjects["target"]
 	target.add_modifier(String(params.get("stat", "")), int(params.get("delta", 0)),
 		String(params.get("source", "")), int(params.get("duration", 0)),

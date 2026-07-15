@@ -27,6 +27,13 @@ func _init() -> void:
 	else:
 		print("FAIL actual ZIP: %s" % [zip_result.errors]); failed += 1
 
+	var outer_limit = Preflight.Limits.new(32, 200000, 200000, 8, 500000)
+	var outer_result = Preflight.inspect_zip(zip_path, outer_limit)
+	if not outer_result.valid and _has(outer_result.errors, "Archive file exceeds"):
+		print("OK  outer archive budget is enforced before ZIP buffering"); passed += 1
+	else:
+		print("FAIL outer archive budget: %s" % [outer_result.errors]); failed += 1
+
 	var unsafe := entries.duplicate(true)
 	unsafe.append(_entry("%s/data/../../escape.json" % ROOT, 2))
 	unsafe.append(_entry("C:/absolute.json", 2))
