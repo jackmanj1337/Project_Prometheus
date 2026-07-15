@@ -186,6 +186,14 @@ var _snapshot_pair_up_registry: Dictionary = {}
 # the autoload is absent (headless suites that stub the tree).
 var _snapshot_rng: Dictionary = {}
 
+# B1-LEDGER Phase 1: the within-map history — a stack of SUSPEND-COMPLETE entries
+# (all factions' units + turn state + cursor + RNG timeline + Pair Up), the same
+# board format a suspend save carries. Phase 1 records only the round-0 entry as
+# the foundation the later phases read; Phase 2 grows this into the two-tier
+# decaying ledger and re-expresses Retry as restore_history(0). Map-scoped:
+# cleared in reset_map_state and re-seeded by the round-0 push in take_map_snapshot.
+var _map_history: Array[Dictionary] = []
+
 
 func register_unit(unit: Node) -> void:
 	if unit in all_units:
@@ -322,6 +330,9 @@ func reset_map_state() -> void:
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
+	# B1-LEDGER: the within-map history is map-scoped — drop it between maps so a
+	# new map starts with a fresh ledger (take_map_snapshot re-seeds the round-0 entry).
+	_map_history.clear()
 	# Pair Up state is map-scoped; drop pairings between maps so a new map
 	# starts unpaired regardless of how the previous one ended.
 	var reg := get_node_or_null("/root/PairUpRegistry")
@@ -480,24 +491,70 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 		if unit_data != null:
 			save.roster["units"].append(unit_data_to_runtime_dict(unit_data, "blue"))
 
-	save.map_runtime["map_id"] = map_data.id if map_data != null else ""
-	save.map_runtime["map_path"] = _current_map_path()
-	save.map_runtime["units"] = _runtime_units_to_array()
-	save.map_runtime["turn"] = turn_manager.call("capture_suspend_turn_state") \
-		if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state") else {}
-	var reg := get_node_or_null("/root/PairUpRegistry")
-	save.map_runtime["pair_carry"] = {"pair_up": reg.call("serialize") if reg else {}}
-	var rng_svc := get_node_or_null("/root/RngService")
-	save.map_runtime["rng"] = rng_svc.call("to_save_dict") if rng_svc else {}
+	# The map board itself comes from the shared ledger codec, so a suspend save
+	# and a history entry serialize the live board identically. Merge its keys onto
+	# the SaveData section defaults (rather than replacing the dicts) so every
+	# default key SaveData seeds — vars/flags/objects/... — survives; the codec sets
+	# exactly the keys the old inline block set, so the document is byte-identical.
+	var entry: Dictionary = _capture_map_runtime_entry(turn_manager, cursor)
+	for key in entry["map_runtime"]:
+		save.map_runtime[key] = entry["map_runtime"][key]
+	for key in entry["suspend"]:
+		save.suspend[key] = entry["suspend"][key]
+	return SaveDataScript.from_dict(save.to_dict())
 
+
+# B1-LEDGER Phase 1: the reusable SUSPEND-COMPLETE board serializer. Returns the
+# two save-document sub-blocks that describe a live map at one instant — the map
+# runtime (all factions' units, turn state, Pair Up carry, RNG timeline) and the
+# suspend UI block (cursor + threat views). capture_suspend_save composes this with
+# the campaign/party/roster layers; the ledger stores it verbatim as one history
+# entry, so a mid-map rewind and a suspend save read the SAME board format.
+# turn_manager/cursor are optional: at the round-0 push they are not yet
+# started/placed, so their fields fall back to defaults (a scene reload
+# regenerates turn state and cursor for Retry anyway).
+func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	var rng_svc := get_node_or_null("/root/RngService")
+	var map_runtime: Dictionary = {
+		"map_id": map_data.id if map_data != null else "",
+		"map_path": _current_map_path(),
+		"units": _runtime_units_to_array(),
+		"turn": turn_manager.call("capture_suspend_turn_state") \
+			if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state") else {},
+		"pair_carry": {"pair_up": reg.call("serialize") if reg else {}},
+		"rng": rng_svc.call("to_save_dict") if rng_svc else {},
+	}
 	var suspend_ui: Dictionary = cursor.call("capture_suspend_ui_state") \
 		if cursor != null and cursor.has_method("capture_suspend_ui_state") else {}
-	save.suspend["kind"] = "map"
-	save.suspend["cursor_tile"] = suspend_ui.get("cursor_tile", null)
-	save.suspend["mode"] = suspend_ui.get("mode", "free")
-	save.suspend["threat_views_version"] = suspend_ui.get("threat_views_version", 1)
-	save.suspend["threat_views_by_faction"] = suspend_ui.get("threat_views_by_faction", {})
-	return SaveDataScript.from_dict(save.to_dict())
+	var suspend: Dictionary = {
+		"kind": "map",
+		"cursor_tile": suspend_ui.get("cursor_tile", null),
+		"mode": suspend_ui.get("mode", "free"),
+		"threat_views_version": suspend_ui.get("threat_views_version", 1),
+		"threat_views_by_faction": suspend_ui.get("threat_views_by_faction", {}),
+	}
+	return {"map_runtime": map_runtime, "suspend": suspend}
+
+
+# B1-LEDGER Phase 1: append one SUSPEND-COMPLETE entry to the within-map history.
+# turn_manager/cursor are optional (absent at the round-0 push). Phase 2 adds the
+# two-tier decaying prune; for now the history simply accumulates entries.
+func push_history(turn_manager: Node = null, cursor: Node = null) -> void:
+	_map_history.append(_capture_map_runtime_entry(turn_manager, cursor))
+
+
+func history_size() -> int:
+	return _map_history.size()
+
+
+# Returns a deep copy of the history entry at index (0 = the round-0 boundary), or
+# {} if out of range, so a caller — a test, the Phase 1 measurement, or Phase 2's
+# restore_history — reads an entry without mutating the stored ledger.
+func peek_history(index: int) -> Dictionary:
+	if index < 0 or index >= _map_history.size():
+		return {}
+	return _map_history[index].duplicate(true)
 
 
 # The BETWEEN-map campaign save (B1-CST Slice 3): the party parked on a campaign
@@ -747,6 +804,14 @@ func take_map_snapshot() -> void:
 	# Retry restores the dice chain, not just unit/party data.
 	var rng_svc := get_node_or_null("/root/RngService")
 	_snapshot_rng = rng_svc.call("to_save_dict") if rng_svc else {}
+	# B1-LEDGER Phase 1: also seed the within-map history with the round-0
+	# SUSPEND-COMPLETE entry (all factions, not just the player party). This is the
+	# foundation Phase 2's rewind/Retry-on-ledger reads; the party-only fields above
+	# stay the live Retry restore path until Phase 2 re-expresses Retry on the ledger.
+	# No turn_manager/cursor here — at map start turn state is not yet started and the
+	# cursor not yet placed, and a Retry scene reload regenerates both.
+	_map_history.clear()
+	push_history()
 
 
 # Restores player_roster UnitData from snapshot, then reloads the current scene.

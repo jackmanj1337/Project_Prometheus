@@ -82,9 +82,12 @@ snapshot, the I/O-free `SaveData` envelope, the active-map suspend
 serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
 B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit, Main Menu
-Continue/delete lifecycle); object/AI future fields, the generalized §8.1 snapshot
-dict, and rewind are **Target design**
-Last verified: 2026-07-06
+Continue/delete lifecycle); the §8.1 snapshot generalization began 2026-07-15
+(B1-LEDGER Phase 1: suspend saves and the within-map history now share one
+suspend-complete board serializer, and the round-0 history entry is recorded);
+object/AI future fields, the two-tier decaying ledger + Retry-on-ledger, and
+rewind are **Target design**
+Last verified: 2026-07-15
 
 ### Summary
 All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
@@ -133,6 +136,18 @@ plan (code, integration sweep, tests, build order) is
   unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,
   and the top-level `SaveData` envelope now defines the I/O-free document seam
   with locked-section defaults (2026-07-06, `B1-SAVECODEC` Slices 4-5).
+  **B1-LEDGER Phase 1 (2026-07-15) began the generalization:**
+  `GameState._capture_map_runtime_entry()` is the one suspend-complete board
+  serializer — all factions' unit runtime dicts, turn/scheduler state, PairUp
+  carry, RNG timeline, and the cursor/threat-view block — and BOTH
+  `capture_suspend_save()` (composing it with the campaign/party/roster layers)
+  and the within-map history (`push_history` / `peek_history`) read it, so a
+  suspend save and a ledger entry serialize the live board identically.
+  `take_map_snapshot()` now also seeds the round-0 history entry (checkpoint 0).
+  The Retry restore path still reads the party-only snapshot until Phase 2
+  re-expresses Retry as `restore_history(0)` on the two-tier ledger. Measured
+  size of one entry: ~2 KB/unit (a 14-unit board ≈ 28 KB binary / 16 KB JSON),
+  so the ledger tiers are not memory-bound at realistic depths.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,
   unsuppressed local control: map id/path, live unit runtime dictionaries for all

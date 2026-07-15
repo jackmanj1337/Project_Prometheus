@@ -50,6 +50,10 @@ anchors, a scrap list, and a Definition-of-Done.
 
 ## Phase 0 — Housekeeping (do first, tiny)
 
+**Status: Implemented 2026-07-15** (commit `80733a9`). The `B1-LEDGER` row exists
+in the control plane and directly links this plan + the handoff, so their
+role-manifest ownership entries were dropped as redundant.
+
 1. **Add the Control Plane tracker row.** There is currently no dedicated
    persistence/undo row in
    [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md) —
@@ -62,33 +66,43 @@ anchors, a scrap list, and a Definition-of-Done.
 
 ## Phase 1 — Generalize the snapshot to suspend-completeness (foundation)
 
-Everything downstream reads this. **Goal:** one serializer produces a
-SUSPEND-complete entry (all factions' units + turn state + cursor + RNG timeline
-+ Pair Up), and the map-start capture uses it instead of the party-only one.
+**Status: Implemented 2026-07-15.** Everything downstream reads this. **Goal:**
+one serializer produces a SUSPEND-complete entry (all factions' units + turn
+state + cursor + RNG timeline + Pair Up), and the map records it as the round-0
+history entry.
 
-- **Build:** factor the `map_runtime` block of `capture_suspend_save`
-  (`GameState.gd:474-500`) into a reusable **ledger entry codec** — a dict with
-  all factions (`_runtime_units_to_array`), `turn`, `pair_carry`, `rng`, and the
-  suspend UI block. `capture_suspend_save` then composes {campaign + party +
-  roster + entry-codec} so suspend and the ledger share one board serializer.
-- **Generalize** `take_map_snapshot` → `push_history()` that pushes an
-  entry-codec result. The `GameMap.gd:130` call becomes the round-0 push.
-- **Do NOT scrap Retry yet** — keep `restore_map_snapshot` working against the
-  new richer entry (it still only *needs* to restore the player party for the
-  round-0 case, but must not choke on the extra factions). Retry's re-expression
-  is Phase 2; this keeps Phase 1 shippable on its own.
-- **Exit measurement (gates Phase 3):** serialize one entry-codec on a populated
-  board and log its byte size (`var_to_bytes` / JSON length). Record the number in
-  the session note. This is the "measure one serialized board snapshot before
-  committing to rewind budgets" gate from the handoff — if a full board is heavy,
-  Phase 3's budgets stay small / Phase 3 defers.
-- **Tests:** extend `test_rng_snapshot.gd` and `test_pair_up_registry.gd`
-  (they already exercise `take_map_snapshot`/`restore_map_snapshot`); add a test
-  asserting the entry codec round-trips **enemy** HP/position and turn state, not
-  just the player party — the gap the party-only snapshot has today.
-- **DoD:** `GDD_01_Data_Contracts.md` (the snapshot/entry contract) updated;
-  `GDD_10_Roadmap.md` `B1-LEDGER` row flipped to reflect Phase 1; `check_docs.py`
-  + `gen_docs_index.py` clean.
+- **Built:** `GameState._capture_map_runtime_entry(turn_manager, cursor)` is the
+  reusable codec (returns the `map_runtime` + `suspend` sub-blocks: all factions
+  via `_runtime_units_to_array`, `turn`, `pair_carry`, `rng`, cursor/threat
+  block). `capture_suspend_save` composes {campaign + party + roster} then MERGES
+  the codec's keys onto the SaveData section defaults — byte-identical to the old
+  inline block, so suspend/Retry behavior is unchanged.
+- **Built:** the within-map history — `_map_history: Array[Dictionary]` with
+  `push_history(turn_manager=null, cursor=null)`, `history_size()`, and
+  `peek_history(index)` (deep-copy read). `take_map_snapshot()` now also clears
+  and seeds the round-0 entry via `push_history()`; `reset_map_state()` clears the
+  history (map-scoped). The `GameMap.gd` round-0 call site is unchanged (no-arg).
+- **Retry unchanged this phase (revised from the original plan wording):**
+  `restore_map_snapshot` still reads the party-only `_map_start_snapshot` +
+  economy fields. It was deliberately NOT rewired to read the history entry,
+  because the entry carries all factions but NOT party gold/items (those live in
+  the `party` layer) — deciding where party economy sits in a ledger entry is
+  Phase 2 ledger-shape work, and rewiring restore now would risk the gold-rollback
+  Retry already gets. So Phase 1 is purely additive: the entry is written, proven,
+  and measured, but not yet the restore source.
+- **Exit measurement (gated Phase 3):** `test_ledger_entry.gd` logs it — one
+  suspend-complete entry on a 14-unit board = **~28 KB binary / ~16 KB JSON
+  (~2 KB/unit)**. Cheap: a 20-deep fine tier ≈ 560 KB, so **Rewind is NOT
+  memory-bound** and Phase 3 is clear to build (not deferred on hardware grounds).
+- **Tests:** new `test_ledger_entry.gd` (real-board harness) asserts the entry
+  round-trips **enemy** HP/board-position/faction and turn state through JSON, and
+  that `take_map_snapshot` seeds exactly one round-0 entry carrying all factions.
+  `test_suspend_map_runtime` / `test_rng_snapshot` / `test_pair_up_registry` /
+  `test_snapshot_coverage` stay green (the refactor is behavior-preserving).
+- **DoD done:** `GDD_01_Runtime_Contracts.md` §Determinism, Snapshot & Online
+  updated (the shared codec + history foundation; §8.1 was the right home, not
+  Data_Contracts); `GDD_10_Roadmap.md` gained the `B1-LEDGER` phase table;
+  `check_docs.py` + full Godot suite green.
 
 ## Phase 2 — The decaying ledger + Retry-on-ledger (the scrap moment)
 
