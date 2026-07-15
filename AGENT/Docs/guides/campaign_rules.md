@@ -44,6 +44,8 @@ The live campaign-rule fields are:
 - `exp_gaining_factions: Array[String]`
 - `hit_formula: String`
 - `rewind_charges_per_map: int`
+- `undo_activations: int`
+- `undo_rounds: int`
 
 The current launch-routing fields that travel with New Game setup are:
 
@@ -90,7 +92,20 @@ or promotion behavior changes.
 
 This is a campaign rule, not a per-map gimmick flag.
 
-## Rules that are campaign-level by design
+### `undo_activations` / `undo_rounds` (B1-LEDGER within-map ledger)
+
+Retention budgets for the within-map decaying ledger (`scripts/save/MapLedger.gd`),
+the stack of suspend-complete board checkpoints a Retry — and, once shipped, a
+mid-map rewind — restores from. The ledger keeps the UNION of:
+
+- the last `undo_activations` per-activation entries (the fine tier), and
+- the last `undo_rounds` round-start entries (the coarse tier),
+
+on top of the round-0 boundary, which is **always** retained so a Retry works
+regardless of the budgets. `-1` means retain every entry of that tier (the coarse
+tier may legitimately be infinite); `0` keeps none beyond round-0. These set how
+deep the ledger *remembers*; making a checkpoint player-spendable mid-battle is
+Rewind (Phase 3), which reconciles them with `rewind_charges_per_map`.
 
 The design direction already locked in the project docs is:
 

@@ -137,6 +137,9 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 	out["exp_gaining_factions"] = SaveCodec.string_array_from_variant(
 		out.get("exp_gaining_factions", ["blue", "green"]))
 	out["rewind_charges_per_map"] = SaveCodec.as_int(out.get("rewind_charges_per_map", 4), 4)
+	# B1-LEDGER Phase 2: within-map ledger retention budgets (-1 = infinite tier).
+	out["undo_activations"] = SaveCodec.as_int(out.get("undo_activations", 0), 0)
+	out["undo_rounds"] = SaveCodec.as_int(out.get("undo_rounds", 0), 0)
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
@@ -351,6 +354,8 @@ static func _default_campaign() -> Dictionary:
 			"exp_gaining_factions": ["blue", "green"],
 			"hit_formula": "two_roll",
 			"rewind_charges_per_map": 4,
+			"undo_activations": 0,
+			"undo_rounds": 0,
 			"profile_selections": {},
 			"exposed_tunables": {},
 			"pxp_profiles": {},

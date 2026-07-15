@@ -40,6 +40,17 @@ class_name CampaignRules extends Resource
 # Per-map rewind budget. Zero is the ironman-style no-rewind preset.
 @export var rewind_charges_per_map: int = 4
 
+# B1-LEDGER Phase 2 — within-map ledger retention budgets. They set how deep the
+# decaying ledger keeps entries: the union of the last `undo_activations`
+# per-activation entries and the last `undo_rounds` round-start entries (the
+# round-0 boundary is always retained on top, so a Retry works regardless). These
+# are the RETENTION depth; making the budget spendable mid-battle is Rewind
+# (Phase 3), which reconciles these with rewind_charges_per_map. -1 means retain
+# every entry of that tier (the coarse round tier may legitimately be infinite);
+# 0 keeps none beyond the round-0 boundary.
+@export var undo_activations: int = 0
+@export var undo_rounds: int = 0
+
 
 # Returns a CampaignRules with all project defaults applied.
 static func make_default() -> CampaignRules:

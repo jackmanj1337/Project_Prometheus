@@ -252,9 +252,9 @@ func _init() -> void:
 		print("FAIL TurnManager not initialized")
 		failed += 1
 
-	# Fresh maps seed the gameplay RNG before the Retry snapshot, so Retry starts
-	# from a real per-map seed instead of the default zero seed.
-	var first_rng_snapshot: Dictionary = gs.get("_snapshot_rng") if gs else {}
+	# Fresh maps seed the gameplay RNG before the round-0 ledger entry, so Retry
+	# (restore_history(0)) starts from a real per-map seed, not the default zero seed.
+	var first_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {}) if gs else {}
 	if rng_svc != null and int(rng_svc.get("map_seed")) != 0 \
 			and int(rng_svc.get("history_hash")) == 0 \
 			and int(first_rng_snapshot.get("map_seed", 0)) != 0 \
@@ -408,7 +408,7 @@ func _init() -> void:
 			print("FAIL hotseat map spawn count/factions: count=%d green=%s" % [
 				hotseat_units.get_child_count(), hotseat_green_found])
 			failed += 1
-		var second_rng_snapshot: Dictionary = gs.get("_snapshot_rng")
+		var second_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {})
 		if int(rng_svc.get("map_seed")) != 0 and int(rng_svc.get("history_hash")) == 0 \
 				and int(second_rng_snapshot.get("map_seed", 0)) != 0 \
 				and int(second_rng_snapshot.get("history_hash", -1)) == 0:

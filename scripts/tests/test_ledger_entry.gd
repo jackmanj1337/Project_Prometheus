@@ -132,5 +132,29 @@ func _init() -> void:
 	print("MEASURE one suspend-complete ledger entry: %d units, %d bytes binary, %d bytes JSON" % [
 		live.get("map_runtime", {}).get("units", []).size(), bin_bytes, json_bytes])
 
+	# ---- B1-LEDGER Phase 2: party economy is folded PER ENTRY and a Retry
+	# (restore_history(0)) rolls it back — the DECIDED-2026-07-15 party-per-entry
+	# rule that lets a mid-map rewind undo a village/chest reward. Runs LAST: the
+	# restore calls reset_map_state, which tears down the shared board. ----
+	gs.party_gold = 500
+	gs.party_items = ["vulnerary"] as Array[String]
+	gs.take_map_snapshot()  # re-seed round-0 with this economy
+	var entry_party: Dictionary = gs.peek_history(0).get("party", {})
+	var folded_ok: bool = int(entry_party.get("gold", -1)) == 500 \
+		and entry_party.get("items", []) == ["vulnerary"] \
+		and entry_party.get("roster", []).size() == gs.player_roster.size()
+	# Simulate mid-map rewards, then Retry: the ledger must roll both back.
+	gs.party_gold = 999
+	gs.party_items = ["elixir", "elixir"] as Array[String]
+	var restored: bool = gs.restore_history(0)
+	var rollback_ok: bool = restored and gs.party_gold == 500 and gs.party_items == ["vulnerary"]
+	if folded_ok and rollback_ok:
+		print("OK  entry folds party economy; restore_history(0) rolls gold/items back")
+		passed += 1
+	else:
+		print("FAIL party economy: folded=%s rollback=%s gold=%d items=%s" % [
+			folded_ok, rollback_ok, gs.party_gold, gs.party_items])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

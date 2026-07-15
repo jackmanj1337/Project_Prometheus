@@ -106,6 +106,25 @@ history entry.
 
 ## Phase 2 — The decaying ledger + Retry-on-ledger (the scrap moment)
 
+**Status: Implemented 2026-07-15.** The ledger is `scripts/save/MapLedger.gd` (a
+preloaded, no-`class_name` object): a single reason-tagged entry list whose
+`prune(keep_activations, keep_rounds)` retains `(last A activations) UNION (last R
+round-starts)` plus the always-kept round-0 boundary — tiers expressed as data, not
+a mode `match`. `GameState._capture_map_runtime_entry()` now also folds the party
+economy (`party` = gold/items/roster snapshot) into every entry per the decision
+below, and `restore_history(index)` reapplies roster-in-place + gold + items +
+PairUp + RNG. Retry is re-pointed at `restore_history(0)` (`GameOverScreen`), and
+the party-only `_map_start_snapshot`/`_snapshot_*` fields + `restore_map_snapshot` +
+`validate_restore_snapshot_state` are deleted; `take_map_snapshot()` is now just the
+round-0 ledger seed. Budgets `undo_activations`/`undo_rounds` are on `CampaignRules`
++ the GameState codec + `SaveData` normalization/defaults. New `test_map_ledger.gd`
+(prune 1/N/∞, round-0 retention, deep-copy peek); `test_rng_snapshot`,
+`test_pair_up_registry`, `test_game_state`, `test_game_map_scene` migrated onto the
+ledger API; `test_ledger_entry` gains a party-economy fold+rollback check. Live
+per-activation pushes + the `prune_history()` call sites arrive with Rewind (Phase
+3). DoD met: GDD_01 §CampaignRules Contract + §Determinism/Snapshot,
+`campaign_rules.md`, roadmap row flipped.
+
 **Goal:** a two-tier decaying ledger stores entries; Retry is re-expressed as a
 read of it; the old separate Retry path is deleted.
 

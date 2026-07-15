@@ -41,6 +41,8 @@ rule fields are not retained as shims.
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
 | `rewind_charges_per_map` | int (4) | Per-map rewind budget; `0` is the ironman-style no-rewind preset |
+| `undo_activations` | int (0) | B1-LEDGER within-map ledger: retain the last N per-activation entries; `-1` = infinite, `0` = none beyond round-0 |
+| `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
 > `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
@@ -82,11 +84,12 @@ snapshot, the I/O-free `SaveData` envelope, the active-map suspend
 serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
 B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit, Main Menu
-Continue/delete lifecycle); the §8.1 snapshot generalization began 2026-07-15
-(B1-LEDGER Phase 1: suspend saves and the within-map history now share one
-suspend-complete board serializer, and the round-0 history entry is recorded);
-object/AI future fields, the two-tier decaying ledger + Retry-on-ledger, and
-rewind are **Target design**
+Continue/delete lifecycle); the §8.1 snapshot generalization landed across
+2026-07-15 (B1-LEDGER Phase 1: suspend saves and the within-map ledger share one
+suspend-complete board serializer; Phase 2: the two-tier decaying ledger, the
+`undo_activations`/`undo_rounds` budgets, and Retry re-expressed as
+`restore_history(0)` — the party-only snapshot path is scrapped);
+object/AI future fields and player-spendable rewind are **Target design**
 Last verified: 2026-07-15
 
 ### Summary
@@ -143,11 +146,21 @@ plan (code, integration sweep, tests, build order) is
   `capture_suspend_save()` (composing it with the campaign/party/roster layers)
   and the within-map history (`push_history` / `peek_history`) read it, so a
   suspend save and a ledger entry serialize the live board identically.
-  `take_map_snapshot()` now also seeds the round-0 history entry (checkpoint 0).
-  The Retry restore path still reads the party-only snapshot until Phase 2
-  re-expresses Retry as `restore_history(0)` on the two-tier ledger. Measured
+  `take_map_snapshot()` now seeds the round-0 ledger entry (checkpoint 0). Measured
   size of one entry: ~2 KB/unit (a 14-unit board ≈ 28 KB binary / 16 KB JSON),
   so the ledger tiers are not memory-bound at realistic depths.
+  **B1-LEDGER Phase 2 (2026-07-15) landed the ledger + Retry-on-ledger:** the
+  within-map history is now a decaying `MapLedger` (`scripts/save/MapLedger.gd`) —
+  a single reason-tagged list whose `prune()` keeps the UNION of the last
+  `undo_activations` per-activation entries and the last `undo_rounds` round-start
+  entries, with the round-0 boundary always retained (tiers are data, not a mode
+  `match`). Each entry also folds the **party economy** (gold/items/roster) so a
+  Retry — and a future mid-map rewind — rolls party rewards back with the board.
+  Retry is now `GameState.restore_history(0)` (`GameOverScreen` calls it); the
+  separate `restore_map_snapshot`/`_map_start_snapshot` party-only path is deleted.
+  The `undo_activations`/`undo_rounds` retention budgets are new `CampaignRules`
+  fields (see §CampaignRules Contract). Making the budget player-spendable
+  mid-battle is Phase 3 (Rewind); live per-activation pushes wire in there.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,
   unsuppressed local control: map id/path, live unit runtime dictionaries for all

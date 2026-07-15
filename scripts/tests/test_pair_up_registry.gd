@@ -180,9 +180,10 @@ func _init() -> void:
 	inv_reg2.free()
 
 	# ---- GameState integration ----
-	# GameState's take_map_snapshot / restore_map_snapshot must capture and
-	# restore Pair Up state alongside unit data. Use the autoload via relay-node
-	# pattern so /root paths resolve from --script context.
+	# GameState's take_map_snapshot / restore_history(0) must capture and restore
+	# Pair Up state alongside unit data (B1-LEDGER Phase 2: pairings ride in the
+	# ledger entry). Use the autoload via relay-node pattern so /root paths resolve
+	# from --script context.
 	var relay := Node.new()
 	root.add_child(relay)
 	await process_frame
@@ -199,7 +200,7 @@ func _init() -> void:
 		# Mutate post-snapshot, then verify restore rewinds to the snapshotted state.
 		live_reg.separate("chrom")
 		live_reg.pair("robin", "lucina")
-		gs.restore_map_snapshot()
+		gs.restore_history(0)
 		if live_reg.get_partner_id("chrom") == "lissa" and live_reg.is_lead("chrom") \
 				and not live_reg.is_paired("robin"):
 			print("OK  GameState snapshot round-trips Pair Up state"); passed += 1

@@ -9,6 +9,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -169,30 +170,14 @@ var next_map_suspend_payload: Dictionary = {}
 # the player actually chose, rather than silently falling back to roster order.
 var next_map_deployment: Dictionary = {}
 
-# Deep copy taken at map start; used by the Retry button to restore state
-var _map_start_snapshot: Array[Dictionary] = []
-# Party-level economy snapshot — restored alongside unit data so a Retry (including
-# a Retry after a victory) rolls gold and item rewards back to the map's start
-# state, instead of letting a replay re-grant them.
-var _snapshot_party_gold: int = 0
-var _snapshot_party_items: Array[String] = []
-# Pair Up registry snapshot — captures all map-start pairings (designer-set or
-# otherwise) so a Retry restores them exactly. Lives here rather than on the
-# registry so all map-scoped snapshot state is owned by one author.
-var _snapshot_pair_up_registry: Dictionary = {}
-# RNG timeline snapshot (RNG-2): {map_seed, history_hash} from
-# RngService.to_save_dict(). Restoring it restores the dice timeline, so a
-# Retry replays identical committed actions to identical outcomes. Empty when
-# the autoload is absent (headless suites that stub the tree).
-var _snapshot_rng: Dictionary = {}
-
-# B1-LEDGER Phase 1: the within-map history — a stack of SUSPEND-COMPLETE entries
-# (all factions' units + turn state + cursor + RNG timeline + Pair Up), the same
-# board format a suspend save carries. Phase 1 records only the round-0 entry as
-# the foundation the later phases read; Phase 2 grows this into the two-tier
-# decaying ledger and re-expresses Retry as restore_history(0). Map-scoped:
-# cleared in reset_map_state and re-seeded by the round-0 push in take_map_snapshot.
-var _map_history: Array[Dictionary] = []
+# B1-LEDGER Phase 2: the within-map decaying ledger — an ordered list of
+# SUSPEND-COMPLETE entries (all factions' units + party economy + turn state +
+# cursor + RNG timeline + Pair Up), the same board format a suspend save carries.
+# Index 0 is the round-0 boundary a Retry rewinds to (restore_history(0)); the
+# two-tier prune keeps a union of the last N activations and round-starts. Map-
+# scoped: cleared in reset_map_state and re-seeded by the round-0 push in
+# take_map_snapshot. See scripts/save/MapLedger.gd.
+var _map_ledger: RefCounted = MapLedgerScript.new()
 
 
 func register_unit(unit: Node) -> void:
@@ -330,9 +315,9 @@ func reset_map_state() -> void:
 	map_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
-	# B1-LEDGER: the within-map history is map-scoped — drop it between maps so a
+	# B1-LEDGER: the within-map ledger is map-scoped — drop it between maps so a
 	# new map starts with a fresh ledger (take_map_snapshot re-seeds the round-0 entry).
-	_map_history.clear()
+	_map_ledger.clear()
 	# Pair Up state is map-scoped; drop pairings between maps so a new map
 	# starts unpaired regardless of how the previous one ended.
 	var reg := get_node_or_null("/root/PairUpRegistry")
@@ -534,27 +519,56 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 		"threat_views_version": suspend_ui.get("threat_views_version", 1),
 		"threat_views_by_faction": suspend_ui.get("threat_views_by_faction", {}),
 	}
-	return {"map_runtime": map_runtime, "suspend": suspend}
+	# B1-LEDGER Phase 2 (DECIDED 2026-07-15): party economy lives PER LEDGER ENTRY.
+	# Folding gold/items/roster into the entry makes it self-sufficient — a Retry
+	# (restore_history(0)) rolls the party back exactly as the old snapshot path did,
+	# and a mid-map rewind (Phase 3) correctly undoes a village/chest reward earned
+	# earlier in the map. The roster snapshot mirrors the old _map_start_snapshot
+	# array (one _snapshot_unit_data dict per player unit, in roster order) so the
+	# restore is byte-for-byte the same operation, just sourced from the ledger.
+	var party: Dictionary = {
+		"gold": party_gold,
+		"items": party_items.duplicate(),
+		"roster": _player_roster_snapshot_array(),
+	}
+	return {"map_runtime": map_runtime, "suspend": suspend, "party": party}
 
 
-# B1-LEDGER Phase 1: append one SUSPEND-COMPLETE entry to the within-map history.
-# turn_manager/cursor are optional (absent at the round-0 push). Phase 2 adds the
-# two-tier decaying prune; for now the history simply accumulates entries.
-func push_history(turn_manager: Node = null, cursor: Node = null) -> void:
-	_map_history.append(_capture_map_runtime_entry(turn_manager, cursor))
+# The player roster serialized as _snapshot_unit_data dicts in roster order — the
+# Retry-restore source folded into every ledger entry (see _capture_map_runtime_entry).
+func _player_roster_snapshot_array() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for unit_data in player_roster:
+		out.append(_snapshot_unit_data(unit_data))
+	return out
+
+
+# B1-LEDGER Phase 2: append one SUSPEND-COMPLETE entry to the within-map ledger
+# under `reason` (round-start by default — the round-0 seed and every round
+# boundary; per-activation pushes pass MapLedger.REASON_ACTIVATION). turn_manager/
+# cursor are optional (absent at the round-0 push). Live per-activation pushing and
+# the prune call sites arrive with Rewind in Phase 3; the ledger machinery and its
+# prune are built and unit-tested here.
+func push_history(turn_manager: Node = null, cursor: Node = null,
+		reason: String = MapLedgerScript.REASON_ROUND_START) -> void:
+	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason)
 
 
 func history_size() -> int:
-	return _map_history.size()
+	return _map_ledger.size()
 
 
-# Returns a deep copy of the history entry at index (0 = the round-0 boundary), or
-# {} if out of range, so a caller — a test, the Phase 1 measurement, or Phase 2's
+# Returns a deep copy of the ledger entry at index (0 = the round-0 boundary), or
+# {} if out of range, so a caller — a test, the Phase 1 measurement, or Retry's
 # restore_history — reads an entry without mutating the stored ledger.
 func peek_history(index: int) -> Dictionary:
-	if index < 0 or index >= _map_history.size():
-		return {}
-	return _map_history[index].duplicate(true)
+	return _map_ledger.peek(index)
+
+
+# Decay the ledger to the campaign's undo budgets (see MapLedger.prune). The round-0
+# boundary is always retained. Called after each live push once Phase 3 wires them.
+func prune_history() -> void:
+	_map_ledger.prune(campaign_rules.undo_activations, campaign_rules.undo_rounds)
 
 
 # The BETWEEN-map campaign save (B1-CST Slice 3): the party parked on a campaign
@@ -713,6 +727,8 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
 		"hit_formula": campaign_rules.hit_formula,
 		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
+		"undo_activations": campaign_rules.undo_activations,
+		"undo_rounds": campaign_rules.undo_rounds,
 	}
 
 
@@ -731,6 +747,8 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.hit_formula = String(normalized.get("hit_formula", "two_roll"))
 	campaign_rules.rewind_charges_per_map = _variant_int(
 		normalized.get("rewind_charges_per_map", 4), 4)
+	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
+	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
 
 
 func _current_map_path() -> String:
@@ -749,36 +767,45 @@ func _variant_int(value: Variant, default_value: int) -> int:
 	return default_value
 
 
-func validate_restore_snapshot_state() -> Array[String]:
+# Validates a ledger entry's party block against the live roster before any of it
+# is applied, so a bad entry leaves the running game untouched instead of half-
+# restored. Mirrors the checks the old party-only snapshot validator ran, now
+# reading the entry's party.roster / party.items and the entry's Pair Up + RNG.
+func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 	var errors: Array[String] = []
-	if _map_start_snapshot.size() != player_roster.size():
-		errors.append("GameState: snapshot unit count %d does not match player_roster size %d" % [
-			_map_start_snapshot.size(), player_roster.size()])
-	for i in _map_start_snapshot.size():
-		var snap: Variant = _map_start_snapshot[i]
-		if not (snap is Dictionary):
-			errors.append("GameState: snapshot entry %d is not a Dictionary" % i)
-			continue
-		_validate_snapshot_unit_dict(snap, i, errors)
-	if not (_snapshot_party_items is Array):
-		errors.append("GameState: snapshot party_items is not an Array")
+	var party: Dictionary = entry.get("party", {})
+	var roster_snap: Variant = party.get("roster", [])
+	var roster_size: int = roster_snap.size() if roster_snap is Array else -1
+	if roster_size != player_roster.size():
+		errors.append("GameState: ledger entry roster count %d does not match player_roster size %d" % [
+			roster_size, player_roster.size()])
+	if roster_snap is Array:
+		for i in roster_snap.size():
+			var snap: Variant = roster_snap[i]
+			if not (snap is Dictionary):
+				errors.append("GameState: ledger roster entry %d is not a Dictionary" % i)
+				continue
+			_validate_snapshot_unit_dict(snap, i, errors)
+	var items: Variant = party.get("items", [])
+	if not (items is Array):
+		errors.append("GameState: ledger entry party items is not an Array")
 	else:
 		var dm := get_node_or_null("/root/DataManager")
-		for item_id_var in _snapshot_party_items:
+		for item_id_var in items:
 			var item_id: String = String(item_id_var)
 			if item_id == "":
-				errors.append("GameState: snapshot party_items contains an empty item id")
+				errors.append("GameState: ledger entry party items contains an empty item id")
 			elif dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)):
-				errors.append("GameState: snapshot party_items item '%s' not found" % item_id)
-	if not (_snapshot_pair_up_registry is Dictionary):
-		errors.append("GameState: snapshot Pair Up registry is not a Dictionary")
-	# RNG snapshot (RNG-2): empty = legitimately captured without the autoload;
-	# non-empty must carry both timeline ints or the restore would silently
-	# desync the dice chain.
-	if not _snapshot_rng.is_empty():
-		if not (_snapshot_rng.get("map_seed") is int) \
-				or not (_snapshot_rng.get("history_hash") is int):
-			errors.append("GameState: snapshot rng must carry int map_seed and history_hash")
+				errors.append("GameState: ledger entry party item '%s' not found" % item_id)
+	var map_runtime: Dictionary = entry.get("map_runtime", {})
+	if not (map_runtime.get("pair_carry", {}).get("pair_up", {}) is Dictionary):
+		errors.append("GameState: ledger entry Pair Up registry is not a Dictionary")
+	# RNG (RNG-2): empty = legitimately captured without the autoload; non-empty must
+	# carry both timeline ints or the restore would silently desync the dice chain.
+	var rng_dict: Variant = map_runtime.get("rng", {})
+	if rng_dict is Dictionary and not rng_dict.is_empty():
+		if not (rng_dict.get("map_seed") is int) or not (rng_dict.get("history_hash") is int):
+			errors.append("GameState: ledger entry rng must carry int map_seed and history_hash")
 	return errors
 
 
@@ -787,60 +814,53 @@ func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[St
 	errors.append_array(SaveCodec.validate_unit_snapshot_dict(snap, index, dm))
 
 
-# Deep-copies all player UnitData fields into _map_start_snapshot.
-# Call once immediately after units are spawned on the map.
+# Seeds the within-map ledger with the round-0 boundary entry — the SUSPEND-COMPLETE
+# board plus the folded party block (gold/items/roster), which is everything a Retry
+# (restore_history(0)) rolls back. Call once immediately after units are spawned on
+# the map. No turn_manager/cursor here: at map start turn state is not yet started
+# and the cursor not yet placed, and a Retry scene reload regenerates both.
 func take_map_snapshot() -> void:
-	_map_start_snapshot.clear()
-	for unit_data in player_roster:
-		_map_start_snapshot.append(_snapshot_unit_data(unit_data))
-	_snapshot_party_gold = party_gold
-	_snapshot_party_items = party_items.duplicate()
-	# Pair Up state is part of the map start state; capture it so Retry rewinds
-	# pairings alongside HP/inventory. Empty dict if no registry is loaded
-	# (e.g. headless tests that omit the autoload).
-	var reg := get_node_or_null("/root/PairUpRegistry")
-	_snapshot_pair_up_registry = reg.call("serialize") if reg else {}
-	# RNG timeline (RNG-2): captured with the rest of the map-start state so a
-	# Retry restores the dice chain, not just unit/party data.
-	var rng_svc := get_node_or_null("/root/RngService")
-	_snapshot_rng = rng_svc.call("to_save_dict") if rng_svc else {}
-	# B1-LEDGER Phase 1: also seed the within-map history with the round-0
-	# SUSPEND-COMPLETE entry (all factions, not just the player party). This is the
-	# foundation Phase 2's rewind/Retry-on-ledger reads; the party-only fields above
-	# stay the live Retry restore path until Phase 2 re-expresses Retry on the ledger.
-	# No turn_manager/cursor here — at map start turn state is not yet started and the
-	# cursor not yet placed, and a Retry scene reload regenerates both.
-	_map_history.clear()
-	push_history()
+	_map_ledger.clear()
+	push_history()  # round-0, round-start reason; the entry carries the party block
 
 
-# Restores player_roster UnitData from snapshot, then reloads the current scene.
-# Called by GameOverScreen's Retry button.
-func restore_map_snapshot() -> bool:
-	var snapshot_errors: Array[String] = validate_restore_snapshot_state()
-	if not snapshot_errors.is_empty():
-		for err in snapshot_errors:
+# Restores the party (roster UnitData in place + gold + items), Pair Up, and the RNG
+# timeline from ledger entry `index` — 0 is the round-0 boundary a Retry rewinds to.
+# Returns false without mutating anything if the entry is missing or malformed. The
+# board's non-player factions are NOT restored here: Retry reloads the scene, which
+# rebuilds enemies from map_data. (A mid-map Rewind that stays in the scene — Phase 3
+# — will additionally restore the board from the entry's map_runtime.units.)
+func restore_history(index: int) -> bool:
+	var entry: Dictionary = _map_ledger.peek(index)  # deep copy; safe across reset below
+	if entry.is_empty():
+		push_error("GameState: restore_history has no entry at index %d" % index)
+		return false
+	var restore_errors: Array[String] = _validate_restore_entry(entry)
+	if not restore_errors.is_empty():
+		for err in restore_errors:
 			push_error(err)
 		return false
+	var party: Dictionary = entry.get("party", {})
+	var roster_snap: Array = party.get("roster", [])
 	for i in player_roster.size():
-		if i < _map_start_snapshot.size():
-			_restore_unit_data(player_roster[i], _map_start_snapshot[i])
+		if i < roster_snap.size():
+			_restore_unit_data(player_roster[i], roster_snap[i])
 	# Roll the party economy back too, so a replayed map can't re-grant its rewards.
-	party_gold = _snapshot_party_gold
-	party_items = _snapshot_party_items.duplicate()
+	party_gold = int(party.get("gold", party_gold))
+	party_items = SaveCodec.string_array_from_variant(party.get("items", []))
 	reset_map_state()
-	# reset_map_state cleared the registry; reapply the snapshotted pairings so
-	# Retry lands on the same paired layout the map started with. Done AFTER
-	# reset so the clear-then-restore order is deterministic.
+	# reset_map_state cleared the registry + ledger; reapply the entry's pairings so
+	# the restore lands on the same paired layout. Done AFTER reset so the
+	# clear-then-restore order is deterministic.
 	var reg := get_node_or_null("/root/PairUpRegistry")
 	if reg:
-		reg.call("restore", _snapshot_pair_up_registry)
-	# Restore the dice timeline (RNG-2) after validation, before the caller
-	# reloads the scene: replaying the identical committed-action sequence now
-	# reproduces identical outcomes. Skipped when no RNG state was captured.
+		reg.call("restore", entry.get("map_runtime", {}).get("pair_carry", {}).get("pair_up", {}))
+	# Restore the dice timeline (RNG-2) so replaying the identical committed-action
+	# sequence reproduces identical outcomes. Skipped when no RNG state was captured.
 	var rng_svc := get_node_or_null("/root/RngService")
-	if rng_svc != null and not _snapshot_rng.is_empty():
-		rng_svc.call("from_save_dict", _snapshot_rng)
+	var rng_dict: Dictionary = entry.get("map_runtime", {}).get("rng", {})
+	if rng_svc != null and not rng_dict.is_empty():
+		rng_svc.call("from_save_dict", rng_dict)
 	# Caller is responsible for reloading the scene after this returns.
 	return true
 

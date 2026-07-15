@@ -207,9 +207,12 @@ func _on_retry() -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm and cm.has_method("clear_pending_result"):
 		cm.call("clear_pending_result")
+	# B1-LEDGER Phase 2: Retry is a read of the ledger's round-0 boundary entry
+	# (restore_history(0)) — the same rollback the old party-only snapshot did, now
+	# sourced from the unified within-map ledger.
 	var gs := get_node_or_null("/root/GameState")
-	if gs and gs.has_method("restore_map_snapshot"):
-		gs.restore_map_snapshot()
+	if gs and gs.has_method("restore_history"):
+		gs.restore_history(0)
 	get_tree().reload_current_scene()
 
 
