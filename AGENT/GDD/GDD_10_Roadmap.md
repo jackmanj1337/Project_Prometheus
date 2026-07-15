@@ -89,9 +89,11 @@ asset-group/id/fallback registrations, including repair reporting and path
 containment. `PackManifest` and the canonical Tier-2 catalogue parser now
 validate package compatibility, safe unique Tier-2 document identities/paths,
 and registry-dispatched content-family schemas without installing or selecting
-anything. The package remains incomplete: archive install/export and selector UI
+anything. The first concrete validator set now proves a complete campaign/map/
+roster/class fixture and all cross-document ids. The package remains incomplete:
+archive install/export and selector UI
 follow these seams. The next implementation unit is the staged, rollback-safe
-archive pipeline in the [B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
+archive preflight in the [B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
 installed-pack discovery and selector activation remain separate later consumers.
 
 | Order | Track ID | To-do | Decision state |

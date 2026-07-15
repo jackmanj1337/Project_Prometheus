@@ -451,6 +451,14 @@ registered for each `kind`. An unknown kind fails loud rather than loading
 unchecked content. This preserves the open-registry extension rule: a new
 content family registers a validator instead of adding a closed type switch.
 
+The first concrete validator registry covers the smallest self-contained pack:
+`campaign`, `map_registry`, `map_data`, `roster`, and `class`. Existing
+`CampaignData.parse` owns campaign graph structure; the other handlers enforce
+their JSON identity/required-field boundaries. A second whole-catalogue pass
+then proves campaign node -> map registry entry -> map data/roster -> class
+references before archive I/O can consume the pack. Missing structured
+dependencies reject the complete catalogue rather than leaving a partial pack.
+
 This boundary only parses and validates. It does not extract/copy archives,
 write `user://campaigns`, replace `DataManager` catalogues, register campaigns
 with a selector, or select runtime content. Those downstream consumers may act

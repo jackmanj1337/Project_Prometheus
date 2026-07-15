@@ -94,6 +94,17 @@ static func load_and_validate(pack_root: String, validators: Dictionary,
 	return catalogue if errors.size() == initial_error_count else null
 
 
+# Convenience composition for the shipped campaign validator set. Keeping the
+# generic loader above public preserves the open registry extension point.
+static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier2Catalogue:
+	var validator_set = preload("res://scripts/resources/CampaignTier2Validators.gd")
+	var catalogue := load_and_validate(pack_root, validator_set.registry(), errors)
+	if catalogue == null:
+		return null
+	errors.append_array(validator_set.collect_cross_reference_errors(catalogue))
+	return catalogue if errors.is_empty() else null
+
+
 func get_document(kind: String, id: String) -> Variant:
 	return documents.get("%s\n%s" % [kind, id])
 

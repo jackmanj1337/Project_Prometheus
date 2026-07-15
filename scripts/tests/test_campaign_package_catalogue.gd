@@ -81,6 +81,26 @@ func _init() -> void:
 	else:
 		print("FAIL unknown kind: %s" % [unknown_errors]); failed += 1
 
+	var complete_root := "user://test_campaign_package_catalogue/complete"
+	_write_complete_fixture(complete_root, "fixture_class")
+	var complete_errors: Array[String] = []
+	var complete = Tier2CatalogueScript.load_campaign_pack(complete_root, complete_errors)
+	if complete != null and complete.entries.size() == 5 and complete_errors.is_empty():
+		print("OK  complete campaign fixture validates all required cross-references"); passed += 1
+	else:
+		print("FAIL complete campaign fixture: %s" % [complete_errors]); failed += 1
+
+	var broken_root := "user://test_campaign_package_catalogue/broken_reference"
+	_write_complete_fixture(broken_root, "missing_class")
+	var broken_reference_errors: Array[String] = []
+	var broken = Tier2CatalogueScript.load_campaign_pack(
+		broken_root, broken_reference_errors)
+	if broken == null and broken_reference_errors.any(
+			func(error): return "references missing class 'missing_class'" in error):
+		print("OK  full-pack validation rejects unresolved cross-document ids"); passed += 1
+	else:
+		print("FAIL broken cross-reference: %s" % [broken_reference_errors]); failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
@@ -101,3 +121,34 @@ func _write_json(path: String, value: Variant) -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(value, "\t", true))
+
+
+func _write_complete_fixture(root: String, roster_class_id: String) -> void:
+	_write_json(root.path_join("data/catalogue.json"), {
+		"format_version": 1,
+		"entries": [
+			{"kind": "campaign", "id": "fixture", "path": "data/campaign.json"},
+			{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
+			{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
+			{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
+			{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+		],
+	})
+	_write_json(root.path_join("data/campaign.json"), {
+		"campaign_id": "fixture", "label": "Fixture", "start_node_id": "start",
+		"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}],
+	})
+	_write_json(root.path_join("data/map_registry.json"), [{
+		"id": "map_01", "label": "Map 01", "map_data_id": "map_01",
+		"roster_id": "heroes",
+	}])
+	_write_json(root.path_join("data/map_01.json"), {
+		"id": "map_01", "display_name": "Map 01", "grid": ["..."],
+		"player_start_tiles": [[0, 0]],
+	})
+	_write_json(root.path_join("data/roster.json"), {
+		"units": [{"unit_id": "hero", "class_id": roster_class_id}],
+	})
+	_write_json(root.path_join("data/class.json"), {
+		"id": "fixture_class", "display_name": "Fixture Class",
+	})
