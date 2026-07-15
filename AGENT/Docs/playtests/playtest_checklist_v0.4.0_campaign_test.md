@@ -1,10 +1,17 @@
 ---
 Type: playtest
-Status: Pending - live Windows campaign test
+Status: Superseded by the fresh campaign/save follow-up checklist
 Last verified: 2026-07-15
 ---
 
 # v0.4.0 Proving Grounds Campaign Test Checklist
+
+> **Superseded:** this checklist belongs to the earlier `202309e` artifact. The
+> authoritative Phase 6 return surface is now
+> [`playtest_checklist_v0.4.0_campaign_followup.md`](playtest_checklist_v0.4.0_campaign_followup.md),
+> paired with the traceable `dd4f971` artifact and expanded to cover every item
+> required by the post-audit handoff. Preserve this file as historical evidence;
+> do not return it for the current goal.
 
 Return this completed file, the original matching `godot.log`, and screenshots
 for visual failures.

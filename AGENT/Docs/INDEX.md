@@ -208,6 +208,7 @@
 
 ## Playtest builds / checklists / triage
 
+- [`playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md`](playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md) — Campaign/Save Post-audit Follow-up Requirement/Evidence Matrix — *Pending validation - live Windows return*
 - [`playtests/playtest_build_v0.2.3.md`](playtests/playtest_build_v0.2.3.md) — Playtester Build Manifest - v0.2.3
 - [`playtests/playtest_build_v0.2.4.md`](playtests/playtest_build_v0.2.4.md) — Playtester Build Manifest - v0.2.4
 - [`playtests/playtest_build_v0.2.5.md`](playtests/playtest_build_v0.2.5.md) — Playtester Build Manifest - v0.2.5
@@ -256,7 +257,7 @@
 - [`playtests/playtest_checklist_v0.3.6_returned_2026-07-14.md`](playtests/playtest_checklist_v0.3.6_returned_2026-07-14.md) — Playtester Handbook and Checklist - v0.3.6 Returned — *Returned - owner-accepted pass with UI p*
 - [`playtests/playtest_checklist_v0.4.0.md`](playtests/playtest_checklist_v0.4.0.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Pending - live Windows smoke*
 - [`playtests/playtest_checklist_v0.4.0_campaign_followup.md`](playtests/playtest_checklist_v0.4.0_campaign_followup.md) — v0.4.0 Campaign/Save Follow-up Checklist — *Pending - live Windows campaign/save fol*
-- [`playtests/playtest_checklist_v0.4.0_campaign_test.md`](playtests/playtest_checklist_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Checklist — *Pending - live Windows campaign test*
+- [`playtests/playtest_checklist_v0.4.0_campaign_test.md`](playtests/playtest_checklist_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Checklist — *SUPERSEDED*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*

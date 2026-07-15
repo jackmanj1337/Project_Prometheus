@@ -172,6 +172,11 @@ screenshots before changing `Pending validation` delivery rows to `Implemented`.
 
 ## Completion gate
 
+Execution evidence is tracked row-by-row in
+[`campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md`](../playtests/campaign_save_post_audit_followup_evidence_matrix_2026-07-15.md).
+That matrix is intentionally still `Pending validation` while its live Windows
+rows lack returned evidence.
+
 The follow-up is done only when:
 
 - the accepted two-column decision schema is ratified and enforced;
