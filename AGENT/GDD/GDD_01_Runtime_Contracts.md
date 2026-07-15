@@ -289,6 +289,13 @@ installed-pack discovery/activation, exact save identity, and the player-facing
 import/export/selection flow shipped 2026-07-15 (`B6-CAMPAIGN-SHARING`)
 Last verified: 2026-07-15
 
+### Summary
+
+Campaign packages are inert, data-only archives that are fully validated before
+installation or activation; portable saves use separate bounded import policy.
+
+### Specs
+
 Campaign packs contain indexed authored JSON and approved pack-scoped media;
 they never contain executable behavior or save-shaped state. Import is a
 transactional storage operation owned by the engine: `CampaignArchivePreflight`
@@ -348,7 +355,15 @@ reactivate only the matching service-owned installed path before resolving any
 campaign, map, roster, or class id. An empty identity selects shipped content;
 partial identity is invalid, and save files never supply filesystem paths.
 
-Anchors: `scripts/resources/ImportBudgets.gd`,
+### Known gaps
+
+- Public campaign-builder editing/repair and installed-content resynchronization
+  remain deferred under their separate control-plane tracks.
+- A stricter Web portable-save budget awaits browser measurement evidence.
+
+### Anchors
+
+Code: `scripts/resources/ImportBudgets.gd`,
 `scripts/resources/CampaignArchivePreflight.gd`,
 `scripts/resources/CampaignPackInstaller.gd`,
 `scripts/resources/CampaignPackExporter.gd`,
@@ -369,6 +384,13 @@ Runtime/save tests: `test_campaign_tier2_runtime_adapter.gd`,
 Status: **Implemented**, with registry expansion and later feature consumers tracked
 by their owning rows
 Last verified: 2026-07-13
+
+### Summary
+
+Shared runtime services own cross-system mutations and projections so feature
+callers cannot partially reproduce transaction or validation rules.
+
+### Specs
 
 Exact method signatures are code-owned and should be read from the scripts below.
 The binding cross-system invariants are:
@@ -394,7 +416,12 @@ The binding cross-system invariants are:
   `OccupancyService`, `DeathLifecycle`, and `ProjectionService` respectively;
   callers must not recreate their validation or partial-mutation rules.
 
-Code anchors:
+### Known gaps
+
+- Broader registry consumers remain owned by their control-plane tracks; this
+  section fixes service boundaries, not their delivery schedule.
+
+### Anchors
 
 - `scripts/core/GridManager.gd`
 - `scripts/core/CombatResolver.gd`

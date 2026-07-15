@@ -40,6 +40,8 @@ Checks:
  32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
  33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
  36. Decision index — rows use independent decision-state and delivery vocabularies
+ 37. GDD section shape — split companions pair status/date; DOC-002 sections keep their shape
+ 38. Feature ownership — Feature Index identities and ownership/status rows are unique
 """
 
 import json
@@ -1670,6 +1672,115 @@ def check_decision_index_vocabulary() -> None:
         _fail("decision-index", _DECISION_INDEX, 1, "decision index has no rows")
 
 
+# ── checks 37-38: section-local GDD governance and feature ownership ─────────
+
+_SPLIT_GDD_COMPANIONS = sorted(
+    list((ROOT / "AGENT/GDD").glob("GDD_01_*.md"))
+    + list((ROOT / "AGENT/GDD").glob("GDD_07_*.md"))
+)
+_DOC_002_CATALOG_PREFIXES = ("GDD_06_", "GDD_07_", "GDD_08_")
+_DOC_002_STRICT_FILES = {
+    "GDD_01_Data_Contracts.md",
+    "GDD_01_Runtime_Contracts.md",
+}
+
+
+def _heading_scopes(lines: list[str]) -> list[tuple[int, int, int]]:
+    """Return (heading line index, level, exclusive scope end) for Markdown headings."""
+    headings: list[tuple[int, int]] = []
+    in_fence = False
+    for index, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = re.match(r"^(#{1,6})\s+", line)
+        if match:
+            headings.append((index, len(match.group(1))))
+    scopes: list[tuple[int, int, int]] = []
+    for position, (start, level) in enumerate(headings):
+        end = len(lines)
+        for candidate, candidate_level in headings[position + 1:]:
+            if candidate_level <= level:
+                end = candidate
+                break
+        scopes.append((start, level, end))
+    return scopes
+
+
+def check_gdd_section_governance() -> None:
+    """Enforce section-local verification and DOC-002 on status-bearing features."""
+    for path in _SPLIT_GDD_COMPANIONS:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        scopes = _heading_scopes(lines)
+        for line_index, line in enumerate(lines):
+            if not _STATUS_LINE_RE.match(line):
+                continue
+            containing = [scope for scope in scopes if scope[0] <= line_index < scope[2]]
+            scope = max(containing, key=lambda item: (item[1], item[0])) if containing else None
+            end = scope[2] if scope else len(lines)
+            if not any(re.match(r"^\s*(?:\*\*)?Last verified:", candidate)
+                       for candidate in lines[line_index + 1:end]):
+                _fail("section-verified", path, line_index + 1,
+                      "status-bearing section lacks a local Last verified marker")
+
+    for path in _NUMBERED_CHAPTERS:
+        if path.name.startswith(_DOC_002_CATALOG_PREFIXES):
+            # DOC-002a explicitly treats 06/07/08 as catalogues; their table or
+            # repeated-entry bodies are not forced into per-feature Summary/Specs.
+            continue
+        # DOC-002 enforcement starts at the campaign/save companion contracts
+        # closed by this follow-up. Other legacy chapters remain a migration
+        # backlog rather than turning this checker change into a silent rewrite.
+        if path.name not in _DOC_002_STRICT_FILES:
+            continue
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for start, level, end in _heading_scopes(lines):
+            if level != 2:
+                continue
+            body = lines[start + 1:end]
+            if not any(_STATUS_LINE_RE.match(line) for line in body):
+                continue
+            headings = {
+                re.sub(r"\s*\(.*\)$", "", match.group(1)).strip().lower()
+                for line in body
+                if (match := re.match(r"^###\s+(.+?)\s*$", line))
+            }
+            for required in ("summary", "specs", "known gaps", "anchors"):
+                if required not in headings:
+                    _fail("doc-002-shape", path, start + 1,
+                          f"status-bearing feature section is missing '### {required.title()}'")
+
+
+def check_feature_index_ownership_duplicates() -> None:
+    """Feature names and exact status/owner/track ownership rows must be unique."""
+    path = ROOT / "AGENT/GDD/GDD_Feature_Index.md"
+    seen_features: dict[str, int] = {}
+    seen_ownership: dict[tuple[str, str, str], int] = {}
+    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.startswith("|"):
+            continue
+        cells = _split_markdown_table_row(line)
+        if len(cells) != 6 or cells[0] in {"Feature", "---"}:
+            continue
+        feature_key = re.sub(r"[^a-z0-9]+", "-", cells[0].lower()).strip("-")
+        if feature_key in seen_features:
+            _fail("feature-ownership", path, line_no,
+                  f"duplicate Feature identity {feature_key!r}; first at line {seen_features[feature_key]}")
+        else:
+            seen_features[feature_key] = line_no
+        owner_targets = "|".join(sorted(match.group(1) for match in _MARKDOWN_LINK_RE.finditer(cells[2])))
+        track_ids = "|".join(sorted(set(re.findall(r"`([A-Z][A-Z0-9-]+)`", cells[3]))))
+        signature = (cells[1].strip().lower(), owner_targets, track_ids)
+        if signature in seen_ownership:
+            _fail("feature-ownership", path, line_no,
+                  "duplicate status/GDD-owner/Track-ID ownership row; "
+                  f"first at line {seen_ownership[signature]}")
+        else:
+            seen_ownership[signature] = line_no
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1710,6 +1821,8 @@ def main() -> None:
         ("[34] Mutable campaign rules",   check_mutable_campaign_rule_contract),
         ("[35] Campaign status record",   check_campaign_status_record_contract),
         ("[36] Decision-index vocabulary",check_decision_index_vocabulary),
+        ("[37] GDD section governance",   check_gdd_section_governance),
+        ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
     ]
     for label, fn in steps:
         print(f"  {label}...")

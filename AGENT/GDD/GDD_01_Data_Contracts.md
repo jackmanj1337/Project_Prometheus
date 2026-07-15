@@ -343,6 +343,25 @@ Objective condition tiles are authored and evaluated in zero-based map coordinat
 HUD display text converts tile coordinates to player-facing one-based coordinates
 only at render time.
 
+## Campaign Data Contracts
+
+Status: **Split** — campaign graph, package/catalogue, status-record,
+CampaignManager, and deployment contracts are **Implemented**; public builder and
+content-resynchronization tools remain **Deferred**
+Last verified: 2026-07-15
+
+### Summary
+
+Campaign content is portable, data-only JSON with durable ids. The engine validates
+the complete graph/catalogue before activation, walks it through one campaign
+manager, persists only durable campaign state, and treats deployment as transient
+between-map input.
+
+### Specs
+
+The subordinate contracts below divide schema, runtime ownership, and validation
+without duplicating their code owners.
+
 ### CampaignData Contract
 
 Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
@@ -687,6 +706,26 @@ Rules this contract fixes:
   still fails loud.
 - **Benched units gain nothing** (campaign flow technical plan §4): a unit left
   out of the plan is never spawned, so it accrues no XP, levels, or items.
+
+### Known gaps
+
+- Public builder editing/repair remains `B8-PUBLIC-BUILDER` (**Deferred**).
+- Installed content resynchronization remains `B8-CONTENT-RESYNC` (**Deferred**).
+- Recruitment and broader Prep services retain their own control-plane tracks.
+
+### Anchors
+
+- Code: `scripts/resources/CampaignData.gd`,
+  `scripts/autoloads/CampaignManager.gd`,
+  `scripts/shared/DeploymentPlan.gd`,
+  `scripts/resources/CampaignStatusRecord.gd`,
+  `scripts/resources/Tier2Catalogue.gd`, and
+  `scripts/resources/CampaignTier2RuntimeAdapter.gd`.
+- Tests: campaign data/manager, deployment/Prep, package catalogue/adapter, and
+  campaign-status suites under `scripts/tests/`.
+- Roadmap: `B1-CST`, `B4-PREP-DEPLOYMENT`, `B6-CAMPAIGN-SHARING`, and
+  `B6-CAMPAIGN-STATUS`.
+- Deferred owners: `B8-PUBLIC-BUILDER`, `B8-CONTENT-RESYNC`.
 
 > **Registry migration note.** The field lists above describe the implemented resource
 > schema. Where comments name built-in ids, those ids are the developer preset library

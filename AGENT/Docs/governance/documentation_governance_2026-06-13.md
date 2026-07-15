@@ -104,6 +104,21 @@ required. This is a blessed deviation, not a gap — flagged by the 2026-06-14
 documentation audit (Pillar 2) and chosen over forcing the feature template onto
 catalog content.
 
+### Mechanical enforcement rollout (2026-07-15)
+
+`check_docs.py` requires every status-bearing section in the live split GDD_01 and
+GDD_07 companions to carry a `Last verified` marker inside that same Markdown
+section. It strictly checks the full DOC-002 heading shape for the campaign/save
+data and runtime companion sections closed by the campaign follow-up. Other legacy
+non-catalog chapters remain a visible migration backlog; the checker does not
+pretend they were silently restructured. GDD_06/07/08 retain the explicit
+DOC-002a catalogue exception and are not forced into per-entry Summary/Specs pairs.
+
+The Feature Index uses its normalized Feature name as the stable row identity and
+Track IDs as delivery ownership. Duplicate Feature identities or an exact duplicate
+status/GDD-owner/Track-ID signature fail the checker, preventing a copied ownership
+row from silently diverging.
+
 ## Decision-Record Schema & ID Namespace (DOC-009, ratified 2026-06-13)
 
 **Structure:** dated decision-record files plus a central index.
