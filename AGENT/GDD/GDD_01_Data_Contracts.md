@@ -402,6 +402,24 @@ without breaking saves — only `node_id` is durable identity.
 Shipped campaign: `data/campaigns/proving_grounds.json`, a linear five-node run
 over the shipped objective maps (rout, seize, boss, escape, defend).
 
+### Campaign Tier-1 Asset References
+
+Status: **Implemented - contract groundwork** (`B6-CAMPAIGN-SHARING` prerequisite,
+2026-07-15); package catalogues and import/export remain **Target design**.
+
+`WeaponData.icon` and `ItemData.icon` are optional string ids/pack-relative paths,
+not `Texture2D` fields. `AssetResolver` resolves those references inside a selected
+campaign root through two registries: engine-provided loader primitives and
+author-provided asset groups. Each group names a loader plus an ordered fallback
+chain. Missing optional media returns the registered fallback (or `null`) and adds
+a structured repair-report row; it is not a content-load crash. Paths may not be
+absolute or traverse outside the pack root.
+
+The implemented raw primitives cover PNG textures, TTF/OTF fonts, OGG music/SFX,
+and WAV SFX. The resolver deliberately does not enumerate packs, validate Tier-2
+JSON, install archives, or choose the active campaign; those responsibilities
+belong to the package catalogue/validator/installer and `DataManager` seams.
+
 ### CampaignManager Contract
 
 Status: **Implemented** (`B1-CST` Slice 2, 2026-07-14; persistence added in Slice 3, 2026-07-14).

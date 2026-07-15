@@ -4,6 +4,9 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 
 @export var id: String = ""
 @export var display_name: String = ""
+# Pack-relative Tier-1 asset id/path. AssetResolver owns raw loading; gameplay
+# data never stores a Texture2D that would depend on the res:// import pipeline.
+@export var icon: String = ""
 # Canonical combat family used for equip legality and family-specific skill checks.
 @export var combat_family: String = ""
 # Canonical progression track trained by this weapon.

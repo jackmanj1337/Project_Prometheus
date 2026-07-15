@@ -83,6 +83,12 @@ A provisional New Game choice now exposes the shipped five-node `proving_grounds
 campaign for end-to-end testing without claiming the package-browser slice.
 A returned v0.4.0 playtest preempts follow-on work here.
 
+`B6-CAMPAIGN-SHARING` has now started with its isolated asset prerequisite:
+`AssetResolver` provides pack-scoped raw-media loader primitives behind open
+asset-group/id/fallback registrations, including repair reporting and path
+containment. The package remains incomplete: next come the manifest and canonical
+Tier-2 JSON catalogue/validator, followed by archive install/export and selector UI.
+
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
 | 1 | `B1-CST` Slice 1 | **Implemented 2026-07-14:** `CampaignData`/`CampaignNode` progression graph, the shipped `proving_grounds` campaign, DataManager catalogue loading, and loud structural/reference validation. | Graph is authored JSON per [CST-3]; nodes bind by `map_id` until `B4-ENCOUNTER-MODEL` splits map/encounter. |

@@ -43,8 +43,8 @@ growable named library of data compositions and developer-provided presets.
 
 ### Authoring Extension Boundary
 
-Status: **Target design**
-Last verified: 2026-06-29
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-15
 
 Public campaign packages are data + assets first. The in-app authoring surface must not
 run arbitrary executable code from shared campaigns. A future sandboxed scripting layer
@@ -56,6 +56,16 @@ Project Control Plane and vocabulary manifest: objective predicates/actions, AI
 profiles/presets, map-object components, PHB panels, action/effect primitives, stat
 names, resource types, difficulty/rule profiles, requirement predicates/terms, and
 future activities.
+
+The first campaign-package presentation seam is implemented in
+`scripts/assets/AssetResolver.gd`. It separates the small engine-facing loader
+primitive registry from author-defined asset groups, ids, and fallback chains.
+Adding a portrait, icon, or other group that reuses a registered loader is data
+registration and requires no resolver switch edit. Resolution is scoped to one
+campaign root, rejects paths that escape that root, and produces a structured
+repair report for missing optional assets instead of crashing the pack. PNG,
+TTF/OTF, OGG, and WAV raw-loader primitives exist; package archive installation
+and JSON asset-catalogue loading remain `B6-CAMPAIGN-SHARING` work.
 
 ### Action/Effect Execution Boundary
 

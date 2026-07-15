@@ -37,6 +37,7 @@ Checks:
  29. Spawn guard  — normal GameMap spawn flow stays behind OccupancyService
  30. Doc ownership — active plan/design sources have a tracker/index owner or manifest exception
  31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
+ 32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
 """
 
 import re
@@ -1477,6 +1478,45 @@ def check_spawn_occupancy_guard() -> None:
               "(B2-OCCUPANCY DoD#2)")
 
 
+# ── check 32: campaign raw-asset boundary (B6-CAMPAIGN-SHARING DoD#2) ────────
+
+_RAW_ASSET_CALLS = (
+    re.compile(r"\bImage\.load_from_file\s*\("),
+    re.compile(r"\.load_dynamic_font\s*\("),
+    re.compile(r"\bAudioStream(?:OggVorbis|WAV)\.load_from_file\s*\("),
+)
+_PACK_MEDIA_EXTENSIONS = {".png", ".jpg", ".jpeg", ".ttf", ".otf", ".ogg", ".wav"}
+
+
+def check_campaign_asset_boundary() -> None:
+    """Raw user media has one loader boundary and a narrow portable format set."""
+    scripts_dir = ROOT / "scripts"
+    resolver = scripts_dir / "assets/AssetResolver.gd"
+    for path in sorted(scripts_dir.rglob("*.gd")):
+        if path == resolver or "tests" in path.relative_to(scripts_dir).parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for pattern in _RAW_ASSET_CALLS:
+            for match in pattern.finditer(text):
+                _fail("campaign-asset-boundary", path,
+                      text[:match.start()].count("\n") + 1,
+                      "raw campaign media must load through AssetResolver")
+
+    # This tree is introduced by the package seed/build slice. Keeping the check
+    # active before it exists makes the rule automatically cover its first file.
+    pack_seed = ROOT / "data/campaign_packs"
+    if pack_seed.exists():
+        for path in sorted(pack_seed.rglob("*")):
+            if not path.is_file() or "data" in path.relative_to(pack_seed).parts:
+                continue
+            if path.name in {"manifest.json"} or path.suffix.lower() == ".json":
+                continue
+            if path.suffix.lower() not in _PACK_MEDIA_EXTENSIONS:
+                _fail("campaign-asset-boundary", path, 1,
+                      "Tier-1 pack media must be PNG/JPG, TTF/OTF, OGG, or WAV")
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1512,6 +1552,7 @@ def main() -> None:
         ("[29] Spawn occupancy guard",     check_spawn_occupancy_guard),
         ("[30] Active doc ownership",      check_active_doc_ownership),
         ("[31] Retired vocabulary",       check_retired_vocabulary),
+        ("[32] Campaign asset boundary",  check_campaign_asset_boundary),
     ]
     for label, fn in steps:
         print(f"  {label}...")
