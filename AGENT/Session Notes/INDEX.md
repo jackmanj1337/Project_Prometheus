@@ -1,5 +1,7 @@
 # Session Notes — Master Index
 
+- [2026-07-15v](2026-07-15v.md) — Completed player-facing campaign-package import/export with inert discovery refresh and structured feedback; completion audit exposed portable-save integrity/import/export as the next real gap.
+
 One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.

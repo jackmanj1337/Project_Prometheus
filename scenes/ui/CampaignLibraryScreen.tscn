@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/CampaignLibraryScreen.gd" id="1_library"]
+
+[node name="CampaignLibraryScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+script = ExtResource("1_library")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.9)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 190.0
+offset_right = 890.0
+offset_bottom = 530.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Manage Campaigns"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+
+[node name="Description" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Import a campaign package, or export an installed package to share."
+autowrap_mode = 2
+
+[node name="HBoxPackage" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBox/HBoxPackage"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Installed package"
+
+[node name="OptPackage" type="OptionButton" parent="Panel/VBox/HBoxPackage"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnImport" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Import Package..."
+
+[node name="BtnExport" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Export Selected..."
+
+[node name="BtnBack" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Back"
+
+[node name="ImportDialog" type="FileDialog" parent="."]
+title = "Import Campaign Package"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.zip ; Campaign packages")
+
+[node name="ExportDialog" type="FileDialog" parent="."]
+title = "Export Campaign Package"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.zip ; Campaign packages")
+
+[node name="ResultDialog" type="AcceptDialog" parent="."]
+title = "Campaign Packages"

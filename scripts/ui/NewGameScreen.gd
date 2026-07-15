@@ -42,7 +42,9 @@ const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPack
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
 @onready var _opt_pair_up: OptionButton    = $Panel/VBox/HBoxPairUp/OptPairUp
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
+@onready var _btn_manage_campaigns: Button = $Panel/VBox/BtnManageCampaigns
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
+@onready var _campaign_library: Control = $CampaignLibraryScreen
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
@@ -94,7 +96,10 @@ func _ready() -> void:
 	_opt_pair_up.add_item("On")
 	_opt_run.item_selected.connect(_on_run_selected)
 	_btn_start.pressed.connect(_on_start)
+	_btn_manage_campaigns.pressed.connect(_on_manage_campaigns)
 	_btn_back.pressed.connect(_on_back)
+	_campaign_library.back_pressed.connect(_on_campaign_library_back)
+	_campaign_library.campaigns_changed.connect(_on_campaigns_changed)
 	# Persist the rule toggles to GameState the moment they change, so closing the
 	# panel WITHOUT pressing Start still remembers them on reopen (playtest v0.1.4
 	# #1.2). open() seeds the controls back from these same GameState fields. These
@@ -275,6 +280,18 @@ func _on_back() -> void:
 	_close()
 
 
+func _on_manage_campaigns() -> void:
+	_campaign_library.open()
+
+
+func _on_campaign_library_back() -> void:
+	_btn_manage_campaigns.grab_focus()
+
+
+func _on_campaigns_changed() -> void:
+	_refresh_run_options()
+
+
 func _selected_map_index_for(map_path: String) -> int:
 	for i in _map_options.size():
 		if _map_options[i]["map_data_path"] == map_path:
@@ -324,7 +341,7 @@ func _connect_v030_focus_trace() -> void:
 	if not V030_FOCUS_TRACE_ENABLED:
 		return
 	for control in [_opt_run, _opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
-			_opt_pair_up, _btn_start, _btn_back]:
+			_opt_pair_up, _btn_start, _btn_manage_campaigns, _btn_back]:
 		var c := control as Control
 		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
 		c.focus_exited.connect(_v030_trace_control_focus.bind(c, "exited"))

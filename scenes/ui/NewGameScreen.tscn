@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/NewGameScreen.gd" id="1_newgame"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CampaignLibraryScreen.tscn" id="2_library"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.12, 0.12, 0.16, 1)
@@ -127,6 +128,10 @@ size_flags_horizontal = 3
 [node name="HSep" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
 
+[node name="BtnManageCampaigns" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Manage Campaigns..."
+
 [node name="BtnStart" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Start"
@@ -134,3 +139,5 @@ text = "Start"
 [node name="BtnBack" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Back"
+
+[node name="CampaignLibraryScreen" parent="." instance=ExtResource("2_library")]

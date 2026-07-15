@@ -1,0 +1,119 @@
+extends "res://scripts/ui/ModalScreen.gd"
+# Player-facing bridge over the inert campaign archive services. Choosing a file
+# never activates content; NewGameScreen refreshes discovery only after install.
+
+signal back_pressed()
+signal campaigns_changed()
+
+const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
+const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
+const Exporter = preload("res://scripts/resources/CampaignPackExporter.gd")
+const Registry = preload("res://scripts/resources/CampaignPackRegistry.gd")
+
+const MAX_ENTRIES := 4096
+const MAX_ENTRY_BYTES := 64 * 1024 * 1024
+const MAX_ARCHIVE_BYTES := 512 * 1024 * 1024
+
+@onready var _package: OptionButton = $Panel/VBox/HBoxPackage/OptPackage
+@onready var _import_button: Button = $Panel/VBox/BtnImport
+@onready var _export_button: Button = $Panel/VBox/BtnExport
+@onready var _back_button: Button = $Panel/VBox/BtnBack
+@onready var _import_dialog: FileDialog = $ImportDialog
+@onready var _export_dialog: FileDialog = $ExportDialog
+@onready var _result_dialog: AcceptDialog = $ResultDialog
+
+var _summaries: Array[Dictionary] = []
+
+
+func _ready() -> void:
+	_import_button.pressed.connect(_on_import_pressed)
+	_export_button.pressed.connect(_on_export_pressed)
+	_back_button.pressed.connect(_close)
+	_import_dialog.file_selected.connect(_on_import_file_selected)
+	_export_dialog.file_selected.connect(_on_export_file_selected)
+	super._ready()
+
+
+func open() -> void:
+	_refresh_packages()
+	show()
+	_import_button.grab_focus()
+
+
+func _close() -> void:
+	back_pressed.emit()
+	super._close()
+
+
+func _refresh_packages() -> void:
+	var registry := Registry.new(Registry.DEFAULT_STORAGE_ROOT)
+	_summaries = registry.refresh()
+	_package.clear()
+	for summary in _summaries:
+		_package.add_item("%s %s" % [summary["package_id"], summary["package_version"]])
+	_export_button.disabled = _summaries.is_empty()
+	_package.disabled = _summaries.is_empty()
+
+
+func _on_import_pressed() -> void:
+	_import_dialog.popup_centered_ratio(0.75)
+
+
+func _on_export_pressed() -> void:
+	if _summaries.is_empty() or _package.selected < 0:
+		_show_result("No installed campaign package is available to export.")
+		return
+	var summary := _summaries[_package.selected]
+	_export_dialog.current_file = "%s-%s.zip" % [
+		summary["package_id"], summary["package_version"]]
+	_export_dialog.popup_centered_ratio(0.75)
+
+
+func _on_import_file_selected(path: String) -> void:
+	var preflight = Preflight.inspect_zip(path, _limits())
+	if not preflight.valid:
+		_show_result(_failure_text("Import failed", preflight.errors))
+		return
+	var installer := Installer.new(Registry.DEFAULT_STORAGE_ROOT)
+	var result = installer.install_zip(path, preflight)
+	if not result.installed:
+		_show_result(_failure_text("Import failed", result.errors))
+		return
+	_refresh_packages()
+	campaigns_changed.emit()
+	var message := "Imported %s %s." % [result.package_id, result.package_version]
+	if not result.repair_report.is_empty():
+		message += "\n\nLoaded with %d optional-asset repair(s)." % result.repair_report.size()
+	_show_result(message)
+
+
+func _on_export_file_selected(path: String) -> void:
+	if _summaries.is_empty() or _package.selected < 0:
+		_show_result("Export failed: the selected package is no longer installed.")
+		return
+	var summary := _summaries[_package.selected]
+	var result = Exporter.new().export_zip(summary["path"], path, _limits())
+	if not result.exported:
+		_show_result(_failure_text("Export failed", result.errors))
+		return
+	var message := "Exported %s %s." % [result.package_id, result.package_version]
+	if not result.repair_report.is_empty():
+		message += "\n\nArchive includes %d optional-asset repair(s)." % result.repair_report.size()
+	_show_result(message)
+
+
+func _show_result(message: String) -> void:
+	_result_dialog.dialog_text = message
+	_result_dialog.popup_centered()
+	_result_dialog.get_ok_button().grab_focus()
+
+
+static func _failure_text(prefix: String, errors: Array[String]) -> String:
+	if errors.is_empty():
+		return prefix + "."
+	return "%s:\n%s" % [prefix, "\n".join(errors)]
+
+
+static func _limits():
+	return Preflight.Limits.new(MAX_ENTRIES, MAX_ENTRY_BYTES, MAX_ENTRY_BYTES,
+		MAX_ARCHIVE_BYTES, MAX_ARCHIVE_BYTES)

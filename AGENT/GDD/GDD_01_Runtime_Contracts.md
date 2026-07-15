@@ -250,11 +250,9 @@ plan (code, integration sweep, tests, build order) is
 
 ## Campaign-Pack Storage Contract
 
-Status: **Split** — manifest/catalogue validation, hostile ZIP preflight, and
-rollback-safe staged installation, deterministic export, and preflighted
-byte-exact round trips, and validated installed-pack discovery are
-**Implemented** (2026-07-15, `B6-CAMPAIGN-SHARING`); player-facing selection
-remains **Planned**
+Status: **Implemented** — archive validation/storage, deterministic export,
+installed-pack discovery/activation, exact save identity, and the player-facing
+import/export/selection flow shipped 2026-07-15 (`B6-CAMPAIGN-SHARING`)
 Last verified: 2026-07-15
 
 Campaign packs contain indexed authored JSON and approved pack-scoped media;
@@ -268,9 +266,9 @@ under `installed/{pack_id}/{version}`. Existing identities are rejected rather
 than overwritten or merged. Every failure removes staging and leaves installed
 bytes, active content, selector state, settings, and saves unchanged.
 
-Installation is deliberately inert. Installed-pack discovery and an explicit
-`DataManager` selection path are later consumers; neither preflight nor install
-may register, select, or launch campaign content.
+Installation is deliberately inert. `CampaignLibraryScreen` refreshes discovery
+after a successful import, but neither preflight nor install selects, activates,
+or launches content. Selection remains an explicit New Game action.
 
 `CampaignPackExporter` derives a lexical archive entry list only from the
 validated manifest, canonical Tier-2 catalogue, and approved `assets/` media.
@@ -283,6 +281,15 @@ revalidates each manifest/catalogue and path identity, and caches deterministic
 read-only summaries containing pack provenance and authored campaign labels.
 Malformed candidates remain excluded with diagnostics. Refresh reconstructs the
 cache from disk so deleted or repaired packs cannot leave stale selector rows.
+
+New Game's **Manage Campaigns** overlay uses filesystem FileDialogs for ZIP
+import and export. Import runs hostile preflight before the transactional
+installer and reports validation errors or optional-media repair counts without
+leaving the screen. Export offers validated installed package identities and
+uses the deterministic exporter, including its mandatory output re-preflight.
+The local picker boundary admits at most 4096 entries, 64 MiB per entry, and
+512 MiB total compressed/uncompressed data; these are allocation safety ceilings,
+not format-version compatibility predicates.
 
 Tier-2 activation adapts validated JSON into existing runtime Resource types in
 memory, then atomically replaces the `DataManager` campaign/class/map/roster
@@ -301,7 +308,8 @@ Anchors: `scripts/resources/CampaignArchivePreflight.gd`,
 `test_campaign_archive_preflight.gd`, `test_campaign_pack_installer.gd`,
 `test_campaign_pack_exporter.gd`, `test_campaign_pack_registry.gd`.
 Runtime/save tests: `test_campaign_tier2_runtime_adapter.gd`,
-`test_campaign_pack_save_identity.gd`.
+`test_campaign_pack_save_identity.gd`. Player-surface test:
+`test_campaign_library_screen.gd`.
 
 ---
 

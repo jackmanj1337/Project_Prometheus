@@ -110,8 +110,11 @@ Resource types in memory, swaps sources atomically, resolves package-scoped map
 ids, and restores exact package identity from campaign/suspend saves before
 reference validation. New Game now appends validated installed campaigns with
 visible pack identity, activates the exact selected source before starting, and
-restores shipped content when a shipped row is chosen. Remaining sharing work is
-the player-facing archive import/export surface and any later repair controls.
+restores shipped content when a shipped row is chosen. Its Manage Campaigns
+overlay provides filesystem ZIP import/export, structured failure/repair
+feedback, inert install plus selector refresh, and deterministic re-preflighted
+export. `B6-CAMPAIGN-SHARING` is Implemented; future editing/repair controls
+remain separate builder work.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

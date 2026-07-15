@@ -29,6 +29,7 @@ func _init() -> void:
 		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
 		"Panel/VBox/HBoxLeveling/OptLeveling",
 		"Panel/VBox/HBoxPairUp/OptPairUp",
+		"Panel/VBox/BtnManageCampaigns",
 		"Panel/VBox/BtnStart",
 		"Panel/VBox/BtnBack",
 	]

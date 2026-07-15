@@ -154,13 +154,18 @@ directly.
 - Starting the run calls `GameState.configure_next_map(...)`, applies the roster
   policy, then changes to `GameMap.tscn`
 - Back returns to the Main Menu without reloading the scene
+- **Manage Campaigns** opens a modal package library. Import chooses a ZIP from
+  the filesystem, displays structured validation or optional-asset repair
+  feedback, installs without activating it, and refreshes the Run selector.
+  Export chooses an installed `{package_id, version}` and a filesystem
+  destination, then writes a deterministic re-preflighted ZIP.
 
 This screen is onboarding-relevant because the map registry is now the canonical
 launch surface for the validation maps and objective showcase maps.
 
-Target campaign starts will select a campaign package/slice first, then a map or saved
-campaign entry as appropriate. The current map dropdown is a developer/debug surface and
-validation preset, not the final builder-facing campaign browser.
+Campaign starts select a shipped or installed campaign package/slice first, then
+its authored node. The map dropdown remains a developer/debug surface and
+validation preset, not a builder-facing campaign browser.
 
 ### Prep, Service, And Authoring Panels
 

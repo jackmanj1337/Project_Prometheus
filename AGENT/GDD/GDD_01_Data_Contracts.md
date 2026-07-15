@@ -404,8 +404,7 @@ over the shipped objective maps (rout, seize, boss, escape, defend).
 
 ### Campaign Tier-1 Asset References
 
-Status: **Implemented - contract groundwork** (`B6-CAMPAIGN-SHARING` prerequisite,
-2026-07-15); archive import/export remains **Target design**.
+Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15).
 
 `WeaponData.icon` and `ItemData.icon` are optional string ids/pack-relative paths,
 not `Texture2D` fields. `AssetResolver` resolves those references inside a selected
@@ -422,9 +421,9 @@ belong to the package catalogue/validator/installer and `DataManager` seams.
 
 ### Campaign Package Manifest and Tier-2 Catalogue
 
-Status: **Split** (`B6-CAMPAIGN-SHARING`, 2026-07-15); manifest/catalogue,
-archive pipeline, discovery, and Tier-2 runtime adaptation are **Implemented**;
-player-facing campaign selection remains **Planned**.
+Status: **Implemented** (`B6-CAMPAIGN-SHARING`, 2026-07-15); manifest/catalogue,
+archive pipeline, discovery, Tier-2 runtime adaptation, explicit campaign
+selection, and player-facing package import/export are shipped.
 
 `PackManifest` parses the package identity document at `manifest.json`. Its
 required fields are `id`, `version`, `builder_content_version`, and integer
