@@ -171,7 +171,7 @@ is included in suspend/ledger state and clears on map commit or campaign cancel.
 ## Objective System
 
 Status: **Implemented**
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 
 Objectives are now authored as typed `ObjectiveCondition` resources grouped by
 alliance group:
@@ -190,11 +190,13 @@ results flow.
 
 ### Authored Condition Types
 
-The following condition ids are the implemented built-in objective predicate presets.
-Target `[TCV-4]`/`B3-REQ`/`B3-MET` generalizes objective conditions into an objective
-predicate/action registry plus `end_map` actions and event-driven re-checks. A new
-objective should be authorable as data when it composes existing predicates/actions; only
-new primitive predicates require engine work.
+The following compatibility ids are implemented registry presets. Their data entries
+bind validation, evaluation, and display primitives through
+`ObjectiveConditionRegistry`; `DataManager`, `TurnManager`, and the HUD no longer own
+closed id switches. A new objective id that reuses registered primitives is authored
+as registry data; only a new primitive predicate requires engine work. The broader
+`[TCV-4]`/`B3-REQ`/`B3-MET` requirement/action composition, `end_map` actions, and
+event-driven re-checks remain their own tracks.
 
 #### `rout`
 The named faction or alliance group has no living units left. With an empty

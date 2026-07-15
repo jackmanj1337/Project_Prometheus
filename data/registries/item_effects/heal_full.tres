@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "heal_full"
+family = "item_effects"
+label_key = "item_effect.heal_full"
+owner_feature = "B2-ACTION-EFFECT"
+kind = "mutation"
+primitive_handler = "heal_full"
+save_fields = Array[String](["UnitData.hp", "UnitData.inventory"])
+docs_text = "Restore HP to the unit maximum."
+test_fixture = {"preview_mode": "direct", "validation_handler": "none"}

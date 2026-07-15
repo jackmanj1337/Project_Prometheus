@@ -42,6 +42,7 @@ Checks:
  36. Decision index — rows use independent decision-state and delivery vocabularies
  37. GDD section shape — split companions pair status/date; DOC-002 sections keep their shape
  38. Feature ownership — Feature Index identities and ownership/status rows are unique
+ 39. Open registries — authored objective/item ids cannot regress to closed dispatch
 """
 
 import json
@@ -1781,6 +1782,52 @@ def check_feature_index_ownership_duplicates() -> None:
             seen_ownership[signature] = line_no
 
 
+# ── check 39: open objective/item registry architecture (B2-REGISTRY) ─────────
+
+_OPEN_REGISTRY_COMPATIBILITY_IDS = {
+    "objective_conditions": {
+        "rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit",
+    },
+    "item_effects": {"heal_flat", "heal_full", "promote", "reclass", "stat_buff"},
+}
+
+
+def check_open_authored_registries() -> None:
+    """Keep authored objective/item vocabularies data-backed and dispatch-switch free."""
+    forbidden = {
+        ROOT / "scripts/autoloads/DataManager.gd": (
+            "_VALID_OBJECTIVE_TYPES", "IMPLEMENTED_EFFECT_IDS", "match cond.type",
+        ),
+        ROOT / "scripts/core/TurnManager.gd": ("match cond.type",),
+        ROOT / "scripts/items/ItemHandler.gd": (
+            "IMPLEMENTED_EFFECT_IDS", "match item.effect_id", "match effect_id",
+        ),
+    }
+    for path, needles in forbidden.items():
+        text = path.read_text(encoding="utf-8")
+        for needle in needles:
+            line_no = text[:text.find(needle)].count("\n") + 1 if needle in text else 1
+            if needle in text:
+                _fail("open-registries", path, line_no,
+                      f"closed authored-id dispatch token is forbidden: {needle!r}")
+
+    for family, expected_ids in _OPEN_REGISTRY_COMPATIBILITY_IDS.items():
+        manifest_path = ROOT / "data/registries" / family / "resource_manifest.json"
+        try:
+            filenames = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            _fail("open-registries", manifest_path, 1, f"cannot read registry manifest: {exc}")
+            continue
+        actual_ids = {Path(filename).stem for filename in filenames if isinstance(filename, str)}
+        if actual_ids != expected_ids:
+            _fail("open-registries", manifest_path, 1,
+                  f"compatibility ids are {sorted(actual_ids)}; expected {sorted(expected_ids)}")
+        for filename in filenames:
+            if isinstance(filename, str) and not (manifest_path.parent / filename).is_file():
+                _fail("open-registries", manifest_path, 1,
+                      f"manifest entry does not exist: {filename!r}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1823,6 +1870,7 @@ def main() -> None:
         ("[36] Decision-index vocabulary",check_decision_index_vocabulary),
         ("[37] GDD section governance",   check_gdd_section_governance),
         ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
+        ("[39] Open authored registries", check_open_authored_registries),
     ]
     for label, fn in steps:
         print(f"  {label}...")

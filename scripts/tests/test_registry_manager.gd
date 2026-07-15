@@ -73,8 +73,10 @@ func _init() -> void:
 			and manager.has_entry("action_primitives", "apply_active_modifier") \
 			and manager.has_entry("resource_types", "party_gold") \
 			and manager.has_entry("resource_types", "unit_gold") \
-			and manager.has_entry("occupancy_policies", "nearest_free"):
-		print("OK  export-safe preset manifests load all three starter families"); passed += 1
+			and manager.has_entry("occupancy_policies", "nearest_free") \
+			and manager.has_entry("objective_conditions", "rout") \
+			and manager.has_entry("item_effects", "heal_flat"):
+		print("OK  export-safe preset manifests load all required registry families"); passed += 1
 	else:
 		print("FAIL preset loading: %s" % [manager.load_errors()]); failed += 1
 
@@ -134,7 +136,11 @@ func _write_registry_source(source: String) -> bool:
 		and _write_registry_family(
 			source, "resource_types", "fixture_resource", "party_gold_wallet") \
 		and _write_registry_family(
-			source, "occupancy_policies", "fixture_occupancy", "require_empty_placement")
+			source, "occupancy_policies", "fixture_occupancy", "require_empty_placement") \
+		and _write_registry_family(
+			source, "objective_conditions", "fixture_objective", "rout") \
+		and _write_registry_family(
+			source, "item_effects", "fixture_item", "heal_flat")
 
 
 func _write_registry_family(source: String, family: String, id: String, handler: String) -> bool:

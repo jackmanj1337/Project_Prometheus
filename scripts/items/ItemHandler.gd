@@ -5,13 +5,9 @@ extends Node
 
 const ActionRequestScript = preload("res://scripts/actions/ActionRequest.gd")
 const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+const ItemEffectRegistryScript = preload("res://scripts/registries/ItemEffectRegistry.gd")
 
-# Canonical list of effect_ids implemented by apply_item's match below. Read by
-# DataManager._validate_cross_references at startup (B6) so a typo in an item
-# .tres surfaces immediately rather than as a runtime push_warning the first time
-# the item is used. Keep this list in lockstep with apply_item's match cases —
-# add the case AND a string here whenever a new item effect lands.
-const IMPLEMENTED_EFFECT_IDS: Array[String] = ["heal_flat", "heal_full", "promote", "reclass", "stat_buff"]
+var _effects: RefCounted
 
 # Applies the effect of an item entry to `unit`.
 # Decrements uses_remaining and removes exhausted entries from the inventory.
@@ -27,36 +23,15 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 		push_warning("ItemHandler: item '%s' is not currently usable by '%s'" % [
 			item.id, unit.data.unit_name])
 		return
-	var amount: int = int(item.effect_params.get("amount", 0))
-	match item.effect_id:
-		"heal_flat":
-			unit.heal(amount)
-		"heal_full":
-			unit.heal(unit.data.max_hp)
-		"promote":
-			push_warning("ItemHandler: promote items must be resolved through PromotionScreen")
-			return
-		"reclass":
-			push_warning("ItemHandler: reclass items must be resolved through ReclassScreen")
-			return
-		"stat_buff":
-			var runner := get_node_or_null("/root/ActionEffectRunner")
-			if runner == null:
-				return
-			var request = ActionRequestScript.new("apply_active_modifier", {
-				"stat": String(item.effect_params.get("stat", "")),
-				"delta": int(item.effect_params.get("delta", 0)),
-				"duration": int(item.effect_params.get("duration", -1)),
-				"duration_type": String(item.effect_params.get("duration_type", "turn")),
-				"source": "item:%s" % item.id,
-			})
-			var context = ActionContextScript.new("item", {"actor": unit, "target": unit})
-			if not runner.commit(request, context).ok:
-				return
-		_:
-			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
-			return  # Don't consume the item if we can't apply its effect
-	consume_entry(unit, entry)
+	var result: Dictionary = _effect_registry().commit(item.effect_id, unit, item)
+	if not result.get("ok", false):
+		if result.get("error", "") == "screen_required":
+			push_warning("ItemHandler: '%s' items must be resolved through their modal screen" % item.effect_id)
+		else:
+			push_warning("ItemHandler: unknown or failed effect_id '%s'" % item.effect_id)
+		return
+	if result.get("consume", true):
+		consume_entry(unit, entry)
 
 
 func can_apply_item(unit: Node, entry: InventoryEntry) -> bool:
@@ -67,17 +42,14 @@ func can_apply_item(unit: Node, entry: InventoryEntry) -> bool:
 	var item: ItemData = _item_from_entry(entry)
 	if item == null:
 		return false
-	match item.effect_id:
-		"heal_flat", "heal_full":
-			return true
-		"promote":
-			return _can_apply_promotion_item(unit, item)
-		"reclass":
-			return unit.has_method("can_use_second_seal") and unit.can_use_second_seal()
-		"stat_buff":
-			return unit.has_method("add_modifier")
-		_:
-			return false
+	return _effect_registry().can_apply(item.effect_id, unit, item)
+
+
+func preview_item(unit: Node, entry: InventoryEntry) -> Dictionary:
+	var item := _item_from_entry(entry)
+	if item == null or not can_apply_item(unit, entry):
+		return {"ok": false, "mode": "", "error": "not_usable"}
+	return _effect_registry().preview(item.effect_id, unit, item)
 
 
 func consume_entry(unit: Node, entry: InventoryEntry) -> void:
@@ -129,3 +101,82 @@ func _class_data_for(unit: Node) -> ClassData:
 		return null
 	var dm := get_node_or_null("/root/DataManager")
 	return dm.get_class_data(unit.data.class_id) if dm != null else null
+
+
+func _effect_registry() -> RefCounted:
+	if _effects != null:
+		return _effects
+	_effects = ItemEffectRegistryScript.new()
+	_effects.register_runtime_handler("heal_flat",
+		Callable(self, "_can_direct"), Callable(self, "_preview_direct"),
+		Callable(self, "_commit_heal_flat"))
+	_effects.register_runtime_handler("heal_full",
+		Callable(self, "_can_direct"), Callable(self, "_preview_direct"),
+		Callable(self, "_commit_heal_full"))
+	_effects.register_runtime_handler("promote",
+		Callable(self, "_can_promote"), Callable(self, "_preview_promotion"),
+		Callable(self, "_commit_screen_required"))
+	_effects.register_runtime_handler("reclass",
+		Callable(self, "_can_reclass"), Callable(self, "_preview_reclass"),
+		Callable(self, "_commit_screen_required"))
+	_effects.register_runtime_handler("stat_buff",
+		Callable(self, "_can_stat_buff"), Callable(self, "_preview_direct"),
+		Callable(self, "_commit_stat_buff"))
+	return _effects
+
+
+func _can_direct(_unit: Node, _item: ItemData) -> bool:
+	return true
+
+
+func _can_promote(unit: Node, item: ItemData) -> bool:
+	return _can_apply_promotion_item(unit, item)
+
+
+func _can_reclass(unit: Node, _item: ItemData) -> bool:
+	return unit.has_method("can_use_second_seal") and unit.can_use_second_seal()
+
+
+func _can_stat_buff(unit: Node, _item: ItemData) -> bool:
+	return unit.has_method("add_modifier")
+
+
+func _preview_direct(_unit: Node, _item: ItemData) -> Dictionary:
+	return {"ok": true, "mode": "direct"}
+
+
+func _preview_promotion(_unit: Node, _item: ItemData) -> Dictionary:
+	return {"ok": true, "mode": "promotion"}
+
+
+func _preview_reclass(_unit: Node, _item: ItemData) -> Dictionary:
+	return {"ok": true, "mode": "reclass"}
+
+
+func _commit_heal_flat(unit: Node, item: ItemData) -> Dictionary:
+	unit.heal(int(item.effect_params.get("amount", 0)))
+	return {"ok": true, "consume": true}
+
+
+func _commit_heal_full(unit: Node, _item: ItemData) -> Dictionary:
+	unit.heal(unit.data.max_hp)
+	return {"ok": true, "consume": true}
+
+
+func _commit_screen_required(_unit: Node, _item: ItemData) -> Dictionary:
+	return {"ok": false, "consume": false, "error": "screen_required"}
+
+
+func _commit_stat_buff(unit: Node, item: ItemData) -> Dictionary:
+	var runner := get_node_or_null("/root/ActionEffectRunner")
+	if runner == null:
+		return {"ok": false, "consume": false, "error": "missing_runner"}
+	var request = ActionRequestScript.new("apply_active_modifier", {
+		"stat": String(item.effect_params.get("stat", "")),
+		"delta": int(item.effect_params.get("delta", 0)),
+		"duration": int(item.effect_params.get("duration", -1)),
+		"duration_type": String(item.effect_params.get("duration_type", "turn")),
+		"source": "item:%s" % item.id,
+	})
+	var context = ActionContextScript.new("item", {"actor": unit, "target": unit})
+	return {"ok": runner.commit(request, context).ok, "consume": true}

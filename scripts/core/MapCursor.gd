@@ -1458,14 +1458,14 @@ func _apply_item_effect(entry: InventoryEntry) -> bool:
 	if ih == null:
 		push_warning("MapCursor: ItemHandler autoload not found")
 		return true
-	var item: ItemData = ih.get_item_data(entry)
-	if item != null and item.effect_id == "promote" and promotion_screen != null:
+	var preview: Dictionary = ih.preview_item(_selection.selected_unit, entry)
+	if preview.get("mode", "") == "promotion" and promotion_screen != null:
 		_pending_item_id = entry.item_id
 		promotion_screen.open_for(_selection.selected_unit, entry,
 			Callable(self, "_on_promotion_item_confirmed"),
 			Callable(self, "_on_promotion_item_cancelled"))
 		return false
-	if item != null and item.effect_id == "reclass" and reclass_screen != null:
+	if preview.get("mode", "") == "reclass" and reclass_screen != null:
 		_pending_item_id = entry.item_id
 		reclass_screen.open_for(_selection.selected_unit, entry,
 			Callable(self, "_on_promotion_item_confirmed"),

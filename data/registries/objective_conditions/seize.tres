@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "seize"
+family = "objective_conditions"
+label_key = "objective.seize"
+owner_feature = "B3-REQ"
+kind = "predicate"
+primitive_handler = "seize"
+docs_text = "True after an eligible unit seizes the authored tile."
+test_fixture = {"display_handler": "seize", "validation_handler": "seize"}

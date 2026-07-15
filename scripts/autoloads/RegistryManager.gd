@@ -9,6 +9,8 @@ const REQUIRED_FAMILIES: Array[String] = [
 	"action_primitives",
 	"resource_types",
 	"occupancy_policies",
+	"objective_conditions",
+	"item_effects",
 ]
 const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"apply_active_modifier",
@@ -19,6 +21,8 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"delay_placement",
 	"skip_placement",
 	"unimplemented_placement",
+	"rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit",
+	"heal_flat", "heal_full", "promote", "reclass", "stat_buff",
 ]
 
 var _catalog: RefCounted

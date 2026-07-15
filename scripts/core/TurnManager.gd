@@ -20,6 +20,7 @@ signal phase_committed
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
+const ObjectiveConditionRegistryScript = preload("res://scripts/registries/ObjectiveConditionRegistry.gd")
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -69,6 +70,7 @@ var _hotseat_controller: Node = null
 var _debug_hotseat_override_latch: bool = false
 var _history_cursor: Node = null
 var _history_push_pending := false
+var _objective_conditions: RefCounted
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -954,31 +956,37 @@ func _conditions_for_group(dict: Dictionary, group: String) -> Array:
 # Dispatcher. Returns true iff `cond` is satisfied right now for the
 # conditioning group `for_group`. Covers the seven authored M16 types.
 func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
-	if cond == null:
-		return false
-	match cond.type:
-		"rout":
-			return _eval_rout(cond, for_group, gs)
-		"turn_limit":
-			# defeat when turn_number > turns; mirrors the legacy strict-greater check.
-			return gs.turn_number > cond.turns
-		"protect":
-			# defeat-condition truth = ANY protected unit is dead/missing.
-			return _eval_protect_failed(cond, gs)
-		"defeat_boss":
-			# defeat-condition truth = ANY named unit is dead. Same shape as
-			# protect_failed but authored as a foe-eliminating victory ("boss
-			# down → I win") on the conditioning group's victory_conditions.
-			return _eval_all_named_dead(cond, gs)
-		"seize":
-			return _eval_seize(cond, for_group, gs)
-		"escape":
-			return _eval_escape(cond)
-		"survive":
-			return _eval_survive(cond, for_group, gs)
-		_:
-			push_warning("ObjectiveCondition: unimplemented type '%s' — treated as unmet" % cond.type)
-			return false
+	return _objective_registry().evaluate(cond, for_group, gs)
+
+
+func _objective_registry() -> RefCounted:
+	if _objective_conditions != null:
+		return _objective_conditions
+	_objective_conditions = ObjectiveConditionRegistryScript.new()
+	_objective_conditions.register_evaluation_handler("rout", Callable(self, "_eval_rout"))
+	_objective_conditions.register_evaluation_handler("turn_limit", Callable(self, "_eval_turn_limit"))
+	_objective_conditions.register_evaluation_handler("protect", Callable(self, "_eval_protect"))
+	_objective_conditions.register_evaluation_handler("defeat_boss", Callable(self, "_eval_defeat_boss"))
+	_objective_conditions.register_evaluation_handler("seize", Callable(self, "_eval_seize"))
+	_objective_conditions.register_evaluation_handler("escape", Callable(self, "_eval_escape_registered"))
+	_objective_conditions.register_evaluation_handler("survive", Callable(self, "_eval_survive"))
+	return _objective_conditions
+
+
+func _eval_turn_limit(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return gs.turn_number > cond.turns
+
+
+func _eval_protect(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return _eval_protect_failed(cond, gs)
+
+
+func _eval_defeat_boss(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return _eval_all_named_dead(cond, gs)
+
+
+func _eval_escape_registered(cond: ObjectiveCondition, _for_group: String, _gs: Node) -> bool:
+	return _eval_escape(cond)
 
 
 # rout: a named faction id, or a named alliance group, has zero living units.

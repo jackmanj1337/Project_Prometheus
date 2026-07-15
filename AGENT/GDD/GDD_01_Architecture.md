@@ -73,6 +73,14 @@ Preflight is read-only and leaves activation, save state, and installed-pack
 storage untouched; transactional installation remains `B6-CAMPAIGN-SHARING`
 work.
 
+Objective conditions and item effects now use the same data/primitive split.
+`data/registries/objective_conditions/` binds authored condition ids to
+validation, evaluation, and display primitives;
+`data/registries/item_effects/` binds item effect ids to validation, preview,
+and commit primitives. Existing ids and resource fields are unchanged. A new id
+that reuses registered primitives is a registry resource; a genuinely new engine
+behavior adds and tests a primitive handler without extending a central switch.
+
 ### Action/Effect Execution Boundary
 
 Status: **Implemented - contract groundwork**
@@ -90,8 +98,10 @@ the handler through neutral defaults rather than failing after validation.
 The first proof primitive, `apply_active_modifier`, is shared by the existing item
 domain and a map-event fixture. It reports `UnitData.active_modifiers` as its touched
 save field; all registry entries marked as mutations must declare at least one save
-field. Requirement-gated availability remains owned by `B3-REQ`, and broader item,
-map-event, dialogue, economy, and objective migrations remain later consumers.
+field. Requirement-gated availability remains owned by `B3-REQ`. Existing item
+effects now preview/commit through `ItemEffectRegistry`, and existing objectives
+validate, display, and evaluate through `ObjectiveConditionRegistry`; map-event,
+dialogue, economy, and generalized requirement composition remain later consumers.
 
 ### Resource Transaction Boundary
 

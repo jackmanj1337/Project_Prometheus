@@ -259,11 +259,11 @@ class_name ItemData extends Resource
 @export var display_name: String = ""
 @export var description: String = ""
 @export var item_type: String = ""
-    # implemented built-in ids; target item/component registry validates this
+    # compatibility-preserved ids registered under data/registries/item_effects
 @export var uses: int = 1                 # -1 = infinite / equippable
 @export var cost: int = 0
 @export var effect_id: String = ""
-    # implemented ItemHandler ids; target action/effect primitive registry validates this
+    # parameters validated by the selected ItemEffectRegistry entry
 @export var effect_params: Dictionary = {}
 ```
 

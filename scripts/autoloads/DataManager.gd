@@ -3,11 +3,8 @@ extends Node
 # Loads all content resources at startup. All game systems query this singleton
 # rather than loading resources on demand, so load errors surface immediately.
 
-# Preloaded (not autoload-referenced) so _validate_cross_references can read the
-# canonical IMPLEMENTED_EFFECT_IDS list even though ItemHandler is registered as
-# an autoload AFTER DataManager in project.godot (so /root/ItemHandler doesn't
-# exist yet during DataManager._ready). Const access only — no instance needed.
-const ItemHandlerScript = preload("res://scripts/items/ItemHandler.gd")
+const ItemEffectRegistryScript = preload("res://scripts/registries/ItemEffectRegistry.gd")
+const ObjectiveConditionRegistryScript = preload("res://scripts/registries/ObjectiveConditionRegistry.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 # AI profiles are validated against the open AIProfileRegistry (the composition
 # engine seam) rather than a closed const — adding a profile no longer needs a
@@ -21,7 +18,6 @@ const DEFAULT_CONTENT_SOURCE := "res://data"
 # typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
-const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -296,32 +292,9 @@ static func _check_weapon_refs(weapons: Dictionary, errors: Array[String]) -> vo
 
 
 static func _check_item_refs(items: Dictionary, classes: Dictionary, errors: Array[String]) -> void:
-	# apply_item already push_warns and refuses to consume unknown effects at
-	# runtime, but failing loud at boot beats discovering it the first time the
-	# player drinks the item.
-	var known_class_groups := _collect_class_groups(classes)
+	var registry := ItemEffectRegistryScript.new()
 	for item in items.values():
-		if not (item.effect_id in ItemHandlerScript.IMPLEMENTED_EFFECT_IDS):
-			errors.append("DataManager: item '%s' effect_id '%s' is not implemented by ItemHandler" \
-				% [item.id, item.effect_id])
-		if item.effect_params.has("allowed_classes"):
-			for class_id in item.effect_params["allowed_classes"]:
-				if not classes.has(String(class_id)):
-					errors.append("DataManager: item '%s' allowed_classes '%s' not found" % [
-						item.id, String(class_id)])
-		if item.effect_params.has("allowed_class_groups"):
-			for group_id in item.effect_params["allowed_class_groups"]:
-				if not known_class_groups.has(String(group_id)):
-					errors.append("DataManager: item '%s' allowed_class_groups '%s' not found" % [
-						item.id, String(group_id)])
-
-
-static func _collect_class_groups(classes: Dictionary) -> Dictionary:
-	var groups := {}
-	for cls in classes.values():
-		for group_id in cls.class_groups:
-			groups[String(group_id)] = true
-	return groups
+		errors.append_array(registry.validate_item(item, classes))
 
 
 # --- Campaigns ([CST-3] progression graphs) ---------------------------------
@@ -799,34 +772,11 @@ static func _validate_objective_condition(cond: ObjectiveCondition, map_path: St
 		field_name: String, group_name: String, faction_ids: Dictionary,
 		alliance_groups: Dictionary, width: int, height: int,
 		errors: Array[String]) -> void:
-	if not (cond.type in _VALID_OBJECTIVE_TYPES):
-		errors.append("DataManager: map '%s' %s['%s'] has invalid ObjectiveCondition.type '%s'" % [
-			map_path, field_name, group_name, cond.type])
-		return
-	if cond.type == "rout" and cond.faction_id != "" \
-			and not faction_ids.has(cond.faction_id) and not alliance_groups.has(cond.faction_id):
-		errors.append("DataManager: map '%s' rout condition references unknown faction/group '%s'" % [
-			map_path, cond.faction_id])
-	if cond.type in ["defeat_boss", "protect", "escape"] and cond.unit_ids.is_empty():
-		errors.append("DataManager: map '%s' %s condition in group '%s' requires unit_ids" % [
-			map_path, cond.type, group_name])
-	if cond.type == "seize":
-		if cond.tile == Vector2i(-1, -1):
-			errors.append("DataManager: map '%s' seize condition in group '%s' is missing tile" % [
-				map_path, group_name])
-		elif width > 0 and height > 0 and not _tile_is_inside_grid(cond.tile, width, height):
-			errors.append("DataManager: map '%s' seize condition in group '%s' tile %s is outside the grid" % [
-				map_path, group_name, str(cond.tile)])
-	if cond.type == "escape" and cond.tiles.is_empty():
-		errors.append("DataManager: map '%s' escape condition in group '%s' requires tiles" % [
-			map_path, group_name])
-	for tile in cond.tiles:
-		if width > 0 and height > 0 and not _tile_is_inside_grid(tile, width, height):
-			errors.append("DataManager: map '%s' %s condition in group '%s' tile %s is outside the grid" % [
-				map_path, cond.type, group_name, str(tile)])
-	if cond.type == "survive" and cond.turns <= 0:
-		errors.append("DataManager: map '%s' survive condition in group '%s' requires turns > 0" % [
-			map_path, group_name])
+	var registry := ObjectiveConditionRegistryScript.new()
+	errors.append_array(registry.validate(cond, {"map_path": map_path,
+		"field_name": field_name, "group_name": group_name,
+		"faction_ids": faction_ids, "alliance_groups": alliance_groups,
+		"width": width, "height": height}))
 
 
 static func _tile_is_inside_grid(tile: Vector2i, width: int, height: int) -> bool:
