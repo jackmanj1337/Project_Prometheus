@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Implemented - archive slice 3 landed; deterministic export is next
+Status: Implemented - archive storage/import/export pipeline landed
 Last verified: 2026-07-15
 ---
 
@@ -72,9 +72,9 @@ version, choosing a player-facing global archive-size policy, defining new
 compatibility semantics, or activating installed content. Those decisions are
 outside transactional installation.
 
-## After slice 3
+## After archive storage
 
-Implement deterministic export and round-trip validation. After safe storage is
-finished, return to the delivery plan for installed-pack discovery/selection,
-then the remaining persistence unification, live Prep validation, and campaign
-presentation work according to owner priority.
+Deterministic export and round-trip validation are implemented. Return to the
+delivery plan for installed-pack discovery/selection, then the remaining
+persistence unification, live Prep validation, and campaign presentation work
+according to owner priority.

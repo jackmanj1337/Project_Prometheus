@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15o](2026-07-15o.md) — Completed deterministic campaign-pack export: validated allow-list, lexical/byte-stable ZIPs, state/cache exclusion, mandatory re-preflight, and byte-exact export/install round trip.
 - [2026-07-15n](2026-07-15n.md) — Completed campaign archive slice 3: unique staged extraction, full second-pass validation, atomic promotion, existing-version rejection, rollback cleanup, repair reporting, and path-containment tests.
 - [2026-07-15m](2026-07-15m.md) — Ratified the campaign-pack/engine boundary and delivery sequence; queued rollback-safe staged archive installation as the next bounded implementation slice.
 - [2026-07-15l](2026-07-15l.md) — Completed campaign archive slice 2: pure actual-ZIP hostile preflight, safe one-root paths/types/collisions, caller-owned byte limits, in-memory structured validation, and save/unindexed-file exclusion.

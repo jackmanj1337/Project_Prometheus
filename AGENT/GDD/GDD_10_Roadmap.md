@@ -100,8 +100,11 @@ admitted entries extract only below a unique service-owned staging root, the
 filesystem is validated a second time, and a validated `{id, version}` is
 atomically promoted. Existing versions are rejected byte-for-byte; extraction,
 validation, and promotion failures clean staging without touching installed or
-runtime/save state. Deterministic export is the next archive slice. Installed-pack
-discovery and selector activation remain separate later consumers.
+runtime/save state. Deterministic export now admits only validated indexed data
+and approved media in lexical order, excludes saves/caches/unrelated files by
+construction, and re-preflights its artifact; export/import tests preserve every
+admitted byte. Installed-pack discovery and selector activation are the next
+separate consumers.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|
