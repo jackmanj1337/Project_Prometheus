@@ -7,7 +7,8 @@ const STAGING_DIR := ".staging"
 const INSTALLED_DIR := "installed"
 
 
-class Result extends RefCounted:
+class Result:
+	extends RefCounted
 	var installed := false
 	var errors: Array[String] = []
 	var repair_report: Array[Dictionary] = []
@@ -25,8 +26,7 @@ func _init(storage_root: String, fault_injector: Callable = Callable()) -> void:
 	_fault_injector = fault_injector
 
 
-func install_zip(archive_path: String,
-		preflight: CampaignArchivePreflight.Result) -> Result:
+func install_zip(archive_path: String, preflight: CampaignArchivePreflight.Result) -> Result:
 	var result := Result.new()
 	if preflight == null or not preflight.valid:
 		result.errors.append("Campaign pack installation requires a successful preflight")
@@ -59,9 +59,12 @@ func install_zip(archive_path: String,
 	return result
 
 
-func _extract_admitted(archive_path: String,
-		preflight: CampaignArchivePreflight.Result, staged_pack: String,
-		errors: Array[String]) -> bool:
+func _extract_admitted(
+	archive_path: String,
+	preflight: CampaignArchivePreflight.Result,
+	staged_pack: String,
+	errors: Array[String]
+) -> bool:
 	var reader := ZIPReader.new()
 	var open_error := reader.open(archive_path)
 	if open_error != OK:
@@ -93,8 +96,9 @@ func _extract_admitted(archive_path: String,
 	return errors.is_empty()
 
 
-func _validate_staged_tree(staged_pack: String,
-		preflight: CampaignArchivePreflight.Result, result: Result) -> void:
+func _validate_staged_tree(
+	staged_pack: String, preflight: CampaignArchivePreflight.Result, result: Result
+) -> void:
 	var manifest_raw: Variant = _read_json(staged_pack.path_join(MANIFEST_PATH), result.errors)
 	if manifest_raw == null:
 		return
@@ -108,7 +112,9 @@ func _validate_staged_tree(staged_pack: String,
 	if manifest.id != preflight.package_id or manifest.id != preflight.package_root:
 		result.errors.append("Staged manifest identity differs from archive preflight")
 	if not _safe_identity_component(manifest.version):
-		result.errors.append("PackManifest(%s): version is not safe for installed identity" % MANIFEST_PATH)
+		result.errors.append(
+			"PackManifest(%s): version is not safe for installed identity" % MANIFEST_PATH
+		)
 
 	var catalogue_errors: Array[String] = []
 	Tier2Catalogue.load_campaign_pack(staged_pack, catalogue_errors)
@@ -118,9 +124,11 @@ func _validate_staged_tree(staged_pack: String,
 	_validate_optional_media(staged_pack, preflight, result.repair_report)
 
 
-func _validate_optional_media(staged_pack: String,
-		preflight: CampaignArchivePreflight.Result,
-		repair_report: Array[Dictionary]) -> void:
+func _validate_optional_media(
+	staged_pack: String,
+	preflight: CampaignArchivePreflight.Result,
+	repair_report: Array[Dictionary]
+) -> void:
 	var resolver := AssetResolver.new(staged_pack)
 	var groups := {
 		"png": AssetResolver.HANDLER_TEXTURE,
@@ -148,8 +156,12 @@ func _promote(staging_parent: String, staged_pack: String, result: Result) -> bo
 	var final_path := final_parent.path_join(result.package_version)
 	result.installed_path = final_path
 	if DirAccess.dir_exists_absolute(final_path) or FileAccess.file_exists(final_path):
-		result.errors.append("Campaign pack '%s' version '%s' is already installed" % [
-			result.package_id, result.package_version])
+		result.errors.append(
+			(
+				"Campaign pack '%s' version '%s' is already installed"
+				% [result.package_id, result.package_version]
+			)
+		)
 		return false
 	if DirAccess.make_dir_recursive_absolute(final_parent) != OK:
 		result.errors.append("Cannot create installed campaign-pack identity directory")
@@ -159,7 +171,9 @@ func _promote(staging_parent: String, staged_pack: String, result: Result) -> bo
 		return false
 	var rename_error := DirAccess.rename_absolute(staged_pack, final_path)
 	if rename_error != OK:
-		result.errors.append("Cannot atomically promote staged campaign pack: %s" % error_string(rename_error))
+		result.errors.append(
+			"Cannot atomically promote staged campaign pack: %s" % error_string(rename_error)
+		)
 		return false
 	_remove_tree(staging_parent)
 	result.installed = true

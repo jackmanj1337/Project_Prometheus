@@ -29,8 +29,9 @@ extends RefCounted
 # reordering changes the deterministic level-up sequence (test_unit_stats §5).
 # This is the former ClassData.STAT_KEYS / Unit._GROWTH_STATS / DataManager
 # _VALID_STATS set — identical membership, canonical order.
-const GROWTH_STAT_IDS: Array[String] = ["hp", "strength", "magic", "defense",
-	"resistance", "skill", "speed", "luck"]
+const GROWTH_STAT_IDS: Array[String] = [
+	"hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"
+]
 
 # Stats shown on the character sheet that never roll on level-up (no growth /
 # cap keys), in display order after the growth stats.
@@ -39,9 +40,17 @@ const DISPLAY_ONLY_STAT_IDS: Array[String] = ["movement", "constitution", "line_
 # Canonical short label per stat id — single source of truth for every UI that
 # abbreviates a stat. Reconciled Luck to "Lck" (was "Luk" on the level-up screen).
 const STAT_LABELS: Dictionary = {
-	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
-	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Lck",
-	"movement": "Mov", "constitution": "Con", "line_of_sight": "LoS",
+	"hp": "HP",
+	"strength": "Str",
+	"magic": "Mag",
+	"defense": "Def",
+	"resistance": "Res",
+	"skill": "Skl",
+	"speed": "Spd",
+	"luck": "Lck",
+	"movement": "Mov",
+	"constitution": "Con",
+	"line_of_sight": "LoS",
 }
 
 

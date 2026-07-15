@@ -53,9 +53,11 @@ func _refresh_menu_state() -> void:
 
 func _refresh_continue_state() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
-	_continue_btn.disabled = save_manager == null \
-		or not save_manager.has_method("has_continue_save") \
+	_continue_btn.disabled = (
+		save_manager == null
+		or not save_manager.has_method("has_continue_save")
 		or not bool(save_manager.call("has_continue_save"))
+	)
 
 
 # Load Game is only offered when there is something to load, mirroring Continue.
@@ -103,8 +105,11 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 	var payload: Dictionary = save.to_dict()
 	var gs := get_node_or_null("/root/GameState")
 	if String(payload.get("map_runtime", {}).get("map_path", "")) != "":
-		if gs == null or not gs.has_method("configure_suspend_resume") \
-				or not bool(gs.call("configure_suspend_resume", save)):
+		if (
+			gs == null
+			or not gs.has_method("configure_suspend_resume")
+			or not bool(gs.call("configure_suspend_resume", save))
+		):
 			_show_continue_error("Could not resume the battle save.\nMap progress was not resumed.")
 			_refresh_continue_state()
 			return false
@@ -129,7 +134,9 @@ func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) 
 		_show_continue_error("This campaign is already complete.")
 		return false
 	if not bool(cm.call("launch_current_node")):
-		_show_continue_error("Could not launch the next battle.\nThe campaign node may be misconfigured.")
+		_show_continue_error(
+			"Could not launch the next battle.\nThe campaign node may be misconfigured."
+		)
 		return false
 	_consume_loaded_slot_if_required(save_manager, slot_id, gs)
 	return true
@@ -140,8 +147,7 @@ func _consume_loaded_slot_if_required(save_manager: Node, slot_id: String, gs: N
 		return
 	if not gs.has_method("get_save_slot_classes"):
 		return
-	if bool(save_manager.call("should_consume_on_load", slot_id,
-			gs.call("get_save_slot_classes"))):
+	if bool(save_manager.call("should_consume_on_load", slot_id, gs.call("get_save_slot_classes"))):
 		if not bool(save_manager.call("delete_slot", slot_id)):
 			push_error("MainMenu: failed to consume loaded slot '%s'" % slot_id)
 
@@ -208,9 +214,12 @@ func _on_settings_back() -> void:
 # The open_settings keybinding opens the settings screen from the main menu.
 # Ignored while either overlay is already showing — those handle their own input.
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("open_settings") \
-			and not _settings_screen.visible and not _new_game_screen.visible \
-			and not _load_game_screen.visible:
+	if (
+		event.is_action_pressed("open_settings")
+		and not _settings_screen.visible
+		and not _new_game_screen.visible
+		and not _load_game_screen.visible
+	):
 		_on_settings()
 		get_viewport().set_input_as_handled()
 

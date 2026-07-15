@@ -12,18 +12,18 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 signal action_chosen(action: String)
-signal hidden_by_cancel()
+signal hidden_by_cancel
 
 @onready var _btn_attack: Button = $VBox/BtnAttack
-@onready var _btn_staff:  Button = $VBox/BtnStaff
-@onready var _btn_item:   Button = $VBox/BtnItem
-@onready var _btn_equip:  Button = $VBox/BtnEquip
-@onready var _btn_seize:  Button = $VBox/BtnSeize
-@onready var _btn_escape:  Button = $VBox/BtnEscape
+@onready var _btn_staff: Button = $VBox/BtnStaff
+@onready var _btn_item: Button = $VBox/BtnItem
+@onready var _btn_equip: Button = $VBox/BtnEquip
+@onready var _btn_seize: Button = $VBox/BtnSeize
+@onready var _btn_escape: Button = $VBox/BtnEscape
 @onready var _btn_pair_up: Button = $VBox/BtnPairUp
-@onready var _btn_swap:    Button = $VBox/BtnSwap
+@onready var _btn_swap: Button = $VBox/BtnSwap
 @onready var _btn_separate: Button = $VBox/BtnSeparate
-@onready var _btn_wait:    Button = $VBox/BtnWait
+@onready var _btn_wait: Button = $VBox/BtnWait
 
 var _focused_idx: int = 0
 var _buttons: Array[Button] = []
@@ -46,20 +46,70 @@ func _ready() -> void:
 	# and Wait so the always-available Wait stays at the bottom. Pair Up and Swap
 	# sit between Escape and Wait as the Pair Up section (Separate joins them in
 	# step 6c).
-	_buttons = [_btn_attack, _btn_staff, _btn_item, _btn_equip, _btn_seize, _btn_escape,
-		_btn_pair_up, _btn_swap, _btn_separate, _btn_wait]
+	_buttons = [
+		_btn_attack,
+		_btn_staff,
+		_btn_item,
+		_btn_equip,
+		_btn_seize,
+		_btn_escape,
+		_btn_pair_up,
+		_btn_swap,
+		_btn_separate,
+		_btn_wait
+	]
 	# Hide on press as well as on cancel — otherwise the menu lingers on screen
 	# after a choice (it never appeared before the menu-ref fix, so this was latent).
-	_btn_attack.pressed.connect(func():  hide(); action_chosen.emit("attack"))
-	_btn_staff.pressed.connect(func():   hide(); action_chosen.emit("staff"))
-	_btn_item.pressed.connect(func():    hide(); action_chosen.emit("item"))
-	_btn_equip.pressed.connect(func():   hide(); action_chosen.emit("equip"))
-	_btn_seize.pressed.connect(func():   hide(); action_chosen.emit("seize"))
-	_btn_escape.pressed.connect(func():  hide(); action_chosen.emit("escape"))
-	_btn_pair_up.pressed.connect(func(): hide(); action_chosen.emit("pair_up"))
-	_btn_swap.pressed.connect(func():    hide(); action_chosen.emit("swap_roles"))
-	_btn_separate.pressed.connect(func(): hide(); action_chosen.emit("separate"))
-	_btn_wait.pressed.connect(func():    hide(); action_chosen.emit("wait"))
+	_btn_attack.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("attack")
+	)
+	_btn_staff.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("staff")
+	)
+	_btn_item.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("item")
+	)
+	_btn_equip.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("equip")
+	)
+	_btn_seize.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("seize")
+	)
+	_btn_escape.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("escape")
+	)
+	_btn_pair_up.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("pair_up")
+	)
+	_btn_swap.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("swap_roles")
+	)
+	_btn_separate.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("separate")
+	)
+	_btn_wait.pressed.connect(
+		func():
+			hide()
+			action_chosen.emit("wait")
+	)
 	hide()
 
 
@@ -80,12 +130,15 @@ func _fit_width_to_visible_labels() -> void:
 		if button.visible:
 			var font := button.get_theme_font("font")
 			var font_size := button.get_theme_font_size("font_size")
-			var text_width := font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT,
-					-1.0, font_size).x
+			var text_width := (
+				font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+			)
 			var scale_factor := float(font_size) / 16.0
 			var ornament_width := _BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * scale_factor
-			required_width = maxf(required_width,
-					maxf(button.get_combined_minimum_size().x, text_width + ornament_width))
+			required_width = maxf(
+				required_width,
+				maxf(button.get_combined_minimum_size().x, text_width + ornament_width)
+			)
 	custom_minimum_size.x = required_width
 	# Minimum-size reductions do not shrink an already-expanded free-standing
 	# Control. Reset both rendered axes before MapCursor measures and places it;
@@ -119,7 +172,11 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	var ih := get_node_or_null("/root/ItemHandler")
 	if unit.data:
 		for entry in unit.data.inventory:
-			if entry.is_item() and entry.has_uses() and (ih == null or ih.can_apply_item(unit, entry)):
+			if (
+				entry.is_item()
+				and entry.has_uses()
+				and (ih == null or ih.can_apply_item(unit, entry))
+			):
 				has_items = true
 				break
 
@@ -154,24 +211,26 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 		if registry != null and registry.has_method("is_paired"):
 			if bool(registry.is_paired(unit.data.unit_id)):
 				can_swap = true
-				can_separate = bool(registry.call("is_lead", unit.data.unit_id)) \
+				can_separate = (
+					bool(registry.call("is_lead", unit.data.unit_id))
 					and _has_adjacent_separate_tile(unit, grid, registry)
+				)
 			elif pair_up_enabled:
 				can_pair_up = _has_adjacent_unpaired_ally(unit, grid, registry)
 
 	# Hide unavailable rows entirely (playtest 3 #21) — the VBoxContainer
 	# collapses the gap so the menu shrinks to fit the offered choices, instead
 	# of showing greyed-out buttons. Wait is always offered.
-	_btn_attack.visible  = has_enemies
-	_btn_staff.visible   = has_heal_targets
-	_btn_item.visible    = has_items
-	_btn_equip.visible   = has_weapon_swap
-	_btn_seize.visible   = can_seize
-	_btn_escape.visible  = can_escape
+	_btn_attack.visible = has_enemies
+	_btn_staff.visible = has_heal_targets
+	_btn_item.visible = has_items
+	_btn_equip.visible = has_weapon_swap
+	_btn_seize.visible = can_seize
+	_btn_escape.visible = can_escape
 	_btn_pair_up.visible = can_pair_up
-	_btn_swap.visible    = can_swap
+	_btn_swap.visible = can_swap
 	_btn_separate.visible = can_separate
-	_btn_wait.visible    = true
+	_btn_wait.visible = true
 	_apply_menu_scale_from_settings()
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
@@ -199,8 +258,12 @@ func _input(event: InputEvent) -> void:
 	# Vertical stepping is driven by the polled repeat policy in _process. We still
 	# consume the directional events here so engine focus navigation (ui_up/down,
 	# same d-pad/stick) can't ALSO move focus and double-step the menu.
-	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_down") \
-			or event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
+	if (
+		event.is_action_pressed("cursor_up")
+		or event.is_action_pressed("cursor_down")
+		or event.is_action_pressed("ui_up")
+		or event.is_action_pressed("ui_down")
+	):
 		get_viewport().set_input_as_handled()
 
 
@@ -247,7 +310,11 @@ func _has_adjacent_unpaired_ally(unit: Node, grid: Node, registry: Node) -> bool
 func _has_adjacent_separate_tile(unit: Node, grid: Node, registry: Node) -> bool:
 	if unit == null or grid == null or registry == null:
 		return false
-	if unit.data == null or unit.data.unit_id == "" or not bool(registry.call("is_lead", unit.data.unit_id)):
+	if (
+		unit.data == null
+		or unit.data.unit_id == ""
+		or not bool(registry.call("is_lead", unit.data.unit_id))
+	):
 		return false
 	if not grid.has_method("is_passable") or not grid.has_method("can_end_on_tile"):
 		return false

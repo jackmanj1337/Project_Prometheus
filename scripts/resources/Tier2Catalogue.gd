@@ -11,23 +11,28 @@ var entries: Array[Dictionary] = []
 var documents: Dictionary = {}
 
 
-static func parse(raw: Variant, source_path: String,
-		errors: Array[String]) -> Tier2Catalogue:
+static func parse(raw: Variant, source_path: String, errors: Array[String]) -> Tier2Catalogue:
 	var prefix := "Tier2Catalogue(%s)" % source_path
 	if not raw is Dictionary:
 		errors.append("%s: root must be an object" % prefix)
 		return null
 	var data: Dictionary = raw
 	var catalogue := Tier2Catalogue.new()
-	if not data.has("format_version") \
-			or not typeof(data["format_version"]) in [TYPE_INT, TYPE_FLOAT] \
-			or float(data["format_version"]) != floor(float(data["format_version"])):
+	if (
+		not data.has("format_version")
+		or not typeof(data["format_version"]) in [TYPE_INT, TYPE_FLOAT]
+		or float(data["format_version"]) != floor(float(data["format_version"]))
+	):
 		errors.append("%s: format_version must be an integer" % prefix)
 	else:
 		catalogue.format_version = int(data["format_version"])
 		if catalogue.format_version != FORMAT_VERSION:
-			errors.append("%s: unsupported format_version %d (expected %d)" % [
-				prefix, catalogue.format_version, FORMAT_VERSION])
+			errors.append(
+				(
+					"%s: unsupported format_version %d (expected %d)"
+					% [prefix, catalogue.format_version, FORMAT_VERSION]
+				)
+			)
 	if not data.has("entries") or not data["entries"] is Array:
 		errors.append("%s: entries must be an array" % prefix)
 		return null
@@ -47,8 +52,9 @@ static func parse(raw: Variant, source_path: String,
 			continue
 		var identity := "%s\n%s" % [entry["kind"], entry["id"]]
 		if identities.has(identity):
-			errors.append("%s duplicates kind/id '%s/%s'" % [
-				entry_prefix, entry["kind"], entry["id"]])
+			errors.append(
+				"%s duplicates kind/id '%s/%s'" % [entry_prefix, entry["kind"], entry["id"]]
+			)
 		elif paths.has(entry["path"]):
 			errors.append("%s duplicates path '%s'" % [entry_prefix, entry["path"]])
 		else:
@@ -64,8 +70,9 @@ static func parse(raw: Variant, source_path: String,
 # Reads the canonical index and every indexed JSON document. Validators receive
 # (document, entry, errors) and must only inspect/normalize data, never mutate
 # runtime catalogues. Unknown kinds fail loud rather than loading unchecked data.
-static func load_and_validate(pack_root: String, validators: Dictionary,
-		errors: Array[String]) -> Tier2Catalogue:
+static func load_and_validate(
+	pack_root: String, validators: Dictionary, errors: Array[String]
+) -> Tier2Catalogue:
 	var initial_error_count := errors.size()
 	var root := pack_root.trim_suffix("/")
 	var catalogue_path := root.path_join(CATALOGUE_PATH)
@@ -79,10 +86,14 @@ static func load_and_validate(pack_root: String, validators: Dictionary,
 	for entry in catalogue.entries:
 		var kind: String = entry["kind"]
 		var identity := "%s\n%s" % [kind, entry["id"]]
-		if not validators.has(kind) or typeof(validators[kind]) != TYPE_CALLABLE \
-				or not (validators[kind] as Callable).is_valid():
-			errors.append("Tier2Catalogue: '%s/%s' has no registered validator" % [
-				kind, entry["id"]])
+		if (
+			not validators.has(kind)
+			or typeof(validators[kind]) != TYPE_CALLABLE
+			or not (validators[kind] as Callable).is_valid()
+		):
+			errors.append(
+				"Tier2Catalogue: '%s/%s' has no registered validator" % [kind, entry["id"]]
+			)
 			continue
 		var document: Variant = _read_json(root.path_join(entry["path"]), errors)
 		if document == null:
@@ -107,24 +118,30 @@ static func load_campaign_pack(pack_root: String, errors: Array[String]) -> Tier
 
 # Validates already-decoded archive documents without extracting them. Keys in
 # raw_documents are the normalized pack-relative paths from the catalogue.
-static func validate_campaign_documents(catalogue: Tier2Catalogue,
-		raw_documents: Dictionary, errors: Array[String]) -> bool:
+static func validate_campaign_documents(
+	catalogue: Tier2Catalogue, raw_documents: Dictionary, errors: Array[String]
+) -> bool:
 	var validator_set = preload("res://scripts/resources/CampaignTier2Validators.gd")
 	var validators: Dictionary = validator_set.registry()
 	for entry in catalogue.entries:
 		var kind: String = entry["kind"]
 		var identity := "%s\n%s" % [kind, entry["id"]]
-		if not validators.has(kind) or typeof(validators[kind]) != TYPE_CALLABLE \
-				or not (validators[kind] as Callable).is_valid():
-			errors.append("Tier2Catalogue: '%s/%s' has no registered validator" % [
-				kind, entry["id"]])
+		if (
+			not validators.has(kind)
+			or typeof(validators[kind]) != TYPE_CALLABLE
+			or not (validators[kind] as Callable).is_valid()
+		):
+			errors.append(
+				"Tier2Catalogue: '%s/%s' has no registered validator" % [kind, entry["id"]]
+			)
 			continue
 		if not raw_documents.has(entry["path"]):
 			errors.append("Tier2Catalogue: missing required JSON '%s'" % entry["path"])
 			continue
 		var before := errors.size()
 		validators[kind].call(
-			raw_documents[entry["path"]].duplicate(true), entry.duplicate(true), errors)
+			raw_documents[entry["path"]].duplicate(true), entry.duplicate(true), errors
+		)
 		if errors.size() == before:
 			catalogue.documents[identity] = raw_documents[entry["path"]]
 	if not errors.is_empty():
@@ -137,12 +154,14 @@ func get_document(kind: String, id: String) -> Variant:
 	return documents.get("%s\n%s" % [kind, id])
 
 
-static func _parse_entry(raw: Dictionary, prefix: String,
-		errors: Array[String]) -> Dictionary:
+static func _parse_entry(raw: Dictionary, prefix: String, errors: Array[String]) -> Dictionary:
 	var entry := {}
 	for field in ["kind", "id", "path"]:
-		if not raw.has(field) or typeof(raw[field]) != TYPE_STRING \
-				or String(raw[field]).strip_edges().is_empty():
+		if (
+			not raw.has(field)
+			or typeof(raw[field]) != TYPE_STRING
+			or String(raw[field]).strip_edges().is_empty()
+		):
 			errors.append("%s.%s must be a non-empty string" % [prefix, field])
 		else:
 			entry[field] = String(raw[field]).strip_edges()
@@ -159,9 +178,13 @@ static func _parse_entry(raw: Dictionary, prefix: String,
 
 static func _safe_json_path(path: String) -> bool:
 	var normalized := path.replace("\\", "/")
-	if not normalized.begins_with("data/") or not normalized.ends_with(".json") \
-			or normalized.is_absolute_path() or normalized.begins_with("user://") \
-			or normalized.begins_with("res://"):
+	if (
+		not normalized.begins_with("data/")
+		or not normalized.ends_with(".json")
+		or normalized.is_absolute_path()
+		or normalized.begins_with("user://")
+		or normalized.begins_with("res://")
+	):
 		return false
 	for part in normalized.split("/"):
 		if part == ".." or part.is_empty():
@@ -177,7 +200,11 @@ static func _read_json(path: String, errors: Array[String]) -> Variant:
 	var json := JSON.new()
 	var parse_error := json.parse(file.get_as_text())
 	if parse_error != OK:
-		errors.append("Tier2Catalogue: invalid JSON '%s' at line %d: %s" % [
-			path, json.get_error_line(), json.get_error_message()])
+		errors.append(
+			(
+				"Tier2Catalogue: invalid JSON '%s' at line %d: %s"
+				% [path, json.get_error_line(), json.get_error_message()]
+			)
+		)
 		return null
 	return json.data

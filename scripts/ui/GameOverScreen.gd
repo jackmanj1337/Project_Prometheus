@@ -80,6 +80,7 @@ func _on_map_resolved(winner_group: String, standings: Array) -> void:
 
 # --- Present-after-progression gate (V026-05d) --------------------------------
 
+
 # Marks a result ready and tries to show it now. The common case (a victory with
 # no pending level-up/promotion) presents synchronously here, unchanged. When a
 # progression modal is up, presentation defers until the queue drains.
@@ -124,17 +125,20 @@ func _show_overlay() -> void:
 
 func _refresh_defeat_actions() -> void:
 	var sm := get_node_or_null("/root/SaveManager")
-	var target: Dictionary = sm.call("get_continue_target") \
-		if sm != null and sm.has_method("get_continue_target") else {}
+	var target: Dictionary = (
+		sm.call("get_continue_target")
+		if sm != null and sm.has_method("get_continue_target")
+		else {}
+	)
 	_reload_recent_btn.disabled = String(target.get("kind", "")) != "slot"
-	var slots: Array = sm.call("list_slots") \
-		if sm != null and sm.has_method("list_slots") else []
+	var slots: Array = sm.call("list_slots") if sm != null and sm.has_method("list_slots") else []
 	_load_game_btn.disabled = slots.is_empty()
 	var gs := get_node_or_null("/root/GameState")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
-	_rewind_btn.disabled = gs == null or not gs.has_method("can_rewind") \
-		or not bool(gs.call("can_rewind"))
+	_rewind_btn.disabled = (
+		gs == null or not gs.has_method("can_rewind") or not bool(gs.call("can_rewind"))
+	)
 
 
 func _delete_mid_map_slot_after_resolution() -> void:
@@ -170,8 +174,12 @@ func _on_retry() -> void:
 		restored = bool(gs.restore_history(0))
 	# Campaign retries return to prep so deployment can change. A bare map and a
 	# suspend-resumed map retain the historical direct reload behavior.
-	if restored and cm and cm.has_method("route_retry_to_prep") \
-			and bool(cm.call("route_retry_to_prep")):
+	if (
+		restored
+		and cm
+		and cm.has_method("route_retry_to_prep")
+		and bool(cm.call("route_retry_to_prep"))
+	):
 		return
 	get_tree().reload_current_scene()
 
@@ -182,8 +190,10 @@ func _on_reload_recent() -> void:
 		_feedback.text = "No recent save is available."
 		return
 	var target: Dictionary = sm.call("get_continue_target")
-	if String(target.get("kind", "")) != "slot" \
-			or not _load_slot(String(target.get("slot_id", ""))):
+	if (
+		String(target.get("kind", "")) != "slot"
+		or not _load_slot(String(target.get("slot_id", "")))
+	):
 		_feedback.text = "The recent save could not be loaded."
 
 
@@ -218,27 +228,34 @@ func _load_slot(slot_id: String) -> bool:
 		return false
 	var payload: Dictionary = save.to_dict()
 	if String(payload.get("map_runtime", {}).get("map_path", "")) != "":
-		if not gs.has_method("configure_suspend_resume") \
-				or not bool(gs.call("configure_suspend_resume", save)):
+		if (
+			not gs.has_method("configure_suspend_resume")
+			or not bool(gs.call("configure_suspend_resume", save))
+		):
 			return false
 		if get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn") != OK:
 			return false
 		_consume_loaded_slot(sm, gs, slot_id)
 		return true
 	var cm := get_node_or_null("/root/CampaignManager")
-	if cm == null or not gs.has_method("configure_campaign_resume") \
-			or not bool(gs.call("configure_campaign_resume", save)) \
-			or bool(cm.call("is_campaign_complete")) \
-			or not bool(cm.call("launch_current_node")):
+	if (
+		cm == null
+		or not gs.has_method("configure_campaign_resume")
+		or not bool(gs.call("configure_campaign_resume", save))
+		or bool(cm.call("is_campaign_complete"))
+		or not bool(cm.call("launch_current_node"))
+	):
 		return false
 	_consume_loaded_slot(sm, gs, slot_id)
 	return true
 
 
 func _consume_loaded_slot(sm: Node, gs: Node, slot_id: String) -> void:
-	if sm.has_method("should_consume_on_load") and gs.has_method("get_save_slot_classes") \
-			and bool(sm.call("should_consume_on_load", slot_id,
-				gs.call("get_save_slot_classes"))):
+	if (
+		sm.has_method("should_consume_on_load")
+		and gs.has_method("get_save_slot_classes")
+		and bool(sm.call("should_consume_on_load", slot_id, gs.call("get_save_slot_classes")))
+	):
 		sm.call("delete_slot", slot_id)
 
 
@@ -247,8 +264,12 @@ func _on_rewind() -> void:
 	var scene := get_tree().current_scene
 	var turn_manager := scene.get_node_or_null("TurnManager") if scene != null else null
 	var cursor := scene.get_node_or_null("MapCursor") if scene != null else null
-	if gs == null or turn_manager == null or not gs.has_method("rewind_last_action") \
-			or not bool(gs.call("rewind_last_action", turn_manager, cursor)):
+	if (
+		gs == null
+		or turn_manager == null
+		or not gs.has_method("rewind_last_action")
+		or not bool(gs.call("rewind_last_action", turn_manager, cursor))
+	):
 		_feedback.text = "Rewind is no longer available."
 		_refresh_defeat_actions()
 		return

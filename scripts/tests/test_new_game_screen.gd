@@ -3,6 +3,7 @@ extends SceneTree
 # Verifies NewGameScreen.tscn instantiates, the nodes its script's @onready vars
 # expect resolve, and the opaque Dimmer exists so the screen is modal (#4).
 
+
 func _init() -> void:
 	print("=== NewGameScreen Test ===")
 	var passed := 0
@@ -27,16 +28,20 @@ func _init() -> void:
 
 	var packed := load("res://scenes/ui/NewGameScreen.tscn")
 	if packed == null:
-		print("FAIL could not load NewGameScreen.tscn"); quit(1); return
+		print("FAIL could not load NewGameScreen.tscn")
+		quit(1)
+		return
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
 
 	# Dimmer makes the screen opaque/modal over MainMenu (#4).
 	if screen.get_node_or_null("Dimmer") != null:
-		print("OK  Dimmer node present (#4 background)"); passed += 1
+		print("OK  Dimmer node present (#4 background)")
+		passed += 1
 	else:
-		print("FAIL no Dimmer node (#4)"); failed += 1
+		print("FAIL no Dimmer node (#4)")
+		failed += 1
 
 	# Every node the NewGameScreen script's @onready vars depend on must exist.
 	var expected := [
@@ -59,7 +64,8 @@ func _init() -> void:
 			print("FAIL missing node: " + path)
 			failed += 1
 	if all_present:
-		print("OK  all @onready-referenced nodes resolve"); passed += 1
+		print("OK  all @onready-referenced nodes resolve")
+		passed += 1
 
 	var run_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxRun/OptRun")
 	var has_proving := false
@@ -69,53 +75,86 @@ func _init() -> void:
 			has_proving = has_proving or run_opt.get_item_text(index) == "The Proving Grounds"
 			has_single_map = has_single_map or run_opt.get_item_text(index) == "Map 001 - Rout"
 	if has_proving and has_single_map and screen.get_node_or_null("Panel/VBox/HBoxMap") == null:
-		print("OK  every map and authored run share the one campaign selector"); passed += 1
+		print("OK  every map and authored run share the one campaign selector")
+		passed += 1
 	else:
-		print("FAIL unified campaign selector proving=%s single=%s" % [
-			has_proving, has_single_map]); failed += 1
+		print("FAIL unified campaign selector proving=%s single=%s" % [has_proving, has_single_map])
+		failed += 1
 	var save_manager: Node = root.get_node("SaveManager")
-	save_manager.record_campaign_imported({
-		"campaign_id": CampaignData.single_map_campaign_id("map_001")})
+	save_manager.record_campaign_imported(
+		{"campaign_id": CampaignData.single_map_campaign_id("map_001")}
+	)
 	screen._select_preferred_run()
-	var imported_selected: bool = screen._run_options[run_opt.selected]["campaign_id"] \
+	var imported_selected: bool = (
+		screen._run_options[run_opt.selected]["campaign_id"]
 		== CampaignData.single_map_campaign_id("map_001")
+	)
 	save_manager.record_campaign_started({"campaign_id": "proving_grounds"})
 	screen._select_preferred_run()
-	if imported_selected and screen._run_options[run_opt.selected]["campaign_id"] == "proving_grounds":
-		print("OK  selector prefers last-started, else most-recently-imported"); passed += 1
+	if (
+		imported_selected
+		and screen._run_options[run_opt.selected]["campaign_id"] == "proving_grounds"
+	):
+		print("OK  selector prefers last-started, else most-recently-imported")
+		passed += 1
 	else:
-		print("FAIL campaign selector preference"); failed += 1
+		print("FAIL campaign selector preference")
+		failed += 1
 
-	var auto_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxAutoPromote/OptAutoPromote")
+	var auto_opt: OptionButton = screen.get_node_or_null(
+		"Panel/VBox/HBoxAutoPromote/OptAutoPromote"
+	)
 	if auto_opt != null and auto_opt.item_count == 2:
-		print("OK  auto-promote selector is present with Off/On choices"); passed += 1
+		print("OK  auto-promote selector is present with Off/On choices")
+		passed += 1
 	else:
-		print("FAIL auto-promote selector missing or not populated"); failed += 1
+		print("FAIL auto-promote selector missing or not populated")
+		failed += 1
 
 	var pair_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxPairUp/OptPairUp")
 	if pair_opt != null and pair_opt.item_count == 2:
-		print("OK  pair-up selector is present with Off/On choices"); passed += 1
+		print("OK  pair-up selector is present with Off/On choices")
+		passed += 1
 	else:
-		print("FAIL pair-up selector missing or not populated"); failed += 1
+		print("FAIL pair-up selector missing or not populated")
+		failed += 1
 
 	var status_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxStatus/OptStatus")
-	if status_opt != null and status_opt.item_count >= 1 \
-			and status_opt.get_item_text(0) == "None — start clean":
-		print("OK  carry-forward selector always offers a clean None choice"); passed += 1
+	if (
+		status_opt != null
+		and status_opt.item_count >= 1
+		and status_opt.get_item_text(0) == "None — start clean"
+	):
+		print("OK  carry-forward selector always offers a clean None choice")
+		passed += 1
 	else:
-		print("FAIL carry-forward None choice missing"); failed += 1
+		print("FAIL carry-forward None choice missing")
+		failed += 1
 
-	screen._apply_rule_authority({"rules": {
-		"death_mode": {"authority": "mandate", "value": "classic"},
-		"pair_up_enabled": {"authority": "default", "value": false},
-	}})
-	var permadeath_opt: OptionButton = screen.get_node(
-		"Panel/VBox/HBoxPermadeath/OptPermadeath")
-	if permadeath_opt.disabled and permadeath_opt.selected == 1 \
-			and not pair_opt.disabled and pair_opt.selected == 0:
-		print("OK  mandated campaign rules lock while authored defaults stay editable"); passed += 1
+	(
+		screen
+		. _apply_rule_authority(
+			{
+				"rules":
+				{
+					"death_mode": {"authority": "mandate", "value": "classic"},
+					"pair_up_enabled": {"authority": "default", "value": false},
+				}
+			}
+		)
+	)
+	var permadeath_opt: OptionButton = screen.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
+	if (
+		permadeath_opt.disabled
+		and permadeath_opt.selected == 1
+		and not pair_opt.disabled
+		and pair_opt.selected == 0
+	):
+		print("OK  mandated campaign rules lock while authored defaults stay editable")
+		passed += 1
 	else:
-		print("FAIL campaign rule authority controls"); failed += 1
+		print("FAIL campaign rule authority controls")
+		failed += 1
 	# Restore ordinary controls for the persistence checks below.
 	screen._apply_rule_authority({})
 
@@ -144,7 +183,8 @@ var campaign_rules = CampaignRulesScript.make_default()
 		var shown := screen.visible
 		screen._on_back()
 		if shown and not screen.visible:
-			print("OK  open() shows the screen, _on_back() hides it"); passed += 1
+			print("OK  open() shows the screen, _on_back() hides it")
+			passed += 1
 		else:
 			print("FAIL visibility: shown=%s after_back=%s" % [shown, screen.visible])
 			failed += 1
@@ -160,18 +200,23 @@ var campaign_rules = CampaignRulesScript.make_default()
 		var want_pair := not rules.pair_up_enabled
 		var want_auto := not rules.auto_promote_at_max_level
 		pair_opt.selected = 1 if want_pair else 0
-		pair_opt.item_selected.emit(pair_opt.selected)   # as a click would
+		pair_opt.item_selected.emit(pair_opt.selected)  # as a click would
 		auto_opt.selected = 1 if want_auto else 0
 		auto_opt.item_selected.emit(auto_opt.selected)
 		# Note: no _on_start() — this is the "closed without starting" path.
-		var persisted_ok: bool = rules.pair_up_enabled == want_pair \
-			and rules.auto_promote_at_max_level == want_auto
+		var persisted_ok: bool = (
+			rules.pair_up_enabled == want_pair and rules.auto_promote_at_max_level == want_auto
+		)
 		if persisted_ok:
-			print("OK  rule toggles persist to GameState on change (no Start needed)"); passed += 1
+			print("OK  rule toggles persist to GameState on change (no Start needed)")
+			passed += 1
 		else:
-			print("FAIL rule persistence: pair=%s want=%s | auto=%s want=%s" % [
-				rules.pair_up_enabled, want_pair,
-				rules.auto_promote_at_max_level, want_auto])
+			print(
+				(
+					"FAIL rule persistence: pair=%s want=%s | auto=%s want=%s"
+					% [rules.pair_up_enabled, want_pair, rules.auto_promote_at_max_level, want_auto]
+				)
+			)
 			failed += 1
 	else:
 		print("SKIP rule persistence (GameState autoload absent)")
@@ -185,7 +230,9 @@ var campaign_rules = CampaignRulesScript.make_default()
 		var modal: Control = menu.get_node("NewGameScreen")
 		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
 		var modal_run: OptionButton = modal.get_node("Panel/VBox/HBoxRun/OptRun")
-		var modal_permadeath: OptionButton = modal.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
+		var modal_permadeath: OptionButton = modal.get_node(
+			"Panel/VBox/HBoxPermadeath/OptPermadeath"
+		)
 		menu._on_new_game()
 		await process_frame
 		background_continue.grab_focus()
@@ -232,15 +279,29 @@ var campaign_rules = CampaignRulesScript.make_default()
 			print("OK  MainMenu-hosted NewGame modal contains focus and repeats down")
 			passed += 1
 		else:
-			print("FAIL modal focus: contained=%s repeated_down=%s focus=%s" % [
-				contained_focus, repeated_down, focus_owner])
+			print(
+				(
+					"FAIL modal focus: contained=%s repeated_down=%s focus=%s"
+					% [contained_focus, repeated_down, focus_owner]
+				)
+			)
 			failed += 1
 		if popup_seen and popup_stood_down and close_frame_latched and steps_after_neutral:
 			print("OK  open dropdown stands down polled focus stepping and re-latches on close")
 			passed += 1
 		else:
-			print("FAIL popup standdown: seen=%s stood_down=%s latched=%s after_neutral=%s focus=%s" % [
-				popup_seen, popup_stood_down, close_frame_latched, steps_after_neutral, focus_owner])
+			print(
+				(
+					"FAIL popup standdown: seen=%s stood_down=%s latched=%s after_neutral=%s focus=%s"
+					% [
+						popup_seen,
+						popup_stood_down,
+						close_frame_latched,
+						steps_after_neutral,
+						focus_owner
+					]
+				)
+			)
 			failed += 1
 	else:
 		print("SKIP modal focus containment (GameState unavailable)")

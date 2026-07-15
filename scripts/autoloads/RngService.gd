@@ -14,8 +14,8 @@ extends Node
 # Cosmetic/presentation randomness must NOT use this service; give visual
 # polish its own un-chained RNG so it can never perturb gameplay dice.
 
-var map_seed: int = 0          # rolled once per map in start_map(); persisted
-var history_hash: int = 0      # advances per committed action (RNG-1)
+var map_seed: int = 0  # rolled once per map in start_map(); persisted
+var history_hash: int = 0  # advances per committed action (RNG-1)
 
 
 func start_map(seed_override: int = 0) -> void:
@@ -29,6 +29,7 @@ func start_map(seed_override: int = 0) -> void:
 # every roll from it in canonical order (§5), then calls commit_event() with
 # the SAME record when the action commits. A non-dice action calls only
 # commit_event(). Previews call NEITHER.
+
 
 func begin_event(kind: String, record: Array[String]) -> RandomNumberGenerator:
 	var s := _mix(map_seed, history_hash)
@@ -65,9 +66,9 @@ func from_save_dict(d: Dictionary) -> void:
 # >> is arithmetic (sign-extending) — slightly weaker avalanche than unsigned
 # SplitMix64, accepted and frozen (§2 notes).
 static func _mix(a: int, b: int) -> int:
-	var z: int = (a ^ b) + -7046029254386353131    # 0x9E3779B97F4A7C15
-	z = (z ^ (z >> 30)) * -4658895280553007687     # 0xBF58476D1CE4E5B9
-	z = (z ^ (z >> 27)) * -7723592293110706605     # 0x94D049BB133111EB
+	var z: int = (a ^ b) + -7046029254386353131  # 0x9E3779B97F4A7C15
+	z = (z ^ (z >> 30)) * -4658895280553007687  # 0xBF58476D1CE4E5B9
+	z = (z ^ (z >> 27)) * -7723592293110706605  # 0x94D049BB133111EB
 	return z ^ (z >> 31)
 
 

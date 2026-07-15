@@ -175,8 +175,8 @@ func pan_by_pixels(delta_px: Vector2) -> void:
 		return
 	var z: Vector2 = _camera.zoom
 	var world_delta := Vector2(
-		delta_px.x / (z.x if z.x > 0.0 else 1.0),
-		delta_px.y / (z.y if z.y > 0.0 else 1.0))
+		delta_px.x / (z.x if z.x > 0.0 else 1.0), delta_px.y / (z.y if z.y > 0.0 else 1.0)
+	)
 	var view: Vector2 = _visible_world_size()
 	var half := view * 0.5
 	var map_size := Vector2(_grid.map_width, _grid.map_height) * GameConstants.TILE_SIZE
@@ -243,6 +243,7 @@ func restore_view(faction_id: String = "") -> bool:
 
 # ── Zoom (Display & Accessibility item 1) ─────────────────────────────────────
 
+
 func get_zoom_index() -> int:
 	return _zoom_index
 
@@ -271,8 +272,9 @@ func set_zoom_index_silent(index: int) -> int:
 # can be smaller than the viewport on an axis — then that axis is centred instead of
 # pinned to the top-left (which would leave blank space on one side). Returns the
 # clamped index actually applied.
-func set_zoom_index(index: int, focus_tile: Vector2i,
-		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+func set_zoom_index(
+	index: int, focus_tile: Vector2i, edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+) -> int:
 	set_zoom_index_silent(index)
 	if _camera != null and _grid != null:
 		keep_cursor_in_view(focus_tile, edge_buffer)
@@ -284,8 +286,9 @@ func set_zoom_index(index: int, focus_tile: Vector2i,
 
 
 # Steps one level toward zoom-in (+1) or zoom-out (-1); clamps at the array ends.
-func step_zoom(direction: int, focus_tile: Vector2i,
-		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+func step_zoom(
+	direction: int, focus_tile: Vector2i, edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+) -> int:
 	var target: int = clampi(_zoom_index + direction, 0, ZOOM_LEVELS.size() - 1)
 	if target == _zoom_index:
 		return _zoom_index
@@ -293,8 +296,9 @@ func step_zoom(direction: int, focus_tile: Vector2i,
 
 
 # Returns to the default 1× level, re-framed on `focus_tile`.
-func reset_zoom(focus_tile: Vector2i,
-		edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER) -> int:
+func reset_zoom(
+	focus_tile: Vector2i, edge_buffer: int = GameConstants.CURSOR_CAMERA_EDGE_BUFFER
+) -> int:
 	return set_zoom_index(DEFAULT_ZOOM_INDEX, focus_tile, edge_buffer)
 
 

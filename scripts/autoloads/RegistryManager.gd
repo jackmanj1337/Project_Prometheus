@@ -21,8 +21,18 @@ const BUILTIN_PRIMITIVE_HANDLERS: Array[String] = [
 	"delay_placement",
 	"skip_placement",
 	"unimplemented_placement",
-	"rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit",
-	"heal_flat", "heal_full", "promote", "reclass", "stat_buff",
+	"rout",
+	"defeat_boss",
+	"seize",
+	"escape",
+	"survive",
+	"protect",
+	"turn_limit",
+	"heal_flat",
+	"heal_full",
+	"promote",
+	"reclass",
+	"stat_buff",
 ]
 
 var _catalog: RefCounted
@@ -50,8 +60,12 @@ func reload_presets(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 			for error in _catalog.register_entry(resource):
 				_load_errors.append("RegistryManager: %s (%s)" % [error, path])
 		if _catalog.ids(family).is_empty():
-			_load_errors.append("RegistryManager: source '%s' has no valid entries for required family '%s'" % [
-				source, family])
+			_load_errors.append(
+				(
+					"RegistryManager: source '%s' has no valid entries for required family '%s'"
+					% [source, family]
+				)
+			)
 	return _load_errors.duplicate()
 
 

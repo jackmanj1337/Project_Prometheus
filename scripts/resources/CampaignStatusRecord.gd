@@ -31,9 +31,11 @@ static func from_dict(source: Variant, errors: Array[String]) -> CampaignStatusR
 	for field in ["record_id", "author_id", "campaign_id", "campaign_version"]:
 		if String(record.get(field)) == "":
 			errors.append("CampaignStatusRecord: %s is required" % field)
-	if not (source.get("completion", {}) is Dictionary) \
-			or not (source.get("facts", {}) is Dictionary) \
-			or not (source.get("counters", {}) is Dictionary):
+	if (
+		not (source.get("completion", {}) is Dictionary)
+		or not (source.get("facts", {}) is Dictionary)
+		or not (source.get("counters", {}) is Dictionary)
+	):
 		errors.append("CampaignStatusRecord: completion, facts, and counters must be objects")
 		return null
 	record.completion = source.get("completion", {}).duplicate(true)

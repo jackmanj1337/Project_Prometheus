@@ -21,7 +21,10 @@ func place(context: RefCounted, grid: Node, occupied_tiles: Array[Vector2i] = []
 	if context == null or grid == null:
 		return _failure("invalid_context", context)
 	var registry := get_node_or_null("/root/RegistryManager")
-	if registry == null or not registry.call("has_entry", "occupancy_policies", context.collision_policy):
+	if (
+		registry == null
+		or not registry.call("has_entry", "occupancy_policies", context.collision_policy)
+	):
 		return _finish(context, PlacementResultScript.failure("unknown_policy", context))
 	var entry: Resource = registry.call("entry", "occupancy_policies", context.collision_policy)
 	var handler: Callable = _handlers.get(entry.primitive_handler, Callable())
@@ -56,14 +59,16 @@ func _nearest_free(context: RefCounted, grid: Node, occupied: Array[Vector2i]) -
 			var tile := Vector2i(x, y)
 			if _is_passable(tile, grid) and not _is_occupied(tile, grid, occupied):
 				candidates.append(tile)
-	candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
-		var da := absi(a.x - context.desired_tile.x) + absi(a.y - context.desired_tile.y)
-		var db := absi(b.x - context.desired_tile.x) + absi(b.y - context.desired_tile.y)
-		if da != db:
-			return da < db
-		if a.y != b.y:
-			return a.y < b.y
-		return a.x < b.x)
+	candidates.sort_custom(
+		func(a: Vector2i, b: Vector2i) -> bool:
+			var da := absi(a.x - context.desired_tile.x) + absi(a.y - context.desired_tile.y)
+			var db := absi(b.x - context.desired_tile.x) + absi(b.y - context.desired_tile.y)
+			if da != db:
+				return da < db
+			if a.y != b.y:
+				return a.y < b.y
+			return a.x < b.x
+	)
 	if candidates.is_empty():
 		return PlacementResultScript.failure("no_free_tile", context)
 	var result := _success(context, candidates[0])
@@ -113,9 +118,13 @@ func _finish(context: RefCounted, result: RefCounted) -> RefCounted:
 
 
 func _is_passable(tile: Vector2i, grid: Node) -> bool:
-	return tile.x >= 0 and tile.y >= 0 \
-		and tile.x < int(grid.get("map_width")) and tile.y < int(grid.get("map_height")) \
+	return (
+		tile.x >= 0
+		and tile.y >= 0
+		and tile.x < int(grid.get("map_width"))
+		and tile.y < int(grid.get("map_height"))
 		and String(grid.call("get_terrain_at", tile)) != "wall"
+	)
 
 
 func _is_occupied(tile: Vector2i, grid: Node, occupied: Array[Vector2i]) -> bool:

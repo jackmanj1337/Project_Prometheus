@@ -7,16 +7,22 @@ class_name MutableCampaignState extends Resource
 @export var imported_record_ref: Dictionary = {}
 
 
-func append_rule_patch(rule_id: String, value: Variant, reason: String,
-		source: String = "runtime") -> bool:
+func append_rule_patch(
+	rule_id: String, value: Variant, reason: String, source: String = "runtime"
+) -> bool:
 	if rule_id == "":
 		return false
-	rule_patches.append({
-		"rule_id": rule_id,
-		"value": value,
-		"reason": reason,
-		"source": source,
-	})
+	(
+		rule_patches
+		. append(
+			{
+				"rule_id": rule_id,
+				"value": value,
+				"reason": reason,
+				"source": source,
+			}
+		)
+	)
 	return true
 
 
@@ -49,20 +55,23 @@ func apply_dict(source: Variant) -> bool:
 	var raw_patches: Variant = source.get("rule_patches", [])
 	var raw_facts: Variant = source.get("carry_forward_facts", {})
 	var raw_ref: Variant = source.get("imported_record_ref", {})
-	if not (raw_patches is Array) or not (raw_facts is Dictionary) \
-			or not (raw_ref is Dictionary):
+	if not (raw_patches is Array) or not (raw_facts is Dictionary) or not (raw_ref is Dictionary):
 		return false
 	var patches: Array[Dictionary] = []
 	for raw_patch in raw_patches:
-		if not (raw_patch is Dictionary) \
-				or String(raw_patch.get("rule_id", "")) == "":
+		if not (raw_patch is Dictionary) or String(raw_patch.get("rule_id", "")) == "":
 			return false
-		patches.append({
-			"rule_id": String(raw_patch.get("rule_id", "")),
-			"value": raw_patch.get("value", null),
-			"reason": String(raw_patch.get("reason", "")),
-			"source": String(raw_patch.get("source", "runtime")),
-		})
+		(
+			patches
+			. append(
+				{
+					"rule_id": String(raw_patch.get("rule_id", "")),
+					"value": raw_patch.get("value", null),
+					"reason": String(raw_patch.get("reason", "")),
+					"source": String(raw_patch.get("source", "runtime")),
+				}
+			)
+		)
 	for key in raw_facts:
 		if not (key is String) or String(key) == "":
 			return false

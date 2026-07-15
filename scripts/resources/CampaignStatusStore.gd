@@ -13,8 +13,13 @@ func _init(root_path: String = DEFAULT_ROOT) -> void:
 	storage_root = root_path
 
 
-func export_completion(target: Dictionary, mutable_state: MutableCampaignState,
-		completion: Dictionary, counters: Dictionary, record_id: String = "") -> Dictionary:
+func export_completion(
+	target: Dictionary,
+	mutable_state: MutableCampaignState,
+	completion: Dictionary,
+	counters: Dictionary,
+	record_id: String = ""
+) -> Dictionary:
 	last_errors.clear()
 	var record := RecordScript.new()
 	record.author_id = String(target.get("author_id", ""))
@@ -27,8 +32,10 @@ func export_completion(target: Dictionary, mutable_state: MutableCampaignState,
 	if record.author_id == "" or record.campaign_id == "":
 		last_errors.append("Campaign status export requires author_id and campaign_id")
 		return {}
-	var seed := "%s|%s|%s|%s" % [record.author_id, record.campaign_id,
-		record.campaign_version, record.created_at_utc]
+	var seed := (
+		"%s|%s|%s|%s"
+		% [record.author_id, record.campaign_id, record.campaign_version, record.created_at_utc]
+	)
 	record.record_id = record_id if record_id != "" else _sha256(seed).substr(0, 24)
 	var err := DirAccess.make_dir_recursive_absolute(storage_root)
 	if err != OK and err != ERR_ALREADY_EXISTS:
@@ -97,8 +104,12 @@ func load_record(path: String) -> Dictionary:
 	return {"path": path, "record": record.to_dict()}
 
 
-func import_into(record_dict: Dictionary, target: Dictionary,
-		state: MutableCampaignState, allow_manual_foreign: bool = false) -> bool:
+func import_into(
+	record_dict: Dictionary,
+	target: Dictionary,
+	state: MutableCampaignState,
+	allow_manual_foreign: bool = false
+) -> bool:
 	var errors: Array[String] = []
 	var record := RecordScript.from_dict(record_dict, errors)
 	if record == null:
@@ -119,8 +130,10 @@ func import_into(record_dict: Dictionary, target: Dictionary,
 
 
 static func is_compatible(record: Dictionary, target: Dictionary) -> bool:
-	if String(record.get("author_id", "")) == String(target.get("author_id", "")) \
-			and String(record.get("campaign_id", "")) == String(target.get("campaign_id", "")):
+	if (
+		String(record.get("author_id", "")) == String(target.get("author_id", ""))
+		and String(record.get("campaign_id", "")) == String(target.get("campaign_id", ""))
+	):
 		return true  # same-campaign NG+
 	var sources: Variant = target.get("compatible_status_sources", [])
 	if not (sources is Array):
@@ -128,15 +141,22 @@ static func is_compatible(record: Dictionary, target: Dictionary) -> bool:
 	for source in sources:
 		if not (source is Dictionary):
 			continue
-		if source.has("author_id") \
-				and String(source["author_id"]) != String(record.get("author_id", "")):
+		if (
+			source.has("author_id")
+			and String(source["author_id"]) != String(record.get("author_id", ""))
+		):
 			continue
-		if source.has("campaign_id") \
-				and String(source["campaign_id"]) != String(record.get("campaign_id", "")):
+		if (
+			source.has("campaign_id")
+			and String(source["campaign_id"]) != String(record.get("campaign_id", ""))
+		):
 			continue
 		var versions: Variant = source.get("campaign_versions", [])
-		if versions is Array and not versions.is_empty() \
-				and not String(record.get("campaign_version", "")) in versions:
+		if (
+			versions is Array
+			and not versions.is_empty()
+			and not String(record.get("campaign_version", "")) in versions
+		):
 			continue
 		return true
 	return false

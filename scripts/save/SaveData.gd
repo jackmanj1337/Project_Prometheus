@@ -99,9 +99,13 @@ func validate(data_manager: Object = null) -> Array[String]:
 		errors.append("SaveData: integrity.schema_hash must be a String")
 	errors.append_array(_validate_rng(map_runtime.get("rng", {})))
 	errors.append_array(_validate_ledger())
-	errors.append_array(SavePolicy.validate(campaign.get("rules", {}).get("save_slot_classes", []),
-		campaign.get("rules", {}).get("autosave_rules", []),
-		SaveCodec.as_int(campaign.get("rules", {}).get("rewind_charges_per_map", 4), 4)))
+	errors.append_array(
+		SavePolicy.validate(
+			campaign.get("rules", {}).get("save_slot_classes", []),
+			campaign.get("rules", {}).get("autosave_rules", []),
+			SaveCodec.as_int(campaign.get("rules", {}).get("rewind_charges_per_map", 4), 4)
+		)
+	)
 	errors.append_array(_validate_inventory_refs(data_manager))
 	errors.append_array(_validate_mutable_campaign_state())
 	return errors
@@ -118,9 +122,13 @@ func _validate_mutable_campaign_state() -> Array[String]:
 		errors.append("SaveData: campaign.mutable_state.rule_patches must be an array")
 	else:
 		for index in patches.size():
-			if not (patches[index] is Dictionary) \
-					or String(patches[index].get("rule_id", "")).is_empty():
-				errors.append("SaveData: campaign.mutable_state.rule_patches[%d] is malformed" % index)
+			if (
+				not (patches[index] is Dictionary)
+				or String(patches[index].get("rule_id", "")).is_empty()
+			):
+				errors.append(
+					"SaveData: campaign.mutable_state.rule_patches[%d] is malformed" % index
+				)
 	var facts: Variant = state.get("carry_forward_facts", {})
 	if not (facts is Dictionary):
 		errors.append("SaveData: campaign.mutable_state.carry_forward_facts must be an object")
@@ -142,8 +150,10 @@ func _validate_ledger() -> Array[String]:
 		errors.append("SaveData: between_map document cannot carry a rewind ledger")
 	for i in ledger.size():
 		var item: Dictionary = ledger[i]
-		if String(item.get("reason", "")) not in ["round_start", "activation"] \
-				or not (item.get("entry", null) is Dictionary):
+		if (
+			String(item.get("reason", "")) not in ["round_start", "activation"]
+			or not (item.get("entry", null) is Dictionary)
+		):
 			errors.append("SaveData: ledger[%d] is malformed" % i)
 	return errors
 
@@ -195,10 +205,8 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	out["recruited_flags"] = SaveCodec.string_array_from_variant(out.get("recruited_flags", []))
 	out["mutable_state"] = _dict_from_variant(out.get("mutable_state", {}))
 	out["per_map_overrides"] = _dict_from_variant(out.get("per_map_overrides", {}))
-	out["active_mid_map_overrides"] = _dict_from_variant(
-		out.get("active_mid_map_overrides", {}))
-	out["protected_fields"] = SaveCodec.string_array_from_variant(
-		out.get("protected_fields", []))
+	out["active_mid_map_overrides"] = _dict_from_variant(out.get("active_mid_map_overrides", {}))
+	out["protected_fields"] = SaveCodec.string_array_from_variant(out.get("protected_fields", []))
 	return out
 
 
@@ -208,23 +216,27 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 		for key in source.keys():
 			out[key] = source[key]
 	out["hit_formula"] = _as_string(out.get("hit_formula", "two_roll"), "two_roll")
-	out["leveling_method"] = _as_string(out.get("leveling_method", "growth_random"), "growth_random")
+	out["leveling_method"] = _as_string(
+		out.get("leveling_method", "growth_random"), "growth_random"
+	)
 	out["auto_promote_at_max_level"] = bool(out.get("auto_promote_at_max_level", false))
 	out["pair_up_enabled"] = bool(out.get("pair_up_enabled", true))
 	out["max_skills"] = SaveCodec.as_int(out.get("max_skills", 5), 5)
 	out["max_inventory"] = SaveCodec.as_int(out.get("max_inventory", 8), 8)
 	out["exp_gaining_factions"] = SaveCodec.string_array_from_variant(
-		out.get("exp_gaining_factions", ["blue", "green"]))
+		out.get("exp_gaining_factions", ["blue", "green"])
+	)
 	out["rewind_charges_per_map"] = SaveCodec.as_int(out.get("rewind_charges_per_map", 4), 4)
 	# B1-LEDGER Phase 2: within-map ledger retention budgets (-1 = infinite tier).
 	out["undo_activations"] = SaveCodec.as_int(out.get("undo_activations", 0), 0)
 	out["undo_rounds"] = SaveCodec.as_int(out.get("undo_rounds", 0), 0)
 	out["save_slot_classes"] = SavePolicy.normalize_slot_classes(
-		out.get("save_slot_classes", SavePolicy.classic_gba()))
+		out.get("save_slot_classes", SavePolicy.classic_gba())
+	)
 	out["autosave_rules"] = SavePolicy.normalize_autosave_rules(
-		out.get("autosave_rules", SavePolicy.default_autosave_rules()))
-	out["mandated_rules"] = SaveCodec.string_array_from_variant(
-		out.get("mandated_rules", []))
+		out.get("autosave_rules", SavePolicy.default_autosave_rules())
+	)
+	out["mandated_rules"] = SaveCodec.string_array_from_variant(out.get("mandated_rules", []))
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
@@ -269,7 +281,11 @@ static func _normalize_roster(source: Variant, root: Dictionary) -> Dictionary:
 	elif out.get("units", []) is Array:
 		out["units"] = _array_from_variant(out["units"])
 	var party_source: Variant = root.get("party", {})
-	if out["units"].is_empty() and party_source is Dictionary and party_source.get("roster", []) is Array:
+	if (
+		out["units"].is_empty()
+		and party_source is Dictionary
+		and party_source.get("roster", []) is Array
+	):
 		out["units"] = _array_from_variant(party_source.get("roster", []))
 	return out
 
@@ -296,7 +312,9 @@ static func _normalize_map_runtime(source: Variant) -> Dictionary:
 
 static func _normalize_suspend(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_suspend())
-	out["pending_action"] = _with_defaults(out.get("pending_action", {}), _default_suspend()["pending_action"])
+	out["pending_action"] = _with_defaults(
+		out.get("pending_action", {}), _default_suspend()["pending_action"]
+	)
 	out["cursor_tile"] = _vector_dict_or_null(out.get("cursor_tile", null))
 	out["watch_set"] = SaveCodec.string_array_from_variant(out.get("watch_set", []))
 	out["danger_mode"] = _as_string(out.get("danger_mode", "none"), "none")
@@ -322,9 +340,11 @@ static func _normalize_ledger(source: Variant) -> Array[Dictionary]:
 			if entry is Dictionary:
 				var normalized_entry: Dictionary = entry.duplicate(true)
 				normalized_entry["map_runtime"] = _normalize_map_runtime(
-					normalized_entry.get("map_runtime", {}))
+					normalized_entry.get("map_runtime", {})
+				)
 				normalized_entry["suspend"] = _normalize_suspend(
-					normalized_entry.get("suspend", {}))
+					normalized_entry.get("suspend", {})
+				)
 				normalized["entry"] = normalized_entry
 			out.append(normalized)
 	return out
@@ -341,32 +361,45 @@ static func _normalize_turn(source: Variant) -> Dictionary:
 	out["unit_states"] = SaveCodec.int_dict_from_variant(out.get("unit_states", {}))
 	out["seize_records"] = _array_from_variant(out.get("seize_records", []))
 	out["escape_records"] = _array_from_variant(out.get("escape_records", []))
-	out["group_eliminated_round"] = SaveCodec.int_dict_from_variant(out.get("group_eliminated_round", {}))
+	out["group_eliminated_round"] = SaveCodec.int_dict_from_variant(
+		out.get("group_eliminated_round", {})
+	)
 	return out
 
 
-static func _normalize_header(source: Variant, campaign_data: Dictionary,
-		party_data: Dictionary, roster_data: Dictionary, map_data: Dictionary) -> Dictionary:
+static func _normalize_header(
+	source: Variant,
+	campaign_data: Dictionary,
+	party_data: Dictionary,
+	roster_data: Dictionary,
+	map_data: Dictionary
+) -> Dictionary:
 	var derived := _default_header()
 	derived["campaign_id"] = _as_string(campaign_data.get("campaign_id", ""), "")
 	derived["node_id"] = _as_string(campaign_data.get("node_id", ""), "")
-	derived["campaign_state"] = "completed" if derived["campaign_id"] != "" \
-			and derived["node_id"] == "" else "in_progress"
-	derived["save_kind"] = "mid_map" if String(map_data.get("map_path", "")) != "" \
-		else "between_map"
+	derived["campaign_state"] = (
+		"completed" if derived["campaign_id"] != "" and derived["node_id"] == "" else "in_progress"
+	)
+	derived["save_kind"] = (
+		"mid_map" if String(map_data.get("map_path", "")) != "" else "between_map"
+	)
 	derived["turn_number"] = SaveCodec.as_int(
-		_dict_from_variant(map_data.get("turn", {})).get("turn_number", 1), 1)
+		_dict_from_variant(map_data.get("turn", {})).get("turn_number", 1), 1
+	)
 	derived["map_id"] = _as_string(map_data.get("map_id", ""), "")
 	derived["party"]["count"] = _array_from_variant(roster_data.get("units", [])).size()
 	derived["party"]["gold"] = SaveCodec.as_int(
-		_dict_from_variant(party_data.get("resources", {})).get("party_gold", 0), 0)
+		_dict_from_variant(party_data.get("resources", {})).get("party_gold", 0), 0
+	)
 	var out := _with_defaults(source, derived)
 	out["badges"] = SaveCodec.string_array_from_variant(out.get("badges", []))
 	out["party"] = _with_defaults(out.get("party", {}), derived["party"])
-	out["party"]["count"] = SaveCodec.as_int(out["party"].get("count", derived["party"]["count"]),
-		derived["party"]["count"])
-	out["party"]["gold"] = SaveCodec.as_int(out["party"].get("gold", derived["party"]["gold"]),
-		derived["party"]["gold"])
+	out["party"]["count"] = SaveCodec.as_int(
+		out["party"].get("count", derived["party"]["count"]), derived["party"]["count"]
+	)
+	out["party"]["gold"] = SaveCodec.as_int(
+		out["party"].get("gold", derived["party"]["gold"]), derived["party"]["gold"]
+	)
 	out["party"]["lord"] = _as_string(out["party"].get("lord", ""), "")
 	if _as_string(out.get("campaign_id", ""), "") == "":
 		out["campaign_id"] = derived["campaign_id"]
@@ -389,32 +422,45 @@ func _validate_rng(rng_data: Variant) -> Array[String]:
 	var errors: Array[String] = []
 	if not (rng_data is Dictionary) or rng_data.is_empty():
 		return errors
-	if not _is_rng_value(rng_data.get("map_seed")) \
-			or not _is_rng_value(rng_data.get("history_hash")):
-		errors.append("SaveData: map_runtime.rng must carry int or decimal-string map_seed and history_hash")
+	if (
+		not _is_rng_value(rng_data.get("map_seed"))
+		or not _is_rng_value(rng_data.get("history_hash"))
+	):
+		errors.append(
+			"SaveData: map_runtime.rng must carry int or decimal-string map_seed and history_hash"
+		)
 	return errors
 
 
 func _validate_inventory_refs(data_manager: Object) -> Array[String]:
 	var errors: Array[String] = []
-	errors.append_array(_validate_entry_array(
-		party.get("convoy", {}).get("entries", []),
-		"SaveData party.convoy.entries",
-		data_manager))
+	errors.append_array(
+		_validate_entry_array(
+			party.get("convoy", {}).get("entries", []),
+			"SaveData party.convoy.entries",
+			data_manager
+		)
+	)
 
 	var units: Array = _array_from_variant(roster.get("units", []))
 	for i in units.size():
-		errors.append_array(_validate_entry_array(
-			_inventory_entries_from_unit_dict(units[i]),
-			"SaveData roster.units[%d].inventory.entries" % i,
-			data_manager))
+		errors.append_array(
+			_validate_entry_array(
+				_inventory_entries_from_unit_dict(units[i]),
+				"SaveData roster.units[%d].inventory.entries" % i,
+				data_manager
+			)
+		)
 
 	var runtime_units: Array = _array_from_variant(map_runtime.get("units", []))
 	for i in runtime_units.size():
-		errors.append_array(_validate_entry_array(
-			_inventory_entries_from_unit_dict(runtime_units[i]),
-			"SaveData map_runtime.units[%d].inventory.entries" % i,
-			data_manager))
+		errors.append_array(
+			_validate_entry_array(
+				_inventory_entries_from_unit_dict(runtime_units[i]),
+				"SaveData map_runtime.units[%d].inventory.entries" % i,
+				data_manager
+			)
+		)
 	return errors
 
 
@@ -424,8 +470,9 @@ func _validate_entry_array(entries: Variant, path: String, data_manager: Object)
 		errors.append("%s is not an Array" % path)
 		return errors
 	for i in entries.size():
-		errors.append_array(SaveCodec.validate_inventory_entry_dict(
-			entries[i], "%s[%d]" % [path, i], data_manager))
+		errors.append_array(
+			SaveCodec.validate_inventory_entry_dict(entries[i], "%s[%d]" % [path, i], data_manager)
+		)
 	return errors
 
 
@@ -467,7 +514,8 @@ static func _default_campaign() -> Dictionary:
 		"campaign_id": "",
 		"node_id": "",
 		"cleared_nodes": [],
-		"rules": {
+		"rules":
+		{
 			"death_mode": "casual",
 			"leveling_method": "growth_random",
 			"auto_promote_at_max_level": false,
@@ -490,7 +538,8 @@ static func _default_campaign() -> Dictionary:
 		"flags": [],
 		"relationship_graph": {},
 		"recruited_flags": [],
-		"mutable_state": {
+		"mutable_state":
+		{
 			"rule_patches": [],
 			"carry_forward_facts": {},
 			"imported_record_ref": {},
@@ -527,7 +576,8 @@ static func _default_map_runtime() -> Dictionary:
 		"objects": {},
 		"discovered_units": [],
 		"units": [],
-		"turn": {
+		"turn":
+		{
 			"turn_number": 1,
 			"phase": "player",
 			"active_faction": "",

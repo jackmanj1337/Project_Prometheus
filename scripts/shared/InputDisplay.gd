@@ -6,6 +6,7 @@ extends RefCounted
 # That keeps headless `--script` test runs working without needing a manual
 # entry in the gitignored global class cache.
 
+
 # Renders one InputEventKey as a display string, e.g. "Shift+Tab".
 # Modifiers are listed in a stable order so the same binding always reads the
 # same way. Returns "" for non-key events (mouse buttons, joypad, etc.).
@@ -13,10 +14,14 @@ static func event_to_string(event: InputEvent) -> String:
 	if not (event is InputEventKey):
 		return ""
 	var parts: Array[String] = []
-	if event.ctrl_pressed:  parts.append("Ctrl")
-	if event.shift_pressed: parts.append("Shift")
-	if event.alt_pressed:   parts.append("Alt")
-	if event.meta_pressed:  parts.append("Meta")
+	if event.ctrl_pressed:
+		parts.append("Ctrl")
+	if event.shift_pressed:
+		parts.append("Shift")
+	if event.alt_pressed:
+		parts.append("Alt")
+	if event.meta_pressed:
+		parts.append("Meta")
 	# Prefer keycode; fall back to physical_keycode for layout-independent binds.
 	var code: int = event.keycode if event.keycode != 0 else event.physical_keycode
 	parts.append(OS.get_keycode_string(code))
@@ -87,8 +92,15 @@ static func detect_brand(joy_name: String) -> int:
 	var n := joy_name.to_lower()
 	if "nintendo" in n or "switch" in n or "joycon" in n or "joy-con" in n or "joy con" in n:
 		return Brand.NINTENDO
-	if "sony" in n or "playstation" in n or "dualshock" in n or "dualsense" in n \
-			or "ps3" in n or "ps4" in n or "ps5" in n:
+	if (
+		"sony" in n
+		or "playstation" in n
+		or "dualshock" in n
+		or "dualsense" in n
+		or "ps3" in n
+		or "ps4" in n
+		or "ps5" in n
+	):
 		return Brand.PLAYSTATION
 	if "xbox" in n or "xinput" in n or "x-box" in n or "microsoft" in n:
 		return Brand.XBOX
@@ -125,24 +137,38 @@ static func joypad_button_label(button_index: int, brand: int) -> String:
 	match brand:
 		Brand.NINTENDO:
 			match button_index:
-				JOY_BUTTON_A: return "B"  # physical bottom is labeled B on a Switch pad
-				JOY_BUTTON_B: return "A"
-				JOY_BUTTON_X: return "Y"
-				JOY_BUTTON_Y: return "X"
+				JOY_BUTTON_A:
+					return "B"  # physical bottom is labeled B on a Switch pad
+				JOY_BUTTON_B:
+					return "A"
+				JOY_BUTTON_X:
+					return "Y"
+				JOY_BUTTON_Y:
+					return "X"
 		Brand.PLAYSTATION:
 			match button_index:
-				JOY_BUTTON_A: return "Cross"
-				JOY_BUTTON_B: return "Circle"
-				JOY_BUTTON_X: return "Square"
-				JOY_BUTTON_Y: return "Triangle"
-				JOY_BUTTON_LEFT_SHOULDER: return "L1"
-				JOY_BUTTON_RIGHT_SHOULDER: return "R1"
+				JOY_BUTTON_A:
+					return "Cross"
+				JOY_BUTTON_B:
+					return "Circle"
+				JOY_BUTTON_X:
+					return "Square"
+				JOY_BUTTON_Y:
+					return "Triangle"
+				JOY_BUTTON_LEFT_SHOULDER:
+					return "L1"
+				JOY_BUTTON_RIGHT_SHOULDER:
+					return "R1"
 		_:
 			match button_index:
-				JOY_BUTTON_A: return "A"
-				JOY_BUTTON_B: return "B"
-				JOY_BUTTON_X: return "X"
-				JOY_BUTTON_Y: return "Y"
+				JOY_BUTTON_A:
+					return "A"
+				JOY_BUTTON_B:
+					return "B"
+				JOY_BUTTON_X:
+					return "X"
+				JOY_BUTTON_Y:
+					return "Y"
 	# Non-face buttons (and unlisted PS shoulders fall through to here): positional
 	# name minus the "Pad " prefix reads fine as a prompt ("LB", "Start", "D-pad Up").
 	return _joypad_button_to_string(button_index).trim_prefix("Pad ")
@@ -207,13 +233,18 @@ static func more_info_hint_for(mode: String, subject: String, brand: int = Brand
 	match mode:
 		"gamepad":
 			var t := token if token != "" else "the More Info button"
-			return ("Press %s for details." % t) if subject != "" else ("Press %s for more info" % t)
+			return (
+				("Press %s for details." % t) if subject != "" else ("Press %s for more info" % t)
+			)
 		"touch":
 			return ("Tap any %s for details." % subject) if subject != "" else "Tap for more info"
 		_:
 			var k := token if token != "" else "F"
-			return ("Click any %s, or press %s, for details." % [subject, k]) if subject != "" \
+			return (
+				("Click any %s, or press %s, for details." % [subject, k])
+				if subject != ""
 				else ("Press %s for more info" % k)
+			)
 
 
 static func _mouse_button_to_string(button_index: int) -> String:

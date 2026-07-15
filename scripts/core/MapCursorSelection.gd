@@ -73,7 +73,9 @@ func overlay_specs() -> Dictionary:
 # for healing staves, attack overlay otherwise. Shared by select_at and
 # undo_and_reselect so the two paths can't drift.
 func _add_action_overlay_specs(specs: Dictionary, unit: Node) -> void:
-	var w: WeaponData = unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	var w: WeaponData = (
+		unit.get_equipped_weapon() if unit.has_method("get_equipped_weapon") else null
+	)
 	if w != null and w.is_healing_staff():
 		specs[GridManager.OVERLAY_LAYER_HEAL] = {
 			"tiles": _grid.get_staff_range_from_tiles(unit, movement_tiles),

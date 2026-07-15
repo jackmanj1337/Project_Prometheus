@@ -34,11 +34,13 @@ static func verify(source: Dictionary) -> Array[String]:
 
 
 static func _protected_projection(source: Dictionary) -> Dictionary:
-	var campaign: Dictionary = source.get("campaign", {}) \
-		if source.get("campaign", {}) is Dictionary else {}
+	var campaign: Dictionary = (
+		source.get("campaign", {}) if source.get("campaign", {}) is Dictionary else {}
+	)
 	var protected := {
 		"format_version": source.get("format_version"),
-		"campaign": {
+		"campaign":
+		{
 			"campaign_id": campaign.get("campaign_id", ""),
 			"package_id": campaign.get("package_id", ""),
 			"package_version": campaign.get("package_version", ""),

@@ -22,26 +22,35 @@ var _perimeter_overlay: Node2D = null
 # Maps Vector2i tile -> String terrain type.
 var _terrain_fallback: Dictionary = {}
 
-
 # Move costs per terrain type (GDD_02)
 const _DEFAULT_MOVE_COSTS: Dictionary = {
-	"plain":    1,
-	"forest":   2,
+	"plain": 1,
+	"forest": 2,
 	"mountain": 3,
-	"fort":     1,
-	"sea":      2,
-	"desert":   2,
-	"wall":     999,
+	"fort": 1,
+	"sea": 2,
+	"desert": 2,
+	"wall": 999,
 }
 
 # Terrain DEF/Dodge bonuses applied to defenders only (GDD_02)
 const TERRAIN_DEF_BONUS: Dictionary = {
-	"plain": 0, "forest": 1, "mountain": 2, "fort": 2,
-	"sea": 0, "desert": 0, "wall": 0,
+	"plain": 0,
+	"forest": 1,
+	"mountain": 2,
+	"fort": 2,
+	"sea": 0,
+	"desert": 0,
+	"wall": 0,
 }
 const TERRAIN_DODGE_BONUS: Dictionary = {
-	"plain": 0, "forest": 15, "mountain": 20, "fort": 30,
-	"sea": 10, "desert": 5, "wall": 0,
+	"plain": 0,
+	"forest": 15,
+	"mountain": 20,
+	"fort": 30,
+	"sea": 10,
+	"desert": 5,
+	"wall": 0,
 }
 
 
@@ -64,13 +73,19 @@ func _hostile(a: Node, b: Node) -> bool:
 
 
 # Called by GameMap during _ready() to wire the layers.
-func setup(terrain_layer: TileMapLayer, overlay_layer: TileMapLayer,
-		width: int, height: int, overlay_top_layer: TileMapLayer = null) -> void:
+func setup(
+	terrain_layer: TileMapLayer,
+	overlay_layer: TileMapLayer,
+	width: int,
+	height: int,
+	overlay_top_layer: TileMapLayer = null
+) -> void:
 	_tilemap = terrain_layer
 	_overlay = overlay_layer
 	_overlay_top = overlay_top_layer
 	map_width = width
 	map_height = height
+
 
 # Out-of-bounds tiles count as walls so callers don't need explicit bounds checks.
 func get_terrain_at(tile: Vector2i) -> String:
@@ -102,7 +117,7 @@ func set_terrain_fallback(tile: Vector2i, terrain: String) -> void:
 func get_terrain_bonuses(tile: Vector2i) -> Dictionary:
 	var terrain := get_terrain_at(tile)
 	return {
-		"def":   TERRAIN_DEF_BONUS.get(terrain, 0),
+		"def": TERRAIN_DEF_BONUS.get(terrain, 0),
 		"dodge": TERRAIN_DODGE_BONUS.get(terrain, 0),
 	}
 
@@ -115,32 +130,35 @@ func get_terrain_bonuses(tile: Vector2i) -> Dictionary:
 # caller renders that as "—" rather than a numeric cost.
 const IMPASSABLE_MOVE_COST: int = 999
 
+
 static func get_move_costs_for_groups(terrain: String) -> Dictionary:
 	if terrain == "wall":
 		return {
-			"foot":     IMPASSABLE_MOVE_COST,
-			"mounted":  IMPASSABLE_MOVE_COST,
+			"foot": IMPASSABLE_MOVE_COST,
+			"mounted": IMPASSABLE_MOVE_COST,
 			"armoured": IMPASSABLE_MOVE_COST,
-			"light":    IMPASSABLE_MOVE_COST,
-			"flying":   IMPASSABLE_MOVE_COST,  # walls block everyone (V021-11)
+			"light": IMPASSABLE_MOVE_COST,
+			"flying": IMPASSABLE_MOVE_COST,  # walls block everyone (V021-11)
 		}
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 	var mounted: int = 3 if terrain == "desert" else base
 	var armoured: int = 3 if terrain == "desert" else base
 	var light: int = 1 if terrain == "desert" else base
 	return {
-		"foot":     base,
-		"mounted":  mounted,
+		"foot": base,
+		"mounted": mounted,
 		"armoured": armoured,
-		"light":    light,
+		"light": light,
 		# Fliers ignore all ground terrain penalties; flat 1 on every non-wall tile
 		# (V021-11), so they cross river/sea/mountain freely.
-		"flying":   1,
+		"flying": 1,
 	}
 
 
 func world_to_tile(world_pos: Vector2) -> Vector2i:
-	return Vector2i(int(world_pos.x) / GameConstants.TILE_SIZE, int(world_pos.y) / GameConstants.TILE_SIZE)
+	return Vector2i(
+		int(world_pos.x) / GameConstants.TILE_SIZE, int(world_pos.y) / GameConstants.TILE_SIZE
+	)
 
 
 # Returns the top-left corner of the tile in world space.
@@ -262,9 +280,7 @@ func get_unit_at(tile: Vector2i) -> Node:
 # Direction-based features (displacement/shove/swap/pivot, etc.) must read neighbours
 # via this seam rather than copying a 4-way literal — that keeps the parked hex-grid
 # option open (see registers/grid_topology_hex_open_questions_2026-06-27.md, [HEX-9]).
-const DIRS: Array[Vector2i] = [
-	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
-]
+const DIRS: Array[Vector2i] = [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]
 
 
 # Dijkstra cost map from `start` over terrain move costs. The single shared flood
@@ -279,8 +295,13 @@ const DIRS: Array[Vector2i] = [
 # Returns { tile: cost } for every tile reachable within max_cost (start included).
 # Heap is an insertion-sorted Array of [cost, tile]; pop_front yields the cheapest
 # unvisited tile, and stale entries (a shorter path settled later) are skipped.
-func dijkstra_costs(start: Vector2i, max_cost: int, ignore_occupants: bool,
-		blocker_unit: Node, came_from: Dictionary = {}) -> Dictionary:
+func dijkstra_costs(
+	start: Vector2i,
+	max_cost: int,
+	ignore_occupants: bool,
+	blocker_unit: Node,
+	came_from: Dictionary = {}
+) -> Dictionary:
 	var costs: Dictionary = {start: 0}
 	var heap: Array = [[0, start]]
 	while not heap.is_empty():
@@ -462,7 +483,9 @@ func get_attackable_enemies_from_tile(unit: Node, tile: Vector2i) -> Array[Node]
 			continue
 		if target.data == null or target.data.hp <= 0:
 			continue
-		var dist: int = absi(target.tile_position.x - tile.x) + absi(target.tile_position.y - tile.y)
+		var dist: int = (
+			absi(target.tile_position.x - tile.x) + absi(target.tile_position.y - tile.y)
+		)
 		if dist >= wrange.x and dist <= wrange.y:
 			out.append(target)
 	return out
@@ -482,7 +505,9 @@ func in_weapon_range_from_tile(unit: Node, at_tile: Vector2i, target: Node) -> b
 	if unit == null or target == null:
 		return false
 	var wrange := _get_weapon_range(unit)
-	var dist: int = absi(target.tile_position.x - at_tile.x) + absi(target.tile_position.y - at_tile.y)
+	var dist: int = (
+		absi(target.tile_position.x - at_tile.x) + absi(target.tile_position.y - at_tile.y)
+	)
 	return dist >= wrange.x and dist <= wrange.y
 
 
@@ -506,7 +531,10 @@ func get_healable_allies(unit: Node) -> Array[Node]:
 			continue
 		if ally.data == null or ally.data.hp >= ally.data.max_hp:
 			continue
-		var dist: int = absi(ally.tile_position.x - unit.tile_position.x) + absi(ally.tile_position.y - unit.tile_position.y)
+		var dist: int = (
+			absi(ally.tile_position.x - unit.tile_position.x)
+			+ absi(ally.tile_position.y - unit.tile_position.y)
+		)
 		if dist >= wrange.x and dist <= wrange.y:
 			out.append(ally)
 	return out
@@ -535,7 +563,6 @@ const OVERLAY_DARK_RED_PERIMETER_START := 11
 const OVERLAY_DARKER_RED_PERIMETER_START := 26
 const OVERLAY_PERIMETER_MASK_COUNT := 15
 
-
 # ── [MRD-1] Overlay precedence registry ──────────────────────────────────────
 # Every overlay shares ONE overlay TileMapLayer, so paint ORDER decides the
 # winner of a shared cell (the last set_cell wins). Instead of hardcoding that
@@ -549,7 +576,7 @@ const OVERLAY_LAYER_ATTACK := "attack_range"
 const OVERLAY_LAYER_HEAL := "heal_range"
 const OVERLAY_LAYER_FACTION_THREAT := "faction_threat"
 const OVERLAY_LAYER_WATCH_THREAT := "watch_threat"
-const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"          # peek move range (blue)
+const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"  # peek move range (blue)
 const OVERLAY_LAYER_HOVER_PEEK_ATTACK := "hover_peek_attack"  # peek attack reach (red)
 const OVERLAY_LAYER_PATH_ARROWS := "path_arrows"
 
@@ -581,15 +608,18 @@ const PERIMETER_EDGE_BOTTOM := 4
 const PERIMETER_EDGE_LEFT := 8
 
 const _RANGE_ON_THREAT_SOURCES := {
-	OVERLAY_BLUE: {
+	OVERLAY_BLUE:
+	{
 		OVERLAY_DARK_RED: OVERLAY_BLUE_ON_DARK_RED,
 		OVERLAY_DARKER_RED: OVERLAY_BLUE_ON_DARKER_RED,
 	},
-	OVERLAY_RED: {
+	OVERLAY_RED:
+	{
 		OVERLAY_DARK_RED: OVERLAY_RED_ON_DARK_RED,
 		OVERLAY_DARKER_RED: OVERLAY_RED_ON_DARKER_RED,
 	},
-	OVERLAY_HEAL: {
+	OVERLAY_HEAL:
+	{
 		OVERLAY_DARK_RED: OVERLAY_HEAL_ON_DARK_RED,
 		OVERLAY_DARKER_RED: OVERLAY_HEAL_ON_DARKER_RED,
 	},
@@ -613,8 +643,9 @@ static func _ensure_overlay_registry() -> void:
 	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, OVERLAY_ROLE_EXCLUSIVE)
 
 
-static func register_overlay_layer(layer_id: String, precedence: int,
-		role: String = OVERLAY_ROLE_RANGE) -> void:
+static func register_overlay_layer(
+	layer_id: String, precedence: int, role: String = OVERLAY_ROLE_RANGE
+) -> void:
 	_overlay_registry[layer_id] = {"precedence": precedence, "role": role}
 
 
@@ -645,8 +676,11 @@ func set_shared_cell_mode(mode: String) -> void:
 
 
 func _shared_cell_mode_uses_top_overlay(mode: String) -> bool:
-	return mode == SHARED_CELL_STACKED or mode == SHARED_CELL_STACKED_PERIMETER \
+	return (
+		mode == SHARED_CELL_STACKED
+		or mode == SHARED_CELL_STACKED_PERIMETER
 		or mode == SHARED_CELL_DUAL_OUTLINE
+	)
 
 
 func _clear_top_overlay() -> void:
@@ -654,8 +688,7 @@ func _clear_top_overlay() -> void:
 		_overlay_top.clear()
 
 
-func _paint_overlay(tiles: Array[Vector2i], source_id: int,
-		target: TileMapLayer = null) -> void:
+func _paint_overlay(tiles: Array[Vector2i], source_id: int, target: TileMapLayer = null) -> void:
 	var layer := target if target != null else _overlay
 	if layer == null:
 		return
@@ -785,7 +818,8 @@ func _paint_dual_outline(layer_specs: Dictionary) -> void:
 			watch_tiles[tile] = true
 	overlay.set_perimeters(
 		perimeter_edge_segments(_threat_union(layer_specs), GameConstants.TILE_SIZE),
-		perimeter_edge_segments(watch_tiles, GameConstants.TILE_SIZE))
+		perimeter_edge_segments(watch_tiles, GameConstants.TILE_SIZE)
+	)
 
 
 # Lazily creates the outline draw surface (same pattern as MapCursor's

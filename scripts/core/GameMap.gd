@@ -169,8 +169,9 @@ func _get_camera_start() -> Vector2:
 	var sum := Vector2i.ZERO
 	for t in map_data.player_start_tiles:
 		sum += t
-	var centroid := Vector2i(sum.x / map_data.player_start_tiles.size(),
-		sum.y / map_data.player_start_tiles.size())
+	var centroid := Vector2i(
+		sum.x / map_data.player_start_tiles.size(), sum.y / map_data.player_start_tiles.size()
+	)
 	return _grid.tile_to_world(centroid)
 
 
@@ -213,10 +214,15 @@ func _spawn_units() -> bool:
 	if resume_payload is Dictionary and not resume_payload.is_empty():
 		return _spawn_units_from_suspend(resume_payload)
 	if not bool(gs.call("is_roster_ready_for_launch")):
-		push_error("GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')" % [
-			String(gs.get("next_map_roster_policy")),
-			String(gs.get("next_map_roster_source")),
-		])
+		push_error(
+			(
+				"GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')"
+				% [
+					String(gs.get("next_map_roster_policy")),
+					String(gs.get("next_map_roster_source")),
+				]
+			)
+		)
 		return false
 	var roster: Array = gs.get("player_roster")
 	if roster == null or roster.is_empty():
@@ -263,7 +269,8 @@ func _spawn_units_from_plan(plan: Dictionary, roster: Array) -> bool:
 		node = cm.call("get_current_node")
 
 	var errors: Array[String] = DeploymentPlanS.validate(
-		plan, party, node, map_data.player_start_tiles)
+		plan, party, node, map_data.player_start_tiles
+	)
 	if not errors.is_empty():
 		for err in errors:
 			push_error(err)
@@ -293,7 +300,12 @@ func _spawn_enemy_units() -> bool:
 		# push_error + continue (not assert) so bad data is skipped in release
 		# builds, where assert() is stripped.
 		if u_data.unit_id == "":
-			push_error("GameMap: enemy placement has empty unit_id — set it on the UnitData: %s" % str(placement))
+			push_error(
+				(
+					"GameMap: enemy placement has empty unit_id — set it on the UnitData: %s"
+					% str(placement)
+				)
+			)
 			continue
 		_place_and_spawn(u_data, tile, faction_id)
 	return true
@@ -307,7 +319,9 @@ func _spawn_units_from_suspend(payload: Dictionary) -> bool:
 		return false
 	for unit_entry in units:
 		if not (unit_entry is Dictionary):
-			push_error("GameMap: suspend payload unit entry is not a Dictionary: %s" % str(unit_entry))
+			push_error(
+				"GameMap: suspend payload unit entry is not a Dictionary: %s" % str(unit_entry)
+			)
 			continue
 		var u_data: UnitData = gs.call("unit_data_from_runtime_dict", unit_entry)
 		if u_data == null or u_data.unit_id == "":
@@ -332,8 +346,11 @@ func _apply_suspend_resume(payload: Dictionary) -> void:
 	if reg:
 		reg.call("restore", map_runtime.get("pair_carry", {}).get("pair_up", {}))
 	var rng_svc := get_node_or_null("/root/RngService")
-	if rng_svc != null and map_runtime.get("rng", {}) is Dictionary \
-			and not map_runtime.get("rng", {}).is_empty():
+	if (
+		rng_svc != null
+		and map_runtime.get("rng", {}) is Dictionary
+		and not map_runtime.get("rng", {}).is_empty()
+	):
 		rng_svc.call("from_save_dict", map_runtime["rng"])
 	_turn_manager.start_map_from_suspend(map_data, _grid, map_runtime.get("turn", {}))
 	_cursor.apply_suspend_ui_state(payload.get("suspend", {}))
@@ -353,8 +370,10 @@ func _resolve_placement_unit_data(placement: Dictionary) -> UnitData:
 	var has_path := path != ""
 	if has_instance == has_path:
 		push_error(
-			"GameMap: enemy placement must provide exactly one of unit_data_path or unit_data: "
-			+ str(placement)
+			(
+				"GameMap: enemy placement must provide exactly one of unit_data_path or unit_data: "
+				+ str(placement)
+			)
 		)
 		return null
 	if has_instance:
@@ -364,7 +383,9 @@ func _resolve_placement_unit_data(placement: Dictionary) -> UnitData:
 			return null
 		return instance.duplicate(true)  # fresh copy per map
 	if not ResourceLoader.exists(path):
-		push_error("GameMap: enemy placement points at missing UnitData '%s': %s" % [path, str(placement)])
+		push_error(
+			"GameMap: enemy placement points at missing UnitData '%s': %s" % [path, str(placement)]
+		)
 		return null
 	# ResourceLoader.exists() passed, but load() can still return null on a
 	# corrupt .tres — null-check before .duplicate() so we skip, not crash.
@@ -401,24 +422,34 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 
 # Public/non-standard placement resolves policy before this method reaches the
 # private instancing seam. Normal movement remains owned by Unit/GridManager.
-func _place_and_spawn(u_data: UnitData, desired_tile: Vector2i, team: String,
-		policy: String = "nearest_free") -> Unit:
+func _place_and_spawn(
+	u_data: UnitData, desired_tile: Vector2i, team: String, policy: String = "nearest_free"
+) -> Unit:
 	var occupancy := get_node_or_null("/root/OccupancyService")
 	if occupancy == null:
 		push_error("GameMap: OccupancyService autoload missing")
 		return null
 	var context: RefCounted = OccupancyContextScript.create(
-		u_data, desired_tile, policy, u_data.unit_id)
+		u_data, desired_tile, policy, u_data.unit_id
+	)
 	context.source = self
 	context.reason = "map_start_spawn"
 	var result: RefCounted = occupancy.call("place", context, _grid)
 	if not result.ok:
-		push_error("GameMap: could not place unit '%s' at %s (%s)" % [
-			u_data.unit_id, str(desired_tile), result.failure_reason])
+		push_error(
+			(
+				"GameMap: could not place unit '%s' at %s (%s)"
+				% [u_data.unit_id, str(desired_tile), result.failure_reason]
+			)
+		)
 		return null
 	if result.fallback_used:
-		push_warning("GameMap: unit '%s' moved from authored tile %s to nearest free tile %s" % [
-			u_data.unit_id, str(desired_tile), str(result.to_tile)])
+		push_warning(
+			(
+				"GameMap: unit '%s' moved from authored tile %s to nearest free tile %s"
+				% [u_data.unit_id, str(desired_tile), str(result.to_tile)]
+			)
+		)
 	return _spawn_unit(u_data, result.to_tile, team)
 
 

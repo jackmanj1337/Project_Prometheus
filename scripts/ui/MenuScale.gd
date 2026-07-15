@@ -279,10 +279,9 @@ static func _recenter(target: Control) -> void:
 		var min_size: Vector2 = target.get_combined_minimum_size()
 		var vp: Vector2 = target.get_viewport_rect().size
 		target.size = Vector2(
-			minf(maxf(base.x, min_size.x), vp.x),
-			minf(maxf(base.y, min_size.y), vp.y))
-	target.set_anchors_and_offsets_preset(
-		Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
+			minf(maxf(base.x, min_size.x), vp.x), minf(maxf(base.y, min_size.y), vp.y)
+		)
+	target.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
 	target.set_meta(_RECENTER_GUARD_META, false)
 
 

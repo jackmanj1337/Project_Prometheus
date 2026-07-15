@@ -7,15 +7,21 @@ const CATALOGUE_PATH := "data/catalogue.json"
 const APPROVED_MEDIA_EXTENSIONS := ["png", "ogg", "wav", "ttf", "otf"]
 
 
-class Limits extends RefCounted:
+class Limits:
+	extends RefCounted
 	var max_entries: int
 	var max_entry_compressed: int
 	var max_entry_uncompressed: int
 	var max_total_compressed: int
 	var max_total_uncompressed: int
 
-	func _init(entries: int, entry_compressed: int, entry_uncompressed: int,
-			total_compressed: int, total_uncompressed: int) -> void:
+	func _init(
+		entries: int,
+		entry_compressed: int,
+		entry_uncompressed: int,
+		total_compressed: int,
+		total_uncompressed: int
+	) -> void:
 		max_entries = entries
 		max_entry_compressed = entry_compressed
 		max_entry_uncompressed = entry_uncompressed
@@ -23,7 +29,8 @@ class Limits extends RefCounted:
 		max_total_uncompressed = total_uncompressed
 
 
-class Result extends RefCounted:
+class Result:
+	extends RefCounted
 	var valid := false
 	var errors: Array[String] = []
 	var package_id := ""
@@ -76,15 +83,18 @@ static func inspect_zip(archive_path: String, limits: Limits) -> Result:
 
 # Public for deterministic hostile-metadata tests that ZIPWriter cannot author
 # (notably Unix symlink and special-file central-directory modes).
-static func inspect_entries(entries: Array[Dictionary], payloads: Dictionary,
-		limits: Limits) -> Result:
+static func inspect_entries(
+	entries: Array[Dictionary], payloads: Dictionary, limits: Limits
+) -> Result:
 	var result := Result.new()
 	result.entries = entries.duplicate(true)
 	if limits == null:
 		result.errors.append("Archive preflight requires explicit security limits")
 		return result
 	if entries.size() > limits.max_entries:
-		result.errors.append("Archive has %d entries; limit is %d" % [entries.size(), limits.max_entries])
+		result.errors.append(
+			"Archive has %d entries; limit is %d" % [entries.size(), limits.max_entries]
+		)
 	var exact := {}
 	var folded := {}
 	var roots := {}
@@ -112,8 +122,14 @@ static func inspect_entries(entries: Array[Dictionary], payloads: Dictionary,
 	return result
 
 
-static func _validate_entry(entry: Dictionary, exact: Dictionary, folded: Dictionary,
-		roots: Dictionary, limits: Limits, errors: Array[String]) -> void:
+static func _validate_entry(
+	entry: Dictionary,
+	exact: Dictionary,
+	folded: Dictionary,
+	roots: Dictionary,
+	limits: Limits,
+	errors: Array[String]
+) -> void:
 	var path := String(entry.get("path", ""))
 	if not _safe_archive_path(path):
 		errors.append("Unsafe archive path '%s'" % path)
@@ -138,9 +154,12 @@ static func _validate_entry(entry: Dictionary, exact: Dictionary, folded: Dictio
 		errors.append("Archive entry '%s' is a forbidden %s" % [path, file_type])
 	var compressed := int(entry.get("compressed_size", 0))
 	var uncompressed := int(entry.get("uncompressed_size", 0))
-	if compressed < 0 or uncompressed < 0 \
-			or compressed > limits.max_entry_compressed \
-			or uncompressed > limits.max_entry_uncompressed:
+	if (
+		compressed < 0
+		or uncompressed < 0
+		or compressed > limits.max_entry_compressed
+		or uncompressed > limits.max_entry_uncompressed
+	):
 		errors.append("Archive entry '%s' exceeds size limits" % path)
 
 
@@ -151,7 +170,9 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 	if not result.errors.is_empty():
 		return
 	var manifest_raw: Variant = _parse_json(payloads[MANIFEST_PATH], MANIFEST_PATH, result.errors)
-	var catalogue_raw: Variant = _parse_json(payloads[CATALOGUE_PATH], CATALOGUE_PATH, result.errors)
+	var catalogue_raw: Variant = _parse_json(
+		payloads[CATALOGUE_PATH], CATALOGUE_PATH, result.errors
+	)
 	if manifest_raw == null or catalogue_raw == null:
 		return
 	var manifest_errors: Array[String] = []
@@ -165,8 +186,9 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 	if manifest != null:
 		result.package_id = manifest.id
 	if manifest != null and manifest.id != result.package_root:
-		result.errors.append("Manifest id '%s' does not match package root '%s'" % [
-			manifest.id, result.package_root])
+		result.errors.append(
+			"Manifest id '%s' does not match package root '%s'" % [manifest.id, result.package_root]
+		)
 	var documents := {}
 	var admitted := {MANIFEST_PATH: true, CATALOGUE_PATH: true}
 	for entry in catalogue.entries:
@@ -191,9 +213,14 @@ static func _validate_content(payloads: Dictionary, result: Result) -> void:
 
 
 static func _safe_archive_path(path: String) -> bool:
-	if path.is_empty() or path.to_utf8_buffer().has(0) or "\\" in path \
-			or path.begins_with("/") or path.begins_with("user://") \
-			or path.begins_with("res://"):
+	if (
+		path.is_empty()
+		or path.to_utf8_buffer().has(0)
+		or "\\" in path
+		or path.begins_with("/")
+		or path.begins_with("user://")
+		or path.begins_with("res://")
+	):
 		return false
 	if path.length() >= 2 and path[1] == ":":
 		return false
@@ -214,19 +241,23 @@ static func _is_save_shaped(value: Variant) -> bool:
 	return hits >= 3 or value.has("save_label") or value.has("map_runtime") or value.has("suspend")
 
 
-static func _parse_json(bytes: PackedByteArray, path: String,
-		errors: Array[String]) -> Variant:
+static func _parse_json(bytes: PackedByteArray, path: String, errors: Array[String]) -> Variant:
 	var json := JSON.new()
 	var parse_error := json.parse(bytes.get_string_from_utf8())
 	if parse_error != OK:
-		errors.append("Invalid JSON '%s' at line %d: %s" % [
-			path, json.get_error_line(), json.get_error_message()])
+		errors.append(
+			(
+				"Invalid JSON '%s' at line %d: %s"
+				% [path, json.get_error_line(), json.get_error_message()]
+			)
+		)
 		return null
 	return json.data
 
 
-static func _read_central_directory(bytes: PackedByteArray,
-		errors: Array[String]) -> Array[Dictionary]:
+static func _read_central_directory(
+	bytes: PackedByteArray, errors: Array[String]
+) -> Array[Dictionary]:
 	var eocd := -1
 	var minimum := maxi(0, bytes.size() - 65557)
 	for offset in range(bytes.size() - 22, minimum - 1, -1):
@@ -280,12 +311,17 @@ static func _read_central_directory(bytes: PackedByteArray,
 			file_type = "symlink"
 		elif type_bits != 0 and type_bits not in [0x8000, 0x4000]:
 			file_type = "special file"
-		entries.append({
-			"path": name,
-			"compressed_size": int(bytes.decode_u32(cursor + 20)),
-			"uncompressed_size": int(bytes.decode_u32(cursor + 24)),
-			"file_type": file_type,
-			"is_directory": file_type == "directory",
-		})
+		(
+			entries
+			. append(
+				{
+					"path": name,
+					"compressed_size": int(bytes.decode_u32(cursor + 20)),
+					"uncompressed_size": int(bytes.decode_u32(cursor + 24)),
+					"file_type": file_type,
+					"is_directory": file_type == "directory",
+				}
+			)
+		)
 		cursor += 46 + name_length + extra_length + comment_length
 	return entries

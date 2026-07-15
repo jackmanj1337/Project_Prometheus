@@ -3,16 +3,18 @@ extends SceneTree
 # Verifies CombatResolver math: hit, damage, crit, triangle, effective, EXP, counterattack, follow-up.
 # Uses mock unit objects so no scene tree is needed.
 
-const GameConst      = preload("res://scripts/shared/GameConstants.gd")
-const WeaponDataS    = preload("res://scripts/resources/WeaponData.gd")
-const UnitDataS      = preload("res://scripts/resources/UnitData.gd")
-const CombatRes      = preload("res://scripts/core/CombatResolver.gd")
+const GameConst = preload("res://scripts/shared/GameConstants.gd")
+const WeaponDataS = preload("res://scripts/resources/WeaponData.gd")
+const UnitDataS = preload("res://scripts/resources/UnitData.gd")
+const CombatRes = preload("res://scripts/core/CombatResolver.gd")
 const InventoryEntry = preload("res://scripts/resources/InventoryEntry.gd")
-const DataManagerS   = preload("res://scripts/autoloads/DataManager.gd")
-const SkillHandlerS  = preload("res://scripts/skills/SkillHandler.gd")
+const DataManagerS = preload("res://scripts/autoloads/DataManager.gd")
+const SkillHandlerS = preload("res://scripts/skills/SkillHandler.gd")
+
 
 # ---------- Minimal mock unit (extends Node so it passes Node-typed params) ----------
-class MockUnit extends Node:
+class MockUnit:
+	extends Node
 	var data: Resource
 	var tile_position: Vector2i = Vector2i.ZERO
 	var team: String = "blue"
@@ -29,7 +31,8 @@ class MockUnit extends Node:
 		return _weapon
 
 	func get_equipped_weapon_entry():  # -> InventoryEntry | null
-		if _weapon == null: return null
+		if _weapon == null:
+			return null
 		var e := InventoryEntry.new()
 		e.entry_type = "weapon"
 		e.weapon_id = _weapon.get("id")
@@ -60,14 +63,15 @@ class MockUnit extends Node:
 	# real Unit.
 	func battle_speed(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		if w == null: return get_effective_stat("speed")
-		return get_effective_stat("speed") - maxi(0,
-			w.get("wt") - get_effective_stat("strength"))
+		if w == null:
+			return get_effective_stat("speed")
+		return get_effective_stat("speed") - maxi(0, w.get("wt") - get_effective_stat("strength"))
 
 	func accuracy(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
 		var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
-		if w: acc += w.get("hit")
+		if w:
+			acc += w.get("hit")
 		return acc
 
 	func dodge(_w: Resource = null) -> int:
@@ -127,30 +131,39 @@ class MockUnit extends Node:
 
 	# Faithful mirror of Unit.add_modifier/remove_modifier — replaces all modifiers
 	# sharing a source. The preview-with-Resolve test relies on this exact behavior.
-	func add_modifier(stat: String, delta: int, source: String,
-			duration: int, duration_type: String) -> void:
+	func add_modifier(
+		stat: String, delta: int, source: String, duration: int, duration_type: String
+	) -> void:
 		remove_modifier(source)
-		data.active_modifiers.append({
-			"stat": stat, "delta": delta, "source": source,
-			"duration": duration, "duration_type": duration_type})
+		data.active_modifiers.append(
+			{
+				"stat": stat,
+				"delta": delta,
+				"source": source,
+				"duration": duration,
+				"duration_type": duration_type
+			}
+		)
 
 	func remove_modifier(source: String) -> void:
-		data.active_modifiers = data.active_modifiers.filter(
-			func(m): return m["source"] != source)
+		data.active_modifiers = data.active_modifiers.filter(func(m): return m["source"] != source)
 
 
 # Records the lifecycle boundary and deliberately mutates the attacker during
 # defender disposition. The attacker's later context must retain its entry
 # snapshot, proving both contexts existed before either disposition began.
-class MutualDeathDispositionSpy extends RefCounted:
+class MutualDeathDispositionSpy:
+	extends RefCounted
 	var contexts: Array[RefCounted] = []
 	var both_units_live_at_entry: bool = false
 
 	func apply(ctx: RefCounted, result: RefCounted) -> RefCounted:
 		contexts.append(ctx)
 		if contexts.size() == 1:
-			both_units_live_at_entry = not ctx.subject.is_queued_for_deletion() \
+			both_units_live_at_entry = (
+				not ctx.subject.is_queued_for_deletion()
 				and not ctx.responsible_actor.is_queued_for_deletion()
+			)
 			ctx.responsible_actor.data.inventory.clear()
 			ctx.responsible_actor.tile_position = Vector2i(99, 99)
 		return result
@@ -158,18 +171,18 @@ class MutualDeathDispositionSpy extends RefCounted:
 
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
-	w.id           = p.get("id", "test")
+	w.id = p.get("id", "test")
 	w.combat_family = p.get("combat_family", p.get("weapon_type", "sword"))
-	w.wexp_track    = p.get("wexp_track", GameConst.combat_family_to_wexp_track(w.combat_family))
-	w.mt           = p.get("mt", 6)
-	w.hit          = p.get("hit", 80)
-	w.crit         = p.get("crit", 0)
+	w.wexp_track = p.get("wexp_track", GameConst.combat_family_to_wexp_track(w.combat_family))
+	w.mt = p.get("mt", 6)
+	w.hit = p.get("hit", 80)
+	w.crit = p.get("crit", 0)
 	w.range_min_formula = str(p.get("range_min", 1))
 	w.range_max_formula = str(p.get("range_max", 1))
-	w.wt              = p.get("wt", 5)
-	w.uses            = p.get("uses", 45)
-	w.wexp            = p.get("wexp", 1)
-	w.uses_mag        = p.get("uses_mag", false)
+	w.wt = p.get("wt", 5)
+	w.uses = p.get("uses", 45)
+	w.wexp = p.get("wexp", 1)
+	w.uses_mag = p.get("uses_mag", false)
 	w.strikes_per_attack = p.get("strikes_per_attack", 1)
 	w.effect_tags.assign(p.get("effect_tags", []))
 	w.required_rank = p.get("required_rank", "E")
@@ -179,19 +192,19 @@ func _make_weapon(p: Dictionary) -> Resource:
 
 func _make_unit(p: Dictionary) -> MockUnit:
 	var ud = UnitDataS.new()
-	ud.unit_name  = p.get("name", "Test")
-	ud.class_id   = p.get("class_id", "soldier")
-	ud.level      = p.get("level", 5)
-	ud.hp         = p.get("hp", 30)
-	ud.max_hp     = p.get("max_hp", 30)
-	ud.strength   = p.get("strength", 10)
-	ud.magic      = p.get("magic", 0)
-	ud.defense    = p.get("defense", 5)
+	ud.unit_name = p.get("name", "Test")
+	ud.class_id = p.get("class_id", "soldier")
+	ud.level = p.get("level", 5)
+	ud.hp = p.get("hp", 30)
+	ud.max_hp = p.get("max_hp", 30)
+	ud.strength = p.get("strength", 10)
+	ud.magic = p.get("magic", 0)
+	ud.defense = p.get("defense", 5)
 	ud.resistance = p.get("resistance", 2)
-	ud.skill      = p.get("skill", 10)
-	ud.speed      = p.get("speed", 10)
-	ud.luck       = p.get("luck", 5)
-	ud.movement   = p.get("movement", 5)
+	ud.skill = p.get("skill", 10)
+	ud.speed = p.get("speed", 10)
+	ud.luck = p.get("luck", 5)
+	ud.movement = p.get("movement", 5)
 	ud.skills.assign(p.get("skills", []))
 	var u := MockUnit.new()
 	u.setup(ud, p.get("tile", Vector2i.ZERO), p.get("team", "blue"))
@@ -220,16 +233,101 @@ func _init() -> void:
 	await process_frame
 
 	# Weapons
-	var iron_sword  = _make_weapon({"id":"iron_sword","weapon_type":"sword","mt":6,"hit":85,"crit":0,"range_min":1,"range_max":1,"wt":7})
-	var iron_lance  = _make_weapon({"id":"iron_lance","weapon_type":"lance","mt":7,"hit":80,"crit":0,"range_min":1,"range_max":1,"wt":8})
-	var iron_bow    = _make_weapon({"id":"iron_bow","weapon_type":"bow","mt":6,"hit":85,"crit":0,"range_min":2,"range_max":2,"wt":5,"effect_tags":["effective_flying"]})
-	var javelin     = _make_weapon({"id":"javelin","weapon_type":"lance","mt":6,"hit":75,"crit":0,"range_min":1,"range_max":2,"wt":11})
-	var fire_tome   = _make_weapon({"id":"fire","weapon_type":"fire","mt":4,"hit":80,"crit":0,"range_min":1,"range_max":2,"wt":2,"uses_mag":true,"effect_tags":["effective_beast"],"magic_triangle_type":"fire"})
+	var iron_sword = _make_weapon(
+		{
+			"id": "iron_sword",
+			"weapon_type": "sword",
+			"mt": 6,
+			"hit": 85,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 7
+		}
+	)
+	var iron_lance = _make_weapon(
+		{
+			"id": "iron_lance",
+			"weapon_type": "lance",
+			"mt": 7,
+			"hit": 80,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 8
+		}
+	)
+	var iron_bow = _make_weapon(
+		{
+			"id": "iron_bow",
+			"weapon_type": "bow",
+			"mt": 6,
+			"hit": 85,
+			"crit": 0,
+			"range_min": 2,
+			"range_max": 2,
+			"wt": 5,
+			"effect_tags": ["effective_flying"]
+		}
+	)
+	var javelin = _make_weapon(
+		{
+			"id": "javelin",
+			"weapon_type": "lance",
+			"mt": 6,
+			"hit": 75,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 2,
+			"wt": 11
+		}
+	)
+	var fire_tome = _make_weapon(
+		{
+			"id": "fire",
+			"weapon_type": "fire",
+			"mt": 4,
+			"hit": 80,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 2,
+			"wt": 2,
+			"uses_mag": true,
+			"effect_tags": ["effective_beast"],
+			"magic_triangle_type": "fire"
+		}
+	)
 
 	# --- Test: basic damage and hit (both use same type = no triangle modifier) ---
-	var atk = _make_unit({"name":"Attacker","strength":10,"magic":0,"defense":5,"resistance":2,"skill":10,"speed":10,"luck":5,"weapon":iron_sword})
+	var atk = _make_unit(
+		{
+			"name": "Attacker",
+			"strength": 10,
+			"magic": 0,
+			"defense": 5,
+			"resistance": 2,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword
+		}
+	)
 	# Defender uses a bow (no triangle vs sword) to ensure neutral matchup
-	var def = _make_unit({"name":"Defender","strength":8,"magic":0,"defense":4,"resistance":2,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var def = _make_unit(
+		{
+			"name": "Defender",
+			"strength": 8,
+			"magic": 0,
+			"defense": 4,
+			"resistance": 2,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
 
 	var hit = cr.compute_hit_pct(atk, def, iron_sword)
 	# Accuracy = 10*2+5+85 = 110; Dodge = (8-max(0,5-8))*2+4 = 8*2+4=20; Hit% = 90 (no triangle)
@@ -259,7 +357,18 @@ func _init() -> void:
 		failed += 1
 
 	# --- Weapon triangle: sword vs lance = disadvantage for sword ---
-	var def_lance = _make_unit({"name":"Lancedef","defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
+	var def_lance = _make_unit(
+		{
+			"name": "Lancedef",
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_lance
+		}
+	)
 	var hit_disadv = cr.compute_hit_pct(atk, def_lance, iron_sword)
 	# acc=110; triangle -10; dodge=(8-0)*2+4=20; hit=110-10-20=80
 	if hit_disadv == 80:
@@ -279,8 +388,30 @@ func _init() -> void:
 		failed += 1
 
 	# --- Weapon triangle advantage: lance vs sword ---
-	var atk2 = _make_unit({"name":"Lancer","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_lance})
-	var def2 = _make_unit({"name":"Swordsman","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_sword})
+	var atk2 = _make_unit(
+		{
+			"name": "Lancer",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_lance
+		}
+	)
+	var def2 = _make_unit(
+		{
+			"name": "Swordsman",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_sword
+		}
+	)
 	var hit_adv = cr.compute_hit_pct(atk2, def2, iron_lance)
 	# acc = 10*2+5+80 = 105; triangle adv +10 = 115; dodge = 8*2+4 = 20; hit = 115-20 = 95
 	if hit_adv == 95:
@@ -300,8 +431,31 @@ func _init() -> void:
 		failed += 1
 
 	# --- Effective weapon (bow vs flying) ---
-	var archer = _make_unit({"name":"Archer","strength":8,"defense":3,"skill":9,"speed":9,"luck":4,"weapon":iron_bow,"tile":Vector2i(0,2)})
-	var pegasus = _make_unit({"name":"Pegasus","strength":6,"defense":2,"skill":7,"speed":12,"luck":5,"team":"red","tile":Vector2i(0,0),"qualities":["flying"]})
+	var archer = _make_unit(
+		{
+			"name": "Archer",
+			"strength": 8,
+			"defense": 3,
+			"skill": 9,
+			"speed": 9,
+			"luck": 4,
+			"weapon": iron_bow,
+			"tile": Vector2i(0, 2)
+		}
+	)
+	var pegasus = _make_unit(
+		{
+			"name": "Pegasus",
+			"strength": 6,
+			"defense": 2,
+			"skill": 7,
+			"speed": 12,
+			"luck": 5,
+			"team": "red",
+			"tile": Vector2i(0, 0),
+			"qualities": ["flying"]
+		}
+	)
 	var dmg_eff = cr.compute_damage(archer, pegasus, iron_bow)
 	# mt=6*3=18 (effective); base_stat=8; atk=8+18=26; def=2; dmg=24
 	if dmg_eff == 24:
@@ -312,7 +466,18 @@ func _init() -> void:
 		failed += 1
 
 	# Non-flying enemy → not effective → normal mt
-	var non_flying = _make_unit({"name":"Soldier","strength":6,"defense":2,"skill":7,"speed":10,"luck":4,"team":"red","tile":Vector2i(0,0)})
+	var non_flying = _make_unit(
+		{
+			"name": "Soldier",
+			"strength": 6,
+			"defense": 2,
+			"skill": 7,
+			"speed": 10,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(0, 0)
+		}
+	)
 	var dmg_not_eff = cr.compute_damage(archer, non_flying, iron_bow)
 	# mt=6 (not effective); atk=8+6=14; def=2; dmg=12
 	if dmg_not_eff == 12:
@@ -324,8 +489,8 @@ func _init() -> void:
 
 	# --- Counterattack range check ---
 	# Bow: range_min=2, range_max=2; target at distance 1 cannot counter
-	var target_adj = _make_unit({"name":"Adjacent","weapon":iron_sword,"tile":Vector2i(0,0)})
-	var bowman = _make_unit({"name":"Bowman","weapon":iron_bow,"tile":Vector2i(0,2)})
+	var target_adj = _make_unit({"name": "Adjacent", "weapon": iron_sword, "tile": Vector2i(0, 0)})
+	var bowman = _make_unit({"name": "Bowman", "weapon": iron_bow, "tile": Vector2i(0, 2)})
 	# distance from bowman to target_adj = 2 → can counter
 	if cr.can_counterattack(target_adj, bowman.tile_position):
 		print("FAIL range check: sword should not reach from tile (0,0) to (0,2) with range 1")
@@ -334,8 +499,8 @@ func _init() -> void:
 		print("OK  melee cannot counter at range 2")
 		passed += 1
 
-	var target_melee = _make_unit({"name":"Melee","weapon":iron_sword,"tile":Vector2i(0,1)})
-	if not cr.can_counterattack(target_melee, Vector2i(0,0)):
+	var target_melee = _make_unit({"name": "Melee", "weapon": iron_sword, "tile": Vector2i(0, 1)})
+	if not cr.can_counterattack(target_melee, Vector2i(0, 0)):
 		print("FAIL melee should counter at range 1")
 		failed += 1
 	else:
@@ -343,8 +508,10 @@ func _init() -> void:
 		passed += 1
 
 	# --- Follow-up ---
-	var fast = _make_unit({"name":"Fast","speed":14,"weapon":iron_sword})
-	var slow = _make_unit({"name":"Slow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
+	var fast = _make_unit({"name": "Fast", "speed": 14, "weapon": iron_sword})
+	var slow = _make_unit(
+		{"name": "Slow", "speed": 9, "weapon": iron_lance, "tile": Vector2i(1, 0), "team": "red"}
+	)
 	var fu = cr.get_follow_up_attacker(fast, slow)
 	if fu == fast:
 		print("OK  follow-up: fast unit attacks twice")
@@ -353,8 +520,10 @@ func _init() -> void:
 		print("FAIL follow-up: expected fast unit, got %s" % str(fu))
 		failed += 1
 
-	var even_a = _make_unit({"name":"EvenA","speed":10,"weapon":iron_sword})
-	var even_b = _make_unit({"name":"EvenB","speed":10,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
+	var even_a = _make_unit({"name": "EvenA", "speed": 10, "weapon": iron_sword})
+	var even_b = _make_unit(
+		{"name": "EvenB", "speed": 10, "weapon": iron_lance, "tile": Vector2i(1, 0), "team": "red"}
+	)
 	if cr.get_follow_up_attacker(even_a, even_b) != null:
 		print("FAIL no follow-up when speed equal")
 		failed += 1
@@ -362,8 +531,16 @@ func _init() -> void:
 		print("OK  no follow-up when speed equal")
 		passed += 1
 
-	var near_fast = _make_unit({"name":"NearFast","speed":13,"weapon":iron_sword})
-	var near_slow = _make_unit({"name":"NearSlow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
+	var near_fast = _make_unit({"name": "NearFast", "speed": 13, "weapon": iron_sword})
+	var near_slow = _make_unit(
+		{
+			"name": "NearSlow",
+			"speed": 9,
+			"weapon": iron_lance,
+			"tile": Vector2i(1, 0),
+			"team": "red"
+		}
+	)
 	if cr.get_follow_up_attacker(near_fast, near_slow) == null:
 		print("OK  no follow-up below the 5-Speed threshold")
 		passed += 1
@@ -372,8 +549,8 @@ func _init() -> void:
 		failed += 1
 
 	# --- EXP table ---
-	var lv5_atk = _make_unit({"level":5})
-	var lv5_def = _make_unit({"level":5})
+	var lv5_atk = _make_unit({"level": 5})
+	var lv5_def = _make_unit({"level": 5})
 	if cr.calculate_exp(lv5_atk, lv5_def, true) == 30:
 		print("OK  EXP kill equal level: 30")
 		passed += 1
@@ -388,8 +565,8 @@ func _init() -> void:
 		print("FAIL EXP damage-only: got %d" % cr.calculate_exp(lv5_atk, lv5_def, false))
 		failed += 1
 
-	var lv10_atk = _make_unit({"level":10})
-	var lv1_def  = _make_unit({"level":1})
+	var lv10_atk = _make_unit({"level": 10})
+	var lv1_def = _make_unit({"level": 1})
 	# diff = 9 → clamped to 6+6=12 → index 12 → [1, 0]
 	if cr.calculate_exp(lv10_atk, lv1_def, true) == 1:
 		print("OK  EXP kill high advantage (cap): 1")
@@ -425,8 +602,10 @@ func _init() -> void:
 		print("SKIP debug_force_levelup (GameState autoload absent)")
 
 	# --- Damage minimum 0 ---
-	var tanky = _make_unit({"name":"Tank","defense":20,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
-	var weak  = _make_unit({"name":"Weak","strength":3,"weapon":iron_sword})
+	var tanky = _make_unit(
+		{"name": "Tank", "defense": 20, "team": "red", "tile": Vector2i(1, 0), "weapon": iron_lance}
+	)
+	var weak = _make_unit({"name": "Weak", "strength": 3, "weapon": iron_sword})
 	var dmg_zero = cr.compute_damage(weak, tanky, iron_sword)
 	# atk=3+6-2=7 (triangle: sword vs lance = -2); def=20; 7-20=-13 → clamp to 0
 	if dmg_zero == 0:
@@ -446,16 +625,26 @@ func _init() -> void:
 		failed += 1
 
 	# --- Battle Speed surfaced for the preview UI (handbook 8.3) ---
-	if prev.get("attacker_battle_speed") == atk.battle_speed() \
-			and prev.get("defender_battle_speed") == def.battle_speed() \
-			and prev.get("follow_up_threshold") == GameConst.FOLLOW_UP_SPEED_THRESHOLD:
+	if (
+		prev.get("attacker_battle_speed") == atk.battle_speed()
+		and prev.get("defender_battle_speed") == def.battle_speed()
+		and prev.get("follow_up_threshold") == GameConst.FOLLOW_UP_SPEED_THRESHOLD
+	):
 		print("OK  preview_combat surfaces battle speed + follow-up threshold (8.3)")
 		passed += 1
 	else:
-		print("FAIL preview battle speed: atk=%s (want %d) def=%s (want %d) thr=%s" % [
-			prev.get("attacker_battle_speed"), atk.battle_speed(),
-			prev.get("defender_battle_speed"), def.battle_speed(),
-			prev.get("follow_up_threshold")])
+		print(
+			(
+				"FAIL preview battle speed: atk=%s (want %d) def=%s (want %d) thr=%s"
+				% [
+					prev.get("attacker_battle_speed"),
+					atk.battle_speed(),
+					prev.get("defender_battle_speed"),
+					def.battle_speed(),
+					prev.get("follow_up_threshold")
+				]
+			)
+		)
 		failed += 1
 
 	# --- More Info preview fields: triangle + effectiveness ---
@@ -473,42 +662,130 @@ func _init() -> void:
 		print("OK  preview exposes neutral triangle + no effectiveness as defaults")
 		passed += 1
 	else:
-		print("FAIL preview defaults: %s" % prev); failed += 1
+		print("FAIL preview defaults: %s" % prev)
+		failed += 1
 
 	# Sword vs Lance = sword disadvantage; defender's mirror is advantage.
-	var atk_tri := _make_unit({"name":"SwordTri","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword})
-	var def_tri := _make_unit({"name":"LanceTri","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
+	var atk_tri := _make_unit(
+		{
+			"name": "SwordTri",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword
+		}
+	)
+	var def_tri := _make_unit(
+		{
+			"name": "LanceTri",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_lance
+		}
+	)
 	var prev_tri := cr.preview_combat(atk_tri, def_tri)
-	if String(prev_tri["attacker_triangle"]) == "disadvantage" \
-			and String(prev_tri["defender_triangle"]) == "advantage":
+	if (
+		String(prev_tri["attacker_triangle"]) == "disadvantage"
+		and String(prev_tri["defender_triangle"]) == "advantage"
+	):
 		print("OK  preview triangle: sword vs lance -> attacker disadv, defender adv")
 		passed += 1
 	else:
-		print("FAIL preview triangle: atk=%s def=%s" % [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]])
+		print(
+			(
+				"FAIL preview triangle: atk=%s def=%s"
+				% [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]]
+			)
+		)
 		failed += 1
 
 	# Bow with effective_flying vs flying defender -> attacker_effective true,
 	# multiplier 3.0. (Existing fixture: iron_bow has effective_flying tag.)
-	var eff_def := _make_unit({"name":"EffPegasus","strength":8,"defense":4,"skill":10,"speed":12,"luck":6,"team":"red","tile":Vector2i(1,0),"qualities":["flying"],"weapon":iron_sword})
-	var eff_atk := _make_unit({"name":"EffArcher","strength":10,"defense":5,"skill":12,"speed":8,"luck":4,"weapon":iron_bow})
+	var eff_def := _make_unit(
+		{
+			"name": "EffPegasus",
+			"strength": 8,
+			"defense": 4,
+			"skill": 10,
+			"speed": 12,
+			"luck": 6,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"qualities": ["flying"],
+			"weapon": iron_sword
+		}
+	)
+	var eff_atk := _make_unit(
+		{
+			"name": "EffArcher",
+			"strength": 10,
+			"defense": 5,
+			"skill": 12,
+			"speed": 8,
+			"luck": 4,
+			"weapon": iron_bow
+		}
+	)
 	var prev_eff := cr.preview_combat(eff_atk, eff_def)
-	if bool(prev_eff["attacker_effective"]) and float(prev_eff["attacker_effectiveness_mult"]) == 3.0:
+	if (
+		bool(prev_eff["attacker_effective"])
+		and float(prev_eff["attacker_effectiveness_mult"]) == 3.0
+	):
 		print("OK  preview effectiveness: bow vs flyer flags effective ×3")
 		passed += 1
 	else:
-		print("FAIL preview effectiveness: eff=%s mult=%s" % [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]])
+		print(
+			(
+				"FAIL preview effectiveness: eff=%s mult=%s"
+				% [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]]
+			)
+		)
 		failed += 1
 
 	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---
 	# A Resolve unit at ≤50% HP gets +50% STR (10→15). preview_combat must show the
 	# boosted damage: the modifier is applied before the stat reads and restored
 	# after. Before the fix, restore ran first and the preview showed base damage.
-	var res_atk = _make_unit({"name":"ResolveAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"hp":8,"max_hp":30,"weapon":iron_sword,"skills":["resolve"]})
-	var res_def = _make_unit({"name":"ResolveDef","strength":8,"defense":4,"skill":8,"speed":14,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var res_atk = _make_unit(
+		{
+			"name": "ResolveAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"hp": 8,
+			"max_hp": 30,
+			"weapon": iron_sword,
+			"skills": ["resolve"]
+		}
+	)
+	var res_def = _make_unit(
+		{
+			"name": "ResolveDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 14,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
 	var res_prev = cr.preview_combat(res_atk, res_def)
 	# Effective STR 10+5=15; atk=15+mt(6)=21; def=4 → damage 17. Base (unfixed) = 12.
 	if res_prev["attacker_damage"] == 17:
-		print("OK  #1: preview reflects Resolve STR boost (damage %d)" % res_prev["attacker_damage"])
+		print(
+			"OK  #1: preview reflects Resolve STR boost (damage %d)" % res_prev["attacker_damage"]
+		)
 		passed += 1
 	else:
 		print("FAIL #1: expected preview attacker_damage 17, got %d" % res_prev["attacker_damage"])
@@ -518,48 +795,134 @@ func _init() -> void:
 		print("OK  #1: preview restores unit state (no modifier/HP trace)")
 		passed += 1
 	else:
-		print("FAIL #1: preview left %d modifier(s), hp=%d" \
-			% [res_atk.data.active_modifiers.size(), res_atk.data.hp])
+		print(
+			(
+				"FAIL #1: preview left %d modifier(s), hp=%d"
+				% [res_atk.data.active_modifiers.size(), res_atk.data.hp]
+			)
+		)
 		failed += 1
 
 	# --- Nihil: a DEFENDING Nihil bearer negates the attacker's on_combat_start skills ---
 	# The old trigger order applied the attacker's skills before the defender's Nihil
 	# could fire, so a defending Nihil (e.g. the map boss) negated nothing.
-	var nihil_atk = _make_unit({"name":"NihilAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
-	var nihil_def = _make_unit({"name":"NihilDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var nihil_atk = _make_unit(
+		{
+			"name": "NihilAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword,
+			"skills": ["swordfaire"]
+		}
+	)
+	var nihil_def = _make_unit(
+		{
+			"name": "NihilDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow,
+			"skills": ["nihil"]
+		}
+	)
 	var nihil_prev = cr.preview_combat(nihil_atk, nihil_def)
 	# Base damage = STR 10 + mt 6 - DEF 4 = 12. Swordfaire would add +5 → 17.
 	# The defender's Nihil must negate Swordfaire, leaving the base 12.
 	if nihil_prev["attacker_damage"] == 12:
-		print("OK  Nihil: defending bearer negates attacker's Swordfaire (damage %d)" % nihil_prev["attacker_damage"])
+		print(
+			(
+				"OK  Nihil: defending bearer negates attacker's Swordfaire (damage %d)"
+				% nihil_prev["attacker_damage"]
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL Nihil: expected attacker_damage 12 (Swordfaire negated), got %d" % nihil_prev["attacker_damage"])
+		print(
+			(
+				"FAIL Nihil: expected attacker_damage 12 (Swordfaire negated), got %d"
+				% nihil_prev["attacker_damage"]
+			)
+		)
 		failed += 1
 
 	# Control: same matchup, no defender Nihil → Swordfaire applies (+5 → 17).
-	var ctrl_def = _make_unit({"name":"CtrlDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var ctrl_def = _make_unit(
+		{
+			"name": "CtrlDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
 	var ctrl_prev = cr.preview_combat(nihil_atk, ctrl_def)
 	if ctrl_prev["attacker_damage"] == 17:
-		print("OK  Nihil control: Swordfaire applies (+5 → %d) without a defender Nihil" % ctrl_prev["attacker_damage"])
+		print(
+			(
+				"OK  Nihil control: Swordfaire applies (+5 → %d) without a defender Nihil"
+				% ctrl_prev["attacker_damage"]
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL Nihil control: expected attacker_damage 17, got %d" % ctrl_prev["attacker_damage"])
+		print(
+			"FAIL Nihil control: expected attacker_damage 17, got %d" % ctrl_prev["attacker_damage"]
+		)
 		failed += 1
 
 	# --- Nihil exemption: S-Rank Mastery still fires when the bearer is Nihil-blocked ---
 	# NIHIL_EXEMPT_SKILLS keeps s_rank_mastery active even though the defender's Nihil
 	# blocks the bearer's combat skills; swordfaire (not exempt) is still negated.
-	var exempt_atk = _make_unit({"name":"ExemptAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire","s_rank_mastery"]})
+	var exempt_atk = _make_unit(
+		{
+			"name": "ExemptAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword,
+			"skills": ["swordfaire", "s_rank_mastery"]
+		}
+	)
 	exempt_atk.data.weapon_wexp = {"sword": 500}
-	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
+	var exempt_def = _make_unit(
+		{
+			"name": "ExemptDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow,
+			"skills": ["nihil"]
+		}
+	)
 	var exempt_prev = cr.preview_combat(exempt_atk, exempt_def)
 	# Base 10+6-4 = 12. Swordfaire (+5) negated; S-Rank Mastery (+1 dmg, exempt) applies → 13.
 	if exempt_prev["attacker_damage"] == 13:
 		print("OK  Nihil exemption: S-Rank Mastery applies (+1) while Swordfaire is negated")
 		passed += 1
 	else:
-		print("FAIL Nihil exemption: expected attacker_damage 13, got %d" % exempt_prev["attacker_damage"])
+		print(
+			(
+				"FAIL Nihil exemption: expected attacker_damage 13, got %d"
+				% exempt_prev["attacker_damage"]
+			)
+		)
 		failed += 1
 
 	# --- A one-shot defender does not counterattack (GDD_02:167) ---
@@ -567,19 +930,72 @@ func _init() -> void:
 	# defender's HP hits 0 — the dead defender must NOT swing back, so the attacker
 	# survives. (Previously the corpse counterattacked — the counter loop had no
 	# actor-alive guard; _run_strike_series now supplies it.)
-	var overkill_sword = _make_weapon({"id":"ok_sword","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
-	var overkill_lance = _make_weapon({"id":"ok_lance","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
-	var glass_atk = _make_unit({"name":"GlassAtk","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
-	var glass_def = _make_unit({"name":"GlassDef","strength":30,"defense":0,"skill":50,"speed":10,"luck":0,"hp":1,"max_hp":1,"team":"red","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var overkill_sword = _make_weapon(
+		{
+			"id": "ok_sword",
+			"weapon_type": "sword",
+			"mt": 50,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1
+		}
+	)
+	var overkill_lance = _make_weapon(
+		{
+			"id": "ok_lance",
+			"weapon_type": "lance",
+			"mt": 50,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1
+		}
+	)
+	var glass_atk = _make_unit(
+		{
+			"name": "GlassAtk",
+			"strength": 30,
+			"defense": 0,
+			"skill": 50,
+			"speed": 10,
+			"luck": 0,
+			"hp": 1,
+			"max_hp": 1,
+			"weapon": overkill_sword
+		}
+	)
+	var glass_def = _make_unit(
+		{
+			"name": "GlassDef",
+			"strength": 30,
+			"defense": 0,
+			"skill": 50,
+			"speed": 10,
+			"luck": 0,
+			"hp": 1,
+			"max_hp": 1,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": overkill_lance
+		}
+	)
 	var mk_result := cr.resolve_combat(glass_atk, glass_def)
 	var def_countered: bool = (mk_result["exchanges"] as Array).any(
-		func(e): return e["attacker"] == glass_def)
+		func(e): return e["attacker"] == glass_def
+	)
 	if mk_result["defender_died"] and not mk_result["attacker_died"] and not def_countered:
 		print("OK  one-shot: dead defender does not counterattack; attacker survives")
 		passed += 1
 	else:
-		print("FAIL one-shot counter: def_died=%s atk_died=%s def_countered=%s" \
-			% [mk_result["defender_died"], mk_result["attacker_died"], def_countered])
+		print(
+			(
+				"FAIL one-shot counter: def_died=%s atk_died=%s def_countered=%s"
+				% [mk_result["defender_died"], mk_result["attacker_died"], def_countered]
+			)
+		)
 		failed += 1
 
 	# --- apply_combat_result applies every exchange, so a mutual kill still lands (BUG-01) ---
@@ -588,8 +1004,30 @@ func _init() -> void:
 	# exchanges rather than stopping at the first death. Hand-build a result with two
 	# lethal exchanges and verify the shared lifecycle receives complete entry
 	# snapshots in defender-first order.
-	var mk_a = _make_unit({"name":"MKA","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
-	var mk_d = _make_unit({"name":"MKD","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"team":"red","tile":Vector2i(1,0),"weapon":overkill_lance})
+	var mk_a = _make_unit(
+		{
+			"name": "MKA",
+			"level": 5,
+			"strength": 30,
+			"defense": 0,
+			"hp": 1,
+			"max_hp": 1,
+			"weapon": overkill_sword
+		}
+	)
+	var mk_d = _make_unit(
+		{
+			"name": "MKD",
+			"level": 5,
+			"strength": 30,
+			"defense": 0,
+			"hp": 1,
+			"max_hp": 1,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": overkill_lance
+		}
+	)
 	mk_a.data.unit_id = "mutual_attacker"
 	mk_d.data.unit_id = "mutual_defender"
 	mk_a.data.inventory.append(InventoryEntry.make_item("vulnerary", 2))
@@ -601,13 +1039,32 @@ func _init() -> void:
 	var death_spy := MutualDeathDispositionSpy.new()
 	lifecycle.disposition = death_spy
 	var mk_apply := {
-		"exchanges": [
-			{"attacker": mk_a, "defender": mk_d, "weapon": overkill_sword,
-				"hit": true, "crit": false, "damage": 50, "loses_durability": true, "is_counter": false},
-			{"attacker": mk_d, "defender": mk_a, "weapon": overkill_lance,
-				"hit": true, "crit": false, "damage": 50, "loses_durability": true, "is_counter": true},
+		"exchanges":
+		[
+			{
+				"attacker": mk_a,
+				"defender": mk_d,
+				"weapon": overkill_sword,
+				"hit": true,
+				"crit": false,
+				"damage": 50,
+				"loses_durability": true,
+				"is_counter": false
+			},
+			{
+				"attacker": mk_d,
+				"defender": mk_a,
+				"weapon": overkill_lance,
+				"hit": true,
+				"crit": false,
+				"damage": 50,
+				"loses_durability": true,
+				"is_counter": true
+			},
 		],
-		"attacker_died": false, "defender_died": false, "context": {},
+		"attacker_died": false,
+		"defender_died": false,
+		"context": {},
 	}
 	cr.apply_combat_result(mk_apply, mk_a, mk_d)
 	lifecycle.disposition = original_disposition
@@ -615,33 +1072,80 @@ func _init() -> void:
 	if contexts_ok:
 		var defender_ctx: RefCounted = death_spy.contexts[0]
 		var attacker_ctx: RefCounted = death_spy.contexts[1]
-		contexts_ok = defender_ctx.subject_id == "mutual_defender" \
-			and attacker_ctx.subject_id == "mutual_attacker" \
-			and defender_ctx.responsible_actor == mk_a \
-			and attacker_ctx.responsible_actor == mk_d \
-			and not defender_ctx.simultaneous_group_id.is_empty() \
-			and defender_ctx.simultaneous_group_id == attacker_ctx.simultaneous_group_id \
-			and defender_ctx.tile == Vector2i(1, 0) \
-			and attacker_ctx.tile == Vector2i.ZERO \
-			and defender_ctx.inventory_snapshot.size() == 1 \
-			and attacker_ctx.inventory_snapshot.size() == 1 \
+		contexts_ok = (
+			defender_ctx.subject_id == "mutual_defender"
+			and attacker_ctx.subject_id == "mutual_attacker"
+			and defender_ctx.responsible_actor == mk_a
+			and attacker_ctx.responsible_actor == mk_d
+			and not defender_ctx.simultaneous_group_id.is_empty()
+			and defender_ctx.simultaneous_group_id == attacker_ctx.simultaneous_group_id
+			and defender_ctx.tile == Vector2i(1, 0)
+			and attacker_ctx.tile == Vector2i.ZERO
+			and defender_ctx.inventory_snapshot.size() == 1
+			and attacker_ctx.inventory_snapshot.size() == 1
 			and death_spy.both_units_live_at_entry
+		)
 	if mk_apply["attacker_died"] and mk_apply["defender_died"] and contexts_ok:
 		print("OK  mutual death snapshots both units before defender-first disposition")
 		passed += 1
 	else:
-		print("FAIL mutual death lifecycle: atk_died=%s def_died=%s contexts=%d valid=%s" \
-			% [mk_apply["attacker_died"], mk_apply["defender_died"],
-				death_spy.contexts.size(), contexts_ok])
+		print(
+			(
+				"FAIL mutual death lifecycle: atk_died=%s def_died=%s contexts=%d valid=%s"
+				% [
+					mk_apply["attacker_died"],
+					mk_apply["defender_died"],
+					death_spy.contexts.size(),
+					contexts_ok
+				]
+			)
+		)
 		failed += 1
 
 	# --- Brave weapon follow-up fires full strike count (BUG-02) ---
 	# Fast attacker (SPD 15 vs 9, delta=6 ≥ 4) with Brave weapon (strikes=2).
 	# Defender has no weapon and enough HP to survive all hits.
 	# Expected: 2 initial strikes + 2 follow-up strikes = 4 exchanges total.
-	var brave_sword = _make_weapon({"id":"brave_sword","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1,"strikes_per_attack":2})
-	var brave_atk = _make_unit({"name":"BraveAtk","strength":5,"defense":0,"skill":10,"speed":15,"luck":0,"hp":30,"max_hp":30,"weapon":brave_sword})
-	var tanky_slow_def = _make_unit({"name":"TankySlow","strength":0,"defense":10,"skill":0,"speed":9,"luck":0,"hp":200,"max_hp":200,"team":"red","tile":Vector2i(1,0)})
+	var brave_sword = _make_weapon(
+		{
+			"id": "brave_sword",
+			"weapon_type": "sword",
+			"mt": 1,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1,
+			"strikes_per_attack": 2
+		}
+	)
+	var brave_atk = _make_unit(
+		{
+			"name": "BraveAtk",
+			"strength": 5,
+			"defense": 0,
+			"skill": 10,
+			"speed": 15,
+			"luck": 0,
+			"hp": 30,
+			"max_hp": 30,
+			"weapon": brave_sword
+		}
+	)
+	var tanky_slow_def = _make_unit(
+		{
+			"name": "TankySlow",
+			"strength": 0,
+			"defense": 10,
+			"skill": 0,
+			"speed": 9,
+			"luck": 0,
+			"hp": 200,
+			"max_hp": 200,
+			"team": "red",
+			"tile": Vector2i(1, 0)
+		}
+	)
 	var brave_result := cr.resolve_combat(brave_atk, tanky_slow_def)
 	var brave_exchanges: int = (brave_result["exchanges"] as Array).size()
 	if brave_exchanges == 4:
@@ -651,8 +1155,10 @@ func _init() -> void:
 		print("FAIL brave follow-up: got %d exchanges, want 4" % brave_exchanges)
 		failed += 1
 	# Verify the last two exchanges are marked as follow-up
-	var fu_marked: bool = brave_result["exchanges"][2].get("is_follow_up", false) \
+	var fu_marked: bool = (
+		brave_result["exchanges"][2].get("is_follow_up", false)
 		and brave_result["exchanges"][3].get("is_follow_up", false)
+	)
 	if fu_marked:
 		print("OK  brave follow-up: exchanges [2] and [3] marked is_follow_up")
 		passed += 1
@@ -662,10 +1168,16 @@ func _init() -> void:
 
 	# --- H-2: defender stat modifier respected in compute_damage ---
 	# Defender with +3 DEF active modifier should take 3 less damage than base.
-	var h2_atk = _make_unit({"name":"H2Atk","strength":10,"weapon":iron_sword})
-	var h2_def_base = _make_unit({"name":"H2DefBase","defense":4,"team":"red","tile":Vector2i(1,0)})
-	var h2_def_buff = _make_unit({"name":"H2DefBuff","defense":4,"team":"red","tile":Vector2i(1,0)})
-	h2_def_buff.data.active_modifiers.append({"stat":"defense","delta":3,"duration_type":"turn","duration":1})
+	var h2_atk = _make_unit({"name": "H2Atk", "strength": 10, "weapon": iron_sword})
+	var h2_def_base = _make_unit(
+		{"name": "H2DefBase", "defense": 4, "team": "red", "tile": Vector2i(1, 0)}
+	)
+	var h2_def_buff = _make_unit(
+		{"name": "H2DefBuff", "defense": 4, "team": "red", "tile": Vector2i(1, 0)}
+	)
+	h2_def_buff.data.active_modifiers.append(
+		{"stat": "defense", "delta": 3, "duration_type": "turn", "duration": 1}
+	)
 	var dmg_base := cr.compute_damage(h2_atk, h2_def_base, iron_sword)
 	var dmg_buff := cr.compute_damage(h2_atk, h2_def_buff, iron_sword)
 	# base: atk=10+6=16; def=4; dmg=12. buffed: def=7; dmg=9
@@ -679,14 +1191,54 @@ func _init() -> void:
 	# --- H-3: Giantkiller applies when the COUNTER-attacker has the skill ---
 	# Defender (counter-attacker) wields a bow (effective vs flying) and has Giantkiller.
 	# The attacker is a flying unit. preview_combat defender_damage should be 4x mt.
-	var gk_bow = _make_weapon({"id":"gk_bow","weapon_type":"bow","mt":6,"hit":100,"crit":0,"range_min":2,"range_max":2,"effect_tags":["effective_flying"]})
-	var gk_atk = _make_unit({"name":"GKAtk","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"qualities":["flying"],"weapon":iron_sword,"tile":Vector2i(0,2)})
-	var gk_def = _make_unit({"name":"GKDef","strength":8,"defense":3,"skill":10,"speed":10,"luck":5,"team":"red","tile":Vector2i(0,0),"weapon":gk_bow})
+	var gk_bow = _make_weapon(
+		{
+			"id": "gk_bow",
+			"weapon_type": "bow",
+			"mt": 6,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 2,
+			"range_max": 2,
+			"effect_tags": ["effective_flying"]
+		}
+	)
+	var gk_atk = _make_unit(
+		{
+			"name": "GKAtk",
+			"strength": 8,
+			"defense": 3,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"qualities": ["flying"],
+			"weapon": iron_sword,
+			"tile": Vector2i(0, 2)
+		}
+	)
+	var gk_def = _make_unit(
+		{
+			"name": "GKDef",
+			"strength": 8,
+			"defense": 3,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"team": "red",
+			"tile": Vector2i(0, 0),
+			"weapon": gk_bow
+		}
+	)
 	gk_def._skills = ["giantkiller"]
 	var gk_prev = cr.preview_combat(gk_atk, gk_def)
 	# Defender damage: mt=6*4=24 (effective 4× via giantkiller); atk=8+24=32; def_atk_def=3; dmg=29
 	if gk_prev["defender_damage"] == 29:
-		print("OK  H-3: counter-attacker Giantkiller gives 4× effectiveness damage: %d" % gk_prev["defender_damage"])
+		print(
+			(
+				"OK  H-3: counter-attacker Giantkiller gives 4× effectiveness damage: %d"
+				% gk_prev["defender_damage"]
+			)
+		)
 		passed += 1
 	else:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
@@ -699,8 +1251,12 @@ func _init() -> void:
 	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict
 	# mt=6*3=18 (effective, no giantkiller); atk=8+18=26; def=3; dmg=23 (vs 29 on the 4× path)
 	if h3b_dmg == 23 and h3b_dmg < gk_prev["defender_damage"]:
-		print("OK  H-3b: no-context compute_damage caps at 3× (got %d, < 4× path %d)" \
-			% [h3b_dmg, gk_prev["defender_damage"]])
+		print(
+			(
+				"OK  H-3b: no-context compute_damage caps at 3× (got %d, < 4× path %d)"
+				% [h3b_dmg, gk_prev["defender_damage"]]
+			)
+		)
 		passed += 1
 	else:
 		print("FAIL H-3b: expected 23 (3× only), got %d" % h3b_dmg)
@@ -711,11 +1267,46 @@ func _init() -> void:
 	# exchanges from the same attacker must be skipped by apply_combat_result.
 	# Attacker has SPD 20 vs defender SPD 5 → qualifies for a 2-strike follow-up too,
 	# so without the fix 4 hits would land; with the fix only 1 hit lands.
-	var break_brave = _make_weapon({"id":"break_brave","weapon_type":"sword","mt":5,"hit":100,"crit":0,"wt":1,"strikes_per_attack":2})
-	var break_atk = _make_unit({"name":"BreakAtk","strength":10,"defense":5,"skill":10,"speed":20,"luck":5,"hp":30,"max_hp":30,"weapon":break_brave})
+	var break_brave = _make_weapon(
+		{
+			"id": "break_brave",
+			"weapon_type": "sword",
+			"mt": 5,
+			"hit": 100,
+			"crit": 0,
+			"wt": 1,
+			"strikes_per_attack": 2
+		}
+	)
+	var break_atk = _make_unit(
+		{
+			"name": "BreakAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 20,
+			"luck": 5,
+			"hp": 30,
+			"max_hp": 30,
+			"weapon": break_brave
+		}
+	)
 	# luck 5 = crit avoid 5 ≥ attacker crit rate (skill 10 / 2 = 5), so crit% clamps
 	# to 0 — the one landing hit can never crit and the HP assertion is deterministic.
-	var break_def = _make_unit({"name":"BreakDef","strength":5,"defense":0,"skill":5,"speed":5,"luck":5,"hp":50,"max_hp":50,"team":"red","tile":Vector2i(1,0)})
+	var break_def = _make_unit(
+		{
+			"name": "BreakDef",
+			"strength": 5,
+			"defense": 0,
+			"skill": 5,
+			"speed": 5,
+			"luck": 5,
+			"hp": 50,
+			"max_hp": 50,
+			"team": "red",
+			"tile": Vector2i(1, 0)
+		}
+	)
 	break_atk._weapon_uses = 1
 	var break_result := cr.resolve_combat(break_atk, break_def)
 	# resolve_combat models breakage itself — it must stop after the single strike
@@ -724,12 +1315,22 @@ func _init() -> void:
 		print("OK  mid-combat break: resolve_combat stops the series at the break")
 		passed += 1
 	else:
-		print("FAIL mid-combat break: expected 1 exchange, got %d" % (break_result["exchanges"] as Array).size())
+		print(
+			(
+				"FAIL mid-combat break: expected 1 exchange, got %d"
+				% (break_result["exchanges"] as Array).size()
+			)
+		)
 		failed += 1
 	cr.apply_combat_result(break_result, break_atk, break_def)
 	# Damage per hit = STR(10) + mt(5) - DEF(0) = 15. Only 1 hit should land → HP = 35.
 	if break_def.data.hp == 35:
-		print("OK  mid-combat break: weapon breaking stops further attacks (hp=%d)" % break_def.data.hp)
+		print(
+			(
+				"OK  mid-combat break: weapon breaking stops further attacks (hp=%d)"
+				% break_def.data.hp
+			)
+		)
 		passed += 1
 	else:
 		print("FAIL mid-combat break: expected hp=35, got %d" % break_def.data.hp)
@@ -739,10 +1340,60 @@ func _init() -> void:
 	# Attacker hits for trivial damage (defender survives); defender counters for a
 	# guaranteed kill. The defender must still receive kill-tier EXP — the old code
 	# zeroed it out because the attacker died.
-	var ck_weak_sword = _make_weapon({"id":"ck_weak","weapon_type":"sword","mt":1,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
-	var ck_kill_sword = _make_weapon({"id":"ck_kill","weapon_type":"sword","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
-	var ck_atk = _make_unit({"name":"CKAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":10,"max_hp":10,"weapon":ck_weak_sword})
-	var ck_def = _make_unit({"name":"CKDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":50,"max_hp":50,"team":"red","tile":Vector2i(1,0),"weapon":ck_kill_sword})
+	var ck_weak_sword = _make_weapon(
+		{
+			"id": "ck_weak",
+			"weapon_type": "sword",
+			"mt": 1,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1
+		}
+	)
+	var ck_kill_sword = _make_weapon(
+		{
+			"id": "ck_kill",
+			"weapon_type": "sword",
+			"mt": 50,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1
+		}
+	)
+	var ck_atk = _make_unit(
+		{
+			"name": "CKAtk",
+			"level": 5,
+			"strength": 5,
+			"defense": 0,
+			"skill": 10,
+			"speed": 10,
+			"luck": 0,
+			"hp": 10,
+			"max_hp": 10,
+			"weapon": ck_weak_sword
+		}
+	)
+	var ck_def = _make_unit(
+		{
+			"name": "CKDef",
+			"level": 5,
+			"strength": 30,
+			"defense": 0,
+			"skill": 10,
+			"speed": 10,
+			"luck": 0,
+			"hp": 50,
+			"max_hp": 50,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": ck_kill_sword
+		}
+	)
 	var ck_result := cr.resolve_combat(ck_atk, ck_def)
 	cr.apply_combat_result(ck_result, ck_atk, ck_def)
 	# Equal level (5 vs 5) kill EXP = 30 (matches the "EXP kill equal level" case above).
@@ -750,7 +1401,12 @@ func _init() -> void:
 		print("OK  A1: counter-kill awards defender kill-tier EXP (%d)" % ck_result["defender_exp"])
 		passed += 1
 	else:
-		print("FAIL A1: attacker_died=%s defender_exp=%d (want died, 30)" % [ck_result["attacker_died"], ck_result["defender_exp"]])
+		print(
+			(
+				"FAIL A1: attacker_died=%s defender_exp=%d (want died, 30)"
+				% [ck_result["attacker_died"], ck_result["defender_exp"]]
+			)
+		)
 		failed += 1
 
 	# --- Vantage: a counter-killing Vantage defender pre-empts the attacker entirely ---
@@ -758,25 +1414,72 @@ func _init() -> void:
 	# already-dead attacker must NOT swing back. Regression for the resolve_combat
 	# attacker loop missing an atk_sim_hp guard (code review 2026-05-16d, High).
 	# Speeds are equal (10 vs 10) so no follow-up muddies the exchange count.
-	var van_kill_lance = _make_weapon({"id":"van_kill","weapon_type":"lance","mt":50,"hit":100,"crit":0,"range_min":1,"range_max":1,"wt":1})
-	var van_atk = _make_unit({"name":"VanAtk","level":5,"strength":5,"defense":0,"skill":10,"speed":10,"luck":0,"hp":8,"max_hp":8,"weapon":iron_sword})
-	var van_def = _make_unit({"name":"VanDef","level":5,"strength":30,"defense":0,"skill":10,"speed":10,"luck":0,"hp":40,"max_hp":40,"team":"red","tile":Vector2i(1,0),"weapon":van_kill_lance,"skills":["vantage"]})
+	var van_kill_lance = _make_weapon(
+		{
+			"id": "van_kill",
+			"weapon_type": "lance",
+			"mt": 50,
+			"hit": 100,
+			"crit": 0,
+			"range_min": 1,
+			"range_max": 1,
+			"wt": 1
+		}
+	)
+	var van_atk = _make_unit(
+		{
+			"name": "VanAtk",
+			"level": 5,
+			"strength": 5,
+			"defense": 0,
+			"skill": 10,
+			"speed": 10,
+			"luck": 0,
+			"hp": 8,
+			"max_hp": 8,
+			"weapon": iron_sword
+		}
+	)
+	var van_def = _make_unit(
+		{
+			"name": "VanDef",
+			"level": 5,
+			"strength": 30,
+			"defense": 0,
+			"skill": 10,
+			"speed": 10,
+			"luck": 0,
+			"hp": 40,
+			"max_hp": 40,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": van_kill_lance,
+			"skills": ["vantage"]
+		}
+	)
 	var van_result := cr.resolve_combat(van_atk, van_def)
 	var van_atk_swung: bool = (van_result["exchanges"] as Array).any(
-		func(e): return e["attacker"] == van_atk)
+		func(e): return e["attacker"] == van_atk
+	)
 	if van_result["attacker_died"] and not van_result["defender_died"] and not van_atk_swung:
 		print("OK  Vantage: counter-killed attacker never swings back")
 		passed += 1
 	else:
-		print("FAIL Vantage: attacker_died=%s defender_died=%s attacker_swung=%s" \
-			% [van_result["attacker_died"], van_result["defender_died"], van_atk_swung])
+		print(
+			(
+				"FAIL Vantage: attacker_died=%s defender_died=%s attacker_swung=%s"
+				% [van_result["attacker_died"], van_result["defender_died"], van_atk_swung]
+			)
+		)
 		failed += 1
 	# Exactly one exchange — the single defender strike that killed the attacker.
 	if (van_result["exchanges"] as Array).size() == 1:
 		print("OK  Vantage: exactly one exchange (the lethal counter)")
 		passed += 1
 	else:
-		print("FAIL Vantage: expected 1 exchange, got %d" % (van_result["exchanges"] as Array).size())
+		print(
+			"FAIL Vantage: expected 1 exchange, got %d" % (van_result["exchanges"] as Array).size()
+		)
 		failed += 1
 
 	# --- dry_run: combat previews never burn a limited-use skill's uses ---
@@ -785,8 +1488,31 @@ func _init() -> void:
 	# Regression for preview_combat persisting use counters (code review 2026-05-16d).
 	var faire_skill = dm.get_skill("swordfaire")
 	faire_skill.max_uses_per_map = 1
-	var dry_atk = _make_unit({"name":"DryAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire"]})
-	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var dry_atk = _make_unit(
+		{
+			"name": "DryAtk",
+			"strength": 10,
+			"defense": 5,
+			"skill": 10,
+			"speed": 10,
+			"luck": 5,
+			"weapon": iron_sword,
+			"skills": ["swordfaire"]
+		}
+	)
+	var dry_def = _make_unit(
+		{
+			"name": "DryDef",
+			"strength": 8,
+			"defense": 4,
+			"skill": 8,
+			"speed": 8,
+			"luck": 4,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
 	cr.preview_combat(dry_atk, dry_def)
 	cr.preview_combat(dry_atk, dry_def)
 	# Counter is keyed by skill.id (code review 2026-06-10 issue 2.6), not the
@@ -815,11 +1541,12 @@ func _init() -> void:
 	# must remain silent so hover forecasts don't trigger fight-start side effects.
 	var bus_bs := root.get_node_or_null("EventBus")
 	if bus_bs != null:
-		var bs_atk = _make_unit({"name":"BsAtk","weapon":iron_sword})
-		var bs_def = _make_unit({"name":"BsDef","team":"red","tile":Vector2i(1,0),"weapon":iron_sword})
+		var bs_atk = _make_unit({"name": "BsAtk", "weapon": iron_sword})
+		var bs_def = _make_unit(
+			{"name": "BsDef", "team": "red", "tile": Vector2i(1, 0), "weapon": iron_sword}
+		)
 		var bs_count: Array = [0]  # boxed so the lambda mutates the same int
-		var bs_handler := func(_a: Node, _d: Node) -> void:
-			bs_count[0] += 1
+		var bs_handler := func(_a: Node, _d: Node) -> void: bs_count[0] += 1
 		bus_bs.combat_started.connect(bs_handler)
 		cr.preview_combat(bs_atk, bs_def)
 		var preview_silent: bool = bs_count[0] == 0
@@ -832,8 +1559,12 @@ func _init() -> void:
 			print("OK  combat_started fires from resolve_combat, not preview_combat (B2)")
 			passed += 1
 		else:
-			print("FAIL combat_started timing: preview_silent=%s resolve_fired=%s count=%d" % [
-				preview_silent, resolve_fired, bs_count[0]])
+			print(
+				(
+					"FAIL combat_started timing: preview_silent=%s resolve_fired=%s count=%d"
+					% [preview_silent, resolve_fired, bs_count[0]]
+				)
+			)
 			failed += 1
 	else:
 		print("SKIP B2 combat_started timing (EventBus autoload absent)")
@@ -843,25 +1574,51 @@ func _init() -> void:
 	# production. Pre-2026-06-10, these helpers read raw data.get(...) and the
 	# modifier was silently ignored; resolving combat with a stamped modifier
 	# now affects hit/dodge/crit (issue 2.5).
-	var mod_atk = _make_unit({"name":"ModAtk","skill":10,"luck":5,"speed":10,"strength":10,"weapon":iron_sword})
-	var mod_def = _make_unit({"name":"ModDef","skill":8,"luck":4,"speed":8,"strength":8,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var mod_atk = _make_unit(
+		{
+			"name": "ModAtk",
+			"skill": 10,
+			"luck": 5,
+			"speed": 10,
+			"strength": 10,
+			"weapon": iron_sword
+		}
+	)
+	var mod_def = _make_unit(
+		{
+			"name": "ModDef",
+			"skill": 8,
+			"luck": 4,
+			"speed": 8,
+			"strength": 8,
+			"team": "red",
+			"tile": Vector2i(1, 0),
+			"weapon": iron_bow
+		}
+	)
 	var hit_base: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
 	# Stamp +5 skill on attacker; accuracy uses skill*2, so hit should rise by 10.
-	mod_atk.data.active_modifiers.append({"stat": "skill", "delta": 5,
-		"source": "test", "duration": -1, "duration_type": "combat"})
+	mod_atk.data.active_modifiers.append(
+		{"stat": "skill", "delta": 5, "source": "test", "duration": -1, "duration_type": "combat"}
+	)
 	var hit_with_skill: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
 	# Stamp +6 speed on defender; dodge uses battle_speed*2 + luck, so dodge
 	# should rise by 12 and hit should fall further.
-	mod_def.data.active_modifiers.append({"stat": "speed", "delta": 6,
-		"source": "test", "duration": -1, "duration_type": "combat"})
+	mod_def.data.active_modifiers.append(
+		{"stat": "speed", "delta": 6, "source": "test", "duration": -1, "duration_type": "combat"}
+	)
 	var hit_with_both: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
 	if hit_with_skill - hit_base == 10 and hit_base - hit_with_both == 2:
 		# +10 from attacker skill, then -12 from defender speed, net -2 vs base.
 		print("OK  MockUnit modifier flows through accuracy/dodge (issue 2.5)")
 		passed += 1
 	else:
-		print("FAIL MockUnit modifier flow: base=%d skill=%d both=%d (want +10 / -2)" % [
-			hit_base, hit_with_skill, hit_with_both])
+		print(
+			(
+				"FAIL MockUnit modifier flow: base=%d skill=%d both=%d (want +10 / -2)"
+				% [hit_base, hit_with_skill, hit_with_both]
+			)
+		)
 		failed += 1
 	mod_atk.queue_free()
 	mod_def.queue_free()
@@ -882,9 +1639,27 @@ func _init() -> void:
 		# Lead: soldier, Str 10, iron sword. Support: cavalier, Str 10 → flat +1 Str
 		# + floor(10/4)=+2 = +3 Str contribution. Defender: no weapon (no counter, no
 		# triangle), Def 5, so per-hit damage stays positive both ways.
-		var pu_lead = _make_unit({"name":"PUlead","class_id":"soldier","strength":10,"weapon":iron_sword,"tile":Vector2i(0,0)})
-		var pu_support = _make_unit({"name":"PUsupport","class_id":"cavalier","strength":10,"tile":Vector2i(5,5)})
-		var pu_def = _make_unit({"name":"PUdef","class_id":"soldier","defense":5,"team":"red","tile":Vector2i(1,0)})
+		var pu_lead = _make_unit(
+			{
+				"name": "PUlead",
+				"class_id": "soldier",
+				"strength": 10,
+				"weapon": iron_sword,
+				"tile": Vector2i(0, 0)
+			}
+		)
+		var pu_support = _make_unit(
+			{"name": "PUsupport", "class_id": "cavalier", "strength": 10, "tile": Vector2i(5, 5)}
+		)
+		var pu_def = _make_unit(
+			{
+				"name": "PUdef",
+				"class_id": "soldier",
+				"defense": 5,
+				"team": "red",
+				"tile": Vector2i(1, 0)
+			}
+		)
 		pu_lead.data.unit_id = "pu_lead"
 		pu_support.data.unit_id = "pu_support"
 		pu_def.data.unit_id = "pu_def"
@@ -895,18 +1670,30 @@ func _init() -> void:
 		var paired_ok: bool = bool(pu_reg.call("pair", "pu_lead", "pu_support"))  # pu_lead is the lead
 		var dmg_paired: int = cr.preview_combat(pu_lead, pu_def)["attacker_damage"]
 		if paired_ok and dmg_paired - dmg_unpaired == 3:
-			print("OK  Pair Up support bonus raises preview damage by the support contribution (#3)")
+			print(
+				"OK  Pair Up support bonus raises preview damage by the support contribution (#3)"
+			)
 			passed += 1
 		else:
-			print("FAIL pair-up preview delta: paired_ok=%s unpaired=%d paired=%d (want +3)" % [
-				paired_ok, dmg_unpaired, dmg_paired])
+			print(
+				(
+					"FAIL pair-up preview delta: paired_ok=%s unpaired=%d paired=%d (want +3)"
+					% [paired_ok, dmg_unpaired, dmg_paired]
+				)
+			)
 			failed += 1
 		pu_reg.call("clear")
 		pu_gs.call("reset_map_state")
-		pu_lead.queue_free(); pu_support.queue_free(); pu_def.queue_free()
+		pu_lead.queue_free()
+		pu_support.queue_free()
+		pu_def.queue_free()
 	else:
-		print("SKIP pair-up preview delta (autoload missing: reg=%s res=%s gs=%s)" % [
-			pu_reg != null, pu_res != null, pu_gs != null])
+		print(
+			(
+				"SKIP pair-up preview delta (autoload missing: reg=%s res=%s gs=%s)"
+				% [pu_reg != null, pu_res != null, pu_gs != null]
+			)
+		)
 
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

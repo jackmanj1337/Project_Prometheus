@@ -10,15 +10,15 @@ extends CanvasLayer
 # verified by playtest (as with AttackPreview positioning); open()/close() and the
 # save/cancel paths are smoke-tested headless.
 
-signal closed()
+signal closed
 
 const _SCALE_STEP: float = 0.25
 
 var _hud: Control = null
-var _start_layout: Dictionary = {}      # snapshot for Cancel
+var _start_layout: Dictionary = {}  # snapshot for Cancel
 var _selected_id: String = ""
-var _handles: Dictionary = {}           # panel_id -> Panel (drag frame)
-var _handle_labels: Dictionary = {}     # panel_id -> Label (id + sample text)
+var _handles: Dictionary = {}  # panel_id -> Panel (drag frame)
+var _handle_labels: Dictionary = {}  # panel_id -> Label (id + sample text)
 var _dragging: bool = false
 
 var _scale_label: Label = null
@@ -26,8 +26,8 @@ var _scale_label: Label = null
 # Distinct outline styleboxes (V020-12): a bright-red border on every editable
 # panel, switched to yellow on the selected one — clearer than the old
 # self_modulate tint, which only dimmed the frame's whole colour.
-const _UNSELECTED_BORDER := Color(1, 0.25, 0.25, 1)   # bright red
-const _SELECTED_BORDER := Color(1, 0.95, 0.2, 1)      # yellow
+const _UNSELECTED_BORDER := Color(1, 0.25, 0.25, 1)  # bright red
+const _SELECTED_BORDER := Color(1, 0.95, 0.2, 1)  # yellow
 # Base font size for the in-frame sample text; scaled by each panel's scale so the
 # tester can see how big that panel's text will render at the chosen scale.
 const _SAMPLE_FONT_BASE := 16
@@ -78,12 +78,24 @@ func _build_toolbar() -> void:
 	title.text = "Edit HUD Layout — drag panels"
 	bar.add_child(title)
 
-	var minus := Button.new(); minus.text = "Scale Panel −"; bar.add_child(minus)
-	_scale_label = Label.new(); _scale_label.text = "—"; bar.add_child(_scale_label)
-	var plus := Button.new(); plus.text = "Scale Panel +"; bar.add_child(plus)
-	var reset := Button.new(); reset.text = "Reset"; bar.add_child(reset)
-	var done := Button.new(); done.text = "Done"; bar.add_child(done)
-	var cancel := Button.new(); cancel.text = "Cancel"; bar.add_child(cancel)
+	var minus := Button.new()
+	minus.text = "Scale Panel −"
+	bar.add_child(minus)
+	_scale_label = Label.new()
+	_scale_label.text = "—"
+	bar.add_child(_scale_label)
+	var plus := Button.new()
+	plus.text = "Scale Panel +"
+	bar.add_child(plus)
+	var reset := Button.new()
+	reset.text = "Reset"
+	bar.add_child(reset)
+	var done := Button.new()
+	done.text = "Done"
+	bar.add_child(done)
+	var cancel := Button.new()
+	cancel.text = "Cancel"
+	bar.add_child(cancel)
 
 	minus.pressed.connect(_bump_scale.bind(-_SCALE_STEP))
 	plus.pressed.connect(_bump_scale.bind(_SCALE_STEP))
@@ -132,7 +144,8 @@ func _refresh_handles() -> void:
 		var lbl: Label = _handle_labels.get(id)
 		if lbl != null:
 			lbl.add_theme_font_size_override(
-				"font_size", int(round(_SAMPLE_FONT_BASE * _scale_of(id))))
+				"font_size", int(round(_SAMPLE_FONT_BASE * _scale_of(id)))
+			)
 			# V021-03: bound the label to the frame (minus its 4,2 inset) and let it
 			# wrap, so oversized sample text stays contained rather than overflowing.
 			lbl.size = (frame.size - Vector2(8, 4)).max(Vector2.ZERO)
@@ -187,8 +200,9 @@ func _on_handle_input(event: InputEvent, id: String) -> void:
 func _bump_scale(step: float) -> void:
 	if _selected_id == "":
 		return
-	var new_scale: float = clampf(_scale_of(_selected_id) + step,
-		_hud.MIN_PANEL_SCALE, _hud.MAX_PANEL_SCALE)
+	var new_scale: float = clampf(
+		_scale_of(_selected_id) + step, _hud.MIN_PANEL_SCALE, _hud.MAX_PANEL_SCALE
+	)
 	_hud.set_panel_layout(_selected_id, _offset_of(_selected_id), new_scale)
 	_refresh_handles()
 

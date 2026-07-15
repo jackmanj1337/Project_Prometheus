@@ -30,7 +30,9 @@ func _init() -> void:
 
 	Input.action_press("cursor_down", 1.0)
 	policy.clear()
-	_check(policy.poll(0.016) == Vector2i.ZERO, "clear waits for neutral before accepting a stale hold")
+	_check(
+		policy.poll(0.016) == Vector2i.ZERO, "clear waits for neutral before accepting a stale hold"
+	)
 	Input.action_release("cursor_down")
 	_check(policy.poll(0.016) == Vector2i.ZERO, "neutral release after clear unlatches repeat")
 	Input.action_press("cursor_down", 1.0)
@@ -46,9 +48,14 @@ func _init() -> void:
 
 	var vertical_policy: RefCounted = MenuRepeatPolicy.new("", "", "ui_up", "ui_down")
 	Input.action_press("ui_right", 1.0)
-	_check(vertical_policy.poll(0.016) == Vector2i.ZERO, "empty horizontal actions ignore left/right input")
+	_check(
+		vertical_policy.poll(0.016) == Vector2i.ZERO,
+		"empty horizontal actions ignore left/right input"
+	)
 	Input.action_press("ui_down", 1.0)
-	_check(vertical_policy.poll(0.016) == Vector2i(0, 1), "vertical-only policy still accepts up/down")
+	_check(
+		vertical_policy.poll(0.016) == Vector2i(0, 1), "vertical-only policy still accepts up/down"
+	)
 	Input.action_release("ui_right")
 	Input.action_release("ui_down")
 	vertical_policy.clear()

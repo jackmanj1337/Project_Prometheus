@@ -40,7 +40,9 @@ func _init() -> void:
 
 	_ensure_autoload("EventBus", "res://scripts/autoloads/EventBus.gd")
 	_ensure_autoload("DataManager", "res://scripts/autoloads/DataManager.gd")
-	var pair_reg: Node = _ensure_autoload("PairUpRegistry", "res://scripts/autoloads/PairUpRegistry.gd")
+	var pair_reg: Node = _ensure_autoload(
+		"PairUpRegistry", "res://scripts/autoloads/PairUpRegistry.gd"
+	)
 	var rng: Node = _ensure_autoload("RngService", "res://scripts/autoloads/RngService.gd")
 	var gs: Node = _ensure_autoload("GameState", "res://scripts/autoloads/GameState.gd")
 	await process_frame
@@ -115,8 +117,12 @@ func _init() -> void:
 		print("OK  suspend capture allows local blue/hotseat phases and rejects AI")
 		passed += 1
 	else:
-		print("FAIL suspend gate: hotseat_allowed=%s ai_refused=%s blue_allowed=%s" % [
-			suspend_allowed_hotseat, suspend_refused_ai, suspend_allowed_blue])
+		print(
+			(
+				"FAIL suspend gate: hotseat_allowed=%s ai_refused=%s blue_allowed=%s"
+				% [suspend_allowed_hotseat, suspend_refused_ai, suspend_allowed_blue]
+			)
+		)
 		failed += 1
 	turn._active_faction_idx = 1
 	gs.set_phase(gs.Phase.ENEMY, "red")
@@ -131,13 +137,21 @@ func _init() -> void:
 	var parsed: Variant = JSON.parse_string(JSON.stringify(captured.to_dict()))
 	var restored_save: RefCounted = SaveDataScript.from_dict(parsed)
 	var payload: Dictionary = restored_save.to_dict()
-	var payload_ok: bool = payload["map_runtime"]["units"].size() == gs.all_units.size() \
-		and payload["ledger"].size() >= 1 \
-		and int(payload["map_runtime"]["turn"]["unit_states"].get(blue_a_id, -1)) == TurnManager.UnitState.DONE \
-		and String(payload["map_runtime"]["turn"]["active_faction"]) == "red" \
-		and int(payload["map_runtime"]["rng"].get("map_seed", 0)) == rng_at_suspend["map_seed"] \
-		and blue_a_id in payload["suspend"]["threat_views_by_faction"]["red"]["watch_set"] \
-		and String(payload["suspend"]["threat_views_by_faction"]["red"]["danger_mode"]) == "combined"
+	var payload_ok: bool = (
+		payload["map_runtime"]["units"].size() == gs.all_units.size()
+		and payload["ledger"].size() >= 1
+		and (
+			int(payload["map_runtime"]["turn"]["unit_states"].get(blue_a_id, -1))
+			== TurnManager.UnitState.DONE
+		)
+		and String(payload["map_runtime"]["turn"]["active_faction"]) == "red"
+		and int(payload["map_runtime"]["rng"].get("map_seed", 0)) == rng_at_suspend["map_seed"]
+		and blue_a_id in payload["suspend"]["threat_views_by_faction"]["red"]["watch_set"]
+		and (
+			String(payload["suspend"]["threat_views_by_faction"]["red"]["danger_mode"])
+			== "combined"
+		)
+	)
 	if payload_ok:
 		print("OK  capture payload carries units, scheduler, RNG, and MRD UI state")
 		passed += 1
@@ -152,8 +166,12 @@ func _init() -> void:
 		quit(1)
 		return
 	if gs.history_size() != payload["ledger"].size():
-		print("FAIL restored rewind ledger size: %s != %s" % [
-			gs.history_size(), payload["ledger"].size()])
+		print(
+			(
+				"FAIL restored rewind ledger size: %s != %s"
+				% [gs.history_size(), payload["ledger"].size()]
+			)
+		)
 		quit(1)
 		return
 	# The fixture map is authored as AI and DataManager returns a fresh resolved
@@ -173,20 +191,28 @@ func _init() -> void:
 	var resumed_cursor: MapCursor = resumed_map.get_node("MapCursor")
 	var resumed_boss: Node = _find_unit(resumed_units, "e8_knight_boss")
 	var resumed_blue: Node = _find_unit(resumed_units, "unit_01_cavalier")
-	var local_driver_restored: bool = resumed_cursor._state == MapCursor.State.FREE \
+	var local_driver_restored: bool = (
+		resumed_cursor._state == MapCursor.State.FREE
 		and resumed_cursor._controlling_faction == "red"
+	)
 	if local_driver_restored:
 		print("OK  resume re-enters the red hotseat driver and unlocks its cursor")
 		passed += 1
 	else:
-		print("FAIL local driver restore: state=%s faction=%s" % [
-			resumed_cursor._state, resumed_cursor._controlling_faction])
+		print(
+			(
+				"FAIL local driver restore: state=%s faction=%s"
+				% [resumed_cursor._state, resumed_cursor._controlling_faction]
+			)
+		)
 		failed += 1
 
-	var enemy_restored: bool = resumed_boss != null \
-		and resumed_boss.data.hp == 4 \
-		and resumed_boss.tile_position == Vector2i(10, 11) \
+	var enemy_restored: bool = (
+		resumed_boss != null
+		and resumed_boss.data.hp == 4
+		and resumed_boss.tile_position == Vector2i(10, 11)
 		and resumed_boss.team == "red"
+	)
 	if enemy_restored:
 		print("OK  resume spawns live enemy state from map_runtime.units")
 		passed += 1
@@ -194,72 +220,113 @@ func _init() -> void:
 		print("FAIL enemy restore: boss=%s" % [resumed_boss])
 		failed += 1
 
-	var turn_restored: bool = resumed_turn._activation_mode == "ALTERNATING" \
-		and resumed_turn.active_faction() == "red" \
-		and gs.turn_number == 3 \
-		and resumed_blue != null \
-		and resumed_turn.get_unit_state(resumed_blue) == TurnManager.UnitState.DONE \
-		and resumed_boss != null \
+	var turn_restored: bool = (
+		resumed_turn._activation_mode == "ALTERNATING"
+		and resumed_turn.active_faction() == "red"
+		and gs.turn_number == 3
+		and resumed_blue != null
+		and resumed_turn.get_unit_state(resumed_blue) == TurnManager.UnitState.DONE
+		and resumed_boss != null
 		and resumed_turn.get_unit_state(resumed_boss) == TurnManager.UnitState.READY
+	)
 	if turn_restored:
 		print("OK  resume restores ALTERNATING scheduler and mixed unit states")
 		passed += 1
 	else:
-		print("FAIL turn restore: mode=%s faction=%s turn=%d blue_state=%s boss_state=%s" % [
-			resumed_turn._activation_mode,
-			resumed_turn.active_faction(),
-			gs.turn_number,
-			str(resumed_turn.get_unit_state(resumed_blue)) if resumed_blue != null else "missing",
-			str(resumed_turn.get_unit_state(resumed_boss)) if resumed_boss != null else "missing",
-		])
+		print(
+			(
+				"FAIL turn restore: mode=%s faction=%s turn=%d blue_state=%s boss_state=%s"
+				% [
+					resumed_turn._activation_mode,
+					resumed_turn.active_faction(),
+					gs.turn_number,
+					(
+						str(resumed_turn.get_unit_state(resumed_blue))
+						if resumed_blue != null
+						else "missing"
+					),
+					(
+						str(resumed_turn.get_unit_state(resumed_boss))
+						if resumed_boss != null
+						else "missing"
+					),
+				]
+			)
+		)
 		failed += 1
 
 	var resumed_rng: Dictionary = rng.to_save_dict()
-	var rng_restored: bool = int(resumed_rng.get("map_seed", 0)) == int(rng_at_suspend.get("map_seed", 0)) \
+	var rng_restored: bool = (
+		int(resumed_rng.get("map_seed", 0)) == int(rng_at_suspend.get("map_seed", 0))
 		and int(resumed_rng.get("history_hash", 0)) == int(rng_at_suspend.get("history_hash", 0))
+	)
 	var pair_restored: bool = bool(pair_reg.call("is_paired", blue_a_id))
-	var cursor_restored: bool = resumed_cursor.current_tile == Vector2i(8, 8) \
-		and resumed_cursor._watch_set.has(blue_a_id) \
+	var cursor_restored: bool = (
+		resumed_cursor.current_tile == Vector2i(8, 8)
+		and resumed_cursor._watch_set.has(blue_a_id)
 		and resumed_cursor._danger_mode == "combined"
+	)
 	var payload_cleared: bool = gs.next_map_suspend_payload.is_empty()
-	var side_state_restored: bool = rng_restored and pair_restored and cursor_restored and payload_cleared
+	var side_state_restored: bool = (
+		rng_restored and pair_restored and cursor_restored and payload_cleared
+	)
 	if side_state_restored:
 		print("OK  resume restores RNG, Pair Up, cursor tile, watch set, and clears launch payload")
 		passed += 1
 	else:
-		print("FAIL side restore: rng_ok=%s pair_ok=%s cursor_ok=%s payload_ok=%s rng=%s pair=%s cursor=%s watch=%s mode=%s payload=%s" % [
-			rng_restored,
-			pair_restored,
-			cursor_restored,
-			payload_cleared,
-			rng.to_save_dict(),
-			pair_reg.call("serialize"),
-			resumed_cursor.current_tile,
-			resumed_cursor._watch_set.keys(),
-			resumed_cursor._danger_mode,
-			gs.next_map_suspend_payload,
-		])
+		print(
+			(
+				"FAIL side restore: rng_ok=%s pair_ok=%s cursor_ok=%s payload_ok=%s rng=%s pair=%s cursor=%s watch=%s mode=%s payload=%s"
+				% [
+					rng_restored,
+					pair_restored,
+					cursor_restored,
+					payload_cleared,
+					rng.to_save_dict(),
+					pair_reg.call("serialize"),
+					resumed_cursor.current_tile,
+					resumed_cursor._watch_set.keys(),
+					resumed_cursor._danger_mode,
+					gs.next_map_suspend_payload,
+				]
+			)
+		)
 		failed += 1
 
 	# V030-SUS-01 (a): a restored DONE unit must LOOK done. Restore fills
 	# _unit_states directly, so without the fix the sprite keeps its fresh-spawn
 	# tint even though can_unit_act correctly refuses it — the "looks ready but
 	# won't move" symptom. Compare the sprite modulate against the darkened base.
-	var resumed_blue_sprite: Sprite2D = resumed_blue.get_node("Sprite2D") if resumed_blue != null else null
+	var resumed_blue_sprite: Sprite2D = (
+		resumed_blue.get_node("Sprite2D") if resumed_blue != null else null
+	)
 	# set_done_appearance darkens the unit's team-colour base, so derive the
 	# expectation from that base rather than white.
-	var blue_base: Color = resumed_blue.get("_base_modulate") if resumed_blue != null else Color.WHITE
+	var blue_base: Color = (
+		resumed_blue.get("_base_modulate") if resumed_blue != null else Color.WHITE
+	)
 	var expected_done_modulate: Color = blue_base.darkened(GameConstants.DONE_APPEARANCE_DARKEN)
-	var done_appearance_ok: bool = resumed_blue_sprite != null \
+	var done_appearance_ok: bool = (
+		resumed_blue_sprite != null
 		and resumed_blue_sprite.modulate.is_equal_approx(expected_done_modulate)
+	)
 	if done_appearance_ok:
 		print("OK  restored DONE unit shows the done (darkened) appearance")
 		passed += 1
 	else:
-		print("FAIL done appearance: sprite_modulate=%s expected=%s" % [
-			str(resumed_blue_sprite.modulate) if resumed_blue_sprite != null else "no-sprite",
-			expected_done_modulate,
-		])
+		print(
+			(
+				"FAIL done appearance: sprite_modulate=%s expected=%s"
+				% [
+					(
+						str(resumed_blue_sprite.modulate)
+						if resumed_blue_sprite != null
+						else "no-sprite"
+					),
+					expected_done_modulate,
+				]
+			)
+		)
 		failed += 1
 
 	# V030-SUS-01 (b): the paired support (blue_b) was hidden at OFF_MAP_TILE when
@@ -268,18 +335,25 @@ func _init() -> void:
 	# (-1,-1). It must stay hidden and off-map after resume.
 	var resumed_support: Node = _find_unit(resumed_units, "unit_02_mercenary")
 	var off_map: Vector2i = PairUpRegistryScript.OFF_MAP_TILE
-	var support_hidden_ok: bool = resumed_support != null \
-		and resumed_support.tile_position == off_map \
+	var support_hidden_ok: bool = (
+		resumed_support != null
+		and resumed_support.tile_position == off_map
 		and not resumed_support.visible
+	)
 	if support_hidden_ok:
 		print("OK  restored paired support stays hidden at the off-map sentinel")
 		passed += 1
 	else:
-		print("FAIL support restore: support=%s tile=%s visible=%s" % [
-			resumed_support,
-			str(resumed_support.tile_position) if resumed_support != null else "missing",
-			str(resumed_support.visible) if resumed_support != null else "missing",
-		])
+		print(
+			(
+				"FAIL support restore: support=%s tile=%s visible=%s"
+				% [
+					resumed_support,
+					str(resumed_support.tile_position) if resumed_support != null else "missing",
+					str(resumed_support.visible) if resumed_support != null else "missing",
+				]
+			)
+		)
 		failed += 1
 
 	# V030-SUS-01 (d): restore assigns gs.turn_number directly and (without the

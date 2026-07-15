@@ -20,7 +20,9 @@ signal phase_committed
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
-const ObjectiveConditionRegistryScript = preload("res://scripts/registries/ObjectiveConditionRegistry.gd")
+const ObjectiveConditionRegistryScript = preload(
+	"res://scripts/registries/ObjectiveConditionRegistry.gd"
+)
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -134,7 +136,9 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 	_restore_unit_states(turn_state.get("unit_states", {}))
 	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
 	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
-	_group_eliminated_round = SaveCodec.int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
+	_group_eliminated_round = SaveCodec.int_dict_from_variant(
+		turn_state.get("group_eliminated_round", {})
+	)
 	_map_over = false
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -188,8 +192,11 @@ func _connect_runtime_signals() -> void:
 	# PairUpRegistry announces it on EventBus so it need not know our scene path.
 	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
 		bus.support_orphaned.connect(_on_support_orphaned)
-	if bus and bus.has_signal("debug_flags_changed") \
-			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
+	if (
+		bus
+		and bus.has_signal("debug_flags_changed")
+		and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed)
+	):
 		bus.debug_flags_changed.connect(_on_debug_flags_changed)
 
 
@@ -357,7 +364,9 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 			# heal = max(1, floor(0.10 × max_hp)) per OPEN-7 (GDD_02 fort/throne heal):
 			# the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors the
 			# staff-heal path in SkillHandler.gd.
-			var heal_amount: int = maxi(1, floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION))
+			var heal_amount: int = maxi(
+				1, floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION)
+			)
 			u.heal(heal_amount)
 
 
@@ -474,7 +483,9 @@ func start_enemy_phase() -> void:
 	while active_faction() != "blue" and active_faction() != "":
 		guard -= 1
 		if guard < 0:
-			push_error("TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'")
+			push_error(
+				"TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'"
+			)
 			break
 		var faction_id: String = active_faction()
 		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
@@ -491,8 +502,10 @@ func start_enemy_phase() -> void:
 				_refresh_faction_units(faction_id)
 				_begin_phase(gs.get_living_units_of(faction_id))
 				phase_started[faction_id] = true
-		var was_debug_override: bool = _debug_hotseat_override_active_for(faction_id) \
+		var was_debug_override: bool = (
+			_debug_hotseat_override_active_for(faction_id)
 			and not _is_hotseat_controlled(faction_id)
+		)
 		var controller := _controller_for(faction_id)
 		if controller != null:
 			await controller.run_phase(_grid, self, faction_id)
@@ -504,12 +517,18 @@ func start_enemy_phase() -> void:
 		# These re-runs replay the SAME faction (no cycle progress), so refund the
 		# guard decrement above — otherwise repeated F9 toggling in one phase would
 		# exhaust the cycle budget and trip the spurious "never returned to blue".
-		if not was_debug_override and _debug_hotseat_override_active_for(active_faction()) \
-				and not _is_hotseat_controlled(active_faction()):
+		if (
+			not was_debug_override
+			and _debug_hotseat_override_active_for(active_faction())
+			and not _is_hotseat_controlled(active_faction())
+		):
 			guard += 1
 			continue
-		if was_debug_override and not is_debug_hotseat_override_active() \
-				and _is_ai_controlled(active_faction()):
+		if (
+			was_debug_override
+			and not is_debug_hotseat_override_active()
+			and _is_ai_controlled(active_faction())
+		):
 			guard += 1
 			continue
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
@@ -614,6 +633,8 @@ func end_alternating_activation() -> void:
 				u.reset_appearance()
 	_tick_unit_modifiers(gs.all_units, "map_turn")
 	_begin_phase(gs.all_units)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -818,7 +839,7 @@ func check_victory_conditions() -> void:
 	var defeat_by_group: Dictionary = {}
 	for g in groups:
 		victory_by_group[g] = _conditions_for_group(_map_data.victory_conditions, g)
-		defeat_by_group[g]  = _conditions_for_group(_map_data.defeat_conditions, g)
+		defeat_by_group[g] = _conditions_for_group(_map_data.defeat_conditions, g)
 
 	var round_n: int = gs.turn_number
 
@@ -894,22 +915,32 @@ func _build_standings(winner: String, all_groups: Array[String], gs: Node) -> Ar
 	var standings: Array = []
 	var blue_group: String = gs.get_alliance_group("blue")
 	if winner != "":
-		standings.append({
-			"group": winner,
-			"eliminated_round": -1,
-			"rank": 1,
-			"is_blue_group": winner == blue_group,
-		})
+		(
+			standings
+			. append(
+				{
+					"group": winner,
+					"eliminated_round": -1,
+					"rank": 1,
+					"is_blue_group": winner == blue_group,
+				}
+			)
+		)
 	# Snapshot losers with their elimination round.
 	var losers: Array = []
 	for g in all_groups:
 		if g == winner:
 			continue
-		losers.append({
-			"group": g,
-			"eliminated_round": _group_eliminated_round.get(g, -1),
-			"is_blue_group": g == blue_group,
-		})
+		(
+			losers
+			. append(
+				{
+					"group": g,
+					"eliminated_round": _group_eliminated_round.get(g, -1),
+					"is_blue_group": g == blue_group,
+				}
+			)
+		)
 	# Sort losers by elimination round descending; ties keep insertion order
 	# (sort_custom is stable in Godot 4).
 	losers.sort_custom(func(a, b): return a["eliminated_round"] > b["eliminated_round"])
@@ -964,11 +995,17 @@ func _objective_registry() -> RefCounted:
 		return _objective_conditions
 	_objective_conditions = ObjectiveConditionRegistryScript.new()
 	_objective_conditions.register_evaluation_handler("rout", Callable(self, "_eval_rout"))
-	_objective_conditions.register_evaluation_handler("turn_limit", Callable(self, "_eval_turn_limit"))
+	_objective_conditions.register_evaluation_handler(
+		"turn_limit", Callable(self, "_eval_turn_limit")
+	)
 	_objective_conditions.register_evaluation_handler("protect", Callable(self, "_eval_protect"))
-	_objective_conditions.register_evaluation_handler("defeat_boss", Callable(self, "_eval_defeat_boss"))
+	_objective_conditions.register_evaluation_handler(
+		"defeat_boss", Callable(self, "_eval_defeat_boss")
+	)
 	_objective_conditions.register_evaluation_handler("seize", Callable(self, "_eval_seize"))
-	_objective_conditions.register_evaluation_handler("escape", Callable(self, "_eval_escape_registered"))
+	_objective_conditions.register_evaluation_handler(
+		"escape", Callable(self, "_eval_escape_registered")
+	)
 	_objective_conditions.register_evaluation_handler("survive", Callable(self, "_eval_survive"))
 	return _objective_conditions
 
@@ -1016,7 +1053,12 @@ func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 				if not gs.get_all_living_units_of(fid).is_empty():
 					return false
 		if not matched:
-			push_warning("ObjectiveCondition rout: faction_id '%s' matches no faction or group" % cond.faction_id)
+			push_warning(
+				(
+					"ObjectiveCondition rout: faction_id '%s' matches no faction or group"
+					% cond.faction_id
+				)
+			)
 			return false
 		return true
 	# faction_id == "" → all hostiles to the conditioning group wiped.
@@ -1136,6 +1178,7 @@ func get_group_eliminated_round(group: String) -> int:
 
 # ── M16 stage 3: seize / escape public APIs ──────────────────────────────────
 
+
 # Called by MapCursor when the player commits the Seize ActionMenu entry on
 # `unit`'s current tile. Records the {tile, unit_id, faction} triple so the
 # next victory sweep can resolve seize conditions, then runs the sweep
@@ -1144,11 +1187,16 @@ func get_group_eliminated_round(group: String) -> int:
 func record_seize(unit: Node) -> void:
 	if unit == null or unit.data == null:
 		return
-	_seize_records.append({
-		"tile": unit.tile_position,
-		"unit_id": unit.data.unit_id,
-		"faction": unit.team,
-	})
+	(
+		_seize_records
+		. append(
+			{
+				"tile": unit.tile_position,
+				"unit_id": unit.data.unit_id,
+				"faction": unit.team,
+			}
+		)
+	)
 	check_victory_conditions()
 
 
@@ -1193,17 +1241,26 @@ func record_escape(unit: Node) -> void:
 		if escaping_unit == null or escaping_unit.data == null:
 			continue
 		if not _has_unit_escaped(escaping_unit.data.unit_id):
-			_escape_records.append({
-				"unit_id": escaping_unit.data.unit_id,
-				"faction": escaping_unit.team,
-			})
+			(
+				_escape_records
+				. append(
+					{
+						"unit_id": escaping_unit.data.unit_id,
+						"faction": escaping_unit.team,
+					}
+				)
+			)
 	# Order: log the escape (above) → unregister from GameState → drop the
 	# per-unit bookkeeping (state + original tile) → free the node → re-evaluate.
 	# Reordering risks evaluator passes seeing a half-escaped unit (e.g.
 	# unregistered but still in _unit_states), so keep the steps in this order.
 	var gs := get_node_or_null("/root/GameState")
 	var registry := get_node_or_null("/root/PairUpRegistry")
-	if registry != null and unit.data.unit_id != "" and registry.call("is_paired", unit.data.unit_id):
+	if (
+		registry != null
+		and unit.data.unit_id != ""
+		and registry.call("is_paired", unit.data.unit_id)
+	):
 		registry.call("separate", unit.data.unit_id)
 	for escaping_unit in escaping_units:
 		if escaping_unit == null:
@@ -1265,11 +1322,12 @@ func _apply_victory_rewards(gs: Node) -> void:
 		if ledger == null:
 			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
 		else:
-			var cost = CostSpecScript.fixed(
-				"party_gold", "party", -_map_data.reward_gold)
+			var cost = CostSpecScript.fixed("party_gold", "party", -_map_data.reward_gold)
 			var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
 			if not transaction.ok:
-				push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
+				push_error(
+					"TurnManager: victory gold award failed: %s" % transaction.failure_reason
+				)
 	for item_id in _map_data.reward_items:
 		gs.party_items.append(item_id)
 

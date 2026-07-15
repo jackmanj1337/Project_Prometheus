@@ -11,11 +11,13 @@ class_name MapCursorInput extends RefCounted
 
 # Key-repeat timings — source of truth is GameConstants (aliases for readability).
 const KEY_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
-const KEY_REPEAT_RATE: float  = GameConstants.CURSOR_KEY_REPEAT_RATE
+const KEY_REPEAT_RATE: float = GameConstants.CURSOR_KEY_REPEAT_RATE
 
 # What an input event means. MapCursor maps a MOVE to a cursor step / target cycle /
 # no-op depending on its _state — the decoding here is deliberately state-agnostic.
-enum Intent { NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, PREV_UNIT, OPEN_MENU, OPEN_SETTINGS, INSPECT_UNIT }
+enum Intent {
+	NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, PREV_UNIT, OPEN_MENU, OPEN_SETTINGS, INSPECT_UNIT
+}
 
 # Held-direction auto-repeat timer state.
 var _held_dir: Vector2i = Vector2i.ZERO
@@ -62,10 +64,14 @@ func _direction_from_event(event: InputEvent) -> Vector2i:
 	# motion event as a fresh press causes jitter and bypasses the repeat timer.
 	if event is InputEventJoypadMotion:
 		return Vector2i.ZERO
-	if event.is_action_pressed("cursor_up"):    return Vector2i(0, -1)
-	if event.is_action_pressed("cursor_down"):  return Vector2i(0, 1)
-	if event.is_action_pressed("cursor_left"):  return Vector2i(-1, 0)
-	if event.is_action_pressed("cursor_right"): return Vector2i(1, 0)
+	if event.is_action_pressed("cursor_up"):
+		return Vector2i(0, -1)
+	if event.is_action_pressed("cursor_down"):
+		return Vector2i(0, 1)
+	if event.is_action_pressed("cursor_left"):
+		return Vector2i(-1, 0)
+	if event.is_action_pressed("cursor_right"):
+		return Vector2i(1, 0)
 	return Vector2i.ZERO
 
 
@@ -78,10 +84,14 @@ func arm_repeat(dir: Vector2i) -> void:
 # Clear the held direction if the released event matches it.
 func note_released(event: InputEvent) -> void:
 	var dir := Vector2i.ZERO
-	if event.is_action_released("cursor_up"):      dir = Vector2i(0, -1)
-	elif event.is_action_released("cursor_down"):  dir = Vector2i(0, 1)
-	elif event.is_action_released("cursor_left"):  dir = Vector2i(-1, 0)
-	elif event.is_action_released("cursor_right"): dir = Vector2i(1, 0)
+	if event.is_action_released("cursor_up"):
+		dir = Vector2i(0, -1)
+	elif event.is_action_released("cursor_down"):
+		dir = Vector2i(0, 1)
+	elif event.is_action_released("cursor_left"):
+		dir = Vector2i(-1, 0)
+	elif event.is_action_released("cursor_right"):
+		dir = Vector2i(1, 0)
 	if dir != Vector2i.ZERO and _held_dir == dir:
 		_held_dir = Vector2i.ZERO
 

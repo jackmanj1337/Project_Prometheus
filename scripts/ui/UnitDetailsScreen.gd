@@ -15,13 +15,13 @@ extends "res://scripts/ui/ModalScreen.gd"
 # because the inspect_unit key is a toggle and the new more_info key cycles
 # the selection.
 
-const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
-const ClassData        = preload("res://scripts/resources/ClassData.gd")
-const StatBreakdown    = preload("res://scripts/shared/StatBreakdown.gd")
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const ClassData = preload("res://scripts/resources/ClassData.gd")
+const StatBreakdown = preload("res://scripts/shared/StatBreakdown.gd")
 const StatContributions = preload("res://scripts/shared/StatContributions.gd")
-const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
-const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
-const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
+const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
+const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 # Green flags a stat an active bonus is currently raising; red flags one a
@@ -34,16 +34,16 @@ const _DEBUFF_COLOR := "#ff6b6b"
 const _SEL_MARK := "▶ "
 
 @onready var _main_scroll: ScrollContainer = $Panel/HBox/MainScroll
-@onready var _title: Label             = $Panel/HBox/MainScroll/VBox/TitleLabel
+@onready var _title: Label = $Panel/HBox/MainScroll/VBox/TitleLabel
 @onready var _class_lbl: RichTextLabel = $Panel/HBox/MainScroll/VBox/ClassLabel
-@onready var _stats: RichTextLabel     = $Panel/HBox/MainScroll/VBox/StatsLabel
+@onready var _stats: RichTextLabel = $Panel/HBox/MainScroll/VBox/StatsLabel
 @onready var _inventory: RichTextLabel = $Panel/HBox/MainScroll/VBox/InventoryLabel
-@onready var _skills: RichTextLabel    = $Panel/HBox/MainScroll/VBox/SkillsLabel
-@onready var _wexp: RichTextLabel      = $Panel/HBox/MainScroll/VBox/WexpLabel
-@onready var _btn_pair: Button         = $Panel/HBox/MainScroll/VBox/BtnPair
-@onready var _btn_back: Button         = $Panel/HBox/MainScroll/VBox/BtnBack
-@onready var _info_title: Label        = $Panel/HBox/InfoVBox/InfoTitle
-@onready var _info_hint: Label         = $Panel/HBox/InfoVBox/InfoHint
+@onready var _skills: RichTextLabel = $Panel/HBox/MainScroll/VBox/SkillsLabel
+@onready var _wexp: RichTextLabel = $Panel/HBox/MainScroll/VBox/WexpLabel
+@onready var _btn_pair: Button = $Panel/HBox/MainScroll/VBox/BtnPair
+@onready var _btn_back: Button = $Panel/HBox/MainScroll/VBox/BtnBack
+@onready var _info_title: Label = $Panel/HBox/InfoVBox/InfoTitle
+@onready var _info_hint: Label = $Panel/HBox/InfoVBox/InfoHint
 @onready var _info_desc: RichTextLabel = $Panel/HBox/InfoVBox/InfoDescription
 @onready var _info_mods: RichTextLabel = $Panel/HBox/InfoVBox/InfoModifiers
 
@@ -129,7 +129,9 @@ func open(unit: Node) -> void:
 	# Title shows the friendly class display name (V020-11), falling back to the
 	# raw class_id only when class data is unavailable.
 	var cd: ClassData = _class_data_for(unit)
-	var class_display: String = cd.display_name if (cd != null and cd.display_name != "") else d.class_id
+	var class_display: String = (
+		cd.display_name if (cd != null and cd.display_name != "") else d.class_id
+	)
 	_title.text = "%s — %s   Lv %d" % [d.unit_name, class_display, d.level]
 	# Class summary is registered first so F-cycling tours it before the stats.
 	_class_lbl.text = _format_class(unit, cd)
@@ -163,17 +165,33 @@ func open(unit: Node) -> void:
 # the stat block can put two entries on one row while single-column sections bump
 # the row per entry.
 func _append_entry(category: String, key: String, title: String, col: int = 0) -> void:
-	_entries.append({
-		"category": category, "key": key, "title": title,
-		"row": _grid_row, "col": col,
-	})
+	(
+		_entries
+		. append(
+			{
+				"category": category,
+				"key": key,
+				"title": title,
+				"row": _grid_row,
+				"col": col,
+			}
+		)
+	)
 
 
 func _append_control_entry(key: String, title: String) -> void:
-	_entries.append({
-		"category": "control", "key": key, "title": title,
-		"row": _grid_row, "col": 0,
-	})
+	(
+		_entries
+		. append(
+			{
+				"category": "control",
+				"key": key,
+				"title": title,
+				"row": _grid_row,
+				"col": 0,
+			}
+		)
+	)
 	_grid_row += 1
 
 
@@ -197,7 +215,9 @@ func _format_class(unit: Node, class_data: ClassData) -> String:
 		_append_entry("class", d.class_id, d.class_id)
 		_grid_row += 1
 		return "[url=class:%s]Class: %s[/url]" % [d.class_id, d.class_id]
-	var display: String = class_data.display_name if class_data.display_name != "" else class_data.id
+	var display: String = (
+		class_data.display_name if class_data.display_name != "" else class_data.id
+	)
 	_append_entry("class", class_data.id, display)
 	_grid_row += 1
 	# V021-10: keep the inline row compact (name + tier). Traits, weapon families,
@@ -224,14 +244,14 @@ func _format_stats(unit: Node) -> String:
 	# sheet only showed Movement before).
 	var pairs: Array = [
 		["strength", "magic"],
-		["skill",    "speed"],
-		["defense",  "resistance"],
-		["luck",     "movement"],
+		["skill", "speed"],
+		["defense", "resistance"],
+		["luck", "movement"],
 		["constitution", "line_of_sight"],
 	]
 	for pair in pairs:
 		# Each pair is one visual row: left column, right column, then advance.
-		var left_link  := _stat_link(unit, pair[0], 0)
+		var left_link := _stat_link(unit, pair[0], 0)
 		var right_link := _stat_link(unit, pair[1], 1)
 		_grid_row += 1
 		lines.append("%s  %s" % [left_link, right_link])
@@ -274,7 +294,9 @@ func _format_inventory(d: UnitData) -> String:
 		# key, so all weapons showed the same description.
 		var entry_key: String = "weapon:"
 		if entry.is_weapon():
-			var w: WeaponData = dm.get_weapon(entry.weapon_id) if (dm and entry.weapon_id != "") else null
+			var w: WeaponData = (
+				dm.get_weapon(entry.weapon_id) if (dm and entry.weapon_id != "") else null
+			)
 			label = w.display_name if w else entry.weapon_id
 			entry_key = "weapon:" + entry.weapon_id
 		elif entry.is_item():
@@ -349,16 +371,23 @@ func _format_weapon_wexp(unit: Node) -> String:
 	var lines: Array[String] = ["Weapon Ranks:"]
 	for track in tracks:
 		var total: int = int(d.weapon_wexp.get(track, 0))
-		var rank: String = unit.get_stored_weapon_rank(track) if unit.has_method("get_stored_weapon_rank") \
+		var rank: String = (
+			unit.get_stored_weapon_rank(track)
+			if unit.has_method("get_stored_weapon_rank")
 			else GameConstants.weapon_rank_for_wexp(total)
+		)
 		var next_rank: String = GameConstants.next_weapon_rank(rank)
 		var progress_text: String
 		if next_rank == "":
 			progress_text = "%d / MAX" % total
 		else:
-			progress_text = "%d / %d to %s" % [total, GameConstants.minimum_wexp_for_rank(next_rank), next_rank]
+			progress_text = (
+				"%d / %d to %s" % [total, GameConstants.minimum_wexp_for_rank(next_rank), next_rank]
+			)
 		var line := "%s  %s  %s" % [_display_track_name(track), rank, progress_text]
-		var available: bool = unit.has_method("is_weapon_track_available") and unit.is_weapon_track_available(track)
+		var available: bool = (
+			unit.has_method("is_weapon_track_available") and unit.is_weapon_track_available(track)
+		)
 		_append_entry("wexp", track, _display_track_name(track))
 		_grid_row += 1
 		if available:
@@ -366,16 +395,22 @@ func _format_weapon_wexp(unit: Node) -> String:
 		else:
 			# Unavailable tracks stay selectable so the player can read why a
 			# weapon family is greyed out — dimmed colour keeps the affordance.
-			lines.append("[url=wexp:%s][color=#9a9aa6]%s (Unavailable)[/color][/url]" % [track, line])
+			lines.append(
+				"[url=wexp:%s][color=#9a9aa6]%s (Unavailable)[/color][/url]" % [track, line]
+			)
 	return "\n".join(lines)
 
 
 func _display_track_name(track: String) -> String:
 	match track:
-		"elemental_magic": return "Elemental Magic"
-		"beaststone":      return "Beaststone"
-		"dragonstone":     return "Dragonstone"
-		_:                 return track.capitalize()
+		"elemental_magic":
+			return "Elemental Magic"
+		"beaststone":
+			return "Beaststone"
+		"dragonstone":
+			return "Dragonstone"
+		_:
+			return track.capitalize()
 
 
 # Resets the side panel to its "nothing selected yet" state.
@@ -459,8 +494,12 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 	if String(bd["cap_state"]) != "unknown":
 		lines.append("Personal base  %d" % int(bd["personal_base"]))
 		var class_name_txt: String = class_data.display_name if class_data != null else "Class"
-		lines.append("Class base     %s  (%s)" % [
-			StatBreakdown.format_signed(int(bd["class_base"])), class_name_txt])
+		lines.append(
+			(
+				"Class base     %s  (%s)"
+				% [StatBreakdown.format_signed(int(bd["class_base"])), class_name_txt]
+			)
+		)
 		lines.append(_cap_line(bd))
 
 	# Effective — green when a bonus raises it above base, red when a net debuff
@@ -483,12 +522,21 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 		for m_any in mods:
 			var m: Dictionary = m_any
 			var dur := StatBreakdown.format_duration(
-				String(m["duration_type"]), int(m["remaining"]))
-			lines.append("  %s  %s  (%s)" % [
-				String(m["source_label"]),
-				StatBreakdown.format_signed(int(m["delta"])),
-				dur,
-			])
+				String(m["duration_type"]), int(m["remaining"])
+			)
+			(
+				lines
+				. append(
+					(
+						"  %s  %s  (%s)"
+						% [
+							String(m["source_label"]),
+							StatBreakdown.format_signed(int(m["delta"])),
+							dur,
+						]
+					)
+				)
+			)
 	return "\n".join(lines)
 
 
@@ -497,9 +545,12 @@ func _format_mods_block(unit: Node, stat_name: String) -> String:
 # uncapped stats (MOV / CON / LoS).
 func _cap_line(bd: Dictionary) -> String:
 	match String(bd["cap_state"]):
-		"capped":   return "Class cap      %d" % int(bd["cap"])
-		"uncapped": return "Class cap      —"
-		_:          return "Class cap      [color=#ff5a5a]NO_CAP_DEFINED[/color]"
+		"capped":
+			return "Class cap      %d" % int(bd["cap"])
+		"uncapped":
+			return "Class cap      —"
+		_:
+			return "Class cap      [color=#ff5a5a]NO_CAP_DEFINED[/color]"
 
 
 # Routes an inventory entry key ("weapon:<id>" / "item:<id>") to the right
@@ -533,7 +584,9 @@ func _weapon_info_text(weapon_id: String) -> String:
 	lines.append("Wt %d   Rng %s" % [w.wt, rng_text])
 	# -1 uses = unbreakable/natural weapon; show ∞ rather than a literal "-1".
 	var uses_text: String = "∞" if w.uses < 0 else str(w.uses)
-	lines.append("Rank %s (%s)   Uses %s" % [w.required_rank, w.combat_family.capitalize(), uses_text])
+	lines.append(
+		"Rank %s (%s)   Uses %s" % [w.required_rank, w.combat_family.capitalize(), uses_text]
+	)
 	if not w.effect_tags.is_empty():
 		lines.append("Effects: " + ", ".join(w.effect_tags))
 	return "\n".join(lines)
@@ -600,9 +653,9 @@ func _class_data_for(unit: Node) -> ClassData:
 # Autoload handles StatContributions needs to surface combat-only bonuses.
 func _contribution_deps() -> Dictionary:
 	return {
-		"registry":     get_node_or_null("/root/PairUpRegistry"),
-		"game_state":   get_node_or_null("/root/GameState"),
-		"resolver":     get_node_or_null("/root/PairUpBonusResolver"),
+		"registry": get_node_or_null("/root/PairUpRegistry"),
+		"game_state": get_node_or_null("/root/GameState"),
+		"resolver": get_node_or_null("/root/PairUpBonusResolver"),
 		"data_manager": get_node_or_null("/root/DataManager"),
 	}
 
@@ -619,8 +672,10 @@ func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
 	var class_data: ClassData = dm.get_class_data(unit.data.class_id)
 	if class_data == null:
 		return lines
-	var effective_growth: int = int(class_data.player_growth_rates.get(stat_name, 0)) \
+	var effective_growth: int = (
+		int(class_data.player_growth_rates.get(stat_name, 0))
 		+ int(unit.data.growth_rates.get(stat_name, 0))
+	)
 	var fixed_progress: int = int(unit.data.growth_accumulators.get(stat_name, 0))
 	lines.append("Growth %d%%" % effective_growth)
 	lines.append("Fixed %d / 100" % fixed_progress)
@@ -638,8 +693,10 @@ func _input(event: InputEvent) -> void:
 	# Support/Lead button is ALSO a selectable "pair" entry reachable by normal
 	# traversal — this shortcut stays for one-press convenience. Only active
 	# while a partner exists (button visible).
-	if _btn_pair.visible and (event.is_action_pressed("next_unit") \
-			or event.is_action_pressed("prev_unit")):
+	if (
+		_btn_pair.visible
+		and (event.is_action_pressed("next_unit") or event.is_action_pressed("prev_unit"))
+	):
 		get_viewport().set_input_as_handled()
 		_on_pair_button_pressed()
 		return
@@ -656,10 +713,16 @@ func _input(event: InputEvent) -> void:
 	# Directional stepping is driven by the polled repeat policy in _process
 	# (V030-GP-02). We still consume the directional events here so engine focus
 	# navigation (ui_* on the same d-pad/stick) can't ALSO move focus.
-	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_down") \
-			or event.is_action_pressed("cursor_left") or event.is_action_pressed("cursor_right") \
-			or event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down") \
-			or event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+	if (
+		event.is_action_pressed("cursor_up")
+		or event.is_action_pressed("cursor_down")
+		or event.is_action_pressed("cursor_left")
+		or event.is_action_pressed("cursor_right")
+		or event.is_action_pressed("ui_up")
+		or event.is_action_pressed("ui_down")
+		or event.is_action_pressed("ui_left")
+		or event.is_action_pressed("ui_right")
+	):
 		get_viewport().set_input_as_handled()
 
 

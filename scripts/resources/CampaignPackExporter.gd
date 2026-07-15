@@ -6,7 +6,8 @@ const MANIFEST_PATH := "manifest.json"
 const APPROVED_MEDIA_EXTENSIONS := ["png", "ogg", "wav", "ttf", "otf"]
 
 
-class Result extends RefCounted:
+class Result:
+	extends RefCounted
 	var exported := false
 	var errors: Array[String] = []
 	var repair_report: Array[Dictionary] = []
@@ -17,8 +18,9 @@ class Result extends RefCounted:
 	var preflight: CampaignArchivePreflight.Result
 
 
-func export_zip(pack_root: String, archive_path: String,
-		limits: CampaignArchivePreflight.Limits) -> Result:
+func export_zip(
+	pack_root: String, archive_path: String, limits: CampaignArchivePreflight.Limits
+) -> Result:
 	var result := Result.new()
 	result.archive_path = archive_path
 	if limits == null:
@@ -52,8 +54,7 @@ func export_zip(pack_root: String, archive_path: String,
 	result.admitted_paths = admitted.duplicate()
 	result.repair_report = _media_repair_report(root, admitted)
 
-	var temporary := "%s.tmp-%d-%d" % [
-		archive_path, Time.get_ticks_usec(), OS.get_process_id()]
+	var temporary := "%s.tmp-%d-%d" % [archive_path, Time.get_ticks_usec(), OS.get_process_id()]
 	if DirAccess.make_dir_recursive_absolute(archive_path.get_base_dir()) != OK:
 		result.errors.append("Cannot create campaign-pack export directory")
 		return result
@@ -72,12 +73,12 @@ func export_zip(pack_root: String, archive_path: String,
 	return result
 
 
-static func _promote_with_rollback(temporary: String, destination: String,
-		errors: Array[String]) -> bool:
+static func _promote_with_rollback(
+	temporary: String, destination: String, errors: Array[String]
+) -> bool:
 	var backup := destination + ".bak"
 	DirAccess.remove_absolute(backup)
-	if FileAccess.file_exists(destination) \
-			and DirAccess.rename_absolute(destination, backup) != OK:
+	if FileAccess.file_exists(destination) and DirAccess.rename_absolute(destination, backup) != OK:
 		errors.append("Cannot stage the previous export destination")
 		DirAccess.remove_absolute(temporary)
 		return false
@@ -92,8 +93,9 @@ static func _promote_with_rollback(temporary: String, destination: String,
 	return false
 
 
-func _write_archive(root: String, package_id: String, admitted: Array[String],
-		output: String, errors: Array[String]) -> bool:
+func _write_archive(
+	root: String, package_id: String, admitted: Array[String], output: String, errors: Array[String]
+) -> bool:
 	var packer := ZIPPacker.new()
 	var open_error := packer.open(output, ZIPPacker.APPEND_CREATE)
 	if open_error != OK:
@@ -107,7 +109,9 @@ func _write_archive(root: String, package_id: String, admitted: Array[String],
 		var entry_path := package_id + "/" + relative.replace("\\", "/")
 		var start_error := packer.start_file(entry_path)
 		if start_error != OK:
-			errors.append("Cannot add export entry '%s': %s" % [relative, error_string(start_error)])
+			errors.append(
+				"Cannot add export entry '%s': %s" % [relative, error_string(start_error)]
+			)
 			break
 		packer.write_file(file.get_buffer(file.get_length()))
 		packer.close_file()
@@ -115,8 +119,9 @@ func _write_archive(root: String, package_id: String, admitted: Array[String],
 	return errors.is_empty()
 
 
-func _collect_approved_media(path: String, root: String,
-		admitted: Array[String], errors: Array[String]) -> void:
+func _collect_approved_media(
+	path: String, root: String, admitted: Array[String], errors: Array[String]
+) -> void:
 	if not DirAccess.dir_exists_absolute(path):
 		return
 	var directory := DirAccess.open(path)
@@ -137,8 +142,7 @@ func _collect_approved_media(path: String, root: String,
 	directory.list_dir_end()
 
 
-func _media_repair_report(root: String,
-		admitted: Array[String]) -> Array[Dictionary]:
+func _media_repair_report(root: String, admitted: Array[String]) -> Array[Dictionary]:
 	var resolver := AssetResolver.new(root)
 	var groups := {
 		"png": AssetResolver.HANDLER_TEXTURE,

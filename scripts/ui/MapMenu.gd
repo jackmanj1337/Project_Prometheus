@@ -2,12 +2,12 @@ extends Control
 # Pause-style map menu: End Turn, Settings, Close.
 # Opens on open_menu action; closes on cancel or after a selection.
 
-signal end_turn_requested()
-signal rewind_requested()
-signal settings_requested()
-signal suspend_and_quit_requested()
-signal quit_to_menu_requested()
-signal menu_closed()
+signal end_turn_requested
+signal rewind_requested
+signal settings_requested
+signal suspend_and_quit_requested
+signal quit_to_menu_requested
+signal menu_closed
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
@@ -42,8 +42,7 @@ func _ready() -> void:
 func _on_backdrop_input(event: InputEvent) -> void:
 	if not visible:
 		return
-	if event is InputEventMouseButton and event.pressed \
-			and event.button_index == MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_close()
 		accept_event()
 

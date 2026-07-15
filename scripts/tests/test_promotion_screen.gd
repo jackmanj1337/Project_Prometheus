@@ -48,8 +48,12 @@ func _init() -> void:
 		print("OK  promotion screen opens and lists the current class targets")
 		passed += 1
 	else:
-		print("FAIL promotion options: visible=%s count=%d" % [
-			screen.visible, options.get_child_count()])
+		print(
+			(
+				"FAIL promotion options: visible=%s count=%d"
+				% [screen.visible, options.get_child_count()]
+			)
+		)
 		failed += 1
 
 	# Promotion modal must stay on-screen and centered (playtest v0.1.4 #5: it ran
@@ -64,10 +68,16 @@ func _init() -> void:
 	var on_screen: bool = left_margin >= -1.0 and right_margin >= -1.0
 	var centered: bool = absf(left_margin - right_margin) <= 2.0
 	if on_screen and centered:
-		print("OK  promotion modal fits on-screen and is horizontally centered"); passed += 1
+		print("OK  promotion modal fits on-screen and is horizontally centered")
+		passed += 1
 	else:
-		print("FAIL modal bounds: view_w=%.0f panel.x=%.0f panel.w=%.0f left=%.1f right=%.1f" % [
-			view_w, panel.position.x, panel.size.x, left_margin, right_margin]); failed += 1
+		print(
+			(
+				"FAIL modal bounds: view_w=%.0f panel.x=%.0f panel.w=%.0f left=%.1f right=%.1f"
+				% [view_w, panel.position.x, panel.size.x, left_margin, right_margin]
+			)
+		)
+		failed += 1
 
 	# V025-05c: at max Menu Scale the picker used to clip top+bottom because _ready()
 	# scaled an empty Options box and nothing re-clamped after the buttons were built.
@@ -80,10 +90,16 @@ func _init() -> void:
 	var top_margin: float = panel.position.y
 	var bottom_margin: float = view_h - (panel.position.y + panel.size.y)
 	if top_margin >= -1.0 and bottom_margin >= -1.0:
-		print("OK  promotion modal fits the viewport height at 2.0x (V025-05c)"); passed += 1
+		print("OK  promotion modal fits the viewport height at 2.0x (V025-05c)")
+		passed += 1
 	else:
-		print("FAIL 2.0x vertical fit: view_h=%.0f panel.y=%.0f panel.h=%.0f top=%.1f bottom=%.1f" % [
-			view_h, panel.position.y, panel.size.y, top_margin, bottom_margin]); failed += 1
+		print(
+			(
+				"FAIL 2.0x vertical fit: view_h=%.0f panel.y=%.0f panel.h=%.0f top=%.1f bottom=%.1f"
+				% [view_h, panel.position.y, panel.size.y, top_margin, bottom_margin]
+			)
+		)
+		failed += 1
 	# V026-05b: directional keys must reach every class option. The buttons were
 	# always FOCUS_ALL, but without follow_focus the ScrollContainer left the newly
 	# focused button outside the visible frame at high scale — reading as "only the
@@ -100,14 +116,19 @@ func _init() -> void:
 	var second_focused: bool = screen._buttons[1].has_focus()
 	var focused_rect: Rect2 = screen._buttons[1].get_global_rect()
 	var frame_rect: Rect2 = options_scroll.get_global_rect()
-	var focused_visible: bool = frame_rect.grow(1.0).encloses(focused_rect) \
-		or frame_rect.intersects(focused_rect)
+	var focused_visible: bool = (
+		frame_rect.grow(1.0).encloses(focused_rect) or frame_rect.intersects(focused_rect)
+	)
 	if follow_ok and second_focused and focused_visible:
 		print("OK  V026-05b down-arrow reaches the second option and the list follows focus")
 		passed += 1
 	else:
-		print("FAIL V026-05b focus nav: follow_focus=%s second_focused=%s visible=%s" % [
-			follow_ok, second_focused, focused_visible])
+		print(
+			(
+				"FAIL V026-05b focus nav: follow_focus=%s second_focused=%s visible=%s"
+				% [follow_ok, second_focused, focused_visible]
+			)
+		)
 		failed += 1
 	screen.apply_menu_scale(1.0)
 	await process_frame
@@ -116,17 +137,34 @@ func _init() -> void:
 	var first_label: String = first_button.text
 	first_button.pressed.emit()
 	await process_frame
-	if not screen.visible and signal_watcher.completed and unit.promoted_to == "paladin" \
-			and unit.data.inventory.is_empty() and signal_watcher.started == 1 \
-			and signal_watcher.finished == 1 and "Paladin" in first_label \
-			and "Str 8 +3 -> 11 / 42" in first_label \
-			and "HP 18 +7 -> 25 / 80" in first_label:
+	if (
+		not screen.visible
+		and signal_watcher.completed
+		and unit.promoted_to == "paladin"
+		and unit.data.inventory.is_empty()
+		and signal_watcher.started == 1
+		and signal_watcher.finished == 1
+		and "Paladin" in first_label
+		and "Str 8 +3 -> 11 / 42" in first_label
+		and "HP 18 +7 -> 25 / 80" in first_label
+	):
 		print("OK  confirming a promotion promotes the unit, consumes the seal, and closes")
 		passed += 1
 	else:
-		print("FAIL confirm promotion: visible=%s done=%s target=%s inv=%d started=%d finished=%d text=%s" % [
-			screen.visible, signal_watcher.completed, unit.promoted_to, unit.data.inventory.size(),
-			signal_watcher.started, signal_watcher.finished, first_label])
+		print(
+			(
+				"FAIL confirm promotion: visible=%s done=%s target=%s inv=%d started=%d finished=%d text=%s"
+				% [
+					screen.visible,
+					signal_watcher.completed,
+					unit.promoted_to,
+					unit.data.inventory.size(),
+					signal_watcher.started,
+					signal_watcher.finished,
+					first_label
+				]
+			)
+		)
 		failed += 1
 
 	var queued_unit := _make_unit("Queue Mage", "mage")
@@ -138,13 +176,24 @@ func _init() -> void:
 	var hidden_while_leveling := not screen.visible
 	bus.level_up_finished.emit()
 	await process_frame
-	if hidden_while_leveling and screen.visible and screen.get_node("Panel/VBox/LabelUnit").text.contains("Queue Mage"):
+	if (
+		hidden_while_leveling
+		and screen.visible
+		and screen.get_node("Panel/VBox/LabelUnit").text.contains("Queue Mage")
+	):
 		print("OK  promotion_available waits for level-up to finish before opening")
 		passed += 1
 	else:
-		print("FAIL queued promotion: hidden=%s visible=%s label=%s" % [
-			hidden_while_leveling, screen.visible,
-			screen.get_node("Panel/VBox/LabelUnit").text])
+		print(
+			(
+				"FAIL queued promotion: hidden=%s visible=%s label=%s"
+				% [
+					hidden_while_leveling,
+					screen.visible,
+					screen.get_node("Panel/VBox/LabelUnit").text
+				]
+			)
+		)
 		failed += 1
 
 	screen.get_node("Panel/VBox/BtnCancel").pressed.emit()

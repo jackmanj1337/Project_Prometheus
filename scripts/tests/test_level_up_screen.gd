@@ -4,6 +4,7 @@ extends SceneTree
 # dismiss it the same way the confirm key does. Previously the panel only
 # responded to keyboard confirm/cancel, so a mouse-only player was stuck.
 
+
 func _init() -> void:
 	print("=== LevelUpScreen Test ===")
 	var passed := 0
@@ -11,7 +12,9 @@ func _init() -> void:
 
 	var packed := load("res://scenes/ui/LevelUpScreen.tscn")
 	if packed == null:
-		print("FAIL could not load LevelUpScreen.tscn"); quit(1); return
+		print("FAIL could not load LevelUpScreen.tscn")
+		quit(1)
+		return
 	var screen: Control = packed.instantiate()
 	root.add_child(screen)
 	await process_frame
@@ -34,9 +37,11 @@ var data: StubData = StubData.new()
 	await process_frame
 
 	if screen.visible:
-		print("OK  panel visible after _show_next"); passed += 1
+		print("OK  panel visible after _show_next")
+		passed += 1
 	else:
-		print("FAIL panel not visible after _show_next"); failed += 1
+		print("FAIL panel not visible after _show_next")
+		failed += 1
 
 	# V025-05b: clicks are now handled in _gui_input (the STOP root consumes mouse
 	# buttons in the GUI phase before _unhandled_input can see them on desktop). Drive
@@ -51,7 +56,8 @@ var data: StubData = StubData.new()
 		print("OK  left-click dismisses the level-up panel (playtest 3 #2 / V025-05b)")
 		passed += 1
 	else:
-		print("FAIL left-click did not dismiss the panel"); failed += 1
+		print("FAIL left-click did not dismiss the panel")
+		failed += 1
 
 	# V025-05b structural invariant: the root must be STOP (so it receives the GUI
 	# mouse phase) and every descendant of the Panel must be IGNORE (so a click
@@ -69,11 +75,18 @@ var data: StubData = StubData.new()
 		for child in n.get_children():
 			stack.push_back(child)
 	if root_stop and subtree_ignore:
-		print("OK  root is STOP and the Panel subtree is IGNORE — clicks reach _gui_input (V025-05b)")
+		print(
+			"OK  root is STOP and the Panel subtree is IGNORE — clicks reach _gui_input (V025-05b)"
+		)
 		passed += 1
 	else:
-		print("FAIL mouse_filter routing: root_stop=%s subtree_ignore=%s offender=%s" % [
-			root_stop, subtree_ignore, offender]); failed += 1
+		print(
+			(
+				"FAIL mouse_filter routing: root_stop=%s subtree_ignore=%s offender=%s"
+				% [root_stop, subtree_ignore, offender]
+			)
+		)
+		failed += 1
 
 	# V023-05: mouse wheel and zoom actions are input to block, not dismissal.
 	screen._queue.append({"unit": stub_unit, "increases": {"hp": 1}})
@@ -94,8 +107,12 @@ var data: StubData = StubData.new()
 		print("OK  wheel/zoom input is blocked without dismissing level-up (V023-05)")
 		passed += 1
 	else:
-		print("FAIL wheel/zoom dismissed level-up: wheel=%s zoom=%s" % [
-			wheel_kept_open, zoom_kept_open])
+		print(
+			(
+				"FAIL wheel/zoom dismissed level-up: wheel=%s zoom=%s"
+				% [wheel_kept_open, zoom_kept_open]
+			)
+		)
 		failed += 1
 	screen._advance()
 	await process_frame
@@ -109,35 +126,56 @@ var data: StubData = StubData.new()
 	screen._unhandled_input(confirm)
 	await process_frame
 	if not screen.visible:
-		print("OK  confirm key still dismisses the panel"); passed += 1
+		print("OK  confirm key still dismisses the panel")
+		passed += 1
 	else:
-		print("FAIL confirm key no longer dismisses"); failed += 1
+		print("FAIL confirm key no longer dismisses")
+		failed += 1
 
 	# A level-up that learns a skill announces it on the stats label (M3).
-	screen._queue.append({
-		"unit": stub_unit, "increases": {"hp": 1}, "learned": [{"id": "vantage", "equipped": true}],
-	})
+	(
+		screen
+		. _queue
+		. append(
+			{
+				"unit": stub_unit,
+				"increases": {"hp": 1},
+				"learned": [{"id": "vantage", "equipped": true}],
+			}
+		)
+	)
 	screen._show_next()
 	await process_frame
 	var stats_label: Label = screen.get_node("Panel/Margin/VBox/LabelStats")
 	if "Learned" in stats_label.text and "Vantage" in stats_label.text:
-		print("OK  level-up panel announces a learned skill"); passed += 1
+		print("OK  level-up panel announces a learned skill")
+		passed += 1
 	else:
-		print("FAIL learned-skill line missing: '%s'" % stats_label.text); failed += 1
+		print("FAIL learned-skill line missing: '%s'" % stats_label.text)
+		failed += 1
 	screen._unhandled_input(confirm)
 	await process_frame
 
 	# M6.3: when the skill cap is full, the learned line explains the skill was stored.
-	screen._queue.append({
-		"unit": stub_unit, "increases": {"hp": 1},
-		"learned": [{"id": "wrath", "equipped": false}],
-	})
+	(
+		screen
+		. _queue
+		. append(
+			{
+				"unit": stub_unit,
+				"increases": {"hp": 1},
+				"learned": [{"id": "wrath", "equipped": false}],
+			}
+		)
+	)
 	screen._show_next()
 	await process_frame
 	if "skill slots full" in stats_label.text and "Wrath" in stats_label.text:
-		print("OK  learned-skill line explains when the skill is stored due to full slots"); passed += 1
+		print("OK  learned-skill line explains when the skill is stored due to full slots")
+		passed += 1
 	else:
-		print("FAIL stored-skill line missing: '%s'" % stats_label.text); failed += 1
+		print("FAIL stored-skill line missing: '%s'" % stats_label.text)
+		failed += 1
 	screen._unhandled_input(confirm)
 	await process_frame
 
@@ -163,22 +201,42 @@ var data: StubData = StubData.new()
 	screen._unhandled_input(confirm)
 	await process_frame
 	if queue_names == ["Queue A", "Queue B", "Queue C"] and not screen.visible:
-		print("OK  queued level-up panels advance in order without dropping entries"); passed += 1
+		print("OK  queued level-up panels advance in order without dropping entries")
+		passed += 1
 	else:
-		print("FAIL queued level-up order: %s visible=%s" % [queue_names, screen.visible]); failed += 1
+		print("FAIL queued level-up order: %s visible=%s" % [queue_names, screen.visible])
+		failed += 1
 
 	# A long stat burst should resize the panel instead of clipping the text.
-	screen._queue.append({
-		"unit": stub_unit,
-		"increases": {"hp": 1, "strength": 1, "magic": 1, "defense": 1, "resistance": 1, "skill": 1, "speed": 1, "luck": 1},
-	})
+	(
+		screen
+		. _queue
+		. append(
+			{
+				"unit": stub_unit,
+				"increases":
+				{
+					"hp": 1,
+					"strength": 1,
+					"magic": 1,
+					"defense": 1,
+					"resistance": 1,
+					"skill": 1,
+					"speed": 1,
+					"luck": 1
+				},
+			}
+		)
+	)
 	screen._show_next()
 	await process_frame
 	var panel: PanelContainer = screen.get_node("Panel")
 	if panel.size.y > 200.0:
-		print("OK  panel grows for long level-up summaries"); passed += 1
+		print("OK  panel grows for long level-up summaries")
+		passed += 1
 	else:
-		print("FAIL panel did not grow for long summary: size=%s" % str(panel.size)); failed += 1
+		print("FAIL panel did not grow for long summary: size=%s" % str(panel.size))
+		failed += 1
 	screen._unhandled_input(confirm)
 	await process_frame
 
@@ -203,14 +261,16 @@ var data: StubData = StubData.new()
 	# The two shows must agree (the bug was a first-show-only race), and the panel
 	# must not have collapsed to a narrow sliver — the degenerate frame was ~sliver
 	# wide because an un-laid-out autowrap label reported a tiny minimum width.
-	var stable: bool = absf(first_size.x - second_size.x) <= 2.0 \
-		and absf(first_size.y - second_size.y) <= 2.0
+	var stable: bool = (
+		absf(first_size.x - second_size.x) <= 2.0 and absf(first_size.y - second_size.y) <= 2.0
+	)
 	var not_sliver: bool = first_size.x >= 100.0
 	if stable and not_sliver:
 		print("OK  V025-05a first-show panel size is non-sliver and matches second show")
 		passed += 1
 	else:
-		print("FAIL first-show size: first=%s second=%s" % [first_size, second_size]); failed += 1
+		print("FAIL first-show size: first=%s second=%s" % [first_size, second_size])
+		failed += 1
 	fresh.queue_free()
 
 	stub_unit.queue_free()

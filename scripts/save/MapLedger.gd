@@ -59,8 +59,7 @@ func restore_from_save(value: Variant) -> bool:
 			return false
 		var reason := String(item.get("reason", ""))
 		var entry: Variant = item.get("entry", null)
-		if reason not in [REASON_ROUND_START, REASON_ACTIVATION] \
-				or not (entry is Dictionary):
+		if reason not in [REASON_ROUND_START, REASON_ACTIVATION] or not (entry is Dictionary):
 			return false
 		restored.append({"reason": reason, "entry": entry.duplicate(true)})
 	_entries = restored

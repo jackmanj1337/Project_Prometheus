@@ -26,9 +26,11 @@ func _init() -> void:
 		"closed": 0,
 	}
 	if menu.get_node_or_null("Panel/VBox/RewindButton") != null:
-		print("OK  rewind action is present in the map menu"); passed += 1
+		print("OK  rewind action is present in the map menu")
+		passed += 1
 	else:
-		print("FAIL rewind action missing"); failed += 1
+		print("FAIL rewind action missing")
+		failed += 1
 	menu.end_turn_requested.connect(func() -> void: events["end_turn"] += 1)
 	menu.settings_requested.connect(func() -> void: events["settings"] += 1)
 	menu.suspend_and_quit_requested.connect(func() -> void: events["suspend"] += 1)
@@ -42,8 +44,7 @@ func _init() -> void:
 		print("OK  disabled suspend button does not emit")
 		passed += 1
 	else:
-		print("FAIL disabled suspend: visible=%s suspend=%s" % [
-			menu.visible, events["suspend"]])
+		print("FAIL disabled suspend: visible=%s suspend=%s" % [menu.visible, events["suspend"]])
 		failed += 1
 	menu._on_close()
 
@@ -54,8 +55,12 @@ func _init() -> void:
 		print("OK  suspend hides the menu and emits suspend_and_quit_requested")
 		passed += 1
 	else:
-		print("FAIL suspend path: visible=%s suspend=%s closed=%s" % [
-			menu.visible, events["suspend"], events["closed"]])
+		print(
+			(
+				"FAIL suspend path: visible=%s suspend=%s closed=%s"
+				% [menu.visible, events["suspend"], events["closed"]]
+			)
+		)
 		failed += 1
 
 	menu.open()
@@ -64,8 +69,12 @@ func _init() -> void:
 		print("OK  quit-to-menu hides the menu and emits only quit_to_menu_requested")
 		passed += 1
 	else:
-		print("FAIL quit-to-menu: visible=%s quit=%s closed=%s" % [
-			menu.visible, events["quit_to_menu"], events["closed"]])
+		print(
+			(
+				"FAIL quit-to-menu: visible=%s quit=%s closed=%s"
+				% [menu.visible, events["quit_to_menu"], events["closed"]]
+			)
+		)
 		failed += 1
 
 	menu.open()
@@ -74,8 +83,12 @@ func _init() -> void:
 		print("OK  settings hides the menu without emitting menu_closed")
 		passed += 1
 	else:
-		print("FAIL settings path: visible=%s settings=%s closed=%s" % [
-			menu.visible, events["settings"], events["closed"]])
+		print(
+			(
+				"FAIL settings path: visible=%s settings=%s closed=%s"
+				% [menu.visible, events["settings"], events["closed"]]
+			)
+		)
 		failed += 1
 
 	menu.open()
@@ -84,8 +97,12 @@ func _init() -> void:
 		print("OK  end-turn hides the menu and emits menu_closed")
 		passed += 1
 	else:
-		print("FAIL end-turn path: visible=%s end=%s closed=%s" % [
-			menu.visible, events["end_turn"], events["closed"]])
+		print(
+			(
+				"FAIL end-turn path: visible=%s end=%s closed=%s"
+				% [menu.visible, events["end_turn"], events["closed"]]
+			)
+		)
 		failed += 1
 
 	# V021-13: a left-click on the backdrop dismisses the menu (emits menu_closed).

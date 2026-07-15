@@ -87,9 +87,15 @@ func _refresh_result() -> void:
 	var cm := _campaign_manager()
 	var result: Dictionary = cm.call("get_pending_result") if cm != null else {}
 	_rewards_label.text = _summary_line("Rewards", result.get("rewards", []), "None reported")
-	_casualties_label.text = _summary_line("Casualties", result.get("casualties", []), "None reported")
-	_progression_label.text = _summary_line("Progression", result.get("progression", []), "Resolved")
-	_save_status_label.text = "Save: writes after Continue" if cm != null else "Save: not a campaign battle"
+	_casualties_label.text = _summary_line(
+		"Casualties", result.get("casualties", []), "None reported"
+	)
+	_progression_label.text = _summary_line(
+		"Progression", result.get("progression", []), "Resolved"
+	)
+	_save_status_label.text = (
+		"Save: writes after Continue" if cm != null else "Save: not a campaign battle"
+	)
 	_successor_picker.clear()
 	_successor_label.hide()
 	_successor_picker.hide()
@@ -110,8 +116,9 @@ func _refresh_result() -> void:
 	_successor_picker.set_item_metadata(0, "")
 	for option in options:
 		_successor_picker.add_item(String(option.get("label", option.get("node_id", ""))))
-		_successor_picker.set_item_metadata(_successor_picker.item_count - 1,
-			String(option.get("node_id", "")))
+		_successor_picker.set_item_metadata(
+			_successor_picker.item_count - 1, String(option.get("node_id", ""))
+		)
 	_continue_button.text = "Continue"
 	_continue_button.disabled = true
 
@@ -127,8 +134,9 @@ func _summary_line(label: String, value: Variant, fallback: String) -> String:
 func _on_successor_selected(index: int) -> void:
 	var node_id: String = String(_successor_picker.get_item_metadata(index))
 	var cm := _campaign_manager()
-	_continue_button.disabled = cm == null or node_id == "" \
-		or not bool(cm.call("choose_pending_successor", node_id))
+	_continue_button.disabled = (
+		cm == null or node_id == "" or not bool(cm.call("choose_pending_successor", node_id))
+	)
 
 
 func _on_continue() -> void:
@@ -137,8 +145,10 @@ func _on_continue() -> void:
 		_quit_to_menu()
 		return
 	var result: Dictionary = cm.call("get_pending_result")
-	if not bool(result.get("campaign_complete", false)) \
-			and not bool(cm.call("prepare_pending_advance")):
+	if (
+		not bool(result.get("campaign_complete", false))
+		and not bool(cm.call("prepare_pending_advance"))
+	):
 		_save_status_label.text = "Save: could not validate the next battle"
 		return
 	if not bool(cm.call("commit_pending_result")):

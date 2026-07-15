@@ -24,7 +24,7 @@ const GameConstants = preload("res://scripts/shared/GameConstants.gd")
 # read as "a little fast" for discrete menu rows on the live return, so menus get
 # their own slower constants while map travel keeps its tuned speed.
 const REPEAT_DELAY: float = GameConstants.MENU_KEY_REPEAT_DELAY  # initial hold pause
-const REPEAT_RATE: float  = GameConstants.MENU_KEY_REPEAT_RATE   # per-step pause while held
+const REPEAT_RATE: float = GameConstants.MENU_KEY_REPEAT_RATE  # per-step pause while held
 
 # The four navigation actions, polled as an analog vector. Left-stick + d-pad +
 # keyboard all feed these, so one poll covers every device. Defaults are the
@@ -43,8 +43,12 @@ var _wait_for_neutral: bool = false
 
 # Optional: override the polled action set (e.g. the ui_* engine-focus vocabulary).
 # Pass the four action names in left/right/up/down order.
-func _init(neg_x: String = "cursor_left", pos_x: String = "cursor_right",
-		neg_y: String = "cursor_up", pos_y: String = "cursor_down") -> void:
+func _init(
+	neg_x: String = "cursor_left",
+	pos_x: String = "cursor_right",
+	neg_y: String = "cursor_up",
+	pos_y: String = "cursor_down"
+) -> void:
 	_neg_x = neg_x
 	_pos_x = pos_x
 	_neg_y = neg_y

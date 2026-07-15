@@ -5,7 +5,8 @@ class_name CampaignTier2RuntimeAdapter extends RefCounted
 const MAP_SCHEME := "campaign-pack://"
 
 
-class Result extends RefCounted:
+class Result:
+	extends RefCounted
 	var valid := false
 	var errors: Array[String] = []
 	var package_id := ""
@@ -17,8 +18,9 @@ class Result extends RefCounted:
 	var classes: Dictionary = {}
 
 
-static func load(pack_root: String, expected_id: String = "",
-		expected_version: String = "") -> Result:
+static func load(
+	pack_root: String, expected_id: String = "", expected_version: String = ""
+) -> Result:
 	var result := Result.new()
 	var root := pack_root.trim_suffix("/")
 	var manifest_raw: Variant = _read_json(root.path_join("manifest.json"), result.errors)
@@ -32,11 +34,19 @@ static func load(pack_root: String, expected_id: String = "",
 	result.package_id = manifest.id
 	result.package_version = manifest.version
 	if not expected_id.is_empty() and manifest.id != expected_id:
-		result.errors.append("Tier-2 runtime source id '%s' does not match requested '%s'" % [
-			manifest.id, expected_id])
+		result.errors.append(
+			(
+				"Tier-2 runtime source id '%s' does not match requested '%s'"
+				% [manifest.id, expected_id]
+			)
+		)
 	if not expected_version.is_empty() and manifest.version != expected_version:
-		result.errors.append("Tier-2 runtime source version '%s' does not match requested '%s'" % [
-			manifest.version, expected_version])
+		result.errors.append(
+			(
+				"Tier-2 runtime source version '%s' does not match requested '%s'"
+				% [manifest.version, expected_version]
+			)
+		)
 
 	var catalogue_errors: Array[String] = []
 	var catalogue := Tier2Catalogue.load_campaign_pack(root, catalogue_errors)
@@ -65,9 +75,23 @@ static func _build_classes(catalogue: Tier2Catalogue, result: Result) -> void:
 		_apply_properties(value, raw)
 		value.id = String(entry["id"])
 		if value.base_hp <= 0:
-			result.errors.append("Tier-2 class '%s' base_hp must be greater than zero for runtime activation" % value.id)
+			result.errors.append(
+				(
+					"Tier-2 class '%s' base_hp must be greater than zero for runtime activation"
+					% value.id
+				)
+			)
 		if value.base_movement <= 0:
-			result.errors.append("Tier-2 class '%s' base_movement must be greater than zero for runtime activation" % value.id)
+			(
+				result
+				. errors
+				. append(
+					(
+						"Tier-2 class '%s' base_movement must be greater than zero for runtime activation"
+						% value.id
+					)
+				)
+			)
 		result.classes[value.id] = value
 
 
@@ -81,7 +105,7 @@ static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
 			var class_id := String(unit_raw.get("class_id", ""))
 			var class_data: ClassData = result.classes.get(class_id)
 			if class_data == null:
-				continue # Whole-pack validation already reports this reference.
+				continue  # Whole-pack validation already reports this reference.
 			var unit := UnitData.new()
 			_apply_class_bases(unit, class_data)
 			_apply_properties(unit, unit_raw)
@@ -89,8 +113,12 @@ static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
 			unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 			unit.class_id = class_id
 			if unit.max_hp <= 0 or unit.hp <= 0:
-				result.errors.append("Tier-2 roster '%s' unit '%s' must have positive hp" % [
-					entry["id"], unit.unit_id])
+				result.errors.append(
+					(
+						"Tier-2 roster '%s' unit '%s' must have positive hp"
+						% [entry["id"], unit.unit_id]
+					)
+				)
 			roster.append(unit)
 		result.rosters[String(entry["id"])] = roster
 
@@ -101,17 +129,29 @@ static func _build_maps(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var raw: Dictionary = catalogue.get_document("map_data", entry["id"])
 		var map := MapData.new()
-		_apply_properties(map, raw, ["grid", "player_start_tiles", "camera_start_tile",
-			"enemy_placements", "reward_items", "turn_order"])
+		_apply_properties(
+			map,
+			raw,
+			[
+				"grid",
+				"player_start_tiles",
+				"camera_start_tile",
+				"enemy_placements",
+				"reward_items",
+				"turn_order"
+			]
+		)
 		map.id = String(entry["id"])
 		map.grid = _strings(raw.get("grid", []))
 		map.reward_items = _strings(raw.get("reward_items", []))
 		map.turn_order = _strings(raw.get("turn_order", []))
-		map.player_start_tiles = _tiles(raw.get("player_start_tiles", []),
-			"map '%s' player_start_tiles" % map.id, result.errors)
+		map.player_start_tiles = _tiles(
+			raw.get("player_start_tiles", []), "map '%s' player_start_tiles" % map.id, result.errors
+		)
 		if raw.has("camera_start_tile"):
-			map.camera_start_tile = _tile(raw["camera_start_tile"],
-				"map '%s' camera_start_tile" % map.id, result.errors)
+			map.camera_start_tile = _tile(
+				raw["camera_start_tile"], "map '%s' camera_start_tile" % map.id, result.errors
+			)
 		map.enemy_placements = _enemy_placements(raw.get("enemy_placements", []), result)
 		result.maps[map.id] = map
 
@@ -126,8 +166,10 @@ static func _build_map_registry(catalogue: Tier2Catalogue, result: Result) -> vo
 			result.map_registry[map_id] = {
 				"id": map_id,
 				"label": String(raw.get("label", map_id)),
-				"map_data_path": map_uri(result.package_id, result.package_version,
-					String(raw.get("map_data_id", ""))),
+				"map_data_path":
+				map_uri(
+					result.package_id, result.package_version, String(raw.get("map_data_id", ""))
+				),
 				"roster_policy": "campaign_pack_roster",
 				"roster_source": roster_id,
 				"description": String(raw.get("description", "Single-map campaign.")),
@@ -141,7 +183,8 @@ static func _build_campaigns(catalogue: Tier2Catalogue, result: Result) -> void:
 			continue
 		var parse_errors: Array[String] = []
 		var campaign := CampaignData.parse(
-			catalogue.get_document("campaign", entry["id"]), entry["path"], parse_errors)
+			catalogue.get_document("campaign", entry["id"]), entry["path"], parse_errors
+		)
 		result.errors.append_array(parse_errors)
 		if campaign != null:
 			result.campaigns[campaign.campaign_id] = campaign
@@ -169,13 +212,18 @@ static func _enemy_placements(source: Variant, result: Result) -> Array[Dictiona
 		unit.unit_id = String(unit_raw.get("unit_id", ""))
 		unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 		unit.class_id = class_id
-		placements.append({
-			"unit_data": unit,
-			"tile": _tile(raw.get("tile", []), "enemy placement tile", result.errors),
-			"ai_profile": String(raw.get("ai_profile", unit.ai_profile)),
-			"is_boss": bool(raw.get("is_boss", false)),
-			"faction": String(raw.get("faction", "red")),
-		})
+		(
+			placements
+			. append(
+				{
+					"unit_data": unit,
+					"tile": _tile(raw.get("tile", []), "enemy placement tile", result.errors),
+					"ai_profile": String(raw.get("ai_profile", unit.ai_profile)),
+					"is_boss": bool(raw.get("is_boss", false)),
+					"faction": String(raw.get("faction", "red")),
+				}
+			)
+		)
 	return placements
 
 
@@ -195,8 +243,9 @@ static func _apply_class_bases(unit: UnitData, value: ClassData) -> void:
 	unit.weapon_wexp = value.weapon_wexp_bases.duplicate(true)
 
 
-static func _apply_properties(target: Object, raw: Dictionary,
-		excluded: Array[String] = []) -> void:
+static func _apply_properties(
+	target: Object, raw: Dictionary, excluded: Array[String] = []
+) -> void:
 	var properties := {}
 	for property in target.get_property_list():
 		properties[String(property["name"])] = true
@@ -206,8 +255,7 @@ static func _apply_properties(target: Object, raw: Dictionary,
 			target.set(name, raw[key])
 
 
-static func _tiles(source: Variant, owner: String,
-		errors: Array[String]) -> Array[Vector2i]:
+static func _tiles(source: Variant, owner: String, errors: Array[String]) -> Array[Vector2i]:
 	var output: Array[Vector2i] = []
 	if not source is Array:
 		errors.append("Tier-2 %s must be an array" % owner)
@@ -225,8 +273,7 @@ static func _strings(source: Variant) -> Array[String]:
 	return output
 
 
-static func _tile(source: Variant, owner: String,
-		errors: Array[String]) -> Vector2i:
+static func _tile(source: Variant, owner: String, errors: Array[String]) -> Vector2i:
 	if not source is Array or source.size() != 2:
 		errors.append("Tier-2 %s must be [x, y]" % owner)
 		return Vector2i.ZERO
@@ -240,6 +287,8 @@ static func _read_json(path: String, errors: Array[String]) -> Variant:
 		return null
 	var json := JSON.new()
 	if json.parse(file.get_as_text()) != OK:
-		errors.append("Tier-2 runtime adapter cannot parse '%s': %s" % [path, json.get_error_message()])
+		errors.append(
+			"Tier-2 runtime adapter cannot parse '%s': %s" % [path, json.get_error_message()]
+		)
 		return null
 	return json.data

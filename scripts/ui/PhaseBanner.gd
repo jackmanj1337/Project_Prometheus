@@ -34,6 +34,7 @@ func _on_phase_changed(new_phase: int, faction_id: String = "") -> void:
 func _offscreen_right() -> float:
 	return get_viewport().get_visible_rect().size.x
 
+
 func _offscreen_left() -> float:
 	return -get_viewport().get_visible_rect().size.x
 

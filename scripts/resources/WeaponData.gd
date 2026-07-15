@@ -89,23 +89,39 @@ static func _stat_value(stat_name: String, unit: Node) -> int:
 	# Prefer get_effective_stat so active modifiers (e.g. MAG buffs) affect dynamic range.
 	if unit.has_method("get_effective_stat"):
 		match stat_name:
-			"MAG": return unit.get_effective_stat("magic")
-			"STR": return unit.get_effective_stat("strength")
-			"SKL": return unit.get_effective_stat("skill")
-			"LUK": return unit.get_effective_stat("luck")
-			"SPD": return unit.get_effective_stat("speed")
-			"DEF": return unit.get_effective_stat("defense")
-			"RES": return unit.get_effective_stat("resistance")
-			"HP":  return unit.get_effective_stat("hp")
+			"MAG":
+				return unit.get_effective_stat("magic")
+			"STR":
+				return unit.get_effective_stat("strength")
+			"SKL":
+				return unit.get_effective_stat("skill")
+			"LUK":
+				return unit.get_effective_stat("luck")
+			"SPD":
+				return unit.get_effective_stat("speed")
+			"DEF":
+				return unit.get_effective_stat("defense")
+			"RES":
+				return unit.get_effective_stat("resistance")
+			"HP":
+				return unit.get_effective_stat("hp")
 	if not "data" in unit or unit.data == null:
 		return 0
 	match stat_name:
-		"MAG": return unit.data.magic
-		"STR": return unit.data.strength
-		"SKL": return unit.data.skill
-		"LUK": return unit.data.luck
-		"SPD": return unit.data.speed
-		"DEF": return unit.data.defense
-		"RES": return unit.data.resistance
-		"HP":  return unit.data.hp
+		"MAG":
+			return unit.data.magic
+		"STR":
+			return unit.data.strength
+		"SKL":
+			return unit.data.skill
+		"LUK":
+			return unit.data.luck
+		"SPD":
+			return unit.data.speed
+		"DEF":
+			return unit.data.defense
+		"RES":
+			return unit.data.resistance
+		"HP":
+			return unit.data.hp
 	return 0

@@ -67,7 +67,12 @@ func _init() -> void:
 	# always-retained round-0 (0). Order preserved.
 	var b1: RefCounted = _clone(led)
 	b1.prune(1, 1)
-	_check("prune(1,1) keeps round-0 + last activation + last round-start", _ids(b1), [0, 3, 5], counters)
+	_check(
+		"prune(1,1) keeps round-0 + last activation + last round-start",
+		_ids(b1),
+		[0, 3, 5],
+		counters
+	)
 
 	# Budget of N (2 each): last 2 activations (4,5) + last 2 round-starts (0,3).
 	# Round-0 is among the kept round-starts here — the union stays deduplicated.
@@ -79,7 +84,12 @@ func _init() -> void:
 	# EXCEPT the forced round-0 boundary. Proves 0 keeps none beyond round-0.
 	var binf: RefCounted = _clone(led)
 	binf.prune(INF, 0)
-	_check("prune(INF,0) keeps all activations + only the round-0 boundary", _ids(binf), [0, 1, 2, 4, 5], counters)
+	_check(
+		"prune(INF,0) keeps all activations + only the round-0 boundary",
+		_ids(binf),
+		[0, 1, 2, 4, 5],
+		counters
+	)
 
 	# Zero activations, infinite rounds: every round-start survives; activations drop.
 	var brinf: RefCounted = _clone(led)
@@ -103,11 +113,21 @@ func _init() -> void:
 	_check("truncate_after drops the abandoned future", _ids(branch), [0, 1, 2], counters)
 	var persisted: Array[Dictionary] = branch.to_save_array()
 	var restored := MapLedgerScript.new()
-	_check("restore_from_save accepts the persisted unified-slot form",
-		restored.restore_from_save(persisted) and _ids(restored) == [0, 1, 2], true, counters)
-	_check("restore_from_save rejects malformed entries without mutation",
-		not restored.restore_from_save([{"reason": "unknown", "entry": {}}]) \
-			and _ids(restored) == [0, 1, 2], true, counters)
+	_check(
+		"restore_from_save accepts the persisted unified-slot form",
+		restored.restore_from_save(persisted) and _ids(restored) == [0, 1, 2],
+		true,
+		counters
+	)
+	_check(
+		"restore_from_save rejects malformed entries without mutation",
+		(
+			not restored.restore_from_save([{"reason": "unknown", "entry": {}}])
+			and _ids(restored) == [0, 1, 2]
+		),
+		true,
+		counters
+	)
 
 	bn.clear()
 	_check("clear empties the ledger", bn.size(), 0, counters)

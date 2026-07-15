@@ -16,7 +16,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 #
 # Scene: SettingsScreen > Dimmer + Panel > ScrollContainer > VBox > rows.
 
-signal back_pressed()
+signal back_pressed
 
 # Shared key-display helper — renders modifiers (Shift/Ctrl/Alt) so prev_unit
 # (Shift+Tab) is distinguishable from next_unit (Tab) in the list (#3).
@@ -35,26 +35,27 @@ const _KEYBIND_SLOT_KBD := "kbd"
 const _KEYBIND_SLOT_PAD := "pad"
 const _KEYBIND_CONFLICT_COLOR := Color(1.0, 0.55, 0.55)
 
-@onready var _scroll: ScrollContainer   = $Panel/ScrollContainer
-@onready var _vbox: VBoxContainer       = $Panel/ScrollContainer/Margin/VBox
-@onready var _slider_master: HSlider    = _vbox.get_node("HBoxMaster/SliderMaster")
-@onready var _slider_music: HSlider     = _vbox.get_node("HBoxMusic/SliderMusic")
-@onready var _slider_sfx: HSlider       = _vbox.get_node("HBoxSFX/SliderSFX")
-@onready var _label_master: Label       = _vbox.get_node("HBoxMaster/LabelMaster")
-@onready var _label_music: Label        = _vbox.get_node("HBoxMusic/LabelMusic")
-@onready var _label_sfx: Label          = _vbox.get_node("HBoxSFX/LabelSFX")
-@onready var _slider_camera_buffer: HSlider    = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
-@onready var _label_camera_buffer: Label       = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
-@onready var _slider_map_zoom: HSlider         = _vbox.get_node("HBoxMapZoom/SliderMapZoom")
-@onready var _label_map_zoom: Label            = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
-@onready var _slider_grid_dim: HSlider         = _vbox.get_node("HBoxGridDim/SliderGridDim")
-@onready var _label_grid_dim: Label            = _vbox.get_node("HBoxGridDim/LabelGridDim")
-@onready var _slider_menu_scale: HSlider       = _vbox.get_node("HBoxUIScale/SliderUIScale")
-@onready var _label_menu_scale: Label          = _vbox.get_node("HBoxUIScale/LabelUIScale")
-@onready var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
+@onready var _scroll: ScrollContainer = $Panel/ScrollContainer
+@onready var _vbox: VBoxContainer = $Panel/ScrollContainer/Margin/VBox
+@onready var _slider_master: HSlider = _vbox.get_node("HBoxMaster/SliderMaster")
+@onready var _slider_music: HSlider = _vbox.get_node("HBoxMusic/SliderMusic")
+@onready var _slider_sfx: HSlider = _vbox.get_node("HBoxSFX/SliderSFX")
+@onready var _label_master: Label = _vbox.get_node("HBoxMaster/LabelMaster")
+@onready var _label_music: Label = _vbox.get_node("HBoxMusic/LabelMusic")
+@onready var _label_sfx: Label = _vbox.get_node("HBoxSFX/LabelSFX")
+@onready var _slider_camera_buffer: HSlider = _vbox.get_node("HBoxCameraBuffer/SliderCameraBuffer")
+@onready var _label_camera_buffer: Label = _vbox.get_node("HBoxCameraBuffer/LabelCameraBuffer")
+@onready var _slider_map_zoom: HSlider = _vbox.get_node("HBoxMapZoom/SliderMapZoom")
+@onready var _label_map_zoom: Label = _vbox.get_node("HBoxMapZoom/LabelMapZoom")
+@onready var _slider_grid_dim: HSlider = _vbox.get_node("HBoxGridDim/SliderGridDim")
+@onready var _label_grid_dim: Label = _vbox.get_node("HBoxGridDim/LabelGridDim")
+@onready var _slider_menu_scale: HSlider = _vbox.get_node("HBoxUIScale/SliderUIScale")
+@onready var _label_menu_scale: Label = _vbox.get_node("HBoxUIScale/LabelUIScale")
+@onready
+var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
 @onready var _keybind_list: VBoxContainer = _vbox.get_node("KeybindList")
-@onready var _btn_edit_hud: Button      = _vbox.get_node("BtnEditHudLayout")
-@onready var _btn_back: Button          = _vbox.get_node("BtnBack")
+@onready var _btn_edit_hud: Button = _vbox.get_node("BtnEditHudLayout")
+@onready var _btn_back: Button = _vbox.get_node("BtnBack")
 
 var _pending_keybindings: Dictionary = {}
 var _keybind_rows: Dictionary = {}
@@ -82,23 +83,27 @@ var _display_refresh_queued: bool = false
 #   3. Add an OptionButton node to SettingsScreen.tscn at the named path.
 const _ENUM_SETTINGS: Array = [
 	{
-		"key": "combat_animations", "node": "OptCombatAnim",
+		"key": "combat_animations",
+		"node": "OptCombatAnim",
 		"values": ["all", "player_only", "enemy_only", "none"],
 		"labels": ["All", "Player Only", "Enemy Only", "None"],
 		"hidden": true,  # no combat-animation system yet
 	},
 	{
-		"key": "movement_speed", "node": "HBoxMovementSpeed/OptMovementSpeed",
+		"key": "movement_speed",
+		"node": "HBoxMovementSpeed/OptMovementSpeed",
 		"values": ["normal", "fast", "instant"],
 		"labels": ["Normal", "Fast", "Instant"],
 	},
 	{
-		"key": "phase_banner", "node": "HBoxPhaseBanner/OptPhaseBanner",
+		"key": "phase_banner",
+		"node": "HBoxPhaseBanner/OptPhaseBanner",
 		"values": ["show", "skip"],
 		"labels": ["Show", "Skip"],
 	},
 	{
-		"key": "level_up_screen", "node": "HBoxLevelUp/OptLevelUpScreen",
+		"key": "level_up_screen",
+		"node": "HBoxLevelUp/OptLevelUpScreen",
 		"values": ["show", "auto", "skip"],
 		"labels": ["Show", "Auto", "Skip"],
 	},
@@ -107,18 +112,21 @@ const _ENUM_SETTINGS: Array = [
 		# this row for the gray-state pass — modes unsupported on the current platform
 		# (e.g. Touch on desktop) are shown DISABLED, not hidden, so the vocabulary stays
 		# visible/self-documenting while the engine's resolver still falls back at runtime.
-		"key": "input_mode", "node": "HBoxInputMode/OptInputMode",
+		"key": "input_mode",
+		"node": "HBoxInputMode/OptInputMode",
 		"values": ["auto", "gamepad", "touch", "mouse_keyboard"],
 		"labels": ["Auto", "Gamepad", "Touch", "Mouse & Keyboard"],
 		"availability": true,
 	},
 	{
-		"key": "mouse_cursor", "node": "HBoxMouseCursor/OptMouseCursor",
+		"key": "mouse_cursor",
+		"node": "HBoxMouseCursor/OptMouseCursor",
 		"values": ["follow", "click", "disabled"],
 		"labels": ["Follow", "Click", "Off"],
 	},
 	{
-		"key": "auto_end_turn", "node": "HBoxAutoEndTurn/OptAutoEndTurn",
+		"key": "auto_end_turn",
+		"node": "HBoxAutoEndTurn/OptAutoEndTurn",
 		"values": [false, true],
 		"labels": ["Off", "On"],
 	},
@@ -128,17 +136,21 @@ const _ENUM_SETTINGS: Array = [
 		# the change through the 15s confirm-or-revert dialog (a wrong fullscreen/
 		# resolution can leave the screen unusable), so the new value is applied but
 		# only persisted on confirm.
-		"key": "window_mode", "node": "HBoxWindowMode/OptWindowMode",
+		"key": "window_mode",
+		"node": "HBoxWindowMode/OptWindowMode",
 		"values": ["windowed", "borderless", "fullscreen"],
 		"labels": ["Windowed", "Borderless", "Fullscreen"],
-		"apply": "_apply_display", "confirm": true,
+		"apply": "_apply_display",
+		"confirm": true,
 	},
 	{
-		"key": "resolution", "node": "HBoxResolution/OptResolution",
+		"key": "resolution",
+		"node": "HBoxResolution/OptResolution",
 		"values": ["1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160"],
-		"labels": ["1280 x 720", "1600 x 900", "1920 x 1080", "2560 x 1440 (1440p)",
-			"3840 x 2160 (4K)"],
-		"apply": "_apply_display", "confirm": true,
+		"labels":
+		["1280 x 720", "1600 x 900", "1920 x 1080", "2560 x 1440 (1440p)", "3840 x 2160 (4K)"],
+		"apply": "_apply_display",
+		"confirm": true,
 	},
 ]
 
@@ -155,8 +167,9 @@ func _ready() -> void:
 	# build never shows a dropdown + 15s confirm dialog that can't apply. Desktop keeps
 	# every row. Defaults true if SettingsManager is somehow absent (desktop assumption).
 	var sm_for_display := get_node_or_null("/root/SettingsManager")
-	var display_supported: bool = sm_for_display == null \
-		or sm_for_display.call("is_display_config_supported")
+	var display_supported: bool = (
+		sm_for_display == null or sm_for_display.call("is_display_config_supported")
+	)
 
 	# Schema-driven enum settings (B5).
 	for s in _ENUM_SETTINGS:
@@ -181,30 +194,30 @@ func _ready() -> void:
 	# Hand-wired sliders (different shape — value range, value label, save path).
 	_slider_master.min_value = 0
 	_slider_master.max_value = 100
-	_slider_master.step      = 1
-	_slider_music.min_value  = 0
-	_slider_music.max_value  = 100
-	_slider_music.step       = 1
-	_slider_sfx.min_value    = 0
-	_slider_sfx.max_value    = 100
-	_slider_sfx.step         = 1
+	_slider_master.step = 1
+	_slider_music.min_value = 0
+	_slider_music.max_value = 100
+	_slider_music.step = 1
+	_slider_sfx.min_value = 0
+	_slider_sfx.max_value = 100
+	_slider_sfx.step = 1
 	_slider_camera_buffer.min_value = 0
 	_slider_camera_buffer.max_value = 5
-	_slider_camera_buffer.step      = 1
+	_slider_camera_buffer.step = 1
 	# Size the zoom slider from CameraController.ZOOM_LEVELS so adding a level only
 	# touches that one array. The slider value IS the stored index.
 	_slider_map_zoom.min_value = 0
 	_slider_map_zoom.max_value = CameraControllerS.ZOOM_LEVELS.size() - 1
-	_slider_map_zoom.step      = 1
+	_slider_map_zoom.step = 1
 	_slider_grid_dim.min_value = 0.0
 	_slider_grid_dim.max_value = 0.5
-	_slider_grid_dim.step      = 0.05
+	_slider_grid_dim.step = 0.05
 	# Menu-scale slider sized from SettingsManager.MENU_SCALE_LEVELS; value IS the index.
 	var sm_for_range := get_node_or_null("/root/SettingsManager")
 	if sm_for_range != null:
 		_slider_menu_scale.min_value = 0
 		_slider_menu_scale.max_value = sm_for_range.MENU_SCALE_LEVELS.size() - 1
-		_slider_menu_scale.step      = 1
+		_slider_menu_scale.step = 1
 
 	_slider_master.value_changed.connect(_on_master_changed)
 	_slider_music.value_changed.connect(_on_music_changed)
@@ -236,19 +249,19 @@ func open() -> void:
 		return
 	# Sliders + their value labels.
 	_slider_master.value = sm.get("master_volume")
-	_slider_music.value  = sm.get("music_volume")
-	_slider_sfx.value    = sm.get("sfx_volume")
-	_label_master.text   = "%d" % sm.get("master_volume")
-	_label_music.text    = "%d" % sm.get("music_volume")
-	_label_sfx.text      = "%d" % sm.get("sfx_volume")
+	_slider_music.value = sm.get("music_volume")
+	_slider_sfx.value = sm.get("sfx_volume")
+	_label_master.text = "%d" % sm.get("master_volume")
+	_label_music.text = "%d" % sm.get("music_volume")
+	_label_sfx.text = "%d" % sm.get("sfx_volume")
 	_slider_camera_buffer.value = sm.get("camera_edge_buffer")
-	_label_camera_buffer.text   = "%d" % sm.get("camera_edge_buffer")
+	_label_camera_buffer.text = "%d" % sm.get("camera_edge_buffer")
 	_slider_map_zoom.value = sm.get("map_zoom_index")
-	_label_map_zoom.text   = _zoom_label(sm.get("map_zoom_index"))
+	_label_map_zoom.text = _zoom_label(sm.get("map_zoom_index"))
 	_slider_grid_dim.value = sm.get("grid_dim")
-	_label_grid_dim.text   = _grid_dim_label(sm.get("grid_dim"))
+	_label_grid_dim.text = _grid_dim_label(sm.get("grid_dim"))
 	_slider_menu_scale.value = sm.get("menu_scale_index")
-	_label_menu_scale.text   = _menu_scale_label(sm, sm.get("menu_scale_index"))
+	_label_menu_scale.text = _menu_scale_label(sm, sm.get("menu_scale_index"))
 	# Schema-driven enum settings: select the index of the stored value (B5).
 	# Resolution re-syncs through its own helper — the saved value can be a
 	# non-preset "WxH" written back from an OS drag (V027-04b/Q5), which the
@@ -406,24 +419,28 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 
 	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
 	add_child(dlg)
-	dlg.kept.connect(func() -> void:
-		sm.call("save")
-		# Keeping a preset drops a leftover "Custom (WxH)" item (V027-04b).
-		if key == "resolution":
-			_sync_resolution_dropdown(sm))
-	dlg.reverted.connect(func() -> void:
-		sm.set(key, prev_value)
-		if schema_row.has("apply"):
-			sm.call(schema_row["apply"])
-		_refresh_applied_size()
-		# Cfg was never saved with the new value, so the restore is in-memory only.
-		# Resolution re-syncs through its helper — the previous value can be a
-		# non-preset write-back, which prev_index (find == -1) can't restore.
-		if key == "resolution":
-			_sync_resolution_dropdown(sm)
-		else:
-			var btn: OptionButton = _vbox.get_node(schema_row["node"])
-			btn.selected = maxi(0, prev_index))
+	dlg.kept.connect(
+		func() -> void:
+			sm.call("save")
+			# Keeping a preset drops a leftover "Custom (WxH)" item (V027-04b).
+			if key == "resolution":
+				_sync_resolution_dropdown(sm)
+	)
+	dlg.reverted.connect(
+		func() -> void:
+			sm.set(key, prev_value)
+			if schema_row.has("apply"):
+				sm.call(schema_row["apply"])
+			_refresh_applied_size()
+			# Cfg was never saved with the new value, so the restore is in-memory only.
+			# Resolution re-syncs through its helper — the previous value can be a
+			# non-preset write-back, which prev_index (find == -1) can't restore.
+			if key == "resolution":
+				_sync_resolution_dropdown(sm)
+			else:
+				var btn: OptionButton = _vbox.get_node(schema_row["node"])
+				btn.selected = maxi(0, prev_index)
+	)
 	dlg.start()
 
 
@@ -492,9 +509,9 @@ func _refresh_applied_size() -> void:
 	_set_resolution_row_enabled(windowed)
 	if not windowed:
 		var native: Vector2i = DisplayServer.screen_get_size(
-			DisplayServer.window_get_current_screen())
-		_label_resolution_applied.text = _applied_size_text(false, false, Vector2i.ZERO,
-			native, {})
+			DisplayServer.window_get_current_screen()
+		)
+		_label_resolution_applied.text = _applied_size_text(false, false, Vector2i.ZERO, native, {})
 		return
 	# V028-02/Q1: render from the structured window-size status so a preset REQUEST and
 	# a custom OBSERVED client size are not conflated. A custom size (OS resize
@@ -502,17 +519,22 @@ func _refresh_applied_size() -> void:
 	# re-run through the 16:9 request clamp — the source of the old
 	# "Custom (3840x2071) -> applied 3563x2004" nonsense.
 	var status: Dictionary = sm.call("windowed_size_status")
-	_label_resolution_applied.text = _applied_size_text(true, _display_window_is_maximized(),
-		_display_window_client_size(), Vector2i.ZERO, status)
+	_label_resolution_applied.text = _applied_size_text(
+		true, _display_window_is_maximized(), _display_window_client_size(), Vector2i.ZERO, status
+	)
 
 
-func _applied_size_text(windowed: bool, maximized: bool, live_client: Vector2i,
-		native: Vector2i, status: Dictionary) -> String:
+func _applied_size_text(
+	windowed: bool, maximized: bool, live_client: Vector2i, native: Vector2i, status: Dictionary
+) -> String:
 	if not windowed:
 		return "native %dx%d" % [native.x, native.y] if native != Vector2i.ZERO else ""
 	if maximized:
-		return "Maximized (%dx%d)" % [live_client.x, live_client.y] \
-			if live_client != Vector2i.ZERO else "Maximized"
+		return (
+			"Maximized (%dx%d)" % [live_client.x, live_client.y]
+			if live_client != Vector2i.ZERO
+			else "Maximized"
+		)
 	if String(status.get("kind", "preset")) == "custom":
 		var client: Vector2i = status.get("applied", Vector2i.ZERO)
 		return "client %dx%d" % [client.x, client.y] if client != Vector2i.ZERO else ""
@@ -524,12 +546,16 @@ func _applied_size_text(windowed: bool, maximized: bool, live_client: Vector2i,
 
 
 func _display_window_is_maximized() -> bool:
-	return DisplayServer.get_name() != "headless" \
+	return (
+		DisplayServer.get_name() != "headless"
 		and DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MAXIMIZED
+	)
 
 
 func _display_window_client_size() -> Vector2i:
-	return DisplayServer.window_get_size() if DisplayServer.get_name() != "headless" else Vector2i.ZERO
+	return (
+		DisplayServer.window_get_size() if DisplayServer.get_name() != "headless" else Vector2i.ZERO
+	)
 
 
 # B6-INPUT gray-state selector: reads InputModeManager.available_modes() (a
@@ -724,8 +750,8 @@ const _KEYBIND_LABEL_OVERRIDES := {
 # Each toggles a GameState debug aid; the toggle handler itself lives on
 # GameState._unhandled_input and is also gated on OS.is_debug_build().
 const _DEBUG_KEYBIND_LABEL_OVERRIDES := {
-	"debug_toggle_force_levelup":    "Debug: Force Level Up",
-	"debug_toggle_growth_boost":     "Debug: Growth Boost",
+	"debug_toggle_force_levelup": "Debug: Force Level Up",
+	"debug_toggle_growth_boost": "Debug: Growth Boost",
 	# V026-01c: the F9 hotseat override was toggleable but never listed here, so
 	# the in-game controls panel didn't show it (v0.2.6 playtest §1.1 report).
 	"debug_toggle_hotseat_override": "Debug: Hotseat All Factions",
@@ -770,9 +796,11 @@ func _debug_keybind_actions() -> Array[String]:
 
 
 func _is_editable_keybind_action(action: String) -> bool:
-	return InputMap.has_action(action) \
-		and not action.begins_with("ui_") \
+	return (
+		InputMap.has_action(action)
+		and not action.begins_with("ui_")
 		and not _is_debug_keybind_action(action)
+	)
 
 
 func _is_debug_keybind_action(action: String) -> bool:
@@ -824,14 +852,16 @@ func _add_keybind_row(action: String, label: String, editable: bool) -> void:
 		rebind_button.text = "K&M"
 		rebind_button.custom_minimum_size = Vector2(92, 0)
 		rebind_button.pressed.connect(
-			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_KBD))
+			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_KBD)
+		)
 		row.add_child(rebind_button)
 		var pad_button := Button.new()
 		pad_button.name = "BtnPadRebind_%s" % action
 		pad_button.text = "Pad"
 		pad_button.custom_minimum_size = Vector2(72, 0)
 		pad_button.pressed.connect(
-			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_PAD))
+			func() -> void: _begin_keybind_capture(action, _KEYBIND_SLOT_PAD)
+		)
 		row.add_child(pad_button)
 		clear_button = Button.new()
 		clear_button.name = "BtnClear_%s" % action
@@ -954,16 +984,23 @@ func _refresh_keybind_rows() -> void:
 		label.text = _keybind_label_for_action(action)
 		row.modulate = _KEYBIND_CONFLICT_COLOR if conflict else Color.WHITE
 		if rebind_button != null:
-			rebind_button.text = "Press key..." \
-				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_KBD else "K&M"
+			rebind_button.text = (
+				"Press key..."
+				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_KBD
+				else "K&M"
+			)
 		if pad_button != null:
-			pad_button.text = "Press pad..." \
-				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_PAD else "Pad"
+			pad_button.text = (
+				"Press pad..."
+				if _capturing_action == action and _capturing_slot == _KEYBIND_SLOT_PAD
+				else "Pad"
+			)
 		if clear_button != null:
 			clear_button.visible = conflict
 	if _btn_apply_keybindings != null:
-		_btn_apply_keybindings.disabled = _pending_keybindings.is_empty() \
-			or not _keybind_conflicts.is_empty()
+		_btn_apply_keybindings.disabled = (
+			_pending_keybindings.is_empty() or not _keybind_conflicts.is_empty()
+		)
 	if _btn_revert_keybindings != null:
 		_btn_revert_keybindings.disabled = _pending_keybindings.is_empty()
 
@@ -998,8 +1035,10 @@ func _keybind_label_for_action(action: String) -> String:
 	var labels: Array[String] = []
 	var kbd := _effective_slot_event(action, _KEYBIND_SLOT_KBD)
 	labels.append(_binding_label_for_row(kbd) if kbd != null else "(unbound)")
-	if _pending_keybindings.has(action) \
-			and (_pending_keybindings[action] as Dictionary).has(_KEYBIND_SLOT_PAD):
+	if (
+		_pending_keybindings.has(action)
+		and (_pending_keybindings[action] as Dictionary).has(_KEYBIND_SLOT_PAD)
+	):
 		var pad := _effective_slot_event(action, _KEYBIND_SLOT_PAD)
 		if pad != null:
 			labels.append(_binding_label_for_row(pad))
@@ -1015,7 +1054,9 @@ func _keybind_label_for_action(action: String) -> String:
 func _binding_label_for_row(event: InputEvent) -> String:
 	if event is InputEventJoypadButton:
 		var brand := InputDisplay.active_pad_brand_for_tree(self)
-		return InputDisplay.joypad_button_label((event as InputEventJoypadButton).button_index, brand)
+		return InputDisplay.joypad_button_label(
+			(event as InputEventJoypadButton).button_index, brand
+		)
 	return InputDisplay.binding_to_string(event)
 
 
@@ -1057,8 +1098,10 @@ func _first_conflict_slot(action: String) -> String:
 func _event_signature(event: InputEvent) -> String:
 	if event is InputEventKey:
 		var code: int = event.keycode if event.keycode != 0 else event.physical_keycode
-		return "key:%d:%s:%s:%s:%s" % [
-			code, event.ctrl_pressed, event.shift_pressed, event.alt_pressed, event.meta_pressed]
+		return (
+			"key:%d:%s:%s:%s:%s"
+			% [code, event.ctrl_pressed, event.shift_pressed, event.alt_pressed, event.meta_pressed]
+		)
 	if event is InputEventMouseButton:
 		return "mouse:%d" % event.button_index
 	if event is InputEventJoypadButton:

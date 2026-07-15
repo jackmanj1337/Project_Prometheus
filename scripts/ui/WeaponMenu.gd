@@ -8,7 +8,7 @@ extends PanelContainer
 # entry. Mirrors the ItemMenu list pattern.
 
 signal weapon_chosen(entry: InventoryEntry)
-signal cancelled()
+signal cancelled
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
@@ -47,7 +47,9 @@ func show_for(unit: Node) -> void:
 	var dm := get_node_or_null("/root/DataManager")
 	for i in weapons.size():
 		var entry: InventoryEntry = weapons[i]
-		var weapon: WeaponData = dm.get_weapon(entry.weapon_id) if (dm and entry.weapon_id != "") else null
+		var weapon: WeaponData = (
+			dm.get_weapon(entry.weapon_id) if (dm and entry.weapon_id != "") else null
+		)
 		var name_text: String = weapon.display_name if weapon else "Weapon"
 		# -1 is the infinite-use sentinel — show ∞ rather than a literal "-1".
 		var uses_text: String = "∞" if entry.uses_remaining == -1 else str(entry.uses_remaining)

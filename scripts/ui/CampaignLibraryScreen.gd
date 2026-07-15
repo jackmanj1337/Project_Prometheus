@@ -2,8 +2,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Player-facing bridge over the inert campaign archive services. Choosing a file
 # never activates content; NewGameScreen refreshes discovery only after install.
 
-signal back_pressed()
-signal campaigns_changed()
+signal back_pressed
+signal campaigns_changed
 
 const Preflight = preload("res://scripts/resources/CampaignArchivePreflight.gd")
 const Installer = preload("res://scripts/resources/CampaignPackInstaller.gd")
@@ -61,8 +61,7 @@ func _on_export_pressed() -> void:
 		_show_result("No installed campaign package is available to export.")
 		return
 	var summary := _summaries[_package.selected]
-	_export_dialog.current_file = "%s-%s.zip" % [
-		summary["package_id"], summary["package_version"]]
+	_export_dialog.current_file = "%s-%s.zip" % [summary["package_id"], summary["package_version"]]
 	_export_dialog.popup_centered_ratio(0.75)
 
 
@@ -116,11 +115,17 @@ func _record_import_preference(package_id: String, package_version: String) -> v
 		for campaign in summary["campaigns"]:
 			if bool(campaign.get("is_dev_only", false)):
 				continue
-			manager.call("record_campaign_imported", {
-				"campaign_id": campaign["campaign_id"],
-				"package_id": package_id,
-				"package_version": package_version,
-			})
+			(
+				manager
+				. call(
+					"record_campaign_imported",
+					{
+						"campaign_id": campaign["campaign_id"],
+						"package_id": package_id,
+						"package_version": package_version,
+					}
+				)
+			)
 			return
 
 
@@ -136,4 +141,5 @@ static func _limits():
 		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_ENTRY_COMPRESSED_BYTES,
 		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_ENTRY_UNCOMPRESSED_BYTES,
 		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_COMPRESSED_BYTES,
-		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES)
+		ImportBudgetConfig.CAMPAIGN_ARCHIVE_MAX_TOTAL_UNCOMPRESSED_BYTES
+	)

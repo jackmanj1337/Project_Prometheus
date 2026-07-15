@@ -24,10 +24,17 @@ func _entry_rng(gs: Node) -> Dictionary:
 # against a real roster (restore_history rejects a roster that fails validation).
 func _push_entry(gs: Node, ud: UnitData, rng: Dictionary) -> void:
 	gs._map_ledger.clear()
-	gs._map_ledger.push({
-		"map_runtime": {"rng": rng, "pair_carry": {"pair_up": {}}},
-		"party": {"gold": 0, "items": [], "roster": [SaveCodec.unit_data_to_dict(ud)]},
-	}, "round_start")
+	(
+		gs
+		. _map_ledger
+		. push(
+			{
+				"map_runtime": {"rng": rng, "pair_carry": {"pair_up": {}}},
+				"party": {"gold": 0, "items": [], "roster": [SaveCodec.unit_data_to_dict(ud)]},
+			},
+			"round_start"
+		)
+	)
 
 
 func _draws(rng: RandomNumberGenerator, n: int = 6) -> Array[int]:
@@ -71,27 +78,36 @@ func _init() -> void:
 	# ---- the round-0 entry captured the RNG timeline ----
 	var captured_rng: Dictionary = _entry_rng(gs)
 	if captured_rng == expected_state and not captured_rng.is_empty():
-		print("OK  take_map_snapshot seeds the entry with {map_seed, history_hash}"); passed += 1
+		print("OK  take_map_snapshot seeds the entry with {map_seed, history_hash}")
+		passed += 1
 	else:
-		print("FAIL entry rng capture: %s vs %s" % [captured_rng, expected_state]); failed += 1
+		print("FAIL entry rng capture: %s vs %s" % [captured_rng, expected_state])
+		failed += 1
 
 	# ---- mutate the timeline arbitrarily, restore, and deep-compare ----
 	svc.commit_event("wait", ["t2_unit", "3,1", "3,2"] as Array[String])
 	svc.commit_event("item", ["t2_unit", "3,2", "3,2", "vulnerary"] as Array[String])
 	svc.start_map(999)  # even the seed diverges
 	if not gs.restore_history(0):
-		print("FAIL restore_history(0) returned false"); failed += 1
+		print("FAIL restore_history(0) returned false")
+		failed += 1
 	elif svc.to_save_dict() == expected_state:
-		print("OK  T2: restore returns the exact {map_seed, history_hash}"); passed += 1
+		print("OK  T2: restore returns the exact {map_seed, history_hash}")
+		passed += 1
 	else:
-		print("FAIL T2 round-trip: %s vs %s" % [svc.to_save_dict(), expected_state]); failed += 1
+		print("FAIL T2 round-trip: %s vs %s" % [svc.to_save_dict(), expected_state])
+		failed += 1
 
 	# ---- the restored timeline replays the same attack identically ----
 	var replayed_draws: Array[int] = _draws(svc.begin_event("attack", attack_rec))
 	if replayed_draws == expected_draws:
-		print("OK  T2: the next attack's dice match the pre-snapshot branch: %s" % str(replayed_draws)); passed += 1
+		print(
+			"OK  T2: the next attack's dice match the pre-snapshot branch: %s" % str(replayed_draws)
+		)
+		passed += 1
 	else:
-		print("FAIL T2 replay: %s vs %s" % [replayed_draws, expected_draws]); failed += 1
+		print("FAIL T2 replay: %s vs %s" % [replayed_draws, expected_draws])
+		failed += 1
 
 	# ---- an empty RNG in the entry restores fine and leaves the service alone ----
 	# (legitimate when the entry was captured without the RngService autoload) ----
@@ -99,9 +115,11 @@ func _init() -> void:
 	svc.start_map(31415)
 	var untouched: Dictionary = svc.to_save_dict()
 	if gs.restore_history(0) and svc.to_save_dict() == untouched:
-		print("OK  empty entry rng: restore succeeds, service untouched"); passed += 1
+		print("OK  empty entry rng: restore succeeds, service untouched")
+		passed += 1
 	else:
-		print("FAIL empty-rng restore: %s vs %s" % [svc.to_save_dict(), untouched]); failed += 1
+		print("FAIL empty-rng restore: %s vs %s" % [svc.to_save_dict(), untouched])
+		failed += 1
 
 	# ---- a malformed RNG in the entry fails validation (no silent desync) ----
 	_push_entry(gs, ud, {"map_seed": "bogus", "history_hash": 3})
@@ -111,9 +129,11 @@ func _init() -> void:
 		if e.contains("entry rng"):
 			flagged = true
 	if flagged and not gs.restore_history(0):
-		print("OK  malformed entry rng fails validation and blocks restore"); passed += 1
+		print("OK  malformed entry rng fails validation and blocks restore")
+		passed += 1
 	else:
-		print("FAIL malformed rng: errors=%s" % str(errors)); failed += 1
+		print("FAIL malformed rng: errors=%s" % str(errors))
+		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

@@ -53,12 +53,20 @@ static func _between_map(roster_count: int, convoy_count: int) -> Dictionary:
 		"rule_id": "",
 		"integrity": {"payload_hash": "0".repeat(64), "schema_hash": "0".repeat(64)},
 		"header": {"save_kind": "between_map", "campaign_id": "proving_grounds"},
-		"campaign": {"campaign_id": "proving_grounds", "node_id": "map_03",
-			"cleared_nodes": ["map_01", "map_02"], "flags": ["village_saved"],
-			"vars": {"reputation": 12}, "rules": _rules()},
+		"campaign":
+		{
+			"campaign_id": "proving_grounds",
+			"node_id": "map_03",
+			"cleared_nodes": ["map_01", "map_02"],
+			"flags": ["village_saved"],
+			"vars": {"reputation": 12},
+			"rules": _rules()
+		},
 		"party": {"resources": {"party_gold": 999999}, "convoy": {"entries": convoy}},
 		"roster": {"units": roster},
-		"map_runtime": {}, "suspend": {}, "ledger": [],
+		"map_runtime": {},
+		"suspend": {},
+		"ledger": [],
 	}
 
 
@@ -69,52 +77,106 @@ static func _mid_map(unit_count: int, ledger_entries: int) -> Dictionary:
 	for index in unit_count:
 		units.append(_runtime_unit(index))
 	var runtime := {
-		"map_id": "map_03", "map_path": "res://scenes/maps/Map03.tscn",
-		"vars": {"reinforcement_wave": 3}, "flags": ["gate_open"],
-		"events_fired": ["intro", "turn_2"], "units": units,
-		"turn": {"turn_number": 9, "phase": "player", "active_faction": "blue",
-			"turn_order": ["blue", "red", "green"], "unit_states": {}},
+		"map_id": "map_03",
+		"map_path": "res://scenes/maps/Map03.tscn",
+		"vars": {"reinforcement_wave": 3},
+		"flags": ["gate_open"],
+		"events_fired": ["intro", "turn_2"],
+		"units": units,
+		"turn":
+		{
+			"turn_number": 9,
+			"phase": "player",
+			"active_faction": "blue",
+			"turn_order": ["blue", "red", "green"],
+			"unit_states": {}
+		},
 		"rng": {"map_seed": "922337203685477000", "history_hash": "123456789"},
 	}
 	document["map_runtime"] = runtime
 	document["header"]["save_kind"] = "mid_map"
 	document["ledger"] = []
 	for index in ledger_entries:
-		document["ledger"].append({"reason": "round_start" if index == 0 else "activation",
-			"entry": {"map_runtime": runtime.duplicate(true), "suspend": {},
-				"party": document["party"].duplicate(true),
-				"roster": document["roster"].duplicate(true)}})
+		document["ledger"].append(
+			{
+				"reason": "round_start" if index == 0 else "activation",
+				"entry":
+				{
+					"map_runtime": runtime.duplicate(true),
+					"suspend": {},
+					"party": document["party"].duplicate(true),
+					"roster": document["roster"].duplicate(true)
+				}
+			}
+		)
 	return document
 
 
 static func _rules() -> Dictionary:
-	return {"death_mode": "casual", "hit_formula": "two_roll",
-		"rewind_charges_per_map": 4, "undo_activations": 0, "undo_rounds": 0,
-		"save_slot_classes": [{"count": 3, "accepts": "between_map",
-			"consumed_on_load": false, "label": "Campaign Save"}],
-		"autosave_rules": []}
+	return {
+		"death_mode": "casual",
+		"hit_formula": "two_roll",
+		"rewind_charges_per_map": 4,
+		"undo_activations": 0,
+		"undo_rounds": 0,
+		"save_slot_classes":
+		[
+			{
+				"count": 3,
+				"accepts": "between_map",
+				"consumed_on_load": false,
+				"label": "Campaign Save"
+			}
+		],
+		"autosave_rules": []
+	}
 
 
 static func _unit(index: int) -> Dictionary:
 	var inventory: Array[Dictionary] = []
 	for item_index in 8:
 		inventory.append(_item(index * 8 + item_index))
-	return {"unit_id": "unit_%04d" % index, "class_id": "hero_class",
-		"level": 20, "experience": 99,
-		"stats": {"hp": 60, "strength": 30, "magic": 30, "skill": 30,
-			"speed": 30, "luck": 30, "defense": 30, "resistance": 30},
+	return {
+		"unit_id": "unit_%04d" % index,
+		"class_id": "hero_class",
+		"level": 20,
+		"experience": 99,
+		"stats":
+		{
+			"hp": 60,
+			"strength": 30,
+			"magic": 30,
+			"skill": 30,
+			"speed": 30,
+			"luck": 30,
+			"defense": 30,
+			"resistance": 30
+		},
 		"skills": ["skill_a", "skill_b", "skill_c", "skill_d", "skill_e"],
-		"inventory": {"entries": inventory}}
+		"inventory": {"entries": inventory}
+	}
 
 
 static func _runtime_unit(index: int) -> Dictionary:
 	var unit := _unit(index)
-	unit.merge({"faction": "blue" if index < 20 else "red", "hp": 60,
-		"position": {"x": index % 20, "y": index / 20}, "dead": false,
-		"statuses": [{"id": "measured_status", "turns": 3}]}, true)
+	unit.merge(
+		{
+			"faction": "blue" if index < 20 else "red",
+			"hp": 60,
+			"position": {"x": index % 20, "y": index / 20},
+			"dead": false,
+			"statuses": [{"id": "measured_status", "turns": 3}]
+		},
+		true
+	)
 	return unit
 
 
 static func _item(index: int) -> Dictionary:
-	return {"instance_id": "item_%06d" % index, "item_id": "silver_sword",
-		"uses": 30, "max_uses": 30, "state": {"forged_might": 5}}
+	return {
+		"instance_id": "item_%06d" % index,
+		"item_id": "silver_sword",
+		"uses": 30,
+		"max_uses": 30,
+		"state": {"forged_might": 5}
+	}

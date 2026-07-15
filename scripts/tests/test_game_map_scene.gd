@@ -2,6 +2,7 @@ extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_game_map_scene.gd
 # Loads GameMap.tscn and verifies it instantiates and paints terrain correctly.
 
+
 func _init() -> void:
 	print("=== GameMap Scene Test ===")
 	var passed := 0
@@ -63,8 +64,14 @@ func _init() -> void:
 		failed += 1
 
 	# Verify expected child nodes exist
-	for child in ["TileMapLayer_Terrain", "TileMapLayer_Overlay", "UnitsContainer",
-			"MapCursor", "Camera2D", "GridManager"]:
+	for child in [
+		"TileMapLayer_Terrain",
+		"TileMapLayer_Overlay",
+		"UnitsContainer",
+		"MapCursor",
+		"Camera2D",
+		"GridManager"
+	]:
 		if instance.has_node(child):
 			print("OK  child node: " + child)
 			passed += 1
@@ -114,8 +121,9 @@ func _init() -> void:
 		# find_child (recursive) so the check survives the terrain panels being
 		# re-parented under the TerrainCorner stack. The new corner wrapper and
 		# the scrollable More Info box must also stay click-through.
-		for panel in ["UnitInfoPanel", "TerrainCorner", "TerrainInfoPanel",
-				"TerrainMoreInfoPanel", "Scroll"]:
+		for panel in [
+			"UnitInfoPanel", "TerrainCorner", "TerrainInfoPanel", "TerrainMoreInfoPanel", "Scroll"
+		]:
 			var p := hud.find_child(panel, true, false)
 			if p != null and p.mouse_filter != Control.MOUSE_FILTER_IGNORE:
 				hud_ok = false
@@ -134,8 +142,10 @@ func _init() -> void:
 	if hud != null:
 		var injected_preview: Variant = hud.get("_attack_preview")
 		var injected_details: Variant = hud.get("_unit_details_screen")
-		if injected_preview == instance.get_node("HUDLayer/AttackPreview") \
-				and injected_details == instance.get_node("UnitDetailsLayer/UnitDetailsScreen"):
+		if (
+			injected_preview == instance.get_node("HUDLayer/AttackPreview")
+			and injected_details == instance.get_node("UnitDetailsLayer/UnitDetailsScreen")
+		):
 			print("OK  HUD More Info hosts injected from GameMap")
 			passed += 1
 		else:
@@ -208,7 +218,8 @@ func _init() -> void:
 		fallback_data.unit_id = "fallback_spawn_test"
 		fallback_data.unit_name = "FallbackSpawnTest"
 		var fallback_unit: Unit = instance._place_and_spawn(
-			fallback_data, soldier.tile_position, "red")
+			fallback_data, soldier.tile_position, "red"
+		)
 		if fallback_unit != null and fallback_unit.tile_position != soldier.tile_position:
 			print("OK  occupied map-start tile falls back to a nearest free tile")
 			passed += 1
@@ -239,8 +250,12 @@ func _init() -> void:
 			print("OK  Unit HPBar ignores mouse input (playtest 3 #1)")
 			passed += 1
 		else:
-			print("FAIL Unit HPBar mouse_filter = %d, want IGNORE (2)" % (
-				hpbar.mouse_filter if hpbar != null else -1))
+			print(
+				(
+					"FAIL Unit HPBar mouse_filter = %d, want IGNORE (2)"
+					% (hpbar.mouse_filter if hpbar != null else -1)
+				)
+			)
 			failed += 1
 
 	# TurnManager wiring
@@ -254,17 +269,25 @@ func _init() -> void:
 
 	# Fresh maps seed the gameplay RNG before the round-0 ledger entry, so Retry
 	# (restore_history(0)) starts from a real per-map seed, not the default zero seed.
-	var first_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {}) if gs else {}
-	if rng_svc != null and int(rng_svc.get("map_seed")) != 0 \
-			and int(rng_svc.get("history_hash")) == 0 \
-			and int(first_rng_snapshot.get("map_seed", 0)) != 0 \
-			and int(first_rng_snapshot.get("history_hash", -1)) == 0:
+	var first_rng_snapshot: Dictionary = (
+		gs.peek_history(0).get("map_runtime", {}).get("rng", {}) if gs else {}
+	)
+	if (
+		rng_svc != null
+		and int(rng_svc.get("map_seed")) != 0
+		and int(rng_svc.get("history_hash")) == 0
+		and int(first_rng_snapshot.get("map_seed", 0)) != 0
+		and int(first_rng_snapshot.get("history_hash", -1)) == 0
+	):
 		print("OK  fresh GameMap seeds RngService before the Retry snapshot")
 		passed += 1
 	else:
-		print("FAIL fresh map rng seed/snapshot: live=%s snapshot=%s" % [
-			rng_svc.call("to_save_dict") if rng_svc else {},
-			first_rng_snapshot])
+		print(
+			(
+				"FAIL fresh map rng seed/snapshot: live=%s snapshot=%s"
+				% [rng_svc.call("to_save_dict") if rng_svc else {}, first_rng_snapshot]
+			)
+		)
 		failed += 1
 
 	# MapCursor menu references must resolve at runtime. If they are null the
@@ -282,8 +305,11 @@ func _init() -> void:
 	# Cursor starts on a player unit, not the map's (0,0) corner (#9).
 	if gs:
 		var cursor_unit = grid.get_unit_at(cursor.current_tile)
-		if cursor.current_tile != Vector2i(0, 0) and cursor_unit != null \
-				and cursor_unit.team == "blue":
+		if (
+			cursor.current_tile != Vector2i(0, 0)
+			and cursor_unit != null
+			and cursor_unit.team == "blue"
+		):
 			print("OK  cursor starts on a player unit at %s" % str(cursor.current_tile))
 			passed += 1
 		else:
@@ -291,12 +317,16 @@ func _init() -> void:
 			failed += 1
 
 	# Camera keeps the cursor on-screen as it moves to a far map corner (#2).
-	cursor._set_tile(Vector2i(40, 24))   # far corner of the 42x26 map
+	cursor._set_tile(Vector2i(40, 24))  # far corner of the 42x26 map
 	var view: Vector2 = instance.get_viewport().get_visible_rect().size
 	var cur_world: Vector2 = grid.tile_to_world(cursor.current_tile)
 	var half: Vector2 = view * 0.5
-	if cur_world.x >= cam.position.x - half.x and cur_world.x <= cam.position.x + half.x \
-			and cur_world.y >= cam.position.y - half.y and cur_world.y <= cam.position.y + half.y:
+	if (
+		cur_world.x >= cam.position.x - half.x
+		and cur_world.x <= cam.position.x + half.x
+		and cur_world.y >= cam.position.y - half.y
+		and cur_world.y <= cam.position.y + half.y
+	):
 		print("OK  camera keeps the cursor on-screen at a far tile")
 		passed += 1
 	else:
@@ -314,12 +344,20 @@ func _init() -> void:
 				for t in grid.get_all_attack_tiles(eu, from_here):
 					standstill[t] = true
 		if danger_count > standstill.size():
-			print("OK  danger zone counts movement (%d tiles > %d standstill)" % [
-				danger_count, standstill.size()])
+			print(
+				(
+					"OK  danger zone counts movement (%d tiles > %d standstill)"
+					% [danger_count, standstill.size()]
+				)
+			)
 			passed += 1
 		else:
-			print("FAIL danger zone ignores movement: %d vs %d standstill" % [
-				danger_count, standstill.size()])
+			print(
+				(
+					"FAIL danger zone ignores movement: %d vs %d standstill"
+					% [danger_count, standstill.size()]
+				)
+			)
 			failed += 1
 
 	# Danger zone is computed from the viewer faction's perspective: from red's
@@ -345,12 +383,20 @@ func _init() -> void:
 			if not red_set.has(t):
 				only_in_blue += 1
 		if only_in_red > 0 and only_in_blue > 0:
-			print("OK  danger zone is per-faction (blue-only=%d, red-only=%d tiles)" % [
-				only_in_blue, only_in_red])
+			print(
+				(
+					"OK  danger zone is per-faction (blue-only=%d, red-only=%d tiles)"
+					% [only_in_blue, only_in_red]
+				)
+			)
 			passed += 1
 		else:
-			print("FAIL danger zone perspective: blue-only=%d red-only=%d" % [
-				only_in_blue, only_in_red])
+			print(
+				(
+					"FAIL danger zone perspective: blue-only=%d red-only=%d"
+					% [only_in_blue, only_in_red]
+				)
+			)
 			failed += 1
 
 	# All player units should be READY at start
@@ -378,12 +424,14 @@ func _init() -> void:
 		# Map selector override: a second GameMap instance should honor the
 		# selected map path and fixed test roster instead of the exported default.
 		gs.reset_map_state()
-		gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/",
-			"fixed_test_roster")
+		gs.load_roster_from_directory(
+			"res://data/roster/test/map_900_hotseat_validation/", "fixed_test_roster"
+		)
 		gs.configure_next_map(
 			"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
 			"fixed_test_roster",
-			"res://data/roster/test/map_900_hotseat_validation/")
+			"res://data/roster/test/map_900_hotseat_validation/"
+		)
 		rng_svc.call("commit_event", "wait", ["rng_test_unit", "1,1", "1,1"] as Array[String])
 		var hotseat_instance: Node = packed.instantiate()
 		root.add_child(hotseat_instance)
@@ -405,19 +453,31 @@ func _init() -> void:
 			print("OK  selected hotseat map spawns the fixed roster plus green/red/yellow units")
 			passed += 1
 		else:
-			print("FAIL hotseat map spawn count/factions: count=%d green=%s" % [
-				hotseat_units.get_child_count(), hotseat_green_found])
+			print(
+				(
+					"FAIL hotseat map spawn count/factions: count=%d green=%s"
+					% [hotseat_units.get_child_count(), hotseat_green_found]
+				)
+			)
 			failed += 1
-		var second_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {})
-		if int(rng_svc.get("map_seed")) != 0 and int(rng_svc.get("history_hash")) == 0 \
-				and int(second_rng_snapshot.get("map_seed", 0)) != 0 \
-				and int(second_rng_snapshot.get("history_hash", -1)) == 0:
+		var second_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get(
+			"rng", {}
+		)
+		if (
+			int(rng_svc.get("map_seed")) != 0
+			and int(rng_svc.get("history_hash")) == 0
+			and int(second_rng_snapshot.get("map_seed", 0)) != 0
+			and int(second_rng_snapshot.get("history_hash", -1)) == 0
+		):
 			print("OK  second same-session fresh GameMap resets RNG history before snapshot")
 			passed += 1
 		else:
-			print("FAIL second fresh map rng history: live=%s snapshot=%s" % [
-				rng_svc.call("to_save_dict"),
-				second_rng_snapshot])
+			print(
+				(
+					"FAIL second fresh map rng history: live=%s snapshot=%s"
+					% [rng_svc.call("to_save_dict"), second_rng_snapshot]
+				)
+			)
 			failed += 1
 
 		# A fresh map boot must wipe stale map-scoped GameState data left behind
@@ -432,17 +492,37 @@ func _init() -> void:
 			print("OK  GameMap resets stale GameState map state before spawning")
 			passed += 1
 		else:
-			print("FAIL stale map state leaked into fresh GameMap: turn=%d all_units=%d scene_units=%d" % [
-				gs.turn_number, gs.all_units.size(), clean_units.get_child_count()])
+			print(
+				(
+					"FAIL stale map state leaked into fresh GameMap: turn=%d all_units=%d scene_units=%d"
+					% [gs.turn_number, gs.all_units.size(), clean_units.get_child_count()]
+				)
+			)
 			failed += 1
 
 		# Objective showcase smoke: each newly-authored selector map should boot
 		# through the selected-map override path with the default roster.
 		var objective_maps := [
-			{"id": "map_002_seize", "path": "res://data/maps/map_002_seize/map_002_seize_data.tres", "enemy_count": 4},
-			{"id": "map_003_defeat_boss", "path": "res://data/maps/map_003_defeat_boss/map_003_defeat_boss_data.tres", "enemy_count": 5},
-			{"id": "map_004_escape", "path": "res://data/maps/map_004_escape/map_004_escape_data.tres", "enemy_count": 4},
-			{"id": "map_005_defend", "path": "res://data/maps/map_005_defend/map_005_defend_data.tres", "enemy_count": 5},
+			{
+				"id": "map_002_seize",
+				"path": "res://data/maps/map_002_seize/map_002_seize_data.tres",
+				"enemy_count": 4
+			},
+			{
+				"id": "map_003_defeat_boss",
+				"path": "res://data/maps/map_003_defeat_boss/map_003_defeat_boss_data.tres",
+				"enemy_count": 5
+			},
+			{
+				"id": "map_004_escape",
+				"path": "res://data/maps/map_004_escape/map_004_escape_data.tres",
+				"enemy_count": 4
+			},
+			{
+				"id": "map_005_defend",
+				"path": "res://data/maps/map_005_defend/map_005_defend_data.tres",
+				"enemy_count": 5
+			},
 		]
 		for map_info in objective_maps:
 			gs.reset_map_state()
@@ -458,16 +538,26 @@ func _init() -> void:
 				print("OK  GameMap boots %s via selected-map override" % map_info["id"])
 				passed += 1
 			else:
-				print("FAIL objective map override: got=%s want=%s" % [
-					objective_tm._map_data.id if objective_tm._map_data != null else "null",
-					map_info["id"]])
+				print(
+					(
+						"FAIL objective map override: got=%s want=%s"
+						% [
+							objective_tm._map_data.id if objective_tm._map_data != null else "null",
+							map_info["id"]
+						]
+					)
+				)
 				failed += 1
 			if objective_units.get_child_count() == expected_total:
 				print("OK  %s spawns default roster + authored enemies" % map_info["id"])
 				passed += 1
 			else:
-				print("FAIL %s unit count: got=%d want=%d" % [
-					map_info["id"], objective_units.get_child_count(), expected_total])
+				print(
+					(
+						"FAIL %s unit count: got=%d want=%d"
+						% [map_info["id"], objective_units.get_child_count(), expected_total]
+					)
+				)
 				failed += 1
 
 		# Missing explicit roster prep should fail loud instead of silently loading
@@ -478,7 +568,9 @@ func _init() -> void:
 		gs.roster_load_failed = false
 		gs.active_roster_policy = ""
 		gs.active_roster_source = ""
-		gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+		gs.configure_next_map(
+			"res://data/maps/map_001_rout/map_001_data.tres", "default_roster", ""
+		)
 		var bad_boot_instance: Node = packed.instantiate()
 		root.add_child(bad_boot_instance)
 		await process_frame
@@ -487,7 +579,12 @@ func _init() -> void:
 			print("OK  GameMap refuses to silently bootstrap a missing roster")
 			passed += 1
 		else:
-			print("FAIL GameMap silently spawned %d units without explicit roster prep" % bad_units.get_child_count())
+			print(
+				(
+					"FAIL GameMap silently spawned %d units without explicit roster prep"
+					% bad_units.get_child_count()
+				)
+			)
 			failed += 1
 
 		# An individual no-free-tile result is logged and skipped, but is not a
@@ -530,17 +627,24 @@ func _init() -> void:
 	# Deliberately NOT roster order: the THIRD roster unit takes the FIRST start
 	# tile. Roster-order inference could never produce this placement, so passing
 	# proves the plan was consumed rather than re-derived.
-	gs.set_next_map_deployment({
-		roster[2].unit_id: start_tiles[0],
-		roster[0].unit_id: start_tiles[1],
-	})
+	(
+		gs
+		. set_next_map_deployment(
+			{
+				roster[2].unit_id: start_tiles[0],
+				roster[0].unit_id: start_tiles[1],
+			}
+		)
+	)
 	var plan_instance: Node = packed.instantiate()
 	root.add_child(plan_instance)
 	await process_frame
 	var planned: Array[Node] = _blue_units(plan_instance)
-	if planned.size() == 2 \
-			and _tile_of(planned, roster[2].unit_id) == start_tiles[0] \
-			and _tile_of(planned, roster[0].unit_id) == start_tiles[1]:
+	if (
+		planned.size() == 2
+		and _tile_of(planned, roster[2].unit_id) == start_tiles[0]
+		and _tile_of(planned, roster[0].unit_id) == start_tiles[1]
+	):
 		print("OK  an explicit plan deploys the named units on the named tiles")
 		passed += 1
 	else:
@@ -553,8 +657,10 @@ func _init() -> void:
 	var before_illegal: int = plan_instance.get_node("UnitsContainer").get_child_count()
 	gs.set_next_map_deployment({"not_in_the_party": start_tiles[0]})
 	var illegal_spawned: bool = plan_instance._spawn_units()
-	if not illegal_spawned \
-			and plan_instance.get_node("UnitsContainer").get_child_count() == before_illegal:
+	if (
+		not illegal_spawned
+		and plan_instance.get_node("UnitsContainer").get_child_count() == before_illegal
+	):
 		print("OK  GameMap refuses an illegal plan instead of spawning a partial board")
 		passed += 1
 	else:
@@ -575,14 +681,20 @@ func _init() -> void:
 	await process_frame
 	var fallback_blue: Array[Node] = _blue_units(fallback_instance)
 	var expected_count: int = mini(gs.player_roster.size(), start_tiles.size())
-	if fallback_blue.size() == expected_count \
-			and _tile_of(fallback_blue, gs.player_roster[0].unit_id) == start_tiles[0] \
-			and _tile_of(fallback_blue, gs.player_roster[1].unit_id) == start_tiles[1]:
+	if (
+		fallback_blue.size() == expected_count
+		and _tile_of(fallback_blue, gs.player_roster[0].unit_id) == start_tiles[0]
+		and _tile_of(fallback_blue, gs.player_roster[1].unit_id) == start_tiles[1]
+	):
 		print("OK  an absent plan falls back to the roster-order rule unchanged")
 		passed += 1
 	else:
-		print("FAIL fallback spawned %d blue units (expected %d): %s" % [
-			fallback_blue.size(), expected_count, _describe(fallback_blue)])
+		print(
+			(
+				"FAIL fallback spawned %d blue units (expected %d): %s"
+				% [fallback_blue.size(), expected_count, _describe(fallback_blue)]
+			)
+		)
 		failed += 1
 	fallback_instance.queue_free()
 	await process_frame

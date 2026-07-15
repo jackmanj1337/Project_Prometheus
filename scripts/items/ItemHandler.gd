@@ -9,6 +9,7 @@ const ItemEffectRegistryScript = preload("res://scripts/registries/ItemEffectReg
 
 var _effects: RefCounted
 
+
 # Applies the effect of an item entry to `unit`.
 # Decrements uses_remaining and removes exhausted entries from the inventory.
 func apply_item(unit: Node, entry: InventoryEntry) -> void:
@@ -20,13 +21,22 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 	if item == null:
 		return
 	if not can_apply_item(unit, entry):
-		push_warning("ItemHandler: item '%s' is not currently usable by '%s'" % [
-			item.id, unit.data.unit_name])
+		push_warning(
+			(
+				"ItemHandler: item '%s' is not currently usable by '%s'"
+				% [item.id, unit.data.unit_name]
+			)
+		)
 		return
 	var result: Dictionary = _effect_registry().commit(item.effect_id, unit, item)
 	if not result.get("ok", false):
 		if result.get("error", "") == "screen_required":
-			push_warning("ItemHandler: '%s' items must be resolved through their modal screen" % item.effect_id)
+			push_warning(
+				(
+					"ItemHandler: '%s' items must be resolved through their modal screen"
+					% item.effect_id
+				)
+			)
 		else:
 			push_warning("ItemHandler: unknown or failed effect_id '%s'" % item.effect_id)
 		return
@@ -107,21 +117,36 @@ func _effect_registry() -> RefCounted:
 	if _effects != null:
 		return _effects
 	_effects = ItemEffectRegistryScript.new()
-	_effects.register_runtime_handler("heal_flat",
-		Callable(self, "_can_direct"), Callable(self, "_preview_direct"),
-		Callable(self, "_commit_heal_flat"))
-	_effects.register_runtime_handler("heal_full",
-		Callable(self, "_can_direct"), Callable(self, "_preview_direct"),
-		Callable(self, "_commit_heal_full"))
-	_effects.register_runtime_handler("promote",
-		Callable(self, "_can_promote"), Callable(self, "_preview_promotion"),
-		Callable(self, "_commit_screen_required"))
-	_effects.register_runtime_handler("reclass",
-		Callable(self, "_can_reclass"), Callable(self, "_preview_reclass"),
-		Callable(self, "_commit_screen_required"))
-	_effects.register_runtime_handler("stat_buff",
-		Callable(self, "_can_stat_buff"), Callable(self, "_preview_direct"),
-		Callable(self, "_commit_stat_buff"))
+	_effects.register_runtime_handler(
+		"heal_flat",
+		Callable(self, "_can_direct"),
+		Callable(self, "_preview_direct"),
+		Callable(self, "_commit_heal_flat")
+	)
+	_effects.register_runtime_handler(
+		"heal_full",
+		Callable(self, "_can_direct"),
+		Callable(self, "_preview_direct"),
+		Callable(self, "_commit_heal_full")
+	)
+	_effects.register_runtime_handler(
+		"promote",
+		Callable(self, "_can_promote"),
+		Callable(self, "_preview_promotion"),
+		Callable(self, "_commit_screen_required")
+	)
+	_effects.register_runtime_handler(
+		"reclass",
+		Callable(self, "_can_reclass"),
+		Callable(self, "_preview_reclass"),
+		Callable(self, "_commit_screen_required")
+	)
+	_effects.register_runtime_handler(
+		"stat_buff",
+		Callable(self, "_can_stat_buff"),
+		Callable(self, "_preview_direct"),
+		Callable(self, "_commit_stat_buff")
+	)
 	return _effects
 
 
@@ -171,12 +196,18 @@ func _commit_stat_buff(unit: Node, item: ItemData) -> Dictionary:
 	var runner := get_node_or_null("/root/ActionEffectRunner")
 	if runner == null:
 		return {"ok": false, "consume": false, "error": "missing_runner"}
-	var request = ActionRequestScript.new("apply_active_modifier", {
-		"stat": String(item.effect_params.get("stat", "")),
-		"delta": int(item.effect_params.get("delta", 0)),
-		"duration": int(item.effect_params.get("duration", -1)),
-		"duration_type": String(item.effect_params.get("duration_type", "turn")),
-		"source": "item:%s" % item.id,
-	})
+	var request = (
+		ActionRequestScript
+		. new(
+			"apply_active_modifier",
+			{
+				"stat": String(item.effect_params.get("stat", "")),
+				"delta": int(item.effect_params.get("delta", 0)),
+				"duration": int(item.effect_params.get("duration", -1)),
+				"duration_type": String(item.effect_params.get("duration_type", "turn")),
+				"source": "item:%s" % item.id,
+			}
+		)
+	)
 	var context = ActionContextScript.new("item", {"actor": unit, "target": unit})
 	return {"ok": runner.commit(request, context).ok, "consume": true}

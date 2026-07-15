@@ -46,12 +46,21 @@ func _load_launch_context() -> bool:
 		_validation.text = "The campaign map data is invalid."
 		return false
 	for entry in gs.get("player_roster"):
-		if entry is UnitData and not (entry as UnitData).is_incapacitated \
-				and not (entry as UnitData).unit_id in _node.excluded_units:
+		if (
+			entry is UnitData
+			and not (entry as UnitData).is_incapacitated
+			and not (entry as UnitData).unit_id in _node.excluded_units
+		):
 			_eligible.append(entry)
 	_title.text = _node.label if _node.label != "" else "Battle Prep"
-	_summary.text = "Choose up to %s units. Deployment order maps to the numbered start tiles." % \
-		("%d" % _deployment_limit() if _node.deployment_cap != -1 else "%d" % _map_data.player_start_tiles.size())
+	_summary.text = (
+		"Choose up to %s units. Deployment order maps to the numbered start tiles."
+		% (
+			"%d" % _deployment_limit()
+			if _node.deployment_cap != -1
+			else "%d" % _map_data.player_start_tiles.size()
+		)
+	)
 	_refresh_rules_summary(gs)
 	return true
 
@@ -63,8 +72,12 @@ func _refresh_rules_summary(gs: Node) -> void:
 	var parts: Array[String] = []
 	for row in gs.call("get_campaign_rule_summary"):
 		var suffix := " [locked]" if bool(row.get("mandated", false)) else ""
-		parts.append("%s: %s%s" % [String(row.get("rule_id", "")).capitalize(),
-			str(row.get("value", "")), suffix])
+		parts.append(
+			(
+				"%s: %s%s"
+				% [String(row.get("rule_id", "")).capitalize(), str(row.get("value", "")), suffix]
+			)
+		)
 	_rules_summary.text = "Rules (read only): %s" % " · ".join(parts)
 
 
@@ -121,7 +134,11 @@ func _rebuild_rows() -> void:
 		var position := _selected_ids.find(unit.unit_id)
 		var tile := Label.new()
 		tile.custom_minimum_size.x = 145
-		tile.text = "Bench" if position < 0 else "Start %d  %s" % [position + 1, _map_data.player_start_tiles[position]]
+		tile.text = (
+			"Bench"
+			if position < 0
+			else "Start %d  %s" % [position + 1, _map_data.player_start_tiles[position]]
+		)
 		row.add_child(tile)
 		var up := Button.new()
 		up.text = "Up"
@@ -201,4 +218,6 @@ func _on_save() -> void:
 	if label == "":
 		label = _title.text
 	var ok := bool(cm.call("write_campaign_slot", id, label))
-	_save_status.text = "Saved." if ok else "Save failed. Use letters, numbers, _ or -, up to 64 characters."
+	_save_status.text = (
+		"Saved." if ok else "Save failed. Use letters, numbers, _ or -, up to 64 characters."
+	)

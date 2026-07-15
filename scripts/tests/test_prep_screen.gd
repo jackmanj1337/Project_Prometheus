@@ -40,35 +40,49 @@ func _init() -> void:
 	root.add_child(screen)
 	await process_frame
 	var plan: Dictionary = screen.build_plan()
-	_check(not plan.is_empty() and screen.validation_errors().is_empty(),
-		"prep seeds a legal explicit deployment")
-	_check(screen.get_node("Margin/VBox/RulesSummary").text.begins_with("Rules (read only):")
+	_check(
+		not plan.is_empty() and screen.validation_errors().is_empty(),
+		"prep seeds a legal explicit deployment"
+	)
+	_check(
+		(
+			screen.get_node("Margin/VBox/RulesSummary").text.begins_with("Rules (read only):")
 			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Pair Up Enabled")
-			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Rewind Charges Per Map"),
-		"prep presents the entire effective campaign ruleset as a read-only summary")
+			and screen.get_node("Margin/VBox/RulesSummary").text.contains("Rewind Charges Per Map")
+		),
+		"prep presents the entire effective campaign ruleset as a read-only summary"
+	)
 
 	var first_id := String(screen._selected_ids[0])
 	var first_tile: Vector2i = plan[first_id]
 	screen._move_unit(first_id, 1)
 	var moved_plan: Dictionary = screen.build_plan()
-	_check(moved_plan[first_id] != first_tile and screen.validation_errors().is_empty(),
-		"moving a unit changes its start tile without invalidating the plan")
+	_check(
+		moved_plan[first_id] != first_tile and screen.validation_errors().is_empty(),
+		"moving a unit changes its start tile without invalidating the plan"
+	)
 
 	screen._on_unit_toggled(false, first_id)
-	_check(not screen.build_plan().has(first_id) and screen.validation_errors().is_empty(),
-		"an optional unit can be benched")
+	_check(
+		not screen.build_plan().has(first_id) and screen.validation_errors().is_empty(),
+		"an optional unit can be benched"
+	)
 
 	screen._slot_id.text = "../escape"
 	screen._save_label.text = "Unsafe"
 	screen._on_save()
-	_check(screen._save_status.text.begins_with("Save failed") and sm.list_slots().is_empty(),
-		"an unsafe player-supplied slot id writes nothing")
+	_check(
+		screen._save_status.text.begins_with("Save failed") and sm.list_slots().is_empty(),
+		"an unsafe player-supplied slot id writes nothing"
+	)
 
 	screen._slot_id.text = "before_chapter_1"
 	screen._save_label.text = "Before Chapter 1"
 	screen._on_save()
-	_check(screen._save_status.text == "Saved." and sm.list_slots().size() == 1,
-		"a valid manual prep save appears in the slot index")
+	_check(
+		screen._save_status.text == "Saved." and sm.list_slots().size() == 1,
+		"a valid manual prep save appears in the slot index"
+	)
 
 	_clean_test_dir()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])

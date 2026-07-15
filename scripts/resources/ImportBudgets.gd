@@ -22,4 +22,3 @@ static func portable_save_warning_bytes() -> int:
 static func portable_save_maximum_bytes() -> int:
 	# Keep the desktop development ceiling until measurements justify a change.
 	return DESKTOP_PORTABLE_SAVE_MAXIMUM_BYTES
-

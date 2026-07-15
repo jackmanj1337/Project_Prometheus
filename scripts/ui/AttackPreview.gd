@@ -14,42 +14,42 @@ extends Control
 # panel's current size after content updates so the InfoBox column can grow
 # without breaking the screen-edge clamp.
 
-const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
-const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
-const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
-const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
+const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
 @onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
 @onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
-@onready var _atk_name: RichTextLabel      = $Panel/HBox/AttackerBox/AtkName
-@onready var _atk_weapon: RichTextLabel    = $Panel/HBox/AttackerBox/AtkWeapon
-@onready var _atk_hp: RichTextLabel        = $Panel/HBox/AttackerBox/AtkHP
-@onready var _atk_dmg: RichTextLabel       = $Panel/HBox/AttackerBox/AtkDmg
-@onready var _atk_hit: RichTextLabel       = $Panel/HBox/AttackerBox/AtkHit
-@onready var _atk_crit: RichTextLabel      = $Panel/HBox/AttackerBox/AtkCrit
-@onready var _atk_triangle: RichTextLabel  = $Panel/HBox/AttackerBox/AtkTriangle
+@onready var _atk_name: RichTextLabel = $Panel/HBox/AttackerBox/AtkName
+@onready var _atk_weapon: RichTextLabel = $Panel/HBox/AttackerBox/AtkWeapon
+@onready var _atk_hp: RichTextLabel = $Panel/HBox/AttackerBox/AtkHP
+@onready var _atk_dmg: RichTextLabel = $Panel/HBox/AttackerBox/AtkDmg
+@onready var _atk_hit: RichTextLabel = $Panel/HBox/AttackerBox/AtkHit
+@onready var _atk_crit: RichTextLabel = $Panel/HBox/AttackerBox/AtkCrit
+@onready var _atk_triangle: RichTextLabel = $Panel/HBox/AttackerBox/AtkTriangle
 @onready var _atk_effective: RichTextLabel = $Panel/HBox/AttackerBox/AtkEffective
-@onready var _def_name: RichTextLabel      = $Panel/HBox/DefenderBox/DefName
-@onready var _def_weapon: RichTextLabel    = $Panel/HBox/DefenderBox/DefWeapon
-@onready var _def_hp: RichTextLabel        = $Panel/HBox/DefenderBox/DefHP
-@onready var _def_dmg: RichTextLabel       = $Panel/HBox/DefenderBox/DefDmg
-@onready var _def_hit: RichTextLabel       = $Panel/HBox/DefenderBox/DefHit
-@onready var _def_crit: RichTextLabel      = $Panel/HBox/DefenderBox/DefCrit
-@onready var _def_triangle: RichTextLabel  = $Panel/HBox/DefenderBox/DefTriangle
+@onready var _def_name: RichTextLabel = $Panel/HBox/DefenderBox/DefName
+@onready var _def_weapon: RichTextLabel = $Panel/HBox/DefenderBox/DefWeapon
+@onready var _def_hp: RichTextLabel = $Panel/HBox/DefenderBox/DefHP
+@onready var _def_dmg: RichTextLabel = $Panel/HBox/DefenderBox/DefDmg
+@onready var _def_hit: RichTextLabel = $Panel/HBox/DefenderBox/DefHit
+@onready var _def_crit: RichTextLabel = $Panel/HBox/DefenderBox/DefCrit
+@onready var _def_triangle: RichTextLabel = $Panel/HBox/DefenderBox/DefTriangle
 @onready var _def_effective: RichTextLabel = $Panel/HBox/DefenderBox/DefEffective
-@onready var _info_title: Label            = $Panel/HBox/InfoBox/InfoTitle
-@onready var _info_hint: Label             = $Panel/HBox/InfoBox/InfoHint
-@onready var _info_desc: RichTextLabel     = $Panel/HBox/InfoBox/InfoDescription
+@onready var _info_title: Label = $Panel/HBox/InfoBox/InfoTitle
+@onready var _info_hint: Label = $Panel/HBox/InfoBox/InfoHint
+@onready var _info_desc: RichTextLabel = $Panel/HBox/InfoBox/InfoDescription
 
 # BBCode colour strings (Hex without alpha — RichTextLabel matches the
 # previous modulate colours). Inline [color] wraps the link text so the
 # triangle/effective markers stay readable while still being clickable.
-const COLOR_ADVANTAGE    := "#61c454"
+const COLOR_ADVANTAGE := "#61c454"
 const COLOR_DISADVANTAGE := "#d85b5b"
-const COLOR_EFFECTIVE    := "#eec84c"
-const COLOR_NEUTRAL      := "#9a9aa6"
+const COLOR_EFFECTIVE := "#eec84c"
+const COLOR_NEUTRAL := "#9a9aa6"
 
 # Pixel gap between the defender's tile edge and the preview panel, and
 # between the panel and the viewport edge.
@@ -166,26 +166,24 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	_atk_full_name = atk_name
 	# Name rows are one line; truncate with an ellipsis so a long name can't
 	# wrap and clip. The full name stays available through More Info.
-	_atk_name.text = _link("atk", "name", "Attacker",
-		_fit_name_to_column(atk_name, "", _atk_name))
+	_atk_name.text = _link("atk", "name", "Attacker", _fit_name_to_column(atk_name, "", _atk_name))
 	# V021-14: name the equipped weapon under each combatant (the sheet already shows
 	# full weapon stats; the forecast just needs the name for at-a-glance matchups).
 	_atk_weapon.text = _weapon_name(attacker)
 	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
 	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
-	_atk_hp.text  = _link("atk", "hp", "HP",
-		"HP %d / %d" % [atk_hp_val, atk_hp_max])
-	_atk_dmg.text = _link("atk", "damage", "Damage",
-		"Dmg  %d×%d" % [p["attacker_damage"], p["attacker_attacks"]])
-	_atk_hit.text = _link("atk", "hit", "Hit Rate",
-		"Hit  %d%%" % p["attacker_hit"])
-	_atk_crit.text = _link("atk", "crit", "Crit Rate",
-		"Crit %d%%" % p["attacker_crit"])
-	_atk_triangle.text = _triangle_link("atk",
-		String(p.get("attacker_triangle", "neutral")))
-	_atk_effective.text = _effective_link("atk",
+	_atk_hp.text = _link("atk", "hp", "HP", "HP %d / %d" % [atk_hp_val, atk_hp_max])
+	_atk_dmg.text = _link(
+		"atk", "damage", "Damage", "Dmg  %d×%d" % [p["attacker_damage"], p["attacker_attacks"]]
+	)
+	_atk_hit.text = _link("atk", "hit", "Hit Rate", "Hit  %d%%" % p["attacker_hit"])
+	_atk_crit.text = _link("atk", "crit", "Crit Rate", "Crit %d%%" % p["attacker_crit"])
+	_atk_triangle.text = _triangle_link("atk", String(p.get("attacker_triangle", "neutral")))
+	_atk_effective.text = _effective_link(
+		"atk",
 		bool(p.get("attacker_effective", false)),
-		float(p.get("attacker_effectiveness_mult", 1.0)))
+		float(p.get("attacker_effectiveness_mult", 1.0))
+	)
 
 	# ---- Defender rows -----------------------------------------------
 	var def_name_str: String = defender.data.unit_name if defender.data else "???"
@@ -195,28 +193,35 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		# change. The [Vantage] tag stays outside the [url] to keep the link
 		# meta clean, and its width is reserved so it survives name truncation.
 		var vantage_suffix: String = "  [Vantage]"
-		_def_name.text = _link("def", "name", "Defender",
-			_fit_name_to_column(def_name_str, vantage_suffix, _def_name)) + vantage_suffix
+		_def_name.text = (
+			_link(
+				"def",
+				"name",
+				"Defender",
+				_fit_name_to_column(def_name_str, vantage_suffix, _def_name)
+			)
+			+ vantage_suffix
+		)
 	else:
-		_def_name.text = _link("def", "name", "Defender",
-			_fit_name_to_column(def_name_str, "", _def_name))
+		_def_name.text = _link(
+			"def", "name", "Defender", _fit_name_to_column(def_name_str, "", _def_name)
+		)
 	_def_weapon.text = _weapon_name(defender)
 	var def_hp_val: int = defender.data.hp if defender.data else 0
 	var def_hp_max: int = defender.data.max_hp if defender.data else 0
-	_def_hp.text = _link("def", "hp", "HP",
-		"HP %d / %d" % [def_hp_val, def_hp_max])
+	_def_hp.text = _link("def", "hp", "HP", "HP %d / %d" % [def_hp_val, def_hp_max])
 	if p["can_counter"]:
-		_def_dmg.text = _link("def", "damage", "Damage",
-			"Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]])
-		_def_hit.text = _link("def", "hit", "Hit Rate",
-			"Hit  %d%%" % p["defender_hit"])
-		_def_crit.text = _link("def", "crit", "Crit Rate",
-			"Crit %d%%" % p["defender_crit"])
-		_def_triangle.text = _triangle_link("def",
-			String(p.get("defender_triangle", "neutral")))
-		_def_effective.text = _effective_link("def",
+		_def_dmg.text = _link(
+			"def", "damage", "Damage", "Dmg  %d×%d" % [p["defender_damage"], p["defender_attacks"]]
+		)
+		_def_hit.text = _link("def", "hit", "Hit Rate", "Hit  %d%%" % p["defender_hit"])
+		_def_crit.text = _link("def", "crit", "Crit Rate", "Crit %d%%" % p["defender_crit"])
+		_def_triangle.text = _triangle_link("def", String(p.get("defender_triangle", "neutral")))
+		_def_effective.text = _effective_link(
+			"def",
 			bool(p.get("defender_effective", false)),
-			float(p.get("defender_effectiveness_mult", 1.0)))
+			float(p.get("defender_effectiveness_mult", 1.0))
+		)
 	else:
 		# No counter — the defender row collapses to a single "No counter"
 		# line. We still register it as an entry so more_info cycle visits
@@ -292,16 +297,41 @@ func _weapon_name(unit: Node) -> String:
 
 func _all_selectable_labels() -> Array[RichTextLabel]:
 	return [
-		_atk_name, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle, _atk_effective,
-		_def_name, _def_hp, _def_dmg, _def_hit, _def_crit, _def_triangle, _def_effective,
+		_atk_name,
+		_atk_hp,
+		_atk_dmg,
+		_atk_hit,
+		_atk_crit,
+		_atk_triangle,
+		_atk_effective,
+		_def_name,
+		_def_hp,
+		_def_dmg,
+		_def_hit,
+		_def_crit,
+		_def_triangle,
+		_def_effective,
 	]
 
 
 func _all_forecast_rows() -> Array[RichTextLabel]:
 	return [
-		_atk_name, _atk_weapon, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle,
-		_atk_effective, _def_name, _def_weapon, _def_hp, _def_dmg, _def_hit, _def_crit,
-		_def_triangle, _def_effective,
+		_atk_name,
+		_atk_weapon,
+		_atk_hp,
+		_atk_dmg,
+		_atk_hit,
+		_atk_crit,
+		_atk_triangle,
+		_atk_effective,
+		_def_name,
+		_def_weapon,
+		_def_hp,
+		_def_dmg,
+		_def_hit,
+		_def_crit,
+		_def_triangle,
+		_def_effective,
 	]
 
 
@@ -318,24 +348,38 @@ func _link(side: String, key: String, title: String, text: String) -> String:
 func _triangle_link(side: String, result: String) -> String:
 	match result:
 		"advantage":
-			return _link(side, "triangle", "Weapon Triangle",
-				"[color=%s]▲ Advantage[/color]" % COLOR_ADVANTAGE)
+			return _link(
+				side,
+				"triangle",
+				"Weapon Triangle",
+				"[color=%s]▲ Advantage[/color]" % COLOR_ADVANTAGE
+			)
 		"disadvantage":
-			return _link(side, "triangle", "Weapon Triangle",
-				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE)
+			return _link(
+				side,
+				"triangle",
+				"Weapon Triangle",
+				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE
+			)
 		_:
-			return _link(side, "triangle", "Weapon Triangle",
-				"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
+			return _link(
+				side, "triangle", "Weapon Triangle", "[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL
+			)
 
 
 # Effectiveness marker. Mult is included so the player can tell Giantkiller's
 # 4× apart from the standard 3× effective bonus.
 func _effective_link(side: String, is_effective: bool, mult: float) -> String:
 	if is_effective:
-		return _link(side, "effectiveness", "Effectiveness",
-			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))])
-	return _link(side, "effectiveness", "Effectiveness",
-		"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
+		return _link(
+			side,
+			"effectiveness",
+			"Effectiveness",
+			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))]
+		)
+	return _link(
+		side, "effectiveness", "Effectiveness", "[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL
+	)
 
 
 # Resets the side panel to its "nothing selected yet" hint state.
@@ -379,11 +423,16 @@ func _fit_name_to_column(p_name: String, suffix: String, label: RichTextLabel) -
 	budget -= font.get_string_size(suffix, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	if font.get_string_size(p_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= budget:
 		return p_name
-	var ellipsis_w: float = font.get_string_size(NAME_ELLIPSIS, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var ellipsis_w: float = (
+		font.get_string_size(NAME_ELLIPSIS, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	)
 	var fitted: String = ""
 	for i in p_name.length():
 		var candidate: String = p_name.substr(0, i + 1)
-		if font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + ellipsis_w > budget:
+		if (
+			font.get_string_size(candidate, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + ellipsis_w
+			> budget
+		):
 			break
 		fitted = candidate
 	# Drop a trailing space so the ellipsis reads as "Name…" not "Name …".
@@ -450,16 +499,20 @@ func _battle_speed_note() -> String:
 	if not _can_counter:
 		# Only the attacker can follow up here; the defender deals no strikes.
 		who = "Attacker follows up." if diff >= _follow_up_threshold else "No follow-up."
-		return "Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s (defender cannot counter)" % [
-			_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
+		return (
+			"Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s (defender cannot counter)"
+			% [_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
+		)
 	if diff >= _follow_up_threshold:
 		who = "Attacker follows up."
 	elif -diff >= _follow_up_threshold:
 		who = "Defender follows up."
 	else:
 		who = "No follow-up."
-	return "Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s" % [
-		_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
+	return (
+		"Battle Speed — Attacker %d vs Defender %d.\nNeeds +%d to follow up. %s"
+		% [_atk_battle_speed, _def_battle_speed, _follow_up_threshold, who]
+	)
 
 
 # Advances through _entries. First press shows the first entry; subsequent
@@ -516,7 +569,7 @@ func _reposition_for(defender: Node) -> void:
 	var defender_screen: Vector2 = (defender as Node2D).get_global_transform_with_canvas().origin
 
 	var right_left: float = defender_screen.x + tile_px + PANEL_MARGIN_PX
-	var left_left: float  = defender_screen.x - PANEL_MARGIN_PX - panel_size.x
+	var left_left: float = defender_screen.x - PANEL_MARGIN_PX - panel_size.x
 	var panel_left: float = right_left
 	if right_left + panel_size.x > view.x - PANEL_MARGIN_PX:
 		if left_left >= PANEL_MARGIN_PX:
@@ -538,8 +591,9 @@ func _reposition_for(defender: Node) -> void:
 	# the position. Degrades to the plain viewport clamp when the HUD isn't reachable.
 	var avoid: Array[Rect2] = _hud_avoid_rects()
 	avoid.append(_defender_avoid_rect(defender_screen, tile_px))
-	var placed: Vector2 = _place_clear_of(Vector2(panel_left, panel_top), panel_size,
-		view, avoid, float(PANEL_MARGIN_PX))
+	var placed: Vector2 = _place_clear_of(
+		Vector2(panel_left, panel_top), panel_size, view, avoid, float(PANEL_MARGIN_PX)
+	)
 
 	_panel.position = placed
 	_panel.offset_right = _panel.offset_left + panel_size.x
@@ -573,8 +627,9 @@ static func _defender_avoid_rect(defender_screen: Vector2, tile_px: float) -> Re
 # the rect when there is room, otherwise below, preferring the smaller move. The
 # result is always re-clamped inside `view`. A panel too tall to clear a rect is
 # left where it is (clamped); avoidance is best-effort, never off-screen.
-static func _place_clear_of(pos: Vector2, panel_size: Vector2, view: Vector2,
-		avoid: Array[Rect2], margin: float) -> Vector2:
+static func _place_clear_of(
+	pos: Vector2, panel_size: Vector2, view: Vector2, avoid: Array[Rect2], margin: float
+) -> Vector2:
 	var rect := Rect2(pos, panel_size)
 	for a in avoid:
 		if not rect.intersects(a):
@@ -583,8 +638,10 @@ static func _place_clear_of(pos: Vector2, panel_size: Vector2, view: Vector2,
 		var below_y: float = a.position.y + a.size.y + margin
 		var above_ok: bool = above_y >= margin
 		var below_ok: bool = below_y + panel_size.y <= view.y - margin
-		if above_ok and (not below_ok \
-				or absf(above_y - rect.position.y) <= absf(below_y - rect.position.y)):
+		if (
+			above_ok
+			and (not below_ok or absf(above_y - rect.position.y) <= absf(below_y - rect.position.y))
+		):
 			rect.position.y = above_y
 		elif below_ok:
 			rect.position.y = below_y

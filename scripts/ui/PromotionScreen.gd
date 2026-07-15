@@ -31,8 +31,12 @@ func _ready() -> void:
 		bus.level_up_finished.connect(_on_level_up_finished)
 
 
-func open_for(unit: Node, consume_entry: InventoryEntry = null,
-		on_complete: Callable = Callable(), on_cancel: Callable = Callable()) -> void:
+func open_for(
+	unit: Node,
+	consume_entry: InventoryEntry = null,
+	on_complete: Callable = Callable(),
+	on_cancel: Callable = Callable()
+) -> void:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return
 	_unit = unit
@@ -64,8 +68,9 @@ func _rebuild_options() -> void:
 	if current_class == null:
 		return
 	_label_title.text = "Promotion"
-	_label_unit.text = "%s  Lv %d %s" % [
-		_unit.data.unit_name, _unit.data.level, current_class.display_name]
+	_label_unit.text = (
+		"%s  Lv %d %s" % [_unit.data.unit_name, _unit.data.level, current_class.display_name]
+	)
 	_label_hint.text = "Choose a promoted class"
 	for target_id in current_class.promotes_to:
 		var target_class := _class_data(String(target_id))
@@ -90,12 +95,17 @@ func _button_text(target_class: ClassData) -> String:
 	for unlock_level in [5, 15]:
 		if target_class.skill_unlocks.has(unlock_level):
 			skill_names.append(_skill_name(String(target_class.skill_unlocks[unlock_level])))
-	var skills_text: String = "Skills: %s" % " / ".join(skill_names) if not skill_names.is_empty() else "Skills: none"
-	return "%s\n%s\n%s" % [
-		target_class.display_name,
-		_promotion_preview_text(target_class),
-		skills_text,
-	]
+	var skills_text: String = (
+		"Skills: %s" % " / ".join(skill_names) if not skill_names.is_empty() else "Skills: none"
+	)
+	return (
+		"%s\n%s\n%s"
+		% [
+			target_class.display_name,
+			_promotion_preview_text(target_class),
+			skills_text,
+		]
+	)
 
 
 func _commit_promotion(target_class_id: String) -> void:
@@ -171,12 +181,24 @@ func _promotion_preview_text(target_class: ClassData) -> String:
 		return "Stats: unavailable"
 	var parts: Array[String] = []
 	for stat_name in ClassData.STAT_KEYS:
-		var old_value: int = int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		var old_value: int = (
+			int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		)
 		var bonus: int = int(target_class.promotion_stat_bonuses.get(stat_name, 0))
 		var new_value: int = old_value + bonus
 		var cap: int = int(target_class.stat_caps.get(stat_name, -1))
 		if cap >= 0:
 			new_value = mini(new_value, cap)
-		parts.append("%s %d %+d -> %d / %s" % [
-			_stat_short_name(stat_name), old_value, bonus, new_value, str(cap) if cap >= 0 else "-"])
+		parts.append(
+			(
+				"%s %d %+d -> %d / %s"
+				% [
+					_stat_short_name(stat_name),
+					old_value,
+					bonus,
+					new_value,
+					str(cap) if cap >= 0 else "-"
+				]
+			)
+		)
 	return "Stats: %s" % " | ".join(parts)

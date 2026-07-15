@@ -82,8 +82,12 @@ func _check_centered_panel(label: String, scene_path: String, panel_path: String
 		var center: Vector2 = rect.position + rect.size * 0.5
 		if center.distance_to(view_center) > 2.0:
 			centered_all = false
-			print("FAIL %s %.2fx center=%s expected=%s rect=%s" % [
-				label, factor, center, view_center, rect])
+			print(
+				(
+					"FAIL %s %.2fx center=%s expected=%s rect=%s"
+					% [label, factor, center, view_center, rect]
+				)
+			)
 			break
 	_ok(centered_all, "%s stays visually centered at every menu scale" % label)
 	_ok(crisp_all, "%s scales type (Control.scale stays 1) not a bitmap stretch" % label)
@@ -128,16 +132,22 @@ func _check_crisp_type_scaling() -> void:
 	MenuScale.apply_to(panel, 2.0, true)
 	await process_frame
 	_ok(panel.scale == Vector2.ONE, "crisp: Control.scale stays 1 at 2.0x")
-	_ok(panel.theme != null and panel.theme.default_font_size == BASE_FONT * 2,
-		"derived theme scales default font size (16 -> 32) at 2.0x")
-	_ok(label.get_theme_font_size("font_size") == 40,
-		"explicit font-size override scales off its base (20 -> 40) at 2.0x")
+	_ok(
+		panel.theme != null and panel.theme.default_font_size == BASE_FONT * 2,
+		"derived theme scales default font size (16 -> 32) at 2.0x"
+	)
+	_ok(
+		label.get_theme_font_size("font_size") == 40,
+		"explicit font-size override scales off its base (20 -> 40) at 2.0x"
+	)
 
 	# Re-apply at 1.0: everything returns to base, proving no compounding.
 	MenuScale.apply_to(panel, 1.0, true)
 	await process_frame
-	_ok(label.get_theme_font_size("font_size") == 20,
-		"override returns to base at 1.0x (re-apply never compounds)")
+	_ok(
+		label.get_theme_font_size("font_size") == 20,
+		"override returns to base at 1.0x (re-apply never compounds)"
+	)
 	panel.queue_free()
 
 
@@ -173,8 +183,10 @@ func _check_fit_clamp() -> void:
 	await process_frame
 	MenuScale.apply_to(small, 2.0, true)
 	await process_frame
-	_ok(small.theme != null and small.theme.default_font_size == BASE_FONT * 2,
-		"a small menu still scales to the full requested factor (V021-08)")
+	_ok(
+		small.theme != null and small.theme.default_font_size == BASE_FONT * 2,
+		"a small menu still scales to the full requested factor (V021-08)"
+	)
 	small.queue_free()
 
 
@@ -199,8 +211,10 @@ func _check_reactive_recenter() -> void:
 	await process_frame
 	var rect: Rect2 = _visual_rect(panel)
 	var center: Vector2 = rect.position + rect.size * 0.5
-	_ok(center.distance_to(view_center) <= 2.0,
-		"reactive hook re-centers a panel the engine grows after apply (V028-03 root cause)")
+	_ok(
+		center.distance_to(view_center) <= 2.0,
+		"reactive hook re-centers a panel the engine grows after apply (V028-03 root cause)"
+	)
 	panel.queue_free()
 
 

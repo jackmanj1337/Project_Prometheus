@@ -52,7 +52,7 @@ func _init() -> void:
 	var failed := 0
 
 	_unit_stub = GDScript.new()
-	_unit_stub.source_code = "extends Node\nvar data = null\nvar _weapon = null\nvar _weapons: Array = []\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"blue\"\nfunc get_equipped_weapon(): return _weapon\nfunc get_equippable_weapons() -> Array: return _weapons\n"
+	_unit_stub.source_code = 'extends Node\nvar data = null\nvar _weapon = null\nvar _weapons: Array = []\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = "blue"\nfunc get_equipped_weapon(): return _weapon\nfunc get_equippable_weapons() -> Array: return _weapons\n'
 	_unit_stub.reload()
 	_grid_stub = GDScript.new()
 	_grid_stub.source_code = "extends Node\nvar enemies: Array = []\nvar heal_targets: Array = []\nfunc get_attackable_enemies_from_tile(_u, _t) -> Array: return enemies\nfunc get_healable_allies(_u) -> Array: return heal_targets\n"
@@ -60,7 +60,7 @@ func _init() -> void:
 
 	var sword = load("res://data/weapons/iron_sword.tres")
 	var staff = load("res://data/weapons/heal_staff.tres")
-	var dummy: Array = [null]   # a non-empty list — ActionMenu only checks .size()
+	var dummy: Array = [null]  # a non-empty list — ActionMenu only checks .size()
 
 	# Typed Node, not ActionMenu — the ActionMenu class_name is not in the headless
 	# class cache (the project types its menu refs as Node for the same reason).
@@ -74,44 +74,56 @@ func _init() -> void:
 	# ---- Attack shown: a weapon equipped + an enemy in range ----
 	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))
 	if am._btn_attack.visible and am._focused_idx == 0:
-		print("OK  Attack shown (weapon + enemy in range); focus on Attack"); passed += 1
+		print("OK  Attack shown (weapon + enemy in range); focus on Attack")
+		passed += 1
 	else:
-		print("FAIL Attack should be shown and focused"); failed += 1
+		print("FAIL Attack should be shown and focused")
+		failed += 1
 
 	# ---- Attack hidden: a weapon but no enemy in range ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []))
 	if not am._btn_attack.visible:
-		print("OK  Attack hidden when no enemy is in range"); passed += 1
+		print("OK  Attack hidden when no enemy is in range")
+		passed += 1
 	else:
-		print("FAIL Attack should be hidden (no enemies)"); failed += 1
+		print("FAIL Attack should be hidden (no enemies)")
+		failed += 1
 
 	# ---- Attack hidden: no weapon equipped, even with enemies present ----
 	am.show_for(_mk_unit(null, []), _mk_grid(dummy, []))
 	if not am._btn_attack.visible:
-		print("OK  Attack hidden with no weapon equipped"); passed += 1
+		print("OK  Attack hidden with no weapon equipped")
+		passed += 1
 	else:
-		print("FAIL Attack should be hidden (no weapon)"); failed += 1
+		print("FAIL Attack should be hidden (no weapon)")
+		failed += 1
 
 	# ---- Staff shown: a healing staff + a heal target in range ----
 	am.show_for(_mk_unit(staff, []), _mk_grid([], dummy))
 	if am._btn_staff.visible:
-		print("OK  Staff shown with a healing staff and a target in range"); passed += 1
+		print("OK  Staff shown with a healing staff and a target in range")
+		passed += 1
 	else:
-		print("FAIL Staff should be shown"); failed += 1
+		print("FAIL Staff should be shown")
+		failed += 1
 
 	# ---- Staff hidden: a non-staff weapon never offers Staff ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], dummy))
 	if not am._btn_staff.visible:
-		print("OK  Staff hidden with a non-staff weapon"); passed += 1
+		print("OK  Staff hidden with a non-staff weapon")
+		passed += 1
 	else:
-		print("FAIL Staff should be hidden (sword)"); failed += 1
+		print("FAIL Staff should be hidden (sword)")
+		failed += 1
 
 	# ---- Item shown: inventory holds a usable item ----
 	am.show_for(_mk_unit(sword, [_usable_item()]), _mk_grid([], []))
 	if am._btn_item.visible:
-		print("OK  Item shown when the inventory holds a usable item"); passed += 1
+		print("OK  Item shown when the inventory holds a usable item")
+		passed += 1
 	else:
-		print("FAIL Item should be shown"); failed += 1
+		print("FAIL Item should be shown")
+		failed += 1
 
 	# ---- All else hidden: Item off, Wait still on, focus falls to Wait ----
 	# Wait is now index 9 in _buttons: [attack, staff, item, equip, seize, escape,
@@ -120,10 +132,15 @@ func _init() -> void:
 	# inserted Pair Up; step 6c inserted Separate before Wait.)
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))
 	if not am._btn_item.visible and am._btn_wait.visible and am._focused_idx == 9:
-		print("OK  Item hidden / Wait always shown / focus falls to Wait"); passed += 1
+		print("OK  Item hidden / Wait always shown / focus falls to Wait")
+		passed += 1
 	else:
-		print("FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d" % [
-			am._btn_item.visible, am._btn_wait.visible, am._focused_idx])
+		print(
+			(
+				"FAIL Wait fallback: item_visible=%s wait_visible=%s focus=%d"
+				% [am._btn_item.visible, am._btn_wait.visible, am._focused_idx]
+			)
+		)
 		failed += 1
 
 	# ---- Equip shown only with 2+ usable weapons (#8) ----
@@ -132,9 +149,11 @@ func _init() -> void:
 	am.show_for(_mk_unit(sword, [], [null]), _mk_grid([], []))
 	var equip_one: bool = not am._btn_equip.visible
 	if equip_two and equip_one:
-		print("OK  Equip shown with 2+ weapons, hidden with fewer (#8)"); passed += 1
+		print("OK  Equip shown with 2+ weapons, hidden with fewer (#8)")
+		passed += 1
 	else:
-		print("FAIL Equip toggle: two_ok=%s one_ok=%s" % [equip_two, equip_one]); failed += 1
+		print("FAIL Equip toggle: two_ok=%s one_ok=%s" % [equip_two, equip_one])
+		failed += 1
 
 	# ---- Menu shrinks when some actions are hidden (playtest 3 #21) ----
 	# Full menu (all five rows) must be taller than minimal menu (Wait only).
@@ -145,13 +164,21 @@ func _init() -> void:
 	await process_frame
 	var minimal_h: float = am.get_combined_minimum_size().y
 	var rendered_minimal_h: float = am.size.y
-	if full_h > minimal_h and minimal_h > 0 \
-			and is_equal_approx(rendered_minimal_h, minimal_h):
-		print("OK  ActionMenu shrinks to fit visible rows (full=%.0f minimal=%.0f)" % [full_h, minimal_h])
+	if full_h > minimal_h and minimal_h > 0 and is_equal_approx(rendered_minimal_h, minimal_h):
+		print(
+			(
+				"OK  ActionMenu shrinks to fit visible rows (full=%.0f minimal=%.0f)"
+				% [full_h, minimal_h]
+			)
+		)
 		passed += 1
 	else:
-		print("FAIL menu did not shrink: full=%.0f minimal=%.0f rendered=%.0f" % [
-			full_h, minimal_h, rendered_minimal_h])
+		print(
+			(
+				"FAIL menu did not shrink: full=%.0f minimal=%.0f rendered=%.0f"
+				% [full_h, minimal_h, rendered_minimal_h]
+			)
+		)
 		failed += 1
 
 	# ---- the menu renders at a real size (PanelContainer sizes to its buttons) ----
@@ -160,9 +187,11 @@ func _init() -> void:
 	am.show_for(_mk_unit(sword, [_usable_item()]), _mk_grid(dummy, []))
 	await process_frame
 	if am.size.x > 0 and am.size.y > 0:
-		print("OK  ActionMenu has a non-zero size (%s)" % str(am.size)); passed += 1
+		print("OK  ActionMenu has a non-zero size (%s)" % str(am.size))
+		passed += 1
 	else:
-		print("FAIL ActionMenu size is zero: %s" % str(am.size)); failed += 1
+		print("FAIL ActionMenu size is zero: %s" % str(am.size))
+		failed += 1
 
 	# V033-UI-02: all scaled visible labels contribute their themed minimum width.
 	var labels_fit := true
@@ -171,21 +200,28 @@ func _init() -> void:
 		am.apply_menu_scale(factor)
 		await process_frame
 		for button in am._buttons:
-			if button.visible and am.custom_minimum_size.x + 0.01 < button.get_combined_minimum_size().x:
+			if (
+				button.visible
+				and am.custom_minimum_size.x + 0.01 < button.get_combined_minimum_size().x
+			):
 				labels_fit = false
 			if button.visible:
 				var font: Font = button.get_theme_font("font")
 				var font_size: int = button.get_theme_font_size("font_size")
-				var text_width: float = font.get_string_size(button.text,
-						HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
-				var safe_width: float = text_width \
-						+ am._BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * float(font_size) / 16.0
+				var text_width: float = (
+					font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+				)
+				var safe_width: float = (
+					text_width + am._BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * float(font_size) / 16.0
+				)
 				if am.custom_minimum_size.x + 0.01 < safe_width:
 					ornaments_clear = false
 	if labels_fit and ornaments_clear and am.custom_minimum_size.x >= 128.0:
-		print("OK  ActionMenu width fits visible themed labels at every Menu Scale"); passed += 1
+		print("OK  ActionMenu width fits visible themed labels at every Menu Scale")
+		passed += 1
 	else:
-		print("FAIL ActionMenu scaled label width: min=%s" % am.custom_minimum_size.x); failed += 1
+		print("FAIL ActionMenu scaled label width: min=%s" % am.custom_minimum_size.x)
+		failed += 1
 
 	# V034-UI-01: reducing the minimum alone leaves a free-standing Control at its
 	# previous width. Verify the rendered panel shrinks across the live transition.
@@ -197,13 +233,19 @@ func _init() -> void:
 	am._btn_separate.visible = false
 	am._fit_width_to_visible_labels()
 	var short_rendered_width: float = am.size.x
-	if short_rendered_width < long_rendered_width \
-			and is_equal_approx(short_rendered_width, am.custom_minimum_size.x):
+	if (
+		short_rendered_width < long_rendered_width
+		and is_equal_approx(short_rendered_width, am.custom_minimum_size.x)
+	):
 		print("OK  ActionMenu rendered width shrinks with a shorter action list")
 		passed += 1
 	else:
-		print("FAIL ActionMenu stale rendered width: long=%s short=%s min=%s" % [
-			long_rendered_width, short_rendered_width, am.custom_minimum_size.x])
+		print(
+			(
+				"FAIL ActionMenu stale rendered width: long=%s short=%s min=%s"
+				% [long_rendered_width, short_rendered_width, am.custom_minimum_size.x]
+			)
+		)
 		failed += 1
 
 	# ---- choosing an action hides the menu (it used to linger on screen) ----
@@ -230,9 +272,11 @@ func _init() -> void:
 	# ---- Seize hidden when no TurnManager is passed (turn = null) ----
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []))
 	if not am._btn_seize.visible and not am._btn_escape.visible:
-		print("OK  Seize + Escape hidden when no TurnManager is passed"); passed += 1
+		print("OK  Seize + Escape hidden when no TurnManager is passed")
+		passed += 1
 	else:
-		print("FAIL Seize/Escape should be hidden without a TurnManager"); failed += 1
+		print("FAIL Seize/Escape should be hidden without a TurnManager")
+		failed += 1
 
 	# ---- Seize hidden when can_seize returns false ----
 	var t_no: Node = turn_stub.new()
@@ -240,9 +284,11 @@ func _init() -> void:
 	root.add_child(t_no)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_no)
 	if not am._btn_seize.visible:
-		print("OK  Seize hidden when TurnManager.can_seize == false"); passed += 1
+		print("OK  Seize hidden when TurnManager.can_seize == false")
+		passed += 1
 	else:
-		print("FAIL Seize should be hidden (can_seize=false)"); failed += 1
+		print("FAIL Seize should be hidden (can_seize=false)")
+		failed += 1
 
 	# ---- Seize shown when can_seize returns true ----
 	var t_yes: Node = turn_stub.new()
@@ -250,9 +296,11 @@ func _init() -> void:
 	root.add_child(t_yes)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_yes)
 	if am._btn_seize.visible:
-		print("OK  Seize shown when TurnManager.can_seize == true"); passed += 1
+		print("OK  Seize shown when TurnManager.can_seize == true")
+		passed += 1
 	else:
-		print("FAIL Seize should be shown (can_seize=true)"); failed += 1
+		print("FAIL Seize should be shown (can_seize=true)")
+		failed += 1
 
 	# ---- Escape hidden when can_escape returns false ----
 	var t_esc_no: Node = turn_stub.new()
@@ -260,9 +308,11 @@ func _init() -> void:
 	root.add_child(t_esc_no)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_esc_no)
 	if not am._btn_escape.visible:
-		print("OK  Escape hidden when TurnManager.can_escape == false"); passed += 1
+		print("OK  Escape hidden when TurnManager.can_escape == false")
+		passed += 1
 	else:
-		print("FAIL Escape should be hidden (can_escape=false)"); failed += 1
+		print("FAIL Escape should be hidden (can_escape=false)")
+		failed += 1
 
 	# ---- Escape shown when can_escape returns true ----
 	var t_esc_yes: Node = turn_stub.new()
@@ -270,9 +320,11 @@ func _init() -> void:
 	root.add_child(t_esc_yes)
 	am.show_for(_mk_unit(sword, []), _mk_grid([], []), t_esc_yes)
 	if am._btn_escape.visible:
-		print("OK  Escape shown when TurnManager.can_escape == true"); passed += 1
+		print("OK  Escape shown when TurnManager.can_escape == true")
+		passed += 1
 	else:
-		print("FAIL Escape should be shown (can_escape=true)"); failed += 1
+		print("FAIL Escape should be shown (can_escape=true)")
+		failed += 1
 
 	# ── Step 6a/6b: Pair Up + Swap button visibility ──────────────────────────
 	# Swap is offered when the unit is paired; Pair Up is offered when the unit
@@ -304,10 +356,15 @@ func _init() -> void:
 		am.show_for(paired_unit_a, _mk_grid([], []))
 		var unpaired_visible: bool = am._btn_swap.visible
 		if paired_visible and support_visible and not unpaired_visible:
-			print("OK  Swap shown for paired lead and support; hidden when unpaired"); passed += 1
+			print("OK  Swap shown for paired lead and support; hidden when unpaired")
+			passed += 1
 		else:
-			print("FAIL Swap visibility: lead=%s support=%s unpaired=%s" \
-				% [paired_visible, support_visible, unpaired_visible])
+			print(
+				(
+					"FAIL Swap visibility: lead=%s support=%s unpaired=%s"
+					% [paired_visible, support_visible, unpaired_visible]
+				)
+			)
 			failed += 1
 		# Choosing Swap emits the "swap_roles" action name so MapCursor can route it.
 		reg.pair("chrom", "lissa")
@@ -316,9 +373,11 @@ func _init() -> void:
 		am.action_chosen.connect(func(a): swap_chose[0] = a)
 		am._btn_swap.pressed.emit()
 		if swap_chose[0] == "swap_roles":
-			print("OK  Swap button emits action_chosen('swap_roles')"); passed += 1
+			print("OK  Swap button emits action_chosen('swap_roles')")
+			passed += 1
 		else:
-			print("FAIL Swap emission: %s" % swap_chose[0]); failed += 1
+			print("FAIL Swap emission: %s" % swap_chose[0])
+			failed += 1
 		reg.call("clear")
 
 		# Pair Up visibility: needs an adjacency-aware grid stub so the
@@ -344,10 +403,15 @@ func _init() -> void:
 		am.show_for(paired_unit_a, adj_grid)
 		var pair_btn_hidden_when_alone: bool = not am._btn_pair_up.visible
 		if pair_btn_shown and pair_btn_hidden_when_paired and pair_btn_hidden_when_alone:
-			print("OK  Pair Up shown only with an adjacent unpaired ally"); passed += 1
+			print("OK  Pair Up shown only with an adjacent unpaired ally")
+			passed += 1
 		else:
-			print("FAIL Pair Up visibility: shown=%s hidden_paired=%s hidden_alone=%s" \
-				% [pair_btn_shown, pair_btn_hidden_when_paired, pair_btn_hidden_when_alone])
+			print(
+				(
+					"FAIL Pair Up visibility: shown=%s hidden_paired=%s hidden_alone=%s"
+					% [pair_btn_shown, pair_btn_hidden_when_paired, pair_btn_hidden_when_alone]
+				)
+			)
 			failed += 1
 		# Pair Up button emits "pair_up" so MapCursor can route to the targeting flow.
 		adj_grid.set("adjacency", {Vector2i(3, 2): paired_unit_b})
@@ -356,9 +420,11 @@ func _init() -> void:
 		am.action_chosen.connect(func(a): pair_chose[0] = a)
 		am._btn_pair_up.pressed.emit()
 		if pair_chose[0] == "pair_up":
-			print("OK  Pair Up button emits action_chosen('pair_up')"); passed += 1
+			print("OK  Pair Up button emits action_chosen('pair_up')")
+			passed += 1
 		else:
-			print("FAIL Pair Up emission: %s" % pair_chose[0]); failed += 1
+			print("FAIL Pair Up emission: %s" % pair_chose[0])
+			failed += 1
 		# Separate shown only for a paired lead with an adjacent legal drop tile.
 		reg.call("clear")
 		reg.pair("chrom", "lissa")
@@ -366,12 +432,18 @@ func _init() -> void:
 		adj_grid.set("adjacency", {})
 		am.show_for(paired_unit_a, adj_grid)
 		var separate_shown: bool = am._btn_separate.visible
-		adj_grid.set("adjacency", {
-			Vector2i(2, 1): Node.new(),
-			Vector2i(2, 3): Node.new(),
-			Vector2i(1, 2): Node.new(),
-			Vector2i(3, 2): Node.new(),
-		})
+		(
+			adj_grid
+			. set(
+				"adjacency",
+				{
+					Vector2i(2, 1): Node.new(),
+					Vector2i(2, 3): Node.new(),
+					Vector2i(1, 2): Node.new(),
+					Vector2i(3, 2): Node.new(),
+				}
+			)
+		)
 		am.show_for(paired_unit_a, adj_grid)
 		var separate_hidden_blocked: bool = not am._btn_separate.visible
 		adj_grid.set("adjacency", {})
@@ -381,10 +453,18 @@ func _init() -> void:
 		am._btn_separate.pressed.emit()
 		var separate_emits: bool = separate_chose[0] == "separate"
 		if separate_shown and separate_hidden_blocked and separate_emits:
-			print("OK  Separate shown only with a legal drop tile and emits action_chosen('separate')"); passed += 1
+			print(
+				"OK  Separate shown only with a legal drop tile and emits action_chosen('separate')"
+			)
+			passed += 1
 		else:
-			print("FAIL Separate visibility/emission: shown=%s hidden_blocked=%s emitted=%s" % [
-				separate_shown, separate_hidden_blocked, separate_emits]); failed += 1
+			print(
+				(
+					"FAIL Separate visibility/emission: shown=%s hidden_blocked=%s emitted=%s"
+					% [separate_shown, separate_hidden_blocked, separate_emits]
+				)
+			)
+			failed += 1
 		var gs := root.get_node_or_null("/root/GameState")
 		if gs != null:
 			var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
@@ -395,9 +475,11 @@ func _init() -> void:
 			var hidden_when_disabled: bool = not am._btn_pair_up.visible
 			rules.pair_up_enabled = prior_pair_up_enabled
 			if hidden_when_disabled:
-				print("OK  Pair Up hidden when the campaign setting disables it"); passed += 1
+				print("OK  Pair Up hidden when the campaign setting disables it")
+				passed += 1
 			else:
-				print("FAIL Pair Up should be hidden while disabled"); failed += 1
+				print("FAIL Pair Up should be hidden while disabled")
+				failed += 1
 		else:
 			print("SKIP Pair Up disabled visibility test (GameState autoload absent)")
 		reg.call("clear")

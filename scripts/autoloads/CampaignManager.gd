@@ -78,6 +78,7 @@ func _ready() -> void:
 
 # --- Campaign lifecycle -------------------------------------------------------
 
+
 # Seeds a run at the campaign's start node. Unknown id fails loud and leaves no
 # campaign active, rather than parking the player on a campaign that cannot run.
 func start_campaign(campaign_id: String) -> bool:
@@ -86,8 +87,12 @@ func start_campaign(campaign_id: String) -> bool:
 		push_error("CampaignManager: cannot start unknown campaign '%s'" % campaign_id)
 		return false
 	if not campaign.has_node(campaign.start_node_id):
-		push_error("CampaignManager: campaign '%s' start node '%s' is not in the graph" % [
-			campaign_id, campaign.start_node_id])
+		push_error(
+			(
+				"CampaignManager: campaign '%s' start node '%s' is not in the graph"
+				% [campaign_id, campaign.start_node_id]
+			)
+		)
 		return false
 	active_campaign_id = campaign_id
 	current_node_id = campaign.start_node_id
@@ -99,8 +104,9 @@ func start_campaign(campaign_id: String) -> bool:
 	_prepared_launch.clear()
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("apply_campaign_rule_overrides"):
-		gs.call("apply_campaign_rule_overrides", campaign.rule_overrides,
-			campaign.mandated_rule_ids)
+		gs.call(
+			"apply_campaign_rule_overrides", campaign.rule_overrides, campaign.mandated_rule_ids
+		)
 	return true
 
 
@@ -193,15 +199,23 @@ func export_completion_status_record() -> Dictionary:
 	if state == null:
 		return {}
 	var store := CampaignStatusStoreScript.new()
-	return store.export_completion(active_status_target(), state, {
-		"completed": true,
-		"ending_id": String(campaign_vars.get("ending_id", "")),
-		"route_id": String(campaign_vars.get("route_id", "")),
-		"rank_id": String(campaign_vars.get("rank_id", "")),
-	}, {
-		"maps_completed": cleared_node_ids.size(),
-		"turns_taken": int(campaign_vars.get("turns_taken", 0)),
-	})
+	return (
+		store
+		. export_completion(
+			active_status_target(),
+			state,
+			{
+				"completed": true,
+				"ending_id": String(campaign_vars.get("ending_id", "")),
+				"route_id": String(campaign_vars.get("route_id", "")),
+				"rank_id": String(campaign_vars.get("rank_id", "")),
+			},
+			{
+				"maps_completed": cleared_node_ids.size(),
+				"turns_taken": int(campaign_vars.get("turns_taken", 0)),
+			}
+		)
+	)
 
 
 func is_campaign_active() -> bool:
@@ -236,12 +250,15 @@ func is_node_cleared(node_id: String) -> bool:
 
 # --- Launch (the "prep -> map" seam) -----------------------------------------
 
+
 # Resolves the current node's map binding, prepares the party, then parks on prep.
 # Prep only authors a deployment plan; it must never reapply the roster policy.
 func launch_current_node() -> bool:
 	var node := get_current_node()
 	if node == null:
-		push_error("CampaignManager: no current node to launch (campaign '%s')" % active_campaign_id)
+		push_error(
+			"CampaignManager: no current node to launch (campaign '%s')" % active_campaign_id
+		)
 		return false
 
 	var params := resolve_launch_params(node)
@@ -257,8 +274,12 @@ func launch_current_node() -> bool:
 	var roster_source: String = String(params["roster_source"])
 	gs.call("configure_next_map", String(params["map_data_path"]), roster_policy, roster_source)
 	if not _apply_roster_policy(gs, roster_policy, roster_source):
-		push_error("CampaignManager: node '%s' has no valid roster for policy '%s'" % [
-			node.node_id, roster_policy])
+		push_error(
+			(
+				"CampaignManager: node '%s' has no valid roster for policy '%s'"
+				% [node.node_id, roster_policy]
+			)
+		)
 		return false
 	if gs.has_method("begin_campaign_map_rules"):
 		gs.call("begin_campaign_map_rules", node.rule_overrides)
@@ -301,15 +322,21 @@ func prepare_pending_advance() -> bool:
 
 # Launches only a successor already validated by prepare_pending_advance().
 func launch_prepared_node() -> bool:
-	if _prepared_launch.is_empty() \
-			or String(_prepared_launch.get("node_id", "")) != current_node_id:
+	if (
+		_prepared_launch.is_empty()
+		or String(_prepared_launch.get("node_id", "")) != current_node_id
+	):
 		push_error("CampaignManager: no prepared launch for current node '%s'" % current_node_id)
 		return false
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return false
-	gs.call("configure_next_map", String(_prepared_launch["map_data_path"]),
-		String(_prepared_launch["roster_policy"]), String(_prepared_launch["roster_source"]))
+	gs.call(
+		"configure_next_map",
+		String(_prepared_launch["map_data_path"]),
+		String(_prepared_launch["roster_policy"]),
+		String(_prepared_launch["roster_source"])
+	)
 	if gs.has_method("begin_campaign_map_rules"):
 		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
@@ -353,8 +380,9 @@ func route_retry_to_prep() -> bool:
 func resolve_launch_params(node: CampaignNode) -> Dictionary:
 	var dm := get_node_or_null("/root/DataManager")
 	if dm == null or not bool(dm.call("has_map_registry_entry", node.map_id)):
-		push_error("CampaignManager: node '%s' binds to unknown map id '%s'" % [
-			node.node_id, node.map_id])
+		push_error(
+			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, node.map_id]
+		)
 		return {}
 	var entry: Dictionary = dm.call("get_map_registry_entry", node.map_id)
 
@@ -392,8 +420,9 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 			if dm == null or not dm.has_method("get_campaign_pack_roster"):
 				return false
 			var roster: Array = dm.call("get_campaign_pack_roster", roster_source)
-			return bool(gs.call("load_roster_resources", roster,
-				"campaign_pack_roster", roster_source))
+			return bool(
+				gs.call("load_roster_resources", roster, "campaign_pack_roster", roster_source)
+			)
 		"keep_current_roster":
 			return bool(gs.call("is_roster_ready_for_launch"))
 		_:
@@ -402,6 +431,7 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 
 
 # --- Result handling ----------------------------------------------------------
+
 
 func _on_map_victory() -> void:
 	_record_result(true)
@@ -419,8 +449,12 @@ func _record_result(victory: bool) -> void:
 	var campaign := get_active_campaign()
 	var node: CampaignNode = campaign.get_node_by_id(_active_node_id) if campaign != null else null
 	if node == null:
-		push_error("CampaignManager: resolved node '%s' is not in campaign '%s'" % [
-			_active_node_id, active_campaign_id])
+		push_error(
+			(
+				"CampaignManager: resolved node '%s' is not in campaign '%s'"
+				% [_active_node_id, active_campaign_id]
+			)
+		)
 		return
 	_pending_result = {
 		"campaign_id": active_campaign_id,
@@ -472,10 +506,15 @@ func get_pending_successor_options() -> Array[Dictionary]:
 		var successor: CampaignNode = campaign.get_node_by_id(successor_id)
 		if successor == null:
 			continue
-		options.append({
-			"node_id": successor_id,
-			"label": successor.label if successor.label != "" else successor_id,
-		})
+		(
+			options
+			. append(
+				{
+					"node_id": successor_id,
+					"label": successor.label if successor.label != "" else successor_id,
+				}
+			)
+		)
 	return options
 
 
@@ -490,8 +529,12 @@ func choose_pending_successor(node_id: String) -> bool:
 			valid = true
 			break
 	if not valid:
-		push_error("CampaignManager: '%s' is not a successor of pending node '%s'" % [
-			node_id, String(_pending_result.get("node_id", ""))])
+		push_error(
+			(
+				"CampaignManager: '%s' is not a successor of pending node '%s'"
+				% [node_id, String(_pending_result.get("node_id", ""))]
+			)
+		)
 		return false
 	_pending_result["next_node_id"] = node_id
 	_prepared_launch.clear()
@@ -506,15 +549,19 @@ func choose_pending_successor(node_id: String) -> bool:
 func commit_pending_result() -> bool:
 	if not has_pending_victory():
 		return false
-	if bool(_pending_result.get("requires_successor_choice", false)) \
-			and String(_pending_result.get("next_node_id", "")) == "":
+	if (
+		bool(_pending_result.get("requires_successor_choice", false))
+		and String(_pending_result.get("next_node_id", "")) == ""
+	):
 		push_error("CampaignManager: pending victory requires a successor choice")
 		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
-	if next_id != "" and (_prepared_launch.is_empty() \
-			or String(_prepared_launch.get("node_id", "")) != next_id) \
-			and not prepare_pending_advance():
+	if (
+		next_id != ""
+		and (_prepared_launch.is_empty() or String(_prepared_launch.get("node_id", "")) != next_id)
+		and not prepare_pending_advance()
+	):
 		return false
 	if not is_node_cleared(node_id):
 		cleared_node_ids.append(node_id)
@@ -539,6 +586,7 @@ func clear_pending_result() -> void:
 
 
 # --- Persistence (Slice 3) ----------------------------------------------------
+
 
 # The campaign envelope: position plus campaign-scoped mutable author state,
 # matching the reserved F1 campaign rows.
@@ -586,8 +634,12 @@ func restore_campaign_state(source: Variant) -> bool:
 	# other id must resolve to an authored node.
 	var node_id: String = String(envelope.get("node_id", ""))
 	if node_id != "" and not campaign.has_node(node_id):
-		push_error("CampaignManager: save names unknown node '%s' in campaign '%s'" % [
-			node_id, campaign_id])
+		push_error(
+			(
+				"CampaignManager: save names unknown node '%s' in campaign '%s'"
+				% [node_id, campaign_id]
+			)
+		)
 		return false
 
 	var cleared: Array[String] = []
@@ -598,8 +650,12 @@ func restore_campaign_state(source: Variant) -> bool:
 	for entry in raw_cleared:
 		var cleared_id: String = String(entry)
 		if not campaign.has_node(cleared_id):
-			push_error("CampaignManager: save names unknown cleared node '%s' in campaign '%s'" % [
-				cleared_id, campaign_id])
+			push_error(
+				(
+					"CampaignManager: save names unknown cleared node '%s' in campaign '%s'"
+					% [cleared_id, campaign_id]
+				)
+			)
 			return false
 		if not cleared_id in cleared:  # a duplicate is tolerable; a wrong id is not
 			cleared.append(cleared_id)
@@ -658,8 +714,12 @@ func dispatch_autosave_trigger(trigger_id: String, context: Dictionary = {}) -> 
 func _handle_autosave_trigger(trigger_id: String, context: Dictionary) -> bool:
 	var gs := get_node_or_null("/root/GameState")
 	var sm := get_node_or_null("/root/SaveManager")
-	if gs == null or sm == null or not gs.has_method("capture_save") \
-			or not sm.has_method("save_automatic"):
+	if (
+		gs == null
+		or sm == null
+		or not gs.has_method("capture_save")
+		or not sm.has_method("save_automatic")
+	):
 		return false
 	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
 	if rules == null:
@@ -670,24 +730,39 @@ func _handle_autosave_trigger(trigger_id: String, context: Dictionary) -> bool:
 			continue
 		var turn_manager: Node = context.get("turn_manager", null)
 		var cursor: Node = context.get("cursor", null)
-		var save: Variant = gs.call("capture_save", String(rule.get("label", "Autosave")),
-			turn_manager, cursor)
-		if save != null and bool(sm.call("save_automatic", String(rule.get("rule_id", "")),
-				int(rule.get("keep", 0)), save)):
+		var save: Variant = gs.call(
+			"capture_save", String(rule.get("label", "Autosave")), turn_manager, cursor
+		)
+		if (
+			save != null
+			and bool(
+				sm.call(
+					"save_automatic",
+					String(rule.get("rule_id", "")),
+					int(rule.get("keep", 0)),
+					save
+				)
+			)
+		):
 			wrote_any = true
 	return wrote_any
 
 
 # Writes the parked position + party to a campaign slot. This is the seam the
 # manual-save UI calls with its own slot id.
-func write_campaign_slot(slot_id: String, save_label: String, origin: String = "manual",
-		rule_id: String = "") -> bool:
+func write_campaign_slot(
+	slot_id: String, save_label: String, origin: String = "manual", rule_id: String = ""
+) -> bool:
 	if not is_campaign_active():
 		return false  # a bare single-map launch has no campaign to save
 	var gs := get_node_or_null("/root/GameState")
 	var sm := get_node_or_null("/root/SaveManager")
-	if gs == null or sm == null or not gs.has_method("capture_save") \
-			or not sm.has_method("save_slot"):
+	if (
+		gs == null
+		or sm == null
+		or not gs.has_method("capture_save")
+		or not sm.has_method("save_slot")
+	):
 		# No disk seam wired (headless tests drive the position directly). The
 		# position is still correct in memory; only persistence is skipped.
 		return false

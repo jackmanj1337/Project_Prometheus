@@ -38,13 +38,17 @@ func _init() -> void:
 	gs.party_items = ["elixir"] as Array[String]
 	gs.player_roster.clear()
 	gs.mandated_campaign_rules.clear()
-	_check(gs.configure_campaign_resume(save)
+	_check(
+		(
+			gs.configure_campaign_resume(save)
 			and cm.has_campaign_flag("recruited_guide")
 			and cm.get_campaign_var("villages_saved") == 2
 			and gs.party_gold == 450
 			and gs.party_items == ["vulnerary", "elixir", "vulnerary"]
-			and gs.mandated_campaign_rules == ["death_mode"],
-		"campaign save restores flags, vars, gold, items, and rule mandates")
+			and gs.mandated_campaign_rules == ["death_mode"]
+		),
+		"campaign save restores flags, vars, gold, items, and rule mandates"
+	)
 
 	var empty_save: RefCounted = SaveDataScript.from_dict(save.to_dict())
 	empty_save.party["convoy"]["entries"] = []
@@ -53,25 +57,37 @@ func _init() -> void:
 	gs.party_items = ["vulnerary"] as Array[String]
 	cm.set_campaign_flag("stale_flag")
 	cm.set_campaign_var("stale_var", 99)
-	_check(gs.configure_campaign_resume(empty_save)
+	_check(
+		(
+			gs.configure_campaign_resume(empty_save)
 			and gs.party_items.is_empty()
 			and cm.campaign_flags.is_empty()
-			and cm.campaign_vars.is_empty(),
-		"an explicitly empty slot clears stale party and campaign state")
+			and cm.campaign_vars.is_empty()
+		),
+		"an explicitly empty slot clears stale party and campaign state"
+	)
 
 	var malformed: Dictionary = save.to_dict()
 	malformed["campaign"]["flags"] = [""]
-	malformed["party"]["convoy"]["entries"] = [{
-		"entry_type": "item", "item_id": "missing_item", "uses_remaining": 1,
-	}]
+	malformed["party"]["convoy"]["entries"] = [
+		{
+			"entry_type": "item",
+			"item_id": "missing_item",
+			"uses_remaining": 1,
+		}
+	]
 	gs.party_gold = 777
 	gs.party_items = ["elixir"] as Array[String]
 	cm.campaign_flags = ["live_flag"] as Array[String]
-	_check(not gs.configure_campaign_resume(malformed)
+	_check(
+		(
+			not gs.configure_campaign_resume(malformed)
 			and gs.party_gold == 777
 			and gs.party_items == ["elixir"]
-			and cm.campaign_flags == ["live_flag"],
-		"malformed mutable state fails without partial apply")
+			and cm.campaign_flags == ["live_flag"]
+		),
+		"malformed mutable state fails without partial apply"
+	)
 
 	var malformed_patch: Dictionary = save.to_dict()
 	malformed_patch["campaign"]["mutable_state"]["rule_patches"] = [{"reason": "missing id"}]
@@ -79,12 +95,16 @@ func _init() -> void:
 	cm.current_node_id = "node_01_rout"
 	cm.campaign_flags = ["unchanged"] as Array[String]
 	gs.party_gold = 888
-	_check(not gs.configure_campaign_resume(malformed_patch)
+	_check(
+		(
+			not gs.configure_campaign_resume(malformed_patch)
 			and cm.active_campaign_id == "proving_grounds"
 			and cm.current_node_id == "node_01_rout"
 			and cm.campaign_flags == ["unchanged"]
-			and gs.party_gold == 888,
-		"late mutable-patch rejection occurs before campaign state changes")
+			and gs.party_gold == 888
+		),
+		"late mutable-patch rejection occurs before campaign state changes"
+	)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)

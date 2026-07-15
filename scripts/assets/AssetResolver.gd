@@ -38,20 +38,20 @@ func register_loader(handler_id: String, loader: Callable) -> String:
 
 # A group registration is plain data: {loader, fallbacks}. Fallback entries are
 # {group, id} references, so chains compose without a type switch in resolve().
-func register_group(group_id: String, loader_id: String,
-		fallbacks: Array = []) -> Array[String]:
+func register_group(group_id: String, loader_id: String, fallbacks: Array = []) -> Array[String]:
 	var errors: Array[String] = []
 	if group_id.is_empty():
 		errors.append("AssetResolver: group id cannot be empty")
 	elif _groups.has(group_id):
 		errors.append("AssetResolver: duplicate group '%s'" % group_id)
 	if not _loaders.has(loader_id):
-		errors.append("AssetResolver: group '%s' names unknown loader '%s'" % [
-			group_id, loader_id])
+		errors.append("AssetResolver: group '%s' names unknown loader '%s'" % [group_id, loader_id])
 	for fallback in fallbacks:
-		if not fallback is Dictionary \
-				or String(fallback.get("group", "")).is_empty() \
-				or String(fallback.get("id", "")).is_empty():
+		if (
+			not fallback is Dictionary
+			or String(fallback.get("group", "")).is_empty()
+			or String(fallback.get("id", "")).is_empty()
+		):
 			errors.append("AssetResolver: group '%s' has malformed fallback" % group_id)
 	if errors.is_empty():
 		_groups[group_id] = {
@@ -111,8 +111,7 @@ func _resolve(group_id: String, id_or_path: String, visited: Dictionary) -> Reso
 
 	_record(group_id, id_or_path, "missing_or_invalid")
 	for fallback in _groups[group_id]["fallbacks"]:
-		var resolved := _resolve(
-			String(fallback["group"]), String(fallback["id"]), visited)
+		var resolved := _resolve(String(fallback["group"]), String(fallback["id"]), visited)
 		if resolved != null:
 			return resolved
 	return null
@@ -127,8 +126,12 @@ static func _asset_key(group_id: String, asset_id: String) -> String:
 
 
 static func _safe_relative_path(path: String) -> bool:
-	if path.is_empty() or path.is_absolute_path() or path.begins_with("user://") \
-			or path.begins_with("res://"):
+	if (
+		path.is_empty()
+		or path.is_absolute_path()
+		or path.begins_with("user://")
+		or path.begins_with("res://")
+	):
 		return false
 	for part in path.replace("\\", "/").split("/"):
 		if part == "..":

@@ -55,18 +55,18 @@ class_name CampaignRules extends Resource
 # Dictionaries stay data-shaped so campaign JSON can supply new combinations
 # without adding engine modes.
 @export var save_slot_classes: Array[Dictionary] = [
-	{"count": 3, "accepts": "between_map", "consumed_on_load": false,
-		"label": "Campaign Save"},
-	{"count": 1, "accepts": "mid_map", "consumed_on_load": true,
-		"label": "Suspend"},
+	{"count": 3, "accepts": "between_map", "consumed_on_load": false, "label": "Campaign Save"},
+	{"count": 1, "accepts": "mid_map", "consumed_on_load": true, "label": "Suspend"},
 ]
-@export var autosave_rules: Array[Dictionary] = [{
-	"rule_id": "campaign_progress",
-	"trigger": "battle_end",
-	"keep": 1,
-	"label": "Campaign Autosave",
-	"consumed_on_load": false,
-}]
+@export var autosave_rules: Array[Dictionary] = [
+	{
+		"rule_id": "campaign_progress",
+		"trigger": "battle_end",
+		"keep": 1,
+		"label": "Campaign Autosave",
+		"consumed_on_load": false,
+	}
+]
 
 
 # Returns a CampaignRules with all project defaults applied.

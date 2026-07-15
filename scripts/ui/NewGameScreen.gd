@@ -28,23 +28,23 @@ extends "res://scripts/ui/ModalScreen.gd"
 #         Button (node name: BtnStart)
 #         Button (node name: BtnBack)
 
-signal back_pressed()
+signal back_pressed
 
 const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
-@onready var _opt_run: OptionButton          = $Panel/VBox/HBoxRun/OptRun
+@onready var _opt_run: OptionButton = $Panel/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
-@onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
-@onready var _opt_pair_up: OptionButton    = $Panel/VBox/HBoxPairUp/OptPairUp
+@onready var _opt_leveling: OptionButton = $Panel/VBox/HBoxLeveling/OptLeveling
+@onready var _opt_pair_up: OptionButton = $Panel/VBox/HBoxPairUp/OptPairUp
 @onready var _opt_status: OptionButton = $Panel/VBox/HBoxStatus/OptStatus
 @onready var _btn_import_status: Button = $Panel/VBox/BtnImportStatus
 @onready var _status_feedback: Label = $Panel/VBox/StatusFeedback
 @onready var _status_dialog: FileDialog = $StatusImportDialog
-@onready var _btn_start: Button            = $Panel/VBox/BtnStart
+@onready var _btn_start: Button = $Panel/VBox/BtnStart
 @onready var _btn_manage_campaigns: Button = $Panel/VBox/BtnManageCampaigns
-@onready var _btn_back: Button             = $Panel/VBox/BtnBack
+@onready var _btn_back: Button = $Panel/VBox/BtnBack
 @onready var _campaign_library: Control = $CampaignLibraryScreen
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
@@ -132,10 +132,13 @@ func _input(event: InputEvent) -> void:
 	if actions.is_empty():
 		super._input(event)
 		return
-	_v030_trace_focus("direction_input_before", {
-		"actions": ",".join(actions),
-		"event": _v030_event_summary(event),
-	})
+	_v030_trace_focus(
+		"direction_input_before",
+		{
+			"actions": ",".join(actions),
+			"event": _v030_event_summary(event),
+		}
+	)
 	_v030_trace_focus_after_input.call_deferred(",".join(actions), _v030_event_summary(event))
 	super._input(event)
 
@@ -175,7 +178,9 @@ func _on_start() -> void:
 	# Commit the chosen rules onto GameState, then load the roster and the first map.
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
-		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
+		push_error(
+			"NewGameScreen: GameState autoload missing — cannot apply rules or start the map."
+		)
 		return
 	var run: Dictionary = _run_options[_opt_run.selected]
 	if not _activate_run_source(run):
@@ -204,46 +209,69 @@ func _on_run_selected(index: int) -> void:
 
 
 func _refresh_run_options() -> void:
-	var previous := _run_options[_opt_run.selected].duplicate(true) \
-		if not _run_options.is_empty() and _opt_run.selected >= 0 \
-			and _opt_run.selected < _run_options.size() else {}
+	var previous := (
+		_run_options[_opt_run.selected].duplicate(true)
+		if (
+			not _run_options.is_empty()
+			and _opt_run.selected >= 0
+			and _opt_run.selected < _run_options.size()
+		)
+		else {}
+	)
 	_run_options = []
 	var dm := get_node_or_null("/root/DataManager")
 	if dm != null and dm.has_method("get_all_campaigns"):
 		for campaign: CampaignData in dm.call("get_all_campaigns").values():
 			if campaign == null or campaign.is_dev_only and not OS.is_debug_build():
 				continue
-			_run_options.append({
-				"label": campaign.label,
-				"campaign_id": campaign.campaign_id,
-				"author_id": campaign.author_id,
-				"campaign_version": campaign.campaign_version,
-				"compatible_status_sources": campaign.compatible_status_sources.duplicate(true),
-				"rules": _authored_rule_rows(
-					campaign.rule_overrides, campaign.mandated_rule_ids),
-			})
-	_run_options.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return "%s\n%s" % [a["label"], a["campaign_id"]] \
-			< "%s\n%s" % [b["label"], b["campaign_id"]])
-	var registry := CampaignPackRegistryScript.new(
-		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
+			(
+				_run_options
+				. append(
+					{
+						"label": campaign.label,
+						"campaign_id": campaign.campaign_id,
+						"author_id": campaign.author_id,
+						"campaign_version": campaign.campaign_version,
+						"compatible_status_sources":
+						campaign.compatible_status_sources.duplicate(true),
+						"rules":
+						_authored_rule_rows(campaign.rule_overrides, campaign.mandated_rule_ids),
+					}
+				)
+			)
+	_run_options.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return (
+				"%s\n%s" % [a["label"], a["campaign_id"]]
+				< "%s\n%s" % [b["label"], b["campaign_id"]]
+			)
+	)
+	var registry := CampaignPackRegistryScript.new(CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
 	for summary in registry.refresh():
 		for campaign in summary["campaigns"]:
 			if bool(campaign.get("is_dev_only", false)) and not OS.is_debug_build():
 				continue
-			_run_options.append({
-				"label": "%s — %s %s" % [campaign["label"],
-					summary["package_id"], summary["package_version"]],
-				"campaign_id": campaign["campaign_id"],
-				"author_id": campaign.get("author_id", summary["package_id"]),
-				"campaign_version": campaign.get("campaign_version", "1.0.0"),
-				"compatible_status_sources": campaign.get(
-					"compatible_status_sources", []).duplicate(true),
-				"package_id": summary["package_id"],
-				"package_version": summary["package_version"],
-				"package_path": summary["path"],
-				"rules": campaign.get("rules", {}).duplicate(true),
-			})
+			(
+				_run_options
+				. append(
+					{
+						"label":
+						(
+							"%s — %s %s"
+							% [campaign["label"], summary["package_id"], summary["package_version"]]
+						),
+						"campaign_id": campaign["campaign_id"],
+						"author_id": campaign.get("author_id", summary["package_id"]),
+						"campaign_version": campaign.get("campaign_version", "1.0.0"),
+						"compatible_status_sources":
+						campaign.get("compatible_status_sources", []).duplicate(true),
+						"package_id": summary["package_id"],
+						"package_version": summary["package_version"],
+						"package_path": summary["path"],
+						"rules": campaign.get("rules", {}).duplicate(true),
+					}
+				)
+			)
 	_opt_run.clear()
 	for entry in _run_options:
 		_opt_run.add_item(entry["label"])
@@ -269,12 +297,24 @@ func _refresh_status_options(run: Dictionary) -> void:
 	_status_options = [{"label": "None — start clean"}]
 	for loaded in _status_store.scan_compatible(_status_target(run)):
 		var record: Dictionary = loaded.get("record", {})
-		_status_options.append({
-			"label": "%s %s — %s" % [record.get("campaign_id", "Campaign"),
-				record.get("campaign_version", ""), record.get("created_at_utc", "")],
-			"record": record.duplicate(true),
-			"manual_foreign": false,
-		})
+		(
+			_status_options
+			. append(
+				{
+					"label":
+					(
+						"%s %s — %s"
+						% [
+							record.get("campaign_id", "Campaign"),
+							record.get("campaign_version", ""),
+							record.get("created_at_utc", "")
+						]
+					),
+					"record": record.duplicate(true),
+					"manual_foreign": false,
+				}
+			)
+		)
 	_opt_status.clear()
 	for option in _status_options:
 		_opt_status.add_item(String(option["label"]))
@@ -288,12 +328,20 @@ func _on_status_file_selected(path: String) -> void:
 		_status_feedback.text = "Import failed: %s" % "; ".join(_status_store.last_errors)
 		return
 	var record: Dictionary = loaded["record"]
-	_status_options.append({
-		"label": "Manual: %s %s" % [record.get("campaign_id", "Campaign"),
-			record.get("campaign_version", "")],
-		"record": record.duplicate(true),
-		"manual_foreign": true,
-	})
+	(
+		_status_options
+		. append(
+			{
+				"label":
+				(
+					"Manual: %s %s"
+					% [record.get("campaign_id", "Campaign"), record.get("campaign_version", "")]
+				),
+				"record": record.duplicate(true),
+				"manual_foreign": true,
+			}
+		)
+	)
 	_opt_status.add_item(_status_options[-1]["label"])
 	_opt_status.selected = _status_options.size() - 1
 	_status_feedback.text = "Manual record ready; its source will be recorded in this run"
@@ -304,8 +352,12 @@ func _apply_selected_status_record(cm: Node, gs: Node, run: Dictionary) -> bool:
 		return true
 	var option: Dictionary = _status_options[_opt_status.selected]
 	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
-	if state == null or not _status_store.import_into(option["record"],
-			_status_target(run), state, bool(option.get("manual_foreign", false))):
+	if (
+		state == null
+		or not _status_store.import_into(
+			option["record"], _status_target(run), state, bool(option.get("manual_foreign", false))
+		)
+	):
 		_status_feedback.text = "Import failed: %s" % "; ".join(_status_store.last_errors)
 		return false
 	if not bool(cm.call("import_carry_forward_facts", state.carry_forward_facts)):
@@ -321,19 +373,28 @@ func _activate_run_source(run: Dictionary) -> bool:
 		return false
 	var package_id := String(run.get("package_id", ""))
 	if package_id.is_empty():
-		var active: Dictionary = dm.call("active_package_identity") \
-			if dm.has_method("active_package_identity") else {}
+		var active: Dictionary = (
+			dm.call("active_package_identity") if dm.has_method("active_package_identity") else {}
+		)
 		if not String(active.get("package_id", "")).is_empty():
 			dm.call("select_campaign_source", "res://data")
 		return true
-	return bool(dm.call("select_tier2_campaign_source",
-		String(run["package_path"]), package_id, String(run["package_version"])))
+	return bool(
+		dm.call(
+			"select_tier2_campaign_source",
+			String(run["package_path"]),
+			package_id,
+			String(run["package_version"])
+		)
+	)
 
 
 static func _same_run_identity(a: Dictionary, b: Dictionary) -> bool:
-	return a.get("campaign_id", "") == b.get("campaign_id", "") \
-		and a.get("package_id", "") == b.get("package_id", "") \
+	return (
+		a.get("campaign_id", "") == b.get("campaign_id", "")
+		and a.get("package_id", "") == b.get("package_id", "")
 		and a.get("package_version", "") == b.get("package_version", "")
+	)
 
 
 func _select_preferred_run() -> void:
@@ -378,42 +439,67 @@ func _apply_rule_authority(run: Dictionary) -> void:
 	for control in [_opt_permadeath, _opt_auto_promote, _opt_leveling, _opt_pair_up]:
 		(control as OptionButton).disabled = false
 	var rows: Dictionary = run.get("rules", {}) if run.get("rules", {}) is Dictionary else {}
-	_apply_authored_option(rows, "death_mode", _opt_permadeath,
-		func(value: Variant) -> int: return 1 if String(value) == "classic" else 0)
-	_apply_authored_option(rows, "auto_promote_at_max_level", _opt_auto_promote,
-		func(value: Variant) -> int: return int(bool(value)))
-	_apply_authored_option(rows, "leveling_method", _opt_leveling,
-		func(value: Variant) -> int: return maxi(0, _LEVELING_OPTIONS.find(String(value))))
-	_apply_authored_option(rows, "pair_up_enabled", _opt_pair_up,
-		func(value: Variant) -> int: return int(bool(value)))
+	_apply_authored_option(
+		rows,
+		"death_mode",
+		_opt_permadeath,
+		func(value: Variant) -> int: return 1 if String(value) == "classic" else 0
+	)
+	_apply_authored_option(
+		rows,
+		"auto_promote_at_max_level",
+		_opt_auto_promote,
+		func(value: Variant) -> int: return int(bool(value))
+	)
+	_apply_authored_option(
+		rows,
+		"leveling_method",
+		_opt_leveling,
+		func(value: Variant) -> int: return maxi(0, _LEVELING_OPTIONS.find(String(value)))
+	)
+	_apply_authored_option(
+		rows, "pair_up_enabled", _opt_pair_up, func(value: Variant) -> int: return int(bool(value))
+	)
 
 
-func _apply_authored_option(rows: Dictionary, rule_id: String,
-		control: OptionButton, index_for_value: Callable) -> void:
+func _apply_authored_option(
+	rows: Dictionary, rule_id: String, control: OptionButton, index_for_value: Callable
+) -> void:
 	if not rows.has(rule_id):
 		return
 	var authored: Variant = rows[rule_id]
-	var value: Variant = authored.get("value") if authored is Dictionary \
-		and authored.has("value") else authored
+	var value: Variant = (
+		authored.get("value") if authored is Dictionary and authored.has("value") else authored
+	)
 	control.selected = int(index_for_value.call(value))
-	control.disabled = authored is Dictionary \
-		and String(authored.get("authority", "default")) == "mandate"
+	control.disabled = (
+		authored is Dictionary and String(authored.get("authority", "default")) == "mandate"
+	)
 
 
-static func _authored_rule_rows(overrides: Dictionary,
-		mandated: Array[String]) -> Dictionary:
+static func _authored_rule_rows(overrides: Dictionary, mandated: Array[String]) -> Dictionary:
 	var rows := {}
 	for rule_id in overrides:
-		rows[rule_id] = {"value": overrides[rule_id],
-			"authority": "mandate" if String(rule_id) in mandated else "default"}
+		rows[rule_id] = {
+			"value": overrides[rule_id],
+			"authority": "mandate" if String(rule_id) in mandated else "default"
+		}
 	return rows
 
 
 func _connect_v030_focus_trace() -> void:
 	if not V030_FOCUS_TRACE_ENABLED:
 		return
-	for control in [_opt_run, _opt_permadeath, _opt_auto_promote, _opt_leveling,
-			_opt_pair_up, _btn_start, _btn_manage_campaigns, _btn_back]:
+	for control in [
+		_opt_run,
+		_opt_permadeath,
+		_opt_auto_promote,
+		_opt_leveling,
+		_opt_pair_up,
+		_btn_start,
+		_btn_manage_campaigns,
+		_btn_back
+	]:
 		var c := control as Control
 		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
 		c.focus_exited.connect(_v030_trace_control_focus.bind(c, "exited"))
@@ -434,10 +520,13 @@ func _v030_trace_control_focus(control: Control, phase: String) -> void:
 
 
 func _v030_trace_focus_after_input(actions: String, event_summary: String) -> void:
-	_v030_trace_focus("direction_input_after", {
-		"actions": actions,
-		"event": event_summary,
-	})
+	_v030_trace_focus(
+		"direction_input_after",
+		{
+			"actions": actions,
+			"event": event_summary,
+		}
+	)
 
 
 func _v030_trace_focus(label: String, extra: Dictionary = {}) -> void:
@@ -465,14 +554,17 @@ func _v030_control_label(control: Control) -> String:
 func _v030_event_summary(event: InputEvent) -> String:
 	if event is InputEventJoypadMotion:
 		var motion := event as InputEventJoypadMotion
-		return "JoyMotion device=%d axis=%d value=%.3f" % [
-			motion.device, motion.axis, motion.axis_value]
+		return (
+			"JoyMotion device=%d axis=%d value=%.3f"
+			% [motion.device, motion.axis, motion.axis_value]
+		)
 	if event is InputEventJoypadButton:
 		var button := event as InputEventJoypadButton
-		return "JoyButton device=%d button=%d pressed=%s" % [
-			button.device, button.button_index, button.pressed]
+		return (
+			"JoyButton device=%d button=%d pressed=%s"
+			% [button.device, button.button_index, button.pressed]
+		)
 	if event is InputEventKey:
 		var key := event as InputEventKey
-		return "Key code=%d pressed=%s echo=%s" % [
-			key.physical_keycode, key.pressed, key.echo]
+		return "Key code=%d pressed=%s echo=%s" % [key.physical_keycode, key.pressed, key.echo]
 	return event.as_text()

@@ -31,6 +31,7 @@ func get_index_path() -> String:
 
 # --- Continue routing ---------------------------------------------------------
 
+
 # What Continue would resume: the most recently written document. Empty when
 # there is nothing to continue. The caller routes on "kind" — a suspend resumes
 # into the live map, a slot resumes into the campaign at its parked node.
@@ -61,6 +62,7 @@ func has_continue_save() -> bool:
 # path outside the save dir (".." and "/" are simply not in the alphabet).
 const _SLOT_ID_CHARS := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
 
+
 static func is_valid_slot_id(slot_id: String) -> bool:
 	if slot_id == "" or slot_id.length() > 64:
 		return false
@@ -81,8 +83,9 @@ func has_slot(slot_id: String) -> bool:
 	return path != "" and FileAccess.file_exists(path)
 
 
-func save_slot(slot_id: String, source: Variant, origin: String = "manual",
-		rule_id: String = "") -> bool:
+func save_slot(
+	slot_id: String, source: Variant, origin: String = "manual", rule_id: String = ""
+) -> bool:
 	var path := get_slot_path(slot_id)
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
@@ -96,8 +99,10 @@ func save_slot(slot_id: String, source: Variant, origin: String = "manual",
 		var existing := _row_for_slot(slot_id)
 		# Structural invariant: no automatic write path may name a manual slot or
 		# another autosave rule's pool.
-		if String(existing.get("origin", "manual")) != "auto" \
-				or String(existing.get("rule_id", "")) != rule_id:
+		if (
+			String(existing.get("origin", "manual")) != "auto"
+			or String(existing.get("rule_id", "")) != rule_id
+		):
 			push_error("SaveManager: autosave '%s' cannot overwrite slot '%s'" % [rule_id, slot_id])
 			return false
 	var errors: Array[String] = save.validate(_data_manager())
@@ -105,15 +110,21 @@ func save_slot(slot_id: String, source: Variant, origin: String = "manual",
 		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
 		return false
 	var payload: Dictionary = SaveIntegrity.stamp(save.to_dict())
-	if origin == "manual" and not _manual_write_allowed(slot_id,
-			String(payload.get("header", {}).get("save_kind", "between_map"))):
+	if (
+		origin == "manual"
+		and not _manual_write_allowed(
+			slot_id, String(payload.get("header", {}).get("save_kind", "between_map"))
+		)
+	):
 		return false
 	var index := load_index()
 	var slots: Dictionary = _slots_from_index(index)
 	slots[slot_id] = _slot_index_row(path, payload, index)
 	index["slots"] = slots
 	index["last_played"] = {
-		"kind": LAST_PLAYED_SLOT, "path": path, "slot_id": slot_id,
+		"kind": LAST_PLAYED_SLOT,
+		"path": path,
+		"slot_id": slot_id,
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 	}
 	return _commit_slot_transaction(path, payload, index)
@@ -126,12 +137,14 @@ func save_automatic(rule_id: String, keep: int, source: Variant) -> bool:
 		return false
 	var candidates: Array[Dictionary] = []
 	for row in list_slots():
-		if String(row.get("origin", "manual")) == "auto" \
-				and String(row.get("rule_id", "")) == rule_id:
+		if (
+			String(row.get("origin", "manual")) == "auto"
+			and String(row.get("rule_id", "")) == rule_id
+		):
 			candidates.append(row)
 	var target_id := ""
 	if candidates.size() >= keep:
-		var target: Dictionary = candidates[candidates.size() - 1] # oldest; list is newest-first
+		var target: Dictionary = candidates[candidates.size() - 1]  # oldest; list is newest-first
 		assert(String(target.get("origin", "")) != "manual")
 		target_id = String(target.get("slot_id", ""))
 	else:
@@ -150,8 +163,10 @@ func save_automatic(rule_id: String, keep: int, source: Variant) -> bool:
 func _trim_automatic_pool(rule_id: String, keep: int) -> void:
 	var owned: Array[Dictionary] = []
 	for row in list_slots():
-		if String(row.get("origin", "manual")) == "auto" \
-				and String(row.get("rule_id", "")) == rule_id:
+		if (
+			String(row.get("origin", "manual")) == "auto"
+			and String(row.get("rule_id", "")) == rule_id
+		):
 			owned.append(row)
 	# list_slots is newest-first; anything after keep is an owned stale rotation.
 	for i in range(keep, owned.size()):
@@ -162,8 +177,12 @@ func _trim_automatic_pool(rule_id: String, keep: int) -> void:
 func should_consume_on_load(slot_id: String, slot_classes: Variant) -> bool:
 	var row := _row_for_slot(slot_id)
 	var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
-	return not row.is_empty() and SavePolicy.is_consumed_on_load(
-		slot_classes, String(header.get("save_kind", "between_map")))
+	return (
+		not row.is_empty()
+		and SavePolicy.is_consumed_on_load(
+			slot_classes, String(header.get("save_kind", "between_map"))
+		)
+	)
 
 
 func load_slot(slot_id: String) -> RefCounted:
@@ -191,10 +210,12 @@ func export_slot(slot_id: String, destination_path: String) -> Dictionary:
 	return result
 
 
-func inspect_portable_save(source_path: String,
-		warning_bytes: int = -1, maximum_bytes: int = -1) -> Dictionary:
-	var result := {"ok": false, "errors": [], "warnings": [], "save": null,
-		"artifact_kind": "unknown"}
+func inspect_portable_save(
+	source_path: String, warning_bytes: int = -1, maximum_bytes: int = -1
+) -> Dictionary:
+	var result := {
+		"ok": false, "errors": [], "warnings": [], "save": null, "artifact_kind": "unknown"
+	}
 	if warning_bytes < 0:
 		warning_bytes = ImportBudgetConfig.portable_save_warning_bytes()
 	if maximum_bytes < 0:
@@ -212,12 +233,17 @@ func inspect_portable_save(source_path: String,
 		return result
 	if source_size > warning_bytes:
 		result["warnings"].append(
-			"This save is unusually large (%s); verify its source before importing."
-			% String.humanize_size(source_size))
+			(
+				"This save is unusually large (%s); verify its source before importing."
+				% String.humanize_size(source_size)
+			)
+		)
 	var bytes := file.get_buffer(source_size)
 	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
 		result["artifact_kind"] = "campaign_pack"
-		result["errors"].append("This ZIP is a campaign package. Import it from New Game > Manage Campaigns.")
+		result["errors"].append(
+			"This ZIP is a campaign package. Import it from New Game > Manage Campaigns."
+		)
 		return result
 	result["artifact_kind"] = "save_json"
 	var parsed := _parse_json_dict(bytes.get_string_from_utf8(), source_path)
@@ -235,9 +261,13 @@ func inspect_portable_save(source_path: String,
 	return result
 
 
-func import_portable_save(source_path: String, slot_id: String,
-		acknowledge_warnings: bool = false, warning_bytes: int = -1,
-		maximum_bytes: int = -1) -> Dictionary:
+func import_portable_save(
+	source_path: String,
+	slot_id: String,
+	acknowledge_warnings: bool = false,
+	warning_bytes: int = -1,
+	maximum_bytes: int = -1
+) -> Dictionary:
 	var result := inspect_portable_save(source_path, warning_bytes, maximum_bytes)
 	if not result["ok"]:
 		return result
@@ -284,12 +314,14 @@ func list_slots() -> Array[Dictionary]:
 		rows.append(row)
 	# write_seq is the ordering key; the timestamp is
 	# only the tiebreak for rows written before the counter existed.
-	rows.sort_custom(func(a, b):
-		var seq_a: int = int(a.get("write_seq", 0))
-		var seq_b: int = int(b.get("write_seq", 0))
-		if seq_a != seq_b:
-			return seq_a > seq_b
-		return int(a.get("saved_at_unix", 0)) > int(b.get("saved_at_unix", 0)))
+	rows.sort_custom(
+		func(a, b):
+			var seq_a: int = int(a.get("write_seq", 0))
+			var seq_b: int = int(b.get("write_seq", 0))
+			if seq_a != seq_b:
+				return seq_a > seq_b
+			return int(a.get("saved_at_unix", 0)) > int(b.get("saved_at_unix", 0))
+	)
 	return rows
 
 
@@ -320,12 +352,17 @@ func campaign_preference_candidates() -> Array[Dictionary]:
 
 
 func _record_campaign_preference(kind: String, identity: Dictionary) -> bool:
-	if kind not in ["last_started", "last_imported"] \
-			or String(identity.get("campaign_id", "")).is_empty():
+	if (
+		kind not in ["last_started", "last_imported"]
+		or String(identity.get("campaign_id", "")).is_empty()
+	):
 		return false
 	var index := load_index()
-	var preference: Dictionary = index.get("campaign_preference", {}).duplicate(true) \
-		if index.get("campaign_preference", {}) is Dictionary else {}
+	var preference: Dictionary = (
+		index.get("campaign_preference", {}).duplicate(true)
+		if index.get("campaign_preference", {}) is Dictionary
+		else {}
+	)
 	preference[kind] = {
 		"campaign_id": String(identity.get("campaign_id", "")),
 		"package_id": String(identity.get("package_id", "")),
@@ -359,8 +396,10 @@ func _manual_write_allowed(slot_id: String, save_kind: String) -> bool:
 		if String(row.get("origin", "manual")) != "manual":
 			continue
 		var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
-		if _class_index_for_kind(classes, String(header.get("save_kind", "between_map"))) \
-				== target_index:
+		if (
+			_class_index_for_kind(classes, String(header.get("save_kind", "between_map")))
+			== target_index
+		):
 			used += 1
 	if used >= int(classes[target_index].get("count", 0)):
 		push_error("SaveManager: manual '%s' slot class is full" % save_kind)
@@ -378,8 +417,10 @@ func _active_slot_classes() -> Array[Dictionary]:
 
 func _class_index_for_kind(classes: Array[Dictionary], save_kind: String) -> int:
 	for i in classes.size():
-		if int(classes[i].get("count", 0)) > 0 \
-				and String(classes[i].get("accepts", "")) in [save_kind, SavePolicy.ANY]:
+		if (
+			int(classes[i].get("count", 0)) > 0
+			and String(classes[i].get("accepts", "")) in [save_kind, SavePolicy.ANY]
+		):
 			return i
 	return -1
 
@@ -393,8 +434,9 @@ func _is_slot_resumable(slot_id: String) -> bool:
 
 static func _row_is_resumable(row: Dictionary) -> bool:
 	var header: Variant = row.get("header", {})
-	return header is Dictionary and String(header.get("campaign_state", "in_progress")) \
-		!= "completed"
+	return (
+		header is Dictionary and String(header.get("campaign_state", "in_progress")) != "completed"
+	)
 
 
 func load_index() -> Dictionary:
@@ -403,8 +445,12 @@ func load_index() -> Dictionary:
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_error("SaveManager: failed to open saves index: %s" \
-			% error_string(FileAccess.get_open_error()))
+		push_error(
+			(
+				"SaveManager: failed to open saves index: %s"
+				% error_string(FileAccess.get_open_error())
+			)
+		)
 		return {}
 	var text := file.get_as_text()
 	file.close()
@@ -416,8 +462,12 @@ func load_index() -> Dictionary:
 func _read_save_document(path: String, label: String) -> RefCounted:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_error("SaveManager: failed to open %s for read: %s" \
-			% [label, error_string(FileAccess.get_open_error())])
+		push_error(
+			(
+				"SaveManager: failed to open %s for read: %s"
+				% [label, error_string(FileAccess.get_open_error())]
+			)
+		)
 		return null
 	var text := file.get_as_text()
 	file.close()
@@ -443,8 +493,9 @@ func _save_data_from_variant(source: Variant) -> RefCounted:
 func _ensure_save_dir() -> bool:
 	var err := DirAccess.make_dir_recursive_absolute(save_dir)
 	if err != OK and err != ERR_ALREADY_EXISTS:
-		push_error("SaveManager: failed to create save dir '%s': %s" \
-			% [save_dir, error_string(err)])
+		push_error(
+			"SaveManager: failed to create save dir '%s': %s" % [save_dir, error_string(err)]
+		)
 		return false
 	return true
 
@@ -488,8 +539,7 @@ func _commit_slot_transaction(slot_path: String, payload: Dictionary, index: Dic
 	if not _replace_staged(slot_tmp, slot_path, slot_backup):
 		_cleanup_paths([slot_tmp, index_tmp, slot_backup])
 		return false
-	if _test_fail_before_index_replace \
-			or not _replace_staged(index_tmp, index_path, index_backup):
+	if _test_fail_before_index_replace or not _replace_staged(index_tmp, index_path, index_backup):
 		_restore_backup(slot_path, slot_backup)
 		_cleanup_paths([slot_tmp, index_tmp, slot_backup, index_backup])
 		return false
@@ -521,8 +571,7 @@ func _write_json_absolute(path: String, value: Dictionary) -> bool:
 func _promote_absolute_file(temporary: String, destination: String) -> bool:
 	var backup := "%s.bak" % destination
 	DirAccess.remove_absolute(backup)
-	if FileAccess.file_exists(destination) \
-			and DirAccess.rename_absolute(destination, backup) != OK:
+	if FileAccess.file_exists(destination) and DirAccess.rename_absolute(destination, backup) != OK:
 		DirAccess.remove_absolute(temporary)
 		return false
 	if DirAccess.rename_absolute(temporary, destination) == OK:
@@ -583,9 +632,11 @@ func _forget_slot(slot_id: String) -> bool:
 		index["slots"] = slots
 	# A deleted slot must not stay the Continue target.
 	var last_played: Variant = index.get("last_played", {})
-	if last_played is Dictionary \
-			and String(last_played.get("kind", "")) == LAST_PLAYED_SLOT \
-			and String(last_played.get("slot_id", "")) == slot_id:
+	if (
+		last_played is Dictionary
+		and String(last_played.get("kind", "")) == LAST_PLAYED_SLOT
+		and String(last_played.get("slot_id", "")) == slot_id
+	):
 		index.erase("last_played")
 	return _write_index(index)
 
@@ -600,8 +651,12 @@ func _write_index(index: Dictionary) -> bool:
 		return false
 	var file := FileAccess.open(get_index_path(), FileAccess.WRITE)
 	if file == null:
-		push_error("SaveManager: failed to open saves index for write: %s" \
-			% error_string(FileAccess.get_open_error()))
+		push_error(
+			(
+				"SaveManager: failed to open saves index for write: %s"
+				% error_string(FileAccess.get_open_error())
+			)
+		)
 		return false
 	file.store_string(JSON.stringify(index, "\t", true))
 	file.close()
@@ -612,8 +667,12 @@ func _parse_json_dict(text: String, path: String) -> Dictionary:
 	var json := JSON.new()
 	var err := json.parse(text)
 	if err != OK:
-		push_error("SaveManager: failed to parse JSON '%s' at line %d: %s" \
-			% [path, json.get_error_line(), json.get_error_message()])
+		push_error(
+			(
+				"SaveManager: failed to parse JSON '%s' at line %d: %s"
+				% [path, json.get_error_line(), json.get_error_message()]
+			)
+		)
 		return {}
 	var data: Variant = json.data
 	if not (data is Dictionary):

@@ -25,7 +25,9 @@ func _init() -> void:
 
 	var dir := DirAccess.open(CLASS_DIR)
 	if dir == null:
-		print("FAIL could not open %s" % CLASS_DIR); quit(1); return
+		print("FAIL could not open %s" % CLASS_DIR)
+		quit(1)
+		return
 
 	var checked := 0
 	for file_name in dir.get_files():
@@ -33,14 +35,21 @@ func _init() -> void:
 			continue
 		var cls = load(CLASS_DIR + file_name)
 		if cls == null:
-			print("FAIL could not load %s" % file_name); failed += 1; continue
+			print("FAIL could not load %s" % file_name)
+			failed += 1
+			continue
 		# Only playable classes are exercised by the character sheet; non-playable
 		# (enemy-only) classes are out of scope for this invariant.
 		if String(cls.get("class_availability")) != "playable":
 			continue
 		var class_id := String(cls.get("id"))
 		if class_id in KNOWN_CAPLESS:
-			print("note  '%s' is an intentional cap-less placeholder (shows NO_CAP_DEFINED by design)" % class_id)
+			print(
+				(
+					"note  '%s' is an intentional cap-less placeholder (shows NO_CAP_DEFINED by design)"
+					% class_id
+				)
+			)
 			continue
 		checked += 1
 		var caps: Dictionary = cls.get("stat_caps")
@@ -51,12 +60,17 @@ func _init() -> void:
 		if missing.is_empty():
 			passed += 1
 		else:
-			print("FAIL class '%s' (%s) missing/zero stat_caps: %s" % [
-				class_id, file_name, ", ".join(missing)])
+			print(
+				(
+					"FAIL class '%s' (%s) missing/zero stat_caps: %s"
+					% [class_id, file_name, ", ".join(missing)]
+				)
+			)
 			failed += 1
 
 	if checked == 0:
-		print("FAIL no playable classes found to check"); failed += 1
+		print("FAIL no playable classes found to check")
+		failed += 1
 	else:
 		print("OK  checked %d playable classes for complete STAT_KEYS caps" % checked)
 		passed += 1

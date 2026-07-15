@@ -20,10 +20,10 @@ extends RefCounted
 # wording, and centralises the strings so a future localisation pass only
 # has one place to edit.
 const ACTION_LABELS: Dictionary = {
-	"seize":    "Seize",
-	"escape":   "Escape",
-	"shop":     "Shop",
-	"visit":    "Visit",
+	"seize": "Seize",
+	"escape": "Escape",
+	"shop": "Shop",
+	"visit": "Visit",
 	"activate": "Activate",
 }
 
@@ -31,7 +31,11 @@ const ACTION_LABELS: Dictionary = {
 # vertical button order so the More Info readout reads top-down the same
 # way the player would scan the menu.
 const _ACTION_ORDER: Array[String] = [
-	"seize", "escape", "shop", "visit", "activate",
+	"seize",
+	"escape",
+	"shop",
+	"visit",
+	"activate",
 ]
 
 
@@ -39,17 +43,18 @@ const _ACTION_ORDER: Array[String] = [
 # TurnManager. `turn` may be null in tests / headless flows — every gate
 # tolerates a missing turn manager and returns false, which is the safe
 # default (an action you can't gate is an action you don't offer).
-static func is_available(action_id: String, unit: Node, tile: Vector2i,
-		turn: Node) -> bool:
+static func is_available(action_id: String, unit: Node, tile: Vector2i, turn: Node) -> bool:
 	if unit == null:
 		return false
 	match action_id:
 		"seize":
-			return turn != null and turn.has_method("can_seize") \
-				and bool(turn.can_seize(unit, tile))
+			return (
+				turn != null and turn.has_method("can_seize") and bool(turn.can_seize(unit, tile))
+			)
 		"escape":
-			return turn != null and turn.has_method("can_escape") \
-				and bool(turn.can_escape(unit, tile))
+			return (
+				turn != null and turn.has_method("can_escape") and bool(turn.can_escape(unit, tile))
+			)
 		# Shop / Visit / Activate are placeholders. They will be wired into
 		# real gates as those systems land; until then they simply do not
 		# appear in either the action menu or the More Info readout.

@@ -10,6 +10,7 @@ extends SceneTree
 
 const ENEMY_PATH := "res://data/maps/map_001_rout/enemies/e1_soldier.tres"
 
+
 func _init() -> void:
 	print("=== Spawn Seam Test ([PUG-3]) ===")
 	var passed := 0
@@ -92,7 +93,9 @@ func _init() -> void:
 		failed += 1
 
 	# 6. Ambiguous sources are rejected instead of choosing one silently.
-	var both := {"unit_data": in_mem, "unit_data_path": "res://does/not/exist.tres", "tile": Vector2i.ZERO}
+	var both := {
+		"unit_data": in_mem, "unit_data_path": "res://does/not/exist.tres", "tile": Vector2i.ZERO
+	}
 	var from_both: UnitData = gm._resolve_placement_unit_data(both)
 	if from_both == null:
 		print("OK  mixed unit_data + unit_data_path placement is rejected")

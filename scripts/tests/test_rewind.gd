@@ -37,7 +37,7 @@ func _run() -> void:
 	gs.set("party_gold", 500)
 	gs.set("party_items", ["vulnerary"] as Array[String])
 	var actor_script := GDScript.new()
-	actor_script.source_code = "extends Node\nvar data: UnitData\nvar team := \"blue\"\nvar tile_position := Vector2i.ZERO\nfunc set_done_appearance(): pass\nfunc reset_appearance(): pass\n"
+	actor_script.source_code = 'extends Node\nvar data: UnitData\nvar team := "blue"\nvar tile_position := Vector2i.ZERO\nfunc set_done_appearance(): pass\nfunc reset_appearance(): pass\n'
 	actor_script.reload()
 	var actor: Node = actor_script.new()
 	actor.data = data
@@ -61,21 +61,34 @@ func _run() -> void:
 	tm.call("set_unit_state", actor, TurnManagerScript.UnitState.DONE)
 	await process_frame
 
-	if gs.call("history_size") == 2 and gs.call("can_rewind") \
-			and gs.get("rewind_charges_left") == 2:
-		print("OK  committed activation pushes and retains a rewind boundary"); passed += 1
+	if (
+		gs.call("history_size") == 2
+		and gs.call("can_rewind")
+		and gs.get("rewind_charges_left") == 2
+	):
+		print("OK  committed activation pushes and retains a rewind boundary")
+		passed += 1
 	else:
-		print("FAIL activation history: size=%s charges=%s" % [
-			gs.call("history_size"), gs.get("rewind_charges_left")]); failed += 1
+		print(
+			(
+				"FAIL activation history: size=%s charges=%s"
+				% [gs.call("history_size"), gs.get("rewind_charges_left")]
+			)
+		)
+		failed += 1
 
-	if gs.call("rewind_last_action", tm, null) \
-			and gs.call("history_size") == 1 \
-			and gs.get("rewind_charges_left") == 1 \
-			and gs.get("party_gold") == 500 \
-			and gs.get("party_items") == ["vulnerary"]:
-		print("OK  rewind spends one charge, restores economy, and truncates the future"); passed += 1
+	if (
+		gs.call("rewind_last_action", tm, null)
+		and gs.call("history_size") == 1
+		and gs.get("rewind_charges_left") == 1
+		and gs.get("party_gold") == 500
+		and gs.get("party_items") == ["vulnerary"]
+	):
+		print("OK  rewind spends one charge, restores economy, and truncates the future")
+		passed += 1
 	else:
-		print("FAIL rewind spend/branch"); failed += 1
+		print("FAIL rewind spend/branch")
+		failed += 1
 
 	var payload: Dictionary = gs.get("next_map_suspend_payload")
 	var restored_rng: Dictionary = payload.get("map_runtime", {}).get("rng", {})
@@ -90,25 +103,35 @@ func _run() -> void:
 	rng.call("commit_event", "wait", changed_record)
 	var diverged_hash: int = int(rng.get("history_hash"))
 	if replay_hash == identical_hash and diverged_hash != identical_hash:
-		print("OK  identical replay reproduces RNG while a changed decision diverges"); passed += 1
+		print("OK  identical replay reproduces RNG while a changed decision diverges")
+		passed += 1
 	else:
-		print("FAIL rewind RNG: replay=%s same=%s diverged=%s" % [
-			replay_hash, identical_hash, diverged_hash]); failed += 1
+		print(
+			(
+				"FAIL rewind RNG: replay=%s same=%s diverged=%s"
+				% [replay_hash, identical_hash, diverged_hash]
+			)
+		)
+		failed += 1
 
 	gs.get("campaign_rules").rewind_charges_per_map = -1
 	gs.call("begin_map_rewind_budget")
 	gs.call("push_history", tm, null, "activation")
 	gs.call("push_history", tm, null, "activation")
 	if gs.call("rewind_last_action", tm, null) and gs.get("rewind_charges_left") == -1:
-		print("OK  infinite campaign rewind remains spendable without decrement"); passed += 1
+		print("OK  infinite campaign rewind remains spendable without decrement")
+		passed += 1
 	else:
-		print("FAIL infinite rewind budget"); failed += 1
+		print("FAIL infinite rewind budget")
+		failed += 1
 
 	gs.set("rewind_charges_left", 0)
 	if not gs.call("can_rewind") and not gs.call("rewind_last_action", tm, null):
-		print("OK  exhausted budget blocks further rewind"); passed += 1
+		print("OK  exhausted budget blocks further rewind")
+		passed += 1
 	else:
-		print("FAIL exhausted rewind budget"); failed += 1
+		print("FAIL exhausted rewind budget")
+		failed += 1
 
 	settings.set("auto_end_turn", old_auto_end)
 	gs.call("reset_map_state")

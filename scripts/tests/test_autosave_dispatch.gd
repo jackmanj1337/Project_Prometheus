@@ -21,10 +21,20 @@ func _run() -> void:
 	gs.call("reset_map_state")
 	gs.get("campaign_rules").save_slot_classes = SavePolicy.classic_gba()
 	var authored_rules: Array[Dictionary] = [
-		{"rule_id": "progress", "trigger": "battle_end", "keep": 2,
-			"label": "Battle complete", "consumed_on_load": false},
-		{"rule_id": "custom", "trigger": "author.quest_checkpoint", "keep": 1,
-			"label": "Quest checkpoint", "consumed_on_load": false},
+		{
+			"rule_id": "progress",
+			"trigger": "battle_end",
+			"keep": 2,
+			"label": "Battle complete",
+			"consumed_on_load": false
+		},
+		{
+			"rule_id": "custom",
+			"trigger": "author.quest_checkpoint",
+			"keep": 1,
+			"label": "Quest checkpoint",
+			"consumed_on_load": false
+		},
 	]
 	gs.get("campaign_rules").autosave_rules = authored_rules
 	cm.call("start_campaign", "proving_grounds")
@@ -38,8 +48,7 @@ func _run() -> void:
 			progress += 1
 		if row.get("origin") == "auto" and row.get("rule_id") == "custom":
 			custom += 1
-	if battle_results == [true] and custom_results == [true] \
-			and progress == 1 and custom == 1:
+	if battle_results == [true] and custom_results == [true] and progress == 1 and custom == 1:
 		print("OK  battle_end and authored custom ids write through independent rule pools")
 		passed += 1
 	else:

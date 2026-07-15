@@ -47,13 +47,25 @@ func _init() -> void:
 	bus.map_victory.emit()
 	bus.map_resolved.emit("blue", [])
 	await process_frame
-	if screen.visible and screen.get_node("Panel/VBox/Title").text == "Victory!" \
-			and not save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT):
-		print("OK  victory presents immediately and deletes the mid-map slot"); passed += 1
+	if (
+		screen.visible
+		and screen.get_node("Panel/VBox/Title").text == "Victory!"
+		and not save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)
+	):
+		print("OK  victory presents immediately and deletes the mid-map slot")
+		passed += 1
 	else:
-		print("FAIL immediate victory: visible=%s title=%s has_mid_map=%s" % [
-			screen.visible, screen.get_node("Panel/VBox/Title").text,
-			save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)]); failed += 1
+		print(
+			(
+				"FAIL immediate victory: visible=%s title=%s has_mid_map=%s"
+				% [
+					screen.visible,
+					screen.get_node("Panel/VBox/Title").text,
+					save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)
+				]
+			)
+		)
+		failed += 1
 
 	# Reset the overlay for the sequencing case (mirror a fresh map).
 	screen.hide()
@@ -85,10 +97,16 @@ func _init() -> void:
 	var visible_after_queue := screen.visible
 
 	if hidden_during_levelup and hidden_during_promotion and visible_after_queue:
-		print("OK  victory waits out the level-up AND the queued promotion, then presents"); passed += 1
+		print("OK  victory waits out the level-up AND the queued promotion, then presents")
+		passed += 1
 	else:
-		print("FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s" % [
-			hidden_during_levelup, hidden_during_promotion, visible_after_queue]); failed += 1
+		print(
+			(
+				"FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s"
+				% [hidden_during_levelup, hidden_during_promotion, visible_after_queue]
+			)
+		)
+		failed += 1
 
 	# Victory and defeat own distinct surfaces: GameOver must ignore victory and
 	# MapResults must not replace the defeat action menu.
@@ -105,28 +123,44 @@ func _init() -> void:
 	bus.map_resolved.emit("red", [])
 	await process_frame
 	if defeat_hidden_on_victory and game_over.visible and not screen.visible:
-		print("OK  victory and defeat present on separate result surfaces"); passed += 1
+		print("OK  victory and defeat present on separate result surfaces")
+		passed += 1
 	else:
-		print("FAIL split surfaces: game_over_on_win=%s game_over_on_loss=%s results_on_loss=%s" % [
-			not defeat_hidden_on_victory, game_over.visible, screen.visible]); failed += 1
+		print(
+			(
+				"FAIL split surfaces: game_over_on_win=%s game_over_on_loss=%s results_on_loss=%s"
+				% [not defeat_hidden_on_victory, game_over.visible, screen.visible]
+			)
+		)
+		failed += 1
 	var retry := game_over.get_node_or_null("Panel/VBox/RetryButton")
 	var recent: Button = game_over.get_node_or_null("Panel/VBox/ReloadRecentButton")
 	var any_save: Button = game_over.get_node_or_null("Panel/VBox/LoadGameButton")
 	var rewind: Button = game_over.get_node_or_null("Panel/VBox/RewindButton")
 	var main_menu := game_over.get_node_or_null("Panel/VBox/MainMenuButton")
-	var all_actions := retry != null and recent != null and any_save != null \
-		and rewind != null and main_menu != null and not rewind.disabled \
+	var all_actions := (
+		retry != null
+		and recent != null
+		and any_save != null
+		and rewind != null
+		and main_menu != null
+		and not rewind.disabled
 		and rewind.text == "Rewind (2)"
+	)
 	if all_actions:
-		print("OK  defeat exposes Retry, recent/any load, Rewind, and Main Menu"); passed += 1
+		print("OK  defeat exposes Retry, recent/any load, Rewind, and Main Menu")
+		passed += 1
 	else:
-		print("FAIL defeat multi-choice action contract"); failed += 1
+		print("FAIL defeat multi-choice action contract")
+		failed += 1
 	save_manager.save_slot("defeat_reload", _make_suspend_save())
 	game_over._refresh_defeat_actions()
 	if not recent.disabled and not any_save.disabled:
-		print("OK  defeat enables recent/any reload when a slot exists"); passed += 1
+		print("OK  defeat enables recent/any reload when a slot exists")
+		passed += 1
 	else:
-		print("FAIL defeat reload actions did not discover the slot"); failed += 1
+		print("FAIL defeat reload actions did not discover the slot")
+		failed += 1
 	game_over.queue_free()
 
 	screen.queue_free()
@@ -144,11 +178,21 @@ func _make_suspend_save() -> RefCounted:
 	save.map_runtime["map_id"] = "map_001"
 	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
 	save.suspend["kind"] = "map"
-	save.ledger.append({"reason": "round_start", "entry": {
-		"map_runtime": save.map_runtime.duplicate(true),
-		"suspend": save.suspend.duplicate(true),
-		"party": {"gold": 0, "items": [], "roster": []},
-	}})
+	(
+		save
+		. ledger
+		. append(
+			{
+				"reason": "round_start",
+				"entry":
+				{
+					"map_runtime": save.map_runtime.duplicate(true),
+					"suspend": save.suspend.duplicate(true),
+					"party": {"gold": 0, "items": [], "roster": []},
+				}
+			}
+		)
+	)
 	return SaveDataScript.from_dict(save.to_dict())
 
 

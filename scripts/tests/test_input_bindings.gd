@@ -19,8 +19,11 @@ func _has_joy_axis(action: String, axis: int, axis_value: float) -> bool:
 	if not InputMap.has_action(action):
 		return false
 	for event in InputMap.action_get_events(action):
-		if event is InputEventJoypadMotion and event.axis == axis \
-				and is_equal_approx(event.axis_value, axis_value):
+		if (
+			event is InputEventJoypadMotion
+			and event.axis == axis
+			and is_equal_approx(event.axis_value, axis_value)
+		):
 			return true
 	return false
 
@@ -64,8 +67,11 @@ func _init() -> void:
 		"cursor_right": JOY_BUTTON_DPAD_RIGHT,
 	}
 	for action in button_cases:
-		_record(_has_joy_button(action, button_cases[action]),
-			"%s has gamepad button %d" % [action, button_cases[action]], counters)
+		_record(
+			_has_joy_button(action, button_cases[action]),
+			"%s has gamepad button %d" % [action, button_cases[action]],
+			counters
+		)
 
 	var axis_cases := [
 		["cursor_up", JOY_AXIS_LEFT_Y, -1.0],
@@ -76,28 +82,34 @@ func _init() -> void:
 		["zoom_out", JOY_AXIS_TRIGGER_LEFT, 1.0],
 	]
 	for row in axis_cases:
-		_record(_has_joy_axis(row[0], row[1], row[2]),
-			"%s has gamepad axis %d/%s" % [row[0], row[1], row[2]], counters)
+		_record(
+			_has_joy_axis(row[0], row[1], row[2]),
+			"%s has gamepad axis %d/%s" % [row[0], row[1], row[2]],
+			counters
+		)
 
-	_record(not _has_any_joypad("open_settings"),
-		"open_settings stays menu-only on gamepad", counters)
+	_record(
+		not _has_any_joypad("open_settings"), "open_settings stays menu-only on gamepad", counters
+	)
 	for action in [
 		"debug_toggle_force_levelup",
 		"debug_toggle_growth_boost",
 		"debug_toggle_hotseat_override",
 	]:
-		_record(not _has_any_joypad(action),
-			"%s stays keyboard-only" % action, counters)
+		_record(not _has_any_joypad(action), "%s stays keyboard-only" % action, counters)
 
 	var sm: Node = SettingsManagerS.new()
 	sm._mirror_game_keys_to_ui()
-	_record(_has_joy_button("ui_accept", JOY_BUTTON_A),
-		"ui_accept mirrors confirm Pad A", counters)
-	_record(_has_joy_button("ui_cancel", JOY_BUTTON_B),
-		"ui_cancel mirrors cancel Pad B", counters)
-	_record(_has_joy_button("ui_up", JOY_BUTTON_DPAD_UP)
-			and _has_joy_axis("ui_up", JOY_AXIS_LEFT_Y, -1.0),
-		"ui_up mirrors d-pad and stick up", counters)
+	_record(_has_joy_button("ui_accept", JOY_BUTTON_A), "ui_accept mirrors confirm Pad A", counters)
+	_record(_has_joy_button("ui_cancel", JOY_BUTTON_B), "ui_cancel mirrors cancel Pad B", counters)
+	_record(
+		(
+			_has_joy_button("ui_up", JOY_BUTTON_DPAD_UP)
+			and _has_joy_axis("ui_up", JOY_AXIS_LEFT_Y, -1.0)
+		),
+		"ui_up mirrors d-pad and stick up",
+		counters
+	)
 
 	print("\n=== Results: %d passed, %d failed ===" % [counters["passed"], counters["failed"]])
 	if counters["failed"] > 0:
