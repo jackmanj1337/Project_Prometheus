@@ -109,6 +109,15 @@ history entry.
 **Goal:** a two-tier decaying ledger stores entries; Retry is re-expressed as a
 read of it; the old separate Retry path is deleted.
 
+- **DECIDED 2026-07-15 (user): party economy lives PER LEDGER ENTRY.** Fold party
+  gold/items into each entry (alongside the all-factions unit array) so an entry is
+  self-sufficient and a mid-map *rewind* (Phase 3) correctly undoes gold/items
+  gained earlier in the map (a village/chest reward). This resolves the question
+  Phase 1 deferred — Retry keeps its gold rollback and rewind gains it. Extend
+  `_capture_map_runtime_entry` (or the entry it returns) to carry `party_gold` +
+  `party_items`, and have `restore_history` reapply them. Note this diverges from
+  the handoff's entry-contents list (which put party economy in the `party` layer);
+  the rewind-correctness argument wins.
 - **Build the ledger** as its own object (a preloaded script, no `class_name` —
   mirror `DeploymentPlan.gd`'s reimport-safe pattern): two tiers, `fine`
   (per-activation, keep last `undo_activations`) and `coarse` (per round-start,
