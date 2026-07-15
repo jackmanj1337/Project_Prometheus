@@ -108,7 +108,10 @@ complete catalogue into deterministic cached summaries while excluding broken
 candidates. The explicit Tier-2 runtime adapter now constructs existing engine
 Resource types in memory, swaps sources atomically, resolves package-scoped map
 ids, and restores exact package identity from campaign/suspend saves before
-reference validation. New Game pack/campaign selection is the next unit.
+reference validation. New Game now appends validated installed campaigns with
+visible pack identity, activates the exact selected source before starting, and
+restores shipped content when a shipped row is chosen. Remaining sharing work is
+the player-facing archive import/export surface and any later repair controls.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

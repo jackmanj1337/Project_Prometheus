@@ -33,6 +33,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 
 signal back_pressed()
 
+const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
+
 @onready var _opt_map: OptionButton          = $Panel/VBox/HBoxMap/OptMap
 @onready var _opt_run: OptionButton          = $Panel/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
@@ -44,7 +46,7 @@ signal back_pressed()
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
-const _RUN_OPTIONS: Array[Dictionary] = [
+const _BUILT_IN_RUN_OPTIONS: Array[Dictionary] = [
 	{"label": "Single Map (Developer)", "campaign_id": ""},
 	{"label": "The Proving Grounds", "campaign_id": "proving_grounds"},
 ]
@@ -69,12 +71,11 @@ const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
 	},
 ]
 var _map_options: Array[Dictionary] = []
+var _run_options: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	_opt_run.clear()
-	for entry in _RUN_OPTIONS:
-		_opt_run.add_item(entry["label"])
+	_refresh_run_options()
 	_map_options = _load_map_options()
 	_opt_map.clear()
 	for entry in _map_options:
@@ -109,6 +110,7 @@ func _ready() -> void:
 
 
 func open() -> void:
+	_refresh_run_options()
 	# Seed the controls from GameState so reopening shows the current choices.
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -185,7 +187,10 @@ func _on_start() -> void:
 		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
 		return
 	_persist_rules()
-	var campaign_id: String = String(_RUN_OPTIONS[_opt_run.selected]["campaign_id"])
+	var run: Dictionary = _run_options[_opt_run.selected]
+	if not _activate_run_source(run):
+		return
+	var campaign_id: String = String(run["campaign_id"])
 	if campaign_id != "":
 		var cm := get_node_or_null("/root/CampaignManager")
 		if cm == null:
@@ -211,7 +216,57 @@ func _on_start() -> void:
 func _on_run_selected(index: int) -> void:
 	# The map picker remains visible as an explicit developer path, but it is not
 	# actionable while a campaign owns progression and map selection.
-	_opt_map.disabled = String(_RUN_OPTIONS[index]["campaign_id"]) != ""
+	_opt_map.disabled = String(_run_options[index]["campaign_id"]) != ""
+
+
+func _refresh_run_options() -> void:
+	var previous := _run_options[_opt_run.selected].duplicate(true) \
+		if not _run_options.is_empty() and _opt_run.selected >= 0 \
+			and _opt_run.selected < _run_options.size() else {}
+	_run_options = _BUILT_IN_RUN_OPTIONS.duplicate(true)
+	var registry := CampaignPackRegistryScript.new(
+		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
+	for summary in registry.refresh():
+		for campaign in summary["campaigns"]:
+			_run_options.append({
+				"label": "%s — %s %s" % [campaign["label"],
+					summary["package_id"], summary["package_version"]],
+				"campaign_id": campaign["campaign_id"],
+				"package_id": summary["package_id"],
+				"package_version": summary["package_version"],
+				"package_path": summary["path"],
+			})
+	_opt_run.clear()
+	for entry in _run_options:
+		_opt_run.add_item(entry["label"])
+	_opt_run.selected = 0
+	if not previous.is_empty():
+		for index in _run_options.size():
+			if _same_run_identity(_run_options[index], previous):
+				_opt_run.selected = index
+				break
+
+
+func _activate_run_source(run: Dictionary) -> bool:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		push_error("NewGameScreen: DataManager unavailable — cannot select campaign content")
+		return false
+	var package_id := String(run.get("package_id", ""))
+	if package_id.is_empty():
+		var active: Dictionary = dm.call("active_package_identity") \
+			if dm.has_method("active_package_identity") else {}
+		if not String(active.get("package_id", "")).is_empty():
+			dm.call("select_campaign_source", "res://data")
+		return true
+	return bool(dm.call("select_tier2_campaign_source",
+		String(run["package_path"]), package_id, String(run["package_version"])))
+
+
+static func _same_run_identity(a: Dictionary, b: Dictionary) -> bool:
+	return a.get("campaign_id", "") == b.get("campaign_id", "") \
+		and a.get("package_id", "") == b.get("package_id", "") \
+		and a.get("package_version", "") == b.get("package_version", "")
 
 
 func _on_back() -> void:
