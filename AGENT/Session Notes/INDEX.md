@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15ad](2026-07-15ad.md) — Ratified the split decision/delivery vocabulary and adjustable import-budget direction, then wrote the complete post-audit goal handoff.
 - [2026-07-15ac](2026-07-15ac.md) — Ran the full five-pillar campaign/save audit, wrote the requirement/evidence matrix, fixed import/resume/export transaction risks and tracker drift, and left the branch green for push.
 - [2026-07-15ab](2026-07-15ab.md) — Closed the campaign/save completion-audit gaps: authored protected hashes, rule-flip/read-only-rule UI, any-local-faction suspend/resume, and stale contract ownership text; all 98 suites green.
 - [2026-07-15aa](2026-07-15aa.md) — Completed the defeat recovery menu with Retry, recent/any save load, deterministic Rewind, and Main Menu over the unified restore path.

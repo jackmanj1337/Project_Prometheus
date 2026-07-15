@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Implemented - ownership check
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 ---
 
 # Document Role Manifest
@@ -96,6 +96,7 @@ marker.
 
 | Source | Owner | Reason / exit condition |
 |---|---|---|
+| [`campaign_save_post_audit_followup_handoff_2026-07-15.md`](campaign_save_post_audit_followup_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-SHARING`, `B6-CAMPAIGN-STATUS`, documentation/process follow-up | Owner-ratified cross-track audit closeout; retire after its six-phase completion gate is satisfied or remaining phases gain direct tracker rows. |
 | [`campaign_pack_boundary_next_session_handoff_2026-07-15.md`](campaign_pack_boundary_next_session_handoff_2026-07-15.md) | `B6-CAMPAIGN-SHARING` | Execution handoff for staged transactional installation; retire after archive slice 3 lands. |
 | [`campaign_pack_engine_boundary_plan_2026-07-15.md`](campaign_pack_engine_boundary_plan_2026-07-15.md) | `B1-LEDGER`, `B4-PREP-DEPLOYMENT`, `B6-CAMPAIGN-SHARING` | Cross-track ownership boundary and delivery order; retire after direct tracker sources absorb the boundary and all five milestones land. |
 | [`v040_post_build_code_review_fix_handoff_2026-07-15.md`](v040_post_build_code_review_fix_handoff_2026-07-15.md) | `B1-CST`, `B1-LEDGER`, `B6-CAMPAIGN-STATUS` | Post-v0.4.0 persistence/campaign-flow repair handoff; retire after the four fixes land and completion-record follow-up is routed. |
