@@ -131,10 +131,23 @@ Legacy short forms (`D1`, `A1`, `Decision 1`, `D-A`…`D-E`) are **deprecated
 aliases**; the index maps each to its canonical record. New ad-hoc decisions take
 a dated record file and a new registered prefix if they don't fit an existing one.
 
-**Workflow (answered → applied):**
+**Decision lifecycle and delivery workflow (ratified 2026-07-15):**
+The decision index tracks two independent columns. They must not be collapsed into
+composite values or inferred from each other:
 
-1. Answer the item in its home file with a dated resolution.
-2. Add/update its row in `decision_index.md` (status, links, supersedes).
-3. When the decision is reflected in code/GDD/roadmap, mark it `Applied` and link
-   the resulting GDD section or commit.
-4. Supersession is recorded as a link both ways (e.g. D-C → superseded by DOC-001).
+| Column | Allowed values | Meaning |
+| --- | --- | --- |
+| **Decision state** | `Open`, `Ratified`, `Superseded`, `Historical` | Whether the authoritative owner has accepted the decision and whether it still governs. An answer that has not reached that owner remains `Open`; there is no `Answered` state. |
+| **Delivery status** | `Not scheduled`, `Target design`, `Planned`, `In implementation`, `Implemented`, `Pending validation`, `Deferred`, `Not applicable` | How far the tracked implementation or documentation slice has progressed. This does not change whether the decision itself is ratified. |
+
+**Workflow (open → ratified → delivered):**
+
+1. Record the open item in its home file and index it as `Open`.
+2. After the authoritative owner accepts a dated resolution, set its decision
+   state to `Ratified` and choose the honest delivery status for the tracked slice.
+3. Update delivery status as code/GDD/roadmap work advances, linking the evidence
+   in the row notes. Partially delivered work is not `Implemented`.
+4. Set replaced decisions to `Superseded` and link both directions. Use
+   `Historical` for deprecated aliases or provenance-only records.
+
+`check_docs.py` enforces the exact headers and both vocabularies in the index.

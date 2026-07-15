@@ -39,6 +39,7 @@ Checks:
  31. Retired vocab — active docs do not reuse vocabulary retired by the Band 0 manifest
  32. Raw assets    — campaign media loading stays behind AssetResolver and pack media uses approved formats
  33. Save policy   — durable mid-map policies require infinite rewind and carry the builder warning
+ 36. Decision index — rows use independent decision-state and delivery vocabularies
 """
 
 import json
@@ -1606,6 +1607,69 @@ def check_campaign_status_record_contract() -> None:
                   f"status fact {field} must remain a facts-dictionary key")
 
 
+# ── check 36: decision-index lifecycle vocabulary (DOC-009) ────────────────
+
+_DECISION_INDEX = ROOT / "AGENT/Docs/decisions/decision_index.md"
+_DECISION_HEADER = ["ID", "Title", "Decision state", "Delivery status", "Home", "Notes"]
+_DECISION_STATES = {"Open", "Ratified", "Superseded", "Historical"}
+_DELIVERY_STATUSES = {
+    "Not scheduled", "Target design", "Planned", "In implementation",
+    "Implemented", "Pending validation", "Deferred", "Not applicable",
+}
+
+
+def check_decision_index_vocabulary() -> None:
+    """Decision rows keep owner acceptance separate from delivery progress."""
+    if not _DECISION_INDEX.exists():
+        _fail("decision-index", _DECISION_INDEX, 1, "decision index not found")
+        return
+
+    header_count = 0
+    row_count = 0
+    seen_ids: dict[str, int] = {}
+    in_table = False
+    for line_no, line in enumerate(_DECISION_INDEX.read_text(encoding="utf-8").splitlines(), 1):
+        if line.startswith("| ID |"):
+            header_count += 1
+            in_table = True
+            cells = _split_markdown_table_row(line)
+            if cells != _DECISION_HEADER:
+                _fail("decision-index", _DECISION_INDEX, line_no,
+                      f"table header must be {_DECISION_HEADER!r}")
+            continue
+        if not in_table:
+            continue
+        if re.match(r"^\|\s*:?-+", line):
+            continue
+        if not line.startswith("|"):
+            in_table = False
+            continue
+
+        cells = _split_markdown_table_row(line)
+        if len(cells) != len(_DECISION_HEADER):
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"row has {len(cells)} columns; expected {len(_DECISION_HEADER)}")
+            continue
+        row_count += 1
+        decision_id, _title, state, delivery, _home, _notes = cells
+        if decision_id in seen_ids:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"duplicate decision ID {decision_id!r}; first at line {seen_ids[decision_id]}")
+        else:
+            seen_ids[decision_id] = line_no
+        if state not in _DECISION_STATES:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"invalid Decision state {state!r}; expected one of {sorted(_DECISION_STATES)}")
+        if delivery not in _DELIVERY_STATUSES:
+            _fail("decision-index", _DECISION_INDEX, line_no,
+                  f"invalid Delivery status {delivery!r}; expected one of {sorted(_DELIVERY_STATUSES)}")
+
+    if header_count == 0:
+        _fail("decision-index", _DECISION_INDEX, 1, "no decision tables found")
+    if row_count == 0:
+        _fail("decision-index", _DECISION_INDEX, 1, "decision index has no rows")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1645,6 +1709,7 @@ def main() -> None:
         ("[33] Durable mid-map policy",   check_durable_mid_map_policy),
         ("[34] Mutable campaign rules",   check_mutable_campaign_rule_contract),
         ("[35] Campaign status record",   check_campaign_status_record_contract),
+        ("[36] Decision-index vocabulary",check_decision_index_vocabulary),
     ]
     for label, fn in steps:
         print(f"  {label}...")
