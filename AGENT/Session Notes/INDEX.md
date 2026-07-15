@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15h](2026-07-15h.md) — Began `B6-CAMPAIGN-SHARING`: implemented the pack-scoped open-registry `AssetResolver`, raw PNG/font/OGG/WAV primitives, fallback repair reports, traversal protection, item/weapon icon ids, and the DoD#2 raw-media boundary. All 83 suites and 32 doc checks green. Next: manifest + canonical Tier-2 JSON catalogue/validator.
+
 - [2026-07-15g](2026-07-15g.md) — **Proving Grounds campaign test started:** New Game entry routes the shipped five-map campaign through Prep, all 82 suites pass, and a hashed Windows artifact plus focused end-to-end checklist await live return.
 
 - [2026-07-15f](2026-07-15f.md) — **Next-session queue locked:** first expose the five-map `proving_grounds` campaign through New Game and cut its focused end-to-end test; then preflight and begin `B6-CAMPAIGN-SHARING` package export/import from the existing Slice 3 plan, leaving CampaignStatusRecord for the following consumer.
