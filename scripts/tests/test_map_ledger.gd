@@ -98,6 +98,10 @@ func _init() -> void:
 	_check("prune never empties a round-0-only ledger", _ids(solo), [0], counters)
 
 	# ---- clear() empties the ledger ----
+	var branch: RefCounted = _clone(led)
+	branch.truncate_after(2)
+	_check("truncate_after drops the abandoned future", _ids(branch), [0, 1, 2], counters)
+
 	bn.clear()
 	_check("clear empties the ledger", bn.size(), 0, counters)
 

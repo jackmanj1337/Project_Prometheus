@@ -40,8 +40,8 @@ rule fields are not retained as shims.
 | `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
-| `rewind_charges_per_map` | int (4) | Per-map rewind budget; `0` is the ironman-style no-rewind preset |
-| `undo_activations` | int (0) | B1-LEDGER within-map ledger: retain the last N per-activation entries; `-1` = infinite, `0` = none beyond round-0 |
+| `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one, and `0` disables Rewind |
+| `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
 
 > Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
@@ -89,7 +89,8 @@ Continue/delete lifecycle); the §8.1 snapshot generalization landed across
 suspend-complete board serializer; Phase 2: the two-tier decaying ledger, the
 `undo_activations`/`undo_rounds` budgets, and Retry re-expressed as
 `restore_history(0)` — the party-only snapshot path is scrapped);
-object/AI future fields and player-spendable rewind are **Target design**
+Phase 3 live checkpoint pushes and player-spendable deterministic rewind are
+**Implemented** (2026-07-15); object/AI future fields remain **Target design**
 Last verified: 2026-07-15
 
 ### Summary
@@ -155,12 +156,21 @@ plan (code, integration sweep, tests, build order) is
   `undo_activations` per-activation entries and the last `undo_rounds` round-start
   entries, with the round-0 boundary always retained (tiers are data, not a mode
   `match`). Each entry also folds the **party economy** (gold/items/roster) so a
-  Retry — and a future mid-map rewind — rolls party rewards back with the board.
+  Retry and mid-map rewind roll party rewards back with the board.
   Retry is now `GameState.restore_history(0)` (`GameOverScreen` calls it); the
   separate `restore_map_snapshot`/`_map_start_snapshot` party-only path is deleted.
   The `undo_activations`/`undo_rounds` retention budgets are new `CampaignRules`
-  fields (see §CampaignRules Contract). Making the budget player-spendable
-  mid-battle is Phase 3 (Rewind); live per-activation pushes wire in there.
+  fields (see §CampaignRules Contract).
+  **B1-LEDGER Phase 3 (2026-07-15) made the history live and spendable:** every
+  completed activation queues one coalesced post-action checkpoint; refreshed
+  round starts add coarse checkpoints. `rewind_charges_per_map` is the sole
+  spend meter and `undo_activations`/`undo_rounds` remain retention preferences.
+  While charges are positive, fine retention is floored to `charges-per-map + 1`
+  so sequential spends cannot prune their own reachable boundaries. Rewind stages
+  the target as a durable suspend payload, validates it, restores its full board,
+  party economy, PairUp, cursor, turn, and RNG state through a scene reload, spends
+  one charge, and only then truncates the abandoned future. Identical replay
+  reproduces the same RNG chain; choosing a different committed action diverges.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,
   unsuppressed local control: map id/path, live unit runtime dictionaries for all

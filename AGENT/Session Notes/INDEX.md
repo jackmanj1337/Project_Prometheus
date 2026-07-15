@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15s](2026-07-15s.md) — Completed live deterministic player Rewind: coalesced activation/round pushes, authoritative charge spending, economy/RNG restore, transactional branching, and Map Menu surface.
 - [2026-07-15r](2026-07-15r.md) — Completed installed-campaign New Game selection, exact Tier-2 activation before campaign start, package map/roster launch resolution, and switching back to shipped content.
 - [2026-07-15q](2026-07-15q.md) — Added the Tier-2 JSON runtime adapter, atomic DataManager activation, package-scoped map/roster resolution, and exact package identity across campaign/suspend saves.
 - [2026-07-15p](2026-07-15p.md) — Added validated installed-pack discovery and deterministic deep-copy summary caching; identified the required Tier-2 JSON runtime adapter before selector activation.

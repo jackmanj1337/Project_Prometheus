@@ -142,6 +142,27 @@ settings presentation are owned by `GDD_07`.
 
 ---
 
+## Rewind Boundaries
+
+Status: **Implemented**
+Last verified: 2026-07-15
+
+The tactical map records a suspend-complete checkpoint after every committed
+activation and after each refreshed round start. Multiple unit-state writes made
+by one atomic action coalesce into one activation checkpoint. Rewind is exposed
+only while an earlier checkpoint and a campaign-authored charge remain; it restores
+that boundary through the normal active-map resume path, spends one charge, and
+truncates the abandoned branch. Round-0 remains reserved for Retry. Because the
+checkpoint includes the RNG timeline, repeating an identical decision repeats its
+outcome while a different committed decision advances a different history chain.
+
+### Anchors
+- Runtime: `scripts/core/TurnManager.gd`, `scripts/autoloads/GameState.gd`
+- Ledger: `scripts/save/MapLedger.gd`
+- Rule owner: `GDD_01 §CampaignRules Contract`
+
+---
+
 ## Objective System
 
 Status: **Implemented**

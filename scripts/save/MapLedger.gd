@@ -46,6 +46,13 @@ func clear() -> void:
 	_entries.clear()
 
 
+func truncate_after(index: int) -> void:
+	if index < 0:
+		_entries.clear()
+	elif index + 1 < _entries.size():
+		_entries.resize(index + 1)
+
+
 # The reason tag at index, or "" if out of range — for tests/UI that label an entry.
 func reason_at(index: int) -> String:
 	if index < 0 or index >= _entries.size():

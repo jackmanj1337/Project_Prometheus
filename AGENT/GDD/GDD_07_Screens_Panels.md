@@ -604,6 +604,7 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 ```
 ┌──────────────────┐
 │   End Turn       │
+│   Rewind (N)      │
 │   Settings       │
 │   Suspend & Quit │
 │   Quit to Menu   │
@@ -615,6 +616,10 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 - `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
   a confirmation prompt is shown first; if every unit is already done it ends
   immediately. (Note: the phase also ends automatically once the last unit acts.)
+- `Rewind (N)`: shows the remaining per-map charges and is disabled when no
+  earlier ledger boundary or charge remains. Activating it restores the previous
+  committed-action boundary through the active-map resume path and reloads the
+  tactical scene; it does not reroll identical decisions.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.

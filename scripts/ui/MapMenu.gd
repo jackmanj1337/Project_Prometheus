@@ -3,6 +3,7 @@ extends Control
 # Opens on open_menu action; closes on cancel or after a selection.
 
 signal end_turn_requested()
+signal rewind_requested()
 signal settings_requested()
 signal suspend_and_quit_requested()
 signal quit_to_menu_requested()
@@ -12,6 +13,7 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _end_turn_btn: Button = $Panel/VBox/EndTurnButton
+@onready var _rewind_btn: Button = $Panel/VBox/RewindButton
 @onready var _settings_btn: Button = $Panel/VBox/SettingsButton
 @onready var _suspend_and_quit_btn: Button = $Panel/VBox/SuspendAndQuitButton
 @onready var _quit_to_menu_btn: Button = $Panel/VBox/QuitToMenuButton
@@ -24,6 +26,7 @@ func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
 	hide()
 	_end_turn_btn.pressed.connect(_on_end_turn)
+	_rewind_btn.pressed.connect(_on_rewind)
 	_settings_btn.pressed.connect(_on_settings)
 	_suspend_and_quit_btn.pressed.connect(_on_suspend_and_quit)
 	_quit_to_menu_btn.pressed.connect(_on_quit_to_menu)
@@ -48,6 +51,10 @@ func _on_backdrop_input(event: InputEvent) -> void:
 func open() -> void:
 	_apply_menu_scale_from_settings()
 	_suspend_and_quit_btn.disabled = not _suspend_available
+	var gs := get_node_or_null("/root/GameState")
+	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
+	_rewind_btn.text = "Rewind (%d)" % charges
+	_rewind_btn.disabled = gs == null or not bool(gs.call("can_rewind"))
 	show()
 	_end_turn_btn.grab_focus()
 
@@ -78,6 +85,13 @@ func _on_end_turn() -> void:
 	hide()
 	end_turn_requested.emit()
 	menu_closed.emit()
+
+
+func _on_rewind() -> void:
+	if _rewind_btn.disabled:
+		return
+	hide()
+	rewind_requested.emit()
 
 
 # Hides the menu and asks for the settings overlay. Deliberately does NOT emit

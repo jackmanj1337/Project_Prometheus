@@ -179,6 +179,7 @@ var next_map_deployment: Dictionary = {}
 # scoped: cleared in reset_map_state and re-seeded by the round-0 push in
 # take_map_snapshot. See scripts/save/MapLedger.gd.
 var _map_ledger: RefCounted = MapLedgerScript.new()
+var rewind_charges_left: int = 0
 
 
 func register_unit(unit: Node) -> void:
@@ -319,6 +320,7 @@ func reset_map_state() -> void:
 	# B1-LEDGER: the within-map ledger is map-scoped — drop it between maps so a
 	# new map starts with a fresh ledger (take_map_snapshot re-seeds the round-0 entry).
 	_map_ledger.clear()
+	rewind_charges_left = 0
 	# Pair Up state is map-scoped; drop pairings between maps so a new map
 	# starts unpaired regardless of how the previous one ended.
 	var reg := get_node_or_null("/root/PairUpRegistry")
@@ -359,8 +361,14 @@ func configure_suspend_resume(source: Variant) -> bool:
 		return false
 	if not _activate_saved_campaign_source(payload.get("campaign", {})):
 		return false
+	var restored_items: Array[String] = _party_items_from_convoy_entries(
+		payload.get("party", {}).get("convoy", {}).get("entries", []))
+	if restored_items.is_empty() \
+			and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty():
+		return false
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
+	party_items = restored_items
 	player_roster = _player_roster_from_runtime_units(map_runtime.get("units", []))
 	roster_initialized = not player_roster.is_empty()
 	roster_load_failed = player_roster.is_empty()
@@ -370,6 +378,8 @@ func configure_suspend_resume(source: Variant) -> bool:
 	next_map_roster_policy = "suspend_resume"
 	next_map_roster_source = map_path
 	next_map_suspend_payload = payload.duplicate(true)
+	rewind_charges_left = maxi(0, int(map_runtime.get("rewind_charges_left",
+		campaign_rules.rewind_charges_per_map)))
 	# A suspend resume rebuilds the board from the serialized live units, so any
 	# staged plan is stale — it described a fresh deployment, not a map in progress.
 	next_map_deployment.clear()
@@ -503,6 +513,7 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 	_capture_campaign_package_identity(save.campaign)
 	save.campaign["rules"] = _campaign_rules_to_dict()
 	save.party["resources"]["party_gold"] = party_gold
+	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
 	save.roster["units"] = []
 	for unit_data in player_roster:
 		if unit_data != null:
@@ -541,6 +552,7 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 			if turn_manager != null and turn_manager.has_method("capture_suspend_turn_state") else {},
 		"pair_carry": {"pair_up": reg.call("serialize") if reg else {}},
 		"rng": rng_svc.call("to_save_dict") if rng_svc else {},
+		"rewind_charges_left": rewind_charges_left,
 	}
 	var suspend_ui: Dictionary = cursor.call("capture_suspend_ui_state") \
 		if cursor != null and cursor.has_method("capture_suspend_ui_state") else {}
@@ -600,7 +612,50 @@ func peek_history(index: int) -> Dictionary:
 # Decay the ledger to the campaign's undo budgets (see MapLedger.prune). The round-0
 # boundary is always retained. Called after each live push once Phase 3 wires them.
 func prune_history() -> void:
-	_map_ledger.prune(campaign_rules.undo_activations, campaign_rules.undo_rounds)
+	var fine_keep := campaign_rules.undo_activations
+	if campaign_rules.rewind_charges_per_map > 0:
+		fine_keep = maxi(fine_keep, campaign_rules.rewind_charges_per_map + 1)
+	_map_ledger.prune(fine_keep, campaign_rules.undo_rounds)
+
+
+func begin_map_rewind_budget() -> void:
+	rewind_charges_left = maxi(0, campaign_rules.rewind_charges_per_map)
+
+
+func can_rewind() -> bool:
+	return rewind_charges_left > 0 and _map_ledger.size() > 1
+
+
+func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
+	if not can_rewind():
+		return false
+	var target_index: int = _map_ledger.size() - 2
+	var entry: Dictionary = _map_ledger.peek(target_index)
+	var errors: Array[String] = _validate_restore_entry(entry)
+	if not errors.is_empty():
+		for error in errors:
+			push_error(error)
+		return false
+	var save: RefCounted = capture_suspend_save(turn_manager, cursor)
+	if save == null:
+		return false
+	var payload: Dictionary = save.to_dict()
+	payload["map_runtime"] = entry["map_runtime"].duplicate(true)
+	payload["suspend"] = entry["suspend"].duplicate(true)
+	var entry_party: Dictionary = entry["party"]
+	payload["party"]["resources"]["party_gold"] = int(entry_party.get("gold", 0))
+	payload["party"]["convoy"]["entries"] = _party_item_ids_to_convoy_entries(
+		entry_party.get("items", []))
+	var restored_charges := maxi(0, int(payload["map_runtime"].get(
+		"rewind_charges_left", rewind_charges_left)) - 1)
+	payload["map_runtime"]["rewind_charges_left"] = restored_charges
+	if not configure_suspend_resume(payload):
+		return false
+	# Commit the branch only after the staged durable payload has been accepted.
+	# A malformed target therefore cannot destroy the still-playable future.
+	_map_ledger.truncate_after(target_index)
+	rewind_charges_left = restored_charges
+	return true
 
 
 # The BETWEEN-map campaign save (B1-CST Slice 3): the party parked on a campaign
@@ -724,9 +779,19 @@ func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
 # Temporary flat party item ids use the durable convoy schema until the full
 # convoy system owns richer InventoryEntry state. Duplicates are intentional.
 func _party_items_to_convoy_entries() -> Array[Dictionary]:
+	return _party_item_ids_to_convoy_entries(party_items)
+
+
+func _party_item_ids_to_convoy_entries(item_ids: Variant) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for item_id in party_items:
-		out.append({"entry_type": "item", "item_id": item_id, "uses_remaining": 1})
+	if not (item_ids is Array):
+		return out
+	for item_id_var in item_ids:
+		out.append({
+			"entry_type": "item",
+			"item_id": String(item_id_var),
+			"uses_remaining": 1,
+		})
 	return out
 
 

@@ -162,7 +162,7 @@ read of it; the old separate Retry path is deleted.
 - **DoD:** `GDD_01` + `AGENT/Docs/guides/campaign_rules.md` (new undo budgets are
   campaign rules) updated; roadmap row flipped; docs index regenerated.
 
-## Phase 3 — Rewind (DEFERRABLE — gated on the Phase 1 measurement)
+## Phase 3 — Rewind (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** the `undo_activations` / `undo_rounds` budgets are spendable by the
 player mid-battle, not just retained by prune.

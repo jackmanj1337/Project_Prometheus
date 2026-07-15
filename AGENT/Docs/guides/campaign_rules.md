@@ -95,17 +95,24 @@ This is a campaign rule, not a per-map gimmick flag.
 ### `undo_activations` / `undo_rounds` (B1-LEDGER within-map ledger)
 
 Retention budgets for the within-map decaying ledger (`scripts/save/MapLedger.gd`),
-the stack of suspend-complete board checkpoints a Retry — and, once shipped, a
-mid-map rewind — restores from. The ledger keeps the UNION of:
+the stack of suspend-complete board checkpoints that Retry and mid-map Rewind
+restore from. The ledger keeps the UNION of:
 
 - the last `undo_activations` per-activation entries (the fine tier), and
 - the last `undo_rounds` round-start entries (the coarse tier),
 
 on top of the round-0 boundary, which is **always** retained so a Retry works
 regardless of the budgets. `-1` means retain every entry of that tier (the coarse
-tier may legitimately be infinite); `0` keeps none beyond round-0. These set how
-deep the ledger *remembers*; making a checkpoint player-spendable mid-battle is
-Rewind (Phase 3), which reconciles them with `rewind_charges_per_map`.
+tier may legitimately be infinite); `0` keeps none beyond round-0.
+
+`rewind_charges_per_map` is the authoritative player spend meter. A fresh map
+starts with that many charges and every successful Rewind consumes one. The undo
+fields only express retention depth; while Rewind is enabled, runtime floors the
+fine tier to `rewind_charges_per_map + 1` checkpoints so all authored charges can
+actually be spent. `0` charges is the no-rewind/ironman-style preset. A rewind
+restores the checkpoint's board, party economy, PairUp and RNG state, then drops
+the abandoned future; replaying the same actions therefore reproduces the same
+outcomes rather than rerolling luck.
 
 The design direction already locked in the project docs is:
 

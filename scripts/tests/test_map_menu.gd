@@ -25,6 +25,10 @@ func _init() -> void:
 		"quit_to_menu": 0,
 		"closed": 0,
 	}
+	if menu.get_node_or_null("Panel/VBox/RewindButton") != null:
+		print("OK  rewind action is present in the map menu"); passed += 1
+	else:
+		print("FAIL rewind action missing"); failed += 1
 	menu.end_turn_requested.connect(func() -> void: events["end_turn"] += 1)
 	menu.settings_requested.connect(func() -> void: events["settings"] += 1)
 	menu.suspend_and_quit_requested.connect(func() -> void: events["suspend"] += 1)

@@ -127,7 +127,9 @@ func _ready() -> void:
 				rng_svc.call("start_map")
 		gs.set("map_data", map_data)
 		if not is_resuming:
+			gs.call("begin_map_rewind_budget")
 			gs.call("take_map_snapshot")
+	_turn_manager.set_history_cursor(_cursor)
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
 		_hud.setup(_grid, _turn_manager, _attack_preview, _unit_details_screen)

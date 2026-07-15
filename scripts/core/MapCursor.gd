@@ -154,6 +154,8 @@ func _ready() -> void:
 		unit_details.closed.connect(_on_unit_details_closed)
 	if map_menu:
 		map_menu.end_turn_requested.connect(_on_end_turn_requested)
+		if map_menu.has_signal("rewind_requested"):
+			map_menu.rewind_requested.connect(_on_rewind_requested)
 		map_menu.menu_closed.connect(_on_map_menu_closed)
 		map_menu.settings_requested.connect(_on_settings_requested)
 		if map_menu.has_signal("suspend_and_quit_requested"):
@@ -1700,6 +1702,14 @@ func _serialize_threat_views() -> Dictionary:
 	for faction_id in _threat_views_by_faction:
 		out[String(faction_id)] = _normalize_threat_view(_threat_views_by_faction[faction_id])
 	return out
+
+
+func _on_rewind_requested() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not bool(gs.call("rewind_last_action", _turn, self)):
+		_on_map_menu_closed()
+		return
+	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 
 func _on_end_turn_requested() -> void:

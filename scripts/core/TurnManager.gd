@@ -19,6 +19,7 @@ signal phase_committed
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
+const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -66,6 +67,8 @@ var _activation_mode: String = "WHOLE_PHASE"
 var _ai_controller: Node = null
 var _hotseat_controller: Node = null
 var _debug_hotseat_override_latch: bool = false
+var _history_cursor: Node = null
+var _history_push_pending := false
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -108,6 +111,10 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 			var gs_for_first := get_node_or_null("/root/GameState")
 			if gs_for_first:
 				gs_for_first.set_phase(gs_for_first.Phase.ENEMY, active_faction())
+
+
+func set_history_cursor(cursor: Node) -> void:
+	_history_cursor = cursor
 
 
 func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
@@ -424,6 +431,8 @@ func start_player_phase() -> void:
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
+	if gs != null and gs.turn_number > 1:
+		_push_history(MapLedgerScript.REASON_ROUND_START)
 
 
 # Called via the map menu's End Turn request (MapCursor._on_end_turn_requested).
@@ -596,6 +605,7 @@ func end_alternating_activation() -> void:
 func set_unit_state(unit: Node, state: UnitState) -> void:
 	if unit == null:
 		return
+	var previous: int = int(_unit_states.get(unit, UnitState.READY))
 	_unit_states[unit] = state
 	if state == UnitState.DONE:
 		# The action is committed — spend the recorded pre-move tile so a later
@@ -609,10 +619,31 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# automatically (#5 / M15 Part A). Deferred so the current action fully
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
-	if state == UnitState.DONE:
+	if state == UnitState.DONE and previous != UnitState.DONE:
+		_queue_activation_history_push()
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
 			call_deferred("_auto_end_active_phase")
+
+
+func _queue_activation_history_push() -> void:
+	if _history_push_pending:
+		return
+	_history_push_pending = true
+	call_deferred("_flush_activation_history")
+
+
+func _flush_activation_history() -> void:
+	_history_push_pending = false
+	_push_history(MapLedgerScript.REASON_ACTIVATION)
+
+
+func _push_history(reason: String) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not gs.has_method("push_history"):
+		return
+	gs.call("push_history", self, _history_cursor, reason)
+	gs.call("prune_history")
 
 
 # Deferred from set_unit_state / _on_unit_died — ends the active locally-human
