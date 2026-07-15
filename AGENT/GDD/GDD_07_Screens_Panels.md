@@ -71,8 +71,8 @@ Last verified: 2026-07-15
 Status: **Implemented 2026-07-14** (`B1-CST` Slice 3)
 
 A modal overlay child of Main Menu (`open()` / hide, no scene change), listing the
-written slots of either intrinsic kind. **Read-only: this screen loads and deletes, it never
-writes a save.** Writing a manual campaign slot is a *between-map* action and
+written slots of either intrinsic kind. It loads, deletes, and transfers existing
+saves; writing fresh manual campaign progress remains a *between-map* action and
 belongs to the prep screen (`B4-PREP-DEPLOYMENT`);
 `CampaignManager.write_campaign_slot` is built and waits for it. Map Menu writes
 the reserved mid-map `resume_battle` slot through the same store.
@@ -106,6 +106,13 @@ the reserved mid-map `resume_battle` slot through the same store.
   on disk, or disables when nothing is.
 - A row whose save file has vanished is skipped by `list_slots`, so the picker can
   never offer a save it cannot load.
+- Each row offers **Export** to a filesystem FileDialog. The result is one
+  human-readable `.json` document with canonical whole-payload and protected
+  campaign/progression SHA-256 stamps. **Import Save** sniffs ZIP versus JSON,
+  routes campaign-package ZIPs to New Game's Manage Campaigns surface, validates
+  JSON saves, and writes an available `imported_NN` slot. A changed payload shows
+  an explicit warning; protected-field changes add a stronger warning, and the
+  player must choose **Import Anyway** before the warn-and-continue path writes.
 - Back returns to the Main Menu without reloading the scene.
 
 Between-map slot loads route to the implemented Prep screen through

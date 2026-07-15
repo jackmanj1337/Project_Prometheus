@@ -162,6 +162,26 @@ func _init() -> void:
 		print("FAIL row text: autosave=%s manual=%s" % [autosave_text, manual_text])
 		failed += 1
 
+	# Filesystem transfer uses the actual FileDialog callbacks. Export remains one
+	# JSON file; importing it creates a normal named slot and refreshes the picker.
+	var portable_path := TEST_SAVE_DIR.path_join("portable-ui.json")
+	picker._on_export_pressed("manual_01")
+	picker._on_export_file_selected(portable_path)
+	var export_ok: bool = FileAccess.file_exists(portable_path) \
+		and "Exported save" in picker.get_node("TransferResult").dialog_text
+	picker._on_import_file_selected(portable_path)
+	var import_ok: bool = save_manager.has_slot("imported_01") \
+		and picker.get_slot_ids().has("imported_01")
+	if export_ok and import_ok:
+		print("OK  Load Game exports and imports a portable save through picker callbacks")
+		passed += 1
+	else:
+		print("FAIL portable UI transfer: export=%s import=%s" % [export_ok, import_ok])
+		failed += 1
+	save_manager.delete_slot("imported_01")
+	picker.open()
+	await process_frame
+
 	# Completion records remain visible but are details-only: they cannot launch an
 	# empty node and Continue ignores them.
 	save_manager.save_slot("completed", _make_completed_save())

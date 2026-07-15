@@ -7,6 +7,7 @@ extends Node
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
+const SaveIntegrity = preload("res://scripts/save/SaveIntegrity.gd")
 
 const DEFAULT_SAVE_DIR := "user://saves"
 const INDEX_FILENAME := "saves_index.json"
@@ -103,7 +104,7 @@ func save_slot(slot_id: String, source: Variant, origin: String = "manual",
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
 		return false
-	var payload: Dictionary = save.to_dict()
+	var payload: Dictionary = SaveIntegrity.stamp(save.to_dict())
 	if origin == "manual" and not _manual_write_allowed(slot_id,
 			String(payload.get("header", {}).get("save_kind", "between_map"))):
 		return false
@@ -169,6 +170,70 @@ func load_slot(slot_id: String) -> RefCounted:
 	if not has_slot(slot_id):
 		return null
 	return _read_save_document(get_slot_path(slot_id), "slot '%s'" % slot_id)
+
+
+# Portable saves are one pretty-printed JSON document. Integrity mismatch is
+# advisory; structural/schema validation remains the hard load boundary.
+func export_slot(slot_id: String, destination_path: String) -> Dictionary:
+	var result := {"ok": false, "errors": [], "warnings": []}
+	var save := load_slot(slot_id)
+	if save == null:
+		result["errors"].append("The selected save could not be loaded.")
+		return result
+	var payload := SaveIntegrity.stamp(save.to_dict())
+	if DirAccess.make_dir_recursive_absolute(destination_path.get_base_dir()) != OK:
+		result["errors"].append("The export directory could not be created.")
+		return result
+	if not _write_json_absolute(destination_path, payload):
+		result["errors"].append("The portable save could not be written.")
+		return result
+	result["ok"] = true
+	return result
+
+
+func inspect_portable_save(source_path: String) -> Dictionary:
+	var result := {"ok": false, "errors": [], "warnings": [], "save": null,
+		"artifact_kind": "unknown"}
+	var file := FileAccess.open(source_path, FileAccess.READ)
+	if file == null:
+		result["errors"].append("The selected file could not be opened.")
+		return result
+	var bytes := file.get_buffer(file.get_length())
+	if bytes.size() >= 4 and bytes.decode_u32(0) == 0x04034b50:
+		result["artifact_kind"] = "campaign_pack"
+		result["errors"].append("This ZIP is a campaign package. Import it from New Game > Manage Campaigns.")
+		return result
+	result["artifact_kind"] = "save_json"
+	var parsed := _parse_json_dict(bytes.get_string_from_utf8(), source_path)
+	if parsed.is_empty():
+		result["errors"].append("The selected file is not a campaign save JSON object.")
+		return result
+	result["warnings"] = SaveIntegrity.verify(parsed)
+	var save: RefCounted = SaveDataScript.from_dict(parsed)
+	var errors: Array[String] = save.validate(_data_manager())
+	if not errors.is_empty():
+		result["errors"].append_array(errors)
+		return result
+	result["save"] = save
+	result["ok"] = true
+	return result
+
+
+func import_portable_save(source_path: String, slot_id: String,
+		acknowledge_warnings: bool = false) -> Dictionary:
+	var result := inspect_portable_save(source_path)
+	if not result["ok"]:
+		return result
+	if not result["warnings"].is_empty() and not acknowledge_warnings:
+		result["ok"] = false
+		result["requires_acknowledgement"] = true
+		return result
+	if not save_slot(slot_id, result["save"], "manual"):
+		result["ok"] = false
+		result["errors"].append("The imported save could not be stored in the selected slot.")
+		return result
+	result["ok"] = true
+	return result
 
 
 func delete_slot(slot_id: String) -> bool:
@@ -379,6 +444,16 @@ func _commit_slot_transaction(slot_path: String, payload: Dictionary, index: Dic
 
 
 func _write_json_file(path: String, value: Dictionary) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(value, "\t", true))
+	file.flush()
+	file.close()
+	return true
+
+
+func _write_json_absolute(path: String, value: Dictionary) -> bool:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return false

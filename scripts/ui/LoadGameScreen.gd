@@ -37,14 +37,26 @@ signal slots_changed()
 @onready var _scroll: ScrollContainer = $Panel/VBox/Scroll
 @onready var _empty_label: Label = $Panel/VBox/EmptyLabel
 @onready var _btn_back: Button = $Panel/VBox/BtnBack
+@onready var _btn_import: Button = $Panel/VBox/BtnImport
+@onready var _import_dialog: FileDialog = $ImportDialog
+@onready var _export_dialog: FileDialog = $ExportDialog
+@onready var _transfer_result: AcceptDialog = $TransferResult
+@onready var _tamper_warning: ConfirmationDialog = $TamperWarning
 
 # Slot ids in display order — the picker's model, kept so callers (and tests) can
 # read the order without walking the row nodes.
 var _slot_ids: Array[String] = []
+var _export_slot_id := ""
+var _pending_import_path := ""
+var _pending_import_slot := ""
 
 
 func _ready() -> void:
 	_btn_back.pressed.connect(_on_back)
+	_btn_import.pressed.connect(func(): _import_dialog.popup_centered_ratio(0.75))
+	_import_dialog.file_selected.connect(_on_import_file_selected)
+	_export_dialog.file_selected.connect(_on_export_file_selected)
+	_tamper_warning.confirmed.connect(_on_tamper_acknowledged)
 	super._ready()
 
 
@@ -92,6 +104,12 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	delete_btn.text = "Delete"
 	delete_btn.pressed.connect(_on_delete_pressed.bind(slot_id))
 	box.add_child(delete_btn)
+
+	var export_btn := Button.new()
+	export_btn.name = "ExportButton"
+	export_btn.text = "Export"
+	export_btn.pressed.connect(_on_export_pressed.bind(slot_id))
+	box.add_child(export_btn)
 	return box
 
 
@@ -169,6 +187,76 @@ func _delete_slot(slot_id: String) -> void:
 	# delete_slot already clears the Continue pointer when it named this slot;
 	# MainMenu still has to redraw the buttons that read it.
 	slots_changed.emit()
+
+
+func _on_export_pressed(slot_id: String) -> void:
+	_export_slot_id = slot_id
+	_export_dialog.current_file = "%s.json" % slot_id
+	_export_dialog.popup_centered_ratio(0.75)
+
+
+func _on_export_file_selected(path: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("export_slot"):
+		_show_transfer_result("Save export is unavailable.")
+		return
+	var result: Dictionary = manager.call("export_slot", _export_slot_id, path)
+	if result.get("ok", false):
+		_show_transfer_result("Exported save '%s'." % _export_slot_id)
+	else:
+		_show_transfer_result(_transfer_failure("Export failed", result.get("errors", [])))
+
+
+func _on_import_file_selected(path: String) -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null or not manager.has_method("import_portable_save"):
+		_show_transfer_result("Save import is unavailable.")
+		return
+	var slot_id := _next_import_slot_id(manager)
+	var result: Dictionary = manager.call("import_portable_save", path, slot_id, false)
+	if result.get("requires_acknowledgement", false):
+		_pending_import_path = path
+		_pending_import_slot = slot_id
+		_tamper_warning.dialog_text = "%s\n\nImport anyway?" % "\n\n".join(result["warnings"])
+		_tamper_warning.popup_centered()
+		_tamper_warning.get_ok_button().grab_focus()
+		return
+	_finish_import(result, slot_id)
+
+
+func _on_tamper_acknowledged() -> void:
+	var manager := get_node_or_null("/root/SaveManager")
+	if manager == null:
+		return
+	var result: Dictionary = manager.call("import_portable_save",
+		_pending_import_path, _pending_import_slot, true)
+	_finish_import(result, _pending_import_slot)
+
+
+func _finish_import(result: Dictionary, slot_id: String) -> void:
+	if not result.get("ok", false):
+		_show_transfer_result(_transfer_failure("Import failed", result.get("errors", [])))
+		return
+	_rebuild_rows()
+	slots_changed.emit()
+	_show_transfer_result("Imported campaign save as '%s'." % slot_id)
+
+
+func _next_import_slot_id(manager: Node) -> String:
+	var suffix := 1
+	while manager.call("has_slot", "imported_%02d" % suffix):
+		suffix += 1
+	return "imported_%02d" % suffix
+
+
+func _show_transfer_result(message: String) -> void:
+	_transfer_result.dialog_text = message
+	_transfer_result.popup_centered()
+	_transfer_result.get_ok_button().grab_focus()
+
+
+static func _transfer_failure(prefix: String, errors: Array) -> String:
+	return prefix + "." if errors.is_empty() else "%s:\n%s" % [prefix, "\n".join(errors)]
 
 
 func _list_slots() -> Array[Dictionary]:

@@ -7,6 +7,7 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 const FORMAT_VERSION := 1
 const TOP_LEVEL_KEYS: Array[String] = [
 	"format_version",
+	"_warning",
 	"save_label",
 	"origin",
 	"rule_id",
@@ -21,6 +22,7 @@ const TOP_LEVEL_KEYS: Array[String] = [
 ]
 
 var format_version: int = FORMAT_VERSION
+var warning: String = "This is a human-readable campaign save. Editing may cause invalid or unintended game state."
 var save_label: String = ""
 var origin: String = "manual"
 var rule_id: String = ""
@@ -50,6 +52,7 @@ func apply_dict(source: Variant) -> void:
 		return
 	var data: Dictionary = source
 	format_version = SaveCodec.as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
+	warning = _as_string(data.get("_warning", warning), warning)
 	save_label = _as_string(data.get("save_label", ""), "")
 	origin = _as_string(data.get("origin", "manual"), "manual")
 	rule_id = _as_string(data.get("rule_id", ""), "")
@@ -67,6 +70,7 @@ func to_dict() -> Dictionary:
 	var header_dict := _normalize_header(header, campaign, party, roster, map_runtime)
 	return {
 		"format_version": format_version,
+		"_warning": warning,
 		"save_label": save_label,
 		"origin": origin,
 		"rule_id": rule_id,
@@ -119,6 +123,7 @@ func _validate_ledger() -> Array[String]:
 
 func _apply_defaults() -> void:
 	format_version = FORMAT_VERSION
+	warning = "This is a human-readable campaign save. Editing may cause invalid or unintended game state."
 	save_label = ""
 	origin = "manual"
 	rule_id = ""

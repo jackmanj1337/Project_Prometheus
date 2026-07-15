@@ -72,6 +72,29 @@ theme_override_constants/separation = 8
 [node name="HSep" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
 
+[node name="BtnImport" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Import Save..."
+
 [node name="BtnBack" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Back"
+
+[node name="ImportDialog" type="FileDialog" parent="."]
+title = "Import Campaign Save"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.json ; Campaign saves", "*.zip ; Campaign packages")
+
+[node name="ExportDialog" type="FileDialog" parent="."]
+title = "Export Campaign Save"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.json ; Campaign saves")
+
+[node name="TransferResult" type="AcceptDialog" parent="."]
+title = "Campaign Save Transfer"
+
+[node name="TamperWarning" type="ConfirmationDialog" parent="."]
+title = "Import Changed Save?"
+ok_button_text = "Import Anyway"

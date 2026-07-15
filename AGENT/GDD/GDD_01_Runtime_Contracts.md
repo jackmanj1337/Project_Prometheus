@@ -205,6 +205,15 @@ plan (code, integration sweep, tests, build order) is
   persists `ledger[]`, so pre-suspend Rewind boundaries survive process restart;
   its campaign envelope also restores the active graph position. Every slot carries
   `origin` and automatic slots additionally carry `rule_id`.
+- **Portable save transfer.** Every slot write and filesystem export stamps a
+  canonical SHA-256 over the full payload (with blank stamp fields) and a second
+  SHA-256 over format version, package/campaign identity, progression, campaign
+  rules, and optional authored dotted `protected_fields`. Load Game exports one
+  pretty-printed JSON document. Import sniffs ZIP/JSON leading bytes, validates
+  the SaveData schema, and treats hash mismatch as advisory: changed content
+  requires explicit player acknowledgement, protected changes add a stronger
+  warning, and only parse/schema/version failures hard-reject. Save JSON includes
+  an inline `_warning` explaining that editing can produce invalid state.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -223,11 +232,12 @@ plan (code, integration sweep, tests, build order) is
   added live Rewind and the unified slot namespace: Map Menu writes a normal
   `resume_battle` slot with the whole ledger, Continue/Load discriminate by
   `map_runtime.map_path`, and result-time cleanup deletes that slot. Remaining:
-  future object/AI runtime fields when those systems exist and Phase 5 policy.
+  future object/AI runtime fields when those systems exist.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/autoloads/SaveManager.gd`;
-  `scripts/save/SaveCodec.gd`; `scripts/save/SaveData.gd`; `scripts/core/GameMap.gd`;
+  `scripts/save/SaveCodec.gd`; `scripts/save/SaveData.gd`;
+  `scripts/save/SaveIntegrity.gd`; `scripts/core/GameMap.gd`;
   `CombatResolver.gd`, `TurnManager.gd`
   (`get_action_start_tile`, `commit_action_event`), `SkillHandler.gd`
   (activation from the event RNG), `Unit.gd` (`level_up` chained `levelup`

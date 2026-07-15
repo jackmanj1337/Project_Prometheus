@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_completed_slots_are_records_not_continue_targets(manager)
 	_test_slot_listing(manager)
 	_test_slot_transaction_rolls_back_on_index_failure(manager)
+	_test_portable_save_transfer_and_integrity(manager)
 	_test_slot_delete(manager)
 
 	manager.free()
@@ -217,6 +218,39 @@ func _test_slot_transaction_rolls_back_on_index_failure(manager: Node) -> void:
 			and FileAccess.get_file_as_string(manager.get_index_path()) == old_index
 			and leftovers.is_empty(),
 		"an index-stage failure preserves the prior slot/index pair and cleans staging files")
+
+
+func _test_portable_save_transfer_and_integrity(manager: Node) -> void:
+	var portable := TEST_SAVE_DIR.path_join("portable.json")
+	var exported: Dictionary = manager.export_slot("autosave", portable)
+	var parsed: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(portable))
+	_check(exported["ok"] and String(parsed.get("integrity", {}).get("payload_hash", "")) != "" \
+			and String(parsed.get("integrity", {}).get("schema_hash", "")) != "",
+		"portable export writes one JSON document with both integrity hashes")
+
+	var clean: Dictionary = manager.inspect_portable_save(portable)
+	_check(clean["ok"] and clean["warnings"].is_empty(),
+		"an untouched portable save verifies without warnings", str(clean))
+
+	parsed["campaign"]["node_id"] = "tampered_node"
+	_write_text(portable, JSON.stringify(parsed, "\t", true))
+	var warned: Dictionary = manager.import_portable_save(portable, "imported_01")
+	_check(not warned["ok"] and warned.get("requires_acknowledgement", false) \
+			and warned["warnings"].size() == 2 and not manager.has_slot("imported_01"),
+		"tampered protected data requires acknowledgement before import", str(warned))
+	var accepted: Dictionary = manager.import_portable_save(portable, "imported_01", true)
+	_check(accepted["ok"] and manager.has_slot("imported_01") \
+			and manager.load_slot("imported_01").campaign["node_id"] == "tampered_node",
+		"acknowledged tampering warns-and-continues into a normal slot", str(accepted))
+
+	var zip_path := TEST_SAVE_DIR.path_join("pack.zip")
+	var zip_file := FileAccess.open(zip_path, FileAccess.WRITE)
+	zip_file.store_buffer(PackedByteArray([0x50, 0x4b, 0x03, 0x04]))
+	zip_file.close()
+	var sniffed: Dictionary = manager.inspect_portable_save(zip_path)
+	_check(not sniffed["ok"] and sniffed["artifact_kind"] == "campaign_pack",
+		"portable importer sniffs ZIP and routes campaign packages to Manage Campaigns")
+	manager.delete_slot("imported_01")
 
 
 func _test_slot_delete(manager: Node) -> void:
