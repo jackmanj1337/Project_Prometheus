@@ -1,3 +1,8 @@
+> **Status: Superseded (2026-06-14)** by `AGENT/Review Procedures/01_Code_Pillar.md`,
+> which folds this content in (improved + GDScript-specific) as Pillar 1 of the
+> full project audit (`AGENT/Review Procedures/00_Master_Review_Procedure.md`).
+> Kept for provenance only. Do not use for new reviews.
+
 Review the codebase in this directory and produce a written code review document.
 
 ## Scope

@@ -54,6 +54,30 @@ func _init() -> void:
 	else:
 		print("FAIL keybinding list empty or missing"); failed += 1
 
+	# Debug-only rows: visible in debug builds, absent in release. Headless
+	# tests run via the Godot binary which is a debug build, so the assertion
+	# checks the debug-build path. Release verification is by inspection of the
+	# OS.is_debug_build() gate in SettingsScreen._populate_keybindings.
+	if list != null and OS.is_debug_build():
+		var has_force_levelup_row := false
+		var has_growth_boost_row := false
+		for row in list.get_children():
+			# Each row is HBoxContainer( name_label, key_label ); read the first
+			# child's text to find the debug entries by their display label.
+			if row.get_child_count() == 0:
+				continue
+			var label_text: String = String(row.get_child(0).get("text"))
+			if label_text == "Debug: Force Level Up":
+				has_force_levelup_row = true
+			elif label_text == "Debug: Growth Boost":
+				has_growth_boost_row = true
+		if has_force_levelup_row and has_growth_boost_row:
+			print("OK  debug-only keybinding rows present in debug build"); passed += 1
+		else:
+			print("FAIL debug rows missing: force_levelup=%s growth_boost=%s" \
+				% [has_force_levelup_row, has_growth_boost_row])
+			failed += 1
+
 	# open() / _on_back() drive visibility. open() needs the SettingsManager
 	# autoload to read values from — skip the check cleanly when it is absent.
 	if root.get_node_or_null("SettingsManager") != null:

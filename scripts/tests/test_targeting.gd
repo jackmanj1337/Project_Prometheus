@@ -30,13 +30,36 @@ func _check(ok: bool, msg: String) -> void:
 func _init() -> void:
 	print("=== MapCursorTargeting Test ===")
 
+	var bus := root.get_node_or_null("EventBus")
+	if bus == null:
+		bus = load("res://scripts/autoloads/EventBus.gd").new()
+		bus.name = "EventBus"
+		root.add_child(bus)
+	var dm := root.get_node_or_null("DataManager")
+	if dm == null:
+		dm = load("res://scripts/autoloads/DataManager.gd").new()
+		dm.name = "DataManager"
+		root.add_child(dm)
+	var gs := root.get_node_or_null("GameState")
+	if gs == null:
+		gs = load("res://scripts/autoloads/GameState.gd").new()
+		gs.name = "GameState"
+		root.add_child(gs)
+	var cr := root.get_node_or_null("CombatResolver")
+	if cr == null:
+		cr = load("res://scripts/core/CombatResolver.gd").new()
+		cr.name = "CombatResolver"
+		root.add_child(cr)
+	await process_frame
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+
 	var instance: Node = load("res://scenes/core/GameMap.tscn").instantiate()
 	root.add_child(instance)
 	await process_frame  # let _ready and unit spawns complete
 
 	var grid: GridManager = instance.get_node("GridManager")
-	var cr: Node = root.get_node_or_null("CombatResolver")
-	var gs: Node = root.get_node_or_null("GameState")
 
 	# Pick test units: a player attacker with a weapon, a second player unit to
 	# heal, the cleric (staff user), and an enemy.
@@ -141,6 +164,86 @@ func _init() -> void:
 	t4.handle_confirm(ally.tile_position)
 	_check(ally.data.hp > hp_before and f4.done == 1,
 		"handle_confirm heals the ally and emits `completed`")
+
+	# ── Pair Up: strict same-faction gate ──────────────────────────────────────
+	# Code review 2026-06-10: the menu visibility check and the target-collection
+	# slice must agree. Pair Up is intra-army: two non-hostile factions in the
+	# same alliance group (blue/green) cooperate but cannot pair. Reuse `player`
+	# and `ally` (both blue, both unit_id-bearing roster units) so the positive
+	# case shares fixtures with the negative one.
+	var pair_reg := root.get_node_or_null("PairUpRegistry")
+	if pair_reg == null:
+		pair_reg = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+		pair_reg.name = "PairUpRegistry"
+		root.add_child(pair_reg)
+	pair_reg.call("clear")
+	for u in gs.all_units:
+		u.tile_position = Vector2i(0, 0)
+	player.tile_position = Vector2i(5, 5)
+	ally.tile_position = Vector2i(5, 6)  # cardinal-adjacent
+	var t_pair := MapCursorTargeting.new()
+	t_pair.setup(grid, null, cr)
+	var pair_tiles_same: Array[Vector2i] = t_pair.begin(
+		MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(ally.tile_position in pair_tiles_same,
+		"begin(PAIR_UP) lists an adjacent same-faction ally")
+
+	# Cross-faction-same-alliance: flip the ally's team to "green". GameState's
+	# default alliance map puts blue+green in the same group ("allies"), so they
+	# are NOT hostile — but Pair Up must still refuse because the gate is strict
+	# same-faction (issue 2.1 / decision: strict).
+	var saved_team: String = ally.team
+	ally.team = "green"
+	var pair_tiles_cross: Array[Vector2i] = t_pair.begin(
+		MapCursorTargeting.Mode.PAIR_UP, player)
+	_check(not (ally.tile_position in pair_tiles_cross),
+		"begin(PAIR_UP) refuses a same-alliance cross-faction neighbor")
+	ally.team = saved_team
+
+	# ── Map 900 hotseat regression: green attack opens the real combat preview ──
+	gs.reset_map_state()
+	gs.load_roster_from_directory("res://data/roster/test/map_900_hotseat_validation/")
+	gs.configure_next_map(
+		"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
+		"fixed_test_roster",
+		"res://data/roster/test/map_900_hotseat_validation/")
+	var hotseat_instance: Node = load("res://scenes/core/GameMap.tscn").instantiate()
+	root.add_child(hotseat_instance)
+	await process_frame
+	var hotseat_cursor: MapCursor = hotseat_instance.get_node("MapCursor")
+	var hotseat_preview: Control = hotseat_instance.get_node("HUDLayer/AttackPreview")
+	var hotseat_green: Unit = null
+	var hotseat_red: Unit = null
+	for u in gs.all_units:
+		if u.team == "green" and hotseat_green == null:
+			hotseat_green = u
+		elif u.team == "red" and hotseat_red == null:
+			hotseat_red = u
+	if hotseat_green == null or hotseat_red == null:
+		_check(false, "Map 900 hotseat map spawned green and red units")
+	else:
+		hotseat_cursor.set_controlling_faction("green")
+		hotseat_cursor.unlock()
+		hotseat_cursor.current_tile = hotseat_green.tile_position
+		hotseat_cursor._on_confirm()
+		hotseat_cursor.current_tile = Vector2i(5, 4)  # adjacent to the red soldier at (6,4)
+		hotseat_cursor._on_confirm()
+		await create_timer(0.5).timeout
+		hotseat_cursor._on_action_chosen("attack")
+		var targeting_ready: bool = (
+			hotseat_cursor._state == MapCursor.State.TARGETING
+			and hotseat_cursor.current_tile == hotseat_red.tile_position
+		)
+		_check(targeting_ready,
+			"Map 900 green move-then-attack enters targeting on the red unit")
+		hotseat_cursor._on_confirm()
+		await process_frame
+		var preview_populated: bool = hotseat_preview.visible \
+			and "Dmg" in hotseat_preview._atk_dmg.text \
+			and "HP " in hotseat_preview._def_hp.text
+		_check(preview_populated,
+			"Map 900 green attack opens a populated combat preview instead of info-only UI")
+	hotseat_instance.queue_free()
 
 	_finish()
 

@@ -28,5 +28,55 @@
     "description": "Small WHOLE_PHASE map for validating green hotseat control.",
     "is_dev_only": true,
     "tags": ["hotseat_test", "faction_test"]
+  },
+  {
+    "id": "map_950_promotion_validation",
+    "label": "Map 950 - Promotion Validation",
+    "map_data_path": "res://data/maps/map_950_promotion_validation/map_950_promotion_validation_data.tres",
+    "roster_policy": "fixed_test_roster",
+    "roster_source": "res://data/roster/test/map_950_promotion_validation/",
+    "description": "Test roster pre-staged for every promotion / reclass case (10 units, Master Seal / Second Seal / Orion Bolt / Guiding Ring in hand).",
+    "is_dev_only": false,
+    "tags": ["class_test", "promotion_test", "reclass_test"]
+  },
+  {
+    "id": "map_002_seize",
+    "label": "Map 002 - Seize",
+    "map_data_path": "res://data/maps/map_002_seize/map_002_seize_data.tres",
+    "roster_policy": "default_roster",
+    "roster_source": "",
+    "description": "Objective showcase map for Seize using the new per-unit can_seize gate.",
+    "is_dev_only": false,
+    "tags": ["objective_test", "seize"]
+  },
+  {
+    "id": "map_003_defeat_boss",
+    "label": "Map 003 - Defeat Boss",
+    "map_data_path": "res://data/maps/map_003_defeat_boss/map_003_defeat_boss_data.tres",
+    "roster_policy": "default_roster",
+    "roster_source": "",
+    "description": "Objective showcase map for defeating a named boss unit.",
+    "is_dev_only": false,
+    "tags": ["objective_test", "defeat_boss"]
+  },
+  {
+    "id": "map_004_escape",
+    "label": "Map 004 - Escape",
+    "map_data_path": "res://data/maps/map_004_escape/map_004_escape_data.tres",
+    "roster_policy": "default_roster",
+    "roster_source": "",
+    "description": "Objective showcase map for escaping named allied units through an exit zone.",
+    "is_dev_only": false,
+    "tags": ["objective_test", "escape"]
+  },
+  {
+    "id": "map_005_defend",
+    "label": "Map 005 - Defend",
+    "map_data_path": "res://data/maps/map_005_defend/map_005_defend_data.tres",
+    "roster_policy": "default_roster",
+    "roster_source": "",
+    "description": "Objective showcase map for surviving while still holding the defense tiles.",
+    "is_dev_only": false,
+    "tags": ["objective_test", "survive", "defend"]
   }
 ]

@@ -1,0 +1,59 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "heal_staff"
+uses_remaining = 30
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "master_seal"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_3"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "guiding_ring"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_4"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "second_seal"
+uses_remaining = 1
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_cleric"
+unit_name = "M950_Cleric"
+class_id = "cleric"
+class_line_id = "cleric"
+level = 9
+exp = 0
+is_promoted = false
+internal_level = 9
+max_hp = 20
+hp = 20
+strength = 1
+magic = 8
+defense = 4
+resistance = 10
+skill = 6
+speed = 8
+luck = 6
+movement = 5
+constitution = 6
+line_of_sight = 4
+weapon_wexp = {"staff": 130, "light": 0}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3"), SubResource("IE_4")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

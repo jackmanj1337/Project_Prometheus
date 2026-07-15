@@ -16,6 +16,20 @@ func _init() -> void:
 			print("FAIL class resource: " + str(loaded))
 			failed += 1
 
+	var authored_caps_are_a := true
+	for loaded in _load_resources_from_dir("res://data/classes/"):
+		if not (loaded is ClassData):
+			continue
+		for cap in loaded.weapon_wexp_caps.values():
+			if int(cap) != GameConstants.WEXP_RANK_THRESHOLDS["A"]:
+				authored_caps_are_a = false
+	if authored_caps_are_a:
+		print("OK  class weapon tracks default to authored A-rank caps")
+		passed += 1
+	else:
+		print("FAIL class weapon cap differs from the current A-rank default")
+		failed += 1
+
 	for loaded in _load_resources_from_dir("res://data/weapons/"):
 		if loaded and loaded is WeaponData and loaded.id != "":
 			print("OK  weapon: " + loaded.id)
@@ -68,9 +82,7 @@ func _init() -> void:
 		failed += 1
 
 	# --- M16: map_001 authored conditions ---
-	# Stage 5 migrated map_001 to victory_conditions = {"allies": [rout()]}.
-	# defeat_conditions stays empty — the implicit "group routed" default
-	# (TurnManager) supplies the all-allies-dead defeat.
+	# Map 001 explicitly authors both its hostile Rout victory and allied Rout defeat.
 	if md and md.victory_conditions is Dictionary \
 			and md.victory_conditions.has("allies") \
 			and (md.victory_conditions["allies"] as Array).size() == 1 \
@@ -78,8 +90,12 @@ func _init() -> void:
 		print("OK  map_001: victory_conditions = {allies: [rout]}"); passed += 1
 	else:
 		print("FAIL map_001 victory_conditions: %s" % str(md.victory_conditions if md else null)); failed += 1
-	if md and md.defeat_conditions is Dictionary and md.defeat_conditions.is_empty():
-		print("OK  map_001: defeat_conditions empty (implicit group-routed default)"); passed += 1
+	if md and md.defeat_conditions is Dictionary \
+			and md.defeat_conditions.has("allies") \
+			and (md.defeat_conditions["allies"] as Array).size() == 1 \
+			and (md.defeat_conditions["allies"][0] as ObjectiveCondition).type == "rout" \
+			and (md.defeat_conditions["allies"][0] as ObjectiveCondition).faction_id == "allies":
+		print("OK  map_001: explicit allied Rout defeat"); passed += 1
 	else:
 		print("FAIL map_001 defeat_conditions: %s" % str(md.defeat_conditions if md else null)); failed += 1
 
@@ -89,7 +105,7 @@ func _init() -> void:
 	var oc := ObjectiveCondition.new()
 	if oc is ObjectiveCondition and oc.type == "rout" and oc.faction_id == "" \
 			and oc.unit_ids.is_empty() and oc.tiles.is_empty() \
-			and oc.allowed_unit_ids.is_empty() and oc.turns == 0 \
+			and oc.turns == 0 \
 			and oc.tile == Vector2i(-1, -1):
 		print("OK  ObjectiveCondition: defaults (type=rout, all params empty/0, tile sentinel)"); passed += 1
 	else:
@@ -159,9 +175,9 @@ func _init() -> void:
 	# Fail if a new @export var is added to UnitData without updating the snapshot.
 	var snapshot_keys := [
 		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
-		"resistance", "skill", "speed", "luck", "exp", "level", "effective_level",
+		"resistance", "skill", "speed", "luck", "exp", "level", "internal_level",
 		"is_promoted", "class_line_id",
-		"proficiencies", "inventory", "conditions", "skills", "earned_skills",
+		"weapon_wexp", "inventory", "conditions", "skills", "earned_skills",
 		"mastery_skills",
 		"is_incapacitated", "active_modifiers", "skill_use_counters",
 		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",
@@ -170,7 +186,7 @@ func _init() -> void:
 	var snapshot_allowlist := [
 		"unit_id", "unit_name", "movement",
 		"constitution", "line_of_sight", "gold", "ai_profile", "is_default_roster",
-		"shift_profile_id", "growth_rates", "reclass_options",
+		"shift_profile_id", "growth_rates", "reclass_options", "can_seize",
 	]
 	var sample_unit: UnitData = UnitData.new()
 	var snapshot_fail := false

@@ -9,6 +9,7 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 @onready var _label_level:  Label = $Panel/VBox/LabelLevel
 @onready var _label_stats:  Label = $Panel/VBox/LabelStats
 @onready var _label_prompt: Label = $Panel/VBox/LabelPrompt
+@onready var _panel: Panel = $Panel
 
 # Human-readable names for each growth stat (matches Unit._GROWTH_STATS order)
 const _STAT_NAMES: Dictionary = {
@@ -16,6 +17,9 @@ const _STAT_NAMES: Dictionary = {
 	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
 }
 const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
+const _PANEL_HALF_WIDTH := 120.0
+const _BASE_PANEL_HALF_HEIGHT := 100.0
+const _EXTRA_PANEL_LINE_HEIGHT := 18.0
 
 var _queue: Array[Dictionary] = []
 
@@ -73,6 +77,7 @@ func _show_next() -> void:
 			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
+	_resize_panel_for_stats(_label_stats.text)
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
@@ -90,6 +95,16 @@ func _show_next() -> void:
 			if not is_instance_valid(self): return
 			_advance()
 		, CONNECT_ONE_SHOT)
+
+
+func _resize_panel_for_stats(stats_text: String) -> void:
+	var line_count: int = maxi(1, stats_text.split("\n").size())
+	var extra_lines: int = maxi(0, line_count - 5)
+	var half_height: float = _BASE_PANEL_HALF_HEIGHT + (extra_lines * _EXTRA_PANEL_LINE_HEIGHT)
+	_panel.offset_left = -_PANEL_HALF_WIDTH
+	_panel.offset_right = _PANEL_HALF_WIDTH
+	_panel.offset_top = -half_height
+	_panel.offset_bottom = half_height
 
 
 # Resolves a skill id to its display name via DataManager, falling back to the

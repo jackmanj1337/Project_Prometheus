@@ -1,0 +1,52 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
+
+[sub_resource type="Resource" id="cond_rout_all"]
+script = ExtResource("2")
+type = "rout"
+faction_id = ""
+unit_ids = []
+tiles = []
+turns = 0
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("2")
+type = "rout"
+faction_id = "allies"
+unit_ids = []
+tiles = []
+turns = 0
+
+[resource]
+script = ExtResource("1")
+id = "map_950_promotion_validation"
+display_name = "Map 950 - Promotion Validation"
+tilemap_scene_path = ""
+player_start_tiles = [Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3), Vector2i(1, 4), Vector2i(2, 4), Vector2i(3, 4)]
+enemy_placements = [
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e1_soldier.tres", "tile": Vector2i(11, 2), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e2_soldier.tres", "tile": Vector2i(11, 5), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e3_soldier.tres", "tile": Vector2i(11, 7), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e4_archer.tres", "tile": Vector2i(12, 3), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e5_mercenary.tres", "tile": Vector2i(10, 6), "ai_profile": "basic", "is_boss": false},
+{"unit_data_path": "res://data/maps/map_950_promotion_validation/enemies/e6_knight_tougher.tres", "tile": Vector2i(12, 6), "ai_profile": "basic", "is_boss": false}
+]
+victory_conditions = {"allies": [SubResource("cond_rout_all")]}
+defeat_conditions = {"allies": [SubResource("cond_rout_allies")]}
+reward_gold = 0
+reward_items = []
+camera_start_tile = Vector2i(2, 3)
+grid = [
+"WWWWWWWWWWWWWW",
+"W............W",
+"W..F.........W",
+"W............W",
+"W............W",
+"W......T.....W",
+"W............W",
+"W........F...W",
+"W............W",
+"WWWWWWWWWWWWWW"
+]

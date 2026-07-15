@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/MapData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="2"]
@@ -9,7 +9,14 @@ type = "rout"
 faction_id = ""
 unit_ids = []
 tiles = []
-allowed_unit_ids = []
+turns = 0
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("2")
+type = "rout"
+faction_id = "allies"
+unit_ids = []
+tiles = []
 turns = 0
 
 [resource]
@@ -29,6 +36,7 @@ enemy_placements = [
 {"unit_data_path": "res://data/maps/map_001_rout/enemies/e8_knight_boss.tres", "tile": Vector2i(39, 12), "ai_profile": "basic", "is_boss": true}
 ]
 victory_conditions = {"allies": [SubResource("cond_rout_all")]}
+defeat_conditions = {"allies": [SubResource("cond_rout_allies")]}
 reward_gold = 500
 reward_items = []
 grid = ["WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", "W...............SSS..MM..................W", "W..FF...........SSS.MMM....FF............W", "W..FF...........SSS.MMM....FF............W", "W..........FF...SSS..MM...............WWWW", "W..........FF...SSS...................WWWW", "W......T.........SS.........FF...........W", "W................SS.........FF.....FF....W", "W................SS................FF....W", "W............FF..SS....FF.............T..W", "W............FF...S....FF................W", "W.................S......................W", "W.................S....................T.W", "W.................SS.....................W", "W..................S.....................W", "W.....FF...........S.....................W", "W.....FF...........SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W...................DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........................................W", "W........................................W", "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"]

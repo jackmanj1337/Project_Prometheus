@@ -221,23 +221,42 @@ const _KEYBIND_LABELS := {
 	"show_danger_zone": "Toggle Threat Range",
 }
 
+# Debug-only keybindings shown in the list only when OS.is_debug_build().
+# Each toggles a GameState debug aid; the toggle handler itself lives on
+# GameState._unhandled_input and is also gated on OS.is_debug_build().
+const _DEBUG_KEYBIND_LABELS := {
+	"debug_toggle_force_levelup": "Debug: Force Level Up",
+	"debug_toggle_growth_boost":  "Debug: Growth Boost",
+}
+
 
 # Builds the read-only keybinding rows from the live InputMap (#8). Each row is a
 # title label + the key(s) bound to that action. Rebinding is deferred to Phase 2.
+# Debug-only rows are appended in debug builds so they show right after the
+# regular bindings — release builds never render them.
 func _populate_keybindings() -> void:
 	for child in _keybind_list.get_children():
 		child.queue_free()
 	for action in _KEYBIND_LABELS:
-		if not InputMap.has_action(action):
-			continue
-		# InputDisplay renders modifiers, so Shift+Tab shows as "Shift+Tab" — the
-		# previous-unit binding is no longer indistinguishable from "Tab" (#3).
-		var row := HBoxContainer.new()
-		var name_label := Label.new()
-		name_label.text = _KEYBIND_LABELS[action]
-		name_label.custom_minimum_size = Vector2(200, 0)
-		var key_label := Label.new()
-		key_label.text = InputDisplay.keys_for_action(action)
-		row.add_child(name_label)
-		row.add_child(key_label)
-		_keybind_list.add_child(row)
+		_add_keybind_row(action, _KEYBIND_LABELS[action])
+	if OS.is_debug_build():
+		for action in _DEBUG_KEYBIND_LABELS:
+			_add_keybind_row(action, _DEBUG_KEYBIND_LABELS[action])
+
+
+# Helper: builds one row in the keybinding list. Extracted so both the regular
+# and debug-only loops can reuse it. Silently skips actions not in InputMap.
+func _add_keybind_row(action: String, label: String) -> void:
+	if not InputMap.has_action(action):
+		return
+	# InputDisplay renders modifiers, so Shift+Tab shows as "Shift+Tab" — the
+	# previous-unit binding is no longer indistinguishable from "Tab" (#3).
+	var row := HBoxContainer.new()
+	var name_label := Label.new()
+	name_label.text = label
+	name_label.custom_minimum_size = Vector2(200, 0)
+	var key_label := Label.new()
+	key_label.text = InputDisplay.keys_for_action(action)
+	row.add_child(name_label)
+	row.add_child(key_label)
+	_keybind_list.add_child(row)

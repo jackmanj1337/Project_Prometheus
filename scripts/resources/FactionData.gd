@@ -43,7 +43,34 @@ func get_label() -> String:
 	return display_label(id)
 
 
+func get_controller_label() -> String:
+	if id == "blue":
+		return "Player 1"
+	return controller_label(controller)
+
+
+func get_phase_label() -> String:
+	return "%s - %s" % [get_label(), get_controller_label()]
+
+
 static func display_label(faction_id: String) -> String:
 	if faction_id == "":
 		return ""
 	return faction_id.substr(0, 1).to_upper() + faction_id.substr(1)
+
+
+static func controller_label(controller_id: String) -> String:
+	match controller_id.to_upper():
+		"HOTSEAT":
+			return "Player 2"
+		"AI":
+			return "AI"
+		"REMOTE":
+			return "Remote"
+		_:
+			return display_label(controller_id)
+
+
+static func default_phase_label(faction_id: String) -> String:
+	var controller_name := "Player 1" if faction_id == "blue" else "AI"
+	return "%s - %s" % [display_label(faction_id), controller_name]

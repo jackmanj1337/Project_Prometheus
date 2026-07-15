@@ -1,5 +1,11 @@
 class_name UnitData extends Resource
 
+# SNAPSHOT CONTRACT: any field below that can CHANGE during a map must be added to
+# GameState._snapshot_unit_data / _restore_unit_data, or Retry/suspend won't roll it
+# back. Static identity/config fields are exempt and listed in test_snapshot_coverage.gd
+# (STATIC_FIELDS). That test reflects over these fields and FAILS on any uncovered
+# mutable field — so when you add a field here, update the snapshot or STATIC_FIELDS.
+
 @export var unit_id: String = ""   # unique identifier; used by survivor checks and save/load
 @export var unit_name: String = ""
 # Grid position — captured by GameState's manual snapshot (not by ResourceSaver; not @export).
@@ -9,8 +15,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var level: int = 1
 @export var exp: int = 0
 @export var is_promoted: bool = false
-# Pre + post promotion levels combined
-@export var effective_level: int = 1
+# Hidden progression state used for Awakening-style levelling and reclass logic.
+@export var internal_level: int = 1
 
 # Stats
 @export var max_hp: int = 0
@@ -31,8 +37,8 @@ var tile_position: Vector2i = Vector2i.ZERO
 # Empty {} is valid — the unit then levels purely on its class growths.
 @export var growth_rates: Dictionary = {}
 
-# Format: { "sword": { "rank": "D", "wexp": 0 } }
-@export var proficiencies: Dictionary = {}
+# Authoritative numeric WEXP totals keyed by GameConstants.VALID_WEXP_TRACKS.
+@export var weapon_wexp: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
 # GameState.max_skills caps how many of these can be equipped once M6 lands.
@@ -42,6 +48,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var earned_skills: Array[String] = []
 @export var reclass_options: Array[String] = []
 @export var class_line_id: String = ""
+@export var can_seize: bool = false
 # Permanently earned mastery skills (S-rank, etc.) — not equippable or removable, never count
 # against the skill slot limit. Populated at runtime by Unit.add_wexp(); never set in .tres files.
 # Captured by GameState's manual snapshot (not by ResourceSaver; not @export).
@@ -56,7 +63,7 @@ var mastery_skills: Array[String] = []
 
 # Permadeath flag; unit removed from future deployment when true
 @export var is_incapacitated: bool = false
-# "basic"|"passive" for MVP; future: "territorial"|"guard_tile"|"healer"|"boss"
+# "basic"|"passive"|"healer" implemented; future: "territorial"|"guard_tile"|"boss"
 @export var ai_profile: String = "basic"
 # True for the 6 auto-generated MVP starter units
 @export var is_default_roster: bool = false
@@ -71,7 +78,7 @@ var mastery_skills: Array[String] = []
 # "duration" = -1 means never auto-removed. "permanent" type is never decremented.
 var active_modifiers: Array[Dictionary] = []
 
-# Per-map use counters for limited skills. Keys = effect_id, values = times used.
+# Per-map use counters for limited skills. Keys = skill.id, values = times used.
 # Reset to {} by Unit.reset_map_state() at map load.
 var skill_use_counters: Dictionary = {}
 

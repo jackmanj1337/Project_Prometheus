@@ -1,5 +1,7 @@
 class_name ClassData extends Resource
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 @export var id: String = ""
 @export var display_name: String = ""
 @export var description: String = ""
@@ -21,18 +23,23 @@ class_name ClassData extends Resource
 @export var base_constitution: int = 0
 @export var base_line_of_sight: int = 4
 
-# First entry = primary weapon type (starts at D rank); rest start at E rank
-@export var proficiencies: Array[String] = []
+# Numeric WEXP baselines and caps keyed by GameConstants.VALID_WEXP_TRACKS.
+@export var weapon_wexp_bases: Dictionary = {}
+@export var weapon_wexp_caps: Dictionary = {}
+# Optional explicit combat-family allowances. If empty, derived from weapon_wexp_caps.
+@export var allowed_weapon_families: Array[String] = []
 # Loose semantic tags for item restrictions and future content gating.
 @export var class_groups: Array[String] = []
 # See GDD_03 for valid values: "flying", "mounted", "armoured", "dragon", "beast", "laguz"
 @export var special_qualities: Array[String] = []
+@export var vulnerability_groups: Array[String] = []
+@export var internal_level_rule: String = ""
+@export var class_availability: String = "playable"
 
 # Promotion (M6) — applied as additive stat deltas at promotion.
 @export var promotes_to: Array[String] = []
 @export var promotes_from: Array[String] = []
 @export var promotion_stat_bonuses: Dictionary = {}
-@export var is_special_class: bool = false
 
 # Stat keys recognised in growth_rates / stat_caps dictionaries.
 const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
@@ -69,3 +76,37 @@ const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
 @export var natural_weapon_type: String = ""
 # CON increases ~75% in animal form
 @export var animal_con_bonus_pct: float = 0.75
+
+
+func get_weapon_wexp_base(track: String) -> int:
+	return int(weapon_wexp_bases.get(track, 0))
+
+
+func get_weapon_wexp_cap(track: String) -> int:
+	return int(weapon_wexp_caps.get(track, 0))
+
+
+func get_allowed_weapon_families() -> Array[String]:
+	if not allowed_weapon_families.is_empty():
+		return allowed_weapon_families.duplicate()
+	var seen := {}
+	var derived: Array[String] = []
+	for track in weapon_wexp_caps.keys():
+		if get_weapon_wexp_cap(String(track)) <= 0:
+			continue
+		for family in GameConstants.wexp_track_to_combat_families(String(track)):
+			if seen.has(family):
+				continue
+			seen[family] = true
+			derived.append(family)
+	return derived
+
+
+func resolved_internal_level_rule() -> String:
+	if internal_level_rule in GameConstants.VALID_INTERNAL_LEVEL_RULES:
+		return internal_level_rule
+	return "promoted" if tier >= 2 else "base"
+
+
+func is_menu_visible() -> bool:
+	return class_availability != "hidden"

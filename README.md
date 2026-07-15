@@ -1,36 +1,99 @@
-# Project_Prometheus
-A repo to track a small side project game I am making to test some tools.
+# Project Prometheus
 
-## Running tests
+Grid-based tactical RPG prototype in Godot 4 / GDScript.
 
-`bash run_tests.sh` runs the GDScript test suites headlessly.
+The project is data-driven: classes, weapons, items, skills, rosters, and maps are
+authored as resources under `data/`, while the runtime systems live under `scripts/`.
 
-For a fresh-clone, CI-style run that bootstraps Godot's import/class cache first,
-use `bash scripts/ci/run_headless_tests.sh`.
+## First Read
 
-**On a fresh clone, open the project in the Godot editor once before running tests.**
-The headless test runner resolves `class_name` types through Godot's global class
-cache (`.godot/global_script_class_cache.cfg`), which is gitignored and only generated
-by an editor project scan. Without that scan, tests fail with errors like
-`Could not find type "X" in the current scope`.
+For onboarding, start here:
 
-When a new `class_name` script is added outside the editor, either re-open the editor
-to regenerate the cache or add the entry to `.godot/global_script_class_cache.cfg` by
-hand (copy an existing block; set `base`, `class`, `path`).
+1. `AGENT/GDD/GDD_00_Overview.md`
+2. `AGENT/GDD/GDD_01_Architecture.md`
+3. `AGENT/GDD/GDD_02_Core_Mechanics.md`
+4. `AGENT/GDD/GDD_03_Units_Classes.md`
+5. `AGENT/GDD/GDD_06_Maps_Objectives.md`
+6. `AGENT/GDD/GDD_07_UI_UX.md`
+
+Use `AGENT/GDD/GDD_10_Roadmap.md` for planned / deferred work and milestone
+ordering — it is the single roadmap owner. Not for the current runtime contract.
+
+For centralized practical workflows, use:
+
+- `AGENT/Docs/map_authoring_guide.md`
+- `AGENT/Docs/testing_guide.md`
+- `AGENT/Docs/campaign_rules.md`
+
+## Current Runtime Highlights
+
+- Faction-driven phase system with authored `turn_order`, alliance groups, and hotseat-capable controllers
+- Objective-condition system supporting Rout, Seize, Defeat Boss, Escape, and Survive / Defend flows
+- Promotion and Second Seal reclassing
+- Pair Up pass 1 (`Pair Up`, `Swap`, `Separate`)
+- More Info / character-sheet UI surfaces
+- Map registry-backed New Game selector
+
+## Running Tests
+
+`bash run_tests.sh`
+
+Runs the headless GDScript suite in the current checkout.
+
+`bash scripts/ci/run_headless_tests.sh`
+
+Use this in a fresh clone or CI-style environment. It bootstraps Godot's
+import/class cache first, then runs the same suite.
+
+For validation-map roles, manual regression flow, and when to add automated
+coverage, start with `AGENT/Docs/testing_guide.md`.
+
+## New Machine / Fresh Clone Setup
+
+After cloning on a new machine, run:
+
+`bash scripts/setup_dev.sh`
+
+This activates the versioned git hooks (`git config core.hooksPath scripts/hooks`, so
+`check_docs.py` + the RNG guard + the GDScript suite gate every commit) and builds
+Godot's import/class cache. Prerequisites a clone does **not** carry, so set them up by
+hand: Godot `4.6` stable on `PATH` (+ its export templates for `builds/`), a `.env`
+copied from `.env.example`, and the SSH key/host alias used by the `origin` remote.
+
+## Project Structure
+
+- `scripts/autoloads/` — global state and registries (`GameState`, `DataManager`, `SettingsManager`, etc.)
+- `scripts/core/` — battle-map runtime systems (`GameMap`, `TurnManager`, `MapCursor`, `EnemyAI`)
+- `scripts/ui/` — in-map and front-end UI scripts
+- `scripts/units/` — `Unit.gd`
+- `scripts/skills/` and `scripts/items/` — dispatchers for skill and item effects
+- `scripts/tests/` — headless test suites
+- `data/` — authored gameplay resources
+- `scenes/` — Godot scenes
+- `AGENT/GDD/` — current design / implementation reference
+- `AGENT/Session Notes/` — per-session record of what changed
+
+## Important Data Conventions
+
+- Content directories that must work in exported builds use `resource_manifest.json`.
+- Maps exposed in the New Game selector are registered in `data/maps/map_registry.json`.
+- The default player roster loads from `data/roster/default/`.
+- Validation maps may use fixed test rosters from `data/roster/test/`.
+- Map launch now requires an explicit prepared roster that matches the selected
+  `roster_policy`; the runtime no longer silently falls back to the default
+  roster on missing/failed roster setup.
+
+If you are adding content instead of changing engine logic, use
+`AGENT/Docs/map_authoring_guide.md` before touching `map_registry.json` or new
+runtime-scanned folders.
 
 ## GitHub Actions
 
-This repo includes two GitHub Actions workflows:
+This repo includes:
+
 - `.github/workflows/tests-pr.yml`
 - `.github/workflows/tests-push.yml`
 
-It:
-- installs Godot `4.6`
-- runs separate workflows for `push` and `pull_request`
-- runs `bash scripts/ci/run_headless_tests.sh`
-  which performs the import scan and then runs `bash run_tests.sh`
+They install Godot `4.6` and run `bash scripts/ci/run_headless_tests.sh`.
 
 For branch protection, require the `godot-tests-pr` check on `main`.
-
-After you push the workflow to GitHub, verify that **Actions** are enabled for
-the repo and confirm the first run passes.

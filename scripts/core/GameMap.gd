@@ -28,6 +28,8 @@ const _CHAR_TO_SOURCE := {
 @onready var _camera: Camera2D = $Camera2D
 @onready var _turn_manager: TurnManager = $TurnManager
 @onready var _hud: Control = $HUDMainLayer/HUD
+@onready var _attack_preview: Control = $HUDLayer/AttackPreview
+@onready var _unit_details_screen: Control = $UnitDetailsLayer/UnitDetailsScreen
 
 # Sole writer of Camera2D.position in production (B4). Built in _ready, shared
 # with MapCursor via its setup() so both layers' camera operations flow through
@@ -41,6 +43,12 @@ var map_data: MapData = null
 
 
 func _ready() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs:
+		# Fresh map boot must not inherit stale scene-scoped unit state from a
+		# prior battle. This is especially important after returning to the main
+		# menu from an in-progress map in an exported build.
+		gs.call("reset_map_state")
 	# Load data first — terrain painting and grid setup both depend on map_data.grid.
 	_load_map_data()
 	if map_data == null or map_data.grid.is_empty():
@@ -75,9 +83,9 @@ func _ready() -> void:
 		bus.ai_unit_acting.connect(_on_ai_unit_acting)
 		bus.phase_changed.connect(_on_phase_changed)
 
-	_spawn_units()
+	if not _spawn_units():
+		return
 	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
-	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
 		for u in gs.get("all_units") as Array:
@@ -87,7 +95,7 @@ func _ready() -> void:
 		gs.call("take_map_snapshot")
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
-		_hud.setup(_grid, _turn_manager)
+		_hud.setup(_grid, _turn_manager, _attack_preview, _unit_details_screen)
 	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
 	# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
 	# its unit/terrain panels from the start tile.
@@ -151,19 +159,23 @@ func _load_map_data() -> void:
 # Spawns player units from GameState.player_roster onto player_start_tiles,
 # then enemy units from MapData.enemy_placements. All units get registered
 # with GameState so GridManager can find them via _get_units().
-func _spawn_units() -> void:
+func _spawn_units() -> bool:
 	if map_data == null:
-		return
+		return false
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		push_error("GameMap: GameState autoload missing")
-		return
-
-	# Auto-load default roster if MainMenu hasn't filled it (e.g. direct boot)
+		return false
+	if not bool(gs.call("is_roster_ready_for_launch")):
+		push_error("GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')" % [
+			String(gs.get("next_map_roster_policy")),
+			String(gs.get("next_map_roster_source")),
+		])
+		return false
 	var roster: Array = gs.get("player_roster")
 	if roster == null or roster.is_empty():
-		gs.call("load_default_roster")
-		roster = gs.get("player_roster")
+		push_error("GameMap: prepared launch roster is empty")
+		return false
 
 	# Player units: roster slot N → player_start_tiles[N]
 	for i in roster.size():
@@ -197,6 +209,7 @@ func _spawn_units() -> void:
 			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
 			continue
 		_spawn_unit(u_data, tile, faction_id)
+	return true
 
 
 func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:

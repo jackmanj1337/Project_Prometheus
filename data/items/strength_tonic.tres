@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "strength_tonic"
+display_name = "Strength Tonic"
+description = "Grants +4 Strength for the next 4 turns. Useful for verifying that previews and unit details reflect active modifiers."
+item_type = "buff"
+uses = 1
+cost = 400
+effect_id = "stat_buff"
+effect_params = {"stat": "strength", "delta": 4, "duration": 4, "duration_type": "turn"}

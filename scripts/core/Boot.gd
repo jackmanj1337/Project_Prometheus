@@ -3,6 +3,13 @@ extends Node
 # In Phase 3+ this is where a splash screen or loading bar lives.
 
 func _ready() -> void:
+	# Scene changes remove the current root, so defer until Godot finishes
+	# attaching Boot to the tree. Changing synchronously here logs
+	# "Parent node is busy adding/removing children" in exported builds.
+	call_deferred("_open_main_menu")
+
+
+func _open_main_menu() -> void:
 	if ResourceLoader.exists("res://scenes/ui/MainMenu.tscn"):
 		get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
 	else:

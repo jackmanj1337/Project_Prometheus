@@ -1,16 +1,26 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
+**Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
+**Last verified:** 2026-06-14
+
 ---
+
+> **Historical roadmap note:** completed migration sections below may mention
+> deprecated field names or legacy systems while describing the path from the
+> old implementation to the current one. That wording is historical context, not
+> the live schema. For the current code-facing contract, use `GDD_01`, `GDD_03`,
+> and `GDD_06`.
 
 ## How to Use This Document
 
-This is the **Phase 2 roadmap** — a continuation of `GDD_09_Checklist.md`, which
-covers the completed MVP (milestones M0–M7). It defines milestones **M8–M16**, to be
-implemented after the MVP is stable. Each milestone produces a testable build.
+This is the **Phase 2 roadmap** — the continuation of the MVP phase (milestones
+M0–M7, historical build record in `GDD_09_Checklist.md` — deleted Stage 5.2, retrieve
+via Git). It defines milestones **M8–M16**, to be implemented after the MVP is stable.
+Each milestone produces a testable build.
 
 > The MVP amendments A1–A4 that once lived here (Phase-2 data fields +
 > `ConditionManager`, the modifier hooks, the combat context pipeline, and the grid
-> skill-hook stubs) are **complete** and have been folded into GDD_01–GDD_09. They
+> skill-hook stubs) are **complete** and have been folded into GDD_01–GDD_08. They
 > are no longer tracked separately.
 
 **Priority rules used in this document:**
@@ -23,32 +33,333 @@ implemented after the MVP is stable. Each milestone produces a testable build.
 - The **Laguz System (M12)** is fully specced but marked `[DEFERRED]`. Its data
   fields already exist on `UnitData` / `ClassData` (folded in during the MVP), so no
   future resource refactoring is needed.
-- The **Pair Up mechanic** is explicitly out of scope. Pair Up skills (Dual Strike+,
-  Dual Guard+, Dual Support+) are content placeholders only — data resources may be
-  created, but their logic will not be implemented.
+- **Pair Up pass 1 is implemented:** pairing, stat bonuses, Pair Up/Swap/Separate
+  actions, campaign toggle, and snapshot persistence. Dual Strike, Dual Guard,
+  adjacent support, forecast integration, and related skills remain deferred
+  until explicitly scheduled.
 
 ---
 
 ## Status Snapshot
 
-The MVP (M0–M7) status lives in `GDD_09_Checklist.md`. This table tracks Phase 2.
+The MVP (M0–M7) build is historical (see `GDD_09_Checklist.md` — deleted Stage 5.2,
+retrieve via Git). This table tracks Phase 2.
 
 | Milestone | Status | Notes |
 | --- | --- | --- |
-| M8 — Status Conditions | — | After M14 core; conditions tick per-unit-activation |
-| M9 — Skill Content Implementation | — | After M8 |
+| M8 — Status Conditions | [READY TO START] | After M9a engine slice; design locks reviewed 2026-05-25; conditions tick per-unit-activation |
+| M9 — Skill Content Implementation | [READY TO START] | Promoted split: M9a engine first, then M8, then M9b content |
 | M10 — Extra-Turn System | — | After M9; **needs M14 stages 1–5** (extra turn = extra activation) |
 | M11 — Content Expansion | — | After M10 |
 | M12 — Laguz System | [DEFERRED] | After M11; fully specced below |
 | M13 — Awakening Supplement | [DEFERRED] | After M12 |
-| M14 — Faction System | — | **Stages 1–3 first** — behaviour-neutral foundation; see Decision 10 |
-| M15 — Hotseat & Remote Control | — | After M14; Part B (Remote) [DEFERRED]; online design ratified 2026-05-17 |
-| M16 — Objective System | — | **After M14 stages 1–3** — per-group victory needs the faction model |
+| M14 — Faction System | [COMPLETE] | Shipped across 2026-05-20 and 2026-05-21; see session notes for stages 1–5 |
+| M15 — Hotseat & Remote Control | [PART A IN VALIDATION / PART B DEFERRED] | Hotseat core landed 2026-05-21; remaining Part A work is validation/content; online design ratified 2026-05-17 |
+| M16 — Objective System | [COMPLETE] | Shipped 2026-05-20; per-group victory/defeat and standings live |
 
 **Implementation order** (dependency-clean — `AGENT/Docs/design_decisions_log_2026-05-17.md`,
-Decision 10): **M14 stages 1–3 → M16 → M14 stages 4–5 (+content) → M8 → M9 → M10 →
-M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
+Decision 10, revised by the 2026-05-26 M9a promotion): **M14 stages 1–3 → M16 →
+M14 stages 4–5 (+content) → [current playtest/bug-fix round] → **Display &
+Accessibility controls** (near-term, see section below) → M9a (engine) → M8 →
+M9b (content/data) → M10 → M11 → M12 → M13 → Phase 3.** M15 Part A (hotseat) gates nothing and may slot anytime
 after M14 stage 5. M14 green/yellow content + Maps 002–005 ride after M16.
+The 2026-05-25 milestone-lock review clarified open design choices for M8/M9/M15/maps;
+2026-05-26 explicitly promoted **M9a** ahead of M8 so the skill engine can land before
+bulk condition/content work.
+
+---
+
+## Current Playtest / Bug-Fix Round — v0.1.5.0 findings (2026-06-14)
+
+Live action list for the v0.1.5.0 return pass. Evidence:
+
+- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.5.0_returned_2026-06-14.md`
+- Session error log: `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`
+
+The v0.1.5.0 pass re-verified the entire v0.1.4 fix set as **passing** (sections
+1–7, plus 8.1–8.2, 8.6–8.11, and 9) — only the items below need action.
+
+1. [ ] **Pair Up bonuses still report as absent (handbook 8.5).** Tester:
+       *"Pairup did not grant any bonuses, and no pairup line showed in lead unit
+       character sheet."* **Could not reproduce — needs live evidence (Open decision).**
+       The shipped binary is SHA-verified (`d91ca65…c5c5`) and was built *after* the
+       8.5 commits (`b53a385`, `913d39e`), so it contains the fix. A new faithful
+       end-to-end regression — `scripts/tests/test_pair_up_bonus_e2e.gd` — loads the
+       **real Map 950 roster** (`unit_12_hero_skill_cap` lead + `unit_01_cavalier`
+       support), builds **real `Unit` scene instances**, registers them with the live
+       `GameState`/`PairUpRegistry`/`PairUpBonusResolver` autoloads, and asserts both
+       paths: the resolver returns the handbook bonus `{Str 3, Def 3, Spd 3, Skl 2,
+       Lck 1}` **and** `HUD._show_unit` renders `Paired  +3 Str +2 Skl +3 Spd +3 Def
+       +1 Lck`. It passes. So the in-build code path is correct; the failure is not
+       reproducible headlessly. **Log reviewed (2026-06-14):** the tester's
+       `godot.log` (now `AGENT/Docs/godot_v0.1.5.0_2026-06-14.log`) is **clean** — the
+       only entries are the expected pre-M9 `armsthrift` / `dash` skill-stub warnings,
+       and their backtraces show the combatant carrying `armsthrift`+`dash` (i.e. the
+       Hero) attacking. There is **no** `PairUpBonusResolver` / table-load /
+       `find_unit_by_id` / data-validation error, so the bonus chain did not fail or
+       crash in that run. The log does not capture bonus magnitudes or which unit was
+       lead, so it neither confirms nor refutes the report. **Still needed for a
+       definitive answer:** a precise repro — (a) which unit was made the *lead*
+       (initiating Pair Up from the Cavalier would put the Hero off-map, so hovering
+       the Hero would show nothing), and (b) whether the panel checked was the HUD
+       unit-info panel (which carries the line) or the `I` inspect screen (which does
+       not). Working hypothesis: tester procedure, not a code defect.
+2. [x] **Reclass option lines force a horizontal scroll (handbook 8.6 /
+       General Map 950 comment).** Tester asked for the class-change stat lines to
+       *"wrap around to a second line instead of a horizontal scroll wheel."* Root
+       cause: `ReclassScreen`'s option buttons (unlike `PromotionScreen`'s) had no
+       `autowrap_mode`, and `OptionsScroll` allowed horizontal scrolling, so the long
+       `old +Δ -> new / cap` line overflowed sideways. **Fixed (2026-06-14):** disabled
+       the scroll container's horizontal scroll (`horizontal_scroll_mode = 0`) so each
+       button is width-capped to the panel, and set the buttons to
+       `AUTOWRAP_WORD_SMART` — matching the promotion modal. Regression guard added to
+       `scripts/tests/test_reclass_screen.gd`. Docs: GDD_07 §Promotion / Reclass Modal.
+3. [x] **Defender Battle Speed hidden when it cannot counter (handbook 8.3).**
+       Tester: *"defender battle speed does not display when they cannot counter."*
+       The note previously showed only the attacker's Battle Speed plus "(no counter)".
+       **Fixed (2026-06-14, decision: show it anyway):** `AttackPreview._battle_speed_note()`
+       now always shows both sides — `Attacker N vs Defender M … (defender cannot
+       counter)` — since the value is informative and the attacker can still double a
+       non-countering defender. `defender_battle_speed` was already populated
+       unconditionally by `preview_combat`. Regression guard in
+       `test_attack_preview_selector.gd`; GDD_07 updated (DoD#1).
+
+**Enhancement requests (logged; not defects):**
+
+- [ ] **Show which weapons are in use in the combat preview (handbook 2.4).** Tester:
+      *"It would be helpful long term to have combat preview display what weapons are
+      being used."* The preview shows damage/hit/crit but not the equipped weapon names.
+      Candidate for the combat-preview polish backlog.
+- [x] **Comprehensive character-sheet stat breakdown.** The `I` inspect sheet now
+      shows, per stat, personal base + class base + class cap (loud `NO_CAP_DEFINED`
+      placeholder; "—" for intentionally-uncapped MOV/CON/LoS) and every active bonus
+      (pair-up + the unit's stat skills + items/tonics) with amount + source, boosted
+      stats in green. **Implemented (2026-06-14):** `StatBreakdown` decomposition +
+      caps; new `StatContributions` collector surfaces combat-only sources (pair-up,
+      stat skills) the same way combat resolves them, with `test_stat_contributions.gd`
+      as a drift guard binding the sheet to combat; `UnitDetailsScreen` renders the
+      breakdown + green. Caps invariant enforced by `test_class_stat_caps.gd` (DoD#2;
+      Soldier is a documented cap-less placeholder). Closes the #8.5 surface gap — the
+      pair-up bonus now appears on the sheet, not just the HUD panel (verified by
+      `test_pair_up_bonus_e2e.gd`). Auras stay M9 (stubs, hit/dodge/crit only). Design:
+      `AGENT/Docs/stat_breakdown_character_sheet_plan_2026-06-14.md`.
+
+**Needs tester clarification (left unchecked on the returned handbook, no comment):**
+
+- 3.1 (Routing Red does not win — Map 002) and 8.4 (Strength Tonic modifier &
+  expiration — Map 950) were returned **unchecked with no comment**. Treat as
+  `NOT RUN` pending confirmation, not as failures — request a re-run or a note.
+- 7.4 camera **panning** memory could not be exercised because *"map is still too
+  small"* — a fixture coverage gap, not a defect (the danger-view half passed).
+
+---
+
+## Playtest / Bug-Fix Round — v0.1.4 findings (2026-06-14, resolved)
+
+Items are the defects returned by the v0.1.4 live pass; all are resolved and were
+re-verified by the v0.1.5.0 pass above. Evidence:
+
+- Completed handbook: `AGENT/Docs/playtest_checklist_v0.1.4_returned_2026-06-14.md`
+- Error-log excerpt + counts: `AGENT/Docs/godot_v0.1.4_2026-06-14_sample.log`
+- Promotion-modal screenshot: `950MERC Promotion.png` (in `AGENT/Docs/`)
+
+Ordered cheapest-and-noisiest first, then core-mechanic, then UI, then UX.
+
+1. [x] **Unknown weapon id `iron_axe` (handbook 9.1).** `DataManager` logged
+       `unknown weapon id 'iron_axe'` 11,829 times in one pass. Root cause: no
+       axe weapon existed in `data/weapons/`, but four Fighter units reference it —
+       `data/maps/map_003_defeat_boss/units/m003_fighter_1.tres`,
+       `data/maps/map_003_defeat_boss/units/m003_boss.tres`,
+       `data/maps/map_004_escape/units/m004_fighter_1.tres`, and
+       `data/maps/map_005_defend/units/m005_fighter_1.tres`.
+       **Fixed (2026-06-14):** added `data/weapons/iron_axe.tres` (E, Mt 8/Hit 75)
+       and registered it in `resource_manifest.json`. Regression guard:
+       `scripts/tests/test_unit_inventory_refs.gd` now fails on any unit inventory
+       weapon_id / item_id that does not resolve in DataManager.
+2. [x] **Pair Up `Swap` is a no-op (handbook 2.7).** Choosing `Swap` on a paired
+       lead spent the action but did not trade lead/support roles; the original
+       lead stayed on the map. **Fixed (2026-06-14):** `MapCursor._commit_swap_roles`
+       now physically swaps the pair after `swap_roles()` — the new lead takes the
+       on-map tile + becomes visible, the old lead moves to `OFF_MAP_TILE` + hides,
+       both go DONE. Regression guard added to `scripts/tests/test_map_cursor.gd`
+       (asserts positions + visibility, not just role labels).
+3. [x] **Pair Up support bonuses not applied (handbook 8.5).** After pairing, no
+       stat change reached the combat preview or live combat. **Root cause found via
+       the new preview-delta test (2026-06-14):** `CombatResolver._apply_pair_up_bonuses`
+       stamped every stat under one shared modifier source, and `add_modifier` removes
+       all modifiers sharing a source before adding — so each stat wiped the previous
+       one and only the last (luck) survived, leaving damage unchanged. **Fixed:**
+       distinct source per stat (`pair_up:<support_id>:<stat>`). Guard:
+       `test_combat.gd` asserts a paired lead's preview damage rises by the support's
+       strength contribution. (The earlier triage note that called this a "correct
+       code path" was wrong — the bug only shows with a multi-stat bonus.) UX follow-up
+       **done (2026-06-14):** pair-up bonuses are combat-only modifiers, so they never
+       showed on the unit-info panel; the panel now displays a "Paired  +N Str +N Def …"
+       line for a paired lead (`HUD._pairup_bonus_text`, queried on demand), closing the
+       "no change post-pairup" confusion. Guard in `test_hud.gd`.
+4. [x] **Allied-Rout map never ends (handbook 2.8).** On Map 001, after the unpaired
+       allies died, Red ignored the surviving paired archer, beelined to `(1,1)`,
+       and no defeat screen fired. **Fixed (2026-06-14), two parts:**
+       (A) `TurnManager._eval_rout` now counts true liveness via
+       `GameState.get_all_living_units_of` (new), so a Rout no longer resolves while
+       a hidden paired support is alive — the prior `get_living_units_of` excluded
+       supports. (B) `EnemyAI._living_hostiles_for_faction` now drops any unit at
+       `OFF_MAP_TILE` regardless of pair role, so a desynced off-map unit can't drag
+       the AI toward the `(-1,-1)` corner (the `(1,1)` beeline). Regression guards in
+       `scripts/tests/test_turn_manager.gd` and `scripts/tests/test_enemy_ai.gd`.
+5. [x] **Promotion modal runs off the right edge (handbook 8.7 and 8.11).** The
+       promotion class-choice modal was left-pinned with fixed offsets, and the long
+       per-stat preview rows forced it wider than the screen, so it clipped off the
+       right edge (both manual Master Seal 8.7 and Auto Promote 8.11 — same scene).
+       **Fixed (2026-06-14):** `PromotionScreen.tscn` panel is now centered via
+       anchors with symmetric grow, and `PromotionScreen.gd` sets the option buttons
+       to autowrap so the stat line wraps within the capped width instead of pushing
+       the panel off-screen. Regression guard: `test_promotion_screen.gd` asserts the
+       panel stays on-screen and horizontally centered. (Headless bounds check only —
+       a build-time visual confirm is still worth doing.)
+6. [x] **New Game settings not persisted unless a map is started (handbook 1.2).**
+       Changing `Pair Up` / `Auto Promote` and closing the New Game panel *without*
+       starting a map discarded the change. **Fixed (2026-06-14):** `NewGameScreen`
+       now writes each rule toggle through to `GameState` on `item_selected` (shared
+       `_persist_rules`, also called by Start), so close/reopen remembers them.
+       Regression guard in `scripts/tests/test_new_game_screen.gd`. (The `Map`
+       dropdown remains Start-only by design — it configures roster policy too.)
+
+**Lower-severity observations** (confirm and fold in or defer; not yet release-blocking):
+
+- [x] **Combat preview shifts and overlaps (handbook 2.4).** The preview could cover
+      the unit-info / objective / terrain HUD panels. **Fixed (2026-06-14):**
+      `AttackPreview._reposition_for` now nudges the panel clear of the visible HUD
+      panels' screen rects (`_place_clear_of`, a pure helper) after the viewport clamp;
+      degrades to the plain clamp when the HUD isn't reachable. Guards in
+      `test_attack_preview_position.gd`. (The deferred mouse-follow camera catch-up in
+      §10 is separate and unchanged.)
+- [x] **Battle Speed not shown in combat preview (handbook 8.3).** Testers couldn't
+      verify the follow-up threshold because Battle Speed wasn't shown. **Fixed
+      (2026-06-14):** `preview_combat` now returns `attacker_battle_speed` /
+      `defender_battle_speed` / `follow_up_threshold`, and the Damage field's More
+      Info shows both sides' Battle Speed, the +5 threshold, and who doubles. Guard
+      in `test_combat.gd`.
+- [x] **Reclass to Soldier grants no level-1 skill (handbook 8.6).** Demoting the
+      General to Soldier added no starting skill (reclass to Mercenary correctly
+      granted `armsthrift`). **Resolved as not-a-bug (decision 2026-06-14):** the
+      placeholder Soldier intentionally authors no `skill_unlocks`, so it grants no
+      class skill — working as designed. The reclass code is correct (it grants a
+      level-1 skill for any class that authors one). Documented in GDD_03 §Known gaps.
+
+> Note: the `armsthrift` (x80), `dash` (x25), and `disarm` (x2) `SkillHandler`
+> stub warnings in the same log are expected pre-M9 (skill content lands in
+> Milestone 9), not defects in this round.
+
+---
+
+## Near-Term — Display & Accessibility Controls
+
+Bumped up from the Phase 3 backlog (2026-06-11): scheduled to begin **immediately
+after the current playtest / bug-fix round wraps**, ahead of the remaining Phase 2
+content milestones. Grouped because they share UI-scaling and screen-space
+plumbing. Ordered cheapest-now-first where it ties, hardest-to-retrofit-first
+otherwise — see the per-item coupling notes for why the order matters.
+
+1. [ ] **Map zoom** — player-controlled camera zoom (scroll wheel / keys) per the
+      designed 0.75× / 1× / 1.5× levels in `GDD_01_Architecture.md` §Camera Zoom
+      (currently design-only — no code, no input actions). Cross-cutting: touches
+      `CameraController`, `MapCursor`, and every world-anchored overlay/UI (combat
+      preview, HP bars, future damage popups). **Do this first** — build the
+      `Camera2D.zoom` hook and a centralized tile↔screen conversion early; it gets
+      meaningfully harder to retrofit as more world-pinned UI is added. (There is
+      already one zoom-naive spot: `AttackPreview._reposition_for` offsets by a raw
+      32px tile rather than the on-screen tile size.)
+2. [ ] **Display resolution options** — windowed/fullscreen toggle + resolution
+      picker in Settings, persisted to `settings.cfg`. Largely bounded: `project.godot`
+      already uses `stretch/mode="canvas_items"`, so UI scales with the window
+      automatically; the open work is the picker UI, the fullscreen toggle, and a
+      non-16:9 aspect policy (`stretch/aspect`) so the ~84 absolute-offset nodes in
+      scenes don't break off-screen. Decide the aspect policy early.
+3. [ ] **Text / font size (accessibility)** — a Settings option to scale UI font
+      size independently of window resolution and panel layout. Cleanest as a
+      `Theme` default-font-size scalar applied at startup. Coupling note: every
+      fixed `custom_minimum_size` / fixed-width column (e.g. AttackPreview's 150px
+      forecast columns) is a text-clip risk at larger sizes — prefer content-sized
+      containers in new UI so this stays cheap to add.
+4. [ ] **UI layout scale & movement** — let the player scale and reposition HUD/menu
+      *panels* (panel layout only — text size is item 3 above). Likely a
+      `CanvasLayer` scale factor + saved offsets. Broadest/least-defined of the four;
+      fine to do last.
+
+---
+
+## Release Gates & Package G Decisions
+
+> These items are cross-cutting release obligations, not milestone-ordered work. Each
+> has a decision record owner; track as roadmap entries so nothing falls through.
+
+### 1.0 Definition (D-B)
+
+**Scope:** 1.0 = all offline non-pipeline features + one short campaign.
+M15 Part B (online) is post-1.0.
+M11 re-scoped: campaign content required for 1.0; full corpus coverage is post-1.0.
+
+**Campaign prerequisites (D-D):** the following are prerequisite dependency edges to
+the campaign milestone, not standalone optional work:
+- Pre-battle deployment screen (roster selection, convoy/trade initial state)
+- Shop / item-purchase screen
+- Recruit mechanic (green ally → player unit)
+
+These three items gate the campaign milestone; they do not gate M8–M11 individually.
+
+### Public-Identity Rename Gate (D-A)
+
+All Fire Emblem–derived names are placeholders. A data-pass rename to project-owned
+names is required **no later than the first public release-candidate**.
+- Scope: faction names, class names, item names, GDD prose, data file strings.
+- This rename does **not** resolve the legal/licensing gate (D-A and DOC-012 are
+  separate, consecutive gates — rename first, then licensing review).
+
+### Legal / Licensing Gate (DOC-012 / OPEN-12)
+
+**Blocking pre-1.0 gate.** Before any public release, research the source handbook /
+corpus license for derivative digital works and decide attribution strategy.
+- D-A rename does not resolve this; it runs after the rename.
+- Scope: all corpus-derived rules, text, and structural content.
+- Owner: DOC-012 decision record.
+
+### Renderer & Platform Targets (OPEN-8 / OPEN-11)
+
+Ratified 2026-06-13 (June decision record):
+- **Renderer:** Compatibility (OpenGL) — required for web export; Forward+ not needed.
+- **Desktop:** primary target.
+- **Steam Deck:** letterbox (keep 16:9) at first verification; revisit "expand" once
+  UI-scale setting exists (OPEN-11).
+- **Web:** playtest channel.
+- **Gamepad:** with the key-rebind milestone.
+- **Mobile:** deferred.
+
+Cross-referenced in GDD_00 §Tech Stack; GDD_07 §Accessibility & Input Parity.
+
+### CampaignRules Stub (OPEN-4 / GDD_01 §CampaignRules Contract)
+
+**Status: Stub created (Stage 4.3, 2026-06-13)** — `scripts/resources/CampaignRules.gd`.
+
+The `CampaignRules` Resource defines the per-save bundle of gameplay rules. Today the
+fields are loose on `GameState`; the stub establishes the class and adds the key new
+field from OPEN-4:
+
+- **`exp_gaining_factions: Array[String]`** — default `["blue", "green"]`; Red (enemy)
+  does not gain EXP. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
+
+**Next step (post-stub):** wire `CampaignRules` into `GameState` (replace loose fields
+with a `campaign_rules` member), update the snapshot serializer, and update `NewGameScreen`
+to populate the object. This is a Phase 3 task (requires campaign save/load design).
+
+### New Backlog Items (from June decisions)
+
+- **Broken-weapon degraded mode (OPEN-5):** optional rule — a 0-use weapon stays
+  usable with a stat penalty and infinite uses while broken, repairable at special
+  shops/items. Likely a `CampaignRules` toggle. Tracked in Phase 3 Backlog §Systems
+  and GDD_04 §Inventory Management.
+- **SFX deferred (PL#9):** no interim SFX. Wait for the Phase 3 audio milestone
+  (Polish §Sound effects). No code placeholder needed.
 
 ---
 
@@ -71,6 +382,34 @@ indicator appears. Verify all mechanical effects. Verify removal by Restore staf
 > than start of a faction phase. Building M8 on the finished turn model avoids
 > re-wiring tick points later. See decisions log 2026-05-17, Decision 10.
 
+### Locked design decisions — 2026-05-25 review
+
+These four open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+for the deliberation log.
+
+- **Poison lethality — configurable per source.** Poison damage **floors at 1 HP
+  by default** (Poison alone cannot kill). The damage source carries an optional
+  `can_be_lethal: bool` flag (default `false`); only sources with the flag
+  explicitly set may reduce the holder to 0 HP. This preserves classic FE
+  semantics while leaving the door open for a future "lethal poison" boss skill.
+- **Berserk targeting — highest projected damage, then nearest, then unit id.**
+  The Berserk AI profile reaches every legal target it can attack this
+  activation, ranks them by **projected damage** (the same expected-damage
+  calculation the threat preview will already need: hit/crit-weighted, after
+  mitigation), then tiebreaks **nearest in tiles**, then **lowest unit id** for
+  determinism. Behaviour is therefore reproducible under a fixed RNG seed.
+- **Silence scope — tomes and staves only.** Silence blocks actions whose
+  primary `weapon_type` is `TOME` or `STAFF`. It does **not** block physical
+  weapons or active non-magical skills. The condition is a pure filter on
+  weapon type; no per-skill `silenceable` flag is added in M8. (If a future
+  active skill genuinely needs Silencing, add the flag then.)
+- **Condition schema — minimal `{ type, turns_remaining }`.** Standard
+  conditions store only those two fields; extra fields are added per
+  condition only when the condition genuinely needs them (e.g. Hex's
+  skill-granted effect id). Do **not** preemptively add `source_id`,
+  `magnitude`, `tags`, or `metadata` columns to every condition.
+
 ### Condition Definitions
 
 All conditions store as `{ "type": String, "turns_remaining": int }` in
@@ -82,7 +421,7 @@ fully implemented here.
 | Poison | −3 HP at start of holder's turn; −10 Accuracy and Dodge during combat | 5 turns | Start of holder's turn |
 | Sleep | Cannot move, act, or counterattack; Dodge set to 0 | 3 turns | Start of holder's turn |
 | Silence | Cannot use tomes or staves | 4 turns | Start of holder's turn |
-| Berserk | Must attack the most vulnerable unit in range each turn (including allies) | 3 turns | Start of holder's turn |
+| Berserk | Must attack the target with the highest projected damage (nearest → lowest unit id tiebreak) in range each turn, including allies | 3 turns | Start of holder's turn |
 | Stun | Cannot move, act, or counterattack; Dodge set to 0 | 1 turn | Start of holder's turn |
 | Hex | −6 STR and −6 MAG (via active_modifiers, "combat" duration_type by default) | Custom | Applied by skill |
 
@@ -124,8 +463,13 @@ func tick_conditions(unit: Node) -> void:
     for condition in unit.data.conditions.duplicate():
         match condition["type"]:
             CONDITION_POISON:
-                unit.take_damage(3)
-                EventBus.unit_damaged.emit(unit, 3)
+                # Default Poison floors at 1 HP. A lethal-poison source would
+                # carry `can_be_lethal = true` and call `take_damage` directly.
+                var damage := 3
+                if unit.data.hp - damage < 1:
+                    damage = max(unit.data.hp - 1, 0)
+                unit.take_damage(damage)
+                EventBus.unit_damaged.emit(unit, damage)
         condition["turns_remaining"] -= 1
     unit.data.conditions = unit.data.conditions.filter(
         func(c): return c["turns_remaining"] > 0
@@ -195,6 +539,14 @@ Handle in `SkillHandler.apply_trigger(attacker, "on_hit", context)` — if weapo
 - [ ] Implement `ConditionManager.apply_condition()` with duplicate-refresh logic
 - [ ] Implement `ConditionManager.remove_condition()` with modifier cleanup for Poison
 - [ ] Implement `ConditionManager.tick_conditions()` with Poison damage
+- [ ] Implement Poison-floors-at-1-HP-by-default; respect `can_be_lethal` on the
+      condition's source data when present
+- [ ] Implement Berserk targeting as **highest projected damage → nearest →
+      lowest unit id** (reuse the threat-projection helper from AI)
+- [ ] Silence filter: block actions whose `weapon_type` is `TOME` or `STAFF`
+      (no other categories)
+- [ ] Keep stored condition records to `{ type, turns_remaining }` — no extra
+      schema fields unless an individual condition (e.g. Hex) needs them
 - [ ] Implement `ConditionManager.has_condition()`
 - [ ] Implement `ConditionManager.clear_all_conditions()` (for Restore/Boon/Panacea)
 - [ ] Add `condition_applied` and `condition_removed` signals to `EventBus.gd`
@@ -232,6 +584,39 @@ its effect triggers correctly and produces the expected change in numbers or beh
 This milestone adds `match` blocks to `SkillHandler.apply_trigger()` for every
 deferred effect. The infrastructure (modifier pipeline, trigger types, counter system)
 is already in place from the MVP amendments.
+
+### Locked design decisions — 2026-05-25 review
+
+These four open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`
+for the deliberation log.
+
+- **Internal M9a / M9b split (public roadmap unchanged).** Work M9 internally as
+  two phases: **M9a** finishes the *engine* — every `match` arm in
+  `SkillHandler.apply_trigger()` for the effect families below, plus shared
+  helpers — landing first against a minimal authored test set. **M9b** then
+  authors the bulk of the production skill `.tres` files against the locked
+  engine. The roadmap and downstream milestone numbers stay unchanged; the
+  split is a discipline tool to avoid mid-content engine refactors.
+- **Trigger discipline — strict reuse, flags first.** Do **not** introduce a
+  new `trigger` type during M9 unless an existing trigger combined with a
+  context flag (`context.flags.*`) demonstrably cannot express the skill. If a
+  new trigger is genuinely required, justify it in the skill's design note
+  before adding it. The trigger surface area drives interaction-ordering
+  complexity, so it is deliberately kept small.
+- **Effect computation — hybrid (dynamic for state, stored for static).**
+  Threshold- and state-dependent effects (e.g. **Resolve**, **Frenzy**, the
+  pre-mitigation halving applied by **Aegis**) are evaluated **at query time**
+  off the current state, not stored as toggled modifiers. Static passives
+  (e.g. **Zeal**, **Tough**) remain stored modifiers added on initialisation.
+  Rule of thumb: if the contribution depends on a condition that can change
+  during a unit's lifetime, evaluate it dynamically.
+- **Pair Up / Rescue — fully out of M9.** No skill content or engine code in
+  M9 may depend on `pair_up`, `support`, or `rescue` semantics; these are
+  campaign-rule features and will be handled in the campaign-rules milestone
+  (per the 2026-05-25 scope decision). M9-era Pair Up references in the
+  checklist below are explicitly marked *skip* / *defer*. Any unavoidable
+  integration retrofit lands later, once the campaign rules are specified.
 
 ### Generic stat skills — passive bonuses
 
@@ -690,11 +1075,11 @@ errors. Verify every class, weapon, and skill appears correctly in the editor In
 - [ ] Create `WeaponData.tres` for all axes (Bronze through Urvan, including Bolt Axe,
       Brave Axe, Halberd, Hammer, Wyrm Axe, etc.)
 - [ ] Create `WeaponData.tres` for all bows (Bronze through Rienfleche, including
-      Bright Bow with `magic_triangle_type = "light"`, Double Bow with `range_min = 1`)
+      Bright Bow with `triangle_family = "light"`, Double Bow with `range_min = 1`)
 - [ ] Create `WeaponData.tres` for all lances (Bronze through Wishblade, including
-      Flame Lance with `magic_triangle_type = "fire"`, Brave Lance)
+      Flame Lance with `triangle_family = "fire"`, Brave Lance)
 - [ ] Create `WeaponData.tres` for all swords (Bronze through Vague Katti, including
-      Sonic Sword with `magic_triangle_type = "wind"`, Runesword with lifesteal tag,
+      Sonic Sword with `triangle_family = "wind"`, Runesword with lifesteal tag,
       Brave Sword)
 - [ ] Create `WeaponData.tres` for all knives (Bronze Knife through Peshkatz)
 - [ ] Create `WeaponData.tres` for all staves (Heal through Ashera Staff)
@@ -1084,6 +1469,11 @@ per-faction *controller*. All factions are AI-controlled in this milestone — h
 controllers are added in M15. The default configuration is the four armies **blue**
 (player), **green**, **red**, **yellow**, with turn order `blue → green → red → yellow`.
 
+> **Current state (2026-06-11):** The faction model, hostility rules,
+> per-faction dispatch, scheduler, data/content, and tests are complete.
+> Tactical target scoring by HP, strength, terrain danger, and objective
+> criticality is deferred to its own AI task and is not part of M14 completion.
+
 Full design rationale, the architecture-seam analysis, and the staged breakdown live
 in `AGENT/Docs/second_player_control_feasibility.md` (§§2–5, 9). This milestone is
 stages 1–4 + content of that document.
@@ -1140,13 +1530,11 @@ policy drives an arbitrary-length cycle (see decisions log 2026-05-17, Decision 
 Building this data-driven is what makes a 5th+ faction pure data later (feasibility
 doc §9).
 
-### Stage 4 — Faction-agnostic AI
+### Stage 4 — Faction-agnostic AI Dispatch
 
-`EnemyAI.run_enemy_phase` becomes `run_ai_phase(faction)`, targeting *all hostile
-units* via the hostility model. The AI is **faction-blind**: it does not prefer a
-target by which army it is — every hostile unit is scored by combat factors (target
-HP / strength, terrain danger of the approach, a priority bump for units flagged
-objective-critical, i.e. a unit whose death is a blue defeat condition).
+`EnemyAI` runs for any AI-controlled faction and targets hostile units through
+the alliance model. Advanced tactical scoring (target HP/strength, terrain
+danger, and objective criticality) is a separate deferred AI task.
 
 ### Content & UX
 
@@ -1164,30 +1552,29 @@ alongside M14's green-objective content.
 
 ### Checklist — M14
 
-- [ ] Stage 1: replace literal `"player"` in `MapCursorSelection`,
+- [x] Stage 1: replace literal `"player"` in `MapCursorSelection`,
       `MapCursorTargeting`, `TurnManager`; suite stays green
-- [ ] Stage 1: `CombatResolver.is_player_initiated` → `is_initiator` / attacker faction
-- [ ] Stage 2: alliance-group hostility helper; default groups `{blue,green} {red} {yellow}`
-- [ ] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
-- [ ] Stage 3: faction defined as data (id, colour, alliance group, controller)
-- [ ] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
-- [ ] Stage 3: `TurnManager` rebuilt as an activation scheduler — primitive
+- [x] Stage 1: `CombatResolver.is_player_initiated` → `is_initiator` / attacker faction
+- [x] Stage 2: alliance-group hostility helper; default groups `{blue,green} {red} {yellow}`
+- [x] Stage 2: `GridManager` / `MapCursorTargeting` / `EnemyAI` query the hostility model
+- [x] Stage 3: faction defined as data (id, colour, alliance group, controller)
+- [x] Stage 3: `GameState` per-faction unit buckets + `get_living_units_of()`
+- [x] Stage 3: `TurnManager` rebuilt as an activation scheduler — primitive
       `activate_one_unit(faction)` + pluggable scheduling policy
-- [ ] Stage 3: `MapData.activation_mode` (`WHOLE_PHASE | ALTERNATING`, default
+- [x] Stage 3: `MapData.activation_mode` (`WHOLE_PHASE | ALTERNATING`, default
       `WHOLE_PHASE`); whole-phase + alternating policies; configurable per-map
       turn-order list, default `blue → green → red → yellow`; skips zero-unit factions
-- [ ] Stage 3: player controller branches on mode (whole-phase keeps End Turn;
+- [x] Stage 3: player controller branches on mode (whole-phase keeps End Turn;
       alternating returns control after one committed unit)
-- [ ] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
-- [ ] Stage 4: `run_ai_phase(faction)` / per-unit `activate_one_unit` for all hostile units
-- [ ] Stage 4: faction-blind AI target scoring (HP / strength / terrain danger /
-      objective-criticality)
-- [ ] Content: green + yellow spawns and per-unit faction tags in `MapData`
-- [ ] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
-- [ ] Verify: green attacks red/yellow, never blue; yellow attacks all
-- [ ] Verify: a map omitting green or yellow runs correctly (cycle skips it)
-- [ ] Verify: both activation modes run correctly (whole-phase and alternating)
-- [ ] New tests for the hostility model, both scheduling policies, and `run_ai_phase`
+- [x] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
+- [x] Stage 4: faction-agnostic AI dispatch for all hostile units
+- [ ] Separate tactical-AI task: HP / strength / terrain danger / objective-critical scoring
+- [x] Content: green + yellow spawns and per-unit faction tags in `MapData`
+- [x] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
+- [x] Verify: green attacks red/yellow, never blue; yellow attacks all
+- [x] Verify: a map omitting green or yellow runs correctly (cycle skips it)
+- [x] Verify: both activation modes run correctly (whole-phase and alternating)
+- [x] Tests for the hostility model, both scheduling policies, and AI dispatch
 
 ---
 
@@ -1204,13 +1591,40 @@ Design rationale: feasibility doc §§3.3, 5 (stages 6, 8).
 
 ### Part A — Hotseat (shipping target)
 
-> **▶ NEXT ACTION ITEM (2026-05-21).** Implementation plan ready —
-> `AGENT/Docs/implementation_plan_2026-05-21.md`: six design questions settled,
-> a done-vs-remaining audit against current code, ordered build steps + test
-> plan. Part A is scoped to **WHOLE_PHASE maps only** (Decision Q6); ALTERNATING
-> hotseat is deferred to a later backlog item. The `grant_extra_turn` checklist
-> item below is **blocked on M10** — that feature does not exist in the codebase
-> yet — so skip it for Part A.
+> **Current state (refreshed 2026-06-11).** Core Part-A implementation landed on
+> 2026-05-21 (controller seam, `HotseatController`, generic phase commit flow,
+> cursor faction handoff, tests). The detailed build/test plan in
+> `AGENT/Docs/implementation_plan_2026-05-21.md` remains the reference for the
+> architecture and validation scope. The WHOLE_PHASE validation map/launch path
+> and `Faction - Controller` HUD/banner text are implemented. Remaining Part-A
+> work is the manual acceptance checklist in `AGENT/Docs/manual_test_playbook.md`.
+>
+> Part A is scoped to **WHOLE_PHASE maps only**; `ALTERNATING` hotseat remains
+> deferred. The `grant_extra_turn` checklist item below is still **blocked on M10**
+> because that feature does not exist in the codebase yet.
+
+#### Locked design decisions — 2026-05-25 review
+
+These four Part-A open questions from the planning notes were resolved before
+implementation begins. See `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+
+- **Per-player keybindings — skip for Part A.** All hotseat slots share the
+  existing single `InputMap` action set. Per-player keybinding profiles are
+  deferred to the same later backlog item that picks up split-controller /
+  shared-couch co-op. `WHOLE_PHASE` hotseat means only one player interacts at
+  a time on one keyboard, so personal binds add no value yet.
+- **Hotseat assignment — per-map data.** A map's `.tres` declares each
+  faction's controller (`AI` or `HOTSEAT`). The proposed CLI/dev override is
+  deferred. **No pre-battle lobby UI in Part A**.
+- **HUD controller label — `Faction - Controller` text.** The active phase
+  banner reads e.g. `Red - Player 2` or `Green - AI`. Faction-first matches
+  the in-game identity; the controller half eliminates the "whose turn is it?"
+  ambiguity for hotseat sessions. Icons are optional decoration but must not
+  replace the text.
+- **`ALTERNATING` hotseat — fully out of Part A.** No code path in Part A may
+  rely on `ALTERNATING` behaviour. `ALTERNATING` is revisited only after the
+  extra-turn / activation-scheduler work is settled (the scheduler may simplify
+  or eliminate the special case altogether).
 
 Controller types `AI | HOTSEAT`. A `HOTSEAT` faction's activations are driven through
 the existing `MapCursor` instead of the AI — the cursor is *not* locked for a
@@ -1236,9 +1650,8 @@ trivial; the real work is networking, and it splits into two distinct jumps.
 
 **Hotseat → LAN — the hard architectural jump** (one game instance becomes two that
 must agree):
-- *Sync model.* Choose lockstep (peers exchange only inputs, both run the sim) or
-  client-server (one authoritative host). Godot's `MultiplayerAPI` / ENet provides
-  the transport, not the model.
+- *Sync model.* Use the ratified host-authoritative client-server model. The
+  host owns simulation truth, validates commands, and broadcasts results.
 - *Command layer.* Today a turn is imperative `MapCursor` calls resolved locally.
   LAN needs each faction's turn serialised as committed **commands** (move unit→tile,
   attack, use item) sent and re-applied on the other machine.
@@ -1289,13 +1702,17 @@ the recorded outcomes. The decisions that drive Part B's build:
 **Part A — Hotseat**
 
 - [ ] Controller enum `AI | HOTSEAT` (kept open for `REMOTE`); per-faction assignment
-      in `GameState`, set per map / per match
+      sourced from the map's `.tres` defaults, overridable by a CLI/dev flag
+      (no lobby UI in Part A)
 - [ ] `HOTSEAT` faction phase routes through `MapCursor`, not `run_ai_phase`
 - [ ] `MapCursor` not locked during a human-controlled non-blue phase; End Turn ends it
 - [ ] `grant_extra_turn` (M10) re-enters the *active controller*, not "the cursor", so
       an extra turn during a hotseat phase is driven correctly
-- [ ] Faction / hotseat-slot label shown in the HUD
-- [ ] [Optional] per-phase `InputMap` action sets; `MapCursorInput` reads the active set
+- [ ] HUD phase banner shows `Faction — Controller` text (e.g. `Red — Player 2`,
+      `Green — AI`)
+- [ ] [Deferred] per-player `InputMap` action sets — skipped in Part A; revisit
+      with split-controller co-op
+- [ ] No code path may rely on `ALTERNATING` activation mode in Part A
 - [ ] Verify: a hotseat player drives their faction; AI factions unaffected
 - [ ] Verify: a map with all non-blue factions AI still plays exactly as M14
 
@@ -1333,10 +1750,11 @@ groups are eliminated in order, all resolve correctly with the right standings.
 
 ### Current state
 
-`MapData` carries a single `objective_type` (only `"rout"` implemented), a
-`turn_limit`, and `required_survivor_ids`; `TurnManager.check_victory_conditions`
-hardcodes those three checks, evaluated for blue only. Both the multi-condition
-model **and** the per-group evaluation are new.
+> **Current state (2026-06-11):** M16 is shipped. `MapData` carries typed,
+> per-group `victory_conditions` and `defeat_conditions`; the generic evaluator
+> supports Rout, Defeat Boss, Protect, Turn Limit, Survive, Seize, and Escape,
+> with standings and objective HUD output. The legacy single-objective fields
+> have been removed.
 
 ### Condition model — per aggression group
 
@@ -1351,8 +1769,9 @@ Win resolution:
 - Meeting a defeat condition eliminates that group.
 - The map also ends when **≤1 group remains** — the last group standing wins.
 - All remaining groups eliminated simultaneously → **draw**.
-- A group with no conditions authored gets an implicit defeat condition — **group
-  routed** (all its units dead) — so every group always has a way to be out.
+- Rout is never implicit. A group is eliminated only by an authored defeat
+  condition. Zero deployed units may remain a valid state for reinforcements or
+  for objectives that can still fail without opposition.
 
 `rout`/`seize` author naturally as a group's *defeat*; `escape`/`survive` as the
 achiever group's *victory*. Condition types:
@@ -1360,10 +1779,12 @@ achiever group's *victory*. Condition types:
 - **rout** — a named faction (or group) has zero living units. Compound by listing
   several (rout red AND rout yellow).
 - **defeat_boss** — one or more named unit ids are dead.
-- **seize** — a blue unit uses a dedicated **Seize action** (an `ActionMenu`
-  entry) while on a named seize tile. The condition resource carries the tile
-  id(s) and an optional allowed-unit-id list (empty = any blue unit). *Not*
-  passive occupation — see decisions log 2026-05-17, Decision 4.
+- **seize** — a unit carrying the `can_seize` tag uses a dedicated **Seize
+  action** (an `ActionMenu` entry) while on a named seize tile. The condition
+  resource carries the tile id(s); seize eligibility is determined by the
+  per-unit `can_seize` tag (2026-05-25 review), not by class and not by a
+  per-map allowlist. *Not* passive occupation — see decisions log 2026-05-17,
+  Decision 4.
 - **escape** — named units reach an escape **zone** (a set of tiles — region /
   edge / doorway; a size-1 zone is a single tile). A named unit on a zone tile
   may pick the **Escape action** from the `ActionMenu` (post-2026-05-20 review —
@@ -1400,29 +1821,62 @@ group records an "eliminated on round N" field to drive the ordering.
   (`advance_to_next_phase`); AI / hotseat controllers also check it to abort a
   decided map early.
 
+### Locked design decisions — 2026-05-25 review (Maps 002–005 followup)
+
+M16 itself is shipped. These five decisions govern the **objective-map followup**
+— authoring Maps 002–005 against the implemented condition system. See
+`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md` for the deliberation log.
+
+- **Showcase plan — one map per primary objective type.** Maps 002–005 cover
+  exactly the four types implemented in M16: **Seize**, **Defeat Boss**,
+  **Escape**, **Survive / Defend** — one map each. The goal is to validate the
+  typed condition system through real content; map variety within a type is a
+  later authoring pass.
+- **Primary objectives — one per early map.** Each of the four maps declares
+  **exactly one** primary victory objective for blue (multi-primary and
+  optional-secondary objectives are out of scope until the basics are
+  validated). Defeat conditions are still varied per map (see below).
+- **Allowed seizer — per-unit `can_seize` tag.** Seize eligibility is
+  determined by a **tag on the unit's data** (not derived from class, and not
+  declared as a per-map `allowed_unit_ids` allowlist). The Seize action is
+  available only to units carrying the tag while standing on a configured
+  seize tile. Authors set the tag on the relevant lord-class units; new
+  characters opt in by being tagged.
+- **Escape semantics — alive, removed, no further actions this map.** An
+  escaped unit counts as alive for survival/protection conditions, is removed
+  from the active board, and may not act further on the current map. (Classic
+  FE Escape semantics; matches the typed condition system's expectations.)
+- **Authored defeat standard.** Every Phase-3 objective map declares at least
+  one authored defeat condition appropriate to the scenario. Rout is authored
+  explicitly only when a full wipe should eliminate that group.
+
 ### Checklist — M16
 
-- [ ] Define typed condition resources for each condition type above
-- [ ] `MapData`: **per-group** `victory_conditions` + `defeat_conditions` sets
+- [x] Define typed condition resources for each condition type above
+- [x] `MapData`: **per-group** `victory_conditions` + `defeat_conditions` sets
       (inspector-editable)
-- [ ] `check_victory_conditions` → generic evaluator looping every group
+- [x] `check_victory_conditions` → generic evaluator looping every group
       (per group: AND victory / OR defeat); plus the ≤1-group-standing and draw rules
-- [ ] Implicit default defeat condition (group routed) for a group with none authored
-- [ ] Per-group "eliminated on round N" tracking to drive standings
-- [ ] Ranked-standings results screen (winner first, losers by elimination order,
+- [x] Explicit authored Rout defeats; no implicit group elimination
+- [x] Per-group "eliminated on round N" tracking to drive standings
+- [x] Ranked-standings results screen (winner first, losers by elimination order,
       draw in the top slot; blue-perspective Victory/Defeat header)
-- [ ] Add a **Seize** entry to `ActionMenu`, gated by "on a seize tile" AND "this
+- [x] Add a **Seize** entry to `ActionMenu`, gated by "on a seize tile" AND "this
       unit may seize" (decisions log 2026-05-17, Decision 4)
-- [ ] `escape` zone: units removed-on-entry; HUD/turn-order handling for escapees
-- [ ] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
+- [x] `escape` zone: explicit Escape action removes units; HUD/turn-order handling for escapees
+- [x] Migrate the existing `"rout"` / `turn_limit` / `required_survivor_ids` map(s)
       to the new per-group condition sets
-- [ ] Objective readout in the HUD lists the active conditions
-- [ ] Verify: compound victory (rout red AND yellow) resolves only when both are met
-- [ ] Verify: a green-escape victory and a green-death defeat fire correctly
-- [ ] Verify: a 3-group match eliminates groups in order with correct standings;
+- [x] Objective readout in the HUD lists the active conditions
+- [x] Verify: compound victory (rout red AND yellow) resolves only when both are met
+- [x] Verify: a green-escape victory and a green-death defeat fire correctly
+- [x] Verify: a 3-group match eliminates groups in order with correct standings;
       simultaneous elimination resolves to a draw
-- [ ] New tests for the evaluator, each condition type, and the standings logic
-- [ ] Phase 3 Maps 002–005 authored against the condition system
+- [x] Tests for the evaluator, each condition type, and the standings logic
+- [x] Phase 3 Maps 002–005 authored against the condition system — one map
+      per primary objective (Seize / Defeat Boss / Escape / Survive-Defend),
+      one primary objective each, ≥1 authored defeat condition beyond rout
+- [x] Define a `can_seize` tag on `UnitData`; gate the Seize action on the
+      tag rather than on class or a per-map allowlist
 
 ---
 
@@ -1430,15 +1884,34 @@ group records an "eliminated on round N" field to drive the ordering.
 
 The following items are planned but not yet milestoned. Implement after M13 is stable.
 
+### Code Health (tech debt)
+
+- [ ] **Decompose `DataManager._ready()`** (~525 lines) into named, testable phases
+      (`_load_all_resources`, `_validate_cross_references`, `_build_default_roster`,
+      `_dedup_unit_ids`). Behavior-preserving refactor for readability and unit-testable
+      load/validate. Source: code review 2026-06-13 (AGENT/Code Reviews) §2, Medium.
+
 ### Content
 
 - [ ] All remaining handbook classes not covered in M11 (GM-discretion additions)
-- [ ] Full forging UI and shop system (already architected in GDD_09 Phase 2 backlog)
+- [ ] Full forging UI and shop system (already architected in Phase 3 backlog)
 - [ ] Class promotion UI for classes with 3+ promotion paths
 
 ### Systems
 
-- [ ] Between-map save / load (GDD_09 Phase 2 backlog)
+- [ ] Firm up the **campaign-rules contract** before building the full save / prep
+      loop. `pair_up`, `support`, and `rescue` are campaign rules, not one-off map
+      toggles. When the between-map save/load, deployment, convoy, trade, and
+      progression-management screens are designed, treat these as part of the same
+      contract and answer the open questions in
+      `AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+      Each campaign, including a single-map campaign, must be able to author a
+      default value for every New Game rule and mark that rule as either
+      player-adjustable or designer-locked. Store adjustable selections in that
+      campaign save. This ownership model is deliberately deferred from the
+      June 2026 playtest bug-fix series; until the campaign layer exists, retain
+      the current last-selected New Game behavior.
+- [ ] Between-map save / load (Phase 3 backlog)
 - [ ] Mid-battle suspend save — full serialization of: all unit `UnitData` (including
       `active_modifiers`, `conditions`, `skill_use_counters`, `shift_gauge`, `is_shifted`),
       all unit tile positions, **activation-scheduler state** (turn-order index /
@@ -1449,18 +1922,19 @@ The following items are planned but not yet milestoned. Implement after M13 is s
       runtime state is serializable without scene tree traversal. **Note (Decision 10):** M15 Part B's disconnect
       save-and-continue (D14) depends on this — when Part B is built, pull this item
       forward to sit with it rather than leaving it post-M13.
-- [ ] Fog of war and LoS (GDD_09 Phase 2 backlog)
-- [ ] Rescue and carry system (GDD_09 Phase 2 backlog)
-- [ ] ~~Ally NPC phase (GDD_09 Phase 2 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
-- [ ] Additional AI profiles: territorial, guard_tile, healer, boss (GDD_09 Phase 2 backlog)
+- [ ] Fog of war and LoS (Phase 3 backlog)
+- [ ] Rescue and carry system (Phase 3 backlog) — treat rescue availability,
+      support bonuses, and Pair Up coexistence as campaign-rule decisions, not a
+      map-local ruleset
+- [ ] ~~Ally NPC phase (Phase 3 backlog)~~ — **superseded by Milestone 14 (Faction System)**: green allies are a faction, not a bolted-on phase
+- [ ] Additional AI profiles: territorial, guard_tile, healer, boss (Phase 3 backlog)
 - [ ] Stationary weapon interaction (Ballista/Onager use by player; already have WeaponData)
 - [ ] Door and chest interaction system (Pick skill, Unlock staff, Key items)
-- [ ] Pre-battle deployment screen
-- [ ] Enforce skill/inventory caps — `GameState.max_skills` and `max_inventory` exist
-      but nothing reads them. Enforce at the skill-equip UI and the trade/inventory
-      UI once those screens are built (a unit may not equip more than `max_skills`
-      skills or carry more than `max_inventory` items). Until then both fields are
-      inert; see the NOT-ENFORCED comment in `GameState.gd`.
+- [ ] Pre-battle deployment screen — designed together with convoy, trade, campaign
+      rules, and save/load ownership so roster/inventory state has one canonical flow
+- [ ] Finish cap-management UI. `GameState.max_skills` is enforced for
+      auto-equipped learned skills and defaults to 5; manual skill swapping is
+      not built. `max_inventory` remains future-facing until trade/inventory UI.
 - [ ] Review and productionize `AGENT/Docs/fe_map_sprite_importer_guide.md` — align
       naming/layout assumptions with project asset standards, add validation/error
       handling requirements, and define how imported outputs plug into faction-aware
@@ -1488,7 +1962,7 @@ The following items are planned but not yet milestoned. Implement after M13 is s
 
 ### Maps
 
-- [ ] Maps 002–005 per GDD_09 Phase 2 backlog (Seize, Boss Defeat, Escape, Survive/Defend)
+- [ ] Maps 002–005 per Phase 3 backlog (Seize, Boss Defeat, Escape, Survive/Defend)
       — authored against the Milestone 16 Objective System condition types
 
 ### Polish
@@ -1528,10 +2002,10 @@ review under `AGENT/Code Reviews/`).
       buffer distance and scroll responsiveness. (The playtest bug list also
       asks for an adjustable camera buffer — see fix plan item #17; this backlog
       item is the broader settings-screen surface for it.)
-- [ ] **UI scale & movement** — let the player scale HUD/menu elements and
-      reposition them. Likely a `CanvasLayer` scale factor + saved offsets.
-- [ ] **Display resolution options** — windowed/fullscreen and resolution
-      picker in Settings, persisted to `settings.cfg`.
+- [ ] **Display & accessibility controls** (map zoom, display resolution, text/font
+      size, UI layout scale & movement) — **bumped up 2026-06-11**; now scheduled
+      right after the current playtest/bug-fix round. The four detailed items moved
+      to *Near-Term — Display & Accessibility Controls* under the Status Snapshot.
 - [ ] **Key rebinding UI** — the `SettingsScreen` keybinding list is currently
       read-only (built by `_populate_keybindings`). `SettingsManager.rebind_action`
       already exists; this item is the capture UI that calls it. Originally
@@ -1608,3 +2082,69 @@ review under `AGENT/Code Reviews/`).
       - `scripts/tests/test_hud.gd` — the entire suite (or at minimum the
         live-toggle block) and its entry in `run_tests.sh`
         (grep: `test_hud`)
+
+---
+
+## Appendix A — Completion History
+
+Condensed record of shipped items for quick reference. Full verification details in
+the linked session notes and commit hashes.
+
+| Item | Shipped | Verification ref |
+|---|---|---|
+| Playtest 1 — all 13 findings | 2026-05-18 | `AGENT/Docs/manual_test_findings_analysis.md` (all ✅) |
+| Playtest 2 — 17 fixes (#1–17) | 2026-05-19 | `AGENT/Session Notes/2026-05-19.md`; one commit per fix |
+| Playtest 3 — bugs #1–7, #21 | 2026-05-19 | commits `334a724 … 5b1a87c` |
+| Code reviews 2026-05-18/19/19c | 2026-05-20 | All Lows resolved; B-items see Tech Debt rows |
+| Playtest 4 — #1 mouse-bump, #2 camera | 2026-05-20 | commits `bad9f24`, `f92899d` |
+| B1–B9 — Tech-debt prep (all) | 2026-05-20 | commits `89f370f` … `9d7f2a4` |
+| M14 stages 1–3 — Faction refactor | 2026-05-20 | commits `20ef18e`, `c5c9c32`, `0c68254`; suite 426 green |
+| M16 — Objective System (5 stages) | 2026-05-20 | commits `316e509` … `8fed076`; legacy fields removed |
+| M14 stages 4–5 — AI dispatch + faction content | 2026-05-21 | commits `cca788d`, `bf0d9b1`, `8ea7429`; suite green |
+| M15 Part A — Hotseat foundations | 2026-05-21 | commits `1ba6640`, `49f7420`, `4e68cc7`; manual validation pending |
+| Class / Skill rebuild — promotion + reclass | 2026-05-21 | commits `ae37743` … `48743b5` |
+| Pair Up pass 1 (partial) | 2026-05-22 | commits `5de5103` … `993a413`; DS/DG + forecast deferred |
+| More Info phase 1 | 2026-05-24 | commits `5630f40` … `4d0ea2e` |
+
+---
+
+## Appendix B — Work Item Ordering (Bucket Summary)
+
+**Current position:** Phase 2, post-playtest/bug-fix round. Bucket A (playtest bugs)
+and B1–B9 (tech-debt prep) are complete. B10 (corpus reconciliation) is the
+documentation consolidation work on the `awakening-compatability-refactor` branch.
+
+| Bucket | Items | Status |
+|---|---|---|
+| A — Open playtest bugs | A1, A2 | ✅ All done |
+| B — Tech-debt prep | B1–B9 | ✅ All done; B10 = doc consolidation (this branch) |
+| C — Phase 2 milestones | C1–C3 done; C4 (M9a) → C5 (M8) → C6 (M9b) → C7 (M10) → C8 (M11) → C9 (M12, deferred) → C10 (M13, deferred); C11 (M15A, in validation) | See Status Snapshot |
+| D — Release gate | D1: remove debug aids | Before any non-debug build ships |
+| E — Phase 3 backlog | Forging, fog, rescue, campaign save, additional maps, polish | Post-M13 |
+
+**Dependency graph (key edges):**
+
+```
+C1 (M14 s1-3) ──▶ C2 (M16) ──▶ C3 (M14 s4-5) ──▶ C4 (M9a) ──▶ C5 (M8) ──▶ C6 (M9b) ──▶ C7 (M10) ──▶ C8 (M11) ──▶ C9 (M12) ──▶ C10 (M13)
+                                      │
+                                      └──▶ C11 (M15A) ──▶ C12 (M15B, deferred)
+
+B10 (corpus/doc consolidation) ──▶ C4, C6, C8 (M9a, M9b, M11)
+
+D1 (pre-release cleanup) — gate at release time, not in milestone order
+```
+
+---
+
+## Appendix C — Source Documents
+
+| Document | Purpose |
+|---|---|
+| `AGENT/GDD/GDD_10_Roadmap.md` | **This file** — canonical Phase 2 roadmap, milestone specs, backlog |
+| `AGENT/Docs/design_decisions_log_2026-05-17.md` | Decision 10 = ordering rule; design locks |
+| `AGENT/GDD/GDD_Feature_Index.md` | Feature → rule owner / roadmap owner routing table (DOC-005) |
+| `AGENT/Docs/documentation_lifecycle_2026-06-13.md` | Document lifecycle table (Stage 1 output) |
+| `AGENT/Docs/decision_index.md` | All DOC-/RULE-/SET-/OPEN-/RNG-/AWR- decisions (DOC-009) |
+| `AGENT/GDD/GDD_Adoption_Matrix.md` | Per-rule corpus adoption status |
+| `AGENT/Docs/testing_guide.md` | Test execution and naming conventions |
+| `AGENT/Docs/manual_test_playbook.md` | Manual playtest checklists (moved from `AGENT/GDD/` in Stage 5.2) |

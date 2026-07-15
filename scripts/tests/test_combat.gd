@@ -41,29 +41,44 @@ class MockUnit extends Node:
 	func has_quality(q: String) -> bool:
 		return q in _qualities
 
+	# CombatResolver._target_has_vulnerability reads has_vulnerability (the unit
+	# is HIT BY group), separate from has_quality (the unit IS group). For these
+	# test fixtures the two arrays match — every "flying" / "armoured" mock is
+	# also vulnerable to anti-flying / anti-armoured. The fallback to has_quality
+	# was dropped in 2026-06-10 issue 2.8 because production never hit it.
+	func has_vulnerability(group: String) -> bool:
+		return group in _qualities
+
 	func has_skill(s: String) -> bool:
 		return s in _skills
 
+	# Combat-stat helpers mirror Unit.gd: all stat reads route through
+	# get_effective_stat so a "combat"-duration modifier (Resolve, Wrath,
+	# Pair Up bonus, stat_bonus) flows into the same formulas production
+	# uses. Code review 2026-06-10 issue 2.5 — without this, tests for
+	# modifier-bearing combat exercised a different code path than the
+	# real Unit.
 	func battle_speed(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		if w == null: return data.get("speed")
-		return data.get("speed") - maxi(0, w.get("wt") - data.get("strength"))
+		if w == null: return get_effective_stat("speed")
+		return get_effective_stat("speed") - maxi(0,
+			w.get("wt") - get_effective_stat("strength"))
 
 	func accuracy(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		var acc: int = data.get("skill") * 2 + data.get("luck")
+		var acc: int = get_effective_stat("skill") * 2 + get_effective_stat("luck")
 		if w: acc += w.get("hit")
 		return acc
 
 	func dodge(_w: Resource = null) -> int:
-		return battle_speed(_w) * 2 + data.get("luck")
+		return battle_speed(_w) * 2 + get_effective_stat("luck")
 
 	func crit_rate(_w: Resource = null) -> int:
 		var w: Resource = _w if _w else _weapon
-		return data.get("skill") / 2 + (w.get("crit") if w else 0)
+		return get_effective_stat("skill") / 2 + (w.get("crit") if w else 0)
 
 	func crit_avoid() -> int:
-		return data.get("luck")
+		return get_effective_stat("luck")
 
 	func get_terrain_def_bonus() -> int:
 		return 0
@@ -78,6 +93,9 @@ class MockUnit extends Node:
 			if mod.get("stat", "") == stat_name:
 				total += mod.get("delta", 0)
 		return max(0, total)
+
+	func get_weapon_rank(track: String) -> String:
+		return GameConst.weapon_rank_for_wexp(int(data.weapon_wexp.get(track, 0)))
 
 	# Tracks remaining uses for apply_combat_result tests. Default 99 = effectively unlimited.
 	var _weapon_uses: int = 99
@@ -124,7 +142,8 @@ class MockUnit extends Node:
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
 	w.id           = p.get("id", "test")
-	w.weapon_type  = p.get("weapon_type", "sword")
+	w.combat_family = p.get("combat_family", p.get("weapon_type", "sword"))
+	w.wexp_track    = p.get("wexp_track", GameConst.combat_family_to_wexp_track(w.combat_family))
 	w.mt           = p.get("mt", 6)
 	w.hit          = p.get("hit", 80)
 	w.crit         = p.get("crit", 0)
@@ -136,7 +155,8 @@ func _make_weapon(p: Dictionary) -> Resource:
 	w.uses_mag        = p.get("uses_mag", false)
 	w.strikes_per_attack = p.get("strikes_per_attack", 1)
 	w.effect_tags.assign(p.get("effect_tags", []))
-	w.magic_triangle_type = p.get("magic_triangle_type", "")
+	w.required_rank = p.get("required_rank", "E")
+	w.triangle_family = p.get("triangle_family", p.get("magic_triangle_type", ""))
 	return w
 
 
@@ -325,6 +345,15 @@ func _init() -> void:
 		print("OK  no follow-up when speed equal")
 		passed += 1
 
+	var near_fast = _make_unit({"name":"NearFast","speed":13,"weapon":iron_sword})
+	var near_slow = _make_unit({"name":"NearSlow","speed":9,"weapon":iron_lance,"tile":Vector2i(1,0),"team":"red"})
+	if cr.get_follow_up_attacker(near_fast, near_slow) == null:
+		print("OK  no follow-up below the 5-Speed threshold")
+		passed += 1
+	else:
+		print("FAIL follow-up triggered at a 4-Speed advantage")
+		failed += 1
+
 	# --- EXP table ---
 	var lv5_atk = _make_unit({"level":5})
 	var lv5_def = _make_unit({"level":5})
@@ -399,6 +428,60 @@ func _init() -> void:
 		print("FAIL preview_combat missing keys")
 		failed += 1
 
+	# --- Battle Speed surfaced for the preview UI (handbook 8.3) ---
+	if prev.get("attacker_battle_speed") == atk.battle_speed() \
+			and prev.get("defender_battle_speed") == def.battle_speed() \
+			and prev.get("follow_up_threshold") == GameConst.FOLLOW_UP_SPEED_THRESHOLD:
+		print("OK  preview_combat surfaces battle speed + follow-up threshold (8.3)")
+		passed += 1
+	else:
+		print("FAIL preview battle speed: atk=%s (want %d) def=%s (want %d) thr=%s" % [
+			prev.get("attacker_battle_speed"), atk.battle_speed(),
+			prev.get("defender_battle_speed"), def.battle_speed(),
+			prev.get("follow_up_threshold")])
+		failed += 1
+
+	# --- More Info preview fields: triangle + effectiveness ---
+	# Sword (atk) vs Bow (def) is neutral. Both effective flags must be false
+	# and both multipliers must be 1.0 — defaults the UI marker code relies on.
+	var neutral_ok: bool = (
+		String(prev.get("attacker_triangle", "")) == "neutral"
+		and String(prev.get("defender_triangle", "")) == "neutral"
+		and bool(prev.get("attacker_effective", true)) == false
+		and bool(prev.get("defender_effective", true)) == false
+		and float(prev.get("attacker_effectiveness_mult", 0.0)) == 1.0
+		and float(prev.get("defender_effectiveness_mult", 0.0)) == 1.0
+	)
+	if neutral_ok:
+		print("OK  preview exposes neutral triangle + no effectiveness as defaults")
+		passed += 1
+	else:
+		print("FAIL preview defaults: %s" % prev); failed += 1
+
+	# Sword vs Lance = sword disadvantage; defender's mirror is advantage.
+	var atk_tri := _make_unit({"name":"SwordTri","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword})
+	var def_tri := _make_unit({"name":"LanceTri","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_lance})
+	var prev_tri := cr.preview_combat(atk_tri, def_tri)
+	if String(prev_tri["attacker_triangle"]) == "disadvantage" \
+			and String(prev_tri["defender_triangle"]) == "advantage":
+		print("OK  preview triangle: sword vs lance -> attacker disadv, defender adv")
+		passed += 1
+	else:
+		print("FAIL preview triangle: atk=%s def=%s" % [prev_tri["attacker_triangle"], prev_tri["defender_triangle"]])
+		failed += 1
+
+	# Bow with effective_flying vs flying defender -> attacker_effective true,
+	# multiplier 3.0. (Existing fixture: iron_bow has effective_flying tag.)
+	var eff_def := _make_unit({"name":"EffPegasus","strength":8,"defense":4,"skill":10,"speed":12,"luck":6,"team":"red","tile":Vector2i(1,0),"qualities":["flying"],"weapon":iron_sword})
+	var eff_atk := _make_unit({"name":"EffArcher","strength":10,"defense":5,"skill":12,"speed":8,"luck":4,"weapon":iron_bow})
+	var prev_eff := cr.preview_combat(eff_atk, eff_def)
+	if bool(prev_eff["attacker_effective"]) and float(prev_eff["attacker_effectiveness_mult"]) == 3.0:
+		print("OK  preview effectiveness: bow vs flyer flags effective ×3")
+		passed += 1
+	else:
+		print("FAIL preview effectiveness: eff=%s mult=%s" % [prev_eff["attacker_effective"], prev_eff["attacker_effectiveness_mult"]])
+		failed += 1
+
 	# --- #1: preview reflects deterministic skill modifiers (Resolve) ---
 	# A Resolve unit at ≤50% HP gets +50% STR (10→15). preview_combat must show the
 	# boosted damage: the modifier is applied before the stat reads and restored
@@ -451,7 +534,7 @@ func _init() -> void:
 	# NIHIL_EXEMPT_SKILLS keeps s_rank_mastery active even though the defender's Nihil
 	# blocks the bearer's combat skills; swordfaire (not exempt) is still negated.
 	var exempt_atk = _make_unit({"name":"ExemptAtk","strength":10,"defense":5,"skill":10,"speed":10,"luck":5,"weapon":iron_sword,"skills":["swordfaire","s_rank_mastery"]})
-	exempt_atk.data.proficiencies = {"sword": {"rank": "S", "wexp": 0}}
+	exempt_atk.data.weapon_wexp = {"sword": 500}
 	var exempt_def = _make_unit({"name":"ExemptDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow,"skills":["nihil"]})
 	var exempt_prev = cr.preview_combat(exempt_atk, exempt_def)
 	# Base 10+6-4 = 12. Swordfaire (+5) negated; S-Rank Mastery (+1 dmg, exempt) applies → 13.
@@ -564,6 +647,20 @@ func _init() -> void:
 		print("FAIL H-3: expected defender_damage=29, got %d" % gk_prev["defender_damage"])
 		failed += 1
 
+	# --- H-3b: no-context compute_damage CANNOT see Giantkiller (pins the backward-compat
+	# boundary noted in code_review_2026-06-13 §2 Low). The live 4× path is covered by H-3;
+	# a direct compute_damage() with no context dict must fall back to the 3× effectiveness
+	# default — never 4× — because Giantkiller is only resolved through the context path.
+	var h3b_dmg := cr.compute_damage(gk_def, gk_atk, gk_bow)  # no context dict
+	# mt=6*3=18 (effective, no giantkiller); atk=8+18=26; def=3; dmg=23 (vs 29 on the 4× path)
+	if h3b_dmg == 23 and h3b_dmg < gk_prev["defender_damage"]:
+		print("OK  H-3b: no-context compute_damage caps at 3× (got %d, < 4× path %d)" \
+			% [h3b_dmg, gk_prev["defender_damage"]])
+		passed += 1
+	else:
+		print("FAIL H-3b: expected 23 (3× only), got %d" % h3b_dmg)
+		failed += 1
+
 	# --- Mid-combat weapon break stops further attacks ---
 	# Brave sword (strikes=2) with 1 use left: first hit breaks it; all subsequent
 	# exchanges from the same attacker must be skipped by apply_combat_result.
@@ -647,7 +744,9 @@ func _init() -> void:
 	var dry_def = _make_unit({"name":"DryDef","strength":8,"defense":4,"skill":8,"speed":8,"luck":4,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
 	cr.preview_combat(dry_atk, dry_def)
 	cr.preview_combat(dry_atk, dry_def)
-	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	# Counter is keyed by skill.id (code review 2026-06-10 issue 2.6), not the
+	# shared effect_id "faire" — so the three faire skills don't pool quotas.
+	var uses_after_preview: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
 	if uses_after_preview == 0:
 		print("OK  dry_run: two previews burn 0 skill uses")
 		passed += 1
@@ -655,7 +754,7 @@ func _init() -> void:
 		print("FAIL dry_run: previews burned %d use(s), want 0" % uses_after_preview)
 		failed += 1
 	cr.resolve_combat(dry_atk, dry_def)
-	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("faire", 0)
+	var uses_after_resolve: int = dry_atk.data.skill_use_counters.get("swordfaire", 0)
 	if uses_after_resolve == 1:
 		print("OK  dry_run: resolve_combat increments the skill use counter")
 		passed += 1
@@ -693,6 +792,75 @@ func _init() -> void:
 			failed += 1
 	else:
 		print("SKIP B2 combat_started timing (EventBus autoload absent)")
+
+	# ── MockUnit modifier flow: a combat-duration modifier must flow through ──
+	# accuracy/dodge/crit/battle_speed exactly the way active_modifiers does in
+	# production. Pre-2026-06-10, these helpers read raw data.get(...) and the
+	# modifier was silently ignored; resolving combat with a stamped modifier
+	# now affects hit/dodge/crit (issue 2.5).
+	var mod_atk = _make_unit({"name":"ModAtk","skill":10,"luck":5,"speed":10,"strength":10,"weapon":iron_sword})
+	var mod_def = _make_unit({"name":"ModDef","skill":8,"luck":4,"speed":8,"strength":8,"team":"red","tile":Vector2i(1,0),"weapon":iron_bow})
+	var hit_base: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	# Stamp +5 skill on attacker; accuracy uses skill*2, so hit should rise by 10.
+	mod_atk.data.active_modifiers.append({"stat": "skill", "delta": 5,
+		"source": "test", "duration": -1, "duration_type": "combat"})
+	var hit_with_skill: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	# Stamp +6 speed on defender; dodge uses battle_speed*2 + luck, so dodge
+	# should rise by 12 and hit should fall further.
+	mod_def.data.active_modifiers.append({"stat": "speed", "delta": 6,
+		"source": "test", "duration": -1, "duration_type": "combat"})
+	var hit_with_both: int = cr.compute_hit_pct(mod_atk, mod_def, iron_sword)
+	if hit_with_skill - hit_base == 10 and hit_base - hit_with_both == 2:
+		# +10 from attacker skill, then -12 from defender speed, net -2 vs base.
+		print("OK  MockUnit modifier flows through accuracy/dodge (issue 2.5)")
+		passed += 1
+	else:
+		print("FAIL MockUnit modifier flow: base=%d skill=%d both=%d (want +10 / -2)" % [
+			hit_base, hit_with_skill, hit_with_both])
+		failed += 1
+	mod_atk.queue_free()
+	mod_def.queue_free()
+
+	# ── Pair Up support bonus flows into the combat preview (playtest v0.1.4 #3) ──
+	# End-to-end guard for the bonus pipeline the v0.1.4 tester believed was dead:
+	# a paired lead's preview damage must rise by exactly the support's strength
+	# contribution (table -> PairUpBonusResolver -> add_modifier("combat") ->
+	# get_effective_stat -> compute_damage). Uses the real autoloads.
+	var pu_reg := cr.get_node_or_null("/root/PairUpRegistry")
+	var pu_res := cr.get_node_or_null("/root/PairUpBonusResolver")
+	var pu_gs := cr.get_node_or_null("/root/GameState")
+	if pu_reg != null and pu_res != null and pu_gs != null:
+		pu_reg.call("clear")
+		pu_gs.call("reset_map_state")
+		pu_gs.set("pair_up_enabled", true)  # PairUpRegistry.pair() is gated on this
+		# Lead: soldier, Str 10, iron sword. Support: cavalier, Str 10 → flat +1 Str
+		# + floor(10/4)=+2 = +3 Str contribution. Defender: no weapon (no counter, no
+		# triangle), Def 5, so per-hit damage stays positive both ways.
+		var pu_lead = _make_unit({"name":"PUlead","class_id":"soldier","strength":10,"weapon":iron_sword,"tile":Vector2i(0,0)})
+		var pu_support = _make_unit({"name":"PUsupport","class_id":"cavalier","strength":10,"tile":Vector2i(5,5)})
+		var pu_def = _make_unit({"name":"PUdef","class_id":"soldier","defense":5,"team":"red","tile":Vector2i(1,0)})
+		pu_lead.data.unit_id = "pu_lead"
+		pu_support.data.unit_id = "pu_support"
+		pu_def.data.unit_id = "pu_def"
+		pu_gs.call("register_unit", pu_lead)
+		pu_gs.call("register_unit", pu_support)
+		pu_gs.call("register_unit", pu_def)
+		var dmg_unpaired: int = cr.preview_combat(pu_lead, pu_def)["attacker_damage"]
+		var paired_ok: bool = bool(pu_reg.call("pair", "pu_lead", "pu_support"))  # pu_lead is the lead
+		var dmg_paired: int = cr.preview_combat(pu_lead, pu_def)["attacker_damage"]
+		if paired_ok and dmg_paired - dmg_unpaired == 3:
+			print("OK  Pair Up support bonus raises preview damage by the support contribution (#3)")
+			passed += 1
+		else:
+			print("FAIL pair-up preview delta: paired_ok=%s unpaired=%d paired=%d (want +3)" % [
+				paired_ok, dmg_unpaired, dmg_paired])
+			failed += 1
+		pu_reg.call("clear")
+		pu_gs.call("reset_map_state")
+		pu_lead.queue_free(); pu_support.queue_free(); pu_def.queue_free()
+	else:
+		print("SKIP pair-up preview delta (autoload missing: reg=%s res=%s gs=%s)" % [
+			pu_reg != null, pu_res != null, pu_gs != null])
 
 	cr.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

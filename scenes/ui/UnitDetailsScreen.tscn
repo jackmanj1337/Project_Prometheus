@@ -26,34 +26,87 @@ color = Color(0.04, 0.04, 0.07, 0.97)
 
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 400.0
-offset_top = 110.0
-offset_right = 880.0
-offset_bottom = 610.0
+offset_left = 260.0
+offset_top = 90.0
+offset_right = 1020.0
+offset_bottom = 630.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="HBox" type="HBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 20
 
-[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+[node name="VBox" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Panel/HBox/VBox"]
 layout_mode = 2
 text = "Unit"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 
-[node name="StatsLabel" type="Label" parent="Panel/VBox"]
+[node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = "Stats"
 
-[node name="InventoryLabel" type="Label" parent="Panel/VBox"]
+[node name="InventoryLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = "Inventory"
 
-[node name="SkillsLabel" type="Label" parent="Panel/VBox"]
+[node name="SkillsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
 layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = "Skills"
 
-[node name="BtnBack" type="Button" parent="Panel/VBox"]
+[node name="WexpLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "Weapon Ranks"
+
+[node name="BtnBack" type="Button" parent="Panel/HBox/VBox"]
 layout_mode = 2
 text = "Back"
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+custom_minimum_size = Vector2(280, 0)
+
+[node name="InfoTitle" type="Label" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+text = "More Info"
+theme_override_font_sizes/font_size = 18
+
+[node name="InfoHint" type="Label" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+text = "Click any entry, or press F, for details."
+autowrap_mode = 2
+modulate = Color(0.7, 0.7, 0.75, 1)
+
+[node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""
+
+[node name="InfoModifiers" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = ""

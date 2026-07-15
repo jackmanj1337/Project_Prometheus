@@ -1,11 +1,15 @@
 class_name WeaponData extends Resource
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 @export var id: String = ""
 @export var display_name: String = ""
-# "sword"|"lance"|"axe"|"bow"|"knife"|"fire"|"thunder"|"wind"|"light"|"dark"|"staff"
-@export var weapon_type: String = ""
+# Canonical combat family used for equip legality and family-specific skill checks.
+@export var combat_family: String = ""
+# Canonical progression track trained by this weapon.
+@export var wexp_track: String = ""
 # "E"|"D"|"C"|"B"|"A"|"S"
-@export var rank: String = "E"
+@export var required_rank: String = "E"
 # For staves: 0; heal amount computed separately as 10 + MAG
 @export var mt: int = 0
 # For staves: 0; healing always lands, no hit roll
@@ -28,8 +32,8 @@ class_name WeaponData extends Resource
 @export var effect_tags: Array[String] = []
 # If true: uses MAG for damage, targets RES instead of DEF
 @export var uses_mag: bool = false
-# For hybrid weapons only (e.g. Bolt Axe); leave empty for standard weapons
-@export var magic_triangle_type: String = ""
+# Optional triangle-family override for hybrid or special weapons.
+@export var triangle_family: String = ""
 
 # Set to 2 for all Brave weapons — attacker fires this many times before defender counters.
 @export var strikes_per_attack: int = 1
@@ -45,7 +49,7 @@ class_name WeaponData extends Resource
 # Offensive/debuff staves (M8) omit the heal tag and ARE treated as attack weapons,
 # so this check keys off the heal tag, not weapon_type alone.
 func is_healing_staff() -> bool:
-	return weapon_type == "staff" and GameConstants.TAG_HEAL_PLUS_MAG in effect_tags
+	return combat_family == "staff" and GameConstants.TAG_HEAL_PLUS_MAG in effect_tags
 
 
 func get_range_min(unit: Node = null) -> int:
@@ -54,6 +58,10 @@ func get_range_min(unit: Node = null) -> int:
 
 func get_range_max(unit: Node = null) -> int:
 	return _eval_formula(range_max_formula, unit)
+
+
+func get_triangle_family() -> String:
+	return triangle_family if triangle_family != "" else combat_family
 
 
 # Parses a formula string against the given unit's stats.

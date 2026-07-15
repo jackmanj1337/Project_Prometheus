@@ -1,0 +1,47 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_lance"
+uses_remaining = 45
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "second_seal"
+uses_remaining = 1
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_general"
+unit_name = "M950_General"
+class_id = "general"
+class_line_id = "knight"
+level = 20
+exp = 0
+is_promoted = true
+internal_level = 40
+max_hp = 38
+hp = 38
+strength = 19
+magic = 0
+defense = 22
+resistance = 7
+skill = 14
+speed = 9
+luck = 8
+movement = 5
+constitution = 15
+line_of_sight = 4
+weapon_wexp = {"lance": 200, "axe": 100}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

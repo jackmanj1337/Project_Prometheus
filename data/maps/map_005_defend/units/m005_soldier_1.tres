@@ -1,0 +1,35 @@
+[gd_resource type="Resource" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_lance"
+uses_remaining = 45
+
+[resource]
+script = ExtResource("1")
+unit_id = "m005_soldier_1"
+unit_name = "Advance Soldier"
+class_id = "soldier"
+level = 3
+internal_level = 3
+max_hp = 19
+hp = 19
+strength = 8
+defense = 6
+resistance = 2
+skill = 7
+speed = 6
+luck = 4
+movement = 6
+constitution = 8
+line_of_sight = 4
+weapon_wexp = {"lance": 100}
+inventory = [SubResource("IE_1")]
+conditions = []
+gold = 0
+ai_profile = "basic"
+is_default_roster = false

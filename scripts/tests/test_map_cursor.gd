@@ -63,11 +63,14 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\n"
+	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nvar pair_up_enabled: bool = true\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
 	root.add_child(_gs)
+	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
+	pair_reg.name = "PairUpRegistry"
+	root.add_child(pair_reg)
 	await process_frame
 
 	# ---- Initial state ----
@@ -97,15 +100,52 @@ func _init() -> void:
 		print("FAIL unlock(): _state=%d" % c1._state)
 		failed += 1
 
-	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks ----
-	c1._on_phase_changed(1)  # GameState.Phase.ENEMY
+	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks, controlling faction follows phase ----
+	c1.set_controlling_faction("green")
+	c1._on_phase_changed(1, "green")  # GameState.Phase.ENEMY
 	var locked_on_enemy := c1._state == LOCKED
-	c1._on_phase_changed(0)  # GameState.Phase.PLAYER
-	if locked_on_enemy and c1._state == FREE:
-		print("OK  _on_phase_changed: ENEMY → LOCKED, PLAYER → FREE")
+	c1._on_phase_changed(0, "blue")  # GameState.Phase.PLAYER
+	if locked_on_enemy and c1._state == FREE and c1._controlling_faction == "blue":
+		print("OK  _on_phase_changed: ENEMY → LOCKED, PLAYER → FREE, control returns to blue")
 		passed += 1
 	else:
-		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d" % [locked_on_enemy, c1._state])
+		print("FAIL _on_phase_changed: locked_on_enemy=%s now=%d faction=%s" % [
+			locked_on_enemy, c1._state, c1._controlling_faction])
+		failed += 1
+
+	# ---- Hotseat menu close/cancel unlocks because green is still locally controlled ----
+	var hot_tm := TurnManager.new()
+	root.add_child(hot_tm)
+	var hot_md := MapData.new()
+	var hot_green := FactionData.new()
+	hot_green.id = "green"
+	hot_green.controller = "HOTSEAT"
+	hot_md.factions = [hot_green]
+	hot_tm._map_data = hot_md
+	hot_tm._turn_order = ["green"]
+	hot_tm._active_faction_idx = 0
+	var c_hot := _make_cursor(hot_tm)
+	c_hot.lock()
+	c_hot._on_map_menu_closed()
+	var closed_unlocks: bool = c_hot._state == FREE
+	c_hot.lock()
+	c_hot._on_quit_to_menu_requested()
+	await process_frame
+	var hot_dlg: ConfirmationDialog = null
+	for ch in root.get_children():
+		if ch is ConfirmationDialog:
+			hot_dlg = ch
+	if hot_dlg != null:
+		hot_dlg.canceled.emit()
+		hot_dlg.queue_free()
+	await process_frame
+	var cancel_unlocks: bool = c_hot._state == FREE
+	if closed_unlocks and cancel_unlocks:
+		print("OK  hotseat menu close and quit-cancel unlock the cursor for local non-blue control")
+		passed += 1
+	else:
+		print("FAIL hotseat unlock: close=%s cancel=%s state=%d" % [
+			closed_unlocks, cancel_unlocks, c_hot._state])
 		failed += 1
 
 	# ---- _place_menu_near keeps the menu fully inside the viewport (playtest 3 #4) ----
@@ -221,8 +261,10 @@ func _init() -> void:
 	c1._scroll_camera_if_needed()
 	var saved_view: Vector2 = c1._camera.position
 	c1._on_phase_changed(1)  # ENEMY — controller captures the current view
-	# Save state lives on the CameraController now (B4); read it through there.
-	var saved_ok: bool = c1._camera_ctrl._has_saved and c1._camera_ctrl._saved_position == saved_view
+	# Save state lives on the CameraController now (B4); per-faction keys (code
+	# review 2026-06-09) — the outgoing faction was blue, so the save lands
+	# under "blue".
+	var saved_ok: bool = c1._camera_ctrl._saved_positions.get("blue", Vector2.INF) == saved_view
 	c1._camera.position = Vector2(9_000, 9_000)  # AI-phase pan to "the last enemy"
 	c1._on_phase_changed(0)  # PLAYER — controller restores the saved view
 	var restored_ok: bool = c1._camera.position == saved_view
@@ -234,6 +276,43 @@ func _init() -> void:
 	else:
 		print("FAIL camera save/restore: saved_ok=%s restored_ok=%s pos=%s" % [
 			saved_ok, restored_ok, c1._camera.position])
+		failed += 1
+
+	# ---- multi-faction phase transitions don't clobber blue's saved view ----
+	# Code review 2026-06-09: with hotseat (blue → green → red → blue) every
+	# Phase.ENEMY transition fired save_view. The green→red hop overwrote
+	# blue's saved view, so when blue resumed the camera restored to green's
+	# last position. Per-faction keys keep each save independent.
+	_grid.map_width = 30
+	_grid.map_height = 30
+	c1.set_controlling_faction("blue")
+	c1._set_tile(Vector2i(15, 15))
+	c1._scroll_camera_if_needed()
+	var blue_view: Vector2 = c1._camera.position
+	# Blue → green (hotseat). Save lands under outgoing "blue".
+	c1._on_phase_changed(1, "green")
+	# Green pans somewhere very different, then green ends → red.
+	c1._camera.position = Vector2(4_000, 4_000)
+	c1._on_phase_changed(1, "red")  # save under outgoing "green", NOT "blue"
+	# Red pans even further, then red ends → blue.
+	c1._camera.position = Vector2(8_000, 8_000)
+	c1._on_phase_changed(0, "blue")  # restore "blue"'s view
+	var multi_restore_ok: bool = c1._camera.position == blue_view
+	# Per-faction memory: simulate going back to green and verify green's
+	# saved-position is still its own value, not blue's.
+	c1.set_controlling_faction("green")
+	c1._camera.position = Vector2.ZERO
+	var green_restored: bool = c1._camera_ctrl.restore_view("green")
+	var green_view_ok: bool = green_restored and c1._camera.position == Vector2(4_000, 4_000)
+	_grid.map_width = pt4_saved_w
+	_grid.map_height = pt4_saved_h
+	c1.set_controlling_faction("blue")
+	if multi_restore_ok and green_view_ok:
+		print("OK  multi-faction camera save/restore keeps each faction's view separate")
+		passed += 1
+	else:
+		print("FAIL multi-faction camera: blue_restore_ok=%s green_view_ok=%s" % [
+			multi_restore_ok, green_view_ok])
 		failed += 1
 
 	# ---- _set_tile clamps to map bounds ----
@@ -396,12 +475,22 @@ func _init() -> void:
 	var mover := _make_unit(Vector2i(2, 2), "blue")
 	c7._selection.selected_unit = mover
 	c7._state = UNIT_MOVED
+	# W6f: park the cursor on the post-move tile so the snap-back is observable.
+	c7._set_tile(Vector2i(5, 5))
 	c7._undo_move_and_reselect()
 	if c7._state == UNIT_SELECTED:
 		print("OK  _undo_move_and_reselect: UNIT_MOVED → UNIT_SELECTED")
 		passed += 1
 	else:
 		print("FAIL undo-reselect: _state=%d" % c7._state)
+		failed += 1
+	# W6f: cursor must snap back onto the acting unit's pre-move tile so the
+	# player isn't stranded on the cancelled destination.
+	if c7.current_tile == Vector2i(2, 2):
+		print("OK  W6f _undo_move_and_reselect snaps cursor to acting unit")
+		passed += 1
+	else:
+		print("FAIL W6f undo-cursor: tile=%s" % str(c7.current_tile))
 		failed += 1
 
 	# ---- _on_targeting_cancelled → UNIT_MOVED (ActionMenu reopens) ----
@@ -605,6 +694,108 @@ func _init() -> void:
 		print("FAIL set_equipped_weapon: %s" % str(swap_unit.data.inventory))
 		failed += 1
 
+	# ---- W4a: pair creation marks both lead and support DONE so the phase can
+	# auto-end. The support is hidden after pairing — without an explicit DONE,
+	# the turn manager would still see an actionable unit and refuse to advance.
+	var tm_pair := TurnManager.new(); root.add_child(tm_pair)
+	var c_pair := _make_cursor(tm_pair)
+	var pc_lead := _make_unit(Vector2i(1, 1), "blue")
+	var pc_support := _make_unit(Vector2i(1, 2), "blue")
+	pc_lead.data.unit_id = "pc_lead"
+	pc_support.data.unit_id = "pc_support"
+	var pair_reg_pc := root.get_node_or_null("PairUpRegistry")
+	pair_reg_pc.call("clear")
+	c_pair._selection.selected_unit = pc_lead
+	c_pair._state = UNIT_MOVED
+	c_pair._on_pair_up_resolved(pc_lead, pc_support)
+	var pair_create_ok: bool = pair_reg_pc.call("is_paired", "pc_lead") \
+		and pair_reg_pc.call("is_paired", "pc_support") \
+		and tm_pair.get_unit_state(pc_lead) == TurnManager.UnitState.DONE \
+		and tm_pair.get_unit_state(pc_support) == TurnManager.UnitState.DONE \
+		and c_pair._state == FREE
+	if pair_create_ok:
+		print("OK  W4a: pair creation marks lead and support DONE so auto-end is not blocked")
+		passed += 1
+	else:
+		print("FAIL W4a pair create: paired_lead=%s paired_support=%s lead_state=%s support_state=%s state=%d" % [
+			pair_reg_pc.call("is_paired", "pc_lead"),
+			pair_reg_pc.call("is_paired", "pc_support"),
+			tm_pair.get_unit_state(pc_lead),
+			tm_pair.get_unit_state(pc_support),
+			c_pair._state])
+		failed += 1
+
+	# ---- Swap flips roles AND physically swaps the pair (playtest v0.1.4 #2) ----
+	# Set up a realistic paired state via _on_pair_up_resolved so the support is
+	# off-map and hidden, exactly as it is mid-game. The bug was that Swap only
+	# flipped the registry role labels, leaving the on-map unit in place and the
+	# hidden off-map unit tagged "lead". Assert the new lead (old support) now
+	# holds the on-map tile and is visible, and the old lead is off-map + hidden.
+	var OFF_MAP_TILE: Vector2i = load("res://scripts/autoloads/PairUpRegistry.gd").OFF_MAP_TILE
+	var tm_swap := TurnManager.new(); root.add_child(tm_swap)
+	var c_swap := _make_cursor(tm_swap)
+	var on_map_tile := Vector2i(1, 1)
+	var pair_lead := _make_unit(on_map_tile, "blue")
+	var pair_support := _make_unit(Vector2i(1, 2), "blue")
+	pair_lead.data.unit_id = "lead"
+	pair_support.data.unit_id = "support"
+	var pair_reg_live := root.get_node_or_null("PairUpRegistry")
+	pair_reg_live.call("clear")
+	# Pair through the real flow: support goes to OFF_MAP_TILE + visible=false.
+	c_swap._selection.selected_unit = pair_lead
+	c_swap._state = UNIT_MOVED
+	c_swap._on_pair_up_resolved(pair_lead, pair_support)
+	# Now swap. selected_unit was cleared by pairing's _finish_action; re-arm it.
+	c_swap._selection.selected_unit = pair_lead
+	c_swap._state = UNIT_MOVED
+	c_swap._commit_swap_roles()
+	var swap_roles_ok: bool = pair_reg_live.call("is_support", "lead") \
+		and pair_reg_live.call("is_lead", "support") \
+		and tm_swap.get_unit_state(pair_lead) == TurnManager.UnitState.DONE \
+		and tm_swap.get_unit_state(pair_support) == TurnManager.UnitState.DONE \
+		and c_swap._state == FREE
+	# The physical swap is the actual regression guard:
+	var swap_positions_ok: bool = pair_support.tile_position == on_map_tile \
+		and pair_support.visible \
+		and pair_lead.tile_position == OFF_MAP_TILE \
+		and not pair_lead.visible
+	if swap_roles_ok and swap_positions_ok:
+		print("OK  Swap flips roles, swaps positions/visibility, and spends both units")
+		passed += 1
+	else:
+		print("FAIL swap: roles_ok=%s pos_ok=%s | support@%s vis=%s lead@%s vis=%s" % [
+			swap_roles_ok, swap_positions_ok,
+			pair_support.tile_position, pair_support.visible,
+			pair_lead.tile_position, pair_lead.visible])
+		failed += 1
+
+	# ---- Swap with an unresolvable partner does NOT flip roles (review #2) ----
+	# Defensive guard: if the partner Node can't be resolved, _commit_swap_roles must
+	# bail BEFORE swap_roles(), so the registry is never left with roles flipped but
+	# positions unswapped (an on-map unit tagged "support"). Pair the lead with a
+	# partner id that has no registered Unit node.
+	var tm_orphan := TurnManager.new(); root.add_child(tm_orphan)
+	var c_orphan := _make_cursor(tm_orphan)
+	var orphan_lead := _make_unit(Vector2i(2, 2), "blue")
+	orphan_lead.data.unit_id = "orphan_lead"
+	pair_reg_live.call("clear")
+	pair_reg_live.call("pair", "orphan_lead", "ghost_partner")   # ghost has no Unit node
+	c_orphan._selection.selected_unit = orphan_lead
+	c_orphan._state = UNIT_MOVED
+	c_orphan._commit_swap_roles()
+	# Roles must be unchanged (lead still lead), the unit stays on its tile + visible.
+	var orphan_no_flip: bool = pair_reg_live.call("is_lead", "orphan_lead") \
+		and orphan_lead.tile_position == Vector2i(2, 2) and orphan_lead.visible \
+		and c_orphan._state == FREE
+	if orphan_no_flip:
+		print("OK  Swap with an unresolvable partner bails without flipping roles (review #2)")
+		passed += 1
+	else:
+		print("FAIL swap orphan: is_lead=%s tile=%s vis=%s state=%d" % [
+			pair_reg_live.call("is_lead", "orphan_lead"),
+			orphan_lead.tile_position, orphan_lead.visible, c_orphan._state])
+		failed += 1
+
 	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
 	# Drive _handle_mouse_motion directly with a synthesized event. The function
 	# reads SettingsManager.mouse_cursor and bails before touching _set_tile when
@@ -631,13 +822,27 @@ func _init() -> void:
 		c_mc._handle_mouse_motion(ev)
 		var moved: bool = c_mc.current_tile == Vector2i(4, 4)
 
+		# Mouse motion near the viewport edge should nudge the camera on large maps
+		# instead of freezing camera follow entirely.
+		var mouse_pan_w := _grid.map_width
+		var mouse_pan_h := _grid.map_height
+		_grid.map_width = 30
+		_grid.map_height = 30
+		c_mc._camera.position = _grid.tile_to_world(Vector2i(10, 10))
+		var mouse_cam_before: Vector2 = c_mc._camera.position
+		ev.position = Vector2(c_mc.get_viewport().get_visible_rect().size.x - 1.0, 64.0)
+		c_mc._handle_mouse_motion(ev)
+		var camera_panned: bool = c_mc._camera.position != mouse_cam_before
+		_grid.map_width = mouse_pan_w
+		_grid.map_height = mouse_pan_h
+
 		sm_mc.mouse_cursor = "enabled"  # restore default
-		if stayed and moved:
-			print("OK  mouse_cursor=disabled ignores motion; enabled resumes (PT4 #1)")
+		if stayed and moved and camera_panned:
+			print("OK  mouse_cursor=disabled ignores motion; enabled resumes and can pan camera")
 			passed += 1
 		else:
-			print("FAIL mouse_cursor gate: stayed=%s moved=%s tile=%s" % [
-				stayed, moved, str(c_mc.current_tile)])
+			print("FAIL mouse_cursor gate/pan: stayed=%s moved=%s camera_panned=%s tile=%s" % [
+				stayed, moved, camera_panned, str(c_mc.current_tile)])
 			failed += 1
 	else:
 		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")

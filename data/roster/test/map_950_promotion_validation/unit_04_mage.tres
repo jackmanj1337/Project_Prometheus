@@ -1,0 +1,59 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
+
+[sub_resource type="Resource" id="IE_1"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "fire"
+uses_remaining = 40
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "master_seal"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_3"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "guiding_ring"
+uses_remaining = 1
+
+[sub_resource type="Resource" id="IE_4"]
+script = ExtResource("2")
+entry_type = "item"
+item_id = "second_seal"
+uses_remaining = 1
+
+[resource]
+script = ExtResource("1")
+unit_id = "m950_mage"
+unit_name = "M950_Mage"
+class_id = "mage"
+class_line_id = "mage"
+level = 9
+exp = 0
+is_promoted = false
+internal_level = 9
+max_hp = 20
+hp = 20
+strength = 1
+magic = 9
+defense = 4
+resistance = 6
+skill = 7
+speed = 8
+luck = 4
+movement = 5
+constitution = 5
+line_of_sight = 4
+weapon_wexp = {"elemental_magic": 130}
+skills = []
+inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3"), SubResource("IE_4")]
+conditions = []
+gold = 0
+is_incapacitated = false
+ai_profile = "basic"
+is_default_roster = false

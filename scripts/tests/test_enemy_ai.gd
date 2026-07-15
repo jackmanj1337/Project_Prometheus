@@ -242,6 +242,28 @@ func _init() -> void:
 		print("FAIL hostility model yellow: %s" % str(yellow_hostiles))
 		failed += 1
 
+	# ---- off-map guard: a unit at OFF_MAP_TILE is never a hostile target ----
+	# playtest v0.1.4 #4 backstop: a paired support (or any role-desynced off-map
+	# unit) must not be targeted or pathed toward, or enemies beeline to the
+	# (-1,-1) sentinel — which clamps to the top-left and looks like a rush to (1,1).
+	var OFF_MAP_TILE: Vector2i = load("res://scripts/autoloads/PairUpRegistry.gd").OFF_MAP_TILE
+	var hr_off: Node = stub_script.new(); hr_off.set("team", "red")
+	hr_off.set("tile_position", OFF_MAP_TILE)
+	hs_gs.set("by_faction", {
+		"blue": [hb] as Array[Node],
+		"green": [hg] as Array[Node],
+		"red": [hr, hr_off] as Array[Node],
+		"yellow": [hy] as Array[Node],
+	})
+	var guarded: Array[Node] = ai._living_hostiles_for_faction(hs_gs, "green")
+	if guarded.has(hr) and not guarded.has(hr_off):
+		print("OK  off-map guard: OFF_MAP_TILE unit excluded from hostile targets")
+		passed += 1
+	else:
+		print("FAIL off-map guard: on-map kept=%s off-map excluded=%s" % [
+			guarded.has(hr), not guarded.has(hr_off)])
+		failed += 1
+
 	# ════════════════════════════════════════════════════════════════════════
 	# _act profile dispatch — full passive / basic / healer turns. These need
 	# /root/GameState + /root/CombatResolver and a stub unit with an awaitable

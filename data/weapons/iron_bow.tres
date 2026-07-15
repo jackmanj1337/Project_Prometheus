@@ -6,8 +6,9 @@
 script = ExtResource("1")
 id = "iron_bow"
 display_name = "Iron Bow"
-weapon_type = "bow"
-rank = "E"
+combat_family = "bow"
+wexp_track = "bow"
+required_rank = "E"
 mt = 6
 hit = 85
 crit = 0
@@ -19,4 +20,4 @@ cost = 540
 wexp = 1
 effect_tags = ["effective_flying"]
 uses_mag = false
-magic_triangle_type = ""
+triangle_family = ""

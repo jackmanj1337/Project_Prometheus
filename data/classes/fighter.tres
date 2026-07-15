@@ -1,0 +1,36 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ClassData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fighter"
+display_name = "Fighter"
+description = "A sturdy axe infantry class used by early hostile bandit units."
+tier = 1
+base_hp = 20
+base_strength = 8
+base_magic = 0
+base_defense = 4
+base_resistance = 1
+base_skill = 6
+base_speed = 6
+base_luck = 3
+base_movement = 6
+base_constitution = 11
+base_line_of_sight = 4
+weapon_wexp_bases = {"axe": 100}
+weapon_wexp_caps = {"axe": 400}
+class_groups = ["martial"]
+special_qualities = []
+vulnerability_groups = []
+internal_level_rule = "base"
+class_availability = "hidden"
+promotes_to = []
+promotes_from = []
+promotion_stat_bonuses = {}
+player_growth_rates = {"hp": 60, "strength": 30, "magic": 0, "defense": 10, "resistance": 0, "skill": 20, "speed": 20, "luck": 5}
+enemy_growth_rates = {"hp": 85, "strength": 40, "magic": 0, "defense": 20, "resistance": 5, "skill": 30, "speed": 25, "luck": 20}
+stat_caps = {"hp": 70, "strength": 32, "magic": 20, "defense": 24, "resistance": 20, "skill": 26, "speed": 24, "luck": 28}
+skill_unlocks = {}
+sprite_id = ""

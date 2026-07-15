@@ -6,6 +6,8 @@ class_name Unit extends Node2D
 #   - This file: identity, position, HP/state changes, movement animation
 #   - UnitStatBlock.gd (helper): stat math that factors in terrain, S-rank, conditions
 
+const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+
 # Set by initialize()
 var data: UnitData
 # Pass-through to data.tile_position so callers use unit.tile_position unchanged.
@@ -40,6 +42,7 @@ func set_grid_manager(grid: GridManager) -> void:
 func _ready() -> void:
 	if data != null:
 		_ensure_class_line_id()
+		_ensure_internal_level()
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
@@ -97,6 +100,15 @@ func has_quality(quality: String) -> bool:
 	if class_data == null:
 		return false
 	return quality in class_data.special_qualities
+
+
+func has_vulnerability(group: String) -> bool:
+	if data == null:
+		return false
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	return group in class_data.vulnerability_groups
 
 
 func _get_class_data() -> ClassData:
@@ -171,15 +183,45 @@ func _load_weapon(id: String) -> WeaponData:
 	return null
 
 
-# Rank order: E < D < C < B < A < S (small lookup map)
-const _RANK_ORDER := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
-
-
 func _can_equip_rank(weapon: WeaponData) -> bool:
-	if not data.proficiencies.has(weapon.weapon_type):
+	if data == null or weapon == null:
 		return false
-	var unit_rank: String = data.proficiencies[weapon.weapon_type].get("rank", "E")
-	return _RANK_ORDER.get(unit_rank, 0) >= _RANK_ORDER.get(weapon.rank, 0)
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	if not (weapon.combat_family in class_data.get_allowed_weapon_families()):
+		return false
+	return get_active_wexp(weapon.wexp_track) >= GameConstants.minimum_wexp_for_rank(weapon.required_rank)
+
+
+func get_weapon_wexp(track: String) -> int:
+	if data == null:
+		return 0
+	return int(data.weapon_wexp.get(track, 0))
+
+
+func get_active_wexp(track: String) -> int:
+	var stored := get_weapon_wexp(track)
+	var class_data := _get_class_data()
+	if class_data == null:
+		return stored
+	var cap := class_data.get_weapon_wexp_cap(track)
+	if cap <= 0:
+		return 0
+	return mini(stored, cap)
+
+
+func get_weapon_rank(track: String) -> String:
+	return GameConstants.weapon_rank_for_wexp(get_active_wexp(track))
+
+
+func get_stored_weapon_rank(track: String) -> String:
+	return GameConstants.weapon_rank_for_wexp(get_weapon_wexp(track))
+
+
+func is_weapon_track_available(track: String) -> bool:
+	var class_data := _get_class_data()
+	return class_data != null and class_data.get_weapon_wexp_cap(track) > 0
 
 
 # Reads terrain bonuses from GridManager via its accessor (B1) rather than
@@ -240,15 +282,17 @@ func has_skill(skill_id: String) -> bool:
 
 
 # Returns how many uses of this skill remain this map. -1 = unlimited.
-func get_skill_uses_remaining(effect_id: String, max_per_map: int) -> int:
+# Keyed by skill.id (not effect_id) so two skills sharing an effect_id keep
+# isolated counters — matches SkillHandler.apply_trigger after issue 2.6.
+func get_skill_uses_remaining(skill_id: String, max_per_map: int) -> int:
 	if max_per_map == -1:
 		return -1
-	var used: int = data.skill_use_counters.get(effect_id, 0)
+	var used: int = data.skill_use_counters.get(skill_id, 0)
 	return max(0, max_per_map - used)
 
 
-func consume_skill_use(effect_id: String) -> void:
-	data.skill_use_counters[effect_id] = data.skill_use_counters.get(effect_id, 0) + 1
+func consume_skill_use(skill_id: String) -> void:
+	data.skill_use_counters[skill_id] = data.skill_use_counters.get(skill_id, 0) + 1
 
 
 # ---- Modifier Lifecycle ----
@@ -393,9 +437,12 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 	# Use the modifier-aware stat so temporary MAG buffs affect healing, matching
 	# how combat damage reads stats.
 	var heal_amount: int = GameConstants.STAFF_HEAL_BASE + get_effective_stat("magic")
+	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
+	if sh != null and sh.has_method("get_staff_heal_bonus"):
+		heal_amount += int(sh.get_staff_heal_bonus(self))
 	target.heal(heal_amount)
 	use_weapon_durability(weapon.id)
-	add_wexp(weapon.weapon_type, weapon.wexp)
+	add_wexp(weapon.wexp_track, weapon.wexp)
 	add_exp(GameConstants.STAFF_HEAL_EXP)
 
 
@@ -406,9 +453,12 @@ func handle_death() -> void:
 	if data == null:
 		return
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
+	var pair_up := get_node_or_null("/root/PairUpRegistry") if is_inside_tree() else null
 	if gs:
 		if gs.permadeath_enabled:
 			data.is_incapacitated = true
+		if pair_up != null and pair_up.has_method("release_support_from_fallen_lead"):
+			pair_up.release_support_from_fallen_lead(self)
 		gs.unregister_unit(self)
 	var bus := _bus()
 	if bus:
@@ -524,6 +574,7 @@ func reset_appearance() -> void:
 func add_exp(amount: int) -> void:
 	if data == null or amount <= 0:
 		return
+	amount = _debug_force_levelup_exp(amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
 		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
@@ -535,6 +586,19 @@ func add_exp(amount: int) -> void:
 			_maybe_emit_promotion_available()
 			data.exp = 0  # no overflow past the cap
 			break
+
+
+# Shared debug-aid seam: when force-level-up is on, every EXP-awarding path
+# should grant at least one full level. Combat already routes through a
+# dedicated override in CombatResolver; add_exp() mirrors that so staff use and
+# future non-combat EXP sources behave the same way.
+func _debug_force_levelup_exp(amount: int) -> int:
+	if amount <= 0 or not OS.is_debug_build() or not is_inside_tree():
+		return amount
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.get("debug_force_levelup"):
+		return maxi(amount, 100)
+	return amount
 
 
 func _current_max_level() -> int:
@@ -563,8 +627,8 @@ func promote(target_class_id: String) -> bool:
 	data.class_id = target_class_id
 	data.class_line_id = line_id if line_id != "" else old_class_id
 	data.is_promoted = true
-	_reset_class_level_state()
-	_grant_missing_proficiencies(target_class.proficiencies)
+	_reset_class_level_state(false)
+	_apply_class_weapon_bases(target_class)
 	var bus := _bus()
 	if bus:
 		bus.unit_promoted.emit(self, old_class_id, target_class_id)
@@ -637,16 +701,17 @@ func reclass(target_class_id: String, target_line_id: String = "") -> bool:
 	if not self_reset and source_class.tier == 2:
 		_remove_promotion_stat_bonuses(source_class)
 	if not self_reset:
+		_replace_class_base_stats(source_class, _current_class_line_id(), target_class, resolved_line_id)
 		_clamp_stats_to_caps(target_class)
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
 		data.is_promoted = target_class.tier == 2
-		_grant_missing_proficiencies(target_class.proficiencies)
+		_apply_class_weapon_bases(target_class)
 	else:
 		data.class_id = target_class_id
 		data.class_line_id = resolved_line_id
 		data.is_promoted = target_class.tier == 2
-	_reset_class_level_state()
+	_reset_class_level_state(true)
 	_grant_current_level_class_skills()
 	var bus := _bus()
 	if bus:
@@ -684,17 +749,21 @@ func _apply_promotion_stat_bonuses(target_class: ClassData) -> void:
 		data.set(stat, _clamp_to_cap(current + bonus, int(target_class.stat_caps.get(stat, -1))))
 
 
-func _grant_missing_proficiencies(weapon_types: Array[String]) -> void:
-	for weapon_type in weapon_types:
-		if data.proficiencies.has(weapon_type):
-			continue
-		data.proficiencies[weapon_type] = {"rank": "E", "wexp": 0}
+func _apply_class_weapon_bases(target_class: ClassData) -> void:
+	for key in target_class.weapon_wexp_bases.keys():
+		var track: String = String(key)
+		var base_wexp: int = target_class.get_weapon_wexp_base(track)
+		data.weapon_wexp[track] = maxi(get_weapon_wexp(track), base_wexp)
 
 
-func _reset_class_level_state() -> void:
+func _reset_class_level_state(preserve_internal_level: bool) -> void:
+	var previous_internal_level: int = data.internal_level
 	data.level = 1
 	data.exp = 0
 	data.growth_accumulators = {}
+	_recalculate_internal_level()
+	if preserve_internal_level:
+		data.internal_level = maxi(previous_internal_level, data.internal_level)
 
 
 func _clamp_to_cap(value: int, cap: int) -> int:
@@ -711,7 +780,7 @@ func level_up() -> void:
 	if data == null:
 		return
 	data.level += 1
-	data.effective_level += 1
+	data.internal_level += 1
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	var method: String = gs.leveling_method if gs else "growth_random"
 	var class_data := _get_class_data()
@@ -771,16 +840,18 @@ func _has_earned_skill(skill_id: String) -> bool:
 
 
 func _grant_current_level_class_skills() -> void:
-	if data == null or data.class_id.is_empty() or not is_inside_tree():
+	if data == null or data.class_id.is_empty():
 		return
-	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not dm._classes.has(data.class_id):
-		return
-	var class_data: ClassData = dm._classes[data.class_id]
+	var class_data := _get_class_data()
 	if class_data == null:
 		return
-	for unlock_level in class_data.skill_unlocks:
-		if int(unlock_level) != data.level:
+	# Spawn/reclass should grant every class skill earned at or below the unit's
+	# current level — a directly-spawned level-20 General must already know its
+	# level 5 and level 15 unlocks, not only an exact-level match.
+	var unlock_levels: Array = class_data.skill_unlocks.keys()
+	unlock_levels.sort()
+	for unlock_level in unlock_levels:
+		if int(unlock_level) > data.level:
 			continue
 		_learn_skill(String(class_data.skill_unlocks[unlock_level]))
 
@@ -799,10 +870,7 @@ func _learn_skill(skill_id: String) -> Dictionary:
 func _ensure_class_line_id() -> void:
 	if data == null or data.class_id.is_empty() or not data.class_line_id.is_empty():
 		return
-	var dm := get_node_or_null("/root/DataManager") if is_inside_tree() else null
-	if dm == null or not dm._classes.has(data.class_id):
-		return
-	var class_data: ClassData = dm._classes[data.class_id]
+	var class_data := _get_class_data()
 	if class_data == null:
 		return
 	if class_data.tier == 1:
@@ -811,6 +879,12 @@ func _ensure_class_line_id() -> void:
 	var lines := _target_line_ids_for_promoted_class(class_data)
 	if not lines.is_empty():
 		data.class_line_id = lines[0]
+
+
+func _ensure_internal_level() -> void:
+	if data == null or data.internal_level > 0:
+		return
+	_recalculate_internal_level()
 
 
 func _current_class_line_id() -> String:
@@ -822,9 +896,25 @@ func _effective_second_seal_tier() -> int:
 	var class_data := _get_class_data()
 	if class_data == null:
 		return 0
-	if class_data.is_special_class:
+	if class_data.resolved_internal_level_rule() == "special":
 		return 2 if data.level >= 30 else 1
 	return class_data.tier
+
+
+func _recalculate_internal_level() -> void:
+	if data == null:
+		return
+	var class_data := _get_class_data()
+	if class_data == null:
+		data.internal_level = maxi(1, data.level)
+		return
+	match class_data.resolved_internal_level_rule():
+		"promoted":
+			data.internal_level = 20 + data.level
+		"special":
+			data.internal_level = data.level
+		_:
+			data.internal_level = data.level
 
 
 func _self_reset_only(options: Array[Dictionary], class_data: ClassData,
@@ -900,6 +990,46 @@ func _remove_promotion_stat_bonuses(source_class: ClassData) -> void:
 		data.set(stat, max(0, current - bonus))
 
 
+func _replace_class_base_stats(source_class: ClassData, source_line_id: String,
+		target_class: ClassData, target_line_id: String) -> void:
+	var source_base_class: ClassData = _class_base_contributor(source_class, source_line_id)
+	var target_base_class: ClassData = _class_base_contributor(target_class, target_line_id)
+	if source_base_class == null or target_base_class == null:
+		return
+	var hp_delta: int = target_base_class.base_hp - source_base_class.base_hp
+	data.max_hp = max(1, data.max_hp + hp_delta)
+	data.hp = clampi(data.hp + hp_delta, 0, data.max_hp)
+	if _hp_bar:
+		_hp_bar.max_value = data.max_hp
+		_hp_bar.value = data.hp
+	var stat_keys := {
+		"strength": ["base_strength", "strength"],
+		"magic": ["base_magic", "magic"],
+		"defense": ["base_defense", "defense"],
+		"resistance": ["base_resistance", "resistance"],
+		"skill": ["base_skill", "skill"],
+		"speed": ["base_speed", "speed"],
+		"luck": ["base_luck", "luck"],
+		"movement": ["base_movement", "movement"],
+		"constitution": ["base_constitution", "constitution"],
+		"line_of_sight": ["base_line_of_sight", "line_of_sight"],
+	}
+	for stat_name in stat_keys.keys():
+		var fields: Array = stat_keys[stat_name]
+		var source_base: int = int(source_base_class.get(String(fields[0])))
+		var target_base: int = int(target_base_class.get(String(fields[0])))
+		var current: int = int(data.get(String(fields[1])))
+		data.set(String(fields[1]), max(0, current + target_base - source_base))
+
+
+func _class_base_contributor(class_data: ClassData, line_id: String) -> ClassData:
+	if class_data == null:
+		return null
+	if class_data.tier == 1:
+		return class_data
+	return _class_data_for(line_id)
+
+
 func _clamp_stats_to_caps(target_class: ClassData) -> void:
 	data.max_hp = _clamp_to_cap(data.max_hp, int(target_class.stat_caps.get("hp", -1)))
 	data.hp = mini(data.hp, data.max_hp)
@@ -914,18 +1044,18 @@ func _clamp_stats_to_caps(target_class: ClassData) -> void:
 
 func _max_equipped_skills() -> int:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	return int(gs.get("max_skills")) if gs != null else 4
+	return int(gs.get("max_skills")) if gs != null else 5
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
 # GDD_10_Roadmap.md § Pre-Release Cleanup. When GameState.debug_growth_boost is
-# on, inflates a growth rate by +50 so level-up stat gains are easy to observe.
+# on, inflates a growth rate by +300 so level-up stat gains are easy to observe.
 func _debug_boosted_rate(rate: int) -> int:
 	if not OS.is_debug_build():
 		return rate
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
 	if gs != null and gs.debug_growth_boost:
-		return rate + 50
+		return rate + 300
 	return rate
 
 
@@ -936,7 +1066,7 @@ func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
-		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)
+		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)  # rng-allow: pre-M9a (RNG-1)
 		var applied: int = _apply_stat_gain(stat, gain, caps)
 		if applied > 0:
 			changes[stat] = applied
@@ -996,34 +1126,28 @@ func _increment_stat(stat: String, cap: int) -> bool:
 	return true
 
 
-# Adds weapon EXP to the given proficiency, handling rank-up at 100. The unit
-# must already have an entry for this weapon type (set at class creation).
-# Returns true if a rank-up occurred.
-func add_wexp(weapon_type: String, amount: int) -> bool:
+# Adds weapon EXP to the given track and reports whether the derived displayed
+# rank increased. Numeric WEXP is the authoritative stored value.
+func add_wexp(track: String, amount: int) -> bool:
 	if data == null or amount <= 0:
 		return false
-	if not data.proficiencies.has(weapon_type):
+	if not data.weapon_wexp.has(track):
 		return false
-	var prof: Dictionary = data.proficiencies[weapon_type]
-	prof["wexp"] = prof.get("wexp", 0) + amount
-	var ranked_up := false
-	while prof["wexp"] >= 100:
-		var current_rank: String = prof.get("rank", "E")
-		var next_rank := _next_rank(current_rank)
-		if next_rank == current_rank:
-			# Already at S — cap wexp at 100
-			prof["wexp"] = 100
-			break
-		prof["rank"] = next_rank
-		prof["wexp"] -= 100
-		ranked_up = true
-		# Grant permanent mastery skill on first S-rank in any weapon type.
-		if next_rank == "S" and not ("s_rank_mastery" in data.mastery_skills):
-			data.mastery_skills.append("s_rank_mastery")
-	data.proficiencies[weapon_type] = prof
-	return ranked_up
-
-
-func _next_rank(rank: String) -> String:
-	const NEXT := {"E": "D", "D": "C", "C": "B", "B": "A", "A": "S", "S": "S"}
-	return NEXT.get(rank, rank)
+	var class_data := _get_class_data()
+	if class_data == null:
+		return false
+	var class_cap := class_data.get_weapon_wexp_cap(track)
+	var current_total := get_weapon_wexp(track)
+	if class_cap <= 0 or current_total >= class_cap:
+		return false
+	var gained := amount
+	var sh := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
+	if sh != null and sh.has_method("get_wexp_multiplier"):
+		gained *= int(sh.get_wexp_multiplier(self, track))
+	var previous_rank: String = GameConstants.weapon_rank_for_wexp(current_total)
+	var next_total := mini(current_total + gained, class_cap)
+	data.weapon_wexp[track] = next_total
+	var next_rank: String = GameConstants.weapon_rank_for_wexp(next_total)
+	if next_rank == "S" and previous_rank != "S" and not ("s_rank_mastery" in data.mastery_skills):
+		data.mastery_skills.append("s_rank_mastery")
+	return previous_rank != next_rank

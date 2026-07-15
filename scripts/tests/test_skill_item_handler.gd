@@ -10,6 +10,7 @@ const DataManagerS  = preload("res://scripts/autoloads/DataManager.gd")
 class MockUnit extends Node:
 	var data: UnitData
 	var team: String = "blue"
+	var tile_position: Vector2i = Vector2i.ZERO
 	var second_seal_usable: bool = false
 
 	func setup(unit_data: UnitData) -> void:
@@ -18,10 +19,12 @@ class MockUnit extends Node:
 	func heal(amount: int) -> void:
 		data.hp = mini(data.hp + amount, data.max_hp)
 
-	# Faithful mirror of Unit.add_modifier — replaces all modifiers sharing a source.
-	func add_modifier(stat: String, delta: int, source: String, _dur: int, _dtype: String) -> void:
+	# Faithful mirror of Unit.add_modifier — replaces all modifiers sharing a source
+	# and stores duration + duration_type so callers can verify the modifier shape.
+	func add_modifier(stat: String, delta: int, source: String, duration: int, duration_type: String) -> void:
 		remove_modifier(source)
-		data.active_modifiers.append({"stat": stat, "delta": delta, "source": source})
+		data.active_modifiers.append({"stat": stat, "delta": delta, "source": source,
+			"duration": duration, "duration_type": duration_type})
 
 	func remove_modifier(source: String) -> void:
 		data.active_modifiers = data.active_modifiers.filter(
@@ -45,6 +48,13 @@ class MockUnit extends Node:
 
 	func can_use_second_seal() -> bool:
 		return second_seal_usable
+
+
+class MockGameState extends Node:
+	var all_units: Array[Node] = []
+
+	func are_hostile(a_id: String, b_id: String) -> bool:
+		return a_id != b_id
 
 
 func _make_ctx(atk: Node, def: Node, w_atk: WeaponData, w_def: WeaponData,
@@ -73,6 +83,10 @@ func _init() -> void:
 	sh.name = "SkillHandler"
 	root.add_child(sh)
 
+	var gs := MockGameState.new()
+	gs.name = "GameState"
+	root.add_child(gs)
+
 	var ih: Node = ItemHandlerS.new()
 	ih.name = "ItemHandler"
 	root.add_child(ih)
@@ -92,6 +106,7 @@ func _init() -> void:
 	var def_unit := MockUnit.new()
 	def_unit.setup(soldier_data.duplicate(true))
 	root.add_child(def_unit)
+	gs.all_units = [unit, def_unit]
 
 	var iron_lance: WeaponData = load("res://data/weapons/iron_lance.tres")
 	var iron_sword: WeaponData = load("res://data/weapons/iron_sword.tres")
@@ -215,6 +230,83 @@ func _init() -> void:
 	else:
 		print("FAIL lancebreaker: bonus applied vs non-lance"); failed += 1
 
+	# ── M9a: stat_bonus applies a combat-duration modifier through unit stats ──
+	var skill_plus_2: SkillData = load("res://data/skills/skill_plus_2.tres")
+	var sb_data: UnitData = soldier_data.duplicate(true)
+	var sb_unit := MockUnit.new()
+	sb_unit.setup(sb_data)
+	root.add_child(sb_unit)
+	var sb_ctx: Dictionary = _make_ctx(sb_unit, def_unit, iron_lance, iron_lance)
+	var sb_fired: bool = sh._execute_skill(skill_plus_2, sb_unit, sb_ctx)
+	if sb_fired and sb_unit.get_effective_stat("skill") == sb_data.skill + 2:
+		print("OK  M9a stat_bonus adds a combat stat modifier"); passed += 1
+	else:
+		print("FAIL M9a stat_bonus: fired=%s skill=%d base=%d" \
+			% [sb_fired, sb_unit.get_effective_stat("skill"), sb_data.skill]); failed += 1
+
+	# ── M9a: prescience gives +15 hit/dodge only on initiation ───────────────
+	var prescience: SkillData = load("res://data/skills/prescience.tres")
+	var pre_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
+	var pre_fired: bool = sh._execute_skill(prescience, unit, pre_ctx)
+	if pre_fired and pre_ctx["atk_mod"]["accuracy"] == 15 and pre_ctx["atk_mod"]["dodge"] == 15:
+		print("OK  M9a prescience buffs the initiator"); passed += 1
+	else:
+		print("FAIL M9a prescience atk_mod=%s fired=%s" % [str(pre_ctx["atk_mod"]), pre_fired]); failed += 1
+	var pre_ctx2: Dictionary = _make_ctx(def_unit, unit, iron_lance, iron_lance)
+	var pre_fired2: bool = sh._execute_skill(prescience, unit, pre_ctx2)
+	if not pre_fired2 and pre_ctx2["def_mod"]["accuracy"] == 0 and pre_ctx2["def_mod"]["dodge"] == 0:
+		print("OK  M9a prescience stays inactive on defense"); passed += 1
+	else:
+		print("FAIL M9a prescience defended: def_mod=%s fired=%s" % [str(pre_ctx2["def_mod"]), pre_fired2]); failed += 1
+
+	# ── M9a: patience gives +10 hit/dodge only while defending ───────────────
+	var patience: SkillData = load("res://data/skills/patience.tres")
+	var pat_ctx: Dictionary = _make_ctx(unit, def_unit, iron_lance, iron_lance)
+	var pat_fired: bool = sh._execute_skill(patience, def_unit, pat_ctx)
+	if pat_fired and pat_ctx["def_mod"]["accuracy"] == 10 and pat_ctx["def_mod"]["dodge"] == 10:
+		print("OK  M9a patience buffs the defender"); passed += 1
+	else:
+		print("FAIL M9a patience def_mod=%s fired=%s" % [str(pat_ctx["def_mod"]), pat_fired]); failed += 1
+
+	# ── M9a: focus grants crit only when no ally is nearby ────────────────────
+	var focus_skill: SkillData = load("res://data/skills/focus.tres")
+	var focus_data: UnitData = soldier_data.duplicate(true)
+	var focus_unit := MockUnit.new()
+	focus_unit.setup(focus_data)
+	focus_unit.tile_position = Vector2i(5, 5)
+	root.add_child(focus_unit)
+	gs.all_units = [focus_unit]
+	var focus_ctx: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
+	var focus_fired: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx)
+	if focus_fired and focus_ctx["atk_mod"]["crit"] == 10:
+		print("OK  M9a focus grants crit when no ally is within range"); passed += 1
+	else:
+		print("FAIL M9a focus solo atk_mod=%s fired=%s" % [str(focus_ctx["atk_mod"]), focus_fired]); failed += 1
+	var ally_unit := MockUnit.new()
+	ally_unit.setup(soldier_data.duplicate(true))
+	ally_unit.tile_position = Vector2i(6, 5)
+	root.add_child(ally_unit)
+	gs.all_units = [focus_unit, ally_unit]
+	var focus_ctx2: Dictionary = _make_ctx(focus_unit, def_unit, iron_lance, iron_lance)
+	var focus_fired2: bool = sh._execute_skill(focus_skill, focus_unit, focus_ctx2)
+	if not focus_fired2 and focus_ctx2["atk_mod"]["crit"] == 0:
+		print("OK  M9a focus stays off when an ally is nearby"); passed += 1
+	else:
+		print("FAIL M9a focus ally atk_mod=%s fired=%s" % [str(focus_ctx2["atk_mod"]), focus_fired2]); failed += 1
+
+	# ── M9a helpers: discipline and healtouch expose runtime bonuses ─────────
+	var helper_data: UnitData = soldier_data.duplicate(true)
+	helper_data.skills = ["discipline", "healtouch"]
+	var helper_unit := MockUnit.new()
+	helper_unit.setup(helper_data)
+	root.add_child(helper_unit)
+	var wexp_mult: int = sh.get_wexp_multiplier(helper_unit, "lance")
+	var heal_bonus: int = sh.get_staff_heal_bonus(helper_unit)
+	if wexp_mult == 2 and heal_bonus == 5:
+		print("OK  M9a helpers expose discipline/healtouch bonuses"); passed += 1
+	else:
+		print("FAIL M9a helpers: wexp=%d heal=%d" % [wexp_mult, heal_bonus]); failed += 1
+
 	# ── #4: max_uses_per_combat caps how often a skill fires within one combat ──
 	# Give lancefaire a 1-use-per-combat limit, then fire on_combat_start twice with
 	# reset_combat_uses() simulating a single combat: the second call must be skipped.
@@ -244,6 +336,39 @@ func _init() -> void:
 	else:
 		print("FAIL #4: skill did not re-arm after reset_combat_uses"); failed += 1
 	faire_data.max_uses_per_combat = saved_limit  # restore shared resource
+
+	# ── 2.6: counters key by skill.id, not effect_id ──────────────────────────
+	# Two stat_bonus skills (skill_plus_2 and defense_plus_2) share an
+	# effect_id but have distinct skill ids. Pre-2026-06-10 they shared a
+	# single max_uses_per_combat counter, so capping at 1 silently silenced
+	# the second one. Keying by skill.id keeps them isolated.
+	var skl_plus: SkillData = dm.get_skill("skill_plus_2")
+	var def_plus: SkillData = dm.get_skill("defense_plus_2")
+	var saved_skl_limit: int = skl_plus.max_uses_per_combat
+	var saved_def_limit: int = def_plus.max_uses_per_combat
+	skl_plus.max_uses_per_combat = 1
+	def_plus.max_uses_per_combat = 1
+	var iso_unit := MockUnit.new()
+	iso_unit.setup(soldier_data.duplicate(true))
+	iso_unit.data.skills.assign(["skill_plus_2", "defense_plus_2"])
+	root.add_child(iso_unit)
+	sh.reset_combat_uses()
+	var iso_ctx: Dictionary = _make_ctx(iso_unit, def_unit, iron_lance, iron_lance)
+	iso_ctx["attacker"] = iso_unit
+	sh.apply_trigger(iso_unit, "on_combat_start", iso_ctx)
+	# Both stat_bonus skills are duration_type="combat" modifiers on the unit's
+	# active_modifiers — count distinct sources.
+	var distinct_sources: Dictionary = {}
+	for m in iso_unit.data.active_modifiers:
+		if String(m.get("source", "")).begins_with("skill:"):
+			distinct_sources[String(m["source"])] = true
+	if distinct_sources.size() == 2:
+		print("OK  2.6: skills sharing effect_id keep isolated use counters"); passed += 1
+	else:
+		print("FAIL 2.6: shared-effect-id skill counter collision (%d sources)" % \
+			distinct_sources.size()); failed += 1
+	skl_plus.max_uses_per_combat = saved_skl_limit
+	def_plus.max_uses_per_combat = saved_def_limit
 
 	# ── ItemHandler: heal_flat heals and decrements uses ──────────────────────
 	# max_hp leaves headroom so the full heal is observable (no cap clamp here):
@@ -366,6 +491,66 @@ func _init() -> void:
 	else:
 		print("FAIL M7.4 second_seal: archer=%s merc=%s" % [
 			ih.can_apply_item(archer_unit, second_entry), ih.can_apply_item(merc_unit, second_entry)]); failed += 1
+
+	# W5c regression — strength_tonic is a fixture item with effect_id "stat_buff"
+	# that lets playtesters verify the unit-details modifier block and combat
+	# preview against a reliable positive modifier. apply_item must stamp an
+	# active_modifier from ItemData.effect_params and consume the entry.
+	var tonic_entry := InventoryEntry.make_item("strength_tonic", 1)
+	var tonic_data: UnitData = load("res://data/roster/default/unit_02_mercenary.tres").duplicate(true)
+	tonic_data.inventory = [tonic_entry]
+	tonic_data.active_modifiers = []
+	var tonic_unit := MockUnit.new()
+	tonic_unit.setup(tonic_data)
+	root.add_child(tonic_unit)
+	var tonic_usable: bool = ih.can_apply_item(tonic_unit, tonic_entry)
+	ih.apply_item(tonic_unit, tonic_entry)
+	var matched: int = 0
+	for mod in tonic_data.active_modifiers:
+		if mod.get("stat", "") == "strength" and int(mod.get("delta", 0)) == 4 \
+				and String(mod.get("source", "")).begins_with("item:") \
+				and String(mod.get("duration_type", "")) == "turn":
+			matched += 1
+	if tonic_usable and matched == 1 and tonic_data.inventory.is_empty():
+		print("OK  W5c: strength_tonic applies a +4 strength turn modifier and is consumed"); passed += 1
+	else:
+		print("FAIL W5c: usable=%s matched=%d inv=%d mods=%s" % [
+			tonic_usable, matched, tonic_data.inventory.size(), tonic_data.active_modifiers]); failed += 1
+
+	# W3b regression — playtest #214: a unit that started below max level with a
+	# promotion item in inventory should become eligible as soon as it hits the
+	# class max. can_apply_item must reflect the live data.level so the next
+	# action-menu open reveals the seal.
+	var refresh_data: UnitData = load("res://data/roster/default/unit_06_knight.tres").duplicate(true)
+	refresh_data.level = 18
+	refresh_data.is_promoted = false
+	var refresh_unit := MockUnit.new()
+	refresh_unit.setup(refresh_data)
+	refresh_unit.second_seal_usable = false
+	root.add_child(refresh_unit)
+	var seal_entry := InventoryEntry.make_item("master_seal", 1)
+	var hidden_at_18: bool = not ih.can_apply_item(refresh_unit, seal_entry)
+	refresh_data.level = 19
+	var hidden_at_19: bool = not ih.can_apply_item(refresh_unit, seal_entry)
+	refresh_data.level = 20
+	var usable_at_20: bool = ih.can_apply_item(refresh_unit, seal_entry)
+	if hidden_at_18 and hidden_at_19 and usable_at_20:
+		print("OK  W3b: promotion-item usability refreshes the instant a unit hits max level"); passed += 1
+	else:
+		print("FAIL W3b promotion refresh: 18=%s 19=%s 20=%s" % [
+			hidden_at_18, hidden_at_19, usable_at_20]); failed += 1
+
+	# ---- stub appliers warn once per skill id, not every combat (log-noise fix) ----
+	# Guards against the v0.1.4 godot.log flood (armsthrift ×80 etc.). _warn_stub_once
+	# records each skill id once; repeats are suppressed.
+	sh._stub_warned.clear()
+	sh._warn_stub_once("Test._stub", "armsthrift")
+	sh._warn_stub_once("Test._stub", "armsthrift")   # repeat — must not re-record
+	sh._warn_stub_once("Test._stub", "dash")
+	if sh._stub_warned.size() == 2 and sh._stub_warned.has("armsthrift") and sh._stub_warned.has("dash"):
+		print("OK  stub appliers warn once per skill id (repeats suppressed)"); passed += 1
+	else:
+		print("FAIL stub warn dedupe: %s" % sh._stub_warned); failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

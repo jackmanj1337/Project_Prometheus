@@ -14,6 +14,12 @@ extends Node
 #   "defender"              Node         — defending unit
 #   "attacker_weapon"       WeaponData   — attacker's equipped weapon (null if unarmed)
 #   "defender_weapon"       WeaponData   — defender's equipped weapon (null if can't ctr)
+#   "attacker_support"      Node         — attacker's Pair Up support partner (null when
+#                                          attacker is unpaired or registry/GameState absent).
+#                                          The on-map combatant is always the lead per
+#                                          design Q2, so this is the off-map partner.
+#   "defender_support"      Node         — defender's Pair Up support partner (same shape
+#                                          as attacker_support).
 #   "attacker_faction"      String       — attacker's faction id ("blue", "red", …; "" if attacker null).
 #                                          M14 stage 1 replacement for the old `is_player_initiated` bool —
 #                                          a literal "player"-team check meant nothing in red-vs-yellow
@@ -75,6 +81,8 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 		"defender":            defender,
 		"attacker_weapon":     aw,
 		"defender_weapon":     dw,
+		"attacker_support":    _resolve_pair_partner(attacker),
+		"defender_support":    _resolve_pair_partner(defender),
 		"attacker_faction":    attacker.team if attacker != null else "",
 		"turn_number":         gs.turn_number if gs else 0,
 		"atk_mod": {"accuracy": 0, "damage": 0, "crit": 0, "crit_avoid": 0,
@@ -94,9 +102,31 @@ func _build_combat_context(attacker: Node, defender: Node) -> Dictionary:
 	}
 
 
+# Looks up a combatant's Pair Up support partner via PairUpRegistry and
+# GameState. Returns null when the unit is unpaired, when its data/unit_id is
+# missing, when either autoload is absent, or when the partner is not currently
+# registered. Step 4 will layer the bonus resolver on top of this lookup.
+func _resolve_pair_partner(unit: Node) -> Node:
+	if unit == null or unit.data == null or unit.data.unit_id == "":
+		return null
+	if not is_inside_tree():
+		return null
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg == null:
+		return null
+	var partner_id: String = reg.call("get_partner_id", unit.data.unit_id)
+	if partner_id == "":
+		return null
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return null
+	return gs.call("find_unit_by_id", partner_id)
+
+
 # Populates atk_mod/def_mod/flags from all sources before the first attack.
-# Steps: (1) UnitData.active_modifiers; (2) aura skills from all other units;
-# (3) equip-type inventory items; (4) on_combat_start triggers.
+# Steps: (1) Pair Up support bonuses (so subsequent passes see them as live
+# active_modifiers); (2) UnitData.active_modifiers; (3) aura skills from all
+# other units; (4) equip-type inventory items; (5) on_combat_start triggers.
 # preview = true forwards to SkillHandler so the forecast skips random-activation
 # skills (see SkillHandler.apply_trigger).
 # dry_run = true (passed by preview_combat) tells SkillHandler not to persist any
@@ -110,6 +140,12 @@ func _collect_combat_modifiers(context: Dictionary, preview: bool = false,
 	# Scope max_uses_per_combat to this fight — reset before any skill fires.
 	if sh:
 		sh.reset_combat_uses()
+	# Pair Up bonuses: apply BEFORE _apply_unit_data_modifiers so the support's
+	# contribution flows through get_effective_stat (and through the modifier
+	# pass) like any other temporary stat buff. clear_combat_modifiers() at the
+	# end of combat removes them again.
+	_apply_pair_up_bonuses(attacker, context.get("attacker_support"))
+	_apply_pair_up_bonuses(defender, context.get("defender_support"))
 	_apply_unit_data_modifiers(attacker, context["atk_mod"])
 	_apply_unit_data_modifiers(defender, context["def_mod"])
 	# Aura skills from every other living unit on the map. Not gated by Nihil — these
@@ -152,6 +188,40 @@ func _apply_unit_data_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 			"dodge":    mod_dict["dodge"]    += m.get("delta", 0)
 
 
+# Pair Up bonus application — queries PairUpBonusResolver and stamps each
+# non-zero stat as a duration_type="combat" modifier on the combatant. These
+# are cleared by Unit.clear_combat_modifiers() at the end of combat (see the
+# tail of apply_combat_result). Reads via get_effective_stat in the damage /
+# accuracy formulas pick them up automatically — no per-stat translation
+# table needed here.
+func _apply_pair_up_bonuses(combatant: Node, support: Node) -> void:
+	if combatant == null or support == null or support.data == null:
+		return
+	if not combatant.has_method("add_modifier"):
+		return
+	var resolver := get_node_or_null("/root/PairUpBonusResolver")
+	if resolver == null:
+		return
+	var bonuses: Dictionary = resolver.call("bonuses_for", support)
+	if bonuses.is_empty():
+		return
+	for stat_key in bonuses.keys():
+		var stat: String = String(stat_key)
+		var delta: int = int(bonuses[stat])
+		if delta == 0:
+			continue
+		# Distinct source PER STAT. add_modifier() calls remove_modifier(source)
+		# first, so a shared source made each stat wipe the previous one — only the
+		# last bonus (luck) survived, which is why a paired lead's damage never
+		# changed (playtest v0.1.4 #8.5). Same lesson SkillHandler's Resolve already
+		# encodes. clear_combat_modifiers() removes them by duration_type="combat",
+		# not source, so unique sources still get cleared after the fight.
+		var source: String = "pair_up:%s:%s" % [support.data.unit_id, stat]
+		# duration -1 = no auto-decrement; duration_type="combat" ensures
+		# clear_combat_modifiers() removes the modifier after the fight.
+		combatant.add_modifier(stat, delta, source, -1, "combat")
+
+
 func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 	if unit == null or unit.data == null:
 		return
@@ -169,8 +239,8 @@ func _apply_equip_item_modifiers(unit: Node, mod_dict: Dictionary) -> void:
 func _get_triangle_result(aw: WeaponData, dw: WeaponData) -> String:
 	if aw == null or dw == null:
 		return "neutral"
-	var atype: String = aw.magic_triangle_type if aw.magic_triangle_type != "" else aw.weapon_type
-	var dtype: String = dw.magic_triangle_type if dw.magic_triangle_type != "" else dw.weapon_type
+	var atype: String = aw.get_triangle_family()
+	var dtype: String = dw.get_triangle_family()
 	if GameConstants.WEAPON_TRIANGLE.has(atype):
 		var row: Dictionary = GameConstants.WEAPON_TRIANGLE[atype]
 		if row.has(dtype):
@@ -197,16 +267,36 @@ func _triangle_damage(attacker: Node, defender: Node) -> int:
 # Returns true when the weapon has an effectiveness tag matching a target quality.
 # Used as a fallback when compute_damage is called without a context dict.
 func _is_effective(weapon: WeaponData, target: Node) -> bool:
-	if weapon == null or target == null or not target.has_method("has_quality"):
+	if weapon == null or target == null:
 		return false
 	for tag in weapon.effect_tags:
 		match tag:
-			GameConstants.TAG_EFFECTIVE_FLYING:   if target.has_quality("flying"):   return true
-			GameConstants.TAG_EFFECTIVE_ARMOURED: if target.has_quality("armoured"): return true
-			GameConstants.TAG_EFFECTIVE_MOUNTED:  if target.has_quality("mounted"):  return true
-			GameConstants.TAG_EFFECTIVE_DRAGON:   if target.has_quality("dragon"):   return true
-			GameConstants.TAG_EFFECTIVE_BEAST:    if target.has_quality("beast"):    return true
+			GameConstants.TAG_EFFECTIVE_FLYING:
+				if _target_has_vulnerability(target, "flying"):
+					return true
+			GameConstants.TAG_EFFECTIVE_ARMOURED:
+				if _target_has_vulnerability(target, "armoured"):
+					return true
+			GameConstants.TAG_EFFECTIVE_MOUNTED:
+				if _target_has_vulnerability(target, "mounted"):
+					return true
+			GameConstants.TAG_EFFECTIVE_DRAGON:
+				if _target_has_vulnerability(target, "dragon"):
+					return true
+			GameConstants.TAG_EFFECTIVE_BEAST:
+				if _target_has_vulnerability(target, "beast"):
+					return true
 	return false
+
+
+func _target_has_vulnerability(target: Node, group: String) -> bool:
+	# has_quality (the unit IS X) and has_vulnerability (the unit is HIT BY X)
+	# read different ClassData fields, so the old "fall back to has_quality"
+	# path could silently return the wrong answer for an armoured class with
+	# an empty vulnerability_groups list. Every Unit instance now defines
+	# has_vulnerability, so the fallback is dead and was also incorrect —
+	# drop it (code review 2026-06-10 issue 2.8).
+	return target.has_method("has_vulnerability") and target.has_vulnerability(group)
 
 
 # Returns 1.0 normally; 3.0 for effective weapon vs target; 4.0 with Giantkiller.
@@ -357,14 +447,14 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 	var crit_pct := compute_crit_pct(actor, target, weapon, crit_ctx)
 	var base_dmg := compute_damage(actor, target, weapon, dmg_ctx)
 
-	var did_hit: bool  = (randi() % 100) < hit_pct
+	var did_hit: bool  = (randi() % 100) < hit_pct  # rng-allow: pre-M9a (RNG-1)
 	var did_crit: bool = false
 	var damage: int    = 0
 
 	if did_hit:
 		if sh:
 			sh.apply_trigger(actor, "on_hit", context, false, context.get(blocked_key, false))
-		did_crit = (randi() % 100) < crit_pct
+		did_crit = (randi() % 100) < crit_pct  # rng-allow: pre-M9a (RNG-1)
 		damage = base_dmg * 3 if did_crit else base_dmg
 		var dmg_mult: float = actor_mod["damage_multiplier"]
 		if dmg_mult != 1.0:
@@ -388,7 +478,7 @@ func _resolve_single_attack(actor: Node, target: Node, context: Dictionary,
 
 	var loses_use: bool = false
 	if weapon != null:
-		loses_use = (weapon.weapon_type in _ALWAYS_USE_DURABILITY) or did_hit
+		loses_use = (weapon.combat_family in _ALWAYS_USE_DURABILITY) or did_hit
 
 	return {
 		"attacker":        actor,
@@ -490,6 +580,15 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	var atk_crit_ctx := {"crit_bonus": context["atk_mod"]["crit"] - context["def_mod"]["crit_avoid"]}
 	var def_crit_ctx := {"crit_bonus": context["def_mod"]["crit"] - context["atk_mod"]["crit_avoid"]}
 
+	# Triangle result from the attacker's perspective; the defender's result is
+	# always the mirror (advantage <-> disadvantage, neutral stays neutral).
+	# Exposed so the More Info preview can show a marker beside each side
+	# without re-querying the triangle table.
+	var atk_triangle: String = _get_triangle_result(aw, dw)
+	var def_triangle: String = "neutral"
+	match atk_triangle:
+		"advantage":    def_triangle = "disadvantage"
+		"disadvantage": def_triangle = "advantage"
 	var result := {
 		"attacker_hit":     compute_hit_pct(attacker, defender, aw, atk_hit_ctx),
 		"attacker_damage":  compute_damage(attacker, defender, aw, atk_dmg_ctx),
@@ -502,9 +601,25 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 		"defender_attacks": ((2 if follow_up == defender else 1) * def_strikes) if can_counter else 0,
 		"attacker_weapon":  aw,
 		"defender_weapon":  dw,
+		# Battle Speed of each side (effective, i.e. with combat modifiers applied —
+		# the snapshot is restored after this dict is built). Surfaced so the UI can
+		# show the follow-up math the tester couldn't otherwise verify (handbook 8.3).
+		# A side needs FOLLOW_UP_SPEED_THRESHOLD more than its opponent to double.
+		"attacker_battle_speed": attacker.battle_speed() if attacker and attacker.has_method("battle_speed") else 0,
+		"defender_battle_speed": defender.battle_speed() if defender and defender.has_method("battle_speed") else 0,
+		"follow_up_threshold":   GameConstants.FOLLOW_UP_SPEED_THRESHOLD,
 		# True when Vantage will make the defender strike first — the strike counts
 		# above are unaffected, but the exchange order is, so the UI surfaces it.
 		"defender_vantage": context["flags"]["vantage"],
+		# Phase 1 More Info preview fields. _effective is a bool for the UI
+		# marker; _mult is the float multiplier (1.0 / 3.0 / 4.0 for Giantkiller)
+		# so the description panel can show "Effective ×3" without recomputing.
+		"attacker_triangle":           atk_triangle,
+		"defender_triangle":           def_triangle,
+		"attacker_effective":          eff_atk > 1.0,
+		"defender_effective":          can_counter and eff_def > 1.0,
+		"attacker_effectiveness_mult": eff_atk,
+		"defender_effectiveness_mult": eff_def if can_counter else 1.0,
 	}
 	# All stat reads are done — restore now so preview leaves no trace on live state.
 	_restore_unit_state(attacker, atk_snap)
@@ -654,7 +769,7 @@ func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> 
 			else:
 				def_hit = true
 			if weapon != null and atk.has_method("add_wexp"):
-				atk.add_wexp(weapon.weapon_type, weapon.wexp)
+				atk.add_wexp(weapon.wexp_track, weapon.wexp)
 			# Count HP actually lost, not the raw computed damage — take_damage clamps
 			# at 0, so an overkill blow must not inflate damage_taken_this_map.
 			var hp_before: int = def_unit.data.hp

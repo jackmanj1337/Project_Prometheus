@@ -5,7 +5,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 @onready var _label_title: Label = $Panel/VBox/TitleLabel
 @onready var _label_unit: Label = $Panel/VBox/LabelUnit
 @onready var _label_hint: Label = $Panel/VBox/LabelHint
-@onready var _options: VBoxContainer = $Panel/VBox/Options
+@onready var _options_scroll: ScrollContainer = $Panel/VBox/OptionsScroll
+@onready var _options: VBoxContainer = $Panel/VBox/OptionsScroll/Options
 @onready var _btn_cancel: Button = $Panel/VBox/BtnCancel
 
 var _unit: Node = null
@@ -35,6 +36,7 @@ func open_for(unit: Node, consume_entry: InventoryEntry = null,
 		return
 	_emit_reclass_started()
 	show()
+	_options_scroll.scroll_vertical = 0
 	_buttons[0].grab_focus()
 
 
@@ -58,6 +60,13 @@ func _rebuild_options() -> void:
 		var btn := Button.new()
 		btn.focus_mode = Control.FOCUS_ALL
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		# Wrap the long per-stat `old +Δ -> new / cap` line within the panel width
+		# instead of letting it overflow into a horizontal scrollbar (playtest
+		# v0.1.5.0 #8.6 — the reclass option lines forced a horizontal scroll). The
+		# OptionsScroll's horizontal scroll is disabled in the scene, so each button
+		# is width-capped to the panel and autowrap takes effect — mirroring the
+		# PromotionScreen fix (playtest v0.1.4 #5).
+		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.text = _button_text(target_class, option)
 		_options.add_child(btn)
 		var captured_option: Dictionary = option
@@ -66,7 +75,8 @@ func _rebuild_options() -> void:
 
 
 func _button_text(target_class: ClassData, option: Dictionary) -> String:
-	var weapon_text: String = ", ".join(target_class.proficiencies) if not target_class.proficiencies.is_empty() else "none"
+	var weapon_text: String = ", ".join(target_class.get_allowed_weapon_families()) \
+		if not target_class.get_allowed_weapon_families().is_empty() else "none"
 	var skill_lines: Array[String] = []
 	var unlock_levels: Array = target_class.skill_unlocks.keys()
 	unlock_levels.sort()
@@ -74,11 +84,12 @@ func _button_text(target_class: ClassData, option: Dictionary) -> String:
 		skill_lines.append("Lv %s %s" % [str(unlock_level), _skill_name(String(target_class.skill_unlocks[unlock_level]))])
 	var skills_text: String = ", ".join(skill_lines) if not skill_lines.is_empty() else "none"
 	var summary: String = "Reset to Lv 1" if bool(option.get("is_self_reset", false)) else "No promotion bonuses gained"
-	return "%s\n%s | Tier %d | Weapons: %s\nSkills: %s\n%s" % [
+	return "%s\n%s | Tier %d | Weapons: %s\n%s\nSkills: %s\n%s" % [
 		String(option.get("label", target_class.display_name)),
 		String(option.get("note", "Reclass")),
 		target_class.tier,
 		weapon_text,
+		_reclass_preview_text(target_class, option),
 		skills_text,
 		summary,
 	]
@@ -126,3 +137,92 @@ func _skill_name(skill_id: String) -> String:
 		if skill != null:
 			return skill.display_name
 	return skill_id
+
+
+func _reclass_preview_text(target_class: ClassData, option: Dictionary) -> String:
+	if _unit == null or _unit.data == null:
+		return "Stats: unavailable"
+	var source_class := _class_data(_unit.data.class_id)
+	if source_class == null:
+		return "Stats: unavailable"
+	var source_line := _line_base_class(source_class, _unit.data.class_line_id)
+	var target_line := _line_base_class(target_class, String(option.get("class_line_id", target_class.id)))
+	if source_line == null or target_line == null:
+		return "Stats: unavailable"
+	var is_self_reset: bool = bool(option.get("is_self_reset", false))
+	var parts: Array[String] = []
+	for stat_name in ClassData.STAT_KEYS:
+		var old_value: int = int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		var new_value: int = old_value
+		if not is_self_reset:
+			if source_class.tier == 2:
+				new_value -= int(source_class.promotion_stat_bonuses.get(stat_name, 0))
+			new_value += _base_stat_for(target_line, stat_name) - _base_stat_for(source_line, stat_name)
+			if stat_name == "hp":
+				new_value = max(1, new_value)
+			else:
+				new_value = max(0, new_value)
+			new_value = _clamp_preview_to_cap(new_value, target_class, stat_name)
+		var delta: int = new_value - old_value
+		var cap: int = int(target_class.stat_caps.get(stat_name, -1))
+		var cap_text: String = str(cap) if cap >= 0 else "-"
+		parts.append("%s %d %+d -> %d / %s" % [
+			_stat_short_name(stat_name), old_value, delta, new_value, cap_text])
+	return "Stats: %s" % " | ".join(parts)
+
+
+func _line_base_class(class_data: ClassData, line_id: String) -> ClassData:
+	if class_data == null:
+		return null
+	if class_data.tier == 1:
+		return class_data
+	return _class_data(line_id)
+
+
+func _base_stat_for(class_data: ClassData, stat_name: String) -> int:
+	if class_data == null:
+		return 0
+	match stat_name:
+		"hp":
+			return class_data.base_hp
+		"strength":
+			return class_data.base_strength
+		"magic":
+			return class_data.base_magic
+		"defense":
+			return class_data.base_defense
+		"resistance":
+			return class_data.base_resistance
+		"skill":
+			return class_data.base_skill
+		"speed":
+			return class_data.base_speed
+		"luck":
+			return class_data.base_luck
+	return 0
+
+
+func _clamp_preview_to_cap(value: int, target_class: ClassData, stat_name: String) -> int:
+	var cap: int = int(target_class.stat_caps.get(stat_name, -1))
+	return mini(value, cap) if cap >= 0 else value
+
+
+func _stat_short_name(stat: String) -> String:
+	match stat:
+		"hp":
+			return "HP"
+		"strength":
+			return "Str"
+		"magic":
+			return "Mag"
+		"defense":
+			return "Def"
+		"resistance":
+			return "Res"
+		"skill":
+			return "Skl"
+		"speed":
+			return "Spd"
+		"luck":
+			return "Luk"
+	return stat
