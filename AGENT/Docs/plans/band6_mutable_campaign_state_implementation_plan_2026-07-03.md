@@ -251,6 +251,11 @@ that a new carry-forward fact key loads as data (no struct field edit).
 
 ## Slice 3 - Campaign Package Export / Import
 
+> **Sequencing update (2026-07-15):** implement the archive pipeline through the
+> dedicated [B6 archive handoff](b6_campaign_archive_pipeline_handoff_2026-07-15.md).
+> Installation now ends with an inert validated pack on disk. Installed-pack
+> discovery and selector registration are a later consumer, not importer step 4.
+
 **Goal:** move a whole self-contained campaign between systems as one artifact,
 with validation and a load/repair flow.
 
@@ -276,8 +281,9 @@ Implementation steps:
    `AssetResolver` chain (missing icon → text row, missing portrait → silhouette,
    …) and surface a repair report rather than hard-failing — a pack with a broken
    optional asset still loads.
-4. The importer registers the pack into the `[CST-6]` campaign selector (as a
-   normal, non-dev campaign), setting the last-imported pointer (`[CST-10]`).
+4. **Deferred consumer:** installed-pack discovery later registers validated pack
+   summaries into the `[CST-6]` campaign selector and owns `[CST-10]`; the archive
+   importer does not activate content or write selector state.
 
 Tests:
 

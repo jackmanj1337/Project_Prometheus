@@ -90,7 +90,9 @@ containment. `PackManifest` and the canonical Tier-2 catalogue parser now
 validate package compatibility, safe unique Tier-2 document identities/paths,
 and registry-dispatched content-family schemas without installing or selecting
 anything. The package remains incomplete: archive install/export and selector UI
-follow these seams.
+follow these seams. The next implementation unit is the staged, rollback-safe
+archive pipeline in the [B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
+installed-pack discovery and selector activation remain separate later consumers.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

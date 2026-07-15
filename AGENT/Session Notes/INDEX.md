@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15j](2026-07-15j.md) — Queued the next `B6-CAMPAIGN-SHARING` unit: concrete Tier-2 validators, hostile-archive preflight, staged rollback-safe installation, then deterministic export; discovery and runtime selection explicitly remain later consumers.
 - [2026-07-15i](2026-07-15i.md) — Continued `B6-CAMPAIGN-SHARING`: added pure `PackManifest` and canonical Tier-2 JSON catalogue parsing/validation with safe paths, deterministic identities, and registry-dispatched content validators, kept separate from installation and selection.
 - [2026-07-15h](2026-07-15h.md) — Began `B6-CAMPAIGN-SHARING`: implemented the pack-scoped open-registry `AssetResolver`, raw PNG/font/OGG/WAV primitives, fallback repair reports, traversal protection, item/weapon icon ids, and the DoD#2 raw-media boundary. All 83 suites and 32 doc checks green. Next: manifest + canonical Tier-2 JSON catalogue/validator.
 
