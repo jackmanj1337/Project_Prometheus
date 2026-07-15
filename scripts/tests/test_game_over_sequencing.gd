@@ -1,6 +1,6 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_game_over_sequencing.gd
-# Covers B5-VICTORY-PROGRESSION-SEQ (review Q6 / V026-05d): the GameOverScreen must
+# Covers B5-VICTORY-PROGRESSION-SEQ (review Q6 / V026-05d): MapResultsScreen must
 # present UNDER pending level-ups and promotions. A result that lands while the
 # progression queue is non-empty is held until the queue drains, so progression
 # earned on the killing blow (kill boss -> level up -> promote -> THEN victory)
@@ -27,9 +27,9 @@ func _init() -> void:
 	root.add_child(save_manager)
 	await process_frame
 
-	var packed := load("res://scenes/ui/GameOverScreen.tscn")
+	var packed := load("res://scenes/ui/MapResultsScreen.tscn")
 	if packed == null:
-		print("FAIL could not load GameOverScreen.tscn")
+		print("FAIL could not load MapResultsScreen.tscn")
 		quit(1)
 		return
 	var screen: Control = packed.instantiate()
@@ -83,6 +83,27 @@ func _init() -> void:
 	else:
 		print("FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s" % [
 			hidden_during_levelup, hidden_during_promotion, visible_after_queue]); failed += 1
+
+	# Victory and defeat own distinct surfaces: GameOver must ignore victory and
+	# MapResults must not replace the defeat action menu.
+	var game_over: Control = load("res://scenes/ui/GameOverScreen.tscn").instantiate()
+	root.add_child(game_over)
+	await process_frame
+	screen.hide()
+	bus.map_victory.emit()
+	bus.map_resolved.emit("blue", [])
+	await process_frame
+	var defeat_hidden_on_victory := not game_over.visible
+	screen.hide()
+	bus.map_defeat.emit()
+	bus.map_resolved.emit("red", [])
+	await process_frame
+	if defeat_hidden_on_victory and game_over.visible and not screen.visible:
+		print("OK  victory and defeat present on separate result surfaces"); passed += 1
+	else:
+		print("FAIL split surfaces: game_over_on_win=%s game_over_on_loss=%s results_on_loss=%s" % [
+			not defeat_hidden_on_victory, game_over.visible, screen.visible]); failed += 1
+	game_over.queue_free()
 
 	screen.queue_free()
 	save_manager.queue_free()

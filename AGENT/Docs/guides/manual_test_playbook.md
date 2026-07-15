@@ -917,7 +917,7 @@ identified by atlas position — no custom data.
 ### ✅ M5 UI scene wiring — Done
 
 All MVP UI scenes (`HUD`, `ActionMenu`, `ItemMenu`, `AttackPreview`, `PhaseBanner`,
-`LevelUpScreen`, `MapMenu`, `SettingsScreen`, `GameOverScreen`, `MainMenu`,
+`LevelUpScreen`, `MapMenu`, `SettingsScreen`, `MapResultsScreen`, `GameOverScreen`, `MainMenu`,
 `NewGameScreen`) are built and wired. Signal connections are made in code
 (`get_node_or_null` + `.connect()`), not via the editor's Node→Signals panel.
 

@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15x](2026-07-15x.md) — Split victory into MapResultsScreen, added validated explicit successor choice, and preserved shared standings/progression sequencing with all 95 suites green.
 - [2026-07-15w](2026-07-15w.md) — Closed audit gaps for portable save transfer/integrity warnings and campaign-authored default/mandate rule authority with locked New Game controls and save persistence.
 - [2026-07-15v](2026-07-15v.md) — Completed player-facing campaign-package import/export with inert discovery refresh and structured feedback; completion audit exposed portable-save integrity/import/export as the next real gap.
 - [2026-07-15u](2026-07-15u.md) — Completed save policy and autosave: authored slot classes, open triggers, independent safe rotation, consumed loads, infinite Rewind, and durable-mid_map warning enforcement.

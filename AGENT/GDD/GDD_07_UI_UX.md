@@ -59,7 +59,7 @@ HUD States:
   LEVEL_UP      — LevelUpScreen visible (cursor locked)
   PROMOTION     — PromotionScreen visible
   RECLASS       — ReclassScreen visible
-  RESULTS       — GameOverScreen visible for victory / defeat / draw
+  RESULTS       — MapResultsScreen for victory; GameOverScreen for defeat
   LOCKED        — cursor input suspended during animation or controller handoff
 ```
 

@@ -33,6 +33,7 @@ func _init() -> void:
 		["ReclassScreen", "res://scenes/ui/ReclassScreen.tscn", "Panel"],
 		["LevelUpScreen", "res://scenes/ui/LevelUpScreen.tscn", "Panel"],
 		["GameOverScreen", "res://scenes/ui/GameOverScreen.tscn", "Panel"],
+		["MapResultsScreen", "res://scenes/ui/MapResultsScreen.tscn", "Panel"],
 	]
 	for entry in centered_cases:
 		await _check_centered_panel(String(entry[0]), String(entry[1]), String(entry[2]))

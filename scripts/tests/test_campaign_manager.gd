@@ -52,6 +52,7 @@ func _init() -> void:
 	_test_restore_rejects_unresolvable_ids(cm)
 	_test_restore_of_a_bare_map_save(cm)
 	_test_pending_result_is_not_position_state(cm, bus)
+	_test_branch_requires_explicit_successor(cm, bus)
 	_test_advance_validates_before_commit(cm, bus, gs)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
@@ -365,4 +366,35 @@ func _test_advance_validates_before_commit(cm: Node, bus: Node, gs: Node) -> voi
 			and cm.current_node_id == "node_02_seize"
 			and not cm.has_pending_victory(),
 		"a valid successor prepares and advances exactly once")
+	cm.end_campaign()
+
+
+func _test_branch_requires_explicit_successor(cm: Node, bus: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	var node: CampaignNode = cm.get_current_node()
+	var authored_successors := node.next_node_ids.duplicate()
+	node.next_node_ids = ["node_02_seize", "node_03_boss"]
+	bus.map_victory.emit()
+	var result: Dictionary = cm.get_pending_result()
+	var options: Array = cm.get_pending_successor_options()
+	_check(bool(result.get("requires_successor_choice", false))
+			and result.get("next_node_id", "sentinel") == ""
+			and options.size() == 2
+			and options[0].get("node_id", "") == "node_02_seize"
+			and options[1].get("node_id", "") == "node_03_boss",
+		"a branch exposes authored successors without silently choosing the first",
+		str({"result": result, "options": options}))
+	_check(not cm.commit_pending_result()
+			and cm.current_node_id == "node_01_rout"
+			and cm.cleared_node_ids.is_empty(),
+		"an unresolved branch cannot commit campaign position")
+	_check(not cm.choose_pending_successor("node_05_defend")
+			and cm.choose_pending_successor("node_03_boss")
+			and cm.get_pending_result().get("next_node_id", "") == "node_03_boss",
+		"only an authored outgoing edge can become the explicit branch choice")
+	_check(cm.commit_pending_result()
+			and cm.current_node_id == "node_03_boss"
+			and cm.is_node_cleared("node_01_rout"),
+		"the chosen branch, rather than authored index zero, is committed")
+	node.next_node_ids = authored_successors
 	cm.end_campaign()

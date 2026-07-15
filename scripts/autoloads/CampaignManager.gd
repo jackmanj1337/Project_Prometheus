@@ -358,8 +358,11 @@ func _record_result(victory: bool) -> void:
 		"campaign_id": active_campaign_id,
 		"node_id": _active_node_id,
 		"victory": victory,
-		# Successor the commit would move to; "" when clearing this node ends the run.
-		"next_node_id": _successor_of(node),
+		# A single successor is unambiguous. Branches remain deliberately unset
+		# until the player chooses on MapResultsScreen; authored order controls
+		# presentation, never an implicit first-branch decision.
+		"next_node_id": _unambiguous_successor_of(node),
+		"requires_successor_choice": node.next_node_ids.size() > 1,
 		"campaign_complete": victory and node.is_terminal(),
 		"winner_group": "",
 		"standings": [],
@@ -386,6 +389,47 @@ func has_pending_victory() -> bool:
 	return not _pending_result.is_empty() and bool(_pending_result.get("victory", false))
 
 
+# Ordered options for the pending node's authored outgoing edges. Labels come
+# from the destination nodes so result UI never invents a parallel branch name.
+func get_pending_successor_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if not has_pending_victory():
+		return options
+	var campaign := get_active_campaign()
+	var node_id: String = String(_pending_result.get("node_id", ""))
+	var node: CampaignNode = campaign.get_node_by_id(node_id) if campaign != null else null
+	if node == null:
+		return options
+	for successor_id in node.next_node_ids:
+		var successor: CampaignNode = campaign.get_node_by_id(successor_id)
+		if successor == null:
+			continue
+		options.append({
+			"node_id": successor_id,
+			"label": successor.label if successor.label != "" else successor_id,
+		})
+	return options
+
+
+# Records a player-authored branch choice without advancing position. Only an
+# outgoing edge of the resolved node is accepted; bad/stale UI input is inert.
+func choose_pending_successor(node_id: String) -> bool:
+	if not has_pending_victory() or node_id == "":
+		return false
+	var valid := false
+	for option in get_pending_successor_options():
+		if String(option.get("node_id", "")) == node_id:
+			valid = true
+			break
+	if not valid:
+		push_error("CampaignManager: '%s' is not a successor of pending node '%s'" % [
+			node_id, String(_pending_result.get("node_id", ""))])
+		return false
+	_pending_result["next_node_id"] = node_id
+	_prepared_launch.clear()
+	return true
+
+
 # Applies a pending VICTORY to the position: the node is cleared and the party
 # moves to its successor (or the campaign completes on a terminal node). This is
 # the only thing that advances the campaign — see _pending_result on why the
@@ -393,6 +437,10 @@ func has_pending_victory() -> bool:
 # campaign stays parked on the current node.
 func commit_pending_result() -> bool:
 	if not has_pending_victory():
+		return false
+	if bool(_pending_result.get("requires_successor_choice", false)) \
+			and String(_pending_result.get("next_node_id", "")) == "":
+		push_error("CampaignManager: pending victory requires a successor choice")
 		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
@@ -594,12 +642,10 @@ func _autosave_label() -> String:
 	return "%s - %s" % [campaign_label, node_label]
 
 
-# Successor for the linear MVP case. A branching node (multiple successors) needs
-# a player choice, which lands with the campaign selector/branch UI — take the
-# first authored successor until then, since authored order is the ordering
-# contract ([CST-3]).
-func _successor_of(node: CampaignNode) -> String:
-	if node.is_terminal():
+# Terminal and linear nodes need no player prompt. A branch intentionally has no
+# successor until choose_pending_successor() receives the explicit UI choice.
+func _unambiguous_successor_of(node: CampaignNode) -> String:
+	if node.next_node_ids.size() != 1:
 		return ""
 	return node.next_node_ids[0]
 

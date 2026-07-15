@@ -849,49 +849,45 @@ review 2026-06-14 #1) for resolution-robustness.
 
 ### Game Over Screen
 
-**Trigger:** `EventBus.map_defeat`, `EventBus.map_victory`, and `EventBus.map_resolved`
+**Trigger:** `EventBus.map_defeat` and the following `EventBus.map_resolved`
 
 **Layout (full-screen dark overlay):**
 ```
 [dark overlay fades in over 1 second]
 
-        DEFEAT / VICTORY / DRAW
+               DEFEAT
 
-   [ Next Battle ]      <- campaign win only; hidden otherwise
    [ Retry Map ]
    [ Quit to Menu ]
 ```
 
-- "Next Battle" appears **only when a campaign is active and the map was won**
-  (`B1-CST` Slice 2). It commits the win to the campaign position
-  first prepares the successor map binding and carried roster, then commits
-  (`CampaignManager.commit_pending_result`) and launches the prepared node; on the
-  terminal node it reads "Finish Campaign" and returns to the menu. It is hidden
-  for a bare single-map launch and for a defeat, which parks the campaign on the
-  same node. It takes focus when shown; otherwise Retry keeps focus as before.
-  Failed preparation changes no campaign position, retains the pending victory,
-  and leaves Next enabled for retry.
 - "Retry Map" reloads the current map from scratch
   (player unit stats and inventory are preserved from map start — not mid-map).
   With a campaign active it also **drops the unapplied result**, so replaying a
   won map cannot advance the campaign twice.
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
-- **Presents under pending progression** (`B5-VICTORY-PROGRESSION-SEQ`): a result that
-  lands while a level-up or promotion is still on screen is held, and the overlay appears
-  only once the level-up/promotion queue has drained — so progression earned on the
-  killing blow (kill → level up → promote → THEN victory) resolves first. `GameOverScreen`
-  tracks the `level_up_started/finished` + `promotion_started/finished` signals and defers
-  its present; a promotion queued behind a level-up starts synchronously during
-  `level_up_finished`, so the re-check is deferred a frame to let that cascade settle.
 - "Quit to Menu" resets map-scoped state and returns to `Boot.tscn`
 
 ---
 
-### Victory Screen
+### Map Results Screen
 
-There is **no separate `VictoryScreen` scene** — `GameOverScreen.tscn` /
-`GameOverScreen.gd` serves victory, defeat, and draw. It switches the title based on
-the emitted outcome and may render multi-group standings below the header.
+Status: **Implemented 2026-07-15** (`CST-7`)
+
+`MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
+reward/casualty/progression summaries, campaign save status, and Continue. It waits
+until the level-up/promotion queue drains, including the synchronous promotion
+cascade after `level_up_finished`, before appearing.
+
+For a terminal node Continue reads "Finish Campaign". A node with one successor
+continues without an extra prompt. A node with multiple authored successors shows
+their destination labels in authored order and disables Continue until the player
+chooses one. `CampaignManager` validates that the choice is a real outgoing edge;
+an unresolved branch cannot prepare, commit, autosave, or move campaign position.
+After selection, the successor binding and carried roster are validated before the
+win commits. The commit advances the pointer and writes the battle-end autosave,
+then routes to prep. `StandingsFormatter` is shared with `GameOverScreen` so the
+rankings renderer remains reusable by future PvP/scenario results.
 
 ---
