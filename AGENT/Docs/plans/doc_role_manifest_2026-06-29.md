@@ -98,8 +98,6 @@ marker.
 |---|---|---|
 | [`band3_implementation_plan_handoff_2026-06-30.md`](band3_implementation_plan_handoff_2026-06-30.md) | Band 3 rows, led by `B3-REQ` | Input to the combined Band 3 plan; remove after direct source wiring or supersession marking. |
 | [`feature_dependency_atlas_2026-06-23.md`](feature_dependency_atlas_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Cross-feature dependency evidence used by the control-plane/GDD reconciliation. |
-| [`persistence_undo_unified_handoff_2026-07-15.md`](persistence_undo_unified_handoff_2026-07-15.md) | `B1-CST` (save spine) + the future rewind/undo track | Design handoff seeding the unified persistence/undo implementation plan; remove when a dedicated rewind/persistence tracker row links it directly. |
-| [`persistence_undo_implementation_plan_2026-07-15.md`](persistence_undo_implementation_plan_2026-07-15.md) | `B1-LEDGER` (proposed) — unified persistence/undo | Sequenced BUILD/SCRAP plan derived from the design handoff; remove/re-point once the `B1-LEDGER` control-plane row exists and links it directly (Phase 0 of the plan). |
 | [`planning_backlog_2026-06-20.md`](planning_backlog_2026-06-20.md) | `B0-GDD-CONSOLIDATION` | Pre-control-plane queue evidence; classify its unique detail during consolidation. |
 | [`registry_nonschema_slices_handoff_2026-07-09.md`](registry_nonschema_slices_handoff_2026-07-09.md) | `B3-STAT-REGISTRY`, `B5-AI-COMPOSITION` | Implementation evidence for those registry rows. |
 | [`scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md`](scope_reframe_and_gdd_stale_audit_plan_2026-06-29.md) | `B0-GDD-CONSOLIDATION` | Scope/stale-assumption audit input; classify after the chapter pass. |
