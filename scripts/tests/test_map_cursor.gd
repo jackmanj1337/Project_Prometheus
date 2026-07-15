@@ -7,6 +7,7 @@ extends SceneTree
 
 const MapCursorS = preload("res://scripts/core/MapCursor.gd")
 const UnitScene  = preload("res://scenes/units/Unit.tscn")
+const SaveManagerS = preload("res://scripts/autoloads/SaveManager.gd")
 
 # MapCursor.State enum values (FREE, UNIT_SELECTED, UNIT_MOVED, TARGETING, LOCKED).
 const FREE          := 0
@@ -14,6 +15,7 @@ const UNIT_SELECTED := 1
 const UNIT_MOVED    := 2
 const TARGETING     := 3
 const LOCKED        := 4
+const TEST_SAVE_DIR := "user://test_map_cursor_suspend"
 
 var _grid: GridManager
 var _gs: Node          # stub GameState at /root/GameState — feeds GridManager.get_unit_at
@@ -27,6 +29,7 @@ func _make_unit(tile: Vector2i, team_name: String, hp: int = 20) -> Unit:
 	d.hp = hp
 	d.max_hp = 20
 	d.movement = 5
+	d.class_id = "soldier"
 	var u: Unit = UnitScene.instantiate()
 	u.data = d
 	u.team = team_name
@@ -47,6 +50,18 @@ func _make_cursor(turn: TurnManager) -> MapCursor:
 	return c
 
 
+func _clean_test_save_dir() -> void:
+	var err := DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
+	if err != OK and err != ERR_ALREADY_EXISTS:
+		push_error("test_map_cursor: failed to create suspend test dir: %s" % error_string(err))
+		return
+	var dir := DirAccess.open(TEST_SAVE_DIR)
+	if dir == null:
+		return
+	for file_name in dir.get_files():
+		dir.remove(file_name)
+
+
 func _init() -> void:
 	print("=== MapCursor FSM Test ===")
 	var passed := 0
@@ -63,11 +78,16 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar map_data = null\nvar pair_up_enabled: bool = true\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\n"
+	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nconst SaveDataScript = preload(\"res://scripts/save/SaveData.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\nfunc capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:\n\tvar save: RefCounted = SaveDataScript.new()\n\tsave.map_runtime[\"map_id\"] = \"test_map\"\n\tsave.map_runtime[\"map_path\"] = \"res://data/maps/map_001_rout/map_001_data.tres\"\n\tsave.suspend[\"kind\"] = \"map\"\n\treturn SaveDataScript.from_dict(save.to_dict())\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
 	root.add_child(_gs)
+	_clean_test_save_dir()
+	var save_manager: Node = SaveManagerS.new()
+	save_manager.name = "SaveManager"
+	save_manager.configure_save_dir_for_tests(TEST_SAVE_DIR)
+	root.add_child(save_manager)
 	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
 	pair_reg.name = "PairUpRegistry"
 	root.add_child(pair_reg)
@@ -99,6 +119,125 @@ func _init() -> void:
 	else:
 		print("FAIL unlock(): _state=%d" % c1._state)
 		failed += 1
+
+	# ---- B6-INPUT: d-pad event + polled stick movement drive the live cursor ----
+	var c_pad := _make_cursor(TurnManager.new())
+	var dpad_right := InputEventJoypadButton.new()
+	dpad_right.button_index = JOY_BUTTON_DPAD_RIGHT
+	dpad_right.pressed = true
+	c_pad._unhandled_input(dpad_right)
+	var dpad_moved := c_pad.current_tile == Vector2i(1, 0)
+	Input.action_press("cursor_down", 1.0)
+	c_pad._process(0.01)
+	var stick_first := c_pad.current_tile == Vector2i(1, 1)
+	c_pad._process(0.20)
+	var stick_waited := c_pad.current_tile == Vector2i(1, 1)
+	c_pad._process(0.10)
+	var stick_repeated := c_pad.current_tile == Vector2i(1, 2)
+	Input.action_release("cursor_down")
+	c_pad._process(0.01)
+	var stick_cleared := c_pad._input_handler._held_dir == Vector2i.ZERO
+	if dpad_moved and stick_first and stick_waited and stick_repeated and stick_cleared:
+		print("OK  gamepad d-pad and polled stick move cursor with repeat")
+		passed += 1
+	else:
+		print("FAIL gamepad cursor move: dpad=%s first=%s waited=%s repeated=%s cleared=%s tile=%s held=%s" % [
+			dpad_moved, stick_first, stick_waited, stick_repeated, stick_cleared,
+			str(c_pad.current_tile), str(c_pad._input_handler._held_dir)])
+		failed += 1
+
+	# ---- B6-INPUT / V031-GP-04: held zoom repeats at one constant slow cadence ----
+	# Owner decision 2026-07-12: pull depth does not change the rate — any pull past
+	# the threshold steps once, then repeats every ZOOM_REPEAT_RATE seconds.
+	var c_zoom := _make_cursor(TurnManager.new())
+	c_zoom._camera_ctrl.set_zoom_index_silent(c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX)
+	Input.action_press("zoom_in", 0.10)
+	c_zoom._process(0.01)
+	var zoom_threshold_blocks: bool = c_zoom._camera_ctrl.get_zoom_index() \
+		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	Input.action_press("zoom_in", 0.84)
+	c_zoom._process(0.01)
+	var zoom_partial_blocks: bool = c_zoom._camera_ctrl.get_zoom_index() \
+		== c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	Input.action_press("zoom_in", 1.0)
+	c_zoom._process(0.01)
+	var zoom_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
+	c_zoom._process(0.60)
+	var zoom_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 1
+	c_zoom._process(0.10)
+	var zoom_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 2
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	var zoom_cleared := c_zoom._zoom_held_direction == 0
+	# A partial pull past the threshold repeats on the SAME timing as a full pull.
+	Input.action_press("zoom_in", 0.85)
+	c_zoom._process(0.01)
+	var partial_first: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
+	c_zoom._process(0.60)
+	var partial_waited: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 3
+	c_zoom._process(0.10)
+	var partial_repeated: bool = c_zoom._camera_ctrl.get_zoom_index() == c_zoom._camera_ctrl.DEFAULT_ZOOM_INDEX + 4
+	Input.action_release("zoom_in")
+	c_zoom._process(0.01)
+	var rate_constant := is_equal_approx(c_zoom.ZOOM_REPEAT_RATE, c_zoom.ZOOM_REPEAT_DELAY)
+	var echo_zoom := InputEventKey.new()
+	echo_zoom.keycode = 61  # "=" / zoom_in
+	echo_zoom.pressed = true
+	echo_zoom.echo = true
+	var idx_before_echo: int = c_zoom._camera_ctrl.get_zoom_index()
+	c_zoom._unhandled_input(echo_zoom)
+	var echo_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_echo
+	var trigger_motion := InputEventJoypadMotion.new()
+	trigger_motion.axis = JOY_AXIS_TRIGGER_RIGHT
+	trigger_motion.axis_value = 1.0
+	var idx_before_motion: int = c_zoom._camera_ctrl.get_zoom_index()
+	c_zoom._unhandled_input(trigger_motion)
+	var trigger_event_ignored: bool = c_zoom._camera_ctrl.get_zoom_index() == idx_before_motion
+	if zoom_threshold_blocks and zoom_partial_blocks and zoom_first and zoom_waited \
+			and zoom_repeated and zoom_cleared and partial_first and partial_waited \
+			and partial_repeated and rate_constant and echo_ignored and trigger_event_ignored:
+		print("OK  held zoom threshold blocks grazes, repeats at one constant slow cadence, and ignores key echo")
+		passed += 1
+	else:
+		print("FAIL held zoom: threshold=%s partial_block=%s first=%s waited=%s repeated=%s cleared=%s pfirst=%s pwaited=%s prepeated=%s const=%s echo=%s trigger_event=%s idx=%d dir=%d" % [
+			zoom_threshold_blocks, zoom_partial_blocks, zoom_first, zoom_waited,
+			zoom_repeated, zoom_cleared, partial_first, partial_waited, partial_repeated,
+			rate_constant, echo_ignored, trigger_event_ignored,
+			c_zoom._camera_ctrl.get_zoom_index(), c_zoom._zoom_held_direction])
+		failed += 1
+
+	# ---- cancel_transient_control_for_handoff backs out an uncommitted move ----
+	var t_cleanup := TurnManager.new()
+	root.add_child(t_cleanup)
+	var c_cleanup := _make_cursor(t_cleanup)
+	var cleanup_unit := _make_unit(Vector2i(1, 1), "blue")
+	t_cleanup.record_move_start(cleanup_unit)
+	cleanup_unit.snap_to_tile(Vector2i(2, 1))
+	c_cleanup._selection.selected_unit = cleanup_unit
+	c_cleanup._state = UNIT_MOVED
+	var cleanup_menu := Control.new()
+	cleanup_menu.show()
+	root.add_child(cleanup_menu)
+	c_cleanup.action_menu = cleanup_menu
+	c_cleanup.cancel_transient_control_for_handoff()
+	var cleanup_ok: bool = c_cleanup._state == FREE \
+		and c_cleanup._selection.selected_unit == null \
+		and cleanup_unit.tile_position == Vector2i(1, 1) \
+		and not cleanup_menu.visible \
+		and not c_cleanup._input_suppressed
+	if cleanup_ok:
+		print("OK  controller handoff cleanup hides menus and undoes an uncommitted move")
+		passed += 1
+	else:
+		print("FAIL handoff cleanup: state=%d selected=%s tile=%s menu=%s suppressed=%s" % [
+			c_cleanup._state, c_cleanup._selection.selected_unit,
+			cleanup_unit.tile_position, cleanup_menu.visible, c_cleanup._input_suppressed])
+		failed += 1
+	cleanup_menu.queue_free()
 
 	# ---- _on_phase_changed: ENEMY locks, PLAYER unlocks, controlling faction follows phase ----
 	c1.set_controlling_faction("green")
@@ -171,12 +310,19 @@ func _init() -> void:
 			and stub_menu.position.y >= 0
 			and stub_menu.position.x + stub_menu.size.x <= view.x
 			and stub_menu.position.y + stub_menu.size.y <= view.y)
-	if top_left_ok and bottom_right_ok:
+	stub_menu.scale = Vector2.ONE * 2.0
+	c1._place_menu_near(stub_menu, Vector2i(5, 5))
+	var scaled_size: Vector2 = stub_menu.size * stub_menu.scale
+	var scaled_ok: bool = (stub_menu.position.x >= 0
+			and stub_menu.position.y >= 0
+			and stub_menu.position.x + scaled_size.x <= view.x
+			and stub_menu.position.y + scaled_size.y <= view.y)
+	if top_left_ok and bottom_right_ok and scaled_ok:
 		print("OK  _place_menu_near keeps menu inside viewport (playtest 3 #4)")
 		passed += 1
 	else:
-		print("FAIL _place_menu_near: top_left=%s bottom_right=%s pos=%s view=%s" % [
-			top_left_ok, bottom_right_ok, stub_menu.position, view])
+		print("FAIL _place_menu_near: top_left=%s bottom_right=%s scaled=%s pos=%s view=%s" % [
+			top_left_ok, bottom_right_ok, scaled_ok, stub_menu.position, view])
 		failed += 1
 	stub_menu.queue_free()
 
@@ -376,6 +522,57 @@ func _init() -> void:
 		print("FAIL confirm-empty-menu: _state=%d opened=%s" % [c2._state, c2.map_menu.opened])
 		failed += 1
 
+	# ---- Suspend & Quit writes the captured SaveData through SaveManager ----
+	_clean_test_save_dir()
+	var t_suspend := TurnManager.new()
+	root.add_child(t_suspend)
+	t_suspend._turn_order = ["blue"]
+	var c_suspend := _make_cursor(t_suspend)
+	c_suspend._map_menu_suspend_available = true
+	var wrote_suspend: bool = c_suspend._write_suspend_save()
+	var loaded_suspend: RefCounted = save_manager.load_suspend()
+	if wrote_suspend and loaded_suspend != null \
+			and loaded_suspend.map_runtime["map_id"] == "test_map" \
+			and loaded_suspend.suspend["kind"] == "map":
+		print("OK  Suspend & Quit writes active-map SaveData to SaveManager")
+		passed += 1
+	else:
+		print("FAIL suspend write: wrote=%s loaded=%s" % [
+			wrote_suspend, loaded_suspend.to_dict() if loaded_suspend != null else null])
+		failed += 1
+
+	# ---- V021-16: FREE + cancel over an unselected unit → opens its sheet ----
+	_gs.all_units.clear()
+	var t_v16 := TurnManager.new(); root.add_child(t_v16)
+	var c_v16 := _make_cursor(t_v16)
+	var details_script := GDScript.new()
+	details_script.source_code = "extends Node\nsignal closed\nvar opened_unit = null\nfunc open(u): opened_unit = u\n"
+	details_script.reload()
+	c_v16.unit_details = details_script.new()
+	root.add_child(c_v16.unit_details)
+	var v16_unit := _make_unit(Vector2i(3, 3), "blue")
+	c_v16._set_tile(Vector2i(3, 3))
+	c_v16._on_cancel()  # FREE + cancel while hovering an unselected unit
+	if c_v16.unit_details.opened_unit == v16_unit:
+		print("OK  V021-16 FREE + cancel over an unselected unit opens its sheet")
+		passed += 1
+	else:
+		print("FAIL V021-16 sheet: opened=%s" % str(c_v16.unit_details.opened_unit))
+		failed += 1
+	# Cancel on an empty tile still opens the map menu, not the sheet.
+	c_v16.unit_details.opened_unit = null
+	c_v16.map_menu = map_menu_script.new()
+	root.add_child(c_v16.map_menu)
+	c_v16._set_tile(Vector2i(5, 5))  # empty
+	c_v16._on_cancel()
+	if c_v16.map_menu.opened and c_v16.unit_details.opened_unit == null:
+		print("OK  V021-16 FREE + cancel on empty tile still opens the map menu")
+		passed += 1
+	else:
+		print("FAIL V021-16 empty: menu=%s sheet=%s" % [
+			c_v16.map_menu.opened, str(c_v16.unit_details.opened_unit)])
+		failed += 1
+
 	# ---- FREE + cancel on an empty tile → opens the map menu ----
 	c2.unlock()                   # back to FREE
 	c2.map_menu.opened = false
@@ -441,6 +638,11 @@ func _init() -> void:
 	var waiter := _make_unit(Vector2i(0, 0), "blue")
 	c5._selection.selected_unit = waiter
 	c5._state = UNIT_MOVED
+	# B1-PKGA Slice 1d: a committed Wait must advance the RNG chain (RNG-1/RNG-3
+	# Wait-to-reroll). This suite runs with the REAL RngService autoload.
+	var rng_svc := root.get_node_or_null("/root/RngService")
+	rng_svc.start_map(4242)
+	var wait_hash_before: int = rng_svc.history_hash
 	c5._on_action_chosen("wait")
 	if c5._state == FREE and c5._selection.selected_unit == null \
 			and t5.get_unit_state(waiter) == TurnManager.UnitState.DONE:
@@ -449,6 +651,36 @@ func _init() -> void:
 	else:
 		print("FAIL wait: _state=%d selected=%s unit_state=%d" \
 			% [c5._state, str(c5._selection.selected_unit), t5.get_unit_state(waiter)])
+		failed += 1
+	if rng_svc.history_hash != wait_hash_before:
+		print("OK  1d: a committed Wait advances the RNG chain")
+		passed += 1
+	else:
+		print("FAIL 1d: Wait did not advance history_hash")
+		failed += 1
+
+	# ---- T4 equip neutrality: the weapon-swap flow never touches the chain ----
+	# Equip is free and repeatable mid-turn; if it ever committed an RNG event it
+	# would be an infinite zero-cost reroll crank (design §4 "Never advances").
+	# A stub ActionMenu is required: with action_menu null, _show_action_menu's
+	# headless fallback commits a Wait, which is NOT the production equip path.
+	var equip_menu_script := GDScript.new()
+	equip_menu_script.source_code = "extends Control\nsignal action_chosen(a)\nsignal hidden_by_cancel\nfunc show_for(_u, _tile, _g): pass\n"
+	equip_menu_script.reload()
+	c5.action_menu = equip_menu_script.new()
+	root.add_child(c5.action_menu)
+	var equipper := _make_unit(Vector2i(3, 0), "blue")
+	equipper.data.inventory = [InventoryEntry.make_weapon("iron_sword", 10)]
+	c5._selection.selected_unit = equipper
+	var equip_hash_before: int = rng_svc.history_hash
+	c5._on_weapon_chosen(equipper.data.inventory[0])
+	c5._on_weapon_chosen(equipper.data.inventory[0])  # repeat swap — still free
+	c5._selection.selected_unit = null
+	if rng_svc.history_hash == equip_hash_before:
+		print("OK  1d/T4: equip swaps never advance the RNG chain")
+		passed += 1
+	else:
+		print("FAIL 1d/T4: equip advanced history_hash")
 		failed += 1
 
 	# ---- _finish_action liveness guard: a dead unit is NOT written into _unit_states ----
@@ -520,6 +752,39 @@ func _init() -> void:
 		print("FAIL targeting-cancel cursor: tile=%s" % str(c8.current_tile))
 		failed += 1
 
+	# ---- B6-INPUT: polled stick cycles Pair Up targets while targeting ----
+	_gs.all_units.clear()
+	var t_target := TurnManager.new(); root.add_child(t_target)
+	var c_target := _make_cursor(t_target)
+	var lead_target := _make_unit(Vector2i(2, 2), "blue")
+	lead_target.data.unit_id = "lead_target"
+	var support_up := _make_unit(Vector2i(2, 1), "blue")
+	support_up.data.unit_id = "support_up"
+	var support_down := _make_unit(Vector2i(2, 3), "blue")
+	support_down.data.unit_id = "support_down"
+	c_target._selection.selected_unit = lead_target
+	c_target._state = UNIT_MOVED
+	c_target._enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+	var target_started := c_target._state == TARGETING \
+		and c_target.current_tile == support_up.tile_position
+	Input.action_press("cursor_down", 1.0)
+	c_target._process(0.01)
+	var target_stick_first := c_target.current_tile == support_down.tile_position
+	c_target._process(0.20)
+	var target_stick_waited := c_target.current_tile == support_down.tile_position
+	c_target._process(0.10)
+	var target_stick_repeated := c_target.current_tile == support_up.tile_position
+	Input.action_release("cursor_down")
+	c_target._process(0.01)
+	if target_started and target_stick_first and target_stick_waited and target_stick_repeated:
+		print("OK  polled stick cycles Pair Up targets with repeat")
+		passed += 1
+	else:
+		print("FAIL stick target cycle: started=%s first=%s waited=%s repeated=%s tile=%s" % [
+			target_started, target_stick_first, target_stick_waited,
+			target_stick_repeated, str(c_target.current_tile)])
+		failed += 1
+
 	# ---- _cycle_to_next_unit is a no-op outside FREE ----
 	var t9 := TurnManager.new(); root.add_child(t9)
 	var c9 := _make_cursor(t9)
@@ -559,23 +824,353 @@ func _init() -> void:
 			fwd_ok, back_ok, back2_ok, wrap_ok])
 		failed += 1
 
-	# ---- danger-zone toggle (#12) + FREE-state gating (#13) ----
+	# ---- [TUR] threat watch-set + danger-mode resolver (B6-MRD slice 2, #12/#13) ----
+	_gs.all_units.clear()
 	var t10 := TurnManager.new(); root.add_child(t10)
 	var c10 := _make_cursor(t10)
 	c10._state = FREE
-	c10._toggle_danger_zone()         # off → on
-	var dz_on := c10._danger_zone_shown
-	c10._toggle_danger_zone()         # on → off
-	var dz_off := not c10._danger_zone_shown
-	c10._state = UNIT_SELECTED
-	c10._toggle_danger_zone()         # gated while a unit is selected — stays off
-	var dz_gated := not c10._danger_zone_shown
-	if dz_on and dz_off and dz_gated:
-		print("OK  danger zone toggles in FREE, ignored while a unit is selected")
+	var enemyA := _make_unit(Vector2i(1, 1), "red"); enemyA.data.unit_id = "enemyA"
+	var enemyB := _make_unit(Vector2i(4, 4), "red"); enemyB.data.unit_id = "enemyB"
+	var ally1 := _make_unit(Vector2i(2, 2), "blue"); ally1.data.unit_id = "ally1"
+
+	# Press routing: MMB over empty terrain cycles the mode (start none→full).
+	c10.current_tile = Vector2i(5, 0)
+	c10._on_danger_zone_press()
+	var route_cycle := c10._danger_mode == "full" and c10._watch_set.is_empty()
+
+	# MMB over a hostile enemy edits the watch set + auto-promote/demote.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position
+	c10._on_danger_zone_press()
+	var added := c10._watch_set.has("enemyA")
+	var promoted := c10._danger_mode == "selected"          # none→selected on first add
+	c10._on_danger_zone_press()
+	var removed := not c10._watch_set.has("enemyA")
+	var demoted := c10._danger_mode == "none"               # selected→none on last remove
+	if route_cycle and added and promoted and removed and demoted:
+		print("OK  [TUR] resolver: empty cycles mode; enemy edits watch-set + auto-promote/demote"); passed += 1
+	else:
+		print("FAIL [TUR] resolver: cycle=%s add=%s promo=%s rm=%s demo=%s" % [
+			route_cycle, added, promoted, removed, demoted]); failed += 1
+
+	# Two-member watch set: threat union + a "D" marker on each watched tile.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	c10.current_tile = enemyB.tile_position; c10._on_danger_zone_press()
+	var two_members := c10._watch_set.size() == 2
+	var watch_tiles := c10._watch_set_threat_tiles()
+	var union_ok := watch_tiles.has(Vector2i(0, 1)) and watch_tiles.has(Vector2i(3, 4))
+	var markers := c10._watched_marker_tiles()
+	var marker_ok := markers.has(Vector2i(1, 1)) and markers.has(Vector2i(4, 4))
+	if two_members and union_ok and marker_ok:
+		print("OK  [TUR] two-member watch set unions threat + marks both tiles"); passed += 1
+	else:
+		print("FAIL [TUR] watch set: n=%d union=%s markers=%s" % [
+			c10._watch_set.size(), union_ok, marker_ok]); failed += 1
+
+	# V033-MRD-01: each controlling faction restores only its own view.
+	c10._danger_mode = "combined"
+	c10._watch_set.clear(); c10._watch_set["enemyA"] = true
+	c10.set_controlling_faction("red")
+	var red_starts_clean := c10._watch_set.is_empty() and c10._danger_mode == "none"
+	c10._watch_set["ally1"] = true; c10._danger_mode = "selected"
+	c10.set_controlling_faction("blue")
+	var blue_restored := c10._watch_set.keys() == ["enemyA"] and c10._danger_mode == "combined"
+	c10.set_controlling_faction("red")
+	var red_restored := c10._watch_set.keys() == ["ally1"] and c10._danger_mode == "selected"
+	c10.set_controlling_faction("blue")
+	if red_starts_clean and blue_restored and red_restored:
+		print("OK  [TUR] faction handoff isolates blue/red threat views"); passed += 1
+	else:
+		print("FAIL [TUR] faction views: clean=%s blue=%s red=%s views=%s" % [
+			red_starts_clean, blue_restored, red_restored, c10._threat_views_by_faction]); failed += 1
+
+	# full→combined on first add; combined→full on last remove (faction layer kept).
+	c10._danger_mode = "full"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	var full_to_combined := c10._danger_mode == "combined"
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()
+	var combined_to_full := c10._danger_mode == "full" and c10._watch_set.is_empty()
+	if full_to_combined and combined_to_full:
+		print("OK  [TUR] auto-promote full→combined, demote combined→full"); passed += 1
+	else:
+		print("FAIL [TUR] full/combined: f2c=%s c2f=%s" % [full_to_combined, combined_to_full]); failed += 1
+
+	# Manual mode cycle over empty terrain: full→selected→combined→none→full.
+	c10._danger_mode = "full"; c10._watch_set.clear()
+	c10.current_tile = Vector2i(5, 0)
+	c10._on_danger_zone_press(); var m1 := c10._danger_mode
+	c10._on_danger_zone_press(); var m2 := c10._danger_mode
+	c10._on_danger_zone_press(); var m3 := c10._danger_mode
+	c10._on_danger_zone_press(); var m4 := c10._danger_mode
+	if m1 == "selected" and m2 == "combined" and m3 == "none" and m4 == "full":
+		print("OK  [TUR] mode cycles full→selected→combined→none→full"); passed += 1
+	else:
+		print("FAIL [TUR] cycle: %s→%s→%s→%s" % [m1, m2, m3, m4]); failed += 1
+
+	# Prune-on-death: a watched enemy dying is removed + auto-demotes if last.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position; c10._on_danger_zone_press()  # {enemyA}, selected
+	enemyA.data.hp = 0
+	c10._on_unit_died(enemyA)
+	var pruned := not c10._watch_set.has("enemyA")
+	var death_demote := c10._danger_mode == "none"
+	if pruned and death_demote:
+		print("OK  [TUR] prune-on-death removes the watched enemy + auto-demotes"); passed += 1
+	else:
+		print("FAIL [TUR] prune-on-death: pruned=%s demote=%s" % [pruned, death_demote]); failed += 1
+	enemyA.data.hp = 20
+
+	# Persistence: teardown clears the paint but RETAINS _watch_set + _danger_mode.
+	c10._danger_mode = "combined"; c10._watch_set.clear(); c10._watch_set["enemyB"] = true
+	c10._clear_overlay_paint()
+	var retained := c10._danger_mode == "combined" and c10._watch_set.has("enemyB")
+	c10._state = FREE
+	c10.repaint()  # return to FREE recomputes without error
+	if retained:
+		print("OK  [TUR] teardown clears paint but retains watch-set + mode"); passed += 1
+	else:
+		print("FAIL [TUR] state not retained through teardown"); failed += 1
+
+	# MRD-7: selection and targeting overlays must COMPOSE with retained watch
+	# threat instead of clearing it through the old one-off paint APIs.
+	var saved_mrd_overlay := _grid._overlay
+	var mrd_overlay := TileMapLayer.new()
+	mrd_overlay.tile_set = load("res://assets/overlay_tileset.tres")
+	_grid._overlay = mrd_overlay
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyB"] = true
+	c10._state = FREE
+	c10.current_tile = ally1.tile_position
+	c10._try_select_unit_at_cursor()
+	var watched_after_select := false
+	for t in c10._watch_set_threat_tiles():
+		if mrd_overlay.get_cell_source_id(t) == GridManager.OVERLAY_DARKER_RED:
+			watched_after_select = true
+			break
+	var selected_composed: bool = c10._state == UNIT_SELECTED \
+		and watched_after_select \
+		and not c10._selection.movement_tiles.is_empty()
+	var ally2 := _make_unit(Vector2i(2, 3), "blue")
+	ally2.data.unit_id = "ally2"
+	mrd_overlay.clear()
+	c10._selection.selected_unit = ally1
+	c10._state = UNIT_MOVED
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyB"] = true
+	c10._enter_targeting(MapCursorTargeting.Mode.PAIR_UP)
+	var watched_after_targeting := false
+	for t in c10._watch_set_threat_tiles():
+		if mrd_overlay.get_cell_source_id(t) == GridManager.OVERLAY_DARKER_RED:
+			watched_after_targeting = true
+			break
+	var targeting_composed: bool = c10._state == TARGETING \
+		and watched_after_targeting \
+		and not c10._targeting.target_tiles().is_empty()
+	_grid._overlay = saved_mrd_overlay
+	mrd_overlay.free()
+	if selected_composed and targeting_composed:
+		print("OK  [MRD-7] selection/targeting overlays compose with watched threat")
 		passed += 1
 	else:
-		print("FAIL danger toggle: on=%s off=%s gated=%s" % [dz_on, dz_off, dz_gated])
+		print("FAIL [MRD-7] compose: select=%s target=%s watch_select=%s watch_target=%s state=%d" % [
+			selected_composed, targeting_composed, watched_after_select,
+			watched_after_targeting, c10._state])
 		failed += 1
+
+	# FREE-state gating (#13): the resolver is a no-op outside FREE.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10._state = UNIT_SELECTED
+	c10.current_tile = enemyB.tile_position
+	c10._on_danger_zone_press()
+	if c10._watch_set.is_empty() and c10._danger_mode == "none":
+		print("OK  [TUR] danger-zone resolver ignored while a unit is selected (#13)"); passed += 1
+	else:
+		print("FAIL [TUR] resolver not gated outside FREE"); failed += 1
+
+	# ---- Simulated gamepad R3 routing (gamepad plan §4 slice 4, engine side) ----
+	# The real project.godot joypad bindings land with gamepad slice 1; here we
+	# bind R3 → show_danger_zone at test runtime and prove _input routes a raw
+	# InputEventJoypadButton through the same resolver as Q/MMB (the key/mouse
+	# type gates used to silently drop all pad events).
+	var r3_bind := InputEventJoypadButton.new()
+	r3_bind.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_bind.device = -1
+	InputMap.action_add_event("show_danger_zone", r3_bind)
+	var r3_press := InputEventJoypadButton.new()
+	r3_press.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_press.pressed = true
+
+	# R3 over empty terrain cycles the mode.
+	c10._state = FREE
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = Vector2i(5, 0)
+	c10._input(r3_press)
+	var pad_cycle := c10._danger_mode == "full" and c10._watch_set.is_empty()
+
+	# R3 over a hostile enemy toggles watch membership with auto-promote/demote.
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10.current_tile = enemyA.tile_position
+	c10._input(r3_press)
+	var pad_added := c10._watch_set.has("enemyA") and c10._danger_mode == "selected"
+	c10._input(r3_press)
+	var pad_removed := not c10._watch_set.has("enemyA") and c10._danger_mode == "none"
+
+	# An R3 RELEASE (pressed=false) must not fire the resolver.
+	var r3_release := InputEventJoypadButton.new()
+	r3_release.button_index = JOY_BUTTON_RIGHT_STICK
+	r3_release.pressed = false
+	c10._input(r3_release)
+	var pad_release_inert := c10._watch_set.is_empty() and c10._danger_mode == "none"
+
+	# Suppressed input (menu open etc.) swallows pad presses like key/mouse.
+	c10._input_suppressed = true
+	c10._input(r3_press)
+	var pad_suppressed := c10._watch_set.is_empty() and c10._danger_mode == "none"
+	c10._input_suppressed = false
+	if pad_cycle and pad_added and pad_removed and pad_release_inert and pad_suppressed:
+		print("OK  [PAD] simulated R3 routes through the danger-zone resolver (cycle/toggle/release/suppress)"); passed += 1
+	else:
+		print("FAIL [PAD] R3 routing: cycle=%s add=%s rm=%s release=%s suppress=%s" % [
+			pad_cycle, pad_added, pad_removed, pad_release_inert, pad_suppressed]); failed += 1
+	InputMap.action_erase_event("show_danger_zone", r3_bind)
+
+	# Pad peek parity: a pad-bound peek_range press arms the peek, release ends
+	# it (the pad button choice is test-local; peek's real pad home is undecided).
+	var peek_bind := InputEventJoypadButton.new()
+	peek_bind.button_index = JOY_BUTTON_LEFT_STICK
+	peek_bind.device = -1
+	InputMap.action_add_event("peek_range", peek_bind)
+	var peek_press := InputEventJoypadButton.new()
+	peek_press.button_index = JOY_BUTTON_LEFT_STICK
+	peek_press.pressed = true
+	var peek_release := InputEventJoypadButton.new()
+	peek_release.button_index = JOY_BUTTON_LEFT_STICK
+	peek_release.pressed = false
+	c10.current_tile = enemyA.tile_position
+	c10._input(peek_press)
+	var pad_peek_on := c10._peek_active and not c10._peek_move.is_empty()
+	c10._input(peek_release)
+	var pad_peek_off := not c10._peek_active and c10._peek_move.is_empty()
+	if pad_peek_on and pad_peek_off:
+		print("OK  [PAD] simulated pad peek_range press arms hover-peek, release clears it"); passed += 1
+	else:
+		print("FAIL [PAD] pad peek: on=%s off=%s" % [pad_peek_on, pad_peek_off]); failed += 1
+	InputMap.action_erase_event("peek_range", peek_bind)
+
+	# ---- [MRD-2] hover-to-peek range (B6-MRD slice 3) ----
+	c10._danger_mode = "none"; c10._watch_set.clear()
+	c10._state = FREE
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	var peek_on := c10._peek_active and not c10._peek_move.is_empty()
+	var count_after_press := c10._peek_compute_count
+	c10._refresh_peek()                                  # same unit → cache hit
+	var cache_hit := c10._peek_compute_count == count_after_press
+	c10.current_tile = enemyB.tile_position
+	c10._on_cursor_moved_overlays(enemyB.tile_position)  # new unit → recompute
+	var recomputed := c10._peek_compute_count == count_after_press + 1 and c10._peek_unit == enemyB
+	c10._end_peek()
+	var peek_off := not c10._peek_active and c10._peek_move.is_empty()
+	if peek_on and cache_hit and recomputed and peek_off:
+		print("OK  [MRD-2] hover-peek: press paints reach, same-unit cache-hit, new-unit recompute, release clears"); passed += 1
+	else:
+		print("FAIL [MRD-2] peek: on=%s hit=%s recompute=%s off=%s" % [peek_on, cache_hit, recomputed, peek_off]); failed += 1
+
+	c10._state = UNIT_SELECTED
+	c10._begin_peek()
+	if not c10._peek_active:
+		print("OK  [MRD-2] hover-peek ignored outside FREE state"); passed += 1
+	else:
+		print("FAIL [MRD-2] peek armed outside FREE"); failed += 1
+	c10._state = FREE
+
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	var stale_count := c10._peek_compute_count
+	c10._state = UNIT_SELECTED
+	c10.current_tile = enemyB.tile_position
+	c10._on_cursor_moved_overlays(enemyB.tile_position)
+	var stale_cancelled := not c10._peek_active \
+		and c10._peek_move.is_empty() \
+		and c10._peek_attack.is_empty() \
+		and c10._peek_compute_count == stale_count
+	c10._state = FREE
+	c10.current_tile = enemyA.tile_position
+	c10._begin_peek()
+	c10.current_tile = ally1.tile_position
+	c10._try_select_unit_at_cursor()
+	var select_cleared_peek := c10._state == UNIT_SELECTED \
+		and c10._selection.selected_unit == ally1 \
+		and not c10._peek_active \
+		and c10._peek_move.is_empty() \
+		and c10._peek_attack.is_empty()
+	c10._deselect()
+	if stale_cancelled and select_cleared_peek:
+		print("OK  [MRD-2] hover-peek cancels cleanly when FREE control hands off to selection")
+		passed += 1
+	else:
+		print("FAIL [MRD-2] peek handoff: stale=%s select=%s" % [
+			stale_cancelled, select_cleared_peek])
+		failed += 1
+
+	var saved_overlay := _grid._overlay
+	var finish_overlay := TileMapLayer.new()
+	finish_overlay.tile_set = load("res://assets/overlay_tileset.tres")
+	_grid._overlay = finish_overlay
+	c10._danger_mode = "selected"
+	c10._watch_set.clear()
+	c10._watch_set["enemyA"] = true
+	c10._selection.selected_unit = ally1
+	c10._state = UNIT_MOVED
+	c10._finish_action()
+	var finish_repainted := c10._state == FREE \
+		and c10._selection.selected_unit == null \
+		and finish_overlay.get_cell_source_id(Vector2i(0, 1)) == GridManager.OVERLAY_DARKER_RED
+	_grid._overlay = saved_overlay
+	finish_overlay.free()
+	if finish_repainted:
+		print("OK  [TUR] committed actions restore retained watched-threat overlay")
+		passed += 1
+	else:
+		print("FAIL [TUR] finish action did not repaint retained watched-threat overlay")
+		failed += 1
+
+	# ---- movement path arrows (B6-MRD slice 4) ----
+	_gs.all_units.clear()
+	var t_pa := TurnManager.new(); root.add_child(t_pa)
+	var c_pa := _make_cursor(t_pa)
+	var pa_mover := _make_unit(Vector2i(0, 0), "blue"); pa_mover.data.unit_id = "mover"
+	c_pa._selection.selected_unit = pa_mover         # inject a selection
+	c_pa._state = UNIT_SELECTED
+	c_pa.current_tile = Vector2i(2, 0)
+	c_pa._refresh_path_arrows()
+	var pa_path := c_pa._path_arrow_tiles
+	var pa_dirs := c_pa._path_arrow_directions()
+	var ref_path := _grid.get_movement_path(pa_mover, Vector2i(2, 0))
+	var path_ends_ok := pa_path.size() >= 2 and pa_path[0] == Vector2i(0, 0) \
+		and pa_path[pa_path.size() - 1] == Vector2i(2, 0)
+	var dirs_ok := pa_dirs.size() == ref_path.size() - 1 and pa_path == ref_path
+	var all_cardinal := true
+	for d in pa_dirs:
+		if absi(d.x) + absi(d.y) != 1:
+			all_cardinal = false
+	# Recompute follows the cursor to a new tile ([MRD-4] B — cheap path only).
+	c_pa.current_tile = Vector2i(3, 1)
+	c_pa._on_cursor_moved_overlays(Vector2i(3, 1))
+	var followed := c_pa._path_arrow_tiles.size() >= 2 \
+		and c_pa._path_arrow_tiles[c_pa._path_arrow_tiles.size() - 1] == Vector2i(3, 1)
+	# Clears when no unit is selected.
+	c_pa._state = FREE
+	c_pa._refresh_path_arrows()
+	var pa_cleared := c_pa._path_arrow_tiles.is_empty()
+	if path_ends_ok and dirs_ok and all_cardinal and followed and pa_cleared:
+		print("OK  [MRD] path arrows track get_movement_path to the cursor; clear when unselected"); passed += 1
+	else:
+		print("FAIL [MRD] path arrows: ends=%s dirs=%s cardinal=%s follow=%s cleared=%s" % [
+			path_ends_ok, dirs_ok, all_cardinal, followed, pa_cleared]); failed += 1
 
 	# ---- open_settings hotkey: locks the cursor and opens Settings (#3) ----
 	var t11 := TurnManager.new(); root.add_child(t11)
@@ -796,12 +1391,10 @@ func _init() -> void:
 			orphan_lead.tile_position, orphan_lead.visible, c_orphan._state])
 		failed += 1
 
-	# ---- PT4 #1: mouse_cursor="disabled" ignores motion in FREE/UNIT_SELECTED ----
+	# ---- PT4 #1 / V021-17: mouse_cursor gates hover; click mode relocates then confirms ----
 	# Drive _handle_mouse_motion directly with a synthesized event. The function
-	# reads SettingsManager.mouse_cursor and bails before touching _set_tile when
-	# the setting is "disabled", so the cursor must stay put. When "enabled", the
-	# same motion must move it. Skips cleanly if the autoload isn't registered
-	# (e.g. someone runs this suite in isolation without --path).
+	# reads SettingsManager.mouse_cursor and only lets follow mode move on hover.
+	# Click mode then uses the left button as first-click relocate, second-click confirm.
 	var sm_mc := root.get_node_or_null("SettingsManager")
 	if sm_mc != null:
 		var t_mc := TurnManager.new(); root.add_child(t_mc)
@@ -818,12 +1411,46 @@ func _init() -> void:
 		c_mc._handle_mouse_motion(ev)
 		var stayed: bool = c_mc.current_tile == Vector2i(0, 0)
 
-		sm_mc.mouse_cursor = "enabled"
+		sm_mc.mouse_cursor = "click"
+		c_mc._handle_mouse_motion(ev)
+		var click_hover_stayed: bool = c_mc.current_tile == Vector2i(0, 0)
+
+		sm_mc.mouse_cursor = "follow"
 		c_mc._handle_mouse_motion(ev)
 		var moved: bool = c_mc.current_tile == Vector2i(4, 4)
 
+		_gs.all_units.clear()
+		var t_click := TurnManager.new(); root.add_child(t_click)
+		var c_click := _make_cursor(t_click)
+		var click_unit := _make_unit(Vector2i(4, 4), "blue")
+		c_click._set_tile(Vector2i(0, 0))
+		var click_ev := InputEventMouseButton.new()
+		click_ev.button_index = MOUSE_BUTTON_LEFT
+		click_ev.position = _grid.tile_to_world(Vector2i(4, 4))
+		sm_mc.mouse_cursor = "click"
+		c_click._handle_mouse_button(click_ev)
+		var click_moved_only: bool = c_click.current_tile == Vector2i(4, 4) \
+			and c_click._state == FREE and c_click._selection.selected_unit == null
+		c_click._handle_mouse_button(click_ev)
+		var click_confirmed: bool = c_click._state == UNIT_SELECTED \
+			and c_click._selection.selected_unit == click_unit
+
+		var hud_script := GDScript.new()
+		hud_script.source_code = "extends Node\nvar cycles := 0\nfunc terrain_corner_contains_screen_position(_pos): return true\nfunc cycle_terrain_more_page(): cycles += 1\n"
+		hud_script.reload()
+		var hud_stub: Node = hud_script.new()
+		hud_stub.add_to_group("hud")
+		root.add_child(hud_stub)
+		var t_panel := TurnManager.new(); root.add_child(t_panel)
+		var c_panel := _make_cursor(t_panel)
+		c_panel._set_tile(Vector2i(0, 0))
+		c_panel._handle_mouse_button(click_ev)
+		var terrain_click_ok: bool = hud_stub.cycles == 1 and c_panel.current_tile == Vector2i(0, 0)
+		hud_stub.queue_free()
+
 		# Mouse motion near the viewport edge should nudge the camera on large maps
 		# instead of freezing camera follow entirely.
+		sm_mc.mouse_cursor = "follow"
 		var mouse_pan_w := _grid.map_width
 		var mouse_pan_h := _grid.map_height
 		_grid.map_width = 30
@@ -836,13 +1463,15 @@ func _init() -> void:
 		_grid.map_width = mouse_pan_w
 		_grid.map_height = mouse_pan_h
 
-		sm_mc.mouse_cursor = "enabled"  # restore default
-		if stayed and moved and camera_panned:
-			print("OK  mouse_cursor=disabled ignores motion; enabled resumes and can pan camera")
+		sm_mc.mouse_cursor = "follow"  # restore default
+		if stayed and click_hover_stayed and moved and click_moved_only and click_confirmed \
+				and terrain_click_ok and camera_panned:
+			print("OK  mouse_cursor disabled/click/follow modes gate hover, click-select, and terrain paging")
 			passed += 1
 		else:
-			print("FAIL mouse_cursor gate/pan: stayed=%s moved=%s camera_panned=%s tile=%s" % [
-				stayed, moved, camera_panned, str(c_mc.current_tile)])
+			print("FAIL mouse_cursor modes: disabled_stayed=%s click_hover=%s moved=%s click_move=%s click_confirm=%s terrain=%s camera_panned=%s tile=%s" % [
+				stayed, click_hover_stayed, moved, click_moved_only, click_confirmed,
+				terrain_click_ok, camera_panned, str(c_mc.current_tile)])
 			failed += 1
 	else:
 		print("SKIP mouse_cursor gate (SettingsManager autoload absent)")
@@ -863,6 +1492,50 @@ func _init() -> void:
 			print("FAIL camera buffer clamp: hi=%s lo=%s" % [hi_ok, lo_ok]); failed += 1
 	else:
 		print("SKIP camera buffer clamp (SettingsManager autoload absent)")
+
+	# V023-03 / V025-03 / V027-02: contextual menus remember their tile anchor and
+	# re-anchor on zoom. Placement anchors to the tile's FAR edge plus a constant
+	# 4px gap (AttackPreview's model): the tile-width term scales with zoom but the
+	# gap beyond the edge does not, so the menu hugs the unit without covering it.
+	# (The old V025-03 cap on the WHOLE offset left the menu inside the zoomed tile
+	# at zoom > 1 — v0.2.7 §1.3.) The menu also keeps its chosen side across
+	# repositions instead of flipping.
+	var t_anchor := TurnManager.new(); root.add_child(t_anchor)
+	var c_anchor := _make_cursor(t_anchor)
+	var menu_anchor := Control.new()
+	menu_anchor.size = Vector2(120, 80)
+	menu_anchor.show()
+	root.add_child(menu_anchor)
+	c_anchor._camera.zoom = Vector2.ONE
+	c_anchor._place_menu_near(menu_anchor, Vector2i(1, 1))
+	# screen_pos is stub-fixed in this harness (the canvas transform ignores the
+	# camera), so the anchor corner is the same at both zooms — only tile_px moves.
+	var anchor_screen: Vector2 = c_anchor.get_viewport().canvas_transform \
+		* _grid.tile_to_world(Vector2i(1, 1))
+	var gap_1x: Vector2 = menu_anchor.position
+	var side_1x: String = String(c_anchor._context_menu_anchor.get("side", ""))
+	var edge_1x_ok: bool = absf(
+		gap_1x.x - (anchor_screen.x + GameConstants.TILE_SIZE + 4.0)) <= 1.0
+	# Zoom way in and reposition: the on-screen tile is 4× wide, so the menu must
+	# sit fully clear of the ZOOMED tile rect, gap+ε past its far edge.
+	c_anchor._camera.zoom = Vector2(4.0, 4.0)
+	c_anchor._reposition_context_menu_anchor()
+	var gap_4x: Vector2 = menu_anchor.position
+	var tile_px_4x: float = GameConstants.TILE_SIZE * 4.0
+	var edge_4x_ok: bool = absf(
+		gap_4x.x - (anchor_screen.x + tile_px_4x + 4.0)) <= 1.0 and gap_4x.y == gap_1x.y
+	var clear_of_tile: bool = gap_4x.x >= anchor_screen.x + tile_px_4x
+	var side_kept: bool = String(c_anchor._context_menu_anchor.get("side", "")) == side_1x \
+		and side_1x == "right"
+	if edge_1x_ok and edge_4x_ok and clear_of_tile and side_kept:
+		print("OK  contextual menu hugs the zoomed tile's far edge + side sticky (V027-02)")
+		passed += 1
+	else:
+		print("FAIL contextual menu anchor: gap_1x=%s gap_4x=%s anchor=%s edge1x=%s edge4x=%s clear=%s side_1x=%s side_after=%s" % [
+			gap_1x, gap_4x, anchor_screen, edge_1x_ok, edge_4x_ok, clear_of_tile,
+			side_1x, c_anchor._context_menu_anchor.get("side", "")])
+		failed += 1
+	menu_anchor.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

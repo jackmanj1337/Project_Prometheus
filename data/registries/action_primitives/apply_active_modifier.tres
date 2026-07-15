@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "apply_active_modifier"
+family = "action_primitives"
+label_key = "registry.action.apply_active_modifier"
+owner_feature = "B2-ACTION-EFFECT"
+kind = "mutation"
+primitive_handler = "apply_active_modifier"
+params_schema = {"delta": {"non_zero": true, "required": true, "type": "int"}, "duration": {"required": true, "type": "int"}, "duration_type": {"non_empty": true, "required": true, "type": "string"}, "source": {"non_empty": true, "required": true, "type": "string"}, "stat": {"non_empty": true, "required": true, "type": "string"}}
+subjects = Array[String](["actor", "target"])
+projection_support = true
+save_fields = Array[String](["UnitData.active_modifiers"])
+docs_text = "Apply an active modifier through the shared action/effect runner."
+test_fixture = {"delta": 2, "duration": 1, "duration_type": "turn", "source": "fixture", "stat": "strength"}

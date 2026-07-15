@@ -1,33 +1,117 @@
 # GDD_01 — Architecture & Project Structure
 
-**Status:** Active contract — architecture reference. Most sections are descriptive
-**Reference** (folder layout, scene trees, function signatures, resource schemas) tracking
-the implemented code; status-bearing **contracts** (Determinism/Snapshot, the
-CampaignRules contract) carry their own `Status` + `Last verified` markers.
-**Last verified:** 2026-06-13
+**Status:** Active architecture contract; runtime and data detail are split into the
+companion GDD_01 contracts linked below.
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
-This chapter owns project structure, runtime ownership, autoload order, the
-resource/serialization schemas (`UnitData`, `ClassData`, `WeaponData`, `ItemData`,
-`SkillData`, `InventoryEntry`, `MapData`, `FactionData`, `ObjectiveCondition`,
-`PairUpBonusTable`), the **determinism/snapshot/online contract**, and the
-**`CampaignRules` contract**. Gameplay rules that use these structures are owned by the
-feature chapters (GDD_02–08); this file owns the data shapes and the binding contracts
-they depend on.
+This entry chapter owns project composition, scene/autoload responsibility, extension
+boundaries, and contributor-facing architectural constraints. Binding runtime behavior
+lives in `GDD_01_Runtime_Contracts.md`; resource and serialization shapes live in
+`GDD_01_Data_Contracts.md`. Feature chapters `GDD_02`–`GDD_08` own gameplay rules.
 
 ---
 
+## Companion Contracts
+
+- [Runtime contracts](GDD_01_Runtime_Contracts.md) — CampaignRules, determinism,
+  snapshots, online boundaries, and service/API invariants.
+- [Data contracts](GDD_01_Data_Contracts.md) — resource schemas, persistence fields,
+  validation, and authoring invariants.
+
+Display configuration and input behavior are owned by `GDD_07` and the display/settings
+guide (`B6-INPUT` for remaining input work). Tactical camera behavior is owned by
+`GDD_06 §Tactical Camera`. These contracts are linked instead of duplicated here.
+
+---
 ## Core Philosophy: Data-Driven Design
 
 All game content — classes, weapons, items, skills, maps — is defined in **data files**,
-not in code. Game logic reads and executes these definitions at runtime. This means:
+not in code. Game logic reads and executes these definitions at runtime. Author-facing
+vocabularies follow the `[EXT]` rule: open registries and data compositions, not closed
+engine switches, unless a section explicitly marks an engine-only exception. This means:
 
 - Adding a new class = write a new `.tres` resource file, no code changes needed
-- Adding a new skill = write a skill resource, register its effect in SkillHandler
+- Adding a new skill that composes existing primitives = write a skill resource and
+  configure its effect/requirement data
 - Adding a new map = write a map data file and a Godot TileMap scene
 
-The only time code changes are needed is when introducing a **new type of mechanic**.
+The only time code changes are needed is when introducing a **new engine primitive**.
+Those primitives ship through the engine release cadence; content authors get a
+growable named library of data compositions and developer-provided presets.
+
+### Authoring Extension Boundary
+
+Status: **Target design**
+Last verified: 2026-06-29
+
+Public campaign packages are data + assets first. The in-app authoring surface must not
+run arbitrary executable code from shared campaigns. A future sandboxed scripting layer
+is allowed only as a bounded expansion; full unrestricted power-user access is forking
+the public source.
+
+The author-facing vocabulary families that must be registry-backed are tracked in the
+Project Control Plane and vocabulary manifest: objective predicates/actions, AI
+profiles/presets, map-object components, PHB panels, action/effect primitives, stat
+names, resource types, difficulty/rule profiles, requirement predicates/terms, and
+future activities.
+
+### Action/Effect Execution Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+State-changing authored actions use a structured `ActionRequest`, `ActionContext`,
+and `ActionResult`. `ActionEffectRunner` resolves the request's primitive entry
+through `RegistryManager`, validates required subjects and the declared parameter
+schema, and only then invokes the engine-owned handler. Unknown primitives,
+unavailable handlers, missing subjects, and malformed parameters return structured
+failures before mutation. Dry-run requests follow the same validation path and do
+not invoke a handler. Parameters omitted from schemas that mark them optional reach
+the handler through neutral defaults rather than failing after validation.
+
+The first proof primitive, `apply_active_modifier`, is shared by the existing item
+domain and a map-event fixture. It reports `UnitData.active_modifiers` as its touched
+save field; all registry entries marked as mutations must declare at least one save
+field. Requirement-gated availability remains owned by `B3-REQ`, and broader item,
+map-event, dialogue, economy, and objective migrations remain later consumers.
+
+### Resource Transaction Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+`ResourceLedger` is the shared affordability and mutation path for registered
+wallets. Fixed `CostSpec` records can be quoted without mutation, reserved as
+transient non-mutating records, committed atomically across multiple wallets, and
+refunded from the recorded committed deltas. Every result is a structured
+`ResourceTransaction` containing wallet ids, deltas, shortfalls, and a failure
+reason. Unknown resources, unresolved subjects, unsupported scopes, formula terms,
+and insufficient balances fail before any wallet changes. A failed refund reports
+only its shortfall; its public wallet/delta fields never claim unapplied reversals.
+
+The first registry-backed adapters expose the existing `GameState.party_gold` and
+legacy `UnitData.gold` fields. Victory gold now credits the party adapter while item
+rewards retain their existing append behavior. Dynamic formula terms, persistent
+holds, custom resource pools, and shop/training consumers remain with their owning
+later tracks.
+
+### Death Lifecycle Boundary
+
+Status: **Implemented - contract groundwork**
+Last verified: 2026-07-13
+
+All production combat deaths enter `DeathLifecycle.handle_death(DeathContext)`.
+The context snapshots identity, inventory, tile, source, responsible actor, and a
+simultaneous-death group before disposition begins. `DeathDisposition` is the one
+future custody/inventory hook; its initial implementation is deliberately a no-op.
+`DeathLifecycle` is the sole implementation: combat reports a missing autoload as
+an error and stops death processing instead of entering a compatibility fallback.
+The lifecycle reads `GameState.campaign_rules`, releases Pair Up support,
+unregisters the unit, emits `unit_died` once, and queues the scene node for removal.
+`Unit.handle_death()` remains only as a compatibility wrapper. Non-combat causes,
+object teardown, key-item custody, and battalion disposition remain later consumers.
 
 For the step-by-step "how do I add or validate one safely?" workflows, prefer
 the dedicated guides in `AGENT/Docs/` over repeating local checklists in every
@@ -49,9 +133,9 @@ primary source for shipped behavior; use GDD_01–GDD_08 for that.
 
 Cross-cutting workflow guides:
 
-- `AGENT/Docs/map_authoring_guide.md`
-- `AGENT/Docs/testing_guide.md`
-- `AGENT/Docs/campaign_rules.md`
+- `AGENT/Docs/guides/map_authoring_guide.md`
+- `AGENT/Docs/guides/testing_guide.md`
+- `AGENT/Docs/guides/campaign_rules.md`
 
 ---
 
@@ -93,14 +177,15 @@ res://
 │   │   ├── thunder.tres
 │   │   ├── wind.tres
 │   │   └── heal_staff.tres
-│   ├── items/                     # 7 ItemData .tres files
+│   ├── items/                     # 8 ItemData .tres files
 │   │   ├── vulnerary.tres
 │   │   ├── elixir.tres
 │   │   ├── master_seal.tres
 │   │   ├── orion_bolt.tres
 │   │   ├── guiding_ring.tres
 │   │   ├── second_seal.tres
-│   │   └── strength_tonic.tres
+│   │   ├── strength_tonic.tres
+│   │   └── debuff_tonic.tres        # Map 950 validation-only stat-debuff item
 │   ├── skills/                    # 54 SkillData .tres files
 │   │   ├── renewal.tres
 │   │   ├── vantage.tres
@@ -161,8 +246,10 @@ res://
     │   ├── DataManager.gd
     │   ├── EventBus.gd
     │   ├── GameState.gd
+    │   ├── InputModeManager.gd
     │   ├── PairUpBonusResolver.gd
     │   ├── PairUpRegistry.gd
+    │   ├── RngService.gd              # deterministic dice (RNG-1..4, CRR)
     │   └── SettingsManager.gd
     ├── core/
     │   ├── Boot.gd
@@ -215,6 +302,7 @@ res://
     │   ├── PhaseBanner.gd
     │   ├── PromotionScreen.gd
     │   ├── ReclassScreen.gd
+    │   ├── SelectionCursor.gd
     │   ├── SettingsScreen.gd
     │   ├── UnitDetailsScreen.gd
     │   └── WeaponMenu.gd
@@ -348,1072 +436,36 @@ before updating this document again.
 
 ---
 
-## Autoload Singletons
+## Autoload Composition
 
-### `GameState.gd`
+The exact registration order is owned by `project.godot [autoload]`; the
+“Autoload load order” note below records the dependency invariant and current order.
+Responsibilities are divided as follows:
 
-Autoload. Holds per-campaign rules, live map state, faction/alliance helpers,
-launch-state for the next map, the cross-map roster/economy, and the Retry
-snapshot. No `class_name` — Godot 4 forbids `class_name` on an autoload script.
-
-```gdscript
-extends Node
-
-enum Phase { PLAYER, ENEMY }
-
-# --- Alliance / faction model ---
-const _DEFAULT_ALLIANCE_GROUPS: Dictionary = {
-    "blue": "allies",
-    "green": "allies",
-    "red": "foes",
-    "yellow": "rogues",
-}
-var _alliance_groups: Dictionary = _DEFAULT_ALLIANCE_GROUPS.duplicate()
-
-# --- Per-campaign gameplay rules (set by New Game / future save flow) ---
-var permadeath_enabled: bool = false
-var leveling_method: String = "growth_random"
-var auto_promote_at_max_level: bool = false
-var pair_up_enabled: bool = true
-var max_skills: int = 5
-var max_inventory: int = 8
-
-# --- Debug-only testing aids ---
-var debug_force_levelup: bool = false
-var debug_growth_boost: bool = false
-
-# --- Current map state ---
-var current_phase: Phase = Phase.PLAYER
-var turn_number: int = 1
-var all_units: Array[Node] = []
-var _units_by_faction: Dictionary = {}   # faction_id -> Array[Node]
-var map_data: MapData = null
-
-# --- Persists between maps ---
-var player_roster: Array[UnitData] = []
-var party_gold: int = 0
-var party_items: Array[String] = []
-var next_map_data_path: String = ""
-var next_map_roster_policy: String = "default_roster"
-var next_map_roster_source: String = ""
-
-# --- Map-start snapshot — used by Retry ---
-var _map_start_snapshot: Array[Dictionary] = []
-var _snapshot_party_gold: int = 0
-var _snapshot_party_items: Array[String] = []
-var _snapshot_pair_up_registry: Dictionary = {}
-
-func are_hostile(a_id: String, b_id: String) -> bool
-func get_alliance_group(faction_id: String) -> String
-func register_unit(unit: Node) -> void
-func unregister_unit(unit: Node) -> void
-func set_phase(new_phase: Phase, faction_id: String = "") -> void
-func find_unit_by_id(unit_id: String) -> Node
-func get_living_units_of(faction_id: String) -> Array[Node]
-func get_registered_faction_ids() -> Array[String]
-func get_living_player_units() -> Array[Node]
-func get_living_enemy_units() -> Array[Node]
-func is_player_turn() -> bool
-func reset_map_state() -> void
-func configure_next_map(map_path: String, roster_policy := "default_roster",
-        roster_source := "") -> void
-func load_default_roster() -> bool
-func load_roster_from_directory(roster_path: String,
-        roster_policy := "fixed_test_roster") -> bool
-func is_roster_ready_for_launch() -> bool
-
-func take_map_snapshot() -> void
-    # Deep-copies each roster UnitData, party economy, and the PairUpRegistry state
-    # so Retry rewinds HP, inventory, class changes, pairings, and rewards together.
-func restore_map_snapshot() -> void
-    # Restores the snapshotted roster/economy/pairings, then resets map state.
-    # The caller reloads the current scene after this returns.
-```
-
-### New Game / Map Launch Flow
-
-Runtime launch is now selector-driven rather than hardcoded to `Map 001`.
-
-- `NewGameScreen.gd` loads choices from `data/maps/map_registry.json`
-- the selected entry is committed into:
-  - `GameState.next_map_data_path`
-  - `GameState.next_map_roster_policy`
-  - `GameState.next_map_roster_source`
-- `NewGameScreen.gd` loads the requested roster before scene change
-- `GameMap.gd` reads that launch state when the battle scene opens
-- `GameMap.gd` now fails loud if the roster was not explicitly prepared for the
-  selected launch policy; it no longer silently falls back to the default roster
-
-This means new maps generally need two pieces of authoring to be launchable:
-
-1. the map resource / scene under `data/maps/...`
-2. an entry in `data/maps/map_registry.json`
-
-For maps that do not use `default_roster`, the registry entry must also provide
-the correct explicit roster source. A bad or missing roster now blocks launch
-instead of substituting another roster behind the scenes.
-
-Practical follow-up guides:
-
-- map authoring and registry rules: `AGENT/Docs/map_authoring_guide.md`
-- campaign-rule ownership: `AGENT/Docs/campaign_rules.md`
-- validation expectations: `AGENT/Docs/testing_guide.md`
-
-### `SettingsManager.gd`
-
-Persists global player preferences to `user://settings.cfg` via `ConfigFile`.
-Loaded once at startup (`_ready()`); written immediately on any change.
-Registered as an autoload after `EventBus` and before `GameState`.
-
-> Permadeath and leveling method are **not** here — they are per-save gameplay
-> rules and live on `GameState`, set via the New Game screen.
-
-```gdscript
-extends Node
-
-const SETTINGS_PATH := "user://settings.cfg"
-
-# --- Audio (0–100 int scale) ---
-var master_volume: int = 80
-var music_volume: int  = 70
-var sfx_volume: int    = 90
-
-# --- Gameplay ---
-var combat_animations: String = "all"      # "all"|"player_only"|"enemy_only"|"none"
-                                            # NOTE: scaffolded — no combat-animation
-                                            # system reads this yet.
-var movement_speed: String = "normal"       # "normal" | "fast" | "instant"
-var phase_banner: String = "show"           # "show" | "skip"
-var level_up_screen: String = "show"        # "show" | "auto" | "skip"
-var mouse_cursor: String = "enabled"        # "enabled" | "disabled"
-                                            # When "disabled", mouse motion does not
-                                            # move the on-map cursor in any state.
-                                            # Mouse clicks (confirm/cancel) still fire.
-var auto_end_turn: bool = true              # end phase when every acting unit is DONE
-var camera_edge_buffer: int = 2             # clamped 0-5 tiles
-
-# --- Controls ---
-# { action_name: Array[InputEvent] }; applied to InputMap at startup.
-var keybindings: Dictionary = {}
-
-func _ready() -> void:
-    load_settings()
-    _apply_audio()
-    _apply_keybindings()
-    _mirror_game_keys_to_ui()
-
-func load_settings() -> void
-    # Reads user://settings.cfg via ConfigFile; falls back to defaults per key.
-    # Stale permadeath/leveling_method keys from old config files are ignored.
-
-func save() -> void
-    # Writes all current values to user://settings.cfg.
-
-func reset_section_to_defaults(section: String) -> void
-    # section: "audio" | "controls" | "gameplay"
-
-func _apply_audio() -> void
-    # Converts 0–100 ints to decibels and sets each AudioServer bus.
-    # Buses are looked up by NAME (get_bus_index("Master"/"Music"/"SFX")), so
-    # editor bus order does not matter; missing buses are silently skipped.
-
-func _apply_keybindings() -> void
-    # InputMap.action_erase_events() + action_add_event() per bound action.
-
-func _mirror_game_keys_to_ui() -> void
-    # Copies the cursor_*/confirm/cancel events onto Godot's built-in ui_* actions
-    # so menus (which navigate via ui_*) respond to the same keys as in-game (WASD/Z/X).
-
-func set_volume(bus_name: String, value: int) -> void   # updates var, applies, saves
-func rebind_action(action_name: String, event: InputEvent) -> void
-func get_movement_speed_seconds() -> float
-    # Per-tile tween duration: "normal" -> 0.12 | "fast" -> 0.06 | "instant" -> 0.0
-```
-
-### `DataManager.gd`
-
-Autoload. Loads every content `.tres` at startup so bad data fails loud at boot.
-
-```gdscript
-extends Node
-
-var _classes: Dictionary = {}
-var _weapons: Dictionary = {}
-var _items: Dictionary = {}
-var _skills: Dictionary = {}
-# The weapon triangle lives in GameConstants.WEAPON_TRIANGLE — the single source
-# of truth, shared with CombatResolver. DataManager no longer holds its own copy.
-
-func _ready() -> void:
-    _load_directory("res://data/classes/", _classes)
-    _load_directory("res://data/weapons/", _weapons)
-    _load_directory("res://data/items/", _items)
-    _load_directory("res://data/skills/", _skills)
-    for skill in _skills.values():
-        skill.validate()
-    for err in collect_validation_errors(_classes, _weapons, _items, _skills):
-        push_error(err)
-
-static func collect_validation_errors(classes, weapons, items, skills) -> Array[String]
-func _load_directory(path: String, target: Dictionary) -> void
-func get_class_data(id: String) -> ClassData   # named *_data, not get_class, to avoid
-                                               # Godot's Object.get_class() override warning
-func get_all_classes() -> Dictionary
-func validate_unit_data(unit: UnitData) -> Array[String]
-func get_weapon(id: String) -> WeaponData
-func get_item(id: String) -> ItemData
-func get_skill(id: String) -> SkillData
-func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String
-    # "advantage" | "disadvantage" | "neutral" — reads GameConstants.WEAPON_TRIANGLE.
-```
-
-### `EventBus.gd`
-
-Autoload. Central signal bus — systems emit here instead of referencing each other.
-
-```gdscript
-extends Node
-
-signal unit_selected(unit: Node)
-signal unit_deselected()
-signal unit_moved(unit: Node, from_tile: Vector2i, to_tile: Vector2i)
-signal unit_action_taken(unit: Node)
-signal combat_started(attacker: Node, defender: Node)
-# combat_resolved is emitted AFTER handle_death() on any loser — listeners MUST
-# is_instance_valid() before dereferencing attacker/defender across frames.
-signal combat_resolved(attacker: Node, defender: Node, result: Dictionary)
-signal unit_damaged(unit: Node, amount: int)
-signal unit_died(unit: Node)
-signal unit_healed(unit: Node, amount: int)
-signal unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array)
-signal promotion_available(unit: Node)
-signal unit_promoted(unit: Node, old_class_id: String, new_class_id: String)
-signal promotion_started()
-signal promotion_finished()
-signal unit_reclassed(unit: Node, old_class_id: String, new_class_id: String)
-signal reclass_started()
-signal reclass_finished()
-signal level_up_started()
-signal level_up_finished()
-signal phase_changed(new_phase: int, faction_id: String)
-signal cursor_moved(tile: Vector2i)
-signal ai_unit_acting(unit: Node)
-signal map_victory()
-signal map_defeat()
-signal map_resolved(winner_group: String, standings: Array)
-signal debug_flags_changed()
-```
-
-> `TurnManager` still exposes its own `turn_changed(turn_number: int)` signal
-> outside the bus. Condition/Laguz signals (`condition_applied`,
-> `shift_gauge_changed`, …) are still deferred to M8/M12.
-
-### `ConditionManager.gd` (stub until M8)
-
-Autoload, registered after `DataManager`. All methods are no-ops until Milestone 8;
-it exists now so other systems can call into it without `get_node_or_null` guards.
-
-```gdscript
-extends Node
-
-const CONDITION_POISON   := "poison"
-const CONDITION_SLEEP    := "sleep"
-const CONDITION_SILENCE  := "silence"
-const CONDITION_BERSERK  := "berserk"
-const CONDITION_STUN     := "stun"
-
-func apply_condition(unit: Node, condition_type: String, duration: int) -> void
-func remove_condition(unit: Node, condition_type: String) -> void
-func tick_conditions(unit: Node) -> void
-    # Called by TurnManager at the start of each unit's activation.
-    # Applies per-turn effects (e.g. Poison damage) and decrements durations.
-func has_condition(unit: Node, condition_type: String) -> bool
-func clear_all_conditions(unit: Node) -> void
-    # Called by Restore staff and Panacea item.
-```
-
----
-
-## CampaignRules Contract
-
-Status: **Split** — the live per-save rule fields are **Implemented** (on `GameState`);
-consolidation into a `CampaignRules` object is **Target design** (stub created Stage 4.3);
-`exp_gaining_factions` field is **Stub** (`scripts/resources/CampaignRules.gd`)
-Last verified: 2026-06-13
-
-### Summary
-`CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
-the save/runtime state — distinct from global app **settings** (`SettingsManager`, on
-disk) and from per-map **launch state**. Today these rules live as loose fields on
-`GameState`; the contract consolidates them and adds the fields the determinism, EXP, and
-campaign systems depend on.
-
-### Specs
-
-**Implemented (live per-save fields on `GameState`).**
-
-| Field | Type | Meaning |
+| Layer | Autoloads | Responsibility |
 |---|---|---|
-| `permadeath_enabled` | bool | Defeated allied units lost for the run (GDD_02 §Permadeath) |
-| `leveling_method` | String | `growth_random` / `growth_fixed` (GDD_02 §Leveling) |
-| `auto_promote_at_max_level` | bool | Auto-promote at class cap (GDD_02 §Promotion timing) |
-| `pair_up_enabled` | bool | Enables Pair Up actions (GDD_05 §Pair Up) |
-| `max_skills` | int (5) | Equipped-skill cap (GDD_05) |
-| `max_inventory` | int (8) | Inventory slot cap, not yet enforced (GDD_04) |
-
-> Launch-routing fields (`next_map_data_path`, `next_map_roster_policy`,
-> `next_map_roster_source`) travel with New Game but are **launch state, not rules**.
-> Evergreen rule reference: `AGENT/Docs/campaign_rules.md`.
-
-**Target design (consolidated `CampaignRules` + new fields).**
-- Consolidate the rule fields above into a single `CampaignRules` object referenced by
-  `GameState` and serialized into the snapshot (`campaign_rules` key — see Determinism
-  contract). Code stub created in **Stage 4.3**.
-- **`exp_gaining_factions` (OPEN-4):** which factions earn EXP; **default Blue + Green**,
-  Red none. Designers may override. Drives `CombatResolver` EXP gating (GDD_02 §EXP).
-- **Rewind-charge pool (RNG-3):** bounded reroll/probe budget; **default 3–5, 0 =
-  ironman**. Owned by the determinism contract below.
-- **Follow-up threshold override:** the default Battle-Speed follow-up threshold (5) may be
-  campaign-overridable (GDD_02 §Combat Resolution).
-- **Broken-weapon degraded mode (OPEN-5):** likely a `CampaignRules` toggle (GDD_04).
-
-### Known gaps
-- `CampaignRules` class stub created (`scripts/resources/CampaignRules.gd`), but not
-  yet wired into `GameState`. Fields remain loose on `GameState`; consolidation and
-  snapshot integration are a Phase 3 task (requires campaign save/load design).
-
-### Anchors
-- Code: `scripts/autoloads/GameState.gd` (current rule fields); `scripts/resources/CampaignRules.gd` (stub)
-- Guide: `AGENT/Docs/campaign_rules.md`
-- Decisions: OPEN-4, OPEN-5, RNG-3, D-D
-- Roadmap: GDD_10 §Release Gates / CampaignRules Stub; EXP gating owner: GDD_02
-
----
-
-## Determinism, Snapshot & Online Contract
-
-Status: **Target design** (binding rules ratified; `RngService` is Package A, not yet built)
-Last verified: 2026-06-13
-
-### Summary
-All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
-that rewind, suspend save, and Retry reproduce identical outcomes, and online play can
-be host-authoritative. This section is the **binding contract**; the implementation
-plan (code, integration sweep, tests, build order) is
-`AGENT/Docs/rng_determinism_design_2026-06-11.md`.
-
-### Specs (binding rules)
-
-- **RNG-1 — Hash-chained context-seeded dice.** Every gameplay die derives from
-  `seed = mix(map_seed, history_hash, event_record)`. `history_hash` advances on every
-  **committed, non-undoable** unit action; equip, undone moves, menu/cursor/preview
-  **never** advance it. Each dice-bearing event draws from its own freshly seeded RNG
-  in the canonical roll order; level-ups are chained per `(unit_id, new_level)`.
-- **RNG-2 — RNG state lives in the snapshot.** `{map_seed, history_hash}` serializes
-  into every map snapshot (Retry, rewind checkpoints, suspend save); replaying the
-  identical committed-action sequence reproduces outcomes byte-for-byte.
-- **RNG-3 — Accepted exploits, priced by rewind charges.** Probing and Wait-to-reroll
-  are knowingly permitted, bounded by a `CampaignRules` rewind-charge pool (default 3–5;
-  0 = ironman). No further anti-manipulation machinery.
-- **RNG-4 — Online is host-authoritative (M15B, post-1.0).** The host simulates and
-  broadcasts result payloads through the `resolve_combat()` / `apply_combat_result()` +
-  snapshot seams; determinism guarantees are **engine-local**. The custom mixer is still
-  mandatory (protects suspend saves across Godot upgrades).
-- **Canonical roll order (binding).** Per `attack` event: per strike, **two hit RNs**
-  (0–99; hit when `floor((r1+r2)/2) < To-Hit`, RULE-001), then a **crit RN only on a
-  hit**, then skill-activation rolls at their trigger slots; then `levelup` events
-  (one growth roll per stat in `ClassData.STAT_KEYS` order). Reordering — including
-  reverting to a single hit RN — is a **save/replay-breaking** change.
-- **Frame-atomicity (already true).** Combat resolves within one frame
-  (`resolve_combat()` builds + rolls; `apply_combat_result()` commits); snapshots exist
-  only **between** committed actions, so there is no mid-exchange state to serialize.
-- **Snapshot contract.** Generalize `GameState.take_map_snapshot()` into one
-  `Dictionary` (`schema_version`, `map_id`, `campaign_rules`, `rng`, `turn`, `party`,
-  `pair_up`, `units[]` including non-`@export` runtime fields). Retry = restore
-  checkpoint 0; suspend save = this dict to `user://suspend.sav`; rewind = a ring of
-  these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
-  delete-on-load — RNG-2 already blocks reload-scumming).
-- **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
-  subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
-  save-breaking).
-
-### Known gaps
-- `RngService` autoload, the migration sweep off raw `randi()`, and tests T1–T7 are
-  **not built** (Package A, Build Order Step 1). Until then combat uses the inline
-  single-roll path noted under CombatResolver.
-
-### Anchors
-- Code (target): `scripts/autoloads/RngService.gd`; touches `CombatResolver.gd`,
-  `SkillHandler.gd`, `Unit.gd` (`level_up`), `TurnManager.gd`, `GameState.gd`
-- Tests (target): determinism T1–T7 (replay, snapshot round-trip, butterfly/isolation,
-  equip neutrality, raw-RNG lint, suspend round-trip, roll-order freeze)
-- Decisions: RNG-1…4, RULE-001, OPEN-13
-- Implementation plan: `AGENT/Docs/rng_determinism_design_2026-06-11.md`
-- Combat-facing rules: GDD_02 → Combat Resolution & Hit RNG
-
----
-
-## Key Script Function Signatures
-
-### `GridManager.gd`
-
-`class_name GridManager`. A scene node, child of `GameMap`. Authority on map geometry.
-
-```gdscript
-class_name GridManager extends Node
-
-var map_width: int = 0
-var map_height: int = 0
-# Terrain bonuses applied to defenders only:
-const TERRAIN_DEF_BONUS: Dictionary    # plain 0, forest 1, mountain 2, fort 2, sea/desert 0
-const TERRAIN_DODGE_BONUS: Dictionary  # plain 0, forest 15, mountain 20, fort 30, sea 10, desert 5
-
-func setup(terrain_layer, overlay_layer, width, height) -> void   # wired by GameMap
-
-# Terrain / queries
-func get_terrain_at(tile: Vector2i) -> String
-    # "plain"|"forest"|"mountain"|"fort"|"sea"|"desert"|"wall"; out-of-bounds -> "wall"
-func is_passable(tile: Vector2i, unit: Node) -> bool
-func can_end_on_tile(tile: Vector2i, unit: Node) -> bool   # cannot stop on any occupant
-func get_unit_at(tile: Vector2i) -> Node                   # null if empty
-func world_to_tile(world_pos: Vector2) -> Vector2i
-func tile_to_world(tile: Vector2i) -> Vector2              # top-left corner of tile
-func get_move_cost(tile: Vector2i, unit: Node) -> int
-    # 1 plain/fort; 2 forest/sea/desert; 3 mountain; 3 armoured/mounted on desert;
-    # 999 wall. Consults SkillHandler movement overrides first.
-
-# Movement (Dijkstra)
-func dijkstra_costs(start, max_cost, ignore_occupants, blocker_unit, came_from := {}) -> Dictionary
-    # Shared cost flood behind the queries below. Returns { tile: cost }.
-func get_movement_range(unit: Node) -> Array[Vector2i]
-    # Tiles the unit can legally stop on; capped at unit.data.movement.
-func get_movement_path(unit: Node, target_tile: Vector2i) -> Array[Vector2i]
-    # Ordered path; [] if unreachable. Named *_path, not get_path_to, to avoid the
-    # Node.get_path_to() built-in override warning.
-
-# Attack / staff range
-func get_attack_range_from_tiles(unit, from_tiles) -> Array[Vector2i]
-func get_all_attack_tiles(unit, from_tiles) -> Array[Vector2i]
-func get_attackable_enemies_from_tile(unit, tile) -> Array[Node]
-func can_attack_from_tile(attacker, at_tile, target) -> bool
-func in_weapon_range_from_tile(unit, at_tile, target) -> bool   # range only; allows staves
-func get_healable_allies(unit: Node) -> Array[Node]             # allies in staff range, hurt
-
-# Overlays
-func show_movement_overlay(tiles) -> void   # blue
-func show_attack_overlay(tiles) -> void     # red
-func show_heal_overlay(tiles) -> void       # green
-func get_enemy_danger_tiles() -> Array[Vector2i]  # threat = each enemy's move range + attack reach
-func show_enemy_danger_zone() -> void       # paints get_enemy_danger_tiles() in dark red
-func clear_overlays() -> void
-```
-
-### `CombatResolver.gd`
-
-Autoload. The combat math engine. Resolution is **two-phase**: `resolve_combat()`
-builds the exchange list and rolls RNG; `apply_combat_result()` commits the outcome.
-Splitting them lets weapon breakage and skill triggers be modelled during simulation
-before any state is mutated. See the `CombatResolver.gd` header for the full
-combat-context dictionary schema.
-
-```gdscript
-extends Node
-
-# Phase 1 — build the exchange list and roll RNG. No HP/EXP applied yet.
-func resolve_combat(attacker: Node, defender: Node) -> Dictionary
-# Returns {
-#   "exchanges": [ { attacker, defender, weapon, hit, crit, damage,
-#                    loses_durability, is_counter, is_follow_up } ],
-#   "attacker_died": bool,   # from the simulated HP
-#   "defender_died": bool,
-#   "context": Dictionary,
-# }
-
-# Phase 2 — commit the result: durability, HP (take_damage), wEXP, EXP, deaths.
-# Adds "attacker_exp"/"defender_exp" to result; emits combat_resolved at the end.
-# (combat_started is emitted by resolve_combat() above, before any RNG.)
-func apply_combat_result(result: Dictionary, attacker: Node, defender: Node) -> void
-
-# Forecast — no RNG, no lasting side effects (snapshots and restores unit state).
-func preview_combat(attacker: Node, defender: Node) -> Dictionary
-# Returns {
-#   attacker_hit, attacker_damage, attacker_crit, attacker_attacks,
-#   can_counter, defender_hit, defender_damage, defender_crit, defender_attacks,
-#   attacker_weapon, defender_weapon, defender_vantage
-# }
-
-# Stat helpers (also used by EnemyAI). Each takes an optional context Dictionary.
-func compute_hit_pct(attacker, defender, weapon := null, context := {}) -> int
-func compute_damage(attacker, defender, weapon := null, context := {}) -> int
-func compute_crit_pct(attacker, defender, weapon := null, context := {}) -> int
-func can_counterattack(defender: Node, attacker_tile: Vector2i) -> bool
-func get_follow_up_attacker(a: Node, b: Node) -> Node   # null if no follow-up
-func calculate_exp(attacker: Node, defender: Node, killed: bool) -> int
-```
-
-> Battle speed is not a CombatResolver method — it is `Unit.battle_speed()`.
-> **Hit/crit roll — status split.** *Implemented:* inline single-roll
-> `(randi() % 100) < pct`. *Target design:* the **two-RN** model (RULE-001) sourced
-> from `RngService` — see GDD_02 → Combat Resolution and "Determinism, Snapshot &
-> Online Contract" below.
-
-### `TurnManager.gd`
-
-`class_name TurnManager`. A scene node, child of `GameMap`. Owns phase progression
-and per-unit action state.
-
-```gdscript
-class_name TurnManager extends Node
-
-signal turn_changed(turn_number: int)
-
-enum UnitState { READY, MOVED, DONE }
-
-var _unit_states: Dictionary = {}     # Node -> UnitState
-var _original_tiles: Dictionary = {}  # Node -> pre-move tile, for undo
-var _map_over: bool = false
-var _group_eliminated_round: Dictionary = {}
-var _seize_records: Array[Dictionary] = []
-var _escape_records: Array[Dictionary] = []
-var _turn_order: Array[String] = []
-var _active_faction_idx: int = 0
-var _activation_mode: String = "WHOLE_PHASE"
-
-func start_map(map_data: MapData, grid: GridManager = null) -> void
-func start_player_phase() -> void
-func end_player_phase() -> void
-func start_enemy_phase() -> void
-func active_faction() -> String
-func set_ai_controller(ai: Node) -> void
-func set_hotseat_controller(controller: Node) -> void
-func set_unit_state(unit: Node, state: UnitState) -> void
-func get_unit_state(unit: Node) -> UnitState
-func can_unit_act(unit: Node) -> bool          # READY or MOVED
-func are_all_player_units_done() -> bool
-func record_move_start(unit: Node) -> void     # stores pre-move tile for undo
-func undo_move(unit: Node) -> void             # restores tile, returns unit to READY
-func check_victory_conditions() -> void
-    # Evaluates authored ObjectiveCondition arrays per alliance group, including
-    # rout, defeat_boss, protect, survive, seize, escape, and turn_limit.
-func record_seize(unit: Node) -> void
-func can_seize(unit: Node, tile: Vector2i) -> bool
-func record_escape(unit: Node) -> void
-func can_escape(unit: Node, tile: Vector2i) -> bool
-func get_group_eliminated_round(group: String) -> int
-```
-
-### `Unit.gd`
-
-`class_name Unit`. One scene instance per unit on the map; wraps a `UnitData`.
-
-```gdscript
-class_name Unit extends Node2D
-
-var data: UnitData
-var team: String = "blue"   # faction id, not a binary player/enemy enum
-var tile_position: Vector2i   # pass-through property to data.tile_position
-
-func initialize(unit_data: UnitData, start_tile: Vector2i, unit_team: String) -> void
-func set_grid_manager(grid: GridManager) -> void   # cached by GameMap; avoids tree walks
-func get_equipped_weapon() -> WeaponData           # first usable equipped weapon, or null
-func get_equipped_weapon_entry() -> InventoryEntry # the matching InventoryEntry, or null
-func get_equippable_weapons() -> Array[InventoryEntry]
-func set_equipped_weapon(entry: InventoryEntry) -> void
-func has_quality(quality: String) -> bool
-func has_vulnerability(group: String) -> bool
-func get_terrain_def_bonus() -> int
-func get_terrain_dodge_bonus() -> int
-
-# Stat access — all combat stats read through get_effective_stat so modifiers apply
-func get_effective_stat(stat_name: String) -> int
-    # Base value + active_modifiers matching stat_name, clamped >= 0. stat_name must
-    # match a UnitData property exactly: "strength","magic","defense","resistance",
-    # "skill","speed","luck","hp" — the FULL names, never "str"/"spd"/etc.
-func has_skill(skill_id: String) -> bool
-func get_skill_uses_remaining(skill_id: String, max_per_map: int) -> int
-func consume_skill_use(skill_id: String) -> void
-
-# Modifier lifecycle
-func add_modifier(stat, delta, source, duration, duration_type) -> void
-func remove_modifier(source: String) -> void
-func tick_modifiers(duration_type: String) -> void   # "turn" / "map_turn"
-func clear_combat_modifiers() -> void                # called after each combat
-func reset_map_state() -> void                       # before take_map_snapshot()
-
-# Combat stats (optional weapon override; default = currently equipped weapon)
-func battle_speed(weapon := null) -> int
-func accuracy(weapon := null) -> int
-func dodge(weapon := null) -> int
-func crit_rate(weapon := null) -> int
-func crit_avoid() -> int
-
-# HP / death
-func take_damage(amount: int) -> void
-func heal(amount: int) -> void
-func perform_staff_heal(target: Node, weapon: WeaponData) -> void   # shared by player + AI
-func handle_death() -> void
-
-# Movement
-func move_along_path(path: Array[Vector2i]) -> void   # async; Tween; await to block
-func snap_to_tile(tile: Vector2i) -> void             # instant; used by AI and undo
-
-# Inventory / progression
-func use_weapon_durability(weapon_id: String = "") -> bool   # true if the weapon broke
-func can_equip(weapon_data: WeaponData) -> bool
-func add_exp(amount: int) -> void
-func level_up() -> void
-func add_wexp(weapon_type: String, amount: int) -> bool      # true if a rank-up occurred
-func promote(target_class_id: String) -> bool
-func can_reclass() -> bool
-func get_second_seal_options() -> Array[Dictionary]
-func reclass(target_class_id: String, target_line_id := "") -> bool
-
-# Visual state
-func set_done_appearance() -> void     # darkened sprite when DONE
-func reset_appearance() -> void        # back to normal at phase start
-```
-
-> There is no `Unit.damage()` method — per-attack damage is computed only by
-> `CombatResolver.compute_damage()`.
-
-### `MapCursor.gd`
-
-`class_name MapCursor`. A scene node, child of `GameMap`. The cursor FSM, camera,
-and menu wiring. Three concerns are sliced into `RefCounted` helpers, injected via
-`setup()` so they are unit-testable without a SceneTree:
-`MapCursorSelection` (unit selection + path planning), `MapCursorTargeting`
-(attack/staff targeting flow), and `MapCursorInput` (key decode + auto-repeat).
-
-```gdscript
-class_name MapCursor extends Node2D
-
-var current_tile: Vector2i = Vector2i(0, 0)
-
-enum State { FREE, UNIT_SELECTED, UNIT_MOVED, TARGETING, LOCKED }
-var _state: State = State.FREE
-
-func setup(grid: GridManager, camera: Camera2D, turn: TurnManager = null) -> void
-    # Also injects HUD-layer menus/screens and the helper slices
-    # (MapCursorSelection / MapCursorTargeting / MapCursorInput).
-func move_cursor(direction: Vector2i) -> void
-func center_on_tile(tile: Vector2i) -> void   # jump the cursor to a tile (GameMap uses
-                                              # this to start it on the first player unit)
-func _on_confirm() -> void
-func _on_cancel() -> void
-func lock() -> void      # input suppressed (animation, enemy phase); also clears the danger zone
-func unlock() -> void
-func _scroll_camera_if_needed() -> void
-```
-
-> **Menu wiring.** `MapCursor` exports `Node` refs to the HUD-layer menus
-> (`action_menu`, `item_menu`, `map_menu`, `attack_preview`, `settings_screen`).
-> Exported `NodePath`s to nodes declared later in `GameMap.tscn` can resolve to
-> `null` at scene-build time, so `_resolve_menu_refs()` re-resolves any null ref
-> via `get_node_or_null()` in `_ready()` before wiring signals.
-
-> Key-repeat timing lives in `GameConstants` (`CURSOR_KEY_REPEAT_DELAY` 0.25 s /
-> `CURSOR_KEY_REPEAT_RATE` 0.10 s) and `MapCursorInput` — there is no `CURSOR_SPEED`.
-> The Phase-2 camera-zoom hooks (`ZOOM_LEVELS`, `_handle_zoom`) are not yet added
-> (see the Camera Zoom section).
-
----
-
-## Rendering and Display Settings
-
-Set in **Project → Project Settings**:
-
-```
-Display/Window/Size/Viewport Width:   1280
-Display/Window/Size/Viewport Height:  720
-Display/Window/Stretch/Mode:          canvas_items
-Display/Window/Stretch/Aspect:        keep
-Rendering/2D/Snap/Snap 2D Vertices To Pixel: ON
-```
-
-Tile size: **64 × 64 pixels** (matches GDD_06 tileset spec)
-Visible tiles at native resolution: approximately **20 × 11**
-Camera clamps to map bounds so empty space is never shown.
-
-> **Note:** earlier drafts of this document specified 32×32 tiles. The project
-> standardized on 64×64 to match the GDD_06 tileset spec and the placeholder
-> sprite sizes in the checklist. `GameConstants.TILE_SIZE = 64` is authoritative
-> (defined in `scripts/shared/GameConstants.gd`).
-
----
-
-## Input Map
-
-Define these actions in **Project → Project Settings → Input Map**:
-
-| Action Name | Default Keys | Mouse Equivalent |
-|---|---|---|
-| `cursor_up` | W, Up Arrow | — |
-| `cursor_down` | S, Down Arrow | — |
-| `cursor_left` | A, Left Arrow | — |
-| `cursor_right` | D, Right Arrow | — |
-| `confirm` | Z, Enter, Space | Left Click |
-| `cancel` | X, Escape | Right Click |
-| `next_unit` | Tab | — |
-| `prev_unit` | Shift+Tab | — |
-| `open_menu` | M | — (the map menu also opens via confirm/cancel on an empty tile) |
-| `open_settings` | O | — |
-| `show_danger_zone` | Q | Middle Click |
-| `end_turn` | — | — (accessed via Map Menu) |
-| `zoom_in` | + / = | Scroll Up — [PLACEHOLDER Phase 2] |
-| `zoom_out` | - | Scroll Down — [PLACEHOLDER Phase 2] |
-| `zoom_reset` | 0 | — [PLACEHOLDER Phase 2] |
-
----
-
-## Resource Class Definitions
-
-The full `@export` field definitions for every custom Resource class. Each class
-lives in `scripts/resources/` and is saved as `.tres` files in its `data/` subfolder.
-
-> **Headless `.tres` note:** in `--script` runs the global class registry is not
-> initialized, so `.tres` files are written with `type="Resource"` and the real
-> class assigned via the `script = ExtResource(...)` line — see Implementation Notes.
-
-### `UnitData.gd`
-
-```gdscript
-class_name UnitData extends Resource
-
-@export var unit_id: String = ""           # unique id — survivor checks & save/load
-@export var unit_name: String = ""
-var tile_position: Vector2i = Vector2i.ZERO
-    # NOT @export — runtime map state. Captured by GameState's manual snapshot,
-    # not by ResourceSaver. Unit.tile_position is a pass-through to this field.
-@export var class_id: String = ""
-@export var level: int = 1
-@export var exp: int = 0
-@export var is_promoted: bool = false
-@export var internal_level: int = 1        # hidden progression state for promotion/reclass
-
-# Stats — FULL property names. Combat code reads these via Unit.get_effective_stat().
-@export var max_hp: int = 0
-@export var hp: int = 0                    # current HP
-@export var strength: int = 0
-@export var magic: int = 0
-@export var defense: int = 0
-@export var resistance: int = 0
-@export var skill: int = 0
-@export var speed: int = 0
-@export var luck: int = 0
-@export var movement: int = 0
-@export var constitution: int = 0
-@export var line_of_sight: int = 4
-
-# Personal growth rates, added to the class growth table for player units.
-@export var growth_rates: Dictionary = {}
-
-# Authoritative numeric WEXP totals keyed by track (e.g. "sword", "staff",
-# "elemental_magic"). Rank display is derived from these totals.
-@export var weapon_wexp: Dictionary = {}
-
-# Equipped skill IDs (future prep UI can swap a subset out of earned_skills)
-@export var skills: Array[String] = []
-@export var earned_skills: Array[String] = []
-@export var reclass_options: Array[String] = []
-@export var class_line_id: String = ""
-# Permanently earned mastery skills. NOT @export — runtime only.
-var mastery_skills: Array[String] = []
-
-# Typed inventory — Array[InventoryEntry] (replaced the old Array[Dictionary]).
-@export var inventory: Array[InventoryEntry] = []
-
-# Conditions — Array of Dictionaries; see GDD_02 status conditions
-@export var conditions: Array[Dictionary] = []
-
-@export var gold: int = 1000             # legacy field; active economy uses GameState.party_gold
-@export var is_incapacitated: bool = false  # permadeath flag
-@export var ai_profile: String = "basic"    # EnemyAI dispatch — see GDD_08
-@export var is_default_roster: bool = false # true for the 6 generated starter units
-
-# ── Phase 2 runtime state ────────────────────────────────────────────────────
-# Active temporary stat modifiers. Each entry:
-#   { "stat": String, "delta": int, "source": String, "duration": int,
-#     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
-# duration -1 or "permanent" type = never auto-removed.
-var active_modifiers: Array[Dictionary] = []
-var skill_use_counters: Dictionary = {}     # skill.id -> uses this map
-var damage_taken_this_map: int = 0          # used by Vengeance (M9)
-@export var growth_accumulators: Dictionary = {}   # carry-over for growth_fixed leveling
-
-# Laguz fields — safe defaults for all Beorc units; ignored until M12.
-@export var shift_gauge: int = 0
-@export var is_shifted: bool = false
-@export var shift_profile_id: String = ""
-```
-
-> The non-`@export` fields (`tile_position`, `mastery_skills`, `active_modifiers`,
-> `skill_use_counters`, `damage_taken_this_map`) are runtime state. `GameState`'s map snapshot copies them
-> by hand for Retry; a future `ResourceSaver`-based save must serialize them via that
-> snapshot dict (a `ResourceSaver` write does not persist non-exported vars).
-
-### `InventoryEntry.gd`
-
-A unit's inventory is `Array[InventoryEntry]` — a typed `Resource`, **not** the old
-`Array[Dictionary]` format. One `InventoryEntry` per slot; `entry_type` discriminates.
-
-```gdscript
-class_name InventoryEntry extends Resource
-
-@export var entry_type: String = ""    # "weapon" | "item" | "equip"
-
-# Weapon fields
-@export var weapon_id: String = ""     # must match a WeaponData id
-@export var forged_mods: Dictionary = {}   # reserved for forging (M10)
-
-# Item fields
-@export var item_id: String = ""       # must match an ItemData id
-
-# Shared — remaining uses. -1 = infinite, 0 = exhausted, >0 = finite.
-# Equip-type entries ignore this (gate them with is_equip()).
-@export var uses_remaining: int = 0
-
-# Equipment bonus fields (equip type — M10 forging)
-@export var accuracy: int = 0
-@export var damage: int = 0
-@export var crit: int = 0
-@export var dodge: int = 0
-
-func is_weapon() -> bool       # entry_type == "weapon"
-func is_item() -> bool         # entry_type == "item"
-func is_equip() -> bool        # entry_type == "equip"
-func has_uses() -> bool        # uses_remaining != 0
-func validate() -> bool        # checks type/id consistency
-static func make_weapon(weapon_id: String, uses: int) -> InventoryEntry
-static func make_item(item_id: String, uses: int) -> InventoryEntry
-```
-
-`Unit.get_equipped_weapon()` returns the first `is_weapon()` entry that still
-`has_uses()` and whose `WeaponData` the unit can equip (proficiency rank check).
-Items are never auto-equipped.
-
-### `WeaponData.gd`
-
-```gdscript
-class_name WeaponData extends Resource
-
-@export var id: String = ""
-@export var display_name: String = ""
-@export var combat_family: String = ""    # canonical equip / skill family
-@export var wexp_track: String = ""       # canonical trained progression track
-@export var required_rank: String = "E"
-@export var mt: int = 0                   # staves: 0 (heal = 10 + MAG, computed separately)
-@export var hit: int = 0                  # staves: 0 (healing always lands)
-@export var crit: int = 0                 # staves: 0 (staves cannot crit)
-
-# Range as formula strings so dynamic ranges (e.g. Physic "MAG/2") work uniformly.
-# Static weapons store integer strings ("1", "2"). Always read via get_range_min/max().
-@export var range_min_formula: String = "1"
-@export var range_max_formula: String = "1"
-
-@export var wt: int = 0
-@export var uses: int = 1
-@export var cost: int = 0
-@export var wexp: int = 1                 # wEXP granted per successful hit
-@export var effect_tags: Array[String] = []   # see GDD_04 for the full tag list
-@export var uses_mag: bool = false        # true: MAG for damage, targets RES (tomes)
-@export var triangle_family: String = ""       # hybrid override for triangle checks
-@export var strikes_per_attack: int = 1   # 2 for Brave weapons
-@export var is_natural_weapon: bool = false    # Laguz Fang/Claw/Beak/Talon (deferred)
-
-func is_healing_staff() -> bool                # staff type + heal_10_plus_mag tag
-func get_range_min(unit: Node = null) -> int   # evaluates range_min_formula
-func get_range_max(unit: Node = null) -> int   # evaluates range_max_formula
-func get_triangle_family() -> String
-```
-
-**Staff note:** healing staves have `weapon_type = "staff"` and the `heal_10_plus_mag`
-effect tag. `is_healing_staff()` keys off the **tag** (not the type), so future
-offensive/debuff staves remain attack-capable. Healing staves cannot attack or
-counterattack — staff use runs through `Unit.perform_staff_heal()`, not `CombatResolver`.
-
-### `ClassData.gd`
-
-```gdscript
-class_name ClassData extends Resource
-
-@export var id: String = ""
-@export var display_name: String = ""
-@export var description: String = ""
-@export var tier: int = 1
-@export var max_level: int = 20
-@export var base_hp: int = 0
-@export var base_strength: int = 0
-@export var base_magic: int = 0
-@export var base_defense: int = 0
-@export var base_resistance: int = 0
-@export var base_skill: int = 0
-@export var base_speed: int = 0
-@export var base_luck: int = 0
-@export var base_movement: int = 0
-@export var base_constitution: int = 0
-@export var base_line_of_sight: int = 4
-@export var weapon_wexp_bases: Dictionary = {}
-@export var weapon_wexp_caps: Dictionary = {}
-@export var allowed_weapon_families: Array[String] = []
-@export var class_groups: Array[String] = []
-@export var special_qualities: Array[String] = []
-@export var vulnerability_groups: Array[String] = []
-@export var internal_level_rule: String = ""
-@export var class_availability: String = "playable"
-@export var promotes_to: Array[String] = []
-@export var promotes_from: Array[String] = []
-@export var promotion_stat_bonuses: Dictionary = {}
-const STAT_KEYS: Array[String] = ["hp", "strength", "magic", "defense",
-    "resistance", "skill", "speed", "luck"]
-@export var player_growth_rates: Dictionary = {}
-@export var enemy_growth_rates: Dictionary = {}
-@export var stat_caps: Dictionary = {}
-@export var skill_unlocks: Dictionary = {}
-@export var sprite_id: String = ""        # [PLACEHOLDER] links to sprite sheet row
-
-# ── Laguz gauge parameters ───────────────────────────────────────────────────
-# All default to 0/false/"" for Beorc classes — safe to ignore until M12.
-@export var is_laguz: bool = false
-@export var max_shift_gauge: int = 0
-@export var shift_gauge_start: int = 0
-@export var shift_gain_per_turn_humanoid: int = 0
-@export var shift_gain_per_turn_animal: int = 0
-@export var shift_gain_per_combat_humanoid: int = 0
-@export var shift_gain_per_combat_animal: int = 0
-@export var animal_stat_bonus_pct: float = 0.5    # +50%; reduced to +25% with Feral Instincts
-@export var natural_weapon_type: String = ""       # "fang"|"claw"|"beak"|"talon"|"" for Beorc
-@export var animal_con_bonus_pct: float = 0.75     # CON ~+75% in animal form
-
-func get_weapon_wexp_base(track: String) -> int
-func get_weapon_wexp_cap(track: String) -> int
-func get_allowed_weapon_families() -> Array[String]
-func resolved_internal_level_rule() -> String
-func is_menu_visible() -> bool
-```
-
-Each usable WEXP track has an authored class cap. Current classes default to
-the A-rank threshold (400 WEXP); special classes may explicitly author S-rank
-caps later. `Unit.add_wexp()` stops at the active class cap.
-
-### `ItemData.gd`
-
-```gdscript
-class_name ItemData extends Resource
-
-@export var id: String = ""
-@export var display_name: String = ""
-@export var description: String = ""
-@export var item_type: String = ""
-    # "healing" | "stat" | "promotion" | "equip" | "key" | "sellable"
-@export var uses: int = 1                 # -1 = infinite / equippable
-@export var cost: int = 0
-@export var effect_id: String = ""
-    # ItemHandler: "heal_flat" | "heal_full" | "promote" | "reclass" | "stat_buff"
-@export var effect_params: Dictionary = {}
-```
-
-### `SkillData.gd`
-
-```gdscript
-class_name SkillData extends Resource
-
-@export var id: String = ""
-@export var display_name: String = ""
-@export var description: String = ""
-@export var trigger: String = ""
-    # "passive" | "start_of_turn" | "on_attack" | "on_defend" | "on_hit"
-    # | "on_kill" | "on_damaged" | "on_combat_start" | "on_combat_end"
-    # | "on_move" | "on_level_up" | "player_activated"
-    # | "on_combat_start_negate"  (pre-pass before on_combat_start — Nihil)
-    # Phase 2: "on_combat_apply_modifiers" | "on_ally_attacked"
-    # | "on_enemy_leaves_adjacent" | "on_map_start" | "on_shift"
-@export var activation_chance_stat: String = ""
-    # e.g. "skill" — empty string if the skill always triggers
-@export var activation_divisor: int = 2    # 2 = SKL/2 % activation chance
-@export var effect_id: String = ""         # dispatched by SkillHandler
-@export var effect_params: Dictionary = {}
-@export var is_player_activated: bool = false
-@export var max_uses_per_map: int = -1     # -1 = unlimited (vs skill_use_counters)
-@export var max_uses_per_combat: int = -1  # -1 = unlimited (reset after each combat)
-
-func validate() -> void   # warns on missing id/effect_id/trigger; called by DataManager
-```
-
-### `MapData.gd`
-
-```gdscript
-class_name MapData extends Resource
-
-@export var id: String = ""
-@export var display_name: String = ""
-@export var tilemap_scene_path: String = ""
-@export var player_start_tiles: Array[Vector2i] = []
-@export var enemy_placements: Array[Dictionary] = []
-    # Each entry: { "unit_data_path": String, "tile": Vector2i,
-    #               "ai_profile": String, "is_boss": bool, "faction": String? }
-@export var reward_gold: int = 0
-@export var reward_items: Array[String] = []
-# Terrain string grid — one String per row; chars per GameMap._CHAR_TO_SOURCE
-# (. F M T S D W). Height = grid.size(), width = grid[0].length().
-@export var grid: Array[String] = []
-# Camera start; Vector2i(-1,-1) = unset -> centroid of player_start_tiles.
-@export var camera_start_tile: Vector2i = Vector2i(-1, -1)
-@export var factions: Array[FactionData] = []
-@export var turn_order: Array[String] = []
-@export var activation_mode: String = "WHOLE_PHASE"
-@export var victory_conditions: Dictionary = {}   # alliance_group -> Array[ObjectiveCondition]
-@export var defeat_conditions: Dictionary = {}
-
-func get_faction(faction_id: String) -> FactionData
-```
-
----
-
-## Camera Zoom
-
-Camera zoom is planned as a **Phase 2** feature. The architecture below should
-be built into `MapCursor.gd` and `Camera2D` from the start so zoom can be added
-without restructuring.
-
-### Design
-- The player zooms using the scroll wheel or dedicated keyboard shortcuts
-- Three discrete zoom levels: **0.75×** (zoomed out), **1×** (default), **1.5×** (zoomed in)
-- At 1280x720 with 64px tiles, 1x shows about 20x11 tiles.
-- At 0.75x zoom, the same viewport shows about 27x15 tiles.
-- At 1.5x zoom, it shows about 13x7 tiles.
-- Zoom is centered on the cursor's current tile, not the screen center
-- Camera clamping still applies at all zoom levels (no black space shown)
-- Pixel snapping (`Rendering/2D/Snap`) remains active at all zoom levels
-
-### Input Actions to Add (Phase 2)
-Add to Input Map:
-| Action | Key | Mouse |
-|---|---|---|
-| `zoom_in` | + / = | Scroll Up |
-| `zoom_out` | - | Scroll Down |
-| `zoom_reset` | 0 | — |
-
-### Architecture Hooks (Add Now)
-Add these to `MapCursor.gd` even in MVP so Phase 2 zoom slots in cleanly:
-
-```gdscript
-# In MapCursor.gd
-
-const ZOOM_LEVELS: Array[float] = [0.75, 1.0, 1.5]
-const DEFAULT_ZOOM_INDEX: int = 1
-var _zoom_index: int = DEFAULT_ZOOM_INDEX
-
-func _handle_zoom(direction: int) -> void
-    # direction: +1 = zoom in, -1 = zoom out
-    # Clamps to ZOOM_LEVELS array bounds
-    # Calls _apply_zoom()
-    # [PLACEHOLDER — implement in Phase 2]
-
-func _apply_zoom() -> void
-    # Sets _camera.zoom = Vector2.ONE * ZOOM_LEVELS[_zoom_index]
-    # Re-applies camera clamp limits adjusted for current zoom
-    # [PLACEHOLDER — implement in Phase 2]
-```
+| Shared foundation | `GameConstants`, `EventBus`, `RngService`, `SettingsManager`, `InputModeManager`, `GameState` | Common vocabulary/events, deterministic RNG, app settings/input mode, and live campaign/map state |
+| Extensibility and transactions | `RegistryManager`, `ActionEffectRunner`, `ResourceLedger`, `OccupancyService`, `DeathLifecycle`, `ProjectionService` | Registry resolution and shared mutation, placement, death, and forecast boundaries |
+| Content and persistence | `DataManager`, `SaveManager` | Content load/validation and save-slot disk I/O |
+| Gameplay services | `ConditionManager`, `SkillHandler`, `ItemHandler`, `CombatResolver`, `EnemyAI`, `PairUpRegistry`, `PairUpBonusResolver` | Feature execution shared across scenes |
+
+`GameState` owns live state and Retry/suspend capture orchestration; the binding
+snapshot and deterministic-event rules live in
+[GDD_01 — Runtime Contracts](GDD_01_Runtime_Contracts.md). `DataManager` performs
+strict replace-load for a selected self-contained content root; its resource shapes
+and validation obligations live in
+[GDD_01 — Data Contracts](GDD_01_Data_Contracts.md).
+
+New Game launch is selector-driven through `data/maps/map_registry.json`. A launch
+commits an explicit map path and roster policy/source before opening `GameMap`;
+missing roster preparation fails loud instead of substituting the default roster.
+The operational authoring flow is in
+[Map And Campaign Content Authoring Guide](../Docs/guides/map_authoring_guide.md).
+
+Input persistence and mode resolution belong to `GDD_07` and `B6-INPUT`.
+Condition behavior belongs to `GDD_02` and its planned condition-effects track. Event payloads and
+service signatures are code-owned; GDD chapters document only cross-system
+invariants.
 
 ---
 
@@ -1438,24 +490,25 @@ on `Unit.gd`), `get_path`, `get_node`, `get_class`, `get_children`.
 
 ### Autoload load order
 
-Project registration order (`project.godot [autoload]`) is the full twelve:
-`GameConstants → EventBus → SettingsManager → GameState → DataManager →
-ConditionManager → SkillHandler → ItemHandler → CombatResolver → EnemyAI →
-PairUpRegistry → PairUpBonusResolver`.
-Each autoload's `_ready()` runs in that order. Practical consequence: an autoload
-must NOT touch a later autoload from its own `_ready()`. SettingsManager loads
-settings from disk but does not push values to GameState; GameState pulls them
-in its own `_ready()` instead.
+Project registration order (`project.godot [autoload]`) is the full 21:
 
-`ConditionManager` is a stub until M8. It must be registered now so other systems
-can call into it without `get_node_or_null` guards. `CombatResolver`, `EnemyAI`,
-`SkillHandler`, and `ItemHandler` are autoload singletons reached via
-`get_node_or_null("/root/...")` — they are not scene nodes.
+`GameConstants → EventBus → RngService → SettingsManager → InputModeManager →
+GameState → RegistryManager → ActionEffectRunner → ResourceLedger →
+OccupancyService → DeathLifecycle → ProjectionService → DataManager →
+SaveManager → ConditionManager → SkillHandler → ItemHandler → CombatResolver →
+EnemyAI → PairUpRegistry → PairUpBonusResolver`.
 
-**Target design (Package A):** `RngService` (see "Determinism, Snapshot & Online
-Contract") inserts into this order **after `EventBus`, before `SettingsManager`** — it
-has no dependencies and must exist before anything rolls — making the list thirteen:
-`GameConstants → EventBus → RngService → SettingsManager → GameState → …`.
+Each autoload's `_ready()` runs in that order, so startup code must not assume a
+later autoload is initialized. `RngService` intentionally precedes all gameplay
+consumers. The Band 2 shared services precede `DataManager`, whose boot validation
+uses the registry foundation. `SaveManager` follows data loading and owns disk I/O;
+snapshot encoding remains in the runtime/data contracts.
+
+`ConditionManager` is an implemented seam with no-op condition behavior while
+the condition-effects implementation remains planned. `SkillHandler`, `ItemHandler`,
+`CombatResolver`, and `EnemyAI` are autoloads rather than scene nodes. Runtime
+code and headless tests should resolve autoloads through `/root/<name>` when
+compile-time singleton identifiers are unavailable.
 
 ### Export-safe content loading
 

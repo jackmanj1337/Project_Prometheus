@@ -139,6 +139,23 @@ class MockUnit extends Node:
 			func(m): return m["source"] != source)
 
 
+# Records the lifecycle boundary and deliberately mutates the attacker during
+# defender disposition. The attacker's later context must retain its entry
+# snapshot, proving both contexts existed before either disposition began.
+class MutualDeathDispositionSpy extends RefCounted:
+	var contexts: Array[RefCounted] = []
+	var both_units_live_at_entry: bool = false
+
+	func apply(ctx: RefCounted, result: RefCounted) -> RefCounted:
+		contexts.append(ctx)
+		if contexts.size() == 1:
+			both_units_live_at_entry = not ctx.subject.is_queued_for_deletion() \
+				and not ctx.responsible_actor.is_queued_for_deletion()
+			ctx.responsible_actor.data.inventory.clear()
+			ctx.responsible_actor.tile_position = Vector2i(99, 99)
+		return result
+
+
 func _make_weapon(p: Dictionary) -> Resource:
 	var w = WeaponDataS.new()
 	w.id           = p.get("id", "test")
@@ -569,9 +586,20 @@ func _init() -> void:
 	# resolve_combat can no longer author a both-die fight (GDD_02:167 stops the exchange
 	# on the first death). The BUG-01 fix lives in apply_combat_result: it iterates ALL
 	# exchanges rather than stopping at the first death. Hand-build a result with two
-	# lethal exchanges and confirm both units end up dead.
+	# lethal exchanges and verify the shared lifecycle receives complete entry
+	# snapshots in defender-first order.
 	var mk_a = _make_unit({"name":"MKA","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"weapon":overkill_sword})
 	var mk_d = _make_unit({"name":"MKD","level":5,"strength":30,"defense":0,"hp":1,"max_hp":1,"team":"red","tile":Vector2i(1,0),"weapon":overkill_lance})
+	mk_a.data.unit_id = "mutual_attacker"
+	mk_d.data.unit_id = "mutual_defender"
+	mk_a.data.inventory.append(InventoryEntry.make_item("vulnerary", 2))
+	mk_d.data.inventory.append(InventoryEntry.make_item("elixir", 1))
+	root.add_child(mk_a)
+	root.add_child(mk_d)
+	var lifecycle: Node = cr.get_node_or_null("/root/DeathLifecycle")
+	var original_disposition: RefCounted = lifecycle.disposition
+	var death_spy := MutualDeathDispositionSpy.new()
+	lifecycle.disposition = death_spy
 	var mk_apply := {
 		"exchanges": [
 			{"attacker": mk_a, "defender": mk_d, "weapon": overkill_sword,
@@ -582,12 +610,29 @@ func _init() -> void:
 		"attacker_died": false, "defender_died": false, "context": {},
 	}
 	cr.apply_combat_result(mk_apply, mk_a, mk_d)
-	if mk_apply["attacker_died"] and mk_apply["defender_died"]:
-		print("OK  apply_combat_result iterates all exchanges — mutual kill lands")
+	lifecycle.disposition = original_disposition
+	var contexts_ok: bool = death_spy.contexts.size() == 2
+	if contexts_ok:
+		var defender_ctx: RefCounted = death_spy.contexts[0]
+		var attacker_ctx: RefCounted = death_spy.contexts[1]
+		contexts_ok = defender_ctx.subject_id == "mutual_defender" \
+			and attacker_ctx.subject_id == "mutual_attacker" \
+			and defender_ctx.responsible_actor == mk_a \
+			and attacker_ctx.responsible_actor == mk_d \
+			and not defender_ctx.simultaneous_group_id.is_empty() \
+			and defender_ctx.simultaneous_group_id == attacker_ctx.simultaneous_group_id \
+			and defender_ctx.tile == Vector2i(1, 0) \
+			and attacker_ctx.tile == Vector2i.ZERO \
+			and defender_ctx.inventory_snapshot.size() == 1 \
+			and attacker_ctx.inventory_snapshot.size() == 1 \
+			and death_spy.both_units_live_at_entry
+	if mk_apply["attacker_died"] and mk_apply["defender_died"] and contexts_ok:
+		print("OK  mutual death snapshots both units before defender-first disposition")
 		passed += 1
 	else:
-		print("FAIL apply_combat_result mutual kill: atk_died=%s def_died=%s" \
-			% [mk_apply["attacker_died"], mk_apply["defender_died"]])
+		print("FAIL mutual death lifecycle: atk_died=%s def_died=%s contexts=%d valid=%s" \
+			% [mk_apply["attacker_died"], mk_apply["defender_died"],
+				death_spy.contexts.size(), contexts_ok])
 		failed += 1
 
 	# --- Brave weapon follow-up fires full strike count (BUG-02) ---
@@ -832,7 +877,8 @@ func _init() -> void:
 	if pu_reg != null and pu_res != null and pu_gs != null:
 		pu_reg.call("clear")
 		pu_gs.call("reset_map_state")
-		pu_gs.set("pair_up_enabled", true)  # PairUpRegistry.pair() is gated on this
+		var pu_rules: CampaignRules = pu_gs.get("campaign_rules") as CampaignRules
+		pu_rules.pair_up_enabled = true  # PairUpRegistry.pair() is gated on this
 		# Lead: soldier, Str 10, iron sword. Support: cavalier, Str 10 → flat +1 Str
 		# + floor(10/4)=+2 = +3 Str contribution. Defender: no weapon (no counter, no
 		# triangle), Def 5, so per-hit damage stays positive both ways.

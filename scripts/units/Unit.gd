@@ -1,12 +1,13 @@
 class_name Unit extends Node2D
 # A single unit on the battlefield. Wraps a UnitData resource and provides
-# combat math, movement, and visual state.
-#
-# Responsibilities are split:
-#   - This file: identity, position, HP/state changes, movement animation
-#   - UnitStatBlock.gd (helper): stat math that factors in terrain, S-rank, conditions
+# combat math, movement, progression, and visual state. (Identity, position,
+# HP/state, movement animation, the modifier-aware combat stats, and the
+# reclass/second-seal state machine all live here.)
 
 const GameConstants = preload("res://scripts/shared/GameConstants.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+const DeathContextScript = preload("res://scripts/death/DeathContext.gd")
+const DeathResultScript = preload("res://scripts/death/DeathResult.gd")
 
 # Set by initialize()
 var data: UnitData
@@ -20,6 +21,7 @@ var team: String = "blue"  # faction id (M14 stage 1) — "blue" (player), "red"
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _hp_bar: ProgressBar = $HPBar
+@onready var _pair_up_badge: Label = $PairUpBadge
 var _grid_manager: GridManager = null  # cached on first use
 var _base_modulate: Color = Color.WHITE  # set in _apply_initial_state; used by set_done_appearance
 
@@ -46,6 +48,10 @@ func _ready() -> void:
 		_seed_earned_skills()
 		_grant_current_level_class_skills()
 		_apply_initial_state()
+	var bus := _bus()
+	if bus != null and bus.has_signal("pair_up_changed") \
+			and not bus.pair_up_changed.is_connected(_refresh_pair_up_badge):
+		bus.pair_up_changed.connect(_refresh_pair_up_badge)
 
 
 # Sets sprite tint, HP bar, and world position. Idempotent.
@@ -59,6 +65,7 @@ func _apply_initial_state() -> void:
 	# Snap world position to tile (TILE_SIZE px per tile)
 	position = Vector2(tile_position.x * GameConstants.TILE_SIZE,
 		tile_position.y * GameConstants.TILE_SIZE)
+	_refresh_pair_up_badge()
 
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
@@ -87,6 +94,28 @@ func apply_faction_visual(map_data: MapData) -> void:
 	_apply_faction_visual(map_data)
 
 
+# Small on-map marker for a visible paired lead. Pair Up support units are hidden
+# off-map, so the badge belongs to the lead and refreshes whenever the registry changes.
+func _refresh_pair_up_badge() -> void:
+	if _pair_up_badge == null:
+		return
+	var show_badge := false
+	if data != null and data.unit_id != "" and is_inside_tree():
+		var registry := get_node_or_null("/root/PairUpRegistry")
+		show_badge = registry != null and bool(registry.call("is_lead", data.unit_id))
+	if show_badge:
+		# Anchor to the sprite's upper-right corner derived from TILE_SIZE rather
+		# than hardcoded offsets, so the badge tracks the tile if TILE_SIZE changes.
+		var badge_w := 22.0
+		var badge_h := 16.0
+		var top_margin := 13.0
+		_pair_up_badge.offset_left = GameConstants.TILE_SIZE - badge_w
+		_pair_up_badge.offset_right = GameConstants.TILE_SIZE
+		_pair_up_badge.offset_top = top_margin
+		_pair_up_badge.offset_bottom = top_margin + badge_h
+	_pair_up_badge.visible = show_badge
+
+
 # True if the unit's class has the given quality (per ClassData.special_qualities)
 # OR the unit has been granted it via skill/item. For MVP only class qualities apply.
 # [DEFERRED — Laguz] Beast and Laguz qualities are marked "*" (animal form only) in
@@ -100,6 +129,16 @@ func has_quality(quality: String) -> bool:
 	if class_data == null:
 		return false
 	return quality in class_data.special_qualities
+
+
+# The unit's resolved movement type (V021-11): the single highest-precedence
+# movement tag in its class's special_qualities, or "infantry" by default. Used for
+# terrain-cost resolution (GridManager) and the class More Info display.
+func movement_type() -> String:
+	var class_data := _get_class_data()
+	if class_data == null:
+		return "infantry"
+	return GameConstants.movement_type_of(class_data.special_qualities)
 
 
 func has_vulnerability(group: String) -> bool:
@@ -446,24 +485,16 @@ func perform_staff_heal(target: Node, weapon: WeaponData) -> void:
 	add_exp(GameConstants.STAFF_HEAL_EXP)
 
 
-# Called when HP reaches 0. If permadeath is on (per GameState), flags the
+# Called when HP reaches 0. If permadeath is on (per CampaignRules), flags the
 # UnitData as incapacitated so the unit cannot be redeployed; otherwise the
 # data is preserved for the next map. Either way the scene node is freed.
-func handle_death() -> void:
+func handle_death() -> RefCounted:
 	if data == null:
-		return
-	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	var pair_up := get_node_or_null("/root/PairUpRegistry") if is_inside_tree() else null
-	if gs:
-		if gs.permadeath_enabled:
-			data.is_incapacitated = true
-		if pair_up != null and pair_up.has_method("release_support_from_fallen_lead"):
-			pair_up.release_support_from_fallen_lead(self)
-		gs.unregister_unit(self)
-	var bus := _bus()
-	if bus:
-		bus.unit_died.emit(self)
-	queue_free()
+		return DeathResultScript.failure("death subject has no unit data")
+	var lifecycle := get_node_or_null("/root/DeathLifecycle") if is_inside_tree() else null
+	if lifecycle == null:
+		return DeathResultScript.failure("DeathLifecycle is unavailable")
+	return lifecycle.handle_death(DeathContextScript.from_subject(self, "compatibility", "unit.handle_death"))
 
 
 # ---- Inventory / Durability ----
@@ -577,7 +608,15 @@ func add_exp(amount: int) -> void:
 	amount = _debug_force_levelup_exp(amount)
 	var max_level: int = _current_max_level()
 	if data.level >= max_level:
-		return  # EXP discarded at cap; M6 promotion will hook here for further levelling
+		# EXP is discarded at the level cap, but still surface promotion availability:
+		# a unit authored to spawn ALREADY at max level never crossed the cap via
+		# level_up() (which is the other emit site), so without this it could never
+		# auto-promote. Idempotent — _maybe_emit_promotion_available() is gated on
+		# auto_promote_at_max_level + can_promote() (false once promoted), and
+		# PromotionScreen ignores re-emits while it is already open.
+		_maybe_emit_promotion_available()
+		return  # M6 promotion will hook here for further levelling
+
 	data.exp += amount
 	while data.exp >= 100:
 		data.exp -= 100
@@ -728,7 +767,8 @@ func _class_data_for(class_id: String) -> ClassData:
 
 func _maybe_emit_promotion_available() -> void:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	if gs == null or not bool(gs.get("auto_promote_at_max_level")) or not can_promote():
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	if rules == null or not rules.auto_promote_at_max_level or not can_promote():
 		return
 	var bus := _bus()
 	if bus:
@@ -774,7 +814,9 @@ func _clamp_to_cap(value: int, cap: int) -> int:
 # Two methods: growth_random (RNG-based, rate > 100 gives guaranteed gains)
 # and growth_fixed (deterministic accumulator, always predictable progression).
 # Emits unit_leveled_up with the dictionary of changes for the level-up screen.
-const _GROWTH_STATS := ["hp", "strength", "magic", "defense", "resistance", "skill", "speed", "luck"]
+# Growth-roll set + order sourced from the single StatRegistry vocabulary; the
+# RNG draws one roll per stat in this order (order is part of the §5 contract).
+const _GROWTH_STATS := StatRegistry.GROWTH_STAT_IDS
 
 func level_up() -> void:
 	if data == null:
@@ -782,18 +824,27 @@ func level_up() -> void:
 	data.level += 1
 	data.internal_level += 1
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	var method: String = gs.leveling_method if gs else "growth_random"
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	var method: String = rules.leveling_method if rules != null else "growth_random"
 	var class_data := _get_class_data()
 	if class_data == null:
 		return
 	var rates: Dictionary = _resolve_growth_rates(class_data)
 	var caps: Dictionary = class_data.stat_caps
+	# One chained "levelup" RNG event per level (RNG-1): begin before the growth
+	# draws, commit after them. growth_fixed draws nothing but still commits, so
+	# the dice chain is identical across leveling methods for the same actions.
+	var svc := get_node_or_null("/root/RngService") if is_inside_tree() else null
+	var event_record: Array[String] = [data.unit_id, str(data.level)]
 	var changes: Dictionary = {}
 	match method:
 		"growth_fixed":
 			changes = _level_up_fixed(rates, caps)
 		_:  # "growth_random" and any unknown value
-			changes = _level_up_random(rates, caps)
+			changes = _level_up_random(rates, caps,
+				svc.begin_event("levelup", event_record) if svc else null)
+	if svc:
+		svc.commit_event("levelup", event_record)
 	# Auto-learn any class skill whose unlock level matches the new level.
 	var learned: Array[Dictionary] = _grant_level_skills(class_data)
 	var bus := _bus()
@@ -1044,7 +1095,8 @@ func _clamp_stats_to_caps(target_class: ClassData) -> void:
 
 func _max_equipped_skills() -> int:
 	var gs := get_node_or_null("/root/GameState") if is_inside_tree() else null
-	return int(gs.get("max_skills")) if gs != null else 5
+	var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+	return rules.max_skills if rules != null else 5
 
 
 # DEBUG TESTING AID (#11) — debug builds only; remove before release, see
@@ -1060,13 +1112,22 @@ func _debug_boosted_rate(rate: int) -> int:
 
 
 # Probabilistic: rate 75 = 75% chance of +1. Rate 150 = +1 guaranteed, 50% chance of +2.
-func _level_up_random(rates: Dictionary, caps: Dictionary) -> Dictionary:
+# Draws one roll per stat in _GROWTH_STATS order from the levelup event RNG
+# (RNG-1; the order is part of the §5 canonical-roll-order contract). rng = null
+# is the no-RngService fallback for suites that exercise growth statistically —
+# production always passes the event RNG from level_up().
+func _level_up_random(rates: Dictionary, caps: Dictionary,
+		rng: RandomNumberGenerator = null) -> Dictionary:
+	if rng == null:
+		rng = RandomNumberGenerator.new()  # rng-allow: headless fallback when RngService is absent
+		rng.randomize()  # rng-allow: headless fallback when RngService is absent
 	var changes: Dictionary = {}
 	for stat in _GROWTH_STATS:
 		var rate: int = _debug_boosted_rate(int(rates.get(stat, 0)))
 		var guaranteed: int = rate / 100
 		var remainder: int  = rate % 100
-		var gain: int = guaranteed + (1 if (randi() % 100) < remainder else 0)  # rng-allow: pre-M9a (RNG-1)
+		var gain: int = guaranteed \
+			+ (1 if rng.randi_range(0, 99) < remainder else 0)  # rng-allow: draw from the RngService event RNG (RNG-1)
 		var applied: int = _apply_stat_gain(stat, gain, caps)
 		if applied > 0:
 			changes[stat] = applied

@@ -2,6 +2,9 @@ extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_data_layer.gd
 # Tests that all .tres resource files load correctly without using autoload singletons.
 
+const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+
+
 func _init() -> void:
 	print("=== Data Layer Test ===")
 	var passed := 0
@@ -123,6 +126,7 @@ func _init() -> void:
 	var dt_surv := ObjectiveCondition.new()
 	dt_surv.type = "survive"; dt_surv.turns = 5
 	# Seize display text (L-1): uses the singular `tile` field; sentinel → "Seize".
+	# Player-facing coordinates are one-based, while the authored tile stays zero-based.
 	var dt_seize_bare := ObjectiveCondition.new()
 	dt_seize_bare.type = "seize"
 	var dt_seize_tile := ObjectiveCondition.new()
@@ -133,7 +137,7 @@ func _init() -> void:
 			and dt_esc.get_display_text() == "Escape: lord" \
 			and dt_surv.get_display_text() == "Survive 5 turn(s)" \
 			and dt_seize_bare.get_display_text() == "Seize" \
-			and dt_seize_tile.get_display_text() == "Seize (3, 4)":
+			and dt_seize_tile.get_display_text() == "Seize (4, 5)":
 		print("OK  ObjectiveCondition.get_display_text: per-type one-liners"); passed += 1
 	else:
 		print("FAIL display_text: rout_all=%s rout_red=%s boss=%s esc=%s surv=%s seize_bare=%s seize_tile=%s" % [
@@ -173,15 +177,7 @@ func _init() -> void:
 	# --- Snapshot coverage: every mutable UnitData property must appear in the
 	# snapshot dict or in the explicit allowlist of intentionally-excluded fields.
 	# Fail if a new @export var is added to UnitData without updating the snapshot.
-	var snapshot_keys := [
-		"tile_position", "class_id", "hp", "max_hp", "strength", "magic", "defense",
-		"resistance", "skill", "speed", "luck", "exp", "level", "internal_level",
-		"is_promoted", "class_line_id",
-		"weapon_wexp", "inventory", "conditions", "skills", "earned_skills",
-		"mastery_skills",
-		"is_incapacitated", "active_modifiers", "skill_use_counters",
-		"damage_taken_this_map", "growth_accumulators", "shift_gauge", "is_shifted",
-	]
+	var snapshot_keys := SaveCodec.UNIT_SNAPSHOT_KEYS
 	# Properties intentionally excluded: static identity or between-map state only.
 	var snapshot_allowlist := [
 		"unit_id", "unit_name", "movement",

@@ -38,9 +38,12 @@ signal back_pressed()
 @onready var _btn_start: Button            = $Panel/VBox/BtnStart
 @onready var _btn_back: Button             = $Panel/VBox/BtnBack
 
-# OptLeveling index → GameState.leveling_method value.
+# OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+# Temporary v0.3.0 rerun logging for the live-only New Game focus gap. Remove
+# after the controller log proves whether focus is stolen, released, or hidden.
+const V030_FOCUS_TRACE_ENABLED := true
 const _FALLBACK_MAP_OPTIONS: Array[Dictionary] = [
 	{
 		"id": "map_001",
@@ -89,22 +92,50 @@ func _ready() -> void:
 	_opt_auto_promote.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_leveling.item_selected.connect(func(_i: int): _persist_rules())
 	_opt_pair_up.item_selected.connect(func(_i: int): _persist_rules())
-	# hide() is performed by ModalScreen._ready.
+	_connect_v030_focus_trace()
+	super._ready()
 
 
 func open() -> void:
 	# Seed the controls from GameState so reopening shows the current choices.
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
+		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
 		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
-		_opt_permadeath.selected = int(gs.get("permadeath_enabled"))  # 0=Off, 1=On
-		_opt_auto_promote.selected = int(gs.get("auto_promote_at_max_level"))  # 0=Off, 1=On
-		_opt_leveling.selected   = maxi(0, _LEVELING_OPTIONS.find(gs.get("leveling_method")))
-		_opt_pair_up.selected    = int(gs.get("pair_up_enabled"))  # 0=Off, 1=On
+		if rules != null:
+			_opt_permadeath.selected = int(rules.permadeath_enabled)  # 0=Off, 1=On
+			_opt_auto_promote.selected = int(rules.auto_promote_at_max_level)  # 0=Off, 1=On
+			_opt_leveling.selected = maxi(0, _LEVELING_OPTIONS.find(rules.leveling_method))
+			_opt_pair_up.selected = int(rules.pair_up_enabled)  # 0=Off, 1=On
 	else:
 		_opt_map.selected = 0
 	show()
 	_btn_start.grab_focus()
+	_v030_trace_focus("open_grabbed_start")
+
+
+func _on_input_mode_changed(mode: String) -> void:
+	if not visible:
+		return
+	_v030_trace_focus("input_mode_changed_before", {"mode": mode})
+	super._on_input_mode_changed(mode)
+	_v030_trace_focus.call_deferred("input_mode_changed_after", {"mode": mode})
+
+
+func _input(event: InputEvent) -> void:
+	if not visible or not V030_FOCUS_TRACE_ENABLED:
+		super._input(event)
+		return
+	var actions := _v030_direction_actions_for_event(event)
+	if actions.is_empty():
+		super._input(event)
+		return
+	_v030_trace_focus("direction_input_before", {
+		"actions": ",".join(actions),
+		"event": _v030_event_summary(event),
+	})
+	_v030_trace_focus_after_input.call_deferred(",".join(actions), _v030_event_summary(event))
+	super._input(event)
 
 
 func _close() -> void:
@@ -122,10 +153,14 @@ func _persist_rules() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return
-	gs.set("permadeath_enabled", bool(_opt_permadeath.selected))  # 0=Off, 1=On
-	gs.set("auto_promote_at_max_level", bool(_opt_auto_promote.selected))  # 0=Off, 1=On
-	gs.set("leveling_method", _LEVELING_OPTIONS[_opt_leveling.selected])
-	gs.set("pair_up_enabled", bool(_opt_pair_up.selected))  # 0=Off, 1=On
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		push_error("NewGameScreen: GameState.campaign_rules missing — cannot apply rules.")
+		return
+	rules.permadeath_enabled = bool(_opt_permadeath.selected)  # 0=Off, 1=On
+	rules.auto_promote_at_max_level = bool(_opt_auto_promote.selected)  # 0=Off, 1=On
+	rules.leveling_method = _LEVELING_OPTIONS[_opt_leveling.selected]
+	rules.pair_up_enabled = bool(_opt_pair_up.selected)  # 0=Off, 1=On
 
 
 func _on_start() -> void:
@@ -196,3 +231,73 @@ func _load_map_options() -> Array[Dictionary]:
 		push_warning("NewGameScreen: map registry had no valid entries — using fallback entries")
 		return _FALLBACK_MAP_OPTIONS.duplicate(true)
 	return out
+
+
+func _connect_v030_focus_trace() -> void:
+	if not V030_FOCUS_TRACE_ENABLED:
+		return
+	for control in [_opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
+			_opt_pair_up, _btn_start, _btn_back]:
+		var c := control as Control
+		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
+		c.focus_exited.connect(_v030_trace_control_focus.bind(c, "exited"))
+
+
+func _v030_direction_actions_for_event(event: InputEvent) -> Array[String]:
+	var out: Array[String] = []
+	for action in ["ui_up", "ui_down", "cursor_up", "cursor_down"]:
+		if event.is_action_pressed(action):
+			out.append("%s:pressed" % action)
+		elif event.is_action_released(action):
+			out.append("%s:released" % action)
+	return out
+
+
+func _v030_trace_control_focus(control: Control, phase: String) -> void:
+	_v030_trace_focus("focus_%s" % phase, {"control": _v030_control_label(control)})
+
+
+func _v030_trace_focus_after_input(actions: String, event_summary: String) -> void:
+	_v030_trace_focus("direction_input_after", {
+		"actions": actions,
+		"event": event_summary,
+	})
+
+
+func _v030_trace_focus(label: String, extra: Dictionary = {}) -> void:
+	if not V030_FOCUS_TRACE_ENABLED or not visible or DisplayServer.get_name() == "headless":
+		return
+	var fields := {
+		"label": label,
+		"focus": _v030_control_label(get_viewport().gui_get_focus_owner()),
+		"map": _opt_map.selected,
+		"permadeath": _opt_permadeath.selected,
+		"auto_promote": _opt_auto_promote.selected,
+		"leveling": _opt_leveling.selected,
+		"pair_up": _opt_pair_up.selected,
+	}
+	for key in extra:
+		fields[key] = extra[key]
+	print("V030-NG-FOCUS %s" % fields)
+
+
+func _v030_control_label(control: Control) -> String:
+	if control == null:
+		return "<none>"
+	return String(control.name)
+
+
+func _v030_event_summary(event: InputEvent) -> String:
+	if event is InputEventJoypadMotion:
+		var motion := event as InputEventJoypadMotion
+		return "JoyMotion device=%d axis=%d value=%.3f" % [
+			motion.device, motion.axis, motion.axis_value]
+	if event is InputEventJoypadButton:
+		var button := event as InputEventJoypadButton
+		return "JoyButton device=%d button=%d pressed=%s" % [
+			button.device, button.button_index, button.pressed]
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		return "Key code=%d pressed=%s echo=%s" % [
+			key.physical_keycode, key.pressed, key.echo]
+	return event.as_text()

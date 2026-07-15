@@ -31,6 +31,9 @@ tile_set = ExtResource("4_terrain")
 [node name="TileMapLayer_Overlay" type="TileMapLayer" parent="."]
 tile_set = ExtResource("5_overlay")
 
+[node name="TileMapLayer_OverlayTop" type="TileMapLayer" parent="."]
+tile_set = ExtResource("5_overlay")
+
 [node name="UnitsContainer" type="Node2D" parent="."]
 
 [node name="MapCursor" type="Node2D" parent="."]

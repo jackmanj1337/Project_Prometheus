@@ -22,6 +22,47 @@ class MockUnit extends Node:
 		data = d
 
 
+# Mock with a configurable special_qualities set, for the V021-11 movement-type tests.
+class MockTypedUnit extends Node:
+	var tile_position: Vector2i
+	var team: String = "blue"
+	var data: Resource
+	var qualities: Array = []
+
+	func has_quality(q: String) -> bool:
+		return q in qualities
+
+	func _init(tile: Vector2i, quals: Array, mov: int = 8) -> void:
+		tile_position = tile
+		qualities = quals
+		var d := UnitData.new()
+		d.movement = mov
+		data = d
+
+
+# Mock whose equipped weapon is a healing staff — used to prove a healer
+# contributes no threat tiles ([TUR-1]).
+class MockHealerUnit extends Node:
+	var tile_position: Vector2i
+	var team: String = "red"
+	var data: Resource
+	var _weapon: WeaponData
+
+	func has_quality(_q: String) -> bool:
+		return false
+
+	func get_equipped_weapon() -> WeaponData:
+		return _weapon
+
+	func _init(tile: Vector2i, weapon: WeaponData, mov: int = 6) -> void:
+		tile_position = tile
+		_weapon = weapon
+		var d := UnitData.new()
+		d.movement = mov
+		d.class_id = "cleric"
+		data = d
+
+
 func _init() -> void:
 	print("=== GridManager Test ===")
 	var passed := 0
@@ -200,6 +241,316 @@ func get_equipped_weapon(): return _w
 		print("FAIL get_terrain_bonuses: forest=%s mountain=%s wall=%s plain=%s" % [
 			b_forest, b_mountain, b_wall, b_plain])
 		failed += 1
+
+	# --- V021-11: movement-type resolver + terrain costs ---
+	var mt_ok: bool = (
+		GameConstants.movement_type_of(["armoured", "mounted"]) == "mounted"  # precedence
+		and GameConstants.movement_type_of([]) == "infantry"                  # default
+		and GameConstants.movement_type_of(["laguz", "flying"]) == "flying"   # ignores non-move tag
+		and GameConstants.movement_type_of(["light_footed"]) == "light_footed"
+	)
+	if mt_ok:
+		print("OK  V021-11 movement_type_of resolves by precedence, ignores non-move tags"); passed += 1
+	else:
+		print("FAIL V021-11 movement_type_of"); failed += 1
+
+	# Flying ignores ground terrain (flat 1) but walls still block.
+	var flier := MockTypedUnit.new(Vector2i(0, 0), ["flying"])
+	if grid.get_move_cost(Vector2i(2, 2), flier) == 1 \
+			and grid.get_move_cost(Vector2i(3, 3), flier) == 1 \
+			and grid.get_move_cost(Vector2i(4, 4), flier) == GridManager.IMPASSABLE_MOVE_COST:
+		print("OK  V021-11 flier pays 1 on forest/mountain, blocked by wall"); passed += 1
+	else:
+		print("FAIL V021-11 flier costs: forest=%d mountain=%d wall=%d" % [
+			grid.get_move_cost(Vector2i(2, 2), flier), grid.get_move_cost(Vector2i(3, 3), flier),
+			grid.get_move_cost(Vector2i(4, 4), flier)]); failed += 1
+
+	# Desert: armoured/mounted pay 3, light_footed 1, infantry the base (2).
+	grid.set_terrain_fallback(Vector2i(0, 5), "desert")
+	var armoured := MockTypedUnit.new(Vector2i(0, 0), ["armoured"])
+	var light := MockTypedUnit.new(Vector2i(0, 0), ["light_footed"])
+	var foot := MockTypedUnit.new(Vector2i(0, 0), ["infantry"])
+	if grid.get_move_cost(Vector2i(0, 5), armoured) == 3 \
+			and grid.get_move_cost(Vector2i(0, 5), light) == 1 \
+			and grid.get_move_cost(Vector2i(0, 5), foot) == 2:
+		print("OK  V021-11 desert costs by resolved type (armoured 3, light 1, infantry 2)"); passed += 1
+	else:
+		print("FAIL V021-11 desert costs: armoured=%d light=%d infantry=%d" % [
+			grid.get_move_cost(Vector2i(0, 5), armoured), grid.get_move_cost(Vector2i(0, 5), light),
+			grid.get_move_cost(Vector2i(0, 5), foot)]); failed += 1
+	flier.queue_free(); armoured.queue_free(); light.queue_free(); foot.queue_free()
+
+	# get_move_costs_for_groups exposes the flying column (1 except wall).
+	if int(GridManager.get_move_costs_for_groups("mountain").get("flying", -1)) == 1 \
+			and int(GridManager.get_move_costs_for_groups("wall").get("flying", -1)) == GridManager.IMPASSABLE_MOVE_COST:
+		print("OK  V021-11 get_move_costs_for_groups includes flying (1 / wall impassable)"); passed += 1
+	else:
+		print("FAIL V021-11 flying group column"); failed += 1
+
+	# --- [TUR-1] / B6-MRD Slice 1: per-unit threat extraction ---
+	# Build a fresh open 6x6 plains grid so movement isn't blocked by the earlier
+	# terrain fixture, and place one range-1 armed unit centrally.
+	var tgrid := GridManager.new()
+	for x in 6:
+		for y in 6:
+			tgrid.set_terrain_fallback(Vector2i(x, y), "plain")
+	var armed := MockUnit.new(Vector2i(3, 3), 2)  # mov 2, default range (1,1)
+	armed.data.max_hp = 10
+	armed.data.hp = 10
+	var threat := tgrid.get_unit_threat_tiles(armed)
+	# An armed unit threatens its reachable tiles' attack rings — strictly more
+	# than the 4 tiles adjacent to its start (movement widens the footprint).
+	var start_adjacent := 0
+	for d in GridManager.DIRS:
+		if threat.has(armed.tile_position + d):
+			start_adjacent += 1
+	if threat.size() > 4 and start_adjacent == 4:
+		print("OK  [TUR-1] get_unit_threat_tiles = reach ∪ attack-from-reach (%d tiles)" % threat.size()); passed += 1
+	else:
+		print("FAIL [TUR-1] threat tiles: size=%d adj=%d" % [threat.size(), start_adjacent]); failed += 1
+
+	# A null unit and a dead unit both threaten nothing.
+	var dead := MockUnit.new(Vector2i(2, 2), 4)
+	dead.data.hp = 0
+	if tgrid.get_unit_threat_tiles(null).is_empty() and tgrid.get_unit_threat_tiles(dead).is_empty():
+		print("OK  [TUR-1] null/dead unit threatens no tiles"); passed += 1
+	else:
+		print("FAIL [TUR-1] null/dead unit produced threat tiles"); failed += 1
+
+	# A healer (equipped healing staff) threatens no tiles even though it can move.
+	var staff := load("res://data/weapons/heal_staff.tres") as WeaponData
+	var healer := MockHealerUnit.new(Vector2i(3, 3), staff, 4)
+	healer.data.max_hp = 10
+	healer.data.hp = 10
+	if staff != null and staff.is_healing_staff() and tgrid.get_unit_threat_tiles(healer).is_empty():
+		print("OK  [TUR-1] a healer contributes no threat tiles"); passed += 1
+	else:
+		print("FAIL [TUR-1] healer threat: staff=%s tiles=%d" % [
+			staff, tgrid.get_unit_threat_tiles(healer).size()]); failed += 1
+
+	# --- [MRD-1] overlay precedence registry ---
+	# The watch layer must out-rank the faction layer (wins shared cells in
+	# `combined`); range layers sit below both (they blend under threat).
+	var p_move := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_MOVE)
+	var p_faction := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_FACTION_THREAT)
+	var p_watch := GridManager.overlay_layer_precedence(GridManager.OVERLAY_LAYER_WATCH_THREAT)
+	if p_move < p_faction and p_faction < p_watch:
+		print("OK  [MRD-1] built-in overlay precedence: move < faction < watch"); passed += 1
+	else:
+		print("FAIL [MRD-1] precedence order: move=%d faction=%d watch=%d" % [p_move, p_faction, p_watch]); failed += 1
+
+	# Adding an overlay is a REGISTRATION, not a repaint edit: a fixture layer
+	# registered between faction and watch reports its precedence and sorts there.
+	GridManager.register_overlay_layer("fixture_healing_zone", 25)
+	var p_fix := GridManager.overlay_layer_precedence("fixture_healing_zone")
+	var layer_ids := [
+		GridManager.OVERLAY_LAYER_WATCH_THREAT, "fixture_healing_zone",
+		GridManager.OVERLAY_LAYER_MOVE, GridManager.OVERLAY_LAYER_FACTION_THREAT,
+	]
+	layer_ids.sort_custom(func(a, b): return GridManager.overlay_layer_precedence(a) < GridManager.overlay_layer_precedence(b))
+	var order_ok: bool = layer_ids[0] == GridManager.OVERLAY_LAYER_MOVE \
+		and layer_ids[1] == GridManager.OVERLAY_LAYER_FACTION_THREAT \
+		and layer_ids[2] == "fixture_healing_zone" \
+		and layer_ids[3] == GridManager.OVERLAY_LAYER_WATCH_THREAT
+	# An unregistered layer sorts last (paints on top).
+	var p_unknown := GridManager.overlay_layer_precedence("never_registered")
+	if p_fix == 25 and order_ok and p_unknown > p_watch:
+		print("OK  [MRD-1] a newly-registered layer slots by precedence (no repaint edit)"); passed += 1
+	else:
+		print("FAIL [MRD-1] fixture layer: p=%d order=%s unknown=%d" % [p_fix, order_ok, p_unknown]); failed += 1
+
+	# --- [MRD-1] repaint_overlays paints in precedence order onto a real overlay ---
+	# With the source-4 darker-red watch tile authored, verify the whole
+	# precedence→paint path: watch (src 4) wins a cell shared with faction (src 3).
+	var pgrid := GridManager.new()
+	var ov := TileMapLayer.new()
+	ov.tile_set = load("res://assets/overlay_tileset.tres")
+	pgrid._overlay = ov
+	var faction_tiles: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)]
+	var watch_tiles: Array[Vector2i] = [Vector2i(1, 0)]  # overlaps faction at (1,0)
+	pgrid.repaint_overlays({
+		GridManager.OVERLAY_LAYER_FACTION_THREAT: {"tiles": faction_tiles, "source": GridManager.OVERLAY_DARK_RED},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {"tiles": watch_tiles, "source": GridManager.OVERLAY_DARKER_RED},
+	})
+	var shared_src := ov.get_cell_source_id(Vector2i(1, 0))       # watch wins → 4
+	var faction_only_src := ov.get_cell_source_id(Vector2i(0, 0)) # faction → 3
+	if shared_src == GridManager.OVERLAY_DARKER_RED and faction_only_src == GridManager.OVERLAY_DARK_RED:
+		print("OK  [MRD-1] repaint_overlays: watch (src4) wins the shared cell, faction (src3) elsewhere"); passed += 1
+	else:
+		print("FAIL [MRD-1] paint order: shared=%d faction=%d" % [shared_src, faction_only_src]); failed += 1
+	ov.free()
+
+	# --- [MRD-7] shared-cell visual prototypes ---
+	# The border-through prototype keeps one overlay layer by replacing a shared
+	# range+threat cell with a combined "threat center + range border" source.
+	var shared_grid := GridManager.new()
+	var shared_base := TileMapLayer.new()
+	var shared_top := TileMapLayer.new()
+	shared_base.tile_set = load("res://assets/overlay_tileset.tres")
+	shared_top.tile_set = shared_base.tile_set
+	shared_grid._overlay = shared_base
+	shared_grid._overlay_top = shared_top
+	var shared_tile := Vector2i(4, 4)
+	var move_only := Vector2i(5, 4)
+	var watch_only := Vector2i(6, 4)
+	var shared_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, watch_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_BORDER_THROUGH)
+	shared_grid.repaint_overlays(shared_specs)
+	var border_shared := shared_base.get_cell_source_id(shared_tile)
+	var border_move := shared_base.get_cell_source_id(move_only)
+	var border_watch := shared_base.get_cell_source_id(watch_only)
+	var border_top_empty := shared_top.get_used_cells().is_empty()
+	if border_shared == GridManager.OVERLAY_BLUE_ON_DARKER_RED \
+			and border_move == GridManager.OVERLAY_BLUE \
+			and border_watch == GridManager.OVERLAY_DARKER_RED \
+			and border_top_empty:
+		print("OK  [MRD-7] border-through mode paints a combined source on shared cells"); passed += 1
+	else:
+		print("FAIL [MRD-7] border mode: shared=%d move=%d watch=%d top_empty=%s" % [
+			border_shared, border_move, border_watch, border_top_empty]); failed += 1
+
+	# The stacked prototype paints retained threat on the base layer and range on
+	# the second TileMapLayer, so the renderer alpha-composes both meanings.
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	shared_grid.repaint_overlays(shared_specs)
+	var stacked_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var stacked_top_shared := shared_top.get_cell_source_id(shared_tile)
+	var stacked_base_watch := shared_base.get_cell_source_id(watch_only)
+	var stacked_top_move := shared_top.get_cell_source_id(move_only)
+	if stacked_base_shared == GridManager.OVERLAY_DARKER_RED \
+			and stacked_top_shared == GridManager.OVERLAY_BLUE \
+			and stacked_base_watch == GridManager.OVERLAY_DARKER_RED \
+			and stacked_top_move == GridManager.OVERLAY_BLUE:
+		print("OK  [MRD-7] stacked mode separates threat and range across overlay layers"); passed += 1
+	else:
+		print("FAIL [MRD-7] stacked mode: base_shared=%d top_shared=%d base_watch=%d top_move=%d" % [
+			stacked_base_shared, stacked_top_shared, stacked_base_watch, stacked_top_move]); failed += 1
+
+	# The stacked-perimeter candidate keeps the stacked fill, then swaps threat
+	# base tiles to edge-mask sources computed from the union of threatened tiles.
+	var isolated := {Vector2i(0, 0): true}
+	var line := {Vector2i(0, 0): true, Vector2i(1, 0): true}
+	var concave := {Vector2i(0, 0): true, Vector2i(1, 0): true, Vector2i(0, 1): true}
+	var iso_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), isolated)
+	var line_left_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), line)
+	var line_right_mask: int = GridManager.threat_perimeter_mask(Vector2i(1, 0), line)
+	var concave_corner_mask: int = GridManager.threat_perimeter_mask(Vector2i(0, 0), concave)
+	var masks_ok: bool = iso_mask == 15 \
+		and line_left_mask == (GridManager.PERIMETER_EDGE_TOP \
+			| GridManager.PERIMETER_EDGE_BOTTOM | GridManager.PERIMETER_EDGE_LEFT) \
+		and line_right_mask == (GridManager.PERIMETER_EDGE_TOP \
+			| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_BOTTOM) \
+		and concave_corner_mask == (GridManager.PERIMETER_EDGE_TOP | GridManager.PERIMETER_EDGE_LEFT)
+	if masks_ok:
+		print("OK  [MRD-7] perimeter masks cover isolated, adjacent, and concave threat tiles"); passed += 1
+	else:
+		print("FAIL [MRD-7] perimeter masks: iso=%d line=(%d,%d) concave=%d" % [
+			iso_mask, line_left_mask, line_right_mask, concave_corner_mask]); failed += 1
+
+	# V031-MRD-01: pure world-space outline segments from the same edge masks
+	# (tile size 64). An isolated tile strokes 4 edges (8 points); a two-tile
+	# line strokes 6 (12 points) and never the shared inner edge.
+	var iso_segments := GridManager.perimeter_edge_segments(isolated, 64)
+	var line_segments := GridManager.perimeter_edge_segments(line, 64)
+	var seg_counts_ok: bool = iso_segments.size() == 8 and line_segments.size() == 12
+	var inner_edge_absent := true
+	var seg_scan := 0
+	while seg_scan + 1 < line_segments.size():
+		var seg_a: Vector2 = line_segments[seg_scan]
+		var seg_b: Vector2 = line_segments[seg_scan + 1]
+		if (seg_a == Vector2(64, 0) and seg_b == Vector2(64, 64)) \
+				or (seg_a == Vector2(64, 64) and seg_b == Vector2(64, 0)):
+			inner_edge_absent = false
+		seg_scan += 2
+	if seg_counts_ok and inner_edge_absent:
+		print("OK  [MRD-7] dual-outline segments stroke perimeters only, never shared inner edges"); passed += 1
+	else:
+		print("FAIL [MRD-7] outline segments: iso=%d line=%d inner_absent=%s" % [
+			iso_segments.size(), line_segments.size(), inner_edge_absent]); failed += 1
+
+	var threat_adjacent := Vector2i(4, 5)
+	var perimeter_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, threat_adjacent] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED_PERIMETER)
+	shared_grid.repaint_overlays(perimeter_specs)
+	var perimeter_expected_mask: int = GridManager.PERIMETER_EDGE_TOP \
+		| GridManager.PERIMETER_EDGE_RIGHT | GridManager.PERIMETER_EDGE_LEFT
+	var perimeter_expected_source: int = GridManager.threat_perimeter_source(
+		GridManager.OVERLAY_DARKER_RED, perimeter_expected_mask)
+	var perimeter_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var perimeter_top_shared := shared_top.get_cell_source_id(shared_tile)
+	var perimeter_top_move := shared_top.get_cell_source_id(move_only)
+	if perimeter_base_shared == perimeter_expected_source \
+			and perimeter_top_shared == GridManager.OVERLAY_BLUE \
+			and perimeter_top_move == GridManager.OVERLAY_BLUE:
+		print("OK  [MRD-7] stacked-perimeter mode paints threat edge masks under range fill"); passed += 1
+	else:
+		print("FAIL [MRD-7] stacked-perimeter: base=%d want=%d top_shared=%d top_move=%d" % [
+			perimeter_base_shared, perimeter_expected_source,
+			perimeter_top_shared, perimeter_top_move]); failed += 1
+	# V031-MRD-01 dual_outline: stacked fill stays on the tile layers, and the
+	# perimeter draw surface receives two world-space outlines — bright around
+	# EVERY threatened tile, dark around the WATCHED subset (dark drawn over
+	# bright by the overlay node's draw order).
+	root.add_child(shared_grid)  # the outline surface is a live child node
+	var faction_far := Vector2i(8, 8)
+	var dual_specs := {
+		GridManager.OVERLAY_LAYER_MOVE: {
+			"tiles": [shared_tile, move_only] as Array[Vector2i],
+			"source": GridManager.OVERLAY_BLUE,
+		},
+		GridManager.OVERLAY_LAYER_FACTION_THREAT: {
+			"tiles": [faction_far] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARK_RED,
+		},
+		GridManager.OVERLAY_LAYER_WATCH_THREAT: {
+			"tiles": [shared_tile, threat_adjacent] as Array[Vector2i],
+			"source": GridManager.OVERLAY_DARKER_RED,
+		},
+	}
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_DUAL_OUTLINE)
+	shared_grid.repaint_overlays(dual_specs)
+	var outline: Node2D = shared_grid._perimeter_overlay
+	var dual_base_shared := shared_base.get_cell_source_id(shared_tile)
+	var dual_top_shared := shared_top.get_cell_source_id(shared_tile)
+	# Watch pair (4,4)+(4,5) = 6 edges (12 points); danger union adds the
+	# isolated faction tile = 10 edges (20 points).
+	var dual_ok: bool = outline != null \
+		and outline._watch_segments.size() == 12 \
+		and outline._danger_segments.size() == 20 \
+		and dual_base_shared == GridManager.OVERLAY_DARKER_RED \
+		and dual_top_shared == GridManager.OVERLAY_BLUE
+	# Switching away from dual_outline clears the stroked outlines.
+	shared_grid.set_shared_cell_mode(GridManager.SHARED_CELL_STACKED)
+	var dual_cleared: bool = outline == null or (outline._watch_segments.is_empty() \
+		and outline._danger_segments.is_empty())
+	if dual_ok and dual_cleared:
+		print("OK  [MRD-7] dual_outline splits watch/danger perimeters above the stacked fill"); passed += 1
+	else:
+		print("FAIL [MRD-7] dual_outline: outline=%s watch=%d danger=%d base=%d top=%d cleared=%s" % [
+			outline, outline._watch_segments.size() if outline != null else -1,
+			outline._danger_segments.size() if outline != null else -1,
+			dual_base_shared, dual_top_shared, dual_cleared]); failed += 1
+	shared_grid.queue_free()
+	shared_base.free()
+	shared_top.free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

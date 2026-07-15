@@ -9,6 +9,7 @@ func _init() -> void:
 
 	var ai: Node = load("res://scripts/core/EnemyAI.gd").new()
 	root.add_child(ai)
+	await process_frame
 
 	# Stub script: a Node subclass with the members EnemyAI reads. _weapon defaults to
 	# null → GridManager._get_weapon_range → (1,1). perform_staff_heal records that it
@@ -16,6 +17,50 @@ func _init() -> void:
 	var stub_script := GDScript.new()
 	stub_script.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"enemy\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\n"
 	stub_script.reload()
+
+	# ---- F9 debug hotseat override: AI phase aborts before acting ----
+	var created_gs := false
+	var gs_debug := root.get_node_or_null("GameState")
+	if gs_debug == null:
+		var gs_debug_script := GDScript.new()
+		gs_debug_script.source_code = "extends Node\nvar debug_hotseat_override: bool = true\nvar actors: Array[Node] = []\nfunc get_living_units_of(_faction: String) -> Array[Node]: return actors\n"
+		gs_debug_script.reload()
+		gs_debug = gs_debug_script.new()
+		gs_debug.name = "GameState"
+		root.add_child(gs_debug)
+		created_gs = true
+	var old_debug_override: bool = false if created_gs else bool(gs_debug.get("debug_hotseat_override"))
+	gs_debug.set("debug_hotseat_override", true)
+	if gs_debug.has_method("reset_map_state"):
+		gs_debug.call("reset_map_state")
+	var debug_actor: Node = stub_script.new()
+	debug_actor.set("team", "red")
+	var debug_data := UnitData.new()
+	debug_data.hp = 20
+	debug_data.max_hp = 20
+	debug_actor.set("data", debug_data)
+	root.add_child(debug_actor)
+	if gs_debug.has_method("register_unit"):
+		gs_debug.call("register_unit", debug_actor)
+	else:
+		gs_debug.set("actors", [debug_actor] as Array[Node])
+	var debug_turn := TurnManager.new()
+	root.add_child(debug_turn)
+	var debug_grid := GridManager.new()
+	root.add_child(debug_grid)
+	await ai.run_phase(debug_grid, debug_turn, "red")
+	if debug_turn._unit_states.is_empty():
+		print("OK  F9 debug override makes EnemyAI.run_phase abort before acting")
+		passed += 1
+	else:
+		print("FAIL F9 EnemyAI abort: unit_states=%s" % str(debug_turn._unit_states))
+		failed += 1
+	if gs_debug.has_method("reset_map_state"):
+		gs_debug.call("reset_map_state")
+	gs_debug.set("debug_hotseat_override", old_debug_override)
+	if created_gs:
+		root.remove_child(gs_debug)
+		gs_debug.free()
 
 	# ---- _find_nearest: returns closer of two units ----
 	var from_unit: Node = stub_script.new()
@@ -270,6 +315,16 @@ func _init() -> void:
 	# move_along_path.
 	# ════════════════════════════════════════════════════════════════════════
 
+	# These tests need exact /root/GameState and /root/CombatResolver stubs. Move
+	# project autoloads out of the tree temporarily so get_node_or_null resolves
+	# the scoped fixtures below instead of live map state.
+	var real_game_state := root.get_node_or_null("GameState")
+	var real_combat_resolver := root.get_node_or_null("CombatResolver")
+	if real_game_state != null:
+		root.remove_child(real_game_state)
+	if real_combat_resolver != null:
+		root.remove_child(real_combat_resolver)
+
 	# Stub unit for the _act tests: the _find_nearest stub plus an awaitable
 	# move_along_path (a one-frame coroutine, like the real Unit.move_along_path).
 	var act_stub := GDScript.new()
@@ -279,7 +334,7 @@ func _init() -> void:
 	# Stub GameState: EnemyAI reads per-faction unit buckets + hostility checks;
 	# GridManager reads all_units. Arrays are repopulated per test.
 	var act_gs_script := GDScript.new()
-	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\nfunc is_player_turn() -> bool: return false\n"
+	act_gs_script.source_code = "extends Node\nvar all_units: Array[Node] = []\nvar players: Array[Node] = []\nvar enemies: Array[Node] = []\nvar debug_hotseat_override: bool = false\nfunc get_living_player_units() -> Array[Node]: return players\nfunc get_living_enemy_units() -> Array[Node]: return enemies\nfunc get_registered_faction_ids() -> Array[String]: return [\"blue\", \"red\"]\nfunc are_hostile(a: String, b: String) -> bool: return a != b\nfunc get_living_units_of(faction: String) -> Array[Node]: return players if faction == \"blue\" else enemies\nfunc is_player_turn() -> bool: return false\n"
 	act_gs_script.reload()
 	var act_gs: Node = act_gs_script.new()
 	act_gs.name = "GameState"
@@ -287,7 +342,7 @@ func _init() -> void:
 
 	# Stub CombatResolver: records resolve_combat so the attack tests can assert it.
 	var act_cr_script := GDScript.new()
-	act_cr_script.source_code = "extends Node\nvar resolve_called: bool = false\nvar last_target = null\nfunc resolve_combat(_a, b):\n\tresolve_called = true\n\tlast_target = b\n\treturn {}\nfunc apply_combat_result(_r, _a, _b): pass\n"
+	act_cr_script.source_code = "extends Node\nvar resolve_called: bool = false\nvar last_target = null\nfunc make_attack_event_record(_a, _d, _t):\n\tvar rec: Array[String] = []\n\treturn rec\nfunc resolve_combat(_a, b, _record = []):\n\tresolve_called = true\n\tlast_target = b\n\treturn {}\nfunc apply_combat_result(_r, _a, _b): pass\n"
 	act_cr_script.reload()
 	var act_cr: Node = act_cr_script.new()
 	act_cr.name = "CombatResolver"
@@ -457,6 +512,117 @@ func _init() -> void:
 		print("FAIL _act healer idle: tile=%s healed=%s state=%d" % [
 			str(hn_healer.tile_position), hn_healer.get("staff_heal_called"),
 			act_turn.get_unit_state(hn_healer)])
+		failed += 1
+
+	# ════════════════════════════════════════════════════════════════════════
+	# V021-01 — hotseat activation boundary: run_phase must not re-move spent
+	# units on an F9 re-run, and a mid-activation F9 handoff must roll the
+	# acting unit back to its activation-start tile (no "moved without spending
+	# its turn" teleport).
+	# ════════════════════════════════════════════════════════════════════════
+
+	# ---- run_phase skips a unit that already finished (no re-move on re-run) ----
+	var rm_enemy := _mk_act_unit(act_stub, Vector2i(0, 0), "red", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	var rm_player := _mk_act_unit(act_stub, Vector2i(4, 0), "blue", "basic", 20, "")
+	var rm_units: Array[Node] = [rm_enemy, rm_player]
+	act_gs.set("all_units", rm_units)
+	act_gs.set("players", [rm_player] as Array[Node])
+	act_gs.set("enemies", [rm_enemy] as Array[Node])
+	act_turn.set_unit_state(rm_enemy, TurnManager.UnitState.DONE)  # already acted
+	act_cr.set("resolve_called", false)
+	await ai.run_phase(act_grid, act_turn, "red")
+	if rm_enemy.tile_position == Vector2i(0, 0) and not act_cr.get("resolve_called") \
+			and act_turn.get_unit_state(rm_enemy) == TurnManager.UnitState.DONE:
+		print("OK  V021-01 run_phase: a DONE unit is not re-moved on re-run")
+		passed += 1
+	else:
+		print("FAIL V021-01 re-move guard: tile=%s resolve=%s state=%d" % [
+			str(rm_enemy.tile_position), act_cr.get("resolve_called"),
+			act_turn.get_unit_state(rm_enemy)])
+		failed += 1
+
+	# ---- mid-activation F9 flip rolls the unit back to its start tile + READY ----
+	# This stub flips the debug-hotseat override the instant it moves, simulating
+	# the player pressing F9 while an AI unit's move is in flight.
+	var rb_stub := GDScript.new()
+	rb_stub.source_code = "extends Node\nvar tile_position: Vector2i = Vector2i.ZERO\nvar team: String = \"red\"\nvar data = null\nvar _weapon = null\nvar staff_heal_called: bool = false\nvar gs_ref = null\nfunc get_equipped_weapon(): return _weapon\nfunc perform_staff_heal(_t, _w): staff_heal_called = true\nfunc snap_to_tile(t): tile_position = t\nfunc move_along_path(p):\n\ttile_position = p[p.size() - 1]\n\tif gs_ref != null: gs_ref.debug_hotseat_override = true\n\tawait get_tree().process_frame\n"
+	rb_stub.reload()
+	var rb_enemy := _mk_act_unit(rb_stub, Vector2i(0, 0), "red", "basic", 20,
+		"res://data/weapons/iron_sword.tres")
+	rb_enemy.set("gs_ref", act_gs)
+	var rb_player := _mk_act_unit(act_stub, Vector2i(4, 0), "blue", "basic", 20, "")
+	act_gs.set("all_units", [rb_enemy, rb_player] as Array[Node])
+	act_gs.set("players", [rb_player] as Array[Node])
+	act_gs.set("enemies", [rb_enemy] as Array[Node])
+	act_gs.set("debug_hotseat_override", false)
+	act_cr.set("resolve_called", false)
+	await ai.run_phase(act_grid, act_turn, "red")
+	if rb_enemy.tile_position == Vector2i(0, 0) \
+			and act_turn.get_unit_state(rb_enemy) == TurnManager.UnitState.READY \
+			and not act_cr.get("resolve_called"):
+		print("OK  V021-01 run_phase: mid-activation F9 rolls the unit back to start + READY")
+		passed += 1
+	else:
+		print("FAIL V021-01 mid-move rollback: tile=%s state=%d resolve=%s" % [
+			str(rb_enemy.tile_position), act_turn.get_unit_state(rb_enemy),
+			act_cr.get("resolve_called")])
+		failed += 1
+	act_gs.set("debug_hotseat_override", false)
+
+	root.remove_child(act_gs)
+	act_gs.free()
+	root.remove_child(act_cr)
+	act_cr.free()
+	if real_game_state != null:
+		root.add_child(real_game_state)
+	if real_combat_resolver != null:
+		root.add_child(real_combat_resolver)
+
+	# ---- _find_weakest / _select_target: engagement policy (target_policy) ----
+	# Positions chosen so nearest != weakest: the strong unit is closest, the weak
+	# unit is farthest. Proves the policy actually redirects target selection.
+	var eng_from: Node = stub_script.new(); eng_from.set("tile_position", Vector2i(0, 0))
+	var strong_u: Node = stub_script.new(); strong_u.set("tile_position", Vector2i(1, 0))
+	var mid_u: Node = stub_script.new(); mid_u.set("tile_position", Vector2i(3, 0))
+	var weak_u: Node = stub_script.new(); weak_u.set("tile_position", Vector2i(6, 0))
+	for pair in [[strong_u, 20], [mid_u, 12], [weak_u, 5]]:
+		var d := UnitData.new(); d.max_hp = 20; d.hp = pair[1]
+		pair[0].set("data", d)
+		root.add_child(pair[0])
+	root.add_child(eng_from)
+	var eng_units: Array[Node] = [strong_u, mid_u, weak_u]
+	var w_pick: Node = ai._find_weakest(eng_from, eng_units)
+	var AIProfileRegistryS = load("res://scripts/core/AIProfileRegistry.gd")
+	var sel_weak: Node = ai._select_target(eng_from, eng_units, AIProfileRegistryS.ENG_WEAKEST)
+	var sel_near: Node = ai._select_target(eng_from, eng_units, AIProfileRegistryS.ENG_NEAREST)
+	# Nearest-path proof: the "nearest" dispatch is byte-identical to _find_nearest,
+	# so existing (all-nearest) profiles' selection — and thus their RNG chain — is
+	# unchanged by this change.
+	var near_unchanged: bool = sel_near == ai._find_nearest(eng_from, eng_units)
+	# Determinism: repeated weakest picks are stable.
+	var w_deterministic: bool = ai._find_weakest(eng_from, eng_units) == w_pick
+	if w_pick == weak_u and sel_weak == weak_u and sel_near == strong_u \
+			and near_unchanged and w_deterministic:
+		print("OK  _select_target: weakest focus-fires low-HP unit, nearest unchanged & deterministic")
+		passed += 1
+	else:
+		print("FAIL _select_target: w_pick=%s sel_weak=%s sel_near=%s near_unchanged=%s det=%s" % [
+			w_pick, sel_weak, sel_near, near_unchanged, w_deterministic])
+		failed += 1
+
+	# ---- _find_weakest tie-break: equal HP → nearer wins ----
+	var tie_a: Node = stub_script.new(); tie_a.set("tile_position", Vector2i(5, 0))
+	var tie_b: Node = stub_script.new(); tie_b.set("tile_position", Vector2i(2, 0))
+	for tnode in [tie_a, tie_b]:
+		var td := UnitData.new(); td.max_hp = 20; td.hp = 7
+		tnode.set("data", td)
+		root.add_child(tnode)
+	if ai._find_weakest(eng_from, [tie_a, tie_b] as Array[Node]) == tie_b:
+		print("OK  _find_weakest tie: equal HP breaks toward the nearer unit")
+		passed += 1
+	else:
+		print("FAIL _find_weakest tie-break")
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

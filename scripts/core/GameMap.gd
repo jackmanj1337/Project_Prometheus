@@ -22,6 +22,7 @@ const _CHAR_TO_SOURCE := {
 
 @onready var _terrain_layer: TileMapLayer = $TileMapLayer_Terrain
 @onready var _overlay_layer: TileMapLayer = $TileMapLayer_Overlay
+@onready var _overlay_top_layer: TileMapLayer = $TileMapLayer_OverlayTop
 @onready var _units_container: Node2D = $UnitsContainer
 @onready var _grid: GridManager = $GridManager
 @onready var _cursor: MapCursor = $MapCursor
@@ -36,6 +37,12 @@ const _CHAR_TO_SOURCE := {
 # the same instance — keeps save/restore state consistent across phase changes.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 const HotseatControllerS = preload("res://scripts/core/HotseatController.gd")
+# Autoload scripts carry no class_name, so preload the script to read its
+# OFF_MAP_TILE sentinel (same pattern MapCursor uses).
+const PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+const OccupancyContextScript = preload("res://scripts/placement/OccupancyContext.gd")
+# B4-PREP-DEPLOYMENT: validates the explicit deployment plan before it is spawned.
+const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
 
@@ -43,8 +50,15 @@ var map_data: MapData = null
 
 
 func _ready() -> void:
+	var occupancy := get_node_or_null("/root/OccupancyService")
+	if occupancy != null:
+		occupancy.call("clear_delayed")
 	var gs := get_node_or_null("/root/GameState")
+	var resume_payload: Dictionary = {}
 	if gs:
+		var raw_payload: Variant = gs.get("next_map_suspend_payload")
+		if raw_payload is Dictionary:
+			resume_payload = raw_payload.duplicate(true)
 		# Fresh map boot must not inherit stale scene-scoped unit state from a
 		# prior battle. This is especially important after returning to the main
 		# menu from an in-progress map in an exported build.
@@ -59,7 +73,10 @@ func _ready() -> void:
 	if not _validate_map(map_data.grid, map_width, map_height):
 		return
 	_paint_terrain(map_data.grid, map_width, map_height)
-	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height)
+	_grid.setup(_terrain_layer, _overlay_layer, map_width, map_height, _overlay_top_layer)
+	# Grid-dim accessibility knob ([MRD-5]): the terrain layer joins the dim group
+	# so the Settings slider can fade it live; units + overlays stay full opacity.
+	_terrain_layer.add_to_group("grid_dim_target")
 	# Build the camera controller and share it with the cursor (B4) so save/restore
 	# state lives in exactly one place.
 	_camera_ctrl = CameraControllerS.new()
@@ -73,6 +90,14 @@ func _ready() -> void:
 	_camera.limit_top = 0
 	_camera.limit_right = map_width * GameConstants.TILE_SIZE
 	_camera.limit_bottom = map_height * GameConstants.TILE_SIZE
+	# Apply the persisted map-zoom level (Display & Accessibility item 1) before the
+	# initial center so the centre uses the right visible span. _silent variant just
+	# sets Camera2D.zoom + level without repositioning — center_at follows.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		_camera_ctrl.set_zoom_index_silent(sm.get("map_zoom_index"))
+		# Apply the persisted terrain dim now that the layer is in the group.
+		_terrain_layer.modulate.a = 1.0 - clampf(float(sm.get("grid_dim")), 0.0, 0.5)
 	_camera_ctrl.set_smoothing(false)
 	_camera_ctrl.center_at(_get_camera_start())
 
@@ -85,23 +110,36 @@ func _ready() -> void:
 
 	if not _spawn_units():
 		return
-	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start
+	var is_resuming := not resume_payload.is_empty()
+	# Snapshot for the Retry button — done after units land so HP/inventory reflect map start.
+	# A suspend resume keeps the serialized mid-map runtime state intact instead
+	# of running map-start resets over it.
 	if gs:
-		# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
-		for u in gs.get("all_units") as Array:
-			if u.has_method("reset_map_state"):
-				u.reset_map_state()
+		if not is_resuming:
+			# .get()/.set()/.call() avoid typed-Node property errors (autoloads lack class_name).
+			for u in gs.get("all_units") as Array:
+				if u.has_method("reset_map_state"):
+					u.reset_map_state()
+			# Seed before the Retry snapshot so a replay restores this map's
+			# timeline instead of the previous map's RNG state.
+			var rng_svc := get_node_or_null("/root/RngService")
+			if rng_svc != null:
+				rng_svc.call("start_map")
 		gs.set("map_data", map_data)
-		gs.call("take_map_snapshot")
+		if not is_resuming:
+			gs.call("take_map_snapshot")
 	# Wire persistent HUD
 	if _hud and _hud.has_method("setup"):
 		_hud.setup(_grid, _turn_manager, _attack_preview, _unit_details_screen)
-	# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
-	# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
-	# its unit/terrain panels from the start tile.
-	_place_cursor_at_start()
-	# Kick off the first player phase
-	_turn_manager.start_map(map_data, _grid)
+	if is_resuming:
+		_apply_suspend_resume(resume_payload)
+	else:
+		# Start the cursor on the first player unit, not the map's (0,0) corner (#9).
+		# After _hud.setup() so the cursor_moved emit reaches a HUD that can populate
+		# its unit/terrain panels from the start tile.
+		_place_cursor_at_start()
+		# Kick off the first player phase.
+		_turn_manager.start_map(map_data, _grid)
 
 
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
@@ -166,6 +204,9 @@ func _spawn_units() -> bool:
 	if gs == null:
 		push_error("GameMap: GameState autoload missing")
 		return false
+	var resume_payload: Variant = gs.get("next_map_suspend_payload")
+	if resume_payload is Dictionary and not resume_payload.is_empty():
+		return _spawn_units_from_suspend(resume_payload)
 	if not bool(gs.call("is_roster_ready_for_launch")):
 		push_error("GameMap: launch roster not explicitly prepared for policy '%s' (source '%s')" % [
 			String(gs.get("next_map_roster_policy")),
@@ -177,42 +218,166 @@ func _spawn_units() -> bool:
 		push_error("GameMap: prepared launch roster is empty")
 		return false
 
-	# Player units: roster slot N → player_start_tiles[N]
+	# Player units. An explicit deployment plan (chosen at prep) wins when present.
+	# Without one, keep the historical inference — roster slot N →
+	# player_start_tiles[N] — so a launch path with no prep screen (the bare
+	# single-map launch) behaves exactly as it did before B4-PREP-DEPLOYMENT.
+	var plan: Variant = gs.get("next_map_deployment")
+	if plan is Dictionary and not (plan as Dictionary).is_empty():
+		return _spawn_units_from_plan(plan as Dictionary, roster) and _spawn_enemy_units()
+
 	for i in roster.size():
 		if i >= map_data.player_start_tiles.size():
 			break
 		var u_data: UnitData = roster[i] as UnitData
 		if u_data == null or u_data.is_incapacitated:
 			continue  # permadeath: skip dead units in future deployments
-		_spawn_unit(u_data, map_data.player_start_tiles[i], "blue")
+		_place_and_spawn(u_data, map_data.player_start_tiles[i], "blue")
 
-	# Enemy/AI-controlled units: load each UnitData .tres referenced by
-	# enemy_placements. Optional placement key: "faction" (defaults to "red").
-	for placement in map_data.enemy_placements:
-		var path: String = placement.get("unit_data_path", "")
-		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
-		var faction_id: String = placement.get("faction", "red")
-		if path == "" or not ResourceLoader.exists(path):
-			push_warning("GameMap: bad enemy placement: " + str(placement))
-			continue
-		# ResourceLoader.exists() passed, but load() can still return null on a
-		# corrupt .tres — null-check before .duplicate() so we skip, not crash.
-		var loaded := load(path)
-		if loaded == null:
-			push_error("GameMap: failed to load enemy unit data at '%s' — skipping" % path)
-			continue
-		var u_data: UnitData = loaded.duplicate(true)  # fresh copy per map
-		u_data.ai_profile = placement.get("ai_profile", "basic")
-		# push_error + continue (not assert) so bad data is skipped in release
-		# builds, where assert() is stripped.
-		if u_data.unit_id == "":
-			push_error("GameMap: enemy at '%s' has empty unit_id — set it in the .tres" % path)
-			continue
-		_spawn_unit(u_data, tile, faction_id)
+	return _spawn_enemy_units()
+
+
+# Spawns the player side from an explicit deployment plan: unit_id -> start tile.
+#
+# Revalidates before spawning. Prep already gates Begin Battle on a legal plan, so
+# an illegal plan arriving here means the party or the map changed underneath it —
+# and spawning a half-legal board (a fallen unit, two units stacked on one tile)
+# is worse than refusing to launch, which is how this function already treats an
+# unprepared roster.
+func _spawn_units_from_plan(plan: Dictionary, roster: Array) -> bool:
+	var party: Array[UnitData] = []
+	for entry in roster:
+		if entry is UnitData:
+			party.append(entry)
+
+	# The node carries the deployment constraints ([CST-5]); a bare single-map
+	# launch has no campaign position, and a null node simply skips them.
+	var node: CampaignNode = null
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("get_current_node"):
+		node = cm.call("get_current_node")
+
+	var errors: Array[String] = DeploymentPlanS.validate(
+		plan, party, node, map_data.player_start_tiles)
+	if not errors.is_empty():
+		for err in errors:
+			push_error(err)
+		return false
+
+	for key in plan:
+		var unit_id: String = String(key)
+		for unit_data in party:
+			if unit_data.unit_id == unit_id:
+				_place_and_spawn(unit_data, plan[key], "blue")
+				break
 	return true
 
 
-func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
+# Enemy/AI-controlled units. Each placement resolves to a UnitData via exactly
+# one source, either an in-memory instance or a resource path.
+# Optional placement keys: "faction" (defaults to "red"), "ai_profile"
+# (explicit override; omission preserves the UnitData profile).
+func _spawn_enemy_units() -> bool:
+	for placement in map_data.enemy_placements:
+		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
+		var faction_id: String = placement.get("faction", "red")
+		var u_data: UnitData = _resolve_placement_unit_data(placement)
+		if u_data == null:
+			continue  # _resolve_placement_unit_data already logged why
+		_apply_enemy_placement_overrides(u_data, placement)
+		# push_error + continue (not assert) so bad data is skipped in release
+		# builds, where assert() is stripped.
+		if u_data.unit_id == "":
+			push_error("GameMap: enemy placement has empty unit_id — set it on the UnitData: %s" % str(placement))
+			continue
+		_place_and_spawn(u_data, tile, faction_id)
+	return true
+
+
+func _spawn_units_from_suspend(payload: Dictionary) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var units: Array = payload.get("map_runtime", {}).get("units", [])
+	if units.is_empty():
+		push_error("GameMap: suspend payload has no map_runtime.units")
+		return false
+	for unit_entry in units:
+		if not (unit_entry is Dictionary):
+			push_error("GameMap: suspend payload unit entry is not a Dictionary: %s" % str(unit_entry))
+			continue
+		var u_data: UnitData = gs.call("unit_data_from_runtime_dict", unit_entry)
+		if u_data == null or u_data.unit_id == "":
+			push_error("GameMap: suspend payload unit has no unit_id: %s" % str(unit_entry))
+			continue
+		var faction_id: String = String(unit_entry.get("faction", "red"))
+		var spawned: Node = _spawn_unit(u_data, u_data.tile_position, faction_id)
+		# V030-SUS-01 (b): a paired support was parked at the off-map sentinel and
+		# hidden when the pair formed (MapCursor.gd:1203-1204), and that sentinel
+		# is what the payload serialized. _spawn_unit renders every unit visible,
+		# so re-hide any unit restored onto the sentinel — otherwise the support
+		# draws at (-1,-1). PairUpRegistry.restore (dict-only) can't do this.
+		if spawned != null and u_data.tile_position == PairUpRegistryScript.OFF_MAP_TILE:
+			spawned.visible = false
+	return true
+
+
+func _apply_suspend_resume(payload: Dictionary) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	var map_runtime: Dictionary = payload.get("map_runtime", {})
+	var reg := get_node_or_null("/root/PairUpRegistry")
+	if reg:
+		reg.call("restore", map_runtime.get("pair_carry", {}).get("pair_up", {}))
+	var rng_svc := get_node_or_null("/root/RngService")
+	if rng_svc != null and map_runtime.get("rng", {}) is Dictionary \
+			and not map_runtime.get("rng", {}).is_empty():
+		rng_svc.call("from_save_dict", map_runtime["rng"])
+	_turn_manager.start_map_from_suspend(map_data, _grid, map_runtime.get("turn", {}))
+	_cursor.apply_suspend_ui_state(payload.get("suspend", {}))
+	if gs:
+		gs.call("clear_suspend_resume")
+
+
+# [PUG-3] The spawn seam. An enemy placement carries exactly one UnitData source:
+# in-memory `unit_data` (generated skirmish forces, editor-baked units, mid-map
+# reinforcements) OR `unit_data_path` resource path (authored maps). Returns a
+# fresh duplicate so the map owns its own copy; returns null on bad data so the
+# caller can skip, not crash.
+func _resolve_placement_unit_data(placement: Dictionary) -> UnitData:
+	var raw_instance: Variant = placement.get("unit_data", null)
+	var path: String = String(placement.get("unit_data_path", ""))
+	var has_instance := raw_instance != null
+	var has_path := path != ""
+	if has_instance == has_path:
+		push_error(
+			"GameMap: enemy placement must provide exactly one of unit_data_path or unit_data: "
+			+ str(placement)
+		)
+		return null
+	if has_instance:
+		var instance: UnitData = raw_instance as UnitData
+		if instance == null:
+			push_error("GameMap: enemy placement unit_data is not UnitData: " + str(placement))
+			return null
+		return instance.duplicate(true)  # fresh copy per map
+	if not ResourceLoader.exists(path):
+		push_error("GameMap: enemy placement points at missing UnitData '%s': %s" % [path, str(placement)])
+		return null
+	# ResourceLoader.exists() passed, but load() can still return null on a
+	# corrupt .tres — null-check before .duplicate() so we skip, not crash.
+	var loaded := load(path)
+	if loaded == null:
+		push_error("GameMap: failed to load enemy unit data at '%s' — skipping" % path)
+		return null
+	return loaded.duplicate(true)  # fresh copy per map
+
+
+# Placement keys are overrides, not defaults. A generated inline unit can carry
+# its own profile; authored maps may still override per placement when needed.
+func _apply_enemy_placement_overrides(u_data: UnitData, placement: Dictionary) -> void:
+	if placement.has("ai_profile"):
+		u_data.ai_profile = String(placement.get("ai_profile", u_data.ai_profile))
+
+
+func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 	# Surface malformed inventory data (bad/empty entry_type, missing weapon_id/item_id)
 	# at spawn — fails loud here rather than as a confusing null mid-combat.
 	for entry in u_data.inventory:
@@ -226,6 +391,30 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
 		gs.call("register_unit", unit)
+	return unit
+
+
+# Public/non-standard placement resolves policy before this method reaches the
+# private instancing seam. Normal movement remains owned by Unit/GridManager.
+func _place_and_spawn(u_data: UnitData, desired_tile: Vector2i, team: String,
+		policy: String = "nearest_free") -> Unit:
+	var occupancy := get_node_or_null("/root/OccupancyService")
+	if occupancy == null:
+		push_error("GameMap: OccupancyService autoload missing")
+		return null
+	var context: RefCounted = OccupancyContextScript.create(
+		u_data, desired_tile, policy, u_data.unit_id)
+	context.source = self
+	context.reason = "map_start_spawn"
+	var result: RefCounted = occupancy.call("place", context, _grid)
+	if not result.ok:
+		push_error("GameMap: could not place unit '%s' at %s (%s)" % [
+			u_data.unit_id, str(desired_tile), result.failure_reason])
+		return null
+	if result.fallback_used:
+		push_warning("GameMap: unit '%s' moved from authored tile %s to nearest free tile %s" % [
+			u_data.unit_id, str(desired_tile), str(result.to_tile)])
+	return _spawn_unit(u_data, result.to_tile, team)
 
 
 # Asserts all rows are the expected length and contain only known terrain chars.

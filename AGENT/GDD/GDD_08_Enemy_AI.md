@@ -1,12 +1,12 @@
 # GDD_08 — Enemy AI
 
-**Status:** Active contract — split status per section (the basic/passive/healer profiles
-are **Implemented**; the tactical scoring model, extra profiles, and enemy
+**Status:** Active contract — split status per section (the basic/passive/healer/hunter
+profiles are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns enemy AI behaviour, AI determinism/parity obligations, and AI
 performance constraints. Combat math is owned by `GDD_02`; the EnemyAI autoload + faction
@@ -26,14 +26,35 @@ non-blue faction authored as `controller = "AI"`, it awaits
 `EnemyAI.run_phase(grid, turn, faction_id)`, then advances to the next faction in the
 map's authored `turn_order`.
 
-Each enemy's behaviour is selected by its `UnitData.ai_profile` string. The dispatcher
-(`_act()`) reads that string and calls the matching routine. Adding a profile
-also requires adding it to `DataManager._VALID_AI_PROFILES`, authoring data,
-and adding behavior tests.
+Implemented behavior is selected by `UnitData.ai_profile`. The former closed
+`match enemy.data.ai_profile` was replaced (build-slice steps 1-2 of
+`ai_first_build_design_2026-06-22.md`) by the **AISpec composition seam**:
+`AIProfileRegistry.resolve_ai_spec()` maps a profile id to an `AISpec`
+(`activation`/`disposition`/`engagement`), and `EnemyAI._act()` dispatches through a
+`disposition id -> handler` table. Boot validation (`DataManager`) now queries
+`AIProfileRegistry.is_valid_profile()` instead of a closed `_VALID_AI_PROFILES`
+const. Adding a profile is one registry entry + one disposition handler — no engine
+`match` edit (`B5-AI-COMPOSITION`, invariant 1: "no behavior hardcoded in a match").
+
+The **`engagement` axis** (design §9 `target_policy`) is honoured by the targeting
+dispositions via `EnemyAI._select_target()`: `nearest` (the closest hostile by path
+cost — the byte-identical legacy behaviour) and `weakest` (focus-fire the lowest-HP
+hostile; ties break toward the nearer unit). The shipped **`hunter`** profile
+(`always`/`pursue_unit`/`weakest`) selects it — a non-schema slice pulled forward from
+step 4 because it reuses the existing `pursue_unit` disposition and needs no `ai_awake`
+save field. No RNG is drawn in target selection, so existing `nearest` profiles' chain
+is unchanged.
+
+The remaining MVP axes — territorial/tethered/flee/seek_tile dispositions, grouping,
+event/`set_ai` activation, and difficulty overlays — are build-slice steps 3-6 and stay
+**Planned**; step 3 is gated on the `ai_awake` save-slice (see `GDD_10` "Gated build
+items"). The handlers still plan and execute inline; a pure `plan_action` (the
+action-preview dry-run + `[VAL]` prerequisite) rides step 3.
 
 > **MVP scope vs. design.** The implemented AI is deliberately simple: it moves toward
-> the nearest hostile target and attacks the nearest target in range — there is no
-> kill-score heuristic and no counter-damage avoidance yet. The richer
+> and attacks a hostile chosen by the profile's `engagement` policy (`nearest`, or
+> `weakest` focus-fire for `hunter`) — there is no full kill-score heuristic and no
+> counter-damage avoidance yet. The richer
 > scoring/positioning model and the extra profiles at the end of this document are
 > Phase 2 work. This document describes the **implemented** behaviour first, then the
 > design backlog.
@@ -42,39 +63,29 @@ and adding behavior tests.
 
 ## Architecture
 
-```gdscript
-# scripts/core/EnemyAI.gd  (autoload)
-extends Node
+Status: **Implemented foundation**; additional dispositions **Planned**
+Last verified: 2026-07-13
 
-# Awaited by TurnManager.start_enemy_phase() for one acting faction at a time.
-func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void:
-    var gs := get_node_or_null("/root/GameState")
-    if gs == null or grid == null or faction_id == "":
-        return
-    for enemy in gs.get_living_units_of(faction_id):
-        if is_instance_valid(enemy):
-            await _act(enemy, grid, turn)
-
-# Dispatch on ai_profile; each routine marks the unit DONE when finished.
-func _act(enemy: Node, grid: GridManager, turn: TurnManager) -> void:
-    match enemy.data.ai_profile:
-        "passive": await _act_passive(enemy, grid, turn)
-        "healer":  await _act_healer(enemy, grid, turn)
-        _:         # "basic" — the default; standard close-and-attack logic
-            ...
-```
+`TurnManager` awaits `EnemyAI.run_phase()` once per AI-controlled faction. Each unit's
+profile resolves through `AIProfileRegistry` to an `AISpec` containing activation,
+disposition, and engagement ids; the disposition handler then plans and performs the
+turn. Hostility always goes through `GameState.are_hostile()`.
 
 `ai_profile` is stored on `UnitData` (`@export var ai_profile: String = "basic"`) and
 set per unit via `MapData.enemy_placements`. Hostility is resolved through
 `GameState.are_hostile()` rather than assuming every non-blue unit is an enemy to
 every other non-blue unit.
 
+Target AISpec data lives with unit/map/faction/campaign authoring and is validated
+against the registry at load. `basic`, `passive`, and `healer` become developer-provided
+presets implemented by composing the shared planner primitives.
+
 ---
 
 ## Implemented Profiles
 
-Status: **Implemented** (`basic`, `passive`, `healer`)
-Last verified: 2026-06-13
+Status: **Implemented** (`basic`, `passive`, `healer`, `hunter`)
+Last verified: 2026-07-13
 
 ### `"basic"` — the default
 
@@ -111,6 +122,12 @@ brings the most-injured ally into staff range (tie-broken by terrain DEF + Dodge
 safer positioning), moves there, then heals via `Unit.perform_staff_heal()`. A healer
 never attacks.
 
+### `"hunter"`
+
+Uses the same pursue-unit disposition as `basic`, but selects the lowest-HP hostile;
+equal-HP targets break toward the nearer unit. Movement and final attack selection use
+the same engagement policy, and repeated choices are deterministic.
+
 ---
 
 ## Combat Forecast — `preview_combat()`
@@ -137,29 +154,34 @@ normal speed and 0.12 seconds at fast speed. Instant movement skips that delay.
 Status: **Planned** (separate tactical-AI task); enemy generation/autolevel **Not reviewed**
 Last verified: 2026-06-13
 
-Designed but not implemented. Register them in `_act()` and
-`DataManager._VALID_AI_PROFILES`, then add resource validation and behavior tests.
+Designed but not implemented. These are profile presets or compositions over the AI
+registry, not future `_act()` switch arms. Add validation and behavior tests with each
+profile/primitive.
 
-| Profile | Behaviour |
+| Preset/profile | Behaviour |
 |---|---|
-| `"territorial"` | Attacks any hostile unit that enters its patrol radius; otherwise stays put |
-| `"guard_tile"` | Never leaves a designated tile; attacks hostile units that come in range |
-| `"aggressive"` | Like basic but ignores the counter-damage penalty in scoring |
-| `"boss"` | Like basic but with terrain-optimal positioning; uses items |
+| `"territorial"` | Sleeps until a hostile enters its patrol radius, then latches awake |
+| `"tethered"` | Pursues within a leash and returns toward its authored home tile |
+| `"flee"` | Maximizes distance from threats, optionally toward an authored goal tile |
+| `"seek_tile"` | Advances toward an authored goal tile |
+
+Guard/aggressive/boss behavior can be composed from activation, disposition,
+engagement, and scorer presets rather than becoming separate engine switch arms.
 
 ### Phase 2 Scoring Model (design backlog)
 
-When the basic profile is upgraded in the separate tactical-AI task, target selection should score each
-reachable target with `preview_combat()` — prioritising guaranteed kills, then
-low-HP targets, then expected damage, penalised by the counter-damage the enemy would
-take. Until then the AI uses the nearest-target rule above.
+When the basic profile is upgraded in the separate tactical-AI task, target selection
+uses the `[VAL]` scorer: an authorable F16/REQ term tree over engine forecast
+term-sources such as expected damage, would-kill, counter-damage, exposure, and target
+value. Nearest/weakest/aggressive behaviors become shipped scoring presets. Until then
+the AI uses the nearest-target rule above.
 
 ---
 
 ## AI Determinism & Parity
 
-Status: **Target design** (parity obligations; binding once `RngService` lands — RNG-4)
-Last verified: 2026-06-13
+Status: **Split** — engine-local determinism **Implemented**; online parity **Deferred**
+Last verified: 2026-07-13
 
 ### Summary
 AI decisions must be reproducible so replay, rewind, suspend, and host-authoritative
@@ -175,11 +197,12 @@ online play stay consistent.
 - **Online parity (RNG-4, post-1.0, M15B).** In online play the **host simulates AI** and
   broadcasts results through the `resolve_combat()`/`apply_combat_result()` + snapshot
   seams; clients never run a divergent AI. Determinism guarantees are engine-local.
-- **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`
-  (default Blue + Green; Red none) — owned by GDD_02 §EXP / GDD_01 §CampaignRules Contract.
+- **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`;
+  the shipped preset is Blue + Green, Red none — owned by GDD_02 §EXP / GDD_01
+  §CampaignRules Contract.
 
 ### Anchors
-- Code: `scripts/core/EnemyAI.gd`; target `scripts/autoloads/RngService.gd`
+- Code: `scripts/core/EnemyAI.gd`, `scripts/autoloads/RngService.gd`
 - Decisions: RNG-4, OPEN-4
 - Owner of the determinism contract: GDD_01 §Determinism, Snapshot & Online Contract
 

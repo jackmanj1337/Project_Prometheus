@@ -38,17 +38,67 @@ var data: StubData = StubData.new()
 	else:
 		print("FAIL panel not visible after _show_next"); failed += 1
 
-	# Mouse-click while the panel is up must dismiss it (playtest 3 #2).
+	# V025-05b: clicks are now handled in _gui_input (the STOP root consumes mouse
+	# buttons in the GUI phase before _unhandled_input can see them on desktop). Drive
+	# the real handler here; the mouse_filter invariant below proves a click actually
+	# reaches this root on the live build.
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
-	screen._unhandled_input(click)
+	screen._gui_input(click)
 	await process_frame
 	if not screen.visible:
-		print("OK  left-click dismisses the level-up panel (playtest 3 #2)")
+		print("OK  left-click dismisses the level-up panel (playtest 3 #2 / V025-05b)")
 		passed += 1
 	else:
 		print("FAIL left-click did not dismiss the panel"); failed += 1
+
+	# V025-05b structural invariant: the root must be STOP (so it receives the GUI
+	# mouse phase) and every descendant of the Panel must be IGNORE (so a click
+	# anywhere on the screen falls through to the root's _gui_input, not a child).
+	# This is the desktop-routing guarantee headless picking can't exercise directly.
+	var root_stop: bool = screen.mouse_filter == Control.MOUSE_FILTER_STOP
+	var subtree_ignore := true
+	var offender := ""
+	var stack: Array[Node] = [screen.get_node("Panel")]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is Control and (n as Control).mouse_filter != Control.MOUSE_FILTER_IGNORE:
+			subtree_ignore = false
+			offender = String(n.name)
+		for child in n.get_children():
+			stack.push_back(child)
+	if root_stop and subtree_ignore:
+		print("OK  root is STOP and the Panel subtree is IGNORE — clicks reach _gui_input (V025-05b)")
+		passed += 1
+	else:
+		print("FAIL mouse_filter routing: root_stop=%s subtree_ignore=%s offender=%s" % [
+			root_stop, subtree_ignore, offender]); failed += 1
+
+	# V023-05: mouse wheel and zoom actions are input to block, not dismissal.
+	screen._queue.append({"unit": stub_unit, "increases": {"hp": 1}})
+	screen._show_next()
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	screen._unhandled_input(wheel)
+	await process_frame
+	var wheel_kept_open: bool = screen.visible
+	var zoom := InputEventAction.new()
+	zoom.action = "zoom_in"
+	zoom.pressed = true
+	screen._unhandled_input(zoom)
+	await process_frame
+	var zoom_kept_open: bool = screen.visible
+	if wheel_kept_open and zoom_kept_open:
+		print("OK  wheel/zoom input is blocked without dismissing level-up (V023-05)")
+		passed += 1
+	else:
+		print("FAIL wheel/zoom dismissed level-up: wheel=%s zoom=%s" % [
+			wheel_kept_open, zoom_kept_open])
+		failed += 1
+	screen._advance()
+	await process_frame
 
 	# Confirm action still works after the change — guards against regression.
 	screen._queue.append({"unit": stub_unit, "increases": {"hp": 1}})
@@ -69,7 +119,7 @@ var data: StubData = StubData.new()
 	})
 	screen._show_next()
 	await process_frame
-	var stats_label: Label = screen.get_node("Panel/VBox/LabelStats")
+	var stats_label: Label = screen.get_node("Panel/Margin/VBox/LabelStats")
 	if "Learned" in stats_label.text and "Vantage" in stats_label.text:
 		print("OK  level-up panel announces a learned skill"); passed += 1
 	else:
@@ -103,13 +153,13 @@ var data: StubData = StubData.new()
 	screen._queue.append({"unit": queue_unit_c, "increases": {"speed": 1}})
 	screen._show_next()
 	await process_frame
-	var queue_names: Array[String] = [screen.get_node("Panel/VBox/LabelName").text]
+	var queue_names: Array[String] = [screen.get_node("Panel/Margin/VBox/LabelName").text]
 	screen._unhandled_input(confirm)
 	await process_frame
-	queue_names.append(screen.get_node("Panel/VBox/LabelName").text)
+	queue_names.append(screen.get_node("Panel/Margin/VBox/LabelName").text)
 	screen._unhandled_input(confirm)
 	await process_frame
-	queue_names.append(screen.get_node("Panel/VBox/LabelName").text)
+	queue_names.append(screen.get_node("Panel/Margin/VBox/LabelName").text)
 	screen._unhandled_input(confirm)
 	await process_frame
 	if queue_names == ["Queue A", "Queue B", "Queue C"] and not screen.visible:
@@ -124,13 +174,44 @@ var data: StubData = StubData.new()
 	})
 	screen._show_next()
 	await process_frame
-	var panel: Panel = screen.get_node("Panel")
+	var panel: PanelContainer = screen.get_node("Panel")
 	if panel.size.y > 200.0:
 		print("OK  panel grows for long level-up summaries"); passed += 1
 	else:
 		print("FAIL panel did not grow for long summary: size=%s" % str(panel.size)); failed += 1
 	screen._unhandled_input(confirm)
 	await process_frame
+
+	# V025-05a: the FIRST level-up shown on a fresh screen used to pin a degenerate
+	# narrow/tall frame (recenter sized an un-laid-out autowrap label). With autowrap
+	# dropped + deferred sizing, a fresh screen's first show must match a second show.
+	var fresh: Control = packed.instantiate()
+	root.add_child(fresh)
+	await process_frame
+	var burst: Dictionary = {"hp": 1, "strength": 1, "speed": 1}
+	fresh._queue.append({"unit": stub_unit, "increases": burst})
+	fresh._show_next()
+	await process_frame
+	await process_frame  # deferred size settles one layout frame after show
+	var first_panel: PanelContainer = fresh.get_node("Panel")
+	var first_size: Vector2 = first_panel.size
+	fresh._queue.append({"unit": stub_unit, "increases": burst})
+	fresh._show_next()  # second show, identical content
+	await process_frame
+	await process_frame
+	var second_size: Vector2 = first_panel.size
+	# The two shows must agree (the bug was a first-show-only race), and the panel
+	# must not have collapsed to a narrow sliver — the degenerate frame was ~sliver
+	# wide because an un-laid-out autowrap label reported a tiny minimum width.
+	var stable: bool = absf(first_size.x - second_size.x) <= 2.0 \
+		and absf(first_size.y - second_size.y) <= 2.0
+	var not_sliver: bool = first_size.x >= 100.0
+	if stable and not_sliver:
+		print("OK  V025-05a first-show panel size is non-sliver and matches second show")
+		passed += 1
+	else:
+		print("FAIL first-show size: first=%s second=%s" % [first_size, second_size]); failed += 1
+	fresh.queue_free()
 
 	stub_unit.queue_free()
 	queue_unit_a.queue_free()

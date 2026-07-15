@@ -8,6 +8,8 @@ class_name ActionMenu extends Control
 # never disagree about what's available on a given tile.
 
 const TileActions = preload("res://scripts/shared/TileActions.gd")
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const MenuRepeatPolicy = preload("res://scripts/shared/MenuRepeatPolicy.gd")
 
 signal action_chosen(action: String)
 signal hidden_by_cancel()
@@ -26,8 +28,20 @@ signal hidden_by_cancel()
 var _focused_idx: int = 0
 var _buttons: Array[Button] = []
 
+# One owned repeat/deadzone policy for vertical navigation (V030-GP-01/02). Polling
+# it in _process replaces the old per-event cursor_up/down checks, which stepped
+# once per analog fluctuation ("too fast") and stalled when the stick stabilised.
+var _repeat := MenuRepeatPolicy.new()
+
+# The button texture's arrows extend farther inward than its StyleBox content
+# margins. Reserve this visual safe area per side so large text never reaches the
+# ornament even though Godot's calculated minimum technically contains the label.
+const _BUTTON_ORNAMENT_SAFE_MARGIN := 28.0
+
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
+	_apply_menu_scale_from_settings()
 	# Seize and Escape are the two map-objective entries; both sit between Equip
 	# and Wait so the always-available Wait stays at the bottom. Pair Up and Swap
 	# sit between Escape and Wait as the Pair Up section (Separate joins them in
@@ -47,6 +61,36 @@ func _ready() -> void:
 	_btn_separate.pressed.connect(func(): hide(); action_chosen.emit("separate"))
 	_btn_wait.pressed.connect(func():    hide(); action_chosen.emit("wait"))
 	hide()
+
+
+func apply_menu_scale(factor: float) -> void:
+	MenuScale.apply_to(self, factor, false)
+	_fit_width_to_visible_labels()
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
+
+
+# The ornate button style has substantial scaled insets. Size from each visible
+# button's real themed minimum so labels remain inside the art at every scale.
+func _fit_width_to_visible_labels() -> void:
+	var required_width := 128.0
+	for button in _buttons:
+		if button.visible:
+			var font := button.get_theme_font("font")
+			var font_size := button.get_theme_font_size("font_size")
+			var text_width := font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT,
+					-1.0, font_size).x
+			var scale_factor := float(font_size) / 16.0
+			var ornament_width := _BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * scale_factor
+			required_width = maxf(required_width,
+					maxf(button.get_combined_minimum_size().x, text_width + ornament_width))
+	custom_minimum_size.x = required_width
+	# Minimum-size reductions do not shrink an already-expanded free-standing
+	# Control. Reset both rendered axes before MapCursor measures and places it;
+	# otherwise a previously tall action list leaves a near-viewport-height frame.
+	size = Vector2(required_width, get_combined_minimum_size().y)
 
 
 # Show the menu and configure which buttons are active.
@@ -105,7 +149,8 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	if unit != null and unit.data != null and unit.data.unit_id != "":
 		var registry := get_node_or_null("/root/PairUpRegistry")
 		var gs := get_node_or_null("/root/GameState")
-		var pair_up_enabled: bool = true if gs == null else bool(gs.get("pair_up_enabled"))
+		var rules: CampaignRules = (gs.get("campaign_rules") as CampaignRules) if gs else null
+		var pair_up_enabled: bool = true if rules == null else rules.pair_up_enabled
 		if registry != null and registry.has_method("is_paired"):
 			if bool(registry.is_paired(unit.data.unit_id)):
 				can_swap = true
@@ -127,6 +172,7 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 	_btn_swap.visible    = can_swap
 	_btn_separate.visible = can_separate
 	_btn_wait.visible    = true
+	_apply_menu_scale_from_settings()
 
 	# Focus first visible button — keyboard nav also skips hidden ones below.
 	_focused_idx = 0
@@ -135,6 +181,9 @@ func show_for(unit: Node, grid: Node, turn: Node = null) -> void:
 			_focused_idx = i
 			break
 	_buttons[_focused_idx].grab_focus()
+	# Start the repeat policy clean so a stick held from before the menu opened
+	# doesn't carry a stale step into the fresh menu.
+	_repeat.clear()
 	show()
 
 
@@ -143,15 +192,28 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
+		_repeat.clear()
 		hide()
 		hidden_by_cancel.emit()
 		return
-	if event.is_action_pressed("cursor_up"):
+	# Vertical stepping is driven by the polled repeat policy in _process. We still
+	# consume the directional events here so engine focus navigation (ui_up/down,
+	# same d-pad/stick) can't ALSO move focus and double-step the menu.
+	if event.is_action_pressed("cursor_up") or event.is_action_pressed("cursor_down") \
+			or event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
+		get_viewport().set_input_as_handled()
+
+
+# Polls the shared repeat/deadzone policy each frame while open. A held stick or key
+# steps at a tuned delay+rate; a tap steps once. clear() on hide keeps re-open clean.
+func _process(delta: float) -> void:
+	if not visible:
+		return
+	var step := _repeat.poll(delta)
+	if step.y < 0:
 		_move_focus(-1)
-		get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("cursor_down"):
+	elif step.y > 0:
 		_move_focus(1)
-		get_viewport().set_input_as_handled()
 
 
 # True iff `unit` has at least one adjacent (4-cardinal) ally with a unit_id

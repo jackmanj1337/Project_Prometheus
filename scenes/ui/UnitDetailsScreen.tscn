@@ -1,19 +1,14 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/UnitDetailsScreen.gd" id="1_unitdetails"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.12, 0.12, 0.16, 1)
-content_margin_left = 20.0
-content_margin_top = 18.0
-content_margin_right = 20.0
-content_margin_bottom = 18.0
+[ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="2_theme"]
 
 [node name="UnitDetailsScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("2_theme")
 script = ExtResource("1_unitdetails")
 visible = false
 
@@ -30,58 +25,87 @@ offset_left = 260.0
 offset_top = 90.0
 offset_right = 1020.0
 offset_bottom = 630.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="HBox" type="HBoxContainer" parent="Panel"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="VBox" type="VBoxContainer" parent="Panel/HBox"]
+[node name="MainScroll" type="ScrollContainer" parent="Panel/HBox"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel/HBox/MainScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Panel/HBox/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 text = "Unit"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 
-[node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="ClassLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+autowrap_mode = 3
+text = "Class"
+
+[node name="StatsLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 3
 text = "Stats"
 
-[node name="InventoryLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="InventoryLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+autowrap_mode = 3
 text = "Inventory"
 
-[node name="SkillsLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="SkillsLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+autowrap_mode = 3
 text = "Skills"
 
-[node name="WexpLabel" type="RichTextLabel" parent="Panel/HBox/VBox"]
+[node name="WexpLabel" type="RichTextLabel" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+autowrap_mode = 3
 text = "Weapon Ranks"
 
-[node name="BtnBack" type="Button" parent="Panel/HBox/VBox"]
+[node name="BtnPair" type="Button" parent="Panel/HBox/MainScroll/VBox"]
 layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(160, 0)
+visible = false
+text = "View Support"
+
+[node name="BtnBack" type="Button" parent="Panel/HBox/MainScroll/VBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(160, 0)
 text = "Back"
 
 [node name="InfoVBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 10
 custom_minimum_size = Vector2(280, 0)
 
@@ -96,17 +120,17 @@ text = "Click any entry, or press F, for details."
 autowrap_mode = 2
 modulate = Color(0.7, 0.7, 0.75, 1)
 
-[node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-bbcode_enabled = true
-fit_content = true
-scroll_active = false
-text = ""
-
 [node name="InfoModifiers" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
+text = ""
+
+[node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = false
+scroll_active = true
 text = ""

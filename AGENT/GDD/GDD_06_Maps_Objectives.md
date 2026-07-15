@@ -4,16 +4,16 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the **terrain/movement schema** (terrain types, movement categories,
 authored values) and the **objective + authored-map contracts**. The *combat effects* of
 terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
 (`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
 authoring workflow, registry entry shape, roster-policy rules, and export-manifest
-reminders, use `AGENT/Docs/map_authoring_guide.md`.
+reminders, use `AGENT/Docs/guides/map_authoring_guide.md`.
 
 ## Map System Overview
 
@@ -24,7 +24,9 @@ Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
 string `grid` defines terrain and whose remaining fields define objectives,
 factions, placements, start tiles, camera start, and rewards.
 
-Maps are self-contained — adding a new map never requires code changes.
+Maps are self-contained — adding a new map never requires code changes. A campaign
+package should carry its map data, rosters, rules/presets, object data, and raw assets
+without depending on executable code.
 
 ---
 
@@ -36,7 +38,7 @@ Last verified: 2026-06-13
 ### Summary
 This section owns the terrain **schema** (terrain types + their movement/defense data) and
 the movement-cost model. The *combat application* of the DEF/Dodge/heal values is owned by
-`GDD_02 §Terrain`; the two tables are kept in sync.
+`GDD_02 §Terrain`, which links here rather than repeating the value table.
 
 ### Specs
 
@@ -63,6 +65,10 @@ bonuses; bonuses apply to the defender only, during combat (GDD_02).
 migrate (RULE-010). Flying is implemented via terrain movement-cost categories (Planned),
 never a terrain-ignoring special case. Provenance: `GDD_Adoption_Matrix.md` →
 `awakening_lookup_tables.md` (Terrain Categories / Movement Types).
+
+Terrain ids, movement categories, defense/dodge values, and healing profiles are
+developer presets over authorable terrain/rule data. New terrain with existing behavior
+should be data-only; new movement primitives go through the registry/primitive path.
 
 ### Known gaps
 - **Terrain ID mapping (RULE-011, Open decision → AWR-8):** sea / wall-building variants /
@@ -97,7 +103,7 @@ Create a single shared `TileSet` resource used by all maps.
 > `terrain_type` custom data layer and assigns each tile's value.
 
 ### Runtime TileMapLayer Setup
-The shared `GameMap` scene contains two TileMapLayers:
+The shared `GameMap` scene contains three TileMapLayers:
 
 1. `TileMapLayer_Terrain` — the actual map tiles; uses the shared TileSet
 2. `TileMapLayer_Overlay` — a second layer for movement/attack highlights;
@@ -106,43 +112,40 @@ The shared `GameMap` scene contains two TileMapLayers:
    - Tile 1: Red (attack range)
    - Tile 2: Green (heal range)
    - Tile 3: Dark red (enemy danger zone)
+   - Tile 4: Darker red (watched-threat danger zone)
+   - Tiles 5-10: shared-cell border-through prototype sources
+   - Tiles 11-40: generated threat-perimeter edge-mask sources for the
+     `stacked_perimeter` MRD-7 candidate
+3. `TileMapLayer_OverlayTop` — optional second overlay lane for MRD-7 stacked
+   range/target fill above retained threat paint
 
-### Reading Terrain in Code
-```gdscript
-# In GridManager.gd
-func get_terrain_at(tile: Vector2i) -> String:
-    var tile_data = _tilemap.get_cell_tile_data(tile)
-    if tile_data == null:
-        return "wall"   # Out-of-bounds treated as wall
-    return tile_data.get_custom_data("terrain_type")
-```
+`GridManager.get_terrain_at()` reads the TileSet custom-data value; missing/out-of-bounds
+cells resolve to `wall`. Exact implementation belongs to production code.
 
 ---
 
-## Camera
+## Tactical Camera
 
-The `Camera2D` node is a child of `GameMap`. It follows the `MapCursor` position.
+Status: **Implemented**
+Last verified: 2026-07-13
 
-```gdscript
-# Camera clamp settings — set after map loads based on map dimensions
-camera.limit_left   = 0
-camera.limit_top    = 0
-camera.limit_right  = map_width  * GameConstants.TILE_SIZE
-camera.limit_bottom = map_height * GameConstants.TILE_SIZE
-```
+`CameraController` is the sole production writer of tactical-camera position. It keeps
+the cursor within the configured edge buffer, accounts for zoom when measuring the
+visible world, clamps each axis to map bounds, and centers maps smaller than the view.
+Player-phase cursor movement is immediate; AI tracking temporarily enables smoothing.
+Each faction's last view is restored when its phase returns. Zoom and edge-buffer
+settings presentation are owned by `GDD_07`.
 
-Camera scrolling behavior:
-- When the cursor moves within 2 tiles of the viewport edge, the camera pans to keep
-  the cursor at least 3 tiles from any edge
-- Camera movement is instantaneous (no smoothing) for MVP — matches GBA FE feel
-- Set `Camera2D.position_smoothing_enabled = false`
+### Anchors
+- Code: `scripts/core/CameraController.gd`, `scripts/core/MapCursor.gd`
+- Settings owner: `GDD_07 §Settings`
 
 ---
 
 ## Objective System
 
-Status: **Implemented** (objective evaluation); Phase 3 showcase maps **Planned** (M16)
-Last verified: 2026-06-13
+Status: **Implemented**
+Last verified: 2026-07-13
 
 Objectives are now authored as typed `ObjectiveCondition` resources grouped by
 alliance group:
@@ -160,6 +163,12 @@ plus the richer `map_resolved(winner_group, standings)` summary for the newer
 results flow.
 
 ### Authored Condition Types
+
+The following condition ids are the implemented built-in objective predicate presets.
+Target `[TCV-4]`/`B3-REQ`/`B3-MET` generalizes objective conditions into an objective
+predicate/action registry plus `end_map` actions and event-driven re-checks. A new
+objective should be authorable as data when it composes existing predicates/actions; only
+new primitive predicates require engine work.
 
 #### `rout`
 The named faction or alliance group has no living units left. With an empty
@@ -188,7 +197,7 @@ Condition becomes true when an allowed unit from the conditioning group uses the
 Seize action on the authored tile. **Eligibility comes from a per-unit
 `can_seize` tag** on `UnitData` — not from class data and not from a per-map
 `allowed_unit_ids` allowlist (locked 2026-05-25; see
-`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
+`AGENT/Docs/archive/reference/campaign_rules_firming_notes_2026-05-25.md`). Authors set the tag on
 the relevant lord-class units; new characters opt in by being tagged.
 
 #### `escape`
@@ -216,27 +225,11 @@ opposing units remaining.
 
 ## MapData Resource
 
-```gdscript
-# scripts/resources/MapData.gd — see GDD_01 → MapData.gd for the authoritative list
-class_name MapData extends Resource
-
-@export var id: String
-@export var display_name: String
-@export var tilemap_scene_path: String              # reserved; not instanced by current runtime
-@export var player_start_tiles: Array[Vector2i]
-@export var enemy_placements: Array[Dictionary]
-# enemy_placement dict: { "unit_data_path": String, "tile": Vector2i,
-#                         "ai_profile": String, "is_boss": bool, "faction": String? }
-@export var reward_gold: int = 0
-@export var reward_items: Array[String]             # item IDs granted at map completion
-@export var grid: Array[String]                     # terrain string grid (data-driven maps)
-@export var camera_start_tile: Vector2i             # (-1,-1) = centroid of player starts
-@export var factions: Array[FactionData]
-@export var turn_order: Array[String]
-@export var activation_mode: String = "WHOLE_PHASE"
-@export var victory_conditions: Dictionary          # alliance_group -> Array[ObjectiveCondition]
-@export var defeat_conditions: Dictionary
-```
+`MapData` binds identity/display, terrain source, camera/start tiles, faction scheduling,
+unit placements, grouped objective conditions, and completion rewards. A placement must
+provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
+AI/faction/boss fields refine that placement. The exact typed field list is owned by
+`GDD_01` and `scripts/resources/MapData.gd`.
 
 ---
 
@@ -333,6 +326,13 @@ Auto-deployed in slot order (Unit_01 first):
 
 ### Enemy Placements
 
+Map-start placements are checked by the implemented `B2-OCCUPANCY` transaction
+service before unit instancing. Authored player/enemy overlaps fail validation;
+runtime `require_empty` prevents accidental double occupancy. The shared policy
+registry also provides deterministic `nearest_free`, `delay`, and `skip` for
+later spawn consumers. Swap, hidden overlap, and object-unit behavior remain
+reserved until their owning slices implement them.
+
 | # | File | Tile | Class | Level | Weapon | Item | AI | Notes |
 |---|---|---|---|---|---|---|---|---|
 | E1 | `e1_soldier.tres` | (24, 2) | Soldier | 3 | Iron Lance | — | basic | Guards north mountain pass |
@@ -379,13 +379,15 @@ Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
-- Doors are map objects (not tiles). Implement as `Node2D` with HP and a `is_open` flag.
-- Chests are similarly `Node2D` with a `loot_item_id` String.
-- A unit adjacent to a door/chest can interact via the Action Menu.
-- Doors can be opened with a Door Key or the `pick` skill (Thief).
-- Chests can be opened with a Chest Key or the `pick` skill.
+- Doors, chests, villages, shops, breakables, and stationary weapons use the unified
+  `map_objects` model (`B4-MAP-OBJECTS`, `[DCH]`, `[SAC]`), not bespoke node classes.
+- Each object authors its component ids, state fields, interaction options, HP/lock data,
+  loot, and ordered action/effect list.
+- The Action Menu exposes `activate`; the object/component registry decides which
+  interactions are legal for the acting unit.
+- Door/chest key and `pick` behavior are requirement/action data over the same registry.
 
-Door HP values from handbook:
+Door HP values from handbook are developer preset data:
 | Type | HP |
 |---|---|
 | Wooden Door | 25 |
@@ -404,25 +406,28 @@ Last verified: 2026-06-13
 
 Not in MVP. Architecture placeholder:
 
-- Each unit has a `LoS` stat (line of sight radius in tiles)
-- A `FogOfWarManager` node tracks which tiles are currently visible to the player
-- Tiles outside LoS of all player units are hidden (black overlay)
-- Enemies in hidden tiles are not drawn; their positions are unknown
-- A `Torch` item temporarily increases a unit's LoS by 4
+- Fog is encounter/scenario data on `MapData`/campaign content, not a global terrain-grid
+  property.
+- Each unit has an LoS stat or stat-registry equivalent used by the visibility rule.
+- A `FogOfWarManager` node tracks currently visible/discovered tiles for the relevant
+  viewer.
+- Hidden enemies are presentation/AI-acquisition concerns; AI-cheats vs symmetric fog is
+  a CampaignRules/profile choice.
+- Torch/brazier vision bonuses are authored item/object/effect data, with built-in
+  presets for common radius values.
 
 Store fog state as a `Dictionary` of tile → visibility status on `GameState`.
 
 ---
 
-## Phase 3 Maps 002–005 — Authoring Rules (locked 2026-05-25)
+## Objective Showcase Maps 002–005
 
-Status: **Planned** (M16; design locked 2026-05-25)
-Last verified: 2026-06-13
+Status: **Implemented**
+Last verified: 2026-07-13
 
-The objective-map followup authors four maps against the implemented
-`ObjectiveCondition` system to validate it through real content. See
-`GDD_10_Roadmap.md` § Milestone 16 → *Locked design decisions* and
-`AGENT/Docs/campaign_rules_firming_notes_2026-05-25.md`.
+Four selector-visible maps exercise the implemented `ObjectiveCondition` system through
+authored content. `test_game_map_scene.gd` boots every map with its expected roster and
+enemy count; `test_turn_manager.gd` covers the corresponding resolution semantics.
 
 - **Showcase plan — one map per primary objective.** Maps 002–005 cover the
   four objective types one each: **Seize**, **Defeat Boss**, **Escape**,
@@ -439,23 +444,14 @@ The objective-map followup authors four maps against the implemented
   or `protect`. Rout is added explicitly only where a full wipe should itself
   eliminate the group.
 
+These are validation-map authoring constraints, not engine limits. The target objective
+registry supports multi-condition victory/defeat sets and author-defined compositions as
+soon as the required predicates/actions exist.
+
 ---
 
 ## Adding a New Map (Checklist)
 
-The current runtime supports data-driven string-grid maps.
-
-### Data-driven
-The map layout lives in `MapData.grid`. No editor painting is required for
-terrain. To add a map this way:
-- [ ] Create `MapData.tres` with a `grid` string array using the legend `. F M T S D W`
-- [ ] Fill `player_start_tiles`, `enemy_placements`, rewards, and camera start
-- [ ] Author `factions`, `turn_order`, and `activation_mode` only when the map
-      needs to override the default blue/green/red/yellow behavior
-- [ ] Author `victory_conditions` / `defeat_conditions` using `ObjectiveCondition`
-- [ ] Create enemy `UnitData` `.tres` files
-- [ ] `_validate_map()` asserts row count, row length, and chars on `_ready`
-
-Editor-painted map scenes are not currently instanced. `tilemap_scene_path` is
-reserved schema only; implement and test that loading path before documenting
-editor-painted maps as supported.
+The operational checklist lives in `AGENT/Docs/guides/map_authoring_guide.md`. The
+current runtime supports data-driven string-grid maps; `tilemap_scene_path` remains
+reserved and editor-painted scenes are not instanced.

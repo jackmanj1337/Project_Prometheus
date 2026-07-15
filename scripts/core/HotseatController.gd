@@ -18,3 +18,9 @@ func run_phase(_grid: GridManager, turn: TurnManager, faction_id: String) -> voi
 	_cursor.set_controlling_faction(faction_id)
 	_cursor.unlock()
 	await turn.phase_committed
+
+
+func cancel_transient_control_for_handoff() -> void:
+	if _cursor != null and is_instance_valid(_cursor) \
+			and _cursor.has_method("cancel_transient_control_for_handoff"):
+		_cursor.cancel_transient_control_for_handoff()

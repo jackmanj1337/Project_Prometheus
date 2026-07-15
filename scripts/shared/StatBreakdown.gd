@@ -26,18 +26,10 @@ extends RefCounted
 #     ]
 #   }
 
-# Friendly short labels keyed by canonical stat name. Anything not in here
-# falls back to the capitalised stat id so a new stat never crashes the UI.
-const STAT_LABELS: Dictionary = {
-	"strength":   "Str",
-	"magic":      "Mag",
-	"skill":      "Skl",
-	"speed":      "Spd",
-	"defense":    "Def",
-	"resistance": "Res",
-	"luck":       "Lck",
-	"movement":   "Mov",
-}
+# Stat short labels now live in the single StatRegistry vocabulary; label_for_stat
+# delegates there (was a local STAT_LABELS copy that disagreed with the level-up
+# screen on Luck).
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
 # Friendly source labels for known modifier sources. Unknown sources fall back
 # to the raw id so debugging output still tells you what is going on.
@@ -148,9 +140,7 @@ static func _class_decomposition(class_data, stat_name: String, base_value: int)
 # Returns the friendly short label for a stat id, falling back to the id
 # capitalised so unknown stats still render readably.
 static func label_for_stat(stat_name: String) -> String:
-	if STAT_LABELS.has(stat_name):
-		return STAT_LABELS[stat_name]
-	return stat_name.capitalize()
+	return StatRegistry.label_for(stat_name)
 
 
 # Returns the friendly source label. Sources are often namespaced
@@ -172,17 +162,36 @@ static func format_signed(value: int) -> String:
 	return "%+d" % value
 
 
-# Format the remaining-duration text. duration_type "permanent" or duration -1
-# means never auto-removed and is shown as a dash. "combat" duration shows
-# "this combat" so the player understands the scope without seeing a number.
+# Format the remaining-duration text for the character sheet. Handles both the
+# V021-09 display vocabulary (GameConstants.VALID_DURATION_TYPES) and the legacy
+# lifecycle types that real active_modifiers still carry (turn/map_turn/combat),
+# mapping each to the same human label. Scope labels that don't run on a counter
+# (this_combat, until_*, permanent) are matched by type BEFORE the negative-remaining
+# fallback, so their -1 sentinel doesn't print as a bare "—".
 static func format_duration(duration_type: String, remaining: int) -> String:
-	if duration_type == "permanent" or remaining < 0:
+	# Scope labels that don't run on a counter render regardless of `remaining`
+	# (they carry the -1 sentinel), so match them before the negative-remaining dash.
+	match duration_type:
+		"this_combat", "combat":
+			return "this combat"
+		"until_separated":
+			return "until separated"
+		"until_unequipped":
+			return "until unequipped"
+		"until_end_of_map":
+			return "until end of map"
+		"permanent":
+			return "—"
+	# Counter-based (x_turns/turn/map_turn) or unknown: a negative sentinel means
+	# never auto-removed → dash; otherwise show the count.
+	if remaining < 0:
 		return "—"
 	match duration_type:
-		"turn":     return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
-		"map_turn": return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
-		"combat":   return "this combat"
-		_:          return "%d" % remaining
+		"x_turns", "turn":
+			return "%d turn%s" % [remaining, "" if remaining == 1 else "s"]
+		"map_turn":
+			return "%d round%s" % [remaining, "" if remaining == 1 else "s"]
+	return "%d" % remaining
 
 
 # Collects + groups modifiers for the requested stat. Same source ids are

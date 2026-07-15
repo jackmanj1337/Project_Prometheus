@@ -1,16 +1,19 @@
 class_name MapCursorInput extends RefCounted
-# Keyboard decoding + held-key auto-repeat, extracted from MapCursor (D-3 slice).
+# Device-agnostic cursor/action decoding + held-direction auto-repeat, extracted
+# from MapCursor (D-3 slice, widened for B6-INPUT gamepad support).
 #
 # A plain RefCounted, not a Node: Godot only delivers _unhandled_input / _process to
-# a Node in the tree, so MapCursor stays the input receiver and forwards raw key
+# a Node in the tree, so MapCursor stays the input receiver and forwards raw
 # events here. This object is a state-agnostic decoder plus the auto-repeat timer —
-# no SceneTree needed, so it is fully unit-testable.
+# no SceneTree needed, so it is fully unit-testable. Analog stick movement is
+# polled through Input.get_vector() because stick axes do not emit reliable
+# press/release pairs for discrete tile stepping.
 
 # Key-repeat timings — source of truth is GameConstants (aliases for readability).
 const KEY_REPEAT_DELAY: float = GameConstants.CURSOR_KEY_REPEAT_DELAY
 const KEY_REPEAT_RATE: float  = GameConstants.CURSOR_KEY_REPEAT_RATE
 
-# What a key event means. MapCursor maps a MOVE to a cursor step / target cycle /
+# What an input event means. MapCursor maps a MOVE to a cursor step / target cycle /
 # no-op depending on its _state — the decoding here is deliberately state-agnostic.
 enum Intent { NONE, MOVE, CONFIRM, CANCEL, NEXT_UNIT, PREV_UNIT, OPEN_MENU, OPEN_SETTINGS, INSPECT_UNIT }
 
@@ -19,12 +22,12 @@ var _held_dir: Vector2i = Vector2i.ZERO
 var _held_timer: float = 0.0
 
 
-# State-agnostic key decode. The caller (MapCursor._unhandled_input) has already
-# filtered to pressed, non-echo key events — this does not re-check. Returns
+# State-agnostic event decode. The caller (MapCursor._unhandled_input) has already
+# filtered to pressed, non-echo key events where applicable. Returns
 # {"intent": Intent, "dir": Vector2i}; dir is ZERO unless intent is MOVE.
 # The action checks run in the same order as the old _handle_key_press if/elif
-# chain, so a key bound to two actions resolves to the first one listed here.
-func decode_key(event: InputEventKey) -> Dictionary:
+# chain, so an event bound to two actions resolves to the first one listed here.
+func decode(event: InputEvent) -> Dictionary:
 	var dir := _direction_from_event(event)
 	if dir != Vector2i.ZERO:
 		return {"intent": Intent.MOVE, "dir": dir}
@@ -49,7 +52,16 @@ func decode_key(event: InputEventKey) -> Dictionary:
 	return {"intent": Intent.NONE, "dir": Vector2i.ZERO}
 
 
-func _direction_from_event(event: InputEventKey) -> Vector2i:
+# Compatibility shim for older tests/callers; new code should call decode().
+func decode_key(event: InputEventKey) -> Dictionary:
+	return decode(event)
+
+
+func _direction_from_event(event: InputEvent) -> Vector2i:
+	# Analog stick motion is polled in poll_direction(). Treating every axis
+	# motion event as a fresh press causes jitter and bypasses the repeat timer.
+	if event is InputEventJoypadMotion:
+		return Vector2i.ZERO
 	if event.is_action_pressed("cursor_up"):    return Vector2i(0, -1)
 	if event.is_action_pressed("cursor_down"):  return Vector2i(0, 1)
 	if event.is_action_pressed("cursor_left"):  return Vector2i(-1, 0)
@@ -63,8 +75,8 @@ func arm_repeat(dir: Vector2i) -> void:
 	_held_timer = KEY_REPEAT_DELAY
 
 
-# Clear the held direction if the released key matches it.
-func note_key_released(event: InputEventKey) -> void:
+# Clear the held direction if the released event matches it.
+func note_released(event: InputEvent) -> void:
 	var dir := Vector2i.ZERO
 	if event.is_action_released("cursor_up"):      dir = Vector2i(0, -1)
 	elif event.is_action_released("cursor_down"):  dir = Vector2i(0, 1)
@@ -72,6 +84,11 @@ func note_key_released(event: InputEventKey) -> void:
 	elif event.is_action_released("cursor_right"): dir = Vector2i(1, 0)
 	if dir != Vector2i.ZERO and _held_dir == dir:
 		_held_dir = Vector2i.ZERO
+
+
+# Compatibility shim for older tests/callers; new code should call note_released().
+func note_key_released(event: InputEventKey) -> void:
+	note_released(event)
 
 
 # Drop any held direction and reset the timer — called by MapCursor.lock().
@@ -92,3 +109,25 @@ func tick(delta: float) -> Vector2i:
 		_held_timer = KEY_REPEAT_RATE
 		return _held_dir
 	return Vector2i.ZERO
+
+
+# Polls the live cursor-vector actions and feeds the same repeat timer used by
+# keyboard/d-pad edges. Returning a non-zero direction means "move one tile now".
+func poll_direction(delta: float) -> Vector2i:
+	var dir := _direction_from_current_actions()
+	if dir == Vector2i.ZERO:
+		clear_repeat()
+		return Vector2i.ZERO
+	if dir != _held_dir:
+		arm_repeat(dir)
+		return dir
+	return tick(delta)
+
+
+func _direction_from_current_actions() -> Vector2i:
+	var v := Input.get_vector("cursor_left", "cursor_right", "cursor_up", "cursor_down")
+	if is_zero_approx(v.length()):
+		return Vector2i.ZERO
+	if absf(v.x) >= absf(v.y):
+		return Vector2i(1 if v.x > 0.0 else -1, 0)
+	return Vector2i(0, 1 if v.y > 0.0 else -1)

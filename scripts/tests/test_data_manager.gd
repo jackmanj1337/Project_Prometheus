@@ -8,6 +8,9 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
+	var registry_manager: Node = load("res://scripts/autoloads/RegistryManager.gd").new()
+	registry_manager.name = "RegistryManager"
+	root.add_child(registry_manager)
 	var dm: Node = load("res://scripts/autoloads/DataManager.gd").new()
 	dm.name = "DataManager"
 	root.add_child(dm)   # entering the tree runs _ready → loads every catalogue
@@ -17,8 +20,8 @@ func _init() -> void:
 	var ResourceManifest = load("res://scripts/shared/ResourceManifest.gd")
 	var manifest_ok: bool = (
 		ResourceManifest.load_paths("res://data/classes/").size() == 24
-		and ResourceManifest.load_paths("res://data/weapons/").size() == 11
-		and ResourceManifest.load_paths("res://data/items/").size() == 7
+		and ResourceManifest.load_paths("res://data/weapons/").size() == 12
+		and ResourceManifest.load_paths("res://data/items/").size() == 8
 		and ResourceManifest.load_paths("res://data/skills/").size() == 54
 	)
 	if manifest_ok:
@@ -32,6 +35,15 @@ func _init() -> void:
 		print("OK  get_weapon resolves a known weapon id"); passed += 1
 	else:
 		print("FAIL get_weapon(iron_sword)"); failed += 1
+
+	# ---- fists demo weapon: 0 Mt, infinite uses, neutral martial-arts family ----
+	var fists = dm.get_weapon("fists")
+	if fists != null and fists.id == "fists" and fists.mt == 0 \
+			and fists.uses == -1 and fists.combat_family == "fist" \
+			and fists.is_natural_weapon and fists.get_triangle_family() == "fist":
+		print("OK  get_weapon resolves the fists demo weapon (0 Mt, ∞ uses, fist family)"); passed += 1
+	else:
+		print("FAIL get_weapon(fists) — expected 0 Mt / -1 uses / fist family"); failed += 1
 
 	# ---- get_weapon returns null for an unknown id (a push_error is expected) ----
 	if dm.get_weapon("no_such_weapon") == null:
@@ -131,6 +143,61 @@ func _init() -> void:
 		print("OK  live map registry and referenced MapData validate cleanly"); passed += 1
 	else:
 		print("FAIL live map validation: %s" % [live_map_errors]); failed += 1
+
+	# ---- B2-DATAMANAGER-SEAMS: named phases preserve default boot ----
+	var boot_ids := {
+		"classes": dm._classes.keys(),
+		"weapons": dm._weapons.keys(),
+		"items": dm._items.keys(),
+		"skills": dm._skills.keys(),
+	}
+	var phase_errors: Array[String] = dm._validate_all()
+	dm._classes["stale_before_replace"] = ClassData.new()
+	registry_manager.reload_presets("user://test_data_manager/missing_registry_source")
+	var registry_was_cleared: bool = registry_manager.ids("resource_types").is_empty()
+	dm.select_campaign_source(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	var replace_ids := {
+		"classes": dm._classes.keys(),
+		"weapons": dm._weapons.keys(),
+		"items": dm._items.keys(),
+		"skills": dm._skills.keys(),
+	}
+	var registry_was_restored: bool = registry_manager.has_entry("resource_types", "party_gold") \
+		and registry_manager.has_entry("occupancy_policies", "nearest_free")
+	if phase_errors.is_empty() and replace_ids == boot_ids \
+			and not dm._classes.has("stale_before_replace") \
+			and registry_was_cleared and registry_was_restored:
+		print("OK  DataManager replace-load restores catalogues and source registries")
+		passed += 1
+	else:
+		print("FAIL DataManager phases: errors=%s boot=%s replace=%s stale=%s registry=%s/%s" % [
+			phase_errors, boot_ids, replace_ids, dm._classes.has("stale_before_replace"),
+			registry_was_cleared, registry_was_restored])
+		failed += 1
+
+	# A tiny generated source proves path parameterization independently of the
+	# shipped res://data tree. Validation is covered above; this fixture isolates
+	# catalogue replacement without committing duplicate content resources.
+	var fixture_source := "user://test_data_manager/alternate_source"
+	var fixture_ok := _write_alternate_source_fixture(fixture_source)
+	dm._clear_content()
+	dm._load_all(fixture_source)
+	var alternate_ids := [dm._classes.keys(), dm._weapons.keys(), dm._items.keys(), dm._skills.keys(),
+		dm._campaigns.keys()]
+	var alternate_ok: bool = fixture_ok \
+			and alternate_ids[0] == ["fixture_class"] \
+			and alternate_ids[1] == ["fixture_weapon"] \
+			and alternate_ids[2] == ["fixture_item"] \
+			and alternate_ids[3] == ["fixture_skill"] \
+			and alternate_ids[4] == ["fixture_campaign"]
+	dm._clear_content()
+	dm._load_all(DataManagerS.DEFAULT_CONTENT_SOURCE)
+	if alternate_ok:
+		print("OK  alternate content root replace-loads every catalogue")
+		passed += 1
+	else:
+		print("FAIL alternate content root: fixture=%s ids=%s" % [fixture_ok, alternate_ids])
+		failed += 1
 
 	# ---- B6: bad fixtures fire the right errors ----
 	# Hand-build minimal ad-hoc resources and assert each invalid field surfaces.
@@ -257,6 +324,7 @@ func _init() -> void:
 	var m_mode_err: bool = bad_map_errors.any(func(e): return "activation_mode 'ROUND_ROBIN'" in e)
 	var m_turn_err: bool = bad_map_errors.any(func(e): return "turn_order references unknown faction 'ghost'" in e)
 	var m_enemy_missing_err: bool = bad_map_errors.any(func(e): return "missing UnitData 'res://missing_enemy.tres'" in e)
+	var m_enemy_source_err: bool = bad_map_errors.any(func(e): return "exactly one of unit_data_path or unit_data" in e)
 	var m_enemy_faction_err: bool = bad_map_errors.any(func(e): return "enemy placement references unknown faction 'purple'" in e)
 	var m_enemy_ai_err: bool = bad_map_errors.any(func(e): return "enemy placement ai_profile 'berserk' is not valid" in e)
 	var m_enemy_tile_err: bool = bad_map_errors.any(func(e): return "enemy placement tile (9, 9) is outside the grid" in e)
@@ -270,16 +338,16 @@ func _init() -> void:
 	var m_bad_cond_err: bool = bad_map_errors.any(func(e): return "is not an ObjectiveCondition" in e)
 	if m_id_err and m_name_err and m_scene_err and m_reward_empty_err and m_reward_missing_err \
 			and m_grid_err and m_grid_len_err and m_start_dup_err and m_start_oob_err and m_cam_err \
-			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_faction_err \
+			and m_mode_err and m_turn_err and m_enemy_missing_err and m_enemy_source_err and m_enemy_faction_err \
 			and m_enemy_ai_err and m_enemy_tile_err and m_cond_group_err and m_seize_err \
 			and m_escape_err and m_escape_tile_err and m_survive_err and m_survive_tile_err \
 			and m_unknown_group_err and m_bad_cond_err:
 		print("OK  bad map fixture fires grid, roster, faction, and objective authoring checks"); passed += 1
 	else:
-		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
+		print("FAIL bad map checks: id=%s name=%s scene=%s reward_empty=%s reward_missing=%s grid=%s grid_len=%s start_dup=%s start_oob=%s cam=%s mode=%s turn=%s enemy_missing=%s enemy_source=%s enemy_faction=%s enemy_ai=%s enemy_tile=%s cond_group=%s seize=%s escape=%s escape_tile=%s survive=%s survive_tile=%s unknown_group=%s bad_cond=%s errs=%s" % [
 			m_id_err, m_name_err, m_scene_err, m_reward_empty_err, m_reward_missing_err,
 			m_grid_err, m_grid_len_err, m_start_dup_err, m_start_oob_err, m_cam_err,
-			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_faction_err,
+			m_mode_err, m_turn_err, m_enemy_missing_err, m_enemy_source_err, m_enemy_faction_err,
 			m_enemy_ai_err, m_enemy_tile_err, m_cond_group_err, m_seize_err,
 			m_escape_err, m_escape_tile_err, m_survive_err, m_survive_tile_err,
 			m_unknown_group_err, m_bad_cond_err, bad_map_errors])
@@ -323,6 +391,45 @@ func _init() -> void:
 			r_source_should_empty_err, registry_fixture_errors])
 		failed += 1
 
+	# ---- Map validation accepts inline UnitData enemy placements ─────────────
+	var inline_enemy := UnitData.new()
+	inline_enemy.unit_id = "inline_enemy"
+	inline_enemy.class_id = "soldier"
+	inline_enemy.max_hp = 20
+	inline_enemy.hp = 20
+	var inline_map := MapData.new()
+	inline_map.id = "inline_enemy_check"
+	inline_map.display_name = "inline enemy check"
+	inline_map.grid = ["..."] as Array[String]
+	inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	inline_map.enemy_placements = [
+		{"unit_data": inline_enemy, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		inline_map, "res://inline_enemy_map.tres", dm._classes, dm._items, {})
+	var ambiguous_map := MapData.new()
+	ambiguous_map.id = "ambiguous_enemy_check"
+	ambiguous_map.display_name = "ambiguous enemy check"
+	ambiguous_map.grid = ["..."] as Array[String]
+	ambiguous_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	ambiguous_map.enemy_placements = [
+		{"unit_data": inline_enemy,
+			"unit_data_path": "res://data/maps/map_001_rout/enemies/e1_soldier.tres",
+			"tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var ambiguous_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		ambiguous_map, "res://ambiguous_enemy_map.tres", dm._classes, dm._items, {})
+	var inline_ok := inline_errors.is_empty()
+	var ambiguous_err := ambiguous_errors.any(func(e):
+		return "exactly one of unit_data_path or unit_data" in e)
+	if inline_ok and ambiguous_err:
+		print("OK  inline enemy placements validate, while mixed path+inline sources fail")
+		passed += 1
+	else:
+		print("FAIL inline enemy placement validation: inline=%s ambiguous=%s" % [
+			inline_errors, ambiguous_errors])
+		failed += 1
+
 	# ---- Unit validation: bad class_line_id + bad reclass_options are caught ----
 	var bad_unit := UnitData.new()
 	bad_unit.unit_id = "bad_u"
@@ -363,10 +470,31 @@ func _init() -> void:
 		dup_map, "res://dup_map.tres", dm._classes, dm._items, seen)
 	var dup_err_found: bool = dup_errors.any(func(e):
 		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
-	if dup_err_found:
-		print("OK  2.10: cross-source duplicate unit_id fires loud"); passed += 1
+	var dup_inline_unit := UnitData.new()
+	dup_inline_unit.unit_id = "e1_soldier"
+	dup_inline_unit.class_id = "soldier"
+	dup_inline_unit.max_hp = 20
+	dup_inline_unit.hp = 20
+	var dup_inline_map := MapData.new()
+	dup_inline_map.id = "dup_inline_unit_id_check"
+	dup_inline_map.display_name = "dup inline unit_id check"
+	dup_inline_map.grid = ["..."] as Array[String]
+	dup_inline_map.player_start_tiles = [Vector2i(0, 0)] as Array[Vector2i]
+	dup_inline_map.enemy_placements = [
+		{"unit_data": dup_inline_unit, "tile": Vector2i(2, 0), "faction": "red", "ai_profile": "basic"},
+	]
+	var seen_inline: Dictionary = {"e1_soldier": "roster file 'fake_roster.tres'"}
+	var dup_inline_errors: Array[String] = DataManagerS.collect_map_data_validation_errors(
+		dup_inline_map, "res://dup_inline_map.tres", dm._classes, dm._items, seen_inline)
+	var dup_inline_err_found: bool = dup_inline_errors.any(func(e):
+		return "duplicate unit_id 'e1_soldier'" in e and "fake_roster.tres" in e)
+	if dup_err_found and dup_inline_err_found:
+		print("OK  2.10: cross-source duplicate unit_id fires loud for path and inline placements")
+		passed += 1
 	else:
-		print("FAIL 2.10 cross-source dup: %s" % dup_errors); failed += 1
+		print("FAIL 2.10 cross-source dup: path=%s inline=%s" % [
+			dup_errors, dup_inline_errors])
+		failed += 1
 
 	# ---- 2.7: hp/max_hp/level invariants ────────────────────────────────────
 	# Pre-2026-06-10 a unit with hp=50, max_hp=10 would load fine and render
@@ -396,5 +524,102 @@ func _init() -> void:
 			level_err, max_err, neg_err, over_err, inv_errs])
 		failed += 1
 
+	# ---- [STM-5]: referenced-but-unregistered stat = hard load error ----------
+	# A stat NAMED in authored data but absent from the StatRegistry vocabulary is a
+	# typo, not a silent 0. Class growth/cap dicts reject unknown keys; the Pair Up
+	# table rejects unknown scaling / class-bonus stats.
+	var stm5_class := ClassData.new()
+	stm5_class.id = "stm5_c"
+	# A full growth table plus one bogus stat key — the 8 real keys keep the
+	# "missing key" path quiet so this asserts the NEW unknown-key rejection alone.
+	var full_growth := {}
+	for k in ClassData.STAT_KEYS:
+		full_growth[k] = 40
+	full_growth["strngth"] = 45  # typo → unregistered stat reference
+	stm5_class.player_growth_rates = full_growth
+	var stm5_errs: Array[String] = DataManagerS.collect_validation_errors(
+		{"stm5_c": stm5_class}, {}, {}, {})
+	var stm5_unknown_err: bool = stm5_errs.any(func(e):
+		return "class 'stm5_c' player_growth_rates references unknown stat 'strngth'" in e)
+	# The real StatRegistry stats in the same dict must NOT be flagged.
+	var stm5_no_false_pos: bool = not stm5_errs.any(func(e):
+		return "references unknown stat 'hp'" in e or "references unknown stat 'strength'" in e)
+	# Pair Up: constructed table with a bogus scaling stat + bogus bonus stat.
+	var bad_table: Resource = load("res://scripts/resources/PairUpBonusTable.gd").new()
+	bad_table.scaling_stats = PackedStringArray(["strength", "wisdom"])  # wisdom unregistered
+	bad_table.class_bonuses = {"hero": {"skill": 2, "charisma": 1}}       # charisma unregistered
+	var pu_errs: Array[String] = []
+	DataManagerS._check_pair_up_stat_refs(bad_table, pu_errs)
+	var pu_scaling_err: bool = pu_errs.any(func(e):
+		return "scaling_stats references unknown stat 'wisdom'" in e)
+	var pu_bonus_err: bool = pu_errs.any(func(e):
+		return "class_bonuses['hero'] references unknown stat 'charisma'" in e)
+	var pu_no_false_pos: bool = not pu_errs.any(func(e):
+		return "unknown stat 'strength'" in e or "unknown stat 'skill'" in e)
+	# The shipped on-disk table must validate clean.
+	var real_pu_errs: Array[String] = DataManagerS.collect_pair_up_validation_errors(
+		"res://data/pair_up/pair_up_bonus_table.tres")
+	# Unit personal growth_rates (partial override dict) rejects a typo'd stat key
+	# without demanding the other stats be present.
+	var stm5_unit := UnitData.new()
+	stm5_unit.unit_id = "stm5_u"
+	stm5_unit.class_id = "cavalier"
+	stm5_unit.growth_rates = {"speed": 10, "wisdom": 5}  # wisdom unregistered; partial is fine
+	var stm5_unit_errs: Array[String] = DataManagerS.collect_unit_validation_errors(
+		[stm5_unit], dm._classes)
+	var stm5_unit_err: bool = stm5_unit_errs.any(func(e):
+		return "unit 'stm5_u' growth_rates references unknown stat 'wisdom'" in e)
+	var stm5_unit_no_fp: bool = not stm5_unit_errs.any(func(e):
+		return "growth_rates references unknown stat 'speed'" in e)
+	if stm5_unknown_err and stm5_no_false_pos and pu_scaling_err and pu_bonus_err \
+			and pu_no_false_pos and real_pu_errs.is_empty() and stm5_unit_err and stm5_unit_no_fp:
+		print("OK  [STM-5] unregistered stat refs fail loud (class/pair-up/unit); registered stats + shipped table pass"); passed += 1
+	else:
+		print("FAIL [STM-5]: class_unknown=%s class_no_fp=%s pu_scaling=%s pu_bonus=%s pu_no_fp=%s real_clean=%s unit=%s unit_no_fp=%s errs=%s / %s / %s" % [
+			stm5_unknown_err, stm5_no_false_pos, pu_scaling_err, pu_bonus_err, pu_no_false_pos,
+			real_pu_errs.is_empty(), stm5_unit_err, stm5_unit_no_fp, stm5_errs, pu_errs, stm5_unit_errs])
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+func _write_alternate_source_fixture(source: String) -> bool:
+	for family in ["classes", "weapons", "items", "skills", "campaigns"]:
+		var absolute_dir := ProjectSettings.globalize_path(source.path_join(family))
+		if DirAccess.make_dir_recursive_absolute(absolute_dir) != OK:
+			return false
+
+	# Campaigns are authored JSON, not .tres, so the fixture writes the document
+	# and its manifest by hand (a content source must carry its own campaigns).
+	if not _write_json(source.path_join("campaigns/fixture_campaign.json"), {
+			"campaign_id": "fixture_campaign",
+			"label": "Fixture Campaign",
+			"nodes": [{"node_id": "n1", "map_id": "map_001", "next": []}],
+		}):
+		return false
+	if not _write_json(source.path_join("campaigns/resource_manifest.json"),
+			["fixture_campaign.json"]):
+		return false
+
+	var fixture_class := ClassData.new()
+	fixture_class.id = "fixture_class"
+	var fixture_weapon := WeaponData.new()
+	fixture_weapon.id = "fixture_weapon"
+	var fixture_item := ItemData.new()
+	fixture_item.id = "fixture_item"
+	var fixture_skill := SkillData.new()
+	fixture_skill.id = "fixture_skill"
+
+	return ResourceSaver.save(fixture_class, source.path_join("classes/fixture_class.tres")) == OK \
+			and ResourceSaver.save(fixture_weapon, source.path_join("weapons/fixture_weapon.tres")) == OK \
+			and ResourceSaver.save(fixture_item, source.path_join("items/fixture_item.tres")) == OK \
+			and ResourceSaver.save(fixture_skill, source.path_join("skills/fixture_skill.tres")) == OK
+
+
+func _write_json(path: String, payload: Variant) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(payload))
+	return true

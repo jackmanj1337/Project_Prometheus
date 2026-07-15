@@ -1,7 +1,7 @@
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the complete project review
-> **Last verified:** 2026-06-14
+> **Last verified:** 2026-07-05
 
 This is the top-level conductor for a **complete, skips-nothing review** of the
 entire project: code, scenes/data/assets, tests/CI/build, documentation, and the
@@ -23,6 +23,11 @@ Run a full audit when any of these is true:
 - It has been ≳ 4 weeks or ≳ 30 commits since the last full audit.
 - A large refactor branch (like `awakening-compatability-refactor`) is about to merge.
 - After a painful playtest round, to find the systemic cause, not just the symptoms.
+
+Soft reminder, not a gate: during session closeout, compare the newest
+`AGENT/Code Reviews/full_review_rollup_*.md` snapshot date/commit with the
+current branch. If the project is approaching the 4-week / 30-commit threshold,
+add "full audit due soon" to the next-session note.
 
 For everyday work use the lighter `/code-review` skill on the diff instead.
 
@@ -49,17 +54,19 @@ Coverage map (so nothing falls between pillars):
   `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
   one-off scripts) and its pytest suite** → **Pillar 4**
 - `scenes/**.tscn`, **all `*.tres` wherever they live** (`data/**`, `assets/**`,
-  repo-root), `assets/**`, `*.import`, `*.uid` sidecars, stray/empty top-level
-  dirs, autoload *wiring* → **Pillar 3**
+  repo-root), `assets/**`, `Draft UI assets/`, `*.import`, `*.uid` sidecars,
+  stray/empty top-level dirs, autoload *wiring* → **Pillar 3**
 - `AGENT/GDD/**`, `AGENT/Docs/**` guides + governance, `README.md` → **Pillar 2**
 - `AGENT/Session Notes/**`, git history, decision index/records, playtest
   findings, prior reviews, `AGENTS.md` rule adherence → **Pillar 5**
 
 Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
-`builds/` [gitignored artifacts], `data/`, `scenes/`, `scripts/`, `tools/`) and the
-root config files map to exactly one pillar above. The §3 tree-completeness
-preflight enforces this each run, and `check_docs.py` check 11 fails if a new
-top-level dir appears that this map does not mention.
+`builds/` [gitignored artifacts], `ui_previews/` [gitignored artifacts —
+`scripts/tools/ui_inspection_preview.gd` output], `Draft UI assets/`, `data/`,
+`scenes/`, `scripts/`, `tools/`) and the root config files map to exactly one
+pillar above.
+The §3 tree-completeness preflight enforces this each run, and `check_docs.py`
+check 11 fails if a new top-level dir appears that this map does not mention.
 
 If a finding spans two pillars, the discovering pillar files it and tags it
 `[CROSS]`; the rollup (§7) reconciles cross-pillar findings.

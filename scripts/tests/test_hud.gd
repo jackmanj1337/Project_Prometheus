@@ -79,11 +79,18 @@ func _init() -> void:
 			print("OK  flag toggle refreshes banner text"); passed += 1
 		else:
 			print("FAIL flag toggle did not refresh: text=%q" % label.text); failed += 1
+		gs.debug_hotseat_override = true
+		await process_frame
+		if label.text.find("hotseat-all") != -1:
+			print("OK  F9 hotseat override appears in the debug banner"); passed += 1
+		else:
+			print("FAIL hotseat override missing from banner: text=%q" % label.text); failed += 1
 		# Reset the flags after toggling — defensive only; each suite runs in
 		# its own godot process under run_tests.sh, so this state never leaks
 		# across suites. Cheap belt-and-braces against future test layering.
 		gs.debug_force_levelup = false
 		gs.debug_growth_boost = false
+		gs.debug_hotseat_override = false
 	else:
 		print("SKIP live flag-toggle test (GameState/EventBus autoload absent)")
 
@@ -169,7 +176,8 @@ var team: String = "blue"
 	if gs_pu != null and reg_pu != null and res_pu != null:
 		gs_pu.call("reset_map_state")
 		reg_pu.call("clear")
-		gs_pu.set("pair_up_enabled", true)
+		var pu_rules: CampaignRules = gs_pu.get("campaign_rules") as CampaignRules
+		pu_rules.pair_up_enabled = true
 		var lead: Node = stub_unit_script.new()
 		var lead_data := UnitData.new()
 		lead_data.unit_name = "PU Lead"; lead_data.class_id = "soldier"; lead_data.unit_id = "hud_lead"
@@ -189,12 +197,15 @@ var team: String = "blue"
 
 		hud._show_unit(lead)
 		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
+		# V021-07: the map HUD pair-up line now names only the off-map support — the
+		# per-stat bonus deltas were dropped (the full breakdown lives on the `I` sheet).
 		var lead_shows: bool = pu_label != null and pu_label.visible \
-			and "Paired" in pu_label.text and "Str" in pu_label.text
+			and "Support: PU Support" in pu_label.text \
+			and not ("Paired" in pu_label.text) and not ("Str" in pu_label.text)
 		hud._show_unit(supp)   # support is not the lead → indicator hidden
 		var supp_hides: bool = pu_label != null and not pu_label.visible
 		if lead_shows and supp_hides:
-			print("OK  unit-info shows the Pair Up bonus on a paired lead, hides it otherwise (#8.5)")
+			print("OK  unit-info names the Pair Up support (no stat deltas) on a lead, hides it otherwise (V021-07)")
 			passed += 1
 		else:
 			print("FAIL pair-up indicator: lead_shows=%s supp_hides=%s text=%s" % [
@@ -320,32 +331,49 @@ func can_escape(_u: Node, _t: Vector2i) -> bool: return false
 				hud._terrain_actions.visible, hud._terrain_hint.visible])
 		failed += 1
 
-	# Expand: description + move-costs + actions populated, hint hidden.
-	# Match a substring from MoreInfoContent.TERRAIN["forest"] so the test
-	# proves the lookup landed on the right entry without coupling to the
-	# exact authored copy.
-	hud._terrain_expanded = true
+	# V021-05 Description page: description + actions populated, move costs on the
+	# OTHER page (hidden here), hint hidden. Match a substring from
+	# MoreInfoContent.TERRAIN["forest"] to prove the lookup landed on the right entry.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._update_terrain(Vector2i(2, 2))
-	var expanded_ok: bool = (
+	var desc_page_ok: bool = (
 		hud._terrain_more_panel.visible
 		and hud._terrain_desc.visible
 		and "Slows most ground units" in hud._terrain_desc.text
+		and hud._terrain_actions.visible
+		and "Seize" in hud._terrain_actions.text
+		and not hud._terrain_moves.visible
+		and not hud._terrain_hint.visible
+	)
+	if desc_page_ok:
+		print("OK  V021-05 Description page shows description + actions (no move costs)")
+		passed += 1
+	else:
+		print("FAIL desc page: desc=%s|%s moves_vis=%s actions=%s|%s hint=%s" \
+			% [hud._terrain_desc.visible, hud._terrain_desc.text,
+				hud._terrain_moves.visible,
+				hud._terrain_actions.visible, hud._terrain_actions.text,
+				hud._terrain_hint.visible])
+		failed += 1
+
+	# V021-05 Movement page: move-cost table visible (incl. the V021-11 Flying row),
+	# description hidden.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_MOVEMENT
+	hud._update_terrain(Vector2i(2, 2))
+	var move_page_ok: bool = (
+		hud._terrain_more_panel.visible
 		and hud._terrain_moves.visible
 		and "Foot" in hud._terrain_moves.text
 		and "Mounted" in hud._terrain_moves.text
-		and hud._terrain_actions.visible
-		and "Seize" in hud._terrain_actions.text
-		and not hud._terrain_hint.visible
+		and "Flying" in hud._terrain_moves.text
+		and not hud._terrain_desc.visible
 	)
-	if expanded_ok:
-		print("OK  expanded terrain panel shows description, move costs, actions")
+	if move_page_ok:
+		print("OK  V021-05 Movement page shows the move-cost table incl. Flying (V021-11)")
 		passed += 1
 	else:
-		print("FAIL expanded render: desc=%s|%s moves=%s|%s actions=%s|%s hint=%s" \
-			% [hud._terrain_desc.visible, hud._terrain_desc.text,
-				hud._terrain_moves.visible, hud._terrain_moves.text,
-				hud._terrain_actions.visible, hud._terrain_actions.text,
-				hud._terrain_hint.visible])
+		print("FAIL move page: moves=%s|%s desc_vis=%s" \
+			% [hud._terrain_moves.visible, hud._terrain_moves.text, hud._terrain_desc.visible])
 		failed += 1
 
 	# Move-cost row uses "—" for impassable rather than the raw 999.
@@ -379,7 +407,8 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL W6a coord at (7,4): %q" % hud._terrain_coord.text); failed += 1
 
-	# Actions row hides when no unit is selected (deselect mid-expansion).
+	# Actions row hides when no unit is selected (on the Description page).
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
 	hud._on_unit_deselected()
 	hud._update_terrain(Vector2i(0, 0))
 	if not hud._terrain_actions.visible:
@@ -387,15 +416,76 @@ func get_unit_at(_t: Vector2i): return null
 	else:
 		print("FAIL actions row visible without a selected unit"); failed += 1
 
-	# Collapse back to compact view: expansion rows hide, hint returns.
-	hud._terrain_expanded = false
+	# V021-05 Hidden state: the whole More Info box hides (frees map area), hint returns.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
 	hud._update_terrain(Vector2i(0, 0))
 	if not hud._terrain_desc.visible and not hud._terrain_moves.visible \
 			and not hud._terrain_actions.visible and hud._terrain_hint.visible \
 			and not hud._terrain_more_panel.visible:
-		print("OK  collapsing the panel restores the compact view"); passed += 1
+		print("OK  V021-05 Hidden page hides the whole More Info box"); passed += 1
 	else:
-		print("FAIL collapse: rows still visible"); failed += 1
+		print("FAIL hidden page: rows still visible"); failed += 1
+
+	# V021-05 F-cycle: Hidden → Description → Movement → Hidden.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_HIDDEN
+	hud._cursor_tile = Vector2i(0, 0)
+	hud.cycle_terrain_more_page()
+	var cyc1: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_DESCRIPTION
+	hud.cycle_terrain_more_page()
+	var cyc2: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_MOVEMENT
+	hud.cycle_terrain_more_page()
+	var cyc3: bool = hud._terrain_more_page == hud.TERRAIN_PAGE_HIDDEN \
+		and not hud._terrain_more_panel.visible
+	# B6-INPUT: the cycle flows through the shared SelectionCursor (has_inactive stop),
+	# so the pager index tracks the mirrored page across the full loop.
+	var pager_synced: bool = hud._terrain_pager.index == hud._terrain_more_page \
+		and hud._terrain_pager.index == hud.TERRAIN_PAGE_HIDDEN
+	if cyc1 and cyc2 and cyc3 and pager_synced:
+		print("OK  V021-05 more_info cycles Hidden → Description → Movement → Hidden"); passed += 1
+	else:
+		print("FAIL cycle: c1=%s c2=%s c3=%s pager=%s" % [cyc1, cyc2, cyc3, pager_synced]); failed += 1
+
+	# V023-09a: click paging should hit both the compact panel and either expanded
+	# page. The movement page used to miss because only TerrainCorner's compact
+	# footprint was checked.
+	hud._terrain_more_page = hud.TERRAIN_PAGE_DESCRIPTION
+	hud._update_terrain(Vector2i(0, 0))
+	await process_frame
+	var compact_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_panel.get_global_rect().get_center())
+	var description_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_more_panel.get_global_rect().get_center())
+	hud._terrain_more_page = hud.TERRAIN_PAGE_MOVEMENT
+	hud._update_terrain(Vector2i(0, 0))
+	await process_frame
+	var movement_hit: bool = hud.terrain_corner_contains_screen_position(
+		hud._terrain_more_panel.get_global_rect().get_center())
+	if compact_hit and description_hit and movement_hit:
+		print("OK  V023-09a terrain click hit-test covers compact and expanded pages")
+		passed += 1
+	else:
+		print("FAIL terrain click hit-test: compact=%s desc=%s movement=%s" % [
+			compact_hit, description_hit, movement_hit])
+		failed += 1
+
+	# V025-08 structural invariant: the three More-Info RichTextLabels must be
+	# mouse_filter=IGNORE. RichTextLabel defaults to STOP, so a click landing on the
+	# text was consumed in the GUI phase and never reached MapCursor._unhandled_input's
+	# page-cycle (the v0.2.4 rect fix widened a hit-test the event never got to). The
+	# containers were already IGNORE; the labels were the leak.
+	var labels_ignore: bool = (
+		hud._terrain_desc.mouse_filter == Control.MOUSE_FILTER_IGNORE
+		and hud._terrain_moves.mouse_filter == Control.MOUSE_FILTER_IGNORE
+		and hud._terrain_actions.mouse_filter == Control.MOUSE_FILTER_IGNORE
+	)
+	if labels_ignore:
+		print("OK  V025-08 terrain More-Info labels are IGNORE so clicks reach page-cycling")
+		passed += 1
+	else:
+		print("FAIL terrain label mouse_filter: desc=%d moves=%d actions=%d (want %d)" % [
+			hud._terrain_desc.mouse_filter, hud._terrain_moves.mouse_filter,
+			hud._terrain_actions.mouse_filter, Control.MOUSE_FILTER_IGNORE])
+		failed += 1
 
 	# More Info is a separate, bounded, scrollable box — not part of the basic
 	# stats panel. The scroll caps the visible height so long terrain text

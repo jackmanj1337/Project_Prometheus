@@ -15,7 +15,7 @@ layout_mode = 0
 offset_left = 540.0
 offset_top = 280.0
 offset_right = 740.0
-offset_bottom = 440.0
+offset_bottom = 480.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -27,6 +27,10 @@ text = "End Turn"
 [node name="SettingsButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Settings"
+
+[node name="SuspendAndQuitButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Suspend & Quit"
 
 [node name="QuitToMenuButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2

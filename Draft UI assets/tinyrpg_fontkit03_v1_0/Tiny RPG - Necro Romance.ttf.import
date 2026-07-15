@@ -1,0 +1,36 @@
+[remap]
+
+importer="font_data_dynamic"
+type="FontFile"
+uid="uid://b82wvu4c3ji0l"
+path="res://.godot/imported/Tiny RPG - Necro Romance.ttf-b89307840c9dea4dbfc0949e55b7d650.fontdata"
+
+[deps]
+
+source_file="res://Draft UI assets/tinyrpg_fontkit03_v1_0/Tiny RPG - Necro Romance.ttf"
+dest_files=["res://.godot/imported/Tiny RPG - Necro Romance.ttf-b89307840c9dea4dbfc0949e55b7d650.fontdata"]
+
+[params]
+
+Rendering=null
+antialiasing=1
+generate_mipmaps=false
+disable_embedded_bitmaps=true
+multichannel_signed_distance_field=false
+msdf_pixel_range=8
+msdf_size=48
+allow_system_fallback=true
+force_autohinter=false
+modulate_color_glyphs=false
+hinting=1
+subpixel_positioning=4
+keep_rounding_remainders=true
+oversampling=0.0
+Fallbacks=null
+fallbacks=[]
+Compress=null
+compress=true
+preload=[]
+language_support={}
+script_support={}
+opentype_features={}

@@ -61,7 +61,8 @@ func _init() -> void:
 	# Clean slate, then mimic the live New Game state: Pair Up enabled.
 	gs.call("reset_map_state")
 	reg.call("clear")
-	gs.set("pair_up_enabled", true)
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	rules.pair_up_enabled = true
 
 	# Real Unit nodes, duplicated data so the test never mutates the on-disk .tres.
 	var hero: Node = UnitScene.instantiate()
@@ -112,8 +113,9 @@ func _init() -> void:
 		print("FAIL resolver bonus = %s, want superset of %s" % [bonuses, EXPECTED])
 		failed += 1
 
-	# The HUD "Paired …" line — the second half of the 8.5 report. Loads the real
-	# HUD scene and drives the same code path the cursor-hover refresh uses.
+	# The HUD pair-up line — the second half of the 8.5 report. Loads the real HUD
+	# scene and drives the same code path the cursor-hover refresh uses. V021-07: the
+	# map HUD names only the support (deltas moved to the `I` sheet, asserted below).
 	var packed := load("res://scenes/ui/HUD.tscn")
 	if packed != null:
 		var hud: Control = packed.instantiate()
@@ -122,12 +124,10 @@ func _init() -> void:
 		hud._show_unit(hero)
 		var pu_label = hud.get_node_or_null("UnitInfoPanel/VBox/PairUpLabel")
 		var line_ok: bool = pu_label != null and pu_label.visible \
-			and "Paired" in pu_label.text \
-			and "+3 Str" in pu_label.text and "+3 Spd" in pu_label.text \
-			and "+2 Skl" in pu_label.text and "+3 Def" in pu_label.text \
-			and "+1 Lck" in pu_label.text
+			and "Support:" in pu_label.text \
+			and not ("Paired" in pu_label.text) and not ("+3 Str" in pu_label.text)
 		if line_ok:
-			print("OK  HUD shows the Pair Up line on the paired lead: %s" % pu_label.text)
+			print("OK  HUD names the Pair Up support on the paired lead: %s" % pu_label.text)
 			passed += 1
 		else:
 			print("FAIL HUD pair-up line: visible=%s text=%s" % [

@@ -58,9 +58,27 @@ func _init() -> void:
 	else:
 		print("FAIL pair-up selector missing or not populated"); failed += 1
 
+	# Some tests run without autoloads; add the tiny subset NewGameScreen.open()
+	# needs so the persistence checks below exercise real code paths.
+	var created_gs := false
+	var gs_node := root.get_node_or_null("GameState")
+	if gs_node == null:
+		var gs_script := GDScript.new()
+		gs_script.source_code = """
+extends Node
+var next_map_data_path: String = ""
+const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
+var campaign_rules = CampaignRulesScript.make_default()
+"""
+		gs_script.reload()
+		gs_node = gs_script.new()
+		gs_node.name = "GameState"
+		root.add_child(gs_node)
+		created_gs = true
+
 	# open() / _on_back() drive visibility. open() reads GameState — skip the
 	# check cleanly when that autoload is absent.
-	if root.get_node_or_null("GameState") != null:
+	if gs_node != null:
 		screen.open()
 		var shown := screen.visible
 		screen._on_back()
@@ -76,26 +94,122 @@ func _init() -> void:
 	# playtest v0.1.4 #1.2: changing Pair Up / Auto Promote then closing the panel
 	# (no Start) must be remembered. The on-change handler writes through to
 	# GameState; open() seeds the controls back from it.
-	var gs_node := root.get_node_or_null("GameState")
 	if gs_node != null:
-		var want_pair := not bool(gs_node.get("pair_up_enabled"))
-		var want_auto := not bool(gs_node.get("auto_promote_at_max_level"))
+		var rules: CampaignRules = gs_node.get("campaign_rules") as CampaignRules
+		var want_pair := not rules.pair_up_enabled
+		var want_auto := not rules.auto_promote_at_max_level
 		pair_opt.selected = 1 if want_pair else 0
 		pair_opt.item_selected.emit(pair_opt.selected)   # as a click would
 		auto_opt.selected = 1 if want_auto else 0
 		auto_opt.item_selected.emit(auto_opt.selected)
 		# Note: no _on_start() — this is the "closed without starting" path.
-		var persisted_ok: bool = bool(gs_node.get("pair_up_enabled")) == want_pair \
-			and bool(gs_node.get("auto_promote_at_max_level")) == want_auto
+		var persisted_ok: bool = rules.pair_up_enabled == want_pair \
+			and rules.auto_promote_at_max_level == want_auto
 		if persisted_ok:
 			print("OK  rule toggles persist to GameState on change (no Start needed)"); passed += 1
 		else:
 			print("FAIL rule persistence: pair=%s want=%s | auto=%s want=%s" % [
-				gs_node.get("pair_up_enabled"), want_pair,
-				gs_node.get("auto_promote_at_max_level"), want_auto])
+				rules.pair_up_enabled, want_pair,
+				rules.auto_promote_at_max_level, want_auto])
 			failed += 1
 	else:
 		print("SKIP rule persistence (GameState autoload absent)")
+
+	# ---- map selection keeps last-launched semantics until Start ----
+	# Unlike the rule toggles above, the Map dropdown is a launch choice. Closing
+	# without Start must not rewrite GameState.next_map_data_path; reopening seeds
+	# from the last configured/launched map path.
+	if gs_node != null and map_opt != null and map_opt.item_count > 1:
+		var original_path: String = screen._map_options[0]["map_data_path"]
+		gs_node.set("next_map_data_path", original_path)
+		screen.open()
+		map_opt.selected = 1
+		screen._on_back()
+		screen.open()
+		var map_kept_last_launch: bool = map_opt.selected == 0 \
+			and String(gs_node.get("next_map_data_path")) == original_path
+		screen._on_back()
+		if map_kept_last_launch:
+			print("OK  map dropdown reopens on last launched map, not unsaved selection")
+			passed += 1
+		else:
+			print("FAIL map last-launched behavior: selected=%d path=%s want=%s" % [
+				map_opt.selected, String(gs_node.get("next_map_data_path")), original_path])
+			failed += 1
+	else:
+		print("SKIP map last-launched behavior (GameState/map options unavailable)")
+
+	# ---- modal focus containment and repeat in the live MainMenu parent ----
+	if gs_node != null:
+		var menu_packed := load("res://scenes/ui/MainMenu.tscn")
+		var menu: Control = menu_packed.instantiate()
+		root.add_child(menu)
+		await process_frame
+		var modal: Control = menu.get_node("NewGameScreen")
+		var background_continue: Button = menu.get_node("Panel/VBox/ContinueButton")
+		var modal_map: OptionButton = modal.get_node("Panel/VBox/HBoxMap/OptMap")
+		var modal_permadeath: OptionButton = modal.get_node("Panel/VBox/HBoxPermadeath/OptPermadeath")
+		menu._on_new_game()
+		await process_frame
+		background_continue.grab_focus()
+		modal._process(0.016)
+		var focus_owner := modal.get_viewport().gui_get_focus_owner()
+		var contained_focus := modal.is_ancestor_of(focus_owner)
+		modal_map.grab_focus()
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var repeated_down := focus_owner == modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+
+		# V031-GP-02: while an OptionButton popup (a capture-mode embedded Window)
+		# is open, polled focus stepping stands down — a held direction must NOT
+		# move the panel focus behind the popup, and the popup-close frame
+		# re-latches the repeat so the still-held direction doesn't step either.
+		modal_permadeath.grab_focus()
+		modal_map.show_popup()
+		await process_frame
+		var popup_seen: bool = modal._capture_ui_active()
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var popup_stood_down := focus_owner == modal_permadeath
+		modal_map.get_popup().hide()
+		await process_frame
+		modal._process(0.016)  # close frame: re-latch, no step
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var close_frame_latched := focus_owner == modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+		Input.action_press("ui_down", 1.0)
+		modal._process(0.016)
+		focus_owner = modal.get_viewport().gui_get_focus_owner()
+		var steps_after_neutral := focus_owner != modal_permadeath
+		Input.action_release("ui_down")
+		modal._process(0.016)
+
+		menu.queue_free()
+		if contained_focus and repeated_down:
+			print("OK  MainMenu-hosted NewGame modal contains focus and repeats down")
+			passed += 1
+		else:
+			print("FAIL modal focus: contained=%s repeated_down=%s focus=%s" % [
+				contained_focus, repeated_down, focus_owner])
+			failed += 1
+		if popup_seen and popup_stood_down and close_frame_latched and steps_after_neutral:
+			print("OK  open dropdown stands down polled focus stepping and re-latches on close")
+			passed += 1
+		else:
+			print("FAIL popup standdown: seen=%s stood_down=%s latched=%s after_neutral=%s focus=%s" % [
+				popup_seen, popup_stood_down, close_frame_latched, steps_after_neutral, focus_owner])
+			failed += 1
+	else:
+		print("SKIP modal focus containment (GameState unavailable)")
+
+	if created_gs and gs_node != null:
+		gs_node.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

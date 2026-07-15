@@ -9,11 +9,18 @@ extends Node
 # exist yet during DataManager._ready). Const access only — no instance needed.
 const ItemHandlerScript = preload("res://scripts/items/ItemHandler.gd")
 const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
-const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
+# AI profiles are validated against the open AIProfileRegistry (the composition
+# engine seam) rather than a closed const — adding a profile no longer needs a
+# DataManager edit. See AIProfileRegistry.gd.
+const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+const DEFAULT_CONTENT_SOURCE := "res://data"
+# Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
+# references ([STM-5]) are validated here at boot alongside the other content so a
+# typo'd scaling/bonus stat fails loud instead of contributing a silent 0.
 const _VALID_ROSTER_POLICIES := ["default_roster", "fixed_test_roster", "keep_current_roster"]
 const _VALID_ACTIVATION_MODES := ["WHOLE_PHASE", "ALTERNATING"]
 const _VALID_OBJECTIVE_TYPES := ["rout", "defeat_boss", "seize", "escape", "survive", "protect", "turn_limit"]
-const _VALID_AI_PROFILES := ["basic", "passive", "healer"]
 const _DEFAULT_FACTION_IDS := ["blue", "green", "red", "yellow"]
 const _DEFAULT_ALLIANCE_GROUP_IDS := ["allies", "foes", "rogues"]
 
@@ -21,21 +28,82 @@ var _classes: Dictionary = {}
 var _weapons: Dictionary = {}
 var _items: Dictionary = {}
 var _skills: Dictionary = {}
+# Campaign progression graphs, keyed by campaign_id. Authored as JSON (not .tres)
+# per [CST-3], so they load through their own directory pass rather than
+# _load_directory's resource loader.
+var _campaigns: Dictionary = {}
+
+# Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
+# so the campaign runtime resolves a node's launch parameters through this cache.
+var _map_registry: Dictionary = {}
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
 
 func _ready() -> void:
-	_load_directory("res://data/classes/", _classes)
-	_load_directory("res://data/weapons/", _weapons)
-	_load_directory("res://data/items/", _items)
-	_load_directory("res://data/skills/", _skills)
+	_clear_content()
+	_load_all(DEFAULT_CONTENT_SOURCE)
+	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
+
+
+# Content sources are self-contained data roots. Keeping path construction here
+# makes the future campaign-pack switch a replace-load instead of a merge.
+func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
+	_load_directory(source.path_join("classes"), _classes)
+	_load_directory(source.path_join("weapons"), _weapons)
+	_load_directory(source.path_join("items"), _items)
+	_load_directory(source.path_join("skills"), _skills)
+	_load_campaign_directory(source.path_join("campaigns"))
+	# Cached so campaign node -> map launches resolve through the catalogue
+	# instead of each caller re-reading map_registry.json from disk.
+	_load_map_registry(source.path_join("maps/map_registry.json"))
+
+
+func _clear_content() -> void:
+	_classes.clear()
+	_weapons.clear()
+	_items.clear()
+	_skills.clear()
+	_campaigns.clear()
+	_map_registry.clear()
+
+
+# Runs the complete validation composition for one loaded source. SkillData's
+# missing-field diagnostics remain warnings; hard cross-reference failures are
+# collected and reported through the single error channel below.
+func _validate_all(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 	for skill in _skills.values():
 		skill.validate()
-	for err in collect_validation_errors(_classes, _weapons, _items, _skills):
+	var registry_path := source.path_join("maps/map_registry.json")
+	var errors := collect_validation_errors(_classes, _weapons, _items, _skills)
+	errors.append_array(collect_map_registry_validation_errors(registry_path, _classes, _items))
+	errors.append_array(collect_pair_up_validation_errors(
+		source.path_join("pair_up/pair_up_bonus_table.tres")))
+	# Campaign nodes bind to map_registry ids, so campaigns are cross-checked
+	# against the registry's id vocabulary once the registry itself is validated.
+	errors.append_array(collect_campaign_validation_errors(
+		_campaigns, collect_map_registry_ids(registry_path)))
+	return errors
+
+
+func _report(errors: Array[String]) -> void:
+	for err in errors:
 		push_error(err)
-	for err in collect_map_registry_validation_errors(_MAP_REGISTRY_PATH, _classes, _items):
-		push_error(err)
+
+
+# Inert until campaign selection is wired. Callers provide a complete content
+# root; old catalogues are cleared before the replacement source is loaded.
+func select_campaign_source(source: String) -> void:
+	_clear_content()
+	_load_all(source)
+	var errors: Array[String] = []
+	var registry_manager := get_node_or_null("/root/RegistryManager")
+	if registry_manager == null:
+		errors.append("DataManager: RegistryManager is unavailable")
+	else:
+		errors.append_array(registry_manager.call("reload_presets", source))
+	errors.append_array(_validate_all(source))
+	_report(errors)
 
 
 # Pure validator: returns the list of cross-reference errors as strings.
@@ -99,6 +167,13 @@ static func _check_stat_dict(cls, field: String, dict: Dictionary, errors: Array
 	for key in ClassData.STAT_KEYS:
 		if not dict.has(key):
 			errors.append("DataManager: class '%s' %s missing stat key '%s'" % [cls.id, field, key])
+	# [STM-5] Referenced-but-unregistered stat = hard load error (not a silent 0).
+	# growth_rates / stat_caps are growth-stat dicts, so any extra key is a typo'd or
+	# unknown stat reference — reject it loudly against the StatRegistry vocabulary.
+	for key in dict.keys():
+		if not StatRegistry.is_growth_stat(String(key)):
+			errors.append("DataManager: class '%s' %s references unknown stat '%s'" % [
+				cls.id, field, String(key)])
 
 
 static func _check_weapon_wexp_dict(owner_id: String, field: String, dict: Dictionary,
@@ -118,17 +193,12 @@ static func _check_weapon_wexp_dict(owner_id: String, field: String, dict: Dicti
 				owner_id, field, track])
 
 
-# Valid stat names skills may name in activation_chance_stat. Hoisted to module
-# scope so it can be a static const (consts inside a static func can't capture
-# instance state; this is pure data, so module scope is the right home).
-const _VALID_STATS: Array[String] = ["strength", "magic", "skill", "speed", "luck",
-									 "defense", "resistance", "hp"]
-
-
 static func _check_skill_refs(skills: Dictionary, errors: Array[String]) -> void:
 	for skill in skills.values():
 		if skill.activation_chance_stat != "":
-			if not (skill.activation_chance_stat in _VALID_STATS):
+			# Valid activation-chance stats = the growth stats, read from the single
+			# StatRegistry vocabulary (was the local _VALID_STATS copy).
+			if not StatRegistry.is_growth_stat(skill.activation_chance_stat):
 				errors.append("DataManager: skill '%s' activation_chance_stat '%s' is not a known stat" \
 					% [skill.id, skill.activation_chance_stat])
 		# Skills whose effect_params name a combat family (faires, breakers) must
@@ -189,6 +259,111 @@ static func _collect_class_groups(classes: Dictionary) -> Dictionary:
 		for group_id in cls.class_groups:
 			groups[String(group_id)] = true
 	return groups
+
+
+# --- Campaigns ([CST-3] progression graphs) ---------------------------------
+
+# Parses every authored campaign JSON in `dir_path` into `target` (campaign_id ->
+# CampaignData). Structural problems and a missing/unreadable directory are
+# collected as errors, matching the loud-failure policy the map registry and the
+# registry catalogue already use — a campaign that half-loads would strand a run.
+static func load_campaigns(dir_path: String, target: Dictionary,
+		errors: Array[String]) -> void:
+	var campaign_paths: Array[String] = ResourceManifest.load_paths(dir_path)
+	if campaign_paths.is_empty():
+		errors.append("DataManager: no campaigns found at %s" % dir_path)
+		return
+	for path in campaign_paths:
+		if not FileAccess.file_exists(path):
+			errors.append("DataManager: campaign file missing at %s" % path)
+			continue
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		var campaign := CampaignData.parse(parsed, path, errors)
+		if campaign == null:
+			continue
+		if target.has(campaign.campaign_id):
+			errors.append("DataManager: duplicate campaign_id '%s' at %s" % [
+				campaign.campaign_id, path])
+			continue
+		target[campaign.campaign_id] = campaign
+
+
+# Cross-reference pass: every node's map binding must resolve to a map_registry
+# id. Structural graph checks already ran in CampaignData.parse.
+static func collect_campaign_validation_errors(campaigns: Dictionary,
+		known_map_ids: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	for campaign in campaigns.values():
+		for node in campaign.nodes:
+			if node.map_id != "" and not known_map_ids.has(node.map_id):
+				errors.append("DataManager: campaign '%s' node '%s' references unknown map id '%s'" % [
+					campaign.campaign_id, node.node_id, node.map_id])
+	return errors
+
+
+# The map registry keyed by id. Parse errors are the map registry validator's
+# job, so a broken registry simply yields no entries here.
+static func load_map_registry_entries(registry_path: String) -> Dictionary:
+	var entries := {}
+	if not FileAccess.file_exists(registry_path):
+		return entries
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(registry_path))
+	if not (parsed is Array):
+		return entries
+	for entry in (parsed as Array):
+		if entry is Dictionary:
+			var entry_id: String = String((entry as Dictionary).get("id", ""))
+			if entry_id != "":
+				entries[entry_id] = entry
+	return entries
+
+
+# The map-id vocabulary campaigns bind against.
+static func collect_map_registry_ids(registry_path: String) -> Dictionary:
+	var ids := {}
+	for entry_id in load_map_registry_entries(registry_path):
+		ids[entry_id] = true
+	return ids
+
+
+func _load_map_registry(registry_path: String) -> void:
+	_map_registry = load_map_registry_entries(registry_path)
+
+
+# The full registry entry (map_data_path, roster_policy, roster_source, …) for a
+# map id. Campaign nodes bind by map id ([CNC-3]) and need the entry to launch,
+# so the campaign flow resolves through here rather than re-reading the registry
+# from disk. Unknown ids fail loud: launching "nothing" would strand a run.
+func get_map_registry_entry(map_id: String) -> Dictionary:
+	if not _map_registry.has(map_id):
+		push_error("DataManager: unknown map registry id '%s'" % map_id)
+		return {}
+	return _map_registry[map_id]
+
+
+func has_map_registry_entry(map_id: String) -> bool:
+	return _map_registry.has(map_id)
+
+
+func _load_campaign_directory(dir_path: String) -> void:
+	var errors: Array[String] = []
+	load_campaigns(dir_path, _campaigns, errors)
+	_report(errors)
+
+
+func get_campaign(id: String) -> CampaignData:
+	if not _campaigns.has(id):
+		push_error("DataManager: unknown campaign id '%s'" % id)
+		return null
+	return _campaigns[id]
+
+
+func has_campaign(id: String) -> bool:
+	return _campaigns.has(id)
+
+
+func get_all_campaigns() -> Dictionary:
+	return _campaigns
 
 
 static func collect_map_registry_validation_errors(registry_path: String,
@@ -294,6 +469,39 @@ static func _validate_map_registry_entry(entry: Dictionary, index: int, seen_ids
 	for err in collect_map_data_validation_errors(map_data, map_path, classes, items,
 			seen_unit_ids):
 		errors.append(err)
+
+
+# [STM-5] Pair Up bonus table stat-reference validation. `scaling_stats` and every
+# inner key of `class_bonuses` name a stat; a typo (e.g. "strngth") would otherwise
+# scale/bonus a phantom stat as a silent 0. Absent table = no error (Pair Up simply
+# contributes nothing), matching the resolver's tolerant load. Loaded from a path
+# (mirrors collect_map_registry_validation_errors) so tests can point it elsewhere.
+static func collect_pair_up_validation_errors(table_path: String) -> Array[String]:
+	var errors: Array[String] = []
+	if not ResourceLoader.exists(table_path):
+		return errors
+	var table: Resource = load(table_path)
+	if table == null:
+		errors.append("DataManager: pair-up bonus table failed to load at %s" % table_path)
+		return errors
+	_check_pair_up_stat_refs(table, errors)
+	return errors
+
+
+# Resource-level ref check, split out so tests can drive a constructed table
+# without writing a .tres to disk (path loader above wraps it for the boot pass).
+static func _check_pair_up_stat_refs(table: Resource, errors: Array[String]) -> void:
+	var scaling_stats: PackedStringArray = table.get("scaling_stats")
+	for stat in scaling_stats:
+		if not StatRegistry.is_registered_stat(String(stat)):
+			errors.append("DataManager: pair-up table scaling_stats references unknown stat '%s'" % String(stat))
+	var class_bonuses: Dictionary = table.get("class_bonuses")
+	for class_id in class_bonuses.keys():
+		var block: Dictionary = class_bonuses[class_id]
+		for stat in block.keys():
+			if not StatRegistry.is_registered_stat(String(stat)):
+				errors.append("DataManager: pair-up table class_bonuses['%s'] references unknown stat '%s'" % [
+					String(class_id), String(stat)])
 
 
 # `seen_unit_ids` is unit_id -> source description (e.g. "roster file '...'"
@@ -408,22 +616,42 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 				map_path, str(placement)])
 			continue
 		var unit_path: String = String(placement.get("unit_data_path", ""))
-		if unit_path == "":
-			errors.append("DataManager: map '%s' has enemy placement missing unit_data_path" % map_path)
-		elif not ResourceLoader.exists(unit_path):
-			errors.append("DataManager: map '%s' enemy placement points at missing UnitData '%s'" % [
-				map_path, unit_path])
-		else:
-			var unit_loaded := load(unit_path)
-			if not (unit_loaded is UnitData):
-				errors.append("DataManager: map '%s' enemy placement '%s' did not load as UnitData" % [
-					map_path, unit_path])
-			elif String(unit_loaded.unit_id) == "":
-				errors.append("DataManager: map '%s' enemy placement '%s' has empty unit_id" % [
+		var inline_unit: Variant = placement.get("unit_data", null)
+		var has_unit_path := unit_path != ""
+		var has_inline_unit := inline_unit != null
+		var unit_loaded: UnitData = null
+		var unit_source := ""
+		if has_unit_path == has_inline_unit:
+			errors.append(
+				"DataManager: map '%s' enemy placement must provide exactly one of unit_data_path or unit_data"
+				% map_path)
+		elif has_unit_path:
+			unit_source = "enemy placement '%s'" % unit_path
+			if not ResourceLoader.exists(unit_path):
+				errors.append("DataManager: map '%s' enemy placement points at missing UnitData '%s'" % [
 					map_path, unit_path])
 			else:
+				var unit_resource := load(unit_path)
+				if not (unit_resource is UnitData):
+					errors.append("DataManager: map '%s' enemy placement '%s' did not load as UnitData" % [
+						map_path, unit_path])
+				else:
+					unit_loaded = unit_resource
+		else:
+			if not (inline_unit is UnitData):
+				errors.append("DataManager: map '%s' enemy placement unit_data is not UnitData" % map_path)
+			else:
+				unit_loaded = inline_unit
+				unit_source = "enemy placement inline unit_data"
+		if unit_loaded != null:
+			if String(unit_loaded.unit_id) == "":
+				errors.append("DataManager: map '%s' %s has empty unit_id" % [
+					map_path, unit_source])
+			else:
 				var uid: String = String(unit_loaded.unit_id)
-				var here: String = "enemy placement '%s'" % unit_path
+				var here: String = unit_source
+				if not has_unit_path:
+					here = "%s '%s'" % [unit_source, uid]
 				if seen_unit_ids.has(uid):
 					errors.append("DataManager: duplicate unit_id '%s' at %s (also at %s)" % [
 						uid, here, seen_unit_ids[uid]])
@@ -436,6 +664,9 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 		else:
 			var enemy_tile: Vector2i = placement.get("tile", Vector2i.ZERO)
 			var tile_key := "%d,%d" % [enemy_tile.x, enemy_tile.y]
+			if seen_player_tiles.has(tile_key):
+				errors.append("DataManager: map '%s' enemy placement tile %s overlaps a player start" % [
+					map_path, str(enemy_tile)])
 			if seen_enemy_tiles.has(tile_key):
 				errors.append("DataManager: map '%s' has duplicate enemy placement tile %s" % [
 					map_path, str(enemy_tile)])
@@ -448,7 +679,7 @@ static func collect_map_data_validation_errors(map_data: MapData, map_path: Stri
 			errors.append("DataManager: map '%s' enemy placement references unknown faction '%s'" % [
 				map_path, placement_faction])
 		var ai_profile: String = String(placement.get("ai_profile", "basic"))
-		if not (ai_profile in _VALID_AI_PROFILES):
+		if not AIProfileRegistry.is_valid_profile(ai_profile):
 			errors.append("DataManager: map '%s' enemy placement ai_profile '%s' is not valid" % [
 				map_path, ai_profile])
 		if placement.has("tile"):
@@ -594,6 +825,10 @@ func get_weapon(id: String) -> WeaponData:
 	return _weapons[id]
 
 
+func has_weapon(id: String) -> bool:
+	return _weapons.has(id)
+
+
 func get_item(id: String) -> ItemData:
 	if not _items.has(id):
 		push_error("DataManager: unknown item id '%s'" % id)
@@ -672,7 +907,15 @@ static func collect_unit_validation_errors(units: Array, classes: Dictionary) ->
 			if int(unit.weapon_wexp[track]) < 0:
 				errors.append("DataManager: unit '%s' weapon_wexp['%s'] cannot be negative" % [
 					unit.unit_id, track_id])
-		if not (unit.ai_profile in _VALID_AI_PROFILES):
+		if not AIProfileRegistry.is_valid_profile(unit.ai_profile):
 			errors.append("DataManager: unit '%s' ai_profile '%s' is not valid" % [
 				unit.unit_id, unit.ai_profile])
+		# [STM-5] personal growth_rates is a PARTIAL override dict (only the stats an
+		# author bumps), so unlike the class dicts it needs no presence check — but a
+		# key outside the growth-stat vocabulary is a typo that would add a phantom 0
+		# growth. Reject it loudly, same policy as the class dicts.
+		for stat in unit.growth_rates.keys():
+			if not StatRegistry.is_growth_stat(String(stat)):
+				errors.append("DataManager: unit '%s' growth_rates references unknown stat '%s'" % [
+					unit.unit_id, String(stat)])
 	return errors

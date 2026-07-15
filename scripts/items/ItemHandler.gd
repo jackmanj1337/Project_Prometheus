@@ -3,6 +3,9 @@ extends Node
 # the unit and the inventory entry dict; all item logic lives here so MapCursor
 # and future AI systems stay free of item mechanics.
 
+const ActionRequestScript = preload("res://scripts/actions/ActionRequest.gd")
+const ActionContextScript = preload("res://scripts/actions/ActionContext.gd")
+
 # Canonical list of effect_ids implemented by apply_item's match below. Read by
 # DataManager._validate_cross_references at startup (B6) so a typo in an item
 # .tres surfaces immediately rather than as a runtime push_warning the first time
@@ -37,18 +40,19 @@ func apply_item(unit: Node, entry: InventoryEntry) -> void:
 			push_warning("ItemHandler: reclass items must be resolved through ReclassScreen")
 			return
 		"stat_buff":
-			# Stamps an active_modifier on the unit using ItemData.effect_params.
-			# Used by the strength_tonic fixture so previews and unit details can
-			# reliably surface a positive modifier in a single validation run.
-			if not unit.has_method("add_modifier"):
+			var runner := get_node_or_null("/root/ActionEffectRunner")
+			if runner == null:
 				return
-			var stat: String = String(item.effect_params.get("stat", ""))
-			var delta: int = int(item.effect_params.get("delta", 0))
-			var duration: int = int(item.effect_params.get("duration", -1))
-			var duration_type: String = String(item.effect_params.get("duration_type", "turn"))
-			if stat == "" or delta == 0:
+			var request = ActionRequestScript.new("apply_active_modifier", {
+				"stat": String(item.effect_params.get("stat", "")),
+				"delta": int(item.effect_params.get("delta", 0)),
+				"duration": int(item.effect_params.get("duration", -1)),
+				"duration_type": String(item.effect_params.get("duration_type", "turn")),
+				"source": "item:%s" % item.id,
+			})
+			var context = ActionContextScript.new("item", {"actor": unit, "target": unit})
+			if not runner.commit(request, context).ok:
 				return
-			unit.add_modifier(stat, delta, "item:%s" % item.id, duration, duration_type)
 		_:
 			push_warning("ItemHandler: unknown effect_id '%s'" % item.effect_id)
 			return  # Don't consume the item if we can't apply its effect

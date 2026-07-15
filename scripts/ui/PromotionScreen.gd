@@ -2,10 +2,13 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Modal promotion picker. Used both by auto-promotion at class cap and by
 # promotion items (Master Seal, class-restricted seals, etc.).
 
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+
 @onready var _label_title: Label = $Panel/VBox/TitleLabel
 @onready var _label_unit: Label = $Panel/VBox/LabelUnit
 @onready var _label_hint: Label = $Panel/VBox/LabelHint
-@onready var _options: VBoxContainer = $Panel/VBox/Options
+@onready var _options_scroll: ScrollContainer = $Panel/VBox/OptionsScroll
+@onready var _options: VBoxContainer = $Panel/VBox/OptionsScroll/Options
 @onready var _btn_cancel: Button = $Panel/VBox/BtnCancel
 
 var _unit: Node = null
@@ -42,6 +45,12 @@ func open_for(unit: Node, consume_entry: InventoryEntry = null,
 		return
 	_emit_promotion_started()
 	show()
+	# Re-apply the scale AFTER the options are built: ModalScreen._ready() scaled and
+	# clamped an empty Options box, so without this the freshly-built (and now taller)
+	# panel is never re-clamped/recentred and clips top+bottom at high scale (V025-05c).
+	# The Options ScrollContainer keeps the panel a fixed frame that scrolls instead.
+	_apply_menu_scale_from_settings()
+	_options_scroll.scroll_vertical = 0
 	_buttons[0].grab_focus()
 
 
@@ -153,24 +162,8 @@ func _skill_name(skill_id: String) -> String:
 
 
 func _stat_short_name(stat: String) -> String:
-	match stat:
-		"hp":
-			return "HP"
-		"strength":
-			return "Str"
-		"magic":
-			return "Mag"
-		"defense":
-			return "Def"
-		"resistance":
-			return "Res"
-		"skill":
-			return "Skl"
-		"speed":
-			return "Spd"
-		"luck":
-			return "Luk"
-	return stat
+	# Delegates to the single StatRegistry label vocabulary (was a local match copy).
+	return StatRegistry.label_for(stat)
 
 
 func _promotion_preview_text(target_class: ClassData) -> String:

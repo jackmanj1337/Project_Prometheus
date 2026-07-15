@@ -9,8 +9,14 @@ var map_height: int = 0
 # Assigned by GameMap when the map loads
 var _tilemap: TileMapLayer = null
 
-# Overlay layer for movement/attack/heal/danger highlights (4 colored tiles)
+# Base overlay layer for movement/attack/heal/danger highlights.
 var _overlay: TileMapLayer = null
+# Optional prototype overlay lane for MRD-7 shared-cell visual comparisons.
+var _overlay_top: TileMapLayer = null
+
+# Lazily-created dual-outline draw surface (V031-MRD-01) — a Node2D that
+# strokes the threat perimeters above unit sprites; see _ensure_perimeter_overlay.
+var _perimeter_overlay: Node2D = null
 
 # Optional fallback when no TileMapLayer is assigned (tests, headless).
 # Maps Vector2i tile -> String terrain type.
@@ -59,12 +65,12 @@ func _hostile(a: Node, b: Node) -> bool:
 
 # Called by GameMap during _ready() to wire the layers.
 func setup(terrain_layer: TileMapLayer, overlay_layer: TileMapLayer,
-		width: int, height: int) -> void:
+		width: int, height: int, overlay_top_layer: TileMapLayer = null) -> void:
 	_tilemap = terrain_layer
 	_overlay = overlay_layer
+	_overlay_top = overlay_top_layer
 	map_width = width
 	map_height = height
-
 
 # Out-of-bounds tiles count as walls so callers don't need explicit bounds checks.
 func get_terrain_at(tile: Vector2i) -> String:
@@ -116,6 +122,7 @@ static func get_move_costs_for_groups(terrain: String) -> Dictionary:
 			"mounted":  IMPASSABLE_MOVE_COST,
 			"armoured": IMPASSABLE_MOVE_COST,
 			"light":    IMPASSABLE_MOVE_COST,
+			"flying":   IMPASSABLE_MOVE_COST,  # walls block everyone (V021-11)
 		}
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 	var mounted: int = 3 if terrain == "desert" else base
@@ -126,6 +133,9 @@ static func get_move_costs_for_groups(terrain: String) -> Dictionary:
 		"mounted":  mounted,
 		"armoured": armoured,
 		"light":    light,
+		# Fliers ignore all ground terrain penalties; flat 1 on every non-wall tile
+		# (V021-11), so they cross river/sea/mountain freely.
+		"flying":   1,
 	}
 
 
@@ -151,15 +161,42 @@ func get_move_cost(tile: Vector2i, unit: Node) -> int:
 			if override != -1:
 				return override
 
+	# Resolve the unit's single movement type (V021-11) and key the cost off it,
+	# preserving the skill-override-first ordering above.
+	var move_type: String = _movement_type_of_unit(unit)
+
+	# Fliers ignore all ground terrain penalties; only walls (handled by is_passable
+	# / IMPASSABLE_MOVE_COST) block them.
+	if move_type == "flying":
+		return IMPASSABLE_MOVE_COST if terrain == "wall" else 1
+
 	var base: int = _DEFAULT_MOVE_COSTS.get(terrain, 1)
 
-	# Desert exception: armoured/mounted pay 3; light_footed units (mages, thieves, etc.) pay 1.
-	if terrain == "desert" and unit != null and unit.has_method("has_quality"):
-		if unit.has_quality("armoured") or unit.has_quality("mounted"):
+	# Desert exception: armoured/mounted pay 3; light_footed (mages, thieves, etc.)
+	# pay 1; infantry pays the base cost.
+	if terrain == "desert":
+		if move_type == "armoured" or move_type == "mounted":
 			return 3
-		if unit.has_quality("light_footed"):
+		if move_type == "light_footed":
 			return 1
 	return base
+
+
+# Resolves `unit`'s movement type. A real Unit exposes movement_type() (the single
+# source of truth, GameConstants.movement_type_of over its class qualities), so we
+# defer to it. Test stubs that only implement has_quality fall back to probing
+# VALID_MOVEMENT_TYPES in the same precedence order. Defaults to infantry for a null
+# unit or a stub with neither method.
+func _movement_type_of_unit(unit: Node) -> String:
+	if unit == null:
+		return "infantry"
+	if unit.has_method("movement_type"):
+		return String(unit.call("movement_type"))
+	if unit.has_method("has_quality"):
+		for mt in GameConstants.VALID_MOVEMENT_TYPES:
+			if unit.has_quality(mt):
+				return mt
+	return "infantry"
 
 
 # Wall tiles are impassable to all units unless the Phasing skill is active.
@@ -220,7 +257,11 @@ func get_unit_at(tile: Vector2i) -> Node:
 	return null
 
 
-# 4-direction adjacency (no diagonals per GDD_02)
+# 4-direction adjacency (no diagonals per GDD_02). This is the single geometry
+# seam: dijkstra_costs() iterates DIRS, so neighbour topology is defined here once.
+# Direction-based features (displacement/shove/swap/pivot, etc.) must read neighbours
+# via this seam rather than copying a 4-way literal — that keeps the parked hex-grid
+# option open (see registers/grid_topology_hex_open_questions_2026-06-27.md, [HEX-9]).
 const DIRS: Array[Vector2i] = [
 	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
 ]
@@ -479,24 +520,360 @@ const OVERLAY_BLUE := 0
 const OVERLAY_RED := 1
 const OVERLAY_HEAL := 2
 const OVERLAY_DARK_RED := 3
+# [TUR-2] The watch-set threat layer — a distinct DARKER red so a hand-picked
+# enemy's threat reads inside the broader faction cloud. Source 4 is authored in
+# assets/overlay_tileset.tres (generate_tilesets.gd OVERLAY_SOURCES[4] =
+# "darker_red"; placeholder colour from generate_placeholder_assets.gd).
+const OVERLAY_DARKER_RED := 4
+const OVERLAY_BLUE_ON_DARK_RED := 5
+const OVERLAY_RED_ON_DARK_RED := 6
+const OVERLAY_HEAL_ON_DARK_RED := 7
+const OVERLAY_BLUE_ON_DARKER_RED := 8
+const OVERLAY_RED_ON_DARKER_RED := 9
+const OVERLAY_HEAL_ON_DARKER_RED := 10
+const OVERLAY_DARK_RED_PERIMETER_START := 11
+const OVERLAY_DARKER_RED_PERIMETER_START := 26
+const OVERLAY_PERIMETER_MASK_COUNT := 15
 
 
-func _paint_overlay(tiles: Array[Vector2i], source_id: int) -> void:
-	if _overlay == null:
+# ── [MRD-1] Overlay precedence registry ──────────────────────────────────────
+# Every overlay shares ONE overlay TileMapLayer, so paint ORDER decides the
+# winner of a shared cell (the last set_cell wins). Instead of hardcoding that
+# order in each repaint — a z-order match every new overlay would have to edit —
+# layers register precedence here and painters iterate in ASCENDING
+# precedence (lower first, higher on top so it wins shared cells).
+# Adding an overlay (healing zones, objective markers, …) is a registration, not
+# a repaint edit ([EXT], Q10 watchout).
+const OVERLAY_LAYER_MOVE := "move_range"
+const OVERLAY_LAYER_ATTACK := "attack_range"
+const OVERLAY_LAYER_HEAL := "heal_range"
+const OVERLAY_LAYER_FACTION_THREAT := "faction_threat"
+const OVERLAY_LAYER_WATCH_THREAT := "watch_threat"
+const OVERLAY_LAYER_HOVER_PEEK := "hover_peek"          # peek move range (blue)
+const OVERLAY_LAYER_HOVER_PEEK_ATTACK := "hover_peek_attack"  # peek attack reach (red)
+const OVERLAY_LAYER_PATH_ARROWS := "path_arrows"
+
+static var _overlay_registry: Dictionary = {}
+
+const OVERLAY_ROLE_RANGE := "range"
+const OVERLAY_ROLE_THREAT := "threat"
+const OVERLAY_ROLE_EXCLUSIVE := "exclusive"
+
+const SHARED_CELL_SINGLE := "single_layer"
+const SHARED_CELL_BORDER_THROUGH := "border_through"
+const SHARED_CELL_STACKED := "stacked"
+const SHARED_CELL_STACKED_PERIMETER := "stacked_perimeter"
+const SHARED_CELL_DUAL_OUTLINE := "dual_outline"
+
+const SHARED_CELL_MODES := {
+	SHARED_CELL_SINGLE: {"label": "Single layer"},
+	SHARED_CELL_BORDER_THROUGH: {"label": "Threat center + range border"},
+	SHARED_CELL_STACKED: {"label": "Second overlay layer"},
+	SHARED_CELL_STACKED_PERIMETER: {"label": "Second overlay layer + threat perimeter"},
+	SHARED_CELL_DUAL_OUTLINE: {"label": "Stacked fill + dual outline above units"},
+}
+
+const ThreatPerimeterOverlayScript = preload("res://scripts/core/ThreatPerimeterOverlay.gd")
+
+const PERIMETER_EDGE_TOP := 1
+const PERIMETER_EDGE_RIGHT := 2
+const PERIMETER_EDGE_BOTTOM := 4
+const PERIMETER_EDGE_LEFT := 8
+
+const _RANGE_ON_THREAT_SOURCES := {
+	OVERLAY_BLUE: {
+		OVERLAY_DARK_RED: OVERLAY_BLUE_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_BLUE_ON_DARKER_RED,
+	},
+	OVERLAY_RED: {
+		OVERLAY_DARK_RED: OVERLAY_RED_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_RED_ON_DARKER_RED,
+	},
+	OVERLAY_HEAL: {
+		OVERLAY_DARK_RED: OVERLAY_HEAL_ON_DARK_RED,
+		OVERLAY_DARKER_RED: OVERLAY_HEAL_ON_DARKER_RED,
+	},
+}
+
+var shared_cell_mode: String = SHARED_CELL_DUAL_OUTLINE
+
+
+# Seed the built-in layers once. Precedence gaps of 10 leave room to slot future
+# overlays between the existing ones without renumbering.
+static func _ensure_overlay_registry() -> void:
+	if not _overlay_registry.is_empty():
+		return
+	register_overlay_layer(OVERLAY_LAYER_MOVE, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_ATTACK, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_HEAL, 10, OVERLAY_ROLE_RANGE)
+	register_overlay_layer(OVERLAY_LAYER_FACTION_THREAT, 20, OVERLAY_ROLE_THREAT)
+	register_overlay_layer(OVERLAY_LAYER_WATCH_THREAT, 30, OVERLAY_ROLE_THREAT)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK, 100, OVERLAY_ROLE_EXCLUSIVE)
+	register_overlay_layer(OVERLAY_LAYER_HOVER_PEEK_ATTACK, 101, OVERLAY_ROLE_EXCLUSIVE)
+	register_overlay_layer(OVERLAY_LAYER_PATH_ARROWS, 110, OVERLAY_ROLE_EXCLUSIVE)
+
+
+static func register_overlay_layer(layer_id: String, precedence: int,
+		role: String = OVERLAY_ROLE_RANGE) -> void:
+	_overlay_registry[layer_id] = {"precedence": precedence, "role": role}
+
+
+static func overlay_layer_precedence(layer_id: String) -> int:
+	_ensure_overlay_registry()
+	if _overlay_registry.has(layer_id):
+		return int(_overlay_registry[layer_id]["precedence"])
+	push_warning("GridManager: unregistered overlay layer '%s' — painting it last" % layer_id)
+	return 1 << 30  # unregistered layers paint last
+
+
+static func overlay_layer_role(layer_id: String) -> String:
+	_ensure_overlay_registry()
+	if _overlay_registry.has(layer_id):
+		return String(_overlay_registry[layer_id].get("role", OVERLAY_ROLE_RANGE))
+	return OVERLAY_ROLE_RANGE
+
+
+func set_shared_cell_mode(mode: String) -> void:
+	if not SHARED_CELL_MODES.has(mode):
+		push_warning("GridManager: unknown shared-cell overlay mode '%s'" % mode)
+		return
+	shared_cell_mode = mode
+	if not _shared_cell_mode_uses_top_overlay(shared_cell_mode):
+		_clear_top_overlay()
+	if shared_cell_mode != SHARED_CELL_DUAL_OUTLINE:
+		_clear_perimeter_overlay()
+
+
+func _shared_cell_mode_uses_top_overlay(mode: String) -> bool:
+	return mode == SHARED_CELL_STACKED or mode == SHARED_CELL_STACKED_PERIMETER \
+		or mode == SHARED_CELL_DUAL_OUTLINE
+
+
+func _clear_top_overlay() -> void:
+	if _overlay_top != null:
+		_overlay_top.clear()
+
+
+func _paint_overlay(tiles: Array[Vector2i], source_id: int,
+		target: TileMapLayer = null) -> void:
+	var layer := target if target != null else _overlay
+	if layer == null:
 		return
 	for t in tiles:
-		_overlay.set_cell(t, source_id, Vector2i.ZERO)
+		layer.set_cell(t, source_id, Vector2i.ZERO)
+
+
+func _sorted_overlay_ids(layer_specs: Dictionary) -> Array:
+	var ids: Array = layer_specs.keys()
+	ids.sort_custom(func(a, b): return overlay_layer_precedence(a) < overlay_layer_precedence(b))
+	return ids
+
+
+func _spec_tiles(spec: Dictionary) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	if spec.has("tiles"):
+		tiles.assign(spec["tiles"])
+	return tiles
+
+
+func _paint_single_layer(layer_specs: Dictionary) -> void:
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		_paint_overlay(_spec_tiles(spec), int(spec.get("source", OVERLAY_DARK_RED)))
+
+
+func _paint_stacked_layers(layer_specs: Dictionary) -> void:
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		var role := overlay_layer_role(id)
+		var target := _overlay if role == OVERLAY_ROLE_THREAT else _overlay_top
+		_paint_overlay(_spec_tiles(spec), source, target)
+
+
+static func threat_perimeter_mask(tile: Vector2i, threat_tiles: Dictionary) -> int:
+	var mask := 0
+	if not threat_tiles.has(tile + Vector2i(0, -1)):
+		mask |= PERIMETER_EDGE_TOP
+	if not threat_tiles.has(tile + Vector2i(1, 0)):
+		mask |= PERIMETER_EDGE_RIGHT
+	if not threat_tiles.has(tile + Vector2i(0, 1)):
+		mask |= PERIMETER_EDGE_BOTTOM
+	if not threat_tiles.has(tile + Vector2i(-1, 0)):
+		mask |= PERIMETER_EDGE_LEFT
+	return mask
+
+
+static func threat_perimeter_source(threat_source: int, mask: int) -> int:
+	var clamped_mask: int = clampi(mask, 0, OVERLAY_PERIMETER_MASK_COUNT)
+	if clamped_mask == 0:
+		return threat_source
+	match threat_source:
+		OVERLAY_DARK_RED:
+			return OVERLAY_DARK_RED_PERIMETER_START + clamped_mask - 1
+		OVERLAY_DARKER_RED:
+			return OVERLAY_DARKER_RED_PERIMETER_START + clamped_mask - 1
+		_:
+			return threat_source
+
+
+func _threat_union(layer_specs: Dictionary) -> Dictionary:
+	var threat_tiles: Dictionary = {}
+	for id in _sorted_overlay_ids(layer_specs):
+		if overlay_layer_role(id) != OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		for tile in _spec_tiles(spec):
+			threat_tiles[tile] = true
+	return threat_tiles
+
+
+# Pure world-space outline geometry for the perimeter of `tiles` (a tile->bool
+# set): a flat [from, to, from, to, ...] point-pair list built from the same
+# edge-mask logic the stacked_perimeter tile variants use. Pure + static so
+# the dual-outline geometry is testable headless without a canvas.
+static func perimeter_edge_segments(tiles: Dictionary, tile_size: int) -> PackedVector2Array:
+	var segments := PackedVector2Array()
+	for tile_any in tiles:
+		var tile: Vector2i = tile_any
+		var mask := threat_perimeter_mask(tile, tiles)
+		if mask == 0:
+			continue
+		var origin := Vector2(tile.x * tile_size, tile.y * tile_size)
+		var size := float(tile_size)
+		if mask & PERIMETER_EDGE_TOP:
+			segments.append(origin)
+			segments.append(origin + Vector2(size, 0))
+		if mask & PERIMETER_EDGE_RIGHT:
+			segments.append(origin + Vector2(size, 0))
+			segments.append(origin + Vector2(size, size))
+		if mask & PERIMETER_EDGE_BOTTOM:
+			segments.append(origin + Vector2(0, size))
+			segments.append(origin + Vector2(size, size))
+		if mask & PERIMETER_EDGE_LEFT:
+			segments.append(origin)
+			segments.append(origin + Vector2(0, size))
+	return segments
+
+
+func _paint_stacked_perimeter(layer_specs: Dictionary) -> void:
+	var threat_tiles := _threat_union(layer_specs)
+	for id in _sorted_overlay_ids(layer_specs):
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		var role := overlay_layer_role(id)
+		if role == OVERLAY_ROLE_THREAT:
+			for tile in _spec_tiles(spec):
+				var mask := threat_perimeter_mask(tile, threat_tiles)
+				var paint_source := threat_perimeter_source(source, mask)
+				_overlay.set_cell(tile, paint_source, Vector2i.ZERO)
+		else:
+			_paint_overlay(_spec_tiles(spec), source, _overlay_top)
+
+
+# V031-MRD-01 `dual_outline`: the stacked fill underneath, plus two world-space
+# outlines drawn above unit sprites — bright red around every threatened tile,
+# dark red around the watched subset, dark over bright (owner spec 2026-07-12).
+func _paint_dual_outline(layer_specs: Dictionary) -> void:
+	_paint_stacked_layers(layer_specs)
+	var overlay := _ensure_perimeter_overlay()
+	if overlay == null:
+		return
+	var watch_tiles: Dictionary = {}
+	if layer_specs.has(OVERLAY_LAYER_WATCH_THREAT):
+		for tile in _spec_tiles(layer_specs[OVERLAY_LAYER_WATCH_THREAT]):
+			watch_tiles[tile] = true
+	overlay.set_perimeters(
+		perimeter_edge_segments(_threat_union(layer_specs), GameConstants.TILE_SIZE),
+		perimeter_edge_segments(watch_tiles, GameConstants.TILE_SIZE))
+
+
+# Lazily creates the outline draw surface (same pattern as MapCursor's
+# PathArrows layer). Null on headless grids with no real overlay layer (the
+# pure-logic fallback grid). Created even before this grid enters the tree —
+# the child simply starts rendering when the grid does.
+func _ensure_perimeter_overlay() -> Node2D:
+	if _perimeter_overlay != null:
+		return _perimeter_overlay
+	if _overlay == null:
+		return null
+	_perimeter_overlay = ThreatPerimeterOverlayScript.new()
+	_perimeter_overlay.name = "ThreatPerimeterOverlay"
+	# Above unit sprites (z 0) so the outlines read over units per the owner
+	# spec; below the transient movement path arrows (z 100).
+	_perimeter_overlay.z_index = 90
+	add_child(_perimeter_overlay)
+	return _perimeter_overlay
+
+
+func _clear_perimeter_overlay() -> void:
+	if _perimeter_overlay != null:
+		_perimeter_overlay.clear()
+
+
+func _range_source_on_threat(range_source: int, threat_source: int) -> int:
+	var by_threat: Dictionary = _RANGE_ON_THREAT_SOURCES.get(range_source, {})
+	return int(by_threat.get(threat_source, range_source))
+
+
+func _paint_border_through(layer_specs: Dictionary) -> void:
+	var threat_sources: Dictionary = {}
+	var ids := _sorted_overlay_ids(layer_specs)
+	for id in ids:
+		if overlay_layer_role(id) != OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		for tile in _spec_tiles(spec):
+			threat_sources[tile] = source
+			_overlay.set_cell(tile, source, Vector2i.ZERO)
+	for id in ids:
+		var role := overlay_layer_role(id)
+		if role == OVERLAY_ROLE_THREAT:
+			continue
+		var spec: Dictionary = layer_specs[id]
+		var source := int(spec.get("source", OVERLAY_DARK_RED))
+		for tile in _spec_tiles(spec):
+			var paint_source := source
+			if role == OVERLAY_ROLE_RANGE and threat_sources.has(tile):
+				paint_source = _range_source_on_threat(source, int(threat_sources[tile]))
+			_overlay.set_cell(tile, paint_source, Vector2i.ZERO)
+
+
+# [MRD-1] Repaint the shared overlay from a set of layers, in registered
+# precedence order (ascending) so higher-precedence layers win shared cells.
+# `layer_specs` maps a registered layer_id -> { "tiles": Array[Vector2i],
+# "source": int }. Clears first, so passing {} turns the overlay off.
+func repaint_overlays(layer_specs: Dictionary) -> void:
+	if _overlay == null:
+		return
+	_overlay.clear()
+	_clear_top_overlay()
+	_clear_perimeter_overlay()
+	if shared_cell_mode == SHARED_CELL_DUAL_OUTLINE and _overlay_top != null:
+		_paint_dual_outline(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_STACKED_PERIMETER and _overlay_top != null:
+		_paint_stacked_perimeter(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_STACKED and _overlay_top != null:
+		_paint_stacked_layers(layer_specs)
+	elif shared_cell_mode == SHARED_CELL_BORDER_THROUGH:
+		_paint_border_through(layer_specs)
+	else:
+		_paint_single_layer(layer_specs)
 
 
 func show_movement_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_BLUE)
 
 
 func show_attack_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_RED)
 
 
 func show_heal_overlay(tiles: Array[Vector2i]) -> void:
+	_clear_top_overlay()
 	_paint_overlay(tiles, OVERLAY_HEAL)
 
 
@@ -522,17 +899,9 @@ func get_enemy_danger_tiles(viewer_faction: String = "blue") -> Array[Vector2i]:
 			hostile = u.team != viewer_faction
 		if not hostile:
 			continue
-		if u.data == null or u.data.hp <= 0:
-			continue
-		# A healing-staff enemy threatens no tiles — keep it out of the danger zone.
-		if not _equipped_can_attack(u):
-			continue
-		# Reachable tiles (plus staying put), then the union of attack reach from
-		# all of them. get_all_attack_tiles dedups, so the extra current tile is safe.
-		var move_tiles := get_movement_range(u)
-		if not move_tiles.has(u.tile_position):
-			move_tiles.append(u.tile_position)
-		for t in get_all_attack_tiles(u, move_tiles):
+		# get_unit_threat_tiles applies the dead/healer guards and dedups per unit;
+		# the outer dict dedups across the whole hostile set. [TUR-1] extraction.
+		for t in get_unit_threat_tiles(u):
 			seen[t] = true
 	var out: Array[Vector2i] = []
 	for tile in seen.keys():
@@ -540,11 +909,35 @@ func get_enemy_danger_tiles(viewer_faction: String = "blue") -> Array[Vector2i]:
 	return out
 
 
+# [TUR-1] The threat area of a SINGLE unit: every tile it could move to (plus
+# staying put) AND the attack reach from each of those tiles (#11). Returns []
+# for a null/teamless/dead unit or one whose equipped weapon can't attack (a
+# healer threatens nothing). This is the reusable per-unit primitive:
+# get_enemy_danger_tiles unions it over the hostile set, and the contextual
+# watch-set threat view (`B6-MRD` slice 2) / gamepad R3 arm consume it directly.
+func get_unit_threat_tiles(unit: Node) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if unit == null or not ("team" in unit):
+		return out
+	if unit.data == null or unit.data.hp <= 0:
+		return out
+	# A healing-staff unit threatens no tiles — keep it out of the threat area.
+	if not _equipped_can_attack(unit):
+		return out
+	# Reachable tiles (plus staying put), then the union of attack reach from all
+	# of them. get_all_attack_tiles dedups, so the extra current tile is safe.
+	var move_tiles := get_movement_range(unit)
+	if not move_tiles.has(unit.tile_position):
+		move_tiles.append(unit.tile_position)
+	return get_all_attack_tiles(unit, move_tiles)
+
+
 # Paints the danger zone for `viewer_faction` (see get_enemy_danger_tiles) onto
 # the overlay. Triggered via MapCursor's show_danger_zone toggle / middle mouse.
 func show_enemy_danger_zone(viewer_faction: String = "blue") -> void:
 	if _overlay == null:
 		return
+	_clear_top_overlay()
 	_paint_overlay(get_enemy_danger_tiles(viewer_faction), OVERLAY_DARK_RED)
 
 
@@ -553,3 +946,4 @@ func clear_overlays() -> void:
 	if _overlay == null:
 		return
 	_overlay.clear()
+	_clear_top_overlay()

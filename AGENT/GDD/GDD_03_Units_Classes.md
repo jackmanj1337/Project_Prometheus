@@ -3,9 +3,9 @@
 **Status:** Active contract — split status per section (project roster/classes are
 **Implemented**; corpus class adoption is **Target design**, AWR-2, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns unit/class data structure, the starter roster, progression counters,
 promotion/reclass **relationships and class targets**, and the class-adoption plan.
@@ -52,15 +52,36 @@ Tags on a unit (from class, or added by skills/items) affecting movement, combat
 
 | Quality | Effect |
 |---|---|
-| `flying` | Identity/vulnerability tag; flying movement costs use the planned terrain movement-category system |
-| `mounted` | Higher mobility/CON; Canto-style remainder movement deferred |
-| `armoured` | High DEF; affected by anti-armor weapons |
-| `dragon` | Affected by dragon-effective weapons |
-| `beast` | Affected by beast-effective weapons (Laguz land units) |
-| `laguz` | Has a shift gauge (Phase 2+, M12) |
+| `flying` | **Movement type** + vulnerability tag; fliers pay 1 on every non-wall tile |
+| `mounted` | **Movement type**: higher mobility/CON; anti-cavalry vulnerability; Secondary Movement = default-granted skill (`[SMV]`, not built) |
+| `armoured` | **Movement type**: high DEF; affected by anti-armor weapons |
+| `light_footed` | **Movement type**: mages/thieves; pays 1 in desert (no mount/armour penalty) |
+| `infantry` | **Movement type** (explicit default): plain foot movement, no terrain penalty/bonus |
+| `dragon` | Effectiveness tag (anti-dragon weapons) — **not** a movement type |
+| `beast` | Effectiveness tag (Laguz land units) — **not** a movement type |
+| `laguz` | Has a shift gauge (Phase 2+, M12) — **not** a movement type |
+
+**Movement type (V021-11).** The first five tags above are the movement-type subset
+(`GameConstants.VALID_MOVEMENT_TYPES`). Every class must declare **at least one**
+(enforced by `check_docs.py` [13]); `infantry` is the explicit default. A class may
+carry more than one (Great Knight = `armoured` + `mounted`), so
+`GameConstants.movement_type_of()` resolves a single type by descending precedence
+**`flying > mounted > armoured > light_footed > infantry`** for terrain cost and
+display. `GridManager.get_move_cost()` keys terrain cost off the resolved type (after
+skill overrides), and the character sheet shows it. Effectiveness is independent:
+`vulnerability_groups` still reads every tag, so an armoured+mounted unit is hit by
+all matching effective weapons regardless of its resolved movement type. The
+non-movement tags (`dragon`/`beast`/`laguz`) are ignored by the resolver.
+
+These tags are the implemented starter vocabulary. As the registry work lands, movement
+types, vulnerability groups, and display/grouping metadata should become data-driven
+registries so a new campaign group is not added by editing a constants list unless it
+needs a new engine primitive.
 
 ### Anchors
-- Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`)
+- Code: `scripts/units/Unit.gd` (`has_quality`, `has_vulnerability`, `movement_type`),
+  `scripts/shared/GameConstants.gd` (`VALID_MOVEMENT_TYPES`, `movement_type_of`),
+  `scripts/core/GridManager.gd` (`get_move_cost`, `get_move_costs_for_groups`)
 - Owner of effectiveness/vulnerability detail: GDD_04
 
 ---
@@ -73,28 +94,31 @@ Last verified: 2026-06-13
 ### Summary
 Six authored starter units load via `GameState.load_default_roster()`. Their `.tres`
 files are the authoritative source for stats/growths/skills; the table below is a
-reference snapshot.
+reference snapshot and developer-provided preset content, not an engine requirement.
 
 ### Specs
 
 **Implemented (project roster).** All units start level 1.
 
-| Slot | Unit | Class | Start WEXP | Skills | Qualities | Promotes To |
-|---|---|---|---|---|---|---|
-| 1 | Unit_01 | Cavalier | Lance D | `discipline` | mounted | Paladin, Great Knight |
-| 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | — | Hero, Sentinel* |
-| 3 | Unit_03 | Archer | Bow D | `bowfaire` | — | Ranger, Sniper |
-| 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | — | Mage Knight*, Sage |
-| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | — | Bishop*, Paragon* |
-| 6 | Unit_06 | Knight | Lance D | `resolve` | armoured | General, Great Knight |
+| Slot | Unit | Class | Start WEXP | Skills | Movement type |
+|---|---|---|---|---|---|
+| 1 | Unit_01 | Cavalier | Lance D | `discipline` | mounted |
+| 2 | Unit_02 | Mercenary | Sword D | `vantage`, `swordfaire` | infantry |
+| 3 | Unit_03 | Archer | Bow D | `bowfaire` | infantry |
+| 4 | Unit_04 | Mage | Elemental Magic D | `wrath` | light-footed |
+| 5 | Unit_05 | Cleric | Staff D, Light E† | `renewal`, `miracle` | light-footed |
+| 6 | Unit_06 | Knight | Lance D | `resolve` | armoured |
 
 Base stats and personal growth rates are authored per unit in `data/roster/default/`
 (`.tres` = source of truth). Bows have `range_min_formula = "2"` — any bow-equipped unit
 cannot hit adjacent targets (a weapon property, not a class trait; enforced by
-`GridManager` + `CombatResolver.can_counterattack()`).
+`GridManager` + `CombatResolver.can_counterattack()`). The Archer class description
+therefore uses weapon-neutral wording: bow range comes from the equipped weapon
+(V023-08a).
 
-\* **Project-only promotion targets** (Sentinel, Mage Knight, Bishop, Paragon) are
-**Rejected** under RULE-007 — archived to Git history at class migration.
+The live `ClassData.promotes_to` arrays own the project-preset promotion graph; do not
+duplicate that changing graph in this roster snapshot. Project-only targets are
+**Rejected** under RULE-007 and remain available until the corpus class migration.
 † **Cleric "Light E"** is an **Open decision** (OPEN-10), deferred to the Light/Dark
 design pass (RULE-009); do not author a one-off tome or drop it prematurely.
 
@@ -144,7 +168,9 @@ The fields that drive EXP-gain scaling and reclass behavior.
 - `lifetime_levels_gained` — monotonic; reserved for analytics / future enemy
   autoscaling. **Never** used to reduce player EXP unless a campaign rule says so.
 
-Internal level follows the corpus rule `Promoted Internal Level = 20 + Displayed Level`.
+Internal level follows the corpus preset rule `Promoted Internal Level = 20 + Displayed
+Level`. Campaign progression profiles may expose alternate formulas once the
+CampaignRules/profile layer owns them.
 
 **Implemented today:** `UnitData.internal_level` carries hidden progression for
 promotion/reclass; the explicit `exp_basis_level` / `lifetime_levels_gained` split is
@@ -185,7 +211,7 @@ trigger timing in GDD_02).
 
 ### Anchors
 - Code: `scripts/units/Unit.gd` (`promote`), `scripts/ui/PromotionScreen.gd`
-- Manual: `data/maps/map_950_promotion_validation/`
+- Manual validation: `AGENT/Docs/guides/manual_test_playbook.md` (`Map 950`)
 - Decisions: SET-006, RULE-005 (timing → GDD_02)
 - Reference: `awakening_core_systems.md`, `awakening_appendices.md`
 
@@ -242,6 +268,10 @@ promotion). Eligibility lives in each item's `effect_params`
 (`{ "allowed_classes": [...] }` / `{ "allowed_class_groups": [...] }`). Other handbook
 promotion items remain Planned content (not live resources).
 
+Target IEQ/action-effect work should keep item eligibility and permanent stat gains as
+authored item/action data. New item families should not add one-off branches to
+`ItemHandler` when an existing action/effect primitive can express them.
+
 ### Anchors
 - Code: `scripts/items/ItemHandler.gd`, `data/items/`
 - Owner of item data schema: GDD_04
@@ -271,15 +301,10 @@ Status: **Reference** (process, not a rule)
 Last verified: 2026-06-13
 
 ### Specs
-To add a class: author `data/classes/<id>.tres` (`ClassData`), fill all fields incl.
-promotion paths (empty array if none), update referencing roster/map data, add/extend
-tests or validation maps if progression/equipment flow changes. No code changes unless a
-new mechanic is introduced. Every usable WEXP track needs an authored `weapon_wexp_caps`
-entry (current classes default to A = 400 WEXP; S caps are opt-in).
-
-> Class **priority/order** for the corpus migration is owned by the roadmap
-> (`GDD_10`, AWR-2), not this chapter.
+The operational checklist lives in `AGENT/Docs/guides/map_authoring_guide.md`
+(`Class and roster authoring`). This contract retains class behavior and relationships;
+class migration priority/order remains with `GDD_10` row AWR-2.
 
 ### Anchors
-- Guide: `AGENT/Docs/map_authoring_guide.md` (authoring), GDD_01 (`ClassData` schema)
+- Guide: `AGENT/Docs/guides/map_authoring_guide.md` (class/roster authoring), GDD_01 (`ClassData` schema)
 - Roadmap: AWR-2

@@ -1,0 +1,39 @@
+{
+  "campaign_id": "proving_grounds",
+  "label": "The Proving Grounds",
+  "description": "Linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
+  "is_dev_only": false,
+  "start_node_id": "node_01_rout",
+  "nodes": [
+    {
+      "node_id": "node_01_rout",
+      "label": "Chapter 1 - First Blood",
+      "map_id": "map_001",
+      "next": ["node_02_seize"]
+    },
+    {
+      "node_id": "node_02_seize",
+      "label": "Chapter 2 - Take the Throne",
+      "map_id": "map_002_seize",
+      "next": ["node_03_boss"]
+    },
+    {
+      "node_id": "node_03_boss",
+      "label": "Chapter 3 - The Commander",
+      "map_id": "map_003_defeat_boss",
+      "next": ["node_04_escape"]
+    },
+    {
+      "node_id": "node_04_escape",
+      "label": "Chapter 4 - Withdraw",
+      "map_id": "map_004_escape",
+      "next": ["node_05_defend"]
+    },
+    {
+      "node_id": "node_05_defend",
+      "label": "Chapter 5 - Hold the Line",
+      "map_id": "map_005_defend",
+      "next": []
+    }
+  ]
+}

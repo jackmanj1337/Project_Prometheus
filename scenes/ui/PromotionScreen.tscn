@@ -31,10 +31,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -380.0
-offset_top = -250.0
-offset_right = 380.0
-offset_bottom = 250.0
+offset_left = -420.0
+offset_top = -380.0
+offset_right = 420.0
+offset_bottom = 380.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -59,9 +59,15 @@ layout_mode = 2
 horizontal_alignment = 1
 text = "Choose a promoted class"
 
-[node name="Options" type="VBoxContainer" parent="Panel/VBox"]
+[node name="OptionsScroll" type="ScrollContainer" parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Options" type="VBoxContainer" parent="Panel/VBox/OptionsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
 [node name="BtnCancel" type="Button" parent="Panel/VBox"]

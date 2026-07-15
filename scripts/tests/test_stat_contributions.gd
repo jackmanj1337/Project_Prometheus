@@ -37,7 +37,8 @@ func _init() -> void:
 	# ── Empty: a lone unpaired unit with no stat skills contributes nothing ──
 	gs.call("reset_map_state")
 	reg.call("clear")
-	gs.set("pair_up_enabled", true)
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	rules.pair_up_enabled = true
 	var lone: Node = UnitScene.instantiate()
 	lone.data = (load(HERO_PATH) as Resource).duplicate(true)
 	lone.team = "blue"

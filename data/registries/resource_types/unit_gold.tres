@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "unit_gold"
+family = "resource_types"
+label_key = "registry.resource.unit_gold"
+owner_feature = "B2-RESOURCE-LEDGER"
+kind = "wallet"
+primitive_handler = "unit_gold_wallet"
+params_schema = {}
+subjects = Array[String](["unit"])
+save_fields = Array[String](["map_runtime.units[].gold"])
+docs_text = "A campaign unit's individual legacy gold wallet."
+test_fixture = {"amount": 100}

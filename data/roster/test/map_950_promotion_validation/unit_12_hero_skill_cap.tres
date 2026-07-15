@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/UnitData.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/InventoryEntry.gd" id="2"]
@@ -7,6 +7,18 @@
 script = ExtResource("2")
 entry_type = "weapon"
 weapon_id = "iron_sword"
+uses_remaining = 45
+
+[sub_resource type="Resource" id="IE_2"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "steel_sword"
+uses_remaining = 30
+
+[sub_resource type="Resource" id="IE_3"]
+script = ExtResource("2")
+entry_type = "weapon"
+weapon_id = "iron_axe"
 uses_remaining = 45
 
 [resource]
@@ -32,9 +44,9 @@ movement = 5
 constitution = 12
 line_of_sight = 4
 weapon_wexp = {"sword": 350, "axe": 100}
-skills = ["armsthrift", "patience", "dash", "discipline"]
-earned_skills = ["armsthrift", "patience", "dash", "discipline"]
-inventory = [SubResource("IE_1")]
+skills = ["armsthrift", "patience", "dash", "discipline", "swordfaire"]
+earned_skills = ["armsthrift", "patience", "dash", "discipline", "swordfaire"]
+inventory = [SubResource("IE_1"), SubResource("IE_2"), SubResource("IE_3")]
 conditions = []
 gold = 0
 is_incapacitated = false

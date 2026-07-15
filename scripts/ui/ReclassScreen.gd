@@ -2,6 +2,8 @@ extends "res://scripts/ui/ModalScreen.gd"
 # Modal Second Seal picker. Shows every legal result from Unit.get_second_seal_options()
 # and only consumes the item after a confirmed, successful reclass.
 
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+
 @onready var _label_title: Label = $Panel/VBox/TitleLabel
 @onready var _label_unit: Label = $Panel/VBox/LabelUnit
 @onready var _label_hint: Label = $Panel/VBox/LabelHint
@@ -36,6 +38,10 @@ func open_for(unit: Node, consume_entry: InventoryEntry = null,
 		return
 	_emit_reclass_started()
 	show()
+	# Re-apply scale after the options are built (same reason as PromotionScreen /
+	# V025-05c): _ready() scaled an empty Options box. The ScrollContainer keeps the
+	# panel a fixed frame, so this just re-centres it against real content.
+	_apply_menu_scale_from_settings()
 	_options_scroll.scroll_vertical = 0
 	_buttons[0].grab_focus()
 
@@ -208,21 +214,5 @@ func _clamp_preview_to_cap(value: int, target_class: ClassData, stat_name: Strin
 
 
 func _stat_short_name(stat: String) -> String:
-	match stat:
-		"hp":
-			return "HP"
-		"strength":
-			return "Str"
-		"magic":
-			return "Mag"
-		"defense":
-			return "Def"
-		"resistance":
-			return "Res"
-		"skill":
-			return "Skl"
-		"speed":
-			return "Spd"
-		"luck":
-			return "Luk"
-	return stat
+	# Delegates to the single StatRegistry label vocabulary (was a local match copy).
+	return StatRegistry.label_for(stat)

@@ -27,6 +27,9 @@ signal separate_resolved(lead: Node, support: Node, target_tile: Vector2i)
 var _grid: GridManager = null
 var _attack_preview: Node = null
 var _combat_resolver: Node = null
+# TurnManager, for the RNG event record's pre-move from_tile (may be null in
+# headless tests — the record then falls back to the unit's live tile).
+var _turn: Node = null
 # Faction id the cursor currently controls. Used by the attack/heal-target gates
 # (M14 stage 1) — "valid enemy" = `target.team != _controlling_faction`, "valid
 # ally" = same. Defaults to "blue" so 3-arg test callers stay valid. Stage 2
@@ -45,11 +48,12 @@ var _preview_target: Node = null
 # combat_resolver may be null — combat resolution is skipped (matches the old `if cr:`).
 # controlling_faction defaults to "blue" so 3-arg test callers stay valid.
 func setup(grid: GridManager, attack_preview: Node, combat_resolver: Node,
-		controlling_faction: String = "blue") -> void:
+		controlling_faction: String = "blue", turn: Node = null) -> void:
 	_grid = grid
 	_attack_preview = attack_preview
 	_combat_resolver = combat_resolver
 	_controlling_faction = controlling_faction
+	_turn = turn
 
 
 # Called when the active controlling faction changes mid-map (M14 stage 5).
@@ -71,28 +75,42 @@ func begin(mode: int, unit: Unit) -> Array[Vector2i]:
 	if mode == Mode.ATTACK:
 		for enemy in _grid.get_attackable_enemies_from_tile(unit, unit.tile_position):
 			_tiles.append(enemy.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_attack_overlay(_tiles)
 	elif mode == Mode.PAIR_UP:
 		# Adjacent unpaired allies. Visually reuses the heal overlay — Pair Up
 		# is the "friendly target" pattern, same as a staff heal in terms of
 		# what the player is picking among.
 		for ally in _get_adjacent_unpaired_allies(unit):
 			_tiles.append(ally.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	elif mode == Mode.SEPARATE:
 		for tile in _get_adjacent_separate_tiles(unit):
 			_tiles.append(tile)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	else:
 		for ally in _grid.get_healable_allies(unit):
 			_tiles.append(ally.tile_position)
-		if not _tiles.is_empty():
-			_grid.show_heal_overlay(_tiles)
 	_sub = _Sub.IDLE if _tiles.is_empty() else _Sub.CHOOSING
+	if not _tiles.is_empty():
+		_grid.repaint_overlays(overlay_specs())
 	return _tiles
+
+
+# Targeting overlay specs for the registry compose path. MapCursor merges these
+# with retained threat/watch specs so target selection can coexist with danger
+# overlays ([MRD-7]); direct unit tests still get the standalone target paint.
+func overlay_specs() -> Dictionary:
+	var specs: Dictionary = {}
+	if _tiles.is_empty():
+		return specs
+	if _mode == Mode.ATTACK:
+		specs[GridManager.OVERLAY_LAYER_ATTACK] = {
+			"tiles": _tiles,
+			"source": GridManager.OVERLAY_RED,
+		}
+	else:
+		specs[GridManager.OVERLAY_LAYER_HEAL] = {
+			"tiles": _tiles,
+			"source": GridManager.OVERLAY_HEAL,
+		}
+	return specs
 
 
 # Called by MapCursor._on_confirm while in State.TARGETING. cursor_tile is the
@@ -144,6 +162,17 @@ func is_active() -> bool:
 	return _sub != _Sub.IDLE
 
 
+# Controller handoff / debug override cancellation: hide any preview, clear
+# overlays, and forget the transient target without emitting action-complete.
+func abort() -> void:
+	if _attack_preview and _attack_preview.has_method("hide_preview"):
+		_attack_preview.hide_preview()
+	_preview_target = null
+	_unit = null
+	_clear_overlays()
+	_sub = _Sub.IDLE
+
+
 # ── Internals ────────────────────────────────────────────────────────────────
 
 # True iff `target.team` is hostile to `_controlling_faction` per the alliance
@@ -183,7 +212,14 @@ func _resolve_attack(target: Node) -> void:
 		_attack_preview.hide_preview()
 	_preview_target = null
 	if target != null and _combat_resolver != null:
-		var result: Dictionary = _combat_resolver.resolve_combat(_unit, target)
+		# Canonical "attack" event record (RNG-1): from_tile is the pre-move
+		# tile so the chosen destination is part of the action's dice identity.
+		var from_tile: Vector2i = _unit.tile_position
+		if _turn != null and _turn.has_method("get_action_start_tile"):
+			from_tile = _turn.get_action_start_tile(_unit)
+		var record: Array[String] = _combat_resolver.make_attack_event_record(
+			_unit, target, from_tile)
+		var result: Dictionary = _combat_resolver.resolve_combat(_unit, target, record)
 		_combat_resolver.apply_combat_result(result, _unit, target)
 	_clear_overlays()
 	_sub = _Sub.IDLE
@@ -201,6 +237,16 @@ func _apply_staff_heal(cursor_tile: Vector2i) -> void:
 	# the entry, and a later get_equipped_weapon() could return null / the wrong type.
 	var weapon: WeaponData = _unit.get_equipped_weapon()
 	if weapon != null:
+		# Commit the staff RNG event BEFORE the heal (§3: [healer_id, from_tile,
+		# to_tile, target_id]): heal EXP can level the healer, and those chained
+		# levelup events must sit on the post-staff hash (§4 ordering).
+		if _turn != null and _turn.has_method("commit_action_event"):
+			_turn.commit_action_event("staff", [
+				_unit.data.unit_id if _unit.data != null else "-",
+				TurnManager.tile_field(_turn.get_action_start_tile(_unit)),
+				TurnManager.tile_field(_unit.tile_position),
+				target.data.unit_id if target.data != null else "-",
+			] as Array[String])
 		_unit.perform_staff_heal(target, weapon)
 	_clear_overlays()
 	_sub = _Sub.IDLE

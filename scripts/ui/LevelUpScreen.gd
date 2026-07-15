@@ -4,31 +4,61 @@ class_name LevelUpScreen extends Control
 
 # Renders the live confirm keybinding for the "press X to continue" prompt (#13).
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 
-@onready var _label_name:   Label = $Panel/VBox/LabelName
-@onready var _label_level:  Label = $Panel/VBox/LabelLevel
-@onready var _label_stats:  Label = $Panel/VBox/LabelStats
-@onready var _label_prompt: Label = $Panel/VBox/LabelPrompt
-@onready var _panel: Panel = $Panel
+@onready var _label_name:   Label = $Panel/Margin/VBox/LabelName
+@onready var _label_level:  Label = $Panel/Margin/VBox/LabelLevel
+@onready var _label_stats:  Label = $Panel/Margin/VBox/LabelStats
+@onready var _label_prompt: Label = $Panel/Margin/VBox/LabelPrompt
+@onready var _panel: PanelContainer = $Panel
 
-# Human-readable names for each growth stat (matches Unit._GROWTH_STATS order)
-const _STAT_NAMES: Dictionary = {
-	"hp": "HP", "strength": "Str", "magic": "Mag", "defense": "Def",
-	"resistance": "Res", "skill": "Skl", "speed": "Spd", "luck": "Luk",
-}
 const _SKILL_FULL_SUFFIX := " (skill slots full - equip from battle prep)"
-const _PANEL_HALF_WIDTH := 120.0
-const _BASE_PANEL_HALF_HEIGHT := 100.0
-const _EXTRA_PANEL_LINE_HEIGHT := 18.0
 
 var _queue: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	add_to_group(MenuScale.GROUP)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.unit_leveled_up.connect(_on_unit_leveled_up)
+	# Prompt/glyph swapping (B6-INPUT): re-render the "press X to continue" prompt
+	# when the input scheme changes while the screen is up.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
+	_apply_menu_scale_from_settings()
 	hide()
+
+
+func _on_input_mode_changed(_mode: String) -> void:
+	if visible:
+		_update_confirm_prompt()
+
+
+# Renders the dismissal prompt for the active input scheme: blank in auto mode,
+# else "Press <key/glyph> to continue" using the live confirm binding (keyboard key
+# or brand-correct pad label). Falls back to the word "confirm" if nothing is bound.
+func _update_confirm_prompt() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.level_up_screen == "auto":
+		_label_prompt.text = ""
+		return
+	var confirm_label: String = InputDisplay.live_action_prompt("confirm", self)
+	if confirm_label == "":
+		confirm_label = "confirm"
+	_label_prompt.text = "Press %s to continue" % confirm_label
+
+
+func apply_menu_scale(factor: float) -> void:
+	# Deferred so the first-show sizing runs after the (dynamic) stat label has been
+	# laid out — otherwise the panel pins a degenerate narrow/tall frame (V025-05a).
+	MenuScale.apply_to_deferred(_panel, factor, true)
+
+
+func _apply_menu_scale_from_settings() -> void:
+	apply_menu_scale(MenuScale.factor_from_settings(self))
 
 
 func _on_unit_leveled_up(unit: Node, stat_increases: Dictionary, learned_skills: Array) -> void:
@@ -65,7 +95,7 @@ func _show_next() -> void:
 	var stats_text := ""
 	for stat in increases:
 		if increases[stat] > 0:
-			stats_text += "%s  +%d\n" % [_STAT_NAMES.get(stat, stat), increases[stat]]
+			stats_text += "%s  +%d\n" % [StatRegistry.label_for(stat), increases[stat]]
 	if stats_text == "":
 		stats_text = "(No stats increased)\n"
 	# Announce any class skills learned at this level (Unit.skill_unlocks grant).
@@ -77,17 +107,15 @@ func _show_next() -> void:
 			var suffix: String = "" if _learned_skill_equipped(learned_entry) else _SKILL_FULL_SUFFIX
 			stats_text += "Learned %s!%s\n" % [_skill_display_name(dm, skill_id), suffix]
 	_label_stats.text = stats_text.strip_edges()
-	_resize_panel_for_stats(_label_stats.text)
 
 	var sm := get_node_or_null("/root/SettingsManager")
 	var is_auto: bool = sm != null and sm.level_up_screen == "auto"
-	# Show the real confirm keybinding rather than a hardcoded "A" (#13). Falls
-	# back to "confirm" if no key is bound (e.g. only a mouse button).
-	var confirm_key: String = InputDisplay.first_key_for_action("confirm")
-	if confirm_key == "":
-		confirm_key = "confirm"
-	_label_prompt.text = "" if is_auto else "Press %s to continue" % confirm_key
+	# Show the real confirm binding rather than a hardcoded "A" (#13), following the
+	# active input scheme (keyboard key or brand-correct pad glyph, B6-INPUT).
+	_update_confirm_prompt()
+	# Show first so the panel and its labels lay out, THEN scale/recenter (deferred).
 	show()
+	_apply_menu_scale_from_settings()
 
 	if is_auto:
 		# SceneTreeTimer outlives nodes — guard against freed self on scene change.
@@ -95,16 +123,6 @@ func _show_next() -> void:
 			if not is_instance_valid(self): return
 			_advance()
 		, CONNECT_ONE_SHOT)
-
-
-func _resize_panel_for_stats(stats_text: String) -> void:
-	var line_count: int = maxi(1, stats_text.split("\n").size())
-	var extra_lines: int = maxi(0, line_count - 5)
-	var half_height: float = _BASE_PANEL_HALF_HEIGHT + (extra_lines * _EXTRA_PANEL_LINE_HEIGHT)
-	_panel.offset_left = -_PANEL_HALF_WIDTH
-	_panel.offset_right = _PANEL_HALF_WIDTH
-	_panel.offset_top = -half_height
-	_panel.offset_bottom = half_height
 
 
 # Resolves a skill id to its display name via DataManager, falling back to the
@@ -140,15 +158,37 @@ func _advance() -> void:
 			bus.level_up_finished.emit()
 
 
+# Mouse clicks are handled here, not in _unhandled_input: the root is a full-rect
+# STOP control, so on desktop the GUI phase delivers (and consumes) mouse buttons
+# here before they can reach _unhandled_input — which is why the v0.2.4 click-dismiss
+# in _unhandled_input never fired on the real build (V025-05b). The whole Panel
+# subtree is mouse_filter=IGNORE in the scene so a click anywhere reaches this root.
+func _gui_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm and sm.level_up_screen == "auto":
+		accept_event()  # timer handles dismissal; swallow clicks in auto mode
+		return
+	# A primary/back click dismisses (playtest 3 #2), but wheel events are also
+	# InputEventMouseButton in Godot. Only real click buttons advance the panel.
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		accept_event()
+		_advance()
+
+
+# Keyboard dismissal only — mouse is handled in _gui_input (see note above). The
+# blanket set_input_as_handled keeps map key input frozen while the screen is open.
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm and sm.level_up_screen == "auto":
+		get_viewport().set_input_as_handled()
 		return  # timer handles dismissal; player input ignored in auto mode
-	# A click anywhere also dismisses (playtest 3 #2). Without this a mouse-only
-	# player is stuck on the panel — the keyboard confirm path was the only exit.
-	var clicked: bool = event is InputEventMouseButton and event.pressed
-	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel") or clicked:
+	if event.is_action_pressed("confirm") or event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		_advance()
+		return
+	get_viewport().set_input_as_handled()

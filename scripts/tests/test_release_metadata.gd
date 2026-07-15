@@ -7,6 +7,7 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
+	var expected_version := "0.4.0"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
@@ -23,9 +24,9 @@ func _init() -> void:
 		"preset.0.options", "application/product_version", "")
 	var expected_path := "./builds/Project_Prometheus_v%s_debug.exe" % version
 
-	if not version.is_empty() and export_path == expected_path \
+	if version == expected_version and export_path == expected_path \
 			and product_version == version:
-		print("OK  export preset name, path, and product version agree")
+		print("OK  export preset name, path, and product version are v%s" % expected_version)
 		passed += 1
 	else:
 		print("FAIL export metadata: name=%s path=%s product=%s" % [
@@ -56,7 +57,7 @@ func _init() -> void:
 		print("FAIL Main Menu version label does not match v%s" % version)
 		failed += 1
 
-	var checklist_path := "res://AGENT/Docs/playtest_checklist_v%s.md" % version
+	var checklist_path := "res://AGENT/Docs/playtests/playtest_checklist_v%s.md" % version
 	if FileAccess.file_exists(checklist_path):
 		print("OK  current versioned playtest checklist exists")
 		passed += 1
@@ -65,7 +66,7 @@ func _init() -> void:
 		failed += 1
 
 	var setup_text := FileAccess.get_file_as_string(
-		"res://AGENT/Docs/environment_setup.md")
+		"res://AGENT/Docs/guides/environment_setup.md")
 	if "Currently at `v%s`" % version in setup_text \
 			and "Project_Prometheus_v%s_debug.exe" % version in setup_text:
 		print("OK  environment setup names the current build")

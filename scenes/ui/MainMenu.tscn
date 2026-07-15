@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/NewGameScreen.tscn" id="2_newgame"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="3_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="4_loadgame"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -34,11 +35,19 @@ layout_mode = 0
 offset_left = 490.0
 offset_top = 300.0
 offset_right = 790.0
-offset_bottom = 460.0
+offset_bottom = 570.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
 theme_override_constants/separation = 16
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Continue"
+
+[node name="LoadGameButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Load Game"
 
 [node name="NewGameButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
@@ -59,10 +68,12 @@ offset_top = 680.0
 offset_right = 1270.0
 offset_bottom = 710.0
 horizontal_alignment = 2
-text = "v0.1.6.0"
+text = "v0.4.0"
 modulate = Color(0.7, 0.7, 0.75, 1.0)
 theme_override_font_sizes/font_size = 18
 mouse_filter = 2
+
+[node name="LoadGameScreen" parent="." instance=ExtResource("4_loadgame")]
 
 [node name="NewGameScreen" parent="." instance=ExtResource("2_newgame")]
 

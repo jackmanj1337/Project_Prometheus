@@ -3,13 +3,13 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-06-14
-**Governance:** `AGENT/Docs/documentation_governance_2026-06-13.md`
+**Last verified:** 2026-07-13
+**Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
 authority model, points to the feature and decision indices, and summarizes the
-release definition, baseline, known issues, and platform targets. It does **not**
-hold rule detail — each rule lives in its owning numbered chapter.
+project scope, release definition, baseline, work routing, and platform targets. It
+does **not** hold rule detail — each rule lives in its owning numbered chapter.
 
 ---
 
@@ -22,14 +22,21 @@ edit to the corpus never changes project rules on its own.
 
 When documents disagree, use this order:
 
-1. **Ratified dated decisions** — the decision register, dated decision records, and
-   governance standards in `AGENT/Docs` (see the decision index below).
-2. **The numbered GDD** (`GDD_01`–`GDD_08`) as the live design/implementation
-   contract, with each section's status label distinguishing implemented from target.
-3. **Code and tests** for shipped behavior, except where they contradict a ratified
-   decision (in which case the code is a tracked gap, not the rule).
-4. **`GDD_10_Roadmap.md`** for work order, milestone scope, dependencies, and status.
-5. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+1. **Ratified dated decisions and resolved registers** — the decision register,
+   dated decision records, feature registers, and governance standards in
+   `AGENT/Docs` (see the decision index below).
+2. **Code and tests for claims about implemented behavior.** If shipped behavior
+   contradicts a ratified decision, the mismatch is a tracked gap rather than a
+   silent rule change.
+3. **Project Control Plane**
+   (`AGENT/Docs/plans/project_control_plane_2026-06-29.md`) for exact work status,
+   Track IDs, dependencies, source docs, tests, and next actions.
+4. **The numbered GDD** (`GDD_01`–`GDD_08`) for concise domain contracts, with
+   each section's status label distinguishing implemented from target design.
+5. **Active design sources and implementation plans** for supporting detail.
+6. **Session notes, reviews, and archived documents** as historical evidence, not
+   active design or schedule authority.
+7. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
    reference, binding only where an adoption-matrix entry has adopted it.
 
 > This order is written from **DOC-001**. The earlier D-C direction (corpus
@@ -50,24 +57,32 @@ migration. Full table + the GDD section template: the governance doc.
 
 | Index | Purpose |
 |---|---|
-| `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, roadmap owner, code/data, tests, decisions, and reference source. |
-| `AGENT/Docs/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
+| `GDD_Feature_Index.md` | **Start here for a feature** — routes each feature to its rule owner, Track IDs, code/data, tests, decisions, and reference source. |
+| `AGENT/Docs/plans/project_control_plane_2026-06-29.md` | Exact work rows, Track IDs, dependencies, source docs, tests, and next actions. |
+| `GDD_10_Roadmap.md` | Human build guide: dependency bands, next-work summary, and links to control-plane rows. |
+| `AGENT/Docs/INDEX.md` / `AGENT/Docs/REGISTERS.md` | Generated navigation for active documentation and decision registers. |
+| `AGENT/Docs/decisions/decision_index.md` | Every decision ID (DOC-/RULE-/SET-/RNG-/OPEN-/AWR-) with status and home. |
 | `GDD_Adoption_Matrix.md` | Which Awakening corpus rules are adopted (target / with variation / rejected / deferred) and the GDD owner of each variation. |
+| `AGENT/Docs/governance/documentation_governance_2026-06-13.md` | Status vocabulary, section shape, and documentation definition-of-done rules. |
 
 ### Document map (live set)
 
 | File | Owns |
 |---|---|
 | `GDD_00_Overview.md` | This file — authority model, indices, release definition, platform targets |
-| `GDD_01_Architecture.md` | Project structure, data/serialization contracts, autoload order, snapshot/RNG seams |
+| `GDD_01_Architecture.md` | Project structure, scene/autoload composition, extension boundaries |
+| `GDD_01_Runtime_Contracts.md` | CampaignRules, deterministic events, snapshots, shared runtime service boundaries |
+| `GDD_01_Data_Contracts.md` | Resource schemas, persistence fields, validation and authoring bindings |
 | `GDD_02_Core_Mechanics.md` | Grid, turns, combat resolution, RNG model, EXP, permadeath, terrain combat |
 | `GDD_03_Units_Classes.md` | Units, classes, progression, promotion, reclass |
 | `GDD_04_Weapons_Items.md` | Weapons, items, weapon triangle, WEXP, economy-facing rules |
 | `GDD_05_Skills.md` | Skills, triggers/precedence, Pair Up/support, status conditions |
 | `GDD_06_Maps_Objectives.md` | Terrain, movement categories, objectives, authored-map contracts |
-| `GDD_07_UI_UX.md` | UI/UX behavior, input, settings, accessibility |
+| `GDD_07_UI_UX.md` | Cross-cutting UI state, feedback, accessibility, and parity |
+| `GDD_07_Input_Cursor.md` | Input bindings/modes, repeat policy, cursor and threat interaction |
+| `GDD_07_Screens_Panels.md` | Screen/panel catalog, settings and per-surface behavior |
 | `GDD_08_Enemy_AI.md` | AI behavior, parity obligations, performance constraints |
-| `GDD_10_Roadmap.md` | Sole roadmap owner — work order, milestones, dependencies, status |
+| `GDD_10_Roadmap.md` | Build guide — dependency-band narrative, next-work queue, validation/release summaries, Track ID links |
 
 Operational guides live in `AGENT/Docs` (`environment_setup.md`, `testing_guide.md`,
 `map_authoring_guide.md`, `fe_map_sprite_importer_guide.md`) and are linked from the
@@ -75,7 +90,7 @@ relevant feature rows; the GDD does not duplicate them.
 
 ### Documents being retired or migrated
 
-Per the lifecycle table (`AGENT/Docs/documentation_lifecycle_2026-06-13.md`), these
+Per the lifecycle table (`AGENT/Docs/governance/documentation_lifecycle_2026-06-13.md`), these
 are **not** authority sources; retrieve via Git history once removed:
 
 - `GDD_09_Checklist.md` — **Deleted** (Stage 5.2, 2026-06-13); MVP build sequence,
@@ -86,31 +101,54 @@ are **not** authority sources; retrieve via Git history once removed:
   embedded in owning GDD chapters (GDD_02/03/06/07/08) or in design decisions.
   Retrieve via Git if needed (DOC-006).
 - `GDD_Manual_Tasks.md` — **Moved** (Stage 5.2, 2026-06-13); now at
-  `AGENT/Docs/manual_test_playbook.md` (DOC-007).
+  `AGENT/Docs/guides/manual_test_playbook.md` (DOC-007).
 
 ---
 
-## Vision Statement
+## Project Scope (SET-011..014)
 
-A faithful digital adaptation of the Fire Emblem tabletop RPG ruleset, designed as a
-top-down grid-based turn-based strategy game. Built to be extensible — core systems are
-implemented first, with classes, maps, items, and skills added as self-contained data
-without requiring engine changes.
+Status: **Active**
+Last verified: 2026-06-29
+
+This project is first a learning project and portfolio display piece. Decisions optimize
+for demonstrable engineering quality, readable architecture, durable tests, and a
+showable result. Commercial-release optimization is not the primary lens.
+
+The secondary product direction is a flexible tactical-RPG builder. The engine should
+let users build and share campaigns with custom assets, maps, rosters, rules, and
+presentation data. Existing handbook/corpus values and project examples are useful as
+developer-provided presets and validation content; author-facing vocabularies should
+not require engine edits when new content variants are added.
+
+Power-user access has a clear boundary. Public source is the unlimited-access path:
+someone who wants full control can fork the repo and change the engine. In-app campaign
+authoring is data-only first, and any later in-app scripting must stay sandboxed. Shared
+campaign packages must not require executable code.
+
+The portfolio showpiece is a slice-first playable web demo: first a polished,
+complete-looking playable slice, then evidence that the slice was authored with the
+builder. This framing does not resequence the Band 1-8 build order; it is tracked by
+`REL-WEB-DEMO` in the Project Control Plane.
 
 ## Design Pillars
 
 1. **Rules-faithful** — combat math, weapon triangles, and stat interactions follow the
-   adopted corpus/handbook rules as closely as reasonable for a digital game.
+   adopted corpus/handbook rules as closely as reasonable for a digital game, while
+   treating those values as authorable presets where the engine exposes a rule profile.
 2. **Extensible by design** — all content lives in data files, not hardcoded logic.
 3. **Readable systems** — the player always has the numbers: hit, crit, and expected
    damage are shown before committing to an attack.
-4. **Modular milestones** — the game is playable and testable at the end of each phase.
+4. **Dependency-sliced delivery** — each build slice leaves the game playable and
+   testable without consuming foundations that have not landed.
 
 ---
 
 ## Release Definition (D-B)
 
-**1.0 = all offline, non-pipeline features + one short playable campaign.**
+**1.0 = all offline, non-pipeline features + one short playable campaign**, framed as
+the first builder-authored portfolio slice rather than a commercial-content endpoint.
+Exact scope acceptance and sequencing live in `REL-1P0-SCOPE`; this section records
+the ratified release boundary, not a separate work queue.
 
 - Campaign **content** for the short campaign is in 1.0; full content coverage is
   post-1.0 (M11 re-scoped).
@@ -125,61 +163,49 @@ without requiring engine changes.
 
 ## Implemented Baseline
 
-Status: **Implemented** (project behavior; corpus migration is **Target design** —
-see the feature index and per-chapter status).
-Last verified: 2026-06-13
+Status: **Implemented** (high-level project baseline; per-feature target design is
+separate).
+Last verified: 2026-07-13
 
-- Grid-based map with terrain
-- 6 starter classes (Cavalier, Mercenary, Archer, Mage, Cleric, Knight) — *being
-  migrated to corpus class definitions (Target design, AWR-2)*
-- Basic weapon types (Sword, Lance, Bow, Fire tome, Heal staff)
-- Full combat resolution (hit, crit, damage, weapon triangle, counterattack, follow-up)
-- Faction-based phase loop with authored turn order, alliance groups, controller ownership
-- Whole-phase hotseat support for non-blue factions
-- Enemy AI profiles (`basic`, `passive`, `healer`) with per-faction dispatch
-- Experience and leveling; permadeath toggle (incapacitated, not deleted)
-- Promotion and Second Seal reclassing
-- Pair Up pass 1 (`Pair Up`, `Swap`, `Separate`, snapshot persistence)
-- Multi-condition objectives (Rout, Seize, Defeat Boss, Escape, Survive/Defend, Protect)
-- 8 registered maps including validation and objective-showcase maps
-- Basic UI plus Settings, New Game map selector, character sheet, and More Info panels
+The shipped baseline is a data-driven tactical map/combat loop with faction phases,
+terrain, authored objectives, roster progression, weapons/items/skills, enemy AI,
+Pair Up, campaign/suspend state, and keyboard/gamepad-aware UI and settings. Shared
+Band 1/2 services now cover deterministic RNG, save encoding, registries,
+actions/effects, resource transactions, occupancy, death handling, and projection.
 
-The authoritative, per-feature implemented/target split lives in `GDD_Feature_Index.md`
-and the owning chapters; this list is a high-level snapshot only.
+Exact implemented/target splits live in `GDD_Feature_Index.md`, the owning numbered
+chapters, and production tests. This overview intentionally does not mirror their
+feature lists.
 
-## Known Issues & Pending Validation
+## Work And Validation Routing
 
-Status: **Known issue**
-Last verified: 2026-06-13
-
-- **Combat preview render** — Known issue (2026-06-10); fix tracked in
-  `AGENT/Docs/combat_preview_render_fix_plan_2026-06-10.md`.
-
-The roadmap (`GDD_10_Roadmap.md`) owns the authoritative bug/pending-validation list;
-confirmed playtest defects are migrated there during roadmap consolidation. This
-summary is a pointer, not the tracker.
+The Project Control Plane owns exact status. Its Validation Queue contains live and
+manual acceptance work; its Release Gate Queue contains merge, scope, legal, naming,
+packaging, and web-demo gates. `GDD_10_Roadmap.md` summarizes only the next useful
+slice. Confirmed findings must be routed to an existing or new Track ID instead of
+being maintained as a second list here.
 
 ---
 
 ## Platform Targets
 
 Status: **Target design** (renderer/platform decisions ratified; verification pending)
-Last verified: 2026-06-13
+Last verified: 2026-07-07
 
 | Aspect | Target | Source |
 |---|---|---|
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
-| Primary platform | Desktop (Windows, Mac, Linux) | — |
-| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; revisit once a UI-scale setting exists | OPEN-11 |
-| Web | Playtest distribution channel | OPEN-8 |
-| Gamepad | Supported, landing with the key-rebinding milestone | — |
+| Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
+| Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
+| Web | Playtest distribution channel and slice-first portfolio demo target | OPEN-8, SET-014 |
+| Gamepad | Supported; real-controller acceptance remains tracked by `VAL-V030-GAMEPAD` | `B6-INPUT` / `VAL-V030-GAMEPAD` |
 | Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
 
 | Component | Choice | Notes |
 |---|---|---|
 | Engine | Godot 4 (stable) | 2D tooling; Compatibility renderer |
 | Language | GDScript | Codebase is entirely GDScript |
-| Data format | Godot Resources (.tres) | JSON acceptable for maps/suspend saves |
+| Data format | Godot Resources (`.tres`) for authored data | JSON-safe envelopes for campaign/suspend saves |
 | Version control | Git + GitHub | Public repo; licensing gate (DOC-012) precedes public release |
 
 ---

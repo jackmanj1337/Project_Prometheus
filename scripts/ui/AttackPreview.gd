@@ -16,12 +16,15 @@ extends Control
 
 const GameConstants    = preload("res://scripts/shared/GameConstants.gd")
 const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
+const SelectionCursor  = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay     = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _panel: PanelContainer = $Panel
 @onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
 @onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
 @onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
 @onready var _atk_name: RichTextLabel      = $Panel/HBox/AttackerBox/AtkName
+@onready var _atk_weapon: RichTextLabel    = $Panel/HBox/AttackerBox/AtkWeapon
 @onready var _atk_hp: RichTextLabel        = $Panel/HBox/AttackerBox/AtkHP
 @onready var _atk_dmg: RichTextLabel       = $Panel/HBox/AttackerBox/AtkDmg
 @onready var _atk_hit: RichTextLabel       = $Panel/HBox/AttackerBox/AtkHit
@@ -29,6 +32,7 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 @onready var _atk_triangle: RichTextLabel  = $Panel/HBox/AttackerBox/AtkTriangle
 @onready var _atk_effective: RichTextLabel = $Panel/HBox/AttackerBox/AtkEffective
 @onready var _def_name: RichTextLabel      = $Panel/HBox/DefenderBox/DefName
+@onready var _def_weapon: RichTextLabel    = $Panel/HBox/DefenderBox/DefWeapon
 @onready var _def_hp: RichTextLabel        = $Panel/HBox/DefenderBox/DefHP
 @onready var _def_dmg: RichTextLabel       = $Panel/HBox/DefenderBox/DefDmg
 @onready var _def_hit: RichTextLabel       = $Panel/HBox/DefenderBox/DefHit
@@ -45,13 +49,14 @@ const MoreInfoContent  = preload("res://scripts/shared/MoreInfoContent.gd")
 const COLOR_ADVANTAGE    := "#61c454"
 const COLOR_DISADVANTAGE := "#d85b5b"
 const COLOR_EFFECTIVE    := "#eec84c"
+const COLOR_NEUTRAL      := "#9a9aa6"
 
 # Pixel gap between the defender's tile edge and the preview panel, and
 # between the panel and the viewport edge.
 const PANEL_MARGIN_PX: int = 16
 const FORECAST_COLUMN_MIN_WIDTH: float = 150.0
-const INFO_COLUMN_MIN_WIDTH: float = 260.0
-const PANEL_DEFAULT_HEIGHT: float = 170.0
+const INFO_COLUMN_MIN_WIDTH: float = 300.0
+const PANEL_DEFAULT_HEIGHT: float = 230.0
 const FORECAST_ROW_PADDING_Y: float = 4.0
 # Horizontal slack subtracted from the forecast column when deciding whether a
 # name fits on one line, so the ellipsis never butts right against the edge.
@@ -73,7 +78,15 @@ var _entries: Array = []
 
 # Index into _entries for the currently displayed side-panel entry. -1 means
 # nothing is selected yet — InfoHint is visible and InfoDescription is empty.
+# Mirrors _selector.index; kept as a plain field so existing readers/tests don't
+# have to reach into the cursor.
 var _current_index: int = -1
+
+# Shared navigation core (B6-INPUT selector adoption). 1-D forward/back cycle over
+# the _entries list, no inactive stop — the same core UnitDetailsScreen uses, so
+# the gamepad d-pad wiring attaches in one place. Rendering stays per-surface:
+# `changed` drives _show_entry / _reset_info_panel.
+var _selector: RefCounted = SelectionCursor.new()
 
 # Full, untruncated combatant names captured each show_preview(). The name rows
 # may be shortened with an ellipsis to fit their column, so More Info reads from
@@ -88,6 +101,16 @@ var _atk_battle_speed: int = 0
 var _def_battle_speed: int = 0
 var _follow_up_threshold: int = 5
 var _can_counter: bool = false
+
+# The defender the visible preview is anchored to, captured in show_preview() so a
+# zoom change can re-anchor the panel beside it — the same reposition-on-zoom the
+# context menus get (V025-04c). Cleared on hide so a stale defender is never used.
+var _anchor_defender: Node = null
+
+# Generation counter for the deferred sizing pass (V027-03a): each show_preview()
+# bumps it, so a re-pass that awakens after a newer show has taken over bails out
+# instead of restoring the panel alpha the newer pass is still holding at 0.
+var _deferred_show_id: int = 0
 
 
 func setup(camera: Camera2D, grid: Node, camera_ctrl: RefCounted) -> void:
@@ -104,17 +127,33 @@ func _ready() -> void:
 	# [url=combat_field:KEY] meta string is parsed in _on_entry_clicked.
 	for label in _all_selectable_labels():
 		label.meta_clicked.connect(_on_entry_clicked)
+	_selector.changed.connect(_on_selector_changed)
+	# Prompt/glyph swapping (B6-INPUT): re-render the More Info hint when the input
+	# scheme changes. AttackPreview is not a ModalScreen, so it subscribes directly.
+	# Guarded so headless scenes without the autoload stay inert.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
 	hide()
 
 
-func show_preview(attacker: Node, defender: Node) -> void:
-	var cr := get_node_or_null("/root/CombatResolver")
-	if cr == null:
-		return
-	var p: Dictionary = cr.preview_combat(attacker, defender)
+func _on_input_mode_changed(_mode: String) -> void:
+	# Only refresh while the hint is showing (nothing selected); a selected entry
+	# shows a description, not a control prompt.
+	if visible and _info_hint.visible:
+		_info_hint.text = InputDisplay.more_info_hint(self, "value")
 
+
+func show_preview(attacker: Node, defender: Node) -> void:
+	var projection := get_node_or_null("/root/ProjectionService")
+	if projection == null:
+		return
+	var result = projection.project_combat(attacker, defender)
 	_entries.clear()
 	_current_index = -1
+	if not result.valid:
+		return
+	var p: Dictionary = result.visible_outcome
 
 	# Battle Speed + follow-up threshold for the Damage field's More Info (8.3).
 	_atk_battle_speed = int(p.get("attacker_battle_speed", 0))
@@ -129,6 +168,9 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	# wrap and clip. The full name stays available through More Info.
 	_atk_name.text = _link("atk", "name", "Attacker",
 		_fit_name_to_column(atk_name, "", _atk_name))
+	# V021-14: name the equipped weapon under each combatant (the sheet already shows
+	# full weapon stats; the forecast just needs the name for at-a-glance matchups).
+	_atk_weapon.text = _weapon_name(attacker)
 	var atk_hp_val: int = attacker.data.hp if attacker.data else 0
 	var atk_hp_max: int = attacker.data.max_hp if attacker.data else 0
 	_atk_hp.text  = _link("atk", "hp", "HP",
@@ -158,6 +200,7 @@ func show_preview(attacker: Node, defender: Node) -> void:
 	else:
 		_def_name.text = _link("def", "name", "Defender",
 			_fit_name_to_column(def_name_str, "", _def_name))
+	_def_weapon.text = _weapon_name(defender)
 	var def_hp_val: int = defender.data.hp if defender.data else 0
 	var def_hp_max: int = defender.data.max_hp if defender.data else 0
 	_def_hp.text = _link("def", "hp", "HP",
@@ -179,30 +222,86 @@ func show_preview(attacker: Node, defender: Node) -> void:
 		# line. We still register it as an entry so more_info cycle visits
 		# the defender side, but the description is a plain note.
 		_def_dmg.text = _link("def", "damage", "Damage", "No counter")
-		_def_hit.text = ""
-		_def_crit.text = ""
+		# Dashes, not blanks (V026-04b): keep the row heights so the triangle /
+		# effectiveness icons below stay aligned with the attacker column. Plain
+		# text (no _link) so More Info never describes a rate that doesn't exist.
+		_def_hit.text = "Hit  —"
+		_def_crit.text = "Crit —"
 		_def_triangle.text = _triangle_link("def", "neutral")
 		_def_effective.text = _effective_link("def", false, 1.0)
 
 	_refresh_forecast_row_heights()
+	# Reconfigure the cursor for this show's entry count and reset it to -1 so every
+	# preview opens on the hint state (reset emits `changed(-1)` → _reset_info_panel).
+	_selector.configure(_entries.size(), 1, true, false)
+	_selector.reset()
 	_reset_info_panel()
 	_size_panel_to_content()
+	_anchor_defender = defender
 	_reposition_for(defender)
 	show()
+	_resize_after_layout()
+
+
+# Deferred second sizing pass (V027-03a): RichTextLabel content minimums read
+# INFLATED until one layout frame passes (the V025-05a first-show trap), so the
+# first open after boot froze an over-tall panel with dead tinted space under the
+# rows. Re-run size + placement one frame after every show; the panel is held
+# transparent for that frame so the over-tall frame never flashes on screen —
+# the same mitigation MenuScale.apply_to_deferred uses.
+func _resize_after_layout() -> void:
+	if not is_inside_tree():
+		return
+	_deferred_show_id += 1
+	var pass_id: int = _deferred_show_id
+	_panel.modulate.a = 0.0
+	await get_tree().process_frame
+	if pass_id != _deferred_show_id:
+		return  # a newer show owns the panel (and its alpha) now
+	if visible and _anchor_defender != null and is_instance_valid(_anchor_defender):
+		_size_panel_to_content()
+		_reposition_for(_anchor_defender)
+	_panel.modulate.a = 1.0
 
 
 func hide_preview() -> void:
+	_anchor_defender = null
 	hide()
+
+
+# Re-anchors the visible preview beside its current defender. Called by MapCursor
+# when the map zoom changes so the panel tracks the unit the same way the context
+# menus do (V025-04c). No-op when hidden or without a live anchor defender.
+func reposition() -> void:
+	if not visible or _anchor_defender == null or not is_instance_valid(_anchor_defender):
+		return
+	_reposition_for(_anchor_defender)
 
 
 # Returns the labels that participate in selection. Hand-listed instead of
 # walking the tree so a future "add a stat below crit" doesn't accidentally
 # break selection ordering — the cycle order is exactly this declaration
 # order, which matches how the player reads the preview.
+# V021-14: the equipped weapon's display name for the forecast row, or "Unarmed".
+func _weapon_name(unit: Node) -> String:
+	if unit == null or not unit.has_method("get_equipped_weapon"):
+		return "Unarmed"
+	var w: WeaponData = unit.get_equipped_weapon()
+	return w.display_name if w != null and String(w.display_name) != "" else "Unarmed"
+
+
 func _all_selectable_labels() -> Array[RichTextLabel]:
 	return [
 		_atk_name, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle, _atk_effective,
 		_def_name, _def_hp, _def_dmg, _def_hit, _def_crit, _def_triangle, _def_effective,
+	]
+
+
+func _all_forecast_rows() -> Array[RichTextLabel]:
+	return [
+		_atk_name, _atk_weapon, _atk_hp, _atk_dmg, _atk_hit, _atk_crit, _atk_triangle,
+		_atk_effective, _def_name, _def_weapon, _def_hp, _def_dmg, _def_hit, _def_crit,
+		_def_triangle, _def_effective,
 	]
 
 
@@ -214,9 +313,8 @@ func _link(side: String, key: String, title: String, text: String) -> String:
 	return "[url=combat_field:%s:%s]%s[/url]" % [side, key, text]
 
 
-# Triangle marker. Neutral renders empty so the row doesn't reserve space
-# for a marker that has no meaning. Advantage/disadvantage wrap the text in
-# both [color] and [url] so the marker stays readable AND clickable.
+# Triangle marker. Neutral is visible so the row does not disappear when no
+# side has advantage; all states stay clickable and reachable by F-cycling.
 func _triangle_link(side: String, result: String) -> String:
 	match result:
 		"advantage":
@@ -226,11 +324,8 @@ func _triangle_link(side: String, result: String) -> String:
 			return _link(side, "triangle", "Weapon Triangle",
 				"[color=%s]▼ Disadvantage[/color]" % COLOR_DISADVANTAGE)
 		_:
-			# Still register the entry so the cycle visits it — but render
-			# blank text. Clicking nothing is impossible, so the entry is
-			# only reachable via the more_info cycle.
-			_entries.append({"side": side, "key": "triangle", "title": "Weapon Triangle"})
-			return ""
+			return _link(side, "triangle", "Weapon Triangle",
+				"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
 
 
 # Effectiveness marker. Mult is included so the player can tell Giantkiller's
@@ -239,20 +334,20 @@ func _effective_link(side: String, is_effective: bool, mult: float) -> String:
 	if is_effective:
 		return _link(side, "effectiveness", "Effectiveness",
 			"[color=%s]Effective ×%d[/color]" % [COLOR_EFFECTIVE, int(round(mult))])
-	# Same cycle-only registration as the neutral triangle case.
-	_entries.append({"side": side, "key": "effectiveness", "title": "Effectiveness"})
-	return ""
+	return _link(side, "effectiveness", "Effectiveness",
+		"[color=%s]■ Neutral[/color]" % COLOR_NEUTRAL)
 
 
 # Resets the side panel to its "nothing selected yet" hint state.
 func _reset_info_panel() -> void:
 	_info_title.text = "More Info"
 	_info_hint.visible = true
+	_info_hint.text = InputDisplay.more_info_hint(self, "value")
 	_info_desc.text = ""
 
 
 func _refresh_forecast_row_heights() -> void:
-	for label in _all_selectable_labels():
+	for label in _all_forecast_rows():
 		if label.text == "":
 			label.custom_minimum_size.y = 0.0
 			continue
@@ -321,8 +416,7 @@ func _on_entry_clicked(meta: Variant) -> void:
 	for i in _entries.size():
 		var e: Dictionary = _entries[i]
 		if e["side"] == side and e["key"] == key:
-			_current_index = i
-			_show_entry(e)
+			_selector.set_index(i)
 			return
 
 
@@ -370,12 +464,20 @@ func _battle_speed_note() -> String:
 
 # Advances through _entries. First press shows the first entry; subsequent
 # presses move forward one and wrap. Same semantics as UnitDetailsScreen so
-# the player only has to learn one F behaviour across both surfaces.
+# the player only has to learn one F behaviour across both surfaces. Delegates
+# to the shared cursor; the `changed` handler does the rendering.
 func _cycle_more_info() -> void:
-	if _entries.is_empty():
+	_selector.advance(1)
+
+
+# Cursor callback: mirror the index and render. -1 (or out of range) restores the
+# hint state; any valid index shows that entry's More Info in the side panel.
+func _on_selector_changed(index: int) -> void:
+	_current_index = index
+	if index < 0 or index >= _entries.size():
+		_reset_info_panel()
 		return
-	_current_index = (_current_index + 1) % _entries.size()
-	_show_entry(_entries[_current_index])
+	_show_entry(_entries[index])
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -404,7 +506,13 @@ func _reposition_for(defender: Node) -> void:
 	if panel_size == Vector2.ZERO:
 		panel_size = _panel.get_combined_minimum_size()
 	var view: Vector2 = get_viewport_rect().size
-	var tile_px: float = float(GameConstants.TILE_SIZE)
+	# On-screen size of one tile = world TILE_SIZE × camera zoom. defender_screen below
+	# is already in canvas/screen space (the canvas transform bakes in camera zoom), so
+	# the offset beside it must be the *screen* tile size, not the raw world constant —
+	# otherwise the panel sits too far/near the defender at any zoom != 1 (Display &
+	# Accessibility item 1d).
+	var zoom_x: float = _camera.zoom.x if _camera != null and _camera.zoom.x > 0.0 else 1.0
+	var tile_px: float = float(GameConstants.TILE_SIZE) * zoom_x
 	var defender_screen: Vector2 = (defender as Node2D).get_global_transform_with_canvas().origin
 
 	var right_left: float = defender_screen.x + tile_px + PANEL_MARGIN_PX
@@ -426,11 +534,12 @@ func _reposition_for(defender: Node) -> void:
 	var panel_top: float = defender_screen.y + tile_px * 0.5 - panel_size.y * 0.5
 	panel_top = clampf(panel_top, PANEL_MARGIN_PX, view.y - panel_size.y - PANEL_MARGIN_PX)
 
-	# Nudge the panel clear of the HUD panels it would otherwise cover (the unit-info,
-	# objective, and terrain corners — playtest v0.1.4 #2.4) before committing the
-	# position. Degrades to the plain viewport clamp when the HUD isn't reachable.
+	# Nudge the panel clear of the HUD panels and the defender tile before committing
+	# the position. Degrades to the plain viewport clamp when the HUD isn't reachable.
+	var avoid: Array[Rect2] = _hud_avoid_rects()
+	avoid.append(_defender_avoid_rect(defender_screen, tile_px))
 	var placed: Vector2 = _place_clear_of(Vector2(panel_left, panel_top), panel_size,
-		view, _hud_avoid_rects(), float(PANEL_MARGIN_PX))
+		view, avoid, float(PANEL_MARGIN_PX))
 
 	_panel.position = placed
 	_panel.offset_right = _panel.offset_left + panel_size.x
@@ -453,6 +562,10 @@ func _hud_avoid_rects() -> Array[Rect2]:
 			if r.size.x > 0.0 and r.size.y > 0.0:
 				out.append(r)
 	return out
+
+
+static func _defender_avoid_rect(defender_screen: Vector2, tile_px: float) -> Rect2:
+	return Rect2(defender_screen, Vector2(tile_px, tile_px))
 
 
 # Pure placement helper (no node access, so it is unit-testable): start from `pos`

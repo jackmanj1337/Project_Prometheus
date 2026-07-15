@@ -69,7 +69,7 @@ func get_display_text() -> String:
 		"seize":
 			if tile == Vector2i(-1, -1):
 				return "Seize"
-			return "Seize %s" % str(tile)
+			return "Seize %s" % _format_display_tile(tile)
 		"escape":
 			if unit_ids.is_empty():
 				return "Escape"
@@ -86,3 +86,7 @@ func get_display_text() -> String:
 			return "Win before turn %d" % turns
 		_:
 			return ""
+
+
+static func _format_display_tile(t: Vector2i) -> String:
+	return "(%d, %d)" % [t.x + 1, t.y + 1]

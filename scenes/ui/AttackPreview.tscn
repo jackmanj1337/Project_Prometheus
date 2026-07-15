@@ -1,12 +1,14 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/AttackPreview.gd" id="1_preview"]
+[ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="2_theme"]
 
 [node name="AttackPreview" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("2_theme")
 mouse_filter = 2
 script = ExtResource("1_preview")
 
@@ -31,6 +33,14 @@ fit_content = false
 scroll_active = false
 autowrap_mode = 0
 text = "Attacker"
+
+[node name="AtkWeapon" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+autowrap_mode = 0
+text = "--"
 
 [node name="AtkHP" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
 layout_mode = 2
@@ -85,6 +95,14 @@ scroll_active = false
 autowrap_mode = 0
 text = "Defender"
 
+[node name="DefWeapon" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+autowrap_mode = 0
+text = "--"
+
 [node name="DefHP" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
@@ -129,8 +147,9 @@ text = ""
 
 [node name="InfoBox" type="VBoxContainer" parent="Panel/HBox"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 6
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(300, 0)
 
 [node name="InfoTitle" type="Label" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
@@ -145,7 +164,8 @@ modulate = Color(0.7, 0.7, 0.75, 1)
 
 [node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 88)
+custom_minimum_size = Vector2(0, 144)
+size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = false
 scroll_active = true

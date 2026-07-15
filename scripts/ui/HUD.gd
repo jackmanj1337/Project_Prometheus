@@ -12,6 +12,8 @@ extends Control
 
 const MoreInfoContent = preload("res://scripts/shared/MoreInfoContent.gd")
 const TileActions     = preload("res://scripts/shared/TileActions.gd")
+const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
+const InputDisplay    = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _phase_label: Label = $PhaseLabel
 @onready var _turn_label: Label = $TurnLabel
@@ -50,11 +52,23 @@ var _unit_is_selected: bool = false  # true while a player unit is actively sele
 var _selected_unit: Node = null  # the actively selected unit (fallback for empty tiles during selection — playtest 3 #6)
 var _cursor_tile: Vector2i = Vector2i(-1, -1)  # last tile reported by cursor_moved
 var _displayed_unit: Node = null  # unit currently shown in the info panel (null when hidden)
-# Phase 1 More Info terrain expansion. Toggled by the `more_info` action
-# when no higher-priority More Info panel is visible. Off by default — the
-# compact terrain readout stays the at-a-glance view; expanded mode is for
-# learning what the tile does.
-var _terrain_expanded: bool = false
+# Terrain More Info paging (V021-05). The `more_info` action (F) cycles the terrain
+# More Info surface through Hidden → Description → Movement → Hidden when no
+# higher-priority More Info panel is visible. "Hidden" fully hides the box (frees map
+# area); the compact terrain readout stays visible throughout. Logical pages: each
+# page shows a subset of the existing expanded rows, so the panel auto-sizes to the
+# active page and the reflow offset is derived from it (hardens the V021-02 reset bug).
+const TERRAIN_PAGE_HIDDEN: int = -1
+const TERRAIN_PAGE_DESCRIPTION: int = 0
+const TERRAIN_PAGE_MOVEMENT: int = 1
+const TERRAIN_PAGE_COUNT: int = 2
+# _terrain_more_page mirrors _terrain_pager.index and is what every reader/test uses.
+# The pager is the shared SelectionCursor with the inactive (-1 = Hidden) stop enabled,
+# so the terrain pager, the sheet grid, and the forecast list all navigate through one
+# core — the single point the gamepad d-pad wiring attaches to (B6-INPUT selector
+# adoption). configure() runs in _ready; advance() runs in cycle_terrain_more_page().
+var _terrain_more_page: int = TERRAIN_PAGE_HIDDEN
+var _terrain_pager: RefCounted = SelectionCursor.new()
 
 # Dynamically-created mastery label — lives in UnitInfoPanel/VBox, separate from equipped skills.
 # Populated by _show_unit(); nil until a unit with mastery is first displayed.
@@ -64,14 +78,36 @@ var _mastery_label: Label = null
 # Shows the support's contribution when a paired LEAD is displayed.
 var _pairup_label: Label = null
 
-# Stat-key → short label used in the Pair Up bonus readout (matches handbook terms).
-const _STAT_SHORT: Dictionary = {
-	"strength": "Str", "magic": "Mag", "skill": "Skl", "speed": "Spd",
-	"defense": "Def", "resistance": "Res", "luck": "Lck",
-}
+# ── Per-panel HUD layout (Display & Accessibility item 4) ─────────────────────
+# Stable panel ids the player can reposition/scale. Order is the editor cycle order.
+const LAYOUT_PANEL_IDS: Array[String] = [
+	"phase_label", "turn_label", "unit_info", "objective", "terrain_corner",
+]
+# Per-panel scale clamp — small enough to declutter, large enough to read, without
+# letting a panel balloon off-screen.
+const MIN_PANEL_SCALE: float = 0.5
+const MAX_PANEL_SCALE: float = 2.0
+# Minimum on-screen pixels kept visible on each axis so a panel can't be dragged
+# (or saved) fully off the viewport.
+const _MIN_VISIBLE_PX: float = 24.0
+# panel_id → authored base position, captured once before any offset is applied so
+# Reset restores the exact .tscn layout regardless of the live offset.
+var _layout_base_positions: Dictionary = {}
 
 
 func _ready() -> void:
+	# Discoverable by the in-map "Edit HUD Layout" launcher without a hard node path.
+	add_to_group("hud")
+	# The terrain pager cycles Hidden(-1) → Description(0) → Movement(1) → Hidden.
+	# has_inactive=true makes -1 a real stop in the cycle (matching the old int wrap).
+	_terrain_pager.configure(TERRAIN_PAGE_COUNT, 1, true, true)
+	_terrain_pager.changed.connect(_on_terrain_page_changed)
+	# Prompt/glyph swapping (B6-INPUT): re-render the compact terrain "press F / press X"
+	# hint when the input scheme changes. Guarded so headless scenes stay inert.
+	var imm := get_node_or_null("/root/InputModeManager")
+	if imm != null and imm.has_signal("input_mode_changed"):
+		imm.connect("input_mode_changed", _on_input_mode_changed)
+	_refresh_terrain_hint()
 	_unit_panel.hide()
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
@@ -87,6 +123,9 @@ func _ready() -> void:
 	_update_turn_label()
 	_on_phase_changed(GameState.Phase.PLAYER, "blue")
 	_setup_debug_banner()
+	# Apply the saved per-panel layout after the first layout pass has settled, so
+	# the captured base positions reflect the authored offsets (item 4).
+	call_deferred("_apply_saved_layout")
 
 
 func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
@@ -102,6 +141,159 @@ func setup(grid: Node, turn_node: Node, attack_preview: Node = null,
 	# TurnManager evaluator). Render-only — no live re-evaluation needed since
 	# conditions are static for the duration of a map.
 	_populate_objective_panel()
+
+
+# ── Per-panel HUD layout (item 4) ─────────────────────────────────────────────
+
+# Resolves a stable panel id to its live Control node.
+func get_layout_panel(panel_id: String) -> Control:
+	match panel_id:
+		"phase_label":    return _phase_label
+		"turn_label":     return _turn_label
+		"unit_info":      return _unit_panel
+		"objective":      return _objective_panel
+		"terrain_corner": return get_node_or_null("TerrainCorner")
+	return null
+
+
+# Captures each panel's authored base position exactly once, before any saved offset
+# is applied, so Reset can restore the .tscn layout no matter the current offset.
+func _capture_base_positions() -> void:
+	if not _layout_base_positions.is_empty():
+		return
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel != null:
+			_layout_base_positions[id] = panel.position
+
+
+# Applies a full layout dict (panel_id -> { offset: Vector2, scale: float }) to the
+# panels. Missing/malformed entries leave that panel at its authored base. Positions
+# are clamped so a panel always keeps _MIN_VISIBLE_PX on screen.
+func apply_layout(layout: Dictionary) -> void:
+	_capture_base_positions()
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel == null:
+			continue
+		var base: Vector2 = _layout_base_positions.get(id, panel.position)
+		var entry: Variant = layout.get(id, {})
+		var offset := Vector2.ZERO
+		var scale_f := 1.0
+		if entry is Dictionary:
+			# Type-guard each field: a corrupt/hand-edited cfg could carry a wrong-typed
+			# value, and assigning a non-Vector2 into the typed `offset` would crash.
+			var off_v: Variant = entry.get("offset", Vector2.ZERO)
+			if off_v is Vector2:
+				offset = off_v
+			var scale_v: Variant = entry.get("scale", 1.0)
+			if scale_v is float or scale_v is int:
+				scale_f = float(scale_v)
+		panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
+		var layout_pos: Vector2 = base + offset
+		panel.position = _clamp_panel_on_screen(
+			panel, _panel_position_from_layout_position(id, layout_pos, panel))
+
+
+# Loads the saved layout from SettingsManager and applies it. Called deferred from
+# _ready (post-layout) and re-runnable by the editor.
+func _apply_saved_layout() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	apply_layout(sm.hud_layout if sm != null else {})
+
+
+# Keeps a panel from being placed (or saved) fully off-screen: clamps the top-left so
+# at least _MIN_VISIBLE_PX of the scaled panel stays inside the SAFE region on each
+# axis. The safe region is the viewport minus the safe-area insets (D5/E6) — zero on
+# desktop, so this is unchanged there; on a future mobile-web build the notch/home-
+# indicator margins shrink the clamp bounds with no further wiring.
+func _clamp_panel_on_screen(panel: Control, pos: Vector2) -> Vector2:
+	var view: Vector2 = get_viewport_rect().size
+	var sz: Vector2 = panel.size * panel.scale
+	var insets: Vector4i = _safe_area_insets()  # (left, top, right, bottom)
+	pos.x = clampf(pos.x, insets.x + _MIN_VISIBLE_PX - sz.x, view.x - insets.z - _MIN_VISIBLE_PX)
+	pos.y = clampf(pos.y, insets.y + _MIN_VISIBLE_PX - sz.y, view.y - insets.w - _MIN_VISIBLE_PX)
+	return pos
+
+
+# Reads the single safe-area provider (SettingsManager). Returns ZERO when the
+# autoload is absent (headless paths that build the HUD without it) so desktop and
+# tests are unaffected.
+func _safe_area_insets() -> Vector4i:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and sm.has_method("get_safe_area_insets"):
+		return sm.call("get_safe_area_insets")
+	return Vector4i.ZERO
+
+
+# Live single-panel edit used by the layout editor: sets one panel's offset (from its
+# base) + scale without disturbing the others. Returns the clamped on-screen position.
+func set_panel_layout(panel_id: String, offset: Vector2, scale_f: float) -> Vector2:
+	_capture_base_positions()
+	var panel := get_layout_panel(panel_id)
+	if panel == null:
+		return Vector2.ZERO
+	var base: Vector2 = _layout_base_positions.get(panel_id, panel.position)
+	panel.scale = Vector2.ONE * clampf(scale_f, MIN_PANEL_SCALE, MAX_PANEL_SCALE)
+	var layout_pos: Vector2 = base + offset
+	panel.position = _clamp_panel_on_screen(
+		panel, _panel_position_from_layout_position(panel_id, layout_pos, panel))
+	return panel.position
+
+
+# Builds the current layout dict (offset from base + scale) for panels that differ
+# from their authored layout — the shape persisted to SettingsManager.hud_layout.
+func current_layout() -> Dictionary:
+	_capture_base_positions()
+	var out: Dictionary = {}
+	for id in LAYOUT_PANEL_IDS:
+		var panel := get_layout_panel(id)
+		if panel == null:
+			continue
+		var base: Vector2 = _layout_base_positions.get(id, panel.position)
+		var layout_pos: Vector2 = _layout_position_from_panel_position(id, panel)
+		var offset: Vector2 = layout_pos - base
+		var scale_f: float = panel.scale.x
+		if offset != Vector2.ZERO or not is_equal_approx(scale_f, 1.0):
+			out[id] = { "offset": offset, "scale": scale_f }
+	return out
+
+
+# Restores every panel to its authored base layout (offset 0, scale 1).
+func reset_layout() -> void:
+	apply_layout({})
+
+
+# Terrain More Info lives above the compact terrain panel inside the same movable
+# VBox. Layout offsets are defined by the compact panel's top-left, so reset/editing
+# keeps the familiar HUD anchor even while the expanded box is visible.
+func _panel_position_from_layout_position(panel_id: String, layout_pos: Vector2,
+		panel: Control) -> Vector2:
+	if panel_id == "terrain_corner":
+		return layout_pos - _terrain_expanded_offset(panel.scale)
+	return layout_pos
+
+
+func _layout_position_from_panel_position(panel_id: String, panel: Control) -> Vector2:
+	if panel_id == "terrain_corner":
+		return panel.position + _terrain_expanded_offset(panel.scale)
+	return panel.position
+
+
+func _terrain_expanded_offset(scale_v: Vector2) -> Vector2:
+	if _terrain_more_page < 0 or _terrain_more_panel == null or not _terrain_more_panel.visible:
+		return Vector2.ZERO
+	var corner := get_layout_panel("terrain_corner")
+	var separation: float = 0.0
+	if corner is BoxContainer:
+		separation = float((corner as BoxContainer).get_theme_constant("separation"))
+	# Derive the offset from the *active page's* current height (V021-02/V021-05): only
+	# the visible page's rows contribute, so the panel min-size — and thus the reflow —
+	# tracks the page in view instead of a cached expanded height that drifts on reset.
+	var more_h: float = _terrain_more_panel.get_combined_minimum_size().y
+	if more_h <= 0.0:
+		more_h = _terrain_more_panel.size.y
+	return Vector2(0.0, (more_h + separation) * scale_v.y)
 
 
 func _populate_objective_panel() -> void:
@@ -285,9 +477,11 @@ func _update_pairup_display(unit: Node) -> void:
 	_pairup_label.show()
 
 
-# "Paired  +3 Str +3 Def …" for a paired LEAD, else "". Only the lead is shown
-# (the support sits off-map and is never the displayed unit). Returns "Paired"
-# with no deltas if the support's table entry is all zeros.
+# "Support: <name>" for a paired LEAD, else "". Only the lead is shown (the support
+# sits off-map and is never the displayed unit). V021-07: the per-stat bonus deltas
+# were dropped from the *map* HUD — they crowded the panel and pushed the support
+# name off the screen edge — so the line names only the support partner. The full
+# per-stat breakdown still lives on the `I` character sheet (via StatContributions).
 func _pairup_bonus_text(unit: Node) -> String:
 	if unit == null or unit.data == null or unit.data.unit_id == "":
 		return ""
@@ -295,19 +489,12 @@ func _pairup_bonus_text(unit: Node) -> String:
 	if reg == null or not bool(reg.call("is_lead", unit.data.unit_id)):
 		return ""
 	var gs := get_node_or_null("/root/GameState")
-	var res := get_node_or_null("/root/PairUpBonusResolver")
-	if gs == null or res == null:
+	if gs == null:
 		return ""
 	var support: Node = gs.call("find_unit_by_id", reg.call("get_partner_id", unit.data.unit_id))
-	if support == null:
+	if support == null or support.data == null or String(support.data.unit_name) == "":
 		return ""
-	var bonuses: Dictionary = res.call("bonuses_for", support)
-	var parts: Array[String] = []
-	for stat in ["strength", "magic", "skill", "speed", "defense", "resistance", "luck"]:
-		var v: int = int(bonuses.get(stat, 0))
-		if v != 0:
-			parts.append("+%d %s" % [v, String(_STAT_SHORT[stat])])
-	return "Paired" if parts.is_empty() else "Paired  " + " ".join(parts)
+	return "Support: %s" % support.data.unit_name
 
 
 func _update_terrain(tile: Vector2i) -> void:
@@ -323,13 +510,13 @@ func _update_terrain(tile: Vector2i) -> void:
 	var bonuses: Dictionary = _grid.get_terrain_bonuses(tile)
 	_terrain_def.text = "DEF  +%d" % int(bonuses["def"])
 	_terrain_dodge.text = "DODGE +%d" % int(bonuses["dodge"])
-	# Compact view = the three lines above. Expanded view adds the
-	# description, move-cost-by-group, and available tile actions.
-	if _terrain_expanded:
-		_render_terrain_expanded(tile, terrain)
+	# Compact view = the three lines above. The More Info box adds the paged content
+	# (Description page / Movement page) when not hidden (V021-05).
+	if _terrain_more_page >= 0:
+		_render_terrain_page(tile, terrain)
 	else:
-		# Collapsed: hide the whole More Info box. Row visibilities are kept in
-		# sync too so anything reading them sees the off state.
+		# Hidden: hide the whole More Info box so the map area behind it is reclaimed.
+		# Row visibilities are kept in sync so anything reading them sees the off state.
 		_terrain_more_panel.hide()
 		_terrain_desc.visible = false
 		_terrain_moves.visible = false
@@ -337,24 +524,67 @@ func _update_terrain(tile: Vector2i) -> void:
 		_terrain_hint.visible = true
 
 
-# Fills the expanded More Info rows. Visibility is set here so a tile with
-# no available actions still hides that row instead of showing a stray
-# header. Description always shows when expanded — MoreInfoContent guarantees
-# a fallback string for unknown terrain ids.
-func _render_terrain_expanded(tile: Vector2i, terrain: String) -> void:
+# Cycles the terrain More Info surface Hidden → Description → Movement → Hidden
+# (V021-05). Public so the mouse/touch mode (V021-17) can drive paging by click.
+# Delegates to the shared cursor; the `changed` handler mirrors the page and
+# re-renders. Sync-then-advance because callers/tests may set _terrain_more_page
+# directly — production paging always flows through here, so it never desyncs.
+func cycle_terrain_more_page() -> void:
+	if _terrain_pager.index != _terrain_more_page:
+		_terrain_pager.set_index(_terrain_more_page)
+	_terrain_pager.advance(1)
+
+
+# Cursor callback: mirror the active page and re-render against the current cursor
+# tile so the transition is immediate (index -1 hides the box via _update_terrain).
+func _on_terrain_page_changed(index: int) -> void:
+	_terrain_more_page = index
+	if _cursor_tile.x >= 0:
+		_update_terrain(_cursor_tile)
+
+
+# Re-render the compact terrain hint's key/glyph for the active input scheme.
+func _on_input_mode_changed(_mode: String) -> void:
+	_refresh_terrain_hint()
+
+
+func _refresh_terrain_hint() -> void:
+	if _terrain_hint != null:
+		_terrain_hint.text = InputDisplay.more_info_hint(self, "")
+
+
+func terrain_corner_contains_screen_position(screen_pos: Vector2) -> bool:
+	var corner := get_layout_panel("terrain_corner")
+	if corner == null or not corner.visible:
+		return false
+	if _terrain_panel != null and _terrain_panel.visible \
+			and _terrain_panel.get_global_rect().has_point(screen_pos):
+		return true
+	if _terrain_more_panel != null and _terrain_more_panel.visible \
+			and _terrain_more_panel.get_global_rect().has_point(screen_pos):
+		return true
+	return corner.get_global_rect().has_point(screen_pos)
+
+
+# Renders the active More Info page. Each page shows a subset of the expanded rows
+# so the panel sizes to the page in view (Description = blurb + tile actions;
+# Movement = the move-cost table). Def/Dodge stay on the always-visible compact
+# panel, so the movement page doesn't restate them.
+func _render_terrain_page(tile: Vector2i, terrain: String) -> void:
 	_terrain_more_panel.show()
+	_terrain_hint.visible = false
+	var on_description: bool = _terrain_more_page == TERRAIN_PAGE_DESCRIPTION
+	var on_movement: bool = _terrain_more_page == TERRAIN_PAGE_MOVEMENT
 	_terrain_desc.text = MoreInfoContent.describe("terrain", terrain)
-	_terrain_desc.visible = true
-	_terrain_moves.text = _format_move_costs(terrain)
-	_terrain_moves.visible = true
+	_terrain_desc.visible = on_description
 	var actions_text: String = _format_tile_actions(tile)
 	_terrain_actions.text = actions_text
-	# Only show the actions row when there's something to say — empty list
-	# means no unit is selected or no action gates fire on this tile.
-	_terrain_actions.visible = actions_text != ""
-	_terrain_hint.visible = false
-	# Start each tile's More Info at the top so a long previous tile doesn't
-	# leave the box scrolled past this tile's description.
+	# Actions belong to the Description page, and only when there's something to say.
+	_terrain_actions.visible = on_description and actions_text != ""
+	_terrain_moves.text = _format_move_costs(terrain)
+	_terrain_moves.visible = on_movement
+	# Start each tile's page at the top so a long previous tile doesn't leave the box
+	# scrolled past this tile's content.
 	_terrain_scroll.scroll_vertical = 0
 
 
@@ -370,6 +600,7 @@ func _format_move_costs(terrain: String) -> String:
 		["mounted",  "Mounted"],
 		["armoured", "Armoured"],
 		["light",    "Light"],
+		["flying",   "Flying"],
 	]
 	for entry in group_labels:
 		var key: String = entry[0]
@@ -409,11 +640,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _higher_priority_more_info_visible():
 		return
 	get_viewport().set_input_as_handled()
-	_terrain_expanded = not _terrain_expanded
-	# Re-render the terrain panel against the current cursor tile so the
-	# transition is immediate rather than waiting for the next cursor move.
-	if _cursor_tile.x >= 0:
-		_update_terrain(_cursor_tile)
+	# Cycle Hidden → Description → Movement → Hidden (V021-05). The cycle re-renders
+	# against the current cursor tile so the transition is immediate.
+	cycle_terrain_more_page()
 
 
 # True when the combat preview or unit-details screen is open — those are
@@ -471,6 +700,8 @@ func _collect_active_debug_aids() -> Array[String]:
 		aids.append("force-levelup")
 	if gs.get("debug_growth_boost"):
 		aids.append("growth+300")
+	if gs.get("debug_hotseat_override"):
+		aids.append("hotseat-all")
 	return aids
 
 

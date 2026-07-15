@@ -1,0 +1,25 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/WeaponData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fists"
+display_name = "Fists"
+combat_family = "fist"
+wexp_track = "fist"
+required_rank = "E"
+mt = 0
+hit = 80
+crit = 0
+range_min_formula = "1"
+range_max_formula = "1"
+wt = 0
+uses = -1
+cost = 0
+wexp = 1
+effect_tags = []
+uses_mag = false
+triangle_family = ""
+strikes_per_attack = 1
+is_natural_weapon = true

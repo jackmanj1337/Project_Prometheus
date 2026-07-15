@@ -14,6 +14,11 @@ For each relevant Awakening corpus area, this records the **adoption decision** 
 a row here (`Adopted target` / `Adopted w/ variation`) **plus** a GDD update — it is
 never authoritative on its own (DOC-001).
 
+Adopted numbers and relationships are developer-provided presets unless the owning GDD
+section explicitly marks an engine-only invariant. When a system has a CampaignRules,
+registry, or profile row, adoption means "ship this as a built-in preset and validation
+target," not "hardcode this value into engine logic."
+
 **Adoption** (plan §4.4): `Not reviewed` · `Adopted target` · `Adopted w/ variation` ·
 `Rejected` · `Deferred` · `Implemented`. This is distinct from **Impl. status**
 (governance vocabulary: Implemented / Target design / Planned / Deferred / Open
@@ -35,10 +40,10 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Hit RNG model | `awakening_core_systems` | Adopted w/ variation | GDD_02 §Combat Resolution & Hit RNG; GDD_01 §Determinism, Snapshot & Online Contract | Two-RN math is corpus; **sourcing is project** — hash-chained deterministic `RngService` | Target design | RULE-001, SET-002, RNG-1…4 |
 | Crit resolution | `awakening_core_systems` | Adopted target | GDD_02 §Combat Resolution & Hit RNG | Crit only after a hit (roll order) | Target design | RULE-001 |
 | Effectiveness multiplier | `awakening_core_systems`, `awakening_lookup_tables` | Adopted target | GDD_04 §Effectiveness Mechanic | — | Target design | — |
-| Follow-up at +5 AS | `awakening_core_systems` | Implemented | GDD_02 §Combat Resolution & Hit RNG | Current default; campaigns may override | Implemented | — |
+| Follow-up at +5 AS | `awakening_core_systems` | Implemented | GDD_02 §Combat Resolution & Hit RNG | Shipped preset; campaigns may override | Implemented | — |
 | Combat modifier pipeline order | (project ratification) | Adopted w/ variation | GDD_02 §Combat Modifier Pipeline Order (binding contract: GDD_01 / `CombatResolver.gd` header) | **Project-defined order:** base→permanent→pair-up→combat-duration skills→conditions→terrain→triangle→S-rank→clamps | Target design | pipeline order |
 | Mid-exchange weapon breakage | (project ruling) | Adopted w/ variation | GDD_02 §Combat Resolution & Hit RNG + §Weapon Durability | Breakage **cancels remaining strikes**; weapon gone after combat | Target design | OPEN-3 |
-| Fort/throne heal | (project ruling) | Adopted w/ variation | GDD_02 §Terrain (+ GDD_06 §Terrain & Movement) | `heal = max(1, floor(0.10 × max_hp))` | Target design | OPEN-7 |
+| Fort/throne heal | (project ruling) | Adopted w/ variation | GDD_02 §Terrain (+ GDD_06 §Terrain & Movement) | Built-in terrain-heal preset: `heal = max(1, floor(0.10 × max_hp))` | Target design | OPEN-7 |
 | Simultaneous victory/defeat | (project ruling) | Adopted w/ variation | GDD_02 §Win/Loss Evaluation (+ GDD_06 §Objective System) | Defeat before victory; tie → acting faction | Target design | OPEN-6 |
 | Condition/skill precedence | `awakening_skills` (interactions) | Adopted w/ variation | GDD_02 §Status Conditions + GDD_05 §Condition / Skill Precedence | **Conditions ≠ skills**; one general rule, per-skill exceptions | Target design | OPEN-2 |
 
@@ -46,8 +51,8 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 
 | Corpus area | Corpus source | Adoption | GDD owner | Project variation | Impl. status | Decisions |
 |---|---|---|---|---|---|---|
-| Physical weapon triangle | `awakening_weapons_physical`, `awakening_lookup_tables` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | Retain project relationship Sword→Axe→Lance; rank-scaled corpus bonuses | Target design | SET-003 |
-| Magic weapon triangle | `awakening_weapons_magic` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | **Retain project Dark→Anima→Light** triangle; same rank-scaling table | Target design | SET-003, RULE-013 |
+| Physical weapon triangle | `awakening_weapons_physical`, `awakening_lookup_tables` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | Built-in triangle profile retains Sword→Axe→Lance; rank-scaled corpus bonuses | Target design | SET-003 |
+| Magic weapon triangle | `awakening_weapons_magic` | Adopted w/ variation | GDD_04 §Weapon Families & Triangle Membership | Built-in magic triangle profile retains **Dark→Anima→Light**; same rank-scaling table | Target design | SET-003, RULE-013 |
 | Rank-scaled triangle bonus table | `awakening_lookup_tables` | Adopted target | GDD_04 §Weapon Families & Triangle Membership | Hybrid weapons use equipped weapon's trained WEXP track for magnitude | Target design | SET-003, RULE-013 |
 | WEXP thresholds & caps (E1/D31/C71/B121/A181/S251/Cap400) | `awakening_project_index`, `awakening_lookup_tables` | Adopted target | GDD_04 §Weapon Proficiency (WEXP) | — | Target design | SET-004 |
 | Class weapon-rank caps | `awakening_classes_*` | Adopted w/ variation | GDD_03 (caps) / GDD_04 §Weapon Proficiency (math) | Classes author A as default cap; explicit S caps possible | Target design | SET-004 |
@@ -77,7 +82,7 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Soldier class identity | `awakening_classes_special` | Deferred | GDD_03 §Starter Roster & Classes (Known gaps) | Resolve at class migration; interim placeholder enemy-only | Open decision | OPEN-9 (AWR-2) |
 | Class skill acquisition (by class/level) | `awakening_skills`, `awakening_classes_*` | Adopted target | GDD_05 §Skill Acquisition | — | Target design | — |
 | Proc skills (rate formulas) | `awakening_skills` | Adopted target | GDD_05 §Skill Activation & RNG | Draw from event RNG at trigger slot | Target design | OPEN-2 |
-| Five equipped skills | `awakening_core_systems` | Implemented | GDD_05 §Skill System Overview | Current default; campaigns may override | Implemented | — |
+| Five equipped skills | `awakening_core_systems` | Implemented | GDD_05 §Skill System Overview | Shipped cap preset; campaigns may override | Implemented | — |
 | Cleric "Light E" access | `awakening_classes_*` | Deferred | GDD_05 §Skill Acquisition (→ GDD_03) | Decided by Light/Dark design pass | Open decision | OPEN-10 (RULE-009) |
 
 ## Pair Up & supports  → GDD_05 (3.4 — DONE)
@@ -109,7 +114,7 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Magic weapons / tomes | `awakening_weapons_magic` | Adopted target | GDD_04 §Weapon Data & Tables | Project magic triangle preserved (see triangles) | Target design | SET-003 |
 | Staves | `awakening_weapons_magic` | Adopted target | GDD_04 §Weapon Data & Tables | Heal deterministic; EXP flat (no dice) | Target design | — |
 | Items | `awakening_items` | Adopted target | GDD_04 §Items & Economy | — | Target design | — |
-| Effectiveness matrix | `awakening_lookup_tables` | Adopted target | GDD_04 §Effectiveness Mechanic | 3× (4× Giantkiller) | Target design | — |
+| Effectiveness matrix | `awakening_lookup_tables` | Adopted target | GDD_04 §Effectiveness Mechanic | Built-in effectiveness preset: 3× (4× Giantkiller) | Target design | — |
 | Broken-weapon degraded mode | (project backlog) | Deferred | GDD_04 §Broken-Weapon Degraded Mode | Optional rule: stat penalty + infinite uses while broken; likely CampaignRules toggle | Planned (backlog) | OPEN-5 |
 
 ## AI & enemy generation  → GDD_08 (3.8 — DONE)
@@ -118,7 +123,7 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 |---|---|---|---|---|---|---|
 | Tactical AI scoring | `awakening_core_systems` | Deferred | GDD_08 §Future AI Profiles / §Phase 2 Scoring Model | Separate AI task | Planned | — |
 | Enemy generation / autolevel | `awakening_core_systems`, `awakening_appendices` | Not reviewed | GDD_08 §Enemy Generation & Autolevel (+ GDD_03 stats) | — | — | — |
-| Enemy/AI EXP gain | (project rule) | Adopted w/ variation | GDD_02 §EXP / GDD_01 §CampaignRules Contract | `CampaignRules.exp_gaining_factions`, default Blue+Green; Red none | Planned | OPEN-4 |
+| Enemy/AI EXP gain | (project rule) | Adopted w/ variation | GDD_02 §EXP / GDD_01 §CampaignRules Contract | `CampaignRules.exp_gaining_factions`; shipped preset Blue+Green, Red none | Planned | OPEN-4 |
 
 ---
 

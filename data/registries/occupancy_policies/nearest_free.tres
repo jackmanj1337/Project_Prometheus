@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "nearest_free"
+family = "occupancy_policies"
+label_key = "registry.occupancy.nearest_free"
+owner_feature = "B2-OCCUPANCY"
+kind = "placement"
+primitive_handler = "nearest_free_placement"
+params_schema = {"max_radius": {"default": 0, "type": "int"}}
+subjects = Array[String](["unit", "tile"])
+docs_text = "Place at the requested tile or the nearest legal free tile."
+test_fixture = {"max_radius": 2}

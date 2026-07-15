@@ -17,6 +17,9 @@ class_name TurnManager extends Node
 signal turn_changed(turn_number: int)
 signal phase_committed
 
+const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
+const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
+
 enum UnitState { READY, MOVED, DONE }
 
 # Node -> UnitState
@@ -62,6 +65,7 @@ var _activation_mode: String = "WHOLE_PHASE"
 # /root/EnemyAI is used.
 var _ai_controller: Node = null
 var _hotseat_controller: Node = null
+var _debug_hotseat_override_latch: bool = false
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -90,13 +94,8 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 	# be wired on unit_moved (Decision 5 / 2026-05-17), but the 2026-05-20 review
 	# reversed it — escape is now a deliberate ActionMenu entry like Seize, so
 	# no movement hook is needed.
-	var bus := get_node_or_null("/root/EventBus")
-	if bus and not bus.unit_died.is_connected(_on_unit_died):
-		bus.unit_died.connect(_on_unit_died)
-	# A support dropped by a player-phase lead death spends its turn at once.
-	# PairUpRegistry announces it on EventBus so it need not know our scene path.
-	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
-		bus.support_orphaned.connect(_on_support_orphaned)
+	_connect_runtime_signals()
+	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
 	# Begin the first faction's phase.
 	if active_faction() == "blue" or active_faction() == "":
 		start_player_phase()
@@ -109,6 +108,142 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 			var gs_for_first := get_node_or_null("/root/GameState")
 			if gs_for_first:
 				gs_for_first.set_phase(gs_for_first.Phase.ENEMY, active_faction())
+
+
+func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
+	_map_data = map_data
+	_grid = grid
+	_turn_order = SaveCodec.string_array_from_variant(turn_state.get("turn_order", []))
+	if _turn_order.is_empty():
+		_turn_order = _derive_turn_order(map_data)
+	_activation_mode = String(turn_state.get("activation_mode", _derive_activation_mode(map_data)))
+	_active_faction_idx = int(turn_state.get("active_faction_idx", 0))
+	if _active_faction_idx < 0 or _active_faction_idx >= _turn_order.size():
+		_active_faction_idx = 0
+	_unit_states.clear()
+	_original_tiles.clear()
+	_restore_unit_states(turn_state.get("unit_states", {}))
+	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
+	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
+	_group_eliminated_round = SaveCodec.int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
+	_map_over = false
+	var gs := get_node_or_null("/root/GameState")
+	if gs:
+		gs.turn_number = int(turn_state.get("turn_number", 1))
+		var phase_name: String = String(turn_state.get("phase", "player"))
+		gs.set_phase(gs.Phase.ENEMY if phase_name == "enemy" else gs.Phase.PLAYER, active_faction())
+	_connect_runtime_signals()
+	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
+	# V030-SUS-01 (d): turn_number is assigned directly above and is otherwise
+	# only announced by _complete_round, so the HUD (which updates on
+	# turn_changed) would show a stale count until the next round boundary. Emit
+	# now so the label reflects the restored turn immediately.
+	if gs:
+		turn_changed.emit(gs.turn_number)
+
+
+func capture_suspend_turn_state() -> Dictionary:
+	var gs := get_node_or_null("/root/GameState")
+	return {
+		"turn_number": gs.turn_number if gs else 1,
+		"phase": _phase_name(gs),
+		"active_faction": active_faction(),
+		"active_faction_idx": _active_faction_idx,
+		"turn_order": _turn_order.duplicate(),
+		"activation_mode": _activation_mode,
+		"unit_states": _unit_states_by_id(),
+		"seize_records": _serialize_records(_seize_records),
+		"escape_records": _escape_records.duplicate(true),
+		"group_eliminated_round": _group_eliminated_round.duplicate(true),
+	}
+
+
+func _connect_runtime_signals() -> void:
+	var bus := get_node_or_null("/root/EventBus")
+	if bus and not bus.unit_died.is_connected(_on_unit_died):
+		bus.unit_died.connect(_on_unit_died)
+	# A support dropped by a player-phase lead death spends its turn at once.
+	# PairUpRegistry announces it on EventBus so it need not know our scene path.
+	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
+		bus.support_orphaned.connect(_on_support_orphaned)
+	if bus and bus.has_signal("debug_flags_changed") \
+			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
+		bus.debug_flags_changed.connect(_on_debug_flags_changed)
+
+
+func _phase_name(gs: Node) -> String:
+	if gs == null:
+		return "player"
+	return "enemy" if not gs.is_player_turn() else "player"
+
+
+func _unit_states_by_id() -> Dictionary:
+	var out: Dictionary = {}
+	for unit in _unit_states.keys():
+		if not is_instance_valid(unit) or unit.get("data") == null:
+			continue
+		var unit_id: String = String(unit.data.unit_id)
+		if unit_id != "":
+			out[unit_id] = int(_unit_states[unit])
+	return out
+
+
+func _restore_unit_states(states_by_id: Variant) -> void:
+	if not (states_by_id is Dictionary):
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	for unit_id in states_by_id.keys():
+		var unit: Node = gs.find_unit_by_id(String(unit_id))
+		if unit == null:
+			continue
+		var state: int = int(states_by_id[unit_id])
+		_unit_states[unit] = state
+		# V030-SUS-01 (a): the direct dict fill above bypasses set_unit_state's
+		# DONE appearance side effect, so a restored DONE unit would keep its
+		# fresh-spawn tint and LOOK ready while can_unit_act correctly refuses it.
+		# Re-apply the appearance here (freshly spawned units already read READY).
+		if state == UnitState.DONE and unit.has_method("set_done_appearance"):
+			unit.set_done_appearance()
+
+
+func _serialize_records(records: Array[Dictionary]) -> Array:
+	var out: Array = []
+	for record in records:
+		var next: Dictionary = record.duplicate(true)
+		if next.get("tile", null) is Vector2i:
+			next["tile"] = SaveCodec.vector2i_to_dict(next["tile"])
+		out.append(next)
+	return out
+
+
+func _deserialize_records(records: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (records is Array):
+		return out
+	for record in records:
+		if not (record is Dictionary):
+			continue
+		var next: Dictionary = record.duplicate(true)
+		if next.has("tile"):
+			next["tile"] = SaveCodec.vector2i_from_dict(next["tile"])
+		out.append(next)
+	return out
+
+
+func _dict_records_from_variant(records: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (records is Array):
+		return out
+	for record in records:
+		if record is Dictionary:
+			out.append(record.duplicate(true))
+	return out
+
+
+func _array_from_variant(value: Variant) -> Array:
+	return value.duplicate(true) if value is Array else []
 
 
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
@@ -242,6 +377,9 @@ func _refresh_faction_units(faction_id: String) -> void:
 		return
 	for u in gs.get_living_units_of(faction_id):
 		_unit_states[u] = UnitState.READY
+		# Drop any leftover pre-move tile (e.g. a force-ended phase) so
+		# get_action_start_tile never reports a previous turn's move start.
+		_original_tiles.erase(u)
 		if u.has_method("reset_appearance"):
 			u.reset_appearance()
 
@@ -308,11 +446,13 @@ func start_enemy_phase() -> void:
 			_complete_round()
 	# Stage 4/5: run each consecutive non-blue faction controller, then hand back to blue.
 	var guard: int = _turn_order.size() + 1
+	var phase_started: Dictionary = {}
 	while active_faction() != "blue" and active_faction() != "":
 		guard -= 1
 		if guard < 0:
 			push_error("TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'")
 			break
+		var faction_id: String = active_faction()
 		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
 		# faction's phase (not just blue's).
 		check_victory_conditions()
@@ -320,17 +460,34 @@ func start_enemy_phase() -> void:
 			return
 		var gs := get_node_or_null("/root/GameState")
 		if gs:
-			gs.set_phase(gs.Phase.ENEMY, active_faction())
-			if _activation_mode == "WHOLE_PHASE":
+			gs.set_phase(gs.Phase.ENEMY, faction_id)
+			if _activation_mode == "WHOLE_PHASE" and not phase_started.get(faction_id, false):
 				# Same _begin_phase routine as the player phase — turn-modifier tick, fort
 				# healing, then start_of_turn skills (e.g. Renewal) — kept symmetric.
-				_refresh_faction_units(active_faction())
-				_begin_phase(gs.get_living_units_of(active_faction()))
-		var controller := _controller_for(active_faction())
+				_refresh_faction_units(faction_id)
+				_begin_phase(gs.get_living_units_of(faction_id))
+				phase_started[faction_id] = true
+		var was_debug_override: bool = _debug_hotseat_override_active_for(faction_id) \
+			and not _is_hotseat_controlled(faction_id)
+		var controller := _controller_for(faction_id)
 		if controller != null:
-			await controller.run_phase(_grid, self, active_faction())
+			await controller.run_phase(_grid, self, faction_id)
 		if _map_over:
 			return
+		# F9 may flip while a controller is awaited. If it interrupts AI, rerun
+		# the same faction through hotseat; if it turns off during override
+		# hotseat, rerun the same faction through its normal AI controller.
+		# These re-runs replay the SAME faction (no cycle progress), so refund the
+		# guard decrement above — otherwise repeated F9 toggling in one phase would
+		# exhaust the cycle budget and trip the spurious "never returned to blue".
+		if not was_debug_override and _debug_hotseat_override_active_for(active_faction()) \
+				and not _is_hotseat_controlled(active_faction()):
+			guard += 1
+			continue
+		if was_debug_override and not is_debug_hotseat_override_active() \
+				and _is_ai_controlled(active_faction()):
+			guard += 1
+			continue
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
 		# controller handoff lands with the stage-5/hotseat flow.
 		if _activation_mode != "WHOLE_PHASE":
@@ -390,6 +547,12 @@ func _is_hotseat_controlled(faction_id: String) -> bool:
 
 
 func _controller_for(faction_id: String) -> Node:
+	# F9 debug override routes every faction through hotseat. If no hotseat
+	# controller is registered this returns null and the caller skips the
+	# faction's turn entirely (no AI, no player) — acceptable for a debug-only
+	# toggle since the real game maps always register a hotseat controller.
+	if _debug_hotseat_override_active_for(faction_id):
+		return _hotseat_controller
 	if _is_hotseat_controlled(faction_id):
 		return _hotseat_controller
 	if _is_ai_controlled(faction_id):
@@ -422,6 +585,7 @@ func end_alternating_activation() -> void:
 	for u in _unit_states.keys():
 		if u and is_instance_valid(u):
 			_unit_states[u] = UnitState.READY
+			_original_tiles.erase(u)  # same stale-pre-move-tile guard as _refresh_faction_units
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
 	_tick_unit_modifiers(gs.all_units, "map_turn")
@@ -433,6 +597,12 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	if unit == null:
 		return
 	_unit_states[unit] = state
+	if state == UnitState.DONE:
+		# The action is committed — spend the recorded pre-move tile so a later
+		# action without a move can't inherit it (get_action_start_tile must
+		# reflect THIS action only; stale entries would desync replay because
+		# _original_tiles is not part of the snapshot contract).
+		_original_tiles.erase(unit)
 	if state == UnitState.DONE and unit.has_method("set_done_appearance"):
 		unit.set_done_appearance()
 	# When the last locally-human-controlled unit finishes, end the phase
@@ -520,6 +690,50 @@ func request_end_phase() -> void:
 func record_move_start(unit: Node) -> void:
 	if unit:
 		_original_tiles[unit] = unit.tile_position
+
+
+# Pre-move tile of the unit's in-flight action, falling back to its live tile
+# when no move was recorded (e.g. attack-in-place). RNG event records use this
+# as from_tile (rng_determinism_design §3) so the chosen path destination is
+# part of the action's dice identity.
+func get_action_start_tile(unit: Node) -> Vector2i:
+	if unit == null:
+		return Vector2i.ZERO
+	return _original_tiles.get(unit, unit.tile_position)
+
+
+# ── RNG event commits (rng_determinism_design §3/§4) ─────────────────────────
+# Non-dice actions (wait/seize/escape/item/staff/pair actions) commit their
+# event record here at the moment they become non-undoable, advancing the
+# deterministic dice chain (RNG-1). Dice-bearing kinds (attack, levelup) commit
+# inside their own resolution paths — never route those through here, or the
+# chain advances twice for one action.
+func commit_action_event(kind: String, record: Array[String]) -> void:
+	var svc := get_node_or_null("/root/RngService")
+	if svc != null:
+		svc.commit_event(kind, record)
+
+
+# §3 identity field for the acting unit ("-" when the actor has no data).
+func unit_event_id(unit: Node) -> String:
+	if unit == null or unit.get("data") == null:
+		return "-"
+	return unit.data.unit_id
+
+
+# §3 tile field: internal 0-based "x,y", NOT the 1-based display coords.
+static func tile_field(tile: Vector2i) -> String:
+	return "%d,%d" % [tile.x, tile.y]
+
+
+# The common [unit_id, from_tile, to_tile] record shape (wait; prefix for item).
+func make_move_record(unit: Node) -> Array[String]:
+	var to_tile: Vector2i = unit.tile_position if unit != null else Vector2i.ZERO
+	return [
+		unit_event_id(unit),
+		tile_field(get_action_start_tile(unit)),
+		tile_field(to_tile),
+	]
 
 
 func undo_move(unit: Node) -> void:
@@ -995,7 +1209,15 @@ func can_escape(unit: Node, tile: Vector2i) -> bool:
 
 func _apply_victory_rewards(gs: Node) -> void:
 	if _map_data.reward_gold > 0:
-		gs.party_gold += _map_data.reward_gold
+		var ledger := get_node_or_null("/root/ResourceLedger")
+		if ledger == null:
+			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
+		else:
+			var cost = CostSpecScript.fixed(
+				"party_gold", "party", -_map_data.reward_gold)
+			var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
+			if not transaction.ok:
+				push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
 	for item_id in _map_data.reward_items:
 		gs.party_items.append(item_id)
 
@@ -1034,6 +1256,8 @@ func _active_or_default_faction() -> String:
 func is_locally_controlled_faction(faction_id: String) -> bool:
 	if faction_id == "":
 		return false
+	if _debug_hotseat_override_active_for(faction_id):
+		return true
 	if faction_id == "blue":
 		var gs := get_node_or_null("/root/GameState")
 		return gs != null and gs.is_player_turn()
@@ -1042,3 +1266,36 @@ func is_locally_controlled_faction(faction_id: String) -> bool:
 
 func _should_auto_end_faction(faction_id: String) -> bool:
 	return is_locally_controlled_faction(faction_id)
+
+
+func is_debug_hotseat_override_active() -> bool:
+	if not OS.is_debug_build():
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var value: Variant = gs.get("debug_hotseat_override")
+	return value is bool and value
+
+
+func _debug_hotseat_override_active_for(faction_id: String) -> bool:
+	return faction_id != "" and is_debug_hotseat_override_active()
+
+
+func _on_debug_flags_changed() -> void:
+	var active := is_debug_hotseat_override_active()
+	if active == _debug_hotseat_override_latch:
+		return
+	_debug_hotseat_override_latch = active
+	if active:
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or gs.current_phase != gs.Phase.ENEMY:
+		return
+	var faction_id := active_faction()
+	if faction_id == "" or not _is_ai_controlled(faction_id):
+		return
+	var controller := _hotseat_controller
+	if controller != null and controller.has_method("cancel_transient_control_for_handoff"):
+		controller.call("cancel_transient_control_for_handoff")
+	phase_committed.emit()

@@ -3,9 +3,9 @@ extends Node
 #
 # Single source of truth: unit_id -> { partner_id, role }. Both sides of a
 # pair are stored so any query is O(1) regardless of which unit is asked.
-# Snapshotted by GameState alongside _map_start_snapshot so a Retry rewinds
-# pairings to the map's start state. See AGENT/Docs/pair_up_combat_refactor
-# _answers_2026-05-23.md (Q1, Q8) for the design rationale.
+# Serialized into each within-map ledger entry (GameState's map_runtime.pair_carry)
+# so a Retry — restore_history(0) — rewinds pairings to the map's start state. See
+# AGENT/Docs/pair_up_combat_refactor_answers_2026-05-23.md (Q1, Q8) for the rationale.
 #
 # Class-name is intentionally omitted: Godot 4 refuses class_name on autoload
 # scripts (same constraint GameState documents).
@@ -64,10 +64,11 @@ func pair(lead_id: String, support_id: String) -> bool:
 		return false
 	_pairs[lead_id] = {"partner_id": support_id, "role": ROLE_LEAD}
 	_pairs[support_id] = {"partner_id": lead_id, "role": ROLE_SUPPORT}
+	_emit_pair_up_changed()
 	return true
 
 
-# Gates pair() on the campaign-level GameState.pair_up_enabled flag. Returns
+# Gates pair() on the campaign-level GameState.campaign_rules flag. Returns
 # true when the autoload is absent (headless tests that omit GameState) or
 # when the registry instance is not in the scene tree (direct-instance unit
 # tests). The is_inside_tree() check matches the cross-autoload idiom used
@@ -81,7 +82,8 @@ func _campaign_allows_pair_up() -> bool:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return true
-	return bool(gs.get("pair_up_enabled"))
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	return true if rules == null else rules.pair_up_enabled
 
 
 # Removes both sides of the pair this unit belongs to. Returns false if the
@@ -93,6 +95,7 @@ func separate(unit_id: String) -> bool:
 	_pairs.erase(unit_id)
 	if partner_id != "":
 		_pairs.erase(partner_id)
+	_emit_pair_up_changed()
 	return true
 
 
@@ -109,12 +112,14 @@ func swap_roles(unit_id: String) -> bool:
 	var partner_role := get_role(partner_id)
 	_pairs[unit_id]["role"] = partner_role
 	_pairs[partner_id]["role"] = unit_role
+	_emit_pair_up_changed()
 	return true
 
 
 # Drops all pairings. Called by GameState.reset_map_state() between maps.
 func clear() -> void:
 	_pairs.clear()
+	_emit_pair_up_changed()
 
 
 # Lead-death handler: if a paired lead dies, the support drops onto the lead's
@@ -187,3 +192,12 @@ func serialize() -> Dictionary:
 # A missing or empty snapshot leaves the registry empty.
 func restore(snap: Dictionary) -> void:
 	_pairs = snap.duplicate(true) if snap != null else {}
+	_emit_pair_up_changed()
+
+
+func _emit_pair_up_changed() -> void:
+	if not is_inside_tree():
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_signal("pair_up_changed"):
+		bus.pair_up_changed.emit()

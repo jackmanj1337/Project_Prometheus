@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "party_gold"
+family = "resource_types"
+label_key = "registry.resource.party_gold"
+owner_feature = "B2-RESOURCE-LEDGER"
+kind = "wallet"
+primitive_handler = "party_gold_wallet"
+params_schema = {}
+subjects = Array[String](["party"])
+save_fields = Array[String](["party.resources.party_gold"])
+docs_text = "The campaign party's shared gold wallet."
+test_fixture = {"amount": 100}

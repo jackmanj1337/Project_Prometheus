@@ -1,7 +1,7 @@
 class_name UnitData extends Resource
 
 # SNAPSHOT CONTRACT: any field below that can CHANGE during a map must be added to
-# GameState._snapshot_unit_data / _restore_unit_data, or Retry/suspend won't roll it
+# SaveCodec.unit_data_to_dict / apply_unit_dict, or Retry/suspend won't roll it
 # back. Static identity/config fields are exempt and listed in test_snapshot_coverage.gd
 # (STATIC_FIELDS). That test reflects over these fields and FAILS on any uncovered
 # mutable field — so when you add a field here, update the snapshot or STATIC_FIELDS.
@@ -41,7 +41,7 @@ var tile_position: Vector2i = Vector2i.ZERO
 @export var weapon_wexp: Dictionary = {}
 
 # Array of skill ID strings referencing SkillData resources. Equippable; a
-# GameState.max_skills caps how many of these can be equipped once M6 lands.
+# GameState.campaign_rules.max_skills caps how many of these can be equipped.
 @export var skills: Array[String] = []
 # Every skill this unit has ever learned. `skills` is the currently equipped
 # subset; future battle-prep skill swapping will draw from this full list.
@@ -75,7 +75,11 @@ var mastery_skills: Array[String] = []
 # Active temporary stat modifiers. Each entry:
 #   { "stat": String, "delta": int, "source": String, "duration": int,
 #     "duration_type": "turn"|"map_turn"|"combat"|"permanent" }
-# "duration" = -1 means never auto-removed. "permanent" type is never decremented.
+# This `duration_type` is the LIFECYCLE tick point (when the modifier decrements /
+# is cleared), NOT the display label — the character sheet's human scope wording is
+# the separate V021-09 vocabulary (GameConstants.VALID_DURATION_TYPES), mapped by
+# StatBreakdown.format_duration. "duration" = -1 means never auto-removed;
+# "permanent" type is never decremented.
 var active_modifiers: Array[Dictionary] = []
 
 # Per-map use counters for limited skills. Keys = skill.id, values = times used.

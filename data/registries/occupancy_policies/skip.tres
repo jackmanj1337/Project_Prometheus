@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "skip"
+family = "occupancy_policies"
+label_key = "registry.occupancy.skip"
+owner_feature = "B2-OCCUPANCY"
+kind = "placement"
+primitive_handler = "skip_placement"
+subjects = Array[String](["unit", "tile"])
+docs_text = "Skip an unavailable placement without mutation."
+test_fixture = {"tile": "occupied"}

@@ -37,6 +37,10 @@ const VALID_COMBAT_FAMILIES: Array[String] = [
 	"sword", "lance", "axe", "bow",
 	"fire", "thunder", "wind", "light", "dark", "staff",
 	"beaststone", "dragonstone",
+	# Unarmed / martial-arts family. Demo home of the 0-Mt "Fists" weapon — a
+	# non-inventory-style fallback an author can grant to everyone or lock to a
+	# martial-artist class via ClassData.allowed_weapon_families.
+	"fist",
 ]
 
 # Canonical WEXP tracks. UnitData.weapon_wexp stores numeric progress against these
@@ -45,6 +49,7 @@ const VALID_WEXP_TRACKS: Array[String] = [
 	"sword", "lance", "axe", "bow",
 	"elemental_magic", "light", "dark", "staff",
 	"beaststone", "dragonstone",
+	"fist",
 ]
 
 const VALID_VULNERABILITY_GROUPS: Array[String] = [
@@ -53,6 +58,50 @@ const VALID_VULNERABILITY_GROUPS: Array[String] = [
 
 const VALID_INTERNAL_LEVEL_RULES: Array[String] = ["base", "promoted", "special"]
 const VALID_CLASS_AVAILABILITY: Array[String] = ["playable", "hidden"]
+
+# Movement-type subset of ClassData.special_qualities (V021-11), in DESCENDING
+# precedence. A class may carry more than one (Great Knight = armoured+mounted), so
+# movement_type_of() resolves to the single highest-precedence tag for terrain cost
+# and display. The array also holds non-movement tags (dragon/beast/laguz — M12/M13
+# effectiveness types) which the resolver ignores. Every class must declare at least
+# one of these (enforced by check_docs.py); `infantry` is the explicit default so a
+# class's movement cost is marked rather than inferred from absence.
+const VALID_MOVEMENT_TYPES: Array[String] = [
+	"flying", "mounted", "armoured", "light_footed", "infantry",
+]
+
+
+# Resolves a class/unit's single movement type from its special_qualities tags by
+# VALID_MOVEMENT_TYPES precedence (flying > mounted > armoured > light_footed >
+# infantry), ignoring non-movement tags. Defaults to "infantry" when none is present.
+# Flying wins cost resolution (fliers ignore ground terrain); among ground types the
+# mount/armour penalty dominates the light bonus. Effectiveness is independent —
+# vulnerability_groups still reads every tag, so an armoured+mounted unit is hit by
+# all matching effective weapons regardless of its resolved movement type.
+static func movement_type_of(special_qualities: Array) -> String:
+	for mt in VALID_MOVEMENT_TYPES:
+		if mt in special_qualities:
+			return mt
+	return "infantry"
+
+# Stat-modifier DISPLAY duration vocabulary (V021-09). This is the fixed set of
+# human-facing scope labels the character sheet renders via
+# StatBreakdown.format_duration; M8 conditions / M9 procs author against it so they
+# never reintroduce an ad-hoc string. NOTE: this is the *label*, not the tick point
+# — when a real modifier decrements is a separate concern carried by the lifecycle
+# duration_type on data.active_modifiers ("turn" = per-faction-phase, "map_turn" =
+# per round, "combat" = cleared at end of combat, "permanent" = never). The
+# 2026-06-20 M8 amendment maps "x turns" to the per-faction-phase ("turn") tick.
+#   this_combat     — one engagement (attack + its follow-ups/counters)
+#   until_separated — persists across combats until a Pair Up splits
+#   until_unequipped— persists while the granting weapon/item is held
+#   until_end_of_map— persists for the whole chapter
+#   x_turns         — counts down N turns, then expires
+#   permanent       — innate/class bonus; never expires (renders blank)
+const VALID_DURATION_TYPES: Array[String] = [
+	"this_combat", "until_separated", "until_unequipped",
+	"until_end_of_map", "x_turns", "permanent",
+]
 
 # Legacy authored keys that must be migrated in-repo instead of supported at load time.
 const LEGACY_WEXP_TRACKS: Array[String] = ["fire", "thunder", "wind"]
@@ -75,6 +124,13 @@ const STAFF_HEAL_EXP: int = 10   # flat EXP awarded to the healer per staff use
 const CURSOR_KEY_REPEAT_DELAY: float = 0.25  # initial hold delay before auto-repeat
 const CURSOR_KEY_REPEAT_RATE: float = 0.10   # per-step delay during auto-repeat
 const CURSOR_CAMERA_EDGE_BUFFER: int = 2     # tiles from viewport edge that trigger camera pan
+
+# Menu held-direction repeat timings (GDD_07 / V031-GP-03). Menus step between
+# discrete rows/entries, so they read best slower than map-cursor travel — the
+# v0.3.1 live return called the shared 0.10s cadence "a little fast" in the
+# Action Menu / character sheet.
+const MENU_KEY_REPEAT_DELAY: float = 0.30  # initial hold delay before auto-repeat
+const MENU_KEY_REPEAT_RATE: float = 0.15   # per-step delay during auto-repeat
 
 # Combat thresholds
 const FOLLOW_UP_SPEED_THRESHOLD: int = 5    # SPD advantage needed to attack twice (GDD_02)

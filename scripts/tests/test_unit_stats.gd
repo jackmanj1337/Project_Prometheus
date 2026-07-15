@@ -92,10 +92,16 @@ func _init() -> void:
 	var dm: Node = relay.get_node_or_null("/root/DataManager")
 	var gs: Node = relay.get_node_or_null("/root/GameState")
 	var bus: Node = relay.get_node_or_null("/root/EventBus")
+	var pair_reg: Node = relay.get_node_or_null("/root/PairUpRegistry")
 	relay.queue_free()
-	if dm == null or gs == null or bus == null:
-		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s" % [
-			dm, gs, bus])
+	if dm == null or gs == null or bus == null or pair_reg == null:
+		print("BAIL: required autoload missing — DataManager=%s GameState=%s EventBus=%s PairUpRegistry=%s" % [
+			dm, gs, bus, pair_reg])
+		quit(1)
+		return
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		print("BAIL: GameState.campaign_rules missing")
 		quit(1)
 		return
 
@@ -117,6 +123,25 @@ func _init() -> void:
 	# Restore default team for the remaining baseline checks.
 	unit.team = "blue"
 	unit.apply_faction_visual(null)
+
+	# --- Pair Up map badge: paired leads show a small on-map marker ---
+	rules.pair_up_enabled = true
+	pair_reg.call("clear")
+	unit.data.unit_id = "badge_lead"
+	var badge: Label = unit.get_node_or_null("PairUpBadge")
+	var pair_ok: bool = bool(pair_reg.call("pair", "badge_lead", "badge_support"))
+	await process_frame
+	var badge_shown: bool = badge != null and badge.visible
+	pair_reg.call("separate", "badge_lead")
+	await process_frame
+	var badge_hidden: bool = badge != null and not badge.visible
+	if pair_ok and badge_shown and badge_hidden:
+		print("OK  Pair Up badge follows lead pair/separate state")
+		passed += 1
+	else:
+		print("FAIL Pair Up badge: pair=%s shown=%s hidden=%s" % [
+			pair_ok, badge_shown, badge_hidden])
+		failed += 1
 
 	# Soldier base: STR 7, SKL 6, SPD 6, LUK 6, DEF 6, MAG 0
 	# Iron Lance:  Mt 7, Hit 80, Crit 0, Wt 8
@@ -435,7 +460,7 @@ func _init() -> void:
 	watcher.prompt_target = auto_unit
 	bus.promotion_available.connect(Callable(watcher, "on_prompt"))
 	await process_frame
-	gs.auto_promote_at_max_level = true
+	rules.auto_promote_at_max_level = true
 	auto_unit.add_exp(5)
 	if auto_data.level == 2 and auto_data.exp == 0 and watcher.prompt_count == 1:
 		print("OK  auto-promote emits promotion_available at class cap when enabled")
@@ -456,7 +481,7 @@ func _init() -> void:
 	root.add_child(no_prompt_unit)
 	await process_frame
 	var prompt_before: int = watcher.prompt_count
-	gs.auto_promote_at_max_level = false
+	rules.auto_promote_at_max_level = false
 	no_prompt_unit.add_exp(5)
 	if no_prompt_data.level == 2 and no_prompt_data.exp == 0 \
 			and watcher.prompt_count == prompt_before:
@@ -466,6 +491,35 @@ func _init() -> void:
 		print("FAIL auto-promote off: lvl=%d exp=%d prompts=%d before=%d" % [
 			no_prompt_data.level, no_prompt_data.exp, watcher.prompt_count, prompt_before])
 		failed += 1
+	# Regression (review 2026-06-17 #4): a unit authored to spawn ALREADY at the
+	# class cap never crosses the cap via level_up(), so add_exp() returns early.
+	# It must still surface promotion availability on that early-return path or
+	# such a unit could never auto-promote. EXP is still discarded at the cap.
+	var atmax_data := UnitData.new()
+	atmax_data.class_id = "cavalier"
+	atmax_data.level = promo_base.max_level  # already at the (test-shrunk) cap
+	atmax_data.exp = 0
+	atmax_data.hp = 10
+	atmax_data.max_hp = 10
+	atmax_data.weapon_wexp = {"sword": _wexp("D")}
+	var atmax_unit: Unit = unit_scene.instantiate()
+	atmax_unit.data = atmax_data
+	root.add_child(atmax_unit)
+	await process_frame
+	watcher.prompt_target = atmax_unit
+	var atmax_prompt_before: int = watcher.prompt_count
+	rules.auto_promote_at_max_level = true
+	atmax_unit.add_exp(50)  # discarded at cap, but should still prompt
+	if atmax_data.level == promo_base.max_level and atmax_data.exp == 0 \
+			and watcher.prompt_count == atmax_prompt_before + 1:
+		print("OK  add_exp at max level still emits promotion_available (auto-promote on)")
+		passed += 1
+	else:
+		print("FAIL add_exp at max: lvl=%d exp=%d prompts=%d before=%d" % [
+			atmax_data.level, atmax_data.exp, watcher.prompt_count, atmax_prompt_before])
+		failed += 1
+	rules.auto_promote_at_max_level = false
+
 	promo_base.max_level = saved_base_max_level
 	promo_base.promotes_to = saved_base_promotes_to
 	promo_target.tier = saved_target_tier
@@ -565,6 +619,51 @@ func _init() -> void:
 		print("FAIL growth_random rate-250: got min_gain=%d (expected ≥ 2)" % min_gain)
 		failed += 1
 
+	# ── B1-PKGA Slice 1c: growth rolls draw from the levelup event RNG ────────
+	# A fixed event seed must reproduce identical stat gains (RNG-1); the roll
+	# order (one draw per _GROWTH_STATS entry) is part of the §5 contract.
+	# This suite runs with the REAL autoloads (no stubs claimed the names in
+	# _init), so use the live /root/RngService — a second node with that name
+	# would be auto-renamed and level_up() would commit to the autoload instead.
+	var rng_svc: Node = rand_unit.get_node_or_null("/root/RngService")
+	rng_svc.start_map(31337)
+	var rates75 := {"hp": 75, "strength": 75, "magic": 75, "defense": 75,
+		"resistance": 75, "skill": 75, "speed": 75, "luck": 75}
+	var lv_rec: Array[String] = ["growth_det", "2"]
+	var det_a: Dictionary = rand_unit._level_up_random(rates75, {},
+		rng_svc.begin_event("levelup", lv_rec))
+	var det_b: Dictionary = rand_unit._level_up_random(rates75, {},
+		rng_svc.begin_event("levelup", lv_rec))
+	if det_a == det_b and not det_a.is_empty():
+		print("OK  1c: fixed levelup event seed reproduces identical stat gains")
+		passed += 1
+	else:
+		print("FAIL 1c growth determinism: %s vs %s" % [det_a, det_b])
+		failed += 1
+
+	# level_up() commits one "levelup" event per level — for growth_fixed too,
+	# so the dice chain is identical across leveling methods. Needs real class
+	# data: level_up() bails before the growth rolls without it.
+	rand_unit.data.class_id = "cavalier"
+	var hash_before: int = rng_svc.history_hash
+	rand_unit.level_up()
+	var hash_random: int = rng_svc.history_hash
+	var gs_lv := rand_unit.get_node_or_null("/root/GameState")
+	var rules_lv: CampaignRules = (gs_lv.get("campaign_rules") as CampaignRules) if gs_lv else null
+	var saved_method: String = rules_lv.leveling_method if rules_lv != null else "growth_random"
+	if rules_lv != null:
+		rules_lv.leveling_method = "growth_fixed"
+	rand_unit.level_up()
+	var hash_fixed: int = rng_svc.history_hash
+	if rules_lv != null:
+		rules_lv.leveling_method = saved_method
+	if hash_random != hash_before and hash_fixed != hash_random:
+		print("OK  1c: level_up commits a levelup event (growth_fixed included)")
+		passed += 1
+	else:
+		print("FAIL 1c levelup commit: %d -> %d -> %d" % [hash_before, hash_random, hash_fixed])
+		failed += 1
+
 	# --- DEBUG AID #11: debug_growth_boost inflates growth rates by +300 ---
 	# Effective only in debug builds (the headless test binary is one). A rate-0
 	# stat becomes 300 → _debug_boosted_rate returns 300; restored to false after.
@@ -630,7 +729,7 @@ func _init() -> void:
 	await process_frame
 	var sc := ClassData.new()
 	sc.skill_unlocks = {1: "vantage", 10: "wrath"}
-	gs.max_skills = 1
+	rules.max_skills = 1
 	skill_data.level = 10
 	var learned1: Array = skill_unit._grant_level_skills(sc)  # → wrath
 	skill_data.level = 1
@@ -647,7 +746,7 @@ func _init() -> void:
 		print("FAIL M2/M6.3 skill grant: skills=%s earned=%s l1=%s l2=%s l3=%s" % [
 			skill_data.skills, skill_data.earned_skills, learned1, learned2, learned3])
 		failed += 1
-	gs.max_skills = 5
+	rules.max_skills = 5
 
 	# --- N6/F1: a newly created level-1 unit receives its class level-1 skill once ---
 	var init_skill_unit: Unit = unit_scene.instantiate()

@@ -38,15 +38,29 @@ func _init() -> void:
 		gs = load("res://scripts/autoloads/GameState.gd").new()
 		gs.name = "GameState"
 		root.add_child(gs)
+	var rng_svc := root.get_node_or_null("RngService")
+	if rng_svc == null:
+		rng_svc = load("res://scripts/autoloads/RngService.gd").new()
+		rng_svc.name = "RngService"
+		root.add_child(rng_svc)
 	await process_frame
 	gs.reset_map_state()
 	gs.load_default_roster()
 	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var occupancy := root.get_node_or_null("OccupancyService")
+	if occupancy != null:
+		occupancy.delayed_requests.append(RefCounted.new())
 
 	# Add to root so @onready and _ready run
 	root.add_child(instance)
 	# One frame to let _ready complete
 	await process_frame
+	if occupancy != null and occupancy.delayed_requests.is_empty():
+		print("OK  map start clears scene-scoped delayed placement requests")
+		passed += 1
+	else:
+		print("FAIL map start retained delayed placement requests")
+		failed += 1
 
 	# Verify expected child nodes exist
 	for child in ["TileMapLayer_Terrain", "TileMapLayer_Overlay", "UnitsContainer",
@@ -187,6 +201,23 @@ func _init() -> void:
 	else:
 		print("FAIL Unit_01 placement: " + str(soldier))
 		failed += 1
+	# Map-start placement defaults to nearest_free. A collision must displace the
+	# later unit instead of dropping it or aborting the map.
+	if soldier:
+		var fallback_data: UnitData = soldier.data.duplicate(true)
+		fallback_data.unit_id = "fallback_spawn_test"
+		fallback_data.unit_name = "FallbackSpawnTest"
+		var fallback_unit: Unit = instance._place_and_spawn(
+			fallback_data, soldier.tile_position, "red")
+		if fallback_unit != null and fallback_unit.tile_position != soldier.tile_position:
+			print("OK  occupied map-start tile falls back to a nearest free tile")
+			passed += 1
+		else:
+			print("FAIL map-start nearest-free fallback: %s" % str(fallback_unit))
+			failed += 1
+		if fallback_unit != null:
+			gs.unregister_unit(fallback_unit)
+			fallback_unit.queue_free()
 	# Boss enemy E8 should be at (39, 12)
 	var boss: Unit = null
 	for child in units_container.get_children():
@@ -219,6 +250,21 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL TurnManager not initialized")
+		failed += 1
+
+	# Fresh maps seed the gameplay RNG before the round-0 ledger entry, so Retry
+	# (restore_history(0)) starts from a real per-map seed, not the default zero seed.
+	var first_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {}) if gs else {}
+	if rng_svc != null and int(rng_svc.get("map_seed")) != 0 \
+			and int(rng_svc.get("history_hash")) == 0 \
+			and int(first_rng_snapshot.get("map_seed", 0)) != 0 \
+			and int(first_rng_snapshot.get("history_hash", -1)) == 0:
+		print("OK  fresh GameMap seeds RngService before the Retry snapshot")
+		passed += 1
+	else:
+		print("FAIL fresh map rng seed/snapshot: live=%s snapshot=%s" % [
+			rng_svc.call("to_save_dict") if rng_svc else {},
+			first_rng_snapshot])
 		failed += 1
 
 	# MapCursor menu references must resolve at runtime. If they are null the
@@ -338,6 +384,7 @@ func _init() -> void:
 			"res://data/maps/map_900_hotseat_validation/map_900_hotseat_validation_data.tres",
 			"fixed_test_roster",
 			"res://data/roster/test/map_900_hotseat_validation/")
+		rng_svc.call("commit_event", "wait", ["rng_test_unit", "1,1", "1,1"] as Array[String])
 		var hotseat_instance: Node = packed.instantiate()
 		root.add_child(hotseat_instance)
 		await process_frame
@@ -360,6 +407,17 @@ func _init() -> void:
 		else:
 			print("FAIL hotseat map spawn count/factions: count=%d green=%s" % [
 				hotseat_units.get_child_count(), hotseat_green_found])
+			failed += 1
+		var second_rng_snapshot: Dictionary = gs.peek_history(0).get("map_runtime", {}).get("rng", {})
+		if int(rng_svc.get("map_seed")) != 0 and int(rng_svc.get("history_hash")) == 0 \
+				and int(second_rng_snapshot.get("map_seed", 0)) != 0 \
+				and int(second_rng_snapshot.get("history_hash", -1)) == 0:
+			print("OK  second same-session fresh GameMap resets RNG history before snapshot")
+			passed += 1
+		else:
+			print("FAIL second fresh map rng history: live=%s snapshot=%s" % [
+				rng_svc.call("to_save_dict"),
+				second_rng_snapshot])
 			failed += 1
 
 		# A fresh map boot must wipe stale map-scoped GameState data left behind
@@ -432,5 +490,128 @@ func _init() -> void:
 			print("FAIL GameMap silently spawned %d units without explicit roster prep" % bad_units.get_child_count())
 			failed += 1
 
+		# An individual no-free-tile result is logged and skipped, but is not a
+		# structural boot failure. Use a zero-sized grid to force that result.
+		var blocked_data := UnitData.new()
+		blocked_data.unit_id = "blocked_spawn_test"
+		blocked_data.unit_name = "BlockedSpawnTest"
+		gs.player_roster.assign([blocked_data])
+		gs.roster_initialized = true
+		gs.roster_load_failed = false
+		gs.configure_next_map("res://test_map.tres", "keep_current_roster", "")
+		var blocked_map := MapData.new()
+		blocked_map.player_start_tiles.assign([Vector2i.ZERO])
+		bad_boot_instance.map_data = blocked_map
+		var blocked_grid: GridManager = bad_boot_instance.get_node("GridManager")
+		var saved_width: int = blocked_grid.map_width
+		var saved_height: int = blocked_grid.map_height
+		blocked_grid.map_width = 0
+		blocked_grid.map_height = 0
+		var placement_failure_nonfatal: bool = bad_boot_instance._spawn_units()
+		blocked_grid.map_width = saved_width
+		blocked_grid.map_height = saved_height
+		if placement_failure_nonfatal and bad_units.get_child_count() == 0:
+			print("OK  a no-free-tile placement skips the unit without failing map spawn")
+			passed += 1
+		else:
+			print("FAIL placement failure aborted map spawn or created a unit")
+			failed += 1
+
+	# ---- B4-PREP-DEPLOYMENT Slice 1: the explicit deployment plan ----
+	# The plan is the whole point of prep: deployment stops being INFERRED from
+	# roster order and becomes a choice GameMap consumes.
+	var map_for_plan: MapData = load("res://data/maps/map_001_rout/map_001_data.tres")
+	var start_tiles: Array[Vector2i] = map_for_plan.player_start_tiles
+
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	var roster: Array[UnitData] = gs.player_roster
+	# Deliberately NOT roster order: the THIRD roster unit takes the FIRST start
+	# tile. Roster-order inference could never produce this placement, so passing
+	# proves the plan was consumed rather than re-derived.
+	gs.set_next_map_deployment({
+		roster[2].unit_id: start_tiles[0],
+		roster[0].unit_id: start_tiles[1],
+	})
+	var plan_instance: Node = packed.instantiate()
+	root.add_child(plan_instance)
+	await process_frame
+	var planned: Array[Node] = _blue_units(plan_instance)
+	if planned.size() == 2 \
+			and _tile_of(planned, roster[2].unit_id) == start_tiles[0] \
+			and _tile_of(planned, roster[0].unit_id) == start_tiles[1]:
+		print("OK  an explicit plan deploys the named units on the named tiles")
+		passed += 1
+	else:
+		print("FAIL plan spawned %d blue units: %s" % [planned.size(), _describe(planned)])
+		failed += 1
+
+	# An illegal plan must refuse to launch rather than spawn a half-legal board —
+	# prep gates Begin Battle, so a bad plan here means the party or map changed
+	# underneath it.
+	var before_illegal: int = plan_instance.get_node("UnitsContainer").get_child_count()
+	gs.set_next_map_deployment({"not_in_the_party": start_tiles[0]})
+	var illegal_spawned: bool = plan_instance._spawn_units()
+	if not illegal_spawned \
+			and plan_instance.get_node("UnitsContainer").get_child_count() == before_illegal:
+		print("OK  GameMap refuses an illegal plan instead of spawning a partial board")
+		passed += 1
+	else:
+		print("FAIL GameMap spawned from an illegal deployment plan")
+		failed += 1
+	plan_instance.queue_free()
+	await process_frame
+
+	# No plan = every launch path that has no prep screen (the bare single-map
+	# launch). It must behave EXACTLY as it did before this slice: roster slot N
+	# onto player_start_tiles[N], truncated by the tile count.
+	gs.reset_map_state()
+	gs.load_default_roster()
+	gs.configure_next_map("res://data/maps/map_001_rout/map_001_data.tres", "default_roster", "")
+	gs.clear_next_map_deployment()
+	var fallback_instance: Node = packed.instantiate()
+	root.add_child(fallback_instance)
+	await process_frame
+	var fallback_blue: Array[Node] = _blue_units(fallback_instance)
+	var expected_count: int = mini(gs.player_roster.size(), start_tiles.size())
+	if fallback_blue.size() == expected_count \
+			and _tile_of(fallback_blue, gs.player_roster[0].unit_id) == start_tiles[0] \
+			and _tile_of(fallback_blue, gs.player_roster[1].unit_id) == start_tiles[1]:
+		print("OK  an absent plan falls back to the roster-order rule unchanged")
+		passed += 1
+	else:
+		print("FAIL fallback spawned %d blue units (expected %d): %s" % [
+			fallback_blue.size(), expected_count, _describe(fallback_blue)])
+		failed += 1
+	fallback_instance.queue_free()
+	await process_frame
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)
+
+
+# The player-faction units spawned into a GameMap instance. UnitsContainer holds
+# the enemy placements too, so the deployment assertions must filter by faction.
+static func _blue_units(map_instance: Node) -> Array[Node]:
+	var out: Array[Node] = []
+	for child in map_instance.get_node("UnitsContainer").get_children():
+		if "team" in child and child.team == "blue":
+			out.append(child)
+	return out
+
+
+# Tile the named unit stands on, or (-999, -999) if it never deployed — a
+# sentinel no start tile can equal, so a missing unit fails its assertion.
+static func _tile_of(units: Array[Node], unit_id: String) -> Vector2i:
+	for unit in units:
+		if unit.data != null and unit.data.unit_id == unit_id:
+			return unit.tile_position
+	return Vector2i(-999, -999)
+
+
+static func _describe(units: Array[Node]) -> String:
+	var out: Array[String] = []
+	for unit in units:
+		out.append("%s@%s" % [unit.data.unit_id, unit.tile_position])
+	return ", ".join(out)

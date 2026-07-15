@@ -14,8 +14,8 @@ extends SceneTree
 # — this file focuses on selector state only.
 
 
-# Tiny resolver stub so show_preview can pull a Dictionary without booting
-# the real CombatResolver autoload.
+# Tiny resolver stub used by the real ProjectionService so show_preview can pull
+# a Dictionary without booting the real CombatResolver autoload.
 class StubResolver extends Node:
 	var preview_data: Dictionary = {}
 
@@ -27,6 +27,8 @@ class StubResolver extends Node:
 # position reads succeed without needing the real Unit class.
 class StubUnit extends Node2D:
 	var data = null
+	var _weapon = null
+	func get_equipped_weapon(): return _weapon
 
 
 func _init() -> void:
@@ -34,8 +36,8 @@ func _init() -> void:
 	var passed := 0
 	var failed := 0
 
-	# Install the CombatResolver stub before instantiating the preview so
-	# show_preview's get_node_or_null("/root/CombatResolver") resolves it.
+	# Install the CombatResolver stub before autoload registration completes so
+	# ProjectionService's resolver lookup reaches this deterministic fixture.
 	var resolver := StubResolver.new()
 	resolver.name = "CombatResolver"
 	resolver.preview_data = _make_preview_data()
@@ -50,14 +52,28 @@ func _init() -> void:
 
 	var attacker := StubUnit.new()
 	attacker.data = _make_unit_data("Hero", 24, 30)
+	attacker._weapon = load("res://data/weapons/iron_sword.tres")
 	root.add_child(attacker)
 
 	var defender := StubUnit.new()
-	defender.data = _make_unit_data("Brigand", 18, 28)
+	defender.data = _make_unit_data("Brigand", 18, 28)  # no weapon → Unarmed
 	root.add_child(defender)
 
 	preview.show_preview(attacker, defender)
 	await process_frame
+
+	# ---- V021-14: forecast names each combatant's equipped weapon -------
+	var weapon_ok: bool = "Iron Sword" in preview._atk_weapon.text \
+		and preview._atk_weapon.size.y > 0.0 \
+		and preview._def_weapon.text == "Unarmed" \
+		and preview._def_weapon.size.y > 0.0
+	if weapon_ok:
+		print("OK  forecast names the equipped weapon with visible row height (V021-14/V023-04)")
+		passed += 1
+	else:
+		print("FAIL V021-14 weapon names: atk=%s def=%s" % [
+			preview._atk_weapon.text, preview._def_weapon.text])
+		failed += 1
 	var panel_size_ok: bool = preview._panel.size.x >= 560.0 \
 		and preview._panel.size.x < root.get_visible_rect().size.x \
 		and preview._panel.size.y >= 110.0 \
@@ -74,7 +90,7 @@ func _init() -> void:
 		preview._atk_name, preview._atk_hp, preview._atk_dmg, preview._atk_hit,
 		preview._atk_crit, preview._atk_triangle, preview._atk_effective,
 		preview._def_name, preview._def_hp, preview._def_dmg, preview._def_hit,
-		preview._def_crit, preview._def_triangle,
+		preview._def_crit, preview._def_triangle, preview._def_effective,
 	]
 	var visible_height_failures: Array[String] = []
 	for label in forecast_rows:
@@ -129,6 +145,37 @@ func _init() -> void:
 		print("FAIL field link rendering: atk_dmg=%s def_hit=%s atk_tri=%s atk_eff=%s" \
 			% [atk_dmg_text, def_hit_text, atk_tri_text, atk_eff_text])
 		failed += 1
+
+	# V023-04: neutral triangle/effectiveness states are visible, not blank
+	# cycle-only entries.
+	var neutral_data := _make_preview_data()
+	neutral_data["attacker_triangle"] = "neutral"
+	neutral_data["defender_triangle"] = "neutral"
+	neutral_data["attacker_effective"] = false
+	neutral_data["defender_effective"] = false
+	resolver.preview_data = neutral_data
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var neutral_ok: bool = (
+		"■ Neutral" in preview._atk_triangle.text
+		and "■ Neutral" in preview._atk_effective.text
+		and "■ Neutral" in preview._def_triangle.text
+		and "■ Neutral" in preview._def_effective.text
+		and preview._atk_triangle.size.y > 0.0
+		and preview._atk_effective.size.y > 0.0
+	)
+	if neutral_ok:
+		print("OK  neutral triangle/effectiveness rows render visible gray Neutral markers")
+		passed += 1
+	else:
+		print("FAIL neutral rows: atk_tri=%s/%s atk_eff=%s/%s def_tri=%s def_eff=%s" % [
+			preview._atk_triangle.text, str(preview._atk_triangle.size),
+			preview._atk_effective.text, str(preview._atk_effective.size),
+			preview._def_triangle.text, preview._def_effective.text])
+		failed += 1
+	resolver.preview_data = _make_preview_data()
+	preview.show_preview(attacker, defender)
+	await process_frame
 
 	# ---- InfoBox starts in the hint state -------------------------------
 	if preview._info_hint.visible and preview._info_desc.text == "":
@@ -201,17 +248,50 @@ func _init() -> void:
 			% [seen.size(), preview._entries.size()])
 		failed += 1
 
+	# ---- The shared SelectionCursor drives selection (B6-INPUT adoption) -
+	# _current_index is a mirror of _selector.index; clicking, cycling, and the
+	# reset-on-show all flow through the cursor. Locks the refactor so a future
+	# edit can't quietly reintroduce a private index.
+	preview.show_preview(attacker, defender)
+	await process_frame
+	var cursor_start_ok: bool = preview._selector.index == -1 \
+		and preview._current_index == -1
+	preview._cycle_more_info()
+	var cursor_step_ok: bool = preview._selector.index == 0 \
+		and preview._current_index == 0
+	preview._on_entry_clicked("combat_field:def:hp")
+	var def_hp_idx: int = -1
+	for i in preview._entries.size():
+		var entry: Dictionary = preview._entries[i]
+		if entry["side"] == "def" and entry["key"] == "hp":
+			def_hp_idx = i
+			break
+	var cursor_click_ok: bool = preview._selector.index == def_hp_idx \
+		and preview._current_index == def_hp_idx
+	if cursor_start_ok and cursor_step_ok and cursor_click_ok:
+		print("OK  selection flows through the shared SelectionCursor"); passed += 1
+	else:
+		print("FAIL cursor adoption: start=%s step=%s click=%s (sel=%d cur=%d def_hp=%d)" % [
+			cursor_start_ok, cursor_step_ok, cursor_click_ok,
+			preview._selector.index, preview._current_index, def_hp_idx])
+		failed += 1
+
 	# ---- No-counter layout keeps the visible defender row readable ------
 	resolver.preview_data = _make_preview_data(false, true)
 	preview.show_preview(attacker, defender)
 	await process_frame
+	# V026-04b: Hit/Crit render as plain dash rows (not blanks) when there is no
+	# counter, so the triangle/effectiveness icons stay column-aligned. Plain text
+	# (no [url]) so the selector cycle never lands on a rate that doesn't exist.
 	var no_counter_ok: bool = (
 		preview._def_dmg.text == "[url=combat_field:def:damage]No counter[/url]"
 		and preview._def_dmg.size.y > 0.0
-		and preview._def_hit.text == ""
-		and preview._def_hit.size.y <= 0.0
-		and preview._def_crit.text == ""
-		and preview._def_crit.size.y <= 0.0
+		and preview._def_hit.text == "Hit  —"
+		and preview._def_hit.size.y > 0.0
+		and not ("[url=" in preview._def_hit.text)
+		and preview._def_crit.text == "Crit —"
+		and preview._def_crit.size.y > 0.0
+		and not ("[url=" in preview._def_crit.text)
 		and preview._def_name.text.ends_with("  [Vantage]")
 	)
 	if no_counter_ok:
@@ -315,6 +395,17 @@ func _init() -> void:
 		print("OK  show_preview is safe without camera injection"); passed += 1
 	else:
 		print("FAIL show_preview without camera left preview hidden")
+		failed += 1
+
+	# A failed projection must invalidate the previous selector state instead of
+	# leaving stale rows available through More Info navigation.
+	resolver.free()
+	preview.show_preview(attacker, defender)
+	if preview._entries.is_empty() and preview._current_index == -1:
+		print("OK  failed projection clears stale selector entries"); passed += 1
+	else:
+		print("FAIL failed projection retained %d selector entries at index %d" % [
+			preview._entries.size(), preview._current_index])
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

@@ -180,9 +180,10 @@ func _init() -> void:
 	inv_reg2.free()
 
 	# ---- GameState integration ----
-	# GameState's take_map_snapshot / restore_map_snapshot must capture and
-	# restore Pair Up state alongside unit data. Use the autoload via relay-node
-	# pattern so /root paths resolve from --script context.
+	# GameState's take_map_snapshot / restore_history(0) must capture and restore
+	# Pair Up state alongside unit data (B1-LEDGER Phase 2: pairings ride in the
+	# ledger entry). Use the autoload via relay-node pattern so /root paths resolve
+	# from --script context.
 	var relay := Node.new()
 	root.add_child(relay)
 	await process_frame
@@ -199,7 +200,7 @@ func _init() -> void:
 		# Mutate post-snapshot, then verify restore rewinds to the snapshotted state.
 		live_reg.separate("chrom")
 		live_reg.pair("robin", "lucina")
-		gs.restore_map_snapshot()
+		gs.restore_history(0)
 		if live_reg.get_partner_id("chrom") == "lissa" and live_reg.is_lead("chrom") \
 				and not live_reg.is_paired("robin"):
 			print("OK  GameState snapshot round-trips Pair Up state"); passed += 1
@@ -214,15 +215,16 @@ func _init() -> void:
 			print("OK  GameState.reset_map_state clears the registry"); passed += 1
 		else:
 			print("FAIL reset_map_state left pairings live"); failed += 1
-		# Campaign gate: when GameState.pair_up_enabled is false, pair() refuses
+		# Campaign gate: when GameState.campaign_rules.pair_up_enabled is false, pair() refuses
 		# new pairings but separate/restore/queries still work on existing ones.
 		live_reg.call("clear")
 		live_reg.pair("chrom", "lissa")  # established while gate is open
-		var prior_enabled: bool = bool(gs.get("pair_up_enabled"))
-		gs.set("pair_up_enabled", false)
+		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+		var prior_enabled: bool = rules.pair_up_enabled
+		rules.pair_up_enabled = false
 		var refused_disabled: bool = not live_reg.pair("robin", "lucina")
 		var sep_still_works: bool = live_reg.separate("chrom")
-		gs.set("pair_up_enabled", prior_enabled)  # restore default for other tests
+		rules.pair_up_enabled = prior_enabled  # restore default for other tests
 		if refused_disabled and sep_still_works \
 				and not live_reg.is_paired("chrom") and not live_reg.is_paired("robin"):
 			print("OK  campaign gate: pair refused while disabled, separate still works"); passed += 1

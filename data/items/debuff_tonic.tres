@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "debuff_tonic"
+display_name = "Debuff Tonic (TEST)"
+description = "VALIDATION ITEM (Map 950 only): inflicts -4 Strength for the next 4 turns so testers can confirm that previews and the character sheet render lowered stats in red. Not real game content."
+item_type = "buff"
+uses = 1
+cost = 0
+effect_id = "stat_buff"
+effect_params = {"stat": "strength", "delta": -4, "duration": 4, "duration_type": "turn"}

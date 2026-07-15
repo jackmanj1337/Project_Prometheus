@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "require_empty"
+family = "occupancy_policies"
+label_key = "registry.occupancy.require_empty"
+owner_feature = "B2-OCCUPANCY"
+kind = "placement"
+primitive_handler = "require_empty_placement"
+subjects = Array[String](["unit", "tile"])
+docs_text = "Place only on a passable, empty tile."
+test_fixture = {"tile": "empty"}

@@ -4,6 +4,8 @@ extends SceneTree
 # logic. Uses a stub grid (so the enemy / heal-target lists are fully controlled)
 # and real weapon resources for the is_healing_staff() check.
 
+const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+
 var _unit_stub: GDScript
 var _grid_stub: GDScript
 
@@ -142,11 +144,14 @@ func _init() -> void:
 	am.show_for(_mk_unit(null, []), _mk_grid([], []))  # only Wait survives
 	await process_frame
 	var minimal_h: float = am.get_combined_minimum_size().y
-	if full_h > minimal_h and minimal_h > 0:
+	var rendered_minimal_h: float = am.size.y
+	if full_h > minimal_h and minimal_h > 0 \
+			and is_equal_approx(rendered_minimal_h, minimal_h):
 		print("OK  ActionMenu shrinks to fit visible rows (full=%.0f minimal=%.0f)" % [full_h, minimal_h])
 		passed += 1
 	else:
-		print("FAIL menu did not shrink: full=%.0f minimal=%.0f" % [full_h, minimal_h])
+		print("FAIL menu did not shrink: full=%.0f minimal=%.0f rendered=%.0f" % [
+			full_h, minimal_h, rendered_minimal_h])
 		failed += 1
 
 	# ---- the menu renders at a real size (PanelContainer sizes to its buttons) ----
@@ -158,6 +163,48 @@ func _init() -> void:
 		print("OK  ActionMenu has a non-zero size (%s)" % str(am.size)); passed += 1
 	else:
 		print("FAIL ActionMenu size is zero: %s" % str(am.size)); failed += 1
+
+	# V033-UI-02: all scaled visible labels contribute their themed minimum width.
+	var labels_fit := true
+	var ornaments_clear := true
+	for factor in [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]:
+		am.apply_menu_scale(factor)
+		await process_frame
+		for button in am._buttons:
+			if button.visible and am.custom_minimum_size.x + 0.01 < button.get_combined_minimum_size().x:
+				labels_fit = false
+			if button.visible:
+				var font: Font = button.get_theme_font("font")
+				var font_size: int = button.get_theme_font_size("font_size")
+				var text_width: float = font.get_string_size(button.text,
+						HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
+				var safe_width: float = text_width \
+						+ am._BUTTON_ORNAMENT_SAFE_MARGIN * 2.0 * float(font_size) / 16.0
+				if am.custom_minimum_size.x + 0.01 < safe_width:
+					ornaments_clear = false
+	if labels_fit and ornaments_clear and am.custom_minimum_size.x >= 128.0:
+		print("OK  ActionMenu width fits visible themed labels at every Menu Scale"); passed += 1
+	else:
+		print("FAIL ActionMenu scaled label width: min=%s" % am.custom_minimum_size.x); failed += 1
+
+	# V034-UI-01: reducing the minimum alone leaves a free-standing Control at its
+	# previous width. Verify the rendered panel shrinks across the live transition.
+	am.apply_menu_scale(2.0)
+	for button in am._buttons:
+		button.visible = button == am._btn_separate or button == am._btn_wait
+	am._fit_width_to_visible_labels()
+	var long_rendered_width: float = am.size.x
+	am._btn_separate.visible = false
+	am._fit_width_to_visible_labels()
+	var short_rendered_width: float = am.size.x
+	if short_rendered_width < long_rendered_width \
+			and is_equal_approx(short_rendered_width, am.custom_minimum_size.x):
+		print("OK  ActionMenu rendered width shrinks with a shorter action list")
+		passed += 1
+	else:
+		print("FAIL ActionMenu stale rendered width: long=%s short=%s min=%s" % [
+			long_rendered_width, short_rendered_width, am.custom_minimum_size.x])
+		failed += 1
 
 	# ---- choosing an action hides the menu (it used to linger on screen) ----
 	am.show_for(_mk_unit(sword, []), _mk_grid(dummy, []))
@@ -340,12 +387,13 @@ func _init() -> void:
 				separate_shown, separate_hidden_blocked, separate_emits]); failed += 1
 		var gs := root.get_node_or_null("/root/GameState")
 		if gs != null:
-			var prior_pair_up_enabled: bool = bool(gs.get("pair_up_enabled"))
-			gs.set("pair_up_enabled", false)
+			var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+			var prior_pair_up_enabled: bool = rules.pair_up_enabled
+			rules.pair_up_enabled = false
 			reg.call("clear")
 			am.show_for(paired_unit_a, adj_grid)
 			var hidden_when_disabled: bool = not am._btn_pair_up.visible
-			gs.set("pair_up_enabled", prior_pair_up_enabled)
+			rules.pair_up_enabled = prior_pair_up_enabled
 			if hidden_when_disabled:
 				print("OK  Pair Up hidden when the campaign setting disables it"); passed += 1
 			else:

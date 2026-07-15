@@ -3,9 +3,9 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-13
 **Governance:** section template + status vocabulary in
-`AGENT/Docs/documentation_governance_2026-06-13.md`.
+`AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns weapon-family definitions, per-weapon/per-item data, the **rank-scaled
 triangle bonus table**, WEXP thresholds/caps/gain/migration detail, effectiveness data,
@@ -19,7 +19,7 @@ owned by `GDD_01`. Class WEXP baselines/caps live in `GDD_03`.
 ## Weapon System Overview
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-07-13
 
 ### Summary
 Weapons are `WeaponData` resources in `data/weapons/`; units carry weapons and items
@@ -53,7 +53,10 @@ Triangle`.
 
 ### Specs
 
-**Implemented (project families).**
+**Implemented (project family contract).** The engine accepts the combat families
+declared by `GameConstants.VALID_COMBAT_FAMILIES`. The authored weapon library currently
+uses sword, lance, axe, bow, fire, thunder, wind, staff, and fist; light, dark,
+beaststone, and dragonstone are reserved accepted families without shipped weapon data.
 
 | Type | Triangle | Notes |
 |---|---|---|
@@ -61,14 +64,14 @@ Triangle`.
 | Lance | Physical (beats Sword, loses to Axe) | |
 | Axe | Physical (beats Lance, loses to Sword) | |
 | Bow | None | Minimum range 2; effective vs Flying |
-| Knife | None | Range 1–2 on thrown variants |
 | Fire tome | Anima (beats Light, loses to Dark); effective vs Beast | Uses MAG, targets RES |
 | Thunder tome | Anima (beats Light, loses to Dark); effective vs Dragon | Uses MAG, targets RES |
 | Wind tome | Anima (beats Light, loses to Dark); effective vs Flying | Uses MAG, targets RES |
 | Light tome | Magic (beats Dark, loses to Anima) | Uses MAG, targets RES |
 | Dark tome | Magic (beats Anima, loses to Light) | Uses MAG, targets RES |
 | Staff | None | Targets allies (healing) or enemies (status — Phase 2) |
-| Fang/Claw/Talon/Beak | None | Laguz only (Phase 2) |
+| Fist | None | Infinite-use 0-Mt fallback asset; class access is authored |
+| Beaststone / Dragonstone | None | Accepted family vocabulary; content deferred |
 
 - Project relationships are retained: physical **Sword → Axe → Lance**; magic
   **Dark → Anima → Light** (the project keeps the Dark/Anima/Light ordering — see SET-003).
@@ -94,6 +97,16 @@ Provenance: `GDD_Adoption_Matrix.md` → `awakening_lookup_tables.md` (Weapon Tr
 Advantage Table / Weapon Triangle Participation). Not yet implemented — current behavior
 is the flat project bonus in GDD_02.
 
+**Design firmed 2026-06-24b — author-flexible triangle (`[CEX-9..12, 17]`, rides F4; build pending).**
+The family list, relationship `matrix`, magnitude `effects`, and `reaver_multiplier` move into a
+**`CampaignRules` `triangle` profile** (F4). **`families`** is **author-extensible** and becomes the
+validation source for `triangle_family` (replacing the fixed `VALID_COMBAT_FAMILIES`); a family with
+no matrix row = neutral (bows/knives/staves unchanged). The **rank-scaled table above ships as an
+opt-in built-in `rank_scaled` profile**, while the **default profile stays the current flat ±10/±2**
+(non-breaking). `effects` generalize to **arbitrary stat-mods** (conditions deferred to **F5**).
+**Reaver** weapons set `weapon_component.reverses_triangle` (`[IEQ]`); an **odd** count across the
+two combatants inverts the result and ×`reaver_multiplier` (default 2). See `[CEX]` block C.
+
 ### Anchors
 - Code: `scripts/autoloads/DataManager.gd` (`get_weapon_triangle_result`),
   `GameConstants.WEAPON_TRIANGLE`, `scripts/resources/WeaponData.gd` (`triangle_family`)
@@ -114,20 +127,11 @@ The authored `.tres` weapons that ship today, and the corpus weapon roster they 
 
 ### Specs
 
-**Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` are the
-source of truth; the tables below are a reference snapshot. One weapon per role for the
-MVP map; expand from the corpus tables in Phase 2.
-
-Swords — Iron Sword (E, Mt 6/Hit 85), Steel Sword (D, Mt 9/Hit 75).
-Lances — Iron Lance (E, Mt 7/Hit 80), Javelin (E, Mt 6/Hit 75, range 1–2).
-Axes — Iron Axe (E, Mt 8/Hit 75).
-Bows — Iron Bow (E, Mt 6/Hit 85, range 2, `effective_flying`).
-Anima tomes — Fire (E, Mt 4, `effective_beast`), Elfire (D, Mt 5/Crit 5),
-Thunder (E, Mt 5, `effective_dragon`), Wind (E, Mt 3, `effective_flying`).
-Staves — Heal (E, heals 10 + MAG HP, range 1).
-
-> Full Mt/Hit/Crit/Range/Wt/Uses/Cost/wEXP values are authored per weapon `.tres`
-> (`data/weapons/`, `resource_manifest.json`); do not hand-maintain a duplicate table here.
+**Implemented (project MVP weapons).** Authored `.tres` in `data/weapons/` and its
+`resource_manifest.json` are the source of truth. The library includes iron/steel
+physical weapons, Javelin, the four elemental tomes, Heal, and Fists. Mt, Hit, Crit,
+range formulas, Wt, uses, cost, WEXP, and effect tags are deliberately not transcribed
+here; the engine and documentation both consume or link the authored resources.
 
 **Target design (corpus weapon roster, SET-009).** Adopt the corpus physical + magic
 weapon encyclopedia wholesale; the project magic triangle is preserved (see Triangle
@@ -165,7 +169,7 @@ Proficiency`.
 
 **Target design.**
 - **Thresholds/caps (SET-004):** corpus values E = 1, D = 31, C = 71, B = 121, A = 181,
-  S = 251, Cap = 400.
+  S = 251, Cap = 400 as the built-in corpus preset.
 - **Gain timing (RULE-004):** per **valid use** (corpus-style), with weapon-defined
   exceptions; may change in a balance pass.
 - **Migration (RULE-003):** proportional within the current rank band. There is no
@@ -201,6 +205,10 @@ At S rank in a weapon track, the wielder gains a combat bonus with that weapon t
 engine** and **retire `s_rank_mastery`** as a pseudo/equipped skill. The +10/+5/+1
 magnitude is the project variation on the corpus rank-bonus table.
 
+The project extension is a built-in rank-bonus preset. The combat engine should read the
+selected bonus profile rather than hardcoding the numbers once CampaignRules profiles
+are built.
+
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd`, `scripts/shared/StatBreakdown.gd`
 - Decisions: SET-005, RULE-002
@@ -223,15 +231,11 @@ When a weapon has an `effective_*` tag matching a defending unit's
 `ClassData.vulnerability_groups`, the weapon's Mt is treated as **3× its listed value**
 for damage (**4×** with the Giantkiller skill).
 
-```gdscript
-var effective_mt = weapon.mt
-if weapon.effect_tags.has("effective_flying") and defender.has_vulnerability("flying"):
-    effective_mt = weapon.mt * 3
-var damage = (attacker.str_or_mag() + effective_mt) - defender.def_or_res()
-```
-
 **Effect tags** are strings in `WeaponData.effect_tags`. **Reference them via the
 `GameConstants.TAG_*` constants — never raw strings** — so a typo is a compile error.
+These constants are the implemented built-in ids. Target IEQ/effectiveness work should
+validate source tags and defender groups through item/component registries so new
+campaign vulnerability groups are data additions where the same primitive applies.
 
 | Tag | `GameConstants` constant | Effect |
 |---|---|---|
@@ -262,8 +266,9 @@ tome MAG/RES (`uses_mag = true`), hybrid triangle (`triangle_family`).
 
 ## Items & Economy
 
-Status: **Split** — project MVP items + selling **Implemented**; corpus item roster + forging **Target design / Planned**
-Last verified: 2026-06-13
+Status: **Split** — project item use **Implemented**; selling/shops/forging **Planned**;
+corpus item roster **Target design**
+Last verified: 2026-07-13
 
 ### Summary
 Non-weapon inventory entries with single-use or equippable effects, plus the sale/forge
@@ -271,30 +276,24 @@ economy.
 
 ### Specs
 
-**`ItemData.gd` (Implemented, extends Resource).** Schema owner: GDD_01.
-```gdscript
-@export var id: String
-@export var display_name: String
-@export var description: String
-@export var item_type: String     # "healing", "stat", "promotion", "equip", "key", "sellable"
-@export var uses: int             # -1 = infinite / equippable
-@export var cost: int
-@export var effect_id: String     # heal_flat | heal_full | promote | reclass | stat_buff
-@export var effect_params: Dictionary   # e.g. { "amount": 20 } for heal_flat
-```
-
-**Implemented MVP items.** Vulnerary (restore 10 HP, 3 uses), Elixir (full HP, 3 uses).
+**Implemented item use.** `ItemData` selects an `effect_id` plus parameters;
+`ItemHandler` validates and dispatches `heal_flat`, `heal_full`, `promote`, `reclass`,
+and `stat_buff`. Authored data includes Vulnerary, Elixir, promotion/reclass items,
+Strength Tonic, and the validation-only Debuff Tonic. Exact resource fields are owned
+by `GDD_01`; promotion eligibility is owned by `GDD_03`.
 
 **Planned (Phase 2) items.** Keys (Chest/Door); permanent stat boosters (+2 to a stat /
 +7 max HP / Arms Scroll = advance one proficiency rank); equip items (Full Guard, Iron
 Rune, Knight Ring, Wing Guard, Laguz Guard). Promotion items are owned by GDD_03; full
 corpus item roster is the adoption target (provenance `awakening_items.md`).
 
-**Selling (Implemented).** Any inventory entry sells for
+**Selling (Planned).** The target default sale value is
 `sale_value = floor(base_cost × (uses_remaining / max_uses) / 2)`; `max_uses` reads from
 the matching `WeaponData.uses` / `ItemData.uses`. Equip items (uses = −1) sell for
-`floor(base_cost / 2)`. Gold is the shared `GameState.party_gold` treasury (GDD_02 owns
-the economy summary; shops are a D-D campaign prerequisite, Planned).
+`floor(base_cost / 2)`. No production sell action or shop UI exists yet. Gold is the
+shared `GameState.party_gold` treasury, and the shared ledger supports fixed party/unit
+quote, atomic commit, and recorded-delta refund operations; selling and future shop UI
+have not yet been migrated as consumers.
 
 **Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
 Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20
@@ -302,10 +301,16 @@ total modifications; per-stat increment cost 150/300/450/600/750g (max 9,000g fu
 forged). Stored in the existing `InventoryEntry.forged_mods` dictionary (reserved — no
 code reads it yet, M10); unforged weapons leave it empty.
 
+The item `effect_id` and forging cost curve are authored data targets. Built-in curves
+support the current corpus/project presets; alternate campaign economies should select
+or author cost profiles through the resource ledger/cost resolver rather than adding
+shop-specific arithmetic branches.
+
 ### Anchors
-- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`, `data/items/`
+- Code: `scripts/items/ItemHandler.gd`, `scripts/resources/ItemData.gd`,
+  `scripts/autoloads/ResourceLedger.gd`, `data/items/`
 - Schema owner: GDD_01 (`ItemData`, `InventoryEntry.forged_mods`)
-- Owner of economy/gold summary: GDD_02 §Gold & Economy
+- Owner of combat/map reward integration: GDD_02 §Gold & Economy
 - Decisions: D-D (shops as campaign prerequisite)
 - Reference: `awakening_items.md`
 
@@ -314,14 +319,18 @@ code reads it yet, M10); unforged weapons leave it empty.
 ## Inventory Management
 
 Status: **Implemented** (limit not yet enforced; Trade designed-only)
-Last verified: 2026-06-13
+Last verified: 2026-07-13
 
 ### Specs
 - One inventory per unit (`UnitData.inventory`), a flat `Array[InventoryEntry]`; each
   `entry_type` is `"weapon"`, `"item"`, or `"equip"` and slots interchange.
-- **Limit:** 8 slots (`GameState.max_inventory`) — **NOT yet enforced** (no inventory UI).
+- **Limit:** 8 slots (`CampaignRules.max_inventory`) — **NOT yet enforced** (no inventory UI).
 - **Trade** is designed but not implemented; no current action moves entries between units.
 - Items and weapons cannot be used during the enemy phase.
+- Death snapshots the inventory into `DeathContext` before removal, then routes it
+  through `DeathDisposition`. The groundwork disposition is a no-op, so classic and
+  casual deaths preserve the existing inventory data unchanged; custody, drops, and
+  key-item transfer remain later inventory-system work.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd` (`max_inventory`), `scripts/resources/UnitData.gd`
@@ -339,6 +348,10 @@ Battlefield map objects (not inventory items), usable by non-mounted units with 
 proficiency at any rank: Ballista, Iron Ballista, Killer Ballista, Onager (AoE). All are
 effective vs Flying and ignore user STR. Implement as interactable tiles with a weapon
 definition embedded in `MapData`.
+
+Target implementation rides `B4-MAP-OBJECTS` and the map-object component registry.
+Weapon stats, mounting requirements, ammo, and on-activate behavior are authored object
+data; the named ballista/onager set is a developer preset library.
 
 ### Anchors
 - Owner of MapData/authored-map schema: GDD_06
