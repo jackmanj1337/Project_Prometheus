@@ -16,6 +16,12 @@ jobs:
         with:
           fetch-depth: 0  # check_docs.py reads git log for the stale-date check
 
+      - name: Install pinned development tools
+        run: python3 -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: GDScript format and lint
+        run: bash scripts/ci/check_gdscript_style.sh
+
       - name: Documentation checks (DOC-011)
         run: python3 AGENT/Docs/check_docs.py
 

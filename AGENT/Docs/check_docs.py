@@ -1837,10 +1837,16 @@ def check_process_evidence_tooling() -> None:
         "scripts/session_closeout.sh": "audit_cadence.py",
         "scripts/hooks/pre-push": "audit_cadence.py",
         "scripts/tools/export_smoke.sh": "sha256=",
+        "scripts/ci/check_gdscript_style.sh": "gdformat --check",
+        "scripts/hooks/pre-commit": "check_gdscript_style.sh",
+        ".github/workflows/tests-pr.yml": "check_gdscript_style.sh",
+        ".github/workflows/tests-push.yml": "check_gdscript_style.sh",
         "AGENT/Session Notes/TEMPLATE.md": "## Commits claimed",
         "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
         "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
         "requirements-dev.txt": "gdtoolkit==",
+        "gdformatrc": "line_length: 100",
+        "gdlintrc": "trailing-whitespace",
     }
     for relative, marker in required.items():
         path = ROOT / relative
