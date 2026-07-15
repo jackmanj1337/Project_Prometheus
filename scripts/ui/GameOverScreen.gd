@@ -5,7 +5,12 @@ extends Control
 @onready var _title: Label = $Panel/VBox/Title
 @onready var _standings_label: Label = $Panel/VBox/Standings
 @onready var _retry_btn: Button = $Panel/VBox/RetryButton
-@onready var _quit_btn: Button = $Panel/VBox/QuitButton
+@onready var _reload_recent_btn: Button = $Panel/VBox/ReloadRecentButton
+@onready var _load_game_btn: Button = $Panel/VBox/LoadGameButton
+@onready var _rewind_btn: Button = $Panel/VBox/RewindButton
+@onready var _quit_btn: Button = $Panel/VBox/MainMenuButton
+@onready var _feedback: Label = $Panel/VBox/Feedback
+@onready var _load_game_screen: Control = $LoadGameScreen
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
@@ -28,7 +33,12 @@ func _ready() -> void:
 	add_to_group(MenuScale.GROUP)
 	hide()
 	_retry_btn.pressed.connect(_on_retry)
+	_reload_recent_btn.pressed.connect(_on_reload_recent)
+	_load_game_btn.pressed.connect(_on_load_game)
+	_rewind_btn.pressed.connect(_on_rewind)
 	_quit_btn.pressed.connect(_on_quit)
+	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
+	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus:
 		bus.map_defeat.connect(_on_defeat)
@@ -107,8 +117,24 @@ func _on_promotion_finished() -> void:
 
 
 func _show_overlay() -> void:
+	_refresh_defeat_actions()
 	show()
 	_retry_btn.grab_focus()
+
+
+func _refresh_defeat_actions() -> void:
+	var sm := get_node_or_null("/root/SaveManager")
+	var target: Dictionary = sm.call("get_continue_target") \
+		if sm != null and sm.has_method("get_continue_target") else {}
+	_reload_recent_btn.disabled = String(target.get("kind", "")) != "slot"
+	var slots: Array = sm.call("list_slots") \
+		if sm != null and sm.has_method("list_slots") else []
+	_load_game_btn.disabled = slots.is_empty()
+	var gs := get_node_or_null("/root/GameState")
+	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
+	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
+	_rewind_btn.disabled = gs == null or not gs.has_method("can_rewind") \
+		or not bool(gs.call("can_rewind"))
 
 
 func _delete_mid_map_slot_after_resolution() -> void:
@@ -122,6 +148,8 @@ func _delete_mid_map_slot_after_resolution() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
+		return
+	if _load_game_screen.visible:
 		return
 	# Block all input while the overlay is up
 	get_viewport().set_input_as_handled()
@@ -146,6 +174,85 @@ func _on_retry() -> void:
 			and bool(cm.call("route_retry_to_prep")):
 		return
 	get_tree().reload_current_scene()
+
+
+func _on_reload_recent() -> void:
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm == null or not sm.has_method("get_continue_target"):
+		_feedback.text = "No recent save is available."
+		return
+	var target: Dictionary = sm.call("get_continue_target")
+	if String(target.get("kind", "")) != "slot" \
+			or not _load_slot(String(target.get("slot_id", ""))):
+		_feedback.text = "The recent save could not be loaded."
+
+
+func _on_load_game() -> void:
+	$Backdrop.hide()
+	$Panel.hide()
+	_load_game_screen.open()
+
+
+func _on_load_game_back() -> void:
+	$Backdrop.show()
+	$Panel.show()
+	_refresh_defeat_actions()
+	_load_game_btn.grab_focus()
+
+
+func _on_slot_load_requested(slot_id: String) -> void:
+	if not _load_slot(slot_id):
+		_feedback.text = "The selected save could not be loaded."
+		_on_load_game_back()
+
+
+# Defeat uses the same document discriminator as MainMenu: a mid-map slot stages
+# GameMap directly; a between-map slot restores the campaign and launches prep.
+func _load_slot(slot_id: String) -> bool:
+	var sm := get_node_or_null("/root/SaveManager")
+	var gs := get_node_or_null("/root/GameState")
+	if sm == null or gs == null or not sm.has_method("load_slot"):
+		return false
+	var save: Variant = sm.call("load_slot", slot_id)
+	if save == null:
+		return false
+	var payload: Dictionary = save.to_dict()
+	if String(payload.get("map_runtime", {}).get("map_path", "")) != "":
+		if not gs.has_method("configure_suspend_resume") \
+				or not bool(gs.call("configure_suspend_resume", save)):
+			return false
+		if get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn") != OK:
+			return false
+		_consume_loaded_slot(sm, gs, slot_id)
+		return true
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm == null or not gs.has_method("configure_campaign_resume") \
+			or not bool(gs.call("configure_campaign_resume", save)) \
+			or bool(cm.call("is_campaign_complete")) \
+			or not bool(cm.call("launch_current_node")):
+		return false
+	_consume_loaded_slot(sm, gs, slot_id)
+	return true
+
+
+func _consume_loaded_slot(sm: Node, gs: Node, slot_id: String) -> void:
+	if sm.has_method("should_consume_on_load") and gs.has_method("get_save_slot_classes") \
+			and bool(sm.call("should_consume_on_load", slot_id,
+				gs.call("get_save_slot_classes"))):
+		sm.call("delete_slot", slot_id)
+
+
+func _on_rewind() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	var scene := get_tree().current_scene
+	var turn_manager := scene.get_node_or_null("TurnManager") if scene != null else null
+	var cursor := scene.get_node_or_null("MapCursor") if scene != null else null
+	if gs == null or turn_manager == null or not gs.has_method("rewind_last_action") \
+			or not bool(gs.call("rewind_last_action", turn_manager, cursor)):
+		_feedback.text = "Rewind is no longer available."
+		_refresh_defeat_actions()
+		return
+	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
 
 
 func _on_quit() -> void:

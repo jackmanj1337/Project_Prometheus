@@ -562,6 +562,9 @@ Retry / snapshot round-trip:
 - [ ] Confirm the support is **not** rendered on its old tile after restore
       (snapshot captures `tile_position = (-1, -1)` for the support; if it
       reappears at its pre-pair tile, the snapshot was bypassed)
+- [ ] Lose again and verify **Reload Most Recent Save** and **Load Another Save**
+      restore their selected slot, **Rewind** is disabled/enabled with its charge
+      count, and **Main Menu** returns without deleting retained campaign slots
 
 ### More Info Phase 1 Live Playtest
 

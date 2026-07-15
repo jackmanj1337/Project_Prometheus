@@ -864,7 +864,10 @@ review 2026-06-14 #1) for resolution-robustness.
                DEFEAT
 
    [ Retry Map ]
-   [ Quit to Menu ]
+   [ Reload Most Recent Save ]
+   [ Load Another Save... ]
+   [ Rewind (N) ]
+   [ Main Menu ]
 ```
 
 - "Retry Map" reloads the current map from scratch
@@ -873,7 +876,13 @@ review 2026-06-14 #1) for resolution-robustness.
   won map cannot advance the campaign twice.
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
-- "Quit to Menu" resets map-scoped state and returns to `Boot.tscn`
+- "Reload Most Recent Save" uses the same Continue target/discriminator as Main
+  Menu. "Load Another Save" embeds the existing `LoadGameScreen` slot picker;
+  both route mid-map documents through suspend restore and between-map documents
+  through campaign restore/launch, consuming a slot only after successful route.
+- "Rewind" is enabled only while a prior ledger boundary and charge remain. It
+  stages the same deterministic active-map rewind as Map Menu and reloads GameMap.
+- "Main Menu" resets map-scoped state and returns to `Boot.tscn`.
 
 ---
 
