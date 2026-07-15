@@ -34,9 +34,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -145.0
+offset_top = -170.0
 offset_right = 200.0
-offset_bottom = 145.0
+offset_bottom = 170.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
@@ -51,6 +51,18 @@ layout_mode = 2
 text = "New Game"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
+
+[node name="HBoxRun" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="LabelRun" type="Label" parent="Panel/VBox/HBoxRun"]
+layout_mode = 2
+text = "Run"
+custom_minimum_size = Vector2(160, 0)
+
+[node name="OptRun" type="OptionButton" parent="Panel/VBox/HBoxRun"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="HBoxMap" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2

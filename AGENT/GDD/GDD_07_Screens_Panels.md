@@ -115,10 +115,11 @@ to prep — the call sits in one place (`MainMenu._load_campaign_slot`).
 **Trigger:** "New Game" from the Main Menu
 
 The live new-game flow is no longer a direct jump into `Map 001`. It is a modal
-setup screen that writes per-run rules onto `GameState.campaign_rules`, then launches the chosen
-map through `GameMap.tscn`.
+setup screen that writes per-run rules onto `GameState.campaign_rules`, then launches either the
+shipped campaign through prep or a chosen developer map directly.
 
 **Current options:**
+- `Run` — `The Proving Grounds` campaign or the retained `Single Map (Developer)` path
 - `Map` — populated from `data/maps/map_registry.json`
 - `Permadeath` — Off / On
 - `Auto Promote` — Off / On
@@ -126,6 +127,9 @@ map through `GameMap.tscn`.
 - `Pair Up` — Off / On
 
 **Behavior:**
+- `The Proving Grounds` calls `CampaignManager.start_campaign()` and
+  `launch_current_node()`, entering prep at the first of its five nodes; campaign
+  progression owns the map choice, so the developer map picker is disabled
 - Selecting a map also selects its roster policy (`default_roster`, fixed test roster,
   or keep-current when that mode is authored later)
 - The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through

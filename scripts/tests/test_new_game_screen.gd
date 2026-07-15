@@ -23,6 +23,7 @@ func _init() -> void:
 
 	# Every node the NewGameScreen script's @onready vars depend on must exist.
 	var expected := [
+		"Panel/VBox/HBoxRun/OptRun",
 		"Panel/VBox/HBoxMap/OptMap",
 		"Panel/VBox/HBoxPermadeath/OptPermadeath",
 		"Panel/VBox/HBoxAutoPromote/OptAutoPromote",
@@ -41,6 +42,23 @@ func _init() -> void:
 		print("OK  all @onready-referenced nodes resolve"); passed += 1
 
 	var map_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxMap/OptMap")
+	var run_opt: OptionButton = screen.get_node_or_null("Panel/VBox/HBoxRun/OptRun")
+	if run_opt != null and run_opt.item_count == 2 \
+			and run_opt.get_item_text(1) == "The Proving Grounds":
+		print("OK  run selector exposes the campaign beside the developer map path"); passed += 1
+	else:
+		print("FAIL run selector missing the campaign choice"); failed += 1
+
+	if run_opt != null:
+		run_opt.selected = 1
+		run_opt.item_selected.emit(1)
+		var campaign_owns_map := map_opt.disabled
+		run_opt.selected = 0
+		run_opt.item_selected.emit(0)
+		if campaign_owns_map and not map_opt.disabled:
+			print("OK  campaign selection disables only its inapplicable map picker"); passed += 1
+		else:
+			print("FAIL run selection did not toggle the developer map picker"); failed += 1
 	if map_opt != null and map_opt.item_count >= 8:
 		print("OK  map selector is populated from the registry source"); passed += 1
 	else:

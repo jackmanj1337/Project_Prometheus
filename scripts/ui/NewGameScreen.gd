@@ -12,6 +12,9 @@ extends "res://scripts/ui/ModalScreen.gd"
 #     Panel
 #       VBox
 #         Label "New Game"
+#         HBoxRun
+#           Label "Run"
+#           OptionButton (node name: OptRun)  # Single Map / Proving Grounds
 #         HBoxMap
 #           Label "Map"
 #           OptionButton (node name: OptMap)
@@ -31,6 +34,7 @@ extends "res://scripts/ui/ModalScreen.gd"
 signal back_pressed()
 
 @onready var _opt_map: OptionButton          = $Panel/VBox/HBoxMap/OptMap
+@onready var _opt_run: OptionButton          = $Panel/VBox/HBoxRun/OptRun
 @onready var _opt_permadeath: OptionButton = $Panel/VBox/HBoxPermadeath/OptPermadeath
 @onready var _opt_auto_promote: OptionButton = $Panel/VBox/HBoxAutoPromote/OptAutoPromote
 @onready var _opt_leveling: OptionButton   = $Panel/VBox/HBoxLeveling/OptLeveling
@@ -40,6 +44,10 @@ signal back_pressed()
 
 # OptLeveling index → GameState.campaign_rules.leveling_method value.
 const _LEVELING_OPTIONS: Array[String] = ["growth_random", "growth_fixed"]
+const _RUN_OPTIONS: Array[Dictionary] = [
+	{"label": "Single Map (Developer)", "campaign_id": ""},
+	{"label": "The Proving Grounds", "campaign_id": "proving_grounds"},
+]
 const _MAP_REGISTRY_PATH := "res://data/maps/map_registry.json"
 # Temporary v0.3.0 rerun logging for the live-only New Game focus gap. Remove
 # after the controller log proves whether focus is stolen, released, or hidden.
@@ -64,6 +72,9 @@ var _map_options: Array[Dictionary] = []
 
 
 func _ready() -> void:
+	_opt_run.clear()
+	for entry in _RUN_OPTIONS:
+		_opt_run.add_item(entry["label"])
 	_map_options = _load_map_options()
 	_opt_map.clear()
 	for entry in _map_options:
@@ -80,6 +91,7 @@ func _ready() -> void:
 	_opt_pair_up.clear()
 	_opt_pair_up.add_item("Off")
 	_opt_pair_up.add_item("On")
+	_opt_run.item_selected.connect(_on_run_selected)
 	_btn_start.pressed.connect(_on_start)
 	_btn_back.pressed.connect(_on_back)
 	# Persist the rule toggles to GameState the moment they change, so closing the
@@ -102,6 +114,7 @@ func open() -> void:
 	if gs:
 		var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
 		_opt_map.selected = _selected_map_index_for(gs.get("next_map_data_path"))
+		_opt_run.selected = 0
 		if rules != null:
 			_opt_permadeath.selected = int(rules.permadeath_enabled)  # 0=Off, 1=On
 			_opt_auto_promote.selected = int(rules.auto_promote_at_max_level)  # 0=Off, 1=On
@@ -109,6 +122,8 @@ func open() -> void:
 			_opt_pair_up.selected = int(rules.pair_up_enabled)  # 0=Off, 1=On
 	else:
 		_opt_map.selected = 0
+		_opt_run.selected = 0
+	_on_run_selected(_opt_run.selected)
 	show()
 	_btn_start.grab_focus()
 	_v030_trace_focus("open_grabbed_start")
@@ -170,6 +185,17 @@ func _on_start() -> void:
 		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
 		return
 	_persist_rules()
+	var campaign_id: String = String(_RUN_OPTIONS[_opt_run.selected]["campaign_id"])
+	if campaign_id != "":
+		var cm := get_node_or_null("/root/CampaignManager")
+		if cm == null:
+			push_error("NewGameScreen: CampaignManager autoload missing — cannot start campaign.")
+			return
+		if not bool(cm.call("start_campaign", campaign_id)):
+			return
+		if not bool(cm.call("launch_current_node")):
+			cm.call("end_campaign")
+		return
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
 		map_entry.get("roster_source", ""))
@@ -180,6 +206,12 @@ func _on_start() -> void:
 		])
 		return
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+
+
+func _on_run_selected(index: int) -> void:
+	# The map picker remains visible as an explicit developer path, but it is not
+	# actionable while a campaign owns progression and map selection.
+	_opt_map.disabled = String(_RUN_OPTIONS[index]["campaign_id"]) != ""
 
 
 func _on_back() -> void:
@@ -236,7 +268,7 @@ func _load_map_options() -> Array[Dictionary]:
 func _connect_v030_focus_trace() -> void:
 	if not V030_FOCUS_TRACE_ENABLED:
 		return
-	for control in [_opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
+	for control in [_opt_run, _opt_map, _opt_permadeath, _opt_auto_promote, _opt_leveling,
 			_opt_pair_up, _btn_start, _btn_back]:
 		var c := control as Control
 		c.focus_entered.connect(_v030_trace_control_focus.bind(c, "entered"))
