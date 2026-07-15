@@ -311,6 +311,13 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 			if roster_source == "":
 				return false
 			return bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
+		"campaign_pack_roster":
+			var dm := get_node_or_null("/root/DataManager")
+			if dm == null or not dm.has_method("get_campaign_pack_roster"):
+				return false
+			var roster: Array = dm.call("get_campaign_pack_roster", roster_source)
+			return bool(gs.call("load_roster_resources", roster,
+				"campaign_pack_roster", roster_source))
 		"keep_current_roster":
 			return bool(gs.call("is_roster_ready_for_launch"))
 		_:

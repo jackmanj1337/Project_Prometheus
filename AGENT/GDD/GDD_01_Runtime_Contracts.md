@@ -226,8 +226,8 @@ plan (code, integration sweep, tests, build order) is
 Status: **Split** — manifest/catalogue validation, hostile ZIP preflight, and
 rollback-safe staged installation, deterministic export, and preflighted
 byte-exact round trips, and validated installed-pack discovery are
-**Implemented** (2026-07-15, `B6-CAMPAIGN-SHARING`); selection and runtime
-activation remain **Planned**
+**Implemented** (2026-07-15, `B6-CAMPAIGN-SHARING`); player-facing selection
+remains **Planned**
 Last verified: 2026-07-15
 
 Campaign packs contain indexed authored JSON and approved pack-scoped media;
@@ -257,13 +257,24 @@ read-only summaries containing pack provenance and authored campaign labels.
 Malformed candidates remain excluded with diagnostics. Refresh reconstructs the
 cache from disk so deleted or repaired packs cannot leave stale selector rows.
 
+Tier-2 activation adapts validated JSON into existing runtime Resource types in
+memory, then atomically replaces the `DataManager` campaign/class/map/roster
+registries. A failed adapter leaves the previously active source untouched.
+Between-map and suspend saves carry exact `{package_id, package_version}` and
+reactivate only the matching service-owned installed path before resolving any
+campaign, map, roster, or class id. An empty identity selects shipped content;
+partial identity is invalid, and save files never supply filesystem paths.
+
 Anchors: `scripts/resources/CampaignArchivePreflight.gd`,
 `scripts/resources/CampaignPackInstaller.gd`,
 `scripts/resources/CampaignPackExporter.gd`,
 `scripts/resources/CampaignPackRegistry.gd`,
+`scripts/resources/CampaignTier2RuntimeAdapter.gd`,
 `scripts/resources/Tier2Catalogue.gd`, `scripts/assets/AssetResolver.gd`; tests:
 `test_campaign_archive_preflight.gd`, `test_campaign_pack_installer.gd`,
 `test_campaign_pack_exporter.gd`, `test_campaign_pack_registry.gd`.
+Runtime/save tests: `test_campaign_tier2_runtime_adapter.gd`,
+`test_campaign_pack_save_identity.gd`.
 
 ---
 

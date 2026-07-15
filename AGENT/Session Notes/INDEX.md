@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15q](2026-07-15q.md) — Added the Tier-2 JSON runtime adapter, atomic DataManager activation, package-scoped map/roster resolution, and exact package identity across campaign/suspend saves.
 - [2026-07-15p](2026-07-15p.md) — Added validated installed-pack discovery and deterministic deep-copy summary caching; identified the required Tier-2 JSON runtime adapter before selector activation.
 - [2026-07-15o](2026-07-15o.md) — Completed deterministic campaign-pack export: validated allow-list, lexical/byte-stable ZIPs, state/cache exclusion, mandatory re-preflight, and byte-exact export/install round trip.
 - [2026-07-15n](2026-07-15n.md) — Completed campaign archive slice 3: unique staged extraction, full second-pass validation, atomic promotion, existing-version rejection, rollback cleanup, repair reporting, and path-containment tests.

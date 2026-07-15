@@ -14,6 +14,7 @@ const ResourceManifest = preload("res://scripts/shared/ResourceManifest.gd")
 # DataManager edit. See AIProfileRegistry.gd.
 const AIProfileRegistry = preload("res://scripts/core/AIProfileRegistry.gd")
 const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
+const CampaignTier2RuntimeAdapter = preload("res://scripts/resources/CampaignTier2RuntimeAdapter.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
@@ -36,6 +37,11 @@ var _campaigns: Dictionary = {}
 # Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
 # so the campaign runtime resolves a node's launch parameters through this cache.
 var _map_registry: Dictionary = {}
+var _pack_maps: Dictionary = {}
+var _pack_rosters: Dictionary = {}
+var _active_package_id := ""
+var _active_package_version := ""
+var _active_package_path := ""
 
 # Weapon triangle lives in GameConstants.WEAPON_TRIANGLE — single source of truth.
 
@@ -66,6 +72,11 @@ func _clear_content() -> void:
 	_skills.clear()
 	_campaigns.clear()
 	_map_registry.clear()
+	_pack_maps.clear()
+	_pack_rosters.clear()
+	_active_package_id = ""
+	_active_package_version = ""
+	_active_package_path = ""
 
 
 # Runs the complete validation composition for one loaded source. SkillData's
@@ -104,6 +115,56 @@ func select_campaign_source(source: String) -> void:
 		errors.append_array(registry_manager.call("reload_presets", source))
 	errors.append_array(_validate_all(source))
 	_report(errors)
+
+
+# Activates a validated Tier-2 JSON source atomically. The adapter builds a
+# complete replacement set before live registries are cleared, so a malformed
+# pack cannot strand the previously selected campaign content.
+func select_tier2_campaign_source(source: String, package_id: String,
+		package_version: String) -> bool:
+	var adapted = CampaignTier2RuntimeAdapter.load(source, package_id, package_version)
+	if not adapted.valid:
+		_report(adapted.errors)
+		return false
+	_clear_content()
+	_classes = adapted.classes
+	_campaigns = adapted.campaigns
+	_map_registry = adapted.map_registry
+	_pack_maps = adapted.maps
+	_pack_rosters = adapted.rosters
+	_active_package_id = adapted.package_id
+	_active_package_version = adapted.package_version
+	_active_package_path = source.trim_suffix("/")
+	return true
+
+
+func active_package_identity() -> Dictionary:
+	return {
+		"package_id": _active_package_id,
+		"package_version": _active_package_version,
+		"path": _active_package_path,
+	}
+
+
+func resolve_map_data(source_id: String) -> MapData:
+	if source_id.begins_with(CampaignTier2RuntimeAdapter.MAP_SCHEME):
+		var map_id := source_id.get_file()
+		if _pack_maps.has(map_id):
+			return _pack_maps[map_id]
+		push_error("DataManager: Tier-2 source names unknown map '%s'" % map_id)
+		return null
+	if ResourceLoader.exists(source_id):
+		var loaded: Variant = load(source_id)
+		return loaded as MapData
+	return null
+
+
+func get_campaign_pack_roster(roster_id: String) -> Array[UnitData]:
+	var output: Array[UnitData] = []
+	for unit in _pack_rosters.get(roster_id, []):
+		if unit is UnitData:
+			output.append((unit as UnitData).duplicate(true))
+	return output
 
 
 # Pure validator: returns the list of cross-reference errors as strings.

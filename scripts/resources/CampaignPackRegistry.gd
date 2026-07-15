@@ -4,6 +4,7 @@ class_name CampaignPackRegistry extends RefCounted
 
 const INSTALLED_DIR := "installed"
 const MANIFEST_PATH := "manifest.json"
+const DEFAULT_STORAGE_ROOT := "user://campaign_packs"
 
 var _storage_root: String
 var _summaries: Array[Dictionary] = []
@@ -45,6 +46,12 @@ func find(package_id: String, package_version: String) -> Dictionary:
 				and summary["package_version"] == package_version:
 			return summary.duplicate(true)
 	return {}
+
+
+static func installed_path(storage_root: String, package_id: String,
+		package_version: String) -> String:
+	return storage_root.trim_suffix("/").path_join(INSTALLED_DIR) \
+		.path_join(package_id).path_join(package_version)
 
 
 func _discover_candidate(path: String, directory_id: String,

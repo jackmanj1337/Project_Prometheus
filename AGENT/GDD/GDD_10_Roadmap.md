@@ -105,8 +105,10 @@ and approved media in lexical order, excludes saves/caches/unrelated files by
 construction, and re-preflights its artifact; export/import tests preserve every
 admitted byte. Installed-pack discovery now revalidates path identity and the
 complete catalogue into deterministic cached summaries while excluding broken
-candidates. The next unit is the explicit Tier-2 runtime adapter and New Game
-selection; activation cannot use the existing shipped `.tres` loader directly.
+candidates. The explicit Tier-2 runtime adapter now constructs existing engine
+Resource types in memory, swaps sources atomically, resolves package-scoped map
+ids, and restores exact package identity from campaign/suspend saves before
+reference validation. New Game pack/campaign selection is the next unit.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

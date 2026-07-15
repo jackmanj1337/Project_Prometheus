@@ -10,6 +10,7 @@ const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
+const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -356,6 +357,8 @@ func configure_suspend_resume(source: Variant) -> bool:
 	if map_path == "":
 		push_error("GameState: suspend payload is missing map_runtime.map_path")
 		return false
+	if not _activate_saved_campaign_source(payload.get("campaign", {})):
+		return false
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
 	player_roster = _player_roster_from_runtime_units(map_runtime.get("units", []))
@@ -438,6 +441,29 @@ func load_roster_from_directory(roster_path: String, roster_policy: String = "fi
 	return true
 
 
+# Runtime-source counterpart to directory loading. Tier-2 packs are parsed into
+# UnitData in memory and never materialized as generated .tres files.
+func load_roster_resources(source: Array, roster_policy: String,
+		roster_source: String) -> bool:
+	_clear_roster_launch_state()
+	var loaded_roster: Array[UnitData] = []
+	for value in source:
+		if not value is UnitData or String(value.unit_id).is_empty():
+			push_error("GameState: runtime roster contains an invalid UnitData")
+			roster_load_failed = true
+			return false
+		loaded_roster.append((value as UnitData).duplicate(true))
+	if loaded_roster.is_empty():
+		push_error("GameState: runtime roster '%s' is empty" % roster_source)
+		roster_load_failed = true
+		return false
+	player_roster = loaded_roster
+	roster_initialized = true
+	active_roster_policy = roster_policy
+	active_roster_source = roster_source
+	return true
+
+
 func is_roster_ready_for_launch() -> bool:
 	if roster_load_failed or not roster_initialized:
 		return false
@@ -449,6 +475,11 @@ func is_roster_ready_for_launch() -> bool:
 		"fixed_test_roster":
 			return next_map_roster_source != "" \
 				and active_roster_policy == "fixed_test_roster" \
+				and active_roster_source == next_map_roster_source \
+				and not player_roster.is_empty()
+		"campaign_pack_roster":
+			return next_map_roster_source != "" \
+				and active_roster_policy == "campaign_pack_roster" \
 				and active_roster_source == next_map_roster_source \
 				and not player_roster.is_empty()
 		"keep_current_roster":
@@ -469,6 +500,7 @@ func _clear_roster_launch_state() -> void:
 
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
+	_capture_campaign_package_identity(save.campaign)
 	save.campaign["rules"] = _campaign_rules_to_dict()
 	save.party["resources"]["party_gold"] = party_gold
 	save.roster["units"] = []
@@ -587,6 +619,7 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 		push_error("GameState: CampaignManager cannot capture the campaign envelope")
 		return null
 	var envelope: Dictionary = cm.call("capture_campaign_state")
+	_capture_campaign_package_identity(save.campaign)
 	save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
 	save.campaign["node_id"] = String(envelope.get("node_id", ""))
 	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
@@ -622,6 +655,8 @@ func configure_campaign_resume(source: Variant) -> bool:
 	if roster.is_empty():
 		push_error("GameState: campaign save carries no player roster")
 		return false
+	if not _activate_saved_campaign_source(campaign_dict):
+		return false
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null or not cm.has_method("restore_campaign_state"):
 		push_error("GameState: CampaignManager is unavailable")
@@ -648,6 +683,42 @@ func configure_campaign_resume(source: Variant) -> bool:
 	clear_suspend_resume()
 	next_map_deployment.clear()
 	return true
+
+
+func _capture_campaign_package_identity(campaign: Dictionary) -> void:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null or not dm.has_method("active_package_identity"):
+		return
+	var identity: Dictionary = dm.call("active_package_identity")
+	campaign["package_id"] = String(identity.get("package_id", ""))
+	campaign["package_version"] = String(identity.get("package_version", ""))
+
+
+# Content must be active before campaign/map/unit ids are resolved. Empty
+# identity selects shipped content; a package identity resolves only through the
+# service-owned installed root, never a caller-provided save path.
+func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
+	var dm := get_node_or_null("/root/DataManager")
+	if dm == null:
+		push_error("GameState: DataManager is unavailable for campaign source restore")
+		return false
+	var package_id := String(campaign.get("package_id", ""))
+	var package_version := String(campaign.get("package_version", ""))
+	if package_id.is_empty() != package_version.is_empty():
+		push_error("GameState: campaign save package identity is incomplete")
+		return false
+	var active: Dictionary = dm.call("active_package_identity") \
+		if dm.has_method("active_package_identity") else {}
+	if package_id.is_empty():
+		if not String(active.get("package_id", "")).is_empty():
+			dm.call("select_campaign_source", "res://data")
+		return true
+	if active.get("package_id", "") == package_id \
+			and active.get("package_version", "") == package_version:
+		return true
+	var path := CampaignPackRegistryScript.installed_path(
+		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT, package_id, package_version)
+	return bool(dm.call("select_tier2_campaign_source", path, package_id, package_version))
 
 
 # Temporary flat party item ids use the durable convoy schema until the full

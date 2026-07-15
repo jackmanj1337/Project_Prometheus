@@ -188,9 +188,12 @@ func _load_map_data() -> void:
 		var override_path: String = gs.get("next_map_data_path")
 		if override_path != "":
 			selected_path = override_path
-	if ResourceLoader.exists(selected_path):
+	var dm := get_node_or_null("/root/DataManager")
+	if dm != null and dm.has_method("resolve_map_data"):
+		map_data = dm.call("resolve_map_data", selected_path)
+	elif ResourceLoader.exists(selected_path):
 		map_data = load(selected_path)
-	else:
+	if map_data == null:
 		push_error("GameMap: missing MapData at " + selected_path)
 
 

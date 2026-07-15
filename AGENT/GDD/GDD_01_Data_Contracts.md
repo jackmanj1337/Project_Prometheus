@@ -422,8 +422,9 @@ belong to the package catalogue/validator/installer and `DataManager` seams.
 
 ### Campaign Package Manifest and Tier-2 Catalogue
 
-Status: **Implemented - contract groundwork** (`B6-CAMPAIGN-SHARING`, 2026-07-15);
-archive installation/export and runtime campaign selection remain **Target design**.
+Status: **Split** (`B6-CAMPAIGN-SHARING`, 2026-07-15); manifest/catalogue,
+archive pipeline, discovery, and Tier-2 runtime adaptation are **Implemented**;
+player-facing campaign selection remains **Planned**.
 
 `PackManifest` parses the package identity document at `manifest.json`. Its
 required fields are `id`, `version`, `builder_content_version`, and integer
@@ -463,6 +464,14 @@ This boundary only parses and validates. It does not extract/copy archives,
 write `user://campaigns`, replace `DataManager` catalogues, register campaigns
 with a selector, or select runtime content. Those downstream consumers may act
 only on a successfully validated manifest/catalogue result.
+
+`CampaignTier2RuntimeAdapter` is the explicit bridge from this JSON contract to
+the engine's existing `CampaignData`, `MapData`, `ClassData`, and `UnitData`
+objects. It creates no generated resources and never edits installed bytes.
+Package-scoped `campaign-pack://{id}/{version}/{map_id}` identifiers let the
+existing launch/suspend paths resolve in-memory maps while keeping a durable save
+identity. Runtime activation is all-or-nothing: the adapter builds and validates
+a complete replacement set before `DataManager` swaps live registries.
 
 ### CampaignManager Contract
 

@@ -114,6 +114,8 @@ static func _normalize_campaign(source: Variant, root: Dictionary) -> Dictionary
 	var raw_campaign: Dictionary = source if source is Dictionary else {}
 	var out := _with_defaults(source, _default_campaign())
 	out["campaign_id"] = _as_string(out.get("campaign_id", ""), "")
+	out["package_id"] = _as_string(out.get("package_id", ""), "")
+	out["package_version"] = _as_string(out.get("package_version", ""), "")
 	out["node_id"] = _as_string(out.get("node_id", ""), "")
 	out["cleared_nodes"] = SaveCodec.string_array_from_variant(out.get("cleared_nodes", []))
 	out["vars"] = _dict_from_variant(out.get("vars", {}))
@@ -333,6 +335,8 @@ static func _default_integrity() -> Dictionary:
 static func _default_header() -> Dictionary:
 	return {
 		"campaign_id": "",
+		"package_id": "",
+		"package_version": "",
 		"node_id": "",
 		"campaign_state": "in_progress",
 		"chapter_name": "",
