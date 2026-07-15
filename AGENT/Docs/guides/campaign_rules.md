@@ -1,6 +1,6 @@
 # Campaign Rules
 
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-15
 **See also:** `GDD_01_Runtime_Contracts.md` §CampaignRules Contract;
 `scripts/resources/CampaignRules.gd`
 
@@ -26,7 +26,11 @@ Map selection travels through the same launch flow, but it is launch state, not
 itself a campaign rule.
 
 These values are written into `GameState.campaign_rules` before the map starts.
-They are not global app settings.
+They are not global app settings. A campaign JSON `rules` entry may wrap a value
+as `{ "authority": "default", "value": ... }` (player-editable seed) or
+`{ "authority": "mandate", "value": ... }` (locked author requirement).
+Legacy direct values are editable defaults. Mandate ids persist in
+`campaign.rules.mandated_rules` beside the resolved values.
 
 If this distinction is ignored, the likely bug is rules leaking between saves or
 being treated as user preferences instead of save-specific gameplay state.
@@ -57,6 +61,8 @@ The current launch-routing fields that travel with New Game setup are:
 
 The rule object and launch-routing fields are serialized through the save/runtime
 contracts; authored profile selection and several later consumers remain planned.
+New Game disables the four visible controls when their rule ids are mandated and
+never writes a disabled control back over the campaign's value.
 
 ## Rule meanings
 

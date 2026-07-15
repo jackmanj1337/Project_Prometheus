@@ -84,6 +84,23 @@ func _init() -> void:
 	else:
 		print("FAIL unresolved map reference: %s" % [map_errors]); failed += 1
 
+	var governed := _parse_ok({
+		"campaign_id": "governed", "label": "Governed",
+		"rules": {
+			"death_mode": {"authority": "mandate", "value": "classic"},
+			"pair_up_enabled": {"authority": "default", "value": false},
+			"undo_rounds": 2,
+		},
+		"nodes": [{"node_id": "n1", "map_id": "map_001", "next": []}],
+	})
+	if governed != null and governed.rule_overrides["death_mode"] == "classic" \
+			and governed.rule_overrides["pair_up_enabled"] == false \
+			and governed.rule_overrides["undo_rounds"] == 2 \
+			and governed.mandated_rule_ids == ["death_mode"]:
+		print("OK  campaign rules distinguish locked mandates from editable defaults"); passed += 1
+	else:
+		print("FAIL campaign rule authority: %s" % [governed]); failed += 1
+
 	# ---- malformed graphs each fail loud, one case per defect ----
 	# [case name, authored document, the error substring it must report]
 	var malformed_cases := [

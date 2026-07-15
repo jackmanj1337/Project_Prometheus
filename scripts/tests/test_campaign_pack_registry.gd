@@ -21,7 +21,8 @@ func _init() -> void:
 	if summaries.size() == 2 \
 			and summaries[0]["package_id"] == "alpha" \
 			and summaries[1]["package_id"] == "zeta" \
-			and summaries[0]["campaigns"] == [{"campaign_id": "a_campaign", "label": "Alpha"}]:
+			and summaries[0]["campaigns"] == [{"campaign_id": "a_campaign",
+				"label": "Alpha", "rules": {}}]:
 		print("OK  valid installed packs produce deterministic campaign summaries"); passed += 1
 	else:
 		print("FAIL discovery summaries: %s" % [summaries]); failed += 1

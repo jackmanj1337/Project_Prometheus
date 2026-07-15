@@ -98,7 +98,8 @@ func start_campaign(campaign_id: String) -> bool:
 	_prepared_launch.clear()
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("apply_campaign_rule_overrides"):
-		gs.call("apply_campaign_rule_overrides", campaign.rule_overrides)
+		gs.call("apply_campaign_rule_overrides", campaign.rule_overrides,
+			campaign.mandated_rule_ids)
 	return true
 
 

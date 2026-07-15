@@ -349,7 +349,7 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 2026-07-14), the runtime flow that walks it **Implemented** (`B1-CST`
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
-mandates/defaults are **Target design**.
+mandates/defaults and their saved authority are **Implemented** (2026-07-15).
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -365,6 +365,8 @@ class_name CampaignData extends Resource
 @export var is_dev_only: bool = false     # filtered from the player-facing list [CST-6]
 @export var start_node_id: String = ""    # defaults to the first authored node
 @export var nodes: Array[CampaignNode] = []   # AUTHORED ORDER is the ordering contract
+@export var rule_overrides: Dictionary = {}  # normalized rule_id -> value
+@export var mandated_rule_ids: Array[String] = []
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> CampaignData
 func node_ids() -> Array[String]          # authored order, deterministic
@@ -401,6 +403,12 @@ without breaking saves — only `node_id` is durable identity.
 
 Shipped campaign: `data/campaigns/proving_grounds.json`, a linear five-node run
 over the shipped objective maps (rout, seize, boss, escape, defend).
+
+An authored `rules` entry may be `{authority:"mandate", value:...}` (locked) or
+`{authority:"default", value:...}` (editable). Legacy direct values normalize as
+editable defaults. `CampaignManager` seeds both values and mandate ids before a
+run; New Game locks visible mandated controls while allowing defaults to change,
+and `SaveData.campaign.rules.mandated_rules[]` preserves the authority on reload.
 
 ### Campaign Tier-1 Asset References
 

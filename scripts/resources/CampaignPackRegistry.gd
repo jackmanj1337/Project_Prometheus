@@ -82,6 +82,8 @@ func _discover_candidate(path: String, directory_id: String,
 		campaigns.append({
 			"campaign_id": String(entry["id"]),
 			"label": String(document.get("label", entry["id"])),
+			"rules": document.get("rules", {}).duplicate(true) \
+				if document.get("rules", {}) is Dictionary else {},
 		})
 	campaigns.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a["campaign_id"] < b["campaign_id"])

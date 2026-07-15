@@ -33,6 +33,7 @@ const SavePolicy = preload("res://scripts/save/SavePolicy.gd")
 # platforms (no dictionary iteration order, no path sort).
 @export var nodes: Array[CampaignNode] = []
 @export var rule_overrides: Dictionary = {}
+@export var mandated_rule_ids: Array[String] = []
 
 
 # Parses one authored campaign document. Appends every structural problem to
@@ -55,7 +56,19 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 	if not (raw_rules is Dictionary):
 		errors.append("CampaignData: campaign '%s' rules must be an object" % campaign.campaign_id)
 	else:
-		campaign.rule_overrides = raw_rules.duplicate(true)
+		for rule_id in raw_rules:
+			var authored: Variant = raw_rules[rule_id]
+			if authored is Dictionary and authored.has("authority") and authored.has("value"):
+				var authority := String(authored.get("authority", ""))
+				if authority not in ["default", "mandate"]:
+					errors.append("CampaignData: rule '%s' authority must be 'default' or 'mandate'" % rule_id)
+					continue
+				campaign.rule_overrides[rule_id] = authored["value"]
+				if authority == "mandate":
+					campaign.mandated_rule_ids.append(String(rule_id))
+			else:
+				# Legacy direct values are editable campaign defaults.
+				campaign.rule_overrides[rule_id] = authored
 		if campaign.rule_overrides.has("save_slot_classes") \
 				or campaign.rule_overrides.has("autosave_rules"):
 			var slot_classes: Variant = campaign.rule_overrides.get(

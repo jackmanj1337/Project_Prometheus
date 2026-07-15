@@ -1,11 +1,11 @@
 # Session Notes — Master Index
 
-- [2026-07-15v](2026-07-15v.md) — Completed player-facing campaign-package import/export with inert discovery refresh and structured feedback; completion audit exposed portable-save integrity/import/export as the next real gap.
-
 One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15w](2026-07-15w.md) — Closed audit gaps for portable save transfer/integrity warnings and campaign-authored default/mandate rule authority with locked New Game controls and save persistence.
+- [2026-07-15v](2026-07-15v.md) — Completed player-facing campaign-package import/export with inert discovery refresh and structured feedback; completion audit exposed portable-save integrity/import/export as the next real gap.
 - [2026-07-15u](2026-07-15u.md) — Completed save policy and autosave: authored slot classes, open triggers, independent safe rotation, consumed loads, infinite Rewind, and durable-mid_map warning enforcement.
 - [2026-07-15t](2026-07-15t.md) — Unified all saves into one transactional named-slot namespace with intrinsic kind labels, origin/rule metadata, whole-ledger mid-map persistence, and one Continue/Load path.
 - [2026-07-15s](2026-07-15s.md) — Completed live deterministic player Rewind: coalesced activation/round pushes, authoritative charge spending, economy/RNG restore, transactional branching, and Map Menu surface.

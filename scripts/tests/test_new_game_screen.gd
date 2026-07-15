@@ -77,6 +77,20 @@ func _init() -> void:
 	else:
 		print("FAIL pair-up selector missing or not populated"); failed += 1
 
+	screen._apply_rule_authority({"rules": {
+		"death_mode": {"authority": "mandate", "value": "classic"},
+		"pair_up_enabled": {"authority": "default", "value": false},
+	}})
+	var permadeath_opt: OptionButton = screen.get_node(
+		"Panel/VBox/HBoxPermadeath/OptPermadeath")
+	if permadeath_opt.disabled and permadeath_opt.selected == 1 \
+			and not pair_opt.disabled and pair_opt.selected == 0:
+		print("OK  mandated campaign rules lock while authored defaults stay editable"); passed += 1
+	else:
+		print("FAIL campaign rule authority controls"); failed += 1
+	# Restore ordinary controls for the persistence checks below.
+	screen._apply_rule_authority({})
+
 	# Some tests run without autoloads; add the tiny subset NewGameScreen.open()
 	# needs so the persistence checks below exercise real code paths.
 	var created_gs := false

@@ -15,9 +15,10 @@ invariants shared by multiple feature chapters. Project composition remains in
 ## CampaignRules Contract
 
 Status: **Split** — the live per-save `CampaignRules` object is **Implemented**
-(2026-07-06, `B1-CST` kickoff); authored rule-profile registries and
-campaign-node mandate/default seeding remain **Target design**
-Last verified: 2026-07-06
+(2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
+**Implemented** (2026-07-15); authored rule-profile registries remain
+**Target design**
+Last verified: 2026-07-15
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
@@ -63,12 +64,16 @@ disable autosave. Three preset shapes (GBA 3+1, single-consumable, 30-any) are p
 data. A non-blocking builder warning reports durable `mid_map` classes unless
 `rewind_charges_per_map = -1`; `check_docs.py` check 33 enforces it for shipped JSON.
 
-**Target design (author profiles, mandates, and later consumers).**
+**Campaign authority (Implemented 2026-07-15).** Each campaign rule may be an
+editable `default` or locked `mandate`. Campaign start seeds the normalized
+values and mandate ids; New Game disables mandated controls, applies player
+choices only to defaults, and the rules codec persists `mandated_rules[]` in
+between-map and mid-map saves.
+
+**Target design (author profiles and later consumers).**
 - Treat shipped rule numbers and relationships as selected rule-profile values, not
   engine constants. Developer-provided presets support the project/corpus targets;
   campaigns may select or override exposed profiles through validated data.
-- `CampaignData` seeds mandated/default rule values when a campaign starts; the save
-  records the resulting per-save values.
 - `CombatResolver` still needs to consume `exp_gaining_factions` for EXP gating.
 - **Follow-up threshold override:** the Battle-Speed follow-up threshold is read from
   CampaignRules/profile data (GDD_02 §Combat Resolution).
@@ -77,9 +82,7 @@ data. A non-blocking builder warning reports durable `mid_map` classes unless
 ### Known gaps
 - The live object is wired, New Game writes into it, and `SaveData` carries matching
   rule defaults plus legacy `permadeath_enabled` load tolerance. Remaining work:
-  `CampaignData` mandate/default seeding, the authored rule-profile registry, EXP
-  faction gating, and UI for locked/editable rule values. `SaveManager` now owns
-  the dedicated active-map suspend file I/O path.
+  the authored rule-profile registry and EXP faction gating.
 
 ### Anchors
 - Code: `scripts/autoloads/GameState.gd`, `scripts/resources/CampaignRules.gd`,

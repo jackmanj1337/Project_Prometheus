@@ -179,10 +179,14 @@ func _persist_rules() -> void:
 	if rules == null:
 		push_error("NewGameScreen: GameState.campaign_rules missing — cannot apply rules.")
 		return
-	rules.permadeath_enabled = bool(_opt_permadeath.selected)  # 0=Off, 1=On
-	rules.auto_promote_at_max_level = bool(_opt_auto_promote.selected)  # 0=Off, 1=On
-	rules.leveling_method = _LEVELING_OPTIONS[_opt_leveling.selected]
-	rules.pair_up_enabled = bool(_opt_pair_up.selected)  # 0=Off, 1=On
+	if not _opt_permadeath.disabled:
+		rules.permadeath_enabled = bool(_opt_permadeath.selected)  # 0=Off, 1=On
+	if not _opt_auto_promote.disabled:
+		rules.auto_promote_at_max_level = bool(_opt_auto_promote.selected)  # 0=Off, 1=On
+	if not _opt_leveling.disabled:
+		rules.leveling_method = _LEVELING_OPTIONS[_opt_leveling.selected]
+	if not _opt_pair_up.disabled:
+		rules.pair_up_enabled = bool(_opt_pair_up.selected)  # 0=Off, 1=On
 
 
 func _on_start() -> void:
@@ -191,7 +195,6 @@ func _on_start() -> void:
 	if gs == null:
 		push_error("NewGameScreen: GameState autoload missing — cannot apply rules or start the map.")
 		return
-	_persist_rules()
 	var run: Dictionary = _run_options[_opt_run.selected]
 	if not _activate_run_source(run):
 		return
@@ -203,9 +206,13 @@ func _on_start() -> void:
 			return
 		if not bool(cm.call("start_campaign", campaign_id)):
 			return
+		# Campaign defaults seed the controls; only editable defaults write back.
+		# Mandates remain locked at the value CampaignManager just applied.
+		_persist_rules()
 		if not bool(cm.call("launch_current_node")):
 			cm.call("end_campaign")
 		return
+	_persist_rules()
 	var map_entry: Dictionary = _map_options[_opt_map.selected]
 	gs.call("configure_next_map", map_entry["map_data_path"], map_entry["roster_policy"],
 		map_entry.get("roster_source", ""))
@@ -222,6 +229,7 @@ func _on_run_selected(index: int) -> void:
 	# The map picker remains visible as an explicit developer path, but it is not
 	# actionable while a campaign owns progression and map selection.
 	_opt_map.disabled = String(_run_options[index]["campaign_id"]) != ""
+	_apply_rule_authority(_run_options[index])
 
 
 func _refresh_run_options() -> void:
@@ -229,6 +237,18 @@ func _refresh_run_options() -> void:
 		if not _run_options.is_empty() and _opt_run.selected >= 0 \
 			and _opt_run.selected < _run_options.size() else {}
 	_run_options = _BUILT_IN_RUN_OPTIONS.duplicate(true)
+	var dm := get_node_or_null("/root/DataManager")
+	if dm != null and dm.has_method("get_campaign") and dm.has_method("has_campaign"):
+		for index in _run_options.size():
+			var campaign_id := String(_run_options[index].get("campaign_id", ""))
+			if campaign_id.is_empty():
+				continue
+			if not bool(dm.call("has_campaign", campaign_id)):
+				continue
+			var campaign: CampaignData = dm.call("get_campaign", campaign_id)
+			if campaign != null:
+				_run_options[index]["rules"] = _authored_rule_rows(
+					campaign.rule_overrides, campaign.mandated_rule_ids)
 	var registry := CampaignPackRegistryScript.new(
 		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT)
 	for summary in registry.refresh():
@@ -240,6 +260,7 @@ func _refresh_run_options() -> void:
 				"package_id": summary["package_id"],
 				"package_version": summary["package_version"],
 				"package_path": summary["path"],
+				"rules": campaign.get("rules", {}).duplicate(true),
 			})
 	_opt_run.clear()
 	for entry in _run_options:
@@ -290,6 +311,42 @@ func _on_campaign_library_back() -> void:
 
 func _on_campaigns_changed() -> void:
 	_refresh_run_options()
+	_on_run_selected(_opt_run.selected)
+
+
+func _apply_rule_authority(run: Dictionary) -> void:
+	for control in [_opt_permadeath, _opt_auto_promote, _opt_leveling, _opt_pair_up]:
+		(control as OptionButton).disabled = false
+	var rows: Dictionary = run.get("rules", {}) if run.get("rules", {}) is Dictionary else {}
+	_apply_authored_option(rows, "death_mode", _opt_permadeath,
+		func(value: Variant) -> int: return 1 if String(value) == "classic" else 0)
+	_apply_authored_option(rows, "auto_promote_at_max_level", _opt_auto_promote,
+		func(value: Variant) -> int: return int(bool(value)))
+	_apply_authored_option(rows, "leveling_method", _opt_leveling,
+		func(value: Variant) -> int: return maxi(0, _LEVELING_OPTIONS.find(String(value))))
+	_apply_authored_option(rows, "pair_up_enabled", _opt_pair_up,
+		func(value: Variant) -> int: return int(bool(value)))
+
+
+func _apply_authored_option(rows: Dictionary, rule_id: String,
+		control: OptionButton, index_for_value: Callable) -> void:
+	if not rows.has(rule_id):
+		return
+	var authored: Variant = rows[rule_id]
+	var value: Variant = authored.get("value") if authored is Dictionary \
+		and authored.has("value") else authored
+	control.selected = int(index_for_value.call(value))
+	control.disabled = authored is Dictionary \
+		and String(authored.get("authority", "default")) == "mandate"
+
+
+static func _authored_rule_rows(overrides: Dictionary,
+		mandated: Array[String]) -> Dictionary:
+	var rows := {}
+	for rule_id in overrides:
+		rows[rule_id] = {"value": overrides[rule_id],
+			"authority": "mandate" if String(rule_id) in mandated else "default"}
+	return rows
 
 
 func _selected_map_index_for(map_path: String) -> int:

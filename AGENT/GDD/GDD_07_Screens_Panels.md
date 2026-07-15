@@ -154,6 +154,9 @@ directly.
   to `GameState.campaign_rules` the moment they change, so closing the panel with Back and reopening
   it remembers the choices — Start is not required to persist them. (The `Map`
   selection and roster are only configured on Start.)
+- Campaign-authored rule rows seed each control. An `authority: mandate` row is
+  visibly disabled and cannot be overwritten; an `authority: default` row seeds
+  an editable choice. This authority list persists with the save.
 - The `Map` dropdown seeds from `GameState.next_map_data_path`, which represents the
   last configured/launched map. Choosing a different map and backing out without Start
   does not overwrite that path, so reopening the screen returns to the last launched

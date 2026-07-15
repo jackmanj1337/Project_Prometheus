@@ -63,6 +63,7 @@ func get_alliance_group(faction_id: String) -> String:
 # Per-save gameplay rules. Defaults cover direct-boot development maps until the
 # campaign selector seeds this from authored CampaignData.
 var campaign_rules: CampaignRules = CampaignRulesScript.make_default()
+var mandated_campaign_rules: Array[String] = []
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
 # Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
@@ -535,12 +536,18 @@ func get_save_slot_classes() -> Array[Dictionary]:
 	return campaign_rules.save_slot_classes.duplicate(true)
 
 
-func apply_campaign_rule_overrides(overrides: Variant) -> void:
+func apply_campaign_rule_overrides(overrides: Variant,
+		mandated_rules: Variant = []) -> void:
+	mandated_campaign_rules = SaveCodec.string_array_from_variant(mandated_rules)
 	if overrides is Dictionary and not overrides.is_empty():
 		var merged := _campaign_rules_to_dict()
 		for key in overrides:
 			merged[key] = overrides[key]
 		_apply_campaign_rules_dict(merged)
+
+
+func is_campaign_rule_mandated(rule_id: String) -> bool:
+	return rule_id in mandated_campaign_rules
 
 
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
@@ -956,6 +963,7 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"undo_rounds": campaign_rules.undo_rounds,
 		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
 		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
+		"mandated_rules": mandated_campaign_rules.duplicate(),
 	}
 
 
@@ -978,6 +986,8 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
 	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
 	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
+	mandated_campaign_rules = SaveCodec.string_array_from_variant(
+		normalized.get("mandated_rules", []))
 
 
 func _current_map_path() -> String:

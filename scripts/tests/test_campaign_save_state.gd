@@ -30,18 +30,21 @@ func _init() -> void:
 	gs.party_gold = 450
 	gs.party_items = ["vulnerary", "elixir", "vulnerary"] as Array[String]
 	gs.player_roster = [_make_unit()] as Array[UnitData]
+	gs.mandated_campaign_rules = ["death_mode"] as Array[String]
 	var save: RefCounted = gs.capture_campaign_save("Round trip")
 
 	cm.end_campaign()
 	gs.party_gold = 1
 	gs.party_items = ["elixir"] as Array[String]
 	gs.player_roster.clear()
+	gs.mandated_campaign_rules.clear()
 	_check(gs.configure_campaign_resume(save)
 			and cm.has_campaign_flag("recruited_guide")
 			and cm.get_campaign_var("villages_saved") == 2
 			and gs.party_gold == 450
-			and gs.party_items == ["vulnerary", "elixir", "vulnerary"],
-		"campaign save restores flags, vars, gold, and duplicate party items")
+			and gs.party_items == ["vulnerary", "elixir", "vulnerary"]
+			and gs.mandated_campaign_rules == ["death_mode"],
+		"campaign save restores flags, vars, gold, items, and rule mandates")
 
 	var empty_save: RefCounted = SaveDataScript.from_dict(save.to_dict())
 	empty_save.party["convoy"]["entries"] = []

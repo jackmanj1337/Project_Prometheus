@@ -190,6 +190,8 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 		out.get("save_slot_classes", SavePolicy.classic_gba()))
 	out["autosave_rules"] = SavePolicy.normalize_autosave_rules(
 		out.get("autosave_rules", SavePolicy.default_autosave_rules()))
+	out["mandated_rules"] = SaveCodec.string_array_from_variant(
+		out.get("mandated_rules", []))
 	if out.has("permadeath_enabled") and not out.has("death_mode"):
 		out["death_mode"] = "classic" if bool(out["permadeath_enabled"]) else "casual"
 	out["death_mode"] = _as_string(out.get("death_mode", "casual"), "casual")
@@ -446,6 +448,7 @@ static func _default_campaign() -> Dictionary:
 			"undo_rounds": 0,
 			"save_slot_classes": SavePolicy.classic_gba(),
 			"autosave_rules": SavePolicy.default_autosave_rules(),
+			"mandated_rules": [],
 			"profile_selections": {},
 			"exposed_tunables": {},
 			"pxp_profiles": {},
