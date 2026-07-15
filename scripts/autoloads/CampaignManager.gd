@@ -516,26 +516,28 @@ func restore_campaign_state(source: Variant) -> bool:
 # autosave path only logs — a failed autosave must not block the player from
 # continuing to the next map.
 func write_autosave() -> bool:
-	return write_campaign_slot(SaveManagerScript.AUTOSAVE_SLOT, _autosave_label())
+	return write_campaign_slot(SaveManagerScript.AUTOSAVE_SLOT, _autosave_label(),
+		"auto", "campaign_progress")
 
 
 # Writes the parked position + party to a campaign slot. This is the seam the
 # manual-save UI calls with its own slot id.
-func write_campaign_slot(slot_id: String, save_label: String) -> bool:
+func write_campaign_slot(slot_id: String, save_label: String, origin: String = "manual",
+		rule_id: String = "") -> bool:
 	if not is_campaign_active():
 		return false  # a bare single-map launch has no campaign to save
 	var gs := get_node_or_null("/root/GameState")
 	var sm := get_node_or_null("/root/SaveManager")
-	if gs == null or sm == null or not gs.has_method("capture_campaign_save") \
+	if gs == null or sm == null or not gs.has_method("capture_save") \
 			or not sm.has_method("save_slot"):
 		# No disk seam wired (headless tests drive the position directly). The
 		# position is still correct in memory; only persistence is skipped.
 		return false
-	var save: Variant = gs.call("capture_campaign_save", save_label)
+	var save: Variant = gs.call("capture_save", save_label)
 	if save == null:
 		push_error("CampaignManager: campaign save capture failed for slot '%s'" % slot_id)
 		return false
-	if not bool(sm.call("save_slot", slot_id, save)):
+	if not bool(sm.call("save_slot", slot_id, save, origin, rule_id)):
 		push_error("CampaignManager: failed to write campaign slot '%s'" % slot_id)
 		return false
 	return true

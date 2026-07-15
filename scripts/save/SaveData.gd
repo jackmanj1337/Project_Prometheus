@@ -7,6 +7,8 @@ const FORMAT_VERSION := 1
 const TOP_LEVEL_KEYS: Array[String] = [
 	"format_version",
 	"save_label",
+	"origin",
+	"rule_id",
 	"integrity",
 	"header",
 	"campaign",
@@ -14,10 +16,13 @@ const TOP_LEVEL_KEYS: Array[String] = [
 	"roster",
 	"map_runtime",
 	"suspend",
+	"ledger",
 ]
 
 var format_version: int = FORMAT_VERSION
 var save_label: String = ""
+var origin: String = "manual"
+var rule_id: String = ""
 var integrity: Dictionary = {}
 var header: Dictionary = {}
 var campaign: Dictionary = {}
@@ -25,6 +30,7 @@ var party: Dictionary = {}
 var roster: Dictionary = {}
 var map_runtime: Dictionary = {}
 var suspend: Dictionary = {}
+var ledger: Array[Dictionary] = []
 
 
 func _init() -> void:
@@ -44,20 +50,25 @@ func apply_dict(source: Variant) -> void:
 	var data: Dictionary = source
 	format_version = SaveCodec.as_int(data.get("format_version", FORMAT_VERSION), FORMAT_VERSION)
 	save_label = _as_string(data.get("save_label", ""), "")
+	origin = _as_string(data.get("origin", "manual"), "manual")
+	rule_id = _as_string(data.get("rule_id", ""), "")
 	integrity = _normalize_integrity(data.get("integrity", {}))
 	campaign = _normalize_campaign(data.get("campaign", {}), data)
 	party = _normalize_party(data.get("party", {}), data)
 	roster = _normalize_roster(data.get("roster", {}), data)
 	map_runtime = _normalize_map_runtime(data.get("map_runtime", {}))
 	suspend = _normalize_suspend(data.get("suspend", {}))
-	header = _normalize_header(data.get("header", {}), campaign, party, roster)
+	ledger = _normalize_ledger(data.get("ledger", []))
+	header = _normalize_header(data.get("header", {}), campaign, party, roster, map_runtime)
 
 
 func to_dict() -> Dictionary:
-	var header_dict := _normalize_header(header, campaign, party, roster)
+	var header_dict := _normalize_header(header, campaign, party, roster, map_runtime)
 	return {
 		"format_version": format_version,
 		"save_label": save_label,
+		"origin": origin,
+		"rule_id": rule_id,
 		"integrity": integrity.duplicate(true),
 		"header": header_dict,
 		"campaign": campaign.duplicate(true),
@@ -65,6 +76,7 @@ func to_dict() -> Dictionary:
 		"roster": roster.duplicate(true),
 		"map_runtime": map_runtime.duplicate(true),
 		"suspend": suspend.duplicate(true),
+		"ledger": ledger.duplicate(true),
 	}
 
 
@@ -72,18 +84,40 @@ func validate(data_manager: Object = null) -> Array[String]:
 	var errors: Array[String] = []
 	if format_version != FORMAT_VERSION:
 		errors.append("SaveData: unsupported format_version %d" % format_version)
+	if origin not in ["manual", "auto"]:
+		errors.append("SaveData: origin must be 'manual' or 'auto'")
+	if origin == "auto" and rule_id.is_empty():
+		errors.append("SaveData: automatic saves require rule_id")
 	if not (integrity.get("payload_hash", "") is String):
 		errors.append("SaveData: integrity.payload_hash must be a String")
 	if not (integrity.get("schema_hash", "") is String):
 		errors.append("SaveData: integrity.schema_hash must be a String")
 	errors.append_array(_validate_rng(map_runtime.get("rng", {})))
+	errors.append_array(_validate_ledger())
 	errors.append_array(_validate_inventory_refs(data_manager))
+	return errors
+
+
+func _validate_ledger() -> Array[String]:
+	var errors: Array[String] = []
+	var is_mid_map := String(map_runtime.get("map_path", "")) != ""
+	if is_mid_map and ledger.is_empty():
+		errors.append("SaveData: mid_map document must persist its rewind ledger")
+	if not is_mid_map and not ledger.is_empty():
+		errors.append("SaveData: between_map document cannot carry a rewind ledger")
+	for i in ledger.size():
+		var item: Dictionary = ledger[i]
+		if String(item.get("reason", "")) not in ["round_start", "activation"] \
+				or not (item.get("entry", null) is Dictionary):
+			errors.append("SaveData: ledger[%d] is malformed" % i)
 	return errors
 
 
 func _apply_defaults() -> void:
 	format_version = FORMAT_VERSION
 	save_label = ""
+	origin = "manual"
+	rule_id = ""
 	integrity = _default_integrity()
 	header = _default_header()
 	campaign = _default_campaign()
@@ -91,6 +125,7 @@ func _apply_defaults() -> void:
 	roster = _default_roster()
 	map_runtime = _default_map_runtime()
 	suspend = _default_suspend()
+	ledger = []
 
 
 static func _normalize_integrity(source: Variant) -> Dictionary:
@@ -228,6 +263,25 @@ static func _normalize_suspend(source: Variant) -> Dictionary:
 	return out
 
 
+static func _normalize_ledger(source: Variant) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	if not (source is Array):
+		return out
+	for item in source:
+		if item is Dictionary:
+			var normalized: Dictionary = item.duplicate(true)
+			var entry: Variant = normalized.get("entry", null)
+			if entry is Dictionary:
+				var normalized_entry: Dictionary = entry.duplicate(true)
+				normalized_entry["map_runtime"] = _normalize_map_runtime(
+					normalized_entry.get("map_runtime", {}))
+				normalized_entry["suspend"] = _normalize_suspend(
+					normalized_entry.get("suspend", {}))
+				normalized["entry"] = normalized_entry
+			out.append(normalized)
+	return out
+
+
 static func _normalize_turn(source: Variant) -> Dictionary:
 	var out := _with_defaults(source, _default_map_runtime()["turn"])
 	out["turn_number"] = SaveCodec.as_int(out.get("turn_number", 1), 1)
@@ -244,12 +298,17 @@ static func _normalize_turn(source: Variant) -> Dictionary:
 
 
 static func _normalize_header(source: Variant, campaign_data: Dictionary,
-		party_data: Dictionary, roster_data: Dictionary) -> Dictionary:
+		party_data: Dictionary, roster_data: Dictionary, map_data: Dictionary) -> Dictionary:
 	var derived := _default_header()
 	derived["campaign_id"] = _as_string(campaign_data.get("campaign_id", ""), "")
 	derived["node_id"] = _as_string(campaign_data.get("node_id", ""), "")
 	derived["campaign_state"] = "completed" if derived["campaign_id"] != "" \
 			and derived["node_id"] == "" else "in_progress"
+	derived["save_kind"] = "mid_map" if String(map_data.get("map_path", "")) != "" \
+		else "between_map"
+	derived["turn_number"] = SaveCodec.as_int(
+		_dict_from_variant(map_data.get("turn", {})).get("turn_number", 1), 1)
+	derived["map_id"] = _as_string(map_data.get("map_id", ""), "")
 	derived["party"]["count"] = _array_from_variant(roster_data.get("units", [])).size()
 	derived["party"]["gold"] = SaveCodec.as_int(
 		_dict_from_variant(party_data.get("resources", {})).get("party_gold", 0), 0)
@@ -268,6 +327,9 @@ static func _normalize_header(source: Variant, campaign_data: Dictionary,
 	# Lifecycle is authoritative campaign state, not a presentation label. Derive
 	# it on every normalization so a reused header cannot retain a stale marker.
 	out["campaign_state"] = derived["campaign_state"]
+	out["save_kind"] = derived["save_kind"]
+	out["turn_number"] = derived["turn_number"]
+	out["map_id"] = derived["map_id"]
 	if out["party"]["count"] == 0 and derived["party"]["count"] > 0:
 		out["party"]["count"] = derived["party"]["count"]
 	if out["party"]["gold"] == 0 and derived["party"]["gold"] != 0:
@@ -339,6 +401,9 @@ static func _default_header() -> Dictionary:
 		"package_version": "",
 		"node_id": "",
 		"campaign_state": "in_progress",
+		"save_kind": "between_map",
+		"turn_number": 1,
+		"map_id": "",
 		"chapter_name": "",
 		"map_name": "",
 		"progress": "",

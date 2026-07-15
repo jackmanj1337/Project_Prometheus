@@ -361,11 +361,22 @@ func configure_suspend_resume(source: Variant) -> bool:
 		return false
 	if not _activate_saved_campaign_source(payload.get("campaign", {})):
 		return false
+	var staged_ledger := MapLedgerScript.new()
+	if not staged_ledger.restore_from_save(payload.get("ledger", [])):
+		push_error("GameState: suspend payload carries a malformed rewind ledger")
+		return false
 	var restored_items: Array[String] = _party_items_from_convoy_entries(
 		payload.get("party", {}).get("convoy", {}).get("entries", []))
 	if restored_items.is_empty() \
 			and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty():
 		return false
+	var campaign_dict: Dictionary = payload.get("campaign", {})
+	if String(campaign_dict.get("campaign_id", "")) != "":
+		var cm := get_node_or_null("/root/CampaignManager")
+		if cm == null or not cm.has_method("restore_campaign_state") \
+				or not bool(cm.call("restore_campaign_state", campaign_dict)):
+			push_error("GameState: suspend campaign envelope could not be restored")
+			return false
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", party_gold))
 	party_items = restored_items
@@ -378,6 +389,7 @@ func configure_suspend_resume(source: Variant) -> bool:
 	next_map_roster_policy = "suspend_resume"
 	next_map_roster_source = map_path
 	next_map_suspend_payload = payload.duplicate(true)
+	_map_ledger = staged_ledger
 	rewind_charges_left = maxi(0, int(map_runtime.get("rewind_charges_left",
 		campaign_rules.rewind_charges_per_map)))
 	# A suspend resume rebuilds the board from the serialized live units, so any
@@ -508,9 +520,30 @@ func _clear_roster_launch_state() -> void:
 	active_roster_source = ""
 
 
+func capture_save(save_label: String = "", turn_manager: Node = null,
+		cursor: Node = null) -> RefCounted:
+	if turn_manager != null:
+		var mid_map := capture_suspend_save(turn_manager, cursor)
+		if mid_map != null:
+			mid_map.save_label = save_label
+		return mid_map
+	return capture_campaign_save(save_label)
+
+
 func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:
 	var save: RefCounted = SaveDataScript.new()
 	_capture_campaign_package_identity(save.campaign)
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm != null and cm.has_method("capture_campaign_state"):
+		var envelope: Dictionary = cm.call("capture_campaign_state")
+		if String(envelope.get("campaign_id", "")) != "":
+			save.campaign["campaign_id"] = String(envelope.get("campaign_id", ""))
+			save.campaign["node_id"] = String(envelope.get("node_id", ""))
+			save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
+				envelope.get("cleared_nodes", []))
+			save.campaign["flags"] = SaveCodec.string_array_from_variant(
+				envelope.get("flags", []))
+			save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
 	save.campaign["rules"] = _campaign_rules_to_dict()
 	save.party["resources"]["party_gold"] = party_gold
 	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
@@ -529,6 +562,7 @@ func capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted
 		save.map_runtime[key] = entry["map_runtime"][key]
 	for key in entry["suspend"]:
 		save.suspend[key] = entry["suspend"][key]
+	save.ledger = _map_ledger.to_save_array()
 	return SaveDataScript.from_dict(save.to_dict())
 
 
@@ -977,9 +1011,20 @@ func _validate_restore_entry(entry: Dictionary) -> Array[String]:
 	# carry both timeline ints or the restore would silently desync the dice chain.
 	var rng_dict: Variant = map_runtime.get("rng", {})
 	if rng_dict is Dictionary and not rng_dict.is_empty():
-		if not (rng_dict.get("map_seed") is int) or not (rng_dict.get("history_hash") is int):
-			errors.append("GameState: ledger entry rng must carry int map_seed and history_hash")
+		if not _is_ledger_rng_value(rng_dict.get("map_seed")) \
+				or not _is_ledger_rng_value(rng_dict.get("history_hash")):
+			errors.append("GameState: ledger entry rng must carry int or decimal-string timeline values")
 	return errors
+
+
+func _is_ledger_rng_value(value: Variant) -> bool:
+	if value is int:
+		return true
+	if not (value is String) or String(value).is_empty():
+		return false
+	var text := String(value)
+	var digits := text.substr(1) if text.begins_with("-") else text
+	return not digits.is_empty() and digits.is_valid_int()
 
 
 func _validate_snapshot_unit_dict(snap: Dictionary, index: int, errors: Array[String]) -> void:

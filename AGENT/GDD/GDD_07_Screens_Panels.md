@@ -42,11 +42,10 @@ Last verified: 2026-07-15
 ```
 
 **Behavior:**
-- "Continue" → resumes the **most recently written** save, which is one of two
-  different documents, and `SaveManager.get_continue_target()` reports which:
-  a **suspend** save (mid-map) stages onto `GameState` and launches `GameMap`;
-  a **campaign slot** (between-map) restores the position and party and launches
-  the node the party is parked on. It is disabled when there is nothing to
+- "Continue" → resumes the **most recently written** slot. `SaveManager` has one
+  namespace; after loading, `map_runtime.map_path` routes a mid-map document onto
+  `GameState` + `GameMap`, while its absence routes a between-map document through
+  campaign restore and launches the parked node. It is disabled when there is nothing to
   continue; load failure opens an error dialog and stays on Main Menu. A
   Completed slots are skipped, including fallback selection; with only completion
   records Continue is disabled while Load Game remains available.
@@ -72,22 +71,23 @@ Last verified: 2026-07-15
 Status: **Implemented 2026-07-14** (`B1-CST` Slice 3)
 
 A modal overlay child of Main Menu (`open()` / hide, no scene change), listing the
-written campaign slots. **Read-only: this screen loads and deletes, it never
+written slots of either intrinsic kind. **Read-only: this screen loads and deletes, it never
 writes a save.** Writing a manual campaign slot is a *between-map* action and
 belongs to the prep screen (`B4-PREP-DEPLOYMENT`);
-`CampaignManager.write_campaign_slot` is built and waits for it. Mid-map saving is
-already the suspend save's job.
+`CampaignManager.write_campaign_slot` is built and waits for it. Map Menu writes
+the reserved mid-map `resume_battle` slot through the same store.
 
 **Behavior:**
-- One row per slot, from `SaveManager.list_slots()`: the save's label, its
-  campaign/node position, party size and gold, and the save time. Every field is
+- One row per slot, from `SaveManager.list_slots()`: `Resume battle — Turn N` for
+  a mid-map row or `Continue — node` for a between-map row, plus the save's label,
+  party size, gold, and save time. Every field is
   mirrored into the saves index at write time, so drawing the list never opens or
   validates N save files.
 - Rows are **newest first**, ordered by a monotonic `write_seq` rather than the
   timestamp (`saved_at_unix` has whole-second resolution, so two saves written in
   the same second would tie). The timestamp is display only.
-- The campaign **autosave** — written by the campaign flow on every node commit —
-  is a normal row, marked `[Autosave]` so the player can tell apart the save that
+- An `origin:auto` save — written by the campaign flow on node commit today — is
+  a normal row, marked `[Autosave]` so the player can tell apart the save that
   gets overwritten under them from one they wrote themselves.
 - A terminal autosave remains visible as a `[Completed]` campaign completion
   record. Its row shows campaign-complete details and is not activatable, so it
@@ -624,8 +624,8 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
 - `Suspend & Quit`: available only when the cursor opened the menu from a free
-  boundary **during the blue player phase**. It confirms, writes
-  `user://saves/suspend.json` through `SaveManager`, then returns to
+  boundary **during the blue player phase**. It confirms, writes the normal named
+  slot `resume_battle` (including the whole rewind ledger) through `SaveManager`, then returns to
   `Boot.tscn`; if the write fails, a failure dialog keeps the player on the map.
   The blue-phase gate is the v1 answer to V030-SUS-01 (c): a non-blue capture
   (e.g. debug-hotseating the red team) would restore a phase that locks the

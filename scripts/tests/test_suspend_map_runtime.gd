@@ -119,6 +119,7 @@ func _init() -> void:
 	var restored_save: RefCounted = SaveDataScript.from_dict(parsed)
 	var payload: Dictionary = restored_save.to_dict()
 	var payload_ok: bool = payload["map_runtime"]["units"].size() == gs.all_units.size() \
+		and payload["ledger"].size() >= 1 \
 		and int(payload["map_runtime"]["turn"]["unit_states"].get(blue_a_id, -1)) == TurnManager.UnitState.DONE \
 		and String(payload["map_runtime"]["turn"]["active_faction"]) == "red" \
 		and int(payload["map_runtime"]["rng"].get("map_seed", 0)) == rng_at_suspend["map_seed"] \
@@ -135,6 +136,11 @@ func _init() -> void:
 	await process_frame
 	if not gs.configure_suspend_resume(payload):
 		print("FAIL configure_suspend_resume rejected payload")
+		quit(1)
+		return
+	if gs.history_size() != payload["ledger"].size():
+		print("FAIL restored rewind ledger size: %s != %s" % [
+			gs.history_size(), payload["ledger"].size()])
 		quit(1)
 		return
 

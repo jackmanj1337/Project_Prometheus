@@ -107,15 +107,19 @@ func _row_text(slot_id: String, row: Dictionary) -> String:
 		title = slot_id
 	# The autosave is a normal row, but the player must be able to tell it apart from
 	# a slot they wrote themselves — it is the one that gets overwritten under them.
-	if slot_id == SaveManagerScript.AUTOSAVE_SLOT:
+	if String(row.get("origin", "manual")) == "auto":
 		title = "[Autosave] %s" % title
 	if String(header.get("campaign_state", "in_progress")) == "completed":
 		title = "[Completed] %s" % title
 	var campaign_id := String(header.get("campaign_id", ""))
 	var node_id := String(header.get("node_id", ""))
-	var position := "%s — Campaign complete" % campaign_id \
-		if String(header.get("campaign_state", "in_progress")) == "completed" \
-		else ("%s — %s" % [campaign_id, node_id] if campaign_id != "" else "Single map")
+	var position: String
+	if String(header.get("save_kind", "between_map")) == "mid_map":
+		position = "Resume battle — Turn %d" % int(header.get("turn_number", 1))
+	elif String(header.get("campaign_state", "in_progress")) == "completed":
+		position = "%s — Campaign complete" % campaign_id
+	else:
+		position = "Continue — %s" % (node_id if node_id != "" else campaign_id)
 	var detail := "%d units · %dG · %s" % [
 		int(party.get("count", 0)),
 		int(party.get("gold", 0)),

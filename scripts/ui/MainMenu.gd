@@ -23,7 +23,7 @@ func _ready() -> void:
 	_new_game_btn.pressed.connect(_on_new_game)
 	_settings_btn.pressed.connect(_on_settings)
 	_quit_btn.pressed.connect(_on_quit)
-	# The picker names a slot; the restore itself stays here (_load_campaign_slot),
+	# The picker names a slot; the restore itself stays here (_load_slot),
 	# so Continue and Load Game cannot drift apart.
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.slots_changed.connect(_refresh_menu_state)
@@ -72,7 +72,7 @@ func _refresh_load_state() -> void:
 # Continue resumes the most recently written save, which is one of two different
 # documents: a mid-map suspend (resumes into the live board) or a campaign slot
 # (resumes parked between maps, and launches the node the party is sitting on).
-# SaveManager owns which is newest; this only routes on the kind it reports.
+# SaveManager owns which is newest; the loaded document's map discriminator routes it.
 func _on_continue() -> void:
 	var save_manager := get_node_or_null("/root/SaveManager")
 	if save_manager == null or not save_manager.has_method("get_continue_target"):
@@ -80,43 +80,17 @@ func _on_continue() -> void:
 		_refresh_continue_state()
 		return
 	var target: Dictionary = save_manager.call("get_continue_target")
-	match String(target.get("kind", "")):
-		"suspend":
-			if _load_suspend_save(save_manager):
-				get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
-		"slot":
-			_load_campaign_slot(save_manager, String(target.get("slot_id", "")))
-		_:
-			_show_continue_error("There is no save to continue.")
-			_refresh_continue_state()
-
-
-func _load_suspend_save(save_manager: Node) -> bool:
-	if not save_manager.has_method("load_suspend"):
-		_show_continue_error("Continue is unavailable.\nNo save service was found.")
+	if String(target.get("kind", "")) == "slot":
+		_load_slot(save_manager, String(target.get("slot_id", "")))
+	else:
+		_show_continue_error("There is no save to continue.")
 		_refresh_continue_state()
-		return false
-	var save: Variant = save_manager.call("load_suspend")
-	if save == null:
-		_show_continue_error("Could not load the suspend save.\nMap progress was not resumed.")
-		_refresh_continue_state()
-		return false
-	var gs := get_node_or_null("/root/GameState")
-	if gs == null or not gs.has_method("configure_suspend_resume"):
-		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
-		_refresh_continue_state()
-		return false
-	if not bool(gs.call("configure_suspend_resume", save)):
-		_show_continue_error("Could not resume the suspend save.\nMap progress was not resumed.")
-		_refresh_continue_state()
-		return false
-	return true
 
 
 # A campaign slot restores the position and party, then launches the parked node.
 # CampaignManager owns the launch (it resolves the node's map binding), so this
 # does not change scene itself.
-func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
+func _load_slot(save_manager: Node, slot_id: String, change_scene: bool = true) -> bool:
 	if not save_manager.has_method("load_slot"):
 		_show_continue_error("Continue is unavailable.\nNo save service was found.")
 		_refresh_continue_state()
@@ -126,7 +100,17 @@ func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
 		_show_continue_error("Could not load the campaign save.\nProgress was not resumed.")
 		_refresh_continue_state()
 		return false
+	var payload: Dictionary = save.to_dict()
 	var gs := get_node_or_null("/root/GameState")
+	if String(payload.get("map_runtime", {}).get("map_path", "")) != "":
+		if gs == null or not gs.has_method("configure_suspend_resume") \
+				or not bool(gs.call("configure_suspend_resume", save)):
+			_show_continue_error("Could not resume the battle save.\nMap progress was not resumed.")
+			_refresh_continue_state()
+			return false
+		if change_scene:
+			get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")
+		return true
 	var cm := get_node_or_null("/root/CampaignManager")
 	if gs == null or cm == null or not gs.has_method("configure_campaign_resume"):
 		_show_continue_error("Continue is unavailable.\nGame state could not be prepared.")
@@ -147,6 +131,12 @@ func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
 	return true
 
 
+# Compatibility seam for existing callers while all slots now route through one
+# discriminator-driven loader.
+func _load_campaign_slot(save_manager: Node, slot_id: String) -> bool:
+	return _load_slot(save_manager, slot_id)
+
+
 func _show_continue_error(message: String) -> void:
 	var dlg := AcceptDialog.new()
 	dlg.dialog_text = message
@@ -160,7 +150,7 @@ func _on_load_game() -> void:
 	_load_game_screen.open()
 
 
-# The picker chose a slot. On success _load_campaign_slot changes scene, so the
+# The picker chose a slot. On success _load_slot changes scene, so the
 # overlay only needs closing on failure — where its error dialog is already up and
 # the player stays on the picker with the list intact.
 func _on_slot_load_requested(slot_id: String) -> void:
@@ -168,7 +158,7 @@ func _on_slot_load_requested(slot_id: String) -> void:
 	if save_manager == null:
 		_show_continue_error("Loading is unavailable.\nNo save service was found.")
 		return
-	_load_campaign_slot(save_manager, slot_id)
+	_load_slot(save_manager, slot_id)
 
 
 func _on_load_game_back() -> void:

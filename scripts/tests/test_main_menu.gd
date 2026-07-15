@@ -51,7 +51,7 @@ func _init() -> void:
 		print("FAIL Continue enabled without a suspend save")
 		failed += 1
 
-	save_manager.save_suspend(_make_suspend_save())
+	save_manager.save_slot(SaveManagerScript.MID_MAP_SLOT, _make_suspend_save())
 	menu._refresh_continue_state()
 	if not continue_btn.disabled:
 		print("OK  Continue enables when a suspend save exists")
@@ -60,7 +60,7 @@ func _init() -> void:
 		print("FAIL Continue stayed disabled after writing suspend save")
 		failed += 1
 
-	var loaded_ok: bool = menu._load_suspend_save(save_manager)
+	var loaded_ok: bool = menu._load_slot(save_manager, SaveManagerScript.MID_MAP_SLOT, false)
 	if loaded_ok and bool(gs.get("configured")) \
 			and String(gs.get("configured_map_path")) == "res://data/maps/map_001_rout/map_001_data.tres":
 		print("OK  Continue stages suspend payload through GameState")
@@ -71,8 +71,9 @@ func _init() -> void:
 		failed += 1
 
 	gs.set("configured", false)
-	_write_text(save_manager.get_suspend_path(), "{ not json")
-	var failed_load_ok: bool = not menu._load_suspend_save(save_manager)
+	_write_text(save_manager.get_slot_path(SaveManagerScript.MID_MAP_SLOT), "{ not json")
+	var failed_load_ok: bool = not menu._load_slot(
+		save_manager, SaveManagerScript.MID_MAP_SLOT, false)
 	if failed_load_ok and not bool(gs.get("configured")) and _consume_error_dialog(menu):
 		print("OK  Continue load failure shows an error dialog and does not stage GameState")
 		passed += 1
@@ -82,8 +83,8 @@ func _init() -> void:
 		failed += 1
 
 	# --- Slice 3: Continue routes a campaign slot to the launch seam ------------
-	save_manager.delete_suspend()
-	save_manager.save_slot("autosave", _make_campaign_save())
+	save_manager.delete_slot(SaveManagerScript.MID_MAP_SLOT)
+	save_manager.save_slot("autosave", _make_campaign_save(), "auto", "campaign_progress")
 	var target: Dictionary = save_manager.get_continue_target()
 	if String(target.get("kind", "")) == "slot":
 		print("OK  Continue targets the campaign slot when it is the only save")
@@ -127,7 +128,7 @@ func _init() -> void:
 		print("FAIL Load Game enabled with no slots on disk")
 		failed += 1
 
-	save_manager.save_slot("autosave", _make_campaign_save())
+	save_manager.save_slot("autosave", _make_campaign_save(), "auto", "campaign_progress")
 	save_manager.save_slot("manual_01", _make_campaign_save("Before the seize"))
 	menu._refresh_load_state()
 	if not load_btn.disabled:
@@ -153,7 +154,8 @@ func _init() -> void:
 	var autosave_text: String = _row_load_button(picker, "autosave").text
 	var manual_text: String = _row_load_button(picker, "manual_01").text
 	if autosave_text.contains("[Autosave]") and not manual_text.contains("[Autosave]") \
-			and manual_text.contains("Before the seize") and manual_text.contains("proving_grounds"):
+			and manual_text.contains("Before the seize") \
+			and manual_text.contains("Continue — node_02_seize"):
 		print("OK  The picker marks the autosave and renders each row from its header")
 		passed += 1
 	else:
@@ -268,6 +270,11 @@ func _make_suspend_save() -> RefCounted:
 	save.map_runtime["map_id"] = "map_001"
 	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
 	save.suspend["kind"] = "map"
+	save.ledger.append({
+		"reason": "round_start",
+		"entry": {"map_runtime": save.map_runtime.duplicate(true), "suspend":
+			save.suspend.duplicate(true), "party": {"gold": 0, "items": [], "roster": []}},
+	})
 	return SaveDataScript.from_dict(save.to_dict())
 
 

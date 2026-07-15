@@ -81,7 +81,7 @@ rule fields are not retained as shims.
 
 Status: **Split** — RNG-1 dice sourcing + event commits, the RNG-2 Retry
 snapshot, the I/O-free `SaveData` envelope, the active-map suspend
-serializer/scene-restore foundation, and the `SaveManager` suspend disk slot are
+serializer/scene-restore foundation, and the unified `SaveManager` slot store are
 **Implemented** (2026-07-06, B1-PKGA Steps 1-2, B1-SAVECODEC Slices 4-5,
 B1-SUSPEND Slice 1, SaveManager disk seam, Map Menu Suspend & Quit, Main Menu
 Continue/delete lifecycle); the §8.1 snapshot generalization landed across
@@ -134,8 +134,8 @@ plan (code, integration sweep, tests, build order) is
 - **Snapshot contract.** Generalize `GameState.take_map_snapshot()` into one
   `Dictionary` (`schema_version`, `map_id`, `campaign_rules`, `rng`, `turn`, `party`,
   `pair_up`, `units[]` including non-`@export` runtime fields). Retry = restore
-  checkpoint 0; suspend save = this dict to `user://saves/suspend.json`; rewind = a ring of
-  these. **Suspend file persists until the map resolves (OPEN-13)**, then deleted (no
+  checkpoint 0; a mid-map slot persists this dict plus the whole ledger; rewind = a ring of
+  these. **The battle-resume slot persists until the map resolves (OPEN-13)**, then deletes (no
   delete-on-load — RNG-2 already blocks reload-scumming). The Retry-facing
   unit/inventory snapshot routes through `SaveCodec` as JSON-safe dictionaries,
   and the top-level `SaveData` envelope now defines the I/O-free document seam
@@ -180,13 +180,16 @@ plan (code, integration sweep, tests, build order) is
   load as the saved controlling faction's view.
   `GameState.configure_suspend_resume()` stages that document; `GameMap` then spawns
   from `map_runtime.units` instead of authored placements and restores
-  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. `SaveManager`
-  now owns disk I/O for the dedicated `user://saves/suspend.json` slot and the
-  `saves_index.json` last-played pointer. Map Menu `Suspend & Quit` writes that
-  file from the free/local-control boundary before returning to `Boot.tscn`;
-  Main Menu `Continue` loads it through `SaveManager`, stages it through
+  `TurnManager`, PairUpRegistry, `RngService`, and `MapCursor`. Phase 4 replaced
+  the dedicated suspend file/API with the same named-slot store used between maps.
+  Map Menu `Suspend & Quit` writes the reserved `resume_battle` slot from the
+  free/local-control boundary before returning to `Boot.tscn`; Main Menu Continue
+  and Load both load it through the same discriminator-driven path, staging it through
   `GameState.configure_suspend_resume()`, and launches `GameMap`. The suspend
-  file is deleted when a map result is requested, not when it is loaded.
+  slot is deleted when a map result is requested, not when it is loaded. The slot
+  persists `ledger[]`, so pre-suspend Rewind boundaries survive process restart;
+  its campaign envelope also restores the active graph position. Every slot carries
+  `origin` and automatic slots additionally carry `rule_id`.
 - **Persistence ban.** Engine `hash()` / `String.hash()` are permanently banned in this
   subsystem; the SplitMix64-style mixer and string-fold are frozen (changing them is
   save-breaking).
@@ -201,12 +204,11 @@ plan (code, integration sweep, tests, build order) is
   default fixtures. `B1-CST` kickoff also moved live rule ownership into
   `GameState.campaign_rules` and expanded save-rule defaults. `B1-SUSPEND` Slice 1
   now restores active-map live enemies, scheduler state, PairUp, RNG, and MRD cursor
-  state from `SaveData.map_runtime` / `SaveData.suspend`. The `SaveManager` disk
-  seam now writes/reads/deletes that document at `user://saves/suspend.json`, and
-  Map Menu `Suspend & Quit` writes it from the existing free/local-control gate.
-  Main Menu `Continue` and result-time suspend cleanup now close the implemented
-  lifecycle. Remaining: future object/AI runtime fields when those systems exist,
-  and rewind as Build Order Step 4.
+  state from `SaveData.map_runtime` / `SaveData.suspend`. B1-LEDGER Phases 3-4
+  added live Rewind and the unified slot namespace: Map Menu writes a normal
+  `resume_battle` slot with the whole ledger, Continue/Load discriminate by
+  `map_runtime.map_path`, and result-time cleanup deletes that slot. Remaining:
+  future object/AI runtime fields when those systems exist and Phase 5 policy.
 
 ### Anchors
 - Code: `scripts/autoloads/RngService.gd`; `scripts/autoloads/SaveManager.gd`;

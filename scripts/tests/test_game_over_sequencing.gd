@@ -37,17 +37,17 @@ func _init() -> void:
 	await process_frame
 
 	# --- Case 1: a plain victory with no progression presents immediately --------
-	save_manager.save_suspend(_make_suspend_save())
+	save_manager.save_slot(SaveManagerScript.MID_MAP_SLOT, _make_suspend_save())
 	bus.map_victory.emit()
 	bus.map_resolved.emit("blue", [])
 	await process_frame
 	if screen.visible and screen.get_node("Panel/VBox/Title").text == "Victory!" \
-			and not save_manager.has_suspend():
-		print("OK  victory presents immediately and deletes the suspend save"); passed += 1
+			and not save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT):
+		print("OK  victory presents immediately and deletes the mid-map slot"); passed += 1
 	else:
-		print("FAIL immediate victory: visible=%s title=%s has_suspend=%s" % [
+		print("FAIL immediate victory: visible=%s title=%s has_mid_map=%s" % [
 			screen.visible, screen.get_node("Panel/VBox/Title").text,
-			save_manager.has_suspend()]); failed += 1
+			save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)]); failed += 1
 
 	# Reset the overlay for the sequencing case (mirror a fresh map).
 	screen.hide()
@@ -98,6 +98,11 @@ func _make_suspend_save() -> RefCounted:
 	save.map_runtime["map_id"] = "map_001"
 	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
 	save.suspend["kind"] = "map"
+	save.ledger.append({"reason": "round_start", "entry": {
+		"map_runtime": save.map_runtime.duplicate(true),
+		"suspend": save.suspend.duplicate(true),
+		"party": {"gold": 0, "items": [], "roster": []},
+	}})
 	return SaveDataScript.from_dict(save.to_dict())
 
 

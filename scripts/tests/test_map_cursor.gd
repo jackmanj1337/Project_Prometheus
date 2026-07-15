@@ -78,7 +78,7 @@ func _init() -> void:
 
 	# Stub GameState — GridManager.get_unit_at reads /root/GameState.all_units (duck-typed).
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nconst SaveDataScript = preload(\"res://scripts/save/SaveData.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\nfunc capture_suspend_save(turn_manager: Node, cursor: Node = null) -> RefCounted:\n\tvar save: RefCounted = SaveDataScript.new()\n\tsave.map_runtime[\"map_id\"] = \"test_map\"\n\tsave.map_runtime[\"map_path\"] = \"res://data/maps/map_001_rout/map_001_data.tres\"\n\tsave.suspend[\"kind\"] = \"map\"\n\treturn SaveDataScript.from_dict(save.to_dict())\n"
+	gs_script.source_code = "extends Node\nconst CampaignRulesScript = preload(\"res://scripts/resources/CampaignRules.gd\")\nconst SaveDataScript = preload(\"res://scripts/save/SaveData.gd\")\nvar all_units: Array[Node] = []\nvar map_data = null\nvar campaign_rules = CampaignRulesScript.make_default()\nfunc get_living_player_units() -> Array[Node]: return all_units\nfunc get_living_units_of(faction_id: String) -> Array[Node]:\n\tvar out: Array[Node] = []\n\tfor unit in all_units:\n\t\tif unit != null and unit.team == faction_id and unit.data != null and unit.data.hp > 0:\n\t\t\tout.append(unit)\n\treturn out\nfunc is_player_turn() -> bool: return true\nfunc find_unit_by_id(unit_id: String) -> Node:\n\tfor unit in all_units:\n\t\tif unit != null and unit.data != null and unit.data.unit_id == unit_id:\n\t\t\treturn unit\n\treturn null\nfunc capture_save(label: String = \"\", turn_manager: Node = null, cursor: Node = null) -> RefCounted:\n\tvar save: RefCounted = SaveDataScript.new()\n\tsave.map_runtime[\"map_id\"] = \"test_map\"\n\tsave.map_runtime[\"map_path\"] = \"res://data/maps/map_001_rout/map_001_data.tres\"\n\tsave.suspend[\"kind\"] = \"map\"\n\tsave.ledger.append({\"reason\": \"round_start\", \"entry\": {\"map_runtime\": save.map_runtime.duplicate(true), \"suspend\": save.suspend.duplicate(true), \"party\": {\"gold\": 0, \"items\": [], \"roster\": []}}})\n\treturn SaveDataScript.from_dict(save.to_dict())\n"
 	gs_script.reload()
 	_gs = gs_script.new()
 	_gs.name = "GameState"
@@ -530,7 +530,7 @@ func _init() -> void:
 	var c_suspend := _make_cursor(t_suspend)
 	c_suspend._map_menu_suspend_available = true
 	var wrote_suspend: bool = c_suspend._write_suspend_save()
-	var loaded_suspend: RefCounted = save_manager.load_suspend()
+	var loaded_suspend: RefCounted = save_manager.load_slot(SaveManagerS.MID_MAP_SLOT)
 	if wrote_suspend and loaded_suspend != null \
 			and loaded_suspend.map_runtime["map_id"] == "test_map" \
 			and loaded_suspend.suspend["kind"] == "map":

@@ -1,7 +1,6 @@
 extends SceneTree
 # Run with: godot --headless --path /workspace --script res://scripts/tests/test_save_manager.gd
-# B1-CST / B1-SUSPEND: the disk I/O seam for the two save documents —
-# the mid-map SUSPEND save, and the between-map campaign SLOTS (Slice 3).
+# Unified slot I/O for mid-map and between-map documents.
 
 const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
@@ -19,8 +18,8 @@ func _init() -> void:
 	var manager: Node = SaveManagerScript.new()
 	manager.configure_save_dir_for_tests(TEST_SAVE_DIR)
 
-	_test_suspend_write_and_load(manager)
-	_test_suspend_rejects_bad_documents(manager)
+	_test_mid_map_slot_write_and_load(manager)
+	_test_mid_map_slot_rejects_bad_documents(manager)
 	_test_slot_write_and_load(manager)
 	_test_slot_ids_are_allow_listed(manager)
 	_test_continue_routes_to_the_newest_document(manager)
@@ -46,52 +45,62 @@ func _check(ok: bool, label: String, detail: String = "") -> void:
 
 # --- Suspend save (mid-map) ---------------------------------------------------
 
-func _test_suspend_write_and_load(manager: Node) -> void:
-	var write_ok: bool = manager.save_suspend(_make_suspend_save())
+func _test_mid_map_slot_write_and_load(manager: Node) -> void:
+	var slot_id: String = SaveManagerScript.MID_MAP_SLOT
+	var write_ok: bool = manager.save_slot(slot_id, _make_suspend_save())
 	var last_played: Dictionary = manager.get_last_played()
 	_check(write_ok
-			and FileAccess.file_exists(manager.get_suspend_path())
-			and String(last_played.get("kind", "")) == "suspend"
-			and String(last_played.get("path", "")) == manager.get_suspend_path()
+			and FileAccess.file_exists(manager.get_slot_path(slot_id))
+			and String(last_played.get("kind", "")) == "slot"
+			and String(last_played.get("slot_id", "")) == slot_id
 			and manager.load_index().has("last_played"),
-		"save_suspend writes the file and the continue pointer", str(last_played))
+		"mid-map save uses the unified slot and continue pointer", str(last_played))
 
-	var loaded: RefCounted = manager.load_suspend()
+	var loaded: RefCounted = manager.load_slot(slot_id)
 	_check(loaded != null
 			and loaded.map_runtime["map_id"] == "map_001"
 			and loaded.map_runtime["map_path"] == "res://data/maps/map_001_rout/map_001_data.tres"
 			and loaded.map_runtime["rng"] == {"map_seed": "123", "history_hash": "456"}
-			and loaded.suspend["kind"] == "map",
-		"load_suspend round-trips the saved SaveData",
+			and loaded.suspend["kind"] == "map"
+			and loaded.ledger.size() == 1
+			and loaded.ledger[0]["entry"]["map_runtime"]["rng"] \
+				== {"map_seed": "123", "history_hash": "456"},
+		"mid-map slot round-trips the board and whole ledger",
 		str(loaded.to_dict() if loaded != null else null))
 
-	_check(manager.has_continue_save(), "has_continue_save tracks the suspend save")
+	_check(manager.has_continue_save(), "has_continue_save tracks the mid-map slot")
 
-	_check(manager.delete_suspend()
-			and not FileAccess.file_exists(manager.get_suspend_path())
+	_check(manager.delete_slot(slot_id)
+			and not FileAccess.file_exists(manager.get_slot_path(slot_id))
 			and manager.get_last_played().is_empty(),
-		"delete_suspend removes the file and the continue pointer")
+		"delete_slot removes the mid-map file and continue pointer")
 
 
-func _test_suspend_rejects_bad_documents(manager: Node) -> void:
-	_write_text(manager.get_suspend_path(), "{ not json")
-	_check(manager.load_suspend() == null, "load_suspend rejects invalid JSON")
+func _test_mid_map_slot_rejects_bad_documents(manager: Node) -> void:
+	var path: String = manager.get_slot_path(SaveManagerScript.MID_MAP_SLOT)
+	_write_text(path, "{ not json")
+	_check(manager.load_slot(SaveManagerScript.MID_MAP_SLOT) == null,
+		"mid-map slot rejects invalid JSON")
 
-	_write_text(manager.get_suspend_path(), JSON.stringify({"format_version": 99}, "\t", true))
-	_check(manager.load_suspend() == null, "load_suspend rejects an unsupported format_version")
-	manager.delete_suspend()
+	_write_text(path, JSON.stringify({"format_version": 99}, "\t", true))
+	_check(manager.load_slot(SaveManagerScript.MID_MAP_SLOT) == null,
+		"mid-map slot rejects an unsupported format_version")
+	manager.delete_slot(SaveManagerScript.MID_MAP_SLOT)
 
 
 # --- Campaign slots (between-map) ---------------------------------------------
 
 func _test_slot_write_and_load(manager: Node) -> void:
-	var write_ok: bool = manager.save_slot("autosave", _make_campaign_save())
+	var write_ok: bool = manager.save_slot("autosave", _make_campaign_save(),
+		"auto", "campaign_progress")
 	var last_played: Dictionary = manager.get_last_played()
 	_check(write_ok
 			and manager.has_slot("autosave")
 			and FileAccess.file_exists(manager.get_slot_path("autosave"))
 			and String(last_played.get("kind", "")) == "slot"
-			and String(last_played.get("slot_id", "")) == "autosave",
+			and String(last_played.get("slot_id", "")) == "autosave"
+			and manager.load_slot("autosave").origin == "auto"
+			and manager.load_slot("autosave").rule_id == "campaign_progress",
 		"save_slot writes the slot file and points continue at it", str(last_played))
 
 	var loaded: RefCounted = manager.load_slot("autosave")
@@ -134,8 +143,7 @@ func _test_slot_ids_are_allow_listed(manager: Node) -> void:
 		"save_slot refuses to write through an escaping slot id")
 
 
-# Continue resumes whichever document was written LAST — the two kinds are
-# separate files, so the index pointer is the only thing that can order them.
+# Continue resumes whichever unified slot was written last.
 func _test_continue_routes_to_the_newest_document(manager: Node) -> void:
 	# Slot was written most recently (previous test).
 	var target: Dictionary = manager.get_continue_target()
@@ -143,14 +151,15 @@ func _test_continue_routes_to_the_newest_document(manager: Node) -> void:
 			and String(target.get("slot_id", "")) == "autosave",
 		"continue routes to the campaign slot when it is newest", str(target))
 
-	manager.save_suspend(_make_suspend_save())
+	manager.save_slot(SaveManagerScript.MID_MAP_SLOT, _make_suspend_save())
 	target = manager.get_continue_target()
-	_check(String(target.get("kind", "")) == "suspend",
-		"continue routes to the suspend save when it is newest", str(target))
+	_check(String(target.get("kind", "")) == "slot"
+			and String(target.get("slot_id", "")) == SaveManagerScript.MID_MAP_SLOT,
+		"continue routes to the mid-map slot when it is newest", str(target))
 
 	# The pointed-at document going missing must not strand Continue on it: the
 	# slot is still on disk and is still continuable.
-	manager.delete_suspend()
+	manager.delete_slot(SaveManagerScript.MID_MAP_SLOT)
 	target = manager.get_continue_target()
 	_check(String(target.get("kind", "")) == "slot"
 			and String(target.get("slot_id", "")) == "autosave"
@@ -231,6 +240,14 @@ func _make_suspend_save() -> RefCounted:
 	save.map_runtime["map_path"] = "res://data/maps/map_001_rout/map_001_data.tres"
 	save.map_runtime["rng"] = {"map_seed": 123, "history_hash": 456}
 	save.suspend["kind"] = "map"
+	save.ledger.append({
+		"reason": "round_start",
+		"entry": {
+			"map_runtime": save.map_runtime.duplicate(true),
+			"suspend": save.suspend.duplicate(true),
+			"party": {"gold": 50, "items": [], "roster": []},
+		},
+	})
 	return SaveDataScript.from_dict(save.to_dict())
 
 

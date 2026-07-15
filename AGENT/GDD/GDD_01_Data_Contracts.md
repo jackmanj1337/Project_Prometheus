@@ -508,8 +508,9 @@ func has_campaign_flag(flag_id: String) -> bool
 func set_campaign_flag(flag_id: String, enabled: bool = true) -> bool
 func get_campaign_var(var_id: String, default_value: Variant = null) -> Variant
 func set_campaign_var(var_id: String, value: Variant) -> bool
-func write_autosave() -> bool                      # the reserved "autosave" slot
-func write_campaign_slot(slot_id: String, save_label: String) -> bool   # the manual-save seam
+func write_autosave() -> bool                      # origin:auto / campaign_progress
+func write_campaign_slot(slot_id: String, save_label: String,
+    origin: String = "manual", rule_id: String = "") -> bool
 ```
 
 Rules this contract fixes:
@@ -560,6 +561,13 @@ Rules this contract fixes:
   validated document and its full index update (row plus Continue pointer), then
   replaces both with the index as commit marker. A replacement failure restores
   the prior slot/index pair and removes temporary/backup files.
+- **One slot namespace.** Mid-map and between-map documents both use
+  `SaveManager.save_slot`; `map_runtime.map_path` is the intrinsic discriminator.
+  `GameState.capture_save` selects the document shape from whether a live
+  `TurnManager` is supplied. Every document carries `origin: manual|auto` and
+  autos carry `rule_id`. A mid-map document also carries the complete reason-tagged
+  rewind `ledger[]`, while the mirrored header carries `save_kind`, `turn_number`,
+  and `map_id` so Load Game never opens N documents to label them.
 
 Map bindings resolve through `DataManager.get_map_registry_entry(map_id)` /
 `has_map_registry_entry(map_id)` — the registry is cached in the catalogue pass,

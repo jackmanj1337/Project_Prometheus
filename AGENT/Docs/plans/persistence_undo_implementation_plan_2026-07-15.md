@@ -184,7 +184,7 @@ player mid-battle, not just retained by prune.
   outcome, rewind-then-replay-identical reproduces outcome.
 - **DoD:** `GDD_01`/`GDD_06`, `campaign_rules.md`, roadmap row.
 
-## Phase 4 — Unified slot namespace (collapse `suspend.json`)
+## Phase 4 — Unified slot namespace (**IMPLEMENTED 2026-07-15**)
 
 **Goal:** one slot store; a suspend is just a slot whose document carries
 `map_runtime`.

@@ -101,6 +101,13 @@ func _init() -> void:
 	var branch: RefCounted = _clone(led)
 	branch.truncate_after(2)
 	_check("truncate_after drops the abandoned future", _ids(branch), [0, 1, 2], counters)
+	var persisted: Array[Dictionary] = branch.to_save_array()
+	var restored := MapLedgerScript.new()
+	_check("restore_from_save accepts the persisted unified-slot form",
+		restored.restore_from_save(persisted) and _ids(restored) == [0, 1, 2], true, counters)
+	_check("restore_from_save rejects malformed entries without mutation",
+		not restored.restore_from_save([{"reason": "unknown", "entry": {}}]) \
+			and _ids(restored) == [0, 1, 2], true, counters)
 
 	bn.clear()
 	_check("clear empties the ledger", bn.size(), 0, counters)

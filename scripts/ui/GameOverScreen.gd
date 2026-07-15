@@ -82,7 +82,7 @@ func _on_map_resolved(winner_group: String, standings: Array) -> void:
 # no pending level-up/promotion) presents synchronously here, unchanged. When a
 # progression modal is up, presentation defers until the queue drains.
 func _request_present() -> void:
-	_delete_suspend_after_resolution()
+	_delete_mid_map_slot_after_resolution()
 	_result_pending = true
 	_try_present()
 
@@ -189,13 +189,13 @@ func _on_next() -> void:
 	cm.call("launch_prepared_node")
 
 
-func _delete_suspend_after_resolution() -> void:
+func _delete_mid_map_slot_after_resolution() -> void:
 	if _suspend_deleted_for_result:
 		return
 	_suspend_deleted_for_result = true
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if save_manager != null and save_manager.has_method("delete_suspend"):
-		save_manager.call("delete_suspend")
+	if save_manager != null and save_manager.has_method("delete_slot"):
+		save_manager.call("delete_slot", "resume_battle")
 
 
 func _unhandled_input(event: InputEvent) -> void:

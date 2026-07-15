@@ -1814,17 +1814,17 @@ func _write_suspend_save() -> bool:
 		return false
 	var gs := get_node_or_null("/root/GameState")
 	var save_manager := get_node_or_null("/root/SaveManager")
-	if gs == null or not gs.has_method("capture_suspend_save"):
-		push_error("MapCursor: GameState cannot capture suspend save")
+	if gs == null or not gs.has_method("capture_save"):
+		push_error("MapCursor: GameState cannot capture a save")
 		return false
-	if save_manager == null or not save_manager.has_method("save_suspend"):
-		push_error("MapCursor: SaveManager cannot write suspend save")
+	if save_manager == null or not save_manager.has_method("save_slot"):
+		push_error("MapCursor: SaveManager cannot write a mid-map slot")
 		return false
-	var save: Variant = gs.call("capture_suspend_save", _turn, self)
+	var save: Variant = gs.call("capture_save", "Resume battle", _turn, self)
 	if save == null:
 		push_error("MapCursor: suspend capture returned null")
 		return false
-	return bool(save_manager.call("save_suspend", save))
+	return bool(save_manager.call("save_slot", "resume_battle", save, "manual", ""))
 
 
 func _show_suspend_failed_dialog() -> void:
