@@ -43,6 +43,7 @@ Checks:
  37. GDD section shape — split companions pair status/date; DOC-002 sections keep their shape
  38. Feature ownership — Feature Index identities and ownership/status rows are unique
  39. Open registries — authored objective/item ids cannot regress to closed dispatch
+ 40. Process evidence — closeout, audit, claim, export, and matrix enforcement exists
 """
 
 import json
@@ -1828,6 +1829,27 @@ def check_open_authored_registries() -> None:
                       f"manifest entry does not exist: {filename!r}")
 
 
+def check_process_evidence_tooling() -> None:
+    required = {
+        "scripts/ci/audit_cadence.py": "audit-cadence:",
+        "scripts/ci/check_session_commit_claims.py": "CLAIM_RE",
+        "scripts/ci/check_evidence_matrices.py": "implemented_track_evidence.json",
+        "scripts/session_closeout.sh": "audit_cadence.py",
+        "scripts/hooks/pre-push": "audit_cadence.py",
+        "scripts/tools/export_smoke.sh": "sha256=",
+        "AGENT/Session Notes/TEMPLATE.md": "## Commits claimed",
+        "AGENT/Docs/templates/requirement_evidence_matrix.md": "Automated evidence",
+        "AGENT/Docs/governance/implemented_track_evidence.json": "bootstrap_rule",
+        "requirements-dev.txt": "gdtoolkit==",
+    }
+    for relative, marker in required.items():
+        path = ROOT / relative
+        if not path.is_file():
+            _fail("process-evidence", path, 1, "required process artifact is missing")
+        elif marker not in path.read_text(encoding="utf-8"):
+            _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1871,6 +1893,7 @@ def main() -> None:
         ("[37] GDD section governance",   check_gdd_section_governance),
         ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
         ("[39] Open authored registries", check_open_authored_registries),
+        ("[40] Process evidence tooling",  check_process_evidence_tooling),
     ]
     for label, fn in steps:
         print(f"  {label}...")

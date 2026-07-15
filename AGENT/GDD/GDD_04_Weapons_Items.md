@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-15
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -19,7 +19,7 @@ owned by `GDD_01`. Class WEXP baselines/caps live in `GDD_03`.
 ## Weapon System Overview
 
 Status: **Implemented**
-Last verified: 2026-07-13
+Last verified: 2026-07-15
 
 ### Summary
 Weapons are `WeaponData` resources in `data/weapons/`; units carry weapons and items

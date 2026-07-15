@@ -29,6 +29,14 @@ if [[ -f scripts/ci/check_scene_integrity.py ]]; then
 	echo "pre-commit: running scene-integrity check..."
 	python3 scripts/ci/check_scene_integrity.py || exit 1
 fi
+if [[ -f scripts/ci/check_session_commit_claims.py ]]; then
+	echo "pre-commit: checking session-note commit ownership..."
+	python3 scripts/ci/check_session_commit_claims.py || exit 1
+fi
+if [[ -f scripts/ci/check_evidence_matrices.py ]]; then
+	echo "pre-commit: checking multi-slice evidence matrices..."
+	python3 scripts/ci/check_evidence_matrices.py || exit 1
+fi
 
 # 2. GDScript test suite.
 if [[ "${SKIP_TESTS:-}" == "1" ]]; then
