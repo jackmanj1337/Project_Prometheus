@@ -83,11 +83,14 @@ A provisional New Game choice now exposes the shipped five-node `proving_grounds
 campaign for end-to-end testing without claiming the package-browser slice.
 A returned v0.4.0 playtest preempts follow-on work here.
 
-`B6-CAMPAIGN-SHARING` has now started with its isolated asset prerequisite:
+`B6-CAMPAIGN-SHARING` has now started with isolated package prerequisites:
 `AssetResolver` provides pack-scoped raw-media loader primitives behind open
 asset-group/id/fallback registrations, including repair reporting and path
-containment. The package remains incomplete: next come the manifest and canonical
-Tier-2 JSON catalogue/validator, followed by archive install/export and selector UI.
+containment. `PackManifest` and the canonical Tier-2 catalogue parser now
+validate package compatibility, safe unique Tier-2 document identities/paths,
+and registry-dispatched content-family schemas without installing or selecting
+anything. The package remains incomplete: archive install/export and selector UI
+follow these seams.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

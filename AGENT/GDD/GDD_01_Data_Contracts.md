@@ -405,7 +405,7 @@ over the shipped objective maps (rout, seize, boss, escape, defend).
 ### Campaign Tier-1 Asset References
 
 Status: **Implemented - contract groundwork** (`B6-CAMPAIGN-SHARING` prerequisite,
-2026-07-15); package catalogues and import/export remain **Target design**.
+2026-07-15); archive import/export remains **Target design**.
 
 `WeaponData.icon` and `ItemData.icon` are optional string ids/pack-relative paths,
 not `Texture2D` fields. `AssetResolver` resolves those references inside a selected
@@ -419,6 +419,42 @@ The implemented raw primitives cover PNG textures, TTF/OTF fonts, OGG music/SFX,
 and WAV SFX. The resolver deliberately does not enumerate packs, validate Tier-2
 JSON, install archives, or choose the active campaign; those responsibilities
 belong to the package catalogue/validator/installer and `DataManager` seams.
+
+### Campaign Package Manifest and Tier-2 Catalogue
+
+Status: **Implemented - contract groundwork** (`B6-CAMPAIGN-SHARING`, 2026-07-15);
+archive installation/export and runtime campaign selection remain **Target design**.
+
+`PackManifest` parses the package identity document at `manifest.json`. Its
+required fields are `id`, `version`, `builder_content_version`, and integer
+`format_version`; optional `forked_from` records lineage without changing pack
+identity. Format version 1 is the only accepted package contract. Pack ids use
+portable lowercase letters, digits, `_`, and `-`. Malformed or incompatible
+manifests return no partial object and collect actionable validation errors.
+
+The canonical Tier-2 index is the pack's data-directory `catalogue.json`:
+
+```json
+{
+  "format_version": 1,
+  "entries": [
+    {"kind": "campaign", "id": "proving_grounds", "path": "data/campaign.json"}
+  ]
+}
+```
+
+Authored entry order is deterministic catalogue order. Every `{kind, id}` and
+path is unique; paths must be relative `.json` files below `data/` and cannot
+name the catalogue itself or traverse outside the pack. `Tier2Catalogue` reads
+the index and documents, then dispatches a non-mutating schema validator
+registered for each `kind`. An unknown kind fails loud rather than loading
+unchecked content. This preserves the open-registry extension rule: a new
+content family registers a validator instead of adding a closed type switch.
+
+This boundary only parses and validates. It does not extract/copy archives,
+write `user://campaigns`, replace `DataManager` catalogues, register campaigns
+with a selector, or select runtime content. Those downstream consumers may act
+only on a successfully validated manifest/catalogue result.
 
 ### CampaignManager Contract
 
