@@ -95,11 +95,13 @@ pure ZIP preflight now verifies the actual format and central-directory metadata
 normalizes the one-root package namespace, rejects collisions/unsafe paths/
 symlinks/special files, applies caller-supplied entry and byte limits, validates
 all structured content in memory, and excludes unindexed or save-shaped files.
-It performs no extraction or installed-state writes. Transactional staged install,
-deterministic export, and selector UI follow these seams. The next implementation
-unit is rollback-safe staged install in the
-[B6 archive handoff](../Docs/plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md);
-installed-pack discovery and selector activation remain separate later consumers.
+The engine now performs rollback-safe staged installation after preflight:
+admitted entries extract only below a unique service-owned staging root, the
+filesystem is validated a second time, and a validated `{id, version}` is
+atomically promoted. Existing versions are rejected byte-for-byte; extraction,
+validation, and promotion failures clean staging without touching installed or
+runtime/save state. Deterministic export is the next archive slice. Installed-pack
+discovery and selector activation remain separate later consumers.
 
 | Order | Track ID | To-do | Decision state |
 |---:|---|---|---|

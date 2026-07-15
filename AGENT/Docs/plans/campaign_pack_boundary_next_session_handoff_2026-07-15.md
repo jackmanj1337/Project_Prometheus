@@ -1,6 +1,6 @@
 ---
 Type: plan
-Status: Planned - ready for next-session implementation
+Status: Implemented - archive slice 3 landed; deterministic export is next
 Last verified: 2026-07-15
 ---
 
@@ -25,9 +25,9 @@ runtime behavior, validation, installation/activation, UI, settings, and saves.
 Do not accept pack GDScript, save-shaped JSON, or unindexed structured files.
 Do not make archive installation select or launch content.
 
-## Next implementation unit
+## Implemented unit
 
-Implement B6 archive slice 3: rollback-safe staged installation.
+Implemented B6 archive slice 3: rollback-safe staged installation.
 
 1. Add a non-autoload package installer/service consuming a successful
    `CampaignArchivePreflight` result.
@@ -78,4 +78,3 @@ Implement deterministic export and round-trip validation. After safe storage is
 finished, return to the delivery plan for installed-pack discovery/selection,
 then the remaining persistence unification, live Prep validation, and campaign
 presentation work according to owner priority.
-

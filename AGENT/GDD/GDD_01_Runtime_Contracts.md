@@ -221,6 +221,36 @@ plan (code, integration sweep, tests, build order) is
 
 ---
 
+## Campaign-Pack Storage Contract
+
+Status: **Split** — manifest/catalogue validation, hostile ZIP preflight, and
+rollback-safe staged installation are **Implemented** (2026-07-15,
+`B6-CAMPAIGN-SHARING`); deterministic export, discovery, selection, and runtime
+activation remain **Planned**
+Last verified: 2026-07-15
+
+Campaign packs contain indexed authored JSON and approved pack-scoped media;
+they never contain executable behavior or save-shaped state. Import is a
+transactional storage operation owned by the engine: `CampaignArchivePreflight`
+admits one safe archive namespace in memory, then `CampaignPackInstaller`
+extracts only admitted paths into a unique service-owned staging directory,
+revalidates the staged manifest, Tier-2 catalogue, concrete schemas,
+cross-references, and optional media, and atomically renames the validated tree
+under `installed/{pack_id}/{version}`. Existing identities are rejected rather
+than overwritten or merged. Every failure removes staging and leaves installed
+bytes, active content, selector state, settings, and saves unchanged.
+
+Installation is deliberately inert. Installed-pack discovery and an explicit
+`DataManager` selection path are later consumers; neither preflight nor install
+may register, select, or launch campaign content.
+
+Anchors: `scripts/resources/CampaignArchivePreflight.gd`,
+`scripts/resources/CampaignPackInstaller.gd`,
+`scripts/resources/Tier2Catalogue.gd`, `scripts/assets/AssetResolver.gd`; tests:
+`test_campaign_archive_preflight.gd`, `test_campaign_pack_installer.gd`.
+
+---
+
 ## Shared Runtime Service Boundaries
 
 Status: **Implemented**, with registry expansion and later feature consumers tracked
