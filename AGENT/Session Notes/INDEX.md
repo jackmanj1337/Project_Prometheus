@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-15g](2026-07-15g.md) — **Proving Grounds campaign test started:** New Game entry routes the shipped five-map campaign through Prep, all 82 suites pass, and a hashed Windows artifact plus focused end-to-end checklist await live return.
+
 - [2026-07-15f](2026-07-15f.md) — **Next-session queue locked:** first expose the five-map `proving_grounds` campaign through New Game and cut its focused end-to-end test; then preflight and begin `B6-CAMPAIGN-SHARING` package export/import from the existing Slice 3 plan, leaving CampaignStatusRecord for the following consumer.
 - [2026-07-15e](2026-07-15e.md) — **B4 Prep + manual save implemented:** campaign launches and eligible non-suspend retries route through a pure deployment-authoring screen; deploy/bench and ordered start-tile placement are validator-gated; prep writes safe transactional manual slots; all 82 suites green. Next: live Windows focus/layout check.
 - [2026-07-15d](2026-07-15d.md) — **v0.4.0 post-build review + fix handoff:** four persistence/campaign-flow defects documented; settled flags/vars ownership, party-item convoy compatibility, completed-save records retained for NG+/connected-campaign continuity but excluded from Continue, validate-before-advance, and atomic writes. Next: four focused fix commits.
