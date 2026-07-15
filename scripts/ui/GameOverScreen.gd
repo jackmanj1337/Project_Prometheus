@@ -172,17 +172,21 @@ func _campaign_manager() -> Node:
 # back to the menu.
 func _on_next() -> void:
 	var cm := _campaign_manager()
-	if cm == null or not bool(cm.call("commit_pending_result")):
+	if cm == null:
+		return
+	var result: Dictionary = cm.call("get_pending_result")
+	if not bool(result.get("campaign_complete", false)) \
+			and not bool(cm.call("prepare_pending_advance")):
+		# Keep Next enabled and the pending result intact: the player can retry once
+		# the transient/authoring problem is corrected.
+		return
+	if not bool(cm.call("commit_pending_result")):
 		return
 	if bool(cm.call("is_campaign_complete")):
 		cm.call("end_campaign")
 		_quit_to_menu()
 		return
-	if not bool(cm.call("launch_current_node")):
-		# The node failed to launch (bad map binding / no valid roster); it already
-		# push_error'd. Stay on the results screen rather than dumping the player
-		# into a broken map.
-		_next_btn.visible = false
+	cm.call("launch_prepared_node")
 
 
 func _delete_suspend_after_resolution() -> void:

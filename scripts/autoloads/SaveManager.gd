@@ -23,6 +23,9 @@ const AUTOSAVE_SLOT := "autosave"
 
 var save_dir: String = DEFAULT_SAVE_DIR
 
+# Failure seam used only by the disk-transaction regression suite.
+var _test_fail_before_index_replace := false
+
 
 func configure_save_dir_for_tests(path: String) -> void:
 	save_dir = _strip_trailing_slashes(path)
@@ -54,16 +57,16 @@ func get_continue_target() -> Dictionary:
 				return {"kind": LAST_PLAYED_SUSPEND, "slot_id": ""}
 		LAST_PLAYED_SLOT:
 			var slot_id: String = String(last_played.get("slot_id", ""))
-			if has_slot(slot_id):
+			if has_slot(slot_id) and _is_slot_resumable(slot_id):
 				return {"kind": LAST_PLAYED_SLOT, "slot_id": slot_id}
 	# The pointer is missing or names a document that is gone (deleted by hand, or
 	# a failed write). Fall back to whatever is actually on disk rather than
 	# refusing to continue a save the player can plainly see.
 	if has_suspend():
 		return {"kind": LAST_PLAYED_SUSPEND, "slot_id": ""}
-	var slots := list_slots()
-	if not slots.is_empty():
-		return {"kind": LAST_PLAYED_SLOT, "slot_id": String(slots[0].get("slot_id", ""))}
+	for row in list_slots():
+		if _row_is_resumable(row):
+			return {"kind": LAST_PLAYED_SLOT, "slot_id": String(row.get("slot_id", ""))}
 	return {}
 
 
@@ -135,11 +138,23 @@ func save_slot(slot_id: String, source: Variant) -> bool:
 	if path == "":
 		push_error("SaveManager: invalid slot id '%s'" % slot_id)
 		return false
-	if not _write_save_document(path, source, "slot '%s'" % slot_id):
+	var save := _save_data_from_variant(source)
+	if save == null:
 		return false
-	if not _write_slot_index_entry(slot_id, path, source):
+	var errors: Array[String] = save.validate(_data_manager())
+	if not errors.is_empty():
+		_push_validation_errors("SaveManager: slot '%s' rejected" % slot_id, errors)
 		return false
-	return _write_last_played(LAST_PLAYED_SLOT, path, slot_id)
+	var payload: Dictionary = save.to_dict()
+	var index := load_index()
+	var slots: Dictionary = _slots_from_index(index)
+	slots[slot_id] = _slot_index_row(path, payload, index)
+	index["slots"] = slots
+	index["last_played"] = {
+		"kind": LAST_PLAYED_SLOT, "path": path, "slot_id": slot_id,
+		"saved_at_unix": int(Time.get_unix_time_from_system()),
+	}
+	return _commit_slot_transaction(path, payload, index)
 
 
 func load_slot(slot_id: String) -> RefCounted:
@@ -192,6 +207,19 @@ func get_last_played() -> Dictionary:
 	var index := load_index()
 	var last_played: Variant = index.get("last_played", {})
 	return last_played if last_played is Dictionary else {}
+
+
+func _is_slot_resumable(slot_id: String) -> bool:
+	for row in list_slots():
+		if String(row.get("slot_id", "")) == slot_id:
+			return _row_is_resumable(row)
+	return false
+
+
+static func _row_is_resumable(row: Dictionary) -> bool:
+	var header: Variant = row.get("header", {})
+	return header is Dictionary and String(header.get("campaign_state", "in_progress")) \
+		!= "completed"
 
 
 func load_index() -> Dictionary:
@@ -296,15 +324,92 @@ func _write_slot_index_entry(slot_id: String, path: String, source: Variant) -> 
 	var payload: Dictionary = save.to_dict()
 	var index := load_index()
 	var slots: Dictionary = _slots_from_index(index)
-	slots[slot_id] = {
+	slots[slot_id] = _slot_index_row(path, payload, index)
+	index["slots"] = slots
+	return _write_index(index)
+
+
+func _slot_index_row(path: String, payload: Dictionary, index: Dictionary) -> Dictionary:
+	return {
 		"path": path,
 		"label": String(payload.get("save_label", "")),
 		"header": payload.get("header", {}),
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 		"write_seq": _next_write_seq(index),
 	}
-	index["slots"] = slots
-	return _write_index(index)
+
+
+# Slot and index are staged together. The index is the commit marker; if its
+# replacement fails after the slot swap, the prior slot is restored before false
+# is returned, so readers observe the old pair or the new pair.
+func _commit_slot_transaction(slot_path: String, payload: Dictionary, index: Dictionary) -> bool:
+	if not _ensure_save_dir():
+		return false
+	var slot_tmp := "%s.tmp" % slot_path
+	var index_path := get_index_path()
+	var index_tmp := "%s.tmp" % index_path
+	_cleanup_paths([slot_tmp, index_tmp])
+	if not _write_json_file(slot_tmp, payload) or not _write_json_file(index_tmp, index):
+		_cleanup_paths([slot_tmp, index_tmp])
+		return false
+	var slot_backup := "%s.bak" % slot_path
+	var index_backup := "%s.bak" % index_path
+	_cleanup_paths([slot_backup, index_backup])
+	if not _replace_staged(slot_tmp, slot_path, slot_backup):
+		_cleanup_paths([slot_tmp, index_tmp, slot_backup])
+		return false
+	if _test_fail_before_index_replace \
+			or not _replace_staged(index_tmp, index_path, index_backup):
+		_restore_backup(slot_path, slot_backup)
+		_cleanup_paths([slot_tmp, index_tmp, slot_backup, index_backup])
+		return false
+	_cleanup_paths([slot_backup, index_backup])
+	return true
+
+
+func _write_json_file(path: String, value: Dictionary) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(value, "\t", true))
+	file.flush()
+	file.close()
+	return true
+
+
+func _replace_staged(staged_path: String, destination_path: String, backup_path: String) -> bool:
+	var dir := DirAccess.open(save_dir)
+	if dir == null:
+		return false
+	var destination := destination_path.get_file()
+	var staged := staged_path.get_file()
+	var backup := backup_path.get_file()
+	if FileAccess.file_exists(destination_path) and dir.rename(destination, backup) != OK:
+		return false
+	if dir.rename(staged, destination) == OK:
+		return true
+	if FileAccess.file_exists(backup_path):
+		dir.rename(backup, destination)
+	return false
+
+
+func _restore_backup(destination_path: String, backup_path: String) -> void:
+	var dir := DirAccess.open(save_dir)
+	if dir == null:
+		return
+	if FileAccess.file_exists(destination_path):
+		dir.remove(destination_path.get_file())
+	if FileAccess.file_exists(backup_path):
+		dir.rename(backup_path.get_file(), destination_path.get_file())
+
+
+func _cleanup_paths(paths: Array) -> void:
+	var dir := DirAccess.open(save_dir)
+	if dir == null:
+		return
+	for path in paths:
+		if FileAccess.file_exists(String(path)):
+			dir.remove(String(path).get_file())
 
 
 func _next_write_seq(index: Dictionary) -> int:

@@ -160,6 +160,24 @@ func _init() -> void:
 		print("FAIL row text: autosave=%s manual=%s" % [autosave_text, manual_text])
 		failed += 1
 
+	# Completion records remain visible but are details-only: they cannot launch an
+	# empty node and Continue ignores them.
+	save_manager.save_slot("completed", _make_completed_save())
+	picker.open()
+	await process_frame
+	var completed_btn := _row_load_button(picker, "completed")
+	if completed_btn.disabled and completed_btn.text.contains("[Completed]") \
+			and completed_btn.text.contains("Campaign complete"):
+		print("OK  A completed campaign is visible as a non-loadable completion record")
+		passed += 1
+	else:
+		print("FAIL completion row: disabled=%s text=%s" % [
+			completed_btn.disabled, completed_btn.text])
+		failed += 1
+	save_manager.delete_slot("completed")
+	picker.open()
+	await process_frame
+
 	# Activating a row goes through MainMenu's restore path, not a second copy of it.
 	gs.set("resumed_campaign_id", "")
 	cm.set("launched", false)
@@ -266,6 +284,12 @@ func _make_campaign_save(label: String = "Autosave") -> RefCounted:
 	save.campaign["node_id"] = "node_02_seize"
 	save.campaign["cleared_nodes"] = ["node_01_rout"]
 	save.roster["units"] = [{"unit_id": "lyn", "unit_name": "Lyn"}]
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+func _make_completed_save() -> RefCounted:
+	var save: RefCounted = _make_campaign_save("Proving Grounds - Complete")
+	save.campaign["node_id"] = ""
 	return SaveDataScript.from_dict(save.to_dict())
 
 

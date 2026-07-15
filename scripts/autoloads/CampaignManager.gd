@@ -35,6 +35,11 @@ var current_node_id: String = ""
 # Nodes beaten this run, in clear order.
 var cleared_node_ids: Array[String] = []
 
+# Campaign-scoped mutable author state. Flags are an open string vocabulary and
+# vars are an open key/value registry; neither belongs in a closed engine enum.
+var campaign_flags: Array[String] = []
+var campaign_vars: Dictionary = {}
+
 # The node actually launched into the live map. Distinct from current_node_id on
 # purpose — see the retry note on _pending_result below.
 var _active_node_id: String = ""
@@ -51,6 +56,7 @@ var _active_node_id: String = ""
 # already applies those through ResourceLedger, and the map snapshot restore is
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
+var _prepared_launch: Dictionary = {}
 
 
 func _ready() -> void:
@@ -81,8 +87,11 @@ func start_campaign(campaign_id: String) -> bool:
 	active_campaign_id = campaign_id
 	current_node_id = campaign.start_node_id
 	cleared_node_ids.clear()
+	campaign_flags.clear()
+	campaign_vars.clear()
 	_active_node_id = ""
 	_pending_result.clear()
+	_prepared_launch.clear()
 	return true
 
 
@@ -92,8 +101,36 @@ func end_campaign() -> void:
 	active_campaign_id = ""
 	current_node_id = ""
 	cleared_node_ids.clear()
+	campaign_flags.clear()
+	campaign_vars.clear()
 	_active_node_id = ""
 	_pending_result.clear()
+	_prepared_launch.clear()
+
+
+func has_campaign_flag(flag_id: String) -> bool:
+	return flag_id in campaign_flags
+
+
+func set_campaign_flag(flag_id: String, enabled: bool = true) -> bool:
+	if flag_id.is_empty():
+		return false
+	if enabled and not flag_id in campaign_flags:
+		campaign_flags.append(flag_id)
+	elif not enabled:
+		campaign_flags.erase(flag_id)
+	return true
+
+
+func get_campaign_var(var_id: String, default_value: Variant = null) -> Variant:
+	return campaign_vars.get(var_id, default_value)
+
+
+func set_campaign_var(var_id: String, value: Variant) -> bool:
+	if var_id.is_empty():
+		return false
+	campaign_vars[var_id] = value
+	return true
 
 
 func is_campaign_active() -> bool:
@@ -156,6 +193,53 @@ func launch_current_node() -> bool:
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
+	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
+	return true
+
+
+# Validates and prepares the successor named by the pending victory without
+# consuming that result. A failure leaves position/result untouched so Next can
+# be retried after authored data or runtime roster state is repaired.
+func prepare_pending_advance() -> bool:
+	if not has_pending_victory():
+		return false
+	var next_id: String = String(_pending_result.get("next_node_id", ""))
+	if next_id == "":
+		_prepared_launch.clear()  # terminal completion has no successor to launch
+		return true
+	var campaign := get_active_campaign()
+	var node: CampaignNode = campaign.get_node_by_id(next_id) if campaign != null else null
+	if node == null:
+		push_error("CampaignManager: pending victory names unknown successor '%s'" % next_id)
+		return false
+	var params := resolve_launch_params(node)
+	if params.is_empty() or String(params.get("map_data_path", "")) == "":
+		return false
+	# Every successor is a continuation even before the pending clear is committed.
+	params["roster_policy"] = "keep_current_roster"
+	params["roster_source"] = ""
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not _apply_roster_policy(gs, "keep_current_roster", ""):
+		push_error("CampaignManager: successor '%s' has no prepared campaign roster" % next_id)
+		return false
+	params["node_id"] = next_id
+	_prepared_launch = params.duplicate(true)
+	return true
+
+
+# Launches only a successor already validated by prepare_pending_advance().
+func launch_prepared_node() -> bool:
+	if _prepared_launch.is_empty() \
+			or String(_prepared_launch.get("node_id", "")) != current_node_id:
+		push_error("CampaignManager: no prepared launch for current node '%s'" % current_node_id)
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	gs.call("configure_next_map", String(_prepared_launch["map_data_path"]),
+		String(_prepared_launch["roster_policy"]), String(_prepared_launch["roster_source"]))
+	_active_node_id = current_node_id
+	_prepared_launch.clear()
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
 	return true
 
@@ -237,6 +321,7 @@ func _record_result(victory: bool) -> void:
 		"winner_group": "",
 		"standings": [],
 	}
+	_prepared_launch.clear()
 
 
 # map_resolved fires right after map_victory/map_defeat and carries the ranked
@@ -268,6 +353,10 @@ func commit_pending_result() -> bool:
 		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
+	if next_id != "" and (_prepared_launch.is_empty() \
+			or String(_prepared_launch.get("node_id", "")) != next_id) \
+			and not prepare_pending_advance():
+		return false
 	if not is_node_cleared(node_id):
 		cleared_node_ids.append(node_id)
 	current_node_id = next_id  # "" == terminal node cleared == campaign complete
@@ -284,12 +373,13 @@ func commit_pending_result() -> bool:
 # its outcome must not advance the campaign.
 func clear_pending_result() -> void:
 	_pending_result.clear()
+	_prepared_launch.clear()
 
 
 # --- Persistence (Slice 3) ----------------------------------------------------
 
-# The campaign envelope: exactly the three position fields, matching the F1
-# manifest row campaign.campaign_id / node_id / cleared_nodes[].
+# The campaign envelope: position plus campaign-scoped mutable author state,
+# matching the reserved F1 campaign rows.
 #
 # The pending result is deliberately NOT position state. It is discarded on quit,
 # so a save taken while the results surface is up restores parked on the current
@@ -301,6 +391,8 @@ func capture_campaign_state() -> Dictionary:
 		"campaign_id": active_campaign_id,
 		"node_id": current_node_id,
 		"cleared_nodes": cleared_node_ids.duplicate(),
+		"flags": campaign_flags.duplicate(),
+		"vars": campaign_vars.duplicate(true),
 	}
 
 
@@ -350,9 +442,34 @@ func restore_campaign_state(source: Variant) -> bool:
 		if not cleared_id in cleared:  # a duplicate is tolerable; a wrong id is not
 			cleared.append(cleared_id)
 
+	var flags: Array[String] = []
+	var raw_flags: Variant = envelope.get("flags", [])
+	if not (raw_flags is Array):
+		push_error("CampaignManager: save campaign.flags is not an Array")
+		return false
+	for entry in raw_flags:
+		if not (entry is String) or String(entry).is_empty():
+			push_error("CampaignManager: save campaign.flags contains an invalid id")
+			return false
+		if not entry in flags:
+			flags.append(entry)
+
+	var vars_value: Variant = envelope.get("vars", {})
+	if not (vars_value is Dictionary):
+		push_error("CampaignManager: save campaign.vars is not a Dictionary")
+		return false
+	var validated_vars: Dictionary = {}
+	for key in vars_value:
+		if not (key is String) or String(key).is_empty():
+			push_error("CampaignManager: save campaign.vars contains an invalid id")
+			return false
+		validated_vars[key] = vars_value[key]
+
 	active_campaign_id = campaign_id
 	current_node_id = node_id
 	cleared_node_ids = cleared
+	campaign_flags = flags
+	campaign_vars = validated_vars.duplicate(true)
 	# Runtime-only: nothing is on a map yet, and no result is in flight.
 	_active_node_id = ""
 	_pending_result.clear()

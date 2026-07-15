@@ -45,8 +45,8 @@ Last verified: 2026-07-14
   a **campaign slot** (between-map) restores the position and party and launches
   the node the party is parked on. It is disabled when there is nothing to
   continue; load failure opens an error dialog and stays on Main Menu. A
-  campaign that has no node left to play reports that it is complete rather than
-  failing into an empty launch.
+  Completed slots are skipped, including fallback selection; with only completion
+  records Continue is disabled while Load Game remains available.
   On suspend restore (V030-SUS-01, fixed 2026-07-09): units whose serialized state is
   DONE re-apply the darkened DONE appearance (so a spent unit reads as spent, not
   as an actable one it silently refuses); a paired support restored onto the
@@ -86,6 +86,9 @@ already the suspend save's job.
 - The campaign **autosave** — written by the campaign flow on every node commit —
   is a normal row, marked `[Autosave]` so the player can tell apart the save that
   gets overwritten under them from one they wrote themselves.
+- A terminal autosave remains visible as a `[Completed]` campaign completion
+  record. Its row shows campaign-complete details and is not activatable, so it
+  is retained for future continuity/NG+ export without attempting an empty node.
 - Activating a row runs the **same restore path as Continue** (stage onto
   `GameState`, then `CampaignManager.launch_current_node()`), so the two cannot
   drift apart. A slot that fails to load (corrupt or version-mismatched) opens the
@@ -816,10 +819,13 @@ review 2026-06-14 #1) for resolution-robustness.
 
 - "Next Battle" appears **only when a campaign is active and the map was won**
   (`B1-CST` Slice 2). It commits the win to the campaign position
-  (`CampaignManager.commit_pending_result`) and launches the next node; on the
+  first prepares the successor map binding and carried roster, then commits
+  (`CampaignManager.commit_pending_result`) and launches the prepared node; on the
   terminal node it reads "Finish Campaign" and returns to the menu. It is hidden
   for a bare single-map launch and for a defeat, which parks the campaign on the
   same node. It takes focus when shown; otherwise Retry keeps focus as before.
+  Failed preparation changes no campaign position, retains the pending victory,
+  and leaves Next enabled for retry.
 - "Retry Map" reloads the current map from scratch
   (player unit stats and inventory are preserved from map start — not mid-map).
   With a campaign active it also **drops the unapplied result**, so replaying a

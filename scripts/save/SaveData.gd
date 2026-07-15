@@ -246,6 +246,8 @@ static func _normalize_header(source: Variant, campaign_data: Dictionary,
 	var derived := _default_header()
 	derived["campaign_id"] = _as_string(campaign_data.get("campaign_id", ""), "")
 	derived["node_id"] = _as_string(campaign_data.get("node_id", ""), "")
+	derived["campaign_state"] = "completed" if derived["campaign_id"] != "" \
+			and derived["node_id"] == "" else "in_progress"
 	derived["party"]["count"] = _array_from_variant(roster_data.get("units", [])).size()
 	derived["party"]["gold"] = SaveCodec.as_int(
 		_dict_from_variant(party_data.get("resources", {})).get("party_gold", 0), 0)
@@ -261,6 +263,9 @@ static func _normalize_header(source: Variant, campaign_data: Dictionary,
 		out["campaign_id"] = derived["campaign_id"]
 	if _as_string(out.get("node_id", ""), "") == "":
 		out["node_id"] = derived["node_id"]
+	# Lifecycle is authoritative campaign state, not a presentation label. Derive
+	# it on every normalization so a reused header cannot retain a stale marker.
+	out["campaign_state"] = derived["campaign_state"]
 	if out["party"]["count"] == 0 and derived["party"]["count"] > 0:
 		out["party"]["count"] = derived["party"]["count"]
 	if out["party"]["gold"] == 0 and derived["party"]["gold"] != 0:
@@ -329,6 +334,7 @@ static func _default_header() -> Dictionary:
 	return {
 		"campaign_id": "",
 		"node_id": "",
+		"campaign_state": "in_progress",
 		"chapter_name": "",
 		"map_name": "",
 		"progress": "",

@@ -24,7 +24,9 @@ func _init() -> void:
 	_test_slot_write_and_load(manager)
 	_test_slot_ids_are_allow_listed(manager)
 	_test_continue_routes_to_the_newest_document(manager)
+	_test_completed_slots_are_records_not_continue_targets(manager)
 	_test_slot_listing(manager)
+	_test_slot_transaction_rolls_back_on_index_failure(manager)
 	_test_slot_delete(manager)
 
 	manager.free()
@@ -156,13 +158,25 @@ func _test_continue_routes_to_the_newest_document(manager: Node) -> void:
 		"continue falls back to the surviving save when the newest is gone", str(target))
 
 
+func _test_completed_slots_are_records_not_continue_targets(manager: Node) -> void:
+	manager.save_slot("completed", _make_completed_save())
+	var target: Dictionary = manager.get_continue_target()
+	_check(String(target.get("slot_id", "")) == "autosave",
+		"Continue skips a newer completed record", str(target))
+	manager.delete_slot("autosave")
+	_check(manager.get_continue_target().is_empty() and not manager.has_continue_save()
+			and manager.list_slots().size() == 1,
+		"with only completion records Continue is disabled but Load Game can list them")
+	manager.save_slot("autosave", _make_campaign_save())
+
+
 func _test_slot_listing(manager: Node) -> void:
 	manager.save_slot("manual_01", _make_campaign_save("Manual save"))
 	var rows: Array[Dictionary] = manager.list_slots()
 	var ids: Array = []
 	for row in rows:
 		ids.append(String(row.get("slot_id", "")))
-	_check(rows.size() == 2 and ids.has("autosave") and ids.has("manual_01"),
+	_check(rows.size() == 3 and ids.has("autosave") and ids.has("manual_01") and ids.has("completed"),
 		"list_slots returns a row per written slot", str(ids))
 	_check(String(rows[0].get("slot_id", "")) == "manual_01"
 			and String(rows[0].get("label", "")) == "Manual save"
@@ -174,8 +188,26 @@ func _test_slot_listing(manager: Node) -> void:
 	# must never list a save that cannot be loaded.
 	DirAccess.open(TEST_SAVE_DIR).remove("manual_01.json")
 	var survivors: Array[Dictionary] = manager.list_slots()
-	_check(survivors.size() == 1 and String(survivors[0].get("slot_id", "")) == "autosave",
+	_check(survivors.size() == 2,
 		"a slot whose file has vanished is not listed", str(survivors))
+	manager.delete_slot("completed")
+
+
+func _test_slot_transaction_rolls_back_on_index_failure(manager: Node) -> void:
+	var old_slot: String = FileAccess.get_file_as_string(manager.get_slot_path("autosave"))
+	var old_index: String = FileAccess.get_file_as_string(manager.get_index_path())
+	manager._test_fail_before_index_replace = true
+	var ok: bool = manager.save_slot("autosave", _make_campaign_save("Replacement"))
+	manager._test_fail_before_index_replace = false
+	var leftovers: Array[String] = []
+	for file_name in DirAccess.open(TEST_SAVE_DIR).get_files():
+		if file_name.ends_with(".tmp") or file_name.ends_with(".bak"):
+			leftovers.append(file_name)
+	_check(not ok
+			and FileAccess.get_file_as_string(manager.get_slot_path("autosave")) == old_slot
+			and FileAccess.get_file_as_string(manager.get_index_path()) == old_index
+			and leftovers.is_empty(),
+		"an index-stage failure preserves the prior slot/index pair and cleans staging files")
 
 
 func _test_slot_delete(manager: Node) -> void:
@@ -211,6 +243,12 @@ func _make_campaign_save(label: String = "Autosave") -> RefCounted:
 	save.campaign["cleared_nodes"] = ["node_01_rout"]
 	save.party["resources"]["party_gold"] = 250
 	save.roster["units"] = [{"unit_id": "lyn", "unit_name": "Lyn"}]
+	return SaveDataScript.from_dict(save.to_dict())
+
+
+func _make_completed_save() -> RefCounted:
+	var save: RefCounted = _make_campaign_save("Proving Grounds - Complete")
+	save.campaign["node_id"] = ""
 	return SaveDataScript.from_dict(save.to_dict())
 
 

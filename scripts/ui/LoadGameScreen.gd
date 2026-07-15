@@ -80,6 +80,10 @@ func _make_row(slot_id: String, row: Dictionary) -> HBoxContainer:
 	var load_btn := Button.new()
 	load_btn.name = "LoadButton"
 	load_btn.text = _row_text(slot_id, row)
+	var header: Dictionary = row.get("header", {}) if row.get("header") is Dictionary else {}
+	load_btn.disabled = String(header.get("campaign_state", "in_progress")) == "completed"
+	load_btn.tooltip_text = "Campaign completed — retained as a completion record." \
+		if load_btn.disabled else ""
 	load_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	load_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	load_btn.pressed.connect(_on_slot_activated.bind(slot_id))
@@ -105,9 +109,13 @@ func _row_text(slot_id: String, row: Dictionary) -> String:
 	# a slot they wrote themselves — it is the one that gets overwritten under them.
 	if slot_id == SaveManagerScript.AUTOSAVE_SLOT:
 		title = "[Autosave] %s" % title
+	if String(header.get("campaign_state", "in_progress")) == "completed":
+		title = "[Completed] %s" % title
 	var campaign_id := String(header.get("campaign_id", ""))
 	var node_id := String(header.get("node_id", ""))
-	var position := "%s — %s" % [campaign_id, node_id] if campaign_id != "" else "Single map"
+	var position := "%s — Campaign complete" % campaign_id \
+		if String(header.get("campaign_state", "in_progress")) == "completed" \
+		else ("%s — %s" % [campaign_id, node_id] if campaign_id != "" else "Single map")
 	var detail := "%d units · %dG · %s" % [
 		int(party.get("count", 0)),
 		int(party.get("gold", 0)),

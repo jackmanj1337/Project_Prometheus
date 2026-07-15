@@ -423,14 +423,20 @@ func launch_current_node() -> bool                 # resolve map binding -> Game
 func resolve_launch_params(node: CampaignNode) -> Dictionary   # map_data_path / roster_policy / roster_source
 func get_pending_result() -> Dictionary            # results state handoff
 func has_pending_victory() -> bool
+func prepare_pending_advance() -> bool             # validate successor binding + roster without consuming win
 func commit_pending_result() -> bool               # the ONLY thing that advances the position; autosaves
+func launch_prepared_node() -> bool                 # launch only the validated successor
 func clear_pending_result() -> void                # Retry drops the unapplied result
 func is_campaign_active() -> bool
 func is_campaign_complete() -> bool
 
 # Persistence (Slice 3) — the serializer seam. SaveManager owns every user:// path.
-func capture_campaign_state() -> Dictionary        # exactly campaign_id / node_id / cleared_nodes
-func restore_campaign_state(source: Variant) -> bool   # ids must resolve or the load fails
+func capture_campaign_state() -> Dictionary        # position plus campaign flags/vars
+func restore_campaign_state(source: Variant) -> bool   # ids/shapes must validate or load fails
+func has_campaign_flag(flag_id: String) -> bool
+func set_campaign_flag(flag_id: String, enabled: bool = true) -> bool
+func get_campaign_var(var_id: String, default_value: Variant = null) -> Variant
+func set_campaign_var(var_id: String, value: Variant) -> bool
 func write_autosave() -> bool                      # the reserved "autosave" slot
 func write_campaign_slot(slot_id: String, save_label: String) -> bool   # the manual-save seam
 ```
@@ -448,21 +454,26 @@ Rules this contract fixes:
 - **Defeat parks.** No clear, no advance — the campaign stays on the current node.
 - **The party carries.** The first node of a run seeds the party from the map
   registry's authored `roster_policy`; every later node launches with
-  `keep_current_roster`, or levels and gold would reset each map.
+  `keep_current_roster`, or levels and gold would reset each map. Between-map
+  saves also round-trip temporary flat party item ids through
+  `party.convoy.entries[]`, preserving duplicates and treating an empty saved
+  list as an explicit clear.
 - **Additive.** With no campaign active every handler no-ops, so the bare
   single-map launch (`NewGameScreen`) is unchanged. `[CST-6]`'s "every map is a
   1-node campaign" auto-wrap is deferred to the campaign selector.
 - **Branch nodes take the first authored successor** until the branch-choice UI
   lands with `B6-CAMPAIGN-SHARING`; authored order is the ordering contract.
-- **The position persists; the pending result does not.** `capture_campaign_state`
-  writes exactly the reserved F1 rows `campaign.campaign_id` / `campaign.node_id` /
-  `campaign.cleared_nodes[]` — Slice 3 added no new persisted field. The pending
+- **The position and campaign author state persist; the pending result does not.**
+  `capture_campaign_state` writes the reserved F1 position, `campaign.flags`, and
+  `campaign.vars` rows. Flags are a deduplicated open string vocabulary; vars are
+  an open keyed dictionary. The pending
   result is deliberately excluded: it is discarded on quit, so a save taken while
   the results surface is up restores parked on the current node and the map is
   simply replayed. Persisting it would let a reload commit a win for a map that
   was never played that session.
 - **A restore is all-or-nothing.** `restore_campaign_state` validates the campaign
-  id, the node id, and every cleared node against the authored graph BEFORE it
+  id, the node id, every cleared node, flag/var shapes, convoy item references,
+  rules, and roster before it
   writes any state; an id that does not resolve fails loud and leaves no campaign
   active, rather than half-restoring a position the graph cannot walk. An empty
   `campaign_id` is a valid save (the bare single-map launch), not a corrupt one.
@@ -470,6 +481,14 @@ Rules this contract fixes:
   position and then writes the `autosave` slot — the moment the party is parked
   between maps is exactly the state a campaign slot holds, so every route that
   advances the campaign autosaves rather than each results surface remembering to.
+- **Successor validation precedes the commit.** A non-terminal pending victory
+  must pass `prepare_pending_advance`: the successor node, map-registry binding,
+  map path, and carried roster are resolved before position changes. Failure
+  leaves the pending result, current node, and Next action retryable.
+- **Slot/index writes are one transaction.** `SaveManager.save_slot` stages the
+  validated document and its full index update (row plus Continue pointer), then
+  replaces both with the index as commit marker. A replacement failure restores
+  the prior slot/index pair and removes temporary/backup files.
 
 Map bindings resolve through `DataManager.get_map_registry_entry(map_id)` /
 `has_map_registry_entry(map_id)` — the registry is cached in the catalogue pass,

@@ -591,9 +591,12 @@ func capture_campaign_save(save_label: String = "") -> RefCounted:
 	save.campaign["node_id"] = String(envelope.get("node_id", ""))
 	save.campaign["cleared_nodes"] = SaveCodec.string_array_from_variant(
 		envelope.get("cleared_nodes", []))
+	save.campaign["flags"] = SaveCodec.string_array_from_variant(envelope.get("flags", []))
+	save.campaign["vars"] = envelope.get("vars", {}).duplicate(true)
 	save.campaign["rules"] = _campaign_rules_to_dict()
 
 	save.party["resources"]["party_gold"] = party_gold
+	save.party["convoy"]["entries"] = _party_items_to_convoy_entries()
 	save.roster["units"] = []
 	for unit_data in player_roster:
 		if unit_data != null:
@@ -623,11 +626,17 @@ func configure_campaign_resume(source: Variant) -> bool:
 	if cm == null or not cm.has_method("restore_campaign_state"):
 		push_error("GameState: CampaignManager is unavailable")
 		return false
+	var restored_items: Array[String] = _party_items_from_convoy_entries(
+		payload.get("party", {}).get("convoy", {}).get("entries", []))
+	if restored_items.is_empty() \
+			and not payload.get("party", {}).get("convoy", {}).get("entries", []).is_empty():
+		return false
 	if not bool(cm.call("restore_campaign_state", campaign_dict)):
 		return false  # CampaignManager already reported which id failed to resolve
 
 	_apply_campaign_rules_dict(campaign_dict.get("rules", {}))
 	party_gold = int(payload.get("party", {}).get("resources", {}).get("party_gold", 0))
+	party_items = restored_items
 	player_roster = roster
 	roster_initialized = true
 	roster_load_failed = false
@@ -639,6 +648,34 @@ func configure_campaign_resume(source: Variant) -> bool:
 	clear_suspend_resume()
 	next_map_deployment.clear()
 	return true
+
+
+# Temporary flat party item ids use the durable convoy schema until the full
+# convoy system owns richer InventoryEntry state. Duplicates are intentional.
+func _party_items_to_convoy_entries() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for item_id in party_items:
+		out.append({"entry_type": "item", "item_id": item_id, "uses_remaining": 1})
+	return out
+
+
+func _party_items_from_convoy_entries(entries: Variant) -> Array[String]:
+	var out: Array[String] = []
+	if not (entries is Array):
+		push_error("GameState: campaign save party.convoy.entries is not an Array")
+		return out
+	var dm := get_node_or_null("/root/DataManager")
+	for value in entries:
+		if not (value is Dictionary) or String(value.get("entry_type", "")) != "item":
+			push_error("GameState: campaign save convoy contains a non-item entry")
+			return []
+		var item_id: String = String(value.get("item_id", ""))
+		if item_id.is_empty() or (dm != null and dm.has_method("has_item") \
+				and not bool(dm.call("has_item", item_id))):
+			push_error("GameState: campaign save convoy names unknown item '%s'" % item_id)
+			return []
+		out.append(item_id)
+	return out
 
 
 # roster.units is the player's party by definition, so every entry converts —

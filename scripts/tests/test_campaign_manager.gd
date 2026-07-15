@@ -32,6 +32,12 @@ func _init() -> void:
 	var cm: Node = CampaignManagerScript.new()
 	cm.name = "CampaignManager"
 	root.add_child(cm)
+	var gs_script := GDScript.new()
+	gs_script.source_code = "extends Node\nvar roster_ready := true\nfunc is_roster_ready_for_launch() -> bool: return roster_ready\nfunc configure_next_map(_path: String, _policy: String, _source: String) -> void: pass\n"
+	gs_script.reload()
+	var gs: Node = gs_script.new()
+	gs.name = "GameState"
+	root.add_child(gs)
 	await process_frame
 
 	_test_map_registry_accessor(dm)
@@ -46,6 +52,7 @@ func _init() -> void:
 	_test_restore_rejects_unresolvable_ids(cm)
 	_test_restore_of_a_bare_map_save(cm)
 	_test_pending_result_is_not_position_state(cm, bus)
+	_test_advance_validates_before_commit(cm, bus, gs)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -217,21 +224,28 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	cm.start_campaign("proving_grounds")
 	cm.cleared_node_ids.append("node_01_rout")
 	cm.current_node_id = "node_02_seize"
+	cm.set_campaign_flag("recruited_guide")
+	cm.set_campaign_flag("recruited_guide")  # set semantics deduplicate
+	cm.set_campaign_var("villages_saved", 2)
 
 	var envelope: Dictionary = cm.capture_campaign_state()
 	_check(envelope.get("campaign_id", "") == "proving_grounds"
 			and envelope.get("node_id", "") == "node_02_seize"
 			and envelope.get("cleared_nodes", []) == ["node_01_rout"]
-			and envelope.size() == 3,
-		"capture_campaign_state writes exactly the campaign envelope", str(envelope))
+			and envelope.get("flags", []) == ["recruited_guide"]
+			and envelope.get("vars", {}).get("villages_saved", 0) == 2
+			and envelope.size() == 5,
+		"capture_campaign_state writes position plus mutable campaign state", str(envelope))
 
 	cm.end_campaign()
 	_check(cm.restore_campaign_state(envelope)
 			and cm.active_campaign_id == "proving_grounds"
 			and cm.current_node_id == "node_02_seize"
 			and cm.cleared_node_ids == ["node_01_rout"]
+			and cm.has_campaign_flag("recruited_guide")
+			and cm.get_campaign_var("villages_saved") == 2
 			and cm.is_campaign_active(),
-		"restore_campaign_state puts the position back where the capture took it")
+		"restore_campaign_state restores position, flags, and vars")
 
 	# The captured array must not alias the live one, or a later clear would edit
 	# the save that was already taken.
@@ -240,6 +254,9 @@ func _test_campaign_envelope_roundtrip(cm: Node) -> void:
 	_check(captured.get("cleared_nodes", []) == ["node_01_rout"],
 		"the captured envelope does not alias the live cleared list",
 		str(captured.get("cleared_nodes", [])))
+	cm.campaign_vars["villages_saved"] = 9
+	_check(captured.get("vars", {}).get("villages_saved") == 2,
+		"the captured vars dictionary does not alias live state")
 	cm.end_campaign()
 
 
@@ -265,6 +282,20 @@ func _test_restore_rejects_unresolvable_ids(cm: Node) -> void:
 			})
 			and not cm.is_campaign_active(),
 		"restore rejects a save naming an unknown cleared node")
+
+	cm.end_campaign()
+	_check(not cm.restore_campaign_state({
+			"campaign_id": "proving_grounds", "node_id": "node_01_rout",
+			"flags": ["", "valid"], "vars": {},
+		}) and not cm.is_campaign_active(),
+		"restore rejects malformed campaign flags before applying state")
+
+	cm.end_campaign()
+	_check(not cm.restore_campaign_state({
+			"campaign_id": "proving_grounds", "node_id": "node_01_rout",
+			"flags": [], "vars": [],
+		}) and not cm.is_campaign_active(),
+		"restore rejects malformed campaign vars before applying state")
 
 	# "" is the campaign-complete position (walked off the end of the graph), not
 	# an unknown node — it must load, and load AS complete.
@@ -312,4 +343,26 @@ func _test_pending_result_is_not_position_state(cm: Node, bus: Node) -> void:
 			and cm.current_node_id == "node_01_rout"
 			and not cm.is_node_cleared("node_01_rout"),
 		"the restored campaign holds no pending result and is parked on the node")
+	cm.end_campaign()
+
+
+func _test_advance_validates_before_commit(cm: Node, bus: Node, gs: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	bus.map_victory.emit()
+	cm._pending_result["next_node_id"] = "missing_successor"
+	_check(not cm.commit_pending_result()
+			and cm.current_node_id == "node_01_rout"
+			and cm.has_pending_victory()
+			and cm.cleared_node_ids.is_empty(),
+		"an invalid successor leaves the pending victory retryable")
+
+	cm._pending_result["next_node_id"] = "node_02_seize"
+	gs.set("roster_ready", false)
+	_check(not cm.prepare_pending_advance() and cm.has_pending_victory(),
+		"an unprepared roster does not consume the pending victory")
+	gs.set("roster_ready", true)
+	_check(cm.prepare_pending_advance() and cm.commit_pending_result()
+			and cm.current_node_id == "node_02_seize"
+			and not cm.has_pending_victory(),
+		"a valid successor prepares and advances exactly once")
 	cm.end_campaign()
