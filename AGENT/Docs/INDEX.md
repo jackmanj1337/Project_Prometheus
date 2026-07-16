@@ -137,6 +137,7 @@
 
 ## Implementation plans
 
+- [`plans/ai_scorer_questions_handoff_2026-07-16.md`](plans/ai_scorer_questions_handoff_2026-07-16.md) — AI Scorer Questions Handoff — *Active - review handoff*
 - [`plans/band0_gdd_consolidation_handoff_2026-07-13.md`](plans/band0_gdd_consolidation_handoff_2026-07-13.md) — Band 0 GDD Consolidation — Next-Session Handoff — *Planned*
 - [`plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md`](plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md) — Band 0 GDD Consolidation — Phase 0 Audit And Implementation Plan — *Active - audit and implementation plan*
 - [`plans/band1_determinism_save_implementation_plan_2026-06-30.md`](plans/band1_determinism_save_implementation_plan_2026-06-30.md) — Band 1 Determinism And Save Implementation Plan — *Active - implementation plan*
@@ -212,7 +213,7 @@
 - [`playtests/playtest_build_v0.3.6.md`](playtests/playtest_build_v0.3.6.md) — Playtester Build Manifest - v0.3.6 — *Exported - owner-accepted live pass*
 - [`playtests/playtest_build_v0.4.0.md`](playtests/playtest_build_v0.4.0.md) — v0.4.0 Windows Playtest Build — *Exported - pending live Windows smoke*
 - [`playtests/playtest_build_v0.4.1.md`](playtests/playtest_build_v0.4.1.md) — v0.4.1 Windows Playtest Build — *Exported - pending live Windows full fea*
-- [`playtests/playtest_build_v0.4.2.md`](playtests/playtest_build_v0.4.2.md) — v0.4.2 Windows Playtest Build — *Planned*
+- [`playtests/playtest_build_v0.4.2.md`](playtests/playtest_build_v0.4.2.md) — v0.4.2 Windows Playtest Build — *Exported - pending live Windows full fea*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*

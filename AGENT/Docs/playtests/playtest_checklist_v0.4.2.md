@@ -16,9 +16,9 @@ legacy-skill dispatch and victory-layout rechecks.
 ## Before testing
 
 - Executable: `Project_Prometheus_v0.4.2_debug.exe`
-- Expected byte size: `PENDING_EXPORT`
-- Expected SHA-256: `PENDING_EXPORT`
-- Expected BUILD STAMP commit/time: `PENDING_EXPORT`
+- Expected byte size: `101847152`
+- Expected SHA-256: `22a553d8ab53e2ae95d740cdffd97aa63c102991ce4ae5e10b881232c98c262a`
+- Expected BUILD STAMP commit/time: `58c6d7d`, built `2026-07-16T17:18:16Z`
 - Windows version/device: ____________________
 - Tester/date: ____________________
 - Keyboard/mouse used: ____________________
