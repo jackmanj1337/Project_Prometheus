@@ -83,7 +83,7 @@ Every tracker row uses these columns:
 
 ## Band 2 - Shared Authoring And Runtime Contracts
 
-**v0.4.0 release gate:** all seven rows below are in scope. Review and release
+**v0.4.1 release gate:** all seven rows below plus the v0.4 triage repairs are in scope. Review and release
 evidence is tracked in
 [`v0.4.0_release_checklist_2026-07-13.md`](v0.4.0_release_checklist_2026-07-13.md);
 Implemented row status does not replace the checklist's review, build, and smoke

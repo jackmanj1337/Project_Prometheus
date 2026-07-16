@@ -89,14 +89,16 @@ Pending validation; the repaired UI surfaces passed the v0.3.6 focused rerun,
 with polish retained under `UI-INSPECTION`. The next-session execution packet is
 [`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
 
-### v0.4.0 release gate
+### v0.4.1 release gate
 
-v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
-checklist is [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
+v0.4.1 is bounded to the seven Band 2 shared-contract slices plus the v0.4
+triage repairs. The original scope/review checklist remains
+[`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
 All seven rows are implemented. The results-lock, reward/balance, independent More
 Info scrolling, and release skill-availability repairs are **Implemented** headlessly
-as of 2026-07-16. The gate remains **Pending validation** until the focused Windows
-rerun returns complete evidence. Band 3 consumers are outside this release boundary.
+as of 2026-07-16. The gate remains **Pending validation** until the full v0.4.1
+Windows feature checklist returns complete evidence. Band 3 consumers are outside
+this release boundary.
 
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —
 > the live vehicle for the items below. Handbook:
