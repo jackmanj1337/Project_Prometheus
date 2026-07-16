@@ -13,13 +13,13 @@
       "title": "Consolidate Project Prometheus branches and establish release flow",
       "branch": "agent/codex/2026-07-16/integration-candidate",
       "owner": "codex",
-      "status": "in_progress",
+      "status": "in_review",
       "target": "integration",
       "base_branch": "main",
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
       "dependencies": [],
       "blockers": ["workflow-scope PAT required to push integrated workflow history", "human creation of protected integration and coordination refs"],
-      "reference": "local integration commit 33d1c0c",
+      "reference": "integration candidate 258ed12; 102 suites and 40 documentation checks pass",
       "last_update": "2026-07-16",
       "playtest_ref": null,
       "scope": "remote"
@@ -51,7 +51,7 @@
       "base_sha": "b2aee0daa99e9025b3123080064f1e3c332d5141",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
       "blockers": [],
-      "reference": "planning content integrated as 808103e",
+      "reference": "planning content integrated as 808103e; recovery remains bundled locally",
       "last_update": "2026-07-16",
       "playtest_ref": null,
       "scope": "local"
@@ -83,7 +83,7 @@
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
       "blockers": [],
-      "reference": "fully contained in encounter-model line",
+      "reference": "fully contained in encounter-model line merged at 33d1c0c; local archive tag created",
       "last_update": "2026-07-16",
       "playtest_ref": null,
       "scope": "remote"
@@ -93,13 +93,13 @@
       "title": "v0.4 playtest, release fixes, and build line",
       "branch": "agent/codex/2026-07-14/v0.4.0-windows-build",
       "owner": "codex",
-      "status": "playtesting",
+      "status": "in_review",
       "target": "release/v0.4.2",
       "base_branch": "main",
       "base_sha": "b55dffab6eb94917ea077173df15c0fe6b7c5835",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["release fixes require port to split MapResults/GameOver architecture"],
-      "reference": "eight local commits through 7b9ec1e",
+      "blockers": [],
+      "reference": "accepted fixes ported at 15297c9 and evidence preserved at ea03797; local archive tag created",
       "last_update": "2026-07-16",
       "playtest_ref": "v0.4.2 build record at 7b9ec1e",
       "scope": "remote"
@@ -115,7 +115,7 @@
       "base_sha": "6d84554c29b91d2e9ffc548a11155f04c0667705",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
       "blockers": [],
-      "reference": "preserve build/checklist evidence; reject obsolete reverts",
+      "reference": "evidence preserved at 430ba3a; obsolete reverts rejected; local archive tag created",
       "last_update": "2026-07-16",
       "playtest_ref": "v0.3.2 checklist at 6d84554",
       "scope": "remote"
@@ -130,8 +130,8 @@
       "base_branch": "main",
       "base_sha": "633b43d97a9a3a0495608cb952f04fa59be2a7ee",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["UI commits require comparison with newer menu-scale implementation"],
-      "reference": "four unique commits through 633b43d",
+      "blockers": [],
+      "reference": "relevant UI and research ported at 430ba3a; local archive tag created",
       "last_update": "2026-07-16",
       "playtest_ref": null,
       "scope": "remote"
@@ -140,12 +140,12 @@
   "release_trains": [
     {
       "version": "v0.4.2",
-      "branch": "agent/codex/2026-07-14/v0.4.0-windows-build",
-      "source_branch": "legacy v0.4 release line",
-      "source_sha": "7b9ec1e73bd27344721290b73cdf0a143443ce09",
+      "branch": "agent/codex/2026-07-16/integration-candidate",
+      "source_branch": "integrated v0.4.2 release-fix port",
+      "source_sha": "258ed12a3842074d0497f8881c4c89cbc886a347",
       "playtest_tags": [],
       "stable_tag": null,
-      "acceptance": "pending",
+      "acceptance": "automated-green; live playtest pending",
       "last_update": "2026-07-16"
     }
   ]
