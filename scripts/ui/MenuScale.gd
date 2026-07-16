@@ -132,6 +132,32 @@ static func scaled_size(target: Control) -> Vector2:
 	return target.size * target.scale
 
 
+# Grows or shrinks a non-scroll panel to the largest size that fits an authored
+# safe rectangle, then centers it inside that rectangle.
+static func apply_to_fit_rect(
+	target: Control, available: Rect2, min_factor: float = 0.5, max_factor: float = 3.0
+) -> void:
+	if target == null or not target.is_inside_tree():
+		return
+	target.scale = Vector2.ONE
+	var factor := 1.0
+	_apply_type_scale(target, factor)
+	for _iteration in 5:
+		var next_factor := clampf(
+			_fit_factor(_panel_size(target), available.size, factor), min_factor, max_factor
+		)
+		if is_equal_approx(next_factor, factor):
+			break
+		factor = next_factor
+		_apply_type_scale(target, factor)
+	var size := _panel_size(target)
+	if size.x > available.size.x + 0.5 or size.y > available.size.y + 0.5:
+		factor = maxf(_fit_factor(size, available.size, factor), 0.0)
+		_apply_type_scale(target, factor)
+	target.size = _panel_size(target)
+	target.position = available.position + (available.size - target.size) * 0.5
+
+
 # --- internals ---------------------------------------------------------------
 
 
@@ -209,13 +235,15 @@ static func _clamp_to_viewport(target: Control, factor: float) -> float:
 	var vp: Vector2 = target.get_viewport_rect().size
 	if vp.x <= 0.0 or vp.y <= 0.0:
 		return factor
-	var sz := _panel_size(target)
-	if sz.x <= 0.0 or sz.y <= 0.0:
-		return factor
-	var fit: float = minf(vp.x / sz.x, vp.y / sz.y)
-	if fit >= 1.0:
-		return factor
-	return maxf(factor * fit, 0.0)
+	var fit := _fit_factor(_panel_size(target), vp, factor)
+	return factor if fit >= factor else fit
+
+
+static func _fit_factor(size: Vector2, available: Vector2, base_factor: float) -> float:
+	if size.x <= 0.0 or size.y <= 0.0 or available.x <= 0.0 or available.y <= 0.0:
+		return base_factor
+	var fit: float = minf(available.x / size.x, available.y / size.y)
+	return maxf(base_factor * fit, 0.0)
 
 
 # The size a centered panel should occupy. A panel built around a ScrollContainer

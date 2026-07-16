@@ -43,6 +43,28 @@ func _init() -> void:
 	root.add_child(menu)
 	await process_frame
 
+	var panel: Control = menu.get_node("Panel")
+	var title: Control = menu.get_node("TitleLabel")
+	var version: Control = menu.get_node("VersionLabel")
+	var size_before_scale_call: Vector2 = panel.size
+	menu.call("apply_menu_scale", 2.0)
+	await process_frame
+	if panel.size.is_equal_approx(size_before_scale_call):
+		print("OK  Main Menu ignores the in-game Menu Scale factor")
+		passed += 1
+	else:
+		print("FAIL Main Menu changed size for the Menu Scale factor")
+		failed += 1
+	if (
+		not panel.get_rect().intersects(title.get_rect())
+		and not panel.get_rect().intersects(version.get_rect())
+	):
+		print("OK  Main Menu panel stays between title and version")
+		passed += 1
+	else:
+		print("FAIL Main Menu overlaps a fixed label")
+		failed += 1
+
 	var continue_btn: Button = menu.get_node("Panel/VBox/ContinueButton")
 	if continue_btn.disabled:
 		print("OK  Continue is disabled when no suspend save exists")

@@ -1,15 +1,17 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/MainMenu.gd" id="1_mainmenu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/NewGameScreen.tscn" id="2_newgame"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SettingsScreen.tscn" id="3_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="4_loadgame"]
+[ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="5_theme"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("5_theme")
 script = ExtResource("1_mainmenu")
 
 [node name="Background" type="ColorRect" parent="."]

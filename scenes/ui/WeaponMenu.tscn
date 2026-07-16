@@ -1,9 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/WeaponMenu.gd" id="1_weaponmenu"]
+[ext_resource type="Theme" path="res://assets/themes/manasoul_ui.tres" id="2_theme"]
 
 [node name="WeaponMenu" type="PanelContainer"]
 custom_minimum_size = Vector2(200, 0)
+theme = ExtResource("2_theme")
 script = ExtResource("1_weaponmenu")
 visible = false
 mouse_filter = 2

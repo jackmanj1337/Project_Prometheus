@@ -12,8 +12,11 @@ extends Control
 @onready var _load_game_screen: Control = $LoadGameScreen
 @onready var _new_game_screen: Control = $NewGameScreen
 @onready var _settings_screen: Control = $SettingsScreen
+@onready var _title_label: Label = $TitleLabel
+@onready var _version_label: Label = $VersionLabel
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
+const _AVAILABLE_MARGIN := 24.0
 
 
 func _ready() -> void:
@@ -30,7 +33,7 @@ func _ready() -> void:
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
 	_new_game_screen.back_pressed.connect(_on_new_game_back)
 	_settings_screen.back_pressed.connect(_on_settings_back)
-	_apply_menu_scale_from_settings()
+	apply_menu_scale(1.0)
 	_refresh_menu_state()
 	if not _continue_btn.disabled:
 		_continue_btn.grab_focus()
@@ -38,12 +41,20 @@ func _ready() -> void:
 		_new_game_btn.grab_focus()
 
 
-func apply_menu_scale(factor: float) -> void:
-	MenuScale.apply_to($Panel, factor, true)
+# Main Menu is a pinned-large home screen: it uses all safe space between its
+# title and version instead of following the in-game Menu Scale preference.
+func apply_menu_scale(_factor: float) -> void:
+	MenuScale.apply_to_fit_rect($Panel, _available_rect())
 
 
-func _apply_menu_scale_from_settings() -> void:
-	apply_menu_scale(MenuScale.factor_from_settings(self))
+func _available_rect() -> Rect2:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var top: float = _title_label.get_rect().end.y + _AVAILABLE_MARGIN
+	var bottom: float = _version_label.get_rect().position.y - _AVAILABLE_MARGIN
+	return Rect2(
+		Vector2(_AVAILABLE_MARGIN, top),
+		Vector2(maxf(viewport_size.x - _AVAILABLE_MARGIN * 2.0, 0.0), maxf(bottom - top, 0.0))
+	)
 
 
 func _refresh_menu_state() -> void:
