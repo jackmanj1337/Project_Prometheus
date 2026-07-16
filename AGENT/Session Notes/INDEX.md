@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16e](2026-07-16e.md) — Preserved the uncommitted AI scorer planning and handoff updates on a dedicated recovery branch before repository consolidation.
 - [2026-07-16d](2026-07-16d.md) — Implemented and verified `B4-ENCOUNTER-MODEL` Slice 2, isolated it for push, and handed off v0.4.1 playtest intake as the next-session priority.
 - [2026-07-16c](2026-07-16c.md) — Saved the ranked playtest-waiting queue in the control plane and handed off the deterministic AI scorer as the first implementation track.
 - [2026-07-16b](2026-07-16b.md) — Reconciled the AI-suspend closeout commit and final session-claim ownership.
