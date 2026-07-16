@@ -89,9 +89,9 @@ Pending validation; the repaired UI surfaces passed the v0.3.6 focused rerun,
 with polish retained under `UI-INSPECTION`. The next-session execution packet is
 [`v0.3.3_playtest_fix_handoff_2026-07-14.md`](../Docs/plans/v0.3.3_playtest_fix_handoff_2026-07-14.md).
 
-### v0.4.1 release gate
+### v0.4.2 release gate
 
-v0.4.1 is bounded to the seven Band 2 shared-contract slices plus the v0.4
+v0.4.2 is bounded to the seven Band 2 shared-contract slices plus the v0.4
 triage repairs. The original scope/review checklist remains
 [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
 All seven rows are implemented. The results-lock, reward/balance, independent More

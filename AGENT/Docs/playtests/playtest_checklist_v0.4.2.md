@@ -1,0 +1,182 @@
+---
+Type: playtest
+Status: Pending validation
+Last verified: 2026-07-16
+---
+
+# v0.4.2 Windows Playtest and Smoke Checklist
+
+Return this completed file and the original `godot.log`. This playtest is the
+v0.4.2 release checklist's smoke gate.
+
+This is the single authoritative full-feature rerun for the v0.4 release line. It
+includes the original Band 2 smoke coverage, every v0.4.1 repair, and the final
+legacy-skill dispatch and victory-layout rechecks.
+
+## Before testing
+
+- Executable: `Project_Prometheus_v0.4.2_debug.exe`
+- Expected byte size: `PENDING_EXPORT`
+- Expected SHA-256: `PENDING_EXPORT`
+- Expected BUILD STAMP commit/time: `PENDING_EXPORT`
+- Windows version/device: ____________________
+- Tester/date: ____________________
+- Keyboard/mouse used: ____________________
+- Controller model, or `NOT RUN`: ____________________
+- Monitor and desktop resolution: ____________________
+
+Verify the artifact in PowerShell:
+
+```powershell
+Get-FileHash .\Project_Prometheus_v0.4.2_debug.exe -Algorithm SHA256
+```
+
+- [ ] Filename, byte size, and SHA-256 match the build manifest.
+- [ ] Main Menu shows `v0.4.2`.
+- [ ] The log's BUILD STAMP shows version `0.4.2`, the manifest commit, and a
+      plausible build/start timestamp.
+
+If any identity check fails, stop: the wrong or damaged build is under test.
+
+## 1. Boot and main menu
+
+Launch the executable normally on Windows.
+
+- [ ] The game reaches the Main Menu without a crash or blocking error dialog.
+- [ ] Menu text, focus, and buttons are visible and usable.
+- [ ] New Game, Continue state, Settings, and Quit have sensible enabled states.
+- [ ] No release-blocking error appears at the start of `godot.log` after the
+      BUILD STAMP.
+
+Notes: ____________________
+
+## 2. Start and operate a tactical map
+
+Choose New Game and reach a playable map.
+
+- [ ] The map loads with terrain, units, HUD, cursor, and menus present.
+- [ ] Keyboard movement and confirm/cancel work.
+- [ ] Mouse hover, selection/click, right-click cancel, and wheel zoom work.
+- [ ] Map Menu and Unit Details open and close without trapping focus.
+- [ ] Action menus are readable, remain inside the viewport, and allow an
+      ordinary move/action to complete.
+- [ ] If a controller is available, it can navigate menus, move the map cursor,
+      confirm/cancel, and complete an action without duplicate input.
+- [ ] If controller hardware is unavailable, the controller item is marked
+      `NOT RUN`; it does not invalidate the keyboard/mouse smoke result.
+
+Notes: ____________________
+
+## 3. Attack Preview and combat projection
+
+Move a unit into attack range and select a valid target.
+
+- [ ] Attack Preview opens and displays attacker/defender forecast information.
+- [ ] Cancel the first preview: HP, inventory, party gold, and map state do not
+      change merely from previewing.
+- [ ] Reopen the preview and confirm the attack.
+- [ ] One combat completes without a crash, stuck animation, or stuck phase.
+- [ ] Resulting HP and any death/incapacitation outcome are plausible for the
+      displayed combat result.
+- [ ] The game remains controllable after combat.
+
+Notes: ____________________
+
+## 4. Victory gold through the resource ledger
+
+Complete the map's victory condition and record party gold immediately before
+and after the award when the UI permits.
+
+- [ ] Victory resolves normally.
+- [ ] Victory gold is awarded once through the normal results flow.
+- [ ] The displayed total changes by the expected amount.
+- [ ] Reopening menus, changing screens, or waiting does not duplicate the award.
+
+Before: __________  Award: __________  After: __________
+
+Notes: ____________________
+
+## 5. Suspend, relaunch, and Continue
+
+If victory ended the first map, start another map. Move units and complete at
+least one combat so the state is unmistakably changed. Record unit positions,
+HP, phase/turn, Pair Up state if used, and any watched threat marker. Use
+Suspend & Quit, close the executable completely, relaunch it, and choose
+Continue.
+
+- [ ] Suspend & Quit returns safely to the Main Menu.
+- [ ] Continue is enabled after relaunch.
+- [ ] Continue restores the same map and controlling phase/turn.
+- [ ] Unit positions and HP match the recorded suspended state.
+- [ ] Relevant inventory and Pair Up state are preserved.
+- [ ] Threat-watch state is preserved when one was set.
+- [ ] Play can continue normally after restoration.
+- [ ] Completing the restored map clears the suspend so Continue does not resume
+      an already-finished battle.
+
+Notes: ____________________
+
+## 6. Settings and Windows display regression
+
+Open Settings and exercise the available desktop display and menu controls.
+
+- [ ] Settings opens, focus remains visible, and every required row is reachable.
+- [ ] Windowed, borderless, and fullscreen changes apply without a crash or
+      inaccessible UI.
+- [ ] A representative supported windowed resolution applies sensibly.
+- [ ] Menu Scale at `0.5x`, `1.0x`, and `2.0x` leaves Settings, Unit Details,
+      Attack Preview, and Action Menu usable.
+- [ ] No unexpected horizontal scrollbar, clipped required control, opposite
+      focus-scroll jump, or persistent stale Action Menu space is observed.
+- [ ] Audio and input continue after changing display mode and returning to the
+      map.
+
+Notes: ____________________
+
+## 7. v0.4.2 triage-repair coverage
+
+Use a map with a victory reward and a unit whose More Info prose overflows.
+
+- [ ] Results show both `Gold earned` and `Total gold`; Map Menu shows the same total.
+- [ ] Reopening menus, waiting, and any repeat victory evaluation neither awards nor announces rewards twice.
+- [ ] With results visible, keyboard taps, held keyboard input, gamepad d-pad/stick, and pointer attempts never move the map cursor behind the overlay.
+- [ ] More Info descriptions scroll independently with Page Up/Page Down, right-stick vertical, and mouse wheel without moving the selected entry.
+- [ ] The description scroll hint appears only for overflow, and changing entries resets or clamps the prior offset.
+- [ ] Unimplemented skills such as Armsthrift are absent from release-facing class choices; implemented skills remain listed.
+- [ ] No unimplemented-skill warning appears during ordinary release-facing play. If a development-only warning exists in the debug log, record its exact trigger separately and do not confuse it with a release error.
+- [ ] On the promotion-validation map, Attack Preview and completed combat with
+      legacy-loaded Armsthrift/Dash and enemy Bastion/Iron Wall skills emit no
+      `SkillHandler._apply_unimplemented` warning.
+- [ ] Complete the rewarded Rout map at Menu Scale `0.5x`, `1.0x`, and `2.0x`.
+      After the results panel settles, its full title, standings, reward rows,
+      Retry button, and Quit to Menu button are visible and usable at each scale.
+- [ ] Record the Menu Scale and attach an original-resolution screenshot for
+      each Rout result. If clipping occurs, record whether changing scale or
+      relaunching reproduces it.
+
+Notes: ____________________
+
+## 8. Log and regression result
+
+After all checks, exit normally and preserve the original log reported by the
+BUILD STAMP (normally under
+`%APPDATA%\Godot\app_userdata\Fire Emblem RPG\logs`).
+
+- [ ] `godot.log` belongs to this BUILD STAMP and includes the tested session.
+- [ ] No crash, assertion, registry-load failure, missing-resource error, or
+      repeated release-blocking error appears in the log.
+- [ ] Any failed box has exact reproduction steps: map, unit/UI, action, actual
+      result, expected result, and whether it reproduces after relaunch.
+- [ ] Original-resolution screenshots accompany visual failures.
+
+Final result: [ ] PASS  [ ] FAIL
+
+Final notes: ____________________
+
+## Return package
+
+- [ ] Completed `playtest_checklist_v0.4.2.md`.
+- [ ] Original `godot.log` containing the BUILD STAMP.
+- [ ] Screenshots for every visual failure.
+- [ ] Exact reproduction steps for every failed item.
+- [ ] Windows, input-device, display, filename, size, and hash metadata above.
