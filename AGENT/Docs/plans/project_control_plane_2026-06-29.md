@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-14
+Last verified: 2026-07-16
 ---
 
 # Project Control Plane
@@ -295,7 +295,42 @@ is on hold.
 
 ## Immediate Next Actions
 
+### Playtest-waiting work queue - 2026-07-16
+
+This queue applies while the v0.4.1 and campaign/save Windows returns are out.
+Returned evidence preempts new work at the next green commit. Do not rebuild,
+replace, or reinterpret either outstanding artifact. Use the existing Track IDs
+below; this queue changes priority, not identity or delivery status. Session
+startup and delivery rules are in
+[`playtest_waiting_work_queue_handoff_2026-07-16.md`](playtest_waiting_work_queue_handoff_2026-07-16.md).
+
+| Priority | Candidate tracks | Reasonable bounded work now | Boundary while evidence is out |
+|---|---|---|---|
+| 1 | `B5-AI-MIN-SCORER` | Build a deterministic projection-backed scorer over expected damage, kill, counter-damage, exposure, and stable tie-breaks. | Keep advanced search/perception in `B7-AI-ADVANCED-VALUATION`; no release artifact. |
+| 2 | `B3-CAMPAIGN-RULES` | Add data-driven CampaignRules profiles/tunables over the implemented save and registry foundations. | Preserve old-save defaults and existing shipped preset behavior. |
+| 3 | `B3-PHB` | Build the open prep activity/panel seam used later by convoy, shop, training, arena, and services. | Framework and fixtures first; do not silently implement downstream panels. |
+| 4 | `B4-ENCOUNTER-MODEL` | Finish the battle-map versus encounter-data split using the implemented spawn seam and campaign spine. | Preserve all shipped map loading and the protected playtest packages. |
+| 5 | `B3-MOVEMENT-VULN-REGISTRY`, `B3-RESOURCE-POOLS` | Replace remaining closed author vocabularies and add generic ledger-backed resource pools. | Require compatibility fixtures and explicit save defaults before schema-bearing fields. |
+| 6 | `B3-STAT-REGISTRY` | Extend the shipped name/label registry with the legacy-field plus extension-dictionary storage path. | Treat as a broad migration: schema manifest, UI/data adapters, and round-trip tests in one delivery. |
+| 7 | `UI-INSPECTION`, `VAL-V021-12`, `UI-CAMERA-SETTINGS`, `UI-TACTICAL-UX` | Continue theme rollout and headless layout inspection; wire realistic Attack Preview positioning; add class-skill drilldown; take only simple projection-backed UX increments. | Do not visually tune over pending screenshots; Windows visual acceptance remains later evidence. |
+| 8 | `B1-SUSPEND-TRANSIENT-RESEARCH`, `VAL-FIXTURE-GAPS`, `CLEAN-OBJDB-LEAK` | Characterize remaining transient boundaries; add save failure/migration/determinism fixtures; clean benign test teardown warnings. | Immediate in-flight capture remains rejected; tests/hardening must not broaden behavior accidentally. |
+| 9 | `B3-TEXT`, `B3-TCV`, `B3-REQ`, `B4-DIALOGUE-V1` | Reconcile the TCV/REQ dependency order, establish text indirection, and define the narrow dialogue-v1 command set. | Planning or foundation-only until the circular dependency is split explicitly. |
+| 10 | `CONTENT-V1`, `POLISH-ART`, `POLISH-AUDIO` | Author compatible maps/classes/items/skills, a second small campaign package, and isolated art/audio assets against already-supported mechanics. | Content must not require an unbuilt system or alter the outstanding test artifacts. |
+
+Larger but reasonable follow-ons after one of the foundations above lands are
+`B5-CONDITIONS`, `B4-IEQ`, `B4-PXP`, `B5-ACTION-GRANT`,
+`B5-SECONDARY-MOVEMENT`, and the core visibility portion of `B6-FOW`.
+Keep `B4-MAP-OBJECTS`, convoy/shop, doors/chests, villages, and property systems
+behind their recorded PHB/MET/IEQ dependencies.
+
+Do **not** use the waiting window for release/merge/upload work; debug-aid removal;
+replacement release builds; remote play; the public builder; hex topology;
+advanced AI search; Laguz/full Awakening scope; or any change that mutates the
+identity of the outstanding Windows artifacts.
+
 1. Keep exact Feature Index owner links synchronized when a numbered GDD heading
    or companion filename changes.
-2. Select implementation work from the dependency-valid next-work queue and update
-   its tracker/GDD evidence in the same change.
+2. Start with `B5-AI-MIN-SCORER`; if its bounded implementation review exposes an
+   unresolved owner decision, move to `B3-CAMPAIGN-RULES`, then `B3-PHB`.
+3. Update each selected track's row, GDD owner, tests, and evidence matrix in the
+   same delivery. Stop and intake returned playtest evidence at the next green commit.

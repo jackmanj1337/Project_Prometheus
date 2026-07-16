@@ -191,6 +191,7 @@
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
+- [`plans/playtest_waiting_work_queue_handoff_2026-07-16.md`](plans/playtest_waiting_work_queue_handoff_2026-07-16.md) — Playtest-Waiting Work Queue Handoff - 2026-07-16 — *Planned - playtest-waiting implementatio*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
