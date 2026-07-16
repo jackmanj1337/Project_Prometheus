@@ -144,6 +144,7 @@
 - [`plans/b1_ledger_review_handoff_2026-07-15.md`](plans/b1_ledger_review_handoff_2026-07-15.md) — B1-LEDGER Review Handoff — everything since the v0.4.0 push — 2026-07-15 — *Implemented*
 - [`plans/b4_encounter_model_slice2_handoff_2026-07-16.md`](plans/b4_encounter_model_slice2_handoff_2026-07-16.md) — `B4-ENCOUNTER-MODEL` Slice 2 Handoff - 2026-07-16 — *Planned - next-session implementation ha*
 - [`plans/b4_prep_deployment_handoff_2026-07-14.md`](plans/b4_prep_deployment_handoff_2026-07-14.md) — `B4-PREP-DEPLOYMENT` Handoff - Prep Screen - 2026-07-14 — *Target design*
+- [`plans/b5_ai_min_scorer_slice3a_handoff_2026-07-16.md`](plans/b5_ai_min_scorer_slice3a_handoff_2026-07-16.md) — `B5-AI-MIN-SCORER` Slice 3A Handoff - 2026-07-16 — *Planned - next-session implementation ha*
 - [`plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md`](plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md) — B6 Campaign Archive Pipeline - Next-Session Handoff — *Planned*
 - [`plans/band0_gdd_consolidation_handoff_2026-07-13.md`](plans/band0_gdd_consolidation_handoff_2026-07-13.md) — Band 0 GDD Consolidation — Next-Session Handoff — *Planned*
 - [`plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md`](plans/band0_gdd_consolidation_phase0_audit_2026-07-13.md) — Band 0 GDD Consolidation — Phase 0 Audit And Implementation Plan — *Active - audit and implementation plan*
@@ -282,6 +283,7 @@
 
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
+- [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *RESOLVED*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 
