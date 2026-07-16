@@ -199,6 +199,7 @@ and
 | 2 | `B6-MRD` | Implemented 2026-07-14: watch sets, danger mode, markers, pruning, and versioned suspend state are isolated by controlling faction. | Watch state belongs to the controlling faction; no player/seat ownership. |
 | 3 | `UI-INSPECTION` | v0.3.6 passed Action Menu shrink-wrap, ornament clearance, reopen growth, and edge clamping live. | Accepted for now; recheck visual spacing during the broader UI redesign pass. |
 | 4 | `UI-INSPECTION` | v0.3.6 passed bounded Settings/Unit Details focus traversal live, including mixed-height lookahead and endpoint clamps. | Accepted for now; recheck focus-scroll context during the broader UI redesign pass. |
+| 5 | `UI-INSPECTION` | **Implemented 2026-07-16:** Mana Soul theme rollout covers Main/Settings/Item/Weapon menus; Main Menu uses a tested pinned-large safe rectangle rather than tactical Menu Scale. | Headless layout/theme tests pass; retain visual polish for the broader UI redesign. |
 
 Menu threat retention and `dual_outline` passed. `VAL-V030-GAMEPAD` remains
 Pending validation; the repaired UI surfaces passed the v0.3.6 focused rerun,
@@ -304,6 +305,7 @@ Do not schedule these for v1 unless the owner explicitly changes scope:
 | `B8-PERCEPTION` | Perception / masking. |
 | `B8-ML-EVAL` | ML evaluation experiment. |
 | `B8-VISION-PRO` | Apple Vision Pro reach. |
+| `B8-TILE-RESCALE` | Native-resolution pixel-art selection and possible `TILE_SIZE` rescale; research and cost assessment are linked from the control plane. |
 
 ## Update Discipline
 

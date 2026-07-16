@@ -42,6 +42,9 @@ Last verified: 2026-07-15
 ```
 
 **Behavior:**
+- The home screen uses the Mana Soul theme and is a pinned-large surface: its panel
+  fills the safe rectangle between title and version labels and ignores the tactical
+  Menu Scale preference, preventing high-scale title overlap.
 - "Continue" → resumes the **most recently written** slot. `SaveManager` has one
   namespace; after loading, `map_runtime.map_path` routes a mid-map document onto
   `GameState` + `GameMap`, while its absence routes a between-map document through

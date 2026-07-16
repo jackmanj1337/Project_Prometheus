@@ -123,6 +123,7 @@
 - [`design/nonstandard_movement_and_displacement_2026-06-25.md`](design/nonstandard_movement_and_displacement_2026-06-25.md) — Non-Standard Movement & Displacement — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/occupancy_transaction_contract_2026-06-28.md`](design/occupancy_transaction_contract_2026-06-28.md) — Occupancy Transaction Contract — *Active - architecture contract*
 - [`design/open_registry_conversion_checklist_2026-06-28.md`](design/open_registry_conversion_checklist_2026-06-28.md) — Open Registry Conversion Checklist — *Active - review checklist*
+- [`design/pixel_art_resolution_options_2026-07-12.md`](design/pixel_art_resolution_options_2026-07-12.md) — Using 16-Bit-Style Pixel Art For A Demo — Research Summary — *Reference*
 - [`design/player_facing_scope_map_2026-06-23.md`](design/player_facing_scope_map_2026-06-23.md) — Player-Facing Feature Scope Map (Firming Driver) — *Active framing / driver*
 - [`design/projection_forecast_contract_2026-06-28.md`](design/projection_forecast_contract_2026-06-28.md) — Projection / Forecast Contract — *Active - architecture contract*
 - [`design/registry_manifest_contract_2026-06-28.md`](design/registry_manifest_contract_2026-06-28.md) — Registry Manifest Contract — *Active - architecture contract*
@@ -131,6 +132,7 @@
 - [`design/shared_selector_extraction_design_2026-06-20.md`](design/shared_selector_extraction_design_2026-06-20.md) — Shared Selector / More-Info Navigation Extraction (V021-15) — Design — 2026-06-20 — *Target design*
 - [`design/source_style_player_and_authoring_2026-06-24.md`](design/source_style_player_and_authoring_2026-06-24.md) — Source + Style — Player Flow & Authoring Surface — *Active framing / driver*
 - [`design/terrain_more_info_paging_design_2026-06-19.md`](design/terrain_more_info_paging_design_2026-06-19.md) — Terrain More Info Paging — Design (V021-05) — 2026-06-19 — *Implemented (v0.2.2, 2026-06-20) — built*
+- [`design/tile_size_native_res_rescale_assessment_2026-07-12.md`](design/tile_size_native_res_rescale_assessment_2026-07-12.md) — `GameConstants.TILE_SIZE` Rescale — Cost Assessment & Single-Source-of-Truth Plan — *Deferred (post-v1)*
 - [`design/ui_theme_and_asset_resolution_2026-07-03.md`](design/ui_theme_and_asset_resolution_2026-07-03.md) — UiThemeDef & Asset Resolution — Presentation Contract — *Target design (author-facing contract)*
 - [`design/ui_ux_art_asset_research_2026-07-02.md`](design/ui_ux_art_asset_research_2026-07-02.md) — UI/UX & Art-Asset Design Research — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
 - [`design/ui_ux_asset_inventory_and_reuse_2026-07-02.md`](design/ui_ux_asset_inventory_and_reuse_2026-07-02.md) — UI/UX Art-Asset Inventory & Reuse Map — For the Eventual UI/UX Pass — *Reference / research (not a spec)*
@@ -224,6 +226,7 @@
 - [`playtests/playtest_build_v0.3.0.d.md`](playtests/playtest_build_v0.3.0.d.md) — Playtester Build Manifest - v0.3.0.d
 - [`playtests/playtest_build_v0.3.0.md`](playtests/playtest_build_v0.3.0.md) — Playtester Build Manifest - v0.3.0
 - [`playtests/playtest_build_v0.3.1.md`](playtests/playtest_build_v0.3.1.md) — Playtester Build Manifest - v0.3.1
+- [`playtests/playtest_build_v0.3.2.md`](playtests/playtest_build_v0.3.2.md) — Playtester Build Manifest - v0.3.2 — *Built - awaiting focused live rerun*
 - [`playtests/playtest_build_v0.3.3.md`](playtests/playtest_build_v0.3.3.md) — Playtester Build Manifest - v0.3.3 — *Exported - pending live Windows/controll*
 - [`playtests/playtest_build_v0.3.4.md`](playtests/playtest_build_v0.3.4.md) — Playtester Build Manifest - v0.3.4 — *Exported - pending live Windows/controll*
 - [`playtests/playtest_build_v0.3.5.md`](playtests/playtest_build_v0.3.5.md) — Playtester Build Manifest - v0.3.5 — *Exported - pending live Windows validati*
@@ -251,6 +254,7 @@
 - [`playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md`](playtests/playtest_checklist_v0.3.0_returned_2026-07-08.md) — Playtester Handbook and Checklist - v0.3.0 — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.3.1.md`](playtests/playtest_checklist_v0.3.1.md) — Playtester Handbook and Checklist - v0.3.1 (Focused Rerun) — *Focused rerun handbook - pending live Wi*
 - [`playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md`](playtests/playtest_checklist_v0.3.1_returned_2026-07-12.md) — Playtester Handbook and Checklist - v0.3.1 (Focused Rerun) — *Returned results - triaged in `playtest_*
+- [`playtests/playtest_checklist_v0.3.2.md`](playtests/playtest_checklist_v0.3.2.md) — Playtester Handbook and Checklist - v0.3.2 — *Planned - focused live rerun*
 - [`playtests/playtest_checklist_v0.3.2_returned_2026-07-13.md`](playtests/playtest_checklist_v0.3.2_returned_2026-07-13.md) — Playtester Handbook and Checklist - v0.3.2 — *Planned - focused live rerun*
 - [`playtests/playtest_checklist_v0.3.3.md`](playtests/playtest_checklist_v0.3.3.md) — Playtester Handbook and Checklist - v0.3.3 (Focused Rerun) — *Focused rerun handbook - pending live Wi*
 - [`playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md`](playtests/playtest_checklist_v0.3.3_returned_2026-07-14.md) — Returned Playtester Handbook and Checklist - v0.3.3 (Focused Rerun) — *Historical*
