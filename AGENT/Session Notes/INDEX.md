@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16f](2026-07-16f.md) — Ported accepted v0.4 playtest fixes to the split results/defeat integration architecture with all 102 suites green.
 - [2026-07-16e](2026-07-16e.md) — Fetched live refs, preserved dirty work on recovery branches, and recorded the pre-integration ancestry/artifact inventory.
 - [2026-07-16d](2026-07-16d.md) — Implemented and verified `B4-ENCOUNTER-MODEL` Slice 2, isolated it for push, and handed off v0.4.1 playtest intake as the next-session priority.
 - [2026-07-16c](2026-07-16c.md) — Saved the ranked playtest-waiting queue in the control plane and handed off the deterministic AI scorer as the first implementation track.
