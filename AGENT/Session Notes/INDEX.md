@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16](2026-07-16.md) — Archived and triaged the returned v0.4.0 `d12eb33` Windows playtest: core smoke sections passed, but artifact hash/size and victory gold remain unproven; routed victory-modal cursor movement for diagnosis and a focused rerun.
+
 - [2026-07-14d](2026-07-14d.md) — **v0.4.0 Windows build cut:** metadata/build gates closed, hashed x86-64 debug artifact and full smoke checklist ready; live Windows return pending.
 
 - [2026-07-14c](2026-07-14c.md) — **v0.3.6 return accepted:** all focused behavior checks passed, missing evidence qualified, and later visual rechecks routed to `UI-INSPECTION`.
