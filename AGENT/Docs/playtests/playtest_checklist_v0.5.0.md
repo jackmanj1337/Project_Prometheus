@@ -33,10 +33,10 @@ permits it. Return this same file rather than writing a separate summary.
 ## Build and tester identity
 
 - Executable: `Project_Prometheus_v0.5.0_debug.exe`
-- Expected byte size: `BUILD_SIZE_PENDING`
-- Expected SHA-256: `BUILD_SHA256_PENDING`
-- Expected BUILD STAMP commit: `BUILD_COMMIT_PENDING`
-- Expected built-at UTC: `BUILD_TIME_PENDING`
+- Expected byte size: `102150680`
+- Expected SHA-256: `81dabb79b302e27607d54404ad963195c8d314e833bcc08b336f3653d676ca49`
+- Expected BUILD STAMP commit: `2e3f55d`
+- Expected built-at UTC: `2026-07-16T23:49:38Z`
 - Windows version/device: ____________________
 - Tester and date: ____________________
 - CPU/GPU: ____________________
