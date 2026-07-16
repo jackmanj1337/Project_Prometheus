@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project weapon/item data is
 **Implemented**; corpus weapon/item/triangle/WEXP adoption is **Target design**, tracked
 in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -296,6 +296,10 @@ the matching `WeaponData.uses` / `ItemData.uses`. Equip items (uses = −1) sell
 shared `GameState.party_gold` treasury, and the shared ledger supports fixed party/unit
 quote, atomic commit, and recorded-delta refund operations; selling and future shop UI
 have not yet been migrated as consumers.
+
+**Victory reward observation (Implemented 2026-07-16).** Once the ledger credit
+succeeds, `TurnManager` publishes a committed receipt with the gold delta, resulting
+party balance, and copied item list. Map Results and Map Menu are read-only consumers.
 
 **Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
 Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20

@@ -524,6 +524,8 @@ the modal centered while overflow content remains reachable at large factors (V0
   not GUI focus, so `follow_focus` alone never fired for content rows — on each
   selection change the sheet scrolls the owning section label into view
   (`ensure_control_visible`), and the control entries scroll via their real focus grab.
+- description prose scrolls independently with Page Up/Page Down, right-stick
+  vertical, or mouse wheel. Its hint appears only for overflow; entry changes reset it.
 - all three More-Info surfaces route navigation through this one `SelectionCursor` core
   (B6-INPUT selector adoption): the character sheet (2-D grid), the combat forecast
   (`AttackPreview`, 1-D forward cycle), and the terrain pager (`HUD`, with the -1 = Hidden
@@ -904,6 +906,11 @@ Last verified: 2026-07-15
 reward/casualty/progression summaries, campaign save status, and Continue. It waits
 until the level-up/promotion queue drains, including the synchronous promotion
 cascade after `level_up_finished`, before appearing.
+
+The screen displays the exact committed `Gold earned` and resulting `Total gold`
+receipt. It acquires the shared owner-counted gameplay-modal lock before visibility,
+and its backdrop stops pointer input. `GameOverScreen` uses the same lock for defeat.
+Map Menu refreshes a read-only `Total gold` row whenever it opens.
 
 For a terminal node Continue reads "Finish Campaign". A node with one successor
 continues without an extra prompt. A node with multiple authored successors shows

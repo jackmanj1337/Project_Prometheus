@@ -17,6 +17,14 @@ class_name SkillData extends Resource
 @export var effect_id: String = ""
 @export var effect_params: Dictionary = {}
 @export var is_player_activated: bool = false
+# False keeps authored/debug/legacy records loadable while removing the skill
+# from release-facing choices until its effect is implemented.
+@export var release_available: bool = true
+
+
+func is_available_for_release() -> bool:
+	return release_available
+
 
 # -1 = unlimited. Checked against UnitData.skill_use_counters[skill.id] each
 # use (changed from effect_id in 2026-06-10 issue 2.6 so two skills sharing

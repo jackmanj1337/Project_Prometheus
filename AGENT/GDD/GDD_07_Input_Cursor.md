@@ -2,7 +2,7 @@
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-07-14
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -144,6 +144,10 @@ Menu retains the acting unit's movement range composed with threat/watch layers;
 Map Menu retains only threat/watch. Both suppress path arrows and hover peek.
 Enemy-phase locking and map/suspend restoration still clear paint so positions
 are recomputed before display.
+
+Full-screen gameplay modals use the shared EventBus gameplay-modal lock. MapCursor
+checks it before event/pointer input and held-direction polling; ownership counting
+prevents one nested modal from releasing another.
 
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an

@@ -9,5 +9,6 @@ display_name = "Diehard"
 description = "A promoted Sentinel skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "diehard"
+release_available = false
 effect_params = {}
 is_player_activated = false

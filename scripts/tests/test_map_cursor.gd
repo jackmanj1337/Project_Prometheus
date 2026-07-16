@@ -91,6 +91,9 @@ func _init() -> void:
 	var pair_reg: Node = load("res://scripts/autoloads/PairUpRegistry.gd").new()
 	pair_reg.name = "PairUpRegistry"
 	root.add_child(pair_reg)
+	var bus: Node = load("res://scripts/autoloads/EventBus.gd").new()
+	bus.name = "EventBus"
+	root.add_child(bus)
 	await process_frame
 
 	# ---- Initial state ----
@@ -161,6 +164,32 @@ func _init() -> void:
 				]
 			)
 		)
+		failed += 1
+
+	# Full-screen gameplay modals suppress discrete and held cursor movement.
+	var modal_owner_a := Node.new()
+	var modal_owner_b := Node.new()
+	root.add_child(modal_owner_a)
+	root.add_child(modal_owner_b)
+	bus.acquire_gameplay_modal(modal_owner_a)
+	bus.acquire_gameplay_modal(modal_owner_b)
+	var locked_tile := c_pad.current_tile
+	c_pad._unhandled_input(dpad_right)
+	Input.action_press("cursor_down", 1.0)
+	c_pad._process(1.0)
+	Input.action_release("cursor_down")
+	bus.release_gameplay_modal(modal_owner_a)
+	var nested_still_locked: bool = bus.is_gameplay_modal_locked()
+	bus.release_gameplay_modal(modal_owner_b)
+	if (
+		c_pad.current_tile == locked_tile
+		and nested_still_locked
+		and not bus.is_gameplay_modal_locked()
+	):
+		print("OK  gameplay modal owners suppress cursor events and held polling")
+		passed += 1
+	else:
+		print("FAIL gameplay modal cursor suppression")
 		failed += 1
 
 	# ---- B6-INPUT / V031-GP-04: held zoom repeats at one constant slow cadence ----

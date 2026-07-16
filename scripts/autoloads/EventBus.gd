@@ -58,9 +58,46 @@ signal map_defeat
 # ranked-standings results screen consumes this directly; the existing
 # blue-perspective signals stay for back-compat.
 signal map_resolved(winner_group: String, standings: Array)
+# Full-screen gameplay overlays acquire this shared lock before becoming visible.
+# Owners are reference-counted so nested modals cannot release one another's lock.
+signal gameplay_modal_lock_changed(locked: bool)
+signal reward_committed(receipt: Dictionary)
 # Open rule-id mutation seam. revert_scope is documented and validated as
 # end_of_map|permanent; consumers receive the authored reason for presentation.
 signal campaign_rule_flipped(rule_id: String, value: Variant, reason: String, revert_scope: String)
+
+var _gameplay_modal_locks: Dictionary = {}
+
+
+func acquire_gameplay_modal(owner: Object) -> void:
+	if owner == null:
+		return
+	var id := owner.get_instance_id()
+	var was_locked := is_gameplay_modal_locked()
+	_gameplay_modal_locks[id] = int(_gameplay_modal_locks.get(id, 0)) + 1
+	if not was_locked:
+		gameplay_modal_lock_changed.emit(true)
+
+
+func release_gameplay_modal(owner: Object) -> void:
+	if owner == null:
+		return
+	var id := owner.get_instance_id()
+	if not _gameplay_modal_locks.has(id):
+		return
+	var remaining := int(_gameplay_modal_locks[id]) - 1
+	if remaining > 0:
+		_gameplay_modal_locks[id] = remaining
+	else:
+		_gameplay_modal_locks.erase(id)
+	if not is_gameplay_modal_locked():
+		gameplay_modal_lock_changed.emit(false)
+
+
+func is_gameplay_modal_locked() -> bool:
+	return not _gameplay_modal_locks.is_empty()
+
+
 # Fired when any GameState debug-aid flag flips (force-levelup, growth-boost).
 # Lets the HUD's DEBUG MODE banner re-render the list of active aids in real
 # time when a flag is toggled from the remote debugger. DEBUG AID — remove with

@@ -9,5 +9,6 @@ display_name = "Swiftfoot"
 description = "A promoted Ranger skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "swiftfoot"
+release_available = false
 effect_params = {}
 is_player_activated = false
