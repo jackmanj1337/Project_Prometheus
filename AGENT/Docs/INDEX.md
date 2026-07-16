@@ -234,6 +234,8 @@
 - [`playtests/playtest_build_v0.4.0.md`](playtests/playtest_build_v0.4.0.md) — v0.4.0 Windows Playtest Build — *Exported - pending live Windows smoke*
 - [`playtests/playtest_build_v0.4.0_campaign_followup.md`](playtests/playtest_build_v0.4.0_campaign_followup.md) — v0.4.0 Campaign/Save Follow-up Windows Build — *Exported - pending live Windows campaign*
 - [`playtests/playtest_build_v0.4.0_campaign_test.md`](playtests/playtest_build_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Build — *Exported - pending live Windows campaign*
+- [`playtests/playtest_build_v0.4.1.md`](playtests/playtest_build_v0.4.1.md) — v0.4.1 Windows Playtest Build — *Exported - pending live Windows full fea*
+- [`playtests/playtest_build_v0.4.2.md`](playtests/playtest_build_v0.4.2.md) — v0.4.2 Windows Playtest Build — *Exported - pending live Windows full fea*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -267,6 +269,10 @@
 - [`playtests/playtest_checklist_v0.4.0.md`](playtests/playtest_checklist_v0.4.0.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Pending - live Windows smoke*
 - [`playtests/playtest_checklist_v0.4.0_campaign_followup.md`](playtests/playtest_checklist_v0.4.0_campaign_followup.md) — v0.4.0 Campaign/Save Follow-up Checklist — *Pending - live Windows campaign/save fol*
 - [`playtests/playtest_checklist_v0.4.0_campaign_test.md`](playtests/playtest_checklist_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Checklist — *SUPERSEDED*
+- [`playtests/playtest_checklist_v0.4.0_fix_rerun.md`](playtests/playtest_checklist_v0.4.0_fix_rerun.md) — v0.4.0 Focused Fix Rerun — *Pending validation*
+- [`playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md`](playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Historical*
+- [`playtests/playtest_checklist_v0.4.1.md`](playtests/playtest_checklist_v0.4.1.md) — v0.4.1 Windows Playtest and Smoke Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.4.2.md`](playtests/playtest_checklist_v0.4.2.md) — v0.4.2 Windows Playtest and Smoke Checklist — *Pending validation*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -281,6 +287,7 @@
 - [`playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.3_results_triage_plan_2026-07-14.md) — v0.3.3 Playtest Results and Root-Cause Triage — *RESOLVED*
 - [`playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md) — v0.3.4 Playtest Results and Root-Cause Triage — *Repairs implemented - pending v0.3.5 liv*
 - [`playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md) — v0.3.5 Playtest Results and Root-Cause Triage — *v0.3.6 live pass accepted - visual polis*
+- [`playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md`](playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md) — v0.4.0 Playtest Results and Root-Cause Triage — *Triaged - focused release-smoke rerun re*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
 ## Reference / feasibility / Q&A
@@ -302,11 +309,13 @@
 - [`archive/consolidation/documentation_review_2026-06-13.md`](archive/consolidation/documentation_review_2026-06-13.md) — Documentation Review — 2026-06-13 — *Historical*
 - [`archive/consolidation/documentation_review_2026-06-14.md`](archive/consolidation/documentation_review_2026-06-14.md) — Documentation Review — 2026-06-14 — *Historical*
 - [`archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md`](archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md) — Campaign Save Import-Budget Measurement — 2026-07-15 — *Historical*
+- [`archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md`](archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md) — AI Scorer Questions Handoff — *SUPERSEDED*
 - [`archive/handoffs/handoff_2026-06-09d.md`](archive/handoffs/handoff_2026-06-09d.md) — Handoff — v0.1.3 → v0.1.4 — *Historical*
 - [`archive/handoffs/handoff_2026-06-13j.md`](archive/handoffs/handoff_2026-06-13j.md) — Handoff — Documentation Consolidation Stages 6 & 7 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20.md`](archive/handoffs/handoff_2026-06-20.md) — Implementation Handoff — v0.2.2 (+ v0.2.3 split) — 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_v0.2.3.md`](archive/handoffs/handoff_2026-06-20_v0.2.3.md) — Implementation Handoff - v0.2.3 Display Scaling & Resolution - 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
+- [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
 - [`archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md`](archive/plans/gdd10_legacy_phase2_roadmap_2026-06-29.md) — GDD_10 — Phase 2 Implementation Roadmap — *Historical*
