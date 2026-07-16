@@ -50,6 +50,10 @@ class RegistryValidationTests(unittest.TestCase):
         broken["work"][0]["base_branch"] = "random-old-branch"
         self.assertTrue(any("unexpected feature base" in error for error in self.errors(broken)))
 
+    def test_declared_lifecycle_branch_is_accepted(self):
+        lifecycle = next(item for item in self.data["work"] if item["branch"] == "agent/integration")
+        self.assertFalse(any(lifecycle["work_id"] in error for error in self.errors(self.data)))
+
     def test_stale_active_item_is_rejected(self):
         broken = copy.deepcopy(self.data)
         broken["work"][0]["last_update"] = "2026-06-01"

@@ -51,6 +51,7 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
     errors: list[str] = []
     settings = data.get("settings", {})
     allowed = set(settings.get("allowed_statuses", []))
+    lifecycle_branches = set(settings.get("lifecycle_branches", []))
     records = data.get("work", [])
     seen_ids: set[str] = set()
     seen_branches: set[str] = set()
@@ -72,11 +73,13 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
         seen_branches.add(branch)
         if record.get("status") not in allowed:
             errors.append(f"{work_id}: invalid status: {record.get('status')}")
-        if (branch.startswith("agent/") and len(branch.split("/")) < 3
+        if (branch.startswith("agent/") and branch not in lifecycle_branches
+                and len(branch.split("/")) < 3
                 and record.get("owner") != "legacy-agent"):
             errors.append(f"{work_id}: malformed agent branch: {branch}")
         if branch.startswith("agent/") and record.get("base_branch") not in {
-            "main", "integration", "agent/b4-encounter-model-slice2",
+            "main", "integration", "agent/stable-release", "agent/integration",
+            "agent/coordination", "agent/b4-encounter-model-slice2",
             "agent/codex/2026-07-14/v0.4.0-windows-build",
         }:
             errors.append(f"{work_id}: unexpected feature base: {record.get('base_branch')}")
