@@ -241,6 +241,7 @@
 - [`playtests/playtest_checklist_v0.3.6.md`](playtests/playtest_checklist_v0.3.6.md) — Playtester Handbook and Checklist - v0.3.6 — *Focused rerun handbook - pending live Wi*
 - [`playtests/playtest_checklist_v0.3.6_returned_2026-07-14.md`](playtests/playtest_checklist_v0.3.6_returned_2026-07-14.md) — Playtester Handbook and Checklist - v0.3.6 Returned — *Returned - owner-accepted pass with UI p*
 - [`playtests/playtest_checklist_v0.4.0.md`](playtests/playtest_checklist_v0.4.0.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Returned - smoke gate not proven*
+- [`playtests/playtest_checklist_v0.4.0_fix_rerun.md`](playtests/playtest_checklist_v0.4.0_fix_rerun.md) — v0.4.0 Focused Fix Rerun — *Pending validation*
 - [`playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md`](playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Historical*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
