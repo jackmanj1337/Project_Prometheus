@@ -642,14 +642,19 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
-- `Suspend & Quit`: available only when the cursor opened the menu from a free,
-  unsuppressed committed-action boundary controlled by a **local human faction**
-  (blue, an authored hotseat faction, or the F9 hotseat override). AI-controlled
-  boundaries remain unavailable. It confirms, writes the normal named
+- `Suspend & Quit`: captures immediately when the cursor opened the menu from a
+  free, unsuppressed committed-action boundary controlled by a **local human faction**
+  (blue, an authored hotseat faction, or the F9 hotseat override). During an
+  AI-controlled phase the menu is restricted (End Turn and Rewind are disabled)
+  and this command queues one request after explaining that the current AI action
+  will finish first. It writes only at the next atomic activation boundary. It
+  confirms, writes the normal named
   slot `resume_battle` (including the whole rewind ledger) through `SaveManager`, then returns to
   `Boot.tscn`; if the write fails, a failure dialog keeps the player on the map.
   A resumed non-blue local phase re-enters `HotseatController` after map/UI state
   restoration, retargeting and unlocking the cursor for the restored faction.
+  A resumed AI boundary re-enters the same faction without replaying phase-start
+  effects and skips units already serialized as `DONE`.
 - `Quit to Menu`: returns to `Boot.tscn` after confirmation and clears map-scoped
   runtime state through `GameState.reset_map_state()`
 - `Close`: closes the map menu and returns to the map.

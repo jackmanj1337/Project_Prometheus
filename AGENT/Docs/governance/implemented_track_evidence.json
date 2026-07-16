@@ -14,5 +14,7 @@
     "VAL-OBJECTIVE-MAPS",
     "CLEAN-STALE-GDD10"
   ],
-  "matrices": {}
+  "matrices": {
+    "B1-SUSPEND-TRANSIENT-RESEARCH": "AGENT/Docs/playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md"
+  }
 }

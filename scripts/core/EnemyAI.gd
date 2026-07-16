@@ -52,6 +52,11 @@ func run_phase(grid: GridManager, turn: TurnManager, faction_id: String) -> void
 		):
 			turn.undo_move(enemy)
 			return
+		# This is the only suspend point inside AI control: the action, death and
+		# reward queues have unwound, and TurnManager synchronously seals the
+		# activation ledger before asking the cursor to write the slot.
+		if turn.complete_ai_activation_boundary():
+			return
 
 
 # Legacy aliases kept so older callers can still invoke the pre-M15 names while

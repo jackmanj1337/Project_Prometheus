@@ -20,6 +20,7 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 @onready var _close_btn: Button = $Panel/VBox/CloseButton
 
 var _suspend_available: bool = true
+var _ai_phase_mode: bool = false
 
 
 func _ready() -> void:
@@ -53,15 +54,23 @@ func open() -> void:
 	var gs := get_node_or_null("/root/GameState")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
-	_rewind_btn.disabled = gs == null or not bool(gs.call("can_rewind"))
+	_rewind_btn.disabled = _ai_phase_mode or gs == null or not bool(gs.call("can_rewind"))
+	_end_turn_btn.disabled = _ai_phase_mode
 	show()
-	_end_turn_btn.grab_focus()
+	if _ai_phase_mode:
+		_suspend_and_quit_btn.grab_focus()
+	else:
+		_end_turn_btn.grab_focus()
 
 
 func set_suspend_available(available: bool) -> void:
 	_suspend_available = available
 	if is_node_ready():
 		_suspend_and_quit_btn.disabled = not available
+
+
+func set_ai_phase_mode(enabled: bool) -> void:
+	_ai_phase_mode = enabled
 
 
 func apply_menu_scale(factor: float) -> void:

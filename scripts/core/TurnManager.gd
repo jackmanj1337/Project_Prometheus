@@ -72,6 +72,8 @@ var _hotseat_controller: Node = null
 var _debug_hotseat_override_latch: bool = false
 var _history_cursor: Node = null
 var _history_push_pending := false
+var _ai_suspend_requested := false
+var _ai_suspend_exit_pending := false
 var _objective_conditions: RefCounted
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
@@ -153,6 +155,15 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 		# hotseat phase. Deferred entry lets GameMap finish restoring cursor/UI state
 		# before HotseatController retargets and unlocks the cursor.
 		call_deferred("_resume_suspended_local_phase", restored_faction)
+	elif (
+		restored_faction != "blue"
+		and _is_ai_controlled(restored_faction)
+		and String(turn_state.get("controller_boundary", "")) == "between_ai_activations"
+	):
+		# The faction's phase-start effects were already applied before capture.
+		# Resume the controller loop without replaying healing, modifier ticks, or
+		# start-of-turn skills; DONE units are skipped by EnemyAI.run_phase().
+		call_deferred("_resume_suspended_ai_phase", restored_faction)
 	# V030-SUS-01 (d): turn_number is assigned directly above and is otherwise
 	# only announced by _complete_round, so the HUD (which updates on
 	# turn_changed) would show a stale count until the next round boundary. Emit
@@ -168,6 +179,12 @@ func _resume_suspended_local_phase(faction_id: String) -> void:
 		await _hotseat_controller.run_phase(_grid, self, faction_id)
 
 
+func _resume_suspended_ai_phase(faction_id: String) -> void:
+	if active_faction() != faction_id or not _is_ai_controlled(faction_id):
+		return
+	await _run_enemy_phases(true)
+
+
 func capture_suspend_turn_state() -> Dictionary:
 	var gs := get_node_or_null("/root/GameState")
 	return {
@@ -181,6 +198,7 @@ func capture_suspend_turn_state() -> Dictionary:
 		"seize_records": _serialize_records(_seize_records),
 		"escape_records": _escape_records.duplicate(true),
 		"group_eliminated_round": _group_eliminated_round.duplicate(true),
+		"controller_boundary": "between_ai_activations" if _ai_suspend_exit_pending else "",
 	}
 
 
@@ -477,9 +495,15 @@ func start_enemy_phase() -> void:
 	if active_faction() == "blue":
 		if _advance_faction():
 			_complete_round()
+	await _run_enemy_phases(false)
+
+
+func _run_enemy_phases(resume_active_phase: bool) -> void:
 	# Stage 4/5: run each consecutive non-blue faction controller, then hand back to blue.
 	var guard: int = _turn_order.size() + 1
 	var phase_started: Dictionary = {}
+	if resume_active_phase and active_faction() != "":
+		phase_started[active_faction()] = true
 	while active_faction() != "blue" and active_faction() != "":
 		guard -= 1
 		if guard < 0:
@@ -509,6 +533,8 @@ func start_enemy_phase() -> void:
 		var controller := _controller_for(faction_id)
 		if controller != null:
 			await controller.run_phase(_grid, self, faction_id)
+		if _ai_suspend_exit_pending:
+			return
 		if _map_over:
 			return
 		# F9 may flip while a controller is awaited. If it interrupts AI, rerun
@@ -670,8 +696,45 @@ func _queue_activation_history_push() -> void:
 
 
 func _flush_activation_history() -> void:
+	if not _history_push_pending:
+		return
 	_history_push_pending = false
 	_push_history(MapLedgerScript.REASON_ACTIVATION)
+
+
+# Latches one player request while an AI unit is acting. EnemyAI acknowledges
+# it only after the unit has fully unwound to a committed activation boundary.
+func request_suspend_after_ai_activation() -> bool:
+	if _map_over or not _is_ai_controlled(active_faction()):
+		return false
+	_ai_suspend_requested = true
+	return true
+
+
+func has_pending_ai_suspend() -> bool:
+	return _ai_suspend_requested
+
+
+# Called exactly between EnemyAI unit activations. Force the deferred history
+# push now so the suspend payload and ledger describe the same committed board.
+# The cursor owns the transactional slot write; a failed write clears the intent
+# and lets the AI phase continue rather than abandoning a playable map.
+func complete_ai_activation_boundary() -> bool:
+	if _history_push_pending:
+		_flush_activation_history()
+	if _map_over:
+		_ai_suspend_requested = false
+		return false
+	if not _ai_suspend_requested:
+		return false
+	_ai_suspend_requested = false
+	_ai_suspend_exit_pending = true
+	var saved := false
+	if _history_cursor != null and _history_cursor.has_method("perform_pending_ai_suspend"):
+		saved = bool(_history_cursor.call("perform_pending_ai_suspend"))
+	if not saved:
+		_ai_suspend_exit_pending = false
+	return saved
 
 
 func _push_history(reason: String) -> void:

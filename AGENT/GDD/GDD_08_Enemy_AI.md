@@ -200,6 +200,10 @@ online play stay consistent.
 - **EXP parity (OPEN-4).** Enemy/AI EXP follows `CampaignRules.exp_gaining_factions`;
   the shipped preset is Blue + Green, Red none — owned by GDD_02 §EXP / GDD_01
   §CampaignRules Contract.
+- **Suspend boundary.** A request during AI control never snapshots an awaited
+  move/combat coroutine. `EnemyAI.run_phase()` offers one boundary only after an
+  actor's action has unwound; `TurnManager` seals the activation ledger before
+  capture. Resume continues the already-started faction and skips `DONE` actors.
 
 ### Anchors
 - Code: `scripts/core/EnemyAI.gd`, `scripts/autoloads/RngService.gd`

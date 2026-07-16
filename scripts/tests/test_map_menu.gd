@@ -37,6 +37,21 @@ func _init() -> void:
 	menu.quit_to_menu_requested.connect(func() -> void: events["quit_to_menu"] += 1)
 	menu.menu_closed.connect(func() -> void: events["closed"] += 1)
 
+	menu.set_ai_phase_mode(true)
+	menu.set_suspend_available(true)
+	menu.open()
+	var end_button: Button = menu.get_node("Panel/VBox/EndTurnButton")
+	var rewind_button: Button = menu.get_node("Panel/VBox/RewindButton")
+	var suspend_button: Button = menu.get_node("Panel/VBox/SuspendAndQuitButton")
+	if end_button.disabled and rewind_button.disabled and suspend_button.has_focus():
+		print("OK  AI-phase menu disables phase mutation and focuses Suspend")
+		passed += 1
+	else:
+		print("FAIL AI-phase restricted menu")
+		failed += 1
+	menu.hide()
+	menu.set_ai_phase_mode(false)
+
 	menu.set_suspend_available(false)
 	menu.open()
 	menu._on_suspend_and_quit()

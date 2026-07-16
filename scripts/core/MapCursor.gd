@@ -298,6 +298,17 @@ func set_controlling_faction(faction_id: String) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# During AI control the cursor remains locked, but the map-menu key exposes a
+	# restricted menu so the player can queue suspend at the next unit boundary.
+	if (
+		_state == State.LOCKED
+		and not _input_suppressed
+		and _turn != null
+		and not _turn.is_locally_controlled_faction(_turn.active_faction())
+		and _is_fresh_action_press(event, "open_menu")
+	):
+		_open_map_menu()
+		return
 	if _input_suppressed or _state == State.LOCKED:
 		return
 	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
@@ -1666,7 +1677,12 @@ func _cycle_to_next_unit(step: int) -> void:
 func _open_map_menu() -> void:
 	if map_menu == null:
 		return
-	_map_menu_suspend_available = can_capture_suspend()
+	var ai_phase := (
+		_turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction())
+	)
+	_map_menu_suspend_available = can_capture_suspend() or ai_phase
+	if map_menu.has_method("set_ai_phase_mode"):
+		map_menu.call("set_ai_phase_mode", ai_phase)
 	if map_menu.has_method("set_suspend_available"):
 		map_menu.call("set_suspend_available", _map_menu_suspend_available)
 	lock(false)
@@ -1816,6 +1832,9 @@ func _on_map_menu_closed() -> void:
 
 
 func _on_suspend_and_quit_requested() -> void:
+	if _turn != null and not _turn.is_locally_controlled_faction(_turn.active_faction()):
+		_request_ai_suspend_and_quit()
+		return
 	if not _can_write_suspend_from_menu():
 		push_error("MapCursor: suspend requested outside a free local-control boundary")
 		_map_menu_suspend_available = false
@@ -1843,6 +1862,45 @@ func _on_suspend_and_quit_requested() -> void:
 	get_tree().root.add_child(dlg)
 	dlg.popup_centered()
 	dlg.get_cancel_button().grab_focus()
+
+
+func _request_ai_suspend_and_quit() -> void:
+	var dlg := ConfirmationDialog.new()
+	dlg.dialog_text = (
+		"Suspend after the current AI unit finishes?\n"
+		+ "The current action will finish before the game saves."
+	)
+	dlg.confirmed.connect(
+		func():
+			dlg.queue_free()
+			_map_menu_suspend_available = false
+			if not _turn.request_suspend_after_ai_activation():
+				_show_suspend_failed_dialog()
+	)
+	dlg.canceled.connect(func(): dlg.queue_free())
+	get_tree().root.add_child(dlg)
+	dlg.popup_centered()
+	dlg.get_cancel_button().grab_focus()
+
+
+# TurnManager calls this only after sealing a completed AI activation. This
+# bypasses the ordinary local-control gate but reuses the same transactional
+# capture/write path and never exposes a general "save during AI" primitive.
+func perform_pending_ai_suspend() -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var save_manager := get_node_or_null("/root/SaveManager")
+	if gs == null or save_manager == null:
+		_show_suspend_failed_dialog()
+		return false
+	var save: Variant = gs.call("capture_save", "Resume battle", _turn, self)
+	if (
+		save == null
+		or not bool(save_manager.call("save_slot", "resume_battle", save, "manual", ""))
+	):
+		_show_suspend_failed_dialog()
+		return false
+	_return_to_main_menu()
+	return true
 
 
 func _on_quit_to_menu_requested() -> void:

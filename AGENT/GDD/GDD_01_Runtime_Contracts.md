@@ -229,6 +229,14 @@ plan (code, integration sweep, tests, build order) is
   persists `ledger[]`, so pre-suspend Rewind boundaries survive process restart;
   its campaign envelope also restores the active graph position. Every slot carries
   `origin` and automatic slots additionally carry `rule_id`.
+  During an AI-controlled faction, the Map Menu remains available in a restricted
+  mode: End Turn and Rewind are disabled, and Suspend latches one pending intent.
+  The acting AI unit finishes first; `TurnManager` synchronously seals its ledger
+  entry, then writes the slot before another unit activates. The turn snapshot
+  records `controller_boundary = "between_ai_activations"`. Continue re-enters the
+  already-started AI faction, skips serialized `DONE` units, and does not replay
+  phase-start healing, modifier ticks, or skills. A failed slot write clears the
+  intent and leaves the AI phase running; a committed map outcome cancels it.
 - **Portable save transfer.** Every slot write and filesystem export stamps a
   canonical SHA-256 over the full payload (with blank stamp fields) and a second
   SHA-256 over format version, package/campaign identity, progression, campaign

@@ -688,6 +688,111 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- AI suspend seals one history entry and captures once at the boundary ----
+	gs.reset_map_state()
+	var suspend_red := _mk_unit("red", 20, "suspend_red")
+	gs.register_unit(suspend_red)
+	var tm_suspend_ai := TurnManager.new()
+	root.add_child(tm_suspend_ai)
+	var md_suspend_ai := MapData.new()
+	var suspend_ai_faction := FactionData.new()
+	suspend_ai_faction.id = "red"
+	suspend_ai_faction.controller = "AI"
+	md_suspend_ai.factions = [suspend_ai_faction]
+	tm_suspend_ai._map_data = md_suspend_ai
+	tm_suspend_ai._turn_order = ["blue", "red"] as Array[String]
+	tm_suspend_ai._active_faction_idx = 1
+	var suspend_cursor_script := GDScript.new()
+	suspend_cursor_script.source_code = (
+		"extends Node\nvar saves := 0\n"
+		+ "func capture_suspend_ui_state() -> Dictionary: return {}\n"
+		+ "func perform_pending_ai_suspend() -> bool:\n"
+		+ "\tsaves += 1\n\treturn true\n"
+	)
+	suspend_cursor_script.reload()
+	var suspend_cursor: Node = suspend_cursor_script.new()
+	root.add_child(suspend_cursor)
+	tm_suspend_ai.set_history_cursor(suspend_cursor)
+	var history_before: int = int(gs.history_size())
+	tm_suspend_ai.set_unit_state(suspend_red, TurnManager.UnitState.DONE)
+	var request_accepted := tm_suspend_ai.request_suspend_after_ai_activation()
+	var stopped_at_boundary := tm_suspend_ai.complete_ai_activation_boundary()
+	var captured_state := tm_suspend_ai.capture_suspend_turn_state()
+	await process_frame  # queued history callback must now be a no-op
+	var history_after: int = int(gs.history_size())
+	if (
+		request_accepted
+		and stopped_at_boundary
+		and suspend_cursor.get("saves") == 1
+		and history_after == history_before + 1
+		and String(captured_state.get("controller_boundary", "")) == "between_ai_activations"
+	):
+		print("OK  AI suspend seals one ledger entry and captures once at the boundary")
+		passed += 1
+	else:
+		print("FAIL AI suspend boundary: state=%s" % [captured_state])
+		failed += 1
+
+	# ---- failed write clears the request and leaves the AI phase runnable ----
+	var failed_cursor_script := GDScript.new()
+	failed_cursor_script.source_code = ("extends Node\nfunc perform_pending_ai_suspend() -> bool: return false\n")
+	failed_cursor_script.reload()
+	var failed_cursor: Node = failed_cursor_script.new()
+	root.add_child(failed_cursor)
+	tm_suspend_ai._ai_suspend_exit_pending = false
+	tm_suspend_ai.set_history_cursor(failed_cursor)
+	var retry_requested := tm_suspend_ai.request_suspend_after_ai_activation()
+	var incorrectly_stopped := tm_suspend_ai.complete_ai_activation_boundary()
+	if (
+		retry_requested
+		and not incorrectly_stopped
+		and not tm_suspend_ai.has_pending_ai_suspend()
+		and String(tm_suspend_ai.capture_suspend_turn_state()["controller_boundary"]) == ""
+	):
+		print("OK  failed AI suspend write clears the intent and leaves play runnable")
+		passed += 1
+	else:
+		print("FAIL failed-write AI suspend recovery")
+		failed += 1
+
+	# ---- a committed outcome cancels a request instead of writing a stale battle ----
+	tm_suspend_ai._map_over = false
+	var outcome_request := tm_suspend_ai.request_suspend_after_ai_activation()
+	tm_suspend_ai._map_over = true
+	var outcome_capture := tm_suspend_ai.complete_ai_activation_boundary()
+	if outcome_request and not outcome_capture and not tm_suspend_ai.has_pending_ai_suspend():
+		print("OK  map outcome cancels a pending AI suspend")
+		passed += 1
+	else:
+		print("FAIL map outcome left an AI suspend pending")
+		failed += 1
+
+	# ---- resumed AI faction does not replay its phase-start refresh ----
+	gs.reset_map_state()
+	var resume_blue := _mk_unit("blue", 20, "resume_blue")
+	var resume_red := _mk_unit("red", 20, "resume_red")
+	gs.register_unit(resume_blue)
+	gs.register_unit(resume_red)
+	var tm_resume_ai := TurnManager.new()
+	root.add_child(tm_resume_ai)
+	tm_resume_ai._map_data = md_suspend_ai
+	tm_resume_ai._turn_order = ["blue", "red"] as Array[String]
+	tm_resume_ai._active_faction_idx = 1
+	tm_resume_ai._unit_states[resume_red] = TurnManager.UnitState.DONE
+	var resume_ai_stub: Node = ai_stub_script.new()
+	tm_resume_ai.set_ai_controller(resume_ai_stub)
+	await tm_resume_ai._run_enemy_phases(true)
+	if (
+		resume_ai_stub.get("calls") == ["red"]
+		and tm_resume_ai.active_faction() == "blue"
+		and tm_resume_ai.get_unit_state(resume_red) == TurnManager.UnitState.DONE
+	):
+		print("OK  AI resume skips repeated phase-start effects and returns to blue")
+		passed += 1
+	else:
+		print("FAIL AI resume path")
+		failed += 1
+
 	# ---- HotseatController.run_phase: points the cursor at the acting faction and waits ----
 	var hotseat_controller: Node = load("res://scripts/core/HotseatController.gd").new()
 	root.add_child(hotseat_controller)
