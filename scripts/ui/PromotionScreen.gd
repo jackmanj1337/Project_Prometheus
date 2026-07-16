@@ -89,7 +89,9 @@ func _button_text(target_class: ClassData) -> String:
 	var skill_names: Array[String] = []
 	for unlock_level in [5, 15]:
 		if target_class.skill_unlocks.has(unlock_level):
-			skill_names.append(_skill_name(String(target_class.skill_unlocks[unlock_level])))
+			var skill_name := _skill_name(String(target_class.skill_unlocks[unlock_level]))
+			if skill_name != "":
+				skill_names.append(skill_name)
 	var skills_text: String = "Skills: %s" % " / ".join(skill_names) if not skill_names.is_empty() else "Skills: none"
 	return "%s\n%s\n%s" % [
 		target_class.display_name,
@@ -155,6 +157,9 @@ func _class_data(class_id: String) -> ClassData:
 func _skill_name(skill_id: String) -> String:
 	var dm := get_node_or_null("/root/DataManager")
 	if dm != null:
+		if dm.has_method("is_skill_release_available") \
+				and not bool(dm.call("is_skill_release_available", skill_id)):
+			return ""
 		var skill: SkillData = dm.get_skill(skill_id)
 		if skill != null:
 			return skill.display_name

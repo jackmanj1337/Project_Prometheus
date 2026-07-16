@@ -420,6 +420,8 @@ the modal centered while overflow content remains reachable at large factors (V0
   not GUI focus, so `follow_focus` alone never fired for content rows — on each
   selection change the sheet scrolls the owning section label into view
   (`ensure_control_visible`), and the control entries scroll via their real focus grab.
+- Description prose scrolls independently with Page Up/Page Down, right-stick vertical,
+  or mouse wheel. The hint appears only for overflow; entry changes reset the offset.
 - all three More-Info surfaces route navigation through this one `SelectionCursor` core
   (B6-INPUT selector adoption): the character sheet (2-D grid), the combat forecast
   (`AttackPreview`, 1-D forward cycle), and the terrain pager (`HUD`, with the -1 = Hidden
@@ -518,6 +520,7 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 **Layout (centered overlay on top of map; map still visible behind):**
 ```
 ┌──────────────────┐
+│  Total gold: N   │
 │   End Turn       │
 │   Settings       │
 │   Suspend & Quit │
@@ -527,6 +530,7 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 ```
 
 **Behavior:**
+- `Total gold` refreshes from the centralized party wallet whenever the menu opens.
 - `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
   a confirmation prompt is shown first; if every unit is already done it ends
   immediately. (Note: the phase also ends automatically once the last unit acts.)
@@ -767,6 +771,10 @@ review 2026-06-14 #1) for resolution-robustness.
   (player unit stats and inventory are preserved from map start — not mid-map)
 - Unit data is **never deleted** (permadeath only sets `is_incapacitated`)
 - The current screen also renders ranked standings when `map_resolved` supplies them
+- Victory renders its committed receipt as `Gold earned` and `Total gold`; zero is
+  explicit, while a failed ledger transaction produces no reward claim.
+- Before visibility/focus the overlay acquires the owner-counted gameplay-modal lock,
+  blocking MapCursor events and held polling; its backdrop stops pointer events.
 - **Presents under pending progression** (`B5-VICTORY-PROGRESSION-SEQ`): a result that
   lands while a level-up or promotion is still on screen is held, and the overlay appears
   only once the level-up/promotion queue has drained — so progression earned on the

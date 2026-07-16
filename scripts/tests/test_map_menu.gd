@@ -17,6 +17,11 @@ func _init() -> void:
 	var menu: Control = packed.instantiate()
 	root.add_child(menu)
 	await process_frame
+	if menu.format_party_gold(0) == "Total gold: 0" \
+			and menu.format_party_gold(987654321) == "Total gold: 987654321":
+		print("OK  Map Menu formats zero and large read-only balances"); passed += 1
+	else:
+		print("FAIL Map Menu gold formatting"); failed += 1
 
 	var events := {
 		"end_turn": 0,

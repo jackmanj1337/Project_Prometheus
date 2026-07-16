@@ -42,7 +42,8 @@ func _init() -> void:
 	bus.map_resolved.emit("blue", [])
 	await process_frame
 	if screen.visible and screen.get_node("Panel/VBox/Title").text == "Victory!" \
-			and not save_manager.has_suspend():
+			and not save_manager.has_suspend() and bus.is_gameplay_modal_locked() \
+			and screen.get_node("Backdrop").mouse_filter == Control.MOUSE_FILTER_STOP:
 		print("OK  victory presents immediately and deletes the suspend save"); passed += 1
 	else:
 		print("FAIL immediate victory: visible=%s title=%s has_suspend=%s" % [
@@ -51,6 +52,8 @@ func _init() -> void:
 
 	# Reset the overlay for the sequencing case (mirror a fresh map).
 	screen.hide()
+	bus.release_gameplay_modal(screen)
+	screen._modal_lock_held = false
 	screen._result_pending = false
 
 	# --- Case 2: kill boss -> level up -> promote -> THEN victory -----------------
@@ -60,6 +63,7 @@ func _init() -> void:
 	bus.level_up_started.emit()
 	await process_frame
 	bus.map_victory.emit()
+	bus.reward_committed.emit({"gold_earned": 75, "total_gold": 100, "items_awarded": []})
 	bus.map_resolved.emit("blue", [])
 	await process_frame
 	var hidden_during_levelup := not screen.visible
@@ -77,12 +81,16 @@ func _init() -> void:
 	bus.promotion_finished.emit()
 	await process_frame
 	var visible_after_queue := screen.visible
+	var receipt_retained: bool = screen.get_node("Panel/VBox/Rewards").text \
+		== "Gold earned: 75\nTotal gold: 100"
 
-	if hidden_during_levelup and hidden_during_promotion and visible_after_queue:
+	if hidden_during_levelup and hidden_during_promotion and visible_after_queue \
+			and receipt_retained:
 		print("OK  victory waits out the level-up AND the queued promotion, then presents"); passed += 1
 	else:
-		print("FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s" % [
-			hidden_during_levelup, hidden_during_promotion, visible_after_queue]); failed += 1
+		print("FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s receipt=%s" % [
+			hidden_during_levelup, hidden_during_promotion, visible_after_queue,
+			receipt_retained]); failed += 1
 
 	screen.queue_free()
 	save_manager.queue_free()

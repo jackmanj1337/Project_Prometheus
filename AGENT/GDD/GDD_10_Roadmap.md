@@ -93,9 +93,10 @@ with polish retained under `UI-INSPECTION`. The next-session execution packet is
 
 v0.4.0 is bounded to the seven Band 2 shared-contract slices. The release
 checklist is [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
-All seven rows are implemented; the next session is a full-delta code review
-against that checklist. Metadata/export work starts only after review findings
-are resolved. Band 3 consumers are outside this release boundary.
+All seven rows are implemented. The results-lock, reward/balance, independent More
+Info scrolling, and release skill-availability repairs are **Implemented** headlessly
+as of 2026-07-16. The gate remains **Pending validation** until the focused Windows
+rerun returns complete evidence. Band 3 consumers are outside this release boundary.
 
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —
 > the live vehicle for the items below. Handbook:

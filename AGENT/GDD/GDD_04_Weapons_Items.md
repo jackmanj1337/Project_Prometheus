@@ -295,6 +295,10 @@ shared `GameState.party_gold` treasury, and the shared ledger supports fixed par
 quote, atomic commit, and recorded-delta refund operations; selling and future shop UI
 have not yet been migrated as consumers.
 
+**Victory reward observation (Implemented 2026-07-16).** Once the ledger credit
+succeeds, `TurnManager` publishes a committed receipt with the gold delta, resulting
+party balance, and copied item list. Results and Map Menu are read-only consumers.
+
 **Forging (Planned, Phase 2).** Forge a weapon once, at purchase (staves cannot forge).
 Adjustable Mt (±5/step 1), Hit (±25/step 5), Crit (±15/step 3), Wt (±5/step 1); up to 20
 total modifications; per-stat increment cost 150/300/450/600/750g (max 9,000g fully

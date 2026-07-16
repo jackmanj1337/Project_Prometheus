@@ -9,5 +9,6 @@ display_name = "Rally Skill"
 description = "A promoted Bow Knight skill. Effect logic is scheduled for M9."
 trigger = "on_combat_start"
 effect_id = "rally_skill"
+release_available = false
 effect_params = {}
 is_player_activated = false

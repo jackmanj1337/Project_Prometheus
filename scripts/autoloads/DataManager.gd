@@ -724,6 +724,20 @@ func get_skill(id: String) -> SkillData:
 	return _skills[id]
 
 
+func is_skill_release_available(id: String) -> bool:
+	var skill := get_skill(id)
+	return skill != null and skill.is_available_for_release()
+
+
+func release_available_skills() -> Array[SkillData]:
+	var out: Array[SkillData] = []
+	for skill_any in _skills.values():
+		var skill: SkillData = skill_any
+		if skill.is_available_for_release():
+			out.append(skill)
+	return out
+
+
 # Returns "advantage", "disadvantage", or "neutral"
 func get_weapon_triangle_result(attacker_type: String, defender_type: String) -> String:
 	if GameConstants.WEAPON_TRIANGLE.has(attacker_type):

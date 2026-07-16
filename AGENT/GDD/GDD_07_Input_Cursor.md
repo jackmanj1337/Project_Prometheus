@@ -145,6 +145,10 @@ Map Menu retains only threat/watch. Both suppress path arrows and hover peek.
 Enemy-phase locking and map/suspend restoration still clear paint so positions
 are recomputed before display.
 
+Full-screen gameplay modals use the shared EventBus gameplay-modal lock. MapCursor
+checks it before event/pointer input and held-direction polling; ownership counting
+prevents one nested modal from releasing another.
+
 **Hover-to-peek** (`peek_range`, hold **E**, free cursor state) previews the
 unit under the cursor's reach — blue move range + red attack reach — as an
 exclusive opaque top layer over any threat overlay. The reach is computed once

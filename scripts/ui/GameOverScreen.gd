@@ -9,6 +9,7 @@ extends Control
 
 @onready var _title: Label = $Panel/VBox/Title
 @onready var _standings_label: Label = $Panel/VBox/Standings
+@onready var _rewards_label: Label = $Panel/VBox/Rewards
 @onready var _retry_btn: Button = $Panel/VBox/RetryButton
 @onready var _quit_btn: Button = $Panel/VBox/QuitButton
 
@@ -25,6 +26,8 @@ var _result_pending: bool = false
 var _level_up_active: bool = false
 var _promotion_active: bool = false
 var _suspend_deleted_for_result: bool = false
+var _reward_receipt: Dictionary = {}
+var _modal_lock_held: bool = false
 
 
 func _ready() -> void:
@@ -37,6 +40,7 @@ func _ready() -> void:
 		bus.map_victory.connect(_on_victory)
 		bus.map_defeat.connect(_on_defeat)
 		bus.map_resolved.connect(_on_map_resolved)
+		bus.reward_committed.connect(_on_reward_committed)
 		# Track the progression queue so presentation waits it out.
 		bus.level_up_started.connect(func(): _level_up_active = true)
 		bus.level_up_finished.connect(_on_level_up_finished)
@@ -72,6 +76,10 @@ func _on_map_resolved(winner_group: String, standings: Array) -> void:
 		_title.text = "Draw"
 	_standings_label.text = _format_standings(winner_group, standings)
 	_request_present()
+
+
+func _on_reward_committed(receipt: Dictionary) -> void:
+	_reward_receipt = receipt.duplicate(true)
 
 
 # --- Present-after-progression gate (V026-05d) --------------------------------
@@ -135,8 +143,42 @@ func _format_standings(winner_group: String, standings: Array) -> String:
 
 
 func _show_overlay() -> void:
+	_acquire_modal_lock()
+	_render_rewards()
 	show()
 	_retry_btn.grab_focus()
+
+
+func _render_rewards() -> void:
+	if _title.text != "Victory!" or _reward_receipt.is_empty():
+		_rewards_label.text = ""
+		return
+	_rewards_label.text = "Gold earned: %d\nTotal gold: %d" % [
+		int(_reward_receipt.get("gold_earned", 0)),
+		int(_reward_receipt.get("total_gold", 0)),
+	]
+
+
+func _acquire_modal_lock() -> void:
+	if _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("acquire_gameplay_modal"):
+		bus.call("acquire_gameplay_modal", self)
+		_modal_lock_held = true
+
+
+func _release_modal_lock() -> void:
+	if not _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("release_gameplay_modal"):
+		bus.call("release_gameplay_modal", self)
+	_modal_lock_held = false
+
+
+func _exit_tree() -> void:
+	_release_modal_lock()
 
 
 func _delete_suspend_after_resolution() -> void:
@@ -156,6 +198,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_retry() -> void:
+	_release_modal_lock()
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.has_method("restore_map_snapshot"):
 		gs.restore_map_snapshot()
@@ -163,6 +206,7 @@ func _on_retry() -> void:
 
 
 func _on_quit() -> void:
+	_release_modal_lock()
 	# Return to Boot/MainMenu — Boot re-routes to MainMenu in non-dev builds
 	var gs := get_node_or_null("/root/GameState")
 	if gs and gs.has_method("reset_map_state"):

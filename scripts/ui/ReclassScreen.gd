@@ -87,7 +87,9 @@ func _button_text(target_class: ClassData, option: Dictionary) -> String:
 	var unlock_levels: Array = target_class.skill_unlocks.keys()
 	unlock_levels.sort()
 	for unlock_level in unlock_levels:
-		skill_lines.append("Lv %s %s" % [str(unlock_level), _skill_name(String(target_class.skill_unlocks[unlock_level]))])
+		var skill_name := _skill_name(String(target_class.skill_unlocks[unlock_level]))
+		if skill_name != "":
+			skill_lines.append("Lv %s %s" % [str(unlock_level), skill_name])
 	var skills_text: String = ", ".join(skill_lines) if not skill_lines.is_empty() else "none"
 	var summary: String = "Reset to Lv 1" if bool(option.get("is_self_reset", false)) else "No promotion bonuses gained"
 	return "%s\n%s | Tier %d | Weapons: %s\n%s\nSkills: %s\n%s" % [
@@ -139,6 +141,9 @@ func _class_data(class_id: String) -> ClassData:
 func _skill_name(skill_id: String) -> String:
 	var dm := get_node_or_null("/root/DataManager")
 	if dm != null:
+		if dm.has_method("is_skill_release_available") \
+				and not bool(dm.call("is_skill_release_available", skill_id)):
+			return ""
 		var skill: SkillData = dm.get_skill(skill_id)
 		if skill != null:
 			return skill.display_name

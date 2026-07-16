@@ -16,6 +16,7 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 @onready var _suspend_and_quit_btn: Button = $Panel/VBox/SuspendAndQuitButton
 @onready var _quit_to_menu_btn: Button = $Panel/VBox/QuitToMenuButton
 @onready var _close_btn: Button = $Panel/VBox/CloseButton
+@onready var _gold_label: Label = $Panel/VBox/GoldLabel
 
 var _suspend_available: bool = true
 
@@ -47,9 +48,19 @@ func _on_backdrop_input(event: InputEvent) -> void:
 
 func open() -> void:
 	_apply_menu_scale_from_settings()
+	_refresh_resource_summary()
 	_suspend_and_quit_btn.disabled = not _suspend_available
 	show()
 	_end_turn_btn.grab_focus()
+
+
+func _refresh_resource_summary() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	_gold_label.text = format_party_gold(int(gs.party_gold) if gs != null else 0)
+
+
+static func format_party_gold(value: int) -> String:
+	return "Total gold: %d" % value
 
 
 func set_suspend_available(available: bool) -> void:

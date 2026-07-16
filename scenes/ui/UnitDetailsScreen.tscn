@@ -134,3 +134,10 @@ bbcode_enabled = true
 fit_content = false
 scroll_active = true
 text = ""
+
+[node name="ScrollHint" type="Label" parent="Panel/HBox/InfoVBox"]
+layout_mode = 2
+text = "Scroll: Page Up/Down, right stick, or mouse wheel"
+autowrap_mode = 2
+modulate = Color(0.7, 0.7, 0.75, 1)
+visible = false

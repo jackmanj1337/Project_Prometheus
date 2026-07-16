@@ -44,6 +44,7 @@ const _SEL_MARK := "▶ "
 @onready var _btn_back: Button         = $Panel/HBox/MainScroll/VBox/BtnBack
 @onready var _info_title: Label        = $Panel/HBox/InfoVBox/InfoTitle
 @onready var _info_hint: Label         = $Panel/HBox/InfoVBox/InfoHint
+@onready var _scroll_hint: Label       = $Panel/HBox/InfoVBox/ScrollHint
 @onready var _info_desc: RichTextLabel = $Panel/HBox/InfoVBox/InfoDescription
 @onready var _info_mods: RichTextLabel = $Panel/HBox/InfoVBox/InfoModifiers
 
@@ -74,6 +75,12 @@ var _selector: RefCounted = SelectionCursor.new()
 # Polled in _process — replaces the old per-event cursor_* checks that stepped
 # once per analog fluctuation and stalled when the stick value stabilised.
 var _repeat := MenuRepeatPolicy.new()
+var _description_stick_direction: int = 0
+var _description_stick_timer: float = 0.0
+const _DESCRIPTION_SCROLL_STEP := 72.0
+const _DESCRIPTION_STICK_DEADZONE := 0.5
+const _DESCRIPTION_REPEAT_DELAY := 0.45
+const _DESCRIPTION_REPEAT_RATE := 0.08
 
 # The selectable section labels, in F-cycle / directional-nav order. Their
 # unhighlighted text is cached in _base_texts so the row highlight can be
@@ -385,6 +392,8 @@ func _reset_info_panel() -> void:
 	_info_hint.text = InputDisplay.more_info_hint(self, "entry")
 	_info_desc.text = ""
 	_info_mods.text = ""
+	_info_desc.get_v_scroll_bar().value = 0.0
+	_scroll_hint.hide()
 
 
 # ModalScreen hook: re-render the More Info hint's key/glyph on an input-scheme
@@ -442,6 +451,26 @@ func _show_entry(category: String, key: String, title: String) -> void:
 		_info_mods.text = _format_mods_block(_unit, key)
 	else:
 		_info_mods.text = ""
+	_info_desc.get_v_scroll_bar().value = 0.0
+	call_deferred("_refresh_description_scroll_affordance")
+
+
+func _refresh_description_scroll_affordance() -> void:
+	var bar := _info_desc.get_v_scroll_bar()
+	_scroll_hint.visible = bar.max_value > bar.page + 0.5
+	bar.value = clampf(bar.value, 0.0, maxf(0.0, bar.max_value - bar.page))
+
+
+func _scroll_description(direction: int) -> bool:
+	var bar := _info_desc.get_v_scroll_bar()
+	if bar.max_value <= bar.page + 0.5:
+		_scroll_hint.hide()
+		return false
+	var before := bar.value
+	bar.value = clampf(before + direction * _DESCRIPTION_SCROLL_STEP,
+		0.0, maxf(0.0, bar.max_value - bar.page))
+	_scroll_hint.show()
+	return not is_equal_approx(before, bar.value)
 
 
 # Renders the full breakdown block for one stat: the personal/class
@@ -633,6 +662,26 @@ func _growth_info_lines(unit: Node, stat_name: String) -> Array[String]:
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
+	if event is InputEventKey and event.pressed and not event.echo \
+			and (event.physical_keycode == KEY_PAGEUP or event.keycode == KEY_PAGEUP):
+		if _scroll_description(-1):
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo \
+			and (event.physical_keycode == KEY_PAGEDOWN or event.keycode == KEY_PAGEDOWN):
+		if _scroll_description(1):
+			get_viewport().set_input_as_handled()
+		return
+	if event is InputEventJoypadMotion and event.axis == JOY_AXIS_RIGHT_Y:
+		var direction := 0
+		if absf(event.axis_value) >= _DESCRIPTION_STICK_DEADZONE:
+			direction = 1 if event.axis_value > 0.0 else -1
+		if direction != _description_stick_direction:
+			_description_stick_direction = direction
+			_description_stick_timer = _DESCRIPTION_REPEAT_DELAY
+			if direction != 0 and _scroll_description(direction):
+				get_viewport().set_input_as_handled()
+		return
 	# Dedicated pair-jump shortcut: next_unit / prev_unit jump straight to the
 	# paired partner without walking the entry list. Since V031-GP-05 the View
 	# Support/Lead button is ALSO a selectable "pair" entry reachable by normal
@@ -669,6 +718,11 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	if _description_stick_direction != 0:
+		_description_stick_timer -= delta
+		if _description_stick_timer <= 0.0:
+			_scroll_description(_description_stick_direction)
+			_description_stick_timer += _DESCRIPTION_REPEAT_RATE
 	var step := _repeat.poll(delta)
 	if step.y < 0:
 		_move_vertical(-1)
