@@ -18,8 +18,8 @@
       "base_branch": "main",
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
       "dependencies": [],
-      "blockers": ["workflow-scope PAT required to push integrated workflow history", "human creation of protected integration and coordination refs"],
-      "reference": "integration candidate 258ed12; 102 suites and 40 documentation checks pass",
+      "blockers": ["human creation of protected integration and coordination refs"],
+      "reference": "pushed integration candidate 258ed12; 102 suites and 40 documentation checks pass",
       "last_update": "2026-07-16",
       "playtest_ref": null,
       "scope": "remote"
@@ -51,10 +51,10 @@
       "base_sha": "b2aee0daa99e9025b3123080064f1e3c332d5141",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
       "blockers": [],
-      "reference": "planning content integrated as 808103e; recovery remains bundled locally",
+      "reference": "planning content integrated as 808103e; recovery branch pushed at e24dcc7",
       "last_update": "2026-07-16",
       "playtest_ref": null,
-      "scope": "local"
+      "scope": "remote"
     },
     {
       "work_id": "RECOVERY-V041-PLAYTEST",
