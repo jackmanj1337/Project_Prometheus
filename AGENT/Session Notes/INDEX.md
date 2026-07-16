@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16a](2026-07-16a.md) — Implemented suspend between AI activations with atomic ledger capture, stable AI continuation, restricted menu access, and full automated evidence.
 - [2026-07-16](2026-07-16.md) — Prepared the transient/AI-phase suspend discussion and headless-research handoff while preserving both outstanding playtest artifacts.
 
 - [2026-07-15al](2026-07-15al.md) — Closed the session with the exact `d12eb33` build/checklist identity and intake sequence locked for next session.

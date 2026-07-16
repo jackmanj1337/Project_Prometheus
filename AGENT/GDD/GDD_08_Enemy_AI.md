@@ -4,7 +4,7 @@
 profiles are **Implemented**; the tactical scoring model, extra profiles, and enemy
 generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
