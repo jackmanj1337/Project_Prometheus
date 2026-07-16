@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="BattleMapDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/BattleMapDef.gd" id="1_txao7"]
+
+[resource]
+script = ExtResource("1_txao7")
+id = "map_001"
+display_name = "First Battle"
+grid = Array[String](["WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW", "W...............SSS..MM..................W", "W..FF...........SSS.MMM....FF............W", "W..FF...........SSS.MMM....FF............W", "W..........FF...SSS..MM...............WWWW", "W..........FF...SSS...................WWWW", "W......T.........SS.........FF...........W", "W................SS.........FF.....FF....W", "W................SS................FF....W", "W............FF..SS....FF.............T..W", "W............FF...S....FF................W", "W.................S......................W", "W.................S....................T.W", "W.................SS.....................W", "W..................S.....................W", "W.....FF...........S.....................W", "W.....FF...........SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W..................SDDDDDDDDDDDDDDDDD....W", "W...................DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........MM.........DDDDDDDDDDDDDDDDD....W", "W........................................W", "W........................................W", "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"])
+player_start_tiles = Array[Vector2i]([Vector2i(1, 9), Vector2i(1, 10), Vector2i(1, 11), Vector2i(2, 9), Vector2i(2, 10), Vector2i(2, 11)])

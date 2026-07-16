@@ -142,6 +142,7 @@
 - [`plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md) — `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14 — *Implemented 2026-07-14*
 - [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Implemented*
 - [`plans/b1_ledger_review_handoff_2026-07-15.md`](plans/b1_ledger_review_handoff_2026-07-15.md) — B1-LEDGER Review Handoff — everything since the v0.4.0 push — 2026-07-15 — *Implemented*
+- [`plans/b4_encounter_model_slice2_handoff_2026-07-16.md`](plans/b4_encounter_model_slice2_handoff_2026-07-16.md) — `B4-ENCOUNTER-MODEL` Slice 2 Handoff - 2026-07-16 — *Planned - next-session implementation ha*
 - [`plans/b4_prep_deployment_handoff_2026-07-14.md`](plans/b4_prep_deployment_handoff_2026-07-14.md) — `B4-PREP-DEPLOYMENT` Handoff - Prep Screen - 2026-07-14 — *Target design*
 - [`plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md`](plans/b6_campaign_archive_pipeline_handoff_2026-07-15.md) — B6 Campaign Archive Pipeline - Next-Session Handoff — *Planned*
 - [`plans/band0_gdd_consolidation_handoff_2026-07-13.md`](plans/band0_gdd_consolidation_handoff_2026-07-13.md) — Band 0 GDD Consolidation — Next-Session Handoff — *Planned*

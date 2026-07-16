@@ -15,6 +15,7 @@
     "CLEAN-STALE-GDD10"
   ],
   "matrices": {
-    "B1-SUSPEND-TRANSIENT-RESEARCH": "AGENT/Docs/playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md"
+    "B1-SUSPEND-TRANSIENT-RESEARCH": "AGENT/Docs/playtests/ai_suspend_boundary_evidence_matrix_2026-07-16.md",
+    "B4-ENCOUNTER-MODEL": "AGENT/Docs/plans/b4_encounter_model_slice2_handoff_2026-07-16.md"
   }
 }

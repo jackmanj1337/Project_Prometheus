@@ -30,7 +30,7 @@ enum UnitState { READY, MOVED, DONE }
 var _unit_states: Dictionary = {}
 # Saved tile when a unit starts moving so undo_move can restore it
 var _original_tiles: Dictionary = {}
-var _map_data: MapData = null
+var _map_data: Resource = null
 var _grid: GridManager = null
 # Latches true on first map_victory/map_defeat emit to prevent double-fire.
 var _map_over: bool = false
@@ -83,7 +83,7 @@ const _DEFAULT_TURN_ORDER: Array[String] = ["blue", "green", "red", "yellow"]
 
 
 # Called by GameMap after units have spawned.
-func start_map(map_data: MapData, grid: GridManager = null) -> void:
+func start_map(map_data: Resource, grid: GridManager = null) -> void:
 	_map_data = map_data
 	_grid = grid
 	_turn_order = _derive_turn_order(map_data)
@@ -123,7 +123,7 @@ func set_history_cursor(cursor: Node) -> void:
 	_history_cursor = cursor
 
 
-func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
+func start_map_from_suspend(map_data: Resource, grid: GridManager, turn_state: Dictionary) -> void:
 	_map_data = map_data
 	_grid = grid
 	_turn_order = SaveCodec.string_array_from_variant(turn_state.get("turn_order", []))
@@ -296,7 +296,7 @@ func _array_from_variant(value: Variant) -> Array:
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
 # four-army cycle. A faction id is allowed even if it has zero living units —
 # _advance_faction's skip logic handles that at runtime.
-func _derive_turn_order(map_data: MapData) -> Array[String]:
+func _derive_turn_order(map_data: Resource) -> Array[String]:
 	if map_data != null and not map_data.turn_order.is_empty():
 		# Defensive copy — MapData lives in a Resource that could be shared
 		# across loads; we mutate _active_faction_idx, not the array, but a
@@ -316,7 +316,7 @@ func _derive_turn_order(map_data: MapData) -> Array[String]:
 	return fallback
 
 
-func _derive_activation_mode(map_data: MapData) -> String:
+func _derive_activation_mode(map_data: Resource) -> String:
 	if map_data != null and map_data.activation_mode != "":
 		return map_data.activation_mode
 	return "WHOLE_PHASE"

@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_ea7l3"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_5n4bi"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_vcdmf"]
+
+[sub_resource type="Resource" id="cond_protect_lord"]
+script = ExtResource("1_ea7l3")
+type = "protect"
+unit_ids = Array[String](["unit_01_cavalier"])
+
+[sub_resource type="Resource" id="cond_turn_limit"]
+script = ExtResource("1_ea7l3")
+type = "turn_limit"
+turns = 10
+
+[sub_resource type="Resource" id="cond_boss"]
+script = ExtResource("1_ea7l3")
+type = "defeat_boss"
+unit_ids = Array[String](["m003_boss"])
+
+[resource]
+script = ExtResource("3_vcdmf")
+id = "encounter_map_003_defeat_boss"
+battle_map_id = "map_003_defeat_boss"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(9, 4),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_fighter_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(11, 2),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_archer_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(12, 6),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_merc_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": false,
+"tile": Vector2i(14, 4),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_knight_1.tres"
+}, {
+"ai_profile": "basic",
+"is_boss": true,
+"tile": Vector2i(15, 4),
+"unit_data_path": "res://data/maps/map_003_defeat_boss/units/m003_boss.tres"
+}])
+victory_conditions = {
+"allies": [SubResource("cond_boss")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_protect_lord"), SubResource("cond_turn_limit")]
+}
+reward_gold = 800

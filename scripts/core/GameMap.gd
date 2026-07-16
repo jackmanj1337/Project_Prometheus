@@ -46,7 +46,9 @@ const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 var _camera_ctrl: RefCounted = null
 var _hotseat_controller: Node = null
 
-var map_data: MapData = null
+var battle_data: ResolvedBattleData = null
+var map_data: Resource = null
+var encounter_data: BattleEncounterDef = null
 
 
 func _ready() -> void:
@@ -125,7 +127,8 @@ func _ready() -> void:
 			var rng_svc := get_node_or_null("/root/RngService")
 			if rng_svc != null:
 				rng_svc.call("start_map")
-		gs.set("map_data", map_data)
+		gs.set("battle_data", battle_data)
+		gs.set("map_data", encounter_data)
 		if not is_resuming:
 			gs.call("begin_map_rewind_budget")
 			gs.call("take_map_snapshot")
@@ -141,7 +144,7 @@ func _ready() -> void:
 		# its unit/terrain panels from the start tile.
 		_place_cursor_at_start()
 		# Kick off the first player phase.
-		_turn_manager.start_map(map_data, _grid)
+		_turn_manager.start_map(encounter_data, _grid)
 
 
 # Smooth camera glide during the enemy phase so AI moves are easy to follow;
@@ -192,12 +195,15 @@ func _load_map_data() -> void:
 		if override_path != "":
 			selected_path = override_path
 	var dm := get_node_or_null("/root/DataManager")
-	if dm != null and dm.has_method("resolve_map_data"):
-		map_data = dm.call("resolve_map_data", selected_path)
+	if dm != null and dm.has_method("resolve_battle_source"):
+		battle_data = dm.call("resolve_battle_source", selected_path)
 	elif ResourceLoader.exists(selected_path):
-		map_data = load(selected_path)
-	if map_data == null:
-		push_error("GameMap: missing MapData at " + selected_path)
+		battle_data = ResolvedBattleData.from_legacy(load(selected_path) as MapData, selected_path)
+	if battle_data != null:
+		map_data = battle_data.battle_map
+		encounter_data = battle_data.encounter
+	if map_data == null or encounter_data == null:
+		push_error("GameMap: missing resolved battle data for " + selected_path)
 
 
 # Spawns player units from GameState.player_roster onto player_start_tiles,
@@ -290,7 +296,8 @@ func _spawn_units_from_plan(plan: Dictionary, roster: Array) -> bool:
 # Optional placement keys: "faction" (defaults to "red"), "ai_profile"
 # (explicit override; omission preserves the UnitData profile).
 func _spawn_enemy_units() -> bool:
-	for placement in map_data.enemy_placements:
+	var payload: Resource = encounter_data if encounter_data != null else map_data
+	for placement in payload.enemy_placements:
 		var tile: Vector2i = placement.get("tile", Vector2i.ZERO)
 		var faction_id: String = placement.get("faction", "red")
 		var u_data: UnitData = _resolve_placement_unit_data(placement)
@@ -352,7 +359,7 @@ func _apply_suspend_resume(payload: Dictionary) -> void:
 		and not map_runtime.get("rng", {}).is_empty()
 	):
 		rng_svc.call("from_save_dict", map_runtime["rng"])
-	_turn_manager.start_map_from_suspend(map_data, _grid, map_runtime.get("turn", {}))
+	_turn_manager.start_map_from_suspend(encounter_data, _grid, map_runtime.get("turn", {}))
 	_cursor.apply_suspend_ui_state(payload.get("suspend", {}))
 	if gs:
 		gs.call("clear_suspend_resume")
@@ -412,7 +419,7 @@ func _spawn_unit(u_data: UnitData, tile: Vector2i, team: String) -> Unit:
 	var unit: Unit = unit_scene.instantiate()
 	unit.initialize(u_data, tile, team)
 	_units_container.add_child(unit)
-	unit.apply_faction_visual(map_data)
+	unit.apply_faction_visual(encounter_data if encounter_data != null else map_data)
 	unit.set_grid_manager(_grid)
 	var gs := get_node_or_null("/root/GameState")
 	if gs:

@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="BattleEncounterDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ObjectiveCondition.gd" id="1_1x1km"]
+[ext_resource type="Script" path="res://scripts/resources/FactionData.gd" id="2_bgv6o"]
+[ext_resource type="Script" path="res://scripts/resources/BattleEncounterDef.gd" id="3_6u0li"]
+
+[sub_resource type="Resource" id="cond_rout_allies"]
+script = ExtResource("1_1x1km")
+faction_id = "allies"
+
+[sub_resource type="Resource" id="faction_blue"]
+script = ExtResource("2_bgv6o")
+id = "blue"
+display_name = "Blue"
+color = Color(0.24, 0.49, 0.89, 1)
+alliance_group = "allies"
+
+[sub_resource type="Resource" id="faction_green"]
+script = ExtResource("2_bgv6o")
+id = "green"
+display_name = "Green"
+color = Color(0.24, 0.72, 0.38, 1)
+alliance_group = "allies"
+controller = "HOTSEAT"
+
+[sub_resource type="Resource" id="faction_red"]
+script = ExtResource("2_bgv6o")
+id = "red"
+display_name = "Red Raiders"
+color = Color(0.83, 0.29, 0.27, 1)
+alliance_group = "foes"
+
+[sub_resource type="Resource" id="faction_yellow"]
+script = ExtResource("2_bgv6o")
+id = "yellow"
+display_name = "Yellow Rogues"
+color = Color(0.91, 0.77, 0.22, 1)
+alliance_group = "rogues"
+
+[sub_resource type="Resource" id="cond_rout_all"]
+script = ExtResource("1_1x1km")
+
+[resource]
+script = ExtResource("3_6u0li")
+id = "encounter_map_900_hotseat_validation"
+battle_map_id = "map_900_hotseat_validation"
+enemy_placements = Array[Dictionary]([{
+"ai_profile": "basic",
+"faction": "green",
+"is_boss": false,
+"tile": Vector2i(3, 4),
+"unit_data_path": "res://data/maps/map_900_hotseat_validation/units/g1_green_mercenary.tres"
+}, {
+"ai_profile": "healer",
+"faction": "green",
+"is_boss": false,
+"tile": Vector2i(3, 6),
+"unit_data_path": "res://data/maps/map_900_hotseat_validation/units/g2_green_cleric.tres"
+}, {
+"ai_profile": "basic",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(6, 4),
+"unit_data_path": "res://data/maps/map_900_hotseat_validation/units/r1_red_soldier.tres"
+}, {
+"ai_profile": "passive",
+"faction": "red",
+"is_boss": false,
+"tile": Vector2i(8, 7),
+"unit_data_path": "res://data/maps/map_900_hotseat_validation/units/r2_red_archer.tres"
+}, {
+"ai_profile": "basic",
+"faction": "yellow",
+"is_boss": false,
+"tile": Vector2i(8, 5),
+"unit_data_path": "res://data/maps/map_900_hotseat_validation/units/y1_yellow_mercenary.tres"
+}])
+factions = Array[ExtResource("2_bgv6o")]([SubResource("faction_blue"), SubResource("faction_green"), SubResource("faction_red"), SubResource("faction_yellow")])
+turn_order = Array[String](["blue", "green", "red", "yellow"])
+victory_conditions = {
+"allies": [SubResource("cond_rout_all")]
+}
+defeat_conditions = {
+"allies": [SubResource("cond_rout_allies")]
+}

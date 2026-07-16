@@ -37,6 +37,8 @@ var _campaigns: Dictionary = {}
 # Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
 # so the campaign runtime resolves a node's launch parameters through this cache.
 var _map_registry: Dictionary = {}
+var _battle_maps: Dictionary = {}
+var _battle_encounters: Dictionary = {}
 var _pack_maps: Dictionary = {}
 var _pack_rosters: Dictionary = {}
 var _active_package_id := ""
@@ -63,6 +65,7 @@ func _load_all(source: String = DEFAULT_CONTENT_SOURCE) -> void:
 	# Cached so campaign node -> map launches resolve through the catalogue
 	# instead of each caller re-reading map_registry.json from disk.
 	_load_map_registry(source.path_join("maps/map_registry.json"))
+	_load_battle_catalogues(source.path_join("maps"))
 	_register_single_map_campaigns()
 
 
@@ -73,6 +76,8 @@ func _clear_content() -> void:
 	_skills.clear()
 	_campaigns.clear()
 	_map_registry.clear()
+	_battle_maps.clear()
+	_battle_encounters.clear()
 	_pack_maps.clear()
 	_pack_rosters.clear()
 	_active_package_id = ""
@@ -90,12 +95,19 @@ func _validate_all(source: String = DEFAULT_CONTENT_SOURCE) -> Array[String]:
 	var errors := collect_validation_errors(_classes, _weapons, _items, _skills)
 	errors.append_array(collect_map_registry_validation_errors(registry_path, _classes, _items))
 	errors.append_array(
+		collect_battle_catalogue_validation_errors(
+			_battle_maps, _battle_encounters, _classes, _items
+		)
+	)
+	errors.append_array(
 		collect_pair_up_validation_errors(source.path_join("pair_up/pair_up_bonus_table.tres"))
 	)
 	# Campaign nodes bind to map_registry ids, so campaigns are cross-checked
 	# against the registry's id vocabulary once the registry itself is validated.
 	errors.append_array(
-		collect_campaign_validation_errors(_campaigns, collect_map_registry_ids(registry_path))
+		collect_campaign_validation_errors(
+			_campaigns, collect_map_registry_ids(registry_path), _battle_encounters
+		)
 	)
 	return errors
 
@@ -162,6 +174,46 @@ func resolve_map_data(source_id: String) -> MapData:
 		var loaded: Variant = load(source_id)
 		return loaded as MapData
 	return null
+
+
+# The sole split/legacy composition boundary. Gameplay receives the same typed
+# bundle whichever authoring route selected the battle.
+func resolve_battle_source(source_id: String) -> ResolvedBattleData:
+	if _battle_encounters.has(source_id):
+		var encounter: BattleEncounterDef = _battle_encounters[source_id]
+		var map_def: BattleMapDef = _battle_maps.get(encounter.battle_map_id)
+		if map_def == null:
+			push_error(
+				(
+					"DataManager: encounter '%s' references unknown battle map '%s'"
+					% [source_id, encounter.battle_map_id]
+				)
+			)
+			return null
+		return ResolvedBattleData.from_split(map_def, encounter, source_id)
+	var legacy := resolve_map_data(source_id)
+	if legacy != null:
+		return ResolvedBattleData.from_legacy(legacy, source_id)
+	push_error("DataManager: unknown battle source '%s'" % source_id)
+	return null
+
+
+func has_battle_encounter(encounter_id: String) -> bool:
+	return _battle_encounters.has(encounter_id)
+
+
+func get_battle_encounter_entry(encounter_id: String) -> Dictionary:
+	if not _battle_encounters.has(encounter_id):
+		push_error("DataManager: unknown battle encounter id '%s'" % encounter_id)
+		return {}
+	var encounter: BattleEncounterDef = _battle_encounters[encounter_id]
+	var map_entry: Dictionary = _map_registry.get(encounter.battle_map_id, {})
+	return {
+		"id": encounter_id,
+		"battle_source": encounter_id,
+		"roster_policy": String(map_entry.get("roster_policy", "default_roster")),
+		"roster_source": String(map_entry.get("roster_source", "")),
+	}
 
 
 func get_campaign_pack_roster(roster_id: String) -> Array[UnitData]:
@@ -419,11 +471,18 @@ static func load_campaigns(dir_path: String, target: Dictionary, errors: Array[S
 # Cross-reference pass: every node's map binding must resolve to a map_registry
 # id. Structural graph checks already ran in CampaignData.parse.
 static func collect_campaign_validation_errors(
-	campaigns: Dictionary, known_map_ids: Dictionary
+	campaigns: Dictionary, known_map_ids: Dictionary, known_encounters: Dictionary = {}
 ) -> Array[String]:
 	var errors: Array[String] = []
 	for campaign in campaigns.values():
 		for node in campaign.nodes:
+			if node.map_id != "" and node.encounter_id != "":
+				errors.append(
+					(
+						"DataManager: campaign '%s' node '%s' has ambiguous battle references"
+						% [campaign.campaign_id, node.node_id]
+					)
+				)
 			if node.map_id != "" and not known_map_ids.has(node.map_id):
 				errors.append(
 					(
@@ -431,6 +490,107 @@ static func collect_campaign_validation_errors(
 						% [campaign.campaign_id, node.node_id, node.map_id]
 					)
 				)
+			if (
+				node.encounter_id != ""
+				and not known_encounters.is_empty()
+				and not known_encounters.has(node.encounter_id)
+			):
+				errors.append(
+					(
+						"DataManager: campaign '%s' node '%s' references unknown encounter id '%s'"
+						% [campaign.campaign_id, node.node_id, node.encounter_id]
+					)
+				)
+	return errors
+
+
+func _load_battle_catalogues(maps_root: String) -> void:
+	_load_typed_manifest(maps_root.path_join("battle_maps"), _battle_maps, BattleMapDef)
+	_load_typed_manifest(
+		maps_root.path_join("battle_encounters"), _battle_encounters, BattleEncounterDef
+	)
+
+
+func _load_typed_manifest(dir_path: String, target: Dictionary, expected_type: Variant) -> void:
+	for path in ResourceManifest.load_paths(dir_path):
+		var loaded: Variant = load(path)
+		if loaded == null or loaded.get_script() != expected_type:
+			push_error("DataManager: '%s' has the wrong battle catalogue resource type" % path)
+			continue
+		var resource_id: String = String(loaded.get("id"))
+		if resource_id == "" or target.has(resource_id):
+			push_error("DataManager: missing/duplicate battle catalogue id '%s'" % resource_id)
+			continue
+		target[resource_id] = loaded
+
+
+static func collect_battle_catalogue_validation_errors(
+	maps: Dictionary, encounters: Dictionary, classes: Dictionary, items: Dictionary = {}
+) -> Array[String]:
+	var errors: Array[String] = []
+	for map_id in maps:
+		var map_def: BattleMapDef = maps[map_id]
+		if map_def == null or map_def.id == "" or map_def.display_name == "":
+			errors.append("DataManager: battle map '%s' is missing id/display_name" % map_id)
+			continue
+		if map_def.grid.is_empty():
+			errors.append("DataManager: battle map '%s' has no grid" % map_id)
+		else:
+			var width := map_def.grid[0].length()
+			for row in map_def.grid:
+				if row.length() != width:
+					errors.append("DataManager: battle map '%s' grid is not rectangular" % map_id)
+					break
+		if map_def.player_start_tiles.is_empty():
+			errors.append("DataManager: battle map '%s' has no player_start_tiles" % map_id)
+		for tile in map_def.player_start_tiles + map_def.enemy_start_tiles:
+			if (
+				map_def.grid.is_empty()
+				or tile.x < 0
+				or tile.y < 0
+				or tile.y >= map_def.grid.size()
+				or tile.x >= map_def.grid[0].length()
+			):
+				errors.append(
+					"DataManager: battle map '%s' has out-of-bounds start tile %s" % [map_id, tile]
+				)
+	for encounter_id in encounters:
+		var encounter: BattleEncounterDef = encounters[encounter_id]
+		if encounter == null or encounter.id == "":
+			errors.append("DataManager: encounter '%s' is missing id" % encounter_id)
+			continue
+		if not maps.has(encounter.battle_map_id):
+			errors.append(
+				(
+					"DataManager: encounter '%s' references unknown battle map '%s'"
+					% [encounter_id, encounter.battle_map_id]
+				)
+			)
+		if not (encounter.activation_mode in _VALID_ACTIVATION_MODES):
+			errors.append("DataManager: encounter '%s' has invalid activation_mode" % encounter_id)
+		if not maps.has(encounter.battle_map_id):
+			continue
+		var owner_map: BattleMapDef = maps[encounter.battle_map_id]
+		var projection := MapData.new()
+		projection.id = encounter.id
+		projection.display_name = owner_map.display_name
+		projection.tilemap_scene_path = owner_map.tilemap_scene_path
+		projection.player_start_tiles = owner_map.player_start_tiles
+		projection.camera_start_tile = owner_map.camera_start_tile
+		projection.grid = owner_map.grid
+		projection.enemy_placements = encounter.enemy_placements
+		projection.factions = encounter.factions
+		projection.turn_order = encounter.turn_order
+		projection.activation_mode = encounter.activation_mode
+		projection.victory_conditions = encounter.victory_conditions
+		projection.defeat_conditions = encounter.defeat_conditions
+		projection.reward_gold = encounter.reward_gold
+		projection.reward_items = encounter.reward_items
+		errors.append_array(
+			collect_map_data_validation_errors(
+				projection, "encounter:%s" % encounter_id, classes, items
+			)
+		)
 	return errors
 
 

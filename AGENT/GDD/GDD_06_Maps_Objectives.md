@@ -4,25 +4,27 @@
 and project terrain values are **Implemented**; corpus terrain values/movement categories
 are **Target design** (RULE-010/SET-008) and the terrain ID mapping is an **Open
 decision** (RULE-011/AWR-8), tracked in `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
 This chapter owns the **terrain/movement schema** (terrain types, movement categories,
 authored values) and the **objective + authored-map contracts**. The *combat effects* of
 terrain (defender DEF/Dodge, fort heal) are applied by `GDD_02 §Terrain`; resource schemas
-(`MapData`, `FactionData`, `ObjectiveCondition`) are defined in `GDD_01`. For the practical
+(`BattleMapDef`, `BattleEncounterDef`, legacy `MapData`, `FactionData`,
+`ObjectiveCondition`) are defined in `GDD_01`. For the practical
 authoring workflow, registry entry shape, roster-policy rules, and export-manifest
 reminders, use `AGENT/Docs/guides/map_authoring_guide.md`.
 
 ## Map System Overview
 
 Status: **Implemented**
-Last verified: 2026-06-13
+Last verified: 2026-07-16
 
-Battles use the shared `GameMap.tscn`. Each map is a **MapData** resource whose
-string `grid` defines terrain and whose remaining fields define objectives,
-factions, placements, start tiles, camera start, and rewards.
+Battles use the shared `GameMap.tscn`. A **BattleMapDef** supplies reusable
+terrain/layout and a **BattleEncounterDef** supplies the fight payload. Campaign
+nodes resolve `encounter_id -> battle_map_id`; direct and legacy `map_id`
+launches pass through the explicit `MapData` adapter.
 
 Maps are self-contained — adding a new map never requires code changes. A campaign
 package should carry its map data, rosters, rules/presets, object data, and raw assets
@@ -251,13 +253,14 @@ opposing units remaining.
 
 ---
 
-## MapData Resource
+## Battle Map And Encounter Resources
 
-`MapData` binds identity/display, terrain source, camera/start tiles, faction scheduling,
-unit placements, grouped objective conditions, and completion rewards. A placement must
+`BattleMapDef` binds identity/display, terrain source, camera/player starts, and enemy
+spawn zones. `BattleEncounterDef` binds one map, faction scheduling, unit placements,
+grouped objective conditions, and completion rewards. A placement must
 provide exactly one unit source (`unit_data_path` or `unit_data`) plus its tile; optional
 AI/faction/boss fields refine that placement. The exact typed field list is owned by
-`GDD_01` and `scripts/resources/MapData.gd`.
+`GDD_01`. Legacy `MapData` is adapted only at DataManager's resolution boundary.
 
 ---
 

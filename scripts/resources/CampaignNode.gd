@@ -21,6 +21,10 @@ class_name CampaignNode extends Resource
 # exactly the adapter-friendly shape [CNC-3] asked for.
 @export var map_id: String = ""
 
+# Preferred battle binding. DataManager resolves encounter -> reusable battle map.
+# map_id remains the explicit compatibility route for monolithic MapData content.
+@export var encounter_id: String = ""
+
 # Successor node ids. Empty = terminal node (campaign complete). A single entry
 # is the linear MVP case; multiple entries are the branch case the same schema
 # carries with no reshape.

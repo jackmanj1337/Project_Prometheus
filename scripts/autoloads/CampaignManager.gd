@@ -379,12 +379,29 @@ func route_retry_to_prep() -> bool:
 # resolution is testable without changing scene.
 func resolve_launch_params(node: CampaignNode) -> Dictionary:
 	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not bool(dm.call("has_map_registry_entry", node.map_id)):
+	if dm == null:
+		return {}
+	var entry: Dictionary = {}
+	var battle_source := ""
+	if node.encounter_id != "":
+		if not bool(dm.call("has_battle_encounter", node.encounter_id)):
+			push_error(
+				(
+					"CampaignManager: node '%s' binds to unknown encounter id '%s'"
+					% [node.node_id, node.encounter_id]
+				)
+			)
+			return {}
+		entry = dm.call("get_battle_encounter_entry", node.encounter_id)
+		battle_source = node.encounter_id
+	elif not bool(dm.call("has_map_registry_entry", node.map_id)):
 		push_error(
 			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, node.map_id]
 		)
 		return {}
-	var entry: Dictionary = dm.call("get_map_registry_entry", node.map_id)
+	else:
+		entry = dm.call("get_map_registry_entry", node.map_id)
+		battle_source = String(entry.get("map_data_path", ""))
 
 	# Roster policy: the FIRST node of a run seeds the party from the map
 	# registry's authored policy; every later node keeps the party it earned, or
@@ -397,7 +414,7 @@ func resolve_launch_params(node: CampaignNode) -> Dictionary:
 		roster_source = ""
 
 	return {
-		"map_data_path": String(entry.get("map_data_path", "")),
+		"map_data_path": battle_source,
 		"roster_policy": roster_policy,
 		"roster_source": roster_source,
 		"rule_overrides": node.rule_overrides.duplicate(true),

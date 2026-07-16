@@ -1,7 +1,7 @@
 # GDD_01 — Data Contracts
 
 **Status:** Active data contract — implemented and target fields are labelled per section.
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -295,7 +295,27 @@ class_name SkillData extends Resource
 func validate() -> void   # warns on missing id/effect_id/trigger; called by DataManager
 ```
 
-### `MapData.gd`
+### Battle map and encounter resources
+
+Implemented by `B4-ENCOUNTER-MODEL` Slices 1-2 on 2026-07-16.
+
+Authored battles split reusable layout from fight payload. `BattleMapDef` owns
+identity/display, tilemap/grid, camera/player starts, and `enemy_start_tiles`.
+`BattleEncounterDef` owns identity, `battle_map_id`, ordered enemy placements,
+factions/scheduling, grouped objectives, and rewards. `ResolvedBattleData` is
+the single runtime composition boundary and records split versus legacy origin.
+Campaign battle nodes author exactly one of preferred `encounter_id` and legacy
+`map_id`; saves remain bound to durable `node_id` and add no field.
+
+Both catalogues are manifest-backed below `data/maps/`. DataManager validates
+ids, types, grids/start tiles, map references, placements, factions, scheduling,
+objectives, and rewards before launch.
+
+### `MapData.gd` compatibility resource
+
+`MapData` remains supported for direct developer launches and legacy/package
+content. DataManager adapts it once at the load boundary into the same
+`ResolvedBattleData` shape; gameplay does not branch on legacy fields.
 
 ```gdscript
 class_name MapData extends Resource

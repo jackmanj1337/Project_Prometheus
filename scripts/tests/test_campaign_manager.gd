@@ -121,7 +121,7 @@ func _test_launch_resolution(cm: Node) -> void:
 	var first: Dictionary = cm.resolve_launch_params(cm.get_current_node())
 	_check(
 		(
-			first.get("map_data_path", "") == "res://data/maps/map_001_rout/map_001_data.tres"
+			first.get("map_data_path", "") == "encounter_map_001"
 			and first.get("roster_policy", "") == "default_roster"
 		),
 		"the start node resolves to its registry map and authored roster policy",
@@ -133,10 +133,7 @@ func _test_launch_resolution(cm: Node) -> void:
 	var later: Dictionary = cm.resolve_launch_params(cm.get_current_node())
 	_check(
 		(
-			(
-				later.get("map_data_path", "")
-				== "res://data/maps/map_002_seize/map_002_seize_data.tres"
-			)
+			(later.get("map_data_path", "") == "encounter_map_002_seize")
 			and later.get("roster_policy", "") == "keep_current_roster"
 			and later.get("roster_source", "") == ""
 		),

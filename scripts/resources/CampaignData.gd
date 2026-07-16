@@ -184,6 +184,7 @@ static func _parse_node(
 	node.node_id = String(doc.get("node_id", ""))
 	node.label = String(doc.get("label", ""))
 	node.map_id = String(doc.get("map_id", ""))
+	node.encounter_id = String(doc.get("encounter_id", ""))
 	node.deployment_cap = int(doc.get("deployment_cap", -1))
 	node.next_node_ids = _string_array(doc.get("next", []))
 	node.required_units = _string_array(doc.get("required_units", []))
@@ -206,10 +207,17 @@ static func _parse_node(
 		return null
 	seen_ids[node.node_id] = true
 
-	if node.map_id == "":
+	if node.map_id == "" and node.encounter_id == "":
 		errors.append(
 			(
-				"CampaignData: campaign '%s' node '%s' is missing 'map_id'"
+				"CampaignData: campaign '%s' node '%s' is missing 'map_id' or 'encounter_id'"
+				% [campaign_id, node.node_id]
+			)
+		)
+	elif node.map_id != "" and node.encounter_id != "":
+		errors.append(
+			(
+				"CampaignData: campaign '%s' node '%s' cannot define both map_id and encounter_id"
 				% [campaign_id, node.node_id]
 			)
 		)

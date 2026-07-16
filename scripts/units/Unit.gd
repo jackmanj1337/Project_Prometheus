@@ -75,11 +75,11 @@ func _apply_initial_state() -> void:
 
 # Applies the unit tint from MapData.factions when available; otherwise falls
 # back to the legacy blue/red defaults.
-func _apply_faction_visual(map_data: MapData = null) -> void:
+func _apply_faction_visual(map_data: Resource = null) -> void:
 	var color: Color = Color(0.95, 0.35, 0.35, 1.0)
 	if team == "blue":
 		color = Color(0.30, 0.55, 0.95, 1.0)
-	var md: MapData = map_data
+	var md: Resource = map_data
 	if md == null:
 		var gs := get_node_or_null("/root/GameState")
 		if gs != null:
@@ -95,7 +95,7 @@ func _apply_faction_visual(map_data: MapData = null) -> void:
 
 # Called by GameMap once map_data is known so faction colour can be applied
 # even though Unit._ready runs before GameState.map_data is assigned.
-func apply_faction_visual(map_data: MapData) -> void:
+func apply_faction_visual(map_data: Resource) -> void:
 	_apply_faction_visual(map_data)
 
 

@@ -149,7 +149,9 @@ var all_units: Array[Node] = []
 # are thin wrappers that delegate to "blue" and "every non-blue id" so the
 # existing TurnManager / EnemyAI / MapCursor call sites work unchanged.
 var _units_by_faction: Dictionary = {}
-var map_data: MapData = null
+var battle_data: ResolvedBattleData = null
+# Encounter payload retained under the historical name for UI/TurnManager consumers.
+var map_data: Resource = null
 
 # Persists between maps — the live roster and shared economy
 var player_roster: Array[UnitData] = []
@@ -325,6 +327,7 @@ func reset_map_state() -> void:
 	all_units.clear()
 	_units_by_faction.clear()
 	map_data = null
+	battle_data = null
 	turn_number = 1
 	current_phase = Phase.PLAYER
 	# B1-LEDGER: the within-map ledger is map-scoped — drop it between maps so a
@@ -783,7 +786,8 @@ func _capture_map_runtime_entry(turn_manager: Node, cursor: Node) -> Dictionary:
 	var reg := get_node_or_null("/root/PairUpRegistry")
 	var rng_svc := get_node_or_null("/root/RngService")
 	var map_runtime: Dictionary = {
-		"map_id": map_data.id if map_data != null else "",
+		"map_id":
+		battle_data.source_id if battle_data != null else (map_data.id if map_data != null else ""),
 		"map_path": _current_map_path(),
 		"units": _runtime_units_to_array(),
 		"turn":

@@ -61,7 +61,7 @@ func _active_faction_id() -> String:
 
 
 func _faction_phase_label(faction_id: String) -> String:
-	var md: MapData = _current_map_data()
+	var md: Resource = _current_map_data()
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
@@ -70,7 +70,7 @@ func _faction_phase_label(faction_id: String) -> String:
 
 
 func _faction_color(faction_id: String) -> Color:
-	var md: MapData = _current_map_data()
+	var md: Resource = _current_map_data()
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
@@ -78,7 +78,7 @@ func _faction_color(faction_id: String) -> Color:
 	return Color(1, 1, 1, 1)
 
 
-func _current_map_data() -> MapData:
+func _current_map_data() -> Resource:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return null

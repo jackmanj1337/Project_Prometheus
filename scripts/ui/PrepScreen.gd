@@ -14,7 +14,7 @@ const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 @onready var _save_status: Label = $Margin/VBox/SaveStatus
 
 var _node: CampaignNode = null
-var _map_data: MapData = null
+var _map_data: BattleMapDef = null
 var _eligible: Array[UnitData] = []
 var _selected_ids: Array[String] = []
 
@@ -38,10 +38,16 @@ func _load_launch_context() -> bool:
 		return false
 	_node = cm.call("get_current_node")
 	var path := String(gs.get("next_map_data_path"))
-	if _node == null or path == "" or not ResourceLoader.exists(path):
+	if _node == null or path == "":
 		_validation.text = "The campaign map could not be prepared."
 		return false
-	_map_data = load(path) as MapData
+	var dm := get_node_or_null("/root/DataManager")
+	var resolved: ResolvedBattleData = (
+		dm.call("resolve_battle_source", path)
+		if dm != null and dm.has_method("resolve_battle_source")
+		else null
+	)
+	_map_data = resolved.battle_map if resolved != null else null
 	if _map_data == null:
 		_validation.text = "The campaign map data is invalid."
 		return false

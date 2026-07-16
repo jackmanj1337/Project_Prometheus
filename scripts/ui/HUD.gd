@@ -330,7 +330,7 @@ func _populate_objective_panel() -> void:
 # header followed by every defeat-condition summary. Each header is only
 # emitted when at least one matching condition exists, so a map with no
 # defeats authored doesn't show an empty "Lose:" group.
-func _build_objective_lines(map_data: MapData) -> Array[String]:
+func _build_objective_lines(map_data: Resource) -> Array[String]:
 	var gs := get_node_or_null("/root/GameState")
 	var blue_group: String = "allies"
 	if gs:
@@ -380,7 +380,7 @@ func _active_faction_id() -> String:
 
 func _faction_phase_label(faction_id: String) -> String:
 	var gs := get_node_or_null("/root/GameState")
-	var md: MapData = gs.map_data if gs != null else null
+	var md: Resource = gs.map_data if gs != null else null
 	if md != null:
 		var faction: FactionData = md.get_faction(faction_id)
 		if faction != null:
