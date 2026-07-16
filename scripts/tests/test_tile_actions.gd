@@ -11,7 +11,8 @@ extends SceneTree
 const TileActions = preload("res://scripts/shared/TileActions.gd")
 
 
-class StubTurn extends Node:
+class StubTurn:
+	extends Node
 	var seize_for: Array[Vector2i] = []
 	var escape_for: Array[Vector2i] = []
 
@@ -24,7 +25,8 @@ class StubTurn extends Node:
 
 # Minimal unit-shaped stub — TileActions only checks for null and forwards
 # the reference to TurnManager.
-class StubUnit extends Node:
+class StubUnit:
+	extends Node
 	pass
 
 
@@ -42,23 +44,31 @@ func _init() -> void:
 	root.add_child(turn)
 
 	# ---- Seize: gate forwards to TurnManager.can_seize -----------------
-	if TileActions.is_available("seize", unit, Vector2i(5, 5), turn) \
-			and not TileActions.is_available("seize", unit, Vector2i(6, 5), turn):
-		print("OK  seize delegates to TurnManager.can_seize"); passed += 1
+	if (
+		TileActions.is_available("seize", unit, Vector2i(5, 5), turn)
+		and not TileActions.is_available("seize", unit, Vector2i(6, 5), turn)
+	):
+		print("OK  seize delegates to TurnManager.can_seize")
+		passed += 1
 	else:
-		print("FAIL seize delegation"); failed += 1
+		print("FAIL seize delegation")
+		failed += 1
 
 	# ---- Escape: gate forwards to TurnManager.can_escape ---------------
-	if TileActions.is_available("escape", unit, Vector2i(0, 0), turn) \
-			and not TileActions.is_available("escape", unit, Vector2i(2, 2), turn):
-		print("OK  escape delegates to TurnManager.can_escape"); passed += 1
+	if (
+		TileActions.is_available("escape", unit, Vector2i(0, 0), turn)
+		and not TileActions.is_available("escape", unit, Vector2i(2, 2), turn)
+	):
+		print("OK  escape delegates to TurnManager.can_escape")
+		passed += 1
 	else:
-		print("FAIL escape delegation"); failed += 1
+		print("FAIL escape delegation")
+		failed += 1
 
 	# ---- Placeholders: shop/visit/activate are wired but not yet active ----
 	var any_placeholder: bool = (
-		TileActions.is_available("shop",     unit, Vector2i(5, 5), turn)
-		or TileActions.is_available("visit",    unit, Vector2i(5, 5), turn)
+		TileActions.is_available("shop", unit, Vector2i(5, 5), turn)
+		or TileActions.is_available("visit", unit, Vector2i(5, 5), turn)
 		or TileActions.is_available("activate", unit, Vector2i(5, 5), turn)
 	)
 	if not any_placeholder:
@@ -78,7 +88,8 @@ func _init() -> void:
 		print("OK  is_available is null-safe and rejects unknown action ids")
 		passed += 1
 	else:
-		print("FAIL null safety"); failed += 1
+		print("FAIL null safety")
+		failed += 1
 
 	# ---- available_for returns ids in canonical order ----------------
 	# Seize tile + escape tile happen to coincide here: both gates fire,
@@ -89,7 +100,8 @@ func _init() -> void:
 		print("OK  available_for returns seize before escape in canonical order")
 		passed += 1
 	else:
-		print("FAIL available_for order: %s" % str(ids)); failed += 1
+		print("FAIL available_for order: %s" % str(ids))
+		failed += 1
 
 	# ---- available_for empty when nothing gates --------------------
 	var empty_ids: Array[String] = TileActions.available_for(unit, Vector2i(9, 9), turn)
@@ -101,12 +113,15 @@ func _init() -> void:
 		failed += 1
 
 	# ---- display_label: known labels + raw-id fallback ---------------
-	if TileActions.display_label("seize") == "Seize" \
-			and TileActions.display_label("brand_new_id") == "brand_new_id":
+	if (
+		TileActions.display_label("seize") == "Seize"
+		and TileActions.display_label("brand_new_id") == "brand_new_id"
+	):
 		print("OK  display_label resolves known ids and falls back to the raw id")
 		passed += 1
 	else:
-		print("FAIL display_label"); failed += 1
+		print("FAIL display_label")
+		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

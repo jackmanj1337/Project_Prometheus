@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BattleMapDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/BattleMapDef.gd" id="1_xbr8e"]
+
+[resource]
+script = ExtResource("1_xbr8e")
+id = "map_003_defeat_boss"
+display_name = "Map 003 - Defeat Boss"
+grid = Array[String](["WWWWWWWWWWWWWWWWWW", "W...F............W", "W..FF....F.......W", "W................W", "W......FF....T...W", "W................W", "W............FF..W", "W................W", "W..T.............W", "W................W", "W................W", "WWWWWWWWWWWWWWWWWW"])
+camera_start_tile = Vector2i(7, 6)
+player_start_tiles = Array[Vector2i]([Vector2i(1, 7), Vector2i(1, 8), Vector2i(1, 9), Vector2i(2, 7), Vector2i(2, 8), Vector2i(2, 9)])

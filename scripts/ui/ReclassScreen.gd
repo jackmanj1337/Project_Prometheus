@@ -24,8 +24,12 @@ func _ready() -> void:
 	_btn_cancel.pressed.connect(_close)
 
 
-func open_for(unit: Node, consume_entry: InventoryEntry = null,
-		on_complete: Callable = Callable(), on_cancel: Callable = Callable()) -> void:
+func open_for(
+	unit: Node,
+	consume_entry: InventoryEntry = null,
+	on_complete: Callable = Callable(),
+	on_cancel: Callable = Callable()
+) -> void:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return
 	_unit = unit
@@ -56,8 +60,9 @@ func _rebuild_options() -> void:
 	if current_class == null:
 		return
 	_label_title.text = "Second Seal"
-	_label_unit.text = "%s  Lv %d %s" % [
-		_unit.data.unit_name, _unit.data.level, current_class.display_name]
+	_label_unit.text = (
+		"%s  Lv %d %s" % [_unit.data.unit_name, _unit.data.level, current_class.display_name]
+	)
 	_label_hint.text = "Choose a new class or reset this one"
 	for option in _unit.get_second_seal_options():
 		var target_class := _class_data(String(option["class_id"]))
@@ -81,24 +86,39 @@ func _rebuild_options() -> void:
 
 
 func _button_text(target_class: ClassData, option: Dictionary) -> String:
-	var weapon_text: String = ", ".join(target_class.get_allowed_weapon_families()) \
-		if not target_class.get_allowed_weapon_families().is_empty() else "none"
+	var weapon_text: String = (
+		", ".join(target_class.get_allowed_weapon_families())
+		if not target_class.get_allowed_weapon_families().is_empty()
+		else "none"
+	)
 	var skill_lines: Array[String] = []
 	var unlock_levels: Array = target_class.skill_unlocks.keys()
 	unlock_levels.sort()
 	for unlock_level in unlock_levels:
-		skill_lines.append("Lv %s %s" % [str(unlock_level), _skill_name(String(target_class.skill_unlocks[unlock_level]))])
+		skill_lines.append(
+			(
+				"Lv %s %s"
+				% [str(unlock_level), _skill_name(String(target_class.skill_unlocks[unlock_level]))]
+			)
+		)
 	var skills_text: String = ", ".join(skill_lines) if not skill_lines.is_empty() else "none"
-	var summary: String = "Reset to Lv 1" if bool(option.get("is_self_reset", false)) else "No promotion bonuses gained"
-	return "%s\n%s | Tier %d | Weapons: %s\n%s\nSkills: %s\n%s" % [
-		String(option.get("label", target_class.display_name)),
-		String(option.get("note", "Reclass")),
-		target_class.tier,
-		weapon_text,
-		_reclass_preview_text(target_class, option),
-		skills_text,
-		summary,
-	]
+	var summary: String = (
+		"Reset to Lv 1"
+		if bool(option.get("is_self_reset", false))
+		else "No promotion bonuses gained"
+	)
+	return (
+		"%s\n%s | Tier %d | Weapons: %s\n%s\nSkills: %s\n%s"
+		% [
+			String(option.get("label", target_class.display_name)),
+			String(option.get("note", "Reclass")),
+			target_class.tier,
+			weapon_text,
+			_reclass_preview_text(target_class, option),
+			skills_text,
+			summary,
+		]
+	)
 
 
 func _commit_reclass(option: Dictionary) -> void:
@@ -152,18 +172,24 @@ func _reclass_preview_text(target_class: ClassData, option: Dictionary) -> Strin
 	if source_class == null:
 		return "Stats: unavailable"
 	var source_line := _line_base_class(source_class, _unit.data.class_line_id)
-	var target_line := _line_base_class(target_class, String(option.get("class_line_id", target_class.id)))
+	var target_line := _line_base_class(
+		target_class, String(option.get("class_line_id", target_class.id))
+	)
 	if source_line == null or target_line == null:
 		return "Stats: unavailable"
 	var is_self_reset: bool = bool(option.get("is_self_reset", false))
 	var parts: Array[String] = []
 	for stat_name in ClassData.STAT_KEYS:
-		var old_value: int = int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		var old_value: int = (
+			int(_unit.data.max_hp) if stat_name == "hp" else int(_unit.data.get(stat_name))
+		)
 		var new_value: int = old_value
 		if not is_self_reset:
 			if source_class.tier == 2:
 				new_value -= int(source_class.promotion_stat_bonuses.get(stat_name, 0))
-			new_value += _base_stat_for(target_line, stat_name) - _base_stat_for(source_line, stat_name)
+			new_value += (
+				_base_stat_for(target_line, stat_name) - _base_stat_for(source_line, stat_name)
+			)
 			if stat_name == "hp":
 				new_value = max(1, new_value)
 			else:
@@ -172,8 +198,12 @@ func _reclass_preview_text(target_class: ClassData, option: Dictionary) -> Strin
 		var delta: int = new_value - old_value
 		var cap: int = int(target_class.stat_caps.get(stat_name, -1))
 		var cap_text: String = str(cap) if cap >= 0 else "-"
-		parts.append("%s %d %+d -> %d / %s" % [
-			_stat_short_name(stat_name), old_value, delta, new_value, cap_text])
+		parts.append(
+			(
+				"%s %d %+d -> %d / %s"
+				% [_stat_short_name(stat_name), old_value, delta, new_value, cap_text]
+			)
+		)
 	return "Stats: %s" % " | ".join(parts)
 
 

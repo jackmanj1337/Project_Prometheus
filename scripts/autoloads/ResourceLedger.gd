@@ -28,7 +28,9 @@ func commit(costs: Array, ctx: Dictionary = {}) -> RefCounted:
 
 func refund(transaction: RefCounted, _ctx: Dictionary = {}) -> RefCounted:
 	if transaction == null or not transaction.committed:
-		return ResourceTransactionScript.failure("ResourceLedger: only committed transactions can be refunded")
+		return ResourceTransactionScript.failure(
+			"ResourceLedger: only committed transactions can be refunded"
+		)
 	if transaction.refunded:
 		return ResourceTransactionScript.failure("ResourceLedger: transaction was already refunded")
 	if not transaction.refundable:
@@ -40,7 +42,9 @@ func refund(transaction: RefCounted, _ctx: Dictionary = {}) -> RefCounted:
 		reverse["delta"] = -int(record["delta"])
 		var current := _read_wallet(reverse)
 		if current + int(reverse["delta"]) < 0:
-			refund_result.failure_reason = "ResourceLedger: refund would overdraw '%s'" % reverse["resource_id"]
+			refund_result.failure_reason = (
+				"ResourceLedger: refund would overdraw '%s'" % reverse["resource_id"]
+			)
 			refund_result.shortfalls[reverse["resource_id"]] = -(current + int(reverse["delta"]))
 			return refund_result
 		refund_result._wallet_records.append(reverse)
@@ -78,12 +82,16 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			result.failure_reason = "ResourceLedger: unknown resource '%s'" % cost.resource_id
 			return result
 		if cost.scope == "" or not cost.scope in entry.subjects:
-			result.failure_reason = "ResourceLedger: resource '%s' does not support scope '%s'" % [
-				cost.resource_id, cost.scope]
+			result.failure_reason = (
+				"ResourceLedger: resource '%s' does not support scope '%s'"
+				% [cost.resource_id, cost.scope]
+			)
 			return result
 		var record := _resolve_wallet(cost, ctx, entry)
 		if record.is_empty():
-			result.failure_reason = "ResourceLedger: subject binding '%s' did not resolve" % cost.subject_binding
+			result.failure_reason = (
+				"ResourceLedger: subject binding '%s' did not resolve" % cost.subject_binding
+			)
 			return result
 		var key: String = record["key"]
 		if aggregated.has(key):
@@ -93,11 +101,17 @@ func _prepare(costs: Array, ctx: Dictionary) -> RefCounted:
 			record["delta"] = -cost.amount
 			record["refundable"] = cost.refundable
 			aggregated[key] = record
-		result.display_summary.append({
-			"resource_id": cost.resource_id,
-			"amount": cost.amount,
-			"ui": cost.ui_summary.duplicate(true),
-		})
+		(
+			result
+			. display_summary
+			. append(
+				{
+					"resource_id": cost.resource_id,
+					"amount": cost.amount,
+					"ui": cost.ui_summary.duplicate(true),
+				}
+			)
+		)
 
 	for record in aggregated.values():
 		var current := _read_wallet(record)

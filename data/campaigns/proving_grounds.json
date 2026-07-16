@@ -1,5 +1,7 @@
 {
   "campaign_id": "proving_grounds",
+  "author_id": "project_prometheus",
+  "campaign_version": "1.0.0",
   "label": "The Proving Grounds",
   "description": "Linear five-chapter campaign over the shipped objective maps: rout, seize, boss, escape, and defend.",
   "is_dev_only": false,
@@ -8,31 +10,31 @@
     {
       "node_id": "node_01_rout",
       "label": "Chapter 1 - First Blood",
-      "map_id": "map_001",
+      "encounter_id": "encounter_map_001",
       "next": ["node_02_seize"]
     },
     {
       "node_id": "node_02_seize",
       "label": "Chapter 2 - Take the Throne",
-      "map_id": "map_002_seize",
+      "encounter_id": "encounter_map_002_seize",
       "next": ["node_03_boss"]
     },
     {
       "node_id": "node_03_boss",
       "label": "Chapter 3 - The Commander",
-      "map_id": "map_003_defeat_boss",
+      "encounter_id": "encounter_map_003_defeat_boss",
       "next": ["node_04_escape"]
     },
     {
       "node_id": "node_04_escape",
       "label": "Chapter 4 - Withdraw",
-      "map_id": "map_004_escape",
+      "encounter_id": "encounter_map_004_escape",
       "next": ["node_05_defend"]
     },
     {
       "node_id": "node_05_defend",
       "label": "Chapter 5 - Hold the Line",
-      "map_id": "map_005_defend",
+      "encounter_id": "encounter_map_005_defend",
       "next": []
     }
   ]

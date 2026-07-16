@@ -562,6 +562,9 @@ Retry / snapshot round-trip:
 - [ ] Confirm the support is **not** rendered on its old tile after restore
       (snapshot captures `tile_position = (-1, -1)` for the support; if it
       reappears at its pre-pair tile, the snapshot was bypassed)
+- [ ] Lose again and verify **Reload Most Recent Save** and **Load Another Save**
+      restore their selected slot, **Rewind** is disabled/enabled with its charge
+      count, and **Main Menu** returns without deleting retained campaign slots
 
 ### More Info Phase 1 Live Playtest
 
@@ -917,7 +920,7 @@ identified by atlas position — no custom data.
 ### ✅ M5 UI scene wiring — Done
 
 All MVP UI scenes (`HUD`, `ActionMenu`, `ItemMenu`, `AttackPreview`, `PhaseBanner`,
-`LevelUpScreen`, `MapMenu`, `SettingsScreen`, `GameOverScreen`, `MainMenu`,
+`LevelUpScreen`, `MapMenu`, `SettingsScreen`, `MapResultsScreen`, `GameOverScreen`, `MainMenu`,
 `NewGameScreen`) are built and wired. Signal connections are made in code
 (`get_node_or_null` + `.connect()`), not via the editor's Node→Signals panel.
 

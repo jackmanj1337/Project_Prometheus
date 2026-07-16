@@ -28,7 +28,10 @@ Code review instructions are in the AGENT/Docs folder
 
 These notes should include what was done that session, the commits made and plans for next session,
 
-When you create a session note, add a one-line row for it to AGENT/Session Notes/INDEX.md (newest first, with a brief topic summary) — same pattern as MEMORY.md.
+When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md`, claim
+each substantive non-merge commit by exact full SHA and subject, and add a one-line
+row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic summary).
+Run `bash scripts/session_closeout.sh` before handing off or pushing.
 
 Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
 
@@ -37,4 +40,3 @@ Every time a new session is started go back and read the notes from the most rec
 
 
 If I say "Status Report" respond with "All Systems Online"
-

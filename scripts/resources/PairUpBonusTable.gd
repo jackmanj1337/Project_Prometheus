@@ -24,9 +24,17 @@ extends Resource
 
 # Stats whose live values contribute the scaling term. Limited to combat-
 # relevant stats by default so HP / movement do not bleed into Pair Up math.
-@export var scaling_stats: PackedStringArray = PackedStringArray([
-	"strength", "magic", "defense", "resistance", "skill", "speed", "luck",
-])
+@export var scaling_stats: PackedStringArray = PackedStringArray(
+	[
+		"strength",
+		"magic",
+		"defense",
+		"resistance",
+		"skill",
+		"speed",
+		"luck",
+	]
+)
 
 
 # Returns the flat bonus dict for a class, or an empty dict if unknown.

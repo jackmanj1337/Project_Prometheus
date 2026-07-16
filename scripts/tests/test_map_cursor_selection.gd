@@ -6,7 +6,7 @@ extends SceneTree
 const UnitScene = preload("res://scenes/units/Unit.tscn")
 
 var _grid: GridManager
-var _gs: Node          # stub GameState — GridManager.get_unit_at reads /root/GameState
+var _gs: Node  # stub GameState — GridManager.get_unit_at reads /root/GameState
 
 
 # Builds a real Unit and registers it in the stub GameState so get_unit_at finds it.
@@ -61,8 +61,12 @@ func _init() -> void:
 		print("OK  select_at on a player unit → true, unit + range set")
 		passed += 1
 	else:
-		print("FAIL select_at player: ok=%s unit=%s tiles=%d" \
-			% [ok, str(sel.selected_unit), sel.movement_tiles.size()])
+		print(
+			(
+				"FAIL select_at player: ok=%s unit=%s tiles=%d"
+				% [ok, str(sel.selected_unit), sel.movement_tiles.size()]
+			)
+		)
 		failed += 1
 
 	# ---- select_at on an empty tile → false ----
@@ -127,8 +131,12 @@ func _init() -> void:
 		print("OK  undo_and_reselect keeps the unit and recomputes the range")
 		passed += 1
 	else:
-		print("FAIL undo_and_reselect: unit=%s tiles=%d" \
-			% [str(sel.selected_unit), sel.movement_tiles.size()])
+		print(
+			(
+				"FAIL undo_and_reselect: unit=%s tiles=%d"
+				% [str(sel.selected_unit), sel.movement_tiles.size()]
+			)
+		)
 		failed += 1
 
 	# ---- clear: nulls the unit, empties the tiles ----
@@ -137,8 +145,7 @@ func _init() -> void:
 		print("OK  clear nulls the selected unit and empties movement_tiles")
 		passed += 1
 	else:
-		print("FAIL clear: unit=%s tiles=%d" \
-			% [str(sel.selected_unit), sel.movement_tiles.size()])
+		print("FAIL clear: unit=%s tiles=%d" % [str(sel.selected_unit), sel.movement_tiles.size()])
 		failed += 1
 
 	# ---- select_at on an already-acted unit → false ----

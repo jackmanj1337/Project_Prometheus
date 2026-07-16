@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/GameOverScreen.gd" id="1_gameover"]
+[ext_resource type="PackedScene" path="res://scenes/ui/LoadGameScreen.tscn" id="2_load"]
 
 [node name="GameOverScreen" type="Control"]
 layout_mode = 3
@@ -20,9 +21,9 @@ mouse_filter = 2
 [node name="Panel" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_left = 440.0
-offset_top = 260.0
+offset_top = 170.0
 offset_right = 840.0
-offset_bottom = 460.0
+offset_bottom = 550.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -39,15 +40,29 @@ layout_mode = 2
 horizontal_alignment = 1
 text = ""
 
-[node name="NextButton" type="Button" parent="Panel/VBox"]
-visible = false
-layout_mode = 2
-text = "Next Battle"
-
 [node name="RetryButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
-text = "Retry"
+text = "Retry Map"
 
-[node name="QuitButton" type="Button" parent="Panel/VBox"]
+[node name="ReloadRecentButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2
-text = "Quit to Menu"
+text = "Reload Most Recent Save"
+
+[node name="LoadGameButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Load Another Save..."
+
+[node name="RewindButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Rewind (0)"
+
+[node name="MainMenuButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Main Menu"
+
+[node name="Feedback" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="LoadGameScreen" parent="." instance=ExtResource("2_load")]

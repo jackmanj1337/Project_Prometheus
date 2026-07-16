@@ -17,15 +17,17 @@ var parent_id: String = ""
 var budget: int = 1
 
 
-static func combat(attacker: Node, defender: Node,
-		audience_id: String = "player") -> RefCounted:
+static func combat(attacker: Node, defender: Node, audience_id: String = "player") -> RefCounted:
 	var ctx: RefCounted = load("res://scripts/projection/ProjectionContext.gd").new()
 	ctx.kind = "combat"
 	ctx.audience = audience_id
 	ctx.actor = attacker
 	ctx.subject = attacker
 	ctx.targets = [defender]
-	ctx.source = attacker.get_equipped_weapon() if attacker != null \
-		and attacker.has_method("get_equipped_weapon") else null
+	ctx.source = (
+		attacker.get_equipped_weapon()
+		if attacker != null and attacker.has_method("get_equipped_weapon")
+		else null
+	)
 	ctx.reason = "combat_forecast"
 	return ctx

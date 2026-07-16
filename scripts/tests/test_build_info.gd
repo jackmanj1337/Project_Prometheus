@@ -22,19 +22,28 @@ func _init() -> void:
 		if not info.has(key) or typeof(info[key]) != TYPE_STRING or String(info[key]).is_empty():
 			keys_ok = false
 	if keys_ok:
-		print("OK  load_info returns non-empty version/commit/built_at"); passed += 1
+		print("OK  load_info returns non-empty version/commit/built_at")
+		passed += 1
 	else:
-		print("FAIL load_info shape: %s" % info); failed += 1
+		print("FAIL load_info shape: %s" % info)
+		failed += 1
 
 	# stamp_lines is framed and carries the identity + per-launch timestamp + the
 	# resolved log/user-data location (how a tester finds the log in a self-contained build).
 	var lines := BuildInfo.stamp_lines()
 	var joined := "\n".join(lines)
-	var framed: bool = lines.size() >= 2 \
-		and lines[0] == "=== BUILD STAMP ===" \
+	var framed: bool = (
+		lines.size() >= 2
+		and lines[0] == "=== BUILD STAMP ==="
 		and lines[lines.size() - 1] == "=== END BUILD STAMP ==="
-	var has_fields: bool = "version=" in joined and "commit=" in joined \
-		and "started_at=" in joined and "user_data_dir=" in joined and "log=" in joined
+	)
+	var has_fields: bool = (
+		"version=" in joined
+		and "commit=" in joined
+		and "started_at=" in joined
+		and "user_data_dir=" in joined
+		and "log=" in joined
+	)
 	if framed and has_fields:
 		print("OK  stamp_lines is framed and includes identity + timestamp + log location")
 		passed += 1
@@ -50,9 +59,11 @@ func _init() -> void:
 		if String(line).begins_with("started_at=") and String(line).ends_with("Z"):
 			has_utc = true
 	if has_utc:
-		print("OK  started_at is a UTC (Z) timestamp"); passed += 1
+		print("OK  started_at is a UTC (Z) timestamp")
+		passed += 1
 	else:
-		print("FAIL started_at not a UTC timestamp: %s" % joined); failed += 1
+		print("FAIL started_at not a UTC timestamp: %s" % joined)
+		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

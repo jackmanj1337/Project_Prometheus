@@ -39,15 +39,20 @@ static func stamp_lines() -> PackedStringArray:
 	var info := load_info()
 	# UTC ISO-8601; changes every launch so a stale log is obvious.
 	var started_at := "%sZ" % Time.get_datetime_string_from_system(true)
-	return PackedStringArray([
-		"=== BUILD STAMP ===",
-		"version=%s  commit=%s  built_at=%s" % [info["version"], info["commit"], info["built_at"]],
-		"started_at=%s" % started_at,
-		"exe=%s" % OS.get_executable_path(),
-		"user_data_dir=%s" % OS.get_user_data_dir(),
-		"log=%s" % ProjectSettings.globalize_path("user://logs/godot.log"),
-		"=== END BUILD STAMP ===",
-	])
+	return PackedStringArray(
+		[
+			"=== BUILD STAMP ===",
+			(
+				"version=%s  commit=%s  built_at=%s"
+				% [info["version"], info["commit"], info["built_at"]]
+			),
+			"started_at=%s" % started_at,
+			"exe=%s" % OS.get_executable_path(),
+			"user_data_dir=%s" % OS.get_user_data_dir(),
+			"log=%s" % ProjectSettings.globalize_path("user://logs/godot.log"),
+			"=== END BUILD STAMP ===",
+		]
+	)
 
 
 # Live short commit from git, or "" when git/.git is unavailable (exported build).

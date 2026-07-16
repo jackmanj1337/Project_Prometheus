@@ -49,12 +49,15 @@ func _init() -> void:
 	# Sanity: the scan must actually find units, or the test silently passes on
 	# an empty set (e.g. a moved data dir) and stops guarding anything.
 	if checked_units > 0:
-		print("OK  scanned %d UnitData resources under %s" % [checked_units, SCAN_ROOTS]); passed += 1
+		print("OK  scanned %d UnitData resources under %s" % [checked_units, SCAN_ROOTS])
+		passed += 1
 	else:
-		print("FAIL scan found 0 UnitData resources — scan roots wrong?"); failed += 1
+		print("FAIL scan found 0 UnitData resources — scan roots wrong?")
+		failed += 1
 
 	if dangling.is_empty():
-		print("OK  every inventory weapon_id / item_id resolves in DataManager"); passed += 1
+		print("OK  every inventory weapon_id / item_id resolves in DataManager")
+		passed += 1
 	else:
 		print("FAIL %d dangling inventory reference(s):" % dangling.size())
 		for d in dangling:

@@ -16,7 +16,8 @@ const MAP_H := 30
 
 # Minimal GridManager stand-in: just the surface CameraController reads. Tile<->world
 # math mirrors GridManager.tile_to_world / world_to_tile (integer division by TILE_SIZE).
-class GridStub extends Node:
+class GridStub:
+	extends Node
 	var map_width: int = MAP_W
 	var map_height: int = MAP_H
 
@@ -25,7 +26,8 @@ class GridStub extends Node:
 
 	func world_to_tile(world: Vector2) -> Vector2i:
 		return Vector2i(
-			int(world.x) / GameConstants.TILE_SIZE, int(world.y) / GameConstants.TILE_SIZE)
+			int(world.x) / GameConstants.TILE_SIZE, int(world.y) / GameConstants.TILE_SIZE
+		)
 
 
 var _passed := 0
@@ -63,14 +65,11 @@ func _init() -> void:
 
 	# ---- _visible_world_size: viewport px at zoom 1, scaled by 1/zoom otherwise ----
 	cam.zoom = Vector2.ONE
-	_ok(cc._visible_world_size() == view_px,
-		"_visible_world_size == viewport px at zoom 1")
+	_ok(cc._visible_world_size() == view_px, "_visible_world_size == viewport px at zoom 1")
 	cam.zoom = Vector2(2, 2)
-	_ok(cc._visible_world_size() == view_px * 0.5,
-		"_visible_world_size halves at zoom 2x")
+	_ok(cc._visible_world_size() == view_px * 0.5, "_visible_world_size halves at zoom 2x")
 	cam.zoom = Vector2(0.5, 0.5)
-	_ok(cc._visible_world_size() == view_px * 2.0,
-		"_visible_world_size doubles at zoom 0.5x")
+	_ok(cc._visible_world_size() == view_px * 2.0, "_visible_world_size doubles at zoom 0.5x")
 
 	# ---- zoom-awareness: visible tile count scales with 1/zoom ----
 	cam.zoom = Vector2.ONE
@@ -79,25 +78,30 @@ func _init() -> void:
 	var tiles_2x: int = int(cc._visible_world_size().x / tile)
 	cam.zoom = Vector2(0.5, 0.5)
 	var tiles_half: int = int(cc._visible_world_size().x / tile)
-	_ok(tiles_2x < tiles_1x and tiles_half > tiles_1x,
-		"visible tile count shrinks at 2x and grows at 0.5x (was fixed before)")
+	_ok(
+		tiles_2x < tiles_1x and tiles_half > tiles_1x,
+		"visible tile count shrinks at 2x and grows at 0.5x (was fixed before)"
+	)
 
 	# ---- framing (zoom 1): keep_cursor_in_view frames the cursor, stays in bounds ----
 	cam.zoom = Vector2.ONE
 	cam.position = view_px * 0.5  # top-left of view at world origin
 	cc.keep_cursor_in_view(far, 2)
-	_ok(cc.clamp_tile_to_view(far) == far,
-		"cursor tile is framed after keep_cursor_in_view (zoom 1)")
+	_ok(
+		cc.clamp_tile_to_view(far) == far,
+		"cursor tile is framed after keep_cursor_in_view (zoom 1)"
+	)
 	var tl1: Vector2i = grid.world_to_tile(cam.position - cc._visible_world_size() * 0.5)
-	_ok(tl1.x >= 0 and tl1.y >= 0,
-		"view never scrolls past the top-left map edge (zoom 1)")
+	_ok(tl1.x >= 0 and tl1.y >= 0, "view never scrolls past the top-left map edge (zoom 1)")
 
 	# ---- framing (zoom 2x): still frames the cursor using the narrower span ----
 	cam.zoom = Vector2(2, 2)
 	cam.position = view_px * 0.25  # top-left at origin for the 2x span
 	cc.keep_cursor_in_view(far, 2)
-	_ok(cc.clamp_tile_to_view(far) == far,
-		"cursor tile is framed after keep_cursor_in_view (zoom 2x)")
+	_ok(
+		cc.clamp_tile_to_view(far) == far,
+		"cursor tile is framed after keep_cursor_in_view (zoom 2x)"
+	)
 
 	# ---- clamp_tile_to_view: a tile just past the 2x span is pulled back in ----
 	# At 2x the view is half as many tiles wide; a tile that sits comfortably on
@@ -107,28 +111,30 @@ func _init() -> void:
 	var clamped: Vector2i = cc.clamp_tile_to_view(far)
 	var tl2: Vector2i = grid.world_to_tile(cam.position - cc._visible_world_size() * 0.5)
 	var right_edge: int = tl2.x + int(cc._visible_world_size().x / tile) - 1
-	_ok(clamped.x <= right_edge,
-		"clamp_tile_to_view respects the narrower span at 2x")
+	_ok(clamped.x <= right_edge, "clamp_tile_to_view respects the narrower span at 2x")
 
 	# ---- pan_by_pixels: argument is SCREEN px, converted to world via 1/zoom ----
 	# Map world = 2560x1920; the positions below are mid-map so the clamp never bites.
 	cam.zoom = Vector2(2, 2)
 	cam.position = Vector2(900, 600)
 	cc.pan_by_pixels(Vector2(100, 0))
-	_ok(is_equal_approx(cam.position.x, 950.0),
-		"pan_by_pixels: 100 screen px -> 50 world units at 2x")
+	_ok(
+		is_equal_approx(cam.position.x, 950.0),
+		"pan_by_pixels: 100 screen px -> 50 world units at 2x"
+	)
 	cam.zoom = Vector2.ONE
 	cam.position = Vector2(900, 600)
 	cc.pan_by_pixels(Vector2(100, 0))
-	_ok(is_equal_approx(cam.position.x, 1000.0),
-		"pan_by_pixels: 1:1 at zoom 1 (parity)")
+	_ok(is_equal_approx(cam.position.x, 1000.0), "pan_by_pixels: 1:1 at zoom 1 (parity)")
 
 	# ---- zoom API: levels, default, stepping, clamping ----
 	_ok(cc.get_zoom_count() == 8, "get_zoom_count == 8 levels")
 	cam.zoom = Vector2.ONE
 	cc.set_zoom_index_silent(cc.DEFAULT_ZOOM_INDEX)
-	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX and is_equal_approx(cc.get_zoom(), 1.0),
-		"default zoom index is 1.0x")
+	_ok(
+		cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX and is_equal_approx(cc.get_zoom(), 1.0),
+		"default zoom index is 1.0x"
+	)
 	_ok(is_equal_approx(cam.zoom.x, 1.0), "set_zoom_index_silent applies Camera2D.zoom")
 	# step_zoom changes the level and the Camera2D zoom.
 	cc.set_zoom_index(cc.DEFAULT_ZOOM_INDEX, Vector2i(5, 5))
@@ -138,22 +144,28 @@ func _init() -> void:
 	cc.set_zoom_index(0, Vector2i(5, 5))
 	var min_pos_before: Vector2 = cam.position
 	cc.step_zoom(-1, Vector2i(5, 5))
-	_ok(cc.get_zoom_index() == 0 and is_equal_approx(cam.zoom.x, 0.25),
-		"step_zoom clamps at the zoomed-out end")
-	_ok(cam.position == min_pos_before,
-		"step_zoom below min is a no-op and does not reframe")
+	_ok(
+		cc.get_zoom_index() == 0 and is_equal_approx(cam.zoom.x, 0.25),
+		"step_zoom clamps at the zoomed-out end"
+	)
+	_ok(cam.position == min_pos_before, "step_zoom below min is a no-op and does not reframe")
 	# Clamp at the top: stepping in from the last index stays there (4x).
 	cc.set_zoom_index(cc.get_zoom_count() - 1, Vector2i(5, 5))
 	var max_pos_before: Vector2 = cam.position
 	cc.step_zoom(1, Vector2i(5, 5))
-	_ok(cc.get_zoom_index() == cc.get_zoom_count() - 1 and is_equal_approx(cam.zoom.x, 4.0),
-		"step_zoom clamps at the zoomed-in end")
-	_ok(cam.position == max_pos_before,
-		"step_zoom above max is a no-op and does not reframe")
-	_ok(cc._effective_edge_buffer(2, 5) == 2
-		and cc._effective_edge_buffer(2, 4) == 1
-		and cc._effective_edge_buffer(2, 2) == 0,
-		"effective edge buffer shrinks when the visible tile span is tiny")
+	_ok(
+		cc.get_zoom_index() == cc.get_zoom_count() - 1 and is_equal_approx(cam.zoom.x, 4.0),
+		"step_zoom clamps at the zoomed-in end"
+	)
+	_ok(cam.position == max_pos_before, "step_zoom above max is a no-op and does not reframe")
+	_ok(
+		(
+			cc._effective_edge_buffer(2, 5) == 2
+			and cc._effective_edge_buffer(2, 4) == 1
+			and cc._effective_edge_buffer(2, 2) == 0
+		),
+		"effective edge buffer shrinks when the visible tile span is tiny"
+	)
 	# reset_zoom returns to the default level.
 	cc.reset_zoom(Vector2i(5, 5))
 	_ok(cc.get_zoom_index() == cc.DEFAULT_ZOOM_INDEX, "reset_zoom returns to 1.0x")
@@ -172,16 +184,20 @@ func _init() -> void:
 	var flush_scale_ok: bool = xf.get_scale().distance_to(Vector2(3.0, 3.0)) < 0.01
 	# DRAG_CENTER: the camera's world position must already map to the screen centre.
 	var flush_center_ok: bool = (xf * cam.position).distance_to(view_px * 0.5) < 1.0
-	_ok(flush_scale_ok and flush_center_ok,
-		"set_zoom_index flushes the canvas transform in the same frame (V026-03/04a)")
+	_ok(
+		flush_scale_ok and flush_center_ok,
+		"set_zoom_index flushes the canvas transform in the same frame (V026-03/04a)"
+	)
 	cc.reset_zoom(Vector2i(5, 5))
 
 	# ---- too-small map: a fully-visible map is centred, not pinned to a corner ----
-	grid.map_width = 4   # 4*64 = 256 px wide
+	grid.map_width = 4  # 4*64 = 256 px wide
 	grid.map_height = 3  # 3*64 = 192 px tall
 	cc.set_zoom_index(0, Vector2i(0, 0))  # 0.25x — view dwarfs the map on both axes
-	_ok(cc.get_camera().position == Vector2(128, 96),
-		"too-small map is centred on both axes (no blank-space pinning)")
+	_ok(
+		cc.get_camera().position == Vector2(128, 96),
+		"too-small map is centred on both axes (no blank-space pinning)"
+	)
 
 	# cc is RefCounted — it frees itself when the last reference drops; only the
 	# scene-tree nodes need an explicit queue_free.

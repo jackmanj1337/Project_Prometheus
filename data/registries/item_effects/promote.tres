@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RegistryEntry" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/resources/RegistryEntry.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "promote"
+family = "item_effects"
+label_key = "item_effect.promote"
+owner_feature = "B4-PROMOTION-UI"
+kind = "mutation"
+primitive_handler = "promote"
+save_fields = Array[String](["UnitData.class_id", "UnitData.inventory"])
+docs_text = "Open the promotion preview and commit through PromotionScreen."
+test_fixture = {"preview_mode": "promotion", "validation_handler": "promotion"}

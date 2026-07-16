@@ -58,19 +58,28 @@ func _init() -> void:
 		print("OK  grid movement keeps nearest column and wraps ragged rows")
 		passed += 1
 	else:
-		print("FAIL grid movement: down=%s ragged=%s wrap=%s index=%d" % [
-			down_ok, ragged_ok, wrap_ok, cursor.index])
+		print(
+			(
+				"FAIL grid movement: down=%s ragged=%s wrap=%s index=%d"
+				% [down_ok, ragged_ok, wrap_ok, cursor.index]
+			)
+		)
 		failed += 1
 
 	var sparse: RefCounted = SelectionCursor.new()
-	sparse.configure_positions([
-		Vector2i(0, 0),
-		Vector2i(1, 0),
-		Vector2i(2, 0),
-		Vector2i(2, 1),
-		Vector2i(3, 0),
-		Vector2i(3, 1),
-	])
+	(
+		sparse
+		. configure_positions(
+			[
+				Vector2i(0, 0),
+				Vector2i(1, 0),
+				Vector2i(2, 0),
+				Vector2i(2, 1),
+				Vector2i(3, 0),
+				Vector2i(3, 1),
+			]
+		)
+	)
 	sparse.set_index(0)
 	sparse.move_2d(1, 0)
 	var hp_ok: bool = sparse.index == 1
@@ -81,8 +90,12 @@ func _init() -> void:
 		print("OK  sparse grid positions preserve visual rows and nearest columns")
 		passed += 1
 	else:
-		print("FAIL sparse grid: hp=%s nearest_col=%s index=%d" % [
-			hp_ok, nearest_col_ok, sparse.index])
+		print(
+			(
+				"FAIL sparse grid: hp=%s nearest_col=%s index=%d"
+				% [hp_ok, nearest_col_ok, sparse.index]
+			)
+		)
 		failed += 1
 
 	var quiet_cursor: RefCounted = SelectionCursor.new()

@@ -32,16 +32,21 @@ func _scan_file(path: String, violations: Array[String]) -> void:
 		var line := f.get_line()
 		line_no += 1
 		if line.contains("pre-M9a"):
-			violations.append("%s:%d: stale pre-M9a tag — migrate the site, don't re-tag it"
-				% [path, line_no])
+			violations.append(
+				"%s:%d: stale pre-M9a tag — migrate the site, don't re-tag it" % [path, line_no]
+			)
 			continue
 		if line.contains("rng-allow"):
 			continue
 		if path in EXEMPT_FILES:
 			continue
 		if _raw_call.search(line) != null or _raw_ctor.search(line) != null:
-			violations.append("%s:%d: raw engine RNG — draw from an RngService event RNG "
-				% [path, line_no] + "or tag `# rng-allow: <reason>`")
+			violations.append(
+				(
+					"%s:%d: raw engine RNG — draw from an RngService event RNG " % [path, line_no]
+					+ "or tag `# rng-allow: <reason>`"
+				)
+			)
 
 
 func _scan_dir(dir_path: String, violations: Array[String]) -> void:
@@ -76,6 +81,10 @@ func _init() -> void:
 	if violations.is_empty():
 		print("OK  no raw gameplay RNG outside RngService; no stale pre-M9a tags")
 
-	print("\n=== Results: %d passed, %d failed ===" % [
-		1 if violations.is_empty() else 0, violations.size()])
+	print(
+		(
+			"\n=== Results: %d passed, %d failed ==="
+			% [1 if violations.is_empty() else 0, violations.size()]
+		)
+	)
 	quit(0 if violations.is_empty() else 1)

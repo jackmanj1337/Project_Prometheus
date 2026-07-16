@@ -57,8 +57,9 @@ func _ensure_table_loaded() -> bool:
 
 
 func _compute_bonuses(class_id: String, support_unit: Node) -> Dictionary:
-	return _compute_bonuses_common(class_id,
-		func(stat: String) -> int: return _read_support_stat(support_unit, stat))
+	return _compute_bonuses_common(
+		class_id, func(stat: String) -> int: return _read_support_stat(support_unit, stat)
+	)
 
 
 # Variant used by bonuses_for_class_and_stats — same shape as _compute_bonuses
@@ -68,8 +69,9 @@ func _compute_bonuses(class_id: String, support_unit: Node) -> Dictionary:
 # issue 2.3 — the previous "if not support_stats.has(...)" silently
 # diverged from production).
 func _compute_bonuses_from_stats(class_id: String, support_stats: Dictionary) -> Dictionary:
-	return _compute_bonuses_common(class_id,
-		func(stat: String) -> int: return int(support_stats.get(stat, 0)))
+	return _compute_bonuses_common(
+		class_id, func(stat: String) -> int: return int(support_stats.get(stat, 0))
+	)
 
 
 # Shared body: builds the bonus dict from the flat block + scaling layer.

@@ -1,0 +1,68 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/MapResultsScreen.gd" id="1_results"]
+
+[node name="MapResultsScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_results")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 390.0
+offset_top = 145.0
+offset_right = 890.0
+offset_bottom = 575.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Victory!"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 48
+
+[node name="Standings" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Rewards" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Rewards: None reported"
+
+[node name="Casualties" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Casualties: None reported"
+
+[node name="Progression" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Progression: Resolved"
+
+[node name="SaveStatus" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+text = "Save: writes after Continue"
+
+[node name="SuccessorLabel" type="Label" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+text = "Choose the next chapter"
+
+[node name="SuccessorPicker" type="OptionButton" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Continue"

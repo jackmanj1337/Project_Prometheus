@@ -12,10 +12,16 @@ const PairUpBonusResolverScript = preload("res://scripts/autoloads/PairUpBonusRe
 # values in pair_up_bonus_table.tres.
 func _make_test_table() -> Resource:
 	var table: Resource = PairUpBonusTableScript.new()
-	table.set("class_bonuses", {
-		"cavalier": {"strength": 1, "defense": 1, "speed": 1},
-		"mage":     {"magic": 2, "resistance": 1},
-	})
+	(
+		table
+		. set(
+			"class_bonuses",
+			{
+				"cavalier": {"strength": 1, "defense": 1, "speed": 1},
+				"mage": {"magic": 2, "resistance": 1},
+			}
+		)
+	)
 	table.set("scaling_divisor", 4)
 	table.set("scaling_stats", PackedStringArray(["strength", "magic", "skill", "speed"]))
 	return table
@@ -56,47 +62,58 @@ func _init() -> void:
 	# applies to every support — see Q5 answer in the design doc). Strength 20 /
 	# divisor 4 = 5; no flat contribution because "unknown" isn't in the table.
 	var unknown: Dictionary = resolver.bonuses_for_class_and_stats("unknown", {"strength": 20})
-	if int(unknown.get("strength", 0)) == 5 \
-			and not unknown.has("defense"):  # defense had no scaling input AND no flat entry
-		print("OK  unknown class returns scaling-only bonuses (no flat block)"); passed += 1
+	if int(unknown.get("strength", 0)) == 5 and not unknown.has("defense"):  # defense had no scaling input AND no flat entry
+		print("OK  unknown class returns scaling-only bonuses (no flat block)")
+		passed += 1
 	else:
-		print("FAIL unknown class returned: %s" % unknown); failed += 1
+		print("FAIL unknown class returned: %s" % unknown)
+		failed += 1
 
 	# Known class: flat bonuses only when scaling stats are zero
 	var flat_only: Dictionary = resolver.bonuses_for_class_and_stats("cavalier", {})
-	if int(flat_only.get("strength", 0)) == 1 \
-			and int(flat_only.get("defense", 0)) == 1 \
-			and int(flat_only.get("speed", 0)) == 1 \
-			and not flat_only.has("magic"):
-		print("OK  known class returns flat block when no scaling input"); passed += 1
+	if (
+		int(flat_only.get("strength", 0)) == 1
+		and int(flat_only.get("defense", 0)) == 1
+		and int(flat_only.get("speed", 0)) == 1
+		and not flat_only.has("magic")
+	):
+		print("OK  known class returns flat block when no scaling input")
+		passed += 1
 	else:
-		print("FAIL flat-only: %s" % flat_only); failed += 1
+		print("FAIL flat-only: %s" % flat_only)
+		failed += 1
 
 	# Scaling adds floor(stat / 4) to listed scaling stats
-	var scaled: Dictionary = resolver.bonuses_for_class_and_stats("cavalier",
-		{"strength": 12, "speed": 7, "skill": 4})
+	var scaled: Dictionary = resolver.bonuses_for_class_and_stats(
+		"cavalier", {"strength": 12, "speed": 7, "skill": 4}
+	)
 	# strength: flat 1 + floor(12/4)=3 → 4
 	# defense: flat 1, no scaling input → 1
 	# speed: flat 1 + floor(7/4)=1 → 2
 	# skill: flat 0 + floor(4/4)=1 → 1
-	if int(scaled.get("strength", 0)) == 4 \
-			and int(scaled.get("defense", 0)) == 1 \
-			and int(scaled.get("speed", 0)) == 2 \
-			and int(scaled.get("skill", 0)) == 1:
-		print("OK  scaling layer adds floor(stat/divisor) per scaling stat"); passed += 1
+	if (
+		int(scaled.get("strength", 0)) == 4
+		and int(scaled.get("defense", 0)) == 1
+		and int(scaled.get("speed", 0)) == 2
+		and int(scaled.get("skill", 0)) == 1
+	):
+		print("OK  scaling layer adds floor(stat/divisor) per scaling stat")
+		passed += 1
 	else:
-		print("FAIL scaled: %s" % scaled); failed += 1
+		print("FAIL scaled: %s" % scaled)
+		failed += 1
 
 	# scaling_divisor <= 0 disables scaling
 	var no_scale_table: Resource = _make_test_table()
 	no_scale_table.set("scaling_divisor", 0)
 	resolver.load_table(no_scale_table)
-	var no_scale: Dictionary = resolver.bonuses_for_class_and_stats("cavalier",
-		{"strength": 100})
+	var no_scale: Dictionary = resolver.bonuses_for_class_and_stats("cavalier", {"strength": 100})
 	if int(no_scale.get("strength", 0)) == 1:  # flat only; no scaling
-		print("OK  scaling_divisor <= 0 disables the scaling layer"); passed += 1
+		print("OK  scaling_divisor <= 0 disables the scaling layer")
+		passed += 1
 	else:
-		print("FAIL scaling-disabled returned: %s" % no_scale); failed += 1
+		print("FAIL scaling-disabled returned: %s" % no_scale)
+		failed += 1
 	resolver.load_table(_make_test_table())
 
 	# Mutating the returned dict must not bleed back into the table
@@ -104,15 +121,19 @@ func _init() -> void:
 	taint["strength"] = 999
 	var fresh: Dictionary = resolver.bonuses_for_class_and_stats("cavalier", {})
 	if int(fresh.get("strength", 0)) == 1:
-		print("OK  returned dicts are isolated copies (no table mutation)"); passed += 1
+		print("OK  returned dicts are isolated copies (no table mutation)")
+		passed += 1
 	else:
-		print("FAIL caller mutation leaked into next call: %s" % fresh); failed += 1
+		print("FAIL caller mutation leaked into next call: %s" % fresh)
+		failed += 1
 
 	# bonuses_for() with null support returns empty
 	if resolver.bonuses_for(null).is_empty():
-		print("OK  bonuses_for(null) returns empty dict"); passed += 1
+		print("OK  bonuses_for(null) returns empty dict")
+		passed += 1
 	else:
-		print("FAIL bonuses_for(null) returned non-empty"); failed += 1
+		print("FAIL bonuses_for(null) returned non-empty")
+		failed += 1
 
 	# bonuses_for() reads support_unit via get_effective_stat (stub path)
 	var stub := _mk_unit_stub()
@@ -124,12 +145,16 @@ func _init() -> void:
 	support_data.skill = 4
 	support.set("data", support_data)
 	var via_unit: Dictionary = resolver.bonuses_for(support)
-	if int(via_unit.get("strength", 0)) == 4 \
-			and int(via_unit.get("speed", 0)) == 2 \
-			and int(via_unit.get("skill", 0)) == 1:
-		print("OK  bonuses_for(unit) reads live stats via get_effective_stat"); passed += 1
+	if (
+		int(via_unit.get("strength", 0)) == 4
+		and int(via_unit.get("speed", 0)) == 2
+		and int(via_unit.get("skill", 0)) == 1
+	):
+		print("OK  bonuses_for(unit) reads live stats via get_effective_stat")
+		passed += 1
 	else:
-		print("FAIL bonuses_for(unit) returned: %s" % via_unit); failed += 1
+		print("FAIL bonuses_for(unit) returned: %s" % via_unit)
+		failed += 1
 
 	# The Unit-backed path and the dict-backed test seam must agree, given the
 	# same effective stat values. Pre-2026-06-10 the seam silently SKIPPED any
@@ -138,15 +163,16 @@ func _init() -> void:
 	# the scaling input being present. Issue 2.3.
 	var stats_from_unit: Dictionary = {
 		"strength": int(support_data.strength),
-		"speed":    int(support_data.speed),
-		"skill":    int(support_data.skill),
+		"speed": int(support_data.speed),
+		"skill": int(support_data.skill),
 	}  # NOTE: deliberately omits "magic" — both paths should treat it as 0
-	var via_stats: Dictionary = resolver.bonuses_for_class_and_stats(
-		"cavalier", stats_from_unit)
+	var via_stats: Dictionary = resolver.bonuses_for_class_and_stats("cavalier", stats_from_unit)
 	if via_stats == via_unit:
-		print("OK  unit-backed and dict-backed paths converge (issue 2.3)"); passed += 1
+		print("OK  unit-backed and dict-backed paths converge (issue 2.3)")
+		passed += 1
 	else:
-		print("FAIL path divergence: unit=%s stats=%s" % [via_unit, via_stats]); failed += 1
+		print("FAIL path divergence: unit=%s stats=%s" % [via_unit, via_stats])
+		failed += 1
 
 	# ---- CombatResolver._apply_pair_up_bonuses integration ----
 	# Requires the live resolver autoload so the cross-autoload lookup works.
@@ -174,27 +200,39 @@ func _init() -> void:
 			by_stat[entry["stat"]] = entry["delta"]
 		var sources_ok: bool = true
 		for entry in added:
-			if not String(entry["source"]).begins_with("pair_up:") \
-					or entry["duration_type"] != "combat":
+			if (
+				not String(entry["source"]).begins_with("pair_up:")
+				or entry["duration_type"] != "combat"
+			):
 				sources_ok = false
 				break
-		if added.size() == 4 and int(by_stat.get("strength", 0)) == 4 \
-				and int(by_stat.get("defense", 0)) == 1 \
-				and int(by_stat.get("speed", 0)) == 2 \
-				and int(by_stat.get("skill", 0)) == 1 \
-				and sources_ok:
-			print("OK  _apply_pair_up_bonuses adds combat-duration modifiers per stat"); passed += 1
+		if (
+			added.size() == 4
+			and int(by_stat.get("strength", 0)) == 4
+			and int(by_stat.get("defense", 0)) == 1
+			and int(by_stat.get("speed", 0)) == 2
+			and int(by_stat.get("skill", 0)) == 1
+			and sources_ok
+		):
+			print("OK  _apply_pair_up_bonuses adds combat-duration modifiers per stat")
+			passed += 1
 		else:
-			print("FAIL integration: count=%d by_stat=%s sources_ok=%s" \
-				% [added.size(), by_stat, sources_ok])
+			print(
+				(
+					"FAIL integration: count=%d by_stat=%s sources_ok=%s"
+					% [added.size(), by_stat, sources_ok]
+				)
+			)
 			failed += 1
 		# Null support → no modifiers added.
 		combatant.set("added", [])
 		cr.call("_apply_pair_up_bonuses", combatant, null)
 		if (combatant.get("added") as Array).is_empty():
-			print("OK  _apply_pair_up_bonuses(null support) is a safe no-op"); passed += 1
+			print("OK  _apply_pair_up_bonuses(null support) is a safe no-op")
+			passed += 1
 		else:
-			print("FAIL null support unexpectedly added modifiers"); failed += 1
+			print("FAIL null support unexpectedly added modifiers")
+			failed += 1
 		# Restore the on-disk table so any subsequent test sees production data.
 		live_resolver.load_table(null)
 
@@ -221,7 +259,9 @@ func _init() -> void:
 		var sup_data := UnitData.new()
 		sup_data.class_id = "cavalier"
 		sup_data.unit_id = "sup_w4b"
-		sup_data.strength = 12; sup_data.speed = 7; sup_data.skill = 4
+		sup_data.strength = 12
+		sup_data.speed = 7
+		sup_data.skill = 4
 		sup_stub.set("data", sup_data)
 		cr.call("_apply_pair_up_bonuses", atk_stub, sup_stub)
 		var first_call_count: int = (atk_stub.get("added") as Array).size()
@@ -230,9 +270,15 @@ func _init() -> void:
 		cr.call("_apply_pair_up_bonuses", atk_stub, sup_stub)
 		var second_call_count: int = (atk_stub.get("added") as Array).size()
 		if first_call_count > 0 and first_call_count == second_call_count and ctx_keys_match:
-			print("OK  W4b: Pair Up bonuses apply identically for both preview and resolve entry points"); passed += 1
+			print(
+				"OK  W4b: Pair Up bonuses apply identically for both preview and resolve entry points"
+			)
+			passed += 1
 		else:
-			print("FAIL W4b unification: first=%d second=%d" % [first_call_count, second_call_count]); failed += 1
+			print(
+				"FAIL W4b unification: first=%d second=%d" % [first_call_count, second_call_count]
+			)
+			failed += 1
 
 	print("Results: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed > 0 else 0)

@@ -34,13 +34,13 @@ const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 # Friendly source labels for known modifier sources. Unknown sources fall back
 # to the raw id so debugging output still tells you what is going on.
 const SOURCE_LABELS: Dictionary = {
-	"tonic":           "Tonic",
-	"item":            "Item",
-	"pair_up":         "Pair Up",
-	"terrain":         "Terrain",
-	"rally":           "Rally",
+	"tonic": "Tonic",
+	"item": "Item",
+	"pair_up": "Pair Up",
+	"terrain": "Terrain",
+	"rally": "Rally",
 	"weapon_triangle": "Weapon Triangle",
-	"skill":           "Skill",
+	"skill": "Skill",
 }
 
 # Sentinel cap value used when a class authors no cap for a STAT_KEYS stat — a
@@ -61,15 +61,20 @@ const CAP_MISSING := -1
 #                 stat skills) via StatContributions. They don't live in
 #                 active_modifiers outside a fight, so the caller injects them;
 #                 they are merged into `mods` and added into `effective_display`.
-static func build(unit, stat_name: String, class_data = null,
-		extra_mods: Array = []) -> Dictionary:
+static func build(unit, stat_name: String, class_data = null, extra_mods: Array = []) -> Dictionary:
 	var label := label_for_stat(stat_name)
 	if unit == null or not is_instance_valid(unit) or unit.get("data") == null:
 		return {
-			"stat": stat_name, "label": label,
-			"base": 0, "effective": 0, "effective_display": 0, "total_delta": 0,
-			"personal_base": 0, "class_base": 0,
-			"cap": CAP_MISSING, "cap_state": "unknown",
+			"stat": stat_name,
+			"label": label,
+			"base": 0,
+			"effective": 0,
+			"effective_display": 0,
+			"total_delta": 0,
+			"personal_base": 0,
+			"class_base": 0,
+			"cap": CAP_MISSING,
+			"cap_state": "unknown",
 			"mods": [],
 		}
 	var data = unit.data
@@ -111,8 +116,9 @@ static func build(unit, stat_name: String, class_data = null,
 # intentionally "uncapped". With no class_data the split is "unknown".
 static func _class_decomposition(class_data, stat_name: String, base_value: int) -> Dictionary:
 	if class_data == null:
-		return {"personal_base": base_value, "class_base": 0,
-			"cap": CAP_MISSING, "cap_state": "unknown"}
+		return {
+			"personal_base": base_value, "class_base": 0, "cap": CAP_MISSING, "cap_state": "unknown"
+		}
 	var class_base: int = 0
 	var base_field := "base_%s" % stat_name
 	if base_field in class_data:
@@ -212,11 +218,11 @@ static func _collect_mods(data, stat_name: String) -> Array:
 		if not grouped.has(source_id):
 			order.append(source_id)
 			grouped[source_id] = {
-				"source_id":     source_id,
-				"source_label":  label_for_source(source_id),
-				"delta":         delta,
+				"source_id": source_id,
+				"source_label": label_for_source(source_id),
+				"delta": delta,
 				"duration_type": duration_type,
-				"remaining":     duration,
+				"remaining": duration,
 			}
 		else:
 			# Merge a duplicate same-source row: sum deltas, keep the longest

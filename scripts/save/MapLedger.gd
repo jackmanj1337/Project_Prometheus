@@ -46,6 +46,33 @@ func clear() -> void:
 	_entries.clear()
 
 
+func to_save_array() -> Array[Dictionary]:
+	return _entries.duplicate(true)
+
+
+func restore_from_save(value: Variant) -> bool:
+	if not (value is Array):
+		return false
+	var restored: Array[Dictionary] = []
+	for item in value:
+		if not (item is Dictionary):
+			return false
+		var reason := String(item.get("reason", ""))
+		var entry: Variant = item.get("entry", null)
+		if reason not in [REASON_ROUND_START, REASON_ACTIVATION] or not (entry is Dictionary):
+			return false
+		restored.append({"reason": reason, "entry": entry.duplicate(true)})
+	_entries = restored
+	return true
+
+
+func truncate_after(index: int) -> void:
+	if index < 0:
+		_entries.clear()
+	elif index + 1 < _entries.size():
+		_entries.resize(index + 1)
+
+
 # The reason tag at index, or "" if out of range — for tests/UI that label an entry.
 func reason_at(index: int) -> String:
 	if index < 0 or index >= _entries.size():

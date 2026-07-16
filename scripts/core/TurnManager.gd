@@ -19,6 +19,10 @@ signal phase_committed
 
 const SaveCodec = preload("res://scripts/save/SaveCodec.gd")
 const CostSpecScript = preload("res://scripts/resources/CostSpec.gd")
+const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
+const ObjectiveConditionRegistryScript = preload(
+	"res://scripts/registries/ObjectiveConditionRegistry.gd"
+)
 
 enum UnitState { READY, MOVED, DONE }
 
@@ -26,7 +30,7 @@ enum UnitState { READY, MOVED, DONE }
 var _unit_states: Dictionary = {}
 # Saved tile when a unit starts moving so undo_move can restore it
 var _original_tiles: Dictionary = {}
-var _map_data: MapData = null
+var _map_data: Resource = null
 var _grid: GridManager = null
 # Latches true on first map_victory/map_defeat emit to prevent double-fire.
 var _map_over: bool = false
@@ -66,6 +70,11 @@ var _activation_mode: String = "WHOLE_PHASE"
 var _ai_controller: Node = null
 var _hotseat_controller: Node = null
 var _debug_hotseat_override_latch: bool = false
+var _history_cursor: Node = null
+var _history_push_pending := false
+var _ai_suspend_requested := false
+var _ai_suspend_exit_pending := false
+var _objective_conditions: RefCounted
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
 # Stage-1/2 maps only spawn blue + red, so the zero-unit skip in _advance_faction
@@ -74,7 +83,7 @@ const _DEFAULT_TURN_ORDER: Array[String] = ["blue", "green", "red", "yellow"]
 
 
 # Called by GameMap after units have spawned.
-func start_map(map_data: MapData, grid: GridManager = null) -> void:
+func start_map(map_data: Resource, grid: GridManager = null) -> void:
 	_map_data = map_data
 	_grid = grid
 	_turn_order = _derive_turn_order(map_data)
@@ -110,7 +119,11 @@ func start_map(map_data: MapData, grid: GridManager = null) -> void:
 				gs_for_first.set_phase(gs_for_first.Phase.ENEMY, active_faction())
 
 
-func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Dictionary) -> void:
+func set_history_cursor(cursor: Node) -> void:
+	_history_cursor = cursor
+
+
+func start_map_from_suspend(map_data: Resource, grid: GridManager, turn_state: Dictionary) -> void:
 	_map_data = map_data
 	_grid = grid
 	_turn_order = SaveCodec.string_array_from_variant(turn_state.get("turn_order", []))
@@ -125,7 +138,9 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 	_restore_unit_states(turn_state.get("unit_states", {}))
 	_seize_records = _deserialize_records(turn_state.get("seize_records", []))
 	_escape_records = _dict_records_from_variant(turn_state.get("escape_records", []))
-	_group_eliminated_round = SaveCodec.int_dict_from_variant(turn_state.get("group_eliminated_round", {}))
+	_group_eliminated_round = SaveCodec.int_dict_from_variant(
+		turn_state.get("group_eliminated_round", {})
+	)
 	_map_over = false
 	var gs := get_node_or_null("/root/GameState")
 	if gs:
@@ -134,12 +149,40 @@ func start_map_from_suspend(map_data: MapData, grid: GridManager, turn_state: Di
 		gs.set_phase(gs.Phase.ENEMY if phase_name == "enemy" else gs.Phase.PLAYER, active_faction())
 	_connect_runtime_signals()
 	_debug_hotseat_override_latch = is_debug_hotseat_override_active()
+	var restored_faction := active_faction()
+	if restored_faction != "blue" and is_locally_controlled_faction(restored_faction):
+		# Resume the same awaited local-faction driver used during an uninterrupted
+		# hotseat phase. Deferred entry lets GameMap finish restoring cursor/UI state
+		# before HotseatController retargets and unlocks the cursor.
+		call_deferred("_resume_suspended_local_phase", restored_faction)
+	elif (
+		restored_faction != "blue"
+		and _is_ai_controlled(restored_faction)
+		and String(turn_state.get("controller_boundary", "")) == "between_ai_activations"
+	):
+		# The faction's phase-start effects were already applied before capture.
+		# Resume the controller loop without replaying healing, modifier ticks, or
+		# start-of-turn skills; DONE units are skipped by EnemyAI.run_phase().
+		call_deferred("_resume_suspended_ai_phase", restored_faction)
 	# V030-SUS-01 (d): turn_number is assigned directly above and is otherwise
 	# only announced by _complete_round, so the HUD (which updates on
 	# turn_changed) would show a stale count until the next round boundary. Emit
 	# now so the label reflects the restored turn immediately.
 	if gs:
 		turn_changed.emit(gs.turn_number)
+
+
+func _resume_suspended_local_phase(faction_id: String) -> void:
+	if active_faction() != faction_id or not is_locally_controlled_faction(faction_id):
+		return
+	if _hotseat_controller != null:
+		await _hotseat_controller.run_phase(_grid, self, faction_id)
+
+
+func _resume_suspended_ai_phase(faction_id: String) -> void:
+	if active_faction() != faction_id or not _is_ai_controlled(faction_id):
+		return
+	await _run_enemy_phases(true)
 
 
 func capture_suspend_turn_state() -> Dictionary:
@@ -155,6 +198,7 @@ func capture_suspend_turn_state() -> Dictionary:
 		"seize_records": _serialize_records(_seize_records),
 		"escape_records": _escape_records.duplicate(true),
 		"group_eliminated_round": _group_eliminated_round.duplicate(true),
+		"controller_boundary": "between_ai_activations" if _ai_suspend_exit_pending else "",
 	}
 
 
@@ -166,8 +210,11 @@ func _connect_runtime_signals() -> void:
 	# PairUpRegistry announces it on EventBus so it need not know our scene path.
 	if bus and not bus.support_orphaned.is_connected(_on_support_orphaned):
 		bus.support_orphaned.connect(_on_support_orphaned)
-	if bus and bus.has_signal("debug_flags_changed") \
-			and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed):
+	if (
+		bus
+		and bus.has_signal("debug_flags_changed")
+		and not bus.debug_flags_changed.is_connected(_on_debug_flags_changed)
+	):
 		bus.debug_flags_changed.connect(_on_debug_flags_changed)
 
 
@@ -249,7 +296,7 @@ func _array_from_variant(value: Variant) -> Array:
 # Reads MapData.turn_order, MapData.factions, or falls back to the default
 # four-army cycle. A faction id is allowed even if it has zero living units —
 # _advance_faction's skip logic handles that at runtime.
-func _derive_turn_order(map_data: MapData) -> Array[String]:
+func _derive_turn_order(map_data: Resource) -> Array[String]:
 	if map_data != null and not map_data.turn_order.is_empty():
 		# Defensive copy — MapData lives in a Resource that could be shared
 		# across loads; we mutate _active_faction_idx, not the array, but a
@@ -269,7 +316,7 @@ func _derive_turn_order(map_data: MapData) -> Array[String]:
 	return fallback
 
 
-func _derive_activation_mode(map_data: MapData) -> String:
+func _derive_activation_mode(map_data: Resource) -> String:
 	if map_data != null and map_data.activation_mode != "":
 		return map_data.activation_mode
 	return "WHOLE_PHASE"
@@ -335,7 +382,9 @@ func _apply_fort_healing(units: Array[Node]) -> void:
 			# heal = max(1, floor(0.10 × max_hp)) per OPEN-7 (GDD_02 fort/throne heal):
 			# the floor guarantees ≥1 so 1–9 max-HP units still recover. Mirrors the
 			# staff-heal path in SkillHandler.gd.
-			var heal_amount: int = maxi(1, floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION))
+			var heal_amount: int = maxi(
+				1, floori(u.data.max_hp * GameConstants.PERCENT_HP_HEAL_FRACTION)
+			)
 			u.heal(heal_amount)
 
 
@@ -424,6 +473,8 @@ func start_player_phase() -> void:
 			_unit_states[u] = UnitState.READY
 			if u.has_method("reset_appearance"):
 				u.reset_appearance()
+	if gs != null and gs.turn_number > 1:
+		_push_history(MapLedgerScript.REASON_ROUND_START)
 
 
 # Called via the map menu's End Turn request (MapCursor._on_end_turn_requested).
@@ -444,13 +495,21 @@ func start_enemy_phase() -> void:
 	if active_faction() == "blue":
 		if _advance_faction():
 			_complete_round()
+	await _run_enemy_phases(false)
+
+
+func _run_enemy_phases(resume_active_phase: bool) -> void:
 	# Stage 4/5: run each consecutive non-blue faction controller, then hand back to blue.
 	var guard: int = _turn_order.size() + 1
 	var phase_started: Dictionary = {}
+	if resume_active_phase and active_faction() != "":
+		phase_started[active_faction()] = true
 	while active_faction() != "blue" and active_faction() != "":
 		guard -= 1
 		if guard < 0:
-			push_error("TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'")
+			push_error(
+				"TurnManager: enemy-phase loop never returned to blue — turn_order is missing 'blue'"
+			)
 			break
 		var faction_id: String = active_faction()
 		# Decision 7 phase-boundary sweep: the evaluator runs at the start of every
@@ -467,11 +526,15 @@ func start_enemy_phase() -> void:
 				_refresh_faction_units(faction_id)
 				_begin_phase(gs.get_living_units_of(faction_id))
 				phase_started[faction_id] = true
-		var was_debug_override: bool = _debug_hotseat_override_active_for(faction_id) \
+		var was_debug_override: bool = (
+			_debug_hotseat_override_active_for(faction_id)
 			and not _is_hotseat_controlled(faction_id)
+		)
 		var controller := _controller_for(faction_id)
 		if controller != null:
 			await controller.run_phase(_grid, self, faction_id)
+		if _ai_suspend_exit_pending:
+			return
 		if _map_over:
 			return
 		# F9 may flip while a controller is awaited. If it interrupts AI, rerun
@@ -480,12 +543,18 @@ func start_enemy_phase() -> void:
 		# These re-runs replay the SAME faction (no cycle progress), so refund the
 		# guard decrement above — otherwise repeated F9 toggling in one phase would
 		# exhaust the cycle budget and trip the spurious "never returned to blue".
-		if not was_debug_override and _debug_hotseat_override_active_for(active_faction()) \
-				and not _is_hotseat_controlled(active_faction()):
+		if (
+			not was_debug_override
+			and _debug_hotseat_override_active_for(active_faction())
+			and not _is_hotseat_controlled(active_faction())
+		):
 			guard += 1
 			continue
-		if was_debug_override and not is_debug_hotseat_override_active() \
-				and _is_ai_controlled(active_faction()):
+		if (
+			was_debug_override
+			and not is_debug_hotseat_override_active()
+			and _is_ai_controlled(active_faction())
+		):
 			guard += 1
 			continue
 		# For now M14 stage 4 is WHOLE_PHASE-only AI dispatch; ALTERNATING
@@ -590,12 +659,15 @@ func end_alternating_activation() -> void:
 				u.reset_appearance()
 	_tick_unit_modifiers(gs.all_units, "map_turn")
 	_begin_phase(gs.all_units)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 func set_unit_state(unit: Node, state: UnitState) -> void:
 	if unit == null:
 		return
+	var previous: int = int(_unit_states.get(unit, UnitState.READY))
 	_unit_states[unit] = state
 	if state == UnitState.DONE:
 		# The action is committed — spend the recorded pre-move tile so a later
@@ -609,10 +681,68 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# automatically (#5 / M15 Part A). Deferred so the current action fully
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
-	if state == UnitState.DONE:
+	if state == UnitState.DONE and previous != UnitState.DONE:
+		_queue_activation_history_push()
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
 			call_deferred("_auto_end_active_phase")
+
+
+func _queue_activation_history_push() -> void:
+	if _history_push_pending:
+		return
+	_history_push_pending = true
+	call_deferred("_flush_activation_history")
+
+
+func _flush_activation_history() -> void:
+	if not _history_push_pending:
+		return
+	_history_push_pending = false
+	_push_history(MapLedgerScript.REASON_ACTIVATION)
+
+
+# Latches one player request while an AI unit is acting. EnemyAI acknowledges
+# it only after the unit has fully unwound to a committed activation boundary.
+func request_suspend_after_ai_activation() -> bool:
+	if _map_over or not _is_ai_controlled(active_faction()):
+		return false
+	_ai_suspend_requested = true
+	return true
+
+
+func has_pending_ai_suspend() -> bool:
+	return _ai_suspend_requested
+
+
+# Called exactly between EnemyAI unit activations. Force the deferred history
+# push now so the suspend payload and ledger describe the same committed board.
+# The cursor owns the transactional slot write; a failed write clears the intent
+# and lets the AI phase continue rather than abandoning a playable map.
+func complete_ai_activation_boundary() -> bool:
+	if _history_push_pending:
+		_flush_activation_history()
+	if _map_over:
+		_ai_suspend_requested = false
+		return false
+	if not _ai_suspend_requested:
+		return false
+	_ai_suspend_requested = false
+	_ai_suspend_exit_pending = true
+	var saved := false
+	if _history_cursor != null and _history_cursor.has_method("perform_pending_ai_suspend"):
+		saved = bool(_history_cursor.call("perform_pending_ai_suspend"))
+	if not saved:
+		_ai_suspend_exit_pending = false
+	return saved
+
+
+func _push_history(reason: String) -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or not gs.has_method("push_history"):
+		return
+	gs.call("push_history", self, _history_cursor, reason)
+	gs.call("prune_history")
 
 
 # Deferred from set_unit_state / _on_unit_died — ends the active locally-human
@@ -772,7 +902,7 @@ func check_victory_conditions() -> void:
 	var defeat_by_group: Dictionary = {}
 	for g in groups:
 		victory_by_group[g] = _conditions_for_group(_map_data.victory_conditions, g)
-		defeat_by_group[g]  = _conditions_for_group(_map_data.defeat_conditions, g)
+		defeat_by_group[g] = _conditions_for_group(_map_data.defeat_conditions, g)
 
 	var round_n: int = gs.turn_number
 
@@ -848,22 +978,32 @@ func _build_standings(winner: String, all_groups: Array[String], gs: Node) -> Ar
 	var standings: Array = []
 	var blue_group: String = gs.get_alliance_group("blue")
 	if winner != "":
-		standings.append({
-			"group": winner,
-			"eliminated_round": -1,
-			"rank": 1,
-			"is_blue_group": winner == blue_group,
-		})
+		(
+			standings
+			. append(
+				{
+					"group": winner,
+					"eliminated_round": -1,
+					"rank": 1,
+					"is_blue_group": winner == blue_group,
+				}
+			)
+		)
 	# Snapshot losers with their elimination round.
 	var losers: Array = []
 	for g in all_groups:
 		if g == winner:
 			continue
-		losers.append({
-			"group": g,
-			"eliminated_round": _group_eliminated_round.get(g, -1),
-			"is_blue_group": g == blue_group,
-		})
+		(
+			losers
+			. append(
+				{
+					"group": g,
+					"eliminated_round": _group_eliminated_round.get(g, -1),
+					"is_blue_group": g == blue_group,
+				}
+			)
+		)
 	# Sort losers by elimination round descending; ties keep insertion order
 	# (sort_custom is stable in Godot 4).
 	losers.sort_custom(func(a, b): return a["eliminated_round"] > b["eliminated_round"])
@@ -910,31 +1050,43 @@ func _conditions_for_group(dict: Dictionary, group: String) -> Array:
 # Dispatcher. Returns true iff `cond` is satisfied right now for the
 # conditioning group `for_group`. Covers the seven authored M16 types.
 func _evaluate_condition(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
-	if cond == null:
-		return false
-	match cond.type:
-		"rout":
-			return _eval_rout(cond, for_group, gs)
-		"turn_limit":
-			# defeat when turn_number > turns; mirrors the legacy strict-greater check.
-			return gs.turn_number > cond.turns
-		"protect":
-			# defeat-condition truth = ANY protected unit is dead/missing.
-			return _eval_protect_failed(cond, gs)
-		"defeat_boss":
-			# defeat-condition truth = ANY named unit is dead. Same shape as
-			# protect_failed but authored as a foe-eliminating victory ("boss
-			# down → I win") on the conditioning group's victory_conditions.
-			return _eval_all_named_dead(cond, gs)
-		"seize":
-			return _eval_seize(cond, for_group, gs)
-		"escape":
-			return _eval_escape(cond)
-		"survive":
-			return _eval_survive(cond, for_group, gs)
-		_:
-			push_warning("ObjectiveCondition: unimplemented type '%s' — treated as unmet" % cond.type)
-			return false
+	return _objective_registry().evaluate(cond, for_group, gs)
+
+
+func _objective_registry() -> RefCounted:
+	if _objective_conditions != null:
+		return _objective_conditions
+	_objective_conditions = ObjectiveConditionRegistryScript.new()
+	_objective_conditions.register_evaluation_handler("rout", Callable(self, "_eval_rout"))
+	_objective_conditions.register_evaluation_handler(
+		"turn_limit", Callable(self, "_eval_turn_limit")
+	)
+	_objective_conditions.register_evaluation_handler("protect", Callable(self, "_eval_protect"))
+	_objective_conditions.register_evaluation_handler(
+		"defeat_boss", Callable(self, "_eval_defeat_boss")
+	)
+	_objective_conditions.register_evaluation_handler("seize", Callable(self, "_eval_seize"))
+	_objective_conditions.register_evaluation_handler(
+		"escape", Callable(self, "_eval_escape_registered")
+	)
+	_objective_conditions.register_evaluation_handler("survive", Callable(self, "_eval_survive"))
+	return _objective_conditions
+
+
+func _eval_turn_limit(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return gs.turn_number > cond.turns
+
+
+func _eval_protect(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return _eval_protect_failed(cond, gs)
+
+
+func _eval_defeat_boss(cond: ObjectiveCondition, _for_group: String, gs: Node) -> bool:
+	return _eval_all_named_dead(cond, gs)
+
+
+func _eval_escape_registered(cond: ObjectiveCondition, _for_group: String, _gs: Node) -> bool:
+	return _eval_escape(cond)
 
 
 # rout: a named faction id, or a named alliance group, has zero living units.
@@ -964,7 +1116,12 @@ func _eval_rout(cond: ObjectiveCondition, for_group: String, gs: Node) -> bool:
 				if not gs.get_all_living_units_of(fid).is_empty():
 					return false
 		if not matched:
-			push_warning("ObjectiveCondition rout: faction_id '%s' matches no faction or group" % cond.faction_id)
+			push_warning(
+				(
+					"ObjectiveCondition rout: faction_id '%s' matches no faction or group"
+					% cond.faction_id
+				)
+			)
 			return false
 		return true
 	# faction_id == "" → all hostiles to the conditioning group wiped.
@@ -1084,6 +1241,7 @@ func get_group_eliminated_round(group: String) -> int:
 
 # ── M16 stage 3: seize / escape public APIs ──────────────────────────────────
 
+
 # Called by MapCursor when the player commits the Seize ActionMenu entry on
 # `unit`'s current tile. Records the {tile, unit_id, faction} triple so the
 # next victory sweep can resolve seize conditions, then runs the sweep
@@ -1092,11 +1250,16 @@ func get_group_eliminated_round(group: String) -> int:
 func record_seize(unit: Node) -> void:
 	if unit == null or unit.data == null:
 		return
-	_seize_records.append({
-		"tile": unit.tile_position,
-		"unit_id": unit.data.unit_id,
-		"faction": unit.team,
-	})
+	(
+		_seize_records
+		. append(
+			{
+				"tile": unit.tile_position,
+				"unit_id": unit.data.unit_id,
+				"faction": unit.team,
+			}
+		)
+	)
 	check_victory_conditions()
 
 
@@ -1141,17 +1304,26 @@ func record_escape(unit: Node) -> void:
 		if escaping_unit == null or escaping_unit.data == null:
 			continue
 		if not _has_unit_escaped(escaping_unit.data.unit_id):
-			_escape_records.append({
-				"unit_id": escaping_unit.data.unit_id,
-				"faction": escaping_unit.team,
-			})
+			(
+				_escape_records
+				. append(
+					{
+						"unit_id": escaping_unit.data.unit_id,
+						"faction": escaping_unit.team,
+					}
+				)
+			)
 	# Order: log the escape (above) → unregister from GameState → drop the
 	# per-unit bookkeeping (state + original tile) → free the node → re-evaluate.
 	# Reordering risks evaluator passes seeing a half-escaped unit (e.g.
 	# unregistered but still in _unit_states), so keep the steps in this order.
 	var gs := get_node_or_null("/root/GameState")
 	var registry := get_node_or_null("/root/PairUpRegistry")
-	if registry != null and unit.data.unit_id != "" and registry.call("is_paired", unit.data.unit_id):
+	if (
+		registry != null
+		and unit.data.unit_id != ""
+		and registry.call("is_paired", unit.data.unit_id)
+	):
 		registry.call("separate", unit.data.unit_id)
 	for escaping_unit in escaping_units:
 		if escaping_unit == null:
@@ -1213,11 +1385,12 @@ func _apply_victory_rewards(gs: Node) -> void:
 		if ledger == null:
 			push_error("TurnManager: ResourceLedger is unavailable; victory gold was not awarded")
 		else:
-			var cost = CostSpecScript.fixed(
-				"party_gold", "party", -_map_data.reward_gold)
+			var cost = CostSpecScript.fixed("party_gold", "party", -_map_data.reward_gold)
 			var transaction: RefCounted = ledger.call("commit", [cost], {"game_state": gs})
 			if not transaction.ok:
-				push_error("TurnManager: victory gold award failed: %s" % transaction.failure_reason)
+				push_error(
+					"TurnManager: victory gold award failed: %s" % transaction.failure_reason
+				)
 	for item_id in _map_data.reward_items:
 		gs.party_items.append(item_id)
 

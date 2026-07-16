@@ -16,23 +16,30 @@ func _init() -> void:
 	# ---- known stat lookup ----------------------------------------------
 	var str_text := MoreInfoContent.describe("stat", "strength")
 	if "Physical" in str_text and str_text != MoreInfoContent.FALLBACK_TEXT:
-		print("OK  describe(stat, strength) returns authored description"); passed += 1
+		print("OK  describe(stat, strength) returns authored description")
+		passed += 1
 	else:
-		print("FAIL stat lookup: %s" % str_text); failed += 1
+		print("FAIL stat lookup: %s" % str_text)
+		failed += 1
 
-	if MoreInfoContent.has_description("stat", "strength") \
-			and not MoreInfoContent.has_description("stat", "made_up_stat"):
+	if (
+		MoreInfoContent.has_description("stat", "strength")
+		and not MoreInfoContent.has_description("stat", "made_up_stat")
+	):
 		print("OK  has_description distinguishes authored vs missing entries")
 		passed += 1
 	else:
-		print("FAIL has_description"); failed += 1
+		print("FAIL has_description")
+		failed += 1
 
 	# ---- unknown key in known category -> fallback ----------------------
 	var unknown := MoreInfoContent.describe("stat", "made_up_stat")
 	if unknown == MoreInfoContent.FALLBACK_TEXT:
-		print("OK  unknown key falls back to placeholder text"); passed += 1
+		print("OK  unknown key falls back to placeholder text")
+		passed += 1
 	else:
-		print("FAIL fallback for unknown key: %s" % unknown); failed += 1
+		print("FAIL fallback for unknown key: %s" % unknown)
+		failed += 1
 
 	# ---- generic-bucket categories: any key returns the generic text ----
 	# Inventory uses keyed entries ("weapon", "item"); wexp uses a generic
@@ -40,16 +47,20 @@ func _init() -> void:
 	# entry per track. Phase 1 doesn't need per-track copy yet.
 	var any_wexp := MoreInfoContent.describe("wexp", "lance")
 	if "Weapon experience" in any_wexp:
-		print("OK  wexp generic fallback applies to any track id"); passed += 1
+		print("OK  wexp generic fallback applies to any track id")
+		passed += 1
 	else:
-		print("FAIL wexp generic: %s" % any_wexp); failed += 1
+		print("FAIL wexp generic: %s" % any_wexp)
+		failed += 1
 
 	# ---- unknown category -> fallback (no crash) ------------------------
 	var bad_category := MoreInfoContent.describe("not_a_category", "whatever")
 	if bad_category == MoreInfoContent.FALLBACK_TEXT:
-		print("OK  unknown category returns fallback, never crashes"); passed += 1
+		print("OK  unknown category returns fallback, never crashes")
+		passed += 1
 	else:
-		print("FAIL unknown category: %s" % bad_category); failed += 1
+		print("FAIL unknown category: %s" % bad_category)
+		failed += 1
 
 	# ---- coverage checks for Phase 1 surfaces ---------------------------
 	# Keep the smoke check for the broad categories the three Phase 1
@@ -77,7 +88,13 @@ func _init() -> void:
 	# surfaced by GridManager, so normal play never falls through to the
 	# placeholder text on common tiles.
 	var terrain_ids: Array[String] = [
-		"plain", "forest", "mountain", "fort", "sea", "desert", "wall",
+		"plain",
+		"forest",
+		"mountain",
+		"fort",
+		"sea",
+		"desert",
+		"wall",
 	]
 	var terrain_ok := true
 	for terrain_id in terrain_ids:

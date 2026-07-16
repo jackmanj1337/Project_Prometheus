@@ -21,6 +21,10 @@ class_name CampaignNode extends Resource
 # exactly the adapter-friendly shape [CNC-3] asked for.
 @export var map_id: String = ""
 
+# Preferred battle binding. DataManager resolves encounter -> reusable battle map.
+# map_id remains the explicit compatibility route for monolithic MapData content.
+@export var encounter_id: String = ""
+
 # Successor node ids. Empty = terminal node (campaign complete). A single entry
 # is the linear MVP case; multiple entries are the branch case the same schema
 # carries with no reshape.
@@ -34,6 +38,10 @@ class_name CampaignNode extends Resource
 
 # Max units the player may deploy. -1 = uncapped.
 @export var deployment_cap: int = -1
+
+# Rule-agnostic per-map layer. Keys are CampaignRules ids; values shadow campaign
+# defaults for this node unless the campaign mandates that rule.
+@export var rule_overrides: Dictionary = {}
 
 
 func is_terminal() -> bool:

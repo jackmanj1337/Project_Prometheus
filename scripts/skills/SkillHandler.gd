@@ -25,65 +25,66 @@ const NIHIL_EXEMPT_SKILLS: Array[String] = ["s_rank_mastery", "nihil"]
 
 func _ready() -> void:
 	_dispatch = {
-		"renewal":       _apply_renewal,
-		"vantage":       _apply_vantage,
-		"nihil":         _apply_nihil,
-		"resolve":       _apply_resolve,
-		"wrath":         _apply_wrath,
-		"miracle":       _apply_miracle,
-		"stat_bonus":    _apply_stat_bonus,
-		"faire":         _apply_faire,
-		"breaker":       _apply_breaker,
-		"charm":         _apply_charm,
-		"anathema":      _apply_anathema,
-		"daunt":         _apply_daunt,
+		"renewal": _apply_renewal,
+		"vantage": _apply_vantage,
+		"nihil": _apply_nihil,
+		"resolve": _apply_resolve,
+		"wrath": _apply_wrath,
+		"miracle": _apply_miracle,
+		"stat_bonus": _apply_stat_bonus,
+		"faire": _apply_faire,
+		"breaker": _apply_breaker,
+		"charm": _apply_charm,
+		"anathema": _apply_anathema,
+		"daunt": _apply_daunt,
 		"s_rank_mastery": _apply_s_rank_mastery,
 		# Base-class skills pulled from FE:A (M4). Effect logic is implemented in
 		# M9a closes the engine-first slice where the current seams are already
 		# clear. The terrain-classification and durability-override families stay
 		# deferred until their plumbing is ready.
-		"prescience":     _apply_prescience,
-		"patience":       _apply_patience,
-		"discipline":     _apply_discipline,
+		"prescience": _apply_prescience,
+		"patience": _apply_patience,
+		"discipline": _apply_discipline,
 		"outdoor_fighter": _apply_unimplemented,
 		"indoor_fighter": _apply_unimplemented,
-		"focus":          _apply_focus,
-		"armsthrift":     _apply_unimplemented,
-		"healtouch":      _apply_healtouch,
-		"swiftfoot":      _apply_unimplemented,
-		"multishot":      _apply_unimplemented,
-		"hawkeye":        _apply_unimplemented,
-		"deadeye":        _apply_unimplemented,
-		"rally_skill":    _apply_unimplemented,
-		"strike_true":    _apply_unimplemented,
-		"challenge":      _apply_unimplemented,
-		"counter":        _apply_unimplemented,
-		"supremacy":      _apply_unimplemented,
-		"blessing":       _apply_unimplemented,
-		"holy_aura":      _apply_unimplemented,
-		"boon":           _apply_unimplemented,
-		"judgement":      _apply_unimplemented,
-		"sol":            _apply_unimplemented,
-		"odd_rhythm":     _apply_unimplemented,
-		"even_rhythm":    _apply_unimplemented,
-		"bastion":        _apply_unimplemented,
-		"iron_wall":      _apply_unimplemented,
-		"pavise":         _apply_unimplemented,
-		"charge":         _apply_unimplemented,
-		"aegis":          _apply_unimplemented,
-		"flare":          _apply_unimplemented,
-		"phasing":        _apply_unimplemented,
+		"focus": _apply_focus,
+		"armsthrift": _apply_unimplemented,
+		"healtouch": _apply_healtouch,
+		"swiftfoot": _apply_unimplemented,
+		"multishot": _apply_unimplemented,
+		"hawkeye": _apply_unimplemented,
+		"deadeye": _apply_unimplemented,
+		"rally_skill": _apply_unimplemented,
+		"strike_true": _apply_unimplemented,
+		"challenge": _apply_unimplemented,
+		"counter": _apply_unimplemented,
+		"supremacy": _apply_unimplemented,
+		"blessing": _apply_unimplemented,
+		"holy_aura": _apply_unimplemented,
+		"boon": _apply_unimplemented,
+		"judgement": _apply_unimplemented,
+		"sol": _apply_unimplemented,
+		"odd_rhythm": _apply_unimplemented,
+		"even_rhythm": _apply_unimplemented,
+		"bastion": _apply_unimplemented,
+		"iron_wall": _apply_unimplemented,
+		"pavise": _apply_unimplemented,
+		"charge": _apply_unimplemented,
+		"aegis": _apply_unimplemented,
+		"flare": _apply_unimplemented,
+		"phasing": _apply_unimplemented,
 		"deeper_knowledge": _apply_unimplemented,
-		"lifetaker":      _apply_unimplemented,
-		"shadowgift":     _apply_unimplemented,
-		"dash":           _apply_unimplemented,
-		"disarm":         _apply_unimplemented,
-		"vigilance":      _apply_unimplemented,
-		"diehard":        _apply_unimplemented,
+		"lifetaker": _apply_unimplemented,
+		"shadowgift": _apply_unimplemented,
+		"dash": _apply_unimplemented,
+		"disarm": _apply_unimplemented,
+		"vigilance": _apply_unimplemented,
+		"diehard": _apply_unimplemented,
 	}
 
 
 # ---- Movement Override Stubs (A4 — implement in M9) ----
+
 
 func get_move_cost_override(_unit: Node, _terrain: String) -> int:
 	return -1  # [STUB — implement in M9]
@@ -146,9 +147,14 @@ func reset_combat_uses() -> void:
 # accurate, but the per-map / per-combat use counters are NOT written — so opening a
 # combat preview never burns a limited-use skill's uses (the skill effect is restored
 # along with the rest of unit state by preview_combat's snapshot).
-func apply_trigger(unit: Node, trigger: String, context: Dictionary,
-		preview: bool = false, skills_blocked: bool = false,
-		dry_run: bool = false) -> Dictionary:
+func apply_trigger(
+	unit: Node,
+	trigger: String,
+	context: Dictionary,
+	preview: bool = false,
+	skills_blocked: bool = false,
+	dry_run: bool = false
+) -> Dictionary:
 	if unit == null or not is_instance_valid(unit) or unit.data == null:
 		return context
 	var dm := get_node_or_null("/root/DataManager")
@@ -190,9 +196,12 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		if skill.activation_chance_stat != "":
 			var rng: RandomNumberGenerator = context.get("rng")
 			if rng == null:
-				push_error("SkillHandler: '%s' activation roll without context[\"rng\"] — "
-					% skill.id
-					+ "begin an RNG event before non-preview triggers (RNG-1)")
+				push_error(
+					(
+						"SkillHandler: '%s' activation roll without context[\"rng\"] — " % skill.id
+						+ "begin an RNG event before non-preview triggers (RNG-1)"
+					)
+				)
 				continue
 			var stat_val: int = unit.get_effective_stat(skill.activation_chance_stat)
 			var chance: int = stat_val / max(1, skill.activation_divisor)
@@ -205,11 +214,11 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 		# dry_run suppresses counter persistence only — the effect above still ran.
 		if fired and not dry_run:
 			if skill.max_uses_per_map != -1:
-				unit.data.skill_use_counters[skill.id] = \
+				unit.data.skill_use_counters[skill.id] = (
 					unit.data.skill_use_counters.get(skill.id, 0) + 1
+				)
 			if skill.max_uses_per_combat != -1:
-				_combat_skill_uses[skill.id] = \
-					_combat_skill_uses.get(skill.id, 0) + 1
+				_combat_skill_uses[skill.id] = _combat_skill_uses.get(skill.id, 0) + 1
 	return context
 
 
@@ -217,7 +226,12 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 # declined to act (the use counters above key off this).
 func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	if not _dispatch.has(skill.effect_id):
-		push_error("SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()" % skill.effect_id)
+		push_error(
+			(
+				"SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()"
+				% skill.effect_id
+			)
+		)
 		return false
 	return _dispatch[skill.effect_id].call(skill, unit, context)
 
@@ -227,11 +241,12 @@ func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 # only consumes a limited use on a real activation). Context dicts are mutated in
 # place (Dictionary is a reference type), so the bool is the only return value needed.
 
+
 # S-rank mastery: +Hit, +Crit, +Dmg when attacking with a weapon type the unit holds at S rank.
 # Fires once per combat (on_combat_start); bonuses flow through atk_mod/def_mod so they appear
 # correctly in previews and are cleared by clear_combat_modifiers() after the fight.
 func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) -> bool:
-	var is_atk: bool = (unit == context.get("attacker"))
+	var is_atk: bool = unit == context.get("attacker")
 	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
 	if w == null:
 		return false
@@ -239,8 +254,8 @@ func _apply_s_rank_mastery(skill: SkillData, unit: Node, context: Dictionary) ->
 		return false
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
 	mod["accuracy"] += skill.effect_params.get("hit_bonus", 10)
-	mod["crit"]     += skill.effect_params.get("crit_bonus", 5)
-	mod["damage"]   += skill.effect_params.get("dmg_bonus", 1)
+	mod["crit"] += skill.effect_params.get("crit_bonus", 5)
+	mod["damage"] += skill.effect_params.get("dmg_bonus", 1)
 	return true
 
 
@@ -288,10 +303,22 @@ func _apply_resolve(_skill: SkillData, unit: Node, _context: Dictionary) -> bool
 	# source, so a single "resolve" source would leave only the last stat applied
 	# (the other three wiped). All four are duration_type "combat", so
 	# clear_combat_modifiers() still removes them together after the fight.
-	unit.add_modifier("strength", floori(unit.get_effective_stat("strength") * 0.5), "resolve_strength", -1, "combat")
-	unit.add_modifier("magic",    floori(unit.get_effective_stat("magic")    * 0.5), "resolve_magic", -1, "combat")
-	unit.add_modifier("skill",    floori(unit.get_effective_stat("skill")    * 0.5), "resolve_skill", -1, "combat")
-	unit.add_modifier("speed",    floori(unit.get_effective_stat("speed")    * 0.5), "resolve_speed", -1, "combat")
+	unit.add_modifier(
+		"strength",
+		floori(unit.get_effective_stat("strength") * 0.5),
+		"resolve_strength",
+		-1,
+		"combat"
+	)
+	unit.add_modifier(
+		"magic", floori(unit.get_effective_stat("magic") * 0.5), "resolve_magic", -1, "combat"
+	)
+	unit.add_modifier(
+		"skill", floori(unit.get_effective_stat("skill") * 0.5), "resolve_skill", -1, "combat"
+	)
+	unit.add_modifier(
+		"speed", floori(unit.get_effective_stat("speed") * 0.5), "resolve_speed", -1, "combat"
+	)
 	return true
 
 
@@ -299,7 +326,9 @@ func _apply_resolve(_skill: SkillData, unit: Node, _context: Dictionary) -> bool
 func _apply_wrath(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	if unit.data.hp * 2 > unit.data.max_hp:
 		return false
-	var mod: Dictionary = context["atk_mod"] if (unit == context.get("attacker")) else context["def_mod"]
+	var mod: Dictionary = (
+		context["atk_mod"] if (unit == context.get("attacker")) else context["def_mod"]
+	)
 	mod["crit"] += 50
 	return true
 
@@ -321,7 +350,7 @@ func _apply_miracle(_skill: SkillData, unit: Node, context: Dictionary) -> bool:
 
 # +N damage when attacking with the matching weapon type.
 func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
-	var is_atk: bool = (unit == context.get("attacker"))
+	var is_atk: bool = unit == context.get("attacker")
 	var w: WeaponData = context.get("attacker_weapon") if is_atk else context.get("defender_weapon")
 	if w == null or w.combat_family != skill.effect_params.get("weapon_type", ""):
 		return false
@@ -332,8 +361,10 @@ func _apply_faire(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 
 # Attacker side: +N hit vs opponent weapon type. Defender side: +N dodge vs that type.
 func _apply_breaker(skill: SkillData, unit: Node, context: Dictionary) -> bool:
-	var is_atk: bool = (unit == context.get("attacker"))
-	var opp_w: WeaponData = context.get("defender_weapon") if is_atk else context.get("attacker_weapon")
+	var is_atk: bool = unit == context.get("attacker")
+	var opp_w: WeaponData = (
+		context.get("defender_weapon") if is_atk else context.get("attacker_weapon")
+	)
 	if opp_w == null or opp_w.combat_family != skill.effect_params.get("weapon_type", ""):
 		return false
 	var mod: Dictionary = context["atk_mod"] if is_atk else context["def_mod"]
@@ -386,7 +417,9 @@ func _apply_focus(skill: SkillData, unit: Node, context: Dictionary) -> bool:
 	var radius: int = int(skill.effect_params.get("radius", 3))
 	if _has_ally_within(unit, radius):
 		return false
-	var mod: Dictionary = context["atk_mod"] if unit == context.get("attacker") else context["def_mod"]
+	var mod: Dictionary = (
+		context["atk_mod"] if unit == context.get("attacker") else context["def_mod"]
+	)
 	mod["crit"] += int(skill.effect_params.get("crit", 0))
 	return true
 
@@ -420,7 +453,12 @@ func _has_ally_within(unit: Node, radius: int) -> bool:
 	if gs == null:
 		return false
 	for other in gs.all_units:
-		if other == unit or not is_instance_valid(other) or other.data == null or other.data.hp <= 0:
+		if (
+			other == unit
+			or not is_instance_valid(other)
+			or other.data == null
+			or other.data.hp <= 0
+		):
 			continue
 		var is_ally: bool = false
 		if gs.has_method("are_hostile"):
@@ -429,8 +467,10 @@ func _has_ally_within(unit: Node, radius: int) -> bool:
 			is_ally = unit.team == other.team
 		if not is_ally:
 			continue
-		var dist: int = absi(unit.tile_position.x - other.tile_position.x) \
+		var dist: int = (
+			absi(unit.tile_position.x - other.tile_position.x)
 			+ absi(unit.tile_position.y - other.tile_position.y)
+		)
 		if dist <= radius:
 			return true
 	return false
@@ -447,7 +487,9 @@ func _warn_stub_once(where: String, skill_id: String) -> void:
 	if _stub_warned.has(skill_id):
 		return
 	_stub_warned[skill_id] = true
-	push_warning("%s: stub called for '%s' — implement in M9 (repeats suppressed)" % [where, skill_id])
+	push_warning(
+		"%s: stub called for '%s' — implement in M9 (repeats suppressed)" % [where, skill_id]
+	)
 
 
 # Shared stub for the FE:A base-class skills whose effects land in M9. Declining
@@ -460,6 +502,7 @@ func _apply_unimplemented(skill: SkillData, _unit: Node, _context: Dictionary) -
 # ---- Aura skills (on_combat_apply_modifiers) ----
 # These fire once per nearby unit before combat; unit is the aura bearer.
 # No skill .tres uses these yet — implement fully in M9 (also fix §2.1 charm double-count then).
+
 
 func _manhattan(a: Vector2i, b: Vector2i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y)

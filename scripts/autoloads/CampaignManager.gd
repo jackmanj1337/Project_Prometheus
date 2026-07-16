@@ -18,9 +18,11 @@ extends Node
 # - Additive only. With no campaign active every handler here no-ops, so the bare
 #   single-map launch from NewGameScreen behaves exactly as it did before.
 
-const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
+const AutosaveTriggerRegistryScript = preload("res://scripts/save/AutosaveTriggerRegistry.gd")
+const CampaignStatusStoreScript = preload("res://scripts/resources/CampaignStatusStore.gd")
 
 const _GAME_MAP_SCENE := "res://scenes/core/GameMap.tscn"
+const _PREP_SCENE := "res://scenes/ui/PrepScreen.tscn"
 const _DEFAULT_ROSTER_PATH := "res://data/roster/default/"
 
 # --- Runtime position --------------------------------------------------------
@@ -57,9 +59,12 @@ var _active_node_id: String = ""
 # what unwinds them on retry.
 var _pending_result: Dictionary = {}
 var _prepared_launch: Dictionary = {}
+var _autosave_triggers := AutosaveTriggerRegistryScript.new()
 
 
 func _ready() -> void:
+	for trigger_id in ["battle_start", "battle_end", "menu_area_exit", "shop_exit"]:
+		_autosave_triggers.register(trigger_id, _handle_autosave_trigger)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus == null:
 		return
@@ -73,6 +78,7 @@ func _ready() -> void:
 
 # --- Campaign lifecycle -------------------------------------------------------
 
+
 # Seeds a run at the campaign's start node. Unknown id fails loud and leaves no
 # campaign active, rather than parking the player on a campaign that cannot run.
 func start_campaign(campaign_id: String) -> bool:
@@ -81,8 +87,12 @@ func start_campaign(campaign_id: String) -> bool:
 		push_error("CampaignManager: cannot start unknown campaign '%s'" % campaign_id)
 		return false
 	if not campaign.has_node(campaign.start_node_id):
-		push_error("CampaignManager: campaign '%s' start node '%s' is not in the graph" % [
-			campaign_id, campaign.start_node_id])
+		push_error(
+			(
+				"CampaignManager: campaign '%s' start node '%s' is not in the graph"
+				% [campaign_id, campaign.start_node_id]
+			)
+		)
 		return false
 	active_campaign_id = campaign_id
 	current_node_id = campaign.start_node_id
@@ -92,12 +102,20 @@ func start_campaign(campaign_id: String) -> bool:
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("apply_campaign_rule_overrides"):
+		gs.call(
+			"apply_campaign_rule_overrides", campaign.rule_overrides, campaign.mandated_rule_ids
+		)
 	return true
 
 
 # Drops the run. Called when the player quits to menu; also the reset seam tests
 # use between cases.
 func end_campaign() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
 	active_campaign_id = ""
 	current_node_id = ""
 	cleared_node_ids.clear()
@@ -133,6 +151,73 @@ func set_campaign_var(var_id: String, value: Variant) -> bool:
 	return true
 
 
+func set_carry_forward_fact(fact_id: String, value: Variant) -> bool:
+	if not set_campaign_var(fact_id, value):
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
+	if state == null:
+		return false
+	state.carry_forward_facts[fact_id] = value
+	return true
+
+
+func import_carry_forward_facts(facts: Variant) -> bool:
+	if not (facts is Dictionary):
+		return false
+	for fact_id in facts:
+		if not (fact_id is String) or String(fact_id) == "":
+			return false
+	for fact_id in facts:
+		campaign_vars[fact_id] = facts[fact_id]
+	return true
+
+
+func active_status_target() -> Dictionary:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return {}
+	return {
+		"author_id": campaign.author_id,
+		"campaign_id": campaign.campaign_id,
+		"campaign_version": campaign.campaign_version,
+		"compatible_status_sources": campaign.compatible_status_sources.duplicate(true),
+	}
+
+
+# Terminal results call this before ending the runtime campaign. The record is
+# deliberately separate from the full save and contains only portable facts.
+func export_completion_status_record() -> Dictionary:
+	if not is_campaign_complete():
+		return {}
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return {}
+	var state: MutableCampaignState = gs.get("mutable_campaign_state") as MutableCampaignState
+	if state == null:
+		return {}
+	var store := CampaignStatusStoreScript.new()
+	return (
+		store
+		. export_completion(
+			active_status_target(),
+			state,
+			{
+				"completed": true,
+				"ending_id": String(campaign_vars.get("ending_id", "")),
+				"route_id": String(campaign_vars.get("route_id", "")),
+				"rank_id": String(campaign_vars.get("rank_id", "")),
+			},
+			{
+				"maps_completed": cleared_node_ids.size(),
+				"turns_taken": int(campaign_vars.get("turns_taken", 0)),
+			}
+		)
+	)
+
+
 func is_campaign_active() -> bool:
 	return active_campaign_id != ""
 
@@ -165,13 +250,15 @@ func is_node_cleared(node_id: String) -> bool:
 
 # --- Launch (the "prep -> map" seam) -----------------------------------------
 
-# Resolves the current node's map binding through the map registry and hands off
-# to the existing GameState launch seam. The prep SCREENS are not this slice; this
-# is the entry point they will eventually call.
+
+# Resolves the current node's map binding, prepares the party, then parks on prep.
+# Prep only authors a deployment plan; it must never reapply the roster policy.
 func launch_current_node() -> bool:
 	var node := get_current_node()
 	if node == null:
-		push_error("CampaignManager: no current node to launch (campaign '%s')" % active_campaign_id)
+		push_error(
+			"CampaignManager: no current node to launch (campaign '%s')" % active_campaign_id
+		)
 		return false
 
 	var params := resolve_launch_params(node)
@@ -187,13 +274,19 @@ func launch_current_node() -> bool:
 	var roster_source: String = String(params["roster_source"])
 	gs.call("configure_next_map", String(params["map_data_path"]), roster_policy, roster_source)
 	if not _apply_roster_policy(gs, roster_policy, roster_source):
-		push_error("CampaignManager: node '%s' has no valid roster for policy '%s'" % [
-			node.node_id, roster_policy])
+		push_error(
+			(
+				"CampaignManager: node '%s' has no valid roster for policy '%s'"
+				% [node.node_id, roster_policy]
+			)
+		)
 		return false
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", node.rule_overrides)
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
-	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
+	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
 
@@ -229,18 +322,55 @@ func prepare_pending_advance() -> bool:
 
 # Launches only a successor already validated by prepare_pending_advance().
 func launch_prepared_node() -> bool:
-	if _prepared_launch.is_empty() \
-			or String(_prepared_launch.get("node_id", "")) != current_node_id:
+	if (
+		_prepared_launch.is_empty()
+		or String(_prepared_launch.get("node_id", "")) != current_node_id
+	):
 		push_error("CampaignManager: no prepared launch for current node '%s'" % current_node_id)
 		return false
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null:
 		return false
-	gs.call("configure_next_map", String(_prepared_launch["map_data_path"]),
-		String(_prepared_launch["roster_policy"]), String(_prepared_launch["roster_source"]))
+	gs.call(
+		"configure_next_map",
+		String(_prepared_launch["map_data_path"]),
+		String(_prepared_launch["roster_policy"]),
+		String(_prepared_launch["roster_source"])
+	)
+	if gs.has_method("begin_campaign_map_rules"):
+		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
 	_prepared_launch.clear()
+	get_tree().change_scene_to_file(_PREP_SCENE)
+	return true
+
+
+# Prep's one-way handoff after it has staged a legal deployment plan.
+func begin_prepared_battle() -> bool:
+	if not is_campaign_active() or _active_node_id == "":
+		push_error("CampaignManager: no prepared campaign battle to begin")
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null or (gs.get("next_map_deployment") as Dictionary).is_empty():
+		push_error("CampaignManager: prep has not staged a deployment plan")
+		return false
+	dispatch_autosave_trigger("battle_start")
 	get_tree().change_scene_to_file(_GAME_MAP_SCENE)
+	return true
+
+
+# Retry has already restored ledger entry 0. Keep that restored party and launch
+# staging intact; only replace the map scene with prep so the plan can be edited.
+func route_retry_to_prep() -> bool:
+	if not is_campaign_active() or _active_node_id == "":
+		return false
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return false
+	var suspend_payload: Variant = gs.get("next_map_suspend_payload")
+	if suspend_payload is Dictionary and not suspend_payload.is_empty():
+		return false
+	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
 
@@ -249,11 +379,29 @@ func launch_prepared_node() -> bool:
 # resolution is testable without changing scene.
 func resolve_launch_params(node: CampaignNode) -> Dictionary:
 	var dm := get_node_or_null("/root/DataManager")
-	if dm == null or not bool(dm.call("has_map_registry_entry", node.map_id)):
-		push_error("CampaignManager: node '%s' binds to unknown map id '%s'" % [
-			node.node_id, node.map_id])
+	if dm == null:
 		return {}
-	var entry: Dictionary = dm.call("get_map_registry_entry", node.map_id)
+	var entry: Dictionary = {}
+	var battle_source := ""
+	if node.encounter_id != "":
+		if not bool(dm.call("has_battle_encounter", node.encounter_id)):
+			push_error(
+				(
+					"CampaignManager: node '%s' binds to unknown encounter id '%s'"
+					% [node.node_id, node.encounter_id]
+				)
+			)
+			return {}
+		entry = dm.call("get_battle_encounter_entry", node.encounter_id)
+		battle_source = node.encounter_id
+	elif not bool(dm.call("has_map_registry_entry", node.map_id)):
+		push_error(
+			"CampaignManager: node '%s' binds to unknown map id '%s'" % [node.node_id, node.map_id]
+		)
+		return {}
+	else:
+		entry = dm.call("get_map_registry_entry", node.map_id)
+		battle_source = String(entry.get("map_data_path", ""))
 
 	# Roster policy: the FIRST node of a run seeds the party from the map
 	# registry's authored policy; every later node keeps the party it earned, or
@@ -266,9 +414,10 @@ func resolve_launch_params(node: CampaignNode) -> Dictionary:
 		roster_source = ""
 
 	return {
-		"map_data_path": String(entry.get("map_data_path", "")),
+		"map_data_path": battle_source,
 		"roster_policy": roster_policy,
 		"roster_source": roster_source,
+		"rule_overrides": node.rule_overrides.duplicate(true),
 	}
 
 
@@ -283,6 +432,14 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 			if roster_source == "":
 				return false
 			return bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
+		"campaign_pack_roster":
+			var dm := get_node_or_null("/root/DataManager")
+			if dm == null or not dm.has_method("get_campaign_pack_roster"):
+				return false
+			var roster: Array = dm.call("get_campaign_pack_roster", roster_source)
+			return bool(
+				gs.call("load_roster_resources", roster, "campaign_pack_roster", roster_source)
+			)
 		"keep_current_roster":
 			return bool(gs.call("is_roster_ready_for_launch"))
 		_:
@@ -291,6 +448,7 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 
 
 # --- Result handling ----------------------------------------------------------
+
 
 func _on_map_victory() -> void:
 	_record_result(true)
@@ -308,15 +466,22 @@ func _record_result(victory: bool) -> void:
 	var campaign := get_active_campaign()
 	var node: CampaignNode = campaign.get_node_by_id(_active_node_id) if campaign != null else null
 	if node == null:
-		push_error("CampaignManager: resolved node '%s' is not in campaign '%s'" % [
-			_active_node_id, active_campaign_id])
+		push_error(
+			(
+				"CampaignManager: resolved node '%s' is not in campaign '%s'"
+				% [_active_node_id, active_campaign_id]
+			)
+		)
 		return
 	_pending_result = {
 		"campaign_id": active_campaign_id,
 		"node_id": _active_node_id,
 		"victory": victory,
-		# Successor the commit would move to; "" when clearing this node ends the run.
-		"next_node_id": _successor_of(node),
+		# A single successor is unambiguous. Branches remain deliberately unset
+		# until the player chooses on MapResultsScreen; authored order controls
+		# presentation, never an implicit first-branch decision.
+		"next_node_id": _unambiguous_successor_of(node),
+		"requires_successor_choice": node.next_node_ids.size() > 1,
 		"campaign_complete": victory and node.is_terminal(),
 		"winner_group": "",
 		"standings": [],
@@ -343,6 +508,56 @@ func has_pending_victory() -> bool:
 	return not _pending_result.is_empty() and bool(_pending_result.get("victory", false))
 
 
+# Ordered options for the pending node's authored outgoing edges. Labels come
+# from the destination nodes so result UI never invents a parallel branch name.
+func get_pending_successor_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if not has_pending_victory():
+		return options
+	var campaign := get_active_campaign()
+	var node_id: String = String(_pending_result.get("node_id", ""))
+	var node: CampaignNode = campaign.get_node_by_id(node_id) if campaign != null else null
+	if node == null:
+		return options
+	for successor_id in node.next_node_ids:
+		var successor: CampaignNode = campaign.get_node_by_id(successor_id)
+		if successor == null:
+			continue
+		(
+			options
+			. append(
+				{
+					"node_id": successor_id,
+					"label": successor.label if successor.label != "" else successor_id,
+				}
+			)
+		)
+	return options
+
+
+# Records a player-authored branch choice without advancing position. Only an
+# outgoing edge of the resolved node is accepted; bad/stale UI input is inert.
+func choose_pending_successor(node_id: String) -> bool:
+	if not has_pending_victory() or node_id == "":
+		return false
+	var valid := false
+	for option in get_pending_successor_options():
+		if String(option.get("node_id", "")) == node_id:
+			valid = true
+			break
+	if not valid:
+		push_error(
+			(
+				"CampaignManager: '%s' is not a successor of pending node '%s'"
+				% [node_id, String(_pending_result.get("node_id", ""))]
+			)
+		)
+		return false
+	_pending_result["next_node_id"] = node_id
+	_prepared_launch.clear()
+	return true
+
+
 # Applies a pending VICTORY to the position: the node is cleared and the party
 # moves to its successor (or the campaign completes on a terminal node). This is
 # the only thing that advances the campaign — see _pending_result on why the
@@ -351,15 +566,26 @@ func has_pending_victory() -> bool:
 func commit_pending_result() -> bool:
 	if not has_pending_victory():
 		return false
+	if (
+		bool(_pending_result.get("requires_successor_choice", false))
+		and String(_pending_result.get("next_node_id", "")) == ""
+	):
+		push_error("CampaignManager: pending victory requires a successor choice")
+		return false
 	var node_id: String = String(_pending_result.get("node_id", ""))
 	var next_id: String = String(_pending_result.get("next_node_id", ""))
-	if next_id != "" and (_prepared_launch.is_empty() \
-			or String(_prepared_launch.get("node_id", "")) != next_id) \
-			and not prepare_pending_advance():
+	if (
+		next_id != ""
+		and (_prepared_launch.is_empty() or String(_prepared_launch.get("node_id", "")) != next_id)
+		and not prepare_pending_advance()
+	):
 		return false
 	if not is_node_cleared(node_id):
 		cleared_node_ids.append(node_id)
 	current_node_id = next_id  # "" == terminal node cleared == campaign complete
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("end_campaign_map_rules"):
+		gs.call("end_campaign_map_rules")
 	_active_node_id = ""
 	_pending_result.clear()
 	# The commit IS the between-map moment — the position just advanced and the
@@ -377,6 +603,7 @@ func clear_pending_result() -> void:
 
 
 # --- Persistence (Slice 3) ----------------------------------------------------
+
 
 # The campaign envelope: position plus campaign-scoped mutable author state,
 # matching the reserved F1 campaign rows.
@@ -424,8 +651,12 @@ func restore_campaign_state(source: Variant) -> bool:
 	# other id must resolve to an authored node.
 	var node_id: String = String(envelope.get("node_id", ""))
 	if node_id != "" and not campaign.has_node(node_id):
-		push_error("CampaignManager: save names unknown node '%s' in campaign '%s'" % [
-			node_id, campaign_id])
+		push_error(
+			(
+				"CampaignManager: save names unknown node '%s' in campaign '%s'"
+				% [node_id, campaign_id]
+			)
+		)
 		return false
 
 	var cleared: Array[String] = []
@@ -436,8 +667,12 @@ func restore_campaign_state(source: Variant) -> bool:
 	for entry in raw_cleared:
 		var cleared_id: String = String(entry)
 		if not campaign.has_node(cleared_id):
-			push_error("CampaignManager: save names unknown cleared node '%s' in campaign '%s'" % [
-				cleared_id, campaign_id])
+			push_error(
+				(
+					"CampaignManager: save names unknown cleared node '%s' in campaign '%s'"
+					% [cleared_id, campaign_id]
+				)
+			)
 			return false
 		if not cleared_id in cleared:  # a duplicate is tolerable; a wrong id is not
 			cleared.append(cleared_id)
@@ -481,26 +716,78 @@ func restore_campaign_state(source: Variant) -> bool:
 # autosave path only logs — a failed autosave must not block the player from
 # continuing to the next map.
 func write_autosave() -> bool:
-	return write_campaign_slot(SaveManagerScript.AUTOSAVE_SLOT, _autosave_label())
+	var results := dispatch_autosave_trigger("battle_end")
+	return results.any(func(value): return bool(value))
+
+
+func dispatch_autosave_trigger(trigger_id: String, context: Dictionary = {}) -> Array:
+	# Custom author ids use the identical registry path; registration is additive,
+	# never a hardcoded trigger enum or match branch.
+	if not _autosave_triggers.has_trigger(trigger_id):
+		_autosave_triggers.register(trigger_id, _handle_autosave_trigger)
+	return _autosave_triggers.dispatch(trigger_id, context)
+
+
+func _handle_autosave_trigger(trigger_id: String, context: Dictionary) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var sm := get_node_or_null("/root/SaveManager")
+	if (
+		gs == null
+		or sm == null
+		or not gs.has_method("capture_save")
+		or not sm.has_method("save_automatic")
+	):
+		return false
+	var rules: CampaignRules = gs.get("campaign_rules") as CampaignRules
+	if rules == null:
+		return false
+	var wrote_any := false
+	for rule in rules.autosave_rules:
+		if String(rule.get("trigger", "")) != trigger_id or int(rule.get("keep", 0)) <= 0:
+			continue
+		var turn_manager: Node = context.get("turn_manager", null)
+		var cursor: Node = context.get("cursor", null)
+		var save: Variant = gs.call(
+			"capture_save", String(rule.get("label", "Autosave")), turn_manager, cursor
+		)
+		if (
+			save != null
+			and bool(
+				sm.call(
+					"save_automatic",
+					String(rule.get("rule_id", "")),
+					int(rule.get("keep", 0)),
+					save
+				)
+			)
+		):
+			wrote_any = true
+	return wrote_any
 
 
 # Writes the parked position + party to a campaign slot. This is the seam the
 # manual-save UI calls with its own slot id.
-func write_campaign_slot(slot_id: String, save_label: String) -> bool:
+func write_campaign_slot(
+	slot_id: String, save_label: String, origin: String = "manual", rule_id: String = ""
+) -> bool:
 	if not is_campaign_active():
 		return false  # a bare single-map launch has no campaign to save
 	var gs := get_node_or_null("/root/GameState")
 	var sm := get_node_or_null("/root/SaveManager")
-	if gs == null or sm == null or not gs.has_method("capture_campaign_save") \
-			or not sm.has_method("save_slot"):
+	if (
+		gs == null
+		or sm == null
+		or not gs.has_method("capture_save")
+		or not sm.has_method("save_slot")
+	):
 		# No disk seam wired (headless tests drive the position directly). The
 		# position is still correct in memory; only persistence is skipped.
 		return false
-	var save: Variant = gs.call("capture_campaign_save", save_label)
+	var save: Variant = gs.call("capture_save", save_label)
 	if save == null:
 		push_error("CampaignManager: campaign save capture failed for slot '%s'" % slot_id)
 		return false
-	if not bool(sm.call("save_slot", slot_id, save)):
+	if not bool(sm.call("save_slot", slot_id, save, origin, rule_id)):
 		push_error("CampaignManager: failed to write campaign slot '%s'" % slot_id)
 		return false
 	return true
@@ -518,12 +805,10 @@ func _autosave_label() -> String:
 	return "%s - %s" % [campaign_label, node_label]
 
 
-# Successor for the linear MVP case. A branching node (multiple successors) needs
-# a player choice, which lands with the campaign selector/branch UI — take the
-# first authored successor until then, since authored order is the ordering
-# contract ([CST-3]).
-func _successor_of(node: CampaignNode) -> String:
-	if node.is_terminal():
+# Terminal and linear nodes need no player prompt. A branch intentionally has no
+# successor until choose_pending_successor() receives the explicit UI choice.
+func _unambiguous_successor_of(node: CampaignNode) -> String:
+	if node.next_node_ids.size() != 1:
 		return ""
 	return node.next_node_ids[0]
 

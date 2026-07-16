@@ -23,8 +23,8 @@ const OFF_MAP_TILE := Vector2i(-1, -1)
 # Storage: unit_id -> { "partner_id": String, "role": String }
 var _pairs: Dictionary = {}
 
-
 # ---- Queries ----
+
 
 func is_paired(unit_id: String) -> bool:
 	return unit_id != "" and _pairs.has(unit_id)
@@ -51,6 +51,7 @@ func is_support(unit_id: String) -> bool:
 
 
 # ---- Mutations ----
+
 
 # Pairs lead_id and support_id. Returns false (and does nothing) if either id
 # is empty, the two ids are equal, either unit is already paired, or the
@@ -179,6 +180,7 @@ func _apply_support_turn_state_after_lead_death(support: Node) -> void:
 
 
 # ---- Snapshot ----
+
 
 # Returns a deep copy of the registry suitable for storage in a map snapshot.
 # Deep copy prevents post-snapshot pair/separate calls from mutating the

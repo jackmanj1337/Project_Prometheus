@@ -14,8 +14,12 @@ var result_sink: Callable = Callable()
 var subject_id: String = ""
 
 
-static func create(p_subject: Variant, p_tile: Vector2i, p_policy: String = "require_empty",
-		p_subject_id: String = "") -> RefCounted:
+static func create(
+	p_subject: Variant,
+	p_tile: Vector2i,
+	p_policy: String = "require_empty",
+	p_subject_id: String = ""
+) -> RefCounted:
 	var context := new()
 	context.subject = p_subject
 	context.desired_tile = p_tile

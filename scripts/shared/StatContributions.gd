@@ -89,14 +89,17 @@ static func _collect_stat_skills(unit, stat_name: String, deps: Dictionary, out:
 			continue
 		var amount: int = int(skill.effect_params.get("amount", 0))
 		if amount != 0:
-			var label: String = String(skill.display_name) if String(skill.display_name) != "" else String(skill.id)
+			var label: String = (
+				String(skill.display_name) if String(skill.display_name) != "" else String(skill.id)
+			)
 			# An unconditional personal stat skill is always on while the unit has it,
 			# so it reads as permanent (no expiry) rather than "this combat" (V021-09).
 			out.append(_row("skill:%s" % skill.id, label, amount, "permanent"))
 
 
-static func _row(source_id: String, source_label: String, delta: int,
-		duration_type: String = "this_combat") -> Dictionary:
+static func _row(
+	source_id: String, source_label: String, delta: int, duration_type: String = "this_combat"
+) -> Dictionary:
 	return {
 		"source_id": source_id,
 		"source_label": source_label,
