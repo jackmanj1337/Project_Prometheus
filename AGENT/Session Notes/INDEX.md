@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16](2026-07-16.md) — Prepared the transient/AI-phase suspend discussion and headless-research handoff while preserving both outstanding playtest artifacts.
+
 - [2026-07-15al](2026-07-15al.md) — Closed the session with the exact `d12eb33` build/checklist identity and intake sequence locked for next session.
 - [2026-07-15ak](2026-07-15ak.md) — Branch-wide campaign/save closeout and next-session handoff for the returned v0.4.0 `d12eb33` log/checklist pair.
 - [2026-07-15aj](2026-07-15aj.md) — Completed the requirement-by-requirement follow-up audit; only returned live Windows evidence remains open.
