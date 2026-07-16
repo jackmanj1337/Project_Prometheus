@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16b](2026-07-16b.md) — Reconciled the AI-suspend closeout commit and final session-claim ownership.
 - [2026-07-16a](2026-07-16a.md) — Implemented suspend between AI activations with atomic ledger capture, stable AI continuation, restricted menu access, and full automated evidence.
 - [2026-07-16](2026-07-16.md) — Prepared the transient/AI-phase suspend discussion and headless-research handoff while preserving both outstanding playtest artifacts.
 
