@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16j](2026-07-16j.md) — Adopted and published the agent-owned integration, playtest, stable, and coordination topology.
 - [2026-07-16i](2026-07-16i.md) — Finalized branch dispositions and ratified the stable/integration/release/coordination lifecycle.
 - [2026-07-16h](2026-07-16h.md) — Preserved the remaining v0.4.0-v0.4.2 release evidence and archived superseded handoffs.
 - [2026-07-16g](2026-07-16g.md) — Ported the remaining accepted legacy UI behavior and selectively preserved v0.3.2 and pixel-art evidence.
