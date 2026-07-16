@@ -28,10 +28,31 @@ repairs into an unfinished feature commit.
 
 ## Ordered implementation queue
 
+### 1A. `B5-AI-MIN-SCORER` owner walkthrough
+
+Before expanding tactical adoption beyond the bounded compatibility-preserving
+slice, walk through
+[`weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](weapon_attack_scorer_preimplementation_decisions_2026-07-16.md)
+with the owner and record the selected options in its decision table. The review
+must cover scope, adopting profiles, expected damage/kill probability, acceptable
+sacrifice, strike order, weapon conservation, terrain/exposure, target/objective
+value, tie-breaking, performance, and compatibility/save rollout.
+
+This is a headless-safe planning task while the Windows evidence is outstanding.
+It does not authorize implementation by itself. If playtest evidence returns,
+preempt the walkthrough under the same rule as implementation work. Until the
+relevant choices are settled, retain the shipped compatibility preset and do not
+widen the tactical preset's live profile adoption.
+
 ### 1. `B5-AI-MIN-SCORER` - recommended first
 
 Build the narrow deterministic scorer on the existing Projection Service and AI
 profile composition seam.
+
+This is **Slice 3A** of the AI plan, not the full track-closing scorer. It is
+available now because it covers only weapon attacks the present AI already plans
+and executes. `B5-SOURCE-STYLE`, remaining `B5-AI-COMPOSITION`, and `B3-MET`
+still gate full action-palette parity in Slice 3B.
 
 Bounded contract:
 
@@ -45,10 +66,14 @@ Bounded contract:
 - add score-component diagnostics useful in headless failures without spamming
   release logs.
 
+On landing, mark `B5-AI-MIN-SCORER` **Split**, with the exact implemented subset
+and remaining Slice 3B gates. Do not mark it Implemented until styles, staves,
+AoE, gambits, capture, and other required action tuples use the shared scorer.
+
 Start by reading the `B5-AI-MIN-SCORER`, `B5-AI-COMPOSITION`, and
 `B2-PROJECTION` control-plane/GDD owners and the resolved AI valuation register.
-Write a small implementation plan and requirement/evidence matrix before changing
-the track to Implemented.
+Use the reconciled Slice 3A plan and write its requirement/evidence matrix before
+production code.
 
 Exit evidence:
 
@@ -131,8 +156,10 @@ features during this waiting stream.
 ## Next-session starting point
 
 1. Confirm the worktree is clean and neither live return has arrived.
-2. Open the `B5-AI-MIN-SCORER` contract and resolved AI valuation decisions.
-3. Inventory the existing Projection Service terms and `EnemyAI` planning seam.
-4. Write the bounded scorer plan/evidence matrix.
-5. Implement the smallest compatibility-preserving scorer slice with focused
+2. Walk through the scorer pre-implementation decision document when the owner is
+   available; record settled options and leave unresolved choices explicit.
+3. Open the `B5-AI-MIN-SCORER` contract and resolved AI valuation decisions.
+4. Inventory the existing Projection Service terms and `EnemyAI` planning seam.
+5. Write or update the bounded scorer plan/evidence matrix.
+6. Implement the smallest compatibility-preserving scorer slice with focused
    tests, then run the normal gates and commit it.

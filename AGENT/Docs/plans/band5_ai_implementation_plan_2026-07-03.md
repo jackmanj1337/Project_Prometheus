@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-07-03
+Last verified: 2026-07-16
 ---
 
 # Band 5 AI Composition And Minimum Scorer Implementation Plan
@@ -25,33 +25,41 @@ profiles are registries from day one, so Band 7's valuation brain adds terms and
 multi-ply `search_depth` as new registered scorers on the same engine — no
 rewrite.
 
-The **composition** half (Slices 1-2) is independent of the content chain and
-runs in parallel. The **scorer** half (Slice 3) is **not** fully parallel:
-v1 enemies use styles and staves (C5 resolved 2026-07-03), so the scorer must
-enumerate and score source+style tuples at parity with weapons — which requires
-the Plan 2 generalized effect forecast. Slice 3 therefore gates on
-`B5-SOURCE-STYLE` (its projection hooks), not just `B2-PROJECTION`.
+The original composition foundation is now partly present as the shipped
+`AISpec`/`AIProfileRegistry` seam, and `B2-PROJECTION` provides a pure combat
+forecast. That makes a bounded **Slice 3A** available now: score only the weapon
+attacks the present AI already plans and executes, while retaining the shipped
+planner as an explicit compatibility preset.
 
-This is a build plan only. It does not authorize starting before the Band 1-3
-gates land.
+The full scorer remains **Slice 3B**. V1 enemies eventually use styles, staves,
+AoE, gambits, capture, and other non-combat actions (C5 resolved 2026-07-03), so
+parity across the full action palette still requires the Plan 2 generalized
+effect forecast. Slice 3B therefore gates on `B5-SOURCE-STYLE` and the remaining
+`B5-AI-COMPOSITION` work. Slice 3A does not pretend those dependencies have
+landed and cannot close the track by itself.
+
+This is a build plan only. Slice 3A may start against its explicitly listed
+implemented seams; every other slice remains behind its recorded gates.
 
 ## Scope
 
 1. **`B5-AI-COMPOSITION`**: `AIProfileDef` as registry data (not an enum,
    `[AIP]`), author-selectable activation order, `set_ai` (mid-map profile
    change), seek-tile behavior, group wake, and the `ai_awake` F1 row.
-2. **`B5-AI-MIN-SCORER`**: for each unit, enumerate legal `(action, target,
-   weapon/source)` tuples and score by a **weighted sum of registry-backed
-   scorer terms**, choosing best-with-stable-tie-breaks. V1 terms: immediate
-   projected outcome (reuses Plan 2 projection), survival danger, objective
-   pressure, and author profile weights.
+2. **`B5-AI-MIN-SCORER` Slice 3A**: enumerate the legal weapon-attack tuples the
+   present planner can already execute and score expected damage, lethal result,
+   counter-damage, exposure, and target value with stable tie-breaks. Preserve
+   every shipped profile's old decisions through a compatibility preset.
+3. **`B5-AI-MIN-SCORER` Slice 3B**: widen the same registry-backed loop to the
+   complete `(action, target, source+style)` palette and author profile weights.
+   This is the track-closing slice.
 
 ## Non-Goals
 
 - Do not build multi-ply search / `search_depth`, perception (`[PER]`), or the
   economy/role valuation terms (`[VAL]`). Those are **Band 7**, added as new
   registered scorer terms + richer data on this same engine.
-- Do not ship a fixed 4-term sum. Scorer terms are a registry from day one (Q7
+- Do not ship a fixed term sum. Scorer terms are a registry from day one (Q7
   watchout).
 - Do not build a second forecast for the AI. It reuses the same Plan 2
   projection the player sees — AI and UI never diverge (Q7 watchout).
@@ -91,16 +99,21 @@ gates land.
 
 ## Dependency Note
 
-Plan now; implement after gates. Minimum upstream gates:
+Minimum upstream gates are slice-specific:
 
 - `B2-REGISTRY` for `AIProfileDef` and scorer-term ids.
 - `B1-F1` for the `ai_awake` save row.
-- `B3-MET` for `set_ai`, seek-tile targets, and group-wake triggers.
-- `B2-PROJECTION` for the scorer's outcome term, **and** the Plan 2
+- `B2-PROJECTION`, `B2-REGISTRY`, the existing `AISpec` composition seam, and
+  `RngService` are sufficient for bounded Slice 3A.
+- `B3-MET` remains required for `set_ai`, seek-tile targets, and group-wake
+  triggers in the remaining composition work.
+- The Plan 2
   (`B5-SOURCE-STYLE`) generalized effect forecast — v1 enemies use styles/staves
-  (C5), so the scorer scores source+style tuples at parity with weapons. Slice 3
-  gates on Plan 2; Slices 1-2 do not.
-- `B1` `RngService` for deterministic tie-breaks / activation.
+  (C5), so Slice 3B scores source+style tuples at parity with weapons.
+
+Slice 3A adds no RNG. Stable tuple identifiers resolve full ties. Profiles that
+intentionally randomize remain outside this slice and continue to use
+`RngService` through their existing path.
 
 ## Existing Code Touchpoints
 
@@ -198,10 +211,33 @@ F1 obligations: `ai_awake` row must exist before code.
 DoD#1 obligations: update `GDD_06`, `GDD_08`, `GDD_Feature_Index`, `GDD_10` with
 the AI composition landing.
 
-## Slice 3 - Minimum Single-Ply Scorer
+## Slice 3A - Bounded Weapon-Attack Scorer (Available Now)
 
-**Goal:** enumerate legal action tuples and pick the best by a registry-backed
-weighted sum, reusing the player forecast.
+**Goal:** introduce the deterministic, registry-backed scoring seam without
+claiming support for actions the present AI cannot yet enumerate or execute.
+
+Before production code, write a requirement/evidence matrix covering:
+
+- legal weapon attacks only; no invented action executor;
+- expected damage, lethal result, counter-damage, exposure, and target value;
+- stable unit/tile/weapon identifiers as the complete tie-break chain;
+- no live-state mutation and no RNG draw during enumeration or scoring;
+- an explicit compatibility preset that reproduces shipped profile decisions;
+- score-component diagnostics available to tests/headless failures but quiet in
+  normal release output.
+
+Exit tests cover lethal/non-lethal, counter/no-counter, exposure, stable ties,
+wait/staff fallback delegation, forecast parity, mutation/RNG guards, an open
+fixture scorer term, and byte/decision fixtures for the compatibility preset.
+Staff fallback is a regression obligation here, not a newly scored staff action.
+
+Landing Slice 3A changes the control-plane track to **Split**, not Implemented.
+The GDD/roadmap must describe exactly the weapon-scoring subset that landed.
+
+## Slice 3B - Full Minimum Single-Ply Scorer (Dependency-Gated)
+
+**Goal:** widen Slice 3A to every required v1 action tuple and pick the best by a
+registry-backed weighted sum, reusing the player forecast.
 
 Files to create or touch:
 
@@ -273,11 +309,14 @@ by the generic loop, not a hardcoded 4-term expression.
 1. Slice 0 preflight.
 2. Slice 1 `AIProfileDef` registry + resolution.
 3. Slice 2 composition (`set_ai`, seek-tile, group wake, `ai_awake`).
-4. Slice 3 minimum single-ply scorer.
+4. Slice 3A bounded weapon-attack scorer (available against the existing seams).
+5. Slice 3B full action-palette scorer after its dependencies land.
 
-Slices 1-2 (composition) run parallel to Plans 1-3. **Slice 3 (scorer) gates on
-Plan 2 (`B5-SOURCE-STYLE`)**: v1 enemies use styles/staves (C5), so the scorer
-scores source+style tuples through the Plan 2 forecast — it is not weapon-only.
+Slices 1-2 (remaining composition) run parallel to Plans 1-3. Slice 3A is a
+compatibility-preserving foundation over today's weapon planner. **Slice 3B gates
+on Plan 2 (`B5-SOURCE-STYLE`) and the remaining composition contract**: v1
+enemies use styles/staves (C5), so track closure requires source+style tuples
+through the Plan 2 forecast.
 Band 7's valuation brain (`[VAL]`/`[PER]`/`search_depth`) plugs in as new
 registered scorer terms on this engine — do not pre-build them here.
 
