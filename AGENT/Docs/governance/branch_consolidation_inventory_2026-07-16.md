@@ -27,15 +27,15 @@ based on `26c6a16dd5a9659f18c69799d6e88017574181e8`. Its stable patch id is
 `d20c98df015e45807eece87e6d89cba2c4fce713`; it contains only the same six
 line-ending-only paths.
 
-## Branch ancestry and preliminary disposition
+## Branch ancestry and final disposition
 
-| Branch | Delta from fetched `origin/main` | Relationship / preliminary disposition |
+| Branch | Delta from fetched `origin/main` | Final disposition |
 |---|---:|---|
-| `agent/b4-encounter-model-slice2` | 53 commits ahead | Primary integration spine. Strict descendant of `origin/main`; contains all 51 commits from `prep-save-followup` plus two encounter commits. Requires approval before publishing because inherited commits modify workflows. |
-| `agent/codex/2026-07-15/prep-save-followup` | 51 commits ahead | Fully contained in encounter branch; superseded by that tip after integration verification. |
-| `agent/codex/2026-07-14/v0.4.0-windows-build` | 36 behind, 8 ahead | Eight distinct release/playtest and repair commits. Audit code/tests/docs individually against the primary spine; do not wholesale merge the old release line. |
-| `agent/codex/2026-07-12/v0.3.2-build` | 92 behind, 4 ahead | Two historical reverts plus build/checklist commits. Preserve release evidence selectively; do not reintroduce obsolete reverts. |
-| `agent/GUI-testing` | 107 behind, 4 ahead | Two UI changes and two research records are distinct. Compare the UI behavior with newer implementations; preserve still-relevant research selectively. |
+| `agent/b4-encounter-model-slice2` | 53 commits ahead | Merged as the primary spine at `33d1c0c`; its 51-commit prep-save ancestor is fully included. |
+| `agent/codex/2026-07-15/prep-save-followup` | 51 commits ahead | Superseded by the primary spine; locally marked for archival. |
+| `agent/codex/2026-07-14/v0.4.0-windows-build` | 36 behind, 8 ahead | Relevant behavior was reimplemented on the split architecture at `15297c9`; release evidence was preserved at `ea03797`. The old line is superseded. |
+| `agent/codex/2026-07-12/v0.3.2-build` | 92 behind, 4 ahead | Build/checklist evidence was preserved at `430ba3a`; two obsolete reverts were intentionally rejected. The old line is superseded. |
+| `agent/GUI-testing` | 107 behind, 4 ahead | Relevant UI and research were ported at `430ba3a`, including ownership of `B8-TILE-RESCALE`. The old line is superseded. |
 
 All formerly reported merged lines were reconfirmed as ancestors of fetched
 `origin/main`: `agent/claude/2026-07-12/v0.4-prep`,
@@ -43,7 +43,16 @@ All formerly reported merged lines were reconfirmed as ancestors of fetched
 `agent/codex/2026-07-13/band0-gdd-consolidation`,
 `agent/codex/2026-07-14/v0.4.0-integration`,
 `awakening-compatability-refactor`, `v0.3.0-features`, and the old local `main`.
-No ref is authorized for deletion yet.
+Scorer planning was preserved on the integrated spine at `808103e`. The stale
+scorer implementation was not imported because it lacks weapon enumeration,
+exposure, target-value, open-term, mutation, and RNG diagnostics required by the
+new architecture; it remains recoverable at pushed branch
+`agent/codex/2026-07-16/recover-stale-main-ai-scorer`.
+
+The durable coordination candidate is rooted at `3922b7b` on pushed branch
+`agent/codex/2026-07-16/coordination-candidate`. It provides ownership and
+release registries, lifecycle mutations, generated views, and automated stale,
+duplicate, ref, evidence, and retirement checks. No remote ref was deleted.
 
 ## Local build identity
 
@@ -70,9 +79,12 @@ untracked downloaded art/archive content. `Project_Prometheus_Campaign_Pack_FE`
 is clean. Both remain outside this consolidation goal; asset licensing and
 attribution require a separate Work ID before any campaign-pack commit.
 
-## Next safe action
+## Publication boundary
 
-Compare each unique release/UI/recovery commit against the primary encounter
-spine, then construct the integration result on an `agent/**` branch. Do not
-publish inherited workflow changes, create protected refs, or delete remote refs
-without explicit approval.
+The complete integration result is on
+`agent/codex/2026-07-16/integration-candidate`. Publishing it is blocked only by
+the current credential lacking GitHub workflow scope because inherited history
+changes `.github/workflows/**`. A local Git bundle is retained as an independent
+transport. A human must create/advance `integration` and `coordination`, review
+the candidate branches, then retire superseded remote branches; agents must not
+perform those protected-ref operations.

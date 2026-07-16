@@ -16,6 +16,14 @@ Leave clear concise comments explaining what each section does and why decisions
 
 make regular commits with related messages after each logical step.
 
+Branch lifecycle: `main` is the stable line, `integration` is the normal base
+and target for feature work, `release/**` isolates release hardening, and
+`coordination` owns the active-work registry. Agents work and push only on
+`agent/**`; humans create or advance protected refs, merge reviewed work, and
+retire superseded branches. Register ownership before implementation and keep
+source SHA, test/playtest evidence, and final disposition in the coordination
+registry. The registry checker is the durable enforcement for this lifecycle.
+
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
 Documentation layout & index (DSR, 2026-06-23): AGENT/Docs/ is sorted by TYPE — `guides/ governance/ decisions/ registers/ design/ plans/ playtests/` for live docs, and `archive/{consolidation,plans,playtests,handoffs,reference,evidence}/` for historical/superseded ones (never deleted; each archived .md carries a `> **Historical**`/`> **Superseded** by [..](path)` marker in its first 10 lines). Retrieval: `AGENT/Docs/INDEX.md` = what's active; `AGENT/Docs/REGISTERS.md` = the `[XXX-n]` open-question registers catalog (OPEN/RESOLVED + resolved-where); `AGENT/Docs/decisions/decision_index.md` = governance IDs (DOC/RULE/SET/OPEN/RNG/AWR). INDEX.md and REGISTERS.md are GENERATED — after adding/moving/retitling a doc or changing its header, run `python3 AGENT/Docs/gen_docs_index.py` and commit the result in the SAME change (enforced by check_docs.py check 18; design rationale in `AGENT/Docs/governance/documentation_system_design_2026-06-23.md`).
