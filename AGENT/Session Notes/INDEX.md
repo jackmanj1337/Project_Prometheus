@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16d](2026-07-16d.md) — Triaged the v0.4.1 Windows return, fixed release-unavailable legacy skill dispatch warnings, and passed all 76 suites.
+
 - [2026-07-16c](2026-07-16c.md) — Bumped the release candidate to v0.4.1, passed all 76 suites, and cut the exact Windows artifact with the full v0.4 feature checklist.
 
 - [2026-07-16b](2026-07-16b.md) — Implemented all v0.4.0 triage fixes, passed 76 suites and project gates, and exported the focused Windows rerun artifact.

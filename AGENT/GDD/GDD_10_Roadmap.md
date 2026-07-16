@@ -96,8 +96,10 @@ triage repairs. The original scope/review checklist remains
 [`v0.4.0_release_checklist_2026-07-13.md`](../Docs/plans/v0.4.0_release_checklist_2026-07-13.md).
 All seven rows are implemented. The results-lock, reward/balance, independent More
 Info scrolling, and release skill-availability repairs are **Implemented** headlessly
-as of 2026-07-16. The gate remains **Pending validation** until the full v0.4.1
-Windows feature checklist returns complete evidence. Band 3 consumers are outside
+as of 2026-07-16. The live v0.4.1 return passed the feature smoke, but exposed legacy
+loadouts invoking release-unavailable skill stubs; dispatch now keeps those records inert
+and quiet. The gate remains **Pending validation** until that narrow fix is rerun in the
+Windows build and the feature checklist returns complete evidence. Band 3 consumers are outside
 this release boundary.
 
 > **Focused rerun build `v0.3.1` RETURNED 2026-07-12** (source `c7ce311`) —

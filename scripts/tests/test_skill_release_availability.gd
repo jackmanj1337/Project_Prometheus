@@ -29,11 +29,12 @@ func _init() -> void:
 	await process_frame
 	var context := {"unchanged": true}
 	var executed: bool = handler._execute_skill(armsthrift, null, context)
-	if not executed and context == {"unchanged": true}:
-		print("OK  legacy/debug stub execution fails safely without mutating context")
+	if not executed and context == {"unchanged": true} and handler._stub_warned.is_empty():
+		print("OK  release-unavailable legacy stubs stay inert and quiet")
 		passed += 1
 	else:
-		print("FAIL stub execution safety: executed=%s context=%s" % [executed, context])
+		print("FAIL stub execution safety: executed=%s context=%s warnings=%s" \
+				% [executed, context, handler._stub_warned])
 		failed += 1
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

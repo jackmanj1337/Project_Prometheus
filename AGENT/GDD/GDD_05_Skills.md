@@ -133,7 +133,8 @@ The exact callable signature and combat-context fields live with the runtime con
   known-future IDs dispatch to `_apply_unimplemented` and warn at runtime.
 - `SkillData.release_available` is the shared release-content capability flag.
   Unimplemented skills set it false, excluding them generically from player-facing
-  choices while legacy/debug data stays loadable and retains the development warning.
+  choices. Legacy maps and saves remain loadable, but dispatch treats those skills as
+  inert and quiet so deferred effects cannot leak into ordinary release play.
 - A handler returns `true` only when its effect actually applied, so a limited use is
   consumed only on a real activation.
 - Combat-context channels: `atk_mod` / `def_mod` (`accuracy`, `damage`, `crit`,

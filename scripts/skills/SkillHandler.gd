@@ -216,6 +216,10 @@ func apply_trigger(unit: Node, trigger: String, context: Dictionary,
 # Dispatches one skill. Returns true if the effect committed, false if the handler
 # declined to act (the use counters above key off this).
 func _execute_skill(skill: SkillData, unit: Node, context: Dictionary) -> bool:
+	# Legacy maps and saves may still carry authored M9 stubs. Keep those records
+	# loadable, but release-unavailable effects must stay inert and quiet in play.
+	if not skill.is_available_for_release():
+		return false
 	if not _dispatch.has(skill.effect_id):
 		push_error("SkillHandler: unknown effect_id '%s' — add it to _dispatch in _ready()" % skill.effect_id)
 		return false
