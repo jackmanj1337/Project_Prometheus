@@ -14,9 +14,9 @@ This is the single authoritative full-feature rerun for the v0.4 release line. I
 ## Before testing
 
 - Executable: `Project_Prometheus_v0.4.1_debug.exe`
-- Expected byte size: `PENDING_EXPORT`
-- Expected SHA-256: `PENDING_EXPORT`
-- Expected BUILD STAMP commit/time: `PENDING_EXPORT`
+- Expected byte size: `101846912`
+- Expected SHA-256: `59895ffb837b0da921c21b656efbeebcfc755f2a43c8614443651fc10efd7532`
+- Expected BUILD STAMP commit/time: `66e1973`, built `2026-07-16T03:58:59Z`
 - Windows version/device: ____________________
 - Tester/date: ____________________
 - Keyboard/mouse used: ____________________

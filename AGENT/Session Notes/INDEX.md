@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-16c](2026-07-16c.md) — Bumped the release candidate to v0.4.1, passed all 76 suites, and cut the exact Windows artifact with the full v0.4 feature checklist.
+
 - [2026-07-16b](2026-07-16b.md) — Implemented all v0.4.0 triage fixes, passed 76 suites and project gates, and exported the focused Windows rerun artifact.
 
 - [2026-07-16](2026-07-16.md) — Archived and triaged the returned v0.4.0 `d12eb33` Windows playtest: core smoke sections passed, but artifact hash/size and victory gold remain unproven; routed victory-modal cursor movement for diagnosis and a focused rerun.
