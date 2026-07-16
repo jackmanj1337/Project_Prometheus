@@ -16,11 +16,11 @@ Leave clear concise comments explaining what each section does and why decisions
 
 make regular commits with related messages after each logical step.
 
-Branch lifecycle: `main` is the stable line, `integration` is the normal base
-and target for feature work, `release/**` isolates release hardening, and
-`coordination` owns the active-work registry. Agents work and push only on
-`agent/**`; humans create or advance protected refs, merge reviewed work, and
-retire superseded branches. Register ownership before implementation and keep
+Branch lifecycle: `agent/stable-release` is the stable line,
+`agent/integration` is the normal base and target for feature work,
+`agent/playtest-release` isolates release hardening, and `agent/coordination`
+owns the active-work registry. Agents work and push only on `agent/**`; `main`
+is not advanced by agents. Register ownership before implementation and keep
 source SHA, test/playtest evidence, and final disposition in the coordination
 registry. The registry checker is the durable enforcement for this lifecycle.
 
