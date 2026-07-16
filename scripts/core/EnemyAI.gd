@@ -5,6 +5,11 @@ extends Node
 # Used to recognise (and skip) paired supports parked off the grid. See the guard
 # in _living_hostiles_for_faction.
 const _PairUpRegistryScript = preload("res://scripts/autoloads/PairUpRegistry.gd")
+const _WeaponAttackScorer = preload("res://scripts/core/WeaponAttackScorer.gd")
+
+# Keep the shipped nearest-target decisions unless a later, separately tracked
+# gameplay change deliberately opts a profile into tactical forecast scoring.
+const ATTACK_SCORING_PRESET: StringName = _WeaponAttackScorer.PRESET_SHIPPED_COMPATIBILITY
 
 # Runs one faction's living units sequentially.
 # Bails early when the map has already ended (M16 Decision 7 / 2026-05-17 — the
@@ -92,8 +97,8 @@ func _act(enemy: Node, grid: GridManager, turn: TurnManager, acting_faction: Str
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
 		if not targets.is_empty():
-			var target: Node = _find_nearest(enemy, targets)
 			var cr := get_node_or_null("/root/CombatResolver")
+			var target: Node = _choose_weapon_attack_target(enemy, targets, cr)
 			if cr and is_instance_valid(target):
 				var result: Dictionary = cr.resolve_combat(enemy, target)
 				cr.apply_combat_result(result, enemy, target)
@@ -112,8 +117,8 @@ func _act_passive(enemy: Node, grid: GridManager, turn: TurnManager, _acting_fac
 		var targets: Array[Node] = grid.get_attackable_enemies_from_tile(
 			enemy, enemy.tile_position)
 		if not targets.is_empty():
-			var target: Node = _find_nearest(enemy, targets)
 			var cr := get_node_or_null("/root/CombatResolver")
+			var target: Node = _choose_weapon_attack_target(enemy, targets, cr)
 			if cr and is_instance_valid(target):
 				var result: Dictionary = cr.resolve_combat(enemy, target)
 				cr.apply_combat_result(result, enemy, target)
@@ -264,6 +269,17 @@ func _find_nearest_manhattan(from_unit: Node, units: Array[Node]) -> Node:
 			min_dist = d
 			nearest = u
 	return nearest
+
+
+# Scores only legal targets supplied by GridManager. The default preset is a
+# compatibility representation of _find_nearest_manhattan, including first-tie
+# wins, so introducing this seam does not alter any shipped AI action.
+func _choose_weapon_attack_target(attacker: Node, targets: Array[Node], combat_resolver: Node,
+		preset: StringName = ATTACK_SCORING_PRESET) -> Node:
+	var preview := Callable()
+	if combat_resolver != null and combat_resolver.has_method("preview_combat"):
+		preview = Callable(combat_resolver, "preview_combat")
+	return _WeaponAttackScorer.choose_target(attacker, targets, preview, preset)
 
 
 # Returns every living unit hostile to `acting_faction`, based on the

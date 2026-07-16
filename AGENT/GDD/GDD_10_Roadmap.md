@@ -1,7 +1,7 @@
 # GDD_10 — Phase 2 Implementation Roadmap
 
 **Status:** Active — live Phase 2 milestone tracker. Status Snapshot table (below) is authoritative.
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-16
 
 ---
 
@@ -1568,7 +1568,9 @@ alongside M14's green-objective content.
       alternating returns control after one committed unit)
 - [x] Stage 3: `_begin_phase` timing mode-aware (army-phase start vs round start)
 - [x] Stage 4: faction-agnostic AI dispatch for all hostile units
-- [ ] Separate tactical-AI task: HP / strength / terrain danger / objective-critical scoring
+- [ ] Separate tactical-AI task — **Split**: bounded deterministic weapon-attack scorer
+      + shipped-compatibility preset **Implemented**; tactical preset adoption and HP /
+      strength / terrain danger / objective-critical behavior **Planned**
 - [x] Content: green + yellow spawns and per-unit faction tags in `MapData`
 - [x] UX: faction colour + `PhaseBanner` label read from faction data, N-faction-ready
 - [x] Verify: green attacks red/yellow, never blue; yellow attacks all

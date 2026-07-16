@@ -1,10 +1,11 @@
 # GDD_08 — Enemy AI
 
 **Status:** Active contract — split status per section (the basic/passive/healer profiles
-are **Implemented**; the tactical scoring model, extra profiles, and enemy
-generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
+are **Implemented**; weapon-attack scoring is **Split** (bounded scorer + shipped-
+compatibility preset **Implemented**, tactical adoption **Planned**); extra profiles and
+enemy generation/autolevel are **Planned / Target design / Not reviewed**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-06-14
+**Last verified:** 2026-07-16
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/documentation_governance_2026-06-13.md`.
 
@@ -147,19 +148,33 @@ Designed but not implemented. Register them in `_act()` and
 | `"aggressive"` | Like basic but ignores the counter-damage penalty in scoring |
 | `"boss"` | Like basic but with terrain-optimal positioning; uses items |
 
-### Phase 2 Scoring Model (design backlog)
+### Weapon-Attack Scoring Track
 
-When the basic profile is upgraded in the separate tactical-AI task, target selection should score each
-reachable target with `preview_combat()` — prioritising guaranteed kills, then
-low-HP targets, then expected damage, penalised by the counter-damage the enemy would
-take. Until then the AI uses the nearest-target rule above.
+Status: **Split** — bounded deterministic scorer + shipped-compatibility preset
+**Implemented**; tactical forecast preset adoption **Planned**
+Last verified: 2026-07-16
+
+`WeaponAttackScorer` is a pure integer scorer with a closed `[-1,000,000,
+1,000,000]` output range. It provides two explicit presets:
+
+- `shipped_compatibility` is the default used by `EnemyAI`. It exactly preserves the
+  shipped post-move decision: nearest Manhattan target, with candidate order deciding
+  equal-distance ties. It deliberately does not call `preview_combat()`.
+- `tactical_forecast` is implemented and tested as an opt-in scoring primitive. It
+  prioritises forecasted kills and damage, penalises counter-damage, and uses integer-
+  only bounded arithmetic. No shipped AI profile selects this preset yet.
+
+The separate tactical-AI task still owns behavior adoption and broader scoring of
+movement tiles, terrain danger, target strength, and objective criticality. Therefore
+this track is **Split**, not wholly Implemented.
 
 ---
 
 ## AI Determinism & Parity
 
-Status: **Target design** (parity obligations; binding once `RngService` lands — RNG-4)
-Last verified: 2026-06-13
+Status: **Split** — deterministic weapon-attack scoring **Implemented**; replay/online
+parity obligations **Target design** (binding once `RngService` lands — RNG-4)
+Last verified: 2026-07-16
 
 ### Summary
 AI decisions must be reproducible so replay, rewind, suspend, and host-authoritative
@@ -233,8 +248,9 @@ Last verified: 2026-06-13
 
 ## Testing the AI
 
-Status: **Implemented** (profile coverage); scoring tests **Planned**
-Last verified: 2026-06-13
+Status: **Split** — profile + scorer-unit coverage **Implemented**; tactical behavior
+adoption coverage **Planned**
+Last verified: 2026-07-16
 
 `scripts/tests/test_enemy_ai.gd` covers the AI profiles. Behaviour checklist:
 
@@ -245,5 +261,7 @@ Last verified: 2026-06-13
 - [x] A `healer` enemy moves to reach an injured ally and heals it
 - [x] A defender with a ranged weapon cannot counter a melee attacker out of range
 - [x] AI phases hand back to the next authored faction and eventually back to blue
-- [ ] Kill-priority target scoring — Phase 2 (not yet implemented)
+- [x] Weapon-attack scorer bounds, repeatability, compatibility parity, and opt-in
+      kill priority (`test_weapon_attack_scorer.gd`)
+- [ ] Adopt tactical forecast scoring in an AI profile — separate gameplay change
 - [ ] Enemy stops short of a hostile threat range — Phase 2 (not yet implemented)
