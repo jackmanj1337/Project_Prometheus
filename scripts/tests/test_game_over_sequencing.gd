@@ -51,6 +51,8 @@ func _init() -> void:
 		screen.visible
 		and screen.get_node("Panel/VBox/Title").text == "Victory!"
 		and not save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)
+		and bus.is_gameplay_modal_locked()
+		and screen.get_node("Backdrop").mouse_filter == Control.MOUSE_FILTER_STOP
 	):
 		print("OK  victory presents immediately and deletes the mid-map slot")
 		passed += 1
@@ -69,6 +71,7 @@ func _init() -> void:
 
 	# Reset the overlay for the sequencing case (mirror a fresh map).
 	screen.hide()
+	screen._release_modal_lock()
 	screen._result_pending = false
 
 	# --- Case 2: kill boss -> level up -> promote -> THEN victory -----------------
@@ -77,6 +80,7 @@ func _init() -> void:
 	# level-up is still up.
 	bus.level_up_started.emit()
 	await process_frame
+	bus.reward_committed.emit({"gold_earned": 75, "total_gold": 100, "items_awarded": []})
 	bus.map_victory.emit()
 	bus.map_resolved.emit("blue", [])
 	await process_frame
@@ -95,15 +99,28 @@ func _init() -> void:
 	bus.promotion_finished.emit()
 	await process_frame
 	var visible_after_queue := screen.visible
+	var receipt_retained: bool = (
+		"Gold earned: 75\nTotal gold: 100" in screen.get_node("Panel/VBox/Rewards").text
+	)
 
-	if hidden_during_levelup and hidden_during_promotion and visible_after_queue:
+	if (
+		hidden_during_levelup
+		and hidden_during_promotion
+		and visible_after_queue
+		and receipt_retained
+	):
 		print("OK  victory waits out the level-up AND the queued promotion, then presents")
 		passed += 1
 	else:
 		print(
 			(
-				"FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s"
-				% [hidden_during_levelup, hidden_during_promotion, visible_after_queue]
+				"FAIL sequencing: hidden_lvl=%s hidden_promo=%s visible_after=%s receipt=%s"
+				% [
+					hidden_during_levelup,
+					hidden_during_promotion,
+					visible_after_queue,
+					receipt_retained
+				]
 			)
 		)
 		failed += 1
@@ -114,6 +131,7 @@ func _init() -> void:
 	root.add_child(game_over)
 	await process_frame
 	screen.hide()
+	screen._release_modal_lock()
 	bus.map_victory.emit()
 	bus.map_resolved.emit("blue", [])
 	await process_frame
@@ -122,7 +140,13 @@ func _init() -> void:
 	bus.map_defeat.emit()
 	bus.map_resolved.emit("red", [])
 	await process_frame
-	if defeat_hidden_on_victory and game_over.visible and not screen.visible:
+	if (
+		defeat_hidden_on_victory
+		and game_over.visible
+		and not screen.visible
+		and bus.is_gameplay_modal_locked()
+		and game_over.get_node("Backdrop").mouse_filter == Control.MOUSE_FILTER_STOP
+	):
 		print("OK  victory and defeat present on separate result surfaces")
 		passed += 1
 	else:

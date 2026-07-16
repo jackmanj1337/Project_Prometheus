@@ -303,13 +303,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if (
 		_state == State.LOCKED
 		and not _input_suppressed
+		and not _gameplay_modal_locked()
 		and _turn != null
 		and not _turn.is_locally_controlled_faction(_turn.active_faction())
 		and _is_fresh_action_press(event, "open_menu")
 	):
 		_open_map_menu()
 		return
-	if _input_suppressed or _state == State.LOCKED:
+	if _input_suppressed or _state == State.LOCKED or _gameplay_modal_locked():
 		return
 	# Map zoom (Display & Accessibility item 1): scroll wheel / +/-/0. Handled
 	# before the cursor-move branches so a scroll-to-zoom isn't also read as a
@@ -345,7 +346,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	# Auto-repeat applies to free cursor movement and targeting selection. Other
 	# states drop the held dir so the cursor doesn't drift through menus.
-	if _input_suppressed:
+	if _input_suppressed or _gameplay_modal_locked():
 		_input_handler.clear_repeat()
 		_clear_zoom_repeat()
 		return
@@ -433,7 +434,7 @@ func _handle_discrete_press(event: InputEvent) -> void:
 # Resets cursor key-repeat on release, and flips the enemy danger-zone
 # toggle on a show_danger_zone press or a middle-mouse click (#12).
 func _input(event: InputEvent) -> void:
-	if _input_suppressed:
+	if _input_suppressed or _gameplay_modal_locked():
 		return
 	if event is InputEventKey:
 		if not event.pressed:
@@ -464,6 +465,15 @@ func _input(event: InputEvent) -> void:
 			_input_handler.note_released(event)
 			if event.is_action_released("peek_range"):
 				_end_peek()
+
+
+func _gameplay_modal_locked() -> bool:
+	var bus := get_node_or_null("/root/EventBus")
+	return (
+		bus != null
+		and bus.has_method("is_gameplay_modal_locked")
+		and bool(bus.call("is_gameplay_modal_locked"))
+	)
 
 
 # [TUR-3] The single danger-zone resolver — MMB / show_danger_zone (and, later,

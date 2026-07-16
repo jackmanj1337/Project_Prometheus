@@ -27,6 +27,7 @@ var _level_up_active: bool = false
 var _promotion_active: bool = false
 var _suspend_deleted_for_result: bool = false
 var _defeat_received: bool = false
+var _modal_lock_held := false
 
 
 func _ready() -> void:
@@ -118,6 +119,7 @@ func _on_promotion_finished() -> void:
 
 
 func _show_overlay() -> void:
+	_acquire_modal_lock()
 	_refresh_defeat_actions()
 	show()
 	_retry_btn.grab_focus()
@@ -160,6 +162,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_retry() -> void:
+	_release_modal_lock()
 	# The same map is about to be replayed, so its result must not advance the
 	# campaign — drop it before the reload (B1-CST Slice 2 retry rule).
 	var cm := get_node_or_null("/root/CampaignManager")
@@ -277,6 +280,7 @@ func _on_rewind() -> void:
 
 
 func _on_quit() -> void:
+	_release_modal_lock()
 	# Quitting to the menu abandons the run: the campaign position is runtime-only
 	# until Slice 3 persists it, so leaving the map ends the campaign.
 	var cm := get_node_or_null("/root/CampaignManager")
@@ -291,3 +295,25 @@ func _quit_to_menu() -> void:
 	if gs and gs.has_method("reset_map_state"):
 		gs.reset_map_state()
 	get_tree().change_scene_to_file("res://scenes/core/Boot.tscn")
+
+
+func _acquire_modal_lock() -> void:
+	if _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("acquire_gameplay_modal"):
+		bus.call("acquire_gameplay_modal", self)
+		_modal_lock_held = true
+
+
+func _release_modal_lock() -> void:
+	if not _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("release_gameplay_modal"):
+		bus.call("release_gameplay_modal", self)
+	_modal_lock_held = false
+
+
+func _exit_tree() -> void:
+	_release_modal_lock()

@@ -11,5 +11,6 @@ trigger = "on_attack"
 activation_chance_stat = ""
 activation_divisor = 2
 effect_id = "armsthrift"
+release_available = false
 effect_params = {}
 is_player_activated = false

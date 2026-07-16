@@ -262,6 +262,7 @@ lost during foundation work.
 
 | Track ID | Queue | Action |
 |---|---|---|
+| `REL-V042-PORT` | Release gate | **Implemented 2026-07-16:** accepted v0.4 fixes are ported to the split results/defeat architecture: owner-counted modal locking, committed reward totals, Map Menu party gold, independent Character Sheet prose scrolling, and release-availability gating for deferred skills. A fresh tagged release train and live rerun remain Pending validation. |
 | `VAL-V023-DISPLAY` | Validation | **Implemented 2026-07-13:** v0.3.2 passed width-only and height-only resize tracking, one-second convergence, relaunch persistence, maximize labeling, and restore-to-saved-size. Evidence and routing: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `VAL-V030-GAMEPAD` | Validation | v0.3.2 passed dropdown standdown, character-sheet navigation/scrolling, menu cadence, and contextual-menu anchoring. Gate remains Pending validation only for asymmetric LT/RT zoom feel; source diagnosis points to uneven zoom ratios rather than separate trigger timers. Triage: `playtest_v0.3.2_results_triage_plan_2026-07-13.md`. |
 | `REL-V023-MERGE` | Release gate | Merge the v0.2.3 branch to `main` only after validation passes. |

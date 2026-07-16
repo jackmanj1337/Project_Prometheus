@@ -18,6 +18,8 @@ var _result_pending := false
 var _level_up_active := false
 var _promotion_active := false
 var _suspend_deleted_for_result := false
+var _reward_receipt: Dictionary = {}
+var _modal_lock_held := false
 
 
 func _ready() -> void:
@@ -29,6 +31,7 @@ func _ready() -> void:
 	if bus != null:
 		bus.map_victory.connect(_on_victory)
 		bus.map_resolved.connect(_on_map_resolved)
+		bus.reward_committed.connect(_on_reward_committed)
 		bus.level_up_started.connect(func(): _level_up_active = true)
 		bus.level_up_finished.connect(_on_level_up_finished)
 		bus.promotion_started.connect(func(): _promotion_active = true)
@@ -59,10 +62,15 @@ func _request_present() -> void:
 	_try_present()
 
 
+func _on_reward_committed(receipt: Dictionary) -> void:
+	_reward_receipt = receipt.duplicate(true)
+
+
 func _try_present() -> void:
 	if not _result_pending or _level_up_active or _promotion_active:
 		return
 	_result_pending = false
+	_acquire_modal_lock()
 	_refresh_result()
 	show()
 	if _continue_button.disabled and _successor_picker.visible:
@@ -86,7 +94,18 @@ func _on_promotion_finished() -> void:
 func _refresh_result() -> void:
 	var cm := _campaign_manager()
 	var result: Dictionary = cm.call("get_pending_result") if cm != null else {}
-	_rewards_label.text = _summary_line("Rewards", result.get("rewards", []), "None reported")
+	var authored_rewards := _summary_line("Rewards", result.get("rewards", []), "None reported")
+	if _reward_receipt.is_empty():
+		_rewards_label.text = authored_rewards
+	else:
+		_rewards_label.text = (
+			"%s\nGold earned: %d\nTotal gold: %d"
+			% [
+				authored_rewards,
+				int(_reward_receipt.get("gold_earned", 0)),
+				int(_reward_receipt.get("total_gold", 0)),
+			]
+		)
 	_casualties_label.text = _summary_line(
 		"Casualties", result.get("casualties", []), "None reported"
 	)
@@ -171,6 +190,28 @@ func _campaign_manager() -> Node:
 	return cm
 
 
+func _acquire_modal_lock() -> void:
+	if _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("acquire_gameplay_modal"):
+		bus.call("acquire_gameplay_modal", self)
+		_modal_lock_held = true
+
+
+func _release_modal_lock() -> void:
+	if not _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("release_gameplay_modal"):
+		bus.call("release_gameplay_modal", self)
+	_modal_lock_held = false
+
+
+func _exit_tree() -> void:
+	_release_modal_lock()
+
+
 func _delete_mid_map_slot_after_resolution() -> void:
 	if _suspend_deleted_for_result:
 		return
@@ -186,6 +227,7 @@ func _unhandled_input(_event: InputEvent) -> void:
 
 
 func _quit_to_menu() -> void:
+	_release_modal_lock()
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("reset_map_state"):
 		gs.call("reset_map_state")

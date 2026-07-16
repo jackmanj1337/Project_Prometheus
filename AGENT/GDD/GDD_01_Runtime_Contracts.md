@@ -446,4 +446,14 @@ Tests are the executable signature and behavior guard. Start with the matching
 `scripts/tests/test_*.gd` suite and `scripts/tests/test_snapshot_coverage.gd`
 when a mutable field changes.
 
+### Gameplay modal and reward notification contracts
+
+Status: **Implemented** (2026-07-16)
+Last verified: 2026-07-16
+
+- Full-screen gameplay overlays acquire/release the owner-counted EventBus gameplay
+  modal lock. `MapCursor` consults it in event callbacks and held-input polling.
+- A successful victory ledger commit emits a copied reward receipt containing
+  `gold_earned`, resulting `total_gold`, and `items_awarded`; failure emits none.
+
 ---

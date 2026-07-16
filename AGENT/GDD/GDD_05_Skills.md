@@ -131,6 +131,9 @@ The exact callable signature and combat-context fields live with the runtime con
   `activation_chance_stat / activation_divisor` if set, then dispatches via a
   `{ effect_id: Callable }` table built in `_ready()`. Unknown IDs are startup errors;
   known-future IDs dispatch to `_apply_unimplemented` and warn at runtime.
+- `SkillData.release_available` is the release-content capability flag. Deferred
+  skill records remain loadable for old maps/saves but are hidden from release-facing
+  choices and remain inert and quiet if legacy equipment invokes them.
 - A handler returns `true` only when its effect actually applied, so a limited use is
   consumed only on a real activation.
 - Combat-context channels: `atk_mod` / `def_mod` (`accuracy`, `damage`, `crit`,

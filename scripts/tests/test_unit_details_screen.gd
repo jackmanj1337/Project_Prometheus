@@ -667,6 +667,41 @@ func is_weapon_track_available(track: String) -> bool:
 
 	screen.open(stub_unit)
 
+	# Long More Info text scrolls independently of entry selection. Page Down and
+	# right-stick both move the description; changing entries resets the offset.
+	screen._info_desc.text = ("Long description line.\n").repeat(80)
+	await process_frame
+	await process_frame
+	screen._refresh_description_scroll_affordance()
+	var selector_before: int = screen._current_index
+	var page_down := InputEventKey.new()
+	page_down.keycode = KEY_PAGEDOWN
+	page_down.pressed = true
+	screen._input(page_down)
+	var page_value: float = screen._info_desc.get_v_scroll_bar().value
+	var stick_down := InputEventJoypadMotion.new()
+	stick_down.axis = JOY_AXIS_RIGHT_Y
+	stick_down.axis_value = 1.0
+	screen._input(stick_down)
+	var stick_value: float = screen._info_desc.get_v_scroll_bar().value
+	screen._show_entry("stat", "strength", "Strength")
+	var reset_value: float = screen._info_desc.get_v_scroll_bar().value
+	screen._info_desc.text = "Short."
+	await process_frame
+	screen._refresh_description_scroll_affordance()
+	if (
+		page_value > 0.0
+		and stick_value > page_value
+		and selector_before == screen._current_index
+		and reset_value == 0.0
+		and not screen._scroll_hint.visible
+	):
+		print("OK  More Info scrolls by Page Down/right stick and resets per entry")
+		passed += 1
+	else:
+		print("FAIL independent More Info scrolling")
+		failed += 1
+
 	# _close() hides the page, emits `closed`, and clears local state so the
 	# next open() starts from a clean slate.
 	var closed_seen := [false]

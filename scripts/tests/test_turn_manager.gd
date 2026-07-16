@@ -62,12 +62,25 @@ func _init() -> void:
 	reward_tm._map_data = reward_map
 	gs.party_gold = 25
 	gs.party_items.clear()
-	reward_tm._apply_victory_rewards(gs)
-	if gs.party_gold == 100 and gs.party_items == ["vulnerary"]:
+	var reward_receipt: Dictionary = reward_tm._apply_victory_rewards(gs)
+	if (
+		gs.party_gold == 100
+		and gs.party_items == ["vulnerary"]
+		and reward_receipt == {"gold_earned": 75, "total_gold": 100, "items_awarded": ["vulnerary"]}
+	):
 		print("OK  victory reward preserves gold credit and item append behavior")
 		passed += 1
 	else:
 		print("FAIL victory reward: gold=%d items=%s" % [gs.party_gold, gs.party_items])
+		failed += 1
+	reward_map.reward_gold = 0
+	reward_map.reward_items.clear()
+	var zero_receipt: Dictionary = reward_tm._apply_victory_rewards(gs)
+	if zero_receipt.gold_earned == 0 and zero_receipt.total_gold == 100:
+		print("OK  zero-gold victory produces an honest committed receipt")
+		passed += 1
+	else:
+		print("FAIL zero reward receipt: %s" % zero_receipt)
 		failed += 1
 
 	# ---- get_unit_state defaults to READY for an unregistered unit ----
