@@ -49,12 +49,28 @@
       "status": "playtesting",
       "target": "agent/stable-release",
       "base_branch": "agent/integration",
-      "base_sha": "258ed12a3842074d0497f8881c4c89cbc886a347",
+      "base_sha": "2e3f55dff4d62950dc11520dd3b275175ff28c02",
       "dependencies": ["LIFECYCLE-INTEGRATION"],
-      "blockers": ["live v0.4.2 playtest evidence pending"],
-      "reference": "published from verified integration candidate 258ed12",
+      "blockers": ["live v0.5.0 consolidated Windows playtest evidence pending"],
+      "reference": "v0.5.0 artifact manifest at 9931489; branch advanced through 18283e2",
       "last_update": "2026-07-16",
       "playtest_ref": null,
+      "scope": "remote"
+    },
+    {
+      "work_id": "RELEASE-V050-PLAYTEST",
+      "title": "Cut and validate the consolidated v0.5.0 Windows playtest release",
+      "branch": "agent/codex/2026-07-16/v0.5.0-playtest-build",
+      "owner": "codex",
+      "status": "playtesting",
+      "target": "agent/playtest-release",
+      "base_branch": "agent/playtest-release",
+      "base_sha": "258ed12a3842074d0497f8881c4c89cbc886a347",
+      "dependencies": ["LIFECYCLE-INTEGRATION"],
+      "blockers": ["completed checklist, matching godot.log, and screenshots have not returned"],
+      "reference": "build source 2e3f55d; manifest 9931489; artifact SHA-256 81dabb79b302e27607d54404ad963195c8d314e833bcc08b336f3653d676ca49",
+      "last_update": "2026-07-16",
+      "playtest_ref": "AGENT/Docs/playtests/playtest_checklist_v0.5.0.md",
       "scope": "remote"
     },
     {
@@ -203,6 +219,16 @@
     }
   ],
   "release_trains": [
+    {
+      "version": "v0.5.0",
+      "branch": "agent/playtest-release",
+      "source_branch": "agent/codex/2026-07-16/v0.5.0-playtest-build",
+      "source_sha": "2e3f55dff4d62950dc11520dd3b275175ff28c02",
+      "playtest_tags": [],
+      "stable_tag": null,
+      "acceptance": "artifact exported; live consolidated playtest pending",
+      "last_update": "2026-07-16"
+    },
     {
       "version": "v0.4.2",
       "branch": "agent/playtest-release",

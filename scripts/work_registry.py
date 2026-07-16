@@ -79,6 +79,7 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
             errors.append(f"{work_id}: malformed agent branch: {branch}")
         if branch.startswith("agent/") and record.get("base_branch") not in {
             "main", "integration", "agent/stable-release", "agent/integration",
+            "agent/playtest-release",
             "agent/coordination", "agent/b4-encounter-model-slice2",
             "agent/codex/2026-07-14/v0.4.0-windows-build",
         }:
