@@ -63,17 +63,17 @@
       "title": "Cut and validate the consolidated v0.5.0 Windows playtest release",
       "branch": "agent/codex/2026-07-16/v0.5.0-playtest-build",
       "owner": "codex",
-      "status": "completed",
+      "status": "playtesting",
       "target": "agent/playtest-release",
       "base_branch": "agent/playtest-release",
       "base_sha": "258ed12a3842074d0497f8881c4c89cbc886a347",
       "dependencies": ["LIFECYCLE-INTEGRATION"],
-      "blockers": [],
+      "blockers": ["completed checklist, matching godot.log, and screenshots have not returned; local worktree retains the exact exported artifact"],
       "trigger": "When files appear in AGENT/Incoming/v0.5.0/; triage before new release work",
-      "reference": "promoted to agent/playtest-release at 18283e2; preparation branch retired 2026-07-17; build source 2e3f55d tagged v0.5.0",
-      "last_update": "2026-07-16",
+      "reference": "promoted to agent/playtest-release at 18283e2; remote preparation branch retired 2026-07-17; local artifact retained; build source 2e3f55d tagged v0.5.0",
+      "last_update": "2026-07-17",
       "playtest_ref": "AGENT/Docs/playtests/playtest_checklist_v0.5.0.md",
-      "scope": "remote"
+      "scope": "local"
     },
     {
       "work_id": "COORDINATION-CANDIDATE-PROMOTION",
@@ -212,16 +212,17 @@
       "title": "v0.3.2 focused rerun evidence line",
       "branch": "agent/codex/2026-07-12/v0.3.2-build",
       "owner": "codex",
-      "status": "completed",
+      "status": "blocked",
       "target": "archive",
       "base_branch": "main",
       "base_sha": "6d84554c29b91d2e9ffc548a11155f04c0667705",
       "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": [],
+      "blockers": ["remote branch is archived and retired, but the local worktree still contains the v0.3.2 executable, build_info.json, and line-ending-only CLAUDE.md change"],
+      "trigger": "After the v0.5.0 return is archived, or on 2026-08-16 whichever comes first, verify artifact hashes are recorded in durable evidence and then remove the v0.3.2 worktree/local branch",
       "reference": "evidence preserved at 430ba3a, obsolete reverts rejected, archived at archive/agent/codex/2026-07-12/v0.3.2-build; branch retired 2026-07-17",
       "last_update": "2026-07-17",
       "playtest_ref": "v0.3.2 checklist at 6d84554",
-      "scope": "remote"
+      "scope": "local"
     },
     {
       "work_id": "LEGACY-GUI-TESTING",
