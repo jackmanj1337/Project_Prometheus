@@ -8,7 +8,7 @@ Last verified: 2026-07-17
 
 - Artifact: `builds/Project_Prometheus_v0.5.1_debug.exe`
 - Companion fixture: `builds/two-map-skirmish-1.0.zip`
-- Source branch: `agent/playtest-release/v0.5-fixes`
+- Source branch: `agent/playtest-release-v0.5-fixes`
 - Source commit: `d96d035`
 - Baked version: `0.5.1`
 - Baked commit: `d96d035`
