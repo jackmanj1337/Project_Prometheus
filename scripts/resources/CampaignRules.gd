@@ -39,6 +39,7 @@ class_name CampaignRules extends Resource
 
 # Per-map rewind budget. Zero is the ironman-style no-rewind preset.
 @export var rewind_charges_per_map: int = 4
+@export_enum("per_activation", "full_history") var rewind_cost_mode: String = "per_activation"
 
 # B1-LEDGER Phase 2 — within-map ledger retention budgets. They set how deep the
 # decaying ledger keeps entries: the union of the last `undo_activations`

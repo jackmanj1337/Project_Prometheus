@@ -363,6 +363,9 @@ func _apply_selected_status_record(cm: Node, gs: Node, run: Dictionary) -> bool:
 	if not bool(cm.call("import_carry_forward_facts", state.carry_forward_facts)):
 		_status_feedback.text = "Import failed: campaign facts were rejected"
 		return false
+	if not bool(cm.call("stage_status_import_benefits", option["record"])):
+		_status_feedback.text = "Import failed: campaign benefits were rejected"
+		return false
 	return true
 
 

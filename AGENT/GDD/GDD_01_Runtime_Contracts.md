@@ -42,6 +42,7 @@ rule fields are not retained as shims.
 | `exp_gaining_factions` | Array[String] | EXP-eligible factions; field present, combat EXP consumer remains a target |
 | `hit_formula` | String | Built-in hit resolver id; `two_roll` is the shipped default |
 | `rewind_charges_per_map` | int (4) | Authoritative per-map player spend meter; each successful Rewind consumes one; `0` disables and `-1` is infinite |
+| `rewind_cost_mode` | String (`per_activation`) | `per_activation` prices a selected target by activations crossed; `full_history` prices any retained target at one charge |
 | `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
 | `save_slot_classes` | Array[Dictionary] | Manual slot pools: `{count, accepts, consumed_on_load, label}`; accepts `between_map`, `mid_map`, or `any` |
@@ -201,14 +202,19 @@ plan (code, integration sweep, tests, build order) is
   The `undo_activations`/`undo_rounds` retention budgets are new `CampaignRules`
   fields (see §CampaignRules Contract).
   **B1-LEDGER Phase 3 (2026-07-15) made the history live and spendable:** every
-  completed activation queues one coalesced post-action checkpoint; refreshed
+  completed activation queues one coalesced post-action checkpoint tagged with
+  unit identity and start/end coordinates; refreshed
   round starts add coarse checkpoints. `rewind_charges_per_map` is the sole
   spend meter and `undo_activations`/`undo_rounds` remain retention preferences.
   While charges are positive, fine retention is floored to `charges-per-map + 1`
   so sequential spends cannot prune their own reachable boundaries. Rewind stages
   the target as a durable suspend payload, validates it, restores its full board,
   party economy, PairUp, cursor, turn, and RNG state through a scene reload, spends
-  one charge, and only then truncates the abandoned future. Identical replay
+  the selector's authored cost, and only then truncates the abandoned future.
+  The selector targets the checkpoint before the chosen activation, so a player
+  phase-start selection can genuinely undo the final enemy action. In
+  `per_activation` mode cost equals activations crossed; `full_history` makes any
+  retained activation cost one charge. Identical replay
   reproduces the same RNG chain; choosing a different committed action diverges.
 - **Active-map suspend foundation.** `GameState.capture_suspend_save()` now captures
   a `SaveData` document between committed actions while the cursor is in free,

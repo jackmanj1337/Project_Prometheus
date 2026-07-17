@@ -72,6 +72,7 @@ var _hotseat_controller: Node = null
 var _debug_hotseat_override_latch: bool = false
 var _history_cursor: Node = null
 var _history_push_pending := false
+var _pending_history_metadata: Dictionary = {}
 var _ai_suspend_requested := false
 var _ai_suspend_exit_pending := false
 var _objective_conditions: RefCounted
@@ -669,6 +670,17 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 		return
 	var previous: int = int(_unit_states.get(unit, UnitState.READY))
 	_unit_states[unit] = state
+	var activation_metadata := {}
+	if state == UnitState.DONE and previous != UnitState.DONE:
+		var start_tile: Vector2i = _original_tiles.get(unit, unit.tile_position)
+		var end_tile: Vector2i = unit.tile_position
+		activation_metadata = {
+			"unit_id": String(unit.data.unit_id) if unit.get("data") != null else "",
+			"unit_name": String(unit.data.unit_name) if unit.get("data") != null else "Unit",
+			"start": [start_tile.x, start_tile.y],
+			"end": [end_tile.x, end_tile.y],
+			"faction": String(unit.get("team")),
+		}
 	if state == UnitState.DONE:
 		# The action is committed — spend the recorded pre-move tile so a later
 		# action without a move can't inherit it (get_action_start_tile must
@@ -682,13 +694,14 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
 	if state == UnitState.DONE and previous != UnitState.DONE:
-		_queue_activation_history_push()
+		_queue_activation_history_push(activation_metadata)
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
 			call_deferred("_auto_end_active_phase")
 
 
-func _queue_activation_history_push() -> void:
+func _queue_activation_history_push(metadata: Dictionary = {}) -> void:
+	_pending_history_metadata = metadata.duplicate(true)
 	if _history_push_pending:
 		return
 	_history_push_pending = true
@@ -699,7 +712,8 @@ func _flush_activation_history() -> void:
 	if not _history_push_pending:
 		return
 	_history_push_pending = false
-	_push_history(MapLedgerScript.REASON_ACTIVATION)
+	_push_history(MapLedgerScript.REASON_ACTIVATION, _pending_history_metadata)
+	_pending_history_metadata.clear()
 
 
 # Latches one player request while an AI unit is acting. EnemyAI acknowledges
@@ -737,11 +751,11 @@ func complete_ai_activation_boundary() -> bool:
 	return saved
 
 
-func _push_history(reason: String) -> void:
+func _push_history(reason: String, metadata: Dictionary = {}) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null or not gs.has_method("push_history"):
 		return
-	gs.call("push_history", self, _history_cursor, reason)
+	gs.call("push_history", self, _history_cursor, reason, metadata)
 	gs.call("prune_history")
 
 

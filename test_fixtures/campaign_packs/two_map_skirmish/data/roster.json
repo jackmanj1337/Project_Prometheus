@@ -1,0 +1,24 @@
+{
+  "units": [
+    {
+      "unit_id": "alden",
+      "unit_name": "Alden",
+      "class_id": "skirmisher",
+      "level": 3,
+      "strength": 8,
+      "defense": 6,
+      "skill": 8,
+      "speed": 7
+    },
+    {
+      "unit_id": "mira",
+      "unit_name": "Mira",
+      "class_id": "skirmisher",
+      "level": 3,
+      "strength": 7,
+      "defense": 5,
+      "skill": 9,
+      "speed": 9
+    }
+  ]
+}

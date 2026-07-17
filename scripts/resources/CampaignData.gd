@@ -26,6 +26,9 @@ const SINGLE_MAP_PREFIX := "single_map__"
 # Source descriptors accepted for carry-forward. Each row may name author_id,
 # campaign_id, and optional campaign_versions[]; adding rows is authored data.
 @export var compatible_status_sources: Array[Dictionary] = []
+# Optional benefits applied after a selected status record's source matches.
+# Rows may carry gold and grant items to authored unit ids.
+@export var status_import_benefits: Array[Dictionary] = []
 @export var protected_fields: Array[String] = []
 
 # Dev/test campaigns are filtered out of the player-facing list ([CST-6]).
@@ -88,6 +91,15 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> C
 		for source in raw_status_sources:
 			if source is Dictionary:
 				campaign.compatible_status_sources.append(source.duplicate(true))
+	var raw_import_benefits: Variant = doc.get("status_import_benefits", [])
+	if not raw_import_benefits is Array:
+		errors.append("CampaignData: status_import_benefits must be an array")
+	else:
+		for benefit in raw_import_benefits:
+			if not benefit is Dictionary or not benefit.get("source", null) is Dictionary:
+				errors.append("CampaignData: each status import benefit requires a source object")
+				continue
+			campaign.status_import_benefits.append(benefit.duplicate(true))
 	campaign.protected_fields = _string_array(doc.get("protected_fields", []))
 	campaign.is_dev_only = bool(doc.get("is_dev_only", false))
 	var raw_rules: Variant = doc.get("rules", {})

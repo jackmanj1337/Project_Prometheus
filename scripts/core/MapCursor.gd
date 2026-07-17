@@ -1791,9 +1791,9 @@ func _serialize_threat_views() -> Dictionary:
 	return out
 
 
-func _on_rewind_requested() -> void:
+func _on_rewind_requested(target_index: int, cost: int) -> void:
 	var gs := get_node_or_null("/root/GameState")
-	if gs == null or not bool(gs.call("rewind_last_action", _turn, self)):
+	if gs == null or not bool(gs.call("rewind_to_history", target_index, cost, _turn, self)):
 		_on_map_menu_closed()
 		return
 	get_tree().change_scene_to_file("res://scenes/core/GameMap.tscn")

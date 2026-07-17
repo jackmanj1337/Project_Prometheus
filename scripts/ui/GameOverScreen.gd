@@ -11,6 +11,7 @@ extends Control
 @onready var _quit_btn: Button = $Panel/VBox/MainMenuButton
 @onready var _feedback: Label = $Panel/VBox/Feedback
 @onready var _load_game_screen: Control = $LoadGameScreen
+@onready var _rewind_selector: Control = $RewindSelector
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
@@ -37,6 +38,8 @@ func _ready() -> void:
 	_reload_recent_btn.pressed.connect(_on_reload_recent)
 	_load_game_btn.pressed.connect(_on_load_game)
 	_rewind_btn.pressed.connect(_on_rewind)
+	_rewind_selector.rewind_selected.connect(_on_rewind_selected)
+	_rewind_selector.cancelled.connect(func(): _rewind_btn.grab_focus())
 	_quit_btn.pressed.connect(_on_quit)
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
@@ -264,14 +267,22 @@ func _consume_loaded_slot(sm: Node, gs: Node, slot_id: String) -> void:
 
 func _on_rewind() -> void:
 	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		_feedback.text = "Rewind is no longer available."
+		return
+	_rewind_selector.open(gs.call("rewind_options"))
+
+
+func _on_rewind_selected(target_index: int, cost: int) -> void:
+	var gs := get_node_or_null("/root/GameState")
 	var scene := get_tree().current_scene
 	var turn_manager := scene.get_node_or_null("TurnManager") if scene != null else null
 	var cursor := scene.get_node_or_null("MapCursor") if scene != null else null
 	if (
 		gs == null
 		or turn_manager == null
-		or not gs.has_method("rewind_last_action")
-		or not bool(gs.call("rewind_last_action", turn_manager, cursor))
+		or not gs.has_method("rewind_to_history")
+		or not bool(gs.call("rewind_to_history", target_index, cost, turn_manager, cursor))
 	):
 		_feedback.text = "Rewind is no longer available."
 		_refresh_defeat_actions()

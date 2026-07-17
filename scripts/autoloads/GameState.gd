@@ -850,9 +850,10 @@ func _player_roster_snapshot_array() -> Array[Dictionary]:
 func push_history(
 	turn_manager: Node = null,
 	cursor: Node = null,
-	reason: String = MapLedgerScript.REASON_ROUND_START
+	reason: String = MapLedgerScript.REASON_ROUND_START,
+	metadata: Dictionary = {}
 ) -> void:
-	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason)
+	_map_ledger.push(_capture_map_runtime_entry(turn_manager, cursor), reason, metadata)
 
 
 func history_size() -> int:
@@ -886,13 +887,66 @@ func begin_map_rewind_budget() -> void:
 
 
 func can_rewind() -> bool:
-	return rewind_charges_left != 0 and _map_ledger.size() > 1
+	return not rewind_options().is_empty()
+
+
+func rewind_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if rewind_charges_left == 0:
+		return options
+	var crossed := 0
+	for index in range(_map_ledger.size() - 1, 0, -1):
+		if _map_ledger.reason_at(index) != MapLedgerScript.REASON_ACTIVATION:
+			continue
+		crossed += 1
+		var cost := 1 if campaign_rules.rewind_cost_mode == "full_history" else crossed
+		if rewind_charges_left >= 0 and cost > rewind_charges_left:
+			continue
+		var metadata: Dictionary = _map_ledger.metadata_at(index)
+		var unit_name := String(metadata.get("unit_name", metadata.get("unit_id", "Unit")))
+		var start: Array = metadata.get("start", ["?", "?"])
+		var finish: Array = metadata.get("end", ["?", "?"])
+		(
+			options
+			. append(
+				{
+					"target_index": index - 1,
+					"cost": cost,
+					"label":
+					(
+						"%s  (%s,%s) → (%s,%s)  [%d charge%s]"
+						% [
+							unit_name,
+							start[0],
+							start[1],
+							finish[0],
+							finish[1],
+							cost,
+							"" if cost == 1 else "s"
+						]
+					),
+				}
+			)
+		)
+	return options
 
 
 func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
-	if not can_rewind():
+	var options := rewind_options()
+	if options.is_empty():
 		return false
-	var target_index: int = _map_ledger.size() - 2
+	return rewind_to_history(
+		int(options[0]["target_index"]), int(options[0]["cost"]), turn_manager, cursor
+	)
+
+
+func rewind_to_history(
+	target_index: int, cost: int, turn_manager: Node, cursor: Node = null
+) -> bool:
+	if cost <= 0 or target_index < 0 or target_index >= _map_ledger.size():
+		return false
+	if rewind_charges_left >= 0 and cost > rewind_charges_left:
+		return false
 	var entry: Dictionary = _map_ledger.peek(target_index)
 	var errors: Array[String] = _validate_restore_entry(entry)
 	if not errors.is_empty():
@@ -910,10 +964,7 @@ func rewind_last_action(turn_manager: Node, cursor: Node = null) -> bool:
 	payload["party"]["convoy"]["entries"] = _party_item_ids_to_convoy_entries(
 		entry_party.get("items", [])
 	)
-	var target_charges := int(
-		payload["map_runtime"].get("rewind_charges_left", rewind_charges_left)
-	)
-	var restored_charges := -1 if target_charges < 0 else maxi(0, target_charges - 1)
+	var restored_charges := -1 if rewind_charges_left < 0 else maxi(0, rewind_charges_left - cost)
 	payload["map_runtime"]["rewind_charges_left"] = restored_charges
 	if not configure_suspend_resume(payload):
 		return false
@@ -1215,6 +1266,7 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"exp_gaining_factions": campaign_rules.exp_gaining_factions.duplicate(),
 		"hit_formula": campaign_rules.hit_formula,
 		"rewind_charges_per_map": campaign_rules.rewind_charges_per_map,
+		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
 		"undo_activations": campaign_rules.undo_activations,
 		"undo_rounds": campaign_rules.undo_rounds,
 		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
@@ -1252,6 +1304,9 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 	campaign_rules.rewind_charges_per_map = _variant_int(
 		normalized.get("rewind_charges_per_map", 4), 4
 	)
+	campaign_rules.rewind_cost_mode = String(normalized.get("rewind_cost_mode", "per_activation"))
+	if campaign_rules.rewind_cost_mode not in ["per_activation", "full_history"]:
+		campaign_rules.rewind_cost_mode = "per_activation"
 	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
 	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)

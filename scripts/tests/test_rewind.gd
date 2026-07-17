@@ -76,6 +76,19 @@ func _run() -> void:
 			)
 		)
 		failed += 1
+	var first_options: Array = gs.call("rewind_options")
+	if (
+		first_options.size() == 1
+		and first_options[0]["target_index"] == 0
+		and first_options[0]["cost"] == 1
+		and String(first_options[0]["label"]).contains("Hero")
+		and String(first_options[0]["label"]).contains("(0,0) → (0,0)")
+	):
+		print("OK  selector labels the activated unit and its start/end coordinates")
+		passed += 1
+	else:
+		print("FAIL rewind selector metadata: %s" % [first_options])
+		failed += 1
 
 	if (
 		gs.call("rewind_last_action", tm, null)
@@ -89,6 +102,40 @@ func _run() -> void:
 	else:
 		print("FAIL rewind spend/branch")
 		failed += 1
+
+	gs.set("rewind_charges_left", 3)
+	gs.call(
+		"push_history",
+		tm,
+		null,
+		"activation",
+		{"unit_name": "Red A", "start": [4, 2], "end": [3, 2]}
+	)
+	gs.call(
+		"push_history",
+		tm,
+		null,
+		"activation",
+		{"unit_name": "Red B", "start": [7, 5], "end": [7, 4]}
+	)
+	var priced: Array = gs.call("rewind_options")
+	gs.get("campaign_rules").rewind_cost_mode = "full_history"
+	var full_history: Array = gs.call("rewind_options")
+	if (
+		priced.size() == 2
+		and priced[0]["cost"] == 1
+		and priced[1]["cost"] == 2
+		and full_history.size() == 2
+		and full_history[0]["cost"] == 1
+		and full_history[1]["cost"] == 1
+	):
+		print("OK  cost mode supports per-activation pricing or one-charge full history")
+		passed += 1
+	else:
+		print("FAIL rewind cost modes: priced=%s full=%s" % [priced, full_history])
+		failed += 1
+	gs.call("restore_history", 0)
+	gs.get("campaign_rules").rewind_cost_mode = "per_activation"
 
 	var payload: Dictionary = gs.get("next_map_suspend_payload")
 	var restored_rng: Dictionary = payload.get("map_runtime", {}).get("rng", {})

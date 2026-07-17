@@ -368,7 +368,7 @@ only at render time.
 Status: **Split** — campaign graph, package/catalogue, status-record,
 CampaignManager, and deployment contracts are **Implemented**; public builder and
 content-resynchronization tools remain **Deferred**
-Last verified: 2026-07-15
+Last verified: 2026-07-17
 
 ### Summary
 
@@ -480,7 +480,7 @@ SHA-256 `checksum`. `facts` and `counters` are open dictionaries; adding a story
 fact requires no resource-field or engine-switch edit.
 
 Completion exports the active store's carry-forward facts plus the compact
-ending/maps/turns subset. New Game scans records automatically for same-campaign
+ending/maps/turns/gold subset. New Game scans records automatically for same-campaign
 NG+ or an authored `compatible_status_sources` row (author, source campaign, and
 optional accepted version list). It always offers **None**. Foreign records are
 absent from automatic results and require the explicit manual import action.
@@ -489,6 +489,13 @@ source identity/checksum to `MutableCampaignState.imported_record_ref`, copies
 facts into its `carry_forward_facts`, and seeds the normal open `campaign.vars`
 store used by conditions/predicates. Re-export stages the replacement record and
 rolls back to the prior record if filesystem promotion fails.
+
+Campaigns may author open `status_import_benefits` rows matched by source
+author/campaign/version. After the first-node roster loads, a matching row may
+replace the new party wallet with the recorded completion gold and grant
+pack-catalogued items to authored unit ids. Benefits validate all unit/item
+targets before mutation and apply once. Tier-2 catalogues therefore support the
+`item` kind alongside campaign, map, roster, and class documents.
 
 ### Campaign Tier-1 Asset References
 

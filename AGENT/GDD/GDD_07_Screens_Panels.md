@@ -641,9 +641,11 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
   a confirmation prompt is shown first; if every unit is already done it ends
   immediately. (Note: the phase also ends automatically once the last unit acts.)
 - `Rewind (N)`: shows the remaining per-map charges and is disabled when no
-  earlier ledger boundary or charge remains. Activating it restores the previous
-  committed-action boundary through the active-map resume path and reloads the
-  tactical scene; it does not reroll identical decisions.
+  earlier activation or charge remains. Activating it opens a compact retained
+  history selector. Rows name the activated unit, show `(start x,y) → (end x,y)`
+  to disambiguate matching units, and show charge cost. Choosing a row restores
+  the boundary before that activation through the active-map resume path and
+  reloads the tactical scene; it does not reroll identical decisions.
 - `Settings`: opens the Settings screen (see below); the cursor stays locked
   while it is open. Settings is also reachable directly via the `open_settings`
   key (O) during a map.
@@ -894,8 +896,9 @@ review 2026-06-14 #1) for resolution-robustness.
   Menu. "Load Another Save" embeds the existing `LoadGameScreen` slot picker;
   both route mid-map documents through suspend restore and between-map documents
   through campaign restore/launch, consuming a slot only after successful route.
-- "Rewind" is enabled only while a prior ledger boundary and charge remain. It
-  stages the same deterministic active-map rewind as Map Menu and reloads GameMap.
+- "Rewind" is enabled only while a prior activation and charge remain. It opens
+  the same coordinate-labelled selector and stages the chosen deterministic
+  active-map rewind as Map Menu before reloading GameMap.
 - "Main Menu" resets map-scoped state and returns to `Boot.tscn`.
 
 ---

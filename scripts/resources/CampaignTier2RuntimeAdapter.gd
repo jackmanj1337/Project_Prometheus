@@ -16,6 +16,7 @@ class Result:
 	var maps: Dictionary = {}
 	var rosters: Dictionary = {}
 	var classes: Dictionary = {}
+	var items: Dictionary = {}
 
 
 static func load(
@@ -54,12 +55,24 @@ static func load(
 	if catalogue == null or not result.errors.is_empty():
 		return result
 	_build_classes(catalogue, result)
+	_build_items(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
 	_build_campaigns(catalogue, result)
 	result.valid = result.errors.is_empty()
 	return result
+
+
+static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "item":
+			continue
+		var raw: Dictionary = catalogue.get_document("item", entry["id"])
+		var value := ItemData.new()
+		_apply_properties(value, raw)
+		value.id = String(entry["id"])
+		result.items[value.id] = value
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:

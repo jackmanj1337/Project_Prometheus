@@ -3,7 +3,7 @@ extends Control
 # Opens on open_menu action; closes on cancel or after a selection.
 
 signal end_turn_requested
-signal rewind_requested
+signal rewind_requested(target_index: int, cost: int)
 signal settings_requested
 signal suspend_and_quit_requested
 signal quit_to_menu_requested
@@ -19,6 +19,7 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 @onready var _quit_to_menu_btn: Button = $Panel/VBox/QuitToMenuButton
 @onready var _close_btn: Button = $Panel/VBox/CloseButton
 @onready var _gold_label: Label = $Panel/VBox/GoldLabel
+@onready var _rewind_selector: Control = $RewindSelector
 
 var _suspend_available: bool = true
 var _ai_phase_mode: bool = false
@@ -29,6 +30,10 @@ func _ready() -> void:
 	hide()
 	_end_turn_btn.pressed.connect(_on_end_turn)
 	_rewind_btn.pressed.connect(_on_rewind)
+	_rewind_selector.rewind_selected.connect(
+		func(target_index: int, cost: int): rewind_requested.emit(target_index, cost)
+	)
+	_rewind_selector.cancelled.connect(func(): _rewind_btn.grab_focus())
 	_settings_btn.pressed.connect(_on_settings)
 	_suspend_and_quit_btn.pressed.connect(_on_suspend_and_quit)
 	_quit_to_menu_btn.pressed.connect(_on_quit_to_menu)
@@ -95,6 +100,8 @@ func _apply_menu_scale_from_settings() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
+	if _rewind_selector.visible:
+		return
 	if event.is_action_pressed("cancel") or event.is_action_pressed("open_menu"):
 		_on_close()
 		get_viewport().set_input_as_handled()
@@ -109,8 +116,10 @@ func _on_end_turn() -> void:
 func _on_rewind() -> void:
 	if _rewind_btn.disabled:
 		return
-	hide()
-	rewind_requested.emit()
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	_rewind_selector.open(gs.call("rewind_options"))
 
 
 # Hides the menu and asks for the settings overlay. Deliberately does NOT emit

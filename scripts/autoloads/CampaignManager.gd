@@ -175,6 +175,18 @@ func import_carry_forward_facts(facts: Variant) -> bool:
 	return true
 
 
+func stage_status_import_benefits(record: Dictionary) -> bool:
+	var campaign := get_active_campaign()
+	if campaign == null:
+		return false
+	for benefit in campaign.status_import_benefits:
+		if CampaignStatusStoreScript.source_matches(record, benefit.get("source", {})):
+			campaign_vars["_pending_status_import_benefit"] = benefit.duplicate(true)
+			campaign_vars["_pending_status_import_record"] = record.duplicate(true)
+			return true
+	return true
+
+
 func active_status_target() -> Dictionary:
 	var campaign := get_active_campaign()
 	if campaign == null:
@@ -213,6 +225,7 @@ func export_completion_status_record() -> Dictionary:
 			{
 				"maps_completed": cleared_node_ids.size(),
 				"turns_taken": int(campaign_vars.get("turns_taken", 0)),
+				"party_gold": int(gs.get("party_gold")),
 			}
 		)
 	)
@@ -425,26 +438,63 @@ func resolve_launch_params(node: CampaignNode) -> Dictionary:
 # a policy with no valid prepared roster fails rather than silently falling back
 # to the default roster (which would wipe a campaign party).
 func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String) -> bool:
+	var loaded := false
 	match roster_policy:
 		"default_roster":
-			return bool(gs.call("load_default_roster"))
+			loaded = bool(gs.call("load_default_roster"))
 		"fixed_test_roster":
 			if roster_source == "":
 				return false
-			return bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
+			loaded = bool(gs.call("load_roster_from_directory", roster_source, "fixed_test_roster"))
 		"campaign_pack_roster":
 			var dm := get_node_or_null("/root/DataManager")
 			if dm == null or not dm.has_method("get_campaign_pack_roster"):
 				return false
 			var roster: Array = dm.call("get_campaign_pack_roster", roster_source)
-			return bool(
+			loaded = bool(
 				gs.call("load_roster_resources", roster, "campaign_pack_roster", roster_source)
 			)
 		"keep_current_roster":
-			return bool(gs.call("is_roster_ready_for_launch"))
+			loaded = bool(gs.call("is_roster_ready_for_launch"))
 		_:
 			push_error("CampaignManager: unknown roster policy '%s'" % roster_policy)
 			return false
+	return loaded and _apply_pending_status_import_benefit(gs)
+
+
+func _apply_pending_status_import_benefit(gs: Node) -> bool:
+	if not campaign_vars.has("_pending_status_import_benefit"):
+		return true
+	var benefit: Dictionary = campaign_vars["_pending_status_import_benefit"]
+	var record: Dictionary = campaign_vars.get("_pending_status_import_record", {})
+	var grants: Variant = benefit.get("item_grants", [])
+	if not grants is Array:
+		return false
+	var units := {}
+	for unit: UnitData in gs.get("player_roster"):
+		units[unit.unit_id] = unit
+	var dm := get_node_or_null("/root/DataManager")
+	for grant in grants:
+		if not grant is Dictionary:
+			return false
+		var unit_id := String(grant.get("unit_id", ""))
+		var item_id := String(grant.get("item_id", ""))
+		if (
+			not units.has(unit_id)
+			or item_id.is_empty()
+			or (dm != null and dm.has_method("has_item") and not bool(dm.call("has_item", item_id)))
+		):
+			return false
+	if bool(benefit.get("carry_gold", false)):
+		gs.set("party_gold", maxi(0, int(record.get("counters", {}).get("party_gold", 0))))
+	for grant in grants:
+		var unit: UnitData = units[String(grant["unit_id"])]
+		unit.inventory.append(
+			InventoryEntry.make_item(String(grant["item_id"]), int(grant.get("uses", 1)))
+		)
+	campaign_vars.erase("_pending_status_import_benefit")
+	campaign_vars.erase("_pending_status_import_record")
+	return true
 
 
 # --- Result handling ----------------------------------------------------------

@@ -141,25 +141,21 @@ static func is_compatible(record: Dictionary, target: Dictionary) -> bool:
 	for source in sources:
 		if not (source is Dictionary):
 			continue
-		if (
-			source.has("author_id")
-			and String(source["author_id"]) != String(record.get("author_id", ""))
-		):
-			continue
-		if (
-			source.has("campaign_id")
-			and String(source["campaign_id"]) != String(record.get("campaign_id", ""))
-		):
-			continue
-		var versions: Variant = source.get("campaign_versions", [])
-		if (
-			versions is Array
-			and not versions.is_empty()
-			and not String(record.get("campaign_version", "")) in versions
-		):
-			continue
-		return true
+		if source_matches(record, source):
+			return true
 	return false
+
+
+static func source_matches(record: Dictionary, source: Dictionary) -> bool:
+	if source.has("author_id") and source["author_id"] != record.get("author_id", ""):
+		return false
+	if source.has("campaign_id") and source["campaign_id"] != record.get("campaign_id", ""):
+		return false
+	var versions: Variant = source.get("campaign_versions", [])
+	return (
+		not (versions is Array and not versions.is_empty())
+		or record.get("campaign_version", "") in versions
+	)
 
 
 static func _safe_id(value: String) -> String:

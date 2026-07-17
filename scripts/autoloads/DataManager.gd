@@ -144,6 +144,7 @@ func select_tier2_campaign_source(
 		return false
 	_clear_content()
 	_classes = adapted.classes
+	_items = adapted.items
 	_campaigns = adapted.campaigns
 	_map_registry = adapted.map_registry
 	_register_single_map_campaigns()

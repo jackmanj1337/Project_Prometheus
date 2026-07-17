@@ -34,8 +34,10 @@ var _entries: Array[Dictionary] = []
 
 # Append one board entry under the given reason (defaults to a round-start push,
 # which is what the round-0 seed and every round boundary are).
-func push(board_entry: Dictionary, reason: String = REASON_ROUND_START) -> void:
-	_entries.append({"reason": reason, "entry": board_entry})
+func push(
+	board_entry: Dictionary, reason: String = REASON_ROUND_START, metadata: Dictionary = {}
+) -> void:
+	_entries.append({"reason": reason, "entry": board_entry, "metadata": metadata.duplicate(true)})
 
 
 func size() -> int:
@@ -61,7 +63,12 @@ func restore_from_save(value: Variant) -> bool:
 		var entry: Variant = item.get("entry", null)
 		if reason not in [REASON_ROUND_START, REASON_ACTIVATION] or not (entry is Dictionary):
 			return false
-		restored.append({"reason": reason, "entry": entry.duplicate(true)})
+		var metadata: Variant = item.get("metadata", {})
+		if not metadata is Dictionary:
+			return false
+		restored.append(
+			{"reason": reason, "entry": entry.duplicate(true), "metadata": metadata.duplicate(true)}
+		)
 	_entries = restored
 	return true
 
@@ -78,6 +85,12 @@ func reason_at(index: int) -> String:
 	if index < 0 or index >= _entries.size():
 		return ""
 	return String(_entries[index]["reason"])
+
+
+func metadata_at(index: int) -> Dictionary:
+	if index < 0 or index >= _entries.size():
+		return {}
+	return _entries[index].get("metadata", {}).duplicate(true)
 
 
 # A deep copy of the board entry at index (0 = the round-0 boundary), or {} if out
