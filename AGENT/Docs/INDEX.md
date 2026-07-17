@@ -276,6 +276,7 @@
 - [`playtests/playtest_checklist_v0.4.1.md`](playtests/playtest_checklist_v0.4.1.md) — v0.4.1 Windows Playtest and Smoke Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.4.2.md`](playtests/playtest_checklist_v0.4.2.md) — v0.4.2 Windows Playtest and Smoke Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.0.md`](playtests/playtest_checklist_v0.5.0.md) — v0.5.0 Consolidated Windows Playtest Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.1.md`](playtests/playtest_checklist_v0.5.1.md) — v0.5.1 Windows Playtester Handbook — *Pending validation*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
