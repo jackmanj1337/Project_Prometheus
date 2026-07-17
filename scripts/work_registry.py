@@ -73,6 +73,8 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
         seen_branches.add(branch)
         if record.get("status") not in allowed:
             errors.append(f"{work_id}: invalid status: {record.get('status')}")
+        if record.get("status") == "blocked" and not record.get("trigger"):
+            errors.append(f"{work_id}: blocked work requires a resume trigger")
         if (branch.startswith("agent/") and branch not in lifecycle_branches
                 and len(branch.split("/")) < 3
                 and record.get("owner") != "legacy-agent"):
@@ -142,15 +144,15 @@ def md(value: Any) -> str:
 def render(data: dict[str, Any]) -> None:
     active_lines = [
         "# Active Work", "", "Generated from `branches.yaml`; do not edit directly.", "",
-        "| Work ID | Title | Status | Branch | Owner | Target | Base | Dependencies | Blockers | Reference | Updated | Playtest |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| Work ID | Title | Status | Branch | Owner | Target | Base | Dependencies | Blockers | Trigger | Reference | Updated | Playtest |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for item in data.get("work", []):
         if item.get("status") == "completed":
             continue
         active_lines.append("| " + " | ".join(md(item.get(key)) for key in (
             "work_id", "title", "status", "branch", "owner", "target",
-            "base_branch", "dependencies", "blockers", "reference", "last_update",
+            "base_branch", "dependencies", "blockers", "trigger", "reference", "last_update",
             "playtest_ref",
         )) + " |")
     ACTIVE.write_text("\n".join(active_lines) + "\n", encoding="utf-8")

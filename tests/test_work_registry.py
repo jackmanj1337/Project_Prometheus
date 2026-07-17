@@ -59,9 +59,16 @@ class RegistryValidationTests(unittest.TestCase):
         broken["work"][0]["last_update"] = "2026-06-01"
         self.assertTrue(any("stale active item" in error for error in self.errors(broken)))
 
+    def test_blocked_work_requires_resume_trigger(self):
+        broken = copy.deepcopy(self.data)
+        broken["work"][0]["status"] = "blocked"
+        broken["work"][0].pop("trigger", None)
+        self.assertTrue(any("requires a resume trigger" in error for error in self.errors(broken)))
+
     def test_playtesting_release_requires_tag(self):
         broken = copy.deepcopy(self.data)
         broken["release_trains"][0]["acceptance"] = "playtesting"
+        broken["release_trains"][0]["playtest_tags"] = []
         self.assertTrue(any("missing playtest tag" in error for error in self.errors(broken)))
 
     def test_accepted_release_requires_stable_tag(self):
