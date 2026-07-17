@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -20,6 +21,7 @@ REQUIRED = {
     "base_sha", "dependencies", "blockers", "reference", "last_update",
     "playtest_ref", "scope",
 }
+RELEASE_FIX_BRANCH = re.compile(r"^agent/playtest-release-v\d+\.\d+-fixes$")
 
 
 def load() -> dict[str, Any]:
@@ -76,6 +78,7 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
         if record.get("status") == "blocked" and not record.get("trigger"):
             errors.append(f"{work_id}: blocked work requires a resume trigger")
         if (branch.startswith("agent/") and branch not in lifecycle_branches
+                and not RELEASE_FIX_BRANCH.fullmatch(branch)
                 and len(branch.split("/")) < 3
                 and record.get("owner") != "legacy-agent"):
             errors.append(f"{work_id}: malformed agent branch: {branch}")

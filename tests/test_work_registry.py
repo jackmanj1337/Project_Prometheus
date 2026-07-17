@@ -54,6 +54,12 @@ class RegistryValidationTests(unittest.TestCase):
         lifecycle = next(item for item in self.data["work"] if item["branch"] == "agent/integration")
         self.assertFalse(any(lifecycle["work_id"] in error for error in self.errors(self.data)))
 
+    def test_release_fix_sibling_branch_is_accepted(self):
+        release_fix = next(
+            item for item in self.data["work"] if item["work_id"] == "RELEASE-V051-FIXES"
+        )
+        self.assertFalse(any(release_fix["work_id"] in error for error in self.errors(self.data)))
+
     def test_stale_active_item_is_rejected(self):
         broken = copy.deepcopy(self.data)
         active = next(item for item in broken["work"] if item["status"] not in {"completed", "blocked"})

@@ -3,10 +3,26 @@
   "repository": "jackmanj1337/Project_Prometheus",
   "settings": {
     "coordination_branch": "agent/coordination",
-    "lifecycle_branches": ["agent/integration", "agent/playtest-release", "agent/stable-release", "agent/coordination"],
+    "lifecycle_branches": [
+      "agent/integration",
+      "agent/playtest-release",
+      "agent/stable-release",
+      "agent/coordination"
+    ],
     "stale_after_days": 14,
-    "tracked_remote_prefixes": ["agent/", "release/", "hotfix/"],
-    "allowed_statuses": ["planned", "in_progress", "blocked", "in_review", "playtesting", "completed"]
+    "tracked_remote_prefixes": [
+      "agent/",
+      "release/",
+      "hotfix/"
+    ],
+    "allowed_statuses": [
+      "planned",
+      "in_progress",
+      "blocked",
+      "in_review",
+      "playtesting",
+      "completed"
+    ]
   },
   "work": [
     {
@@ -34,7 +50,9 @@
       "target": "agent/playtest-release",
       "base_branch": "agent/stable-release",
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
       "blockers": [],
       "reference": "published lifecycle ref at 8dc1a52",
       "last_update": "2026-07-16",
@@ -50,8 +68,12 @@
       "target": "agent/stable-release",
       "base_branch": "agent/integration",
       "base_sha": "2e3f55dff4d62950dc11520dd3b275175ff28c02",
-      "dependencies": ["LIFECYCLE-INTEGRATION"],
-      "blockers": ["live v0.5.0 consolidated Windows playtest evidence pending"],
+      "dependencies": [
+        "LIFECYCLE-INTEGRATION"
+      ],
+      "blockers": [
+        "live v0.5.0 consolidated Windows playtest evidence pending"
+      ],
       "trigger": "When a completed v0.5.0 checklist and matching evidence appear in AGENT/Incoming/v0.5.0/",
       "reference": "v0.5.0 artifact manifest at 9931489; branch advanced through 18283e2",
       "last_update": "2026-07-16",
@@ -67,8 +89,12 @@
       "target": "agent/playtest-release",
       "base_branch": "agent/playtest-release",
       "base_sha": "258ed12a3842074d0497f8881c4c89cbc886a347",
-      "dependencies": ["LIFECYCLE-INTEGRATION"],
-      "blockers": ["completed checklist, matching godot.log, and screenshots have not returned; local worktree retains the exact exported artifact"],
+      "dependencies": [
+        "LIFECYCLE-INTEGRATION"
+      ],
+      "blockers": [
+        "completed checklist, matching godot.log, and screenshots have not returned; local worktree retains the exact exported artifact"
+      ],
       "trigger": "When files appear in AGENT/Incoming/v0.5.0/; triage before new release work",
       "reference": "promoted to agent/playtest-release at 18283e2; remote preparation branch retired 2026-07-17; local artifact retained; build source 2e3f55d tagged v0.5.0",
       "last_update": "2026-07-17",
@@ -100,8 +126,12 @@
       "target": "main",
       "base_branch": "main",
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
-      "dependencies": ["LIFECYCLE-PLAYTEST-RELEASE"],
-      "blockers": ["playtest release has not been accepted"],
+      "dependencies": [
+        "LIFECYCLE-PLAYTEST-RELEASE"
+      ],
+      "blockers": [
+        "playtest release has not been accepted"
+      ],
       "trigger": "When v0.5.0 release acceptance is recorded as accepted after live playtest",
       "reference": "published at stable main tip c88ce98",
       "last_update": "2026-07-16",
@@ -133,8 +163,12 @@
       "target": "integration",
       "base_branch": "main",
       "base_sha": "26c6a16dd5a9659f18c69799d6e88017574181e8",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["scorer implementation predates current AI composition seam"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
+      "blockers": [
+        "scorer implementation predates current AI composition seam"
+      ],
       "trigger": "When deterministic AI scorer work is scheduled against the current composition seam, or on 2026-08-16 for retention review, whichever comes first",
       "reference": "82cb73c code; 7861e38 playtest evidence",
       "last_update": "2026-07-16",
@@ -150,8 +184,12 @@
       "target": "integration",
       "base_branch": "agent/b4-encounter-model-slice2",
       "base_sha": "b2aee0daa99e9025b3123080064f1e3c332d5141",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["retained temporarily as an independent recovery copy after planning integration"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
+      "blockers": [
+        "retained temporarily as an independent recovery copy after planning integration"
+      ],
       "trigger": "After v0.5.0 acceptance, verify 808103e remains reachable and review this recovery branch for retirement; no later than 2026-08-16",
       "reference": "planning content integrated as 808103e; recovery branch pushed at e24dcc7",
       "last_update": "2026-07-16",
@@ -167,8 +205,12 @@
       "target": "integration",
       "base_branch": "agent/codex/2026-07-14/v0.4.0-windows-build",
       "base_sha": "7b9ec1e73bd27344721290b73cdf0a143443ce09",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["retained through the v0.5.0 playtest cycle as source evidence"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
+      "blockers": [
+        "retained through the v0.5.0 playtest cycle as source evidence"
+      ],
       "trigger": "After the v0.5.0 return is archived, verify the v0.4.1 evidence remains reachable and review this recovery branch for retirement; no later than 2026-08-16",
       "reference": "540d021",
       "last_update": "2026-07-16",
@@ -184,7 +226,9 @@
       "target": "integration",
       "base_branch": "main",
       "base_sha": "c88ce987459ef9f3501fd2fe72408c339c74d723",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
       "blockers": [],
       "reference": "fully contained at 33d1c0c; archived at archive/agent/codex/2026-07-15/prep-save-followup; branch retired 2026-07-17",
       "last_update": "2026-07-17",
@@ -200,7 +244,9 @@
       "target": "release/v0.4.2",
       "base_branch": "main",
       "base_sha": "b55dffab6eb94917ea077173df15c0fe6b7c5835",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
       "blockers": [],
       "reference": "fixes ported at 15297c9, evidence at ea03797, archived at archive/agent/codex/2026-07-14/v0.4.0-windows-build; branch retired 2026-07-17",
       "last_update": "2026-07-17",
@@ -216,8 +262,12 @@
       "target": "archive",
       "base_branch": "main",
       "base_sha": "6d84554c29b91d2e9ffc548a11155f04c0667705",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
-      "blockers": ["remote branch is archived and retired, but the local worktree still contains the v0.3.2 executable, build_info.json, and line-ending-only CLAUDE.md change"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
+      "blockers": [
+        "remote branch is archived and retired, but the local worktree still contains the v0.3.2 executable, build_info.json, and line-ending-only CLAUDE.md change"
+      ],
       "trigger": "After the v0.5.0 return is archived, or on 2026-08-16 whichever comes first, verify artifact hashes are recorded in durable evidence and then remove the v0.3.2 worktree/local branch",
       "reference": "evidence preserved at 430ba3a, obsolete reverts rejected, archived at archive/agent/codex/2026-07-12/v0.3.2-build; branch retired 2026-07-17",
       "last_update": "2026-07-17",
@@ -233,9 +283,46 @@
       "target": "integration",
       "base_branch": "main",
       "base_sha": "633b43d97a9a3a0495608cb952f04fa59be2a7ee",
-      "dependencies": ["BRANCH-CONSOLIDATION-2026-07-16"],
+      "dependencies": [
+        "BRANCH-CONSOLIDATION-2026-07-16"
+      ],
       "blockers": [],
       "reference": "relevant UI and research ported at 430ba3a, archived at archive/agent/GUI-testing; branch retired 2026-07-17",
+      "last_update": "2026-07-17",
+      "playtest_ref": null,
+      "scope": "remote"
+    },
+    {
+      "work_id": "SUPERSEDED-V051-PLAYTEST-BUILD",
+      "title": "Retain incorrectly named v0.5.1 playtest branch for human retirement",
+      "branch": "agent/codex/2026-07-17/v0.5.1-playtest-build",
+      "owner": "codex",
+      "status": "blocked",
+      "target": "archive",
+      "base_branch": "agent/playtest-release",
+      "base_sha": "d96d035b40c41dc09f1b560f097856c66ba6e379",
+      "dependencies": [],
+      "blockers": [
+        "superseded remote branch requires human retirement"
+      ],
+      "trigger": "After agent/playtest-release-v0.5-fixes is accepted, a human may archive and retire this branch",
+      "reference": "Superseded by agent/playtest-release-v0.5-fixes; v0.5.1 tag was not moved",
+      "last_update": "2026-07-17",
+      "playtest_ref": "AGENT/Docs/playtests/playtest_build_v0.5.1.md",
+      "scope": "remote"
+    },
+    {
+      "work_id": "RELEASE-V051-FIXES",
+      "title": "Harden v0.5 release branch provenance",
+      "branch": "agent/playtest-release-v0.5-fixes",
+      "owner": "codex",
+      "status": "in_progress",
+      "target": "agent/playtest-release",
+      "base_branch": "agent/playtest-release",
+      "base_sha": "d96d035b40c41dc09f1b560f097856c66ba6e379",
+      "dependencies": [],
+      "blockers": [],
+      "reference": "",
       "last_update": "2026-07-17",
       "playtest_ref": null,
       "scope": "remote"
@@ -247,7 +334,9 @@
       "branch": "agent/playtest-release",
       "source_branch": "agent/codex/2026-07-16/v0.5.0-playtest-build",
       "source_sha": "2e3f55dff4d62950dc11520dd3b275175ff28c02",
-      "playtest_tags": ["v0.5.0"],
+      "playtest_tags": [
+        "v0.5.0"
+      ],
       "stable_tag": null,
       "acceptance": "artifact exported; live consolidated playtest pending",
       "last_update": "2026-07-16"
