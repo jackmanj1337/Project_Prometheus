@@ -1,5 +1,12 @@
 # Session Note - YYYY-MM-DDx
 
+## Branch context
+
+- Branch: `agent/<owner>/<date>/<task>`
+- Base branch: `agent/integration`
+- Base SHA: `0000000000000000000000000000000000000000`
+- Coordination Work ID: `WORK-ID`
+
 ## What was done
 
 - Summarize outcomes and evidence.

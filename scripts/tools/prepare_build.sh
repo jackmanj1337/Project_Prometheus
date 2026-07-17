@@ -14,6 +14,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."   # repo root (res://) — this script lives in scripts/tools/
 
+python3 scripts/ci/check_release_source_branch.py
+
 # Version comes from the single source of truth: the export preset's product_version.
 VERSION="$(grep -E '^application/product_version=' export_presets.cfg \
 	| head -1 | sed -E 's/.*="(.*)"/\1/')"
