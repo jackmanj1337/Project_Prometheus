@@ -26,10 +26,12 @@ Grounds completion record in this v0.5.1 build before testing gold transfer.
 
 - Executable: `Project_Prometheus_v0.5.1_debug.exe`
 - Campaign fixture: `two-map-skirmish-1.0.zip`
-- Expected byte size: `RECORDED AFTER EXPORT`
-- Expected SHA-256: `RECORDED AFTER EXPORT`
-- Expected BUILD STAMP commit: `RECORDED AFTER RELEASE-PREP COMMIT`
-- Expected built-at UTC: `RECORDED AFTER EXPORT`
+- Expected executable byte size: `102162400`
+- Expected executable SHA-256: `44a11c6a86cae807547a54f72fb16a3bff4610270a3bd3e880c7e2abc778c6fc`
+- Expected fixture byte size: `3652`
+- Expected fixture SHA-256: `09737619bc15403d923d9b72ca1039cb157325f5cbca57867498b57a39abbfff`
+- Expected BUILD STAMP commit: `d96d035`
+- Expected built-at UTC: `2026-07-17T04:32:08Z`
 - Windows version/device: ____________________
 - Tester and date: ____________________
 - CPU/GPU: ____________________
