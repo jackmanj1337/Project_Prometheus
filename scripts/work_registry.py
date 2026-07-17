@@ -92,14 +92,17 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
                 errors.append(f"{work_id}: stale active item ({updated.isoformat()})")
         except ValueError:
             errors.append(f"{work_id}: invalid last_update date")
-        if check_git and branch:
+        if check_git and branch and record.get("status") != "completed":
             local = ref_exists(f"refs/heads/{branch}")
             remote = ref_exists(f"refs/remotes/origin/{branch}")
             expected = remote if record.get("scope") == "remote" else local or remote
             if not expected:
                 errors.append(f"{work_id}: registered branch does not exist in expected scope: {branch}")
         if record.get("status") == "completed" and check_git:
-            if ref_exists(f"refs/heads/{branch}") or ref_exists(f"refs/remotes/origin/{branch}"):
+            local_exists = ref_exists(f"refs/heads/{branch}")
+            remote_exists = ref_exists(f"refs/remotes/origin/{branch}")
+            still_exists = remote_exists if record.get("scope") == "remote" else local_exists or remote_exists
+            if still_exists:
                 errors.append(f"{work_id}: completed work still has a branch: {branch}")
 
     if check_git:
@@ -109,9 +112,7 @@ def validate(data: dict[str, Any], check_git: bool = True, today: dt.date | None
             for line in git_lines("for-each-ref", "--format=%(refname:short)", "refs/remotes/origin")
             if line.removeprefix("origin/").startswith(prefixes)
         }
-        ignored = {
-            "agent/codex/2026-07-16/coordination-candidate",
-        }
+        ignored: set[str] = set()
         for branch in sorted(remote_branches - seen_branches - ignored):
             errors.append(f"active remote branch absent from registry: {branch}")
 

@@ -56,7 +56,8 @@ class RegistryValidationTests(unittest.TestCase):
 
     def test_stale_active_item_is_rejected(self):
         broken = copy.deepcopy(self.data)
-        broken["work"][0]["last_update"] = "2026-06-01"
+        active = next(item for item in broken["work"] if item["status"] not in {"completed", "blocked"})
+        active["last_update"] = "2026-06-01"
         self.assertTrue(any("stale active item" in error for error in self.errors(broken)))
 
     def test_blocked_work_requires_resume_trigger(self):
@@ -97,6 +98,14 @@ class RegistryValidationTests(unittest.TestCase):
                 mock.patch.object(MODULE, "git_lines", return_value=[]):
             errors = MODULE.validate(broken, check_git=True, today=self.today)
         self.assertTrue(any("completed work still has a branch" in error for error in errors))
+
+    def test_completed_retired_branch_is_valid(self):
+        retired = copy.deepcopy(self.data)
+        retired["work"][0]["status"] = "completed"
+        with mock.patch.object(MODULE, "ref_exists", return_value=False), \
+                mock.patch.object(MODULE, "git_lines", return_value=[]):
+            errors = MODULE.validate(retired, check_git=True, today=self.today)
+        self.assertFalse(any(retired["work"][0]["work_id"] in error for error in errors))
 
     def test_release_requires_source_sha(self):
         broken = copy.deepcopy(self.data)
