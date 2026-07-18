@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-18](2026-07-18.md) — Added a "Regression carry-over from v0.5.0" section to the v0.5.1 playtest checklist so the shipped build still gets a regression sweep.
 - [2026-07-17](2026-07-17.md) — Added campaign-status gold/item benefits and coordinate-labelled rewind history selection, then began v0.5.1 release preparation.
 - [2026-07-16k](2026-07-16k.md) — Established release numbering and cut the consolidated v0.5.0 Windows playtest build and handbook.
 - [2026-07-16i](2026-07-16i.md) — Finalized branch dispositions and ratified the stable/integration/release/coordination lifecycle.
