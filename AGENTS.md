@@ -16,6 +16,14 @@ Leave clear concise comments explaining what each section does and why decisions
 
 make regular commits with related messages after each logical step.
 
+Branch lifecycle: `main` is the stable line, `integration` is the normal base
+and target for feature work, `release/**` isolates release hardening, and
+`coordination` owns the active-work registry. Agents work and push only on
+`agent/**`; humans create or advance protected refs, merge reviewed work, and
+retire superseded branches. Register ownership before implementation and keep
+source SHA, test/playtest evidence, and final disposition in the coordination
+registry. The registry checker is the durable enforcement for this lifecycle.
+
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
 Documentation layout & index (DSR, 2026-06-23): AGENT/Docs/ is sorted by TYPE — `guides/ governance/ decisions/ registers/ design/ plans/ playtests/` for live docs, and `archive/{consolidation,plans,playtests,handoffs,reference,evidence}/` for historical/superseded ones (never deleted; each archived .md carries a `> **Historical**`/`> **Superseded** by [..](path)` marker in its first 10 lines). Retrieval: `AGENT/Docs/INDEX.md` = what's active; `AGENT/Docs/REGISTERS.md` = the `[XXX-n]` open-question registers catalog (OPEN/RESOLVED + resolved-where); `AGENT/Docs/decisions/decision_index.md` = governance IDs (DOC/RULE/SET/OPEN/RNG/AWR). INDEX.md and REGISTERS.md are GENERATED — after adding/moving/retitling a doc or changing its header, run `python3 AGENT/Docs/gen_docs_index.py` and commit the result in the SAME change (enforced by check_docs.py check 18; design rationale in `AGENT/Docs/governance/documentation_system_design_2026-06-23.md`).
@@ -28,7 +36,10 @@ Code review instructions are in the AGENT/Docs folder
 
 These notes should include what was done that session, the commits made and plans for next session,
 
-When you create a session note, add a one-line row for it to AGENT/Session Notes/INDEX.md (newest first, with a brief topic summary) — same pattern as MEMORY.md.
+When you create a session note, start from `AGENT/Session Notes/TEMPLATE.md`, claim
+each substantive non-merge commit by exact full SHA and subject, and add a one-line
+row to `AGENT/Session Notes/INDEX.md` (newest first, with a brief topic summary).
+Run `bash scripts/session_closeout.sh` before handing off or pushing.
 
 Every time a new session is started go back and read the notes from the most recent session (and skim INDEX.md to locate older relevant notes).
 
@@ -37,4 +48,3 @@ Every time a new session is started go back and read the notes from the most rec
 
 
 If I say "Status Report" respond with "All Systems Online"
-
