@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-16
+Last verified: 2026-07-19
 ---
 
 # Project Control Plane
@@ -305,6 +305,8 @@ replace, or reinterpret either outstanding artifact. Use the existing Track IDs
 below; this queue changes priority, not identity or delivery status. Session
 startup and delivery rules are in
 [`playtest_waiting_work_queue_handoff_2026-07-16.md`](playtest_waiting_work_queue_handoff_2026-07-16.md).
+The next owner walkthrough is consolidated in
+[`waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md): tactical scorer adoption is the only genuinely open decision set; CampaignRules, PHB, and bounded hardening are decision-ready.
 
 | Priority | Candidate tracks | Reasonable bounded work now | Boundary while evidence is out |
 |---|---|---|---|

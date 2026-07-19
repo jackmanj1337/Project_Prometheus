@@ -212,6 +212,7 @@
 - [`plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md`](plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md) — v0.4.0 Windows Headless Build and Smoke-Test Handoff — *Planned - decision-free headless executi*
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
+- [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 
 ## Playtest builds / checklists / triage
 
