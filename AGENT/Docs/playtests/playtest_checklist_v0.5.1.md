@@ -183,8 +183,77 @@ Notes: ____________________
 
 Notes/save names: ____________________
 
-## 10. Logs and return package
+## 10. Regression carry-over from v0.5.0
 
+v0.5.1 changed rewind pricing, the save/ledger, status records, and the
+results/gold path, so re-confirm the v0.5.0 behaviors nearest that code on this
+build. The rest guards areas the full v0.5.0 suite covered that this focused
+handbook otherwise skips. Use `NOT RUN — <reason>` only where a fixture or mode is
+genuinely unavailable.
+
+### 10.1 Save integrity and autosave (v0.5.0 §5)
+
+- [ ] A named manual save stores the correct slot name, type, and campaign identity.
+- [ ] An autosave fires and stays a slot distinct from manual saves.
+- [ ] A deliberately corrupted or version-mismatched save copy is rejected with a
+      clear integrity/version warning and does not damage valid slots.
+      `NOT RUN — no corrupted-save fixture` if none is prepared.
+- [ ] Export then import of a valid portable save preserves identity and loads.
+
+### 10.2 Suspend and Retry hygiene (v0.5.0 §6)
+
+- [ ] Completing a suspended-then-Continued map clears the suspend entry.
+- [ ] Retry recovers without duplicating rewards or carrying invalid transient state.
+
+### 10.3 Victory, rewards, and modal input-locking (v0.5.0 §7)
+
+- [ ] A rewarded map's Victory/Results resolves exactly once.
+- [ ] Results show `Gold earned` and `Total gold`; before + earned = total, and
+      reopening or waiting never duplicates the award.
+- [ ] While Results is visible, taps, held keys, d-pad/stick, wheel, clicks, and
+      pointer motion do NOT move or activate the tactical map behind it.
+- [ ] The Defeat overlay likewise blocks map input behind it; Retry and Quit to Menu
+      are visible, focused, and usable.
+
+Before gold: ______  Earned: ______  Total: ______
+
+### 10.4 Menu Scale and results layout (v0.5.0 §1, §8)
+
+- [ ] Main Menu stays centered and fully readable at tactical Menu Scale 0.5x,
+      1.0x, and 2.0x.
+- [ ] The rewarded result is fully visible (title, standings, reward rows, Retry,
+      Quit; nothing clipped) at 0.5x, 1.0x, and 2.0x. Attach one original-resolution
+      screenshot per scale.
+
+### 10.5 UI regression and theming (v0.5.0 §3, §9)
+
+- [ ] Unit Details, Item, Weapon, and Action menus open, stay readable, and close
+      without trapping focus.
+- [ ] Overflowing More Info prose scrolls with Page Up/Down, mouse wheel (without
+      moving the selected entry), and right-stick (or controller `NOT RUN`); the
+      scroll hint appears only on overflow.
+- [ ] Main, Settings, Item, and Weapon screens use the intended consistent theme,
+      and menus stay inside the viewport at 0.5x/1.0x/2.0x.
+
+### 10.6 Combat and deferred skills (v0.5.0 §4)
+
+- [ ] Attack Preview shows a plausible forecast; cancelling it changes no HP,
+      inventory, gold, RNG-visible result, or map state.
+- [ ] A promotion-validation combat with legacy Armsthrift/Dash and enemy
+      Bastion/Iron Wall emits no `_apply_unimplemented` warning, and deferred skills
+      stay absent from release-facing promotion/reclass choices.
+
+### 10.7 Display and settings regression (v0.5.0 §10)
+
+- [ ] Windowed, borderless, and fullscreen apply without crash or inaccessible UI;
+      a supported windowed resolution applies; resizing via Windows controls
+      recenters menus; audio and input continue after returning to the map.
+
+Notes: ____________________
+
+## 11. Logs and return package
+
+- [ ] Log belongs to this exact BUILD STAMP and contains the tested session.
 - [ ] No crash, assertion, missing-resource, parser, package-validation, restore,
       or transaction failure appears in `godot.log`.
 - [ ] Every failure includes exact steps, expected/actual behavior, repeatability,
