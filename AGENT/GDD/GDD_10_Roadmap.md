@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-19
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -245,6 +245,7 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; [`playtest_v0.3.2_results_triage_plan_2026-07-13.md`](../Docs/playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
 | 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
+| 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |
