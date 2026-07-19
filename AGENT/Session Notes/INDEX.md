@@ -4,6 +4,8 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-19d](2026-07-19d.md) — Added malformed save/package fixtures, transactional failure injection, and ledger/suspend byte-determinism coverage.
+- [2026-07-19c](2026-07-19c.md) — Added the open B3-PHB activity registry and inert data-defined fixture with all 103 suites green.
 - [2026-07-19a](2026-07-19a.md) — Implemented and verified the pure ordered combat-exchange projection for AI Slice A with no shipped AI or preview adoption.
 - [2026-07-19](2026-07-19.md) — Ratified every open owner decision for the weapon-attack scorer; scope grew to joint tile/target/source with exact kill probability, resequenced into three slices.
 - [2026-07-17](2026-07-17.md) — Published v0.5.0, archived and retired superseded branches, and left every deferred recovery task with a trigger.

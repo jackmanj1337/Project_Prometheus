@@ -168,6 +168,17 @@ deferrable phase, gated on the Phase 1 entry-size measurement.
 | 4 | `B1-LEDGER` Phase 4 | **Implemented 2026-07-15:** all documents use the named slot store; `map_runtime.map_path` distinguishes `mid_map` from `between_map`; `GameState.capture_save` selects the shape; mid-map slots persist the whole ledger and campaign envelope; every slot carries `origin` plus autosave `rule_id`; mirrored headers label `Resume battle — Turn N` versus `Continue — node`. Continue and Load share one loader. | Scrapped `SUSPEND_FILENAME`, the dedicated suspend CRUD API, and the separate Continue kind. The reserved Map Menu slot is `resume_battle`; map resolution deletes it. Slot/index replacement remains transactional. |
 | 5 | `B1-LEDGER` Phase 5 | **Implemented 2026-07-15:** campaign-authored `save_slot_classes` and `autosave_rules`; pure GBA 3+1, single-consumable, and 30-any presets; open `AutosaveTriggerRegistry` with battle start/end, menu/shop exit and custom ids; rule-owned rotation; consumed-on-success loads; infinite Rewind (`-1`); runtime and `check_docs.py` durable-mid_map warnings. Tests cover presets, malformed authoring, dispatch, rotation, counts, consumption, and warnings. | Policy is enforced at save/load/UI boundaries. Autosave candidates structurally require `origin:auto` + matching `rule_id`, so manual and other-rule slots cannot be overwritten. Check 33 requires infinite rewind for durable mid-map authored policy. `B1-LEDGER` is Implemented across Phases 0-5. |
 
+### B3-PHB prep activity registry
+
+Status: **In implementation** — the open registry seam is **Implemented
+2026-07-19**; node integration and concrete service panels remain **Target design**.
+
+`PrepActivityRegistry` validates data-defined activity ids against registered panel
+factories and creates panels from copied authored parameters/context without retaining
+UI state. An inert fixture proves the open extension path. Convoy, shop, arena,
+training, recruitment, hub-node flow, and on-map placement remain in their owning
+tracks.
+
 ### B4-PREP-DEPLOYMENT prep screen
 
 The between-map surface: pick who deploys, place them, optionally save, begin the
