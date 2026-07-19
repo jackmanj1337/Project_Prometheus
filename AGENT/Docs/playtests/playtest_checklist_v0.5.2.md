@@ -16,11 +16,12 @@ Mark an unavailable check `NOT RUN — <reason>`; do not silently leave it blank
 
 - Executable: `Project_Prometheus_v0.5.2_debug.exe`
 - Campaign fixture: `two-map-skirmish-1.0.zip`
-- Expected executable size: pending export
-- Expected executable SHA-256: pending export
-- Expected fixture size: pending export
-- Expected fixture SHA-256: pending export
-- Expected BUILD STAMP commit/time: pending export
+- Expected executable size: `102168544` bytes
+- Expected executable SHA-256: `76527c91872d666dde2cc73aedf6a96e4d438c696574067840f3571ae6e5d1d4`
+- Expected fixture size: `4271` bytes
+- Expected fixture SHA-256: `5b5ae637ff782b0b134355bbc409971e590cd1c09e3119a5303a96b3e330123e`
+- Expected BUILD STAMP: version `0.5.2`, commit `06e0386`, built
+  `2026-07-19T02:08:57Z`
 - Windows version/device/GPU: ____________________
 - Tester and date: ____________________
 - Controller, or `NOT RUN — no controller`: ____________________
