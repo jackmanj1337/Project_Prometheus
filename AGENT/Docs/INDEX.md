@@ -317,6 +317,7 @@
 - [`archive/consolidation/documentation_review_2026-06-13.md`](archive/consolidation/documentation_review_2026-06-13.md) — Documentation Review — 2026-06-13 — *Historical*
 - [`archive/consolidation/documentation_review_2026-06-14.md`](archive/consolidation/documentation_review_2026-06-14.md) — Documentation Review — 2026-06-14 — *Historical*
 - [`archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md`](archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md) — Campaign Save Import-Budget Measurement — 2026-07-15 — *Historical*
+- [`archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md`](archive/evidence/playtest_checklist_v0.5.1_returned_2026-07-18.md) — v0.5.1 Windows Playtester Handbook — *Historical*
 - [`archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md`](archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md) — AI Scorer Questions Handoff — *SUPERSEDED*
 - [`archive/handoffs/handoff_2026-06-09d.md`](archive/handoffs/handoff_2026-06-09d.md) — Handoff — v0.1.3 → v0.1.4 — *Historical*
 - [`archive/handoffs/handoff_2026-06-13j.md`](archive/handoffs/handoff_2026-06-13j.md) — Handoff — Documentation Consolidation Stages 6 & 7 — *Historical*
