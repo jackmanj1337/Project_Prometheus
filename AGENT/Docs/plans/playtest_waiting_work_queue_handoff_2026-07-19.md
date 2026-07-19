@@ -203,6 +203,18 @@ this waiting stream. Do not implement AI Slice B or C until Slice A is merged.
 
 ## Next-session starting point
 
+The next session's task list is the `1-waiting-work` queue, worked in `order`. It is
+authored in the workspace `AGENT/WAITING_WORK.md` (one level above `repo/`) and in
+`coordination/tasks.json`; this document carries the *rationale* for the ordering,
+not a second copy of the list.
+
+**The first queued task is in the Container repo, not this one** —
+`WAITING-WORK-GENERATE-QUEUE-2026-07-19`, generating that queue table from the
+tracker so it stops being hand-maintained. The first task here is
+`AI-SLICE-A-PROJECT-EXCHANGE-2026-07-19`.
+
+Starting steps for the Slice A task specifically:
+
 1. Check `AGENT/Incoming/v0.5.2/`. If the return has arrived, triage it instead —
    on a branch off `agent/playtest-release-v0.5-fixes`.
 2. Confirm the worktree is clean. If `agent-start-task.sh` refuses, check whether the
@@ -215,3 +227,5 @@ this waiting stream. Do not implement AI Slice B or C until Slice A is merged.
 5. Write the Slice A requirement/evidence matrix before production code.
 6. Implement `project_exchange()` with focused tests, run the gates, and commit one
    green increment.
+7. Update the task's `status` in `coordination/tasks.json` and regenerate
+   `ACTIVE_WORK.md` in the same change — a queue nobody updates is worse than none.
