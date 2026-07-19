@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-19c](2026-07-19c.md) — Added the open B3-PHB activity registry and inert data-defined fixture with all 103 suites green.
 - [2026-07-17](2026-07-17.md) — Published v0.5.0, archived and retired superseded branches, and left every deferred recovery task with a trigger.
 - [2026-07-16j](2026-07-16j.md) — Adopted and published the agent-owned integration, playtest, stable, and coordination topology.
 - [2026-07-16i](2026-07-16i.md) — Finalized branch dispositions and ratified the stable/integration/release/coordination lifecycle.
