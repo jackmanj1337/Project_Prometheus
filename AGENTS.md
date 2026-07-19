@@ -24,6 +24,23 @@ is not advanced by agents. Register ownership before implementation and keep
 source SHA, test/playtest evidence, and final disposition in the coordination
 registry. The registry checker is the durable enforcement for this lifecycle.
 
+Nothing may live only outside the top-level tracker. Every open task, plan, handoff,
+sub-tracker, or checklist anyone is expected to return to must have a row in the
+workspace tracker `coordination/tasks.json` (in the container repo, one level above
+`repo/`), even when the detail lives in a document here under `AGENT/Docs/`. The row
+may be a pointer — put the document path in the task's `reference` or `playtest_ref`
+and keep the detail in `AGENT/Docs/`. What is not allowed is open work recorded only
+in a plan under `AGENT/Docs/plans/`, a session note, a branch name, or a PR
+description.
+
+That tracker is the only artifact spanning every repo and branch, so it is the only
+place "what is still outstanding" can be answered completely. A plan on an unmerged
+branch is invisible to anyone not standing on that branch: that is how a returned
+playtest sat untriaged and a migration sat gated on an already-rejected release.
+After adding or finishing work, run `coordination/gen_active_work.py` then
+`coordination/check_tasks.py`. Put real ordering in a task's `dependencies`, not only
+in `trigger` prose.
+
 All Documentation should go and be read from the appropriate subfolder in the AGENT folder
 
 Documentation layout & index (DSR, 2026-06-23): AGENT/Docs/ is sorted by TYPE — `guides/ governance/ decisions/ registers/ design/ plans/ playtests/` for live docs, and `archive/{consolidation,plans,playtests,handoffs,reference,evidence}/` for historical/superseded ones (never deleted; each archived .md carries a `> **Historical**`/`> **Superseded** by [..](path)` marker in its first 10 lines). Retrieval: `AGENT/Docs/INDEX.md` = what's active; `AGENT/Docs/REGISTERS.md` = the `[XXX-n]` open-question registers catalog (OPEN/RESOLVED + resolved-where); `AGENT/Docs/decisions/decision_index.md` = governance IDs (DOC/RULE/SET/OPEN/RNG/AWR). INDEX.md and REGISTERS.md are GENERATED — after adding/moving/retitling a doc or changing its header, run `python3 AGENT/Docs/gen_docs_index.py` and commit the result in the SAME change (enforced by check_docs.py check 18; design rationale in `AGENT/Docs/governance/documentation_system_design_2026-06-23.md`).
