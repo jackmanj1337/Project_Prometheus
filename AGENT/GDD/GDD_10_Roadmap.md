@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-19
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -167,6 +167,17 @@ deferrable phase, gated on the Phase 1 entry-size measurement.
 | 3 | `B1-LEDGER` Phase 3 | **Implemented 2026-07-15:** `TurnManager` pushes coalesced post-activation and refreshed round-start checkpoints; Map Menu exposes `Rewind (N)`; `GameState.rewind_last_action()` validates and stages the target through the active-map resume path, spends one `rewind_charges_per_map` charge, and truncates the abandoned future only after acceptance. Tests cover push, spend/exhaustion, party-economy rollback, branch truncation, identical replay, and changed-action divergence. | `rewind_charges_per_map` is the sole spend meter; `undo_activations`/`undo_rounds` are retention preferences. Fine retention is floored to charges + 1 so the authored spend budget remains reachable. RNG restore makes rewind decision-undo, not luck-scumming. |
 | 4 | `B1-LEDGER` Phase 4 | **Implemented 2026-07-15:** all documents use the named slot store; `map_runtime.map_path` distinguishes `mid_map` from `between_map`; `GameState.capture_save` selects the shape; mid-map slots persist the whole ledger and campaign envelope; every slot carries `origin` plus autosave `rule_id`; mirrored headers label `Resume battle — Turn N` versus `Continue — node`. Continue and Load share one loader. | Scrapped `SUSPEND_FILENAME`, the dedicated suspend CRUD API, and the separate Continue kind. The reserved Map Menu slot is `resume_battle`; map resolution deletes it. Slot/index replacement remains transactional. |
 | 5 | `B1-LEDGER` Phase 5 | **Implemented 2026-07-15:** campaign-authored `save_slot_classes` and `autosave_rules`; pure GBA 3+1, single-consumable, and 30-any presets; open `AutosaveTriggerRegistry` with battle start/end, menu/shop exit and custom ids; rule-owned rotation; consumed-on-success loads; infinite Rewind (`-1`); runtime and `check_docs.py` durable-mid_map warnings. Tests cover presets, malformed authoring, dispatch, rotation, counts, consumption, and warnings. | Policy is enforced at save/load/UI boundaries. Autosave candidates structurally require `origin:auto` + matching `rule_id`, so manual and other-rule slots cannot be overwritten. Check 33 requires infinite rewind for durable mid-map authored policy. `B1-LEDGER` is Implemented across Phases 0-5. |
+
+### B3-PHB prep activity registry
+
+Status: **In implementation** — the open registry seam is **Implemented
+2026-07-19**; node integration and concrete service panels remain **Target design**.
+
+`PrepActivityRegistry` validates data-defined activity ids against registered panel
+factories and creates panels from copied authored parameters/context without retaining
+UI state. An inert fixture proves the open extension path. Convoy, shop, arena,
+training, recruitment, hub-node flow, and on-map placement remain in their owning
+tracks.
 
 ### B4-PREP-DEPLOYMENT prep screen
 
