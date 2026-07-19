@@ -4,6 +4,11 @@ Status: Planned - playtest-waiting implementation handoff
 Last verified: 2026-07-16
 ---
 
+> **Superseded** by [`playtest_waiting_work_queue_handoff_2026-07-19.md`](../../plans/playtest_waiting_work_queue_handoff_2026-07-19.md)
+> — it named the wrong outstanding return (v0.4.1 rather than v0.5.2), pointed at the
+> retired `agent/codex/2026-07-15/prep-save-followup` branch, and listed the AI owner
+> walkthrough as pending when it was settled 2026-07-19.
+
 # Playtest-Waiting Work Queue Handoff - 2026-07-16
 
 ## Purpose

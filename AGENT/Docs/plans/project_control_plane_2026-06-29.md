@@ -297,19 +297,26 @@ is on hold.
 
 ## Immediate Next Actions
 
-### Playtest-waiting work queue - 2026-07-16
+### Playtest-waiting work queue - updated 2026-07-19
 
-This queue applies while the v0.4.1 and campaign/save Windows returns are out.
-Returned evidence preempts new work at the next green commit. Do not rebuild,
-replace, or reinterpret either outstanding artifact. Use the existing Track IDs
-below; this queue changes priority, not identity or delivery status. Session
-startup and delivery rules are in
-[`playtest_waiting_work_queue_handoff_2026-07-16.md`](playtest_waiting_work_queue_handoff_2026-07-16.md).
+This queue applies while the **v0.5.2** Windows verification return is out; watch
+`AGENT/Incoming/v0.5.2/`. Returned evidence preempts new work at the next green
+commit, and repairs land on `agent/playtest-release-v0.5-fixes`, never on
+`agent/integration`. Do not rebuild, replace, or reinterpret the outstanding
+artifact. Use the existing Track IDs below; this queue changes priority, not identity
+or delivery status. Goal, branch plan, merge-conflict surface, session startup, and
+delivery rules are in
+[`playtest_waiting_work_queue_handoff_2026-07-19.md`](playtest_waiting_work_queue_handoff_2026-07-19.md).
+
+Ordering note: `B3-PHB` and headless hardening are sequenced ahead of
+`B3-CAMPAIGN-RULES` because the unmerged v0.5.1 fix `8b77c9d` rewrote
+`CampaignManager.gd` and the Tier-2 adapters/validators. That is a merge-conflict
+avoidance, not a readiness judgement.
 
 | Priority | Candidate tracks | Reasonable bounded work now | Boundary while evidence is out |
 |---|---|---|---|
 | 1A | `B5-AI-MIN-SCORER` owner review | **Settled 2026-07-19.** The walkthrough in [`waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) ratified every decision; answers and rationale are recorded in [`weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](weapon_attack_scorer_preimplementation_decisions_2026-07-16.md). Ratified scope is joint `(tile, target, source)` with exact bounded kill probability and threat/exposure scoring — larger than the recommended target-only slice, so that document's implementation sequence was rewritten into three slices. | Implementation is still not authorized. Next bounded action is Slice A (`CombatResolver.project_exchange()`), which changes no AI behavior. Do not widen the shipped tactical preset or change compatibility behavior until Slice A lands and is verified. |
-| 1 | `B5-AI-MIN-SCORER` | Build Slice 3A: a deterministic projection-backed scorer for existing legal weapon attacks over expected damage, kill, counter-damage, exposure, target value, and stable tie-breaks. | Preserve shipped decisions as a compatibility preset; mark the track Split on landing. Full action parity remains Slice 3B behind `B5-SOURCE-STYLE`/composition/MET; no release artifact. |
+| 1 | `B5-AI-MIN-SCORER` | **Slice A only:** add `CombatResolver.project_exchange()`, a side-effect-free ordered exchange projection beside the untouched `preview_combat()`, with symmetric style slots (defender pinned null), parameterised proc handling, and a tile-excluded forecast cache. Slices B (weight registry + target scoring) and C (joint tile/target/source search + exposure) follow only after A merges. | Preserve shipped decisions as a compatibility preset; mark the track Split on landing. Full action parity remains Slice 3B behind `B5-SOURCE-STYLE`/composition/MET; no release artifact. |
 | 2 | `B3-CAMPAIGN-RULES` | Add data-driven CampaignRules profiles/tunables over the implemented save and registry foundations. | Preserve old-save defaults and existing shipped preset behavior. |
 | 3 | `B3-PHB` | Build the open prep activity/panel seam used later by convoy, shop, training, arena, and services. | Framework and fixtures first; do not silently implement downstream panels. |
 | 4 | `B4-ENCOUNTER-MODEL` | Finish the battle-map versus encounter-data split using the implemented spawn seam and campaign spine. | Preserve all shipped map loading and the protected playtest packages. |
