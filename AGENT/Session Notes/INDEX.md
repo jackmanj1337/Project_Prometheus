@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-19-c](2026-07-19-c.md) — Expanded the v0.5.2 handbook with the complete eight-part v0.5.0 regression sweep.
 - [2026-07-19-b](2026-07-19-b.md) — Preserved the returned v0.5.1 evidence (screenshots, logs, completed handbook) into the archive; it had never been committed anywhere.
 - [2026-07-19](2026-07-19.md) — Fixed v0.5.1 playtest blockers and prepared the v0.5.2 verification-build scope.
 - [2026-07-18-b](2026-07-18-b.md) — Revised the v0.5.1 §10 carry-over per codex review: deduplicated vs §§1–9, restored dropped v0.5.0 checks, added the package-boundary gaps.

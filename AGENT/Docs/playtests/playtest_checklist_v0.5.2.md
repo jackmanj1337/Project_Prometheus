@@ -8,8 +8,8 @@ Last verified: 2026-07-19
 
 ## Purpose
 
-This build verifies the v0.5.1 playtest blockers and retains a short regression
-sweep. Use a fresh folder containing only the supplied executable and fixture.
+This build verifies the v0.5.1 playtest blockers and retains the entire v0.5.0
+regression sweep. Use a fresh folder containing only the supplied executable and fixture.
 Mark an unavailable check `NOT RUN — <reason>`; do not silently leave it blank.
 
 ## Build identity
@@ -127,7 +127,101 @@ Notes/save names: ____________________
 
 Notes/screenshots: ____________________
 
-## 9. Logs and return package
+## 9. Full v0.5.0 regression sweep
+
+v0.5.2 changed campaign selection/import, combat-source resolution, objective
+progression, full-history rewind, results/casualty labels, and display layout. Re-run
+every v0.5.0 regression area below in addition to the focused checks in §§1–8.
+Where those sections already cover a behavior it is **cross-referenced, not
+restated**. `NOT RUN — <reason>` is allowed **only** where an item explicitly offers
+that option; every other item is required.
+
+### 9.1 Save integrity, autosave, and full load (v0.5.0 §5)
+
+- [ ] A named manual save stores the correct slot name, type, and campaign identity.
+- [ ] An autosave fires and stays a slot distinct from manual saves.
+- [ ] Loading that manual save restores roster, inventory, resources, campaign rules,
+      current map/progression, and settings-relevant state. (§7 covers the
+      Two-Map-Skirmish package/gold/rewind specifics; this is the general load-verify.)
+- [ ] A deliberately corrupted or version-mismatched save copy is rejected with a
+      clear integrity/version warning and does not damage valid slots.
+      `NOT RUN — no corrupted-save fixture` if none is prepared.
+- [ ] Export then import of a valid portable save preserves identity and loads.
+
+### 9.2 Suspend and Retry hygiene (v0.5.0 §6)
+
+- [ ] After a full quit and relaunch, Continue restores the exact recorded map,
+      phase/turn, unit positions, HP, inventory, Pair Up, gold, and threat state.
+      (§7 covers the focused mid-map restore; this is the full board-state comparison.)
+- [ ] Completing a suspended-then-Continued map clears the suspend entry.
+- [ ] Retry restores the original board, RNG timeline, inventory, economy, and campaign
+      position without duplicating rewards or skipping a map.
+
+### 9.3 Victory, rewards, and modal input-locking (v0.5.0 §7)
+
+- [ ] A rewarded map's Victory/Results resolves exactly once.
+- [ ] Results show `Gold earned` and `Total gold`, and before + earned = total
+      (exact arithmetic; reopening or waiting never duplicates the award).
+- [ ] While Results is visible, taps, held keys, d-pad/stick, wheel, clicks, and
+      pointer motion do NOT move or activate the tactical map behind it.
+- [ ] The Defeat overlay likewise blocks map input behind it.
+
+Before gold: ______  Earned: ______  Total: ______
+
+### 9.4 Menu Scale and results layout (v0.5.0 §1, §8)
+
+- [ ] Main Menu stays centered and fully readable at tactical Menu Scale 0.5x,
+      1.0x, and 2.0x.
+- [ ] A rewarded result is fully visible (title, standings, reward rows, Retry,
+      Quit; nothing clipped) at 0.5x, 1.0x, and 2.0x. Attach one original-resolution
+      screenshot per scale.
+
+### 9.5 UI regression, scaling, and theming (v0.5.0 §3, §9, §10)
+
+- [ ] Unit Details, Item, Weapon, and Action menus open, stay readable, and close
+      without trapping focus.
+- [ ] Settings, Unit Details, Attack Preview, and the Action Menu stay usable at
+      0.5x, 1.0x, and 2.0x menu scales.
+- [ ] Overflowing More Info prose scrolls with Page Up/Down and mouse wheel (without
+      moving the selected entry), and with right-stick (`NOT RUN — no controller`
+      if unavailable).
+- [ ] Changing the selected entry resets or clamps the old More Info scroll offset,
+      and the scroll hint appears only on overflow.
+- [ ] Main, Settings, Item, and Weapon screens use the intended consistent theme,
+      and menus stay inside the viewport at 0.5x/1.0x/2.0x.
+
+### 9.6 Combat and deferred skills (v0.5.0 §4)
+
+- [ ] Confirming one combat resolves exactly once and leaves the game controllable,
+      with HP, durability, experience, and death/incapacitation matching the
+      displayed outcome.
+- [ ] Attack Preview shows a plausible forecast; cancelling it changes no HP,
+      inventory, gold, RNG-visible result, or map state.
+- [ ] A promotion-validation combat with legacy Armsthrift/Dash and enemy
+      Bastion/Iron Wall emits no `_apply_unimplemented` warning, and deferred skills
+      stay absent from release-facing promotion/reclass choices.
+
+### 9.7 Campaign package boundary (v0.5.0 §2)
+
+Extends §§2–4 (valid import, source ownership, and chapter progression) with the
+remaining package-boundary checks:
+
+- [ ] A malformed or incompatible package is rejected with a useful message and does
+      not partially replace active data. `NOT RUN — no malformed-package fixture`
+      if none is prepared.
+- [ ] Switching back to shipped content restores shipped campaign data.
+- [ ] Exporting the same campaign twice produces equivalent content and excludes
+      saves, caches, temporary state, and unrelated files.
+
+### 9.8 Display and settings regression (v0.5.0 §10)
+
+- [ ] Windowed, borderless, and fullscreen apply without crash or inaccessible UI;
+      a supported windowed resolution applies; resizing via Windows controls
+      recenters menus; audio and input continue after returning to the map.
+
+Notes: ____________________
+
+## 10. Logs and return package
 
 - [ ] No crash, assertion, parser, missing-resource, restore, package-validation,
       transaction, or repeated error appears after the BUILD STAMP.
