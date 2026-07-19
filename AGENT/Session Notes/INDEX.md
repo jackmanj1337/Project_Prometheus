@@ -5,6 +5,7 @@ session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
 - [2026-07-19](2026-07-19.md) — Fixed v0.5.1 playtest blockers and prepared the v0.5.2 verification-build scope.
+- [2026-07-18-b](2026-07-18-b.md) — Revised the v0.5.1 §10 carry-over per codex review: deduplicated vs §§1–9, restored dropped v0.5.0 checks, added the package-boundary gaps.
 - [2026-07-18](2026-07-18.md) — Added a "Regression carry-over from v0.5.0" section to the v0.5.1 playtest checklist so the shipped build still gets a regression sweep.
 - [2026-07-17](2026-07-17.md) — Added campaign-status gold/item benefits and coordinate-labelled rewind history selection, then began v0.5.1 release preparation.
 - [2026-07-16k](2026-07-16k.md) — Established release numbering and cut the consolidated v0.5.0 Windows playtest build and handbook.
