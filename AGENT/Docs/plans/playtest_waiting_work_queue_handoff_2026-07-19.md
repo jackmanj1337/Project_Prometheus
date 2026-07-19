@@ -134,6 +134,19 @@ inventory/skill-counter/RNG mutation during projection, and unchanged
 `shipped_compatibility` decisions. **No AI behavior changes in this slice** — if any
 shipped AI decision moves, the slice is wrong.
 
+#### Slice A requirement/evidence matrix
+
+| Requirement | Evidence |
+|---|---|
+| Ordered first strike, multi-strikes, follow-up, death stop | `test_project_exchange.gd`: lethal counter suppression and ordered strike fixtures |
+| Mid-exchange weapon break | One-use Brave fixture exposes four slots but only the first can resolve |
+| Pure and deterministic | HP, inventory, durability, skill counters, RNG timeline, and `preview_combat()` byte guard |
+| Symmetric style seam | Both result roles and every strike carry null style; defender pinned null under STY-8 |
+| Proc policy seam | Explicit `exclude` default / `expected_value` mode with separate caches |
+| Required cache identity | Cache key is attacker/defender/source/terrain bucket; literal tile mutation reuses one entry |
+| Extreme bounds | Outcome mass remains 1; death probabilities stay [0,1]; expected damage stays [0, HP] |
+| Compatibility | No `EnemyAI` or shipped profile file changes; existing combat suite remains green |
+
 ### 2. `B3-PHB`
 
 Build the open prep activity/panel registry after re-reading the resolved prep-hub
