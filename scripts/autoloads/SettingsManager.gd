@@ -188,6 +188,44 @@ func _ready() -> void:
 		win.size_changed.connect(_on_window_size_changed)
 
 
+# Printable gameplay keys (Z/X by default) are also mirrored into Godot's
+# generic UI actions. FileDialog consumes those actions before its filename
+# LineEdit can type them, so text editors get first ownership of printable input.
+func _input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if (
+		not key.pressed
+		or key.unicode < 32
+		or key.ctrl_pressed
+		or key.alt_pressed
+		or key.meta_pressed
+	):
+		return
+	# Leave ordinary typing to the native editor. Only intercept printable keys
+	# that would otherwise also fire a mirrored menu action before text insertion.
+	if not (
+		InputMap.event_is_action(key, "confirm")
+		or InputMap.event_is_action(key, "cancel")
+		or InputMap.event_is_action(key, "ui_accept")
+		or InputMap.event_is_action(key, "ui_cancel")
+	):
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused is LineEdit and (focused as LineEdit).editable:
+		var line := focused as LineEdit
+		if line.has_selection():
+			var from := line.get_selection_from_column()
+			line.delete_text(from, line.get_selection_to_column())
+			line.caret_column = from
+		line.insert_text_at_caret(char(key.unicode))
+		get_viewport().set_input_as_handled()
+	elif focused is TextEdit and (focused as TextEdit).editable:
+		(focused as TextEdit).insert_text_at_caret(char(key.unicode))
+		get_viewport().set_input_as_handled()
+
+
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)

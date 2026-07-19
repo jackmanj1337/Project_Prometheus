@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-17
+**Last verified:** 2026-07-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -150,6 +150,10 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   through `DataManager` before `CampaignManager.start_campaign()`. A failed
   activation stays on New Game with the prior source intact. Choosing a shipped
   row after an installed campaign restores `res://data` first.
+- Selector refresh always composes installed summaries with an immutable shipped
+  catalogue snapshot; activating a package cannot hide or duplicate shipped
+  campaigns. The selector remains the gateway to future campaign-owned start menus,
+  where authored progression policy decides whether players choose a start node.
 - The rule toggles (`Permadeath`, `Auto Promote`, `Leveling`, `Pair Up`) write through
   to `GameState.campaign_rules` the moment they change, so closing the panel with Back and reopening
   it remembers the choices — Start is not required to persist them.
@@ -171,6 +175,9 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   feedback, installs without activating it, and refreshes the Run selector.
   Export chooses an installed `{package_id, version}` and a filesystem
   destination, then writes a deterministic re-preflighted ZIP.
+- Printable gameplay bindings yield to a focused editable text field. Mirrored
+  Confirm/Cancel keys such as Z/X type into filesystem FileDialog names instead of
+  validating or closing the dialog on the first press.
 
 This screen is onboarding-relevant because every map-registry entry now reaches
 the same campaign/prep/save lifecycle as authored multi-map content.
@@ -179,7 +186,7 @@ the same campaign/prep/save lifecycle as authored multi-map content.
 
 Status: **Split** — campaign deployment and manual save are **Implemented
 2026-07-15**; registered service panels are **Target design**
-Last verified: 2026-07-15
+Last verified: 2026-07-19
 
 **Scene:** `PrepScreen.tscn`
 **Trigger:** launching or retrying a campaign node
@@ -927,5 +934,7 @@ After selection, the successor binding and carried roster are validated before t
 win commits. The commit advances the pointer and writes the battle-end autosave,
 then routes to prep. `StandingsFormatter` is shared with `GameOverScreen` so the
 rankings renderer remains reusable by future PvP/scenario results.
+If a result is nonterminal but exposes no valid successor, the action disables as
+"Campaign Data Error"; it cannot be mistaken for campaign completion.
 
 ---

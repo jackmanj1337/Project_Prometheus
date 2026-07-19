@@ -65,6 +65,15 @@ func _ready() -> void:
 		# prior battle. This is especially important after returning to the main
 		# menu from an in-progress map in an exported build.
 		gs.call("reset_map_state")
+		# reset_map_state must clear stale scene units, but it also clears the
+		# map-scoped ledger and rewind budget. Re-install the already-validated
+		# resume transaction so a rewind/suspend scene reload retains both.
+		if (
+			not resume_payload.is_empty()
+			and not bool(gs.call("configure_suspend_resume", resume_payload))
+		):
+			push_error("GameMap: could not re-stage suspend state after board cleanup")
+			return
 	# Load data first — terrain painting and grid setup both depend on map_data.grid.
 	_load_map_data()
 	if map_data == null or map_data.grid.is_empty():

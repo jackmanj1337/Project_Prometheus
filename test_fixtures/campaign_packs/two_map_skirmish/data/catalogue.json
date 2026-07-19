@@ -8,6 +8,7 @@
     {"kind": "roster", "id": "skirmish_team", "path": "data/roster.json"},
     {"kind": "class", "id": "skirmisher", "path": "data/skirmisher.json"},
     {"kind": "class", "id": "raider", "path": "data/raider.json"},
-    {"kind": "item", "id": "proving_medal", "path": "data/proving_medal.json"}
+    {"kind": "item", "id": "proving_medal", "path": "data/proving_medal.json"},
+    {"kind": "weapon", "id": "training_sword", "path": "data/training_sword.json"}
   ]
 }

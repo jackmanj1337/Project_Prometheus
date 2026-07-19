@@ -8,7 +8,8 @@
       "strength": 8,
       "defense": 6,
       "skill": 8,
-      "speed": 7
+      "speed": 7,
+      "inventory": [{"weapon_id": "training_sword", "uses": -1}]
     },
     {
       "unit_id": "mira",
@@ -18,7 +19,8 @@
       "strength": 7,
       "defense": 5,
       "skill": 9,
-      "speed": 9
+      "speed": 9,
+      "inventory": [{"weapon_id": "training_sword", "uses": -1}]
     }
   ]
 }

@@ -134,6 +134,21 @@ func _run() -> void:
 	else:
 		print("FAIL rewind cost modes: priced=%s full=%s" % [priced, full_history])
 		failed += 1
+
+	tm._turn_order = ["blue", "red"] as Array[String]
+	tm._active_faction_idx = 1
+	tm._push_history("activation", {"unit_name": "Red Boundary"})
+	var ai_boundary: Dictionary = gs.peek_history(gs.history_size() - 1)
+	if (
+		String(ai_boundary.get("map_runtime", {}).get("turn", {}).get("controller_boundary", ""))
+		== "between_ai_activations"
+	):
+		print("OK  AI activation history records a resumable controller boundary")
+		passed += 1
+	else:
+		print("FAIL AI history boundary: %s" % [ai_boundary])
+		failed += 1
+	tm._active_faction_idx = 0
 	gs.call("restore_history", 0)
 	gs.get("campaign_rules").rewind_cost_mode = "per_activation"
 

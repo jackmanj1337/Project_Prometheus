@@ -187,6 +187,37 @@ func _init() -> void:
 		failed += 1
 	game_over.queue_free()
 
+	# A malformed nonterminal result must never masquerade as campaign completion.
+	var cm_script := GDScript.new()
+	cm_script.source_code = (
+		"extends Node\n"
+		+ "func is_campaign_active() -> bool: return true\n"
+		+ 'func get_pending_result() -> Dictionary: return {"campaign_complete": false}\n'
+		+ "func get_pending_successor_options() -> Array: return []\n"
+	)
+	cm_script.reload()
+	var existing_campaign_manager := root.get_node_or_null("CampaignManager")
+	if existing_campaign_manager != null:
+		root.remove_child(existing_campaign_manager)
+		existing_campaign_manager.queue_free()
+	var campaign_manager: Node = cm_script.new()
+	campaign_manager.name = "CampaignManager"
+	root.add_child(campaign_manager)
+	screen._refresh_result()
+	var continue_button: Button = screen.get_node("Panel/VBox/ContinueButton")
+	if continue_button.disabled and continue_button.text == "Campaign Data Error":
+		print("OK  a nonterminal result without a successor fails closed")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL malformed nonterminal result: text=%s disabled=%s manager=%s"
+				% [continue_button.text, continue_button.disabled, screen._campaign_manager()]
+			)
+		)
+		failed += 1
+	campaign_manager.queue_free()
+
 	screen.queue_free()
 	save_manager.queue_free()
 	game_state.queue_free()

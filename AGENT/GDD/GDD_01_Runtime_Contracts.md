@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-17
+**Last verified:** 2026-07-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -243,6 +243,10 @@ plan (code, integration sweep, tests, build order) is
   already-started AI faction, skips serialized `DONE` units, and does not replay
   phase-start healing, modifier ticks, or skills. A failed slot write clears the
   intent and leaves the AI phase running; a committed map outcome cancels it.
+  Map initialization reinstalls the staged document after its ordinary map-state
+  reset, preserving the complete ledger and remaining rewind charges. AI activation
+  history entries use the same explicit controller boundary, so a Rewind into one
+  resumes the scheduler rather than waiting for player input during AI control.
 - **Portable save transfer.** Every slot write and filesystem export stamps a
   canonical SHA-256 over the full payload (with blank stamp fields) and a second
   SHA-256 over format version, package/campaign identity, progression, campaign

@@ -304,7 +304,7 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 ## Weapon Durability
 
 Status: **Implemented**; broken-weapon degraded mode **Planned** (OPEN-5)
-Last verified: 2026-07-13
+Last verified: 2026-07-19
 
 ### Specs
 - Melee/thrown weapons lose 1 use only on a **successful hit**.
@@ -519,6 +519,9 @@ Controlled by `GameState.campaign_rules.permadeath_enabled`.
   possible).
 - **OFF:** the unit is removed for that map only and is fully available next map; no
   flag set.
+- Battle results distinguish these dispositions as `Name — Fallen` when the
+  incapacitation flag is set and `Name — Retreated` otherwise. Escape is not a death
+  lifecycle event and is not listed as a casualty.
 - **Game Over:** if a designated required unit (e.g. the lord) dies, the map ends in
   defeat → retry screen, regardless of the setting.
 - Combat now delegates both classic and casual removal through the shared death

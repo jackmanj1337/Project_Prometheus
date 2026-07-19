@@ -74,6 +74,7 @@ func _ready() -> void:
 	bus.map_victory.connect(_on_map_victory)
 	bus.map_defeat.connect(_on_map_defeat)
 	bus.map_resolved.connect(_on_map_resolved)
+	bus.unit_died.connect(_on_unit_died)
 
 
 # --- Campaign lifecycle -------------------------------------------------------
@@ -99,6 +100,7 @@ func start_campaign(campaign_id: String) -> bool:
 	cleared_node_ids.clear()
 	campaign_flags.clear()
 	campaign_vars.clear()
+	campaign_vars["_runtime_map_casualties"] = []
 	_active_node_id = ""
 	_pending_result.clear()
 	_prepared_launch.clear()
@@ -299,6 +301,7 @@ func launch_current_node() -> bool:
 
 	_active_node_id = node.node_id
 	_pending_result.clear()
+	campaign_vars["_runtime_map_casualties"] = []
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
@@ -353,6 +356,7 @@ func launch_prepared_node() -> bool:
 	if gs.has_method("begin_campaign_map_rules"):
 		gs.call("begin_campaign_map_rules", _prepared_launch.get("rule_overrides", {}))
 	_active_node_id = current_node_id
+	campaign_vars["_runtime_map_casualties"] = []
 	_prepared_launch.clear()
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
@@ -535,8 +539,25 @@ func _record_result(victory: bool) -> void:
 		"campaign_complete": victory and node.is_terminal(),
 		"winner_group": "",
 		"standings": [],
+		"casualties": campaign_vars.get("_runtime_map_casualties", []).duplicate(),
 	}
 	_prepared_launch.clear()
+
+
+func _on_unit_died(unit: Node) -> void:
+	if not is_campaign_active() or unit == null or String(unit.get("team")) != "blue":
+		return
+	var data: UnitData = unit.get("data") as UnitData
+	if data == null:
+		return
+	var entries: Array = campaign_vars.get("_runtime_map_casualties", [])
+	var disposition := "Fallen" if data.is_incapacitated else "Retreated"
+	var label := (
+		"%s — %s" % [data.unit_name if not data.unit_name.is_empty() else data.unit_id, disposition]
+	)
+	if not label in entries:
+		entries.append(label)
+	campaign_vars["_runtime_map_casualties"] = entries
 
 
 # map_resolved fires right after map_victory/map_defeat and carries the ranked

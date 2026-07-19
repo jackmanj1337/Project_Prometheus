@@ -128,6 +128,7 @@ func _init() -> void:
 	gs.set_phase(gs.Phase.ENEMY, "red")
 	rng.commit_event("wait", [blue_a_id, "1,9", "1,9"] as Array[String])
 	var rng_at_suspend: Dictionary = rng.to_save_dict()
+	gs.rewind_charges_left = 3
 	cursor._watch_set.clear()
 	cursor._watch_set[blue_a_id] = true
 	cursor._danger_mode = "combined"
@@ -267,8 +268,15 @@ func _init() -> void:
 		and resumed_cursor._danger_mode == "combined"
 	)
 	var payload_cleared: bool = gs.next_map_suspend_payload.is_empty()
+	var rewind_state_restored: bool = (
+		gs.rewind_charges_left == 3 and gs.history_size() == payload["ledger"].size()
+	)
 	var side_state_restored: bool = (
-		rng_restored and pair_restored and cursor_restored and payload_cleared
+		rng_restored
+		and pair_restored
+		and cursor_restored
+		and payload_cleared
+		and rewind_state_restored
 	)
 	if side_state_restored:
 		print("OK  resume restores RNG, Pair Up, cursor tile, watch set, and clears launch payload")
@@ -276,12 +284,13 @@ func _init() -> void:
 	else:
 		print(
 			(
-				"FAIL side restore: rng_ok=%s pair_ok=%s cursor_ok=%s payload_ok=%s rng=%s pair=%s cursor=%s watch=%s mode=%s payload=%s"
+				"FAIL side restore: rng_ok=%s pair_ok=%s cursor_ok=%s payload_ok=%s rewind_ok=%s rng=%s pair=%s cursor=%s watch=%s mode=%s payload=%s"
 				% [
 					rng_restored,
 					pair_restored,
 					cursor_restored,
 					payload_cleared,
+					rewind_state_restored,
 					rng.to_save_dict(),
 					pair_reg.call("serialize"),
 					resumed_cursor.current_tile,

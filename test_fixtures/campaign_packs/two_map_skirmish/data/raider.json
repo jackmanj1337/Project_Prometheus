@@ -12,5 +12,7 @@
   "base_luck": 2,
   "base_movement": 4,
   "base_constitution": 7,
-  "base_line_of_sight": 5
+  "base_line_of_sight": 5,
+  "weapon_wexp_bases": {"sword": 40},
+  "weapon_wexp_caps": {"sword": 400}
 }

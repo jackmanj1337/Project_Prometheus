@@ -220,8 +220,8 @@ func _refresh_run_options() -> void:
 	)
 	_run_options = []
 	var dm := get_node_or_null("/root/DataManager")
-	if dm != null and dm.has_method("get_all_campaigns"):
-		for campaign: CampaignData in dm.call("get_all_campaigns").values():
+	if dm != null and dm.has_method("get_shipped_campaigns"):
+		for campaign: CampaignData in dm.call("get_shipped_campaigns").values():
 			if campaign == null or campaign.is_dev_only and not OS.is_debug_build():
 				continue
 			(

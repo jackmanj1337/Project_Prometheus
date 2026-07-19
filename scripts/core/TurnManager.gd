@@ -75,6 +75,7 @@ var _history_push_pending := false
 var _pending_history_metadata: Dictionary = {}
 var _ai_suspend_requested := false
 var _ai_suspend_exit_pending := false
+var _history_controller_boundary := ""
 var _objective_conditions: RefCounted
 # Default cycle when neither MapData.turn_order nor MapData.factions provides one.
 # Per GDD_10 § Milestone 14 and the feasibility doc §5: blue → green → red → yellow.
@@ -199,7 +200,12 @@ func capture_suspend_turn_state() -> Dictionary:
 		"seize_records": _serialize_records(_seize_records),
 		"escape_records": _escape_records.duplicate(true),
 		"group_eliminated_round": _group_eliminated_round.duplicate(true),
-		"controller_boundary": "between_ai_activations" if _ai_suspend_exit_pending else "",
+		"controller_boundary":
+		(
+			_history_controller_boundary
+			if not _history_controller_boundary.is_empty()
+			else ("between_ai_activations" if _ai_suspend_exit_pending else "")
+		),
 	}
 
 
@@ -755,7 +761,13 @@ func _push_history(reason: String, metadata: Dictionary = {}) -> void:
 	var gs := get_node_or_null("/root/GameState")
 	if gs == null or not gs.has_method("push_history"):
 		return
+	_history_controller_boundary = (
+		"between_ai_activations"
+		if reason == MapLedgerScript.REASON_ACTIVATION and _is_ai_controlled(active_faction())
+		else ""
+	)
 	gs.call("push_history", self, _history_cursor, reason, metadata)
+	_history_controller_boundary = ""
 	gs.call("prune_history")
 
 

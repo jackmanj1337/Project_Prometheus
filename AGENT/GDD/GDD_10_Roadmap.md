@@ -81,6 +81,12 @@ map-registry one-node auto-wrap, and last-started/imported preference landed und
 `B6-CAMPAIGN-SHARING`. Explicit branch-node choice, the dedicated
 `MapResultsScreen`, and the full defeat recovery menu are also Implemented.
 Live Windows validation of these new surfaces remains a release qualifier.
+The v0.5.2 hardening pass (2026-07-19) additionally preserves shipped selector
+ownership while packages are active, fails closed on missing nonterminal successors,
+records Fallen/Retreated result dispositions, restores rewind ledger/charges and AI
+controller boundaries, admits pack weapons/inventories/objectives, and gives focused
+text fields ownership of printable Confirm/Cancel bindings. Automated checks are the
+implementation gate; Windows visual/play validation remains the release qualifier.
 
 `B6-CAMPAIGN-SHARING` is Implemented from its isolated package prerequisites
 through player-facing transfer:

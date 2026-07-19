@@ -368,7 +368,7 @@ only at render time.
 Status: **Split** — campaign graph, package/catalogue, status-record,
 CampaignManager, and deployment contracts are **Implemented**; public builder and
 content-resynchronization tools remain **Deferred**
-Last verified: 2026-07-17
+Last verified: 2026-07-19
 
 ### Summary
 
@@ -548,12 +548,12 @@ registered for each `kind`. An unknown kind fails loud rather than loading
 unchecked content. This preserves the open-registry extension rule: a new
 content family registers a validator instead of adding a closed type switch.
 
-The first concrete validator registry covers the smallest self-contained pack:
-`campaign`, `map_registry`, `map_data`, `roster`, and `class`. Existing
+The concrete validator registry covers the playable campaign-pack surface:
+`campaign`, `map_registry`, `map_data`, `roster`, `class`, `item`, and `weapon`. Existing
 `CampaignData.parse` owns campaign graph structure; the other handlers enforce
 their JSON identity/required-field boundaries. A second whole-catalogue pass
-then proves campaign node -> map registry entry -> map data/roster -> class
-references before archive I/O can consume the pack. Missing structured
+then proves campaign node -> map registry entry -> map data/roster -> class and
+inventory -> weapon references before archive I/O can consume the pack. Missing structured
 dependencies reject the complete catalogue rather than leaving a partial pack.
 
 This boundary only parses and validates. It does not extract/copy archives,
@@ -634,6 +634,12 @@ Rules this contract fixes:
 - **Branch nodes require an explicit choice.** The results surface lists valid
   destination labels in authored order. No successor, preparation, autosave, or
   position mutation occurs until the player selects a real outgoing edge.
+- **Only authored terminal nodes finish.** A nonterminal result with no valid
+  successor fails closed as a campaign-data error; it never relabels Continue as
+  Finish Campaign or consumes the pending victory.
+- **Results retain player-unit dispositions.** Per-map blue-unit removals are
+  captured before the victory payload: permadeath is labelled `Fallen`, casual
+  removal is labelled `Retreated`, and escape/removal paths do not count as casualties.
 - **The position and campaign author state persist; the pending result does not.**
   `capture_campaign_state` writes the reserved F1 position, `campaign.flags`, and
   `campaign.vars` rows. Flags are a deduplicated open string vocabulary; vars are

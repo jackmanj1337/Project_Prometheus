@@ -833,5 +833,29 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# Printable confirm/cancel keys belong to a focused text editor, not to the
+	# mirrored ui_accept/ui_cancel actions (v0.5.1 FileDialog return).
+	var text_guard := SettingsManagerS.new()
+	root.add_child(text_guard)
+	var line := LineEdit.new()
+	root.add_child(line)
+	line.grab_focus()
+	await process_frame
+	for code in [KEY_X, KEY_Z]:
+		var event := InputEventKey.new()
+		event.pressed = true
+		event.keycode = code
+		event.physical_keycode = code
+		event.unicode = code
+		text_guard._input(event)
+	if line.text == "XZ":
+		print("OK  focused text entry receives printable X/Z before mirrored UI actions")
+		passed += 1
+	else:
+		print("FAIL text-entry guard: %s" % line.text)
+		failed += 1
+	line.queue_free()
+	text_guard.queue_free()
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

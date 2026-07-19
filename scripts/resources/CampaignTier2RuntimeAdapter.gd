@@ -17,6 +17,7 @@ class Result:
 	var rosters: Dictionary = {}
 	var classes: Dictionary = {}
 	var items: Dictionary = {}
+	var weapons: Dictionary = {}
 
 
 static func load(
@@ -56,6 +57,7 @@ static func load(
 		return result
 	_build_classes(catalogue, result)
 	_build_items(catalogue, result)
+	_build_weapons(catalogue, result)
 	_build_rosters(catalogue, result)
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
@@ -73,6 +75,17 @@ static func _build_items(catalogue: Tier2Catalogue, result: Result) -> void:
 		_apply_properties(value, raw)
 		value.id = String(entry["id"])
 		result.items[value.id] = value
+
+
+static func _build_weapons(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "weapon":
+			continue
+		var raw: Dictionary = catalogue.get_document("weapon", entry["id"])
+		var value := WeaponData.new()
+		_apply_properties(value, raw)
+		value.id = String(entry["id"])
+		result.weapons[value.id] = value
 
 
 static func map_uri(package_id: String, package_version: String, map_id: String) -> String:
@@ -122,6 +135,7 @@ static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
 			var unit := UnitData.new()
 			_apply_class_bases(unit, class_data)
 			_apply_properties(unit, unit_raw)
+			unit.inventory = _inventory(unit_raw.get("inventory", []))
 			unit.unit_id = String(unit_raw.get("unit_id", ""))
 			unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 			unit.class_id = class_id
@@ -151,7 +165,9 @@ static func _build_maps(catalogue: Tier2Catalogue, result: Result) -> void:
 				"camera_start_tile",
 				"enemy_placements",
 				"reward_items",
-				"turn_order"
+				"turn_order",
+				"victory_conditions",
+				"defeat_conditions"
 			]
 		)
 		map.id = String(entry["id"])
@@ -166,6 +182,8 @@ static func _build_maps(catalogue: Tier2Catalogue, result: Result) -> void:
 				raw["camera_start_tile"], "map '%s' camera_start_tile" % map.id, result.errors
 			)
 		map.enemy_placements = _enemy_placements(raw.get("enemy_placements", []), result)
+		map.victory_conditions = _objective_groups(raw.get("victory_conditions", {}), result)
+		map.defeat_conditions = _objective_groups(raw.get("defeat_conditions", {}), result)
 		result.maps[map.id] = map
 
 
@@ -222,6 +240,7 @@ static func _enemy_placements(source: Variant, result: Result) -> Array[Dictiona
 		var unit := UnitData.new()
 		_apply_class_bases(unit, class_data)
 		_apply_properties(unit, unit_raw)
+		unit.inventory = _inventory(unit_raw.get("inventory", []))
 		unit.unit_id = String(unit_raw.get("unit_id", ""))
 		unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 		unit.class_id = class_id
@@ -238,6 +257,43 @@ static func _enemy_placements(source: Variant, result: Result) -> Array[Dictiona
 			)
 		)
 	return placements
+
+
+static func _inventory(source: Variant) -> Array[InventoryEntry]:
+	var output: Array[InventoryEntry] = []
+	if source is Array:
+		for raw in source:
+			if raw is Dictionary:
+				output.append(
+					InventoryEntry.make_weapon(
+						String(raw.get("weapon_id", "")), int(raw.get("uses", 1))
+					)
+				)
+	return output
+
+
+static func _objective_groups(source: Variant, result: Result) -> Dictionary:
+	var output: Dictionary = {}
+	if not source is Dictionary:
+		return output
+	for group_id in source:
+		var conditions: Array[ObjectiveCondition] = []
+		var rows: Variant = source[group_id]
+		if not rows is Array:
+			result.errors.append("Tier-2 objective group '%s' must be an array" % group_id)
+			continue
+		for raw in rows:
+			if not raw is Dictionary:
+				continue
+			var condition := ObjectiveCondition.new()
+			_apply_properties(condition, raw, ["tile", "tiles", "unit_ids"])
+			condition.unit_ids = _strings(raw.get("unit_ids", []))
+			condition.tiles = _tiles(raw.get("tiles", []), "objective tiles", result.errors)
+			if raw.has("tile"):
+				condition.tile = _tile(raw["tile"], "objective tile", result.errors)
+			conditions.append(condition)
+		output[String(group_id)] = conditions
+	return output
 
 
 static func _apply_class_bases(unit: UnitData, value: ClassData) -> void:

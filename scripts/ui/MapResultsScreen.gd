@@ -123,8 +123,14 @@ func _refresh_result() -> void:
 	if cm == null:
 		return
 	var options: Array = cm.call("get_pending_successor_options")
-	if options.is_empty():
+	var result_complete := bool(result.get("campaign_complete", false))
+	if result_complete:
 		_continue_button.text = "Finish Campaign"
+		return
+	if options.is_empty():
+		_continue_button.text = "Campaign Data Error"
+		_continue_button.disabled = true
+		_save_status_label.text = "Save: next battle is unavailable"
 		return
 	if options.size() == 1:
 		_continue_button.text = "Continue: %s" % String(options[0].get("label", "Next Battle"))

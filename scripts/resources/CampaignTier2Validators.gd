@@ -13,6 +13,7 @@ static func registry() -> Dictionary:
 		"roster": Callable(CampaignTier2Validators, "_validate_roster"),
 		"class": Callable(CampaignTier2Validators, "_validate_class"),
 		"item": Callable(CampaignTier2Validators, "_validate_item"),
+		"weapon": Callable(CampaignTier2Validators, "_validate_weapon"),
 	}
 
 
@@ -84,6 +85,27 @@ static func collect_cross_reference_errors(catalogue: Tier2Catalogue) -> Array[S
 						ids_by_kind,
 						errors
 					)
+					for inventory in unit.get("inventory", []):
+						_require_id(
+							"weapon",
+							String(inventory.get("weapon_id", "")),
+							(
+								"roster '%s' unit '%s' inventory"
+								% [entry["id"], unit.get("unit_id", "")]
+							),
+							ids_by_kind,
+							errors
+						)
+			"map_data":
+				for placement in document.get("enemy_placements", []):
+					for inventory in placement.get("unit", {}).get("inventory", []):
+						_require_id(
+							"weapon",
+							String(inventory.get("weapon_id", "")),
+							"map '%s' enemy inventory" % entry["id"],
+							ids_by_kind,
+							errors
+						)
 	return errors
 
 
@@ -214,6 +236,18 @@ static func _validate_item(document: Variant, entry: Dictionary, errors: Array[S
 	if String(document.get("id", "")) != entry["id"]:
 		errors.append(
 			"CampaignTier2Validators: item id does not match catalogue id '%s'" % entry["id"]
+		)
+
+
+static func _validate_weapon(document: Variant, entry: Dictionary, errors: Array[String]) -> void:
+	if not document is Dictionary:
+		errors.append("CampaignTier2Validators: weapon '%s' must be an object" % entry["id"])
+		return
+	for field in ["id", "display_name", "combat_family", "wexp_track"]:
+		_require_string(document, field, "weapon '%s'" % entry["id"], errors)
+	if String(document.get("id", "")) != entry["id"]:
+		errors.append(
+			"CampaignTier2Validators: weapon id does not match catalogue id '%s'" % entry["id"]
 		)
 
 

@@ -44,6 +44,7 @@ func _init() -> void:
 	_test_start_campaign(cm)
 	_test_launch_resolution(cm)
 	_test_victory_advances_node(cm, bus)
+	_test_casualties_enter_result(cm, bus)
 	_test_defeat_parks_on_node(cm, bus)
 	_test_retry_does_not_advance(cm, bus)
 	_test_campaign_completes_on_terminal_node(cm, bus)
@@ -187,6 +188,32 @@ func _test_victory_advances_node(cm: Node, bus: Node) -> void:
 		),
 		"committing the win clears the node and advances to its successor"
 	)
+	cm.end_campaign()
+
+
+func _test_casualties_enter_result(cm: Node, bus: Node) -> void:
+	_park_on(cm, "node_01_rout")
+	var unit_script := GDScript.new()
+	unit_script.source_code = 'extends Node\nvar team := "blue"\nvar data: UnitData\n'
+	unit_script.reload()
+	var fallen: Node = unit_script.new()
+	fallen.data = UnitData.new()
+	fallen.data.unit_id = "fallen_one"
+	fallen.data.unit_name = "Fallen One"
+	fallen.data.is_incapacitated = true
+	root.add_child(fallen)
+	bus.unit_died.emit(fallen)
+	fallen.data.unit_name = "Retreating One"
+	fallen.data.is_incapacitated = false
+	bus.unit_died.emit(fallen)
+	bus.map_victory.emit()
+	var result: Dictionary = cm.get_pending_result()
+	_check(
+		result.get("casualties", []) == ["Fallen One — Fallen", "Retreating One — Retreated"],
+		"permanent deaths and casual-mode defeats retain distinct result labels",
+		str(result)
+	)
+	fallen.queue_free()
 	cm.end_campaign()
 
 

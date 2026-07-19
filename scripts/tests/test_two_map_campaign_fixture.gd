@@ -24,6 +24,10 @@ func _init() -> void:
 		and adapted.rosters["skirmish_team"].size() == 2
 		and adapted.maps["skirmish_01"].enemy_placements.size() == 3
 		and adapted.maps["skirmish_02"].enemy_placements.size() == 3
+		and adapted.weapons.has("training_sword")
+		and adapted.rosters["skirmish_team"][0].inventory.size() == 1
+		and adapted.maps["skirmish_01"].victory_conditions.has("allies")
+		and campaign.rule_overrides.get("undo_activations", 0) == -1
 	):
 		print("OK  source fixture adapts with two maps, two blue units, and three reds per map")
 		passed += 1
@@ -85,8 +89,13 @@ func _init() -> void:
 		benefit_ok
 		and gs.party_gold == 4321
 		and mira != null
-		and mira.inventory.size() == 1
-		and mira.inventory[0].item_id == "proving_medal"
+		and mira.inventory.size() == 2
+		and mira.inventory.any(
+			func(entry: InventoryEntry) -> bool: return entry.item_id == "proving_medal"
+		)
+		and mira.inventory.any(
+			func(entry: InventoryEntry) -> bool: return entry.weapon_id == "training_sword"
+		)
 	)
 	if benefit_ok:
 		print("OK  Proving Grounds record carries gold and grants Mira its special medal")

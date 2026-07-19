@@ -6,7 +6,8 @@
   "description": "A compact import test with two blue units and three red units on each of two maps.",
   "is_dev_only": false,
   "rules": {
-    "rewind_cost_mode": {"authority": "default", "value": "full_history"}
+    "rewind_cost_mode": {"authority": "default", "value": "full_history"},
+    "undo_activations": {"authority": "default", "value": -1}
   },
   "compatible_status_sources": [
     {

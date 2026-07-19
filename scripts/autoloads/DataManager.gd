@@ -33,6 +33,9 @@ var _skills: Dictionary = {}
 # per [CST-3], so they load through their own directory pass rather than
 # _load_directory's resource loader.
 var _campaigns: Dictionary = {}
+# Immutable discovery snapshot of the shipped campaigns. New Game must be able
+# to list these while an installed package owns the live runtime catalogue.
+var _shipped_campaigns: Dictionary = {}
 
 # Map registry entries keyed by map_registry id. Campaign nodes bind by map id,
 # so the campaign runtime resolves a node's launch parameters through this cache.
@@ -52,6 +55,7 @@ func _ready() -> void:
 	_clear_content()
 	_load_all(DEFAULT_CONTENT_SOURCE)
 	_report(_validate_all(DEFAULT_CONTENT_SOURCE))
+	_shipped_campaigns = _duplicate_campaigns(_campaigns)
 
 
 # Content sources are self-contained data roots. Keeping path construction here
@@ -144,6 +148,7 @@ func select_tier2_campaign_source(
 		return false
 	_clear_content()
 	_classes = adapted.classes
+	_weapons = adapted.weapons
 	_items = adapted.items
 	_campaigns = adapted.campaigns
 	_map_registry = adapted.map_registry
@@ -675,6 +680,18 @@ func has_campaign(id: String) -> bool:
 
 func get_all_campaigns() -> Dictionary:
 	return _campaigns
+
+
+func get_shipped_campaigns() -> Dictionary:
+	return _shipped_campaigns
+
+
+static func _duplicate_campaigns(source: Dictionary) -> Dictionary:
+	var out: Dictionary = {}
+	for campaign_id in source:
+		var campaign: CampaignData = source[campaign_id]
+		out[campaign_id] = campaign.duplicate(true) if campaign != null else null
+	return out
 
 
 static func collect_map_registry_validation_errors(
