@@ -1856,6 +1856,78 @@ def check_process_evidence_tooling() -> None:
             _fail("process-evidence", path, 1, f"required marker is missing: {marker!r}")
 
 
+# ── check 41: dangling deferral targets ─────────────────────────────────────
+
+# A register may defer an open question to another workstream, written as a
+# bracketed tag: "deferred to [PER]". If that tag names nothing that exists, the
+# item is deferred indefinitely and no trigger can ever fire — which is exactly
+# how MRD-8 sat pointing at a [PER] workstream that had never been created
+# (found 2026-07-20). This check makes that failure loud instead of silent.
+#
+# A tag resolves if it appears anywhere outside the deferral sentence itself:
+# another register, a GDD section, or the workspace task tracker. The bar is
+# deliberately low — the point is to catch tags that exist nowhere at all.
+
+# Matches across line wraps -- the real MRD-8 case had "deferred" and "[PER]" on
+# different lines, so a per-line regex silently missed it. Bounded by a blank
+# line so the window cannot run past the end of the deferral paragraph.
+_DEFERRAL_RE = re.compile(
+    r"defer(?:red|s|ral)?\b(?:(?!\n\s*\n).){0,200}?\[([A-Z][A-Z0-9-]{1,15})\]",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Bracketed tags that are register question-ids, not workstream references.
+# A register's own ids ([MRD-8], [LEG-2]) are resolved by the register itself.
+_DEFERRAL_TAG_IGNORE = re.compile(r"^[A-Z]{2,4}-\d+$")
+
+
+def check_dangling_deferral_targets() -> None:
+    """A register deferring to a workstream tag must name one that exists."""
+    registers = sorted((ROOT / "AGENT/Docs/registers").glob("*.md"))
+    if not registers:
+        return
+
+    # Corpus of everywhere a workstream tag could legitimately be defined.
+    corpus_paths = list(registers)
+    corpus_paths += sorted((ROOT / "AGENT/Docs/decisions").glob("*.md"))
+    corpus_paths += _ACTIVE_GDD_FILES
+    tracker = ROOT.parent.parent / "coordination" / "tasks.json"
+    if tracker.is_file():
+        corpus_paths.append(tracker)
+
+    for path in registers:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if _is_historical(path):
+            continue
+        for m in _DEFERRAL_RE.finditer(content):
+            tag = m.group(1)
+            if _DEFERRAL_TAG_IGNORE.match(tag):
+                continue
+            i = content.count("\n", 0, m.start(1)) + 1
+            # Resolve against every other source, and against this file with
+            # every mention inside a deferral phrase stripped -- otherwise the
+            # deferral sentence resolves itself.
+            found = False
+            for other in corpus_paths:
+                try:
+                    text = other.read_text(encoding="utf-8")
+                except OSError:
+                    continue
+                if other == path:
+                    text = _DEFERRAL_RE.sub("", text)
+                if tag in text:
+                    found = True
+                    break
+            if not found:
+                _fail("dangling-deferral", path, i,
+                      f"deferred to [{tag}], which exists nowhere — no register, "
+                      f"GDD section, or tracker row defines it, so nothing can "
+                      f"ever un-defer this item")
+
+
 def main() -> None:
     print("check_docs: documentation structural checks (DOC-011)\n")
 
@@ -1900,6 +1972,7 @@ def main() -> None:
         ("[38] Feature ownership rows",   check_feature_index_ownership_duplicates),
         ("[39] Open authored registries", check_open_authored_registries),
         ("[40] Process evidence tooling",  check_process_evidence_tooling),
+        ("[41] Dangling deferral targets", check_dangling_deferral_targets),
     ]
     for label, fn in steps:
         print(f"  {label}...")
