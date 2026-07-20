@@ -1,0 +1,78 @@
+name: Sync agent/staging-area
+
+# agent/staging-area is the single queue for work headed to main: agents merge
+# into it, a human merges one PR from it to main. Once that lands, the branch
+# must return to main or the next cycle starts with stale history.
+#
+# Fast-forward only. If agent/staging-area is not an ancestor of main -- which
+# is what a squash or rebase merge produces -- this job stops and reports rather
+# than force-resetting, because a reset would silently discard anything pushed
+# to the branch after the merge.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-staging-area
+  cancel-in-progress: false
+
+jobs:
+  sync-staging-area:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ancestry check needs full history
+
+      - name: Fast-forward agent/staging-area onto main
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          main_sha="$(git rev-parse origin/main)"
+
+          if ! git fetch origin agent/staging-area 2>/dev/null; then
+            echo "agent/staging-area does not exist yet; creating it at main."
+            git push origin "$main_sha:refs/heads/agent/staging-area"
+            exit 0
+          fi
+          staging_sha="$(git rev-parse FETCH_HEAD)"
+
+          if [ "$staging_sha" = "$main_sha" ]; then
+            echo "Already in sync at ${main_sha:0:7}."
+            exit 0
+          fi
+
+          if git merge-base --is-ancestor "$staging_sha" "$main_sha"; then
+            echo "Fast-forwarding agent/staging-area ${staging_sha:0:7} -> ${main_sha:0:7}."
+            git push origin "$main_sha:refs/heads/agent/staging-area"
+            exit 0
+          fi
+
+          {
+            echo "### agent/staging-area did not fast-forward"
+            echo
+            echo "\`agent/staging-area\` (\`${staging_sha:0:7}\`) is not an ancestor of"
+            echo "\`main\` (\`${main_sha:0:7}\`), so it holds commits main does not."
+            echo
+            echo "Usual cause: the staging PR was **squash- or rebase-merged**. It can also"
+            echo "mean work was pushed to the branch after the merge."
+            echo
+            echo "This job will not force-reset, because that would discard those commits."
+            echo "Resolve by hand once you have confirmed nothing is lost:"
+            echo
+            echo '```'
+            echo "git fetch origin"
+            echo "git log --oneline origin/main..origin/agent/staging-area  # inspect first"
+            echo "git push --force-with-lease origin origin/main:refs/heads/agent/staging-area"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error::agent/staging-area is not an ancestor of main; refusing to force-reset. See the job summary."
+          exit 1
