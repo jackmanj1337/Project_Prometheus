@@ -8,7 +8,6 @@
 | Register | Title | Status | Resolved in | File |
 |---|---|---|---|---|
 | `IMP-1..6` | FE Map Sprite Importer Productionization (§5) — Draft Plan + Open Questions | OPEN | — | `registers/map_sprite_importer_open_questions_2026-06-21.md` |
-| `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | OPEN | — | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `MRD-1..8` | Map-Readability Cluster (§4) — Draft Plan + Open Questions Register | OPEN | MRD-1..6 2026-06-22g; MRD-7 2026-07-08 | `registers/map_readability_open_questions_2026-06-21.md` |
 | `REN-1..5` | D-A — Public-Identity Rename Gate (§3) — Draft Plan + Open Questions | OPEN | — | `registers/public_identity_rename_open_questions_2026-06-21.md` |
 | `AGT-1..13` | Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-25j | `registers/action_grant_open_questions_2026-06-25.md` |
@@ -39,6 +38,7 @@
 | `ICP-1..6` | Interceptor Family — Residual Gaps & Closure Paths — Open Questions | RESOLVED | 2026-06-26 — gap-closing pass (session 2026-06-26i) over the three-phase interceptor family (`[RDR]`+`[CVR]`+`[RCT]`). Capability gaps closed by composition (RDR-14 `gain`, RDR-2 `emit.kind`, CVR-7 ward); the items below are the **residual** gaps — each resolved to a closure path, mostly **forward-reqs on adjacent systems** plus two design decisions and one deferred item. | `registers/interceptor_family_gaps_open_questions_2026-06-26.md` |
 | `IEQ-1..9` | Items & Equipment Unified Model — Player-Facing Design + Open Questions | RESOLVED | 2026-06-23l | `registers/items_equipment_model_open_questions_2026-06-23.md` |
 | `LDC-1..9` | Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions | RESOLVED | 2026-06-27d | `registers/loadout_cap_open_questions_2026-06-27.md` |
+| `LEG-1..5` | DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions | RESOLVED | 2026-07-20 — decision_record_2026-07-20_leg_licensing_gate.md (questions answered; gate not cleared: LEG-2 remedy + LEG-4 asset audit outstanding) | `registers/legal_licensing_open_questions_2026-06-21.md` |
 | `MCH-1..8` | Main Character / Avatar (#20) — Player-Facing Design + Open Questions | RESOLVED | 2026-06-24g | `registers/main_character_avatar_open_questions_2026-06-24.md` |
 | `MET-1..9` | Map Events / Triggers Framework — Draft Plan + Open Questions Register | RESOLVED | 2026-06-21h | `registers/map_events_triggers_open_questions_2026-06-21.md` |
 | `ODB-1` | ObjectDB Leaked-Instance Audit (2026-07-07) | RESOLVED | — | `registers/objectdb_leak_audit_2026-07-07.md` |
