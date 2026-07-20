@@ -8,6 +8,21 @@
 # Set SKIP_TESTS=1 to bypass the test suite (e.g. for WIP commits): SKIP_TESTS=1 git commit ...
 cd "$(git rev-parse --show-toplevel)"
 
+# 0. Merge-target guard. When pre-merge-commit rejects a merge, git leaves it
+# staged and suggests 'git commit' to finish -- which runs this hook instead.
+# Concluding a merge onto a non-agent branch is the same policy violation.
+if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
+	merge_branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
+	case "$merge_branch" in
+		agent/*) ;;
+		*)
+			echo "pre-commit: refusing to conclude a merge on non-agent branch '${merge_branch:-<detached>}'." >&2
+			echo "  git merge --abort   # back out, then route via agent/staging-area" >&2
+			exit 1
+			;;
+	esac
+fi
+
 # 1. Documentation checks — cheap, so gate every commit (this is where DOC-011 runs).
 if [[ -f AGENT/Docs/check_docs.py ]] && command -v python3 >/dev/null 2>&1; then
 	echo "pre-commit: running documentation checks (check_docs.py)..."

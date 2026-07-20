@@ -1,6 +1,29 @@
 #!/usr/bin/env bash
+# Versioned pre-push hook (travels with the repo, unlike .git/hooks).
+# Activate on each clone with:  git config core.hooksPath scripts/hooks
+#
+# Destination guard: agents push agent/** branches and v* release tags, nothing
+# else. This is the backstop for the merge policy -- a fast-forward merge onto
+# main creates no commit, so no commit-time hook sees it; it is caught here.
+#
+# Deliberately minimal on this line: the richer release-line pre-push also runs
+# audit/session-claim checks, which depend on scripts that are not present here.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
+
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+	[[ "$local_sha" == 0000000000000000000000000000000000000000 ]] && continue
+	case "$remote_ref" in
+		refs/heads/agent/*) ;;
+		refs/tags/v[0-9]*) ;;
+		*)
+			echo "pre-push refuses non-agent destination: $remote_ref" >&2
+			echo "  Route it through agent/staging-area and let a human merge that to main." >&2
+			exit 1
+			;;
+	esac
+done
+
 python3 scripts/ci/audit_cadence.py
 python3 scripts/ci/check_session_commit_claims.py
 python3 scripts/ci/check_evidence_matrices.py
