@@ -78,12 +78,12 @@ Corpus sources use the file map in `New_Content_Expansion/awakening_project_inde
 | Gender-locked normalization | `awakening_project_index` | Adopted target | GDD_03 §Starter Roster & Classes | — | Target design | — |
 | Class growths | `awakening_classes_*`, `awakening_archetypes` | Adopted w/ variation | GDD_03 §Starter Roster & Classes | Effective = corpus archetype growth + corpus class growth; **authored personal growths replaced** | Target design | RULE-008 |
 | Project-only classes (Sentinel/Bishop/Paragon/Mage Knight) | (project homebrew) | Rejected | — | Archived (Git history) | Superseded | RULE-007 |
-| Light/Dark magic class lines | (project addition; not in corpus) | Deferred | GDD_03 §Starter Roster & Classes (Known gaps) + GDD_05 §Skill Acquisition | Dedicated design task before bulk class authoring | Planned | RULE-009 |
+| Light/Dark magic class lines | (project addition; not in corpus) | Deferred | GDD_03 §Starter Roster & Classes (Known gaps) + GDD_05 §Skill Acquisition | Design decided 2026-07-20: author Light + Dark tome families, wire the magic triangle. Precedes bulk class authoring. | Planned | RULE-009 |
 | Soldier class identity | `awakening_classes_special` | Deferred | GDD_03 §Starter Roster & Classes (Known gaps) | Resolve at class migration; interim placeholder enemy-only | Open decision | OPEN-9 (AWR-2) |
 | Class skill acquisition (by class/level) | `awakening_skills`, `awakening_classes_*` | Adopted target | GDD_05 §Skill Acquisition | — | Target design | — |
 | Proc skills (rate formulas) | `awakening_skills` | Adopted target | GDD_05 §Skill Activation & RNG | Draw from event RNG at trigger slot | Target design | OPEN-2 |
 | Five equipped skills | `awakening_core_systems` | Implemented | GDD_05 §Skill System Overview | Shipped cap preset; campaigns may override | Implemented | — |
-| Cleric "Light E" access | `awakening_classes_*` | Deferred | GDD_05 §Skill Acquisition (→ GDD_03) | Decided by Light/Dark design pass | Open decision | OPEN-10 (RULE-009) |
+| Cleric "Light E" access | `awakening_classes_*` | Deferred | GDD_05 §Skill Acquisition (→ GDD_03) | Resolved 2026-07-20: staff-only base, Light on promotion to Bishop | Ratified | OPEN-10 (RULE-009) |
 
 ## Pair Up & supports  → GDD_05 (3.4 — DONE)
 

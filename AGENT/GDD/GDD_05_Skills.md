@@ -276,9 +276,12 @@ How a unit comes to know a skill.
   target (draw from event RNG — see Skill Activation & RNG).
 
 ### Known gaps
-- **Cleric "Light E" (OPEN-10 / RULE-009):** whether the Cleric line gets Light-tome
-  access is an **Open decision**, resolved by the Light/Dark design pass. Owned with the
-  class roster in GDD_03 §Starter Roster; do not author a one-off tome here.
+- **Cleric "Light E" (OPEN-10 / RULE-009):** **Resolved 2026-07-20** — the Cleric line is
+  **staff-only**; Light-tome access arrives on promotion to Bishop. The `light` track is
+  removed from the base class rather than left trainable with no tomes to train on. Owned
+  with the class roster in GDD_03 §Starter Roster; still do not author a one-off tome here —
+  Light and Dark are authored as families by the RULE-009 pass
+  (`AGENT/Docs/decisions/decision_record_2026-07-20_light_dark_magic.md`).
 
 ### Anchors
 - Code: `scripts/units/Unit.gd` (skill grants), `data/classes/` (`skill_unlocks`)
