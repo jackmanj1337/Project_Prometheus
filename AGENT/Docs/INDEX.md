@@ -35,6 +35,7 @@
 
 ## Open-question / decisions registers
 
+- [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *Owner decisions ratified 2026-07-19; imp*
 - [`registers/action_grant_open_questions_2026-06-25.md`](registers/action_grant_open_questions_2026-06-25.md) — Action-Grant (Dancer / Reinvigorate) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/ai_profiles_open_questions_2026-06-21.md`](registers/ai_profiles_open_questions_2026-06-21.md) — Additional AI Profiles (§5) — Draft Plan + Open Questions Register — *RESOLVED*
 - [`registers/ai_valuation_engagement_open_questions_2026-06-27.md`](registers/ai_valuation_engagement_open_questions_2026-06-27.md) — AI Combat Valuation / Engagement Brain — Open Questions — *RESOLVED*
@@ -63,7 +64,7 @@
 - [`registers/input_controls_open_decisions_2026-06-21.md`](registers/input_controls_open_decisions_2026-06-21.md) — Input / Controls — Open Decisions Register — 2026-06-21 — *RESOLVED*
 - [`registers/interceptor_family_gaps_open_questions_2026-06-26.md`](registers/interceptor_family_gaps_open_questions_2026-06-26.md) — Interceptor Family — Residual Gaps & Closure Paths — Open Questions — *RESOLVED*
 - [`registers/items_equipment_model_open_questions_2026-06-23.md`](registers/items_equipment_model_open_questions_2026-06-23.md) — Items & Equipment Unified Model — Player-Facing Design + Open Questions — *RESOLVED*
-- [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *OPEN*
+- [`registers/legal_licensing_open_questions_2026-06-21.md`](registers/legal_licensing_open_questions_2026-06-21.md) — DOC-012 / OPEN-12 — Legal / Licensing (§3) — Research/Decision Doc + Open Questions — *RESOLVED*
 - [`registers/loadout_cap_open_questions_2026-06-27.md`](registers/loadout_cap_open_questions_2026-06-27.md) — Loadout Cap (skills / styles / granted sources) — A5 — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/main_character_avatar_open_questions_2026-06-24.md`](registers/main_character_avatar_open_questions_2026-06-24.md) — Main Character / Avatar (#20) — Player-Facing Design + Open Questions — *RESOLVED*
 - [`registers/map_events_triggers_open_questions_2026-06-21.md`](registers/map_events_triggers_open_questions_2026-06-21.md) — Map Events / Triggers Framework — Draft Plan + Open Questions Register — *RESOLVED*
@@ -195,7 +196,7 @@
 - [`plans/persistence_undo_unified_handoff_2026-07-15.md`](plans/persistence_undo_unified_handoff_2026-07-15.md) — Unified Persistence & Undo - Design Handoff - 2026-07-15 — *Target design*
 - [`plans/planned_unimplemented_feature_triage_2026-06-28.md`](plans/planned_unimplemented_feature_triage_2026-06-28.md) — Planned / Unimplemented Feature Triage — *Active - planning input*
 - [`plans/planning_backlog_2026-06-20.md`](plans/planning_backlog_2026-06-20.md) — Planning Backlog — Items Needing Implementation-Ready Plans (2026-06-20) — *Active — planning queue*
-- [`plans/playtest_waiting_work_queue_handoff_2026-07-16.md`](plans/playtest_waiting_work_queue_handoff_2026-07-16.md) — Playtest-Waiting Work Queue Handoff - 2026-07-16 — *Planned - playtest-waiting implementatio*
+- [`plans/playtest_waiting_work_queue_handoff_2026-07-19.md`](plans/playtest_waiting_work_queue_handoff_2026-07-19.md) — Playtest-Waiting Work Queue Handoff - 2026-07-19 — *Planned - playtest-waiting implementatio*
 - [`plans/project_control_plane_2026-06-29.md`](plans/project_control_plane_2026-06-29.md) — Project Control Plane — *Active - planning input*
 - [`plans/project_vocabulary_manifest_2026-06-29.md`](plans/project_vocabulary_manifest_2026-06-29.md) — Project Vocabulary Manifest — *Implemented - retired-term enforcement*
 - [`plans/registry_nonschema_slices_handoff_2026-07-09.md`](plans/registry_nonschema_slices_handoff_2026-07-09.md) — Non-Schema Registry Slices — Next-Session Handoff — *Active - implementation plan*
@@ -211,6 +212,7 @@
 - [`plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md`](plans/v0.4.0_windows_headless_release_handoff_2026-07-14.md) — v0.4.0 Windows Headless Build and Smoke-Test Handoff — *Planned - decision-free headless executi*
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
+- [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
 
 ## Playtest builds / checklists / triage
 
@@ -290,11 +292,14 @@
 - [`playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md`](playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md) — v0.4.0 Playtest Results and Root-Cause Triage — *Triaged - focused release-smoke rerun re*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
+## Session handoffs
+
+- [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
+
 ## Reference / feasibility / Q&A
 
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
-- [`plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md`](plans/weapon_attack_scorer_preimplementation_decisions_2026-07-16.md) — Weapon-Attack Scorer — Pre-implementation Decisions — *RESOLVED*
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
 
@@ -326,6 +331,7 @@
 - [`archive/plans/m6_promotion_plan_2026-05-21.md`](archive/plans/m6_promotion_plan_2026-05-21.md) — M6 — Promotion System Plan (implemented, 2026-05-21) — *Historical*
 - [`archive/plans/m7_second_seal_plan_2026-05-21.md`](archive/plans/m7_second_seal_plan_2026-05-21.md) — M7 — Second Seal Reclassing & Demotion Plan (implemented, 2026-05-21) — *Historical*
 - [`archive/plans/more_info_mode_plan_2026-05-24.md`](archive/plans/more_info_mode_plan_2026-05-24.md) — More Info Mode Plan — 2026-05-24 — *Historical*
+- [`archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md`](archive/plans/playtest_waiting_work_queue_handoff_2026-07-16.md) — Playtest-Waiting Work Queue Handoff - 2026-07-16 — *Historical*
 - [`archive/plans/promotion_reclass_test_map_plan_2026-05-23.md`](archive/plans/promotion_reclass_test_map_plan_2026-05-23.md) — Plan — Promotion / Reclass Validation Map — *Historical*
 - [`archive/plans/unit_progression_extraction_plan_2026-06-17.md`](archive/plans/unit_progression_extraction_plan_2026-06-17.md) — Unit Progression Extraction Plan — 2026-06-17 — *Historical*
 - [`archive/playtests/manual_test_findings_analysis.md`](archive/playtests/manual_test_findings_analysis.md) — Manual Test Findings — Causes & Suggested Fixes — *Historical*

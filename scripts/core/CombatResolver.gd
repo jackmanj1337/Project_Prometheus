@@ -110,6 +110,12 @@ var _hit_resolvers: Dictionary = {
 	"single_roll": {"rn_count": 1, "predicate": _hit_single_roll},
 }
 
+# Slice A forecast caches are scoped by proc policy. Within each policy the key
+# is exactly (attacker, defender, source, attacker_terrain_bucket); callers clear
+# the cache when the planning snapshot changes. The literal tile is excluded by
+# design so equivalent reachable attack tiles share one exchange forecast.
+var _exchange_projection_caches := {"exclude": {}, "expected_value": {}}
+
 
 # RULE-001 default: hit when floor((r1 + r2) / 2) < displayed hit. GDScript
 # integer division of non-negative ints IS the floor, so `/ 2` matches the rule.
@@ -847,6 +853,394 @@ func preview_combat(attacker: Node, defender: Node) -> Dictionary:
 	_restore_unit_state(attacker, atk_snap)
 	_restore_unit_state(defender, def_snap)
 	return result
+
+
+# ── Ordered Exchange Projection (no RNG, no side effects) ───────────────────
+
+
+func clear_exchange_projection_cache() -> void:
+	for cache in _exchange_projection_caches.values():
+		(cache as Dictionary).clear()
+
+
+func exchange_projection_cache_size(proc_handling: String = "exclude") -> int:
+	return (_exchange_projection_caches.get(proc_handling, {}) as Dictionary).size()
+
+
+# Deterministic probabilistic sibling to preview_combat(). It models the actual
+# strike order and branches HP/durability outcomes, but never rolls or applies a
+# result. `source` may supply a hypothetical attacker weapon. Proc skills are
+# excluded by default; expected_value is a separate cache/policy seam so a later
+# difficulty profile can add proc branches without changing this signature.
+func project_exchange(
+	attacker: Node,
+	defender: Node,
+	source: WeaponData = null,
+	attacker_terrain_bucket: Variant = "",
+	proc_handling: String = "exclude"
+) -> Dictionary:
+	if attacker == null or defender == null or attacker.data == null or defender.data == null:
+		return {}
+	if not _exchange_projection_caches.has(proc_handling):
+		push_error("CombatResolver.project_exchange: unknown proc handling '%s'" % proc_handling)
+		return {}
+
+	var weapon: WeaponData = source if source != null else attacker.get_equipped_weapon()
+	var cache: Dictionary = _exchange_projection_caches[proc_handling]
+	var key := _projection_cache_key(attacker, defender, weapon, attacker_terrain_bucket)
+	if cache.has(key):
+		return (cache[key] as Dictionary).duplicate(true)
+
+	var atk_snap := _snapshot_unit_state(attacker)
+	var def_snap := _snapshot_unit_state(defender)
+	var skill_handler := get_node_or_null("/root/SkillHandler") if is_inside_tree() else null
+	var live_combat_uses: Variant = (
+		skill_handler.get("_combat_skill_uses") if skill_handler != null else null
+	)
+	var combat_uses_snap: Dictionary = (
+		live_combat_uses.duplicate(true) if live_combat_uses is Dictionary else {}
+	)
+	var context := _build_combat_context(attacker, defender)
+	context["attacker_weapon"] = weapon
+	context["projection_proc_handling"] = proc_handling
+	# Both policies remain RNG-free. `expected_value` is deliberately explicit
+	# instead of inheriting preview=true invisibly; proc branches can be added at
+	# this seam without refactoring callers or consuming the live RNG timeline.
+	_collect_combat_modifiers(context, true, true)
+
+	var defender_weapon: WeaponData = context["defender_weapon"]
+	var can_counter := defender_weapon != null
+	var attacker_strikes := (
+		(weapon.strikes_per_attack if weapon != null else 1) + int(context["atk_mod"]["strikes"])
+	)
+	var defender_strikes := (
+		(defender_weapon.strikes_per_attack + int(context["def_mod"]["strikes"]))
+		if can_counter
+		else 0
+	)
+	var follow_up := _projection_follow_up(attacker, defender, weapon, defender_weapon)
+	var slots: Array[Dictionary] = []
+	if bool(context["flags"]["vantage"]) and can_counter:
+		_append_projection_slots(slots, "defender", defender_strikes, false)
+	_append_projection_slots(slots, "attacker", attacker_strikes, false)
+	if can_counter and not bool(context["flags"]["vantage"]):
+		_append_projection_slots(slots, "defender", defender_strikes, false)
+	if follow_up == attacker:
+		_append_projection_slots(slots, "attacker", attacker_strikes, true)
+	elif follow_up == defender and can_counter:
+		_append_projection_slots(slots, "defender", defender_strikes, true)
+
+	var strike_specs: Array[Dictionary] = []
+	for slot in slots:
+		strike_specs.append(
+			_projection_strike_spec(
+				attacker,
+				defender,
+				weapon,
+				defender_weapon,
+				context,
+				String(slot["actor_role"]),
+				bool(slot["is_follow_up"])
+			)
+		)
+	var states := _project_outcome_states(
+		strike_specs,
+		attacker.data.hp,
+		defender.data.hp,
+		_equipped_weapon_uses(attacker),
+		_equipped_weapon_uses(defender)
+	)
+	var result := _summarize_projection(
+		states, strike_specs, attacker.data.hp, defender.data.hp, proc_handling, key
+	)
+	# Style slots are symmetric even though STY-8 pins counter styles null today.
+	result["styles"] = {"attacker": null, "defender": null}
+	result["attacker_source"] = weapon
+	result["defender_source"] = defender_weapon
+
+	_restore_unit_state(attacker, atk_snap)
+	_restore_unit_state(defender, def_snap)
+	if skill_handler != null and live_combat_uses is Dictionary:
+		skill_handler.set("_combat_skill_uses", combat_uses_snap)
+	cache[key] = result.duplicate(true)
+	return result
+
+
+func _projection_cache_key(
+	attacker: Node, defender: Node, source: WeaponData, terrain_bucket: Variant
+) -> String:
+	return (
+		"%s\n%s\n%s\n%s"
+		% [
+			_projection_unit_id(attacker),
+			_projection_unit_id(defender),
+			String(source.id) if source != null else "-",
+			str(terrain_bucket),
+		]
+	)
+
+
+func _projection_unit_id(unit: Node) -> String:
+	var authored := String(unit.data.unit_id) if unit != null and unit.data != null else ""
+	return authored if not authored.is_empty() else "instance:%d" % unit.get_instance_id()
+
+
+func _append_projection_slots(
+	slots: Array[Dictionary], actor_role: String, count: int, is_follow_up: bool
+) -> void:
+	for _index in maxi(0, count):
+		slots.append({"actor_role": actor_role, "style": null, "is_follow_up": is_follow_up})
+
+
+func _projection_follow_up(
+	attacker: Node, defender: Node, attacker_weapon: WeaponData, defender_weapon: WeaponData
+) -> Node:
+	var attacker_speed: int = attacker.battle_speed(attacker_weapon)
+	var defender_speed: int = defender.battle_speed(defender_weapon)
+	if attacker_speed - defender_speed >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
+		return attacker
+	if defender_speed - attacker_speed >= GameConstants.FOLLOW_UP_SPEED_THRESHOLD:
+		return defender
+	return null
+
+
+func _projection_strike_spec(
+	attacker: Node,
+	defender: Node,
+	attacker_weapon: WeaponData,
+	defender_weapon: WeaponData,
+	context: Dictionary,
+	actor_role: String,
+	is_follow_up: bool
+) -> Dictionary:
+	var is_counter := actor_role == "defender"
+	var actor := defender if is_counter else attacker
+	var target := attacker if is_counter else defender
+	var actor_weapon := defender_weapon if is_counter else attacker_weapon
+	var target_weapon := attacker_weapon if is_counter else defender_weapon
+	var actor_mod: Dictionary = context["def_mod"] if is_counter else context["atk_mod"]
+	var target_mod: Dictionary = context["atk_mod"] if is_counter else context["def_mod"]
+	var triangle := _get_triangle_result(actor_weapon, target_weapon)
+	var triangle_accuracy := (
+		10 if triangle == "advantage" else (-10 if triangle == "disadvantage" else 0)
+	)
+	var triangle_damage := (
+		2 if triangle == "advantage" else (-2 if triangle == "disadvantage" else 0)
+	)
+	var hit := 0
+	var crit := 0
+	var damage := 0
+	if actor_weapon != null:
+		hit = clampi(
+			(
+				actor.accuracy(actor_weapon)
+				+ triangle_accuracy
+				+ int(actor_mod["accuracy"])
+				- target.dodge(target_weapon)
+				- target.get_terrain_dodge_bonus()
+				- int(target_mod["dodge"])
+			),
+			0,
+			100
+		)
+		crit = clampi(
+			(
+				actor.crit_rate(actor_weapon)
+				- target.crit_avoid()
+				+ int(actor_mod["crit"])
+				- int(target_mod["crit_avoid"])
+			),
+			0,
+			100
+		)
+		var ignore_key := "defender_ignores_def" if is_counter else "attacker_ignores_def"
+		damage = _projection_damage(
+			actor,
+			target,
+			actor_weapon,
+			triangle_damage,
+			int(actor_mod["damage"]),
+			_get_effectiveness_multiplier(actor_weapon, target, context, actor),
+			float(context["flags"].get(ignore_key, 0.0)),
+			float(actor_mod["damage_multiplier"])
+		)
+	return {
+		"actor_role": actor_role,
+		"target_role": "attacker" if is_counter else "defender",
+		"style": null,
+		"is_counter": is_counter,
+		"is_follow_up": is_follow_up,
+		"hit_probability": hit / 100.0,
+		"crit_probability_on_hit": crit / 100.0,
+		"damage": damage,
+		"crit_damage": damage * 3,
+		"always_loses_durability":
+		actor_weapon != null and actor_weapon.combat_family in _ALWAYS_USE_DURABILITY,
+	}
+
+
+func _projection_damage(
+	actor: Node,
+	target: Node,
+	weapon: WeaponData,
+	triangle_damage: int,
+	flat_bonus: int,
+	effectiveness: float,
+	ignore_def_fraction: float,
+	damage_multiplier: float
+) -> int:
+	var attack_stat: int = (
+		actor.get_effective_stat("magic")
+		if weapon.uses_mag
+		else actor.get_effective_stat("strength")
+	)
+	var defense_stat: int = (
+		target.get_effective_stat("resistance")
+		if weapon.uses_mag
+		else target.get_effective_stat("defense")
+	)
+	var effective_defense := int(defense_stat * (1.0 - ignore_def_fraction))
+	var raw: int = (
+		attack_stat
+		+ int(weapon.mt * effectiveness)
+		+ triangle_damage
+		+ flat_bonus
+		- effective_defense
+		- target.get_terrain_def_bonus()
+	)
+	return maxi(0, int(maxi(0, raw) * damage_multiplier))
+
+
+func _project_outcome_states(
+	strikes: Array[Dictionary],
+	attacker_hp: int,
+	defender_hp: int,
+	attacker_uses: int,
+	defender_uses: int
+) -> Array[Dictionary]:
+	var states: Array[Dictionary] = [
+		{
+			"attacker_hp": attacker_hp,
+			"defender_hp": defender_hp,
+			"attacker_uses": attacker_uses,
+			"defender_uses": defender_uses,
+			"probability": 1.0,
+		}
+	]
+	for strike in strikes:
+		var next_states: Array[Dictionary] = []
+		for state in states:
+			_project_strike_branches(state, strike, next_states)
+		states = _merge_projection_states(next_states)
+	return states
+
+
+func _project_strike_branches(
+	state: Dictionary, strike: Dictionary, output: Array[Dictionary]
+) -> void:
+	var role := String(strike["actor_role"])
+	var target_role := String(strike["target_role"])
+	if (
+		int(state["%s_hp" % role]) <= 0
+		or int(state["%s_hp" % target_role]) <= 0
+		or int(state["%s_uses" % role]) == 0
+	):
+		output.append(state.duplicate(true))
+		return
+	var hit_probability := clampf(float(strike["hit_probability"]), 0.0, 1.0)
+	var crit_probability := clampf(float(strike["crit_probability_on_hit"]), 0.0, 1.0)
+	_append_projection_branch(output, state, strike, 0, 1.0 - hit_probability, false)
+	_append_projection_branch(
+		output,
+		state,
+		strike,
+		int(strike["damage"]),
+		hit_probability * (1.0 - crit_probability),
+		true
+	)
+	_append_projection_branch(
+		output, state, strike, int(strike["crit_damage"]), hit_probability * crit_probability, true
+	)
+
+
+func _append_projection_branch(
+	output: Array[Dictionary],
+	state: Dictionary,
+	strike: Dictionary,
+	damage: int,
+	branch_probability: float,
+	did_hit: bool
+) -> void:
+	if branch_probability <= 0.0:
+		return
+	var branch := state.duplicate(true)
+	branch["probability"] = float(state["probability"]) * branch_probability
+	var target_hp_key := "%s_hp" % String(strike["target_role"])
+	branch[target_hp_key] = maxi(0, int(branch[target_hp_key]) - damage)
+	if did_hit or bool(strike["always_loses_durability"]):
+		var uses_key := "%s_uses" % String(strike["actor_role"])
+		if int(branch[uses_key]) > 0:
+			branch[uses_key] = int(branch[uses_key]) - 1
+	output.append(branch)
+
+
+func _merge_projection_states(states: Array[Dictionary]) -> Array[Dictionary]:
+	var merged := {}
+	for state in states:
+		var key := (
+			"%d:%d:%d:%d"
+			% [
+				state["attacker_hp"],
+				state["defender_hp"],
+				state["attacker_uses"],
+				state["defender_uses"],
+			]
+		)
+		if merged.has(key):
+			merged[key]["probability"] += float(state["probability"])
+		else:
+			merged[key] = state.duplicate(true)
+	var result: Array[Dictionary] = []
+	var keys: Array = merged.keys()
+	keys.sort()
+	for key in keys:
+		result.append(merged[key])
+	return result
+
+
+func _summarize_projection(
+	states: Array[Dictionary],
+	strikes: Array[Dictionary],
+	attacker_hp: int,
+	defender_hp: int,
+	proc_handling: String,
+	cache_key: String
+) -> Dictionary:
+	var expected_attacker_hp := 0.0
+	var expected_defender_hp := 0.0
+	var attacker_death_probability := 0.0
+	var defender_death_probability := 0.0
+	var probability_total := 0.0
+	for state in states:
+		var probability := float(state["probability"])
+		probability_total += probability
+		expected_attacker_hp += int(state["attacker_hp"]) * probability
+		expected_defender_hp += int(state["defender_hp"]) * probability
+		if int(state["attacker_hp"]) <= 0:
+			attacker_death_probability += probability
+		if int(state["defender_hp"]) <= 0:
+			defender_death_probability += probability
+	return {
+		"strikes": strikes,
+		"outcomes": states,
+		"expected_damage_to_attacker": clampf(attacker_hp - expected_attacker_hp, 0.0, attacker_hp),
+		"expected_damage_to_defender": clampf(defender_hp - expected_defender_hp, 0.0, defender_hp),
+		"attacker_death_probability": clampf(attacker_death_probability, 0.0, 1.0),
+		"defender_death_probability": clampf(defender_death_probability, 0.0, 1.0),
+		"probability_total": probability_total,
+		"proc_handling": proc_handling,
+		"cache_key": cache_key,
+	}
 
 
 # ── Full RNG Resolution ──────────────────────────────────────────────────────

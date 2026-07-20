@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-19
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -168,6 +168,17 @@ deferrable phase, gated on the Phase 1 entry-size measurement.
 | 4 | `B1-LEDGER` Phase 4 | **Implemented 2026-07-15:** all documents use the named slot store; `map_runtime.map_path` distinguishes `mid_map` from `between_map`; `GameState.capture_save` selects the shape; mid-map slots persist the whole ledger and campaign envelope; every slot carries `origin` plus autosave `rule_id`; mirrored headers label `Resume battle — Turn N` versus `Continue — node`. Continue and Load share one loader. | Scrapped `SUSPEND_FILENAME`, the dedicated suspend CRUD API, and the separate Continue kind. The reserved Map Menu slot is `resume_battle`; map resolution deletes it. Slot/index replacement remains transactional. |
 | 5 | `B1-LEDGER` Phase 5 | **Implemented 2026-07-15:** campaign-authored `save_slot_classes` and `autosave_rules`; pure GBA 3+1, single-consumable, and 30-any presets; open `AutosaveTriggerRegistry` with battle start/end, menu/shop exit and custom ids; rule-owned rotation; consumed-on-success loads; infinite Rewind (`-1`); runtime and `check_docs.py` durable-mid_map warnings. Tests cover presets, malformed authoring, dispatch, rotation, counts, consumption, and warnings. | Policy is enforced at save/load/UI boundaries. Autosave candidates structurally require `origin:auto` + matching `rule_id`, so manual and other-rule slots cannot be overwritten. Check 33 requires infinite rewind for durable mid-map authored policy. `B1-LEDGER` is Implemented across Phases 0-5. |
 
+### B3-PHB prep activity registry
+
+Status: **In implementation** — the open registry seam is **Implemented
+2026-07-19**; node integration and concrete service panels remain **Target design**.
+
+`PrepActivityRegistry` validates data-defined activity ids against registered panel
+factories and creates panels from copied authored parameters/context without retaining
+UI state. An inert fixture proves the open extension path. Convoy, shop, arena,
+training, recruitment, hub-node flow, and on-map placement remain in their owning
+tracks.
+
 ### B4-PREP-DEPLOYMENT prep screen
 
 The between-map surface: pick who deploys, place them, optionally save, begin the
@@ -245,6 +256,7 @@ into the Next Work Queue above. The rows below stay safe parallel candidates.
 |---:|---|---|---|
 | 1 | `VAL-V030-GAMEPAD` / `VAL-V023-DISPLAY` | v0.3.2 focused rerun intake DONE 2026-07-13. | Returned checklist and two logs moved to permanent docs/evidence homes; [`playtest_v0.3.2_results_triage_plan_2026-07-13.md`](../Docs/playtests/playtest_v0.3.2_results_triage_plan_2026-07-13.md) records root causes and decisions. Display is Implemented; gamepad remains Pending validation only for zoom feel. |
 | 2 | `B2-ACTION-EFFECT`, `B2-RESOURCE-LEDGER`, `B2-OCCUPANCY`, `B2-DEATH-LIFECYCLE`, `B2-PROJECTION`, plus `B3-TCV`, `B5-AI-COMPOSITION`, `B3-STAT-REGISTRY` | Continue the open-registry stream. | **Band 2 contracts Implemented; objective/item registry follow-up added 2026-07-15:** source registries strict-replace from the selected content root; actions validate/dry-run; fixed wallets transact atomically; map-start placement, death, and combat projection use shared services. Objective conditions and item effects now load compatibility-preserving data entries and dispatch validation/evaluation/display or preview/commit without closed id switches. AI/perception projection adapters, generalized requirement/event composition, formulas, pools, broader placement/death consumers, custody, and persistent delay remain deferred. |
+| 2A | `B5-AI-MIN-SCORER` Slice A | **Implemented 2026-07-19:** additive `CombatResolver.project_exchange()` ordered projection with bounded outcome branches, symmetric style slots, parameterized proc policy, and tile-excluded deterministic caches. | No shipped AI behavior changes. Weight/scoring adoption and joint tile/target/source search remain Slices B/C. |
 | 3 | `UI-INSPECTION` | Prototype draft UI assets headlessly. | Build a mockup-only Godot `Control` scene/script that copies curated draft UI sheets into a temporary Theme, renders static Action Menu / UnitDetails / AttackPreview / shop-or-convoy list screenshots at supported menu scales, and checks for nonblank output, clipping, and bad slice margins. Keep it separate from production UI until the screenshots survive review. |
 | 4 | `CLEAN-OBJDB-LEAK` | Clean benign test fixture leaks. | Optional cleanup from the ObjectDB audit; reduces noisy suite exits without changing player behavior. |
 | 5 | `REL-PACKAGING` | Draft the release packaging flow. | Define shipped files, hashes, tags, manifests, checklist pairing, and future public/playtest packaging steps. |

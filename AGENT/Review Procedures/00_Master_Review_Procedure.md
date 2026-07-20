@@ -1,7 +1,7 @@
 # Master Review Procedure — Full Project Audit
 
 > **Status:** Active — orchestrator for the complete project review
-> **Last verified:** 2026-07-05
+> **Last verified:** 2026-07-19
 
 This is the top-level conductor for a **complete, skips-nothing review** of the
 entire project: code, scenes/data/assets, tests/CI/build, documentation, and the
@@ -49,7 +49,7 @@ to its own sub-agent. Each produces one dated report and a 1–10 score.
 Coverage map (so nothing falls between pillars):
 
 - `scripts/**.gd` non-test code → **Pillar 1**
-- `scripts/tests/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
+- `scripts/tests/**`, `test_fixtures/**`, `run_tests.sh`, `scripts/ci/**`, `scripts/hooks/**`,
   `check_docs.py`, `.github/workflows/**`, `project.godot`, `export_presets.cfg`,
   `Dockerfile`, `docker-compose.yml`, **all `tools/` Python (godot-analyzer MCP +
   one-off scripts) and its pytest suite** → **Pillar 4**
@@ -63,7 +63,7 @@ Coverage map (so nothing falls between pillars):
 Nothing in the tree is unowned: every top-level dir (`AGENT/`, `assets/`,
 `builds/` [gitignored artifacts], `ui_previews/` [gitignored artifacts —
 `scripts/tools/ui_inspection_preview.gd` output], `Draft UI assets/`, `data/`,
-`scenes/`, `scripts/`, `tools/`) and the root config files map to exactly one
+`scenes/`, `scripts/`, `test_fixtures/`, `tools/`) and the root config files map to exactly one
 pillar above.
 The §3 tree-completeness preflight enforces this each run, and `check_docs.py`
 check 11 fails if a new top-level dir appears that this map does not mention.

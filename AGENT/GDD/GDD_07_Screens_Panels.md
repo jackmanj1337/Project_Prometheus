@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-16
+**Last verified:** 2026-07-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -178,8 +178,9 @@ the same campaign/prep/save lifecycle as authored multi-map content.
 ### Prep, Service, And Authoring Panels
 
 Status: **Split** — campaign deployment and manual save are **Implemented
-2026-07-15**; registered service panels are **Target design**
-Last verified: 2026-07-15
+2026-07-15**; the open activity registry seam is **Implemented 2026-07-19**;
+concrete registered service panels are **Target design**
+Last verified: 2026-07-19
 
 **Scene:** `PrepScreen.tscn`
 **Trigger:** launching or retrying a campaign node
@@ -207,6 +208,13 @@ Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should
 register panel/activity ids and data schemas; the UI opens the registered panel with an
 actor/context instead of branching on a closed panel enum.
+
+`PrepActivityRegistry` implements that open seam. Authored `PrepActivityDef` records
+select a registered `panel_type` and pass copied parameters/context to its factory.
+The registry keeps no mutable UI or save state; each future service commits through
+its owning gameplay system. The shipped inert fixture proves another data-defined
+activity needs no registry switch edit, but no concrete service panel ships in this
+slice.
 
 The public builder/authoring GUI is deferred (`B8-PUBLIC-BUILDER`). Until then, the
 portfolio path is data-only authoring through resources/manifests plus a slice-first web

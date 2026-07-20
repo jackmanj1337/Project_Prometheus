@@ -3,7 +3,7 @@
 **Status:** Active contract — split status per section (project behavior is
 **Implemented**; corpus migration is **Target design**, tracked in
 `GDD_Adoption_Matrix.md`).
-**Last verified:** 2026-07-13
+**Last verified:** 2026-07-19
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -284,6 +284,15 @@ combat.
 animation yet): `resolve_combat()` builds the list and draws rolls; `apply_combat_result()`
 commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
+`project_exchange()` is the side-effect-free ordered projection sibling. It branches
+bounded hit/crit outcomes through the same Vantage, multi-strike, follow-up,
+death-stop, and durability-break sequence without consuming RNG or mutating HP,
+inventory, durability, or skill counters. Both combatants carry a reserved style
+slot; the defender's remains null under STY-8. Forecast caches are separated by
+proc policy and keyed by attacker, defender, source, and attacker-terrain bucket,
+deliberately excluding the literal tile. No shipped AI profile consumes this API in
+Slice A.
+
 ### Known gaps
 - Resolvers are two engine built-ins for now; registry promotion + author tiers are
   `B3-COMBAT-ROLL-RESOLVER` (CRR-8).
@@ -292,7 +301,8 @@ commits HP/durability/EXP. See GDD_01 → CombatResolver.
 
 ### Anchors
 - Code: `scripts/core/CombatResolver.gd`, `scripts/autoloads/RngService.gd`
-- Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_rng_service.gd`,
+- Tests: `scripts/tests/test_combat.gd`, `scripts/tests/test_project_exchange.gd`,
+  `scripts/tests/test_rng_service.gd`,
   `scripts/tests/test_rng_combat_determinism.gd` (T1/T3/T7),
   `scripts/tests/test_rng_usage_lint.gd` (T5); T2 pending (Step 2), T6 pending
   (`B1-SUSPEND`)
