@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Versioned pre-merge-commit hook (travels with the repo, unlike .git/hooks).
+# Activate on each clone with:  git config core.hooksPath scripts/hooks
+#
+# Refuse to create a merge commit on a non-agent/** branch. Policy: the *target*
+# branch decides who merges. agent/** -> agent/** is the agent's to do; anything
+# landing on main is a human action, prepared via the container repo's
+# scripts/prepare-manual-pr.sh.
+#
+# Git does not run this hook for fast-forward merges (no commit is created) or
+# under --no-verify. The pre-commit hook covers the "conclude a blocked merge
+# with git commit" path.
+set -euo pipefail
+
+branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
+
+if [[ -z "$branch" ]]; then
+  echo "pre-merge-commit: refusing a merge with detached HEAD." >&2
+  exit 1
+fi
+
+case "$branch" in
+  agent/*) exit 0 ;;
+esac
+
+cat >&2 <<MSG
+pre-merge-commit refuses to merge into a non-agent branch: $branch
+
+Agents may merge freely between agent/** branches — including a feature or fix
+branch back into the agent/** base it forked from. Merging into '$branch' is a
+human action.
+
+To hand it off instead, from the container repo:
+  scripts/prepare-manual-pr.sh --repo Project_Prometheus --target $branch
+MSG
+exit 1
