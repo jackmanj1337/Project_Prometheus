@@ -21,21 +21,34 @@ in sync automatically — see the note inside the block.
   and within that namespace they **should** push freely. Pushing an `agent/**`
   branch to `origin` needs no user confirmation and no "recovery reason"; it is
   the normal way work is shared and backed up. Push early and often.
-- Never push directly to `main`. In `Project_Prometheus`, the agent-owned
-  lifecycle refs are `agent/stable-release`, `agent/integration`,
-  `agent/playtest-release`, and `agent/coordination`.
-- `agent/stable-release` is stable, `agent/integration` is the normal feature
-  base, `agent/playtest-release` isolates release hardening, and
-  `agent/coordination` owns the active-work registry. Do not revive the obsolete
-  mixed-case `Agent/main` convention.
+- Never push directly to `main`.
+- **`agent/staging-area` is the single queue for everything headed to `main`.**
+  Every repo has one, branched from its `main`. Agents merge finished work into
+  it themselves; the human then reviews and merges one PR,
+  `agent/staging-area` → `main`, instead of one PR per branch. Nothing else
+  should open a PR against `main`.
+  - Keep it mergeable: it is only ever `main` plus work that is ready. If a
+    change is not ready for a human to merge to `main`, it does not belong here
+    — leave it on its own `agent/**` branch.
+  - After the human merges it to `main`, `agent/staging-area` fast-forwards back
+    onto `main` and the cycle repeats.
+- In `Project_Prometheus` the other agent-owned lifecycle refs are
+  `agent/stable-release`, `agent/integration`, `agent/playtest-release`, and
+  `agent/coordination`. `agent/stable-release` is stable, `agent/integration` is
+  the normal **feature** base, `agent/playtest-release` isolates release
+  hardening, and `agent/coordination` owns the active-work registry.
+  `agent/staging-area` is not a feature base — feature work still starts from
+  `agent/integration` and lands there. Do not revive the obsolete mixed-case
+  `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
   - Agents **may** merge a feature or fix branch back into the `agent/**` base it
     forked from (its origin base), and may merge between `agent/**` branches
     generally, once the branch's required checks pass. No PR or human approval is
     needed for an `agent/**` → `agent/**` merge.
   - Agents **must not** merge anything into a non-`agent/**` branch. Any merge
-    whose target is `main` (or any other non-`agent/**` ref) is a human action —
-    prepare it with `prepare-manual-pr.sh` and hand it off.
+    whose target is `main` (or any other non-`agent/**` ref) is a human action.
+    Route it through `agent/staging-area` rather than handing off a branch of
+    its own; use `prepare-manual-pr.sh` when a hand-off summary is wanted.
   - The rule is about the *target*, not the source: an `agent/**` branch merging
     into `main` is still human-only.
   - Enforcement, in layers: `pre-merge-commit` refuses a merge commit onto a
