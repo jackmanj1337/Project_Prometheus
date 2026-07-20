@@ -70,10 +70,24 @@ in sync automatically — see the note inside the block.
     (git leaves a rejected merge staged and invites `git commit`); `pre-push`
     refuses any destination ref that is not `refs/heads/agent/*` or a `v*`
     release tag.
+  - **There is no server-side enforcement.** These repos are private on a plan
+    where branch-protection rules can be created but are *not enforced*, so
+    nothing on GitHub's side can refuse a bad push. The hooks are not a backup
+    layer — they are the only preventive control. Treat `--no-verify` as a
+    policy violation, not a shortcut.
+  - Because of that, hooks must be *verifiably* active: the container repo's
+    `check-hooks.sh` asserts every repo has `core.hooksPath` set and every
+    required hook present
+    **and executable** (git silently skips a non-executable hook), `--fix`
+    installs them, `clone-repo.sh` installs them on clone, and `health-check.sh`
+    counts a missing hook as a health finding.
+  - Detection backs up prevention: the `sync-staging-area` workflow verifies on
+    every push to `main` that each new non-merge commit was already on
+    `agent/staging-area`, and fails loudly if not. It cannot block the push, but
+    it will not silently fast-forward over one either.
   - Known gap: a **fast-forward** merge onto `main` creates no commit, so no
-    commit-time hook sees it. It is caught at push. `--no-verify` bypasses all
-    of them — the hooks make the policy hard to violate by accident, not
-    impossible to violate on purpose.
+    commit-time hook sees it. It is caught at push, and after the fact by the
+    provenance check above.
   - Two hook sets implement this and must stay aligned: `hooks/` in the
     container repo (installed by `scripts/install-hooks.sh --repo <name>`,
     used by the campaign packs) and a `scripts/hooks/` directory inside

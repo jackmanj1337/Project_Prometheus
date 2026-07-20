@@ -31,6 +31,56 @@ jobs:
         with:
           fetch-depth: 0  # ancestry check needs full history
 
+      - name: Verify main only advanced through agent/staging-area
+        # Branch protection is unavailable on private repos on the free plan, so
+        # nothing server-side can *prevent* a direct push to main. This detects
+        # one instead -- and must run before the fast-forward below, which would
+        # otherwise quietly pull agent/staging-area onto the unauthorized commit
+        # and erase the evidence.
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if ! git fetch origin agent/staging-area 2>/dev/null; then
+            echo "agent/staging-area does not exist yet; nothing to verify against."
+            exit 0
+          fi
+          staging_sha="$(git rev-parse FETCH_HEAD)"
+
+          # Every non-merge commit that main gained must already have been on
+          # agent/staging-area. The PR merge commit itself is created on main and
+          # is legitimately absent from staging, hence --no-merges.
+          strays="$(git rev-list --no-merges "$AFTER" --not "$BEFORE" "$staging_sha" || true)"
+
+          if [ -z "$strays" ]; then
+            echo "main advanced only through agent/staging-area."
+            exit 0
+          fi
+
+          {
+            echo "### main was advanced outside agent/staging-area"
+            echo
+            echo "These commits reached \`main\` without passing through"
+            echo "\`agent/staging-area\`:"
+            echo
+            echo '```'
+            git log --no-merges --format='%h %an %s' "$AFTER" --not "$BEFORE" "$staging_sha"
+            echo '```'
+            echo
+            echo "The policy is that \`agent/staging-area\` is the only door to"
+            echo "\`main\`. This job cannot block the push -- branch protection is"
+            echo "not enforceable on a private repo on the free plan -- so treat"
+            echo "this as an alert to review the commits above."
+            echo
+            echo "The fast-forward step was skipped so the evidence is preserved."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error::main advanced outside agent/staging-area; see the job summary."
+          exit 1
+
       - name: Fast-forward agent/staging-area onto main
         run: |
           set -euo pipefail
