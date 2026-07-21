@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-21b](2026-07-21b.md) — Began the v0.5.3 repair set and moved FileDialog key ownership into the dialog viewport after a dispatched-event reproduction.
 - [2026-07-19-c](2026-07-19-c.md) — Expanded the v0.5.2 handbook with the complete eight-part v0.5.0 regression sweep.
 - [2026-07-19-b](2026-07-19-b.md) — Preserved the returned v0.5.1 evidence (screenshots, logs, completed handbook) into the archive; it had never been committed anywhere.
 - [2026-07-19](2026-07-19.md) — Fixed v0.5.1 playtest blockers and prepared the v0.5.2 verification-build scope.
