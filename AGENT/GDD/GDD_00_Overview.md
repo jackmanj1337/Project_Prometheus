@@ -116,7 +116,7 @@ showable result. Commercial-release optimization is not the primary lens.
 
 The secondary product direction is a flexible tactical-RPG builder. The engine should
 let users build and share campaigns with custom assets, maps, rosters, rules, and
-presentation data. Existing handbook/corpus values and project examples are useful as
+presentation data. The owner's FE-inspired rules and project examples are useful as
 developer-provided presets and validation content; author-facing vocabularies should
 not require engine edits when new content variants are added.
 
@@ -133,8 +133,8 @@ builder. This framing does not resequence the Band 1-8 build order; it is tracke
 ## Design Pillars
 
 1. **Rules-faithful** — combat math, weapon triangles, and stat interactions follow the
-   adopted corpus/handbook rules as closely as reasonable for a digital game, while
-   treating those values as authorable presets where the engine exposes a rule profile.
+   project's authored FE-inspired rules, while treating those values as authorable
+   presets where the engine exposes a rule profile.
 2. **Extensible by design** — all content lives in data files, not hardcoded logic.
 3. **Readable systems** — the player always has the numbers: hit, crit, and expected
    damage are shown before committing to an attack.
@@ -155,9 +155,10 @@ the ratified release boundary, not a separate work queue.
 - **Online play** (M15 Part B, host-authoritative) is **post-1.0**.
 - **Public-identity rename** (D-A): all FE-derived names are placeholders; a data-pass
   rename lands no later than the first public release candidate.
-- **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** —
-  handbook/corpus derivative-works rights and attribution must be resolved before 1.0.
-  This is **separate from** the rename and is not satisfied by it.
+- **Legal/licensing review** (DOC-012 / OPEN-12) is a **blocking pre-1.0 gate** for
+  FE-derived numeric values and shipped assets. LEG-1 confirmed there is no source
+  handbook or published rules corpus to license. This gate is **separate from** the
+  rename and is not satisfied by it.
 
 ---
 

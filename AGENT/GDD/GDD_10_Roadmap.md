@@ -282,7 +282,7 @@ lost during foundation work.
 | `VAL-V022-CHECKBACKS` | Validation | Walk the v0.2.2 live-verify check-backs during playtest triage. |
 | `VAL-PLAYTEST-RERUN` | Validation | Rerun outstanding playtest items before promoting them to defects. |
 | `REL-REN` | Release gate | Owner must choose public naming direction before first public RC. |
-| `REL-LEG` | Release gate | Owner must identify source corpus/license before public release. |
+| `REL-LEG` | Release gate | Audit FE-derived numeric values and every shipped asset before public release; LEG-1 confirmed there is no source handbook/corpus to license. |
 | `REL-PACKAGING` | Release gate | Draft release packaging flow after v0.2.3 process settles. |
 | `REL-WEB-DEMO` | Release gate | Draft the slice-first playable web-demo plan after the campaign-loop foundations are accepted. |
 
