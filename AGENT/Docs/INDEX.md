@@ -213,6 +213,7 @@
 - [`plans/v0.4_next_session_handoff_2026-07-13.md`](plans/v0.4_next_session_handoff_2026-07-13.md) — v0.4 Next-Session Handoff - 2026-07-13 — *Planned*
 - [`plans/v040_post_build_code_review_fix_handoff_2026-07-15.md`](plans/v040_post_build_code_review_fix_handoff_2026-07-15.md) — v0.4.0 Post-Build Code-Review Fix Handoff — *Active - implementation handoff*
 - [`plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md`](plans/waiting_work_open_decisions_walkthrough_handoff_2026-07-19.md) — Waiting-Work Open Decisions Walkthrough Handoff - 2026-07-19 — *Planned - owner decision walkthrough*
+- [`playtests/v0.5.2_fix_implementation_plan_2026-07-21.md`](playtests/v0.5.2_fix_implementation_plan_2026-07-21.md) — v0.5.2 Fix Implementation Plan — *Target design - revised per Codex review*
 
 ## Playtest builds / checklists / triage
 
@@ -238,6 +239,7 @@
 - [`playtests/playtest_build_v0.4.0_campaign_test.md`](playtests/playtest_build_v0.4.0_campaign_test.md) — v0.4.0 Proving Grounds Campaign Test Build — *Exported - pending live Windows campaign*
 - [`playtests/playtest_build_v0.4.1.md`](playtests/playtest_build_v0.4.1.md) — v0.4.1 Windows Playtest Build — *Exported - pending live Windows full fea*
 - [`playtests/playtest_build_v0.4.2.md`](playtests/playtest_build_v0.4.2.md) — v0.4.2 Windows Playtest Build — *Exported - pending live Windows full fea*
+- [`playtests/playtest_build_v0.5.2.md`](playtests/playtest_build_v0.5.2.md) — v0.5.2 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -275,6 +277,7 @@
 - [`playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md`](playtests/playtest_checklist_v0.4.0_returned_2026-07-15.md) — v0.4.0 Windows Playtest and Smoke Checklist — *Historical*
 - [`playtests/playtest_checklist_v0.4.1.md`](playtests/playtest_checklist_v0.4.1.md) — v0.4.1 Windows Playtest and Smoke Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.4.2.md`](playtests/playtest_checklist_v0.4.2.md) — v0.4.2 Windows Playtest and Smoke Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.2_returned_2026-07-21.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
@@ -290,6 +293,7 @@
 - [`playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.4_results_triage_plan_2026-07-14.md) — v0.3.4 Playtest Results and Root-Cause Triage — *Repairs implemented - pending v0.3.5 liv*
 - [`playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md`](playtests/playtest_v0.3.5_results_triage_plan_2026-07-14.md) — v0.3.5 Playtest Results and Root-Cause Triage — *v0.3.6 live pass accepted - visual polis*
 - [`playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md`](playtests/playtest_v0.4.0_results_triage_plan_2026-07-16.md) — v0.4.0 Playtest Results and Root-Cause Triage — *Triaged - focused release-smoke rerun re*
+- [`playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md`](playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md) — v0.5.2 Playtest Results — Root-Cause Review & Fix Plan — *Triaged - headless-verified + peer-revie*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
 ## Session handoffs
@@ -314,6 +318,9 @@
 - [`archive/consolidation/documentation_review_2026-06-13.md`](archive/consolidation/documentation_review_2026-06-13.md) — Documentation Review — 2026-06-13 — *Historical*
 - [`archive/consolidation/documentation_review_2026-06-14.md`](archive/consolidation/documentation_review_2026-06-14.md) — Documentation Review — 2026-06-14 — *Historical*
 - [`archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md`](archive/evidence/campaign_save_import_budget_measurement_2026-07-15.md) — Campaign Save Import-Budget Measurement — 2026-07-15 — *Historical*
+- [`archive/evidence/v0.5.2/README.md`](archive/evidence/v0.5.2/README.md) — v0.5.2 playtest evidence — *RESOLVED*
+- [`archive/evidence/v0.5.2/codex_plan_review.md`](archive/evidence/v0.5.2/codex_plan_review.md) — Codex review — v0.5.2 fix implementation plan — *Historical*
+- [`archive/evidence/v0.5.2/codex_second_opinion_review.md`](archive/evidence/v0.5.2/codex_second_opinion_review.md) — Codex second-opinion review — v0.5.2 findings — *Historical*
 - [`archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md`](archive/handoffs/ai_scorer_questions_handoff_2026-07-16.md) — AI Scorer Questions Handoff — *SUPERSEDED*
 - [`archive/handoffs/handoff_2026-06-09d.md`](archive/handoffs/handoff_2026-06-09d.md) — Handoff — v0.1.3 → v0.1.4 — *Historical*
 - [`archive/handoffs/handoff_2026-06-13j.md`](archive/handoffs/handoff_2026-06-13j.md) — Handoff — Documentation Consolidation Stages 6 & 7 — *Historical*

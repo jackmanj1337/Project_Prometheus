@@ -1,0 +1,146 @@
+extends SceneTree
+# HEADLESS REPRO (v0.5.2 Issue 1): does escaping a PAIRED lead+support "together"
+# break the campaign advance to node_05_defend, where escaping the two SEPARATELY
+# does not? Drives the real autoloads + real map_004_escape + proving_grounds.
+
+const TurnManagerScript = preload("res://scripts/core/TurnManager.gd")
+const UnitDataScript = preload("res://scripts/resources/UnitData.gd")
+
+const MAP_004 := "res://data/maps/map_004_escape/map_004_escape_data.tres"
+const ESCAPE_TILE_A := Vector2i(16, 2)
+const ESCAPE_TILE_B := Vector2i(16, 3)
+const OFF_MAP := Vector2i(-1, -1)
+
+
+func _init() -> void:
+	call_deferred("_run")
+
+
+func _make_actor(uid: String, tile: Vector2i) -> Node:
+	var s := GDScript.new()
+	s.source_code = (
+		"extends Node\n"
+		+ "var data\nvar team := \"blue\"\nvar tile_position := Vector2i.ZERO\nvar visible := true\n"
+		+ "func set_done_appearance(): pass\nfunc reset_appearance(): pass\n"
+		+ "func snap_to_tile(t): tile_position = t\nfunc set_map_position(t): tile_position = t\n"
+	)
+	s.reload()
+	var d: UnitData = UnitDataScript.new()
+	d.unit_id = uid
+	d.unit_name = uid
+	d.class_id = "lord"
+	d.max_hp = 20
+	d.hp = 20
+	d.movement = 5
+	var a: Node = s.new()
+	a.data = d
+	a.tile_position = tile
+	root.add_child(a)
+	return a
+
+
+func _fresh(gs: Node, reg: Node, cm: Node) -> void:
+	cm.end_campaign()
+	gs.call("reset_map_state")
+	reg.call("clear")
+	for c in root.get_children():
+		if c.get_script() != null and c.get("data") != null and c not in [gs, reg, cm]:
+			c.free()
+
+
+func _setup_roster_and_campaign(gs: Node, cm: Node, cav: Node, merc: Node) -> void:
+	var roster: Array[UnitData] = [cav.data, merc.data]
+	gs.set("player_roster", roster)
+	gs.set("roster_initialized", true)
+	gs.set("roster_load_failed", false)
+	gs.set("party_gold", 500)
+	gs.set("next_map_roster_policy", "keep_current_roster")
+	gs.set("next_map_roster_source", "")
+	gs.set("active_roster_policy", "keep_current_roster")
+	# Park the campaign on the escape node so a victory records node_05_defend as next.
+	cm.call("start_campaign", "proving_grounds")
+	cm.set("current_node_id", "node_04_escape")
+	cm.set("_active_node_id", "node_04_escape")
+
+
+func _report(tag: String, gs: Node, cm: Node) -> void:
+	var recs: int = 0
+	var tm := root.get_node_or_null("TM_%s" % tag)
+	var pend: bool = cm.call("has_pending_victory")
+	var pres: Dictionary = cm.call("get_pending_result") if cm.has_method("get_pending_result") else {}
+	var roster_ready: bool = gs.call("is_roster_ready_for_launch")
+	var adv := false
+	var adv_err := "(not attempted)"
+	if pend:
+		adv = bool(cm.call("prepare_pending_advance"))
+		adv_err = "ok" if adv else "FAILED"
+	print("---- %s ----" % tag)
+	print("  all_units size      = %d" % (gs.get("all_units") as Array).size())
+	print("  player_roster size  = %d" % (gs.get("player_roster") as Array).size())
+	print("  has_pending_victory = %s" % pend)
+	print("  pending next_node   = %s" % String(pres.get("next_node_id", "<none>")))
+	print("  is_roster_ready     = %s" % roster_ready)
+	var opts: Array = cm.call("get_pending_successor_options")
+	print("  successor_options   = %d  <-- empty => 'Campaign Data Error' + 'next battle is unavailable'" % opts.size())
+	for o in opts:
+		print("      option: %s" % str(o))
+	var roster: Array = gs.get("player_roster")
+	for u in roster:
+		if u != null:
+			print("  roster '%s' tile_position = %s" % [u.unit_id, str(u.tile_position)])
+	print("  prepare_advance     = %s (%s)" % [adv, adv_err])
+
+
+func _run() -> void:
+	print("=== Escape-together vs separate repro (build 06e0386) ===")
+	var gs: Node = root.get_node("GameState")
+	var reg: Node = root.get_node("PairUpRegistry")
+	var cm: Node = root.get_node("CampaignManager")
+	var rng: Node = root.get_node("RngService")
+	var map_data: Resource = load(MAP_004)
+	print("map_004 loaded: %s  victory keys=%s" % [map_data != null, str((map_data.victory_conditions as Dictionary).keys())])
+
+	# ---------- SCENARIO A: PAIRED, escape together ----------
+	_fresh(gs, reg, cm)
+	var cavA := _make_actor("unit_01_cavalier", ESCAPE_TILE_A)
+	var mercA := _make_actor("unit_02_mercenary", ESCAPE_TILE_B)
+	gs.call("register_unit", cavA)
+	gs.call("register_unit", mercA)
+	_setup_roster_and_campaign(gs, cm, cavA, mercA)
+	# Pair like MapCursor._on_pair_up_resolved: pair + support off-map + hidden.
+	var paired: bool = reg.call("pair", "unit_01_cavalier", "unit_02_mercenary")
+	mercA.tile_position = OFF_MAP
+	mercA.data.tile_position = OFF_MAP
+	mercA.visible = false
+	print("paired = %s ; is_lead(cav)=%s ; is_support(merc)=%s" % [paired, reg.call("is_lead", "unit_01_cavalier"), reg.call("is_support", "unit_02_mercenary")])
+	var tmA: Node = TurnManagerScript.new()
+	tmA.name = "TM_A"
+	root.add_child(tmA)
+	rng.call("start_map", 999)
+	tmA.call("start_map", map_data, null)
+	# Escape the LEAD; record_escape should force-credit the off-map support.
+	cavA.tile_position = ESCAPE_TILE_A
+	tmA.call("record_escape", cavA)
+	await process_frame
+	_report("A", gs, cm)
+
+	# ---------- SCENARIO B: NOT paired, escape separately ----------
+	_fresh(gs, reg, cm)
+	var cavB := _make_actor("unit_01_cavalier", ESCAPE_TILE_A)
+	var mercB := _make_actor("unit_02_mercenary", ESCAPE_TILE_B)
+	gs.call("register_unit", cavB)
+	gs.call("register_unit", mercB)
+	_setup_roster_and_campaign(gs, cm, cavB, mercB)
+	var tmB: Node = TurnManagerScript.new()
+	tmB.name = "TM_B"
+	root.add_child(tmB)
+	rng.call("start_map", 999)
+	tmB.call("start_map", map_data, null)
+	tmB.call("record_escape", cavB)   # first unit escapes
+	await process_frame
+	print("(after first separate escape) has_pending_victory=%s" % cm.call("has_pending_victory"))
+	tmB.call("record_escape", mercB)  # second unit escapes -> victory
+	await process_frame
+	_report("B", gs, cm)
+
+	quit(0)
