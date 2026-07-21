@@ -1,0 +1,17 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 610.74 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 5070 Ti
+
+=== BUILD STAMP ===
+version=0.5.1  commit=d96d035  built_at=2026-07-17T04:32:08Z
+started_at=2026-07-18T23:05:47Z
+exe=C:/Users/jackm/OneDrive/Desktop/Project_Prometheus_v0.5.1_debug.exe
+user_data_dir=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG
+log=C:/Users/jackm/AppData/Roaming/Godot/app_userdata/Fire Emblem RPG/logs/godot.log
+=== END BUILD STAMP ===
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "open_grabbed_start", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1 }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "OptRun", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "OptRun" }
+V030-NG-FOCUS { "label": "focus_entered", "focus": "BtnStart", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
+V030-NG-FOCUS { "label": "focus_exited", "focus": "<none>", "permadeath": 0, "auto_promote": 0, "leveling": 0, "pair_up": 1, "control": "BtnStart" }
