@@ -6,7 +6,9 @@ Last verified: 2026-07-21
 
 # v0.5.3 Windows Playtest Build
 
-- Artifact: `builds/windows/Project_Prometheus/Project_Prometheus.exe`
+- Artifact: `builds/windows/Project_Prometheus/Project_Prometheus_v0.5.3.exe`
+  (the exporter emits `Project_Prometheus.exe`; renamed for delivery — identical
+  bytes/SHA. The `--export-release` template means it is not a `_debug` build.)
 - Companion fixture: `builds/windows/Project_Prometheus/two-map-skirmish-1.0.zip`
 - Source branch: `agent/playtest-release-v0.5.3-telemetry`
 - Source commit: `4ddd54c82b2fb1a0565d4e901f43053221cebe11`
