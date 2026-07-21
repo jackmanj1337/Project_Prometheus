@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-19
+Last verified: 2026-07-21
 ---
 
 # Project Control Plane
@@ -12,6 +12,12 @@ Last verified: 2026-07-19
 **Purpose.** This is the row-per-work-item tracker that the `GDD_10_Roadmap.md`
 rewrite should link to. `GDD_10` becomes the readable build guide; this document
 owns the audit rows.
+
+**Current release gate (2026-07-21):** the canonical cross-repository tracker row
+`PP-V053-BUILD-RETURN` owns the v0.5.3 final review, Windows export, checklist,
+and live-return gate. Resume from
+[`v0.5.3_final_review_build_handoff_2026-07-21.md`](v0.5.3_final_review_build_handoff_2026-07-21.md);
+the row remains open until the returned Windows evidence is triaged.
 
 **Latest intake:** v0.3.3 returned 2026-07-14. Four findings are routed into
 the existing `VAL-V030-GAMEPAD`, `B6-MRD`, and `UI-INSPECTION` rows. Root causes
