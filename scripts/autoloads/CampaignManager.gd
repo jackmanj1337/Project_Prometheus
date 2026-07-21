@@ -109,6 +109,7 @@ func start_campaign(campaign_id: String) -> bool:
 		gs.call(
 			"apply_campaign_rule_overrides", campaign.rule_overrides, campaign.mandated_rule_ids
 		)
+	_log_playtest_context("campaign_started")
 	return true
 
 
@@ -302,6 +303,7 @@ func launch_current_node() -> bool:
 	_active_node_id = node.node_id
 	_pending_result.clear()
 	campaign_vars["_runtime_map_casualties"] = []
+	_log_playtest_context("node_launch")
 	get_tree().change_scene_to_file(_PREP_SCENE)
 	return true
 
@@ -785,7 +787,34 @@ func restore_campaign_state(source: Variant) -> bool:
 	# Runtime-only: nothing is on a map yet, and no result is in flight.
 	_active_node_id = ""
 	_pending_result.clear()
+	_log_playtest_context("campaign_restored")
 	return true
+
+
+func _log_playtest_context(event_name: String) -> void:
+	var package := {}
+	var dm := get_node_or_null("/root/DataManager")
+	if dm != null and dm.has_method("active_package_identity"):
+		package = dm.call("active_package_identity")
+	print(
+		(
+			"PLAYTEST CONTEXT %s"
+			% (
+				JSON
+				. stringify(
+					{
+						"event": event_name,
+						"campaign_id": active_campaign_id,
+						"node_id": current_node_id,
+						"active_node_id": _active_node_id,
+						"package_id": String(package.get("package_id", "")),
+						"package_version": String(package.get("package_version", "")),
+						"package_path": String(package.get("path", "")),
+					}
+				)
+			)
+		)
+	)
 
 
 # Writes the campaign autosave slot. Returns false if the save could not be

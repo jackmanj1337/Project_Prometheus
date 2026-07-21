@@ -65,5 +65,25 @@ func _init() -> void:
 		print("FAIL started_at not a UTC timestamp: %s" % joined)
 		failed += 1
 
+	var environment := BuildInfo.runtime_environment_lines()
+	var environment_text := "\n".join(environment)
+	var environment_ok: bool = (
+		environment.size() >= 2
+		and environment[0] == "=== RUNTIME ENVIRONMENT ==="
+		and environment[environment.size() - 1] == "=== END RUNTIME ENVIRONMENT ==="
+		and "os_name=" in environment_text
+		and "os_version=" in environment_text
+		and "cpu=" in environment_text
+		and "display_server=" in environment_text
+		and "rendering_api=" in environment_text
+		and "gpu_name=" in environment_text
+	)
+	if environment_ok:
+		print("OK  runtime environment captures host, display, renderer, and GPU fields")
+		passed += 1
+	else:
+		print("FAIL runtime environment fields:\n%s" % environment_text)
+		failed += 1
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

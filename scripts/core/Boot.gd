@@ -11,6 +11,11 @@ func _ready() -> void:
 	# resolved log location — in an exported build that path is the OS user-data dir.
 	for line in BuildInfo.stamp_lines():
 		print(line)
+	for line in BuildInfo.runtime_environment_lines():
+		print(line)
+	Input.joy_connection_changed.connect(_on_joy_connection_changed)
+	for device_id in Input.get_connected_joypads():
+		_log_controller(device_id, true)
 	# Scene changes remove the current root, so defer until Godot finishes
 	# attaching Boot to the tree. Changing synchronously here logs
 	# "Parent node is busy adding/removing children" in exported builds.
@@ -23,3 +28,16 @@ func _open_main_menu() -> void:
 	else:
 		push_error("Boot: MainMenu.tscn not found")
 		get_tree().quit(1)
+
+
+func _on_joy_connection_changed(device_id: int, connected: bool) -> void:
+	_log_controller(device_id, connected)
+
+
+func _log_controller(device_id: int, connected: bool) -> void:
+	print(
+		(
+			"PLAYTEST CONTROLLER device_id=%d connected=%s name=%s guid=%s"
+			% [device_id, connected, Input.get_joy_name(device_id), Input.get_joy_guid(device_id)]
+		)
+	)
