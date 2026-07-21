@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-21f](2026-07-21f.md) — v0.5.3 final review (clean), release-metadata bump, focused checklist, and Windows build.
 - [2026-07-21e](2026-07-21e.md) — Handoff for the v0.5.3 final review, Windows build, and focused checklist.
 - [2026-07-21d](2026-07-21d.md) — Automated playtest host, controller, and campaign provenance in the runtime log.
 - [2026-07-21b](2026-07-21b.md) — Began the v0.5.3 repair set and moved FileDialog key ownership into the dialog viewport after a dispatched-event reproduction.
