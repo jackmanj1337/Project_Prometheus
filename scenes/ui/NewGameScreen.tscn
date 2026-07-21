@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/NewGameScreen.gd" id="1_newgame"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CampaignLibraryScreen.tscn" id="2_library"]
+[ext_resource type="Script" path="res://scripts/ui/FileDialogInputGuard.gd" id="3_file_guard"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.12, 0.12, 0.16, 1)
@@ -152,6 +153,7 @@ text = "Back"
 [node name="CampaignLibraryScreen" parent="." instance=ExtResource("2_library")]
 
 [node name="StatusImportDialog" type="FileDialog" parent="."]
+script = ExtResource("3_file_guard")
 title = "Import Campaign Status Record"
 file_mode = 0
 access = 2

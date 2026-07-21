@@ -855,6 +855,29 @@ func _init() -> void:
 		print("FAIL text-entry guard: %s" % line.text)
 		failed += 1
 	line.queue_free()
+	var dialog: FileDialog = load("res://scripts/ui/FileDialogInputGuard.gd").new()
+	root.add_child(dialog)
+	dialog.popup_centered(Vector2i(640, 420))
+	await process_frame
+	var filename: LineEdit = dialog.get_line_edit()
+	filename.text = ""
+	filename.grab_focus()
+	var dialog_x := InputEventKey.new()
+	dialog_x.pressed = true
+	dialog_x.keycode = KEY_X
+	dialog_x.physical_keycode = KEY_X
+	dialog_x.unicode = KEY_X
+	Input.parse_input_event(dialog_x)
+	await process_frame
+	if dialog.visible and filename.text.to_lower() == "x":
+		print("OK  dispatched X types into a real FileDialog without closing it")
+		passed += 1
+	else:
+		print(
+			"FAIL FileDialog text ownership: visible=%s text=%s" % [dialog.visible, filename.text]
+		)
+		failed += 1
+	dialog.queue_free()
 	text_guard.queue_free()
 
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])

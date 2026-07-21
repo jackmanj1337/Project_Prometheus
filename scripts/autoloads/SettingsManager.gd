@@ -212,7 +212,7 @@ func _input(event: InputEvent) -> void:
 		or InputMap.event_is_action(key, "ui_cancel")
 	):
 		return
-	var focused := get_viewport().gui_get_focus_owner()
+	var focused := _focused_text_editor()
 	if focused is LineEdit and (focused as LineEdit).editable:
 		var line := focused as LineEdit
 		if line.has_selection():
@@ -220,10 +220,18 @@ func _input(event: InputEvent) -> void:
 			line.delete_text(from, line.get_selection_to_column())
 			line.caret_column = from
 		line.insert_text_at_caret(char(key.unicode))
-		get_viewport().set_input_as_handled()
+		focused.get_viewport().set_input_as_handled()
 	elif focused is TextEdit and (focused as TextEdit).editable:
 		(focused as TextEdit).insert_text_at_caret(char(key.unicode))
-		get_viewport().set_input_as_handled()
+		focused.get_viewport().set_input_as_handled()
+
+
+# FileDialog is a Window/Viewport of its own, so the root viewport cannot see
+# its filename editor. Search visible dialogs explicitly before falling back to
+# the ordinary scene viewport.
+func _focused_text_editor() -> Control:
+	var root_focus := get_viewport().gui_get_focus_owner()
+	return root_focus if root_focus is LineEdit or root_focus is TextEdit else null
 
 
 func load_settings() -> void:
