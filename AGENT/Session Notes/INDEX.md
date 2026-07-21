@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
 - [2026-07-21](2026-07-21.md) — Triaged the v0.5.2 return: headless-verified + Codex-reviewed root causes for nine issues, locked decisions, and scheduled v0.5.3 fixes; filed the triage doc, fix plan, and evidence.
 - [2026-07-20](2026-07-20.md) — Adopted the agent-merge branch policy and closed this repo's merge/push enforcement gaps; AGENTS.md now carries the synced shared policy block.
 - [2026-07-19d](2026-07-19d.md) — Added malformed save/package fixtures, transactional failure injection, and ledger/suspend byte-determinism coverage.

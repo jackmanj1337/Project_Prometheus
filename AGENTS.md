@@ -22,24 +22,38 @@ in sync automatically — see the note inside the block.
   branch to `origin` needs no user confirmation and no "recovery reason"; it is
   the normal way work is shared and backed up. Push early and often.
 - Never push directly to `main`.
-- **`agent/staging-area` is the single queue for everything headed to `main`.**
-  Every repo has one, branched from its `main`. Agents merge finished work into
-  it themselves; the human then reviews and merges one PR,
-  `agent/staging-area` → `main`, instead of one PR per branch. Nothing else
-  should open a PR against `main`.
+- **`agent/staging-area` is the only door to `main`.** Every repo has one,
+  branched from its `main`. Agents merge into it; the human reviews and merges
+  one PR, `agent/staging-area` → `main`. Nothing else opens a PR against `main`,
+  and nothing reaches `main` by another route.
   - Keep it mergeable: it is only ever `main` plus work that is ready. If a
     change is not ready for a human to merge to `main`, it does not belong here
     — leave it on its own `agent/**` branch.
   - After the human merges it to `main`, `agent/staging-area` fast-forwards back
-    onto `main` and the cycle repeats.
+    onto `main` and the cycle repeats. The
+    `.github/workflows/sync-staging-area.yml` job does this automatically.
+- **How work reaches `agent/staging-area` depends on what it is.**
+  - **Product** — game code, data, and content — goes through the release line
+    first: `agent/integration` → `agent/playtest-release` → `agent/stable-release`,
+    and only an accepted release merges from `agent/stable-release` into
+    `agent/staging-area`. Product never shortcuts into the staging area, so
+    everything that reaches `main` has been through playtest verification.
+  - **Infrastructure** — hooks, CI workflows, `AGENTS.md` and the shared policy
+    blocks, tracker and coordination files, container/tooling scripts — goes
+    **directly** into `agent/staging-area` from its own `agent/**` branch. It is
+    not release-gated, because gating a safety mechanism or a policy fix behind a
+    game release delivers it late for no benefit.
+  - When a change is genuinely both, split it: the product part takes the
+    release line, the infrastructure part goes direct. If it cannot be split,
+    treat it as product.
 - In `Project_Prometheus` the other agent-owned lifecycle refs are
   `agent/stable-release`, `agent/integration`, `agent/playtest-release`, and
-  `agent/coordination`. `agent/stable-release` is stable, `agent/integration` is
-  the normal **feature** base, `agent/playtest-release` isolates release
-  hardening, and `agent/coordination` owns the active-work registry.
-  `agent/staging-area` is not a feature base — feature work still starts from
-  `agent/integration` and lands there. Do not revive the obsolete mixed-case
-  `Agent/main` convention.
+  `agent/coordination`. `agent/stable-release` is stable and is what merges into
+  `agent/staging-area` on an accepted release, `agent/integration` is the normal
+  **feature** base, `agent/playtest-release` isolates release hardening, and
+  `agent/coordination` owns the active-work registry. `agent/staging-area` is
+  not a feature base — feature work still starts from `agent/integration` and
+  lands there. Do not revive the obsolete mixed-case `Agent/main` convention.
 - **Merge policy — the target branch decides who merges.**
   - Agents **may** merge a feature or fix branch back into the `agent/**` base it
     forked from (its origin base), and may merge between `agent/**` branches
@@ -56,10 +70,24 @@ in sync automatically — see the note inside the block.
     (git leaves a rejected merge staged and invites `git commit`); `pre-push`
     refuses any destination ref that is not `refs/heads/agent/*` or a `v*`
     release tag.
+  - **There is no server-side enforcement.** These repos are private on a plan
+    where branch-protection rules can be created but are *not enforced*, so
+    nothing on GitHub's side can refuse a bad push. The hooks are not a backup
+    layer — they are the only preventive control. Treat `--no-verify` as a
+    policy violation, not a shortcut.
+  - Because of that, hooks must be *verifiably* active: the container repo's
+    `check-hooks.sh` asserts every repo has `core.hooksPath` set and every
+    required hook present
+    **and executable** (git silently skips a non-executable hook), `--fix`
+    installs them, `clone-repo.sh` installs them on clone, and `health-check.sh`
+    counts a missing hook as a health finding.
+  - Detection backs up prevention: the `sync-staging-area` workflow verifies on
+    every push to `main` that each new non-merge commit was already on
+    `agent/staging-area`, and fails loudly if not. It cannot block the push, but
+    it will not silently fast-forward over one either.
   - Known gap: a **fast-forward** merge onto `main` creates no commit, so no
-    commit-time hook sees it. It is caught at push. `--no-verify` bypasses all
-    of them — the hooks make the policy hard to violate by accident, not
-    impossible to violate on purpose.
+    commit-time hook sees it. It is caught at push, and after the fact by the
+    provenance check above.
   - Two hook sets implement this and must stay aligned: `hooks/` in the
     container repo (installed by `scripts/install-hooks.sh --repo <name>`,
     used by the campaign packs) and a `scripts/hooks/` directory inside
