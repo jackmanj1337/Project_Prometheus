@@ -9,19 +9,20 @@ const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
 @onready var _rows: VBoxContainer = $Margin/VBox/Scroll/Rows
 @onready var _validation: Label = $Margin/VBox/Validation
 @onready var _begin_button: Button = $Margin/VBox/Actions/BeginButton
-@onready var _slot_id: LineEdit = $Margin/VBox/SaveBox/SlotId
-@onready var _save_label: LineEdit = $Margin/VBox/SaveBox/SaveLabel
 @onready var _save_status: Label = $Margin/VBox/SaveStatus
+@onready var _overwrite_confirm: ConfirmationDialog = $OverwriteConfirm
 
 var _node: CampaignNode = null
 var _map_data: BattleMapDef = null
 var _eligible: Array[UnitData] = []
 var _selected_ids: Array[String] = []
+var _pending_overwrite_slot_id := ""
 
 
 func _ready() -> void:
 	_begin_button.pressed.connect(_on_begin)
 	$Margin/VBox/SaveBox/SaveButton.pressed.connect(_on_save)
+	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
 	if not _load_launch_context():
 		_begin_button.disabled = true
 		return
@@ -216,14 +217,69 @@ func _on_begin() -> void:
 
 
 func _on_save() -> void:
+	var existing_id := _same_label_slot_id(_manual_save_label())
+	if existing_id != "":
+		_pending_overwrite_slot_id = existing_id
+		_overwrite_confirm.popup_centered()
+		return
+	_write_manual_save("")
+
+
+func _on_overwrite_confirmed() -> void:
+	var old_slot_id := _pending_overwrite_slot_id
+	_pending_overwrite_slot_id = ""
+	_write_manual_save(old_slot_id)
+
+
+func _write_manual_save(old_slot_id: String) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null:
 		return
-	var id := _slot_id.text.strip_edges()
-	var label := _save_label.text.strip_edges()
-	if label == "":
-		label = _title.text
+	var id := _next_manual_slot_id()
+	var label := _manual_save_label()
 	var ok := bool(cm.call("write_campaign_slot", id, label))
-	_save_status.text = (
-		"Saved." if ok else "Save failed. Use letters, numbers, _ or -, up to 64 characters."
-	)
+	if ok and old_slot_id != "":
+		var sm := get_node_or_null("/root/SaveManager")
+		if sm != null:
+			sm.call("delete_slot", old_slot_id)
+	_save_status.text = "Saved." if ok else "Save failed."
+
+
+func _manual_save_label() -> String:
+	var chapter: String = _node.label if _node != null and _node.label != "" else _title.text
+	return "%s — Prep" % chapter
+
+
+func _same_label_slot_id(label: String) -> String:
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm == null:
+		return ""
+	for row in sm.call("list_slots"):
+		if String(row.get("label", "")) == label:
+			return String(row.get("slot_id", ""))
+	return ""
+
+
+func _next_manual_slot_id(timestamp: int = -1) -> String:
+	var chapter_id: String = _node.node_id if _node != null else "chapter"
+	var base := "%s-prep-%d" % [_filename_slug(chapter_id), _timestamp_msec(timestamp)]
+	var sm := get_node_or_null("/root/SaveManager")
+	var candidate := base
+	var suffix := 2
+	while sm != null and bool(sm.call("has_slot", candidate)):
+		candidate = "%s-%d" % [base, suffix]
+		suffix += 1
+	return candidate
+
+
+func _timestamp_msec(override: int) -> int:
+	return override if override >= 0 else int(Time.get_unix_time_from_system() * 1000.0)
+
+
+func _filename_slug(value: String) -> String:
+	var out := ""
+	for character in value.to_lower():
+		out += character if character in "abcdefghijklmnopqrstuvwxyz0123456789" else "-"
+	while "--" in out:
+		out = out.replace("--", "-")
+	return out.trim_prefix("-").trim_suffix("-") if out.strip_edges() != "" else "chapter"

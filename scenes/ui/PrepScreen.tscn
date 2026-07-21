@@ -77,20 +77,14 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SlotId" type="LineEdit" parent="Margin/VBox/SaveBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Slot id (for example: before_chapter_2)"
-max_length = 64
-
-[node name="SaveLabel" type="LineEdit" parent="Margin/VBox/SaveBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Save label (optional)"
-
 [node name="SaveButton" type="Button" parent="Margin/VBox/SaveBox"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Save"
+
+[node name="OverwriteConfirm" type="ConfirmationDialog" parent="."]
+title = "Replace Save?"
+dialog_text = "Replace the existing save for this chapter and activity?"
 
 [node name="SaveStatus" type="Label" parent="Margin/VBox"]
 layout_mode = 2

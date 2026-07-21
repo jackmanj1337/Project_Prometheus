@@ -39,7 +39,7 @@ func _ready() -> void:
 	_load_game_btn.pressed.connect(_on_load_game)
 	_rewind_btn.pressed.connect(_on_rewind)
 	_rewind_selector.rewind_selected.connect(_on_rewind_selected)
-	_rewind_selector.cancelled.connect(func(): _rewind_btn.grab_focus())
+	_rewind_selector.cancelled.connect(close_rewind_selector)
 	_quit_btn.pressed.connect(_on_quit)
 	_load_game_screen.slot_load_requested.connect(_on_slot_load_requested)
 	_load_game_screen.back_pressed.connect(_on_load_game_back)
@@ -270,7 +270,18 @@ func _on_rewind() -> void:
 	if gs == null:
 		_feedback.text = "Rewind is no longer available."
 		return
-	_rewind_selector.open(gs.call("rewind_options"))
+	open_rewind_selector(gs.call("rewind_options"))
+
+
+func open_rewind_selector(options: Array[Dictionary]) -> void:
+	$Panel.hide()
+	_rewind_selector.open(options)
+
+
+func close_rewind_selector() -> void:
+	_rewind_selector.hide()
+	$Panel.show()
+	_rewind_btn.grab_focus()
 
 
 func _on_rewind_selected(target_index: int, cost: int) -> void:

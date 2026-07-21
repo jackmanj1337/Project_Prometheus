@@ -61,6 +61,20 @@ func _run() -> void:
 	tm.call("set_unit_state", actor, TurnManagerScript.UnitState.DONE)
 	await process_frame
 
+	gs.set("_rewind_configure_override", func(_payload: Dictionary) -> bool: return false)
+	var rejected_without_mutation: bool = (
+		not bool(gs.call("rewind_last_action", tm, null))
+		and gs.call("history_size") == 2
+		and gs.get("rewind_charges_left") == 2
+	)
+	gs.set("_rewind_configure_override", Callable())
+	if rejected_without_mutation:
+		print("OK  rejected staged rewind leaves live history and charges untouched")
+		passed += 1
+	else:
+		print("FAIL rejected rewind mutated live state")
+		failed += 1
+
 	if (
 		gs.call("history_size") == 2
 		and gs.call("can_rewind")
@@ -96,8 +110,18 @@ func _run() -> void:
 		and gs.get("rewind_charges_left") == 1
 		and gs.get("party_gold") == 500
 		and gs.get("party_items") == ["vulnerary"]
+		and gs.get("next_map_suspend_payload").get("ledger", []).size() == 1
+		and (
+			int(
+				gs.get("next_map_suspend_payload")["ledger"][0]["entry"]["map_runtime"].get(
+					"rewind_charges_left", -99
+				)
+			)
+			== 1
+		)
+		and int(gs.call("peek_history", 0)["map_runtime"].get("rewind_charges_left", -99)) == 1
 	):
-		print("OK  rewind spends one charge, restores economy, and truncates the future")
+		print("OK  rewind spends one charge and truncates both staged and live history")
 		passed += 1
 	else:
 		print("FAIL rewind spend/branch")

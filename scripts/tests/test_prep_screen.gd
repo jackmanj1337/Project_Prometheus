@@ -1,6 +1,6 @@
 extends SceneTree
 # B4-PREP-DEPLOYMENT integration: prep builds a legal explicit plan, lets the
-# player bench/reorder units, and rejects unsafe manual slot ids.
+# player bench/reorder units, and writes safe context-derived manual saves.
 
 const SaveManagerScript = preload("res://scripts/autoloads/SaveManager.gd")
 const TEST_SAVE_DIR := "user://test_prep_screen"
@@ -68,20 +68,44 @@ func _init() -> void:
 		"an optional unit can be benched"
 	)
 
-	screen._slot_id.text = "../escape"
-	screen._save_label.text = "Unsafe"
-	screen._on_save()
+	var generated_id: String = screen._next_manual_slot_id(123456)
 	_check(
-		screen._save_status.text.begins_with("Save failed") and sm.list_slots().is_empty(),
-		"an unsafe player-supplied slot id writes nothing"
+		SaveManagerScript.is_valid_slot_id(generated_id) and generated_id.contains("-prep-123456"),
+		"manual save ids are filename-safe and derived from chapter/activity/time"
 	)
 
-	screen._slot_id.text = "before_chapter_1"
-	screen._save_label.text = "Before Chapter 1"
 	screen._on_save()
 	_check(
-		screen._save_status.text == "Saved." and sm.list_slots().size() == 1,
-		"a valid manual prep save appears in the slot index"
+		(
+			screen._save_status.text == "Saved."
+			and sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("label", "")).ends_with("— Prep")
+		),
+		"a context-labelled manual prep save appears in the slot index"
+	)
+
+	var first_slot_id := String(sm.list_slots()[0].get("slot_id", ""))
+	screen._on_save()
+	_check(
+		sm.list_slots().size() == 1 and screen._overwrite_confirm.visible,
+		"same-label save asks before replacing the existing slot"
+	)
+	screen._overwrite_confirm.hide()  # cancel: no confirmed signal, so no write
+	_check(
+		(
+			sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("slot_id", "")) == first_slot_id
+		),
+		"cancelling overwrite leaves the existing save untouched"
+	)
+	screen._on_save()
+	screen._on_overwrite_confirmed()
+	_check(
+		(
+			sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("slot_id", "")) != first_slot_id
+		),
+		"confirming overwrite replaces exactly one same-label slot with a fresh id"
 	)
 
 	_clean_test_dir()

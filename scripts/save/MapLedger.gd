@@ -52,6 +52,18 @@ func to_save_array() -> Array[Dictionary]:
 	return _entries.duplicate(true)
 
 
+# Serializes a prospective branch without mutating the live ledger. Rewind uses
+# this while validating the staged suspend document, then truncates live state
+# only after that durable document has been accepted.
+func to_save_array_through(index: int) -> Array[Dictionary]:
+	if index < 0:
+		return []
+	var result := _entries.duplicate(true)
+	if index + 1 < result.size():
+		result.resize(index + 1)
+	return result
+
+
 func restore_from_save(value: Variant) -> bool:
 	if not (value is Array):
 		return false
@@ -78,6 +90,14 @@ func truncate_after(index: int) -> void:
 		_entries.clear()
 	elif index + 1 < _entries.size():
 		_entries.resize(index + 1)
+
+
+func set_map_runtime_value(index: int, key: String, value: Variant) -> void:
+	if index < 0 or index >= _entries.size():
+		return
+	var entry: Dictionary = _entries[index].get("entry", {})
+	var runtime: Dictionary = entry.get("map_runtime", {})
+	runtime[key] = value
 
 
 # The reason tag at index, or "" if out of range — for tests/UI that label an entry.

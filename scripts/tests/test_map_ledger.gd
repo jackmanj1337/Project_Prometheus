@@ -109,6 +109,16 @@ func _init() -> void:
 
 	# ---- clear() empties the ledger ----
 	var branch: RefCounted = _clone(led)
+	_check(
+		"to_save_array_through returns a truncated clone without mutating live history",
+		[
+			branch.to_save_array_through(2).size(),
+			branch.size(),
+			int(branch.to_save_array_through(2)[2]["entry"]["n"]),
+		],
+		[3, 6, 2],
+		counters
+	)
 	branch.truncate_after(2)
 	_check("truncate_after drops the abandoned future", _ids(branch), [0, 1, 2], counters)
 	var persisted: Array[Dictionary] = branch.to_save_array()

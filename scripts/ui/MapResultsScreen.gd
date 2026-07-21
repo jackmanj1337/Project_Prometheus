@@ -13,6 +13,7 @@ const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
 @onready var _successor_label: Label = $Panel/VBox/SuccessorLabel
 @onready var _successor_picker: OptionButton = $Panel/VBox/SuccessorPicker
 @onready var _continue_button: Button = $Panel/VBox/ContinueButton
+var _campaign_data_error := false
 
 var _result_pending := false
 var _level_up_active := false
@@ -120,6 +121,7 @@ func _refresh_result() -> void:
 	_successor_picker.hide()
 	_continue_button.disabled = false
 	_continue_button.text = "Return to Menu"
+	_campaign_data_error = false
 	if cm == null:
 		return
 	var options: Array = cm.call("get_pending_successor_options")
@@ -128,9 +130,22 @@ func _refresh_result() -> void:
 		_continue_button.text = "Finish Campaign"
 		return
 	if options.is_empty():
-		_continue_button.text = "Campaign Data Error"
-		_continue_button.disabled = true
+		_campaign_data_error = true
+		_continue_button.text = "Return to Menu"
 		_save_status_label.text = "Save: next battle is unavailable"
+		var pending: Dictionary = cm.call("get_pending_result")
+		var campaign: Variant = (
+			cm.call("get_active_campaign") if cm.has_method("get_active_campaign") else null
+		)
+		var node_id := String(pending.get("node_id", ""))
+		var node: Variant = campaign.call("get_node_by_id", node_id) if campaign != null else null
+		var successors: Array = node.next_node_ids if node != null else []
+		push_error(
+			(
+				"Campaign Data Error: campaign='%s' node='%s' successors=%s"
+				% [String(pending.get("campaign_id", "")), node_id, str(successors)]
+			)
+		)
 		return
 	if options.size() == 1:
 		_continue_button.text = "Continue: %s" % String(options[0].get("label", "Next Battle"))
@@ -166,7 +181,7 @@ func _on_successor_selected(index: int) -> void:
 
 func _on_continue() -> void:
 	var cm := _campaign_manager()
-	if cm == null:
+	if cm == null or _campaign_data_error:
 		_quit_to_menu()
 		return
 	var result: Dictionary = cm.call("get_pending_result")

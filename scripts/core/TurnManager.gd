@@ -73,6 +73,7 @@ var _debug_hotseat_override_latch: bool = false
 var _history_cursor: Node = null
 var _history_push_pending := false
 var _pending_history_metadata: Dictionary = {}
+var _committing_remaining_waits := false
 var _ai_suspend_requested := false
 var _ai_suspend_exit_pending := false
 var _history_controller_boundary := ""
@@ -676,17 +677,7 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 		return
 	var previous: int = int(_unit_states.get(unit, UnitState.READY))
 	_unit_states[unit] = state
-	var activation_metadata := {}
-	if state == UnitState.DONE and previous != UnitState.DONE:
-		var start_tile: Vector2i = _original_tiles.get(unit, unit.tile_position)
-		var end_tile: Vector2i = unit.tile_position
-		activation_metadata = {
-			"unit_id": String(unit.data.unit_id) if unit.get("data") != null else "",
-			"unit_name": String(unit.data.unit_name) if unit.get("data") != null else "Unit",
-			"start": [start_tile.x, start_tile.y],
-			"end": [end_tile.x, end_tile.y],
-			"faction": String(unit.get("team")),
-		}
+	var activation_metadata := _activation_metadata_for(unit)
 	if state == UnitState.DONE:
 		# The action is committed — spend the recorded pre-move tile so a later
 		# action without a move can't inherit it (get_action_start_tile must
@@ -699,11 +690,43 @@ func set_unit_state(unit: Node, state: UnitState) -> void:
 	# automatically (#5 / M15 Part A). Deferred so the current action fully
 	# unwinds first; _auto_end_active_phase re-checks the conditions, so a
 	# redundant deferred call is harmless.
-	if state == UnitState.DONE and previous != UnitState.DONE:
+	if state == UnitState.DONE and previous != UnitState.DONE and not _committing_remaining_waits:
 		_queue_activation_history_push(activation_metadata)
 		var active_faction_id: String = _active_or_default_faction()
 		if _should_auto_end_faction(active_faction_id) and are_all_units_done(active_faction_id):
 			call_deferred("_auto_end_active_phase")
+
+
+func _activation_metadata_for(unit: Node) -> Dictionary:
+	var start_tile: Vector2i = _original_tiles.get(unit, unit.tile_position)
+	var end_tile: Vector2i = unit.tile_position
+	return {
+		"unit_id": String(unit.data.unit_id) if unit.get("data") != null else "",
+		"unit_name": String(unit.data.unit_name) if unit.get("data") != null else "Unit",
+		"start": [start_tile.x, start_tile.y],
+		"end": [end_tile.x, end_tile.y],
+		"faction": String(unit.get("team")),
+	}
+
+
+# Commits manual End Turn as one ordered transaction. Each remaining unit owns
+# one Wait RNG event and one immediate history boundary; auto-end stays dormant
+# until the entire batch is durable.
+func commit_remaining_waits(faction_id: String, ordered_units: Array[Node]) -> void:
+	if _map_over or faction_id != _active_or_default_faction():
+		return
+	if _history_push_pending:
+		_flush_activation_history()
+	_committing_remaining_waits = true
+	for unit in ordered_units:
+		if unit == null or String(unit.get("team")) != faction_id or not can_unit_act(unit):
+			continue
+		var metadata := _activation_metadata_for(unit)
+		commit_action_event("wait", make_move_record(unit))
+		set_unit_state(unit, UnitState.DONE)
+		_push_history(MapLedgerScript.REASON_ACTIVATION, metadata)
+	_committing_remaining_waits = false
+	request_end_phase()
 
 
 func _queue_activation_history_push(metadata: Dictionary = {}) -> void:
@@ -1327,6 +1350,7 @@ func _unit_can_seize(unit: Node) -> bool:
 func record_escape(unit: Node) -> void:
 	if unit == null or unit.data == null:
 		return
+	var escape_tile: Vector2i = unit.tile_position
 	var escaping_units: Array[Node] = _collect_escape_units(unit)
 	for escaping_unit in escaping_units:
 		if escaping_unit == null or escaping_unit.data == null:
@@ -1356,6 +1380,8 @@ func record_escape(unit: Node) -> void:
 	for escaping_unit in escaping_units:
 		if escaping_unit == null:
 			continue
+		if escaping_unit.data != null:
+			escaping_unit.data.tile_position = escape_tile
 		if gs and escaping_unit in gs.all_units:
 			gs.unregister_unit(escaping_unit)
 		_unit_states.erase(escaping_unit)

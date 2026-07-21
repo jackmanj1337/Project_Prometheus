@@ -1,7 +1,7 @@
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-07-19
+**Last verified:** 2026-07-21
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -206,9 +206,11 @@ plan (code, integration sweep, tests, build order) is
   unit identity and start/end coordinates; refreshed
   round starts add coarse checkpoints. `rewind_charges_per_map` is the sole
   spend meter and `undo_activations`/`undo_rounds` remain retention preferences.
-  While charges are positive, fine retention is floored to `charges-per-map + 1`
-  so sequential spends cannot prune their own reachable boundaries. Rewind stages
-  the target as a durable suspend payload, validates it, restores its full board,
+  In `per_activation` mode, fine retention is floored to `charges-per-map + 1`
+  while charges are positive so sequential spends cannot prune their own reachable
+  boundaries. `full_history` mode keeps every activation regardless of that cap.
+  Rewind stages the target and a clone-truncated ledger as a durable suspend payload,
+  validates it, restores its full board,
   party economy, PairUp, cursor, turn, and RNG state through a scene reload, spends
   the selector's authored cost, and only then truncates the abandoned future.
   The selector targets the checkpoint before the chosen activation, so a player

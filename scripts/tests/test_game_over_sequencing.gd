@@ -205,8 +205,8 @@ func _init() -> void:
 	root.add_child(campaign_manager)
 	screen._refresh_result()
 	var continue_button: Button = screen.get_node("Panel/VBox/ContinueButton")
-	if continue_button.disabled and continue_button.text == "Campaign Data Error":
-		print("OK  a nonterminal result without a successor fails closed")
+	if not continue_button.disabled and continue_button.text == "Return to Menu":
+		print("OK  malformed nonterminal result reports the fault but permits menu recovery")
 		passed += 1
 	else:
 		print(

@@ -151,6 +151,10 @@ func _init() -> void:
 	var dt_surv := ObjectiveCondition.new()
 	dt_surv.type = "survive"
 	dt_surv.turns = 5
+	var dt_hold := ObjectiveCondition.new()
+	dt_hold.type = "survive"
+	dt_hold.turns = 3
+	dt_hold.tiles = [Vector2i(3, 4), Vector2i(5, 6)] as Array[Vector2i]
 	# Seize display text (L-1): uses the singular `tile` field; sentinel → "Seize".
 	# Player-facing coordinates are one-based, while the authored tile stays zero-based.
 	var dt_seize_bare := ObjectiveCondition.new()
@@ -164,6 +168,7 @@ func _init() -> void:
 		and dt_boss.get_display_text() == "Defeat e8"
 		and dt_esc.get_display_text() == "Escape: lord"
 		and dt_surv.get_display_text() == "Survive 5 turn(s)"
+		and dt_hold.get_display_text() == "Hold (4, 5), (6, 7) for 3 turn(s)"
 		and dt_seize_bare.get_display_text() == "Seize"
 		and dt_seize_tile.get_display_text() == "Seize (4, 5)"
 	):

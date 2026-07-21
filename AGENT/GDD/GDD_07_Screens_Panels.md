@@ -2,7 +2,7 @@
 
 **Status:** Active surface contract — implemented, validation-pending, and planned
 slices are labelled per section.
-**Last verified:** 2026-07-19
+**Last verified:** 2026-07-21
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -207,8 +207,10 @@ Every campaign launch parks here. Campaign Retry first restores ledger entry 0,
 then returns here with the previous deployment preselected; bare-map and
 suspend-resumed retries retain direct map reload. The screen also writes manual
 campaign saves through `CampaignManager.write_campaign_slot`. Slot ids are
-player-supplied filenames, so invalid ids are rejected rather than sanitized;
-the optional label is display-only and successful slots appear in Load Game.
+generated from chapter, activity, and a millisecond timestamp, with a numeric
+same-tick collision suffix. Labels are generated from the same context. Saving a
+label that already exists requires confirmation; confirmation writes a fresh slot
+before removing the prior one, while cancellation writes nothing.
 
 Prep services and on-map services use the shared PHB panel model. Shops, convoy,
 training, arena, villages, object activation panels, and future side activities should
@@ -645,11 +647,14 @@ the runtime meaning of modifiers, skills, and WEXP without opening the code.
 
 **Behavior:**
 - `End Turn`: calls `TurnManager.end_player_phase()`. If any unit has not acted,
-  a confirmation prompt is shown first; if every unit is already done it ends
-  immediately. (Note: the phase also ends automatically once the last unit acts.)
+  a confirmation prompt is shown first. Confirmation commits one deterministic Wait
+  event and immediate history checkpoint per remaining unit in roster/encounter order,
+  then ends the phase; if every unit is already done it ends immediately. (The phase
+  also ends automatically once the last unit acts.)
 - `Rewind (N)`: shows the remaining per-map charges and is disabled when no
   earlier activation or charge remains. Activating it opens a compact retained
-  history selector. Rows name the activated unit, show `(start x,y) → (end x,y)`
+  history selector that hides/disables its host panel under the shared refcounted
+  gameplay-modal lock. Rows name the activated unit, show `(start x,y) → (end x,y)`
   to disambiguate matching units, and show charge cost. Choosing a row restores
   the boundary before that activation through the active-map resume path and
   reloads the tactical scene; it does not reroll identical decisions.

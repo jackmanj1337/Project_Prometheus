@@ -192,6 +192,7 @@ var next_map_deployment: Dictionary = {}
 # scoped: cleared in reset_map_state and re-seeded by the round-0 push in
 # take_map_snapshot. See scripts/save/MapLedger.gd.
 var _map_ledger: RefCounted = MapLedgerScript.new()
+var _rewind_configure_override: Callable
 var rewind_charges_left: int = 0
 
 
@@ -871,7 +872,9 @@ func peek_history(index: int) -> Dictionary:
 # boundary is always retained. Called after each live push once Phase 3 wires them.
 func prune_history() -> void:
 	var fine_keep := campaign_rules.undo_activations
-	if campaign_rules.rewind_charges_per_map < 0:
+	if campaign_rules.rewind_cost_mode == "full_history":
+		fine_keep = MapLedgerScript.BUDGET_INFINITE
+	elif campaign_rules.rewind_charges_per_map < 0:
 		fine_keep = MapLedgerScript.BUDGET_INFINITE
 	elif campaign_rules.rewind_charges_per_map > 0:
 		fine_keep = maxi(fine_keep, campaign_rules.rewind_charges_per_map + 1)
@@ -966,11 +969,20 @@ func rewind_to_history(
 	)
 	var restored_charges := -1 if rewind_charges_left < 0 else maxi(0, rewind_charges_left - cost)
 	payload["map_runtime"]["rewind_charges_left"] = restored_charges
-	if not configure_suspend_resume(payload):
+	var staged_ledger: Array[Dictionary] = _map_ledger.to_save_array_through(target_index)
+	staged_ledger[target_index]["entry"]["map_runtime"]["rewind_charges_left"] = restored_charges
+	payload["ledger"] = staged_ledger
+	var accepted := (
+		bool(_rewind_configure_override.call(payload))
+		if _rewind_configure_override.is_valid()
+		else configure_suspend_resume(payload)
+	)
+	if not accepted:
 		return false
 	# Commit the branch only after the staged durable payload has been accepted.
 	# A malformed target therefore cannot destroy the still-playable future.
 	_map_ledger.truncate_after(target_index)
+	_map_ledger.set_map_runtime_value(target_index, "rewind_charges_left", restored_charges)
 	rewind_charges_left = restored_charges
 	return true
 

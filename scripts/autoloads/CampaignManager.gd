@@ -515,8 +515,14 @@ func _on_map_defeat() -> void:
 # Records the outcome for the node that was actually LAUNCHED (_active_node_id),
 # not the position — so a retried map records against the node being replayed.
 func _record_result(victory: bool) -> void:
-	if not is_campaign_active() or _active_node_id == "":
+	if not is_campaign_active():
+		push_warning("CampaignManager: map result ignored because no campaign is active")
 		return  # bare single-map launch: nothing to track
+	if _active_node_id == "":
+		push_warning(
+			"CampaignManager: map result ignored because the active campaign has no launched node"
+		)
+		return
 	var campaign := get_active_campaign()
 	var node: CampaignNode = campaign.get_node_by_id(_active_node_id) if campaign != null else null
 	if node == null:
