@@ -36,18 +36,19 @@ named path, not a substitute.
 
 ## Build identity
 
-- Executable: `Project_Prometheus_v0.5.3_debug.exe`
+- Executable: `Project_Prometheus.exe` (the Main Menu reads `v0.5.3`; the version
+  lives in the log's BUILD STAMP, not the filename)
 - Campaign fixture: `two-map-skirmish-1.0.zip`
-- Expected executable size: `__________` bytes
-- Expected executable SHA-256: `__________`
+- Expected executable size: `106042584` bytes
+- Expected executable SHA-256: `86109f8163d9eeb9cbe491189c3098b6fc1c1244a500776e8a03810727e14ba9`
 - Expected fixture size: `4271` bytes
 - Expected fixture SHA-256: `5b5ae637ff782b0b134355bbc409971e590cd1c09e3119a5303a96b3e330123e`
-- Expected BUILD STAMP: version `0.5.3`, commit `__________`, built `__________`
+- Expected BUILD STAMP: version `0.5.3`, commit `4ddd54c`, built `2026-07-21T06:34:15Z`
 
 PowerShell:
 
 ```powershell
-Get-FileHash .\Project_Prometheus_v0.5.3_debug.exe -Algorithm SHA256
+Get-FileHash .\Project_Prometheus.exe -Algorithm SHA256
 Get-FileHash .\two-map-skirmish-1.0.zip -Algorithm SHA256
 ```
 
