@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-22b](2026-07-22b.md) — Implemented the v0.5.3 playtest fix set: resume seam (V053-01/-02), between-map heal (V053-03), per-campaign save budget (V053-04), HUD-editor input gate + toolbar hardening (V053-05/-06), plus V053-08/-09.
 - [2026-07-22a](2026-07-22a.md) — v0.5.3 playtest triage + root causes, Rewind scrollbar fix, and the fix-implementation handoff.
 - [2026-07-21g](2026-07-21g.md) — Backported the mandatory policy hooks onto the v0.5.3 playtest branch and verified the rebuilt environment.
 - [2026-07-21f](2026-07-21f.md) — v0.5.3 final review (clean), release-metadata bump, focused checklist, and Windows build.
