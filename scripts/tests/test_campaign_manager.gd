@@ -33,7 +33,7 @@ func _init() -> void:
 	cm.name = "CampaignManager"
 	root.add_child(cm)
 	var gs_script := GDScript.new()
-	gs_script.source_code = "extends Node\nvar roster_ready := true\nfunc is_roster_ready_for_launch() -> bool: return roster_ready\nfunc configure_next_map(_path: String, _policy: String, _source: String) -> void: pass\n"
+	gs_script.source_code = "extends Node\nvar roster_ready := true\nvar player_roster: Array = []\nfunc is_roster_ready_for_launch() -> bool: return roster_ready\nfunc configure_next_map(_path: String, _policy: String, _source: String) -> void: pass\n"
 	gs_script.reload()
 	var gs: Node = gs_script.new()
 	gs.name = "GameState"
@@ -55,6 +55,9 @@ func _init() -> void:
 	_test_pending_result_is_not_position_state(cm, bus)
 	_test_branch_requires_explicit_successor(cm, bus)
 	_test_advance_validates_before_commit(cm, bus, gs)
+	_test_resume_marks_launched_node(cm, bus)
+	_test_resume_launched_node_is_guarded(cm)
+	_test_launch_full_heals_roster(cm, gs)
 
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -145,6 +148,73 @@ func _test_launch_resolution(cm: Node) -> void:
 
 
 # --- Flow: victory / defeat / results handoff --------------------------------
+
+
+# V053-01: a mid-battle suspend resume restores the campaign envelope (which
+# leaves _active_node_id == "") but boots straight into the live map without
+# re-launching. resume_launched_node() re-marks the node so the eventual result
+# is recorded instead of orphaned ("no launched node" -> lost win).
+func _test_resume_marks_launched_node(cm: Node, bus: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	cm.current_node_id = "node_01_rout"
+	cm._active_node_id = ""  # the state restore_campaign_state leaves on the resume path
+	_check(
+		cm.resume_launched_node() and cm._active_node_id == "node_01_rout",
+		"resume_launched_node re-marks the current node as launched"
+	)
+	bus.map_victory.emit()
+	bus.map_resolved.emit("blue", [{"rank": 1, "group": "allies", "is_blue_group": true}])
+	var result: Dictionary = cm.get_pending_result()
+	_check(
+		(
+			cm.has_pending_victory()
+			and result.get("node_id", "") == "node_01_rout"
+			and result.get("next_node_id", "") == "node_02_seize"
+		),
+		"a resumed map's victory records against the node and names its successor",
+		str(result)
+	)
+	cm.end_campaign()
+
+
+# resume_launched_node must be inert unless a campaign with a real current node is
+# active, so a between-map restore or a completed campaign is never re-launched.
+func _test_resume_launched_node_is_guarded(cm: Node) -> void:
+	cm.end_campaign()
+	_check(
+		not cm.resume_launched_node(), "resume_launched_node is a no-op when no campaign is active"
+	)
+	cm.start_campaign("proving_grounds")
+	cm.current_node_id = ""  # completed / walked off the graph
+	_check(
+		not cm.resume_launched_node() and cm._active_node_id == "",
+		"resume_launched_node is a no-op with no current node"
+	)
+	cm.end_campaign()
+
+
+# V053-03: every roster unit re-enters a fresh campaign map at full HP. Casual
+# fallen units keep hp == 0 in the shared UnitData and survivors carried damage;
+# _apply_roster_policy (the shared launch step) now full-heals the roster.
+func _test_launch_full_heals_roster(cm: Node, gs: Node) -> void:
+	cm.start_campaign("proving_grounds")
+	var hurt := UnitData.new()
+	hurt.unit_id = "hurt"
+	hurt.max_hp = 20
+	hurt.hp = 7
+	hurt.damage_taken_this_map = 13
+	var downed := UnitData.new()
+	downed.unit_id = "downed"
+	downed.max_hp = 18
+	downed.hp = 0  # casual-mode retreat leaves hp 0, is_incapacitated false
+	gs.player_roster = [hurt, downed]
+	var applied: bool = cm._apply_roster_policy(gs, "keep_current_roster", "")
+	_check(
+		applied and hurt.hp == 20 and downed.hp == 18 and hurt.damage_taken_this_map == 0,
+		"campaign launch full-heals the roster (V053-03)",
+		"hurt=%d/%d downed=%d/%d" % [hurt.hp, hurt.max_hp, downed.hp, downed.max_hp]
+	)
+	cm.end_campaign()
 
 
 # Puts the campaign in the state launch_current_node() would leave it in: parked

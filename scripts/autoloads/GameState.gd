@@ -364,7 +364,7 @@ func clear_next_map_deployment() -> void:
 	next_map_deployment.clear()
 
 
-func configure_suspend_resume(source: Variant) -> bool:
+func configure_suspend_resume(source: Variant, restore_event: String = "campaign_restored") -> bool:
 	var save: RefCounted = source if source is SaveData else SaveDataScript.from_dict(source)
 	if save == null:
 		return false
@@ -394,10 +394,15 @@ func configure_suspend_resume(source: Variant) -> bool:
 		if (
 			cm == null
 			or not cm.has_method("restore_campaign_state")
-			or not bool(cm.call("restore_campaign_state", campaign_dict))
+			or not bool(cm.call("restore_campaign_state", campaign_dict, restore_event))
 		):
 			push_error("GameState: suspend campaign envelope could not be restored")
 			return false
+		# A between-map restore clears the launched node and re-launches; a suspend
+		# resume boots straight into the live map, so re-mark the node as launched
+		# here or the eventual map result is orphaned and lost (V053-01).
+		if cm.has_method("resume_launched_node"):
+			cm.call("resume_launched_node")
 	_apply_campaign_rules_dict(payload.get("campaign", {}).get("rules", {}))
 	if not restore_mutable_campaign_state(campaign_dict):
 		push_error("GameState: suspend mutable campaign state is malformed")
@@ -426,6 +431,13 @@ func configure_suspend_resume(source: Variant) -> bool:
 
 func clear_suspend_resume() -> void:
 	next_map_suspend_payload.clear()
+	# The roster was rebuilt from the payload (player_roster above), so once the
+	# payload is consumed the "suspend_resume" launch policy is stale: a later
+	# reload (e.g. defeat -> Retry) finds an empty payload and is_roster_ready_
+	# for_launch() fails, aborting the spawn and leaving an empty board (V053-02).
+	# Normalize to keep_current_roster so the live roster stays launch-ready.
+	if next_map_roster_policy == "suspend_resume":
+		next_map_roster_policy = "keep_current_roster"
 
 
 # Loads the 6 default roster UnitData .tres files into player_roster.

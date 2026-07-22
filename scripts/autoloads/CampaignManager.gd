@@ -393,6 +393,23 @@ func route_retry_to_prep() -> bool:
 	return true
 
 
+# Re-marks the current node as the launched node after a mid-battle suspend
+# resume. restore_campaign_state() clears _active_node_id ("nothing is on a map
+# yet"), which is correct for a between-map restore that then calls
+# launch_current_node(). But a suspend resume boots straight into the live
+# GameMap without re-launching, so without this the eventual map result is
+# ignored (_record_result bails on the empty _active_node_id) and the win/loss
+# is lost (V053-01). Guarded so it is a no-op unless a campaign with a real
+# current node is active.
+func resume_launched_node() -> bool:
+	if not is_campaign_active() or current_node_id == "":
+		return false
+	_active_node_id = current_node_id
+	_pending_result.clear()
+	_log_playtest_context("node_resumed")
+	return true
+
+
 # Resolves a node's map binding into the launch parameters GameState needs.
 # Empty on an unresolvable binding. Split out from launch_current_node so the
 # resolution is testable without changing scene.
@@ -465,7 +482,26 @@ func _apply_roster_policy(gs: Node, roster_policy: String, roster_source: String
 		_:
 			push_error("CampaignManager: unknown roster policy '%s'" % roster_policy)
 			return false
-	return loaded and _apply_pending_status_import_benefit(gs)
+	if not (loaded and _apply_pending_status_import_benefit(gs)):
+		return false
+	_full_heal_roster(gs)
+	return true
+
+
+# V053-03: every roster unit re-enters a fresh campaign map at full HP (decision
+# (a), FE-series convention). With permadeath off, casual-mode fallen units keep
+# hp = 0 in the shared UnitData (DeathLifecycle only sets is_incapacitated under
+# permadeath), so without this they spawn as 0-HP "walking dead" that die to any
+# hit; living units also silently carried damage between maps. This runs on the
+# campaign launch path (_apply_roster_policy) only — never on suspend resume,
+# which must preserve exact mid-map HP, nor on retry, which restores ledger
+# round 0 without re-applying the roster policy.
+func _full_heal_roster(gs: Node) -> void:
+	for unit: UnitData in gs.get("player_roster"):
+		if unit == null:
+			continue
+		unit.hp = unit.max_hp
+		unit.damage_taken_this_map = 0
 
 
 func _apply_pending_status_import_benefit(gs: Node) -> bool:
@@ -708,7 +744,11 @@ func capture_campaign_state() -> Dictionary:
 # leaves no campaign active, rather than half-restoring a position the graph
 # cannot walk. This is the manifest's reference_validation obligation for the row
 # ("ids must resolve or load fails").
-func restore_campaign_state(source: Variant) -> bool:
+# restore_event names the playtest telemetry event emitted on success. Callers
+# that re-stage an already-restored envelope (GameMap._ready re-installing the
+# suspend payload) pass "campaign_restaged" so a single Continue does not log
+# "campaign_restored" twice and cost triage time (V053-08).
+func restore_campaign_state(source: Variant, restore_event: String = "campaign_restored") -> bool:
 	if not (source is Dictionary):
 		push_error("CampaignManager: campaign envelope is not a Dictionary")
 		return false
@@ -787,7 +827,7 @@ func restore_campaign_state(source: Variant) -> bool:
 	# Runtime-only: nothing is on a map yet, and no result is in flight.
 	_active_node_id = ""
 	_pending_result.clear()
-	_log_playtest_context("campaign_restored")
+	_log_playtest_context(restore_event)
 	return true
 
 

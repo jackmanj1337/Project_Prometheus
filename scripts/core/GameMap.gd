@@ -70,7 +70,9 @@ func _ready() -> void:
 		# resume transaction so a rewind/suspend scene reload retains both.
 		if (
 			not resume_payload.is_empty()
-			and not bool(gs.call("configure_suspend_resume", resume_payload))
+			# "campaign_restaged": this re-installs an already-restored envelope after
+			# reset_map_state, so it must not emit a second "campaign_restored" (V053-08).
+			and not bool(gs.call("configure_suspend_resume", resume_payload, "campaign_restaged"))
 		):
 			push_error("GameMap: could not re-stage suspend state after board cleanup")
 			return

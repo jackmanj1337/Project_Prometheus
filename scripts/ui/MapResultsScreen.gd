@@ -249,6 +249,12 @@ func _unhandled_input(_event: InputEvent) -> void:
 
 func _quit_to_menu() -> void:
 	_release_modal_lock()
+	# Match GameOverScreen._on_quit(): leaving the map abandons the run, so end the
+	# campaign too — otherwise the dead campaign lingers active in memory at the
+	# menu (V053-09). Mostly moot once V053-01 keeps this exit off the happy path.
+	var cm := get_node_or_null("/root/CampaignManager")
+	if cm and cm.has_method("end_campaign"):
+		cm.call("end_campaign")
 	var gs := get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("reset_map_state"):
 		gs.call("reset_map_state")

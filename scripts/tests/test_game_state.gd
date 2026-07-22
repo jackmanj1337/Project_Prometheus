@@ -350,6 +350,38 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- V053-02: clear_suspend_resume normalizes the stale suspend_resume policy ----
+	# On the live map the resume payload is consumed via clear_suspend_resume, but
+	# the launch policy was left as "suspend_resume". A later reload (defeat ->
+	# Retry) then found an empty payload, failed is_roster_ready_for_launch, and
+	# spawned an empty board. Clearing must leave the live roster launch-ready.
+	gs.load_default_roster()
+	gs.next_map_roster_policy = "suspend_resume"
+	gs.next_map_suspend_payload = {"stub": true}
+	gs.clear_suspend_resume()
+	var v053_02_ok: bool = (
+		gs.next_map_roster_policy == "keep_current_roster"
+		and gs.next_map_suspend_payload.is_empty()
+		and gs.is_roster_ready_for_launch()
+	)
+	if v053_02_ok:
+		print(
+			"OK  clear_suspend_resume normalizes stale suspend policy so reload stays launch-ready (V053-02)"
+		)
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL V053-02: policy=%s payload_empty=%s launch_ready=%s"
+				% [
+					gs.next_map_roster_policy,
+					gs.next_map_suspend_payload.is_empty(),
+					gs.is_roster_ready_for_launch(),
+				]
+			)
+		)
+		failed += 1
+
 	# ---- M14 stage 2: are_hostile uses the alliance-group model ----
 	# Default groups: {blue,green} (allies), {red} (foes), {yellow} (rogues).
 	var hostility_ok: bool = (
