@@ -29,6 +29,9 @@ var _scale_plus: Button = null
 # EventBus gameplay-modal lock, held while open so MapCursor (which polls Input
 # every frame and honours the lock) stops driving the map underneath (V053-05).
 var _modal_lock_held: bool = false
+# Guards _teardown so `closed` and the lock release fire exactly once no matter
+# how the editor is torn down (button/key _close, or the _exit_tree safety net).
+var _closed_emitted: bool = false
 
 # Reserved height of the top toolbar strip. The strip is a MOUSE_FILTER_STOP band
 # added after the drag frames, so a panel frame overlapping the toolbar can no
@@ -286,14 +289,27 @@ func _on_cancel() -> void:
 
 
 func _close() -> void:
-	_release_modal_lock()
-	closed.emit()
+	_teardown()
 	queue_free()
 
 
 func _exit_tree() -> void:
-	# Safety net: never leak the lock if the editor is freed without _close().
+	# Safety net: if the editor leaves the tree by any path other than _close()
+	# (scene teardown, an external free), still run teardown so the modal lock is
+	# released AND `closed` fires — otherwise a still-open SettingsScreen keeps its
+	# focus-repeat poll disabled forever, since it re-enables only on `closed`.
+	_teardown()
+
+
+# Idempotent teardown: releases the gameplay-modal lock and emits `closed` exactly
+# once, whichever path frees the editor. `closed` names the fact "the editor is
+# gone", so every teardown must honour it, not just the button/key path (_close).
+func _teardown() -> void:
+	if _closed_emitted:
+		return
+	_closed_emitted = true
 	_release_modal_lock()
+	closed.emit()
 
 
 # Mirrors GameOverScreen's modal lock: while held, MapCursor (which honours

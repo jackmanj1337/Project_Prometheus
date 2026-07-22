@@ -10,6 +10,12 @@ const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 
 var _passed := 0
 var _failed := 0
+# Captures the editor's `closed` emit for the teardown-contract test below.
+var _teardown_closed_fired := false
+
+
+func _on_editor_closed_signal() -> void:
+	_teardown_closed_fired = true
 
 
 func _ok(cond: bool, msg: String) -> void:
@@ -184,6 +190,24 @@ func _init() -> void:
 	_ok(
 		bus != null and not bus.is_gameplay_modal_locked(),
 		"V053-05 editor releases the gameplay modal lock on close"
+	)
+
+	# ---- Teardown contract: `closed` + lock release fire even without _close() ----
+	# SettingsScreen re-enables its focus-repeat poll only on `closed`, so a
+	# teardown that bypasses the Done/Cancel path (scene teardown, external free)
+	# must still emit it — otherwise the settings screen stays stuck. Free the
+	# editor via queue_free (NOT _on_done/_on_cancel) and assert both fire once.
+	var editor8: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor8)
+	editor8.open(hud)
+	_teardown_closed_fired = false
+	editor8.closed.connect(_on_editor_closed_signal)
+	editor8.queue_free()  # bypasses _close(): only _exit_tree runs
+	await process_frame
+	await process_frame
+	_ok(
+		_teardown_closed_fired and bus != null and not bus.is_gameplay_modal_locked(),
+		"teardown without _close() still emits `closed` and releases the lock"
 	)
 
 	hud.queue_free()
