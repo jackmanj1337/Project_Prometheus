@@ -19,6 +19,15 @@ and live-return gate. Resume from
 [`v0.5.3_final_review_build_handoff_2026-07-21.md`](v0.5.3_final_review_build_handoff_2026-07-21.md);
 the row remains open until the returned Windows evidence is triaged.
 
+**v0.5.3 return triaged (2026-07-22):** the returned Windows evidence is
+root-caused in
+[`playtest_v0.5.3_results_triage_review_2026-07-22.md`](../playtests/playtest_v0.5.3_results_triage_review_2026-07-22.md)
+(findings V053-01..V053-10). The Rewind-selector scrollbar (V053-10) is fixed;
+the rest are an implementation handoff for next session in
+[`v0.5.3_playtest_fix_handoff_2026-07-22.md`](v0.5.3_playtest_fix_handoff_2026-07-22.md),
+tracked by `V053-PLAYTEST-TRIAGE-2026-07-22`. Owner decisions: full heal between
+maps; per-campaign cap of 3 manual saves.
+
 **Latest intake:** v0.3.3 returned 2026-07-14. Four findings are routed into
 the existing `VAL-V030-GAMEPAD`, `B6-MRD`, and `UI-INSPECTION` rows. Root causes
 and resolved solutions are in
