@@ -4,7 +4,7 @@ class_name RewindSelector extends Control
 signal rewind_selected(target_index: int, cost: int)
 signal cancelled
 
-@onready var _choices: VBoxContainer = $Panel/VBox/Choices
+@onready var _choices: VBoxContainer = $Panel/VBox/Scroll/Choices
 @onready var _cancel: Button = $Panel/VBox/Cancel
 
 
