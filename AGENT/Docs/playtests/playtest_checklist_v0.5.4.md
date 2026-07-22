@@ -47,11 +47,11 @@ named path, not a substitute.
 - Executable: `Project_Prometheus_v0.5.4_debug.exe` (the Main Menu reads `v0.5.4`;
   the authoritative version is the log's BUILD STAMP)
 - Campaign fixture: `two-map-skirmish-1.0.zip`
-- Expected executable size: `<FILLED AFTER EXPORT>` bytes
-- Expected executable SHA-256: `<FILLED AFTER EXPORT>`
+- Expected executable size: `102175000` bytes
+- Expected executable SHA-256: `85ea00caaa1e23e77b72c256f7cf616b46fd7dcd7634324c5049b6d908f3bb6e`
 - Expected fixture size: `4271` bytes
 - Expected fixture SHA-256: `5b5ae637ff782b0b134355bbc409971e590cd1c09e3119a5303a96b3e330123e`
-- Expected BUILD STAMP: version `0.5.4`, commit `<FILLED AFTER EXPORT>`, built `<FILLED AFTER EXPORT>`
+- Expected BUILD STAMP: version `0.5.4`, commit `305b230`, built `2026-07-22T18:05:10Z`
 
 PowerShell:
 
