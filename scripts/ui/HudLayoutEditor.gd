@@ -22,6 +22,18 @@ var _handle_labels: Dictionary = {}  # panel_id -> Label (id + sample text)
 var _dragging: bool = false
 
 var _scale_label: Label = null
+# Scale −/+ are disabled until a panel is selected: they no-op without a
+# selection, so a tester who clicks them first sees "nothing happens" (V053-06).
+var _scale_minus: Button = null
+var _scale_plus: Button = null
+# EventBus gameplay-modal lock, held while open so MapCursor (which polls Input
+# every frame and honours the lock) stops driving the map underneath (V053-05).
+var _modal_lock_held: bool = false
+
+# Reserved height of the top toolbar strip. The strip is a MOUSE_FILTER_STOP band
+# added after the drag frames, so a panel frame overlapping the toolbar can no
+# longer steal clicks meant for the buttons (V053-06).
+const _TOOLBAR_STRIP_HEIGHT: float = 48.0
 
 # Distinct outline styleboxes (V020-12): a bright-red border on every editable
 # panel, switched to yellow on the selected one — clearer than the old
@@ -56,18 +68,36 @@ func _input(event: InputEvent) -> void:
 func open(hud: Control) -> void:
 	_hud = hud
 	_start_layout = hud.current_layout()
-	_build_toolbar()
+	_acquire_modal_lock()
+	# Order matters: dimmer (bottom) → drag frames → toolbar (top). Building the
+	# toolbar last puts its reserved strip above the frames so overlapping frames
+	# can't steal toolbar clicks (V053-06).
+	_build_dimmer()
 	_build_handles()
+	_build_toolbar()
 	_refresh_handles()
 
 
-func _build_toolbar() -> void:
+func _build_dimmer() -> void:
 	# Full-rect dimmer eats clicks that miss a handle so the map underneath is inert.
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.35)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+
+
+func _build_toolbar() -> void:
+	# Reserved top strip: a full-width MOUSE_FILTER_STOP band added after the drag
+	# frames so a panel frame overlapping the toolbar cannot win clicks meant for
+	# the buttons (V053-06). The bar and its buttons sit on top of it.
+	var strip := ColorRect.new()
+	strip.color = Color(0, 0, 0, 0.55)
+	strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	strip.custom_minimum_size = Vector2(0, _TOOLBAR_STRIP_HEIGHT)
+	strip.size.y = _TOOLBAR_STRIP_HEIGHT
+	strip.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(strip)
 
 	var bar := HBoxContainer.new()
 	bar.position = Vector2(8, 8)
@@ -78,15 +108,15 @@ func _build_toolbar() -> void:
 	title.text = "Edit HUD Layout — drag panels"
 	bar.add_child(title)
 
-	var minus := Button.new()
-	minus.text = "Scale Panel −"
-	bar.add_child(minus)
+	_scale_minus = Button.new()
+	_scale_minus.text = "Scale Panel −"
+	bar.add_child(_scale_minus)
 	_scale_label = Label.new()
 	_scale_label.text = "—"
 	bar.add_child(_scale_label)
-	var plus := Button.new()
-	plus.text = "Scale Panel +"
-	bar.add_child(plus)
+	_scale_plus = Button.new()
+	_scale_plus.text = "Scale Panel +"
+	bar.add_child(_scale_plus)
 	var reset := Button.new()
 	reset.text = "Reset"
 	bar.add_child(reset)
@@ -97,11 +127,12 @@ func _build_toolbar() -> void:
 	cancel.text = "Cancel"
 	bar.add_child(cancel)
 
-	minus.pressed.connect(_bump_scale.bind(-_SCALE_STEP))
-	plus.pressed.connect(_bump_scale.bind(_SCALE_STEP))
+	_scale_minus.pressed.connect(_bump_scale.bind(-_SCALE_STEP))
+	_scale_plus.pressed.connect(_bump_scale.bind(_SCALE_STEP))
 	reset.pressed.connect(_on_reset)
 	done.pressed.connect(_on_done)
 	cancel.pressed.connect(_on_cancel)
+	_update_scale_buttons()
 
 
 func _build_handles() -> void:
@@ -211,6 +242,17 @@ func _update_scale_label() -> void:
 	if _scale_label == null:
 		return
 	_scale_label.text = ("%.2fx" % _scale_of(_selected_id)) if _selected_id != "" else "—"
+	_update_scale_buttons()
+
+
+# Scale −/+ act on the selected panel, so they are dead without a selection.
+# Disable them until one exists rather than silently no-opping (V053-06).
+func _update_scale_buttons() -> void:
+	var enabled := _selected_id != ""
+	if _scale_minus != null:
+		_scale_minus.disabled = not enabled
+	if _scale_plus != null:
+		_scale_plus.disabled = not enabled
 
 
 # Reads the live offset/scale of a panel from the HUD (offset-from-authored-base).
@@ -244,5 +286,32 @@ func _on_cancel() -> void:
 
 
 func _close() -> void:
+	_release_modal_lock()
 	closed.emit()
 	queue_free()
+
+
+func _exit_tree() -> void:
+	# Safety net: never leak the lock if the editor is freed without _close().
+	_release_modal_lock()
+
+
+# Mirrors GameOverScreen's modal lock: while held, MapCursor (which honours
+# EventBus.is_gameplay_modal_locked via _gameplay_modal_locked) stops polling
+# movement, so WASD/arrows no longer drive the cursor under the editor (V053-05).
+func _acquire_modal_lock() -> void:
+	if _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("acquire_gameplay_modal"):
+		bus.call("acquire_gameplay_modal", self)
+		_modal_lock_held = true
+
+
+func _release_modal_lock() -> void:
+	if not _modal_lock_held:
+		return
+	var bus := get_node_or_null("/root/EventBus")
+	if bus != null and bus.has_method("release_gameplay_modal"):
+		bus.call("release_gameplay_modal", self)
+	_modal_lock_held = false

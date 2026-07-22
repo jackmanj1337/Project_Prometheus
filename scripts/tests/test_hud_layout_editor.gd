@@ -147,6 +147,45 @@ func _init() -> void:
 		"V021-02 cancel input closes the editor"
 	)
 
+	# ---- V053-05/-06: modal lock while open + scale buttons gated on selection ----
+	# Close the first editor (opened at line 37 and never dismissed) so no stray
+	# modal lock lingers into this check.
+	if is_instance_valid(editor):
+		editor._on_cancel()
+	await process_frame
+	var bus := root.get_node_or_null("EventBus")
+	var editor7: CanvasLayer = HudLayoutEditorS.new()
+	root.add_child(editor7)
+	editor7.open(hud)
+	_ok(
+		bus != null and bus.is_gameplay_modal_locked(),
+		"V053-05 editor holds the gameplay modal lock while open (silences MapCursor poll)"
+	)
+	_ok(
+		(
+			editor7._scale_minus != null
+			and editor7._scale_minus.disabled
+			and editor7._scale_plus.disabled
+		),
+		"V053-06 Scale −/+ start disabled with no panel selected"
+	)
+	var pick_id: String = ""
+	for id in editor7._handles:
+		pick_id = id
+		break
+	editor7._selected_id = pick_id
+	editor7._refresh_handles()
+	_ok(
+		not editor7._scale_minus.disabled and not editor7._scale_plus.disabled,
+		"V053-06 Scale −/+ enable once a panel is selected"
+	)
+	editor7._on_done()
+	await process_frame
+	_ok(
+		bus != null and not bus.is_gameplay_modal_locked(),
+		"V053-05 editor releases the gameplay modal lock on close"
+	)
+
 	hud.queue_free()
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
