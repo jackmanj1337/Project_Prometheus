@@ -244,6 +244,7 @@
 - [`playtests/playtest_build_v0.5.1.md`](playtests/playtest_build_v0.5.1.md) — v0.5.1 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.2.md`](playtests/playtest_build_v0.5.2.md) — v0.5.2 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.3.md`](playtests/playtest_build_v0.5.3.md) — v0.5.3 Windows Playtest Build — *Exported - pending live Windows validati*
+- [`playtests/playtest_build_v0.5.4.md`](playtests/playtest_build_v0.5.4.md) — v0.5.4 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
@@ -285,6 +286,7 @@
 - [`playtests/playtest_checklist_v0.5.1.md`](playtests/playtest_checklist_v0.5.1.md) — v0.5.1 Windows Playtester Handbook — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.2.md`](playtests/playtest_checklist_v0.5.2.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.3.md`](playtests/playtest_checklist_v0.5.3.md) — v0.5.3 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.4.md`](playtests/playtest_checklist_v0.5.4.md) — v0.5.4 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md`](playtests/playtest_v0.2.3_results_triage_plan_2026-07-01.md) — v0.2.3 Playtest Results Triage And Fix Plan - 2026-07-01 — *Planned - routed to control plane*
 - [`playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.5_results_triage_plan_2026-07-04.md) — v0.2.5 Playtest Results Triage And Fix Plan - 2026-07-04 — *Planned - v0.2.6 fix pass IMPLEMENTED 20*
 - [`playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md`](playtests/playtest_v0.2.6_results_triage_plan_2026-07-04.md) — v0.2.6 Playtest Results Triage And Fix Plan - 2026-07-04 — *Returned results - obvious fixes IMPLEME*
