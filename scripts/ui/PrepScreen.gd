@@ -235,14 +235,30 @@ func _write_manual_save(old_slot_id: String) -> void:
 	var cm := get_node_or_null("/root/CampaignManager")
 	if cm == null:
 		return
-	var id := _next_manual_slot_id()
 	var label := _manual_save_label()
-	var ok := bool(cm.call("write_campaign_slot", id, label))
-	if ok and old_slot_id != "":
-		var sm := get_node_or_null("/root/SaveManager")
-		if sm != null:
-			sm.call("delete_slot", old_slot_id)
-	_save_status.text = "Saved." if ok else "Save failed."
+	# Replace reuses the existing slot id: an in-place overwrite of an existing
+	# manual slot is permitted even when the class is full, so Replace is atomic
+	# (no headroom needed, no orphan on failure) and never hits the cap (V053-04).
+	if old_slot_id != "":
+		_save_status.text = (
+			"Saved." if bool(cm.call("write_campaign_slot", old_slot_id, label)) else "Save failed."
+		)
+		return
+	# A brand-new slot needs budget. Diagnose a cap-full refusal up front so the
+	# player sees the reason instead of the bare "Save failed." (V053-04).
+	var sm := get_node_or_null("/root/SaveManager")
+	if sm != null and sm.has_method("manual_slot_budget"):
+		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
+		if bool(budget.get("full", false)):
+			_save_status.text = (
+				"All %d campaign save slots are in use — delete one from Load Game."
+				% int(budget.get("cap", 0))
+			)
+			return
+	var id := _next_manual_slot_id()
+	_save_status.text = (
+		"Saved." if bool(cm.call("write_campaign_slot", id, label)) else "Save failed."
+	)
 
 
 func _manual_save_label() -> String:

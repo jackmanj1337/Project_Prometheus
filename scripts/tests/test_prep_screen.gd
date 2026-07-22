@@ -102,15 +102,55 @@ func _init() -> void:
 	screen._on_overwrite_confirmed()
 	_check(
 		(
-			sm.list_slots().size() == 1
-			and String(sm.list_slots()[0].get("slot_id", "")) != first_slot_id
+			screen._save_status.text == "Saved."
+			and sm.list_slots().size() == 1
+			and String(sm.list_slots()[0].get("slot_id", "")) == first_slot_id
 		),
-		"confirming overwrite replaces exactly one same-label slot with a fresh id"
+		"confirming overwrite reuses the same slot id in place (V053-04: atomic, cap-safe)"
 	)
+
+	_check_replace_survives_full_class(cm, gs, sm, screen)
 
 	_clean_test_dir()
 	print("=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
+
+
+# V053-04: the manual between_map budget is a per-campaign cap of 3. Replace must
+# survive a full class (it overwrites in place), a brand-new save at the cap must
+# be refused with a readable diagnostic, and the count must be scoped per-campaign.
+func _check_replace_survives_full_class(cm: Node, gs: Node, sm: Node, screen: Node) -> void:
+	for row in sm.list_slots():
+		sm.delete_slot(String(row.get("slot_id", "")))
+	# Fill the class to the classic-GBA cap of 3 for the active campaign
+	# (proving_grounds), with labels that do NOT match the prep node label.
+	cm.write_campaign_slot("fill-a", "Fill A")
+	cm.write_campaign_slot("fill-b", "Fill B")
+	cm.write_campaign_slot("fill-c", "Fill C")
+	var budget: Dictionary = sm.manual_slot_budget("between_map")
+	_check(
+		int(budget.get("cap", 0)) == 3 and bool(budget.get("full", false)),
+		"between_map class reports full at the per-campaign cap of 3"
+	)
+	# A brand-new prep save (no same-label slot) is refused with the slots-full
+	# diagnostic, not a bare "Save failed."
+	screen._on_save()
+	_check(
+		(
+			sm.list_slots().size() == 3
+			and screen._save_status.text.begins_with("All 3 campaign save slots")
+		),
+		"a new save at the cap is refused with the slots-full diagnostic"
+	)
+	# Replace of an existing same-label slot still succeeds at the cap (in place).
+	sm.delete_slot("fill-c")
+	cm.write_campaign_slot("node-label-slot", screen._manual_save_label())
+	screen._on_save()  # same-label match -> overwrite prompt
+	screen._on_overwrite_confirmed()
+	_check(
+		screen._save_status.text == "Saved." and sm.list_slots().size() == 3,
+		"Replace at the cap overwrites in place and never trips the full-class refusal"
+	)
 
 
 func _check(ok: bool, label: String) -> void:
