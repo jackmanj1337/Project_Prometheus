@@ -44,3 +44,7 @@ __pycache__/
 # UI-INSPECTION headless preview harness output (scripts/tools/ui_inspection_preview.gd).
 # Review artifacts regenerated on demand — not committed content.
 /ui_previews/
+
+# Playtest return packages: keep the evidence (logs, screenshots, checklist,
+# resume save) but never the build .zip export artifacts the tester bundles.
+**/*playtest results*/*.zip
