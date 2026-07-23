@@ -1,8 +1,9 @@
 ---
 Type: research handoff
-Status: Planned — research only; NO implementation plans until these produce answers
+Status: Implemented — research findings recorded; owner answers still gate implementation plans
 Last verified: 2026-07-23
 Owner inputs: AGENT/Campaign data questions.md (owner answers, 2026-07-23)
+Findings: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHIP-2026-07-23,
   RESEARCH-ENGINE-ZERO-CONTENT-2026-07-23, RESEARCH-RULE-PROFILE-CONTRACT-2026-07-23
 ---
@@ -229,11 +230,11 @@ live, and the first-slice scope. No code.
   surface when it comes time to branch.
 
 ## Deliverables checklist for next session
-- [ ] R1 decision record (economy owner_ref + 3 resources + rewind-charges verdict + consumer audit)
-- [ ] R2 findings (duplication map + delta-vs-self-contained + version/migration + export modes)
-- [ ] R3 findings (baked-content inventory + data-vs-script boundary + zero-content boot)
-- [ ] R4 decision record (profile format + pointer-vs-copy + preset home + first-slice scope)
-- [ ] Update the four tracker rows to `in_progress`/`completed` as each lands
+- [x] R1 decision recommendation (economy owner_ref + 3 resources + rewind-charges verdict + consumer audit)
+- [x] R2 findings (duplication map + delta-vs-self-contained + version/migration + export modes)
+- [x] R3 findings (baked-content inventory + data-vs-script boundary + zero-content boot)
+- [x] R4 decision recommendation (profile format + pointer-vs-copy + preset home + first-slice scope)
+- [ ] Record the owner's answers to the ten pre-planning questions, then update the four tracker rows
 
 ## Sources
 - Owner answers: `AGENT/Campaign data questions.md`
