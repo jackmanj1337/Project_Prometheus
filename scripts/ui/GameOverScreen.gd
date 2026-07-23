@@ -15,6 +15,7 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
+const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
 # Victory/defeat presentation must sit UNDER pending level-ups and promotions, so
 # progression earned on the killing blow resolves before the battle ends
@@ -29,9 +30,11 @@ var _promotion_active: bool = false
 var _suspend_deleted_for_result: bool = false
 var _defeat_received: bool = false
 var _modal_lock_held := false
+var _focus_nav: RefCounted
 
 
 func _ready() -> void:
+	_focus_nav = FocusNavigatorS.new(self)
 	add_to_group(MenuScale.GROUP)
 	hide()
 	_retry_btn.pressed.connect(_on_retry)
@@ -125,7 +128,7 @@ func _show_overlay() -> void:
 	_acquire_modal_lock()
 	_refresh_defeat_actions()
 	show()
-	_retry_btn.grab_focus()
+	_focus_nav.call_deferred("grab_default")
 
 
 func _refresh_defeat_actions() -> void:
@@ -139,10 +142,25 @@ func _refresh_defeat_actions() -> void:
 	var slots: Array = sm.call("list_slots") if sm != null and sm.has_method("list_slots") else []
 	_load_game_btn.disabled = slots.is_empty()
 	var gs := get_node_or_null("/root/GameState")
+	_retry_btn.visible = _allows("retry")
+	_reload_recent_btn.visible = _allows("reload")
+	_load_game_btn.visible = _allows("load")
+	_quit_btn.visible = _allows("quit")
 	var charges := int(gs.get("rewind_charges_left")) if gs != null else 0
 	_rewind_btn.text = "Rewind (∞)" if charges < 0 else "Rewind (%d)" % charges
 	_rewind_btn.disabled = (
 		gs == null or not gs.has_method("can_rewind") or not bool(gs.call("can_rewind"))
+	)
+	_rewind_btn.visible = _allows("rewind") and not _rewind_btn.disabled
+
+
+func _allows(action_id: String) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var rules: Variant = gs.get("campaign_rules") if gs != null else null
+	return (
+		rules == null
+		or not rules.has_method("allows_battle_result_action")
+		or bool(rules.call("allows_battle_result_action", "defeat", action_id))
 	)
 
 
@@ -160,8 +178,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _load_game_screen.visible:
 		return
+	if _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
 	# Block all input while the overlay is up
 	get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if visible and not _load_game_screen.visible and not _rewind_selector.visible:
+		_focus_nav.poll(delta)
 
 
 func _on_retry() -> void:

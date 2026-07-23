@@ -1,6 +1,6 @@
 # Campaign Rules
 
-**Last verified:** 2026-07-15
+**Last verified:** 2026-07-22
 **See also:** `GDD_01_Runtime_Contracts.md` §CampaignRules Contract;
 `scripts/resources/CampaignRules.gd`
 
@@ -52,6 +52,7 @@ The live campaign-rule fields are:
 - `undo_rounds: int`
 - `save_slot_classes: Array[Dictionary]`
 - `autosave_rules: Array[Dictionary]`
+- `battle_result_actions: Dictionary`
 
 The current launch-routing fields that travel with New Game setup are:
 
@@ -148,6 +149,32 @@ decision-undo charges would bypass the authored budget. Consumed mid-map slots a
 safe, as are all durable between-map slots because they replay a full battle rather
 than undoing an activation. `check_docs.py` enforces this rule for shipped campaign
 JSON, while `CampaignData.parse` reports it for authored packages.
+
+### Battle result actions
+
+`battle_result_actions` lets a campaign author independently hide post-battle
+actions. Defaults preserve the full standard recovery surface:
+
+```json
+{
+  "rules": {
+    "battle_result_actions": {
+      "victory": {"continue": true, "retry": true, "save": true, "quit": true},
+      "defeat": {"retry": true, "reload": true, "load": true, "rewind": true, "quit": true}
+    }
+  }
+}
+```
+
+For example, a bonus-objective campaign can set `defeat.retry` to `false` so a
+failed attempt cannot immediately restart, or set `defeat.rewind` to `false` to
+hide Rewind even when the run has charges. Zero charges/no retained choice also
+hides Rewind regardless of the policy. Missing action ids default to `true` for
+old-save and forward compatibility. Save and Quit are separate: victory Save
+commits the result and writes a between-map slot but does not leave Results.
+The same dictionary may be placed in a campaign node's `rule_overrides` to apply
+the restriction to one map (such as a bonus-objective challenge) instead of the
+whole campaign.
 
 The design direction already locked in the project docs is:
 

@@ -910,15 +910,20 @@ review 2026-06-14 #1) for resolution-robustness.
   through campaign restore/launch, consuming a slot only after successful route.
 - "Rewind" is enabled only while a prior activation and charge remain. It opens
   the same coordinate-labelled selector and stages the chosen deterministic
-  active-map rewind as Map Menu before reloading GameMap.
+  active-map rewind as Map Menu before reloading GameMap. The button is hidden
+  when no usable rewind exists or the campaign's `defeat.rewind` action policy
+  denies it.
 - "Main Menu" resets map-scoped state and returns to `Boot.tscn`.
+- Campaign rules independently control visibility of Retry, recent-load,
+  any-load, Rewind, and Main Menu. This permits authored challenge/bonus maps to
+  disallow Retry without hardcoding a campaign or objective id.
 
 ---
 
 ### Map Results Screen
 
-Status: **Implemented 2026-07-15** (`CST-7`)
-Last verified: 2026-07-15
+Status: **Implemented 2026-07-22** (`CST-7`, `B4-RESULT-ACTIONS`)
+Last verified: 2026-07-22
 
 `MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
 reward/casualty/progression summaries, campaign save status, and Continue. It waits
@@ -941,5 +946,13 @@ then routes to prep. `StandingsFormatter` is shared with `GameOverScreen` so the
 rankings renderer remains reusable by future PvP/scenario results.
 If a result is nonterminal but exposes no valid successor, the action disables as
 "Campaign Data Error"; it cannot be mistaken for campaign completion.
+
+Campaign rules independently control visibility of Continue, Retry Battle, Save,
+and Quit. Retry discards the uncommitted result, restores ledger round zero, and
+routes campaign play through Prep. Save is a separate operation from Quit: it
+preflights manual-slot capacity, validates any successor, commits the result once,
+writes a between-map manual save, and remains on Results. Continue after Save
+launches the already-committed successor (or finishes a completed campaign) without
+awarding or advancing twice. Quit remains an explicit, separate abandon action.
 
 ---

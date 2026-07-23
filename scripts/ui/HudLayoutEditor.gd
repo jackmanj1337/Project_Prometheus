@@ -64,7 +64,21 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("cancel"):
 		_on_cancel()
+	elif event.is_action_pressed("ui_left"):
+		_cycle_panel(-1)
+	elif event.is_action_pressed("ui_right"):
+		_cycle_panel(1)
 	get_viewport().set_input_as_handled()
+
+
+func _cycle_panel(direction: int) -> void:
+	var ids: Array = _handles.keys()
+	if ids.is_empty():
+		return
+	var index := ids.find(_selected_id)
+	index = 0 if index < 0 else wrapi(index + direction, 0, ids.size())
+	_selected_id = String(ids[index])
+	_refresh_handles()
 
 
 # Opens the editor over `hud`. Captures the current layout so Cancel can restore it.
@@ -97,9 +111,10 @@ func _build_toolbar() -> void:
 	var strip := ColorRect.new()
 	strip.color = Color(0, 0, 0, 0.55)
 	strip.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	strip.custom_minimum_size = Vector2(0, _TOOLBAR_STRIP_HEIGHT)
-	strip.size.y = _TOOLBAR_STRIP_HEIGHT
-	strip.mouse_filter = Control.MOUSE_FILTER_STOP
+	strip.offset_bottom = _TOOLBAR_STRIP_HEIGHT
+	# The visual band must not make a top-edge HUD panel unreachable. Only the
+	# actual toolbar controls consume clicks; empty band space passes to handles.
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(strip)
 
 	var bar := HBoxContainer.new()

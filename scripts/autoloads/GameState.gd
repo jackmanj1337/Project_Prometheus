@@ -1293,6 +1293,7 @@ func _campaign_rules_to_dict() -> Dictionary:
 		"rewind_cost_mode": campaign_rules.rewind_cost_mode,
 		"undo_activations": campaign_rules.undo_activations,
 		"undo_rounds": campaign_rules.undo_rounds,
+		"battle_result_actions": campaign_rules.battle_result_actions.duplicate(true),
 		"save_slot_classes": campaign_rules.save_slot_classes.duplicate(true),
 		"autosave_rules": campaign_rules.autosave_rules.duplicate(true),
 		"mandated_rules": mandated_campaign_rules.duplicate(),
@@ -1333,6 +1334,11 @@ func _apply_campaign_rules_dict(rules_dict: Variant) -> void:
 		campaign_rules.rewind_cost_mode = "per_activation"
 	campaign_rules.undo_activations = _variant_int(normalized.get("undo_activations", 0), 0)
 	campaign_rules.undo_rounds = _variant_int(normalized.get("undo_rounds", 0), 0)
+	campaign_rules.battle_result_actions = (
+		normalized
+		. get("battle_result_actions", CampaignRules.make_default().battle_result_actions)
+		. duplicate(true)
+	)
 	campaign_rules.save_slot_classes = normalized.get("save_slot_classes", []).duplicate(true)
 	campaign_rules.autosave_rules = normalized.get("autosave_rules", []).duplicate(true)
 	mandated_campaign_rules = SaveCodec.string_array_from_variant(

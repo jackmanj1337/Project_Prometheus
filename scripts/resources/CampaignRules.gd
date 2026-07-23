@@ -52,6 +52,24 @@ class_name CampaignRules extends Resource
 @export var undo_activations: int = 0
 @export var undo_rounds: int = 0
 
+# Open, campaign-authored visibility policy for post-battle actions. Unknown
+# action ids are allowed in data for future registered consumers; current screens
+# read only the ids they implement. Missing entries default to visible for save
+# compatibility. Availability (for example zero Rewind charges) is an additional
+# runtime gate and can still hide an authored-visible action.
+@export var battle_result_actions: Dictionary = {
+	"victory": {"continue": true, "retry": true, "save": true, "quit": true},
+	"defeat": {"retry": true, "reload": true, "load": true, "rewind": true, "quit": true},
+}
+
+
+func allows_battle_result_action(outcome: String, action_id: String) -> bool:
+	var outcome_policy: Variant = battle_result_actions.get(outcome, {})
+	if not outcome_policy is Dictionary:
+		return true
+	return bool(outcome_policy.get(action_id, true))
+
+
 # B1-LEDGER Phase 5 — player/manual slot classes and independent autosave pools.
 # Dictionaries stay data-shaped so campaign JSON can supply new combinations
 # without adding engine modes.

@@ -235,6 +235,10 @@ static func _normalize_rules(source: Variant, root: Dictionary) -> Dictionary:
 	# B1-LEDGER Phase 2: within-map ledger retention budgets (-1 = infinite tier).
 	out["undo_activations"] = SaveCodec.as_int(out.get("undo_activations", 0), 0)
 	out["undo_rounds"] = SaveCodec.as_int(out.get("undo_rounds", 0), 0)
+	var default_actions := CampaignRules.make_default().battle_result_actions
+	out["battle_result_actions"] = _dict_from_variant(
+		out.get("battle_result_actions", default_actions)
+	)
 	out["save_slot_classes"] = SavePolicy.normalize_slot_classes(
 		out.get("save_slot_classes", SavePolicy.classic_gba())
 	)
@@ -533,6 +537,8 @@ static func _default_campaign() -> Dictionary:
 			"rewind_cost_mode": "per_activation",
 			"undo_activations": 0,
 			"undo_rounds": 0,
+			"battle_result_actions":
+			CampaignRules.make_default().battle_result_actions.duplicate(true),
 			"save_slot_classes": SavePolicy.classic_gba(),
 			"autosave_rules": SavePolicy.default_autosave_rules(),
 			"mandated_rules": [],

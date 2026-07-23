@@ -4,6 +4,7 @@ extends Control
 
 const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
+const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
 @onready var _standings_label: Label = $Panel/VBox/Standings
 @onready var _rewards_label: Label = $Panel/VBox/Rewards
@@ -13,6 +14,9 @@ const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
 @onready var _successor_label: Label = $Panel/VBox/SuccessorLabel
 @onready var _successor_picker: OptionButton = $Panel/VBox/SuccessorPicker
 @onready var _continue_button: Button = $Panel/VBox/ContinueButton
+@onready var _retry_button: Button = $Panel/VBox/RetryButton
+@onready var _save_button: Button = $Panel/VBox/SaveButton
+@onready var _quit_button: Button = $Panel/VBox/QuitButton
 var _campaign_data_error := false
 
 var _result_pending := false
@@ -21,12 +25,19 @@ var _promotion_active := false
 var _suspend_deleted_for_result := false
 var _reward_receipt: Dictionary = {}
 var _modal_lock_held := false
+var _result_committed := false
+var _committed_complete := false
+var _focus_nav: RefCounted
 
 
 func _ready() -> void:
+	_focus_nav = FocusNavigatorS.new(self)
 	add_to_group(MenuScale.GROUP)
 	hide()
 	_continue_button.pressed.connect(_on_continue)
+	_retry_button.pressed.connect(_on_retry)
+	_save_button.pressed.connect(_on_save)
+	_quit_button.pressed.connect(_quit_to_menu)
 	_successor_picker.item_selected.connect(_on_successor_selected)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus != null:
@@ -74,10 +85,12 @@ func _try_present() -> void:
 	_acquire_modal_lock()
 	_refresh_result()
 	show()
-	if _continue_button.disabled and _successor_picker.visible:
+	if _continue_button.visible and not _continue_button.disabled:
+		_continue_button.grab_focus()
+	elif _continue_button.disabled and _successor_picker.visible:
 		_successor_picker.grab_focus()
 	else:
-		_continue_button.grab_focus()
+		_focus_nav.call_deferred("grab_default")
 
 
 func _on_level_up_finished() -> void:
@@ -122,6 +135,9 @@ func _refresh_result() -> void:
 	_continue_button.disabled = false
 	_continue_button.text = "Return to Menu"
 	_campaign_data_error = false
+	_result_committed = false
+	_committed_complete = false
+	_apply_action_policy()
 	if cm == null:
 		return
 	var options: Array = cm.call("get_pending_successor_options")
@@ -184,24 +200,88 @@ func _on_continue() -> void:
 	if cm == null or _campaign_data_error:
 		_quit_to_menu()
 		return
-	var result: Dictionary = cm.call("get_pending_result")
-	if (
-		not bool(result.get("campaign_complete", false))
-		and not bool(cm.call("prepare_pending_advance"))
-	):
-		_save_status_label.text = "Save: could not validate the next battle"
+	if not _result_committed and not _commit_result(cm):
 		return
-	if not bool(cm.call("commit_pending_result")):
-		_save_status_label.text = "Save: campaign advance failed"
-		return
-	_save_status_label.text = "Save: autosaved"
-	if bool(cm.call("is_campaign_complete")):
+	if _committed_complete or bool(cm.call("is_campaign_complete")):
 		if cm.has_method("export_completion_status_record"):
 			cm.call("export_completion_status_record")
 		cm.call("end_campaign")
 		_quit_to_menu()
 		return
 	cm.call("launch_prepared_node")
+
+
+func _on_save() -> void:
+	var cm := _campaign_manager()
+	if cm == null or _campaign_data_error:
+		return
+	var sm := get_node_or_null("/root/SaveManager")
+	if not _result_committed and sm != null and sm.has_method("manual_slot_budget"):
+		var budget: Dictionary = sm.call("manual_slot_budget", "between_map")
+		if bool(budget.get("full", false)):
+			_save_status_label.text = (
+				"All %d campaign save slots are in use." % int(budget.get("cap", 0))
+			)
+			return
+	if not _result_committed and not _commit_result(cm):
+		return
+	var slot_id := "results-%d" % int(Time.get_unix_time_from_system() * 1000.0)
+	var label := "Campaign Complete" if _committed_complete else "After Victory"
+	if bool(cm.call("write_campaign_slot", slot_id, label)):
+		_save_status_label.text = "Saved."
+		_save_button.disabled = true
+	else:
+		_save_status_label.text = "Save failed."
+
+
+func _commit_result(cm: Node) -> bool:
+	var result: Dictionary = cm.call("get_pending_result")
+	if (
+		not bool(result.get("campaign_complete", false))
+		and not bool(cm.call("prepare_pending_advance"))
+	):
+		_save_status_label.text = "Save: could not validate the next battle"
+		return false
+	if not bool(cm.call("commit_pending_result")):
+		_save_status_label.text = "Save: campaign advance failed"
+		return false
+	_result_committed = true
+	_committed_complete = bool(cm.call("is_campaign_complete"))
+	_retry_button.hide()
+	_successor_picker.disabled = true
+	_save_status_label.text = "Progress committed and autosaved."
+	return true
+
+
+func _on_retry() -> void:
+	var cm := _campaign_manager()
+	if cm != null:
+		cm.call("clear_pending_result")
+	var gs := get_node_or_null("/root/GameState")
+	var restored := (
+		gs != null and gs.has_method("restore_history") and bool(gs.call("restore_history", 0))
+	)
+	_release_modal_lock()
+	if restored and cm != null and bool(cm.call("route_retry_to_prep")):
+		return
+	get_tree().reload_current_scene()
+
+
+func _allows(action_id: String) -> bool:
+	var gs := get_node_or_null("/root/GameState")
+	var rules: Variant = gs.get("campaign_rules") if gs != null else null
+	return (
+		rules == null
+		or not rules.has_method("allows_battle_result_action")
+		or bool(rules.call("allows_battle_result_action", "victory", action_id))
+	)
+
+
+func _apply_action_policy() -> void:
+	_continue_button.visible = _allows("continue")
+	_retry_button.visible = _allows("retry")
+	_save_button.visible = _allows("save") and _campaign_manager() != null
+	_quit_button.visible = _allows("quit")
 
 
 func _campaign_manager() -> Node:
@@ -242,9 +322,16 @@ func _delete_mid_map_slot_after_resolution() -> void:
 		save_manager.call("delete_slot", "resume_battle")
 
 
-func _unhandled_input(_event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if visible:
+		if _focus_nav.consume_direction(event):
+			get_viewport().set_input_as_handled()
 		get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if visible:
+		_focus_nav.poll(delta)
 
 
 func _quit_to_menu() -> void:

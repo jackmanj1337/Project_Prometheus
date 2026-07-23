@@ -18,7 +18,7 @@ Status: **Split** — the live per-save `CampaignRules` object is **Implemented*
 (2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
 **Implemented** (2026-07-15); authored rule-profile registries remain
 **Target design**
-Last verified: 2026-07-15
+Last verified: 2026-07-22
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
@@ -45,6 +45,7 @@ rule fields are not retained as shims.
 | `rewind_cost_mode` | String (`per_activation`) | `per_activation` prices a selected target by activations crossed; `full_history` prices any retained target at one charge |
 | `undo_activations` | int (0) | B1-LEDGER requested fine-tier retention; runtime floors this to `rewind_charges_per_map + 1` while Rewind is enabled so every charge remains spendable; `-1` = infinite |
 | `undo_rounds` | int (0) | B1-LEDGER within-map ledger: retain the last N round-start entries; `-1` = infinite, `0` = none beyond round-0 |
+| `battle_result_actions` | Dictionary | Open per-outcome action visibility policy. Shipped consumers read `victory.{continue,retry,save,quit}` and `defeat.{retry,reload,load,rewind,quit}`; missing/unknown action ids default visible for forward and old-save compatibility. Runtime availability remains an additional gate (for example Defeat Rewind hides with no usable charge/history). |
 | `save_slot_classes` | Array[Dictionary] | Manual slot pools: `{count, accepts, consumed_on_load, label}`; accepts `between_map`, `mid_map`, or `any` |
 | `autosave_rules` | Array[Dictionary] | Independent automatic pools: `{rule_id, trigger, keep, label, consumed_on_load:false}` |
 
@@ -64,6 +65,12 @@ The prior node-commit autosave is now the default `battle_end` rule. Empty rules
 disable autosave. Three preset shapes (GBA 3+1, single-consumable, 30-any) are pure
 data. A non-blocking builder warning reports durable `mid_map` classes unless
 `rewind_charges_per_map = -1`; `check_docs.py` check 33 enforces it for shipped JSON.
+
+**Post-battle action policy (Implemented 2026-07-22).** Campaign data may hide
+individual victory/defeat actions through `battle_result_actions` without an
+engine campaign-id switch. Visibility never grants an unavailable operation:
+Rewind also requires retained history and charges, and Save requires campaign
+state plus manual-slot capacity. The policy round-trips in campaign saves.
 
 **Campaign authority (Implemented 2026-07-15).** Each campaign rule may be an
 editable `default` or locked `mandate`. Campaign start seeds the normalized

@@ -2,6 +2,7 @@ extends Control
 # B4-PREP-DEPLOYMENT: pure between-map deployment authoring and manual save.
 
 const DeploymentPlanS = preload("res://scripts/shared/DeploymentPlan.gd")
+const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
 @onready var _title: Label = $Margin/VBox/Title
 @onready var _summary: Label = $Margin/VBox/Summary
@@ -17,9 +18,11 @@ var _map_data: BattleMapDef = null
 var _eligible: Array[UnitData] = []
 var _selected_ids: Array[String] = []
 var _pending_overwrite_slot_id := ""
+var _focus_nav: RefCounted
 
 
 func _ready() -> void:
+	_focus_nav = FocusNavigatorS.new(self, $Margin/VBox/Scroll)
 	_begin_button.pressed.connect(_on_begin)
 	$Margin/VBox/SaveBox/SaveButton.pressed.connect(_on_save)
 	_overwrite_confirm.confirmed.connect(_on_overwrite_confirmed)
@@ -29,6 +32,21 @@ func _ready() -> void:
 	_seed_selection()
 	_rebuild_rows()
 	_refresh_validation()
+	call_deferred("_grab_initial_focus")
+
+
+func _grab_initial_focus() -> void:
+	_focus_nav.grab_default()
+
+
+func _input(event: InputEvent) -> void:
+	if _focus_nav != null and _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if _focus_nav != null:
+		_focus_nav.poll(delta)
 
 
 func _load_launch_context() -> bool:
@@ -125,6 +143,7 @@ func _find_eligible(unit_id: String) -> UnitData:
 
 
 func _rebuild_rows() -> void:
+	var focus_key := _focused_row_key()
 	for child in _rows.get_children():
 		child.queue_free()
 		_rows.remove_child(child)
@@ -158,6 +177,24 @@ func _rebuild_rows() -> void:
 		down.pressed.connect(_move_unit.bind(unit.unit_id, 1))
 		row.add_child(down)
 		_rows.add_child(row)
+	_restore_row_focus(focus_key)
+
+
+func _focused_row_key() -> Dictionary:
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused == null or not _rows.is_ancestor_of(focused):
+		return {}
+	var row := focused.get_parent()
+	return {"row": row.name, "control": focused.name}
+
+
+func _restore_row_focus(key: Dictionary) -> void:
+	if key.is_empty():
+		return
+	var row := _rows.get_node_or_null(String(key["row"]))
+	var control := row.get_node_or_null(String(key["control"])) if row != null else null
+	if control is Control and not (control is BaseButton and control.disabled):
+		(control as Control).call_deferred("grab_focus")
 
 
 func _on_unit_toggled(enabled: bool, unit_id: String) -> void:
