@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Skills
 
 > Skills can be assigned or removed at any time out of combat, or at any other time the GM sees fit.  

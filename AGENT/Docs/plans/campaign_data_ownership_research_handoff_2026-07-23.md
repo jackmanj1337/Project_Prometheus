@@ -2,7 +2,7 @@
 Type: research handoff
 Status: Implemented — research findings recorded; owner answers still gate implementation plans
 Last verified: 2026-07-23
-Owner inputs: AGENT/Campaign data questions.md (owner answers, 2026-07-23)
+Owner inputs: AGENT/Docs/archive/reference/campaign_data_questions_2026-07-23.md (owner answers, 2026-07-23)
 Findings: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHIP-2026-07-23,
   RESEARCH-ENGINE-ZERO-CONTENT-2026-07-23, RESEARCH-RULE-PROFILE-CONTRACT-2026-07-23
@@ -14,7 +14,7 @@ Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHI
 
 This session aligned on the **goals** for the campaign rules / data-ownership /
 economy cluster (Section C). The owner answered the goal-alignment questions in
-`AGENT/Campaign data questions.md`. This handoff turns those answers into
+`AGENT/Docs/archive/reference/campaign_data_questions_2026-07-23.md`. This handoff turns those answers into
 **four research threads to execute next session**.
 
 **Do not write implementation plans yet.** Each thread below ends in a research
@@ -237,7 +237,7 @@ live, and the first-slice scope. No code.
 - [ ] Record the owner's answers to the ten pre-planning questions, then update the four tracker rows
 
 ## Sources
-- Owner answers: `AGENT/Campaign data questions.md`
+- Owner answers: `AGENT/Docs/archive/reference/campaign_data_questions_2026-07-23.md`
 - Boundary already ratified: `AGENT/Docs/plans/campaign_pack_engine_boundary_plan_2026-07-15.md`
 - Rule mechanism (built): `AGENT/GDD/GDD_01_Runtime_Contracts.md` §Mutable rule layers; `scripts/resources/CampaignRules.gd`
 - Economy spine: `scripts/autoloads/ResourceLedger.gd`, `scripts/resources/CostSpec.gd`

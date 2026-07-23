@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Classes
 
 > Stats listed for promoted classes are **promotion stat increases** (added to base class stats at promotion).  

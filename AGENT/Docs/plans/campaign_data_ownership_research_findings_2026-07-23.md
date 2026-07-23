@@ -336,7 +336,7 @@ be written, while remaining faithful to decisions 1–6 for save/package work,
 Research performed and verified on **2026-07-23** against branch
 `agent/from-integration/campaign-data-research`.
 
-- Owner goals: `AGENT/Campaign data questions.md`
+- Owner goals: `AGENT/Docs/archive/reference/campaign_data_questions_2026-07-23.md`
 - Research scope: `AGENT/Docs/plans/campaign_data_ownership_research_handoff_2026-07-23.md`
 - Existing boundary decision: `AGENT/Docs/plans/campaign_pack_engine_boundary_plan_2026-07-15.md`
 - Economy: `scripts/autoloads/ResourceLedger.gd`,

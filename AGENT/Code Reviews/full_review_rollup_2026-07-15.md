@@ -23,7 +23,7 @@
 Pillar reports:
 
 - [`code_review_2026-07-15.md`](code_review_2026-07-15.md)
-- [`documentation_review_2026-07-15.md`](../Docs/documentation_review_2026-07-15.md)
+- [`documentation_review_2026-07-15.md`](../Docs/archive/reference/documentation_review_2026-07-15.md)
 - [`data_assets_review_2026-07-15.md`](data_assets_review_2026-07-15.md)
 - [`tests_ci_build_review_2026-07-15.md`](tests_ci_build_review_2026-07-15.md)
 - [`process_history_review_2026-07-15.md`](process_history_review_2026-07-15.md)

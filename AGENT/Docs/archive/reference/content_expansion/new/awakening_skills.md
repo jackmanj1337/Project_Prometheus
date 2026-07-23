@@ -1,3 +1,5 @@
+> **Historical** — External Awakening reference corpus; not active Project Prometheus rules or public-pack content.
+
 # Fire Emblem Awakening Technical Reference Corpus
 # Skill Encyclopedia
 

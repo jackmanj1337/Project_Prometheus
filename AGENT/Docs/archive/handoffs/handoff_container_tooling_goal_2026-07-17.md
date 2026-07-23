@@ -1,3 +1,5 @@
+> **Historical** — The container workflow was implemented and is now governed by the workspace scripts and canonical tracker.
+
 # Handoff — Container Tooling and Agent Workflow Goal
 
 **Prepared:** 2026-07-17  

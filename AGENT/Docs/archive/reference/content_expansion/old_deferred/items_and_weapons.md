@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Weapons & Items
 
 > **Weapon Triangle:** Swords beat Axes, Axes beat Lances, Lances beat Swords. Dark beats Anima, Anima beats Light, Light beats Dark. Advantage: +10 Accuracy, +2 Damage. Disadvantage: −10 Accuracy, −2 Damage.  

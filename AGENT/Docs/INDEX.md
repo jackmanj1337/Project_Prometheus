@@ -18,7 +18,6 @@
 
 ## Governance & doc-system
 
-- [`documentation_review_2026-07-15.md`](documentation_review_2026-07-15.md) — Documentation Review - 2026-07-15 — *-bearing section. These remain **Impleme*
 - [`governance/documentation_consolidation_decisions_2026-06-12.md`](governance/documentation_consolidation_decisions_2026-06-12.md) — Documentation Consolidation Decision Register — *Active - owner answers required*
 - [`governance/documentation_governance_2026-06-13.md`](governance/documentation_governance_2026-06-13.md) — Documentation Governance Standards — *Active - ratified governance for the doc*
 - [`governance/documentation_lifecycle_2026-06-13.md`](governance/documentation_lifecycle_2026-06-13.md) — Documentation File Lifecycle & Link-Migration Table — *Active — Phase 1 / Stage 1.1 deliverable*
@@ -296,13 +295,10 @@
 - [`playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md`](playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md) — v0.5.2 Playtest Results — Root-Cause Review & Fix Plan — *Triaged - headless-verified + peer-revie*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
-## Session handoffs
-
-- [`handoff_container_tooling_goal_2026-07-17.md`](handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal
-
 ## Reference / feasibility / Q&A
 
 - [`governance/branch_consolidation_inventory_2026-07-16.md`](governance/branch_consolidation_inventory_2026-07-16.md) — Branch Consolidation Inventory - 2026-07-16
+- [`governance/documentation_branch_cleanup_2026-07-23.md`](governance/documentation_branch_cleanup_2026-07-23.md) — Documentation and Branch Cleanup — 2026-07-23 — *Complete with preserved exceptions*
 - [`guides/display_and_settings_guide.md`](guides/display_and_settings_guide.md) — Display & Settings Guide
 - [`playtests/v0.2.2_review_checkbacks_2026-06-20.md`](playtests/v0.2.2_review_checkbacks_2026-06-20.md) — v0.2.2 Implementation — Review Check-backs (2026-06-20) — *Active — review during the v0.2.2 code r*
 - [`templates/requirement_evidence_matrix.md`](templates/requirement_evidence_matrix.md) — Requirement / Evidence Matrix - TRACK-ID
@@ -327,6 +323,7 @@
 - [`archive/handoffs/handoff_2026-06-20.md`](archive/handoffs/handoff_2026-06-20.md) — Implementation Handoff — v0.2.2 (+ v0.2.3 split) — 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_v0.2.3.md`](archive/handoffs/handoff_2026-06-20_v0.2.3.md) — Implementation Handoff - v0.2.3 Display Scaling & Resolution - 2026-06-20 — *Historical*
 - [`archive/handoffs/handoff_2026-06-20_web_debug.md`](archive/handoffs/handoff_2026-06-20_web_debug.md) — Implementation Handoff - Debug Web Playtest - 2026-06-20 — *Historical*
+- [`archive/handoffs/handoff_container_tooling_goal_2026-07-17.md`](archive/handoffs/handoff_container_tooling_goal_2026-07-17.md) — Handoff — Container Tooling and Agent Workflow Goal — *Historical*
 - [`archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md`](archive/handoffs/v0.4.0_triage_fix_handoff_2026-07-16.md) — v0.4.0 Triage Fix Handoff — *Historical*
 - [`archive/plans/class_skill_rebuild_plan_2026-05-21.md`](archive/plans/class_skill_rebuild_plan_2026-05-21.md) — Class & Skill System Rebuild — Plan (2026-05-21) — *Historical*
 - [`archive/plans/combat_preview_render_fix_plan_2026-06-10.md`](archive/plans/combat_preview_render_fix_plan_2026-06-10.md) — Combat Preview Render Fix Plan - 2026-06-10 — *Historical*
@@ -342,6 +339,7 @@
 - [`archive/plans/promotion_reclass_test_map_plan_2026-05-23.md`](archive/plans/promotion_reclass_test_map_plan_2026-05-23.md) — Plan — Promotion / Reclass Validation Map — *Historical*
 - [`archive/plans/unit_progression_extraction_plan_2026-06-17.md`](archive/plans/unit_progression_extraction_plan_2026-06-17.md) — Unit Progression Extraction Plan — 2026-06-17 — *Historical*
 - [`archive/playtests/manual_test_findings_analysis.md`](archive/playtests/manual_test_findings_analysis.md) — Manual Test Findings — Causes & Suggested Fixes — *Historical*
+- [`archive/playtests/play_tester_comments_2026-05.md`](archive/playtests/play_tester_comments_2026-05.md) — Historical Playtester Comments — *Historical*
 - [`archive/playtests/playtest1_findings_2026-05-18.md`](archive/playtests/playtest1_findings_2026-05-18.md) — playtest1_findings_2026-05-18.md — *Historical*
 - [`archive/playtests/playtest2_findings_2026-05-19.md`](archive/playtests/playtest2_findings_2026-05-19.md) — playtest bugs and oversight features — *Historical*
 - [`archive/playtests/playtest2_fix_plan_2026-05-19.md`](archive/playtests/playtest2_fix_plan_2026-05-19.md) — Playtest 2 — Bug & Oversight Fix Plan (2026-05-19) — *Historical*
@@ -368,11 +366,34 @@
 - [`archive/playtests/playtest_v0.1.5_retest_addendum.md`](archive/playtests/playtest_v0.1.5_retest_addendum.md) — Playtest v0.1.5 — Re-test Addendum & Changelog — *SUPERSEDED*
 - [`archive/playtests/playtest_v0.2.0_triage_plan_2026-06-19.md`](archive/playtests/playtest_v0.2.0_triage_plan_2026-06-19.md) — v0.2.0 Playtest Triage and Fix Plan — 2026-06-19 — *Historical*
 - [`archive/playtests/playtest_v0.2.1_triage_plan_2026-06-19.md`](archive/playtests/playtest_v0.2.1_triage_plan_2026-06-19.md) — v0.2.1 Playtest Triage and Fix Plan — 2026-06-19 — *Historical*
+- [`archive/reference/campaign_data_questions_2026-07-23.md`](archive/reference/campaign_data_questions_2026-07-23.md) — campaign_data_questions_2026-07-23.md — *Historical*
 - [`archive/reference/campaign_rules_firming_notes_2026-05-25.md`](archive/reference/campaign_rules_firming_notes_2026-05-25.md) — Campaign Rules Firming Notes — 2026-05-25 — *Historical*
 - [`archive/reference/code_review_prep_v0.2.1_2026-06-19.md`](archive/reference/code_review_prep_v0.2.1_2026-06-19.md) — Code Review Prep — v0.2.1 (2026-06-19) — *Historical*
+- [`archive/reference/content_expansion/new/awakening_appendices.md`](archive/reference/content_expansion/new/awakening_appendices.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_archetypes.md`](archive/reference/content_expansion/new/awakening_archetypes.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_classes_base.md`](archive/reference/content_expansion/new/awakening_classes_base.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_classes_promoted.md`](archive/reference/content_expansion/new/awakening_classes_promoted.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_classes_special.md`](archive/reference/content_expansion/new/awakening_classes_special.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_core_systems.md`](archive/reference/content_expansion/new/awakening_core_systems.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_items.md`](archive/reference/content_expansion/new/awakening_items.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_lookup_tables.md`](archive/reference/content_expansion/new/awakening_lookup_tables.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_master_index.md`](archive/reference/content_expansion/new/awakening_master_index.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_project_index.md`](archive/reference/content_expansion/new/awakening_project_index.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_skills.md`](archive/reference/content_expansion/new/awakening_skills.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_weapons_magic.md`](archive/reference/content_expansion/new/awakening_weapons_magic.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/new/awakening_weapons_physical.md`](archive/reference/content_expansion/new/awakening_weapons_physical.md) — Fire Emblem Awakening Technical Reference Corpus — *Historical*
+- [`archive/reference/content_expansion/old_deferred/awakening_classes_supplement.md`](archive/reference/content_expansion/old_deferred/awakening_classes_supplement.md) — Fire Emblem TTRPG — Awakening Classes Supplement — *Historical*
+- [`archive/reference/content_expansion/old_deferred/awakening_skills_supplement.md`](archive/reference/content_expansion/old_deferred/awakening_skills_supplement.md) — Fire Emblem TTRPG — Awakening Skills Supplement — *Historical*
+- [`archive/reference/content_expansion/old_deferred/classes.md`](archive/reference/content_expansion/old_deferred/classes.md) — Fire Emblem TTRPG — Classes — *Historical*
+- [`archive/reference/content_expansion/old_deferred/homebrew_classes_only.md`](archive/reference/content_expansion/old_deferred/homebrew_classes_only.md) — Fire Emblem TTRPG — Homebrew Classes Only — *Historical*
+- [`archive/reference/content_expansion/old_deferred/items_and_weapons.md`](archive/reference/content_expansion/old_deferred/items_and_weapons.md) — Fire Emblem TTRPG — Weapons & Items — *Historical*
+- [`archive/reference/content_expansion/old_deferred/revised_classes_and_skills.md`](archive/reference/content_expansion/old_deferred/revised_classes_and_skills.md) — Fire Emblem TTRPG — Awakening Classes Only — *Historical*
+- [`archive/reference/content_expansion/old_deferred/skills.md`](archive/reference/content_expansion/old_deferred/skills.md) — Fire Emblem TTRPG — Skills — *Historical*
 - [`archive/reference/d2_mapcursortargeting_design.md`](archive/reference/d2_mapcursortargeting_design.md) — D2 Design — Extracting `MapCursorTargeting` — *Historical*
 - [`archive/reference/d3_mapcursor_slicing_design.md`](archive/reference/d3_mapcursor_slicing_design.md) — D3 Design — Extracting `MapCursorInput` and `MapCursorSelection` — *Historical*
+- [`archive/reference/documentation_review_2026-07-15.md`](archive/reference/documentation_review_2026-07-15.md) — Documentation Review - 2026-07-15 — *Historical*
 - [`archive/reference/gdd_codebase_alignment_audit_2026-06-11.md`](archive/reference/gdd_codebase_alignment_audit_2026-06-11.md) — GDD / Codebase Alignment Audit — *Historical*
+- [`archive/reference/gdd_update_reference_2026-06-12.md`](archive/reference/gdd_update_reference_2026-06-12.md) — GDD Update Reference — Full Review Consolidation (2026-06-12) — *Historical*
 - [`archive/reference/pair_up_combat_refactor_answers_2026-05-23.md`](archive/reference/pair_up_combat_refactor_answers_2026-05-23.md) — Pair Up Combat Refactor — Answers (2026-05-23) — *Historical*
 - [`archive/reference/pair_up_combat_refactor_questions_2026-05-23.md`](archive/reference/pair_up_combat_refactor_questions_2026-05-23.md) — Pair Up Combat Refactor — Next Session Questions — *Historical*
 - [`archive/reference/second_player_control_feasibility.md`](archive/reference/second_player_control_feasibility.md) — Feasibility Review — Four-Faction Armies + Hotseat Manual Control — *Historical*

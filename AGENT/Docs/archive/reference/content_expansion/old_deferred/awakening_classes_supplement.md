@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Awakening Classes Supplement
 
 > This supplement adds classes from *Fire Emblem: Awakening* not present in the base handbook.  

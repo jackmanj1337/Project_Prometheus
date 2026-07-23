@@ -6,7 +6,7 @@
 > the gap analysis rationale. Do not use as a live action list.
 
 ## Purpose
-Assess the new Awakening content expansion in `AGENT/GDD/Content Expansion/New_Content_Expansion/`
+Assess the archived Awakening content expansion in `AGENT/Docs/archive/reference/content_expansion/new/`
 against the current game implementation and identify the work needed to make the
 project compatible with the systems described there.
 
@@ -23,15 +23,15 @@ project will accept data that it cannot represent correctly, and the resulting
 behavior will be quietly wrong rather than loudly failing.
 
 ## Source Material Reviewed
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_project_index.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_master_index.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_core_systems.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_classes_base.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_classes_promoted.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_classes_special.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_skills.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_items.md`
-- `AGENT/GDD/Content Expansion/New_Content_Expansion/awakening_appendices.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_project_index.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_master_index.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_core_systems.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_classes_base.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_classes_promoted.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_classes_special.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_skills.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_items.md`
+- `AGENT/Docs/archive/reference/content_expansion/new/awakening_appendices.md`
 
 ## Current Implementation Baseline
 - Class data is modeled in `scripts/resources/ClassData.gd`.

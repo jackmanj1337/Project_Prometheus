@@ -227,7 +227,8 @@ Where the project's history lives, so an audit can reconstruct what happened:
 - **Decisions** — `AGENT/Docs/decision_index.md` (one row per decision ID) plus
   the individual `decision_record_*` / `*_decisions_*` files.
 - **Playtests** — `AGENT/Docs/playtest*_findings_*.md`, `playtest_*fix_plan_*.md`,
-  `playtest_checklist_*.md`, and `AGENT/GDD/Play_tester_comments.md`.
+  `playtest_checklist_*.md`, and
+  `AGENT/Docs/archive/playtests/play_tester_comments_2026-05.md`.
 - **Governance** — `AGENT/Docs/documentation_governance_2026-06-13.md` and
   `documentation_lifecycle_2026-06-13.md` (the rubric Pillar 2 grades against).
 - **Git** — `git log`, `git blame`, `git shortlog` for granularity, message

@@ -36,7 +36,8 @@ When documents disagree, use this order:
 5. **Active design sources and implementation plans** for supporting detail.
 6. **Session notes, reviews, and archived documents** as historical evidence, not
    active design or schedule authority.
-7. **The Awakening corpus** (`Content Expansion/New_Content_Expansion/`) as external
+7. **The archived Awakening corpus**
+   (`../Docs/archive/reference/content_expansion/new/`) as external
    reference, binding only where an adoption-matrix entry has adopted it.
 
 > This order is written from **DOC-001**. The earlier D-C direction (corpus

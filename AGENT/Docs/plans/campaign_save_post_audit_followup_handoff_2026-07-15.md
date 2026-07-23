@@ -18,7 +18,7 @@ Read first:
 
 - `AGENT/Code Reviews/full_review_rollup_2026-07-15.md`
 - `AGENT/Code Reviews/code_review_2026-07-15.md`
-- `AGENT/Docs/documentation_review_2026-07-15.md`
+- `AGENT/Docs/archive/reference/documentation_review_2026-07-15.md`
 - `AGENT/Code Reviews/tests_ci_build_review_2026-07-15.md`
 - `AGENT/Code Reviews/process_history_review_2026-07-15.md`
 - `AGENT/Session Notes/2026-07-15ac.md`

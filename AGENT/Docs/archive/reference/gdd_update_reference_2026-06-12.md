@@ -1,6 +1,6 @@
 # GDD Update Reference — Full Review Consolidation (2026-06-12)
 
-> **ARCHIVED (Stage 5.2d, 2026-06-13 / DOC-010).** All dispositions from this
+> **Historical** (Stage 5.2d, 2026-06-13 / DOC-010). All dispositions from this
 > document have been imported into `decision_record_2026-06-13_june_reference_import.md`
 > and applied to GDD_01–GDD_08. This file is retained for provenance; do not use it
 > as a live action list. The companion `rng_determinism_design_2026-06-11.md` is in

@@ -1,3 +1,5 @@
+> **Historical** — Owner answers absorbed into the campaign data-ownership research findings and implementation plans on 2026-07-23.
+
 Questions per item — let’s agree the goal before I write plans
 
   

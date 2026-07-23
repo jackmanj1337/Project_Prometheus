@@ -1,3 +1,5 @@
+> **Historical** — Point-in-time documentation review; findings were routed into later governance and tracker work.
+
 # Documentation Review - 2026-07-15
 
 > **Status:** Active - documentation review report

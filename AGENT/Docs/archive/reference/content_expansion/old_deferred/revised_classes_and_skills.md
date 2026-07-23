@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Awakening Classes Only
 
 This document contains official Fire Emblem: Awakening classes and promotions only.
@@ -1483,4 +1485,3 @@ If Data is missing, try pulling from https://fireemblem.fandom.com/wiki/List_of_
 GM's discretion — any non-mounted, non-magical base class from the handbook, reflecting the Villager's potential to become anything.
 
 ---
-

@@ -1,3 +1,5 @@
+> **Historical** — Superseded deferred content reference retained for provenance only.
+
 # Fire Emblem TTRPG — Homebrew Classes Only
 
 This document contains homebrew classes and promotions separated from official Awakening content.

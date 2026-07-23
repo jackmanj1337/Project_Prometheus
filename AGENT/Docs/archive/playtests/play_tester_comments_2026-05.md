@@ -1,3 +1,5 @@
+> **Historical** — Raw May 2026 playtest evidence; triaged into the manual test playbook and dated playtest plans.
+
 # Historical Playtester Comments
 
 These are the raw May 2026 notes retained as evidence. They have been triaged
@@ -18,4 +20,3 @@ Map 900/Debug/Force Level-up/Staff use does not force level-up
 Map 950/Class/Reclass/Reclass options run past botom of the screen with way to view further options
 
 please list all expected knwoladge such as expected rosters in the manual tasks document
-

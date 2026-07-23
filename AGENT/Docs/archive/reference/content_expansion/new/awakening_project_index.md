@@ -1,10 +1,12 @@
 
+> **Historical** — External Awakening reference corpus; not active Project Prometheus rules or public-pack content.
+
 # Fire Emblem Awakening Technical Reference Corpus
 **Project Index / Corpus Specification**
 
 > **Project authority notice:** This corpus is external Awakening reference
 > material. It does not override the numbered Project Prometheus GDD or dated
-> decisions. See [`GDD_Adoption_Matrix.md`](../../GDD_Adoption_Matrix.md).
+> decisions. See [`GDD_Adoption_Matrix.md`](../../../../../GDD/GDD_Adoption_Matrix.md).
 
 **Corpus ID:** `fea-tech-corpus`  
 **Game:** Fire Emblem Awakening  

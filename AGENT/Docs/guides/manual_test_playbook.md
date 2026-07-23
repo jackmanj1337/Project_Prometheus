@@ -395,7 +395,8 @@ flows verified only by headless tests, not by actual in-map play.
 
 #### Merged Open Playtest Triage
 
-The items below merge the latest notes from `Play_tester_comments.md` with the
+The items below merge the archived notes from
+`../archive/playtests/play_tester_comments_2026-05.md` with the
 earlier playtest findings and the existing roadmap backlog. Duplicates were
 collapsed into a single active entry, and already-shipped items were left in
 the closed list above.

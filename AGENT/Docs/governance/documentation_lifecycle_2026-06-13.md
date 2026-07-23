@@ -36,7 +36,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 > line numbers 20/22/24/25/36/37) are what each file's deletion removes. README and the
 > other live refs in this table are unchanged.
 
-> `Play_tester_comments.md` (`AGENT/GDD`) — Historical raw notes. **Action: keep**
+> `play_tester_comments_2026-05.md` (`AGENT/Docs/archive/playtests`) — Historical raw notes. **Action: keep**
 > (not a contract). Optional: relocate to `AGENT/Docs` with the playbook later; no live
 > dependency forces a move, so out of Stage 1 scope.
 
@@ -74,7 +74,7 @@ Actions: **keep** · **rewrite** (keep path, rewrite content in a later stage) �
 
 ---
 
-## D. Awakening corpus reference (`AGENT/GDD/Content Expansion/`)
+## D. Awakening corpus reference (`AGENT/Docs/archive/reference/content_expansion/`)
 
 | Group | Status | Action |
 |---|---|---|
