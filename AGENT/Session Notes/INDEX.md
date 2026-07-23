@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-23c](2026-07-23c.md) — Organized loose documentation, retired non-unique branches, and isolated four branch-history decisions.
 - [2026-07-23b](2026-07-23b.md) — Planned autonomous zero-content prerequisite clearance and isolated the genuinely required owner gates.
 - [2026-07-23a](2026-07-23a.md) — Completed five campaign data-ownership implementation plans and their dependency-aware tracker slices.
 - [2026-07-23](2026-07-23.md) — Completed campaign data-ownership research, recorded ten approved decisions, and handed off five implementation plans for the next session.
