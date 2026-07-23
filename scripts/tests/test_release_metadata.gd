@@ -7,7 +7,7 @@ func _init() -> void:
 	print("=== Release Metadata Test ===")
 	var passed := 0
 	var failed := 0
-	var expected_version := "0.5.4"
+	var expected_version := "0.5.5"
 
 	var config := ConfigFile.new()
 	var load_error := config.load("res://export_presets.cfg")
