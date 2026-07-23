@@ -1,7 +1,8 @@
 ---
 Type: research findings
-Status: Planned — research complete; owner answers required before implementation planning
+Status: Applied — research recommendations approved; ready for implementation planning
 Last verified: 2026-07-23
+Owner approval: 2026-07-23 — all ten recommendations approved
 Research handoff: campaign_data_ownership_research_handoff_2026-07-23.md
 Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHIP-2026-07-23,
   RESEARCH-ENGINE-ZERO-CONTENT-2026-07-23, RESEARCH-RULE-PROFILE-CONTRACT-2026-07-23
@@ -290,46 +291,45 @@ documents with new/local ids. The first slice must use only existing
 profile resolution feeds only the campaign-default layer and never bypasses the
 existing precedence order.
 
-## Questions requiring answers before an implementation plan
+## Owner-approved decisions
 
-These are the remaining product decisions. Recommendations are included so they
-can be answered without another discovery pass.
+On **2026-07-23**, the owner approved all ten research recommendations:
 
-1. **Meaning of “pack owns the save”:** approve the interpretation that saves
-   remain engine-written user state, namespaced/interpreted by pack identity, and
-   never become writable files inside an installable pack? **Recommend yes.**
-2. **Missing pack behavior:** may a portable save be imported but remain
-   unplayable until its exact/compatible pack is installed, or must portable save
-   export embed definitions? **Recommend import-but-disable; do not embed.**
-3. **Existing-run updates:** when a pack/profile changes, should an existing run
-   keep its resolved rule/default snapshot unless an explicit migration changes
-   it? **Recommend yes.**
-4. **Migration vocabulary:** is the v1 migration set limited to declarative,
-   engine-registered transforms, with unsupported migrations rejected rather
-   than allowing pack scripts? **Recommend yes.** The exact initial operations
-   can then be scoped during planning from real migrations.
-5. **Pack replacement detection:** require a deterministic content fingerprint
-   in addition to package id/version so replacing bytes under the same version
-   is detected? **Recommend yes.**
-6. **Full-pack backup shape:** approve a backup envelope containing a clean pack
-   plus separate user-state files, while keeping installable pack ZIPs clean?
-   **Recommend yes.**
-7. **Wallet persistence:** for `shop` and `arena` owners, must each definition
-   declare `campaign`, `map`, or `transaction` lifetime? **Recommend yes; no
-   implicit lifetime.**
-8. **Rewind charges:** keep the dedicated non-rewindable timeline budget for v1,
-   and revisit a shared resource API only after checkpoint policy exists?
-   **Recommend yes.**
-9. **Pack completeness:** must every playable pack be self-contained for all
-   referenced content families in v1, with no pack dependencies or hidden base
-   inheritance? **Recommend yes.**
-10. **Formula scope:** approve separate allow-listed formula registries rather
-    than one general expression language, starting only with families already
-    represented by selectors/limited grammar? **Recommend yes.**
+1. Saves remain engine-written user state, namespaced and interpreted by pack
+   identity; they never become writable files inside an installable pack.
+2. A portable save does not embed pack definitions. It may be imported while its
+   pack is missing, but play remains disabled until a compatible pack is installed.
+3. Existing runs retain their resolved rule/default snapshot unless an explicit
+   migration changes it.
+4. Pack migrations use declarative, engine-registered transforms. Unsupported
+   migrations are rejected; pack scripts are not allowed.
+5. Saves record a deterministic content fingerprint in addition to package id
+   and version so changed bytes under the same version are detected.
+6. A full backup contains a clean pack plus separately stored user state;
+   installable pack ZIPs remain clean.
+7. Shop and arena wallets explicitly declare `campaign`, `map`, or `transaction`
+   lifetime. There is no implicit lifetime.
+8. Rewind charges remain a dedicated, non-rewindable timeline budget for v1. A
+   shared resource API is reconsidered only after checkpoint policy exists.
+9. Every playable v1 pack is self-contained for all referenced content families,
+   with no pack dependencies or hidden base inheritance.
+10. Formulas use separate allow-listed registries rather than one general
+    expression language, initially covering only existing selectors and limited
+    grammars.
 
-No implementation plan should be written until these ten answers are recorded.
-Answers 1–6 control the save/package contract; 7–8 control economy state; and
-9–10 control the zero-content migration boundary.
+These approvals clear the research decision gate. Implementation plans may now
+be written, while remaining faithful to decisions 1–6 for save/package work,
+7–8 for economy work, and 9–10 for the zero-content boundary.
+
+## Expected player and author experience
+
+| Planned change | What a player will see | What an author will see |
+|---|---|---|
+| Multi-owner, multi-resource economy | Gold, bonus EXP, and training points belong to the correct player/faction or service. Hotseat factions and future AI can maintain and spend separate balances. Retry/Rewind restores ordinary balances together, while spending a rewind charge still has a real cost. | Wallet owners use stable `owner_ref` values (`faction`, `shop`, `campaign`, `unit`, or `arena`) and an explicit lifetime. Rewards and costs bind to an owner instead of assuming one global player purse. |
+| Pack-associated saves and migrations | Saves remain portable files. A missing or incompatible pack produces a clear install/compatibility requirement instead of broken state. Existing campaigns do not silently change when pack defaults change. Clean packs and full backups are distinct exports. | Immutable definitions stay in one pack location; saves store mutable run state and durable ids. Authors publish versions, fingerprints, and declarative migrations without writing scripts or duplicating definitions in saves. |
+| Zero-content engine and self-contained packs | With no active content, the game opens campaign-pack selection. Each installed pack is a complete playable experience, and invalid packs fail before starting a run. | The base game uses the same pack format as third-party campaigns. Classes, items, maps, balance numbers, and supported formula selections live in packs; executable algorithms remain reviewed engine primitives. |
+| Allow-listed formula registries | Packs can produce different combat, range, cost, growth, or AI behavior while preserving deterministic saves and predictable errors. | Authors select documented formula ids and parameters for each formula family. Supported variation needs no code, while unknown combinations fail validation. |
+| Pack-authored rule profiles | New Campaign can offer coherent presets such as Standard or Ironman. Once a run starts, its resolved rules remain stable unless explicitly migrated. | A profile is reusable pack JSON using existing `CampaignRules` fields. Campaigns reference it by id; authors may import/copy it and refine campaign defaults without changing mandate or per-map override precedence. |
 
 ## References inspected
 
