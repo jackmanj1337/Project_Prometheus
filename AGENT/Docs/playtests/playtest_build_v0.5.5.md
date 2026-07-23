@@ -21,17 +21,20 @@ tests but cannot validate live Windows visuals or real controller input.
   size `4271` bytes, SHA-256
   `5b5ae637ff782b0b134355bbc409971e590cd1c09e3119a5303a96b3e330123e`)
 - Source branch: `agent/playtest-release-v0.5.4-fixes`
-- Source commit (built): `<FILL_COMMIT>`
-- Source tree: `<FILL_TREE>`
+- Source commit (built): `6651481c37bba752c1f80cbed63eb7778f122f9e`
+- Source tree: `086ea60b69573c5ff7dc2940ca2e40a94d96e3e8`
 - Baked version: `0.5.5`
-- Baked commit: `<FILL_SHORT_COMMIT>`
-- Baked UTC timestamp: `<FILL_TS>`
+- Baked commit: `6651481`
+- Baked UTC timestamp: `2026-07-23T00:56:21Z`
 - Godot version: `4.6.3.stable.official.7d41c59c4`
 - Preset: `Project Prometheus v0.5.5`
 - Platform: Windows Desktop x86-64, embedded PCK, **debug template**
-- Executable size: `<FILL_SIZE>` bytes
-- Executable SHA-256: `<FILL_SHA>`
-- Export result: `<FILL_EXPORT_RESULT>`
+  (`PE32+ executable (GUI) x86-64 (stripped to external PDB)`, 12 sections)
+- Executable size: `102184552` bytes
+- Executable SHA-256: `f1041663c03afd5a0ee0349fd99171cb63cfb7a5ce6ee74c903a434ad1c6f200`
+- Export result: PASS - `export_smoke.sh` wrapping
+  `godot --headless --export-debug "Project Prometheus v0.5.5"` returned exit 0 and
+  produced the embedded-PCK executable (`"commit": "6651481"` verified in the exe).
 - This build record's finalization commit only fills in the measured artifact
   values above; the executable's baked stamp is the build commit.
 - Automated tests: PASS - all suites green at the build commit (`bash run_tests.sh`)

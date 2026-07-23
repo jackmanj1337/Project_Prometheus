@@ -48,11 +48,11 @@ a suspended battle is continued).
 - Executable: `Project_Prometheus_v0.5.5_debug.exe` (the Main Menu reads `v0.5.5`;
   the authoritative version is the log's BUILD STAMP)
 - Campaign fixture: `two-map-skirmish-1.0.zip`
-- Expected executable size: `<FILL_SIZE>` bytes
-- Expected executable SHA-256: `<FILL_SHA>`
+- Expected executable size: `102184552` bytes
+- Expected executable SHA-256: `f1041663c03afd5a0ee0349fd99171cb63cfb7a5ce6ee74c903a434ad1c6f200`
 - Expected fixture size: `4271` bytes
 - Expected fixture SHA-256: `5b5ae637ff782b0b134355bbc409971e590cd1c09e3119a5303a96b3e330123e`
-- Expected BUILD STAMP: version `0.5.5`, commit `<FILL_SHORT_COMMIT>`, built `<FILL_TS>`
+- Expected BUILD STAMP: version `0.5.5`, commit `6651481`, built `2026-07-23T00:56:21Z`
 
 PowerShell:
 
