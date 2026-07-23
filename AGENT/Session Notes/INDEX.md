@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-23f](2026-07-23f.md) — Completed campaign-library comparative research, current-state audit, wireflow, toolkit, and stable-id owner question packet.
 - [2026-07-23e](2026-07-23e.md) — Registered seven UX planning topics and prepared the campaign-library comparative-research handoff.
 - [2026-07-23d](2026-07-23d.md) — Archived and retired the Project-local coordination registry after canonical migration verification.
 - [2026-07-23c](2026-07-23c.md) — Organized loose documentation, retired non-unique branches, and isolated four branch-history decisions.
