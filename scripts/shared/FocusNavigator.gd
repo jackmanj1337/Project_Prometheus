@@ -7,6 +7,12 @@ var root: Control
 var scroll: ScrollContainer
 var repeat := MenuRepeatPolicy.new("", "", "ui_up", "ui_down")
 
+# V031-GP-02 parity with ModalScreen: true while an embedded popup Window (an
+# OptionButton dropdown, context menu, …) was capturing input last frame. Without
+# this gate the process-global Input poll steps focus on the screen *behind* an
+# open dropdown, the exact v0.3.1 regression ModalScreen already fixed.
+var _capture_ui_was_active: bool = false
+
 
 func _init(owner: Control, focus_scroll: ScrollContainer = null) -> void:
 	root = owner
@@ -17,16 +23,47 @@ func clear() -> void:
 	repeat.clear()
 
 
+# True while direction events must be suppressed so the engine's built-in focus
+# navigation does not ALSO move focus. Callers wire this into `_input` (which runs
+# BEFORE the GUI focus-nav phase); wiring it into `_unhandled_input` is too late —
+# the engine has already stepped focus and consumed the event by then.
 func consume_direction(event: InputEvent) -> bool:
+	# Do not suppress while an embedded popup is open: its own list needs ui_up/
+	# ui_down to navigate (matches ModalScreen._input's _capture_ui_active guard).
+	if _capture_ui_active():
+		return false
 	return event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down")
 
 
 func poll(delta: float) -> void:
 	if root == null or not root.is_visible_in_tree():
 		return
+	# Skip while an embedded popup owns the event stream; re-latch to neutral the
+	# frame it closes so a direction still held from inside it never leaks a step.
+	if _capture_ui_active():
+		_capture_ui_was_active = true
+		return
+	if _capture_ui_was_active:
+		_capture_ui_was_active = false
+		repeat.clear()
+		return
 	var step := repeat.poll(delta)
 	if step.y != 0:
 		move_focus(step.y)
+
+
+# Any embedded subwindow visible in this owner's viewport (single-window game, so
+# an open dropdown always registers here). Mirrors ModalScreen._capture_ui_active.
+func _capture_ui_active() -> bool:
+	if root == null:
+		return false
+	var vp := root.get_viewport()
+	if vp == null:
+		return false
+	for w in vp.get_embedded_subwindows():
+		if w.visible:
+			return true
+	return false
 
 
 func grab_default() -> void:

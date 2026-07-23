@@ -42,11 +42,16 @@ func open(options: Array[Dictionary]) -> void:
 		_cancel.grab_focus()
 
 
+# Suppress the directional step in _input (BEFORE the GUI focus-nav phase) so the
+# engine does not also move focus; _process then drives the single tuned repeat.
+func _input(event: InputEvent) -> void:
+	if visible and _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("cancel"):
 		_close()
-		get_viewport().set_input_as_handled()
-	elif visible and _focus_nav.consume_direction(event):
 		get_viewport().set_input_as_handled()
 
 

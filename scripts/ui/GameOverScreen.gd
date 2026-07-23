@@ -173,13 +173,21 @@ func _delete_mid_map_slot_after_resolution() -> void:
 		save_manager.call("delete_slot", "resume_battle")
 
 
-func _unhandled_input(event: InputEvent) -> void:
+# Suppress the directional step in _input (BEFORE the GUI focus-nav phase) so the
+# engine does not also move focus; _process then drives the single tuned repeat.
+# Skipped while the Load Game child owns the surface, matching _process's gate.
+func _input(event: InputEvent) -> void:
+	if not visible or _load_game_screen.visible:
+		return
+	if _focus_nav.consume_direction(event):
+		get_viewport().set_input_as_handled()
+
+
+func _unhandled_input(_event: InputEvent) -> void:
 	if not visible:
 		return
 	if _load_game_screen.visible:
 		return
-	if _focus_nav.consume_direction(event):
-		get_viewport().set_input_as_handled()
 	# Block all input while the overlay is up
 	get_viewport().set_input_as_handled()
 
