@@ -4,7 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
-- [2026-07-23](2026-07-23.md) — Completed the four campaign data-ownership research threads; recorded referenced findings and ten owner questions that gate implementation planning.
+- [2026-07-23](2026-07-23.md) — Completed campaign data-ownership research; owner approved all ten recommendations, clearing implementation planning.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
 - [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
 - [2026-07-21](2026-07-21.md) — Triaged the v0.5.2 return: headless-verified + Codex-reviewed root causes for nine issues, locked decisions, and scheduled v0.5.3 fixes; filed the triage doc, fix plan, and evidence.
