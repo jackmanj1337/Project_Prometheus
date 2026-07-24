@@ -1,6 +1,6 @@
 ---
 Type: design research
-Status: Active - research in progress
+Status: Accepted - architecture defaults recorded; web-export experiment tracked separately
 Last verified: 2026-07-24
 Tracker: PLAN-UIUX-REUSE-PASS-2026-07-24
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -210,34 +210,37 @@ define domain schemas. The Godot-native version of this proof needs no new-tool 
 | Stay Godot-native by default | Existing inspection preview and headless real-engine tests | Godot exactness vs browser translation; Playwright strongest fallback capabilities | Recommendation |
 | Prototype must not become a second UI authority | Production scenes and handoff boundary | Storybook/HTML necessarily create parallel composition | Constraint |
 
-## Owner questions (draft decision tree)
+## Owner decisions
 
-Questions will be retained only where preference, risk, or ongoing cost remains after
-external evidence. Stable ids are reserved now so live notes do not churn.
+On 2026-07-24 the owner accepted the recommended defaults for `UI-ARCH-01` through
+`UI-ARCH-06`. These are now the structural direction for later planning and
+implementation, subject to measured layout thresholds and live controller/visual
+validation. `UI-TOOL-01` was superseded by the owner-requested actual-web-export
+Playwright experiment, tracked as `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`.
 
 ### Foundation
 
-#### UI-ARCH-01 — What state boundary should reusable record screens own? (draft)
+#### UI-ARCH-01 — Reusable record-screen state boundary — Accepted-default
 
 - Why it matters: stable selection, filtering, refresh, and responsive collapse need
   one coherent contract, but campaign/data objects remain unsettled.
 - Current evidence: current screens locally construct rows and bind directly to
   managers; accepted Campaign Library decisions require the same interaction shape
   across Campaign → Run → Save and later inventory-like surfaces.
-- Provisional recommendation: the reusable layer owns presentation state keyed by an
+- Decision: the reusable layer owns presentation state keyed by an
   opaque stable record id; domain managers continue to own records and mutations.
   Use callbacks/signals for queries and actions rather than embedding campaign schema.
 - Default if deferred: build no shared domain model; document the presentation contract
   only.
 - Dependencies/defer: do not decide catalogue, persistence, or save identity schemas.
 
-#### UI-ARCH-02 — Should wide and narrow layouts be one adaptive host or separate scenes? (draft)
+#### UI-ARCH-02 — One controller with wide/narrow compositions — Accepted-default
 
 - Why it matters: duplicated scenes can drift in action availability, focus, and state;
   one deeply adaptive scene can become difficult to test.
 - Current evidence: CL-NAV-01 already requires wide master-detail and narrow sequential
   presentation; Menu Scale can force narrow behavior even at a nominally wide viewport.
-- Provisional recommendation: one presentation controller/state model with two small
+- Decision: one presentation controller/state model with two small
   layout compositions selected by available content width; preserve selected record and
   focused region across transition.
 - Default if deferred: treat sequential navigation as authoritative and enhance to two
@@ -247,14 +250,14 @@ external evidence. Stable ids are reserved now so live notes do not churn.
 
 ### Input and actions
 
-#### UI-ARCH-03 — When should record screens use native focus versus SelectionCursor? (draft)
+#### UI-ARCH-03 — Native focus versus SelectionCursor — Accepted-default
 
-- Provisional recommendation: native Control focus owns ordinary GUI controls and
+- Decision: native Control focus owns ordinary GUI controls and
   action lists; use `SelectionCursor` only for custom-rendered/spatial collections where
   Control focus cannot express selection. In both cases selection remains stable-id state.
 - Default if deferred: native focus for the reusable record-list layer.
 
-#### UI-ARCH-04 — Where do primary and secondary actions live? (draft)
+#### UI-ARCH-04 — Primary and secondary action placement — Accepted-default
 
 - Why it matters: a permanent command strip is fast but crowds small/high-scale layouts;
   a popup hides discoverability and creates another modal layer.
@@ -262,13 +265,13 @@ external evidence. Stable ids are reserved now so live notes do not churn.
   uses a permanent bottom command strip for frequent couch actions.
 - Options: all persistent in details; permanent primary plus contextual secondary;
   action-menu-only.
-- Recommendation: one or two persistent primary actions in details, followed by a
+- Decision: one or two persistent primary actions in details, followed by a
   labelled More Actions list for secondary/destructive commands. Keep selection in the
   list while focus moves through actions. Confirm only consequence-heavy mutations.
 - Default if deferred: persistent primary + contextual secondary.
 - Dependencies/defer: exact commands remain domain-owned; no campaign action enum.
 
-#### UI-ARCH-05 — How should region transitions work on controller? (draft)
+#### UI-ARCH-05 — Explicit controller region transitions — Accepted-default
 
 - Why it matters: implicit geometric focus can become unpredictable when panes collapse,
   filters appear, or buttons enable/disable.
@@ -277,12 +280,12 @@ external evidence. Stable ids are reserved now so live notes do not churn.
   vertical traversal rather than a reusable region graph.
 - Options: geometry-only; explicit directional neighbors; explicit region command plus
   local directional navigation.
-- Recommendation: explicit focus neighbors within stable layouts plus a consistent
+- Decision: explicit focus neighbors within stable layouts plus a consistent
   region transition (confirm/right into details, cancel/left back to list). Shoulder
   shortcuts are reserved for stable high-frequency sibling views, not arbitrary actions.
 - Default if deferred: sequential screen behavior is authoritative; wide mode mirrors it.
 
-#### UI-ARCH-06 — What is the HUD-layout-editor controller scheme? (draft)
+#### UI-ARCH-06 — Direct-mode HUD-layout-editor controller scheme — Accepted-default
 
 - Why it matters: the current editor is mouse-drag driven and swallows every non-mouse
   event except cancel. Headless tests cover open/reset/save/cancel but not controller
@@ -291,7 +294,7 @@ external evidence. Stable ids are reserved now so live notes do not churn.
   reset, Done, and Cancel snapshot restoration. The missing work is an input/state model,
   not new persistence.
 - Options: virtual pointer; direct panel-cycle/edit mode; grid/snap palette.
-- Recommendation: direct mode. Enter editor → focus toolbar; Choose Panel opens a
+- Decision: direct mode. Enter editor → focus toolbar; Choose Panel opens a
   controller-selectable panel list/cycle; confirm enters Move; d-pad moves by a small
   step and held input repeats; shoulder buttons scale; a modifier or alternate prompt
   offers coarse movement; confirm exits Move; Reset is confirm-gated; Done persists;
@@ -303,9 +306,9 @@ external evidence. Stable ids are reserved now so live notes do not churn.
 
 ### Research tooling
 
-#### UI-TOOL-01 — Is a non-Godot disposable layout prototype worth an approved proof of concept? (draft)
+#### UI-TOOL-01 — Disposable prototype choice — Superseded
 
-- Options: remain Godot-native; approve static HTML/CSS + pinned Playwright proof;
+- Original options: remain Godot-native; approve static HTML/CSS + pinned Playwright proof;
   adopt a component-preview system.
 - Recommendation: remain Godot-native for the first proof. Approve the static-browser
   fallback only if the Godot fixture proves materially slower for reflow/focus evidence.
@@ -315,7 +318,7 @@ external evidence. Stable ids are reserved now so live notes do not churn.
 - Ongoing-cost dependency: any Playwright proof requires owner approval before its
   runtime/browser download and a pinned dependency policy.
 
-**Owner follow-up, 2026-07-24:** add a bounded Playwright experiment against the
+**Superseding owner decision, 2026-07-24:** add a bounded Playwright experiment against the
 actual Godot web export to the pass. This authorizes investigation and experiment
 planning; installing Playwright/browser binaries remains a separate explicit approval
 gate. The tracked child is `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`.
@@ -341,15 +344,11 @@ absent from production exports. Success means a smallest repeatable flow coverin
 → record navigation → details/actions → confirmation/cancel at wide/narrow and 200%
 stress, with a clear adopt/decline recommendation and ongoing dependency cost.
 
-## Proposed owner walkthrough order
+## Recorded walkthrough order
 
-1. UI-ARCH-01: neutral presentation-state boundary.
-2. UI-ARCH-03 and UI-ARCH-05: selection/focus ownership and region transitions.
-3. UI-ARCH-04: primary versus secondary action placement.
-4. UI-ARCH-02: adaptive-host composition and authoritative sequential behavior.
-5. UI-ARCH-06: HUD editor's controller mode and live-validation details.
-6. UI-TOOL-01: review the now-tracked Godot-web-export Playwright experiment boundary
-   and decide whether to approve the pinned tooling/browser installation needed to run it.
+The owner accepted the architecture defaults in the proposed order. The only remaining
+tooling gate is execution of `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`, including explicit
+approval before installing its pinned tooling/browser dependency.
 
 ## Explicit deferrals
 
