@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-24f](2026-07-24f.md) — Archived and rejected the v0.5.5 return; traced package-save load ordering, shared focus-scroll math, and deferred trace failures; recorded UX decisions and the missing branching fixture.
 - [2026-07-23](2026-07-23.md) — Reviewed the v0.5.4 fixes, corrected the directional-input stage on Results/Defeat/Rewind (double-step) and added FocusNavigator's popup gate, then cut the v0.5.5 controller-first build.
 - [2026-07-22c](2026-07-22c.md) — Reviewed v0.5.4, fixed controller/Rewind/HUD editor defects, and added campaign-authored Results/Defeat actions with separate Save and Quit.
 - [2026-07-22b](2026-07-22b.md) — Implemented the v0.5.3 playtest fix set: resume seam (V053-01/-02), between-map heal (V053-03), per-campaign save budget (V053-04), HUD-editor input gate + toolbar hardening (V053-05/-06), plus V053-08/-09.
