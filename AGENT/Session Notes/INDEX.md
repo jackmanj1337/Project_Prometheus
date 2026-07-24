@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-24c](2026-07-24c.md) — Owner design discussion: resolved campaign-library Branch G (missing/incompatible content — orphaned saves inline-disabled + Missing-content badge with Import/Inspect/Export/Delete repair, no filter; 5 stable failure categories; layered override policy confirms Branch D; summary + copyable redacted diagnostic report).
 - [2026-07-24b](2026-07-24b.md) — Owner design discussion: resolved campaign-library Branch F (runs & saves detail — visible saves = manual + autosave + suspend/Resume + status records with rewind hidden, read data-driven from save_slot_classes/autosave_rules; rename run + manual-save labels; lean v1 collapse + newest-first, search/archive backlogged; actions Resume/Inspect/Rename/Export/Delete).
 - [2026-07-24a](2026-07-24a.md) — Owner design discussion: resolved campaign-library Branch E (launch = details-with-Continue/New-Run, source-labelled rule controls, validate-before-commit, persist last-campaign + sort/filter); linked the New Run contract into IMPL-RULE-PROFILES.
 - [2026-07-24](2026-07-24.md) — Owner design discussion: resolved campaign-library Branches A–D (object model, library shape, import architecture, install lifecycle); connected the status record to existing code; recorded decisions doc.
