@@ -16,6 +16,7 @@ const StatRegistry = preload("res://scripts/core/StatRegistry.gd")
 const CampaignTier2RuntimeAdapter = preload(
 	"res://scripts/resources/CampaignTier2RuntimeAdapter.gd"
 )
+const CampaignPackRegistry = preload("res://scripts/resources/CampaignPackRegistry.gd")
 const DEFAULT_CONTENT_SOURCE := "res://data"
 # Pair Up bonus table lives with PairUpBonusResolver at runtime, but its stat-name
 # references ([STM-5]) are validated here at boot alongside the other content so a
@@ -167,6 +168,21 @@ func active_package_identity() -> Dictionary:
 		"package_version": _active_package_version,
 		"path": _active_package_path,
 	}
+
+
+# Selects the content catalogue named by durable save identity. Paths never come
+# from save data: installed packages resolve through the service-owned root.
+func select_saved_campaign_source(package_id: String, package_version: String) -> bool:
+	if package_id.is_empty() != package_version.is_empty():
+		push_error("DataManager: saved campaign package identity is incomplete")
+		return false
+	if package_id.is_empty():
+		select_campaign_source(DEFAULT_CONTENT_SOURCE)
+		return true
+	var path := CampaignPackRegistry.installed_path(
+		CampaignPackRegistry.DEFAULT_STORAGE_ROOT, package_id, package_version
+	)
+	return select_tier2_campaign_source(path, package_id, package_version)
 
 
 func resolve_map_data(source_id: String) -> MapData:

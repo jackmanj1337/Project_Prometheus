@@ -11,7 +11,6 @@ const SaveDataScript = preload("res://scripts/save/SaveData.gd")
 const CampaignRulesScript = preload("res://scripts/resources/CampaignRules.gd")
 const MutableCampaignStateScript = preload("res://scripts/resources/MutableCampaignState.gd")
 const MapLedgerScript = preload("res://scripts/save/MapLedger.gd")
-const CampaignPackRegistryScript = preload("res://scripts/resources/CampaignPackRegistry.gd")
 
 enum Phase { PLAYER, ENEMY }
 
@@ -1133,27 +1132,16 @@ func _activate_saved_campaign_source(campaign: Dictionary) -> bool:
 	if dm == null:
 		push_error("GameState: DataManager is unavailable for campaign source restore")
 		return false
-	var package_id := String(campaign.get("package_id", ""))
-	var package_version := String(campaign.get("package_version", ""))
-	if package_id.is_empty() != package_version.is_empty():
-		push_error("GameState: campaign save package identity is incomplete")
+	if not dm.has_method("select_saved_campaign_source"):
+		push_error("GameState: DataManager cannot select saved campaign content")
 		return false
-	var active: Dictionary = (
-		dm.call("active_package_identity") if dm.has_method("active_package_identity") else {}
+	return bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(campaign.get("package_id", "")),
+			String(campaign.get("package_version", ""))
+		)
 	)
-	if package_id.is_empty():
-		if not String(active.get("package_id", "")).is_empty():
-			dm.call("select_campaign_source", "res://data")
-		return true
-	if (
-		active.get("package_id", "") == package_id
-		and active.get("package_version", "") == package_version
-	):
-		return true
-	var path := CampaignPackRegistryScript.installed_path(
-		CampaignPackRegistryScript.DEFAULT_STORAGE_ROOT, package_id, package_version
-	)
-	return bool(dm.call("select_tier2_campaign_source", path, package_id, package_version))
 
 
 # Temporary flat party item ids use the durable convoy schema until the full

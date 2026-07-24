@@ -55,9 +55,11 @@ func _run() -> void:
 	var rewind: Control = load("res://scenes/ui/RewindSelector.tscn").instantiate()
 	root.add_child(rewind)
 	var first_options: Array[Dictionary] = [{"label": "First", "target_index": 0, "cost": 1}]
-	var replacement_options: Array[Dictionary] = [
-		{"label": "Replacement", "target_index": 1, "cost": 1}
-	]
+	var replacement_options: Array[Dictionary] = []
+	for i in 12:
+		replacement_options.append(
+			{"label": "Replacement %02d" % i, "target_index": i + 1, "cost": 1}
+		)
 	rewind.open(first_options)
 	await process_frame
 	rewind._close()
@@ -66,8 +68,19 @@ func _run() -> void:
 	var choices: VBoxContainer = rewind.get_node("Panel/VBox/Scroll/Choices")
 	var focused := root.gui_get_focus_owner()
 	_check(
-		choices.get_child_count() == 1 and focused != null and choices.is_ancestor_of(focused),
+		choices.get_child_count() == 12 and focused != null and choices.is_ancestor_of(focused),
 		"Rewind reopen focuses a live replacement button",
+	)
+	var cancel: Button = rewind.get_node("Panel/VBox/Cancel")
+	cancel.grab_focus()
+	rewind._focus_nav.move_focus(-1)
+	await process_frame
+	await process_frame
+	var last: Button = choices.get_child(choices.get_child_count() - 1)
+	var viewport_rect: Rect2 = (rewind.get_node("Panel/VBox/Scroll") as Control).get_global_rect()
+	_check(
+		last.has_focus() and viewport_rect.intersects(last.get_global_rect()),
+		"Rewind wrap keeps the focused bottom row visible after deferred lookahead",
 	)
 	rewind.queue_free()
 

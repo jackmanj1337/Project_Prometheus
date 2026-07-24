@@ -337,6 +337,22 @@ func _test_retry_does_not_advance(cm: Node, bus: Node) -> void:
 		"winning the retried map advances exactly one node",
 		str(cm.cleared_node_ids)
 	)
+
+	# Saving on Results commits an advanced timeline. Retrying afterwards restores
+	# the active run to its pre-commit campaign position without touching that save.
+	_park_on(cm, "node_01_rout")
+	bus.map_victory.emit()
+	var retry_branch: Dictionary = cm.capture_campaign_state()
+	cm.commit_pending_result()
+	_check(
+		(
+			cm.restore_retry_branch(retry_branch, "node_01_rout")
+			and cm.current_node_id == "node_01_rout"
+			and cm._active_node_id == "node_01_rout"
+			and cm.cleared_node_ids.is_empty()
+		),
+		"retry after a committed Results save branches the active run back one battle",
+	)
 	cm.end_campaign()
 
 

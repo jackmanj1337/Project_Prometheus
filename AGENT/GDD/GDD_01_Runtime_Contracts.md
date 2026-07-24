@@ -366,6 +366,11 @@ rejects the outer archive before buffering and accepts caller-supplied limits fo
 tests and build tools.
 
 Portable JSON saves use the configuration owner's desktop warning and maximum.
+Save restoration first performs structure/integrity checks without resolving
+content references, selects the exact saved `{package_id, package_version}` from
+the service-owned installed registry (or shipped content), validates references
+against that catalogue, and then restores the previously active catalogue. Only
+after that preflight succeeds may permanent package/campaign mutation begin.
 Crossing the warning produces an acknowledgement warning but still runs integrity,
 schema, and reference validation; crossing the maximum hard-rejects before the file
 is buffered. Platform-specific values, including a future stricter Web ceiling,

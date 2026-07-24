@@ -877,6 +877,24 @@ func _init() -> void:
 			"FAIL FileDialog text ownership: visible=%s text=%s" % [dialog.visible, filename.text]
 		)
 		failed += 1
+	filename.grab_focus()
+	var dialog_escape := InputEventKey.new()
+	dialog_escape.pressed = true
+	dialog_escape.keycode = KEY_ESCAPE
+	dialog_escape.physical_keycode = KEY_ESCAPE
+	dialog._input(dialog_escape)
+	await process_frame
+	if dialog.visible and not filename.has_focus():
+		print("OK  first FileDialog Escape leaves filename edit without closing the dialog")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL FileDialog first Escape: visible=%s filename_focus=%s"
+				% [dialog.visible, filename.has_focus()]
+			)
+		)
+		failed += 1
 	dialog.queue_free()
 	text_guard.queue_free()
 

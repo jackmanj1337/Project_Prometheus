@@ -17,6 +17,7 @@ const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 @onready var _retry_button: Button = $Panel/VBox/RetryButton
 @onready var _save_button: Button = $Panel/VBox/SaveButton
 @onready var _quit_button: Button = $Panel/VBox/QuitButton
+@onready var _retry_committed_confirm: ConfirmationDialog = $RetryCommittedConfirm
 var _campaign_data_error := false
 
 var _result_pending := false
@@ -28,6 +29,8 @@ var _modal_lock_held := false
 var _result_committed := false
 var _committed_complete := false
 var _focus_nav: RefCounted
+var _retry_campaign_state: Dictionary = {}
+var _retry_node_id := ""
 
 
 func _ready() -> void:
@@ -39,6 +42,7 @@ func _ready() -> void:
 	_save_button.pressed.connect(_on_save)
 	_quit_button.pressed.connect(_quit_to_menu)
 	_successor_picker.item_selected.connect(_on_successor_selected)
+	_retry_committed_confirm.confirmed.connect(_retry_committed_branch)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus != null:
 		bus.map_victory.connect(_on_victory)
@@ -137,6 +141,8 @@ func _refresh_result() -> void:
 	_campaign_data_error = false
 	_result_committed = false
 	_committed_complete = false
+	_retry_campaign_state.clear()
+	_retry_node_id = ""
 	_apply_action_policy()
 	if cm == null:
 		return
@@ -236,6 +242,9 @@ func _on_save() -> void:
 
 func _commit_result(cm: Node) -> bool:
 	var result: Dictionary = cm.call("get_pending_result")
+	if _retry_campaign_state.is_empty():
+		_retry_campaign_state = cm.call("capture_campaign_state")
+		_retry_node_id = String(result.get("node_id", ""))
 	if (
 		not bool(result.get("campaign_complete", false))
 		and not bool(cm.call("prepare_pending_advance"))
@@ -247,13 +256,19 @@ func _commit_result(cm: Node) -> bool:
 		return false
 	_result_committed = true
 	_committed_complete = bool(cm.call("is_campaign_complete"))
-	_retry_button.hide()
 	_successor_picker.disabled = true
 	_save_status_label.text = "Progress committed and autosaved."
 	return true
 
 
 func _on_retry() -> void:
+	if _result_committed:
+		_retry_committed_confirm.popup_centered()
+		return
+	_retry_uncommitted()
+
+
+func _retry_uncommitted() -> void:
 	var cm := _campaign_manager()
 	if cm != null:
 		cm.call("clear_pending_result")
@@ -265,6 +280,25 @@ func _on_retry() -> void:
 	if restored and cm != null and bool(cm.call("route_retry_to_prep")):
 		return
 	get_tree().reload_current_scene()
+
+
+func _retry_committed_branch() -> void:
+	var cm := _campaign_manager()
+	var gs := get_node_or_null("/root/GameState")
+	var restored := (
+		cm != null
+		and gs != null
+		and not _retry_campaign_state.is_empty()
+		and gs.has_method("restore_history")
+		and bool(gs.call("restore_history", 0))
+		and cm.has_method("restore_retry_branch")
+		and bool(cm.call("restore_retry_branch", _retry_campaign_state, _retry_node_id))
+	)
+	_release_modal_lock()
+	if restored and bool(cm.call("route_retry_to_prep")):
+		return
+	_save_status_label.text = "Retry failed; the saved victory is unchanged."
+	_acquire_modal_lock()
 
 
 func _allows(action_id: String) -> bool:

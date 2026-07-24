@@ -177,7 +177,9 @@ launches a shipped, generated one-map, or installed campaign through one prep pa
   destination, then writes a deterministic re-preflighted ZIP.
 - Printable gameplay bindings yield to a focused editable text field. Mirrored
   Confirm/Cancel keys such as Z/X type into filesystem FileDialog names instead of
-  validating or closing the dialog on the first press.
+  validating or closing the dialog on the first press. Physical Escape is
+  two-stage while the filename field owns focus: the first press leaves the
+  field and focuses the file tree; a second press closes the dialog.
 
 This screen is onboarding-relevant because every map-registry entry now reaches
 the same campaign/prep/save lifecycle as authored multi-map content.
@@ -923,7 +925,7 @@ review 2026-06-14 #1) for resolution-robustness.
 ### Map Results Screen
 
 Status: **Implemented 2026-07-22** (`CST-7`, `B4-RESULT-ACTIONS`)
-Last verified: 2026-07-22
+Last verified: 2026-07-24
 
 `MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
 reward/casualty/progression summaries, campaign save status, and Continue. It waits
@@ -953,6 +955,10 @@ routes campaign play through Prep. Save is a separate operation from Quit: it
 preflights manual-slot capacity, validates any successor, commits the result once,
 writes a between-map manual save, and remains on Results. Continue after Save
 launches the already-committed successor (or finishes a completed campaign) without
-awarding or advancing twice. Quit remains an explicit, separate abandon action.
+awarding or advancing twice. Retry remains available after Save, but requires a
+confirmation that the saved advanced timeline will remain unchanged. Confirming
+restores ledger round zero and the captured pre-commit campaign position for the
+active run, then routes through Prep; it does not rewrite or delete that save.
+Quit remains an explicit, separate abandon action.
 
 ---

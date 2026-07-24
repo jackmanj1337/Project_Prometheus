@@ -254,7 +254,7 @@ func inspect_portable_save(
 		return result
 	result["warnings"].append_array(SaveIntegrity.verify(parsed))
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = save.validate(_data_manager())
+	var errors: Array[String] = _validate_for_saved_content(save)
 	if not errors.is_empty():
 		result["errors"].append_array(errors)
 		return result
@@ -520,6 +520,36 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
 		return null
 	return save
+
+
+# Inventory ids belong to the catalogue recorded by the save, not whichever
+# catalogue happens to be active on the menu. Temporarily select that trusted,
+# installed source for reference validation, then restore the prior source; the
+# later GameState configure step performs the permanent transactional activation.
+func _validate_for_saved_content(save: RefCounted) -> Array[String]:
+	var structural: Array[String] = save.validate(null)
+	if not structural.is_empty():
+		return structural
+	var dm := _data_manager()
+	if dm == null or not dm.has_method("select_saved_campaign_source"):
+		return save.validate(dm)
+	var campaign: Dictionary = save.to_dict().get("campaign", {})
+	var package_id := String(campaign.get("package_id", ""))
+	var package_version := String(campaign.get("package_version", ""))
+	var previous: Dictionary = dm.call("active_package_identity")
+	if not bool(dm.call("select_saved_campaign_source", package_id, package_version)):
+		return ["SaveData: saved campaign content could not be activated"]
+	var errors: Array[String] = save.validate(dm)
+	var restored := bool(
+		dm.call(
+			"select_saved_campaign_source",
+			String(previous.get("package_id", "")),
+			String(previous.get("package_version", ""))
+		)
+	)
+	if not restored:
+		errors.append("SaveData: prior campaign content could not be restored after validation")
+	return errors
 
 
 func _save_data_from_variant(source: Variant) -> RefCounted:

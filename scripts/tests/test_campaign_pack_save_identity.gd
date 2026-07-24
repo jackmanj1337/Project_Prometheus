@@ -44,6 +44,17 @@ func _run() -> void:
 
 	dm.call("select_campaign_source", "res://data")
 	cm.call("end_campaign")
+	var sm: Node = root.get_node_or_null("SaveManager")
+	var validation_errors: Array[String] = sm.call("_validate_for_saved_content", save)
+	if (
+		validation_errors.is_empty()
+		and String(dm.call("active_package_identity").get("package_id", "")).is_empty()
+	):
+		print("OK  package save validates against its catalogue and restores prior content")
+		passed += 1
+	else:
+		print("FAIL package-aware validation ordering: %s" % [validation_errors])
+		failed += 1
 	if (
 		gs.call("configure_campaign_resume", save)
 		and dm.call("active_package_identity")["package_id"] == ROOT
@@ -98,7 +109,8 @@ func _write_pack(root: String) -> void:
 				{"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
 				{"kind": "map_data", "id": "map_01", "path": "data/map_01.json"},
 				{"kind": "roster", "id": "heroes", "path": "data/roster.json"},
-				{"kind": "class", "id": "fixture_class", "path": "data/class.json"}
+				{"kind": "class", "id": "fixture_class", "path": "data/class.json"},
+				{"kind": "weapon", "id": "fixture_blade", "path": "data/weapon.json"}
 			]
 		},
 		"data/campaign.json":
@@ -113,9 +125,44 @@ func _write_pack(root: String) -> void:
 		"data/map_01.json":
 		{"id": "map_01", "display_name": "Map", "grid": ["..."], "player_start_tiles": [[0, 0]]},
 		"data/roster.json":
-		{"units": [{"unit_id": "hero", "unit_name": "Hero", "class_id": "fixture_class"}]},
+		{
+			"units":
+			[
+				{
+					"unit_id": "hero",
+					"unit_name": "Hero",
+					"class_id": "fixture_class",
+					"inventory": [{"weapon_id": "fixture_blade", "uses": -1}]
+				}
+			]
+		},
 		"data/class.json":
-		{"id": "fixture_class", "display_name": "Fixture", "base_hp": 20, "base_movement": 5},
+		{
+			"id": "fixture_class",
+			"display_name": "Fixture",
+			"base_hp": 20,
+			"base_movement": 5,
+			"allowed_weapon_families": ["sword"],
+			"weapon_wexp_bases": {"sword": 1},
+			"weapon_wexp_caps": {"sword": 400}
+		},
+		"data/weapon.json":
+		{
+			"id": "fixture_blade",
+			"display_name": "Fixture Blade",
+			"combat_family": "sword",
+			"wexp_track": "sword",
+			"required_rank": "E",
+			"mt": 1,
+			"hit": 100,
+			"crit": 0,
+			"wt": 0,
+			"range_min_formula": "1",
+			"range_max_formula": "1",
+			"uses": -1,
+			"cost": 0,
+			"wexp": 1
+		},
 	}
 	for relative in files:
 		var path := root.path_join(relative)

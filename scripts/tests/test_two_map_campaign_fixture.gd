@@ -7,6 +7,7 @@ const DataManagerScript = preload("res://scripts/autoloads/DataManager.gd")
 const CampaignManagerScript = preload("res://scripts/autoloads/CampaignManager.gd")
 const GameStateScript = preload("res://scripts/autoloads/GameState.gd")
 const ROOT := "res://test_fixtures/campaign_packs/two_map_skirmish"
+const BRANCH_ROOT := "res://test_fixtures/campaign_packs/branching_skirmish"
 const ARCHIVE := "res://test_fixtures/campaign_packs/two-map-skirmish-1.0.zip"
 
 
@@ -33,6 +34,26 @@ func _init() -> void:
 		passed += 1
 	else:
 		print("FAIL source fixture: %s" % [adapted.errors])
+		failed += 1
+
+	var branch_adapted = Adapter.load(BRANCH_ROOT, "branching_skirmish", "1.0")
+	var branch_campaign = (
+		branch_adapted.campaigns.get("branching_skirmish") if branch_adapted.valid else null
+	)
+	var branch_start = (
+		branch_campaign.get_node_by_id("crossroads") if branch_campaign != null else null
+	)
+	if (
+		branch_adapted.valid
+		and branch_campaign != null
+		and branch_campaign.nodes.size() == 3
+		and branch_start != null
+		and branch_start.next_node_ids == ["river_pass", "ridge_pass"]
+	):
+		print("OK  branching fixture exposes two ordered Results successor choices")
+		passed += 1
+	else:
+		print("FAIL branching fixture: %s" % [branch_adapted.errors])
 		failed += 1
 
 	var limits := Preflight.Limits.new(32, 200000, 200000, 500000, 500000)

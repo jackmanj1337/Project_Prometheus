@@ -717,6 +717,22 @@ func clear_pending_result() -> void:
 	_prepared_launch.clear()
 
 
+# Results Save may commit an advanced timeline while the player keeps playing and
+# chooses Retry. Restore the pre-commit campaign position as a new active branch;
+# the durable advanced save remains untouched and can still be loaded later.
+func restore_retry_branch(source: Dictionary, node_id: String) -> bool:
+	if node_id.is_empty() or not restore_campaign_state(source, "campaign_retry_branch"):
+		return false
+	var campaign := get_active_campaign()
+	if campaign == null or not campaign.has_node(node_id) or current_node_id != node_id:
+		push_error("CampaignManager: retry branch does not resolve node '%s'" % node_id)
+		return false
+	_active_node_id = node_id
+	_pending_result.clear()
+	_prepared_launch.clear()
+	return true
+
+
 # --- Persistence (Slice 3) ----------------------------------------------------
 
 

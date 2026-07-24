@@ -8,6 +8,17 @@ func _input(event: InputEvent) -> void:
 	if not event is InputEventKey:
 		return
 	var key := event as InputEventKey
+	var filename := get_line_edit()
+	if (
+		key.pressed
+		and not key.echo
+		and (key.keycode == KEY_ESCAPE or key.physical_keycode == KEY_ESCAPE)
+	):
+		if filename != null and filename.has_focus():
+			filename.release_focus()
+			call_deferred("_focus_file_list")
+			set_input_as_handled()
+		return
 	if (
 		not key.pressed
 		or key.unicode < 32
@@ -23,7 +34,6 @@ func _input(event: InputEvent) -> void:
 		or InputMap.event_is_action(key, "ui_cancel")
 	):
 		return
-	var filename := get_line_edit()
 	if filename == null or not filename.has_focus():
 		return
 	if filename.has_selection():
@@ -32,3 +42,10 @@ func _input(event: InputEvent) -> void:
 		filename.caret_column = from
 	filename.insert_text_at_caret(char(key.unicode))
 	set_input_as_handled()
+
+
+func _focus_file_list() -> void:
+	for node in find_children("*", "Tree", true, false):
+		if node is Tree and node.is_visible_in_tree():
+			(node as Tree).grab_focus()
+			return

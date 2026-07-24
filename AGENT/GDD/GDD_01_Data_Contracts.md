@@ -389,7 +389,7 @@ Status: **Split** — progression graph **Implemented** (`B1-CST` Slice 1,
 Slice 2, 2026-07-14, see §CampaignManager Contract below), and the campaign save
 envelope **Implemented** (`B1-CST` Slice 3, 2026-07-14); campaign-owned rule
 mandates/defaults and their saved authority are **Implemented** (2026-07-15).
-Last verified: 2026-07-15
+Last verified: 2026-07-24
 
 A campaign is an ordered progression graph. Unlike every other content resource
 it is authored as **JSON**, not `.tres` ([CST-3]): a campaign must stay one
@@ -595,6 +595,7 @@ func prepare_pending_advance() -> bool             # validate successor binding 
 func commit_pending_result() -> bool               # the ONLY thing that advances the position; autosaves
 func launch_prepared_node() -> bool                 # launch only the validated successor
 func clear_pending_result() -> void                # Retry drops the unapplied result
+func restore_retry_branch(source: Variant, node_id: String) -> bool # branch active run after a committed Save
 func is_campaign_active() -> bool
 func is_campaign_complete() -> bool
 
@@ -618,8 +619,10 @@ Rules this contract fixes:
   when `MapResultsScreen` calls `commit_pending_result`. Advancing on the victory
   signal itself would break **Retry**, which
   replays the same map: the campaign would sit on node N+1 while node N is
-  replayed, and a second win would skip a node. Retry calls
-  `clear_pending_result`.
+  replayed, and a second win would skip a node. Before commit, Retry calls
+  `clear_pending_result`. Results captures the pre-commit position so Retry after
+  Save can call `restore_retry_branch`: the active run returns to the just-played
+  node while the already-written advanced save remains an independent timeline.
 - **Defeat parks.** No clear, no advance — the campaign stays on the current node.
 - **The party carries.** The first node of a run seeds the party from the map
   registry's authored `roster_policy`; every later node launches with

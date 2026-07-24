@@ -12,6 +12,7 @@ var repeat := MenuRepeatPolicy.new("", "", "ui_up", "ui_down")
 # this gate the process-global Input poll steps focus on the screen *behind* an
 # open dropdown, the exact v0.3.1 regression ModalScreen already fixed.
 var _capture_ui_was_active: bool = false
+var _lookahead_generation: int = 0
 
 
 func _init(owner: Control, focus_scroll: ScrollContainer = null) -> void:
@@ -104,16 +105,66 @@ func _collect(node: Node, out: Array[Control]) -> void:
 
 
 func _apply_lookahead(control: Control, direction: int) -> void:
-	if scroll == null or not scroll.is_visible_in_tree():
+	if scroll == null or not scroll.is_visible_in_tree() or not scroll.is_ancestor_of(control):
 		return
-	# follow_focus performs the immediate reveal. The deferred margin keeps roughly
-	# three rows visible in the direction of travel after containers settle.
-	var row_height := maxf(control.size.y, 1.0)
-	var margin := minf(row_height * 3.0, scroll.size.y * 0.4)
-	var local := scroll.get_global_transform().affine_inverse() * control.global_position
-	if direction > 0:
-		scroll.scroll_vertical = maxi(
-			scroll.scroll_vertical, int(local.y + control.size.y + margin - scroll.size.y)
-		)
-	elif direction < 0:
-		scroll.scroll_vertical = mini(scroll.scroll_vertical, maxi(0, int(local.y - margin)))
+	_lookahead_generation += 1
+	var generation := _lookahead_generation
+	# Dynamic lists settle one frame after a focus step. Coalesce held-repeat calls
+	# so an older row can never pull the viewport away from the latest focus owner.
+	await root.get_tree().process_frame
+	if (
+		generation != _lookahead_generation
+		or not is_instance_valid(scroll)
+		or not is_instance_valid(control)
+		or root.get_viewport().gui_get_focus_owner() != control
+	):
+		return
+	var row := _visual_scroll_row(control)
+	var view := scroll.get_global_rect()
+	var rect := row.get_global_rect()
+	var current := float(scroll.scroll_vertical)
+	# Convert viewport coordinates to an absolute content coordinate. The former
+	# code treated a viewport-relative Y as content Y, causing mid-list jumps.
+	var content_top := current + rect.position.y - view.position.y
+	var desired := _visual_rows_height(row, 3, direction if direction != 0 else 1)
+	var margin := minf(desired, maxf(0.0, (view.size.y - rect.size.y) * 0.5))
+	var target := current
+	if direction < 0 and content_top - margin < current:
+		target = content_top - margin
+	elif direction > 0 and content_top + rect.size.y + margin > current + view.size.y:
+		target = content_top + rect.size.y + margin - view.size.y
+	elif rect.position.y < view.position.y:
+		target = content_top
+	elif rect.end.y > view.end.y:
+		target = content_top + rect.size.y - view.size.y
+	var bar := scroll.get_v_scroll_bar()
+	var maximum := maxf(0.0, bar.max_value - bar.page) if bar != null else target
+	scroll.scroll_vertical = roundi(clampf(target, 0.0, maximum))
+
+
+func _visual_scroll_row(control: Control) -> Control:
+	var row := control
+	while row.get_parent() is Control:
+		if row.get_parent() is VBoxContainer:
+			break
+		row = row.get_parent() as Control
+	return row
+
+
+func _visual_rows_height(row: Control, count: int, direction: int) -> float:
+	var parent := row.get_parent()
+	if parent == null:
+		return 0.0
+	var siblings := parent.get_children()
+	var index := siblings.find(row)
+	var height := 0.0
+	var found := 0
+	var stop := siblings.size() if direction > 0 else -1
+	for i in range(index + direction, stop, direction):
+		var sibling := siblings[i]
+		if sibling is Control and sibling.is_visible_in_tree():
+			height += (sibling as Control).get_global_rect().size.y
+			found += 1
+			if found == count:
+				break
+	return height
