@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-24j](2026-07-24j.md) — Added the owner-requested Playwright experiment against the real Godot web export, including the test-only bridge and approval gates.
 - [2026-07-24i](2026-07-24i.md) — Completed reusable UI/UX architecture research, vocabulary, pinned comparator study, tooling recommendation, and owner-question packet.
 - [2026-07-24h](2026-07-24h.md) — Recorded the independent UI/UX research goal: cited code/UI comparators, vocabulary sheet, owner questions, and explicit stop-and-ask boundaries.
 - [2026-07-24e](2026-07-24e.md) — Owner design discussion: resolved campaign-library Branch I (navigation & accessibility — reuses existing ModalScreen/SelectionCursor/MenuScale/InputDisplay infra; stable controller map with an input-map double-bind defect found; explicit focus; filters not search; 200% stress; text+icon redundancy; NAV-07 progress+cancel = web-safe cooperative chunked coroutine, not threads). Surveyed all player-facing surfaces and marked discussion rows (updated 6 DISCUSS-* + added 7 new + 3 Branch-I spinoff rows).
