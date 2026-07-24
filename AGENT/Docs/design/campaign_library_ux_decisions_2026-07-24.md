@@ -34,7 +34,7 @@ only on branches above it:
 | G | Missing / incompatible content | CL-MISSING-01…05 | Resolved |
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Resolved (restore mechanics -03/04/05 ride the deferred backup backlog) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Resolved (reuses existing input/scale/modal infra; NAV-07 = web-safe cooperative chunking) |
-| J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Pending (CL-SAFETY-01 wording pre-answered) |
+| J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Resolved 2026-07-24 |
 | K | Author / advanced surfaces | CL-ADV-01…04 | Pending (editor integration lands here) |
 
 ## Branch A — Object model & hierarchy
@@ -554,6 +554,108 @@ core is scoped as the pass's first *structural* deliverable (`PLAN-UIUX-REUSE-PA
 `UiThemeDef` / `AssetResolver` half of that pass stays gated on the art open-questions
 (`B6-SPRITE-IMPORTER` / `[IMP]`). See `ui_ux_asset_inventory_and_reuse_2026-07-02.md`.
 
+## Branch J — Safety, trust, privacy (cross-cutting)
+
+Status: **in progress** (opened 2026-07-24). CL-SAFETY-01 resolved below; 02/03/04 pending.
+
+### CL-SAFETY-01 — trust claim & validation status
+
+**Decision.** The UI carries **two distinct signals**, not one variable "trust" badge:
+
+1. **"Data-only / can't run code" — stated as *explanation*, not a per-pack badge.** This is a
+   **loader invariant**, true by construction for every pack, so it must not be shown as something
+   that was "checked" and could vary. Verified in code: both pack load paths are
+   `FileAccess…get_as_text()` → `JSON.parse` (`CampaignPackRegistry.gd:174`, `Tier2Catalogue.gd:195`)
+   — no `ResourceLoader.load()`/`load()`, no scene/resource instancing on pack paths; `Tier2Catalogue`
+   also rejects `..` traversal. A stray `.gd`/`.tscn` in a pack is inert (nothing hands it to a
+   loader); a non-data file *where data is expected* fails `JSON.parse` → raised error → reject
+   (feeds CL-SAFETY-02). Copy: surface line *"Game data — the game reads it, never runs it"*; the
+   "what does this mean?" expander carries the precise wording.
+2. **"Valid pack — passed structure checks" — the single *per-pack* live signal.** This is the real
+   verifiable claim and the machinery already exists: `PackManifest.parse` (required fields,
+   `format_version`, id shape) + `CampaignTier2Validators` (campaign/map/registry structure +
+   cross-reference resolution). Pass → "Valid pack"; fail → reject + the validator's own error
+   strings (this *is* the CL-SAFETY-02 reject list and the CL-ADV-02 "plain summary + exportable
+   report"). Rejected the original single "safe"/"unsigned" wording: "safe" is an unbounded claim;
+   "unsigned" invents a signature threat model we don't implement (see CL-ADV-03).
+
+**Surfacing (uses Branch C/D decisions).** Both signals live on the **mandatory install preview**
+(CL-LIFE-01), inside the CL-LIFE-02 identity block a player must pass through to install — seen on
+every import at no extra effort, not on library rows (CL-MODEL-05) and not a recurring launch nag.
+
+**Media are in scope from v1 (packs supply textures & audio).** "Data-only" is preserved *because
+the loader discipline is fixed now*: pack binaries load only through **byte decoders**
+(`Image.load_from_file` → `ImageTexture`; `AudioStreamOggVorbis.load_from_file`; WAV from raw bytes
+— exact 4.6 API to be confirmed), **never** `ResourceLoader.load()` and **never** accepting
+`.tres`/`.res`/`.scn`/`.tscn`/`.gd` from a pack (a `.tres` can carry `script = ExtResource(...)` and
+execute on load — that is the exact hole to keep shut). The schema gains first-class texture/audio
+reference fields, validated (exists + allowed media extension) on the same reject path.
+
+**Consequences / enforcement.**
+- **Enforcement test (DoD#2):** pack content — data *and* media — is never loaded via
+  `ResourceLoader`/`load()`; only via the approved byte decoders. This keeps "only data" from
+  silently becoming false when media loading lands.
+- **Web-safe correction to loader plumbing:** any batched asset loading must use the **cooperative
+  chunked coroutine** model Branch I chose for CL-NAV-07 (`IMPL-ASYNC-PROGRESS-CANCEL`), **not**
+  threads/`WorkerThreadPool` — web is a shipping target and single-threaded by default.
+- **Known tradeoff (chosen, not accidental):** byte-loaded textures skip Godot's `.import` pipeline
+  → **no VRAM compression, no baked mipmaps** (generate in code if wanted). Fine for 2D sprite/tile
+  art; could cost VRAM/load time if packs ship large/high-res art. Dimension caps / in-code
+  compression are post-v1 mitigations. Residual security risk shifts from "pack runs a script"
+  (fully closed) to "malformed media bytes hit a decoder bug" (memory-safety class, Godot's decoder
+  to harden) — noted in the threat model; does not weaken the player-facing claim.
+
+### CL-SAFETY-02 — malformed content handling
+
+**Decision (accept default).** **Reject the install and leave the source file untouched.** An
+already-installed pack that later reads as corrupt is shown **disabled** (not deleted); deletion is
+always a separate explicit action (ties CL-SAFETY-04 trash, not this reject). **Quarantine deferred.**
+
+- Ratifies existing behavior: `PackManifest.parse` / `CampaignTier2Validators` accumulate an error
+  list and refuse rather than half-loading; this names the UX, not new engine work.
+- "Disabled, not deleted" keeps dependent saves visible/repairable (Branch G orphaned-save path).
+- Rejected "retain external path only" — avoids storing stale absolute paths (collides with
+  CL-SAFETY-03 privacy). Cost: no auto re-try on a transient failure (e.g. unplugged USB); acceptable.
+- Deferred, noted: finer **per-component** status for *partial* corruption of an installed pack (one
+  bad map, rest fine) — v1 shows the whole pack disabled.
+
+**Note → Branch K.** More advanced malformed-content debugging (structured forensics beyond the
+player-facing error list + exportable report) **ships with the GUI campaign editor / author
+validator**, not the player runtime. Recorded against CL-ADV-02 / the deferred editor row.
+
+### CL-SAFETY-03 — diagnostic path exposure
+
+**Decision (accept default).** **Logical ids + safe relative paths by default; redacted otherwise; an
+explicit action copies the full local path.** This is the concrete owner of the CL-MISSING-05
+redacted-report scrubber (closes that dependency). Hard requirements:
+
+- **Single redaction helper** every diagnostic *and* the exportable report routes through — one leak
+  path defeats the guarantee.
+- **Enforcement test (DoD#2):** diagnostic/report output never contains the user home or a real
+  absolute path.
+- **Logical ids = pack-id + pack-relative path** (not bare basename) so they're unambiguous without
+  being absolute; "safe relative paths" are relative to the pack root or app-data dir, never the FS
+  root.
+- "Copy full local path" is an explicit **local** action; the full path never enters the *shared*
+  artifact by default.
+
+### CL-SAFETY-04 — trash / recovery policy
+
+**Decision (v1 = confirm + immediate hard delete).** No trash in v1. The **confirmation carries the
+safety**, and for high-impact deletes it must be **deliberate — not mash-past-able**:
+
+- Destructive action is **never** the default focus (CL-NAV-03); dialog states "this can't be undone".
+- **Proportional friction:** a manual save is a single light confirm; a heavier delete (e.g.
+  uninstalling a pack **N runs depend on** — surfaces the CL-LIFE-06 dependency count) escalates to a
+  **second, deliberate confirmation** (a distinct affirmative step, not a second identical OK that
+  reflex can blow through).
+- Ratifies Branch D's "confirm + hard delete for v1" and CL-LIFE-09 (confirm irreversible actions).
+
+**Post-v1 backlog (see Deferred list).** App-managed, **cross-platform trash — web included, NOT
+OS-trash** (`OS.move_to_trash()` is a no-op on the web target). Scope it as a real feature: storage
+location, retention/quota + purge, "Recently deleted" restore UI; note trashed items hold disk until
+purged (quota interaction).
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -561,7 +663,10 @@ core is scoped as the pass's first *structural* deliverable (`PLAN-UIUX-REUSE-PA
 - **Copy / Edit + GUI campaign-editor integration + author encounter/balance test environment**
   — Branch K.
 - **Configurable inbox/scan-folder path** — post-v1 (v1 folder is fixed/app-managed).
-- **App-managed trash/recovery** — post-v1 (v1 is confirm + hard delete).
+- **App-managed trash/recovery** (CL-SAFETY-04) — post-v1; v1 is confirm + hard delete (heavy
+  deletes require a second, deliberate confirmation). Must be **cross-platform incl. web, NOT
+  OS-trash** (`OS.move_to_trash()` no-ops on web); scope = storage + retention/quota + purge +
+  "Recently deleted" restore UI (trashed items hold disk until purged).
 - **Branded single-token extensions + OS file-association** (CL-TRANSFER-02) — v1 uses compound
   suffixes on generic containers; branded extensions (`.prompack`, …) and double-click OS
   association are a fast-follow bundled with the approval-gated Windows installer work. Brand token
