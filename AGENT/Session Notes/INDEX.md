@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-24k](2026-07-24k.md) — Owner design discussion: resolved campaign-library Branch J (safety/trust/privacy — data-only stated as a verified loader invariant + valid-schema as the per-pack signal, media via byte decoders only with no ResourceLoader on pack paths; reject + leave-source with quarantine deferred; single redaction scrubber for diagnostics; v1 confirm + immediate delete with heavy deletes needing a second deliberate confirm, app-managed cross-platform trash post-v1).
 - [2026-07-24j](2026-07-24j.md) — Added the owner-requested Playwright experiment against the real Godot web export, including the test-only bridge and approval gates.
 - [2026-07-24i](2026-07-24i.md) — Completed reusable UI/UX architecture research, vocabulary, pinned comparator study, tooling recommendation, and owner-question packet.
 - [2026-07-24h](2026-07-24h.md) — Recorded the independent UI/UX research goal: cited code/UI comparators, vocabulary sheet, owner questions, and explicit stop-and-ask boundaries.
