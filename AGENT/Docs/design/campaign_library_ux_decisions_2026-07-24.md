@@ -1,6 +1,6 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–G resolved with the owner; H–K pending
+Status: Accepted (partial) — Branches A–H resolved with the owner; I–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -32,7 +32,7 @@ only on branches above it:
 | E | Launch / New Game / rule profiles | CL-LAUNCH-01…05 | Resolved |
 | F | Runs & saves detail | CL-SAVE-02/03/04/05 | Resolved |
 | G | Missing / incompatible content | CL-MISSING-01…05 | Resolved |
-| H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Pending (simplified — no migration engine; needs artifact names/extensions) |
+| H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Resolved (restore mechanics -03/04/05 ride the deferred backup backlog) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Pending (controller fallback recurs) |
 | J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Pending (CL-SAFETY-01 wording pre-answered) |
 | K | Author / advanced surfaces | CL-ADV-01…04 | Pending (editor integration lands here) |
@@ -374,6 +374,101 @@ support anchors; the import deep-link reuses the Branch C/D inbox import pipelin
 target id/version; and the redacted report is a shared scrubber owned by Branch J. The one deferred
 item (missing-content *filter*) is absorbed by the existing `BACKLOG-RUNSAVE-SEARCH-ARCHIVE` row.
 
+## Branch H — Transfers: import / export / backup / restore
+
+**Scoping first.** Full Library Backup is deferred (`BACKLOG-FULL-LIBRARY-BACKUP`), and
+**CL-TRANSFER-03/04/05 are backup-*restore* mechanics** (restore preview, restore granularity,
+rollback) — so they ride that backlog row, not v1. The per-pack import preview + atomic promote +
+rollback they would otherwise cover was **already settled in Branch D** (the check-point contract).
+That leaves three live v1 questions — -01, -02, -06 — plus the concrete artifact-naming scheme
+this branch was held open to nail down.
+
+### File-extension rules & recommendations (the reminder, recorded)
+
+- **Extension is a routing/UX hint, never a trust boundary.** Godot's `ZIPReader` and
+  `CampaignArchivePreflight` identify by *content*; hostile-ZIP / zip-slip / zip-bomb checks run
+  regardless of suffix. Branding buys *social* clarity (not confusing a save for a pack), not
+  security — anyone can rename anything.
+- **Format version lives inside the file, not the extension** (already true:
+  `CampaignStatusRecord.FORMAT_VERSION`, pack `manifest.json`); the extension stays stable across
+  format bumps.
+- **OS file-association is export/installer config → approval-gated** and cannot be self-registered
+  cleanly by the running app. On **Steam Deck** the native portal dialog is not gamepad-navigable
+  (Branch C), so double-click / association is a **desktop-only convenience** — extensions earn
+  their keep at the *scanner*, not the OS shell.
+- **Recommendations:** distinct per artifact type; keep the proven container and brand the *name*
+  (ZIP/JSON payload, the `.docx`/`.epub` = ZIP pattern); add an internal `artifact_type` tag as
+  defense-in-depth so a renamed file is caught; keep suffixes short, lowercase, collision-safe
+  (avoid claimed `.pack`/`.save`/`.dat`).
+
+### Decisions
+
+- **CL-TRANSFER-02 — Answered.** v1 uses **distinct filename suffixes on the generic containers**,
+  not branded single-token extensions. Current code exports generic `.zip` (packs) and `.json`
+  (saves) with no type marker — this scheme adds one. The **scanner routes on the compound
+  `<type>.<ext>` suffix and confirms via an internal `artifact_type` field**. Display names
+  affirmed: **Portable Run · Clean Campaign Pack · Full Library Backup** (+ **Campaign Status
+  Record**). The v1 suffix scheme:
+
+  | Artifact (CL-LIFE-06 action) | Display name | v1 filename suffix | Container |
+  |---|---|---|---|
+  | Export clean | Clean Campaign Pack | `.clean-pack.zip` | ZIP |
+  | Export with runs | Campaign Pack (with runs) | `.with-runs.zip` | ZIP |
+  | Export run(s) only | Portable Run | `.portable-run.zip` | ZIP |
+  | Export campaign status record | Campaign Status Record | `.status-record.json` | JSON |
+  | Full Library Backup *(deferred)* | Full Library Backup | `.library-backup.zip` | ZIP |
+
+  **The transfer unit for playthrough state is the Run, not the save** (resolved with the owner
+  mid-branch): a save is only meaningful relative to its run — it inherits the run's rule profile
+  and its place in the run's cumulative progress — so a bare, run-less save is not independently
+  resumable, and "Export run(s) only" (CL-LIFE-06) already made the *run* the export scope. Hence
+  **Portable Run**, a ZIP bundling the run's rule profile + progress + its saves. The save-level
+  **Export** action (CL-SAVE-05) produces a Portable Run *pinned to that snapshot* (a minimal
+  one-save run), so every export carries run context and there is no un-resumable "bare save"
+  format. In-browser the individual save type keeps the name **Save** (CL-SAVE-02); only the
+  transfer artifact is a Run. *Code note:* today saves are fat/self-contained (each embeds the
+  campaign envelope, roster, economy, turn/RNG state) and the first-class **Run** is still a
+  planned grouping key (Branch A), so Portable Run is realised when the Campaign→Run→Save tree is
+  built; until then a Portable Run is a single fat save plus run metadata.
+
+  The **internal `artifact_type` tag** is a small additive requirement (packs → into `manifest.json`;
+  Portable Runs → into the run/save `header`; status records already carry provenance). **Brand token
+  deferred:** the single-token branded extensions (`.prompack`, …) and OS association become a
+  **fast-follow bundled with the approval-gated Windows installer work**; the shipped brand token
+  should match the *store title*, not the "Prometheus" codename — recorded as a backlog row.
+  Rejected: branded extensions now (pulls approval-gated installer config into v1 for a
+  desktop-only convenience the Deck can't use anyway) and status-quo generic (the save-as-pack
+  leak risk; scanner can't tell pack from backup).
+
+- **CL-TRANSFER-01 — Answered.** **Contextual actions** on each pack / campaign / run (the
+  CL-LIFE-06 action set), **plus a thin Transfers hub** that only explains the scopes. The hub is
+  deliberately thin in v1 because its main draw — full-library backup/restore — is deferred; it
+  grows when that lands. Rejected: contextual-only (weaker "what can I export?" discoverability)
+  and a single top-level Export/Import menu (divorces actions from their target, duplicates
+  selection).
+
+- **CL-TRANSFER-06 — Answered.** Every export scope shows an explicit **Included / Excluded
+  summary at *both* preview and success**. This is load-bearing, not cosmetic: *Clean pack* and
+  *with-runs* share the `.zip` container, so the component list — not the filename — is what proves
+  a save did or didn't ride along. Ties to the CL-LIFE-06 clean/with-runs/run-only split. Rejected:
+  preview-only (no post-hoc re-confirmation) and scope-label-only (a label can't prove exclusion).
+
+- **CL-TRANSFER-03 / 04 / 05 — Deferred to the backup backlog.** Restore preview (full
+  component/conflict/space summary), restore granularity (select components, commit atomically),
+  and rollback (auto-restore prior state + retained exportable report) are all **whole-library
+  backup/restore** mechanics. They are recorded against `BACKLOG-FULL-LIBRARY-BACKUP`, to be
+  designed when that feature is demand-gated in. The analogous **per-pack import** preview + atomic
+  promote + rollback is already specified in the Branch D check-point contract and stands for v1.
+
+**Implementation linkage.** No premature standalone implementation rows — folds into the
+consolidated Library implementation pass. Concrete touches noted inline: the pack exporter filename
+builder gains the `<type>` suffix; the current `LoadGameScreen` single-save `.json` export is
+replaced by a **Portable Run** `.portable-run.zip` (run metadata + save[s]), so a save-level export
+wraps its snapshot as a one-save run; the inbox scanner routes on the compound suffix and reads a
+new internal `artifact_type` tag; the export preview/success screens render the Included/Excluded
+summary. One **new backlog row** is created for the branded-extension + OS-association fast-follow
+(approval-gated, bundled with the Windows installer).
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -382,6 +477,10 @@ item (missing-content *filter*) is absorbed by the existing `BACKLOG-RUNSAVE-SEA
   — Branch K.
 - **Configurable inbox/scan-folder path** — post-v1 (v1 folder is fixed/app-managed).
 - **App-managed trash/recovery** — post-v1 (v1 is confirm + hard delete).
+- **Branded single-token extensions + OS file-association** (CL-TRANSFER-02) — v1 uses compound
+  suffixes on generic containers; branded extensions (`.prompack`, …) and double-click OS
+  association are a fast-follow bundled with the approval-gated Windows installer work. Brand token
+  should match the shipped store title. Recorded as a tracker backlog row.
 - **Run/save search + filter and run archive** (CL-SAVE-04/05) — deferred from v1; v1 is
   collapse + newest-first only. Demand-gated; recorded as a tracker backlog row. Within-run
   save search graduates first if playtest shows long save lists. **Also absorbs** the
@@ -389,9 +488,9 @@ item (missing-content *filter*) is absorbed by the existing `BACKLOG-RUNSAVE-SEA
 
 ## Next session
 
-Resume at **Branch H — Transfers: import/export/backup/restore** (CL-TRANSFER-01…06; simplified
-by the no-migration-engine decision — this branch still needs concrete artifact names/extensions
-for the inbox scanner's extension-routing). Then I → K. When each branch closes, copy its
+Resume at **Branch I — Navigation & accessibility** (CL-NAV-02…07; cross-cutting, and the
+controller/Steam-Deck fallback recurs — CL-NAV-01 was already resolved in Branch B as list +
+master-detail). Then J → K. When each branch closes, copy its
 ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule controls,
 validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
@@ -403,4 +502,9 @@ Resume/Inspect/Rename/Export/Delete (no Archive, Duplicate → Branch K). Branch
 filter) with Import/Inspect/Export/Delete repair; 5 stable failure categories (Missing / Version
 not installed / Modified / Invalid pack / Corrupt save); layered override policy confirms Branch D
 (Modified = warn, Missing/Version = block, Invalid refs = never); summary + copyable redacted
-report.
+report. Branch H closed 2026-07-24: v1 transfer artifacts use distinct compound suffixes on generic
+containers (`.clean-pack.zip` / `.with-runs.zip` / `.portable-run.zip` / `.status-record.json`,
+scanner routes on `<type>.<ext>` + internal `artifact_type`), branded extensions + OS association
+deferred to a Windows-installer fast-follow; contextual actions + thin Transfers hub;
+Included/Excluded scope summary at preview + success; restore mechanics (-03/04/05) ride the
+deferred backup backlog.
