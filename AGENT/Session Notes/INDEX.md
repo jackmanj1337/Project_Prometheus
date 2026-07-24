@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-24g](2026-07-24g.md) — Fixed the v0.5.5 blockers, resolved Retry/FileDialog behavior, added a branching fixture, and prepared the v0.5.6 Windows release records.
 - [2026-07-24f](2026-07-24f.md) — Archived and rejected the v0.5.5 return; traced package-save load ordering, shared focus-scroll math, and deferred trace failures; recorded UX decisions and the missing branching fixture.
 - [2026-07-23](2026-07-23.md) — Reviewed the v0.5.4 fixes, corrected the directional-input stage on Results/Defeat/Rewind (double-step) and added FocusNavigator's popup gate, then cut the v0.5.5 controller-first build.
 - [2026-07-22c](2026-07-22c.md) — Reviewed v0.5.4, fixed controller/Rewind/HUD editor defects, and added campaign-authored Results/Defeat actions with separate Save and Quit.
