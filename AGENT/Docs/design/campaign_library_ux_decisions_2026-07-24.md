@@ -1,6 +1,6 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–H resolved with the owner; I–K pending
+Status: Accepted (partial) — Branches A–I resolved with the owner; J–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -33,7 +33,7 @@ only on branches above it:
 | F | Runs & saves detail | CL-SAVE-02/03/04/05 | Resolved |
 | G | Missing / incompatible content | CL-MISSING-01…05 | Resolved |
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Resolved (restore mechanics -03/04/05 ride the deferred backup backlog) |
-| I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Pending (controller fallback recurs) |
+| I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Resolved (reuses existing input/scale/modal infra; NAV-07 = web-safe cooperative chunking) |
 | J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Pending (CL-SAFETY-01 wording pre-answered) |
 | K | Author / advanced surfaces | CL-ADV-01…04 | Pending (editor integration lands here) |
 
@@ -469,6 +469,91 @@ new internal `artifact_type` tag; the export preview/success screens render the 
 summary. One **new backlog row** is created for the branded-extension + OS-association fast-follow
 (approval-gated, bundled with the Windows installer).
 
+## Branch I — Navigation & accessibility (cross-cutting)
+
+Unlike A–H, Branch I is largely a *confirm-against-code* pass: it maps onto infrastructure that
+**already exists** and should be **reused, not re-implemented** —
+`scripts/ui/ModalScreen.gd` (shared modal base: menu-scale registration, input-mode focus handling,
+cancel-to-close, prompt-refresh seam; 7 screens extend it), `scripts/ui/SelectionCursor.gd` (shared
+navigation core adopted across the three More-Info surfaces), `scripts/ui/MenuScale.gd` (crisp
+type-scaling, reaches 2.0×), `scripts/shared/InputDisplay.gd` (brand-aware pad glyphs) +
+`InputModeManager` (mouse-kbd / gamepad / touch detection), and the data-driven `SettingsScreen`
+schema (rows + remappable keybinds auto-listed from the InputMap).
+
+- **CL-NAV-01 — (resolved in Branch B).** List + master-detail, collapsing to sequential screens at
+  narrow widths.
+
+- **CL-NAV-02 — Answered.** **Stable global** controller mapping: Confirm=primary, Cancel=back, a
+  context action-menu button, a details toggle, shoulders switch top sections; a live, brand-correct
+  legend via `InputDisplay.live_action_prompt`. Two engineering riders: (1) the Library needs
+  **menu-semantic** section-switch actions rather than overloading the gameplay `next_unit`/`prev_unit`
+  (LB/RB) actions; (2) **input-map defect found** — `confirm`=joy(1,0) and `cancel`=joy(2,1) share
+  **button 1 (right face)**, so a menu leaning on both sees one button as accept *and* back. Recorded
+  as a **playtest-gated investigation** (the first playtest that integrates the Library controller
+  surfaces), not a copy tweak. Rejected: context-dependent remapping (unlearnable; the stable contract
+  is the point).
+
+- **CL-NAV-03 — Answered (accepted-default).** Explicit initial + return focus and explicit neighbors
+  per state; **destructive actions never receive default focus**. Matches existing precedent
+  (`LoadGameScreen` restores focus after a delete-confirm; Godot requires explicit focus and warns that
+  auto-guessing mis-fires on complex UI). Cost is a per-state focus contract + the regression fixtures
+  the research lists (focus owner, full controller route, cancel-return, no clipping at 200%). Rejected:
+  auto-neighbor guessing.
+
+- **CL-NAV-04 — Answered.** **Filters + sortable headings only; no free-text search in v1** — coherent
+  with CL-SAVE-04 / CL-MISSING-01, which already backlogged search into `BACKLOG-RUNSAVE-SEARCH-ARCHIVE`.
+  The apparent tension with CL-SAVE-03 rename (which *does* need controller text entry) resolves on
+  frequency: rename is a **rare, explicitly-invoked** edit (an acceptable virtual-keyboard moment);
+  search is a **browse-path hit every session** (avoid on controller). Rejected: virtual-keyboard search
+  in v1 (slow controller text entry on the hot path).
+
+- **CL-NAV-05 — Answered (accepted-default).** Stress target = **200% text + long translated labels +
+  missing images**. Reality check: 2.0× is **already representable** (`SettingsManager.MENU_SCALE_LEVELS`
+  tops out at 2.0), so this is **layout fixtures, not new infra** — but new Library scenes must join
+  group `menu_scale_targets` and avoid the "override a root Theme can't reach" trap `MenuScale.gd`
+  documents.
+
+- **CL-NAV-06 — Answered (accepted-default).** Redundancy = **text + icon, colour supplementary** — and
+  it is the *only* feasible v1 call: the project has **no colourblind / high-contrast / reduce-motion
+  mode** anywhere, so status meaning must live in text+icon, never colour alone. Badges
+  (Ready / Modified / Invalid / Missing, Branches D/G) draw from **registry display metadata**, not a
+  `match`. A palette mode is post-v1. Rejected: colour+icon only (fails without a colourblind mode).
+
+- **CL-NAV-07 — Answered.** Progress + cancel policy, refined by a build-cost + platform analysis:
+  - **Threshold rule:** determinate progress bar **+ cancel-before-commit** on the ops that can run long
+    (**inbox scan, pack import**); indeterminate spinner, **no cancel**, on the fast bounded ops
+    (export, status-record write).
+  - **Cancel is cheap; async is the real cost.** A live indicator only animates if the work is off the
+    main thread *or* chunked — a synchronous `install_zip()` freezes the indicator and risks the OS
+    "not responding" dialog. Cancel-before-commit is nearly free given the code: `install_zip` already
+    stages to `.staging` and calls `_remove_tree` on any failure, with an atomic `_promote()` commit —
+    so cancel = a flag checked in the **existing per-entry extraction loop** + the **existing rollback
+    path**.
+  - **Web-safe implementation constraint (checked): use a cooperative chunked coroutine (`await` a frame
+    every N entries), NOT threads.** Web is a **shipping target** (playtest channel + portfolio demo;
+    the Compatibility renderer was chosen *because web export requires it* — `GDD_00 §Platform Targets`),
+    and Godot web exports are **single-threaded unless** SharedArrayBuffer + cross-origin isolation is
+    available on the host, which a portfolio demo cannot assume. Threads (`WorkerThreadPool`/`Thread`)
+    would be the portability hazard; cooperative chunking is the most portable path and matches the
+    codebase (**zero threads today**). The same chunking avoids Android ANR (mobile deferred post-1.0,
+    but not to be actively broken) and the browser "page unresponsive" prompt. Secondary web caveat to
+    carry forward: `user://` on web is async-persisted IndexedDB, so import/backup is not durable-on-disk
+    until the browser flushes — a flag for the backup backlog, not a v1 import blocker.
+  - Rejected: cancel everywhere (saves little, frozen-looking app on the fast ops); synchronous + static
+    overlay (spinner can't animate — worse than honest text); threaded installer (fragile on the web
+    target).
+
+**Implementation linkage.** Branch I reuses existing infra, so it adds no *new UI primitive* — but it
+surfaces three tracked rows: (a) the **input-map double-bind playtest investigation**
+(`BACKLOG-INPUTMAP-CONFIRM-CANCEL-DOUBLEBIND`, CL-NAV-02); (b) **async progress/cancel infra** for
+scan/import (`IMPL-ASYNC-PROGRESS-CANCEL`, CL-NAV-07, cooperative-chunking / web-safe); and (c) it
+**connects to the UI/UX pass** — the Library's list/detail/action-menu surfaces are the third and
+fourth data-driven-list consumers (after `SelectionCursor`'s More-Info surfaces and `LoadGameScreen`),
+so a **shared record-list + master-detail + action-menu widget** on the `PanelSelector`/`SelectionCursor`
+core is scoped as the pass's first *structural* deliverable (`PLAN-UIUX-REUSE-PASS`). The *visual*
+`UiThemeDef` / `AssetResolver` half of that pass stays gated on the art open-questions
+(`B6-SPRITE-IMPORTER` / `[IMP]`). See `ui_ux_asset_inventory_and_reuse_2026-07-02.md`.
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -488,9 +573,9 @@ summary. One **new backlog row** is created for the branded-extension + OS-assoc
 
 ## Next session
 
-Resume at **Branch I — Navigation & accessibility** (CL-NAV-02…07; cross-cutting, and the
-controller/Steam-Deck fallback recurs — CL-NAV-01 was already resolved in Branch B as list +
-master-detail). Then J → K. When each branch closes, copy its
+Resume at **Branch J — Safety, trust, privacy** (CL-SAFETY-01…04; cross-cutting, and CL-SAFETY-01
+wording is pre-answered — the redacted-report scrubber CL-MISSING-05 relied on is owned here). Then
+K (author/advanced surfaces + editor integration). When each branch closes, copy its
 ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule controls,
 validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
@@ -507,4 +592,13 @@ containers (`.clean-pack.zip` / `.with-runs.zip` / `.portable-run.zip` / `.statu
 scanner routes on `<type>.<ext>` + internal `artifact_type`), branded extensions + OS association
 deferred to a Windows-installer fast-follow; contextual actions + thin Transfers hub;
 Included/Excluded scope summary at preview + success; restore mechanics (-03/04/05) ride the
-deferred backup backlog.
+deferred backup backlog. Branch I closed 2026-07-24: reuses existing infra
+(`ModalScreen`/`SelectionCursor`/`MenuScale`/`InputDisplay`/`InputModeManager`/data-driven
+`SettingsScreen` schema); stable controller mapping + brand-aware legend (with an input-map
+double-bind defect found → playtest investigation); explicit focus, destructive never default;
+filters + sortable headings, no search v1; 200% + long-label + missing-image stress; text+icon
+redundancy (no colour-only, no palette mode v1); NAV-07 progress+cancel = threshold rule (bar+cancel
+on scan/import, spinner-only on fast ops) implemented as a **web-safe cooperative chunked coroutine,
+not threads** (web is a shipping target, single-threaded by default), cancel nearly free on the
+existing `.staging`/`_promote` rollback. Three rows created: input-map investigation, async
+progress/cancel infra, and a UI/UX-reuse pass scoping a shared list/detail/action-menu widget.
