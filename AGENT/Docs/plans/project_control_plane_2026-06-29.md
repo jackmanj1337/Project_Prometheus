@@ -271,6 +271,11 @@ is on hold.
 
 ## Content, Polish, And UI Queues
 
+Active reusable-UI research sources: [UI/UX interaction vocabulary](../design/ui_ux_interaction_vocabulary_2026-07-24.md)
+and [UI/UX architecture research and owner questions](../design/ui_ux_architecture_research_and_questions_2026-07-24.md).
+They inform `UI-INSPECTION` and the campaign-library planning discussion without
+authorizing implementation or campaign/data schema decisions.
+
 | Track ID | Band | Status | Work item | Scope | Blocks / depends on | GDD owner | Decision source | Build source | Save / registry impact | Test / validation | Next action |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `CONTENT-V1` | Content | Planned | Short-campaign v1 content | Minimum data, maps, story, classes, items, and skills needed for one short campaign. | Bands 1-5 foundations as applicable | All GDD chapters as applicable | [`planned_unimplemented_feature_triage_2026-06-28.md`](planned_unimplemented_feature_triage_2026-06-28.md) | needs content plan | Save/registry per content type | Load tests and campaign playtest | Define after GDD chapter rewrite. |
