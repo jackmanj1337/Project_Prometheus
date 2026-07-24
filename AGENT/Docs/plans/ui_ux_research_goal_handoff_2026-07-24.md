@@ -28,7 +28,9 @@ objective (no token budget unless the owner explicitly supplies one):
 > and (2) an owner-questions document containing evidence, alternatives,
 > recommendations, dependencies, and explicit decisions to defer. Compare the
 > visible UI with readable source code for at least one and no more than four
-> relevant projects. Do not ratify campaign/data schemas or begin
+> relevant projects. Research UI layout/prototyping tooling, including suitable
+> non-Godot options, that lets headless agents create, exercise, capture, and
+> compare layouts before production implementation. Do not ratify campaign/data schemas or begin
 > implementation. Stop and request owner judgement immediately if useful
 > evidence is blocked by CAPTCHA or robots.txt, or before downloading or
 > building any research tool.
@@ -51,6 +53,9 @@ Load/New Game, convoy/shop, prep activities, and later record-oriented screens:
   scale, reset, accept/cancel, and input ownership;
 - reusable concepts that Project Prometheus can adopt without assuming a final
   campaign/data schema.
+- tools and workflows for disposable or contract-level UI prototypes that can be
+  authored and tested headlessly, including non-Godot approaches when they give
+  agents better layout, focus, accessibility, screenshot, or regression evidence.
 
 Inspect the current Project Prometheus scenes/scripts and existing UI research
 before external comparison. Record what is already shared, duplicated, or
@@ -79,6 +84,39 @@ desired design.
   Prometheus evidence and external comparator evidence.
 - Keep quotations short; paraphrase and cite. Record licenses/provenance for any
   reusable code or assets encountered, but do not copy them into the project.
+
+### Prototyping-tool research
+
+Research a small, evidence-backed shortlist rather than assuming Godot is the
+best environment for early layout exploration. Candidates may include static
+HTML/CSS, component-preview systems, browser automation, wireframing formats, or
+other code-defined UI tools that an agent can operate without a graphical desktop.
+Godot-native headless scenes and the existing UI inspection preview remain a
+baseline comparator, not an automatic winner.
+
+Evaluate each serious candidate against the same matrix:
+
+- fully headless creation, rendering, interaction, and repeatable capture;
+- deterministic screenshots or structural snapshots at target resolutions and
+  all supported Menu Scale factors, including 200% stress;
+- keyboard/controller-focus simulation, modal containment, held-repeat, and
+  pointer interaction where relevant;
+- accessibility inspection such as readable semantics, contrast, focus order,
+  target size, and text reflow;
+- machine-readable layout assertions and visual-regression/diff support;
+- speed of iteration and clarity of artifacts for owner review;
+- offline/reproducible operation in the container and CI suitability;
+- installation/build burden, maintenance health, platform support, licence,
+  supply-chain surface, and expected value for future research passes;
+- how faithfully the prototype can express Godot constraints, and the cost/risk
+  of translating an approved layout back into Godot scenes/themes;
+- whether the prototype is explicitly disposable, generates implementation
+  inputs, or risks becoming a second UI source of truth.
+
+Recommend one default workflow, a fallback, and “stay Godot-native” if that is
+best supported. Define a smallest useful proof of concept, but do not download,
+install, build, or adopt the tool during this research pass without first asking
+the owner under the stop conditions below.
 
 ## Mandatory Stop And Ask Conditions
 
@@ -142,6 +180,11 @@ It must contain:
   and avoids repeatedly deciding the same interaction in individual screens;
 - a clear list of research gaps or requested owner inspections.
 
+Include the prototyping-tool shortlist and evaluation matrix in this document,
+with a recommended headless prototype workflow and a clearly bounded proof of
+concept. Surface owner questions only where preference, risk, ongoing cost, or a
+new dependency genuinely requires a decision.
+
 Questions should be consequential choices, not requests for approval of obvious
 best practices. If research resolves something without owner preference, record
 it as a finding and explain the evidence instead of manufacturing a question.
@@ -154,6 +197,11 @@ it as a finding and explain the evidence instead of manufacturing a question.
 - No visual-theme or asset-registry ratification while the art/import questions
   remain open; research may identify requirements and vocabulary.
 - No copying third-party code or assets during research.
+- No installing, downloading, building, or adopting a prototype tool merely to
+  strengthen the comparison; propose the proof of concept and ask first.
+- A prototype must not silently become the authoritative UI. State what remains
+  authoritative, how findings transfer to Godot, and when prototype artifacts
+  are discarded or retained as test fixtures.
 - No assumption that a comparator's pattern fits this project merely because it
   works there; map every recommendation to Godot, current project structure,
   controller-first use, scaling, and campaign-author extensibility.
@@ -181,6 +229,9 @@ it as a finding and explain the evidence instead of manufacturing a question.
 - Questions have stable IDs, recommendations, defaults, dependencies, and defer
   markers for campaign/data-dependent decisions.
 - The local-project audit and evidence matrix are present.
+- The prototyping-tool matrix covers Godot-native and credible non-Godot options,
+  recommends a default/fallback, and scopes a proof of concept without executing
+  an unapproved download, build, installation, or adoption.
 - `AGENT/Docs/INDEX.md` is regenerated.
 - `python3 AGENT/Docs/check_docs.py` and the repository fast checks pass.
 - `coordination/tasks.json` points to the resulting documents and is regenerated
