@@ -315,6 +315,32 @@ external evidence. Stable ids are reserved now so live notes do not churn.
 - Ongoing-cost dependency: any Playwright proof requires owner approval before its
   runtime/browser download and a pinned dependency policy.
 
+**Owner follow-up, 2026-07-24:** add a bounded Playwright experiment against the
+actual Godot web export to the pass. This authorizes investigation and experiment
+planning; installing Playwright/browser binaries remains a separate explicit approval
+gate. The tracked child is `EXP-UI-WEB-PLAYWRIGHT-2026-07-24`.
+
+The experiment must compare two modes:
+
+1. **Uninstrumented export:** focus the Godot canvas, drive real keyboard/mouse/touch
+   input, observe boot/console/runtime failures, test target viewports and Menu Scale,
+   and capture deterministic screenshots.
+2. **Test export with a minimal state bridge:** use Godot's web-only
+   `JavaScriptBridge` to publish read-only state such as current screen, selected stable
+   record id, focused region, modal/operation state, and Menu Scale. Playwright still
+   drives the public input path; it must not call domain mutations or become an
+   alternate control API.
+
+Required findings: how reliably the canvas receives focus/input; coordinate-click
+brittleness; deterministic waiting without sleeps; screenshot stability in the pinned
+container/browser; browser console and export-load diagnostics; touch emulation;
+whether Godot accessibility metadata becomes useful browser semantics; and the exact
+coverage gap left for physical controllers and human visual judgement. The bridge must
+compile only into a dedicated test export, expose no protected/player data, and stay
+absent from production exports. Success means a smallest repeatable flow covering boot
+→ record navigation → details/actions → confirmation/cancel at wide/narrow and 200%
+stress, with a clear adopt/decline recommendation and ongoing dependency cost.
+
 ## Proposed owner walkthrough order
 
 1. UI-ARCH-01: neutral presentation-state boundary.
@@ -322,8 +348,8 @@ external evidence. Stable ids are reserved now so live notes do not churn.
 3. UI-ARCH-04: primary versus secondary action placement.
 4. UI-ARCH-02: adaptive-host composition and authoritative sequential behavior.
 5. UI-ARCH-06: HUD editor's controller mode and live-validation details.
-6. UI-TOOL-01: whether Godot-native evidence is sufficient before approving a browser
-   prototype dependency.
+6. UI-TOOL-01: review the now-tracked Godot-web-export Playwright experiment boundary
+   and decide whether to approve the pinned tooling/browser installation needed to run it.
 
 ## Explicit deferrals
 
