@@ -1,6 +1,6 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–E resolved with the owner; F–K pending
+Status: Accepted (partial) — Branches A–F resolved with the owner; G–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -30,7 +30,7 @@ only on branches above it:
 | C | First run & zero-content boot | CL-FIRST-01/02/03/04 | Resolved |
 | D | Install & pack lifecycle | CL-LIFE-01…09 (+ CL-MISSING-04 fingerprint case, pulled forward) | Resolved |
 | E | Launch / New Game / rule profiles | CL-LAUNCH-01…05 | Resolved |
-| F | Runs & saves detail | CL-SAVE-02/03/04/05 | Pending |
+| F | Runs & saves detail | CL-SAVE-02/03/04/05 | Resolved |
 | G | Missing / incompatible content | CL-MISSING-01…05 | Pending (CL-MISSING-03 direction + 04 fingerprint case pre-answered) |
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Pending (simplified — no migration engine; needs artifact names/extensions) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Pending (controller fallback recurs) |
@@ -255,6 +255,61 @@ the Library launch surface (details pane + validate-before-commit gate) and CL-L
 two `SettingsManager` keys — all folded into the consolidated Library implementation-planning
 pass that follows the discussion (Branches F–K), not spun out as premature standalone rows.
 
+## Branch F — Runs & saves detail
+
+Branch F is largely a *confirm-and-nail-down* pass: the save-type taxonomy is already
+**data-driven** in code (`scripts/resources/CampaignRules.gd` `save_slot_classes` +
+`autosave_rules`) and the persistence/ledger work already drew the line between browsable
+saves and in-memory internals. The owner affirmed that line and chose the **lean v1**
+shape for scaling.
+
+- **CL-SAVE-02 — Answered.** The run/save browser shows exactly the **persisted** classes:
+  manual **Campaign Saves**, **Campaign Autosave**, **Suspend** (presented as *Resume* — a
+  single slot, `consumed_on_load`, so it disappears after use), and **completed / imported
+  status records**. The **rewind ledger is hidden** — it is the in-memory, mid-map decaying
+  ledger (`undo_activations` / `undo_rounds`), never a browsable save; it surfaces only in a
+  recovery context. This maps 1:1 onto `save_slot_classes` + `autosave_rules` + the status
+  store, so the visible taxonomy stays **open-registry / data-driven** (a campaign can add a
+  slot class or autosave pool without an engine enum edit, per `[EXT]`). Rejected:
+  player-facing-only (hiding autosave/suspend makes a lost autosave invisible) and
+  show-everything (browsable rewind entries — already rejected in the persistence design).
+
+- **CL-SAVE-03 — Answered.** Players may rename the **run label** and a **manual Campaign
+  Save label**. Autosave and Suspend labels stay **system-owned** (pool-managed, count-capped
+  — a renamed autosave would fight the keep/rotate policy). The **campaign name is fixed**
+  (it comes from the pack; renaming it would diverge the display name from pack identity and
+  invite impersonation); the player-side **`hash → nickname` map** (CL-LIFE-03) already covers
+  "which copy is which." *Engineering consequence:* slot classes carry only a class-level
+  `label` today, so a renameable per-instance label is a new field on the save-index entry and
+  the run header (small, additive). Rejected: manual-save-label-only (runs need a
+  human-memorable name once there are several) and campaign-alias (identity/spoofing risk).
+
+- **CL-SAVE-04 — Answered (lean v1).** Runs are **collapsed and sorted newest-first**. **No
+  search/filter and no archive in v1** — runs leave the list only by delete. Accepted
+  trade-off: within a single campaign a player rarely accumulates enough runs for search to
+  earn its cost, and archive would add a state + storage bucket for little v1 value. **Search
+  and archive move to a demand-gated backlog row** (same treatment as full-library backup —
+  nothing lives only in a note). *Consequence to watch:* with no search, a run that holds many
+  manual saves relies on newest-first ordering + the collapse; if playtest shows long
+  within-run save lists, search graduates from the backlog first. Rejected here:
+  collapse+search+archive (full research rec — deferred, not taken) as premature for v1.
+
+- **CL-SAVE-05 — Answered.** Per run/save actions ship as **Resume, Inspect, Rename, Export,
+  Delete**. **Archive is *not* included** — it was contingent on CL-SAVE-04 adopting archive,
+  which it did not, so the two decisions stay coherent (archive rides the same backlog row).
+  **Export** is the run/save half of the inbox exchange (Branches C/D — Export clean / with
+  runs / run(s) only / status record(s)). **Duplicate is deferred** to Branch K with the
+  copy/edit surface (it is the same "make an editable copy" plumbing). Rejected: lean set
+  (dropping Rename contradicts CL-SAVE-03) and include-Duplicate-now (pulls Branch K scope
+  forward).
+
+**Implementation linkage.** Branch F adds no premature standalone tracker rows — like Branch
+E it folds into the consolidated Library implementation-planning pass. The two concrete code
+touches it implies are noted inline: a **per-instance rename label** on the save-index entry /
+run header (CL-SAVE-03), and the browser reading its visible set straight from
+`save_slot_classes` + `autosave_rules` + the status store (CL-SAVE-02). The deferred
+**search + archive** work is the one item that gets a backlog row.
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -263,10 +318,18 @@ pass that follows the discussion (Branches F–K), not spun out as premature sta
   — Branch K.
 - **Configurable inbox/scan-folder path** — post-v1 (v1 folder is fixed/app-managed).
 - **App-managed trash/recovery** — post-v1 (v1 is confirm + hard delete).
+- **Run/save search + filter and run archive** (CL-SAVE-04/05) — deferred from v1; v1 is
+  collapse + newest-first only. Demand-gated; recorded as a tracker backlog row. Within-run
+  save search graduates first if playtest shows long save lists.
 
 ## Next session
 
-Resume at **Branch F — Runs & saves detail** (CL-SAVE-02/03/04/05). Then G → K. When each
+Resume at **Branch G — Missing / incompatible content** (CL-MISSING-01…05; CL-MISSING-03
+direction and CL-MISSING-04 fingerprint case are pre-answered in Branch D). Then H → K. When each
 branch closes, copy its ids/answers here and create implementation tracker rows only for accepted
 scope. Branch E closed 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule
-controls, validate-before-commit, persist last-campaign + sort/filter.
+controls, validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
+visible saves = manual + autosave + suspend(as Resume) + status records (rewind hidden), read
+data-driven from `save_slot_classes`/`autosave_rules`; rename run + manual-save labels only;
+**lean v1** = collapse + newest-first, no search/archive (backlogged); actions =
+Resume/Inspect/Rename/Export/Delete (no Archive, Duplicate → Branch K).
