@@ -1,6 +1,6 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–F resolved with the owner; G–K pending
+Status: Accepted (partial) — Branches A–G resolved with the owner; H–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -31,7 +31,7 @@ only on branches above it:
 | D | Install & pack lifecycle | CL-LIFE-01…09 (+ CL-MISSING-04 fingerprint case, pulled forward) | Resolved |
 | E | Launch / New Game / rule profiles | CL-LAUNCH-01…05 | Resolved |
 | F | Runs & saves detail | CL-SAVE-02/03/04/05 | Resolved |
-| G | Missing / incompatible content | CL-MISSING-01…05 | Pending (CL-MISSING-03 direction + 04 fingerprint case pre-answered) |
+| G | Missing / incompatible content | CL-MISSING-01…05 | Resolved |
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Pending (simplified — no migration engine; needs artifact names/extensions) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Pending (controller fallback recurs) |
 | J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Pending (CL-SAFETY-01 wording pre-answered) |
@@ -310,6 +310,70 @@ run header (CL-SAVE-03), and the browser reading its visible set straight from
 `save_slot_classes` + `autosave_rules` + the status store (CL-SAVE-02). The deferred
 **search + archive** work is the one item that gets a backlog row.
 
+## Branch G — Missing / incompatible content
+
+Mostly Branch D cashing out: the integrity-vs-validity **check-point contract** (Branch D)
+already fixed where each check runs and how it fails, so Branch G confirms that policy and
+**prunes the packet's lists to v1 reality** — two earlier decisions remove options: *no Disable*
+(CL-LIFE-06) deletes "Enable"/"disabled", and *no migration engine* (CL-LIFE-04) deletes
+"migration unavailable". Grounding in code: the save index already mirrors a **header** out of
+each save doc (`SaveManager._slot_index_row`, carrying `campaign_id` + the
+`package_id`/`package_version` identity) so a missing-pack save can be *listed and categorised
+without loading the save or the pack*; and `PP-V053-CAMPAIGN-ERROR-DIAG` (completed) already
+moved the engine toward **distinct campaign diagnostics** instead of one generic "Campaign Data
+Error".
+
+- **CL-MISSING-01 / CL-MISSING-02 — Answered.** A save whose pack is missing stays **visible,
+  disabled, in its original campaign group**, marked with a **"Missing content" badge** rendered
+  from the header index (no pack load). If the campaign itself is uninstalled, a **placeholder
+  campaign row is derived from the save header** so its runs stay reachable. Repair actions:
+  **Import required content** (deep-links the inbox/import flow **pre-filtered** to the needed
+  id/version), **Inspect** (the diagnostic of CL-MISSING-05), **Export** (rescue the run *without*
+  its pack), **Delete** (secondary, double-confirms when the run is not completed, per CL-LIFE-09).
+  **No "Enable"** (no Disable in v1) and **no separate "Missing Content" filter view** — orphans
+  show inline where the run lives, keeping CL-SAVE-04's lean-v1 (no search/filter) coherent; the
+  dedicated filter rolls into the **existing** `BACKLOG-RUNSAVE-SEARCH-ARCHIVE` row, not a new one.
+  Rejected: hiding orphaned saves (kills the repair path, reads as data loss).
+
+- **CL-MISSING-03 — Answered.** Distinct, stable failure categories, **pruned to the v1 set**:
+  **Missing content · Version not installed · Modified (fingerprint changed) · Invalid pack ·
+  Corrupt save**. "disabled" and "migration unavailable" drop out (the latter folds into *Version
+  not installed*). Each is a **stable code + player-facing string + support-doc anchor**. This is
+  a *fixed engine diagnostic set*, not an author-extensible content vocabulary, so a closed set is
+  correct here — it is not the closed-enum smell `[EXT]` warns about (these are integrity/validity
+  outcomes the engine owns, not content authors extend). Extends the PP-V053 distinct-diagnostics
+  precedent. Rejected: three coarse buckets ("Broken" hides import-a-version vs report-a-bug) and a
+  single generic error (what PP-V053 just moved away from).
+
+- **CL-MISSING-04 — Answered (confirms Branch D).** Layered override policy, matching the Branch D
+  check-point table:
+  - **Modified** (same-version fingerprint mismatch) → **non-blocking warning**, player may proceed
+    ("content modified since import — errors may occur"). This is the fingerprint case Branch D
+    pulled forward; the packet's open question ("is same-version fingerprint mismatch *always
+    blocked*?") is answered **No**.
+  - **Missing content / Version not installed** → **blocked** until the required content is imported
+    (you cannot play what is not there).
+  - **Invalid references / schema** (structurally unrunnable) → **never overridable**; hard-fails at
+    **point of use** with a diagnostic — the real hard gate.
+
+  Rejected: stricter (always block fingerprint mismatch — contradicts CL-LIFE-03) and looser
+  (force-load invalid references — runs genuinely broken content, no safe outcome).
+
+- **CL-MISSING-05 — Answered.** A failure shows a **plain-language summary line** plus an
+  **expandable, copyable report with paths redacted** — relativised to `user://`, absolute home
+  paths / usernames stripped — safe to paste into a bug report. The redaction is the privacy
+  scrubber that Branch J (CL-SAFETY) owns; recorded here as the requirement, wired there. Rejected:
+  summary-only (authors/bug reports lose the actionable id/version/path) and full raw paths inline
+  (leaks usernames + filesystem layout into screenshots).
+
+**Implementation linkage.** No premature standalone tracker rows — Branch G folds into the
+consolidated Library implementation pass. The concrete code touches it implies are already inline:
+the missing-content detection reads `package_id`/`package_version` from the existing header index
+against `CampaignPackRegistry`; the category set is a small fixed engine enum + string table +
+support anchors; the import deep-link reuses the Branch C/D inbox import pipeline pre-filtered to a
+target id/version; and the redacted report is a shared scrubber owned by Branch J. The one deferred
+item (missing-content *filter*) is absorbed by the existing `BACKLOG-RUNSAVE-SEARCH-ARCHIVE` row.
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -320,16 +384,23 @@ run header (CL-SAVE-03), and the browser reading its visible set straight from
 - **App-managed trash/recovery** — post-v1 (v1 is confirm + hard delete).
 - **Run/save search + filter and run archive** (CL-SAVE-04/05) — deferred from v1; v1 is
   collapse + newest-first only. Demand-gated; recorded as a tracker backlog row. Within-run
-  save search graduates first if playtest shows long save lists.
+  save search graduates first if playtest shows long save lists. **Also absorbs** the
+  dedicated **"Missing content" filter view** (CL-MISSING-01) — v1 shows orphaned saves inline.
 
 ## Next session
 
-Resume at **Branch G — Missing / incompatible content** (CL-MISSING-01…05; CL-MISSING-03
-direction and CL-MISSING-04 fingerprint case are pre-answered in Branch D). Then H → K. When each
-branch closes, copy its ids/answers here and create implementation tracker rows only for accepted
-scope. Branch E closed 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule
-controls, validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
+Resume at **Branch H — Transfers: import/export/backup/restore** (CL-TRANSFER-01…06; simplified
+by the no-migration-engine decision — this branch still needs concrete artifact names/extensions
+for the inbox scanner's extension-routing). Then I → K. When each branch closes, copy its
+ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
+2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule controls,
+validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
 visible saves = manual + autosave + suspend(as Resume) + status records (rewind hidden), read
 data-driven from `save_slot_classes`/`autosave_rules`; rename run + manual-save labels only;
 **lean v1** = collapse + newest-first, no search/archive (backlogged); actions =
-Resume/Inspect/Rename/Export/Delete (no Archive, Duplicate → Branch K).
+Resume/Inspect/Rename/Export/Delete (no Archive, Duplicate → Branch K). Branch G closed
+2026-07-24: orphaned saves show inline-disabled + "Missing content" badge (header index, no
+filter) with Import/Inspect/Export/Delete repair; 5 stable failure categories (Missing / Version
+not installed / Modified / Invalid pack / Corrupt save); layered override policy confirms Branch D
+(Modified = warn, Missing/Version = block, Invalid refs = never); summary + copyable redacted
+report.
