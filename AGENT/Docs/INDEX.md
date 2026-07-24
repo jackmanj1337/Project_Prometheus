@@ -246,7 +246,7 @@
 - [`playtests/playtest_build_v0.5.3.md`](playtests/playtest_build_v0.5.3.md) — v0.5.3 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.4.md`](playtests/playtest_build_v0.5.4.md) — v0.5.4 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_build_v0.5.5.md`](playtests/playtest_build_v0.5.5.md) — v0.5.5 Windows Playtest Build — *Exported - pending live Windows validati*
-- [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Preparing export*
+- [`playtests/playtest_build_v0.5.6.md`](playtests/playtest_build_v0.5.6.md) — v0.5.6 Windows Playtest Build — *Exported - pending live Windows validati*
 - [`playtests/playtest_checklist_display_accessibility_2026-06-15.md`](playtests/playtest_checklist_display_accessibility_2026-06-15.md) — Playtester Checklist — Display & Accessibility (2026-06-15) — *Pending validation — focused checklist f*
 - [`playtests/playtest_checklist_v0.2.3.md`](playtests/playtest_checklist_v0.2.3.md) — Playtester Handbook and Checklist - v0.2.3
 - [`playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md`](playtests/playtest_checklist_v0.2.3_returned_2026-07-01.md) — Playtester Handbook and Checklist - v0.2.3 — *Returned results - triaged in `playtest_*
