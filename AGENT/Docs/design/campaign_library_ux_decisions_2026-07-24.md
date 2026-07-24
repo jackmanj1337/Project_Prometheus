@@ -1,6 +1,6 @@
 ---
 Type: design decisions
-Status: Accepted (partial) — Branches A–D resolved with the owner; E–K pending
+Status: Accepted (partial) — Branches A–E resolved with the owner; F–K pending
 Last verified: 2026-07-24
 Tracker: DISCUSS-CAMPAIGN-LIBRARY-UX-2026-07-23
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
@@ -29,7 +29,7 @@ only on branches above it:
 | B | Library role & top-level shape | CL-MODEL-04/05, CL-NAV-01 | Resolved |
 | C | First run & zero-content boot | CL-FIRST-01/02/03/04 | Resolved |
 | D | Install & pack lifecycle | CL-LIFE-01…09 (+ CL-MISSING-04 fingerprint case, pulled forward) | Resolved |
-| E | Launch / New Game / rule profiles | CL-LAUNCH-01…05 | Pending (CL-LAUNCH-02 pre-answered) |
+| E | Launch / New Game / rule profiles | CL-LAUNCH-01…05 | Resolved |
 | F | Runs & saves detail | CL-SAVE-02/03/04/05 | Pending |
 | G | Missing / incompatible content | CL-MISSING-01…05 | Pending (CL-MISSING-03 direction + 04 fingerprint case pre-answered) |
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Pending (simplified — no migration engine; needs artifact names/extensions) |
@@ -208,6 +208,53 @@ Security posture confirmed by the code: the checksum is self-computed and stored
 so it detects corruption, **not** tampering → design carryover as **fun continuity, not
 competitive integrity**.
 
+## Branch E — Launch / New Game / rule profiles
+
+- **CL-LAUNCH-01 — Answered.** Selecting a campaign row **opens its details pane**
+  (master-detail), with explicit **Continue** / **New Run** actions inside. It does *not*
+  launch on select. Speed already lives in the Main Menu **Continue** (Branch B, resume the
+  most-recently-touched save), so the Library is free to be the context-and-confirmation
+  surface — a preview boundary, not a hair-trigger. Rejected: immediate launch (one stray
+  press mutates/loads) and an action-menu popup (extra tap, less room for status/metadata).
+
+- **CL-LAUNCH-02 — Answered (pre-answered by Branch A).** Rule profiles are chosen in a
+  **New Run step**, after campaign details — the rule profile is a property of the *Run*
+  (CL-SAVE-01). Matches `IMPL-RULE-PROFILES`: New Game resolves schema defaults → selected
+  profile → explicit campaign defaults, and stores both the selected `profile_id` and the
+  fully-resolved snapshot on the run.
+
+- **CL-LAUNCH-03 — Answered.** The New Run screen uses **source-labelled controls**: each
+  rule shows an editable control tagged with where its value came from (schema default /
+  profile / campaign default), **lock text** on mandated rules ("Locked by campaign"), and a
+  **changed-value summary** listing what the player altered from the resolved default. This is
+  cheap because `CampaignRules` fields are flat scalars (bools/enums/ints) and the precedence
+  is already fixed — `mandate → node override → mid-map override → resolved campaign default`;
+  the UI only needs a source label per field plus a locked flag. Rejected: summary-only
+  (removes the point of adjustable profiles) and bare disabled controls (no "why is this
+  locked?" explanation).
+
+- **CL-LAUNCH-04 — Answered.** Two-tier validation: a **lightweight status** from the library
+  scan for display (Ready / Modified / Invalid badge), and a **full Tier-2 reference + profile
+  resolution run immediately before New Run / Resume commits**. This matches the Branch D
+  checkpoint table, which already puts deep Tier-2 reference resolution at *New Run /
+  activation* as the real hard gate, and it closes the stale-mutation window (a file edited
+  between scan and launch fails safely with a diagnostic instead of launching broken). Rejected:
+  validate-at-selection (latency browsing content you may not play) and scan-time-only
+  (trusts a possibly-stale scan into a broken launch).
+
+- **CL-LAUNCH-05 — Answered.** Persist **last-focused campaign + sort/filter state** across
+  sessions, so returning players land where they left off and first-focus is meaningful.
+  Deliberately **not** view-mode — v1 avoids view-toggle proliferation. A couple of new
+  `SettingsManager` (`user://settings.cfg`) keys; these are Library-navigation prefs, kept
+  distinct from the per-save gameplay rules that manager already refuses to globalise.
+
+**Implementation linkage.** CL-LAUNCH-02/03 are the *player-facing presentation contract*
+for the already-tracked **`IMPL-RULE-PROFILES`** slice (data/save layer); that row's reference
+now points here so the New Run screen contract is not lost. CL-LAUNCH-01/04 are properties of
+the Library launch surface (details pane + validate-before-commit gate) and CL-LAUNCH-05 adds
+two `SettingsManager` keys — all folded into the consolidated Library implementation-planning
+pass that follows the discussion (Branches F–K), not spun out as premature standalone rows.
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -219,6 +266,7 @@ competitive integrity**.
 
 ## Next session
 
-Resume at **Branch E — Launch / New Game / rule profiles** (CL-LAUNCH-01/03/04/05; CL-LAUNCH-02
-already answered: rule profile is a run property). Then F → K. When each branch closes, copy its
-ids/answers here and create implementation tracker rows only for accepted scope.
+Resume at **Branch F — Runs & saves detail** (CL-SAVE-02/03/04/05). Then G → K. When each
+branch closes, copy its ids/answers here and create implementation tracker rows only for accepted
+scope. Branch E closed 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule
+controls, validate-before-commit, persist last-campaign + sort/filter.
