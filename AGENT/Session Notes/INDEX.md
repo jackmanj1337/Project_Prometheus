@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-25b](2026-07-25b.md) — Fixed every v0.5.6 rejection, made Ridge Pass visually distinct, and prepared the v0.5.7 Windows rerun.
 - [2026-07-25a](2026-07-25a.md) — Triaged and rejected the v0.5.6 Windows return; preserved evidence and root-caused repeated Results branch state, ordinary-slot catalogue validation, FileDialog Escape, 200% Results overflow, and transient-Boot hotplug telemetry loss.
 - [2026-07-25](2026-07-25.md) — Relocated the stranded v0.5.3 playtest return evidence into the canonical AGENT/Docs/playtests/evidence/v0.5.3 layout (raw artifacts, filled returned-checklist rescued from a template name-collision, dropped an identical build-doc dup) and cleaned orphaned .import cruft off the campaign-data-research branch.
 - [2026-07-24g](2026-07-24g.md) — Fixed the v0.5.5 blockers, resolved Retry/FileDialog behavior, added a branching fixture, and prepared the v0.5.6 Windows release records.
