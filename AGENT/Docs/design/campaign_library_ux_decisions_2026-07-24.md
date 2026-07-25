@@ -35,7 +35,7 @@ only on branches above it:
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Resolved (restore mechanics -03/04/05 ride the deferred backup backlog) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Resolved (reuses existing input/scale/modal infra; NAV-07 = web-safe cooperative chunking) |
 | J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Resolved 2026-07-24 |
-| K | Author / advanced surfaces | CL-ADV-01…04 | Pending (editor integration lands here) |
+| K | Author / advanced surfaces | CL-ADV-01…04 | In progress 2026-07-25 — editor distribution resolved (full integration + runtime OR-gated warning); CL-ADV-01/02/03 pending |
 
 ## Branch A — Object model & hierarchy
 
@@ -68,11 +68,13 @@ migration path for existing saves.
 - **Continue** = resume the **most-recently-touched save** (created or resumed), disabled when
   there are zero saves. It is the fast path; the Library can therefore afford previews and
   confirmations because impatient players use Continue.
-- **Copy / Edit** buttons and GUI campaign-editor integration are **deferred to Branch K**.
-  The editor stays an optionally-bundlable but **separable program**, and authors get a
-  dedicated **encounter/balance test environment** (its own fixtures, not the player save
-  model). Editing installed content implies an unpack-to-editable working copy → re-export
-  flow, because installed packs are immutable (CL-ADV-01).
+- **Copy / Edit** buttons and GUI campaign-editor integration were **deferred to Branch K**;
+  the editor-distribution question is now **resolved there (2026-07-25)** — v1 ships the editor
+  **fully integrated in all builds**, runtime-gated, and the optionally-bundlable **separable-program**
+  preset is kept only as a fallback (see Branch K, which revises the earlier "separable program"
+  default). Authors still get a dedicated **encounter/balance test environment** (its own fixtures,
+  not the player save model). Editing installed content implies an unpack-to-editable working copy →
+  re-export flow, because installed packs are immutable (CL-ADV-01).
 
 ## Branch C — First run, discovery & the import architecture
 
@@ -656,12 +658,71 @@ OS-trash** (`OS.move_to_trash()` is a no-op on the web target). Scope it as a re
 location, retention/quota + purge, "Recently deleted" restore UI; note trashed items hold disk until
 purged (quota interaction).
 
+## Branch K — Author & advanced surfaces (CL-ADV-01…04)
+
+Status: **in progress** (opened 2026-07-25). The editor-distribution question — Branch B's deferred
+"Copy / Edit + GUI campaign-editor integration", and the CL-ADV-04 player/author boundary — is
+resolved below; CL-ADV-01/02/03 pending.
+
+### Editor distribution & integration — resolved 2026-07-25 (revises Branch B "separable program")
+
+**Prior art (researched 2026-07-25).** Every reference toolset ships the editor as a **separate
+desktop app from the game the player runs**: FEBuilderGBA (standalone Windows ROM editor, dense
+multi-panel, "15 submenus" deep), Lex Talionis / **LT-maker** (PyQt editor built *on top of* but
+separate from the Python engine), Tactile (separate editor generating a C# game), and even **SRPG
+Studio** — the closest to an "integrated editor+runtime", RPG-Maker-style — still **exports a
+standalone game folder** that the player runs without ever opening the Studio. All are desktop,
+mouse-and-keyboard, author-only. The universal invariant is *the editor never ships into the
+player's hands*; the split is enforced at distribution.
+
+**Decision — full integration in v1, gated at RUNTIME not at build time.** The editor ships in
+**all** presets (Steam / Deck / web included); it is *not* stripped per-build. Rationale: "can I
+edit here?" is a **runtime** property, not a platform. A **Steam Deck in desktop mode** and a **web
+build on an iPad with a Bluetooth keyboard+mouse** are both good editing environments, and a
+build-time strip would wrongly deny them. Gating on live signals (resolution + input mode) covers
+exactly the edge cases a preset split cannot. This **revises** Branch B's "separable program"
+default (which followed the prior art) in favour of integration + graceful degradation.
+
+- **Non-blocking warning on editor entry**, fired when **either** axis is degraded (**OR** — owner
+  call 2026-07-25): window **below 1920×1080**, *or* the current input mode is not keyboard+mouse.
+  Each axis independently makes editing rough (a gamepad-only editor hurts on a 4K TV; a tiny window
+  hurts with a great keyboard), so OR, not AND. Dismissible "open anyway"; matches the house
+  non-blocking-warning pattern (Branch D/G "modified content").
+- **Detect "kbm available / recently used", NOT "touch absent".** An iPad reports touch *and* kbm
+  simultaneously, so a touch-present test would mis-warn a perfectly good iPad+keyboard setup. The
+  input-mode read must key off keyboard/mouse presence, never off the existence of a touchscreen.
+- **Settings declutter (data-driven row).** A player may (a) hide the editor entry by default and/or
+  (b) auto-hide it below a resolution / on a non-kbm input mode. Default = **visible everywhere**;
+  the toggle serves players who never author. One row in the existing data-driven `SettingsScreen`
+  schema, not bespoke UI. "Hide" hides the *entry point* only, reversible in Settings — it never
+  strips the capability.
+
+**Reuses existing infra (Branch I).** Input mode comes from `InputModeManager` (already tracks
+gamepad / kbm / touch), resolution from the window / `MenuScale`; the OR gate is a read on signals
+Branch I already relies on, not new plumbing. The declutter toggle is one `SettingsScreen` schema row.
+
+**Consequences.**
+- Editor and player runtime share **one project and the same resource classes** (`PackManifest`,
+  `CampaignTier2Validators`, `CampaignPackRegistry`) — full integration means no forked codebase.
+- The player runtime keeps only the import/validation **summary + exportable report** (CL-SAFETY-01);
+  the deep author validator is an editor surface (pending CL-ADV-02).
+- Editing installed content still implies **unpack-to-editable working copy → re-export** (installed
+  packs immutable, CL-ADV-01) — unchanged from Branch B.
+- **Cost, accepted:** the editor's code/UI ships into web/Deck where most players won't use it (web
+  download size the main concern). Weighed against the edge-case coverage and chosen; the
+  superset/subset preset below is the escape hatch if it bites.
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
   demand**. Recorded as a tracker backlog row (nothing lives only in a note).
 - **Copy / Edit + GUI campaign-editor integration + author encounter/balance test environment**
-  — Branch K.
+  — Branch K (editor distribution resolved 2026-07-25: full integration + runtime OR-gated warning;
+  the remaining editor *feature* build is what stays deferred).
+- **Superset/subset editor export presets** (escape hatch, not v1) — the two-preset model (lean
+  Player build + desktop Creator superset) that Godot itself and SRPG Studio effectively ship. v1
+  ships the editor fully integrated in all builds; revisit this preset split only if web download
+  size proves the integration cost too high. Demand/measurement-gated (Branch K).
 - **Configurable inbox/scan-folder path** — post-v1 (v1 folder is fixed/app-managed).
 - **App-managed trash/recovery** (CL-SAFETY-04) — post-v1; v1 is confirm + hard delete (heavy
   deletes require a second, deliberate confirmation). Must be **cross-platform incl. web, NOT
@@ -678,10 +739,19 @@ purged (quota interaction).
 
 ## Next session
 
-Resume at **Branch J — Safety, trust, privacy** (CL-SAFETY-01…04; cross-cutting, and CL-SAFETY-01
-wording is pre-answered — the redacted-report scrubber CL-MISSING-05 relied on is owned here). Then
-K (author/advanced surfaces + editor integration). When each branch closes, copy its
-ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
+Branch K opened 2026-07-25. **Editor distribution resolved** (full integration in all builds, gated
+at runtime, not build time; non-blocking editor-entry warning fires on **OR** — window below
+1920×1080 *or* input mode not kbm; detect kbm-present, never touch-absent; Settings declutter row to
+hide/auto-hide the editor entry; superset/subset presets kept as escape hatch). **Resume at the
+remaining Branch K items: CL-ADV-01** (unpacked dev packs — explicit developer mode, marked source),
+**CL-ADV-02** (validation reports — player summary+report vs the deeper author validator that now
+lives in the integrated editor), **CL-ADV-03** (duplicate-id block / dev-&-local-mod badges / no
+"unsigned" language since nothing signs packs — id collision is already partly structural via the
+path-derived identity check at `CampaignPackRegistry.gd:69`). Then implementation planning — K is the
+last owner-question branch.
+
+Earlier: Branch J — Safety, trust, privacy (CL-SAFETY-01…04) resolved 2026-07-24. When each branch
+closes, copy its ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule controls,
 validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
 visible saves = manual + autosave + suspend(as Resume) + status records (rewind hidden), read
