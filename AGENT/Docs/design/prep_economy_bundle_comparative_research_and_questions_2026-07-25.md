@@ -121,6 +121,14 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **Recommendation: A with cosmetic location art/label and optional groups.** Retains
   [PHB-1]. Scene-backed activities remain an optional registered activity type, never the
   mandatory shell.
+- **OWNER RULING (2026-07-25): A, extended to two layers.** The node *interior* is the
+  flat activity list (A), and each node authors its own list (opt-in node activities,
+  already retained). Added on top: an **optional, author-enabled Fire Emblem Awakening-style
+  overworld map** for moving *between* nodes, with strict linear node-advance as the default
+  and fallback. On the overworld, players **may revisit cleared nodes**. This turns "one
+  explicit node-advance action" into an author-selected traversal mode. Revisit, re-entry
+  behavior, and the general cadence engine it requires are specified in the new
+  "Node traversal and cadence model" section below.
 
 ### [EPUX-02] Availability presentation
 
@@ -286,6 +294,12 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — Author-defined quantity/cadence; default infinite.** For: scalable and preserves
   current v1 simplicity. Against: finite stock needs saved counts and clear restock copy.
 - **Recommendation: C**, but ship the first playable slice with infinite stock.
+- **OWNER RULING (2026-07-25): C, pulled forward and generalized.** Because revisitable
+  overworld nodes (EPUX-01 ruling) require a defined second-visit behavior, stock cadence
+  can no longer be deferred: shop nodes persist stock and restock on an author-defined
+  cadence, defaulting to infinite/non-scarce so simple campaigns stay simple. Stock is now
+  one subscriber of the general cadence engine in the "Node traversal and cadence model"
+  section below.
 
 ### [EPUX-17] Dynamic price disclosure
 
@@ -410,6 +424,76 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   must be defined per operation.
 - **Recommendation: C**, but no reset recipe in the first slice.
 
+## Node traversal and cadence model (owner-ratified 2026-07-25)
+
+This section captures a model ratified while walking EPUX-01. It resolves EPUX-01 and
+EPUX-16 and adds an engine mechanism (overworld traversal + node cadence) that was not in
+the original packet.
+
+### Traversal layers
+
+- **Interior (per node):** flat activity list (EPUX-01 A), authored per node.
+- **Between nodes:** an optional, author-enabled Awakening-style **overworld map**. Default
+  and fallback is strict linear node-advance. Linear vs. free-roam is a per-campaign
+  authoring choice, backed by the same campaign-graph data.
+- **Revisit:** when the overworld map is enabled, players may return to cleared nodes.
+
+### Re-entry defaults (all author-overridable)
+
+- **Shop nodes:** persist stock between visits; restock on an author-defined cadence;
+  default to infinite/non-scarce.
+- **Battle & story nodes:** one-shot by default; author may mark repeatable (Awakening
+  skirmish tiles vs. story chapters).
+- **Event nodes:** fire-once by default; author may mark re-fireable.
+
+These defaults make free revisit safe: no accidental XP/gold farm unless an author opts in.
+
+### Cadence as a general node-scheduling trigger
+
+Cadence is not a shop-only timer. A node's state advances on **triggers**, and any node
+property may subscribe: **available activity set**, **battle target**, **activity
+variant/version**, and **stock**. This follows the open-registry principle — cadence is a
+data-driven trigger node descriptors reference, not per-feature timers.
+
+**Trigger families**
+
+- **Counters (monotonic — only increase):**
+  - `chapter_reached: <chapter_id>` — fires once at a named story-chapter milestone.
+  - `chapters_elapsed: N` — a count of story chapters, in `every N` (repeating) and
+    `after N` (one-time) forms.
+  - `deployments_total: N` — cumulative unit deployments across the campaign, in `every`
+    and `after` forms.
+  - `hours_played: N` — accumulated in-game playtime.
+- **Predicates (state conditions, from the shared condition/predicate registry):** e.g.
+  `roster_power >= X`, `unit_in_roster(X)`. Reusing the existing objective/AI condition
+  registry means any future predicate becomes a cadence trigger for free.
+
+**Latching**
+
+- Counters latch inherently (they cannot go backward).
+- Predicates **latch by default**; an author may set a **reversible** flag.
+- **Reversible governs future access/availability only.** Content already consumed is
+  permanent: a viewed interlude stays in the player's history and a completed one-shot does
+  not reopen, even if the gating predicate later becomes false.
+
+Worked examples:
+- *Shop upgrade* — counter, latching → stays upgraded even if a unit later dies.
+- *Recruitment-gated backstory interlude* — predicate `unit_in_roster(X)`, reversible → if
+  the unit permanently dies/leaves, the interlude locks **if unplayed**; if already seen it
+  remains in history. A permadeath-aware narrative gate.
+
+**Composition:** multiple triggers may drive one node (OR'd together).
+
+**Real-time cadence: deferred (post-v1).** A real-time-hours base is intentionally left out
+of v1. It breaks the otherwise deterministic, offline model (needs a trusted clock,
+system-clock-rollback tamper handling, and offline-accrual rules) and would make tests
+non-deterministic. The schema **defines** it, but it ships disabled behind a mockable /
+injectable clock seam, to land as its own slice later. Actions-, chapters-, deployments-,
+hours-played-, and predicate-based cadence are all deterministic and save-friendly.
+
+**Save/load:** cadence state is durable — counter values, latched predicate states,
+consumed/played flags, and each node's current variant pointer all persist in the save.
+
 ## Cross-bundle implementation order
 
 1. Shared responsive activity shell and stable presentation state.
@@ -438,7 +522,16 @@ not pre-author hardcoded activity, currency, benefit, category, or forge-operati
 
 ## Decision status
 
-All recommendations above are research recommendations, not owner-ratified changes.
-EPUX-01 through EPUX-28 should be walked in order. Questions that merely confirm an
-existing register may be accepted as a batch; EPUX-14 is the only identified wording
-clarification between earlier Shop and shopper-subject decisions.
+Recommendations are research recommendations unless marked **OWNER RULING**. The walk is
+in progress (started 2026-07-25). Ratified so far:
+
+- **EPUX-01 — ratified** (A + optional overworld map, revisitable nodes); see "Node
+  traversal and cadence model".
+- **EPUX-16 — ratified** (author-defined cadence, default infinite; folded into the cadence
+  engine).
+- **New: node traversal + cadence engine** — ratified as a general trigger model (counters +
+  registry predicates, latch-by-default with reversible opt-in, real-time deferred).
+
+Still open: EPUX-02..15, EPUX-17..28. Questions that merely confirm an existing register may
+be accepted as a batch; EPUX-14 remains the identified wording clarification between earlier
+Shop and shopper-subject decisions.
