@@ -12,8 +12,8 @@ Last verified: 2026-07-25
 return verifies the main v0.5.5 repairs: package-owned saves loaded in the exercised
 flow, long-list focus stayed visible, Retry-after-Save branched correctly, Z/X typed
 inside FileDialog, and the connected two-map flow completed. It also exposes two High
-state/load defects, one failed FileDialog fix, two visual defects, and several checks
-that remain unverified.
+state/load defects, one failed FileDialog fix, two visual defects, a controller-hotplug
+telemetry/lifecycle failure, and several checks that remain unverified.
 
 The supplied logs identify the exact build as version `0.5.6`, commit `e7ee9f5`, built
 `2026-07-24T17:54:53Z`, running Godot 4.6.3 on Windows 10.0.26200 at 1920x1080. This
@@ -37,7 +37,7 @@ Returned evidence is preserved unchanged under:
 | V056-05 | Low visual | Settings screenshot | OptionButton text collides with the ornate button ends and the long stretched center makes the decoration look distorted. |
 | V056-06 | Low cleanup | both logs | Temporary v0.3.0 display tracing still ships and emits `V030-DSP-TRACE`. |
 | V056-07 | Test-instruction gap | checklist | Missing-package rollback was not tested because the checklist gives no safe setup/removal/restoration procedure. |
-| V056-08 | Unverified | checklist | Gamepad hotplug, prompt switching, and remaining controller-specific checks were not run because no gamepad was available. |
+| V056-08 | Medium | checklist + prior logs + source | Authoritative hotplug telemetry dies with the transient Boot scene; prior controller use produced startup connects but no disconnect/reconnect evidence. Treat the acceptance check as failed. |
 | V056-09 | UX/test-fixture request | checklist | Branch destinations are named in Prep and telemetry, but the two fixture maps are not visually distinguishable and package provenance has no clearly identified player-facing surface. |
 
 ## Findings
@@ -174,13 +174,38 @@ action to remove it, the expected error, proof that the prior campaign/catalogue
 active, and how to reinstall the fixture afterward. This remains **unknown**, not a
 failure and not a pass.
 
-### V056-08 — gamepad and hotplug remain unknown
+### V056-08 — Medium — authoritative hotplug telemetry dies with Boot
 
-No gamepad was available this round, so there can be no controller-connect line in
-these logs. Extensive controller use in v0.5.5 is useful prior evidence, but it does
-not verify the v0.5.6 hotplug/prompt-refresh checklist. Absence from this log is not
-evidence that controller support broke. Carry the focused hotplug and prompt checks to
-the rerun.
+- **Disposition correction:** treat hotplug/prompt refresh as **failed**, not unknown.
+  The controller was exercised extensively in prior Windows rounds. v0.5.5's returned
+  `godot.log` contains eight `PLAYTEST CONTROLLER connected=true` records but no
+  `connected=false` record, despite the hotplug procedure requiring both disconnect
+  and reconnect. The v0.5.6 logs contain no controller record at all. Under the
+  checklist's authoritative-evidence contract, missing expected records fail the
+  check even when gameplay appeared to continue.
+- **Root cause:** `Boot._ready()` connects the authoritative logger to
+  `Input.joy_connection_changed`, logs pads already present, then immediately changes
+  to MainMenu (`scripts/core/Boot.gd:8-27`). The scene change frees Boot and Godot
+  removes its signal connection, so `_on_joy_connection_changed()` cannot observe any
+  later unplug/replug (`Boot.gd:33-42`). This explains the pattern: a pad connected
+  before launch produces a startup line; runtime disconnect/reconnect does not.
+- **Behavioral risk:** persistent `InputModeManager` separately subscribes to the same
+  signal (`scripts/autoloads/InputModeManager.gd:23-34, 88-91`), so the missing log
+  does not prove every runtime hotplug action is broken. It does prove the acceptance
+  evidence mechanism is broken, and the current handler only clears the active device
+  and refreshes mode; it has no integration test proving visible prompts/focus refresh
+  across a real disconnect/reconnect. Per owner direction, assume the user-facing
+  check failed until positive evidence proves otherwise.
+- **Recommended fix:** move `PLAYTEST CONTROLLER` logging into the persistent
+  InputModeManager (or another autoload), including startup enumeration and every
+  connection change. Emit device id, connected state, name, and GUID before clearing
+  disconnected-device state. Keep one owner so Boot and the autoload cannot duplicate
+  startup lines.
+- **Tests:** engine-dispatch or invoke the persistent connection handler for connect,
+  active-pad disconnect, and reconnect. Assert exact telemetry, active device reset,
+  input-mode resolution, and prompt/focus refresh signals. The focused Windows rerun
+  must show ordered `true -> false -> true` controller records and visible prompt
+  changes while a menu is open.
 
 ### V056-09 — branch/provenance feedback is too implicit
 
@@ -219,7 +244,8 @@ Layout editor controller scheme remains deliberately deferred to
   branch choice is blocked by V056-01 and visual branch distinction is weak.
 - **100%/200% visual pass:** FAIL at 200% Results (V056-04) and Settings dropdown skin
   needs polish (V056-05).
-- **Gamepad hotplug/prompt switching:** UNKNOWN (V056-08).
+- **Gamepad hotplug/prompt switching:** FAIL; authoritative logger lifetime is broken
+  and no disconnect/reconnect evidence exists (V056-08).
 - **Quit/Continue/Retry/Rewind/Load/Main Menu smoke:** PASS as recorded.
 
 ## Prioritized action plan
@@ -230,9 +256,11 @@ Layout editor controller scheme remains deliberately deferred to
 3. Instrument and fix the real Windows FileDialog Escape path (V056-03).
 4. Make Results viewport-bounded at 200% and add real-screen containment tests
    (V056-04).
-5. Correct the OptionButton skin/text margins and remove or explicitly gate temporary
+5. Move controller telemetry to a persistent owner and cover disconnect/reconnect plus
+   visible prompt/focus refresh (V056-08).
+6. Correct the OptionButton skin/text margins and remove or explicitly gate temporary
    V030 display tracing (V056-05/06).
-6. Cut a focused Windows rerun with exact missing-package instructions, visibly
+7. Cut a focused Windows rerun with exact missing-package instructions, visibly
    distinct branch fixtures, both branch orders, and a real gamepad hotplug pass.
 
 ## Positive observations
