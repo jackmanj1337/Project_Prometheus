@@ -1,4 +1,8 @@
-# Session Note - 2026-07-25b
+# Session Note - 2026-07-25 (campaign library Branch K)
+
+> Descriptive filename (not the plain `YYYY-MM-DDx` form) intentionally: this design/integration-line
+> note shares `AGENT/Session Notes/` with the parallel release line, which already used
+> `2026-07-25` / `-a` / `-b` the same day. A slug avoids a same-path collision at merge to `main`.
 
 ## What was done
 
