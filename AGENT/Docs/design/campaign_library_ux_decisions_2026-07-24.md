@@ -35,7 +35,7 @@ only on branches above it:
 | H | Transfers: import/export/backup/restore | CL-TRANSFER-01…06 | Resolved (restore mechanics -03/04/05 ride the deferred backup backlog) |
 | I | Navigation & accessibility (cross-cutting) | CL-NAV-02…07 | Resolved (reuses existing input/scale/modal infra; NAV-07 = web-safe cooperative chunking) |
 | J | Safety, trust, privacy (cross-cutting) | CL-SAFETY-01…04 | Resolved 2026-07-24 |
-| K | Author / advanced surfaces | CL-ADV-01…04 | In progress 2026-07-25 — editor distribution resolved (full integration + runtime OR-gated warning); CL-ADV-01/02/03 pending |
+| K | Author / advanced surfaces | CL-ADV-01…04 | Resolved 2026-07-25 — editor full-integration + runtime OR-gated warning; CL-ADV-01 dev-mode unpacked packs; -02 player summary vs editor validator; -03 block collisions / badge dev+local-mod / no "unsigned" + author version-bump note. Editor UX = separate design pass. Last owner-question branch. |
 
 ## Branch A — Object model & hierarchy
 
@@ -712,6 +712,60 @@ Branch I already relies on, not new plumbing. The declutter toggle is one `Setti
   download size the main concern). Weighed against the edge-case coverage and chosen; the
   superset/subset preset below is the escape hatch if it bites.
 
+### CL-ADV-01 — unpacked development packs
+
+**Decision (accept default).** Unpacked (loose-folder) development packs load **only under an explicit
+developer mode**, visually **marked as a dev source**, and **never activate in a normal player
+session**. Grounded: the registry today only scans installed packs under
+`user://campaign_packs/<id>/<version>/` (`CampaignPackRegistry.gd`) — there is no loose-folder path, so
+this is net-new and cleanly gateable. It is the author-loop counterpart to the integrated editor:
+iterate on loose files, then install/export for real. Keeps fingerprints and the support boundary
+intact (a dev-source pack is never mistaken for an installed, fingerprinted one). Editing *installed*
+content still goes through unpack-to-editable working copy → re-export (installed packs immutable).
+
+### CL-ADV-02 — validation report placement
+
+**Decision (accept default).** The **player runtime** shows only the plain validation **summary +
+exportable report** — this *is* the CL-SAFETY-01 "valid pack" signal, nothing new. The **deeper author
+validator** (structured forensics, schema dumps, the CL-SAFETY-02 advanced malformed-content
+diagnostics) is an **editor surface**, not a player one. With the editor now fully integrated (all
+builds), "the author validator lives in the editor" no longer implies a separate download — it is the
+editor's validation view, reachable only through developer mode / the editor entry.
+
+### CL-ADV-03 — duplicate ids, local modifications, "unsigned" language
+
+**Decision.** **Block** id+version collisions; **badge** dev / locally-modified packs; use **no
+"unsigned" language** anywhere.
+
+- **Block collisions** — already partly structural: `CampaignPackRegistry.gd:69` rejects a manifest
+  whose `id`/`version` disagrees with its install directory, so two *installed* packs cannot share an
+  id+version. The rule extends that to the *import* path: a second source claiming an installed
+  id+version is refused, not silently overwritten.
+- **Badge, don't block, dev / local modification** — a dev-source or locally-modified pack is allowed
+  and simply marked; this is the CL-SAFETY-01 fingerprint-mismatch "modified" signal on the author side.
+- **No "unsigned" language** — nothing in the codebase signs or verifies packs, so "unsigned build"
+  wording would invent a signature threat model we do not implement. Only ever say "signature
+  unavailable" *if* signing is added later.
+- **Author guidance note in the editor (owner add 2026-07-25):** when an author edits a pack, the
+  editor **surfaces a note suggesting they bump the version number** if edited copies may coexist with
+  the prior version. Rationale: versioning is **manual with no migration engine** (Branch D), and
+  identity is id+version — two coexisting builds at the *same* id+version are the exact case the block
+  above and the "modified" fingerprint warning exist to catch. Nudging a version bump at edit time is
+  the cheap, author-side prevention. It is a **non-blocking suggestion**, not enforced (an author may
+  deliberately keep the version while iterating locally).
+
+### Editor design — deferred to a dedicated pass
+
+Branch K resolved only the editor's **distribution/integration** and the **author/player boundary**
+(which surfaces live where). The editor's actual **UX** — panel layout, authoring workflows, the
+encounter/balance **test environment** (its own fixtures, not the player save model), fixture
+generation, developer-mode tooling surfaces — is **out of scope here and deferred to a dedicated
+editor-design pass** (own research doc + owner-questions packet, like this one). Recorded as a tracker
+row so it is not lost.
+
+**Branch K resolved 2026-07-25 — this closes the last owner-question branch; next is implementation
+planning.**
+
 ## Deferred / backlog (tracked, not dropped)
 
 - **Full-library backup / restore** — out of v1; post-release candidate **gated on proven
@@ -723,6 +777,23 @@ Branch I already relies on, not new plumbing. The declutter toggle is one `Setti
   Player build + desktop Creator superset) that Godot itself and SRPG Studio effectively ship. v1
   ships the editor fully integrated in all builds; revisit this preset split only if web download
   size proves the integration cost too high. Demand/measurement-gated (Branch K).
+- **Dedicated editor-design pass** (Branch K) — Branch K settled only editor *distribution* and the
+  author/player boundary. The editor's UX (panel layout, authoring workflows, the encounter/balance
+  test environment, fixture generation, developer-mode tooling surfaces) needs its own research doc +
+  owner-questions packet. Tracker row created.
+- **Cloud save backup & cross-device sync — third-party storage services** (investigation, owner ask
+  2026-07-25) — feasibility of Google Drive / iCloud / OneDrive / GitHub as automatic-backup and
+  cross-device targets for saves. Constraints to weigh: **Steam Cloud already covers the Steam target
+  ~for free** (the baseline answer for a Steam game), the **web target is IndexedDB-bound** (no
+  arbitrary filesystem), each service is a separate OAuth + API + token-refresh surface, and
+  cross-platform coverage is uneven. Post-v1; tracker row. Related to the full-library-backup backlog.
+- **Optional first-party server + database** (investigation, owner ask 2026-07-25) — a first-party
+  backend for storing/backing up cloud saves **and potentially distributing campaign packs** (a
+  workshop-style channel). Much larger commitment: hosting cost, auth/account system, uptime, and —
+  for pack distribution — **moderation + licensing/legal exposure** (we would become a distributor;
+  ties directly to the licensing decisions and the Pack_FE internal-only / terms-guard constraints).
+  Post-v1; tracker row. Weigh against just leaning on Steam Cloud + per-pack export/import (v1) and,
+  for distribution, Steam Workshop.
 - **Configurable inbox/scan-folder path** — post-v1 (v1 folder is fixed/app-managed).
 - **App-managed trash/recovery** (CL-SAFETY-04) — post-v1; v1 is confirm + hard delete (heavy
   deletes require a second, deliberate confirmation). Must be **cross-platform incl. web, NOT
@@ -739,19 +810,16 @@ Branch I already relies on, not new plumbing. The declutter toggle is one `Setti
 
 ## Next session
 
-Branch K opened 2026-07-25. **Editor distribution resolved** (full integration in all builds, gated
-at runtime, not build time; non-blocking editor-entry warning fires on **OR** — window below
-1920×1080 *or* input mode not kbm; detect kbm-present, never touch-absent; Settings declutter row to
-hide/auto-hide the editor entry; superset/subset presets kept as escape hatch). **Resume at the
-remaining Branch K items: CL-ADV-01** (unpacked dev packs — explicit developer mode, marked source),
-**CL-ADV-02** (validation reports — player summary+report vs the deeper author validator that now
-lives in the integrated editor), **CL-ADV-03** (duplicate-id block / dev-&-local-mod badges / no
-"unsigned" language since nothing signs packs — id collision is already partly structural via the
-path-derived identity check at `CampaignPackRegistry.gd:69`). Then implementation planning — K is the
-last owner-question branch.
+**Branch K resolved 2026-07-25 — all owner-question branches (A–K) are now closed.** Editor
+distribution = full integration in all builds, runtime-gated, OR warning; CL-ADV-01 dev-mode unpacked
+packs; CL-ADV-02 player summary vs editor validator; CL-ADV-03 block collisions / badge dev+local-mod /
+no "unsigned" wording + a non-blocking editor note nudging authors to bump the version between edits
+when copies may coexist. Editor UX itself deferred to a dedicated design pass.
 
-Earlier: Branch J — Safety, trust, privacy (CL-SAFETY-01…04) resolved 2026-07-24. When each branch
-closes, copy its ids/answers here and create implementation tracker rows only for accepted scope. Branch E closed
+**Next is implementation planning** for the accepted campaign-library scope (the `PLAN-CAMPAIGN-DATA-
+OWNERSHIP` line), plus three new tracked threads spun out this session: the **editor-design pass**, and
+two **investigations** — third-party cloud sync/backup services and an optional first-party
+server/DB (+ possible pack distribution). Create implementation tracker rows only for accepted scope. Branch E closed
 2026-07-24: launch = details-with-Continue/New-Run, source-labelled rule controls,
 validate-before-commit, persist last-campaign + sort/filter. Branch F closed 2026-07-24:
 visible saves = manual + autosave + suspend(as Resume) + status records (rewind hidden), read
