@@ -8,6 +8,12 @@ Resolved-in: this register — Walkthrough Decisions (2026-07-01c), §3c; downst
 
 # Forging / Weapon-and-Item Modification (`B7-FORGING`) — Research + Player-Facing Design + Open Questions
 
+> **2026-07-25 research refresh:** the operation-overlay and open-registry direction here
+> remains the mechanical source. Updated comparative evidence and a complete player-facing
+> option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-23..28`). Recommendations are not owner-ratified changes.
+
 **Started:** 2026-07-01.
 **Status:** Register **RESOLVED** by the 2026-07-01c owner walkthrough (all of
 `[FRG-1..20]` settled — see **§3c Walkthrough Decisions (2026-07-01c)**, the

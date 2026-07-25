@@ -8,6 +8,11 @@ Resolved-in: 2026-06-23k
 
 # Prep-as-Hub Firming (§3a keystone) — Player-Facing Design + Open Questions
 
+> **2026-07-25 interaction follow-up:** the mechanical decisions here remain ratified.
+> Comparative evidence and the complete responsive/player-facing option analysis are in
+> [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md)
+> (`EPUX-01..07`).
+
 **Started:** 2026-06-23k
 **Status:** Planning draft — register OPEN. The **keystone** of the v1 player-facing worklist:
 convoy, shop, arena, training hall, recruit, and skirmish all plug into the hub as author-gated
