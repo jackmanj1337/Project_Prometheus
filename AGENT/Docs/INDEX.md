@@ -288,6 +288,7 @@
 - [`playtests/playtest_checklist_v0.5.1.md`](playtests/playtest_checklist_v0.5.1.md) — v0.5.1 Windows Playtester Handbook — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.2.md`](playtests/playtest_checklist_v0.5.2.md) — v0.5.2 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.3.md`](playtests/playtest_checklist_v0.5.3.md) — v0.5.3 Windows Verification Checklist — *Pending validation*
+- [`playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md`](playtests/playtest_checklist_v0.5.3_returned_2026-07-21.md) — v0.5.3 Windows Verification Checklist — *Returned results - triaged in `playtest_*
 - [`playtests/playtest_checklist_v0.5.4.md`](playtests/playtest_checklist_v0.5.4.md) — v0.5.4 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.5.md`](playtests/playtest_checklist_v0.5.5.md) — v0.5.5 Windows Verification Checklist — *Pending validation*
 - [`playtests/playtest_checklist_v0.5.5_returned_2026-07-24.md`](playtests/playtest_checklist_v0.5.5_returned_2026-07-24.md) — v0.5.5 Windows Verification Checklist — *Pending validation*
