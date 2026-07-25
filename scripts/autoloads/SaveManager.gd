@@ -515,7 +515,7 @@ func _read_save_document(path: String, label: String) -> RefCounted:
 	if parsed.is_empty():
 		return null
 	var save: RefCounted = SaveDataScript.from_dict(parsed)
-	var errors: Array[String] = save.validate(_data_manager())
+	var errors: Array[String] = _validate_for_saved_content(save)
 	if not errors.is_empty():
 		_push_validation_errors("SaveManager: %s failed validation" % label, errors)
 		return null

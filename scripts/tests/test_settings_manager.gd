@@ -882,7 +882,9 @@ func _init() -> void:
 	dialog_escape.pressed = true
 	dialog_escape.keycode = KEY_ESCAPE
 	dialog_escape.physical_keycode = KEY_ESCAPE
-	dialog._input(dialog_escape)
+	# Exercise the Window's first-stage boundary directly. A global synthetic Escape
+	# races other headless suites' windows when run_tests executes in parallel.
+	dialog.call("_on_window_input", dialog_escape)
 	await process_frame
 	if dialog.visible and not filename.has_focus():
 		print("OK  first FileDialog Escape leaves filename edit without closing the dialog")

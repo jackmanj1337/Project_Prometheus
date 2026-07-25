@@ -6,17 +6,18 @@ const MenuScale = preload("res://scripts/ui/MenuScale.gd")
 const Standings = preload("res://scripts/ui/StandingsFormatter.gd")
 const FocusNavigatorS = preload("res://scripts/shared/FocusNavigator.gd")
 
-@onready var _standings_label: Label = $Panel/VBox/Standings
-@onready var _rewards_label: Label = $Panel/VBox/Rewards
-@onready var _casualties_label: Label = $Panel/VBox/Casualties
-@onready var _progression_label: Label = $Panel/VBox/Progression
-@onready var _save_status_label: Label = $Panel/VBox/SaveStatus
-@onready var _successor_label: Label = $Panel/VBox/SuccessorLabel
-@onready var _successor_picker: OptionButton = $Panel/VBox/SuccessorPicker
-@onready var _continue_button: Button = $Panel/VBox/ContinueButton
-@onready var _retry_button: Button = $Panel/VBox/RetryButton
-@onready var _save_button: Button = $Panel/VBox/SaveButton
-@onready var _quit_button: Button = $Panel/VBox/QuitButton
+@onready var _results_layout: BoxContainer = $Panel/VBox
+@onready var _standings_label: Label = $Panel/VBox/SummaryScroll/Summary/Standings
+@onready var _rewards_label: Label = $Panel/VBox/SummaryScroll/Summary/Rewards
+@onready var _casualties_label: Label = $Panel/VBox/SummaryScroll/Summary/Casualties
+@onready var _progression_label: Label = $Panel/VBox/SummaryScroll/Summary/Progression
+@onready var _save_status_label: Label = $Panel/VBox/Actions/SaveStatus
+@onready var _successor_label: Label = $Panel/VBox/Actions/SuccessorLabel
+@onready var _successor_picker: OptionButton = $Panel/VBox/Actions/SuccessorPicker
+@onready var _continue_button: Button = $Panel/VBox/Actions/ContinueButton
+@onready var _retry_button: Button = $Panel/VBox/Actions/RetryButton
+@onready var _save_button: Button = $Panel/VBox/Actions/SaveButton
+@onready var _quit_button: Button = $Panel/VBox/Actions/QuitButton
 @onready var _retry_committed_confirm: ConfirmationDialog = $RetryCommittedConfirm
 var _campaign_data_error := false
 
@@ -43,6 +44,7 @@ func _ready() -> void:
 	_quit_button.pressed.connect(_quit_to_menu)
 	_successor_picker.item_selected.connect(_on_successor_selected)
 	_retry_committed_confirm.confirmed.connect(_retry_committed_branch)
+	get_viewport().size_changed.connect(_update_responsive_layout)
 	var bus := get_node_or_null("/root/EventBus")
 	if bus != null:
 		bus.map_victory.connect(_on_victory)
@@ -53,10 +55,17 @@ func _ready() -> void:
 		bus.promotion_started.connect(func(): _promotion_active = true)
 		bus.promotion_finished.connect(_on_promotion_finished)
 	apply_menu_scale(MenuScale.factor_from_settings(self))
+	_update_responsive_layout()
 
 
 func apply_menu_scale(factor: float) -> void:
 	MenuScale.apply_to($Panel, factor, true)
+
+
+func _update_responsive_layout() -> void:
+	# Wide viewports keep actions persistently visible beside the scrollable report.
+	# Narrow windows collapse to a vertical flow that the panel can contain safely.
+	_results_layout.vertical = get_viewport_rect().size.x < 1000.0
 
 
 func _on_victory() -> void:
@@ -134,9 +143,11 @@ func _refresh_result() -> void:
 		"Save: writes after Continue" if cm != null else "Save: not a campaign battle"
 	)
 	_successor_picker.clear()
+	_successor_picker.disabled = false
 	_successor_label.hide()
 	_successor_picker.hide()
 	_continue_button.disabled = false
+	_save_button.disabled = false
 	_continue_button.text = "Return to Menu"
 	_campaign_data_error = false
 	_result_committed = false
@@ -183,6 +194,7 @@ func _refresh_result() -> void:
 		)
 	_continue_button.text = "Continue"
 	_continue_button.disabled = true
+	_save_button.disabled = true
 
 
 func _summary_line(label: String, value: Variant, fallback: String) -> String:
@@ -196,9 +208,11 @@ func _summary_line(label: String, value: Variant, fallback: String) -> String:
 func _on_successor_selected(index: int) -> void:
 	var node_id: String = String(_successor_picker.get_item_metadata(index))
 	var cm := _campaign_manager()
-	_continue_button.disabled = (
+	var choice_invalid := (
 		cm == null or node_id == "" or not bool(cm.call("choose_pending_successor", node_id))
 	)
+	_continue_button.disabled = choice_invalid
+	_save_button.disabled = choice_invalid
 
 
 func _on_continue() -> void:
@@ -220,6 +234,10 @@ func _on_continue() -> void:
 func _on_save() -> void:
 	var cm := _campaign_manager()
 	if cm == null or _campaign_data_error:
+		return
+	if _successor_picker.visible and _continue_button.disabled:
+		_save_status_label.text = "Choose the next chapter before saving."
+		_successor_picker.grab_focus()
 		return
 	var sm := get_node_or_null("/root/SaveManager")
 	if not _result_committed and sm != null and sm.has_method("manual_slot_budget"):

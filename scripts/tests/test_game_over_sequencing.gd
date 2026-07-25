@@ -49,7 +49,7 @@ func _init() -> void:
 	await process_frame
 	if (
 		screen.visible
-		and screen.get_node("Panel/VBox/Title").text == "Victory!"
+		and screen.get_node("Panel/VBox/SummaryScroll/Summary/Title").text == "Victory!"
 		and not save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)
 		and bus.is_gameplay_modal_locked()
 		and screen.get_node("Backdrop").mouse_filter == Control.MOUSE_FILTER_STOP
@@ -62,7 +62,7 @@ func _init() -> void:
 				"FAIL immediate victory: visible=%s title=%s has_mid_map=%s"
 				% [
 					screen.visible,
-					screen.get_node("Panel/VBox/Title").text,
+					screen.get_node("Panel/VBox/SummaryScroll/Summary/Title").text,
 					save_manager.has_slot(SaveManagerScript.MID_MAP_SLOT)
 				]
 			)
@@ -100,7 +100,8 @@ func _init() -> void:
 	await process_frame
 	var visible_after_queue := screen.visible
 	var receipt_retained: bool = (
-		"Gold earned: 75\nTotal gold: 100" in screen.get_node("Panel/VBox/Rewards").text
+		"Gold earned: 75\nTotal gold: 100"
+		in screen.get_node("Panel/VBox/SummaryScroll/Summary/Rewards").text
 	)
 
 	if (
@@ -187,6 +188,50 @@ func _init() -> void:
 		failed += 1
 	game_over.queue_free()
 
+	# Results is reused after Save -> Retry. A prior commit disables the branch picker;
+	# the next victory must reset it and gate both Continue and Save until a fresh choice.
+	var existing_campaign_manager := root.get_node_or_null("CampaignManager")
+	if existing_campaign_manager != null:
+		root.remove_child(existing_campaign_manager)
+		existing_campaign_manager.queue_free()
+	var branch_cm_script := GDScript.new()
+	branch_cm_script.source_code = (
+		"extends Node\n"
+		+ "func is_campaign_active() -> bool: return true\n"
+		+ 'func get_pending_result() -> Dictionary: return {"campaign_complete": false}\n'
+		+ 'func get_pending_successor_options() -> Array: return [{"node_id":"river","label":"River"},{"node_id":"ridge","label":"Ridge"}]\n'
+		+ 'func choose_pending_successor(node_id: String) -> bool: return node_id in ["river", "ridge"]\n'
+	)
+	branch_cm_script.reload()
+	var branch_manager: Node = branch_cm_script.new()
+	branch_manager.name = "CampaignManager"
+	root.add_child(branch_manager)
+	var successor: OptionButton = screen.get_node("Panel/VBox/Actions/SuccessorPicker")
+	var branch_continue: Button = screen.get_node("Panel/VBox/Actions/ContinueButton")
+	var branch_save: Button = screen.get_node("Panel/VBox/Actions/SaveButton")
+	successor.disabled = true
+	branch_save.disabled = true
+	screen._refresh_result()
+	var reset_and_gated := (
+		not successor.disabled and branch_continue.disabled and branch_save.disabled
+	)
+	successor.select(1)
+	screen._on_successor_selected(1)
+	var choice_enables_actions := not branch_continue.disabled and not branch_save.disabled
+	if reset_and_gated and choice_enables_actions:
+		print("OK  repeated branching Results resets picker and gates actions until selection")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL repeated Results state: reset=%s choice=%s"
+				% [reset_and_gated, choice_enables_actions]
+			)
+		)
+		failed += 1
+	root.remove_child(branch_manager)
+	branch_manager.queue_free()
+
 	# A malformed nonterminal result must never masquerade as campaign completion.
 	var cm_script := GDScript.new()
 	cm_script.source_code = (
@@ -196,15 +241,11 @@ func _init() -> void:
 		+ "func get_pending_successor_options() -> Array: return []\n"
 	)
 	cm_script.reload()
-	var existing_campaign_manager := root.get_node_or_null("CampaignManager")
-	if existing_campaign_manager != null:
-		root.remove_child(existing_campaign_manager)
-		existing_campaign_manager.queue_free()
 	var campaign_manager: Node = cm_script.new()
 	campaign_manager.name = "CampaignManager"
 	root.add_child(campaign_manager)
 	screen._refresh_result()
-	var continue_button: Button = screen.get_node("Panel/VBox/ContinueButton")
+	var continue_button: Button = screen.get_node("Panel/VBox/Actions/ContinueButton")
 	if not continue_button.disabled and continue_button.text == "Return to Menu":
 		print("OK  malformed nonterminal result reports the fault but permits menu recovery")
 		passed += 1

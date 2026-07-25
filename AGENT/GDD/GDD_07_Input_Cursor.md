@@ -79,6 +79,11 @@ banner as `hotseat-all` while active.
 > joypad device's `Input.get_joy_name()` (Godot has no native controller-type API), so a
 > wrong guess is cosmetic, never a mis-input. `InputDisplay` owns the mode/brand-aware
 > prompt helpers; `InputModeManager` owns last-active-pad tracking.
+>
+> `InputModeManager` is also the persistent owner of joypad hot-plug telemetry. It
+> enumerates already-connected pads at startup and logs every connect/disconnect with
+> device id, cached name, and GUID before clearing active-pad state. Therefore a missing
+> transition in a returned playtest log is a failed observation, not evidence of success.
 
 ### Mouse Behavior
 - **Left Click on tile:** Same as moving cursor to that tile and pressing `confirm`

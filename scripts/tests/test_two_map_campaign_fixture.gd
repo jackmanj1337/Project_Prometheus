@@ -43,14 +43,22 @@ func _init() -> void:
 	var branch_start = (
 		branch_campaign.get_node_by_id("crossroads") if branch_campaign != null else null
 	)
+	var river = branch_campaign.get_node_by_id("river_pass") if branch_campaign != null else null
+	var ridge = branch_campaign.get_node_by_id("ridge_pass") if branch_campaign != null else null
 	if (
 		branch_adapted.valid
 		and branch_campaign != null
 		and branch_campaign.nodes.size() == 3
 		and branch_start != null
 		and branch_start.next_node_ids == ["river_pass", "ridge_pass"]
+		and river != null
+		and ridge != null
+		and river.map_id == "skirmish_02"
+		and ridge.map_id == "skirmish_03"
+		and branch_adapted.maps["skirmish_02"].grid != branch_adapted.maps["skirmish_03"].grid
+		and branch_adapted.maps["skirmish_03"].enemy_placements.size() == 4
 	):
-		print("OK  branching fixture exposes two ordered Results successor choices")
+		print("OK  branching fixture exposes ordered, visibly distinct River/Ridge maps")
 		passed += 1
 	else:
 		print("FAIL branching fixture: %s" % [branch_adapted.errors])

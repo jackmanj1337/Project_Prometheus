@@ -5,6 +5,7 @@
     {"kind": "map_registry", "id": "maps", "path": "data/map_registry.json"},
     {"kind": "map_data", "id": "skirmish_01", "path": "data/skirmish_01.json"},
     {"kind": "map_data", "id": "skirmish_02", "path": "data/skirmish_02.json"},
+    {"kind": "map_data", "id": "skirmish_03", "path": "data/skirmish_03.json"},
     {"kind": "roster", "id": "skirmish_team", "path": "data/roster.json"},
     {"kind": "class", "id": "skirmisher", "path": "data/skirmisher.json"},
     {"kind": "class", "id": "raider", "path": "data/raider.json"},

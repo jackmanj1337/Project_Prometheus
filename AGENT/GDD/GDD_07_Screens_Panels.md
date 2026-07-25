@@ -924,8 +924,8 @@ review 2026-06-14 #1) for resolution-robustness.
 
 ### Map Results Screen
 
-Status: **Implemented 2026-07-22** (`CST-7`, `B4-RESULT-ACTIONS`)
-Last verified: 2026-07-24
+Status: **Implemented 2026-07-22; hardened 2026-07-25** (`CST-7`, `B4-RESULT-ACTIONS`)
+Last verified: 2026-07-25
 
 `MapResultsScreen.tscn` is the victory-only surface. It presents ranked standings,
 reward/casualty/progression summaries, campaign save status, and Continue. It waits
@@ -940,7 +940,9 @@ Map Menu refreshes a read-only `Total gold` row whenever it opens.
 For a terminal node Continue reads "Finish Campaign". A node with one successor
 continues without an extra prompt. A node with multiple authored successors shows
 their destination labels in authored order and disables Continue until the player
-chooses one. `CampaignManager` validates that the choice is a real outgoing edge;
+chooses one. Save is gated by the same explicit choice, and every new Results
+presentation clears the picker and both gates so a prior visit cannot leak its branch.
+`CampaignManager` validates that the choice is a real outgoing edge;
 an unresolved branch cannot prepare, commit, autosave, or move campaign position.
 After selection, the successor binding and carried roster are validated before the
 win commits. The commit advances the pointer and writes the battle-end autosave,
@@ -960,5 +962,11 @@ confirmation that the saved advanced timeline will remain unchanged. Confirming
 restores ledger round zero and the captured pre-commit campaign position for the
 active run, then routes through Prep; it does not rewrite or delete that save.
 Quit remains an explicit, separate abandon action.
+
+The result report and persistent actions use separate columns: long standings/reward/
+casualty/progression text scrolls independently while branch choice and actions remain
+visible. Narrow viewports collapse the columns vertically. This keeps the surface
+contained and operable at 200% Menu Scale. OptionButton frame styles use protected
+texture caps and content margins so scaling does not slice their borders.
 
 ---

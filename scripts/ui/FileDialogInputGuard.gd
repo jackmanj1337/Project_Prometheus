@@ -4,20 +4,23 @@ extends FileDialog
 # before ui_accept/ui_cancel can consume them.
 
 
+func _ready() -> void:
+	# Window emits this before its embedded controls evaluate shortcuts. FileDialog's
+	# built-in cancel handling can otherwise close the window before `_input` runs.
+	window_input.connect(_on_window_input)
+
+
+func _on_window_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		_handle_physical_escape(event as InputEventKey, get_line_edit())
+
+
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey:
 		return
 	var key := event as InputEventKey
 	var filename := get_line_edit()
-	if (
-		key.pressed
-		and not key.echo
-		and (key.keycode == KEY_ESCAPE or key.physical_keycode == KEY_ESCAPE)
-	):
-		if filename != null and filename.has_focus():
-			filename.release_focus()
-			call_deferred("_focus_file_list")
-			set_input_as_handled()
+	if _handle_physical_escape(key, filename):
 		return
 	if (
 		not key.pressed
@@ -42,6 +45,31 @@ func _input(event: InputEvent) -> void:
 		filename.caret_column = from
 	filename.insert_text_at_caret(char(key.unicode))
 	set_input_as_handled()
+
+
+# FileDialog also evaluates cancel shortcuts in the shortcut-input stage. Catch
+# physical Escape here as well as _input so the built-in close cannot outrun the
+# filename-to-tree focus handoff on Windows.
+func _shortcut_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		_handle_physical_escape(event as InputEventKey, get_line_edit())
+
+
+func _handle_physical_escape(key: InputEventKey, filename: LineEdit) -> bool:
+	if (
+		not key.pressed
+		or key.echo
+		or (key.keycode != KEY_ESCAPE and key.physical_keycode != KEY_ESCAPE)
+		or filename == null
+	):
+		return false
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused != filename and (focused == null or not filename.is_ancestor_of(focused)):
+		return false
+	filename.release_focus()
+	call_deferred("_focus_file_list")
+	get_viewport().set_input_as_handled()
+	return true
 
 
 func _focus_file_list() -> void:
