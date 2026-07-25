@@ -51,7 +51,11 @@ Both registered in the doc role-manifest ownership map.
 
 ## Commits claimed
 
-- `0dac727a81a36b4fedf7be3b06b733208b8cda2b` — Design docs: content-addressed backup format + native-iOS post-v1 target
+- `219108ad42cbcbbf8d1adb35f07b7a7d33aa9274` — Consolidate cloud backup and iOS research
+
+The original two-commit branch (`0dac727` + `b8e873c`) was replayed as this single
+attributed commit when the research lines were consolidated; the original tip remains
+preserved under an `agent/archive/` ref.
 
 ## Gates
 
