@@ -240,6 +240,13 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — Prompt for destination every time.** For: maximum control. Against: repetitive.
 - **Recommendation: B**, with a visible “Sent to Convoy” result and an author rule for
   campaigns without convoy access.
+- **OWNER RULING (2026-07-25): B, with terminal handling defined.** Overflow routes to the
+  faction convoy. When the convoy has a finite cap and is full: **player-initiated** buys and
+  transfers **fail before commit** with the "destination full" reason (no partial mutation);
+  **unavoidable acquisitions** (battle drops, story grants) go to a **pending-items tray**
+  resolved before leaving prep (author policy, default hold-pending). For campaigns with the
+  convoy disabled, the fallback is the per-unit-only cascade in "Prep hub structure, convoy,
+  and shops".
 
 ### [EPUX-12] Bulk operations
 
@@ -275,6 +282,13 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   both use cases and authorship. Against: two modes to explain/test.
 - **Recommendation: C.** This clarifies the existing SHP-4/SAC-6 tension rather than
   changing the transaction core.
+- **OWNER RULING (2026-07-25): resolved by giving the convoy an owner.** For v1 the convoy
+  has a **pricing subject** — author picks the **quartermaster or the main character** — used
+  as the buyer when bulk-buying-as-the-convoy. This removes the null-shopper case entirely, so
+  there are no longer two modes to reconcile: purchases always have a subject (the convoy-owner
+  by default; a chosen deployed unit optionally). The owner is a pricing/identity subject
+  **only**, never an access gatekeeper — losing them never bricks the convoy. Details, plus the
+  gatekeeper/respawn variant that stays parked, are in "Prep hub structure, convoy, and shops".
 
 ### [EPUX-15] Stock categories and filtering
 
@@ -494,6 +508,113 @@ hours-played-, and predicate-based cadence are all deterministic and save-friend
 **Save/load:** cadence state is durable — counter values, latched predicate states,
 consumed/played flags, and each node's current variant pointer all persist in the save.
 
+## Prep hub structure, convoy, and shops (owner-ratified 2026-07-25)
+
+Ratified while walking the pack with the owner. Resolves EPUX-14 and EPUX-11 and expands the
+prep-hub structure well beyond the original EPUX-01..07 shell questions. It also resolves
+EPUX-05, EPUX-08, and EPUX-18 by implication (see end of section).
+
+### Top-level node menu
+
+An author-default set of entries; each is gated by a per-node predicate, and authors may gate
+or extend the set. Non-battle nodes hide the battle-only entries.
+
+- **Explore** — subject-first services (below).
+- **Manage Roster** — army configuration (below); on a battle node it also picks who deploys.
+- **Map Preview** *(battle nodes)* — scout the map and place deployed units (below).
+- **Save**.
+- **Move to Next Primary Story Chapter** — main-path progression.
+- **Start Battle** *(battle nodes)* — engage this node's encounter.
+
+### Explore — subject-first services
+
+Explore asks the player to pick a **subject** (a unit, or the convoy), then shows every
+activity that subject is eligible for. Eligibility is a **per-subject predicate** (open
+registry), so themed training halls, class-locked arenas, and faction-gated shops are just
+predicates — no hardcoded eligibility enum. Services include shops, themed training halls,
+arena, and forge.
+
+- **Subject memory:** remembered **firmly within a prep visit**; **best-effort across visits**,
+  falling back to the first available subject if the remembered one died or left. Provisional —
+  flagged for playtest refinement.
+- **Per-unit activity budget = an optional per-unit resource.** Not a special system: it is an
+  author-defined per-unit resource in the wallet that activities deduct via the normal cost
+  vector, so "out of budget" is just the existing "insufficient resource" failure reason.
+  **Default: none** (undefined resource = unlimited activities). When an author enables it, the
+  **default refill is at the end of each deployment** (a cadence trigger; per-visit/per-chapter
+  are cadence alternatives).
+
+### Manage Roster — army configuration
+
+An **open registry of roster-config panels**; only panels the campaign actually uses appear
+(no hardcoded FE-feature enum). Panels include: convoy contents and the **global item-first
+view** (item search / bulk organization), inter-unit trading, item use, class change, equipped
+skills, combat arts, battalions, bond rings, and so on. On a **battle node** it also holds
+**deployment selection** (which units deploy).
+
+- **Explore vs. Manage Roster** = **acquire (services)** vs. **configure (the army you own)**.
+- **Class change is one engine operation with an author-chosen delivery surface:** a paid
+  service at a location (Explore), a roster-config option (Manage Roster), or an item effect
+  (Master Seal-style). This pattern generalizes — one primitive, multiple author-selected
+  surfaces (healing, skill-learning, etc.).
+
+### Map Preview — scouting and placement
+
+Inspect the map, deployed enemy units, and on-map events (shops, arenas, villages), and place
+deployed units.
+
+- **Deployment placement (where):** the author **numbers start positions**; the engine
+  **auto-fills them from the deployment roster in order**; the player may **swap**. Placement is
+  never a mandatory chore. This is the "where" half of deployment; Manage Roster is the "who".
+
+### Advance actions
+
+- **Start Battle** — shown only on a node with an unresolved battle.
+- **Move to Next Primary Story Chapter** — the "leave and proceed along the main path" action,
+  gated behind clearing any mandatory battle.
+
+### Convoy model
+
+- **Owner = pricing subject only** (author picks quartermaster or main character), the default
+  buyer for bulk-buy-as-convoy. Never an access gatekeeper; losing the owner never bricks the
+  convoy (pricing falls back to a neutral default). Gatekeeper + respawn-with-penalty stays
+  parked as a possible later advanced mode.
+- **Battlefield convoy access is an aura effect**, reusing the existing aura-skill radius
+  machinery: it grants a convoy-access action to allied units within radius X of the bearer
+  (the bearer always has it; X=0 = bearer only, X=1 = bearer + adjacent). The distance metric
+  **reuses the game's existing weapon-range / movement metric** — it does not invent its own.
+  Mid-battle convoy access is skill-gated this way; **prep-time access is universal** (the base
+  is always open).
+- **Capacity:** default **unlimited**. With a finite cap: player buys/transfers fail before
+  commit ("destination full"); unavoidable acquisitions go to a **pending-items tray** resolved
+  before leaving prep (author policy, default hold-pending).
+- **Disabled (author toggle) → per-unit-only storage.** Cascade: unit-full **hard-blocks** with
+  a reason; shops fall back to **shopper-only buy-to-unit** (pricing subject = the shopper); the
+  convoy is not a selectable Explore subject; convoy-access auras become inert and the authoring
+  tools **warn at author time** if a no-convoy campaign includes convoy-access skills.
+
+### Shops and stock
+
+- **Stock is a first-class named entity.** Multiple shop frontends — an **on-map storefront**
+  and an **Explore-tab shop** — may reference the **same stock** (author option, or each may own
+  its own).
+- **Shared finite stock depletes across surfaces**, and restock cadence (the EPUX-16 engine)
+  applies to the shared pool. Shopper-aware pricing resolves **per surface**: on-map = the
+  adjacent unit; prep = the quartermaster or chosen unit.
+- **On-map event inactive presentation is reason-keyed** (author-defined, open presets):
+  - **Gated / secret** (conditions unmet) → default **nothing/hidden** (secret shops).
+  - **Proximity** (visible but no valid adjacent unit) → default **browse-only, no purchase**.
+  - **Preview** (viewed from Map Preview pre-battle) → the same view, framed as scouting.
+
+### Resolved by implication
+
+- **EPUX-05** (persistent party resources + per-unit pools in context) — confirmed; the energy
+  budget lives in the per-unit pool.
+- **EPUX-08** (unit-first default + global item view) — satisfied: Explore is subject-first and
+  Manage Roster carries the global item-first view.
+- **EPUX-18** (unit-first training selection) — satisfied: Training Hall is entered through
+  Explore's subject-first flow.
+
 ## Cross-bundle implementation order
 
 1. Shared responsive activity shell and stable presentation state.
@@ -529,9 +650,16 @@ in progress (started 2026-07-25). Ratified so far:
   traversal and cadence model".
 - **EPUX-16 — ratified** (author-defined cadence, default infinite; folded into the cadence
   engine).
-- **New: node traversal + cadence engine** — ratified as a general trigger model (counters +
-  registry predicates, latch-by-default with reversible opt-in, real-time deferred).
+- **EPUX-14 — ratified** (convoy owner as pricing subject; no gatekeeping).
+- **EPUX-11 — ratified** (overflow to convoy; full-cap terminal handling: fail-before-commit
+  for buys, pending-items tray for unavoidable acquisitions).
+- **EPUX-05 / EPUX-08 / EPUX-18 — resolved by implication** via the hub-structure ruling.
+- **New engines/structure ratified:** node traversal + cadence engine; the full prep-hub
+  top-level menu (Explore / Manage Roster / Map Preview / Save / Move to Next Primary Story
+  Chapter / Start Battle); the convoy model (pricing-subject owner, battlefield convoy-access
+  aura, capacity + pending-items tray, disabled-convoy cascade); shared shop stock; and the
+  per-unit energy budget as an optional wallet resource.
 
-Still open: EPUX-02..15, EPUX-17..28. Questions that merely confirm an existing register may
-be accepted as a batch; EPUX-14 remains the identified wording clarification between earlier
-Shop and shopper-subject decisions.
+Still open: EPUX-02, EPUX-03, EPUX-04, EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13,
+EPUX-15, EPUX-17, EPUX-19..28. Several merely confirm an existing register and may be accepted
+as a batch when the walk resumes.
