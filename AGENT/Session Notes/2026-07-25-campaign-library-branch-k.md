@@ -36,11 +36,30 @@
   - Reuses Branch I infra: `InputModeManager` (input mode) + window/`MenuScale` (resolution); shared
     resource classes (`PackManifest` / `CampaignTier2Validators` / `CampaignPackRegistry`) mean full
     integration is one project, no forked codebase.
+- Then **closed the remaining Branch K items**, resolving the whole packet (A–K):
+  - **CL-ADV-01** — unpacked (loose-folder) dev packs load **only under an explicit developer mode**,
+    marked as a dev source, never active in a normal player session (net-new; registry today only
+    scans installed `user://campaign_packs/<id>/<version>/`).
+  - **CL-ADV-02** — player runtime shows only the plain **summary + exportable report** (the
+    CL-SAFETY-01 "valid pack" signal); the **deep author validator** is an editor surface (now the
+    integrated editor's validation view, no separate download).
+  - **CL-ADV-03** — **block** id+version collisions (partly structural at `CampaignPackRegistry.gd:69`),
+    **badge** dev / locally-modified, **no "unsigned" language** (nothing signs packs). Owner add: a
+    **non-blocking editor note nudging authors to bump the version** between edits when copies may
+    coexist (versioning is manual, no migration engine — Branch D).
+  - **Editor UX deferred** to a dedicated design pass (own research doc + questions packet); Branch K
+    settled only distribution + the author/player boundary.
+- Spun out two **cloud-save backup / cross-device sync investigations** (owner ask): third-party
+  storage services (Google Drive / iCloud / OneDrive / GitHub) and an optional **first-party server +
+  DB** (+ possible campaign-pack distribution). Noted the key constraints (Steam Cloud is the ~free
+  baseline for Steam; web is IndexedDB-bound; first-party distribution = moderation + licensing/legal
+  exposure). Recorded in the decisions doc's deferred list; tracker rows added in the container repo.
 - No runtime, scene, save-schema, or release-line behaviour changed — design and planning only.
 
 ## Commits claimed
 
 - `2fe33938cf705ed81161ae881b3d6bfb6c84738e` — Resolve campaign-library Branch K editor distribution: full integration + runtime OR-gated warning
+- `f749ef43636c1d98f2fb079ee929e3cf4d04fc25` — Close campaign-library Branch K: CL-ADV-01/02/03 resolved + editor version-bump note + deferrals
 
 ## Gates
 
@@ -52,11 +71,10 @@
 
 ## Next
 
-Continue **Branch K** with the remaining owner questions: **CL-ADV-01** (unpacked development packs —
-explicit developer mode, marked source, no player-mode unpacked activation), **CL-ADV-02** (validation
-report placement — player summary + exportable report vs the deeper author validator now living in the
-integrated editor; the CL-SAFETY-02 advanced-forensics note lands here), and **CL-ADV-03** (duplicate-id
-block / dev-&-local-mod badges / no "unsigned" language since nothing signs packs — id collision is
-already partly structural via the path-derived identity check at `CampaignPackRegistry.gd:69`). K is the
-last owner-question branch before implementation planning. Copy each answer into the decisions doc and
-create implementation tracker rows only for accepted scope.
+**All owner-question branches (A–K) are closed.** Next is **implementation planning** for the accepted
+campaign-library scope (the `PLAN-CAMPAIGN-DATA-OWNERSHIP` line), turning accepted decisions into
+implementation tracker rows. Three new threads were spun out and now have container tracker rows: the
+**dedicated editor-design pass** (editor UX, not just distribution), and two **investigations** —
+third-party cloud sync/backup services (Google Drive / iCloud / OneDrive / GitHub) and an optional
+**first-party server + DB** (cloud-save backup + possible campaign-pack distribution). All three are
+post-v1 / research-gated; weigh both sync investigations against the Steam Cloud baseline first.
