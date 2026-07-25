@@ -123,6 +123,8 @@ marker.
 | [`player_facing_scope_map_2026-06-23.md`](../design/player_facing_scope_map_2026-06-23.md) | `B0-GDD-CONSOLIDATION` | Scope evidence to reconcile against control-plane rows. |
 | [`terrain_more_info_paging_design_2026-06-19.md`](../design/terrain_more_info_paging_design_2026-06-19.md) | `UI-INSPECTION` | Implemented inspection design evidence. |
 | [`ui_ux_art_asset_research_2026-07-02.md`](../design/ui_ux_art_asset_research_2026-07-02.md) | `UI-INSPECTION` | Supporting UI asset research. |
+| [`campaign_backup_content_addressed_format_2026-07-25.md`](../design/campaign_backup_content_addressed_format_2026-07-25.md) | `INVESTIGATE-CLOUD-SYNC-THIRD-PARTY`, `BACKLOG-FULL-LIBRARY-BACKUP` | POST-V1 content-addressed backup format sketch (pack dedupe on export); retire when whole-library backup/restore gains a direct implementation row. |
+| [`ios_native_target_feasibility_2026-07-25.md`](../design/ios_native_target_feasibility_2026-07-25.md) | `INVESTIGATE-IOS-NATIVE-TARGET` | Native-iOS post-v1 target feasibility + keep-it-unblocked design rules; retire when an iOS build target gains a direct tracker row. |
 
 ## Enforcement Hooks
 
