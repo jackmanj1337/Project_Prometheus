@@ -267,6 +267,7 @@ reason to prefer them over per-service designs: **list summary / detail-panel fu
 - `fd6786bec3ebeb9ed78ae202919b372e6c7cecbd` — Resolve the three exit-rollback sub-questions; one snapshot, discarded on accept
 - `9c43ebb4d5dd609946cc0a44815c8598262784da` — Approve activity-entry autosave trigger; crash resolved by relaunch-and-resume
 - `4b6710610e57a30d64e0c76011f5e741da1e7a06` — Rule EPUX-09/10/12/13/15/17/19/20/21/22: inventory, shop, and activities blocks
+- `c1c3912e20794decc0ac9451d20d6655bdb3c774` — Rule EPUX-23..28; claim 4b67106; the 28-question walk is complete
 
 ## Gates
 
@@ -279,6 +280,23 @@ reason to prefer them over per-service designs: **list summary / detail-panel fu
 - First push attempt was correctly rejected by the session-claims gate (`8988c31` claimed
   0 times); this note is the claim.
 - `AGENT/Docs/gen_docs_index.py` re-run — no index changes (doc header unchanged).
+
+Walk-continuation gates (second half of the session):
+
+- `scripts/agent-commit.sh --repo Project_Prometheus` × 3, docs-only path: analyzer tool
+  tests 12 passed; scene-integrity 22 scene-attached scripts PASS; session-claims PASS
+  (147 commits audited on the second); evidence-matrices PASS; gdformat/gdlint 238 files
+  unchanged. Godot suite skipped as docs-only.
+- The `4b67106` commit was correctly rejected by the session-claims gate on the next
+  attempt until this note claimed it — the gate working as intended, same as earlier in
+  the session.
+- Container repo: `check_tasks.py` **OK, 161 tasks valid, no conflicts**;
+  `gen_active_work.py` re-run; container fast suite 63 passed / 1 skipped.
+- **Tracker view gap found, not fixed** (owner call, recorded in `AGENT/WAITING_WORK.md`):
+  `gen_active_work.py` renders only phases listed in `settings.phases` and silently drops
+  the rest — **41 tasks**, including all 32 `1-planning-discussion` rows, so every row spun
+  out of this walk is invisible in `ACTIVE_WORK.md`. `check_tasks.py` misses it because it
+  validates schema, not view coverage. `tasks.json` remains the complete picture.
 
 ## Next
 
