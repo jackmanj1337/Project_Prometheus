@@ -403,6 +403,11 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — Verb-first authoritative path with optional drag/drop shortcut.** For: parity and
   speed. Against: two input paths must share one mutation command.
 - **Recommendation: C.** Drag/drop never bypasses validation or forecast.
+- **OWNER RULING (2026-07-26): A for v1; drag/drop is a post-v1 option.** v1 ships command
+  verbs only — familiar, controller-safe, and the smallest surface. C stays the *target*
+  shape rather than being rejected: the verb path is built as the authoritative mutation
+  command from the start, so a later drag/drop layer is an additive input adapter over that
+  same command and never a second mutation path. Nothing in v1 may assume a pointer.
 
 ### [EPUX-10] Stacking and instance identity
 
@@ -414,6 +419,11 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   without lying. Against: grouping key is more complex.
 - **Recommendation: C.** Forged/named/bound entries are unique; identical unmodified
   instances may stack with aggregate count and durability summary.
+- **OWNER RULING (2026-07-26): C.** Entries stack only when their *effective* state matches;
+  forged, aliased, bound, and durability-differing instances stay distinct and any stack
+  expands on demand. This is a prerequisite for the forging block, not a peer of it — it is
+  what makes per-instance forge overlays (EPUX-23..28) and stable instance IDs (EPUX-25)
+  displayable without lying to the player.
 
 ### [EPUX-11] Capacity overflow
 
@@ -442,6 +452,31 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   opaque automation and large validation surface.
 - **Recommendation: B for v1**, plus deterministic “Restock consumables” later; avoid a
   black-box Optimize command.
+- **OWNER RULING (2026-07-26): B for v1, with two named deterministic bulk operations.**
+  No multi-select, no auto-equip, no Optimize. Both operations below are player-directed and
+  fully reported — never silent.
+  - **Send All to Convoy** *(v1)*. Iterates the source inventory **one item at a time in
+    order**, so the outcome is deterministic and partially-completed state is always a valid
+    state. Two terminal conditions:
+    - **Convoy full** → the operation **halts** at that item and reports what moved and what
+      did not. Consistent with the EPUX-11 fail-before-commit rule: each individual move is
+      atomic, and the halt leaves no partial item.
+    - **Non-transferable items** (key/quest/plot-locked instances) are **excluded from the
+      operation up front** rather than halting it — ineligibility is known before the first
+      move, so it is a filter, not a failure. The result reports them as "kept: not
+      transferable" using the EPUX-07 unified reason contract.
+  - **Resupply** *(named to avoid collision with EPUX-16 shop restock)*. Deterministically
+    swaps an item in a unit's inventory for a matching item of **higher remaining
+    durability** drawn from the convoy. Matching is by base definition **plus** identical
+    effective state (the EPUX-10 stacking key), so Resupply never silently trades away a
+    forged, aliased, or bound instance for a plain one. Reports every swap.
+- **Spun out (not part of EPUX-12): inventory-holding as a gate predicate.** Activities and
+  **Start Battle** must be gateable on whether an item is held, with an author-chosen
+  **scope**: held by *any deployed unit*, by *a named unit*, or *in the convoy*. This is a
+  predicate in the shared condition registry rather than a bulk-operation feature, which
+  means it is simultaneously an availability gate (EPUX-02), a confirmation-threshold rule
+  (EPUX-06), and a cadence trigger — one registration, four consumers. Tracked as
+  `ENGINE-ITEM-HELD-PREDICATE-2026-07-26`.
 
 ## Owner questions — shop and economy
 
@@ -454,6 +489,11 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   and ownership become visually ambiguous.
 - **Recommendation: B**, with text labels, remembered tab per session, and explicit
   buy-cost versus sell-yield styling.
+- **OWNER RULING (2026-07-26): B.** One shop session with Buy/Sell sibling tabs; the shopper
+  and the active filters survive the tab switch. Text labels, not icon-only. Because Explore
+  is subject-first, the session **inherits** its subject rather than asking for one — the
+  shopper is chosen before the shop opens, and the tabs sit inside that established context.
+  Tab state must be explicit and focusable for controller users.
 
 ### [EPUX-14] Shopper selection and purchase destination
 
@@ -482,6 +522,12 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — One generic stock with derived filters/categories and search where text input is
   practical.** For: scalable and data-driven. Against: requires metadata completeness.
 - **Recommendation: C.** Categories are presentation facets, never engine shop enums.
+- **OWNER RULING (2026-07-26): C, filters only — no free-text search in v1.** One generic
+  stock with categories/filters **derived from item metadata**; they are presentation facets,
+  never engine shop enums. Free-text search is cut from v1 so every stock surface behaves
+  identically on every input method rather than degrading on controller. Search returns
+  post-v1 in the same tranche as EPUX-09 drag/drop — both are pointer-and-keyboard
+  affordances layered over an input-agnostic v1, not features v1 is missing.
 
 ### [EPUX-16] Limited stock and cadence
 
@@ -509,6 +555,23 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   honest and readable. Against: requires author-facing labels for modifiers.
 - **Recommendation: C.** Never require players to reverse-engineer hidden Charm/member
   pricing.
+- **OWNER RULING (2026-07-26): split by pane — final price in the list, full formula in the
+  detail panel.** The stock list shows the **final price only**, so browsing stays scannable
+  and every row is the same shape. The **selected item's More Info panel** carries the **full
+  price formula** alongside that item's stats, effects, and description — one place where
+  everything known about the selected item lives, rather than a separate pricing affordance.
+  This is neither A nor C-with-chips: nothing is hidden (B's transparency is fully available)
+  but nothing is crowded into the list either.
+  - It fits the EPUX-03 pane budget exactly: list and detail are **adjacent levels** of one
+    Explore chain, which is the sanctioned two-pane pairing. In narrow mode the detail panel
+    is the next sequential step, and the price formula travels with it.
+  - It reuses the established **More Info** pattern rather than inventing a pricing surface —
+    same shape as `terrain_more_info_paging_design_2026-06-19.md`.
+  - This is what makes EPUX-14's pricing subject legible: when the convoy owner and a chosen
+    shopper see different prices for one item, the reason is one step away and attached to
+    the item, not an unexplained number in a list.
+  - Author-facing labels are still required for every price modifier, since the breakdown
+    names them.
 
 ## Owner questions — Training Hall and activities
 
@@ -528,6 +591,13 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   For: decision-complete. Against: benefit adapters must provide typed preview data.
 - **C — Full character sheet preview.** For: exhaustive. Against: too dense for routine use.
 - **Recommendation: B**, with More Details opening the existing unit inspection surface.
+- **OWNER RULING (2026-07-26): B, mirroring the EPUX-17 split.** The offer list shows result
+  and cost only; the **selected offer's detail panel** carries before→after primary values,
+  cost, cap, gate, and any equip/loadout consequence. Shop pricing and benefit forecasting
+  therefore use **one pattern** — scannable list, everything-known-about-the-selection in the
+  adjacent detail pane — rather than two conventions the player has to learn separately.
+  Benefit adapters must supply typed preview data; More Details opens the existing unit
+  inspection surface.
 
 ### [EPUX-20] Mixed benefit types
 
@@ -538,6 +608,12 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — One activity with author-defined labelled sections/tabs backed by registered benefit
   presenters.** For: open and organized. Against: needs fallback rendering for unknown types.
 - **Recommendation: C.** Unknown registered types fail validation loudly; no engine enum.
+- **OWNER RULING (2026-07-26): C.** One activity; the author defines labelled sections/tabs;
+  each benefit type renders through a **registered benefit presenter**. No engine enum of
+  benefit types — unknown registered IDs fail validation loudly *before* the player enters
+  the panel. Note this governs the inside of a single hall only: authors who want hard
+  separation already have it, since each themed hall is its own Explore service gated by its
+  own per-subject predicate.
 
 ### [EPUX-21] Repeat purchases and caps
 
@@ -548,6 +624,26 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   permanent discrete grants.** For: proportional. Against: benefit metadata must say whether
   it is divisible/repeatable.
 - **Recommendation: C.** Always show remaining resource and effective cap live.
+- **OWNER RULING (2026-07-26): quantity stepper, generalized into a shared quantity
+  primitive.** Not hold-to-repeat: one stepper, one quote, one commit, one ledger entry.
+  - **Affordance:** a numeric field with **repeat arrow buttons**, so holding an arrow scrolls
+    the *quantity*, never the *purchase*. Nothing commits until the player confirms.
+  - **Starts at 1**, the overwhelmingly common case.
+  - **Stepping backwards from 1 wraps to the effective maximum** — a one-input path to "buy as
+    many as I can" without a separate Max button or a long hold.
+  - **The effective maximum is live and is the minimum of** what current resources afford,
+    what destination space accepts (unit capacity, then convoy per EPUX-11), and the benefit's
+    own cap. It is recomputed as the wallet and destination change, so the wrap target is
+    always genuinely purchasable — the stepper can never offer a quantity that would fail at
+    commit. Remaining resource and effective cap stay visible live.
+  - **This is one shared primitive, not a Training-Hall feature.** The **item shop and the
+    unit-benefit shop use the same quantity control and the same live-maximum rule**, so
+    buying eight vulneraries and buying eight points of class EXP are the same interaction.
+    That also means the shop gains quantity purchasing, which the shop questions never
+    settled on their own. Divisibility/repeatability stays benefit metadata; a non-divisible
+    benefit simply presents no stepper.
+  - Confirmation is unchanged: EPUX-06 already made it an authored property with predicate
+    thresholds, so "confirm this permanent grant" needs no special case here.
 
 ### [EPUX-22] Arena/mock-battle placement
 
@@ -558,6 +654,23 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — Always launch from map nodes.** For: spatial fiction. Against: unnecessary campaign
   graph coupling.
 - **Recommendation: B.** Triangle Strategy's Tavern/Mock Battle separation supports this.
+- **OWNER RULING (2026-07-26): B, generalized — any Explore activity may be placed on a map.**
+  The arena is a separate registered activity (not a Training Hall offer type), and the
+  question of *where* it lives is answered once for every activity rather than per activity:
+  **placement on a map node is a general property of an Explore activity**, not a shop-only
+  capability. Shops were merely the first case walked.
+  - An activity may be reachable from **Explore**, from an **on-map event node**, or **both**,
+    at author choice, and both surfaces may reference **one shared activity definition and its
+    state** — the generalization of "stock is a first-class named entity" from EPUX-16.
+  - Shared state depletes/advances across surfaces, exactly as shared stock does. Cadence
+    (restock, variant advance, availability) applies to the shared entity, not per frontend.
+  - The **reason-keyed inactive presentation** already defined for on-map shops — gated/secret
+    → hidden, proximity → browse-only, preview → scouting view — is likewise promoted to
+    apply to **any** on-map activity.
+  - Subject resolution differs by surface and is already specified: on-map = the adjacent
+    unit; prep = the convoy pricing subject or a chosen unit.
+  - This removes option C as a separate answer: "always launch from map nodes" is now just an
+    authoring choice within one model.
 
 ## Owner questions — forging
 
