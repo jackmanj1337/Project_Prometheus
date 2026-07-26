@@ -142,6 +142,35 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   what a flag/resource could unlock.
 - **Recommendation: B.** Absence is authorial; disabled is an explainable current-state
   gate.
+- **OWNER RULING (2026-07-26): B, scoped to all four surfaces, with an author-set
+  gate presentation.** Three parts:
+  1. **Two-state rule.** *Absent* (the campaign never authored the entry) → **hidden**;
+     it does not exist for this campaign. *Gated* (authored, predicate currently false)
+     → **shown disabled with a reason**. Absence is authorial; a gate is an explainable
+     current state. This is already the behaviour the ratified prep-hub section describes
+     for the absent half ("non-battle nodes hide the battle-only entries"; "only panels
+     the campaign actually uses appear") — EPUX-02 generalizes it and adds the gated half.
+  2. **Uniform across all four availability surfaces:** the top-level node menu, the
+     Explore subject picker, the Explore per-subject activity list, and the Manage Roster
+     panel registry. One rule to author, learn, and test; no surface-specific exceptions.
+  3. **Gate presentation is a per-entry authoring property** — `visible-disabled-with-reason`
+     (**default**) or `hidden-until-met`. Same predicate either way; only the presentation
+     of an *unmet* predicate differs. The default preserves discoverability (a player can
+     learn that a flag or resource would unlock something); `hidden-until-met` exists
+     because "authored, gated, and **secret**" is a real authorial intent that plain B
+     cannot express — a story-locked shop or a hidden forge whose disabled label would
+     otherwise spoil a deliberate reveal.
+
+  **Implications.**
+  - Predicates need a **reason surface**, not just a boolean: the open predicate registry
+    must be able to return a player-facing unmet-reason string for the disabled label.
+    A predicate that cannot explain itself can only be authored `hidden-until-met`.
+  - `hidden-until-met` must not become the lazy default in authoring templates/tooling;
+    the authoring default stays visible-disabled.
+  - **Derived, not ruled — flagged for EPUX-04/06/07 and the accessibility pass:** whether
+    disabled entries stay keyboard/controller-focusable so the reason is reachable by
+    screen reader rather than hover-only. Recommend focusable-but-not-activatable; not
+    settled here.
 
 ### [EPUX-03] Wide/narrow composition
 
@@ -648,6 +677,9 @@ in progress (started 2026-07-25). Ratified so far:
 
 - **EPUX-01 — ratified** (A + optional overworld map, revisitable nodes); see "Node
   traversal and cadence model".
+- **EPUX-02 — ratified** (B: absent hides, gated shows disabled-with-reason; uniform across
+  all four availability surfaces; per-entry author-set gate presentation defaulting to
+  visible-disabled).
 - **EPUX-16 — ratified** (author-defined cadence, default infinite; folded into the cadence
   engine).
 - **EPUX-14 — ratified** (convoy owner as pricing subject; no gatekeeping).
@@ -660,6 +692,6 @@ in progress (started 2026-07-25). Ratified so far:
   aura, capacity + pending-items tray, disabled-convoy cascade); shared shop stock; and the
   per-unit energy budget as an optional wallet resource.
 
-Still open: EPUX-02, EPUX-03, EPUX-04, EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13,
-EPUX-15, EPUX-17, EPUX-19..28. Several merely confirm an existing register and may be accepted
-as a batch when the walk resumes.
+Still open: EPUX-03, EPUX-04, EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13,
+EPUX-15, EPUX-17, EPUX-19..28 (20 questions). Several merely confirm an existing register and
+may be accepted as a batch when the walk resumes.
