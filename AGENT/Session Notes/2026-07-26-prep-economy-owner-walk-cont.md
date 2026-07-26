@@ -87,6 +87,61 @@ reason string, and the per-entry gate presentation. Four adapters therefore cann
 four disabled treatments, and EPUX-02 is testable in one place. This also makes the deferred
 focusability question a shell-level decision.
 
+**EPUX-06 ratified — confirmation policy.** Option **C**: consequence-heavy operations
+confirm, ordinary repeatable purchases commit directly after an explicit action.
+
+- **Confirmation is authored, never hardcoded.** The author declares it on the action.
+  There is deliberately no engine-side enum of "consequence-heavy operation types" — that
+  is the closed type-switch this repo rejects, and it would mean an engine edit before any
+  new operation could be safe.
+- **Plus declarative threshold rules** (owner addition): authors may write scopeable rules
+  evaluated against the transaction — *"purchases over X of resource Y in this shop
+  require confirmation"* — at shop, node, or campaign scope.
+- Both forms are **predicates**, so this reuses the registry already serving EPUX-02 gating
+  and EPUX-07 reasons. One mechanism now answers three questions: *may I see it, why not,
+  must I confirm it.* New confirmation rules are authored, not coded.
+- **Strictness is a raise-only floor:** a player accessibility/safety setting may raise it
+  globally, authors may mark specific operations always-confirm, and neither may lower a
+  declared default.
+
+**Exit review with rollback (owner-added).** Reopened the batched-confirmation option and
+landed somewhere better than any of the three models offered: transactions **still commit
+immediately** — the retained *immediate transaction persistence* decision is untouched, and
+no staging layer, stock reservation, or quote/commit divergence is introduced.
+
+- **Author-chosen per activity type**: the registry declares which activities carry an exit
+  gate, so a large shop can have one and a quick training hall need not.
+- Entering a gated activity takes a **snapshot** — a rewind point on the existing
+  persistence/ledger machinery, not a new mechanism.
+- Leaving shows a **review receipt** (what was done, net resource change); the player
+  acknowledges it or **rolls back to the entry snapshot**, discarding everything done inside.
+- This yields true back-out *without* a staged cart, so dependent operations still work —
+  buy a weapon and then forge it — because everything genuinely committed.
+- **Three sub-questions explicitly deferred** to the persistence/economy implementation and
+  recorded in the doc: (1) does rollback consume a rewind charge from the decaying ledger,
+  or is free unlimited rollback effectively designed-in save-scumming; (2) does re-entry
+  after rollback reuse the same RNG stream, or does any activity with randomness (arena,
+  random forge outcome, stock refresh) become a reroll lever; (3) snapshot cost on web and
+  console, which is part of why the gate is author-chosen rather than universal.
+
+**EPUX-07 ratified — result and failure feedback.** Option **C**: prevention first — an
+unavailable action is disabled with an inline reason, and a structured error modal appears
+**only** for an unexpected commit failure. Already consistent with the EPUX-11 ruling, where
+a full destination fails before commit with no partial mutation.
+
+**One reason contract, not two.** The eight minimum reasons (insufficient resource, missing
+material, destination full, cap reached, gate unmet, unsellable, invalidated quote, save
+failure) are members of the **same** shell-level contract as the EPUX-02 predicate
+unmet-reason — "gate unmet" *is* that reason. A parallel transaction-only vocabulary would
+mean two mechanisms, two visual treatments, and two test surfaces answering one player
+question, which is what promoting gating into the shell was meant to prevent.
+
+**Focusability settled.** Disabled entries **remain in the focus order** so their reason is
+reachable by keyboard, controller, and screen reader; confirming does nothing or re-announces
+the reason. A reason reachable only by pointer hover is the "inaccessible and opaque" failure
+option A is rejected for. Shell-level, so implemented and tested once across all four
+availability surfaces. This closes the question deferred from both EPUX-02 and EPUX-04.
+
 **Correction to the register's own status section.** EPUX-28 was briefly mis-read as ruled.
 It is **not** — it has a recommendation (C) only. The false positive came from regex-splitting
 the doc on `### [EPUX-nn]`: EPUX-28 is the last question, so its body runs into the following
@@ -97,6 +152,7 @@ status" section is the authority; trust it over a grep.
 
 - `8988c31073a9714273b11e6f215d401659f6720a` — Ratify EPUX-02: absent hides, gated disables, per-entry secret gates
 - `c5aac36727992a0a6552b33a3bd79997a7ca181e` — Ratify EPUX-03/04: pane-budget contract + gating as a shell primitive
+- `eeb34a3c3075497051710f0002112ada4192c813` — Ratify EPUX-06/07: authored confirmation rules, exit rollback, one reason contract
 
 ## Gates
 
@@ -112,12 +168,20 @@ status" section is the authority; trust it over a grep.
 
 ## Next
 
-Resume the walk at **EPUX-06/07** (confirmation policy; transaction result and failure
-feedback). They pair naturally — both are about what happens around a commit — and they
-also carry the deferred **focusability** question, which EPUX-04 just established is a
-shell-level decision rather than a per-panel one.
+**The whole hub and shared-interaction block (EPUX-01..07) is closed.** Open after this
+session: EPUX-09, 10, 12, 13, 15, 17, 19..28 — **16 questions**, in four coherent groups:
 
-Open after this session: EPUX-06, 07, 09, 10, 12, 13, 15, 17, 19..28 — **18 questions**.
-The shell block (EPUX-01..05) is fully closed. EPUX-19..27 (Training-Hall benefit
-presentation plus the forging cluster) is the largest remaining group and several of those
-merely confirm an existing register, so they are candidates for a batch pass.
+- **Inventory/convoy** — EPUX-09 (transfer interaction), 10 (stacking and instance
+  identity), 12 (bulk operations)
+- **Shop** — EPUX-13 (buy/sell organization), 15 (stock categories/filtering), 17 (dynamic
+  price disclosure)
+- **Training Hall and activities** — EPUX-19..22
+- **Forging** — EPUX-23..28
+
+Suggested next: the **inventory/convoy group (09/10/12)**. EPUX-10 (per-instance identity
+vs stacking) is the one with real downstream weight — it underpins B4-IEQ, the convoy panel,
+and the forge item picker — and 09/12 are largely presentation decisions that fall out of
+it. The shell rulings now constrain all three, so they should walk quickly.
+
+Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`, carrying the three deferred
+sub-questions on the exit-rollback snapshot.
