@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-26-phase0-text-entry-governance](2026-07-26-phase0-text-entry-governance.md) — Phase 0: TEXT-06 ratified in GDD_07_Input_Cursor (no v1 feature may REQUIRE free text; naming is the only exception), with DoD#2 enforcement as check_docs.py [42] — a scene scan for LineEdit/TextEdit against a two-entry allow-list, which also fails on a stale entry and on the rule going missing from the GDD. Negative-tested against an injected field rather than assumed. TEXT-04's Deck Verified on-screen-keyboard gate recorded in GDD_00 Platform Targets, because there is no standing release checklist — only a stale per-version one.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
 - [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
