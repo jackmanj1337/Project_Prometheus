@@ -9,7 +9,7 @@
 cd "$(git rev-parse --show-toplevel)"
 
 # 0. Merge-target guard. When pre-merge-commit rejects a merge, git leaves it
-# staged and suggests 'git commit' to finish — which runs this hook instead.
+# staged and suggests 'git commit' to finish -- which runs this hook instead.
 # Concluding a merge onto a non-agent branch is the same policy violation.
 # Not covered by SKIP_TESTS: this is policy, not a test.
 if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
@@ -18,7 +18,8 @@ if [[ -e "$(git rev-parse --git-dir)/MERGE_HEAD" ]]; then
 		agent/*) ;;
 		*)
 			echo "pre-commit: refusing to conclude a merge on non-agent branch '${merge_branch:-<detached>}'." >&2
-			echo "  git merge --abort   # back out, then hand off via prepare-manual-pr.sh" >&2
+			echo "  git merge --abort   # back out, then route via agent/staging-area" >&2
+			echo "                      # (prepare-manual-pr.sh writes the hand-off summary)" >&2
 			exit 1
 			;;
 	esac
