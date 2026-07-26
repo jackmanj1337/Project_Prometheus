@@ -117,12 +117,39 @@ no staging layer, stock reservation, or quote/commit divergence is introduced.
   acknowledges it or **rolls back to the entry snapshot**, discarding everything done inside.
 - This yields true back-out *without* a staged cart, so dependent operations still work —
   buy a weapon and then forge it — because everything genuinely committed.
-- **Three sub-questions explicitly deferred** to the persistence/economy implementation and
-  recorded in the doc: (1) does rollback consume a rewind charge from the decaying ledger,
-  or is free unlimited rollback effectively designed-in save-scumming; (2) does re-entry
-  after rollback reuse the same RNG stream, or does any activity with randomness (arena,
-  random forge outcome, stock refresh) become a reroll lever; (3) snapshot cost on web and
-  console, which is part of why the gate is author-chosen rather than universal.
+**Exit-rollback sub-questions resolved (same session).** All three were raised as deferrals
+and then answered by the owner; notably all three land on machinery the unified persistence
+design already has (`AGENT/Docs/plans/persistence_undo_unified_handoff_2026-07-15.md`), so
+nothing parallel is being invented.
+
+- **RNG: rollback restores the stream.** Replaying identical actions yields identical
+  outcomes, so rollback is never a reroll lever. Not a new guarantee — the handoff's
+  "Determinism — the real anti-scum" section already states each ledger snapshot carries the
+  RNG timeline and rewinding restores RNG-at-that-point. Receipt rollback inherits it.
+- **…but authors are warned off RNG-bearing activities.** Determinism only covers *identical*
+  replays — the handoff's own wording is "only DIFFERENT choices change results" — and inside
+  an arena or a random forge a different choice is trivial, so the guarantee does not protect
+  these the way it protects a battle. Ruling: a **non-blocking campaign-builder warning**
+  when an exit gate is enabled on an RNG-bearing activity type, modelled on the existing
+  durable-`mid_map`-vs-finite-rewind warning. Per **DoD#2** the automated check lands with
+  the feature, modelled on `check_docs.py`.
+- **Receipt rollback is uncharged; rewind charges are battle-only.** Confirmed against the
+  code: `rewind_charges_per_map` is already per-map and `undo_activations`/`undo_rounds` are
+  within-map ledger budgets. Charges exist as a convenience for casual players who would
+  save-scum anyway and are disableable for a harder run — already expressible today as the
+  `rewind_charges_per_map = 0` ironman preset. So both halves of this ruling are already
+  true in the shipped `CampaignRules`; nothing to add.
+- **Intended scope: bulk purchase and sale** — not grants, transforms, or RNG activities.
+  This is the intent behind both the author warning and the gate being author-chosen.
+- **Retention: exactly one snapshot, discarded on acceptance.** Consequences recorded:
+  bounds web/console cost; implies the **invariant that at most one exit-gated activity is
+  open at a time** (the ratified Explore structure already satisfies this — if nesting is
+  ever introduced the inner gate must be *refused*, never silently replace the live snapshot
+  and destroy the outer rollback); the snapshot is a transient auto doc with its own
+  `rule_id` and pool, so the never-overwrite-a-manual-save invariant holds.
+- **Gap found:** the shipped autosave triggers are `battle_start` / `battle_end` /
+  `shop_exit` — all **exit**-time. Rollback needs an **entry** snapshot, so a new
+  activity-entry trigger is required. Recorded on the tracker row.
 
 **EPUX-07 ratified — result and failure feedback.** Option **C**: prevention first — an
 unavailable action is disabled with an inline reason, and a structured error modal appears
@@ -153,6 +180,7 @@ status" section is the authority; trust it over a grep.
 - `8988c31073a9714273b11e6f215d401659f6720a` — Ratify EPUX-02: absent hides, gated disables, per-entry secret gates
 - `c5aac36727992a0a6552b33a3bd79997a7ca181e` — Ratify EPUX-03/04: pane-budget contract + gating as a shell primitive
 - `eeb34a3c3075497051710f0002112ada4192c813` — Ratify EPUX-06/07: authored confirmation rules, exit rollback, one reason contract
+- `fd6786bec3ebeb9ed78ae202919b372e6c7cecbd` — Resolve the three exit-rollback sub-questions; one snapshot, discarded on accept
 
 ## Gates
 
@@ -183,5 +211,7 @@ vs stacking) is the one with real downstream weight — it underpins B4-IEQ, the
 and the forge item picker — and 09/12 are largely presentation decisions that fall out of
 it. The shell rulings now constrain all three, so they should walk quickly.
 
-Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`, carrying the three deferred
-sub-questions on the exit-rollback snapshot.
+Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`. Its three sub-questions were
+answered this session, so it now carries an implementation shape rather than open decisions:
+an activity-**entry** autosave trigger (the shipped triggers are all exit-time), the
+single-snapshot invariant, and the non-blocking author warning plus its DoD#2 check.
