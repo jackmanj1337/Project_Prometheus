@@ -50,6 +50,43 @@ become the lazy default in authoring templates.
 so the reason is screen-reader reachable rather than hover-only. Recommended
 focusable-but-not-activatable; deferred to EPUX-04/06/07 and the accessibility pass.
 
+**EPUX-03 ratified — wide/narrow composition.** Option **C**, confirming accepted
+`UI-ARCH-02`: one presentation controller/state model, wide list/detail and narrow
+sequential compositions selected by **measured content width** (never a platform or device
+name), selection and focus preserved across the transition. 200% Menu Scale can force narrow
+at a nominally wide viewport, so narrow is not a "mobile-only" path.
+
+Added a **pane-budget contract**, which the original single-list framing had no reason to
+consider: the ratified structure creates a chain up to five levels deep (node menu → Explore
+→ subject picker → activity list → activity panel).
+
+- **Default: at most two panes, pairing adjacent levels** — subject | activity-list, then
+  activity-list | panel. Never three: a third pane collapses at 200% Menu Scale and steals
+  width from the terminal panel, which needs it most.
+- **Full-width escape hatch** (owner addition): a panel may declare it wants the whole
+  available width, and the shell presents it alone, dropping the companion pane; the parent
+  level stays reachable by back/breadcrumb. For content-dense panels — shop grids, forge
+  before/after, Map Preview, the global item-first bulk view.
+- Declared by the **panel type in the registry** (a property of its content shape), not a
+  per-campaign authoring knob — campaign authors do not make layout decisions.
+- A **preference, not an override**: meaningful only when there is room for two panes at
+  all; moot in the narrow composition. Taking or releasing full width preserves selection
+  and focus like any wide↔narrow transition.
+
+**EPUX-04 ratified — shared screen shell.** Option **C**, confirming accepted `UI-ARCH-01`:
+shared presentation primitives keyed by an opaque stable record id, domain managers keeping
+ownership of records and mutations, queries/actions as callbacks and action descriptors. No
+campaign schema in the shared layer, no hardcoded activity enum. (Option B is the closed
+type-switch this repo treats as a smell.)
+
+**Availability gating promoted to a shell primitive.** The EPUX-02 ruling requires one
+gating rule across all four surfaces; that is only enforceable if the shell implements it.
+So the shell owns predicate evaluation, the hidden-vs-disabled decision, the disabled visual
+treatment, and unmet-reason placement — adapters supply only the predicate, its player-facing
+reason string, and the per-entry gate presentation. Four adapters therefore cannot drift into
+four disabled treatments, and EPUX-02 is testable in one place. This also makes the deferred
+focusability question a shell-level decision.
+
 **Correction to the register's own status section.** EPUX-28 was briefly mis-read as ruled.
 It is **not** — it has a recommendation (C) only. The false positive came from regex-splitting
 the doc on `### [EPUX-nn]`: EPUX-28 is the last question, so its body runs into the following
@@ -59,6 +96,7 @@ status" section is the authority; trust it over a grep.
 ## Commits claimed
 
 - `8988c31073a9714273b11e6f215d401659f6720a` — Ratify EPUX-02: absent hides, gated disables, per-entry secret gates
+- `c5aac36727992a0a6552b33a3bd79997a7ca181e` — Ratify EPUX-03/04: pane-budget contract + gating as a shell primitive
 
 ## Gates
 
@@ -74,7 +112,12 @@ status" section is the authority; trust it over a grep.
 
 ## Next
 
-Resume the walk at **EPUX-03** (wide/narrow composition). Open after this session:
-EPUX-03, 04, 06, 07, 09, 10, 12, 13, 15, 17, 19..28 — **20 questions**. EPUX-03/04 are the
-remaining shell questions and pair naturally; 19..27 (Training-Hall benefit presentation and
-the forging cluster) are the largest remaining block and several are batch-confirmable.
+Resume the walk at **EPUX-06/07** (confirmation policy; transaction result and failure
+feedback). They pair naturally — both are about what happens around a commit — and they
+also carry the deferred **focusability** question, which EPUX-04 just established is a
+shell-level decision rather than a per-panel one.
+
+Open after this session: EPUX-06, 07, 09, 10, 12, 13, 15, 17, 19..28 — **18 questions**.
+The shell block (EPUX-01..05) is fully closed. EPUX-19..27 (Training-Hall benefit
+presentation plus the forging cluster) is the largest remaining group and several of those
+merely confirm an existing register, so they are candidates for a batch pass.
