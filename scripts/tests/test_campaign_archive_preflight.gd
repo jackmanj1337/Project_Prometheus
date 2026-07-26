@@ -142,6 +142,42 @@ func _init() -> void:
 		print("FAIL malformed package: %s" % [bad_result.errors])
 		failed += 1
 
+	# --- Godot resource formats must never be admitted from a pack -------------
+	# This is a SECURITY regression guard, not a format preference. .tres/.res/
+	# .tscn/.scn can carry an embedded script whose _init() runs the moment the
+	# file is loaded, and RichTextLabel's [img] tag resolves through
+	# ResourceLoader -- so admitting one of these turns a pack-authored display
+	# name into arbitrary code execution. Measured on Godot 4.6.3; see
+	# AGENT/Docs/design/text_entry_naming_and_sanitization_2026-07-26.md.
+	#
+	# The render-site escaping in BBCode.gd closes the other half of that chain.
+	# Neither control may be relaxed on the assumption that the other one holds.
+	for resource_ext in ["tres", "res", "tscn", "scn"]:
+		var evil_payloads := _fixture_payloads()
+		var evil_path := "%s/assets/payload.%s" % [ROOT, resource_ext]
+		evil_payloads[evil_path] = PackedByteArray(
+			'[gd_resource type="Resource" load_steps=2 format=3]'.to_utf8_buffer()
+		)
+		var evil_result = Preflight.inspect_entries(
+			_entries_for(evil_payloads), evil_payloads, limits
+		)
+		if not evil_result.valid and _has(evil_result.errors, "not approved Tier-1 media"):
+			print("OK  .%s is refused as pack content" % resource_ext)
+			passed += 1
+		else:
+			print("FAIL .%s was admitted: %s" % [resource_ext, evil_result.errors])
+			failed += 1
+
+	# The approved media list is the allow-list doing that work, so pin it too:
+	# widening it to a Godot resource format would silently reopen the chain.
+	var approved: Array = Preflight.APPROVED_MEDIA_EXTENSIONS
+	if not approved.any(func(ext): return ext in ["tres", "res", "tscn", "scn", "gd", "gdc"]):
+		print("OK  approved media list contains no executable or resource format")
+		passed += 1
+	else:
+		print("FAIL approved media list admits a resource/script format: %s" % [approved])
+		failed += 1
+
 	print("=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(1 if failed > 0 else 0)
 
