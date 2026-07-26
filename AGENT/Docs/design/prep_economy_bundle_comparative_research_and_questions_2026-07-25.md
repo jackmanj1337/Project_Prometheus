@@ -300,16 +300,50 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
     discarding everything done inside that activity.
   - This gives true back-out without a staged cart: dependent operations still work (buy a
     weapon, then forge it), because everything really did commit.
-  - **Open sub-questions, deferred to the persistence/economy implementation** (do not
-    settle them here):
-    1. Does a rollback **consume a rewind charge** from the decaying ledger, or is it free?
-       Free unlimited rollback makes shop decisions costless — buy, read the receipt, roll
-       back, re-buy differently — which is close to save-scumming by design.
-    2. Does re-entry after a rollback **reuse the same RNG stream**? If not, any activity
-       with randomness (arena, random forge outcome, stock refresh) becomes a reroll lever.
-       See `rng_determinism_design_2026-06-11.md`.
-    3. Snapshot cost on **web and console** targets, which is part of why the gate is
-       author-chosen per activity rather than universal.
+  **Sub-questions resolved by the owner (2026-07-26).** All three landed on machinery that
+  already exists in the unified persistence design — see
+  `AGENT/Docs/plans/persistence_undo_unified_handoff_2026-07-15.md`.
+
+  1. **Rollback restores the RNG stream.** A rollback rewinds RNG state to the entry
+     snapshot, so replaying identical actions yields identical outcomes and rollback is
+     never a reroll lever. This is **not a new guarantee** — the handoff's "Determinism —
+     the real anti-scum" section already states that every ledger snapshot carries the RNG
+     timeline and that rewinding or reloading restores RNG-at-that-point. Receipt rollback
+     simply inherits it.
+  2. **…but authors are warned off putting rollback on RNG-based activities.** Determinism
+     removes the *luck* dimension only for **identical** replays; as the handoff puts it,
+     "only DIFFERENT choices change results". Inside an RNG-bearing activity the player can
+     trivially make a different choice — fight a different arena opponent, re-roll a forge
+     — so the guarantee does not protect these the way it protects a battle. Therefore:
+     **a non-blocking campaign-builder warning when an exit gate is enabled on an
+     RNG-bearing activity type.** Model it on the existing safety-rule-2 warning (durable
+     `mid_map` saves vs finite rewind), and per **DoD#2** land the automated check *with*
+     the feature, modelled on `AGENT/Docs/check_docs.py`.
+  3. **Receipt rollback does not consume a rewind charge — charges are battle-only.**
+     `rewind_charges_per_map` is already per-map, and `undo_activations` / `undo_rounds`
+     are within-map ledger budgets. Rewind charges exist as a **convenience for casual
+     players who would otherwise save-scum anyway**, and are **disableable for a harder
+     experience** — already expressible today as the `rewind_charges_per_map = 0`
+     ironman-style preset. Receipt rollback is a separate, uncharged mechanism.
+  4. **Intended scope: bulk purchase and sale.** The receipt gate exists for shops and bulk
+     transactions, not for grants, transforms, or RNG activities. This is the design intent
+     behind the author warning in (2) and behind the gate being author-chosen per activity.
+
+  **Snapshot retention — exactly one, discarded on acceptance.** Only a single entry
+  snapshot is kept at a time, and accepting the receipt discards it. Consequences:
+  - Bounds snapshot cost on **web and console** targets, which is why the gate is
+    author-chosen per activity rather than universal.
+  - **Invariant: at most one exit-gated activity may be open at a time.** The ratified
+    Explore structure already satisfies this (the player is inside one activity panel at a
+    time), but if nesting is ever introduced the inner gate must be **refused** rather than
+    silently replacing the live snapshot and destroying the outer rollback.
+  - The snapshot needs a **trigger the current design does not have**: the autosave trigger
+    list ships `battle_start` / `battle_end` / `shop_exit`, all of which fire on *exit*.
+    Rollback needs an **entry** snapshot, so a new activity-entry trigger is required.
+  - It is a transient auto document with its own `rule_id` and its own pool, so the hard
+    invariant that an autosave never overwrites a manual save continues to hold.
+  - Minor implementation question, not an owner decision: whether a live snapshot surviving
+    a crash or quit still offers rollback on reload, or is simply dropped.
 
 ### [EPUX-07] Transaction result and failure feedback
 
@@ -806,9 +840,12 @@ in progress (started 2026-07-25). Ratified so far:
 - **EPUX-06 — ratified** (C, with confirmation **authored** on the action plus declarative
   threshold rules, both as predicates; player/author strictness is raise-only) **+ an
   optional author-chosen exit review receipt with rollback to an activity-entry snapshot**.
-  Immediate transaction persistence is unchanged. Three sub-questions deferred to the
-  persistence/economy implementation: rewind-charge cost, RNG reuse on re-entry, snapshot
-  cost on web/console.
+  Immediate transaction persistence is unchanged. All three sub-questions were resolved
+  2026-07-26: rollback restores the RNG stream (inheriting existing determinism) but authors
+  are warned off RNG-bearing activities; receipt rollback is **uncharged** because rewind
+  charges are battle-only and already disableable via `rewind_charges_per_map = 0`; exactly
+  one snapshot is kept and discarded on acceptance, which bounds cost and implies at most one
+  gated activity open at a time.
 - **EPUX-07 — ratified** (C, on **one unified reason contract** shared with EPUX-02 rather
   than a parallel transaction vocabulary) **+ disabled entries are focusable-but-not-
   activatable**, settling the question deferred from EPUX-02/04.
