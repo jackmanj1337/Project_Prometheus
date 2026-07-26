@@ -3,7 +3,7 @@
 ### A Top-Down Turn-Based Strategy RPG
 
 **Status:** Active — project entry point.
-**Last verified:** 2026-07-21
+**Last verified:** 2026-07-26
 **Governance:** `AGENT/Docs/governance/documentation_governance_2026-06-13.md`
 
 This is the starting page for any contributor. It defines the documentation
@@ -198,6 +198,7 @@ Last verified: 2026-07-07
 | Renderer | **Compatibility (OpenGL)** — required for web export; nothing needs Forward+ | OPEN-8 |
 | Primary platform | Desktop (Windows, Mac, Linux) plus the portfolio web demo target | SET-014 |
 | Steam Deck | **Letterbox** (keep 16:9) at first Deck verification; aspect expansion revisit routed to `UI-VIEWPORT-ASPECT` now that Menu Scale exists | OPEN-11 / `UI-VIEWPORT-ASPECT` |
+| Steam Deck — text input | **Deck Verified requires the game to display an on-screen keyboard automatically whenever text input is needed.** This is a certification gate, not a recommendation. See the release gate below. | `TEXT-04` / `RELEASE-CHECKLIST-DECK-OSK-2026-07-26` |
 | Web | Playtest distribution channel and slice-first portfolio demo target | OPEN-8, SET-014 |
 | Gamepad | Supported; real-controller acceptance remains tracked by `VAL-V030-GAMEPAD` | `B6-INPUT` / `VAL-V030-GAMEPAD` |
 | Mobile | **Deferred** (post-1.0; needs a touch UI redesign) | — |
@@ -208,6 +209,26 @@ Last verified: 2026-07-07
 | Language | GDScript | Codebase is entirely GDScript |
 | Data format | Godot Resources (`.tres`) for authored data | JSON-safe envelopes for campaign/suspend saves |
 | Version control | Git + GitHub | Public repo; licensing gate (DOC-012) precedes public release |
+
+### Release gate — Steam Deck on-screen keyboard (TEXT-04)
+
+Status: **Planned** (gate applies only once a Steam build is scheduled)
+Last verified: 2026-07-26
+
+Recorded here rather than in a design document because a per-version checklist is
+written after the fact and this must survive until Steam is actually targeted —
+that placement is the substance of the ruling, not a filing detail.
+
+- **Before any Steam Deck submission**, verify the game shows an on-screen keyboard
+  automatically wherever it asks for text. Valve's own OSK satisfies this through
+  GodotSteam (`showFloatingGamepadTextInput` / `showGamepadTextInput`).
+- **No GodotSteam dependency is taken now** — we ship Windows Desktop and there is
+  no Steam build. The `system` entry mode exists in the text-entry registry as a
+  seam with no backend, so adopting it later is a drop-in rather than a retrofit.
+- The ratified text-entry default already routes **touch and gamepad to the in-game
+  keyboard**, so a Deck gets one automatically. Whether a *custom* keyboard alone
+  satisfies Deck Verified is **not settled by any source** — that is a question for
+  Valve, not further desk research.
 
 ---
 
