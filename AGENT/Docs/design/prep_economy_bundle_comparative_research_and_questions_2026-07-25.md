@@ -267,6 +267,49 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   consequence metadata.
 - **Recommendation: C.** Confirm unique items, destructive sells, stat/skill grants,
   transforms, and operations consuming rare items; allow a campaign/setting stricter mode.
+- **OWNER RULING (2026-07-26): C, author-declared and rule-driven, plus an optional exit
+  review with rollback.** Consequence-heavy operations confirm; ordinary repeatable
+  purchases commit directly after an explicit action.
+
+  **What marks an operation as needing confirmation — authored, never hardcoded.**
+  - The **author declares** it on the action itself. There is no engine-side enum of
+    "consequence-heavy operation types"; that would be the closed type-switch this project
+    rejects, and would require an engine edit for every new operation to become safe.
+  - In addition, authors may write **declarative threshold/filter rules** evaluated against
+    the transaction — e.g. *"any purchase costing more than X of resource Y in this shop
+    requires confirmation."* Rules are scopeable (this shop / this node / campaign-wide).
+  - Both forms are **predicates**, so this reuses the same registry that already serves
+    availability gating (EPUX-02) and unmet reasons (EPUX-07). One predicate mechanism now
+    answers three questions: *may I see it, why not, and must I confirm it.* A new
+    confirmation rule is authored, never coded.
+
+  **Strictness is a floor, raise-only.** A **player** setting may raise strictness globally
+  (up to confirm-everything) as an accessibility/safety preference, and authors may mark
+  specific operations always-confirm. Neither may lower a declared consequence class below
+  its authored default.
+
+  **Optional exit review with rollback (owner-added).** Transactions still commit
+  immediately — the retained *immediate transaction persistence* decision is unchanged, and
+  no staging layer, stock reservation, or quote/commit divergence is introduced.
+  - **Author-chosen per activity type:** the registry declares which activities carry an
+    exit gate, so a large shop can have one while a quick training hall does not.
+  - On **entering** a gated activity the engine takes a **snapshot** (a rewind point on the
+    existing persistence/ledger machinery, not a new mechanism).
+  - On **leaving**, the player sees a **review receipt** — what was done and the net
+    resource change — and may either acknowledge it or **roll back to the entry snapshot**,
+    discarding everything done inside that activity.
+  - This gives true back-out without a staged cart: dependent operations still work (buy a
+    weapon, then forge it), because everything really did commit.
+  - **Open sub-questions, deferred to the persistence/economy implementation** (do not
+    settle them here):
+    1. Does a rollback **consume a rewind charge** from the decaying ledger, or is it free?
+       Free unlimited rollback makes shop decisions costless — buy, read the receipt, roll
+       back, re-buy differently — which is close to save-scumming by design.
+    2. Does re-entry after a rollback **reuse the same RNG stream**? If not, any activity
+       with randomness (arena, random forge outcome, stock refresh) becomes a reroll lever.
+       See `rng_determinism_design_2026-06-11.md`.
+    3. Snapshot cost on **web and console** targets, which is part of why the gate is
+       author-chosen per activity rather than universal.
 
 ### [EPUX-07] Transaction result and failure feedback
 
@@ -278,6 +321,28 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **Recommendation: C.** Minimum reasons: insufficient resource, missing material,
   destination full, cap reached, gate unmet, unsellable, invalidated quote, and save
   failure.
+- **OWNER RULING (2026-07-26): C, on ONE unified reason contract shared with EPUX-02.**
+  Prevention first: an action the player cannot take is **disabled with an inline reason**;
+  a structured error modal appears **only for an unexpected commit failure**. This already
+  matches the EPUX-11 ruling, where a full destination fails *before* commit with
+  "destination full" and no partial mutation.
+
+  **One reason contract, not two.** The eight minimum reasons — insufficient resource,
+  missing material, destination full, cap reached, gate unmet, unsellable, invalidated
+  quote, save failure — are members of the **same** shell-level reason contract as the
+  EPUX-02 predicate unmet-reason (`ENGINE-PREDICATE-UNMET-REASON-2026-07-26`); "gate unmet"
+  *is* that reason. A parallel transaction-only vocabulary would mean two mechanisms, two
+  visual treatments, and two test surfaces answering the player's single question "why can't
+  I do this" — precisely what promoting gating into the shell (EPUX-04) was meant to prevent.
+  As with gating, the **shell** owns the presentation; adapters supply the reason.
+
+- **OWNER RULING (2026-07-26) — disabled entries are focusable, not activatable.** Settles
+  the question deferred from EPUX-02 and EPUX-04. Disabled entries **remain in the focus
+  order** so their reason is reachable by keyboard, controller, and screen reader;
+  confirming does nothing (or re-announces the reason) rather than performing the action.
+  A disabled control whose reason is reachable only by pointer hover is the "inaccessible
+  and opaque" failure option A is rejected for. This is a **shell-level** behaviour, so it
+  is implemented and tested once for all four availability surfaces.
 
 ## Owner questions — inventory and convoy
 
@@ -738,6 +803,15 @@ in progress (started 2026-07-25). Ratified so far:
 - **EPUX-04 — ratified** (C, confirming UI-ARCH-01: shared primitives + domain-owned
   adapters) **+ availability gating promoted to a shell primitive**, so the EPUX-02 rule is
   implemented and tested once instead of per-adapter.
+- **EPUX-06 — ratified** (C, with confirmation **authored** on the action plus declarative
+  threshold rules, both as predicates; player/author strictness is raise-only) **+ an
+  optional author-chosen exit review receipt with rollback to an activity-entry snapshot**.
+  Immediate transaction persistence is unchanged. Three sub-questions deferred to the
+  persistence/economy implementation: rewind-charge cost, RNG reuse on re-entry, snapshot
+  cost on web/console.
+- **EPUX-07 — ratified** (C, on **one unified reason contract** shared with EPUX-02 rather
+  than a parallel transaction vocabulary) **+ disabled entries are focusable-but-not-
+  activatable**, settling the question deferred from EPUX-02/04.
 - **EPUX-16 — ratified** (author-defined cadence, default infinite; folded into the cadence
   engine).
 - **EPUX-14 — ratified** (convoy owner as pricing subject; no gatekeeping).
@@ -750,6 +824,8 @@ in progress (started 2026-07-25). Ratified so far:
   aura, capacity + pending-items tray, disabled-convoy cascade); shared shop stock; and the
   per-unit energy budget as an optional wallet resource.
 
-Still open: EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13, EPUX-15, EPUX-17,
-EPUX-19..28 (18 questions). Several merely confirm an existing register and may be accepted
-as a batch when the walk resumes. The shell questions (EPUX-01..05) are now fully closed.
+Still open: EPUX-09, EPUX-10, EPUX-12, EPUX-13, EPUX-15, EPUX-17, EPUX-19..28
+(16 questions). Several merely confirm an existing register and may be accepted as a batch
+when the walk resumes. **The entire hub and shared-interaction block (EPUX-01..07) is now
+closed** — what remains is inventory/convoy (09/10/12), shop (13/15/17), Training-Hall and
+activities (19..22), and forging (23..28).
