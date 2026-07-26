@@ -399,7 +399,60 @@ This decides whether Class B ever needs a keyboard at all.
   it is consistent with EPUX-27 choosing generated canonical names with an optional alias —
   the same shape one level down.
 
-## 7. What was not resolved
+## 7. Decision status
+
+Recommendations above are research recommendations unless marked **OWNER RULING**. The walk
+ran 2026-07-26 and is **COMPLETE**; [TEXT-09]–[TEXT-12] are ratified, plus one sub-question
+the walk raised.
+
+- **TEXT-09 — ratified (B).** The **validator accepts Unicode letters/marks/digits while the
+  keyboard ships ASCII.** They differ deliberately: the keyboard is an input convenience, the
+  validator is the security boundary, and clipboard paste or hand-written pack JSON bypasses
+  the keyboard entirely. §5's blocklist is written in Unicode categories precisely so it does
+  not depend on the shipped layout.
+- **TEXT-10 — ratified (A), and the severity is worse than this document first stated.**
+  Investigated during the walk against Godot 4.6.3:
+  - **`[url]` is inert.** `UnitDetailsScreen._on_entry_clicked` parses `category:key` and only
+    moves a selector — no `OS.shell_open()`, no navigation. **The phishing concern in §4.3 is
+    withdrawn.**
+  - **`[img]` is an arbitrary-code-execution primitive.** `[img]user://evil.tres[/img]` in a
+    `bbcode_enabled` RichTextLabel **executed the resource's embedded script `_init()`** —
+    verified by marker file. `[img]` resolves through `ResourceLoader.load()`, so it inherits
+    the full `.tres` hazard from §3.7.
+  - With an asymmetry that removes any reason to keep the tag working: `[img]user://ok.png`
+    **fails** ("Resource file not found"), because a raw PNG under `user://` has no `.import`
+    file. Legitimate images do not load; malicious resources do.
+  - **The chain needs a second foothold that `CampaignArchivePreflight` currently denies** —
+    a `.tres` cannot be extracted from a pack, since preflight admits only indexed JSON and
+    `png/ogg/wav/ttf/otf`. The realistic attack today is social ("place this file, then import
+    my pack"), not pack import alone.
+  - **Therefore `_safe_archive_path()` and the approved-extension allow-list are load-bearing
+    security controls, not hygiene.** The ruling requires all three of: escape brackets at
+    every render site, apply Class A validation to pack `display_name`s, **and add a
+    regression test asserting preflight still rejects `.tres`/`.res`/`.tscn`** — so the control
+    holding this chain shut cannot be relaxed by someone who does not know what it is doing.
+    Per DoD#2 the checks land in the same change.
+- **TEXT-11 — ratified: on the import path, not the save path.** Generated ids (see TEXT-12)
+  can never produce `CON` or `NUL`, so `is_valid_slot_id()` no longer needs the check. Import
+  does, because TEXT-12a rules that externally-renamed files must still resolve. Test by
+  asserting the validator's **verdict**, never by attempting the write — §3.3.
+- **TEXT-12 — ratified (A), with a second clause the question did not ask.** Slot ids are
+  **generated on creation**; the player names only the display label. **And identity comes
+  from the file's internal manifest, not its filename**, because a user may rename files
+  during external file management. The filename is a container, not an identifier.
+- **TEXT-12a — ratified: the manifest-identity rule covers save files too**, not only campaign
+  packs — the ratified cloud-sync decision already makes manual export/import the v1 primary,
+  so saves get externally managed as well. **Concrete cost, measured against current code:**
+  `SaveManager.list_slots()` reads an index keyed by `slot_id` and calls `has_slot()` on
+  `<slot_id>.json`, so a renamed save silently vanishes from the list. This needs a directory
+  scan that reads each file's internal header, with the index demoted to a **cache rather than
+  the truth**.
+
+**Net effect on §5:** Class B shrinks (filenames are generated, so the alphabet is ours), and
+Class C is unchanged. Class A and the render-site escape absorb the real work — which §5
+already predicted, since pack-authored text never passes through our input field.
+
+## 8. What was not resolved
 
 - **Whether `[img]` in a `RichTextLabel` can reach an imported pack asset path.** §4.3
   establishes the markup renders; the reachable target set was not enumerated. This bounds

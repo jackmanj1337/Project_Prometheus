@@ -284,7 +284,50 @@ Extending, not modifying, [TEXT-01]–[TEXT-12].
   `candidate_select` action reserved. If [EPUX-15]'s search is ever restored, that is the
   trigger to revisit; if it never is, nothing was spent.
 
-## 8. What was not resolved
+## 8. Decision status
+
+Recommendations above are research recommendations unless marked **OWNER RULING**. The walk
+ran 2026-07-26 and is **COMPLETE**; [TEXT-13]–[TEXT-15] are ratified, plus one sub-question.
+
+- **TEXT-13 — ratified (A), and merged into [TEXT-02].** The corrected action model changes
+  the *justification*, not the sequencing: grid first, wheel second. But the grid is now the
+  default **on the merits** rather than as the safe choice, and the wheel is a power-user
+  opt-in that earns its place through preference rather than measured speed. The two questions
+  were ruled once, as "[TEXT-02] as revised by [TEXT-13]".
+- **TEXT-14 — ratified (A: build the registry now), with a scope the question did not ask
+  for.** The registry's unit is an **entry mode, not a layout**. `hardware` — draws nothing,
+  consumes physical key events — is a **first-class registered presenter**, not the absence of
+  one, sitting alongside `grid`, `wheel`, and `system`. This settles "now or later" on merit
+  rather than on principle: the registry is not speculative structure for a second layout that
+  might never ship, it is **required on day one**, because [TEXT-01] and [TEXT-05] both already
+  commit to swapping between in-game, system, and assume-hardware.
+- **TEXT-14a — ratified, and folded into [TEXT-05]'s existing setting** rather than becoming a
+  second control. One setting, defaulting to input-device detection, where **touch and gamepad
+  route to our native keyboard**. That default is also what keeps Deck Verified answerable
+  without special-casing the Deck.
+- **TEXT-15 — ratified (B).** No prediction now; **reserve a `candidate_select` action** in the
+  registry's key-action vocabulary and spend nothing else. If [EPUX-15]'s free-text search is
+  ever restored, that is the trigger to revisit; if it never is, nothing was spent. The keypad
+  presenter is **not built** — §3's reasoning stands unrebutted.
+- **[TEXT-04]'s seam clause lands here too:** the `system` presenter exists in the registry
+  from day one with no Steam backend behind it, so the Steam OSK is a drop-in later. Ruled to
+  "keep the seam strong and avoid making it harder than it has to be."
+
+### The resulting build
+
+Four presenters behind one signal interface, of which two are near-empty and one is deferred:
+
+| Presenter | Status at v1 | Notes |
+|---|---|---|
+| `grid` | **Built** | Written by us. Manual `(row, col)` focus model — do not rely on `GridContainer` auto-navigation (§4). |
+| `hardware` | **Built** | Draws nothing; consumes physical key events. |
+| `system` | **Seam only** | No backend. Steam OSK drops in per [TEXT-04]. |
+| `wheel` | **Deferred** | On the MIT radial control per [TEXT-08]. |
+
+Plus: one JSON ASCII layout, one setting defaulting to detection, and a Menu Scale 200% pass
+per shipped presenter.
+
+## 9. What was not resolved
 
 - **No independent measurement of the daisywheel on a gamepad.** §1 is my geometric model
   and §1's WPM figures are all QWERTY-variant studies. I found no study measuring a

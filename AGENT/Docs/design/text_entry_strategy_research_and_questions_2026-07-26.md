@@ -338,5 +338,47 @@ campaign sharing, cloud sync, and exported runs.
 
 ## Decision status
 
-All eight questions are **open**. This packet is research and recommendations only; it
-implements nothing and changes no ratified decision.
+Recommendations above are research recommendations unless marked **OWNER RULING**. The walk
+ran 2026-07-26 and is **COMPLETE — TEXT-01..TEXT-15 are all ratified**, across this packet
+and its two companions. Nothing here awaits an owner decision.
+
+- **TEXT-01 — ratified (B).** Platform keyboard where one exists, ours as the fallback, with
+  **ours built first** and the Steam path added later as a packaging step.
+- **TEXT-02 — ratified (A), as revised by [TEXT-13].** Grid QWERTY first **as the default on
+  the merits**, daisywheel second as an opt-in. TEXT-13 replaced this question's *reasoning*:
+  the daisywheel's action-count advantage is ~2×, not ~6×, so the grid is not merely the safe
+  option. **[TEXT-02] and [TEXT-13] were merged during the walk** and ruled once.
+- **TEXT-03 — ratified (C as architecture, A as content).** Build the data-driven layout
+  registry now; populate exactly one ASCII layout.
+- **TEXT-04 — ratified (C now, A when Steam is scheduled)** **+ keep the seam strong**: the
+  `system` presenter slot exists in the registry from day one with no Steam backend behind
+  it, so adopting GodotSteam later is a drop-in rather than a retrofit. Record the Deck
+  Verified requirement on the **release checklist**, not only here.
+- **TEXT-05 — ratified (B)**, and **[TEXT-14a] folds into this same setting** rather than
+  adding a second one. One control, defaulting to input-device detection, where **touch and
+  gamepad route to our native keyboard** and a physical keyboard does not. That default is
+  what keeps Deck Verified answerable, since a Deck is gamepad/touch and therefore gets the
+  on-screen keyboard automatically.
+- **TEXT-06 — ratified (A).** No v1 feature may **require** free text except naming. The
+  keyboard is still built; it is a convenience, not a dependency, and its existence does not
+  reopen [EPUX-09], [EPUX-15], or [EPUX-27] — those were cut on their own merits. **DoD#2
+  applies: the rule's check lands in the same change as the rule.**
+- **TEXT-07 — ratified (A).** Validate length and charset for v1 and record the boundary; no
+  word filter, because v1 has no transmission path for one to guard. Revisit when sharing is
+  real.
+- **TEXT-08 — ratified as a split answer**, departing from the packet's single-option B.
+  Write the **grid** ourselves (no addon is a safe dependency). Build the **wheel** on
+  [jesuisse/godot-radial-menu-control](https://github.com/jesuisse/godot-radial-menu-control)
+  — MIT, Godot 4, gamepad-aware — which this packet's original survey missed. The two layouts
+  genuinely have different best answers.
+
+The [TEXT-09]–[TEXT-12] rulings live in
+`text_entry_naming_and_sanitization_2026-07-26.md`; [TEXT-13]–[TEXT-15] in
+`text_entry_layout_implementation_research_2026-07-26.md`.
+
+### The one question the walk reordered
+
+The packet proposed taking [TEXT-06] first, as the gate. The owner **deferred it to the end**
+so it could be ruled with the keyboard's real build cost visible rather than in the abstract.
+That ordering was better and should be the template: decide what a capability costs before
+deciding whether features may depend on it.
