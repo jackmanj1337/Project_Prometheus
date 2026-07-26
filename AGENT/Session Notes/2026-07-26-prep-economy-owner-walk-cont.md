@@ -147,9 +147,14 @@ nothing parallel is being invented.
   ever introduced the inner gate must be *refused*, never silently replace the live snapshot
   and destroy the outer rollback); the snapshot is a transient auto doc with its own
   `rule_id` and pool, so the never-overwrite-a-manual-save invariant holds.
-- **Gap found:** the shipped autosave triggers are `battle_start` / `battle_end` /
-  `shop_exit` — all **exit**-time. Rollback needs an **entry** snapshot, so a new
-  activity-entry trigger is required. Recorded on the tracker row.
+- **Gap found, then approved:** the shipped autosave triggers are `battle_start` /
+  `battle_end` / `shop_exit` — all **exit**-time. Rollback needs an **entry** snapshot. The
+  owner approved this as an ordinary autosave on a new **activity-entry trigger**, not a
+  bespoke mechanism; it is the one piece of new plumbing the feature adds.
+- **Crash/quit needs no special case.** A live snapshot surviving an unclean exit is handled
+  by the existing **relaunch-and-resume** path — the player resumes where they were with the
+  snapshot live and rollback still offered. No rollback-on-reload flow and no
+  snapshot-dropping rule. This closed the last open item on the exit-rollback design.
 
 **EPUX-07 ratified — result and failure feedback.** Option **C**: prevention first — an
 unavailable action is disabled with an inline reason, and a structured error modal appears
@@ -181,6 +186,7 @@ status" section is the authority; trust it over a grep.
 - `c5aac36727992a0a6552b33a3bd79997a7ca181e` — Ratify EPUX-03/04: pane-budget contract + gating as a shell primitive
 - `eeb34a3c3075497051710f0002112ada4192c813` — Ratify EPUX-06/07: authored confirmation rules, exit rollback, one reason contract
 - `fd6786bec3ebeb9ed78ae202919b372e6c7cecbd` — Resolve the three exit-rollback sub-questions; one snapshot, discarded on accept
+- `9c43ebb4d5dd609946cc0a44815c8598262784da` — Approve activity-entry autosave trigger; crash resolved by relaunch-and-resume
 
 ## Gates
 
@@ -211,7 +217,11 @@ vs stacking) is the one with real downstream weight — it underpins B4-IEQ, the
 and the forge item picker — and 09/12 are largely presentation decisions that fall out of
 it. The shell rulings now constrain all three, so they should walk quickly.
 
-Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`. Its three sub-questions were
-answered this session, so it now carries an implementation shape rather than open decisions:
-an activity-**entry** autosave trigger (the shipped triggers are all exit-time), the
-single-snapshot invariant, and the non-blocking author warning plus its DoD#2 check.
+Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`. Every open question on it was
+answered this session, so it carries a complete implementation shape and **no owner
+decisions**: an activity-**entry** autosave trigger (the one new piece of plumbing, since the
+shipped triggers are all exit-time), the single-snapshot retention rule and its
+at-most-one-gated-activity invariant, crash handled by the existing relaunch-and-resume path,
+and the non-blocking author warning against RNG-bearing exit gates plus its DoD#2 check.
+
+Session closed here at the owner's direction — remaining questions resume next session.
