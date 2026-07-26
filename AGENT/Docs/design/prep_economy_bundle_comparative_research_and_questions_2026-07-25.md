@@ -183,6 +183,32 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   explicit reflow contract and more layout tests.
 - **Recommendation: C.** Reuses accepted UI-ARCH-02; choose by measured content width,
   not platform name.
+- **OWNER RULING (2026-07-26): C, confirming UI-ARCH-02, plus a pane-budget contract.**
+  One presentation controller/state model; wide list/detail and narrow sequential
+  compositions selected by **measured content width**, never a platform or device name;
+  selected record and focused region preserved across the transition. 200% Menu Scale can
+  force the narrow composition at a nominally wide viewport, so narrow is never a
+  "mobile-only" path.
+
+  **Pane budget for the Explore chain.** The ratified structure creates a chain the
+  original framing did not consider — node menu → Explore → subject picker → activity list
+  → activity panel. It maps onto the two compositions as follows:
+  - **Default: at most two panes, pairing adjacent levels** (subject | activity-list, then
+    activity-list | panel as the player descends). Never three panes: a third collapses at
+    200% Menu Scale and steals width from the terminal panel, which is the content that
+    needs it most.
+  - **Full-width escape hatch.** A panel may declare that it wants the entire available
+    width, and the shell then presents it **alone**, dropping the companion pane; the
+    parent level stays reachable by back/breadcrumb instead of remaining on screen.
+    Intended for content-dense panels — shop grids, the forge before/after comparison,
+    Map Preview, and the global item-first view (bulk organization/search).
+  - The declaration is a property of the **panel type in the registry** (its content
+    shape), not a per-campaign authoring knob — campaign authors do not make layout
+    decisions.
+  - It is a **preference, not an override**: it only has meaning when there is room for
+    two panes at all. In the narrow composition everything is already sequential, so the
+    preference is moot. Taking or releasing the full width must preserve selection and
+    focus exactly as an ordinary wide↔narrow transition does.
 
 ### [EPUX-04] Shared screen shell
 
@@ -195,6 +221,32 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   contracts need discipline.
 - **Recommendation: C.** Stable record IDs, query callbacks, action descriptors, and
   domain-owned services.
+- **OWNER RULING (2026-07-26): C, confirming UI-ARCH-01, with availability gating promoted
+  to a shell primitive.** Shared presentation primitives (list/detail, focus, selection,
+  forecast) keyed by an opaque stable record id; domain managers keep ownership of records
+  and mutations; queries and actions travel as callbacks/signals and action descriptors, so
+  no campaign schema is embedded in the shared layer and no hardcoded activity enum appears.
+  Option B is the closed type-switch this project treats as a smell.
+
+  **Gating belongs to the shell, not to adapters.** EPUX-02 ratified one availability rule
+  across all four surfaces (absent hides / gated shows disabled-with-reason, with a
+  per-entry `visible-disabled-with-reason` | `hidden-until-met` presentation). That
+  uniformity is only enforceable if the shell evaluates and renders it. Therefore:
+  - The shared shell owns predicate evaluation, the hidden-vs-disabled decision, the
+    disabled visual treatment, and the placement of the unmet-reason text.
+  - A domain adapter supplies only **the predicate and its player-facing unmet-reason
+    string** (see `ENGINE-PREDICATE-UNMET-REASON-2026-07-26`) plus the per-entry gate
+    presentation. It does not decide how a gated entry looks.
+  - Consequence: four adapters cannot drift into four different disabled treatments, and
+    the EPUX-02 ruling is testable in one place rather than four.
+  - The still-open focusability question (are disabled entries keyboard/controller
+    focusable so the reason is screen-reader reachable?) is therefore a **shell-level**
+    decision too. Still recommended focusable-but-not-activatable; deferred to EPUX-06/07
+    and the accessibility pass.
+
+  The full-width panel preference from the EPUX-03 pane-budget contract is likewise a shell
+  primitive: panel types declare the preference, the shell honours it and preserves
+  selection/focus across the change.
 
 ### [EPUX-05] Wallet and context visibility
 
@@ -680,6 +732,12 @@ in progress (started 2026-07-25). Ratified so far:
 - **EPUX-02 — ratified** (B: absent hides, gated shows disabled-with-reason; uniform across
   all four availability surfaces; per-entry author-set gate presentation defaulting to
   visible-disabled).
+- **EPUX-03 — ratified** (C, confirming UI-ARCH-02: one controller, wide/narrow by measured
+  content width) **+ pane-budget contract**: at most two panes pairing adjacent levels of the
+  Explore chain, with a registry-declared full-width preference for content-dense panels.
+- **EPUX-04 — ratified** (C, confirming UI-ARCH-01: shared primitives + domain-owned
+  adapters) **+ availability gating promoted to a shell primitive**, so the EPUX-02 rule is
+  implemented and tested once instead of per-adapter.
 - **EPUX-16 — ratified** (author-defined cadence, default infinite; folded into the cadence
   engine).
 - **EPUX-14 — ratified** (convoy owner as pricing subject; no gatekeeping).
@@ -692,6 +750,6 @@ in progress (started 2026-07-25). Ratified so far:
   aura, capacity + pending-items tray, disabled-convoy cascade); shared shop stock; and the
   per-unit energy budget as an optional wallet resource.
 
-Still open: EPUX-03, EPUX-04, EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13,
-EPUX-15, EPUX-17, EPUX-19..28 (20 questions). Several merely confirm an existing register and
-may be accepted as a batch when the walk resumes.
+Still open: EPUX-06, EPUX-07, EPUX-09, EPUX-10, EPUX-12, EPUX-13, EPUX-15, EPUX-17,
+EPUX-19..28 (18 questions). Several merely confirm an existing register and may be accepted
+as a batch when the walk resumes. The shell questions (EPUX-01..05) are now fully closed.
