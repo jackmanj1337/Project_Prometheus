@@ -340,10 +340,14 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   - The snapshot needs a **trigger the current design does not have**: the autosave trigger
     list ships `battle_start` / `battle_end` / `shop_exit`, all of which fire on *exit*.
     Rollback needs an **entry** snapshot, so a new activity-entry trigger is required.
+    **Owner-approved 2026-07-26** — the entry snapshot is an ordinary autosave on a new
+    activity-entry trigger, not a bespoke mechanism.
   - It is a transient auto document with its own `rule_id` and its own pool, so the hard
     invariant that an autosave never overwrites a manual save continues to hold.
-  - Minor implementation question, not an owner decision: whether a live snapshot surviving
-    a crash or quit still offers rollback on reload, or is simply dropped.
+  - **Crash/quit needs no special case (owner, 2026-07-26).** A live snapshot surviving an
+    unclean exit is handled by the existing **relaunch-and-resume** path: the player resumes
+    where they were, with the snapshot still live and rollback still offered. No
+    rollback-on-reload flow, and no snapshot-dropping rule, is required.
 
 ### [EPUX-07] Transaction result and failure feedback
 
