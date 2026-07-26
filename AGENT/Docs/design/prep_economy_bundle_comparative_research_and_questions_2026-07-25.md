@@ -684,6 +684,19 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   replacement, not per-instance overlay resolution.
 - **Recommendation: A for the minimum slice**, while keeping B/C as registered operations.
   This confirms the earlier FRG-17 lean.
+- **OWNER RULING (2026-07-26): all three ship before v1, in the order A → C → B.** This is a
+  sequencing ruling, not a scope cut: the forge operation registry carries fixed upgrade,
+  transform recipe, and budgeted allocation by v1. The order is chosen so each step proves
+  the next one's hard part:
+  1. **A — fixed +N upgrade.** Proves the per-instance overlay and the effective-stat
+     resolver behind the simplest possible UI. Confirms the FRG-17 lean.
+  2. **C — transform recipe.** Proves consumption/replacement and the material trade-in path
+     over the EPUX-24 shared transaction core, which the shop already exercises.
+  3. **B — budgeted stat allocation.** Last, because it is the heaviest: caps, per-point
+     pricing, narrow-layout controls, and the most demanding overlay resolution. By the time
+     it lands, both the resolver and the transaction core are proven.
+  Ordering only — none of the three is optional, and the registry must not privilege A in its
+  shape.
 
 ### [EPUX-24] Forge/shop relationship
 
@@ -695,6 +708,10 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   presented in either.** For: one cost/trade-in contract and honest domain UX. Against:
   requires a deliberate common command model.
 - **Recommendation: C.** Retains FRG-20.
+- **OWNER RULING (2026-07-26): C.** One shared atomic quote/commit/rollback core; forge and
+  shop are separate thin panels over it; transforms may be presented in either. Retains
+  FRG-20. This is the same instinct as the EPUX-21 shared quantity primitive — the common
+  command model that ruling started is the model this core formalizes, not a second one.
 
 ### [EPUX-25] Forge item picker scope
 
@@ -703,6 +720,22 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
 - **C — All faction-owned eligible instances, showing holder and equipped state.** For:
   efficient and complete. Against: modifying equipped gear needs clear consequence copy.
 - **Recommendation: C**, filtered to eligible instances and preserving stable instance IDs.
+- **OWNER RULING (2026-07-26): none of the above as written — the forge is subject-scoped,
+  exactly like the shop.** The picker's reach is not a forge-specific policy; it falls out of
+  the subject-first Explore model, so the forge needs no scope rule of its own.
+  - **Subject = the convoy** (pricing subject: quartermaster or main character) → the picker
+    reaches **convoy inventory**, quoted at that subject's prices.
+  - **Subject = a unit** → the picker reaches **that unit's own items**, quoted at that unit's
+    prices.
+  - The subject therefore determines **reach and pricing together**, which is precisely the
+    EPUX-14 rule already ratified for shops. One sentence covers both services.
+  - **Accepted cost:** forging a weapon held by unit X while acting as the quartermaster
+    requires moving it to the convoy first, or entering the forge as unit X. This is the
+    deliberate trade for consistency; EPUX-12's Send All to Convoy makes the staging cheap.
+  - **Convoy-disabled cascade is automatic:** the convoy is already not a selectable Explore
+    subject there, so the forge is simply per-unit-only. No extra rule.
+  - Eligibility filtering and **stable instance IDs** are retained from the recommendation,
+    as is clear consequence copy when the chosen instance is equipped.
 
 ### [EPUX-26] Repair, transform, and upgrade presentation
 
@@ -712,6 +745,14 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   matches the existing draft and keeps forecasts legible. Against: one navigation layer.
 - **C — Separate facilities.** For: thematic. Against: unnecessary fragmentation.
 - **Recommendation: B.** In narrow mode, item → mode → operation/details is sequential.
+- **OWNER RULING (2026-07-26): sections plus registered presenters, mirroring EPUX-20 — not
+  B.** For a selected item the forge shows **one operation list grouped into labelled
+  sections**, each operation rendered by its **registered presenter**. Rejecting B avoids a
+  third navigation level (item → mode → operation), which the EPUX-03 pane budget caps at two
+  adjacent panes, and avoids hardcoding an Upgrade/Modify split the operation registry does
+  not otherwise need. New operation kinds slot in without a shell change, and the forge reuses
+  the presentation pattern already ratified for mixed benefit types instead of inventing a
+  second one.
 
 ### [EPUX-27] Rename behavior
 
@@ -723,6 +764,21 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   identity and expression. Against: two displayed names need rules.
 - **Recommendation: C**, with alias optional, length-limited, locally stored, and never used
   as identity or validation input.
+- **OWNER RULING (2026-07-26): automatic canonical naming in v1; the alias waits on a text-
+  entry strategy.** v1 ships the automatic canonical name only (`Iron Sword +2`) — searchable,
+  safe, unambiguous in diagnostics, and requiring no text input. C's two-name model stays the
+  target rather than being rejected; it is gated on the research row below, not dropped.
+- **Spun out: text-entry strategy research** (`RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26`).
+  Player rename hit the same wall as EPUX-15's free-text search — text entry is impractical on
+  a controller — so rather than paying that cost twice, the underlying capability gets decided
+  once. Investigate a **native touch/controller-friendly on-screen keyboard**, acceptable even
+  with a **limited character set**, and a **setting** that selects among:
+  - spawn the in-game on-screen keyboard,
+  - summon the **OS/system** keyboard, or
+  - assume a **hardware keyboard** is attached.
+  Whatever this resolves to unblocks the whole deferred text tranche together — forge alias
+  (EPUX-27), shop/stock free-text search (EPUX-15) — and any future text input, so it should
+  be researched as an input-layer capability rather than as a forge feature.
 
 ### [EPUX-28] Reversal/reset
 
@@ -734,6 +790,23 @@ and quote/commit equality. Proposed changes below are labelled **revision**.
   with disclosed costs/outcomes.** For: flexible and data-driven. Against: reset semantics
   must be defined per operation.
 - **Recommendation: C**, but no reset recipe in the first slice.
+- **OWNER RULING (2026-07-26): C, with the EPUX-06 conflict resolved — the exit review receipt
+  IS the undo window.** "Permanent by default" was ambiguous once EPUX-06 ratified an optional
+  author-chosen exit receipt with rollback to an activity-entry snapshot: on a receipt-bearing
+  forge, operations were simultaneously permanent and freely revertible. Resolution:
+  **permanent means permanent *after the receipt is accepted*.** Within a forge visit the
+  player may revert to the entry snapshot; on acceptance every operation is final. This is one
+  coherent rule rather than two competing ones, and it needs no forge-specific exception in a
+  mechanism just made uniform.
+  - Forging is **deterministic**, so it is an ideal receipt activity — the EPUX-06 warning
+    about RNG-bearing activities does not apply to it.
+  - An author who wants no take-backs simply **does not enable the receipt** on that forge;
+    the existing per-activity-type choice already expresses this.
+  - Operations remain **permanent by default** in the sense that matters: there is no free
+    undo *after* the visit. Authors may still offer explicit **reset/rebase recipes** with
+    disclosed costs and outcomes for later reversal, and reset semantics are defined per
+    operation.
+  - **No reset recipe ships in the first slice**, per the recommendation.
 
 ## Node traversal and cadence model (owner-ratified 2026-07-25)
 
@@ -940,8 +1013,9 @@ not pre-author hardcoded activity, currency, benefit, category, or forge-operati
 
 ## Decision status
 
-Recommendations are research recommendations unless marked **OWNER RULING**. The walk is
-in progress (started 2026-07-25). Ratified so far:
+Recommendations are research recommendations unless marked **OWNER RULING**. The walk ran
+2026-07-25 to 2026-07-26 and is **COMPLETE — all 28 questions are ratified.** Nothing in this
+packet is awaiting an owner decision. Ratified:
 
 - **EPUX-01 — ratified** (A + optional overworld map, revisitable nodes); see "Node
   traversal and cadence model".
@@ -978,8 +1052,49 @@ in progress (started 2026-07-25). Ratified so far:
   aura, capacity + pending-items tray, disabled-convoy cascade); shared shop stock; and the
   per-unit energy budget as an optional wallet resource.
 
-Still open: EPUX-09, EPUX-10, EPUX-12, EPUX-13, EPUX-15, EPUX-17, EPUX-19..28
-(16 questions). Several merely confirm an existing register and may be accepted as a batch
-when the walk resumes. **The entire hub and shared-interaction block (EPUX-01..07) is now
-closed** — what remains is inventory/convoy (09/10/12), shop (13/15/17), Training-Hall and
-activities (19..22), and forging (23..28).
+Ratified 2026-07-26 (the remaining 16):
+
+- **EPUX-09 — ratified** (A for v1, command verbs only; drag/drop post-v1 as an additive
+  adapter over the same authoritative mutation command).
+- **EPUX-10 — ratified** (C: stack only on identical effective state).
+- **EPUX-12 — ratified** (B plus **Send All to Convoy** and **Resupply**, both deterministic,
+  player-directed, and fully reported) **+ spun out** `ENGINE-ITEM-HELD-PREDICATE-2026-07-26`.
+- **EPUX-13 — ratified** (B: Buy/Sell sibling tabs; the session inherits its subject).
+- **EPUX-15 — ratified** (C, **filters only** — free-text search cut from v1).
+- **EPUX-17 — ratified** (final price in the list, **full formula in the selected item's More
+  Info panel**) — establishes the list/detail split reused by EPUX-19.
+- **EPUX-19 — ratified** (B, mirroring the EPUX-17 split).
+- **EPUX-20 — ratified** (C: author-labelled sections + registered benefit presenters).
+- **EPUX-21 — ratified** (quantity stepper, **generalized into a shared quantity primitive**
+  used by the item shop and the unit-benefit shop alike; starts at 1, steps backward to a
+  live effective maximum).
+- **EPUX-22 — ratified** (B, **generalized**: map placement is a property of *any* Explore
+  activity).
+- **EPUX-23 — ratified** (all three operations ship before v1, in the order **A → C → B**).
+- **EPUX-24 — ratified** (C: shared atomic transaction core, thin panels; retains FRG-20).
+- **EPUX-25 — ratified** (**subject-scoped like the shop**: the subject determines reach *and*
+  pricing; not the flat all-faction view of option C).
+- **EPUX-26 — ratified** (**sections + registered presenters**, mirroring EPUX-20 — not B's
+  sibling views, which would breach the EPUX-03 pane budget).
+- **EPUX-27 — ratified** (automatic canonical naming in v1; alias gated on
+  `RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26`, not dropped).
+- **EPUX-28 — ratified** (C, with the EPUX-06 conflict resolved: **the exit review receipt is
+  the undo window** — permanent means permanent *after acceptance*).
+
+**Cross-cutting outcomes of this half of the walk**, which matter more than any single answer:
+
+- **A shared quantity primitive** (EPUX-21) spanning item shop and benefit shop — this gave
+  the shop quantity purchasing, which none of the shop questions settled on their own.
+- **A shared transaction core** (EPUX-24) that the quantity primitive already presupposes.
+- **Map placement generalized off shops onto every Explore activity** (EPUX-22), taking the
+  shared-definition/shared-state pattern and the reason-keyed inactive presentation with it.
+- **Subject-first scoping generalized off shops onto the forge** (EPUX-25), so subject
+  determines reach and pricing for both.
+- **One list/detail presentation convention** (EPUX-17 → EPUX-19) and **one sections+presenters
+  convention** (EPUX-20 → EPUX-26), each now used by two services instead of one.
+- **A deferred "pointer and keyboard" tranche** — drag/drop (EPUX-09), free-text search
+  (EPUX-15), and forge alias (EPUX-27) — deliberately grouped so v1 degrades on no input
+  method, and unblocked as a set by the text-entry research row.
+
+**Next: implementation planning.** No question in this packet remains open; the follow-on work
+is the cross-bundle implementation order above plus the two spun-out rows.

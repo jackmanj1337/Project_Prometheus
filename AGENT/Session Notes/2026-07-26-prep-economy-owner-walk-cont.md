@@ -180,6 +180,85 @@ the doc on `### [EPUX-nn]`: EPUX-28 is the last question, so its body runs into 
 `## Node traversal and cadence model (owner-ratified 2026-07-25)` heading. The "Decision
 status" section is the authority; trust it over a grep.
 
+---
+
+## Walk resumed — the remaining 16 questions, all ratified
+
+The session reopened after the close above and ran the whole remainder. **All 28 EPUX
+questions are now ratified; the packet has no open owner decision.** Per-question detail is in
+the register's `OWNER RULING` blocks; what follows is what a reader needs that the individual
+answers do not say.
+
+### The answers that were not the recommendation
+
+Four of the sixteen departed from the research recommendation, and those are the ones worth
+re-reading:
+
+- **EPUX-09 — A, not C.** v1 ships command verbs only; drag/drop is post-v1. C is not
+  rejected, it is *staged*: the verb path is built as the authoritative mutation command, so
+  a later drag layer is an additive input adapter, never a second mutation path.
+- **EPUX-15 — C with the search half cut.** Derived filters yes, free-text search no, because
+  text entry degrades on controller and a surface that behaves differently per input method
+  is worse than one that offers less.
+- **EPUX-25 — none of A/B/C as written.** The forge is **subject-scoped like the shop**: the
+  subject determines reach *and* pricing. This was the cleanest ruling of the session — it
+  replaced a forge-specific scope policy with a rule already ratified for shops, and the
+  convoy-disabled cascade then falls out with no extra clause.
+- **EPUX-26 — sections + presenters, not B.** B's item → mode → operation chain is three
+  navigation levels, and the EPUX-03 pane budget caps panes at two adjacent levels. Reusing
+  the EPUX-20 pattern removed the conflict and an engine-side Upgrade/Modify split at once.
+
+### Two rulings generalized well past their question
+
+- **EPUX-21** was asked as "stepper or hold-to-repeat" for Training Hall benefits. The ruling
+  made the stepper a **shared quantity primitive** — starts at 1, steps backward to a *live*
+  effective maximum (min of affordable, destination space, benefit cap), used by the **item
+  shop and the unit-benefit shop alike**. Consequence the shop block never reached on its own:
+  **the shop now has quantity purchasing.** The live-maximum rule also means the control can
+  never offer a quantity that fails at commit, which is quote-equals-commit enforced in the
+  affordance rather than checked after it.
+- **EPUX-22** was asked as "where does the arena live". The ruling made **map placement a
+  general property of any Explore activity**, carrying the shared-definition/shared-state
+  pattern and the reason-keyed inactive presentation (gated → hidden, proximity →
+  browse-only, preview → scouting) off shops and onto every activity. Option C ("always launch
+  from map nodes") stopped being a separate answer — it is now an authoring choice.
+
+### The EPUX-28 conflict, resolved
+
+Flagged at the top of the session: EPUX-06 had ratified an optional exit review receipt with
+rollback to an activity-entry snapshot, while EPUX-28's recommendation said forge operations
+are permanent by default. On a receipt-bearing forge both were true.
+
+Resolution: **the receipt *is* the undo window** — permanent means permanent **after the
+receipt is accepted**. One rule instead of two competing ones, no forge-specific exception in
+a mechanism deliberately made uniform, and forging is deterministic so EPUX-06's RNG warning
+does not apply to it. An author wanting no take-backs just does not enable the receipt.
+
+### Deferred as a set, not one at a time
+
+Three v1 cuts have the same root cause — text entry and pointers are not available on every
+input method: **drag/drop** (EPUX-09), **free-text search** (EPUX-15), and **forge alias**
+(EPUX-27). Rather than pay that analysis three times, the underlying capability is spun out as
+`RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26`: a touch/controller-friendly on-screen keyboard
+(acceptable even with a limited character set) plus a setting choosing between the in-game
+keyboard, the OS keyboard, or an assumed hardware keyboard. Resolving it unblocks all three
+together and any future text input.
+
+### Also spun out
+
+`ENGINE-ITEM-HELD-PREDICATE-2026-07-26` — gating activities and **Start Battle** on whether an
+item is held, scoped to *any deployed unit*, *a named unit*, or *the convoy*. Registered as a
+predicate in the shared condition registry rather than as an inventory feature, so one
+registration serves four consumers: availability gates (EPUX-02), confirmation thresholds
+(EPUX-06), cadence triggers, and battle-start gating.
+
+### Convention consolidation
+
+Two presentation conventions each picked up a second consumer this session, which is the
+reason to prefer them over per-service designs: **list summary / detail-panel full breakdown**
+(EPUX-17 prices → EPUX-19 benefit forecasts) and **labelled sections + registered presenters**
+(EPUX-20 benefit types → EPUX-26 forge operations).
+
 ## Commits claimed
 
 - `8988c31073a9714273b11e6f215d401659f6720a` — Ratify EPUX-02: absent hides, gated disables, per-entry secret gates
@@ -187,6 +266,7 @@ status" section is the authority; trust it over a grep.
 - `eeb34a3c3075497051710f0002112ada4192c813` — Ratify EPUX-06/07: authored confirmation rules, exit rollback, one reason contract
 - `fd6786bec3ebeb9ed78ae202919b372e6c7cecbd` — Resolve the three exit-rollback sub-questions; one snapshot, discarded on accept
 - `9c43ebb4d5dd609946cc0a44815c8598262784da` — Approve activity-entry autosave trigger; crash resolved by relaunch-and-resume
+- `4b6710610e57a30d64e0c76011f5e741da1e7a06` — Rule EPUX-09/10/12/13/15/17/19/20/21/22: inventory, shop, and activities blocks
 
 ## Gates
 
@@ -202,26 +282,37 @@ status" section is the authority; trust it over a grep.
 
 ## Next
 
-**The whole hub and shared-interaction block (EPUX-01..07) is closed.** Open after this
-session: EPUX-09, 10, 12, 13, 15, 17, 19..28 — **16 questions**, in four coherent groups:
+**The prep/economy walk is finished — all 28 EPUX questions are ratified and the packet has
+no open owner decision.** The mid-session "open after this session: 16 questions" plan was
+superseded when the walk resumed and ran the remainder; the register's "Decision status"
+section is the authority.
 
-- **Inventory/convoy** — EPUX-09 (transfer interaction), 10 (stacking and instance
-  identity), 12 (bulk operations)
-- **Shop** — EPUX-13 (buy/sell organization), 15 (stock categories/filtering), 17 (dynamic
-  price disclosure)
-- **Training Hall and activities** — EPUX-19..22
-- **Forging** — EPUX-23..28
+**Next is implementation planning**, not more design. Inputs, in order:
 
-Suggested next: the **inventory/convoy group (09/10/12)**. EPUX-10 (per-instance identity
-vs stacking) is the one with real downstream weight — it underpins B4-IEQ, the convoy panel,
-and the forge item picker — and 09/12 are largely presentation decisions that fall out of
-it. The shell rulings now constrain all three, so they should walk quickly.
+1. The **cross-bundle implementation order** already in the register (shared activity shell →
+   wallet/quote vocabulary → inventory + convoy + transfers → shop panel → Training Hall
+   adapters → other activity panels → forge).
+2. Three **shared primitives** this session created or confirmed, which should be planned
+   before the services that consume them, because two services each now depend on them:
+   the **transaction core** (EPUX-24), the **quantity primitive** (EPUX-21), and the
+   **activity map-placement / shared-state model** (EPUX-22).
+3. The **v1 cut line**: no drag/drop, no free-text search, no forge alias, no reset recipes.
+   Forge ships all three operations in A → C → B order.
 
-Also newly tracked: `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26`. Every open question on it was
-answered this session, so it carries a complete implementation shape and **no owner
-decisions**: an activity-**entry** autosave trigger (the one new piece of plumbing, since the
-shipped triggers are all exit-time), the single-snapshot retention rule and its
-at-most-one-gated-activity invariant, crash handled by the existing relaunch-and-resume path,
-and the non-blocking author warning against RNG-bearing exit gates plus its DoD#2 check.
+**Tracked rows carrying design that is decision-complete but unimplemented:**
 
-Session closed here at the owner's direction — remaining questions resume next session.
+- `DESIGN-ACTIVITY-EXIT-ROLLBACK-2026-07-26` — from earlier this session; complete shape, no
+  owner decisions: an activity-**entry** autosave trigger (the one new piece of plumbing,
+  since the shipped triggers are all exit-time), the single-snapshot retention rule and its
+  at-most-one-gated-activity invariant, crash handled by the existing relaunch-and-resume
+  path, and the non-blocking author warning against RNG-bearing exit gates plus its DoD#2
+  check. **EPUX-28 now depends on this row** — the receipt it describes is the forge's undo
+  window, so forging cannot be planned as reversible until it exists.
+- `ENGINE-ITEM-HELD-PREDICATE-2026-07-26` — scoped item-holding predicate; four consumers,
+  one registration.
+- `RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26` — research, not implementation. Gates the whole
+  deferred pointer-and-keyboard tranche; nothing in v1 waits on it.
+
+**Do not re-open ratified questions on a grep.** The same trap noted earlier in this session
+still applies: `### [EPUX-nn]` regex splits mis-attribute the last question's body. Read the
+"Decision status" section.
