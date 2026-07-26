@@ -138,6 +138,7 @@ marker.
 | [`campaign_backup_content_addressed_format_2026-07-25.md`](../design/campaign_backup_content_addressed_format_2026-07-25.md) | `INVESTIGATE-CLOUD-SYNC-THIRD-PARTY`, `BACKLOG-FULL-LIBRARY-BACKUP` | POST-V1 content-addressed backup format sketch (pack dedupe on export); retire when whole-library backup/restore gains a direct implementation row. |
 | [`ios_native_target_feasibility_2026-07-25.md`](../design/ios_native_target_feasibility_2026-07-25.md) | `INVESTIGATE-IOS-NATIVE-TARGET` | Native-iOS post-v1 target feasibility + keep-it-unblocked design rules; retire when an iOS build target gains a direct tracker row. |
 | [`prep_economy_bundle_comparative_research_and_questions_2026-07-25.md`](../design/prep_economy_bundle_comparative_research_and_questions_2026-07-25.md) | `DISCUSS-CONVOY-SHOP-UX-2026-07-23`, `DISCUSS-PREP-HUB-UX-2026-07-24`, `DISCUSS-PREP-ACTIVITIES-UX-2026-07-24`, `DISCUSS-FORGING-UX-2026-07-24` | Full comparative evidence and EPUX-01..28 owner-question packet for the prep/economy bundle; retire after decisions are ratified and absorbed into implementation plans. |
+| [`text_entry_strategy_research_and_questions_2026-07-26.md`](../design/text_entry_strategy_research_and_questions_2026-07-26.md) | `RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26` | Godot/Steam Deck/Fire Emblem/open-source evidence and the TEXT-01..08 owner-question packet for controller- and touch-friendly text entry; retire after the questions are ruled and absorbed into an implementation row. |
 
 ## Enforcement Hooks
 
