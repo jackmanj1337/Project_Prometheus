@@ -305,7 +305,25 @@ no open owner decision.** The mid-session "open after this session: 16 questions
 superseded when the walk resumed and ran the remainder; the register's "Decision status"
 section is the authority.
 
-**Next is implementation planning**, not more design. Inputs, in order:
+### Owner-selected order for the next two sessions (2026-07-26)
+
+Implementation planning for this bundle is **not** next. The owner picked two smaller
+items first; both are interruptible, and a **v0.5.7 return preempts either**.
+
+1. **Fix the tracker view-coverage gap** — `COORD-ACTIVE-WORK-PHASE-COVERAGE-2026-07-26`
+   (Container repo, `0-unblock`, infrastructure so it goes straight to
+   `agent/staging-area`). First because every later handoff is only as trustworthy as
+   `ACTIVE_WORK.md`, and right now that file omits 41 of 162 rows. Note the DoD#2
+   requirement: the `check_tasks.py` assertion lands in the *same* change as the fix.
+2. **Research + questions pass on text-entry strategies** —
+   `RESEARCH-TEXT-ENTRY-STRATEGY-2026-07-26`. Produces a research doc plus a stable-id
+   owner-question packet under `AGENT/Docs/design/`, walked the same way this bundle was.
+   Check Godot's built-in virtual keyboard first — if the platform affordance is adequate
+   on Windows/Steam Deck/controller, the question set collapses to selection policy.
+
+### Then: implementation planning for this bundle
+
+Inputs, in order:
 
 1. The **cross-bundle implementation order** already in the register (shared activity shell →
    wallet/quote vocabulary → inventory + convoy + transfers → shop panel → Training Hall
