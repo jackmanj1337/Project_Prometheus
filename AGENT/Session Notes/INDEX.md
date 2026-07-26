@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-26-phase0-bbcode-hardening](2026-07-26-phase0-bbcode-hardening.md) — Phase 0 security fix: pack-authored display names reached bbcode RichTextLabels unescaped, and [img]user://evil.tres[/img] **executed the resource's embedded script** via ResourceLoader (measured on 4.6.3); [url] is inert here so the phishing concern is withdrawn. Adds BBCode.escape/escape_meta — the two positions differ because inside a tag the dangerous character is `]`, which has no escape sequence. String.bbcode_escape() does not exist in 4.6.3. Two traps: escape AFTER name fitting, and apply the same meta escaping to the selection needles or entry highlighting silently breaks. Also pins CampaignArchivePreflight's resource-extension denial, which was load-bearing security with nothing recording it.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
 - [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
