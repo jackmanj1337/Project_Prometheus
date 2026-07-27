@@ -8,6 +8,12 @@ Resolved-in: 2026-06-25o
 
 # Recruit Conversation Side (#4 ⇄ A3, A4) + the shared Dialogue-System foundation (F15) — Player-Facing Design + Open Questions
 
+> **Amended 2026-07-27 by `[DRC]`:** preserve Talk as a registered unit interaction and preserve the
+> shared conversation foundation, but route recruitment through the five-dimensional transition
+> service rather than `Unit.team`. V1 conversations/choices/actions commit atomically and saves restart
+> them from the prior committed checkpoint. Directed/symmetric interaction policy and choice-owner
+> policy are separate.
+
 **Started:** 2026-06-25o (second A4 sub-cluster, after Village `[VIL]`).
 **Status:** [RCV-1..6] **RESOLVED 2026-06-25o** (end-shape-first walk; all owner calls taken).
 **A4 — Story / event-driven map content.** This pass firms the **conversation / event side of

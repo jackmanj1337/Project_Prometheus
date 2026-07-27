@@ -8,6 +8,11 @@ Resolved-in: 2026-06-24j / 2026-06-24k / 2026-06-24l / 2026-06-24m / 2026-06-24n
 
 # Source + Style — Unified Combat-Action Model (combat arts · gambits · capture)
 
+> **Capture amendment 2026-07-27:** a non-lethal would-be kill applying sleep remains one authored
+> Incapacitate route. Sleep/incapacitation is not custody. A separate registered Capture action must
+> establish custody, and hostility/targeting must ultimately use tactical-side/aggression policy rather
+> than narrative affiliation alone (`[DRC-19]`, `[DRC-27..33]`).
+
 **Started:** 2026-06-24 (session 2026-06-24j, the A1 "walk the idea" pass).
 **Status:** OPEN — **STY-1..8 RESOLVED 2026-06-24j**; **STY-12..15 RESOLVED 2026-06-24k** (staves fold
 in + full F5 pulled forward); **STY-16 RESOLVED 2026-06-24l** (multi-effect combos); **STY-9 + STY-17

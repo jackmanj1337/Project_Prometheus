@@ -577,6 +577,41 @@ recruitment carries whatever inventory the captive currently holds; items previo
 with their real current holders, with no duplication or automatic restitution. UI must warn before
 releasing or exchanging a captive who still holds player-controlled items.
 
+**Owner ruling, 2026-07-27 — bring ordinary Trade into v1:** implement an FE7-style on-map Trade
+interaction rather than a captive-only inventory panel. An acting unit may select an adjacent map
+unit or a captive, Rescue passenger, or Pair Up support unit occupying the actor's space or an
+adjacent space, subject to the applicable control/custody permission. After choosing the two
+participants, the player selects an item or empty slot in one inventory and swaps it with an item or
+empty slot in the other inventory. Item-instance ownership changes only when the swap transaction
+commits; an empty-slot swap is the ordinary move operation, not a separate transfer path. Capacity,
+bound/key-item restrictions and their authored forced-effect fallbacks, ledger recording, Save, and
+Rewind all use the same general Trade service. A custody-suppressed captive may be selected as the
+other participant but cannot initiate Trade.
+
+V1 also follows FE7's partial-action precedent. A Trade session may perform multiple slot swaps with
+its selected partner. The first committed swap marks the actor as having traded, commits the actor's
+current destination, prevents ordinary movement cancellation/relocation, and prevents initiating a
+second Trade session during that activation; the actor may still choose a permitted concluding
+action. Entering the Trade screen and leaving without a committed swap applies no Trade cost or
+movement lock. Any Canto/move-again behavior after Trade is decided by the ordinary registered
+post-action-movement policy and remaining movement, not by a Trade-only exception. Receiving items
+does not consume the other participant's activation.
+
+Keep the following as author-tunable policy fields after v1, backed by an open interaction-policy
+registry rather than branches embedded in the Trade UI: target range/metric, allowed relation and
+occupant roles, whether a successful session ends or partially consumes activation, repeat-session
+limit, post-action movement policy, and designated-convoy provider range/tags. Ship one validated
+`fe7_trade` preset for v1; do not expose unsupported combinations until their action-state and AI
+behavior are implemented and validated.
+
+Trade target discovery should reuse a shared spatial-target query extracted from `GridManager`'s
+existing attack/staff ring and target-filter pattern. The current staff path is the closest reusable
+selection/overlay seam, but its heal-specific equipped-weapon, missing-HP, and alliance filters must
+not become Trade rules. The current aura implementation supplies only a private Manhattan helper and
+unimplemented effect stubs, so Trade should not depend on `SkillHandler`. A generic geometry query
+can later serve staff, aura, Trade, Talk, Rescue, and other registered interactions, with each caller
+composing its own requirements and virtual occupants (Pair Up, Rescue, custody).
+
 #### [DRC-31] What can happen to a captive during and after a map?
 
 - **A — Hold until map end, then automatically become recruitable.** Pro: matches the old plan.
@@ -611,6 +646,14 @@ conversations are hidden, shown-disabled, or available; ordinary dialogue action
 recruitment, release, custody transfer, relationship changes, costs, attempt limits, cooldowns, and
 story outcomes. A guard may be a stable unit or named-speaker/stage role as authored. Explore's
 existing activity/time policy—not the prison panel—decides whether a visit consumes time.
+
+Prisoners retain stable unit IDs and participate in the ordinary relationship graph before, during,
+and after custody. Dialogue requirements may inspect those relationships, and explicit authored
+actions may change their points/ranks; recruitment, release, or custody transfer preserves the same
+record. Imprisonment grants no automatic adjacency, deployment, cadence, or end-turn relationship
+growth. A Prison visit changes a relationship only when its authored conversation/action says so.
+Do not create a parallel prisoner persuasion score; campaigns that want persuasion progression build
+it from relationships, facts/resources, or another registered system.
 
 The panel must show custody identity, remaining bound/protected items, known conversation
 availability, and the selected visitor; it does not hardcode Recruit, Persuade, Interrogate, Execute,
@@ -648,6 +691,15 @@ matrix. This may release, transfer, retain, remove, or otherwise settle a captiv
 evaluation occurs after these outcomes: an authored prisoner disposition may count as that unit's
 death and may consequently turn an apparent victory into defeat.
 
+**Owner clarification, 2026-07-27 — disposition lookup fallback:** an authored disposition rule may
+select another relevant five-dimensional field or shared predicate when the scenario requires it.
+If no more-specific rule resolves, fall back to the ordered relationship from the current custody
+owner's `affiliation_id` to the captive's `affiliation_id` in the aggression matrix. The relationship
+is directional; transferring custody before this phase changes the owner side of the lookup. A
+node/unit-specific authored rule may override the campaign-wide relation result. Missing relations
+must resolve through a declared campaign fallback and produce validation diagnostics rather than
+silently guessing from tactical color, controller, or temporary recruitment.
+
 #### [DRC-33] How do objectives, AI, save/rewind, and versioning observe these transitions?
 
 - **A — Each system listens for faction change/death/capture separately.** Pro: local changes. Con:
@@ -675,12 +727,93 @@ distinguish at least these registered milestones rather than treating `captured`
 Each milestone is independently observable, may be required without the later milestones, and must
 carry structured cause/actor/target data for objective re-evaluation and authored follow-up events.
 
+**Owner ruling, 2026-07-27 — extraction lifecycle trigger:** emit `extract` whenever a unit currently
+in captured custody is removed from tactical-map participation without dying. V1 recognizes at least
+these causes:
+
+- the captor/carrier escapes while carrying the captive;
+- map-end resolution removes a still-captured unit from the tactical map;
+- the carrier confirms a special turn-ending Extract action while eligible on an authored Escape or
+  Extraction tile.
+
+The structured result records the cause, carrier/custody owner, captive, source tile/zone, and initial
+off-map destination/disposition. A later map-end disposition may still release, transfer, retain, or
+kill that extracted prisoner; extraction records successful live removal from the tactical map, not a
+guarantee of later survival or recruitment. Death/removal as death never emits `extract`.
+
+`extract` may be a required component, bonus condition, prerequisite for a compound victory rule, or
+the sole victory condition **when the map provides at least one valid Escape or Extraction location
+capable of producing the required extraction**. Content validation rejects a sole-extract victory if
+no compatible authored location/action route exists or if its target selectors make every route
+unsatisfiable.
+
+Keep two distinct tile actions. **Escape while carrying** removes both carrier and captive, emitting
+Escape for the carrier and Extract for the captive. **Extract captive** removes only the captive,
+leaves the carrier on the tile, frees its carry slot, emits Extract for the captive, and ends the
+carrier's activation. The zone/activity definition declares which actions it offers; neither action
+is inferred merely from a tile's label.
+
+**Owner ruling, 2026-07-27 — extraction objective membership:** extraction requirements use the
+shared event-filter/selector structure and may name units, match registered predicates/tags, require a
+fixed count, require every member of a set, or use another registered quantifier. The default target
+set is snapshotted when the map begins, so later reinforcements or state changes do not silently
+increase the requirement. Dynamic membership is an explicit author option and must be disclosed in
+the objective UI; validation must distinguish an intentionally empty dynamic set from an
+unsatisfiable snapshot objective.
+
+**Owner ruling, 2026-07-27 — milestone versus current-state defaults:** the standard Incapacitate and
+Capture objective templates are dynamic state requirements, not latched achievements.
+
+- Incapacitate is satisfied while the target is dead or currently has a registered qualifying
+  incapacitating condition. Removing/recovering from that condition revokes satisfaction; combining
+  it with `do_not_kill` excludes the death route.
+- Capture is satisfied only while the target is currently in matching custody. Release, rescue,
+  escape, or custody transfer outside the required selector revokes satisfaction.
+- Extract remains a latched structured milestone because it records completed live removal from
+  tactical-map participation.
+
+The transition/event history may still expose explicit `has_been_incapacitated` and
+`has_been_captured` predicates for authored stories, bonuses, or compound rules, but low-code
+Incapacitate and Capture objectives default to current state. Objective UI must distinguish ongoing
+state requirements from completed milestones.
+
+**Owner ruling, 2026-07-27 — objective reevaluation timing:** reevaluate dynamic victory and defeat
+requirements after each atomic action, combat exchange, conversation, multi-target effect, or event
+chain commits; never interrupt the resolving operation between its internal steps or targets. If the
+new state qualifies for map completion, enter the atomic map-end pipeline. End-map events and captive
+dispositions may change the staged state, after which final victory/defeat evaluation determines the
+published result. Simultaneous victory and defeat use the map's authored precedence policy.
+
 **Owner ruling, 2026-07-27 — key-item restriction contract:** a key/protected item designation must
 state both (1) which player operations are forbidden and (2) the authored fallback/disposition when
 an engine-authorized effect nevertheless performs that operation. The UI explains the player-facing
 restriction; registered actions use the explicit fallback instead of silently failing, duplicating,
 or destroying the item. This contract applies when a key item remains attached to a prisoner as well
 as when it is held by an ordinary unit or the convoy.
+
+**Owner ruling, 2026-07-27 — prisoner-held key-item default, pending author testing:** track key-item
+availability on three independent axes: `present`, `requirement_accessible`, and `player_usable`. A
+key item retained by a prisoner defaults to present and available to requirements/objectives/dialogue,
+but unavailable for ordinary player use. Authors may override each axis or require a particular
+availability level in a predicate—for example, an objective may require `player_usable` rather than
+mere campaign possession. Validate this default with campaign-author testing before treating it as a
+long-term preset; the policy must prevent both silent key-item loss and accidental use through the
+Prison screen.
+
+**Owner ruling, 2026-07-27 — atomic map-end resolution:** v1 treats the entire map-end resolution as
+one transaction: provisional victory, authored end-map events, relation-specific captive
+dispositions, residual-prisoner processing, final victory/defeat re-evaluation, and result commit.
+Every phase may observe the staged overlay produced by earlier phases, but no phase becomes
+authoritative independently. Failure, abandonment, or loading a save discards the complete staged
+resolution and relaunches it from the preceding committed checkpoint. In particular, the game must
+not publish victory before a prisoner disposition that can violate required survival has resolved.
+
+Represent these as named pipeline phases from the start and reserve phase-boundary commits as the
+post-v1 upgrade when demand or available implementation time justifies them. Review and reuse the
+dialogue runner's action journal, staged-state overlay, validation, and commit/rollback primitives
+where their contracts fit. The map-end orchestrator remains a broader workflow that may invoke
+atomic conversations; it must not disguise all map-end processing as dialogue or couple transaction
+correctness to a presenter.
 
 ## Cross-question decisions required before an implementation plan
 

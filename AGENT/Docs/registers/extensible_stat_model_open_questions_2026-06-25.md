@@ -158,3 +158,45 @@ Facets to firm at the STM walk:
 - Charisma (a **stat**) and Command/Authority (a **proficiency rank**) are **different axes** — `[STM-1]`
   /`[STM-4]` vs the `[BAT-6]`/`[AGT §6]` proficiency path. Don't conflate.
 - This is a **pin**, not a firming — ratify at the define-all sweep before any build.
+
+## 6. Amendment — registered stat value, floor, and cap effects (owner 2026-07-27)
+
+The shared effect registry must support constraints in addition to additive modifiers:
+
+- `set_stat`: make the target's effective registered stat equal an authored value while the effect is
+  active.
+- `set_stat_floor`: prevent the effective registered stat from resolving below an authored value while
+  the effect is active.
+- `set_stat_cap`: prevent the effective registered stat from resolving above an authored value while
+  the effect is active.
+
+All three take a registry-validated stat ID, value/value formula, source ID, lifecycle/duration, target
+selector, and effect priority/conflict metadata. They may be granted by skills, conditions, items,
+terrain, Pair Up/aura contributions, or other registered effect sources through one resolver. The
+character sheet and forecast must expose the winning set and active floor/cap sources rather than
+misreporting them as additive deltas.
+
+These are effective-stat effects and do not silently mutate the unit's stored/base stat. A permanent
+authored change to stored progression data is a distinct journaled action such as `set_base_stat`,
+with save/rewind and transition-history consequences. Keeping those paths separate ensures that
+removing or expiring a skill/condition restores the value computed from the unit's actual stored stat.
+
+The implementation plan must fix deterministic precedence among base values, additive modifiers,
+`set_stat`, floors, and caps; reject ambiguous equal-priority setters; and make conflicting
+floor/cap sources visible in the stat breakdown.
+
+**Owner ruling, 2026-07-27 — precedence and growth-cap boundary:** resolve effective stats in this
+order: stored/default base value → additive modifiers → highest-priority `set_stat` → strongest cap
+(minimum value) → strongest floor (maximum value). Different-priority setters use the highest
+priority; different equal-priority setters are an authoring error. **Minimums/floors override
+maximums/caps:** if the strongest floor is above the strongest cap, the floor wins and leaves the stat
+at the highest demanded minimum. This is a valid authored result rather than an authoring error, but
+the stat breakdown must show both sources so the override is explainable.
+
+Unit and class stat caps apply **only to personal unit growth**. They are not a final clamp on the
+effective-stat resolver: equipment, skills, conditions, Pair Up, auras, `set_stat`, floors, and other
+effects may take the effective value above a unit/class growth cap. A direct authored `set_base_stat`
+action is also non-growth by default and therefore does not consult the personal-growth cap unless
+that action explicitly requests growth-cap enforcement. Any separate engine-domain bound required to
+keep a value serializable or a formula safe is validation infrastructure, not a gameplay unit/class
+cap, and must not be presented as one.
