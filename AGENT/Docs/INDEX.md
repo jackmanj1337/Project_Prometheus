@@ -142,6 +142,7 @@
 
 ## Implementation plans
 
+- [`plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md`](plans/accepted_portfolio_code_state_review_handoff_2026-07-27.md) — Next-session handoff — review the accepted portfolio against current code — *READY FOR NEXT-SESSION REVIEW*
 - [`plans/b1_cst_save_spine_handoff_2026-07-14.md`](plans/b1_cst_save_spine_handoff_2026-07-14.md) — `B1-CST` Save Spine Handoff - 2026-07-14 — *Planned - ready for next-session impleme*
 - [`plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md`](plans/b1_cst_slice2_prep_results_flow_handoff_2026-07-14.md) — `B1-CST` Slice 2 Handoff - Prep / Results Flow - 2026-07-14 — *Implemented 2026-07-14*
 - [`plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md`](plans/b1_cst_slice3_load_picker_handoff_2026-07-14.md) — `B1-CST` Slice 3 Handoff - Load Game Picker - 2026-07-14 — *Implemented*
