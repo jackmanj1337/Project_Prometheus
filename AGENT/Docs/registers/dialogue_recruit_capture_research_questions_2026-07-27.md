@@ -39,6 +39,11 @@ controller, roster membership, and custody. Treat recruit and capture as registe
 actions that can be invoked by dialogue or by any other event; neither should be embedded in the
 dialogue interpreter.
 
+**Owner direction, 2026-07-27:** provisionally accept all `[DRC-1..33]` recommendations. They remain
+OPEN until the seven identified deep-review topics are walked individually and their interactions are
+reconciled. Rename the old `symmetric` Talk term to **`bidirectional`**: either unit may initiate;
+this is independent of which human or AI participant owns a conversation choice.
+
 ## Research synthesis
 
 ### Player perspective
@@ -550,3 +555,66 @@ then divide delivery into independently testable slices. At minimum, tests must 
 temporary-control expiry, already-acted conversion, third-faction hostility, capture/release inventory
 round trips, map-end custody, objective re-evaluation, suspend and Rewind, skip equivalence, dialogue
 branch resume, invalid pack rejection, and replay with stateful commands suppressed.
+
+## Post-v1 feature option: `free_text_dialogue`
+
+`free_text_dialogue` is a parked, optional input provider for the dialogue decision seam. A human
+types a natural-language response; a small local resolver maps it to **one currently available,
+authored choice ID**. The model never writes dialogue branches, constructs actions, changes facts, or
+executes commands. The normal dialogue runner validates and commits the selected authored option.
+
+### Required seam
+
+- Dialogue requests decisions from an abstract participant-owned provider; v1 implements only the
+  ordinary choice-menu provider.
+- Later providers may include hotseat, remote, AI, and `free_text_intent` without changing authored
+  choice execution.
+- Each request supplies the conversation/node/entry IDs, decision-owner role, localized prompt,
+  currently available options, and explicitly approved context.
+- Each result supplies an available `option_id`, confidence, input method, resolver identity/version,
+  and optionally the original player text subject to privacy policy.
+- `decision_owner` is role-based (`initiator`, `target`, `speaker_controller`, `all`, etc.), never a
+  hardcoded player number. Talk directionality and choice ownership remain separate concepts.
+
+### Authored intent metadata and low-code tooling
+
+Each inferable option may define a plain-language intent summary, positive examples, negative or
+confusable examples, keywords, supported locales, minimum confidence, and whether confirmation is
+mandatory. The low-code editor provides a test box that shows ranked option matches and warns when
+examples collide. Campaign fixtures pair sample player text with the expected authored option so a
+resolver/model update cannot silently change narrative outcomes.
+
+Prefer the smallest sufficient resolver: rules/keywords, then local sentence embeddings, then a
+small classifier or reranker. A tiny generative LLM is only a later fallback; constrained semantic
+classification is smaller, faster, easier to test, and cannot invent an unauthored option.
+
+### Player safety and fallback
+
+- High confidence may preselect the interpretation; medium confidence presents the top candidates;
+  low confidence or no match falls back to the normal authored list.
+- The interpreted option and original response are shown before commit. Irreversible or sensitive
+  outcomes always require confirmation regardless of confidence.
+- Accessibility and campaign policy may disable inference entirely. Manual selection always remains
+  available.
+- Prompt-injection-like text has no authority: the provider's only legal outcome is an available
+  authored option ID or `no_match`.
+
+### Determinism, save, replay, privacy, and multiplayer
+
+- Persist the committed authored option, input method, and resolver version. Never rerun inference on
+  load or replay; Rewind returns to the unresolved choice.
+- Raw player text is optional private data, not required for deterministic state. A campaign must opt
+  in before placing it in a visible log or save.
+- In remote play the authoritative instance validates the option and, when classification affects
+  fairness, performs the classification. Other participants receive the authored result unless the
+  conversation explicitly shares the raw response.
+- Resolver/model files, licenses, supported platforms, resource budgets, and version compatibility
+  are product/tooling concerns outside campaign logic. Web and low-resource targets may expose only
+  the normal menu provider.
+
+### Scope boundary
+
+This option is deliberately post-v1. V1 only needs the abstract decision-provider seam and ordinary
+menu implementation. `free_text_dialogue` depends on the stable dialogue runner, choice intent
+metadata/fixtures, localization policy, save/replay result contract, and—if used remotely—the later
+authoritative multiplayer input layer. It must never become a required path for completing a campaign.
