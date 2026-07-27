@@ -617,6 +617,15 @@ availability, and the selected visitor; it does not hardcode Recruit, Persuade, 
 or other universal outcome buttons. Rich facilities, passive timers, generic persuasion math,
 ransom economies, and systemic escape remain later options.
 
+**Owner clarification, 2026-07-27 — Explore activity model:** Explore is a Prep Hub option, not a
+separate walkable base mode. It lets the player select either a deployable unit or a non-deployable
+camp follower and send that visitor through one of the current campaign node's registered
+activities. The activity vocabulary is an open registry. A campaign supplies campaign-wide default
+activities; cadence processing may modify those defaults; each campaign node may add, remove, or
+override activity definitions for that node. Prison visits are ordinary registered Explore
+activities and therefore inherit the same visitor eligibility, availability, requirement, cost,
+cadence, and node-override machinery rather than creating a parallel prison scheduler.
+
 #### [DRC-32] Can prisoners escape or be rescued, and who controls them?
 
 - **A — No agency while captive.** Pro: simple. Con: escort/custody lacks counterplay.
@@ -627,6 +636,17 @@ ransom economies, and systemic escape remain later options.
 
 **Recommendation:** B initially; design the custody record and signals so C does not require changing
 identity or save format.
+
+**Owner ruling, 2026-07-27 — carrier loss, escape, and map-end custody:** when a captor/carrier falls,
+release the captive onto the carrier's occupied location as part of the fall/displacement resolution;
+the released unit may remain asleep or retain any other independently applied condition. If the unit
+then escapes, resolve its disposition through the author's selected escape-cause displacement rule.
+
+At map end, do not apply one universal residual-captive outcome. After ordinary end-of-map events,
+the author selects the treatment of still-captive units per relevant relation in the aggression
+matrix. This may release, transfer, retain, remove, or otherwise settle a captive. Required-survival
+evaluation occurs after these outcomes: an authored prisoner disposition may count as that unit's
+death and may consequently turn an apparent victory into defeat.
 
 #### [DRC-33] How do objectives, AI, save/rewind, and versioning observe these transitions?
 
@@ -643,6 +663,24 @@ identity or save format.
 controller, roster/custody/activation states, inventory transactions, duration/expiry, and emitted
 facts. Pack schema versions must reject or migrate unsupported transition/action versions before
 activation.
+
+**Owner ruling, 2026-07-27 — objective milestone vocabulary:** objective and event requirements must
+distinguish at least these registered milestones rather than treating `captured` as a loose flag:
+
+- `incapacitate`: satisfy either by a would-be kill or by an authored registered condition. It may be
+  combined with `do_not_kill` to require the condition-only route.
+- `capture`: establish custody through a registered capture method.
+- `extract`: deliver or remove a captive through an authored extraction route.
+
+Each milestone is independently observable, may be required without the later milestones, and must
+carry structured cause/actor/target data for objective re-evaluation and authored follow-up events.
+
+**Owner ruling, 2026-07-27 — key-item restriction contract:** a key/protected item designation must
+state both (1) which player operations are forbidden and (2) the authored fallback/disposition when
+an engine-authorized effect nevertheless performs that operation. The UI explains the player-facing
+restriction; registered actions use the explicit fallback instead of silently failing, duplicating,
+or destroying the item. This contract applies when a key item remains attached to a prisoner as well
+as when it is held by an ordinary unit or the convoy.
 
 ## Cross-question decisions required before an implementation plan
 
