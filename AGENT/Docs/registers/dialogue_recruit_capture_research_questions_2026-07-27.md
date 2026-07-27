@@ -225,6 +225,17 @@ fact.
 **Recommendation:** A narrow v1 should use B; reserve C in the schema and runner after its rewind and
 save semantics are specified.
 
+**Owner ruling, 2026-07-27 — v1 accepted; post-v1 direction reserved:** v1 conversations are wholly
+atomic. Choices, shared-fact writes, recruitment/custody transitions, inventory transfers, and every
+other game action are journaled/staged and become authoritative together only when the conversation
+completes successfully. Later entries evaluate against authoritative state plus the staged overlay.
+Skip traverses the identical journal path and stops at unresolved choices. Failure or abandonment
+discards the whole journal.
+
+Fully flesh out transaction segments with explicit safe commit checkpoints (Option C) after v1. The
+low-code tool will eventually present those as safe-save points rather than exposing transaction
+internals to routine authors.
+
 #### [DRC-8] What may skip/fast-forward do?
 
 - **A — Skip presentation only; execute every game action in order.** Pro: state is invariant. Con:
@@ -246,6 +257,18 @@ save semantics are specified.
 
 **Recommendation:** A for v1, C as the long-term contract. Explicit checkpoints can usually be every
 completed line while allowing authors/tools to exclude unsafe spans.
+
+**Owner ruling, 2026-07-27 — v1 save behavior:** the player may issue Save at any time, including
+during an atomic conversation, but the save records only the most recent committed game checkpoint.
+It does not serialize the in-progress conversation cursor, visited trail, presentation state, or
+uncommitted action journal. Loading relaunches from that committed checkpoint, so the atomic
+conversation starts again from its beginning. The save UI must explain this before confirming a save
+during dialogue. No staged consequence may leak into the save.
+
+Post-v1 Option C may add committed mid-conversation checkpoints. Loading then relaunches from the
+most recent such checkpoint, never from an uncommitted line boundary. This supersedes the older
+`[DLG-11]` promise that every completed line is automatically suspend-safe; that register must be
+amended when this decision set is reconciled.
 
 #### [DRC-10] How is text localized and connected to voice/portraits?
 
@@ -366,6 +389,19 @@ emit ordinary validated data, never special runtime objects.
 **Recommendation:** B. Temporary magical control may be an override/effect, but its resolved
 controller must still be queryable through one authoritative service.
 
+**Owner ruling, 2026-07-27 — provisionally accepted after deep review:** adopt five independent
+dimensions: `affiliation_id`, `tactical_side_id`, `controller_id`, typed `roster_status`, and typed
+`custody_status`. Tactical side owns encounter alignment, hostility lookup, objective presence, turn
+group, targeting, threat display, and default AI coalition; controller owns only who supplies
+decisions. Affiliation remains the durable political/organizational identity. Routine authors choose
+validated transition presets rather than editing all five fields. Preserve stable unit identity
+across every transition.
+
+Minimum scenario matrix the implementation plan must cover: normal roster unit, allied-AI unit,
+player-controlled map guest, temporarily controlled/charmed enemy, permanent recruit, third-faction
+defection, carried/held enemy prisoner, released prisoner, player-roster member captured by an enemy,
+and a unit controlled by a second local/remote human.
+
 #### [DRC-20] What does a recruitment transition specify?
 
 - **A — Target faction only.** Pro: concise. Con: silently implies permanence and roster policy.
@@ -389,6 +425,19 @@ controller must still be queryable through one authoritative service.
 
 **Recommendation:** B in the first implementation, with C-shaped serialized data and explicit
 unsupported duration rejection.
+
+**Owner ruling, 2026-07-27 — v1 accepted:** v1 supports `permanent` and `map_end` recruitment
+durations. Every `map_end` transition requires an explicit expiry outcome: transition the named
+dimensions to an authored destination or remove the unit from the map/campaign flow. Preserve stable
+identity and all unpatched runtime state, including HP, progression, statuses, inventory,
+relationships, history, and activation state. Expiry never grants a bonus action.
+
+Disposition precedence is: death/permanent removal suppresses ordinary expiry; custody remains
+authoritative and retains the intended post-release destination; a later permanent recruitment
+supersedes temporary expiry; otherwise apply the authored outcome. All transitions and expiry data
+ride the normal save/Rewind ledger. Defer generic `restore_prior`, nested duration stacks,
+round/activation/fact-based durations, and invalid-restoration fallbacks until the broader temporary
+control/effect design; reserve an authored expiry-policy model for that later work.
 
 #### [DRC-22] When does a newly controlled on-map unit become actionable?
 
@@ -425,6 +474,20 @@ validation.
 
 **Recommendation:** C if roster limits or map-failure rollback exist; otherwise A with ledger-backed
 rollback. Decide alongside save/rewind semantics.
+
+**Owner ruling, 2026-07-27 — v1 accepted:** a successful `permanent` recruitment assigns full
+`roster_status = member` when the atomic conversation/action journal commits. Do not implement
+`pending_member` in v1. The same stable runtime unit becomes the roster member; duplicate identity
+and destination/capacity policy validate before commit. Prefer `join_and_bench` when deployment—not
+total roster size—is the actual limit.
+
+Survival/results-dependent joins use `guest` followed by a separate permanent transition when the
+authored requirement passes. A permanently recruited unit that dies later in the same map remains a
+recruited roster member with the normal campaign death/injury disposition; recruitment history is
+not erased. Save includes committed membership, while Retry/Rewind restore it through the existing
+map ledger. Retreat follows the campaign's ordinary progress-retention rule. Convoy, deployment,
+support gain, trading, prep access, and other capabilities remain separately requirement-gated rather
+than being implicit consequences of membership.
 
 #### [DRC-25] How are recruitment requirements authored?
 
@@ -499,6 +562,21 @@ record so the two paths converge.
 **Recommendation:** B as default, C as the contract. Confiscation must be ledgered and release must
 not silently duplicate or delete items.
 
+**Owner ruling, 2026-07-27 — simplified v1 accepted:** a captive retains its ordinary inventory and
+item-instance ownership. Do not build confiscation, escrow, automatic restoration, a custody locker,
+or a separate prisoner-inventory UI in v1. Instead, the interaction resolver treats an on-map captive
+held by the acting unit's side as an eligible **target** for the existing Trade interaction, as though
+both units had the same controller for Trade permission only. Do not actually mutate the captive's
+`controller_id`, tactical side, or custody state.
+
+V1 Trade is the normal two-way transaction unless later narrowed: the player may take from or give
+items to the captive, subject to existing inventory capacity and protected/bound-item rules. The
+captive cannot initiate Trade while custody suppresses its activation. Every transfer uses the
+ordinary item-instance ledger and therefore saves/Rewinds normally. Release, escape, rescue, or
+recruitment carries whatever inventory the captive currently holds; items previously traded away stay
+with their real current holders, with no duplication or automatic restitution. UI must warn before
+releasing or exchanging a captive who still holds player-controlled items.
+
 #### [DRC-31] What can happen to a captive during and after a map?
 
 - **A — Hold until map end, then automatically become recruitable.** Pro: matches the old plan.
@@ -511,6 +589,33 @@ not silently duplicate or delete items.
 
 **Recommendation:** B for the first slice, with a minimal custody record; C is the expansion target.
 Recruitment is one possible registered outcome, never the automatic definition of capture.
+
+**Owner ruling, 2026-07-27 — v1 prison loop accepted:** resolve map completion in this order:
+
+1. Run the map's ordinary authored end-of-map events while captive units and custody contexts remain
+   addressable. Those events may recruit, release, transfer, remove, or otherwise settle any captive
+   through normal registered actions.
+2. After the event runner completes successfully, sweep only residual captives. Transfer every
+   eligible non-bound, non-protected/key equipment item instance from each residual captive to the
+   party convoy through the ordinary ledger. Bound and protected/key equipment stays attached to the
+   prisoner. No item is copied or deleted; convoy overflow must use the campaign's normal safe
+   destination/failure policy.
+3. Move each residual captive's full stable unit state and remaining inventory into the campaign
+   custody roster.
+4. Expose those records through a minimal **Prison** tab under the between-map **Explore** menu.
+
+The Prison tab is a visitor/conversation launcher, not a separate persuasion simulation. The player
+selects an eligible roster visitor, then a prisoner or an authored guard interaction. Dialogue context
+binds `visitor`, `prisoner`, `guard`, and `custody_owner` roles. Shared requirements decide which
+conversations are hidden, shown-disabled, or available; ordinary dialogue actions/facts handle
+recruitment, release, custody transfer, relationship changes, costs, attempt limits, cooldowns, and
+story outcomes. A guard may be a stable unit or named-speaker/stage role as authored. Explore's
+existing activity/time policy—not the prison panel—decides whether a visit consumes time.
+
+The panel must show custody identity, remaining bound/protected items, known conversation
+availability, and the selected visitor; it does not hardcode Recruit, Persuade, Interrogate, Execute,
+or other universal outcome buttons. Rich facilities, passive timers, generic persuasion math,
+ransom economies, and systemic escape remain later options.
 
 #### [DRC-32] Can prisoners escape or be rescued, and who controls them?
 
@@ -618,3 +723,25 @@ This option is deliberately post-v1. V1 only needs the abstract decision-provide
 menu implementation. `free_text_dialogue` depends on the stable dialogue runner, choice intent
 metadata/fixtures, localization policy, save/replay result contract, and—if used remotely—the later
 authoritative multiplayer input layer. It must never become a required path for completing a campaign.
+
+## Deep-review addendum: dialogue profile boundary
+
+**Owner ruling, 2026-07-27 — accepted:** conversation profiles own **presentation plus interaction
+policy**, never hidden gameplay mechanics. An open profile entry may define presenter/layout,
+required and optional participant roles, allowed invocation contexts, pacing/input defaults,
+history/archive/replay policy, completion/return behavior, decision-owner defaults, stateful-action
+permissions, and—after v1—transaction-policy defaults. Conversations or their invoking events must
+still explicitly author every fact write, relationship change, item/resource transfer, recruitment,
+custody transition, death/disposition, or other gameplay effect.
+
+Begin with `story_scene`, `map_talk`, `support`, `prison_visit`, and `battle_bark`. Replay always
+suppresses stateful actions. Acting-unit cost, support-rank gates/rewards, Explore time cost, prison
+attempt limits, and other subsystem mechanics remain with their owning interactions/actions rather
+than the profile. Profiles provide validated defaults and hard constraints; conversations may
+override safe presentation defaults but may not silently bypass constraints.
+
+Keep profiles distinct from authoring templates. `recruitable_enemy_talk` and
+`attempt_prison_recruitment` are low-code templates that emit ordinary interactions, requirements,
+conversations, and actions using `map_talk` or `prison_visit`; they are not runtime profile types or
+special dialogue interpreters. Campaign packs may register compatible profiles without adding an
+engine switch.
