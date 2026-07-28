@@ -1,7 +1,7 @@
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-07-21
+**Last verified:** 2026-07-23
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -68,6 +68,21 @@ foundations or add unmanifested save state.
 | 8 | Post-v1 / parked | Side activities, public builder, content resync, remote play, Laguz, Awakening, hex, perception, ML, Vision Pro. | Revisit after first stable campaign release or owner scope change. |
 
 ## Next Work Queue
+
+### Campaign data-ownership implementation line
+
+The approved planning sources are
+[`zero_content_engine_implementation_plan_2026-07-23.md`](../Docs/plans/zero_content_engine_implementation_plan_2026-07-23.md),
+[`formula_registries_implementation_plan_2026-07-23.md`](../Docs/plans/formula_registries_implementation_plan_2026-07-23.md),
+[`pack_associated_save_implementation_plan_2026-07-23.md`](../Docs/plans/pack_associated_save_implementation_plan_2026-07-23.md),
+[`multi_owner_economy_implementation_plan_2026-07-23.md`](../Docs/plans/multi_owner_economy_implementation_plan_2026-07-23.md),
+and [`rule_profiles_implementation_plan_2026-07-23.md`](../Docs/plans/rule_profiles_implementation_plan_2026-07-23.md).
+The machine-checkable order lives in `coordination/tasks.json`: inactive
+zero-content boot -> v1 formula registries -> all Tier-2 families -> base-pack
+extraction -> pack-save schema/load -> wallet migration -> rule profiles, with
+export/backup and final no-content export gates following their recorded
+dependencies. Start with the zero-content foundation task after its release-line
+and result-action prerequisites clear.
 
 ### B1-CST campaign / save spine
 
