@@ -9,7 +9,7 @@ directory entries in campaign ZIPs while retaining the single-package-root bound
 
 ## Bundle integrity and import blocker
 
-- [ ] `Project_Prometheus_v0.5.8_debug.exe` matches `SHA256SUMS.txt`.
+- [ ] `Project_Prometheus_v0.5.8.exe` matches `SHA256SUMS.txt`.
 - [ ] Main Menu shows `v0.5.8`; startup BUILD STAMP matches `BUILD_INFO.json`.
 - [ ] Import the bundled `two-map-skirmish-1.0.zip` successfully.
 - [ ] Import the bundled `branching-skirmish-1.0.zip` successfully.
