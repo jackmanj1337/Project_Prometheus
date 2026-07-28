@@ -297,6 +297,11 @@ is on hold.
 
 ## Immediate Next Actions
 
+The next campaign-schema planning pass is bounded by
+[`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md):
+propagate its accepted provenance, variant, advancement, and opt-in progression-pressure
+contracts into the existing owning plans before starting another implementation slice.
+
 ### Playtest-waiting work queue - updated 2026-07-19
 
 This queue applies while the **v0.5.2** Windows verification return is out; watch
