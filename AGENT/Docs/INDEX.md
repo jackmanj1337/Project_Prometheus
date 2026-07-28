@@ -300,6 +300,10 @@
 - [`playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md`](playtests/playtest_v0.5.2_results_triage_plan_2026-07-21.md) — v0.5.2 Playtest Results — Root-Cause Review & Fix Plan — *Triaged - headless-verified + peer-revie*
 - [`playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md`](playtests/v0.4.0_d12eb33_log_checklist_intake_handoff_2026-07-15.md) — v0.4.0 `d12eb33` Log + Checklist Intake Handoff — *Active - next-session intake handoff*
 
+## Session handoffs
+
+- [`plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md) — Cross-ruleset schema trial — implementation-plan update handoff — *Active - next-session planning input*
+
 ## Reference / feasibility / Q&A
 
 - [`design/campaign_backup_content_addressed_format_2026-07-25.md`](design/campaign_backup_content_addressed_format_2026-07-25.md) — Content-Addressed Backup Format — design sketch (2026-07-25) — *design sketch, POST-V1. Not scheduled. C*

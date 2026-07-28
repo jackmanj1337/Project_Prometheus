@@ -311,8 +311,7 @@ internal level), class EXP/PXP boundary (sibling durable pressure state), F1 man
 and Band 5 skills plan (`skill_unlocks` to durable `earned_skills`). Implementation
 ordering and tracker exits come from those plans; private derivative fixtures remain
 outside this repository. The historical intake is
-`AGENT/Docs/plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md` on its
-recorded sibling branch until that branch is merged into this documentation stack.
+[`fe_schema_trial_implementation_plan_handoff_2026-07-28.md`](fe_schema_trial_implementation_plan_handoff_2026-07-28.md).
 
 ### Playtest-waiting work queue - updated 2026-07-19
 
