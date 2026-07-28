@@ -32,6 +32,8 @@ reject root-level files.
   were verified directly in the executable.
 - Bundle contents: executable, checklist, this build record, `BUILD_INFO.json`,
   both campaign fixtures, and `SHA256SUMS.txt`.
+- Bundle: `37067961` bytes, SHA-256
+  `6ff1ff26dfc6f85e05a86dbae0e297a87d883939c83d61e15851a1bf430ba0a7`.
 
 Live Windows validation remains pending. Complete and return
 [`playtest_checklist_v0.5.8.md`](playtest_checklist_v0.5.8.md) with logs,
