@@ -1,7 +1,7 @@
 ---
 Type: plan
-Status: READY FOR NEXT-SESSION REVIEW
-Last verified: 2026-07-27
+Status: WAITING FOR ACCEPTED STABLE v0.5 RELEASE
+Last verified: 2026-07-28
 Tracker: REVIEW-ACCEPTED-PORTFOLIO-CODE-STATE-2026-07-27
 ---
 
@@ -17,6 +17,47 @@ Review the accepted implementation portfolio against the actual current Project 
 before any product implementation begins. Confirm that every proposed slice starts from an accurate
 description of existing code, uses the correct state owner and extension seam, and has complete
 dependencies, tests, migrations, documentation, and playtest gates.
+
+## Release gate and recorded merge order
+
+This review must use the post-v0.5 reconciled integration line, not the currently divergent
+pre-acceptance branches. It is therefore waiting for an exact accepted stable v0.5 release identity.
+Release tags remain numeric `vX.Y.Z`: use `v0.5.7` if the existing artifact is accepted unchanged;
+if any code or build-affecting change is required, cut and validate the next numeric patch (normally
+`v0.5.8`). Do not use `v0.5.s`, because it violates the repository tag policy and does not provide a
+sortable patch identity.
+
+Once that identity exists, use this order:
+
+1. Promote the accepted playtest source through `agent/playtest-release` to
+   `agent/stable-release`, then through `agent/staging-area` for the human-controlled promotion to
+   `main`. Do not add integration-only features to the evidenced release.
+2. Merge the accepted `agent/stable-release` back into `agent/integration` through the tracked
+   reconciliation task. Preserve both sides: integration and the v0.5.7 fix line diverged from
+   merge base `258ed12a`, with 72 integration-only and 94 release-only commits when reviewed on
+   2026-07-27. Resolve shared documentation, GDD, policy, hook, and session-index paths by content.
+3. Merge the independent Phase 0 branches in order: BBCode injection hardening, text-entry
+   governance, then the web-distribution freeze. Project Exchange, Prep activity registry,
+   headless hardening, and branch-policy guards are already contained in integration/main and must
+   not be merged again.
+4. Consolidate `agent/from-integration/campaign-data-research`, then
+   `agent/from-integration/dialogue-recruit-capture-research`; regenerate documentation indexes and
+   reconcile the Control Plane rather than accepting either branch's generated files blindly.
+5. Perform the code-state evidence review in this handoff against the resulting exact
+   `agent/integration` SHA. Only after it passes may the accepted implementation slices begin.
+
+The post-review implementation sequence remains:
+
+```text
+zero-content/session + pack/save identity
+  -> Requirement + shared record-screen foundations
+  -> formula/wallet/item/unit-state/condition foundations
+  -> thin Campaign Library/Prep authored-interaction Windows milestone
+  -> spatial/carry/Trade/Convoy + Dialogue journal/presenter
+  -> Talk/recruit/objectives/map-end
+  -> Explore/Prison
+  -> migration, author tools, and final Windows/end-to-end review
+```
 
 This is a review and planning-correction session only. **Do not implement runtime, UI, schema, data,
 save, migration, or authoring-tool changes.** If the review finds a defect, record it in the owning
