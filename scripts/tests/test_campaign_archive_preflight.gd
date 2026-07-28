@@ -21,6 +21,27 @@ func _init() -> void:
 		print("FAIL valid fixture: %s" % [valid.errors])
 		failed += 1
 
+	var directory_entries := entries.duplicate(true)
+	directory_entries.append(_entry(ROOT + "/", 0, "directory"))
+	directory_entries.append(_entry(ROOT + "/data/", 0, "directory"))
+	var directory_result = Preflight.inspect_entries(directory_entries, payloads, limits)
+	if directory_result.valid and directory_result.package_id == ROOT:
+		print("OK  explicit package directory entries are accepted")
+		passed += 1
+	else:
+		print("FAIL package directory entries: %s" % [directory_result.errors])
+		failed += 1
+
+	var root_file_entries := entries.duplicate(true)
+	root_file_entries.append(_entry("readme.txt", 2))
+	var root_file_result = Preflight.inspect_entries(root_file_entries, payloads, limits)
+	if not root_file_result.valid and _has(root_file_result.errors, "outside a package root"):
+		print("OK  root-level files remain outside the package root")
+		passed += 1
+	else:
+		print("FAIL root-level file boundary: %s" % [root_file_result.errors])
+		failed += 1
+
 	var zip_path := "user://test_campaign_archive_preflight/fixture.zip"
 	_write_zip(zip_path, payloads)
 	var zip_result = Preflight.inspect_zip(zip_path, limits)

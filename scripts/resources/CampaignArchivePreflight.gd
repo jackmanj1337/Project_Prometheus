@@ -137,7 +137,12 @@ static func _validate_entry(
 	var normalized := path.trim_suffix("/")
 	var root := normalized.get_slice("/", 0)
 	if normalized.find("/") == -1:
-		errors.append("Entry '%s' is outside a package root" % path)
+		# ZIP tools commonly emit the package root as an explicit directory entry.
+		# It establishes the same root as its child files; only root-level files escape it.
+		if bool(entry.get("is_directory", false)):
+			roots[root] = true
+		else:
+			errors.append("Entry '%s' is outside a package root" % path)
 	else:
 		roots[root] = true
 	if exact.has(normalized):

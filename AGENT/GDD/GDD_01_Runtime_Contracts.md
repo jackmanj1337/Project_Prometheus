@@ -138,7 +138,7 @@ suspend-complete board serializer; Phase 2: the two-tier decaying ledger, the
 `restore_history(0)` — the party-only snapshot path is scrapped);
 Phase 3 live checkpoint pushes and player-spendable deterministic rewind are
 **Implemented** (2026-07-15); object/AI future fields remain **Target design**
-Last verified: 2026-07-15
+Last verified: 2026-07-28
 
 ### Summary
 All gameplay randomness flows through a hash-chained, context-seeded `RngService` so
@@ -333,6 +333,8 @@ cross-references, and optional media, and atomically renames the validated tree
 under `installed/{pack_id}/{version}`. Existing identities are rejected rather
 than overwritten or merged. Every failure removes staging and leaves installed
 bytes, active content, selector state, settings, and saves unchanged.
+Explicit ZIP directory metadata at or below that namespace is accepted; only
+files outside the single package root are rejected.
 
 Installation is deliberately inert. `CampaignLibraryScreen` refreshes discovery
 after a successful import, but neither preflight nor install selects, activates,

@@ -1,10 +1,15 @@
 ---
 Type: playtest
-Status: Exported - pending live Windows validation
-Last verified: 2026-07-25
+Status: Rejected - campaign fixtures cannot be imported
+Last verified: 2026-07-28
 ---
 
 # v0.5.7 Windows Playtest Build
+
+> **Rejected 2026-07-28:** both official campaign fixtures were packaged with
+> valid explicit directory entries, but `CampaignArchivePreflight` rejected the
+> package-root entry as outside the root. This blocks the campaign playtest and
+> is not tester error. v0.5.8 replaces this build with the importer regression fix.
 
 Focused Windows debug build for the v0.5.6 return: repeated branching Results state,
 ordinary package-save validation, two-stage FileDialog Escape, 200% Results layout and
@@ -35,6 +40,5 @@ and a visibly distinct Ridge Pass fixture.
 - Bundle contents: executable, checklist, this build record, `BUILD_INFO.json`, both
   campaign fixtures, and `SHA256SUMS.txt`.
 
-Live Windows behavior remains pending. Complete and return
-[`playtest_checklist_v0.5.7.md`](playtest_checklist_v0.5.7.md) with the requested logs,
-screenshots, and reproduction artifacts.
+Live validation stopped at the fixture-import blocker. Do not resume this checklist;
+use the v0.5.8 replacement bundle.

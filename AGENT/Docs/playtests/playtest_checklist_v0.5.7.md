@@ -1,6 +1,6 @@
 # v0.5.7 Windows Verification Checklist
 
-**Status:** Ready for Windows playtest after bundle metadata is filled  
+**Status:** Rejected 2026-07-28 — bundled campaign ZIP import blocker; use v0.5.8
 **Date:** 2026-07-25  
 **Return this completed checklist, all Godot logs, and screenshots together.**
 

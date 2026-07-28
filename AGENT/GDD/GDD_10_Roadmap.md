@@ -98,7 +98,8 @@ and registry-dispatched content-family schemas without installing or selecting
 anything. The first concrete validator set now proves a complete campaign/map/
 roster/class fixture and all cross-document ids. The package pipeline includes
 pure ZIP preflight now verifies the actual format and central-directory metadata,
-normalizes the one-root package namespace, rejects collisions/unsafe paths/
+normalizes the one-root package namespace, accepts ordinary explicit directory
+entries within it, rejects collisions/unsafe paths/
 symlinks/special files, applies caller-supplied entry and byte limits, validates
 all structured content in memory, and excludes unindexed or save-shaped files.
 The engine now performs rollback-safe staged installation after preflight:
