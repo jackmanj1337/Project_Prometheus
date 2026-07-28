@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-28 entity schema prototype](2026-07-28-entity-schema-prototype.md) — Began the generic schema test with strict class and provenance validation; all 108 suites green.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
 - [2026-07-21a](2026-07-21a.md) — Corrected the nonexistent source-handbook premise and synchronized the integration-line policy block.
