@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-28](2026-07-28.md) — Recorded the post-v0.5 merge order and gated portfolio review on an accepted numeric stable release identity.
 - [2026-07-27](2026-07-27.md) — Resolved `[DRC-1..33]`, reconciled connected registers, and accepted the sliced Dialogue/custody and recent-research implementation portfolio.
 - [2026-07-26-main-into-integration](2026-07-26-main-into-integration.md) — Merged main into agent/integration; resolved the two policy-bearing hook conflicts and claimed the three staging-line commits.
 - [2026-07-21c](2026-07-21c.md) — Closed and claimed the integration-line unblocker delivery.
