@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - implementation plan
-Last verified: 2026-07-03
+Last verified: 2026-07-28
 ---
 
 # Band 5 Conditions And Skill Effects Implementation Plan
@@ -10,6 +10,15 @@ Last verified: 2026-07-03
 
 **Track IDs:** `B5-CONDITIONS`, `B5-DURATION-LIFECYCLE`, `B5-SKILLS-EFFECTS`,
 `B5-LOADOUT-CAPS` (shell + skills adapter only).
+
+**Class progression boundary (accepted 2026-07-28).** Class documents author
+`skill_unlocks`; successful bounded level-up/`ClassAdvancement` operations grant
+durable unit-owned `earned_skills`. Promotion and reclass must call that operation
+registry rather than duplicating skill mutation in route handlers. Preview,
+cancelled, and failed transitions grant nothing. Conditions, equipped skills, and
+PXP remain separate owners; none may infer earned skills from the current class.
+Fixtures must cover one-time grant, duplicate suppression, save round trip, Retry/
+Rewind restoration, and fixed/branching/reclass transitions through one path.
 
 **Managed by:** [`project_control_plane_2026-06-29.md`](project_control_plane_2026-06-29.md)
 Band 5 rows. Drafted from

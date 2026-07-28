@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-23
+Last verified: 2026-07-28
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-ZERO-CONTENT-FOUNDATION, IMPL-ZERO-CONTENT-FAMILIES, IMPL-ZERO-CONTENT-BASE-PACK, IMPL-ZERO-CONTENT-EXPORT-GATE
 ---
@@ -61,7 +61,7 @@ select registered handler ids and validated parameters.
 | Battle maps | JSON grid, terrain cells, start/objective tiles, asset ids. | Bounds/terrain/objective cross-checks pass. |
 | Encounters | Factions, turn order, placements, objectives, rewards, overrides. | All faction/unit/class/item/skill/objective ids resolve. |
 | Rosters/units | Full stats, progression, inventory, skills, faction and authored state. | Durable unit ids unique; mutable runtime copies build. |
-| Classes | Full bases/growths/caps, movement, promotions, skills, sprite ids. | Stat/skill/class/media ids resolve. |
+| Classes | Engine-owned declarative schema over existing `ClassData`: flat `base_*`, player/enemy growths, caps, WEXP bases/caps, `skill_unlocks`, `tier`, `internal_level_rule`, compatibility `promotes_to`, bounded variants, movement and sprite ids. | Unknown fields fail with exact paths; stat/skill/class/media/provenance ids resolve; selected durable variants are saveable. |
 | Weapons | Full combat fields, effects, costs and registered range formula selection. | Item/stat/formula/resource references validate. |
 | Items | Uses, effects, costs, class requirements, icons. | Effect/requirement/resource/class ids validate. |
 | Skills | Triggers, modifiers and registered engine primitive selections. | Handler/stat/resource ids validate; no pack callable. |
@@ -75,6 +75,35 @@ Legacy `data/maps/<id>/*_data.tres` is retired only after split battle-map and
 encounter JSON provides equivalent coverage. Every current `data/` file must appear
 in an extraction inventory with destination, disposition, and provenance; no
 unclassified file may be deleted.
+
+### Class entity, provenance, and advancement contract
+
+The engine-owned schema registry is canonical. Generated JSON Schema, references,
+and golden fixtures are projections, not competing authorities. Class documents use
+one identity-bearing base entity plus optional bounded variants: each variant has a
+stable `variant_id`, eligibility predicate, and typed overrides. Class variants may
+override only admitted class-owned fields; advancement-edge variants may override
+only admitted edge-owned fields. Identity, schema, provenance, and arbitrary
+deep-merge overrides are rejected.
+
+Packages own reusable source registries. Every identity-bearing document has nonempty
+resolving `source_refs`; direct transcription needs document references, while
+transformed, disputed, conflicting, or ambiguous fields also name stable occurrence
+audit ids. Missing document coverage, missing occurrence coverage, and dangling
+references are distinct structured errors. Dangling references are never waivable.
+Editor-only draft launch may temporarily waive missing occurrence coverage with a
+persistent warning, prelaunch report, and isolated saves; complete-pack load/export
+rejects all missing or dangling required provenance. Errors carry package, catalogue
+entry, document path, field path, code, source/audit id, actionable message, and a
+suggested fix where possible.
+
+`ClassAdvancement` replaces compatibility-only `promotes_to` semantics. Classes
+reference stable edges; edges own source/destination, transition gains, rank grants,
+variant selection, and bounded one-time operations. Routes compose registered
+trigger, requirement, cost, selection, and transition handlers, all engine-owned;
+packs provide data only. Fixed and branching advancement use this same path.
+Reclass destinations remain unit-owned. Keep a `promotes_to` import adapter only
+while old content exists, and sequence this schema before bulk class transcription.
 
 ## Incremental slices and dependencies
 
@@ -90,6 +119,10 @@ unclassified file may be deleted.
    vertical validator + adapter + cross-reference fixture. Commit families in
    dependency order: registries/media → terrain/classes/skills → weapons/items →
    rosters → maps/encounters → campaigns. Keep compatibility activation green.
+   The class vertical lands first within its group: canonical schema projection,
+   source registry and occurrence-audit validation, bounded class/edge variants,
+   `ClassAdvancement`, runtime adapter, structured diagnostics, then golden and
+   invalid fixtures. Do not begin bulk class transcription before this exit passes.
 4. **`IMPL-ZERO-CONTENT-BASE-PACK` — extract playable content once.** Build the
    base game as an ordinary self-contained pack, using the same importer/installer/
    selector path as third-party packs. Coordinate with `LEG-AUDIT-FE-NUMBERS-2026-07-20`:
@@ -120,6 +153,10 @@ precede a passing replacement-pack fixture and rollback path.
 
 - Focused validators/adapters per family; hostile archive and cross-family fixtures;
   atomic activation/deactivation; no-pack boot; invalid/missing-family UI tests.
+- Class fixtures prove existing fields pass, unknown fields report exact paths,
+  missing/dangling provenance differs from missing occurrence coverage, cross-owner
+  and identity variant overrides fail, selected variants round-trip/migrate, and
+  cancelled or failed advancement routes mutate nothing.
 - Export audit compares admitted engine paths against a forbidden playable-family
   list; base-pack closure walks every reference. Full `run_tests.sh` per slice.
 - Windows: install/select pack, no-pack/invalid-pack dialogs, New Game and one full

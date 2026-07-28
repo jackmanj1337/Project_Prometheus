@@ -1,7 +1,7 @@
 ---
 Type: implementation plan
 Status: Planned — approved contract; implementation not started
-Last verified: 2026-07-23
+Last verified: 2026-07-28
 Decision source: campaign_data_ownership_research_findings_2026-07-23.md
 Tracker: IMPL-FORMULA-REGISTRY-V1, IMPL-FORMULA-REGISTRY-EXTENSIONS
 ---
@@ -48,6 +48,8 @@ determinism contract, preview function, and (only where permitted) commit functi
 | Damage | combat snapshot; bounded integer | Zero RNG/mutation; preview/runtime same handler. | Later; registered shipped default before alternatives. |
 | Growth | immutable unit/class/rule snapshot + declared RNG event; stat deltas | Fixed stat and draw order; bounded deltas; preview exposes distribution only. | Later unless base-pack extraction needs an alternate. |
 | AI scoring | immutable projected candidate; bounded score/breakdown | Zero RNG/mutation; stable tie order; no world traversal outside supplied snapshot. | Later; preserve `AIProfileRegistry`. |
+| Progression-pressure update | committed route result + durable pressure + profile/class-offset bindings; bounded pressure state | Zero RNG; execution only after one committed qualifying route; preview/cancel/failure are pure. | Required by `IMPL-PROGRESSION-PRESSURE-2026-07-28` after v1 foundations. |
+| Internal level | immutable level/pressure/class-offset/profile snapshot; bounded integer | Zero RNG/mutation; declared floor/rounding and cap; preview and execution receive the same result. | Required by `IMPL-PROGRESSION-PRESSURE-2026-07-28`; consumed by EXP families. |
 
 Each evaluator receives a purpose-built value dictionary, never a Node, Callable,
 path, singleton, or unrestricted Variant graph. Numeric operations check type,
@@ -70,6 +72,13 @@ are validated while building the candidate catalogue.
 3. **`IMPL-FORMULA-REGISTRY-EXTENSIONS`** depends on base-pack extraction and is
    independently scheduled: register damage, growth and AI scoring defaults, then
    allow alternatives one family at a time. It does not block zero-content v1.
+4. **Progression-pressure families** depend on formula-registry v1 and the generic
+   advancement route. Register trusted update and computed-internal-level handlers,
+   then add immutable versioned descriptors for allowed inputs, class-offset
+   bindings, rounding, caps, and downstream EXP bindings. Freeze selected ids,
+   versions, and parameters into the run snapshot; a pack update cannot change an
+   active run without explicit migration. No selected pressure profile means no
+   pressure state or behavior.
 
 ## Test and failure matrix
 
@@ -80,6 +89,10 @@ are validated while building the candidate catalogue.
   filesystem-looking strings and runtime objects fail activation with document path.
 - Save/load retains selected durable ids and resolved parameters; pack update cannot
   change an active run without the persistence plan's compatibility/migration path.
+- Pressure fixtures prove preview purity; cancelled/failed routes do not update;
+  one qualifying committed route updates exactly once; rounding/caps are exact; and
+  preview and execution feed the same computed internal level to the selected EXP
+  formula. Compatibility examples remain private-pack evidence, not public data.
 - Windows validation only checks author/player diagnostics and displayed preview
   parity; no visual redesign is required.
 

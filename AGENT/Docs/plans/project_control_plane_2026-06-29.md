@@ -1,7 +1,7 @@
 ---
 Type: plan
 Status: Active - planning input
-Last verified: 2026-07-16
+Last verified: 2026-07-28
 ---
 
 # Project Control Plane
@@ -302,6 +302,17 @@ authorizing implementation or campaign/data schema decisions.
 | Retired vocabulary scan | Enforced | [`project_vocabulary_manifest_2026-06-29.md`](project_vocabulary_manifest_2026-06-29.md) | Retired terms appear in active prose outside Historical/Superseded sections. |
 
 ## Immediate Next Actions
+
+The cross-ruleset schema trial is design-complete. Its accepted generic contracts are
+now owned by the zero-content class vertical (entity schemas, provenance, bounded
+variants, and `ClassAdvancement`), formula registries (pressure update and computed
+internal level), class EXP/PXP boundary (sibling durable pressure state), F1 manifest
+(variant/pressure/route persistence), campaign-data findings (source obligations),
+and Band 5 skills plan (`skill_unlocks` to durable `earned_skills`). Implementation
+ordering and tracker exits come from those plans; private derivative fixtures remain
+outside this repository. The historical intake is
+`AGENT/Docs/plans/fe_schema_trial_implementation_plan_handoff_2026-07-28.md` on its
+recorded sibling branch until that branch is merged into this documentation stack.
 
 ### Playtest-waiting work queue - updated 2026-07-19
 

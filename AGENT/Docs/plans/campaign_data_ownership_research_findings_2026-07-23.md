@@ -1,7 +1,7 @@
 ---
 Type: research findings
 Status: Applied — research recommendations approved; ready for implementation planning
-Last verified: 2026-07-23
+Last verified: 2026-07-28
 Owner approval: 2026-07-23 — all ten recommendations approved
 Research handoff: campaign_data_ownership_research_handoff_2026-07-23.md
 Tracker rows: RESEARCH-ECONOMY-OWNERSHIP-2026-07-23, RESEARCH-PACK-SAVE-OWNERSHIP-2026-07-23,
@@ -190,6 +190,24 @@ installable pack.” Keeping user state out of installable ZIPs preserves the
 existing package-security boundary.
 
 ## R3 — Zero-content engine and the data/script boundary
+
+### Entity-document and provenance obligations
+
+Each identity-bearing entity is authored as one document; generated schema,
+reference, and contents files are projections from the engine schema registry and
+package catalogue, not additional authoring sources. A package owns a reusable source
+registry and every identity-bearing document carries nonempty resolving
+`source_refs`. Direct transcription requires document coverage. Transformed,
+disputed, conflicting, or ambiguous fields additionally name stable occurrence-audit
+ids. Generated contents/reference views must be reproducible and validated against
+the indexed documents and source registry.
+
+Complete-pack validation and export fail on missing required provenance or any
+dangling source/audit reference. Editor-only draft launch may waive missing
+occurrence coverage, but must show persistent warnings and a prelaunch report and
+must isolate resulting saves. It cannot waive structural, safety, dependency, or
+dangling-reference errors. Private derivative fixtures and numeric evidence remain
+in their private pack repositories; public engine fixtures stay generic.
 
 ### Baked-content inventory
 
