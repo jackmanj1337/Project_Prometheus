@@ -4,6 +4,7 @@ One line per session note, newest first. **Add a row here whenever you create a
 session note** (mirrors how `MEMORY.md` indexes memories). Notes are Historical
 records — keep them; this index is the navigation layer.
 
+- [2026-07-29](2026-07-29.md) — Class schema trial, self-contained pressure packs, and implementation-plan alignment
 - [2026-07-29 class schema trial](2026-07-29-class-schema-trial.md) — Defined and verified the pre-freeze class/provenance/advancement contract and synthetic conformance packs.
 - [2026-07-29 FE readiness final claim](2026-07-29-fe-readiness-final-claim.md) — Claimed the UTC-midnight roadmap verification closeout.
 - [2026-07-28 FE implementation readiness closeout](2026-07-28-fe-implementation-readiness-closeout.md) — Claimed the roadmap-verification/session closeout commit for the preparation branch.
